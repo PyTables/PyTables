@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.26 2003/02/24 20:33:50 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.27 2003/02/28 13:39:25 falted Exp $
 #
 ########################################################################
 
@@ -36,11 +36,12 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.26 $"
+__version__ = "$Revision: 1.27 $"
 
 
 import sys, os.path
 import numarray as num
+import ndarray
 import chararray
 import recarray2 as recarray
 
@@ -471,7 +472,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.26 2003/02/24 20:33:50 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.27 2003/02/28 13:39:25 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -875,9 +876,6 @@ cdef class Table:
     if ret < 0:
       raise RuntimeError("Problems reading records.")
 
-    # Update the Row counters
-    #self.row.setBaseRow(start)
-
     return nrecords
 
   def __dealloc__(self):
@@ -888,6 +886,7 @@ cdef class Table:
 cdef class Row:
   cdef object _fields, _array, _table, _saveBufferedRows
   cdef int _row, _nbuf, _nrow, _unsavednrows, _maxTuples
+  cdef int step
 
   """Row Class
 
@@ -911,10 +910,18 @@ cdef class Row:
     self._nrow = self._nbuf + self._row
     return self
 
-  def setBaseRow(self, start):
+  def getRow(self):
+    """ return the row for this record object and update counters"""
+    self._row = self._row + self.step
+    self._nrow = self._nbuf + self._row
+    #print "Delivering row:", self._nrow, "// Buffer row:", self._row
+    return self
+
+  def setBaseRow(self, start, startb, step):
     """ set the global row number and reset the local buffer row counter """
     self._nbuf = start
-    self._row = -1
+    self._row = startb - step
+    self.step = step
 
   def nrow(self):
     """ get the global row number for this table """
@@ -1051,11 +1058,16 @@ cdef class Array:
       # Do a copy of the array in case is not contiguous
       # We can deal with the non-aligned and byteswapped cases
       if not arr.iscontiguous():
-        array = arr.copy()
+        #array = arr.copy()
         # Change again the byteorder so as to keep the original one
         # (copy() resets the byteorder to that of the host machine)
-        if arr._byteorder <> array._byteorder:
-          array._byteswap()
+        #if arr._byteorder <> array._byteorder:
+        #  array._byteswap()
+        # The next code is more efficient as it doesn't reverse the byteorder
+        # twice (if byteorder is different than this of the machine).
+        array = ndarray.NDArray.copy(arr)
+        array._byteorder = arr._byteorder
+        array._type = arr._type
       else:
         array = arr
 

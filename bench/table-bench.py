@@ -67,6 +67,7 @@ def createFile(filename, totalrows, complevel, recsize):
         elif recsize == "medium":
             table = fileh.createTable(group, 'tuple'+str(j), Medium(), title,
                                       complevel, totalrows)
+            arr = NA.array(NA.arange(2), type=NA.Float64)
         elif recsize == "small":
             table = fileh.createTable(group, 'tuple'+str(j), Small(), title,
                                       complevel, totalrows)
@@ -78,33 +79,38 @@ def createFile(filename, totalrows, complevel, recsize):
         # In PyTables 0.3 this is changed to a row object
         d = table.row
         # Fill the table
-        if recsize == "big" or recsize == "medium":
+        if recsize == "big":
             for i in xrange(totalrows):
-                d.name  = 'Part: %6d' % (i)
-                #d.float1 = [1.2, 3.6]
-                #d.float1 = arr
-                #d.float2 = 2.4
-                #d.zADCcount = (i * 256) % (1 << 16)
-                #d.ADCcount = (i * 256) % (1 << 16)
-                if recsize == "big":
-                    d.TDCcount = i % 256
-                    d.float1 = NA.array([i]*32, NA.Float64)
-                    d.float2 = NA.array([i**2]*32, NA.Float64)
-                    #d.float1[0] = float(i)
-                    #d.float2[0] = float(i*2)
-                    pass
-                else:
-                    #d.float1 = NA.array([i]*2, NA.Float64)
-                    #d.float1 = float(i)
-                    #d.float2 = float(i)
-                    pass
+                # d.name  = 'Part: %6d' % (i)
+                d.TDCcount = i % 256
+                #d.float1 = NA.array([i]*32, NA.Float64)
+                #d.float2 = NA.array([i**2]*32, NA.Float64)
+                #d.float1[0] = float(i)
+                #d.float2[0] = float(i*2)
+                # Common part with medium
                 d.grid_i = i 
                 d.grid_j = 10 - i
                 d.pressure = float(i*i)
-                #d.energy = float(d.pressure ** 4)
+                # d.energy = float(d.pressure ** 4)
                 d.energy = d.pressure
-                #d.idnumber = i * (2 ** 34) 
+                # d.idnumber = i * (2 ** 34) 
                 table.append(d)
+        elif recsize == "medium":
+            for i in xrange(totalrows):
+                #d.name  = 'Part: %6d' % (i)
+                #d.float1 = NA.array([i]*2, NA.Float64)
+                #d.float1 = arr
+                #d.float1 = i
+                #d.float2 = float(i)
+                # Common part with big:
+                d.grid_i = i 
+                d.grid_j = 10 - i
+                d.pressure = i*2
+                # d.energy = float(d.pressure ** 4)
+                d.energy = d.pressure
+                # d.idnumber = i * (2 ** 34) 
+                #table.append(d)
+                d.add()
         else: # Small record
             for i in xrange(totalrows):
                 # __setattr__ is faster than setField!
@@ -113,7 +119,8 @@ def createFile(filename, totalrows, complevel, recsize):
                 #d.var2 = i
                 d['var2'] = i
                 #d.var3 = 12.1e10
-                d['var3'] = 12.1e10
+                #d['var3'] = 12.1e10
+                d['var3'] = i
                 d.add()  # This is a 10% faster than table.append()
                 #table.append(d)
 		    
@@ -142,6 +149,8 @@ def readFile(filename, recsize):
             #print "Table title for", table._v_pathname, ":", table.tableTitle
             if verbose:
                 print "Rows in", table._v_pathname, ":", table.nrows
+                print "Buffersize:", table._v_rowsize * table._v_maxTuples
+                print "MaxTuples:", table._v_maxTuples
 
             if recsize == "big" or recsize == "medium":
                 # There are two possibilities in doing selects
@@ -168,8 +177,8 @@ def readFile(filename, recsize):
                 #      if p.grid_i < 2 ]
                 #e = [ str(p) for p in table.fetchall() ]
                 #      if p.grid_i < 2 ]
-                e = [ p.grid_j for p in table.fetchall() 
-                      if p.grid_i < 20 ]
+                e = [ p['grid_i'] for p in table.fetchall() 
+                      if p['grid_j'] == 20 ]
                 # The version with a for loop is only 1% better than
                 # comprenhension list
                 #e = []
@@ -177,10 +186,16 @@ def readFile(filename, recsize):
                 #    if p.grid_i < 20:
                 #        e.append(p.grid_j)
             else:
-                e = [ p['var3'] for p in table.fetchall()
-                      if p['var2'] == 20 ]
-                #e = [ p.var3 for p in table.fetchall()
-                #      if p.nrow() == 20 ]
+                #e = [ p['var3'] for p in table.fetchall()
+                #      if p['var2'] == 20 ]
+                #e = [ p['var3'] for p in table.fetchrange(0,21)
+                #      if p['var2'] == 20 ]
+                #e = [ p['var3'] for p in table.iterrows(0,21)
+                #      if p.nrow() <= 20 ]
+                #e = [ p['var3'] for p in table.iterows(1,0,1000)]
+                #e = [ p['var3'] for p in table.iterrows(1,100)]
+                e = [ p['var3'] for p in table.iterrows(step=2)
+                      if p.nrow() < 20 ]
                 #e = [ p.var3 for p in table.fetchall()
                 #      if p.var2 == 2 ]
                 #for p in table.fetchall():

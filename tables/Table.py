@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.27 2003/02/24 20:33:50 falted Exp $
+#       $Id: Table.py,v 1.28 2003/02/28 13:39:25 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.27 $"
+__version__ = "$Revision: 1.28 $"
 
 from __future__ import generators
 import sys
@@ -420,7 +420,7 @@ class Table(Leaf, hdf5Extension.Table):
         if compress:
             chunksize *= 2
         # Max Tuples to fill the buffer
-        self._v_maxTuples = buffersize / rowsize
+        self._v_maxTuples = buffersize // rowsize
         #print "Buffersize, MaxTuples ==>", buffersize, self._v_maxTuples
         self._v_chunksize = chunksize
 
@@ -460,17 +460,90 @@ class Table(Leaf, hdf5Extension.Table):
         row = self.row   # get the pointer to the Row object
         for i in xrange(0, self.nrows, nrowsinbuf):
             recout = self.read_records(i, nrowsinbuf, buffer)
+            #recout = nrowsinbuf
             if self._v_byteorder <> sys.byteorder:
                 buffer.byteswap()
             # Set the buffer counter
-            row.setBaseRow(i)
+            # Case for step=1
+            row.setBaseRow(i, 0, 1)
             for j in xrange(recout):
                 yield row()
         
-    def getRows(self, start, stop, step = 1):
+    def fetchrange(self, start, stop, step):
+        """Iterate over a range of rows"""
+        row = self.row   # get the pointer to the Row object
+        nrowsinbuf = self._v_maxTuples   # Shortcut
+        buffer = self._v_buffer  # Shortcut to the buffer
+        # Some start values for the main loop
+        nrowsread = start
+        startb = 0
+        nextelement = start
+        for i in xrange(start, stop, nrowsinbuf):
+            # Skip this iteration if there is no interesting information
+            if ((nextelement >= nrowsread + nrowsinbuf) or 
+                (startb >= stop - nrowsread)):
+                nrowsread += nrowsinbuf
+                continue
+            # Compute the end for this iteration
+            stopb = stop - nrowsread
+            if stopb > nrowsinbuf:
+                stopb = nrowsinbuf
+            # Read a chunk
+            nrowsread += self.read_records(i, nrowsinbuf, buffer)
+            if self._v_byteorder <> sys.byteorder:
+                buffer.byteswap()
+            # Set the buffer counter
+            row.setBaseRow(i, startb, step)
+            # Loop over the values for this buffer
+            for j in xrange(startb, stopb, step):
+                yield row.getRow()
+            # Compute some indexes for the next iteration
+            startb = (j+step) % nrowsinbuf
+            nextelement += step
+
+    def _processRange(self, start=None, stop=None, step=None):
+        
+        if (not (start is None)) and ((stop is None) and (step is None)):
+            step = 1
+            if start < 0:
+                start = self.nrows + start
+            stop = start + 1
+        else:
+            if start is None:
+                start = 0
+            elif start < 0:
+                start = self.nrows + start
+            if stop is None:
+                stop = self.nrows
+            elif stop <= 0 :
+                stop = self.nrows + stop
+
+            if step is None:
+                step = 1
+            elif step <= 0:
+                raise ValueError, \
+                      "Zero or negative step values are not allowed!"
+        return (start, stop, step)
+    
+    def iterrows(self, start=None, stop=None, step=None):
+        """Iterator over all the rows, or a range"""
+        
+        (start, stop, step) = self._processRange(start, stop, step)
+        if (start == 0) and ((stop == self.nrows) and (step == 1)):
+            return self.fetchall()
+        else:
+            return self.fetchrange(start, stop, step)
+
+    def getRecArray(self, start=None, stop=None, step=None):
+        """Get a recarray from a table row range"""
+        (start, stop, step) = self._processRange(start, stop, step)
         # Create a recarray for the readout
         if stop > self.nrows:
             stop = self.nrows
+        if start > stop:
+            return recarray.array(None, formats=self.description._v_recarrfmt,
+                                  shape=(0,),
+                                  names = self.colnames)
         nrows = ((stop - start - 1) // step) + 1
         # Create the resulting recarray
         result = recarray.array(None, formats=self.description._v_recarrfmt,
@@ -482,42 +555,36 @@ class Table(Leaf, hdf5Extension.Table):
         buffer = self._v_buffer  # Get a recarray as buffer
         nrowsread = start
         startr = 0
-        gap = 0
+        startb = 0
         nextelement = start
-        # This a efficient, although somewhat complicated algorithm
+        # This an efficient, although somewhat complicated algorithm
         # so as to get a selection of a table using an extended range
         # May be is it possible to simplify it??
         for i in xrange(start, stop, nrowsinbuf):
-            if nextelement >= nrowsread + nrowsinbuf:
+            if ((nextelement >= nrowsread + nrowsinbuf) or
+                (startb >= stop - nrowsread)):
                 nrowsread += nrowsinbuf
                 continue
-            startb = gap
+            # Compute the end for this iteration
             stopb = stop - nrowsread
             if stopb > nrowsinbuf:
                 stopb = nrowsinbuf
             stopr = startr + ((stopb-startb-1)//step) + 1
-            if stopr > nrows:
-                break
-            #print "startb, stopb, startr, stopr",\
-            #      startb, stopb, startr, stopr
-            recout = self.read_records(i, nrowsinbuf, buffer)
+            # Read a chunk
+            nrowsread += self.read_records(i, nrowsinbuf, buffer)
+            # Assign the correct part to result
             result[startr:stopr] = buffer[startb:stopb:step]
-            nrowsread += nrowsinbuf
+            # Compute some indexes for the next iteration
             startr = stopr
-            if step < nrowsinbuf:
-                gap = (stopb - startb) % step
-            else:
-                gap = step % nrowsinbuf
-                nextelement = startb + step 
+            j = range(startb, stopb, step)[-1]
+            startb = (j+step) % nrowsinbuf
+            nextelement += step
 
-        # Get the appropriate rows according to step
-        # Also, make a copy in order to get a contiguous recarray
-
-        # Explicitely delete the last reference to buffer
-        del buffer
+        # Set the byteorder properly
         result._byteorder = self._v_byteorder
         return result
-    
+
+    # Moved out of scope
     def __getitem__(self, slice):
 
         if isinstance(slice, types.IntType):
@@ -541,7 +608,7 @@ class Table(Leaf, hdf5Extension.Table):
             step = slice.step
             if step is None:
                 step = 1
-        return self.getRows(start, stop, step)
+        return self.getRecArray(start, stop, step)
 
     def flush(self):
         """Flush the table buffers."""

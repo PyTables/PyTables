@@ -268,24 +268,31 @@ for p in table.fetchall():
 print
 
 # Several range selections
-print "Extended slice in selection: [1:7:2]"
-print table[1:7:2]
+print "Extended slice in selection: [1:20:3]"
+print table.getRecArray(0,20,3)
 print "Extended slice in selection: [1:7:3]"
-print table[1:7:3]
+print table.getRecArray(1,7,3)
 print "Extended slice in selection: [1:7:4]"
 print table[1:7:4]
+print table.getRecArray(1,7,4)
 print "Extended slice in selection: [1:7:5]"
 print table[1:7:5]
+print table.getRecArray(1,7,5)
 print "Extended slice in selection: [1:7:6]"
 print table[1:7:6]
+print table.getRecArray(1,7,6)
 print "Extended slice in selection: [0:7:6]"
 print table[0:7:6]
+print table.getRecArray(0,7,6)
 print "Single record in selection: [1]"
 print table[1]
+print table.getRecArray(1)
 print "Last record in selection: [-1]"
 print table[-1]
+print table.getRecArray(-1)
 print "Two records before the last in selection: [-3:-1]"
 print table[-3:-1]
+print table.getRecArray(-3, -1)
 
 # Print a recarray in table form
 table = h5file.root.detector.recarray2
@@ -296,11 +303,12 @@ print "  coltypes:", table.coltypes
 print "  colnames:", table.colnames
 
 print table[:]
+print table.getRecArray()
 for p in table.fetchall():
     print p.c1, '-->', p.c2
 print
 
-result = [ rec.c1 for rec in table.fetchall() if table.nrow < 2 ]
+result = [ rec.c1 for rec in table.fetchall() if rec.nrow() < 2 ]
 print result
 
 # Close this file

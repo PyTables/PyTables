@@ -101,6 +101,8 @@ class BasicTestCase(unittest.TestCase):
             assert a.type() == self.root.somearray.typeclass
             assert a._byteorder == b._byteorder
             assert a._byteorder == self.root.somearray.byteorder
+            if self.endiancheck:
+                assert b._byteorder <> sys.byteorder
 
         assert allequal(a,b)
 
@@ -224,6 +226,7 @@ class Basic10DOneTestCase(BasicTestCase):
     #tupleChar = chararray.array("abc"*2**8, shape=(2,)*8, itemsize=3)
     tupleChar = chararray.array("abc"*2**6, shape=(2,)*6, itemsize=3)
     atomictype=0
+    endiancheck = 1
     
 class Basic10DTwoTestCase(BasicTestCase):
     # 10D case
@@ -233,6 +236,7 @@ class Basic10DTwoTestCase(BasicTestCase):
     #tupleChar = chararray.array("abc"*2**8, shape=(2,)*8, itemsize=3)
     tupleChar = chararray.array("abc"*2**6, shape=(2,)*6, itemsize=3)
     atomictype = 1
+    endiancheck = 0
     
 class Basic32DTestCase(BasicTestCase):
     # 32D case (maximum)
@@ -271,7 +275,8 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 	# Create the array under root and name 'somearray'
 	a = testArray
         if self.endiancheck and not (isinstance(a, chararray.CharArray)):
-            a.byteswap()
+            a._byteswap()
+            a.togglebyteorder()
 
         self.fileh.createArray(self.root, 'somearray',
                                a, "Some array")
@@ -308,7 +313,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
             assert a.type() == self.root.somearray.typeclass
             assert a._byteorder == b._byteorder
             assert a._byteorder == self.root.somearray.byteorder
-
+            
         assert allequal(a,b)
 
 	return
