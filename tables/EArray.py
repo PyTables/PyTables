@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.19 2004/09/22 17:13:04 falted Exp $
+#       $Id: EArray.py,v 1.20 2004/09/30 17:53:42 falted Exp $
 #
 ########################################################################
 
@@ -27,9 +27,10 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.19 $"
+__version__ = "$Revision: 1.20 $"
 # default version for EARRAY objects
-obversion = "1.0"    # initial version
+#obversion = "1.0"    # initial version
+obversion = "1.1"    # support for complex datatypes
 
 import types, warnings, sys
 from Array import Array

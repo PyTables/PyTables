@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.31 2004/09/20 13:12:10 falted Exp $
+#       $Id: VLArray.py,v 1.32 2004/09/30 17:53:42 falted Exp $
 #
 ########################################################################
 
@@ -30,10 +30,11 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.31 $"
+__version__ = "$Revision: 1.32 $"
 
 # default version for VLARRAY objects
-obversion = "1.0"    # initial version
+#obversion = "1.0"    # initial version
+obversion = "1.0"    # add support for complex datatypes
 
 import types, warnings, sys
 import cPickle

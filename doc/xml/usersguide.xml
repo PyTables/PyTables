@@ -6307,14 +6307,27 @@ result = [ row['var2'] for row in table.where(table.cols.var1 &lt;= 20)]
 	    </verbatim>
 
 	    This simple change of mode selection can account for an
-	    improvement in search times up to a factor of 5 (see the
-	    <ref refid="searchTimes">figure</ref>).
+	    improvement in search times up to a factor of 10 (see the
+	    <ref refid="searchTimes-int">figure</ref>).
 	  </p>
 
-	  <figure id="searchTimes">
-	    <graphics file="searchTimes" scale="0.75" kind="vector">
+	  <figure id="searchTimes-int">
+	    <graphics file="searchTimes-int-itanium" scale="0.75" kind="vector">
 	    </graphics>
-	    <caption>Times for different selection modes.
+	    <caption>Times for different selection modes over <visual
+		markup="tt">Int32</visual> values. Benchmark made on a
+		machine with Itanium (IA64) @ 900 MHz processors with
+		SCSI disk @ 10K RPM.
+	    </caption>
+	  </figure>
+
+	  <figure id="searchTimes-float">
+	    <graphics file="searchTimes-float-itanium" scale="0.75" kind="vector">
+	    </graphics>
+	    <caption>Times for different selection modes over <visual
+		markup="tt">Float64</visual> values. Benchmark made on
+		a machine with Itanium (IA64) @ 900 MHz processors
+		with SCSI disk @ 10K RPM.
 	    </caption>
 	  </figure>
 
@@ -6334,11 +6347,11 @@ result = [ row['var2'] for row in table.where(table.cols.var1 &lt;= 20)]
 	  </p>
 
 	  <p>You should note, however, that currently the
-	    <verb>where</verb> method only accepts conditions over a
+	    <verb>where</verb> method only accepts conditions along a
 	    single column<footnote>Although this may change in the
 	    future</footnote>. Fortunately, you can mix the
-	    <em>inkernel</em> and <em>standard</em> selection modes
-	    for evaluating arbitrarily complex conditions over several
+	    <em>in-kernel</em> and <em>standard</em> selection modes
+	    for evaluating arbitrarily complex conditions along several
 	    columns at once. Look at this example:
 
 	    <verbatim>
@@ -6347,23 +6360,153 @@ result = [ row['var2'] for row in table.where(table.cols.var3 == "foo")]
                        if row['var1'] &lt;= 20 ]
 	    </verbatim>
 
-	    here, we have used a <em>inkernel</em> selection to filter
+	    here, we have used a <em>in-kernel</em> selection to filter
 	    the rows whose <verb>var3</verb> field is equal to string
 	    <verb>"foo"</verb>. Then, we apply a <em>standard</em>
 	    selection to complete the query.
 	  </p>
 
-	  <p>Of course, when you mix the <em>inkernel</em> and
+	  <p>Of course, when you mix the <em>in-kernel</em> and
 	    <em>standard</em> selection modes you should pass the most
-	    restrictive condition to the <em>inkernel</em> part,
+	    restrictive condition to the <em>in-kernel</em> part,
 	    i.e. to the <verb>where</verb> iterator. In situations
 	    where it is not clear which is the most restrictive
 	    condition, you might want to experiment a bit in order to
 	    find the best combination.
 	  </p>
 
-	</subsection>
+	</subsection> <!-- In-kernel searches -->
 
+	<subsection id="indexedSearches">
+	  <heading>Indexed searches</heading>
+
+	  <p>When you need more speed than <em>in-kernel</em>
+	    selections can offer you, <verb>PyTables</verb> offer a
+	    third selection method, so-called <em>indexed</em>
+	    mode. On this mode, you have to decide which column(s) are
+	    you going to do your selections and index them. Indexing
+	    is just a kind of sort operation, so that next searches
+	    along a column will look at the sorted information using a
+	    <em>binary search</em> which is much faster than a
+	    <em>sequential search</em>.
+	  </p>
+
+	  <p>You can index your selected columns in several ways:
+	  </p>
+
+	  <description>
+	    <term>Declaratively</term> <item>In this mode, you can
+	      declare a column as being indexed by passing the
+	      <em>indexed</em> parameter to the column
+	      descriptor. That is:
+
+	      <verbatim>
+class Example(IsDescription):
+    var1 = StringCol(length=4, dflt="", pos=1, indexed=1)
+    var2 = BoolCol(0, indexed=1, pos = 2)
+    var3 = IntCol(0, indexed=1, pos = 3)
+    var4 = FloatCol(0, indexed=0, pos = 4)
+
+	      </verbatim>
+
+	      In this case, we are telling that <verb>var1</verb>,
+	      <verb>var2</verb> and <verb>var3</verb> columns will be
+	      indexed automatically when you add rows to the table
+	      with this description.
+
+	    </item>
+
+	    <term>Calling Column.createIndex()</term> <item>In this
+	      mode, you can create an index even on an already created
+	      table. For example:
+
+	      <verbatim>
+indexrows = table.cols.var1.createIndex()
+indexrows = table.cols.var2.createIndex()
+indexrows = table.cols.var3.createIndex()
+	      </verbatim>
+
+	      will create indexes for all <verb>var1</verb>,
+	      <verb>var2</verb> and <verb>var3</verb> columns, and
+	      after doing that, they will behave as regular indexes.
+	    </item>
+
+	  </description>
+
+	  <p>After you have indexed a column, you can proceed to use
+	    it through the use of <verb>Table.where</verb> method:
+
+	    <verbatim>
+row = table
+result = [ row['var2'] for row in table.where(table.cols.var1 == "foo")]
+	    </verbatim>
+
+	    or, if you want to add more conditions, you can mix the
+	    indexed selection with a standard one:
+
+	    <verbatim>
+row = table
+result = [ row['var2'] for row in table.where(table.cols.var3 &lt;= 20)]
+                       if row['var1'] == "foo" ]
+	    </verbatim>
+
+	    rememeber to pass the most restictive condition to the
+	    <verb>where</verb> iterator.
+	  </p>
+
+	  <p>You can see in figures <ref
+	      refid="searchTimes-int"></ref> and <ref
+	      refid="searchTimes-float"></ref> that indexing can
+	      accelerate quite a lots your data selections in
+	      tables. For moderately large tables (> one million
+	      rows), you can see that you can achieve speed-ups in the
+	      order of 100x respect to <em>in-kernel</em> selections
+	      and in the order of 1000x respecte to <em>standard</em>
+	      selections.
+	  </p>
+
+	  <p>One important aspect of indexation in
+	    <verb>PyTables</verb> is that it has been implemented with
+	    the goal of being capable to manage effectively very large
+	    tables. In <ref refid="indexTimes">figure</ref>, you can
+	    see that the times to index columns in tables always grows
+	    <em>linearly</em>. In particular, the time to index a
+	    couple of columns with 1 billion of rows each is 40
+	    min. (roughly 20 min. each), which is a quite reasonable
+	    figure. This is because <verb>PyTables</verb> has choosed
+	    an algorithm that do a <em>partial</em> sorting of the
+	    columns in order to ensure that the indexing time grows
+	    <em>linearly</em>. On the contrary, most of relational
+	    databases try to do a <em>complete</em> sorting of
+	    columns, and this makes the time to index to grow
+	    <em>quadratically</em> with the number of rows.
+	  </p>
+	  <p>The fact that relational databases uses a complete
+	    sorting algorithm for indexes means that their index would
+	    be more effective (but not by a large extent) for
+	    searching purposes that the <verb>PyTables</verb>
+	    approach. However, for relatively large tables (> 10
+	    millions of rows) the time required for completing such a
+	    sort can be so large, that indexing is not normally worth
+	    the effort. In other words, <verb>PyTables</verb> indexing
+	    scales much better than relational databases. So, don't
+	    worry if you have extremely large columns to index:
+	    <verb>PyTables</verb> is designed to handle with that
+	    perfectly.
+	  </p>
+
+	  <figure id="indexTimes">
+	    <graphics file="indexTimes-itanium" scale="0.75" kind="vector">
+	    </graphics>
+	    <caption>Times for indexing a couple of columns of
+		datatypes <visual markup="tt">Int32</visual> and
+		<visual markup="tt">Float64</visual>. Benchmark made
+		on a machine with Itanium (IA64) @ 900 MHz processors
+		with SCSI disk @ 10K RPM.
+	    </caption>
+	  </figure>
+
+	</subsection>
       </section> <!-- search optimization -->
 
       <section id="compressionIssues">
@@ -7325,9 +7468,9 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:17:13 2004';
 	  <verb>PyTables</verb> compatible file.
 	</p>
 
-	<p>We are going to describe the <visual markup="bf">1.2
+	<p>We are going to describe the <visual markup="bf">1.3
 	  version of <verb>PyTables</verb> file format</visual>
-	  (introduced in <verb>PyTables</verb> version 0.8). At this
+	  (introduced in <verb>PyTables</verb> version 0.9). At this
 	  stage, this file format is considered stable enough to do
 	  not introduce significant changes during a reasonable amount
 	  of time. As time goes by, some changes will be introduced
@@ -7410,7 +7553,7 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:17:13 2004';
 	  <description>
 	    <term>PYTABLES_FORMAT_VERSION</term> <item>It represents
 	    the internal format version, and currently should be set
-	    to the <verb>'1.2'</verb> string.</item>
+	    to the <verb>'1.3'</verb> string.</item>
 	  </description>
 
 	</section>
@@ -7444,7 +7587,7 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:17:13 2004';
 		  for. </item>
 
 		<term>VERSION</term> <item>Should contain the string
-		  <verb>'2.1'</verb>.</item>
+		  <verb>'2.2'</verb>.</item>
 
 		<term>FIELD_X_NAME</term> <item>It contains the names
 		  of the different fields. The <verb>X</verb> means
@@ -7668,7 +7811,7 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:17:13 2004';
 		</item>
 
 		<term>VERSION</term> <item>Should contain the string
-		  <verb>'2.0'</verb>.
+		  <verb>'2.1'</verb>.
 		</item>
 	      </description>
 	    </subsubsection>
@@ -7748,7 +7891,7 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:17:13 2004';
 		</item>
 
 		<term>VERSION</term> <item>Should contain the string
-		  <verb>'1.0'</verb>.
+		  <verb>'1.1'</verb>.
 		</item>
 
 	      </description>
@@ -7866,7 +8009,7 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:17:13 2004';
 		</item>
 
 		<term>VERSION</term> <item>Should contain the string
-		  <verb>'1.0'</verb>.
+		  <verb>'1.1'</verb>.
 		</item>
 
 	      </description>

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.74 2004/09/24 11:58:13 falted Exp $
+#       $Id: Array.py,v 1.75 2004/09/30 17:53:42 falted Exp $
 #
 ########################################################################
 
@@ -27,11 +27,12 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.74 $"
+__version__ = "$Revision: 1.75 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
-obversion = "2.0"    # Added an optional EXTDIM attribute
+#obversion = "2.0"    # Added an optional EXTDIM attribute
+obversion = "2.1"    # Added support for complex datatypes
 
 
 import types, warnings, sys
