@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.26 2003/03/14 11:38:55 falted Exp $
+#       $Id: File.py,v 1.27 2003/03/14 19:37:25 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.26 $"
+__version__ = "$Revision: 1.27 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -392,9 +392,9 @@ class File(hdf5Extension.File):
         name -- The name of the new array.
 
         object -- The (regular) object to be saved. It can be any of
-            Numarray, Numeric, List, Tuple, String, Int of Float
-            types, provided that they are regular (i.e. they are not
-            like [[1,2],2]).
+            NumArray, CharArray, Numeric, List, Tuple, String, Int of
+            Float types, provided that they are regular (i.e. they are
+            not like [[1,2],2]).
 
         title -- Sets a TITLE attribute on the array entity.
 

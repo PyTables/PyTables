@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.28 2003/03/14 11:38:55 falted Exp $
+#       $Id: Array.py,v 1.29 2003/03/14 19:37:25 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.28 $"
+__version__ = "$Revision: 1.29 $"
 import types, warnings, sys
 from Leaf import Leaf
 import hdf5Extension
@@ -275,5 +275,5 @@ class Array(Leaf, hdf5Extension.Array):
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
 
-        return "%s\n  type = %r\n  itemsize = %r\n  byteorder = %r" % \
-               (self, repr(self.type), self.itemsize, self.byteorder)
+        return "%s\n  type = %r\n  itemsize = %r\n  flavor = %r\n  byteorder = %r" % \
+               (self, self.type, self.itemsize, self.flavor, self.byteorder)

@@ -328,7 +328,7 @@ h5file.renameNode(h5file.root.columns, "newcolumns")
 print h5file
 print repr(h5file)
 
-
+print repr(h5file.root.newcolumns)
 
 # Close this file
 h5file.close()

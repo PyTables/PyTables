@@ -216,10 +216,10 @@
       <p>In order to emulate records (that will be mapped to C structs
 	in HDF5) in Python <verb>PyTables</verb> implements a special
 	<em>metaclass</em> object with the capability to detect errors
-	in field assignments as well as type and range
-	overflows. <verb>PyTables</verb> also provides a powerful
-	interface to process table data. Records in tables are also
-	known, in the <verb>HDF5</verb> naming scheme, as
+	in assignments to non-existing fields as well as data type
+	incompabilities.  <verb>PyTables</verb> also provides a
+	powerful interface to process table data. Records in tables
+	are also known, in the <verb>HDF5</verb> naming scheme, as
 	<em>compound</em> data types.
       </p>
 
@@ -279,11 +279,11 @@ class Particle(IsColDescr):
 	    copying the dataset or redefining its structure, even
 	    between different Python sessions.
 	  </item>
-	  <item><em>Automatically check for correct field name, data
-	    type and data range:</em> That reduces programmer mistakes
-	    and if <visual markup="tt">PyTables</visual> does not
-	    report an error, you can be more confident that your data
-	    is probably ok.
+	  <item><em>Automatically check for correct field name, and
+	    data type:</em> That reduces programmer mistakes and if
+	    <visual markup="tt">PyTables</visual> does not report an
+	    error, you can be more confident that your data is
+	    probably ok.
 	  </item>
 	  <item><em>Support of files bigger than 2 GB:</em> The
 	    underlying HDF5 library already can do that (if your
@@ -628,6 +628,12 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	entity. Finally, you can get deeper knowledge of
 	<verb>PyTables</verb> internals by reading the last section
 	(<ref refid="optimizationTips"></ref>) in this chapter.
+      </p>
+
+      <p>Please, note that throughout this document the terms
+	<em>column</em> and <em>field</em> will be used
+	interchangeably with the same meaning, and the same goes for
+	the terms <em>row</em> and <em>record</em>.
       </p>
 
       <section>
@@ -1038,6 +1044,7 @@ Filename: tutorial1.h5 'Test file'
 /columns/pressure Array(4,) 'Pressure column selection'
   type = 'Float64'
   itemsize = 8
+  flavor = "Numeric"
   byteorder = 'little'
 	  </verbatim>
 
@@ -1065,6 +1072,7 @@ Filename: tutorial1.h5 'Test file'
 /columns/name Array(4,) 'Name column selection'
   type = 'CharType'
   itemsize = 16
+  flavor = "List"
   byteorder = 'little'
 >>>
 	  </verbatim>
@@ -1213,13 +1221,13 @@ Filename: tutorial1.h5 'Test file'
 
 	  <verbatim>
 >>> print h5file
-Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
-/ (Group) "Test file"
-/columns (Group) "Pressure and Name"
-/columns/name Array(4, 16) "Name column selection"
-/columns/pressure Array(4,) "Pressure column selection"
-/detector (Group) "Detector information"
-/detector/readout Table(8, 10) "Readout example"
+Filename: tutorial1.h5 'Test file'
+/ (Group) 'Test file'
+/columns (Group) 'Pressure and Name'
+/columns/name Array(4,) 'Name column selection'
+/columns/pressure Array(4,) 'Pressure column selection'
+/detector (Group) 'Detector information'
+/detector/readout Table(10,) 'Readout example'
 
 >>>
 	  </verbatim>
@@ -1232,34 +1240,33 @@ Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
 
 	  <verbatim>
 >>> for group in h5file.walkGroups("/"):
-...     print group
-... 
-/ (Group) "Test file"
-/columns (Group) "Pressure and Name"
-/detector (Group) "Detector information"
+...   print group
+...
+/ (Group) 'Test file'
+/columns (Group) 'Pressure and Name'
+/detector (Group) 'Detector information'
 >>>
 	  </verbatim>
 
-	  <p>Note that <verb>walkGroups</verb> actually returns an
-	    <em>iterator</em>, not a list of objects. And combining it
-	    with the <verb>listNodes</verb> method, we can do very
-	    powerful things. Let's see an example listing all the
-	    arrays in the tree:
+	  <p>Note that <verb>walkGroups()</verb> actually returns an
+	    <em>iterator</em>, not a list of objects. Combining this
+	    iterator with the <verb>listNodes()</verb> method, we can
+	    do very powerful things. Let's see an example listing all
+	    the arrays in the tree:
 	  </p>
 
 	  <verbatim>
 >>> for group in h5file.walkGroups("/"):
 ...     for array in h5file.listNodes(group, classname = 'Array'):
 ...         print array
-... 
-/columns/name Array(4, 16) "Name column selection"
-/columns/pressure Array(4,) "Pressure column selection"
->>>
+...
+/columns/name Array(4,) 'Name column selection'
+/columns/pressure Array(4,) 'Pressure column selection'
 	  </verbatim>
 
-	  <p><verb>listNodes</verb> (see <ref
+	  <p><verb>listNodes()</verb> (see <ref
 	    refid="listNodesDescr"></ref>) lists all the nodes hanging
-	    from a <verb>group</verb>, and if <em>classname</em>
+	    from a <em>group</em>, and if <em>classname</em>
 	    keyword is specified, the method will filter all instances
 	    which are not descendants of it. We have specified it so
 	    as to return only the <verb>Array</verb> instances.
@@ -1275,16 +1282,17 @@ Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
 	    <verb>Leaf</verb> (i.e. <verb>Table</verb> and
 	    <verb>Array</verb> instances, see <ref
 	    refid="LeafClassDescr"></ref> for detailed information on
-	    <verb>leaf</verb> class) objects in <em>/detector</em>
+	    <verb>Leaf</verb> class) objects in <em>/detector</em>
 	    group. Check that only one instance of <verb>Table</verb>
-	    class will be selected in this group (as it should be):
+	    class (i.e. <em>readout</em>), will be selected in this
+	    group (as it should be):
 	  </p>
 
 	  <verbatim>
->>> for table in h5file.listNodes("/detector", 'Leaf'):
-...     print table
-... 
-/detector/readout Table(8, 10) "Readout example"
+>> for table in h5file.listNodes("/detector", 'Leaf'):
+...   print table
+...
+/detector/readout Table(10,) 'Readout example'
 >>> 
 	  </verbatim>
 
@@ -1302,80 +1310,148 @@ Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
 	  <p>Each object in <verb>PyTables</verb> has metadata about
 	    the actual data on the file. Normally this metainformation
 	    is accessible through the node instance variables. Let's
-	    see some examples:
+	    have a look at some examples:
 	  </p>
 
 	  <verbatim>
->>> table = h5file.root.detector.readout
 >>> print "Object:", table
-Object: /detector/readout Table(8, 10) "Readout example"
+Object: /detector/readout Table(10,) 'Readout example'
 >>> print "Table name:", table.name
 Table name: readout
 >>> print "Table title:", table.title
 Table title: Readout example
 >>> print "Number of rows in table: %d" % (table.nrows)
 Number of rows in table: 10
->>> print "Table variable names (sorted alphanumerically) with their type:"
-Table variable names (sorted alphanumerically) with their type:
->>> for i in range(len(table.varnames)):
-...     print "  ", table.varnames[i], ':=', table.vartypes[i]
-... 
-   ADCcount := H
-   TDCcount := B
-   energy := d
-   grid_i := i
-   grid_j := i
-   idnumber := Q
-   name := 16s
-   pressure := f
+>>> print "Table variable names with their type and shape:"
+Table variable names with their type and shape:
+>>> for name in table.colnames:
+...     print "  ", name, ':=', table.coltypes[name], table.colshapes[name]
+...
+   ADCcount := UInt16 (1,)
+   TDCcount := UInt8 (1,)
+   energy := Float64 (1,)
+   grid_i := Int32 (1,)
+   grid_j := Int32 (1,)
+   idnumber := UInt64 (1,)
+   name := CharType (16,)
+   pressure := Float32 (1,)
 >>>
 	  </verbatim>
 
 	  <p>
 	    Here, the <verb>name</verb>, <verb>title</verb>,
-	    <verb>nrows</verb>, <verb>varnames</verb> and
-	    <verb>vartypes</verb> attributes (see <ref
+	    <verb>nrows</verb>, <verb>colnames</verb>,
+	    <verb>coltypes</verb> and <verb>colshapes</verb>
+	    attributes (see <ref
 	    refid="FileInstanceVariablesDescr"></ref> for a complete
 	    attribute list) of <verb>Table</verb> object give us quite
 	    a lot of information about actual table data.
 	  </p>
-	  <p>Observe how we have used the <verb>getNode</verb> method
-	    of <verb>File</verb> class to access a node in the tree,
-	    as well as the natural naming method. Both are useful, and
-	    depending on the context you will prefer to use one or
-	    another. <verb>getNode</verb> has the advantage that can
-	    get a node from the pathname string (like in this
-	    example), and you can force that the node in that location
-	    has to be a <em>classname</em> instance. However, natural
-	    naming is more elegant and quicker to specify (specially
-	    if you are using the name completion capability present in
-	    interactive console).
+
+	  <p>In general, you can get up-to-the-minute information
+	    about the public objects in PyTables in a interactive way
+	    by printing its internal doc strings:
 	  </p>
 
+	  <verbatim>
+>>> print table.__doc__
+Represent a table in the object tree.
+
+    It provides methods to create new tables or open existing ones, as
+    well as to write/read data to/from table objects over the
+    file. A method is also provided to iterate over the rows without
+    loading the entire table or column in memory.
+
+    Data can be written or read both as Row() instances or as numarray
+    (NumArray or RecArray) objects.
+
+    Methods:
+
+      Common to all leaves:
+        close()
+        flush()
+        getAttr(attrname)
+        rename(newname)
+        remove()
+        setAttr(attrname, attrvalue)
+
+      Specific of Table:
+        iterrows()
+        read([start] [, stop] [, step] [, field [, flavor]])
+
+    Instance variables:
+
+      Common to all leaves:
+        name -- the leaf node name
+        hdf5name -- the HDF5 leaf node name
+        title -- the leaf title
+        shape -- the leaf shape
+        byteorder -- the byteorder of the leaf
+
+      Specific of Table:
+        description -- the metaobject describing this table
+        row -- a reference to the Row object associated with this table
+        nrows -- the number of rows in this table
+        rowsize -- the size, in bytes, of each row
+        colnames -- the field names for the table (list)
+        coltypes -- the type class for the table fields (dictionary)
+        colshapes -- the shapes for the table fields (dictionary)
+
+
+>>>
+	  </verbatim>
+
+	  <p>This is very handy if you don't have this manual at
+	    hand. Try yourself with other objects docs!.
+	  </p>
 	  <p>Now, print some metadata in <em>/columns/pressure</em>
-	    Array object:
+	    <verb>Array</verb> object:
 	  </p>
 
 	  <verbatim>
 >>> pressureObject = h5file.getNode("/columns", "pressure")
->>> print "Info on the object:", pressureObject
-Info on the object: /columns/pressure Array(4,) "Pressure column selection"
+>>> print "Info on the object:", repr(pressureObject)
+Info on the object: /columns/pressure Array(4,) 'Pressure column selection'
+  type = 'Float64'
+  itemsize = 8
+  flavor = "Numeric"
+  byteorder = 'little'
 >>> print "  shape: ==>", pressureObject.shape
   shape: ==> (4,)
 >>> print "  title: ==>", pressureObject.title
   title: ==> Pressure column selection
->>> print "  typecode ==>", pressureObject.typecode
-  typecode ==> d
+>>> print "  type ==>", pressureObject.type
+  type ==> Float64
 >>>
 	  </verbatim>
 
+	  <p>Observe how we have used the <verb>getNode()</verb>
+	    method of <verb>File</verb> class to access a node in the
+	    tree, instead of the natural naming method. Both are
+	    useful, and depending on the context you will prefer to
+	    use one or another. <verb>getNode()</verb> has the
+	    advantage that it can get a node from the pathname string
+	    (like in this example), and, besides, you can force a
+	    filter so that the node in that location has to be a
+	    <em>classname</em> instance. However, natural naming is
+	    more elegant and quicker to specify, specially if you are
+	    using the name completion capability present in
+	    interactive console. I suggest to give a try at this
+	    powerful combination of natural naming and completion
+	    capabilities present on most Python shell. You will see
+	    that browsing the object tree in that way is a very
+	    pleasant experience (well, as far as this activity can be
+	    qualified as <em>pleasant</em>).
+	  </p>
 	  <p>If you look at the <verb>typecode</verb> attribute of the
 	    <verb>pressureObject</verb>, you can certify that this is
-	    a "d"ouble <verb>Numeric</verb> array, and that by looking
-	    at their <verb>shape</verb> attribute the array on disk is
-	    unidimensional and has 4 elements. See <ref
-	    refid="ArrayClassInstanceVariables"></ref> for the
-	    complete <verb>Array</verb> attribute list.
+	    a "<visual markup="bf">Float64</visual>" array, and that
+	    by looking at their <verb>shape</verb> attribute, it can
+	    deduced that the array on disk is unidimensional and has 4
+	    elements. See <ref
+	    refid="ArrayClassInstanceVariables"></ref> or the internal
+	    string docs for the complete <verb>Array</verb> attribute
+	    list.
 	  </p>
 	</subsection>
 
@@ -1384,22 +1460,26 @@ Info on the object: /columns/pressure Array(4,) "Pressure column selection"
 	  markup="tt">Array</visual> objects</heading>
 
 	  <p>Once you have found the desired <verb>Array</verb> and
-	    decided that you want to retrieve the actual
-	    <verb>Numeric</verb> array from it, you should use the
-	    <verb>read</verb> method of the <verb>Array</verb>
-	    object:</p>
+	    decided that you want to retrieve the actual data array
+	    from it, you should use the <verb>read()</verb> method of
+	    the <verb>Array</verb> object:</p>
 
 	  <verbatim>
 >>> pressureArray = pressureObject.read()
 >>> nameArray = h5file.root.columns.name.read()
->>> print "pressureArray is object of type:", type(pressureArray)
-pressureArray is object of type: &lt;type 'array'>
->>> print "nameArray is object of type:", type(nameArray)
-nameArray is object of type: &lt;type 'array'>
+>>> print "pressureArray is an object of type:", type(pressureArray)
+pressureArray is an object of type: &lt;type 'array'>
+>>> pressureArray
+array([ 16.,  25.,  36.,  49.])
+>>> print "nameArray is an object of type:", type(nameArray)
+nameArray is an object of type: &lt;type 'list'>
+>>> nameArray
+['Particle:      4', 'Particle:      5', 'Particle:      6', 'Particle:      7']
+>>>
 >>> print "Data on arrays nameArray and pressureArray:"
 Data on arrays nameArray and pressureArray:
 >>> for i in range(pressureObject.shape[0]):
-...     print "".join(nameArray[i]), "-->", pressureArray[i]
+...     print nameArray[i], "-->", pressureArray[i]
 ... 
 Particle:      4 --> 16.0
 Particle:      5 --> 25.0
@@ -1408,17 +1488,21 @@ Particle:      7 --> 49.0
 >>> 
 	  </verbatim>
 
-	  <p>You can verify that <verb>read</verb> method (see <ref
-	    refid="readArrayDescr"></ref>) returns an authentic
+	  <p>You can verify as the <verb>read()</verb> method (see
+	    <ref refid="readArrayDescr"></ref>) returns an authentic
 	    <verb>Numeric</verb> array looking at the output of the
-	    <verb>type()</verb> call. Check also that
-	    <verb>nameArray</verb> is actually a 2-dimensional Numeric
-	    array. This is because Numeric does not support arrays of
-	    strings, and these are represented as arrays of characters
-	    plus one dimension (that of the string dimension). This is
-	    why we have used the standard <verb>join</verb> method to
-	    glue the characters on this extra dimension and get the
-	    original arrays.
+	    <verb>type()</verb> call. This is because the type of the
+	    object saved is kept as an HDF5 attribute (named
+	    <verb>FLAVOR</verb>) for this object on disk. This
+	    attribute is then read as part of the <verb>Array</verb>
+	    metainformation and accessible through the
+	    <verb>Array.flavor</verb> instance variable, enabling the
+	    read array to be converted into the original object. This
+	    provides a means to save a large variety of objects as
+	    arrays, with the guarantee that you will be able to
+	    recover them in its original form afterwards. See <ref
+	    refid="createArrayDescr">section</ref> for a complete list
+	    of supported objects.
 	  </p>
 
 	</subsection>
@@ -1426,26 +1510,26 @@ Particle:      7 --> 49.0
 	<subsection>
 	  <heading>Appending data to an existing table</heading>
 
-	  <p>To finish this section, let's have a look at how
-	    we can add records to an existing on-disk table. Let's use
-	    our well-known <em>readout</em> <verb>Table</verb>
-	    instance and let's append some new values to it:
+	  <p>To finish this section, let's have a look at how we can
+	    add records to an existing on-disk table. Let's use our
+	    well-known <em>readout</em> <verb>Table</verb> instance
+	    and let's append some new values to it:
 	  </p>
 
 	  <verbatim>
 >>> table = h5file.root.detector.readout
->>> particle = table.record
+>>> particle = table.row
 >>> for i in xrange(10, 15):
-...     particle.name  = 'Particle: %6d' % (i)
-...     particle.TDCcount = i % 256
-...     particle.ADCcount = (i * 256) % (1 &lt;&lt; 16)
-...     particle.grid_i = i
-...     particle.grid_j = 10 - i
-...     particle.pressure = float(i*i)
-...     particle.energy = float(particle.pressure ** 4)
-...     particle.idnumber = i * (2 ** 34)  # This exceeds long integer range
-...     table.appendAsRecord(particle)
-... 
+...     particle['name']  = 'Particle: %6d' % (i)
+...     particle['TDCcount'] = i % 256
+...     particle['ADCcount'] = (i * 256) % (1 &lt;&lt; 16)
+...     particle['grid_i'] = i
+...     particle['grid_j'] = 10 - i
+...     particle['pressure'] = float(i*i)
+...     particle['energy'] = float(particle['pressure'] ** 4)
+...     particle['idnumber'] = i * (2 ** 34)
+...     particle.append()
+...
 >>> table.flush()
 >>>
 	  </verbatim>
@@ -1455,38 +1539,28 @@ Particle:      7 --> 49.0
 	    disk, and when you add new records, they are appended to
 	    the end of the table<footnote>Note that you can only
 	    append values to tables, not array objects. However, I
-	    plan to support unlimited dimension arrays in short
-	    term. Keep tuned.</footnote>.
+	    plan to support unlimited dimension arrays shortly. Keep
+	    tuned.</footnote>.
 	  </p>
 	  <p>
 	    If you look carefully at the code you will see that we
-	    have used the <verb>table.record</verb> attribute to
-	    access to a <verb>Particle</verb> instance and that way we
-	    could use it to fill new values. However, it should be
-	    stressed that it is not necessary to have the original
-	    class definition (<verb>Particle</verb>) in our code to
-	    re-create it (in fact, we don't even declared it in our
-	    current python session!): it will be created only from
-	    metadata existing on file, and it behaves exactly as an
-	    original <verb>Particle</verb> instance!.
+	    have used the <verb>table.row</verb> attribute so as to
+	    access a table row and fill it up with the new values.
+	    Each time that its <verb>append()</verb> method is called,
+	    the actual row is committed to the output buffer and the
+	    row pointer is incremented to point to the next table
+	    record.
 	  </p>
-	  <p>This is part of the magic that allow the use of
-	    <em>metaclasses</em> in <verb>PyTables</verb>, and that
-	    will easy the creation of portable applications that can
-	    read any <verb>PyTables</verb> file <visual
-	    markup="bf">regardless</visual> of having access to the
-	    original Python record class definition.
-	  </p>
-
 	  <p>Let's have a look at some columns of the resulting table:
 	  </p>
 
 	  <verbatim>
->>> for x in table.readAsRecords():
+>>> for r in table.iterrows():
 ...     print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
-...        (x.name, x.pressure, x.energy, x.grid_i, x.grid_j,
-...         x.TDCcount)
-... 
+...        (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'],
+...         r['TDCcount'])
+...
+...
 Particle:      0 |         0.0 |           0 |      0 |     10 |        0 |
 Particle:      1 |         1.0 |           1 |      1 |      9 |        1 |
 Particle:      2 |         4.0 |         256 |      2 |      8 |        2 |
@@ -1502,15 +1576,11 @@ Particle:     11 |       121.0 |   2.144e+08 |     11 |     -1 |       11 |
 Particle:     12 |       144.0 |     4.3e+08 |     12 |     -2 |       12 |
 Particle:     13 |       169.0 |   8.157e+08 |     13 |     -3 |       13 |
 Particle:     14 |       196.0 |   1.476e+09 |     14 |     -4 |       14 |
->>> print
-
->>> print "Total numbers of entries after appending new rows:", table.nrows
-Total numbers of entries after appending new rows: 15
->>>
 	  </verbatim>
 
 	  <p>In <ref refid="tutorial-h5">figure</ref> you can see a
-	    view of the <verb>PyTables</verb> file we have created.
+	    graphical view of the <verb>PyTables</verb> file we have
+	    just created.
 	  </p>
 
 	  <figure id="tutorial-h5">
@@ -1541,43 +1611,42 @@ $
 	  sanity checks</heading>
 
 	<p>Now, time for a more real life example (i.e. with errors in
-	  code). Here, we will create a couple of directories (groups,
-	  in HDF5 jargon) hanging directly from <verb>root</verb>
-	  called <verb>Particles</verb> and <verb>Events</verb>. Then,
-	  we will put 3 tables in each group; in
-	  <verb>Particles</verb> we will put instances of
-	  <verb>Particle</verb> records and in <verb>Events</verb>,
-	  instances of <verb>Event</verb>.
+	  code). Here, we will create a couple of groups hanging
+	  directly from <verb>root</verb> called
+	  <verb>Particles</verb> and <verb>Events</verb>. Then, we
+	  will put 3 tables in each group; in <verb>Particles</verb>
+	  we will put tables based on <verb>Particle</verb> descriptor
+	  and in <verb>Events</verb>, tables based <verb>Event</verb>
+	  descriptor.
 	</p>
 	<p>
-	  After that, we will feed the tables with 257 (you will see
-	  soon why I choose such an <em>esoteric</em> number) entries
-	  each. Finally, we will read the recently created table
+	  After that, we will feed the tables with a number of
+	  records. Finally, we will read the recently created table
 	  <verb>/Events/TEvent3</verb> and select some values from it
 	  using a comprehension list.
 	</p>
 	<p>Look at the next script. It seems to do all of that, but a
 	  couple of small bugs will be shown up. Note that this
 	  <verb>Particle</verb> class is not directly related with the
-	  one defined in last example; this is simpler.
+	  one defined in last example; this one is simpler.
 	</p>
 
 	<verbatim>
 from tables import *
 
 class Particle(IsColDescr):
-    name        = '16s'  # 16-character String
-    lati        = 'i'    # integer
-    longi       = 'i'    # integer
-    pressure    = 'f'    # float  (single-precision)
-    temperature = 'd'    # double (double-precision)
+    name      = Col('CharType', 16)  # 16-character String
+    lati      = Col("Int32", 1)      # integer
+    longi     = Col("Int32", 1)      # integer
+    pressure  = Col("Float32", 1)    # float  (single-precision)
+    temperature = Col("Float64", 1)    # double (double-precision)
 
 class Event(IsColDescr):
-    name        = '16s'  # 16-character String
-    TDCcount    = 'B'    # unsigned char
-    ADCcount    = 'H'    # unsigned short
-    xcoord      = 'f'    # float  (single-precision)
-    ycoord      = 'f'    # float  (single-precision)
+    name      = Col('CharType', 16)    # 16-character String
+    TDCcount  = Col("UInt8", 1)        # unsigned byte
+    ADCcount  = Col("UInt16", 1)       # Unsigned short integer
+    xcoord    = Col("Float32", 1)      # integer
+    ycoord    = Col("Float32", 1)      # integer
 
 # Open a file in "w"rite mode
 fileh = openFile("tutorial2.h5", mode = "w")
@@ -1596,17 +1665,17 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
     table = fileh.createTable("/Particles", tablename, Particle(),
                            "Particles: "+tablename)
     # Get the record object associated with the table:
-    particle = table.record
-    # Fill the table with 10 particles
+    particle = table.row
+    # Fill the table with 257 particles
     for i in xrange(257):
         # First, assign the values to the Particle record
-        particle.name  = 'Particle: %6d' % (i)
-        particle.lati = i 
-        particle.longi = 10 - i
-        particle.pressure = float(i*i)
-        particle.temperature = float(i**2)
+        particle['name'] = 'Particle: %6d' % (i)
+        particle['lati'] = i 
+        particle['longi'] = 10 - i
+        particle['pressure'] = float(i*i)
+        particle['temperature'] = float(i**2)
         # This injects the Record values
-        table.appendAsRecord(particle)      
+        particle.append()      
 
     # Flush the table buffers
     table.flush()
@@ -1617,180 +1686,118 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
     table = fileh.createTable(root.Events, tablename, Event(),
                            "Events: "+tablename)
     # Get the record object associated with the table:
-    event = table.record
+    event = table.row
     # Fill the table with 257 events
     for i in xrange(257):
         # First, assign the values to the Event record
-        event.name  = 'Event: %6d' % (i)
-        event.TDCcount = i
-        event.ADCcount = i * 2
-        event.xcoor = float(i**2)
-        event.ycoord = float(i**4)
+        event['name']  = 'Event: %6d' % (i)
+        event['TDCcount'] = i % (1&lt;&lt;8)  
+        event['xcoor'] = float(i**2)     
+        event['ADCcount'] = i * 2
+        event['ycoord'] = float(i)**4
         # This injects the Record values
-        table.appendAsRecord(event)
+        event.append()
 
     # Flush the buffers
     table.flush()
 
 # Read the records from table "/Events/TEvent3" and select some
 table = root.Events.TEvent3
-e = [ p.TDCcount for p in table.readAsRecords()
-      if p.ADCcount &lt; 20 and 4 &lt;= p.TDCcount &lt; 15 ]
+e = [ p['TDCcount'] for p in table.iterrows()
+      if p['ADCcount'] &lt; 20 and 4 &lt;= p['TDCcount'] &lt; 15 ]
 print "Last record ==>", p
 print "Selected values ==>", e
 print "Total selected records ==> ", len(e)
 
-# Finally, close the file
+# Finally, close the file (this also will flush all the remaining buffers!)
 fileh.close()
 	</verbatim>
 
 	<subsection>
 	  <heading>Field name checking</heading>
 
-	<p>If you have read the code carefully it looks pretty good,
-	  but it won't work. When you run this example, you will get
-	  the next error:
-	</p>
-	<verbatim>
+	  <p>If you have read the code carefully it looks pretty good,
+	    but it won't work. When you run this example, you will get
+	    the next error:
+	  </p>
+	  <verbatim>
 Traceback (most recent call last):
-  File "tutorial2.py", line 68, in ?
-    event.xcoor  = float(i**2)
-AttributeError: 'Event' object has no attribute 'xcoor'
-	</verbatim>
-	<p>This error is telling us that we tried to assign a value to
-	  a non-existent field in an <verb>Event</verb> object. By
-	  looking carefully at the <verb>Event</verb> attributes, we
-	  see that we misspelled the <verb>xcoord</verb> field (we
-	  wrote <verb>xcoor</verb> instead). This is very unusual in
-	  Python because if you try to assign a value to a
-	  non-existent instance variable, a new one is created with
-	  that name. Such a feature is not satisfactory when we are
-	  dealing with an object that has fixed list of variable names
-	  (the user record, that is responsible for defining the table
-	  columns). So, thanks to the magic that provides the
-	  <verb>IsColDescr</verb> metaclass, all instance variables
-	  (data fields) are declared internally as class
-	  <verb>__slots__</verb>. This is why the last error appeared.
-	</p>
+  File "tutorial2-bad.py", line 69, in ?
+    event['xcoor'] = float(i**2)     # Wrong spelling
+  File "/home/falted/PyTables/pytables-0.4/src/hdf5Extension.pyx", line 1078, in __setitem__
+    raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
+AttributeError: Error accessing "xcoor" attr.
+ Error was: "exceptions.KeyError: xcoor"
+	  </verbatim>
 
-	</subsection>
+	  <p>This error is telling us that we tried to assign a value to
+	    a non-existent field in the <em>event</em> table
+	    object. By looking carefully at the <verb>Event</verb>
+	    class attributes, we see that we misspelled the
+	    <verb>xcoord</verb> field (we wrote <verb>xcoor</verb>
+	    instead). This is very unusual in Python because if you
+	    try to assign a value to a non-existent instance variable,
+	    a new one is created with that name. Such a feature is not
+	    satisfactory when we are dealing with an object that has
+	    fixed list of field names. So, a check is made inside
+	    PyTables so that if you try to assign a value to a
+	    non-existing field a <verb>KeyError</verb> is raised.
+	  </p>
 
-	<subsection>
-	  <heading>Data range checking</heading>
-
-	<p>After correcting the last attribute error in the source,
-	  and running the script again... oooops! we find another
-	  problem:
-	</p>
-	<verbatim>
-Traceback (most recent call last):
-  File "tutorial2.py", line 69, in ?
-    table.appendAsRecord(event)      
-  File "/usr/lib/python2.2/site-packages/tables/Table.py", line 210, in
-appendAsRecord
-    self._v_packedtuples.append(recordObject._f_pack2())
-  File "/usr/lib/python2.2/site-packages/tables/IsColDescr.py", line 121, in 
-_f_pack2
-    self._f_raiseValueError()
-  File "/usr/lib/python2.2/site-packages/tables/IsColDescr.py", line 130, in 
-_f_raiseValueError
-    raise ValueError, \
-ValueError: Error packing record object: 
- [('ADCcount', 'H', 256), ('TDCcount', 'B', 256), ('name', '16s', 'Event: 256'),
- ('xcoord', 'f', 65536.0), ('ycoord', 'f', 4294967296.0)]
- Error was: ubyte format requires 0&lt;=number&lt;=255
-	</verbatim>
-	<p>This time the exception is telling us that one of the
-	  records is having trouble to be converted to the data types
-	  stated in the Event class definition. By looking carefully
-	  at the record object causing the problem, we see that we are
-	  trying to assign a value of 256 to the <verb>TDCcount</verb>
-	  field which has a <verb>'B'</verb> (C unsigned char)
-	  typecode and the allowed range for it is
-	  <verb>0&lt;=TDCcount&lt;=255</verb>. This is a very powerful
-	  capability to automatically check for ranges and the message
-	  error should be explicit enough to figure out what is
-	  happening. In this case you can solve the problem either by
-	  promoting the <verb>TDCcount</verb> to <verb>'H'</verb>
-	  which is an unsigned 16-bit integer, or, by avoiding the
-	  mistake we have probably made in assigning a value greater
-	  than 255 to a 'B' typecode.
-	</p>
-	<p>If we change the line:
-	</p>
-	<verbatim>
-          event.TDCcount = i
-	</verbatim>
-	<p>by the next one:
-	</p>
-	<verbatim>
-           event.TDCcount = i % (1&lt;&lt;8)
-	</verbatim>
-	<p>you will see that our problem has disappeared, and that the
-	  HDF5 file has been created.
-	</p>
 	</subsection>
 
 	<subsection>
 	  <heading>Data type checking</heading>
 
-	<p>Finally, in order to test the type checking, we will change
-	  the next line:
-	</p>
-	<verbatim>
-	  event.ADCcount = i * 2        # Correct type
-	</verbatim>
+	  <p>Finally, in order to test the type checking, we will change
+	    the next line:
+	  </p>
+	  <verbatim>
+	    event.ADCcount = i * 2        # Correct type
+	  </verbatim>
 
-	<p>to read:</p>
+	  <p>to read:</p>
 
-	<verbatim>
-	  event.ADCcount = "s"          # Wrong type
-	</verbatim>
+	  <verbatim>
+	    event.ADCcount = "s"          # Wrong type
+	  </verbatim>
 
-	<p>After this modification, the next exception will be raised
-	  when the script is executed:
-	</p>
+	  <p>After this modification, the next exception will be
+	    raised when the script is executed:
+	  </p>
 
-	<verbatim>
+	  <verbatim>
 Traceback (most recent call last):
-  File "tutorial2.py", line 68, in ?
-    table.appendAsRecord(event)      
-  File "/home/falted/PyTables/pytables-0.2/tables/Table.py", line 279,
-in appendAsRecord
-    self._v_packedtuples.append(RecordObject._f_pack2())
-  File "/home/falted/PyTables/pytables-0.2/tables/IsColDescr.py", line
-181, in_f_pack2
-    self._f_raiseValueError()
-  File "/home/falted/PyTables/pytables-0.2/tables/IsColDescr.py", line
-135, in _f_raiseValueError
-    raise ValueError, \
-ValueError: Error packing record object: 
- [('ADCcount', 'H', '0'), ('TDCcount', 'B', 0), ('name', '16s',
-   'Event:      0'), ('xcoord', 'f', 0.0), ('ycoord', 'f', 0.0)]
- Error was: required argument is not an integer
-	</verbatim>
+  File "tutorial2-bad.py", line 68, in ?
+    event['ADCcount'] = "s"      # Wrong type
+  File "/home/falted/PyTables/pytables-0.4/src/hdf5Extension.pyx", line 1078, in __setitem__
+    raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
+AttributeError: Error accessing "ADCcount" attr.
+ Error was: "exceptions.TypeError: NA_setFromPythonScalar: bad value type."
+	  </verbatim>
 
-	<p>that states the error.</p>
+	  <p>that states the kind of error (<verb>TypeError</verb>).
+	  </p>
 
-	<p>You can admire the structure we have created with this
-	  (corrected) script in <ref refid="tutorial2">figure</ref>. As
-	  before, you will find this example in source file
-	  <verb>tutorial2.py</verb> that is located in the directory
-	  <verb>examples</verb>.
-	</p>
+	  <p>You can admire the structure we have created with this
+	    (corrected) script in <ref
+	    refid="tutorial2">figure</ref>. As before, you will find
+	    this example in source file <verb>tutorial2.py</verb> that
+	    is located in the directory <verb>examples</verb>.
+	  </p>
 
-	<figure id="tutorial2">
-	  <graphics file="tutorial2-h5" scale="0.6" kind="bitmap">
-	  </graphics>
-	  <caption>Table hierarchy for second example.</caption>
-	</figure>
+	  <figure id="tutorial2">
+	    <graphics file="tutorial2-h5" scale="0.6" kind="bitmap">
+	    </graphics>
+	    <caption>Table hierarchy for second example.</caption>
+	  </figure>
 
-	<p>Feel free to visit the rest of examples in directory
-	  <verb>examples</verb>, and try to understand them. I've
-	  tried to make several use cases to give you an idea of the
-	  <visual markup="tt">PyTables</visual> capabilities and its
-	  way of dealing with HDF5 objects.
-	</p>
+	  <p>Feel free to visit the rest of examples in directory
+	    <verb>examples</verb>, and try to understand them. I've
+	    tried to make several use cases to give you an idea of the
+	    <visual markup="tt">PyTables</visual> capabilities and its
+	    way of dealing with HDF5 objects.
+	  </p>
 
 	</subsection>
       </section>
@@ -1801,7 +1808,7 @@ ValueError: Error packing record object:
 	<p><verb>PyTables</verb> has several places where the user can
 	  improve the performance of his application. If you are
 	  planning to deal with really large data, you should read
-	  carefully this section so as to learn how to get an
+	  carefully this section in order to learn how to get an
 	  important boost for your code. But if your dataset is small
 	  or medium size (say, up to 1 MB), you should not worry about
 	  that as the default parameters in <verb>PyTables</verb> are
@@ -1812,67 +1819,51 @@ ValueError: Error packing record object:
 	  <heading>Compression issues</heading>
 
 	  <p>One of the beauties of <verb>PyTables</verb> is that it
-	    comes with compression activated by <visual
-	    markup="bf">default</visual> for tables. This might be a
-	    bit controversial feature, because compression has a
-	    legend of being a very CPU time resources consumer (but if
-	    you are completely against compression, you can disable
-	    it; keep reading).
+	    supports compression on tables (but not on arrays!, that
+	    may come later), although it is disabled by
+	    default. Compression of big amounts of data might be a bit
+	    controversial feature, because compression has a legend of
+	    being a very CPU time resources consumer. However, if you
+	    are willing to check if compression can help reducing your
+	    dataset, keep reading.
 	  </p>
-	  <p> However, there is an usual scenario where users need to
-	    save duplicated data in some record fields, while the
-	    others have varying values. In a relational database
-	    approach such a redundant data can normally be moved to
-	    other tables and a relationship between the rows on the
-	    separate tables can be created. But that takes analysis
-	    and implementation time, and made the underlying libraries
+	  <p>There is an usual scenario where users need to save
+	    duplicated data in some record fields, while the others
+	    have varying values. In a relational database approach
+	    such a redundant data can normally be moved to other
+	    tables and a relationship between the rows on the separate
+	    tables can be created. But that takes analysis and
+	    implementation time, and made the underlying libraries
 	    more complex and slower.
 	  </p>
 
-	  <p><verb>PyTables</verb> approach is to not support
-	    relationships between tables, but to compress duplicated
-	    data in tables. That allows the user to not worry about
-	    finding their optimum data tables strategy, but rather use
-	    less, not directly related, tables with a larger number of
-	    columns while still not cluttering the database too much
-	    with duplicated data (compression is responsible to avoid
-	    that). As a side effect, data selections can be made more
-	    easily because you have more fields available in a single
-	    table, and they can be referred in the same loop (or
-	    comprehension list).
+	  <p><verb>PyTables</verb> transparent compression allows the
+	     user to not worry about finding which is their optimum
+	     data tables strategy, but rather use less, not directly
+	     related, tables with a larger number of columns while
+	     still not cluttering the database too much with
+	     duplicated data (compression is responsible to avoid
+	     that). As a side effect, data selections can be made more
+	     easily because you have more fields available in a single
+	     table, and they can be referred in the same loop. This
+	     process may normally end in a simple, yet powerful manner
+	     to process your data (although you should still be
+	     careful about what kind of scenarios compression is
+	     convenient or not).
 	  </p>
 
 	  <p>The compression library used is the <visual
 	    markup="bf">zlib</visual> (see reference <ref
-	    refid="zlibRef"></ref>), and the compression level used by
-	    default for <verb>Table</verb> objects is 3. This level is
-	    less than 6 which is the default level recommend in zlib
-	    documentation as a compromise between speed and
-	    compression. I've made this decision for two reasons:
+	    refid="zlibRef"></ref>), and the compression level that I
+	    recommend to use for <verb>Table</verb> objects is 1. This
+	    is the lowest level of compression, but if you take the
+	    approach suggested above, normally the redundant data is
+	    to be found in the same row, so the redundant data
+	    locality is very high and such a small level of
+	    compression should be enough to compress well the possible
+	    redundancy on your compound tables, saving CPU cycles for
+	    doing other things.
 	  </p>
-
-	  <itemize>
-
-	    <item>Choosing level 3 is a more conservative (in terms of
-	      CPU usage) value. This fact together with the generally
-	      available fast CPU today, can make a better balance
-	      between CPU usage and I/O performance. It would be even
-	      possible in certain situations that reading a compressed
-	      table would take less wall-clock time than not using
-	      compression at all.
-	    </item>
-
-	    <item>Normally (except in some degenerate cases), table
-	      columns values are stored very closely in memory
-	      (i.e. they have a high degree of locality), so the
-	      compression algorithm has to make little effort to
-	      discover data duplication (as the majority of this
-	      duplication would appear in values of the same
-	      column). So a small compression level should offer
-	      roughly the same results as a big one.
-	    </item>
-
-	  </itemize>
 
 	  <p>Nonetheless, in some situations you may want to check how
 	    compression level affects your application. You can
@@ -1930,67 +1921,7 @@ ValueError: Error packing record object:
 	  </p>
 
 	</subsection>
-
-	<subsection id="tuplesOptim">
-	  <heading>Optimized ways to fill and read data from
-	    tables</heading>
-
-	  <p>The <verb>appendAsRecord</verb> and
-	    <verb>readAsRecords</verb> methods in <verb>Table</verb>
-	    class are very convenient to use when you are dealing with
-	    small to medium size tables. They are safe and intuitive,
-	    <visual markup="bf">but</visual> they are slow. When you
-	    have to deal with large tables, you can use the alternate
-	    methods <verb>appendAsValues</verb>,
-	    <verb>appendAsTuple</verb> and
-	    <verb>readAsTuples</verb>. Look at sections <ref
-	    refid="appendAsValuesDescr"></ref>, <ref
-	    refid="appendAsTupleDescr"></ref> and <ref
-	    refid="readAsTuplesDescr"></ref> for a detailed reference
-	    of these optimized methods.
-	  </p>
-
-	  <p>These three new methods are different to the two formers
-	    in that they accept or return the values to/from rows in
-	    table as Python tuples (or independent values in the case
-	    of <verb>appendAsValues</verb>). They are much faster (at
-	    least a factor two or even more) than
-	    <verb>xxxxAsRecord</verb> counterparts, but they are also
-	    unsafer, because it is your responsibility to pass the
-	    correct order of parameters to be appended to the table
-	    (or guess the correct order of fields in tuple when
-	    reading). This field order is however well defined
-	    as the result of alphanumerically sorting the names of
-	    table fields (or columns).
-	  </p>
-
-	  <p>For example, if you have a table with three fields named
-	    "<em>TDCcount</em>", "<em>ADCcount</em>" and
-	    "<em>energy</em>", you have to feed
-	    <verb>appendAsValues</verb> with a series of parameters
-	    like in:
-	  </p>
-	  <verbatim>
-table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
-	  </verbatim>
-
-	  <p>For <verb>readAsTuple</verb> method you have to follow
-	    the same rule, i.e. you must unpack the values in the
-	    returned tuple in alphanumerical order, like in:
-	  </p>
-	  <verbatim>
-(ADCcountValue, TDCcountValue, energyValue) = table.readAsTuple()
-	  </verbatim>
-
-	  <p>For a working example that also allows you to do some
-	    timings easily, look at the
-	    <em>examples/table-bench.py</em> script.
-	  </p>
-
-	</subsection>
-
       </section>
-
     </chapter>
 
     <chapter id="libraryReference">
@@ -2001,8 +1932,8 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	<verb>File</verb>, <verb>Group</verb>, <verb>Leaf</verb>,
 	<verb>Table</verb> and <verb>Array</verb>. Another one is
 	responsible to build record objects from a subclass user
-	declaration, and performs field, type and range checks; its
-	name is <verb>IsColDescr</verb>. An important function, called
+	declaration, and performs field and type checks; its name is
+	<verb>IsColDescr</verb>. An important function, called
 	<verb>openFile</verb> is responsible to create, open or append
 	to files. In addition, a few utility functions are defined to
 	guess if an user supplied file is a <verb>PyTables</verb> or
@@ -2360,11 +2291,13 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 		  saved. Currently accepted values are: lists, tuples,
 		  scalars (int and float), strings and
 		  (multidimensional) <verb>Numeric</verb> and
-		  <verb>numarray</verb> arrays (including
-		  <verb>CharArrays</verb>). However, objects that has
-		  some of its dimension equal to zero is not supported
-		  (this will be solved when unlimited arrays would be
-		  implemented).
+		  <verb>NumArray</verb> arrays (including
+		  <verb>CharArrays</verb> string arrays). However,
+		  these objects must be regular (i.e. they cannot be
+		  like, for example, [[1,2],2]). Also, objects that
+		  has some of its dimension equal to zero are not
+		  supported (this will be solved when unlimited arrays
+		  will be implemented).
 		</item>
 
 		<term>title</term> <item>A description for this
@@ -2937,10 +2870,10 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	<heading>The <visual markup="tt">Array</visual>
 	class</heading>
 
-	<p>Represents a <verb>Numeric</verb> array on file. It
-	  provides methods to create new arrays or open existing ones,
-	  as well as methods to write/read data and metadata to/from
-	  array objects in the file.
+	<p>Represents an array on file. It provides methods to create
+	  new arrays or open existing ones, as well as methods to
+	  write/read data and metadata to/from array objects in the
+	  file.
 	</p>
 	<p><visual markup="bf">Caveat:</visual> All
 	  <verb>Numeric</verb> and <verb>numarray</verb> typecodes are

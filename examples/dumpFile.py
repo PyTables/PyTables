@@ -49,7 +49,7 @@ if __name__=="__main__":
         print "Detailed info on this file object tree follows:"
         print "Groups:"
         for group in h5file.walkGroups(h5file.root):
-            print group
+            print repr(group)
 
         print
         print "Leaves:"

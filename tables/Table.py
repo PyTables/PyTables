@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.39 2003/03/14 11:38:55 falted Exp $
+#       $Id: Table.py,v 1.40 2003/03/14 19:37:27 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.39 $"
+__version__ = "$Revision: 1.40 $"
 
 from __future__ import generators
 import sys
@@ -64,7 +64,7 @@ class Table(Leaf, hdf5Extension.Table):
     """Represent a table in the object tree.
 
     It provides methods to create new tables or open existing ones, as
-    well as methods to write/read data to/from table objects over the
+    well as to write/read data to/from table objects over the
     file. A method is also provided to iterate over the rows without
     loading the entire table or column in memory.
 
@@ -770,6 +770,6 @@ class Table(Leaf, hdf5Extension.Table):
                 for k in self.colnames ]
         columns = '{\n    %s }' % (',\n    '.join(rep))
         
-        return "%s\n  description = %s\n  byteorder = %s" % \
+        return "%s\n  description := %s\n  byteorder = %s" % \
                (str(self), columns, self.byteorder)
                

@@ -60,9 +60,9 @@ print "Object:", table
 print "Table name:", table.name
 print "Table title:", table.title
 print "Number of rows in table: %d" % (table.nrows)
-print "Table variable names (sorted alphanumerically) with their type:"
+print "Table variable names with their type and shape:"
 for name in table.colnames:
-    print "  ", name, ':=', table.coltypes[name]
+    print "  ", name, ':=', table.coltypes[name], table.colshapes[name]
 print    
 
 # Get the object in "/columns pressure"
@@ -80,14 +80,14 @@ pressureArray = pressureObject.read()
 nameArray = h5file.root.columns.name.read()
 
 # Check the kind of object we have created (they should be Numeric arrays)
-print "pressureArray is object of type:", type(pressureArray)
-print "nameArray is object of type:", type(nameArray)
+print "pressureArray is an object of type:", type(pressureArray)
+print "nameArray is an object of type:", type(nameArray)
 print
 
 # Print the data for both arrays
 print "Data on arrays nameArray and pressureArray:"
 for i in range(pressureObject.shape[0]):
-    print "".join(nameArray[i]), "-->", pressureArray[i]
+    print nameArray[i], "-->", pressureArray[i]
 
 print
 print	'-**-**-**-**- append records to existing table -**-**-**-**-**-'
@@ -124,10 +124,10 @@ print "%-16s | %11s | %11s | %6s | %6s | %8s |" % \
 print "%-16s + %11s + %11s + %6s + %6s + %8s +" % \
       ('-' * 16, '-' * 11, '-' * 11, '-' * 6, '-' * 6, '-' * 8)
 # Print the data
-for x in table.iterrows():
+for r in table.iterrows():
     print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
-       (x['name'], x['pressure'], x['energy'], x['grid_i'], x['grid_j'], 
-        x['TDCcount'])
+       (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'], 
+        r['TDCcount'])
        
 print
 print "Total numbers of entries after appending new rows:", table.nrows

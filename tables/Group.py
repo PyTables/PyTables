@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.26 2003/03/14 11:38:55 falted Exp $
+#       $Id: Group.py,v 1.27 2003/03/14 19:37:26 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.26 $"
+__version__ = "$Revision: 1.27 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -502,4 +502,13 @@ class Group(hdf5Extension.Group):
 
     def __repr__(self):
         """A detailed string representation for this object."""
-        return str(self)
+        #return str(self)
+        
+        rep = [ '%r (%s)' %  \
+                (childname, child._v_class) 
+                for (childname, child) in self._v_objchilds.items() ]
+        childlist = '[%s]' % (', '.join(rep))
+        
+        return "%s\n  childs := %s" % \
+               (str(self), childlist)
+               
