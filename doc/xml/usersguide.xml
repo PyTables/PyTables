@@ -4462,7 +4462,7 @@ fileh.close()
 	    <p>Example of use:</p>
 	    <verbatim>
               passvalues=[]
-              for row in table.iterrows(0&gt;table.cols.col1&lt;0.3, step=5):
+              for row in table.where(0&gt;table.cols.col1&lt;0.3, step=5):
                   if row['var1'] &lt;= 20:
                       passvalues.append(row['var2']
               print "Values that passes the cuts:", passvalues

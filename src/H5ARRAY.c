@@ -384,10 +384,12 @@ herr_t H5ARRAYwrite_records( hid_t loc_id,
   retval = -4;
 
  /* Define a hyperslab in the dataset */
- else if ( rank != 0 && H5Sselect_hyperslab( space_id, H5S_SELECT_SET, start, step, count, NULL) < 0 )
+ else if ( rank != 0 && H5Sselect_hyperslab( space_id, H5S_SELECT_SET, start,
+					     step, count, NULL) < 0 )
   retval = -5;
 
- else if ( H5Dwrite( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
+ else if ( H5Dwrite( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT,
+		     data ) < 0 )
   retval = -6;
 
  /* Terminate access to the dataspace */
