@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.62 2003/07/17 18:57:28 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.63 2003/07/19 09:28:42 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.62 $"
+__version__ = "$Revision: 1.63 $"
 
 
 import sys, os
@@ -643,6 +643,7 @@ def isHDF5(char *filename):
   """
   
   return H5Fis_hdf5(filename)
+  ##return 1
 
 def isPyTablesFile(char *filename):
   """Determines whether a file is in the PyTables format.
@@ -719,7 +720,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.62 2003/07/17 18:57:28 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.63 2003/07/19 09:28:42 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -742,6 +743,7 @@ cdef class File:
     self.mode = mode
     if (strcmp(mode, "r") == 0 or strcmp(mode, "r+") == 0):
       if (os.path.isfile(name) and H5Fis_hdf5(name) > 0):
+      #if (os.path.isfile(name)):
         # The file exists and is HDF5, that's ok
         #print "File %s exists... That's ok!" % name
         if strcmp(mode, "r") == 0:
@@ -1272,7 +1274,7 @@ cdef class Table:
     
     # Append the records:
     ret = H5TBappend_records(self.parent_id, self.name, nrecords,
-                   self.rowsize, self.field_offset, rbuf)
+                             self.rowsize, self.field_offset, rbuf)
     if ret < 0:
       raise RuntimeError("Problems appending the records")
 
@@ -1449,8 +1451,9 @@ cdef class Row:
   """
 
   cdef object _fields, _recarray, _table, _saveBufferedRows, _indexes
-  cdef int _row, _nrowinbuf, _nrow, _unsavednrows, _maxTuples, _strides, _opt
-  cdef int start, stop, step, nextelement, nrowsinbuf
+  cdef int _row, _nrowinbuf, nrow1, _nrow, _unsavednrows, _strides
+  cdef int start, stop, step, nextelement, nrowsinbuf, nrows
+  cdef int bufcounter, recout, counter
   cdef int *_scalar, *_enumtypes
 
   def __new__(self, input, table):
@@ -1462,8 +1465,9 @@ cdef class Row:
     self._fields = input._fields
     self._unsavednrows = 0
     self._row = 0
-    self._opt = 0
     self._nrow = 0
+    self.nrows = self._table.nrows  # This value may change
+    self.nrowsinbuf = table._v_maxTuples
     self._strides = input._strides[0]
     nfields = input._nfields
     # Create a dictionary with the index columns of the recarray
@@ -1480,16 +1484,13 @@ cdef class Row:
         self._scalar[i] = 0
       self._enumtypes[i] = toenum[input._fmt[i]]
       i = i + 1
-    self._maxTuples = table._v_maxTuples
     self._saveBufferedRows = table._saveBufferedRows
 
-  def _initLoop(self, start, stop, step, nrowsinbuf):
+  def _initLoop(self, start, stop, step):
     self.start = start
     self.stop = stop
     self.step = step
-    self.nextelement = start
-    self.nrowsinbuf = nrowsinbuf
-    self._opt=1
+    self.nrowsinbuf = self._table._v_maxTuples
 
   def __call__(self):
     """ return the row for this record object and update counters"""
@@ -1497,18 +1498,54 @@ cdef class Row:
     self._nrow = self._nrowinbuf + self._row
     return self
 
+  # The iterator is only valid for fetch all the rows in a table
+  def __iter__(self):
+    "Iterator that traverses all the data in the Table"
+    
+    self._table._open_read(self._recarray)  # Open the table for reading
+    self.nrows = self._table.nrows  # Need to refresh this value here
+    self._initLoop(0, self.nrows, 1)      # Do some loop initialization
+    self.bufcounter = 0             # We have fetch the first buffer
+    self._nrow = -1                 # Start a loop
+    return self
+
+  def __next__(self):
+    "next() funtion for __iter__() that is called on each iteration"
+
+    self.nrow1 = self._nrow + 1   # displacement
+    if self.nrow1 >= self.nrows:
+      #print "Closing table..."
+      self._table._close_read()  # Close the table
+      raise StopIteration        # end of iteration
+    else:
+      if self.nrow1 >= self.bufcounter:
+        #print "self.nrow1-->", self.nrow1
+        self.recout = self._table._read_records(self.nrow1,
+                                                self.nrowsinbuf)
+        if self._table.byteorder <> sys.byteorder:
+          #self._recarray.byteswap()
+          self._recarray.togglebyteorder()
+
+        self.bufcounter = self.bufcounter + self.nrowsinbuf
+        self._setBaseRow(self.nrow1, 0)
+
+      # The next is equivalent to "return self()"
+      self._row = self._row + 1
+      self._nrow = self._nrow + 1
+      #print "Nrow-->", self._nrow
+      return self
+
+  def _setBaseRow(self, start, startb):
+    """ set the global row number and reset the local buffer row counter """
+    self._nrowinbuf = start
+    self._row = startb - self.step
+
   def _getRow(self):
     """ return the row for this record object and update counters"""
     self._row = self._row + self.step
     self._nrow = self._nrowinbuf + self._row
     #print "Delivering row:", self._nrow, "// Buffer row:", self._row
     return self
-
-  def _setBaseRow(self, start, startb):
-    """ set the global row number and reset the local buffer row counter """
-    self._nrowinbuf = start
-    self._row = startb - self.step
-    self._opt = 0
 
   def nrow(self):
     """ get the global row number for this table """
@@ -1521,7 +1558,7 @@ cdef class Row:
     self._row = self._row + 1 # update the current buffer read counter
     self._unsavednrows = self._unsavednrows + 1
     # When the buffer is full, flush it
-    if self._unsavednrows == self._maxTuples:
+    if self._unsavednrows == self.nrowsinbuf:
       self._saveBufferedRows()
       # Get again the self._fields of the new buffer
       self._fields = self._table._v_buffer._fields
@@ -1580,7 +1617,7 @@ cdef class Row:
         # CharType columns can only be unidimensional charrays right now,
         # so the elements has to be strings, so a copy() is not applicable here
         # But this should be addressed when multidimensional recarrays
-        # were supported
+        # will be supported
         # Call the universal indexing function
         return self._fields[fieldName][self._row]
       else:  # Case when dimensions > 1 and not CharType

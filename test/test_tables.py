@@ -218,6 +218,8 @@ class BasicTestCase(unittest.TestCase):
         if verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last record in table ==>", rec
+            print "rec['var5'] ==>", rec['var5'],
+            print "nrows ==>", table.row.nrow()
             print "Total selected records in table ==> ", len(result)
         nrows = table.row.nrow()
         if isinstance(rec['var5'], NumArray):
@@ -299,10 +301,12 @@ class BasicTestCase(unittest.TestCase):
         table.byteorder = {"little":"big","big":"little"}[table.byteorder]
 	
         # Read the records and select the ones with "var6" column less than 20
+        result2 = [ rec['var6'] for rec in table.iterrows() if rec['var6'] < 20]
         result = [ rec['var2'] for rec in table.iterrows() if rec['var6'] < 20]
         if verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last record in table ==>", rec
+            print "Selected records ==>", result2
             print "Total selected records in table ==>", len(result)
         nrows = self.expectedrows - 1
         assert (rec['var1'], rec['var6']) == ("0001", nrows)
@@ -559,7 +563,8 @@ class BasicRangeTestCase(unittest.TestCase):
 
         table._v_maxTuples = self.maxTuples
         if self.checkrecarray:
-            recarray = table.read(self.start, self.stop, self.step)
+            #recarray = table.read(self.start, self.stop, self.step)
+            recarray = table[self.start:self.stop:self.step]
             result = []
             for nrec in range(len(recarray)):
                 if recarray.field('var2')[nrec] < self.nrows:
@@ -869,7 +874,8 @@ class getColRangeTestCase(BasicRangeTestCase):
         table = self.fileh.getNode("/table0")
 
         try:
-            column = table.read(field='non-existent-column')
+            #column = table.read(field='non-existent-column')
+            column = table['non-existent-column']
         except LookupError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -1052,7 +1058,8 @@ class DefaultValues(unittest.TestCase):
         r.field("c2")[4] = 2
         
         # Read the table in another recarray
-        r2 = table.read()
+        #r2 = table.read()
+        r2 = table[::]  # Equivalent to table.read()
 
         # This generates too much output. Activate only when
         # self._v_maxTuples is very small (<10)
@@ -1078,12 +1085,13 @@ class OldRecordDefaultValues(DefaultValues):
 
 def suite():
     theSuite = unittest.TestSuite()
-    niter = 1
+    niter = 0
 
     #theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
     #theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
     #theSuite.addTest(unittest.makeSuite(CompressUCLTablesTestCase))
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
+    theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))

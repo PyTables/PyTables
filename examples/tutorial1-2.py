@@ -151,10 +151,22 @@ for i in range(pressureObject.shape[0]):
     print nameArray[i], "-->", pressureArray[i]
 
 print
-print	'-**-**-**-**- append records to existing table -**-**-**-**-**-'
+print	'-**-**-**-**-**- reading actual data from tables -**-**-**-**-**-**-'
 
 # Create a shortcut to table object
 table = h5file.root.detector.readout
+
+# Read the 'energy' column of '/detector/readout'
+print "Column 'energy' of '/detector/readout':\n", table["energy"]
+print
+# Read the 3rd row of '/detector/readout'
+print "Third row of '/detector/readout':\n", table[2]
+print
+# Read the rows from 3 to 9 of row of '/detector/readout'
+print "Rows from 3 to 9 of '/detector/readout':\n", table[2:9]
+
+print
+print	'-**-**-**-**- append records to existing table -**-**-**-**-**-'
 
 # Get the object row from table
 particle = table.row
@@ -189,7 +201,12 @@ for r in table.iterrows():
     print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
        (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'], 
         r['TDCcount'])
-       
+
+for r in table.row:
+    print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
+       (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'], 
+        r['TDCcount'])
+
 print
 print "Total number of entries after appending new rows:", table.nrows
 

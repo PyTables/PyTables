@@ -1,3 +1,5 @@
+#!/usr/bin/env python2.3
+
 from tables import *
 
 if __name__=="__main__":

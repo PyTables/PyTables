@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.57 2003/07/16 20:17:56 falted Exp $
+#       $Id: Table.py,v 1.58 2003/07/19 09:28:42 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.57 $"
+__version__ = "$Revision: 1.58 $"
 
 from __future__ import generators
 import sys
@@ -191,6 +191,7 @@ class Table(Leaf, hdf5Extension.Table, object):
                                shape=(self._v_maxTuples,),
                                names = self.colnames)
         # Initialize the recarray with the defaults in description
+        recarr._fields = recarr._get_fields()
         if init:
             for field in self.description.__slots__:
                 recarr._fields[field][:] = self.description.__dflts__[field]
@@ -350,6 +351,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         #bufmultfactor = 1000 * 10
         # A smaller buffer also makes the tests to not take too much memory
         # We choose the smaller one
+        # In addition, with the new iterator in the Row class, this seems to
+        # be the best choice in terms of performance!
         bufmultfactor = 1000 * 1
         # Counter for the binary tuples
         self._v_recunsaved = 0
@@ -447,6 +450,17 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
         
+    def _fetchall_new(self):
+        """Iterate over all the rows
+
+        This method returns an iterator, i.e. it keeps track on the last
+        record returned so that next time it is invoked it returns the
+        next available record until data is exhausted.
+
+        """
+        
+        return iter(self.row)
+        
     def _fetchall(self):
         """Iterate over all the rows
 
@@ -460,19 +474,21 @@ class Table(Leaf, hdf5Extension.Table, object):
         buffer = self._v_buffer
         self._open_read(buffer)  # Open the table for reading
         row = self.row   # get the pointer to the Row object
-        row._initLoop(0, self.nrows, 1, nrowsinbuf)
+        row._initLoop(0, self.nrows, 1)
         for i in xrange(0, self.nrows, nrowsinbuf):
             recout = self._read_records(i, nrowsinbuf)
             #recout = nrowsinbuf
             if self.byteorder <> sys.byteorder:
-                buffer.byteswap()
+                #buffer.byteswap()
+                buffer.togglebyteorder()
             # Set the buffer counter (case for step=1)
             row._setBaseRow(i, 0)
             for j in xrange(recout):
                 yield row()
-                
+
         self._close_read()  # Close the table
-        
+
+    # Making this a Pyrex iteratior remains as a task to be done
     def _fetchrange(self, start, stop, step):
         """Iterate over a range of rows"""
         row = self.row   # get the pointer to the Row object
@@ -483,7 +499,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         nrowsread = start
         startb = 0
         nextelement = start
-        row._initLoop(start, stop, step, nrowsinbuf)
+        row._initLoop(start, stop, step)
         for i in xrange(start, stop, nrowsinbuf):
             # Skip this iteration if there is no interesting information
             if ((nextelement >= nrowsread + nrowsinbuf) or 
@@ -497,7 +513,9 @@ class Table(Leaf, hdf5Extension.Table, object):
             # Read a chunk
             nrowsread += self._read_records(i, nrowsinbuf)
             if self.byteorder <> sys.byteorder:
-                buffer.byteswap()
+                #buffer.byteswap()
+                buffer.togglebyteorder()
+                                
             # Set the buffer counter
             row._setBaseRow(i, startb)
             # Loop over the values for this buffer
@@ -606,6 +624,81 @@ class Table(Leaf, hdf5Extension.Table, object):
         result._byteorder = self.byteorder
         return result
 
+    def read(self, start=None, stop=None, step=None, field=None, flavor=None):
+        """Read a range of rows and return an in-memory object.
+
+        If "start", "stop", or "step" parameters are supplied, a row
+        range is selected. If "field" is specified, only this "field"
+        is returned as a NumArray object. If "field" is not supplied
+        all the fields are selected and a RecArray is returned.  If
+        both "field" and "flavor" are provided, an additional
+        conversion to an object of this flavor is made. "flavor" must
+        have any of the next values: "Numeric", "Tuple" or "List".
+
+        """
+        if field == None:
+            return self._readAllFields(start, stop, step)
+        elif flavor == None:
+            return self._readCol(start, stop, step, field)
+        else:
+            arr = self._readCol(start, stop, step, field)
+            # Convert to Numeric, tuple or list if needed
+            if flavor == "Numeric":
+                if Numeric_imported:
+                    # This works for both numeric and chararrays
+                    # arr=Numeric.array(arr, typecode=arr.typecode())
+                    # The next is 10 times faster (for tolist(),
+                    # we should check for tostring()!)
+                    if arr.__class__.__name__ == "CharArray":
+                        arrstr = arr.tostring()
+                        shape = list(arr.shape)
+                        shape.append(arr.itemsize())
+                        arr=Numeric.reshape(Numeric.array(arrstr), shape)
+                    else:
+                        # tolist() method creates a list with a sane byteorder
+                        if arr.shape <> ():
+                            arr=Numeric.array(arr.tolist(),
+                                              typecode=arr.typecode())
+                        else:
+                            # This works for rank-0 arrays
+                            # (but is slower for big arrays)
+                            arr=Numeric.array(arr, typecode=arr.typecode())
+                        
+                else:
+                    # Warn the user
+                    warnings.warn( \
+"""You are asking for a Numeric object, but Numeric is not installed locally.
+  Returning a numarray object instead!.""")
+            elif flavor == "Tuple":
+                arr = tuple(arr.tolist())
+            elif flavor == "List":
+                arr = arr.tolist()
+            else:
+                raise ValueError, \
+"""You are asking for an unsupported flavor (%s). Supported values are:
+"Numeric", "Tuple" and "List".""" % (flavor)
+
+        return arr
+
+    def removeRow(self, start=None, stop = None):
+        """Remove a range of rows.
+
+        If only "start" is supplied, this row is to be deleted.
+        If "start" and "stop" parameters are supplied, a row
+        range is selected to be removed.
+
+        """
+
+        # If "stop" is not provided, select the index pointed by start only
+        if stop is None:
+            stop = start + 1
+        # Check for correct values of start and stop    
+        (start, stop, step) = self._processRange(start, stop, 1)
+        nrows = stop - start
+        nrows = self._remove_row(start, nrows)
+        self.nrows -= nrows    # discount the removed rows from the total
+        return nrows
+
     def _readCol(self, start=None, stop=None, step=None, field=None):
         """Read a range of rows and return an in-memory object.
         """
@@ -681,84 +774,10 @@ class Table(Leaf, hdf5Extension.Table, object):
         result._byteorder = self.byteorder
         return result
 
-    def read(self, start=None, stop=None, step=None, field=None, flavor=None):
-        """Read a range of rows and return an in-memory object.
-
-        If "start", "stop", or "step" parameters are supplied, a row
-        range is selected. If "field" is specified, only this "field"
-        is returned as a NumArray object. If "field" is not supplied
-        all the fields are selected and a RecArray is returned.  If
-        both "field" and "flavor" are provided, an additional
-        conversion to an object of this flavor is made. "flavor" must
-        have any of the next values: "Numeric", "Tuple" or "List".
-
-        """
-        if field == None:
-            return self._readAllFields(start, stop, step)
-        elif flavor == None:
-            return self._readCol(start, stop, step, field)
-        else:
-            arr = self._readCol(start, stop, step, field)
-            # Convert to Numeric, tuple or list if needed
-            if flavor == "Numeric":
-                if Numeric_imported:
-                    # This works for both numeric and chararrays
-                    # arr=Numeric.array(arr, typecode=arr.typecode())
-                    # The next is 10 times faster (for tolist(),
-                    # we should check for tostring()!)
-                    if arr.__class__.__name__ == "CharArray":
-                        arrstr = arr.tostring()
-                        shape = list(arr.shape)
-                        shape.append(arr.itemsize())
-                        arr=Numeric.reshape(Numeric.array(arrstr), shape)
-                    else:
-                        # tolist() method creates a list with a sane byteorder
-                        if arr.shape <> ():
-                            arr=Numeric.array(arr.tolist(),
-                                              typecode=arr.typecode())
-                        else:
-                            # This works for rank-0 arrays
-                            # (but is slower for big arrays)
-                            arr=Numeric.array(arr, typecode=arr.typecode())
-                        
-                else:
-                    # Warn the user
-                    warnings.warn( \
-"""You are asking for a Numeric object, but Numeric is not installed locally.
-  Returning a numarray object instead!.""")
-            elif flavor == "Tuple":
-                arr = tuple(arr.tolist())
-            elif flavor == "List":
-                arr = arr.tolist()
-            else:
-                raise ValueError, \
-"""You are asking for an unsupported flavor (%s). Supported values are:
-"Numeric", "Tuple" and "List".""" % (flavor)
-
-        return arr
-
-    def removeRow(self, start=None, stop = None):
-        """Remove a range of rows.
-
-        If only "start" is supplied, this row is to be deleted.
-        If "start" and "stop" parameters are supplied, a row
-        range is selected to be removed.
-
-        """
-
-        # If "stop" is not provided, select the index pointed by start only
-        if stop is None:
-            stop = start + 1
-        # Check for correct values of start and stop    
-        (start, stop, step) = self._processRange(start, stop, 1)
-        nrows = stop - start
-        nrows = self._remove_row(start, nrows)
-        self.nrows -= nrows    # discount the removed rows from the total
-        return nrows
             
     # This version of _readCol does not work well. Perhaps a bug in the
     # H5TB_read_fields_name entry?
-    def _readCol2(self, start=None, stop=None, step=None, field=None):
+    def _readCol_bad(self, start=None, stop=None, step=None, field=None):
         """Read a column from a table in a row range"""
 
         for fieldTable in self.colnames:
@@ -839,31 +858,22 @@ class Table(Leaf, hdf5Extension.Table, object):
         result._byteorder = self.byteorder
         return result
 
-    # Moved out of scope
-    def _g_getitem__(self, slice):
+    def __getitem__(self, slice):
+        """Returns a column, a table row or a table slice."""
 
         if isinstance(slice, types.IntType):
-            step = 1
-            start = slice
-            if start < 0:
-                start = self.nrows + start
-            stop = start + 1
+            start, stop, step = self._processRange(slice, slice+1, 1)
+            return self.read(start, stop, step)
+        elif isinstance(slice, types.SliceType):
+            start, stop, step = self._processRange(slice.start,
+                                                   slice.stop,
+                                                   slice.step)
+            return self.read(start, stop, step)
+        elif isinstance(slice, types.StringType):
+            return self._readCol(field=slice)
         else:
-            start = slice.start
-            if start is None:
-                start = 0
-            elif start < 0:
-                start = self.nrows + start
-            stop = slice.stop
-            if stop is None:
-                stop = self.nrows
-            elif stop < 0 :
-                stop = self.nrows + stop
-
-            step = slice.step
-            if step is None:
-                step = 1
-        return self.read(start, stop, step)
+            raise ValueError, "Non-valid __getitem__ parameter %s" % \
+                  slice
 
     def flush(self):
         """Flush the table buffers."""

@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.43 2003/07/17 18:57:28 falted Exp $
+#       $Id: File.py,v 1.44 2003/07/19 09:28:42 falted Exp $
 #
 ########################################################################
 
@@ -31,9 +31,11 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.43 $"
-format_version = "1.0"                     # File format version we write
+__version__ = "$Revision: 1.44 $"
+format_version = "1.1"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
+
+from __future__ import generators
 
 import sys
 import types
@@ -285,7 +287,7 @@ class File(hdf5Extension.File, object):
             # Save the rootGroup attributes on disk
             attrsRoot._g_setAttrStr('TITLE',  self.title)
             attrsRoot._g_setAttrStr('CLASS', "GROUP")
-            attrsRoot._g_setAttrStr('VERSION', "1.1") # Changed in v0.6
+            attrsRoot._g_setAttrStr('VERSION', "1.0")
             
             # Finally, save the PyTables format version for this file
             self._format_version = format_version
