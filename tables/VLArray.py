@@ -8,7 +8,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.42 2004/12/26 15:53:34 ivilata Exp $
+#       $Id$
 #
 ########################################################################
 

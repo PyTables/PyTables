@@ -5,7 +5,7 @@
  *      Author:  Ivan Vilata i Balaguer - reverse:com.carabos@ivilata
  *
  *      $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/typeconv.h,v $
- *      $Id: typeconv.h,v 1.3 2004/12/27 22:18:37 falted Exp $
+ *      $Id$
  *
  ***********************************************************************/
 

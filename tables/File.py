@@ -4,7 +4,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.96 2004/12/29 21:25:46 falted Exp $
+#       $Id$
 #
 ########################################################################
 

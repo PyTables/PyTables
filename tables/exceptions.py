@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/exceptions.py,v $
-#       $Id: exceptions.py,v 1.2 2004/12/24 18:16:02 falted Exp $
+#       $Id$
 #
 ########################################################################
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/UnImplemented.py,v $
-#       $Id: UnImplemented.py,v 1.7 2004/12/25 12:19:39 falted Exp $
+#       $Id$
 #
 ########################################################################
 

@@ -5,7 +5,7 @@
 #	Author:  Ivan Vilata i Balaguer - reverse:com.carabos@ivilata
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/nodes/FileNode.py,v $
-#	$Id: FileNode.py,v 1.9 2004/12/30 09:17:38 ivilata Exp $
+#	$Id$
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ import tables
 
 
 
-__revision__ = '$Id: FileNode.py,v 1.9 2004/12/30 09:17:38 ivilata Exp $'
+__revision__ = '$Id$'
 
 NodeType         = 'file'
 NodeTypeVersions = [1, 2]

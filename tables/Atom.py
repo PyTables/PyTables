@@ -5,7 +5,7 @@
 #       Author:  Ivan Vilata i Balaguer - reverse:com.carabos@ivilata
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Atom.py,v $
-#       $Id: Atom.py,v 1.2 2004/12/26 15:53:33 ivilata Exp $
+#       $Id$
 #
 ########################################################################
 

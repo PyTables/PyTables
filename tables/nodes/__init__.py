@@ -5,7 +5,7 @@
 #	Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/nodes/__init__.py,v $
-#	$Id: __init__.py,v 1.1 2004/10/28 16:42:40 falted Exp $
+#	$Id$
 #
 ########################################################################
 
@@ -21,7 +21,7 @@ Package modules:
 """
 
 # Revision for the package initialization code.
-__revision__ = '$Id: __init__.py,v 1.1 2004/10/28 16:42:40 falted Exp $'
+__revision__ = '$Id$'
 
 # The list of names to be exported to the importing module.
 __all__ = ['FileNode']
