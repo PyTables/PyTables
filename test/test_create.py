@@ -543,7 +543,9 @@ class createAttrTestCase(unittest.TestCase):
         assert self.root.atable.attrs.qr == 2
         assert self.root.atable.attrs.rs == 3
 
-    def test09b_setIntAttributes(self):
+    # This test is commented out, because the necessary API is not
+    # public
+    def _test09b_setIntAttributes(self):
         """Checking setting Int (byte, short, int) attributes"""
 
         # With a Table object
@@ -601,7 +603,9 @@ class createAttrTestCase(unittest.TestCase):
         assert self.root.atable.attrs.qr == 2.0
         assert self.root.atable.attrs.rs == 3.0
 
-    def test10b_setFloatAttributes(self):
+    # This test is commented out, because the necessary API is not
+    # public
+    def _test10b_setFloatAttributes(self):
         """Checking setting Float (float) attributes"""
 
         # With a Table object

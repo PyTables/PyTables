@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.8 2004/07/27 12:18:05 falted Exp $
+#       $Id: Index.py,v 1.9 2004/07/29 09:59:22 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.8 $"
+__version__ = "$Revision: 1.9 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -113,9 +113,9 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
     def _addAttrs(self, object, klassname):
         """ Add attributes to object """
         object.__dict__["_v_attrs"] = AttributeSet(object)
-        object._v_attrs._g_setAttrStr('TITLE',  object._v_new_title)
-        object._v_attrs._g_setAttrStr('CLASS', klassname)
-        object._v_attrs._g_setAttrStr('VERSION', object._v_version)
+        object._v_attrs._g_setAttr('TITLE',  object._v_new_title)
+        object._v_attrs._g_setAttr('CLASS', klassname)
+        object._v_attrs._g_setAttr('VERSION', object._v_version)
         # Set the filters object
         if object._v_new_filters is None:
             # If not filters has been passed in the constructor,
@@ -123,7 +123,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         else:
             filters = object._v_new_filters
         filtersPickled = cPickle.dumps(filters, 0)
-        object._v_attrs._g_setAttrStr('FILTERS', filtersPickled)
+        object._v_attrs._g_setAttr('FILTERS', filtersPickled)
         # Add these attributes to the dictionary
         attrlist = ['TITLE','CLASS','VERSION','FILTERS']
         object._v_attrs._v_attrnames.extend(attrlist)
@@ -157,6 +157,11 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         object._v_parent = self
         self._addAttrs(object, "IndexArray")
         self.sorted = object
+        self.type = object.type
+        self.shape = object.shape
+        self.itemsize = object.itemsize
+        self.chunksize = object.chunksize
+        self.byteorder = object.byteorder
         # Create the IndexArray for index values
         object = IndexArray(Atom("Int32", shape=1), "Reverse indices",
                             self.filters, self._v_expectedrows)
@@ -174,7 +179,8 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         """Get the metadata info for an array in file."""
         self._g_new(self._v_parent, self.name)
         self._v_objectID = self._g_openIndex()
-        # Get the filters info
+        # Get the title, filters attributes for this index
+        self.title = self._g_getAttr("TITLE")
         self.filters = cPickle.loads(self._g_getAttr("FILTERS"))
         # Open the IndexArray for sorted values
         object = IndexArray()
@@ -185,6 +191,11 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         object.filters = object._g_getFilters()
         object._open()
         self.sorted = object
+        self.type = object.type
+        self.shape = object.shape
+        self.itemsize = object.itemsize
+        self.chunksize = object.chunksize
+        self.byteorder = object.byteorder
         # Open the IndexArray for reverse Index values
         object = IndexArray()
         object._v_parent = self
@@ -274,6 +285,14 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         #print "time doing revIndexing:", time.time()-t1
         return selections
 
+    def _f_remove(self):
+        """Remove this Index object"""
+
+        # First, close the Index Group
+        self._f_close()
+        # Then, delete it (this is defined in hdf5Extension)
+        self._g_deleteGroup()
+
     def _f_close(self):
         # flush the info for the indices
         self.sorted.flush()
@@ -290,8 +309,12 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         # Close this group
         self._g_closeGroup()
 
+    def __str__(self):
+        """This provides more metainfo in addition to standard __repr__"""
+        return "Index()"
+        
     def __repr__(self):
-        """This provides more metainfo in addition to standard __str__"""
+        """This provides more metainfo in addition to standard __repr__"""
 
         return """%s
   type = %r

@@ -114,7 +114,7 @@ def readFile(filename, atom, niter, verbose):
             results = [p["var2"] #p.nrow()
 #                        for p in table(where=110*i<=table.cols.var2<110*(i+1))]
 #                       for p in table(where=1000-30<table.cols.var2<1000+60)]
-                       for p in table(where=table.cols.var2>=4000)]
+                       for p in table(where=table.cols.var2<=400)]
             rowselected += len(results)
     elif atom == "float":
         for i in xrange(niter):

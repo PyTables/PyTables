@@ -2200,6 +2200,7 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
+    #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(getItemTestCase))
     #theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))

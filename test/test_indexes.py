@@ -258,7 +258,7 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
-    theSuite.addTest(unittest.makeSuite(WarningTestCase))
+    #theSuite.addTest(unittest.makeSuite(BasicReadTestCase))
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicReadTestCase))
         theSuite.addTest(unittest.makeSuite(ZlibReadTestCase))
@@ -270,6 +270,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(OneHalfTestCase))
         theSuite.addTest(unittest.makeSuite(UpperBoundTestCase))
         theSuite.addTest(unittest.makeSuite(LowerBoundTestCase))
+        theSuite.addTest(unittest.makeSuite(WarningTestCase))
     
     return theSuite
 

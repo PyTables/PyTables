@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.118 2004/07/27 17:17:56 falted Exp $
+#       $Id: Table.py,v 1.119 2004/07/29 09:59:22 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.118 $"
+__version__ = "$Revision: 1.119 $"
 
 from __future__ import generators
 import sys
@@ -157,6 +157,11 @@ class Table(Leaf, hdf5Extension.Table, object):
         row -- a reference to the Row object associated with this table
         nrows -- the number of rows in this table
         rowsize -- the size, in bytes, of each row
+        indexed -- whether or not some column in Table is indexed
+        automatic_indexing -- whether a Table should be reindexed after
+            an append operation
+        reindex -- whether the table fields are to be re-indexed
+            after an invalidating index operation (like removeRows)
         cols -- accessor to the columns using a natural name schema
         colnames -- the field names for the table (list)
         coltypes -- the type class for the table fields (dictionary)
@@ -308,14 +313,37 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.byteorder = byteorderDict[self._v_fmt[0]]
         # Create the Row object helper
         self.row = hdf5Extension.Row(self)
+        # Get if a column is indexed or not in creation time
+        colobjects = self.description._v_ColObjects
+        self.colindexed = {}
+        self.indexed = 0  # Specifies that some column is indexed in Table
+        for colname in self.colnames:
+            if colobjects[colname].indexed:
+                self.colindexed[colname] = 1
+                self.indexed = 1
+            else:
+                self.colindexed[colname] = 0
         # Create a cols accessor
         self.cols = Cols(self)
-    
-        # Initially, the columns are not indexed
-        self.colindexed = {}
-        for colname in self.colnames:
-            self.colindexed[colname] = 0
-
+        if self.indexed:
+            # Check whether we want automatic indexing after an append or not
+            # The default is yes
+            if hasattr(self.description, "__no_automatic_indexing__"):
+                self.automatic_index = 0
+            else:
+                self.automatic_index = 1
+            # Save this flag as an attribute
+            self.attrs.setAttr("AUTOMATIC_INDEXING", self.automatic_indexing)
+            # Check whether we want reindex after an invalidating index
+            # operation. The default is yes
+            if hasattr(self.description, "__no_reindex__"):
+                self.reindex = 0
+            else:
+                self.reindex = 1
+            # Save this flag as an attribute
+            self.attrs.setAttr("REINDEX", self.reindex)
+            self._indexedrows = 0
+            self._unsavedindexedrows = 0
 
     def _open(self):
         """Opens a table from disk and read the metadata on it.
@@ -358,14 +386,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.coltypes = self.description.__types__
         self.colshapes = self.description._v_shapes
         self.colitemsizes = self.description._v_itemsizes
-        # Check whether the columns are indexed or not
-        self.colindexed = {}
-        for colname in self.colnames:
-            iname = "_i_"+self.name+"_"+colname
-            if iname in self._v_parent._v_indices:
-                self.colindexed[colname] = 1
-            else:
-                self.colindexed[colname] = 0
         # Compute buffer size
         (self._v_maxTuples, self._v_chunksize) = \
               calcBufferSize(self.rowsize, self.nrows,
@@ -376,7 +396,24 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.row = hdf5Extension.Row(self)
         # Create a cols accessor
         self.cols = Cols(self)
-        
+        # Check whether the columns are indexed or not
+        self.colindexed = {}
+        self.indexed = 0
+        for colname in self.colnames:
+            iname = "_i_"+self.name+"_"+colname
+            if iname in self._v_parent._v_indices:
+                self.colindexed[colname] = 1
+                Index = getattr(self.cols, colname).index
+                self.indexed = 1
+            else:
+                self.colindexed[colname] = 0
+        # Get the automatic_indexing attribute
+        if self.indexed:
+            self.automatic_indexing = self.attrs.AUTOMATIC_INDEXING
+            self.reindex = self.attrs.REINDEX
+            self._indexedrows = Index.nrows * Index.nelemslice
+            self._unsavedindexedrows = 0
+
     def _saveBufferedRows(self):
         """Save buffered table rows"""
         # Save the records on disk
@@ -393,6 +430,16 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.row._setUnsavedNRows(0)
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
+        if self.indexed and self.automatic_indexing:
+            start = self._indexedrows
+            nrows = self._unsavedindexedrows
+            for (colname, colindexed) in self.colindexed.iteritems():
+                if colindexed:
+                    indexcol = getattr(self.cols, colname)
+                    rowsadded = indexcol.addRowsToIndex(start, nrows)
+            self._unsavedindexedrows -= rowsadded
+            self._indexedrows += rowsadded
+        return
 
     def iterrows(self, start=None, stop=None, step=None, where=None):
         """Iterator over all the rows or a range
@@ -696,40 +743,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         result._byteorder = self.byteorder
         return result
 
-# Old version. The index is created now from columns
-#     def _createIndex(self, colname, filters=Filters(1,"zlib")):
-#         "Create an index for a column in Table"
-
-#         # Do a flush before
-#         self.flush()
-#         # Get the column
-#         column = self.read(field=colname)
-#         # Sort that column
-#         sortedColumn = numarray.sort(column)
-#         # Get the indexes for the sorted column
-#         indexSortedColumn = numarray.argsort(column)
-#         # Save both arrays as companion EArrays of self
-#         # The sorted column
-#         atom = Atom(dtype=self.coltypes[colname], shape=(0,))
-#         sortedEArray = self._v_file.createEArray(self._v_parent,
-#                                                  "_s_"+self.name+"__"+colname,
-#                                                  atom,
-#                                                  title='Sorted '+colname,
-#                                                  filters=filters,
-#                                                  expectedrows=self.nrows)
-#         sortedEArray.append(sortedColumn)
-#         sortedEArray.close()
-#         # The indexes
-#         atom = Atom(dtype="Int32", shape=(0,))
-#         indexEArray = self._v_file.createEArray(self._v_parent,
-#                                                 "_i_"+self.name+"__"+colname,
-#                                                 atom,
-#                                                 title='Indexes '+colname,
-#                                                 filters=filters,
-#                                                 expectedrows=self.nrows)
-#         indexEArray.append(indexSortedColumn)
-#         indexEArray.close()
-
     def __getitem__(self, key):
         """Returns a table row, table slice or table column.
 
@@ -766,21 +779,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         else:
             raise ValueError, "Non-valid index or slice: %s" % key
 
-    def removeRows(self, start=None, stop=None):
-        """Remove a range of rows.
-
-        If only "start" is supplied, this row is to be deleted.
-        If "start" and "stop" parameters are supplied, a row
-        range is selected to be removed.
-
-        """
-
-        (start, stop, step) = processRangeRead(self.nrows, start, stop, 1)
-        nrows = stop - start
-        nrows = self._remove_row(start, nrows)
-        self.nrows -= nrows    # discount the removed rows from the total
-        return nrows
-
     def append(self, rows=None):
         """Append a series of rows to the end of the table
 
@@ -804,11 +802,51 @@ class Table(Leaf, hdf5Extension.Table, object):
         self._open_append(recarray)
         self._append_records(recarray, lenrows)
         self._close_append()
-        # Update the number of saved rows in this buffer
+        # Update the number of saved rows
         self.nrows += lenrows
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
+        # Save indexedrows
+        if self.indexed and self.automatic_indexing:
+            # Update the number of unsaved indexed rows
+            self._unsavedindexedrows += lenrows
+            start = self._indexedrows
+            nrows = self._unsavedindexedrows
+            for (colname, colindexed) in self.colindexed.iteritems():
+                if colindexed:
+                    indexcol = getattr(self.cols, colname)
+                    rowsadded = indexcol.addRowsToIndex(start, nrows)
+            self._unsavedindexedrows -= rowsadded
+            self._indexedrows += rowsadded
         return
+
+    def removeRows(self, start=None, stop=None):
+        """Remove a range of rows.
+
+        If only "start" is supplied, this row is to be deleted.
+        If "start" and "stop" parameters are supplied, a row
+        range is selected to be removed.
+
+        """
+
+        (start, stop, step) = processRangeRead(self.nrows, start, stop, 1)
+        nrows = stop - start
+        nrows = self._remove_row(start, nrows)
+        self.nrows -= nrows    # discount the removed rows from the total
+        # removeRows is a invalidating index operation
+        if self.indexed and self.reindex:
+            self._indexedrows = self.reIndex()
+            self._unsavedindexedrows = self.nrows - self._indexedrows
+            
+        return nrows
+
+    def reIndex(self):
+        """Recompute the existing indexes in table"""
+        for (colname, colindexed) in self.colindexed.iteritems():
+            if colindexed:
+                indexcol = getattr(self.cols, colname)
+                indexedrows = indexcol.reIndex()
+        return indexedrows
 
     def _g_copyRows(self, object, start, stop, step):
         "Copy rows from self to object"
@@ -849,22 +887,22 @@ class Table(Leaf, hdf5Extension.Table, object):
         return (object, nbytes)
 
     # No optimized version
-    def _g_copy_orig(self, group, name, start, stop, step, title, filters):
-        "Private part of Leaf.copy() for each kind of leaf"
-        # Build the new Table object
-        object = Table(self.description._v_ColObjects, title=title,
-                       filters=filters,
-                       expectedrows=self.nrows)
-        setattr(group, name, object)
-        # Now, fill the new table with values from the old one
-        nrowsinbuf = self._v_maxTuples
-        for start2 in range(start, stop, step*nrowsinbuf):
-            # Save the records on disk
-            stop2 = start2+step*nrowsinbuf
-            if stop2 > stop:
-                stop2 = stop
-            object.append(self[start2:stop2:step])
-        return object
+#     def _g_copy_orig(self, group, name, start, stop, step, title, filters):
+#         "Private part of Leaf.copy() for each kind of leaf"
+#         # Build the new Table object
+#         object = Table(self.description._v_ColObjects, title=title,
+#                        filters=filters,
+#                        expectedrows=self.nrows)
+#         setattr(group, name, object)
+#         # Now, fill the new table with values from the old one
+#         nrowsinbuf = self._v_maxTuples
+#         for start2 in range(start, stop, step*nrowsinbuf):
+#             # Save the records on disk
+#             stop2 = start2+step*nrowsinbuf
+#             if stop2 > stop:
+#                 stop2 = stop
+#             object.append(self[start2:stop2:step])
+#         return object
 
     def flush(self):
         """Flush the table buffers."""
@@ -1015,11 +1053,15 @@ class Column(object):
         # Check whether an index exists or not
         iname = "_i_"+table.name+"_"+name
         self.index = None
+        self.indexed = 0
         if iname in table._v_parent._v_indices:
             self.index = Index(where=self, name=iname,
                                expectedrows=table._v_expectedrows)
-        else:
-            self.index = None
+            self.indexed = 1
+        elif hasattr(table, "colindexed") and table.colindexed[name]:
+            # The user wants to indexate this column,
+            # but it doesn't exists yet. Create it without a warning.
+            self.createIndex(warn=0)
 
     def __getitem__(self, key):
         """Returns a column element or slice
@@ -1084,8 +1126,8 @@ class Column(object):
         self.table.opsValues.append(other)
         self.table.whereColname = self.name
         return self
- 
-    def createIndex(self, filters=None):
+
+    def createIndex(self, filters=None, warn=1):
         """Create an index for this column"""
         assert self.table.colshapes[self.name] == 1, \
                "Only scalar columns can be indexed."
@@ -1109,18 +1151,34 @@ class Column(object):
         # Feed the index with values
         nelemslice = self.index.sorted.nelemslice
         if self.table.nrows < self.index.sorted.nelemslice:
-            # print "Debug: Not enough info for indexing"
-            warnings.warn( \
-"""Not enough rows for indexing. You need at least %s rows and you provided %s.""" % (self.index.sorted.nelemslice, self.table.nrows))
+            if warn:
+                # print "Debug: Not enough info for indexing"
+                warnings.warn( \
+"Not enough rows for indexing. You need at least %s rows and you provided %s." % (self.index.sorted.nelemslice, self.table.nrows))
             return 0
+        self.table.colindexed[self.name] = 1
+        return self.addRowsToIndex(0, self.table.nrows)
+
+    def addRowsToIndex(self, start, nrows):
+        """Add more elements to the existing index """
+        nelemslice = self.index.nelemslice
         indexedrows = 0
-        for i in xrange(0,self.table.nrows-nelemslice+1,nelemslice):
+        for i in xrange(start, nrows-nelemslice+1, nelemslice):
             arr = self[i:i+nelemslice]
             self.index.append(arr)
             indexedrows += nelemslice
-        self.table.colindexed[self.name] = 1
         return indexedrows
         
+    def reIndex(self):
+        """Recompute the existing index"""
+        if self.indexed:
+            # Delete the existing Index
+            self.index._f_remove()
+            # Create a new Index withoutr warnings
+            return self.createIndex(warn=0)
+        else:
+            return 0  # The column is not intended for indexing, so return 0
+ 
 #     def search(self, item, notequal=0):
 #         if self.index:
 #             return self.index.search(item, notequal)

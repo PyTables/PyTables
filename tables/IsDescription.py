@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.30 2004/02/25 16:08:59 falted Exp $
+#       $Id: IsDescription.py,v 1.31 2004/07/29 09:59:22 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.30 $"
+__version__ = "$Revision: 1.31 $"
 
 
 import warnings
@@ -58,9 +58,11 @@ fromstructfmt = {'b':NA.Int8, 'B':NA.UInt8,
 
 class Col:
     """ Define a column """
-    def __init__(self, dtype="Float64", shape=1, dflt=None, pos=None):
+    def __init__(self, dtype="Float64", shape=1, dflt=None, pos=None,
+                 indexed=0):
 
         self.pos = pos
+        self.indexed = indexed
 
         assert shape != None and shape != 0, \
                "None or zero-valued shapes are not supported '%s'" % `shape`
@@ -135,9 +137,10 @@ class Col:
 class BoolCol(Col):
     """ Define a string column """
     
-    def __init__(self, dflt=0, shape=1, pos=None):
+    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
 
         self.pos = pos
+        self.indexed = indexed
 
         assert shape != None and shape != 0, \
                "None or zero-valued shapes are not supported '%s'" % `shape`
@@ -163,9 +166,11 @@ class BoolCol(Col):
 class StringCol(Col):
     """ Define a string column """
     
-    def __init__(self, length=None, dflt=None, shape=1, pos=None):
+    def __init__(self, length=None, dflt=None, shape=1, pos=None,
+                 indexed=0):
 
         self.pos = pos
+        self.indexed = indexed
 
         assert isinstance(dflt, types.StringTypes) or dflt == None, \
                "Invalid default value: '%s'" % dflt
@@ -201,9 +206,11 @@ class StringCol(Col):
     
 class IntCol(Col):
     """ Define an integer column """
-    def __init__(self, dflt=0, shape=1, itemsize=4, sign=1, pos=None):
+    def __init__(self, dflt=0, shape=1, itemsize=4, sign=1, pos=None,
+                 indexed=0):
 
         self.pos = pos
+        self.indexed = indexed
 
         assert shape != None and shape != 0, \
                "None or zero-valued shapes are not supported '%s':" % `shape`
@@ -250,49 +257,59 @@ class IntCol(Col):
 
 class Int8Col(IntCol):
     "Description class for a signed integer of 8 bits "
-    def __init__(self, dflt=0, shape=1, pos=None):
-        IntCol.__init__(self, dflt, itemsize=1, shape=shape, sign=1, pos=pos)
+    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
+        IntCol.__init__(self, dflt, itemsize=1, shape=shape, sign=1,
+                        pos=pos, indexed=indexed)
         
 class UInt8Col(IntCol):
     "Description class for an unsigned integer of 8 bits "
-    def __init__(self, dflt=0, shape=1, pos=None):
-        IntCol.__init__(self, dflt , itemsize=1, shape=shape, sign=0, pos=pos)
+    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
+        IntCol.__init__(self, dflt , itemsize=1, shape=shape, sign=0,
+                        pos=pos, indexed=indexed)
         
 class Int16Col(IntCol):
     "Description class for a signed integer of 16 bits "
-    def __init__(self, dflt=0, shape=1, pos=None):
-        IntCol.__init__(self, dflt , itemsize=2, shape=shape, sign=1, pos=pos)
+    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
+        IntCol.__init__(self, dflt , itemsize=2, shape=shape, sign=1,
+                        pos=pos, indexed=indexed)
         
 class UInt16Col(IntCol):
     "Description class for an unsigned integer of 16 bits "
-    def __init__(self, dflt=0, shape=1, pos=None):
-        IntCol.__init__(self, dflt , itemsize=2, shape=shape, sign=0, pos=pos)
+    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
+        IntCol.__init__(self, dflt , itemsize=2, shape=shape, sign=0,
+                        pos=pos, indexed=indexed)
         
 class Int32Col(IntCol):
     "Description class for a signed integer of 32 bits "
-    def __init__(self, dflt=0, shape=1, pos=None):
-        IntCol.__init__(self, dflt , itemsize=4, shape=shape, sign=1, pos=pos)
+    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
+        IntCol.__init__(self, dflt , itemsize=4, shape=shape, sign=1,
+                        pos=pos, indexed=indexed)
         
 class UInt32Col(IntCol):
     "Description class for an unsigned integer of 32 bits "
-    def __init__(self, dflt=0, shape=1, pos=None):
-        IntCol.__init__(self, dflt , itemsize=4, shape=shape, sign=0, pos=pos)
+    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
+        IntCol.__init__(self, dflt , itemsize=4, shape=shape, sign=0,
+                        pos=pos, indexed=indexed)
         
 class Int64Col(IntCol):
     "Description class for a signed integer of 64 bits "
-    def __init__(self, dflt=0, shape=1, pos=None):
-        IntCol.__init__(self, dflt , itemsize=8, shape=shape, sign=1, pos=pos)
+    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
+        IntCol.__init__(self, dflt , itemsize=8, shape=shape, sign=1,
+                        pos=pos, indexed=indexed)
         
 class UInt64Col(IntCol):
     "Description class for an unsigned integer of 64 bits "
-    def __init__(self, dflt=0, shape=1, pos=None):
-        IntCol.__init__(self, dflt , itemsize=8, shape=shape, sign=0, pos=pos)
+    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
+        IntCol.__init__(self, dflt , itemsize=8, shape=shape, sign=0,
+                        pos=pos, indexed=indexed)
         
 class FloatCol(Col):
     """ Define a float column """
-    def __init__(self, dflt=0.0, shape=1, itemsize=8, pos=None):
+    def __init__(self, dflt=0.0, shape=1, itemsize=8, pos=None,
+                 indexed=0):
 
         self.pos = pos
+        self.indexed = indexed
 
         assert shape != None and shape != 0, \
                "None or zero-valued shapes are not supported '%s'" % `shape`
@@ -323,13 +340,15 @@ class FloatCol(Col):
 
 class Float32Col(FloatCol):
     "Description class for a floating point of 32 bits "
-    def __init__(self, dflt=0.0, shape=1, pos=None):
-        FloatCol.__init__(self, dflt , shape=shape, itemsize=4, pos=pos)
+    def __init__(self, dflt=0.0, shape=1, pos=None, indexed=0):
+        FloatCol.__init__(self, dflt , shape=shape, itemsize=4,
+                          pos=pos, indexed=indexed)
         
 class Float64Col(FloatCol):
     "Description class for a floating point of 64 bits "
-    def __init__(self, dflt=0.0, shape=1, pos=None):
-        FloatCol.__init__(self, dflt , shape=shape, itemsize=8, pos=pos)
+    def __init__(self, dflt=0.0, shape=1, pos=None, indexed=0):
+        FloatCol.__init__(self, dflt , shape=shape, itemsize=8,
+                          pos=pos, indexed=indexed)
         
     
 class Description(object):
@@ -358,8 +377,8 @@ class Description(object):
             keys.sort()
             
         recarrfmt = []
-        if "__check_validity" in keys:
-            check_validity = classdict["__check_validity"]
+        if "__check_validity__" in keys:
+            check_validity = classdict["__check_validity__"]
         else:
             check_validity = 1   # Default value for name validity check
         for k in keys:
@@ -369,9 +388,6 @@ class Description(object):
                     warnings.warn("Can't set attr %r in coldescr-class %r" % (
                         k, classname))
                 else:
-                    # Beware, in this case, we don't allow fields with
-                    # prefix "_v_". This is reserved to pass special
-                    # variables to the new class.
                     #print "Special variable!:", k
                     newdict[k] = classdict[k]
             else:
