@@ -1,5 +1,6 @@
 #include "H5LT.h"
 
+#include "tables.h"
 #include "H5Zlzo.h"
 #include "H5Zucl.h"
 
@@ -55,20 +56,25 @@ herr_t H5ARRAYmake( hid_t loc_id,
  hsize_t *maxdims = NULL;
  hsize_t *dims_chunk = NULL;
  hid_t   plist_id;
- unsigned int cd_values[2];
- int     enlargeable = 0;
+ unsigned int cd_values[3];
+ int     chunked = 0;
  int     i;
 
- /* Check if the array is enlargeable or not */
+ /* Check if the array has to be chunked or not */
  if (extdim >= 0) {
-   enlargeable = 1;
+   chunked = 1;
  }
 
- if (enlargeable) {
+/*  if (compress > 0) { */
+/*    /\* Compression activated *\/ */
+/*    printf("Activated compression\n"); */
+/*    chunked = 1; */
+/*  } */
+
+ if (chunked) {
    maxdims = malloc(rank*sizeof(hsize_t));
    dims_chunk = malloc(rank*sizeof(hsize_t));
 
-   /* Chunk size for the unlimited dimension */
    for(i=0;i<rank;i++) {
      if (i == extdim) {
        maxdims[i] = H5S_UNLIMITED;
@@ -91,7 +97,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
   */
  datatype = type_id;
 
- if (enlargeable) {
+ if (chunked) {
    /* Modify dataset creation properties, i.e. enable chunking  */
    plist_id = H5Pcreate (H5P_DATASET_CREATE);
    if ( H5Pset_chunk ( plist_id, rank, dims_chunk ) < 0 )
@@ -116,6 +122,13 @@ herr_t H5ARRAYmake( hid_t loc_id,
    }
 
    if (compress) {
+     cd_values[0] = compress;
+     cd_values[1] = (int)(atof(obversion) * 10);
+     if (extdim <0) 
+       cd_values[3] = Array;
+     else
+       cd_values[3] = EArray;
+
      /* The default compressor in HDF5 (zlib) */
      if (strcmp(complib, "zlib") == 0) {
        if ( H5Pset_deflate( plist_id, compress) < 0 )
@@ -123,16 +136,12 @@ herr_t H5ARRAYmake( hid_t loc_id,
      }
      /* The LZO compressor does accept parameters */
      else if (strcmp(complib, "lzo") == 0) {
-       cd_values[0] = compress;
-       cd_values[1] = (int)(atof(obversion) * 10);
-       if ( H5Pset_filter( plist_id, FILTER_LZO, 0, 2, cd_values) < 0 )
+       if ( H5Pset_filter( plist_id, FILTER_LZO, 0, 3, cd_values) < 0 )
 	 return -1;
      }
      /* The UCL compress does accept parameters */
      else if (strcmp(complib, "ucl") == 0) {
-       cd_values[0] = compress;
-       cd_values[1] = (int)(atof(obversion) * 10);
-       if ( H5Pset_filter( plist_id, FILTER_UCL, 0, 2, cd_values) < 0 )
+       if ( H5Pset_filter( plist_id, FILTER_UCL, 0, 3, cd_values) < 0 )
 	 return -1;
      }
      else {
@@ -147,7 +156,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
 			       space_id, plist_id )) < 0 )
      goto out;
  }  
- else {  			/* Not enlargeable case */
+ else {  			/* Not chunked case */
    /* Create the dataset. */
    if ((dataset_id = H5Dcreate(loc_id, dset_name, datatype,
 			       space_id, H5P_DEFAULT )) < 0 )
@@ -177,13 +186,22 @@ herr_t H5ARRAYmake( hid_t loc_id,
  */
     
  /* Attach the CLASS attribute */
- if ( H5LTset_attribute_string( loc_id, dset_name, "CLASS", "ARRAY" ) < 0 )
-  goto out;
+ if (extdim >= 0) {
+   if ( H5LTset_attribute_string( loc_id, dset_name, "CLASS", "EARRAY" ) < 0 )
+     goto out;
+   /* Attach the EXTDIM attribute in case of enlargeable arrays */
+   if ( H5LTset_attribute_int( loc_id, dset_name, "EXTDIM", &extdim, 1 ) < 0 )
+     goto out;
+ }
+ else {
+   if ( H5LTset_attribute_string( loc_id, dset_name, "CLASS", "ARRAY" ) < 0 )
+     goto out;
+ }
    
- /* Attach the CLASS attribute */
+ /* Attach the FLAVOR attribute */
  if ( H5LTset_attribute_string( loc_id, dset_name, "FLAVOR", flavor ) < 0 )
-  goto out;
-   
+   goto out;
+
  /* Attach the VERSION attribute */
  if ( H5LTset_attribute_string( loc_id, dset_name, "VERSION", obversion ) < 0 )
   goto out;
@@ -191,10 +209,6 @@ herr_t H5ARRAYmake( hid_t loc_id,
  /* Attach the TITLE attribute */
  if ( H5LTset_attribute_string( loc_id, dset_name, "TITLE", title ) < 0 )
   goto out;
-
- /* Attach the EXTDIM attribute */
- if ( H5LTset_attribute_int( loc_id, dset_name, "EXTDIM", &extdim, 1 ) < 0 )
-   goto out;
 
  /* Release resources */
  if (maxdims)

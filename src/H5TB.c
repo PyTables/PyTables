@@ -11,6 +11,7 @@
  ****************************************************************************/
 
 #include "H5TB.h"
+#include "tables.h"
 #include "H5Zlzo.h"
 #include "H5Zucl.h"
 
@@ -101,7 +102,7 @@ herr_t H5TBmake_table( const char *table_title,
  char    aux[255];
  hsize_t i;
  unsigned char *tmp_buf;
- unsigned int cd_values[2];
+ unsigned int cd_values[3];
 
  dims[0]       = nrecords;
  dims_chunk[0] = chunk_size;
@@ -161,25 +162,22 @@ herr_t H5TBmake_table( const char *table_title,
 
  if ( compress )
  {
+   cd_values[0] = compress;
+   cd_values[1] = (int)(atof(VERSION) * 10);
+   cd_values[3] = Table;
    /* The default compressor in HDF5 (zlib) */
    if (strcmp(complib, "zlib") == 0) {
-     /* Modified this to use the compress level stated in compress */
-     /*   if ( H5Pset_deflate( plist_id, 6) < 0 ) */
      if ( H5Pset_deflate( plist_id, compress) < 0 )
        return -1;
    }
    /* The LZO compressor does accept parameters */
    else if (strcmp(complib, "lzo") == 0) {
-     cd_values[0] = compress;
-     cd_values[1] = (int)(atof(VERSION) * 10);
-     if ( H5Pset_filter( plist_id, FILTER_LZO, 0, 2, cd_values) < 0 )
+     if ( H5Pset_filter( plist_id, FILTER_LZO, 0, 3, cd_values) < 0 )
        return -1;
    }
    /* The UCL compress does accept parameters */
    else if (strcmp(complib, "ucl") == 0) {
-     cd_values[0] = compress;
-     cd_values[1] = (int)(atof(VERSION) * 10);
-     if ( H5Pset_filter( plist_id, FILTER_UCL, 0, 2, cd_values) < 0 )
+     if ( H5Pset_filter( plist_id, FILTER_UCL, 0, 3, cd_values) < 0 )
        return -1;
    }
    else {

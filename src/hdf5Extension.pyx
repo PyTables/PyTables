@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.92 2003/12/09 20:35:32 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.93 2003/12/16 10:43:56 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.92 $"
+__version__ = "$Revision: 1.93 $"
 
 
 import sys, os
@@ -715,9 +715,11 @@ def whichClass( hid_t loc_id, char *name):
       (class_id == H5T_INTEGER) or
       (class_id == H5T_FLOAT)   or
       (class_id == H5T_STRING)):
-    return "Array"
+    return "ARRAY"
+  elif class_id == H5T_VLEN:
+    return "VLARRAY"
   elif class_id == H5T_COMPOUND:
-    return "Table"
+    return "TABLE"
 
   # Fallback 
   return "UNSUPPORTED"
@@ -814,7 +816,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.92 2003/12/09 20:35:32 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.93 2003/12/16 10:43:56 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1926,6 +1928,7 @@ cdef class Array:
     cdef int itemsize, offset
     cdef char *byteorder
     cdef char *flavor, *complib, *version
+    cdef int extdim
 
     if isinstance(naarr, strings.CharArray):
       self.type = CharType
@@ -1968,6 +1971,10 @@ cdef class Array:
     flavor = PyString_AsString(self.flavor)
     complib = PyString_AsString(self._v_complib)
     version = PyString_AsString(self._v_version)
+    if hasattr(self, "extdim"):
+      extdim = self.extdim
+    else:
+      extdim = -1
     ret = H5ARRAYmake(self.parent_id, self.name, title,
                       flavor, version, self.rank, self.dims, self.extdim,
                       self.type_id, self._v_maxTuples, rbuf,
@@ -2033,16 +2040,16 @@ cdef class Array:
                           &self.type_id, &class_id, byteorder)
 
     strcpy(flavor, "unknown")  # Default value
-    extdim = -1                # default value
     if self._v_file._isPTFile:
       H5LTget_attribute_string(self.parent_id, self.name, "FLAVOR", flavor)
       H5LTget_attribute_string(self.parent_id, self.name, "VERSION", version)
       fversion = atof(version)
-      if fversion >= 2.:
-        # From Array 2.0 on, EXTDIM attribute exists
+      #if fversion >= 2.:
+      if self.__class__.__name__ == "EArray":
+        # For EArray, EXTDIM attribute exists
         H5LTget_attribute_int(self.parent_id, self.name, "EXTDIM", &extdim)
+        self.extdim = extdim
     self.flavor = flavor
-    self.extdim = extdim
     
     # Get the array type
     type_size = getArrayType(self.type_id, &self.enumtype)
@@ -2080,6 +2087,7 @@ cdef class Array:
     cdef void *rbuf
     cdef int buflen, ret2
     cdef hsize_t nrows
+    cdef int extdim
 
     # Get the pointer to the buffer data area
     ret2 = PyObject_AsWriteBuffer(buf, &rbuf, &buflen)
@@ -2088,8 +2096,12 @@ cdef class Array:
 
     # Number of rows to read
     nrows = ((stop - start - 1) / step) + 1  # (stop-start)/step  do not work
+    if hasattr(self, "extdim"):
+      extdim = self.extdim
+    else:
+      exdim = -1
     ret = H5ARRAYread(self.parent_id, self.name, start, nrows, step,
-                      self.extdim, rbuf)
+                      extdim, rbuf)
     if ret < 0:
       raise RuntimeError("Problems reading the array data.")
 

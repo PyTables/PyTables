@@ -6,6 +6,7 @@
 
 #include "H5Zlzo.h"
 #include "utils.h"
+#include "tables.h"
 
 #ifdef HAVE_LZO_LIB
 #   include "lzo1x.h"
@@ -93,15 +94,13 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
   static unsigned int max_len_buffer = 0;
   int complevel = 1;
   int object_version = 10;    	/* Default version 1.0 */
+  int object_type;
 #ifdef CHECKSUM
   lzo_uint32 checksum;
 #endif
 
   /* Check arguments */
-/*   if (cd_nelmts<1 || cd_values[0]>9) { */
-/*     printf("invalid deflate aggression level"); */
-/*   } */
-  /* For versions < 20, there were no parameters */
+  /* For Table versions < 20, there were no parameters */
   if (cd_nelmts==1 ) {
     complevel = cd_values[0];	/* This do nothing right now */
     fprintf(stderr, "invalid deflate aggression level");
@@ -110,8 +109,15 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
     complevel = cd_values[0];	/* This do nothing right now */
     object_version = cd_values[1]; /* The table VERSION attribute */
   }
+  else if (cd_nelmts==3 ) {
+    complevel = cd_values[0];	/* This do nothing right now */
+    object_version = cd_values[1]; /* The table VERSION attribute */
+    object_type = cd_values[2]; /* A tag for identifying the object 
+				   (see tables.h) */
+  }
 
 #ifdef DEBUG
+  printf("Object type: %d. ", object_type);
   printf("object_version:%d\n", object_version);
 #endif
 
@@ -119,7 +125,8 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
     /* Input */
 
 #ifdef CHECKSUM
-    if (object_version >= 20) {
+    if ((object_type == Table && object_version >= 20) ||
+	object_type != Table) {
       nbytes -= 4; 		/* Point to uncompressed buffer length */
       memcpy(&nalloc, ((char *)(*buf)+nbytes), 4);
       out_len = nalloc;
@@ -180,7 +187,8 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
     }
 
 #ifdef CHECKSUM
-    if (object_version >= 20) {
+    if ((object_type == Table && object_version >= 20) ||
+	object_type != Table) {
 #ifdef DEBUG
       printf("Checksum uncompressing...");
 #endif
@@ -214,7 +222,8 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
     lzo_uint z_dst_nbytes = (lzo_uint)(nbytes + (nbytes / 64) + 16 + 3);
 
 #ifdef CHECKSUM
-    if (object_version >= 20) {
+    if ((object_type == Table && object_version >= 20) ||
+	object_type != Table) {
       z_dst_nbytes += 4+4;      /* Checksum + buffer size */
     }
 #endif
@@ -231,7 +240,8 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
 			       wrkmem);
 
 #ifdef CHECKSUM
-    if (object_version >= 20) {
+    if ((object_type == Table && object_version >= 20) ||
+	object_type != Table) {
 #ifdef DEBUG
       printf("Checksum compressing ...");
       printf("src_nbytes: %d, dst_nbytes: %d\n", z_src_nbytes, z_dst_nbytes);

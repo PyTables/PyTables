@@ -10,6 +10,7 @@
 #ifdef HAVE_UCL_LIB
 #   include "ucl.h"
 #endif
+#include "tables.h"
 
 /* CHECKSUM symbol adds some safety to the code, but does not seems
    actually necessary for common systems. It can be activated under
@@ -108,6 +109,7 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
   void *outbuf;
   int complevel = 1;
   int object_version = 10;    	/* Default version 1.0 */
+  int object_type;
   /* max_len_buffer will keep the likely output buffer size
      after processing the first chunk */
   static unsigned int max_len_buffer = 0;
@@ -120,16 +122,23 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
   if (cd_nelmts<1 || cd_values[0]>9) {
     printf("invalid deflate aggression level");
   }
-  /* For versions < 20, there were only one parameter */
+  /* For Table versions < 20, there were only one parameter */
   if (cd_nelmts==1 ) {
-    complevel = cd_values[0];	/* This do nothing right now */
+    complevel = cd_values[0];
   }
   else if (cd_nelmts==2 ) {
-    complevel = cd_values[0];	/* This do nothing right now */
+    complevel = cd_values[0];
     object_version = cd_values[1]; /* The table VERSION attribute */
+  }
+  else if (cd_nelmts==3 ) {
+    complevel = cd_values[0];
+    object_version = cd_values[1]; /* The table VERSION attribute */
+    object_type = cd_values[2]; /* A tag for identifying the object 
+				   (see tables.h) */
   }
 
 #ifdef DEBUG
+  printf("Object type: %d. ", object_type);
   printf("Version level: %d. ", object_version);
 #endif
 
@@ -148,9 +157,11 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
       nalloc =  max_len_buffer;
     }
 
-    /* From version 2.0 and on we save a checksum in data, but before don't */
+    /* From version 2.0 of Table on, we save a checksum in data,
+       but before don't */
 #ifdef CHECKSUM
-    if (object_version >= 20) {
+    if ((object_type == Table && object_version >= 20) ||
+	object_type != Table) {
       nbytes -= 4;
     }
 #endif
@@ -159,21 +170,19 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
       /* The assembler version of the decompression routine is 25%
 	 faster than the C version.  However, this is not automatically
 	 included on the UCL library (you have to add it by hand), so it
-	 is safer to call the C one. */
+	 is more portable to call the C one. */
 
 #ifdef DEBUG
       printf("nbytes -->%d\n", nbytes);
       printf("nalloc -->%d\n", nalloc);
       printf("max_len_buffer -->%d\n", max_len_buffer);
 #endif /* DEBUG */
-      if (object_version >= 20 && object_version < 21) {
+      if (object_type == Table && object_version >= 20 && object_version < 21)
 	status = ucl_nrv2d_decompress_safe_8(*buf, (ucl_uint)nbytes, outbuf,
 					     &out_len, NULL);
-      }
-      else {
+      else
 	status = ucl_nrv2e_decompress_safe_8(*buf, (ucl_uint)nbytes, outbuf,
 					     &out_len, NULL);
-      }
       /* Check if success */
       if (status == UCL_E_OK) {
 #ifdef DEBUG
@@ -200,7 +209,8 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
     }
  
 #ifdef CHECKSUM
-    if (object_version >= 20) {
+    if ((object_type == Table && object_version >= 20) ||
+	object_type != Table) {
 #ifdef DEBUG
       printf("Checksum uncompressing...");
 #endif
@@ -234,7 +244,8 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
     ucl_uint z_dst_nbytes = (ucl_uint)H5Z_UCL_SIZE_ADJUST(nbytes);
 
 #ifdef CHECKSUM
-    if (object_version >= 20) {
+    if ((object_type == Table && object_version >= 20) ||
+	object_type != Table) {
       z_dst_nbytes += 4;
     }
 #endif
@@ -275,8 +286,8 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
 
     */
 
-    /* For compression, use nrv2d only if object VERSION is 2.0 */
-    if (object_version >= 20 && object_version < 21)
+    /* For compression, use nrv2d only if Table VERSION is 2.0 */
+    if (object_type == Table && object_version >= 20 && object_version < 21)
       status = ucl_nrv2d_99_compress(z_src, z_src_nbytes, z_dst, &z_dst_nbytes,
 				     0, complevel, NULL, NULL);
     else
@@ -284,7 +295,8 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
 				     0, complevel, NULL, NULL);
 
 #ifdef CHECKSUM
-    if (object_version >= 20) {
+    if ((object_type == Table && object_version >= 20) ||
+	object_type != Table) {
 #ifdef DEBUG
       printf("Checksum compressing ...");
 #endif
