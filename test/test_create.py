@@ -1771,6 +1771,7 @@ def suite():
     niter = 1
     #heavy = 1 # Uncomment this only for testing purposes!
     
+    #theSuite.addTest(unittest.makeSuite(FiltersCase1))
     #theSuite.addTest(unittest.makeSuite(createTestCase))
     #theSuite.addTest(unittest.makeSuite(CopyGroupCase1))
     #theSuite.addTest(unittest.makeSuite(CopyGroupCase2))

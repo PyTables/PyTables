@@ -37,6 +37,12 @@ Improvements:
   been made faster by correcting a typo in Table._open. Thanks to
   Ashley Walsh for sending a patch for this.
 
+- All potentially long I/O operations has been bracketed by
+  BEGIN_ALLOW_THREADS and END_ALLOW_THREADS in order to release the
+  GIL during this I/O operations. This will allow better performance
+  on multiprocessor machines. Thanks to Adrew Straw for suggesting
+  this.
+
 Backward-incompatible changes:
 
 - Now, the deletion and getting of a non-existing attribute raises an

@@ -6,7 +6,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.150 2004/12/09 13:01:58 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.151 2004/12/15 13:41:50 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.150 $"
+__version__ = "$Revision: 1.151 $"
 
 
 import sys, os
@@ -116,15 +116,9 @@ cdef extern from "Python.h":
   char *PyString_AsString(object string)
   object PyString_FromString(char *)
 
-# To access to str and tuple structures. This does not work with Pyrex 0.8
-# This is not necessary, though
-#  ctypedef class __builtin__.str [object PyStringObject]:
-#    cdef char *ob_sval
-#    cdef int  ob_size
-
-#   ctypedef class __builtin__.tuple [object PyTupleObject]:
-#     cdef object ob_item
-#     cdef int    ob_size
+  # To release global interpreter lock (GIL) for threading
+  void Py_BEGIN_ALLOW_THREADS()
+  void Py_END_ALLOW_THREADS()
 
   # To access to Memory (Buffer) objects presents in numarray
   object PyBuffer_FromMemory(void *ptr, int size)
@@ -949,7 +943,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.150 2004/12/09 13:01:58 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.151 2004/12/15 13:41:50 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1650,7 +1644,7 @@ cdef class Table:
     self.objectID = self.dataset_id
 
   # A version of Table._saveBufferRows in Pyrex is available in 0.7.2,
-  # but as it is not faster than the Python version, so I removed it
+  # but as it is not faster than the Python version, I removed it
   
   def _append_records(self, object recarr, int nrecords):
     cdef int ret
@@ -1658,9 +1652,13 @@ cdef class Table:
     if not self._open:
       self._open_append(recarr)
 
+    # release GIL (allow other threads to use the Python interpreter)
+    Py_BEGIN_ALLOW_THREADS
     # Append the records:
     ret = H5TBOappend_records(&self.dataset_id, &self.mem_type_id,
                               nrecords, self.totalrecords, self.rbuf)
+    # acquire GIL (disallow other threads from using the Python interpreter)
+    Py_END_ALLOW_THREADS
     if ret < 0:
       raise RuntimeError("Problems appending the records.")
 
@@ -1679,9 +1677,10 @@ cdef class Table:
 
   def _modify_records(self, hsize_t start, hsize_t stop,
                        hsize_t step, object recarr):
-    cdef int ret
+    cdef herr_t ret
     cdef void *rbuf
     cdef hsize_t nrecords, nrows
+    cdef size_t rowsize
 
     # Get the pointer to the buffer data area
     buflen = NA_getBufferPtrAndSize(recarr._data, 1, &rbuf)
@@ -1692,9 +1691,12 @@ cdef class Table:
     if nrecords > nrows:
       nrecords = nrows
     # Modify the records:
+    rowsize = self.rowsize
+    Py_BEGIN_ALLOW_THREADS
     ret = H5TBOwrite_records(self.parent_id, self.name,
-                             start, nrecords, step, self.rowsize,
+                             start, nrecords, step, rowsize,
                              self.field_offset, rbuf )
+    Py_END_ALLOW_THREADS
     if ret < 0:
       raise RuntimeError("Problems modifying the records.")
 
@@ -1782,24 +1784,6 @@ cdef class Table:
                         self.field_names, self.rowsize,
                         self.field_offset) < 0 ):
       raise RuntimeError("Problems opening table for read.")
-    # Test
-#     recarr2 = records.fromfile("prova.out",
-#                               formats=self.description._v_recarrfmt)
-#     print repr(recarr2._data)
-#     if ( PyObject_AsWriteBuffer(recarr2._data, &self.mmrbuf, &buflen) < 0 ):
-#       raise RuntimeError("Problems getting the pointer to the mm buffer")
-#     print "despres de writebuffer"
-
-    # Aquesta es la part vàlida (comentem...)
-#     self.mmfiler = memmap.Memmap(self.name+".mmap",mode="r")
-#     recarr2 = records.RecArray(self.mmfiler[:],
-#                                formats=self.description._v_recarrfmt,
-#                                shape=self.totalrecords)
-#     print repr(recarr2._data._buffer)
-#     if ( PyObject_AsReadBuffer(recarr2._data._buffer,
-#                                &self.mmrbuf, &buflen) < 0 ):
-#       raise RuntimeError("Problems getting the pointer to the mm buffer")
-
 
   def _read_field_name(self, object arr, hsize_t start, hsize_t stop,
                        hsize_t step, char *field_name):
@@ -1807,6 +1791,7 @@ cdef class Table:
     cdef void *rbuf
     cdef hsize_t nrecords
     cdef long buflen
+    cdef int ret
 
     # Get the pointer to the buffer data area
     buflen = NA_getBufferPtrAndSize(arr._data, 1, &rbuf)
@@ -1825,9 +1810,12 @@ cdef class Table:
     if fieldpos == -1:
       raise RuntimeError("Problems searching the field_name: %s" % field_name)
     # Read the column
-    if ( H5TBread_fields_name(self.parent_id, self.name, field_name,
-                              start, nrecords, step,
-                              self.field_sizes[fieldpos], NULL, rbuf) < 0):
+    Py_BEGIN_ALLOW_THREADS    
+    ret = H5TBread_fields_name(self.parent_id, self.name, field_name,
+                               start, nrecords, step,
+                               self.field_sizes[fieldpos], NULL, rbuf)
+    Py_END_ALLOW_THREADS
+    if ret < 0:
       raise RuntimeError("Problems reading table column.")
     
     return nrecords
@@ -1838,6 +1826,7 @@ cdef class Table:
     cdef void *rbuf
     cdef hsize_t nrecords
     cdef int buflen
+    cdef int ret
 
     # Correct the number of records to read, if needed
     if stop > self.totalrecords:
@@ -1847,28 +1836,35 @@ cdef class Table:
 
     # Get the pointer to the buffer data area
     buflen = NA_getBufferPtrAndSize(arr._data, 1, &rbuf)
-    #if (PyObject_AsReadBuffer(arr._data, &rbuf, &buflen) < 0):
-    #  print "Error getting buffer location"
-
     index_list[0] = index
+
     # Read the column
-    if ( H5TBread_fields_index(self.parent_id, self.name, 1, index_list,
-                              start, nrecords, self.field_sizes[index],
-                              NULL, rbuf) < 0):
+    Py_BEGIN_ALLOW_THREADS
+    ret = H5TBread_fields_index(self.parent_id, self.name, 1, index_list,
+                                start, nrecords, self.field_sizes[index],
+                                NULL, rbuf)
+    Py_END_ALLOW_THREADS
+    if ret < 0:
       raise RuntimeError("Problems reading table column.")
     
     return nrecords
 
   def _read_records(self, hsize_t start, hsize_t nrecords):
+    cdef int ret
 
     # Correct the number of records to read, if needed
     if (start + nrecords) > self.totalrecords:
       nrecords = self.totalrecords - start
 
-    if ( H5TBOread_records(&self.dataset_id, &self.space_id,
-                           &self.mem_type_id, start,
-                           nrecords, self.rbuf) < 0 ):
+    # Read the records from disk
+    Py_BEGIN_ALLOW_THREADS
+    ret = H5TBOread_records(&self.dataset_id, &self.space_id,
+                            &self.mem_type_id, start,
+                            nrecords, self.rbuf)
+    Py_END_ALLOW_THREADS
+    if ret < 0:
       raise RuntimeError("Problems reading records.")
+
 
     return nrecords
 
@@ -1876,16 +1872,20 @@ cdef class Table:
     cdef long buflen
     cdef hsize_t nrecords
     cdef void *coords
-
+    cdef int ret
+    
     # Get the chunk of the coords that correspond to a buffer
     nrecords = len(elements)
     coords_array = numarray.array(elements+shift, type=numarray.Int64)
     # Get the pointer to the buffer data area
     buflen = NA_getBufferPtrAndSize(coords_array._data, 1, &coords)
     
-    if ( H5TBOread_elements(&self.dataset_id, &self.space_id,
-                            &self.mem_type_id, nrecords,
-                            coords, self.rbuf) < 0 ):
+    Py_BEGIN_ALLOW_THREADS
+    ret = H5TBOread_elements(&self.dataset_id, &self.space_id,
+                             &self.mem_type_id, nrecords,
+                             coords, self.rbuf)
+    Py_END_ALLOW_THREADS
+    if ret < 0:
       raise RuntimeError("Problems reading records.")
 
     return nrecords
@@ -2546,7 +2546,6 @@ cdef class Array:
     cdef int itemsize, offset
     cdef char *byteorder
     cdef char *flavor, *complib, *version
-    cdef int extdim
     cdef object  type
 
     if isinstance(naarr, strings.CharArray):
@@ -2725,18 +2724,18 @@ cdef class Array:
     return (toclass[self.enumtype], shape, type_size, byteorder, chunksizes)
   
   def _append(self, object naarr):
-    cdef int ret, rank
+    cdef int ret
     cdef hsize_t *dims_arr
     cdef void *rbuf
     cdef long offset
     cdef int buflen
     cdef object shape
+    cdef int extdim
 
     # Allocate space for the dimension axis info
-    rank = len(naarr.shape)
-    dims_arr = <hsize_t *>malloc(rank * sizeof(hsize_t))
+    dims_arr = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Fill the dimension axis info with adequate info (and type!)
-    for i from  0 <= i < rank:
+    for i from  0 <= i < self.rank:
         dims_arr[i] = naarr.shape[i]
 
     # Get the pointer to the buffer data area
@@ -2749,11 +2748,14 @@ cdef class Array:
     rbuf = <void *>(<char *>rbuf + offset)
 
     # Append the records:
+    extdim = self.extdim
+    Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYappend_records(self.parent_id, self.name, self.rank,
-                                self.dims, dims_arr, self.extdim, rbuf)
-
+                                self.dims, dims_arr, extdim, rbuf)
+    Py_END_ALLOW_THREADS
     if ret < 0:
       raise RuntimeError("Problems appending the elements")
+    
     free(dims_arr)
     # Update the new dimensionality
     shape = list(self.shape)
@@ -2780,8 +2782,10 @@ cdef class Array:
     buflen = NA_getBufferPtrAndSize(countl._data, 1, <void **>&count)
 
     # Modify the elements:
+    Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYwrite_records(self.parent_id, self.name, self.rank,
                                start, step, count, rbuf)
+    Py_END_ALLOW_THREADS
     if ret < 0:
       raise RuntimeError("Problems modifying the elements")
 
@@ -2822,8 +2826,10 @@ cdef class Array:
       extdim = self.extdim
     else:
       exdim = -1
+    Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYread(self.parent_id, self.name, start, nrows, step,
                       extdim, rbuf)
+    Py_END_ALLOW_THREADS
     if ret < 0:
       raise RuntimeError("Problems reading the array data.")
 
@@ -2897,8 +2903,10 @@ cdef class IndexArray(Array):
     rbufR = <int *>self.vrbufR + offsetl
     rbufA = <long long *>self.vrbufA + offsetl
     # Do the physical read
+    Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id, self.type_id2,
                                  irow, start, stop, rbufR)
+    Py_END_ALLOW_THREADS
     if ret < 0:
       raise RuntimeError("Problems reading the array data.")
 
@@ -2943,8 +2951,10 @@ cdef class IndexArray(Array):
   def _readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):
     "Read the sorted part of an index"
 
+    Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id, self.type_id2,
                                  irow, start, stop, self.rbuflb)
+    Py_END_ALLOW_THREADS
     if ret < 0:
       raise RuntimeError("Problems reading the array data.")
 
@@ -3360,9 +3370,11 @@ cdef class VLArray:
       rbuf = NULL
 
     # Append the records:
+    Py_BEGIN_ALLOW_THREADS
     ret = H5VLARRAYappend_records(self.parent_id, self.name,
                                   nobjects, self.nrecords,
                                   rbuf)
+    Py_END_ALLOW_THREADS
     if ret < 0:
       raise RuntimeError("Problems appending the records.")
 
@@ -3382,8 +3394,10 @@ cdef class VLArray:
     rbuf = <void *>(<char *>rbuf + offset)
 
     # Append the records:
+    Py_BEGIN_ALLOW_THREADS
     ret = H5VLARRAYmodify_records(self.parent_id, self.name,
                                   nrow, nobjects, rbuf)
+    Py_END_ALLOW_THREADS
     if ret < 0:
       raise RuntimeError("Problems modifying the record.")
 
@@ -3401,8 +3415,10 @@ cdef class VLArray:
     # Compute the number of rows to read
     nrows = ((stop - start - 1) / step) + 1  # (stop-start)/step  do not work
     rdata = <hvl_t *>malloc(<size_t>nrows*sizeof(hvl_t))
+    Py_BEGIN_ALLOW_THREADS
     ret = H5VLARRAYread(self.parent_id, self.name, start, nrows, step, rdata,
                         &rdatalen)
+    Py_END_ALLOW_THREADS
     if ret < 0:
       raise RuntimeError("Problems reading the array data.")
 
@@ -3438,8 +3454,6 @@ cdef class VLArray:
       else:
         naarr = numarray.array(rbuf, type=self._atomictype, shape=shape)
       datalist.append(naarr)
-#       free(rdata[i].p)  # Get rid of the buffer data because we already
-#                         # copied it
 
     # Release resources
     free(rdata)
