@@ -12,35 +12,41 @@
 
 <!--	   Copyright (c) 2002 Francesc Alted -->
 
-      <p>Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-</p>
-      <p>The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-</p>
-      <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-</p>
+      <p>Permission is hereby granted, free of charge, to any person
+	obtaining a copy of this software and associated documentation
+	files (the "Software"), to deal in the Software without
+	restriction, including without limitation the rights to use,
+	copy, modify, merge, publish, distribute, sublicense, and/or
+	sell copies of the Software, and to permit persons to whom the
+	Software is furnished to do so, subject to the following
+	conditions:
+      </p>
+      <p>The above copyright notice and this permission notice shall
+	be included in all copies or substantial portions of the
+	Software.
+      </p>
+      <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+	KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+	WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+	PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+	COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+	OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+	<newline vspace="1cm"/>
+      </p>
 
 <!-- NCSA license -->
 
-      <p>Copyright Notice and Statement for NCSA HDF5 (Hierarchical Data Format
-	5) Software Library and Utilities
+      <p><visual markup="bf">Copyright Notice and Statement for NCSA
+	  HDF5 (Hierarchical Data Format 5) Software Library and
+	  Utilities</visual>
       </p>
 
       <p>NCSA HDF5 (Hierarchical Data Format 5) Software Library and
 	Utilities Copyright 1998, 1999, 2000, 2001, 2002 by the Board
-	of Trustees of the University of Illinois All rights reserved.
+	of Trustees of the University of Illinois <newline/>
+	<visual markup="bf">All rights reserved.</visual>
       </p>
       <p>Contributors: National Center for Supercomputing Applications
 	(NCSA) at the University of Illinois at Urbana-Champaign
@@ -54,27 +60,84 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	are met:
       </p>
 
-      <p>Put here the conditions....
+      <enumerate>
+	<item>
+	  Redistributions of source code must retain the above
+	  copyright notice, this list of conditions, and the
+	  following disclaimer.
+	</item>
+	<item>
+	  Redistributions in binary form must reproduce the above
+	  copyright notice, this list of conditions, and the
+	  following disclaimer in the documentation and/or materials
+	  provided with the distribution.
+	</item>
+	<item>In addition, redistributions of modified forms of the
+	  source or binary code must carry prominent notices stating
+	  that the original code was changed and the date of the
+	  change.
+	</item>
+	<item>All publications or advertising materials mentioning
+	  features or use of this software are asked, but not
+	  required, to acknowledge that it was developed by the
+	  National Center for Supercomputing Applications at the
+	  University of Illinois at Urbana-Champaign and to credit
+	  the contributors.
+	</item>
+	<item>Neither the name of the University nor the names of
+	  the Contributors may be used to endorse or promote
+	  products derived from this software without specific prior
+	  written permission from the University or the
+	  Contributors, as appropriate for the name(s) to be
+	  used.
+	</item>
+
+	<item>THIS SOFTWARE IS PROVIDED BY THE UNIVERSITY AND THE
+	  CONTRIBUTORS "AS IS" WITH NO WARRANTY OF ANY KIND, EITHER
+	  EXPRESSED OR IMPLIED.  In no event shall the University or
+	  the Contributors be liable for any damages suffered by the
+	  users arising out of the use of this software, even if
+	  advised of the possibility of such damage.
+	</item>
+
+      </enumerate>
+
+      
+      <p>Portions of HDF5 were developed with support from the
+	University of California, Lawrence Livermore National
+	Laboratory (UC LLNL). The following statement applies to those
+	portions of the product and must be retained in any
+	redistribution of source code, binaries, documentation, and/or
+	accompanying materials:
+      </p>
+      <p>This work was partially produced at the University of
+	California, Lawrence Livermore National Laboratory (UC LLNL)
+	under contract no. W-7405-ENG-48 (Contract 48) between the
+	U.S. Department of Energy (DOE) and The Regents of the
+	University of California (University) for the operation of UC
+	LLNL.
       </p>
 
-      <p>DISCLAIMER: This work was prepared as an account of work
-	sponsored by an agency of the United States
-	Government. Neither the United States Government nor the
-	University of California nor any of their employees, makes any
-	warranty, express or implied, or assumes any liability or
-	responsibility for the accuracy, completeness, or usefulness
-	of any information, apparatus, product, or process disclosed,
-	or represents that its use would not infringe privately- owned
-	rights. Reference herein to any specific commercial products,
-	process, or service by trade name, trademark, manufacturer, or
-	otherwise, does not necessarily constitute or imply its
-	endorsement, recommendation, or favoring by the United States
-	Government or the University of California. The views and
-	opinions of authors expressed herein do not necessarily state
-	or reflect those of the United States Government or the
-	University of California, and shall not be used for
-	advertising or product endorsement purposes.
+<!-- This paragraph does not fit well. Skip it!
+      <p><visual markup="bf">DISCLAIMER:</visual> This work was
+	prepared as an account of work sponsored by an agency of the
+	United States Government. Neither the United States Government
+	nor the University of California nor any of their employees,
+	makes any warranty, express or implied, or assumes any
+	liability or responsibility for the accuracy, completeness, or
+	usefulness of any information, apparatus, product, or process
+	disclosed, or represents that its use would not infringe
+	privately- owned rights. Reference herein to any specific
+	commercial products, process, or service by trade name,
+	trademark, manufacturer, or otherwise, does not necessarily
+	constitute or imply its endorsement, recommendation, or
+	favoring by the United States Government or the University of
+	California. The views and opinions of authors expressed herein
+	do not necessarily state or reflect those of the United States
+	Government or the University of California, and shall not be
+	used for advertising or product endorsement purposes.
       </p>
+-->
     </legalnotice>
   </frontmatter>
 
@@ -193,51 +256,52 @@ class Particle(IsRecord):
 	    different Python sessions.
 	  </item>
 	  <item><em>Allows field name, data type and range
-	    checking:</em> So you can be confident that if <visual
-	    markup="tt">PyTables</visual> does not report an error,
-	    you can be confident that your data is probably ok.
+	    checking:</em> If <visual markup="tt">PyTables</visual>
+	    does not report an error, you can be confident that your
+	    data is probably ok.
 	  </item>
 	  <item><em>Support of files bigger than 2 GB:</em> The
 	    underlying HDF5 library already can do that (if your
 	    platform supports the C long long integer, or, on Windows,
-	    __int64), so PyTables automatically inherits get this
-	    benefit.
+	    __int64), and PyTables automatically inherits this
+	    capability.
 	  </item>
 	  <item><em>Data compression:</em> It supports data
-	    compression (trough the use of the zlib library) out of
+	    compression (through the use of the zlib library) out of
 	    the box. This become important when you have repetitive
 	    data patterns and don't want to loose your time searching
 	    for an optimized way to save them (i.e. it saves you data
 	    organization analysis time).
 	  </item>
 	  <item><em>Big-Endian/Low-Endian safety:</em> <visual
-	    markup="tt">PyTables</visual> has been coded (as HDF5 is)
-	    to care with little-endian/big-endian byte orderings. So,
-	    in principle, you can write a file in a big-endian machine
-	    and read it in other little-endian without
-	    problems<footnote>Well, I didn't actually test that in
-	    real world, but if you do, please, tell
+	    markup="tt">PyTables</visual> has been carefully coded (as
+	    HDF5 itself) with little-endian/big-endian byte orderings
+	    issues in mind . So, in principle, you can write a file in
+	    a big-endian machine and read it in other little-endian
+	    without problems<footnote>Well, I didn't actually test
+	    that in real world, but if you do, please, tell
 	    me.</footnote>.</item>
 	</itemize>
 
 	<p>Finally, it should noted that <visual
-	  markup="tt">PyTables</visual> is not intended to be merely a
-	  wrapper of HDF5_HL library (don't confuse with HL-HDF5, the
-	  Swedish Meteorological and Hydrological Institute effort to
-	  provide another high Level interface to HDF5; see <ref
-	  refid="HL-HDF">reference</ref>), but to provide a flexible
-	  tool to deal with large amounts of data (i.e., typically
-	  bigger than available memory) in tables (heterogeneus data
-	  types) and arrays (homogeneus data types) organized in a
-	  hierarchical, persistent disk storage. PyTables take
-	  advantage of the powerful object orientation and
-	  introspection capabilities offered by Python to present all
-	  this power to the user in a friendly manner.
+	  markup="tt">PyTables</visual> is not intended to merely be a
+	  high level wrapper of selected HDF5 functionality (for this,
+	  have a look at HL-HDF5, the Swedish Meteorological and
+	  Hydrological Institute effort to provide another python
+	  interface to HDF5; see <ref refid="HL-HDF">reference</ref>),
+	  but to provide a flexible tool to deal with (very) large
+	  amounts of data (i.e., typically bigger than available
+	  memory) in tables (heterogeneus data types) and arrays
+	  (homogeneus data types) organized in a hierarchical,
+	  persistent disk storage. PyTables take advantage of the
+	  powerful object orientation and introspection capabilities
+	  offered by Python to bring all this power to the user in a
+	  friendly manner.
 	</p>
       </section>
 
       <section id="NaturalTreeSection">
-	<heading>The object tree</heading>
+	<heading>The Object Tree</heading>
 
 	<p>The hierarchical model of the underlying HDF5 library
 	  allows PyTables to manage tables and arrays in a tree-like
@@ -245,24 +309,41 @@ class Particle(IsRecord):
 	  an object tree imitating the HDF5 structure on disk. That
 	  way, the access to the HDF5 objects is made by walking
 	  throughout the <visual markup="tt">PyTables</visual> object
-	  tree, and manipulating them. A key aspect of PyTables is
-	  that for accessing to the different nodes on the object tree
-	  a <visual markup="bf">natural naming</visual> schema is
-	  used, i.e. the attributes of the objects that represent HDF5
-	  elements are the same as the names of the element's
+	  tree, and manipulating them.
+	</p>
+	<p> A key aspect of PyTables is that for accessing to the
+	  different nodes on the object tree a <visual
+	  markup="bf">natural naming</visual> schema is used, i.e. the
+	  attributes of the objects that represent HDF5 elements are
+	  the same as the names of the element's
 	  children<footnote>I've taken this simple but powerful idea
 	  from the excellent <visual markup="tt">Objectify</visual>
 	  module by David Mertz (see references <ref
 	  refid="Objectify"></ref> and <ref
-	  refid="GnosisUtils"></ref>)</footnote>. See the <ref
+	  refid="GnosisUtils"></ref>)</footnote>.
+	</p>
+	<p>For example, to refer to a table object located on
+	  directory <em>/subgroup2</em> of a PyTables file, and called
+	  <em>table3</em>, you can use the construction
+	  <verb>file.root.subgroup2.table3</verb>, which is very
+	  Pythonic and comfortable in many use cases. See the <ref
 	  refid="usage">chapter</ref> for a more detailed explanation.
 	</p>
 	<p>You should note that not all the data present on file is
 	  loaded in <visual markup="tt">PyTables</visual> tree, but
 	  only the <em>metadata</em> (i.e. data that actually
-	  describes the structure of the real data). The actual access
-	  to the real data is provided through the methods of those
-	  objects.
+	  describes the structure of the actual data). The actual data
+	  is not read until you ask for it in a particular node, but
+	  by making use of the object tree (the metadata) you can get
+	  information on the objects on disk, for example, table
+	  names, title, name fields, data types in fields, number of
+	  records, or, in the case of arrays, shapes, typecode, and so
+	  on. You can traverse the tree with the supplied methods, and
+	  when you find the data you are interested in you can read it
+	  and process it. In some sense, you can think of PyTables as
+	  a tool that provide the same introspection capabilities of
+	  Python objects, but applied to the persistent storage of
+	  large amounts of data.
 	</p>
 	<p>To better understand the dynamic nature of this object
 	  tree, imagine we have made a script (in fact, this script
@@ -270,26 +351,17 @@ class Particle(IsRecord):
 	  find it in the <verb>examples/</verb> directory) that
 	  creates a simple HDF5 file, with the structure that appears
 	  in <ref refid="objecttree-h5">figure</ref> (we have used the
-	  java program <verb>hdfview</verb> to obtain this
-	  image). During creation time, the object tree is updated at
-	  the same time that data is saved on file and when you close
-	  the file, this object is destroyed. If you re-open again
-	  this file (in read only mode, for example), the object tree
-	  with will be re-constructed from the metadata existent on
-	  file.
+	  <verb>hdfview</verb> application to obtain this
+	  image). During creation time, the object tree is updated
+	  (using only metadata, remeber) while data is being saved on
+	  file and when you close the file, this object is
+	  destroyed. If you re-open again this file (in read only
+	  mode, for example), the object tree with will be
+	  re-constructed from the metadata existent on file, and you
+	  can deal with it exactly in the same way than during the
+	  original creation process.
 	</p>
 	<p>
-	  It is important to stress that actual data is not read until
-	  you ask for it in a particular node, but by making use of
-	  the object tree (the metadata) you can get information on
-	  the objects on disk, for example, table names, title, name
-	  fields, data types in fields, number of records, or, in the
-	  case of arrays, shapes, typecode, and so on. You can
-	  traverse the tree with the supplied methods, and when you
-	  find the data you want you can read and process it. In some
-	  sense, you can think of PyTables to provide the
-	  introspection capabilities of Python objects, but applied to
-	  the persistent storage of large amounts of data.
 	</p>
 
 	<figure id="objecttree-h5">
@@ -325,9 +397,6 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	      markup="tt">PyTables</visual>.
 	  </caption>
 	</figure>
-      
-	<p>
-	</p>
 
       </section>
 
@@ -988,7 +1057,7 @@ Filename: tutorial.h5 \\ Title: "Test file" \\ Format version: 1.0
 
 	  <p>Each object in PyTables has metadata about the actual
 	    data on the file. Normally this metainformation is
-	    accessible trough the node instance variables. Let's see
+	    accessible through the node instance variables. Let's see
 	    some examples:
 	  </p>
 
@@ -1188,9 +1257,9 @@ Total numbers of entries after appending new rows: 15
 
 	  </verbatim>
 
-	  <p>In <ref refid="tutorial-h5">figure</ref> you can see an
-	    view created with <verb>hdfview</verb> Java application of
-	    the PyTables file we have created.
+	  <p>In <ref refid="tutorial-h5">figure</ref> you can see a
+	    view of the PyTables file we have created on this
+	    tutorial.
 	  </p>
 
 	  <figure id="tutorial-h5">
@@ -1216,25 +1285,27 @@ $
       </section>
 
       <section id="secondExample">
-	<heading>A somewhat more complex exercise</heading>
+	<heading>Checking for field name, data type and data range</heading>
 
-      <p>Now, time for a more sophisticated example. Here, we will
-	create a couple of directories (groups, in HDF5 jargon)
-	hanging directly from the root directory called
-	<verb>Particles</verb> and <verb>Events</verb>. Then, we will
-	put 3 tables in each group; in <verb>Particles</verb> we will
-	put instances of <verb>Particle</verb> records and in
-	<verb>Events</verb>, instances of <verb>Event</verb>. After
-	that, we will feed the tables with 257 (you will see soon why
-	I choose such an "esoteric" number) entries each. Finally, we
-	will read the recently created table
-	<verb>/Events/TEvent3</verb> and select some values from it
-	using a comprehension list.
-      </p>
-      <p>Lets go,</p>
+	<p>Now, time for a more sophisticated example. Here, we will
+	  create a couple of directories (groups, in HDF5 jargon)
+	  hanging directly from the root directory called
+	  <verb>Particles</verb> and <verb>Events</verb>. Then, we
+	  will put 3 tables in each group; in <verb>Particles</verb>
+	  we will put instances of <verb>Particle</verb> records and
+	  in <verb>Events</verb>, instances of
+	  <verb>Event</verb>. After that, we will feed the tables with
+	  257 (you will see soon why I choose such an "esoteric"
+	  number) entries each. Finally, we will read the recently
+	  created table <verb>/Events/TEvent3</verb> and select some
+	  values from it using a comprehension list.
+	</p>
+	<p>See at the next script. It seems to do all of that, but a
+	  couple of small suprises will appear:
+	</p>
 
-      <verbatim>
-from tables import File, IsRecord
+	<verbatim>
+from tables import *
 
 class Particle(IsRecord):
     name        = '16s'  # 16-character String
@@ -1251,26 +1322,23 @@ class Event(IsRecord):
     ycoord      = 'f'    # float  (single-precision)
 
 # Open a file in "w"rite mode
-fileh = File(name = "example2.h5", mode = "w")
+fileh = openFile("example2.h5", mode = "w")
 # Get the HDF5 root group
-root = fileh.getRootGroup()
+root = fileh.root
 
 # Create the groups:
 for groupname in ("Particles", "Events"):
-    group = fileh.newGroup(root, groupname)
+    group = fileh.createGroup(root, groupname)
 
 # Now, create and fill the tables in Particles group
-gparticles = fileh.getNode("/Particles")
-# You can achieve the same result with the next notation
-# (it can be convenient and more intuitive in some contexts)
-#gparticles = root.Particles
+gparticles = root.Particles
 # Create 3 new tables
 for tablename in ("TParticle1", "TParticle2", "TParticle3"):
     # Create a table
-    table = fileh.newTable("/Particles", tablename, Particle(),
+    table = fileh.createTable("/Particles", tablename, Particle(),
                            "Particles: "+tablename)
     # Get the record object associated with the table:
-    particle = fileh.getRecordObject(table)
+    particle = table.record
     # Fill the table with 10 particles
     for i in xrange(257):
         # First, assign the values to the Particle record
@@ -1280,68 +1348,62 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
         particle.pressure = float(i*i)
         particle.temperature = float(i**2)
         # This injects the Record values
-        fileh.appendRecord(table, particle)      
+        table.appendAsRecord(particle)      
 
     # Flush the table buffers
-    fileh.flushTable(table)
+    table.flush()
 
 # Now, go for Events:
 for tablename in ("TEvent1", "TEvent2", "TEvent3"):
-    # Create a table. Look carefully at how we reference the Events group!.
-    table = fileh.newTable(root.Events, tablename, Event(),
+    # Create a table in Events group
+    table = fileh.createTable(root.Events, tablename, Event(),
                            "Events: "+tablename)
     # Get the record object associated with the table:
     event = table.record
-    # Fill the table with 10 events
+    # Fill the table with 257 events
     for i in xrange(257):
         # First, assign the values to the Event record
         event.name  = 'Event: %6d' % (i)
-        #event.TDCcount = i
+        event.TDCcount = i
         event.ADCcount = i * 2
         event.xcoor = float(i**2)
         event.ycoord = float(i**4)
         # This injects the Record values
-        fileh.appendRecord(table, event)      
+        table.appendAsRecord(event)
 
     # Flush the buffers
-    fileh.flushTable(table)
+    table.flush()
 
 # Read the records from table "/Events/TEvent3" and select some
-e = [ p.TDCcount for p in fileh.readRecords("/Events/TEvent3")
-      if p.ADCcount &lt; 20 and 4&lt;= p.TDCcount &lt; 15 ]
+table = root.Events.TEvent3
+e = [ p.TDCcount for p in table.readAsRecords()
+      if p.ADCcount &lt; 20 and 4 &lt;= p.TDCcount &lt; 15 ]
 print "Last record ==>", p
 print "Selected values ==>", e
 print "Total selected records ==> ", len(e)
 
 # Finally, close the file (this also will flush all the remaining buffers!)
 fileh.close()
-      </verbatim>
+	</verbatim>
 
-      <p>Throughout the comments, you can see that <visual markup="tt">PyTables</visual> let's you
-      do things in, generally, more than one way. I don't know if
-      that's good or not, but I'm afraid it is not. This is in part
-      due to the fact that <visual markup="tt">PyTables</visual> is in first stages of development,
-      and probably as the API matures, there will be less choices.</p>
-
-      <p>If you have read the code carefully it looks pretty good, but
-      it won't work. If you run this example, you will get the next
-      error:
-      </p>
-      <verbatim>
+	<p>If you have read the code carefully it looks pretty good,
+	  but it won't work. If you run this example, you will get the
+	  next error:
+	</p>
+	<verbatim>
 Traceback (most recent call last):
   File "example2.py", line 68, in ?
     event.xcoor  = float(i**2)
 AttributeError: 'Event' object has no attribute 'xcoor'
-      </verbatim>
-      <p>This error is saying us that we tried to assign a value to a
-	non-existent field in an <verb>Event</verb> object. By looking
-	carefully at the <verb>Event</verb> attributes, we see that we
-	misspelled the <verb>xcoord</verb> field (we wrote
-	<verb>xcoor</verb> instead). So we correct this in the source,
-	and run it again.</p>
-      <p>And again, we find another problem:
-      </p>
-      <verbatim>
+	</verbatim>
+	<p>This error is saying us that we tried to assign a value to
+	  a non-existent field in an <verb>Event</verb> object. By
+	  looking carefully at the <verb>Event</verb> attributes, we
+	  see that we misspelled the <verb>xcoord</verb> field (we
+	  wrote <verb>xcoor</verb> instead). After correcting this in
+	  the source, and running again, we find another problem:
+	</p>
+	<verbatim>
 Traceback (most recent call last):
   File "example2.py", line 69, in ?
     table.appendRecord(event)      
@@ -1356,48 +1418,89 @@ ValueError: Error packing record object:
  [('ADCcount', 'H', 256), ('TDCcount', 'B', 256), ('name', '16s', 'Event:    256'),
  ('xcoord', 'f', 65536.0), ('ycoord', 'f', 4294967296.0)]
  Error was: ubyte format requires 0&lt;=number&lt;=255
-      </verbatim>
-      <p>This other error is saying that one of the records is having
-	trouble to be converted to the data types stated in the Event
-	class definition. By looking carefully to the record object
-	causing the problem, we see that we are trying to assign a
-	value of 256 to the 'TDCcount' field which has a 'B' (C
-	unsigned char) typecode and the allowed range for it is
-	<verb>0&lt;=TDCcount&lt;=255</verb>. This is a very powerful
-	capability to automatically check for ranges: the message
-	error is explicit enough to figure out what is happening. In
-	this case you can solve the problem by promoting the
-	<verb>TDCcount</verb> to 'H' which is a unsigned 16-bit
-	integer, or avoid the mistake you probably made in assigning a
-	value greater than 255 to a 'B' typecode.
-      </p>
-      <p>If we change the line:
-      </p>
-      <verbatim>event.TDCcount = i
-      </verbatim>
-      <p>by the next one:
-      </p>
-      <verbatim>event.TDCcount = i % (1&lt;&lt;8)
-      </verbatim>
-      <p>you will see that our problem has disappeared, and the HDF5
-	file has been created. As before, you will find in the
-	directory <verb>examples</verb> the working version of the
-	code (source file <verb>example2.py</verb>).
-      </p>
-      <p>Finally, admire the structure we have created in <ref
-      refid="example2">figure</ref>.</p>
+	</verbatim>
+	<p>This other error is saying that one of the records is
+	  having trouble to be converted to the data types stated in
+	  the Event class definition. By looking carefully to the
+	  record object causing the problem, we see that we are trying
+	  to assign a value of 256 to the 'TDCcount' field which has a
+	  'B' (C unsigned char) typecode and the allowed range for it
+	  is <verb>0&lt;=TDCcount&lt;=255</verb>. This is a very
+	  powerful capability to automatically check for ranges: the
+	  message error is explicit enough to figure out what is
+	  happening. In this case you can solve the problem by
+	  promoting the <verb>TDCcount</verb> to 'H' which is a
+	  unsigned 16-bit integer, or avoid the mistake you probably
+	  made in assigning a value greater than 255 to a 'B'
+	  typecode.
+	</p>
+	<p>If we change the line:
+	</p>
+	<verbatim>
+          event.TDCcount = i
+	</verbatim>
+	<p>by the next one:
+	</p>
+	<verbatim>
+           event.TDCcount = i % (1&lt;&lt;8)
+	</verbatim>
+	<p>you will see that our problem has disappeared, and the HDF5
+	  file has been created.
+	</p>
+	<newline/>
+	<p>Finally, to test the type cheking, we will change the next
+	  line:
+	</p>
+	<verbatim>
+	  event.ADCcount = i * 2        # Correct type
+	</verbatim>
 
-      <figure id="example2">
-	<graphics file="example2" scale="0.6" kind="bitmap">
-	</graphics>
-	<caption>Tables structured in a hierarchical order.</caption>
-      </figure>
+	<p>to read:</p>
 
-      <p>Feel free to visit the rest of examples in directory
-        <verb>examples</verb>, and try to understand them. I've tried
-        to make several cases in different to give you an idea of the
-        <visual markup="tt">PyTables</visual> capabilities and its way
-        of dealing with HDF5 objects.</p>
+	<verbatim>
+	  event.ADCcount = "s"          # Wrong type
+	</verbatim>
+
+	<p>After this modification, the next exception will be raised
+	  when the script is executed:
+	</p>
+
+	<verbatim>
+Traceback (most recent call last):
+  File "tutorial2.py", line 68, in ?
+    table.appendAsRecord(event)      
+  File "/home/falted/PyTables/pytables-0.2/tables/Table.py", line 279, in appendAsRecord
+    self._v_packedtuples.append(RecordObject._f_pack2())
+  File "/home/falted/PyTables/pytables-0.2/tables/IsRecord.py", line 181, in _f_pack2
+    self._f_raiseValueError()
+  File "/home/falted/PyTables/pytables-0.2/tables/IsRecord.py", line 135, in _f_raiseValueError
+    raise ValueError, \
+ValueError: Error packing record object: 
+ [('ADCcount', 'H', '0'), ('TDCcount', 'B', 0), ('name', '16s', 'Event:      0'), ('xcoord', 'f', 0.0), ('ycoord', 'f', 0.0)]
+ Error was: required argument is not an integer
+	</verbatim>
+
+	<p>that states the error.</p>
+
+	<p>After correcting all this errors, admire the structure we
+	  have created in <ref refid="example2">figure</ref>. As
+	  before, you will find in the directory <verb>examples</verb>
+	  the working version of the code (source file
+	  <verb>tutorial2.py</verb>).
+	</p>
+
+	<figure id="example2">
+	  <graphics file="example2" scale="0.6" kind="bitmap">
+	  </graphics>
+	  <caption>Table hierarchy for second example.</caption>
+	</figure>
+
+	<p>Feel free to visit the rest of examples in directory
+	  <verb>examples</verb>, and try to understand them. I've tried
+	  to make several cases in different to give you an idea of the
+	  <visual markup="tt">PyTables</visual> capabilities and its way
+	  of dealing with HDF5 objects.
+	</p>
 
       </section>
     </chapter>

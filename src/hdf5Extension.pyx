@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.4 2002/11/10 13:31:50 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.5 2002/11/12 13:52:05 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.4 $"
+__version__ = "$Revision: 1.5 $"
 
 
 import os.path
@@ -362,7 +362,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.4 2002/11/10 13:31:50 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.5 2002/11/12 13:52:05 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -841,7 +841,7 @@ cdef class Array:
     self.type_id = convArrayType(self.typecode)
     
     # Put the title in the self.title attribute
-    self.getTitle()
+    self.getArrayTitle()
 
     # Construct a typecode array from typecode character
     typecodestr[0] = self.typecode
@@ -850,7 +850,7 @@ cdef class Array:
     # When returning the shape, the problems seems to appear
     return (PyString_FromString(typecodestr), shape)
   
-  def getTitle(self):
+  def getArrayTitle(self):
     "Get the attribute TITLE. The maximum TITLE size is MAX_CHARS."
 
     # First open the data set
@@ -861,15 +861,12 @@ cdef class Array:
     ret = H5LTget_attribute(loc_id, "TITLE", &self.title)
     if ret < 0:
       raise RuntimeError("Problems getting array TITLE attribute.")
+
     # Close the dataset
     ret = H5Dclose(loc_id)
     if ret < 0:
       raise RuntimeError("Problems closing the array.")
 
-    return ret
-
-  def getArrayTitle(self):
-    "Return the attribute self.title"
     return PyString_FromString(self.title)
 
   def readArray(self):

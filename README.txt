@@ -40,7 +40,7 @@ powerful interface to process table data.
 Quite a bit effort has been invested to make browsing the hierarchical
 data structure a pleasant experience. PyTables implements just three
 (orthogonal) easy-to-use methods for browsing. See the documentation
-for more details.
+(located in the doc/ directory) for more details.
 
 One of the principal objectives of PyTables is to be user-friendly.
 To that end, the latest improvements introduced in Python 2.2 (such as

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.5 2002/11/10 20:21:30 falted Exp $
+#       $Id: Table.py,v 1.6 2002/11/12 13:52:05 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.5 $"
+__version__ = "$Revision: 1.6 $"
 
 from __future__ import generators
 import struct
@@ -270,14 +270,16 @@ class Table(Leaf, hdf5Extension.Table):
         "RecordObject" has to be a IsRecord descendant instance.
 
         """
-        # We should add a test unit case to test that this try works well
-        try:
+        # We should add a test unit case to test that this try works
+        # well
+        # Test if RecordObject is really a descendant of IsRecord
+        if hasattr(RecordObject, "_f_pack"):
             # We pack with _f_pack2 because we don't need to pass parameters
             # and is a bit faster that _f_pack
             self._v_packedtuples.append(RecordObject._f_pack2())
-        except AttributeError:
+        else:
             raise ValueError, \
-                  "arg 1 is %s, not a IsRecord descendant instance." % \
+                  "arg 1 with type %s, is not a IsRecord descendant." % \
                   type(RecordObject)
 
         self._v_recunsaved += 1
@@ -312,16 +314,9 @@ class Table(Leaf, hdf5Extension.Table):
         appendAsRecord method.
 
         """
-        try:
-            self._v_packedtuples.append(struct.pack(self._v_fmt, *values))
-        except AttributeError:
-            raise RuntimeError, \
-"""Can't find internal buffer. Most probably this table object is
-  not attached to the object tree."""
-            
+        self._v_packedtuples.append(struct.pack(self._v_fmt, *values))
         #self._v_packedtuples.append(self.spacebuffer) # for speed test only
         self._v_recunsaved += 1
-        #print "Values without saving -->", self._v_recunsaved 
         if self._v_recunsaved  == self._v_maxTuples:
             self._saveBufferedRows()
 

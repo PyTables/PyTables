@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.4 2002/11/10 20:21:30 falted Exp $
+#       $Id: Array.py,v 1.5 2002/11/12 13:52:05 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.4 $"
+__version__ = "$Revision: 1.5 $"
 
 from Leaf import Leaf
 import hdf5Extension
@@ -87,14 +87,8 @@ class Array(Leaf, hdf5Extension.Array):
 
     def open(self):
         """Get the metadata info for an array in file."""
-        #(self.typecode, self.shape, self.title) = self.openArray()
-        #print "passing open..."
         (self.typecode, self.shape) = self.openArray()
-        #print "Shape ==>", self.shape
-        #self.typecode = self.openArray()
         self.title = self.getArrayTitle()
-        # This still does not work!
-        #self.shape = (1,)
         
     # Accessor for the readArray method in superclass
     def read(self):

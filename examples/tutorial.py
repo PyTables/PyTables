@@ -104,11 +104,12 @@ print "Creating a new group called '/columns' to hold new arrays"
 gcolumns = h5file.createGroup(h5file.root, "columns", "Pressure and Name")
 
 print "Creating a Numeric array called 'pressure' under '/columns' group"
-h5file.createArray(gcolumns, 'pressure', array(pressure),
-                   "Pressure column with cuts")
+h5file.createArray(gcolumns, 'pressure', array(pressure), 
+                   "Pressure column selection")
 
 print "Creating another Numeric array called 'name' under '/columns' group"
-h5file.createArray('/columns', 'name', array(names), "Name column")
+h5file.createArray('/columns', 'name', array(names),
+                   "Name column selection")
 
 print
 print	'-**-**-**-**-**-**- traverse tree methods -**-**-**-**-**-**-**-'
@@ -136,7 +137,7 @@ for table in h5file.listNodes("/detector", 'Leaf'):
 
 
 print
-print	'-**-**-**-**-**-**- reading metadata on objects -**-**-**-**-**-**-'
+print	'-**-**-**-**-**-**- getting object metadata -**-**-**-**-**-**-'
 
 # Get the "/detector/table"
 table = h5file.getNode("/detector/readout", classname = 'Table')
@@ -146,7 +147,6 @@ print "Object:", table
 print "Table name:", table.name
 print "Table title:", table.title
 print "Number of rows in table: %d" % (table.nrows)
-
 print "Table variable names (sorted alphanumerically) with their type:"
 for i in range(len(table.varnames)):
     print "  ", table.varnames[i], ':=', table.vartypes[i] 
