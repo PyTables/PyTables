@@ -1,3 +1,10 @@
+pytables (0.8.1-1) unstable; urgency=high
+
+   * New upstream release. It is compatible with new numarray-1.0 API.
+     (Closes: #258078).
+
+ -- Francesc Alted <falted@pytables.org>  Wed, 14 Jul 2004 12:35:15 +0200
+ 
 pytables (0.8-1) unstable; urgency=low
 
    * New upstream version. It has now full 64-bit support

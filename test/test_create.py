@@ -172,12 +172,12 @@ class createTestCase(unittest.TestCase):
 	# Append this entry to indicate the alignment!
 	recordDict['_v_align'] = "="
 	# Now, create a table with this record object
-	table = Table(recordDict, "MetaRecord instance")
+	#table = Table(recordDict, "MetaRecord instance")
 	# Attach the table to the object tree
-	self.root.table = table
+	#self.root.table = table
         # This works the same than above
-	#table = self.fileh.createTable(self.root, 'table',
-        #                               recordDict, "MetaRecord instance")
+	table = self.fileh.createTable(self.root, 'table',
+                                       recordDict, "MetaRecord instance")
 	row = table.row
 	# Write 10 records
         for j in range(10):

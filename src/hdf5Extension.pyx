@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.131 2004/07/07 17:11:13 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.132 2004/07/15 18:09:24 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.131 $"
+__version__ = "$Revision: 1.132 $"
 
 
 import sys, os
@@ -911,7 +911,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.131 2004/07/07 17:11:13 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.132 2004/07/15 18:09:24 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -981,7 +981,10 @@ cdef class File:
         raise RuntimeError("File \'%s\' doesn't exist or is not a HDF5 file." \
                            % self.name )
     elif strcmp(mode, "a") == 0:
-      if os.path.isfile(name):
+      # Fixes bug #988547
+      exists_name = os.path.exists(name)
+      if exists_name and os.path.isfile(name):
+      #if os.path.isfile(name):
         if H5Fis_hdf5(name) > 0:
           # A test for logging
           access_plist = H5Pcreate(H5P_FILE_ACCESS)
@@ -994,6 +997,8 @@ cdef class File:
         else:
           raise RuntimeError("File \'%s\' exist but is not a HDF5 file." % \
                              self.name )
+      elif exists_name:
+        raise RuntimeError("\'%s\' is not an ordinary file." % self.name)
       else:
         self.file_id = H5Fcreate(name, H5F_ACC_TRUNC,
                                  H5P_DEFAULT, H5P_DEFAULT)
@@ -1548,10 +1553,11 @@ cdef class Table:
     # This limitation was consequence of my buffer size computation that was
     # quite bad. Now, I think it is safe to release this limitation for most
     # uses
-#     if self.rowsize > 8192:
-#         raise RuntimeError, \
-#     """Row size too large. Maximum size is 8192 bytes, and you are asking
-#     for a row size of %s bytes.""" % (self.rowsize)
+    # I'll revert to a 512 KB limit (just because banana 640 KB limitation)
+    if self.rowsize > 524288:
+            raise RuntimeError, \
+    """Row size too large. Maximum size is 8192 bytes, and you are asking
+    for a row size of %s bytes.""" % (self.rowsize)
 
     # test if there is data to be saved initially
     if hasattr(self, "_v_recarray"):
@@ -2250,8 +2256,10 @@ cdef class Row:
         return arr
     except:
       (type, value, traceback) = sys.exc_info()
-      raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
-            (fieldName, "Error was: \"%s: %s\"" % (type,value))
+      raise KeyError, "Error accessing \"%s\" field.\n %s" % \
+	    (fieldName, "Error was: \"%s: %s\"" % (type,value))
+#       raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
+#             (fieldName, "Error was: \"%s: %s\"" % (type,value))
 
   # This is slightly faster (around 3%) than __setattr__
   def __setitem__(self, object fieldName, object value):
@@ -2264,8 +2272,10 @@ cdef class Row:
       self._fields[fieldName][self._unsavednrows] = value
     except:
       (type, value, traceback) = sys.exc_info()
-      raise AttributeError, "Error setting \"%s\" attr.\n %s" % \
-            (fieldName, "Error was: \"%s: %s\"" % (type,value))
+      raise KeyError, "Error setting \"%s\" field.\n %s" % \
+           (fieldName, "Error was: \"%s: %s\"" % (type,value))
+#       raise AttributeError, "Error setting \"%s\" attr.\n %s" % \
+#              (fieldName, "Error was: \"%s: %s\"" % (type,value))
 
   # Delete the I/O buffers
   def _cleanup(self):

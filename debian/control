@@ -2,7 +2,7 @@ Source: pytables
 Section: python
 Priority: optional
 Maintainer: Francesc Alted <falted@pytables.org>
-Build-Depends: debhelper (>= 4.2.4), zlib1g-dev, liblzo-dev, libucl-dev, libhdf5-serial-dev, python2.2-dev, python2.3-dev, python2.2-numarray (>= 0.8), python2.3-numarray (>= 0.8)
+Build-Depends: debhelper (>= 4.2.11), zlib1g-dev, liblzo-dev, libucl-dev, libhdf5-serial-dev, python2.2-dev, python2.3-dev, python2.2-numarray (>=1.0), python2.3-numarray (>= 1.0)
 Standards-Version: 3.6.1
 
 Package: python-tables
@@ -41,7 +41,7 @@ Description: A hierarchical database for Python based on HDF5
 Package: python2.2-tables
 Section: python
 Architecture: any
-Depends: python2.2-numarray (>= 0.8), python2.2, ${shlibs:Depends}
+Depends: python2.2-numarray (>= 1.0), python2.2, ${shlibs:Depends}
 Description: A hierarchical database for Python based on HDF5
  PyTables is a hierarchical database package designed to efficently
  manage very large amounts of data. PyTables is built on top of the
@@ -71,7 +71,7 @@ Description: A hierarchical database for Python based on HDF5
 Package: python2.3-tables
 Section: python
 Architecture: any
-Depends: python2.3-numarray (>= 0.8), python2.3, ${shlibs:Depends}
+Depends: python2.3-numarray (>= 1.0), python2.3, ${shlibs:Depends}
 Description: A hierarchical database for Python based on HDF5
  PyTables is a hierarchical database package designed to efficently
  manage very large amounts of data. PyTables is built on top of the
@@ -101,7 +101,7 @@ Description: A hierarchical database for Python based on HDF5
 Package: python-tables-doc
 Section: doc
 Architecture: all
-Suggests: pdf-viewer
+Suggests: xpdf | pdf-viewer
 Description: A hierarchical database for Python based on HDF5 - documentation
  This package includes the manual in PDF and HTML formats.
  .

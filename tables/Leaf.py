@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.48 2004/06/18 12:31:08 falted Exp $
+#       $Id: Leaf.py,v 1.49 2004/07/15 18:09:25 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.48 $"
+__version__ = "$Revision: 1.49 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -345,7 +345,11 @@ class Leaf(hdf5Extension.Leaf, object):
         # Check that the name does not exist under this group
         if group._v_children.has_key(name):
             if overwrite:
-                # Delete the destination object
+                if group == self._v_parent and name == self.name:
+		    # Trying to overwrite itself!. Silently give up...
+		    # This fixes bug #973370
+		    return (self, 0)  # 0 bytes copied
+		# Delete the destination object
                 dstNode = getattr(group, name)
                 if dstNode.__class__.__name__ == "Group":
                     dstNode._f_remove(recursive=1)

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.66 2004/06/18 12:31:07 falted Exp $
+#       $Id: Array.py,v 1.67 2004/07/15 18:09:24 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.66 $"
+__version__ = "$Revision: 1.67 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -376,16 +376,16 @@ class Array(Leaf, hdf5Extension.Array, object):
                 if key >= self.shape[dim]:
                     raise IndexError, "Index out of range"
                 if key < 0:
-                    # To support negative values
+                    # To support negative values (Fixes bug #968149)
                     key += self.shape[dim]
-                start, stop, step = processRangeRead(self.shape[dim],
-                                                     key, key+1, 1)
+#                 start, stop, step = processRangeRead(self.shape[dim],
+#                                                      key, key+1, 1)
+                start, stop, step = processRange(self.shape[dim],
+                                                 key, key+1, 1)
                 stop_None[dim] = 1
             elif isinstance(key, types.SliceType):
-                start, stop, step = processRangeRead(self.shape[dim],
-                                                     key.start,
-                                                     key.stop,
-                                                     key.step)
+                start, stop, step = processRange(self.shape[dim],
+                                                 key.start, key.stop, key.step)
             else:
                 raise ValueError, "Non-valid index or slice: %s" % \
                       key

@@ -38,6 +38,9 @@ class BasicTestCase(unittest.TestCase):
 	
 	# Read the saved array
 	b = self.root.somearray.read()
+        # For cases that read returns a python type instead of a Numeric type
+        if not hasattr(b, "shape"):
+            b = array(b, typecode=a.typecode())
 	
 	# Compare them. They should be equal.
 	if not allequal(a,b, "Numeric") and verbose:
@@ -58,7 +61,7 @@ class BasicTestCase(unittest.TestCase):
             # Special expection. We have no way to distinguish between
             # "l" and "i" typecode, and we can consider them the same
             # to all practical effects
-            assert b.typecode() == "l" or b.typecode() == "i"
+            assert (b.typecode() == "l" or b.typecode() == "i")
             assert self.root.somearray.type == typeDict["l"] or \
                    self.root.somearray.type == typeDict["i"]
         elif a.typecode() == "c":
@@ -202,7 +205,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 	# Create the array under root and name 'somearray'
 	a = testArray
         self.fileh.createArray(self.root, 'somearray', a, "Some array")
-
+	
         # Close the file
         self.fileh.close()
 	
@@ -232,8 +235,9 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
             # Special expection. We have no way to distinguish between
             # "l" and "i" typecode, and we can consider them the same
             # to all practical effects
-            assert b.typecode() == "l"
-            assert self.root.somearray.type == typeDict["l"]
+            assert b.typecode() == "l" or b.typecode() == "i"
+            assert self.root.somearray.type == typeDict["l"] or \
+                   self.root.somearray.type == typeDict["i"]
         elif a.typecode() == "c":
             assert a.typecode() == b.typecode()
             assert str(self.root.somearray.type) == "CharType"
@@ -246,7 +250,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         return
     
     def test10_complexSimple(self):
-        "Checking a complex floating point array, sp (not supported)"
+        "Checking a complex floating point array (not supported)"
 	a = array([1,2], 'F')
         try:
             self.WriteRead(a)
@@ -259,7 +263,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
             self.fail("expected an TypeError")
             
     def test11_complexDouble(self):
-        "Checking a complex floating point array, dp (not supported)"
+        "Checking a complex floating point array (not supported)"
 
 	a = array([1,2], 'D')
         try:
@@ -345,7 +349,7 @@ class GroupsArrayTestCase(unittest.TestCase):
                 # Special expection. We have no way to distinguish between
                 # "l" and "i" typecode, and we can consider them the same
                 # to all practical effects
-                assert b.typecode() == "l" or  b.typecode() == "i"
+                assert b.typecode() == "l" or b.typecode() == "i"
             else:
                 assert a.typecode() == b.typecode()
             assert allequal(a,b, "Numeric")
@@ -458,6 +462,7 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(Basic1DTwoTestCase))
     for i in range(niter):
         # The scalar case test should be refined in order to work
+        # specially after the solution for bug #968132
         theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
         theSuite.addTest(unittest.makeSuite(Basic0DTwoTestCase))
         theSuite.addTest(unittest.makeSuite(Basic1DOneTestCase))

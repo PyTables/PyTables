@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.115 2004/07/07 17:11:14 falted Exp $
+#       $Id: Table.py,v 1.116 2004/07/15 18:09:25 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.115 $"
+__version__ = "$Revision: 1.116 $"
 
 from __future__ import generators
 import sys
@@ -541,11 +541,10 @@ class Table(Leaf, hdf5Extension.Table, object):
         
         if flavor == None:
             flavor = "numarray"
+            
         if flavor == "numarray":
-            #return self._read(start, stop, step, field)
             return self._read(start, stop, step, field, coords)
         else:
-            #arr = self._read(start, stop, step, field)
             arr = self._read(start, stop, step, field, coords)
             # Convert to Numeric, tuple or list if needed
             if flavor == "Numeric":
@@ -579,15 +578,36 @@ class Table(Leaf, hdf5Extension.Table, object):
 """You are asking for a Numeric object, but Numeric is not installed locally.
   Returning a numarray object instead!.""")
             elif flavor == "Tuple":
-                arr = tuple(arr.tolist())
+                # Fixes bug #972534
+                arr = tuple(self.tolist(arr))
             elif flavor == "List":
-                arr = arr.tolist()
+                # Fixes bug #972534
+                arr = self.tolist(arr)
             else:
                 raise ValueError, \
 """You are asking for an unsupported flavor (%s). Supported values are:
 "Numeric", "Tuple" and "List".""" % (flavor)
 
         return arr
+
+    def tolist(self, arr):
+        """Converts a RecArray or Record to a list of rows"""
+        outlist = []
+        if isinstance(arr, records.Record):
+            for i in range(arr.array._nfields):
+                outlist.append(arr.array.field(i)[arr.row])
+            outlist = tuple(outlist)  # return a tuple for records
+        elif isinstance(arr, records.RecArray):
+            for j in range(arr.nelements()):
+                tmplist = []
+                for i in range(arr._nfields):
+                    tmplist.append(arr.field(i)[j])
+                outlist.append(tuple(tmplist))
+        # Fixes bug #991715
+        else:
+            # Other objects are passed "as is"
+            outlist = list(arr)   
+        return outlist
 
     def _read(self, start, stop, step, field=None, coords=None):
         """Read a range of rows and return an in-memory object.
@@ -734,8 +754,10 @@ class Table(Leaf, hdf5Extension.Table, object):
                 # To support negative values
                 key += self.nrows
             (start, stop, step) = processRange(self.nrows, key, key+1, 1)
-            return self._read(start, stop, step, None, None)[0]
-            #return self._read(start, stop, step, None, None)
+            #return self._read(start, stop, step, None, None)[0]
+            # For the scalar case, convert the Record and return it as a tuple
+            # Fixes bug #972534
+            return self.tolist(self._read(start, stop, step, None, None)[0])
         elif isinstance(key, types.SliceType):
             (start, stop, step) = processRange(self.nrows,
                                                key.start, key.stop, key.step)

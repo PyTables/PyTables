@@ -1121,11 +1121,14 @@ class getItemTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, "r")
         table = self.fileh.root.table0
         result = table[2]
-        assert result.field("var2") == 2
+        #assert result.field("var2") == 2
+        assert result[1] == 2
         result = table[25]
-        assert result.field("var2") == 25
+        #assert result.field("var2") == 25
+        assert result[1] == 25
         result = table[self.expectedrows-1]
-        assert result.field("var2") == self.expectedrows - 1
+        #assert result.field("var2") == self.expectedrows - 1
+        assert result[1] == self.expectedrows - 1
 
     def test01b_singleItem(self):
         """Checking __getitem__ method with single parameter (negative)"""
@@ -1137,11 +1140,14 @@ class getItemTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, "r")
         table = self.fileh.root.table0
         result = table[-5]
-        assert result.field("var2") == self.expectedrows - 5
+        #assert result.field("var2") == self.expectedrows - 5
+        assert result[1] == self.expectedrows - 5
         result = table[-1]
-        assert result.field("var2") == self.expectedrows - 1
+        #assert result.field("var2") == self.expectedrows - 1
+        assert result[1] == self.expectedrows - 1
         result = table[-self.expectedrows]
-        assert result.field("var2") == 0
+        #assert result.field("var2") == 0
+        assert result[1] == 0
 
     def test02_twoItems(self):
         """Checking __getitem__ method with start, stop parameters """
@@ -1488,8 +1494,8 @@ class CopyTestCase(unittest.TestCase):
             #print "reprs-->", repr(row1), repr(table2.read(nrow))
             for colname in table1.colnames:
                 # Both ways to compare works well
-                assert row1[colname] == table2[nrow].field(colname)
-                #assert row1[colname] == table2.read(nrow, field=colname)[0]
+                #assert row1[colname] == table2[nrow].field(colname)
+                assert row1[colname] == table2.read(nrow, field=colname)[0]
 
         # Assert other properties in table
         assert table1.nrows == table2.nrows
@@ -1558,8 +1564,8 @@ class CopyTestCase(unittest.TestCase):
             nrow = row1.nrow()   # current row
             for colname in table1.colnames:
                 # Both ways to compare works well
-                assert row1[colname] == table2[nrow].field(colname)
-                #assert row1[colname] == table2.read(nrow, field=colname)[0]
+                #assert row1[colname] == table2[nrow].field(colname)
+                assert row1[colname] == table2.read(nrow, field=colname)[0]
 
         # Assert other properties in table
         assert table1.nrows == table2.nrows
@@ -1630,7 +1636,8 @@ class CopyTestCase(unittest.TestCase):
         for row1 in table1:
             nrow = row1.nrow()   # current row
             for colname in table1.colnames:
-                assert allequal(row1[colname], table2[nrow].field(colname))
+                #assert allequal(row1[colname], table2[nrow].field(colname))
+                assert allequal(row1[colname], table2.read(nrow, field=colname)[0])
 
         # Assert other properties in table
         assert table1.nrows == table2.nrows
@@ -1698,8 +1705,8 @@ class CopyTestCase(unittest.TestCase):
             nrow = row1.nrow()   # current row
             for colname in table1.colnames:
                 # Both ways to compare works well
-                assert row1[colname] == table2[nrow].field(colname)
-                #assert row1[colname] == table2.read(nrow, field=colname)[0]
+                #assert row1[colname] == table2[nrow].field(colname)
+                assert row1[colname] == table2.read(nrow, field=colname)[0]
 
         # Assert other properties in table
         assert table1.nrows == table2.nrows
@@ -1770,7 +1777,8 @@ class CopyTestCase(unittest.TestCase):
         for row1 in table1:
             nrow = row1.nrow()   # current row
             for colname in table1.colnames:
-                assert row1[colname] == table2[nrow].field(colname)
+                #assert row1[colname] == table2[nrow].field(colname)
+                assert row1[colname] == table2.read(nrow, field=colname)[0]
 
         # Assert other properties in table
         assert table1.nrows == table2.nrows
@@ -1844,7 +1852,8 @@ class CopyTestCase(unittest.TestCase):
         for row1 in table1:
             nrow = row1.nrow()   # current row
             for colname in table1.colnames:
-                assert row1[colname] == table2[nrow].field(colname)
+                #assert row1[colname] == table2[nrow].field(colname)
+                assert row1[colname] == table2.read(nrow, field=colname)[0]
 
         # Assert other properties in table
         assert table1.nrows == table2.nrows
@@ -1917,12 +1926,14 @@ class CopyIndexTestCase(unittest.TestCase):
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
         for nrow in range(r2.shape[0]):
+            icol = 0
             for colname in table1.colnames:
-                # The next gives a warning because a Table cannot distinguish
-                # between a '(1,)f4' format and a 'f4' format.
-                # This should be adressed? 2004-01-24
                 assert allequal(r2[nrow].field(colname),
-                                table2[nrow].field(colname))
+                                table2[nrow][icol])
+                icol += 1
+#             for colname in table1.colnames:
+#                 assert allequal(r2[nrow].field(colname),
+#                                 table2[nrow].field(colname))
 
         # Assert the number of rows in table
         if verbose:
@@ -1979,9 +1990,14 @@ class CopyIndexTestCase(unittest.TestCase):
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
         for nrow in range(r2.shape[0]):
+            icol = 0
             for colname in table1.colnames:
                 assert allequal(r2[nrow].field(colname),
-                                table2[nrow].field(colname))
+                                table2[nrow][icol])
+                icol += 1
+#             for colname in table1.colnames:
+#                 assert allequal(r2[nrow].field(colname),
+#                                 table2[nrow].field(colname))
 
         # Assert the number of rows in table
         if verbose:
@@ -2104,7 +2120,7 @@ class LargeRowSize(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        r=records.array([[arange(1000)]*4])
+        r=records.array([[arange(40000)]*4])   # 640 KB
 
         # Save it in a table:
         try:
