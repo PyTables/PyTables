@@ -181,7 +181,7 @@ class Group(hdf5Extension.Group, object):
                 # Index groups will not be included in the object tree
                 #if objgroup._g_getGChildAttr(name, "CLASS") != "INDEX":
                 classname = objgroup._g_getGChildAttr(name, "CLASS")
-                if classname not in ["INDEX", "IARRAY"]: # Delete the "IARRAY"
+                if classname not in ["INDEX"]:
                     new_objgroup = Group(new = 0)
                     new_objgroup._g_putObjectInTree(name, objgroup)
                     stack.append(new_objgroup)
@@ -189,12 +189,11 @@ class Group(hdf5Extension.Group, object):
                     # and their names will be append to a list
                     if classname == "INDEX":
                         # only INDEX names will be appended
-                        self._v_indices.append(name)
+                        objgroup._v_indices.append(name)
             for name in leaves:
                 objleaf=objgroup._g_getLeaf(name)
                 if objleaf <> None:
                     # Try if object can be loaded
-                    #objleaf._g_putObjectInTree(name, objgroup)
                     try:
                         objleaf._g_putObjectInTree(name, objgroup)
                     except:
