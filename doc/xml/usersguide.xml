@@ -42,6 +42,7 @@
       <p><visual markup="bf">Copyright Notice and Statement for NCSA
 	  Hierarchical Data Format (HDF) Software Library and
 	  Utilities</visual>
+	<newline vspace="0.25cm"/>
       </p>
 
 
@@ -49,71 +50,105 @@
 	Utilities Copyright 1998, 1999, 2000, 2001, 2002, 2003 by the
 	Board of Trustees of the University of Illinois.  All rights
 	reserved.
+	<newline vspace="0.25cm"/>
       </p>
 
-      <p>Contributors: National Center for Supercomputing Applications
-	(NCSA) at the University of Illinois at Urbana-Champaign
-	(UIUC), Lawrence Livermore National Laboratory (LLNL), Sandia
-	National Laboratories (SNL), Los Alamos National Laboratory
-	(LANL), Jean-loup Gailly and Mark Adler (gzip library).
-      </p>
-      <p>Redistribution and use in source and binary forms, with or
-	without modification, are permitted for any purpose (including
-	commercial purposes) provided that the following conditions
-	are met:
+      <p>See more information about the terms of the license at:
+	http://hdf.ncsa.uiuc.edu/HDF5/doc/Copyright.html
+	<newline vspace="1cm"/>
       </p>
 
-      <enumerate>
-        <item>
-	  Redistributions of source code must retain the above
-	  copyright notice, this list of conditions, and the following
-	  disclaimer.
-	</item>
-	<item>Redistributions in binary form must reproduce the above
-	  copyright notice, this list of conditions, and the following
-	  disclaimer in the documentation and/or materials provided
-	  with the distribution.
-	</item>
-	<item>In addition, redistributions of modified forms of the
-	  source or binary code must carry prominent notices stating
-	  that the original code was changed and the date of the
-	  change.
-	</item>
-	<item>All publications or advertising materials mentioning
-	  features or use of this software are asked, but not
-	  required, to acknowledge that it was developed by the
-	  National Center for Supercomputing Applications at the
-	  University of Illinois at Urbana-Champaign and to credit the
-	  contributors.
-	</item>
-	<item>Neither the name of the University nor the names of the
-	  Contributors may be used to endorse or promote products
-	  derived from this software without specific prior written
-	  permission from the University or the Contributors, as
-	  appropriate for the name(s) to be used.
-	</item>
-	<item>THIS SOFTWARE IS PROVIDED BY THE UNIVERSITY AND THE
-	  CONTRIBUTORS "AS IS" WITH NO WARRANTY OF ANY KIND, EITHER
-	  EXPRESSED OR IMPLIED.  In no event shall the University or
-	  the Contributors be liable for any damages suffered by the
-	  users arising out of the use of this software, even if
-	  advised of the possibility of such damage.
-	</item>
-      </enumerate>
-      <p>Portions of HDF5 were developed with support from the
-	University of California, Lawrence Livermore National
-	Laboratory (UC LLNL).  The following statement applies to
-	those portions of the product and must be retained in any
-	redistribution of source code, binaries, documentation, and/or
-	accompanying materials:
+<!-- numarray license -->
+
+      <p><visual markup="bf">Copyright Notice and Statement for AURA
+	  <em>numarray</em> software library</visual>
+	<newline vspace="0.25cm"/>
       </p>
-      <p> This work was partially produced at the University of
-	California, Lawrence Livermore National Laboratory (UC LLNL)
-	under contract no.  W-7405-ENG-48 (Contract 48) between the
-	U.S. Department of Energy (DOE) and The Regents of the
-	University of California (University) for the operation of UC
-	LLNL.
+
+
+      <p>Copyright (C) 2001 Association of Universities for Research
+	in Astronomy (AURA) <newline vspace="0.25cm"/>
       </p>
+
+
+      <p>
+	THIS SOFTWARE IS PROVIDED BY AURA ``AS IS'' AND ANY EXPRESS OR
+	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+	WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+	PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL AURA BE LIABLE FOR
+	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+	CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+	PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+	ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+	LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+	IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+	THE POSSIBILITY OF SUCH DAMAGE.
+      </p>
+
+<!--       <p>Contributors: National Center for Supercomputing Applications -->
+<!-- 	(NCSA) at the University of Illinois at Urbana-Champaign -->
+<!-- 	(UIUC), Lawrence Livermore National Laboratory (LLNL), Sandia -->
+<!-- 	National Laboratories (SNL), Los Alamos National Laboratory -->
+<!-- 	(LANL), Jean-loup Gailly and Mark Adler (gzip library). -->
+<!--       </p> -->
+<!--       <p>Redistribution and use in source and binary forms, with or -->
+<!-- 	without modification, are permitted for any purpose (including -->
+<!-- 	commercial purposes) provided that the following conditions -->
+<!-- 	are met: -->
+<!--       </p> -->
+
+<!--       <enumerate> -->
+<!--         <item> -->
+<!-- 	  Redistributions of source code must retain the above -->
+<!-- 	  copyright notice, this list of conditions, and the following -->
+<!-- 	  disclaimer. -->
+<!-- 	</item> -->
+<!-- 	<item>Redistributions in binary form must reproduce the above -->
+<!-- 	  copyright notice, this list of conditions, and the following -->
+<!-- 	  disclaimer in the documentation and/or materials provided -->
+<!-- 	  with the distribution. -->
+<!-- 	</item> -->
+<!-- 	<item>In addition, redistributions of modified forms of the -->
+<!-- 	  source or binary code must carry prominent notices stating -->
+<!-- 	  that the original code was changed and the date of the -->
+<!-- 	  change. -->
+<!-- 	</item> -->
+<!-- 	<item>All publications or advertising materials mentioning -->
+<!-- 	  features or use of this software are asked, but not -->
+<!-- 	  required, to acknowledge that it was developed by the -->
+<!-- 	  National Center for Supercomputing Applications at the -->
+<!-- 	  University of Illinois at Urbana-Champaign and to credit the -->
+<!-- 	  contributors. -->
+<!-- 	</item> -->
+<!-- 	<item>Neither the name of the University nor the names of the -->
+<!-- 	  Contributors may be used to endorse or promote products -->
+<!-- 	  derived from this software without specific prior written -->
+<!-- 	  permission from the University or the Contributors, as -->
+<!-- 	  appropriate for the name(s) to be used. -->
+<!-- 	</item> -->
+<!-- 	<item>THIS SOFTWARE IS PROVIDED BY THE UNIVERSITY AND THE -->
+<!-- 	  CONTRIBUTORS "AS IS" WITH NO WARRANTY OF ANY KIND, EITHER -->
+<!-- 	  EXPRESSED OR IMPLIED.  In no event shall the University or -->
+<!-- 	  the Contributors be liable for any damages suffered by the -->
+<!-- 	  users arising out of the use of this software, even if -->
+<!-- 	  advised of the possibility of such damage. -->
+<!-- 	</item> -->
+<!--       </enumerate> -->
+<!--       <p>Portions of HDF5 were developed with support from the -->
+<!-- 	University of California, Lawrence Livermore National -->
+<!-- 	Laboratory (UC LLNL).  The following statement applies to -->
+<!-- 	those portions of the product and must be retained in any -->
+<!-- 	redistribution of source code, binaries, documentation, and/or -->
+<!-- 	accompanying materials: -->
+<!--       </p> -->
+<!--       <p> This work was partially produced at the University of -->
+<!-- 	California, Lawrence Livermore National Laboratory (UC LLNL) -->
+<!-- 	under contract no.  W-7405-ENG-48 (Contract 48) between the -->
+<!-- 	U.S. Department of Energy (DOE) and The Regents of the -->
+<!-- 	University of California (University) for the operation of UC -->
+<!-- 	LLNL. -->
+<!--       </p> -->
 
 <!-- This paragraph does not fit well. Skip it!
 
@@ -534,10 +569,10 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  have Unix, or want to compile PyTables for Windows, jump to
 	  the next section.
 	</p>
-	<p>First, make sure that you have HDF5 1.4.x and numarray
-	  installed (I'm using HDF5 1.4.5 and numarray 0.5
-	  currently). If don't, you can find them at
-	  <verb>http://hdf.ncsa.uiuc.edu/HDF5</verb> and <newline/>
+	<p>First, make sure that you have HDF5 1.4.x or higher and
+	  numarray 0.6 or higher installed (I'm using HDF5 1.4.5-post2
+	  and numarray 0.6 currently). If don't, you can find them at
+	  <verb>http://hdf.ncsa.uiuc.edu/HDF5</verb> and
 	  <verb>http://sourceforge.net/projects/numpy/</verb>. Download
 	  the binary packages and install them. For the HDF5 it should
 	  be enough by manually copying the <verb>hdf5dll.dll</verb>
@@ -610,9 +645,10 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
 	  <item>
 	    <p>First, make sure that you have <verb>HDF5 1.4.x</verb>
-	      and <verb>numarray</verb> installed (I'm using
-	      <verb>HDF5 1.4.5</verb> and <verb>numarray 0.5</verb>
-	      currently). If don't, you can find them at
+	      and <verb>numarray 0.6</verb> or higher installed (I'm
+	      using <verb>HDF5 1.4.5-post2</verb> and <verb>numarray
+	      0.6</verb> currently). If don't, you can find them at
+	      <newline/>
 	      <verb>http://hdf.ncsa.uiuc.edu/HDF5</verb> and
 	      <verb>http://www.pfdubois.com/numpy</verb>. Compile/install
 	      them.
@@ -842,6 +878,11 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
     <chapter id="usage">
       <heading>Some tutorials</heading>
+
+      <aphorism>Tout le malheur des hommes vient d'une seule chose,
+	qui est de ne savoir pas demeurer en repos, dans une chambre.
+	<caption>Blaise Pascal</caption>
+      </aphorism>
 
       <p>This chapter begins with a series of simple, yet
 	comprehensive sections written in a tutorial style that will
@@ -1622,8 +1663,8 @@ Filename: tutorial1.h5 'Test file'
 >>>
 	  </verbatim>
 
-	  <p>You can get a list only the user or system (read-only)
-	    attributes with the <verb>_v_list()</verb> method.
+	  <p>You can get a list only the user or system attributes
+	    with the <verb>_v_list()</verb> method.
 	  </p>
 
 	  <verbatim>
@@ -1646,7 +1687,8 @@ Filename: tutorial1.h5 'Test file'
 >>>
 	  </verbatim>
 
-	  <p>However, you can't set, delete or rename system attributes:
+	  <p>However, you can't set, delete or rename read-only
+	    attributes:
 	  </p>
 
 	  <verbatim>
@@ -1655,7 +1697,7 @@ Traceback (most recent call last):
   File "&gt;stdin>", line 1, in ?
   File "/home/falted/PyTables/pytables-0.6/tables/AttributeSet.py", line 249, in _f_rename
     raise RuntimeError, \
-RuntimeError: System attribute ('VERSION') cannot be overwritten or renamed
+RuntimeError: Read-only attribute ('VERSION') cannot be renamed
 >>>
 	  </verbatim>
 
@@ -2260,6 +2302,12 @@ AttributeError: Error accessing "ADCcount" attr.
     <chapter id="optimizationTips">
       <heading>Optimization tips</heading>
 
+      <aphorism>"Tenho pensamentos que, se pudesse revelá-los e
+	fazê-los viver, acrescentariam nova luminosidade às estrelas,
+	nova beleza ao mundo e maior amor ao coração dos homens."
+	<caption>Fernando Pessoa, in "O Eu Profundo"</caption>
+      </aphorism>
+
       <p>On this chapter, you will get deeper knowledge of
 	<verb>PyTables</verb> internals. <verb>PyTables</verb> has
 	several places where the user can improve the performance of
@@ -2281,8 +2329,9 @@ AttributeError: Error accessing "ADCcount" attr.
 	  of big amounts of data might be a bit controversial feature,
 	  because compression has a legend of being a very big CPU
 	  time resources consumer. However, if you are willing to
-	  check if compression can help reducing your dataset file
-	  size and improving your I/O efficency, keep reading.
+	  check if compression can help not only reducing your dataset
+	  file size but <visual markup="bf">also</visual> improving
+	  your I/O efficency, keep reading.
 	</p>
 
 	<p>There is an usual scenario where users need to save
@@ -2355,10 +2404,10 @@ AttributeError: Error accessing "ADCcount" attr.
 	  look at the graphs <ref
 	  refid="lzozlibuclWriteComparison"></ref> and <ref
 	  refid="lzozlibuclReadComparison"></ref>. They show how
-	  evolve the speed of writing/reading rows as the size (the
-	  row number) of tables grows. The size of one single row is
-	  16 bytes, but you can safely extrapolate this figures to
-	  larger row sizes.
+	  evolves the speed of writing/reading rows as the size (the
+	  row number) of tables grows. Even though in these examples
+	  the size of one single row is 16 bytes, you can most
+	  probably extrapolate this figures to larger row sizes.
 	</p>
 
 	<table id="comprTblComparison">
@@ -2554,29 +2603,30 @@ if __name__=="__main__":
 	  refid="psycoWriteComparison"></ref> and <ref
 	  refid="psycoReadComparison"></ref> how much I/O speed
 	  improvement you can get by using Psyco. By looking at this
-	  figures you can get an idea if these improvements is of your
-	  interest or not. In general, you will take advantage of it
-	  if your tables are medium sized (1000 &lt; nrows &lt;
-	  100000), and this advantage will disappear progressively
-	  when the number of rows grows well over one million,
-	  although if you use compression, you might still see
-	  improvements beyond this. Experiment a bit with all of this
-	  stuff.
+	  figures you can get an idea if these improvements are of
+	  your interest or not. In general, if you are not going to
+	  use compression you will take advantage of Psyco if your
+	  tables are medium sized (1000 &lt; nrows &lt; 100000), and
+	  this advantage will disappear progressively when the number
+	  of rows grows well over one million. However if you use
+	  compression, you will probably see improvements even beyond
+	  this. As always there is no replacement for experimentation
+	  with your own dataset.
 	</p>
 
 	<figure id="psycoWriteComparison">
-	  <graphics file="write-small-psyco-comparison" scale="0.75" kind="vector">
+	  <graphics file="write-small-psyco-lzo-comparison" scale="0.75" kind="vector">
 	  
 	  </graphics>
-	  <caption>Writing tables with and without Psyco.
+	  <caption>Writing tables with/without Psyco and compression.
 	  </caption>
 	</figure>
 
 	<figure id="psycoReadComparison">
-	  <graphics file="read-small-psyco-comparison" scale="0.75" kind="vector">
+	  <graphics file="read-small-psyco-lzo-comparison" scale="0.75" kind="vector">
 	  
 	  </graphics>
-	  <caption>Reading tables with and without Psyco.
+	  <caption>Reading tables with/without Psyco and compression.
 	  </caption>
 	</figure>
 
@@ -2586,6 +2636,11 @@ if __name__=="__main__":
     <chapter id="libraryReference">
       <heading>Library Reference</heading>
       
+      <aphorism>... durch planmässiges Tattonieren.  <caption>Johann
+	Karl Friedrich Gauss <newline/>[asked how he came upon his
+	theorems]</caption>
+      </aphorism>
+
       <p><verb>PyTables</verb> implements several classes to represent
 	the different nodes in the object tree. They are named
 	<verb>File</verb>, <verb>Group</verb>, <verb>Leaf</verb>,
@@ -3737,7 +3792,9 @@ if __name__=="__main__":
 		    to be returned. An <verb>"user"</verb> value
 		    returns only the user attributes. This is the
 		    default. <verb>"sys"</verb> returns only the
-		    system (read-only) attributes. <verb>"all"</verb>
+		    system (some of which are read-only)
+		    attributes. <verb>"readonly"</verb> returns the
+		    system read-only attributes. <verb>"all"</verb>
 		    returns both the system and user
 		    attributes.</item>
 		</description>

@@ -350,6 +350,7 @@ class createAttrTestCase(unittest.TestCase):
         assert self.table.attrs._f_list("sys") == \
                ['CLASS', 'FIELD_0_NAME', 'FIELD_1_NAME', 'FIELD_2_NAME',
                 'FIELD_3_NAME', 'FIELD_4_NAME', 'TITLE','VERSION']
+        assert self.table.attrs._f_list("readonly") == ['CLASS', 'VERSION']
         assert self.table.attrs._f_list("all") == \
                ['CLASS', 'FIELD_0_NAME', 'FIELD_1_NAME', 'FIELD_2_NAME',
                 'FIELD_3_NAME', 'FIELD_4_NAME', 'TITLE', 'VERSION',

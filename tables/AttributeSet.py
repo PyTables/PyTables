@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.9 2003/06/11 19:30:42 falted Exp $
+#       $Id: AttributeSet.py,v 1.10 2003/06/13 18:03:58 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.9 $"
+__version__ = "$Revision: 1.10 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -42,18 +42,20 @@ from utils import checkNameValidity
 # MAX_ATTRS_IN_NODE constant in util.h
 MAX_ATTRS_IN_NODE = 4096
 
-# System attributes (read only)
-SYS_ATTR = ["CLASS", "FLAVOR", "VERSION", "PYTABLES_FORMAT_VERSION", "TITLE"]
+# System attributes
+SYS_ATTRS = ["CLASS", "FLAVOR", "VERSION", "PYTABLES_FORMAT_VERSION", "TITLE"]
 # Prefixes of other system attributes
-SYS_ATTR_PREFIXES = ["FIELD_"]
+SYS_ATTRS_PREFIXES = ["FIELD_"]
+# Read-only attributes:
+RO_ATTRS = ["CLASS", "FLAVOR", "VERSION", "PYTABLES_FORMAT_VERSION"]
 
 def issysattrname(name):
     "Check if a name is a system attribute or not"
     
-    if (name in SYS_ATTR or
+    if (name in SYS_ATTRS or
         reduce(lambda x,y: x+y,
                [name.startswith(prefix)
-                for prefix in SYS_ATTR_PREFIXES])):
+                for prefix in SYS_ATTRS_PREFIXES])):
         return 1
     else:
         return 0
@@ -141,7 +143,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         The parameter attrset the attribute set to be returned. An
         "user" value returns only the user attributes. This is the
         default. "sys" returns only the system (read-only)
-        attributes. "all" returns both the system and user attributes.
+        attributes. "readonly" returns the read-only system
+        attributes. Finally, "all" returns both the system and user
+        attributes.
 
         """
         
@@ -149,6 +153,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
             return self._v_attrnamesuser
         elif attrset == "sys":
             return self._v_attrnamessys
+        elif attrset == "readonly":
+            return [ name for name in self._v_attrnamessys
+                     if name in RO_ATTRS]
         elif attrset == "all":
             return self._v_attrnames
 
@@ -178,9 +185,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         A NameError is also raised when the "name" starts by a
         reserved prefix. A SyntaxError is raised if "name" is not a
-        valid Python identifier. A RuntimeError is raised if a system
-        attribute is to be overwritten or if MAX_ATTR_IN_NODE is going
-        to be exceeded.
+        valid Python identifier. A RuntimeError is raised if a
+        read-only attribute is to be overwritten or if
+        MAX_ATTRS_IN_NODE is going to be exceeded.
 
         """
 
@@ -188,9 +195,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         checkNameValidity(name)
 
         # Check that the attribute is not a system one (read-only)
-        if issysattrname(name):
+        if name in RO_ATTRS:
             raise RuntimeError, \
-                  "System attribute ('%s') cannot be overwritten" % (name)
+                  "Read-only attribute ('%s') cannot be overwritten" % (name)
             
         # Check if we have too much numbers of attributes
         if len(self._v_attrnames) > MAX_ATTRS_IN_NODE:
@@ -225,9 +232,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
                   (name, self._v_node._v_name)
 
         # The system attributes are protected
-        if name in self._v_attrnamessys:
+        if name in RO_ATTRS:
             raise RuntimeError, \
-                  "System attribute ('%s') cannot be overwritten" % (name)
+                  "Read-only attribute ('%s') cannot be deleted" % (name)
 
         # Delete the attribute from disk
         self._g_remove(name)
@@ -245,9 +252,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         
         # if oldattrname or newattrname are system attributes, raise an error
         for name in [oldattrname, newattrname]:
-            if issysattrname(name):
+            if name in RO_ATTRS:
                 raise RuntimeError, \
-            "System attribute ('%s') cannot be overwritten or renamed" % (name)
+            "Read-only attribute ('%s') cannot be renamed" % (name)
 
         # First, fetch the value of the oldattrname
         attrvalue = getattr(self, oldattrname)
