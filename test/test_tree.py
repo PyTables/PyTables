@@ -19,12 +19,10 @@ class Record(IsDescription):
     var5 = Float32Col()           # float  (single-precision)
 
 class TreeTestCase(unittest.TestCase):
-    #file  = "test.h5"
     mode  = "w" 
     title = "This is the table title"
     expectedrows = 10
     appendrows = 5
-    fast = 0
 
     def setUp(self):
         # Create a temporary file
@@ -80,6 +78,8 @@ class TreeTestCase(unittest.TestCase):
     #----------------------------------------
 
     def test00_getNode(self):
+        "Checking the File.getNode() with string node names"
+        
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_getNode..." % self.__class__.__name__
@@ -94,7 +94,7 @@ class TreeTestCase(unittest.TestCase):
         assert nodenames == nodelist
         
         if verbose:
-            print "getGroup(pathname) test passed"
+            print "getNode(pathname) test passed"
             
         nodegroups = ['/', '/group0', '/group0/group1', '/group0/group1/group2']
         nodenames = ['var1', 'var4']
@@ -114,7 +114,7 @@ class TreeTestCase(unittest.TestCase):
                              ]
 
         if verbose:
-            print "getGroup(groupname, name) test passed"
+            print "getNode(groupname, name) test passed"
             
         
         nodelist = ['/', '/group0', '/group0/group1', '/group0/group1/group2',
@@ -139,7 +139,7 @@ class TreeTestCase(unittest.TestCase):
                              ]
         
         if verbose:
-            print "getGroup(groupname, classname='Group') test passed"
+            print "getNode(groupname, classname='Group') test passed"
 
         # Reset the warning
         warnings.filterwarnings("default", category=UserWarning)
@@ -161,10 +161,11 @@ class TreeTestCase(unittest.TestCase):
                              ]
         
         if verbose:
-            print "getGroup(groupobject, name, classname='Array') test passed"
+            print "getNode(groupobject, name, classname='Array') test passed"
 
             
     def test01_getNodeClass(self):
+        "Checking the File.getNode() with instances"
 
         if verbose:
             print '\n', '-=' * 30
@@ -190,6 +191,7 @@ class TreeTestCase(unittest.TestCase):
 
         
     def test02_listNodes(self):
+        "Checking the File.listNodes() method"
 
         if verbose:
             print '\n', '-=' * 30
@@ -285,7 +287,8 @@ class TreeTestCase(unittest.TestCase):
         warnings.filterwarnings("default", category=UserWarning)
             
     def test03_TraverseTree(self):
-
+        "Checking the File.walkGroups() method"
+        
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_TraverseTree..." % self.__class__.__name__

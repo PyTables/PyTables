@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.72 2004/02/05 16:23:37 falted Exp $
+#       $Id: File.py,v 1.73 2004/02/06 19:23:47 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.72 $"
+__version__ = "$Revision: 1.73 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -96,25 +96,28 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
 
         "r+" -- is similar to "a", but the file must already exist.
 
-    title -- (Optional) A TITLE string attribute will be set on the
-             root group with its value.
+    title -- A TITLE string attribute will be set on the root group
+             with its value.
 
-    trMap -- (Optional) A dictionary to map names in the object tree
-             into different HDF5 names in file. The keys are the
-             Python names, while the values are the HDF5 names. This
-             is useful when you need to name HDF5 nodes with invalid
-             or reserved words in Python.
+    trMap -- A dictionary to map names in the object tree into
+             different HDF5 names in file. The keys are the Python
+             names, while the values are the HDF5 names. This is
+             useful when you need to name HDF5 nodes with invalid or
+             reserved words in Python.
 
-    rootUEP -- (Optional) The root User Entry Point. It is a group in
-            the file hierarchy which is taken as the starting point to
-            create the object tree. The group can be whatever existing
-            path in the file. If it does not exist, a RuntimeError is
+    rootUEP -- The root User Entry Point. It is a group in the file
+            hierarchy which is taken as the starting point to create
+            the object tree. The group can be whatever existing path
+            in the file. If it does not exist, a RuntimeError is
             issued.
 
-    filters -- (Optional) An instance of the Filters class that
-            provides information about the desired I/O filters. That
-            information will be inherited by the child nodes.
-
+    filters -- An instance of the Filters class that provides
+            information about the desired I/O filters applicable to
+            the leaves that hangs directly from root (unless other
+            filters properties are specified for these leaves, of
+            course). Besides, if you do not specify filter properties
+            for its child groups, they will inherit these ones.
+            
     """
 
     isPTFile = 1  # Assume a PyTables file by default
@@ -195,7 +198,7 @@ class File(hdf5Extension.File, object):
 
     Methods:
 
-        createGroup(where, name[, title])
+        createGroup(where, name[, title] [, filters])
         createTable(where, name, description [, title]
                     [, filters] [, expectedrows])
         createArray(where, name, arrayObject, [, title])
@@ -420,9 +423,13 @@ class File(hdf5Extension.File, object):
         title -- Sets a TITLE attribute on the table entity.
 
         filters -- An instance of the Filters class that provides
-            information about the desired I/O filters. That
-            information will be inherited by the child nodes.
-
+            information about the desired I/O filters applicable to
+            the leaves that hangs directly from this new group (unless
+            other filters properties are specified for these leaves,
+            of course). Besides, if you do not specify filter
+            properties for its child groups, they will inherit these
+            ones.
+              
         """
 
         group = self.getNode(where, classname = 'Group')
@@ -770,7 +777,7 @@ class File(hdf5Extension.File, object):
         if filters == None: filters = self.filters
         dstFileh = openFile(dstFilename, mode="w", title=title)
         # Copy the user attributes of the root group
-        self.root._f_copyAttrs(dstFileh.root)
+        self.root._v_attrs._f_copy(dstFileh.root)
         # Copy all the hierarchy
         ngroups, nleafs = self.root._f_copyChilds(dstFileh.root, recursive=1,
                                                   filters=filters,

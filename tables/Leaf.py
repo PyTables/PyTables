@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.37 2004/02/06 08:04:36 falted Exp $
+#       $Id: Leaf.py,v 1.38 2004/02/06 19:23:48 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.37 $"
+__version__ = "$Revision: 1.38 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -107,14 +107,7 @@ class Filters:
         in the HDF5 object tree.
         """
         
-        filters = ""
-        if self.fletcher32:
-            filters += ", fletcher32"
-        if self.complevel:
-            if self.shuffle:
-                filters += ", shuffle"
-            filters += ", %s(%s)" % (self.complib, self.complevel)
-        return filters
+        return repr(self)
 
 class Leaf:
     """A class to place common functionality of all Leaf objects.
@@ -397,6 +390,15 @@ class Leaf:
         classname = self.__class__.__name__
         # The title
         title = self.attrs.TITLE
+        # The filters
+        filters = ""
+        if self.filters.fletcher32:
+            filters += ", fletcher32"
+        if self.filters.complevel:
+            if self.filters.shuffle:
+                filters += ", shuffle"
+            filters += ", %s(%s)" % (self.filters.complib,
+                                     self.filters.complevel)
         return "%s (%s%s%s) %r" % \
-               (self._v_pathname, classname, self.shape, self.filters, title)
+               (self._v_pathname, classname, self.shape, filters, title)
 

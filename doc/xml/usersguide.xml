@@ -2617,9 +2617,14 @@ AttributeError: Error setting "ADCcount" attr.
 	      closed file.
 	    </item>
 
+	    <!-- Modif by F. Alted 2004-2-06 -->
+
 	    <term>openFile(filename, mode='r', title='', trMap={},
-	      rootUEP="/")
+	      rootUEP="/", filters=None)
 	    </term>
+
+	    <!-- End modif by F. Alted 2004-2-06 -->
+
 	    <item>Open a <verb>PyTables</verb> (or generic
 	    <verb>HDF5</verb>) file and returns a <verb>File</verb>
 	    object.
@@ -2680,6 +2685,27 @@ AttributeError: Error setting "ADCcount" attr.
 		  markup="bf">entire</visual> object tree, but rather
 		  only a <visual markup="bf">subtree</visual> of it.
 		</item>
+
+		<!-- Modif. by F. Alted 2004-02-06 -->
+		
+		<term>filters</term><item>An instance of the
+		  <verb>Filters</verb> class (see section<ref
+		  refid="FiltersClassDescr"></ref>) that provides
+		  information about the desired I/O filters applicable
+		  to the leaves that hangs directly from <em>root</em>
+		  (unless other filters properties are specified for
+		  these leaves). Besides, if you do not specify filter
+		  properties for its child groups, they will inherit
+		  these ones. So, if you open a new file with this
+		  parameter set, all the leaves that would be created
+		  in the file will recursively inherit this filtering
+		  properties (again, if you don't prevent that from
+		  happening by specifying other filters on the child
+		  groups or leaves).
+		</item>
+
+	      <!-- End of modif by F. Alted 2004-02-06 -->
+
 	      </description>
 
 	    </item>
@@ -2752,7 +2778,18 @@ AttributeError: Error setting "ADCcount" attr.
 	      passed to the <verb>openFile</verb> function. You can
 	      change its contents <em>after</em> a file is opened and
 	      the new map will take effect over any new object added
-	      to the tree.</item>
+	      to the tree.
+	    </item>
+
+	    <!-- Modif. by F. Alted  -->
+
+	    <term>filters</term> <item>Container for filter properties
+	      associated to this file.  See <ref
+	      refid="FiltersClassDescr">section</ref> for more
+	      information on this object.
+	    </item>
+
+	    <!-- End of modif. F. Alted -->
 
 	    <term>objects</term> <item>Dictionary with all objects
 	      (groups or leaves) on tree.</item>
@@ -2771,7 +2808,13 @@ AttributeError: Error setting "ADCcount" attr.
 	  <heading><visual markup="tt">File</visual> methods</heading>
 
 	  <subsubsection id="createGroupDescr">
-	    <heading>createGroup(where, name, title='')</heading>
+
+	    <!-- Modif by F. Alted -->
+
+	    <heading>createGroup(where, name, title='', filters=None)
+	    </heading>
+
+	    <!-- End of modif by F. Alted -->
 
 	    <p>Create a new Group instance with name <em>name</em> in
 	      <em>where</em> location.
@@ -2789,6 +2832,21 @@ AttributeError: Error setting "ADCcount" attr.
 	      
 	      <term>title</term> <item>A description for this
 		group.</item>
+
+	      <!-- Modif. by F. Alted 2004-02-06 -->
+
+	      <term>filters</term><item>An instance of the
+		<verb>Filters</verb> class (see section<ref
+		refid="FiltersClassDescr"></ref>) that provides
+		information about the desired I/O filters applicable
+		to the leaves that hangs directly from this new group
+		(unless other filters properties are specified for
+		these leaves). Besides, if you do not specify filter
+		properties for its child groups, they will inherit
+		these ones.
+	      </item>
+
+	      <!-- End of modif by F. Alted 2004-02-06 -->
 
 	    </description>
 
@@ -3238,6 +3296,7 @@ AttributeError: Error setting "ADCcount" attr.
 
 	    <verbatim>
 	      # Recursively list all the nodes in the object tree
+	      h5file = tables.openFile("vlarray1.h5")
 	      print "All nodes in the object tree:"
 	      for node in h5file:
 	          print node
@@ -3319,6 +3378,13 @@ AttributeError: Error setting "ADCcount" attr.
 	    <term>_v_file</term>
 	    <item>Pointer to the associated File object.</item>
 
+	    <!-- Modif by F. Alted -->
+
+	    <term>_v_depth</term> <item>The depth level in tree for
+	      this group.</item>
+
+	    <!-- end modif F. Alted -->
+
 	    <term>_v_childs</term> <item>Dictionary with all nodes
 	      (groups or leaves) hanging from this instance.</item>
 
@@ -3331,6 +3397,12 @@ AttributeError: Error setting "ADCcount" attr.
 	    <term>_v_attrs</term> <item>The associated
 	    <verb>AttributeSet</verb> instance (see <ref
 	    refid="AttributeSetClassDescr"></ref>).</item>
+
+	    <term>_v_filters</term> <item>Container for filter
+	      properties.  See <ref
+	      refid="FiltersClassDescr">section</ref> for more
+	      information on this object.
+	    </item>
 
 	  </description>
 
@@ -3489,12 +3561,22 @@ AttributeError: Error setting "ADCcount" attr.
 	  the <verb>Leaf</verb> class.
 	</p>
 
-	<p>The public variables and methods that class descendants
-	  inherits from <verb>Leaf</verb> are listed below.</p>
+	  <!-- Modificat per F. Alted -->
+
+	  <!-- End of modificat per F. Alted -->
 
 	<subsection>
 	  <heading><visual markup="tt">Leaf</visual> instance
 	    variables</heading>
+
+	  <!-- Modificat per F. Alted -->
+
+	  <p>The public variables and methods that class descendants
+	    inherits from <verb>Leaf</verb> are listed below.
+	  </p>
+
+	  <!-- End of modificat per F. Alted -->
+
 	  <description>
 
 	    <term>name</term> <item>The Leaf node name in Python
@@ -3515,15 +3597,46 @@ AttributeError: Error setting "ADCcount" attr.
 	    <term>byteorder</term> <item>The byteorder of
 	      the associated data of the Leaf.
 	    </item>
+	    <term>attrs</term><item>The associated
+	      <verb>AttributeSet</verb> instance (see <ref
+	      refid="AttributeSetClassDescr"></ref>).
+	    </item>
 	    <term>filters</term> <item>Container for filter
 	      properties.  See <ref
 	      refid="FiltersClassDescr">section</ref> for more
 	      information on this object.
 	    </item>
-	    <term>attrs</term><item>The associated
-	      <verb>AttributeSet</verb> instance (see <ref
-	      refid="AttributeSetClassDescr"></ref>).
-	    </item>
+
+	  </description>
+
+	    <!-- Modif by F. Alted -->
+
+	  <p>Besides, the next instance variables are also defined and
+	    have similar meaning as its counterparts in the
+	    <verb>Group</verb> class:
+	  </p>
+
+	  <description>
+	    <term>_v_hdf5name</term> <item>The name of this leaf in
+	      HDF5 file namespace.</item>
+
+	    <term>_v_pathname</term>
+	    <item>A string representation of the leaf location
+	      in tree.</item>
+
+	    <term>_v_parent</term>
+	    <item>The parent <verb>Group</verb> instance.</item>
+
+	    <term>_v_rootgroup</term> <item>Pointer to the root
+	    <verb>Group</verb> object.</item>
+
+	    <term>_v_file</term> <item>Pointer to the associated
+	    <verb>File</verb> object.</item>
+
+	    <term>_v_depth</term> <item>The depth level in tree for
+	      this leaf.</item>
+
+	    <!-- end modif F. Alted -->
 
 	  </description>
 	</subsection>
@@ -3639,15 +3752,20 @@ AttributeError: Error setting "ADCcount" attr.
 	  <heading><visual markup="tt">Table</visual> instance
 	    variables</heading>
 	  <description>
-
+	    <!-- Modif by F. Alted 2004-02-06 -->
 	    <term>description</term> <item>The metaobject describing
-	      this table</item>
-
+	      this table.
+	    </item>
 	    <term>row</term> <item>The <verb>Row</verb> instance for
-	      this table (see <ref
-	      refid="RowClassDescr"></ref>).</item>
+	      this table (see <ref refid="RowClassDescr"></ref>).
+	    </item>
 	    <term>nrows</term> <item>The number of rows in this table.
 	    </item>
+	    <term>rowsize</term> <item>The size, in bytes, of each
+	      row.
+	    </item>
+	    <!-- End modif by F. Alted 2004-02-06 -->
+
 	    <term>cols</term> <item>A <verb>Cols</verb> (see <ref
 		refid="ColsClassDescr">section</ref>) instance that
 		serves as accessor to <verb>Column</verb> (see <ref

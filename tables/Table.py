@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.101 2004/02/06 08:04:36 falted Exp $
+#       $Id: Table.py,v 1.102 2004/02/06 19:23:48 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.101 $"
+__version__ = "$Revision: 1.102 $"
 
 from __future__ import generators
 import sys
@@ -279,7 +279,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.colitemsizes = self.description._v_itemsizes
         # Compute buffer size
         (self._v_maxTuples, self._v_chunksize) = \
-              calcBufferSize(self.rowsize, self.nrows, self.filters.complevel)
+              calcBufferSize(self.rowsize, self.nrows,
+                             self.filters.complevel)
         # Update the shape attribute
         self.shape = (self.nrows,)
         # Associate a Row object to table
@@ -576,8 +577,9 @@ class Table(Leaf, hdf5Extension.Table, object):
                                      formats=self.description._v_recarrfmt,
                                      names=self.colnames)
         except:
+            (type, value, traceback) = sys.exc_info()
             raise ValueError, \
-"rows parameter cannot be converted into a recarray object compliant with table '%s'" % str(self)
+"rows parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), value)
         lenrows = recarray.shape[0]
         self._open_append(recarray)
         self._append_records(recarray, lenrows)

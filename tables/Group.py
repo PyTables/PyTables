@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.65 2004/02/06 08:04:36 falted Exp $
+#       $Id: Group.py,v 1.66 2004/02/06 19:23:48 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.65 $"
+__version__ = "$Revision: 1.66 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -96,6 +96,7 @@ class Group(hdf5Extension.Group, object):
         _v_pathname -- A string representation of the group location
             in tree
         _v_parent -- The parent Group instance
+        _v_depth -- The depth level in tree for this group
         _v_file -- The associated File object
         _v_rootgroup - Always point to the root group object
         _v_groups -- Dictionary with object groups
@@ -620,7 +621,7 @@ self._g_join(name), UserWarning)
             self._f_close()
             self._g_deleteGroup()
 
-    def _f_copyAttrs(self, dstNode=None):
+    def _g_copyAttrs(self, dstNode=None):
         """Copy the attributes from self to "dstNode".
 
         "dstNode" is the destination and can be whether a path string
@@ -670,7 +671,8 @@ self._g_join(name), UserWarning)
                     dstGroup = dstFile.createGroup(parentDstPath, dstName,
                                                    title=group._v_title)
                     if copyuserattrs:
-                        group._f_copyAttrs(dstGroup)
+                        group._v_attrs._f_copy(dstGroup)
+                        #group._f_copyAttrs(dstGroup)
                     ngroups += 1
                 for leaf in group._f_listNodes('Leaf'):
                     leaf.copy(dstGroup, leaf.name, title=leaf.title,

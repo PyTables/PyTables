@@ -697,6 +697,255 @@ class createAttrNotCloseTestCase(createAttrTestCase):
 
 class createAttrCloseTestCase(createAttrTestCase):
     close = 1
+
+class Record2(IsDescription):
+    var1 = StringCol(length=4)    # 4-character String
+    var2 = IntCol()               # integer
+    var3 = Int16Col()             # short integer
+
+class FiltersTreeTestCase(unittest.TestCase):
+    title = "A title"
+    nrows = 10
+
+    def setUp(self):
+        # Create a temporary file
+        self.file = tempfile.mktemp(".h5")
+        # Create an instance of HDF5 Table
+        self.h5file = openFile(self.file, "w", filters=self.filters)
+        self.populateFile()
+            
+    def populateFile(self):
+        group = self.h5file.root
+        # Create a tree with three levels of depth
+        for j in range(5):
+            # Create a table
+            table = self.h5file.createTable(group, 'table1', Record2,
+                                        title = self.title,
+                                        filters = None)
+            # Get the record object associated with the new table
+            d = table.row 
+            # Fill the table
+            for i in xrange(self.nrows):
+                d['var1'] = '%04d' % (self.nrows - i)
+                d['var2'] = i 
+                d['var3'] = i * 2
+                d.append()      # This injects the Record values
+            # Flush the buffer for this table
+            table.flush()
+            
+            # Create a couple of arrays in each group
+            var1List = [ x['var1'] for x in table.iterrows() ]
+            var3List = [ x['var3'] for x in table.iterrows() ]
+
+            self.h5file.createArray(group, 'array1', var1List, "col 1")
+            self.h5file.createArray(group, 'array2', var3List, "col 3")
+
+            # Create a couple of EArrays as well
+            ea1 = self.h5file.createEArray(group, 'earray1',
+                                           StringAtom(shape=(0,), length=4),
+                                           "col 1")
+            ea2 = self.h5file.createEArray(group, 'earray2',
+                                           Int16Atom(shape=(0,)), "col 3")
+            # And fill them with some values
+            ea1.append(var1List)
+            ea2.append(var3List)
+            
+            # Create a new group (descendant of group)
+            if j == 1: # The second level
+                group2 = self.h5file.createGroup(group, 'group'+str(j),
+                                                 filters=self.gfilters)
+            elif j == 2: # third level
+                group2 = self.h5file.createGroup(group, 'group'+str(j))
+            else:   # The rest of levels
+                group2 = self.h5file.createGroup(group, 'group'+str(j),
+                                                 filters=self.filters)
+            # Iterate over this new group (group2)
+            group = group2
+    
+    def tearDown(self):
+        # Close the file
+        if self.h5file.isopen:
+            self.h5file.close()
+
+        os.remove(self.file)
+
+    #----------------------------------------
+
+    def test00_checkFilters(self):
+        "Checking inheritance of filters on trees (open file version)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00_checkFilters..." % self.__class__.__name__
+
+        # First level check
+        if verbose:
+            print "Test filter:", repr(self.filters)
+            print "Filters in file:", repr(self.h5file.filters)
+
+        assert repr(self.filters) == repr(self.h5file.filters)
+        # The next nodes have to have the same filter properties as
+        # self.filter
+        nodelist = ['/table1', '/group0/earray1', '/group0']
+        for node in nodelist:
+            object = self.h5file.getNode(node)
+            if isinstance(object, Group):
+                assert repr(self.filters) == repr(object._v_filters)
+            else:
+                assert repr(self.filters) == repr(object.filters)
+                
+        # Second and third level check
+        group1 = self.h5file.root.group0.group1
+        if verbose:
+            print "Test filter:", repr(self.gfilters)
+            print "Filters in file:", repr(group1._v_filters)
+
+        repr(self.gfilters) == repr(group1._v_filters)
+        # The next nodes have to have the same filter properties as
+        # self.gfile
+        nodelist = ['/group0/group1', '/group0/group1/earray1',
+                    '/group0/group1/table1', '/group0/group1/group2/table1']
+        for node in nodelist:
+            object = self.h5file.getNode(node)
+            if isinstance(object, Group):
+                assert repr(self.gfilters) == repr(object._v_filters)
+            else:
+                assert repr(self.gfilters) == repr(object.filters)
+
+        # Fourth and fifth level check
+        group3 = self.h5file.root.group0.group1.group2.group3
+        if verbose:
+            print "Test filter:", repr(self.filters)
+            print "Filters in file:", repr(group3._v_filters)
+
+        repr(self.filters) == repr(group3._v_filters)
+        # The next nodes have to have the same filter properties as
+        # self.filter
+        nodelist = ['/group0/group1/group2/group3',
+                    '/group0/group1/group2/group3/earray1',
+                    '/group0/group1/group2/group3/table1',
+                    '/group0/group1/group2/group3/group4']
+        for node in nodelist:
+            object = self.h5file.getNode(node)
+            if isinstance(object, Group):
+                assert repr(self.filters) == repr(object._v_filters)
+            else:
+                assert repr(self.filters) == repr(object.filters)
+
+
+        # Checking the special case for Arrays in which the compression
+        # should always be the empty Filter()
+        # The next nodes have to have the same filter properties as
+        # Filter()
+        nodelist = ['/array1',
+                    '/group0/array1',
+                    '/group0/group1/array1',
+                    '/group0/group1/group2/array1',
+                    '/group0/group1/group2/group3/array1']
+        for node in nodelist:
+            object = self.h5file.getNode(node)
+            assert repr(Filters()) == repr(object.filters)
+
+    def test01_checkFilters(self):
+        "Checking inheritance of filters on trees (close file version)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_checkFilters..." % self.__class__.__name__
+
+        # Close the file
+        self.h5file.close()
+        # And open it again
+        self.h5file = openFile(self.file, "r")
+
+        # First level check
+        if verbose:
+            print "Test filter:", repr(self.filters)
+            print "Filters in file:", repr(self.h5file.filters)
+
+        assert repr(self.filters) == repr(self.h5file.filters)
+        # The next nodes have to have the same filter properties as
+        # self.filter
+        nodelist = ['/table1', '/group0/earray1', '/group0']
+        for node in nodelist:
+            object = self.h5file.getNode(node)
+            if isinstance(object, Group):
+                assert repr(self.filters) == repr(object._v_filters)
+            else:
+                assert repr(self.filters) == repr(object.filters)
+
+        # Second and third level check
+        group1 = self.h5file.root.group0.group1
+        if verbose:
+            print "Test filter:", repr(self.gfilters)
+            print "Filters in file:", repr(group1._v_filters)
+
+        repr(self.gfilters) == repr(group1._v_filters)
+        # The next nodes have to have the same filter properties as
+        # self.gfile
+        nodelist = ['/group0/group1', '/group0/group1/earray1',
+                    '/group0/group1/table1', '/group0/group1/group2/table1']
+        for node in nodelist:
+            object = self.h5file.getNode(node)
+            if isinstance(object, Group):
+                assert repr(self.gfilters) == repr(object._v_filters)
+            else:
+                assert repr(self.gfilters) == repr(object.filters)
+
+        # Fourth and fifth level check
+        group3 = self.h5file.root.group0.group1.group2.group3
+        if verbose:
+            print "Test filter:", repr(self.filters)
+            print "Filters in file:", repr(group3._v_filters)
+
+        repr(self.filters) == repr(group3._v_filters)
+        # The next nodes have to have the same filter properties as
+        # self.filter
+        nodelist = ['/group0/group1/group2/group3',
+                    '/group0/group1/group2/group3/earray1',
+                    '/group0/group1/group2/group3/table1',
+                    '/group0/group1/group2/group3/group4']
+        for node in nodelist:
+            object = self.h5file.getNode(node)
+            if isinstance(object, Group):
+                assert repr(self.filters) == repr(object._v_filters)
+            else:
+                assert repr(self.filters) == repr(object.filters)
+
+        # Checking the special case for Arrays in which the compression
+        # should always be the empty Filter()
+        # The next nodes have to have the same filter properties as
+        # Filter()
+        nodelist = ['/array1',
+                    '/group0/array1',
+                    '/group0/group1/array1',
+                    '/group0/group1/group2/array1',
+                    '/group0/group1/group2/group3/array1']
+        for node in nodelist:
+            object = self.h5file.getNode(node)
+            assert repr(Filters()) == repr(object.filters)
+
+
+class FiltersCase1(FiltersTreeTestCase):
+    filters = Filters()
+    gfilters = Filters(complevel=1)
+
+class FiltersCase2(FiltersTreeTestCase):
+    filters = Filters(complevel=1, complib="ucl")
+    gfilters = Filters(complevel=1)
+
+class FiltersCase3(FiltersTreeTestCase):
+    filters = Filters(shuffle=1, complib="zlib")
+    gfilters = Filters(complevel=1, shuffle=0, complib="lzo")
+
+class FiltersCase4(FiltersTreeTestCase):
+    filters = Filters(shuffle=1)
+    gfilters = Filters(complevel=1, shuffle=0)
+
+class FiltersCase5(FiltersTreeTestCase):
+    filters = Filters(fletcher32=1)
+    gfilters = Filters(complevel=1, shuffle=0)
+
 	
 #----------------------------------------------------------------------
 
@@ -708,6 +957,11 @@ def suite():
         theSuite.addTest(unittest.makeSuite(createTestCase))
         theSuite.addTest(unittest.makeSuite(createAttrNotCloseTestCase))
         theSuite.addTest(unittest.makeSuite(createAttrCloseTestCase))
+        theSuite.addTest(unittest.makeSuite(FiltersCase1))
+        theSuite.addTest(unittest.makeSuite(FiltersCase2))
+        theSuite.addTest(unittest.makeSuite(FiltersCase3))
+        theSuite.addTest(unittest.makeSuite(FiltersCase4))
+        theSuite.addTest(unittest.makeSuite(FiltersCase5))
 
     return theSuite
 

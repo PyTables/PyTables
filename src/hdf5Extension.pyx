@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.115 2004/02/05 16:23:36 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.116 2004/02/06 19:23:47 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.115 $"
+__version__ = "$Revision: 1.116 $"
 
 
 import sys, os
@@ -836,7 +836,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.115 2004/02/05 16:23:36 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.116 2004/02/06 19:23:47 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1401,7 +1401,8 @@ cdef class Table:
                          nrecords, self.nrows, self.rowsize, self.field_names,
                          self.field_offset, field_types, self._v_chunksize,
                          fill_data, self.filters.complevel, complib,
-                         self.filters.shuffle, self.filters.fletcher32, data)
+                         self.filters.shuffle, self.filters.fletcher32,
+                         data)
     if oid < 0:
       raise RuntimeError("Problems creating the table")
     self.objectID = oid
@@ -2027,8 +2028,9 @@ cdef class Array:
     oid = H5ARRAYmake(self.parent_id, self.name, title,
                       flavor, version, self.rank, self.dims, self.extdim,
                       self.type_id, self._v_maxTuples, rbuf,
-                      self.filters.complevel, complib, self.filters.shuffle,
-                      self.filters.fletcher32, rbuf)
+                      self.filters.complevel, complib,
+                      self.filters.shuffle, self.filters.fletcher32,
+                      rbuf)
     if oid < 0:
       raise RuntimeError("Problems creating the EArray.")
     self.objectID = oid
@@ -2073,8 +2075,9 @@ cdef class Array:
     oid = H5ARRAYmake(self.parent_id, self.name, title,
                       flavor, version, self.rank, self.dims, self.extdim,
                       self.type_id, self._v_maxTuples, rbuf,
-                      self.filters.complevel, complib, self.filters.shuffle,
-                      self.filters.fletcher32, rbuf)
+                      self.filters.complevel, complib,
+                      self.filters.shuffle, self.filters.fletcher32,
+                      rbuf)
     if oid < 0:
       raise RuntimeError("Problems creating the EArray.")
     self.objectID = oid
@@ -2299,8 +2302,9 @@ cdef class VLArray:
     oid = H5VLARRAYmake(self.parent_id, self.name, title,
                         flavor, version, self.rank, self.scalar,
                         self.dims, self.type_id, self._v_chunksize, rbuf,
-                        self.filters.complevel, complib, self.filters.shuffle,
-                        self.filters.fletcher32, rbuf)
+                        self.filters.complevel, complib,
+                        self.filters.shuffle, self.filters.fletcher32,
+                        rbuf)
     if oid < 0:
       raise RuntimeError("Problems creating the VLArray.")
     self.objectID = oid
