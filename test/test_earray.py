@@ -50,19 +50,22 @@ class BasicTestCase(unittest.TestCase):
         group = self.rootgroup
         if self.flavor == "numarray":
             if str(self.type) == "CharType":
-                object = strings.array(None, itemsize=self.length,
-                                       shape=self.shape)
+                flavor = "CharArray"
             else:
-                object = zeros(type=self.type, shape=self.shape)
+                flavor = "NumArray"
         else:
-                object = Numeric.zeros(typecode=typecode[self.type],
-                                       shape=self.shape)
+                flavor = "Numeric"
+        if self.type == "CharType":
+            atom = StringAtom(shape=self.shape, length=self.length,
+                              flavor=flavor)
+        else:
+            atom = Atom(dtype=self.type, shape=self.shape, flavor=flavor)
         title = self.__class__.__name__
         filters = Filters(complevel = self.compress,
                           complib = self.complib,
                           shuffle = self.shuffle,
                           fletcher32 = self.fletcher32)
-        earray = self.fileh.createEArray(group, 'earray1', object, title,
+        earray = self.fileh.createEArray(group, 'earray1', atom, title,
                                          filters = filters,
                                          expectedrows = 1)
 
@@ -717,7 +720,8 @@ class FloatTypeTestCase(BasicTestCase):
 class CharTypeTestCase(BasicTestCase):
     type = "CharType"
     length = 20
-    shape = (2,0)
+    shape = (2, 0)
+    #shape = (2,0,20)
     chunksize = 5
     nappends = 10
     start = 3
@@ -728,6 +732,7 @@ class CharType2TestCase(BasicTestCase):
     type = "CharType"
     length = 20
     shape = (0,)
+    #shape = (0, 20)
     chunksize = 5
     nappends = 10
     start = 1
@@ -738,6 +743,7 @@ class CharTypeComprTestCase(BasicTestCase):
     type = "CharType"
     length = 20
     shape = (20,0,10)
+    #shape = (20,0,10,20)
     compr = 1
     #shuffle = 1  # this shouldn't do nothing on chars
     chunksize = 50
@@ -813,8 +819,8 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Create an string atom
         earray = self.fileh.createEArray(root, 'strings',
-                                         strings.array(None, itemsize=3,
-                                                       shape=(0,2,2)),
+                                         StringAtom(length=3,
+                                                    shape=(0,2,2)),
                                          "Array of strings")
         a=strings.array([[["a","b"],["123", "45"],["45", "123"]]], itemsize=3)
         earray.append(a[:,1:])
@@ -844,8 +850,8 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Create an string atom
         earray = self.fileh.createEArray(root, 'strings',
-                                         strings.array(None, itemsize=3,
-                                                       shape=(0,2,2)),
+                                         StringAtom(length=3,
+                                                    shape=(0,2,2)),
                                          "Array of strings")
         a=strings.array([[["a","b"],["123", "45"],["45", "123"]]], itemsize=3)
         earray.append(a[:,::2])
@@ -875,8 +881,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Create an string atom
         earray = self.fileh.createEArray(root, 'EAtom',
-                                         array(None, shape = (0,3),
-                                               type=Int32),
+                                         Int32Atom(shape=(0,3)),
                                          "array of ints")
         a=array([(0,0,0), (1,0,3), (1,1,1), (0,0,0)], type=Int32)
         earray.append(a[2:])  # Create an offset
@@ -905,8 +910,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Create an string atom
         earray = self.fileh.createEArray(root, 'EAtom',
-                                         array(None, shape = (0,3),
-                                               type=Int32),
+                                         Int32Atom(shape=(0,3)),
                                          "array of ints")
         a=array([(0,0,0), (1,0,3), (1,1,1), (3,3,3)], type=Int32)
         earray.append(a[::3])  # Create an offset
@@ -925,6 +929,447 @@ class OffsetStrideTestCase(unittest.TestCase):
         assert allequal(row[1], array([3,3,3], type=Int32))
         assert allequal(row[2], array([1,1,1], type=Int32))
 
+class CopyTestCase(unittest.TestCase):
+
+    def test01_copy(self):
+        """Checking EArray.copy() method """
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an EArray
+        arr = Atom(shape=(0, 2), dtype=Int16)
+        array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
+        array1.append(array([[456, 2],[3, 457]], type=Int16))
+
+        # Copy it to another location
+        array2 = array1.copy('/', 'array2')
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.array2
+
+        if verbose:
+            print "array1-->", array1.read()
+            print "array2-->", array2.read()
+            #print "dirs-->", dir(array1), dir(array2)
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Check that all the elements are equal
+        allequal(array1.read(), array2.read())
+
+        # Assert other properties in array
+        assert array1.nrows == array2.nrows
+        assert array1.extdim == array2.extdim
+        assert array1.flavor == array2.flavor
+        assert array1.type == array2.type
+        assert array1.itemsize == array2.itemsize
+        assert array1.title == array2.title
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test02_copy(self):
+        """Checking EArray.copy() method (where specified)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an EArray
+        arr = Atom(shape=(0, 2), dtype=Int16)
+        array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
+        array1.append(array([[456, 2],[3, 457]], type=Int16))
+
+        # Copy to another location
+        group1 = fileh.createGroup("/", "group1")
+        array2 = array1.copy(group1, 'array2')
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.group1.array2
+
+        if verbose:
+            print "array1-->", array1.read()
+            print "array2-->", array2.read()
+            #print "dirs-->", dir(array1), dir(array2)
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Check that all the elements are equal
+        allequal(array1.read(), array2.read())
+
+        # Assert other properties in array
+        assert array1.nrows == array2.nrows
+        assert array1.extdim == array2.extdim
+        assert array1.flavor == array2.flavor
+        assert array1.type == array2.type
+        assert array1.itemsize == array2.itemsize
+        assert array1.title == array2.title
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test03_copy(self):
+        """Checking EArray.copy() method (Numeric flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        if numeric:
+            arr = Atom(shape=(0, 2), dtype=Int16, flavor="Numeric")
+        else:
+            arr = Atom(shape=(0, 2), dtype=Int16)
+
+        array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
+        array1.append(array([[456, 2],[3, 457]], type=Int16))
+
+        # Copy to another location
+        array2 = array1.copy('/', 'array2')
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.array2
+
+        if verbose:
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Assert other properties in array
+        assert array1.nrows == array2.nrows
+        assert array1.extdim == array2.extdim
+        assert array1.flavor == array2.flavor   # Very important here!
+        assert array1.type == array2.type
+        assert array1.itemsize == array2.itemsize
+        assert array1.title == array2.title
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test04_copy(self):
+        """Checking EArray.copy() method (checking title copying)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an Array
+        #arr=array([[456, 2],[3, 457]], type=Int16)
+        atom=Int16Atom(shape=(0,2))
+        array1 = fileh.createEArray(fileh.root, 'array1', atom, "title array1")
+        array1.append(array([[456, 2],[3, 457]], type=Int16))
+        # Append some user attrs
+        array1.attrs.attr1 = "attr1"
+        array1.attrs.attr2 = 2
+        # Copy it to another Array
+        array2 = array1.copy('/', 'array2', title="title array2")
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.array2
+            
+        # Assert user attributes
+        if verbose:
+            print "title of destination array-->", array2.title
+        array2.title == "title array2"
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test05_copy(self):
+        """Checking EArray.copy() method (user attributes copied)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an Array
+        atom=Int16Atom(shape=(0,2))
+        array1 = fileh.createEArray(fileh.root, 'array1', atom, "title array1")
+        array1.append(array([[456, 2],[3, 457]], type=Int16))
+        # Append some user attrs
+        array1.attrs.attr1 = "attr1"
+        array1.attrs.attr2 = 2
+        # Copy it to another Array
+        array2 = array1.copy('/', 'array2', copyuserattrs=1)
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.array2
+
+        if verbose:
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Assert user attributes
+        array2.attrs.attr1 == "attr1"
+        array2.attrs.attr2 == 2
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test05b_copy(self):
+        """Checking EArray.copy() method (user attributes not copied)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05b_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an Array
+        atom=Int16Atom(shape=(0,2))
+        array1 = fileh.createEArray(fileh.root, 'array1', atom, "title array1")
+        array1.append(array([[456, 2],[3, 457]], type=Int16))
+        # Append some user attrs
+        array1.attrs.attr1 = "attr1"
+        array1.attrs.attr2 = 2
+        # Copy it to another Array
+        array2 = array1.copy('/', 'array2', copyuserattrs=0)
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.array2
+
+        if verbose:
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Assert user attributes
+        array2.attrs.attr1 == None
+        array2.attrs.attr2 == None
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+
+class CloseCopyTestCase(CopyTestCase):
+    close = 1
+
+class OpenCopyTestCase(CopyTestCase):
+    close = 0
+
+class CopyIndexTestCase(unittest.TestCase):
+    maxTuples = 2
+
+    def test01_index(self):
+        """Checking EArray.copy() method with indexes"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_index..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Array
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an EArray
+        atom = Int32Atom(shape=(0,2))
+        array1 = fileh.createEArray(fileh.root, 'array1', atom, "title array1")
+        r = arange(200, type=Int32, shape=(100,2))
+        array1.append(r)
+        
+        # Select a different buffer size:
+        array1._v_maxTuples = self.maxTuples
+        
+        # Copy to another array
+        array2 = array1.copy("/", 'array2',
+                             start=self.start,
+                             stop=self.stop,
+                             step=self.step)
+        if verbose:
+            print "array1-->", array1.read()
+            print "array2-->", array2.read()
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Check that all the elements are equal
+        r2 = r[self.start:self.stop:self.step]
+        allequal(r2, array2.read())
+
+        # Assert the number of rows in array
+        if verbose:
+            print "nrows in array2-->", array2.nrows
+            print "and it should be-->", r2.shape[0]
+        assert r2.shape[0] == array2.nrows
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test02_indexclosef(self):
+        """Checking Array.copy() method with indexes (close file version)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_indexclosef..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Array
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an EArray
+        atom = Int32Atom(shape=(0,2))
+        array1 = fileh.createEArray(fileh.root, 'array1', atom, "title array1")
+        r = arange(200, type=Int32, shape=(100,2))
+        array1.append(r)
+
+        # Select a different buffer size:
+        array1._v_maxTuples = self.maxTuples
+        # Copy to another array
+        array2 = array1.copy("/", 'array2',
+                             start=self.start,
+                             stop=self.stop,
+                             step=self.step)
+        # Close and reopen the file
+        fileh.close()
+        fileh = openFile(file, mode = "r")
+        array1 = fileh.root.array1
+        array2 = fileh.root.array2
+
+        if verbose:
+            print "array1-->", array1.read()
+            print "array2-->", array2.read()
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Check that all the elements are equal
+        r2 = r[self.start:self.stop:self.step]
+        allequal(r2, array2.read())
+
+        # Assert the number of rows in array
+        if verbose:
+            print "nrows in array2-->", array2.nrows
+            print "and it should be-->", r2.shape[0]
+        assert r2.shape[0] == array2.nrows
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+class CopyIndex1TestCase(CopyIndexTestCase):
+    maxTuples = 1
+    start = 0
+    stop = 7
+    step = 1
+
+class CopyIndex2TestCase(CopyIndexTestCase):
+    maxTuples = 2
+    start = 0
+    stop = -1
+    step = 1
+	
+class CopyIndex3TestCase(CopyIndexTestCase):
+    maxTuples = 3
+    start = 1
+    stop = 7
+    step = 1
+
+class CopyIndex4TestCase(CopyIndexTestCase):
+    maxTuples = 4        
+    start = 0
+    stop = 6
+    step = 1
+
+class CopyIndex5TestCase(CopyIndexTestCase):
+    maxTuples = 2
+    start = 3
+    stop = 7
+    step = 1
+
+class CopyIndex6TestCase(CopyIndexTestCase):
+    maxTuples = 2
+    start = 3
+    stop = 6
+    step = 2
+
+class CopyIndex7TestCase(CopyIndexTestCase):
+    start = 0
+    stop = 7
+    step = 10
+
+class CopyIndex8TestCase(CopyIndexTestCase):
+    start = 6
+    stop = -1  # Negative values means starting from the end
+    step = 1
+
+class CopyIndex9TestCase(CopyIndexTestCase):
+    start = 3
+    stop = 4
+    step = 1
+
+class CopyIndex10TestCase(CopyIndexTestCase):
+    maxTuples = 1
+    start = 3
+    stop = 4
+    step = 2
+
+class CopyIndex11TestCase(CopyIndexTestCase):
+    start = -3
+    stop = -1
+    step = 2
+
+class CopyIndex12TestCase(CopyIndexTestCase):
+    start = -1   # Should point to the last element
+    stop = None  # None should mean the last element (including it)
+    step = 1
+
+
 
 #----------------------------------------------------------------------
 
@@ -932,6 +1377,10 @@ def suite():
     theSuite = unittest.TestSuite()
     global numeric
     niter = 1
+
+    #theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
+    #theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
+    #theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
 
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(BasicWrite2TestCase))
@@ -1006,6 +1455,20 @@ def suite():
         theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))
         theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))
         theSuite.addTest(unittest.makeSuite(AllFiltersTestCase))
+        theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
+        theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex2TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex3TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex4TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex5TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex6TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex7TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex8TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex9TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex10TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex11TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex12TestCase))
 
     return theSuite
 

@@ -9,8 +9,8 @@ fileh = openFile(filename, mode = "w")
 # Get the root group
 root = fileh.root
 
-# Create an empty string array
-a = strings.array(None, itemsize=1, shape=(0,))  # That needs numarray 0.8
+# Create an string atom
+a = StringAtom(shape=(0,), length=1)
 # Use it as a type for the enlargeable array
 hdfarray = fileh.createEArray(root, 'array_c', a, "Character array")
 hdfarray.append(strings.array(['a', 'b', 'c']))
@@ -20,16 +20,18 @@ hdfarray.append(strings.array(['c', 'b', 'c', 'd']))
 #hdfarray.append(strings.array([['c', 'b'], ['c', 'd']]))
 #hdfarray.append(array([[1,2,3],[3,2,1]], type=UInt8, shape=(2,1,3)))
 
-# Create an empty array
-a = zeros((2,0,3),type=UInt16)
+# Create an atom
+#a = zeros((2,0,3),type=UInt16)
+a = UInt16Atom((2,0,3))
 hdfarray = fileh.createEArray(root, 'array_e', a, "Unsigned short array")
 
 # Create an enlargeable array
-a = zeros((2,0,3),type=UInt8)
+#a = zeros((2,0,3),type=UInt8)
+a = UInt8Atom((2,0,3))
 #a = [[],[]]  # not supported
 #a = []  # supported (Int32 array)
 hdfarray = fileh.createEArray(root, 'array_b', a, "Unsigned byte array",
-                              compress = 1)
+                              Filters(complevel = 1))
 # Append an array to this table
 hdfarray.append(array([[1,2,3],[3,2,1]], type=UInt8, shape=(2,1,3)))
 hdfarray.append(array([[1,2,3],[3,2,1],[2,4,6],[6,4,2]],

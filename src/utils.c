@@ -371,12 +371,13 @@ out:
 
 /* F. Alted 2004-01-19 */
 
-int GetIndicesEx(PySliceObject *r, int length,
-			 int *start, int *stop, int *step, int *slicelength)
+int GetIndicesEx(PyObject *s, int length,
+		 int *start, int *stop, int *step, int *slicelength)
 {
 	/* this is harder to get right than you might think */
 
 	int defstart, defstop;
+	PySliceObject *r = (PySliceObject *) s;
 
 	if (r->step == Py_None) {
 		*step = 1;

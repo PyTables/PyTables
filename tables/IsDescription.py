@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.27 2004/01/21 16:31:44 falted Exp $
+#       $Id: IsDescription.py,v 1.28 2004/01/30 16:38:47 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.27 $"
+__version__ = "$Revision: 1.28 $"
 
 
 import warnings
@@ -62,7 +62,7 @@ class Col:
 
         self.pos = pos
 
-        assert shape != None and shape != 0 and shape != (0,), \
+        assert shape != None and shape != 0, \
                "None or zero-valued shapes are not supported '%s'" % `shape`
 
         if type(shape) in [types.IntType, types.LongType]:
@@ -93,7 +93,9 @@ class Col:
                 if shape == ():
                     self.shape = 1
                 elif len(shape) == 1:
-                    self.shape = shape[0]
+                    #self.shape = shape[0]
+                    # This is better for EArray Atoms
+                    self.shape = (shape[0],)
                 else:
                     self.shape = tuple(shape)
                     
@@ -133,7 +135,7 @@ class BoolCol(Col):
 
         self.pos = pos
 
-        assert shape != None and shape != 0 and shape != (0,), \
+        assert shape != None and shape != 0, \
                "None or zero-valued shapes are not supported '%s'" % `shape`
 
         if type(shape) in [types.IntType, types.LongType]:
@@ -160,8 +162,8 @@ class StringCol(Col):
         assert isinstance(dflt, types.StringTypes) or dflt == None, \
                "Invalid default value: '%s'" % dflt
         
-        assert shape != None and shape != 0 and shape != (0,), \
-               "None or zero-valued shapes are not supported '%s'" % `shape`
+        assert shape != None and shape != 0, \
+               "None or zero-valued shapes are not supported: '%s'" % `shape`
 
         # Deduce the length from the default value if it is not specified!
         if length == None and dflt:
@@ -191,18 +193,17 @@ class IntCol(Col):
 
         self.pos = pos
 
-        assert shape != None and shape != 0 and shape != (0,), \
-               "None or zero-valued shapes are not supported '%s'" % `shape`
+        assert shape != None and shape != 0, \
+               "None or zero-valued shapes are not supported '%s':" % `shape`
 
         assert itemsize in [1, 2, 4, 8], \
                "Integer itemsizes different from 1,2,4 or 8 are not supported"
         
-        if shape != None and shape != 0 and shape != (0,):
-            if type(shape) in [types.IntType, types.LongType]:
-                self.shape = shape
-            elif type(shape) in [types.ListType, types.TupleType]:
-                self.shape = tuple(shape)
-            else: raise ValueError, "Illegal shape %s" % `shape`
+        if type(shape) in [types.IntType, types.LongType]:
+            self.shape = shape
+        elif type(shape) in [types.ListType, types.TupleType]:
+            self.shape = tuple(shape)
+        else: raise ValueError, "Illegal shape %s" % `shape`
 
         self.dflt = dflt
 
@@ -277,18 +278,17 @@ class FloatCol(Col):
 
         self.pos = pos
 
-        assert shape != None and shape != 0 and shape != (0,), \
+        assert shape != None and shape != 0, \
                "None or zero-valued shapes are not supported '%s'" % `shape`
 
         assert itemsize in [4,8], \
                "Float itemsizes different from 4 and 8 are not supported"
         
-        if shape != None and shape != 0 and shape != (0,):
-            if type(shape) in [types.IntType, types.LongType]:
-                self.shape = shape
-            elif type(shape) in [types.ListType, types.TupleType]:
-                self.shape = tuple(shape)
-            else: raise ValueError, "Illegal shape %s" % `shape`
+        if type(shape) in [types.IntType, types.LongType]:
+            self.shape = shape
+        elif type(shape) in [types.ListType, types.TupleType]:
+            self.shape = tuple(shape)
+        else: raise ValueError, "Illegal shape %s" % `shape`
 
         self.dflt = dflt
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.19 2004/01/27 20:28:34 falted Exp $
+#       $Id: VLArray.py,v 1.20 2004/01/30 16:38:47 falted Exp $
 #
 ########################################################################
 
@@ -30,7 +30,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.19 $"
+__version__ = "$Revision: 1.20 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -43,7 +43,7 @@ import numarray.records as records
 from Leaf import Leaf
 import hdf5Extension
 from IsDescription import Col, BoolCol, StringCol, IntCol, FloatCol
-from utils import processRange, processRangeRead
+from utils import processRange, processRangeRead, convertIntoNA
 
 try:
     import Numeric
@@ -130,7 +130,8 @@ class Atom(Col):
         atomicsize = self.itemsize
         if isinstance(self.shape, types.TupleType):
             for i in self.shape:
-                atomicsize *= i
+                if i > 0:  # To deal with EArray Atoms
+                    atomicsize *= i
         else:
             atomicsize *= self.shape
         return atomicsize
@@ -375,51 +376,6 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         # Ok. all conditions are meet. Return the numarray object
         return naarr
             
-    def convertIntoNA(self, arr, atomtype):
-        "Convert a generic object into a numarray object"
-        # Check for Numeric objects
-        if (isinstance(arr, numarray.NumArray) or
-            isinstance(arr, strings.CharArray)):
-            naarr = arr
-        elif (Numeric_imported and type(arr) == type(Numeric.array(1))):
-            if arr.iscontiguous():
-                # This the fastest way to convert from Numeric to numarray
-                # because no data copy is involved
-                naarr = numarray.array(buffer(arr),
-                                       type=arr.typecode(),
-                                       shape=arr.shape)
-            else:
-                # Here we absolutely need a copy in order
-                # to obtain a buffer.
-                # Perhaps this can be avoided or optimized by using
-                # the tolist() method, but this should be tested.
-                naarr = numarray.array(buffer(arr.copy()),
-                                       type=arr.typecode(),
-                                       shape=arr.shape)                    
-
-        else:
-            # Test if arr can be converted to a numarray object of the
-            # correct type
-            try:
-                naarr = numarray.array(arr, type=atomtype)
-            # If not, test with a chararray
-            except TypeError:
-                try:
-                    naarr = strings.array(arr)
-                # If still doesn't, issues an error
-                except:
-                    raise TypeError, \
-    """The object '%s' can't be converted into a numarray object of type '%s'. Sorry, but this object is not supported in this context.""" % (arr, atomtype)
-
-        # We always want a contiguous buffer
-        # (no matter if has an offset or not; that will be corrected later)
-        if not naarr.iscontiguous():
-            # Do a copy of the array in case is not contiguous
-            naarr = numarray.NDArray.copy(naarr)
-
-        return naarr
-
-
     def append(self, *objects):
         """Append the objects to this enlargeable object"""
 
@@ -455,7 +411,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             object = numarray.array(object, type=numarray.UInt8)
 
         if len(objects) > 0:
-            naarr = self.convertIntoNA(object, self.atom.type)
+            naarr = convertIntoNA(object, self.atom.type)
             self._checkTypeShape(naarr)
         else:
             self._nobjects = 0

@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.69 2004/01/27 20:28:34 falted Exp $
+#       $Id: File.py,v 1.70 2004/01/30 16:38:47 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.69 $"
+__version__ = "$Revision: 1.70 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -63,7 +63,7 @@ def _checkFilters(filters, compress, complib):
     if (filters is None) and ((compress is not None) or
                               (complib is not None)):
         warnings.warn("The use of compress or complib parameters is deprecated. Please, use a Filters() instance instead.", DeprecationWarning)
-        fprops = Filters(complevel=compress, complib="zlib")
+        fprops = Filters(complevel=compress, complib=complib)
     elif filters is None:
         fprops = Filters()
     elif isinstance(filters, Filters):
@@ -466,7 +466,7 @@ class File(hdf5Extension.File, object):
         return Object
 
 
-    def createEArray(self, where, name, object, title = "",
+    def createEArray(self, where, name, atom, title = "",
                      filters=None, expectedrows = 1000,
                      compress=None, complib=None):
         
@@ -480,12 +480,10 @@ class File(hdf5Extension.File, object):
 
         name -- The name of the new array.
 
-        object -- An object describing the kind of objects that you
-            can append to the EArray. It can be an instance of any of
-            NumArray, CharArray or Numeric classes and one of its
+        atom -- An Atom instance representing the shape, type and
+            flavor of the atomic objects to be saved. One of the shape
             dimensions must be 0. The dimension being 0 means that the
-            resulting EArray object can be extended along it. Multiple
-            enlargeable dimensions are not supported right now.
+            resulting EArray object can be extended along it.
 
         title -- Sets a TITLE attribute on the array entity.
 
@@ -506,7 +504,7 @@ class File(hdf5Extension.File, object):
 
         group = self.getNode(where, classname = 'Group')
         filters = _checkFilters(filters, compress, complib)
-        Object = EArray(object, title, filters, expectedrows)
+        Object = EArray(atom, title, filters, expectedrows)
         setattr(group, name, Object)
         return Object
 

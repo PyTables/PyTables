@@ -730,7 +730,7 @@ class CopyTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
-        # Create an Array (Numeric flavor)
+        # Create an Array
         arr=array([[456, 2],[3, 457]], type=Int16)
         array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
         # Append some user attrs
@@ -767,7 +767,7 @@ class CopyTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
-        # Create an Array (Numeric flavor)
+        # Create an Array
         arr=array([[456, 2],[3, 457]], type=Int16)
         array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
         # Append some user attrs
@@ -807,7 +807,7 @@ class CopyTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
-        # Create an Array (Numeric flavor)
+        # Create an Array
         arr=array([[456, 2],[3, 457]], type=Int16)
         array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
         # Append some user attrs
@@ -844,7 +844,7 @@ class OpenCopyTestCase(CopyTestCase):
 
 class CopyIndexTestCase(unittest.TestCase):
 
-    def test02_index(self):
+    def test01_index(self):
         """Checking Array.copy() method with indexes"""
 
         if verbose:

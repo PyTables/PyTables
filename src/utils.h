@@ -89,5 +89,5 @@ PyObject *H5UIget_info( hid_t loc_id,
 			const char *dset_name,
 			char *byteorder);
 
-int GetIndicesEx(PySliceObject *r, int length,
+int GetIndicesEx(PyObject *s, int length,
 		 int *start, int *stop, int *step, int *slicelength);

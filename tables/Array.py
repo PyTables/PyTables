@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.56 2004/01/28 18:32:16 falted Exp $
+#       $Id: Array.py,v 1.57 2004/01/30 16:38:47 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.56 $"
+__version__ = "$Revision: 1.57 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -106,9 +106,9 @@ class Array(Leaf, hdf5Extension.Array, object):
         self._v_version = obversion
         naarr, self.flavor = self._convertIntoNA(self.object)
         if naarr.shape:
-            self._v_expectednrows = naarr.shape[0]
+            self._v_expectedrows = naarr.shape[0]
         else:
-            self._v_expectednrows = 1  # Scalar case
+            self._v_expectedrows = 1  # Scalar case
         if (isinstance(naarr, strings.CharArray)):
             self.byteorder = "non-relevant" 
         else:
@@ -125,7 +125,7 @@ class Array(Leaf, hdf5Extension.Array, object):
 
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
-                            calcBufferSize(self.rowsize, self._v_expectednrows,
+                            calcBufferSize(self.rowsize, self._v_expectedrows,
                                            self.filters.complevel)
 
         self.shape = naarr.shape
@@ -345,6 +345,8 @@ class Array(Leaf, hdf5Extension.Array, object):
             keys = (keys,)
         nkeys = len(keys)
         dim = 0
+        # Here is some problem when dealing with [...,...] params
+        # but this is a bit weird way to pass parameters anyway
         for key in keys:
             ellipsis = 0  # Sentinel
             if dim >= maxlen:
@@ -414,10 +416,14 @@ class Array(Leaf, hdf5Extension.Array, object):
             # Arrays that have non-zero dimensionality
             self._g_readSlice(startl, stopl, stepl, arr._data)
             pass
+
+        if hasattr(self, "_v_convert") and self._v_convert == 0:
+            return arr
             
-        if self.flavor <> "NumArray":
+        if self.flavor not in ["NumArray", "CharArray"]:
             return self._convToFlavor(arr)
         else:
+            # No conversion needed
             return arr
         
     def _convToFlavor(self, arr):

@@ -5,13 +5,22 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.17 2004/01/27 20:28:34 falted Exp $
+#       $Id: utils.py,v 1.18 2004/01/30 16:38:47 falted Exp $
 #
 ########################################################################
 
 """Utility functions
 
 """
+
+from tables.hdf5Extension import getIndices
+import numarray
+from numarray import strings
+try:
+    import Numeric
+    Numeric_imported = 1
+except:
+    Numeric_imported = 0
 
 # Reserved prefixes for special attributes in Group and other classes
 reservedprefixes = [
@@ -20,8 +29,6 @@ reservedprefixes = [
   '_g_',   # For class private functions
   '_v_',   # For instance variables
 ]
-
-from tables.hdf5Extension import getIndices
 
 def checkNameValidity(name):
     
@@ -170,6 +177,54 @@ def processRangeRead(nrows, start=None, stop=None, step=1):
 "Start (%s) value is greater than number of rows (%s)." % (start, nrows)
 
     return (start, stop, step)
+
+# This is used in VLArray and EArray to produce a numarray object
+# of type atomtype from a generic python type 
+def convertIntoNA(arr, atomtype):
+    "Convert a generic object into a numarray object"
+    # Check for Numeric objects
+    if (isinstance(arr, numarray.NumArray) or
+        isinstance(arr, strings.CharArray)):
+        naarr = arr
+    elif (Numeric_imported and type(arr) == type(Numeric.array(1))):
+        if arr.iscontiguous():
+            # This the fastest way to convert from Numeric to numarray
+            # because no data copy is involved
+            naarr = numarray.array(buffer(arr),
+                                   type=arr.typecode(),
+                                   shape=arr.shape)
+        else:
+            # Here we absolutely need a copy in order
+            # to obtain a buffer.
+            # Perhaps this can be avoided or optimized by using
+            # the tolist() method, but this should be tested.
+            naarr = numarray.array(buffer(arr.copy()),
+                                   type=arr.typecode(),
+                                   shape=arr.shape)                    
+
+    else:
+        # Test if arr can be converted to a numarray object of the
+        # correct type
+        try:
+            naarr = numarray.array(arr, type=atomtype)
+        # If not, test with a chararray
+        except TypeError:
+            try:
+                naarr = strings.array(arr)
+            # If still doesn't, issues an error
+            except:
+                raise TypeError, \
+"""The object '%s' can't be converted into a numarray object of type '%s'. Sorry, but this object is not supported in this context.""" % (arr, atomtype)
+
+    # We always want a contiguous buffer
+    # (no matter if has an offset or not; that will be corrected later)
+    if not naarr.iscontiguous():
+        # Do a copy of the array in case is not contiguous
+        naarr = numarray.NDArray.copy(naarr)
+
+    return naarr
+
+
 
 if __name__=="__main__":
     import sys

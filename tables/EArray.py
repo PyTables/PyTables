@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.9 2004/01/27 20:28:34 falted Exp $
+#       $Id: EArray.py,v 1.10 2004/01/30 16:38:47 falted Exp $
 #
 ########################################################################
 
@@ -27,13 +27,14 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.9 $"
+__version__ = "$Revision: 1.10 $"
 # default version for EARRAY objects
 obversion = "1.0"    # initial version
 
 import types, warnings, sys
 from Array import Array
-from utils import calcBufferSize
+from VLArray import Atom
+from utils import calcBufferSize, convertIntoNA
 import hdf5Extension
 import numarray
 import numarray.strings as strings
@@ -82,19 +83,17 @@ class EArray(Array, hdf5Extension.Array, object):
 
     """
     
-    def __init__(self, object = None, title = "",
-                 filters = None, expectednrows = 1000):
+    def __init__(self, atom = None, title = "",
+                 filters = None, expectedrows = 1000):
         """Create EArray instance.
 
         Keyword arguments:
 
-        object -- An object describing the kind of objects that you
-            can append to the EArray. It can be an instance of any of
-            NumArray, CharArray or Numeric classes and one of its
+        atom -- An Atom object representing the shape, type and flavor
+            of the atomic objects to be saved. One of the shape
             dimensions must be 0. The dimension being 0 means that the
-            resulting EArray object can be extended along it. Multiple
-            enlargeable dimensions are not supported right now.
-
+            resulting EArray object can be extended along it.
+        
         title -- Sets a TITLE attribute on the array entity.
 
         filters -- An instance of the Filters class that provides
@@ -112,12 +111,12 @@ class EArray(Array, hdf5Extension.Array, object):
 
         """
         self.new_title = title
-        self._v_expectednrows = expectednrows
+        self._v_expectedrows = expectedrows
         # Check if we have to create a new object or read their contents
         # from disk
-        if object is not None:
+        if atom is not None:
             self._v_new = 1
-            self.object = object
+            self.atom = atom
             self.filters = self._g_setFilters(filters)
         else:
             self._v_new = 0
@@ -126,42 +125,41 @@ class EArray(Array, hdf5Extension.Array, object):
         """Save a fresh array (i.e., not present on HDF5 file)."""
         global obversion
 
+        assert isinstance(self.atom, Atom), "The object passed to the EArray constructor must be a descendent of the Atom class."
+        assert isinstance(self.atom.shape, types.TupleType), "The Atom shape has to be a tuple for EArrays, and you passed a '%s' object." % (self.atom.shape)
+        # Version, type, shape, flavor, byteorder
         self._v_version = obversion
-        naarr, self.flavor = self._convertIntoNA(self.object)
-
-        if (isinstance(naarr, strings.CharArray)):
-            self.byteorder = "non-relevant" 
+        self.type = self.atom.type
+        self.shape = self.atom.shape
+        self.flavor = self.atom.flavor        
+        if self.type == "CharType" or isinstance(self.type, records.Char):
+            self.byteorder = "non-relevant"
         else:
-            self.byteorder  = naarr._byteorder
-
-        # Check for null dimensions
-        zerodims = numarray.sum(numarray.array(naarr.shape) == 0)
+            # Only support for creating objects in system byteorder
+            self.byteorder  = sys.byteorder
+        
+        # extdim computation
+        zerodims = numarray.sum(numarray.array(self.shape) == 0)
         if zerodims > 0:
             if zerodims == 1:
-                extdim = list(naarr.shape).index(0)
-                self.extdim = extdim
+                self.extdim = list(self.shape).index(0)
             else:
                 raise NotImplementedError, \
                       "Multiple enlargeable (0-)dimensions are not supported."
         else:
             raise ValueError, \
-                  "When creating EArrays, you need to set one of the dimensions of object to zero."
+                  "When creating EArrays, you need to set one of the dimensions of the Atom instance to zero."
 
         # Compute some values for buffering and I/O parameters
         # Compute the rowsize for each element
-        self.rowsize = naarr.itemsize()
-        for i in naarr.shape:
-            if i>0:
-                self.rowsize *= i
+        self.rowsize = self.atom.atomsize()
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
-           calcBufferSize(self.rowsize, self._v_expectednrows,
+           calcBufferSize(self.rowsize, self._v_expectedrows,
                           self.filters.complevel)
-
-        self.shape = naarr.shape
-        self.nrows = naarr.shape[self.extdim]
-        self.itemsize = naarr.itemsize()
-        self.type = self._createArray(naarr, self.new_title)
+        self.nrows = 0   # No rows initially
+        self.itemsize = self.atom.itemsize
+        self._createEArray(self.new_title)
 
     def _checkTypeShape(self, naarr):
         "Test that naarr parameter is shape and type compliant"
@@ -183,7 +181,7 @@ class EArray(Array, hdf5Extension.Array, object):
 
         # The arrays conforms self expandibility?
         assert len(self.shape) == len(naarr.shape), \
-"Sorry, the ranks of the EArray %r (%d) and object to be appended differ (%d)." % (self._v_pathname, len(self.shape), len(naarr.shape))
+"Sorry, the ranks of the EArray %r (%d) and object to be appended (%d) differ." % (self._v_pathname, len(self.shape), len(naarr.shape))
         for i in range(len(self.shape)):
             if i <> self.extdim:
                 assert self.shape[i] == naarr.shape[i], \
@@ -195,7 +193,8 @@ class EArray(Array, hdf5Extension.Array, object):
         """Append the object to this (enlargeable) object"""
 
         # Convert the object into a numarray object
-        naarr, self.flavor = self._convertIntoNA(object)
+        naarr = convertIntoNA(object, self.type)
+        # Check if it is correct type and shape
         naarr = self._checkTypeShape(naarr)
         self._append(naarr)
 
@@ -205,19 +204,47 @@ class EArray(Array, hdf5Extension.Array, object):
                         self._openArray()
         # Post-condition
         assert self.extdim >= 0, "extdim < 0: this should never happen!"
+        # Create the atom instance
+        self.atom = Atom(dtype=self.type, shape=self.shape,
+                         flavor=self.attrs.FLAVOR)
         # Compute the rowsize for each element
-        self.rowsize = self.itemsize
-        for i in range(len(self.shape)):
-            if i <> self.extdim:
-                self.rowsize *= self.shape[i]
-            else:
-                self.nrows = self.shape[i]
+        self.rowsize = self.atom.atomsize()
+        # nrows in this instance
+        self.nrows = self.shape[self.extdim]
         # Get info about existing filters
         self.filters = self._g_getFilters()
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
                   calcBufferSize(self.rowsize, self.nrows,
                                  self.filters.complevel)
+
+    def _g_copy(self, group, name, start, stop, step, title, filters):
+        "Private part of Leaf.copy() for each kind of leaf"
+        # Build the new EArray object
+        object = EArray(atom=self.atom,
+                        title=title,
+                        filters=filters,
+                        expectedrows=self.nrows)
+        setattr(group, name, object)
+        # Now, fill the new earray with values from source
+        nrowsinbuf = self._v_maxTuples
+        # The slices parameter for self.__getitem__
+        slices = [slice(0, dim, 1) for dim in self.shape]
+        # This is a hack to prevent doing innecessary conversions
+        # when copying buffers
+        self._v_convert = 0
+        # Start the copy itself
+        for start2 in range(start, stop, step*nrowsinbuf):
+            # Save the records on disk
+            stop2 = start2+step*nrowsinbuf
+            if stop2 > stop:
+                stop2 = stop
+            # Set the proper slice in the extensible dimension
+            slices[self.extdim] = slice(start2, stop2, step)
+            object._append(self.__getitem__(tuple(slices)))
+        # Active the conversion again (default)
+        self._v_convert = 1
+        return object
 
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""

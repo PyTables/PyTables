@@ -4,7 +4,7 @@ from Numeric import *   # or, from numarray import *
 # Create a VLArray:
 fileh = tables.openFile("vlarray1.h5", mode = "w")
 vlarray = fileh.createVLArray(fileh.root, 'vlarray1',
-                              tables.Int32Atom(flavor="Numeric"),
+                              tables.Int32Atom(shape=1, flavor="Numeric"),
                               "ragged array of ints",
                               filters = tables.Filters(1))
 # Append some (variable length) rows

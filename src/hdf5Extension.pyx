@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.112 2004/01/27 20:28:34 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.113 2004/01/30 16:38:47 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.112 $"
+__version__ = "$Revision: 1.113 $"
 
 
 import sys, os
@@ -689,7 +689,7 @@ cdef extern from "utils.h":
   H5T_class_t getHDF5ClassID(hid_t loc_id, char *name, H5D_layout_t *layout)
   object H5UIget_info( hid_t loc_id, char *name, char *byteorder)
   # To access to the slice.indices function in 2.2
-  int GetIndicesEx(object r, int length,
+  int GetIndicesEx(object s, int length,
                    int *start, int *stop, int *step, int *slicelength)
 
 # LZO library
@@ -713,11 +713,11 @@ ucl_version = register_ucl()
 
 # utility funtions (these can be directly invoked from Python)
 
-def getIndices(object r, int length):
+def getIndices(object s, int length):
   cdef int start, stop, step, slicelength
 
-  if GetIndicesEx(r, length, &start, &stop, &step, &slicelength) < 0:
-    raise ValueError("Problems getting the indices on slice '%s'" % r)
+  if GetIndicesEx(s, length, &start, &stop, &step, &slicelength) < 0:
+    raise ValueError("Problems getting the indices on slice '%s'" % s)
   return (start, stop, step)
 
 def whichLibVersion(char *name):
@@ -826,7 +826,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.112 2004/01/27 20:28:34 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.113 2004/01/30 16:38:47 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1947,7 +1947,6 @@ cdef class Array:
   cdef char    *name
   cdef int     rank
   cdef hsize_t *dims
-  cdef object  type
   cdef int     enumtype
   cdef hid_t   type_id
 
@@ -1967,13 +1966,14 @@ cdef class Array:
     cdef char *byteorder
     cdef char *flavor, *complib, *version
     cdef int extdim
+    cdef object  type
     #cdef _numarray na
 
     if isinstance(naarr, strings.CharArray):
-      self.type = CharType
+      type = CharType
       self.enumtype = toenum[CharType]
     else:
-      self.type = naarr._type
+      type = naarr._type
       try:
         self.enumtype = toenum[naarr._type]
       except KeyError:
@@ -1987,7 +1987,7 @@ cdef class Array:
     if self.type_id < 0:
       raise TypeError, \
         """type '%s' is not supported right now. Sorry about that.""" \
-    % self.type
+    % type
 
     # Get the pointer to the buffer data area
     # the second parameter means the if the buffer is read-only or not
@@ -2014,21 +2014,63 @@ cdef class Array:
     flavor = PyString_AsString(self.flavor)
     complib = PyString_AsString(self.filters.complib)
     version = PyString_AsString(self._v_version)
-    if hasattr(self, "extdim"):
-      extdim = self.extdim
-    else:
-      extdim = -1
     oid = H5ARRAYmake(self.parent_id, self.name, title,
                       flavor, version, self.rank, self.dims, self.extdim,
                       self.type_id, self._v_maxTuples, rbuf,
                       self.filters.complevel, complib, self.filters.shuffle,
                       self.filters.fletcher32, rbuf)
     if oid < 0:
-      raise RuntimeError("Problems creating the (E)Array.")
+      raise RuntimeError("Problems creating the EArray.")
     self.objectID = oid
     H5Tclose(self.type_id)    # Release resources
 
-    return self.type
+    return type
+    
+  def _createEArray(self, char *title):
+    cdef int i
+    cdef herr_t ret
+    cdef hid_t oid
+    cdef void *rbuf
+    cdef char *byteorder
+    cdef char *flavor, *complib, *version
+
+    try:
+      self.enumtype = toenum[self.type]
+    except KeyError:
+      raise TypeError, \
+            """Type class '%s' not supported rigth now. Sorry about that.
+            """ % repr(self.type)
+
+    byteorder = PyString_AsString(self.byteorder)
+    self.type_id = convArrayType(self.enumtype, self.atom.itemsize, byteorder)
+    if self.type_id < 0:
+      raise TypeError, \
+        """type '%s' is not supported right now. Sorry about that.""" \
+    % self.type
+
+    self.rank = len(self.shape)
+    self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
+    # Fill the dimension axis info with adequate info
+    for i from  0 <= i < self.rank:
+        self.dims[i] = self.shape[i]
+
+    rbuf = NULL   # The data pointer. We don't have data to save initially
+    # Manually convert some string values that can't be done automatically
+    flavor = PyString_AsString(self.atom.flavor)
+    complib = PyString_AsString(self.filters.complib)
+    version = PyString_AsString(self._v_version)
+    # Create the EArray
+    oid = H5ARRAYmake(self.parent_id, self.name, title,
+                      flavor, version, self.rank, self.dims, self.extdim,
+                      self.type_id, self._v_maxTuples, rbuf,
+                      self.filters.complevel, complib, self.filters.shuffle,
+                      self.filters.fletcher32, rbuf)
+    if oid < 0:
+      raise RuntimeError("Problems creating the EArray.")
+    self.objectID = oid
+    H5Tclose(self.type_id)    # Release resources
+
+    return
     
   def _append(self, object naarr):
     cdef int ret, rank
@@ -2202,10 +2244,8 @@ cdef class VLArray:
     cdef int i
     cdef herr_t ret
     cdef void *rbuf
-    cdef int buflen, ret2
-    cdef int offset
     cdef char *byteorder
-    cdef char *flavor, *complib, *version, *encoding
+    cdef char *flavor, *complib, *version
 
     self.type = self.atom.type
     try:
@@ -2216,6 +2256,7 @@ cdef class VLArray:
             """ % repr(self.type)
 
     byteorder = PyString_AsString(self.byteorder)
+    # Get the HDF5 type id
     self.type_id = convArrayType(self.enumtype, self.atom.itemsize, byteorder)
     if self.type_id < 0:
       raise TypeError, \
@@ -2238,7 +2279,7 @@ cdef class VLArray:
       else:
         self.dims[i] = self.atom.shape[i]
 
-    rbuf = NULL;  # We don't have data to save initially
+    rbuf = NULL   # We don't have data to save initially
 
     # Manually convert some string values that can't be done automatically
     flavor = PyString_AsString(self.atom.flavor)
