@@ -41,14 +41,70 @@ VERSION = "0.9"
 
 debug = '--debug' in sys.argv
 
+# Global variables
 lflags_arg = []
+lib_dirs = []
+inc_dirs = []
 
 # Some useful functions
+def check_lib_unix(where, libname, headername, compulsory):
+    "Check if the libraries and headers are to be found on a Unix system"
+    global LIBS, lib_dirs, inc_dirs
 
-def check_lib(libname, maindir, dll_lib,
-              dirstub, libstub,
-              dirheader, headerfile):
-    "Check if the libraries are completely specified for a Window system"        
+    incdir = libdir = None
+    if where:
+        lookup_directories = (where,)
+    else:
+        lookup_directories = ('/usr/', '/usr/local/')
+    for instdir in lookup_directories:
+        # ".dylib" is the extension for dynamic libraries for MacOSX
+        for ext in ('.a', '.so', '.dylib'):
+            libfile = os.path.join(instdir, "lib/lib"+libname+ext)
+            if os.path.isfile(libfile):
+                libdir = os.path.dirname(libfile)
+                print "Found "+libname.upper()+" libraries at " + libdir
+                # If libraries are in /usr and /usr/local
+                # they should be already available on search paths
+                if libdir not in ('/usr/lib', '/usr/local/lib'):
+                    lib_dirs.append(libdir)
+                break
+
+        headerfile = os.path.join(instdir, "include/"+headername)
+        if os.path.isfile(headerfile):
+            incdir = os.path.dirname(headerfile)
+            print "Found "+libname.upper()+" header files at " + incdir
+            # If headers are in /usr and /usr/local
+            # they should be already available on search paths
+            if incdir not in ('/usr/include', '/usr/local/include'):
+                inc_dirs.append(incdir)
+            break
+
+    if compulsory:
+        if not incdir or not libdir:
+            print """\
+Can't find a local %s installation.
+Please, read carefully the README and if your
+%s libraries are not in a standard place
+set the %s_DIR environment variable or
+use the flag --%s to give a hint of
+where they can be found.""" % (libname, libname,
+                               libname.upper(), libname)
+        
+            sys.exit(1)
+    else:
+        if not incdir or not libdir:
+            print "Optional %s libraries or include files not found. Disabling support for them." % (libname,)
+
+
+    if (not '-l'+libname in LIBS):
+        libnames.append(libname)
+	
+    return
+
+def check_lib_win(libname, maindir, dll_lib,
+                  dirstub, libstub,
+                  dirheader, headerfile):
+    "Check if the libraries and headers are to be found on a Windows system"
     
     # Look for stub libraries
     libdir = os.path.join(maindir, dirstub)
@@ -137,183 +193,17 @@ if os.name == 'posix':
     if LFLAGS:
         lflags_arg = LFLAGS
 
-    lib_dirs = []
-    inc_dirs = []
-    # If we were not told where it is, go looking for it.
-    hdf5incdir = hdf5libdir = None
-    if HDF5_DIR:
-        lookup_directories = (HDF5_DIR, '/usr/', '/usr/local/')
-    else:
-        lookup_directories = ('/usr/', '/usr/local/')
-
-    for instdir in lookup_directories:
-        # ".dylib" is the extension for dynamic libraries for MacOSX
-        for ext in ('.a', '.so', '.dylib'):
-            libhdf5 = os.path.join(instdir, "lib/libhdf5"+ext)
-            if os.path.isfile(libhdf5):
-                HDF5_DIR = instdir
-                hdf5libdir = os.path.join(instdir, "lib")
-                print "Found HDF5 libraries at " + hdf5libdir
-                # If libraries are in /usr and /usr/local
-                # they should be already available on search paths
-                if instdir not in ('/usr/', '/usr/local/'):
-                    lib_dirs.append(hdf5libdir)
-                break
-
-        headerhdf5 = os.path.join(instdir, "include/H5public.h")
-        if os.path.isfile(headerhdf5):
-            hdf5incdir = os.path.join(instdir, "include")
-            print "Found HDF5 header files at " + hdf5incdir
-            # If headers are in /usr and /usr/local
-            # they should be already available on search paths
-            if instdir not in ('/usr/', '/usr/local/'):
-                inc_dirs.append(hdf5incdir)
-            break
-
-
-    if not HDF5_DIR and not hdf5incdir and not hdf5libdir:
-        print """\
-Can't find a local hdf5 installation.
-Please, read carefully the README and if your
-hdf5 libraries are not in a standard place
-set the HDF5_DIR environment variable or
-use the flag --hdf5 to give a hint of
-where they can be found."""
-        
-        sys.exit(1)
-	
-    # figure out from the base setting where the lib and .h are
-#     if not hdf5incdir:
-#         inc_dirs = [ os.path.join(HDF5_DIR, 'include')]
-#     if not hdf5libdir:
-#         lib_dirs = [os.path.join(HDF5_DIR, 'lib')]
-    if (not '-lhdf5' in LIBS):
-        libnames.append('hdf5')
-
-#     # Look for mandatory compression libraries (ZLIB)
-#     # figure out from the base setting where the lib and .h are
-#     if ZLIB_DIR:
-#         lookup_directories = (ZLIB_DIR, '/usr/', '/usr/local/')
-#     else:
-#         lookup_directories = ('/usr/', '/usr/local/')
-        
-#     for instdir in lookup_directories:
-#         for ext in ('.a', '.so', '.dylib'):
-#             libzlib = os.path.join(instdir, "lib/libz"+ext)
-#             if os.path.isfile(libzlib):
-#                 ZLIB_DIR = instdir
-#                 zliblibdir = os.path.join(instdir, "lib")
-#                 print "Found ZLIB libraries at " + zliblibdir
-#                 if (zliblibdir not in lib_dirs and
-#                     instdir not in ['/usr/', '/usr/local/']):
-#                     lib_dirs.append(zliblibdir)
-#                 break
-#             else:
-#                 zliblibdir = None
-
-#         headerzlib = os.path.join(instdir, "include/zlib.h")
-#         if os.path.isfile(headerzlib):
-#             zlibincdir = os.path.join(instdir, "include")
-#             print "Found ZLIB header files at " + zlibincdir
-#             if (zlibincdir not in inc_dirs and
-#                 instdir not in ['/usr/', '/usr/local/']):
-#                 inc_dirs.append(zlibincdir)
-#             if zliblibdir and (not '-lz' in LIBS):
-#                 libnames.append('z')
-#                 def_macros.append(("HAVE_ZLIB_LIB", 1))
-#             break
-#         else:
-#             zlibincdir = None
-
-#     if not ZLIB_DIR and (not zliblibdir or not zlibincdir):
-#         print """\
-# Can't find a local Zlib installation.
-# Please, read carefully the README and if your
-# Zlib library is not in a standard place
-# set the ZLIB_DIR environment variable or
-# use the flag --zlib to give a hint of
-# where they can be found."""
-        
-#         sys.exit(1)
-
-    # Look for optional compression libraries (LZO and UCL)
-    # figure out from the base setting where the lib and .h are
-    if LZO_DIR:
-        lookup_directories = (LZO_DIR, '/usr/', '/usr/local/')
-    else:
-        lookup_directories = ('/usr/', '/usr/local/')
-        
-    for instdir in lookup_directories:
-        for ext in ('.a', '.so', '.dylib'):
-            liblzo = os.path.join(instdir, "lib/liblzo"+ext)
-            if os.path.isfile(liblzo):
-                LZO_DIR = instdir
-                lzolibdir = os.path.join(instdir, "lib")
-                print "Found LZO libraries at " + lzolibdir
-                if (lzolibdir not in lib_dirs and
-                    instdir not in ['/usr/', '/usr/local/']):
-                    lib_dirs.append(lzolibdir)
-                break
-            else:
-                lzolibdir = None
-
-        headerlzo = os.path.join(instdir, "include/lzo1x.h")
-        if os.path.isfile(headerlzo):
-            lzoincdir = os.path.join(instdir, "include")
-            print "Found LZO header files at " + lzoincdir
-            if (lzoincdir not in inc_dirs and
-                instdir not in ['/usr/', '/usr/local/']):
-                inc_dirs.append(lzoincdir)
-            if lzolibdir and (not '-llzo' in LIBS):
-                libnames.append('lzo')
-                def_macros.append(("HAVE_LZO_LIB", 1))
-            break
-        else:
-            lzoincdir = None
-
-    if not lzolibdir or not lzoincdir:
-        print """Optional LZO libraries or include files not found. Disabling \
-support for them."""
-
-    # Look for optional compression libraries (LZO and UCL)
-    # figure out from the base setting where the lib and .h are
-    if UCL_DIR:
-        lookup_directories = (UCL_DIR, '/usr/', '/usr/local/')
-    else:
-        lookup_directories = ('/usr/', '/usr/local/')
-        
-    for instdir in lookup_directories:
-        for ext in ('.a', '.so', '.dylib'):
-            libucl = os.path.join(instdir, "lib/libucl"+ext)
-            if os.path.isfile(libucl):
-                UCL_DIR = instdir
-                ucllibdir = os.path.join(instdir, "lib")
-                print "Found UCL libraries at " + ucllibdir
-                if (ucllibdir not in lib_dirs and
-                    instdir not in ['/usr/', '/usr/local/']):
-                    lib_dirs.append(ucllibdir)
-                break
-            else:
-                ucllibdir = None
-
-        uclincdir = None
-        if os.path.isfile(os.path.join(instdir, "include/ucl/ucl.h")):
-            uclincdir = os.path.join(instdir, "include/ucl")
-        elif os.path.isfile(os.path.join(instdir, "include/ucl.h")):
-            uclincdir = os.path.join(instdir, "include")
-        if uclincdir:
-            print "Found UCL header files at " + uclincdir
-            if uclincdir not in inc_dirs:
-                inc_dirs.append(uclincdir)
-            if ucllibdir and (not '-lucl' in LIBS):
-                libnames.append('ucl')
-                def_macros.append(("HAVE_UCL_LIB", 1))
-            break
-
-    if not ucllibdir or not uclincdir:
-        print """Optional UCL libraries or include files not found. Disabling \
-support for them."""
-
+    # Look for libraries. After this, inc_dirs, lib_dirs and LIBS are updated
+    # Look for HDF5, compulsory
+    check_lib_unix(HDF5_DIR, "hdf5", "H5public.h", compulsory=1)
+    # Look for ZLIB, compulsory
+    # commented out because if HDF5 is there, then so should be ZLIB
+    #check_lib_unix(ZLIB_DIR, "z", "zlib.h", compulsory=1)
+    # Look for LZO, not compulsory
+    check_lib_unix(LZO_DIR, "lzo", "lzo1x.h", compulsory=0)
+    # Look for UCL, not compulsory
+    check_lib_unix(UCL_DIR, "ucl", "ucl/ucl.h", compulsory=0)
+    
     # Set the runtime library search path
     # The use of rlib_dirs should be avoided, because debian lintian says that
     # this is not a good practice, although I should further investigate this.
@@ -392,9 +282,9 @@ elif os.name == 'nt':
     # HDF5 library (mandatory)
     (dirstub, dirheader) = (None, None)
     if HDF5_DIR:
-        (dirstub, dirheader) = check_lib("HDF5", HDF5_DIR, "hdf5dll.dll",
-                                         "dll", "hdf5dll.lib",  # Stubs
-                                         "include", "H5public.h") # Headers
+        (dirstub, dirheader) = check_lib_win("HDF5", HDF5_DIR, "hdf5dll.dll",
+                                             "dll", "hdf5dll.lib",  # Stubs
+                                             "include", "H5public.h") # Headers
     if dirstub and dirheader:
         lib_dirs.append(dirstub)
         inc_dirs.append(dirheader)
@@ -413,7 +303,7 @@ elif os.name == 'nt':
 #     # ZLIB library (mandatory)
 #     dirstub, dirheader = None, None
 #     if ZLIB_DIR:
-#         (dirstub, dirheader) = check_lib("ZLIB", ZLIB_DIR, "zlib.dll",
+#         (dirstub, dirheader) = check_lib_win("ZLIB", ZLIB_DIR, "zlib.dll",
 #                                          #"lib", "zdll.lib",  # Stubs (1.2.1)
 #                                          "lib", "zlib.lib",  # Stubs
 #                                          "include", "zlib.h") # Headers
@@ -436,9 +326,9 @@ elif os.name == 'nt':
 
     # LZO library (optional)
     if LZO_DIR:
-        (dirstub, dirheader) = check_lib("LZO", LZO_DIR, "lzo.dll",
-                                         "lib", "liblzo.lib",  # Stubs
-                                         "include", "lzo1x.h") # Headers
+        (dirstub, dirheader) = check_lib_win("LZO", LZO_DIR, "lzo.dll",
+                                             "lib", "liblzo.lib",  # Stubs
+                                             "include", "lzo1x.h") # Headers
         if dirstub and dirheader:
             lib_dirs.append(dirstub)
             inc_dirs.append(dirheader)
@@ -450,9 +340,9 @@ Disabling support for them."""
 
     # UCL library (optional)
     if UCL_DIR:
-        (dirstub, dirheader) = check_lib("UCL", UCL_DIR, "ucl.dll",
-                                         "lib", "libucl.lib",  # Stubs
-                                         "include", "ucl/ucl.h") # Headers
+        (dirstub, dirheader) = check_lib_win("UCL", UCL_DIR, "ucl.dll",
+                                             "lib", "libucl.lib",  # Stubs
+                                             "include", "ucl/ucl.h") # Headers
         if dirstub and dirheader:
             lib_dirs.append(dirstub)
             inc_dirs.append(dirheader)        
