@@ -5,7 +5,7 @@
 #	Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/nodes/FileNode.py,v $
-#	$Id: FileNode.py,v 1.5 2004/11/22 17:13:43 ivilata Exp $
+#	$Id: FileNode.py,v 1.6 2004/11/22 21:47:27 ivilata Exp $
 #
 ########################################################################
 
@@ -30,10 +30,10 @@ import tables
 
 
 
-__revision__ = '$Id: FileNode.py,v 1.5 2004/11/22 17:13:43 ivilata Exp $'
+__revision__ = '$Id: FileNode.py,v 1.6 2004/11/22 21:47:27 ivilata Exp $'
 
 NodeType         = 'file'
-NodeTypeVersions = [1]
+NodeTypeVersions = [1, 2]
 
 
 
@@ -49,7 +49,7 @@ def newNode(h5file, **kwargs):
 	of the file size in bytes, may also be passed.
 	"""
 
-	return RWFileNode(None, h5file, **kwargs)
+	return RAFileNode(None, h5file, **kwargs)
 
 
 
@@ -66,60 +66,31 @@ def openNode(node, mode = 'r'):
 	if mode == 'r':
 		return ROFileNode(node)
 	elif mode == 'a+':
-		return RWFileNode(node, None)
+		return RAFileNode(node, None)
 	else:
 		raise IOError("invalid mode: %s" % mode)
 
 
 
-class FileNode(object):
-	"""FileNode() -> file node object
+class ReadableMixin:
+	"""Mix-in class which provides reading methods for readable file nodes.
 
-	Creates a new file node associated with a PyTables node,
-	providing a standard Python file interface to it.
-
-	This abstract class provides only an implementation of
-	the reading methods needed to implement a file-like object
-	over a PyTables node.
-	The attribute set of the node becomes available via
-	the 'attrs' property.
-	You can add attributes there, but try to avoid
-	attribute names in all caps or starting with '_',
-	since they may clash with internal attributes.
-
-	The node used as storage is also made available via
-	the read-only attribute 'node'.
-	Please do not tamper with this object unless unavoidably,
-	since you may break the operation of the file node object.
-
-	The 'lineSeparator' property contains the string
-	used as a line separator, and defaults to os.linesep.
+	It also defines the 'lineSeparator' property,
+	which contains the string used as a line separator,
+	and defaults to os.linesep.
 	It can be set to any reasonably-sized string you want.
 
-	The constructor sets the 'closed', 'softspace' and '_lineSeparator'
-	attributes to their initial values, as well as the 'node' attribute
-	to None.
-	Sub-classes should set the 'node', 'mode', 'offset'
-	and '_version' attributes.
-
-	Version 1 implements the file storage as a UInt8 uni-dimensional EArray.
+	This class requires support for:
+		* 'offset' and 'node' attributes
+		* _checkNotClosed() and seek() methods
 	"""
-
-	# The atom representing a byte in the array, for each version.
-	_byteAtom = [
-		None,
-		tables.UInt8Atom(shape=(0, 1)),
-		tables.UInt8Atom(shape=(0,))]
-
-	# A lambda to turn a size into a shape, for each version.
-	_sizeToShape = [
-		None,
-		lambda l: (l, 1),
-		lambda l: (l,)]
 
 	# The number of bytes readline() reads at a time.
 	_lineChunkSize = 128
 
+
+	# The line separator string.
+	_lineSeparator = os.linesep
 
 	# The line separator string property methods.
 	def getLineSeparator(self):
@@ -151,130 +122,8 @@ class FileNode(object):
 		"A property containing the line separator string.")
 
 
-	# The attribute set property methods.
-	def getAttrs(self):
-		"getAttrs() -> AttributeSet.  Gets the attribute set of the file node."
-
-		return self.node.attrs
-
-	def setAttrs(self, value):
-		"setAttrs(string) -> None.  Raises ValueError."
-
-		raise ValueError("changing the whole attribute set is not allowed")
-
-	def delAttrs(self):
-		"delAttrs() -> None.  Raises ValueError."
-
-		raise ValueError("deleting the whole attribute set is not allowed")
-
-	# The attribute set property.
-	attrs = property(
-		getAttrs, setAttrs, delAttrs,
-		"A property pointing to the attribute set of the file node.")
-
-
-	def __init__(self):
-		super(FileNode, self).__init__()
-
-		# The constructor of the subclass must set the value of
-		# the instance attributes 'node', 'mode', 'offset' and '_version'.
-		# It also has to set or check the node attributes.
-		self.closed = False
-		self.sofstpace = 0
-		self._lineSeparator = os.linesep
-
-		self.node   = None
-		self.mode   = None
-		self.offset = None
-		self._version = None
-
-
-	def __del__(self):
-		if self.node is not None:
-			self.close()
-
-
 	def __iter__(self):
 		return self
-
-
-	def _setAttributes(self, node):
-		"""_setAttributes(node) -> None.  Adds file node-specific attributes.
-
-		Adds the attributes '_type' and '_type_version' to the specified
-		PyTables node (leaf).
-		"""
-
-		attrs = node.attrs
-		attrs._type         = NodeType
-		attrs._type_version = NodeTypeVersions[-1]
-
-
-	def _checkAttributes(self, node):
-		"""_checkAttributes(node) -> None.  Checks file node-specific attributes.
-
-		Checks for the presence and validity of the attributes '_type'
-		and '_type_version' in the specified PyTables node (leaf).
-		ValueError is raised if an attribute is missing or incorrect.
-		"""
-
-		attrs = node.attrs
-		ltype    = getattr(attrs, '_type', None)
-		ltypever = getattr(attrs, '_type_version', None)
-
-		if ltype != NodeType:
-			raise ValueError("invalid type of node object: %s", ltype)
-		if ltypever not in NodeTypeVersions:
-			raise ValueError(
-				"unsupported type version of node object: %s", ltypever)
-
-
-	def _checkNotClosed(self):
-		"""_checkNotClosed() -> None.  Checks if file node is open.
-
-		Checks whether the file node is open or has been closed.
-		In the second case, a ValueError is raised.
-		If the host PyTables has been closed, ValueError is also raised.
-		"""
-
-		if self.closed:
-			raise ValueError("I/O operation on closed file")
-		if getattr(self.node, '_v_file', None) is None:
-			raise ValueError("host PyTables file is already closed!")
-
-
-	def close(self):
-		"""close() -> None.  Closes the file node.
-
-		Flushes the file and closes it.
-		The 'node' attribute becomes None
-		and the 'attrs' property becomes no longer available.
-		See file.close.__doc__ for more information.
-		"""
-
-		# Only flush the first time the file is closed,
-		# taking care of not doing it if the host PyTables file
-		# has already been closed.
-		if not self.closed:
-			if getattr(self.node, '_v_file', None) is None:
-				warnings.warn("host PyTables file is already closed!")
-			else:
-				self.flush()
-
-		# Set the flag every time the method is called.
-		self.closed = True
-		# Release node object to allow closing the file.
-		self.node = None
-
-
-	def flush(self):
-		"""flush() -> None.  Flushes the file node.
-
-		See file.flush.__doc__ for more information.
-		"""
-
-		self._checkNotClosed()
-		# Do nothing.
 
 
 	def next(self):
@@ -330,7 +179,7 @@ class FileNode(object):
 		# Set the remaining bytes to read to the specified size.
 		remsize = size
 
-		lseplen = len(self.lineSeparator)
+		lseplen = len(self._lineSeparator)
 		partial = []
 		finished = False
 
@@ -345,7 +194,7 @@ class FileNode(object):
 
 			if ibufflen >= lseplen:
 				# Separator fits, look for EOL string.
-				eolindex = ibuff.find(self.lineSeparator)
+				eolindex = ibuff.find(self._lineSeparator)
 			elif ibufflen == 0:
 				# EOF was immediately reached.
 				finished = True
@@ -424,39 +273,80 @@ class FileNode(object):
 		return lines
 
 
-	def seek(self, offset, whence = 0):
-		"""seek(offset[, whence]) -> None.  Moves to a new file position.
+	def xreadlines(self):
+		"""xreadlines() -> self.  For backward compatibility.
 
-		See file.seek.__doc__ for more information.
+		See file.xreadlines.__doc__ for more information.
+		"""
+
+		return self
+
+
+
+class NotReadableMixin:
+	"""Mix-in class which provides reading methods for non-readable file nodes.
+
+	This class requires support for:
+		* _checkNotClosed() method
+	"""
+
+	def _notReadableError(self):
+		"""_notReadableError() -> None
+
+		Raises a common IOError exception for non-readable file nodes.
+		"""
+		raise IOError("the file is not readable")
+
+
+	# The definition of those methods may seem odd
+	# but it is the way Python (2.3) files work.
+
+	def __iter__(self):
+		return self
+
+
+	def next(self):
+		"""next() -> string.  Gets the next line of text.
+
+		Raises IOError.
+		See file.next.__doc__ for more information.
 		"""
 
 		self._checkNotClosed()
-
-		if whence == 0:
-			newoffset = offset  # Absolute positioning.
-		elif whence == 1:
-			newoffset = self.offset + offset  # From pointer positioning.
-		elif whence == 2:
-			newoffset = self.node.nrows + offset  # From (real) end positioning.
-		else:
-			raise ValueError("invalid positioning mode")
-
-		if newoffset < 0:
-			# Positioning before the beginning is not allowed.
-			raise IOError("can not seek before beginning of file")
-		else:
-			# Positioning beyond the end is allowed.
-			self.offset = newoffset
+		self._notReadableError()
 
 
-	def tell(self):
-		"""tell() -> long integer.  Gets the current file position.
+	def read(self, size = None):
+		"""read([size]) -> string.  Reads at most 'size' bytes.
 
-		See file.tell.__doc__ for more information.
+		Raises IOError.
+		See file.read.__doc__ for more information.
 		"""
 
 		self._checkNotClosed()
-		return self.offset
+		self._notReadableError()
+
+
+	def readline(self, size = -1):
+		"""readline([size]) -> string.  Reads the next text line.
+
+		Raises IOError.
+		See file.readline.__doc__ for more information.
+		"""
+
+		self._checkNotClosed()
+		self._notReadableError()
+
+
+	def readlines(self, sizehint = -1):
+		"""readlines([sizehint]) -> list of strings.  Reads the text lines.
+
+		Raises IOError.
+		See file.readlines.__doc__ for more information.
+		"""
+
+		self._checkNotClosed()
+		self._notReadableError()
 
 
 	def xreadlines(self):
@@ -469,32 +359,23 @@ class FileNode(object):
 
 
 
-class ROFileNode(FileNode):
-	"""ROFileNode(node) -> read-only file node object
+class NotWritableMixin:
+	"""Mix-in class which provides writing methods for non-writable file nodes.
 
-	Creates a new read-only file node associated with the specified
-	PyTables node, providing a standard Python file interface to it.
-	The node has to have been created on a previous occasion
-	using the newNode() function.
-
-	This constructor is not intended to be used directly.
-	Use the openNode() function instead.
+	This class requires support for:
+		* _checkNotClosed() method
 	"""
 
-	# Since FileNode provides all methods for read-only access,
-	# only the constructor method and failing writing methods are needed.
-	def __init__(self, node):
-		super(ROFileNode, self).__init__()
-		self._checkAttributes(node)
 
-		self.node = node
-		self.mode = 'r'
-		self.offset = 0L
-		self._version = node.attrs._type_version
+	# The definition of those methods may seem odd
+	# but it is the way Python (2.3) files work.
 
+	def _notWritableError(self):
+		"""_notWritableError() -> None
 
-	def __del__(self):
-		super(ROFileNode, self).__del__()
+		Raises a common IOError exception for non-writable file nodes.
+		"""
+		raise IOError("the file is not writable")
 
 
 	def truncate(self, size = None):
@@ -504,9 +385,8 @@ class ROFileNode(FileNode):
 		See file.truncate.__doc__ for more information.
 		"""
 
-		# This may seem odd but it is the way Python (2.3) files work.
 		self._checkNotClosed()
-		raise IOError("file is read-only")
+		self._notWritableError()
 
 
 	def write(self, string):
@@ -516,9 +396,8 @@ class ROFileNode(FileNode):
 		See file.write.__doc__ for more information.
 		"""
 
-		# This may seem odd but it is the way Python (2.3) files work.
 		self._checkNotClosed()
-		raise IOError("file is read-only")
+		self._notWritableError()
 
 
 	def writelines(self, sequence):
@@ -528,81 +407,18 @@ class ROFileNode(FileNode):
 		See file.writelines.__doc__ for more information.
 		"""
 
-		# This may seem odd but it is the way Python (2.3) files work.
 		self._checkNotClosed()
-		raise IOError("file is read-only")
+		self._notWritableError()
 
 
 
-class RWFileNode(FileNode):
-	"""__init__(node, None), __init__(None, file, ...) -> writable file node object
+class AppendableMixin:
+	"""Mix-in class which provides writing methods for appendable file nodes.
 
-	Creates a new read-write file node.
-	The first syntax opens the specified PyTables node,
-	while the second one creates a new node in the specified PyTables file.
-	In the second case, additional named arguments 'where' and 'name'
-	must be passed to specify where the file node is to be created.
-	Other named arguments such as 'title' and 'filters' may also be passed.
-	The special named argument 'expectedsize', indicating an estimate
-	of the file size in bytes, may also be passed.
-
-	Write access means reading as well as appending data is allowed.
-
-	This constructor is not intended to be used directly.
-	Use the newNode() or openNode() functions instead.
+	This class requires support for:
+		* 'offset', 'node', '_vType' and '_vShape' attributes
+		* _checkNotClosed() method
 	"""
-
-	__allowedInitKwArgs = ['where', 'name', 'title', 'filters', 'expectedsize']
-
-
-	def __init__(self, node, h5file, **kwargs):
-		super(RWFileNode, self).__init__()
-
-		if node is not None:
-			# Open an existing node and get its version.
-			self._checkAttributes(node)
-			self._version = node.attrs._type_version
-		elif h5file is not None:
-			# Check for allowed keyword arguments,
-			# to avoid unwanted arguments falling through to array constructor.
-			for kwarg in kwargs:
-				if kwarg not in self.__allowedInitKwArgs:
-					raise TypeError(
-						"%s keyword argument is not allowed" % repr(kwarg))
-
-			# Turn 'expectedsize' into 'expectedrows'.
-			if 'expectedsize' in kwargs:
-				# These match since one byte is stored per row.
-				expectedrows = kwargs['expectedsize']
-				kwargs = kwargs.copy()
-				del kwargs['expectedsize']
-				kwargs['expectedrows'] = expectedrows
-
-			# Create a new array in the specified PyTables file.
-			self._version = NodeTypeVersions[-1]
-			node = h5file.createEArray(
-				atom = self._byteAtom[self._version], **kwargs)
-
-			# Set the node attributes, else remove the array itself.
-			try:
-				self._setAttributes(node)
-			except RuntimeError:
-				h5file.removeNode(kwargs['where'], kwargs['name'])
-				raise
-
-		# Set required attributes (besides of '_version').
-		self.node = node
-		self.mode = 'a+'
-		self.offset = 0L
-
-		# Cache some dictionary lookups regarding file version.
-		self.__vType = self._byteAtom[self._version].type
-		self.__vShape = self._sizeToShape[self._version]
-
-
-	def __del__(self):
-		super(RWFileNode, self).__del__()
-
 
 	def _appendZeros(self, size):
 		"""_appendZeros(size) -> None.  Appends a string of zeros.
@@ -616,17 +432,7 @@ class RWFileNode(FileNode):
 			return
 		# XXX This may be redone to avoid a potentially large in-memory array.
 		self.node.append(
-			numarray.zeros(type = self.__vType, shape = self.__vShape(size)))
-
-
-	def flush(self):
-		"""flush() -> None.  Flushes the file node.
-
-		See file.flush.__doc__ for more information.
-		"""
-
-		self._checkNotClosed()
-		self.node.flush()
+			numarray.zeros(type = self._vType, shape = self._vShape(size)))
 
 
 	def truncate(self, size = None):
@@ -674,7 +480,7 @@ class RWFileNode(FileNode):
 		self.node.append(
 			numarray.array(
 				string,
-				type = self.__vType, shape = self.__vShape(len(string))))
+				type = self._vType, shape = self._vShape(len(string))))
 
 		# Move the pointer to the end of the written data.
 		self.offset = self.node.nrows
@@ -688,6 +494,325 @@ class RWFileNode(FileNode):
 
 		for line in sequence:
 			self.write(line)
+
+
+
+class FileNode(object):
+	"""FileNode() -> file node object
+
+	Creates a new file node associated with a PyTables node,
+	providing a standard Python file interface to it.
+
+	This abstract class only provides attribute handling
+	and file operations which do not depend on the file mode.
+
+	The attribute set of the node becomes available via
+	the 'attrs' property.
+	You can add attributes there, but try to avoid
+	attribute names in all caps or starting with '_',
+	since they may clash with internal attributes.
+
+	The node used as storage is also made available via
+	the read-only attribute 'node'.
+	Please do not tamper with this object unless unavoidably,
+	since you may break the operation of the file node object.
+
+	The constructor sets the 'closed' and 'softspace' attributes
+	to their initial values, as well as the 'node' attribute to None.
+	Sub-classes should set the 'node', 'mode', 'offset'
+	and '_version' attributes,
+	as well as define mode-dependent methods.
+
+	Version 1 implements the file storage as an UInt8 Nx1 matrix EArray;
+	version 2 uses an UInt8 N vector EArray.
+	"""
+
+	# The atom representing a byte in the array, for each version.
+	_byteAtom = [
+		None,
+		tables.UInt8Atom(shape=(0, 1)),
+		tables.UInt8Atom(shape=(0,))]
+
+	# A lambda to turn a size into a shape, for each version.
+	_sizeToShape = [
+		None,
+		lambda l: (l, 1),
+		lambda l: (l,)]
+
+
+	# The attribute set property methods.
+	def getAttrs(self):
+		"getAttrs() -> AttributeSet.  Gets the attribute set of the file node."
+
+		return self.node.attrs
+
+	def setAttrs(self, value):
+		"setAttrs(string) -> None.  Raises ValueError."
+
+		raise ValueError("changing the whole attribute set is not allowed")
+
+	def delAttrs(self):
+		"delAttrs() -> None.  Raises ValueError."
+
+		raise ValueError("deleting the whole attribute set is not allowed")
+
+	# The attribute set property.
+	attrs = property(
+		getAttrs, setAttrs, delAttrs,
+		"A property pointing to the attribute set of the file node.")
+
+
+	def __init__(self):
+		super(FileNode, self).__init__()
+
+		# The constructor of the subclass must set the value of
+		# the instance attributes 'node', 'mode', 'offset' and '_version'.
+		# It also has to set or check the node attributes.
+		self.closed = False
+		self.sofstpace = 0
+
+		self.node   = None
+		self.mode   = None
+		self.offset = None
+		self._version = None
+
+
+	def __del__(self):
+		if self.node is not None:
+			self.close()
+
+
+	def _setAttributes(self, node):
+		"""_setAttributes(node) -> None.  Adds file node-specific attributes.
+
+		Adds the attributes '_type' and '_type_version' to the specified
+		PyTables node (leaf).
+		"""
+
+		attrs = node.attrs
+		attrs._type         = NodeType
+		attrs._type_version = NodeTypeVersions[-1]
+
+
+	def _checkAttributes(self, node):
+		"""_checkAttributes(node) -> None.  Checks file node-specific attributes.
+
+		Checks for the presence and validity of the attributes '_type'
+		and '_type_version' in the specified PyTables node (leaf).
+		ValueError is raised if an attribute is missing or incorrect.
+		"""
+
+		attrs = node.attrs
+		ltype    = getattr(attrs, '_type', None)
+		ltypever = getattr(attrs, '_type_version', None)
+
+		if ltype != NodeType:
+			raise ValueError("invalid type of node object: %s", ltype)
+		if ltypever not in NodeTypeVersions:
+			raise ValueError(
+				"unsupported type version of node object: %s", ltypever)
+
+
+	def _checkNotClosed(self):
+		"""_checkNotClosed() -> None.  Checks if file node is open.
+
+		Checks whether the file node is open or has been closed.
+		In the second case, a ValueError is raised.
+		If the host PyTables has been closed, ValueError is also raised.
+		"""
+
+		if self.closed:
+			raise ValueError("I/O operation on closed file")
+		if getattr(self.node, '_v_file', None) is None:
+			raise ValueError("host PyTables file is already closed!")
+
+
+	def close(self):
+		"""close() -> None.  Closes the file node.
+
+		Flushes the file and closes it.
+		The 'node' attribute becomes None
+		and the 'attrs' property becomes no longer available.
+		See file.close.__doc__ for more information.
+		"""
+
+		# Only flush the first time the file is closed,
+		# taking care of not doing it if the host PyTables file
+		# has already been closed.
+		if not self.closed:
+			if getattr(self.node, '_v_file', None) is None:
+				warnings.warn("host PyTables file is already closed!")
+			else:
+				self.flush()
+
+		# Set the flag every time the method is called.
+		self.closed = True
+		# Release node object to allow closing the file.
+		self.node = None
+
+
+	def flush(self):
+		"""flush() -> None.  Flushes the file node.
+
+		See file.flush.__doc__ for more information.
+		"""
+
+		raise NotImplementedError
+
+
+	def seek(self, offset, whence = 0):
+		"""seek(offset[, whence]) -> None.  Moves to a new file position.
+
+		See file.seek.__doc__ for more information.
+		"""
+
+		self._checkNotClosed()
+
+		if whence == 0:
+			newoffset = offset  # Absolute positioning.
+		elif whence == 1:
+			newoffset = self.offset + offset  # From pointer positioning.
+		elif whence == 2:
+			newoffset = self.node.nrows + offset  # From (real) end positioning.
+		else:
+			raise ValueError("invalid positioning mode")
+
+		if newoffset < 0:
+			# Positioning before the beginning is not allowed.
+			raise IOError("can not seek before beginning of file")
+		else:
+			# Positioning beyond the end is allowed.
+			self.offset = newoffset
+
+
+	def tell(self):
+		"""tell() -> long integer.  Gets the current file position.
+
+		See file.tell.__doc__ for more information.
+		"""
+
+		self._checkNotClosed()
+		return self.offset
+
+
+
+class ROFileNode(ReadableMixin, NotWritableMixin, FileNode):
+	"""ROFileNode(node) -> read-only file node object
+
+	Creates a new read-only file node associated with the specified
+	PyTables node, providing a standard Python file interface to it.
+	The node has to have been created on a previous occasion
+	using the newNode() function.
+
+	This constructor is not intended to be used directly.
+	Use the openNode() function instead.
+	"""
+
+	# Since FileNode provides all methods for read-only access,
+	# only the constructor method and failing writing methods are needed.
+	def __init__(self, node):
+		super(ROFileNode, self).__init__()
+		self._checkAttributes(node)
+
+		self.node = node
+		self.mode = 'r'
+		self.offset = 0L
+		self._version = node.attrs._type_version
+
+
+	def __del__(self):
+		super(ROFileNode, self).__del__()
+
+
+	def flush(self):
+		"""flush() -> None.  Flushes the file node.
+
+		See file.flush.__doc__ for more information.
+		"""
+
+		self._checkNotClosed()
+		# Do nothing.
+
+
+
+class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
+	"""__init__(node, None), __init__(None, file, ...) -> writable file node object
+
+	Creates a new read-write file node.
+	The first syntax opens the specified PyTables node,
+	while the second one creates a new node in the specified PyTables file.
+	In the second case, additional named arguments 'where' and 'name'
+	must be passed to specify where the file node is to be created.
+	Other named arguments such as 'title' and 'filters' may also be passed.
+	The special named argument 'expectedsize', indicating an estimate
+	of the file size in bytes, may also be passed.
+
+	Write access means reading as well as appending data is allowed.
+
+	This constructor is not intended to be used directly.
+	Use the newNode() or openNode() functions instead.
+	"""
+
+	__allowedInitKwArgs = ['where', 'name', 'title', 'filters', 'expectedsize']
+
+
+	def __init__(self, node, h5file, **kwargs):
+		super(RAFileNode, self).__init__()
+
+		if node is not None:
+			# Open an existing node and get its version.
+			self._checkAttributes(node)
+			self._version = node.attrs._type_version
+		elif h5file is not None:
+			# Check for allowed keyword arguments,
+			# to avoid unwanted arguments falling through to array constructor.
+			for kwarg in kwargs:
+				if kwarg not in self.__allowedInitKwArgs:
+					raise TypeError(
+						"%s keyword argument is not allowed" % repr(kwarg))
+
+			# Turn 'expectedsize' into 'expectedrows'.
+			if 'expectedsize' in kwargs:
+				# These match since one byte is stored per row.
+				expectedrows = kwargs['expectedsize']
+				kwargs = kwargs.copy()
+				del kwargs['expectedsize']
+				kwargs['expectedrows'] = expectedrows
+
+			# Create a new array in the specified PyTables file.
+			self._version = NodeTypeVersions[-1]
+			node = h5file.createEArray(
+				atom = self._byteAtom[self._version], **kwargs)
+
+			# Set the node attributes, else remove the array itself.
+			try:
+				self._setAttributes(node)
+			except RuntimeError:
+				h5file.removeNode(kwargs['where'], kwargs['name'])
+				raise
+
+		# Set required attributes (besides of '_version').
+		self.node = node
+		self.mode = 'a+'
+		self.offset = 0L
+
+		# Cache some dictionary lookups regarding file version.
+		self._vType = self._byteAtom[self._version].type
+		self._vShape = self._sizeToShape[self._version]
+
+
+	def __del__(self):
+		super(RAFileNode, self).__del__()
+
+
+	def flush(self):
+		"""flush() -> None.  Flushes the file node.
+
+		See file.flush.__doc__ for more information.
+		"""
+
+		self._checkNotClosed()
+		self.node.flush()
 
 
 
