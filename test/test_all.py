@@ -60,16 +60,15 @@ if __name__ == '__main__':
     print '-=' * 38
     print "PyTables version:  %s" % tables.__version__
     print "Extension version: %s" % tables.ExtVersion
-    print "HDF5 version:      %s" % tables.HDF5Version
+    print "HDF5 version:      %s" % tables.whichLibVersion("hdf5")[1]
+    #print "HDF5 version:      %s" % tables.HDF5Version
     print "numarray version:  %s" % numarray.__version__
-    tinfo = tables.isLibAvailable("zlib")
-    #print "zlib version:      %s" % tinfo[1]
-    tinfo = tables.isLibAvailable("lzo")
+    print "Zlib version:      %s" % tables.whichLibVersion("zlib")[1]
+    tinfo = tables.whichLibVersion("lzo")
     if tinfo[0]:
         print "LZO version:       %s (%s)" % (tinfo[1], tinfo[2])
-    tinfo = tables.isLibAvailable("ucl")
-    #if type(tinfo) is type(()):
-    if tinfo[0]: ### Hi ha que arreglar-ho!
+    tinfo = tables.whichLibVersion("ucl")
+    if tinfo[0]:
         print "UCL version:       %s (%s)" % (tinfo[1], tinfo[2])
     print 'Python version:    %s' % sys.version
     if os.name == 'posix':
@@ -78,5 +77,14 @@ if __name__ == '__main__':
     print 'Byte-ordering:     %s' % sys.byteorder
     print '-=' * 38
 
-    unittest.main( defaultTest='suite' )
+    # Handle --only-versions
+    only_versions = 0
+    args = sys.argv[:]
+    for arg in args:
+        if arg == '--only-versions':
+            only_versions = 1
+            sys.argv.remove(arg)
+
+    if not only_versions:
+        unittest.main( defaultTest='suite' )
 

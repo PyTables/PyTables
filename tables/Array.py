@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.51 2003/12/21 19:35:45 falted Exp $
+#       $Id: Array.py,v 1.52 2003/12/27 22:54:34 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.51 $"
+__version__ = "$Revision: 1.52 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -66,7 +66,7 @@ class Array(Leaf, hdf5Extension.Array, object):
 
         type -- The type class for the array.
         itemsize -- The size of the atomic items. Specially useful for
-            CharArrays.
+            CharArray objects.
         flavor -- The object type of this object (Numarray, Numeric, List,
             Tuple, String, Int of Float).
         nrows -- The value of the first dimension of Array.
@@ -321,33 +321,6 @@ class Array(Leaf, hdf5Extension.Array, object):
             else:
                 return self.listarr    # Scalar case
 
-#     def __getitem__orig(self, key):
-#         """Returns a table row, table slice or table column.
-
-#         It takes different actions depending on the type of the "key"
-#         parameter:
-
-#         If "key"is an integer, the corresponding row is returned. If
-#         "key" is a slice, the row slice determined by key is returned.
-
-# """
-
-#         if isinstance(key, types.IntType):
-#             (start, stop, step) = (key, key+1, 1)
-#             ret = self.read(start, stop, step)
-#         elif isinstance(key, types.SliceType):
-#             (start, stop, step) = processRange(self.nrows, key.start, key.stop, key.step)
-#             ret = self.read(start, stop, step)
-#         else:
-#             raise ValueError, "Non-valid index or slice: %s" % \
-#                   key
-
-#         if len(range(start, stop, step)) == 1 and self.extdim > 0:
-#             ret.swapaxes(self.extdim, 0)
-#             return ret[0]
-#         else:
-#             return ret
-        
     def __getitem__(self, keys):
         """Returns an Array row or slice.
 
@@ -357,41 +330,54 @@ class Array(Leaf, hdf5Extension.Array, object):
         If "key"is an integer, the corresponding row is returned. If
         "key" is a slice, the row slice determined by key is returned.
 
-"""
-
-        #print "maxtuples (2)-->", self._v_maxTuples, self._v_chunksize
+        """
 
         if self.shape == ():
             # Scalar case
-            #return self.read()
-            raise IndexError, "You cannot read scalar arrays through indexing. Try using the read() method instead."
-                
-        shape = (len(self.shape),)
+            raise IndexError, "You cannot read scalar Arrays through indexing. Try using the read() method better."
+
+        maxlen = len(self.shape)
+        shape = (maxlen,)
         startl = numarray.array(None, shape=shape, type=numarray.Int64)
         stopl = numarray.array(None, shape=shape, type=numarray.Int64)
         stepl = numarray.array(None, shape=shape, type=numarray.Int64)
-        dim = 0
-        stop_None_in_1st_dim = 0
+        stop_None = numarray.zeros(shape=shape, type=numarray.Int64)
         if not isinstance(keys, types.TupleType):
             keys = (keys,)
+        nkeys = len(keys)
+        dim = 0
         for key in keys:
-            if isinstance(key, types.IntType):
-                (start, stop, step) = processRange(self.shape[dim], key, key+1, 1)
-                if dim == 0:
-                    stop_None_in_1st_dim = 1
+            ellipsis = 0  # Sentinel
+            if dim >= maxlen:
+                raise IndexError, "Too many indices for object '%s'" % \
+                      self._v_pathname
+            if isinstance(key, types.EllipsisType):
+                ellipsis = 1
+                for diml in range(dim, len(self.shape) - (nkeys - dim) + 1):
+                    startl[dim] = 0
+                    stopl[dim] = self.shape[diml]
+                    stepl[dim] = 1
+                    dim += 1
+            elif isinstance(key, types.IntType):
+                (start, stop, step) = processRange(self.shape[dim],
+                                                   key, key+1, 1)
+                stop_None[dim] = 1
             elif isinstance(key, types.SliceType):
                 if key.stop == None:
                     stop = self.shape[dim]
                 else:
                     stop = key.stop
-                (start, stop, step) = processRange(self.shape[dim], key.start, stop, key.step)
+                (start, stop, step) = processRange(self.shape[dim],
+                                                   key.start, stop, key.step)
             else:
                 raise ValueError, "Non-valid index or slice: %s" % \
                       key
-            startl[dim] = start
-            stopl[dim] = stop
-            stepl[dim] = step
-            dim += 1
+            if not ellipsis:
+                startl[dim] = start
+                stopl[dim] = stop
+                stepl[dim] = step
+                dim += 1
+            
         # Complete the other dimensions, if needed
         if dim < len(self.shape):
             for diml in range(dim, len(self.shape)):
@@ -400,13 +386,10 @@ class Array(Leaf, hdf5Extension.Array, object):
                 stepl[dim] = 1
                 dim += 1
 
-#         print "startl-->", startl
-#         print "stopl-->", stopl
-#         print "stepl-->", stepl
-        return self._readSlice(startl, stopl, stepl, stop_None_in_1st_dim)
+        return self._readSlice(startl, stopl, stepl, stop_None)
 
     # Accessor for the _readArray method in superclass
-    def _readSlice(self, startl, stopl, stepl, stop_None_in_1st_dim):
+    def _readSlice(self, startl, stopl, stepl, stop_None):
 
         if self.extdim < 0:
             extdim = 0
@@ -415,14 +398,11 @@ class Array(Leaf, hdf5Extension.Array, object):
 
         shape = []
         for dim in range(len(self.shape)):
-            shape.append(((stopl[dim] - startl[dim] - 1) / stepl[dim]) + 1)
-
-        #if shape[0] == 1:
-        if shape[0] == 1 and stop_None_in_1st_dim:
-            # Correction for only one row in first dimension
-            shape = shape[1:]
+            new_dim = ((stopl[dim] - startl[dim] - 1) / stepl[dim]) + 1
+            if not (new_dim == 1 and stop_None[dim]):
+                # Append dimension
+                shape.append(new_dim)
             
-        #print "shape -->", shape
         if repr(self.type) == "CharType":
             arr = strings.array(None, itemsize=self.itemsize, shape=shape)
         else:
@@ -486,7 +466,7 @@ class Array(Leaf, hdf5Extension.Array, object):
         
     # Accessor for the _readArray method in superclass
     def read(self, start=None, stop=None, step=None):
-        """Read the array from disk and return it as a "flavor" object."""
+        """Read the array from disk and return it as a "self.flavor" object."""
 
         if self.extdim < 0:
             extdim = 0

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.29 2003/12/21 19:35:45 falted Exp $
+#       $Id: Leaf.py,v 1.30 2003/12/27 22:54:34 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.29 $"
+__version__ = "$Revision: 1.30 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize
@@ -58,12 +58,12 @@ class Leaf:
         name -- the leaf node name
         hdf5name -- the HDF5 leaf node name
         objectID -- the HDF5 object ID of the Leaf node
-        title -- the leaf title
+        title -- the leaf title (actually a property)
         shape -- the leaf shape
-        complevel -- the compression level (0 means no compression)
-        complib -- the compression filter
-        shuffle -- whether the shuffle filter is active or not
         byteorder -- the byteorder of the leaf
+        complevel -- the compression level (0 means no compression)
+        complib -- the compression filter used (in case of compressed dataset)
+        shuffle -- whether the shuffle filter is active or not
         attrs -- The associated AttributeSet instance
 
     """
@@ -112,7 +112,7 @@ class Leaf:
         self.complib = complib
         self.shuffle = shuffle
         if complevel:
-            if hdf5Extension.isLibAvailable(complib)[0]:
+            if hdf5Extension.whichLibVersion(complib)[0]:
                 self.complib = complib
             else:
                 warnings.warn( \

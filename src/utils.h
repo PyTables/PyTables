@@ -69,6 +69,10 @@ typedef struct {
 
 PyObject *_getTablesVersion(void);
 
+PyObject *getZLIBVersionInfo(void);
+
+PyObject *getHDF5VersionInfo(void);
+
 PyObject *createNamesTuple(char *buffer[], int nelements);
 
 PyObject *get_filter_names( hid_t loc_id, const char *dset_name);

@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.61 2003/12/20 12:59:55 falted Exp $
+#       $Id: File.py,v 1.62 2003/12/27 22:54:34 falted Exp $
 #
 ########################################################################
 
@@ -31,10 +31,10 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.61 $"
+__version__ = "$Revision: 1.62 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
-format_version = "1.2"  # Support for enlargeable arrays
+format_version = "1.2"  # Support for enlargeable arrays and VLA's
 compatible_formats = [] # Old format versions we can read
                         # Empty means that we support all the old formats
 
@@ -190,6 +190,7 @@ class File(hdf5Extension.File, object):
     Instance variables:
 
         filename -- filename opened
+        format_version -- The PyTables version number of this file
         isopen -- 1 if the underlying file is still open; 0 if not
         mode -- mode in which the filename was opened
         title -- the title of the root group in file
@@ -198,7 +199,7 @@ class File(hdf5Extension.File, object):
         trMap -- the mapping between python and HDF5 domain names
         objects -- dictionary with all objects (groups or leaves) on tree
         groups -- dictionary with all object groups on tree
-        leaves -- dictionary with all object leaves on tre.
+        leaves -- dictionary with all object leaves on tree
 
     """
 
@@ -303,7 +304,7 @@ class File(hdf5Extension.File, object):
             attrsRoot._g_setAttrStr('VERSION', "1.0")
             
             # Finally, save the PyTables format version for this file
-            self._format_version = format_version
+            self.format_version = format_version
             attrsRoot._g_setAttrStr('PYTABLES_FORMAT_VERSION', format_version)
             # Add these attributes to the dictionary
             attrsRoot._v_attrnames.extend(['TITLE','CLASS','VERSION',
@@ -320,12 +321,12 @@ class File(hdf5Extension.File, object):
 
         else:
             # Firstly, get the PyTables format version for this file
-            self._format_version = hdf5Extension.read_f_attr(self._v_objectID,
+            self.format_version = hdf5Extension.read_f_attr(self._v_objectID,
                                                      'PYTABLES_FORMAT_VERSION')
             
-            if not self._format_version or not self._isPTFile:
+            if not self.format_version or not self._isPTFile:
                 # PYTABLES_FORMAT_VERSION attribute is not present
-                self._format_version = "unknown"
+                self.format_version = "unknown"
                           
             # Get the title for the rootGroup group
             rootGroup.__dict__["_v_title"] = attrsRoot.TITLE
@@ -370,7 +371,7 @@ class File(hdf5Extension.File, object):
     
         """Create a new Group instance with name "name" in "where" location.
         "where" parameter can be a path string (for example
-        "/Particles/TParticle1"), or another Group instance. A TITLE
+        "/level1/leaf5"), or another Group instance. A TITLE
         attribute will be set on this group if optional "title" parameter is
         passed."""
 
@@ -391,10 +392,9 @@ class File(hdf5Extension.File, object):
 
         Keyword arguments:
 
-        where -- The parent group where the new table will
-            hang. "where" parameter can be a path string (for
-            example "/Particles/TParticle1"), or Group
-            instance.
+        where -- The parent group where the new table will hang
+            from. "where" parameter can be a path string (for example
+            "/level1/leaf5"), or Group instance.
 
         name -- The name of the new table.
 
@@ -414,8 +414,11 @@ class File(hdf5Extension.File, object):
 
         shuffle -- Whether or not to use the shuffle filter in the
             HDF5 library. This is normally used to improve the
-            compression ratio. A value of 0 disables shuffling and it
-            is the default.
+            compression ratio. A value of 0 disables shuffling and 1
+            makes it active. The default value depends on whether
+            compression is enabled or not; if compression is enabled,
+            shuffling defaults to be active, else shuffling is
+            disabled.
 
         expectedrows -- An user estimate about the number of rows that
             will be on table. If not provided, the default value is
@@ -441,10 +444,9 @@ class File(hdf5Extension.File, object):
 
         Keyword arguments:
 
-        where -- The parent group where the new table will
-            hang. "where" parameter can be a path string (for
-            example "/Particles/TParticle1"), or Group
-            instance.
+        where -- The parent group where the new table will hang
+            from. "where" parameter can be a path string (for example
+            "/level1/leaf5"), or Group instance.
 
         name -- The name of the new array.
 
@@ -471,10 +473,9 @@ class File(hdf5Extension.File, object):
 
         Keyword arguments:
 
-        where -- The parent group where the new table will
-            hang. "where" parameter can be a path string (for
-            example "/Particles/TParticle1"), or Group
-            instance.
+        where -- The parent group where the new table will hang
+            from. "where" parameter can be a path string (for example
+            "/level1/leaf5"), or Group instance.
 
         name -- The name of the new array.
 
@@ -496,8 +497,11 @@ class File(hdf5Extension.File, object):
 
         shuffle -- Whether or not to use the shuffle filter in the
             HDF5 library. This is normally used to improve the
-            compression ratio. A value of 0 disables shuffling and it
-            is the default.
+            compression ratio. A value of 0 disables shuffling and 1
+            makes it active. The default value depends on whether
+            compression is enabled or not; if compression is enabled,
+            shuffling defaults to be active, else shuffling is
+            disabled.
 
         expectedrows -- In the case of enlargeable arrays this
             represents an user estimate about the number of row
@@ -518,17 +522,16 @@ class File(hdf5Extension.File, object):
 
 
     def createVLArray(self, where, name, vlatom = None, title = "",
-                      compress = 0, complib = "zlib", shuffle = 0,
+                      compress = 0, complib = "zlib", shuffle = 1,
                       expectedsizeinMB = 1.0):
         
         """Create a new instance VLArray with name "name" in "where" location.
 
         Keyword arguments:
 
-        where -- The parent group where the new table will
-            hang. "where" parameter can be a path string (for
-            example "/Particles/TParticle1"), or Group
-            instance.
+        where -- The parent group where the new table will hang
+            from. "where" parameter can be a path string (for example
+            "/level1/leaf5"), or Group instance.
 
         name -- The name of the new array.
 
@@ -546,8 +549,11 @@ class File(hdf5Extension.File, object):
 
         shuffle -- Whether or not to use the shuffle filter in the
             HDF5 library. This is normally used to improve the
-            compression ratio. A value of 0 disables shuffling and it
-            is the default.
+            compression ratio. A value of 0 disables shuffling and 1
+            makes it active. The default value depends on whether
+            compression is enabled or not; if compression is enabled,
+            shuffling defaults to be active, else shuffling is
+            disabled.
 
         expectedsizeinMB -- An user estimate about the size (in MB) in
             the final VLArray object. If not provided, the default
@@ -826,10 +832,17 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         
         # Print all the nodes (Group and Leaf objects) on object tree
         date = time.asctime(time.localtime(os.stat(self.filename)[8]))
-        astring = "Filename: " + repr(self.filename) + \
-                  " Title: " + repr(self.title) + \
-                  " Last modif.: " + repr(date) + \
-                  '\n'
+#         astring = "Filename: " + repr(self.filename) + \
+#                   " Title: " + repr(self.title) + \
+#                   " Last modif.: " + repr(date) + \
+#                   '\n'
+        astring = "Filename: " + repr(self.filename)
+        if self.format_version <> "unknown":
+            astring += " Fmt: " + self.format_version + " "
+        if self.title <> "unknown":
+            astring += self.title + " "
+        astring += "Last modif.: " + repr(date) + '\n'
+
         for group in self.walkGroups("/"):
             astring += str(group) + '\n'
             for leaf in self.listNodes(group, 'Leaf'):

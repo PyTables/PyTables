@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <!DOCTYPE book PUBLIC "-//Torsten Bronger//DTD tbook 1.5//EN"
-                      "/usr/local/share/xml/tbook/tbook.dtd">
+"/usr/local/share/xml/tbook/tbook.dtd">
 <book>
   <frontmatter>
     <title><visual markup="tt">PyTables</visual> User's Guide</title>
-    <author>Francesc Alted</author>
+    <author>Francesc Alted, Scott Prater</author>
 
     <subtitle><visual markup="sf">A hierarchical database for
-      Python</visual><newline/> Release 0.7.2</subtitle>
+      Python</visual><newline/> Release 0.8</subtitle>
 
-    <date>2003, September, 22th</date>
-    <year>2002, 2003</year>
+    <date>2004, January, 2th</date>
+    <year>2002, 2003, 2004</year>
     <graphics kind="bitmap" file="logo4-ombra"/>
 <!--     <city>Castelló de la Plana, Spain</city> -->
-    <typeset>Francesc Alted</typeset>
+    <typeset>Francesc Alted, Scott Prater</typeset>
 
     <legalnotice>
 
 
-<!--	   Copyright (c) 2002, 2003 Francesc Alted -->
+<!--	   Copyright (c) 2002, 2003, 2004 Francesc Alted -->
 
       <p>Permission is hereby granted, free of charge, to any person
 	obtaining a copy of this software and associated documentation
@@ -183,25 +183,24 @@
     </legalnotice>
   </frontmatter>
 
-  <!--  This is only for article
+  <!--  This is only for the article
   <abstract>
 
   <p><visual markup="tt">PyTables</visual> is a Python package whose
-    goal is to allow dealing easily, but in a powerful way, with
+    goal is to provide a powerful and easy-to-use interface for managing
     scientific data tables and Numerical Python objects organized in a
     hierarchical structure. Such a tables are defined as a collection
-    of records whose values are stored in fixed-length fields. As a
-    foundation for the underlying hierarchical data organization the
-    excellent HDF5 library (http://hdf.ncsa.uiuc.edu/HDF5) has been
-    chosen.
+    of records whose values are stored in fixed-length fields. The 
+    excellent HDF5 library (http://hdf.ncsa.uiuc.edu/HDF5) is the
+    foundation for the underlying hierarchical data organization.
   </p>
 
-  <p><visual markup="tt">PyTables</visual> is intended to be
-    easy-to-use, and tries to be a high-performance interface to
-    HDF5. To achieve this, the newest improvements introduced in
-    Python 2.2 (like generators or slots and metaclasses in new-brand
-    classes) has been used. Pyrex creation extension tool has been
-    chosen to access the HDF5 library.
+  <p><visual markup="tt">PyTables</visual> is designed to be
+    an easy-to-use as well as high-performance interface to
+    HDF5.  The latest improvements introduced in Python 2.2 (such as 
+    generators, iterators and metaclasses in new-brand classes) have been 
+    used. The HDF5 library is accessed through the Pyrex creation 
+    extension tool.
   </p>
 
   </abstract> -->
@@ -214,58 +213,65 @@
     <chapter>
       <heading>Introduction</heading>
 
+      <!-- SGP:  I translated this aphorism, but not any of the
+      others.  I'd translate all the aphorisms, as it's a little
+      pendantic to assume your readers can read French, Spanish,
+      Valencian, Catalan, Portuguese, etc. -->
       <aphorism>La sabiduría no vale la pena si no es posible servirse
 	de ella para inventar una nueva manera de preparar los
-	garbanzos.<caption>Un sabio catalán<newline/> in "Cien años de
-	soledad"<newline/> Gabriel García Márquez</caption>
+	garbanzos (Wisdom isn't worth anything if you can't use it to
+	come up with a new way to cook garbanzos).
+	<caption>A wise Catalan<newline/>in "Cien años de soledad"<newline/>
+	Gabriel García Márquez</caption>
       </aphorism>
 
       <p>The goal of <verb>PyTables</verb> is to enable the end user
 	to manipulate easily scientific data <visual
-	markup="bf">tables</visual> and array objects objects in a
-	hierarchical structure. The foundation of the underlying
-	hierarchical data organization is the excellent
-	<verb>HDF5</verb> library (see <cite
-	refid="HDFWhatIs"></cite>).<!--  Right now, <verb>PyTables</verb> -->
-<!-- 	provides limited support for importing generic HDF5 files -->
-<!-- 	(i.e., those which were created with other tools than -->
-<!-- 	<verb>PyTables</verb>), but I hope to add the more interesting -->
-<!-- 	ones as time goes on. Still, I think <verb>PyTables</verb> can -->
-<!-- 	read a wide range of such files. -->
+	markup="bf">tables</visual> and <visual
+	markup="bf">array</visual> objects objects in a hierarchical
+	structure. The foundation of the underlying hierarchical data
+	organization is the excellent <verb>HDF5</verb> library (see
+	<cite refid="HDFWhatIs"></cite>).<!-- Right now,
+	<verb>PyTables</verb> --> <!-- provides limited support for
+	importing generic HDF5 files --> <!-- (i.e., those which were
+	created with other tools than --> <!-- <verb>PyTables</verb>),
+	but I hope to add the more interesting --> <!-- tools as time
+	goes on. Still, I think <verb>PyTables</verb> can --> <!--
+	read a wide range of such files. -->
       </p>
       <p>
-	It is important to remark that this package is not intended to
-	serve as a complete wrapper for the entire HDF5 API, but to
+	It should be noted that this package is not intended to
+	serve as a complete wrapper for the entire HDF5 API, but only to
 	provide a flexible, <em>very Pythonic</em> tool to deal with
-	(arbitrary) large amounts of data (typically bigger than
+	(arbitrarily) large amounts of data (typically bigger than
 	available memory) in tables and arrays organized in a
-	hierarchical, persistent disk storage.
+	hierarchical and persistent disk storage structure.
       </p>
 
       <p>A table is defined as a collection of records whose values
 	are stored in <em>fixed-length</em> fields. All records have
 	the same structure and all values in each field have the same
-	<em>data type</em>. The terms <em>fixed-length</em> and
-	strict <em>data types</em> seems to be quite a strange
-	requirement for an interpreted language like Python, but they
-	serve a useful function if the goal is to save very large
-	quantities of data (such as is generated by many scientific
-	applications, for example) in an efficient manner that reduces
-	demand on CPU time and I/O.
+	<em>data type</em>. The terms <em>fixed-length</em> and strict
+	<em>data types</em> may seem to be a strange requirement for
+	an interpreted language like Python, but they serve a useful
+	function if the goal is to save very large quantities of data
+	(such as is generated by many internet services applications
+	or scientific applications, for example) in an efficient
+	manner that reduces demand on CPU time and I/O.
       </p>
 
-      <p>In order to emulate records (that will be mapped to C structs
-	in HDF5) in Python <verb>PyTables</verb> implements a special
-	<em>metaclass</em> object in order to easily define all its
+      <p>In order to emulate in Python records mapped to HDF5 C
+	structs <verb>PyTables</verb> implements a special
+	<em>metaclass</em> object so as to easily define all its
 	fields and other properties.  <verb>PyTables</verb> also
-	provides a powerful interface to mine data in table. Records
-	in tables are also known, in the <verb>HDF5</verb> naming
-	scheme, as <em>compound</em> data types.
+	provides a powerful interface to mine data in tables. Records
+	in tables are also known in the <verb>HDF5</verb> naming
+	scheme as <em>compound</em> data types.
       </p>
 
       <p>For example, you can define arbitrary tables in Python
-	simply by declaring a class with the name field and types
-	information, like in:
+	simply by declaring a class with name field and types
+	information, such as in the following example:
       </p>
 
 <verbatim>
@@ -280,94 +286,123 @@ class Particle(IsDescription):
     energy    = FloatCol(shape=(2,3,4)) # 3-D float array (double-precision) 
 </verbatim>
 
-      <p>then, you have to pass this class to the table constructor,
-	fill its rows with your values, and save (arbitrary large)
-	collections of them in a file for persistent storage. After
-	that, this data can be retrieved and post-processed quite
+      <p>You then pass this class to the table constructor,
+	fill its rows with your values, and save (arbitrarily large)
+	collections of them to a file for persistent storage. After
+	that, the data can be retrieved and post-processed quite
 	easily with <visual markup="tt">PyTables</visual> or even with
 	another <verb>HDF5</verb> application (in C, Fortran, Java or
-	whatever language that provides an interface to HDF5).
+	whatever language that provides a library to interface with HDF5).
       </p>
 
-      <p>Next section describes the most interesting capabilities of
+      <!-- FA addition -->
+      
+      <p>Other important entities in <visual
+        markup="tt">PyTables</visual> are the <em>array</em> objects
+        that are analogous to tables with the difference that all
+        their components are homogeneous.  They come in different
+        flavors, like <em>generic</em> (they provide a quick and fast
+        way to deal with for numerical arrays), <em>enlargeable</em>
+        (arrays can be extended in any single dimension) and
+        <em>variable length</em> (each row in the array can have a
+        different number of elements).
+      </p>
+
+      <!-- FA end addition -->
+
+      <p>The next section describes the most interesting capabilities of
 	<verb>PyTables</verb>.
       </p>
 
       <section>
 	<heading>Main Features</heading>
 	<p>
-	  <verb>PyTables</verb> take advantage of the powerful object
+	  <verb>PyTables</verb> takes advantage of the powerful object
 	  orientation and introspection capabilities offered by Python
-	  to bring the next features to the user:
+	  to provide these features:
 	</p>
 
 	<itemize>
-	  <item><em>Support of table entities:</em> Allows working
-	    with a large number of records, i.e. that don't fit in
-	    memory.
+	  <item><em>Support for table entities:</em> Allows the user
+	    to work with a large number of records, i.e. more
+	    than will fit into memory.
 	  </item>
-	  <item><em>Appendable tables:</em> It supports adding records
-	    to already created tables. This can be done without
-	    copying the dataset or redefining its structure, even
-	    between different Python sessions.
+	  <item><em>Appendable tables:</em> Supports adding records
+	    to already created tables. This can be done even between
+	    different Python sessions without copying the dataset or 
+	    redefining its structure.
 	  </item>
 	  <item><em>Multidimensional table cells:</em> You can declare
-	    a column to be formed by general array cells, in addition
-	    to only scalars, as the majority of relational databases
-	    do.
+	    a column to consist of general array cells as well as
+	    scalars, as the majority of relational databases allow.
 	  </item>
-	  <item><em>Support of arrays:</em> <verb>Numeric</verb> (see
-	    <cite refid="Numeric"></cite>) and <verb>numarray</verb>
-	    (see <cite refid="Numarray"></cite>) arrays are a very
-	    useful complement of tables to keep homogeneous table
-	    slices (like selections of table columns).
+	  <item><em>Support for numerical arrays:</em>
+	    <verb>Numeric</verb> (see <cite refid="Numeric"></cite>)
+	    and <verb>numarray</verb> (see <cite
+	    refid="Numarray"></cite>) arrays can be used as a useful
+	    complement of tables to store homogeneous table slices
+	    (such as selections of table columns).
 	  </item>
-	  <item><em>Supports a hierarchical data model:</em> That way,
-	    you can structure very clearly all your
-	    data. <verb>PyTables</verb> builds up an <em>object
+     
+          <!-- FA addition -->
+
+          <item><em>Enlargeable arrays:</em> You can add new elements
+            to existing arrays on disk in any dimension you want (but
+            only one).
+          </item>
+          <item><em>Variable length arrays:</em> The number of
+            elements in these arrays can be variable from row to
+            row. This provides a lot of flexibility when dealing with
+            complex data.
+          </item>
+
+          <!-- end FA addition -->
+
+	  <item><em>Supports a hierarchical data model:</em> Allows
+	    the user to clearly structure all the data. 
+	    <verb>PyTables</verb> builds up an <em>object
 	    tree</em> in memory that replicates the underlying file
 	    data structure. Access to the file objects is achieved by
-	    walking throughout this object tree, and manipulating it.
+	    walking through and manipulating this object tree.
 	  </item>
-	  <item><em>Support of files bigger than 2 GB:</em> The
-	    underlying HDF5 library already can do that (if your
-	    platform supports the C long long integer, or, on Windows,
-	    __int64), and <verb>PyTables</verb> automatically inherits
-	    this capability.
+	  <item><em>Support of files bigger than 2 GB:</em>
+            <verb>PyTables</verb> automatically inherits
+	    this capability from the underlying HDF5 library (assuming 
+	    your platform supports the C long long integer, or, on 
+	    Windows, __int64).
 	  </item>
-	  <item><em>Can read generic HDF5 files:</em>
-	    <verb>PyTables</verb> can access to objects in generic
+	  <item><em>Ability to read generic HDF5 files:</em>
+	    <verb>PyTables</verb> can access objects in generic
 	    HDF5 files provided they contain any combination of
-	    groups, compound type datasets (that will be mapped to
+	    groups, compound type datasets (that can be mapped to
 	    <verb>Table</verb> objects) or homogeneous datasets (that
-	    will be mapped to <verb>Array</verb> objects). However, as
-	    these kind of data is the most common to be saved HDF5
-	    format, <verb>PyTables</verb> can probably access most of
+	    can be mapped to <verb>Array</verb> objects). However, as
+	    this kind of data is the type most commonly saved in HDF5
+	    format, <verb>PyTables</verb> probably can access most of
 	    the HDF5 files out there.
 	  </item>
-	  <item><em>Data compression:</em> It supports data
-	    compression (through the use of the <visual
-	    markup="tt"><visual markup="bf">Zlib</visual></visual>,
-	    <visual markup="tt"><visual
-	    markup="bf">LZO</visual></visual> and <visual
-	    markup="tt"><visual markup="bf">UCL</visual></visual>
-	    libraries) out of the box. This become important when you
-	    have repetitive data patterns and don't want to loose your
-	    time searching for an optimized way to save them (i.e. it
-	    saves you data organization analysis time).
+	  <item><em>Data compression:</em> Supports data
+	    compression (using the <visual markup="tt">
+	    <visual markup="bf">Zlib</visual></visual>,
+            <visual markup="tt"><visual markup="bf">LZO</visual></visual> 
+            and <visual markup="tt"><visual markup="bf">UCL</visual></visual>
+	    compression libraries) out of the box. This is important 
+	    when you have repetitive data patterns and don't want to
+	    spend time searching for an optimized way to store them 
+	    (saving you time spent analyzing your data organization).
 	  </item>
-	  <item><em>High performance I/O:</em> On modern systems, and
-	    for large amounts of data, tables and array objects can be
+	  <item><em>High performance I/O:</em> On modern systems
+	    storing large amounts of data, tables and array objects can be
 	    read and written at a speed only limited by the
 	    performance of the underlying I/O subsystem. Moreover, if
-	    your data is compressible, even faster than that!.
+	    your data is compressible, even that limit is surmountable!
 	  </item>
 	  <item><em>Architecture-independent:</em> <visual
 	    markup="tt">PyTables</visual> has been carefully coded (as
-	    HDF5 itself) with little-endian/big-endian byte orderings
-	    issues in mind . So, in principle, you can write a file in
-	    a big-endian machine (like a Sparc or MIPS) and read it in
-	    other little-endian (like Intel or Alpha) without
+	    has HDF5 itself) with little-endian/big-endian byte orderings
+	    issues in mind.  In principle you can write a file on
+	    a big-endian machine (like a Sparc or MIPS) and read it on
+	    other little-endian machine (like an Intel or Alpha) without
 	    problems.
 	  </item>
 
@@ -382,70 +417,69 @@ class Particle(IsDescription):
 	  allows <verb>PyTables</verb> to manage tables and arrays in
 	  a tree-like structure. In order to achieve this, an
 	  <em>object tree</em> entity is <em>dynamically</em> created
-	  imitating the HDF5 structure on disk. That way, the access
-	  to the HDF5 objects is made by walking throughout this
-	  object tree, and, by looking at their <em>metadata</em>
-	  nodes, you can get a nice picture of what kind data is kept
-	  there.
+	  imitating the HDF5 structure on disk.  The HDF5 objects are
+	  read by walking through this object tree.  You can get a
+	  good picture of what kind data is kept in the object by
+	  examining the <em>metadata</em> nodes.
 	</p>
 
 	<p>The different nodes in the object tree are instances of
 	  <verb>PyTables</verb> classes. There are several types of
-	  those classes, but the most important ones are the
-	  <verb>Group</verb> and the
-	  <verb>Leaf</verb>. <verb>Group</verb> instances (that we
-	  will be calling <em>groups</em> from now on) are a grouping
-	  structure containing instances of zero or more groups or
-	  leaves, together with supplementary metadata.
-	  <verb>Leaf</verb> instances (that will be called
-	  <em>leaves</em>) are containers for actual data and cannot
-	  contain further groups or leaves. The <verb>Table</verb> and
-	  <verb>Array</verb> classes are descendants of
-	  <verb>Leaf</verb>, and inherits all its properties.
+	  classes, but the most important ones are the
+	  <verb>Group</verb> and the <verb>Leaf</verb>
+	  classes. <verb>Group</verb> instances (referred to as
+	  <em>groups</em> from now on) are a grouping structure
+	  containing instances of zero or more groups or leaves,
+	  together with supplementary metadata.  <verb>Leaf</verb>
+	  instances (referred to as <em>leaves</em>) are containers
+	  for actual data and cannot contain further groups or
+	  leaves. The <verb>Table</verb>, <verb>Array</verb>,
+	  <verb>EArray</verb>and <verb>VLArray</verb> classes are
+	  descendents of <verb>Leaf</verb>, and inherit all its
+	  properties.
 	</p>
 
 	<p>Working with groups and leaves is similar in many ways to
-	  working with directories and files, respectively, in a Unix
-	  filesystem. As with Unix directories and files, objects in
+	  working with directories and files on a Unix filesystem. As 
+	  is the case with Unix directories and files, objects in
 	  the object tree are often described by giving their full (or
 	  absolute) path names. In <verb>PyTables</verb> this full
-	  path can be specified either as string (like in
+	  path can be specified either as string (such as
 	  <verb>'/subgroup2/table3'</verb>) or as a complete object
-	  path written in a certain way known as <em>natural name</em>
-	  schema (like in <verb>file.root.subgroup2.table3</verb>).
+	  path written in a format known as the <em>natural name</em>
+	  schema (such as <verb>file.root.subgroup2.table3</verb>).
 	</p>
 
-	<p>The support for <em>natural naming</em> is a key aspect of
-	  <verb>PyTables</verb> and means that the names of instance
+	<p>Support for <em>natural naming</em> is a key aspect of
+	  <verb>PyTables</verb>.  It means that the names of instance
 	  variables of the node objects are the same as the names of
-	  the element's children<footnote>I have got this simple but
+	  the element's children<footnote>I got this simple but
 	  powerful idea from the excellent <visual
 	  markup="tt">Objectify</visual> module by David Mertz (see
 	  <cite refid="Objectify"></cite>)</footnote>. This is very
-	  <em>Pythonic</em> and comfortable in many cases, as you can
-	  check in the tutorial <ref
-	  refid="readingAndSelectingUsage">section</ref>.
+          <em>Pythonic</em> and intuitive in many cases. Check the 
+	  tutorial <ref refid="readingAndSelectingUsage">section</ref>
+	  for usage examples.
 	</p>
-	<p>You should also note that not all the data present on file
-	  is loaded in the object tree, but only the <em>metadata</em>
+	<p>You should also be aware that not all the data present in a 
+	  file is loaded into the object tree.  Only the <em>metadata</em>
 	  (i.e. special data that describes the structure of the
-	  actual data). The actual data is not read until you ask for
-	  it (by calling a method on a particular node). By making use
-	  of the object tree (the metadata) you can get information on
-	  the objects on disk such as table names, title, name
-	  columns, data types in columns, the number of rows, or, in
-	  the case of arrays, the shape, the typecode, and so on. You
-	  can also traverse the tree in order to search for something
-	  and when you find the data you are interested in you can
-	  read it and process it. In some sense, you can think of
-	  <verb>PyTables</verb> as a tool that provide the same
-	  introspection capabilities of Python objects, but applied to
-	  the persistent storage of large amounts of data.
+	  actual data) is loaded. The actual data is not read until you 
+	  request it (by calling a method on a particular node). Using
+	  the object tree (the metadata) you can retrieve information
+	  about the objects on disk such as table names, titles, name
+	  columns, data types in columns, numbers of rows, or, in
+	  the case of arrays, the shapes, typecodes, etc. of the array. 
+	  You can also search through the tree for specific kinds of data
+	  then read it and process it. In a certain sense, you can think of
+	  <verb>PyTables</verb> as a tool that applies the same
+	  introspection capabilities of Python objects to large
+	  amounts of data in persistent storage.
 	</p>
 	<p>To better understand the dynamic nature of this object tree
-	  entity, let's start by a first example and try to realize
-	  what kind of object tree the next script (you can find it in
-	  <verb>examples/objecttree.py</verb>) would create:
+	  entity, let's start with a sample <verb>PyTables</verb>
+	  script (you can find it in <verb>examples/objecttree.py</verb>) 
+	  to create a HDF5 file:
 	</p>
 
 	<verbatim>
@@ -465,7 +499,7 @@ root = fileh.root
 group1 = fileh.createGroup(root, "group1")
 group2 = fileh.createGroup(root, "group2")
 
-# Now, create a table in "group0" group
+# Now, create a table in the "group0" group
 array1 = fileh.createArray(root, "array1", ["string", "array"], "String array")
 # Create 2 new tables in group1
 table1 = fileh.createTable(group1, "table1", Particle)
@@ -493,16 +527,15 @@ for table in (table1, table2):
 fileh.close()
 	</verbatim>
 
-	<p>This small program creates a simple HDF5 file, called
-	  <verb>objecttree.h5</verb>, with the structure that appears
-	  in <ref refid="objecttree-h5">figure</ref>. During creation
-	  time, metadata in the object tree is updated in memory while
-	  the actual data is being saved on disk and when you close
-	  the file the object tree becomes unavailable. But, when you
-	  will open again this file the object tree with will be
-	  re-constructed in memory from the metadata existent on disk,
-	  so that you can work with it exactly in the same way than
-	  during the original creation process.
+	<p>This small program creates a simple HDF5 file called
+	  <verb>objecttree.h5</verb> with the structure that appears
+	  in <ref refid="objecttree-h5">figure</ref>. When the file is
+	  created, metadata in the object tree is updated in memory while
+	  the actual data is saved disk. When you close the file the object 
+	  tree is no longer available. However, when you reopen this file 
+	  the object tree will be reconstructed in memory from the metadata 
+	  on disk, allowing you to work with it in exactly the same
+	  way as when you originally created it.
 	</p>
 
 	<figure id="objecttree-h5">
@@ -513,33 +546,31 @@ fileh.close()
 	</figure>
 
 	<p>In <ref refid="objecttree">figure</ref> you can see an
-	  example of the object tree created by reading the above
-	  <verb>objecttree.h5</verb> file (in fact, such an object is
+	  example of the object tree created when the above
+	  <verb>objecttree.h5</verb> file is read (in fact, such an object is
 	  always created when reading any supported generic HDF5
-	  file). If you are going to become a <visual
-	  markup="tt">PyTables</visual> user, take your time to
-	  understand it<footnote>Bear in mind, however, that this
+	  file).  It's worthwhile to take your time to understand
+	  it<footnote>Bear in mind, however, that this
 	  diagram is <visual markup="bf">not</visual> a standard UML
 	  class diagram; it is rather meant to show the connections
 	  between the <verb>PyTables</verb> objects and some of its
-	  most important attributes and methods.</footnote>. That will
-	  also make you more proactive by avoiding programming
-	  mistakes.
+	  most important attributes and methods.</footnote>. It will
+	  help you to avoid programming mistakes.
 	</p>
 
 	<figure id="objecttree">
 	  <graphics file="objecttree" scale="0.35" kind="vector">
 	  
-	  <!-- If you want to convert the eps to jpeg use command:
+	  <!-- If you want to convert the eps to jpeg use the command:
 pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
-	  and then, convert again to jpg with:
+	  and then, convert the png file again to jpg with:
 	  convert objecttree.png objecttree.jpg
 	  Use this tag to include the jpeg file:
 	  <graphics file="objecttree" scale="0.5" kind="bitmap">
 	  -->
 	  </graphics>
-	  <caption>An object tree example in <visual
-	      markup="tt">PyTables</visual>.
+	  <caption>A <visual markup="tt">PyTables</visual> object tree
+	      example.
 	  </caption>
 	</figure>
 
@@ -573,212 +604,202 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
       <p>The Python <verb>Distutils</verb> are used to build and
 	install <verb>PyTables</verb>, so it is fairly simple to get
-	things ready to go. Also, a binary distribution is available
-	for Windows (see <ref
-	refid="binaryInstallationDescr">section</ref>).
+	the application up and running. Also, a binary distribution is
+	available for Windows (see <ref
+	refid="binaryInstallationDescr">section</ref>). In addition,
+	packages are starting to appear in different Linux
+	distributions (like for instance <url
+	name="http://www.rocklinux.org/"><verb>RockLinux</verb></url> or <url
+	name="http://www.debian.org/"><verb>Debian</verb></url>).
       </p>
 
       <section id="sourceInstallationDescr">
-	<heading>Installation from sources</heading>
+	<heading>Installation from source</heading>
 
 	<p>
-	  These instructions are both for Unix/Linux and Windows
+	  These instructions are for both Unix/Linux and Windows
 	  systems. If you are using Windows, it is assumed that you
-	  are using a recent version of <verb>MS Visual C++</verb> (>=
-	  6.0) compiler. A <verb>GCC</verb> compiler is assumed for
+	  have a recent version of <verb>MS Visual C++</verb> (>=
+	  6.0) compiler installed. A <verb>GCC</verb> compiler is assumed for
 	  Unix, but other compilers should work as well.
 	</p>
 
-	<p>Extensions in <visual markup="tt">PyTables</visual> has been
-	  made using Pyrex (see <cite refid="Pyrex"></cite>) and C
-	  language. You can rebuild everything from scratch if you got
-	  Pyrex installed, but this is not necessary, as the Pyrex
-	  compiled source is included in the distribution. In order to
-	  do that, merely replace <visual markup="tt">setup.py</visual>
-	  script in these instructions by <visual
-	    markup="tt">setup-pyrex.py</visual>.
+	<p>Extensions in <visual markup="tt">PyTables</visual> have
+	  developed in Pyrex (see <cite refid="Pyrex"></cite>) and C
+	  language. You can rebuild everything from scratch if you
+	  have Pyrex installed, but this is not necessary, as the Pyrex
+	  compiled source is included in the distribution.
 	</p>
 
 	<p>To compile <verb>PyTables</verb> you will need a recent
-	  version of <verb>HDF5</verb> (C flavor) library and
+	  version of the <verb>HDF5</verb> (C flavor) library and the
 	  <verb>numarray</verb> (see <cite refid="Numarray"></cite>)
 	  package. Although you won't need <verb>Numerical Python</verb>
 	  (see <cite refid="Numeric"></cite>) in order to compile
-	  PyTables, it is supported; you will only need a reasonably
-	  recent version of it (>= 21.x). PyTables has been successfully
+	  PyTables, it is supported; you only need a reasonably
+	  recent version of it (>= 21.x) if you plan on using its
+	  methods in your applications. PyTables has been successfully
 	  tested with Numeric 21.3, 22.0 and 23.0. If you already have
 	  <verb>Numeric</verb> installed, the test driver module will
 	  detect it and will run the tests for <verb>Numeric</verb>
 	  automatically.
 	</p>
 
-	<enumerate>
+	<!-- SGP:  Put heading "Prerequisites" here . Done! -->
+        <subsection id="PrerequisitesSourceDescr">
+	  <heading>Prerequisites</heading>
 
-	  <item>
-	    <p>First, make sure that you have <verb>HDF5 1.6.x</verb>
-	      and <verb>numarray 0.6</verb> or higher installed (I'm
-	      using <verb>HDF5 1.6.0</verb> and <verb>numarray
-	      0.7</verb> currently). If don't, you can find them at
-	      <newline/> <url
+	  <p>First, make sure that you have <verb>HDF5 1.6.2</verb>
+	    and <verb>numarray 0.8</verb> or higher installed (I'm
+	    using <verb>HDF5 1.6.2</verb> and <verb>numarray
+	      0.8</verb> currently). If you don't, you can find them
+	    at <url
 	      name="http://hdf.ncsa.uiuc.edu/HDF5"><verb>http://hdf.ncsa.uiuc.edu/HDF5</verb></url>
-	      and <url
-	      name="http://www.pfdubois.com/numpy"><verb>http://www.pfdubois.com/numpy</verb></url>. Compile/install
-	      them.
-	    </p>
-	    <p>Optionally, consider to install the excellent LZO and
-	      UCL compression libraries (see <cite
+	    and <url
+	      name="http://www.pfdubois.com/numpy"><verb>http://www.pfdubois.com/numpy</verb></url>.
+	  </p>
+	  <p>
+	    Compile and install these packages (but see <ref
+	      refid="prerequisitesBinInst">section</ref> for
+	    instructions on how to install precompiled binaries if
+	    you are not willing to compile the prerequistes on
+	    Windows systems).
+	  </p>
+	  <p>For compression (and possibly improved performance), you
+	    may also optionally install the excellent LZO and
+	    UCL compression libraries (see <cite
 	      refid="lzouclRef"></cite> and section <ref
 	      refid="compressionIssues"></ref>).
-	    </p>
-	    <description>
-	      <term>Unix</term>
-	      <item>
+	  </p>
+	  <description>
+	    <term>Unix</term>
+	    <item>
+	      <p><verb>setup.py</verb> will detect
+		<verb>HDF5</verb>, <verb>LZO</verb> or
+		<verb>UCL</verb> libraries and include files under
+		<verb>/usr</verb> or <verb>/usr/local</verb>; this
+		will cover most manual installations as well as
+		installations from packages.  If
+		<verb>setup.py</verb> can't find
+		<verb>libhdf5</verb> (or <verb>liblzo</verb> or
+		<verb>libucl</verb> that you may wish to use) or if
+		you have several versions of a library installed and
+		want to use a particular one, then you can set the
+		path to the resource in the environment, setting the
+		values of the <verb>HDF5_DIR</verb>,
+		<verb>LZO_DIR</verb> or <verb>UCL_DIR</verb>
+		environment variables to the path to the particular
+		resource.  You may also specify the locations of the
+		resource root directories on the
+		<verb>setup.py</verb> command line. For example:
+	      </p>
 
-		<p><verb>setup.py</verb> will detect
-		  <verb>HDF5</verb>, <verb>LZO</verb> or
-		  <verb>UCL</verb> libraries and include files under
-		  <verb>/usr</verb> or <verb>/usr/local</verb>; this
-		  will catch installations from RPMs, DEBs and most
-		  hand installations under Unix. If
-		  <verb>setup.py</verb> can't find your
-		  <verb>libhdf5</verb> (or any other library you may
-		  wish) or if you have several versions installed and
-		  want to select one of them, then you can give it a
-		  hint either in the environment (using the
-		  <verb>HDF5_DIR</verb> environment variable or
-		  <verb>LZO_DIR</verb> and <verb>UCL_DIR</verb> for
-		  the optional libraries) or on the command line by
-		  specifying the directory containing the include and
-		  lib directory. For example:
-		</p>
+	      <verbatim>
+		--hdf5=/stuff/hdf5-1.6.2
+		--ucl=/stuff/ucl-1.0.1
+	      </verbatim>
 
-		<verbatim>
-		  --hdf5=/stuff/hdf5-1.6.0
-		  --ucl=/stuff/ucl-1.0.1
-		</verbatim>
+	      <p>If your <verb>HDF5</verb> library was built as
+		a shared library not in the runtime load path, then 
+		you can specify the additional linker flags needed to 
+		find the shared library on the command line as well. 
+		For example:
+	      </p>
+	      <verbatim>
+		--lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.2/lib"
+	      </verbatim>
+	      <p>or perhaps just
+	      </p>
+	      <verbatim>
+		--lflags="-R /stuff/hdf5-1.6.2/lib"
+	      </verbatim>
 
-		<p>If your <verb>HDF5</verb> library was built as
-		  shared library, and if this shared library is not in
-		  the runtime load path, then you can specify the
-		  additional linker flags needed to find the shared
-		  library on the command line as well. For example:
-		</p>
-		<verbatim>
-		  --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.0/lib"
-		</verbatim>
-		<p>or perhaps just
-		</p>
-		<verbatim>
-		  --lflags="-R /stuff/hdf5-1.6.0/lib"
-		</verbatim>
+	      <p>Check your compiler and linker documentation for
+		the correct syntax.
+	      </p>
 
-		<p>Check your compiler and linker documentation for correct
-		  syntax.
-		</p>
+	      <p>It is also possible to link specific 
+		libraries with the <verb>--libs</verb> switch:
+	      </p>
+	      <verbatim>
+		--libs="-lhdf5-1.6.5"
+		--libs="-lhdf5-1.6.5 -lnsl"
+	      </verbatim>
+	    </item>
 
-		<p>It is also possible to specify linking against different
-		  libraries with the <verb>--libs</verb> switch:
-		</p>
-		<verbatim>
-		  --libs="-lhdf5-1.6.5"
-		  --libs="-lhdf5-1.6.5 -lnsl"
-		</verbatim>
-	      </item>
+	    <term>Windows</term>
+	    <item>
+	      <p>Once you have installed the prerequisites,
+		<verb>setup.py</verb> needs to know where the
+		necessary library <em>stub</em> (<verb>.lib</verb>)
+		and <em>header</em> (<verb>.h</verb>) files are
+		installed.  Set the following environment variables:
+	      </p>
 
-	      <term>Windows</term>
-	      <item>
-		<p>If you are using Windows, and don't want to
-		  compile the libraries by hand, there are available
-		  binary packages for them. You can fetch the HDF5 and
-		  numarray binaries from their homes.
-		</p>
-
-		<p>For the HDF5 you must manually copy the
-		  <verb>hdf5dll.dll</verb> <visual
-		  markup="bf">and</visual> <verb>szipdll.dll</verb>
-		  files to a directory in your <verb>PATH</verb>
-		  environment variable (for example
-		  <verb>C:\WINDOWS\SYSTEM</verb>).
-		</p>
-
-		<p>Besides, you may want to fetch the <verb>LZO</verb>
-		  and <verb>UCL</verb> binaries from:<newline/> <url
-		  name="http://gnuwin32.sourceforge.net/"><verb>http://gnuwin32.sourceforge.net/</verb></url>. Normally,
-		  you will only need to fetch and install the
-		  <verb>&lt;package>-&lt;version>-bin.zip</verb> file,
-		  although in some cases the headers are in
-		  <verb>&lt;package>-&lt;version>-lib.zip</verb> file.
-		</p>
+	      <description>
+		<term>HDF5_DIR</term><item>Points to the root HDF5 
+		  directory (where the include/ and dll/ directories
+		  can be found). <em>Mandatory</em>.</item>
 		
-		<p>As before, you will need to copy manually the
-		  <verb>lzo.dll</verb> or <verb>ucl.dll</verb> to a
-		  directory in the <verb>PATH</verb>, so that they can
-		  be found by PyTables extensions.</p>
+		<term>LZO_DIR</term> <item>Points to the root LZO
+		  directory (where the include/ and lib/ directories
+		  can be found). <em>Optional</em>.</item>
 
-		<p><verb>setup.py</verb> will need that you inform it
-		  about where the library <em>stubs</em>
-		  (<verb>.lib</verb>) are installed as well as the
-		  <em>header</em> files (<verb>.h</verb>). To tell
-		  setup.py<verb></verb> where the stubs and headers
-		  are, set the next environment variables:
-		</p>
+		<term>UCL_DIR</term> <item>Points to the root UCL
+		  directory (where the include/ and lib/ directories
+		  can be found). <em>Optional</em>.</item>
 
-		<description>
-		  <term>HDF5_DIR</term><item>Points to the HDF5 main
-		    directory (where the include/ and dll/ directories
-		    hangs). <em>Mandatory</em>.</item>
-		    
-		  <term>LZO_DIR</term> <item>Points to the LZO main
-		    directory (where the include/ and lib/ directories
-		    hangs). <em>Optional</em>.</item>
+	      </description> 
 
-		  <term>UCL_DIR</term> <item>Points to the UCL main
-		    directory (where the include/ and lib/ directories
-		    hangs). <em>Optional</em>.</item>
+	      <p>For example:
+	      </p>
+	      <verbatim>
+		set HDF5_DIR=c:\stuff\5-162-win2k\c\release
+		set LZO_DIR=c:\stuff\lzo-1-07
+		set UCL_DIR=c:\stuff\ucl-1-01
+	      </verbatim>
 
-		</description> 
+	      <p>Or, you can pass this information to
+		<verb>setup.py</verb> by setting the appropriate
+		arguments on the command line. For example:
+	      </p>
 
-		<p>For example:
-		</p>
-		<verbatim>
-		  set HDF5_DIR=c:\stuff\5-160-win2k\c\release
-		  set LZO_DIR=c:\stuff\lzo-1-07
-		  set UCL_DIR=c:\stuff\ucl-1-01
-		</verbatim>
+	      <verbatim>
+		--hdf5=c:\stuff\5-162-win2k\c\release --lzo=c:\stuff\lzo-1-07
+		--ucl=c:\stuff\ucl-1-01
+	      </verbatim>	
+	    </item>
 
-		<p>Or you can pass this info to <verb>setup.py</verb>
-		  within the command line by specifying the directory
-		  containing the include and lib directory. For
-		  example:
-		</p>
+	  </description>
 
-		<verbatim>
-		  --hdf5=c:\stuff\5-160-win2k\c\release --lzo=c:\stuff\lzo-1-07
-		  --ucl=c:\stuff\ucl-1-01
-		</verbatim>	
-	      </item>
+	</subsection>
 
-	    </description>
+        <subsection id="PyTablesSourceInstallationDescr">
+	  <heading>PyTables package installation</heading>
 
-	  </item>
+          <p>Once you have installed the HDF5 library and numarray
+            packages, you can proceed with the <verb>PyTables</verb>
+            package itself:
+          </p>
 
+	<enumerate>
 	  <item>
- 	    <p>From the main <verb>PyTables</verb> distribution
-	      directory run this command, (plus any extra flags needed
-	      as discussed above):
+ 	    <p>Run this command from the main <verb>PyTables</verb>
+	      distribution directory, including any extra command line
+	      arguments as discussed above:
 	    </p>
 	    <verbatim>
 	      python setup.py build_ext --inplace
 	    </verbatim>
-	    <p>depending on the compiler flags used when compiling your
-	      Python executable, there may appear lots of warnings. Don't
+	    <p>Depending on the compiler flags used when compiling your
+	      Python executable, there may appear many warnings. Don't
 	      worry, almost all of them are caused by variables declared
 	      but never used. That's normal in Pyrex extensions.
 	    </p>
 	  </item>
 	  <item>
-	    <p>To run the test suite change into the test directory
-	      and run this command:
+	    <p>To run the test suite, change into the test directory
+	      and execute this command:
 	    </p>
 	    <description>
 	      <term>Unix</term> <item>In the shell <verb>sh</verb> and
@@ -790,7 +811,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		</verbatim>
 	      </item>
 	      <term>Windows</term>
-	      <item>Open a DOS terminal and write:
+	      <item>Open a DOS terminal and type:
 		<verbatim>
 		  set PYTHONPATH=..  
 		  python test_all.py
@@ -798,152 +819,209 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	      </item>
 	    </description>
 
-	    <p>If you would like to see some verbose output from the
-	      tests simply add the flag <verb>-v</verb> and/or the word
+	    <p>If you would like to see verbose output from the tests
+	      simply add the flag <verb>-v</verb> and/or the word
 	      <verb>verbose</verb> to the command line. You can also
-	      run just the tests in a particular test module. For
-	      example:
+	      run only the tests in a particular test module. For
+	      example, to execute just the <verb>types</verb> test:
 	    </p>
 	    <verbatim>
 	      python test_types.py -v
 	    </verbatim>
 
-	    <p>If there is some test that do not pass, please, run the
-	      failing test module with all verbosity enabled (flags
-	      <verb>-v verbose</verb>), and send back the output to
-	      developers.
+	    <p>If a test fails, please enable verbose output (the
+	      <verb>-v</verb> <visual markup="bf">and</visual>
+	      <verb>verbose</verb> flags), run the failing test module
+	      again, and send back the output to developers so that we
+	      may continue improving <verb>PyTables</verb>.
 	    </p>
 
 	    <p> If you run into problems because Python can't load the
-	      HDF5, or any other shared library:
+	      HDF5 library or other shared libraries:
 	    </p>
 	    <description>
 	      <term>Unix</term>
 	      <item>
-		Try to set the LD_LIBRARY_PATH environment variable to
-		point to the directory where the libraries are.
+		Try setting the LD_LIBRARY_PATH environment variable to
+		point to the directory where the missing libraries can
+		be found.
 	      </item>
 	      <term>Windows</term> <item>Put the DLL libraries
 		(<verb>hdf5dll.dll</verb> and, optionally,
-		<verb>lzo.dll</verb> and <verb>ucl.dll</verb>) on a
-		directory listed on your <verb>PATH</verb> environment
-		variable.  The <verb>setup.py</verb> should already
-		warned you about that.
+		<verb>lzo.dll</verb> and <verb>ucl.dll</verb>) in a
+		directory listed in your <verb>PATH</verb> environment
+		variable.  The <verb>setup.py</verb> installation
+		program will print out a warning to that effect if the
+		libraries can't be found.
 	      </item>
 	    </description>
 	  </item>
 	  <item>
+		  <!-- SGP: What if they're not root, or if they're on
+		  a Windows machine?  Can you set the install prefix
+		  on the command line?  Where does PyTables install
+		  itself by default?  Amplify this part.  Done! -->
+
 	    <p>To install the entire <visual
-		markup="tt">PyTables</visual> Python package, change back
-	      to the root distribution directory and run this command as
-	      the root user (remember to add any extra flags needed):
+	      markup="tt">PyTables</visual> Python package, change
+	      back to the root distribution directory and run the
+	      following command (make sure you have sufficient
+	      permissions to write to the directories where the
+	      <verb>PyTables</verb> files will be installed):
 	    </p>
 	    <verbatim>
 	      python setup.py install
 	    </verbatim>
 
+            <p>Of course, you will need super-user privileges if you
+              want to install <verb>PyTables</verb> on a
+              system-protected area. You can select, though, a
+              different place to install the package using the
+              <verb>--prefix</verb> flag:
+            </p>
+
+	    <verbatim>
+	      python setup.py install --prefix="/home/myuser/mystuff"
+	    </verbatim>
+
+            <p>Have in mind, however, that if you use the
+              <verb>--prefix</verb> flag to install in a non-standard
+              place, you should properly setup your
+              <verb>PYTHONPATH</verb> environment variable, so that
+              the python interpreter would be able to find your new
+              <verb>PyTables</verb> installation.
+            </p>
+
+            <p>You have more installation options available in
+              distutils package. Issue a:
+            </p>
+
+            <verbatim>
+	      python setup.py install --help
+            </verbatim>
+
+            <p>for more information on that subject.</p>
+
 	  </item>
 	</enumerate>
 
-	<p>That's it!. Now, proceed with the next chapter to see how to
-	  use <verb>PyTables</verb>.
-	</p>
+      </subsection>
+
+      <p>That's it! The next chapter describes how to use
+	<verb>PyTables</verb>. <!-- <newline vspace="4.0cm"/> -->
+      </p>
 
       </section>
 
       <section id="binaryInstallationDescr">
 	<heading>Binary installation (Windows)</heading>
 
-	<p>This section is only intended for Windows platforms. If you
-	  have Unix, or want to compile PyTables for Windows, jump to
+	<p>This section is only intended for installing precompiled
+	  binaries on Windows platforms. If you´re installing on Unix, 
+	  or want to compile PyTables for Windows, jump to
 	  the <ref refid="sourceInstallationDescr">section</ref>.
 	</p>
 
-	<subsection id="basicBinInst">
-	  <heading>Basic installation (i.e. with no <visual
-	      markup="tt">LZO</visual> and <visual
-	      markup="tt">UCL</visual> compression libraries support)
-	  </heading>
+	<subsection id="prerequisitesBinInst">
+	  <heading>Windows prerequisites</heading>
 
-	  <p>First, make sure that you have HDF5 1.6.x or higher and
-	    numarray 0.6 or higher installed (I'm using HDF5 1.6.0 and
-	    numarray 0.6 currently). If don't, you can find them at <url
-	      name="http://hdf.ncsa.uiuc.edu/HDF5"><verb>http://hdf.ncsa.uiuc.edu/HDF5</verb></url>
+	  <p>First, make sure that you have HDF5 1.6.2 or higher and
+	    numarray 0.8 or higher installed (I'm using HDF5 1.6.2 and
+	    numarray 0.8 currently). If don't, you can find them at
+	    <url
+	    name="http://hdf.ncsa.uiuc.edu/HDF5"><verb>http://hdf.ncsa.uiuc.edu/HDF5</verb></url>
 	    and <url
-	      name="http://sourceforge.net/projects/numpy/"><verb>http://sourceforge.net/projects/numpy/</verb></url>. Download
-	    the binary packages and install them. For the HDF5 it should
-	    be enough to manually copying the <verb>hdf5dll.dll</verb>
-	    <visual markup="bf">and</visual> <verb>szipdll.dll</verb>
-	    files to a directory in your <verb>PATH</verb> environment
-	    variable (for example <verb>C:\WINDOWS\SYSTEM</verb>). Also,
-	    you should know that HDF5 <visual markup="bf">needs</visual>
-	    the <visual markup="bf"><visual
-		markup="tt">zlib</visual></visual> compression library to
-	    work, so you will have to download and install it as well; a
-	    pre-compiled version is avalilable at <url
-	      name="ftp://ftp.ncsa.uiuc.edu/HDF/gzip/windows/"><verb>ftp://ftp.ncsa.uiuc.edu/HDF/gzip/windows/</verb></url>.
+	    name="http://sourceforge.net/projects/numpy/"><verb>http://sourceforge.net/projects/numpy/</verb></url>. Download
+	    the binary packages (or sources, if you want to compile
+	    everything yourself) and install them.
+          </p>
+          <p>For the HDF5 it should be enough to manually copy the
+	    <verb>hdf5dll.dll</verb>, <verb>zlibdll.dll</verb> <visual
+	    markup="bf">and</visual> <verb>szipdll.dll</verb> files to
+	    a directory in your <verb>PATH</verb> environment variable
+	    (for example <verb>C:\WINDOWS\SYSTEM</verb>).
 	  </p>
 
 	  <p><visual markup="bf">Caveat:</visual>When downloading the
-	    binary file for HDF5 libraries, select one compiled with
-	    the MSVC 6.0, like for example, the file
-	    <verb>5-160-win2k.zip</verb>, no matter if you are using
+	    binary distribution for HDF5 libraries, select one compiled with
+	    MSVC 6.0, such as the package
+	    <verb>5-162-win2k.zip</verb>, regardless of whether you are using
 	    Win2k or WinXP (it should work fine on both). The file
-	    <verb>5-160-winxp-net.zip</verb> was compiled with the
+	    <verb>5-162-winxp-net.zip</verb> was compiled with the
 	    MSVC 7.0 (aka "<verb>.NET</verb>") and <visual
 	    markup="bf">does not</visual> work well with the PyTables
 	    binary (which has been generated with MSVC 6.0). You have
-	    been warned!.
+	    been warned!
 	  </p>
+
+	  <p>To enable compression with optional LZO and UCL libraries
+	    (see the <ref refid="compressionIssues">section</ref> for
+	    hints about how they may be used to improve performance),
+	    fetch and install the <verb>LZO</verb> and
+	    <verb>UCL</verb> binaries from:<newline/> <url
+	    name="http://gnuwin32.sourceforge.net/"><verb>http://gnuwin32.sourceforge.net/</verb></url>. Normally,
+	    you will only need to fetch and install the<newline/>
+	    <verb>&lt;package>-&lt;version>-bin.zip</verb> file and
+	    copy the <verb>lzo.dll</verb> or <verb>ucl.dll</verb>
+	    files in a directory in the <verb>PATH</verb> environment
+	    variable, so that they can be found by the PyTables
+	    extensions.
+          </p>
+          <p><visual markup="bf">Note:</visual>If you are reading this
+	    because you have been redirected from the <ref
+	    refid="sourceInstallationDescr">section</ref>
+	    (<em>Installation from source</em>), some of the headers
+	    you will need are in the
+	    <verb>&lt;package>-&lt;version>-lib.zip</verb> file.
+	  </p>
+
+	  <!-- SGP:  I assume that the zlib prerequisite is discussed
+	  in the HDF5 installation manual.  In any event, you don't
+	  need to mention it here;  simply say that a working HDF5
+	  library installation is required. 
+	  In fact, this whole section is superfluous;  you've already 
+	  covered it in "Prerequisites".  I'd cut straight to the chase 
+	  and talk about installing the PyTables precompiled Windows
+	  binaries.
+          Done! -->
+
+        </subsection>
+
+        <subsection id="PyTablesBinInstallDescr">
+	  <heading>PyTables package installation</heading>
 
 	  <p>Download the
 	    <verb>tables-&lt;version>.win32-py&lt;version>.exe</verb>
-	    file and execute it. You are done!.
+            <newline/>
+	    (<verb>tables-&lt;version>-LU.win32-py&lt;version>.exe</verb>
+	    if you want support for LZO and UCL libraries) file and
+	    execute it.
 	  </p>
 
 	  <p>You can (<em>you should</em>) test your installation by
 	    unpacking the source tarball, changing to the
-	    <verb>test/</verb> subdirectory and execute the
-	    <verb>test_all.py</verb> script. If all the tests passes
-	    (maybe with a couple of warnings, related with the
-	    possible unavailability of LZO and UCL libs, but that's ok
-	    for the binary version) you already have a working, well
-	    tested, copy of PyTables installed!. If don't, please,
-	    execute the <verb>test_all.py -v verbose</verb> and return
-	    the output to me.
-	  </p>
+	    <verb>test/</verb> subdirectory and executing the
+	    <verb>test_all.py</verb> script. If all the tests pass
+	    (possibly with a few warnings, related to the potential
+	    unavailability of LZO and UCL libs) you already have a
+	    working, well-tested copy of PyTables installed! If any
+	    test fails, please try to locate which test module is
+	    failing and execute:
+          </p>
+          
+          <verbatim>
+	    test_&lt;module>.py -v verbose
+          </verbatim>
 
-	</subsection>
-
-	<subsection>
-	  <heading>Advanced installation (i.e. with support for
-	      <visual markup="tt">LZO</visual> and <visual
-	      markup="tt">UCL</visual> compression libraries)
-	  </heading>
-
-	  <p>If you want support for LZO and UCL libraries (see <ref
-	    refid="compressionIssues">section</ref> for hints about
-	    what they are useful for), install the <verb>LZO</verb>
-	    and <verb>UCL</verb> DLL libraries by fetching the
-	    binaries from:<url
-	    name="http://gnuwin32.sourceforge.net/"><verb>http://gnuwin32.sourceforge.net/</verb></url>. Normally,
-	    you will only need to fetch and install the
-	    <verb>&lt;package>-&lt;version>-bin.zip</verb> file.
-	  </p>
-
-	  <p>Finally, follow the same steps than in <ref
-	    refid="basicBinInst">section</ref>, but fetch and
-	    install the<newline/>
-	    <verb>tables-&lt;version>-LU.win32-py&lt;version>.exe</verb>
-	    self-installer in place of<newline/>
-	    <verb>tables-&lt;version>.win32-py&lt;version>.exe</verb>.
+          <p>Mail the output to the developers so that we may work to
+	    improve the installation process.
 	  </p>
 
 	</subsection>
 
 	<newline vspace="0.25cm"/>
 
-	<p>That's it!. Now, proceed with the next chapter to see how to
+	<p>That's it! Now, proceed to the next chapter to see how to
 	  use <verb>PyTables</verb>.
 	</p>
 
@@ -953,87 +1031,81 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
     </chapter>
 
     <chapter id="usage">
-      <heading>Some tutorials</heading>
+      <heading>Tutorials</heading>
 
       <aphorism>Tout le malheur des hommes vient d'une seule chose,
 	qui est de ne savoir pas demeurer en repos, dans une chambre.
 	<caption>Blaise Pascal</caption>
       </aphorism>
 
-      <p>This chapter begins with a series of simple, yet
-	comprehensive sections written in a tutorial style that will
-	let you understand the main features that
-	<verb>PyTables</verb> provide. If during the trip you want
-	more information on some specific instance variable, global
-	function or method, look at the doc strings or go to the
-	library reference in <ref
-	refid="libraryReference">chapter</ref>. However, if you are
-	reading this in PDF or HTML formats, there should be an
-	hyperlink to its reference near each newly introduced
-	entity.
+      <p>This chapter consists of a series of simple yet comprehensive 
+	tutorials that will enable you to understand <verb>PyTables</verb>' 
+	main features. If you would like more information about some 
+	particular instance variable, global function, or method, look at 
+	the doc strings or go to the library reference in <ref
+	refid="libraryReference">chapter</ref>. If you are
+        reading this in PDF or HTML formats, follow the corresponding 
+        hyperlink near each newly introduced entity.
       </p>
 
-      <p>Please, note that throughout this document the terms
+      <p>Please note that throughout this document the terms
 	<em>column</em> and <em>field</em> will be used
-	interchangeably with the same meaning, and the same goes for
-	the terms <em>row</em> and <em>record</em>.
+	interchangeably, as will the terms <em>row</em> and 
+	<em>record</em>.
       </p>
 
       <section>
 	<heading>Getting started</heading>
 
 	<p>In this section, we will see how to define our own records
-	  from Python and save collections of them (i.e. a <visual
-	  markup="bf">table</visual>) on a file. Then, we will select
-	  some data in the table using Python cuts, creating
-	  <verb>numarray</verb> arrays to keep this selection as
-	  separate objects in the tree.
+	  in Python and save collections of them (i.e. a <visual
+	  markup="bf">table</visual>) into a file. Then we will select
+	  some of the data in the table using Python cuts and create
+	  <verb>numarray</verb> arrays to store this selection as
+	  separate objects in a tree.
 	</p>
 	<p>
 	  In <em>examples/tutorial1-1.py</em> you will find the
 	  working version of all the code in this
 	  section. Nonetheless, this tutorial series has been written
 	  to allow you reproduce it in a Python interactive
-	  console. You are encouraged to take advantage of that by
-	  doing parallel testing and inspecting the created objects
-	  (variables, docs, children objects, etc.) during the
-	  voyage!.
+	  console. I encourage you to do parallel testing and inspect 
+	  the created objects (variables, docs, children objects, 
+	  etc.) during the course of the tutorial!
 	</p>
 
 	<subsection>
 	  <heading>Importing <visual markup="tt">tables</visual>
 	    objects</heading>
 	  
-	  <p>Before doing anything you need to import the
+          <p>Before starting you need to import the
 	    public objects in the <verb>tables</verb> package. You
-	    normally do that by issuing:
+	    normally do that by executing:
 	  </p>
 	  <verbatim>
 >>> import tables
 >>>
 	  </verbatim>
 	  <p>This is the recommended way to import <verb>tables</verb>
-	    if you don't want to pollute too much your
-	    namespace. However, <verb>PyTables</verb> has a very
-	    reduced set of first-level primitives, so you may consider
-	    to use this alternative:
+	    if you don't want to pollute your namespace. However, 
+	    <verb>PyTables</verb> has a very reduced set of first-level 
+	    primitives, so you may consider using the alternative:
 	  </p>
 	  <verbatim>
 >>> from tables import *
 >>>
 	  </verbatim>
-	  <p>that will export in your caller application namespace the
-	    next objects: <verb>openFile</verb>, <verb>isHDF5</verb>,
+	  <p>which will export in your caller application namespace the
+	    following objects: <verb>openFile</verb>, <verb>isHDF5</verb>,
 	    <verb>isPyTablesFile</verb> and
-	    <verb>IsDescription</verb>. These are a rather small number
-	    of objects, and for convenience, we will use this last way
-	    to access them.
+	    <verb>IsDescription</verb>. This is a rather reduced set
+	    of objects, and for convenience, we will use this
+	    technique to access them.
 	  </p>
-	  <p>If you are going to deal with <verb>numarray</verb> or
+	  <p>If you are going to work with <verb>numarray</verb> or
 	    <verb>Numeric</verb> arrays (and normally, you will) you
-	    also need to import some objects from it. You can do that
-	    in the normal way. So, to access to <verb>PyTables</verb>
-	    functionality normally you should start you programs with:
+	    will also need to import objects from them.  So most <verb>PyTables</verb>
+	    programs begin with:
 	  </p>
 	  <verbatim>
 >>> import tables        # but in this tutorial we use "from tables import *"
@@ -1046,35 +1118,40 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  <heading>Declaring a Column Descriptor</heading>
 
 	  <p>Now, imagine that we have a particle detector and we want
-	    to create a table object in order to save data that comes
-	    from it. You need first to define that table, how many
-	    columns it have, which kind of object is each element on
-	    the columns, and so on.
+	    to create a table object in order to save data
+	    retrieved from it. You need first to define the table, the
+	    number of columns it has, what kind of object is contained
+	    in each column, and so on.
 	  </p>
-	  <p>Our detector has a TDC (Time to Digital Converter)
+	  <p>Our particle detector has a TDC (Time to Digital Converter)
 	    counter with a dynamic range of 8 bits and an ADC
 	    (Analogic to Digital Converter) with a range of 16
 	    bits. For these values, we will define 2 fields in our
 	    record object called <verb>TDCcount</verb> and
 	    <verb>ADCcount</verb>. We also want to save the grid
-	    position in which the particle has been detected and we
+	    position in which the particle has been detected, so we
 	    will add two new fields called <verb>grid_i</verb> and
 	    <verb>grid_j</verb>. Our instrumentation also can obtain
-	    the pressure and energy of this particle that we want to
-	    add in the same way. The resolution of pressure-gauge
-	    allows us to use simple-precision float which will be
-	    enough to save <verb>pressure</verb> information, while
-	    <verb>energy</verb> would need a double-precision
-	    float. Finally, to track this particle we want to assign
-	    it a name to inform about the kind of the particle and a
-	    number identifier unique for each particle. So we will add
-	    a couple of fields: <verb>name</verb> will be the a string
-	    of up-to 16 characters and because we want to deal with a
-	    really huge number of particles, <verb>idnumber</verb>
-	    will be an integer of 64 bits.
+	    the pressure and energy of the particle. The resolution 
+	    of the pressure-gauge allows us to use a simple-precision 
+	    float to store <verb>pressure</verb> readings, while the 
+	    <verb>energy</verb> value will need a double-precision
+	    float. Finally, to track the particle we want to assign
+	    it a name to identify the kind of the particle it is and a
+	    unique numeric identifier. So we will add two more fields: 
+	    <verb>name</verb> will be a string of up to 16 characters,
+	    and <verb>idnumber</verb> will be an integer of 64 bits
+	    (to allow us to store records for extremely large numbers
+	    of particles).
+	    <!-- SGP:  Whew.  You didn't exactly choose the most
+	    intuitive example.  If you want this to be understandable
+	    to people outside the physics communtiy, you may want to
+	    come up with a different example (say, a database of dirty
+	    pictures). -->
 	  </p>
-	  <p>With all of that, we can declare a new
-	    <verb>Particle</verb> class that will keep all this info:
+	  <p>Having determined our columns and their types, we can now 
+	    declare a new <verb>Particle</verb> class that will
+	    contain all this information:
 	  </p>
 
 	  <verbatim>
@@ -1090,20 +1167,19 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 ...
 >>>
 	  </verbatim>
-	  <p>This definition class is quite
-	    auto-explanatory. Basically, you have to declare a class
-	    variable for each field you need, and as its value we
-	    assign a subclass instance of the <verb>Col</verb> class,
-	    that describes the kind of column (the data type, the
-	    length, the shape, ...). See <ref
-	    refid="ColClassDescr">section</ref> for a complete
+	  <p>This definition class is self-explanatory.  Basically, 
+	    you declare a class variable for each field you need. As its 
+	    value you assign a subclass instance of the appropriate
+	    <verb>Col</verb> class, according to the kind of column
+	    defined (the data type, the length, the shape, etc. See
+	    the <ref refid="ColClassDescr">section</ref> for a complete
 	    description of these subclasses. See also <ref
 	    refid="datatypesSupported">appendix</ref> for a list of
 	    data types supported in <verb>Col</verb> constructors.
 	  </p>
 	  <p>From now on, we can use <verb>Particle</verb> instances
 	    as a descriptor for our detector data table. We will see
-	    how to pass this object to the <verb>Table</verb>
+	    later on how to pass this object to the <verb>Table</verb>
 	    constructor. But first, we must create a file where all
 	    the actual data pushed into <verb>Table</verb> will be
 	    saved.
@@ -1114,25 +1190,25 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	<subsection>
 	  <heading>Creating a <visual markup="tt">PyTables</visual> file from scratch</heading>
 
-	  <p>To create a <verb>PyTables</verb> file use the
-	    first-level <verb>openFile</verb> (see <ref
-	    refid="openFileDescr"></ref>) function:
+	  <p>Use the first-level <verb>openFile</verb> (see <ref
+	    refid="openFileDescr"></ref>) function to create a 
+	    <verb>PyTables</verb> file:
 	  </p>
 
 	  <verbatim>
 >>> h5file = openFile("tutorial1.h5", mode = "w", title = "Test file")
 	  </verbatim>
-	  <p>This <verb>openFile</verb> (<ref
+	  <p><verb>openFile</verb> (<ref
 	    refid="openFileDescr">see</ref>) is one of the objects
-	    imported by the "<verb>from tables import *</verb>", do
-	    you remember?. Here, we are telling that we want to create
-	    a new file called "<verb>tutorial1.h5</verb>" in
-	    "<verb>w</verb>"rite mode and with an descriptive title
-	    string ("<verb>Test file</verb>"). This function tries to
-	    open the file, and if successful, returns a
-	    <verb>File</verb> (<ref refid="FileClassDescr">see</ref>)
-	    instance which hosts the root of the object tree on its
-	    <verb>root</verb> attribute.
+	    imported by the "<verb>from tables import *</verb>"
+	    statement. Here, we are saying that we want to create
+	    a new file in the current working directory called 
+	    "<verb>tutorial1.h5</verb>" in "<verb>w</verb>"rite mode 
+	    and with an descriptive title string ("<verb>Test file</verb>"). 
+	    This function attempts to open the file, and if successful, 
+	    returns the <verb>File</verb> (<ref refid="FileClassDescr">see</ref>)
+	    object instance <verb>h5file</verb>.  The root of the object tree is
+	    specified in the instance's <verb>root</verb> attribute.
 	  </p>
 	</subsection>
 
@@ -1140,8 +1216,8 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  <heading>Creating a new group</heading>
 
 	  <p>Now, to better organize our data, we will create a group
-	    hanging from the root called <em>detector</em>. We will
-	    use this group to save our particle data there.
+	    called <em>detector</em> that branches from the root node. We will
+	    save our particle data in this group.
 	  </p>
 	  <verbatim>
 >>> group = h5file.createGroup("/", 'detector', 'Detector information')
@@ -1151,13 +1227,13 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  <p>Here, we have taken the <verb>File</verb> instance
 	    <verb>h5file</verb> and invoked its
 	    <verb>createGroup</verb> method (<ref
-	    refid="createGroupDescr">see</ref>), telling that we want
-	    to create a new group called <em>detector</em> hanging
-	    from "<em>/</em>", which is other way to refer to the
-	    <verb>h5file.root</verb> object we mentioned before. This
+	    refid="createGroupDescr">see</ref>) to create a new group 
+	    called <em>detector</em> branching
+	    from "<em>/</em>" (another way to refer to the
+	    <verb>h5file.root</verb> object we mentioned above). This
 	    will create a new <verb>Group</verb> (see<ref
-	    refid="GroupClassDescr"></ref>) instance that will be
-	    assigned to the <verb>group</verb> variable.
+	    refid="GroupClassDescr"></ref>) object instance that will be
+	    assigned to the variable <verb>group</verb>.
 	  </p>
 
 	</subsection>
@@ -1165,10 +1241,10 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  <heading>Creating a new table</heading>
 
 	  <p>Let's now create the <verb>Table</verb> (see <ref
-	    refid="TableClassDescr"></ref>) object hanging from the new
-	    created group. We do that by calling the
+	    refid="TableClassDescr"></ref>) object as a branch off the 
+	    newly-created group. We do that by calling the
 	    <verb>createTable</verb> (see <ref
-	    refid="createTableDescr"></ref>) method from the
+	    refid="createTableDescr"></ref>) method of the
 	    <verb>h5file</verb> object:
 	  </p>
 	  <verbatim>
@@ -1176,21 +1252,20 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 >>>
 	  </verbatim>
 
-	  <p>Look at how we asked to create the <verb>Table</verb>
-	    instance hanging from <verb>group</verb>, with name
-	    "<em>readout</em>". We have passed <verb>Particle</verb>,
-	    the class that we have declared before, as the
-	    <em>description</em> parameter and finally we have used
-	    "<em>Readout example</em>" as a <verb>Table</verb>
-	    title. With all this information, a new <verb>Table</verb>
-	    instance is created and assigned to <em>table</em>
-	    variable.
+	  <p>We create the <verb>Table</verb> instance under <verb>group</verb>. 
+	    We assign this table the node name "<em>readout</em>".
+	    The <verb>Particle</verb> class declared before is the
+	    <em>description</em> parameter (to define the columns of
+	    the table) and finally we set "<em>Readout example</em>"
+	    as the <verb>Table</verb> title. With all this information, 
+	    a new <verb>Table</verb> instance is created and assigned to 
+	    the variable <em>table</em>.
 	  </p>
 
-	  <p>If you are getting curious how the object tree looks like
-	    at this moment, simply print the name of the
-	    <verb>File</verb> instance, <em>h5file</em>, and look at
-	    their output:
+	  <p>If you are curious about how the object tree looks
+	    right now, simply <verb>print</verb> the <verb>File</verb> 
+	    instance variable <em>h5file</em>, and examine
+	    the output:
 	  </p>
 
 	  <verbatim>
@@ -1203,10 +1278,10 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:00:13 20
 >>>
 	  </verbatim>
 
-	  <p>As you can see, a dump of the object tree has been shown
-	    and it's very easy to visualize the <verb>Group</verb> and
+	  <p>As you can see, a dump of the object tree is displayed.
+	    It's easy to see the <verb>Group</verb> and
 	    <verb>Table</verb> objects we have just created. If you
-	    want more information, just type the name of the
+	    want more information, just type the variable containing the
 	    <verb>File</verb> instance:
 	  </p>
 
@@ -1230,18 +1305,18 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 >>>
 	  </verbatim>
 
-	  <p>where more detailed info is printed on each object on the
-	    tree. Pay attention on how <verb>Particle</verb>, our
+	  <p>More detailed information is displayed about each object 
+	    in the tree. Note how <verb>Particle</verb>, our
 	    table descriptor class, is printed as part of the
 	    <em>readout</em> table description information. In
-	    general, you can obtain lot of information on the objects
-	    and its children by just printing them. That introspection
-	    capability is very meaningful, so I recommend you to use it
+	    general, you can obtain much more information about the objects
+	    and their children by just printing them. That introspection
+	    capability is very useful, and I recommend that you use it
 	    extensively.
 	  </p>
 
-	  <p>Now, time to fill this table with some values. But first,
-	    we are going to get a pointer to the <verb>Row</verb>
+	  <p>The time has come to fill this table with some values. First
+	    we will get a pointer to the <verb>Row</verb>
 	    instance of this <verb>table</verb> instance:
 	  </p>
 	  <verbatim>
@@ -1252,13 +1327,13 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	  <p>The <verb>row</verb> attribute of <verb>table</verb>
 	    points to the <verb>Row</verb> (see <ref
 	    refid="RowClassDescr"></ref>) instance that will be used
-	    to input data rows into the table. We achieve this by just
-	    assigning it the values for each row as if it was a
-	    dictionary (although it is actually an <em>extension
-	    class</em>) and using the column names as keys.
+	    to write data rows into the table. We write data simply by
+	    assigning The <verb>Row</verb> instance the values for each 
+	    row as if it were a dictionary (although it is actually an 
+	    <em>extension class</em>), using the column names as keys.
 	  </p>
 
-	  <p>Look at how the filling process works like:
+	  <p>Below is an example of how to write rows:
 	  </p>
 
 	  <verbatim>
@@ -1279,15 +1354,15 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	  
 	  <p>This code should be easy to understand. The lines inside
 	    the loop just assign values to the different columns in
-	    the <verb>particle</verb> Row instance (<ref
-	    refid="RowClassDescr">see</ref>) and then a call to its
-	    <verb>append()</verb> method is made to put this
-	    information in the <verb>table</verb> I/O buffer.
+	    the Row instance <verb>particle</verb> (<ref
+	    refid="RowClassDescr">see</ref>). A call to its
+	    <verb>append()</verb> method writes this
+	    information to the <verb>table</verb> I/O buffer.
 	  </p>
 
-	  <p>After we have pushed all our data, we should flush the
-	    I/O buffer for the table if we want to consolidate all
-	    this data on disk. We can achieve that by calling the
+	  <p>After we have processed all our data, we should flush the
+	    table's I/O buffer if we want to write all
+	    this data to disk. We achieve that by calling the
 	    <verb>table.flush()</verb> method.
 	  </p>
 	  <verbatim>
@@ -1298,12 +1373,10 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	</subsection>
 
 	<subsection id="readingAndSelectingUsage">
-	  <heading>Reading (and selecting) data in table</heading>
-
-	  <p>Ok. We have now our data on disk but to this data be
-	    useful we need to access it and select some values we are
-	    interested in and located at some specific columns. That's
-	    is easy to do:
+	  <heading>Reading (and selecting) data in a table</heading>
+	  <p>Ok. We have our data on disk, and now we need to access it 
+	    and select from specific columns the values we are
+	    interested in. See the example below:
 	  </p>
 	  <verbatim>
 >>> table = h5file.root.detector.readout
@@ -1314,33 +1387,33 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 >>>
 	  </verbatim>
 
-	  <p>The first line is only to declare a convenient shortcut
-	    to the <em>readout</em> table which is a bit deeper on the
-	    object tree. As you can see, we have used the <visual
+	  <p>The first line creates a "shortcut"
+	    to the <em>readout</em> table deeper on the
+	    object tree. As you can see, we use the <visual
 	    markup="bf">natural naming</visual> schema to access
-	    it. We could also have used the
-	    <verb>h5file.getNode()</verb> method instead, and we
-	    will certainly do that later on.
+	    it. We also could have used the
+	    <verb>h5file.getNode()</verb> method, as we will do
+	    later on.
 	  </p>
 
-	  <p>You will recognize the last two lines to be a Python list
-	    comprehension. It loops over rows in <em>table</em> as
-	    they are provided by <verb>table.iterrows()</verb>
-	    iterator (see <ref refid="iterrowsDescr"></ref>) that
-	    returns values until data in table is exhausted. These
+	  <p>You will recognize the last two lines as a Python list
+	    comprehension. It loops over the rows in <em>table</em> as
+	    they are provided by the <verb>table.iterrows()</verb>
+	    iterator (see <ref refid="iterrowsTableDescr"></ref>). The iterator
+	    returns values until all the data in table is exhausted. These
 	    rows are filtered using the expression <verb>x['TDCcount']
-	    > 3 and x['pressure'] &lt; 50</verb>, and the
-	    <verb>pressure</verb> field for satisfying records is
-	    selected to form the final list that is assigned to
+	    > 3 and x['pressure'] &lt; 50</verb>. We select the value of
+	    the <verb>pressure</verb> column from filtered records to
+	    to create the final list and assign it to
 	    <verb>pressure</verb> variable.
 	  </p>
 
-	  <p>We could indeed have used a normal <verb>for</verb> loop
-	    to do that, but I find comprehension syntax to be more
-	    compact and elegant.
+	  <p>We could have used a normal <verb>for</verb> loop
+	    to accomplish the same purpose, but I find comprehension 
+	    syntax to be more compact and elegant.
 	  </p>
 
-	  <p>Let's select the names for the same set of cuts:
+	  <p>Let's select the <verb>name</verb> column for the same set of cuts:
 	  </p>
 
 	  <verbatim>
@@ -1351,18 +1424,17 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	  </verbatim>
 
 	  <p>Note how we have omitted the <verb>iterrows()</verb> call
-	    in the list comprehension. This is because the
-	    <verb>Table</verb> class has an implementation of the
-	    special method called <verb>__iter__()</verb>, so that it
-	    implements the iterator protocol over all the rows in the
-	    table. In fact, <verb>iterrows()</verb> internally calls
-	    this special <verb>__iter__()</verb> method. This way to
-	    access all the rows in a table turns out to be very
-	    convenient, specially for interactive use.
+	    in the list comprehension. The <verb>Table</verb> class 
+	    has an implementation of the special method <verb>__iter__()</verb>
+	    that iterates over all the rows in the table. In fact, 
+	    <verb>iterrows()</verb> internally calls
+	    this special <verb>__iter__()</verb> method.  Accessing all 
+	    the rows in a table using this method is very
+	    convenient, especially when working with the data interactively.
 	  </p>
 
-	  <p>Ok. that's enough for selections. Next section will show
-	    you how to save these selections on file.
+	  <p>That's enough about selections. The next section will show
+	    you how to save these select results to a file.
 	  </p>
 
 	</subsection>
@@ -1370,9 +1442,9 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	<subsection>
 	  <heading>Creating new array objects</heading>
 
-	  <p>In order to separate the selected data from the detector
-	    data, we will create a new group, called
-	    <verb>columns</verb> hanging from the root group:
+	  <p>In order to separate the selected data from the mass of detector
+		  data, we will create a new group
+		  <verb>columns</verb> branching off the root group:
 	  </p>
 
 	  <verbatim>
@@ -1381,8 +1453,8 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	  </verbatim>
 
 	  <p>Note that this time we have specified the first parameter
-	    in a <em>natural naming</em> fashion
-	    (<verb>h5file.root</verb>) instead of using an absolute
+	    using <em>natural naming</em>
+	    (<verb>h5file.root</verb>) instead of with an absolute
 	    path string ("/").
 	  </p>
 
@@ -1403,20 +1475,18 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	  <p>We already know the first two parameters of the
 	    <verb>createArray</verb> (see <ref
 	    refid="createArrayDescr"></ref>) methods (these are the
-	    same as the firsts in <verb>createTable</verb>): they are
+	    same as the first two in <verb>createTable</verb>): they are
 	    the parent group <em>where</em> <verb>Array</verb> will be
 	    created and the <verb>Array</verb> instance
-	    <em>name</em>. You can figure out that the fourth
-	    parameter is the <em>title</em>. And in the third position
-	    we have the <em>object</em> we want to save on disk. In
-	    this case, it is a <verb>Numeric</verb> array that is
-	    built from the selection lists we created before.
+	    <em>name</em>.  The third parameter is the <em>object</em> 
+	    we want to save to disk. In this case, it is a <verb>Numeric</verb> 
+	    array that is built from the selection list we created before.
+	    The fourth parameter is the <em>title</em>.
 	  </p>
 
-	  <p>Now, we are going to save the other selection. In this
-	    case it's a list of strings, and we want to save this
-	    object as is, with no further conversion. Look at how this
-	    can be done:
+	  <p>Now, we will save another data set. It contains the list
+	    of strings we selected before:  we save this
+	    object as-is, with no further conversion.
 	  </p>
 
 	  <verbatim>
@@ -1429,20 +1499,19 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 >>>
 	  </verbatim>
 
-	  <p>You see, <verb>createArray()</verb> accepts
-	    <em>names</em> (which is a regular Python list) as
+	  <p>As you can see, <verb>createArray()</verb> accepts
+	    <em>names</em> (which is a regular Python list) as an
 	    <em>object</em> parameter. Actually, it accepts a variety
-	    of other regular objects (see <ref
-	    refid="createArrayDescr"></ref>). We will check that we can
+	    of different regular objects (see <ref
+	    refid="createArrayDescr"></ref>) as parameters. We will
 	    retrieve exactly the same object from disk later on.
 	  </p>
-	  <p>Note that in this examples, <verb>createArray</verb>
+	  <p>Note that in these examples, the <verb>createArray</verb>
 	    method returns an <verb>Array</verb> instance that is not
-	    assigned to any variable. Don't worry, this was
-	    intentional because I wanted to show you the kind of
-	    object we have created by showing its
-	    representation. Indeed, the <verb>Array</verb> objects has
-	    been attached to the object tree and saved on disk, as you
+	    assigned to any variable. Don't worry, this is
+	    intentional to show the kind of object we have created by
+	    displaying its representation.  The <verb>Array</verb> objects has
+	    been attached to the object tree and saved to disk, as you
 	    can see if you print the complete object tree:
 	  </p>
 	  <verbatim>
@@ -1464,20 +1533,19 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:00:13 20
 
 	  <p>To finish this first tutorial, we use the
 	    <verb>close</verb> method of the h5file <verb>File</verb>
-	    instance to close the file before exiting Python:
+	    object to close the file before exiting Python:
 	  </p>
 	  <verbatim>
 >>> h5file.close()
 >>> ^D
 	  </verbatim>
 
-	  <p>With all that, you have created your first
+	  <p>You have now created your first
 	    <verb>PyTables</verb> file with a table and two
-	    arrays. That was easy, admit it. Now, you can have a look
-	    at it with some generic HDF5 tool, like
-	    <verb>h5dump</verb> or <verb>h5ls</verb>. Here is the
-	    result of passing to <verb>h5ls</verb> the
-	    <verb>tutorial1.h5</verb> file:
+	    arrays. You can examine it with any generic HDF5 tool,
+	    such as <verb>h5dump</verb> or <verb>h5ls</verb>. Here 
+	    is what the <verb>tutorial1.h5</verb> looks like when read
+	    with the <verb>h5ls</verb> program:
 	  </p>
 	  <verbatim>
 $ h5ls -rd tutorial1.h5
@@ -1503,8 +1571,9 @@ $ h5ls -rd tutorial1.h5
         (9) {2304, 9, 43046721, 9, 1, 154618822656, "Particle:      9", 81}
 	  </verbatim>
 
-	  <p>or, using the "dumpFile.py" <verb>PyTables</verb> utility
-	    (located in <verb>examples/</verb> directory):
+	  <p>Here's the outputs as displayed by the "dumpFile.py" 
+	   <verb>PyTables</verb> utility (located in 
+	   <verb>examples/</verb> directory):
 	  </p>
 
 	  <verbatim>
@@ -1521,33 +1590,32 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 
 	  <p>You can pass the <verb>-v</verb> or <verb>-d</verb>
 	    options to <verb>dumpFile.py</verb> if you want more
-	    verbosity. Try them out!.
+	    verbosity. Try them out!
 	  </p>
 	</subsection>
       </section>
 
       <section>
 	<heading>Browsing the <visual markup="it">object tree</visual>
-	  and more</heading>
+		and appending to tables</heading>
 
-	<p>In this section, we will learn how to browse the tree while
-	  retrieving meta-information about the actual data, and will
-	  finish by appending some rows to the existing table to show
+	<p>In this section, we will learn how to browse the tree and
+	  retrieve meta-information about the actual data, then
+	  append some rows to an existing table to show
 	  how table objects can be enlarged.
 	</p>
 	<p>
 	  In <em>examples/tutorial1-2.py</em> you will find the
 	  working version of all the code in this section. As before,
 	  you are encouraged to use a python shell and inspect the
-	  object tree during the voyage.
+	  object tree during the course of the tutorial.
 	</p>
 
 	<subsection>
 	  <heading>Traversing the object tree</heading>
 
-	  <p>First of all, let's open the file we have recently
-	    created in last tutorial section, as we will take it as a
-	    basis for this section:
+	  <p>Let's start by opening the file we created in last tutorial 
+	    section. 
 	  </p>
 
 	  <verbatim>
@@ -1555,16 +1623,15 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	  </verbatim>
 
 	  <p>This time, we have opened the file in "a"ppend mode. We
-	    are using this mode because we want to add more
-	    information to the file.
+	    use this mode to add more information to the file.
 	  </p>
 	  <p><verb>PyTables</verb>, following the Python tradition,
 	    offers powerful introspection capabilities, i.e. you can
 	    easily ask information about any component of the object
-	    tree as well as traverse the tree searching for something.
+	    tree as well as search the tree.
 	  </p>
-	  <p>To start with, you can get a first glance image of the
-	    object tree, by simply printing the existing
+	  <p>To start with, you can get a preliminary overview of the
+	    object tree by simply printing the existing
 	    <verb>File</verb> instance:
 	  </p>
 
@@ -1581,9 +1648,10 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 >>>
 	  </verbatim>
 
-	  <p>That's right, it seems that all our objects are
-	    there. Now, let's make use of the File iterator to see how
-	    to list all the nodes in the object tree:
+	  <p>It looks like all of our objects are there. 
+	    Now let's make use of the <verb>File</verb> 
+	    iterator to see to list all the nodes in the 
+	    object tree:
 	  </p>
 
 	  <verbatim>
@@ -1600,7 +1668,7 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	  </verbatim>
 	  
 	  <p>We can use the <verb>walkGroups</verb> method (see <ref
-	    refid="walkGroupsDescr"></ref>) of <verb>File</verb> class
+	    refid="walkGroupsDescr"></ref>) of the <verb>File</verb> class
 	    to list only the <em>groups</em> on tree:
 	  </p>
 
@@ -1615,9 +1683,9 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	  </verbatim>
 
 	  <p>Note that <verb>walkGroups()</verb> actually returns an
-	    <em>iterator</em>, not a list of objects. Combining this
-	    iterator with the <verb>listNodes()</verb> method, we can
-	    do very powerful things. Let's see an example listing all
+	    <em>iterator</em>, not a list of objects. Using this
+	    iterator with the <verb>listNodes()</verb> method is a
+	    powerful combination. Let's see an example listing of all
 	    the arrays in the tree:
 	  </p>
 
@@ -1632,17 +1700,17 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 
 	  <p><verb>listNodes()</verb> (see <ref
 	    refid="listNodesDescr"></ref>) returns a list containing
-	    all the nodes hanging from a specific <verb>Group</verb>,
-	    and if <em>classname</em> keyword is specified, the method
-	    will filter all instances which are not descendants of
-	    it. We have specified it to solely return
-	    <verb>Array</verb> instances.
+	    all the nodes hanging off a specific <verb>Group</verb>.
+	    If the <em>classname</em> keyword is specified, the method
+	    will filter out all instances which are not descendants of
+	    the class. We have asked for only <verb>Array</verb> 
+	    instances.
 	  </p>
 
 	  <p>We can combine both calls by using the
 	      <verb>__call__(where, classname)</verb> special method
-	      of <verb>File</verb> (<ref
-	      refid="__callFileDescr">see</ref>), i.e.:
+	      of the <verb>File</verb> object (<ref
+	      refid="__callFileDescr">see</ref>). For example:
 	  </p>
 
 	  <verbatim>
@@ -1654,16 +1722,16 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 >>>
 	  </verbatim>
 
-	  <p>which is a nice shortcut for doing interactive work.</p>
+	  <p>This is a nice shortcut when working interactively.</p>
 
-	  <p>As a final example, we will list all the
+	  <p>Finally, we will list all the
 	    <verb>Leaf</verb>, i.e. <verb>Table</verb> and
-	    <verb>Array</verb> instances (see <ref
+	    <verb>Array</verb>, instances (see <ref
 	    refid="LeafClassDescr"></ref> for detailed information on
-	    <verb>Leaf</verb> class), in <verb>/detector</verb>
-	    group. Check that only one instance of <verb>Table</verb>
+	    <verb>Leaf</verb> class), in the <verb>/detector</verb>
+	    group. Note that only one instance of the <verb>Table</verb>
 	    class (i.e. <verb>readout</verb>) will be selected in this
-	    group (as it should be):
+	    group (as should be the case):
 	  </p>
 
 	  <verbatim>
@@ -1674,15 +1742,15 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 >>> 
 	  </verbatim>
 
-	  <p>where we have used a call to the
+	  <p>We have used a call to the
 	    <verb>Group.__call__(classname, recursive)</verb> special
-	    method (<ref refid="__callGroupDescr"></ref>), combined
-	    with a <em>natural naming</em> path specification.</p>
+	    method (<ref refid="__callGroupDescr"></ref>), using
+	    the <em>natural naming</em> path specification.</p>
 
 	  <p>Of course you can do more sophisticated node selections
-	    using these powerful methods, but first, we need to
-	    learn a bit about some important instance variables of
-	    <verb>PyTables</verb> objects.
+	    using these powerful methods. But first, let's take a look
+	    at some important <verb>PyTables</verb> object instance
+	    variables.
 	  </p>
 
 	</subsection>
@@ -1694,7 +1762,7 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	    the meaning of your node objects on the tree by using the
 	    <verb>AttributeSet</verb> class (see <ref
 	    refid="AttributeSetClassDescr">section</ref>). You can
-	    access to this object through the standard attribute
+	    access this object through the standard attribute
 	    <verb>attrs</verb> in <verb>Leaf</verb> nodes and
 	    <verb>_v_attrs</verb> in <verb>Group</verb> nodes.
 	  </p>
@@ -1702,7 +1770,7 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	  <p>For example, let's imagine that we want to save the date
 	    indicating when the data in <verb>/detector/readout</verb>
 	    table has been acquired, as well as the temperature during
-	    the gathering process. That is easy:
+	    the gathering process:
 	  </p>
 
 	  <verbatim>
@@ -1713,10 +1781,10 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 >>>
 	  </verbatim>
 
-	  <p>Now, set a somewhat more complex attribute in the
+	  <p>Now, let's set a somewhat more complex attribute in the
 	    <verb>/detector</verb> group:
 	  </p>
-
+          <!-- SGP:  What is this attribute? -->
 	  <verbatim>
 >>> detector = h5file.root.detector
 >>> detector._v_attrs.stuff = [5, (2.3, 4.5), "Integer and tuple"]
@@ -1724,15 +1792,15 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	  </verbatim>
 
 	  <p>Note how the AttributeSet instance is accessed with
-	    <verb>_v_attrs</verb> because detector is a
+	    the <verb>_v_attrs</verb> attribute because detector is a
 	    <verb>Group</verb> node. In general, you can save any
-	    standard Python data structure as an attribute node, but
-	    see <ref refid="AttributeSetClassDescr">section</ref> for
-	    a more detailed explanation of how are them serialized on
-	    disk.
+	    standard Python data structure as an attribute node.
+	    See <ref refid="AttributeSetClassDescr">section</ref> for
+	    a more detailed explanation of how they are serialized for
+	    export to disk.
 	  </p>
 
-	  <p>Now, getting the attributes is equally easy:
+	  <p>Retrieving the attributes is equally simple:
 	  </p>
 
 	  <verbatim>
@@ -1754,9 +1822,9 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 >>> del table.attrs.gath_date
 	  </verbatim>
 
-	  <p>If you want to have a look at the current attribute set
+	  <p>If you want to examine the current complete attribute set
 	  of <verb>/detector/table</verb>, you can print its
-	  representation (try also hitting the <verb>TAB</verb> key
+	  representation (try hitting the <verb>TAB</verb> key
 	  twice if you are on a Unix Python console with the
 	  <verb>rlcompleter</verb> module active):
 	  </p>
@@ -1781,7 +1849,7 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 >>>
 	  </verbatim>
 
-	  <p>You can get a list only the user or system attributes
+	  <p>You can get a list of only the user or system attributes
 	    with the <verb>_f_list()</verb> method.
 	  </p>
 
@@ -1795,7 +1863,7 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 >>>
 	  </verbatim>
 
-	  <p>And rename attributes:
+	  <p>You can also rename attributes:
 	  </p>
 
 	  <verbatim>
@@ -1819,8 +1887,9 @@ RuntimeError: Read-only attribute ('VERSION') cannot be renamed
 >>>
 	  </verbatim>
 
-	  <p>After your session, you can check that the
-	  <verb>/detector/readout</verb> attributes in disk looks like:
+	  <p>After your terminating your session, you can use
+	  <verb>h5ls</verb> to read the <verb>/detector/readout</verb> 
+	  attributes from the file written to disk:
 	  </p>
 
 	  <verbatim>
@@ -1889,9 +1958,8 @@ Opened "tutorial1.h5" with sec2 driver.
 	  </verbatim>
 
 
-	  <p>As you can see, the use of attributes can be a good
-	    mechanism to add persistent (meta) information to your
-	    actual data. Be sure to use them extensively.
+	  <p>Attributes are a useful mechanism to add persistent 
+	    (meta) information to your data.
 	  </p>
 
 	</subsection>
@@ -1900,9 +1968,9 @@ Opened "tutorial1.h5" with sec2 driver.
 	  <heading>Getting object metadata</heading>
 
 	  <p>Each object in <verb>PyTables</verb> has
-	    <em>metadata</em> information about the actual data on the
+	    <em>metadata</em> information about the data in the
 	    file. Normally this <em>metainformation</em> is accessible
-	    through the node instance variables. Let's have a look at
+	    through the node instance variables. Let's take a look at
 	    some examples:
 	  </p>
 
@@ -1937,13 +2005,13 @@ pressure := Float32, 1
 	    <verb>coltypes</verb> and <verb>colshapes</verb>
 	    attributes (see <ref
 	    refid="FileInstanceVariablesDescr"></ref> for a complete
-	    attribute list) of <verb>Table</verb> object give us quite
-	    a lot of information about actual table data.
+	    attribute list) of the <verb>Table</verb> object gives us quite
+	    a bit of information about the table data.
 	  </p>
 
-	  <p>In general, you can get up-to-the-minute information
-	    about the public objects in PyTables in a interactive way
-	    by printing its internal doc strings:
+	  <p>You can interactively retrieve general information
+	    about the public objects in PyTables by printing their 
+	    internal doc strings:
 	  </p>
 
 	  <verbatim>
@@ -1955,7 +2023,7 @@ Represent a table in the object tree.
     file. A method is also provided to iterate over the rows without
     loading the entire table or column in memory.
 
-    Data can be written or read both as Row() instances or as numarray
+    Data can be written or read both as Row instances or as numarray
     (NumArray or RecArray) objects.
     
     Methods:
@@ -1994,8 +2062,9 @@ Represent a table in the object tree.
 >>>
 	  </verbatim>
 
-	  <p>This is very handy if you don't have this manual at
-	    hand. Try yourself with other objects docs, like for example:
+	  <p>The <verb>help</verb> function is also a handy way 
+	    to see <verb>PyTables</verb> reference documentation 
+	    online.  Try it yourself with other object docs:
 	  </p>
 
 	  <verbatim>
@@ -2003,7 +2072,7 @@ Represent a table in the object tree.
 >>> help(table.removeRows)
 	  </verbatim>
 
-	  <p>Now, print some metadata in <em>/columns/pressure</em>
+	  <p>To examine metadata in the <em>/columns/pressure</em>
 	    <verb>Array</verb> object:
 	  </p>
 
@@ -2024,28 +2093,28 @@ Info on the object: /columns/pressure (Array(3,)) 'Pressure column selection'
 >>>
 	  </verbatim>
 
-	  <p>Observe how we have used the <verb>getNode()</verb>
-	    method of <verb>File</verb> class to access a node in the
+	  <p>Observe that we have used the <verb>getNode()</verb>
+	    method of the <verb>File</verb> class to access a node in the
 	    tree, instead of the natural naming method. Both are
-	    useful, and depending on the context you will prefer to
-	    use one or another. <verb>getNode()</verb> has the
-	    advantage that it can get a node from the pathname string
-	    (like in this example), and, besides, you can force a
-	    filter so that the node in that location has to be a
-	    <em>classname</em> instance. However, I consider natural
-	    naming to be more elegant and quicker to specify,
-	    specially if you are using the name completion capability
-	    present in interactive console. I suggest to give a try at
+	    useful, and depending on the context you will prefer
+	    one or the other. <verb>getNode()</verb> has the
+	    advantages that it can get a node from the pathname string
+	    (as in this example) and can also act as a
+	    filter to show only nodes in a particular location that
+	    are instances of class <em>classname</em>. In general, 
+	    however, I consider natural naming to be more elegant and
+	    easier to use, especially if you are using the name completion 
+	    capability present in interactive console. Try
 	    this powerful combination of natural naming and completion
-	    capabilities present on most Python consoles. You will see
-	    how pleasant can be browsing the object tree (well, as
-	    long as this activity can be qualified in that way).
+	    capabilities present in most Python consoles, and see
+	    how pleasant it is to browse the object tree (at
+	    least, as pleasant as such an activity can be).
 	  </p>
 	  <p>If you look at the <verb>type</verb> attribute of the
-	    <verb>pressureObject</verb>, you can certify that this is
-	    a "<visual markup="bf">Float64</visual>" array, and that
-	    by looking at their <verb>shape</verb> attribute, it can
-	    deduced that the array on disk is unidimensional and has 4
+	    <verb>pressureObject</verb> object, you can verify that it is
+	    a "<visual markup="bf">Float64</visual>" array. 
+	    By looking at its <verb>shape</verb> attribute, you can
+	    deduce that the array on disk is unidimensional and has 4
 	    elements. See <ref
 	    refid="ArrayClassInstanceVariables"></ref> or the internal
 	    string docs for the complete <verb>Array</verb> attribute
@@ -2054,13 +2123,12 @@ Info on the object: /columns/pressure (Array(3,)) 'Pressure column selection'
 	</subsection>
 
 	<subsection>
-	  <heading>Reading actual data from <visual
+	  <heading>Reading data from <visual
 	  markup="tt">Array</visual> objects</heading>
 
-	  <p>Once you have found the desired <verb>Array</verb> and
-	    decided that you want to retrieve the actual data array
-	    from it, you should use the <verb>read()</verb> method of
-	    the <verb>Array</verb> object:</p>
+	  <p>Once you have found the desired <verb>Array</verb>,
+	    use the <verb>read()</verb> method of the <verb>Array</verb> 
+	    object to retrieve its data:</p>
 
 	  <verbatim>
 >>> pressureArray = pressureObject.read()
@@ -2087,24 +2155,24 @@ Particle:      7 --> 49.0
 >>> 
 	  </verbatim>
 
-	  <p>You can verify as the <verb>read()</verb> method (see
+	  <p>You can see that the <verb>read()</verb> method (see
 	    <ref refid="readArrayDescr">section</ref>) returns an authentic
 	    <verb>numarray</verb> object for the
 	    <verb>pressureObject</verb> instance by looking at the
-	    output of the <verb>type()</verb> call, while for the
-	    <verb>nameObject</verb> instance <verb>read()</verb>
-	    returns a native Python list (of strings). This is because
-	    the type of the object saved is kept as an HDF5 attribute
-	    (named <verb>FLAVOR</verb>) for these objects on
-	    disk. This attribute is then read as part of the
-	    <verb>Array</verb> metainformation and accessible through
-	    the <verb>Array.attrs.FLAVOR</verb> variable, enabling the
+	    output of the <verb>type()</verb> call.  A <verb>read()</verb>
+	    of the <verb>nameObject</verb> object instance
+	    returns a native Python list (of strings). 
+	    The type of the object saved is stored as an HDF5 attribute
+	    (named <verb>FLAVOR</verb>) for objects on
+	    disk. This attribute is then read as 
+	    <verb>Array</verb> metainformation (accessible through
+	    in the <verb>Array.attrs.FLAVOR</verb> variable), enabling the
 	    read array to be converted into the original object. This
 	    provides a means to save a large variety of objects as
-	    arrays with the guarantee that you will be able to recover
-	    them in its original form afterwards. See <ref
+	    arrays with the guarantee that you will be able to later recover
+	    them in their original form. See <ref
 	    refid="createArrayDescr">section</ref> for a complete list
-	    of supported objects for <verb>Array</verb>.
+	    of supported objects for the <verb>Array</verb> object class.
 	  </p>
 
 	</subsection>
@@ -2113,8 +2181,8 @@ Particle:      7 --> 49.0
 	  <heading>Appending data to an existing table</heading>
 
 	  <p>Now, let's have a look at how we can add records to an
-	    existing on-disk table. Let's use our well-known
-	    <em>readout</em> <verb>Table</verb> instance and let's
+	    existing table on disk. Let's use our well-known
+	    <em>readout</em> <verb>Table</verb> object and
 	    append some new values to it:
 	  </p>
 
@@ -2136,7 +2204,7 @@ Particle:      7 --> 49.0
 >>>
 	  </verbatim>
 
-	  <p>That works exactly in the same way than filling a new
+	  <p>It's the same method we used to fill a new
 	    table. <verb>PyTables</verb> knows that this table is on
 	    disk, and when you add new records, they are appended to
 	    the end of the table<footnote>Note that you can append not
@@ -2145,8 +2213,8 @@ Particle:      7 --> 49.0
 	  </p>
 	  <p>
 	    If you look carefully at the code you will see that we
-	    have used the <verb>table.row</verb> attribute so as to
-	    access a table row and fill it up with the new values.
+	    have used the <verb>table.row</verb> attribute to
+	    create a table row and fill it with the new values.
 	    Each time that its <verb>append()</verb> method is called,
 	    the actual row is committed to the output buffer and the
 	    row pointer is incremented to point to the next table
@@ -2154,12 +2222,13 @@ Particle:      7 --> 49.0
 	    disk, and the buffer is reused again for the next cycle.
 	  </p>
 
-	  <p><visual markup="bf">Caveat emptor</visual>!: Do not
-	    forget to always call the .flush() method after a writing
-	    operation; else your tables will not be fully
-	    updated!.</p>
+	  <p><visual markup="bf">Caveat emptor</visual>: Do not
+	    forget to always call the <verb>.flush()</verb>
+	    method after a write operation, or else your tables 
+	    will not be updated!</p>
 
-	  <p>Let's have a look at some columns of the resulting table:
+	  <p>Let's have a look at some rows in the modified table and
+	    verify that our new data has been appended:
 	  </p>
 
 	  <verbatim>
@@ -2188,12 +2257,11 @@ Particle:     14 |       196.0 |   1.476e+09 |     14 |     -4 |       14 |
 
 	</subsection>
 	<subsection>
-	  <heading>And finally... how to remove rows from a table</heading>
+	  <heading>And finally... how to delete rows from a table</heading>
 
-	  <p>Let's starting finishing this tutorial by deleting some
+	  <p>We´ll finish this tutorial by deleting some
 	    rows from the table we have. Suppose that we want to
-	    delete the rows from 5th to 9th (inclusive). That's very
-	    easy to do:
+	    delete the the 5th to 9th rows (inclusive):
 	  </p>
 
 	  <verbatim>
@@ -2208,9 +2276,10 @@ Particle:     14 |       196.0 |   1.476e+09 |     14 |     -4 |       14 |
 	      effectively removed.
 	  </p>
 
-	  <p>We have reached the end of this first tutorial. But, ei!,
-	    do not forget to close the file after you finish all the
-	    work:
+	  <!-- SGP:  It would be cool if you could delete all the rows
+	  returned by a selection. -->
+	  <p>We have reached the end of this first tutorial.
+	    Don't forget to close the file when you finish:
 	  </p>
 
 	  <verbatim>
@@ -2220,9 +2289,9 @@ $
 	  </verbatim>
 
 	  <p>In <ref refid="tutorial1-tableview">figure</ref> you can
-	    see a graphical view of the <verb>PyTables</verb> file,
-	    with the datasets we have just created. And in <ref
-	    refid="tutorial1-general">figure</ref> you can see the
+	    see a graphical view of the <verb>PyTables</verb> file
+	    with the datasets we have just created. In <ref
+	    refid="tutorial1-general">figure</ref> are displayed the
 	    general properties of the table
 	    <verb>/detector/readout</verb>.
 	  </p>
@@ -2230,7 +2299,7 @@ $
 	  <figure id="tutorial1-tableview">
 	    <graphics file="tutorial1-tableview" scale="0.5" kind="bitmap">
 	    </graphics>
-	    <caption>The final version of data file for tutorial 1,
+	    <caption>The final version of the data file for tutorial 1,
 	    with a view of the data objects.
 	    </caption>
 	  </figure>
@@ -2251,29 +2320,30 @@ $
 	<heading>Multidimensional table cells and automatic
 	  sanity checks</heading>
 
-	<p>Now, time for a more real life example (i.e. with errors in
-	  code). Here, we will create a couple of groups hanging
-	  directly from <verb>root</verb> called
+	<p>Now it's time for a more real-life example (i.e. with errors in
+	  the code). We will create two groups that branch
+	  directly from the <verb>root</verb> node, 
 	  <verb>Particles</verb> and <verb>Events</verb>. Then, we
-	  will put 3 tables in each group; in <verb>Particles</verb>
-	  we will put tables based on <verb>Particle</verb> descriptor
-	  and in <verb>Events</verb>, tables based <verb>Event</verb>
+	  will put three tables in each group. In <verb>Particles</verb>
+	  we will put tables based on the <verb>Particle</verb> descriptor
+	  and in <verb>Events</verb>, the tables based the <verb>Event</verb>
 	  descriptor.
 	</p>
 	<p>
-	  After that, we will feed the tables with a number of
-	  records. Finally, we will read the recently created table
-	  <verb>/Events/TEvent3</verb> and select some values from it
+	  Afterwards, we will provision the tables with a number of
+	  records. Finally, we will read the newly-created table
+	  <verb>/Events/TEvent3</verb> and select some values from it,
 	  using a comprehension list.
 	</p>
 	<p>Look at the next script (you can find it in
-	  <verb>examples/tutorial2.py</verb>). It seems to do all of
-	  that, but a couple of small bugs will be shown up. Note that
+	  <verb>examples/tutorial2.py</verb>). It appears to do all of
+	  the above, but it contains some small bugs. Note that
 	  this <verb>Particle</verb> class is not directly related
-	  with the one defined in last example; this one is simpler
-	  (but notice the <em>multidimensional</em> columns called
-	  <verb>pressure</verb> and <verb>temperature</verb>!). And we
-	  will introduce a new manner to describe a <verb>Table</verb>
+	  to the one defined in last tutorial; this class is simpler
+	  (note, however, the <em>multidimensional</em> columns called
+	  <verb>pressure</verb> and <verb>temperature</verb>). 
+	</p>
+	<p>We also introduce a new manner to describe a <verb>Table</verb>
 	  as a dictionary, as you can see in the <verb>Event</verb>
 	  description. See section <ref
 	  refid="createTableDescr"></ref> about the different kinds of
@@ -2309,7 +2379,7 @@ root = fileh.root
 # Create the groups:
 for groupname in ("Particles", "Events"):
     group = fileh.createGroup(root, groupname)
-# Now, create and fill the tables in Particles group
+# Now, create and fill the tables in the Particles group
 gparticles = root.Particles
 # Create 3 new tables
 for tablename in ("TParticle1", "TParticle2", "TParticle3"):
@@ -2318,7 +2388,7 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
                            "Particles: "+tablename)
     # Get the record object associated with the table:
     particle = table.row
-    # Fill the table with 257 particles
+    # Fill the table with data for 257 particles
     for i in xrange(257):
         # First, assign the values to the Particle record
         particle['name'] = 'Particle: %6d' % (i)
@@ -2334,14 +2404,14 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
     # Flush the table buffers
     table.flush()
 
-# Now, go for Events:
+# Now Events:
 for tablename in ("TEvent1", "TEvent2", "TEvent3"):
-    # Create a table in Events group
+    # Create a table in the Events group
     table = fileh.createTable(root.Events, tablename, Event,
                            "Events: "+tablename)
     # Get the record object associated with the table:
     event = table.row
-    # Fill the table with 257 events
+    # Fill the table with data on 257 events
     for i in xrange(257):
         # First, assign the values to the Event record
         event['name']  = 'Event: %6d' % (i)
@@ -2366,16 +2436,15 @@ e = [ p['TDCcount'] for p in table
 print "Last record ==>", p
 print "Selected values ==>", e
 print "Total selected records ==> ", len(e)
-# Finally, close the file (this also will flush all the remaining buffers!)
+# Finally, close the file (this also will flush all the remaining buffers)
 fileh.close()
 	</verbatim>
 
 	<subsection>
 	  <heading>Shape checking</heading>
 
-	  <p>If you have read the code carefully it looks pretty good,
-	    but it won't work. When you run this example, you will get
-	    the next error:</p>
+	  <p>If you look at the code carefully, you'll see that it 
+	    won't work. You will get the following error:</p>
 
 	<verbatim>
 $ python tutorial2.py
@@ -2389,25 +2458,24 @@ Traceback (most recent call last):
 ValueError: New shape is not consistent with the old shape
 	</verbatim>
 
-	  <p>which is saying that you are trying to assign an array of
-	    incompatible shape to a table cell. If you look at the
-	    source, we were trying to assign an array of shape
-	    <verb>(2,4)</verb> to a pressure<verb></verb> element,
-	    which was defined to have a shape of
-	    <verb>(2,3)</verb>.
+	  <p>This error indicates that you are trying to assign an array
+	    with an incompatible shape to a table cell. Looking at the 
+	    source, we see that we were trying to assign an array of shape
+	    <verb>(2,4)</verb> to a <verb>pressure</verb> element,
+	    which was defined with the shape <verb>(2,3)</verb>.
 	  </p>
-	  <p>In general, this kind of operations are forbidden, with
-	    a honorable exception: when you tries to assign an
-	    <em>scalar</em> value to a column cell that is
-	    multidimensional, all the cell elements are populated with
-	    the value of this scalar. This happens in the next line:
+	  <p>In general, these kinds of operations are forbidden, with
+	    one valid exception: when you assign a
+	    <em>scalar</em> value to a multidimensional column cell,
+	    all the cell elements are populated with the value of the 
+	    scalar. For example:
 	  </p>
 
 	  <verbatim>
         particle['temperature'] = (i**2)    # Broadcasting
 	  </verbatim>
 
-	  <p>So, the value <verb>i**2</verb> is assigned to all the
+	  <p>The value <verb>i**2</verb> is assigned to all the
 	    elements of the <verb>temperature</verb> table cell. This
 	    capability is provided by the <verb>numarray</verb>
 	    package and is known as <em>broadcasting</em>.
@@ -2418,8 +2486,8 @@ ValueError: New shape is not consistent with the old shape
 	<subsection>
 	  <heading>Field name checking</heading>
 
-	  <p>After fixing the previous error, and re-running again the
-	  program, we will get another one:
+	  <p>After fixing the previous error and rerunning the
+	  program, we encounter another error:
 	  </p>
 	  <verbatim>
 $ python tutorial2.py
@@ -2433,18 +2501,18 @@ AttributeError: Error setting "xcoor" attr.
  Error was: "exceptions.KeyError: xcoor"
 	  </verbatim>
 
-	  <p>This error is telling us that we tried to assign a value to
+	  <p>This error indicates that we are attempting to assign a value to
 	    a non-existent field in the <em>event</em> table
 	    object. By looking carefully at the <verb>Event</verb>
 	    class attributes, we see that we misspelled the
 	    <verb>xcoord</verb> field (we wrote <verb>xcoor</verb>
-	    instead). This is very unusual in Python because if you
-	    try to assign a value to a non-existent instance variable,
-	    a new one is created with that name. Such a feature is not
-	    satisfactory when we are dealing with an object that has
-	    fixed list of field names. So, a check is made inside
-	    PyTables so that if you try to assign a value to a
-	    non-existing field a <verb>KeyError</verb> is raised.
+	    instead). This is unusual behavior for Python, as normally
+	    when you assign a value to a non-existent instance variable,
+	    Python creates a new variable with that name. Such a feature 
+	    can be dangerous when dealing with an object that 
+	    contains a fixed list of field names. PyTables checks
+	    that the field exists and raises a <verb>KeyError</verb>
+	    if the check fails.
 	  </p>
 
 	</subsection>
@@ -2452,7 +2520,7 @@ AttributeError: Error setting "xcoor" attr.
 	<subsection>
 	  <heading>Data type checking</heading>
 
-	  <p>Finally, in order to test the type checking, we will change
+	  <p>Finally, in order to test type checking, we will change
 	    the next line:
 	  </p>
 	  <verbatim>
@@ -2465,8 +2533,8 @@ AttributeError: Error setting "xcoor" attr.
 	    event.ADCcount = "s"          # Wrong type
 	  </verbatim>
 
-	  <p>After this modification, the next exception will be
-	    raised when the script is executed:
+	  <p>This modification will cause the following <verb>TypeError</verb>
+	    exception to be raised when the script is executed:
 	  </p>
 
 	  <verbatim>
@@ -2480,12 +2548,9 @@ AttributeError: Error setting "ADCcount" attr.
  Error was: "exceptions.TypeError: NA_setFromPythonScalar: bad value type."
 	  </verbatim>
 
-	  <p>that states the kind of error (<verb>TypeError</verb>).
-	  </p>
-
-	  <p>You can admire the structure we have created with this
+	  <p>You can see the structure created with this
 	    (corrected) script in <ref refid="tutorial2">figure</ref>.
-	    In particular, pay attention to the multidimensional
+	    In particular, note the multidimensional
 	    column cells in table <verb>/Particles/TParticle2</verb>.
 	  </p>
 
@@ -2495,17 +2560,19 @@ AttributeError: Error setting "ADCcount" attr.
 	    <caption>Table hierarchy for tutorial 2.</caption>
 	  </figure>
 
-	  <p>Feel free to visit the rest of examples in directory
+	  <p>Feel free to examine the rest of examples in directory
 	    <verb>examples</verb>, and try to understand them. I've
-	    tried to make several use cases to give you an idea of the
-	    <visual markup="tt">PyTables</visual> capabilities and its
-	    way of dealing with HDF5 objects.
+	    written several practical sample scripts to give you an 
+	    idea of the <visual markup="tt">PyTables</visual> 
+	    capabilities, its way of dealing with HDF5 objects, 
+	    and how it can be used in the real world.
 	  </p>
 
 	</subsection>
       </section>
     </chapter>
 
+    <!-- SGP:  Ended here -->
     <chapter id="libraryReference">
       <heading>Library Reference</heading>
       
@@ -2518,24 +2585,32 @@ AttributeError: Error setting "ADCcount" attr.
       <p><verb>PyTables</verb> implements several classes to represent
 	the different nodes in the object tree. They are named
 	<verb>File</verb>, <verb>Group</verb>, <verb>Leaf</verb>,
-	<verb>Table</verb> and <verb>Array</verb>. Another one is
-	responsible to build record objects from a subclass user
-	declaration, and performs field and type checks; its name is
-	<verb>IsDescription</verb>. An important function, called
-	<verb>openFile</verb> is responsible to create, open or append
-	to files. In addition, a few utility functions are defined to
-	guess if the user supplied file is a <verb>PyTables</verb> or
-	<verb>HDF5</verb> file. These are called
-	<verb>isPyTablesFile</verb> and <verb>isHDF5</verb>. Finally,
-	several first-level variables are also available to the user
-	that informs about <verb>PyTables</verb> version, file format
-	version or underlying libraries (as for example
-	<verb>HDF5</verb>) version number.
+	<verb>Table</verb>, <verb>Array</verb>, <verb>EArray</verb>
+	and <verb>VLArray</verb>. Another one allows the user to
+	complement the information on these different objects; its
+	name is <verb>AttributeSet</verb>. Finally, another important
+	class called <verb>IsDescription</verb> allows to build a
+	<verb>Table</verb> record description by declaring a subclass
+	of it. Many other classes are defined in
+	<verb>PyTables</verb>, but they can be regarded as helpers
+	whose goal is mainly to declare the <em>data type
+	properties</em> of the different first class objects and will
+	be described at the end of this chapter as well.
+      </p>
+      <p>An important function, called <verb>openFile</verb> is
+	responsible to create, open or append to files. In addition, a
+	few utility functions are defined to guess if the user
+	supplied file is a <em>PyTables</em> or <em>HDF5</em>
+	file. These are called <verb>isPyTablesFile</verb> and
+	<verb>isHDF5</verb>, respectively. Finally, there exists a
+	function called <verb>whichLibVersion</verb> that informs
+	about the versions of the underlying C libraries (for example,
+	the <verb>HDF5</verb> or the <verb>Zlib</verb>).
       </p>
 
       <p>Let's start discussing the first-level variables and
-	functions available to the user, then the methods in the
-	classes defined in <verb>PyTables</verb>.
+	functions available to the user, then the different classes
+	defined in <verb>PyTables</verb>.
       </p>
 
       <section>
@@ -2550,12 +2625,12 @@ AttributeError: Error setting "ADCcount" attr.
 	    <term>__version__</term> <item>The <verb>PyTables</verb>
 	    version number.</item>
 
+	    <term>ExtVersion</term> <item>The version of the Pyrex
+	      extension module. This might be useful when reporting
+	      bugs.</item>
+
 	    <term>HDF5Version</term>
 	    <item>The underlying HDF5 library version number.</item>
-
-	    <term>ExtVersion</term> <item>The Pyrex extension types
-	      version. This might be useful when reporting
-	      bugs.</item>
 
 	  </description>
 	  
@@ -2564,14 +2639,31 @@ AttributeError: Error setting "ADCcount" attr.
 	<subsection id="GlobalFunctDescr">
 	  <heading>Global functions</heading>
 
-	  <description id="openFileDescr">
+	  <description>
+
+	    <term>isHDF5(filename)</term> <item>Determines whether
+	      filename is in the HDF5 format or not. When successful,
+	      returns a positive value, for TRUE, or 0 (zero), for
+	      FALSE. Otherwise returns a negative value. To this
+	      function to work, it needs a closed file.
+	    </item>
+
+	    <term>isPyTablesFile(filename)</term> <item>Determines
+	      whether a file is in the <verb>PyTables</verb> format.
+	      When successful, returns the format version string, for
+	      TRUE, or 0 (zero), for FALSE. Otherwise returns a
+	      negative value. To this function to work, it needs a
+	      closed file.
+	    </item>
+
 	    <term>openFile(filename, mode='r', title='', trMap={},
 	      rootUEP="/")
 	    </term>
-	    <item>Open a <verb>PyTables</verb> file and returns a File
+	    <item>Open a <verb>PyTables</verb> (or generic
+	    <verb>HDF5</verb>) file and returns a <verb>File</verb>
 	    object.
 	    
-	      <description>
+	      <description id="openFileDescr">
 
 		<term>filename</term> <item>The name of the file
 		  (supports environment variable expansion). It is
@@ -2589,13 +2681,13 @@ AttributeError: Error setting "ADCcount" attr.
 		    <term>'r'</term> <item>read-only; no data can be
 		      modified.</item>
 
-		    <term>'w'</term> <item>write; a new file is created
-		      (an existing file with the same name is
-		      deleted).</item>
+		    <term>'w'</term> <item>write; a new file is
+		      created (an existing file with the same name
+		      would be deleted).</item>
 
 		    <term>'a'</term> <item>append; an existing file is
-		      opened for reading and writing, and if the file does
-		      not exist it is created.</item>
+		      opened for reading and writing, and if the file
+		      does not exist it is created.</item>
 
 		    <term>'r+'</term> <item>is similar to 'a', but the
 		      file must already exist.</item>
@@ -2613,8 +2705,8 @@ AttributeError: Error setting "ADCcount" attr.
 		  the object tree Python namespace into different HDF5
 		  names in file namespace. The keys are the Python
 		  names, while the values are the HDF5 names. This is
-		  useful when you need to name HDF5 nodes with invalid
-		  or reserved words in Python.
+		  useful when you need to use HDF5 node names with
+		  invalid or reserved words in Python.
 		</item>
 
 		<term>rootUEP</term> <item>The root User Entry
@@ -2622,220 +2714,51 @@ AttributeError: Error setting "ADCcount" attr.
 		  will be taken as the starting point to create the
 		  object tree. The group has to be named after its
 		  HDF5 name and can be a path. If it does not exist, a
-		  <verb>RuntimeError</verb> is issued. Use this if you
-		  do not want to build the <visual
+		  <verb>RuntimeError</verb> exception is issued. Use
+		  this if you do not want to build the <visual
 		  markup="bf">entire</visual> object tree, but rather
-		  only a <visual markup="bf">subtree</visual>.
+		  only a <visual markup="bf">subtree</visual> of it.
 		</item>
 	      </description>
 
 	    </item>
 
-	    <term>isHDF5(filename)</term> <item>Determines whether
-	      filename is in the HDF5 format or not. When successful,
-	      returns a positive value, for TRUE, or 0 (zero), for
-	      FALSE. Otherwise returns a negative value.  To this
-	      function to work, it needs a closed file.
+	    <term>whichLibVersion(libname)</term> <item>Returns info
+	      about versions of the underlying C libraries. <visual
+	      markup="bf">libname</visual> can be whether
+	      <verb>"hdf5"</verb>, <verb>"zlib"</verb>,
+	      <verb>"lzo"</verb> or <verb>"ucl"</verb>. It always
+	      returns a tuple of 3 elements. When successful, the
+	      first element of this tuple has a positive value, and is
+	      0 (zero) when library is not available (for example LZO
+	      or UCL). In case the library is available, the second
+	      element of tuple contains the library version and the
+	      third element the date (if available) of that version.
 	    </item>
 
-	    <term>isPyTablesFile(filename)</term> <item>Determines
-	      whether a file is in the <verb>PyTables</verb> format.
-	      When successful, returns the format version string, for
-	      TRUE, or 0 (zero), for FALSE. Otherwise returns a
-	      negative value.  To this function to work, it needs a
-	      closed file.
-	    </item>
 
 	  </description>
 	</subsection>
-      </section>
-
-      <section id="IsDescriptionClassDescr">
-	<heading>The <visual markup="tt">IsDescription</visual> class</heading>
-
-	<p>This class is in fact a so-called <em>metaclass</em>
-	  object. There is nothing special on this fact, except that
-	  their subclasses attributes are transformed during its
-	  instantiation phase, and new methods for instances are
-	  defined based on the values of the class attributes.
-	</p>
-	<p>It is designed to be used as an easy, yet meaningful way to
-	  describe the properties of <verb>Table</verb> objects
-	  through the use of classes that inherit properties from
-	  it. In order to define such an special class, you have to
-	  declare it as descendant of <em>IsDescription</em>, with
-	  many attributes as columns you want in your table. The name
-	  of these attributes will become the name of the columns,
-	  while its values are the properties of the columns that are
-	  obtained through the use of the <verb>Col</verb> class
-	  constructor. See the <ref
-	  refid="ColClassDescr">section</ref> for instructions on how
-	  define the properties of the table columns.
-	</p>
-	<p>Then, you can pass an instance of this object to the
-	  <verb>Table</verb> constructor, where all the information it
-	  contains will be used to define the table structure. See
-	  the <ref refid="secondExample">section</ref> for an example
-	  on how that works.
-	</p>
-
-      </section>
-
-      <section id="ColClassDescr">
-	<heading>The <visual markup="tt">Col</visual> class and its descendants</heading>
-
-	<p>
-	  The <verb>Col</verb> class is used as a mean to declare the
-	  different properties of a column of a table. In addition, a
-	  series of descendant classes are offered in order to make
-	  these column descriptions easier to the user. In general, it
-	  is recommended to use these descendants classes, as they are
-	  meaningful when found in the middle of the code.
-	</p>
-	<p>The only public method accessible in these classes is the
-	  constructor itself.
-	</p>
-
-	<description>
-
-	  <term>Col(dtype="Float64", shape=1, dflt=None, pos=None)
-	  </term>
-	  <item>Define properties for a <verb>Table</verb> column.
-
-	    <description>
-
-	      <term>dtype</term> <item>The data type for the
-		column. See the <ref
-		refid="datatypesSupported">appendix</ref> for a
-		relation of data types supported in a <visual
-		markup="tt">IsDescription</visual> class
-		declaration. The type description is accepted both in
-		string format and as numarray data type.</item>
-
-	      <term>shape</term> <item>An integer or a tuple, that
-		specifies the number of <em>dtype</em> items for each
-		element (or shape, for multidimensional elements) of
-		this column. For <verb>CharType</verb> columns, the
-		first dimension is used as the length of the character
-		strings. For this kind of objects, the use of
-		<verb>StringCol</verb> subclass is recommended.</item>
-
-	      <term>dflt</term> <item>The default value for elements
-		of this column. If the user does not supply a value
-		for an element while filling a table, this default
-		value will be written to disk. If the user supplies an
-		scalar value for a multidimensional column, this value
-		is automatically <em>broadcasted</em> to all the
-		elements in the column cell. If <em>dflt</em> is not
-		supplied, a appropriate zero value (or <em>null</em>
-		string) will be chosen by default.</item>
-
-	      <term>pos</term> <item>By default, columns are disposed in
-		memory following an alphanumerical order of the column
-		names. In some situations, however, it is convenient to
-		impose a user defined ordering. <em>pos</em> parameter
-		allows the user to force the wanted disposition.</item>
-
-	    </description>
-	  </item>
-
-	  <term>StringCol(length=None, dflt=None, shape=1, pos=None)
-	  </term>
-	  <item>Define a column to be of <verb>CharType</verb>
-	    type. The <verb>length</verb> parameter sets the length of
-	    the strings. The meaning of the other parameters are like
-	    in the <verb>Col</verb> class.
-	  </item>
-	  <term>IntCol(dflt=0, shape=1, itemsize=4, sign=1, pos=None)
-	  </term>
-	  <item>Define a column to be of <verb>IntXXType</verb> type,
-	    depending on the value of <verb>itemsize</verb>. The
-	    <verb>itemsize</verb> parameter sets the number of bytes
-	    of the integers in the column and the default is 4
-	    bytes. <verb>sign</verb> determines if the integers are
-	    signed or not. The meaning of the other parameters are
-	    like in the <verb>Col</verb> class.
-
-	    <p>This class has several descendants:
-	    </p>
-
-	    <description>
-	      <term>Int8Col(dflt=0, shape=1, pos=None)</term>
-	      <item>Define a column as an <verb>Int8</verb> type.</item>
-
-	      <term>UInt8Col(dflt=0, shape=1, pos=None)</term>
-	      <item>Define a column as an <verb>UInt8</verb>
-	      type.</item>
-
-	      <term>Int16Col(dflt=0, shape=1, pos=None)</term>
-	      <item>Define a column as an <verb>Int16</verb> type.</item>
-
-	      <term>UInt16Col(dflt=0, shape=1, pos=None)</term>
-	      <item>Define a column as an <verb>UInt16</verb>
-	      type.</item>
-
-	      <term>Int32Col(dflt=0, shape=1, pos=None)</term>
-	      <item>Define a column as an <verb>Int32</verb> type.</item>
-
-	      <term>UInt32Col(dflt=0, shape=1, pos=None)</term>
-	      <item>Define a column as an <verb>UInt32</verb>
-	      type.</item>
-
-	      <term>Int64Col(dflt=0, shape=1, pos=None)</term>
-	      <item>Define a column as an <verb>Int64</verb> type.</item>
-
-	      <term>UInt64Col(dflt=0, shape=1, pos=None)</term>
-	      <item>Define a column as an <verb>UInt64</verb>
-	      type.</item>
-
-	    </description>
-
-	  </item>
-
-	  <term>FloatCol(dflt=0, shape=1, itemsize=8, pos=None)
-	  </term>
-	  <item>Define a column to be of <verb>FloatXXType</verb>
-	    type, depending on the value of <verb>itemsize</verb>. The
-	    <verb>itemsize</verb> parameter sets the number of bytes
-	    of the floats in the column and the default is 8 bytes
-	    (double precision). The meaning of the other parameters
-	    are like in the <verb>Col</verb> class.
-
-	    <p>This class has two descendants:
-	    </p>
-
-	    <description>
-	      <term>Float32Col(dflt=0.0, shape=1, pos=None)</term>
-	      <item>Define a column as a <verb>Float32</verb>
-	      type.</item>
-
-	      <term>Float64Col(dflt=0.0, shape=1, pos=None)</term>
-	      <item>Define a column as a <verb>Float64</verb>
-	      type.</item>
-
-	    </description>
-	  </item>
-	</description>
-
       </section>
 
       <section id="FileClassDescr">
 	<heading>The <visual markup="tt">File</visual> class</heading>
 
 	<p>This class is returned when a <verb>PyTables</verb> file is
-	  opened with the <verb>openFile()</verb> function. It has
-	  methods to create, open, flush and close
-	  <verb>PyTables</verb> files. Also, <verb>File</verb> class
-	  offer methods to traverse the object tree, as well as to
-	  create, rename and delete nodes. One of its attributes
-	  (<verb>rootUEP</verb>) represents the <em>user entry
-	  point</em> to the object tree attached to the file.
+	  opened with the <verb>openFile</verb> function. It has
+	  methods to flush and close files. Also, the
+	  <verb>File</verb> class offer methods to create, rename and
+	  delete nodes, as well as to traverse the object tree. One
+	  of its attributes (<verb>rootUEP</verb>) represents the
+	  <em>user entry point</em> to the object tree attached to the
+	  file.
 	</p>
 
 	<p>Next, we will discuss the attributes and methods for File
 	  class<footnote>On the following, the term <verb>Leaf</verb>
-	  will whether refer to a <verb>Table</verb> or
-	  <verb>Array</verb> node object.</footnote>.
+	  will whether refer to a <verb>Table</verb>,
+	  <verb>Array</verb>, <verb>EArray</verb> or
+	  <verb>VLArray</verb> node object.</footnote>.
 	</p>
 
 	<subsection id="FileInstanceVariablesDescr">
@@ -2845,23 +2768,26 @@ AttributeError: Error setting "ADCcount" attr.
 
 	    <term>filename</term> <item>Filename opened.</item>
 
+	    <term>format_version</term> <item>The
+	    <verb>PyTables</verb> version number of this file.</item>
+
 	    <term>isopen</term> <item>It takes the value 1 if the
 	      underlying file is open. 0 otherwise.</item>
 
 	    <term>mode</term> <item>Mode in which the filename was
 	      opened.</item>
 
-	    <term>title</term> <item>The title of the root group in
-	      file.</item>
-
 	    <term>rootUEP</term> <item>The UEP (User Entry Point)
 	      group in file (see <ref
 	      refid="openFileDescr"></ref>).</item>
 
+	    <term>title</term> <item>The title of the root group in
+	      file.</item>
+
 	    <term>trMap</term> <item>This is a dictionary that maps
 	      node names between python and HDF5 domain names. Its
 	      initial values are set from the <em>trMap</em> parameter
-	      passed to the <verb>openFile()</verb> function. You can
+	      passed to the <verb>openFile</verb> function. You can
 	      change its contents <em>after</em> a file is opened and
 	      the new map will take effect over any new object added
 	      to the tree.</item>
@@ -2891,9 +2817,9 @@ AttributeError: Error setting "ADCcount" attr.
 
 	    <description>
 	      <term>where</term> <item>The parent group where the new
-		group will hang. <em>where</em> parameter can be a path
-		string (for example
-		<verb>"/Particles/TParticle1"</verb>), or another Group
+		group will hang from. <em>where</em> parameter can be
+		a path string (for example
+		<verb>"/level1/leaf5"</verb>), or another Group
 		instance. </item>
 
 	      <term>name</term>
@@ -2909,45 +2835,40 @@ AttributeError: Error setting "ADCcount" attr.
 	  <subsubsection>
 	    <heading id="createTableDescr">createTable(where, name,
 	      description, title='', compress=0, complib = 'zlib',
-	      expectedrows=10000)</heading>
+	      shuffle = 1, expectedrows=10000)</heading>
 
 	    <p>Create a new <verb>Table</verb> instance with name
 	      <em>name</em> in <em>where</em> location.
 	    </p>
 
 	    <description>
-	      <term>where</term> <item>The parent group where the
-		new table will hang. <em>where</em> parameter can be
+	      <term>where</term> <item>The parent group where the new
+		table will hang from. <em>where</em> parameter can be
 		a path string (for example
-		<verb>"/Particles/TParticle1"</verb>), or Group
-		instance. </item>
-
-	      <term>name</term>
-	      <item>The name of the new table.</item>
-
+		<verb>"/level1/leaf5"</verb>), or Group instance.
+               </item>
+	      <term>name</term> <item>The name of the new table.
+              </item>
 	      <term>description</term> <item>An instance of a
 		user-defined class (derived from the
 		<verb>IsDescription</verb> class) where table fields
 		are defined. However, in certain situations, it is
-		more handy to allow this description to be supplied
-		as a dictionary (for example, when you do not know
+		more handy to allow this description to be supplied as
+		a dictionary (for example, when you do not know
 		beforehand which structure will have your table). In
 		such a cases, you can pass the description as a
 		dictionary as well. See <ref
-		  refid="secondExample">section</ref> for an example
-		of use. Finally, a <verb>RecArray</verb> object from
-		the <verb>numarray</verb> package is also accepted,
-		and all the information about columns and other
-		metadata is used as a basis to create the
-		<verb>Table</verb> object. Moreover, if the
-		<verb>RecArray</verb> has actual data this is also
-		injected on the newly created <verb>Table</verb>
-		object.
+		refid="secondExample">section</ref> for an example of
+		use. Finally, a <verb>RecArray</verb> object from the
+		<verb>numarray</verb> package is also accepted, and
+		all the information about columns and other metadata
+		is used as a basis to create the <verb>Table</verb>
+		object. Moreover, if the <verb>RecArray</verb> has
+		actual data this is also injected on the newly created
+		<verb>Table</verb> object.
 	      </item>
-
 	      <term>title</term> <item>A description for this object.
 	      </item>
-
 	      <term>compress</term> <item>Specifies a compress level
 		for data. The allowed range is 0-9. A value of 0
 		disables compression. The default is that
@@ -2961,6 +2882,16 @@ AttributeError: Error setting "ADCcount" attr.
 		refid="compressionIssues">section</ref> for some advice
 		on which library is better suited to your needs.
 	      </item>
+              <term>shuffle</term><item>Whether or not to use the
+                shuffle filter present in the <verb>HDF5</verb>
+                library. This is normally used to improve the
+                compression ratio (at the cost of consuming a little
+                bit more CPU time). A value of 0 disables shuffling
+                and 1 makes it active. The default value depends on
+                whether compression is enabled or not; if compression
+                is enabled, shuffling defaults to be active, else
+                shuffling is disabled.
+              </item>
 	      <term>expectedrows</term> <item>An user estimate of the
 		number of records that will be on table. If not
 		provided, the default value is appropriate for tables
@@ -2969,9 +2900,8 @@ AttributeError: Error setting "ADCcount" attr.
 		should provide a guess; this will optimize the HDF5
 		B-Tree creation and management process time and memory
 		used. See <ref refid="expectedRowsOptim">section</ref>
-		for a detailed justification of that issue.
+		for a discussion on that issue.
 	      </item>
-
 	    </description>
 	  </subsubsection>
 
@@ -2985,10 +2915,10 @@ AttributeError: Error setting "ADCcount" attr.
 	    <description>
 
 		<term>where</term> <item>The parent group where the
-		  new array will hang. <em>where</em> parameter can be
-		  a path string (for example
-		  <verb>"/Particles/TParticle1"</verb>), or
-		  <verb>Group</verb> instance. 
+		  new array will hang from. <em>where</em> parameter
+		  can be a path string (for example
+		  <verb>"/level1/leaf5"</verb>), or <verb>Group</verb>
+		  instance.
 		</item>
 
 		<term>name</term> <item>The name of the new
@@ -3013,6 +2943,128 @@ AttributeError: Error setting "ADCcount" attr.
 		</item>
 
 	      </description>
+	  </subsubsection>
+
+	  <subsubsection>
+	    <heading id="createEArrayDescr">createEArray(where, name,
+	      object, title='', compress=0, complib = 'zlib',
+	      shuffle = 1, expectedrows=1000)</heading>
+
+	    <p>Create a new <verb>EArray</verb> instance with name
+	      <em>name</em> in <em>where</em> location.
+	    </p>
+
+	    <description>
+	      <term>where</term> <item>The parent group where the new
+		table will hang from. <em>where</em> parameter can be
+		a path string (for example
+		<verb>"/level1/leaf5"</verb>), or Group instance.
+               </item>
+	      <term>name</term> <item>The name of the new table.
+              </item>
+              <term>object</term> <item>An object describing the kind
+                of objects that you can append to the
+                <verb>EArray</verb> object. It can be an instance of
+                any of <verb>NumArray</verb>, <verb>CharArray</verb>
+                or <verb>Numeric</verb> classes and one of its
+                dimensions <visual markup="bf">must</visual> be 0. The
+                dimension being 0 means that the resulting EArray
+                object can be extended along it. Multiple enlargeable
+                dimensions are not supported right now.
+              </item>
+	      <term>title</term> <item>A description for this object.
+	      </item>
+	      <term>compress</term> <item>Specifies a compress level
+		for data. The allowed range is 0-9. A value of 0
+		disables compression. The default is that
+		compression is disabled, that balances between
+		compression effort and CPU consumption.
+	      </item>
+	      <term>complib</term> <item> Specifies the compression
+		library to be used. Right now, <verb>"zlib"</verb>
+		(default), <verb>"lzo"</verb> and <verb>"ucl"</verb>
+		values are supported. See <ref
+		refid="compressionIssues">section</ref> for some advice
+		on which library is better suited to your needs.
+	      </item>
+              <term>shuffle</term><item>Whether or not to use the
+                shuffle filter present in the <verb>HDF5</verb>
+                library. This is normally used to improve the
+                compression ratio (at the cost of consuming a little
+                bit more CPU time). A value of 0 disables shuffling and
+                1 makes it active. The default value depends on
+                whether compression is enabled or not; if compression
+                is enabled, shuffling defaults to be active, else
+                shuffling is disabled.
+              </item>
+	      <term>expectedrows</term> <item>In the case of
+                enlargeable arrays this represents an user estimate
+                about the number of row elements that will be added to
+                the growable dimension in the EArray object. If not
+                provided, the default value is 1000 rows. If you plan
+                to create both much smaller or much bigger EArrays try
+                providing a guess; this will optimize the HDF5 B-Tree
+                creation and management process time and the amount of
+                memory used.
+	      </item>
+	    </description>
+	  </subsubsection>
+
+	  <subsubsection>
+	    <heading id="createVLArrayDescr">createVLArray(where,
+	      name, vlatom=None, title='', compress=0, complib =
+	      'zlib', shuffle=1, expectedsizeinMB=1.0)</heading>
+
+	    <p>Create a new <verb>VLArray</verb> instance with name
+	      <em>name</em> in <em>where</em> location.
+	    </p>
+
+	    <description>
+	      <term>where</term> <item>The parent group where the new
+		table will hang from. <em>where</em> parameter can be
+		a path string (for example
+		<verb>"/level1/leaf5"</verb>), or Group instance.
+               </item>
+	      <term>name</term> <item>The name of the new table.
+              </item>
+	      <term>vlarray</term> <item>A VLAtom object representing
+                the shape, type and flavor of the atomic object to be
+                saved.
+              </item>
+	      <term>title</term> <item>A description for this object.
+	      </item>
+	      <term>compress</term> <item>Specifies a compress level
+		for data. The allowed range is 0-9. A value of 0
+		disables compression. The default is that
+		compression is disabled, that balances between
+		compression effort and CPU consumption.
+	      </item>
+	      <term>complib</term> <item> Specifies the compression
+		library to be used. Right now, <verb>"zlib"</verb>
+		(default), <verb>"lzo"</verb> and <verb>"ucl"</verb>
+		values are supported. See <ref
+		refid="compressionIssues">section</ref> for some advice
+		on which library is better suited to your needs.
+	      </item>
+              <term>shuffle</term><item>Whether or not to use the
+                shuffle filter present in the <verb>HDF5</verb>
+                library. This is normally used to improve the
+                compression ratio (at the cost of consuming a little
+                bit more CPU time). A value of 0 disables shuffling
+                and 1 makes it active. The default value depends on
+                whether compression is enabled or not; if compression
+                is enabled, shuffling defaults to be active, else
+                shuffling is disabled.
+              </item>
+              <term>expectedsizeinMB</term> <item>An user estimate
+                about the size (in MB) in the final
+                <verb>VLArray</verb> object. If not provided, the
+                default value is 1 MB.  If you plan to create both
+                much smaller or much bigger VLA's try providing a
+                guess; this will optimize the HDF5 B-Tree creation and
+                management process time and the amount of memory used.
+              </item>
+	    </description>
 	  </subsubsection>
 
 	  <subsubsection>
@@ -3324,11 +3376,11 @@ AttributeError: Error setting "ADCcount" attr.
 
 	<p>Other effect is that you cannot use reserved Python names
 	  or other non-allowed python names (like for example "$a" or
-	  "44") as node names. You can, however, make use of a
-	  translation map dictionary in the
-	  <verb>File.openfile()</verb> method (see section <ref
-	  refid="openFileDescr"></ref>) so as to use non valid Python
-	  names as node names in the file.
+	  "44") as node names. You can, however, make use of the
+	  <verb>trMap</verb> (translation map dictionary) parameter in
+	  the <verb>openFile</verb> function (see section <ref
+	  refid="openFileDescr"></ref>) in order to use non-valid
+	  Python names as node names in the file.
 	</p>
 
 	<subsection>
@@ -3399,8 +3451,8 @@ AttributeError: Error setting "ADCcount" attr.
 	    used without any problem. However, you should use the
 	    high-level counterpart methods in the <verb>File</verb>
 	    class, because these are most used in documentation and
-	    examples, and are a bit more powerful than ones those
-	    exposed here.
+	    examples, and are a bit more powerful than those exposed
+	    here.
 	  </p>
 
 	  <description>
@@ -3454,8 +3506,8 @@ AttributeError: Error setting "ADCcount" attr.
 	  <p>Following are described the methods that automatically
 	    trigger actions when a <verb>Group</verb> instance is
 	    accessed in a special way (e.g.,
-	    <verb>group("Table")</verb> will cause a call to
-	    <verb>group.__call__("Table")</verb>).
+	    <verb>group("Table")</verb> will be equivalent to a call
+	    to <verb>group.__call__("Table")</verb>).
 	  </p>
 
 	  <subsubsection>
@@ -3493,8 +3545,8 @@ AttributeError: Error setting "ADCcount" attr.
 	    <heading id="__iterGroupDescr">__iter__()</heading>
 
 	    <p>Iterate over the childs on the group instance. However,
-	      this does not accept parameters. This iterator is not
-	      recursive.</p>
+	      this does not accept parameters. This iterator is
+	      <visual markup="bf">not</visual> recursive.</p>
 
 	    <p>Example of use:</p>
 
@@ -3518,16 +3570,15 @@ AttributeError: Error setting "ADCcount" attr.
 	  of all Leaf objects. It is also useful for classifying
 	  purposes. A Leaf object is an end-node, that is, a node that
 	  can hang directly from a group object, but that is not a
-	  group itself. Right now this set is composed by
-	  <verb>Table</verb> and <verb>Array</verb> objects. In fact,
-	  <verb>Table</verb> and <verb>Array</verb> classes inherit
-	  functionality from this class using the <em>mix-in</em>
-	  technique.
+	  group itself and, thus, it cannot have descendents. Right
+	  now this set of end-nodes is composed by <verb>Table</verb>,
+	  <verb>Array</verb>, <verb>EArray</verb> and
+	  <verb>VLArray</verb> instances. In fact, all the previous
+	  classes inherits from the Leaf class.
 	</p>
 
-	<p>The public variables and methods that <verb>Table</verb>
-	  and <verb>Array</verb> inherits from <verb>Leaf</verb> are
-	  listed below.</p>
+	<p>The public variables and methods that class descendants
+	  inherits from <verb>Leaf</verb> are listed below.</p>
 
 	<subsection>
 	  <heading><visual markup="tt">Leaf</visual> instance
@@ -3535,22 +3586,36 @@ AttributeError: Error setting "ADCcount" attr.
 	  <description>
 
 	    <term>name</term> <item>The Leaf node name in Python
-	      namespace.</item>
-	    
+	      namespace.
+	    </item>
 	    <term>hdf5name</term> <item>The Leaf node name in HDF5
-	      namespace.</item>
-	    
-	    <term>title</term> <item>The Leaf title.</item>
-
+	      namespace.
+	    </item>
+	    <term>objectID</term> <item>The HDF5 object ID of the Leaf
+	      node.
+	    </item>
+	    <term>title</term> <item>The Leaf title (actually a
+	      property rather than a plain attribute).
+	    </item>
 	    <term>shape</term> <item>The shape of the associated data
-	      in the Leaf.</item>
-
+	      in the Leaf.
+	    </item>
 	    <term>byteorder</term> <item>The byteorder of
-	      the associated data of the Leaf.</item>
-
-	    <term>attrs</term> <item>The associated
-	    <verb>AttributeSet</verb> instance (see <ref
-	    refid="AttributeSetClassDescr"></ref>).</item>
+	      the associated data of the Leaf.
+	    </item>
+	    <term>complevel</term> <item>The compression level (0
+	      means no compression).
+	    </item>
+	    <term>complib</term> <item>The compression filter used (in
+	    case of a compressed dataset).
+	    </item>
+	    <term>shuffle</term> <item>Whether the shuffle filter is
+	      active or not.
+	    </item>
+	    <term>attrs</term><item>The associated
+	      <verb>AttributeSet</verb> instance (see <ref
+	      refid="AttributeSetClassDescr"></ref>).
+	    </item>
 
 	  </description>
 	</subsection>
@@ -3599,7 +3664,7 @@ AttributeError: Error setting "ADCcount" attr.
 	  <verb>Row</verb> interface.
 	</p>
 	<p>Please note that this object inherits all the public
-	  attributes and methods that <verb>Leaf</verb> has.
+	  attributes and methods that <verb>Leaf</verb> already has.
 	</p>
 
 	<subsection>
@@ -3634,15 +3699,18 @@ AttributeError: Error setting "ADCcount" attr.
 	  <heading><visual markup="tt">Table</visual> methods</heading>
 
 	  <subsubsection>
-	    <heading id="iterrowsDescr">iterrows(start=None,
+	    <heading id="iterrowsTableDescr">iterrows(start=None,
 	      stop=None, step=None)</heading>
-
 
 	    <p>Returns an iterator yielding Row instances built from
 	      rows in table. If a range is supplied (i.e. some of the
 	      <em>start</em>, <em>stop</em> or <em>step</em>
 	      parameters are passed), only the appropriate rows are
-	      returned. Else, all the rows are returned.
+	      returned. Else, all the rows are returned. See also the
+	      <verb>__call__()</verb> and <verb>__iter__()</verb>
+	      special methods in <ref
+	      refid="TableSpecialMethods">section</ref> for shorter
+	      ways to call this iterator.
 	    </p>
 	    <description>
 		<term>start</term> <item>Sets the starting row to
@@ -3742,14 +3810,14 @@ AttributeError: Error setting "ADCcount" attr.
 	  </subsubsection>
 
 	</subsection>
-	<subsection>
+	<subsection id="TableSpecialMethods">
 	  <heading><visual markup="tt">Table</visual> special
 	      methods</heading>
 
 	  <p>Following are described the methods that automatically
 	    trigger actions when a <verb>Table</verb> instance is
 	    accessed in a special way (e.g.,
-	    <verb>table["var2"]</verb> will cause a call to
+	    <verb>table["var2"]</verb> will be equivalent to a call to
 	    <verb>table.__getitem__("var2")</verb>).
 	  </p>
 
@@ -3842,42 +3910,43 @@ AttributeError: Error setting "ADCcount" attr.
 
 	  </subsubsection>
 	</subsection>
-      </section>
 
-      <section id="RowClassDescr">
-	<heading>The <visual markup="tt">Row</visual> class</heading>
+	<subsection id="RowClassDescr">
+	  <heading>The <visual markup="tt">Row</visual> class</heading>
 
-	<p>This class is used to fetch and set values on the table
-	  fields. It works very much like a dictionary, where the keys
-	  are the field names of the associated table and the values
-	  are the values of those fields in a specific row.
-	</p>
-	<p>This object turns out to actually be an extension type, so
-	  you won't be able to access their documentation
-	  interactively. Neither you won't be able to access it's
-	  internal attributes (they are not directly accessible from
-	  Python), although that <em>accessors</em> (i.e. methods that
-	  return an internal attribute) has been defined for the most
-	  important variables.
-	</p>
+	  <p>This class is used to fetch and set values on the table
+	    fields. It works very much like a dictionary, where the keys
+	    are the field names of the associated table and the values
+	    are the values of those fields in a specific row.
+	  </p>
+	  <p>This object turns out to actually be an extension type, so
+	    you won't be able to access their documentation
+	    interactively. Neither you won't be able to access it's
+	    internal attributes (they are not directly accessible from
+	    Python), although that <em>accessors</em> (i.e. methods that
+	    return an internal attribute) has been defined for the most
+	    important variables.
+	  </p>
 
-	<subsection>
-	  <heading><visual markup="tt">Row</visual>
-	    methods</heading>
+	  <subsubsection>
+	    <heading><visual markup="tt">Row</visual>
+	      methods</heading>
 
-	  <description>
+	    <description>
 
-	    <term id="appendRowDescr">append()</term> <item>Once you
-	    have filled the proper fields for the current row, calling
-	    this method actually commit this data to the disk
-	    (actually data is written to the output buffer).</item>
+	      <term id="appendRowDescr">append()</term> <item>Once you
+		have filled the proper fields for the current row, calling
+		this method actually commit this data to the disk
+		(actually data is written to the output buffer).</item>
 
-	    <term>nrow()</term> <item>Accessor that returns the current
-	      row in the table. It is useful to know which row is being
-	      dealt with in the middle of a loop.</item>
-	  </description>
-	</subsection>
-      </section>
+	      <term>nrow()</term> <item>Accessor that returns the current
+		row in the table. It is useful to know which row is being
+		dealt with in the middle of a loop.</item>
+	    </description>
+	  </subsubsection>
+	</subsection> <!-- Row -->
+
+      </section> <!-- Table -->
 
       <section id="ArrayClassDescr">
 	<heading>The <visual markup="tt">Array</visual>
@@ -3886,7 +3955,11 @@ AttributeError: Error setting "ADCcount" attr.
 	<p>Represents an array on file. It provides methods to create
 	  new arrays or open existing ones, as well as methods to
 	  write/read data and metadata to/from array objects in the
-	  file.
+	  file. It inherits from <verb>Leaf</verb> (see <ref
+	  refid="LeafClassDescr"></ref>). This class does not allow to
+	  enlarge the datasets on disk; see <ref
+	  refid="EArrayClassDescr"></ref> if you want enlargeable
+	  dataset support.
 	</p>
 
 	<p><visual markup="bf">Caveat:</visual> All
@@ -3900,23 +3973,35 @@ AttributeError: Error setting "ADCcount" attr.
 	</p>
 
 	<p>Please note that this object inherits all the public
-	  attributes and methods from <verb>Leaf</verb>.
+	  attributes and methods from <verb>Leaf</verb> already
+	  provides.
 	</p>
 
 	<subsection id="ArrayClassInstanceVariables">
 	  <heading><visual markup="tt">Array</visual> instance
 	    variables</heading>
 	  <description>
-
-	    <term>type</term> <item>The type class of the represented
-	      array.</item>
-
 	    <term>flavor</term> <item>The string object representation
 	      for this array. It can be any of <em>"NumArray"</em>,
 	      <em>"CharArray"</em>, <em>"Numeric"</em>,
 	      <em>"List"</em>, <em>"Tuple"</em>, <em>"String"</em>,
-	      <em>"Int"</em> or <em>"Float"</em> values.</item>
+	      <em>"Int"</em> or <em>"Float"</em> values.
+	    </item>
+	    <term>nrows</term> <item>The value of the first dimension
+	      of Array.
+	    </item>
+	    <term>nrow</term> <item>On iterators, this is the index of
+	      the current row.
+	    </item>
 
+	    <term>type</term> <item>The type class of the represented
+	      array.
+	    </item>
+
+	    <term>itemsize</term> <item>The size of the atomic
+              items. Specially useful for <verb>CharArray</verb>
+              object.
+	    </item>
 	  </description>
 
 	</subsection>
@@ -3925,27 +4010,164 @@ AttributeError: Error setting "ADCcount" attr.
 	  <heading><visual markup="tt">Array</visual>
 	    methods</heading>
 
-	  <p>Note that, as this object has not internal I/O buffers,
-	    there is no point in calling flush() method inherited from
+	  <p>Note that, as this object has no internal I/O buffers, it
+	    is not necessary to flush() method inherited from
 	    <verb>Leaf</verb>.
 	  </p>
 
-	  <description>
+	  <subsubsection>
+	    <heading id="iterrowsArrayDescr">iterrows(start=None,
+	      stop=None, step=None)</heading>
 
-	    <term id="readArrayDescr">read()</term> <item>Read the
-	      array from disk and return it as a <verb>NumArray</verb>
-	      (default) object, or if possible, with the original
-	      <em>flavor</em> that it was saved. The supported flavors
-	      are: <verb>NumArray</verb>, <verb>CharArray</verb>,
-	      <verb>Numeric</verb>, <verb>List</verb>,
-	      <verb>Tuple</verb>, <verb>String</verb>,
-	      <verb>Int</verb> or <verb>Float</verb>. Note that as
-	      long as this method is not called, the actual array data
-	      is resident on disk, not in memory.</item>
+	    <p>Returns an iterator yielding NumArray instances built
+	      from rows in array. If a range is supplied (i.e. some of
+	      the <em>start</em>, <em>stop</em> or <em>step</em>
+	      parameters are passed), only the appropriate rows are
+	      returned. Else, all the rows are returned. See also the
+	      <verb>__call__()</verb> and <verb>__iter__()</verb>
+	      special methods in <ref
+	      refid="ArraySpecialMethods">section</ref> for shorter
+	      ways to call this iterator.
+	    </p>
 
-	  </description>
-	</subsection>
-      </section>
+	    <description>
+	      <term>start</term> <item>Sets the starting row to return
+		data. A value of 0 means the first row. It accepts
+		negative values meaning that the count starts from the
+		end. The default is the first row (0).
+	      </item>
+	      <term>stop</term> <item>Sets the last row to be returned
+		to <em>stop - 1</em>, i.e. the end point is omitted
+		(in the Python <verb>range</verb> tradition). It
+		accepts, likewise <em>start</em>, negative values. A
+		special value of 0 means the last row. The default is
+		the last row (0).
+	      </item>
+	      <term>step</term> <item>When step is given, it
+		specifies the increment. Negative values are not
+		allowed right now. The default is 1.
+	      </item>
+	    </description>
+	  </subsubsection>
+
+	  <subsubsection id="readArrayDescr">
+	    <heading>read(start, stop, step)</heading>
+
+	    <p>Read the array from disk and return it as a
+	      <verb>NumArray</verb> (default) object, or if possible,
+	      with the same original <em>flavor</em> that it was
+	      saved. The supported flavors are: <verb>NumArray</verb>,
+	      <verb>CharArray</verb>, <verb>Numeric</verb>,
+	      <verb>List</verb>, <verb>Tuple</verb>,
+	      <verb>String</verb>, <verb>Int</verb> or
+	      <verb>Float</verb>. It accepts start, stop and step
+	      parameters to select rows (the first dimension of the
+	      array) for reading.
+	    </p>
+
+	    <description>
+	      <term>start</term> <item>Sets the starting row to return
+		data. A value of 0 means the first row. It accepts
+		negative values meaning that the count starts from the
+		end. The default is the first row (0).
+	      </item>
+	      <term>stop</term> <item>Sets the last row to be
+		returned to <em>stop - 1</em>, i.e. the end point is
+		omitted (in the Python <verb>range</verb>
+		tradition). It accepts, likewise <em>start</em>,
+		negative values. A special value of 0 means the last
+		row. The default is the last row (0).
+	      </item>
+	      <term>step</term> <item>When step is given, it
+		specifies the increment. Negative values are not
+		allowed right now. The default is 1.
+	      </item>
+	    </description>
+	  </subsubsection> <!-- read() -->
+	</subsection> <!-- Array methods -->
+
+	<subsection id="ArraySpecialMethods">
+	  <heading><visual markup="tt">Array</visual> special
+	      methods</heading>
+
+	  <p>Following are described the methods that automatically
+	    trigger actions when an <verb>Array</verb> instance is
+	    accessed in a special way (e.g.,
+	    <verb>array[2:3,...,::2]</verb> will be equivalent to a
+	    call to <newline/><verb>array.__getitem__(slice(2,3, None),
+	    Ellipsis, slice(None, None, 2))</verb>).
+	  </p>
+
+	  <subsubsection>
+	    <heading id="__callArrayDescr">__call__(start=None,
+	      stop=None, step=None)</heading>
+
+	    <p>It returns the same iterator than
+	      <verb>Array.iterrows(start, stop, step)</verb>. It is,
+	      therefore, a shorter way to call it.</p>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      result = array([row for row in arrayInstance(step=4)
+                                  if row[1] > 20. ], type=arrayInstance.type)
+	    </verbatim>
+
+	    <p>Which is equivalent to:</p>
+
+	    <verbatim>
+	      result = array([row for row in arrayInstance.iterrows(step=4)
+                                  if row[1] > 20. ], type=arrayInstance.type)
+	    </verbatim>
+
+	  </subsubsection>
+	  <subsubsection>
+	    <heading id="__iterArrayDescr">__iter__()</heading>
+
+	    <p>It returns the same iterator than
+	      <verb>Array.iterrows(0,0,1)</verb>. However, this does not
+	      accept parameters.</p>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      result = [ row[2] for row in array
+                                if row[1] &lt;= 20 ]
+	    </verbatim>
+
+	    <p>Which is equivalent to:</p>
+
+	    <verbatim>
+	      result = [ row[2] for row in array.iterrows(0, 0, 1) 
+                          	    if row[1] &lt;= 20 ]
+	    </verbatim>
+
+	  </subsubsection>
+
+	  <subsubsection>
+	    <heading id="__getitemArrayDescr">__getitem__(keys)</heading>
+
+	    <p>It returns a <verb>NumArray</verb> (default) object, or
+	      if possible, with the same original <em>flavor</em> that
+	      it was saved, with the slice stated in the
+	      <verb>keys</verb> parameter. The set of allowed values
+	      and types that can take the elements in
+	      <verb>keys</verb> is the same as extended slicing in
+	      python (or <verb>numarray</verb>) allows.
+	    </p>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      array1 = array[4]   # array1.shape == array.shape[1:]
+	      array2 = array[4:1000:2]  # len(array2.shape) == len(array.shape)
+	      array3 = array[::2, 1:4,, :]
+	      array4 = array[1, ..., ::2, 1:4,, 4:] # General slice selection
+	    </verbatim>
+
+	  </subsubsection> <!-- __getitem__() -->
+	</subsection> <!-- Special methods -->
+      </section> <!-- Array class -->
 
       <section id="AttributeSetClassDescr">
 	<heading>The <visual markup="tt">AttributeSet</visual>
@@ -3957,12 +4179,12 @@ AttributeError: Error setting "ADCcount" attr.
 	</p>
 
 	<p>Like in <verb>Group</verb> instances,
-           <verb>AttributeSet</verb> instances use a special feature
-           called <em>natural naming</em>, i.e. you can access the
+           <verb>AttributeSet</verb> instances make use of the
+           <em>natural naming</em> convention, i.e. you can access the
            attributes on disk like if they were <em>normal</em>
            <verb>AttributeSet</verb> attributes. This offers the user
-           a very convenient way to access (but also set and delete)
-           node attributes by simply specifying them like a
+           a very convenient way to access (but also to set and
+           delete) node attributes by simply specifying them like a
            <em>normal</em> attribute class.
         </p>
 
@@ -3974,8 +4196,8 @@ AttributeError: Error setting "ADCcount" attr.
 	  serialized using <verb>cPickle</verb>, so you will be able
 	  to correctly retrieve them only from a Python-aware HDF5
 	  library. Hopefully, the list of supported native attributes
-	  will be extended to multidimensional arrays sometime in the
-	  future.
+	  will be extended to fully multidimensional arrays sometime
+	  in the future.
 	</p>
 
 	<subsection id="AttributeSetClassInstanceVariables">
@@ -4039,6 +4261,182 @@ AttributeError: Error setting "ADCcount" attr.
 	  </description>
 
 	</subsection>
+
+      </section> <!-- AttributeSet class -->
+
+      <section id="declarativeClasses">
+	<heading>Declarative classes</heading>
+
+	<subsection id="IsDescriptionClassDescr">
+	  <heading>The <visual markup="tt">IsDescription</visual>
+	    class</heading>
+
+	  <p>This class is in fact a so-called <em>metaclass</em>
+	    object. There is nothing special on this fact, except that
+	    their subclasses attributes are transformed during its
+	    instantiation phase, and new methods for instances are
+	    defined based on the values of the class attributes.
+	  </p>
+	  <p>It is designed to be used as an easy, yet meaningful way to
+	    describe the properties of <verb>Table</verb> objects
+	    through the use of classes that inherit properties from
+	    it. In order to define such a special class, you have to
+	    declare it as descendant of <em>IsDescription</em>, with
+	    many attributes as columns you want in your table. The name
+	    of these attributes will become the name of the columns,
+	    while its values are the properties of the columns that are
+	    obtained through the use of the <verb>Col</verb> class
+	    constructor. See the <ref
+	      refid="ColClassDescr">section</ref> for instructions on how
+	    define the properties of the table columns.
+	  </p>
+	  <p>Then, you can pass an instance of this object to the
+	    <verb>Table</verb> constructor, where all the information it
+	    contains will be used to define the table structure. See
+	    the <ref refid="secondExample">section</ref> for an example
+	    on how that works.
+	  </p>
+
+	</subsection> <!-- isDescription -->
+
+	<subsection id="ColClassDescr">
+	  <heading>The <visual markup="tt">Col</visual> class and its descendants</heading>
+
+	  <p>
+	    The <verb>Col</verb> class is used as a mean to declare the
+	    different properties of a table column. In addition, a
+	    series of descendant classes are offered in order to make
+	    these column descriptions easier to the user. In general, it
+	    is recommended to use these descendant classes, as they are
+	    more meaningful when found in the middle of the code.
+	  </p>
+	  <p>Note that the only public method accessible in these
+	    classes is the constructor itself.
+	  </p>
+
+	  <description>
+
+	    <term>Col(dtype="Float64", shape=1, dflt=None, pos=None)
+	    </term>
+	    <item>Define properties for a <verb>Table</verb> column.
+
+	      <description>
+
+		<term>dtype</term> <item>The data type for the
+		  column. See the <ref
+		    refid="datatypesSupported">appendix</ref> for a
+		  relation of data types supported in a <visual
+		    markup="tt">IsDescription</visual> class
+		  declaration. The type description is accepted both in
+		  string format and as numarray data type.</item>
+
+		<term>shape</term> <item>An integer or a tuple, that
+		  specifies the number of <em>dtype</em> items for each
+		  element (or shape, for multidimensional elements) of
+		  this column. For <verb>CharType</verb> columns, the
+		  first dimension is used as the length of the character
+		  strings. For this kind of objects, the use of
+		  <verb>StringCol</verb> subclass is recommended.</item>
+
+		<term>dflt</term> <item>The default value for elements
+		  of this column. If the user does not supply a value
+		  for an element while filling a table, this default
+		  value will be written to disk. If the user supplies an
+		  scalar value for a multidimensional column, this value
+		  is automatically <em>broadcasted</em> to all the
+		  elements in the column cell. If <em>dflt</em> is not
+		  supplied, an appropriate zero value (or <em>null</em>
+		  string) will be chosen by default.</item>
+
+		<term>pos</term> <item>By default, columns are arranged
+		  in memory following an alphanumerical order of the
+		  column names. In some situations, however, it is
+		  convenient to impose a user defined
+		  ordering. <em>pos</em> parameter allows the user to
+		  force the desired ordering.</item>
+
+	      </description>
+	    </item>
+
+	    <term>StringCol(length=None, dflt=None, shape=1, pos=None)
+	    </term>
+	    <item>Define a column to be of <verb>CharType</verb>
+	      type. The <verb>length</verb> parameter sets the length of
+	      the strings. The meaning of the other parameters are like
+	      in the <verb>Col</verb> class.
+	    </item>
+	    <term>IntCol(dflt=0, shape=1, itemsize=4, sign=1, pos=None)
+	    </term>
+	    <item>Define a column to be of <verb>IntXXType</verb> type,
+	      depending on the value of <verb>itemsize</verb>. The
+	      <verb>itemsize</verb> parameter sets the number of bytes
+	      of the integers in the column and the default is 4
+	      bytes. <verb>sign</verb> determines if the integers are
+	      signed or not. The meaning of the other parameters are the
+	      same of those in the <verb>Col</verb> class.
+
+	      <p>This class has several descendants:
+	      </p>
+
+	      <description>
+		<term>Int8Col(dflt=0, shape=1, pos=None)</term>
+		<item>Define a column as an <verb>Int8</verb> type.</item>
+
+		<term>UInt8Col(dflt=0, shape=1, pos=None)</term>
+		<item>Define a column as an <verb>UInt8</verb>
+		  type.</item>
+
+		<term>Int16Col(dflt=0, shape=1, pos=None)</term>
+		<item>Define a column as an <verb>Int16</verb> type.</item>
+
+		<term>UInt16Col(dflt=0, shape=1, pos=None)</term>
+		<item>Define a column as an <verb>UInt16</verb>
+		  type.</item>
+
+		<term>Int32Col(dflt=0, shape=1, pos=None)</term>
+		<item>Define a column as an <verb>Int32</verb> type.</item>
+
+		<term>UInt32Col(dflt=0, shape=1, pos=None)</term>
+		<item>Define a column as an <verb>UInt32</verb>
+		  type.</item>
+
+		<term>Int64Col(dflt=0, shape=1, pos=None)</term>
+		<item>Define a column as an <verb>Int64</verb> type.</item>
+
+		<term>UInt64Col(dflt=0, shape=1, pos=None)</term>
+		<item>Define a column as an <verb>UInt64</verb>
+		  type.</item>
+
+	      </description>
+
+	    </item>
+
+	    <term>FloatCol(dflt=0, shape=1, itemsize=8, pos=None)
+	    </term>
+	    <item>Define a column to be of <verb>FloatXXType</verb>
+	      type, depending on the value of <verb>itemsize</verb>. The
+	      <verb>itemsize</verb> parameter sets the number of bytes
+	      of the floats in the column and the default is 8 bytes
+	      (double precision). The meaning of the other parameters
+	      are the same as those in the <verb>Col</verb> class.
+
+	      <p>This class has two descendants:
+	      </p>
+
+	      <description>
+		<term>Float32Col(dflt=0.0, shape=1, pos=None)</term>
+		<item>Define a column as a <verb>Float32</verb>
+		  type.</item>
+
+		<term>Float64Col(dflt=0.0, shape=1, pos=None)</term>
+		<item>Define a column as a <verb>Float64</verb>
+		  type.</item>
+
+	      </description>
+	    </item>
+	  </description>
+
+	</subsection> <!-- Col classes -->
 
       </section>
     </chapter>
@@ -4149,7 +4547,7 @@ if __name__=="__main__":
 	  </caption>
 	</figure>
 
-      </section>
+      </section> 
 
       <section id="compressionIssues">
 	<heading>Compression issues</heading>
@@ -4407,7 +4805,7 @@ if __name__=="__main__":
 	</p>
 
 	<p>This is where the <verb>rootUEP</verb> parameter of
-	  <verb>openFile()</verb> function (see <ref
+	  <verb>openFile</verb> function (see <ref
 	  refid="openFileDescr"></ref>) can be helpful. Imagine that
 	  you have a file called <verb>"test.h5"</verb> with the
 	  associated tree that you can see in figure <ref
@@ -4479,6 +4877,7 @@ if __name__=="__main__":
 	      Python Counterpart</srow>
 	  </tabhead>
 	  <tabbody>
+	    <srow>Bool | boolean | unsigned char | 1 | Boolean </srow>
 	    <srow>Int8 | 8-bit integer | signed char | 1 | Integer </srow>
 	    <srow>UInt8 | 8-bit unsigned integer | unsigned char | 1 | Integer </srow>
 	    <srow>Int16 | 16-bit integer | short | 2 | Integer </srow>

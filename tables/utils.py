@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.13 2003/12/18 10:13:11 falted Exp $
+#       $Id: utils.py,v 1.14 2003/12/27 22:54:34 falted Exp $
 #
 ########################################################################
 
@@ -110,7 +110,6 @@ def calcBufferSize(rowsize, expectedrows, compress):
     # be the best choice in terms of performance!
     #bufmultfactor = int(1000 * 1.0) # Original value
     bufmultfactor = int(1000 * 1.0)  # *** Increase the chunksize here ***
-    #bufmultfactor = int(1000 * 10.0)  # *** This makes the test to run fine
     rowsizeinfile = rowsize
     expectedfsizeinKb = (expectedrows * rowsizeinfile) / 1024
 
@@ -164,7 +163,12 @@ def calcBufferSize(rowsize, expectedrows, compress):
         chunksize = 16384
     # Correction for compression.
     if compress:
-        chunksize = 1024   # This seems optimal for compression
+        # 1024 bytes seems optimal for compression and besides,
+        # shuffle does not take too much CPU time (shuffle consumes
+        # CPU time exponentially with chunksize)
+        chunksize = 1024
+        #chunksize /= 2
+        #chunksize = 1024 * 10   # This seems optimal for compression
 
     # Max Tuples to fill the buffer
     maxTuples = buffersize // rowsize
@@ -173,7 +177,7 @@ def calcBufferSize(rowsize, expectedrows, compress):
         maxTuples = 1
     # A new correction for avoid too many calls to HDF5 I/O calls
     # But this does not bring advantages rather the contrary,
-    # the memory comsumption grows, and performance is worse.
+    # the memory comsumption grows, and performance becomes worse.
     #buffersize = 100    # For testing purposes
     #if expectedrows//maxTuples > 50:
     #    buffersize *= 4

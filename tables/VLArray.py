@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.12 2003/12/21 19:35:45 falted Exp $
+#       $Id: VLArray.py,v 1.13 2003/12/27 22:54:34 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.12 $"
+__version__ = "$Revision: 1.13 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -266,7 +266,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
     """
     
     def __init__(self, atom=None, title = "",
-                 compress = 0, complib = "zlib", shuffle = 0,
+                 compress = 0, complib = "zlib", shuffle = 1,
                  expectedsizeinMB = 1.0):
         """Create the instance Array.
 
@@ -325,7 +325,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         self._atomicsize = self.atom.atomsize()
         self._basesize = self.atom.itemsize
         self.flavor = self.atom.flavor
-        
+
         # Compute the optimal chunksize
         self._v_chunksize = calcChunkSize(self._v_expectedsizeinMB,
                                           self.complevel)
@@ -428,6 +428,8 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             else:
                 self.atom = Atom(self._atomictype, self._atomicshape,
                                  self.flavor)
+        # Get info about existing filters
+        self.complevel, self.complib, self.shuffle = self._g_getFilters()
 
     def iterrows(self, start=None, stop=None, step=None):
         """Iterator over all the rows or a range"""

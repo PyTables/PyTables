@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.55 2003/12/20 12:59:55 falted Exp $
+#       $Id: Group.py,v 1.56 2003/12/27 22:54:34 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.55 $"
+__version__ = "$Revision: 1.56 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -186,10 +186,10 @@ class Group(hdf5Extension.Group, object):
             class_ = self._v_attrs._g_getChildAttr(name, "CLASS")
         if class_ is None:
             # No CLASS attribute, try a guess
-            warnings.warn( \
-"""No CLASS attribute found. Trying to guess what's here.
-I can't promise getting the correct object, but I will do my best!.""",
-            UserWarning)
+#             warnings.warn( \
+# """No CLASS attribute found. Trying to guess what's here.
+# I can't promise getting the correct object, but I will do my best!.""",
+#             UserWarning)
             class_ = hdf5Extension.whichClass(self._v_objectID, name)
             if class_ == "UNSUPPORTED":
                 raise RuntimeError, \
@@ -402,29 +402,6 @@ I can't promise getting the correct object, but I will do my best!.""",
         else:
             raise ValueError, \
 """"classname" can only take 'Group', 'Leaf', 'Table' or 'Array' values"""
-
-    def _f_walkGroups_old(self):
-        """Returns the list of Groups (not Leaves) hanging from self.
-
-        The group list returned is ordered from top to bottom, and
-        alphanumerically sorted when in the same level.
-
-        """
-        
-        stack = [self]
-        groups = [self]
-        # Iterate over the descendants
-        while stack:
-            objgroup=stack.pop()
-            groupnames = objgroup._v_groups.keys()
-            # Sort the groups before delivering. This uses the groups names
-            # for groups in tree (in order to sort() can classify them).
-            groupnames.sort()
-            for groupname in groupnames:
-                groups.append(objgroup._v_groups[groupname])
-                stack.append(objgroup._v_groups[groupname])
-                
-        return groups
 
     def _f_walkGroups(self):
         """Iterate over the Groups (not Leaves) hanging from self.

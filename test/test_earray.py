@@ -454,16 +454,15 @@ class BasicTestCase(unittest.TestCase):
 
         if verbose:
             if hasattr(object, "shape"):
+                print "Original object shape:", self.shape
                 print "Shape read:", row.shape
                 print "shape should look as:", object.shape
-            print "Object read ==>", repr(row) #, row.info()
-            print "Should look like ==>", repr(object) #, row.info()
+            print "Object read:\n", repr(row) #, row.info()
+            print "Should look like:\n", repr(object) #, row.info()
 
         assert self.nappends*self.chunksize == earray.nrows
         assert allequal(row, object, self.flavor)
-        if hasattr(row, "shape"):
-            assert len(row.shape) == len(self.shape)
-        else:
+        if not hasattr(row, "shape"):
             # Scalar case
             assert len(self.shape) == 1
 
@@ -492,6 +491,14 @@ class SlicesEArrayTestCase(BasicTestCase):
     nappends = 2
     slices = (slice(1,2,1), slice(1,3,1))
 
+class EllipsisEArrayTestCase(BasicTestCase):
+    type = Int32
+    shape = (2, 0)
+    chunksize = 5
+    nappends = 2
+    #slices = (slice(1,2,1), Ellipsis)
+    slices = (Ellipsis, slice(1,2,1))
+
 class Slices2EArrayTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
@@ -500,6 +507,13 @@ class Slices2EArrayTestCase(BasicTestCase):
     chunksize = 5
     nappends = 20
     slices = (slice(1,2,1), slice(None, None, None), slice(1,4,2))
+
+class Ellipsis2EArrayTestCase(BasicTestCase):
+    type = Int32
+    shape = (2, 0, 4)
+    chunksize = 5
+    nappends = 20
+    slices = (slice(1,2,1), Ellipsis, slice(1,4,2))
 
 class Slices3EArrayTestCase(BasicTestCase):
     compress = 1      # To show the chunks id DEBUG is on
@@ -517,6 +531,39 @@ class Slices3EArrayTestCase(BasicTestCase):
     #slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,1)) # Y
     slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2)) # N
     #slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2), slice(0,100,1)) # N
+
+class Ellipsis3EArrayTestCase(BasicTestCase):
+    type = Int32
+    shape = (2, 3, 4, 0)
+    chunksize = 5
+    nappends = 20
+    slices = (Ellipsis, slice(0, 4, None), slice(1,4,2)) # Y
+    slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2), Ellipsis) # N
+    #slices = (slice(1,2,1), Ellipsis, slice(1,4,2)) # Y
+    #slices = (slice(1,2,1), slice(0, 4, None), Ellipsis, 4) # N
+    #slices = (slice(1,2,1), slice(0, 4, None), Ellipsis, 2) # N
+
+class Ellipsis4EArrayTestCase(BasicTestCase):
+    type = Int32
+    shape = (2, 3, 4, 0)
+    chunksize = 5
+    nappends = 20
+    slices = (Ellipsis, slice(0, 4, None), slice(1,4,2)) # Y
+    slices = (slice(1,2,1), Ellipsis, slice(1,4,2)) # Y
+
+class Ellipsis5EArrayTestCase(BasicTestCase):
+    type = Int32
+    shape = (2, 3, 4, 0)
+    chunksize = 5
+    nappends = 20
+    slices = (slice(1,2,1), slice(0, 4, None), Ellipsis) # Y
+
+class Ellipsis6EArrayTestCase(BasicTestCase):
+    type = Int32
+    shape = (2, 3, 4, 0)
+    chunksize = 5
+    nappends = 2
+    slices = (slice(1,2,1), slice(0, 4, None), 2, Ellipsis) # Y
 
 class MD3WriteTestCase(BasicTestCase):
     type = Int32
@@ -689,8 +736,14 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(EmptyEArrayTestCase))
     #theSuite.addTest(unittest.makeSuite(SlicesEArrayTestCase))
+    #theSuite.addTest(unittest.makeSuite(EllipsisEArrayTestCase))
     #theSuite.addTest(unittest.makeSuite(Slices2EArrayTestCase))
+    #theSuite.addTest(unittest.makeSuite(Ellipsis2EArrayTestCase))
     #theSuite.addTest(unittest.makeSuite(Slices3EArrayTestCase))
+    #theSuite.addTest(unittest.makeSuite(Ellipsis3EArrayTestCase))
+    #theSuite.addTest(unittest.makeSuite(Ellipsis4EArrayTestCase))
+    #theSuite.addTest(unittest.makeSuite(Ellipsis5EArrayTestCase))
+    #theSuite.addTest(unittest.makeSuite(Ellipsis6EArrayTestCase))
     #theSuite.addTest(unittest.makeSuite(MD3WriteTestCase))
     #theSuite.addTest(unittest.makeSuite(MD5WriteTestCase))
     #theSuite.addTest(unittest.makeSuite(MD10WriteTestCase))
@@ -712,8 +765,14 @@ def suite():
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(EmptyEArrayTestCase))
         theSuite.addTest(unittest.makeSuite(SlicesEArrayTestCase))
+        theSuite.addTest(unittest.makeSuite(EllipsisEArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Slices2EArrayTestCase))
+        theSuite.addTest(unittest.makeSuite(Ellipsis2EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Slices3EArrayTestCase))
+        theSuite.addTest(unittest.makeSuite(Ellipsis3EArrayTestCase))
+        theSuite.addTest(unittest.makeSuite(Ellipsis4EArrayTestCase))
+        theSuite.addTest(unittest.makeSuite(Ellipsis5EArrayTestCase))
+        theSuite.addTest(unittest.makeSuite(Ellipsis6EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(MD3WriteTestCase))
         theSuite.addTest(unittest.makeSuite(MD5WriteTestCase))
         theSuite.addTest(unittest.makeSuite(MD10WriteTestCase))

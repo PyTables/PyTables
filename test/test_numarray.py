@@ -600,6 +600,8 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
+    #theSuite.addTest(unittest.makeSuite(Basic2DTestCase))
+
     for i in range(niter):
         # The scalar case test should be refined in order to work
         theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))

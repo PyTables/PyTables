@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.88 2003/12/21 19:35:45 falted Exp $
+#       $Id: Table.py,v 1.89 2003/12/27 22:54:34 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.88 $"
+__version__ = "$Revision: 1.89 $"
 
 from __future__ import generators
 import sys
@@ -70,7 +70,7 @@ class Table(Leaf, hdf5Extension.Table, object):
     file. A method is also provided to iterate over the rows without
     loading the entire table or column in memory.
 
-    Data can be written or read both as Row() instances or as numarray
+    Data can be written or read both as Row instances or as numarray
     (NumArray or RecArray) objects.
     
     Methods:
@@ -486,14 +486,13 @@ class Table(Leaf, hdf5Extension.Table, object):
             # This optimization works three times faster than
             # the row._fillCol method (up to 170 MB/s in a pentium IV @ 2GHz)
             self._open_read(result)
-            #print "Start, stop -->", start, stop
             if isinstance(coords, numarray.NumArray):
                 self._read_elements_orig(0, len(coords), coords)
             else:
                 self._read_records(start, stop-start)
             self._close_read()  # Close the table
         elif field and 1:
-            # This optimization in Pyrex works, but the call to row._fillCol
+            # This optimization works in Pyrex, but the call to row._fillCol
             # is almost always faster (!!), so disable it.
             # Update: for step>50, this seems to work always faster than
             # row._fillCol

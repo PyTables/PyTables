@@ -3,9 +3,9 @@ December 2003
 I would like to thank the people have contributed directly or
 indirectly to PyTables. 
 
-Scott Prater for editing the users manual in order to make it more
-readable in english and besides, as well as conducting the tests of
-PyTables on Solaris.
+Scott Prater for editing the user's manual in order to make it more
+readable in english, as well as conducting the tests of PyTables on
+Solaris.
 
 Torsten Bronger for writing tbook, an excellent XML authoring system,
 which is used to create the different versions of the User's Manual

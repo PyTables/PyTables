@@ -598,6 +598,8 @@ def suite():
     # This counter is useful when detecting memory leaks
     niter = 1
 
+    #theSuite.addTest(unittest.makeSuite(DeepTreeTestCase))
+    
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(TreeTestCase))
         theSuite.addTest(unittest.makeSuite(DeepTreeTestCase))

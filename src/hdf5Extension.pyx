@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.98 2003/12/21 19:34:04 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.99 2003/12/27 22:54:34 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.98 $"
+__version__ = "$Revision: 1.99 $"
 
 
 import sys, os
@@ -658,17 +658,14 @@ cdef extern from "getfieldfmt.h":
 # Helper routines
 cdef extern from "utils.h":
   object _getTablesVersion()
+  object getZLIBVersionInfo()
+  object getHDF5VersionInfo()
   object createNamesTuple(char *buffer[], int nelements)
   object get_filter_names( hid_t loc_id, char *dset_name)
   object Giterate(hid_t parent_id, hid_t loc_id, char *name)
   object Aiterate(hid_t loc_id)
   H5T_class_t getHDF5ClassID(hid_t loc_id, char *name)
 
-# ZLIB library
-# We don't want to require the zlib headers installed
-#cdef extern from "zlib.h":
-#  char *zlibVersion()
-  
 # LZO library
 cdef int lzo_version
 cdef extern from "H5Zlzo.h":
@@ -690,25 +687,29 @@ ucl_version = register_ucl()
 
 # utility funtions (these can be directly invoked from Python)
 
-def isLibAvailable(char *name):
+def whichLibVersion(char *name):
   "Tell if an optional library is available or not"
     
-  if (strcmp(name, "zlib") == 0):
-    #return (1,zlibVersion(),None)   # Should be always available
-    return (1,0,0)   # Should be always available
-  if (strcmp(name, "lzo") == 0):
+  if (strcmp(name, "hdf5") == 0):
+    binver, strver = getHDF5VersionInfo()
+    return (binver, strver, None)     # Should be always available
+  elif (strcmp(name, "zlib") == 0):
+    binver, strver = getZLIBVersionInfo()
+    return (binver, strver, None)   # Should be always available
+  elif (strcmp(name, "lzo") == 0):
     if lzo_version:
       (lzo_version_string, lzo_version_date) = getLZOVersionInfo()
       return (lzo_version, lzo_version_string, lzo_version_date)
     else:
-      return (0, None, None)
+      return (0, 0, None)
   elif (strcmp(name, "ucl") == 0):
     if ucl_version:
       (ucl_version_string, ucl_version_date) = getUCLVersionInfo()
       return (ucl_version, ucl_version_string, ucl_version_date)
     else:
-      return (0, None, None)
+      return (0, 0, None)
   else:
+    print "Asking version for:", name, "library, but the only supported library names are: 'hdf5', 'zlib', 'ucl', 'lzo' (note the lower case namimg)." 
     return (0, None, None)
     
 def whichClass( hid_t loc_id, char *name):
@@ -768,6 +769,29 @@ def isPyTablesFile(char *filename):
   else:
     return isptf
 
+def getHDF5Version():
+  """Get the underlying HDF5 library version"""
+  
+  return getHDF5VersionInfo()[1]
+
+def getExtVersion():
+  """Return this extension CVS version"""
+  
+  # We need to do that here because
+  # the cvsid really gives the CVS version of the generated C file (because
+  # it is also in CVS!."""
+  # But the $Id will be processed whenever a cvs commit is issued.
+  # So, if you make a cvs commit *before* a .c generation *and*
+  # you don't modify anymore the .pyx source file, you will get a cvsid
+  # for the C file, not the Pyrex one!. The solution is not trivial!.
+  return "$Id: hdf5Extension.pyx,v 1.99 2003/12/27 22:54:34 falted Exp $ "
+
+def getPyTablesVersion():
+  """Return this extension version."""
+  
+  #return PYTABLES_VERSION
+  return _getTablesVersion()
+
 def read_f_attr(hid_t file_id, char *attr_name):
   """Return the PyTables file attributes.
 
@@ -796,38 +820,6 @@ def read_f_attr(hid_t file_id, char *attr_name):
   H5Gclose(root_id)
       
   return attr_value
-
-def getHDF5Version():
-  """Get the underlying HDF5 library version"""
-  
-  cdef unsigned majnum, minnum, relnum
-  cdef char buffer[MAX_CHARS]
-  cdef int ret
-  
-  ret = H5get_libversion(&majnum, &minnum, &relnum )
-  if ret < 0:
-    raise RuntimeError("Problems getting the HDF5 library version.")
-  snprintf(buffer, MAX_CHARS, "%d.%d.%d", majnum, minnum, relnum )
-  
-  return buffer
-
-def getExtVersion():
-  """Return this extension CVS version"""
-  
-  # We need to do that here because
-  # the cvsid really gives the CVS version of the generated C file (because
-  # it is also in CVS!."""
-  # But the $Id will be processed whenever a cvs commit is issued.
-  # So, if you make a cvs commit *before* a .c generation *and*
-  # you don't modify anymore the .pyx source file, you will get a cvsid
-  # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.98 2003/12/21 19:34:04 falted Exp $ "
-
-def getPyTablesVersion():
-  """Return this extension version."""
-  
-  #return PYTABLES_VERSION
-  return _getTablesVersion()
 
 # Utility function
 def _getFilters(parent_id, name):
