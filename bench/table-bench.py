@@ -14,7 +14,7 @@ class Small(IsDescription):
     correct."""
     
     var1 = Col("CharType", 4, "")
-    #var1 = Col("Float32", 1, "")
+    #var1 = Col("Float32", 1, 0.0)
     var2 = Col("Int32", 1, 0)
     var3 = Col("Float64", 1, 0)
 
@@ -230,7 +230,7 @@ if __name__=="__main__":
     usage = """usage: %s [-v] [-p] [-R range] [-r] [-w] [-s recsize] [-f field] [-c level] [-l complib] [-i iterations] file
             -v verbose
 	    -p use "psyco" if available
-            -R select a range in the form "start,stop,step"
+            -R select a range in a field in the form "start,stop,step"
 	    -r only read test
 	    -w only write test
             -s use [big] record, [medium] or [small]

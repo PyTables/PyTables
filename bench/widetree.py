@@ -1,0 +1,123 @@
+import sys
+import warnings
+import unittest
+import os
+import tempfile
+
+from tables import *
+# Next imports are only necessary for this test suite
+from tables import Group, Leaf, Table, Array
+
+verbose = 0
+
+class WideTreeTestCase(unittest.TestCase):
+    """Checks for maximum number of childs for a Group.
+    
+    
+    """
+    def test00_Leafs(self):
+        """Checking creation of large number of leafs (1024) per group 
+        
+        Variable 'maxchilds' controls this check. PyTables support
+        up to 4096 childs per group, but this would take too much
+        memory (up to 64 MB) for testing purposes (may be we can add a
+        test for big platforms). A 1024 childs run takes up to 30 MB.
+        A 512 childs test takes around 25 MB.
+        
+        """
+
+        import time
+        maxchilds = 3000
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00_wideTree..." % \
+                  self.__class__.__name__
+            print "Maximum number of childs tested :", maxchilds
+        # Open a new empty HDF5 file
+        file = tempfile.mktemp(".h5")
+        #file = "test_widetree.h5"
+
+        fileh = openFile(file, mode = "w")
+        if verbose:
+            print "Children writing progress: ",
+        for child in range(maxchilds):
+            if verbose:
+                print "%3d," % (child),
+            a = [1, 1]
+            fileh.createGroup(fileh.root, 'group' + str(child),
+                              "child: %d" % child)
+            fileh.createArray("/group" + str(child), 'array' + str(child),
+                              a, "child: %d" % child)
+        if verbose:
+            print
+        # Close the file
+        fileh.close()
+
+        t1 = time.time()
+        # Open the previous HDF5 file in read-only mode
+        fileh = openFile(file, mode = "r")
+        print "\nTime spent opening a file with %d groups + %d arrays: %s s" % \
+              (maxchilds, maxchilds, time.time()-t1)
+        if verbose:
+            print "\nChildren reading progress: ",
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+        
+    def test01_wideTree(self):
+        """Checking creation of large number of groups (1024) per group 
+        
+        Variable 'maxchilds' controls this check. PyTables support
+        up to 4096 childs per group, but this would take too much
+        memory (up to 64 MB) for testing purposes (may be we can add a
+        test for big platforms). A 1024 childs run takes up to 30 MB.
+        A 512 childs test takes around 25 MB.
+        
+        """
+
+        import time
+        maxchilds = 3000
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00_wideTree..." % \
+                  self.__class__.__name__
+            print "Maximum number of childs tested :", maxchilds
+        # Open a new empty HDF5 file
+        file = tempfile.mktemp(".h5")
+        #file = "test_widetree.h5"
+
+        fileh = openFile(file, mode = "w")
+        if verbose:
+            print "Children writing progress: ",
+        for child in range(maxchilds):
+            if verbose:
+                print "%3d," % (child),
+            fileh.createGroup(fileh.root, 'group' + str(child),
+                              "child: %d" % child)
+        if verbose:
+            print
+        # Close the file
+        fileh.close()
+
+        t1 = time.time()
+        # Open the previous HDF5 file in read-only mode
+        fileh = openFile(file, mode = "r")
+        print "\nTime spent opening a file with %d groups: %s s" % \
+              (maxchilds, time.time()-t1)
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+        
+#----------------------------------------------------------------------
+
+def suite():
+    theSuite = unittest.TestSuite()
+    theSuite.addTest(unittest.makeSuite(WideTreeTestCase))
+
+    return theSuite
+
+
+if __name__ == '__main__':
+    unittest.main( defaultTest='suite' )

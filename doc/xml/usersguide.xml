@@ -1659,8 +1659,75 @@ RuntimeError: System attribute ('VERSION') cannot be overwritten or renamed
 >>>
 	  </verbatim>
 
+	  <p>After your session, you can check that the
+	  <verb>/detector/readout</verb> attributes in disk looks like:
+	  </p>
+
+	  <verbatim>
+$ h5ls -vr tutorial1.h5/detector/readout 
+Opened "tutorial1.h5" with sec2 driver.
+/detector/readout        Dataset {15/Inf}
+    Attribute: CLASS     scalar
+        Type:      6-byte null-terminated ASCII string
+        Data:  "TABLE"
+    Attribute: VERSION   scalar
+        Type:      4-byte null-terminated ASCII string
+        Data:  "1.0"
+    Attribute: TITLE     scalar
+        Type:      16-byte null-terminated ASCII string
+        Data:  "Readout example"
+    Attribute: FIELD_0_NAME scalar
+        Type:      9-byte null-terminated ASCII string
+        Data:  "ADCcount"
+    Attribute: FIELD_1_NAME scalar
+        Type:      9-byte null-terminated ASCII string
+        Data:  "TDCcount"
+    Attribute: FIELD_2_NAME scalar
+        Type:      7-byte null-terminated ASCII string
+        Data:  "energy"
+    Attribute: FIELD_3_NAME scalar
+        Type:      7-byte null-terminated ASCII string
+        Data:  "grid_i"
+    Attribute: FIELD_4_NAME scalar
+        Type:      7-byte null-terminated ASCII string
+        Data:  "grid_j"
+    Attribute: FIELD_5_NAME scalar
+        Type:      9-byte null-terminated ASCII string
+        Data:  "idnumber"
+    Attribute: FIELD_6_NAME scalar
+        Type:      5-byte null-terminated ASCII string
+        Data:  "name"
+    Attribute: FIELD_7_NAME scalar
+        Type:      9-byte null-terminated ASCII string
+        Data:  "pressure"
+    Attribute: tempScale scalar
+        Type:      8-byte null-terminated ASCII string
+        Data:  "Celsius"
+    Attribute: temperature {1}
+        Type:      native double
+        Data:  18.4
+    Location:  0:1:0:1952
+    Links:     1
+    Modified:  2003-06-12 10:19:28 CEST
+    Chunks:    {2048} 96256 bytes
+    Storage:   705 logical bytes, 96256 allocated bytes, 0.73% utilization
+    Type:      struct {
+                   "ADCcount"         +0    native unsigned short
+                   "TDCcount"         +2    native unsigned char
+                   "energy"           +3    native double
+                   "grid_i"           +11   native int
+                   "grid_j"           +15   native int
+                   "idnumber"         +19   native long long
+                   "name"             +27   16-byte null-terminated ASCII string
+                   "pressure"         +43   native float
+               } 47 bytes
+
+	  </verbatim>
+
+
 	  <p>As you can see, the use of attributes can be a good
-	    mechanism to add (meta) information to your actual data.
+	    mechanism to add persistent (meta) information to your
+	    actual data. Be sure to use them extensively.
 	  </p>
 
 	</subsection>
@@ -2209,13 +2276,13 @@ AttributeError: Error accessing "ADCcount" attr.
 	<heading>Compression issues</heading>
 
 	<p>One of the beauties of <verb>PyTables</verb> is that it
-	  supports compression on tables (but not on arrays!, that
-	  may come later), although it is disabled by
-	  default. Compression of big amounts of data might be a bit
-	  controversial feature, because compression has a legend of
-	  being a very big CPU time resources consumer. However, if
-	  you are willing to check if compression can help reducing
-	  your dataset, keep reading.
+	  supports compression on tables (but not on arrays!, that may
+	  come later), although it is disabled by default. Compression
+	  of big amounts of data might be a bit controversial feature,
+	  because compression has a legend of being a very big CPU
+	  time resources consumer. However, if you are willing to
+	  check if compression can help reducing your dataset file
+	  size and improving your I/O efficency, keep reading.
 	</p>
 
 	<p>There is an usual scenario where users need to save
@@ -2229,17 +2296,17 @@ AttributeError: Error accessing "ADCcount" attr.
 	</p>
 
 	<p><verb>PyTables</verb> transparent compression allows the
-	  user to not worry about finding which is their optimum
-	  data tables strategy, but rather use less, not directly
-	  related, tables with a larger number of columns while
-	  still not cluttering the database too much with duplicated
-	  data (compression is responsible to avoid that). As a side
-	  effect, data selections can be made more easily because
-	  you have more fields available in a single table, and they
-	  can be referred in the same loop. This process may
-	  normally end in a simple, yet powerful manner to process
-	  your data (although you should still be careful about what
-	  kind of scenarios compression is convenient or not).
+	  user to not worry about finding which is their optimum data
+	  tables strategy, but rather use less, not directly related,
+	  tables with a larger number of columns while still not
+	  cluttering the database too much with duplicated data
+	  (compression is responsible to avoid that). As a side
+	  effect, data selections can be made more easily because you
+	  have more fields available in a single table, and they can
+	  be referred in the same loop. This process may normally end
+	  in a simpler, yet powerful manner to process your data
+	  (although you should still be careful about what kind of
+	  scenarios compression use is convenient or not).
 	</p>
 
 	<p>The compression library used by default is the <visual
@@ -2253,58 +2320,45 @@ AttributeError: Error accessing "ADCcount" attr.
 	  you data.
 	</p>
 
-	<p>However, in many situations (i.e. write <em>once</em>,
-	  read <em>multiple</em>), it is critical to have <em>very
-	    good</em> decompression speed (at expense of whether less
+	<p>However, in many situations (i.e. write <em>once</em>, read
+	  <em>multiple</em>), it is critical to have <em>very
+	  good</em> decompression speed (at expense of whether less
 	  compression or more CPU wasted on compression, as we will
-	  see soon). This is why support for two new compressors has
-	  been added to PyTables: LZO and UCL (see <cite
-	    refid="lzouclRef"></cite>). Following his author (and
+	  see soon). This is why support for two additional
+	  compressors has been added to PyTables: LZO and UCL (see
+	  <cite refid="lzouclRef"></cite>). Following his author (and
 	  checked by the author of this manual), LZO offers pretty
 	  fast compression (although small compression ratio) and
 	  extremly fast decompression while UCL achieve an excellent
 	  compression ratio (at the price of spending much more CPU
 	  time) while allowing very fast decompression (and <em>very
-	    close</em> to the LZO one). In fact, LZO and UCL are so
-	  fast when decompressing that, in general (that depends on
-	  your data, of course), writing and reading a compressed
-	  table is actually faster (and sometimes <visual
-	    markup="bf">much faster</visual>) than if it is
-	  uncompressed. This fact is very important, specially if
-	  you have to deal with very large amounts of data.
+	  close</em> to the LZO one). In fact, LZO and UCL are so fast
+	  when decompressing that, in general (that depends on your
+	  data, of course), writing and reading a compressed table is
+	  actually faster (and sometimes <visual markup="bf">much
+	  faster</visual>) than if it is uncompressed. This fact is
+	  very important, specially if you have to deal with very
+	  large amounts of data.
 	</p>
 
 	<p>Be aware that the LZO and UCL support in PyTables is not
 	  standard on HDF5, so if you are going to use your PyTables
 	  files in other contexts different from PyTables you will
-	  not be able to read them. You have been warned.
+	  not be able to read them.
 	</p>
 
 	<p>In order to give you a raw idea of what ratios would be
-	  achieved, and what resources would be consumed, look at
-	  the <ref refid="comprTblComparison">table</ref>. This
-	  table has been obtained from synthetic data, so take this
-	  just as a guide because your mileage will probably
-	  vary.
-	</p>
-	<p>
-	  However, you can expect that, in general, LZO would be the
-	  fastest both compressing and uncompressing, but the one
-	  that achieves the worse compression ratio (although that
-	  may be just ok for many situations). UCL is the slowest
-	  when compressing, but is faster than Zlib when
-	  decompressing, and, besides, it achieves very good
-	  compression ratios (generally better than Zlib). Zlib
-	  represents a balance between them: it's somewhat slow
-	  compressing, the slowest during decompressing, but it
-	  normally achieves fairly good compression ratios.
-	</p>
-
-	<p>So, if your ultimate goal is reading as fast as possible,
-	  choose LZO. If you want to reduce as much as possible your
-	  data, while retaining good read speed, choose UCL. If you
-	  don't mind too much about the above parameters and/or
-	  portability is important for you, Zlib is your best bet.
+	  achieved, and what resources would be consumed, look at the
+	  <ref refid="comprTblComparison">table</ref>. This table has
+	  been obtained from synthetic data, so take this just as a
+	  guide because your mileage will probably vary. Have also a
+	  look at the graphs <ref
+	  refid="lzozlibuclWriteComparison"></ref> and <ref
+	  refid="lzozlibuclReadComparison"></ref>. They show how
+	  evolve the speed of writing/reading rows as the size (the
+	  row number) of tables grows. The size of one single row is
+	  16 bytes, but you can safely extrapolate this figures to
+	  larger row sizes.
 	</p>
 
 	<table id="comprTblComparison">
@@ -2328,6 +2382,42 @@ AttributeError: Error accessing "ADCcount" attr.
 	    libaries. The tests has been conducted on a Pentium 4 at 2
 	    GHz and a hard disk at 4200 RPM.</caption>
 	</table>
+
+	<figure id="lzozlibuclWriteComparison">
+	  <graphics file="write-small-lzo-zlib-ucl-comparison" scale="0.75" kind="vector">
+	  
+	  </graphics>
+	  <caption>Writing tables with several compressors.
+	  </caption>
+	</figure>
+
+	<figure id="lzozlibuclReadComparison">
+	  <graphics file="read-small-lzo-zlib-ucl-comparison" scale="0.75" kind="vector">
+	  
+	  </graphics>
+	  <caption>Reading tables with several compressors.
+	  </caption>
+	</figure>
+
+	<p>
+	  However, you can expect that, in general, LZO would be the
+	  fastest both compressing and uncompressing, but the one
+	  that achieves the worse compression ratio (although that
+	  may be just ok for many situations). UCL is the slowest
+	  when compressing, but is faster than Zlib when
+	  decompressing, and, besides, it achieves very good
+	  compression ratios (generally better than Zlib). Zlib
+	  represents a balance between them: it's somewhat slow
+	  compressing, the slowest during decompressing, but it
+	  normally achieves fairly good compression ratios.
+	</p>
+
+	<p>So, if your ultimate goal is reading as fast as possible,
+	  choose LZO. If you want to reduce as much as possible your
+	  data, while retaining good read speed, choose UCL. If you
+	  don't mind too much about the above parameters and/or
+	  portability is important for you, Zlib is your best bet.
+	</p>
 
 	<p>The compression level that I recommend to use for all
 	  compression libraries is 1. This is the lowest level of
@@ -2400,8 +2490,99 @@ AttributeError: Error accessing "ADCcount" attr.
 	</p>
 
       </section>
-    </chapter>
 
+      <section>
+	<heading>Taking advantage of Psyco</heading>
+
+	<p>Psyco (see <cite refid="psycoRef"></cite>)is a kind of
+	  specialized compiler for Python that typically accelerates
+	  Python applications with no change in source code. You can
+	  think of Psyco as a kind of just-in-time (JIT) compiler, a
+	  little bit like Java's, that emit machine code on the fly
+	  instead of interpreting your Python program step by
+	  step. The result is that your unmodified Python programs run
+	  faster.
+	</p>
+
+	<p>Psyco is very easy to install and use, so in most scenarios
+	  it is worth to have it a try. However, Psyco only runs on
+	  Intel 386 architectures. So, if you are using other
+	  architectures you are out of luck (at least until Psyco will
+	  support yours).
+	</p>
+
+	<p>As an example, imagine that you have a small script that
+	  reads and selects data over a series of datasets, like this:
+	</p>
+
+	<verbatim>
+def readFile(filename):
+    "Select data from a filename"
+
+    fileh = openFile(filename, mode = "r")
+    result = []
+    for groupobj in fileh.walkGroups(fileh.root):
+        for table in fileh.listNodes(groupobj, 'Table'):
+            rowsize = table.rowsize
+                result = [ p['var3'] for p in table.iterrows()
+                           if p['var2'] == 20 ]
+
+    fileh.close()
+
+    return e
+
+if __name__=="__main__":
+    print readFile("myfile.h5")
+	</verbatim>
+
+	<p>In order to accelerate this piece of code, you can write in
+	  your main program the next code:
+	</p>
+
+	<verbatim>
+    import pysco
+    psyco.bind(readFile)
+    print readFile("myfile.h5")
+	</verbatim>
+
+	<p>That's all!. From now on, each time that you execute your
+	  python script, Psyco will deploy its sophisticated
+	  algorithms so as to accelerate your calculations.
+	</p>
+
+	<p>You can see in the graphs <ref
+	  refid="psycoWriteComparison"></ref> and <ref
+	  refid="psycoReadComparison"></ref> how much I/O speed
+	  improvement you can get by using Psyco. By looking at this
+	  figures you can get an idea if these improvements is of your
+	  interest or not. In general, you will take advantage of it
+	  if your tables are medium sized (1000 &lt; nrows &lt;
+	  100000), and this advantage will disappear progressively
+	  when the number of rows grows well over one million,
+	  although if you use compression, you might still see
+	  improvements beyond this. Experiment a bit with all of this
+	  stuff.
+	</p>
+
+	<figure id="psycoWriteComparison">
+	  <graphics file="write-small-psyco-comparison" scale="0.75" kind="vector">
+	  
+	  </graphics>
+	  <caption>Writing tables with and without Psyco.
+	  </caption>
+	</figure>
+
+	<figure id="psycoReadComparison">
+	  <graphics file="read-small-psyco-comparison" scale="0.75" kind="vector">
+	  
+	  </graphics>
+	  <caption>Reading tables with and without Psyco.
+	  </caption>
+	</figure>
+
+      </section>
+
+    </chapter>
     <chapter id="libraryReference">
       <heading>Library Reference</heading>
       
@@ -3105,12 +3286,28 @@ AttributeError: Error accessing "ADCcount" attr.
 	<subsection>
 	  <heading><visual markup="tt">Group</visual> methods</heading>
 
-	  <p><visual markup="bf">Caveat: </visual>These methods are
-	    documented for completeness, and they can be used without
-	    any problem. However, you should use the high-level
-	    counterpart methods in the <verb>File</verb> class,
-	    because these are most used in documentation and examples,
-	    and are a bit more powerful than ones those exposed here.
+	  <p>This class define the <verb>__setattr__</verb>,
+	    <verb>__getattr__</verb> and <verb>__delattr__</verb> and
+	    they work as normally intended. So, you can access, assign
+	    or delete childs to a group by just using the next
+	    constructs:
+
+	    <verbatim>
+	      # Add a Table child instance under group with name "tablename"
+	      group.tablename = Table(recordDict, "Record instance")
+	      table = group.tablename     # Get the table child instance
+	      del group.tablename         # Delete the table child instance
+	    </verbatim>             
+
+	  </p>
+
+	  <p><visual markup="bf">Caveat: </visual>The following
+	    methods are documented for completeness, and they can be
+	    used without any problem. However, you should use the
+	    high-level counterpart methods in the <verb>File</verb>
+	    class, because these are most used in documentation and
+	    examples, and are a bit more powerful than ones those
+	    exposed here.
 	  </p>
 
 	  <description>
@@ -3517,15 +3714,16 @@ AttributeError: Error accessing "ADCcount" attr.
 	  <heading><visual markup="tt">AttributeSet</visual>
 	    methods</heading>
 
-	  <p>Note that this class define the __setattr__, __getattr__
-	    and __delattr__ and they work as normally intended. So,
-	    you can access, assign or delete attributes on disk by
-	    just using the intuitive way:
+	  <p>Note that this class define the <verb>__setattr__</verb>,
+	    <verb>__getattr__</verb> and <verb>__delattr__</verb> and
+	    they work as normally intended. So, you can access, assign
+	    or delete attributes on disk by just using the next
+	    constructs:
 
 	    <verbatim>
-	      leaf.attrs.myattr = "string attribute"  # Set the attribute
-	      attrib = leaf.attrs.myattr  # Get the attribute
-	      del leaf.attrs.myattr       # Delete the attribute
+	      leaf.attrs.myattr = "string attr"  # Set the attribute myattr
+	      attrib = leaf.attrs.myattr  # Get the attribute myattr
+	      del leaf.attrs.myattr       # Delete the attribute myattr
 	    </verbatim>             
 
 	  </p>
@@ -3693,3 +3891,20 @@ AttributeError: Error accessing "ADCcount" attr.
   </backmatter>
 </book>
 
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: xml
+sgml-omittag:nil
+sgml-shorttag:nil
+sgml-namecase-general:nil
+sgml-general-insert-case:lower
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->

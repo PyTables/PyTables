@@ -14,7 +14,7 @@ class Small(IsDescription):
     correct."""
     
     #var1 = Col("CharType", 4, "")
-    var1 = Col("Float64", 4, "")
+    var1 = Col("Float64", 4, 0.0)
     var2 = Col("Int32", 1, 0)
     var3 = Col("Float64", 1, 0)
 
@@ -44,8 +44,9 @@ class Big(IsDescription):
     pressure    = Col("Float32", 1, 0)    # float  (single-precision)
     energy      = Col("Float64", 1, 0)    # double (double-precision)
 
-def createFile(filename, totalrows, complevel, recsize):
+def createFile(filename, totalrows, complevel, complib, recsize):
 
+    #print "totalrows -->", totalrows
     # Open a file in "w"rite mode
     fileh = openFile(filename, mode = "w")
 
@@ -58,16 +59,16 @@ def createFile(filename, totalrows, complevel, recsize):
     # Create a table
     if recsize == "big":
         table = fileh.createTable(group, 'tuple', Big, title,
-                                  complevel, totalrows)
+                                  complevel, complib, totalrows)
         arr = NA.array(NA.arange(32), type=NA.Float64)
         arr2 = NA.array(NA.arange(32), type=NA.Float64)
     elif recsize == "medium":
         table = fileh.createTable(group, 'tuple', Medium, title,
-                                  complevel, totalrows)
+                                  complevel, complib, totalrows)
         arr = NA.array(NA.arange(2), type=NA.Float64)
     elif recsize == "small":
         table = fileh.createTable(group, 'tuple', Small, title,
-                                  complevel, totalrows)
+                                  complevel, complib, totalrows)
     else:
         raise RuntimeError, "This should never happen"
 
@@ -222,7 +223,7 @@ if __name__=="__main__":
     
     import time
     
-    usage = """usage: %s [-v] [-R range] [-r] [-w] [-s recsize] [-f field] [-c level] [-i iterations] file
+    usage = """usage: %s [-v] [-R range] [-r] [-w] [-s recsize] [-f field] [-c level] [-l complib] [-I nrows-range] file
             -v verbose
             -p use "psyco" if available
             -R select a range in the form "start,stop,step"
@@ -231,11 +232,13 @@ if __name__=="__main__":
             -s use [big] record, [medium] or [small]
             -f only read stated field name in tables
             -c sets a compression level (do not set it or 0 for no compression)
+            -l sets the compression library to be used ("zlib", "lzo", "ucl")
             -I sets a range in the number of rows in the form "start,stop,step"
-            -i sets the number of rows in each table\n""" % sys.argv[0]
+
+     """
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'vpR:rwf:s:c:I:i:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'vpR:rwf:s:l:c:I:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -254,8 +257,8 @@ if __name__=="__main__":
     testwrite = 1
     usepsyco = 0
     complevel = 0
+    complib = "zlib"
     rngiter = range(1000, 10000, 1000)
-    iterations = 100
 
     # Get the options
     for option in opts:
@@ -278,11 +281,11 @@ if __name__=="__main__":
                 sys.exit(0)
         elif option[0] == '-c':
             complevel = int(option[1])
+        elif option[0] == '-l':
+            complib = option[1]
         elif option[0] == '-I':
             iterval = [int(i) for i in option[1].split(",")]
             rngiter = range(iterval[0], iterval[1], iterval[2])
-        elif option[0] == '-i':
-            iterations = int(option[1])
 
     # Catch the hdf5 file passed as the last argument
     file = pargs[0]
@@ -318,9 +321,9 @@ if __name__=="__main__":
             cpu1 = time.clock()
             if usepsyco and psyco_imported:
                 psyco.bind(createFile)
-                pass
             for i in range(niter):
-                (rowsw, rowsz) = createFile(file, iterations, complevel, recsize)
+                (rowsw, rowsz) = createFile(file, iterations, complevel,
+                                            complib, recsize)
             t2 = time.time()
             cpu2 = time.clock()
             tapprows = round((t2-t1)/niter, 3)
