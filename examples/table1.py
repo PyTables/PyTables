@@ -13,7 +13,7 @@ fileh = openFile("table1.h5", mode = "w")
 group = fileh.createGroup(fileh.root, "newgroup")
 
 # Create a new table in newgroup group
-table = fileh.createTable(group, 'table', Particle, "Title example")
+table = fileh.createTable(group, 'table', Particle, "Title example",1)
 particle = table.row
 
 # Fill the table with 10 particles
@@ -51,7 +51,13 @@ print "Rows saved on table: %d" % (table.nrows)
 print "Variable names on table with their type:"
 for name in table.colnames:
     print "  ", name, ':=', table.coltypes[name] 
-    
+
+print "Table contents:"
+for row in table.iterrows():
+    print row
+print "Associated recarray:"
+print table.read()
+
 # Finally, close the file
 fileh.close()
 

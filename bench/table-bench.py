@@ -14,6 +14,7 @@ class Small(IsDescription):
     correct."""
     
     var1 = Col("CharType", 4, "")
+    #var1 = Col("Float32", 1, "")
     var2 = Col("Int32", 1, 0)
     var3 = Col("Float64", 1, 0)
 
@@ -43,7 +44,7 @@ class Big(IsDescription):
     pressure    = Col("Float32", 1, 0)    # float  (single-precision)
     energy      = Col("Float64", 1, 0)    # double (double-precision)
 
-def createFile(filename, totalrows, complevel, recsize):
+def createFile(filename, totalrows, complevel, complib, recsize):
 
     # Open a file in "w"rite mode
     fileh = openFile(filename, mode = "w")
@@ -58,16 +59,16 @@ def createFile(filename, totalrows, complevel, recsize):
         # Create a table
         if recsize == "big":
             table = fileh.createTable(group, 'tuple'+str(j), Big, title,
-                                      complevel, totalrows)
+                                      complevel, complib, totalrows)
             arr = NA.array(NA.arange(32), type=NA.Float64)
             arr2 = NA.array(NA.arange(32), type=NA.Float64)
         elif recsize == "medium":
             table = fileh.createTable(group, 'tuple'+str(j), Medium, title,
-                                      complevel, totalrows)
+                                      complevel, complib, totalrows)
             arr = NA.array(NA.arange(2), type=NA.Float64)
         elif recsize == "small":
             table = fileh.createTable(group, 'tuple'+str(j), Small, title,
-                                      complevel, totalrows)
+                                      complevel, complib, totalrows)
         else:
             raise RuntimeError, "This should never happen"
             
@@ -163,19 +164,18 @@ def readFile(filename, recsize, verbose):
                 #for p in table.iterrows(): 
                 #    if p.grid_i < 20:
                 #        e.append(p.grid_j)
-            else:
+            else:  # small record case
+                e = [ p['var3'] for p in table.iterrows()
+                      if p['var2'] == 20 ]
+                #e = [ p['var3'] for p in table.iterrows(0,21) ]
                 #e = [ p['var3'] for p in table.iterrows()
-                #      if p['var2'] == 20 ]
-                #e = [ p['var3'] for p in table.iterrows(0,21)
-                #      if p['var2'] == 20 ]
-                #e = [ p['var3'] for p in table.iterrows(0,21)
                 #      if p.nrow() <= 20 ]
                 #e = [ p['var3'] for p in table.iterrows(1,0,1000)]
                 #e = [ p['var3'] for p in table.iterrows(1,100)]
                 #e = [ p['var3'] for p in table.iterrows(step=2)
                 #      if p.nrow() < 20 ]
-                e = [ p['var2'] for p in table.iterrows()
-                      if p['var2'] < 20 ]
+                #e = [ p['var2'] for p in table.iterrows()
+                #      if p['var2'] < 20 ]
                 #for p in table.iterrows():
                 #      pass
             if verbose:
@@ -226,7 +226,7 @@ if __name__=="__main__":
     
     import time
     
-    usage = """usage: %s [-v] [-R range] [-r] [-w] [-s recsize] [-f field] [-c level] [-i iterations] file
+    usage = """usage: %s [-v] [-R range] [-r] [-w] [-s recsize] [-f field] [-c level] [-l complib] [-i iterations] file
             -v verbose
             -R select a range in the form "start,stop,step"
 	    -r only read test
@@ -234,10 +234,11 @@ if __name__=="__main__":
             -s use [big] record, [medium] or [small]
             -f only read stated field name in tables
             -c sets a compression level (do not set it or 0 for no compression)
+            -l sets the compression library to be used ("zlib", "lzo", "ucl")
             -i sets the number of rows in each table\n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'vR:rwf:s:c:i:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'vR:rwf:s:c:l:i:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -255,6 +256,7 @@ if __name__=="__main__":
     testread = 1
     testwrite = 1
     complevel = 0
+    complib = "zlib"
     iterations = 100
 
     # Get the options
@@ -276,6 +278,8 @@ if __name__=="__main__":
                 sys.exit(0)
         elif option[0] == '-c':
             complevel = int(option[1])
+        elif option[0] == '-l':
+            complib = option[1]
         elif option[0] == '-i':
             iterations = int(option[1])
 
@@ -283,13 +287,16 @@ if __name__=="__main__":
     file = pargs[0]
 
     print "Compression level:", complevel
+    if complevel > 0:
+        print "Compression library:", complib
     if testwrite:
 	t1 = time.time()
 	cpu1 = time.clock()
         if psyco_imported:
             psyco.bind(createFile)
             pass
-	(rowsw, rowsz) = createFile(file, iterations, complevel, recsize)
+	(rowsw, rowsz) = createFile(file, iterations, complevel, complib,
+                                    recsize)
 	t2 = time.time()
         cpu2 = time.clock()
 	tapprows = round(t2-t1, 3)

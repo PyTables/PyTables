@@ -17,4 +17,5 @@ supporting the PyTables project with contracts.
 Todd Miller and Perry Greenfield for promptly helping me to understand
 many of the intricacies of the numarray package.
 
-The HDF5 team at NCSA for doing a so excellent library for data persistence.
+The HDF5 team at NCSA for doing such an excellent library for data
+persistence. 
