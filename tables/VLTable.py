@@ -1,23 +1,22 @@
 ########################################################################
 #
 #       License: BSD
-#       Created: September 4, 2002
+#       Created: December 20, 2004
 #       Author:  Francesc Altet - faltet@carabos.com
 #
-#       $Source: /cvsroot/pytables/pytables/tables/Table.py,v $
-#       $Id$
+#       $Source: /cvsroot/pytables/pytables/tables/VLTable.py,v $
+#       $Id: Table.py,v 1.140 2004/12/17 10:27:15 falted Exp $
 #
 ########################################################################
 
-"""Here is defined the Table class.
+"""Here is defined the VLTable class.
 
 See Table class docstring for more info.
 
 Classes:
 
-    Table
-    Cols
-    Column
+    VLTable
+    VLCols
 
 Functions:
 
@@ -42,13 +41,17 @@ import warnings
 import numarray
 import numarray.strings as strings
 import numarray.records as records
+import cPickle
+
 import hdf5Extension
+import VLTableExt
 from utils import calcBufferSize, processRange, processRangeRead
 import Group
 from Leaf import Leaf, Filters
+from Table import Table, Column
 from Index import Index, IndexProps
-from IsDescription import \
-     IsDescription, Description, metaIsDescription, Col, StringCol
+from IsDescription import IsDescription, Description, metaIsDescription, \
+     Col, StringCol, fromstructfmt
 from VLArray import Atom, StringAtom
 
 try:
@@ -56,13 +59,6 @@ try:
     Numeric_imported = 1
 except:
     Numeric_imported = 0
-
-
-# Map Numarray record codes to Numarray types.
-# This is extended with additional dataypes used by PyTables.
-codeToNAType = records.numfmt.copy()
-codeToNAType['t4'] = 'Time32'  # 32 bit integer time value
-codeToNAType['t8'] = 'Time64'  # 64 bit real time value
 
 
 byteorderDict={"=": sys.byteorder,
@@ -73,13 +69,13 @@ byteorderDict={"=": sys.byteorder,
 revbyteorderDict={'little': '<',
                   'big': '>'}
 
-class Table(Leaf, hdf5Extension.Table, object):
-    """Represent a table in the object tree.
+class VLTable(VLTableExt.VLTable, Leaf, object):
+    """Represent a vltable in the object tree.
 
-    It provides methods to create new tables or open existing ones, as
-    well as to write/read data to/from table objects over the
+    It provides methods to create new vltables or open existing ones,
+    as well as to write/read data to/from vltable objects over the
     file. A method is also provided to iterate over the rows without
-    loading the entire table or column in memory.
+    loading the entire vltable or column in memory.
 
     Data can be written or read both as Row instances or as numarray
     (NumArray or RecArray) objects.
@@ -114,7 +110,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         cols -- accessor to the columns using a natural name schema
         colnames -- the field names for the table (list)
         coltypes -- the type class for the table fields (dictionary)
-        colstypes -- the string type for the table fields (dictionary)
         colshapes -- the shapes for the table fields (dictionary)
         colindexed -- whether the table fields are indexed (dictionary)
         indexed -- whether or not some field in Table is indexed
@@ -123,6 +118,9 @@ class Table(Leaf, hdf5Extension.Table, object):
 
     """
 
+#     def _g_new(self, where, name):
+#         Group.Group._g_new(where, name)
+    
     def __init__(self, description = None, title = "",
                  filters = None, expectedrows = 10000):
         """Create an instance Table.
@@ -152,9 +150,14 @@ class Table(Leaf, hdf5Extension.Table, object):
         """
 
         # Common variables
-        self._v_new_title = title
-        self._v_new_filters = filters
-        self._v_expectedrows = expectedrows
+        self.__dict__["_v_new_title"] = title
+        self.__dict__["_v_new_filters"] = filters
+        self.__dict__["_v_groups"] = {}
+        self.__dict__["_v_leaves"] = {}
+        self.__dict__["_v_children"] = {}
+        self.__dict__["_v_nchildren"] = 0
+        self.__dict__["_v_indices"] = []
+        self.__dict__["_v_expectedrows"] = expectedrows
         # Initialize the number of rows to a default
         self.nrows = 0
         # Initialize the possible cuts in columns
@@ -162,7 +165,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.opsValues = []
         self.opsColnames = []
         # Initialize this object in case is a new Table
-        if isinstance(description, dict):
+        if isinstance(description, types.DictType):
             # Dictionary case
             self.description = Description(description)
             # Flag that tells if this table is new or has to be read from disk
@@ -190,6 +193,74 @@ class Table(Leaf, hdf5Extension.Table, object):
             raise ValueError, \
 """description parameter is not one of the supported types:
   IsDescription subclass, dictionary or RecArray."""
+
+    def _g_putObjectInTree(self, name, parent):
+        """Given a new Leaf object (fresh or in a HDF5 file), set
+        links and attributes to include it in the object tree."""
+        
+        # New attributes for the this Leaf instance
+        parent._g_setproperties(name, self)
+        self.name = self._v_name     # This is a standard attribute for Leaves
+        # Call the new method in Leaf superclass 
+        self._g_new(parent, self._v_hdf5name)
+        # Update this instance attributes
+        parent._v_leaves[self._v_name] = self
+        # Update class variables
+        parent._v_file.leaves[self._v_pathname] = self
+        if self._v_new:
+            self._create()
+        else:
+            self._g_openVLTable()
+        if self._v_new:
+            # Set the title, class and version attribute
+            self.attrs._g_setAttrStr('TITLE',  self._v_new_title)
+            self.attrs._g_setAttrStr('CLASS', "VLTABLE")
+            self.attrs._g_setAttrStr('VERSION', "1.0")
+            # Set the filters object
+            if self._v_new_filters is None:
+                # If not filters has been passed in the constructor,
+                # inherit the filters properties from the parent group
+                filters = self._v_parent._v_filters
+            else:
+                filters = self._v_new_filters
+            filtersPickled = cPickle.dumps(filters, 0)
+            self.attrs._g_setAttrStr('FILTERS', filtersPickled)
+            # Add these attributes to the dictionary
+            attrlist = ['TITLE','CLASS','VERSION','FILTERS']
+            self.attrs._v_attrnames.extend(attrlist)
+            self.attrs._v_attrnamessys.extend(attrlist)
+            # Sort them
+            self.attrs._v_attrnames.sort()
+            self.attrs._v_attrnamessys.sort()
+        else:
+            # We don't need to get attributes from disk. The most important
+            # ones are defined as properties
+            pass
+
+    # Define title as a property
+    def _f_get_title (self):
+        if hasattr(self.attrs, "TITLE"):
+            return self.attrs.TITLE
+        else:
+            return ""
+    
+    def _f_set_title (self, title):
+        self.attrs.TITLE = title
+
+    # title can't be deleted.
+    title = property(_f_get_title, _f_set_title, None,
+                     "Title of this object")
+
+    # Define filters as a property
+    def _f_get_filters(self):
+        filters = self.attrs.FILTERS
+        if filters == None:
+            filters = Filters()
+        return filters
+    
+    # filters can't be set nor deleted
+    filters = property(_f_get_filters, None, None,
+                       "Filters of this object")
 
     def _newBuffer(self, init=1):
         """Create a new recarray buffer for I/O purposes"""
@@ -247,17 +318,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         # The rest of the info is automatically added when self.create()
         # is called
 
-    def _getTime64ColNames(self):
-        """Returns a list containing 'Time64' column names."""
-
-        # This should be generalised into some infrastructure to support
-        # other kinds of columns to be converted.
-        # ivilata(2004-12-21)
-
-        return [
-            cname for cname in self.colnames
-            if self.colstypes[cname] == 'Time64']
-
     def _create(self):
         """Create a new table on disk."""
 
@@ -265,36 +325,36 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.colnames = tuple(self.description.__names__)
         self._v_fmt = self.description._v_fmt
         # Create the table on disk
-        self._createTable(self._v_new_title, self.filters.complib)
+        self._g_createVLTable()
         # Initialize the shape attribute
         self.shape = (self.nrows,)
-        # Get the column types and string types
+        # Get the column types
         self.coltypes = self.description.__types__
-        self.colstypes = self.description.__stypes__
         # Extract the shapes for columns
         self.colshapes = self.description._v_shapes
         self.colitemsizes = self.description._v_itemsizes
         # Compute the byte order
         self.byteorder = byteorderDict[self._v_fmt[0]]
-        # Find Time64 column names. (This should be generalised.)
-        self._time64colnames = self._getTime64ColNames()
         # Create the Row object helper
         self.row = hdf5Extension.Row(self)
-
-        self.colindexed = {}  # Is the key column indexed?
-        self.indexed = 0      # Are there any indexed columns?
+        # Get if a column is indexed or not in creation time
         colobjects = self.description._v_ColObjects
-        for (colname, colobj) in colobjects.iteritems():
-            colindexed = colobj.indexed
-            self.colindexed[colname] = colindexed
-            if colindexed:
-                self.indexed = 1 # True
-
+        self.colindexed = {}
+        self.indexed = 0  # Specifies that some column is indexed in Table
+        for colname in self.colnames:
+            if colobjects[colname].indexed:
+                self.colindexed[colname] = 1
+                self.indexed = 1
+            else:
+                self.colindexed[colname] = 0
         if self.indexed:
             # Check whether we want automatic indexing after an append or not
-            # If the user has not defined properties, assign the default
-            self.indexprops = getattr(
-                self.description, '_v_indexprops', IndexProps())
+            # The default is yes
+            if hasattr(self.description, "_v_indexprops"):
+                self.indexprops = self.description._v_indexprops
+            else:
+                # if user has not defined properties, assign the default
+                self.indexprops = IndexProps()
             self._indexedrows = 0
             self._unsaved_indexedrows = 0
             # Save AUTOMATIC_INDEX and REINDEX flags as attributes
@@ -312,7 +372,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         """
         # Get table info
         (self.nrows, self.colnames, self.rowsize, itemsizes, colshapes,
-         colstypes, self._v_fmt) = self._getTableInfo()
+         coltypes, self._v_fmt) = self._getTableInfo()
         # Get the byteorder
         byteorder = self._v_fmt[0]
         # Remove the byteorder
@@ -320,34 +380,27 @@ class Table(Leaf, hdf5Extension.Table, object):
         # The expectedrows would be the actual number
         self._v_expectedrows = self.nrows
         self.byteorder = byteorderDict[byteorder]
-        colstypes = [str(codeToNAType[type]) for type in colstypes]
-
-        fields = {}           # Maps column names to Col objects.
-        self.colindexed = {}  # Is the specified column indexed?
-        self.indexed = 0      # Are there any indexed columns?
-        indexcname = None     # Column name of some indexed column.
+        coltypes = [str(records.numfmt[type]) for type in coltypes]
+        # Build a dictionary with the types as values and colnames as keys
+        fields = {}
         for i in xrange(len(self.colnames)):
-            colname = self.colnames[i]
-            colshape = colshapes[i]
-            colstype = colstypes[i]
-
             # Is this column indexed?
-            indexname = '_i_%s_%s' % (self.name, colname)
-            indexed = indexname in self._v_parent._v_indices
-            self.colindexed[colname] = indexed
-            if indexed:
-                self.indexed = 1 # True
-                indexcname = colname
-
-            if colstype == 'CharType':
-                itemsize = itemsizes[i]
-                colobj = StringCol(length = itemsize, shape = colshape,
-                                   pos = i, indexed = indexed)
+            iname = "_i_"+self.name+"_"+self.colnames[i]
+            if iname in self._v_parent._v_indices:
+                indexed = 1
             else:
-                colobj = Col(dtype = colstype, shape = colshape,
-                             pos = i, indexed = indexed)
-            fields[colname] = colobj
-
+                indexed = 0
+            if coltypes[i] == "CharType":
+                itemsize = itemsizes[i]
+                fields[self.colnames[i]] = StringCol(length = itemsize,
+                                                     shape = colshapes[i],
+                                                     pos = i,
+                                                     indexed = indexed)
+            else:
+                fields[self.colnames[i]] = Col(dtype = coltypes[i],
+                                               shape = colshapes[i],
+                                               pos = i,
+                                               indexed = indexed)
         # Set the alignment!
         fields['_v_align'] = byteorder
         if self._v_file._isPTFile:
@@ -357,13 +410,10 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Create an instance description to host the record fields
         self.description = Description(fields)
         
-        # Extract the coltypes, colstypes, shapes and itemsizes
+        # Extract the coltypes, shapes and itemsizes
         self.coltypes = self.description.__types__
-        self.colstypes = self.description.__stypes__
         self.colshapes = self.description._v_shapes
         self.colitemsizes = self.description._v_itemsizes
-        # Find Time64 column names. (This should be generalised.)
-        self._time64colnames = self._getTime64ColNames()
         # Compute buffer size
         (self._v_maxTuples, self._v_chunksize) = \
               calcBufferSize(self.rowsize, self.nrows)
@@ -397,6 +447,26 @@ class Table(Leaf, hdf5Extension.Table, object):
                                        filters=indexobj.filters)
             self._indexedrows = indexobj.nelements
             self._unsaved_indexedrows = self.nrows - self._indexedrows
+
+    def _saveBufferedRows(self):
+        """Save buffered table rows"""
+        # Save the records on disk
+        self._append_records(self._v_buffer, self.row._getUnsavedNRows())
+        # Get a fresh copy of the default values
+        # This copy seems to make the writing with compression a 5%
+        # faster than if the copy is not made. Why??
+        if hasattr(self, "_v_buffercpy"):
+            self._v_buffer[:] = self._v_buffercpy[:]
+            
+        # Update the number of saved rows in this buffer
+        self.nrows += self.row._getUnsavedNRows()
+        # Reset the buffer unsaved counter and the buffer read row counter
+        self.row._setUnsavedNRows(0)
+        # Set the shape attribute (the self.nrows may be less than the maximum)
+        self.shape = (self.nrows,)
+        if self.indexed and self.indexprops.auto:
+            self.flushRowsToIndex()
+        return
 
     def where(self, condition=None, start=None, stop=None, step=None):
         """Iterator that selects values fulfilling the 'condition' param.
@@ -442,58 +512,9 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.whereColname = condition.name   # Flag for Row.__iter__
         # Get the coordinates to lookup
         ncoords = condition.index.getLookupRange(condition)
-        if ncoords > 0:
-            # Call the indexed version of Row iterator (coords=None,ncoords>=0)
-            (start, stop, step) = processRangeRead(self.nrows, start, stop,
-                                                   step)
-            return self.row(start, stop, step, coords=None, ncoords=ncoords)
-        else:
-            # Fall-back action is to return an empty iterator
-            self.ops = []
-            self.opsValues = []
-            self.opsColnames = []
-            self.whereColname = None
-            return iter([])
-
-    def readIndexed(self, condition):
-        """Returns a RecArray fulfilling the 'condition' param.
-        
-        condition can be used to specify selections along a column in the
-        form:
-
-        condition=(0<table.cols.col1<0.3)
-
-        This method is only intended to be used for indexed columns.
-        """
-
-        assert isinstance(condition, Column), \
-"Wrong condition parameter type. Only Column instances are suported."
-        assert condition.index is not None, \
-               "This method is intended only for indexed columns"
-        assert condition.dirty == 0, \
-               "This method is intended only for indexed columns, but this column has a dirty index. Try re-indexing it in order to put the index in a sane state. "
-
-        self.whereColname = condition.name   # Flag for Row.__iter__
-        # Get the coordinates to lookup
-        nrecords = condition.index.getLookupRange(condition)
-        recarr = records.array(None,
-                               formats=self.description._v_recarrfmt,
-                               shape=(nrecords,),
-                               names = self.colnames)
-        if nrecords > 0:
-            # Read the contents of a selection in a recarray
-            condition.index.indices._initIndexSlice(nrecords)
-            coords = condition.index.getCoords(0, nrecords)
-            recout = self._read_elements_ra(recarr, coords)
-            if self.byteorder <> sys.byteorder:
-                recarr._byteswap()
-            condition.index.indices._destroyIndexSlice()
-        # Delete indexation caches
-        self.ops = []
-        self.opsValues = []
-        self.opsColnames = []
-        self.whereColname = None
-        return recarr
+        # Call the indexed version of Row iterator (coords=None, ncoords>=0)
+        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        return self.row(start, stop, step, coords=None, ncoords=ncoords)
 
     def whereInRange(self, condition, start=None, stop=None, step=None):
         """Iterator that selects values fulfilling the 'condition' param.
@@ -517,7 +538,10 @@ class Table(Leaf, hdf5Extension.Table, object):
             # call row with coords=None and ncoords=-1 (in-kernel selection)
             return self.row(start, stop, step, coords=None, ncoords=-1)
         # Fall-back action is to return an empty RecArray
-        return iter([])
+        return records.array(None,
+                             formats=self.description._v_recarrfmt,
+                             shape=(0,),
+                             names = self.colnames)
         
     def getWhereList(self, condition, flavor="List"):
         """Get the row coordinates that fulfill the 'condition' param
@@ -735,7 +759,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         if field:
             shape = self.colshapes[field]
             itemsize = self.colitemsizes[field]
-            if type(shape) in (int,long):
+            if type(shape) in [types.IntType, types.LongType]:
                 if shape == 1:
                     shape = (nrows,)
                 else:
@@ -808,7 +832,7 @@ class Table(Leaf, hdf5Extension.Table, object):
 
 """
 
-        if type(key) in (int,long):
+        if type(key) in [types.IntType, types.LongType]:
             # Index out of range protection
             if key >= self.nrows:
                 raise IndexError, "Index out of range"
@@ -824,7 +848,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             (start, stop, step) = processRange(self.nrows,
                                                key.start, key.stop, key.step)
             return self._read(start, stop, step, None, None)
-        elif isinstance(key, str):
+        elif isinstance(key, types.StringType):
             return self.read(field=key)
         else:
             raise ValueError, "Non-valid index or slice: %s" % str(key)
@@ -843,7 +867,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         """
         assert self._v_file.mode <> "r", "Attempt to write over a file opened in read-only mode"
 
-        if type(key) in (int,long):
+        if type(key) in [types.IntType, types.LongType]:
             # Index out of range protection
             if key >= self.nrows:
                 raise IndexError, "Index out of range"
@@ -874,13 +898,19 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         if rows is None:
             return 0
+# The next does not work well
+#         # First, check if rows is of dimension > 1:
+#         if not isinstance(rows, records.RecArray) and hasattr(rows, "__len__"):
+#             if not hasattr(rows[0], "__len__"):
+#                 # wrap the rows with a new level of nesting
+#                 rows = [rows]
         # Try to convert the object into a recarray
         try:
             recarray = records.array(rows,
                                      formats=self.description._v_recarrfmt,
                                      names=self.colnames)
         except:
-            (typerr, value, traceback) = sys.exc_info()
+            (type, value, traceback) = sys.exc_info()
             raise ValueError, \
 "rows parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), value)
         lenrows = recarray.shape[0]
@@ -896,28 +926,8 @@ class Table(Leaf, hdf5Extension.Table, object):
             # Update the number of unsaved indexed rows
             self._unsaved_indexedrows += lenrows
             if self.indexprops.auto:
-                self.flushRowsToIndex(lastrow=0)
+                self.flushRowsToIndex()
         return lenrows
-
-    def _saveBufferedRows(self):
-        """Save buffered table rows"""
-        # Save the records on disk
-        self._append_records(self._v_buffer, self.row._getUnsavedNRows())
-        # Get a fresh copy of the default values
-        # This copy seems to make the writing with compression a 5%
-        # faster than if the copy is not made. Why??
-        if hasattr(self, "_v_buffercpy"):
-            self._v_buffer[:] = self._v_buffercpy[:]
-            
-        # Update the number of saved rows in this buffer
-        self.nrows += self.row._getUnsavedNRows()
-        # Reset the buffer unsaved counter and the buffer read row counter
-        self.row._setUnsavedNRows(0)
-        # Set the shape attribute (the self.nrows may be less than the maximum)
-        self.shape = (self.nrows,)
-        if self.indexed and self.indexprops.auto:
-            self.flushRowsToIndex(lastrow=0)
-        return
 
     def modifyRows(self, start=None, stop=None, step=1, rows=None):
         """Modify a series of rows in the slice [start:stop:step]
@@ -965,7 +975,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             # 2004-08-08
             recarray._names = self.colnames
         except:
-            (typerr, value, traceback) = sys.exc_info()
+            (type, value, traceback) = sys.exc_info()
             raise ValueError, \
 "rows parameter cannot be converted into a recarray object compliant with table format '%s'. The error was: <%s>" % (str(self.description._v_recarrfmt), value)
         lenrows = len(recarray)
@@ -1006,7 +1016,8 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         """
 
-        assert (type(names) in(list,tuple)), \
+        assert (isinstance(names, types.ListType) or
+                isinstance(names, types.TupleType)), \
                "The columns parameter has to be a list of strings"
         if columns is None:      # Nothing to be done
             return 0
@@ -1040,7 +1051,7 @@ class Table(Leaf, hdf5Extension.Table, object):
                 recarray = records.fromarrays(columns, formats=formats,
                                               names=names)
         except:
-            (typerr, value, traceback) = sys.exc_info()
+            (type, value, traceback) = sys.exc_info()
             raise ValueError, \
 "columns parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), value)
 
@@ -1069,15 +1080,15 @@ class Table(Leaf, hdf5Extension.Table, object):
             # First, mark the modified indexes as dirty
             for (colname, colindexed) in self.colindexed.iteritems():
                 if colindexed and colname in names:
-                    col = getattr(self.cols, colname)
-                    col.dirty = 1
+                    indexcol = getattr(self.cols, colname)
+                    indexcol.dirty = 1
             # Then, reindex if needed
             if self.indexprops.reindex:
                 self._indexedrows = self.reIndex()
                 self._unsaved_indexedrows = self.nrows - self._indexedrows
         return nrows
 
-    def flushRowsToIndex(self, lastrow=1):
+    def flushRowsToIndex(self):
         "Add remaining rows in buffers to non-dirty indexes"
         rowsadded = 0
         if self.indexed:
@@ -1086,9 +1097,9 @@ class Table(Leaf, hdf5Extension.Table, object):
             nrows = self._unsaved_indexedrows
             for (colname, colindexed) in self.colindexed.iteritems():
                 if colindexed:
-                    col = getattr(self.cols, colname)
-                    if nrows > 0 and not col.dirty:
-                        rowsadded = col._addRowsToIndex(start, nrows, lastrow)
+                    indexcol = getattr(self.cols, colname)
+                    if nrows > 0 and not indexcol.dirty:
+                        rowsadded = indexcol._addRowsToIndex(start, nrows)
             self._unsaved_indexedrows -= rowsadded
             self._indexedrows += rowsadded
         return rowsadded
@@ -1116,9 +1127,8 @@ class Table(Leaf, hdf5Extension.Table, object):
                 # Mark all the indexes as dirty
                 for (colname, colindexed) in self.colindexed.iteritems():
                     if colindexed:
-                        col = getattr(self.cols, colname)
-                        col.dirty = 1
-                        
+                        indexcol = getattr(self.cols, colname)
+                        indexcol.dirty = 1
         return nrows
 
     def removeIndex(self, index=None):
@@ -1189,25 +1199,17 @@ class Table(Leaf, hdf5Extension.Table, object):
             object._indexedrows = 0
             object._unsaved_indexedrows = object.nrows
             if object.indexprops.auto:
-                object.flushRowsToIndex(lastrow=1)
+                object.flushRowsToIndex()
         return (object, nbytes)
 
     def flush(self):
         """Flush the table buffers."""
-        # Flush any unsaved row
         if hasattr(self, 'row') and self.row._getUnsavedNRows() > 0:
-            self._saveBufferedRows()
-        if hasattr(self, "indexed") and self.indexed and self.indexprops.auto:
-        #if self.indexed and self.indexprops.auto:
-            #print "passant per 1"
-            # Flush any unindexed row
-            rowsadded = self.flushRowsToIndex(lastrow=1)
-            if rowsadded > 0 and self._indexedrows <> self.nrows:
-                raise RuntimeError , "Internal error: the number of indexed rows (%s) and rows in table (%s) must be equal!. Please, report this to the author." % (self._indexedrows, self.nrows)
-        # Flush the data to disk
-        Leaf.flush(self)
+          self._saveBufferedRows()
+          # Flush the data to disk
+          Leaf.flush(self)
         # Close a possible opened table for append
-        self._close_append()
+        ###self._close_append()
         # Clean the Row instance
         # In some situations, this maybe undefined (When?)
         if hasattr(self, "row"):
@@ -1295,12 +1297,12 @@ class Cols(object):
     def __getitem__(self, name):
         """Get the column named "name" as an item."""
 
-        if not isinstance(name, str):
+        if not isinstance(name, types.StringType):
             raise TypeError, \
 "Only strings are allowed as keys of a Cols instance. You passed object: %s" % name
         # If attribute does not exist, return None
         if not name in self._v_colnames:
-            raise KeyError, \
+            raise AttributeError, \
 "Column name '%s' does not exist in table:\n'%s'" % (name, str(self._v_table))
 
         return self.__dict__[name]
@@ -1343,313 +1345,4 @@ class Cols(object):
             out += "  %s (%s%s, %s)" % (name, classname, shape, tcol) + "\n"
         return out
 
-               
-class Column(object):
-    """This is an accessor for the actual data in a table column
-
-    Instance variables:
-
-        table -- the parent table instance
-        name -- the name of the associated column
-        type -- the type of column
-        index -- the Index object (None if doesn't exists)
-        dirty -- whether the index is dirty or not (property)
-
-    Methods:
-    
-        __getitem__(key)
-        __setitem__(key, value)
-        createIndex()
-        reIndex()
-        reIndexDirty()
-        removeIndex()
-        closeIndex()
-        
-    """
-
-    def __init__(self, table, name):
-        """Create the container to keep the column information.
-
-        table -- The parent table instance
-        name -- The name of the column that is associated with this object
-        
-        """
-        self.table = table
-        self.name = name
-        self.type = table.coltypes[name]
-        # Check whether an index exists or not
-        indexname = '_i_%s_%s' % (table.name, name)
-        self.index = None
-        if indexname in table._v_parent._v_indices:
-            self.index = Index(where=self, name=indexname,
-                               expectedrows=table._v_expectedrows)
-        elif hasattr(table, "colindexed") and table.colindexed[name]:
-            # The user wants to indexate this column,
-            # but it doesn't exists yet. Create it without a warning.
-            self.createIndex(warn=0)
-
-    # Define dirty as a property
-    def _get_dirty(self):
-        if self.index:
-            dirty = self.index._v_attrs._g_getAttr("DIRTY")
-            if dirty is None:
-                return 0
-            else:
-                return dirty
-        else:
-            # The index does not exist, so it can't be dirty
-            return 0
-    
-    def _set_dirty(self, dirty):
-        # Only set the index column as dirty if it exists
-        if self.index:
-            self.index._v_attrs._g_setAttr("DIRTY", dirty)
-            self.index.lrri[-1] = 0
-            self.index.nelementsLR = 0
-            self.index.nelements = 0
-            #self.table._indexedrows = 0
-            #self.table._unsaved_indexedrows = self.table.nrows
-        
-    # Define a property.  The 'delete this attribute'
-    # method is defined as None, so the attribute can't be deleted.
-    dirty = property(_get_dirty, _set_dirty, None, "Column dirtyness")
-
-    def __len__(self):
-        return self.table.nrows
-
-    def __getitem__(self, key):
-        """Returns a column element or slice
-
-        It takes different actions depending on the type of the 'key'
-        parameter:
-
-        If 'key' is an integer, the corresponding element in the
-        column is returned as a NumArray/CharArray, or a scalar
-        object, depending on its shape. If 'key' is a slice, the row
-        slice determined by this slice is returned as a NumArray or
-        CharArray object (whatever is appropriate).
-
-        """
-
-        if type(key) in (int,long):
-            # Index out of range protection
-            if key >= self.table.nrows:
-                raise IndexError, "Index out of range"
-            if key < 0:
-                # To support negative values
-                key += self.table.nrows
-            (start, stop, step) = processRange(self.table.nrows, key, key+1, 1)
-            return self.table._read(start, stop, step, self.name, None)[0]
-        elif isinstance(key, types.SliceType):
-            (start, stop, step) = processRange(self.table.nrows, key.start,
-                                               key.stop, key.step)
-            return self.table._read(start, stop, step, self.name, None)
-        else:
-            raise TypeError, "'%s' key type is not valid in this context" % \
-                  (key)
-
-    def __setitem__(self, key, value):
-        """Sets a column element or slice.
-
-        It takes different actions depending on the type of the 'key'
-        parameter:
-
-        If 'key' is an integer, the corresponding element in the
-        column is set to 'value' (scalar or NumArray/CharArray,
-        depending on column's shape). If 'key' is a slice, the row
-        slice determined by 'key' is set to 'value' (a
-        NumArray/CharArray or list of elements).
-
-        """
-        assert self.table._v_file.mode <> "r", "Attempt to write over a file opened in read-only mode"
-
-        if type(key) in (int,long):
-            # Index out of range protection
-            if key >= self.table.nrows:
-                raise IndexError, "Index out of range"
-            if key < 0:
-                # To support negative values
-                key += self.table.nrows
-            return self.table.modifyColumns(key, key+1, 1,
-                                            [[value]], names=[self.name])
-        elif isinstance(key, types.SliceType):
-            (start, stop, step) = processRange(self.table.nrows,
-                                               key.start, key.stop, key.step)
-            return self.table.modifyColumns(start, stop, step,
-                                            [value], names=[self.name])
-        else:
-            raise ValueError, "Non-valid index or slice: %s" % key
-
-    def _addComparison(self, noper, other):
-        self.table.ops.append(noper)
-        self.table.opsValues.append(other)
-        self.table.opsColnames.append(self.name)
-#         if (len(self.table.ops) > 1 and
-#             (self.table.ops[-1] < 10 and self.table.ops[-2] < 10)):
-#             # To deal with 'number < col < number' style comparisons
-#             # add a logical and
-#             self._addLogical(10)  # 10 is __and__
-
-    def __lt__(self, other):
-        self._addComparison(1, other)
-        return self
-
-    def __le__(self, other):
-        self.table.ops.append(2)
-        self.table.opsValues.append(other)
-        return self
-
-    def __gt__(self, other):
-        self.table.ops.append(3)
-        self.table.opsValues.append(other)
-        return self
-
-    def __ge__(self, other):
-        self.table.ops.append(4)
-        self.table.opsValues.append(other)
-        return self
-
-    def __eq__(self, other):
-        self.table.ops.append(5)
-        self.table.opsValues.append(other)
-        return self
-
-    def __ne__(self, other):
-        self.table.ops.append(6)
-        self.table.opsValues.append(other)
-        return self
-
-    def _addLogical(self, noper):
-        self.table.ops.append(noper)
-        self.table.opsValues.append(None)
-        self.table.opsColnames.append(None)
-        
-    def __and__(self, other):
-        self._addLogical(10)
-        return self
-
-    def __or__(self, other):
-        self._addLogical(11)
-        return self
-
-    def __xor__(self, other):
-        self._addLogical(12)
-        return self
-
-    def createIndex(self, warn=1, testmode=0):
-        """Create an index for this column"""
-        assert self.table.colshapes[self.name] == 1, \
-               "Only scalar columns can be indexed."
-        # Create the atom
-        atomtype = self.table.coltypes[self.name]
-        if str(atomtype) == "CharType":
-            atom = StringAtom(shape=self.table.colshapes[self.name],
-                              length=self.table.colitemsizes[self.name])
-        else:
-            atom = Atom(dtype=atomtype,
-                        shape=self.table.colshapes[self.name])
-        # Compose the name
-        name = "_i_"+self.table.name+"_"+self.name
-        # The filters for indexes are not inherited anymore. 2004-08-04
-        if hasattr(self.table, "indexprops"):
-            filters = self.table.indexprops.filters
-        else:
-            filters = None  # Get the defaults
-        # Create the index itself
-        if self.index:
-            raise ValueError, \
-"%s for column '%s' already exists. If you want to re-create it, please, try with reIndex() method better" % (str(self.index), str(self.name))
-        self.index = Index(atom, self, name,
-                           "Index for "+self.table._v_pathname+".cols."+self.name,
-                           filters=filters,
-                           expectedrows=self.table._v_expectedrows,
-                           testmode=testmode)
-        self.dirty = 0
-        self.table.colindexed[self.name] = 1
-        # Feed the index with values
-        return self._addRowsToIndex(0, self.table.nrows, lastrow=1)
-
-    def _addRowsToIndex(self, start, nrows, lastrow):
-        """Add more elements to the existing index """
-        nelemslice = self.index.nelemslice
-        #assert self.table.nrows >= self.index.sorted.nelemslice
-        indexedrows = 0
-        for i in xrange(start, start+nrows-nelemslice+1, nelemslice):
-            self.index.append(self[i:i+nelemslice])
-            indexedrows += nelemslice
-        # index the remaining rows
-        nremain = nrows - indexedrows
-        if nremain > 0 and lastrow:
-            self.index.appendLastRow(self[indexedrows:nrows], self.table.nrows)
-            indexedrows += nremain
-        return indexedrows
-        
-    def reIndex(self):
-        """Recompute the existing index"""
-        if self.index is not None:
-            # Delete the existing Index
-            self.index._g_remove()
-            self.index = None
-            # Create a new Index without warnings
-            return self.createIndex(warn=0)
-        else:
-            return 0  # The column is not intended for indexing
- 
-    def reIndexDirty(self):
-        """Recompute the existing index only if it is dirty"""
-        if self.index is not None and self.dirty:
-            # Delete the existing Index
-            self.index._g_remove()
-            # Create a new Index without warnings
-            return self.createIndex(warn=0)
-        else:
-            # The column is not intended for indexing or is not dirty
-            return 0  
- 
-    def removeIndex(self):
-        """Delete the associated column's index"""
-        # delete some references
-        if self.index:
-            self.index._g_remove()
-            self.index = None
-            self.table.colindexed[self.name] = 0
-        else:
-            return  # Do nothing
-
-    def closeIndex(self):
-        """Close the index of this column"""
-        if self.index:
-            self.index._f_close()
-            self.index = None
-
-    def close(self):
-        """Close this column"""
-        # Close indexes
-        self.closeIndex()
-        # delete some back references
-        self.table = None
-        self.type = None
-        # After the objects are disconnected, destroy the
-        # object dictionary using the brute force ;-)
-        # This should help to the garbage collector
-        self.__dict__.clear()        
-
-    def __str__(self):
-        """The string representation for this object."""
-        # The pathname
-        pathname = self.table._v_pathname
-        # Get this class name
-        classname = self.__class__.__name__
-        # The shape for this column
-        shape = self.table.colshapes[self.name]
-        if shape == 1:
-            shape = (1,)
-        # The type
-        tcol = self.table.coltypes[self.name]
-        return "%s.cols.%s (%s%s, %s, idx=%s)" % \
-               (pathname, self.name, classname, shape, tcol, self.index)
-
-    def __repr__(self):
-        """A detailed string representation for this object."""
-        return str(self)
                

@@ -57,6 +57,7 @@ import hdf5Extension
 from Group import Group
 from Leaf import Leaf, Filters
 from Table import Table
+from VLTable import VLTable
 from Array import Array
 from EArray import EArray
 from VLArray import VLArray
@@ -496,6 +497,47 @@ class File(hdf5Extension.File, object):
         group = self.getNode(where, classname = 'Group')
         filters = _checkFilters(filters, compress, complib)
         object = Table(description, title, filters, expectedrows)
+        setattr(group, name, object)
+        return object
+    
+    def createVLTable(self, where, name, description, title="",
+                      filters=None, expectedrows=10000):
+
+        """Create a new Table instance with name "name" in "where" location.
+        
+        "where" parameter can be a path string, or another group
+        instance.
+
+        Keyword arguments:
+
+        where -- The parent group where the new table will hang
+            from. "where" parameter can be a path string (for example
+            "/level1/leaf5"), or Group instance.
+
+        name -- The name of the new table.
+
+        description -- A IsDescription subclass or a dictionary where
+            the keys are the field names, and the values the type
+            definitions. And it can be also a RecArray object (from
+            numarray.records module).
+
+        title -- Sets a TITLE attribute on the table entity.
+
+        filters -- An instance of the Filters class that provides
+            information about the desired I/O filters to be applied
+            during the life of this object.
+
+        expectedrows -- An user estimate about the number of rows that
+            will be on table. If not provided, the default value is
+            10000. If you plan to save bigger tables try providing a
+            guess; this will optimize the HDF5 B-Tree creation and
+            management process time and the amount of memory used.
+
+        """
+
+        group = self.getNode(where, classname = 'Group')
+        filters = _checkFilters(filters)
+        object = VLTable(description, title, filters, expectedrows)
         setattr(group, name, object)
         return object
     

@@ -1,5 +1,5 @@
-Announcing PyTables 1.0
--------------------------
+Announcing PyTables Pro 1.0
+---------------------------
 
 Bla, bla
 
@@ -33,48 +33,12 @@ Changes more in depth
 
 Improvements:
 
-- The opening and copying of files with large number of objects has
-  been made faster by correcting a typo in Table._open. Thanks to
-  Ashley Walsh for sending a patch for this.
-
-- All potentially long I/O operations has been bracketed by
-  BEGIN_ALLOW_THREADS and END_ALLOW_THREADS in order to release the
-  GIL during this I/O operations. This will allow better performance
-  on multiprocessor machines. Thanks to Andrew Straw for suggesting
-  this.
-
-- Now, one can modify rank-0 (scalar) EArrays. Thanks to Norbert Nemec
-  for providing a patch for this.
-
-- You are allowed from this version on to add non-valid natural naming
-  names as node or attribute names. A warning is issued to warn (but
-  not forbidding) you in such a case. Of course, you have to use the
-  getattr() function so as to access such a non-valid natural names.
-
-- The indexes of Tables and *Arrays can be of LongType apart of
-  IntType. However, indexes in slices are still restricted to regular
-  IntType.
-
-- The concept of READ_ONLY system attributes has disappeared. You can
-  change them now at your own risk!. However, you still cannot remove
-  or rename system attributes.
-
-- Table.iterrows() returns an empty iterator when no rows are selected.
-
 
 Backward-incompatible changes:
 
-- Now, the deletion and getting of a non-existing attribute raises an
-  AttributeError, instead of a RuntimeError.
-
-- Deleting a non-existing child now raises a LookupError, instead of
-  doing nothing.
-
-- When start>=stop an empty iterator is returned by Table.iterrows
-  instead of an empty RecArray. Thanks to Ashley Walsh for noting
-  this.
 
 API additions:
+
 
 Bug fixes:
 

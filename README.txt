@@ -1,7 +1,7 @@
 README.txt
-PyTables 0.9.1
-http://pytables.sf.net/
-Nov 26, 2004
+PyTables Pro 1.0
+http://www.carabos.com/
+Uncertain month, 2005
 --------------------------------------
 
 PyTables is a hierarchical database package designed to efficiently

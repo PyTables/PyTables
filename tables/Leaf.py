@@ -4,7 +4,7 @@
 #       Created: October 14, 2002
 #       Author:  Francesc Altet - faltet@carabos.com
 #
-#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
+#       $Source: /cvsroot/pytables/pytables/tables/Leaf.py,v $
 #       $Id$
 #
 ########################################################################
@@ -28,10 +28,10 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.59 $"
+__version__ = "$Revision: 1.57 $"
 
 import warnings
-from utils import checkNameValidity, calcBufferSize, processRangeRead
+from utils import checkNameValidity, processRangeRead
 from AttributeSet import AttributeSet
 import Group
 import hdf5Extension
@@ -173,7 +173,7 @@ class Leaf(object):
             self.filters = self._g_setFilters(self._v_new_filters)
             self._create()
                         
-            # Write the Filters object to an attribute This will not
+            # Write the Filters object to an attribute. This will not
             # be necessary for now, as retrieving the filters using
             # hdf5Extension._getFilters is safer and faster. Also,
             # cPickling the filters attribute is very slow (it is as
@@ -294,7 +294,7 @@ class Leaf(object):
 
     # This removeRows do not work because it relies on creating a new leaf
     # node, so that the pointers to the original leaf have erroneous
-    # information. I'm afraid that the best way to cope with this
+    # information. 
 #     def removeRows(self, start=None, stop=None):
 #         """Remove a range of rows.
 

@@ -639,7 +639,7 @@ class SelectValuesTestCase(unittest.TestCase):
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
-        assert results1.sort() == results2.sort()
+        assert results1 == results2
 
         # Second selection
         results1 = [p["var4"] for p in table1.where(il <= t1col < sl)]
@@ -799,7 +799,7 @@ class SelectValuesTestCase(unittest.TestCase):
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
-        assert results1.sort() == results2.sort()
+        assert results1 == results2
 
         # Second selection
         rowList1 = table1.getWhereList(il <= t1col < sl, "List")
@@ -1014,7 +1014,7 @@ class SelectValuesTestCase(unittest.TestCase):
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
-        assert results1.sort() == results2.sort()
+        assert results1 == results2
 
         # Second selection
         rowList1 = table1.getWhereList(il <= t1col < sl, "List")
@@ -1182,7 +1182,7 @@ class SelectValuesTestCase(unittest.TestCase):
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
-        assert results1.sort() == results2.sort()
+        assert results1 == results2
 
         # Second selection
         rowList1 = table1.getWhereList(il <= t1col < sl, "List")
@@ -2236,20 +2236,19 @@ def suite():
     niter = 1
     #heavy = 1  # Uncomment this only for testing purposes!
 
-    #theSuite.addTest(unittest.makeSuite(SV14aTestCase))
+    #theSuite.addTest(unittest.makeSuite(SV14bTestCase))
+    #theSuite.addTest(unittest.makeSuite(SV11bTestCase))
     #theSuite.addTest(unittest.makeSuite(SV9aTestCase))
-#     for i in range(100):
-#         theSuite.addTest(unittest.makeSuite(SV9aTestCase))
-    #theSuite.addTest(unittest.makeSuite(SV11aTestCase))
+    #theSuite.addTest(unittest.makeSuite(SV3aTestCase))
+    #theSuite.addTest(unittest.makeSuite(SV3bTestCase))
+    #theSuite.addTest(unittest.makeSuite(SV4aTestCase))
     #theSuite.addTest(unittest.makeSuite(SV4aTestCase))
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(SV1aTestCase))
         theSuite.addTest(unittest.makeSuite(SV2aTestCase))
         theSuite.addTest(unittest.makeSuite(SV3aTestCase))
         theSuite.addTest(unittest.makeSuite(SV4aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV7aTestCase))
         theSuite.addTest(unittest.makeSuite(SV8aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV10aTestCase))
         theSuite.addTest(unittest.makeSuite(SV11aTestCase))
         theSuite.addTest(unittest.makeSuite(SV11bTestCase))
         theSuite.addTest(unittest.makeSuite(SV12aTestCase))
@@ -2258,6 +2257,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(SV13bTestCase))
         theSuite.addTest(unittest.makeSuite(SV14aTestCase))
     if heavy:
+        # These are here because are very similar to those of light cases
         theSuite.addTest(unittest.makeSuite(SV1bTestCase))
         theSuite.addTest(unittest.makeSuite(SV2bTestCase))
         theSuite.addTest(unittest.makeSuite(SV3bTestCase))
@@ -2269,14 +2269,14 @@ def suite():
         theSuite.addTest(unittest.makeSuite(SV9bTestCase))
         theSuite.addTest(unittest.makeSuite(SV10bTestCase))
         theSuite.addTest(unittest.makeSuite(SV14bTestCase))
-        # The next are too hard to be above
+        # The next are too hard to be light
         theSuite.addTest(unittest.makeSuite(SV5aTestCase))
         theSuite.addTest(unittest.makeSuite(SV6aTestCase))
-        # These are move from light because they use random
+        # These are moved from light because they use random
         # tests that seldomly issues a strange:
         # """Warning: Encountered invalid numeric result(s)  in less_equal"""
         # series of messages and I don't want to worry normal users
-        # about this (I don't think this is grave anyway)
+        # about this (I don't think this would be grave anyway)
         # F. Altet 2004-08-12
         theSuite.addTest(unittest.makeSuite(SV7aTestCase))
         theSuite.addTest(unittest.makeSuite(SV9aTestCase))

@@ -80,7 +80,7 @@ def createNewBenchFile(bfile, verbose):
                     bf.createTable(groupM, atom, Search, atom+" bench")
     bf.close()
     
-def createFile(filename, nrows, filters, index, heavy, auto, verbose):
+def createFile(filename, nrows, filters, index, heavy, auto, noise, verbose):
 
     # Open a file in "w"rite mode
     fileh = openFile(filename, mode = "w", title="Searchsorted Benchmark",
@@ -113,7 +113,9 @@ def createFile(filename, nrows, filters, index, heavy, auto, verbose):
             var3 = random_array.uniform(minimum, maximum, shape=[j-i])
         else:
             var3 = numarray.arange(i, j, type=numarray.Float64)
-            #var3 += random_array.uniform(-3, 3, shape=[j-i])
+            # uncomment this for introducing noise
+            if noise > 0:
+                var3 += random_array.uniform(-noise, noise, shape=[j-i])
         var2 = numarray.array(var3, type=numarray.Int32)
         var1 = strings.array(None, shape=[j-i], itemsize=4)
         if not heavy:
@@ -167,7 +169,7 @@ def createFile(filename, nrows, filters, index, heavy, auto, verbose):
             tcpu1, tcpu2, size1, size2)
 
 def benchCreate(file, nrows, filters, index, bfile, heavy, auto,
-                psyco, verbose):
+                psyco, noise, verbose):
 
     # Open the benchfile in append mode
     bf = openFile(bfile,"a")
@@ -178,7 +180,7 @@ def benchCreate(file, nrows, filters, index, bfile, heavy, auto,
         table = bf.getNode("/"+recsize+"/create_best")
         
     (rowsw, irows, rowsz, time1, time2, tcpu1, tcpu2, size1, size2) = \
-            createFile(file, nrows, filters, index, heavy, auto, verbose)
+          createFile(file, nrows, filters, index, heavy, auto, noise, verbose)
     # Collect data
     table.row["nrows"] = rowsw
     table.row["irows"] = irows
@@ -213,7 +215,7 @@ def benchCreate(file, nrows, filters, index, bfile, heavy, auto,
     table.row.append()
     bf.close()
     
-def readFile(filename, atom, riter, indexmode, verbose):
+def readFile(filename, atom, riter, indexmode, dselect, verbose):
     # Open the HDF5 file in read-only mode
 
     fileh = openFile(filename, mode = "r")
@@ -245,11 +247,8 @@ def readFile(filename, atom, riter, indexmode, verbose):
     tcpu2 = 0.
     results = []
     print "Select mode:", indexmode, ". Selecting for type:", atom
-    # The interval for look values at. This is aproximately equivalent to
-    # the number of elements to select
-    chunksize = 1000  # Change here for selecting more or less entries 
     # Initialize the random generator always with the same integer
-    # in order to have reproductible results
+    # in order to have reproductible results on each read iteration
     random.seed(19)
     random_array.seed(19, 20)
     for i in xrange(riter):
@@ -276,7 +275,7 @@ def readFile(filename, atom, riter, indexmode, verbose):
                            # for p in where(1000-30 < var2 < 1000+60)]
                            # for p in where(3 <= var2 < 5)]
                            #for p in where(rnd <= var2 < rnd+3)]
-                           for p in where(rnd <= var2 < rnd+chunksize)]
+                           for p in where(rnd <= var2 < rnd+dselect)]
             else:
                 results = [p.nrow() for p in table
                            # if p["var2"] < 10+i]
@@ -285,26 +284,25 @@ def readFile(filename, atom, riter, indexmode, verbose):
                            # if 1000-30 < p["var2"] < 1000+60]
                            #if 3 <= p["var2"] < 5]
                            #if rnd <= p["var2"] < rnd+3]
-                           if rnd <= p["var2"] < rnd+chunksize]
+                           if rnd <= p["var2"] < rnd+dselect]
         elif atom == "float":
             if indexmode in ["indexed", "inkernel"]:
-                t1=time.time()
-                results = [p.nrow()
-                           # for p in where(var3 < 5.)]
-                           #for p in where(3. <= var3 < 5.)]
-                           #for p in where(float(rnd) <= var3 < float(rnd+3))]
-                           #for p in where(rnd <= var3 < rnd+3)]
-                           for p in where(rnd <= var3 < rnd+chunksize)]
-                           # for p in where(1000.-i <= var3 < 1000.+i)]
-                           # for p in where(100*i <= var3 < 100*(i+1))]
-                #print "time for complete selection-->", time.time()-t1
-                #print "results-->", results, rnd
+                #results = table.readIndexed(rnd <= var3 < rnd+dselect)
+                results = [p.nrow() for p in where(rnd <= var3 < rnd+dselect)]
+#                 results = [p.nrow()
+#                            # for p in where(var3 < 5.)]
+#                            #for p in where(3. <= var3 < 5.)]
+#                            #for p in where(float(rnd) <= var3 < float(rnd+3))]
+#                            #for p in where(rnd <= var3 < rnd+3)]
+#                            for p in where(rnd <= var3 < rnd+dselect)]
+#                            # for p in where(1000.-i <= var3 < 1000.+i)]
+#                            # for p in where(100*i <= var3 < 100*(i+1))]
             else:
                 results = [p.nrow() for p in table
                            # if p["var3"] < 5.]
                            #if 3. <= p["var3"] < 5.]
                            #if float(rnd) <= p["var3"] < float(rnd+3)]
-                           if float(rnd) <= p["var3"] < float(rnd+chunksize)]
+                           if float(rnd) <= p["var3"] < float(rnd+dselect)]
                            # if 1000.-i <= p["var3"] < 1000.+i]
                            # if 100*i <= p["var3"] < 100*(i+1)]
         else:
@@ -346,7 +344,7 @@ def readFile(filename, atom, riter, indexmode, verbose):
 
     return (rowsread, rowselected, rowsize, time1, time2, tcpu1, tcpu2)
 
-def benchSearch(file, riter, indexmode, bfile, heavy, psyco, verbose):
+def benchSearch(file, riter, indexmode, bfile, heavy, psyco, dselect, verbose):
 
     # Open the benchfile in append mode
     bf = openFile(bfile,"a")
@@ -367,7 +365,7 @@ def benchSearch(file, riter, indexmode, bfile, heavy, psyco, verbose):
         tablepath = tableparent + atom
         table = bf.getNode(tablepath)
         (rowsr, rowsel, rowssz, time1, time2, tcpu1, tcpu2) = \
-                readFile(file, atom, riter, indexmode, verbose)
+                readFile(file, atom, riter, indexmode, dselect, verbose)
         table.row["nrows"] = rowsr
         table.row["rowsel"] = rowsel
         treadrows = round(time1, 6)
@@ -422,11 +420,11 @@ if __name__=="__main__":
     
     import time
     
-    usage = """usage: %s [-v] [-p] [-a] [-r] [-w] [-c level] [-l complib] [-S] [-F] [-n nrows] [-x] [-b file] [-t] [-h] [-k riter] [-m indexmode] datafile
+    usage = """usage: %s [-v] [-p] [-R] [-a] [-r] [-w] [-c level] [-l complib] [-S] [-F] [-n nrows] [-x] [-b file] [-t] [-h] [-k riter] [-m indexmode] [-N range] [-d range] datafile
             -v verbose
 	    -p use "psyco" if available
-            -a automatic indexing (default is separate indexing)
             -R use Random values for filling
+            -a automatic indexing (default is separate indexing)
 	    -r only read test
 	    -w only write test
             -c sets a compression level (do not set it or 0 for no compression)
@@ -439,10 +437,12 @@ if __name__=="__main__":
             -t worsT searching case
             -h heavy benchmark (operations without strings)
             -m index mode for reading ("indexed" | "inkernel" | "standard")
+            -N introduce (uniform) noise within range into the values
+            -d the interval for look values (int, float) at. Default is 3.
             -k number of iterations for reading\n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'vpaSFRrowxthk:b:c:l:n:m:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'vpaSFRrowxthk:b:c:l:n:m:N:d:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -453,6 +453,8 @@ if __name__=="__main__":
         sys.exit(0)
 
     # default options
+    dselect = 3.
+    noise = 0.
     verbose = 0
     auto = 0
     fieldName = None
@@ -507,7 +509,10 @@ if __name__=="__main__":
                 raise ValueError, "Indexmode should be any of '%s' and you passed '%s'" % (supported_imodes, indexmode)
         elif option[0] == '-n':
             nrows = int(float(option[1])*1000)
-            #nrows = int(float(option[1])*1024)
+        elif option[0] == '-N':
+            noise = float(option[1])
+        elif option[0] == '-d':
+            dselect = float(option[1])
         elif option[0] == '-k':
             riter = int(option[1])
 
@@ -540,8 +545,9 @@ if __name__=="__main__":
         if psyco_imported and usepsyco:
             psyco.bind(createFile)
         benchCreate(file, nrows, filters, index, bfile, heavy, auto,
-                    usepsyco, verbose)
+                    usepsyco, noise, verbose)
     if testread:
         if psyco_imported and usepsyco:
             psyco.bind(readFile)
-        benchSearch(file, riter, indexmode, bfile, heavy, usepsyco, verbose)
+        benchSearch(file, riter, indexmode, bfile, heavy, usepsyco,
+                    dselect, verbose)

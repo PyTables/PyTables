@@ -4,7 +4,7 @@
 #       Created: June 02, 2004
 #       Author:  Francesc Altet - faltet@carabos.com
 #
-#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IndexArray.py,v $
+#       $Source: /cvsroot/pytables/pytables/tables/IndexArray.py,v $
 #       $Id$
 #
 ########################################################################
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.14 $"
+__version__ = "$Revision: 1.12 $"
 # default version for IndexARRAY objects
 obversion = "1.0"    # initial version
 
@@ -38,8 +38,106 @@ import hdf5Extension
 import numarray
 import numarray.strings as strings
 import numarray.records as records
+from bisect import bisect_left, bisect_right
+from time import time
 
 def calcChunksize(expectedrows, testmode=0):
+    """Calculate the HDF5 chunk size for index and sorted arrays.
+
+    The logic to do that is based purely in experiments playing with
+    different chunksizes and compression flag. It is obvious that
+    using big chunks optimize the I/O speed, but if they are too
+    large, the uncompressor takes too much time. This might (should)
+    be further optimized doing more experiments.
+
+    """
+
+    expKrows = expectedrows / 1000000.  # Multiples of one million
+    if testmode:
+        if expKrows < 0.0001: # expected rows < 1 hundred
+            nelemslice = 10  # > 1/100th
+            chunksize = 5
+        elif expKrows < 0.001: # expected rows < 1 thousand
+            nelemslice = 100  # > 1/10th
+            chunksize = 50
+        elif expKrows <= 0.01: # expected rows < 10 thousand
+            nelemslice = 1000  # > 1/100th
+            chunksize = 500
+        else:
+            raise ValueError, \
+                  "expected rows cannot be larger than 10000 in test mode"
+        return (nelemslice, chunksize)
+
+    #print "expKrows:", expKrows
+    if expKrows < 0.1: # expected rows < 100 thousand
+        chunksize = 1000            # best value
+        nelemslice = 2*chunksize    #  "     "
+        #chunksize = 500             # experimental
+        #nelemslice = 2*chunksize    #      "       
+    elif expKrows < 1: # expected rows < 1 milion
+        chunksize = 1000
+        #nelemslice = 5*chunksize 
+        nelemslice = 2*chunksize 
+        #chunksize = 2000           # experimental
+        #nelemslice = 2*chunksize   #    "
+    elif expKrows < 10:  # expected rows < 10 milion
+        chunksize = 2500
+        #nelemslice = 50*chunksize  
+        #nelemslice = 25*chunksize  
+        nelemslice = 15*chunksize     # best speed/compression ratio
+        #chunksize = 5000             # experiment
+        #nelemslice = 5*chunksize     #     "
+    elif expKrows < 100: # expected rows < 100 milions
+        chunksize = 5000              # optimum for NoNoise and Noise
+        #nelemslice = 100*chunksize   # very aggressive
+        #nelemslice = 50*chunksize    # moderately aggressive
+        #nelemslice = 25*chunksize    # moderately conservative
+        nelemslice = 15*chunksize     # moderately conservative (II)
+        #nelemslice = 10*chunksize    # very conservative
+        #chunksize = 7500             # experimental (I)
+        #nelemslice = 15*chunksize    # experimental (I)
+        #chunksize = 10000            # experimental (II)
+        #nelemslice = 10*chunksize    # experimental (II)
+    elif expKrows < 1000: # expected rows < 1000 millions
+        chunksize = 5000
+        #nelemslice = 200*chunksize # very aggressive
+        #nelemslice = 100*chunksize # moderately aggressive
+        #nelemslice =  50*chunksize # moderately conservative
+        nelemslice =  35*chunksize  # moderately conservative (II)
+        #nelemslice =  25*chunksize # moderately conservative (III)
+    elif expKrows < 10*1000: # expected rows < 10 (american) billions
+        #chunksize = 10000          # very aggressive
+        #nelemslice = 50*chunksize  #   "       "
+        #chunksize = 7500           # moderately aggressive
+        #nelemslice = 50*chunksize  #    "           "
+        #chunksize = 5000           # moderately aggressive (II)
+        #nelemslice = 100*chunksize #    "           "
+        chunksize = 7500            # moderately conservative
+        nelemslice = 35*chunksize   #    "           "
+        #chunksize = 5000           # moderately conservative (II)
+        #nelemslice = 50*chunksize  #    "           "
+    elif expKrows < 100*1000: # expected rows < 100 (american) billions
+        #chunksize = 10000          # very aggressive
+        #nelemslice = 50*chunksize  #   "       "
+        #chunksize = 7500           # moderately aggressive
+        #nelemslice = 100*chunksize #    "           "
+        chunksize = 7500            # moderately conservative
+        nelemslice = 50*chunksize   #    "           "
+        #chunksize = 5000           # moderately conservative (II)
+        #nelemslice = 100*chunksize #    "           "
+    else:  # expected rows >= 1 (american) trillion (perhaps in year 2010
+           # this will be useful, who knows...)
+        #chunksize = 10000          # very aggressive
+        #nelemslice = 100*chunksize #   "       "
+        chunksize = 10000           # moderately aggressive
+        nelemslice = 50*chunksize   #   "            "
+        #chunksize = 7500           # moderately conservative
+        #nelemslice = 100*chunksize #    "           "
+
+    #print "nelemslice, chunksize:", (nelemslice, chunksize)
+    return (nelemslice, chunksize)
+
+def calcChunksize_orig(expectedrows, testmode=0):
     """Calculate the HDF5 chunk size for index and sorted arrays.
 
     The logic to do that is based purely in experiments playing with
@@ -55,13 +153,13 @@ def calcChunksize(expectedrows, testmode=0):
     if testmode:
         if expKrows < 0.0001: # expected rows < 1 hundred
             nelemslice = 10  # > 1/100th
-            chunksize = 10
+            chunksize = 5
         elif expKrows < 0.001: # expected rows < 1 thousand
             nelemslice = 100  # > 1/10th
             chunksize = 50
         elif expKrows <= 0.01: # expected rows < 10 thousand
             nelemslice = 1000  # > 1/100th
-            chunksize = 600
+            chunksize = 500
         else:
             raise ValueError, \
                   "expected rows cannot be larger than 10000 in test mode"
@@ -73,13 +171,13 @@ def calcChunksize(expectedrows, testmode=0):
 #         nelemslice = 1000  # > 1/100th
 #         chunksize = 1000
     if expKrows < 0.1: # expected rows < 100 thousand
-        nelemslice = 5000  # (best experimental)
         chunksize = 1000
+        nelemslice = 5*chunksize  # (best experimental)
 #         nelemslice = 5*1024 
 #         chunksize = 1024
     elif expKrows < 1: # expected rows < 1 milion
-        nelemslice = 20000  # (best experimental)
         chunksize = 2000   # (best experimental)
+        nelemslice = 10*chunksize  # (best experimental)
 #         nelemslice = 5*1024 
 #         chunksize = 1024
 #         chunksize = 2048  # (best experimental)
@@ -89,27 +187,28 @@ def calcChunksize(expectedrows, testmode=0):
     elif expKrows < 10:  # expected rows < 10 milion
         #nelemslice = 500000  # > 1/20th (best for best case)
         #chunksize = 5000  # Experimental (best for best case)
-        nelemslice = 100000 # Best for worst case (experimental)
+        #chunksize = 2000  # best for worst case (experimental)
         chunksize = 2000  # best for worst case (experimental)
+        nelemslice = 50*chunksize # Best for worst case (experimental)
         #chunksize = 4096  # (best experimental)
         #nelemslice = 10*chunksize   # (best experimental)
 #         nelemslice = 20*4096 
 #         chunksize = 4096
     elif expKrows < 100: # expected rows < 100 milions
-        nelemslice = 100000
         chunksize = 5000
-#         nelemslice = 20*4096 
-#         chunksize = 4096
+        nelemslice = 30*chunksize
+        #nelemslice = 20*4096 
+        #chunksize = 4096
     elif expKrows < 1000: # expected rows < 1000 millions
-        nelemslice = 200000 # Experimental (best)
-        #chunksize = 10000   # Experimental (best)
         chunksize = 5000
-    else:  # expected rows > 1 billion
+        nelemslice = 40*chunksize # Experimental (best)
+        #chunksize = 10000   # Experimental (best)
+    else:  # expected rows >= 1 billion
         #nelemslice = 1000000 # 1/1000  # Better for small machines
         #nelemslice = 2000000 # 2/1000  # Better for big machines
-        nelemslice = 500000
         #chunksize = 5000
         chunksize = 10000  # Experimental
+        nelemslice = 50*chunksize
 
     #print "nelemslice, chunksize:", (nelemslice, chunksize)
     return (nelemslice, chunksize)
@@ -185,6 +284,10 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
             self.atom = atom
         else:
             self._v_new = 0
+        # initialize some index buffers
+        self._startl = numarray.array(None, shape=(2,), type=numarray.Int64)
+        self._stopl = numarray.array(None, shape=(2,), type=numarray.Int64)
+        self._stepl = numarray.array([1,1], shape=(2,), type=numarray.Int64)
             
     def _create(self):
         """Save a fresh array (i.e., not present on HDF5 file)."""
@@ -195,7 +298,6 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
         # Version, type, shape, flavor, byteorder
         self._v_version = obversion
         self.type = self.atom.type
-        self.stype = self.atom.stype
         if self.type == "CharType" or isinstance(self.type, records.Char):
             self.byteorder = "non-relevant"
         else:
@@ -220,10 +322,19 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
         self._v_maxTuples = 10  
         # Create the IndexArray
         self._createEArray("INDEXARRAY", self._v_new_title)
-            
+
+        # Create a buffer for bounds array
+        nbounds = (self.nelemslice // self.chunksize) - 1
+        if str(self.type) == "CharType":        
+            self._bounds = strings.array(None, itemsize=self.itemsize,
+                                         shape=(nbounds,))
+        else:
+            self._bounds = numarray.array(None, shape=(nbounds,),
+                                          type=self.type)            
+
     def _open(self):
         """Get the metadata info for an array in file."""
-        (self.type, self.stype, self.shape, self.itemsize,
+        (self.type, self.shape, self.itemsize,
          self.byteorder, chunksizes) = self._openArray()
         self.chunksize = chunksizes[1]  # Get the second dim
         # Post-condition
@@ -233,7 +344,7 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
         if str(self.type) == "CharType":
             self.atom = StringAtom(shape=1, length=self.itemsize)
         else:
-            self.atom = Atom(dtype=self.stype, shape=1)
+            self.atom = Atom(dtype=self.type, shape=1)
         # Compute the rowsize for each element
         self.rowsize = self.atom.atomsize() * self.nelemslice
         # nrows in this instance
@@ -243,51 +354,184 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
         # This is really necessary??
         self._v_maxTuples = 10  
 
+        # Create a buffer for bounds array
+        nbounds = (self.nelemslice // self.chunksize) - 1
+        if str(self.type) == "CharType":        
+            self._bounds = strings.array(None, itemsize=self.itemsize,
+                                         shape=(nbounds,))
+        else:
+            self._bounds = numarray.array(None, shape=(nbounds,),
+                                          type=self.type)            
+
     def append(self, arr):
         """Append the object to this (enlargeable) object"""
         arr.shape = (1, arr.shape[0])
         self._append(arr)
 
-    # This is coded in pyrex as well, but the improvement in speed is very
-    # little. So, it's better to let _searchBin live here.
+    # This version of searchBin uses both rangeValues (1st level) and
+    # bounds (2nd level) caches. This is more than 40% faster than the
+    # version that only uses the 1st cache.    
     def _searchBin(self, nrow, item):
-        nelemslice = self.shape[1]
-        hi = nelemslice   
+        item1, item2 = item
+        result1 = -1; result2 = -1
+        hi = self.nelemslice
+        rangeValues = self._v_parent.rvcache
+        #t1=time()
+        # First, look at the beginning of the slice
+        #begin, end = rangeValues[nrow]  # this is slower 
+        begin = rangeValues[nrow,0]
+        # Look for items at the beginning of sorted slices
+        if item1 <= begin:
+            result1 = 0
+        if item2 < begin:
+            result2 = 0
+        if result1 >=0 and result2 >= 0:
+            #print "done 1-->", time()-t1
+            return (result1, result2)
+        # Then, look for items at the end of the sorted slice
+        end = rangeValues[nrow,1]
+        if result1 < 0:
+            if item1 > end:
+                result1 = hi
+        if result2 < 0:
+            if item2 >= end:
+                result2 = hi
+        if result1 >= 0 and result2 >= 0:
+            #print "done 2-->", time()-t1
+            return (result1, result2)
+        # Finally, do a lookup for item1 and item2 if they were not found
+        # Lookup in the middle of slice for item1
+        chunksize = self.chunksize # Number of elements/chunksize
+        nbounds = (self.nelemslice // self.chunksize) - 1
+        bounds = self._bounds
+        pbounds = self._v_parent.bounds
+        # Read the bounds array
+        #bounds = self._v_parent.bounds[nrow]
+        # This optimization adds little speed-up (5%), but...
+        self._startl[0] = nrow; self._startl[1] = 0
+        self._stopl[0] = nrow+1; self._stopl[1] = nbounds
+        pbounds._g_readSlice(self._startl, self._stopl, self._stepl, bounds)
+        if result1 < 0:
+            # Search the appropriate chunk in bounds cache
+            nchunk = bisect_left(bounds, item1)
+            chunk = self._readSortedSlice(nrow, chunksize*nchunk,
+                                          chunksize*(nchunk+1))
+            result1 = self._bisect_left(chunk, item1, chunksize)
+            result1 += chunksize*nchunk
+        # Lookup in the middle of slice for item2
+        if result2 < 0:
+            # Search the appropriate chunk in bounds cache
+            nchunk = bisect_right(bounds, item2)
+            chunk = self._readSortedSlice(nrow, chunksize*nchunk,
+                                          chunksize*(nchunk+1))
+            result2 = self._bisect_right(chunk, item2, chunksize)
+            result2 += chunksize*nchunk
+        return (result1, result2)
+
+    def _searchBin_orig(self, nrow, item):
         item1, item2 = item
         item1done = 0; item2done = 0
-        chunksize = self.chunksize # Number of elements/chunksize
-        niter = 1
-
-        # First, look at the beginning of the slice (that could save lots of time)
-        buffer = self._readSortedSlice(nrow, 0, chunksize)
-        #buffer = xrange(0, chunksize)  # test  # 0.02 over 0.5 seg
+        hi = self.nelemslice
+        rangeValues = self._v_parent.rvcache
+        t1=time()
+        # First, look at the beginning of the slice
+        #begin, end = rangeValues[nrow]  # this is slower 
+        begin = rangeValues[nrow,0]
         # Look for items at the beginning of sorted slices
-        result1 = self._bisect_left(buffer, item1, chunksize)
-        if 0 <= result1 < chunksize:
+        if item1 <= begin:
+            result1 = 0
             item1done = 1
-        result2 = self._bisect_right(buffer, item2, chunksize)
-        if 0 <= result2 < chunksize:
+        if item2 < begin:
+            result2 = 0
             item2done = 1
         if item1done and item2done:
-            # print "done 1"
+            #print "done 1"
+            #print "done 1-->", time()-t1
+            return (result1, result2)
+        # Then, look for items at the end of the sorted slice
+        end = rangeValues[nrow,1]
+        if not item1done:
+            if item1 > end:
+                result1 = hi
+                item1done = 1
+        if not item2done:
+            if item2 >= end:
+                result2 = hi
+                item2done = 1
+        if item1done and item2done:
+            #print "done 2"
+            #print "done 2-->", time()-t1
+            return (result1, result2)
+        # Finally, do a lookup for item1 and item2 if they were not found
+        # Lookup in the middle of slice for item1
+        chunksize = self.chunksize # Number of elements/chunksize
+        nbounds = (self.nelemslice // self.chunksize) - 1
+        bounds = self._bounds
+        pbounds = self._v_parent.bounds
+        # Read the bounds array
+        #bounds = self._v_parent.bounds[nrow]
+        # This optimization adds little speed-up (5%), but...
+        self._startl[0] = nrow; self._startl[1] = 0
+        self._stopl[0] = nrow+1; self._stopl[1] = nbounds
+        pbounds._g_readSlice(self._startl, self._stopl, self._stepl, bounds)
+        if not item1done:
+            # Search the appropriate chunk in bounds cache
+            nchunk = bisect_left(bounds, item1)
+            chunk = self._readSortedSlice(nrow, chunksize*nchunk,
+                                          chunksize*(nchunk+1))
+            result1 = self._bisect_left(chunk, item1, chunksize)
+            result1 += chunksize*nchunk
+        # Lookup in the middle of slice for item2
+        if not item2done:
+            # Search the appropriate chunk in bounds cache
+            nchunk = bisect_right(bounds, item2)
+            chunk = self._readSortedSlice(nrow, chunksize*nchunk,
+                                          chunksize*(nchunk+1))
+            result2 = self._bisect_right(chunk, item2, chunksize)
+            result2 += chunksize*nchunk
+        return (result1, result2)
+
+    # This version of searchBin only uses the rangeValues (1st cache)
+    def _g_searchBin(self, nrow, item, rangeValues):
+        #item1, item2 = self.item
+        #rangeValues = self.rv
+        item1, item2 = item
+        nelemslice = self.shape[1]
+        hi = nelemslice   
+        item1done = 0; item2done = 0
+        chunksize = self.chunksize # Number of elements/chunksize # change here
+        #niter = 1
+        niter = 0
+
+        # First, look at the beginning of the slice
+        # (that could save lots of time)
+        #begin = self[nrow,0]
+        #begin = self._v_parent.rangeValues[nrow,0]
+        begin = rangeValues[nrow,0]
+        # Look for items at the beginning of sorted slices
+        if item1 <= begin:
+            result1 = 0
+            item1done = 1
+        if item2 < begin:
+            result2 = 0
+            item2done = 1
+        if item1done and item2done:
+            #print "done 1"
             return (result1, result2, niter)
 
+        #niter += 1
         # Then, look for items at the end of the sorted slice
-        buffer = self._readSortedSlice(nrow, hi-chunksize, hi)
-        #buffer = xrange(hi-chunksize, hi)  # test
-        niter += 1
+        end = rangeValues[nrow,1]
         if not item1done:
-            result1 = self._bisect_left(buffer, item1, chunksize)
-            if 0 < result1 <= chunksize:
+            if item1 > end:
+                result1 = hi
                 item1done = 1
-                result1 = hi - chunksize + result1
         if not item2done:
-            result2 = self._bisect_right(buffer, item2, chunksize)
-            if 0 < result2 <= chunksize:
+            if item2 >= end:
+                result2 = hi
                 item2done = 1
-                result2 = hi - chunksize + result2
         if item1done and item2done:
-            # print "done 2"
+            #print "done 2"
             return (result1, result2, niter)
     
         # Finally, do a lookup for item1 and item2 if they were not found
@@ -309,7 +553,7 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
                     hi = result1        # one chunk to the left
                     lo = hi - chunksize  
             result1 = tmpresult1
-        # Lookup in the middle of slice for item1
+        # Lookup in the middle of slice for item2
         if not item2done:
             lo = 0
             hi = nelemslice
@@ -330,6 +574,89 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
             niter = niter + iter
         return (result1, result2, niter)
 
+    # This version of searchBin does not use caches (1st or 2nd) at all
+    # This is coded in pyrex as well, but the improvement in speed is very
+    # little. So, it's better to let _searchBin live here.
+    def _searchBin1_0(self, nrow, item):
+        nelemslice = self.shape[1]
+        hi = nelemslice   
+        item1, item2 = item
+        item1done = 0; item2done = 0
+        chunksize = self.chunksize # Number of elements/chunksize # change here
+        niter = 1
+
+        # First, look at the beginning of the slice (that could save lots of time)
+        buffer = self._readSortedSlice(nrow, 0, chunksize)
+        #buffer = xrange(0, chunksize)  # test  # 0.02 over 0.5 seg
+        # Look for items at the beginning of sorted slices
+        result1 = self._bisect_left(buffer, item1, chunksize)
+        if 0 <= result1 < chunksize:
+            item1done = 1
+        result2 = self._bisect_right(buffer, item2, chunksize)
+        if 0 <= result2 < chunksize:
+            item2done = 1
+        if item1done and item2done:
+            #print "done 1"
+            return (result1, result2)
+
+        # Then, look for items at the end of the sorted slice
+        buffer = self._readSortedSlice(nrow, hi-chunksize, hi)
+        #buffer = xrange(hi-chunksize, hi)  # test
+        niter += 1
+        if not item1done:
+            result1 = self._bisect_left(buffer, item1, chunksize)
+            if 0 < result1 <= chunksize:
+                item1done = 1
+                result1 = hi - chunksize + result1
+        if not item2done:
+            result2 = self._bisect_right(buffer, item2, chunksize)
+            if 0 < result2 <= chunksize:
+                item2done = 1
+                result2 = hi - chunksize + result2
+        if item1done and item2done:
+            #print "done 2"
+            return (result1, result2)
+    
+        # Finally, do a lookup for item1 and item2 if they were not found
+        # Lookup in the middle of slice for item1
+        if not item1done:
+            lo = 0
+            hi = nelemslice
+            beginning = 1
+            result1 = 1  # a number different from 0
+            while beginning and result1 != 0:
+                (result1, beginning, iter) = \
+                          self._interSearch_left(nrow, chunksize,
+                                                 item1, lo, hi)
+                tmpresult1 = result1
+                niter = niter + iter
+                if result1 == hi:  # The item is completely at right
+                    break
+                else:
+                    hi = result1        # one chunk to the left
+                    lo = hi - chunksize  
+            result1 = tmpresult1
+        # Lookup in the middle of slice for item2
+        if not item2done:
+            lo = 0
+            hi = nelemslice
+            ending = 1
+            result2 = 1  # a number different from 0
+            while ending and result2 != nelemslice:
+                (result2, ending, iter) = \
+                          self._interSearch_right(nrow, chunksize,
+                                                  item2, lo, hi)
+                tmpresult2 = result2
+                niter = niter + iter
+                if result2 == lo:  # The item is completely at left
+                    break
+                else:
+                    hi = result2 + chunksize      # one chunk to the right
+                    lo = result2
+            result2 = tmpresult2
+            niter = niter + iter
+        return (result1, result2)
+
     def _close(self):
         """Close this object and exit"""
         # First, flush the buffers:
@@ -337,7 +664,6 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
         # Delete back references
         del self._v_parent
         del self._v_file
-        del self.stype
         del self.type
         del self.atom
         del self.filters
@@ -352,9 +678,11 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
         """A verbose representation of this class"""
 
         return """%s
-  atom = %r
+  type = %r
+  shape = %s
+  itemsize = %s
   nrows = %s
   nelemslice = %s
   chunksize = %s
-  byteorder = %r""" % (self, self.atom, self.nrows, self.nelemslice,
-                       self.chunksize, self.byteorder)
+  byteorder = %r""" % (self, self.type, self.shape, self.itemsize, self.nrows,
+                       self.nelemslice, self.chunksize, self.byteorder)

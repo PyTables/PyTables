@@ -47,6 +47,8 @@ from numarray import records
 from numarray import strings
 from numarray import memmap
 from utils import calcBufferSize
+from VLTable import VLTable
+
 try:
   import zlib
   zlib_imported = 1
@@ -1142,7 +1144,7 @@ cdef class AttributeSet:
     cdef object attrlist
     cdef hid_t loc_id
 
-    if isinstance(self.node, Group):
+    if isinstance(self.node, Group) or isinstance(self.node, VLTable):
       # Return a tuple with the attribute list
       attrlist = Aiterate(self.node._v_objectID)
     else:
@@ -1252,7 +1254,7 @@ cdef class AttributeSet:
   def _g_getAttr(self, char *attrname):
     cdef object attrvalue
     cdef hid_t loc_id
-    if isinstance(self.node, Group):
+    if isinstance(self.node, Group) or isinstance(self.node, VLTable):
       attrvalue = self._g_getNodeAttr(self.parent_id, self.node._v_objectID,
                                       self.name, attrname)
     else:
@@ -1401,7 +1403,7 @@ cdef class AttributeSet:
     cdef int ret
     cdef hid_t loc_id
     
-    if isinstance(self.node, Group):
+    if isinstance(self.node, Group) or isinstance(self.node, VLTable):
       ret = H5Adelete(self.node._v_objectID, attrname ) 
       if ret < 0:
         raise RuntimeError("Attribute '%s' exists in node '%s', but cannot be deleted." \
@@ -1636,10 +1638,10 @@ cdef class Table:
 
     # Protection against too large row sizes
     # Set to a 512 KB limit (just because banana 640 KB limitation)
-    if self.rowsize > 524288:
+    if self.rowsize > 512*1024:
             raise RuntimeError, \
     """Row size too large. Maximum size is 512 Kbytes, and you are asking
-    for a row size of %s bytes.""" % (self.rowsize)
+for a row size of %s bytes.""" % (self.rowsize)
 
     # test if there is data to be saved initially
     if hasattr(self, "_v_recarray"):
@@ -1654,8 +1656,7 @@ cdef class Table:
 
     # Compute some values for buffering and I/O parameters
     (self._v_maxTuples, self._v_chunksize) = \
-                        calcBufferSize(self.rowsize, self._v_expectedrows,
-                                       self.filters.complevel)
+                        calcBufferSize(self.rowsize, self._v_expectedrows)
     # The next is settable if we have default values
     fill_data = NULL
     nrecords = <hsize_t>PyInt_AsLong(nvar)
@@ -1914,7 +1915,9 @@ cdef class Table:
     
     return nrecords
 
-  def _read_records(self, object recarr, hsize_t start, hsize_t nrecords):
+  def _read_records(self, hsize_t start, hsize_t nrecords):
+    cdef int ret
+
     # Correct the number of records to read, if needed
     if (start + nrecords) > self.totalrecords:
       nrecords = self.totalrecords - start
@@ -1933,17 +1936,42 @@ cdef class Table:
 
     return nrecords
 
-  def _read_elements(self, object recarr, size_t shift, object elements):
+# This verion with a shift is not used at all. So comment it
+#   def _read_elements_shift(self, size_t shift, object elements):
+#     cdef long buflen
+#     cdef hsize_t nrecords
+#     cdef void *coords
+#     cdef int ret
+    
+#     # Get the chunk of the coords that correspond to a buffer
+#     nrecords = len(elements)
+#     coords_array = numarray.array(elements+shift, type=numarray.Int64)
+#     # Get the pointer to the buffer data area
+#     buflen = NA_getBufferPtrAndSize(coords_array._data, 1, &coords)
+    
+#     Py_BEGIN_ALLOW_THREADS
+#     ret = H5TBOread_elements(&self.dataset_id, &self.space_id,
+#                              &self.mem_type_id, nrecords,
+#                              coords, self.rbuf)
+#     Py_END_ALLOW_THREADS
+#     if ret < 0:
+#       raise RuntimeError("Problems reading records.")
+
+#     return nrecords
+
+  def _read_elements(self, object elements):
     cdef long buflen
     cdef hsize_t nrecords
     cdef void *coords
-    cdef int ret
+    cdef int ret, offset
     
     # Get the chunk of the coords that correspond to a buffer
     nrecords = len(elements)
-    coords_array = numarray.array(elements+shift, type=numarray.Int64)
     # Get the pointer to the buffer data area
-    buflen = NA_getBufferPtrAndSize(coords_array._data, 1, &coords)
+    buflen = NA_getBufferPtrAndSize(elements._data, 1, &coords)
+    # Correct the offset
+    offset = elements._byteoffset
+    coords = <void *>(<char *>coords + offset)
     
     Py_BEGIN_ALLOW_THREADS
     ret = H5TBOread_elements(&self.dataset_id, &self.space_id,
@@ -1953,8 +1981,29 @@ cdef class Table:
     if ret < 0:
       raise RuntimeError("Problems reading records.")
 
-    # Convert some HDF5 types to Numarray after reading.
-    self._convertTypes(recarr, nrecords, 1)
+    return nrecords
+
+  def _read_elements_ra(self, object recarr, object elements):
+    cdef long buflen
+    cdef hsize_t nrecords
+    cdef void *coords
+    cdef int ret
+
+    self._open_read(recarr)   # Open the table for reading
+    # Get the chunk of the coords that correspond to a buffer
+    nrecords = len(elements)
+    # Get the pointer to the buffer data area
+    buflen = NA_getBufferPtrAndSize(elements._data, 1, &coords)
+    
+    Py_BEGIN_ALLOW_THREADS
+    ret = H5TBOread_elements(&self.dataset_id, &self.space_id,
+                             &self.mem_type_id, nrecords,
+                             coords, self.rbuf)
+    Py_END_ALLOW_THREADS
+    if ret < 0:
+      raise RuntimeError("Problems reading records.")
+
+    self._close_read()   # Close the table for reading
 
     return nrecords
 
@@ -2151,7 +2200,7 @@ cdef class Row:
           self.bufcoords = self.index.getCoords(self.nrowsread, stop)
           nrowsread = len(self.bufcoords)
           tmp = self.bufcoords
-          # If a step was specified, select first the strided elements
+          # If a step was specified, select the strided elements first
           if len(tmp) > 0 and self.step > 1:
             tmp2=(tmp-self.start) % self.step
             tmp = tmp[tmp2.__eq__(0)]
@@ -2166,8 +2215,7 @@ cdef class Row:
           self.bufcoords = tmp
         self._row = -1
         if len(self.bufcoords):
-          recout = self._table._read_elements(
-            self._recarray, 0, self.bufcoords)
+          recout = self._table._read_elements(self.bufcoords)
           if self._table.byteorder <> sys.byteorder:
             self._recarray._byteswap()
         else:
@@ -2237,8 +2285,7 @@ cdef class Row:
 #         else:
 #           self.bufcoords = self.index.getCoords(self.nrowsread, stop)
 #         self._row = -1
-#         recout = self._table._read_elements(
-#           self._recarray, 0, self.bufcoords)
+#         recout = self._table._read_elements(self.bufcoords)
 #         if self._table.byteorder <> sys.byteorder:
 #           self._recarray._byteswap()
 #         self.nrowsread = self.nrowsread + recout
@@ -2294,8 +2341,8 @@ cdef class Row:
           self.stopb = self.nrowsinbuf
         self._row = self.startb - self.step
         # Read a chunk
-        recout = self._table._read_records(
-          self._recarray, self.nextelement, self.nrowsinbuf)
+        recout = self._table._read_records(self.nextelement,
+                                           self.nrowsinbuf)
         self.nrowsread = self.nrowsread + recout
         if self._table.byteorder <> sys.byteorder:
           self._recarray._byteswap()
@@ -2385,8 +2432,8 @@ cdef class Row:
           self.stopb = self.nrowsinbuf
         self._row = self.startb - self.step
         # Read a chunk
-        recout = self._table._read_records(
-          self._recarray, self.nrowsread, self.nrowsinbuf)
+        recout = self._table._read_records(self.nrowsread,
+                                           self.nrowsinbuf)
         self.nrowsread = self.nrowsread + recout
         if self._table.byteorder <> sys.byteorder:
           self._recarray._byteswap()
@@ -2434,8 +2481,7 @@ cdef class Row:
         istopb = inrowsinbuf
       stopr = startr + ((istopb - istartb - 1) / istep) + 1
       # Read a chunk
-      inrowsread = (
-        inrowsread + self._table._read_records(self._recarray, i, inrowsinbuf))
+      inrowsread = inrowsread + self._table._read_records(i, inrowsinbuf)
       # Assign the correct part to result
       # The bottleneck is in this assignment. Hope that the numarray
       # people might improve this in the short future
@@ -3172,103 +3218,62 @@ cdef class IndexArray(Array):
 
 # This is coded in python space as well, but the improvement in speed
 # here is very little. So, it's better to let _searchBin live there.
+# F. Altet 2004-12-27
+#   def _searchBin(self, int nrow, object item, object rangeValues):
+#     cdef int hi, chunksize, item1done, item2done
+#     cdef int result1, result2, nchunk, lbounds
+#     cdef object item1, item2, begin, end, bounds, chunk
 
-#   def _searchBin(self, int nrow, object item):
-#     cdef int hi, lo, chunksize, niter, item1done, item2done
-#     cdef int result1, result2, tmpresult1, tmpresult2, nelemslice
-#     cdef int beginning, ending, iter
-
-#     nelemslice = self.shape[1]
-#     hi = nelemslice   
 #     item1, item2 = item
+#     hi = self.shape[1]   
+#     chunksize = self.chunksize # Number of elements/chunksize
 #     item1done = 0; item2done = 0
-#     chunksize = self._v_chunksize[1] # Number of elements/chunksize
 
-#     # First, look at the beginning of the slice (that could save lots of time)
-#     buffer = self._readSortedSlice(nrow, 0, chunksize)
-#     #buffer = xrange(0, chunksize)  # test  # 0.02 over 0.5 seg
+#     # First, look at the beginning of the slice
+#     begin = rangeValues[nrow,0]
 #     # Look for items at the beginning of sorted slices
-#     niter = 1
-#     result1 = self._bisect_left(buffer, item1, chunksize)
-#     if 0 <= result1 < chunksize:
+#     if item1 <= begin:
+#       result1 = 0
 #       item1done = 1
-#     result2 = self._bisect_right(buffer, item2, chunksize)
-#     #print "item1done, item2done-->", item1done, item2done
-#     #print "result1, result2-->", result1, result2
-#     if 0 <= result2 < chunksize:
+#     if item2 < begin:
+#       result2 = 0
 #       item2done = 1
-#       # Commented out. The value can be repeated in the next chunk
-# #     elif buffer[chunksize-1] == item2:
-# #       item2done = 1
 #     if item1done and item2done:
 #       #print "done 1"
-#       return (result1, result2, niter)
-    
+#       return (result1, result2)
 #     # Then, look for items at the end of the sorted slice
-#     buffer = self._readSortedSlice(nrow, hi-chunksize, hi)
-#     #buffer = xrange(hi-chunksize, hi)  # test
-#     niter = 2
-#     #print "item1done, item2done-->", item1done, item2done
+#     end = rangeValues[nrow,1]
 #     if not item1done:
-#       result1 = self._bisect_left(buffer, item1, chunksize)
-#       if 0 < result1 <= chunksize:
+#       if item1 > end:
+#         result1 = hi
 #         item1done = 1
-#         result1 = hi - chunksize + result1
-#         # Commented out. The value can be repeated in the previous chunk
-# #       elif buffer[0] == item1:
-# #         item1done = 1
-# #         result1 = hi - chunksize
-#     #print "item1done, item2done-->", item1done, item2done
 #     if not item2done:
-#       result2 = self._bisect_right(buffer, item2, chunksize)
-#       if 0 < result2 <= chunksize:
+#       if item2 >= end:
+#         result2 = hi
 #         item2done = 1
-#         result2 = hi - chunksize + result2
 #     if item1done and item2done:
 #       #print "done 2"
-#       return (result1, result2, niter)
-#     #print "item1done, item2done-->", item1done, item2done
-    
+#       return (result1, result2)
 #     # Finally, do a lookup for item1 and item2 if they were not found
 #     # Lookup in the middle of slice for item1
+#     bounds = self._v_parent.bounds[nrow]
+#     lbounds = len(bounds)
 #     if not item1done:
-#       lo = 0
-#       hi = nelemslice
-#       beginning = 1
-#       result1 = 1  # a number different from 0
-#       while beginning and result1 != 0:
-#         (result1, beginning, iter) = self._interSearch_left(nrow, chunksize,
-#                                                             item1, lo, hi)
-#         tmpresult1 = result1
-#         niter = niter + iter
-#         if result1 == hi:  # The item is completely at right
-#           break
-#         else:
-#           hi = result1        # one chunk to the left
-#           lo = hi - chunksize  
-#           #print "lo, hi, beginning-->", lo, hi, beginning
-#       result1 = tmpresult1
-#     # Lookup in the middle of slice for item1
+#       # Search the appropriate chunk in bounds cache
+#       nchunk = self._bisect_left(bounds, item1, lbounds)
+#       chunk = self._readSortedSlice(nrow, chunksize*nchunk,
+#                                     chunksize*(nchunk+1))
+#       result1 = self._bisect_left(chunk, item1, chunksize)
+#       result1 = result1 + chunksize*nchunk
+#     # Lookup in the middle of slice for item2
 #     if not item2done:
-#       lo = 0
-#       hi = nelemslice
-#       ending = 1
-#       result2 = 1  # a number different from 0
-#       while ending and result2 != nelemslice:
-#         (result2, ending, iter) = self._interSearch_right(nrow, chunksize,
-#                                                           item2, lo, hi)
-#         tmpresult2 = result2
-#         niter = niter + iter
-#         if result2 == lo:  # The item is completely at left
-#           break
-#         else:
-#           hi = result2 + chunksize      # one chunk to the right
-#           lo = result2
-#           #print "lo, hi, ending-->", lo, hi, ending
-#       result2 = tmpresult2
-#       niter = niter + iter
-#     #print "done 3"
-#     return (result1, result2, niter)
+#       # Search the appropriate chunk in bounds cache
+#       nchunk = self._bisect_right(bounds, item2, lbounds)
+#       chunk = self._readSortedSlice(nrow, chunksize*nchunk,
+#                                     chunksize*(nchunk+1))
+#       result2 = self._bisect_right(chunk, item2, chunksize)
+#       result2 = result2 + chunksize*nchunk
+#     return (result1, result2)
 
 
 cdef class Index:

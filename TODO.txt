@@ -1,4 +1,6 @@
-TODO list (as of 28th, October 2004):
+TODO list (as of 12th, January 2005):
+
+- Add the capability to search in multiple (eventually indexed) columns.
 
 - Add a new type of table that allows variable length records and
   fully multidimensional slice selections.

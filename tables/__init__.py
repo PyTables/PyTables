@@ -44,6 +44,7 @@ from Group import Group
 from Leaf import Leaf, Filters
 from Index import IndexProps
 from Table import Table
+from VLTable import VLTable
 from Array import Array
 from EArray import EArray
 from VLArray import *
@@ -60,7 +61,7 @@ from hdf5Extension import isHDF5, isPyTablesFile, whichLibVersion
 # List here only the objects we want to be publicly available
 __all__ = ["isHDF5", "isPyTablesFile", "whichLibVersion", "copyFile",
            "openFile",
-           "Group", "Leaf", "Table", "Array", "EArray", "VLArray",
+           "Group", "Leaf", "Table", "VLTable", "Array", "EArray", "VLArray",
            "UnImplemented", "IsDescription", "Description", "Filters",
            "IndexProps",
            "Col", "BoolCol", "StringCol",

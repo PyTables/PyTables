@@ -1,3 +1,24 @@
+pytables (0.9.1-2) unstable; urgency=high
+
+   * Recompiling with libucl1 instead of ucl0 (Closes: #288464)
+   * First package built for Python 2.4.
+   * First support for gcc4 (Closes: #287972)
+
+ -- Francesc Alted <falted@pytables.org>  Tue, 11 Jan 2005 17:58:58 +0100
+	 
+pytables (0.9.1-1) unstable; urgency=low
+
+   * New upstream release. Mainly a maintenance release.
+
+ -- Francesc Alted <falted@pytables.org>  Thu, 09 Dec 2004 17:27:04 +0100
+	 
+pytables (0.9-1) unstable; urgency=low
+
+   * New upstream release. Introduced indexation, support of complex numbers
+   and update of object elements.
+	
+ -- Francesc Alted <falted@pytables.org>  Fri, 05 Nov 2004 18:10:58 +0100
+	 
 pytables (0.8.1-4) unstable; urgency=high
 
    * Recompiled to get a proper dependency on libucl (>=1.03-1).

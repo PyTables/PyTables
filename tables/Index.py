@@ -4,7 +4,7 @@
 #       Created: June 08, 2004
 #       Author:  Francesc Altet - faltet@carabos.com
 #
-#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
+#       $Source: /cvsroot/pytables/pytables/tables/Index.py,v $
 #       $Id$
 #
 ########################################################################
@@ -27,22 +27,28 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.29 $"
+__version__ = "$Revision: 1.28 $"
 # default version for INDEX objects
-obversion = "1.0"    # initial version
+#obversion = "1.0"    # initial version
+obversion = "1.1"    # optimization for very large columns and small selection
+                     # groups
 
 import cPickle
 import warnings, sys
 from IndexArray import IndexArray
-from VLArray import Atom
+from VLArray import Atom, StringAtom
+from Array import Array
+from EArray import EArray
 from Leaf import Filters
 from AttributeSet import AttributeSet
 import hdf5Extension
 #from hdf5Extension import PyNextAfter, PyNextAfterF
 import numarray
-import time
+from numarray import strings
+from time import time
 import math
 import struct # we use this to define testNaN
+import bisect
 
 # Python implementations of NextAfter and NextAfterF
 #
@@ -81,7 +87,7 @@ infinityF = math.ldexp(1.0, 128)
 #     raise RuntimeError, "Byteorder '%s' not supported!" % sys.byteorder
 # This one seems better
 testNaN = infinity - infinity
-    
+
 # Utility functions
 def infType(type, itemsize, sign=0):
     """Return a superior limit for maximum representable data type"""
@@ -104,7 +110,7 @@ def IsNaN(x):
 
 def PyNextAfter(x, y):
     """returns the next float after x in the direction of y if possible, else returns x"""
-    
+
     # if x or y is Nan, we don't do much
     if IsNaN(x) or IsNaN(y):
         return x
@@ -128,7 +134,7 @@ def PyNextAfter(x, y):
     # break x down into a mantissa and exponent
     m, e = math.frexp(x)
 
-    # all the special cases have been handled        
+    # all the special cases have been handled
     if y > x:
         m += epsilon
     else:
@@ -138,7 +144,7 @@ def PyNextAfter(x, y):
 
 def PyNextAfterF(x, y):
     """returns the next IEEE single after x in the direction of y if possible, else returns x"""
-    
+
     # if x or y is Nan, we don't do much
     if IsNaN(x) or IsNaN(y):
         return x
@@ -163,7 +169,6 @@ def PyNextAfterF(x, y):
             extra = x % -smallEpsilonF
         else:
             extra = 0.0
-            
         if y > x:
             return x - extra + smallEpsilonF
         else:
@@ -221,7 +226,6 @@ def CharTypeNextAfter(x, direction, itemsize):
             i += 1
     xlist.reverse()
     return "".join(xlist)
-        
 
 def nextafter(x, direction, type, itemsize):
     "Return the next representable neighbor of x in the appropriate direction."
@@ -267,7 +271,7 @@ class IndexProps(object):
         """Create a new IndexProps instance
 
         Parameters:
-        
+
         auto -- whether an existing index should be reindexed after a
             Table append operation. Defaults is reindexing.
         reindex -- whether the table fields are to be re-indexed
@@ -291,7 +295,7 @@ class IndexProps(object):
         elif isinstance(filters, Filters):
             self.filters = filters
         else:
-            raise TypeError, \
+            raise ValueError, \
 "If you pass a filters parameter, it should be a Filters instance."
 
     def __repr__(self):
@@ -302,11 +306,10 @@ class IndexProps(object):
         descr += ", reindex=%s" % (self.reindex)
         descr += ", filters=%s" % (self.filters)
         return descr+")"
-    
+
     def __str__(self):
         """The string reprsentation choosed for this object
         """
-        
         return repr(self)
 
 class Index(hdf5Extension.Group, hdf5Extension.Index, object):
@@ -322,7 +325,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         search(start, stop, step, where)
         getCoords(startCoords, maxCoords)
         append(object)
-        
+
     Instance variables:
 
         column -- The column object this index belongs to
@@ -354,7 +357,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         name -- The name for this Index object.
 
         where -- The indexed column who this instance pertains.
-        
+
         title -- Sets a TITLE attribute of the Index entity.
 
         filters -- An instance of the Filters class that provides
@@ -426,7 +429,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         object._v_attrs._v_attrnames.sort()
         object._v_attrs._v_attrnamessys.sort()
         return filters
-            
+
     def _create(self):
         """Save a fresh array (i.e., not present on HDF5 file)."""
         global obversion
@@ -437,10 +440,12 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         self._v_version = obversion
         self.type = self.atom.type
         self.title = self._v_new_title
+
         # Create the Index Group
         self._g_new(self._v_parent, self.name)
         self._v_objectID = self._g_createGroup()
         self.filters = self._addAttrs(self, "INDEX")
+
         # Create the IndexArray for sorted values
         object = IndexArray(self, self.atom, "Sorted Values",
                             self.filters, self._v_expectedrows,
@@ -450,7 +455,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         object.filters = self.filters
         object._create()
         object._v_parent = self
-        object._v_file = self._v_parent._v_file  
+        object._v_file = self._v_parent._v_file
         self._addAttrs(object, "IndexArray")
         self.sorted = object
         self.type = object.type
@@ -467,24 +472,98 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         object.filters = self.filters
         object._create()
         object._v_parent = self
-        object._v_file = self._v_parent._v_file  
+        object._v_file = self._v_parent._v_file
         self.nrows = object.nrows
         self.nelemslice = object.nelemslice
         self.nelements = self.nrows * self.nelemslice
         self._addAttrs(object, "IndexArray")
         self.indices = object
-            
+
+        # Create the EArray for range values  (1st order cache)
+        if str(self.type) == "CharType":
+            atom = StringAtom(shape=(0, 2), length=self.itemsize,
+                              flavor="CharArray")
+        else:
+            atom = Atom(self.type, shape=(0,2), flavor="NumArray")
+        object = EArray(atom, "Range Values", self.filters,
+                        self._v_expectedrows//self.nelemslice)
+        object.name = object._v_name = object._v_hdf5name = "rangeValues"
+        object._v_pathname = self._g_join(object._v_name)
+        object._g_new(self, object.name)
+        object.filters = self.filters
+        object._create()
+        object._v_parent = self
+        object._v_file = self._v_parent._v_file
+        self.nrows = object.nrows
+        self._addAttrs(object, "EArray")
+        self.rangeValues = object
+
+        # Create the EArray for boundary values (2nd order cache)
+        nbounds = (self.nelemslice - 1 ) // self.chunksize
+        if str(self.type) == "CharType":
+            atom = StringAtom(shape=(0, nbounds),
+                              length=self.itemsize,
+                              flavor="CharArray")
+        else:
+            atom = Atom(self.type, shape=(0, nbounds))
+        object = EArray(atom, "Boundaries", self.filters,
+                        self._v_expectedrows//self.nelemslice)
+        object.name = object._v_name = object._v_hdf5name = "bounds"
+        object._v_pathname = self._g_join(object._v_name)
+        object._g_new(self, object.name)
+        object.filters = self.filters
+        object._create()
+        object._v_parent = self
+        object._v_file = self._v_parent._v_file
+        self.nrows = object.nrows
+        self._addAttrs(object, "EArray")
+        self.bounds = object
+
+        # Create the Array for last row values
+        shape = 2 + nbounds + self.nelemslice
+        if str(self.type) == "CharType":
+            atom = strings.array(None, shape=shape, itemsize=self.itemsize)
+        else:
+            atom = numarray.array(None, shape=shape, type=self.type)
+        object = Array(atom, "Last Row Values + bounds")
+        object.name = object._v_name = object._v_hdf5name = "lrvb"
+        object._v_pathname = self._g_join(object._v_name)
+        object._g_new(self, object.name)
+        object._v_parent = self
+        object.filters = self.filters  # Needed by Array constructor
+        object._create()
+        object._v_file = self._v_parent._v_file
+        self.nrows = object.nrows
+        self._addAttrs(object, "Array")
+        self.lrvb = object
+
+        # Create the Array for reverse indexes in last row
+        shape = self.nelemslice     # enough for indexes and length
+        atom = numarray.zeros(shape=shape, type=numarray.Int32)
+        object = Array(atom, "Last Row Reverse Indexes")
+        object.name = object._v_name = object._v_hdf5name = "lrri"
+        object._v_pathname = self._g_join(object._v_name)
+        object._g_new(self, object.name)
+        object._v_parent = self
+        object.filters = self.filters  # Needed by Array constructor
+        object._create()
+        object._v_file = self._v_parent._v_file
+        self.nrows = object.nrows
+        self._addAttrs(object, "Array")
+        self.lrri = object
+
     def _open(self):
         """Get the metadata info for an array in file."""
         self._g_new(self._v_parent, self.name)
         self._v_objectID = self._g_openIndex()
         self.__dict__["_v_attrs"] = AttributeSet(self)
-        # Get the title, filters attributes for this index
+        # Get the title and version attributes for this index
         self.title = self._v_attrs._g_getAttr("TITLE")
+        self._v_version = self._v_attrs._g_getAttr("VERSION")
         # Open the IndexArray for sorted values
         object = IndexArray(parent=self)
         object._v_parent = self
-        object._v_file = self._v_parent._v_file  
+        object._v_file = self._v_parent._v_file
         object.name = object._v_name = object._v_hdf5name = "sortedArray"
         object._g_new(self, object._v_hdf5name)
         object.filters = object._g_getFilters()
@@ -503,59 +582,322 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         object._g_new(self, object._v_hdf5name)
         object.filters = object._g_getFilters()
         object._open()
-        # these attrs should be the same for both sorted and indexed 
+        # these attrs should be the same for both sorted and indexed
         self.nrows = object.nrows
         self.nelemslice = object.nelemslice
         self.nelements = self.nrows * self.nelemslice
         self.filters = object.filters
         self.indices = object
+        if self._v_version >= "1.1":
+            # Open the rangeValues EArray
+            object = EArray()
+            object._v_parent = self
+            object._v_file = self._v_parent._v_file
+            object.name = object._v_name = object._v_hdf5name = "rangeValues"
+            object._v_pathname = self._g_join(object._v_name)
+            object._g_new(self, object._v_hdf5name)
+            object.filters = object._g_getFilters()
+            object._open()
+            self.rangeValues = object
+            #self.rvcache = self.rangeValues[:]  # rangeValues cache
+            # Mark the rangeValues as non-vaild.
+            # This optimizes the opening of files
+            self.rvcache = None
+            # Open the bounds EArray
+            object = EArray()
+            object._v_parent = self
+            object._v_file = self._v_parent._v_file
+            object.name = object._v_name = object._v_hdf5name = "bounds"
+            object._v_pathname = self._g_join(object._v_name)
+            object._g_new(self, object._v_hdf5name)
+            object.filters = object._g_getFilters()
+            object._open()
+            self.bounds = object
+            # Open the Last Row Values & Bounds Array
+            object = Array()
+            object._v_parent = self
+            object._v_file = self._v_parent._v_file
+            object.name = object._v_name = object._v_hdf5name = "lrvb"
+            object._v_pathname = self._g_join(object._v_name)
+            object._g_new(self, object._v_hdf5name)
+            object.filters = object._g_getFilters()
+            object._open()
+            self.lrvb = object
+            # Open the Last Row Reverse Index Array
+            object = Array()
+            object._v_parent = self
+            object._v_file = self._v_parent._v_file
+            object.name = object._v_name = object._v_hdf5name = "lrri"
+            object._v_pathname = self._g_join(object._v_name)
+            object._g_new(self, object._v_hdf5name)
+            object.filters = object._g_getFilters()
+            object._open()
+            self.lrri = object
+            self.nelementsLR = self.lrri[-1]
+            #print "nelementsLR-->", self.nelementsLR
+            if self.nelementsLR > 0:
+                self.nrows += 1
+                self.nelements += self.nelementsLR
+                self.shape = (self.nrows, self.nelemslice)
+                # Get the bounds as a cache
+                chunksize = self.chunksize
+                nbounds = (self.nelementsLR -1 ) // self.chunksize
+                if nbounds < 0:
+                    nbounds = 0 # correction for -1 bounds
+                nbounds += 2 # bounds + begin + end
+                # all bounds values (+begin+end) are at the beginning of lrvb
+                self.bebounds = self.lrvb[:nbounds]
+
+
+# The next does not seem to be necessary
+        #dirty = self._v_attrs._g_getAttr("DIRTY")
+#         dirty = getattr(self._v_attrs, "DIRTY", 0)
+#         print "dirty-->", dirty
+#         if dirty is not None:
+#             # All the counters has to be reset
+#             self.nrows = 0
+#             self.nelements = 0
+#             self.nelementsLR = 0
+#             self.bebounds = None
 
     def append(self, arr):
-        """Append the object to this (enlargeable) object"""
+        """Append the array to the index objects"""
 
         # Save the sorted array
         if str(self.sorted.type) == "CharType":
             s=arr.argsort()
-            # Caveat: this conversion is necessary for portability on
-            # 64-bit systems because indexes are 64-bit long on these
-            # platforms
-            self.indices.append(numarray.array(s, type="Int32"))
-            self.sorted.append(arr[s])
         else:
-            #self.sorted.append(numarray.sort(arr))
-            #self.indices.append(numarray.argsort(arr))
-            # The next is a 10% faster, but the ideal solution would
-            # be to find a funtion in numarray that returns both
-            # sorted and argsorted all in one call
             s=numarray.argsort(arr)
-            # Caveat: this conversion is necessary for portability on
-            # 64-bit systems because indexes are 64-bit long on these
-            # platforms
-            self.indices.append(numarray.array(s, type="Int32"))
-            self.sorted.append(arr[s])
+        # Caveat: this conversion is necessary for portability on
+        # 64-bit systems because indexes are 64-bit long on these
+        # platforms
+        self.indices.append(numarray.array(s, type="Int32"))
+        self.sorted.append(arr[s])
+        #self.rangeValues.append([arr[s[[0,-1]]]])
+        begend = [arr[s[[0,-1]]]]
+        self.rangeValues.append(begend)
+        self.bounds.append([arr[s[self.chunksize::self.chunksize]]])
         # Update nrows after a successful append
         self.nrows = self.sorted.nrows
         self.nelements = self.nrows * self.nelemslice
         self.shape = (self.nrows, self.nelemslice)
-        
+        self.nelementsLR = 0  # reset the counter of the last row index to 0
+        self.rvcache = None   # the rangeValues caches is dirty now
+        # This takes some time is not worth the extra effort
+        #self.rvcache = numarray.concatenate([self.rvcache,begend])
+
+    def appendLastRow(self, arr, tnrows):
+        """Append the array to the last row index objects"""
+
+        # compute the elements in the last row vaules & bounds array
+        nelementsLR = tnrows - self.sorted.nrows * self.nelemslice
+        assert nelementsLR == len(arr), "The number of elements to append is incorrect!. Report this to the authors."
+        # Sort the array
+        if str(self.sorted.type) == "CharType":
+            s=arr.argsort()
+            # build the cache of bounds
+            # this is a rather weird way of concatenating chararrays, I agree
+            # We might risk loosing precision here....
+            self.bebounds = arr[s[::self.chunksize]]
+            self.bebounds.resize(self.bebounds.shape[0]+1)
+            self.bebounds[-1] = arr[s[-1]]
+        else:
+            s=numarray.argsort(arr)
+            # build the cache of bounds
+            self.bebounds = numarray.concatenate([arr[s[::self.chunksize]],
+                                                  arr[s[-1]]])
+        # Save the reverse index array
+        self.lrri[:len(arr)] = numarray.array(s, type="Int32")
+        self.lrri[-1] = nelementsLR   # The number of elements is at the end
+        # Save the number of elements, bounds and sorted values
+        offset = len(self.bebounds)
+        self.lrvb[:offset] = self.bebounds
+        self.lrvb[offset:offset+len(arr)] = arr[s]
+        # Update nelements after a successful append
+        self.nrows = self.sorted.nrows + 1
+        self.nelements = self.sorted.nrows * self.nelemslice + nelementsLR
+        self.shape = (self.nrows, self.nelemslice)
+        self.nelementsLR = nelementsLR
+
+    def _searchBinLastRow(self, item):
+        item1, item2 = item
+        item1done = 0; item2done = 0
+
+        #t1=time()
+        hi = self.nelementsLR               # maximum number of elements
+        bebounds = self.bebounds
+        assert hi == self.nelements - self.sorted.nrows * self.nelemslice
+        begin = bebounds[0]
+        # Look for items at the beginning of sorted slices
+        if item1 <= begin:
+            result1 = 0
+            item1done = 1
+        if item2 < begin:
+            result2 = 0
+            item2done = 1
+        if item1done and item2done:
+            #print "done 1-->", time()-t1
+            return (result1, result2)
+        # Then, look for items at the end of the sorted slice
+        end = bebounds[-1]
+        if not item1done:
+            if item1 > end:
+                result1 = hi
+                item1done = 1
+        if not item2done:
+            if item2 >= end:
+                result2 = hi
+                item2done = 1
+        if item1done and item2done:
+            #print "done 2-->", time()-t1
+            return (result1, result2)
+        # Finally, do a lookup for item1 and item2 if they were not found
+        # Lookup in the middle of slice for item1
+        bounds = bebounds[1:-1] # Get the bounds array w/out begin and end
+        nbounds = len(bebounds)
+        if not item1done:
+            # Search the appropriate chunk in bounds cache
+            nchunk = bisect.bisect_left(bounds, item1)
+            end = self.chunksize*(nchunk+1)
+            if end > hi:
+                end = hi
+            chunk = self.lrvb[nbounds+self.chunksize*nchunk:nbounds+end]
+            result1 = bisect.bisect_left(chunk, item1)
+            result1 += self.chunksize*nchunk
+        # Lookup in the middle of slice for item2
+        if not item2done:
+            # Search the appropriate chunk in bounds cache
+            nchunk = bisect.bisect_right(bounds, item2)
+            end = self.chunksize*(nchunk+1)
+            if end > hi:
+                end = hi
+            chunk = self.lrvb[nbounds+self.chunksize*nchunk:nbounds+end]
+            result2 = bisect.bisect_right(chunk, item2)
+            result2 += self.chunksize*nchunk
+        #print "done 3-->", time()-t1
+        return (result1, result2)
+
+    def searchBinNA(self, nrow, item1, item2, result1, result2):
+
+        ibounds = self.bounds[nrow]
+        if result1[nrow] < 0:
+            nchunk = bisect.bisect_left(ibounds, item1)
+            chunk = self.sorted._readSortedSlice(nrow, self.chunksize*nchunk,
+                                                 self.chunksize*(nchunk+1))
+            result1[nrow] = self.sorted._bisect_left(chunk, item1, self.chunksize) + self.chunksize*nchunk
+        if result2[nrow] < 0:
+            nchunk = bisect.bisect_right(ibounds, item2)
+            chunk = self.sorted._readSortedSlice(nrow, self.chunksize*nchunk,
+                                                 self.chunksize*(nchunk+1))
+            result2[nrow] = self.sorted._bisect_right(chunk, item2, self.chunksize) + self.chunksize*nchunk
+        return
+
+    # This is a vectorial version of search.
+    # It does not work well with strings, because:
+    # In [180]: a=strings.array(None, itemsize = 4, shape=1)
+    # In [181]: a[0] = '0'
+    # In [182]: a >= '0\x00\x00\x00\x01'
+    # Out[182]: array([1], type=Bool)  # Incorrect
+    # but...
+    # In [183]: a[0] >= '0\x00\x00\x00\x01'
+    # Out[183]: False  # correct
+    # While this is not a bug (see the padding policy for chararrays)
+    # I think it would be much better to use '\0x00' as default padding
     def search(self, item):
         """Do a binary search in this index for an item"""
-        #t1=time.time()
-        ntotaliter = 0; tlen = 0
-        self.starts = []; self.lengths = []
-        #self.irow = 0; self.len1 = 0; self.len2 = 0;  # useful for getCoords()
+        if str(self.type) == "CharType":
+            return self.search_original(item)
+        #t1=time()
+        item1, item2 = item
         self.sorted._initSortedSlice(self.chunksize)
+        # Internal Buffers
+        self.starts = numarray.array(None,shape=(self.nrows,),
+                                     type = numarray.Int32)
+        self.lengths = numarray.array(None,shape=(self.nrows,),
+                                      type = numarray.Int32)
         # Do the lookup for values fullfilling the conditions
-        for i in xrange(self.sorted.nrows):
-            (start, stop, niter) = self.sorted._searchBin(i, item)
-            self.starts.append(start)
-            self.lengths.append(stop - start)
-            ntotaliter += niter
-            tlen += stop - start
+        if self._v_version >= "1.1":
+            if self.rvcache is None:
+                self.rvcache = self.rangeValues[:]
+            # Compute starts
+            begin = self.rvcache[:,0]
+            end = self.rvcache[:,1]
+            r11 = (item1 <= begin)
+            r12 = (item1 >  end)
+            starts = (r11 + r12 * (self.nelemslice+1)) - 1
+            # Compute stops
+            r21 = (item2 < begin)
+            r22 = (item2 >=  end)
+            stops = (r21 + r22 * (self.nelemslice+1)) - 1
+            # Get the remaining values
+            for i in xrange(self.sorted.nrows):
+                if starts[i] == -1 or stops[i] == -1:
+                    self.searchBinNA(i, item1, item2, starts, stops)
+            # compute lengths
+            if self.nelementsLR:
+                self.starts[:-1] = starts
+                self.lengths[:-1] = stops - starts
+            else:
+                self.starts[:] = starts
+                self.lengths[:] = stops - starts
+        else:
+            for i in xrange(self.sorted.nrows):
+                (start, stop) = self.sorted._searchBin1_0(i, item)
+                self.starts[i] = start
+                self.lengths[i] = stop - start
         self.sorted._destroySortedSlice()
-        #print "time reading indices:", time.time()-t1
-        #print "ntotaliter:", ntotaliter
-        assert tlen >= 0, "Index.search(): Post-condition failed. Please, report this to the authors."
+        if self._v_version >= "1.1" and self.nelementsLR:
+            # Look for more indexes in the last row
+            (start, stop) = self._searchBinLastRow(item)
+            self.starts[-1] = start
+            self.lengths[-1] = stop - start
+        tlen = numarray.sum(self.lengths)
+        #print "time reading indices: %6f" % round(time()-t1,6),
+        #print "  selected:", tlen
+        #assert tlen >= 0, "Index.search(): Post-condition failed. Please, report this to the authors."
+        return tlen
+
+    # This is an scalar version of search. It works well with strings as well.
+    def search_original(self, item):
+    #def search(self, item):
+        """Do a binary search in this index for an item"""
+        t1=time()
+        tlen = 0
+        self.sorted._initSortedSlice(self.chunksize)
+        #self._v_version = "1.0"  # just for test speed comparisons
+        # Internal Buffers
+        self.starts = numarray.array(None,shape=(self.nrows,),
+                                     type = numarray.Int32)
+        self.lengths = numarray.array(None,shape=(self.nrows,),
+                                      type = numarray.Int32)
+        # Do the lookup for values fullfilling the conditions
+        if self._v_version >= "1.1":
+            if self.rvcache is None:
+                self.rvcache = self.rangeValues[:]
+            for i in xrange(self.sorted.nrows):
+                (start, stop) = self.sorted._searchBin(i, item)
+                self.starts[i] = start
+                self.lengths[i] = stop - start
+                tlen += stop - start
+#            print "starts2-->", self.starts
+        else:
+            for i in xrange(self.sorted.nrows):
+                (start, stop) = self.sorted._searchBin1_0(i, item)
+                self.starts[i] = start
+                self.lengths[i] = stop - start
+                tlen += stop - start
+        self.sorted._destroySortedSlice()
+        if self._v_version >= "1.1" and self.nelementsLR > 0:
+            # Look for more indexes in the last row
+            (start, stop) = self._searchBinLastRow(item)
+            self.starts[-1] = start
+            self.lengths[-1] = stop - start
+            tlen += stop - start
+        #print "time reading indices: %6f" % round(time()-t1,6),
+        #print "  selected:", tlen
+        #print "starts, lengths-->", self.starts, self.lengths
+        #assert tlen >= 0, "Index.search(): Post-condition failed. Please, report this to the authors."
+        #return tlen
         return tlen
 
 # This has been ported to Pyrex. However, with pyrex it has the same speed,
@@ -567,13 +909,13 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         good sense results.
 
         """
-        #t1=time.time()
+        t1=time()
         len1 = 0; len2 = 0; relCoords = 0
         # Correction against asking too many elements
-        nindexedrows = self.nelemslice*self.nrows
+        nindexedrows = self.nelements
         if startCoords + maxCoords > nindexedrows:
             maxCoords = nindexedrows - startCoords
-        for irow in xrange(self.sorted.nrows):
+        for irow in xrange(self.nrows):
             leni = self.lengths[irow]; len2 += leni
             if (leni > 0 and len1 <= startCoords < len2):
                 startl = self.starts[irow] + (startCoords-len1)
@@ -582,7 +924,14 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
                 # Correction if stopl exceeds the limits
                 if stopl > self.starts[irow] + self.lengths[irow]:
                     stopl = self.starts[irow] + self.lengths[irow]
-                self.indices._g_readIndex(irow, startl, stopl, relCoords)
+                if irow < self.sorted.nrows:
+                    self.indices._g_readIndex(irow, startl, stopl, relCoords)
+                else:
+                    # Get indices for last row
+                    offset = irow*self.nelemslice
+                    stop = relCoords+(stopl-startl)
+                    self.indices.arrAbs[relCoords:stop] = \
+                         self.lrri[startl:stopl] + offset
                 incr = stopl - startl
                 relCoords += incr; startCoords += incr; maxCoords -= incr
                 if maxCoords == 0:
@@ -593,13 +942,13 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         # Some careful tests must be carried out in order to do that
         #selections = self.indices.arrAbs[:relCoords]
         selections = numarray.sort(self.indices.arrAbs[:relCoords])
-        #print "time getting coords:", time.time()-t1
+        #print "time getting coords:", time()-t1
         return selections
 
 # This tries to be a version of getCoords that keeps track of visited rows
 # in order to not re-visit them again. However, I didn't managed to make it
 # work well. However, the improvement in speed should be not important
-# in the majority of cases.
+# in most of cases.
 # Beware, the logic behind doing this is not trivial at all. You have been
 # warned!. 2004-08-03
 #     def getCoords_notwork(self, startCoords, maxCoords):
@@ -670,7 +1019,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
             else:
                 raise ValueError, \
 "Bounds (or range limits) can only be strings, bools, ints or floats."
-            
+
         # Boolean types are a special case for searching
         if str(ctype) == "Bool":
             if len(table.ops) == 1 and table.ops[0] == 5: # __eq__
@@ -679,7 +1028,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
                 return ncoords
             else:
                 raise NotImplementedError, \
-                      "Only equality operator is supported for boolean columns."
+                      "Only equality operator is suported for boolean columns."
         # Other types are treated here
         if len(ilimit) == 1:
             ilimit = ilimit[0]
@@ -718,10 +1067,10 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
             else:
                 raise SyntaxError, \
 "Combination of operators not supported. Use val1 <{=} col <{=} val2"
-                      
+
         #t1=time.time()
         ncoords = self.search(item)
-        #print "time reading indices:", time.time()-t1
+        #print "time searching indices:", time.time()-t1
         return ncoords
 
     def _g_remove(self):
@@ -745,8 +1094,19 @@ message, please, get a patched version of HDF5 1.6.3.""", UserWarning)
         #self.indices.remove()
         self._g_deleteLeaf(self.sorted.name)
         self._g_deleteLeaf(self.indices.name)
+        self._g_deleteLeaf(self.bounds.name)
+        self._g_deleteLeaf(self.lrvb.name)
+        self._g_deleteLeaf(self.lrri.name)
+        # Delete the caches
+        self.rvcache = None
+        self.bebounds = None
+        self.nelementsLR = 0
+        # delete the pointers to the objects
         self.sorted = None
         self.indices = None
+        self.bounds = None
+        self.lrvb = None
+        self.lrri = None
         # close the Index Group
         self._f_close()
         # delete it (this is defined in hdf5Extension)
@@ -758,12 +1118,22 @@ message, please, get a patched version of HDF5 1.6.3.""", UserWarning)
             self.sorted._close()
         if self.indices: # that might be already removed
             self.indices._close()
+        # Aco done problemes....
+#         if self.bounds: # that might be already removed
+#             self.bounds._close()
+#         if self.lrvb: # that might be already removed
+#             self.lrvb._close()
+#         if self.lrri: # that might be already removed
+#             self.lrri._close()
         # delete some references
         self.atom=None
         self.column=None
         self.filters=None
         self.indices = None
         self.sorted = None
+        self.bounds = None
+        self.lrvb = None
+        self.lrri = None
         self._v_attrs = None
         self._v_parent = None
         # Close this group
@@ -774,14 +1144,16 @@ message, please, get a patched version of HDF5 1.6.3.""", UserWarning)
         """This provides a more compact representation than __repr__"""
         return "Index(%s, shape=%s, chunksize=%s)" % \
                (self.nelements, self.shape, self.chunksize)
-    
+
     def __repr__(self):
         """This provides more metainfo than standard __repr__"""
 
         cpathname = self.column.table._v_pathname + ".cols." + self.column.name
         pathname = self._v_parent._g_join(self.name)
         dirty = self.column.dirty
-        return """%s (Index for column %s)
+        #print "-->", self.sorted[:]
+        #print "-->", self.rangeValues[:]
+        retstr = """%s (Index for column %s)
   type := %r
   nelements := %s
   shape := %s
@@ -791,6 +1163,13 @@ message, please, get a patched version of HDF5 1.6.3.""", UserWarning)
   dirty := %s
   sorted := %s
   indices := %s""" % (pathname, cpathname,
-                     self.type, self.nelements, self.shape,
-                     self.chunksize, self.byteorder,
-                     self.filters, dirty, self.sorted, self.indices)
+                          self.type, self.nelements, self.shape,
+                          self.chunksize, self.byteorder,
+                          self.filters, dirty, self.sorted, self.indices)
+
+        if self._v_version >= "1.1":
+            retstr += "\n  rangeValues := %s" % self.rangeValues
+            retstr += "\n  bounds := %s" % self.bounds
+            retstr += "\n  lrvb := %s" % self.lrvb
+            retstr += "\n  lrri := %s" % self.lrri
+        return retstr

@@ -217,8 +217,10 @@ if os.name == 'posix':
     # Set the appropriate flavor hdf5Extension.c source file:
     if pyrex:
         hdf5Extension = "src/hdf5Extension.pyx"
+        VLTableExt = "src/VLTableExt.pyx"
     else:
         hdf5Extension = "src/hdf5Extension.c"
+        VLTableExt = "src/VLTableExt.c"
 
     #print "lib_dirs-->", lib_dirs
     #print "inc_dirs-->", inc_dirs
@@ -377,12 +379,15 @@ else:
         sys.exit(1)
 
         
-# Update the version.h file if this file is newer
+
+# Set the appropriate flavor hdf5Extension.c source file:
 if pyrex:
     hdf5Extension = "src/hdf5Extension.pyx"
+    VLTableExt = "src/VLTableExt.pyx"
 else:
     hdf5Extension = "src/hdf5Extension.c"
-# Set the appropriate flavor hdf5Extension.c source file:
+    VLTableExt = "src/VLTableExt.c"
+# Update the version.h file if this file is newer
 if newer('setup.py', 'src/version.h'):
     open('src/version.h', 'w').write('#define PYTABLES_VERSION "%s"\n' % VERSION)
 
@@ -455,8 +460,29 @@ data.
                                            "src/H5VLARRAY.c",
                                            "src/H5LT.c",
                                            "src/H5TB.c",
-                                           "src/H5TB-opt.c",
-                                           "src/typeconv.c"],
+                                           "src/H5TB-opt.c"],
+                                library_dirs = lib_dirs,
+                                libraries = libnames,
+                                extra_link_args = lflags_arg,
+                                #runtime_library is not supported on Windows
+                                runtime_library_dirs = rlib_dirs,
+                                ),
+                      Extension("tables.VLTableExt",
+                                include_dirs = inc_dirs,
+                                define_macros = def_macros,
+                                sources = [VLTableExt,
+                                           "src/calcoffset.c",
+                                           "src/arraytypes.c",
+                                           "src/getfieldfmt.c",
+                                           "src/utils.c",
+                                           "src/H5Zlzo.c",
+                                           "src/H5Zucl.c",
+                                           "src/H5ARRAY.c",
+                                           "src/H5ARRAY-opt.c",
+                                           "src/H5VLARRAY.c",
+                                           "src/H5LT.c",
+                                           "src/H5TB.c",
+                                           "src/H5TB-opt.c"],
                                 library_dirs = lib_dirs,
                                 libraries = libnames,
                                 extra_link_args = lflags_arg,
