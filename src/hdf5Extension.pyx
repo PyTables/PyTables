@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.52 2003/06/06 16:46:08 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.53 2003/06/07 16:28:58 falted Exp $
 #
 ########################################################################
 
@@ -36,10 +36,11 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.52 $"
+__version__ = "$Revision: 1.53 $"
 
 
 import sys, os
+import types, cPickle
 import numarray as num
 import ndarray
 import chararray
@@ -673,7 +674,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.52 2003/06/06 16:46:08 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.53 2003/06/07 16:28:58 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -774,6 +775,22 @@ cdef class AttributeSet:
         raise RuntimeError("Cannot close the dataset '%s'" % self.name)
 
     return attrlist
+
+  def _g_setAttr(self, char *name, object value):
+    cdef int ret
+
+    # Append this attribute on disk
+    if isinstance(value, types.StringType):
+      self._g_setAttrStr(name, value)
+    elif isinstance(value, types.IntType):
+      self._g_setAttrInt(name, value)
+    elif isinstance(value, types.FloatType):
+      self._g_setAttrDouble(name, value)
+    else:
+      # Convert this object to a null-terminated string
+      # (binary pickles are not supported at this moment)
+      pickledvalue = cPickle.dumps(value, 0)
+      self._g_setAttrStr(name, pickledvalue)
 
   def _g_setAttrStr(self, char *attrname, char *attrvalue):
     cdef int ret
@@ -1299,27 +1316,6 @@ cdef class Table:
     # Return the buffer as a Python String
     return (nrecords, names_tuple, fmt)
 
-  def _read_records_orig(self, hsize_t start, hsize_t nrecords,
-                         object recarr):
-    cdef herr_t ret
-    cdef int buflen, ret2
-
-    # Correct the number of records to read, if needed
-    if (start + nrecords) > self.totalrecords:
-      nrecords = self.totalrecords - start
-
-    # Get the pointer to the buffer data area
-    ret2 = PyObject_AsWriteBuffer(recarr._data, &self.rbuf, &buflen)
-
-    # Readout to the buffer
-    ret = H5TBread_records(self.parent_id, self.name,
-                           start, nrecords, self.rowsize,
-                           self.field_offset, self.rbuf )
-    if ret < 0:
-      raise RuntimeError("Problems reading records.")
-
-    return nrecords
-
   def _open_read(self, object recarr):
     cdef int buflen
 
@@ -1340,42 +1336,12 @@ cdef class Table:
     if (start + nrecords) > self.totalrecords:
       nrecords = self.totalrecords - start
 
+    # Get the pointer to the buffer data area
+    #ret2 = PyObject_AsWriteBuffer(recarr._data, &self.rbuf, &buflen)
+
     if ( H5TBOread_records(&self.dataset_id, &self.space_id,
                            &self.mem_type_id, start,
                            nrecords, self.rbuf) < 0 ):
-      raise RuntimeError("Problems reading records.")
-
-    return nrecords
-
-  def _close_read(self):
-
-    if ( H5TBOclose_read(&self.dataset_id, &self.space_id,
-                         &self.mem_type_id) < 0 ):
-      raise RuntimeError("Problems closing table for read.")
-    
-  def _read_field_name_orig(self, char *field_name, hsize_t start,
-                       hsize_t nrecords, object recarr):
-    cdef herr_t ret
-    cdef void *rbuf
-    cdef int buflen, ret2, i, fieldpos
-
-    # Correct the number of records to read, if needed
-    if (start + nrecords) > self.totalrecords:
-      nrecords = self.totalrecords - start
-
-    for i in range(self.nfields):
-      if strcmp(self.field_names[i], field_name) == 0:
-        fieldpos = i
-        
-    # Get the pointer to the buffer data area
-    ret2 = PyObject_AsWriteBuffer(recarr._data, &rbuf, &buflen)    
-
-    # Readout to the buffer
-    ret = H5TBread_fields_name(self.parent_id, self.name, field_name,
-                               start, nrecords, self.field_sizes[fieldpos],
-                               self.field_offset, rbuf )
-
-    if ret < 0:
       raise RuntimeError("Problems reading records.")
 
     return nrecords
@@ -1402,7 +1368,13 @@ cdef class Table:
       raise RuntimeError("Problems reading records.")
 
     return nrecords
+ 
+  def _close_read(self):
 
+    if ( H5TBOclose_read(&self.dataset_id, &self.space_id,
+                         &self.mem_type_id) < 0 ):
+      raise RuntimeError("Problems closing table for read.")
+    
   def __dealloc__(self):
     cdef int ret
     #print "Destroying object Table in Extension"
@@ -1491,6 +1463,8 @@ cdef class Row:
     # When the buffer is full, flush it
     if self._unsavednrows == self._maxTuples:
       self._saveBufferedRows()
+      # Get again the self._fields of the new buffer
+      self._fields = self._table._v_buffer._fields
 
   def _setUnsavedNRows(self, row):
     """ set the buffer row number for this buffer """
@@ -1599,7 +1573,6 @@ cdef class Row:
     outlist = []
     for name in self._recarray._names:
       outlist.append(`self._fields[name][self._row]`)
-            #outlist.append(`self._recarray.field(name)[self._row]`)
     return "(" + ", ".join(outlist) + ")"
 
   def __repr__(self):

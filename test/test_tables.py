@@ -16,13 +16,13 @@ class Record(IsDescription):
     class will take care the user won't add any new variables and
     that their type is correct.  """
     
-    var1 = Col("CharType", 4)   # 4-character String
-    var2 = Col("Int32", 1)      # integer
-    var3 = Col("Int16", 1)      # short integer 
-    var4 = Col("Float64", 1)    # double (double-precision)
-    var5 = Col("Float32", 1)    # float  (single-precision)
-    var6 = Col("Int16", 1)      # short integer 
-    var7 = Col("CharType", 1)   # 1-character String
+    var1 = Col("CharType", 4, "abcd")   # 4-character String
+    var2 = Col("Int32", 1, 1)           # integer
+    var3 = Col("Int16", 1, 2)           # short integer 
+    var4 = Col("Float64", 1, 3.1)       # double (double-precision)
+    var5 = Col("Float32", 1, 4.2)       # float  (single-precision)
+    var6 = Col("Int16", 1, 5)           # short integer 
+    var7 = Col("CharType", 1, "e")      # 1-character String
 
 # From 0.3 on, you can dynamically define the tables with a dictionary
 RecordDescriptionDict = {
@@ -54,6 +54,56 @@ def allequal(a,b):
         result = logical_and.reduce(result)
 
     return result
+
+class DefaultValues(unittest.TestCase):
+
+    def test00(self):
+        "Checking saving a Table with default values"
+        file = tempfile.mktemp(".h5")
+        #file = "/tmp/test.h5"
+        fileh = openFile(file, "w")
+
+        # Create a table
+        table = fileh.createTable(fileh.root, 'table', Record)
+
+        # Take a number of records a bit greater
+        nrows = int(table._v_maxTuples * 1.1)
+        # Fill the table with nrows records
+        for i in xrange(nrows):
+            if i == 3 or i == 4:
+                table.row['var2'] = 2 
+            # This injects the row values.
+            table.row.append()
+
+        # We need to flush the buffers in table in order to get an
+        # accurate number of records on it.
+        table.flush()
+
+        # Create a recarray with the same default values
+        r=recarray.array([["abcd", 1, 2, 3.1, 4.2, 5, "e"]]*nrows,
+                          formats='4a,i4,i2,f8,f4,i2,1a')
+        
+        # Assign the value exceptions
+        r.field("c2")[3] = 2 
+        r.field("c2")[4] = 2
+        
+        # Read the table in another recarray
+        r2 = table.read()
+
+        # This generates too much output. Activate only when
+        # self._v_maxTuples is very small (<10)
+        if verbose and 0:
+            print "Table values:"
+            for row in table.iterrows():
+                print row
+            print r2
+            print "Record values:"
+            print r
+
+        assert r.tostring() == r2.tostring()
+        
+        fileh.close()
+        os.remove(file)
 
 class LargeRowSize(unittest.TestCase):
 
@@ -949,7 +999,7 @@ class RecArrayIO(unittest.TestCase):
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
-
+    
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(DictWriteTestCase))
@@ -968,6 +1018,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayIO))
         theSuite.addTest(unittest.makeSuite(LargeRowSize))
+        theSuite.addTest(unittest.makeSuite(DefaultValues))
             
     return theSuite
 

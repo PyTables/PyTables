@@ -444,15 +444,21 @@ class RecArray(mda.NDArray):
         for attr in _attrList:
             print '%s = %s' % (attr, getattr(self,attr))
 
-    def __str__(self):
+    def orig__str(self):
         outstr = 'RecArray[ \n'
         for i in self:
             outstr += Record.__str__(i) + ',\n'
         return outstr[:-2] + '\n]'
 
-    # This doesn't work if printing strided recarrays
+    def __str__(self):
+        outlist = []
+        for i in self:
+            outlist.append(Record.__str__(i))
+        return "RecArray[ \n" + ",\n".join(outlist) + "\n]"
+
+    # This doesn't work when printing strided recarrays
     # this should be further investigated
-    def __str__0(self):
+    def __str__1(self):
         """ return a string representation of this object """
 
         # This __str__ is around 30 times faster than the original one
@@ -509,13 +515,21 @@ class Record:
             self.array = input
             self.row = row
 
-    def __getattr__(self, fieldName):
+    def __getitem__(self, fieldName):
         """ get the field data of the record"""
 
-        #return self.array.field(fieldName)[self.row]
         if fieldName in self.array._names:
-            #return self.array.field(fieldName)[self.row]
             return self.array._fields[fieldName][self.row]
+        else:
+            raise ValueError("Inexistent name field")
+
+    def __setitem__(self, fieldName, value):
+        """ set the field data of the record"""
+
+        if fieldName in self.array._names:
+            self.array._fields[fieldName][self.row] = value
+        else:
+            raise ValueError("Inexistent name field")
 
     def field(self, fieldName):
         """ get the field data of the record"""

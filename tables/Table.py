@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.47 2003/06/04 11:14:57 falted Exp $
+#       $Id: Table.py,v 1.48 2003/06/07 16:29:02 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.47 $"
+__version__ = "$Revision: 1.48 $"
 
 from __future__ import generators
 import sys
@@ -182,19 +182,16 @@ class Table(Leaf, hdf5Extension.Table, object):
   Defaulting to zlib instead!.""" %(complib))
                 self._v_complib = "zlib"   # Should always exists
 
-    def _newBuffer(self, init=0):
+    def _newBuffer(self, init=1):
         """Create a new recarray buffer for I/O purposes"""
 
         recarr = recarray2.array(None, formats=self.description._v_recarrfmt,
-                                shape=(self._v_maxTuples,),
-                                names = self.colnames)
+                                 shape=(self._v_maxTuples,),
+                                 names = self.colnames)
         # Initialize the recarray with the defaults in description
         if init:
             for field in self.description.__slots__:
                 recarr._fields[field][:] = self.description.__dflts__[field]
-        #self.arrlist = []
-        #for col in self.varnames:
-        #    self.arrlist.append(self.arrdict[col])
 
         return recarr
 
@@ -250,7 +247,9 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Compute the byte order
         self.byteorder = byteorderDict[self._v_fmt[0]]
         # Create the arrays for buffering
-        self._v_buffer = self._newBuffer()
+        self._v_buffer = self._newBuffer(init=1)
+        # A copy of the original initialised recarray (useful when writing)
+        self._v_buffercpy = self._newBuffer(init=1)
         self.row = hdf5Extension.Row(self._v_buffer, self)
                          
     def _open(self):
@@ -293,7 +292,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.colshapes = self.description._v_shapes
         # Create the arrays for buffering
         self._v_buffer = self._newBuffer(init=0)
-        #self.row = self._v_buffer._row
         self.row = hdf5Extension.Row(self._v_buffer, self)
         
     def _calcBufferSize(self, expectedrows):
@@ -402,44 +400,20 @@ class Table(Leaf, hdf5Extension.Table, object):
 
     def _saveBufferedRows(self):
         """Save buffered table rows."""
+        # Save the records on disk
         self._append_records(self._v_buffer, self.row._getUnsavedNRows())
+        # Get a fresh copy of the default values
+        # This copy seems to make the writing with compression a 5%
+        # faster than if the copy is not made. Why??
+        if hasattr(self, "_v_buffercpy"):
+            self._v_buffer[:] = self._v_buffercpy[:]
+
         # Update the number of saved rows in this buffer
         self.nrows += self.row._getUnsavedNRows()
         # Reset the buffer unsaved counter and the buffer read row counter
         self.row._setUnsavedNRows(0)
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
-        
-    def _fetchall_orig(self):
-        """Return an iterator yielding record instances built from rows
-
-        This method is a generator, i.e. it keeps track on the last
-        record returned so that next time it is invoked it returns the
-        next available record. It is slower than readAsTuples but in
-        exchange, it returns full-fledged instance records.
-
-        """
-        # Create a buffer for the readout
-        nrowsinbuf = self._v_maxTuples
-        buffer = self._v_buffer  # Get a recarray as buffer
-        row = self.row   # get the pointer to the Row object
-        row._initLoop(0, self.nrows, 1, nrowsinbuf)
-        for i in xrange(0, self.nrows, nrowsinbuf):
-            # There is a memory leak traced back to _read_records
-            # Probably the H5TBread_records is the responsible
-            # I alleviated the problem by incrementing the buffer
-            # size for all levels a factor of ten.
-            # This has made the performance to increase between a
-            # 10% and 300%, depending on the working set size
-            recout = self._read_records_orig(i, nrowsinbuf, buffer)
-            #recout = nrowsinbuf
-            if self.byteorder <> sys.byteorder:
-                buffer.byteswap()
-            # Set the buffer counter
-            # Case for step=1
-            row._setBaseRow(i, 0)
-            for j in xrange(recout):
-                yield row()
         
     def _fetchall(self):
         """Iterate over all the rows
@@ -460,8 +434,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             #recout = nrowsinbuf
             if self.byteorder <> sys.byteorder:
                 buffer.byteswap()
-            # Set the buffer counter
-            # Case for step=1
+            # Set the buffer counter (case for step=1)
             row._setBaseRow(i, 0)
             for j in xrange(recout):
                 yield row()

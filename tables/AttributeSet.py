@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.6 2003/06/06 16:46:08 falted Exp $
+#       $Id: AttributeSet.py,v 1.7 2003/06/07 16:29:02 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.6 $"
+__version__ = "$Revision: 1.7 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -110,6 +110,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         self.__dict__["_v_attrnamesuser"] = []
         for attr in self._v_attrnames:
             # New attribute (to allow tab-completion in interactive mode)
+            # Beware! This imply that all the attributes are resident
+            # in-memory. However, as attributes should not be large
+            # this should be ok for most of the cases.
             self.__dict__[attr] = self.__getattr__(attr)
             if issysattrname(attr):
                 self._v_attrnamessys.append(attr)
@@ -138,6 +141,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         if not name in self._v_attrnames:
             return None
 
+        # Read the attribute from disk
         value = self._g_getAttr(name)
 
         # Check if value is pickled 
@@ -174,24 +178,17 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
                "'%s' node has exceeded the maximum number of attrs (%d)" % \
                (self._v_node._v_pathname, MAX_ATTRS_IN_NODE)
 
-        # Append this attribute on disk
-        if isinstance(value, types.StringType):
-            self._g_setAttrStr(name, value)
-        elif isinstance(value, types.IntType):
-            self._g_setAttrInt(name, value)
-        elif isinstance(value, types.FloatType):
-            self._g_setAttrDouble(name, value)
-        else:
-            # Convert this object to a null-terminated string
-            # (binary pickles are not supported at this moment)
-            pickledvalue = cPickle.dumps(value, 0)
-            self._g_setAttrStr(name, pickledvalue)
+        # Save this attribute to disk
+        self._g_setAttr(name, value)
             
         # Finally, add this attribute to the list if not present
         if not name in self._v_attrnames:
             self._v_attrnames.append(name)
             self._v_attrnamesuser.append(name)
             # New attribute (to allow tab-completion in interactive mode)
+            # Beware! This imply that all the attributes are resident
+            # in-memory. However, as attributes should not be large
+            # this should be ok for most of the cases.
             self.__dict__[name] = value
 
         # Sort the attributes

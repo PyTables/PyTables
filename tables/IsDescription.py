@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.5 2003/06/02 14:24:19 falted Exp $
+#       $Id: IsDescription.py,v 1.6 2003/06/07 16:29:02 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.5 $"
+__version__ = "$Revision: 1.6 $"
 
 
 import warnings
@@ -129,19 +129,6 @@ class metaIsDescription(type):
     (http://mail.python.org/pipermail/python-list/2002-July/112007.html)
     However, I've modified things quite a bit, and the ultimate goal
     has changed.
-
-    Usage:
-
-class Description(IsDescription):
-    x = 'l'
-    y = 'd'
-    color = '3s'
-
-q = Description()
-print q
-
-p = Description(x=4, y=3.4, color = "pwpwp")
-print p
 
     """
 
@@ -281,9 +268,12 @@ print p
 """ % object
                 newdict['__slots__'].append(k)
                 newdict['__types__'][k] = object.type
-                if hasattr(object, 'dflt'):
+                #print "Passant per dflt. Key -->", k
+                if hasattr(object, 'dflt') and not object.dflt is None:
+                    #print "Passant per dflt2. Object -->", object.dflt
                     newdict['__dflts__'][k] = object.dflt
                 else:
+                    #print "Passant per testtype. Object -->", testtype(object)
                     newdict['__dflts__'][k] = testtype(object)
 
                 newdict['_v_fmt'] += str(object.shape[0]) + object.rectype
