@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.20 2003/03/07 21:18:14 falted Exp $
+#       $Id: Group.py,v 1.21 2003/03/08 11:40:54 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.20 $"
+__version__ = "$Revision: 1.21 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -73,11 +73,10 @@ class Group(hdf5Extension.Group):
     
         _f_listNodes([classname])
         _f_walkGroups()
-        _f_renameObject(newname)
         _f_close()
-        _f_move(object, newname)
-        _f_remove(self)
-        _f_removeLeaf(self)
+        _f_rename(newname)
+        _f_remove()
+        _f_removeLeaf()
         
     Class variables:
 
@@ -135,7 +134,7 @@ class Group(hdf5Extension.Group):
             # Call openFile recursively over the group's tree
             objgroup._g_openFile()
         for name in leaves:
-            class_ = self._f_getLeafAttrStr(name, "CLASS")
+            class_ = self._g_getLeafAttrStr(name, "CLASS")
             if class_ is None:
                 # No CLASS attribute, try a guess
                 warnings.warn( \
@@ -219,7 +218,7 @@ class Group(hdf5Extension.Group):
         else:
             self._g_open(parent, self._v_hdf5name)
 
-    def _f_renameObject(self, newname):
+    def _g_renameObject(self, newname):
         
         """Rename this group in the object tree as well as in the HDF5 file."""
 
@@ -283,11 +282,11 @@ class Group(hdf5Extension.Group):
                       self._g_openGroup(parent._v_groupId, name)
         # Get the title, class and version attributes
         self.__dict__["_v_title"] = \
-                      self._f_getGroupAttrStr('TITLE')
+                      self._f_getAttr('TITLE')
         self.__dict__["_v_class"] = \
-                      self._f_getGroupAttrStr('CLASS')
+                      self._f_getAttr('CLASS')
         self.__dict__["_v_version"] = \
-                      self._f_getGroupAttrStr('VERSION')
+                      self._f_getAttr('VERSION')
 
     def _g_create(self):
         """Call the createGroup method in super class to create the group on
@@ -437,29 +436,67 @@ class Group(hdf5Extension.Group):
         del self._c_objgroups[self._v_pathname]
         del self._c_objects[self._v_pathname]
 
-    def _f_move(self, object, newname):
-        """Rename an HDF5 node"""
+    def _f_getAttr(self, attrname):
+        """Get a group attribute as a string"""
+        
+        if attrname == "" or attrname is None:
+            raise ValueError, \
+"""You need to supply a valid attribute name"""            
+        return self._g_getGroupAttrStr(attrname)
+
+    def _f_setAttr(self, attrname, attrvalue):
+        """Set an group attribute as a string"""
+
+        if attrname == "" or attrname is None:
+            raise ValueError, \
+"""You need to supply a valid attribute name"""            
+
+        if type(attrvalue) == types.StringType:
+            return self._g_setGroupAttrStr(attrname, attrvalue)
+        else:
+            raise ValueError, \
+"""Only string values are supported as attributes right now"""
+
+    def _f_rename(self, newname):
+        """Rename an HDF5 group"""
 
         # Check for name validity
         checkNameValidity(newname)
         # Check if self has a child with the same name
-        if newname in self._v_objchilds:
+        if newname in self._v_parent._v_objchilds:
             raise RuntimeError, \
         """Another sibling (%s) already has the name '%s' """ % \
-                   (self._v_objchilds[newname], newname)
-        oldname = object._v_name
+                   (self._v_parent._v_objchilds[newname], newname)
         # Rename all the appearances of oldname in the object tree
-        object._f_renameObject(newname)
-        self._g_moveNode(oldname, newname)
+        oldname = self._v_name
+        self._g_renameObject(newname)
+        self._v_parent._g_renameNode(oldname, newname)
         
-    def _f_remove(self):
+    def _f_remove(self, recursive=0):
         """Remove this HDF5 group"""
-        self._g_deleteGroup()
         
-    def _f_removeLeaf(self, object):
-        """Remove an HDF5 Leaf that is child of this group"""
-        self._g_deleteLeaf(object._v_name)
-        
+        if self._v_objchilds <> {}:
+            if recursive:
+                # First close all the childs hanging from this group
+                for group in self._f_walkGroups():
+                    for leaf in group._f_listNodes('Leaf'):
+                        # Delete the back references in Leaf
+                        leaf.close()
+                    # Close this group
+                    group._f_close()
+                # Finally, remove this group
+                self._g_deleteGroup()
+            else:
+                warnings.warn( \
+"""\n  The group '%s' has childs, but the 'recursive' flag is not on.
+  Activate it if you really want to recursively delete this group.""" % \
+(self._v_pathname), UserWarning)
+        else:
+            # This group has no childs, so we can delete it
+            # without any other measure
+            self._f_close()
+            self._g_deleteGroup()
+
     # Moved out of scope
     def _g_del__(self):
         print "Deleting Group name:", self._v_name
@@ -474,6 +511,8 @@ class Group(hdf5Extension.Group):
         classname = self.__class__.__name__
         # The title
         title = self._v_title
-        # Printing the filename can be confusing in some contexts
-        #return "/%s%s %s" % (filename, pathname, classname)
         return "%s (%s) \"%s\"" % (pathname, classname, title)
+
+    def __repr__(self):
+        """A detailed string representation for this object."""
+        return str(self)

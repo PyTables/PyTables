@@ -52,7 +52,7 @@ class OpenFileTestCase(unittest.TestCase):
         arr = fileh.createArray(fileh.root, 'array', [1,2],
                                 title = "Title example")
         # Get the CLASS attribute of the arr object
-        class_ = fileh.root._f_getLeafAttrStr("array", "CLASS")
+        class_ = fileh.root.array._f_getAttr("CLASS")
 
         fileh.close()
         os.remove(file)
@@ -65,7 +65,7 @@ class OpenFileTestCase(unittest.TestCase):
         # Open the old HDF5 file
         fileh = openFile(self.file, mode = "r")
         # Get the CLASS attribute of the arr object
-        title = fileh.root._f_getLeafAttrStr("array", "TITLE")
+        title = fileh.root.array._f_getAttr("TITLE")
 
         assert title == "Title example"
     
@@ -147,7 +147,7 @@ class OpenFileTestCase(unittest.TestCase):
         # Open this file in read-only mode
         fileh = openFile(self.file, mode = "r")
         # Get the CLASS attribute of the arr object
-        title = fileh.root._f_getLeafAttrStr("array2", "TITLE")
+        title = fileh.root.array2._f_getAttr("TITLE")
 
         assert title == "Title example 2"
         fileh.close()
@@ -164,7 +164,7 @@ class OpenFileTestCase(unittest.TestCase):
         # Open this file in read-only mode
         fileh = openFile(self.file, mode = "r")
         # Get the CLASS attribute of the arr object
-        title = fileh.root._f_getLeafAttrStr("array2", "TITLE")
+        title = fileh.root.array2._f_getAttr("TITLE")
 
         assert title == "Title example 2"
         fileh.close()
@@ -361,11 +361,28 @@ class OpenFileTestCase(unittest.TestCase):
             self.fail("expected an LookupError")
         fileh.close()
 
+    def test06d_removeLeaf(self):
+        """Checking removing a non-existent node"""
+
+        fileh = openFile(self.file, mode = "r+")
+        
+        # Try to get the removed object
+        try:
+            fileh.removeNode(fileh.root, 'nonexistent')
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
+        fileh.close()
+
     def test07_renameLeaf(self):
         """Checking renaming a leave and access it after a close/open"""
 
         fileh = openFile(self.file, mode = "r+")
-        fileh.moveNode(fileh.root, 'anarray', 'anarray2')
+        fileh.renameNode(fileh.root, 'anarray', 'anarray2')
         fileh.close()
 
         # Open this file in read-only mode
@@ -390,7 +407,7 @@ class OpenFileTestCase(unittest.TestCase):
         """Checking renaming Leaves and accesing them immediately"""
 
         fileh = openFile(self.file, mode = "r+")
-        fileh.moveNode(fileh.root, 'anarray', 'anarray2')
+        fileh.renameNode(fileh.root, 'anarray', 'anarray2')
 
         # Ensure that the new name exists
         array_ = fileh.root.anarray2
@@ -415,7 +432,7 @@ class OpenFileTestCase(unittest.TestCase):
         fileh = openFile(self.file, mode = "r+")
         # Try to get the previous object with the old name
         try:
-            fileh.moveNode(fileh.root, 'anarray', 'array')        
+            fileh.renameNode(fileh.root, 'anarray', 'array')        
         except RuntimeError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -432,7 +449,7 @@ class OpenFileTestCase(unittest.TestCase):
         fileh = openFile(self.file, mode = "r+")
         # Try to get the previous object with the old name
         try:
-            fileh.moveNode(fileh.root, 'anarray', 'array 2')        
+            fileh.renameNode(fileh.root, 'anarray', 'array 2')        
         except NameError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -446,7 +463,7 @@ class OpenFileTestCase(unittest.TestCase):
         """Checking renaming a Group and access it after a close/open"""
 
         fileh = openFile(self.file, mode = "r+")
-        fileh.moveNode(fileh.root, 'agroup', 'agroup3')
+        fileh.renameNode(fileh.root, 'agroup', 'agroup3')
         fileh.close()
 
         # Open this file in read-only mode
@@ -486,7 +503,7 @@ class OpenFileTestCase(unittest.TestCase):
         """Checking renaming a Group and access it immediately"""
 
         fileh = openFile(self.file, mode = "r+")
-        fileh.moveNode(fileh.root, 'agroup', 'agroup3')
+        fileh.renameNode(fileh.root, 'agroup', 'agroup3')
 
         # Ensure that the new name exists
         group = fileh.root.agroup3

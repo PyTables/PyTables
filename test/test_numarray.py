@@ -280,13 +280,15 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 
         self.fileh.createArray(self.root, 'somearray',
                                a, "Some array")
-	
+
+	# Do not close and re-open the file to cath-up
+        # possible errors during the creation and later reading
+        # of an array without an close/open in the middle
         # Close the file
-        self.fileh.close()
-	
+        #self.fileh.close()
 	# Re-open the file in read-only mode
-        self.fileh = openFile(self.file, mode = "r")
-        self.root = self.fileh.root
+        #self.fileh = openFile(self.file, mode = "r")
+        #self.root = self.fileh.root
 	
 	# Read the saved array
 	b = self.root.somearray.read()

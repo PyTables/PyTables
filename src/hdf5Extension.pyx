@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.32 2003/03/07 21:18:10 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.33 2003/03/08 11:40:54 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.32 $"
+__version__ = "$Revision: 1.33 $"
 
 
 import sys, os.path
@@ -490,7 +490,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.32 2003/03/07 21:18:10 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.33 2003/03/08 11:40:54 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -598,7 +598,7 @@ cdef class Group:
     # Return a tuple with the objects groups and objects dsets
     return Giterate(loc_id, name)
 
-  def _f_getLeafAttrStr(self, char *dsetname, char *attrname):
+  def _g_getLeafAttrStr(self, char *dsetname, char *attrname):
     cdef hsize_t *dims, nelements
     cdef H5T_class_t class_id
     cdef size_t type_size
@@ -613,7 +613,11 @@ cdef class Group:
 
     # Check if attribute exists
     if H5LT_find_attribute(loc_id, attrname) <= 0:
-        return None
+      # If the attribute does not exists, return None
+      # and do not even warn the user
+      return None
+#       raise LookupError("Attribute %s in leaf %s does not exist." %
+#                              (attrname, dsetname))
       
     ret = H5LTget_attribute_ndims(self.group_id, dsetname, attrname, &rank )
     if ret < 0:
@@ -652,7 +656,7 @@ cdef class Group:
     return attrvalue
 
   # Get attributes (only supports string attributes right now)
-  def _f_getGroupAttrStr(self, char *attrname):
+  def _g_getGroupAttrStr(self, char *attrname):
     cdef hsize_t *dims, nelements
     cdef H5T_class_t class_id
     cdef size_t type_size
@@ -662,7 +666,12 @@ cdef class Group:
         
     # Check if attribute exists
     if H5LT_find_attribute(self.group_id, attrname) <= 0:
-        return None
+      # If the attribute does not exists, return None
+      # and do not even warn the user
+      return None
+#       raise LookupError("Attribute %s in group %s does not exist." %
+#                              (attrname, self.name))
+
 
     ret = H5LTget_attribute_ndims(self.parent_id, self.name, attrname, &rank )
     if ret < 0:
@@ -704,6 +713,15 @@ cdef class Group:
       raise RuntimeError("Can't set attribute %s in group %s." % 
                              (self.attrname, self.name))
 
+  def _g_setLeafAttrStr(self, char *dsetname, char *attrname, char *attrvalue):
+    cdef int ret
+      
+    ret = H5LTset_attribute_string(self.group_id, dsetname,
+                                   attrname, attrvalue)
+    if ret < 0:
+      raise RuntimeError("Can't set attribute %s in leaf %s." % 
+                             (self.attrname, dsetname))
+
   def _g_closeGroup(self):
     cdef int ret
     
@@ -713,7 +731,7 @@ cdef class Group:
       raise RuntimeError("Problems closing the Group %s" % self.name )
     self.group_id = 0  # indicate that this group is closed
 
-  def _g_moveNode(self, char *oldname, char *newname):
+  def _g_renameNode(self, char *oldname, char *newname):
     cdef int ret
 
     #print "Renaming the HDF5 Node", oldname, "to", newname

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.11 2003/03/07 21:18:17 falted Exp $
+#       $Id: Leaf.py,v 1.12 2003/03/08 11:40:54 falted Exp $
 #
 ########################################################################
 
@@ -27,8 +27,10 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.11 $"
+__version__ = "$Revision: 1.12 $"
 
+import types
+from utils import checkNameValidity
 
 class Leaf:
     
@@ -43,8 +45,9 @@ class Leaf:
 
     Methods:
 
-        getAttrStr(attrname)
-        _f_renameObject(newname)
+        _f_getAttr(attrname)
+        _f_setAttr(attrname, attrvalue)
+        _f_rename(newname)
 
     Instance variables:
 
@@ -73,7 +76,7 @@ class Leaf:
         else:
             self._open()
 
-    def _f_renameObject(self, newname):
+    def _g_renameObject(self, newname):
         """Rename this leaf in the object tree as well as in the HDF5 file."""
 
         parent = self._v_parent
@@ -103,11 +106,51 @@ class Leaf:
         parent._v_objleaves[newname] = self
         parent.__dict__[newname] = self
         
-    def getAttrStr(self, attrname):
+    def _f_rename(self, newname):
+        """Rename an HDF5 leaf"""
+
+        # Check for name validity
+        checkNameValidity(newname)
+        # Check if self has a child with the same name
+        if newname in self._v_parent._v_objchilds:
+            raise RuntimeError, \
+        """Another sibling (%s) already has the name '%s' """ % \
+                   (self._v_parent._v_objchilds[newname], newname)
+        # Rename all the appearances of oldname in the object tree
+        oldname = self._v_name
+        self._g_renameObject(newname)
+        self._v_parent._g_renameNode(oldname, newname)
+        
+    def _f_getAttr(self, attrname):
         """Get a leaf attribute as a string"""
         
-        return self._v_parent._f_getLeafAttrStr(self._v_hdf5name, attrname)
-            
+        if attrname == "" or attrname is None:
+            raise ValueError, \
+"""You need to supply a valid attribute name"""            
+        return self._v_parent._g_getLeafAttrStr(self._v_hdf5name, attrname)
+
+    def _f_setAttr(self, attrname, attrvalue):
+        """Set an leaf attribute as a string"""
+
+        if attrname == "" or attrname is None:
+            raise ValueError, \
+"""You need to supply a valid attribute name"""            
+        if type(attrvalue) == types.StringType:
+            return self._v_parent._g_setLeafAttrStr(self._v_hdf5name,
+                                                    attrname, attrvalue)
+        else:
+            raise ValueError, \
+"""Only string values are supported as attributes right now"""
+
+    def _f_remove(self, recursive):
+        """Remove an HDF5 Leaf that is child of this group
+
+        "recursive" parameter is not needed here.
+        """
+        parent = self._v_parent
+        self.close()
+        parent._g_deleteLeaf(self._v_name)
+
     def close(self):
         """Flush the Leaf buffers and close this object on file."""
         self.flush()

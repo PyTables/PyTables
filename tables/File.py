@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.18 2003/03/07 21:18:13 falted Exp $
+#       $Id: File.py,v 1.19 2003/03/08 11:40:54 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.18 $"
+__version__ = "$Revision: 1.19 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -260,39 +260,21 @@ class File(hdf5Extension.File):
         
         else:
             # Firstly, get the PyTables format version for this file
-            try:
-                self.format_version = \
-                    root._f_getGroupAttrStr('PYTABLES_FORMAT_VERSION')
-            except RuntimeError:
-                # Ummm, FORMAT_VERSION attribute is not present. We cannot
-                # read anymore. Raise an IOError.
-                raise IOError,\
-"""Format version for file \'%s\' not available. This is not a PyTables file.
-Sorry, you can only read PyTables \
-(a subset of HDF5 format) files right now (although this might change in the \
-future). Giving up.""" % \
-                      (self.filename)
-                          
-#             # Check if we can read this format
-#             if self.format_version <> format_version:
-#                 if self.format_version not in compatible_formats:
-#                     supported_versions = compatible_formats
-#                     supported_versions.append(format_version)
-#                     raise IOError, \
-# """'%s' file format version ('%s') is not supported.
-#   Supported versions in this release are: %s.
-#   Giving up""" % \
-# (self.filename, self.format_version, supported_versions)
+            self.format_version = \
+                                root._f_getAttr('PYTABLES_FORMAT_VERSION')
+            if self.format_version == None:
+                # PYTABLES_FORMAT_VERSION attribute is not present
+                self.format_version = "unknown"
                           
             # Get the title, class and version attributes
             # (only for root)
             root.__dict__["_v_title"] = \
-                      root._f_getGroupAttrStr('TITLE')
+                      root._f_getAttr('TITLE')
             self.title = root._v_title   # This is a standard File attribute
             root.__dict__["_v_class"] = \
-                      root._f_getGroupAttrStr('CLASS')
+                      root._f_getAttr('CLASS')
             root.__dict__["_v_version"] = \
-                      root._f_getGroupAttrStr('VERSION')
+                      root._f_getAttr('VERSION')
                       
             # Get all the groups recursively
             root._g_openFile()
@@ -404,7 +386,7 @@ future). Giving up.""" % \
         
         """Returns the object node "name" under "where" location. "where"
         can be a path string or Group instance. If "where" doesn't exists or
-        has not a child called "name", a ValueError error is raised. If
+        has not a child called "name", a LookupError error is raised. If
         "name" is a null string (""), or not supplied, this method assumes
         to find the object in "where". If a "classname" parameter is
         supplied, returns only an instance of this class name. Allowed names
@@ -438,7 +420,7 @@ future). Giving up.""" % \
         elif isinstance(where, Leaf):
             
             if name:
-                raise ValueError, \
+                raise LookupError, \
 """'where' parameter (with value \'%s\') is a Leaf instance so it cannot \
 have a 'name' child node (with value \'%s\')""" % (where, name)
 
@@ -462,78 +444,69 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
                 return -1
         return object
 
-    
-    def moveNode(self, where, name = "", newname = ""):
+    def renameNode(self, where, name = "", newname = ""):
         """Rename the object node "name" under "where" location.
 
         "where" can be a path string or Group instance. If "where"
-        doesn't exists or has not a child called "name", a ValueError
+        doesn't exists or has not a child called "name", a LookupError
         error is raised. If "name" is a null string (""), or not
         supplied, this method assumes to find the object in "where".
+        "newname" is the new name of be assigned to the child.
         
         """
 
         # Get the node to be renamed
         object = self.getNode(where, name=name)
-        ret = object._v_parent._f_move(object, newname)
-        return ret
+        object._f_rename(newname)
         
-    def removeNode(self, where, name = "", classname = "", recursive = 0):
+    def getAttrNode(self, where, name = "", attrname = ""):
+        """Returns the attribute "attrname" of node "where"."name".
+
+        "where" can be a path string or Group instance. If "where"
+        doesn't exists or has not a child called "name", a LookupError
+        error is raised. If "name" is a null string (""), or not
+        supplied, this method assumes to find the object in "where".
+        "attrname" is the name of the attribute to get.
+        
+        """
+
+        # Get the node to be renamed
+        object = self.getNode(where, name=name)
+        return object._f_getAttr(attrname)
+        
+    def setAttrNode(self, where, name="", attrname="", attrvalue=""):
+        """Set the attribute "attrname" of node "where"."name".
+
+        "where" can be a path string or Group instance. If "where"
+        doesn't exists or has not a child called "name", a LookupError
+        error is raised. If "name" is a null string (""), or not
+        supplied, this method assumes to find the object in "where".
+        "attrname" is the name of the attribute to set and "attrvalue"
+        its value.
+        
+        """
+
+        # Get the node to be renamed
+        object = self.getNode(where, name=name)
+        object._f_setAttr(attrname, attrvalue)
+        
+    def removeNode(self, where, name = "", recursive = 0):
         """Removes the object node "name" under "where" location.
 
         "where" can be a path string or Group instance. If "where"
-        doesn't exists or has not a child called "name", a ValueError
+        doesn't exists or has not a child called "name", a LookupError
         error is raised. If "name" is a null string (""), or not
-        supplied, this method assumes to find the object in
-        "where". If a "classname" parameter is supplied, the node is
-        deleted only if belongs to this class name. Allowed names in
-        "classname" are: 'Group', 'Leaf', 'Table' and 'Array'.  If
-        "recursive" is zero or not supplied, the object will be
+        supplied, this method assumes to find the object in "where".
+        If "recursive" is zero or not supplied, the object will be
         removed only if it has not children. If "recursive" is true,
         the object and all its descendents will be completely removed.
 
         """
 
         # Get the node to be removed
-        object = self.getNode(where, name=name, classname=classname)
+        object = self.getNode(where, name=name)
+        object._f_remove(recursive)
         
-        # Remove the node
-        if isinstance(object, Group):
-            if object._v_objchilds <> {}:
-                if recursive:
-                    # First close all the childs hanging from this group
-                    for group in self.walkGroups(object):
-                        for leaf in self.listNodes(group, classname = 'Leaf'):
-                            # Delete the back references in Leaf
-                            leaf.close()
-                        # Close this group
-                        group._f_close()
-                    # Finally, remove this group
-                    object._f_remove()
-                    returncode = 0
-                else:
-                    warnings.warn( \
-"""\n  The group '%s' has childs, but the 'recursive' flag is not on.
-  Activate it if you really want to recursively delete this group.""" % \
-(object._v_pathname), UserWarning)
-                    returncode = -1
-            else:
-                # This group has no childs, so we can delete it
-                # without problems
-                object._f_close()
-                object._f_remove()
-                returncode = 0
-        elif isinstance(object, Leaf):
-            parent = object._v_parent
-            object.close()
-            parent._f_removeLeaf(object)
-            returncode = 0
-        else:
-            raise RuntimeError, \
-"""This should never happen. Please, report this as a possible bug."""
-
-        return returncode
-
     def listNodes(self, where, classname = ""):
         
         """Returns a list with all the object nodes (Group or Leaf) hanging
@@ -601,7 +574,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         
         # Print all the nodes (Group and Leaf objects) on object tree
         string = 'Filename: ' + self.filename + ' \\\\'
-        string += ' Title: \"' + str(self.title) + '\" \\\\'
+        string += ' Title: ' + str(self.title) + ' \\\\'
         string += ' Format version: ' + str(self.format_version) + '\n'
         for group in self.walkGroups("/"):
             string += str(group) + '\n'
@@ -616,7 +589,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         
         # Print all the nodes (Group and Leaf objects) on object tree
         string = 'Filename: ' + self.filename + ' \\\\'
-        string += ' Title: \"' + str(self.title) + '\" \\\\'
+        string += ' Title: ' + str(self.title) + ' \\\\'
         string += ' Format version: ' + str(self.format_version) + '\n'
         string += '  mode: ' + self.mode + '\n'
         string += '  trTable: ' + str(self.trTable) + '\n'

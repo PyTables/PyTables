@@ -5,12 +5,16 @@ if __name__=="__main__":
     import getopt
 
     usage = \
-"""usage: %s [-v] file
-  -v means dumping detailed Table and Array attributes\n""" \
+"""usage: %s [-v level] file
+  -v level means dumping detailed Table and Array attributes
+            1 - medium verbosity
+            2 - great verbosity
+  -d means detailed information divided in Groups, Arrays and Tables
+            \n""" \
     % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'v')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'v:d')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -22,11 +26,14 @@ if __name__=="__main__":
 
     # default options
     verbose = 0
+    detailed = 0
 
     # Get the options
     for option in opts:
         if option[0] == '-v':
-            verbose = 1
+            verbose = int(option[1])
+        if option[0] == '-d':
+            detailed = 1
 
     # Catch the hdf5 file passed as the last argument
     file = pargs[0]
@@ -35,9 +42,12 @@ if __name__=="__main__":
     # Print all their content
     print "Filename:", file
     print "All objects:"
-    print h5file
+    if verbose >= 1:
+        print repr(h5file)
+    else:
+        print h5file
 
-    if verbose:
+    if detailed:
         # Print detailed info on leaf objects
 
         print "Detailed info on this file object tree follows:"

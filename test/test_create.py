@@ -127,22 +127,57 @@ class createTestCase(unittest.TestCase):
 	# Try to put a very long title on a group object
 	group = self.fileh.createGroup(self.root, 'group',
                                        "t" * titlelength)
-        # For Group, unlimited title lenght is supported
-        assert group._f_getGroupAttrStr('TITLE') == "t" * titlelength
+        assert group._f_getAttr('TITLE') == "t" * titlelength
 	
 	# Now, try with a table object
-	# This supports titles until 255 characters. The rest is lost.
 	table = self.fileh.createTable(self.root, 'table',
                                        Record(), "t" * titlelength)
-	# getTableTitle can retrieve only the first 255 charactes
-	assert table.getAttrStr("TITLE") == "t" * titlelength
+	assert table._f_getAttr("TITLE") == "t" * titlelength
 	    
 	# Finally, try with an Array object
-	# This supports titles until 255 characters. The rest is lost.
         arr = self.fileh.createArray(self.root, 'arr',
                                      [1], "t" * titlelength)
-	# getTitle can retrieve only the first 255 charactes
 	assert arr.title == "t" * titlelength
+	    
+    def test03b_setAttributes(self):
+        """Checking setting large string attributes (File methods)"""
+
+	attrlength = 2048
+	# Try to put a long string attribute on a group object
+	attr = self.fileh.setAttrNode(self.root, 'agroup',
+                                      "attr1", "p" * attrlength)
+        assert self.fileh.getAttrNode(self.root, 'agroup', 'attr1') == \
+               "p" * attrlength
+	
+	# Now, try with a Table object
+	attr = self.fileh.setAttrNode(self.root, 'atable',
+                                      "attr1", "a" * attrlength)
+        assert self.fileh.getAttrNode(self.root, 'atable', 'attr1') == \
+               "a" * attrlength
+	    
+	# Finally, try with an Array object
+	attr = self.fileh.setAttrNode(self.root, 'anarray',
+                                      "attr1", "n" * attrlength)
+        assert self.fileh.getAttrNode(self.root, 'anarray', 'attr1') == \
+               "n" * attrlength
+	    
+	    
+    def test03c_setAttributes(self):
+        """Checking setting large string attributes (Node methods)"""
+
+	attrlength = 2048
+	# Try to put a long string attribute on a group object
+        self.root.agroup._f_setAttr('attr1', "p" * attrlength)
+        assert self.root.agroup._f_getAttr('attr1') == "p" * attrlength
+	
+	# Now, try with a Table object
+        self.root.atable._f_setAttr('attr1', "a" * attrlength)
+	assert self.root.atable._f_getAttr("attr1") == "a" * attrlength
+	    
+	# Finally, try with an Array object
+        self.root.anarray._f_setAttr('attr1', "n" * attrlength)
+	assert self.root.anarray._f_getAttr("attr1") == "n" * attrlength
+	    
 	    
     def test04_maxFields(self):
 	"Checking the maximum number of fields (255) in tables"
