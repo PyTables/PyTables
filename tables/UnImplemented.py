@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/UnImplemented.py,v $
-#       $Id: UnImplemented.py,v 1.5 2004/12/09 13:02:01 falted Exp $
+#       $Id: UnImplemented.py,v 1.6 2004/12/13 17:30:59 ivilata Exp $
 #
 ########################################################################
 
@@ -24,7 +24,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.5 $"
+__version__ = "$Revision: 1.6 $"
 
 from Leaf import Leaf
 import hdf5Extension
@@ -52,6 +52,6 @@ class UnImplemented(Leaf, hdf5Extension.UnImplemented, object):
         return """%s
   NOTE: <The UnImplemented object represents a PyTables unimplemented
          dataset present in the '%s' HDF5 file.
-         If you wanna see this kind of HDF5 dataset implemented in
+         If you want to see this kind of HDF5 dataset implemented in
          PyTables, please, contact the developers.>
 """ % (str(self), self._v_file.filename)
