@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.142 2004/09/24 11:58:11 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.143 2004/09/28 17:17:49 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.142 $"
+__version__ = "$Revision: 1.143 $"
 
 
 import sys, os
@@ -933,7 +933,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.142 2004/09/24 11:58:11 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.143 2004/09/28 17:17:49 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1474,7 +1474,6 @@ cdef class Group:
     cdef int ret
 
     # Delete this group
-    #print "Deleting leaf -->", self.name
     ret = H5Gunlink(self.parent_id, self.name)
     if ret < 0:
       raise RuntimeError("Problems deleting the Group %s" % self.name )
@@ -1484,6 +1483,9 @@ cdef class Group:
     cdef int ret
 
     # Delete the leaf child
+#     print "Deleting leaf in -->", self.name, dsetname
+#     list1 = self._g_listGroup(self.parent_id, self.group_id, self.name)
+#     print "Childs-->", list1
     ret = H5Gunlink(self.group_id, dsetname)
     if ret < 0:
       raise RuntimeError("Problems deleting the Leaf '%s'" % dsetname )

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.19 2004/09/27 18:10:45 falted Exp $
+#       $Id: Index.py,v 1.20 2004/09/28 17:17:50 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.19 $"
+__version__ = "$Revision: 1.20 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -198,23 +198,24 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
     Instance variables:
 
         column -- The column object this index belongs to
-        type -- The type class for the array.
+        type -- The type class for the index.
         itemsize -- The size of the atomic items. Specially useful for
             CharArrays.
-        flavor -- The flavor of this object.
         nrows -- The number of slices in index.
         nelements -- The total number of elements in the index.
         nelemslice -- The number of elements per slice.
         chunksize -- The HDF5 chunksize for each slice.
         filters -- The Filters instance for this object.
-            
+        dirty -- Whether the index is dirty or not.
+        sorted -- The IndexArray object with the sorted values information.
+        indices -- The IndexArray object with the sorted indices information.
 
     """
 
     def __init__(self, atom = None, where= None, name = None,
                  title = "", filters = None, expectedrows = 1000,
                  testmode = 0):
-        """Create an IndexArray instance.
+        """Create an Index instance.
 
         Keyword arguments:
 
@@ -304,7 +305,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
 
         assert isinstance(self.atom, Atom), "The object passed to the IndexArray constructor must be a descendent of the Atom class."
         assert self.atom.shape == 1, "Only scalar columns can be indexed."
-        # Version, type, shape, flavor, byteorder
+        # Version, type, shape, byteorder
         self._v_version = obversion
         self.type = self.atom.type
         self.title = self._v_new_title
@@ -607,19 +608,18 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         #self.indices._close()
         self.sorted.flush()
         self.indices.flush()
-        #print "delete Leaf %s in %s" % (self.sorted.name, self.name)
-        #sys.exit(1)
+        # The next cannot be done because sortedArray and revIndexArray are
+        # not regular Leafs
+        #self.sorted.remove()
+        #self.indices.remove()
         self._g_deleteLeaf(self.sorted.name)
         self._g_deleteLeaf(self.indices.name)
-        self.sorted.remove()
-        self.indices.remove()
         self.sorted = None
         self.indices = None
         # close the Index Group
         self._f_close()
         # delete it (this is defined in hdf5Extension)
         self._g_deleteGroup()
-
 
     def _f_close(self):
         # close the indices

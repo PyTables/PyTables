@@ -4166,7 +4166,8 @@ fileh.close()
 
 	    <p>Modify a series of rows in the
 	      <verb>[start:stop:step]</verb> <em>extended slice</em>
-	      range.
+	      range. If you pass <verb>None</verb> to <em>stop</em>,
+	      all the rows existing in <em>rows</em> will be used.
 	    </p>
 
 	    <p><em>rows</em> can be either a <verb>RecArray</verb>
@@ -4191,11 +4192,12 @@ fileh.close()
 
 	  <subsubsection id="modifyColumnsDescr">
 	    <heading>modifyColumns(start=None, stop=None, step=1,
-	      rows=None)</heading>
+	      columns=None, names=None)</heading>
 
 	    <p>Modify a series of rows in the
 	      <verb>[start:stop:step]</verb> <em>extended slice</em>
-	      row range.
+	      row range. If you pass <verb>None</verb> to <em>stop</em>,
+	      all the rows existing in <em>columns</em> will be used.
 	    </p>
 
 	    <p><em>columns</em> can be either a RecArray<verb></verb>
@@ -4257,9 +4259,11 @@ fileh.close()
 	    <heading>removeIndex(index=None)</heading>
 
 	    <p>Remove the index associated with the specified
-	      column. Only Index instances are accepted as parameter.
-	      This index can be recreated again by calling the <ref
-	      refid="createIndexDescr">createIndex</ref> method of the
+	      column. Only <verb>Index</verb> instances (see <ref
+	      refid="IndexClassDescr"></ref>) are accepted as
+	      parameter.  This index can be recreated again by calling
+	      the <verb>createIndex</verb> (see <ref
+	      refid="createIndexColumnDescr"></ref>) method of the
 	      appropriate <verb>Column</verb> object.
 	    </p>
 	  </subsubsection>
@@ -4291,10 +4295,10 @@ fileh.close()
 	    <p>Recompute the existing indexes in table, but
 	      <em>only</em> if they are dirty. This can be useful when
 	      you have set the <verb>reindex</verb> parameter to 0 in
-	      IndexProps constructor (see <ref
+	      <verb>IndexProps</verb> constructor (see <ref
 	      refid="IndexPropsInitDescr"></ref>) for the table and
-	      want to update the indexes after invalidating index
-	      operations.
+	      want to update the indexes after a invalidating index
+	      operation (<verb>Table.removeRows</verb>, for example).
 	    </p>
 	  </subsubsection>
 
@@ -4407,8 +4411,8 @@ fileh.close()
 
 	</subsection>
 	<subsection id="TableSpecialMethods">
-	  <heading><visual markup="tt">Table</visual> special
-	      methods</heading>
+	  <heading><visual markup="tt">Table</visual> special methods
+	  </heading>
 
 	  <p>Following are described the methods that automatically
 	    trigger actions when a <verb>Table</verb> instance is
@@ -4504,10 +4508,30 @@ fileh.close()
 		<verb>RecArray</verb> object or a list of rows capable
 		of being converted to the table field format.
 	      </item>
-
 	    </description>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      # Modify just one existing row
+	      table[2] = [456,'db2',1.2]
+	      # Modify two existing rows
+	      rows = numarray.records.array([[457,'db1',1.2],[6,'de2',1.3]],
+	                                    formats="i4,a3,f8")
+	      table[1:3:2] = rows
+	    </verbatim>
+
+	    <p>Which is equivalent to:</p>
+
+	    <verbatim>
+	      table.modifyRows(start=2, [456,'db2',1.2])
+	      rows = numarray.records.array([[457,'db1',1.2],[6,'de2',1.3]],
+	                                    formats="i4,a3,f8")
+	      table.modifyRows(start=1, step=2, rows)
+	    </verbatim>
+
 	  </subsubsection>
-	</subsection>
+	</subsection> <!-- Table special methods -->
 
 	<subsection id="RowClassDescr">
 	  <heading>The <visual markup="tt">Row</visual> class</heading>
@@ -4527,8 +4551,8 @@ fileh.close()
 	  </p>
 
 	  <subsubsection>
-	    <heading><visual markup="tt">Row</visual>
-	      methods</heading>
+	    <heading><visual markup="tt">Row</visual> methods
+	    </heading>
 
 	    <description>
 
@@ -4561,48 +4585,136 @@ fileh.close()
 	    for examples of use.
 	  </p>
 	</subsection> <!-- Cols -->
+      </section> <!-- Table -->
 
-	<subsection id="ColumnClassDescr">
-	  <heading>The <visual markup="tt">Column</visual> class</heading>
+      <section id="ColumnClassDescr">
+	<heading>The <visual markup="tt">Column</visual> class</heading>
 
-	  <p>Each instance of this class is associated with one column
-	    of every table. These instances are used to fetch (but not
-	    set) actual data from the table columns. The access
-	    interface is like a regular list, and you can select
-	    individual values or slices.
-	  </p>
+	<p>Each instance of this class is associated with one column
+	  of every table. These instances are mainly used to fetch and
+	  set actual data from the table columns, but there are a few
+	  other associated methods to deal with indexes.
+	</p>
 
-	  <subsubsection>
-	    <heading><visual markup="tt">Column</visual> instance
-	      variables
+	<subsection>
+	  <heading><visual markup="tt">Column</visual> instance
+	    variables
+	  </heading>
+	  <description>
+	    <term>table</term> <item>The parent <verb>Table</verb>
+	      instance.
+	    </item>
+	    <term>name</term> <item>The name of the associated
+	      column.
+	    </item>
+	    <term>type</term> <item>The data type of the column.
+	    </item>
+	    <term>index</term> <item>The associated <verb>Index</verb>
+	      object (see <ref refid="IndexClassDescr"></ref>) to this
+	      column (<verb>None</verb> if doesn't exist).
+	    </item>
+	    <term>dirty</term> <item>Whether the index is dirty or not
+	      (property).
+	    </item>
+	  </description>
+	</subsection>
+
+	<subsection>
+	  <heading><visual markup="tt">Column</visual> methods
+	  </heading>
+
+	  <subsubsection id="createIndexColumnDescr">
+	    <heading><visual markup="tt">createIndex()</visual>
 	    </heading>
-	    <description>
-	      <term>table</term> <item>The parent <verb>Table</verb>
-		instance.
-	      </item>
-	      <term>name</term> <item>The name of the associated
+
+	    <p>Create an <verb>Index</verb> (see <ref
+		refid="IndexClassDescr"></ref>) object for this
 		column.
-	      </item>
-	    </description>
+	    </p>
+
 	  </subsubsection>
-	  <subsubsection>
-	    <heading><visual markup="tt">Column</visual>
-	      methods</heading>
+
+	  <subsubsection id="reIndexColumnDescr">
+	    <heading><visual markup="tt">reIndex()</visual>
+	    </heading>
+
+	    <p>Recompute the index associated with this column. This
+	      can be useful when you suspect that, for any reason, the
+	      index information is no longer valid and want to rebuild
+	      it.
+	    </p>
+
+	  </subsubsection>
+
+	  <subsubsection id="reIndexDirtyColumnDescr">
+	    <heading><visual markup="tt">reIndexDirty()</visual>
+	    </heading>
+
+	    <p>Recompute the existing index only if it is dirty. This
+	      can be useful when you have set the <verb>reindex</verb>
+	      parameter to 0 in <verb>IndexProps</verb> constructor
+	      (see <ref refid="IndexPropsInitDescr"></ref>) for the
+	      table and want to update the column's index after a
+	      invalidating index operation
+	      (<verb>Table.removeRows</verb>, for example).
+	    </p>
+
+	  </subsubsection>
+
+	  <subsubsection id="removeIndexColumnDescr">
+	    <heading><visual markup="tt">removeIndex()</visual>
+	    </heading>
+
+	    <p>Delete the associated column's index. After doing that,
+	      you will loose the indexation information on
+	      disk. However, you can always re-create it using the
+	      <verb>createIndex()</verb> method (see <ref
+	      refid="createIndexColumnDescr"></ref>).
+	    </p>
+
+	  </subsubsection>
+
+	  <subsubsection id="closeIndexColumnDescr">
+	    <heading><visual markup="tt">closeIndex()</visual>
+	    </heading>
+
+	    <p>Close the index of this column. After that, the column
+	      will look as if it has no index, although it will
+	      re-appear when the file would be re-opened later on.
+	    </p>
+
+	  </subsubsection>
+
+	</subsection> <!-- Column methods -->
+	
+	<subsection>
+	  <heading><visual markup="tt">Column</visual> special methods
+	  </heading>
+
+	  <subsubsection id="__getitemColumnDescr">
+	    <heading><visual markup="tt">__getitem__(key)</visual>
+	    </heading>
+
+	    <p>Returns a column element or slice. It takes different
+	      actions depending on the type of the <em>key</em>
+	      parameter:
+	    </p>
 
 	    <description>
-	      <term>__getitem__(key)</term> <item>Returns a column
-		element or slice. It takes different actions depending
-		on the type of the <em>key</em> parameter:
-
-		If <em>key</em> is an integer, the corresponding
+	      <term><visual markup="tt">key</visual> is an
+		<verb>Integer</verb></term> <item>The corresponding
 		element in the column is returned as a scalar object
 		or as a <verb>NumArray</verb>/<verb>CharArray</verb>
-		object, depending on its shape. If <em>key</em> is a
-		slice, the row range determined by this slice is
-		returned as a <verb>NumArray</verb> or
-		<verb>CharArray</verb> object (whichever is
-		appropriate).
+		object, depending on its shape.
 	      </item>
+
+	      <term><visual markup="tt">key</visual> is a
+		<verb>Slice</verb></term><item>The row range
+		determined by this slice is returned as a
+		<verb>NumArray</verb> or <verb>CharArray</verb> object
+		(whichever is appropriate).
+	      </item>
+
 	    </description>
 
 	    <p>Example of use:
@@ -4638,9 +4750,55 @@ Select table.cols['temperature'][:]--> [ 100.  121.  144.]
 	      See the <verb>examples/table2.py</verb> for a more
 	      complete example.
 	    </p>
-	  </subsubsection> <!-- Column methods -->
-	</subsection> <!-- Column -->
-      </section> <!-- Table -->
+
+	  </subsubsection> <!-- __getitem__ -->
+
+	  <subsubsection id="__setitemColumnDescr">
+	    <heading>__setitem__(key, value)</heading>
+
+	    <p>It takes different actions depending on the
+	      type of the <verb>key</verb> parameter:</p>
+
+	    <description>
+	      <term><visual markup="tt">key</visual> is an
+		<verb>Integer</verb></term> <item>The corresponding
+		element in the column is set to
+		<em>value</em>. <em>value</em> must be a scalar or
+		<verb>NumArray</verb>/<verb>CharArray</verb>,
+		depending on column's shape.
+		</item>
+
+	      <term><visual markup="tt">key</visual> is a
+		<verb>Slice</verb></term><item>The row slice
+		determined by <em>key</em> is set to
+		<em>value</em>. <em>value</em> must be a list of
+		elements or a
+		<verb>NumArray</verb>/<verb>CharArray</verb>.
+	      </item>
+	    </description>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      # Modify row 1
+	      table.cols.col1[1] = -1
+	      # Modify rows 1 and 3
+	      table.cols.col1[1::2] = [2,3]
+	    </verbatim>
+
+	    <p>Which is equivalent to:</p>
+
+	    <verbatim>
+	      # Modify row 1
+	      table.modifyColumns(start=1, columns=[[-1]], names=["col1"])
+	      # Modify rows 1 and 3
+	      columns = numarray.records.fromarrays([[2,3]], formats="i4")
+	      table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])
+	    </verbatim>
+	  </subsubsection> <!-- __setitem__ -->
+
+	</subsection> <!-- Column special methods -->
+      </section> <!-- Column -->
 
       <section id="ArrayClassDescr">
 	<heading>The <visual markup="tt">Array</visual>
@@ -5296,7 +5454,8 @@ fileh.close()
 
 	  <description>
 
-	    <term>Col(dtype="Float64", shape=1, dflt=None, pos=None)
+	    <term>Col(dtype="Float64", shape=1, dflt=None, pos=None,
+	      indexed=0)
 	    </term>
 	    <item>Declare the properties of a <verb>Table</verb>
 	      column.
@@ -5336,10 +5495,15 @@ fileh.close()
 		  ordering. <em>pos</em> parameter allows the user to
 		  force the desired ordering.</item>
 
+		<term>indexed</term> <item>Whether this column should
+		  be indexed for better performance in table
+		  selections. </item>
+
 	      </description>
 	    </item>
 
-	    <term>StringCol(length=None, dflt=None, shape=1, pos=None)
+	    <term>StringCol(length=None, dflt=None, shape=1, pos=None,
+	      indexed=0)
 	    </term>
 	    <item>Declare a column to be of type
 	      <verb>CharType</verb>. The <em>length</em> parameter
@@ -5347,13 +5511,14 @@ fileh.close()
 	      parameters are like in the <verb>Col</verb> class.
 	    </item>
 
-	    <term>BoolCol(dflt=0, shape=1, pos=None) </term>
+	    <term>BoolCol(dflt=0, shape=1, pos=None, indexed=0) </term>
 	      <item>Define a column to be of type <verb>Bool</verb>.
 	      The meaning of the parameters are the same of those in
 	      the <verb>Col</verb> class.
 	    </item>
 
-	    <term>IntCol(dflt=0, shape=1, itemsize=4, sign=1, pos=None)
+	    <term>IntCol(dflt=0, shape=1, itemsize=4, sign=1,
+	      pos=None, indexed=0)
 	    </term>
 	    <item>Declare a column to be of type <verb>IntXX</verb>,
 	      depending on the value of <em>itemsize</em> parameter,
@@ -5366,35 +5531,38 @@ fileh.close()
 	      </p>
 
 	      <description>
-		<term>Int8Col(dflt=0, shape=1, pos=None)</term>
-		<item>Define a column of type <verb>Int8</verb>.</item>
+		<term>Int8Col(dflt=0, shape=1, pos=None,
+		  indexed=0)</term> <item>Define a column of type
+		  <verb>Int8</verb>.</item>
 
-		<term>UInt8Col(dflt=0, shape=1, pos=None)</term>
-		<item>Define a column of type <verb>UInt8</verb>.</item>
+		<term>UInt8Col(dflt=0, shape=1, pos=None,
+		  indexed=0)</term> <item>Define a column of type
+		  <verb>UInt8</verb>.</item>
 
-		<term>Int16Col(dflt=0, shape=1, pos=None)</term>
+		<term>Int16Col(dflt=0, shape=1, pos=None, indexed=0)</term>
 		<item>Define a column of type <verb>Int16</verb>.</item>
 
-		<term>UInt16Col(dflt=0, shape=1, pos=None)</term>
+		<term>UInt16Col(dflt=0, shape=1, pos=None, indexed=0)</term>
 		<item>Define a column of type <verb>UInt16</verb>.</item>
 
-		<term>Int32Col(dflt=0, shape=1, pos=None)</term>
+		<term>Int32Col(dflt=0, shape=1, pos=None, indexed=0)</term>
 		<item>Define a column of type <verb>Int32</verb>.</item>
 
-		<term>UInt32Col(dflt=0, shape=1, pos=None)</term>
+		<term>UInt32Col(dflt=0, shape=1, pos=None, indexed=0)</term>
 		<item>Define a column of type <verb>UInt32</verb>.</item>
 
-		<term>Int64Col(dflt=0, shape=1, pos=None)</term>
+		<term>Int64Col(dflt=0, shape=1, pos=None, indexed=0)</term>
 		<item>Define a column of type <verb>Int64</verb>.</item>
 
-		<term>UInt64Col(dflt=0, shape=1, pos=None)</term>
+		<term>UInt64Col(dflt=0, shape=1, pos=None, indexed=0)</term>
 		<item>Define a column of type <verb>UInt64</verb>.</item>
 
 	      </description>
 
 	    </item>
 
-	    <term>FloatCol(dflt=0.0, shape=1, itemsize=8, pos=None)
+	    <term>FloatCol(dflt=0.0, shape=1, itemsize=8, pos=None,
+	      indexed=0)
 	    </term>
 	    <item>Define a column to be of type <verb>FloatXX</verb>,
 	      depending on the value of <verb>itemsize</verb>. The
@@ -5407,11 +5575,13 @@ fileh.close()
 	      </p>
 
 	      <description>
-		<term>Float32Col(dflt=0.0, shape=1, pos=None)</term>
-		<item>Define a column of type <verb>Float32</verb>.</item>
+		<term>Float32Col(dflt=0.0, shape=1, pos=None,
+		  indexed=0)</term> <item>Define a column of type
+		  <verb>Float32</verb>.</item>
 
-		<term>Float64Col(dflt=0.0, shape=1, pos=None)</term>
-		<item>Define a column of type <verb>Float64</verb>.</item>
+		<term>Float64Col(dflt=0.0, shape=1, pos=None,
+		  indexed=0)</term> <item>Define a column of type
+		  <verb>Float64</verb>.</item>
 
 	      </description>
 	    </item>
@@ -5437,6 +5607,10 @@ fileh.close()
 		<item>Define a column of type <verb>Complex64</verb>.</item>
 
 	      </description>
+
+	      <p><verb>ComplexCol</verb> columns and its descendants
+		do not support indexation.</p>
+
 	    </item>
 
 	  </description>
@@ -5906,11 +6080,11 @@ Result Array:
 	    <term>auto</term> <item>Whether an existing index should
 	      be updated or not after a table append operation.
 	    </item>
-	    <term>reindex</term> <item>Whether the table fields are to
-	      be re-indexed after an invalidating index operation.
+	    <term>reindex</term> <item>Whether the table columns are
+	      to be re-indexed after an invalidating index operation.
 	    </item>
 	    <term>filters</term> <item>The filter settings for the
-	      different Table indexes.
+	      different <verb>Table</verb> indexes.
 	    </item>
 	  </description>
 
@@ -5935,25 +6109,104 @@ Result Array:
 	      updates.
 	      </item>
 	      <term>reindex</term> <item>Specifies whether the table
-		fields are to be re-indexed after an invalidating
+		columns are to be re-indexed after an invalidating
 		index operation (like for example, after a
 		<verb>Table.removeRows</verb> call). The default is to
 		reindex after operations that invalidate indexes.
 	      </item>
 	      <term>filters</term><item>Sets the filter properties for
-		the different Table indexes. It has to be an instance
+		<verb>Column</verb> indexes. It has to be an instance
 		of the <verb>Filters</verb> (see <ref
-		refid="FiltersClassDescr">section</ref>) class. A None
-		value means that the default settings (see <ref
-		refid="FiltersInitDescr"></ref>) for filters are
+		refid="FiltersClassDescr">section</ref>) class. A
+		<verb>None</verb> value means that the default
+		settings for the <verb>Filters</verb> object are
 		selected.
 	      </item>
 	    </description>
 
 	  </subsubsection>
 	</subsection> <!-- IndexProps -->
+
+	<subsection id="IndexClassDescr">
+	  <heading>The <visual markup="tt">Index</visual> class</heading>
+
+	  <p>This class is used to keep the indexing information for
+	    table columns. It is actually a descendant of the
+	    <verb>Group</verb> class, with some added
+	    functionality.
+	  </p>
+	  <p>It has no methods intented for programmer's use, but it
+	    has some attributes that maybe interesting for him.
+	  </p>
+
+	  <subsubsection id="IndexClassInstanceVariables">
+	    <heading><visual markup="tt">Index</visual> instance
+	      variables</heading>
+	    <description>
+
+	      <term>column</term> <item>The column object this index
+		belongs to.
+	      </item>
+	      
+	      <term>type</term> <item>The type class for the
+		index.
+	      </item>
+
+	      <term>itemsize</term> <item>The size of the atomic
+		items. Specially useful for columns of
+		<verb>CharType</verb> type.
+	      </item>
+
+	      <term>nelements</term> <item>The total number of
+		elements in index.
+	      </item>
+
+	      <term>dirty</term> <item>Whether the index is dirty or
+		not.
+	      </item>
+
+	      <term>sorted</term> <item>The <verb>IndexArray</verb>
+		object (see <ref refid="IndexArrayClassDescr"></ref>)
+		with the sorted values information.
+	      </item>
+
+	      <term>indices</term> <item>The <verb>IndexArray</verb>
+		object (see <ref refid="IndexArrayClassDescr"></ref>)
+		with the sorted indices information.
+	      </item>
+
+	      <term>filters</term> <item>The <verb>Filters</verb> (see
+		<ref refid="FiltersClassDescr">section</ref>) instance
+		for this index.
+	      </item>
+
+	    </description>
+
+	  </subsubsection> <!-- Index attributes -->
+	</subsection> <!-- Index class -->
+
+	<subsection id="IndexArrayClassDescr">
+	  <heading>The <visual markup="tt">IndexArray</visual>
+	    class</heading>
+
+	  <p>This class is used to keep part of the indexing
+	    information for table columns. It is actually a descendant
+	    of the <verb>EArray</verb> class, with some added
+	    functionality. 
+	  </p>
+
+	  <p>It has no methods intented for programmer's use, and
+	    although it has some attributes with potentially useful
+	    information, all of it is accessible through
+	    <verb>Index</verb> class (see <ref
+	    refid="IndexClassDescr"></ref>), so it will not be
+	    replicated here.
+	  </p>
+
+	</subsection> <!-- IndexArray class -->
+
       </section> <!-- Helper classes -->
-    </chapter>
+    </chapter> <!-- Reference library -->
 
     <chapter id="optimizationTips">
       <heading>Optimization tips</heading>
@@ -6067,14 +6320,17 @@ if __name__=="__main__":
 	<heading>Compression issues</heading>
 
 	<p>One of the beauties of <verb>PyTables</verb> is that it
-	  supports compression on tables (but not on arrays!, that may
-	  come later), although it is disabled by default. Compression
-	  of big amounts of data might be a bit controversial feature,
-	  because compression has a legend of being a very big CPU
-	  time resources consumer. However, if you are willing to
-	  check if compression can help not only reducing your dataset
-	  file size but <visual markup="bf">also</visual> improving
-	  your I/O efficiency, keep reading.
+	  supports compression on tables and arrays<footnote>More
+	  precisely, it is supported in <verb>EArray</verb> and
+	  <verb>VLArray</verb> objects, not in <verb>Array</verb>
+	  objects itself.</footnote>, although it is disabled by
+	  default. Compression of big amounts of data might be a bit
+	  controversial feature, because compression has a legend of
+	  being a very big CPU time resources consumer. However, if
+	  you are willing to check if compression can help not only
+	  reducing your dataset file size but <visual
+	  markup="bf">also</visual> improving your I/O efficiency,
+	  keep reading.
 	</p>
 
 	<p>There is an usual scenario where users need to save

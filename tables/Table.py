@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.132 2004/09/27 18:10:46 falted Exp $
+#       $Id: Table.py,v 1.133 2004/09/28 17:17:50 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.132 $"
+__version__ = "$Revision: 1.133 $"
 
 from __future__ import generators
 import sys
@@ -1180,6 +1180,7 @@ class Cols(object):
     Methods:
     
         __getitem__(colname)
+        __len__()
         
     """
 
@@ -1258,7 +1259,7 @@ class Column(object):
         table -- the parent table instance
         name -- the name of the associated column
         type -- the type of column
-        index -- the Index object (None if don't exists)
+        index -- the Index object (None if doesn't exists)
         dirty -- whether the index is dirty or not (property)
 
     Methods:
@@ -1357,8 +1358,8 @@ class Column(object):
 
         If 'key' is an integer, the corresponding element in the
         column is set to 'value' (scalar or NumArray/CharArray,
-        depending on column's shape) . If 'key' is a slice, the row
-        slice determined by 'key' is set to value (a
+        depending on column's shape). If 'key' is a slice, the row
+        slice determined by 'key' is set to 'value' (a
         NumArray/CharArray or list of elements).
 
         """
@@ -1509,7 +1510,7 @@ class Column(object):
             return 0  
  
     def removeIndex(self):
-        "Actions to delete the associated index"
+        """Delete the associated column's index"""
         # delete some references
         if self.index:
             self.index._g_remove()
@@ -1519,7 +1520,7 @@ class Column(object):
             return  # Do nothing
 
     def closeIndex(self):
-        """Close any open index of this column"""
+        """Close the index of this column"""
         if self.index:
             self.index._f_close()
             self.index = None

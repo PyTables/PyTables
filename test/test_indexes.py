@@ -282,9 +282,7 @@ class BasicTestCase(unittest.TestCase):
         assert table.colindexed["var1"] == 1
 
         # delete the index
-        print "Before deletion"
         table.removeIndex(idxcol)
-        print "After deletion"
         if verbose:
             print "After deletion"
             print "var1 column:", idxcol
@@ -316,10 +314,8 @@ class BasicTestCase(unittest.TestCase):
             print "var1 column:", idxcol
         assert idxcol is not None
         assert table.colindexed["var1"] == 1
-        print "before removeIndex"
         # delete the index
         table.removeIndex(idxcol)
-        print "after removeIndex"
 
         # close and reopen the file
         self.fileh.close()

@@ -1368,7 +1368,7 @@ class setItem(unittest.TestCase):
         table.append(r)
         table.append([[457,'db1',1.2],[5,'de1',1.3]])
         
-        # Modify just one existing rows
+        # Modify just one existing row
         table[2] = [456,'db2',1.2]
         # Create the modified recarray
         r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
@@ -1502,8 +1502,8 @@ class setItem(unittest.TestCase):
         # Modify two existing rows
         rows = records.array([[457,'db1',1.2],[6,'de2',1.3]],
                              formats="i4,a3,f8")
-        #table.modifyRows(start=1, rows=rows)
-        table[1:4:2] = rows
+        #table[1:4:2] = rows
+        table[1::2] = rows
         # Create the modified recarray
         r1=records.array([[456,'dbe',1.2],[457,'db1',1.2],
                           [457,'db1',1.2],[6,'de2',1.3]],
@@ -2136,12 +2136,54 @@ class RecArrayIO(unittest.TestCase):
         table.append([[457,'db1',1.2],[5,'de1',1.3]])
         
         # Modify just one existing column
-        #columns = records.array([[2],[3],[4]], formats="i4")
         columns = records.fromarrays([[2,3,4]], formats="i4")
         table.modifyColumns(start=1, columns=columns, names=["col1"])
+        #table.cols.col1[1:] = [2,3,4]
         # Create the modified recarray
         r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
                           [3,'db1',1.2],[4,'de1',1.3]],
+                         formats="i4,a3,f8",
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            fileh.close()
+            fileh = openFile(file, "r")
+            table = fileh.root.recarray
+        r2 = table.read()
+        if verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+        fileh.close()
+        os.remove(file)
+
+    def test08c(self):
+        "Checking modifying one column (single column version, single element)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test08c..." % self.__class__.__name__
+
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a new table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        
+        # Modify just one existing column
+        columns = records.fromarrays([[4]], formats="i4")
+        #table.modifyColumns(start=1, columns=columns, names=["col1"])
+        table.modifyColumns(start=1, columns=[[4]], names=["col1"])
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[4,'ded',1.3],
+                          [457,'db1',1.2],[5,'de1',1.3]],
                          formats="i4,a3,f8",
                          names = "col1,col2,col3")
         # Read the modified table
@@ -3175,9 +3217,11 @@ class Length2TestCase(LengthTestCase):
 
 def suite():
     theSuite = unittest.TestSuite()
-    niter = 1
+    niter = 0
     #heavy = 1  # uncomment this only for testing purposes
 
+    theSuite.addTest(unittest.makeSuite(RecArrayIO1))
+    #theSuite.addTest(unittest.makeSuite(setItem1))
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
