@@ -172,6 +172,9 @@ class BasicTestCase(unittest.TestCase):
             if self.compress <> earray.complevel and verbose:
                 print "Error in compress. Class:", self.__class__.__name__
                 print "self, earray:", self.compress, earray.complevel
+            tinfo = whichLibVersion(self.complib)
+            if tinfo[0] == 0:
+                self.complib = "zlib"
             assert earray.complib == self.complib
             assert earray.complevel == self.compress
             if self.shuffle <> earray.shuffle and verbose:

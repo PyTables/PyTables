@@ -201,8 +201,8 @@ herr_t getfieldfmt( hid_t loc_id,
   hid_t         type_id;    
   hid_t         member_type_id;
   int           i;
-  int           has_attr;
-  int           n[1];
+/*   int           has_attr; */
+/*   int           n[1]; */
   size_t        itemsize;
   size_t        offset = 0;
   H5T_class_t   class;

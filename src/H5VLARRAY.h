@@ -1,5 +1,5 @@
-#ifndef _H5ARRAY_H
-#define _H5ARRAY_H
+#ifndef _H5VLARRAY_H
+#define _H5VLARRAY_H
 
 #include <hdf5.h>
 
@@ -48,6 +48,7 @@ herr_t H5VLARRAYget_info( hid_t   loc_id,
 			  hsize_t *base_dims,
 			  hid_t   *base_type_id,
 			  char    *base_byteorder);
+
 
 #ifdef __cplusplus
 }

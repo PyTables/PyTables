@@ -142,29 +142,19 @@ out:
 herr_t H5TBOread_elements( hid_t *dataset_id,
 			   hid_t *space_id,
 			   hid_t *mem_type_id,
-			   size_t nrecords,
+			   hsize_t nrecords,
 			   void *coords,
 			   void *data )
 {
 
  hid_t    mem_space_id;
  hsize_t  mem_size[1];
- hsize_t *buf2;
- int k;
 
  /* Define a selection of points in the dataset */
  H5Sselect_none(*space_id); 	/* Delete the previous selection */
-/*  printf("Abans de select_elements\n"); */
- if ( H5Sselect_elements(*space_id, H5S_SELECT_SET, nrecords, (const hssize_t **)coords) < 0 )
-  goto out;
 
-/*  printf("Nrecords: %d\n", (int)nrecords); */
-/*  printf("Numero de punts:%d\n", H5Sget_select_elem_npoints(*space_id)); */
-/*  buf2 = malloc(nrecords * sizeof(hsize_t)); */
-/*  H5Sget_select_elem_pointlist(*space_id, 0, nrecords, buf2); */
-/*  for (k=0; k<nrecords; k++) */
-/*    printf("buf[%d]: %d, ", (int)k, (int)*buf2++); */
-/*  printf("\n"); */
+ if ( H5Sselect_elements(*space_id, H5S_SELECT_SET, (size_t)nrecords, (const hssize_t **)coords) < 0 )
+  goto out;
 
  /* Create a memory dataspace handle */
  mem_size[0] = nrecords;
@@ -424,7 +414,7 @@ out:
 
 herr_t H5TBOclose_append(hid_t *dataset_id,
 			 hid_t *mem_type_id,
-			 int ntotal_records,
+			 hsize_t ntotal_records,
 			 const char *dset_name,
 			 hid_t parent_id)
 {
@@ -442,6 +432,11 @@ herr_t H5TBOclose_append(hid_t *dataset_id,
  * Store the new dimension as an attribute
  *-------------------------------------------------------------------------
  */
+
+/* We can get here a loss of rows if the number of then does not
+   keep on a integer of 4 bytes. However, we need a safe way to save integers of 8 bytes,
+   and, again, this could not guarantee compatibility with HDF5_HL.
+   I should report this to Pedro. F. Alted 2004-01-19  */
 
  nrows = (int)ntotal_records;
  /* Set the attribute */

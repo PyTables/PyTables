@@ -674,7 +674,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  </p>
 	  <p>For compression (and possibly improved performance), you
 	    will need to install the <verb>Zlib</verb> (see <cite
-	    refid="zlibRef"></cite>), which is also required by
+	      refid="zlibRef"></cite>), which is also required by
 	    <verb>HDF5</verb> as well. You may also optionally install
 	    the excellent <verb>LZO</verb> and <verb>UCL</verb>
 	    compression libraries (see <cite refid="lzouclRef"></cite>
@@ -705,6 +705,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
 	      <verbatim>
 		--hdf5=/stuff/hdf5-1.6.2
+		--zlib=/stuff/zlib-1.2.1
 		--ucl=/stuff/ucl-1.0.1
 	      </verbatim>
 
@@ -765,21 +766,20 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	      </description> 
 
 	      <p>For example:
-	      </p>
-	      <verbatim>
-		set HDF5_DIR=c:\stuff\5-162-win2k\c\release
-		set LZO_DIR=c:\stuff\lzo-1-07
-		set UCL_DIR=c:\stuff\ucl-1-01
-	      </verbatim>
+		<verbatim>
+		  set HDF5_DIR=c:\stuff\5-162-win2k\c\release
+		  set ZLIB_DIR=c:\stuff\zlib121
+		  set LZO_DIR=c:\stuff\lzo-1-07
+		</verbatim>
 
-	      <p>Or, you can pass this information to
+		Or, you can pass this information to
 		<verb>setup.py</verb> by setting the appropriate
 		arguments on the command line. For example:
 	      </p>
 
 	      <verbatim>
-		--hdf5=c:\stuff\5-162-win2k\c\release --lzo=c:\stuff\lzo-1-07
-		--ucl=c:\stuff\ucl-1-01
+		--hdf5=c:\stuff\5-162-win2k\c\release --zlib=c:\stuff\zlib121
+		--lzo=c:\stuff\lzo-1-07 --ucl=c:\stuff\ucl-1-01
 	      </verbatim>	
 	    </item>
 
@@ -795,135 +795,129 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
             package itself:
           </p>
 
-	<enumerate>
-	  <item>
- 	    <p>Run this command from the main <verb>PyTables</verb>
-	      distribution directory, including any extra command line
-	      arguments as discussed above:
-	    </p>
-	    <verbatim>
-	      python setup.py build_ext --inplace
-	    </verbatim>
-	    <p>Depending on the compiler flags used when compiling your
-	      Python executable, there may appear many warnings. Don't
-	      worry, almost all of them are caused by variables declared
-	      but never used. That's normal in Pyrex extensions.
-	    </p>
-	  </item>
-	  <item>
-	    <p>To run the test suite, change into the test directory
-	      and execute this command:
-	    </p>
-	    <description>
-	      <term>Unix</term> <item>In the shell <verb>sh</verb> and
-	      its variants:
+	  <enumerate>
+	    <item>
+	      <p>Run this command from the main <verb>PyTables</verb>
+		distribution directory, including any extra command line
+		arguments as discussed above:
 		<verbatim>
-		  PYTHONPATH=..  
-		  export PYTHONPATH
-		  python test_all.py
+		  python setup.py build_ext --inplace
 		</verbatim>
-	      </item>
-	      <term>Windows</term>
-	      <item>Open a DOS terminal and type:
+		Depending on the compiler flags used when compiling your
+		Python executable, there may appear many warnings. Don't
+		worry, almost all of them are caused by variables declared
+		but never used. That's normal in Pyrex extensions.
+	      </p>
+	    </item>
+	    <item>
+	      <p>To run the test suite, change into the test directory
+		and execute this command:
+	      </p>
+	      <description>
+		<term>Unix</term> <item>In the shell <verb>sh</verb> and
+		  its variants:
+		  <verbatim>
+		    PYTHONPATH=..  
+		    export PYTHONPATH
+		    python test_all.py
+		  </verbatim>
+		</item>
+		<term>Windows</term>
+		<item>Open a DOS terminal and type:
+		  <verbatim>
+		    set PYTHONPATH=..  
+		    python test_all.py
+		  </verbatim>
+		</item>
+	      </description>
+
+	      <p>If you would like to see verbose output from the tests
+		simply add the flag <verb>-v</verb> and/or the word
+		<verb>verbose</verb> to the command line. You can also
+		run only the tests in a particular test module. For
+		example, to execute just the <verb>types</verb> test:
 		<verbatim>
-		  set PYTHONPATH=..  
-		  python test_all.py
+		  python test_types.py -v
 		</verbatim>
-	      </item>
-	    </description>
+		If a test fails, please enable verbose output (the
+		<verb>-v</verb> <visual markup="bf">and</visual>
+		<verb>verbose</verb> flags), run the failing test module
+		again, and send back the output to developers so that we
+		may continue improving <verb>PyTables</verb>.
+	      </p>
 
-	    <p>If you would like to see verbose output from the tests
-	      simply add the flag <verb>-v</verb> and/or the word
-	      <verb>verbose</verb> to the command line. You can also
-	      run only the tests in a particular test module. For
-	      example, to execute just the <verb>types</verb> test:
-	    </p>
-	    <verbatim>
-	      python test_types.py -v
-	    </verbatim>
-
-	    <p>If a test fails, please enable verbose output (the
-	      <verb>-v</verb> <visual markup="bf">and</visual>
-	      <verb>verbose</verb> flags), run the failing test module
-	      again, and send back the output to developers so that we
-	      may continue improving <verb>PyTables</verb>.
-	    </p>
-
-	    <p> If you run into problems because Python can't load the
-	      HDF5 library or other shared libraries:
-	    </p>
-	    <description>
-	      <term>Unix</term>
-	      <item>
-		Try setting the LD_LIBRARY_PATH environment variable to
-		point to the directory where the missing libraries can
-		be found.
-	      </item>
-	      <term>Windows</term> <item>Put the DLL libraries
-		(<verb>hdf5dll.dll</verb>, <verb>zlib.dll</verb> and,
-		optionally, <verb>lzo.dll</verb> and
-		<verb>ucl.dll</verb>) in a directory listed in your
-		<verb>PATH</verb> environment variable.  The
-		<verb>setup.py</verb> installation program will print
-		out a warning to that effect if the libraries can't be
-		found.
-	      </item>
-	    </description>
-	  </item>
-	  <item>
+	      <p> If you run into problems because Python can't load the
+		HDF5 library or other shared libraries:
+	      </p>
+	      <description>
+		<term>Unix</term>
+		<item>
+		  Try setting the LD_LIBRARY_PATH environment variable to
+		  point to the directory where the missing libraries can
+		  be found.
+		</item>
+		<term>Windows</term> <item>Put the DLL libraries
+		  (<verb>hdf5dll.dll</verb>, <verb>zlib1.dll</verb> and,
+		  optionally, <verb>lzo.dll</verb> and
+		  <verb>ucl.dll</verb>) in a directory listed in your
+		  <verb>PATH</verb> environment variable.  The
+		  <verb>setup.py</verb> installation program will print
+		  out a warning to that effect if the libraries can't be
+		  found.
+		</item>
+	      </description>
+	    </item>
+	    <item>
 		  <!-- SGP: What if they're not root, or if they're on
 		  a Windows machine?  Can you set the install prefix
 		  on the command line?  Where does PyTables install
 		  itself by default?  Amplify this part.  Done! -->
 
-	    <p>To install the entire <visual
-	      markup="tt">PyTables</visual> Python package, change
-	      back to the root distribution directory and run the
-	      following command (make sure you have sufficient
-	      permissions to write to the directories where the
-	      <verb>PyTables</verb> files will be installed):
-	    </p>
-	    <verbatim>
-	      python setup.py install
-	    </verbatim>
+	      <p>To install the entire <visual
+		  markup="tt">PyTables</visual> Python package, change
+		back to the root distribution directory and run the
+		following command (make sure you have sufficient
+		permissions to write to the directories where the
+		<verb>PyTables</verb> files will be installed):
+		
+		<verbatim>
+		  python setup.py install
+		</verbatim>
 
-            <p>Of course, you will need super-user privileges if you
-              want to install <verb>PyTables</verb> on a
-              system-protected area. You can select, though, a
-              different place to install the package using the
-              <verb>--prefix</verb> flag:
-            </p>
+		Of course, you will need super-user privileges if you
+		want to install <verb>PyTables</verb> on a
+		system-protected area. You can select, though, a
+		different place to install the package using the
+		<verb>--prefix</verb> flag:
 
-	    <verbatim>
-	      python setup.py install --prefix="/home/myuser/mystuff"
-	    </verbatim>
+		<verbatim>
+		  python setup.py install --prefix="/home/myuser/mystuff"
+		</verbatim>
 
-            <p>Have in mind, however, that if you use the
-              <verb>--prefix</verb> flag to install in a non-standard
-              place, you should properly setup your
-              <verb>PYTHONPATH</verb> environment variable, so that
-              the python interpreter would be able to find your new
-              <verb>PyTables</verb> installation.
-            </p>
+		Have in mind, however, that if you use the
+		<verb>--prefix</verb> flag to install in a non-standard
+		place, you should properly setup your
+		<verb>PYTHONPATH</verb> environment variable, so that
+		the python interpreter would be able to find your new
+		<verb>PyTables</verb> installation.
+	      </p>
 
-            <p>You have more installation options available in
-              distutils package. Issue a:
-            </p>
+	      <p>You have more installation options available in
+		distutils package. Issue a:
+		<verbatim>
+		  python setup.py install --help
+		</verbatim>
+		for more information on that subject.
+	      </p>
 
-            <verbatim>
-	      python setup.py install --help
-            </verbatim>
+	    </item>
+	  </enumerate>
 
-            <p>for more information on that subject.</p>
+	</subsection>
 
-	  </item>
-	</enumerate>
-
-      </subsection>
-
-      <p>That's it! The next chapter describes how to use
-	<verb>PyTables</verb>. <!-- <newline vspace="4.0cm"/> -->
-      </p>
+	<p>That's it! The next chapter describes how to use
+	  <verb>PyTables</verb>. <!-- <newline vspace="4.0cm"/> -->
+	</p>
 
       </section>
 
@@ -950,7 +944,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    everything yourself) and install them.
           </p>
           <p>For the HDF5 it should be enough to manually copy the
-	    <verb>hdf5dll.dll</verb>, <verb>zlib.dll</verb> <visual
+	    <verb>hdf5dll.dll</verb>, <verb>zlib1.dll</verb> <visual
 	    markup="bf">and</visual> <verb>szipdll.dll</verb> files to
 	    a directory in your <verb>PATH</verb> environment variable
 	    (for example <verb>C:\WINDOWS\SYSTEM</verb>).
@@ -966,6 +960,14 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    markup="bf">does not</visual> work well with the PyTables
 	    binary (which has been generated with MSVC 6.0). You have
 	    been warned!
+	  </p>
+
+	  <p>Normally, the NCSA team generate binaries that links
+	    against the Zlib binary libraries that can be found at:
+	    <url
+	    name="http://www.gzip.org/zlib/">http://www.gzip.org/zlib/</url>.
+	    Please, use this build if you don't want to run into
+	    problems.
 	  </p>
 
 	  <p>To enable compression with optional LZO and UCL libraries
@@ -1021,13 +1023,12 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    working, well-tested copy of PyTables installed! If any
 	    test fails, please try to locate which test module is
 	    failing and execute:
-          </p>
           
-          <verbatim>
-	    test_&lt;module>.py -v verbose
-          </verbatim>
+	    <verbatim>
+	      test_&lt;module>.py -v verbose
+	    </verbatim>
 
-          <p>Mail the output to the developers so that we may work to
+	    Mail the output to the developers so that we may work to
 	    improve the installation process.
 	  </p>
 

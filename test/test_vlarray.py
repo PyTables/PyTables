@@ -109,6 +109,9 @@ class BasicTestCase(unittest.TestCase):
         if self.compress <> vlarray.complevel and verbose:
             print "Error in compress. Class:", self.__class__.__name__
             print "self, vlarray:", self.compress, vlarray.complevel
+        tinfo = whichLibVersion(self.complib)
+        if tinfo[0] == 0:
+            self.complib = "zlib"
         assert vlarray.complib == self.complib
         assert vlarray.complevel == self.compress
         if self.shuffle <> vlarray.shuffle and verbose:
@@ -1122,8 +1125,8 @@ class RangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01_start..." % self.__class__.__name__
 
-        fileh = openFile(self.file, "r")
-        vlarray = fileh.root.vlarray
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.root.vlarray
         
         # Read some rows:
         row = []
@@ -1148,8 +1151,8 @@ class RangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01b_start..." % self.__class__.__name__
 
-        fileh = openFile(self.file, "r")
-        vlarray = fileh.root.vlarray
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.root.vlarray
         
         # Read some rows:
         row = []
@@ -1174,8 +1177,8 @@ class RangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02_stop..." % self.__class__.__name__
 
-        fileh = openFile(self.file, "r")
-        vlarray = fileh.root.vlarray
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
         
@@ -1204,8 +1207,8 @@ class RangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02b_stop..." % self.__class__.__name__
 
-        fileh = openFile(self.file, "r")
-        vlarray = fileh.root.vlarray
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
         
@@ -1235,8 +1238,8 @@ class RangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test03_startstop..." % self.__class__.__name__
 
-        fileh = openFile(self.file, "r")
-        vlarray = fileh.root.vlarray
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
         
@@ -1266,8 +1269,8 @@ class RangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test03b_startstop..." % self.__class__.__name__
 
-        fileh = openFile(self.file, "r")
-        vlarray = fileh.root.vlarray
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
         
@@ -1297,8 +1300,8 @@ class RangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test04_startstopstep..." % self.__class__.__name__
 
-        fileh = openFile(self.file, "r")
-        vlarray = fileh.root.vlarray
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
         
@@ -1328,8 +1331,8 @@ class RangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test04_slices..." % self.__class__.__name__
 
-        fileh = openFile(self.file, "r")
-        vlarray = fileh.root.vlarray
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
         
@@ -1359,8 +1362,8 @@ class RangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test05_out_of_range..." % self.__class__.__name__
 
-        fileh = openFile(self.file, "r")
-        vlarray = fileh.root.vlarray
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.root.vlarray
         
         if verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows

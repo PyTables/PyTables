@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.109 2004/01/14 10:39:13 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.110 2004/01/19 20:54:26 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.109 $"
+__version__ = "$Revision: 1.110 $"
 
 
 import sys, os
@@ -126,6 +126,10 @@ cdef extern from "Python.h":
   int PyObject_CheckReadBuffer(object)
   int PyObject_AsReadBuffer(object, void **rbuf, int *len)
   int PyObject_AsWriteBuffer(object, void **rbuf, int *len)
+
+  # To get the indices of a slice in python 2.2
+  int PySlice_GetIndices(object r, int length,
+                         int *start, int *stop, int *step)
 
 # Structs and functions from numarray
 cdef extern from "numarray/numarray.h":
@@ -628,7 +632,7 @@ cdef extern from "H5TB-opt.h":
   herr_t H5TBOread_elements( hid_t *dataset_id,
                              hid_t *space_id,
                              hid_t *mem_type_id,
-                             size_t nrecords,
+                             hsize_t nrecords,
                              void *coords,
                              void *data )
 
@@ -652,7 +656,7 @@ cdef extern from "H5TB-opt.h":
 
   herr_t H5TBOclose_append(hid_t *dataset_id,
                            hid_t *mem_type_id,
-                           int ntotal_records,
+                           hsize_t ntotal_records,
                            char *dset_name,
                            hid_t parent_id)
 
@@ -684,6 +688,9 @@ cdef extern from "utils.h":
   object Aiterate(hid_t loc_id)
   H5T_class_t getHDF5ClassID(hid_t loc_id, char *name, H5D_layout_t *layout)
   object H5UIget_info( hid_t loc_id, char *name, char *byteorder)
+  # To access to the slice.indices function in 2.2
+  int GetIndicesEx(object r, int length,
+                   int *start, int *stop, int *step, int *slicelength)
 
 # LZO library
 cdef int lzo_version
@@ -705,6 +712,13 @@ cdef extern from "H5Zucl.h":
 ucl_version = register_ucl()
 
 # utility funtions (these can be directly invoked from Python)
+
+def getIndices(object r, int length):
+  cdef int start, stop, step, slicelength
+
+  if GetIndicesEx(r, length, &start, &stop, &step, &slicelength) < 0:
+    raise ValueError("Problems getting the indices on slice '%s'" % r)
+  return (start, stop, step)
 
 def whichLibVersion(char *name):
   "Tell if an optional library is available or not"
@@ -812,7 +826,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.109 2004/01/14 10:39:13 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.110 2004/01/19 20:54:26 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1574,10 +1588,12 @@ cdef class Table:
 
   def _read_elements_orig(self, size_t start, hsize_t nrecords, object elements):
     cdef long buflen
+    cdef size_t stop
     cdef void *coords
 
     # Get the chunk of the coords that correspond to a buffer
-    coords_array = numarray.array(elements[start:start+nrecords],
+    stop = <size_t>(start+nrecords)
+    coords_array = numarray.array(elements[start:stop],
                                   type=numarray.Int64)
     # Get the pointer to the buffer data area
     buflen = NA_getBufferPtrAndSize(coords_array._data, 1, &coords)
@@ -1589,28 +1605,31 @@ cdef class Table:
 
     return nrecords
 
-  def _read_elements(self, size_t start, hsize_t nrecords, object elements):
-    cdef int i, *coordi, coordint
-    cdef size_t rsize, csize
-    cdef void *coords
-    cdef void *dst, *src
-    cdef long buflen
+# The next _read_elements method has problems with the datatypes length and
+# MSVC6. As it is not necessary, I am going to comment it out until I need
+# it. F. Alted 2004-01-19
+#   def _read_elements(self, size_t start, hsize_t nrecords, object elements):
+#     cdef int i, *coordi, coordint
+#     cdef size_t rsize, csize
+#     cdef void *coords
+#     cdef void *dst, *src
+#     cdef long buflen
 
-    # Get the chunk of the coords that correspond to a buffer
-    #coords_array = numarray.array(elements[start:start+nrecords])
-    buflen = NA_getBufferPtrAndSize(elements._data, 1, &coords)
-    rsize = self.rowsize
-    csize = sizeof(long)  # Change if the elements array is not Int32
-    coords = coords + start * csize
-    for i from 0 <= i < nrecords:
-      dst = self.rbuf+i*rsize
-      #coordi = <int *>(coords + i * csize)
-      coordint = elements[start+i]
-      #print "i, coordi:", i, coordint
-      #src = self.mmrbuf + coordi[0] * rsize
-      src = self.mmrbuf + coordint * rsize
-      memcpy(dst, src, rsize)
-    return nrecords
+#     # Get the chunk of the coords that correspond to a buffer
+#     #coords_array = numarray.array(elements[start:start+nrecords])
+#     buflen = NA_getBufferPtrAndSize(elements._data, 1, &coords)
+#     rsize = self.rowsize
+#     csize = sizeof(long)  # Change if the elements array is not Int32
+#     coords = coords + start * csize
+#     for i from 0 <= i < nrecords:
+#       dst = self.rbuf+i*rsize
+#       #coordi = <int *>(coords + i * csize)
+#       coordint = elements[start+i]
+#       #print "i, coordi:", i, coordint
+#       #src = self.mmrbuf + coordi[0] * rsize
+#       src = self.mmrbuf + coordint * rsize
+#       memcpy(dst, src, rsize)
+#     return nrecords
 
   def _close_read(self):
 
@@ -2180,7 +2199,6 @@ cdef class VLArray:
   cdef int     enumtype
   cdef hid_t   type_id
   cdef hsize_t nrecords
-  cdef int     nelements
   cdef int     scalar
 
   def _g_new(self, where, name):
@@ -2222,14 +2240,12 @@ cdef class VLArray:
       self.scalar = 0
       
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
-    self.nelements = 1
     # Fill the dimension axis info with adequate info
     for i from  0 <= i < self.rank:
       if isinstance(self.atom.shape, types.IntType):
         self.dims[i] = self.atom.shape
       else:
         self.dims[i] = self.atom.shape[i]
-      self.nelements = self.nelements * self.dims[i]
 
     rbuf = NULL;  # We don't have data to save initially
 
@@ -2335,7 +2351,7 @@ cdef class VLArray:
 
     # Compute the number of rows to read
     nrows = ((stop - start - 1) / step) + 1  # (stop-start)/step  do not work
-    rdata = <hvl_t *>malloc(nrows*sizeof(hvl_t))
+    rdata = <hvl_t *>malloc(<size_t>nrows*sizeof(hvl_t))
     ret = H5VLARRAYread(self.parent_id, self.name, start, nrows, step, rdata,
                         &rdatalen)
     if ret < 0:

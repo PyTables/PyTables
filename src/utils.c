@@ -103,7 +103,6 @@ PyObject *get_filter_names( hid_t loc_id,
  unsigned filt_flags;     /* filter flags */
  H5Z_filter_t filt_id;       /* filter identification number */
  size_t   cd_nelmts;      /* filter client number of values */
- size_t   cd_num;         /* filter client data counter */
  unsigned cd_values[20];  /* filter client data values */
  char     f_name[256];    /* filter name */
  PyObject *filters;
@@ -111,8 +110,9 @@ PyObject *get_filter_names( hid_t loc_id,
 
  /* Open the dataset. */
  if ( (dset = H5Dopen( loc_id, dset_name )) < 0 ) {
-   Py_INCREF(Py_None); 
-   filters = Py_None;  	/* Not chunked, so return None */
+/*    Py_INCREF(Py_None);  */
+/*    filters = Py_None;  	/\* Not chunked, so return None *\/ */
+   goto out;
  }
 
  /* Get the properties container */
@@ -129,7 +129,7 @@ PyObject *get_filter_names( hid_t loc_id,
 			       cd_values, sizeof(f_name), f_name);
        f_name[sizeof(f_name)-1] = '\0';
        filter_values = PyTuple_New(cd_nelmts);
-       for (j=0;j<cd_nelmts;j++) {
+       for (j=0;j<(long)cd_nelmts;j++) {
 	 PyTuple_SetItem(filter_values, j, PyInt_FromLong(cd_values[j]));
        }
        PyMapping_SetItemString (filters, f_name, filter_values);
@@ -364,3 +364,67 @@ out:
  return Py_None;  	/* Not chunked, so return None */
 
 }
+
+/* This has been copied from the Python 2.3 sources in order to get a
+   funtion similar to the method slice.indices(length) introduced in
+   python 2.3, but for 2.2 */
+
+/* F. Alted 2004-01-19 */
+
+int GetIndicesEx(PySliceObject *r, int length,
+			 int *start, int *stop, int *step, int *slicelength)
+{
+	/* this is harder to get right than you might think */
+
+	int defstart, defstop;
+
+	if (r->step == Py_None) {
+		*step = 1;
+	} 
+	else {
+		if (!_PyEval_SliceIndex(r->step, step)) return -1;
+		if (*step == 0) {
+			PyErr_SetString(PyExc_ValueError,
+					"slice step cannot be zero");
+			return -1;
+		}
+	}
+
+	defstart = *step < 0 ? length-1 : 0;
+	defstop = *step < 0 ? -1 : length;
+
+	if (r->start == Py_None) {
+		*start = defstart;
+	}
+	else {
+		if (!_PyEval_SliceIndex(r->start, start)) return -1;
+		if (*start < 0) *start += length;
+		if (*start < 0) *start = (*step < 0) ? -1 : 0;
+		if (*start >= length) 
+			*start = (*step < 0) ? length - 1 : length;
+	}
+
+	if (r->stop == Py_None) {
+		*stop = defstop;
+	}
+	else {
+		if (!_PyEval_SliceIndex(r->stop, stop)) return -1;
+		if (*stop < 0) *stop += length;
+		if (*stop < 0) *stop = -1;
+		if (*stop > length) *stop = length;
+	}
+
+	if ((*step < 0 && *stop >= *start) 
+	    || (*step > 0 && *start >= *stop)) {
+		*slicelength = 0;
+	}
+	else if (*step < 0) {
+		*slicelength = (*stop-*start+1)/(*step)+1;
+	}
+	else {
+		*slicelength = (*stop-*start-1)/(*step)+1;
+	}
+
+	return 0;
+}
+

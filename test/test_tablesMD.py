@@ -9,6 +9,7 @@ from numarray import *
 import numarray.records as records
 from numarray import strings
 from tables import *
+from tables.hdf5Extension import getIndices
 
 from test_all import verbose#, allequal
 # If we use the test_all.allequal function, a segmentation violation appears
@@ -49,7 +50,6 @@ def allequal(a,b):
             return 1
         else:
             return 0
-
     # Multidimensional case
     result = (a == b)
     for i in range(len(a.shape)):
@@ -246,7 +246,7 @@ class BasicTestCase(unittest.TestCase):
             assert allequal(result[3], a)
             a = strings.array([['%04d' % (self.expectedrows - 10)]*2]*2)
             assert allequal(result[10], a)
-            a = strings.array([['%04d' % (self.expectedrows - 99)]*2]*2)
+            a = strings.array([['%04d' % (1)]*2]*2)
             assert allequal(rec['var1'], a)
         else:
             assert rec['var1'] == "0001"
@@ -390,11 +390,13 @@ class CompressTwoTablesTestCase(BasicTestCase):
 
 class BigTablesTestCase(BasicTestCase):
     title = "BigTables"
-    expectedrows = 10000
-    appendrows = 1000
-    #expectedrows = 100
-    #appendrows = 10
-
+    # 10000 rows takes much more time than we can afford for tests
+    # reducing to 1000 would be more than enough
+    # F. Alted 2004-01-19
+#     expectedrows = 10000
+#     appendrows = 1000
+    expectedrows = 1000
+    appendrows = 100
 
 class BasicRangeTestCase(unittest.TestCase):
     #file  = "test.h5"
@@ -475,7 +477,9 @@ class BasicRangeTestCase(unittest.TestCase):
         table = self.fileh.getNode("/table0")
 
         table._v_maxTuples = self.maxTuples
-        resrange = slice(self.start, self.stop, self.step).indices(table.nrows)
+        r = slice(self.start, self.stop, self.step)
+        #resrange = r.indices(table.nrows)
+        resrange = getIndices(r,table.nrows)
         reslength = len(range(*resrange))
         if self.checkrecarray:
             recarray = table.read(self.start, self.stop, self.step)
@@ -997,6 +1001,7 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(DefaultValues))
     #theSuite.addTest(unittest.makeSuite(RecArrayIO))
+    #theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
@@ -1011,8 +1016,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
         theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
-        # This one takes too much time for the MD case
-        #theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
+        theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayIO))
         theSuite.addTest(unittest.makeSuite(DefaultValues))
             

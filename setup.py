@@ -203,7 +203,7 @@ where they can be found."""
         else:
             zlibincdir = None
 
-    if not zliblibdir or not zlibincdir:
+    if not ZLIB_DIR and (not zliblibdir or not zlibincdir):
         print """\
 Can't find a local Zlib installation.
 Please, read carefully the README and if your
@@ -375,29 +375,32 @@ elif os.name == 'nt':
  Please, read carefully the README and make sure
  that you have correctly specified the
  HDF5_DIR environment variable or use the flag
- --hdf5 to give a hint of where they can
- be found."""
+ --hdf5 to give a hint of where the stubs and 
+ headers can be found."""
 
         sys.exit(1)
 
     # ZLIB library (mandatory)
+    dirstub, dirheader = None, None
     if ZLIB_DIR:
-        (dirstub, dirheader) = check_lib("ZLIB", ZLIB_DIR, "zlibdll.dll",
-                                         "lib", "libz.lib",  # Stubs
+        (dirstub, dirheader) = check_lib("ZLIB", ZLIB_DIR, "zlib.dll",
+                                         #"lib", "zdll.lib",  # Stubs (1.2.1)
+                                         "lib", "zlib.lib",  # Stubs
                                          "include", "zlib.h") # Headers
-        if dirstub and dirheader:
-            lib_dirs.append(dirstub)
-            inc_dirs.append(dirheader)
-            libnames.append('libzlib')
-            def_macros.append(("HAVE_ZLIB_LIB", 1))
-        else:
-            print "Unable to locate all the required ZLIB files"
-            print """
+    if dirstub and dirheader:
+        lib_dirs.append(dirstub)
+        inc_dirs.append(dirheader)
+        #libnames.append('zdll') # (1.2.1)
+        libnames.append('zlib')
+        def_macros.append(("HAVE_ZLIB_LIB", 1))
+    else:
+        print "Unable to locate all the required ZLIB files"
+        print """
  Please, read carefully the README and make sure
  that you have correctly specified the
  ZLIB_DIR environment variable or use the flag
- --zlib to give a hint of where they can
- be found."""
+ --zlib to give a hint of where the stubs and 
+ headers can be found."""
 
         sys.exit(1)
 

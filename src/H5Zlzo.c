@@ -278,11 +278,11 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
     }
   }
 
-#endif  /* HAVE_LZO_LIB */
-
 done:
   if(outbuf)
     free(outbuf);
+
+#endif  /* HAVE_LZO_LIB */
 
   return ret_value;
 }

@@ -178,7 +178,7 @@ static hid_t conventry(int c, int rank, hsize_t *dims)
       }
     case 's':
       string_type = H5Tcopy(H5T_C_S1);
-      H5Tset_size(string_type, dims[rank-1]);
+      H5Tset_size(string_type, (size_t)dims[rank-1]);
       if (rank == 1) {
 	return string_type;
       }

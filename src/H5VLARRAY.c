@@ -151,7 +151,6 @@ herr_t H5VLARRAYmake( hid_t loc_id,
  hsize_t dims_chunk[1];
  hid_t   plist_id;
  unsigned int cd_values[2];
- int     i;
 
  if (data)
    /* if data, one row will be filled initially */
@@ -318,7 +317,6 @@ herr_t H5VLARRAYappend_records( hid_t loc_id,
  hsize_t  dataset_dims[1];
  hsize_t  dims_new[1] = {1};	/* Only a record on each append */
  hvl_t    wdata;   /* Information to write */
- int      i;
 
  /* Initialize VL data to write */
  wdata.p=(void *)data;
@@ -410,7 +408,7 @@ herr_t H5VLARRAYread( hid_t loc_id,
  hsize_t  stride[1];    
  hssize_t offset[1];
  hid_t    xfer_pid;   /* Dataset transfer property list ID */
- hsize_t  size;       /* Number of bytes which will be used */
+/*  hsize_t  size;       /\* Number of bytes which will be used *\/ */
  size_t   mem_used=0; /* Memory used during allocation */
 
  /* Open the dataset. */
@@ -513,7 +511,6 @@ herr_t H5VLARRAYget_ndims( hid_t loc_id,
 			   int *rank )
 {
   hid_t       dataset_id;  
-  hid_t       space_id; 
   hid_t       type_id; 
   hid_t       atom_type_id; 
   H5T_class_t atom_class_id;
@@ -592,7 +589,6 @@ herr_t H5VLARRAYget_info( hid_t   loc_id,
   H5T_class_t atom_class_id;
   hid_t       atom_type_id; 
   H5T_order_t order;
-  int i;
 
   /* Open the dataset. */
   if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
@@ -605,8 +601,6 @@ herr_t H5VLARRAYget_info( hid_t   loc_id,
   /* Get number of records (it should be rank-1) */
   if ( H5Sget_simple_extent_dims( space_id, nrecords, NULL) < 0 )
     goto out;
-
-/*   printf("nrecords --> %d\n", *nrecords); */
 
   /* Terminate access to the dataspace */
   if ( H5Sclose( space_id ) < 0 )

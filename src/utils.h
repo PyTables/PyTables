@@ -88,3 +88,6 @@ H5T_class_t getHDF5ClassID(hid_t loc_id,
 PyObject *H5UIget_info( hid_t loc_id, 
 			const char *dset_name,
 			char *byteorder);
+
+int GetIndicesEx(PySliceObject *r, int length,
+		 int *start, int *stop, int *step, int *slicelength);

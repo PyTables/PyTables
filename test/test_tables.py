@@ -7,6 +7,7 @@ import numarray
 from numarray import *
 import numarray.records as records
 from tables import *
+from tables.hdf5Extension import getIndices
 
 from test_all import verbose, allequal
 
@@ -488,6 +489,9 @@ class BasicTestCase(unittest.TestCase):
         if self.compress <> table.complevel and verbose:
             print "Error in compress. Class:", self.__class__.__name__
             print "self, table:", self.compress, table.complevel
+        tinfo = whichLibVersion(self.complib)
+        if tinfo[0] == 0:
+            self.complib = "zlib"
         assert table.complib == self.complib
         assert table.complevel == self.compress
         if self.shuffle <> table.shuffle and verbose:
@@ -592,9 +596,13 @@ class CompressTwoTablesTestCase(BasicTestCase):
 
 class BigTablesTestCase(BasicTestCase):
     title = "BigTables"
-    expectedrows = 10000
-    appendrows = 1000
-
+    # 10000 rows takes much more time than we can afford for tests
+    # reducing to 1000 would be more than enough
+    # F. Alted 2004-01-19
+#     expectedrows = 10000
+#     appendrows = 1000
+    expectedrows = 1000
+    appendrows = 100
 
 class BasicRangeTestCase(unittest.TestCase):
     #file  = "test.h5"
@@ -677,7 +685,9 @@ class BasicRangeTestCase(unittest.TestCase):
         table = self.fileh.getNode("/table0")
 
         table._v_maxTuples = self.maxTuples
-        resrange = slice(self.start, self.stop, self.step).indices(table.nrows)
+        r = slice(self.start, self.stop, self.step)
+        #resrange = r.indices(table.nrows)
+        resrange = getIndices(r,table.nrows)
         reslength = len(range(*resrange))
         if self.checkrecarray:
             recarray = table.read(self.start, self.stop, self.step)

@@ -1224,14 +1224,14 @@ herr_t H5TBread_fields_name( hid_t loc_id,
  hssize_t offset[1];
 /*  hssize_t coords[5]; */
  hssize_t *coords;
- void     *buf;
- hsize_t  *buf2;
- int      num_elements;
- hsize_t  stride[1];
+/*  void     *buf; */
+/*  hsize_t  *buf2; */
+ hsize_t  num_elements;
+/*  hsize_t  stride[1]; */
  hid_t    space_id;
  hssize_t i;
  hssize_t j = 0;
- int      k,l;
+ int      k;
 
  /* Open the dataset. */
  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
@@ -1295,17 +1295,17 @@ herr_t H5TBread_fields_name( hid_t loc_id,
    /* Define a selection of points in the dataset */
    num_elements = ((nrecords - 1) / step) + 1;
 /*    offset[0] = start; */
-   count[0]  = (hsize_t) num_elements;
+   count[0]  = num_elements;
 /*    stride[0] = step; */
-   coords = (hssize_t *)malloc(num_elements * sizeof(hssize_t));
+   coords = (hssize_t *)malloc((int)num_elements * sizeof(hssize_t));
    /* Initialize the coords array */
    k = 0;
-   for (i=start; i<start+nrecords; i += step) {
+   for (i=start; i<(int)(start+nrecords); i += step) {
      coords[k] = i;
      k++;
    }
 
-   if ( H5Sselect_elements( space_id, H5S_SELECT_SET, num_elements, (const hssize_t **)coords) < 0 )
+   if ( H5Sselect_elements( space_id, H5S_SELECT_SET, (int)num_elements, (const hssize_t **)coords) < 0 )
      goto out;
    /* Release the memory */
    free(coords);

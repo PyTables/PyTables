@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.15 2004/01/01 21:01:46 falted Exp $
+#       $Id: utils.py,v 1.16 2004/01/19 20:54:26 falted Exp $
 #
 ########################################################################
 
@@ -21,6 +21,7 @@ reservedprefixes = [
   '_v_',   # For instance variables
 ]
 
+from tables.hdf5Extension import getIndices
 
 def checkNameValidity(name):
     
@@ -139,10 +140,14 @@ def calcBufferSize(rowsize, expectedrows, compress):
     return (maxTuples, chunksize)
 
 # This function is appropriate for calls to __getitem__ methods
-def processRange(nrows, start=None, stop=None, step=None):
+def processRange(nrows, start=None, stop=None, step=1):
     if step and step < 0:
         raise ValueError, "slice step canot be negative"
-    (start, stop, step) = slice(start, stop, step).indices(nrows)
+    # slice object does not have a indices in python 2.2
+    # the next is a workaround for that (basically the code for indices
+    # has been copied from python2.3 to hdf5Extension.pyx)
+    #(start1, stop1, step1) = slice(start, stop, step).indices(nrows)
+    (start, stop, step) = getIndices(slice(start, stop, step), nrows)
     # Some protection against empty ranges
     if start > stop:
         start = stop

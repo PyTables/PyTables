@@ -28,7 +28,7 @@ herr_t H5TBOread_records( hid_t *dataset_id, hid_t *space_id,
 herr_t H5TBOread_elements( hid_t *dataset_id,
 			   hid_t *space_id,
 			   hid_t *mem_type_id,
-			   size_t nrecords,
+			   hsize_t nrecords,
 			   void *coords,
 			   void *data );
 
@@ -57,6 +57,6 @@ herr_t H5TBOappend_records( hid_t *dataset_id,
 
 herr_t H5TBOclose_append(hid_t *dataset_id,
 			 hid_t *mem_type_id,
-			 int ntotal_records,
+			 hsize_t ntotal_records,
 			 const char *dset_name,
 			 hid_t parent_id);
