@@ -150,18 +150,20 @@ if os.name == 'posix':
                     HDF5_DIR = instdir
                     hdf5libdir = os.path.join(instdir, "lib")
                     print "Found HDF5 libraries at " + hdf5libdir
-                    # This is not necessary because /usr and /usr/local
-                    # should be already available on search paths
-                    #lib_dirs = [os.path.join(HDF5_DIR, 'lib')]
+                    # This is necessary at least in FreeBSD machines
+                    # Thanks to Ivan Vilata for reporting this
+                    # 2004-03-11
+                    lib_dirs = [os.path.join(HDF5_DIR, 'lib')]
                     break
 
             headerhdf5 = os.path.join(instdir, "include/H5public.h")
             if os.path.isfile(headerhdf5):
                 hdf5incdir = os.path.join(instdir, "include")
                 print "Found HDF5 header files at " + hdf5incdir
-                # This is not necessary because /usr and /usr/local
-                # should be already available on search paths
-                #inc_dirs = [ os.path.join(HDF5_DIR, 'include')]
+                # This is necessary at least in FreeBSD machines
+                # Thanks to Ivan Vilata for reporting this
+                # 2004-03-11
+                inc_dirs = [ os.path.join(HDF5_DIR, 'include')]
                 break
             else:
                 hdf5incdir = None

@@ -6956,9 +6956,9 @@ usage: ptrepack [-h] [-v] [-o] [-R range] [--non-recursive]
 	    </heading>
 
 	    <p>Imagine that we have ended the tutorial 1 (see the
-	      output of <verb>examples/tutorial1-1.py</verb>, and we
+	      output of <verb>examples/tutorial1-1.py</verb>), and we
 	      want to copy our reduced data (i.e. those datasets that
-	      hangs from the <verb>/column</verb> group to another
+	      hangs from the <verb>/column</verb> group) to another
 	      file. First, let's remember the content of the
 	      <verb>examples/tutorial1.h5</verb>:
 
@@ -7013,7 +7013,7 @@ Filename: 'reduced.h5' Title: '' , Last modif.: 'Fri Feb 20 15:39:15 2004' ,
 /columns/name (Array(3,)) 'Name column selection'
 /columns/pressure (Array(3,)) 'Pressure column selection'
 	      </verbatim>
-	      Ok. much better. But you want to get rid of the existing
+	      Ok. Much better. But you want to get rid of the existing
 	      nodes on the new file. You can achieve this by adding
 	      the -o flag:
 
