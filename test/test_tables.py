@@ -5,7 +5,6 @@ import tempfile
 
 import numarray
 from numarray import *
-#import recarray
 import numarray.records as records
 from tables import *
 
@@ -1076,6 +1075,40 @@ class RecArrayIO(unittest.TestCase):
         os.remove(file)
 
 
+class CopyTestCase(unittest.TestCase):
+
+    def test01_copy(self):
+        """Checking Table.copy() method """
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a recarray
+        r=records.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
+        # Save it in a table:
+        table1 = fileh.createTable(fileh.root, 'table1', r)
+
+        # Copy to another table
+        table2 = table1.copy('table2')
+
+        print "table1-->", table1.read()
+        print "table2-->", table2.read()
+        # Check that all the elements are equal
+        for row1 in table1:
+            print "nrow-->", row1.nrow()
+            print "1-->", row1
+            print "2-->", table2[row1.nrow()]
+            assert row1 == table2[row1.nrow()]
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
 class LargeRowSize(unittest.TestCase):
 
     def test00(self):
@@ -1198,6 +1231,7 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(LargeRowSize)) 
     #theSuite.addTest(unittest.makeSuite(DefaultValues))
     #theSuite.addTest(unittest.makeSuite(OldRecordDefaultValues))
+    #theSuite.addTest(unittest.makeSuite(CopyTestCase))
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
@@ -1218,6 +1252,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
         theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayIO))
+        #theSuite.addTest(unittest.makeSuite(CopyTestCase))
         theSuite.addTest(unittest.makeSuite(LargeRowSize))
         theSuite.addTest(unittest.makeSuite(DefaultValues))
         theSuite.addTest(unittest.makeSuite(OldRecordDefaultValues))

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.57 2004/01/01 21:01:46 falted Exp $
+#       $Id: Group.py,v 1.58 2004/01/02 19:32:45 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.57 $"
+__version__ = "$Revision: 1.58 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -452,6 +452,9 @@ class Group(hdf5Extension.Group, object):
 
     def __getattr__(self, name):
         """Get the object named "name" hanging from me."""
+
+        if not self._v_file.isopen:
+            raise RuntimeError, "You are trying to access to a closed file handler. Giving up!."
         
         if name in self._v_groups:
             return self._v_groups[name]

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.25 2004/01/01 21:01:46 falted Exp $
+#       $Id: IsDescription.py,v 1.26 2004/01/02 19:32:45 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.25 $"
+__version__ = "$Revision: 1.26 $"
 
 
 import warnings
@@ -343,7 +343,6 @@ class Description(object):
             check_validity = classdict["__check_validity"]
         else:
             check_validity = 1   # Default value for name validity check
-        #print "check_validity:", check_validity
         for k in keys:
             if (k.startswith('__') or k.startswith('_v_')):
                 if k in newdict:
@@ -360,7 +359,6 @@ class Description(object):
                 # Class variables
                 if check_validity:
                     # Check for key name validity
-                    #print "Entering checknamevalidity"
                     checkNameValidity(k)
                 object = classdict[k]
                 if not isinstance(object, Col):
@@ -405,7 +403,6 @@ class Description(object):
                     newdict['_v_itemsizes'][k] = object.itemsize
 
         # Set up the alignment
-        #print "fmt -->", newdict['_v_fmt']
         if newdict.has_key('_v_align'):
             newdict['_v_fmt'] = newdict['_v_align'] + newdict['_v_fmt']
         else:

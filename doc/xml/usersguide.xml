@@ -666,32 +666,34 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    Windows systems).
 	  </p>
 	  <p>For compression (and possibly improved performance), you
-	    may also optionally install the excellent LZO and
-	    UCL compression libraries (see <cite
-	      refid="lzouclRef"></cite> and section <ref
-	      refid="compressionIssues"></ref>).
+	    will need to install the <verb>Zlib</verb> (see <cite
+	    refid="zlibRef"></cite>), which is also required by
+	    <verb>HDF5</verb> as well. You may also optionally install
+	    the excellent <verb>LZO</verb> and <verb>UCL</verb>
+	    compression libraries (see <cite refid="lzouclRef"></cite>
+	    and section <ref refid="compressionIssues"></ref>).
 	  </p>
 	  <description>
 	    <term>Unix</term>
 	    <item>
-	      <p><verb>setup.py</verb> will detect
-		<verb>HDF5</verb>, <verb>LZO</verb> or
+	      <p><verb>setup.py</verb> will detect <verb>HDF5</verb>,
+		<verb>Zlib</verb>, <verb>LZO</verb> or
 		<verb>UCL</verb> libraries and include files under
 		<verb>/usr</verb> or <verb>/usr/local</verb>; this
 		will cover most manual installations as well as
-		installations from packages.  If
-		<verb>setup.py</verb> can't find
-		<verb>libhdf5</verb> (or <verb>liblzo</verb> or
-		<verb>libucl</verb> that you may wish to use) or if
-		you have several versions of a library installed and
-		want to use a particular one, then you can set the
-		path to the resource in the environment, setting the
-		values of the <verb>HDF5_DIR</verb>,
+		installations from packages.  If <verb>setup.py</verb>
+		can't find <verb>libhdf5</verb> or <verb>libz</verb>
+		(or <verb>liblzo</verb> or <verb>libucl</verb> that
+		you may wish to use) or if you have several versions
+		of a library installed and want to use a particular
+		one, then you can set the path to the resource in the
+		environment, setting the values of the
+		<verb>HDF5_DIR</verb>, <verb>ZLIB_DIR</verb>,
 		<verb>LZO_DIR</verb> or <verb>UCL_DIR</verb>
 		environment variables to the path to the particular
 		resource.  You may also specify the locations of the
-		resource root directories on the
-		<verb>setup.py</verb> command line. For example:
+		resource root directories on the <verb>setup.py</verb>
+		command line. For example:
 	      </p>
 
 	      <verbatim>
@@ -741,6 +743,10 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		  directory (where the include/ and dll/ directories
 		  can be found). <em>Mandatory</em>.</item>
 		
+		<term>ZLIB_DIR</term> <item>Points to the root ZLIB
+		  directory (where the include/ and lib/ directories
+		  can be found). <em>Mandatory</em>.</item>
+
 		<term>LZO_DIR</term> <item>Points to the root LZO
 		  directory (where the include/ and lib/ directories
 		  can be found). <em>Optional</em>.</item>
@@ -847,12 +853,13 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		be found.
 	      </item>
 	      <term>Windows</term> <item>Put the DLL libraries
-		(<verb>hdf5dll.dll</verb> and, optionally,
-		<verb>lzo.dll</verb> and <verb>ucl.dll</verb>) in a
-		directory listed in your <verb>PATH</verb> environment
-		variable.  The <verb>setup.py</verb> installation
-		program will print out a warning to that effect if the
-		libraries can't be found.
+		(<verb>hdf5dll.dll</verb>, <verb>zlib.dll</verb> and,
+		optionally, <verb>lzo.dll</verb> and
+		<verb>ucl.dll</verb>) in a directory listed in your
+		<verb>PATH</verb> environment variable.  The
+		<verb>setup.py</verb> installation program will print
+		out a warning to that effect if the libraries can't be
+		found.
 	      </item>
 	    </description>
 	  </item>
@@ -936,7 +943,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    everything yourself) and install them.
           </p>
           <p>For the HDF5 it should be enough to manually copy the
-	    <verb>hdf5dll.dll</verb>, <verb>zlibdll.dll</verb> <visual
+	    <verb>hdf5dll.dll</verb>, <verb>zlib.dll</verb> <visual
 	    markup="bf">and</visual> <verb>szipdll.dll</verb> files to
 	    a directory in your <verb>PATH</verb> environment variable
 	    (for example <verb>C:\WINDOWS\SYSTEM</verb>).
@@ -5293,6 +5300,89 @@ if __name__=="__main__":
 	</p>
 
       </section>
+
+      <section>
+	<heading>Shuffling (or how to make the compression even more
+	efective)</heading>
+
+	<p>The <verb>HDF5</verb> library provides an interesting
+	  filter that can leverage the results of your favorite
+	  compressor. Its name is <em>shuffle</em>, and because it can
+	  greatly benefit compression and don't take many CPU
+	  resources, it is active by <em>default</em> in
+	  <verb>PyTables</verb> whenever the compression is activated
+	  (independently of the compressor choosed). It is of course
+	  deactivated when compression is off (which is the default,
+	  as you already should know).
+	</p>
+
+	<p>From the HDF5 reference manual:</p>
+
+	<quote>The <em>shuffle</em> filter de-interlaces a block of data
+	  by reordering the bytes. All the bytes from one consistent
+	  byte position of each data element are placed together in
+	  one block; all bytes from a second consistent byte position
+	  of each data element are placed together a second block;
+	  etc. For example, given three data elements of a 4-byte
+	  datatype stored as 012301230123, shuffling will re-order
+	  data as 000111222333. This can be a valuable step in an
+	  effective compression algorithm because the bytes in each
+	  byte position are often closely related to each other and
+	  putting them together can increase the compression
+	  ratio.
+	</quote>
+
+	<p>In table <ref refid="comprShuffleComparison"></ref> you can
+	  see a benchmark that shows how the <em>shuffle</em> filter
+	  can help to the different libraries to compress data in
+	  three table datasets. Generally speaking, <em>shuffle</em>
+	  makes the writing process (shuffling+compressing) faster
+	  (between 7% and 22%), which is an interesting result in
+	  itself. However, the reading process
+	  (unshuffling+decompressing) is slower, but by a lesser
+	  extent (between 3% and 18%).
+	</p>
+	<p>But the most impressive is the level of compression that
+	  compressor filters can achieve after <em>shuffle</em> has
+	  passed over the data: the total file size can be up to 40
+	  times smaller than the uncompressed file, and up to 5 times
+	  smaller than the already compressed files (!). Of course,
+	  the data for doing this test is synthetic, and
+	  <em>shuffle</em> seems to do a great work with it, so in
+	  general, the results will vary in your case. However, due to
+	  the small drawbacks (read are slowed down by a small extent)
+	  and its potential gains (faster writing, but specially much
+	  better compression level), I do believe that it is a good
+	  thing to have such a filter enabled by default in the battle
+	  for discovering redundancy in your data.
+	</p>
+
+	<table id="comprShuffleComparison">
+	  <!-- 	    <tabular preamble="lrrrrr"> -->
+	  <tabular preamble="lrcccc">
+	    <tabhead>
+	      <srow>Compr. Lib | File size (MB) | Time writing (s) |
+		Time reading (s) | Speed writing (MB/s) | 
+		Speed reading (MB/s) </srow>
+	    </tabhead>
+	    <tabbody>
+	      <srow>NO COMPR     | 165.4 | 24.5 | 17.13 |  6.6 |   9.6</srow>
+	      <srow>Zlib (lvl 1) |  26.4 | 22.2 |  5.77 |  7.3 |  28.4</srow>
+	      <srow>Zlib+shuffle |   4.0 | 19.0 |  5.94 |  8.6 |  27.6</srow>
+	      <srow>LZO (lvl 1)  |  44.9 | 17.8 |  4.13 |  9.2 |  39.7</srow>
+	      <srow>LZO+shuffle  |   4.3 | 16.4 |  5.03 |  9.9 |  32.6</srow>
+	      <srow>UCL (lvl 1)  |  27.4 | 48.8 |  5.02 |  3.3 |  32.7</srow>
+	      <srow>UCL+shuffle  |   3.5 | 38.1 |  5.31 |  4.3 |  30.9</srow>
+	    </tabbody>
+	  </tabular>
+	  <caption>Comparison between different compression
+	    libraries. The tests has been conducted on a Pentium 4 at 2
+	    GHz and a hard disk at 4200 RPM.</caption>
+	</table>
+
+
+
+      </section> <!-- Shuffle -->
 
       <section id="expectedRowsOptim">
 	<heading>Informing <visual markup="tt">PyTables</visual>
