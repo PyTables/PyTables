@@ -23,6 +23,18 @@ PyObject *createNamesTuple(char *buffer[], int nelements)
   return t;
 }
 
+PyObject *createNamesList(char *buffer[], int nelements)
+{
+  int i;
+  PyObject *t;
+
+  t = PyList_New(nelements);
+  for (i = 0; i < nelements; i++) { 
+    PyList_SetItem(t, i, PyString_FromString(buffer[i]) );
+  }
+  return t;
+}
+
 /****************************************************************
 **
 **  gitercb(): Custom group iteration callback routine.
@@ -124,11 +136,10 @@ PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name) {
 ** 
 ****************************************************************/
 static herr_t aitercb( hid_t loc_id, const char *name, void *op_data) {
-  char *attr_name = (char*)op_data;
 
   /* Return the name of the attribute on op_data */
-  strcpy(attr_name, name);
-  return(1);     /* Exit after this object is visited */
+  PyList_Append(op_data, PyString_FromString(name));
+  return(0);    /* Loop until no more attrs remain in object */
 } 
 
 
@@ -139,32 +150,13 @@ static herr_t aitercb( hid_t loc_id, const char *name, void *op_data) {
 ****************************************************************/
 PyObject *Aiterate(hid_t loc_id) {
   unsigned int i = 0;
-  PyObject *tnames;
-  int nattrs, j, ret;
-  char op_data[NAMELEN];                  /* Info of objects in the group */
-  char *names[MAX_ATTRS_IN_NODE];  /* Names of attrs in the node */
+  int ret;
+  PyObject *attrlist;                  /* List where the attrnames are put */
 
-  nattrs = H5Aget_num_attrs(loc_id);
-  if (nattrs > MAX_ATTRS_IN_NODE) {
-    fprintf(stderr, "Maximum number of attributes in a node exceeded!.");
-    fprintf(stderr, " Fetching only a maximum of: %d\n", MAX_ATTRS_IN_NODE);
-    nattrs = MAX_ATTRS_IN_NODE;
-  }
-  for(j=0;j<nattrs;j++) {
-    ret = H5Aiterate(loc_id, &i, (H5A_operator_t)aitercb, (void *)op_data);
-    names[j] = strdup(op_data);
-#ifdef DEBUG
-    printf("Attr name ==> %s. Attr number ==> %d\n", names[j], j);
-#endif
-  }
-  
-#ifdef DEBUG
-  printf("Total numer of attrs ==> %d\n", j);
-#endif
-  tnames = createNamesTuple(names, i);
-  /* Release resources */
-  for(i=0;i<j;i++) free(names[i]);
-  return tnames;
+  attrlist = PyList_New(0);
+  ret = H5Aiterate(loc_id, &i, (H5A_operator_t)aitercb, (void *)attrlist);
+
+  return attrlist;
 }
 
 

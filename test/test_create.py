@@ -132,9 +132,9 @@ class createTestCase(unittest.TestCase):
         assert self.fileh.root.anarray.title == "Array title"
 
     def test03b_titleLength(self):
-        """Checking large title character length limit (1024)"""
+        """Checking large title character length limit (1023)"""
 
-	titlelength = 1024
+	titlelength = 1023
 	# Try to put a very long title on a group object
 	group = self.fileh.createGroup(self.root, 'group',
                                        "t" * titlelength)
@@ -405,10 +405,10 @@ class createAttrTestCase(unittest.TestCase):
         # Check the local attributes names
         assert self.group._v_attrs._f_list() == ["qr", "rs"]
         if verbose:
-            print "Attribute list in disk:", self.group._v_attrs._g_listAttr()
+            print "Attribute list in disk:", self.group._v_attrs._f_list("all")
         # Check the disk attribute names
-        assert self.group._v_attrs._g_listAttr() == \
-               ('TITLE', 'CLASS', 'VERSION', "qr", "rs")
+        assert self.group._v_attrs._f_list("all") == \
+               ['CLASS', 'TITLE', 'VERSION', "qr", "rs"]
 
         # delete an attribute (__delattr__ method)
         del self.group._v_attrs.qr
@@ -419,8 +419,8 @@ class createAttrTestCase(unittest.TestCase):
         if verbose:
             print "Attribute list in disk:", self.group._v_attrs._g_listAttr()
         # Check the disk attribute names
-        assert self.group._v_attrs._g_listAttr() == \
-               ('TITLE', 'CLASS', 'VERSION', "rs")
+        assert self.group._v_attrs._f_list("all") == \
+               ['CLASS', 'TITLE', 'VERSION', "rs"]
 
     def test06_removeAttributes(self):
         """Checking removing system attributes """
@@ -452,10 +452,10 @@ class createAttrTestCase(unittest.TestCase):
         # Check the local attributes names (alphabetically sorted)
         assert self.group._v_attrs._f_list() == ["op", "qr", "rs"]
         if verbose:
-            print "Attribute list in disk:", self.group._v_attrs._g_listAttr()
+            print "Attribute list in disk:", self.group._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
-        assert self.group._v_attrs._g_listAttr() == \
-               ('TITLE', 'CLASS', 'VERSION', "qr", "rs", "op")
+        assert self.group._v_attrs._f_list("all") == \
+               ['CLASS', 'TITLE', 'VERSION', "op", "qr", "rs"]
 
     def test08_renameAttributes(self):
         """Checking renaming system attributes """

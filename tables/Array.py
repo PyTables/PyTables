@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.32 2003/06/11 10:48:44 falted Exp $
+#       $Id: Array.py,v 1.33 2003/09/15 19:22:48 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.32 $"
+__version__ = "$Revision: 1.33 $"
 import types, warnings, sys
 from Leaf import Leaf
 import hdf5Extension
@@ -99,7 +99,7 @@ class Array(Leaf, hdf5Extension.Array, object):
         if object is not None:
             self._v_new = 1
             self.object = object
-            self.title = title
+            self.new_title = title
             self.atomictype = atomictype
         else:
             self._v_new = 0
@@ -195,7 +195,7 @@ class Array(Leaf, hdf5Extension.Array, object):
   Sorry, but this object is not supported.""" % (arr)
             
             
-        self.type = self._createArray(naarr, self.title,
+        self.type = self._createArray(naarr, self.new_title,
                                            flavor, obversion, self.atomictype)
         # Get some important attributes
         self.shape = naarr.shape

@@ -16,7 +16,6 @@
 #include <stdlib.h>
 
 
-
 /*-------------------------------------------------------------------------
  * 
  * Private functions
@@ -1049,10 +1048,7 @@ herr_t H5LTset_attribute_string( hid_t loc_id,
  if ( H5Sclose( attr_space_id ) < 0 )
   goto out;
 
- /* Close the attribute type */
- /* This was added by Francesc Alted to avoid a memory leak */
- /* 01/09/2003 */
- H5Tclose(attr_type);
+   H5Tclose(attr_type);  	       /* Afegit! */
  /* Close the object */
  if ( H5LT_close_id( obj_id, statbuf.type ) < 0 )
   return -1;
@@ -1861,6 +1857,74 @@ herr_t H5LTget_attribute_string( hid_t loc_id,
   return -1;
 
  return 0;
+
+}
+
+
+PyObject *H5LTget_attribute_string_sys( hid_t loc_id,
+					const char *obj_name,
+					const char *attr_name)
+{
+
+ /* identifiers */
+ hid_t      obj_id;
+ hid_t      attr_id;
+ hid_t      attr_type;
+ size_t     attr_size;
+ PyObject   *attr_value;
+ char       *data;
+ H5G_stat_t statbuf;
+
+ /* Get the type of object */
+ if (H5Gget_objinfo(loc_id, obj_name, 1, &statbuf)<0)
+  return NULL;
+
+ /* Open the object */
+ if ((obj_id = H5LT_open_id( loc_id, obj_name, statbuf.type )) < 0)
+  return NULL;
+
+/*  Check if attribute exists */
+ /* This is commented out to make the attribute reading faster */
+/*  if (H5LT_find_attribute(obj_id, attr_name) <= 0)  */
+/*    /\* If the attribute does not exists, return None *\/ */
+/*    /\* and do not even warn the user *\/ */
+/*    return Py_None; */
+
+ if ( ( attr_id = H5Aopen_name( obj_id, attr_name ) ) < 0 )
+  return Py_None;
+
+ if ( (attr_type = H5Aget_type( attr_id )) < 0 )
+  goto out;
+
+ /* Get the size. */
+ attr_size = H5Tget_size( attr_type );
+
+/*  printf("name: %s. size: %d\n", attr_name, attr_size); */
+ /* Allocate memory for the input buffer */
+ data = (char *)malloc(attr_size);
+
+ if ( H5Aread( attr_id, attr_type, data ) < 0 )
+  goto out;
+
+ attr_value = PyString_FromString(data);
+ free(data);
+
+ if ( H5Tclose( attr_type )  < 0 )
+  goto out;
+
+ if ( H5Aclose( attr_id ) < 0 )
+  return Py_None;
+
+ /* Close the object */
+ if ( H5LT_close_id( obj_id, statbuf.type ) < 0 )
+  return Py_None;
+
+ return attr_value;
+
+out:
+ H5Aclose( attr_id );
+ H5Aclose( attr_type );
+ return Py_None;
 
 }
 

@@ -30,6 +30,7 @@ def createFileArr(filename, ngroups, ntables, nrows):
 
     # Now, create the arrays
     rowswritten = 0
+    arr = numarray.arange(nrows)
     for k in range(ngroups):
         fileh = openFile(filename, mode="a", rootUEP='group%04d'% k)
         # Get the group
@@ -37,7 +38,7 @@ def createFileArr(filename, ngroups, ntables, nrows):
         for j in range(ntables):
             # Create the array
             group = fileh.createArray("/", 'array%04d'% j,
-                                      numarray.arange(nrows), "Array %d" % j)
+                                      arr, "Array %d" % j)
         fileh.close()
 
     return (ngroups*ntables*nrows, 4)
@@ -293,6 +294,7 @@ def testMethod(file, usearray, testwrite, testread, complib, complevel,
 
 if __name__=="__main__":
     import getopt
+    import profile
     try:
         import psyco
         psyco_imported = 1
@@ -381,8 +383,10 @@ if __name__=="__main__":
         dump_refs(10, 10, 15, file, usearray, testwrite, testread, complib,
                   complevel, ngroups, ntables, nrows)
     else:
-        testMethod(file, usearray, testwrite, testread, complib, complevel,
-                   ngroups, ntables, nrows)
+#         testMethod(file, usearray, testwrite, testread, complib, complevel,
+#                    ngroups, ntables, nrows)
+        profile.run("testMethod(file, usearray, testwrite, testread, " + \
+                    "complib, complevel, ngroups, ntables, nrows)")
     
     # Show the dirt
     if debug == 1:

@@ -16,6 +16,7 @@
 #define _H5LT_H
 
 #include <hdf5.h>
+#include "Python.h"
 
 #define TESTING(WHAT)	{printf("%-70s", "Testing " WHAT); fflush(stdout);}
 #define PASSED()	{puts(" PASSED");fflush(stdout);}
@@ -204,6 +205,10 @@ herr_t H5LTget_attribute_string( hid_t loc_id,
                                  const char *obj_name, 
                                  const char *attr_name,
                                  char *data );
+
+PyObject *H5LTget_attribute_sys( hid_t loc_id, 
+				 const char *obj_name, 
+				 const char *attr_name);
 
 herr_t H5LTget_attribute_char( hid_t loc_id, 
                                const char *obj_name, 

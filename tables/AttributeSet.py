@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.17 2003/09/08 10:15:30 falted Exp $
+#       $Id: AttributeSet.py,v 1.18 2003/09/15 19:22:48 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.17 $"
+__version__ = "$Revision: 1.18 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -118,7 +118,11 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         """
         self._g_new(node)
         self.__dict__["_v_node"] = node
-        self.__dict__["_v_attrnames"] = list(self._g_listAttr())
+        #self.__dict__["_v_attrnames"] = list(self._g_listAttr())
+        self.__dict__["_v_attrnames"] = self._g_listAttr()
+        #print "Attrs-->", self.__dict__["_v_attrnames"]
+        #self.__dict__["_v_attrnames"] = ["CLASS", "VERSION", "TITLE", "NROWS",
+        #                                 "FLAVOR",]
         # Split the attribute list in system and user lists
         self.__dict__["_v_attrnamessys"] = []
         self.__dict__["_v_attrnamesuser"] = []
@@ -161,13 +165,21 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     def __getattr__(self, name):
         """Get the attribute named "name"."""
 
-        # If attribute does not exists, return None
+        # If attribute does not exist, return None
         if not name in self._v_attrnames:
             return None
 
         # Read the attribute from disk
-        value = self._g_getAttr(name)
-
+        #value = self._g_getAttr(name)   # Takes 1.3s/3.7s
+        if name in self._v_attrnamessys:
+        #if name in RO_ATTRS and 1:
+            # _g_getSysAttr works only for string attributes
+            # with length less than 256 bytes
+            # (all read-only atributes *must* follow these rules!)
+            value = self._g_getSysAttr(name)   # Takes only 0.6s/2.9s
+        else:
+            value = self._g_getAttr(name)   # Takes 1.3s/3.7s
+        #value = None # only for profiling purposes
         # Check if value is pickled
         # Pickled values always seems to end with a "."
         if type(value) is types.StringType and value and value[-1] == ".":

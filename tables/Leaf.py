@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.24 2003/09/08 10:15:30 falted Exp $
+#       $Id: Leaf.py,v 1.25 2003/09/15 19:22:48 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.24 $"
+__version__ = "$Revision: 1.25 $"
 
 import types
 from utils import checkNameValidity
@@ -82,9 +82,21 @@ class Leaf:
         else:
             self._open()
         # Attach the AttributeSet attribute
-        self.attrs = AttributeSet(self)
+        self.attrs = AttributeSet(self)  # 1.6s/3.7s del temps
         # Once the AttributeSet instance has been created, get the title
-        self.title = self.attrs.TITLE
+        #self.title = self.attrs.TITLE   # 0.35s/2.7s del temps
+
+    # Define title as a property
+    def get_title (self):
+        return self.attrs.TITLE
+    
+    def set_title (self, title):
+        self.attrs.TITLE = title
+
+    # Define a property.  The 'delete this attribute'
+    # method is defined as None, so the attribute can't be deleted.
+    title = property(get_title, set_title, None,
+                     "Title of this object")
 
     def _g_renameObject(self, newname):
         """Rename this leaf in the object tree as well as in the HDF5 file."""

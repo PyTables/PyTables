@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.72 2003/09/12 17:14:33 falted Exp $
+#       $Id: Table.py,v 1.73 2003/09/15 19:22:48 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.72 $"
+__version__ = "$Revision: 1.73 $"
 
 from __future__ import generators
 import sys
@@ -139,7 +139,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         """
 
         # Common variables
-        self.title = title
+        self.new_title = title
         self._v_compress = compress
         self._v_expectedrows = expectedrows
         # Initialize the number of rows to a default
@@ -254,7 +254,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         #print "self._v_fmt (create)-->", self._v_fmt
         self._calcBufferSize(self._v_expectedrows)
         # Create the table on disk
-        self._createTable(self.title, self._v_complib)
+        self._createTable(self.new_title, self._v_complib)
         # Initialize the shape attribute
         self.shape = (self.nrows,)
         # Get the column types

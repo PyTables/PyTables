@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.75 2003/09/12 17:14:31 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.76 2003/09/15 19:22:48 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.75 $"
+__version__ = "$Revision: 1.76 $"
 
 
 import sys, os
@@ -404,6 +404,9 @@ cdef extern from "H5LT.h":
   herr_t H5LTget_attribute_string( hid_t loc_id, char *obj_name,
                                    char *attr_name, char *attr_data )
 
+  object H5LTget_attribute_string_sys( hid_t loc_id, char *obj_name,
+                                       char *attr_name)
+
   herr_t H5LTget_attribute_char( hid_t loc_id, 
                                  char *obj_name, 
                                  char *attr_name,
@@ -672,7 +675,7 @@ def isPyTablesFile(char *filename):
   
   cdef hid_t file_id
 
-  isptf = -1
+  isptf = "unknown"
   if os.path.isfile(filename) and H5Fis_hdf5(filename) > 0:
     # The file exists and is HDF5, that's ok
     # Open it in read-only mode
@@ -681,7 +684,10 @@ def isPyTablesFile(char *filename):
     # Close the file
     H5Fclose(file_id)
 
-  return isptf
+  if isptf == "unknown":
+    return None    # Means that this is not a pytables file
+  else:
+    return isptf
 
 def read_f_attr(hid_t file_id, char *attr_name):
   """Return the PyTables file attributes.
@@ -700,12 +706,12 @@ def read_f_attr(hid_t file_id, char *attr_name):
   # Check if attribute exists
   # Open the root group
   root_id =  H5Gopen(file_id, "/")
-  strcpy(attr_value, "")  # Default value
+  strcpy(attr_value, "unknown")  # Default value
   if H5LT_find_attribute(root_id, attr_name):
     # Read the format_version attribute
     ret = H5LT_get_attribute_disk(root_id, attr_name, attr_value)
     if ret < 0:
-      strcpy(attr_value, "")
+      strcpy(attr_value, "unknown")
 
   # Close root group
   H5Gclose(root_id)
@@ -736,7 +742,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.75 2003/09/12 17:14:31 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.76 2003/09/15 19:22:48 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -942,6 +948,7 @@ cdef class AttributeSet:
 
       attrvalue = self._g_getNodeAttr(self.parent_id, loc_id,
                                       self.name, attrname)
+
       # Close this dataset
       ret = H5Dclose(loc_id)
       if ret < 0:
@@ -949,8 +956,20 @@ cdef class AttributeSet:
 
     return attrvalue
 
-  # This funtion is useful to retrieve attributes of Leafs that are
-  # still not open
+  # Get a system attribute (they should be only strings)
+  def _g_getSysAttr(self, char *attrname):
+
+    ret = H5LTget_attribute_string_sys(self.parent_id, self.name,
+                                       attrname)
+    return ret
+
+  # This funtion is useful to retrieve system attributes of Leafs
+  def _g_getChildSysAttr(self, char *dsetname, char *attrname):
+
+    ret = H5LTget_attribute_string_sys(self.node._v_groupId, dsetname,
+                                       attrname)
+    return ret
+
   def _g_getChildAttr(self, char *dsetname, char *attrname):
     cdef object attrvalue
     cdef hid_t loc_id
@@ -1072,7 +1091,7 @@ cdef class AttributeSet:
         raise RuntimeError("Attribute '%s' exists in node '%s', but cannot be deleted." \
                          % (attrname, dsetname))
     else:
-      # Open the dataset
+      # Open the dataset 
       loc_id = H5Dopen(self.parent_id, self.name)
       if loc_id < 0:
         raise RuntimeError("Cannot open the dataset '%s' in node '%s'" % \
@@ -1167,9 +1186,9 @@ cdef class Group:
   def __dealloc__(self):
     cdef int ret
     # print "Destroying object Group in Extension"
-    free(<void *>self.name)
     if self.group_id <> 0:
-      print "Group open!"
+      print "Group open: ", self.name
+    free(<void *>self.name)
 
 
 cdef class Table:
@@ -1958,10 +1977,11 @@ cdef class Array:
     """
     # So, I've decided to create the shape tuple using Python constructs
     shape = []
-    for i in range(self.rank):
+    #for i in range(self.rank):
+    for i from 0 <= i < self.rank:
       shape.append(self.dims[i])
     shape = tuple(shape)
-
+    #shape=(10)
     return (toclass[self.enumtype], shape, type_size, byteorder)
   
   def _readArray(self, object buf):

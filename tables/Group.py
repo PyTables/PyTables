@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.50 2003/09/08 10:15:30 falted Exp $
+#       $Id: Group.py,v 1.51 2003/09/15 19:22:48 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.50 $"
+__version__ = "$Revision: 1.51 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -108,7 +108,7 @@ class Group(hdf5Extension.Group, object):
         
         """
         self.__dict__["_v_new"] = new
-        self.__dict__["_v_title"] = title
+        self.__dict__["_v_new_title"] = title
         self.__dict__["_v_groups"] = {}
         self.__dict__["_v_leaves"] = {}
         self.__dict__["_v_childs"] = {}
@@ -173,8 +173,15 @@ class Group(hdf5Extension.Group, object):
     def _g_getLeaf(self,name):
         """Returns a proper Leaf class depending on the object to be opened.
         """
-        
-        class_ = self._v_attrs._g_getChildAttr(name, "CLASS")
+
+        if self._v_file._format_version == "unknown":
+            class_ = self._v_attrs._g_getChildAttr(name, "CLASS")
+        else:
+            # We can call this only if we are certain than file has
+            # the attribute CLASS
+            class_ = self._v_attrs._g_getChildSysAttr(name, "CLASS")
+        #print "class_ -->", class_
+        #class_ = self._v_attrs._g_getChildAttr(name, "CLASS")
         if class_:
             # Convert "ARRAY" or "TABLE" to "Array" or "Table"
             class_ = class_.capitalize()
@@ -259,7 +266,7 @@ I can't promise getting the correct object, but I will do my best!.""",
         self.__dict__["_v_attrs"] = AttributeSet(self)
         if self._v_new:
             # Set the title, class and version attribute
-            self._v_attrs._g_setAttrStr('TITLE',  self._v_title)
+            self._v_attrs._g_setAttrStr('TITLE',  self._v_new_title)
             self._v_attrs._g_setAttrStr('CLASS', "GROUP")
             self._v_attrs._g_setAttrStr('VERSION', "1.0")
             # Add these attributes to the dictionary
@@ -270,8 +277,20 @@ I can't promise getting the correct object, but I will do my best!.""",
             self._v_attrs._v_attrnamessys.sort()
         else:
             # Get the title on disk
-            self.__dict__["_v_title"] = self._v_attrs.TITLE
+            #self.__dict__["_v_title"] = self._v_attrs.TITLE
+            pass
 
+    # Define _v_title as a property
+    def _f_get_title (self):
+        return self._v_attrs.TITLE
+    
+    def _f_set_title (self, title):
+        self._v_attrs.TITLE = title
+
+    # Define a property.  The 'delete this attribute'
+    # method is defined as None, so the attribute can't be deleted.
+    _v_title = property(_f_get_title, _f_set_title, None,
+                        "Title of this object")
 
     def _g_renameObject(self, newname):
         """Rename this group in the object tree as well as in the HDF5 file."""
@@ -475,7 +494,8 @@ I can't promise getting the correct object, but I will do my best!.""",
         """
 
         # Check for name validity
-        checkNameValidity(name)
+        if self._v_new:
+            checkNameValidity(name) # Cosumeix 1s/5s del temps
         
         # Check if we are too much deeper in tree
         if self._v_depth > MAX_DEPTH_IN_TREE:
