@@ -1,11 +1,11 @@
 ########################################################################
 #
-#       Copyright:      LGPL
-#       Created:        October 10, 2002
+#       License: BSD
+#       Created: October 10, 2002
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.2 2002/11/07 17:52:35 falted Exp $
+#       $Id: Array.py,v 1.3 2002/11/10 13:31:50 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.2 $"
+__version__ = "$Revision: 1.3 $"
 
 from Leaf import Leaf
 import hdf5Extension

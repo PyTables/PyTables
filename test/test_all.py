@@ -40,18 +40,15 @@ def suite():
 
 if __name__ == '__main__':
     import tables
-    #from tables.hdf5Extension import getHDF5Version, getExtCVSVersion, cvsid
-    from tables.hdf5Extension import getHDF5LibraryVersion, \
-                                     getPyTablesVersion, \
-                                     getExtCVSVersion
+    import Numeric
+
     print '-=' * 38
-    print "HDF5 version:            %s" % getHDF5LibraryVersion()
-    print "PyTables version:        %s" % getPyTablesVersion()
-    #print "Extension CVS version:   %s" % cvsid
-    print "Extension CVS version:   %s" % getExtCVSVersion()
-    print 'python version:          %s' % sys.version
+    print "PyTables version:  %s" % tables.__version__
+    print "Extension version: %s" % tables.ExtVersion
+    print "HDF5 version:      %s" % tables.HDF5Version
+    print "Numeric version:   %s" % Numeric.__version__
+    print 'python version:    %s' % sys.version
     print '-=' * 38
-    #raise SystemExit
 
     unittest.main( defaultTest='suite' )
 

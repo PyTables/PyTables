@@ -15,7 +15,7 @@ class Event(IsRecord):
     ycoord      = 'f'    # float  (single-precision)
 
 # Open a file in "w"rite mode
-fileh = openFile(name = "table2.h5", mode = "w")
+fileh = openFile("table2.h5", mode = "w")
 # Get the HDF5 root group
 root = fileh.root
 

@@ -5,7 +5,7 @@ class Record(IsRecord):
     field2        = '20s'  # 20-character String
 
 # Open a file in "w"rite mode
-fileh = openFile(name = "objecttree.h5", mode = "w")
+fileh = openFile("objecttree.h5", mode = "w")
 # Get the HDF5 root group
 root = fileh.root
 

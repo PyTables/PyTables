@@ -4,7 +4,7 @@ from tables import *
 basedim = 4
 file = "array4.h5"
 # Open a new empty HDF5 file
-fileh = openFile(name = file, mode = "w")
+fileh = openFile(file, mode = "w")
 # Get the root group
 group = fileh.root
 # Set the type codes to test
@@ -27,7 +27,7 @@ fileh.close()
 
 
 # Open the previous HDF5 file in read-only mode
-fileh = openFile(name = file, mode = "r")
+fileh = openFile(file, mode = "r")
 # Get the root group
 group = fileh.root
 # Get the metadata on the previosly saved arrays

@@ -1,10 +1,10 @@
 #
-#       Copyright:      LGPL
+#       License:        BSD
 #       Created:        September 4, 2002
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.4 2002/11/07 17:52:35 falted Exp $
+#       $Id: File.py,v 1.5 2002/11/10 13:31:50 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.4 $"
+__version__ = "$Revision: 1.5 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -46,15 +46,16 @@ from Table import Table
 from Array import Array
 
 
-def openFile(name, mode = "r", title = ""):
+def openFile(filename, mode = "r", title = ""):
 
-    """Open a file an returns a File object to deal with it.
+    """Open a PyTables file an returns a File object.
 
-    Keyword arguments:
+    Arguments:
 
-    name -- The name of the file (supports environment variable
-            expansion)
-    
+    filename -- The name of the file (supports environment variable
+            expansion). It must have any of ".h5", ".hdf" or ".hdf5"
+            extensions.
+
     mode -- The mode to open the file. It can be one of the following:
     
         "r" -- read-only; no data can be modified.
@@ -73,7 +74,7 @@ def openFile(name, mode = "r", title = ""):
     """
     
     # Expand the form '~user'
-    path = os.path.expanduser(name)
+    path = os.path.expanduser(filename)
     # Expand the environment variables
     path = os.path.expandvars(path)
     
@@ -318,17 +319,38 @@ future). Giving up.""" % \
                     compress = 3, expectedrows = 10000):
 
         """Create a new Table instance with name "name" in "where" location.
-        "where" parameter can be a path string, or another group instance.
-        "RecordObject" is the IsRecord instance. If "RecordObject" is None,
-        the table metadata is read from disk, else, it's taken from previous
-        parameters. "title" sets a TITLE attribute on the HDF5 table entity.
-        "compress" is a boolean option and specifies if data compression
-        will be enabled or not. "expectedrows" is an user estimate about the
-        number of records that will be on table.  If not provided, the
-        default value is appropiate to tables until 1 MB in size. If you
-        plan to save bigger tables by providing a guess to PyTables will
-        optimize the HDF5 B-Tree creation and management process time and
-        memory used. The created object is returned."""
+        "where" parameter can be a path string, or another group
+        instance.
+
+        Keyword arguments:
+
+        where -- The parent group where the new table will
+            hang. "where" parameter can be a path string (for
+            example "/Particles/TParticle1"), or Group
+            instance.
+
+        name -- The name of the new table.
+
+        RecordObject -- The IsRecord instance. If None, the table
+            metadata is read from disk, else, it's taken from previous
+            parameters.
+
+        title -- Sets a TITLE attribute on the HDF5 table entity.
+
+        compress -- Specifies a compress level for data. The allowed
+            range is 0-9. A value of 0 disables compression. The
+            default is compression level 3, that balances between
+            compression effort and CPU consumption.
+
+        expectedrows -- An user estimate about the number of records
+            that will be on table. If not provided, the default value
+            is appropiate for tables until 1 MB in size (more or less,
+            depending on the record size). If you plan to save bigger
+            tables try providing a guess; this will optimize the HDF5
+            B-Tree creation and management process time and memory
+            used.
+
+        """
     
         group = self.getNode(where, classname = 'Group')
         object = Table(RecordObject, title, compress, expectedrows)

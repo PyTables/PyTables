@@ -2,7 +2,7 @@ from Numeric import *
 from tables import *
 
 # Open a new empty HDF5 file
-fileh = openFile(name = "array2.h5", mode = "w")
+fileh = openFile("array2.h5", mode = "w")
 # Shortcut to the root group
 root = fileh.root
 
@@ -26,7 +26,7 @@ print "  typecode ==>", root.carray.typecode
 fileh.close()
 
 # Open the previous HDF5 file in read-only mode
-fileh = openFile(name = "array2.h5", mode = "r")
+fileh = openFile("array2.h5", mode = "r")
 # Get the root group
 root = fileh.root
 

@@ -2,7 +2,7 @@ from Numeric import *
 from tables import *
 
 # Open a new empty HDF5 file
-fileh = openFile(name = "array1.h5", mode = "w")
+fileh = openFile("array1.h5", mode = "w")
 # Get the root group
 root = fileh.root
 

@@ -8,7 +8,7 @@ class Particle(IsRecord):
     temperature = 'd'    # double (double-precision)
 
 # Open a file in "w"rite mode
-fileh = openFile(name = "table1.h5", mode = "w")
+fileh = openFile("table1.h5", mode = "w")
 # Create a new group
 group = fileh.createGroup(fileh.root, "newgroup")
 

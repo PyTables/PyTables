@@ -1,11 +1,11 @@
 ########################################################################
 #
-#       Copyright:      LGPL
-#       Created:        October 14, 2002
+#       License: BSD
+#       Created: October 14, 2002
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.1 2002/11/07 17:52:35 falted Exp $
+#       $Id: Leaf.py,v 1.2 2002/11/10 13:31:50 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.1 $"
+__version__ = "$Revision: 1.2 $"
 
 
 class Leaf:
