@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.22 2003/02/18 20:24:43 falted Exp $
+#       $Id: Table.py,v 1.23 2003/02/20 13:12:35 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.22 $"
+__version__ = "$Revision: 1.23 $"
 
 from __future__ import generators
 import sys
@@ -265,9 +265,7 @@ class Table(Leaf, hdf5Extension.Table):
         rowsize = struct.calcsize(fmt)
         #rowsize = self.description._v_record.itemsize()
         self._v_rowsize = rowsize
-        self.spacebuffer = " " * rowsize
-        # List to collect binary tuples
-        self._v_packedtuples = []
+        # Counter for the binary tuples
         self._v_recunsaved = 0
         if fmt[0] not in "@=<>!":
             rowsizeinfile = struct.calcsize("=" + fmt)
@@ -345,7 +343,6 @@ class Table(Leaf, hdf5Extension.Table):
         self.append_records(self._v_buffer, self._v_recunsaved)
         self.nrows += self._v_recunsaved
         # Reset the buffer and the tuple counter
-        self._v_packedtuples = []
         self._v_recunsaved = 0
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
@@ -471,6 +468,18 @@ class Table(Leaf, hdf5Extension.Table):
     def close(self):
         """Flush the table buffers and close the HDF5 dataset."""
         self.flush()
+        #print "Passing Table.close()", self.name
+        # Delete some unnecessary big objects
+        del self.description
+        if hasattr(self, "_v_buffer"):
+            del self.row
+            del self._v_buffer
+        #print self.__dict__
+
+    def __del__(self):
+        """Delete some objects"""
+        #print "Deleting Table object", self._v_name
+        pass
 
     def __repr__(self):
         """This provides column metainfo in addition to standard __str__"""

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.21 2003/02/17 14:35:45 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.22 2003/02/20 13:12:34 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.21 $"
+__version__ = "$Revision: 1.22 $"
 
 
 import sys, os.path
@@ -50,6 +50,7 @@ import recarray2 as recarray
 cdef extern from "stdlib.h":
   ctypedef int size_t
   void *malloc(size_t size)
+  void free(void *ptr)
 
 # Funtions for printng in C
 cdef extern from "stdio.h":
@@ -470,7 +471,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.21 2003/02/17 14:35:45 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.22 2003/02/20 13:12:34 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -530,14 +531,15 @@ cdef class File:
 
   # This method is moved out of scope, until we provide code to delete
   # the memory booked by this extension types
-  def _f_dealloc__(self):
+  def __dealloc__(self):
     cdef int ret
-
+    #print "Destroying object File in Extension"
     if self.file_id:
-      print "Closing the HDF5 file", name," because user didn't do that!."
+      #print "Closing the HDF5 file", name," because user didn't do that!."
       ret = H5Fclose(self.file_id)
       if ret < 0:
         raise RuntimeError("Problems closing the file %s" % self.name )
+
 
 cdef class Group:
   cdef hid_t   group_id
@@ -569,6 +571,7 @@ cdef class Group:
     if ret < 0:
       raise RuntimeError("Can't open the group %s." % self.name)
     self.group_id = ret
+    #ret = H5Gclose(self.group_id)
     self.parent_id = loc_id
     return self.group_id
 
@@ -681,6 +684,25 @@ cdef class Group:
     if ret < 0:
       raise RuntimeError("Can't set attribute %s in group %s." % 
                              (self.attrname, self.name))
+
+  def _f_closeGroup(self):
+    cdef int ret
+    
+    #print "Closing the HDF5 Group", self.name
+    ret = H5Gclose(self.group_id)
+    if ret < 0:
+      raise RuntimeError("Problems closing the Group %s" % self.name )
+    self.group_id = 0  # indicate that this group is closed
+
+  def __dealloc__(self):
+    cdef int ret
+    
+    #print "Destroying object Group in Extension"
+    if self.group_id:
+      #print "Closing the HDF5 Group", self.name," because user didn't do that!."
+      ret = H5Gclose(self.group_id)
+      if ret < 0:
+        raise RuntimeError("Problems closing the Group %s" % self.name )
 
 cdef class Table:
   # instance variables
@@ -854,6 +876,11 @@ cdef class Table:
 
     return nrecords
 
+  def __dealloc__(self):
+    cdef int ret
+    #print "Destroying object Table in Extension"
+    free(<void *>self.name)
+
 cdef class Array:
   # Instance variables
   cdef hid_t   group_id
@@ -1009,3 +1036,8 @@ cdef class Array:
 
     return 
 
+  def __dealloc__(self):
+    cdef int ret
+    #print "Destroying object Array in Extension"
+    free(<void *>self.dims)
+    free(<void *>self.name)

@@ -2,6 +2,7 @@ import sys
 import unittest
 import os
 import tempfile
+import warnings
 from numarray import *
 import chararray
 import recarray
@@ -9,13 +10,17 @@ from tables import *
 
 from test_all import verbose
 
+# If the next line is uncommented, the logical_and.reduce in loop issues an
+# OverflowWarning in the case of type Int8 (and only in that case).
+#warnings.resetwarnings()
+
 def allequal(a,b):
     """Checks if two numarrays are equal"""
 
     if a.shape <> b.shape:
         return 0
 
-    # Scalar case
+    # Rank-0 case
     if len(a.shape) == 0:
         if str(equal(a,b)) == '1':
             return 1
@@ -39,7 +44,8 @@ class BasicTestCase(unittest.TestCase):
         pass
     
     def tearDown(self):
-        pass
+        # Delete the references to the object tree
+        self.__dict__.clear()
     
     def WriteRead(self, testArray):
         if verbose:
@@ -209,7 +215,9 @@ class Basic10DTestCase(BasicTestCase):
     # 10D case
     title = "Rank-10 case 1"
     tupleInt = array(arange((2)**10), shape=(2,)*10)
-    tupleChar = chararray.array("abc"*2**10, shape=(2,)*10, itemsize=3)
+    # Dimensions greather than 6 in chararray gives some warnings
+    #tupleChar = chararray.array("abc"*2**8, shape=(2,)*8, itemsize=3)
+    tupleChar = chararray.array("abc"*2**6, shape=(2,)*6, itemsize=3)
     
 class Basic32DTestCase(BasicTestCase):
     # 32D case (maximum)
@@ -234,6 +242,8 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 
         # Then, delete the file
         os.remove(self.file)
+        # Delete trhe references to the object tree
+        self.__dict__.clear()
 
     def WriteRead(self, testArray):
         if verbose:
@@ -286,7 +296,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
             assert a._byteorder == self.root.somearray.byteorder
 
         assert allequal(a,b)
-        
+
 	return
 
     def test01_signedShort_unaligned(self):
@@ -414,6 +424,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 
 	# Then, delete the file
         os.remove(file)
+        del a, b, fileh
 
     def test01_largeRankArrays(self):
 	"""Checking creation of large rank arrays (0 < rank <= 32)

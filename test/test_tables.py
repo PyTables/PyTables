@@ -27,7 +27,6 @@ class BasicTestCase(unittest.TestCase):
     title = "This is the table title"
     expectedrows = 100
     appendrows = 20
-    fast = 0
     compress = 0
 
     def setUp(self):
@@ -66,13 +65,14 @@ class BasicTestCase(unittest.TestCase):
             group2 = self.fileh.createGroup(group, 'group'+str(j))
             # Iterate over this new group (group2)
             group = group2
+        del table, group, d
 
     def tearDown(self):
         # Close the file (eventually destroy the extended type)
         self.fileh.close()
-
+        del self.fileh, self.rootgroup
         os.remove(self.file)
-
+        
     #----------------------------------------
 
     def test01_readTable(self):
@@ -94,6 +94,7 @@ class BasicTestCase(unittest.TestCase):
         nrows = self.expectedrows - 1
         assert (rec.var1, rec.var2, rec.var5) == ("0001", nrows, float(nrows))
         assert len(result) == 20
+        del table
         
     def test02_AppendRows(self):
         """Checking whether appending record rows works or not"""
@@ -132,6 +133,7 @@ class BasicTestCase(unittest.TestCase):
         nrows = self.appendrows - 1
         assert (rec.var1, rec.var2, rec.var5) == ("0001", nrows, float(nrows))
         assert len(result) == 40 # because we appended new records
+        del table
 
     # CAVEAT: The next test only works for tables with rows < 2**15
     def test03_endianess(self):
@@ -156,12 +158,12 @@ class BasicTestCase(unittest.TestCase):
         nrows = self.expectedrows - 1
         assert (rec.var1, rec.var6) == ("0001", nrows)
         assert len(result) == 20
+        del table
         
 class BasicWriteTestCase(BasicTestCase):
     pass
 
 class CompressTablesTestCase(BasicTestCase):
-    
     compress = 1
 
 class BigTablesTestCase(BasicTestCase):

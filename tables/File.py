@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.12 2003/02/14 15:29:49 falted Exp $
+#       $Id: File.py,v 1.13 2003/02/20 13:12:35 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.12 $"
+__version__ = "$Revision: 1.13 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -494,19 +494,27 @@ Instead, a %s() object has been found there.""" % \
                 
     def close(self):
         
-        """Flush all the objects in HDF5 file and close the file."""
+        """Close all the objects in HDF5 file and close the file."""
         
-        # Flush all the buffers
-        self.flush()
+        # Do some housekeeping
+        # It's very important to delete the back references in the object
+        # tree so as to allow the effective deletion of the object tree
+        #print "Passing File.close()"
+        for group in self.walkGroups(self.root):
+            for leaf in self.listNodes(group, classname = 'Leaf'):
+                leaf.close()
+                # Delete the back references
+                del leaf._v_parent
+                del leaf._v_rootgroup
+            # Delete the back references to the parent group and root group
+            group.close()
+            
         #print "Closing the %s HDF5 file ...." % self.filename
         self.closeFile()
         # Delete the Group class variables
         self.root._f_cleanup()
-
-        # Add code to recursively delete the object tree
-        # (or it's enough with deleting the root group object?)
-        #del self.root
-
+        # Delete the file class variables
+        self.__dict__.clear()
 
     def __str__(self):
         
@@ -522,3 +530,9 @@ Instead, a %s() object has been found there.""" % \
                 string += str(leaf) + '\n'
                 
         return string
+
+    def __del__(self):
+        """Delete some objects"""
+        #print "Deleting File object"
+        pass
+

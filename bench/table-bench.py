@@ -1,5 +1,7 @@
 #!/usr/bin/env python2.2
 
+import copy
+                
 import numarray as NA
 from tables import *
 
@@ -151,9 +153,8 @@ def readFile(filename, recsize):
 
                 # For the moment we work under the assumption that the user is
                 # responsible to do it (case 2).
-                #import copy
                 e = [ p._row for p in table.fetchall()
-                      if p._row < 2 ]
+                      if p.grid_i < 2 ]
                 #e = [ copy.deepcopy(p.float1) for p in table.fetchall()
                 #      if p.grid_i < 2 ]
                 # Next line can be used in case 1. If used in case 2 you will

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.16 2003/02/17 21:01:43 falted Exp $
+#       $Id: Array.py,v 1.17 2003/02/20 13:12:34 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.16 $"
+__version__ = "$Revision: 1.17 $"
 import types, warnings, sys
 from Leaf import Leaf
 import hdf5Extension
@@ -234,6 +234,14 @@ class Array(Leaf, hdf5Extension.Array):
     def close(self):
         """Flush the array buffers and close this object on file."""
         self.flush()
+        if hasattr(self, "object"):
+            del self.object
+        #print "Passing Array.close()"
+
+    def __del__(self):
+        """Delete some objects"""
+        #print "Deleting Array object"
+        pass
 
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""

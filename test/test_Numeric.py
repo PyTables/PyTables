@@ -14,7 +14,7 @@ def allequal(a,b):
     if a.shape <> b.shape:
         return 0
 
-    # Scalar case
+    # Rank-0 case
     if len(a.shape) == 0:
         if str(equal(a,b)) == '1':
             return 1
@@ -38,7 +38,8 @@ class BasicTestCase(unittest.TestCase):
         pass
 
     def tearDown(self):
-        pass
+        # Delete trhe references to the object tree
+        self.__dict__.clear()
 
     def WriteRead(self, testArray):
         if verbose:
@@ -143,7 +144,6 @@ class BasicTestCase(unittest.TestCase):
             # Ensure that this array is non-contiguous
             assert b.iscontiguous() == 0
             self.WriteRead(b)
-        print
 
         return
 
@@ -190,7 +190,7 @@ class Basic10DTestCase(BasicTestCase):
     title = "Rank-10 case 1"
     #tupleInt = reshape(array(arange((2)**10)), (2,)*10)
     tupleInt = ones((2,)*10)
-    tupleChar = ones((2,)*10,'c')
+    tupleChar = ones((2,)*8,'c')
     
 class Basic32DTestCase(BasicTestCase):
     # 32D case (maximum)
@@ -219,6 +219,8 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 
         # Then, delete the file
         os.remove(self.file)
+        # Delete trhe references to the object tree
+        #self.__dict__.clear()
 
     def WriteRead(self, testArray):
         if verbose:

@@ -75,6 +75,9 @@ class TreeTestCase(unittest.TestCase):
         self.h5file.close()
 
         os.remove(self.file)
+        del self.rootgroup
+        del self.h5file
+        #self.__dict__.clear()
 
     #----------------------------------------
 

@@ -26,16 +26,20 @@ test_all.verbose = verbose
 def suite():
     test_modules = ['test_basics',
                     'test_create',
-                    'test_tables',
                     'test_types',
-		    'test_tree',
                     'test_numarray',
+                    # if test_tables is before test_tree the memory
+                    # consumption grows up to 500 MB
+                    # If it is placed after, it remains at 14 MB
+                    # I don't know what's happening
+		    'test_tree',
+                    'test_tables',
 		    ]
 
     # Add test_Numeric only if Numeric is installed
     try:
         import Numeric
-        print "Adding the Numeric test suite"
+        print "Numeric is present. Adding the Numeric test suite."
         test_modules.append("test_Numeric")
     except:
         print "Skipping Numeric test suite"

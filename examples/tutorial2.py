@@ -5,7 +5,7 @@ Example to be used in the second tutorial in the User's Guide.
 
 """
 
-
+import warnings
 from tables import *
 
 class Particle(IsRecord):
@@ -26,6 +26,8 @@ class Event(IsRecord):
 fileh = openFile("tutorial2.h5", mode = "w")
 # Get the HDF5 root group
 root = fileh.root
+
+warnings.resetwarnings()
 
 # Create the groups:
 for groupname in ("Particles", "Events"):
@@ -67,14 +69,14 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
         event.name  = 'Event: %6d' % (i)
         ########### Errors start here. Play with them!
         # Range checks no longer works on 0.3
-        #event.TDCcount = i            # Wrong range.
-        event.ADCcount = i * 2        # Correct type
+        event.TDCcount = i            # Wrong range.
+        #event.ADCcount = i * 2        # Correct type
         #event.xcoor = float(i**2)     # Wrong spelling. This works on 0.3
-        event.TDCcount = i % (1<<8)   # Correct range
+        #event.TDCcount = i % (1<<8)   # Correct range
         #event.ADCcount = str(i)      # Wrong range
         event.xcoord = float(i**2)   # Correct spelling
         ########### End of errors
-        event.ycoord = float(i**4)
+        event.ycoord = float(i)**4
         # This injects the Record values
         table.append(event)      
 

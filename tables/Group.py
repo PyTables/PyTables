@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.12 2003/02/13 17:45:40 falted Exp $
+#       $Id: Group.py,v 1.13 2003/02/20 13:12:35 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.12 $"
+__version__ = "$Revision: 1.13 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -298,17 +298,17 @@ class Group(hdf5Extension.Group):
             for x in self._v_objgroups[groupname]._f_walkGroups():
                 yield x
 
-    def __delattr__(self, name):
-        """In the future, this should delete objects both in memory
-        and in the file."""
+#     def __delattr__(self, name):
+#         """In the future, this should delete objects both in memory
+#         and in the file."""
         
-        if name in self._v_objchilds:
-            #print "Add code to delete", name, "attribute"
-            pass
-            #self._v_leaves.remove(name)
-        else:
-            raise AttributeError, "%s instance has no child %s" % \
-                  (str(self.__class__), name)
+#         if name in self._v_objchilds:
+#             #print "Add code to delete", name, "attribute"
+#             pass
+#             #self._v_leaves.remove(name)
+#         else:
+#             raise AttributeError, "%s instance has no child %s" % \
+#                   (str(self.__class__), name)
 
     def __getattr__(self, name):
         """Get the object named "name" hanging from me."""
@@ -363,7 +363,26 @@ class Group(hdf5Extension.Group):
         self._c_objgroups.clear()
         self._c_objleaves.clear()
         self._c_objects.clear()
-                  
+
+    def close(self):
+        """Close this group ..."""
+        #print "Passing Group.close() in Group:", self._v_name
+
+        self._f_closeGroup()
+        del self._v_parent
+        del self._v_rootgroup
+
+        #print self.__dict__
+        #del self._v_objgroups
+        #del self._v_objleaves
+        #del self._v_objchilds
+
+
+    def __del__(self):
+        """Delete some objects"""
+        #print "Deleting Group name:", self._v_name
+        pass
+
     def __str__(self):
         """The string representation for this object."""
         # Get the associated filename

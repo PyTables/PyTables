@@ -34,6 +34,7 @@ class OpenFileTestCase(unittest.TestCase):
         class_ = fileh.root._f_getLeafAttrStr("array", "CLASS")
 
         fileh.close()
+        os.remove(file)
 
         assert class_ == "ARRAY"
         
@@ -199,8 +200,8 @@ class OpenFileTestCase(unittest.TestCase):
 #                 print value
 #         else:
 #             self.fail("expected an UserWarning")
-#         # Reset the warnings
-#         warnings.resetwarnings()
+#         # Reset the warning
+#         warnings.filterwarnings("default", category=UserWarning)
 
 class CheckFileTestCase(unittest.TestCase):
     
@@ -220,7 +221,6 @@ class CheckFileTestCase(unittest.TestCase):
 	
         # Then, delete the file
         os.remove(file)
-
 
     def test01_isHDF5File(self):
         """Checking isHDF5 function (FALSE case)"""
@@ -299,7 +299,11 @@ class CheckFileTestCase(unittest.TestCase):
             self.fail("expected an UserWarning")
             
         # Reset the warnings
-        warnings.resetwarnings()
+        # Be careful with that, because this enables all the warnings
+        # on the rest of the tests!
+        #warnings.resetwarnings()
+        # better use:
+        warnings.filterwarnings("default", category=UserWarning)
 
         # Check for some objects inside
 
