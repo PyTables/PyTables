@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.34 2003/03/09 13:51:57 falted Exp $
+#       $Id: Table.py,v 1.35 2003/03/09 19:16:53 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.34 $"
+__version__ = "$Revision: 1.35 $"
 
 from __future__ import generators
 import sys
@@ -66,7 +66,7 @@ class Table(Leaf, hdf5Extension.Table):
     It provides methods to create new tables or open existing ones, as
     well as methods to write/read data to/from table objects over the
     file. A method is also provided to iterate over the rows without
-    loading the entire array in memory.
+    loading the entire table or column in memory.
 
     Data can be written or read both as Row() instances or as numarray
     (NumArray or RecArray) objects.
@@ -83,7 +83,7 @@ class Table(Leaf, hdf5Extension.Table):
         
       Specific of Table:
         iterrows()
-        read([start] [, stop] [, step] [, field])
+        read([start] [, stop] [, step] [, field [, flavor]])
 
     Instance variables:
     
@@ -99,9 +99,9 @@ class Table(Leaf, hdf5Extension.Table):
         row -- a reference to the Row object associated with this table
         nrows -- the number of rows in this table
         rowsize -- the size, in bytes, of each row
-        colnames -- the field names for the table
-        coltypes -- the type class for the table fields
-        colshapes -- the shapes for the table fields
+        colnames -- the field names for the table (list)
+        coltypes -- the type class for the table fields (dictionary)
+        colshapes -- the shapes for the table fields (dictionary)
 
     """
 
@@ -226,7 +226,7 @@ class Table(Leaf, hdf5Extension.Table):
         # Initialize the shape attribute
         self.shape = (self.nrows,)
         # Get the column types
-        self.coltypes = self.description._v_formats
+        self.coltypes = self.description.__types__
         # Extract the shapes for columns
         self.colshapes = self.description._v_shapes
         # Compute the byte order
@@ -272,7 +272,7 @@ class Table(Leaf, hdf5Extension.Table):
         # Create an instance description to host the record fields
         self.description = metaIsRecord("", (), fields)()
         # Extract the coltypes
-        self.coltypes = self.description._v_formats
+        self.coltypes = self.description.__types__
         # Extract the shapes for columns
         self.colshapes = self.description._v_shapes
         # Create the arrays for buffering
@@ -528,13 +528,11 @@ class Table(Leaf, hdf5Extension.Table):
         """Read a range of rows and return an in-memory object.
         """
         
-        nfield = 0
-        for fieldTable in self.description.__slots__:
+        for fieldTable in self.colnames:
             if fieldTable == field:
-                typeField = self.description.__types__[field]
-                lengthField = self.description._v_shapes[nfield]
+                typeField = self.coltypes[field]
+                lengthField = self.colshapes[field][0]
                 break
-            nfield += 1
         else:
             raise LookupError, \
                   """The column name '%s' not found in table {%s}""" % \
@@ -619,7 +617,9 @@ class Table(Leaf, hdf5Extension.Table):
                     # we should check for tostring()!)
                     if arr.__class__.__name__ == "CharArray":
                         arrstr = arr.tostring()
-                        arr=Numeric.reshape(Numeric.array(arrstr), arr.shape)
+                        shape = list(arr.shape)
+                        shape.append(arr.itemsize())
+                        arr=Numeric.reshape(Numeric.array(arrstr), shape)
                     else:
                         # tolist() method creates a list with a sane byteorder
                         if arr.shape <> ():
@@ -651,13 +651,11 @@ class Table(Leaf, hdf5Extension.Table):
     def _readCol2(self, start=None, stop=None, step=None, field=None):
         """Read a column from a table in a row range"""
 
-        nfield = 0
-        for fieldTable in self.description.__slots__:
+        for fieldTable in self.colnames:
             if fieldTable == field:
-                typeField = self.description.__types__[field]
-                lengthField = self.description._v_shapes[nfield]
+                typeField = self.coltypes[field]
+                lengthField = self.colshapes[field][0]
                 break
-            nfield += 1
         else:
             raise LookupError, \
                   """The column name '%s' not found in table {%s}""" % \
@@ -773,10 +771,10 @@ class Table(Leaf, hdf5Extension.Table):
         byteorder = self.byteorder
         columns = ["Number of columns: %s\n  Column metainfo:" % \
                    len(self.colnames)]
-        columns += ['%s := (%s, %s)' % (self.colnames[i],
-                                       repr(self.coltypes[i]),
-                                       self.colshapes[i])
-                    for i in range(len(self.colnames))]
+        columns += ['%s := (%s, %s)' % (name,
+                                       repr(self.coltypes[name]),
+                                       self.colshapes[name])
+                    for name in self.colnames]
         columns = "\n    ".join(columns)
         
         return "%s\n  Byteorder: %s\n  %s" % \

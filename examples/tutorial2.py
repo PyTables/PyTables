@@ -45,13 +45,13 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
     # Fill the table with 10 particles
     for i in xrange(257):
         # First, assign the values to the Particle record
-        particle.name  = 'Particle: %6d' % (i)
-        particle.lati = i 
-        particle.longi = 10 - i
-        particle.pressure = float(i*i)
-        particle.temperature = float(i**2)
+        particle['name'] = 'Particle: %6d' % (i)
+        particle['lati'] = i 
+        particle['longi'] = 10 - i
+        particle['pressure'] = float(i*i)
+        particle['temperature'] = float(i**2)
         # This injects the Record values
-        table.append(particle)      
+        particle.append()      
 
     # Flush the table buffers
     table.flush()
@@ -66,27 +66,27 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
     # Fill the table with 257 events
     for i in xrange(257):
         # First, assign the values to the Event record
-        event.name  = 'Event: %6d' % (i)
+        event['name']  = 'Event: %6d' % (i)
         ########### Errors start here. Play with them!
         # Range checks no longer works on 0.3
-        event.TDCcount = i            # Wrong range.
-        #event.ADCcount = i * 2        # Correct type
-        #event.xcoor = float(i**2)     # Wrong spelling. This works on 0.3
-        #event.TDCcount = i % (1<<8)   # Correct range
-        #event.ADCcount = str(i)      # Wrong range
-        event.xcoord = float(i**2)   # Correct spelling
+        event['TDCcount'] = i            # Wrong range.
+        #event['ADCcount'] = i * 2        # Correct type
+        #event['xcoor'] = float(i**2)     # Wrong spelling. This works on 0.3
+        #event['TDCcount'] = i % (1<<8)   # Correct range
+        #event['ADCcount'] = str(i)      # Wrong range
+        event['xcoord'] = float(i**2)   # Correct spelling
         ########### End of errors
-        event.ycoord = float(i)**4
+        event['ycoord'] = float(i)**4
         # This injects the Record values
-        table.append(event)      
+        event.append()
 
     # Flush the buffers
     table.flush()
 
 # Read the records from table "/Events/TEvent3" and select some
 table = root.Events.TEvent3
-e = [ p.TDCcount for p in table.fetchall()
-      if p.ADCcount < 20 and 4 <= p.TDCcount < 15 ]
+e = [ p['TDCcount'] for p in table.iterrows()
+      if p['ADCcount'] < 20 and 4 <= p['TDCcount'] < 15 ]
 print "Last record ==>", p
 print "Selected values ==>", e
 print "Total selected records ==> ", len(e)

@@ -191,19 +191,20 @@ class BasicTestCase(unittest.TestCase):
 	    
                 # Fill the table
                 for i in xrange(self.expectedrows):
-                    row.var1 = '%04d' % (self.expectedrows - i)
-                    row.var2 = i 
-                    row.var3 = i % self.maxshort
-                    if isinstance(row.var4, NumArray):
-                        row.var4 = [float(i), float(i*i)]
+                    row['var1'] = '%04d' % (self.expectedrows - i)
+                    row['var2'] = i 
+                    row['var3'] = i % self.maxshort
+                    if isinstance(row['var4'], NumArray):
+                        row['var4'] = [float(i), float(i*i)]
                     else:
-                        row.var4 = float(i)
-                    if isinstance(row.var5, NumArray):
-                        row.var5 = array((float(i),)*4)
+                        row['var4'] = float(i)
+                    if isinstance(row['var5'], NumArray):
+                        row['var5'] = array((float(i),)*4)
                     else:
-                        row.var5 = float(i)
+                        row['var5'] = float(i)
                     # bar6 will be like var2 but byteswaped
-                    row.var6 = ((row.var3>>8) & 0xff) + ((row.var3<<8) & 0xff00)
+                    row['var6'] = ((row['var3']>>8) & 0xff) + \
+                                  ((row['var3']<<8) & 0xff00)
                     row.append()
 		
             # Flush the buffer for this table
@@ -241,11 +242,11 @@ class BasicTestCase(unittest.TestCase):
             print "Last record in table ==>", rec
             print "Total selected records in table ==> ", len(result)
         nrows = self.expectedrows - 1
-        assert (rec.var1, rec.var2) == ("0001", nrows)
-        if isinstance(rec.var5, NumArray):
-            assert allequal(rec.var5, array((float(nrows),)*4))
+        assert (rec['var1'], rec['var2']) == ("0001", nrows)
+        if isinstance(rec['var5'], NumArray):
+            assert allequal(rec['var5'], array((float(nrows),)*4))
         else:
-            assert rec.var5 == float(nrows)
+            assert rec['var5'] == float(nrows)
         assert len(result) == 20
         #del table
         
@@ -269,29 +270,30 @@ class BasicTestCase(unittest.TestCase):
             print "Record Size ==>", table._v_rowsize
         # Append some rows
         for i in xrange(self.appendrows):
-            row.var1 = '%04d' % (self.appendrows - i)
-            row.var2 = i 
-            row.var3 = i % self.maxshort
-            if isinstance(row.var4, NumArray):
-                row.var4 = [float(i), float(i*i)]
+            row['var1'] = '%04d' % (self.appendrows - i)
+            row['var2'] = i 
+            row['var3'] = i % self.maxshort
+            if isinstance(row['var4'], NumArray):
+                row['var4'] = [float(i), float(i*i)]
             else:
-                row.var4 = float(i)
-            if isinstance(row.var5, NumArray):
-                row.var5 = array((float(i),)*4)
+                row['var4'] = float(i)
+            if isinstance(row['var5'], NumArray):
+                row['var5'] = array((float(i),)*4)
             else:
-                row.var5 = float(i)
+                row['var5'] = float(i)
             row.append()
 	    
 	# Flush the buffer for this table and read it
         table.flush()
-        result = [ row.var2 for row in table.iterrows() if row.var2 < 20 ]
+        result = [ row['var2'] for row in table.iterrows()
+                   if row['var2'] < 20 ]
 	
         nrows = self.appendrows - 1
-        assert (row.var1, row.var2) == ("0001", nrows)
-        if isinstance(row.var5, NumArray):
-            assert allequal(row.var5, array((float(nrows),)*4))
+        assert (row['var1'], row['var2']) == ("0001", nrows)
+        if isinstance(row['var5'], NumArray):
+            assert allequal(row['var5'], array((float(nrows),)*4))
         else:
-            assert row.var5 == float(nrows)
+            assert row['var5'] == float(nrows)
         if self.appendrows <= 20:
             add = self.appendrows
         else:
@@ -316,13 +318,13 @@ class BasicTestCase(unittest.TestCase):
         table.byteorder = {"little":"big","big":"little"}[table.byteorder]
 	
         # Read the records and select the ones with "var6" column less than 20
-        result = [ rec.var2 for rec in table.iterrows() if rec.var6 < 20]
+        result = [ rec['var2'] for rec in table.iterrows() if rec['var6'] < 20]
         if verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last record in table ==>", rec
             print "Total selected records in table ==>", len(result)
         nrows = self.expectedrows - 1
-        assert (rec.var1, rec.var6) == ("0001", nrows)
+        assert (rec['var1'], rec['var6']) == ("0001", nrows)
         assert len(result) == 20
         
 class BasicWriteTestCase(BasicTestCase):
@@ -416,19 +418,20 @@ class BasicRangeTestCase(unittest.TestCase):
 
             # Fill the table
             for i in xrange(self.expectedrows):
-                row.var1 = '%04d' % (self.expectedrows - i)
-                row.var2 = i 
-                row.var3 = i % self.maxshort
-                if isinstance(row.var4, NumArray):
-                    row.var4 = [float(i), float(i*i)]
+                row['var1'] = '%04d' % (self.expectedrows - i)
+                row['var2'] = i 
+                row['var3'] = i % self.maxshort
+                if isinstance(row['var4'], NumArray):
+                    row['var4'] = [float(i), float(i*i)]
                 else:
-                    row.var4 = float(i)
-                if isinstance(row.var5, NumArray):
-                    row.var5 = array((float(i),)*4)
+                    row['var4'] = float(i)
+                if isinstance(row['var5'], NumArray):
+                    row['var5'] = array((float(i),)*4)
                 else:
-                    row.var5 = float(i)
+                    row['var5'] = float(i)
                 # bar6 will be like var2 but byteswaped
-                row.var6 = ((row.var3>>8) & 0xff) + ((row.var3<<8) & 0xff00)
+                row['var6'] = ((row['var3'] >> 8) & 0xff) + \
+                              ((row['var3'] << 8) & 0xff00)
                 row.append()
 		
             # Flush the buffer for this table
@@ -502,9 +505,9 @@ class BasicRangeTestCase(unittest.TestCase):
         assert result == range(startr, stopr, self.step)
         if startr < stopr and not (self.checkrecarray or self.checkgetCol):
             if self.nrows < self.expectedrows:
-                assert rec.var2 == range(self.start, self.stop, self.step)[-1]
+                assert rec['var2'] == range(self.start, self.stop, self.step)[-1]
             else:
-                assert rec.var2 == range(startr, stopr, self.step)[-1]
+                assert rec['var2'] == range(startr, stopr, self.step)[-1]
 
     def test01_range(self):
         """Checking ranges in table iterators (case1)"""

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Attic/IsRecord.py,v $
-#       $Id: IsRecord.py,v 1.11 2003/03/07 21:18:15 falted Exp $
+#       $Id: IsRecord.py,v 1.12 2003/03/09 19:16:53 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.11 $"
+__version__ = "$Revision: 1.12 $"
 
 
 import warnings
@@ -201,7 +201,7 @@ print p
         newdict = { '__slots__':[], '__types__':{}, '__dflts__':{},
                     '__init__':__init__, '__repr__':__repr__,
                     '__str__':__str__, '_v_record':None,
-                    '_v_fmt': "", "_v_shapes":[],
+                    '_v_fmt': "", "_v_shapes":{},
                     '_v_recarrfmt': "", '_v_formats':[],
                     }
         
@@ -267,7 +267,6 @@ print p
 
 """ % object
                 newdict['__slots__'].append(k)
-                #newdict[k] = object
                 newdict['__types__'][k] = object.type
                 if hasattr(object, 'dflt'):
                     newdict['__dflts__'][k] = object.dflt
@@ -276,9 +275,7 @@ print p
 
                 newdict['_v_fmt'] += str(object.length) + object.rectype
                 recarrfmt.append(str(object.length) + object.recarrtype)
-                newdict['_v_shapes'].append(object.length)
-                # Formats in numarray notation
-                newdict['_v_formats'].append(object.type)
+                newdict['_v_shapes'][k] = (object.length,)
 
         # Set up the alignment 
         if newdict.has_key('_v_align'):

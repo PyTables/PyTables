@@ -46,18 +46,18 @@ class TreeTestCase(unittest.TestCase):
             d = table.row 
             # Fill the table
             for i in xrange(self.expectedrows):
-                d.var1 = '%04d' % (self.expectedrows - i)
-                d.var2 = i 
-                d.var3 = i % maxshort
-                d.var4 = float(i)
-                d.var5 = float(i)
+                d['var1'] = '%04d' % (self.expectedrows - i)
+                d['var2'] = i 
+                d['var3'] = i % maxshort
+                d['var4'] = float(i)
+                d['var5'] = float(i)
                 d.append()      # This injects the Record values
             # Flush the buffer for this table
             table.flush()
             
             # Create a couple of arrays in each group
-            var1List = [ x.var1 for x in table.iterrows() ]
-            var4List = [ x.var4 for x in table.iterrows() ]
+            var1List = [ x['var1'] for x in table.iterrows() ]
+            var4List = [ x['var4'] for x in table.iterrows() ]
 
             self.h5file.createArray(group, 'var1', var1List, "1")
             self.h5file.createArray(group, 'var4', var4List, "4")

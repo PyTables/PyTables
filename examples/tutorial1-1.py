@@ -52,16 +52,16 @@ particle = table.row
 # Fill the table with 10 particles
 for i in xrange(10):
     # First, assign the values to the Particle record
-    particle.name  = 'Particle: %6d' % (i)
-    particle.TDCcount = i % 256    
-    particle.ADCcount = (i * 256) % (1 << 16)
-    particle.grid_i = i 
-    particle.grid_j = 10 - i
-    particle.pressure = float(i*i)
-    particle.energy = float(particle.pressure ** 4)
-    particle.idnumber = i * (2 ** 34)  # This exceeds long integer range
+    particle['name']  = 'Particle: %6d' % (i)
+    particle['TDCcount'] = i % 256    
+    particle['ADCcount'] = (i * 256) % (1 << 16)
+    particle['grid_i'] = i 
+    particle['grid_j'] = 10 - i
+    particle['pressure'] = float(i*i)
+    particle['energy'] = float(particle['pressure'] ** 4)
+    particle['idnumber'] = i * (2 ** 34)  # This exceeds long integer range
     # Insert a new particle record
-    table.append(particle)      
+    particle.append()
 
 # Flush the buffers for table
 table.flush()
@@ -71,15 +71,15 @@ print	'-**-**-**-**-**-**- table data reading & selection  -**-**-**-**-**-'
 
 # Read actual data from table. We are interested in collecting pressure values
 # on entries where TDCcount field is greater than 3 and pressure less than 50
-pressure = [ x.pressure for x in table.fetchall()
-	         if x.TDCcount > 3 and x.pressure < 50 ]
+pressure = [ x['pressure'] for x in table.iterrows()
+             if x['TDCcount'] > 3 and x['pressure'] < 50 ]
 print "Last record read:"
 print x
 print "Field pressure elements satisfying the cuts ==>", pressure
 
 # Read also the names with the same cuts
-names = [ x.name for x in table.fetchall()
-	      if x.TDCcount > 3 and x.pressure < 50 ]
+names = [ x['name'] for x in table.iterrows()
+          if x['TDCcount'] > 3 and x['pressure'] < 50 ]
 
 print
 print	'-**-**-**-**-**-**- array object creation  -**-**-**-**-**-**-**-'

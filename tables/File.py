@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.21 2003/03/09 13:51:57 falted Exp $
+#       $Id: File.py,v 1.22 2003/03/09 19:16:53 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.21 $"
+__version__ = "$Revision: 1.22 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -144,11 +144,11 @@ def openFile(filename, mode="r", title="", trMap={}):
 
 
 class File(hdf5Extension.File):
-    
     """Returns an object describing the file in-memory.
 
-    File class offer methods to traverse the object tree, as well as
-    to create new nodes.
+    File class offer methods to browse the object tree, to create new
+    nodes, to rename them, to delete as well as to assign and read
+    attributes.
 
     Methods:
 

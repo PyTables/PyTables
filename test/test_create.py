@@ -210,7 +210,7 @@ class createTestCase(unittest.TestCase):
         for j in range(10):
             i = 0
             for varname in varnames:
-                setattr(row, varname, i*j)
+                row[varname] = i*j
                 i += 1
 	    
             row.append()

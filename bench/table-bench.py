@@ -71,57 +71,48 @@ def createFile(filename, totalrows, complevel, recsize):
         else:
             raise RuntimeError, "This should never happen"
             
-        # Get the record object associated with the new table
-        #d = table.record
-        # In PyTables 0.3 this is changed to a row object
+        # Get the row object associated with the new table
         d = table.row
         # Fill the table
         if recsize == "big":
             for i in xrange(totalrows):
-                # d.name  = 'Part: %6d' % (i)
-                d.TDCcount = i % 256
-                #d.float1 = NA.array([i]*32, NA.Float64)
-                #d.float2 = NA.array([i**2]*32, NA.Float64)
-                #d.float1[0] = float(i)
-                #d.float2[0] = float(i*2)
+                # d['name']  = 'Part: %6d' % (i)
+                d['TDCcount'] = i % 256
+                #d['float1'] = NA.array([i]*32, NA.Float64)
+                #d['float2'] = NA.array([i**2]*32, NA.Float64)
+                #d['float1'][0] = float(i)
+                #d['float2'][0] = float(i*2)
                 # Common part with medium
-                d.grid_i = i 
-                d.grid_j = 10 - i
-                d.pressure = float(i*i)
-                # d.energy = float(d.pressure ** 4)
-                d.energy = d.pressure
-                # d.idnumber = i * (2 ** 34) 
+                d['grid_i'] = i 
+                d['grid_j'] = 10 - i
+                d['pressure'] = float(i*i)
+                # d['energy'] = float(d.pressure ** 4)
+                d['energy'] = d.pressure
+                # d['idnumber'] = i * (2 ** 34) 
                 table.append(d)
         elif recsize == "medium":
             for i in xrange(totalrows):
-                #d.name  = 'Part: %6d' % (i)
-                #d.float1 = NA.array([i]*2, NA.Float64)
-                #d.float1 = arr
-                #d.float1 = i
-                #d.float2 = float(i)
+                #d['name']  = 'Part: %6d' % (i)
+                #d['float1'] = NA.array([i]*2, NA.Float64)
+                #d['float1'] = arr
+                #d['float1'] = i
+                #d['float2'] = float(i)
                 # Common part with big:
-                d.grid_i = i 
-                d.grid_j = 10 - i
-                d.pressure = i*2
-                # d.energy = float(d.pressure ** 4)
-                d.energy = d.pressure
-                # d.idnumber = i * (2 ** 34) 
-                #table.append(d)
+                d['grid_i'] = i 
+                d['grid_j'] = 10 - i
+                d['pressure'] = i*2
+                # d['energy'] = float(d.pressure ** 4)
+                d['energy'] = d.pressure
+                # d['idnumber'] = i * (2 ** 34) 
                 d.append()
         else: # Small record
             for i in xrange(totalrows):
-                # __setattr__ is faster than setField!
-                #d.var1 = str(i)
                 #d['var1'] = str(i)
-                #d.var2 = i
                 d['var2'] = i
-                #d.var3 = 12.1e10
                 #d['var3'] = 12.1e10
                 d['var3'] = i
                 d.append()  # This is a 10% faster than table.append()
-                #table.append(d)
 		    
-            #rowswritten += 1
         rowswritten += totalrows
 
         # Create a new group
@@ -132,7 +123,7 @@ def createFile(filename, totalrows, complevel, recsize):
     # Close the file (eventually destroy the extended type)
     fileh.close()
     
-    return (rowswritten, table._v_rowsize)
+    return (rowswritten, table.rowsize)
 
 def readFile(filename, recsize, verbose):
     # Open the HDF5 file in read-only mode
@@ -146,7 +137,7 @@ def readFile(filename, recsize, verbose):
             #print "Table title for", table._v_pathname, ":", table.tableTitle
             if verbose:
                 print "Rows in", table._v_pathname, ":", table.nrows
-                print "Buffersize:", table._v_rowsize * table._v_maxTuples
+                print "Buffersize:", table.rowsize * table._v_maxTuples
                 print "MaxTuples:", table._v_maxTuples
 
             if recsize == "big" or recsize == "medium":
@@ -199,7 +190,7 @@ def readFile(filename, recsize, verbose):
     # Close the file (eventually destroy the extended type)
     fileh.close()
 
-    return (rowsread, table._v_rowsize)
+    return (rowsread, table.rowsize)
 
 def readField(filename, field, rng, verbose):
     fileh = openFile(filename, mode = "r")
@@ -209,7 +200,7 @@ def readField(filename, field, rng, verbose):
         for table in fileh.listNodes(groupobj, 'Table'):
             if verbose:
                 print "Rows in", table._v_pathname, ":", table.nrows
-                print "Buffersize:", table._v_rowsize * table._v_maxTuples
+                print "Buffersize:", table.rowsize * table._v_maxTuples
                 print "MaxTuples:", table._v_maxTuples
                 print "(field, start, stop, step) ==>", (field, rng[0], rng[1], rng[2])
 
@@ -221,7 +212,7 @@ def readField(filename, field, rng, verbose):
         
     # Close the file (eventually destroy the extended type)
     fileh.close()
-    return (rowsread, table._v_rowsize)
+    return (rowsread, table.rowsize)
 
 if __name__=="__main__":
     import sys

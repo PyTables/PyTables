@@ -22,11 +22,11 @@ filename = "gl-test.h5"
 # This is an example of a translation table between python names and
 # HDF5 (persistent) names
 #          Python name    Persistent name
-trTable = {"detector":       "for",  # A reserved word
-           "recarray2":      " 11 ",}   # A non-valid python variable name
+trMap = {"detector":       "for",  # A reserved word
+         "recarray2":      " 11 ",}   # A non-valid python variable name
     
 # Open a file in "w"rite mode
-h5file = openFile(filename, mode = "w", trTable=trTable)
+h5file = openFile(filename, mode = "w", trMap=trMap)
 
 # Create a new group under "/" (root)
 gdetector = h5file.createGroup("/", 'detector')
@@ -43,7 +43,7 @@ print "new columns group ==>", gcolumns
 # Create a Numeric array with this info under '/columns'
 h5file.createArray(gcolumns, 'pressure', pressure,
                    "Pressure column", atomictype=0)
-print "gcolumns.pressure type ==> ", gcolumns.pressure.typeclass
+print "gcolumns.pressure type ==> ", gcolumns.pressure.type
 
 # Create another array
 TDC = [1,2,3,4,5]  # 0.3 version accepts python lists if they are homogeneous
@@ -55,7 +55,7 @@ names = [ "Name: 1", "Name: 2", "Name: 3", "Name: 4", "Name: 5" ]
 h5file.createArray('/columns', 'name', names, "Name column")
 # This works even with homogeneous tuples or lists
 print "gcolumns.name shape ==>", gcolumns.name.shape 
-print "gcolumns.name type ==> ", gcolumns.name.typeclass
+print "gcolumns.name type ==> ", gcolumns.name.type
 
 # A few table examples that may be useful
 # Create a 2-dimensional Numarray with 5 rows
@@ -97,7 +97,7 @@ h5file.close()
 
 # Reopen it in append mode
 # Check what happens if you don't pass the translation table argument
-h5file = openFile(filename, "a", trTable=trTable)
+h5file = openFile(filename, "a", trMap=trMap)
 #h5file = openFile(filename, "a")
 
 # Ok. let's start browsing the tree from this filename
@@ -171,7 +171,7 @@ pressureObject = h5file.getNode("/columns", "pressure")
 print "Info on the object:", str(pressureObject)
 print "  shape: ==>", pressureObject.shape
 print "  title: ==>", pressureObject.title
-print "  type ==> ", pressureObject.typeclass
+print "  type ==> ", pressureObject.type
 print "  byteorder ==> ", pressureObject.byteorder
 
 # Read the pressure actual data
@@ -204,13 +204,13 @@ print
 # Print a recarray in table form
 table = h5file.root.detector.recarray1
 print repr(table)
-print "  contents:", table[:]
+print "  contents:", table.read()
 print
 # Finish printing a recarray with byteorder inverted
 print "Warning: The next recarray byteorder has been inverted intentionally!"
 table = h5file.root.detector.recarray2
 print repr(table)
-print "  Data:", table[:]
+print "  Data:", table.read()
 
 # Close this file
 h5file.close()

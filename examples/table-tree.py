@@ -55,24 +55,23 @@ particle = table.row
 # Fill the table with 10 particles
 for i in xrange(10):
     # First, assign the values to the Particle record
-    particle.name  = 'Particle: %6d' % (i)
-    particle.TDCcount = i % 256    
-    particle.ADCcount = (i * 256) % (1 << 16)
-    particle.grid_i = i 
-    particle.grid_j = 10 - i
-    particle.pressure = [float(i*i), float(i*2)]
-    #particle.pressure = float(i*i)
-    particle.temperature = float(i**2)
-    particle.idnumber = i * (2 ** 34)  # This exceeds integer range
+    particle['name']  = 'Particle: %6d' % (i)
+    particle['TDCcount'] = i % 256    
+    particle['ADCcount'] = (i * 256) % (1 << 16)
+    particle['grid_i'] = i 
+    particle['grid_j'] = 10 - i
+    particle['pressure'] = [float(i*i), float(i*2)]
+    #particle['pressure'] = float(i*i)
+    particle['temperature'] = float(i**2)
+    particle['idnumber'] = i * (2 ** 34)  # This exceeds integer range
     # This injects the Record values.
-    #table.append(particle)
     particle.append()
 
 # Flush the buffers for table
 table.flush()
 
 # Get actual data from table. We are interested in column pressure.
-pressure = [ p.pressure for p in table.iterrows() ]
+pressure = [ p['pressure'] for p in table.iterrows() ]
 print "Last record ==>", p
 print "Column pressure ==>", array(pressure)
 print "Total records in table ==> ", len(pressure)
@@ -87,13 +86,13 @@ h5file.createArray(gcolumns, 'pressure', Numeric.array(pressure),
 print "gcolumns.pressure type ==> ", gcolumns.pressure.type
 
 # Do the same with TDCcount
-TDC = [ p.TDCcount for p in table.iterrows() ]
+TDC = [ p['TDCcount'] for p in table.iterrows() ]
 print "TDC ==>", TDC
 print "TDC shape ==>", array(TDC).shape
 h5file.createArray('/columns', 'TDC', array(TDC), "TDCcount column")
 
 # Do the same with name column
-names = [ p.name for p in table.iterrows() ]
+names = [ p['name'] for p in table.iterrows() ]
 #names = chararray.array(names)
 #names = Numeric.array(names)
 names = names
@@ -193,8 +192,8 @@ print "Table title:", table.title
 print "Rows saved on table: %d" % (table.nrows)
 
 print "Variable names on table with their type:"
-for i in range(len(table.colnames)):
-    print "  ", table.colnames[i], ':=', table.coltypes[i] 
+for name in table.colnames:
+    print "  ", name, ':=', table.coltypes[name] 
 print    
 
 # Read arrays in /columns/names and /columns/pressure
@@ -250,16 +249,17 @@ table = h5file.root.detector.table
 particle = table.row
 # Append 5 new particles to table (yes, tables can be enlarged!)
 for i in xrange(10, 15):
-    particle.name  = 'Particle: %6d' % (i)
-    particle.TDCcount = i % 256    
-    particle.ADCcount = (i * 256) % (1 << 16)
-    particle.grid_i = i 
-    particle.grid_j = 10 - i
-    #particle.pressure = float(i*i)
-    particle.pressure = [float(i*i), float(i*2)]
-    particle.temperature = float(i**2)
-    particle.idnumber = i * (2 ** 34)  # This exceeds integer range
-    #table.append(particle)
+    # First, assign the values to the Particle record
+    particle['name']  = 'Particle: %6d' % (i)
+    particle['TDCcount'] = i % 256    
+    particle['ADCcount'] = (i * 256) % (1 << 16)
+    particle['grid_i'] = i 
+    particle['grid_j'] = 10 - i
+    particle['pressure'] = [float(i*i), float(i*2)]
+    #particle['pressure'] = float(i*i)
+    particle['temperature'] = float(i**2)
+    particle['idnumber'] = i * (2 ** 34)  # This exceeds integer range
+    # This injects the Record values.
     particle.append()
 
 # Flush this table
@@ -268,7 +268,7 @@ table.flush()
 print "Columns name and pressure on expanded table:"
 # Print some table columns, for comparison with array data
 for p in table.iterrows():
-    print p.name, '-->', p.pressure
+    print p['name'], '-->', p['pressure']
 print
 
 print table.read(field="ADCcount")
@@ -278,7 +278,7 @@ print table.read(0, 0, 1, "name", flavor="List")
 print table.read(0, 0, 2, "pressure")
 print table.read(0, 0, 2, "pressure", flavor="Tuple")
 
-sys.exit()
+#sys.exit()
 
 # Several range selections
 print "Extended slice in selection: [0:7:6]"
@@ -301,10 +301,10 @@ print "  colnames:", table.colnames
 #print table[:]
 print table.read()
 for p in table.iterrows():
-    print p.c1, '-->', p.c2
+    print p['c1'], '-->', p['c2']
 print
 
-result = [ rec.c1 for rec in table.iterrows() if rec.nrow() < 2 ]
+result = [ rec['c1'] for rec in table.iterrows() if rec.nrow() < 2 ]
 print result
 
 # Test the File.renameNode() method

@@ -28,10 +28,10 @@ for table in (table1, table2, table3, table4):
     # Fill the table with 10 records
     for i in xrange(10):
         # First, assign the values to the Particle record
-        rec.field1  = 'This is field1: %2d' % (i)
-        rec.field2  = 'This is field2: %2d' % i 
+        rec['field1']  = 'This is field1: %2d' % (i)
+        rec['field2']  = 'This is field2: %2d' % i 
         # This injects the Record values
-        table.append(rec)      
+        rec.append()
 
     # Flush the table buffers
     table.flush()

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.34 2003/03/08 17:32:10 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.35 2003/03/09 19:16:53 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.34 $"
+__version__ = "$Revision: 1.35 $"
 
 
 import sys, os.path
@@ -490,7 +490,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.34 2003/03/08 17:32:10 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.35 2003/03/09 19:16:53 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -985,7 +985,10 @@ cdef class Row:
 
   """Row Class
 
-  This class hosts accessors to a recarray row.
+  This class hosts accessors to a recarray row. The fields on a
+  recarray can be accessed both as attributes (__getattr__/__setattr_)
+  or as items (__getitem__/__setitem__). However accessing fields as items
+  is recommended because it is faster.
     
   """
 
@@ -1065,18 +1068,6 @@ cdef class Row:
       raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
             (fieldName, "Error was: \"%s: %s\"" % (type,value))
 
-  def __getattr__(self, fieldName):
-    """ get the field data of the record"""
-
-    # In case that the value is an array, the user should be responsible to
-    # copy it if he wants to keep it.
-    try:
-      return self._fields[fieldName][self._row]
-    except:
-      (type, value, traceback) = sys.exc_info()
-      raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
-            (fieldName, "Error was: \"%s: %s\"" % (type,value))
-
   # This is slightly faster (around 3%) than __setattr__
   def __setitem__(self, fieldName, value):
     try:
@@ -1086,16 +1077,6 @@ cdef class Row:
       raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
             (fieldName, "Error was: \"%s: %s\"" % (type,value))
 
-  def __setattr__(self, fieldName, value):
-    """ set the field data of the record"""
-
-    try:
-      self._fields[fieldName][self._unsavednrows] = value
-    except:
-      (type, value, traceback) = sys.exc_info()
-      raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
-            (fieldName, "Error was: \"%s: %s\"" % (type, value))
-
   def __str__(self):
     """ represent the record as an string """
         
@@ -1104,6 +1085,11 @@ cdef class Row:
       outlist.append(`self._fields[name][self._row]`)
             #outlist.append(`self._array.field(name)[self._row]`)
     return "(" + ", ".join(outlist) + ")"
+
+  def __repr__(self):
+    """ represent the record as an string """
+
+    return str(self)
 
   def _all(self):
     """ represent the record as a list """

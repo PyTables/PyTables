@@ -61,8 +61,8 @@ print "Table name:", table.name
 print "Table title:", table.title
 print "Number of rows in table: %d" % (table.nrows)
 print "Table variable names (sorted alphanumerically) with their type:"
-for i in range(len(table.colnames)):
-    print "  ", table.colnames[i], ':=', table.coltypes[i] 
+for name in table.colnames:
+    print "  ", name, ':=', table.coltypes[name]
 print    
 
 # Get the object in "/columns pressure"
@@ -100,15 +100,15 @@ particle = table.row
 
 # Append 5 new particles to table (yes, tables can be enlarged!)
 for i in xrange(10, 15):
-    particle.name  = 'Particle: %6d' % (i)
-    particle.TDCcount = i % 256    
-    particle.ADCcount = (i * 256) % (1 << 16)
-    particle.grid_i = i 
-    particle.grid_j = 10 - i
-    particle.pressure = float(i*i)
-    particle.energy = float(particle.pressure ** 4)
-    particle.idnumber = i * (2 ** 34)  # This exceeds long integer range
-    table.append(particle)
+    particle['name']  = 'Particle: %6d' % (i)
+    particle['TDCcount'] = i % 256    
+    particle['ADCcount'] = (i * 256) % (1 << 16)
+    particle['grid_i'] = i 
+    particle['grid_j'] = 10 - i
+    particle['pressure'] = float(i*i)
+    particle['energy'] = float(particle['pressure'] ** 4)
+    particle['idnumber'] = i * (2 ** 34)  # This exceeds long integer range
+    particle.append()
 
 # Flush this table
 table.flush()
@@ -124,10 +124,10 @@ print "%-16s | %11s | %11s | %6s | %6s | %8s |" % \
 print "%-16s + %11s + %11s + %6s + %6s + %8s +" % \
       ('-' * 16, '-' * 11, '-' * 11, '-' * 6, '-' * 6, '-' * 8)
 # Print the data
-for x in table.fetchall():
+for x in table.iterrows():
     print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
-       (x.name, x.pressure, x.energy, x.grid_i, x.grid_j, 
-        x.TDCcount)
+       (x['name'], x['pressure'], x['energy'], x['grid_i'], x['grid_j'], 
+        x['TDCcount'])
        
 print
 print "Total numbers of entries after appending new rows:", table.nrows

@@ -51,12 +51,11 @@ class RangeTestCase(unittest.TestCase):
         rec = self.table.row
         # Save a record
         i = self.maxshort
-        rec.var1 = '%04d' % (i)
-        rec.var2 = i 
-        #rec.var3 = i % self.maxshort
-        rec.var3 = i
-        rec.var4 = float(i)
-        rec.var5 = float(i)
+        rec['var1'] = '%04d' % (i)
+        rec['var2'] = i 
+        rec['var3'] = i
+        rec['var4'] = float(i)
+        rec['var5'] = float(i)
         try:
             rec.append()
         except ValueError:
@@ -74,13 +73,12 @@ class RangeTestCase(unittest.TestCase):
         rec = self.table.row
         # Save a record
         i = self.maxshort
-        rec.var1 = '%04d' % (i)
-        rec.var2 = i 
-        rec.var3 = i % self.maxshort
-        #rec.var3 = i
-        rec.var5 = float(i)
+        rec['var1'] = '%04d' % (i)
+        rec['var2'] = i 
+        rec['var3'] = i % self.maxshort
+        rec['var5'] = float(i)
         try:
-            rec.var4 = "124"
+            rec['var4'] = "124"
         except AttributeError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
