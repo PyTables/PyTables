@@ -311,15 +311,16 @@ class CompareTestCase(unittest.TestCase):
 	def test02b_CompareTable(self):
 		"Comparing several written and read data values in a Table."
 
-		# Size of the test.
-		##nrows = tbl._v_maxTuples + 1034  # add some more rows than buffer
-		nrows = 10  # only for home checks... The value above should check
-		            # better the I/O with multiple buffers
-
 		# Create test Table with data.
 		h5file = tables.openFile(
 			self.h5fname, 'w', title = "Test for comparing Time tables")
 		tbl = h5file.createTable('/', 'test', self.MyTimeRow)
+
+		# Size of the test.
+		nrows = tbl._v_maxTuples + 34  # add some more rows than buffer
+		#nrows = 10  # only for home checks... The value above should check
+		            # better the I/O with multiple buffers
+
 		row = tbl.row
 		for i in xrange(nrows):
 			row['t32col'] = i
