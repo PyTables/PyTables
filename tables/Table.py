@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.113 2004/07/06 09:11:36 falted Exp $
+#       $Id: Table.py,v 1.114 2004/07/06 12:40:48 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.113 $"
+__version__ = "$Revision: 1.114 $"
 
 from __future__ import generators
 import sys
@@ -72,32 +72,63 @@ maxFloatF=float((2**128 - 2**104))  # From the IEEE 754 standard
 Finf=float("inf")  # Infinite in the IEEE 754 standard
 
 # Utility functions
-def maxnumber(type):
-    if type in ["Int8", "UInt8","Int16", "UInt16",
-                "Int32", "UInt32","Int64", "UInt64"]:
-        return sys.maxint
-    elif type == "Float32":
-        return maxFloatF
-    elif type == "Float64":
-        return maxFloat
+def infType(type, itemsize, sign=0):
+    """Return a superior limit for maximum representable data type"""
+    if str(type) != "CharType":
+        if sign:
+            return -Finf
+        else:
+            return Finf
     else:
-        raise TypeError, "Type %s is not supported" % type
+        if sign:
+            return "\x00"*itemsize
+        else:
+            return "\xff"*itemsize
 
-def nextafter(x, y, type):
-    "Return the next representable neighbor of x in the direction towards y."
+def CharTypeNextAfter(x, direction):
+    "Return the next representable neighbor of x in the appropriate direction."
+    xlist = list(x); xlist.reverse()
+    i = 0
+    if direction > 0:
+        for xchar in xlist:
+            if ord(xchar) < 0xff:
+                xlist[i] = chr(ord(xchar)+1)
+                break
+            i += 1
+    else:
+        for xchar in xlist:
+            if ord(xchar) > 0x00:
+                xlist[i] = chr(ord(xchar)-1)
+                break
+            i += 1
+    xlist.reverse()
+    return "".join(xlist)
+        
+
+def nextafter(x, direction, type):
+    "Return the next representable neighbor of x in the apprppriate direction."
+
+    if direction == 0:
+        return x
 
     if type in ["Int8", "UInt8","Int16", "UInt16",
                 "Int32", "UInt32","Int64", "UInt64"]:
-        if y < x:
+        if direction < 0:
             return x-1
-        elif y > x:
+        else:
             return x+1
-        else: # y == x
-            return y
     elif type == "Float32":
-        return PyNextAfterF(x,y)
+        if direction < 0:
+            return PyNextAfterF(x,x-1)
+        else:
+            return PyNextAfterF(x,x+1)
     elif type == "Float64":
-        return PyNextAfter(x,y)
+        if direction < 0:
+            return PyNextAfter(x,x-1)
+        else:
+            return PyNextAfter(x,x+1)
+    elif str(type) == "CharType":
+        return CharTypeNextAfter(x, direction)
     else:
         raise TypeError, "Type %s is not supported" % type
 
@@ -385,18 +416,23 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Get the coordenates for those values
         ilimit = self.opsValues
         ctype = self.coltypes[colname]
+        itemsize = self.colitemsizes[colname]
         notequal = 0
         if len(ilimit) == 1:
             ilimit = ilimit[0]
             op = self.ops[0]
             if op == 1: # __lt__
-                item = (-Finf, nextafter(ilimit, ilimit-1, ctype))
+                item = (infType(type=ctype, itemsize=itemsize, sign=-1),
+                        nextafter(ilimit, -1, ctype))
             elif op == 2: # __le__
-                item = (-Finf, ilimit)
+                item = (infType(type=ctype, itemsize=itemsize, sign=-1),
+                        ilimit)
             elif op == 3: # __gt__
-                item = (nextafter(ilimit, ilimit+1, ctype), Finf)
+                item = (nextafter(ilimit, +1, ctype),
+                        infType(type=ctype, itemsize=itemsize, sign=0))
             elif op == 4: # __ge__
-                item = (ilimit, Finf)
+                item = (ilimit,
+                        infType(type=ctype, itemsize=itemsize, sign=0))
             elif op == 5: # __eq__
                 item = (ilimit, ilimit)
             elif op == 6: # __ne__
@@ -407,21 +443,19 @@ class Table(Leaf, hdf5Extension.Table, object):
             op1, op2 = self.ops
             item1, item2 = ilimit
             if op1 == 3 and op2 == 1:  # item1 < col < item2
-                item = (nextafter(item1, item1+1, ctype),
-                        nextafter(item2, item2-1, ctype))
+                item = (nextafter(item1, +1, ctype),
+                        nextafter(item2, -1, ctype))
             elif op1 == 4 and op2 == 1:  # item1 <= col < item2
-                item = (item1,
-                        nextafter(item2, item2-1, ctype))
+                item = (item1, nextafter(item2, -1, ctype))
             elif op1 == 3 and op2 == 2:  # item1 < col <= item2
-                item = (nextafter(item1, item1+1, ctype),
-                        item2)
+                item = (nextafter(item1, +1, ctype), item2)
             elif op1 == 4 and op2 == 2:  # item1 <= col <= item2
                 item = (item1, item2)
             else:
                 raise SyntaxError, \
 "Combination of operators not supported. Use val1 <{=} col <{=} val2"
                       
-                
+        #print "item-->", item
         #t1=time.time()
         ncoords = self.cols[colname].index.search(item, notequal)
         #print "time reading indices:", time.time()-t1
@@ -448,20 +482,11 @@ class Table(Leaf, hdf5Extension.Table, object):
         coords = None
         ncoords = 0
         if where and self.colindexed[self.whereColname]:
-            if str(self.coltypes[self.whereColname]) == "CharType":
-                if len(self.ops) == 1 and self.ops[0] == 5: # __eq__
-                    item = (self.opsValues[0], self.opsValues[0])
-                    strCol = self.cols[self.whereColname]
-                    ncoords = strCol.index.search(item, 0)
-                else:
-                    raise NotImplementedError, \
-                          "Only equality is suported for string columns."
-            else:
-                ncoords = self._getLookupRange()
+            ncoords = self._getLookupRange()
         if start < stop:
             if coords == None or ncoords > 0:
                 return self.row(start, stop, step, coords, ncoords=ncoords)
-        # Fall-back action is returning an empty RecArray
+        # Fall-back action is to return an empty RecArray
         return records.array(None,
                              formats=self.description._v_recarrfmt,
                              shape=(0,),

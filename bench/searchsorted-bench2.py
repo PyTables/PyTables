@@ -93,14 +93,15 @@ def readFile(filename, atom, niter, verbose):
 #             results = [table.row.nrow() for i in table(where=2<=table.cols.var2 < 10)]
             results = [p["var1"] #p.nrow()
                        for p in table(where=table.cols.var1 == "1111")]
-#                       for p in table(where=100<=table.cols.var2<110)]
+#                      for p in table(where="1000"<=table.cols.var1<="1010")]
             rowselected += len(results)
     elif atom == "int":
         for i in xrange(niter):
             #results = [table.row["var3"] for i in table(where=2+i<=table.cols.var2 < 10+i)]
 #             results = [table.row.nrow() for i in table(where=2<=table.cols.var2 < 10)]
             results = [p["var2"] #p.nrow()
-                       for p in table(where=100*i<=table.cols.var2<100*(i+1))]
+#                        for p in table(where=110*i<=table.cols.var2<110*(i+1))]
+                       for p in table(where=1000-30<table.cols.var2<1000+60)]
 #                       for p in table(where=table.cols.var2==3999)]
             rowselected += len(results)
     elif atom == "float":

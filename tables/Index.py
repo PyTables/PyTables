@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.5 2004/07/06 09:11:36 falted Exp $
+#       $Id: Index.py,v 1.6 2004/07/06 12:40:48 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.5 $"
+__version__ = "$Revision: 1.6 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -242,13 +242,20 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
             leni = self.lengths[irow]; len2 += leni
             if (leni > 0 and len1 <= startCoords < len2):
                 startl = self.starts[irow] + (startCoords-len1)
-                if maxCoords >= leni - (startCoords-len1):
+                #if maxCoords >= leni - (startCoords-len1):
+                if (startl + leni) < maxCoords:
                     # Values fit on buffer
                     stopl = startl + leni
                 else:
-                    # Stop after this iteration
                     stopl = startl + maxCoords
+                    # Correction if stopl exceeds the limits
+                    # Perhaps some cases are not figured out here
+                    # I must do exhaustive a test suite!
+                    if stopl > self.nelemslice:
+                        stopl = self.nelemslice
+                    # Stop after this iteration
                     stop = 1
+                #print "startl, stopl-->", startl, stopl, stop
                 self.indices._g_readIndex(irow, startl, stopl, relCoords)
                 relCoords += stopl - startl
                 if stop:
