@@ -215,8 +215,8 @@ class CompareTestCase(unittest.TestCase):
 		t64col = tables.Time64Col(shape = (2,), pos = 1)
 
 	# The atoms used in the test VLArrays.
-	myTime32Atom = tables.Time32Atom()
-	myTime64Atom = tables.Time64Atom()
+	myTime32Atom = tables.Time32Atom(shape = (2,))
+	myTime64Atom = tables.Time64Atom(shape = (2,))
 
 
 	def setUp(self):
@@ -241,41 +241,77 @@ class CompareTestCase(unittest.TestCase):
 	def test00_Compare32VLArray(self):
 		"Comparing written 32-bit time data with read data in a VLArray."
 
-		wtime = 1234567890
+		wtime = numarray.array((1234567890,) * 2)
 
 		# Create test VLArray with data.
 		h5file = tables.openFile(
-			self.h5fname, 'w', title = "Test for comparing 32-bit times")
+			self.h5fname, 'w', title = "Test for comparing Time32 VL arrays")
 		vla = h5file.createVLArray('/', 'test', self.myTime32Atom)
-		vla.append([wtime])
+		vla.append(wtime)
 		h5file.close()
 
 		# Check the written data.
 		h5file = tables.openFile(self.h5fname)
 		rtime = h5file.root.test.read()[0][0]
 		h5file.close()
-		self.assertEqual(
-			rtime, wtime, "Stored and retrieved values do not match.")
+		self.assert_(
+			allequal(rtime, wtime),
+			"Stored and retrieved values do not match.")
 
 
 	def test01_Compare64VLArray(self):
 		"Comparing written 64-bit time data with read data in a VLArray."
 
-		wtime = 1234567890.123456
+		wtime = numarray.array((1234567890.123456,) * 2)
 
 		# Create test VLArray with data.
 		h5file = tables.openFile(
-			self.h5fname, 'w', title = "Test for comparing 64-bit times")
+			self.h5fname, 'w', title = "Test for comparing Time64 VL arrays")
 		vla = h5file.createVLArray('/', 'test', self.myTime64Atom)
-		vla.append([wtime])
+		vla.append(wtime)
 		h5file.close()
 
 		# Check the written data.
 		h5file = tables.openFile(self.h5fname)
 		rtime = h5file.root.test.read()[0][0]
 		h5file.close()
-		self.assertEqual(
-			rtime, wtime, "Stored and retrieved values do not match.")
+		self.assert_(
+			allequal(rtime, wtime),
+			"Stored and retrieved values do not match.")
+
+
+	def test01b_Compare64VLArray(self):
+		"Comparing several written and read 64-bit time values in a VLArray."
+
+		# Create test VLArray with data.
+		h5file = tables.openFile(
+			self.h5fname, 'w', title = "Test for comparing Time64 VL arrays")
+		vla = h5file.createVLArray('/', 'test', self.myTime64Atom)
+
+		# Size of the test.
+		nrows = vla._v_maxTuples + 34  # Add some more rows than buffer.
+		# Only for home checks; the value above should check better
+		# the I/O with multiple buffers.
+		##nrows = 10
+
+		for i in xrange(nrows):
+			vla.append((i + 0.012, i + 0.012))
+		h5file.close()
+
+		# Check the written data.
+		h5file = tables.openFile(self.h5fname)
+		arr = h5file.root.test.read()
+		h5file.close()
+
+		arr = numarray.array(arr)
+		orig_val = numarray.arange(
+			0.012, nrows, type = numarray.Float64, shape = (nrows, 1))
+		if verbose:
+			print "Original values:", orig_val
+			print "Saved values:", arr
+		self.assert_(
+			allequal(arr, orig_val),
+			"Stored and retrieved values do not match.")
 
 
 	def test02_CompareTable(self):
@@ -309,7 +345,7 @@ class CompareTestCase(unittest.TestCase):
 
 
 	def test02b_CompareTable(self):
-		"Comparing several written and read data values in a Table."
+		"Comparing several written and read time values in a Table."
 
 		# Create test Table with data.
 		h5file = tables.openFile(
@@ -317,9 +353,10 @@ class CompareTestCase(unittest.TestCase):
 		tbl = h5file.createTable('/', 'test', self.MyTimeRow)
 
 		# Size of the test.
-		nrows = tbl._v_maxTuples + 34  # add some more rows than buffer
-		#nrows = 10  # only for home checks... The value above should check
-		            # better the I/O with multiple buffers
+		nrows = tbl._v_maxTuples + 34  # Add some more rows than buffer.
+		# Only for home checks; the value above should check better
+		# the I/O with multiple buffers.
+		##nrows = 10
 
 		row = tbl.row
 		for i in xrange(nrows):
@@ -338,7 +375,6 @@ class CompareTestCase(unittest.TestCase):
 		if verbose:
 			print "Original values:", orig_val
 			print "Saved values:", recarr.field('t32col')[:]
-
 		self.assert_(
 			numarray.alltrue(recarr.field('t32col')[:] == orig_val),
 			"Stored and retrieved values do not match.")
@@ -349,7 +385,6 @@ class CompareTestCase(unittest.TestCase):
 		if verbose:
 			print "Original values:", orig_val
 			print "Saved values:", recarr.field('t64col')[:]
-
 		self.assert_(
             allequal(recarr.field('t64col')[:], orig_val, numarray.Float64),
 			"Stored and retrieved values do not match.")
@@ -358,21 +393,57 @@ class CompareTestCase(unittest.TestCase):
 	def test03_Compare64EArray(self):
 		"Comparing written 64-bit time data with read data in an EArray."
 
-		wtime = 1234567890.123456
+		wtime = numarray.array((1234567890.123456,) * 2)
 
 		# Create test EArray with data.
 		h5file = tables.openFile(
-			self.h5fname, 'w', title = "Test for comparing 64-bit times")
-		vla = h5file.createEArray('/', 'test', tables.Time64Atom(shape=(0,)))
-		vla.append([wtime])
+			self.h5fname, 'w', title = "Test for comparing Time64 E arrays")
+		ea = h5file.createEArray(
+			'/', 'test', tables.Time64Atom(shape = (0, 2)))
+		ea.append((wtime,))
 		h5file.close()
 
 		# Check the written data.
 		h5file = tables.openFile(self.h5fname)
 		rtime = h5file.root.test.read()[0]
 		h5file.close()
-		self.assertEqual(
-			rtime, wtime, "Stored and retrieved values do not match.")
+		self.assert_(
+			allequal(rtime, wtime),
+			"Stored and retrieved values do not match.")
+
+
+	def test03b_Compare64EArray(self):
+		"Comparing several written and read 64-bit time values in an EArray."
+
+		# Create test EArray with data.
+		h5file = tables.openFile(
+			self.h5fname, 'w', title = "Test for comparing Time64 E arrays")
+		ea = h5file.createEArray(
+			'/', 'test', tables.Time64Atom(shape = (0, 2)))
+
+		# Size of the test.
+		nrows = ea._v_maxTuples + 34  # Add some more rows than buffer.
+		# Only for home checks; the value above should check better
+		# the I/O with multiple buffers.
+		##nrows = 10
+
+		for i in xrange(nrows):
+			ea.append(((i + 0.012, i + 0.012),))
+		h5file.close()
+
+		# Check the written data.
+		h5file = tables.openFile(self.h5fname)
+		arr = h5file.root.test.read()
+		h5file.close()
+
+		orig_val = numarray.arange(0, nrows, 0.5, type = numarray.Int32,
+		                           shape = (nrows, 2)) + 0.012
+		if verbose:
+			print "Original values:", orig_val
+			print "Saved values:", arr
+		self.assert_(
+			allequal(arr, orig_val),
+			"Stored and retrieved values do not match.")
 
 
 
@@ -409,13 +480,17 @@ class UnalignedTestCase(unittest.TestCase):
 	def test00_CompareTable(self):
 		"Comparing written unaligned time data with read data in a Table."
 
-		# Size of the test.
-		nrows = 10
-
 		# Create test Table with data.
 		h5file = tables.openFile(
 			self.h5fname, 'w', title = "Test for comparing Time tables")
 		tbl = h5file.createTable('/', 'test', self.MyTimeRow)
+
+		# Size of the test.
+		nrows = tbl._v_maxTuples + 34  # Add some more rows than buffer.
+		# Only for home checks; the value above should check better
+		# the I/O with multiple buffers.
+		##nrows = 10
+
 		row = tbl.row
 		for i in xrange(nrows):
 			row['i8col']  = i
