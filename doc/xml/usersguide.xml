@@ -8,7 +8,7 @@
     <author>Scott Prater</author>
 
     <subtitle><visual markup="sf">Hierarchical datasets in
-      Python</visual><newline/> Release 0.9(beta) </subtitle>
+      Python</visual><newline/> Release 0.9 </subtitle>
 
     <date>2004, September, 17th</date>
     <year>2002, 2003, 2004</year>
@@ -4023,6 +4023,17 @@ Object Tree:
 	    <term>colshapes</term> <item>The shapes for the table
 	      fields (dictionary).
 	    </item>
+	    <term>colindexed</term> <item>Whether the table fields are
+	      indexed (dictionary).
+	    </item>
+	    <term>indexed</term> <item>Whether the table fields are
+	      indexed (dictionary).
+	    </item>
+	    <term>indexprops</term> <item>Properties of an indexed
+		Table (see <ref
+		refid="IndexPropsClassDescr"></ref>). This attribute
+		(dictionary) exists only if the Table is indexed.
+	    </item>
 	  </description>
 	</subsection>
 
@@ -4099,6 +4110,17 @@ fileh.close()
 
 	  </subsubsection>
 
+	  <subsubsection id="itersequenceDescr">
+	    <heading>itersequence(sequence=None)</heading>
+
+	    <p>Iterate over a <em>sequence</em> of row
+	      coordinates. <em>sequence</em> can be any object that
+	      supports the <verb>__getitem__</verb> special method,
+	      like lists, tuples, Numeric/numarray objects, etc.
+	    </p>
+
+	  </subsubsection>
+
 	  <subsubsection id="readTableDescr">
 	    <heading>read(start=None, stop=None,
 	      step=1, field=None, flavor="numarray")</heading>
@@ -4138,6 +4160,69 @@ fileh.close()
 	    </description>
 	  </subsubsection>
 
+	  <subsubsection id="modifyRowsDescr">
+	    <heading>modifyRows(start=None, stop=None, step=1,
+	      rows=None)</heading>
+
+	    <p>Modify a series of rows in the
+	      <verb>[start:stop:step]</verb> <em>extended slice</em>
+	      range.
+	    </p>
+
+	    <p><em>rows</em> can be either a <verb>RecArray</verb>
+	      object or a structure that is able to be converted to a
+	      <verb>RecArray</verb> and compliant with the table
+	      format.
+	    </p>
+
+	    <p>Returns the number of modified rows.
+	    </p>
+
+	    <p>It raises an <verb>ValueError</verb> in case the rows
+	      parameter could not be converted to an object compliant
+	      with table description.
+	    </p>
+
+	    <p>It raises an <verb>IndexError</verb> in case the
+	      modification will exceed the length of the table.
+	    </p>
+
+	  </subsubsection>
+
+	  <subsubsection id="modifyColumnsDescr">
+	    <heading>modifyColumns(start=None, stop=None, step=1,
+	      rows=None)</heading>
+
+	    <p>Modify a series of rows in the
+	      <verb>[start:stop:step]</verb> <em>extended slice</em>
+	      row range.
+	    </p>
+
+	    <p><em>columns</em> can be either a RecArray<verb></verb>
+	      or a list of arrays (the columns) that is able to be
+	      converted to a <verb>RecArray</verb> compliant with the
+	      specified column <em>names</em> subset of the table
+	      format.
+	    </p>
+
+	    <p><em>names</em> specifies the column names of the table
+	      to be modified.
+	    </p>
+
+	    <p>Returns the number of modified rows.
+	    </p>
+
+	    <p>It raises an <verb>ValueError</verb> in case the
+	      <em>columns</em> parameter could not be converted to an
+	      object compliant with table description.
+	    </p>
+
+	    <p>It raises an <verb>IndexError</verb> in case the
+	      modification will exceed the length of the table.
+	    </p>
+
+	  </subsubsection>
+
 	  <subsubsection id="removeRowsDescr">
 	    <heading>removeRows(start=None,
 	      stop=None)</heading>
@@ -4166,6 +4251,158 @@ fileh.close()
 		</item>
 
 	      </description>
+	  </subsubsection>
+
+	  <subsubsection id="removeIndexDescr">
+	    <heading>removeIndex(index=None)</heading>
+
+	    <p>Remove the index associated with the specified
+	      column. Only Index instances are accepted as parameter.
+	      This index can be recreated again by calling the <ref
+	      refid="createIndexDescr">createIndex</ref> method of the
+	      appropriate <verb>Column</verb> object.
+	    </p>
+	  </subsubsection>
+
+	  <subsubsection id="flushRowsToIndexDescr">
+	    <heading>flushRowsToIndex()</heading>
+
+	    <p> Add remaining rows in buffers to non-dirty
+	      indexes. This can be useful when you have chosen
+	      non-automatic indexing for the table (see <ref
+	      refid="IndexPropsClassDescr">section</ref>) and want to
+	      update the indexes on it.
+	    </p>
+	  </subsubsection>
+
+	  <subsubsection id="reIndexDescr">
+	    <heading>reIndex()</heading>
+
+	    <p>Recompute all the existing indexes in table. This can
+	      be useful when you suspect that, for any reason, the
+	      index information for columns is no longer valid and
+	      want to rebuild the indexes on it.
+	    </p>
+	  </subsubsection>
+
+	  <subsubsection id="reIndexDirtyDescr">
+	    <heading>reIndexDirty()</heading>
+
+	    <p>Recompute the existing indexes in table, but
+	      <em>only</em> if they are dirty. This can be useful when
+	      you have set the <verb>reindex</verb> parameter to 0 in
+	      IndexProps constructor (see <ref
+	      refid="IndexPropsInitDescr"></ref>) for the table and
+	      want to update the indexes after invalidating index
+	      operations.
+	    </p>
+	  </subsubsection>
+
+	  <subsubsection id="whereTableDescr">
+	    <heading>where(condition, start=None, stop=None,
+	      step=None)</heading>
+
+	    <p>Returns an iterator yielding <verb>Row</verb> (see <ref
+	      refid="RowClassDescr">section</ref>) instances built
+	      from rows in table that satisfy a <em>condition</em>
+	      over a column. If the column to which the condition is
+	      applied is indexed, this index will be used in order to
+	      accelerate the search. Else, the <em>in-kernel</em>
+	      iterator (with better performance than the regular
+	      iterator) will be choosed instead.
+	    </p>
+	    <p>Moreover, if a range is supplied (i.e. some of the
+	      <em>start</em>, <em>stop</em> or <em>step</em>
+	      parameters are passed), only the rows in that range
+	      <em>and</em> fullfilling the <em>condition</em> are
+	      returned. Else, all the rows that fullfill the
+	      <em>condition</em> are returned.
+	    </p>
+	    <p>The meaning of the <em>start</em>, <em>stop</em> and
+	      <em>step</em> parameters is the same as in the
+	      <verb>range()</verb> python function, except that
+	      negative values of <verb>step</verb> are not
+	      allowed. Moreover, if only <verb>start</verb> is
+	      specified, then <verb>stop</verb> will be set to
+	      <verb>start+1</verb>. If you do not specify neither
+	      <em>start</em> nor <em>stop</em>, then <visual
+	      markup="bf">all the rows</visual> that fullfill the
+	      <em>condition</em> are selected.
+	    </p>
+
+	    <p>You can mix this method with regular selections in
+	      order to have complex queries. It is strongly
+	      recommended that you pass the most restrictive condition
+	      as the parameter to this method if you want to achieve
+	      maximum performance.
+	    </p>
+
+	    <p>Example of use:</p>
+	    <verbatim>
+              passvalues=[]
+              for row in table.iterrows(0&gt;table.cols.col1&lt;0.3, step=5):
+                  if row['var1'] &lt;= 20:
+                      passvalues.append(row['var2']
+              print "Values that passes the cuts:", passvalues
+	    </verbatim>
+
+	    <p>See also the <verb>whereIndexed</verb> and
+	      <verb>whereInRange</verb> methods below for more
+	      specific ways to call this iterator.
+	    </p>
+
+	  </subsubsection>
+
+	  <subsubsection id="whereIndexedTableDescr">
+	    <heading>whereIndexed(condition, start=None, stop=None,
+	      step=None)</heading>
+
+	    <p>Iterator that selects values fulfilling the
+	      <em>condition</em> parameter. This <em>only</em> works
+	      for conditions over a <em>indexed</em> column. If you
+	      try to use it over non-indexed column, an
+	      <verb>AssertionError</verb> will be raised.
+	    </p>
+
+	    <p>The meaning of the <em>condition</em>, <em>start</em>,
+	      <em>stop</em> and <em>step</em> parameters is the same
+	      as in the <verb>where</verb> method (see <ref
+	      refid="whereTableDescr"></ref>) described above.
+	    </p>
+
+	  </subsubsection>
+
+	  <subsubsection id="whereInRangeTableDescr">
+	    <heading>whereInRange(condition, start=None, stop=None,
+	      step=None)</heading>
+
+	    <p>Iterator that selects values fulfilling the
+	      <em>condition</em> parameter.  This method will use the
+	      <em>in-kernel</em> search method, i.e. it won't take
+	      advantage of a possible indexed column.
+	    </p>
+
+	    <p>The meaning of the <em>condition</em>, <em>start</em>,
+	      <em>stop</em> and <em>step</em> parameters is the same
+	      as in the <verb>where</verb> method (see <ref
+	      refid="whereTableDescr"></ref>) described above.
+	    </p>
+
+	  </subsubsection>
+
+	  <subsubsection id="getWhereListTableDescr">
+	    <heading>getWhereList(condition, flavor="List")</heading>
+
+	    <p>Get the row coordinates that fulfill the
+	      <em>condition</em> param. This method will take
+	      advantage of an indexed column to speed-up the search.
+	    </p>
+
+	    <p><em>flavor</em> is the desired type of the returned
+	      list. It can take the <verb>'List'</verb> (the default),
+	      <verb>'Tuple'</verb> or <verb>'NumArray'</verb> values.
+	    </p>
+
 	  </subsubsection>
 
 	</subsection>
@@ -4244,6 +4481,31 @@ fileh.close()
 	      narray = table.read(field="var2")
 	    </verbatim>
 
+	  </subsubsection>
+
+	  <subsubsection id="__setitemTableDescr">
+	    <heading>__setitem__(key, value)</heading>
+
+	    <p>It takes different actions depending on the
+	      type of the <verb>key</verb> parameter:</p>
+
+	    <description>
+	      <term><visual markup="tt">key</visual> is an
+		<verb>Integer</verb></term> <item>The corresponding
+		table row is set to <em>value</em>. <em>value</em>
+		must be a <verb>List</verb> or <verb>Tuple</verb>
+		capable of being converted to the table field format.
+		</item>
+
+	      <term><visual markup="tt">key</visual> is a
+		<verb>Slice</verb></term><item>The row slice
+		determined by key is set to
+		<em>value</em>. <em>value</em> must be a
+		<verb>RecArray</verb> object or a list of rows capable
+		of being converted to the table field format.
+	      </item>
+
+	    </description>
 	  </subsubsection>
 	</subsection>
 
@@ -5000,16 +5262,20 @@ fileh.close()
 	    many attributes as columns you want in your table. The
 	    name of these attributes will become the name of the
 	    columns, while its values are the properties of the
-	    columns that are obtained through the use of the
-	    <verb>Col</verb> class constructor. See the <ref
-	    refid="ColClassDescr">section</ref> for instructions on
-	    how define the properties of the table columns.
+	    columns that are obtained through the use of the <ref
+	    refid="ColClassDescr">Col</ref> class constructor.
 	  </p>
 	  <p>Then, you can pass an instance of this object to the
 	    <verb>Table</verb> constructor, where all the information it
 	    contains will be used to define the table structure. See
 	    the <ref refid="secondExample">section</ref> for an example
 	    on how that works.
+	  </p>
+	  <p>Moreover, you can change the properties of the index
+	    creation process by using an instance of the <ref
+	    refid="IndexPropsClassDescr">IndexProps</ref> class and
+	    assign it to a special attribute called
+	    <verb>_v_indexprops</verb>.
 	  </p>
 
 	</subsection> <!-- isDescription -->
@@ -5619,6 +5885,73 @@ Result Array:
 	    </p>
 	  </subsubsection> <!-- Filters constructor method -->
 	</subsection> <!-- Filters class -->
+
+	<subsection id="IndexPropsClassDescr">
+	  <heading>The <visual markup="tt">IndexProps</visual> class
+	  </heading>
+
+	  <p>You can use this class to set/unset the properties in the
+	    indexing process of a <verb>Table</verb> column. To use
+	    it, create an instance, and assign it to the special
+	    attribute <verb>_v_indexprops</verb> in a table <ref
+	    refid="IsDescriptionClassDescr">description</ref> class or
+	    dictionary.
+	  </p>
+
+	  <p>The public variables of <verb>IndexProps</verb> are listed
+	    below:
+	  </p>
+
+	  <description>
+	    <term>auto</term> <item>Whether an existing index should
+	      be updated or not after a table append operation.
+	    </item>
+	    <term>reindex</term> <item>Whether the table fields are to
+	      be re-indexed after an invalidating index operation.
+	    </item>
+	    <term>filters</term> <item>The filter settings for the
+	      different Table indexes.
+	    </item>
+	  </description>
+
+	  <p>There are no <verb>IndexProps</verb> public methods with
+	    the exception of the constructor itself that is described
+	    next.
+	  </p>
+
+	  <subsubsection id="IndexPropsInitDescr">
+	    <heading><visual markup="tt">IndexProps(auto=1, reindex=1,
+		filters=None)</visual>
+	    </heading>
+
+	    <p>The parameters that can be passed to the
+	      <verb>IndexProps</verb> class constructor are:
+	    </p>
+
+	    <description>
+	      <term>auto</term> <item>Specifies whether an existing
+	      index should be updated or not after a table append
+	      operation. The default is enable automatic index
+	      updates.
+	      </item>
+	      <term>reindex</term> <item>Specifies whether the table
+		fields are to be re-indexed after an invalidating
+		index operation (like for example, after a
+		<verb>Table.removeRows</verb> call). The default is to
+		reindex after operations that invalidate indexes.
+	      </item>
+	      <term>filters</term><item>Sets the filter properties for
+		the different Table indexes. It has to be an instance
+		of the <verb>Filters</verb> (see <ref
+		refid="FiltersClassDescr">section</ref>) class. A None
+		value means that the default settings (see <ref
+		refid="FiltersInitDescr"></ref>) for filters are
+		selected.
+	      </item>
+	    </description>
+
+	  </subsubsection>
+	</subsection> <!-- IndexProps -->
       </section> <!-- Helper classes -->
     </chapter>
 

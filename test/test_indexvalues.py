@@ -605,7 +605,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test05a(self):
-        """Checking getWhereList & iterWhereList (list, string flavor)"""
+        """Checking getWhereList & itersequence (list, string flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -622,7 +622,7 @@ class SelectValuesTestCase(unittest.TestCase):
         t1col = table1.cols.var1
         # First selection
         rowList1 = table1.getWhereList(il <= t1col <= sl, "List")
-        results1 = [p['var1'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var1'] for p in table1.itersequence(rowList1)]
         results2 = [p["var1"] for p in table2
                     if il <= p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -638,7 +638,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         rowList1 = table1.getWhereList(il <= t1col < sl, "List")
-        results1 = [p['var1'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var1'] for p in table1.itersequence(rowList1)]
         results2 = [p["var1"] for p in table2
                     if il <= p["var1"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -654,7 +654,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         rowList1 = table1.getWhereList(il < t1col <= sl, "List")
-        results1 = [p['var1'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var1'] for p in table1.itersequence(rowList1)]
         results2 = [p["var1"] for p in table2
                     if il < p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -672,7 +672,7 @@ class SelectValuesTestCase(unittest.TestCase):
         
         # Fourth selection
         rowList1 = table1.getWhereList(il < t1col < sl, "List")
-        results1 = [p['var1'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var1'] for p in table1.itersequence(rowList1)]
         results2 = [p["var1"] for p in table2
                     if il < p["var1"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -687,7 +687,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test05b(self):
-        """Checking getWhereList & iterWhereList (tuple, string flavor)"""
+        """Checking getWhereList & itersequence (tuple, string flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -705,7 +705,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # First selection
         rowList1 = table1.getWhereList(t1col < sl, "Tuple")
-        results1 = [p['var1'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var1'] for p in table1.itersequence(rowList1)]
         results2 = [p["var1"] for p in table2
                     if p["var1"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -722,7 +722,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         rowList1 = table1.getWhereList(t1col <= sl, "NumArray")
-        results1 = [p['var1'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var1'] for p in table1.itersequence(rowList1)]
         results2 = [p["var1"] for p in table2
                     if p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -739,7 +739,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         rowList1 = table1.getWhereList(t1col > sl, "NumArray")
-        results1 = [p['var1'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var1'] for p in table1.itersequence(rowList1)]
         results2 = [p["var1"] for p in table2
                     if p["var1"] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -756,7 +756,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         rowList1 = table1.getWhereList(t1col >= sl, "NumArray")
-        results1 = [p['var1'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var1'] for p in table1.itersequence(rowList1)]
         results2 = [p["var1"] for p in table2
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -772,7 +772,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test06a(self):
-        """Checking getWhereList & iterWhereList (bool flavor)"""
+        """Checking getWhereList & itersequence (bool flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -784,7 +784,7 @@ class SelectValuesTestCase(unittest.TestCase):
         # Do some selections and check the results
         t1var2 = table1.cols.var2
         rowList1 = table1.getWhereList(t1var2 == 1, "Tuple")
-        results1 = [p['var2'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var2'] for p in table1.itersequence(rowList1)]
         results2 = [p["var2"] for p in table2
                     if p["var2"] == 1]
         if verbose:
@@ -796,7 +796,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test06b(self):
-        """Checking getWhereList & iterWhereList (bool flavor)"""        
+        """Checking getWhereList & itersequence (bool flavor)"""        
 
         if verbose:
             print '\n', '-=' * 30
@@ -808,7 +808,7 @@ class SelectValuesTestCase(unittest.TestCase):
         # Do some selections and check the results
         t1var2 = table1.cols.var2
         rowList1 = table1.getWhereList(t1var2 == 0, "List")
-        results1 = [p['var2'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var2'] for p in table1.itersequence(rowList1)]
         results2 = [p["var2"] for p in table2
                     if p["var2"] == 0]
         if verbose:
@@ -820,7 +820,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test07a(self):
-        """Checking getWhereList & iterWhereList (int flavor)"""
+        """Checking getWhereList & itersequence (int flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -837,7 +837,7 @@ class SelectValuesTestCase(unittest.TestCase):
         t1col = table1.cols.var3
         # First selection
         rowList1 = table1.getWhereList(il <= t1col <= sl, "List")
-        results1 = [p['var3'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if il <= p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -853,7 +853,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         rowList1 = table1.getWhereList(il <= t1col < sl, "List")
-        results1 = [p['var3'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if il <= p["var3"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -869,7 +869,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         rowList1 = table1.getWhereList(il < t1col <= sl, "List")
-        results1 = [p['var3'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if il < p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -887,7 +887,7 @@ class SelectValuesTestCase(unittest.TestCase):
         
         # Fourth selection
         rowList1 = table1.getWhereList(il < t1col < sl, "List")
-        results1 = [p['var3'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if il < p["var3"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -902,7 +902,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test07b(self):
-        """Checking getWhereList & iterWhereList (int flavor)"""
+        """Checking getWhereList & itersequence (int flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -920,7 +920,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # First selection
         rowList1 = table1.getWhereList(t1col < sl, "Tuple")
-        results1 = [p['var3'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if p["var3"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -937,7 +937,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         rowList1 = table1.getWhereList(t1col <= sl, "NumArray")
-        results1 = [p['var3'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -954,7 +954,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         rowList1 = table1.getWhereList(t1col > sl, "NumArray")
-        results1 = [p['var3'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if p["var3"] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -971,7 +971,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         rowList1 = table1.getWhereList(t1col >= sl, "NumArray")
-        results1 = [p['var3'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -987,7 +987,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test08a(self):
-        """Checking getWhereList & iterWhereList (float flavor)"""
+        """Checking getWhereList & itersequence (float flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -1005,7 +1005,7 @@ class SelectValuesTestCase(unittest.TestCase):
         # First selection
         #results1 = [p["var4"] for p in table1.where(il <= t1col <= sl)]
         rowList1 = table1.getWhereList(il <= t1col <= sl, "List")
-        results1 = [p['var4'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if il <= p["var4"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1021,7 +1021,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         rowList1 = table1.getWhereList(il <= t1col < sl, "List")
-        results1 = [p['var4'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if il <= p["var4"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1037,7 +1037,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         rowList1 = table1.getWhereList(il < t1col <= sl, "List")
-        results1 = [p['var4'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if il < p["var4"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1055,7 +1055,7 @@ class SelectValuesTestCase(unittest.TestCase):
         
         # Fourth selection
         rowList1 = table1.getWhereList(il < t1col < sl, "List")
-        results1 = [p['var4'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if il < p["var4"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1070,7 +1070,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test08b(self):
-        """Checking getWhereList & iterWhereList (float flavor)"""
+        """Checking getWhereList & itersequence (float flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -1088,7 +1088,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # First selection
         rowList1 = table1.getWhereList(t1col < sl, "NumArray")
-        results1 = [p['var4'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if p["var4"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1105,7 +1105,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         rowList1 = table1.getWhereList(t1col <= sl, "NumArray")
-        results1 = [p['var4'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if p["var4"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1122,7 +1122,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         rowList1 = table1.getWhereList(t1col > sl, "NumArray")
-        results1 = [p['var4'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if p["var4"] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1139,7 +1139,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         rowList1 = table1.getWhereList(t1col >= sl, "NumArray")
-        results1 = [p['var4'] for p in table1.iterWhereList(rowList1)]
+        results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if p["var4"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.18 2004/09/24 11:58:13 falted Exp $
+#       $Id: Index.py,v 1.19 2004/09/27 18:10:45 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.18 $"
+__version__ = "$Revision: 1.19 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -127,7 +127,7 @@ class IndexProps(object):
 
     Instance variables:
 
-        auto -- whether an existing index should be reindexed after a
+        auto -- whether an existing index should be updated or not after a
             Table append operation
         reindex -- whether the table fields are to be re-indexed
             after an invalidating index operation (like Table.removeRows)

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.131 2004/09/24 11:58:13 falted Exp $
+#       $Id: Table.py,v 1.132 2004/09/27 18:10:46 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.131 $"
+__version__ = "$Revision: 1.132 $"
 
 from __future__ import generators
 import sys
@@ -84,9 +84,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         __setitem__(key, value)
         append(rows)
         flushRowsToIndex()
-        getWhereList(condition [, flavor])
         iterrows(start, stop, step)
-        iterWhereList(sequence)
+        itersequence(sequence)
         modifyRows(start, rows)
         modifyColumns(start, columns, names)
         read([start] [, stop] [, step] [, field [, flavor]])
@@ -97,6 +96,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         where(condition [, start] [, stop] [, step])
         whereIndexed(condition [, start] [, stop] [, step])
         whereInRange(condition [, start] [, stop] [, step])
+        getWhereList(condition [, flavor])
 
     Instance variables:
 
@@ -104,14 +104,14 @@ class Table(Leaf, hdf5Extension.Table, object):
         row -- a reference to the Row object associated with this table
         nrows -- the number of rows in this table
         rowsize -- the size, in bytes, of each row
-        indexed -- whether or not some column in Table is indexed
-        indexprops -- The properties of an indexed Table. Exists only
-            if the Table is indexed
         cols -- accessor to the columns using a natural name schema
         colnames -- the field names for the table (list)
         coltypes -- the type class for the table fields (dictionary)
         colshapes -- the shapes for the table fields (dictionary)
         colindexed -- whether the table fields are indexed (dictionary)
+        indexed -- whether or not some field in Table is indexed
+        indexprops -- properties of an indexed Table. Exists only
+            if the Table is indexed
 
     """
 
@@ -459,7 +459,7 @@ class Table(Leaf, hdf5Extension.Table, object):
                              shape=(0,),
                              names = self.colnames)
         
-    def getWhereList(self, condition=None, flavor="List"):
+    def getWhereList(self, condition, flavor="List"):
         """Get the row coordinates that fulfill the 'condition' param
 
         'condition' can be used to specify selections along a column
@@ -509,7 +509,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             coords = tuple(coords.tolist())
         return coords
 
-    def iterWhereList(self, sequence=None):
+    def itersequence(self, sequence=None):
         """Iterate over a list of row coordinates."""
         
         assert hasattr(sequence, "__getitem__"), \
@@ -769,7 +769,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         parameter:
 
         If 'key' is an integer, the corresponding table row is set to
-        'value' (List or Tuple) . If 'key' is a slice, the row slice
+        'value' (List or Tuple). If 'key' is a slice, the row slice
         determined by key is set to value (a RecArray or list of
         rows).
 
@@ -836,7 +836,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         return lenrows
 
     def modifyRows(self, start=None, stop=None, step=1, rows=None):
-        """Modify a series of rows starting at 'start', with a "step"
+        """Modify a series of rows in the slice [start:stop:step]
 
         rows can be either a recarray or a structure that is able to
         be converted to a recarray compliant with the table format.
@@ -903,7 +903,7 @@ class Table(Leaf, hdf5Extension.Table, object):
 
     def modifyColumns(self, start=None, stop=None, step=1,
                       columns=None, names=None):
-        """Modify a series of columns starting at row 'start'
+        """Modify a series of columns in the row slice [start:stop:step]
 
         columns can be either a recarray or a list of arrays (the
         columns) that is able to be converted to a recarray compliant
@@ -913,8 +913,9 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         Returns the number of modified rows.
 
-        It raises an 'ValueError' in case the rows parameter could not
-        be converted to an object compliant with table description.
+        It raises an 'ValueError' in case the columns parameter could
+        not be converted to an object compliant with table
+        description.
 
         It raises an 'IndexError' in case the modification will exceed
         the length of the table.
@@ -994,7 +995,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         return nrows
 
     def flushRowsToIndex(self):
-        "Add remaining rows to non-dirty indexes"
+        "Add remaining rows in buffers to non-dirty indexes"
         rowsadded = 0
         if self.indexed:
             # Update the number of unsaved indexed rows
@@ -1263,6 +1264,7 @@ class Column(object):
     Methods:
     
         __getitem__(key)
+        __setitem__(key, value)
         createIndex()
         reIndex()
         reIndexDirty()
