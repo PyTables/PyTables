@@ -7,7 +7,7 @@ with any HDF5 generic utility.
 
 
 import sys
-from Numeric import *
+from numarray import *
 from tables import *
 
 
@@ -58,7 +58,6 @@ for i in xrange(10):
     particle['grid_j'] = 10 - i
     particle['pressure'] = float(i*i)
     particle['energy'] = float(particle['pressure'] ** 4)
-    #particle['energy'] = 4
     particle['idnumber'] = i * (2 ** 34)
     # Insert a new particle record
     particle.append()
@@ -72,14 +71,14 @@ print	'-**-**-**-**-**-**- table data reading & selection  -**-**-**-**-**-'
 # Read actual data from table. We are interested in collecting pressure values
 # on entries where TDCcount field is greater than 3 and pressure less than 50
 pressure = [ x['pressure'] for x in table
-             if x['TDCcount'] > 3 and x['pressure'] < 50 ]
+             if x['TDCcount']>3 and 20<=x['pressure']<50 ]
 print "Last record read:"
 print x
 print "Field pressure elements satisfying the cuts ==>", pressure
 
 # Read also the names with the same cuts
 names = [ x['name'] for x in table
-          if x['TDCcount'] > 3 and x['pressure'] < 50 ]
+          if x['TDCcount'] > 3 and 20 <= x['pressure'] < 50 ]
 
 print
 print	'-**-**-**-**-**-**- array object creation  -**-**-**-**-**-**-**-'
@@ -87,11 +86,11 @@ print	'-**-**-**-**-**-**- array object creation  -**-**-**-**-**-**-**-'
 print "Creating a new group called '/columns' to hold new arrays"
 gcolumns = h5file.createGroup(h5file.root, "columns", "Pressure and Name")
 
-print "Creating a Numeric array called 'pressure' under '/columns' group"
+print "Creating an array called 'pressure' under '/columns' group"
 h5file.createArray(gcolumns, 'pressure', array(pressure), 
                    "Pressure column selection")
 
-print "Creating another Numeric array called 'name' under '/columns' group"
+print "Creating another array called 'name' under '/columns' group"
 h5file.createArray('/columns', 'name', names, "Name column selection")
 
 # Close the file

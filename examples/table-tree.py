@@ -81,7 +81,7 @@ h5file.createArray(gcolumns, 'pressure', Numeric.array(pressure),
                    "Pressure column", atomictype=0)
 print "gcolumns.pressure type ==> ", gcolumns.pressure.type
 
-# Do the same with TDCcount
+# Do the same with TDCcount, but with a numarray object
 TDC = [ p['TDCcount'] for p in table.iterrows() ]
 print "TDC ==>", TDC
 print "TDC shape ==>", array(TDC).shape

@@ -921,9 +921,9 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	<p>In this section, we will see how to define our own records
 	  from Python and save collections of them (i.e. a <visual
 	  markup="bf">table</visual>) on a file. Then, we will select
-	  some data in the table using Python cuts, creating Numerical
-	  arrays to keep this selection as separate objects in the
-	  tree.
+	  some data in the table using Python cuts, creating
+	  <verb>numarray</verb> arrays to keep this selection as
+	  separate objects in the tree.
 	</p>
 	<p>
 	  In <em>examples/tutorial1-1.py</em> you will find the
@@ -965,15 +965,15 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    of objects, and for convenience, we will use this last way
 	    to access them.
 	  </p>
-	  <p>If you are going to deal with <verb>Numeric</verb> or
-	    <verb>numarray</verb> arrays (and normally, you will) you
+	  <p>If you are going to deal with <verb>numarray</verb> or
+	    <verb>Numeric</verb> arrays (and normally, you will) you
 	    also need to import some objects from it. You can do that
 	    in the normal way. So, to access to <verb>PyTables</verb>
 	    functionality normally you should start you programs with:
 	  </p>
 	  <verbatim>
 >>> import tables        # but in this tutorial we use "from tables import *"
->>> from Numeric import *  # or "from numarray import *"
+>>> from numarray import *  # or "from Numeric import *"
 >>>
 	  </verbatim>
 	</subsection>
@@ -1015,26 +1015,25 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
 	  <verbatim>
 >>> class Particle(IsDescription):
-...     name      = Col("CharType", 16)  # 16-character String
-...     idnumber  = Col("Int64", 1)      # Signed 64-bit integer
-...     ADCcount  = Col("UInt16", 1)     # Unsigned short integer
-...     TDCcount  = Col("UInt8", 1)      # unsigned byte
-...     grid_i    = Col("Int32", 1)      # integer
-...     grid_j    = Col("Int32", 1)      # integer
-...     pressure  = Col("Float32", 1)    # float  (single-precision)
-...     energy    = Col("Float64", 1)    # double (double-precision)
+...     name      = StringCol(16)   # 16-character String
+...     idnumber  = Int64Col()      # Signed 64-bit integer
+...     ADCcount  = UInt16Col()     # Unsigned short integer
+...     TDCcount  = UInt8Col()      # unsigned byte
+...     grid_i    = Int32Col()      # integer
+...     grid_j    = IntCol()        # integer (equivalent to Int32Col)
+...     pressure  = Float32Col()    # float  (single-precision)
+...     energy    = FloatCol()      # double (double-precision)
 ...
 >>>
 	  </verbatim>
 	  <p>This definition class is quite
 	    auto-explanatory. Basically, you have to declare a class
 	    variable for each field you need, and as its value we
-	    assign a <verb>Col</verb> instance, that takes as
-	    arguments the data type and the number of items on each
-	    column element (in fact, the <verb>Col()</verb>
-	    constructor accepts a few more arguments, see <ref
-	    refid="ColClassDescr">section</ref> for a detailed
-	    descrition). See <ref
+	    assign a subclass instance of the <verb>Col</verb> class,
+	    that describes the kind of column (the data type, the
+	    length, the shape, ...). See <ref
+	    refid="ColClassDescr">section</ref> for a complete
+	    description of these subclasses. See also <ref
 	    refid="datatypesSupported">appendix</ref> for a list of
 	    data types supported in <verb>Col</verb> constructors.
 	  </p>
@@ -1059,14 +1058,15 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  <verbatim>
 >>> h5file = openFile("tutorial1.h5", mode = "w", title = "Test file")
 	  </verbatim>
-	  <p>This <verb>openFile</verb> is one of the objects imported
-	    by the "<verb>from tables import *</verb>", do you
-	    remember?. Here, we are telling that we want to create a
-	    new file called "<verb>tutorial1.h5</verb>" in
+	  <p>This <verb>openFile</verb> (<ref
+	    refid="openFileDescr">see</ref>) is one of the objects
+	    imported by the "<verb>from tables import *</verb>", do
+	    you remember?. Here, we are telling that we want to create
+	    a new file called "<verb>tutorial1.h5</verb>" in
 	    "<verb>w</verb>"rite mode and with an descriptive title
 	    string ("<verb>Test file</verb>"). This function tries to
 	    open the file, and if successful, returns a
-	    <verb>File</verb> (see <ref refid="FileClassDescr"></ref>)
+	    <verb>File</verb> (<ref refid="FileClassDescr">see</ref>)
 	    instance which hosts the root of the object tree on its
 	    <verb>root</verb> attribute.
 	  </p>
@@ -1086,10 +1086,10 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
 	  <p>Here, we have taken the <verb>File</verb> instance
 	    <verb>h5file</verb> and invoked its
-	    <verb>createGroup</verb> method (see<ref
-	    refid="createGroupDescr"></ref>), telling that we want to
-	    create a new group called <em>detector</em> hanging from
-	    "<em>/</em>", which is other way to refer to the
+	    <verb>createGroup</verb> method (<ref
+	    refid="createGroupDescr">see</ref>), telling that we want
+	    to create a new group called <em>detector</em> hanging
+	    from "<em>/</em>", which is other way to refer to the
 	    <verb>h5file.root</verb> object we mentioned before. This
 	    will create a new <verb>Group</verb> (see<ref
 	    refid="GroupClassDescr"></ref>) instance that will be
@@ -1112,9 +1112,9 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 >>>
 	  </verbatim>
 
-	  <p>You can see how we asked to create the <verb>Table</verb>
+	  <p>Look at how we asked to create the <verb>Table</verb>
 	    instance hanging from <verb>group</verb>, with name
-	    <em>'readout'</em>. We have passed <verb>Particle</verb>,
+	    "<em>readout</em>". We have passed <verb>Particle</verb>,
 	    the class that we have declared before, as the
 	    <em>description</em> parameter and finally we have used
 	    "<em>Readout example</em>" as a <verb>Table</verb>
@@ -1131,10 +1131,10 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
 	  <verbatim>
 >>> print h5file
-Filename: tutorial1.h5 'Test file'
+Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:00:13 2003'
 / (Group) 'Test file'
 /detector (Group) 'Detector information'
-/detector/readout Table(0,) 'Readout example'
+/detector/readout (Table(0,)) 'Readout example'
 
 >>>
 	  </verbatim>
@@ -1149,33 +1149,37 @@ Filename: tutorial1.h5 'Test file'
 	  <verbatim>
 >>> h5file
 >>> h5file
-Filename: tutorial1.h5 'Test file'
-  mode = 'w'
-  trMap = {}
+Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:00:13 2003'
 / (Group) 'Test file'
 /detector (Group) 'Detector information'
-/detector/readout Table(0,) 'Readout example'
-  description = {
-    'ADCcount': Col('UInt16', (1,)),
-    'TDCcount': Col('UInt8', (1,)),
-    'energy': Col('Float64', (1,)),
-    'grid_i': Col('Int32', (1,)),
-    'grid_j': Col('Int32', (1,)),
-    'idnumber': Col('Int64', (1,)),
-    'name': Col('CharType', (16,)),
-    'pressure': Col('Float32', (1,)) }
-  byteorder = little
+/detector/readout (Table(0,)) 'Readout example'
+
+>>> h5file
+File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/')
+/ (Group) 'Test file'
+/detector (Group) 'Detector information'
+/detector/readout (Table(0,)) 'Readout example'
+  description := {
+    "ADCcount": Col('UInt16', shape=1, itemsize=2, dflt=0),
+    "TDCcount": Col('UInt8', shape=1, itemsize= 1, dflt=0),
+    "energy": Col('Float64', shape=1, itemsize=8, dflt=0.0),
+    "grid_i": Col('Int32', shape=1, itemsize=4, dflt=0),
+    "grid_j": Col('Int32', shape=1, itemsize=4, dflt=0),
+    "idnumber": Col('Int64', shape=1, itemsize=8, dflt=0),
+    "name": Col('CharType', shape=1, itemsize=16, dflt=None),
+    "pressure": Col('Float32', shape=1, itemsize=4, dflt=0.0) }
+  byteorder := little
 
 >>>
 	  </verbatim>
 
 	  <p>where more detailed info is printed on each object on the
 	    tree. Pay attention on how <verb>Particle</verb>, our
-	    column descriptor class, is printed as part of the
+	    table descriptor class, is printed as part of the
 	    <em>readout</em> table description information. In
 	    general, you can obtain lot of information on the objects
 	    and its children by just printing them. That introspection
-	    capability is quite powerful, so I recommend you to use it
+	    capability is very meningful, so I recommend you to use it
 	    extensively.
 	  </p>
 
@@ -1211,17 +1215,16 @@ Filename: tutorial1.h5 'Test file'
 ...     particle['pressure'] = float(i*i)
 ...     particle['energy'] = float(particle['pressure'] ** 4)
 ...     particle['idnumber'] = i * (2 ** 34)
-...     # Insert a new particle record
 ...     particle.append()
 ...
 >>>
 	  </verbatim>
 	  
-	  <p>This code is quite easy to understand. The lines inside
+	  <p>This code should be easy to understand. The lines inside
 	    the loop just assign values to the different columns in
-	    the <verb>particle</verb> row object and then a call to
-	    its <verb>append()</verb> (see <ref
-	    refid="RowClassDescr"></ref>) method is made to put this
+	    the <verb>particle</verb> Row instance (<ref
+	    refid="RowClassDescr">see</ref>) and then a call to its
+	    <verb>append()</verb> method is made to put this
 	    information in the <verb>table</verb> I/O buffer.
 	  </p>
 
@@ -1248,9 +1251,9 @@ Filename: tutorial1.h5 'Test file'
 	  <verbatim>
 >>> table = h5file.root.detector.readout
 >>> pressure = [ x['pressure'] for x in table.iterrows()
-...              if x['TDCcount'] > 3 and x['pressure'] &lt; 50 ]
+...              if x['TDCcount']>3 and 20&lt;=x['pressure']&lt;50 ]
 >>> pressure
-[16.0, 25.0, 36.0, 49.0]
+[25.0, 36.0, 49.0]
 >>>
 	  </verbatim>
 
@@ -1263,15 +1266,16 @@ Filename: tutorial1.h5 'Test file'
 	    will certainly do that later on.
 	  </p>
 
-	  <p>The last two lines are a Python comprehensive list. It
-	    loops over rows in <em>table</em> as they are provided by
-	    <verb>table.iterrows()</verb> iterator (see <ref
-	    refid="iterrowsDescr"></ref>) that returns values until
-	    data in table is exhausted. This rows are filtered using
-	    the expression <verb>x['TDCcount'] > 3 and x['pressure']
-	    &lt; 50</verb>, and the <verb>pressure</verb> field for
-	    satisfying records is selected to form the final list that
-	    is assigned to <verb>pressure</verb> variable.
+	  <p>You will recognize the last two lines to be a Python list
+	    comprehension. It loops over rows in <em>table</em> as
+	    they are provided by <verb>table.iterrows()</verb>
+	    iterator (see <ref refid="iterrowsDescr"></ref>) that
+	    returns values until data in table is exhausted. These
+	    rows are filtered using the expression <verb>x['TDCcount']
+	    > 3 and x['pressure'] &lt; 50</verb>, and the
+	    <verb>pressure</verb> field for satisfying records is
+	    selected to form the final list that is assigned to
+	    <verb>pressure</verb> variable.
 	  </p>
 
 	  <p>We could indeed have used a normal <verb>for</verb> loop
@@ -1279,16 +1283,25 @@ Filename: tutorial1.h5 'Test file'
 	    compact and elegant.
 	  </p>
 
-	  <p>Let's select the names for the same set of particles:
+	  <p>Let's select the names for the same set of cuts:
 	  </p>
 
 	  <verbatim>
->>> names = [ x['name'] for x in table.iterrows()
-...           if x['TDCcount'] > 3 and x['pressure'] &lt; 50 ]
+>>> names=[ x['name'] for x in table if x['TDCcount']>3 and 20&lt;=x['pressure']&lt;50 ]
 >>> names
-['Particle:      4', 'Particle:      5', 'Particle:      6', 'Particle:      7']
+['Particle:      5', 'Particle:      6', 'Particle:      7']
 >>>
 	  </verbatim>
+
+	  <p>Note how we have ommited the iterrows() call in the list
+	    comprehension. This is because and __iter__() special
+	    function is implemented in the Table class, so that it
+	    implements the iterator protocol over all the rows in the
+	    table. In fact, iterrows() internally calls this special
+	    __iter__() method. This way to access all the rows in a
+	    table turns out to be very convenient, specially for
+	    interactive use.
+	  </p>
 
 	  <p>Ok. that's enough for selections. Next section will show
 	    you how to save these selections on file.
@@ -1310,8 +1323,9 @@ Filename: tutorial1.h5 'Test file'
 	  </verbatim>
 
 	  <p>Note that this time we have specified the first parameter
-	    in a natural naming fashion (<verb>h5file.root</verb>)
-	    instead of using an absolute path string ("/").
+	    in a <em>natural naming</em> fashion
+	    (<verb>h5file.root</verb>) instead of using an absolute
+	    path string ("/").
 	  </p>
 
 	  <p>Now, create one <verb>Array</verb> object:
@@ -1319,12 +1333,13 @@ Filename: tutorial1.h5 'Test file'
 
 	  <verbatim>
 >>> h5file.createArray(gcolumns, 'pressure', array(pressure),
-...                    "Pressure column selection")
-/columns/pressure Array(4,) 'Pressure column selection'
-  type = 'Float64'
+...                     "Pressure column selection")
+/columns/pressure (Array(3,)) 'Pressure column selection'
+  type = Float64
   itemsize = 8
-  flavor = 'Numeric'
+  flavor = 'NumArray'
   byteorder = 'little'
+>>>
 	  </verbatim>
 
 	  <p>We already know the first two parameters of the
@@ -1361,12 +1376,12 @@ Filename: tutorial1.h5 'Test file'
 	    <em>object</em> parameter. Actually, it accepts a variety
 	    of other regular objects (see <ref
 	    refid="createArrayDescr"></ref>). We will check that we can
-	    retrieve exactly this same object from disk later on.
+	    retrieve exactly the same object from disk later on.
 	  </p>
 	  <p>Note that in this examples, <verb>createArray</verb>
 	    method returns an <verb>Array</verb> instance that is not
 	    assigned to any variable. Don't worry, this was
-	    intentional, because I wanted to show you the kind of
+	    intentional because I wanted to show you the kind of
 	    object we have created by showing its
 	    representation. Indeed, the <verb>Array</verb> objects has
 	    been attached to the object tree and saved on disk, as you
@@ -1374,15 +1389,15 @@ Filename: tutorial1.h5 'Test file'
 	  </p>
 	  <verbatim>
 >>> print h5file
-Filename: tutorial1.h5 'Test file'
+Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:00:13 2003'
 / (Group) 'Test file'
 /columns (Group) 'Pressure and Name'
-/columns/name Array(4, 16) 'Name column selection'
-/columns/pressure Array(4,) 'Pressure column selection'
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'
 /detector (Group) 'Detector information'
-/detector/readout Table(10,) 'Readout example'
+/detector/readout (Table(10,)) 'Readout example'
 
->>>
+>>>	  
 	  </verbatim>
 	</subsection>
 
@@ -1409,13 +1424,12 @@ Filename: tutorial1.h5 'Test file'
 	  <verbatim>
 $ h5ls -rd tutorial1.h5
 /columns                 Group
-/columns/name            Dataset {4}
+/columns/name            Dataset {3}
     Data:
-        (0) "Particle:      4", "Particle:      5", "Particle:      6",
-        (3) "Particle:      7"
-/columns/pressure        Dataset {4}
+        (0) "Particle:      5", "Particle:      6", "Particle:      7"
+/columns/pressure        Dataset {3}
     Data:
-        (0) 16, 25, 36, 49
+        (0) 25, 36, 49
 /detector                Group
 /detector/readout        Dataset {10/Inf}
     Data:
@@ -1437,21 +1451,19 @@ $ h5ls -rd tutorial1.h5
 
 	  <verbatim>
 $ python dumpFile.py tutorial1.h5
-Filename: tutorial1.h5
-All objects:
-Filename: tutorial1.h5 'Test file'
+Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 2003'
 / (Group) 'Test file'
 /columns (Group) 'Pressure and Name'
-/columns/name Array(4, 16) 'Name column selection'
-/columns/pressure Array(4,) 'Pressure column selection'
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'
 /detector (Group) 'Detector information'
-/detector/readout Table(10,) 'Readout example'
+/detector/readout (Table(10,)) 'Readout example'
 
 	  </verbatim>
 
 	  <p>You can pass the <verb>-v</verb> or <verb>-d</verb>
 	    options to <verb>dumpFile.py</verb> if you want more
-	    verbosity. Try it!.
+	    verbosity. Try them out!.
 	  </p>
 	</subsection>
       </section>
@@ -1500,21 +1512,38 @@ Filename: tutorial1.h5 'Test file'
 
 	  <verbatim>
 >>> print h5file
-Filename: tutorial1.h5 'Test file'
+Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 2003'
 / (Group) 'Test file'
 /columns (Group) 'Pressure and Name'
-/columns/name Array(4,) 'Name column selection'
-/columns/pressure Array(4,) 'Pressure column selection'
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'
 /detector (Group) 'Detector information'
-/detector/readout Table(10,) 'Readout example'
+/detector/readout (Table(10,)) 'Readout example'
 
 >>>
 	  </verbatim>
 
-	  <p>That's right, it seems that all our objects are there. We
-	    can use the <verb>walkGroups</verb> method (see <ref
+	  <p>That's right, it seems that all our objects are
+	    there. Now, let's make use of the File iterator to see how
+	    to list all the nodes in the object tree:
+	  </p>
+
+	  <verbatim>
+>>> for node in h5file:
+...   print node
+...
+/ (Group) 'Test file'
+/columns (Group) 'Pressure and Name'
+/detector (Group) 'Detector information'
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'
+/detector/readout (Table(10,)) 'Readout example'
+>>>
+	  </verbatim>
+	  
+	  <p>We can use the <verb>walkGroups</verb> method (see <ref
 	    refid="walkGroupsDescr"></ref>) of <verb>File</verb> class
-	    to list all the groups on tree:
+	    to list only the <em>groups</em> on tree:
 	  </p>
 
 	  <verbatim>
@@ -1545,33 +1574,55 @@ Filename: tutorial1.h5 'Test file'
 
 	  <p><verb>listNodes()</verb> (see <ref
 	    refid="listNodesDescr"></ref>) returns a list containing
-	    all the nodes hanging from a specific <em>Group</em>, and
-	    if <em>classname</em> keyword is specified, the method
+	    all the nodes hanging from a specific <verb>Group</verb>,
+	    and if <em>classname</em> keyword is specified, the method
 	    will filter all instances which are not descendants of
-	    it. We have specified it to return only the
+	    it. We have specified it to solely return
 	    <verb>Array</verb> instances.
 	  </p>
 
+	  <p>We can combine both calls by using the
+	      <verb>__call__(where, classname)</verb> special method
+	      of <verb>File</verb> (<ref
+	      refid="__callFileDescr">see</ref>), i.e.:
+	  </p>
+
+	  <verbatim>
+>>> for array in h5file("/", "Array"):
+...   print array
+...
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'
+>>>
+	  </verbatim>
+
+	  <p>which is a nice shortcut for doing interactive work.</p>
+
 	  <p>As a final example, we will list all the
-	    <verb>Leaf</verb> (i.e. <verb>Table</verb> and
-	    <verb>Array</verb> instances, see <ref
+	    <verb>Leaf</verb>, i.e. <verb>Table</verb> and
+	    <verb>Array</verb> instances (see <ref
 	    refid="LeafClassDescr"></ref> for detailed information on
-	    <verb>Leaf</verb> class) objects in <em>/detector</em>
+	    <verb>Leaf</verb> class), in <verb>/detector</verb>
 	    group. Check that only one instance of <verb>Table</verb>
-	    class (i.e. <em>readout</em>), will be selected in this
+	    class (i.e. <verb>readout</verb>) will be selected in this
 	    group (as it should be):
 	  </p>
 
 	  <verbatim>
->> for table in h5file.listNodes("/detector", 'Leaf'):
-...   print table
+>>> for leaf in h5file.root.detector('Leaf'):
+...   print leaf
 ...
-/detector/readout Table(10,) 'Readout example'
+/detector/readout (Table(10,)) 'Readout example'
 >>> 
 	  </verbatim>
 
+	  <p>where we have used a call to the
+	    <verb>Group.__call__(classname, recursive)</verb> special
+	    method (<ref refid="__callGroupDescr"></ref>), combined
+	    with a <em>natural naming</em> path specification.</p>
+
 	  <p>Of course you can do more sophisticated node selections
-	    using this two powerful functions, but first, we need to
+	    using these powerful methods, but first, we need to
 	    learn a bit about some important instance variables of
 	    <verb>PyTables</verb> objects.
 	  </p>
@@ -1647,13 +1698,13 @@ Filename: tutorial1.h5 'Test file'
 
 	  <p>If you want to have a look at the current attribute set
 	  of <verb>/detector/table</verb>, you can print its
-	  representation (try also hitting the TAB key twice if you
-	  are in a python shell):
+	  representation (try also hitting the <verb>TAB</verb> key
+	  twice if you are on a Python console):
 	  </p>
 
 	  <verbatim>
 >>> table.attrs
-/detector/readout (AttributeSet): 13 attributes
+/detector/readout (AttributeSet), 14 attributes:
    [CLASS := 'TABLE',
     FIELD_0_NAME := 'ADCcount',
     FIELD_1_NAME := 'TDCcount',
@@ -1663,9 +1714,10 @@ Filename: tutorial1.h5 'Test file'
     FIELD_5_NAME := 'idnumber',
     FIELD_6_NAME := 'name',
     FIELD_7_NAME := 'pressure',
+    NROWS := 10,
     TITLE := 'Readout example',
-    VERSION := '1.0',
-    temp_scale := 'Celsius',
+    VERSION := '2.0',
+    tempScale := 'Celsius',
     temperature := 18.399999999999999]
 >>>
 	  </verbatim>
@@ -1678,9 +1730,9 @@ Filename: tutorial1.h5 'Test file'
 >>> print table.attrs._f_list("user")
 ['temp_scale', 'temperature']
 >>> print table.attrs._f_list("sys")
-['CLASS', 'FIELD_0_NAME', 'FIELD_1_NAME', 'FIELD_2_NAME',
- 'FIELD_3_NAME', 'FIELD_4_NAME', 'FIELD_5_NAME', 'FIELD_6_NAME', 
- 'FIELD_7_NAME', 'TITLE', 'VERSION']
+['CLASS', 'FIELD_0_NAME', 'FIELD_1_NAME', 'FIELD_2_NAME', 'FIELD_3_NAME',
+ 'FIELD_4_NAME', 'FIELD_5_NAME', 'FIELD_6_NAME', 'FIELD_7_NAME', 'NROWS',
+ 'TITLE', 'VERSION']
 >>>
 	  </verbatim>
 
@@ -1713,15 +1765,15 @@ RuntimeError: Read-only attribute ('VERSION') cannot be renamed
 	  </p>
 
 	  <verbatim>
-$ h5ls -vr tutorial1.h5/detector/readout 
+$ h5ls -vr tutorial1.h5/detector/readout
 Opened "tutorial1.h5" with sec2 driver.
-/detector/readout        Dataset {15/Inf}
+/detector/readout        Dataset {10/Inf}
     Attribute: CLASS     scalar
         Type:      6-byte null-terminated ASCII string
         Data:  "TABLE"
     Attribute: VERSION   scalar
         Type:      4-byte null-terminated ASCII string
-        Data:  "1.0"
+        Data:  "2.0"
     Attribute: TITLE     scalar
         Type:      16-byte null-terminated ASCII string
         Data:  "Readout example"
@@ -1755,11 +1807,14 @@ Opened "tutorial1.h5" with sec2 driver.
     Attribute: temperature {1}
         Type:      native double
         Data:  18.4
+    Attribute: NROWS     {1}
+        Type:      native int
+        Data:  10
     Location:  0:1:0:1952
     Links:     1
-    Modified:  2003-06-12 10:19:28 CEST
+    Modified:  2003-07-24 13:59:19 CEST
     Chunks:    {2048} 96256 bytes
-    Storage:   705 logical bytes, 96256 allocated bytes, 0.73% utilization
+    Storage:   470 logical bytes, 96256 allocated bytes, 0.49% utilization
     Type:      struct {
                    "ADCcount"         +0    native unsigned short
                    "TDCcount"         +2    native unsigned char
@@ -1770,6 +1825,7 @@ Opened "tutorial1.h5" with sec2 driver.
                    "name"             +27   16-byte null-terminated ASCII string
                    "pressure"         +43   native float
                } 47 bytes
+ 
 
 	  </verbatim>
 
@@ -1784,10 +1840,11 @@ Opened "tutorial1.h5" with sec2 driver.
 	<subsection>
 	  <heading>Getting object metadata</heading>
 
-	  <p>Each object in <verb>PyTables</verb> has metadata about
-	    the actual data on the file. Normally this metainformation
-	    is accessible through the node instance variables. Let's
-	    have a look at some examples:
+	  <p>Each object in <verb>PyTables</verb> has
+	    <em>metadata</em> information about the actual data on the
+	    file. Normally this <em>metainformation</em> is accessible
+	    through the node instance variables. Let's have a look at
+	    some examples:
 	  </p>
 
 	  <verbatim>
@@ -1802,16 +1859,16 @@ Number of rows in table: 10
 >>> print "Table variable names with their type and shape:"
 Table variable names with their type and shape:
 >>> for name in table.colnames:
-...     print "  ", name, ':=', table.coltypes[name], table.colshapes[name]
+...   print name, ':= %s, %s' % (table.coltypes[name], table.colshapes[name])
 ...
-   ADCcount := UInt16 (1,)
-   TDCcount := UInt8 (1,)
-   energy := Float64 (1,)
-   grid_i := Int32 (1,)
-   grid_j := Int32 (1,)
-   idnumber := Int64 (1,)
-   name := CharType (16,)
-   pressure := Float32 (1,)
+ADCcount := UInt16, 1
+TDCcount := UInt8, 1
+energy := Float64, 1
+grid_i := Int32, 1
+grid_j := Int32, 1
+idnumber := Int64, 1
+name := CharType, 1
+pressure := Float32, 1
 >>>
 	  </verbatim>
 
@@ -1841,9 +1898,9 @@ Represent a table in the object tree.
 
     Data can be written or read both as Row() instances or as numarray
     (NumArray or RecArray) objects.
-
+    
     Methods:
-
+    
       Common to all leaves:
         close()
         flush()
@@ -1851,20 +1908,21 @@ Represent a table in the object tree.
         rename(newname)
         remove()
         setAttr(attrname, attrvalue)
-
+        
       Specific of Table:
         iterrows()
         read([start] [, stop] [, step] [, field [, flavor]])
+        removeRows(start, stop)
 
     Instance variables:
-
+    
       Common to all leaves:
         name -- the leaf node name
         hdf5name -- the HDF5 leaf node name
         title -- the leaf title
         shape -- the leaf shape
         byteorder -- the byteorder of the leaf
-
+        
       Specific of Table:
         description -- the metaobject describing this table
         row -- a reference to the Row object associated with this table
@@ -1874,13 +1932,18 @@ Represent a table in the object tree.
         coltypes -- the type class for the table fields (dictionary)
         colshapes -- the shapes for the table fields (dictionary)
 
-
 >>>
 	  </verbatim>
 
 	  <p>This is very handy if you don't have this manual at
-	    hand. Try yourself with other objects docs!.
+	    hand. Try yourself with other objects docs, like for example:
 	  </p>
+
+	  <verbatim>
+>>> help(table.__class__)
+>>> help(table.removeRows)
+	  </verbatim>
+
 	  <p>Now, print some metadata in <em>/columns/pressure</em>
 	    <verb>Array</verb> object:
 	  </p>
@@ -1888,17 +1951,17 @@ Represent a table in the object tree.
 	  <verbatim>
 >>> pressureObject = h5file.getNode("/columns", "pressure")
 >>> print "Info on the object:", repr(pressureObject)
-Info on the object: /columns/pressure Array(4,) 'Pressure column selection'
-  type = 'Float64'
+Info on the object: /columns/pressure (Array(3,)) 'Pressure column selection'
+  type = Float64
   itemsize = 8
-  flavor = 'Numeric'
+  flavor = 'NumArray'
   byteorder = 'little'
 >>> print "  shape: ==>", pressureObject.shape
-  shape: ==> (4,)
+  shape: ==> (3,)
 >>> print "  title: ==>", pressureObject.title
   title: ==> Pressure column selection
->>> print "  type ==>", pressureObject.type
-  type ==> Float64
+>>> print "  type: ==>", pressureObject.type
+  type: ==> Float64
 >>>
 	  </verbatim>
 
@@ -1910,17 +1973,16 @@ Info on the object: /columns/pressure Array(4,) 'Pressure column selection'
 	    advantage that it can get a node from the pathname string
 	    (like in this example), and, besides, you can force a
 	    filter so that the node in that location has to be a
-	    <em>classname</em> instance. However, natural naming is
-	    more elegant and quicker to specify, specially if you are
-	    using the name completion capability present in
-	    interactive console. I suggest to give a try at this
-	    powerful combination of natural naming and completion
-	    capabilities present on most Python shell. You will see
-	    that browsing the object tree in that way is a very
-	    pleasant experience (well, as far as this activity can be
-	    qualified in that way).
+	    <em>classname</em> instance. However, I consider natural
+	    naming to be more elegant and quicker to specify,
+	    specially if you are using the name completion capability
+	    present in interactive console. I suggest to give a try at
+	    this powerful combination of natural naming and completion
+	    capabilities present on most Python consoles. You will see
+	    how pleasant can be browsing the object tree (well, as
+	    long as this activity can be qualified in that way).
 	  </p>
-	  <p>If you look at the <verb>typecode</verb> attribute of the
+	  <p>If you look at the <verb>type</verb> attribute of the
 	    <verb>pressureObject</verb>, you can certify that this is
 	    a "<visual markup="bf">Float64</visual>" array, and that
 	    by looking at their <verb>shape</verb> attribute, it can
@@ -1943,43 +2005,47 @@ Info on the object: /columns/pressure Array(4,) 'Pressure column selection'
 
 	  <verbatim>
 >>> pressureArray = pressureObject.read()
->>> nameArray = h5file.root.columns.name.read()
->>> print "pressureArray is an object of type:", type(pressureArray)
-pressureArray is an object of type: &lt;type 'array'>
 >>> pressureArray
-array([ 16.,  25.,  36.,  49.])
+array([ 25.,  36.,  49.])
+>>> print "pressureArray is an object of type:", type(pressureArray)
+pressureArray is an object of type: &lt;class 'numarray.numarraycore.NumArray'>
+>>> nameArray = h5file.root.columns.name.read()
+>>> nameArray
+['Particle:      5', 'Particle:      6', 'Particle:      7']
 >>> print "nameArray is an object of type:", type(nameArray)
 nameArray is an object of type: &lt;type 'list'>
->>> nameArray
-['Particle:      4', 'Particle:      5', 'Particle:      6', 'Particle:      7']
 >>>
 >>> print "Data on arrays nameArray and pressureArray:"
 Data on arrays nameArray and pressureArray:
 >>> for i in range(pressureObject.shape[0]):
-...     print nameArray[i], "-->", pressureArray[i]
-... 
-Particle:      4 --> 16.0
+...   print nameArray[i], "-->", pressureArray[i]
+...
 Particle:      5 --> 25.0
 Particle:      6 --> 36.0
 Particle:      7 --> 49.0
+>>> pressureObject.name
+'pressure'
 >>> 
 	  </verbatim>
 
 	  <p>You can verify as the <verb>read()</verb> method (see
-	    <ref refid="readArrayDescr"></ref>) returns an authentic
-	    <verb>Numeric</verb> array looking at the output of the
-	    <verb>type()</verb> call. This is because the type of the
-	    object saved is kept as an HDF5 attribute (named
-	    <verb>FLAVOR</verb>) for this object on disk. This
-	    attribute is then read as part of the <verb>Array</verb>
-	    metainformation and accessible through the
-	    <verb>Array.flavor</verb> instance variable, enabling the
+	    <ref refid="readArrayDescr">section</ref>) returns an authentic
+	    <verb>numarray</verb> object for the
+	    <verb>pressureObject</verb> instance by looking at the
+	    output of the <verb>type()</verb> call, while for the
+	    <verb>nameObject</verb> instance <verb>read()</verb>
+	    returns a native Python list (of strings). This is because
+	    the type of the object saved is kept as an HDF5 attribute
+	    (named <verb>FLAVOR</verb>) for these objects on
+	    disk. This attribute is then read as part of the
+	    <verb>Array</verb> metainformation and accessible through
+	    the <verb>Array.attrs.FLAVOR</verb> variable, enabling the
 	    read array to be converted into the original object. This
 	    provides a means to save a large variety of objects as
-	    arrays, with the guarantee that you will be able to
-	    recover them in its original form afterwards. See <ref
+	    arrays with the guarantee that you will be able to recover
+	    them in its original form afterwards. See <ref
 	    refid="createArrayDescr">section</ref> for a complete list
-	    of supported objects.
+	    of supported objects for <verb>Array</verb>.
 	  </p>
 
 	</subsection>
@@ -1987,10 +2053,10 @@ Particle:      7 --> 49.0
 	<subsection>
 	  <heading>Appending data to an existing table</heading>
 
-	  <p>To finish this section, let's have a look at how we can
-	    add records to an existing on-disk table. Let's use our
-	    well-known <em>readout</em> <verb>Table</verb> instance
-	    and let's append some new values to it:
+	  <p>Now, let's have a look at how we can add records to an
+	    existing on-disk table. Let's use our well-known
+	    <em>readout</em> <verb>Table</verb> instance and let's
+	    append some new values to it:
 	  </p>
 
 	  <verbatim>
@@ -2014,12 +2080,9 @@ Particle:      7 --> 49.0
 	  <p>That works exactly in the same way than filling a new
 	    table. <verb>PyTables</verb> knows that this table is on
 	    disk, and when you add new records, they are appended to
-	    the end of the table<footnote>Note that you can only
-	    append values to tables, not array objects. However, I
-	    plan to support unlimited dimension of arrays shortly, in
-	    the tradition of the NetCDF module (see <cite
-	    refid="NetCDF"></cite>) of the Scientific Python package
-	    (<cite refid="NetCDFSP"></cite>).</footnote>.
+	    the end of the table<footnote>Note that you can append not
+	    only scalar values to tables, but also fully
+	    multidimensional array objects.</footnote>.
 	  </p>
 	  <p>
 	    If you look carefully at the code you will see that we
@@ -2028,8 +2091,15 @@ Particle:      7 --> 49.0
 	    Each time that its <verb>append()</verb> method is called,
 	    the actual row is committed to the output buffer and the
 	    row pointer is incremented to point to the next table
-	    record.
+	    record. When the buffer is full, the data is saved on
+	    disk, and the buffer is reused again for the next cycle.
 	  </p>
+
+	  <p><visual markup="bf">Caveat emptor</visual>!: Do not
+	    forget to always call the .flush() method after a writing
+	    operation; else your tables will not be fully
+	    updated!.</p>
+
 	  <p>Let's have a look at some columns of the resulting table:
 	  </p>
 
@@ -2057,21 +2127,30 @@ Particle:     13 |       169.0 |   8.157e+08 |     13 |     -3 |       13 |
 Particle:     14 |       196.0 |   1.476e+09 |     14 |     -4 |       14 |
 	  </verbatim>
 
-	  <p>In <ref refid="tutorial-h5">figure</ref> you can see a
-	    graphical view of the <verb>PyTables</verb> file we have
-	    just created.
+	</subsection>
+	<subsection>
+	  <heading>And finally... how to remove rows from a table</heading>
+
+	  <p>Let's starting finishing this tutorial by deleting some
+	    rows from the table we have. Suppose that we want to
+	    delete the rows from 5th to 9th (inclusive). That's very
+	    easy to do:
 	  </p>
 
-	  <figure id="tutorial-h5">
-	    <graphics file="tutorial-h5" scale="0.55" kind="bitmap">
-	    </graphics>
-	    <caption>The data file after appending some rows.
-	    </caption>
-	  </figure>
+	  <verbatim>
+>>> table.removeRows(5,10)
+5
+>>>
+	  </verbatim>
 
+	  <p><verb>removeRows(start, stop)</verb> (<ref
+	      refid="removeRowsDescr">see</ref>) deletes the rows in
+	      the range (start, stop). It returns the number of rows
+	      effectively removed.
+	  </p>
 
-	  <p>We are near the end of this first tutorial. But, ei!, do
-	    not forget to close the file after you finish all the
+	  <p>We have reached the end of this first tutorial. But, ei!,
+	    do not forget to close the file after you finish all the
 	    work:
 	  </p>
 
@@ -2079,15 +2158,38 @@ Particle:     14 |       196.0 |   1.476e+09 |     14 |     -4 |       14 |
 >>> h5file.close()
 >>> ^D
 $ 
-
 	  </verbatim>
+
+	  <p>In <ref refid="tutorial1-tableview">figure</ref> you can
+	    see a graphical view of the <verb>PyTables</verb> file,
+	    with the datasets we have just created. And in <ref
+	    refid="tutorial1-general">figure</ref> you can see the
+	    general properties of the table
+	    <verb>/detector/readout</verb>.
+	  </p>
+
+	  <figure id="tutorial1-tableview">
+	    <graphics file="tutorial1-tableview" scale="0.5" kind="bitmap">
+	    </graphics>
+	    <caption>The final version of data file for tutorial 1,
+	    with a view of the data objects.
+	    </caption>
+	  </figure>
+
+	  <figure id="tutorial1-general">
+	    <graphics file="tutorial1-general" scale="0.5" kind="bitmap">
+	    </graphics>
+	    <caption>General properties of the <visual
+	    markup="tt">/detector/readout</visual> table.
+	    </caption>
+	  </figure>
 
 	</subsection>
 
       </section>
 
       <section id="secondExample">
-	<heading><visual markup="tt">PyTables</visual> automatic
+	<heading>Multidimensional table cells and automatic
 	  sanity checks</heading>
 
 	<p>Now, time for a more real life example (i.e. with errors in
@@ -2109,36 +2211,32 @@ $
 	  <verb>examples/tutorial2.py</verb>). It seems to do all of
 	  that, but a couple of small bugs will be shown up. Note that
 	  this <verb>Particle</verb> class is not directly related
-	  with the one defined in last example; this one is
-	  simpler. And we will introduce a new manner to describe a
-	  <verb>Table</verb> as a dictionary, as you can see in the
-	  <verb>Event</verb> description. See section <ref
+	  with the one defined in last example; this one is simpler
+	  (but notice the <em>multidimensional</em> columns called
+	  <verb>pressure</verb> and <verb>temperature</verb>!). And we
+	  will introduce a new manner to describe a <verb>Table</verb>
+	  as a dictionary, as you can see in the <verb>Event</verb>
+	  description. See section <ref
 	  refid="createTableDescr"></ref> about the different kinds of
 	  descriptor objects that can be passed to the
 	  <verb>createTable()</verb> method.
 	</p>
 
 	<verbatim>
-"""This program shows the different protections that PyTables offer to
-the user in order to insure a correct data injection in tables.
-
-Example to be used in the second tutorial in the User's Guide.
-
-"""
-
+from numarray import *
 from tables import *
 
 # Describe a particle record
 class Particle(IsDescription):
-    name      = Col("CharType", 16)  # 16-character String
-    lati      = Col("Int32", 1)      # integer
-    longi     = Col("Int32", 1)      # integer
-    pressure  = Col("Float32", 1)    # float  (single-precision)
-    temperature = Col("Float64", 1)    # double (double-precision)
+    name        = StringCol(length=16) # 16-character String
+    lati        = IntCol()             # integer
+    longi       = IntCol()             # integer
+    pressure    = Float32Col(shape=(2,3)) # array of floats (single-precision)
+    temperature = FloatCol(shape=(2,3))   # array of doubles (double-precision)
 
 # Another way to describe the columns of a table
 Event = {
-    "name"    : Col("CharType", 16),    # 16-character String
+    "name"    : Col('CharType', 16),    # 16-character String
     "TDCcount": Col("UInt8", 1),        # unsigned byte
     "ADCcount": Col("UInt16", 1),       # Unsigned short integer
     "xcoord"  : Col("Float32", 1),      # integer
@@ -2169,8 +2267,8 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
         particle['name'] = 'Particle: %6d' % (i)
         particle['lati'] = i 
         particle['longi'] = 10 - i
-        particle['pressure'] = float(i*i)
-        particle['temperature'] = float(i**2)
+        particle['pressure'] = array(i*arange(2*3), shape=(2,3))
+        particle['temperature'] = array((i**2)*arange(2*3, shape=(2,3)))
         # This injects the Record values
         particle.append()      
 
@@ -2188,13 +2286,10 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
     for i in xrange(257):
         # First, assign the values to the Event record
         event['name']  = 'Event: %6d' % (i)
-        # Range checks no longer works on 0.4. Hope that
-        # next version of numarray can support that!
-        #event['TDCcount'] = i            # Wrong range.
         event['TDCcount'] = i % (1&lt;&lt;8)   # Correct range
         ########### Detectable errors start here. Play with them!
-        #event['xcoord'] = float(i**2)   # Correct spelling
-        event['xcoor'] = float(i**2)     # Wrong spelling. This works on 0.3
+        event['xcoord'] = float(i**2)   # Correct spelling
+        #event['xcoor'] = float(i**2)     # Wrong spelling
         event['ADCcount'] = i * 2        # Correct type
         #event['ADCcount'] = "s"          # Wrong type
         ########### End of errors
@@ -2207,7 +2302,7 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
 
 # Read the records from table "/Events/TEvent3" and select some
 table = root.Events.TEvent3
-e = [ p['TDCcount'] for p in table.iterrows()
+e = [ p['TDCcount'] for p in table
       if p['ADCcount'] &lt; 20 and 4 &lt;= p['TDCcount'] &lt; 15 ]
 print "Last record ==>", p
 print "Selected values ==>", e
@@ -2225,13 +2320,14 @@ fileh.close()
 	    the next error:
 	  </p>
 	  <verbatim>
+$ python tutorial2.py
 Traceback (most recent call last):
-  File "tutorial2.py", line 69, in ?
+  File "tutorial2.py", line 74, in ?
     event['xcoor'] = float(i**2)     # Wrong spelling
-  File "/home/falted/PyTables/pytables-0.4/src/hdf5Extension.pyx",
-  line 1078, in __setitem__
-    raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
-AttributeError: Error accessing "xcoor" attr.
+  File "/home/falted/PyTables/pytables-0.6/src/hdf5Extension.pyx",
+ line 1812, in hdf5Extension.Row.__setitem__
+    raise AttributeError, "Error setting \"%s\" attr.\n %s" % \
+AttributeError: Error setting "xcoor" attr.
  Error was: "exceptions.KeyError: xcoor"
 	  </verbatim>
 
@@ -2272,13 +2368,13 @@ AttributeError: Error accessing "xcoor" attr.
 	  </p>
 
 	  <verbatim>
+$ python tutorial2.py
 Traceback (most recent call last):
-  File "tutorial2.py", line 68, in ?
-    event['ADCcount'] = "s"      # Wrong type
-  File "/home/falted/PyTables/pytables-0.4/src/hdf5Extension.pyx",
-  line 1078, in __setitem__
-    raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
-AttributeError: Error accessing "ADCcount" attr.
+  File "tutorial2.py", line 76, in ?
+    event['ADCcount'] = "s"          # Wrong type
+  File "/home/falted/PyTables/pytables-0.6/src/hdf5Extension.pyx", line 1812, in hdf5Extension.Row.__setitem__
+    raise AttributeError, "Error setting \"%s\" attr.\n %s" % \
+AttributeError: Error setting "ADCcount" attr.
  Error was: "exceptions.TypeError: NA_setFromPythonScalar: bad value type."
 	  </verbatim>
 
@@ -2287,10 +2383,12 @@ AttributeError: Error accessing "ADCcount" attr.
 
 	  <p>You can admire the structure we have created with this
 	    (corrected) script in <ref refid="tutorial2">figure</ref>.
+	    In particular, pay attention to the multidimensional
+	    column cells in table <verb>/Particles/TParticle2</verb>.
 	  </p>
 
 	  <figure id="tutorial2">
-	    <graphics file="tutorial2-h5" scale="0.6" kind="bitmap">
+	    <graphics file="tutorial2-tableview" scale="0.5" kind="bitmap">
 	    </graphics>
 	    <caption>Table hierarchy for second example.</caption>
 	  </figure>
@@ -3902,7 +4000,12 @@ if __name__=="__main__":
 	      <em>start</em> is supplied, this row is to be
 	      deleted. If a range is supplied, i.e. both the
 	      <em>start</em> and <em>stop</em> parameters are passed,
-	      all the rows in the range are removed. A <em>step</em>
+	      all the rows in the range are removed<footnote>However,
+	      for <verb>removeRows()</verb> to work, you need that the
+	      rows <visual markup="bf">after</visual> the
+	      <verb>stop</verb> parameter will fit in-memory so as to
+	      method to work. This limitation will be hopefully
+	      removed in a future version.</footnote>. A <em>step</em>
 	      parameter is not supported yet.
 	    </p>
 	    <description>
@@ -4197,8 +4300,9 @@ if __name__=="__main__":
 
 	  <description>
 	    <term id="listAttrDescr">_f_list(attrset = "user")
-	    </term>Return the list of attributes of the parent node.
-	      <item>
+	    </term><item>Return the list of attributes of the parent
+	      node.
+
 		<description>
 		  <term>attrset</term> <item>Selects the attribute set
 		    to be returned. An <verb>"user"</verb> value

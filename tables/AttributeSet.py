@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.12 2003/07/16 20:17:56 falted Exp $
+#       $Id: AttributeSet.py,v 1.13 2003/07/27 20:40:16 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.12 $"
+__version__ = "$Revision: 1.13 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -298,7 +298,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         classname = self.__class__.__name__
         # The attrribute names
         attrnumber = len(self._v_attrnames)
-        return "%s (%s): %s attributes" % (pathname, classname, attrnumber)
+        return "%s (%s), %s attributes" % (pathname, classname, attrnumber)
 
     def __repr__(self):
         """A detailed string representation for this object."""
@@ -307,6 +307,6 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
                 for attr in self._v_attrnames ]
         attrlist = '[%s]' % (',\n    '.join(rep))
         
-        return "%s\n   %s" % \
+        return "%s:\n   %s" % \
                (str(self), attrlist)
                

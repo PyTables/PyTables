@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.47 2003/07/26 18:42:53 falted Exp $
+#       $Id: File.py,v 1.48 2003/07/27 20:40:16 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.47 $"
+__version__ = "$Revision: 1.48 $"
 format_version = "1.1"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -620,6 +620,11 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         if classname == "Group":
             for group in self.walkGroups(where):
                 yield group
+        elif classname in [None, ""]:
+            yield self.getNode(where, "")
+            for group in self.walkGroups(where):
+                for leaf in self.listNodes(group, ""):
+                    yield leaf
         else:
             for group in self.walkGroups(where):
                 for leaf in self.listNodes(group, classname):

@@ -7,7 +7,7 @@ that create the tutorial1.h5 file needed here.
 
 
 import sys
-from Numeric import *
+from numarray import *
 from tables import *
 
 # Filename to work with
@@ -36,28 +36,33 @@ for node in h5file:
     print node
 print
 
-# List all the Leafs (using File iterator) on tree
-print "Leafs in file:"
-for node in h5file(classname="Leaf"):
-    print node
-print
-
 # Now, only list all the groups on tree
 print "Groups in file:"
 for group in h5file(classname="Group"):
     print group
 print
 
-# List only the arrays (using Group iterator) hanging from /
-print "Arrays in /:"
-for array in h5file.root(classname="Array", recursive=1):
+# List only the arrays hanging from /
+print "Arrays in file (I):"
+for group in h5file.walkGroups("/"):
+    for array in h5file.listNodes(group, classname = 'Array'):
+        print array
+
+# This do the same result
+print "Arrays in file (II):"
+for array in h5file("/", "Array"):
     print array
 print
+# And finally, list only leafs on /detector group (there should be one!)
+print "Leafs in group '/detector' (I):"
+for leaf in h5file.listNodes("/detector", 'Leaf'):
+    print leaf
 
-# And finally, list only tables on /detector group (there should be one!)
-print "Tables in group '/detector':"
-for table in h5file.listNodes("/detector", 'Leaf'):
-    print table
+# Other way using iterators and natural naming
+print "Leafs in group '/detector' (II):"
+for leaf in h5file.root.detector('Leaf'):
+    print leaf
+
 
 
 print
@@ -123,7 +128,7 @@ print "Table title:", table.title
 print "Number of rows in table:", table.nrows
 print "Table variable names with their type and shape:"
 for name in table.colnames:
-    print "  ", name, ':=', table.coltypes[name], table.colshapes[name]
+    print name, ':= %s, %s' % (table.coltypes[name], table.colshapes[name])
 print    
 
 # Get the object in "/columns pressure"
@@ -140,7 +145,7 @@ pressureArray = pressureObject.read()
 # Read the 'name' Array actual data
 nameArray = h5file.root.columns.name.read()
 
-# Check the kind of object we have created (they should be Numeric arrays)
+# Check the kind of object we have created (they should be numarray arrays)
 print "pressureArray is an object of type:", type(pressureArray)
 print "nameArray is an object of type:", type(nameArray)
 print
@@ -186,11 +191,23 @@ for i in xrange(10, 15):
 # Flush this table
 table.flush()
 
+# Print the data using the table iterator:
+for r in table:
+    print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
+          (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'], 
+           r['TDCcount'])
+
+print
+print "Total number of entries in resulting table:", table.nrows
+
+print
+print	'-**-**-**-**- remove records from a table -**-**-**-**-**-'
+
 # Delete some rows on the Table (yes, rows can be removed!)
 table.removeRows(5,10)
 
 # Print some table columns, for comparison with array data
-print "Some columns on enlarged table:"
+print "Some columns in final table:"
 print
 # Print the headers
 print "%-16s | %11s | %11s | %6s | %6s | %8s |" % \
@@ -206,7 +223,7 @@ for r in table:
            r['TDCcount'])
 
 print
-print "Total number of entries after appending new rows:", table.nrows
+print "Total number of entries in final table:", table.nrows
 
 # Close the file
 h5file.close()

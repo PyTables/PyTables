@@ -1,4 +1,4 @@
-from Numeric import *
+from numarray import *
 from tables import *
 
 # Open a new empty HDF5 file

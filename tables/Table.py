@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.65 2003/07/26 18:42:54 falted Exp $
+#       $Id: Table.py,v 1.66 2003/07/27 20:40:16 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.65 $"
+__version__ = "$Revision: 1.66 $"
 
 from __future__ import generators
 import sys
@@ -87,6 +87,7 @@ class Table(Leaf, hdf5Extension.Table, object):
       Specific of Table:
         iterrows()
         read([start] [, stop] [, step] [, field [, flavor]])
+        removeRows(start, stop)
 
     Instance variables:
     
@@ -940,22 +941,21 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.nrows -= nrows    # discount the removed rows from the total
         return nrows
 
-    # Moved out of scope
-    def _g_del__(self):
-        """Delete some objects"""
-        print "Deleting Table object", self._v_name
-        pass
+#     def __del__(self):
+#         """Delete some objects"""
+#         print "Deleting Table object", self._v_name
+#         pass
 
-    def __repr__orig(self):
-        """This provides column metainfo in addition to standard __str__"""
+#     def __repr__orig(self):
+#         """This provides column metainfo in addition to standard __str__"""
 
-        rep = [ '%r: Col(\'%s\', %r)' %  \
-                (k, self.coltypes[k], self.colshapes[k])
-                for k in self.colnames ]
-        columns = '{\n    %s }' % (',\n    '.join(rep))
+#         rep = [ '%r: Col(\'%s\', %r)' %  \
+#                 (k, self.coltypes[k], self.colshapes[k])
+#                 for k in self.colnames ]
+#         columns = '{\n    %s }' % (',\n    '.join(rep))
         
-        return "%s\n  description := %s\n  byteorder := %s" % \
-               (str(self), columns, self.byteorder)
+#         return "%s\n  description := %s\n  byteorder := %s" % \
+#                (str(self), columns, self.byteorder)
 
     def __repr__(self):
         """This provides column metainfo in addition to standard __str__"""

@@ -5,6 +5,7 @@ Example to be used in the second tutorial in the User's Guide.
 
 """
 
+from numarray import *
 from tables import *
 
 # Describe a particle record
@@ -12,8 +13,8 @@ class Particle(IsDescription):
     name        = StringCol(length=16) # 16-character String
     lati        = IntCol()             # integer
     longi       = IntCol()             # integer
-    pressure    = Float32Col()         # float  (single-precision)
-    temperature = FloatCol()           # double (double-precision)
+    pressure    = Float32Col(shape=(2,3)) # array of floats (single-precision)
+    temperature = FloatCol(shape=(2,3))   # array of doubles (double-precision)
 
 # Another way to describe the columns of a table
 Event = {
@@ -48,8 +49,8 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
         particle['name'] = 'Particle: %6d' % (i)
         particle['lati'] = i 
         particle['longi'] = 10 - i
-        particle['pressure'] = float(i*i)
-        particle['temperature'] = float(i**2)
+        particle['pressure'] = array(i*arange(2*3), shape=(2,3))
+        particle['temperature'] = array((i**2)*arange(2*3, shape=(2,3)))
         # This injects the Record values
         particle.append()      
 
@@ -67,15 +68,12 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
     for i in xrange(257):
         # First, assign the values to the Event record
         event['name']  = 'Event: %6d' % (i)
-        # Range checks no longer works on 0.4. Hope that
-        # next version of numarray can support that!
-        #event['TDCcount'] = i            # Wrong range.
         event['TDCcount'] = i % (1<<8)   # Correct range
         ########### Detectable errors start here. Play with them!
-        #event['xcoord'] = float(i**2)   # Correct spelling
-        event['xcoor'] = float(i**2)     # Wrong spelling
-        #event['ADCcount'] = i * 2        # Correct type
-        event['ADCcount'] = "s"          # Wrong type
+        event['xcoord'] = float(i**2)   # Correct spelling
+        #event['xcoor'] = float(i**2)     # Wrong spelling
+        event['ADCcount'] = i * 2        # Correct type
+        #event['ADCcount'] = "s"          # Wrong type
         ########### End of errors
         event['ycoord'] = float(i)**4
         # This injects the Record values

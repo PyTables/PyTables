@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.15 2003/07/25 19:34:17 falted Exp $
+#       $Id: IsDescription.py,v 1.16 2003/07/27 20:40:16 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.15 $"
+__version__ = "$Revision: 1.16 $"
 
 
 import warnings
@@ -110,8 +110,8 @@ class Col:
     def __repr__(self):
         #out = self.__class__.__name__ + "('" + str(self.type) + "'" + \
         out = "Col('" + str(self.type) + "'" + \
-              ", shape= " +  str(self.shape) + \
-              ", itemsize= " +  str(self.itemsize) + \
+              ", shape=" +  str(self.shape) + \
+              ", itemsize=" +  str(self.itemsize) + \
               ", dflt=" + str(self.dflt) + \
               ")"
         return out
