@@ -109,12 +109,13 @@ def createFile(filename, totalrows, complevel, recsize):
             for i in xrange(totalrows):
                 # __setattr__ is faster than setField!
                 #d.var1 = str(i)
-                #d.setField('var1', str(i))
-                d.var2 = i
-                #d.setField('var2', i)
-                d.var3 = 12.1e10
-                #d.setField('var3', 12.1e10)
-                table.append(d)
+                #d['var1'] = str(i)
+                #d.var2 = i
+                d['var2'] = i
+                #d.var3 = 12.1e10
+                d['var3'] = 12.1e10
+                d.add()  # This is a 10% faster than table.append()
+                #table.append(d)
 		    
             #rowswritten += 1
         rowswritten += totalrows
@@ -157,8 +158,8 @@ def readFile(filename, recsize):
 
                 # For the moment we work under the assumption that the user is
                 # responsible to do it (case 2).
-                e = [ p._row for p in table.fetchall()
-                      if p.grid_i < 2 ]
+                #e = [ p._row for p in table.fetchall()
+                #      if p.grid_i < 2 ]
                 #e = [ copy.deepcopy(p.float1) for p in table.fetchall()
                 #      if p.grid_i < 2 ]
                 # Next line can be used in case 1. If used in case 2 you will
@@ -167,8 +168,8 @@ def readFile(filename, recsize):
                 #      if p.grid_i < 2 ]
                 #e = [ str(p) for p in table.fetchall() ]
                 #      if p.grid_i < 2 ]
-                #e = [ p.grid_j for p in table.fetchall() 
-                #      if p.grid_i < 20 ]
+                e = [ p.grid_j for p in table.fetchall() 
+                      if p.grid_i < 20 ]
                 # The version with a for loop is only 1% better than
                 # comprenhension list
                 #e = []
@@ -176,8 +177,8 @@ def readFile(filename, recsize):
                 #    if p.grid_i < 20:
                 #        e.append(p.grid_j)
             else:
-                e = [ p.var3 for p in table.fetchall()
-                      if p.getField('var2') <= 2 ]
+                e = [ p['var3'] for p in table.fetchall()
+                      if p['var2'] == 20 ]
                 #e = [ p.var3 for p in table.fetchall()
                 #      if p.nrow() == 20 ]
                 #e = [ p.var3 for p in table.fetchall()
@@ -263,6 +264,7 @@ if __name__=="__main__":
 	t1 = time.clock()
         if psyco_imported:
             psyco.bind(createFile)
+            pass
 	(rowsw, rowsz) = createFile(file, iterations, complevel, recsize)
 	t2 = time.clock()
 	tapprows = round(t2-t1, 3)
@@ -275,6 +277,7 @@ if __name__=="__main__":
 	t1 = time.clock()
         if psyco_imported:
             psyco.bind(readFile)
+            pass
 	(rowsr, rowsz) = readFile(file, recsize)
 	t2 = time.clock()
 	treadrows = round(t2-t1, 3)

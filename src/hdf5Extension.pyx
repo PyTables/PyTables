@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.25 2003/02/24 15:57:46 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.26 2003/02/24 20:33:50 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.25 $"
+__version__ = "$Revision: 1.26 $"
 
 
 import sys, os.path
@@ -471,7 +471,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.25 2003/02/24 15:57:46 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.26 2003/02/24 20:33:50 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -875,6 +875,9 @@ cdef class Table:
     if ret < 0:
       raise RuntimeError("Problems reading records.")
 
+    # Update the Row counters
+    #self.row.setBaseRow(start)
+
     return nrecords
 
   def __dealloc__(self):
@@ -883,8 +886,8 @@ cdef class Table:
     free(<void *>self.name)
 
 cdef class Row:
-  cdef object _fields, _array
-  cdef int _row, _nbuf, _nrow
+  cdef object _fields, _array, _table, _saveBufferedRows
+  cdef int _row, _nbuf, _nrow, _unsavednrows, _maxTuples
 
   """Row Class
 
@@ -892,39 +895,61 @@ cdef class Row:
     
   """
 
-  def __new__(self, input):
-
+  def __new__(self, input, table):
     self._array = input
+    self._table = table
     #self.__dict__["_fields"] = input._fields ## Not allowed in pyrex!
     self._fields = input._fields
-    self._row = 0
+    self._unsavednrows = 0
+    self._nrow = 0
+    self._maxTuples = table._v_maxTuples
+    self._saveBufferedRows = table._saveBufferedRows
 
   def __call__(self):
-    """ return the row for this record object """
-
+    """ return the row for this record object and update counters"""
     self._row = self._row + 1
     self._nrow = self._nbuf + self._row
     return self
 
-  def setNBuf(self, nbuf):
-    """ set the row for this record object """
-    self._nbuf = nbuf
+  def setBaseRow(self, start):
+    """ set the global row number and reset the local buffer row counter """
+    self._nbuf = start
+    self._row = -1
 
   def nrow(self):
-    """ set the row for this record object """
+    """ get the global row number for this table """
     return self._nrow
 
-  def setRow(self, row):
-    """ set the row for this record object """
-    self._row = row
+  def add(self):
+    """Append the "row" object to the output buffer.
+    
+    "row" has to be a recarray2.Row object 
 
-  def incRow(self):
+    """
+    self._row = self._row + 1 # update the current buffer read counter
+    self._unsavednrows = self._unsavednrows + 1
+    # When the buffer is full, flush it
+    if self._unsavednrows == self._maxTuples:
+      self._saveBufferedRows()
+
+  def setUnsavedNRows(self, row):
+    """ set the buffer row number for this buffer """
+    self._unsavednrows = row
+    self._row = row # set the current buffer read counter
+
+  def getUnsavedNRows(self):
+    """ get the buffer row number for this buffer """
+    return self._unsavednrows
+
+  def incUnsavedNRows(self):
     """ set the row for this record object """
-    self._row = self._row + 1
+    self._row = self._row + 1 # update the current buffer read counter
+    self._unsavednrows = self._unsavednrows + 1
+    return self._unsavednrows
 
   # This is twice as faster than __getattr__ because no lookup in local
   # dictionary
-  def getField(self, fieldName):
+  def __getitem__(self, fieldName):
     try:
       return self._fields[fieldName][self._row]
     except:
@@ -944,9 +969,10 @@ cdef class Row:
       raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
             (fieldName, "Error was: \"%s: %s\"" % (type,value))
 
-  def setField(self, fieldName, value):
+  # This is slightly faster (around 3%) than __setattr__
+  def __setitem__(self, fieldName, value):
     try:
-      self._fields[fieldName][self._row] = value
+      self._fields[fieldName][self._unsavednrows] = value
     except:
       (type, value, traceback) = sys.exc_info()
       raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
@@ -956,7 +982,7 @@ cdef class Row:
     """ set the field data of the record"""
 
     try:
-      self._fields[fieldName][self._row] = value
+      self._fields[fieldName][self._unsavednrows] = value
     except:
       (type, value, traceback) = sys.exc_info()
       raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.26 2003/02/24 15:57:49 falted Exp $
+#       $Id: Table.py,v 1.27 2003/02/24 20:33:50 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.26 $"
+__version__ = "$Revision: 1.27 $"
 
 from __future__ import generators
 import sys
@@ -291,7 +291,7 @@ class Table(Leaf, hdf5Extension.Table):
         self._v_byteorder = byteorderDict[self._v_fmt[0]]
         # Create the arrays for buffering
         self._v_buffer = self.newBuffer()
-        self.row = hdf5Extension.Row(self._v_buffer)
+        self.row = hdf5Extension.Row(self._v_buffer, self)
         #self.row = Row(self._v_buffer)
                          
     def open(self):
@@ -336,7 +336,7 @@ class Table(Leaf, hdf5Extension.Table):
         # Create the arrays for buffering
         self._v_buffer = self.newBuffer(init=0)
         #self.row = self._v_buffer._row
-        self.row = hdf5Extension.Row(self._v_buffer)
+        self.row = hdf5Extension.Row(self._v_buffer, self)
         
     def _calcBufferSize(self, expectedrows):
         """Calculate the buffer size and the HDF5 chunk size.
@@ -426,12 +426,11 @@ class Table(Leaf, hdf5Extension.Table):
 
     def _saveBufferedRows(self):
         """Save buffered table rows."""
-        # The next two lines are very similar in performance!
-        #self.append_records0(str(recarr._data), self._v_recunsaved)
-        self.append_records(self._v_buffer, self._v_recunsaved)
-        self.nrows += self._v_recunsaved
-        # Reset the buffer and the tuple counter
-        self._v_recunsaved = 0
+        self.append_records(self._v_buffer, self.row.getUnsavedNRows())
+        # Update the number of saved rows in this buffer
+        self.nrows += self.row.getUnsavedNRows()
+        # Reset the buffer unsaved counter and the buffer read row counter
+        self.row.setUnsavedNRows(0)
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
         
@@ -441,15 +440,10 @@ class Table(Leaf, hdf5Extension.Table):
         "row" has to be a recarray2.Row object 
 
         """
-        self._v_recunsaved += 1
-        #row.__dict__["_row"] = self._v_recunsaved
-        #row.setRow(self._v_recunsaved)
-        row.incRow()
-        if self._v_recunsaved  == self._v_maxTuples:
+        #bufrow = row.incUnsavedNRows()
+        #if bufrow == self._v_maxTuples:
+        if row.incUnsavedNRows() == self._v_maxTuples:
             self._saveBufferedRows()
-            # Reset the recarray row counter
-            #row.__dict__["_row"] = 0
-            row.setRow(0)
 
     def fetchall(self):
         """Return an iterator yielding record instances built from rows
@@ -464,20 +458,14 @@ class Table(Leaf, hdf5Extension.Table):
         nrowsinbuf = self._v_maxTuples
         buffer = self._v_buffer  # Get a recarray as buffer
         row = self.row   # get the pointer to the Row object
-        #rowdict = row.__dict__
-        #self.nrow = 0
         for i in xrange(0, self.nrows, nrowsinbuf):
             recout = self.read_records(i, nrowsinbuf, buffer)
             if self._v_byteorder <> sys.byteorder:
                 buffer.byteswap()
-            row.setNBuf(i)
-            row.setRow(-1)
+            # Set the buffer counter
+            row.setBaseRow(i)
             for j in xrange(recout):
-                #rowdict["_row"] = j
-                #self.nrow = i + j  # This line is faster
-                #self.nrow += 1
                 yield row()
-                #row.incRow()
         
     def getRows(self, start, stop, step = 1):
         # Create a recarray for the readout
@@ -557,7 +545,8 @@ class Table(Leaf, hdf5Extension.Table):
 
     def flush(self):
         """Flush the table buffers."""
-        if self._v_recunsaved > 0:
+        #if self._v_recunsaved > 0:
+        if hasattr(self, 'row') and self.row.getUnsavedNRows() > 0:
           self._saveBufferedRows()
 
     def close(self):
