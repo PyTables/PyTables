@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.68 2003/07/25 14:31:57 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.69 2003/07/30 18:26:00 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.68 $"
+__version__ = "$Revision: 1.69 $"
 
 
 import sys, os
@@ -720,7 +720,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.68 2003/07/25 14:31:57 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.69 2003/07/30 18:26:00 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1220,12 +1220,21 @@ cdef class Table:
     cdef hid_t fieldtypes[MAX_FIELDS]
     cdef void *fill_data, *data
 
+    # This check has to be done before assigning too much columns in 
+    # self.field_names C array
+    if (len(self.colnames) > MAX_FIELDS):
+        raise IndexError("A maximum of %d fields on tables is allowed" % \
+                         MAX_FIELDS)
+                         
     # Get a pointer to the table format
     self.fmt = PyString_AsString(self._v_fmt)
       
     # Assign the field_names pointers to the Tuple colnames strings
     i = 0
     for name in self.colnames:
+      if (len(name) >= MAX_CHARS):
+        raise NameError("A maximum length of %d on column names is allowed" % \
+                         (MAX_CHARS - 1))
       # The next works thanks to Pyrex magic
       self.field_names[i] = name
       i = i + 1
@@ -1233,9 +1242,6 @@ cdef class Table:
     # Compute the field type sizes, offsets, # fields, ...
     self.rowsize = calcoffset(self.fmt, &nvar, fieldtypes,
                               self.field_sizes, self.field_offset)
-    if (nvar > MAX_FIELDS):
-        raise IndexError("A maximum of %d fields on tables is allowed" % \
-                         MAX_FIELDS)
     self.nfields = nvar
     
     # test if there is data to be saved initially
@@ -1323,8 +1329,6 @@ cdef class Table:
     cdef size_t  rowsize
     cdef size_t  field_offsets[MAX_FIELDS]
     cdef hid_t   fieldtypes[MAX_FIELDS]
-    #cdef size_t  field_sizes[MAX_FIELDS]
-    #cdef char    **field_names
     cdef char    fmt[2048]
 
     # Get info about the table dataset
@@ -1343,7 +1347,6 @@ cdef class Table:
     self.totalrecords = nrecords
     
     # Allocate space for the variable names
-    #self.field_names = <char **>malloc(nfields * sizeof(char *))
     for i from  0 <= i < nfields:
       # Strings could not be larger than 255
       self.field_names[i] = <char *>malloc(MAX_CHARS * sizeof(char))  

@@ -1,6 +1,13 @@
 Announcing PyTables 0.7
 -----------------------
 
+PyTables is a hierarchical database package designed to efficently
+deal with very large amounts of data. PyTables is built on top of the
+HDF5 library and the numarray package and features an object-oriented
+interface that, combined with C-code generated from Pyrex sources,
+makes it a fast, yet extremely easy to use, tool for interactively
+save and retrieve large amounts of data.
+ 
 This is the third public beta release. The version 0.6 was internal
 and will never be released.
 
@@ -93,11 +100,11 @@ What's new
 
 - PyTables 0.7 *needs* the newest numarray 0.6 and HDF-1.6.0 to
   compile and work. It has been tested with Python 2.2.3 and Python
-  2.3c2 and should work fine on both versions.
+  2.3 and should work fine on both versions.
 
 
-What it is
-----------
+A more detailed explanation of PyTables
+---------------------------------------
 
 In short, PyTables provides a powerful and very Pythonic interface to
 process and organize your table and array data on disk.
@@ -119,8 +126,8 @@ applications, for example) in an efficient manner that reduces demand
 on CPU time and I/O resources.
 
 Quite a bit effort has been invested to make browsing the hierarchical
-*data structure a pleasant experience. PyTables implements two
-(orthogonal) easy-to-use methods for browsing.
+*data structure a pleasant experience. PyTables implements a few
+easy-to-use methods for browsing.
 
 What is HDF5?
 -------------

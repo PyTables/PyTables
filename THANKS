@@ -19,9 +19,9 @@ supporting the PyTables project with contracts.
 Todd Miller and Perry Greenfield for promptly helping me to understand
 many of the intricacies of the numarray package and Jin-chung Hsu for
 discussions on recarray module (now numarray.records module). They
-have been very receptive and promptly made most of the improvements in
-numarray (specially in the records module) that were necessary for
-PyTables.
+have been very receptive and promptly worked-out most of the
+improvements in numarray (specially in the records module) that were
+necessary for PyTables.
 
 Alan McIntyre for porting PyTables to Windows.
 

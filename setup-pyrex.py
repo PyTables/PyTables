@@ -382,7 +382,10 @@ if exists('src/hdf5Extension.c'):
         filein=open("src/hdf5Extension.c","r")
         fileout=open("src/hdf5Extension-win.c","w")
         for line in filein:
-            fileout.write(line.replace("long long", "LL_TYPE"))
+            line=line.replace("long long", "LL_TYPE")
+            line=line.replace("staticforward char *__pyx_f[];",
+                              "staticforward char *__pyx_f[1];")
+            fileout.write(line)
 
         filein.close()
         fileout.close()

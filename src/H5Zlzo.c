@@ -35,11 +35,6 @@ int register_lzo(void) {
 #ifdef HAVE_LZO_LIB
 
   herr_t status;
-
-  /* Init the LZO library */
-  if (lzo_init()!=LZO_E_OK)
-    fprintf(stderr, "Problems initializing LZO library\n");
-
   /* Feed the filter_class data structure */
   H5Z_class_t filter_class = {
     (H5Z_filter_t)FILTER_LZO,	/* filter_id */
@@ -48,6 +43,11 @@ int register_lzo(void) {
     NULL,                       /* set_local_func */
     (H5Z_func_t)lzo_deflate     /* filter_func */
   };
+
+
+  /* Init the LZO library */
+  if (lzo_init()!=LZO_E_OK)
+    fprintf(stderr, "Problems initializing LZO library\n");
 
   /* Register the lzo compressor */
   status = H5Zregister(&filter_class);
@@ -121,7 +121,7 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
 #ifdef CHECKSUM
     if (object_version >= 20) {
       nbytes -= 4; 		/* Point to uncompressed buffer length */
-      memcpy(&nalloc, ((*buf)+nbytes), 4);
+      memcpy(&nalloc, ((char *)(*buf)+nbytes), 4);
       out_len = nalloc;
       nbytes -= 4; 		/* Point to the checksum */
 #ifdef DEBUG

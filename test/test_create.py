@@ -152,7 +152,7 @@ class createTestCase(unittest.TestCase):
                                      [1], "t" * titlelength)
 	assert arr.title == "t" * titlelength
 	assert arr.getAttr("TITLE") == "t" * titlelength
-	    
+
     def test04_maxFields(self):
 	"Checking the maximum number of fields (255) in tables"
 
@@ -198,7 +198,7 @@ class createTestCase(unittest.TestCase):
         # Compare the last input row and last output
         # they should be equal
         assert row == recout
-	    
+
     def test05_maxFieldsExceeded(self):
 	"Checking an excess (256) of the maximum number of fields in tables"
 
@@ -234,6 +234,29 @@ class createTestCase(unittest.TestCase):
                 print value
         else:
             self.fail("expected an IndexError")
+
+    def test06_maxColumnNameLengthExceeded(self):
+	"Checking an excess (256) of the maximum length in column names"
+
+	# Build a dictionary with the types as values and varnames as keys
+	recordDict = {}
+	recordDict["a"*255] = IntCol(1) 
+	recordDict["b"*256] = IntCol(1) # Should trigger a NameError
+        
+	# Now, create a table with this record object
+	table = Table(recordDict, "MetaRecord instance")
+
+	# Attach the table to object tree
+        # Here, IndexError should be raised!
+        try:
+            self.root.table = table
+        except NameError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next NameError was catched!"
+                print value
+        else:
+            self.fail("expected an NameError")
 
 
 class createAttrTestCase(unittest.TestCase):

@@ -53,11 +53,6 @@ int register_ucl(void) {
 #ifdef HAVE_UCL_LIB
 
    int status;
-
-  /* Init the ucl library */
-  if (ucl_init()!=UCL_E_OK)
-    printf("Problems initializing UCL library\n");
-
   /* Feed the filter_class data structure */
   H5Z_class_t filter_class = {
     (H5Z_filter_t)FILTER_UCL,	/* filter_id */
@@ -66,6 +61,10 @@ int register_ucl(void) {
     NULL,                       /* set_local_func */
     (H5Z_func_t)ucl_deflate     /* filter_func */
   };
+
+  /* Init the ucl library */
+  if (ucl_init()!=UCL_E_OK)
+    printf("Problems initializing UCL library\n");
 
   /* Register the lzo compressor */
   status = H5Zregister(&filter_class);

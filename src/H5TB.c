@@ -1696,6 +1696,7 @@ herr_t H5TBdelete_record( hid_t loc_id,
  size_t   src_size;
  size_t   *src_offset;
  int      nrows;
+ hsize_t  dims[1];
 
  /* Shut the compiler up */
  tmp_buf = NULL;
@@ -1795,7 +1796,6 @@ herr_t H5TBdelete_record( hid_t loc_id,
  *-------------------------------------------------------------------------
  */
 #if defined (SHRINK)
- hsize_t  dims[1];
  dims[0] = ntotal_records - nrecords;
  if ( H5Dset_extent( dataset_id, dims ) < 0 )
   goto out;
