@@ -659,6 +659,7 @@ herr_t _close_id( hid_t obj_id,
    so we make one from a HDF5 compound type class.
 
    Added by Tom Hedley <thedley@users.sourceforge.net> April 2004.
+   Adapted to support Tables by F. Alted September 2004.
 */
 
 /* Return the byteorder of a complex datatype.
@@ -789,3 +790,4 @@ size_t get_complex_precision(hid_t type_id) {
   return result;
 }
 
+/* End of complex additions */

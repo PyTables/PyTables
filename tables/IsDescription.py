@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.33 2004/09/16 16:18:31 falted Exp $
+#       $Id: IsDescription.py,v 1.34 2004/09/16 17:56:31 falted Exp $
 #
 ########################################################################
 
@@ -24,7 +24,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.33 $"
+__version__ = "$Revision: 1.34 $"
 
 
 import warnings
@@ -42,7 +42,7 @@ tostructfmt = {NA.Int8:'b', NA.UInt8:'B',
                NA.Int32:'i', NA.UInt32:'I',
                NA.Int64:'q', NA.UInt64:'Q',
                NA.Float32:'f', NA.Float64:'d',
-               NA.Complex32:'F', NA.Complex64:'D',
+               NA.Complex32:'F', NA.Complex64:'D', # Added top support complex
                NA.Bool:'c', records.CharType:'s', 
                }
 
@@ -52,9 +52,9 @@ fromstructfmt = {'b':NA.Int8, 'B':NA.UInt8,
                  'i':NA.Int32, 'I':NA.UInt32,
                  'q':NA.Int64, 'Q':NA.UInt64,
                  'f':NA.Float32, 'd':NA.Float64,
-                 'F':NA.Complex32, 'D':NA.Complex64,
+                 'F':NA.Complex32, 'D':NA.Complex64,# Added top support complex
                  'c':NA.Bool, 's':records.CharType,
-              }
+                 }
 
 #class BaseCol:
 class Col:

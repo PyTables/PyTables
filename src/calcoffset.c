@@ -4,60 +4,14 @@
 
 #include <stddef.h>
 #include <stdlib.h>
-#include <limits.h>
-#include <ctype.h>
+#include "hdf5.h"
 #include "calcoffset.h"
 #include "utils.h"
 
-/* Define this as 1 if native alignment is needed, although this
-   doesn't seem to be necessary. Before pytables 0.6 this was
-   implicitely set to 1, but the fact is that both values will
-   work. Why?.  */
-
-#ifndef ALIGN
-#define ALIGN 0
-#endif
-
-static const formatdef *whichtable(char **pfmt)
-{
-	const char *fmt = (*pfmt)++; /* May be backed out of later */
-	switch (*fmt) {
-	case '<':
-		return lilendian_table;
-	case '>':
-	case '!': /* Network byte order is big-endian */
-		return bigendian_table;
-	case '=': { /* Host byte order -- different from native in aligment! */
-		int n = 1;
-		char *p = (char *) &n;
-		if (*p == 1)
-			return lilendian_table;
-		else
-			return bigendian_table;
-	}
-	default:
-		--*pfmt; /* Back out of pointer increment */
-		/* Fall through */
-	case '@':
-		return native_table;
-	}
-}
-
-
-/* Get the table entry for a format code */
-
-static const formatdef *getentry(int c, const formatdef *f)
-{
-	for (; f->format != '\0'; f++) {
-		if (f->format == c) {
-			return f;
-		}
-	}
-#ifdef DEBUG
-        printf("Error: bad char <%c> in struct format\n", c);
-#endif /* DEBUG */
-	return NULL;
-}
+/* For the sake of code simplicity I've stripped out all the alignment
+   stuff, as it seems not necessary for HDF5. If it is needed, you can
+   find the complete code version in CVS with tag 1.7.
+   F. Alted 2004-09-16 */
 
 
 /* Get the correct HDF5 type for a format code.
@@ -222,33 +176,9 @@ static hid_t conventry(int c, int rank, hsize_t *dims, char *byteorder)
 }
 
 
-/* Align a size according to a format code */
-
-static int align(int size, int c, const formatdef *e)
-{
-   if (e->alignment) {
-      size = ((size + e->alignment - 1)
-	      / e->alignment)
-	      * e->alignment;
-   }
-   return size;
-}
-
-/* Calculate the offsets of a format string.
- * The format follows the directions for the package struct, plus
- * extensions for multimensional elements. The notation for
- * multimensional elements are in the form (####, ####, ...[,]).
-
- * The number of fields are returned in the nattrs integer.
- * The HDF5 types are computed and returned in the types array.
- * The sizes of types are computed and returned in the size_types array.
- * The offsets are computed and returned in the offsets array.
- * calcoffset returns the row size. */
-
 int calcoffset(char *fmt, int *nattrs, hid_t *types,
-	      size_t *size_types, size_t *offsets)
+	       size_t *size_types, size_t *offsets)
 {
-   const formatdef *f, *e;
    const char *s;
    hsize_t shape[MAXDIM];
    char c;
@@ -278,12 +208,11 @@ int calcoffset(char *fmt, int *nattrs, hid_t *types,
    }
    }
    
-   f = whichtable(&fmt);
+   fmt++; 			/* Skip the alignment info */
    s = fmt;
    size = 0;
    *nattrs = 0;
-   if (!ALIGN)
-     *offsets++ = 0;
+   *offsets++ = 0;
 
    while ((c = *s++) != '\0') {
       ndim = 0;
@@ -354,10 +283,7 @@ int calcoffset(char *fmt, int *nattrs, hid_t *types,
       }
       printf(")\n");
 #endif
-      e = getentry(c, f);
-      if (e == NULL) {
-	return -1;
-      }
+
       /* Get the proper hdf5 type */
       hdf5type = H5Tcopy(conventry(c, ndim+1, shape, byteorder));
       if (hdf5type == -1)
@@ -365,15 +291,8 @@ int calcoffset(char *fmt, int *nattrs, hid_t *types,
       itemsize = H5Tget_size(hdf5type);
 
       /* Feed the return values */
-      if(ALIGN)
-	size = align(size, c, e);
-      else
-	size += itemsize;
-
+      size += itemsize;
       *offsets++ = size;
-      if (ALIGN)
-	size += itemsize;
-
       *size_types++ = itemsize;
       *nattrs += 1;
       *types++ = hdf5type;
@@ -381,11 +300,6 @@ int calcoffset(char *fmt, int *nattrs, hid_t *types,
       /* Set the byteorder datatype (if needed) */
       if (c != 's' || c != 'F' || c != 'D') {
 	set_order(hdf5type, byteorder);
-/* 	if (byteorder == '<')  */
-/* 	  H5Tset_order(hdf5type, H5T_ORDER_LE); */
-/* 	else if (byteorder == '>') { */
-/* 	  H5Tset_order(hdf5type, H5T_ORDER_BE ); */
-/* 	} */
       }
    }
 

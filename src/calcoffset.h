@@ -2,8 +2,10 @@
  * F. Alted 
  * 2002/08/28 */
 
-#include "type-longlong.h"
-#include "hdf5.h"
+/* For the sake of code simplicity I've stripped out all the alignment
+   stuff, as it seems not necessary for HDF5. If it is needed, you can
+   find the complete code version in CVS with tag 1.14.
+   F. Alted 2004-09-16 */
 
 /* Define this variable for error printings */
 /*#define DEBUG 1 */
@@ -11,115 +13,6 @@
 /*#define PRINT 1 */
 /* Define this for compile the main() function */
 /* #define MAIN 1 */
-
-/* Define various structs to figure out the alignments of types */
-
-#ifdef __MWERKS__
-/*
-** XXXX We have a problem here. There are no unique alignment rules
-** on the PowerPC mac. 
-*/
-#ifdef __powerc
-#pragma options align=mac68k
-#endif
-#endif /* __MWERKS__ */
-
-typedef struct { char c; short x; } s_short;
-typedef struct { char c; int x; } s_int;
-typedef struct { char c; long x; } s_long;
-typedef struct { char c; float x; } s_float;
-typedef struct { char c; double x; } s_double;
-typedef struct { char c; float x; float y; } s_complex32;
-typedef struct { char c; double x; double y; } s_complex64;
-typedef struct { char c; PY_LONG_LONG x; } s_longlong;
-typedef struct { char c; void *x; } s_void_p;
-
-#define SHORT_ALIGN (sizeof(s_short) - sizeof(short))
-#define INT_ALIGN (sizeof(s_int) - sizeof(int))
-#define LONG_ALIGN (sizeof(s_long) - sizeof(long))
-#define FLOAT_ALIGN (sizeof(s_float) - sizeof(float))
-#define DOUBLE_ALIGN (sizeof(s_double) - sizeof(double))
-#define COMPLEX32_ALIGN (sizeof(s_complex32) - sizeof(double))
-#define COMPLEX64_ALIGN (sizeof(s_complex64) - sizeof(double)*2)
-/* #define LONGLONG_ALIGN (sizeof(s_longlong) - sizeof(LL_TYPE)) */
-#define LONGLONG_ALIGN (sizeof(s_longlong) - sizeof(PY_LONG_LONG))
-#define VOID_P_ALIGN (sizeof(s_void_p) - sizeof(void *))
-
-#ifdef __powerc
-#pragma options align=reset
-#endif
-
-typedef struct _formatdef {
-   char format;
-   int size;
-   int alignment;
-} formatdef;
-
-static formatdef native_table[] = {
-     {'x',	sizeof(char),   	0},
-     {'b',	sizeof(char),   	0},
-     {'B',	sizeof(char),   	0},
-     {'c',	sizeof(char),		0},
-     {'s',	sizeof(char),		0},
-     {'p',	sizeof(char),		0},
-     {'h',	sizeof(short),		SHORT_ALIGN},
-     {'H',	sizeof(short),		SHORT_ALIGN},
-     {'i',	sizeof(int),		INT_ALIGN},
-     {'I',	sizeof(int),		INT_ALIGN},
-     {'l',	sizeof(long),		LONG_ALIGN},
-     {'L',	sizeof(long),		LONG_ALIGN},
-     {'f',	sizeof(float),		FLOAT_ALIGN},
-     {'d',	sizeof(double),		DOUBLE_ALIGN},
-     {'F',	sizeof(s_complex32),	COMPLEX32_ALIGN},
-     {'D',	sizeof(s_complex64),	COMPLEX64_ALIGN},
-     {'q',	sizeof(PY_LONG_LONG),	LONGLONG_ALIGN},
-     {'Q',	sizeof(PY_LONG_LONG),	LONGLONG_ALIGN},
-/*     {'P',	sizeof(void *),		VOID_P_ALIGN},*/ /* Not supported */
-
-     {0}
-};
-
-static formatdef bigendian_table[] = {
-     {'x',	1,		0},
-     {'b',	1,		0},
-     {'B',	1,		0},
-     {'c',	1,		0},
-     {'s',	1,		0},
-     {'h',	2,		0},
-     {'H',	2,		0},
-     {'i',	4,		0},
-     {'I',	4,		0},
-     {'l',	4,		0},
-     {'L',	4,		0},
-     {'f',	4,		0},
-     {'d',	8,		0},
-     {'F',	8,		0},
-     {'D',	16,		0},
-     {'q',	8,		0},
-     {'Q',	8,		0},
-     {0}
-};
-
-static formatdef lilendian_table[] = {
-     {'x',	1,		0},
-     {'b',	1,		0},
-     {'B',	1,		0},
-     {'c',	1,		0},
-     {'s',	1,		0},
-     {'h',	2,		0},
-     {'H',	2,		0},
-     {'i',	4,		0},
-     {'I',	4,		0},
-     {'l',	4,		0},
-     {'L',	4,		0},
-     {'f',	4,		0},
-     {'d',	8,		0},
-     {'F',	8,		0},
-     {'D',	16,		0},
-     {'q',	8,		0},
-     {'Q',	8,		0},
-     {0}
-};
 
 /* Functions in calcoffset.c we want accessible */
 int calcoffset(char *fmt, int *nattrs, hid_t *types,
