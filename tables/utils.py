@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.23 2004/06/23 09:37:02 falted Exp $
+#       $Id: utils.py,v 1.24 2004/06/28 12:03:24 falted Exp $
 #
 ########################################################################
 
@@ -69,7 +69,7 @@ def _calcBufferSize(rowsize, expectedrows):
     # 5% to 10% of improvement in Pentium4 and non-noticeable in AMD64
     # 2004-05-16
     #bufmultfactor = int(1000 * 20.0) # A little better (5%) but
-                                      # consumes more CPU
+                                      # consumes more memory
     bufmultfactor = int(1000 * 10.0) # Optimum for Table objects
     rowsizeinfile = rowsize
     expectedfsizeinKb = (expectedrows * rowsizeinfile) / 1024
@@ -102,10 +102,12 @@ def _calcBufferSize(rowsize, expectedrows):
           expectedfsizeinKb <= 20 * 1000):
         # Values for sizes between 1 MB and 20 MB
         buffersize = 40  * bufmultfactor
+        #buffersize = 80  * bufmultfactor  # New value (experimental)
     elif (expectedfsizeinKb > 20 * 1000 and
           expectedfsizeinKb <= 200 * 1000):
         # Values for sizes between 20 MB and 200 MB
         buffersize = 50 * bufmultfactor
+        #buffersize = 320 * bufmultfactor  # New value (experimental)
     else:  # Greater than 200 MB
         # These values gives an increment of memory of 50 MB for a table
         # size of 2.2 GB. I think this increment should be attributed to
@@ -117,6 +119,7 @@ def _calcBufferSize(rowsize, expectedrows):
         # try to increment these values, but be ready for a quite big
         # overhead needed to traverse the BTree.
         buffersize = 60 * bufmultfactor
+        #buffersize = 1280 * bufmultfactor  # New value (experimental)
 
     return buffersize
 
@@ -133,29 +136,18 @@ def calcBufferSize(rowsize, expectedrows, compress):
 
     buffersize = _calcBufferSize(rowsize, expectedrows)
 
-# This correction is generally bad
-#     # Correction for compression.
-#     if compress:
-#         # 1024 bytes seems optimal for compression and besides,
-#         # shuffle does not take too much CPU time (shuffle consumes
-#         # CPU time exponentially with chunksize)
-#         #chunksize = 1024
-#         chunksize = 2048
-#         #chunksize /= 2
-#         #chunksize = 1024 * 10   # This seems optimal for compression
-#         pass
-
-
     # Max Tuples to fill the buffer
     maxTuples = buffersize // rowsize
     # Set the chunksize as the 10% of maxTuples
-    chunksize = maxTuples // 10
+    #chunksize = maxTuples // 10
+    chunksize = maxTuples // 2  # Makes the BTree hash to consume less memory
+                                # This is experimental
     # Safeguard against row sizes being extremely large
     if maxTuples == 0:
         maxTuples = 1
     if chunksize == 0:
         chunksize = 1
-    # A new correction for avoid too many calls to HDF5 I/O calls
+    # A new correction for avoiding too many calls to HDF5 I/O calls
     # But this does not bring advantages rather the contrary,
     # the memory comsumption grows, and performance becomes worse.
     #if expectedrows//maxTuples > 50:

@@ -116,7 +116,8 @@ def createFile(filename, totalrows, filters, recsize):
                 #d['var1'] = str(random.randrange(1000000))
                 #d['var3'] = random.randrange(10000000)
                 #d['var1'] = str(i)
-                d['var2'] = random.randrange(totalrows)
+                #d['var2'] = random.randrange(totalrows)
+                d['var2'] = i
                 #d['var3'] = 12.1e10
                 d['var3'] = totalrows-i
                 d.append()  # This is a 10% faster than table.append()
@@ -194,19 +195,19 @@ def readFile(filename, recsize, verbose):
 #                       table(where=table.cols.var2 < 10)
 #                       if p["var2"] > 5]
 #                e = [ (p._nrow,p["var3"]) for p in
-                e = [ p["var3"] for p in
-                      table(where=table.cols.var3 < 10)]
+#                e = [ p["var3"] for p in
+#                      table(where=table.cols.var3 < 10)]
 #                      table(1,10,1,where=table.cols.var3 < 10)]
-                      #table
-                      #if p["var3"] <= 10]
+#                      table if p["var3"] <= 10]
 #               e = [ p['var3'] for p in table(where="var3 <= 20")]
 #                e = [ p['var3'] for p in
 #                      table(where=table.cols.var1 == "10")]  # More
                      # than ten times faster than the next one
 #                e = [ p['var3'] for p in table
 #                      if p['var1'] == "10"]
-#                 e = [ p['var3'] for p in table.iterrows()
-#                       if p['var2'] <= 20 ]
+#                 e = [ p['var3'] for p in table(where=table.cols.var2 <=20)
+                 e = [ p['var3'] for p in table
+                       if p['var2'] <= 20 ]
                 #e = [ p['var3'] for p in table.iterrows(0,21) ]
 #                  e = [ p['var3'] for p in table.iterrows()
 #                       if p.nrow() <= 20 ]

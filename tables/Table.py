@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.110 2004/06/18 12:31:08 falted Exp $
+#       $Id: Table.py,v 1.111 2004/06/28 12:03:24 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.110 $"
+__version__ = "$Revision: 1.111 $"
 
 from __future__ import generators
 import sys
@@ -423,7 +423,7 @@ class Table(Leaf, hdf5Extension.Table, object):
                       
                 
         #t1=time.time()
-        ncoords = self.cols[colname].search(item, notequal)
+        ncoords = self.cols[colname].index.search(item, notequal)
         #print "time reading indices:", time.time()-t1
         return ncoords
         
@@ -633,38 +633,39 @@ class Table(Leaf, hdf5Extension.Table, object):
         result._byteorder = self.byteorder
         return result
 
-    def _createIndex(self, colname, filters=Filters(1,"zlib")):
-        "Create an index for a column in Table"
+# Old version. The index is created now from columns
+#     def _createIndex(self, colname, filters=Filters(1,"zlib")):
+#         "Create an index for a column in Table"
 
-        # Do a flush before
-        self.flush()
-        # Get the column
-        column = self.read(field=colname)
-        # Sort that column
-        sortedColumn = numarray.sort(column)
-        # Get the indexes for the sorted column
-        indexSortedColumn = numarray.argsort(column)
-        # Save both arrays as companion EArrays of self
-        # The sorted column
-        atom = Atom(dtype=self.coltypes[colname], shape=(0,))
-        sortedEArray = self._v_file.createEArray(self._v_parent,
-                                                 "_s_"+self.name+"__"+colname,
-                                                 atom,
-                                                 title='Sorted '+colname,
-                                                 filters=filters,
-                                                 expectedrows=self.nrows)
-        sortedEArray.append(sortedColumn)
-        sortedEArray.close()
-        # The indexes
-        atom = Atom(dtype="Int32", shape=(0,))
-        indexEArray = self._v_file.createEArray(self._v_parent,
-                                                "_i_"+self.name+"__"+colname,
-                                                atom,
-                                                title='Indexes '+colname,
-                                                filters=filters,
-                                                expectedrows=self.nrows)
-        indexEArray.append(indexSortedColumn)
-        indexEArray.close()
+#         # Do a flush before
+#         self.flush()
+#         # Get the column
+#         column = self.read(field=colname)
+#         # Sort that column
+#         sortedColumn = numarray.sort(column)
+#         # Get the indexes for the sorted column
+#         indexSortedColumn = numarray.argsort(column)
+#         # Save both arrays as companion EArrays of self
+#         # The sorted column
+#         atom = Atom(dtype=self.coltypes[colname], shape=(0,))
+#         sortedEArray = self._v_file.createEArray(self._v_parent,
+#                                                  "_s_"+self.name+"__"+colname,
+#                                                  atom,
+#                                                  title='Sorted '+colname,
+#                                                  filters=filters,
+#                                                  expectedrows=self.nrows)
+#         sortedEArray.append(sortedColumn)
+#         sortedEArray.close()
+#         # The indexes
+#         atom = Atom(dtype="Int32", shape=(0,))
+#         indexEArray = self._v_file.createEArray(self._v_parent,
+#                                                 "_i_"+self.name+"__"+colname,
+#                                                 atom,
+#                                                 title='Indexes '+colname,
+#                                                 filters=filters,
+#                                                 expectedrows=self.nrows)
+#         indexEArray.append(indexSortedColumn)
+#         indexEArray.close()
 
     def __getitem__(self, key):
         """Returns a table row, table slice or table column.
@@ -1048,12 +1049,12 @@ class Column(object):
         self.table.colindexed[self.name] = 1
         return indexedrows
         
-    def search(self, item, notequal=0):
-        if self.index:
-            return self.index.search(item, notequal)
-        else:
-            raise UnsupportedError, \
-                  "Non-indexed columns do not suport searches"
+#     def search(self, item, notequal=0):
+#         if self.index:
+#             return self.index.search(item, notequal)
+#         else:
+#             raise UnsupportedError, \
+#                   "Non-indexed columns do not suport searches"
 
     def close(self):
         """Close any open index of this column"""

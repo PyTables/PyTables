@@ -76,13 +76,15 @@ def readFile(filename, atom, niter, verbose):
         print "MaxTuples:", table._v_maxTuples
 
     rowselected = 0
-    for i in xrange(niter):
-        if atom == "int":
+    if atom == "int":
+        for i in xrange(niter):
             #results = [table.row["var3"] for i in table(where=2+i<=table.cols.var2 < 10+i)]
 #             results = [table.row.nrow() for i in table(where=2<=table.cols.var2 < 10)]
-            results = [p.nrow()
+            results = [p["var3"]
                        for p in table(where=100*i<=table.cols.var2<100*(i+1))]
-        elif atom == "float":
+            rowselected += len(results)
+    elif atom == "float":
+        for i in xrange(niter):
 #         results = [(table.row.nrow(), table.row["var3"])
 #                    for i in table(where=3<=table.cols.var3 < 5.)]
 #             results = [(p.nrow(), p["var3"])
@@ -93,9 +95,9 @@ def readFile(filename, atom, niter, verbose):
 #                        if 100*i<=p["var3"]<100*(i+1)]
 #             results = [ (p.nrow(), p["var3"]) for p in table
 #                         if (1000.-i <= p["var3"] < 1000.+i) ]
+            rowselected += len(results)
         else:
             raise ValueError, "Unsuported atom value"
-        rowselected += len(results)
     if verbose and 1:
         print "Values that fullfill the conditions:"
         print results

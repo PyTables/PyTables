@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.2 2004/06/23 09:37:02 falted Exp $
+#       $Id: Index.py,v 1.3 2004/06/28 12:03:24 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.2 $"
+__version__ = "$Revision: 1.3 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -99,7 +99,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         self._v_new_title = title
         self._v_new_filters = filters
         self._v_expectedrows = expectedrows
-        self._v_parent = where.table._v_parent  # Parent o table in object tree
+        self._v_parent = where.table._v_parent  #Parent of table in object tree
         # Check whether we have to create a new object or read their contents
         # from disk
         if atom is not None:
@@ -109,20 +109,16 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         else:
             self._v_new = 0
             self._open()
-        # useful variables for getCoords
-        self.startl = numarray.array(None,type="Int64",shape=(2,))
-        self.stopl = numarray.array(None,type="Int64",shape=(2,))
-        self.stepl = numarray.array((1,1),type="Int64",shape=(2,))
 
-    def _newBuffer(self, maxCoords):
-        """Create arrays for keeping the coordinates during selections """
-        self.arrRel = numarray.zeros(type="Int32",shape=(maxCoords,))
-        self.arrAbs = numarray.zeros(type="Int64",shape=(maxCoords,))
+#     def _newBuffer(self, maxCoords):
+#         """Create arrays for keeping the coordinates during selections """
+#         self.arrRel = numarray.zeros(type="Int32",shape=(maxCoords,))
+#         self.arrAbs = numarray.zeros(type="Int64",shape=(maxCoords,))
 
-    def _delBuffer(self):
-        """Destroy buffer arrays"""
-        del self.arrRel
-        del self.arrAbs
+#     def _delBuffer(self):
+#         """Destroy buffer arrays"""
+#         del self.arrRel
+#         del self.arrAbs
 
     def _addAttrs(self, object, klassname):
         """ Add attributes to object """
@@ -157,7 +153,6 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         self._v_version = obversion
         self.type = self.atom.type
         self.title = self._v_new_title
-        self.nelem = 0
         # Create the Index Group
         self._g_new(self._v_parent, self.name)
         self._v_objectID = self._g_createGroup()
@@ -214,12 +209,11 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         # Save the sorted array
         self.sorted.append(numarray.sort(arr))
         self.indices.append(numarray.argsort(arr))
-
-    def search(self, item, notequal=0):
+        
+    def search(self, item, notequal):
         """Do a binary search in this index for an item"""
-        t1=time.time()
+        #t1=time.time()
         ntotaliter = 0; tlen = 0
-        self.notequal = notequal
         self.starts = []; self.lengths = []
         bufsize = self.sorted._v_chunksize[1] # number of elements/chunksize
         self.nelemslice = self.sorted.nelemslice   # number of columns/slice
@@ -232,36 +226,25 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
             ntotaliter += niter; tlen += stop - start
         self.sorted._destroySortedSlice()
         #print "time reading indices:", time.time()-t1
-        if notequal:
-            return self.sorted.nrows*self.nelemslice - tlen
-        else:
-            return tlen
+        return tlen
 
     def getCoords(self, startCoords, maxCoords):
         """Get the coordinates of indices satisfiying the cuts"""
-        # t1=time.time()
+        #t1=time.time()
         len1 = 0; len2 = 0;
-        stop = 0; relCoords = 0; lastvalidentry = 0;
-        for i in xrange(self.sorted.nrows):
-            leni = self.lengths[i]; len2 += leni
-            #print "leni, len1, len2-->", leni, len1, len2
-            #print "startCoords, maxCoords-->", startCoords, maxCoords 
+        stop = 0; relCoords = 0
+        for irow in xrange(self.sorted.nrows):
+            leni = self.lengths[irow]; len2 += leni
             if (leni > 0 and len1 <= startCoords < len2):
-                self.startl[0] = i; self.stopl[0] = i+1;
-                self.startl[1] = self.starts[i] + (startCoords-len1)
+                startl = self.starts[irow] + (startCoords-len1)
                 if maxCoords >= leni - (startCoords-len1):
                     # Values fit on buffer
-                    self.stopl[1] = self.startl[1] + leni
+                    stopl = startl + leni
                 else:
                     # Stop after this iteration
-                    self.stopl[1] = self.startl[1] + maxCoords
+                    stopl = startl + maxCoords
                     stop = 1
-                lastvalidentry = self.stopl[1]
-                #print "startl, stopl-->", self.startl, self.stopl
-                self.indices._g_readIndex(i, self.nelemslice,
-                                          self.startl, self.stopl, self.stepl,
-                                          self.arrRel[relCoords:],
-                                          self.arrAbs[relCoords:])
+                self.indices._g_readIndex(irow, startl, stopl, relCoords)
                 if stop:
                     break
                 maxCoords -= leni - (startCoords-len1)
@@ -269,56 +252,92 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
                 relCoords += leni
             len1 += leni
                 
-        selections = numarray.sort(self.arrAbs[:lastvalidentry])
-        #print "selections-->", selections
-        #print "lastvalidentry-->", lastvalidentry
-
-        # print "time doing revIndexing:", time.time()-t1
-        return selections
-
-    # The next represents a try to implement getCoords for != operator
-    # but it turned out to be too difficult, well, at least to me :(
-    # 2004-06-22
-    def getCoords_notequal(self, startCoords, maxCoords):
-        """Get the coordinates of indices satisfiying the cuts"""
-        t1=time.time()
-        len1 = 0; len2 = 0;
-        stop = 0; relCoords = 0; lastvalidentry = -1;
-        #print "(Entrant) startCoords, maxCoords -->", startCoords, maxCoords
-        for i in xrange(self.sorted.nrows):
-            leni = self.lengths[i]
-            if self.notequal:
-                notleni = self.nelemslice - leni
-            else:
-                notleni = leni
-            len2 += notleni
-            if (notleni > 0 and len1 <= startCoords < len2):
-                self.startl[0] = i; self.stopl[0] = i+1;
-                self.startl[1] = self.starts[i] + (startCoords-len1)
-                #print "maxCoords, lengths, len1-->", maxCoords, leni, len1
-                if maxCoords >= notleni - (startCoords-len1):
-                    # Values fit on buffer
-                    lentostop = leni
-                else:
-                    # Stop after this iteration
-                    lentostop = maxCoords
-                    stop = 1
-                self.stopl[1] = self.startl[1]+lentostop
-                #print "startl, stopl -->", self.startl, self.stopl
-                self.indices._g_readIndex(i, self.nelemslice, self.notequal,
-                                          self.startl, self.stopl, self.stepl,
-                                          self.arrRel[relCoords:],
-                                          self.arrAbs[relCoords:])
-                if stop:
-                    break
-                maxCoords -= notleni - (startCoords-len1)
-                startCoords += notleni - (startCoords-len1)
-                relCoords += notleni
-            len1 += notleni
-                
+        selections = numarray.sort(self.indices.arrAbs[:stopl])
         #print "time doing revIndexing:", time.time()-t1
-        selections = numarray.sort(self.arrAbs[:lastvalidentry])
         return selections
+
+#     def getCoords_orig(self, startCoords, maxCoords):
+#         """Get the coordinates of indices satisfiying the cuts"""
+#         # t1=time.time()
+#         len1 = 0; len2 = 0;
+#         stop = 0; relCoords = 0; lastvalidentry = 0;
+#         for i in xrange(self.sorted.nrows):
+#             leni = self.lengths[i]; len2 += leni
+#             #print "leni, len1, len2-->", leni, len1, len2
+#             #print "startCoords, maxCoords-->", startCoords, maxCoords 
+#             if (leni > 0 and len1 <= startCoords < len2):
+#                 self.startl[0] = i; self.stopl[0] = i+1;
+#                 self.startl[1] = self.starts[i] + (startCoords-len1)
+#                 if maxCoords >= leni - (startCoords-len1):
+#                     # Values fit on buffer
+#                     self.stopl[1] = self.startl[1] + leni
+#                 else:
+#                     # Stop after this iteration
+#                     self.stopl[1] = self.startl[1] + maxCoords
+#                     stop = 1
+#                 lastvalidentry = self.stopl[1]
+#                 #print "startl, stopl-->", self.startl, self.stopl
+#                 self.indices._g_readIndex(i, self.nelemslice,
+#                                           self.startl, self.stopl, self.stepl,
+#                                           self.arrRel[relCoords:],
+#                                           self.arrAbs[relCoords:])
+#                 if stop:
+#                     break
+#                 maxCoords -= leni - (startCoords-len1)
+#                 startCoords += leni - (startCoords-len1)
+#                 relCoords += leni
+#             len1 += leni
+                
+#         selections = numarray.sort(self.arrAbs[:lastvalidentry])
+#         #print "selections-->", selections
+#         #print "lastvalidentry-->", lastvalidentry
+
+#         # print "time doing revIndexing:", time.time()-t1
+#         return selections
+
+#     # The next represents a try to implement getCoords for != operator
+#     # but it turned out to be too difficult, well, at least to me :(
+#     # 2004-06-22
+#     def getCoords_notequal(self, startCoords, maxCoords):
+#         """Get the coordinates of indices satisfiying the cuts"""
+#         t1=time.time()
+#         len1 = 0; len2 = 0;
+#         stop = 0; relCoords = 0; lastvalidentry = -1;
+#         #print "(Entrant) startCoords, maxCoords -->", startCoords, maxCoords
+#         for i in xrange(self.sorted.nrows):
+#             leni = self.lengths[i]
+#             if self.notequal:
+#                 notleni = self.nelemslice - leni
+#             else:
+#                 notleni = leni
+#             len2 += notleni
+#             if (notleni > 0 and len1 <= startCoords < len2):
+#                 self.startl[0] = i; self.stopl[0] = i+1;
+#                 self.startl[1] = self.starts[i] + (startCoords-len1)
+#                 #print "maxCoords, lengths, len1-->", maxCoords, leni, len1
+#                 if maxCoords >= notleni - (startCoords-len1):
+#                     # Values fit on buffer
+#                     lentostop = leni
+#                 else:
+#                     # Stop after this iteration
+#                     lentostop = maxCoords
+#                     stop = 1
+#                 self.stopl[1] = self.startl[1]+lentostop
+#                 #print "startl, stopl -->", self.startl, self.stopl
+#                 self.indices._g_readIndex(i, self.nelemslice, self.notequal,
+#                                           self.startl, self.stopl, self.stepl,
+#                                           self.arrRel[relCoords:],
+#                                           self.arrAbs[relCoords:])
+#                 if stop:
+#                     break
+#                 maxCoords -= notleni - (startCoords-len1)
+#                 startCoords += notleni - (startCoords-len1)
+#                 relCoords += notleni
+#             len1 += notleni
+                
+#         #print "time doing revIndexing:", time.time()-t1
+#         selections = numarray.sort(self.arrAbs[:lastvalidentry])
+#         return selections
 
     def _f_close(self):
         # flush the info for the indices

@@ -7,7 +7,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/utils/ptdump,v $
-#       $Id: ptdump,v 1.5 2004/04/06 18:26:28 falted Exp $
+#       $Id: ptdump,v 1.6 2004/06/28 12:03:24 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,17 @@ def dumpLeaf(leaf):
         print "  "+repr(leaf.attrs)
     if dump:
         print "  Data dump:"
-        print leaf.read(rng.start, rng.stop, rng.step)
+        # print leaf.read(rng.start, rng.stop, rng.step)
+        # This is better for large objects
+        if rng.start == None:
+            start = 0
+        if rng.stop == None:
+            stop = leaf.nrows
+        if rng.step == None:
+            step = 1
+        for i in range(rng.start, rng.stop, rng.step):
+            print "[%s] %s" % (i, leaf[i])
+
     
 def dumpGroup(h5file):
     global verbose
@@ -66,7 +76,17 @@ def dumpGroup(h5file):
                 print "  "+repr(leaf.attrs)
             if dump:
                 print "  Data dump:"
-                print leaf.read(rng.start, rng.stop, rng.step)
+                #print leaf.read(rng.start, rng.stop, rng.step)
+                # This is better for large objects
+                if rng.start == None:
+                    start = 0
+                if rng.stop == None:
+                    stop = leaf.nrows
+                if rng.step == None:
+                    step = 1
+                for i in range(start, stop, step):
+                    print "[%s] %s" % (i, leaf[i])
+                    #print leaf[i]
             #print
 
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IndexArray.py,v $
-#       $Id: IndexArray.py,v 1.1 2004/06/18 12:31:08 falted Exp $
+#       $Id: IndexArray.py,v 1.2 2004/06/28 12:03:24 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.1 $"
+__version__ = "$Revision: 1.2 $"
 # default version for IndexARRAY objects
 obversion = "1.0"    # initial version
 
@@ -39,7 +39,7 @@ import numarray
 import numarray.strings as strings
 import numarray.records as records
 
-class IndexArray(EArray, hdf5Extension.Array, object):
+class IndexArray(EArray, hdf5Extension.IndexArray, object):
     """Represent the index (sorted or reverse index) dataset in HDF5 file.
 
     All Numeric and numarray typecodes are supported except for complex
@@ -74,7 +74,7 @@ class IndexArray(EArray, hdf5Extension.Array, object):
     """
     
     def __init__(self, atom = None, title = "",
-                 filters = None, expectedrows = 1000):
+                 filters = None, expectedrows = 1000000):
         """Create an IndexArray instance.
 
         Keyword arguments:
@@ -90,9 +90,8 @@ class IndexArray(EArray, hdf5Extension.Array, object):
             during the life of this object.
 
         expectedrows -- Represents an user estimate about the number
-            of row slices that will be added to the growable dimension
-            in the IndexArray object. If not provided, the default
-            value is 1000 slices.
+            of elements to index. If not provided, the default
+            value is 1000000 slices.
 
         """
         self._v_new_title = title
@@ -106,7 +105,7 @@ class IndexArray(EArray, hdf5Extension.Array, object):
         else:
             self._v_new = 0
             
-    def _calcChunksize(self, expectedrows, compress):
+    def _calcChunksize(self):
         """Calculate the HDF5 chunk size for index and sorted arrays.
 
         The logic to do that is based purely in experiments playing
@@ -117,32 +116,42 @@ class IndexArray(EArray, hdf5Extension.Array, object):
 
         """
 
-        expKrows = expectedrows / 1000000.  # Multiples of one million
-        if expKrows <= 0.1: # expected rows < 100 thousand
+        expKrows = self._v_expectedrows / 1000000.  # Multiples of one million
+        if expKrows < 0.1: # expected rows < 100 thousand
             nelemslice = 10000  # > 1/10th
-            chunksize = 100
-        elif expKrows <= 1: # expected rows < 1 milion
+            chunksize = 1000
+            #chunksize = 2000  # Experimental
+        elif expKrows < 1: # expected rows < 1 milion
             nelemslice = 100000  # > 1/10th
-            chunksize = 500
+            #chunksize = 1000
+            chunksize = 5000  # Experimental
         elif expKrows < 10:  # expected rows < 10 milion
             nelemslice = 500000  # > 1/20th
-            chunksize = 1000
+            #chunksize = 1000
+            chunksize = 5000  # Experimental (best)
+            #chunksize = 10000  # Experimental
         elif expKrows < 100: # expected rows < 100 milions
             nelemslice = 1000000 # > 6/100th
-            chunksize = 2000
+            #chunksize = 2000
+            chunksize = 10000  # Experimental
         elif expKrows < 1000: # expected rows < 1000 millions
 #             nelemslice = 1000000 # > 1/1000th
 #             chunksize = 1500
             nelemslice = 1500000 # > 1/1000th
-            chunksize = 3000
+            #chunksize = 4000
+            chunksize = 10000   # Experimental
         else:  # expected rows > 1 billion
             #nelemslice = 1000000 # 1/1000  # Better for small machines
             #chunksize = 1000
 #             nelemslice = 1500000 # 1.5/1000  # Better for medium machines
 #             chunksize = 3000
             nelemslice = 2000000 # 2/1000  # Better for big machines
-            chunksize = 4000
-            
+            #chunksize = 10000
+            chunksize = 10000  # Experimental
+
+        #chunksize *= 5  # Best value
+        #chunksize = nelemslice // 150
+        print "nelemslice, chunksize -->", (nelemslice, chunksize)
         return (nelemslice, chunksize)
 
     def _create(self):
@@ -161,8 +170,7 @@ class IndexArray(EArray, hdf5Extension.Array, object):
             # Only support for creating objects in system byteorder
             self.byteorder  = sys.byteorder
         # Compute the optimal chunksize
-        (self.nelemslice, self.chunksize) = \
-            self._calcChunksize(self._v_expectedrows, self.filters.complevel)
+        (self.nelemslice, self.chunksize) = self._calcChunksize()
         self._v_chunksize = (1, self.chunksize)
         self.nrows = 0   # No rows initially
         self.itemsize = self.atom.itemsize
@@ -173,6 +181,7 @@ class IndexArray(EArray, hdf5Extension.Array, object):
         self.extdim = 0
         # Compute the optimal maxTuples
         # Ten chunks for each buffer would be enough for IndexArray objects
+        # This is really necessary??
         self._v_maxTuples = 10  
         #print "dims-->", self.shape
         #print "chunk dims-->", self._v_chunksize
@@ -200,21 +209,22 @@ class IndexArray(EArray, hdf5Extension.Array, object):
         self.nrows = self.shape[0]
         # Compute the optimal maxTuples
         # Ten chunks for each buffer would be enough for IndexArray objects
+        # This is really necessary??
         self._v_maxTuples = 10  
 
-    def searchBin(self, item):
-        """Do a binary search in this index for an item"""
-        ntotaliter = 0  # for counting the number of reads on each
-        inflimit = []; suplimit = []
-        bufsize = self._v_chunksize[1] # number of elements/chunksize
-        self._initSortedSlice(bufsize)
-        for i in xrange(self.nrows):
-            (result1, result2, niter) = self._searchBin(i, item)
-            inflimit.append(result1)
-            suplimit.append(result2)
-            ntotaliter = ntotaliter + niter
-        self._destroySortedSlice()
-        return (inflimit, suplimit, ntotaliter)
+#     def searchBin(self, item):
+#         """Do a binary search in this index for an item"""
+#         ntotaliter = 0  # for counting the number of reads on each
+#         inflimit = []; suplimit = []
+#         bufsize = self._v_chunksize[1] # number of elements/chunksize
+#         self._initSortedSlice(bufsize)
+#         for i in xrange(self.nrows):
+#             (result1, result2, niter) = self._searchBin(i, item)
+#             inflimit.append(result1)
+#             suplimit.append(result2)
+#             ntotaliter = ntotaliter + niter
+#         self._destroySortedSlice()
+#         return (inflimit, suplimit, ntotaliter)
 
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
