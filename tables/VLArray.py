@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.1 2003/11/19 18:07:46 falted Exp $
+#       $Id: VLArray.py,v 1.2 2003/11/25 11:26:26 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.1 $"
+__version__ = "$Revision: 1.2 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -41,6 +41,7 @@ from Leaf import Leaf
 #from utils import calcBufferSize
 import hdf5Extension
 from IsDescription import Col, BoolCol, StringCol, IntCol, FloatCol
+from utils import processRange
 
 try:
     import Numeric
@@ -401,7 +402,11 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             # Correction for only one parameter passed
             object = objects[0]
         else:
-            object = objects
+            if self.atom.flavor == "VLString":
+                raise ValueError, \
+"""The append method only accepts one parameter for 'VLString' data type."""
+            else:
+                object = objects
 
         # Convert the object to a numarray object
         if self.atom.flavor == "Object":
@@ -435,75 +440,122 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         (self.atomictype, self.nrows, self.atomicshape, self.byteorder) = \
                         self._openArray()
         self.shape = (self.nrows,)
-        print "atomictype-->", self.atomictype
-        print "atomicshape-->", self.atomicshape
-        print "byteorder-->", self.byteorder
-        print "nrows-->", self.nrows
+        # self.attrs is not available yet
+        #self.flavor = self.getAttr("FLAVOR")
+
+    def iterrows(self, start=None, stop=None, step=None):
+        """Iterator over all the rows or a range"""
+
+        return self.__call__(start, stop, step)
+
+    def __call__(self, start=None, stop=None, step=None):
+        """Iterate over all the rows or a range.
+        
+        It returns the same iterator than
+        Table.iterrows(start, stop, step).
+        It is, therefore, a shorter way to call it.
+        """
+
+        (self.start, self.stop, self.step) = \
+                     processRange(self.nrows, start, stop, step)
+        self._initLoop()
+        return self
+        
+    def __iter__(self):
+        """Iterate over all the rows."""
+
+        if not hasattr(self, "_init"):
+            # If the iterator is called directly, assign default variables
+            self.start = 0
+            self.stop = self.nrows
+            self.step = 1
+            # and initialize the loop
+            self._initLoop()
+        return self
+
+    def _initLoop(self):
+        "Initialization for the __iter__ iterator"
+
+        self._nrowsinbuf = 100    # Maybe enough for most applications
+        self.nrowsread = self.start
+        self.startb = self.start
+        self._row = -1   # Sentinel
+        self._init = 1    # Sentinel
+
+    def next(self):
+        "next() method for __iter__() that is called on each iteration"
+        if self.nrowsread >= self.stop:
+            del self._init
+            raise StopIteration        # end of iteration
+        else:
+            # Read a chunk of rows
+            if self._row > self._nrowsinbuf or self._row < 0:
+                self.stopb = self.startb+self.step*self._nrowsinbuf
+                self.listarr = self.read(self.startb, self.stopb, self.step)
+                #print "listarr-->", self.listarr
+                self._row = -1
+                self.startb = self.stopb
+            self._row += 1
+            self.nrowsread += self.step
+            #print "_row-->", self._row
+            return self.listarr[self._row]
 
     # Accessor for the _readArray method in superclass
-    def read(self):
+    def read(self, start=None, stop=None, step=None):
         """Read the array from disk and return it as numarray."""
 
-        if repr(self.type) == "CharType":
-            arr = strings.array(None, itemsize=self.itemsize,
-                                  shape=self.shape)
+        (start, stop, step) = processRange(self.nrows, start, stop, step)
+
+        if start == stop:
+            listarr = []
         else:
-            arr = numarray.array(buffer=None,
-                                 type=self.type,
-                                 shape=self.shape)
-            # Set the same byteorder than on-disk
-            print "byteorder-->", self.byteorder
-            arr._byteorder = self.byteorder
-
-        # Protection against empty arrays on disk
-        zerodim = 0
-        for i in range(len(self.shape)):
-            if self.shape[i] == 0:
-                zerodim = 1
-                
-        if not zerodim:
-            # Arrays that have not zero dimensionality
-            self._readArray(arr._data)
-
-        # Numeric, NumArray, CharArray, Tuple, List, String, Int or Float
-        self.atom.flavor = self.getAttr("FLAVOR")
-        
-        # Convert to Numeric, tuple or list if needed
-        if self.atom.flavor == "Numeric":
-            if Numeric_imported:
-                # This works for both numeric and chararrays
-                # arr=Numeric.array(arr, typecode=arr.typecode())
-                # The next is 10 times faster (for tolist(),
-                # we should check for tostring()!)
-                if repr(self.type) == "CharType":
-                    arrstr = arr.tostring()
-                    arr=Numeric.reshape(Numeric.array(arrstr), arr.shape)
-                else:
-                    # tolist() method creates a list with a sane byteorder
-                    if arr.shape <> ():
-                        arr=Numeric.array(arr.tolist(), typecode=arr.typecode())
+            listarr = self._readArray(start, stop, step)
+            
+        #self.flavor = self.getAttr("FLAVOR")
+        self.flavor = self.attrs.FLAVOR
+        outlistarr = []
+        for arr in listarr:
+            # Convert to Numeric, tuple or list if needed
+            if self.flavor == "Numeric":
+                if Numeric_imported:
+                    # This works for both numeric and chararrays
+                    # arr=Numeric.array(arr, typecode=arr.typecode())
+                    # The next is 10 times faster (for tolist(),
+                    # we should check for tostring()!)
+                    if repr(self.atomictype) == "CharType":
+                        arrstr = arr.tostring()
+                        arr=Numeric.reshape(Numeric.array(arrstr), arr.shape)
                     else:
-                        # This works for rank-0 arrays
-                        # (but is slower for big arrays)
-                        arr=Numeric.array(arr, typecode=arr.typecode())
-                        
-            else:
-                # Warn the user
-                warnings.warn( \
-"""The object on-disk is type Numeric, but Numeric is not installed locally.
-  Returning a numarray object instead!.""")
-        elif self.atom.flavor == "Tuple":
-            arr = tuple(arr.tolist())
-        elif self.atom.flavor == "List":
-            arr = arr.tolist()
-        elif self.atom.flavor == "Int":
-            arr = int(arr)
-        elif self.atom.flavor == "Float":
-            arr = float(arr)
-        elif self.atom.flavor == "String":
-            arr = arr.tostring()
-        
-        return arr
+                        # tolist() method creates a list with a sane byteorder
+                        if arr.shape <> ():
+                            arr=Numeric.array(arr.tolist(), typecode=arr.typecode())
+                        else:
+                            # This works for rank-0 arrays
+                            # (but is slower for big arrays)
+                            arr=Numeric.array(arr, typecode=arr.typecode())
+
+                else:
+                    # Warn the user
+                    warnings.warn( \
+    """The object on-disk is type Numeric, but Numeric is not installed locally.
+      Returning a numarray object instead!.""")
+            elif self.flavor == "Tuple":
+                arr = tuple(arr.tolist())
+            elif self.flavor == "List":
+                arr = arr.tolist()
+            elif self.flavor == "Int":
+                arr = int(arr)
+            elif self.flavor == "Float":
+                arr = float(arr)
+            elif self.flavor == "String":
+                arr = arr.tostring()
+            elif self.flavor == "VLString":
+                arr = arr.tostring().decode('utf-8')
+            elif self.flavor == "Object":
+                arr = cPickle.loads(arr.tostring())
+
+            outlistarr.append(arr)
+        return outlistarr
         
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""

@@ -35,6 +35,7 @@ void *test_vltypes_alloc_custom(size_t size, void *info)
      *  alignment correct - QAK
      */
 /*     extra=MAX(sizeof(void *),sizeof(size_t)); */
+    /* I've replaced the above line by the next code */
     extra=sizeof(void *);
     if (extra < sizeof(size_t)) 
       extra = sizeof(size_t);
@@ -42,7 +43,7 @@ void *test_vltypes_alloc_custom(size_t size, void *info)
     if((ret_value=malloc(extra+size))!=NULL) {
         *(size_t *)ret_value=size;
         *mem_used+=size;
-    } /* end if */
+    }
     ret_value=((unsigned char *)ret_value)+extra;
     return(ret_value);
 }
@@ -351,13 +352,27 @@ out:
  *-------------------------------------------------------------------------
  */
 
-/* Falta implementacio */
 herr_t H5VLARRAYread( hid_t loc_id, 
 		      const char *dset_name,
-		      void *data )
+		      hsize_t start,
+		      hsize_t nrecords,
+		      hsize_t step,
+		      hvl_t *data,
+		      hsize_t *datalen)
 {
- hid_t   dataset_id;  
- hid_t   type_id;
+ hid_t    dataset_id;
+ hid_t    space_id;
+ hid_t    mem_space_id;
+ hid_t    type_id;
+ hsize_t  dims[1];
+ hsize_t  count[1];    
+ hsize_t  stride[1];    
+ hssize_t offset[1];
+ hid_t    xfer_pid;   /* Dataset transfer property list ID */
+ hsize_t  size;       /* Number of bytes which will be used */
+ size_t   mem_used=0; /* Memory used during allocation */
+ int      i, *j;
+ int      rank;
 
  /* Open the dataset. */
  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
@@ -366,17 +381,69 @@ herr_t H5VLARRAYread( hid_t loc_id,
  /* Get the datatype */
  if ( (type_id = H5Dget_type(dataset_id)) < 0 )
      return -1;
+
+  /* Get the dataspace handle */
+ if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+  goto out;
+
+ /* Get numbers of rows */
+ if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
+  goto out;
+
+ if ( start + nrecords > dims[0] ) {
+   printf("Asking for a range of rows exceeding the available ones!.\n");
+   goto out;
+ }
+
+ /* Define a hyperslab in the dataset of the size of the records */
+ offset[0] = start;
+ count[0]  = nrecords;
+ stride[0] = step;
+ if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, stride, count, NULL) < 0 )
+  goto out;
+
+ /* Change to the custom memory allocation routines for reading VL data */
+ if ((xfer_pid=H5Pcreate(H5P_DATASET_XFER)) < 0 )
+   goto out;
+
+ if (H5Pset_vlen_mem_manager(xfer_pid, test_vltypes_alloc_custom, 
+			     &mem_used, test_vltypes_free_custom, &mem_used))
+   goto out;
+
+ /* Make certain the correct amount of memory will be used */
+/*  H5Dvlen_get_buf_size(dataset_id, type_id, space_id, &size); */
+/*  printf("Memory size to book: %d\n", size); */
+
+ /* Create a memory dataspace handle */
+ if ( (mem_space_id = H5Screate_simple( 1, count, NULL )) < 0 )
+  goto out;
+
+ /* All these possibilities do work: */
+ if ( H5Dread( dataset_id, type_id, mem_space_id, space_id, xfer_pid, data ) < 0 )
+/*  if ( H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 ) */
+  goto out;
+
+/*  printf("Memory size allocated after reading: %d\n", (int)mem_used); */
+ *datalen = (hsize_t) mem_used;
  
- /* Read */
- if (H5Dread(dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data) < 0)
+ /* Terminate access to the memory dataspace */
+ if ( H5Sclose( mem_space_id ) < 0 )
+  goto out;
+
+ /* Terminate access to the dataspace */
+ if ( H5Sclose( space_id ) < 0 )
   goto out;
 
  /* End access to the dataset and release resources used by it. */
  if ( H5Dclose( dataset_id ) )
   return -1;
 
- /* Release resources */
+ /* Close the vlen type */
  if ( H5Tclose(type_id))
+   return -1;
+
+ /* Close dataset transfer property list */
+ if (H5Pclose(xfer_pid))
    return -1;
 
  return 0;
@@ -507,9 +574,6 @@ herr_t H5VLARRAYget_info( hid_t   loc_id,
   /* Get an identifier for the datatype. */
   type_id = H5Dget_type( dataset_id );
 
-  /* Get the class. */
-/*   class_arr_id = H5Tget_class( type_id ); /\* This should be H5T_VLEN *\/ */
-
   /* Get the type of the atomic component */
   atom_type_id = H5Tget_super( type_id );
 
@@ -537,7 +601,8 @@ herr_t H5VLARRAYget_info( hid_t   loc_id,
 
   /* Get the byteorder */
   /* Only class integer and float can be byteordered */
-  if ( (base_class_id == H5T_INTEGER) || (base_class_id == H5T_FLOAT) ) {
+  if ( (base_class_id == H5T_INTEGER) || (base_class_id == H5T_FLOAT)
+       || (base_class_id == H5T_BITFIELD) ) {
     order = H5Tget_order( *base_type_id );
     if (order == H5T_ORDER_LE) 
       strcpy(base_byteorder, "little");

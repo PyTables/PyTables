@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.84 2003/11/19 18:07:46 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.85 2003/11/25 11:26:24 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.84 $"
+__version__ = "$Revision: 1.85 $"
 
 
 import sys, os
@@ -44,6 +44,7 @@ import types, cPickle
 import numarray
 #import recarray2 as recarray
 from numarray import records
+from numarray import strings
 from numarray import memmap
 from utils import calcBufferSize
 
@@ -116,6 +117,7 @@ cdef extern from "Python.h":
 
   # To access to Memory (Buffer) objects presents in numarray
   object PyBuffer_FromMemory(void *ptr, int size)
+  object PyBuffer_FromReadWriteMemory(void *ptr, int size)
   object PyBuffer_New(int size)
   int PyObject_CheckReadBuffer(object)
   int PyObject_AsReadBuffer(object, void **rbuf, int *len)
@@ -248,13 +250,30 @@ cdef extern from "hdf5.h":
   ctypedef int htri_t
   ctypedef long long hsize_t    # How to declare that in a compatible MSVC way?
 
+  ctypedef struct hvl_t:
+    size_t len                 # Length of VL data (in base type units) */
+    void *p                    # Pointer to VL data */
+
+  ctypedef enum H5G_obj_t:
+    H5G_UNKNOWN = -1,           # Unknown object type          */
+    H5G_LINK,                   # Object is a symbolic link    */
+    H5G_GROUP,                  # Object is a group            */
+    H5G_DATASET,                # Object is a dataset          */
+    H5G_TYPE,                   # Object is a named data type  */
+    H5G_RESERVED_4,             # Reserved for future use      */
+    H5G_RESERVED_5,             # Reserved for future use      */
+    H5G_RESERVED_6,             # Reserved for future use      */
+    H5G_RESERVED_7              # Reserved for future use      */
+
   cdef struct H5G_stat_t:
     unsigned long fileno[2]
     unsigned long objno[2]
     unsigned nlink
-    int type
+    #int type     # pre HDF5 1.4
+    H5G_obj_t type  # new in HDF5 1.6
     time_t mtime
     size_t linklen
+    #H5O_stat_t ohdr           # Object header information. New in HDF5 1.6
   
   cdef enum H5T_class_t:
     H5T_NO_CLASS         = -1,  #error                                      */
@@ -471,9 +490,13 @@ cdef extern from "H5ARRAY.h":
   herr_t H5ARRAYget_ndims( hid_t loc_id, char *dset_name, int *rank )
 
   herr_t H5ARRAYget_info( hid_t loc_id, char *dset_name,
-                          hsize_t *dims, H5T_class_t *class_id,
-                          H5T_sign_t *sign, char *byteorder,
-                          size_t *type_size, size_t *type_precision)
+                          hsize_t *dims, hid_t *super_type_id,
+                          H5T_class_t *super_class_id, char *byteorder)
+
+#   herr_t H5ARRAYget_info( hid_t loc_id, char *dset_name,
+#                           hsize_t *dims, H5T_class_t *class_id,
+#                           H5T_sign_t *sign, char *byteorder,
+#                           size_t *type_size, size_t *type_precision)
 
 # Functions for VLEN Arrays
 cdef extern from "H5VLARRAY.h":
@@ -489,22 +512,21 @@ cdef extern from "H5VLARRAY.h":
                                   void *data )  
 
   herr_t H5VLARRAYread( hid_t loc_id, char *dset_name,
-                        void *data )
+                        hsize_t start,  hsize_t nrows, hsize_t step,
+                        hvl_t *rdata, hsize_t *rdatalen )
 
   herr_t H5VLARRAYget_ndims( hid_t loc_id, char *dset_name, int *rank )
 
-  herr_t H5VLARRAYget_info( hid_t   loc_id, char *dset_name,
+  herr_t H5VLARRAYget_info( hid_t loc_id, char *dset_name,
                             hsize_t *nrecords, hsize_t *base_dims,
-                            hid_t *base_type_id, char  *base_byteorder)
+                            hid_t *base_type_id, char *base_byteorder)
 
 
 # Funtion to compute the HDF5 type from a numarray enum type
 cdef extern from "arraytypes.h":
     
   hid_t convArrayType(int fmt, size_t size, char *byteorder)
-  int getArrayType(H5T_class_t class_id, size_t type_size,
-                   size_t type_precision, H5T_sign_t sign, int *format)
-  int getArrayType_new(hid_t type_id, int *fmt) 
+  size_t getArrayType(hid_t type_id, int *fmt) 
 
                    
 # I define this constant, but I should not, because it should be defined in
@@ -790,7 +812,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.84 2003/11/19 18:07:46 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.85 2003/11/25 11:26:24 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1704,7 +1726,6 @@ cdef class Row:
           self.stopb = self.nrowsinbuf
         self._row = self.startb - self.step
         # Read a chunk
-        #self.recout = mytab._read_records(self.nrowsread,
         self.recout = self._table._read_records(self.nrowsread,
                                                 self.nrowsinbuf)
         self.nrowsread = self.nrowsread + self.recout
@@ -1900,6 +1921,7 @@ cdef class Array:
   cdef hsize_t *dims
   cdef object  type
   cdef int     enumtype
+  cdef hid_t   type_id
 
   def _g_new(self, where, name):
     # Initialize the C attributes of Group object (Very important!)
@@ -1915,9 +1937,8 @@ cdef class Array:
     cdef int itemsize, offset
     cdef char *byteorder
     cdef char *flavor, *complib, *version
-    cdef hid_t   type_id
 
-    if isinstance(naarr, numarray.strings.CharArray):
+    if isinstance(naarr, strings.CharArray):
       self.type = CharType
       self.enumtype = toenum[CharType]
     else:
@@ -1931,8 +1952,8 @@ cdef class Array:
 
     itemsize = naarr._itemsize
     byteorder = PyString_AsString(self.byteorder)
-    type_id = convArrayType(self.enumtype, itemsize, byteorder)
-    if type_id < 0:
+    self.type_id = convArrayType(self.enumtype, itemsize, byteorder)
+    if self.type_id < 0:
       raise TypeError, \
         """type '%s' is not supported right now. Sorry about that.""" \
     % self.type
@@ -1961,13 +1982,14 @@ cdef class Array:
     
     ret = H5ARRAYmake(self.parent_id, self.name, title,
                       flavor, version, self._v_atomictype, self.rank,
-                      self.dims, type_id, self._v_chunksize, rbuf,
+                      self.dims, self.type_id, self._v_chunksize, rbuf,
                       self._v_compress, complib, self._v_shuffle,
                       rbuf)
     if ret < 0:
       raise RuntimeError("Problems saving the array.")
 
-    H5Tclose(type_id)    # Release resources
+    H5Tclose(self.type_id)    # Release resources
+
     return self.type
     
   def _openArray(self):
@@ -1985,17 +2007,17 @@ cdef class Array:
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Get info on dimensions, class and type size
     ret = H5ARRAYget_info(self.parent_id, self.name, self.dims,
-                          &class_id, &sign, byteorder,
-                          &type_size, &type_precision)
+                          &self.type_id, &class_id, byteorder)
 
     # Get the array type
-    ret = getArrayType(class_id, type_size, type_precision,
-                       sign, &self.enumtype)
-    if ret < 0:
+    type_size = getArrayType(self.type_id, &self.enumtype)
+    if type_size < 0:
       raise TypeError, "HDF5 class %d not supported. Sorry!" % class_id
 
+    H5Tclose(self.type_id)    # Release resources
+
     # We had problems when creating Tuples directly with Pyrex!.
-    # A bug report has been sent to Greg and here is his answer:
+    # A bug report has been sent to Greg Ewing and here is his answer:
     """
 
     It's impossible to call PyTuple_SetItem and PyTuple_GetItem
@@ -2011,11 +2033,9 @@ cdef class Array:
     """
     # So, I've decided to create the shape tuple using Python constructs
     shape = []
-    #for i in range(self.rank):
     for i from 0 <= i < self.rank:
       shape.append(self.dims[i])
     shape = tuple(shape)
-    #shape=(10)
 
     return (toclass[self.enumtype], shape, type_size, byteorder)
   
@@ -2076,6 +2096,8 @@ cdef class VLArray:
   cdef hsize_t nrecords
   cdef int     nelements
   cdef int     scalar
+  cdef int     atomicsize
+  cdef size_t  base_type_size
 
   def _g_new(self, where, name):
     # Initialize the C attributes of Group object (Very important!)
@@ -2182,8 +2204,9 @@ cdef class VLArray:
     cdef int i
     cdef herr_t ret
     cdef hsize_t nrecords[1]
-
-    # Get the rank for this array object
+    cdef object naatomictype
+    
+    # Get the rank for the atom in the array object
     ret = H5VLARRAYget_ndims(self.parent_id, self.name, &self.rank)
     # Allocate space for the dimension axis info
     if self.rank:
@@ -2195,23 +2218,71 @@ cdef class VLArray:
                             self.dims, &self.type_id, byteorder)
 
     # Get the array type
+    self.base_type_size = getArrayType(self.type_id, &self.enumtype)
+    if self.base_type_size < 0:
+      raise TypeError, "The HDF5 class of object does not seem VLEN. Sorry!"
 
-    ret = getArrayType_new(self.type_id, &self.enumtype)
-    if ret < 0:
-      raise TypeError, "HDF5 class %d not supported. Sorry!" % class_id
-
-    # Create the shape tuple using Python constructs
+    # Get the type of the atomic type
+    naatomictype = toclass[self.enumtype]
+    # Get the size and shape of the atomic type
+    self.atomicsize = self.base_type_size
     if self.rank:
       shape = []
       for i from 0 <= i < self.rank:
         shape.append(self.dims[i])
+        self.atomicsize = self.atomicsize * self.dims[i]
       shape = tuple(shape)
     else:
-      # rank zero means an scalar
+      # rank zero means a scalar
       shape = 1
+    #print "atomicsize -->", self.atomicsize
 
-    return (toclass[self.enumtype], nrecords[0], shape, byteorder)
-  
+    return (naatomictype, nrecords[0], shape, byteorder)
+
+  def _readArray(self, hsize_t start, hsize_t stop, hsize_t step):
+    cdef herr_t ret
+    cdef hvl_t *rdata   # Information read in
+    cdef size_t vllen
+    cdef hsize_t rdatalen
+    cdef object rbuf, naarr, shape, datalist
+    cdef int i
+    cdef hsize_t nrows
+
+    # Compute the number of rows to read
+    nrows = ((stop - start - 1) / step) + 1  # (stop-start)/step  do not work
+    rdata = <hvl_t *>malloc(nrows*sizeof(hvl_t))
+    ret = H5VLARRAYread(self.parent_id, self.name, start, nrows, step, rdata,
+                        &rdatalen)
+    if ret < 0:
+      raise RuntimeError("Problems reading the array data.")
+
+    datalist = []
+    for i from 0 <= i < nrows:
+      # Number of atoms in row
+      vllen = rdata[i].len
+      #print "datalen-->", vllen
+      # Get the pointer to the buffer data area
+      rbuf = PyBuffer_FromReadWriteMemory(rdata[i].p, vllen*self.atomicsize)
+      if not rbuf:
+        raise RuntimeError("Problems creating a python buffer for read data.")
+      # Compute the shape for the read array
+      if (isinstance(self.atomicshape, types.TupleType)):
+        shape = list(self.atomicshape)
+        shape.insert(0, vllen)  # put the length at the beginning of the shape
+      else:
+        shape = (vllen, self.atomicshape)
+      # Create an array to keep this info
+      if str(self.atomictype) == "CharType":
+        naarr = strings.array(rbuf, itemsize=self.base_type_size, shape=shape)
+      else:
+        naarr = numarray.array(rbuf, type=self.atomictype, shape=shape)
+      datalist.append(naarr)
+
+    # Release resources
+    free(rdata)
+    
+    return datalist
+
   def __dealloc__(self):
     #print "Destroying object Array in Extension"
     H5Tclose(self.type_id)    # To avoid memory leaks

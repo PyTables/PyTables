@@ -5,13 +5,15 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.4 2003/11/19 18:07:46 falted Exp $
+#       $Id: utils.py,v 1.5 2003/11/25 11:26:26 falted Exp $
 #
 ########################################################################
 
 """Utility functions
 
 """
+
+import types
 
 # Reserved prefixes for special attributes in Group and other classes
 reservedprefixes = [
@@ -171,3 +173,51 @@ def calcBufferSize(rowsize, expectedrows, compress):
     #    maxTuples = buffersize // rowsize
     return (maxTuples, chunksize)
         
+def processRange(nrows, start=None, stop=None, step=None):
+
+    assert (type(start) in
+            [types.NoneType, types.IntType, types.LongType]), \
+        "Non valid start parameter: %s" % start
+
+    assert (type(stop) in
+            [types.NoneType, types.IntType, types.LongType]), \
+        "Non valid stop parameter: %s" % stop
+
+    assert (type(step) in
+            [types.NoneType, types.IntType, types.LongType]), \
+        "Non valid step parameter: %s" % step
+
+    if (not (start is None)) and ((stop is None) and (step is None)):
+        step = 1
+        if start < 0:
+            start = nrows + start
+        stop = start + 1
+    else:
+        if start is None:
+            start = 0
+        elif start < 0:
+            start = nrows + start
+        elif start > nrows:
+            start = nrows
+
+        if stop is None:
+            stop = nrows
+        elif stop <= 0 :
+            stop = nrows + stop
+        elif stop > nrows:
+            stop = nrows
+
+        if step is None:
+            step = 1
+        elif step <= 0:
+            raise ValueError, \
+                  "Zero or negative step values are not allowed!"
+        
+    # Protection against reading more than available records
+#     if stop > nrows or start > nrows:
+#         raise IndexError, \
+# "Start (%s) or stop (%s) value is greater than number of rows (%s)." % \
+# (start, stop, self.nrows)
+
+    return (start, stop, step)
+    

@@ -41,9 +41,9 @@ hdfarray.append(["456", "3"])
 #hdfarray.append(["1234", "456", "3"])
 
 # Binary strings
-hdfarray = fileh.createVLArray(root, 'vlarray4', UInt8Atom(),
-                               "pickled bytes")
-hdfarray.append(array(cPickle.dumps((["123", "456"], "3")),type=UInt8))
+# hdfarray = fileh.createVLArray(root, 'vlarray4', UInt8Atom(),
+#                                "pickled bytes")
+# hdfarray.append(array(cPickle.dumps((["123", "456"], "3")),type=UInt8))
 
 # Proper pas: fer que aco funcione...
 # Aquest example deuria ser identicament igual al de dalt, doncs no ho es
@@ -55,9 +55,8 @@ hdfarray.append(["123", "456"], "3")
 hdfarray = fileh.createVLArray(root, 'vlarray6', BoolAtom(),
                                "Boolean atoms")
 # The next lines are equivalent...
-hdfarray.append([1,0,1])
-hdfarray.append(1,0,1)
-hdfarray.append(1,0,1,0,3)  # This will be converted to a boolean
+hdfarray.append([1,0])
+hdfarray.append(1,0,3,0)  # This will be converted to a boolean
 # This gives a TypeError
 #hdfarray.append([1,0,1])
 
@@ -70,8 +69,8 @@ hdfarray.append(u"aaañá")
 # Unicode variable length strings (utf-8 encoding)
 hdfarray = fileh.createVLArray(root, 'vlarray8', VLString(),
                                "Variable Length String")
-hdfarray.append(u"asd")
 hdfarray.append(u"aaañá")
+hdfarray.append(u"asd")
 
 # Close the file
 fileh.close()
@@ -80,6 +79,22 @@ fileh.close()
 fileh = openFile("vlarray1.h5", mode = "r")
 # Get the root group
 root = fileh.root
+
+# for object in fileh.listNodes(root, "Leaf"):
+#     arr = object.read(step=3)
+# #     for i in range(len(arr)):
+# #         print object.name, "[", i, "]-->", arr[i]
+#     print object.name, "-->", arr
+#     print "number of objects in this row:", len(arr)
+
+for object in fileh.listNodes(root, "Leaf"):
+    i = 0
+    #for atom in object.iterrows(step=2):
+    #for atom in object(step=2):
+    for atom in object:
+        print object.name, "[", i, "]-->", atom
+        i += 1
+    print "number of objects in this row:", i
 
 # Close the file
 fileh.close()

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.78 2003/10/31 18:51:43 falted Exp $
+#       $Id: Table.py,v 1.79 2003/11/25 11:26:25 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.78 $"
+__version__ = "$Revision: 1.79 $"
 
 from __future__ import generators
 import sys
@@ -41,7 +41,7 @@ import numarray
 import numarray.strings as strings
 import numarray.records as records
 import hdf5Extension
-from utils import calcBufferSize
+from utils import calcBufferSize, processRange
 from Leaf import Leaf
 from IsDescription import IsDescription, Description, metaIsDescription, \
      Col, StringCol, fromstructfmt
@@ -263,21 +263,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.byteorder = byteorderDict[self._v_fmt[0]]
         self.row = hdf5Extension.Row(self)
 
-#     def _buildDescription(self, itemsizes, colshapes, coltypes):
-
-#         fields = {}
-#         for i in range(len(self.colnames)):
-#             if coltypes[i] == "CharType":
-#                 itemsize = itemsizes[i]
-#                 fields[self.colnames[i]] = StringCol(length = itemsize,
-#                                                      shape = colshapes[i],
-#                                                      pos = i)
-#             else:
-#                 fields[self.colnames[i]] = Col(dtype = coltypes[i],
-#                                                shape = colshapes[i],
-#                                                pos = i)
-#         return fields
-                         
     def _open(self):
         """Opens a table from disk and read the metadata on it.
 
@@ -354,45 +339,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
 
-    def _processRange(self, start=None, stop=None, step=None):
-        
-        assert (type(start) in
-                [types.NoneType, types.IntType, types.LongType]), \
-            "Non valid start parameter: %s" % start
-        
-        assert (type(stop) in
-                [types.NoneType, types.IntType, types.LongType]), \
-            "Non valid stop parameter: %s" % stop
-        
-        assert (type(step) in
-                [types.NoneType, types.IntType, types.LongType]), \
-            "Non valid step parameter: %s" % step
-        
-        if (not (start is None)) and ((stop is None) and (step is None)):
-            step = 1
-            if start < 0:
-                start = self.nrows + start
-            stop = start + 1
-        else:
-            if start is None:
-                start = 0
-            elif start < 0:
-                start = self.nrows + start
-
-            if stop is None:
-                stop = self.nrows
-            elif stop <= 0 :
-                stop = self.nrows + stop
-            elif stop > self.nrows:
-                stop = self.nrows
-
-            if step is None:
-                step = 1
-            elif step <= 0:
-                raise ValueError, \
-                      "Zero or negative step values are not allowed!"
-        return (start, stop, step)
-    
     def iterrows(self, start=None, stop=None, step=None, where=None):
         """Iterator over all the rows or a range"""
 
@@ -406,7 +352,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         It is, therefore, a shorter way to call it.
         """
 
-        if where and 1:   # Suport per a indexacio
+        if where and 0:   # Suport per a indexacio
             # Parse the condition in the form : {number <{=}} name {<{=} number}
             regex = r'([\d\.eE]*)\s*(<={0,1})*\s*(\w*)\s*(<={0,1})*\s*([\d\.eE]*)'
             m=re.search(regex, where)
@@ -426,7 +372,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             if op2 == "<=": stopcond += 1
             istart, istop = numarray.searchsorted(column, (startcond, stopcond))
             print "istart, istop, start, stop -->", istart, istop, start, stop
-            (start, stop, step) = self._processRange(start, stop, step)
+            (start, stop, step) = processRange(self.nrows, start, stop, step)
 
             if istart > start:
                 print "Seleccio escomenca %d pos mes amunt!" % (istart - start)
@@ -435,7 +381,7 @@ class Table(Leaf, hdf5Extension.Table, object):
                 print "Seleccio acava %d pos mes avall!" % (stop - istop)
                 stop = istop
 
-        (start, stop, step) = self._processRange(start, stop, step)
+        (start, stop, step) = processRange(self.nrows, start, stop, step)
 
         return self.row(start, stop, step)
         
@@ -444,7 +390,6 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         return self.__call__()
 
-    #def read(self, start=None, stop=None, step=None, field=None, flavor=None):
     def read(self, start=None, stop=None, step=None,
              field=None, flavor=None, coords = None):
         """Read a range of rows and return an in-memory object.
@@ -464,7 +409,7 @@ class Table(Leaf, hdf5Extension.Table, object):
                   """The column name '%s' not found in table {%s}""" % \
                   (field, self)
         
-        (start, stop, step) = self._processRange(start, stop, step)
+        (start, stop, step) = processRange(self.nrows, start, stop, step)
         
         if flavor == None:
             #return self._read(start, stop, step, field)
@@ -528,7 +473,8 @@ class Table(Leaf, hdf5Extension.Table, object):
             else:
                 return numarray.array(shape=(0,), type=typeField)
                 
-        nrows = ((stop - start - 1) // step) + 1  # stop-start//step??
+        # (stop-start)//step  is not enough
+        nrows = ((stop - start - 1) // step) + 1
         # Compute the shape of the resulting column object
         if field:
             shape = self.colshapes[field]
@@ -642,7 +588,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         if stop is None:
             stop = start + 1
         # Check for correct values of start and stop    
-        (start, stop, step) = self._processRange(start, stop, 1)
+        (start, stop, step) = processRange(self.nrows, start, stop, 1)
         nrows = stop - start
         nrows = self._remove_row(start, nrows)
         self.nrows -= nrows    # discount the removed rows from the total

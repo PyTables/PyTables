@@ -31,7 +31,11 @@ herr_t H5VLARRAYappend_records( hid_t loc_id,
 
 herr_t H5VLARRAYread( hid_t loc_id, 
 		      const char *dset_name,
-		      void *data );
+		      hsize_t start,
+		      hsize_t nrows,
+		      hsize_t step,
+		      hvl_t *data,
+		      hsize_t *datalen );
 
 herr_t H5VLARRAYget_ndims( hid_t loc_id, 
 			   const char *dset_name,

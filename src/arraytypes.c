@@ -91,84 +91,11 @@ hid_t
    return type_id;
 }
 
-/* Routine to map the atomic type to a Numeric typecode 
- */
-int getArrayType(H5T_class_t class_id,
-		 size_t type_size,
-		 size_t type_precision,
-		 H5T_sign_t sign,
-		 int *fmt) 
-{
-  switch(class_id) {
-  case H5T_BITFIELD:
-    *fmt = tBool;              /* boolean */
-    break;
-  case H5T_INTEGER:           /* int (bool, byte, short, long, long long) */
-    switch (type_size) {
-    case 1:                        /* byte */
-      if ( sign )
-	*fmt = tInt8;                /* signed byte */
-      else
-	*fmt = tUInt8;             /* unsigned byte */
-      break;
-    case 2:                        /* short */
-      if ( sign )
-	 *fmt =tInt16;                /* signed short */
-      else
-	*fmt = tUInt16;                /* unsigned short */
-      break;
-    case 4:                        /* long */
-      if ( sign )
-	*fmt = tInt32;                /* signed long */
-      else
-	*fmt = tUInt32;                /* unsigned long */
-      break;
-    case 8:                        /* long long */
-      if ( sign )
-	*fmt = tInt64;                /* signed long long */
-      else
-	*fmt = tUInt64;                /* unsigned long long */
-      break;
-    default:
-      /* This should never happen */
-      goto out;
-    }
-    break; /* case H5T_INTEGER */
-  case H5T_FLOAT:                   /* float (single or double) */
-    switch (type_size) {
-    case 4:
-	*fmt = tFloat32;                 /* float */
-	break;
-    case 8:
-	*fmt = tFloat64;                 /* double */
-	break;
-    default:
-      /* This should never happen */
-      goto out;
-    }
-    break; /* case H5T_FLOAT */
-  case H5T_STRING:                  /* char or string */
-    /* I map this to "a" until a enum NumarrayType is assigned to it! */
-      *fmt = (int)'a';                   /* chararray */
-    break; /* case H5T_STRING */
-  default: /* Any other class type */
-    /* This should never happen with Numeric arrays */
-    fprintf(stderr, "class %d not supported. Sorry!\n", class_id);
-    goto out;
-  }
-
-  return 0;
-
- out:
-  /* If we reach this line, there should be an error */
-  return -1;
-  
-}
 
 /* Routine to map the atomic type to a Numeric typecode 
  */
-int getArrayType_new(hid_t type_id,
-		     int *fmt) 
+size_t getArrayType(hid_t type_id,
+		    int *fmt) 
 {
   H5T_class_t class_id;
   size_t type_size;
@@ -242,7 +169,7 @@ int getArrayType_new(hid_t type_id,
     goto out;
   }
 
-  return 0;
+  return type_size;
 
  out:
   /* If we reach this line, there should be an error */
