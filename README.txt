@@ -1,24 +1,15 @@
 README.txt
-PyTables v0.2 (This is second alpha version)
+PyTables pre-0.3 (This is first beta version)
 http://pytables.sf.net/
-November 18, 2002
+February 07, 2003
 --------------------------------------
 
-################## Note ###############
-#PyTables is still in alpha because I plan to add some new features
-#(such as unlimited dimension arrays or general python attributes) and
-#the API may still evolve a bit. Nevertheless, the present release has
-#been thoroughly tested and may be used to do real work right
-#now. However, don't complain if method names or file formats
-#change (hopefully only slightly) in future releases.
-#######################################
-
 The goal of PyTables is to enable the end user to manipulate easily
-scientific data tables and Numerical Python objects (new in 0.2!) in a
-persistent, hierarchical structure. The foundation of the underlying
-hierachical data organization is the excellent HDF5 library
-(http://hdf.ncsa.uiuc.edu/HDF5). Right now, PyTables provides limited
-support of all the HDF5 functions, but I hope to add the more
+scientific data tables, numarray objects (new in 0.3!) and Numerical
+Python objects in a persistent, hierarchical structure. The foundation
+of the underlying hierachical data organization is the excellent HDF5
+library (http://hdf.ncsa.uiuc.edu/HDF5). Right now, PyTables provides
+limited support of all the HDF5 functions, but I hope to add the more
 interesting ones (for PyTables needs) in the near future.
 Nonetheless, this package is not intended to serve as a complete
 wrapper for the entire HDF5 API.
@@ -50,9 +41,11 @@ PyTables make use of Pyrex, a convenient tool to access C libraries
 from Python using Python syntax. For these reasons, you will need to
 use Python 2.2 or higher to take advantage of PyTables.
 
-I've tested this PyTables version with HDF5 1.4.4 and Numerical Python
-22.0, but it should work well with all HDF5 1.4.x versions and a
-relatively new version of Numeric (>= 20.x).
+I've tested this PyTables version with HDF5 1.4.4 and numarray 0.4,
+but it should work well with all HDF5 1.4.x versions and a relatively
+new version of numarray (>= 0.4) and Numeric Python (>= 20.x), in case
+you still want to stick with Numeric instead of using numarray, its
+successor.
 
 I'm using Linux as the main development platform, but PyTables should
 be easy to compile/install on other UNIX machines. Nonetheless, caveat
@@ -76,10 +69,10 @@ and you get the library to work, please let me know.
 The Python Distutils are used to build and install PyTables, so it is
 fairly simple to get things ready to go.
 
-1. First, make sure that you have HDF5 1.4.x and Numerical Python
-   installed (I'm using HDF5 1.4.4 and Numeric 22.0 currently). If
-   don't, you can find them at http://hdf.ncsa.uiuc.edu/HDF5 and
-   http://www.pfdubois.com/numpy. Compile/install them.
+1. First, make sure that you have HDF5 1.4.x and numarray installed
+   (I'm using HDF5 1.4.4 and numarray 0.4 currently). If don't, you
+   can find them at http://hdf.ncsa.uiuc.edu/HDF5 and
+   http://sourceforge.net/projects/numpy/. Compile/install them.
 
    setup.py will detect HDF5 libraries and include files under /usr
    or /usr/local; this will catch installations from RPMs, DEBs and
@@ -125,7 +118,7 @@ fairly simple to get things ready to go.
    command (in the shell "sh" and its variants):
 
         PYTHONPATH=..
-	 export PYTHONPATH
+	export PYTHONPATH
         python test_all.py
 
    If you would like to see some verbose output from the tests simply

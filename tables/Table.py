@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.19 2003/02/07 11:01:30 falted Exp $
+#       $Id: Table.py,v 1.20 2003/02/07 13:30:20 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.19 $"
+__version__ = "$Revision: 1.20 $"
 
 from __future__ import generators
 import sys
@@ -197,7 +197,7 @@ class Table(Leaf, hdf5Extension.Table):
         self._v_fmt = self.metarecord._v_fmt
         self._calcBufferSize(self._v_expectedrows)
         # Create the table on disk
-        self.createTable()
+        self.createTable(self.title)
         # Initialize the shape attribute
         self.shape = (self.nrows,)
         # Get the column types

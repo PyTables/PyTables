@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.17 2003/02/07 13:01:58 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.18 2003/02/07 13:30:19 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.17 $"
+__version__ = "$Revision: 1.18 $"
 
 
 import sys, os.path
@@ -468,7 +468,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.17 2003/02/07 13:01:58 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.18 2003/02/07 13:30:19 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -698,7 +698,7 @@ cdef class Table:
     # The parent group id for this object
     self.group_id = where._v_groupId
 
-  def createTable(self):
+  def createTable(self, title):
     cdef int nvar
     cdef int i, nrecords, ret, buflen
     cdef hid_t fieldtypes[MAX_FIELDS]
@@ -734,7 +734,8 @@ cdef class Table:
     # The next is settable if we have default values
     fill_data = NULL
 
-    ret = H5TBmake_table(self.title, self.group_id, self.name,
+    self.xtitle=strdup(title)
+    ret = H5TBmake_table(self.xtitle, self.group_id, self.name,
                          nvar, self.nrows, self.rowsize, self.field_names,
                          self.field_offset, fieldtypes, self._v_chunksize,
                          fill_data, self._v_compress, data)

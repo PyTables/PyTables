@@ -3,6 +3,13 @@
 # Setup script for the tables package
 
 import sys, os, string
+
+if not (sys.version_info[0] >= 2 and sys.version_info[1] >= 2):
+    print "################################################################"
+    print "You need Python 2.2 or greather to compile PyTables!. Exiting..."
+    print "################################################################"
+    sys.exit(1)
+
 from distutils.core     import setup, Extension
 from distutils.dep_util import newer
 # Uncomment this if Pyrex installed and want to rebuild everything
@@ -83,20 +90,20 @@ where they can be found.
     else:
         libnames = []
 
-    # Finally, check for Numeric
+    # Finally, check for numarray
     try:
-        import Numeric
+        import numarray
     except:
         print """\
-Can't find a local Numeric Python installation.
+Can't find a local numarray Python installation.
 Please, read carefully the README and remember
-that PyTables needs the Numeric package to
+that PyTables needs the numarray package to
 compile and run."""
         
         sys.exit(1)
     else:
-        print "Found Numeric package installed"
-        
+        print "Found numarray %s package installed" % numarray.__version__
+                
 elif os.name == 'nt':
 
     print """I don't know how to cope with this. If you are interested
