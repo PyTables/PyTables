@@ -121,6 +121,21 @@ been fixed. Here is the (non-exhaustive) list:
           existing functionality. There are more than 800 different
           tests now (and the number is increasing :).
 
+        - PyTables has a new record in the data size that fits in one
+          single file: more than 5 TB (yeah, more than 5000 GB), that
+          accounts for 11 GB compressed, has been created on an AMD
+          Opteron machine running Linux-64 (the 64 bits version of the
+          Linux kernel). See the gory details in:
+          http://pytables.sf.net/html/HowFast.html.
+
+	- New platforms supported: PyTables has been compiled and tested
+	  under Linux32 (Intel), Linux64 (AMD Opteron and Alpha), Win32
+	  (Intel), MacOSX (PowerPC), FreeBSD (Intel), Solaris (6, 7, 8
+	  and 9 with UltraSparc), IRIX64 (IRIX 6.5 with R12000) and it
+	  probably works in many more architectures. In particular,
+	  release 0.8 is the first one that provides a relatively clean
+	  porting to 64-bit platforms.
+
 	- As always, some bugs have been solved (especially bugs that
           occur when deleting and/or overwriting attributes).
 

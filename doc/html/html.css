@@ -3,7 +3,7 @@ h1 { color: red }
 h2 { color: olive }
 h3 { color: navy }
 h4 { color: maroon }
-body { background-image: url("tile.jpg");
+body { /* background-image: url("tile.jpg"); */  /* Per a imprimir millor */
  font: 14px/1.5 Verdana, Arial, Helvetica, sans-serif;
  background:#fff;
  padding:5%;

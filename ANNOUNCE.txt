@@ -12,12 +12,12 @@ provides flexible indexed access on disk to anywhere in the data.
 PyTables is not designed to work as a relational database competitor,
 but rather as a teammate. If you want to work with large datasets of
 multidimensional data (for example, for multidimensional analysis), or
-just provide a categorized structure for some portions of your
-cluttered RDBS, then give PyTables a try. It works well for
-storing data from data acquisition systems (DAS), simulation
-software, network data monitoring systems (for example, traffic
-measurements of IP packets on routers), or as a centralized repository
-for system logs, to name only a few possible uses.
+just provide a categorized structure for some portions of your cluttered
+RDBS, then give PyTables a try. It works well for storing data from data
+acquisition systems (DAS), simulation software, network data monitoring
+systems (for example, traffic measurements of IP packets on routers),
+dealing with very large XML files or as a centralized repository for
+system logs, to name only a few possible uses.
  
 In this release you will find:
 	- Variable Length Arrays (VLA's) for saving a collection
@@ -28,9 +28,14 @@ In this release you will find:
 	  up to complete hierarchies.
 	- With the introduction of the UnImplemented class, greatly 
 	  improved HDF5 native file import capabilities.
-	- Two new useful utilities: ptdump & ptrepack
+	- Two new useful utilities: ptdump & ptrepack.
 	- Improved documentation (with the help of Scott Prater).
-        - New record on database size achieved: 5.6 TB in one single file (!)
+        - New record on data size achieved: 5.6 TB (!) in one single
+          file.
+	- Enhanced platform support. New platforms: MacOSX, FreeBSD,
+	  Linux64, IRIX64 (yes, a clean 64-bit port is there) and
+	  probably more.
+	- More tests units (now exceeding 800).
 	- Many other minor improvements.
 
 More in detail:
@@ -155,11 +160,20 @@ What's new
           existing functionality. There are more than 800 different
           tests now (and the number is increasing :).
 
-        - PyTables has a new record in creation of one single file: more
-          than 5 TB (yeah, more than 5000 GB) has been created on an AMD
+        - PyTables has a new record in the data size that fits in one
+          single file: more than 5 TB (yeah, more than 5000 GB), that
+          accounts for 11 GB compressed, has been created on an AMD
           Opteron machine running Linux-64 (the 64 bits version of the
           Linux kernel). See the gory details in:
           http://pytables.sf.net/html/HowFast.html.
+
+	- New platforms supported: PyTables has been compiled and tested
+	  under Linux32 (Intel), Linux64 (AMD Opteron and Alpha), Win32
+	  (Intel), MacOSX (PowerPC), FreeBSD (Intel), Solaris (6, 7, 8
+	  and 9 with UltraSparc), IRIX64 (IRIX 6.5 with R12000) and it
+	  probably works in many more architectures. In particular,
+	  release 0.8 is the first one that provides a relatively clean
+	  porting to 64-bit platforms.
 
 	- As always, some bugs have been solved (especially bugs that
           occur when deleting and/or overwriting attributes).
