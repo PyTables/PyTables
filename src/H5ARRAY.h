@@ -57,12 +57,12 @@ herr_t H5ARRAYget_ndims( hid_t loc_id,
 			 const char *dset_name,
 			 int *rank );
 
-herr_t H5ARRAYget_info( hid_t loc_id, 
-			const char *dset_name,
-			hsize_t *dims,
-			hid_t *super_type_id,
-			H5T_class_t *super_class_id,
-			char *byteorder);
+hid_t H5ARRAYget_info( hid_t loc_id, 
+		       const char *dset_name,
+		       hsize_t *dims,
+		       hid_t *super_type_id,
+		       H5T_class_t *super_class_id,
+		       char *byteorder);
 
 #ifdef __cplusplus
 }

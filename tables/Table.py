@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.105 2004/02/25 16:08:59 falted Exp $
+#       $Id: Table.py,v 1.106 2004/04/29 17:04:30 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.105 $"
+__version__ = "$Revision: 1.106 $"
 
 from __future__ import generators
 import sys
@@ -287,7 +287,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.row = hdf5Extension.Row(self)
         
     def _saveBufferedRows(self):
-        """Save buffered table rows."""
+        """Save buffered table rows"""
         # Save the records on disk
         self._append_records(self._v_buffer, self.row._getUnsavedNRows())
         # Get a fresh copy of the default values
@@ -644,7 +644,9 @@ class Table(Leaf, hdf5Extension.Table, object):
         """Flush the table buffers."""
         if hasattr(self, 'row') and self.row._getUnsavedNRows() > 0:
           self._saveBufferedRows()
-        # Close a possible opened table for append:
+          # Flush the data to disk
+          self._flush(self._v_parent, self._v_hdf5name)
+        # Close a possible opened table for append
         self._close_append()
         # Clean the Row instance
         # In some situations, this maybe undefined (When?)

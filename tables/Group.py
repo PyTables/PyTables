@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.73 2004/04/06 18:26:28 falted Exp $
+#       $Id: Group.py,v 1.74 2004/04/29 17:04:30 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.73 $"
+__version__ = "$Revision: 1.74 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -560,6 +560,10 @@ self._g_join(name), UserWarning)
             raise NameError, \
                   "'%s' group already has a child named '%s' in file '%s'" % \
                   (self._v_pathname, name, self._v_rootgroup._v_filename)
+
+    def _f_flush(self):
+        """ Flush this Group """
+        self._g_flushGroup()
 
     def _f_close(self):
         """Close this HDF5 group"""

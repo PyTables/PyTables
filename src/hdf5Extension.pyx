@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.122 2004/04/20 19:27:17 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.123 2004/04/29 17:04:27 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.122 $"
+__version__ = "$Revision: 1.123 $"
 
 
 import sys, os
@@ -52,12 +52,6 @@ try:
   zlib_imported = 1
 except:
   zlib_imported = 0
-
-# For defining the long long type
-cdef extern from "type-longlong.h":
-  cdef enum:
-    LL_TYPE
-    MY_MSC
 
 # C funtions and variable declaration from its headers
 
@@ -104,7 +98,7 @@ cdef extern from "Python.h":
   # To access integers
   object PyInt_FromLong(long)
   long PyInt_AsLong(object)
-
+  object PyLong_FromLongLong(long long)
 
   # To access double
   object PyFloat_FromDouble(double)
@@ -263,13 +257,17 @@ cdef extern from "hdf5.h":
   int H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, H5F_ACC_EXCL
   int H5F_ACC_DEBUG, H5F_ACC_CREAT
   int H5P_DEFAULT, H5S_ALL
+  int H5F_SCOPE_GLOBAL, H5F_SCOPE_LOCAL
   #int H5T_NATIVE_CHAR, H5T_NATIVE_INT, H5T_NATIVE_FLOAT, H5T_NATIVE_DOUBLE
+  int H5P_FILE_CREATE, H5P_FILE_ACCESS
+  int H5FD_LOG_LOC_WRITE, H5FD_LOG_ALL
 
   ctypedef int hid_t  # In H5Ipublic.h
   ctypedef int hbool_t
   ctypedef int herr_t
   ctypedef int htri_t
-  ctypedef long long hsize_t    # How to declare that in a compatible MSVC way?
+  ctypedef int H5F_scope_t 
+  ctypedef long long hsize_t
 
   ctypedef enum H5D_layout_t:
     H5D_LAYOUT_ERROR    = -1,
@@ -356,6 +354,8 @@ cdef extern from *:
                 
   herr_t H5Fclose (hid_t file_id)
 
+  herr_t H5Fflush(hid_t object_id, H5F_scope_t scope ) 
+
   htri_t H5Fis_hdf5(char *name)
   
   hid_t  H5Dopen (hid_t file_id, char *name)
@@ -392,6 +392,18 @@ cdef extern from *:
   herr_t H5Adelete(hid_t loc_id, char *name )
 
   herr_t H5Tclose(hid_t type_id)
+
+  #hid_t H5Pcreate(H5P_class_t type )  # Wrong in documentation!
+  hid_t H5Pcreate(hid_t type )
+
+  herr_t H5Pset_cache(hid_t plist_id, int mdc_nelmts, int rdcc_nelmts,
+                      size_t rdcc_nbytes, double rdcc_w0 )
+  
+  herr_t H5Pset_sieve_buf_size( hid_t fapl_id, hsize_t size )
+
+  herr_t H5Pset_fapl_log( hid_t fapl_id, char *logfile,
+                          unsigned int flags, size_t buf_size ) 
+
      
 # Functions from HDF5 HL Lite
 cdef extern from "H5LT.h":
@@ -457,6 +469,12 @@ cdef extern from "H5LT.h":
                                    double *data,
                                    size_t size )
   
+  herr_t H5LTget_attribute( hid_t loc_id, 
+                            char *obj_name, 
+                            char *attr_name,
+                            hid_t mem_type_id,
+                            void *data )
+  
   herr_t H5LTget_attribute_string( hid_t loc_id, char *obj_name,
                                    char *attr_name, char *attr_data )
 
@@ -519,14 +537,10 @@ cdef extern from "H5ARRAY.h":
 
   herr_t H5ARRAYget_ndims( hid_t loc_id, char *dset_name, int *rank )
 
-  herr_t H5ARRAYget_info( hid_t loc_id, char *dset_name,
-                          hsize_t *dims, hid_t *super_type_id,
-                          H5T_class_t *super_class_id, char *byteorder)
+  hid_t H5ARRAYget_info( hid_t loc_id, char *dset_name,
+                         hsize_t *dims, hid_t *super_type_id,
+                         H5T_class_t *super_class_id, char *byteorder)
 
-#   herr_t H5ARRAYget_info( hid_t loc_id, char *dset_name,
-#                           hsize_t *dims, H5T_class_t *class_id,
-#                           H5T_sign_t *sign, char *byteorder,
-#                           size_t *type_size, size_t *type_precision)
 
 # Functions for VLEN Arrays
 cdef extern from "H5VLARRAY.h":
@@ -547,9 +561,9 @@ cdef extern from "H5VLARRAY.h":
 
   herr_t H5VLARRAYget_ndims( hid_t loc_id, char *dset_name, int *rank )
 
-  herr_t H5VLARRAYget_info( hid_t loc_id, char *dset_name,
-                            hsize_t *nrecords, hsize_t *base_dims,
-                            hid_t *base_type_id, char *base_byteorder)
+  hid_t H5VLARRAYget_info( hid_t loc_id, char *dset_name,
+                           hsize_t *nrecords, hsize_t *base_dims,
+                           hid_t *base_type_id, char *base_byteorder)
 
 
 # Funtion to compute the HDF5 type from a numarray enum type
@@ -593,9 +607,9 @@ cdef extern from "H5TB.h":
                           size_t dst_size, size_t *dst_offset, 
                           size_t *dst_sizes, void *dst_buf )
                          
-  herr_t H5TBread_records ( hid_t loc_id, char *table_name,
-                            hsize_t start, hsize_t nrecords, size_t type_size,
-                            size_t *field_offset, void *data )
+#  herr_t H5TBread_records ( hid_t loc_id, char *table_name,
+#                            hsize_t start, hsize_t nrecords, size_t type_size,
+#                            size_t *field_offset, void *data )
 
   herr_t H5TBread_fields_name ( hid_t loc_id, char *table_name,
                                 char *field_names, hsize_t start,
@@ -839,7 +853,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.122 2004/04/20 19:27:17 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.123 2004/04/29 17:04:27 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -886,6 +900,7 @@ def _getFilters(parent_id, name):
 
 cdef class File:
   cdef hid_t   file_id
+  cdef hid_t   access_plist
   cdef char    *name
 
   def __new__(self, char *name, char *mode, char *title, int new,
@@ -896,6 +911,11 @@ cdef class File:
     if (strcmp(mode, "r") == 0 or strcmp(mode, "r+") == 0):
       if (os.path.isfile(name) and H5Fis_hdf5(name) > 0):
         if strcmp(mode, "r") == 0:
+          # Just a test for disabling the cache for metadata
+          access_plist = H5Pcreate(H5P_FILE_ACCESS)
+#           H5Pset_cache(access_plist, 0, 0, 0, 0.0)
+#           H5Pset_sieve_buf_size(access_plist, 0 ) 
+#           self.file_id = H5Fopen(name, H5F_ACC_RDONLY, access_plist)
           self.file_id = H5Fopen(name, H5F_ACC_RDONLY, H5P_DEFAULT)
         elif strcmp(mode, "r+") == 0:
           self.file_id = H5Fopen(name, H5F_ACC_RDWR, H5P_DEFAULT)
@@ -905,6 +925,13 @@ cdef class File:
     elif strcmp(mode, "a") == 0:
       if os.path.isfile(name):
         if H5Fis_hdf5(name) > 0:
+          # A test for logging
+          access_plist = H5Pcreate(H5P_FILE_ACCESS)
+#           H5Pset_cache(access_plist, 0, 0, 0, 0.0)
+#           H5Pset_sieve_buf_size(access_plist, 0 ) 
+##           H5Pset_fapl_log (access_plist, "test.log", H5FD_LOG_LOC_WRITE,
+##                            0)
+#           self.file_id = H5Fopen(name, H5F_ACC_RDWR, access_plist)
           self.file_id = H5Fopen(name, H5F_ACC_RDWR, H5P_DEFAULT)
         else:
           raise RuntimeError("File \'%s\' exist but is not a HDF5 file." % \
@@ -923,8 +950,12 @@ cdef class File:
   def _getFileId(self):
     return self.file_id
 
+  def _flushFile(self):
+    # Close the file
+    H5Fflush(self.file_id, H5F_SCOPE_GLOBAL) 
+
   def _closeFile(self):
-    # Close the table file
+    # Close the file
     H5Fclose( self.file_id )
     self.file_id = 0    # Means file closed
 
@@ -1126,6 +1157,7 @@ cdef class AttributeSet:
     cdef long  attrvaluelong
     cdef float  attrvaluefloat
     cdef double  attrvaluedouble
+    cdef long long attrvaluelonglong
     cdef object retvalue
     cdef hid_t mem_type
     cdef int rank
@@ -1179,6 +1211,10 @@ cdef class AttributeSet:
         ret = H5LTget_attribute_long(parent_id, dsetname,
                                      attrname, &attrvaluelong)
         retvalue = PyInt_FromLong(attrvaluelong)
+      if type_size == 8:
+        ret = H5LTget_attribute(parent_id,dsetname,
+                                attrname, H5T_NATIVE_LLONG, &attrvaluelonglong)
+        retvalue = PyLong_FromLongLong(attrvaluelonglong)
     elif class_id == H5T_FLOAT:
       if type_size == 4:
         ret = H5LTget_attribute_float(parent_id, dsetname,
@@ -1274,6 +1310,10 @@ cdef class Group:
     # Return a tuple with the objects groups and objects dsets
     return Giterate(parent_id, loc_id, name)
 
+  def _g_flushGroup(self):
+    # Close the group
+    H5Fflush(self.group_id, H5F_SCOPE_GLOBAL) 
+
   def _g_closeGroup(self):
     cdef int ret
     
@@ -1315,6 +1355,25 @@ cdef class Group:
       print "Group open: ", self.name
     free(<void *>self.name)
 
+
+cdef class Leaf:
+
+  def _flush(self, where, name):
+    cdef hid_t   parent_id, dataset_id
+    cdef char    *dataset_name
+
+    # Get the object ID. Do this until a standard objectID is implemented
+    parent_id = where._v_objectID
+    # Open the dataset
+    dataset_name = strdup(name)
+    dataset_id = H5Dopen( parent_id, dataset_name )
+    # Flush the leaf
+    H5Fflush(dataset_id, H5F_SCOPE_GLOBAL)
+    H5Dclose( dataset_id )
+
+
+#     print "self.objectID -->", str(self), self.objectID
+#     H5Fflush(self.objectID, H5F_SCOPE_GLOBAL) 
 
 cdef class Table:
   # instance variables
@@ -1405,7 +1464,7 @@ cdef class Table:
                          data)
     if oid < 0:
       raise RuntimeError("Problems creating the table")
-    self.objectID = oid
+    self.objectID = oid  
 
     # Release resources to avoid memory leaks
     for i from  0 <= i < nvar:
@@ -1424,6 +1483,7 @@ cdef class Table:
       raise RuntimeError("Problems opening table for append.")
 
     self._open = 1
+    self.objectID = self.dataset_id
 
   # A version of Table._saveBufferRows in Pyrex is available in 0.7.2,
   # but it is not faster than the Python version, so I removed it
@@ -1539,9 +1599,12 @@ cdef class Table:
       nrecords = stop - start
       
     # Search the field position
+    fieldpos = -1
     for i in range(self.nfields):
       if strcmp(self.field_names[i], field_name) == 0:
         fieldpos = i
+    if fieldpos == -1:
+      raise RuntimeError("Problems searching the field_name: %s" % field_name)
     # Read the column
     if ( H5TBread_fields_name(self.parent_id, self.name, field_name,
                               start, nrecords, step,
@@ -1840,6 +1903,9 @@ cdef class Row:
     """Append self object to the output buffer.
     
     """
+    if not self._w_initialized_buffer:
+      # Create the arrays for buffering
+      self._newBuffer(write=1)
     self._row = self._row + 1 # update the current buffer read counter
     self._unsavednrows = self._unsavednrows + 1
     # When the buffer is full, flush it
@@ -1944,6 +2010,11 @@ cdef class Row:
     """ represent the record as an string """
         
     outlist = []
+    # Special case where Row has not been initialized yet
+    if self._recarray == None:
+      return "Row object has not been initialized for table:\n  %s\n %s" % \
+             (self._table, \
+    "You will normally want to use row objects in combination with iterators.")
     for name in self._recarray._names:
       outlist.append(`self._fields[name][self._row]`)
     return "(" + ", ".join(outlist) + ")"
@@ -1985,7 +2056,6 @@ cdef class Array:
     cdef char *flavor, *complib, *version
     cdef int extdim
     cdef object  type
-    #cdef _numarray na
 
     if isinstance(naarr, strings.CharArray):
       type = CharType
@@ -2132,6 +2202,7 @@ cdef class Array:
     cdef H5T_sign_t sign
     cdef char byteorder[16]  # "non-relevant" fits easily here
     cdef int i
+    cdef hid_t oid
     cdef herr_t ret
     cdef int extdim
     cdef char flavor[256]
@@ -2143,9 +2214,9 @@ cdef class Array:
     # Allocate space for the dimension axis info
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Get info on dimensions, class and type size
-    ret = H5ARRAYget_info(self.parent_id, self.name, self.dims,
+    oid = H5ARRAYget_info(self.parent_id, self.name, self.dims,
                           &self.type_id, &class_id, byteorder)
-
+    self.objectID = oid
     strcpy(flavor, "unknown")  # Default value
     if self._v_file._isPTFile:
       H5LTget_attribute_string(self.parent_id, self.name, "FLAVOR", flavor)
@@ -2349,6 +2420,7 @@ cdef class VLArray:
     cdef object shape
     cdef char byteorder[16]  # "non-relevant" fits easily here
     cdef int i
+    cdef hid_t oid
     cdef herr_t ret
     cdef hsize_t nrecords[1]
     cdef char flavor[256]
@@ -2361,9 +2433,9 @@ cdef class VLArray:
     else:
       self.dims = NULL;
     # Get info on dimensions, class and type size
-    ret = H5VLARRAYget_info(self.parent_id, self.name, nrecords,
+    oid = H5VLARRAYget_info(self.parent_id, self.name, nrecords,
                             self.dims, &self.type_id, byteorder)
-
+    self.objectID = oid
     ret = H5LTget_attribute_string(self.parent_id, self.name, "FLAVOR", flavor)
     if ret < 0:
       strcpy(flavor, "unknown")

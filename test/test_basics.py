@@ -263,7 +263,7 @@ class OpenFileTestCase(unittest.TestCase):
 	fileh.close()
 
     # This test works well, but HDF5 emits a series of messages that
-    # may lost the user. It is better to deactivate it.
+    # may loose the user. It is better to deactivate it.
     def notest04c_alternateRootFile(self):
         """Checking non-existent alternate root access to the object tree"""
 

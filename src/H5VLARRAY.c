@@ -575,12 +575,12 @@ out:
  *-------------------------------------------------------------------------
  */
 
-herr_t H5VLARRAYget_info( hid_t   loc_id, 
-			  char    *dset_name,
-			  hsize_t *nrecords,
-			  hsize_t *base_dims,
-			  hid_t   *base_type_id,
-			  char    *base_byteorder )
+hid_t H5VLARRAYget_info( hid_t   loc_id, 
+			 char    *dset_name,
+			 hsize_t *nrecords,
+			 hsize_t *base_dims,
+			 hid_t   *base_type_id,
+			 char    *base_byteorder )
 {
   hid_t       dataset_id;  
   hid_t       type_id;
@@ -660,7 +660,7 @@ herr_t H5VLARRAYget_info( hid_t   loc_id,
   if ( H5Dclose( dataset_id ) )
     return -1;
 
-  return 0;
+  return dataset_id;
 
 out:
  H5Dclose( dataset_id );

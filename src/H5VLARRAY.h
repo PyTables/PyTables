@@ -42,12 +42,12 @@ herr_t H5VLARRAYget_ndims( hid_t loc_id,
 			   const char *dset_name,
 			   int *rank );
 
-herr_t H5VLARRAYget_info( hid_t   loc_id, 
-			  char    *dset_name,
-			  hsize_t *nrecords,
-			  hsize_t *base_dims,
-			  hid_t   *base_type_id,
-			  char    *base_byteorder);
+hid_t H5VLARRAYget_info( hid_t   loc_id, 
+			 char    *dset_name,
+			 hsize_t *nrecords,
+			 hsize_t *base_dims,
+			 hid_t   *base_type_id,
+			 char    *base_byteorder);
 
 
 #ifdef __cplusplus

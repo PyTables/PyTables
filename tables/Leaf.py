@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.46 2004/02/25 16:08:59 falted Exp $
+#       $Id: Leaf.py,v 1.47 2004/04/29 17:04:30 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.46 $"
+__version__ = "$Revision: 1.47 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -36,7 +36,7 @@ from AttributeSet import AttributeSet
 import Group
 import hdf5Extension
 
-class Filters:
+class Filters(object):
     """Container for filter properties
 
     Instance variables:
@@ -112,7 +112,7 @@ class Filters:
         
         return repr(self)
 
-class Leaf:
+class Leaf(hdf5Extension.Leaf, object):
     """A class to place common functionality of all Leaf objects.
 
     A Leaf object is all the nodes that can hang directly from a
@@ -376,7 +376,7 @@ class Leaf:
         "Remove a leaf"
         parent = self._v_parent
         parent._g_deleteLeaf(self._v_name)
-        self.close()
+        self.close(flush=0)
 
     def rename(self, newname):
         """Rename a leaf"""
@@ -405,11 +405,13 @@ class Leaf:
 
     def flush(self):
         """Save whatever remaining data in buffer"""
-        # This is a do-nothing fall-back method
+        # Call the H5Fflush with this Leaf
+        self._flush(self._v_parent, self._v_hdf5name)
 
-    def close(self):
+    def close(self, flush=1):
         """Flush the buffers and close this object on tree"""
-        self.flush()
+        if flush:
+            self.flush()
         parent = self._v_parent
         del parent._v_leaves[self._v_name]
         del parent.__dict__[self._v_name]

@@ -202,7 +202,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 	# Create the array under root and name 'somearray'
 	a = testArray
         self.fileh.createArray(self.root, 'somearray', a, "Some array")
-	
+
         # Close the file
         self.fileh.close()
 	
@@ -246,7 +246,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         return
     
     def test10_complexSimple(self):
-        "Checking a complex floating point array (not supported)"
+        "Checking a complex floating point array, sp (not supported)"
 	a = array([1,2], 'F')
         try:
             self.WriteRead(a)
@@ -259,7 +259,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
             self.fail("expected an TypeError")
             
     def test11_complexDouble(self):
-        "Checking a complex floating point array (not supported)"
+        "Checking a complex floating point array, dp (not supported)"
 
 	a = array([1,2], 'D')
         try:

@@ -17,6 +17,9 @@
 
 #include "H5LT.h"
 
+#if 0
+#define H5_TB_DEBUG
+#endif
 
 #define HLTB_MAX_FIELD_LEN 255
 
@@ -38,7 +41,7 @@ herr_t H5TBmake_table( const char *table_title,
                        hsize_t nfields,
                        hsize_t nrecords,
                        size_t type_size,
-                       char **field_names,
+                       const char **field_names,
                        const size_t *field_offset,
                        const hid_t *field_types,
                        hsize_t chunk_size,
@@ -138,8 +141,8 @@ herr_t H5TBread_records( hid_t loc_id,
                          hsize_t nrecords,
                          size_t type_size,
                          const size_t *field_offset,
+                         const size_t *dst_sizes,
                          void *data );
-
 
 
 
@@ -183,8 +186,9 @@ herr_t H5TBinsert_record( hid_t loc_id,
                           const char *dset_name,
                           hsize_t start,
                           hsize_t nrecords,
-                          size_t type_size,
-                          const size_t *field_offset,
+                          size_t dst_size,
+                          const size_t *dst_offset,
+                          const size_t *dst_sizes,
                           void *data );
 
 herr_t H5TBadd_records_from( hid_t loc_id, 

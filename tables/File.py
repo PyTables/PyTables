@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.82 2004/02/25 16:08:59 falted Exp $
+#       $Id: File.py,v 1.83 2004/04/29 17:04:30 falted Exp $
 #
 ########################################################################
 
@@ -34,7 +34,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.82 $"
+__version__ = "$Revision: 1.83 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -928,13 +928,14 @@ class File(hdf5Extension.File, object):
 
                     
     def flush(self):
-        
         """Flush all the objects on all the HDF5 objects tree."""
 
         for group in self.walkGroups(self.root):
             for leaf in self.listNodes(group, classname = 'Leaf'):
                 leaf.flush()
-            
+
+        # Flush the cache to disk
+        self._flushFile()
                 
     def close(self):
         

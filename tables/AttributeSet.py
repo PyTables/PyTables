@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.28 2004/02/25 16:08:59 falted Exp $
+#       $Id: AttributeSet.py,v 1.29 2004/04/29 17:04:30 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.28 $"
+__version__ = "$Revision: 1.29 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -166,8 +166,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
             return None
 
         # Read the attribute from disk
-        # This is commented out temporarily until decide if it is intereseting
-        # or not having system attributes distinct from strings
+        # This is commented out temporarily until I decide whether it is
+        # interesting or not having system attributes distinct from strings
         # as for example NROWS for Tables and EXTDIM for EArrays
 #         if name in self._v_attrnamessys:
 #             # _g_getSysAttr works only for string attributes

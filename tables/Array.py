@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.64 2004/04/06 18:26:14 falted Exp $
+#       $Id: Array.py,v 1.65 2004/04/29 17:04:30 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.64 $"
+__version__ = "$Revision: 1.65 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -134,7 +134,14 @@ class Array(Leaf, hdf5Extension.Array, object):
         else:
             self.nrows = 1    # Scalar case
         self.itemsize = naarr.itemsize()
-        self.type = self._createArray(naarr, self._v_new_title)
+        try:
+            self.type = self._createArray(naarr, self._v_new_title)
+        except:
+            # Problems creating the Array on disk. Close this node
+            self.close(flush=0)
+            (type, value, traceback) = sys.exc_info()
+            # Re-raise the exception
+            raise type, value
 
     def _convertIntoNA(self, object):
         "Convert a generic object into a numarray object"

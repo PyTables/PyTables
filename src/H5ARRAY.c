@@ -681,12 +681,12 @@ out:
 /* Addition: Now, this routine can deal with both array and
    atomic datatypes. 2003-01-29 */
 
-herr_t H5ARRAYget_info( hid_t loc_id, 
-			const char *dset_name,
-			hsize_t *dims,
-			hid_t *super_type_id,
-			H5T_class_t *super_class_id,
-			char *byteorder)
+hid_t H5ARRAYget_info( hid_t loc_id, 
+		       const char *dset_name,
+		       hsize_t *dims,
+		       hid_t *super_type_id,
+		       H5T_class_t *super_class_id,
+		       char *byteorder)
 {
   hid_t       dataset_id;  
   hid_t       space_id; 
@@ -762,7 +762,7 @@ herr_t H5ARRAYget_info( hid_t loc_id,
   if ( H5Dclose( dataset_id ) )
     return -1;
 
-  return 0;
+  return dataset_id;
 
 out:
  H5Tclose( type_id );
