@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.13 2004/02/06 08:04:35 falted Exp $
+#       $Id: EArray.py,v 1.14 2004/02/09 13:24:31 falted Exp $
 #
 ########################################################################
 
@@ -27,14 +27,14 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.13 $"
+__version__ = "$Revision: 1.14 $"
 # default version for EARRAY objects
 obversion = "1.0"    # initial version
 
 import types, warnings, sys
 from Array import Array
 from VLArray import Atom
-from utils import calcBufferSize, convertIntoNA
+from utils import calcBufferSize, convertIntoNA, processRangeRead
 import hdf5Extension
 import numarray
 import numarray.strings as strings
@@ -230,6 +230,7 @@ class EArray(Array, hdf5Extension.Array, object):
         slices = [slice(0, dim, 1) for dim in self.shape]
         # This is a hack to prevent doing innecessary conversions
         # when copying buffers
+        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
         self._v_convert = 0
         # Start the copy itself
         for start2 in range(start, stop, step*nrowsinbuf):

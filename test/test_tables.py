@@ -1249,6 +1249,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Assert other properties in table
         assert table1.nrows == table2.nrows
+        assert table1.shape == table2.shape
         assert table1.colnames == table2.colnames
         assert table1.coltypes == table2.coltypes
         assert table1.colshapes == table2.colshapes
@@ -1309,6 +1310,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Assert other properties in table
         assert table1.nrows == table2.nrows
+        assert table1.shape == table2.shape
         assert table1.colnames == table2.colnames
         assert table1.coltypes == table2.coltypes
         assert table1.colshapes == table2.colshapes
@@ -1370,6 +1372,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Assert other properties in table
         assert table1.nrows == table2.nrows
+        assert table1.shape == table2.shape
         assert table1.colnames == table2.colnames
         assert table1.coltypes == table2.coltypes
         assert table1.colshapes == table2.colshapes
@@ -1429,6 +1432,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Assert other properties in table
         assert table1.nrows == table2.nrows
+        assert table1.shape == table2.shape
         assert table1.colnames == table2.colnames
         assert table1.coltypes == table2.coltypes
         assert table1.colshapes == table2.colshapes
@@ -1489,6 +1493,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Assert other properties in table
         assert table1.nrows == table2.nrows
+        assert table1.shape == table2.shape
         assert table1.colnames == table2.colnames
         assert table1.coltypes == table2.coltypes
         assert table1.colshapes == table2.colshapes
@@ -1552,6 +1557,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Assert other properties in table
         assert table1.nrows == table2.nrows
+        assert table1.shape == table2.shape
         assert table1.colnames == table2.colnames
         assert table1.coltypes == table2.coltypes
         assert table1.colshapes == table2.colshapes

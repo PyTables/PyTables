@@ -970,6 +970,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Assert other properties in array
         assert array1.nrows == array2.nrows
+        assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor
         assert array1.type == array2.type
@@ -1020,6 +1021,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Assert other properties in array
         assert array1.nrows == array2.nrows
+        assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor
         assert array1.type == array2.type
@@ -1066,6 +1068,7 @@ class CopyTestCase(unittest.TestCase):
             
         # Assert other properties in array
         assert array1.nrows == array2.nrows
+        assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
         assert array1.type == array2.type
@@ -1110,6 +1113,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.read() == array2.read()
         # Assert other properties in array
         assert array1.nrows == array2.nrows
+        assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
         assert array1.type == array2.type
@@ -1154,6 +1158,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.read() == array2.read()
         # Assert other properties in array
         assert array1.nrows == array2.nrows
+        assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
         assert array1.type == array2.type
@@ -1198,6 +1203,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.read() == array2.read()
         # Assert other properties in array
         assert array1.nrows == array2.nrows
+        assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
         assert array1.type == array2.type
@@ -1242,6 +1248,7 @@ class CopyTestCase(unittest.TestCase):
         allequal(array1.read(), array2.read())
         # Assert other properties in array
         assert array1.nrows == array2.nrows
+        assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
         assert array1.type == array2.type

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.39 2004/02/07 17:44:46 falted Exp $
+#       $Id: Leaf.py,v 1.40 2004/02/09 13:24:31 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.39 $"
+__version__ = "$Revision: 1.40 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -272,7 +272,39 @@ class Leaf:
         parent._v_childs[newname] = self
         parent._v_leaves[newname] = self
         parent.__dict__[newname] = self
+
+    # This removeRows do not work because it relies on creating a new leaf
+    # node, so that the pointers to the original leaf have erroneous
+    # information. I'm afraid that the best way to cope with this
+#     def removeRows(self, start=None, stop=None):
+#         """Remove a range of rows.
+
+#         If only "start" is supplied, this row is to be deleted.
+#         If "start" and "stop" parameters are supplied, a row
+#         range is selected to be removed.
+
+#         """
+
+#         # Get the parent group and original name of the leaf
+#         fileh = self._v_file
+#         parent = self._v_parent
+#         origname = self._v_name
+#         tmpname = "_tmp_" + self._v_name
         
+#         # Copy from row 0 up to start
+#         object = self.copy(parent, tmpname, start=0, stop=start, step=1)
+#         # And now, from stop to the end
+#         self._g_copyRows(object, start=stop, stop=self.nrows, step=1)
+
+#         # Now, remove the original leaf
+#         fileh.removeNode(parent, origname)
+
+#         # Finally, rename the destination to origin
+#         fileh.renameNode(parent, origname, tmpname)
+        
+#         # return the new object
+#         return fileh.getNode(parent, origname)
+
     def copy(self, where, name, start=0, stop=None, step=1,
              title=None, filters=None, copyuserattrs=1):
         """Copy this leaf to other location

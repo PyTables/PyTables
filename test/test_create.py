@@ -1330,6 +1330,294 @@ class CopyGroupCase8(CopyGroupTestCase):
     srcnode = '/'
     dstnode = '/'
         
+class CopyFileTestCase(unittest.TestCase):
+    title = "A title"
+    nrows = 10
+
+    def setUp(self):
+        # Create a temporary file
+        self.file = tempfile.mktemp(".h5") 
+        self.file2 = tempfile.mktemp(".h5") 
+        # Create the source file
+        self.h5file = openFile(self.file, "w")
+        self.populateFile()
+            
+    def populateFile(self):
+        group = self.h5file.root
+        # Add some user attrs:
+        group._v_attrs.attr1 = "an string for root group"
+        group._v_attrs.attr2 = 124
+        # Create a tree
+        for j in range(5):
+            for i in range(2):
+                # Create a new group (brother of group)
+                group2 = self.h5file.createGroup(group, 'bgroup'+str(i),
+                                                 filters=None)
+
+                # Create a table
+                table = self.h5file.createTable(group2, 'table1', Record2,
+                                            title = self.title,
+                                            filters = None)
+                # Get the record object associated with the new table
+                d = table.row 
+                # Fill the table
+                for i in xrange(self.nrows):
+                    d['var1'] = '%04d' % (self.nrows - i)
+                    d['var2'] = i 
+                    d['var3'] = i * 2
+                    d.append()      # This injects the Record values
+                # Flush the buffer for this table
+                table.flush()
+
+                # Add some user attrs:
+                table.attrs.attr1 = "an string"
+                table.attrs.attr2 = 234
+
+                # Create a couple of arrays in each group
+                var1List = [ x['var1'] for x in table.iterrows() ]
+                var3List = [ x['var3'] for x in table.iterrows() ]
+
+                self.h5file.createArray(group2, 'array1', var1List, "col 1")
+                self.h5file.createArray(group2, 'array2', var3List, "col 3")
+
+                # Create a couple of EArrays as well
+                ea1 = self.h5file.createEArray(group2, 'earray1',
+                                               StringAtom(shape=(0,), length=4),
+                                               "col 1")
+                ea2 = self.h5file.createEArray(group2, 'earray2',
+                                               Int16Atom(shape=(0,)), "col 3")
+                # Add some user attrs:
+                ea1.attrs.attr1 = "an string for earray"
+                ea2.attrs.attr2 = 123
+                # And fill them with some values
+                ea1.append(var1List)
+                ea2.append(var3List)
+
+            # Create a new group (descendant of group)
+            group3 = self.h5file.createGroup(group, 'group'+str(j),
+                                             filters=None)
+            # Iterate over this new group (group3)
+            group = group3
+            # Add some user attrs:
+            group._v_attrs.attr1 = "an string for group"
+            group._v_attrs.attr2 = 124
+    
+    def tearDown(self):
+        # Close the file
+        if self.h5file.isopen:
+            self.h5file.close()
+        if self.h5file2.isopen:
+            self.h5file2.close()
+
+        os.remove(self.file)
+        os.remove(self.file2)
+
+    #----------------------------------------
+
+    def test00_overwrite(self):
+        "Checking copy of a File (overwriting file)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00_overwrite..." % self.__class__.__name__
+
+        # Create a temporary file
+        file2h = open(self.file2, "w")
+        file2h.close()
+        # Copy the file to the destination
+        self.h5file.copyFile(self.file2, title=self.title,
+                             overwrite = 1,
+                             copyuserattrs = 0,
+                             filters = None)
+        # ...and open the destination file
+        self.h5file2 = openFile(self.file2, "r")
+
+        # Check that the copy has been done correctly
+        srcgroup = self.h5file.root
+        dstgroup = self.h5file2.root
+        nodelist1 = srcgroup._v_childs.keys()
+        nodelist2 = dstgroup._v_childs.keys()
+        # Sort the lists
+        nodelist1.sort(); nodelist2.sort()
+        if verbose:
+            print "The origin node list -->", nodelist1
+            print "The copied node list -->", nodelist2
+        assert srcgroup._v_nchilds == dstgroup._v_nchilds
+        assert nodelist1 == nodelist2
+        assert self.h5file2.title == self.title
+
+    def test01_copy(self):
+        "Checking copy of a File (attributes not copied)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_copy..." % self.__class__.__name__
+
+
+        # Copy the file to the destination
+        self.h5file.copyFile(self.file2, title=self.title,
+                             copyuserattrs = 0,
+                             filters = self.filters)
+        # ...and open the destination file
+        self.h5file2 = openFile(self.file2, "r")
+
+        # Check that the copy has been done correctly
+        srcgroup = self.h5file.root
+        dstgroup = self.h5file2.root
+        nodelist1 = srcgroup._v_childs.keys()
+        nodelist2 = dstgroup._v_childs.keys()
+        # Sort the lists
+        nodelist1.sort(); nodelist2.sort()
+        if verbose:
+            print "The origin node list -->", nodelist1
+            print "The copied node list -->", nodelist2
+        assert srcgroup._v_nchilds == dstgroup._v_nchilds
+        assert nodelist1 == nodelist2
+        assert self.h5file2.title == self.title
+
+        # Check that user attributes has not been copied
+        for srcnode in srcgroup:
+            dstnode = getattr(dstgroup, srcnode._v_name)
+            if isinstance(srcnode, Group):
+                srcattrs = srcnode._v_attrs
+                srcattrskeys = srcattrs._f_list("sys")
+                dstattrs = dstnode._v_attrs
+                dstattrskeys = dstattrs._f_list("all")
+            else:
+                srcattrs = srcnode.attrs
+                srcattrskeys = srcattrs._f_list("sys")
+                dstattrs = dstnode.attrs
+                dstattrskeys = dstattrs._f_list("all")
+            # These lists should already be ordered
+            if verbose:
+                print "srcattrskeys for node %s: %s" %(srcnode._v_name,
+                                                       srcattrskeys)
+                print "dstattrskeys for node %s: %s" %(dstnode._v_name,
+                                                       dstattrskeys)
+            assert srcattrskeys == dstattrskeys
+            if verbose:
+                print "The attrs names has been copied correctly"
+
+            # Now, for the contents of attributes
+            for srcattrname in srcattrskeys:
+                srcattrvalue = str(getattr(srcattrs, srcattrname))
+                dstattrvalue = str(getattr(dstattrs, srcattrname))
+                if srcattrname == "FILTERS":
+                    if self.filters == None:
+                        filters = Filters()
+                    else:
+                        filters = self.filters
+                    if str(filters) <> dstattrvalue:
+                        print "filters-->", str(filters)
+                        print "content-_>", dstattrvalue
+                    assert str(filters) == dstattrvalue
+                else:
+                    assert srcattrvalue == dstattrvalue
+                    
+            if verbose:
+                print "The attrs contents has been copied correctly"
+
+
+    def test02_Attrs(self):
+        "Checking copy of a File (attributes copied)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_Attrs..." % self.__class__.__name__
+
+
+        # Copy the file to the destination
+        self.h5file.copyFile(self.file2, title=self.title,
+                             copyuserattrs = 1,
+                             filters = self.filters)
+        # ...and open the destination file
+        self.h5file2 = openFile(self.file2, "r")
+
+        # Check that the copy has been done correctly
+        srcgroup = self.h5file.root
+        dstgroup = self.h5file2.root
+        for srcnode in srcgroup:
+            dstnode = getattr(dstgroup, srcnode._v_name)
+            if isinstance(srcnode, Group):
+                srcattrs = srcnode._v_attrs
+                srcattrskeys = srcattrs._f_list("all")
+                dstattrs = dstnode._v_attrs
+                dstattrskeys = dstattrs._f_list("all")
+            else:
+                srcattrs = srcnode.attrs
+                srcattrskeys = srcattrs._f_list("all")
+                dstattrs = dstnode.attrs
+                dstattrskeys = dstattrs._f_list("all")
+            # These lists should already be ordered
+            if verbose:
+                print "srcattrskeys for node %s: %s" %(srcnode._v_name,
+                                                       srcattrskeys)
+                print "dstattrskeys for node %s: %s" %(dstnode._v_name,
+                                                       dstattrskeys)
+            assert srcattrskeys == dstattrskeys
+            if verbose:
+                print "The attrs names has been copied correctly"
+
+            # Now, for the contents of attributes
+            for srcattrname in srcattrskeys:
+                srcattrvalue = str(getattr(srcattrs, srcattrname))
+                dstattrvalue = str(getattr(dstattrs, srcattrname))
+                if srcattrname == "FILTERS":
+                    if self.filters == None:
+                        filters = Filters()
+                    else:
+                        filters = self.filters
+                    assert str(filters) == dstattrvalue
+                else:
+                    assert srcattrvalue == dstattrvalue
+                    
+            if verbose:
+                print "The attrs contents has been copied correctly"
+
+class CopyFileCase1(CopyFileTestCase):
+    title = "A new title"
+    filters = None
+
+class CopyFileCase2(CopyFileTestCase):
+    title = "A new title"
+    filters = Filters(complevel=1)
+
+class CopyFileCase3(CopyFileTestCase):
+    title = "A new title"
+    filters = Filters(fletcher32=1)
+
+class CopyFileCase4(unittest.TestCase):
+
+    def test01_notoverwrite(self):
+        "Checking copy of a File (checking not overwriting)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_notoverwrite..." % self.__class__.__name__
+
+
+        # Create two empty files:
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+        file2 = tempfile.mktemp(".h5")
+        fileh2 = openFile(file2, "w")
+        fileh2.close()  # close the second one
+        # Copy the first into the second
+        try:
+            fileh.copyFile(file2, overwrite=0)
+        except IOError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next IOError was catched!"
+                print value
+        else:
+            self.fail("expected a IOError")
+            
+
+        # Delete files
+        fileh.close()
+        os.remove(file)
+        os.remove(file2)
 	
 #----------------------------------------------------------------------
 
@@ -1357,6 +1645,10 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyGroupCase6))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase7))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase8))
+        theSuite.addTest(unittest.makeSuite(CopyFileCase1))
+        theSuite.addTest(unittest.makeSuite(CopyFileCase2))
+        theSuite.addTest(unittest.makeSuite(CopyFileCase3))
+        theSuite.addTest(unittest.makeSuite(CopyFileCase4))
 
     return theSuite
 

@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.74 2004/02/07 17:44:46 falted Exp $
+#       $Id: File.py,v 1.75 2004/02/09 13:24:31 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.74 $"
+__version__ = "$Revision: 1.75 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -757,8 +757,8 @@ class File(hdf5Extension.File, object):
         else:
             object.attrs._f_copy(dstNode)
         
-    def copyFile(self, dstFilename=None, overwrite=0, title=None,
-                 filters=None, copyuserattrs=1):
+    def copyFile(self, dstFilename=None, title=None,
+                 filters=None, copyuserattrs=1, overwrite=0):
         """Copy the contents of this file to "dstFilename".
 
         "dstFilename" must be a path string. If this file already
@@ -783,6 +783,8 @@ class File(hdf5Extension.File, object):
         ngroups, nleafs = self.root._f_copyChilds(dstFileh.root, recursive=1,
                                                   filters=filters,
                                                   copyuserattrs=copyuserattrs)
+        # Finally, close the file
+        dstFileh.close()
         return (ngroups, nleafs)
         
     def listNodes(self, where, classname = ""):

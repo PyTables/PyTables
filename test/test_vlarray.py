@@ -1624,6 +1624,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Assert other properties in array
         assert array1.nrows == array2.nrows
+        assert array1.shape == array2.shape
         assert array1.atom.flavor == array2.atom.flavor
         assert array1.atom.type == array2.atom.type
         assert array1.atom.itemsize == array2.atom.itemsize
@@ -1675,6 +1676,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Assert other properties in array
         assert array1.nrows == array2.nrows
+        assert array1.shape == array2.shape
         assert array1.atom.flavor == array2.atom.flavor
         assert array1.atom.type == array2.atom.type
         assert array1.atom.itemsize == array2.atom.itemsize
@@ -1723,6 +1725,7 @@ class CopyTestCase(unittest.TestCase):
             
         # Assert other properties in array
         assert array1.nrows == array2.nrows
+        assert array1.shape == array2.shape
         assert array1.atom.flavor == array2.atom.flavor  # Very important here
         assert array1.atom.type == array2.atom.type
         assert array1.atom.itemsize == array2.atom.itemsize
@@ -1768,6 +1771,7 @@ class CopyTestCase(unittest.TestCase):
             
         # Assert other properties in array
         assert array1.nrows == array2.nrows
+        assert array1.shape == array2.shape
         assert array1.atom.flavor == array2.atom.flavor  # Very important here
         assert array1.atom.type == array2.atom.type
         assert array1.atom.itemsize == array2.atom.itemsize

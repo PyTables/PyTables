@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.23 2004/02/06 08:04:37 falted Exp $
+#       $Id: VLArray.py,v 1.24 2004/02/09 13:24:31 falted Exp $
 #
 ########################################################################
 
@@ -30,7 +30,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.23 $"
+__version__ = "$Revision: 1.24 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -610,13 +610,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         # In the future, some analysis can be done in order to buffer
         # the copy process.
         nrowsinbuf = 1
-        # Non-optimized version
-#         for start2 in range(start, stop, step*nrowsinbuf):
-#             # Save the records on disk
-#             stop2 = start2+step*nrowsinbuf
-#             if stop2 > stop:
-#                 stop2 = stop 
-#             object.append(self[start2])
+        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
         # Optimized version (no conversions, no type and shape checks, etc...)
         nrowscopied = 0
         for start2 in range(start, stop, step*nrowsinbuf):
