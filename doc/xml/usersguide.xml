@@ -3576,6 +3576,32 @@ if __name__=="__main__":
 	  </subsubsection>
 
 	  <subsubsection>
+	    <heading id="removeRowsDescr">removeRows(start=None,
+	      stop=None)</heading>
+
+	    <p>Removes a range of rows in the table.  If only
+	      <em>start</em> is supplied, this row is to be
+	      deleted. If a range is supplied, i.e. both the
+	      <em>start</em> and <em>stop</em> parameters are passed,
+	      all the rows in the range are removed. A <em>step</em>
+	      parameter is not supported yet.
+	    </p>
+	    <description>
+		<term>start</term> <item>Sets the starting row to
+		  be removed. It accepts negative values meaning that
+		  the count starts from the end.</item>
+
+		<term>stop</term> <item>Sets the last row to be
+		  removed to stop - 1, i.e. the end point is omitted
+		  (in the Python <verb>range</verb> tradition). It
+		  accepts, likewise start, negative values. A special
+		  value of 0 means the last row.
+		</item>
+
+	      </description>
+	  </subsubsection>
+
+	  <subsubsection>
 	    <heading id="readDescr">read(self, start=None, stop=None,
 	      step=None, field=None, flavor=None)</heading>
 

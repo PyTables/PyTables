@@ -19,11 +19,11 @@ from tables import File, Group, Leaf, Table, Array
 from test_all import verbose
 
 class Record(IsDescription):
-    var1 = StringCol(itemsize=4)   # 4-character String
+    var1 = StringCol(length=4)     # 4-character String
     var2 = IntCol()                # integer
-    var3 = IntCol(itemsize=2)      # short integer.
+    var3 = Int16Col()              # short integer
     var4 = FloatCol()              # double (double-precision)
-    var5 = FloatCol(itemsize=4)    # float  (single-precision)
+    var5 = Float32Col()            # float  (single-precision)
 
 class createTestCase(unittest.TestCase):
     

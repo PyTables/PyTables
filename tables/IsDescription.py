@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.13 2003/07/15 18:52:48 falted Exp $
+#       $Id: IsDescription.py,v 1.14 2003/07/24 13:01:34 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.13 $"
+__version__ = "$Revision: 1.14 $"
 
 
 import warnings
@@ -107,16 +107,13 @@ class Col:
 
         self.rectype = tostructfmt[self.type]
 
-    def __str__(self):
-        out = "type: " + str(self.type) + " \\\\ shape: " + str(self.shape)
-        return out
-
     def __repr__(self):
-        out = "\n  type: " + str(self.type) + \
-              "\n  shape: " +  str(self.shape) + \
-              "\n  itemsize: " +  str(self.itemsize) + \
-              "\n  position: " +  str(self.pos) + \
-              "\n"
+        #out = self.__class__.__name__ + "('" + str(self.type) + "'" + \
+        out = "Col('" + str(self.type) + "'" + \
+              ", shape= " +  str(self.shape) + \
+              ", itemsize= " +  str(self.itemsize) + \
+              ", dflt=" + str(self.dflt) + \
+              ")"
         return out
 
     # Moved out of scope
@@ -127,12 +124,23 @@ class Col:
 class StringCol(Col):
     """ Define a string column """
     
-    def __init__(self, dflt=None, itemsize=1, shape=1, pos = None):
+    def __init__(self, length=None, dflt=None, shape=1, pos = None):
 
         self.pos = pos
 
+        assert isinstance(dflt, types.StringTypes) or dflt == None, \
+               "Invalid default value: '%s'" % dflt
+        
         assert shape != None and shape != 0 and shape != (0,), \
                "None or zero-valued shapes are not supported '%s'" % `shape`
+
+        # Deduce the length from the default value if it is not specified!
+        if length == None and dflt:
+            length = len(dflt)
+        if not length:
+            raise RuntimeError, \
+"""You must specify at least a length or a default value where this length
+  can be infered from."""
         
         if type(shape) in [types.IntType, types.LongType]:
             self.shape = shape
@@ -143,14 +151,14 @@ class StringCol(Col):
         self.dflt = dflt
 
         self.type = records.CharType
-        self.itemsize = itemsize
+        self.itemsize = length
         self.recarrtype = records.revfmt[self.type]
         self.rectype = tostructfmt[self.type]
 
     
 class IntCol(Col):
     """ Define an integer column """
-    def __init__(self, dflt=0, itemsize=4, shape=1, sign=1, pos=None):
+    def __init__(self, dflt=0, shape=1, itemsize=4, sign=1, pos=None):
 
         self.pos = pos
 
@@ -194,10 +202,49 @@ class IntCol(Col):
         self.recarrtype = records.revfmt[self.type]
         self.rectype = tostructfmt[self.type]
 
-    
+class Int8Col(IntCol):
+    "Description class for a signed integer of 8 bits "
+    def __init__(self, dflt=0, shape=1, pos=None):
+        IntCol.__init__(self, dflt, itemsize=1, shape=shape, sign=1, pos=pos)
+        
+class UInt8Col(IntCol):
+    "Description class for an unsigned integer of 8 bits "
+    def __init__(self, dflt=0, shape=1, pos=None):
+        IntCol.__init__(self, dflt , itemsize=1, shape=shape, sign=0, pos=pos)
+        
+class Int16Col(IntCol):
+    "Description class for a signed integer of 16 bits "
+    def __init__(self, dflt=0, shape=1, pos=None):
+        IntCol.__init__(self, dflt , itemsize=2, shape=shape, sign=1, pos=pos)
+        
+class UInt16Col(IntCol):
+    "Description class for an unsigned integer of 16 bits "
+    def __init__(self, dflt=0, shape=1, pos=None):
+        IntCol.__init__(self, dflt , itemsize=2, shape=shape, sign=0, pos=pos)
+        
+class Int32Col(IntCol):
+    "Description class for a signed integer of 32 bits "
+    def __init__(self, dflt=0, shape=1, pos=None):
+        IntCol.__init__(self, dflt , itemsize=4, shape=shape, sign=1, pos=pos)
+        
+class UInt32Col(IntCol):
+    "Description class for an unsigned integer of 32 bits "
+    def __init__(self, dflt=0, shape=1, pos=None):
+        IntCol.__init__(self, dflt , itemsize=4, shape=shape, sign=0, pos=pos)
+        
+class Int64Col(IntCol):
+    "Description class for a signed integer of 64 bits "
+    def __init__(self, dflt=0, shape=1, pos=None):
+        IntCol.__init__(self, dflt , itemsize=8, shape=shape, sign=1, pos=pos)
+        
+class UInt64Col(IntCol):
+    "Description class for an unsigned integer of 64 bits "
+    def __init__(self, dflt=0, shape=1, pos=None):
+        IntCol.__init__(self, dflt , itemsize=8, shape=shape, sign=0, pos=pos)
+        
 class FloatCol(Col):
     """ Define a float column """
-    def __init__(self, dflt=0.0, itemsize=8, shape=1, pos=None):
+    def __init__(self, dflt=0.0, shape=1, itemsize=8, pos=None):
 
         self.pos = pos
 
@@ -221,11 +268,20 @@ class FloatCol(Col):
             self.type = "Float32"
         elif itemsize == 8:
             self.type = "Float64"
-            
                 
         self.recarrtype = records.revfmt[self.type]
         self.rectype = tostructfmt[self.type]
 
+class Float32Col(FloatCol):
+    "Description class for a floating point of 32 bits "
+    def __init__(self, dflt=0.0, shape=1, pos=None):
+        FloatCol.__init__(self, dflt , shape=shape, itemsize=4, pos=pos)
+        
+class Float64Col(FloatCol):
+    "Description class for a floating point of 64 bits "
+    def __init__(self, dflt=0.0, shape=1, pos=None):
+        FloatCol.__init__(self, dflt , shape=shape, itemsize=8, pos=pos)
+        
     
 class metaIsDescription(type):
     """
@@ -273,13 +329,22 @@ class metaIsDescription(type):
             for k in kw:
                 setattr(self, k, kw[k])
 
+	def __repr__orig(self):
+            """ Gives a Table representation ready to be passed to eval
+            """
+            rep = [ '\"%s\": Col(\"%s\", shape=%r, itemsize=%s)' %  \
+                    (k, self.__types__[k], self._v_shapes[k],
+                     self._v_itemsizes[k])
+                    for k in self.__slots__ ]
+            return '{ %s }' % (',\n  '.join(rep))
+	
 	def __repr__(self):
             """ Gives a Table representation ready to be passed to eval
             """
-            rep = [ '\"%s\": Col(\"%r\", %r)' %  \
-                    (k, self.__types__[k], self._v_shapes[k])
+            rep = [ '\"%s\": %r' %  \
+                    (k, self._v_ColObjects[k])
                     for k in self.__slots__ ]
-            return '{ %s }' % (',\n  '.join(rep))
+            return '{\n    %s }' % (',\n    '.join(rep))
 	
         def __str__(self):
             """ Gives a Table representation for printing purposes
@@ -321,7 +386,7 @@ class metaIsDescription(type):
                     '__str__':__str__,
                     '_v_fmt': "", '_v_recarrfmt': "",
                     "_v_shapes":{}, "_v_itemsizes":{},
-                    '_v_formats':[],
+                    '_v_formats':[], "_v_ColObjects":{},
                     }
         
 
@@ -392,6 +457,7 @@ class metaIsDescription(type):
 
 """ % object
                 newdict['__slots__'].append(k)
+                newdict['_v_ColObjects'][k] = object
                 newdict['__types__'][k] = object.type
                 if hasattr(object, 'dflt') and not object.dflt is None:
                     newdict['__dflts__'][k] = object.dflt

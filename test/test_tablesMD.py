@@ -14,23 +14,23 @@ from test_all import verbose
 
 # Test Record class
 class Record(IsDescription):
-    var1 = StringCol("abcd", itemsize=4, shape=(2,2))   # string array
-    var2 = IntCol(((1,1),(1,1)), shape=(2,2))           # integer array
-    var3 = IntCol(2, itemsize=2)                # short integer 
+    var1 = StringCol(4, "abcd", shape=(2,2))    # 4-character string array
+    var2 = IntCol(((1,1),(1,1)), shape=(2,2))   # integer array
+    var3 = Int16Col(2)                          # short integer 
     var4 = FloatCol(3.1)                        # double (double-precision)
-    var5 = FloatCol(4.2, itemsize=4)            # float  (single-precision)
-    var6 = IntCol(5, itemsize=2, sign=0)        # unsigned short integer 
-    var7 = StringCol(itemsize=1, dflt="e")      # 1-character String
+    var5 = Float32Col(4.2)                      # float  (single-precision)
+    var6 = UInt16Col(5)                         # unsigned short integer 
+    var7 = StringCol(length=1, dflt="e")        # 1-character String
 
 # From 0.3 on, you can dynamically define the tables with a dictionary
 RecordDescriptionDict = {
-    'var1': StringCol(itemsize=4, shape=(2,2)),   # 4-character String
+    'var1': StringCol(length=4, shape=(2,2)),     # 4-character String
     'var2': IntCol(shape=(2,2)),                  # integer array
-    'var3': IntCol(itemsize=2),                   # short integer 
+    'var3': Int16Col(),                           # short integer 
     'var4': FloatCol(),                           # double (double-precision)
-    'var5': FloatCol(itemsize=4),                 # float  (single-precision)
-    'var6': IntCol(itemsize=2, sign=0),           # unsigned short integer 
-    'var7': StringCol(itemsize=1),                # 1-character String
+    'var5': Float32Col(),                         # float  (single-precision)
+    'var6': Int16Col(),                           # unsigned short integer 
+    'var7': StringCol(length=1),                  # 1-character String
     }
 
 def allequal(a,b):

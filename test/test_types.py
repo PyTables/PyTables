@@ -9,7 +9,7 @@ from test_all import verbose
 
 # Test Record class
 class Record(IsDescription):
-    var1 = StringCol(itemsize=4)  # 4-character String
+    var1 = StringCol(length=4)    # 4-character String
     var2 = IntCol()               # integer
     var3 = IntCol(itemsize=2)     # short integer
     var4 = FloatCol()             # double (double-precision)

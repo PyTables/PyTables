@@ -15,14 +15,14 @@ from tables import *
 
 # Define a user record to characterize some kind of particles
 class Particle(IsDescription):
-    name      = Col('CharType', 16)  # 16-character String
-    idnumber  = Col("Int64", 1)      # Signed 64-bit integer
-    ADCcount  = Col("UInt16", 1)     # Unsigned short integer
-    TDCcount  = Col("UInt8", 1)      # unsigned byte
-    grid_i    = Col("Int32", 1)      # integer
-    grid_j    = Col("Int32", 1)      # integer
-    pressure  = Col("Float32", 1)    # float  (single-precision)
-    energy    = Col("Float64", 1)    # double (double-precision)
+    name      = StringCol(16)   # 16-character String
+    idnumber  = Int64Col()      # Signed 64-bit integer
+    ADCcount  = UInt16Col()     # Unsigned short integer
+    TDCcount  = UInt8Col()      # unsigned byte
+    grid_i    = Int32Col()      # integer
+    grid_j    = IntCol()        # integer (equivalent to Int32Col)
+    pressure  = Float32Col()    # float  (single-precision)
+    energy    = FloatCol()      # double (double-precision)
 
 print
 print	'-**-**-**-**-**-**- file creation  -**-**-**-**-**-**-**-'
@@ -71,14 +71,14 @@ print	'-**-**-**-**-**-**- table data reading & selection  -**-**-**-**-**-'
 
 # Read actual data from table. We are interested in collecting pressure values
 # on entries where TDCcount field is greater than 3 and pressure less than 50
-pressure = [ x['pressure'] for x in table.iterrows()
+pressure = [ x['pressure'] for x in table
              if x['TDCcount'] > 3 and x['pressure'] < 50 ]
 print "Last record read:"
 print x
 print "Field pressure elements satisfying the cuts ==>", pressure
 
 # Read also the names with the same cuts
-names = [ x['name'] for x in table.iterrows()
+names = [ x['name'] for x in table
           if x['TDCcount'] > 3 and x['pressure'] < 50 ]
 
 print

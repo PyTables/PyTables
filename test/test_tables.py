@@ -13,34 +13,34 @@ from test_all import verbose
 
 # Test Record class
 class Record(IsDescription):
-    var1 = StringCol(itemsize=4, dflt="abcd")   # 4-character String
+    var1 = StringCol(length=4, dflt="abcd")     # 4-character String
     var2 = IntCol(1)                            # integer
-    var3 = IntCol(2, itemsize=2)                # short integer 
-    var4 = FloatCol(3.1)                        # double (double-precision)
-    var5 = FloatCol(4.2, itemsize=4)            # float  (single-precision)
-    var6 = IntCol(5, itemsize=2, sign=0)        # unsigned short integer 
-    var7 = StringCol(itemsize=1, dflt="e")      # 1-character String
+    var3 = Int16Col(2)                          # short integer 
+    var4 = Float64Col(3.1)                      # double (double-precision)
+    var5 = Float32Col(4.2)                      # float  (single-precision)
+    var6 = UInt16Col(5)                         # unsigned short integer 
+    var7 = StringCol(length=1, dflt="e")        # 1-character String
 
 # From 0.3 on, you can dynamically define the tables with a dictionary
 RecordDescriptionDict = {
-    'var1': StringCol(itemsize=4),              # 4-character String
+    'var1': StringCol(4, "abcd"),               # 4-character String
     'var2': IntCol(1),                          # integer
-    'var3': IntCol(2, itemsize=2),              # short integer 
+    'var3': Int16Col(2),                        # short integer 
     'var4': FloatCol(3.1),                      # double (double-precision)
-    'var5': FloatCol(4.2, itemsize=4),          # float  (single-precision)
-    'var6': IntCol(5, itemsize=2, sign=0),      # unsigned short integer 
-    'var7': StringCol(itemsize=1),              # 1-character String
+    'var5': Float32Col(4.2),                    # float  (single-precision)
+    'var6': UInt16Col(5),                       # unsigned short integer 
+    'var7': StringCol(1, "e"),                  # 1-character String
     }
 
 # Old fashion of defining tables (for testing backward compatibility)
 class OldRecord(IsDescription):
-    var1 = Col("CharType", 4, dflt="abcd")   # 4-character String
+    var1 = Col("CharType", shape=4, dflt="abcd")   # 4-character String
     var2 = Col("Int32", 1, 1)                # integer
     var3 = Col("Int16", 1, 2)                # short integer
     var4 = Col("Float64", 1, 3.1)            # double (double-precision)
     var5 = Col("Float32", 1, 4.2)            # float  (single-precision)
-    var6 = Col("Int16", 1, 5)                # short integer 
-    var7 = Col("CharType", 1, dflt="e")      # 1-character String
+    var6 = Col("UInt16", 1, 5)                # unisgned short integer 
+    var7 = Col("CharType", shape=1, dflt="e")      # 1-character String
 
 def allequal(a,b):
     """Checks if two numarrays are equal"""
@@ -332,7 +332,7 @@ class BasicTestCase(unittest.TestCase):
 
         nrows = table.nrows
         # Delete the twenty-th row
-        table.removeRow(19)
+        table.removeRows(19)
 
         # Re-read the records
         result2 = [ r['var2'] for r in table.iterrows() if r['var2'] < 20]
@@ -368,7 +368,7 @@ class BasicTestCase(unittest.TestCase):
 
         nrows = table.nrows
         # Delete the last ten rows 
-        table.removeRow(10, 20)
+        table.removeRows(10, 20)
 
         # Re-read the records
         result2 = [ r['var2'] for r in table.iterrows() if r['var2'] < 20]
@@ -400,7 +400,7 @@ class BasicTestCase(unittest.TestCase):
         nrows = table.nrows
 
         # Delete a too large range of rows 
-        table.removeRow(10, nrows + 100)
+        table.removeRows(10, nrows + 100)
 
         # Re-read the records
         result2 = [ r['var2'] for r in table.iterrows() if r['var2'] < 20]

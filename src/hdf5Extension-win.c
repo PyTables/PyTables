@@ -656,7 +656,7 @@ static PyObject *__pyx_f_13hdf5Extension_getHDF5Version(PyObject *__pyx_self, Py
   return __pyx_r;
 }
 
-static char (__pyx_k22[]) = "$Id: hdf5Extension-win.c,v 1.28 2003/07/23 18:46:51 falted Exp $ ";
+static char (__pyx_k22[]) = "$Id: hdf5Extension-win.c,v 1.29 2003/07/24 13:01:32 falted Exp $ ";
 
 static PyObject *__pyx_f_13hdf5Extension_getExtVersion(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static char __pyx_doc_13hdf5Extension_getExtVersion[] = "Return this extension CVS version";
@@ -7444,7 +7444,7 @@ static struct PyMethodDef __pyx_methods[] = {
   {0, 0, 0, 0}
 };
 
-static char (__pyx_k1[]) = "$Revision: 1.28 $";
+static char (__pyx_k1[]) = "$Revision: 1.29 $";
 static char (__pyx_k2[]) = "sys";
 static char (__pyx_k3[]) = "os";
 static char (__pyx_k4[]) = "types";

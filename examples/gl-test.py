@@ -6,10 +6,10 @@ import sys
 from tables import *
 # numarray is here, so why don't work with it?
 import numarray
-# If you want to use chararrays (included in numarray distribution)
-import chararray
-# If you want to use recarrays (included in numarray distribution)
-import recarray
+# If you want to use CharArrays (included in numarray distribution)
+from numarray import strings
+# If you want to use RecArrays (included in numarray distribution)
+from numarray import records
 # If you want to use Numeric objects
 # Caveat: don't use "from Numeric import *" because its namespace may
 # collide with numarray! It's better to fully qualify objects from
@@ -60,13 +60,13 @@ print "gcolumns.name type ==> ", gcolumns.name.type
 # A few table examples that may be useful
 # Create a 2-dimensional Numarray with 5 rows
 # Save a recarray object under detector. This will become a Table object.
-records = [[1.2, [1,2,3], "Name: 1", 1],
-           [2.3, [3,4,5], "Name: 2", 2],
-           [3.4, [5,6,7], "Name: 3", 3],
-           [4.5, [7,8,9], "Name: 4", 4],
-           [5.6, [9,10,11], "Name: 5", 5]]
+recs = [[1.2, [1,2,3], "Name: 1", 1],
+        [2.3, [3,4,5], "Name: 2", 2],
+        [3.4, [5,6,7], "Name: 3", 3],
+        [4.5, [7,8,9], "Name: 4", 4],
+        [5.6, [9,10,11], "Name: 5", 5]]
 colnames= ["First","Second","Third", "Fourth"]
-r0=recarray.array(records, names=colnames)
+r0=records.array(recs, names=colnames)
 # Another manner to create the same recarray, but using columns, follows
 # Here, you must use numarray objects only
 array2d = numarray.array([[1,2,3],
@@ -74,9 +74,9 @@ array2d = numarray.array([[1,2,3],
                           [5,6,7],
                           [7,8,9],
                           [9,10,11]], numarray.Int16)
-r1=recarray.array([numarray.array(pressure.tolist()),  # Numeric to numarray
+r1=records.array([numarray.array(pressure.tolist()),  # Numeric to numarray
                    array2d,
-                   chararray.array(names),  # Char arrays are useful
+                   strings.array(names),  # Char arrays are useful
                    numarray.array(TDC)],
                   names=colnames)
 

@@ -48,9 +48,9 @@ for group in h5file(classname="Group"):
     print group
 print
 
-# List only the arrays (Array objects) hanging from /
+# List only the arrays (using Group iterator) hanging from /
 print "Arrays in /:"
-for array in h5file.root(classname="Array",recursive=1):
+for array in h5file.root(classname="Array", recursive=1):
     print array
 print
 
@@ -171,7 +171,7 @@ print	'-**-**-**-**- append records to existing table -**-**-**-**-**-'
 # Get the object row from table
 particle = table.row
 
-# Append 5 new particles to table (yes, tables can be enlarged!)
+# Append 5 new particles to table
 for i in xrange(10, 15):
     particle['name']  = 'Particle: %6d' % (i)
     particle['TDCcount'] = i % 256    
@@ -186,6 +186,9 @@ for i in xrange(10, 15):
 # Flush this table
 table.flush()
 
+# Delete some rows on the Table (yes, rows can be removed!)
+table.removeRows(5,10)
+
 # Print some table columns, for comparison with array data
 print "Some columns on enlarged table:"
 print
@@ -196,17 +199,11 @@ print "%-16s | %11s | %11s | %6s | %6s | %8s |" % \
 
 print "%-16s + %11s + %11s + %6s + %6s + %8s +" % \
       ('-' * 16, '-' * 11, '-' * 11, '-' * 6, '-' * 6, '-' * 8)
-# Print the data
-for r in table.iterrows():
-    print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
-       (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'], 
-        r['TDCcount'])
-
-print "-- Using the table iterator:"
+# Print the data using the table iterator:
 for r in table:
     print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
-       (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'], 
-        r['TDCcount'])
+          (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'], 
+           r['TDCcount'])
 
 print
 print "Total number of entries after appending new rows:", table.nrows

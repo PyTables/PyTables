@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.44 2003/07/19 09:28:42 falted Exp $
+#       $Id: File.py,v 1.45 2003/07/24 13:01:34 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.44 $"
+__version__ = "$Revision: 1.45 $"
 format_version = "1.1"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -40,7 +40,8 @@ from __future__ import generators
 import sys
 import types
 import warnings
-import os.path
+import time
+import os, os.path
 from fnmatch import fnmatch
 
 import hdf5Extension
@@ -239,9 +240,10 @@ class File(hdf5Extension.File, object):
 
         if root in [None, "", "/"]:
             root = "/"
-            hdf5name = "/"
-        else:
-            hdf5name = root   # trMap?
+        hdf5name = self.trMap.get(root, root)
+
+        # Save the User Acces Point in a variable
+        self.rootUAP=hdf5name
 
         rootname = "/"
 
@@ -603,7 +605,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
             return []
     
     def __iter__(self, where="/", classname=""):
-        """Iterate over the Groups (not Leaves) hanging from 'where'."""
+        """Iterate over the nodes hanging from 'where'."""
 
         return self.iterTree(where, classname)
 
@@ -622,7 +624,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
                     yield leaf
                 
     def __call__(self, where="/", classname=""):
-        """Iterate over the Groups (not Leaves) hanging from 'where'."""
+        """Iterate over the nodes hanging from 'where'."""
 
         return self.__iter__(where, classname)
 
@@ -675,11 +677,14 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         return
 
     def __str__(self):
-        
         """Returns a string representation of the object tree"""
         
         # Print all the nodes (Group and Leaf objects) on object tree
-        astring = 'Filename: ' + self.filename + " " + repr(self.title) + '\n'
+        date = time.asctime(time.localtime(os.stat(self.filename)[8]))
+        astring = "Filename: " + repr(self.filename) + \
+                  " Title: " + repr(self.title) + \
+                  " Last modif.: " + repr(date) + \
+                  '\n'
         for group in self.walkGroups("/"):
             astring += str(group) + '\n'
             for leaf in self.listNodes(group, 'Leaf'):
@@ -688,13 +693,15 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         return astring
 
     def __repr__(self):
-        
         """Returns a more complete representation of the object tree"""
         
         # Print all the nodes (Group and Leaf objects) on object tree
-        astring = 'Filename: ' + self.filename + " " + repr(self.title) + '\n'
-        astring += '  mode = ' + repr(self.mode) + '\n'
-        astring += '  trMap = ' + str(self.trMap) + '\n'
+        astring = 'File(filename=' + repr(self.filename) + \
+                  ', title=' + repr(self.title) + \
+                  ', mode=' + repr(self.mode) + \
+                  ', trMap=' + repr(self.trMap) + \
+                  ', root=' + repr(self.rootUAP) + \
+                  ')\n'
         for group in self.walkGroups("/"):
             astring += str(group) + '\n'
             for leaf in self.listNodes(group, 'Leaf'):

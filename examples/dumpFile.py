@@ -50,7 +50,8 @@ if __name__=="__main__":
 
         print "Attribute info of the objects:"
         print "Groups:"
-        for group in h5file.walkGroups(h5file.root):
+        #for group in h5file.walkGroups(h5file.root):
+        for group in h5file(classname="Group"):
             print repr(group._v_attrs)
             for leaf in h5file.listNodes(group, 'Leaf'):
                 print repr(leaf.attrs)

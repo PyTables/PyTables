@@ -9,11 +9,11 @@ from tables import *
 
 # Describe a particle record
 class Particle(IsDescription):
-    name      = Col('CharType', 16)  # 16-character String
-    lati      = Col("Int32", 1)      # integer
-    longi     = Col("Int32", 1)      # integer
-    pressure  = Col("Float32", 1)    # float  (single-precision)
-    temperature = Col("Float64", 1)    # double (double-precision)
+    name        = StringCol(length=16) # 16-character String
+    lati        = IntCol()             # integer
+    longi       = IntCol()             # integer
+    pressure    = Float32Col()         # float  (single-precision)
+    temperature = FloatCol()           # double (double-precision)
 
 # Another way to describe the columns of a table
 Event = {
@@ -73,9 +73,9 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
         event['TDCcount'] = i % (1<<8)   # Correct range
         ########### Detectable errors start here. Play with them!
         #event['xcoord'] = float(i**2)   # Correct spelling
-        event['xcoor'] = float(i**2)     # Wrong spelling. This works on 0.3
-        event['ADCcount'] = i * 2        # Correct type
-        #event['ADCcount'] = "s"          # Wrong type
+        event['xcoor'] = float(i**2)     # Wrong spelling
+        #event['ADCcount'] = i * 2        # Correct type
+        event['ADCcount'] = "s"          # Wrong type
         ########### End of errors
         event['ycoord'] = float(i)**4
         # This injects the Record values
@@ -86,7 +86,7 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
 
 # Read the records from table "/Events/TEvent3" and select some
 table = root.Events.TEvent3
-e = [ p['TDCcount'] for p in table.iterrows()
+e = [ p['TDCcount'] for p in table
       if p['ADCcount'] < 20 and 4 <= p['TDCcount'] < 15 ]
 print "Last record ==>", p
 print "Selected values ==>", e

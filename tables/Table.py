@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.61 2003/07/23 18:46:54 falted Exp $
+#       $Id: Table.py,v 1.62 2003/07/24 13:01:35 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.61 $"
+__version__ = "$Revision: 1.62 $"
 
 from __future__ import generators
 import sys
@@ -223,8 +223,8 @@ class Table(Leaf, hdf5Extension.Table, object):
             colname = self.colnames[i]
             # Special case for strings (from numarray 0.6 on)
             if isinstance(recarr._fmt[i], records.Char):
-                fields[colname] =  StringCol(dflt=None,
-                                             itemsize=recarr._itemsizes[i],
+                fields[colname] =  StringCol(length=recarr._itemsizes[i],
+                                             dflt=None,
                                              shape=recarr._repeats[i],
                                              pos=i)
             else:
@@ -297,7 +297,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         for i in range(len(self.colnames)):
             if coltypes[i] == "CharType":
                 itemsize = headerRA._itemsizes[i]
-                fields[self.colnames[i]] = StringCol(itemsize = itemsize,
+                fields[self.colnames[i]] = StringCol(length = itemsize,
                                                      shape = colshapes[i],
                                                      pos = i)
             else:
@@ -593,9 +593,9 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         (start, stop, step) = self._processRange(start, stop, step)
 
-        return self.__iter__(start, stop, step)
+        return self.row(start, stop, step)
         
-    def __iter__(self, start, stop, step):
+    def __iter__(self):
         """Iterate over the rows or a range
 
         This method is a true python iterator.
@@ -610,7 +610,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         # I don't know why!!? 2003/07/23
         #self._open_read(self._v_buffer)  # Open the table for reading
 
-        return self.row(start, stop, step)
+        return self.row()
 
     def _readAllFields(self, start=None, stop=None, step=None):
         """Read a range of rows and return a RecArray"""
@@ -717,7 +717,7 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         return arr
 
-    def removeRow(self, start=None, stop = None):
+    def removeRows(self, start=None, stop=None):
         """Remove a range of rows.
 
         If only "start" is supplied, this row is to be deleted.
@@ -924,14 +924,20 @@ class Table(Leaf, hdf5Extension.Table, object):
         print "Deleting Table object", self._v_name
         pass
 
-    def __repr__(self):
+    def __repr__orig(self):
         """This provides column metainfo in addition to standard __str__"""
 
-        rep = [ '%r: Col(\'%r\', %r)' %  \
+        rep = [ '%r: Col(\'%s\', %r)' %  \
                 (k, self.coltypes[k], self.colshapes[k])
                 for k in self.colnames ]
         columns = '{\n    %s }' % (',\n    '.join(rep))
         
-        return "%s\n  description := %s\n  byteorder = %s" % \
+        return "%s\n  description := %s\n  byteorder := %s" % \
                (str(self), columns, self.byteorder)
+
+    def __repr__(self):
+        """This provides column metainfo in addition to standard __str__"""
+
+        return "%s\n  description := %r\n  byteorder := %s" % \
+               (str(self), self.description, self.byteorder)
                
