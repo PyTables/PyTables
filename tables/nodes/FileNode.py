@@ -5,7 +5,7 @@
 #	Author:  Ivan Vilata i Balaguer - reverse:com.carabos@ivilata
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/nodes/FileNode.py,v $
-#	$Id: FileNode.py,v 1.7 2004/12/19 12:33:46 ivilata Exp $
+#	$Id: FileNode.py,v 1.8 2004/12/29 22:51:08 ivilata Exp $
 #
 ########################################################################
 
@@ -30,7 +30,7 @@ import tables
 
 
 
-__revision__ = '$Id: FileNode.py,v 1.7 2004/12/19 12:33:46 ivilata Exp $'
+__revision__ = '$Id: FileNode.py,v 1.8 2004/12/29 22:51:08 ivilata Exp $'
 
 NodeType         = 'file'
 NodeTypeVersions = [1, 2]
@@ -68,7 +68,7 @@ def openNode(node, mode = 'r'):
 	elif mode == 'a+':
 		return RAFileNode(node, None)
 	else:
-		raise IOError("invalid mode: %s" % mode)
+		raise IOError("invalid mode: %s" % (mode,))
 
 
 
@@ -607,10 +607,10 @@ class FileNode(object):
 		ltypever = getattr(attrs, '_type_version', None)
 
 		if ltype != NodeType:
-			raise ValueError("invalid type of node object: %s", ltype)
+			raise ValueError("invalid type of node object: %s" % (ltype,))
 		if ltypever not in NodeTypeVersions:
 			raise ValueError(
-				"unsupported type version of node object: %s", ltypever)
+				"unsupported type version of node object: %s" % (ltypever,))
 
 
 	def _checkNotClosed(self):
