@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.12 2003/03/08 11:40:54 falted Exp $
+#       $Id: Leaf.py,v 1.13 2003/03/08 17:32:10 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.12 $"
+__version__ = "$Revision: 1.13 $"
 
 import types
 from utils import checkNameValidity
@@ -70,7 +70,8 @@ class Leaf:
         parent._v_objleaves[self._v_name] = self
         # Update class variables
         parent._c_objleaves[self._v_pathname] = self
-        self._v_groupId = parent._v_groupId
+        # This variable seems unnecessary
+        #self._v_groupId = parent._v_groupId
         if self._v_new:
             self._create()
         else:
@@ -150,6 +151,10 @@ class Leaf:
         parent = self._v_parent
         self.close()
         parent._g_deleteLeaf(self._v_name)
+
+    def flush(self):
+        """Save whatever remaining data in buffer."""
+        # This is a do-nothing fall-back method
 
     def close(self):
         """Flush the Leaf buffers and close this object on file."""

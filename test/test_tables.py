@@ -57,6 +57,73 @@ def allequal(a,b):
 
     return result
 
+class RecArrayIO(unittest.TestCase):
+
+    def test00(self):
+        "Checking saving a normal recarray"
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a recarray
+        r=recarray.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
+
+        # Save it in a table:
+        fileh.createTable(fileh.root, 'recarray', r)
+
+        # Read it again
+        r2 = fileh.root.recarray.getRecArray()
+
+        assert r.tostring() == r2.tostring()
+        
+        fileh.close()
+        os.remove(file)
+
+    def test01(self):
+        "Checking saving a recarray with an offset in its buffer"
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a recarray
+        r=recarray.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
+
+        # Get an offsetted bytearray
+        r1 = r[1:]
+        assert r1._byteoffset > 0
+        
+        # Save it in a table:
+        fileh.createTable(fileh.root, 'recarray', r1)
+
+        # Read it again
+        r2 = fileh.root.recarray.getRecArray()
+
+        assert r1.tostring() == r2.tostring()
+        
+        fileh.close()
+        os.remove(file)
+
+    def test02(self):
+        "Checking saving a large recarray with an offset in its buffer"
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a recarray
+        r=recarray.array('a'*200000,'r,3i,5a,s',3000)
+
+        # Get an offsetted bytearray
+        r1 = r[2000:]
+        assert r1._byteoffset > 0
+        
+        # Save it in a table:
+        fileh.createTable(fileh.root, 'recarray', r1)
+
+        # Read it again
+        r2 = fileh.root.recarray.getRecArray()
+
+        assert r1.tostring() == r2.tostring()
+        
+        fileh.close()
+        os.remove(file)
+
 class BasicTestCase(unittest.TestCase):
     file  = "test.h5"
     mode  = "w" 
@@ -246,7 +313,7 @@ class BasicTestCase(unittest.TestCase):
         table = self.fileh.getNode("/table0")
 
         # Manually change the byteorder property for this table
-        table._v_byteorder = {"little":"big","big":"little"}[table._v_byteorder]
+        table.byteorder = {"little":"big","big":"little"}[table.byteorder]
 	
         # Read the records and select the ones with "var6" column less than 20
         result = [ rec.var2 for rec in table.iterrows() if rec.var6 < 20]
@@ -257,7 +324,6 @@ class BasicTestCase(unittest.TestCase):
         nrows = self.expectedrows - 1
         assert (rec.var1, rec.var6) == ("0001", nrows)
         assert len(result) == 20
-        #del table
         
 class BasicWriteTestCase(BasicTestCase):
     title = "BasicWrite"
@@ -708,6 +774,74 @@ class getColRangeTestCase(BasicRangeTestCase):
             self.fail("expected a LookupError")
 
 
+class RecArrayIO(unittest.TestCase):
+
+    def test00(self):
+        "Checking saving a normal recarray"
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a recarray
+        r=recarray.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
+
+        # Save it in a table:
+        fileh.createTable(fileh.root, 'recarray', r)
+
+        # Read it again
+        r2 = fileh.root.recarray.getRecArray()
+
+        assert r.tostring() == r2.tostring()
+        
+        fileh.close()
+        os.remove(file)
+
+    def test01(self):
+        "Checking saving a recarray with an offset in its buffer"
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a recarray
+        r=recarray.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
+
+        # Get an offsetted bytearray
+        r1 = r[1:]
+        assert r1._byteoffset > 0
+        
+        # Save it in a table:
+        fileh.createTable(fileh.root, 'recarray', r1)
+
+        # Read it again
+        r2 = fileh.root.recarray.getRecArray()
+
+        assert r1.tostring() == r2.tostring()
+        
+        fileh.close()
+        os.remove(file)
+
+    def test02(self):
+        "Checking saving a large recarray with an offset in its buffer"
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a recarray
+        r=recarray.array('a'*200000,'r,3i,5a,s',3000)
+
+        # Get an offsetted bytearray
+        r1 = r[2000:]
+        assert r1._byteoffset > 0
+        
+        # Save it in a table:
+        fileh.createTable(fileh.root, 'recarray', r1)
+
+        # Read it again
+        r2 = fileh.root.recarray.getRecArray()
+
+        assert r1.tostring() == r2.tostring()
+        
+        fileh.close()
+        os.remove(file)
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -726,7 +860,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
         theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
         theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
-
+        theSuite.addTest(unittest.makeSuite(RecArrayIO))
+    
     return theSuite
 
 

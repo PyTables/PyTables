@@ -144,21 +144,21 @@ class createTestCase(unittest.TestCase):
 
 	attrlength = 2048
 	# Try to put a long string attribute on a group object
-	attr = self.fileh.setAttrNode(self.root, 'agroup',
+	attr = self.fileh.setAttrNode(self.root.agroup,
                                       "attr1", "p" * attrlength)
-        assert self.fileh.getAttrNode(self.root, 'agroup', 'attr1') == \
+        assert self.fileh.getAttrNode(self.root.agroup, 'attr1') == \
                "p" * attrlength
 	
 	# Now, try with a Table object
-	attr = self.fileh.setAttrNode(self.root, 'atable',
+	attr = self.fileh.setAttrNode(self.root.atable,
                                       "attr1", "a" * attrlength)
-        assert self.fileh.getAttrNode(self.root, 'atable', 'attr1') == \
+        assert self.fileh.getAttrNode(self.root.atable, 'attr1') == \
                "a" * attrlength
 	    
 	# Finally, try with an Array object
-	attr = self.fileh.setAttrNode(self.root, 'anarray',
+	attr = self.fileh.setAttrNode(self.root.anarray,
                                       "attr1", "n" * attrlength)
-        assert self.fileh.getAttrNode(self.root, 'anarray', 'attr1') == \
+        assert self.fileh.getAttrNode(self.root.anarray, 'attr1') == \
                "n" * attrlength
 	    
 	    

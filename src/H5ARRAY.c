@@ -40,8 +40,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
 		    const int rank, 
 		    const hsize_t *dims,
 		    hid_t type_id,
-		    const void *data,
-		    const int offset) 
+		    const void *data)
 {
 
  hid_t   dataset_id, space_id, datatype;  
@@ -78,7 +77,9 @@ herr_t H5ARRAYmake( hid_t loc_id,
  {
    /* We need to add in character pointer arithmethic because
     offset is the displacement in bytes */
-   data = (void *)((char *)data + (int)offset);
+   /* We don't need that anymore. This is corrected now in Pyrex
+    */
+   /* data = (void *)((char *)data + (int)offset); */
    if ( H5Dwrite( dataset_id, datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
    goto out;
  }

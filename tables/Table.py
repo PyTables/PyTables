@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.32 2003/03/08 11:40:54 falted Exp $
+#       $Id: Table.py,v 1.33 2003/03/08 17:32:10 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.32 $"
+__version__ = "$Revision: 1.33 $"
 
 from __future__ import generators
 import sys
@@ -71,20 +71,28 @@ class Table(Leaf, hdf5Extension.Table):
 
     Methods:
 
-        getRecArray()
-        getCol()
-        iterrows()
-        flush()
+        getRecArray() -- read actual Table data as a RecArray
+        getCol() -- read a Table column and return a numarray
+        iterrows() -- iterate over all the rows in Table
+        flush() -- flush the buffers
 
     Instance variables:
 
         name -- the node name
-        title -- the title for this node  # This can be moved to Leaf
+        _v_hdf5name -- the HDF5 file node name
+        title -- the title for this node
         description -- the metaobject for this table (can be a dictionary)
-        record -- A pointer to the current record object
+        record -- a pointer to the current record object
         nrows -- the number of rows in this table
+        shape -- the number of rows but in tuple format (nrows,)
+        row -- t reference to the Row object associated with this table
+        _v_rowsize -- the size, in bytes, of each row
         colnames -- the field names for the table
         coltypes -- the type class for the table fields
+        colshapes -- the shapes for the table fields
+        byteorder -- the byteorder of this object
+        _v_compress -- the level of compression of this Table (if known)
+        _v_class -- class of this object
 
     """
 
@@ -189,7 +197,7 @@ class Table(Leaf, hdf5Extension.Table):
                                            recarr._repeats[i],
                                            pos=i)  # Position matters!
         # Set the byteorder
-        self._v_byteorder = recarr._byteorder
+        self.byteorder = recarr._byteorder
         # Append this entry to indicate the alignment!
         fields['_v_align'] = revbyteorderDict[recarr._byteorder]
         # Create an instance description to host the record fields
@@ -213,7 +221,7 @@ class Table(Leaf, hdf5Extension.Table):
         # Extract the shapes for columns
         self.colshapes = self.description._v_shapes
         # Compute the byte order
-        self._v_byteorder = byteorderDict[self._v_fmt[0]]
+        self.byteorder = byteorderDict[self._v_fmt[0]]
         # Create the arrays for buffering
         self._v_buffer = self._newBuffer()
         self.row = hdf5Extension.Row(self._v_buffer, self)
@@ -251,7 +259,7 @@ class Table(Leaf, hdf5Extension.Table):
 
         # Append this entry to indicate the alignment!
         fields['_v_align'] = self._v_fmt[0]
-        self._v_byteorder = byteorderDict[self._v_fmt[0]]
+        self.byteorder = byteorderDict[self._v_fmt[0]]
         # Create an instance description to host the record fields
         self.description = metaIsRecord("", (), fields)()
         # Extract the coltypes
@@ -385,7 +393,7 @@ class Table(Leaf, hdf5Extension.Table):
         for i in xrange(0, self.nrows, nrowsinbuf):
             recout = self._read_records(i, nrowsinbuf, buffer)
             #recout = nrowsinbuf
-            if self._v_byteorder <> sys.byteorder:
+            if self.byteorder <> sys.byteorder:
                 buffer.byteswap()
             # Set the buffer counter
             # Case for step=1
@@ -415,7 +423,7 @@ class Table(Leaf, hdf5Extension.Table):
                 stopb = nrowsinbuf
             # Read a chunk
             nrowsread += self._read_records(i, nrowsinbuf, buffer)
-            if self._v_byteorder <> sys.byteorder:
+            if self.byteorder <> sys.byteorder:
                 buffer.byteswap()
             # Set the buffer counter
             row._setBaseRow(i, startb)
@@ -504,7 +512,7 @@ class Table(Leaf, hdf5Extension.Table):
             nextelement += step
 
         # Set the byteorder properly
-        result._byteorder = self._v_byteorder
+        result._byteorder = self.byteorder
         return result
 
     def getCol(self, field=None, start=None, stop=None, step=None):
@@ -571,7 +579,7 @@ class Table(Leaf, hdf5Extension.Table):
             nextelement += step
 
         # Set the byteorder properly
-        result._byteorder = self._v_byteorder
+        result._byteorder = self.byteorder
         return result
 
     # This version of getCol does not work well. Perhaps a bug in the
@@ -653,7 +661,7 @@ class Table(Leaf, hdf5Extension.Table):
             nextelement += step
 
         # Set the byteorder properly
-        result._byteorder = self._v_byteorder
+        result._byteorder = self.byteorder
         return result
 
     # Moved out of scope
@@ -698,7 +706,7 @@ class Table(Leaf, hdf5Extension.Table):
         """This provides column metainfo in addition to standard __str__"""
 
         header = str(self)
-        byteorder = self._v_byteorder
+        byteorder = self.byteorder
         columns = ["Number of columns: %s\n  Column metainfo:" % \
                    len(self.colnames)]
         columns += ['%s := (%s, %s)' % (self.colnames[i],

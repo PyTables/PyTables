@@ -217,7 +217,7 @@ class OpenFileTestCase(unittest.TestCase):
         
         warnings.filterwarnings("error", category=UserWarning)
         try:
-            fileh.removeNode(fileh.root, 'agroup')
+            fileh.removeNode(fileh.root.agroup)
         except UserWarning:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -382,7 +382,7 @@ class OpenFileTestCase(unittest.TestCase):
         """Checking renaming a leave and access it after a close/open"""
 
         fileh = openFile(self.file, mode = "r+")
-        fileh.renameNode(fileh.root, 'anarray', 'anarray2')
+        fileh.renameNode(fileh.root.anarray, 'anarray2')
         fileh.close()
 
         # Open this file in read-only mode
@@ -407,7 +407,7 @@ class OpenFileTestCase(unittest.TestCase):
         """Checking renaming Leaves and accesing them immediately"""
 
         fileh = openFile(self.file, mode = "r+")
-        fileh.renameNode(fileh.root, 'anarray', 'anarray2')
+        fileh.renameNode(fileh.root.anarray, 'anarray2')
 
         # Ensure that the new name exists
         array_ = fileh.root.anarray2
@@ -432,7 +432,7 @@ class OpenFileTestCase(unittest.TestCase):
         fileh = openFile(self.file, mode = "r+")
         # Try to get the previous object with the old name
         try:
-            fileh.renameNode(fileh.root, 'anarray', 'array')        
+            fileh.renameNode(fileh.root.anarray, 'array')        
         except RuntimeError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -449,7 +449,7 @@ class OpenFileTestCase(unittest.TestCase):
         fileh = openFile(self.file, mode = "r+")
         # Try to get the previous object with the old name
         try:
-            fileh.renameNode(fileh.root, 'anarray', 'array 2')        
+            fileh.renameNode(fileh.root.anarray, 'array 2')        
         except NameError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -463,7 +463,7 @@ class OpenFileTestCase(unittest.TestCase):
         """Checking renaming a Group and access it after a close/open"""
 
         fileh = openFile(self.file, mode = "r+")
-        fileh.renameNode(fileh.root, 'agroup', 'agroup3')
+        fileh.renameNode(fileh.root.agroup, 'agroup3')
         fileh.close()
 
         # Open this file in read-only mode
@@ -503,7 +503,7 @@ class OpenFileTestCase(unittest.TestCase):
         """Checking renaming a Group and access it immediately"""
 
         fileh = openFile(self.file, mode = "r+")
-        fileh.renameNode(fileh.root, 'agroup', 'agroup3')
+        fileh.renameNode(fileh.root.agroup, 'agroup3')
 
         # Ensure that the new name exists
         group = fileh.root.agroup3

@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.19 2003/03/08 11:40:54 falted Exp $
+#       $Id: File.py,v 1.20 2003/03/08 17:32:10 falted Exp $
 #
 ########################################################################
 
@@ -21,7 +21,7 @@ Classes:
 
 Functions:
 
-    openFile(name [, mode = "r" [, title]])
+    openFile(name [, mode = "r" [, title [, trTable]]])
 
 Misc variables:
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.19 $"
+__version__ = "$Revision: 1.20 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -50,13 +50,12 @@ import numarray
 
 def openFile(filename, mode="r", title="", trTable={}):
 
-    """Open a PyTables file an returns a File object.
+    """Open an HDF5 file an returns a File object.
 
     Arguments:
 
     filename -- The name of the file (supports environment variable
-            expansion). It must have any of ".h5", ".hdf" or ".hdf5"
-            extensions.
+            expansion).
 
     mode -- The mode to open the file. It can be one of the following:
     
@@ -73,6 +72,9 @@ def openFile(filename, mode="r", title="", trTable={}):
     title -- (Optional) A TITLE string attribute will be set on the
              root group with its value.
 
+    trTable -- (Optional) A dictionary to map names in the object tree into
+             different HDF5 names in file.
+
     """
     
     # Expand the form '~user'
@@ -80,13 +82,6 @@ def openFile(filename, mode="r", title="", trTable={}):
     # Expand the environment variables
     path = os.path.expandvars(path)
     
-    # Only allows extension .h5, .hdf or .hdf5 for HDF5 files
-#     assert (fnmatch(path, "*.h5") or
-#             fnmatch(path, "*.hdf") or
-#             fnmatch(path, "*.hdf5")), \
-# """arg 1 must have one of the next file extensions:
-#   '.h5', '.hdf' or '.hdf5'"""
-
 # The file extension warning commmented out by people at GL suggestion
 
 #     if not (fnmatch(path, "*.h5") or
@@ -158,11 +153,15 @@ class File(hdf5Extension.File):
     Methods:
 
         createGroup(where, name[, title])
-        createTable(where, name, recordObject [, title
-                    [, compress [, expectedrows]]])
+        createTable(where, name, recordObject [, title]
+                    [, compress] [, expectedrows])
         createArray(where, name, arrayObject, [, title])
-        getNode(where [, name [, classname]])
+        getNode(where [, name] [,classname])
         listNodes(where [, classname])
+        renameNode(where, newname [, name])
+        removeNode(where [, name] [, recursive])
+        getAttrNode(self, where, attrname [, name])
+        setAttrNode(self, where, attrname, attrname [, name])
         walkGroups(where = "/")
         flush()
         close()
@@ -173,6 +172,7 @@ class File(hdf5Extension.File):
         mode -- Mode in which the filename was opened
         title -- The title of the root group in file
         root -- The root group in file
+        trTable -- The mapping between python and HDF5 domain names
 
     """
 
@@ -203,7 +203,7 @@ class File(hdf5Extension.File):
         self.root = self.__getRootGroup()
 
         # Set the flag to indicate that the file has been opened
-        self.closed = 0
+        self._closed = 0
 
         return
 
@@ -219,7 +219,7 @@ class File(hdf5Extension.File):
         global format_version
         global compatible_formats
         
-        self._v_groupId = self.getFileId()
+        self._v_groupId = self._getFileId()
         self._v_depth = 0
 
         root = Group(self._v_new)
@@ -255,16 +255,16 @@ class File(hdf5Extension.File):
             root._g_setGroupAttrStr('VERSION', root._v_version)
             
             # Finally, save the PyTables format version for this file
-            self.format_version = format_version
+            self._format_version = format_version
             root._g_setGroupAttrStr('PYTABLES_FORMAT_VERSION', format_version)
         
         else:
             # Firstly, get the PyTables format version for this file
-            self.format_version = \
+            self._format_version = \
                                 root._f_getAttr('PYTABLES_FORMAT_VERSION')
-            if self.format_version == None:
+            if self._format_version == None:
                 # PYTABLES_FORMAT_VERSION attribute is not present
-                self.format_version = "unknown"
+                self._format_version = "unknown"
                           
             # Get the title, class and version attributes
             # (only for root)
@@ -444,7 +444,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
                 return -1
         return object
 
-    def renameNode(self, where, name = "", newname = ""):
+    def renameNode(self, where, newname, name = ""):
         """Rename the object node "name" under "where" location.
 
         "where" can be a path string or Group instance. If "where"
@@ -458,37 +458,6 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         # Get the node to be renamed
         object = self.getNode(where, name=name)
         object._f_rename(newname)
-        
-    def getAttrNode(self, where, name = "", attrname = ""):
-        """Returns the attribute "attrname" of node "where"."name".
-
-        "where" can be a path string or Group instance. If "where"
-        doesn't exists or has not a child called "name", a LookupError
-        error is raised. If "name" is a null string (""), or not
-        supplied, this method assumes to find the object in "where".
-        "attrname" is the name of the attribute to get.
-        
-        """
-
-        # Get the node to be renamed
-        object = self.getNode(where, name=name)
-        return object._f_getAttr(attrname)
-        
-    def setAttrNode(self, where, name="", attrname="", attrvalue=""):
-        """Set the attribute "attrname" of node "where"."name".
-
-        "where" can be a path string or Group instance. If "where"
-        doesn't exists or has not a child called "name", a LookupError
-        error is raised. If "name" is a null string (""), or not
-        supplied, this method assumes to find the object in "where".
-        "attrname" is the name of the attribute to set and "attrvalue"
-        its value.
-        
-        """
-
-        # Get the node to be renamed
-        object = self.getNode(where, name=name)
-        object._f_setAttr(attrname, attrvalue)
         
     def removeNode(self, where, name = "", recursive = 0):
         """Removes the object node "name" under "where" location.
@@ -506,6 +475,37 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         # Get the node to be removed
         object = self.getNode(where, name=name)
         object._f_remove(recursive)
+        
+    def getAttrNode(self, where, attrname, name = ""):
+        """Returns the attribute "attrname" of node "where"."name".
+
+        "where" can be a path string or Group instance. If "where"
+        doesn't exists or has not a child called "name", a LookupError
+        error is raised. If "name" is a null string (""), or not
+        supplied, this method assumes to find the object in "where".
+        "attrname" is the name of the attribute to get.
+        
+        """
+
+        # Get the node to be renamed
+        object = self.getNode(where, name=name)
+        return object._f_getAttr(attrname)
+        
+    def setAttrNode(self, where, attrname, attrvalue, name=""):
+        """Set the attribute "attrname" of node "where"."name".
+
+        "where" can be a path string or Group instance. If "where"
+        doesn't exists or has not a child called "name", a LookupError
+        error is raised. If "name" is a null string (""), or not
+        supplied, this method assumes to find the object in "where".
+        "attrname" is the name of the attribute to set and "attrvalue"
+        its value.
+        
+        """
+
+        # Get the node to be renamed
+        object = self.getNode(where, name=name)
+        object._f_setAttr(attrname, attrvalue)
         
     def listNodes(self, where, classname = ""):
         
@@ -557,7 +557,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
                 pass
             group._f_close()
 
-        self.closeFile()
+        self._closeFile()
         # Delete the Group class variables
         self.root._g_cleanup()
                     
@@ -566,7 +566,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         del self.root
 
         # Set the flag to indicate that the file is closed
-        self.closed = 1
+        self._closed = 1
 
     def __str__(self):
         
@@ -575,7 +575,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         # Print all the nodes (Group and Leaf objects) on object tree
         string = 'Filename: ' + self.filename + ' \\\\'
         string += ' Title: ' + str(self.title) + ' \\\\'
-        string += ' Format version: ' + str(self.format_version) + '\n'
+        string += ' Format version: ' + str(self._format_version) + '\n'
         for group in self.walkGroups("/"):
             string += str(group) + '\n'
             for leaf in self.listNodes(group, 'Leaf'):
@@ -590,7 +590,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         # Print all the nodes (Group and Leaf objects) on object tree
         string = 'Filename: ' + self.filename + ' \\\\'
         string += ' Title: ' + str(self.title) + ' \\\\'
-        string += ' Format version: ' + str(self.format_version) + '\n'
+        string += ' Format version: ' + str(self._format_version) + '\n'
         string += '  mode: ' + self.mode + '\n'
         string += '  trTable: ' + str(self.trTable) + '\n'
         for group in self.walkGroups("/"):

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.33 2003/03/08 11:40:54 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.34 2003/03/08 17:32:10 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.33 $"
+__version__ = "$Revision: 1.34 $"
 
 
 import sys, os.path
@@ -314,7 +314,7 @@ cdef extern from "H5ARRAY.h":
   herr_t H5ARRAYmake( hid_t loc_id, char *dset_name, char *title,
                       char *flavor, char *obversion, int atomictype,
                       int rank, hsize_t *dims, hid_t type_id,
-                      void *data, int offset )
+                      void *data)
 
   herr_t H5ARRAYread( hid_t loc_id, char *dset_name,
                          void *data )
@@ -490,7 +490,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.33 2003/03/08 11:40:54 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.34 2003/03/08 17:32:10 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -540,10 +540,10 @@ cdef class File:
                          self.mode )
 
   # Accessor definitions
-  def getFileId(self):
+  def _getFileId(self):
     return self.file_id
 
-  def closeFile(self):
+  def _closeFile(self):
     # Close the table file
     H5Fclose( self.file_id )
     self.file_id = 0    # Means file closed
@@ -789,7 +789,7 @@ cdef class Table:
     self.group_id = where._v_groupId
 
   def _createTable(self, title):
-    cdef int nvar
+    cdef int nvar, offset
     cdef int i, nrecords, ret, buflen
     cdef hid_t fieldtypes[MAX_FIELDS]
     cdef void *fill_data, *data
@@ -820,6 +820,9 @@ cdef class Table:
       ret = PyObject_AsWriteBuffer(self._v_recarray._data, &data, &buflen)
       if ret < 0:
         raise RuntimeError("Problems getting the pointer to the buffer")
+      # Correct the offset in the buffer
+      offset = self._v_recarray._byteoffset
+      data = <void *>(<char *>data + offset)
     else:
       self.totalrecords = 0
       data = NULL
@@ -1137,10 +1140,10 @@ cdef class Array:
     cdef int i
     cdef herr_t ret
     cdef hid_t type_id
-    cdef int *rbuf
+    cdef void *rbuf
     cdef int buflen, ret2
     cdef object array, strcache
-    cdef int itemsize
+    cdef int itemsize, offset
     cdef char *tmp, *byteorder
 
     if isinstance(arr, num.NumArray):
@@ -1193,13 +1196,12 @@ cdef class Array:
     # Get the pointer to the buffer data area
     # PyObject_AsWriteBuffer cannot be used when buffers come from
     # Numeric objects. Using the Read version only leads to a
-    # warning in compilation time
-    ret2 = PyObject_AsReadBuffer(array._data, <void **>&rbuf, &buflen)
+    # warning in compilation time.
+    ret2 = PyObject_AsReadBuffer(array._data, &rbuf, &buflen)
     # Correct the start of the buffer with the _byteoffset
-    # This doesn't work properly. Perhaps I don't fully understand
-    # the Pyrex pointer arithmetics.
-    # I've overcome this by passing the offset to H5ARRAY as a new parameter
-    #rbuf[0] = rbuf[0] + array._byteoffset
+    offset = array._byteoffset
+    rbuf = <void *>(<char *>rbuf + offset)
+
     if ret2 < 0:
       raise RuntimeError("Problems getting the buffer area.")
 
@@ -1213,7 +1215,7 @@ cdef class Array:
     # Save the array
     ret = H5ARRAYmake(self.group_id, self.name, title,
                       flavor, obversion, atomictype, self.rank,
-                      self.dims, type_id, rbuf, array._byteoffset)
+                      self.dims, type_id, rbuf)
     if ret < 0:
       raise RuntimeError("Problems saving the array.")
 

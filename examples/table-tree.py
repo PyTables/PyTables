@@ -305,7 +305,7 @@ print result
 
 # Test the File.renameNode() method
 #print h5file
-h5file.renameNode(h5file.root.detector, "recarray2", "recarray3")
+h5file.renameNode(h5file.root.detector.recarray2, "recarray3")
 #print h5file
 #print h5file.root.detector.recarray3
 #print h5file.root.__dict__
@@ -319,7 +319,7 @@ h5file.createGroup(h5file.root, "newgroup")
 h5file.removeNode(h5file.root, "newgroup")
 # If we change the name of a group with childs, we have to recursively change
 # all the paths of the children!
-h5file.renameNode(h5file.root, "columns", "newcolumns")
+h5file.renameNode(h5file.root.columns, "newcolumns")
 
 print h5file
 

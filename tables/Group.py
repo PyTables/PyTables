@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.21 2003/03/08 11:40:54 falted Exp $
+#       $Id: Group.py,v 1.22 2003/03/08 17:32:10 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.21 $"
+__version__ = "$Revision: 1.22 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -67,16 +67,17 @@ class Group(hdf5Extension.Group):
     namespace, it is explicitely forbidden to assign "normal"
     attributes to Group instances, and the only ones allowed must
     start by "_c_" (for class variables), "_f_" (for methods), "_g_"
-    for private methods or "_v_" (for instance variables) prefixes.
+    (for private methods) or "_v_" (for instance variables) prefixes.
 
     Methods:
     
         _f_listNodes([classname])
         _f_walkGroups()
-        _f_close()
         _f_rename(newname)
         _f_remove()
-        _f_removeLeaf()
+        _f_getAttr(attrname)
+        _f_setAttr(attrname, attrvalue)
+        _f_close()
         
     Class variables:
 
@@ -86,11 +87,13 @@ class Group(hdf5Extension.Group):
 
     Instance variables:
 
-        _v_title -- TITLE attribute of this group.
-        _v_name -- The name of this group.
+        _v_title -- TITLE attribute of this group
+        _v_name -- The name of this group in python namespace
+        _v_hdf5name -- The name of this group in HDF5 file namespace
         _v_pathname -- A string representation of the group location
-            in tree.
-        _v_parent -- The parent Group instance.
+            in tree
+        _v_parent -- The parent Group instance
+        _v_rootgroup - Always point to the root group object
         _v_objgroups -- Dictionary with object groups
         _v_objleaves -- Dictionaly with object leaves
         _v_objchilds -- Dictionary with object childs (groups or leaves)

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.24 2003/03/08 11:40:54 falted Exp $
+#       $Id: Array.py,v 1.25 2003/03/08 17:32:10 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.24 $"
+__version__ = "$Revision: 1.25 $"
 import types, warnings, sys
 from Leaf import Leaf
 import hdf5Extension
@@ -52,16 +52,18 @@ class Array(Leaf, hdf5Extension.Array):
 
     Methods:
 
-        read()
-        flush()  # This can be moved to Leaf
-        close()  # This can be moved to Leaf
+        read() -- read the actual data on disk
 
     Instance variables:
 
         name -- the node name
         title -- the node title  # This can be moved to Leaf
         shape -- tuple with the array shape (in Numeric sense)
-        type -- the type class for the array
+        typeclass -- the type class for the array
+        byteorder -- the byteorder of this object
+        flavor -- the object type of this object (numarray, Numeric, list,
+                  tuple)
+        _v_class -- Class of this object ("Array")
 
     """
     
@@ -249,11 +251,6 @@ class Array(Leaf, hdf5Extension.Array):
         
         return arr
         
-    def flush(self):
-        """Save whatever remaining data in buffer."""
-        # This is a do nothing method because, at the moment the Array
-        # class don't support buffers
-    
     # Moved out of scope
     def _g_del__(self):
         """Delete some objects"""
