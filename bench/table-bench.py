@@ -226,8 +226,9 @@ if __name__=="__main__":
     
     import time
     
-    usage = """usage: %s [-v] [-R range] [-r] [-w] [-s recsize] [-f field] [-c level] [-l complib] [-i iterations] file
+    usage = """usage: %s [-v] [-p] [-R range] [-r] [-w] [-s recsize] [-f field] [-c level] [-l complib] [-i iterations] file
             -v verbose
+	    -p use "psyco" if available
             -R select a range in the form "start,stop,step"
 	    -r only read test
 	    -w only write test
@@ -238,7 +239,7 @@ if __name__=="__main__":
             -i sets the number of rows in each table\n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'vR:rwf:s:c:l:i:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'vpR:rwf:s:c:l:i:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -255,6 +256,7 @@ if __name__=="__main__":
     fieldName = None
     testread = 1
     testwrite = 1
+    usepsyco = 0
     complevel = 0
     complib = "zlib"
     iterations = 100
@@ -263,6 +265,8 @@ if __name__=="__main__":
     for option in opts:
         if option[0] == '-v':
             verbose = 1
+        if option[0] == '-p':
+            usepsyco = 1
         elif option[0] == '-R':
             rng = [int(i) for i in option[1].split(",")]
         elif option[0] == '-r':
@@ -292,9 +296,8 @@ if __name__=="__main__":
     if testwrite:
 	t1 = time.time()
 	cpu1 = time.clock()
-        if psyco_imported:
+        if psyco_imported and usepsyco:
             psyco.bind(createFile)
-            pass
 	(rowsw, rowsz) = createFile(file, iterations, complevel, complib,
                                     recsize)
 	t2 = time.time()
@@ -311,7 +314,7 @@ if __name__=="__main__":
     if testread:
 	t1 = time.time()
         cpu1 = time.clock()
-        if psyco_imported:
+        if psyco_imported and usepsyco:
             psyco.bind(readFile)
             psyco.bind(readField)
             pass

@@ -66,11 +66,14 @@ if __name__ == '__main__':
     print "Extension version: %s" % tables.ExtVersion
     print "HDF5 version:      %s" % tables.HDF5Version
     print "numarray version:  %s" % numarray.__version__
+    tinfo = tables.isLibAvailable("zlib")
+    #print "zlib version:      %s" % tinfo[1]
     tinfo = tables.isLibAvailable("lzo")
     if tinfo[0]:
         print "LZO version:       %s (%s)" % (tinfo[1], tinfo[2])
     tinfo = tables.isLibAvailable("ucl")
-    if tinfo[0]:
+    #if type(tinfo) is type(()):
+    if tinfo[0]: ### Hi ha que arreglar-ho!
         print "UCL version:       %s (%s)" % (tinfo[1], tinfo[2])
     print 'Python version:    %s' % sys.version
     if os.name == 'posix':

@@ -19,7 +19,7 @@ class Record(IsDescription):
     var5 = Col("Float32", 1)    # float  (single-precision)
 
 class TreeTestCase(unittest.TestCase):
-    file  = "test.h5"
+    #file  = "test.h5"
     mode  = "w" 
     title = "This is the table title"
     expectedrows = 10
@@ -28,10 +28,14 @@ class TreeTestCase(unittest.TestCase):
     compress = 0
 
     def setUp(self):
+        # Create a temporary file
+        self.file = tempfile.mktemp(".h5")
         # Create an instance of HDF5 Table
         self.h5file = openFile(self.file, self.mode, self.title)
         self.populateFile()
-
+        # Close the file (eventually destroy the extended type)
+        self.h5file.close()
+            
     def populateFile(self):
         group = self.h5file.root
         maxshort = 1 << 15
@@ -66,13 +70,11 @@ class TreeTestCase(unittest.TestCase):
             group2 = self.h5file.createGroup(group, 'group'+str(j))
             # Iterate over this new group (group2)
             group = group2
-        # Close the file (eventually destroy the extended type)
-        self.h5file.close()
-            
     
     def tearDown(self):
-        # Close the file (eventually destroy the extended type)
-        self.h5file.close()
+        # Close the file
+        if self.h5file._isopen:
+            self.h5file.close()
 
         os.remove(self.file)
 

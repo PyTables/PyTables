@@ -55,7 +55,6 @@ class OpenFileTestCase(unittest.TestCase):
         class_ = fileh.root.array.getAttr("CLASS")
 
         fileh.close()
-        os.remove(file)
 
         assert class_ == "ARRAY"
         
@@ -68,6 +67,7 @@ class OpenFileTestCase(unittest.TestCase):
         title = fileh.root.array.getAttr("TITLE")
 
         assert title == "Title example"
+	fileh.close()
     
     def test01b_trMap(self):
         """Checking the translation table capability for reading"""
@@ -93,6 +93,8 @@ class OpenFileTestCase(unittest.TestCase):
         else:
             self.fail("expected an LookupError")
     
+	fileh.close()
+	
     def test01c_trMap(self):
         """Checking the translation table capability for writing"""
 

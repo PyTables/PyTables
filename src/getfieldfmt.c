@@ -1,6 +1,16 @@
 #include "getfieldfmt.h"
 #include <stdio.h>
 
+#ifdef _MSC_VER
+        /*
+        ** Compiling with Microsoft Visual C++; include TCHAR.H and use _snprintf
+        ** instead of snprintf, because Microsoft's stdio.h doesn't define snprintf.
+        */
+        #include <TCHAR.H>
+        #define snprintf _snprintf
+#endif /*_MSC_VER*/
+
+
 /* Routine to map the atomic type to a Python struct format 
  * This follows the standard size and alignment */
 int format_element(hid_t type_id,

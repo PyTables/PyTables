@@ -4,10 +4,11 @@
  * to include <lzo1x.h>
  */
 
+#include "H5Zlzo.h"
+#include "utils.h"
+
 #ifdef HAVE_LZO_LIB
 #   include "lzo1x.h"
-#   include "H5Zlzo.h"
-#   include "utils.h"
 
 void *wrkmem;
 
@@ -41,17 +42,21 @@ int register_lzo(void) {
 
 }
 
-#ifdef HAVE_LZO_LIB
 /* This routine only can be called if LZO is present */
 PyObject *getLZOVersionInfo(void) {
-  char *info[3];
+  char *info[2];
 
+#ifdef HAVE_LZO_LIB
   info[0] = strdup(LZO_VERSION_STRING);
   info[1] = strdup(LZO_VERSION_DATE);
+#else
+  info[0] = NULL;
+  info[1] = NULL;
+#endif /* HAVE_LZO_LIB */
   return createNamesTuple(info, 2);
 }
 
-#endif /* HAVE_LZO_LIB */
+
 
 size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
 		    const unsigned cd_values[], size_t nbytes,

@@ -127,7 +127,7 @@ class RecArrayIO(unittest.TestCase):
         os.remove(file)
 
 class BasicTestCase(unittest.TestCase):
-    file  = "test.h5"
+    #file  = "test.h5"
     mode  = "w" 
     title = "This is the table title"
     expectedrows = 100
@@ -141,6 +141,7 @@ class BasicTestCase(unittest.TestCase):
     def setUp(self):
 
         # Create an instance of an HDF5 Table
+        self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, self.mode)
         self.rootgroup = self.fileh.root
         self.populateFile()
@@ -227,7 +228,7 @@ class BasicTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         #del self.fileh, self.rootgroup
-        #os.remove(self.file)
+        os.remove(self.file)
         
     #----------------------------------------
 
@@ -381,9 +382,9 @@ class CompressLZOTablesTestCase(BasicTestCase):
 class CompressUCLTablesTestCase(BasicTestCase):
     title = "CompressUCLTables"
     compress = 1
-    complib = "lzo"
+    complib = "ucl"
     
-class CompressOneTablesTestCase(BasicTestCase):
+class CompressZLIBTablesTestCase(BasicTestCase):
     title = "CompressOneTables"
     compress = 1
     complib = "zlib"
@@ -403,7 +404,7 @@ class BigTablesTestCase(BasicTestCase):
 
 
 class BasicRangeTestCase(unittest.TestCase):
-    file  = "test.h5"
+    #file  = "test.h5"
     mode  = "w" 
     title = "This is the table title"
     record = Record
@@ -420,6 +421,7 @@ class BasicRangeTestCase(unittest.TestCase):
 
     def setUp(self):
         # Create an instance of an HDF5 Table
+        self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, self.mode)
         self.rootgroup = self.fileh.root
         self.populateFile()
@@ -465,7 +467,8 @@ class BasicRangeTestCase(unittest.TestCase):
 
 
     def tearDown(self):
-        self.fileh.close()
+        if self.fileh._isopen:
+            self.fileh.close()
         #del self.fileh, self.rootgroup
         os.remove(self.file)
         
@@ -530,6 +533,9 @@ class BasicRangeTestCase(unittest.TestCase):
                 assert rec['var2'] == range(self.start, self.stop, self.step)[-1]
             else:
                 assert rec['var2'] == range(startr, stopr, self.step)[-1]
+
+        # Close the file
+        self.fileh.close()
 
     def test01_range(self):
         """Checking ranges in table iterators (case1)"""
@@ -743,9 +749,9 @@ class BasicRangeTestCase(unittest.TestCase):
         except ValueError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next ValueError was catched!"
+		print "\nGreat!, the next ValueError was catched!"
                 print value
-            pass
+	    self.fileh.close()
         else:
             print rec
             self.fail("expected a ValueError")
@@ -759,7 +765,7 @@ class BasicRangeTestCase(unittest.TestCase):
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next ValueError was catched!"
                 print value
-            pass
+	    self.fileh.close()
         else:
             print rec
             self.fail("expected a ValueError")
@@ -878,11 +884,11 @@ def suite():
         theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
-        if isLibAvailable("lzo"):
-            theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
-        if isLibAvailable("ucl"):
-            theSuite.addTest(unittest.makeSuite(CompressUCLTablesTestCase))
-        theSuite.addTest(unittest.makeSuite(CompressOneTablesTestCase))
+        #if isLibAvailable("lzo")[0]:
+        theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
+        #if isLibAvailable("ucl")[0]:
+	theSuite.addTest(unittest.makeSuite(CompressUCLTablesTestCase))
+        theSuite.addTest(unittest.makeSuite(CompressZLIBTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressTwoTablesTestCase))
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))

@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <ctype.h>
+#include "Python.h"
 #include "calcoffset.h"
 
 static const formatdef *whichtable(char **pfmt)

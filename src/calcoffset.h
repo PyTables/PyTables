@@ -2,6 +2,7 @@
  * F. Alted 
  * 2002/08/28 */
 
+#include "type-longlong.h"
 #include "hdf5.h"
 
 /* Define this variable for error printings */
@@ -28,7 +29,7 @@ typedef struct { char c; int x; } s_int;
 typedef struct { char c; long x; } s_long;
 typedef struct { char c; float x; } s_float;
 typedef struct { char c; double x; } s_double;
-typedef struct { char c; long long x; } s_longlong;
+typedef struct { char c; LL_TYPE x; } s_longlong;
 typedef struct { char c; void *x; } s_void_p;
 
 #define SHORT_ALIGN (sizeof(s_short) - sizeof(short))
@@ -36,7 +37,7 @@ typedef struct { char c; void *x; } s_void_p;
 #define LONG_ALIGN (sizeof(s_long) - sizeof(long))
 #define FLOAT_ALIGN (sizeof(s_float) - sizeof(float))
 #define DOUBLE_ALIGN (sizeof(s_double) - sizeof(double))
-#define LONGLONG_ALIGN (sizeof(s_longlong) - sizeof(long long))
+#define LONGLONG_ALIGN (sizeof(s_longlong) - sizeof(LL_TYPE))
 #define VOID_P_ALIGN (sizeof(s_void_p) - sizeof(void *))
 
 #ifdef __powerc
@@ -64,11 +65,10 @@ static formatdef native_table[] = {
      {'L',	sizeof(long),		LONG_ALIGN},
      {'f',	sizeof(float),		FLOAT_ALIGN},
      {'d',	sizeof(double),		DOUBLE_ALIGN},
-     {'q',	sizeof(long long),	LONGLONG_ALIGN},
-     {'Q',	sizeof(long long),	LONGLONG_ALIGN},
-/*     {'P',	sizeof(void *),		VOID_P_ALIGN},*/ /* Not supported
-							  because I don't
-							  fully understand it */
+     {'q',	sizeof(LL_TYPE),	LONGLONG_ALIGN},
+     {'Q',	sizeof(LL_TYPE),	LONGLONG_ALIGN},
+/*     {'P',	sizeof(void *),		VOID_P_ALIGN},*/ /* Not supported */
+
      {0}
 };
 

@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.30 2003/04/28 17:45:59 falted Exp $
+#       $Id: File.py,v 1.31 2003/05/06 20:21:20 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.30 $"
+__version__ = "$Revision: 1.31 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -209,7 +209,7 @@ class File(hdf5Extension.File):
         self.root = self.__getRootGroup()
 
         # Set the flag to indicate that the file has been opened
-        self._closed = 0
+        self._isopen = 1
 
         return
 
@@ -601,6 +601,10 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
     def close(self):
         
         """Close all the objects in HDF5 file and close the file."""
+
+        # If the file is already closed, return immediately
+        if not self._isopen:
+            return
         
         for group in self.walkGroups(self.root):
             for leaf in self.listNodes(group, classname = 'Leaf'):
@@ -615,7 +619,9 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         del self.root
 
         # Set the flag to indicate that the file is closed
-        self._closed = 1
+        self._isopen = 0
+
+        return
 
     def __str__(self):
         

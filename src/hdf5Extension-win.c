@@ -80,9 +80,9 @@ struct __pyx_obj_Table {
   int rowsize;
   int (field_offset[MAX_FIELDS]);
   int (field_sizes[MAX_FIELDS]);
-  long long nfields;
+  LL_TYPE nfields;
   void (*rbuf);
-  long long totalrecords;
+  LL_TYPE totalrecords;
   int group_id;
   int loc_id;
   char (*name);
@@ -127,7 +127,7 @@ struct __pyx_obj_Array {
   int group_id;
   char (*name);
   int rank;
-  long long (*dims);
+  LL_TYPE (*dims);
   PyObject *type;
   int enumtype;
 };
@@ -613,7 +613,7 @@ static PyObject *__pyx_f_getHDF5Version(PyObject *__pyx_self, PyObject *__pyx_ar
   return __pyx_r;
 }
 
-static char (__pyx_k19[]) = "$Id: hdf5Extension.c,v 1.45 2003/05/06 20:21:19 falted Exp $ ";
+static char (__pyx_k19[]) = "$Id: hdf5Extension-win.c,v 1.1 2003/05/06 20:21:19 falted Exp $ ";
 
 static PyObject *__pyx_f_getExtVersion(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static char __pyx_doc_getExtVersion[] = "Return this extension CVS version";
@@ -1197,8 +1197,8 @@ static PyObject *__pyx_f_5Group__g_getLeafAttrStr(PyObject *__pyx_v_self, PyObje
 static PyObject *__pyx_f_5Group__g_getLeafAttrStr(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   char (*__pyx_v_dsetname);
   char (*__pyx_v_attrname);
-  long long (*__pyx_v_dims);
-  long long __pyx_v_nelements;
+  LL_TYPE (*__pyx_v_dims);
+  LL_TYPE __pyx_v_nelements;
   enum H5T_class_t __pyx_v_class_id;
   int __pyx_v_type_size;
   char (*__pyx_v_attrvalue);
@@ -1215,7 +1215,7 @@ static PyObject *__pyx_f_5Group__g_getLeafAttrStr(PyObject *__pyx_v_self, PyObje
   int __pyx_5;
   PyObject *__pyx_6 = 0;
   PyObject *__pyx_7 = 0;
-  long long __pyx_8;
+  LL_TYPE __pyx_8;
   static char *__pyx_argnames[] = {"dsetname","attrname",0};
   if (!PyArg_ParseTupleAndKeywords(__pyx_args, __pyx_kwds, "ss", __pyx_argnames, &__pyx_v_dsetname, &__pyx_v_attrname)) return 0;
   Py_INCREF(__pyx_v_self);
@@ -1314,7 +1314,7 @@ static PyObject *__pyx_f_5Group__g_getLeafAttrStr(PyObject *__pyx_v_self, PyObje
   if (__pyx_5) {
 
     /* "C:\Documents and Settings\Francesc\Escritorio\pytables\src\hdf5Extension.pyx":721 */
-    __pyx_v_dims = ((long long (*))malloc((__pyx_v_rank * (sizeof(long long )))));
+    __pyx_v_dims = ((LL_TYPE (*))malloc((__pyx_v_rank * (sizeof(LL_TYPE )))));
     goto __pyx_L5;
   }
   __pyx_L5:;
@@ -1484,8 +1484,8 @@ static char (__pyx_k39[]) = "Attribute %s exists in group %s, but can't get it."
 static PyObject *__pyx_f_5Group__g_getGroupAttrStr(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_5Group__g_getGroupAttrStr(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   char (*__pyx_v_attrname);
-  long long (*__pyx_v_dims);
-  long long __pyx_v_nelements;
+  LL_TYPE (*__pyx_v_dims);
+  LL_TYPE __pyx_v_nelements;
   enum H5T_class_t __pyx_v_class_id;
   int __pyx_v_type_size;
   char (*__pyx_v_attrvalue);
@@ -1500,7 +1500,7 @@ static PyObject *__pyx_f_5Group__g_getGroupAttrStr(PyObject *__pyx_v_self, PyObj
   PyObject *__pyx_4 = 0;
   PyObject *__pyx_5 = 0;
   PyObject *__pyx_6 = 0;
-  long long __pyx_7;
+  LL_TYPE __pyx_7;
   static char *__pyx_argnames[] = {"attrname",0};
   if (!PyArg_ParseTupleAndKeywords(__pyx_args, __pyx_kwds, "s", __pyx_argnames, &__pyx_v_attrname)) return 0;
   Py_INCREF(__pyx_v_self);
@@ -1568,7 +1568,7 @@ static PyObject *__pyx_f_5Group__g_getGroupAttrStr(PyObject *__pyx_v_self, PyObj
   if (__pyx_1) {
 
     /* "C:\Documents and Settings\Francesc\Escritorio\pytables\src\hdf5Extension.pyx":775 */
-    __pyx_v_dims = ((long long (*))malloc((__pyx_v_rank * (sizeof(long long )))));
+    __pyx_v_dims = ((LL_TYPE (*))malloc((__pyx_v_rank * (sizeof(LL_TYPE )))));
     goto __pyx_L4;
   }
   __pyx_L4:;
@@ -2222,8 +2222,8 @@ static PyObject *__pyx_f_5Table__createTable(PyObject *__pyx_v_self, PyObject *_
   int __pyx_4;
   PyObject *__pyx_5 = 0;
   PyObject *__pyx_6 = 0;
-  long long __pyx_7;
-  long long __pyx_8;
+  LL_TYPE __pyx_7;
+  LL_TYPE __pyx_8;
   static char *__pyx_argnames[] = {"title","complib",0};
   if (!PyArg_ParseTupleAndKeywords(__pyx_args, __pyx_kwds, "OO", __pyx_argnames, &__pyx_v_title, &__pyx_v_complib)) return 0;
   Py_INCREF(__pyx_v_self);
@@ -2740,9 +2740,9 @@ static char __pyx_doc_5Table__getTableInfo[] = "Get info from a table on disk. T
 static PyObject *__pyx_f_5Table__getTableInfo(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_i;
   int __pyx_v_ret;
-  long long __pyx_v_nrecords;
-  long long __pyx_v_nfields;
-  long long (__pyx_v_dims[1]);
+  LL_TYPE __pyx_v_nrecords;
+  LL_TYPE __pyx_v_nfields;
+  LL_TYPE (__pyx_v_dims[1]);
   enum H5T_class_t __pyx_v_class_id;
   PyObject *__pyx_v_read_buffer;
   PyObject *__pyx_v_names_tuple;
@@ -2981,8 +2981,8 @@ static char (__pyx_k61[]) = "Problems reading records.";
 
 static PyObject *__pyx_f_5Table__read_records_orig(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_5Table__read_records_orig(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  long long __pyx_v_start;
-  long long __pyx_v_nrecords;
+  LL_TYPE __pyx_v_start;
+  LL_TYPE __pyx_v_nrecords;
   PyObject *__pyx_v_recarr = 0;
   int __pyx_v_ret;
   int __pyx_v_buflen;
@@ -3138,8 +3138,8 @@ static char (__pyx_k64[]) = "Problems reading records.";
 
 static PyObject *__pyx_f_5Table__read_records(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_5Table__read_records(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  long long __pyx_v_start;
-  long long __pyx_v_nrecords;
+  LL_TYPE __pyx_v_start;
+  LL_TYPE __pyx_v_nrecords;
   PyObject *__pyx_r;
   int __pyx_1;
   PyObject *__pyx_2 = 0;
@@ -3249,8 +3249,8 @@ static char (__pyx_k66[]) = "Problems reading records.";
 static PyObject *__pyx_f_5Table__read_field_name_orig(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_5Table__read_field_name_orig(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   char (*__pyx_v_field_name);
-  long long __pyx_v_start;
-  long long __pyx_v_nrecords;
+  LL_TYPE __pyx_v_start;
+  LL_TYPE __pyx_v_nrecords;
   PyObject *__pyx_v_recarr = 0;
   int __pyx_v_ret;
   void (*__pyx_v_rbuf);
@@ -3372,8 +3372,8 @@ static char (__pyx_k67[]) = "Problems reading records.";
 static PyObject *__pyx_f_5Table__read_field_name(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_5Table__read_field_name(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   char (*__pyx_v_field_name);
-  long long __pyx_v_start;
-  long long __pyx_v_nrecords;
+  LL_TYPE __pyx_v_start;
+  LL_TYPE __pyx_v_nrecords;
   int __pyx_v_ret;
   int __pyx_v_i;
   int __pyx_v_fieldpos;
@@ -4654,7 +4654,7 @@ static PyObject *__pyx_f_5Array__createArray(PyObject *__pyx_v_self, PyObject *_
   PyObject *__pyx_6 = 0;
   int __pyx_7;
   char (*__pyx_8);
-  long long __pyx_9;
+  LL_TYPE __pyx_9;
   static char *__pyx_argnames[] = {"arr","title","flavor","obversion","atomictype",0};
   if (!PyArg_ParseTupleAndKeywords(__pyx_args, __pyx_kwds, "Osssi", __pyx_argnames, &__pyx_v_arr, &__pyx_v_title, &__pyx_v_flavor, &__pyx_v_obversion, &__pyx_v_atomictype)) return 0;
   Py_INCREF(__pyx_v_self);
@@ -4953,7 +4953,7 @@ static PyObject *__pyx_f_5Array__createArray(PyObject *__pyx_v_self, PyObject *_
   ((struct __pyx_obj_Array *)__pyx_v_self)->rank = __pyx_7;
 
   /* "C:\Documents and Settings\Francesc\Escritorio\pytables\src\hdf5Extension.pyx":1408 */
-  ((struct __pyx_obj_Array *)__pyx_v_self)->dims = ((long long (*))malloc((((struct __pyx_obj_Array *)__pyx_v_self)->rank * (sizeof(long long )))));
+  ((struct __pyx_obj_Array *)__pyx_v_self)->dims = ((LL_TYPE (*))malloc((((struct __pyx_obj_Array *)__pyx_v_self)->rank * (sizeof(LL_TYPE )))));
 
   /* "C:\Documents and Settings\Francesc\Escritorio\pytables\src\hdf5Extension.pyx":1410 */
   __pyx_4 = ((struct __pyx_obj_Array *)__pyx_v_self)->rank;
@@ -5059,7 +5059,7 @@ static PyObject *__pyx_f_5Array__openArray(PyObject *__pyx_v_self, PyObject *__p
   __pyx_v_ret = H5ARRAYget_ndims(((struct __pyx_obj_Array *)__pyx_v_self)->group_id,((struct __pyx_obj_Array *)__pyx_v_self)->name,(&((struct __pyx_obj_Array *)__pyx_v_self)->rank));
 
   /* "C:\Documents and Settings\Francesc\Escritorio\pytables\src\hdf5Extension.pyx":1435 */
-  ((struct __pyx_obj_Array *)__pyx_v_self)->dims = ((long long (*))malloc((((struct __pyx_obj_Array *)__pyx_v_self)->rank * (sizeof(long long )))));
+  ((struct __pyx_obj_Array *)__pyx_v_self)->dims = ((LL_TYPE (*))malloc((((struct __pyx_obj_Array *)__pyx_v_self)->rank * (sizeof(LL_TYPE )))));
 
   /* "C:\Documents and Settings\Francesc\Escritorio\pytables\src\hdf5Extension.pyx":1437 */
   __pyx_v_ret = H5ARRAYget_info(((struct __pyx_obj_Array *)__pyx_v_self)->group_id,((struct __pyx_obj_Array *)__pyx_v_self)->name,((struct __pyx_obj_Array *)__pyx_v_self)->dims,(&__pyx_v_class_id),(&__pyx_v_sign),__pyx_v_byteorder,(&__pyx_v_type_size));
@@ -6140,7 +6140,7 @@ static struct PyMethodDef __pyx_methods[] = {
   {0, 0, 0, 0}
 };
 
-static char (__pyx_k1[]) = "$Revision: 1.45 $";
+static char (__pyx_k1[]) = "$Revision: 1.1 $";
 static char (__pyx_k2[]) = "sys";
 static char (__pyx_k3[]) = "os";
 static char (__pyx_k4[]) = "numarray";

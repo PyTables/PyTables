@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.43 2003/04/28 17:46:01 falted Exp $
+#       $Id: Table.py,v 1.44 2003/05/06 20:21:20 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.43 $"
+__version__ = "$Revision: 1.44 $"
 
 from __future__ import generators
 import sys
@@ -174,7 +174,7 @@ class Table(Leaf, hdf5Extension.Table):
   IsDescription subclass, dictionary or RecArray."""
 
 	if self._v_new:
-	    if hdf5Extension.isLibAvailable(complib):
+	    if hdf5Extension.isLibAvailable(complib)[0]:
 		self._v_complib = complib
 	    else:
 		warnings.warn( \

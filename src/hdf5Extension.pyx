@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.39 2003/05/01 17:23:28 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.40 2003/05/06 20:21:20 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.39 $"
+__version__ = "$Revision: 1.40 $"
 
 
 import sys, os
@@ -44,6 +44,12 @@ import numarray as num
 import ndarray
 import chararray
 import recarray2 as recarray
+
+# For defining the long long type
+cdef extern from "type-longlong.h":
+  cdef enum:
+    LL_TYPE
+    MY_MSC
 
 # C funtions and variable declaration from its headers
 
@@ -440,9 +446,13 @@ cdef extern from "utils.h":
   object Giterate(hid_t loc_id, char *name)
   H5T_class_t getHDF5ClassID(hid_t loc_id, char *name)
 
-cdef int lzo_version
-cdef int ucl_version
+# ZLIB library
+# We don't want to require the zlib headers installed
+#cdef extern from "zlib.h":
+#  char *zlibVersion()
+  
 # LZO library
+cdef int lzo_version
 cdef extern from "H5Zlzo.h":
   int register_lzo()
   object getLZOVersionInfo()
@@ -450,7 +460,9 @@ cdef extern from "H5Zlzo.h":
 # Initialize & register lzo
 lzo_version = register_lzo()
 
+
 # UCL library
+cdef int ucl_version
 cdef extern from "H5Zucl.h":
   int register_ucl()
   object getUCLVersionInfo()
@@ -461,24 +473,25 @@ ucl_version = register_ucl()
 # utility funtions (these can be directly invoked from Python)
 
 def isLibAvailable(char *name):
-    "Tell if an optional library is available or not"
+  "Tell if an optional library is available or not"
     
-    if (strcmp(name, "zlib") == 0):
-        return 1   # Should be always available
-    if (strcmp(name, "lzo") == 0):
-      if lzo_version:
-        (lzo_version_string, lzo_version_date) = getLZOVersionInfo()
-        return (lzo_version, lzo_version_string, lzo_version_date)
-      else:
-        return 0
-    elif (strcmp(name, "ucl") == 0):
-      if ucl_version:
-        (ucl_version_string, ucl_version_date) = getUCLVersionInfo()
-        return (ucl_version, ucl_version_string, ucl_version_date)
-      else:
-        return 0
+  if (strcmp(name, "zlib") == 0):
+    #return (1,zlibVersion(),None)   # Should be always available
+    return (1,0,0)   # Should be always available
+  if (strcmp(name, "lzo") == 0):
+    if lzo_version:
+      (lzo_version_string, lzo_version_date) = getLZOVersionInfo()
+      return (lzo_version, lzo_version_string, lzo_version_date)
     else:
-        return 0
+      return (0, None, None)
+  elif (strcmp(name, "ucl") == 0):
+    if ucl_version:
+      (ucl_version_string, ucl_version_date) = getUCLVersionInfo()
+      return (ucl_version, ucl_version_string, ucl_version_date)
+    else:
+      return (0, None, None)
+  else:
+    return (0, None, None)
     
 def whichClass( hid_t loc_id, char *name):
   cdef H5T_class_t class_id
@@ -569,7 +582,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.39 2003/05/01 17:23:28 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.40 2003/05/06 20:21:20 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""

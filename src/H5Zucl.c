@@ -3,11 +3,11 @@
    large enough buffer to keep the uncompressed data in. If not, it
    should crash. But HDF5 seems to always provide room enough */
 #include <stdlib.h>
+#include "H5Zucl.h"
+#include "utils.h"
 
 #ifdef HAVE_UCL_LIB
 #   include "ucl/ucl.h"
-#   include "H5Zucl.h"
-#   include "utils.h"
 #endif
 
 #undef CHECKSUM
@@ -33,17 +33,20 @@ int register_ucl(void) {
 
 }
 
-#ifdef HAVE_UCL_LIB
 /* This routine only can be called if UCL is present */
 PyObject *getUCLVersionInfo(void) {
   char *info[2];
-
+#ifdef HAVE_UCL_LIB
   info[0] = strdup(UCL_VERSION_STRING);
   info[1] = strdup(UCL_VERSION_DATE);
+#else
+  info[0] = NULL;
+  info[1] = NULL;
+#endif /* HAVE_UCL_LIB */
+  
   return createNamesTuple(info, 2);
 }
 
-#endif /* HAVE_UCL_LIB */
 
 size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
 		   const unsigned int cd_values[], size_t nbytes,
@@ -160,11 +163,12 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
     }
   }
 
-#endif  /* HAVE_UCL_LIB */
-
 done:
   if(outbuf)
     ucl_free(outbuf);
+
+#endif  /* HAVE_UCL_LIB */
+
   return ret_value;
 }
 
