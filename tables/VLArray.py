@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.29 2004/09/16 16:18:32 falted Exp $
+#       $Id: VLArray.py,v 1.30 2004/09/17 11:51:48 falted Exp $
 #
 ########################################################################
 
@@ -30,7 +30,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.29 $"
+__version__ = "$Revision: 1.30 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -43,7 +43,7 @@ import numarray.records as records
 from Leaf import Leaf
 import hdf5Extension
 #import IsDescription # to access BaseCol without polluting public namespace
-from IsDescription import Col, BoolCol, StringCol, IntCol, FloatCol
+from IsDescription import Col, BoolCol, StringCol, IntCol, FloatCol, ComplexCol
 from utils import processRange, processRangeRead, convertIntoNA
 
 try:
@@ -223,28 +223,23 @@ class Float64Atom(Atom, FloatCol):
         FloatCol.__init__(self, shape=shape, itemsize=8)
         self.flavor = checkflavor(flavor, self.type)
 
-class ComplexAtom(Atom):
+class ComplexAtom(Atom, ComplexCol):
     """ Define an atom of type Complex """
     def __init__(self, shape=1, itemsize=16, flavor="NumArray"):
-        if itemsize == 8:
-            type = 'F'
-        elif itemsize == 16:
-            type = 'D'
-        else:
-            raise AssertionError, """Float itemsizes different
-            from 8 and 16 are not supported"""
-        Atom.__init__(self, dtype=type, shape=shape, flavor=flavor)
+        ComplexCol.__init__(self, shape=shape, itemsize=itemsize)
+        self.flavor = checkflavor(flavor, self.type)
 
-
-class Complex32Atom(Atom):
+class Complex32Atom(Atom, ComplexCol):
     """ Define an atom of type Complex32 """
     def __init__(self, shape=1, flavor="NumArray"):
-        Atom.__init__(self, dtype='F', shape=shape, flavor=flavor)
+        ComplexCol.__init__(self, shape=shape, itemsize=8)
+        self.flavor = checkflavor(flavor, self.type)
 
-class Complex64Atom(Atom):
+class Complex64Atom(Atom, ComplexCol):
     """ Define an atom of type Complex64 """
     def __init__(self, shape=1, flavor="NumArray"):
-        Atom.__init__(self, dtype='D', shape=shape, flavor=flavor)
+        ComplexCol.__init__(self, shape=shape, itemsize=16)
+        self.flavor = checkflavor(flavor, self.type)
 
         
 def calcChunkSize(expectedsizeinMB, complevel):

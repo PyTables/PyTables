@@ -345,8 +345,6 @@ class TypesTestCase(unittest.TestCase):
 
         ttypes = {"Float32": Float32,
                   "Float64": Float64,
-                  "Complex32": Complex32,
-                  "Complex64": Complex64
                   }
         root = self.rootgroup
         if verbose:
@@ -371,6 +369,40 @@ class TypesTestCase(unittest.TestCase):
             assert vlarray.nrows == 2
             assert allequal(row[0], array([1.3,2.2,3.3], ttypes[atype]))
             assert allequal(row[1], array([-1.3e34,1.e-32], ttypes[atype]))
+            assert len(row[0]) == 3
+            assert len(row[1]) == 2
+
+    def test04b_ComplexAtom(self):
+        """Checking vlarray with numerical complex atoms"""
+
+        ttypes = {"Complex32": Complex32,
+                  "Complex64": Complex64,
+                  }
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04b_ComplexAtom..." % self.__class__.__name__
+
+        # Create an string atom
+        for atype in ttypes.iterkeys():
+            vlarray = self.fileh.createVLArray(root, atype,
+                                               Atom(ttypes[atype]))
+            vlarray.append((1.3+0j),(0+2.2j),(3.3+3.3j))
+            vlarray.append((0-1.3e34j),(1.e-32+0j))
+
+            # Read all the rows:
+            row = vlarray.read()
+            if verbose:
+                print "Testing type:", atype
+                print "Object read:", row
+                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+                print "First row in vlarray ==>", row[0]
+
+            assert vlarray.nrows == 2
+            assert allequal(row[0], array([(1.3+0j),(0+2.2j),(3.3+3.3j)],
+                                          ttypes[atype]))
+            assert allequal(row[1], array([(0-1.3e34j),(1.e-32+0j)],
+                                          ttypes[atype]))
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 

@@ -1,4 +1,4 @@
-March 2004
+September 2004
 
 I would like to thank the people have contributed directly or
 indirectly to PyTables. 
@@ -6,6 +6,8 @@ indirectly to PyTables.
 Scott Prater for editing the user's manual in order to make it more
 readable in english, as well as conducting the tests of PyTables on
 Solaris.
+
+Ivan Vilata for many user's manual corrections and additions.
 
 Alan McIntyre for porting PyTables to Windows.
 
@@ -15,8 +17,8 @@ bypass the ~1000 levels of deepness that Python recursion limit
 imposed.
 
 Tom Hedley for providing a nice patch for supporting complex datatypes
-for Arrays, Errays and VLArrays. This facilitated a lot the support of
-complex types for arrays as well.
+for Arrays, Errays and VLArrays. This was the root for the support of
+complex types in Tables as well.
 
 The HDF5 team at NCSA for making such an excellent library for data
 persistence, and specially Pedro Vicente and Quincey Koziol, for

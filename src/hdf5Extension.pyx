@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.139 2004/09/16 16:18:31 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.140 2004/09/17 11:51:48 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.139 $"
+__version__ = "$Revision: 1.140 $"
 
 
 import sys, os
@@ -155,7 +155,7 @@ cdef extern from "numarray/numarray.h":
 
   ctypedef enum NumarrayType:
     tAny
-    tBool	
+    tBool
     tInt8
     tUInt8
     tInt16
@@ -265,7 +265,7 @@ cdef extern from "hdf5.h":
   int H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, H5F_ACC_EXCL
   int H5F_ACC_DEBUG, H5F_ACC_CREAT
   int H5P_DEFAULT, H5S_ALL
-  int H5F_SCOPE_GLOBAL, H5F_SCOPE_LOCAL
+  #int H5F_SCOPE_GLOBAL, H5F_SCOPE_LOCAL
   #int H5T_NATIVE_CHAR, H5T_NATIVE_INT, H5T_NATIVE_FLOAT, H5T_NATIVE_DOUBLE
   int H5P_FILE_CREATE, H5P_FILE_ACCESS
   int H5FD_LOG_LOC_WRITE, H5FD_LOG_ALL
@@ -274,7 +274,6 @@ cdef extern from "hdf5.h":
   ctypedef int hbool_t
   ctypedef int herr_t
   ctypedef int htri_t
-  ctypedef int H5F_scope_t 
   ctypedef long long hsize_t
   ctypedef signed long long hssize_t
 
@@ -324,6 +323,12 @@ cdef extern from "hdf5.h":
     H5T_VLEN             = 9,   #Variable-Length types                      */
     H5T_ARRAY            = 10,  #Array types                                */
     H5T_NCLASSES                #this must be last                          */
+
+  # The difference between a single file and a set of mounted files
+  cdef enum H5F_scope_t:
+    H5F_SCOPE_LOCAL     = 0,    # specified file handle only
+    H5F_SCOPE_GLOBAL    = 1,    # entire virtual file
+    H5F_SCOPE_DOWN      = 2     # for internal use only
 
   cdef enum H5T_sign_t:
     H5T_SGN_ERROR        = -1,  #error                                      */
@@ -928,7 +933,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.139 2004/09/16 16:18:31 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.140 2004/09/17 11:51:48 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1030,9 +1035,9 @@ cdef class File:
   def _getFileId(self):
     return self.file_id
 
-  def _flushFile(self):
+  def _flushFile(self, scope):
     # Close the file
-    H5Fflush(self.file_id, H5F_SCOPE_GLOBAL) 
+    H5Fflush(self.file_id, scope) 
 
   def _closeFile(self):
     # Close the file

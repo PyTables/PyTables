@@ -186,7 +186,7 @@ class BasicTestCase(unittest.TestCase):
     #----------------------------------------
 
     def test01_readTable(self):
-        """Checking table read and cuts"""
+        """Checking table read"""
 
         rootgroup = self.rootgroup
         if verbose:
@@ -212,10 +212,14 @@ class BasicTestCase(unittest.TestCase):
             assert allequal(rec['var5'], array((float(nrows),)*4, Float32))
         else:
             assert rec['var5'] == float(nrows)
+        if isinstance(rec['var9'], NumArray):
+            assert allequal(rec['var9'],array([0.+float(nrows)*1.j,float(nrows)+0.j], Complex32))
+        else:
+            assert (rec['var9']) == float(nrows)+0.j
         assert len(result) == 20
         
     def test01b_readTable(self):
-        """Checking table read and cuts (unidimensional columns case)"""
+        """Checking table read and cuts (multidimensional columns case)"""
 
         rootgroup = self.rootgroup
         if verbose:
@@ -247,6 +251,25 @@ class BasicTestCase(unittest.TestCase):
             assert allequal(rec['var5'], array((float(nrows),)*4, Float32))
         else:
             assert rec['var5'] == float(nrows)
+        # Read the records and select those with "var2" file less than 20
+        result = [ rec['var10'] for rec in table.iterrows()
+                   if rec['var2'] < 20 ]
+        if isinstance(rec['var10'], NumArray):
+            assert allequal(result[0], array([float(0)+0.j, 1.+float(0)*1j],
+                                             Complex64))
+            assert allequal(result[1], array([float(1)+0.j, 1.+float(1)*1j],
+                                             Complex64))
+            assert allequal(result[2], array([float(2)+0.j, 1.+float(2)*1j],
+                                             Complex64))
+            assert allequal(result[3], array([float(3)+0.j, 1.+float(3)*1j],
+                                             Complex64))
+            assert allequal(result[10], array([float(10)+0.j, 1.+float(10)*1j],
+                                              Complex64))
+            assert allequal(rec['var10'], array([float(nrows)+0.j,
+                                                 1.+float(nrows)*1j],
+                                                Complex64))
+        else:
+            assert rec['var10'] == 1.+float(nrows)*1j
         assert len(result) == 20
         
     def test02_AppendRows(self):
@@ -3155,16 +3178,7 @@ def suite():
     niter = 1
     #heavy = 1  # uncomment this only for testing purposes
 
-    #theSuite.addTest(unittest.makeSuite(DefaultValues))
-    #theSuite.addTest(unittest.makeSuite(getItemTestCase))
-    #theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
-    #theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
-    #theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
-    #theSuite.addTest(unittest.makeSuite(RecArrayIO1))
-    #theSuite.addTest(unittest.makeSuite(RecArrayIO2))
-    #theSuite.addTest(unittest.makeSuite(setItem1))
-    #theSuite.addTest(unittest.makeSuite(setItem2))
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(OldRecordBasicWriteTestCase))
