@@ -5,12 +5,12 @@
   <frontmatter>
     <title><visual markup="tt">PyTables</visual> User's Guide</title>
     <author>Francesc Alted</author>
-    <date>October, 8th</date>
+    <date>November, 13th</date>
     <year>2002</year>
     <legalnotice>
 
 
-	   Copyright (c) 2002 Francesc Alted
+<!--	   Copyright (c) 2002 Francesc Alted -->
 
       <p>Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -255,7 +255,7 @@ class Particle(IsRecord):
 	  module by David Mertz (see references <ref
 	  refid="Objectify"></ref> and <ref
 	  refid="GnosisUtils"></ref>)</footnote>. See the <ref
-	  refid="usage">Chapter</ref> for a more detailed explanation.
+	  refid="usage">chapter</ref> for a more detailed explanation.
 	</p>
 	<p>You should note that not all the data present on file is
 	  loaded in <visual markup="tt">PyTables</visual> tree, but
@@ -464,131 +464,755 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
     <chapter id="usage">
       <heading>Usage</heading>
 
-      <section id="firstexample">
-	<heading>A first example</heading> 
+      <section>
+	<heading>Getting started</heading>
 
-	<p>Let's start by showing a simple example. For simplicity and
-	  direct comparison, I'll choose the same that is exposed in
-	  an HDF5_HL example (see <ref
-	  refid="HDF5TableExamples">reference</ref>).
+	<p>This section is written in a tutorial style. We will see
+	  how to define our own records from Python and save
+	  collections of them (i.e. a <visual
+	  markup="bf">table</visual>) on a file. Then, we will open
+	  this freshly created file and we will select some data in
+	  the table using Python cuts, creating Numerical arrays to
+	  keep this selection as separate objects in the tree. We will
+	  see how to browse the tree while retrieving metainformation
+	  about the actual data, and will finish by appending some
+	  rows to the existing table to show how table objects can be
+	  enlarged.
 	</p>
-	<p>So, we want to create a table whose records are particle
-	  properties. Each particle (record) has a name, a position
-	  (specified by latitude and longitude), pressure and
-	  temperature.
+
+	<p>After reading this section you will hopefully learn the
+	  main features of PyTables. If you want more information on
+	  some specific instance variable, global function or method,
+	  go to the library reference in <ref
+	  refid="libraryReference">chapter</ref>. You can get deeper
+	  knowledge of PyTables by reading the other sections (XXX
+	  which ones?) in this chapter.
 	</p>
-	<p>We start by define this record in <visual
-	  markup="tt">PyTables</visual> by declaring a subclass of
-	  <verb>IsRecord</verb>. But first, the necessary imports:
+
+	<p>You will find in the directory <verb>examples</verb> the
+	  working version of all the code in this section (source file
+	  <verb>tutorial.py</verb>).
 	</p>
-	<verbatim>
-from tables import File, IsRecord
 
-class Particle(IsRecord):
-    name        = '16s'  # 16-character String
-    lati        = 'i'    # integer
-    longi       = 'i'    # integer
-    pressure    = 'f'    # float  (single-precision)
-    temperature = 'd'    # double (double-precision)
-	</verbatim>
-	<p>As you see, we define the Particle class as a subclass of
-	  IsRecord (which is actually a <em>metaclass</em>, but this
-	  is not important now). The name of each Particle attribute
-	  will be the name of the record field and its value will
-	  become its data type. '16s' typecode means a 16-character
-	  string, 'i' an integer, 'd' a double, and so on. For a
-	  complete list of data types supported see <ref
-	  refid="datatypesSupported">table</ref>.
-	</p>
-      <p>Now, we open an HDF5 file in write mode:
-      </p>
-      <verbatim>
-fileh = File(filename = "example1.h5", mode = "w")
-      </verbatim>
-      <p>and get the object which is the root directory in HDF5 hierarchy:
-      </p>
-      <verbatim>
-group = fileh.getRootGroup()
-      </verbatim>
-      <p>then, create a new table object
-      </p>
-      <verbatim>
-table = fileh.newTable(group, 'table', Particle(), "Title example")
-      </verbatim>
-      <p>get the the Particle instance associated with the table
-      </p>
-      <verbatim>
-particle = fileh.getRecordObject(table)
-      </verbatim>
-      <p>and fill the table with 10 particles
-      </p>
-      <verbatim>
-for i in xrange(10):
-    # First, assign the values to the Particle record
-    particle.name  = '%16d' % i
-    particle.lati = i 
-    particle.longi = i
-    particle.pressure = float(i)
-    particle.temperature = float(i)
-    # This injects the Particle values
-    fileh.appendRecord(table, particle)
-      </verbatim>
-      <p>and finally, close the file:
-      </p>
-      <verbatim>
-fileh.close()
-      </verbatim>
-      <p>That's it!. We can see here the complete example for a better
-	inspection, with a few additional comments:
-      </p>
-      <verbatim>
-from tables import File, IsRecord
+	<subsection>
+	  <heading>Importing <visual markup="tt">tables</visual>
+	    objects</heading>
+	  
+	  <p>Before to do anything you need to import the
+	    public objects in the <verb>tables</verb> package. You
+	    normally do that by issuing:
+	  </p>
+	  <verbatim>
+>>> import tables
+>>>
+	  </verbatim>
+	  <p>That is the recommended way to import <verb>tables</verb>
+	    if you don't want to pollute too much your
+	    namespace. However, PyTables has a very reduced set of
+	    first-level primitives, so you may consider to use this
+	    alternative:
+	  </p>
+	  <verbatim>
+>>> from tables import *
+>>>
+	  </verbatim>
+	  <p>which will export in your caller aplication namespace the
+	    next objects: <verb>openFile</verb>, <verb>isHDF5</verb>,
+	    <verb>isPyTablesFile</verb> and
+	    <verb>IsRecord</verb>. These are a rather small number of
+	    objects, and for commodity we will use this last way to
+	    access them.
+	  </p>
+	  <p>If you are going to deal with <verb>Numeric</verb> arrays
+	    you will also need to import some objects from it. You can
+	    do that in the normal way. So, to access to PyTables
+	    functionality normally you should start you programs with:
+	  </p>
+	  <verbatim>
+>>> from tables import *
+>>> from Numeric import *
+>>>
+	  </verbatim>
 
-class Particle(IsRecord):
-    name        = '16s'  # 16-character String
-    lati        = 'i'    # integer
-    longi       = 'i'    # integer
-    pressure    = 'f'    # float  (single-precision)
-    temperature = 'd'    # double (double-precision)
+	</subsection>
 
-# Open a file in "w"rite mode
-fileh = File(name = "example1.h5", mode = "w")
-# Get the HDF5 root group
-root = fileh.getRootGroup()
-# Create a new table
-table = fileh.newTable(root, 'table', Particle(), "Title example")
-#print "Table name ==>", table._v_name
-# Get the record object associated with the table: all three ways are valid
-#particle = table.record
-particle = fileh.getRecordObject(table)  # This is really an accessor
-#particle = fileh.getRecordObject("/table")
-# Fill the table with 10 particles
-for i in xrange(10):
-    # First, assign the values to the Particle record
-    particle.name  = 'Particle: %6d' % (i)
-    particle.lati = i 
-    particle.longi = 10 - i
-    particle.pressure = float(i*i)
-    particle.temperature = float(i**2)
-    # This injects the Record values. Both ways do that.
-    #table.appendRecord(particle)      
-    fileh.appendRecord(table, particle)      
+	<subsection>
+	  <heading>Declaring a Record</heading>
 
-# Finally, close the file
-fileh.close()
-      </verbatim> 
+	  <p>Now, we want to declare a record object in order to save
+	    data that comes from our particle detector. Imagine that
+	    it has a TDC (Time to Digital Converter) counter with a
+	    dynamic range of 8 bits and an ADC (Analogic to Digital
+	    Converter) with a range of 16 bits. For these values, we
+	    will define 2 fields in our Record object called
+	    <verb>TDCcount</verb> and <verb>ADCcount</verb>. We also
+	    want to save the grid position in which the particle has
+	    been detected. We will add two new fields called
+	    <verb>grid_i</verb> and <verb>grid_j</verb>. Our
+	    instrumentation also can obtain the pressure and energy of
+	    this particle, and we will add them in the same way. A
+	    simple-precision float will be enough to save
+	    <verb>pressure</verb> information, while
+	    <verb>energy</verb> would need a double-precision
+	    float. Finally, to track this particle we want to assign
+	    it a name to inform about the kind of the particle and a
+	    number identifier unique for each particle. So we will add
+	    a couple of fields: <verb>name</verb> will be the a string
+	    of up-to 16 characters and because we want to deal with a
+	    really huge number of particles, <verb>idnumber</verb>
+	    will be an integer of 64-bits.
+	  </p>
+	  <p>With all of that, we declare a new Particle class that will
+	    keep all this info:
+	  </p>
 
-      <p>In <ref refid="example1">figure</ref> you can see the table we
-	have created in this example. You will find in the directory
-	<verb>examples</verb> the working version of the code
-	(source file <verb>example1.py</verb>).
-      </p>
+	  <verbatim>
+>>> class Particle(IsRecord):
+...     name        = '16s'  # 16-character String
+...     idnumber    = 'Q'    # unsigned long long (i.e. 64-bit integer)
+...     TDCcount    = 'B'    # unsigned byte
+...     ADCcount    = 'H'    # unsigned short integer
+...     grid_i      = 'i'    # integer
+...     grid_j      = 'i'    # integer
+...     pressure    = 'f'    # float  (single-precision)
+...     energy      = 'd'    # double (double-precision)
+... 
+>>> 
+	  </verbatim>
+	  <p>This definition class is quite
+	    auto-explanatory. Basically, you have to declare a class
+	    variable for each field you need, and as its value, the
+	    typecode for this data field. See <ref
+	    refid="datatypesSupported">appendix</ref> for a list of
+	    typecodes supported in PyTables.
+	  </p>
+	  <p>From now on, you can use this class instances as a
+	    container for your data, and as you will see shortly, you
+	    will get some magic properties associated with instances
+	    from <verb>Particle</verb>, and the class
+	    <verb>IsRecord</verb><footnote><verb>IsRecord</verb> is
+	    actually a <em>metaclass</em> in object slang, but we
+	    don't need to explain nothing more about it now. Check the
+	    sources if you are interested on how that
+	    works.</footnote> from which it is derived is responsible
+	    for that magic.
+	  </p>
 
-      <figure id="example1">
-	<graphics file="example1" scale="0.6" kind="bitmap">
-	</graphics>
-	<caption>A simple table in HDF5.</caption>
-      </figure>
+	  <p>In order to do something useful with this record, we need
+	    to attach it to a <verb>Table</verb> object. But first, we
+	    must create a file where all the actual data pushed into
+	    <verb>Table</verb> will be saved.
+	  </p>
+
+	</subsection>
+
+	<subsection>
+	  <heading>Creating a PyTables file from scratch</heading>
+
+	  <p>To create a PyTables file use the first-level
+	    <verb>openFile</verb> funtion:
+	  </p>
+
+	  <verbatim>
+>>> h5file = openFile("tutorial.h5", mode = "w", title = "Test file")
+	  </verbatim>
+	  <p>This <verb>openFile</verb> is one of the objects imported
+	    by the "<verb>from tables import *</verb>", do you
+	    remember?. We are telling that we want to create a new
+	    file called "<verb>tutorial.h5</verb>" in "<verb>w</verb>"rite
+	    mode and with an informative title string ("<verb>Test
+	    file</verb>"). This function tries to open this file, and
+	    if successful, returns a <verb>File</verb> instance which
+	    hosts the root of the object tree on its <verb>root</verb>
+	    attribute.
+	  </p>
+	</subsection>
+
+	<subsection>
+	  <heading>Creating a new group</heading>
+
+	  <p>Now, to better organize our data, we will create a group
+	    hanging from the root called <em>detector</em>. We will
+	    use this group to save our particle data there.
+	  </p>
+	  <verbatim>
+group = h5file.createGroup("/", 'detector', 'Detector information')
+	  </verbatim>
+
+	  <p>Here, we have take the <verb>File</verb> instance
+	    <verb>h5file</verb> and invoked its
+	    <verb>createGroup</verb> method, telling that we want to
+	    create a new group called <em>detector</em> hanging from
+	    "<em>/</em>", which is other way to refer to the
+	    <verb>h5file.root</verb> object we mentioned before. This
+	    will create a new <verb>Group</verb> instance that will be
+	    assigned to the <verb>group</verb> variable.
+	  </p>
+
+	</subsection>
+	<subsection>
+	  <heading>Creating a new table</heading>
+
+	  <p>Let's now create the <verb>Table</verb> object
+	    hanging from the new created group. We do that by calling
+	    the <verb>createTable</verb> method from the
+	    <verb>h5file</verb> object:
+	  </p>
+	  <verbatim>
+>>> table = h5file.createTable(group, 'readout', Particle(), "Readout example")
+	  </verbatim>
+
+	  <p>You can see how we asked to create the <verb>Table</verb>
+	    instance hanging from <verb>group</verb>, with name
+	    <em>'readout'</em>. As the record object we have passed an
+	    instance of Particle, the class that we have declared
+	    before, and finally we attach it a "<em>Readout
+	    example</em>" title. With all this information, a new
+	    <verb>Table</verb> instance is created and assigned to
+	    <verb>table</verb> variable.
+	  </p>
+
+	  <p>Now, time to fill this table with some values. But first,
+	    we want to get a pointer to the record object in this
+	    <verb>table</verb> instance:
+	  </p>
+	  <verbatim>
+>>> particle = table.record
+	  </verbatim>
+
+	  <p>The <verb>record</verb> attribute of <verb>table</verb>
+	    points to the <verb>Particle</verb> instance used to
+	    create the table, and we assign it to the
+	    <verb>particle</verb> variable that will be used as a
+	    shortcut. This step is not really necessary, but helps to
+	    code legibility (and allows me to introduce the
+	    <verb>record</verb> attribute).
+	  </p>
+
+	  <p>We can proceed right now to the filling process:
+	  </p>
+
+	  <verbatim>
+>>> for i in xrange(10):
+...     # First, assign the values to the Particle record
+...     particle.name  = 'Particle: %6d' % (i)
+...     particle.TDCcount = i % 256    
+...     particle.ADCcount = (i * 256) % (1 &lt;&lt; 16)
+...     particle.grid_i = i 
+...     particle.grid_j = 10 - i
+...     particle.pressure = float(i*i)
+...     particle.energy = float(particle.pressure ** 4)
+...     particle.idnumber = i * (2 ** 34)  # This exceeds long integer range
+...     # Insert a new particle record
+...     table.appendAsRecord(particle)      
+...
+>>> 
+	  </verbatim>
+	  
+	  <p>This code is quite easy to understand. The lines inside
+	    the loop just assigned values to the <verb>particle</verb>
+	    record object and then a call to the
+	    <verb>appendAsRecord</verb> method of <verb>table</verb>
+	    instance is made to put this information in the
+	    <verb>table</verb> I/O buffer.
+	  </p>
+
+	  <p>After we have filled all our data, we must flush the I/O
+	    buffer for the table if we want to consolidate all this
+	    data on disk. We do that by calling the <verb>table</verb>
+	    <verb>flush</verb> method.
+	  </p>
+	  <verbatim>
+>>> table.flush()
+	  </verbatim>
+
+	  <p>And last, we close the h5file File instance to close the file:
+	  </p>
+	  <verbatim>
+>>> h5file.close()
+	  </verbatim>
+
+	  <p>With all that, you have created your first PyTables file
+	    with a table inside it. That was easy, admit it. Now, you
+	    can have a look at it with some generic HDF5 tool, like
+	    h5dump or h5ls. Here is the result of passing to h5ls the
+	    <verb>tutorial.h5</verb> file:
+	  </p>
+	  <verbatim>
+$ h5ls -rd tutorial.h5 
+/tutorial.h5/detector    Group
+/tutorial.h5/detector/readout Dataset {10/Inf}
+    Data:
+        (0) {0, 0, 0, 0, 10, 0, "Particle:      0", 0},
+        (1) {256, 1, 1, 1, 9, 17179869184, "Particle:      1", 1},
+        (2) {512, 2, 256, 2, 8, 34359738368, "Particle:      2", 4},
+        (3) {768, 3, 6561, 3, 7, 51539607552, "Particle:      3", 9},
+        (4) {1024, 4, 65536, 4, 6, 68719476736, "Particle:      4", 16},
+        (5) {1280, 5, 390625, 5, 5, 85899345920, "Particle:      5", 25},
+        (6) {1536, 6, 1679616, 6, 4, 103079215104, "Particle:      6", 36},
+        (7) {1792, 7, 5764801, 7, 3, 120259084288, "Particle:      7", 49},
+        (8) {2048, 8, 16777216, 8, 2, 137438953472, "Particle:      8", 64},
+        (9) {2304, 9, 43046721, 9, 1, 154618822656, "Particle:      9", 81}
+	  </verbatim>
+
+	  <p>or, using the "dumpFile.py" PyTables utility (located in
+	    examples/ directory):
+	  </p>
+
+	  <verbatim>
+$ python2.2 dumpFile.py tutorial.h5 
+Filename: tutorial.h5
+All objects:
+Filename: tutorial.h5 \\ Title: "Test file" \\ Format version: 1.0
+/ (Group) "Test file"
+/detector (Group) "Detector information"
+/detector/readout Table(8, 10) "Readout example"
+
+	  </verbatim>
+
+	  <p>You can pass the <verb>-v</verb> option to
+	    <verb>dumpFile.py</verb> if you want more verbosity.
+	  </p>
+
+	</subsection>
+	<subsection>
+	  <heading>Reading and selecting table data</heading>
+
+	  <p>Ok. We have our data on disk. But we want to access it
+	    and select some values we are interested it in some
+	    specific columns. That's is easy to do. First, let's open
+	    the file we have recently created:
+	  </p>
+
+	  <verbatim>
+>>> h5file = openFile("tutorial.h5", "a")
+	  </verbatim>
+
+	  <p>This time, we have opened the file in "a"ppend mode. We
+	    are using this mode because we want to add more
+	    information to the file. But for the moment, our interest
+	    is to read an select data from table on disk. The next
+	    lines do exactly that:
+	  </p>
+
+	  <verbatim>
+>>> table = h5file.root.detector.readout
+>>> pressure = [ x.pressure for x in table.readAsRecords()
+...                  if x.TDCcount > 3 and x.pressure &lt; 50 ]
+	  </verbatim>
+
+	  <p>The first line is only to define a shortcut to the
+	    <em>readout</em> table which is a bit deeper on the object
+	    tree. As you can see, we have used the <visual
+	    markup="bf">natural naming</visual> schema to access
+	    it. We could also have used the
+	    <verb>h5file.getNode</verb> method instead, and we
+	    certainly do that later on.
+	  </p>
+
+	  <p>The last two lines are a Python comprenhensive list. It
+	    loops on records returned by
+	    <verb>table.readAsRecords()</verb> iterator that returns
+	    values until table data is exhausted. This records are
+	    filtered using the <em>cut</em> expression
+	    <verb>x.TDCcount > 3 and x.pressure &lt; 50</verb>, and
+	    the <verb>pressure</verb> field for satisfying records is
+	    selected to form the final list that is assigned to
+	    <verb>pressure</verb> variable.
+	  </p>
+
+	  <p>We could have used a normal <verb>for</verb> loop to do
+	    that, but I find comprehensions syntax more compact and
+	    elegant.
+	  </p>
+
+	  <p>Let's select the names for the same set of particles:
+	  </p>
+
+	  <verbatim>
+>>> names = [ x.name for x in table.readAsRecords()
+...               if x.TDCcount > 3 and x.pressure &lt; 50 ]
+	  </verbatim>
+
+	  <p>Ok. that's enough for selections. Now, save these
+	  selections on file.</p>
+
+	</subsection>
+
+	<subsection>
+	  <heading>Creating new array objects</heading>
+
+	  <p>In order to separate the selections from the detector
+	    data, we will create a new group, called
+	    <verb>columns</verb> hanging from the root group:
+	  </p>
+
+	  <verbatim>
+>>> gcolumns = h5file.createGroup(h5file.root, "columns", "Pressure and Name")
+	  </verbatim>
+
+	  <p>Note that this time we have specified the first parameter
+	    in a natural naming fashion (<verb>h5file.root</verb>)
+	    instead of a path string ("/").
+	  </p>
+
+	  <p>Now, create the Array objects on file:
+	  </p>
+
+	  <verbatim>
+>>> h5file.createArray(gcolumns, 'pressure', array(pressure),
+...                    "Pressure column selection")
+&lt;tables.Array.Array object at 0x8217cac>
+>>> h5file.createArray('/columns', 'name', array(names), 
+...                    "Name column selection")
+&lt;tables.Array.Array object at 0x814c3dc>
+	  </verbatim>
+
+	  <p>We already know the first two parameters of the
+	    <verb>createArray</verb> methods (are the same as in
+	    <verb>createTable</verb>): they are the parent group where
+	    <verb>Array</verb> will be created and the
+	    <verb>Array</verb> instance name. You can figure out that
+	    the fourth parameter is the title. And in the third
+	    position we have the <verb>Numeric</verb> objects we want
+	    to save on disk. They are built from the selection lists
+	    we created before, and their typecodes are automatically
+	    selected by the <verb>array()</verb> constructor to store
+	    the list of values. In these case, they will become
+	    double-precision arrays, as we will see in short.
+	  </p>
+
+	  <p>Note that createArray method returns an Array instance,
+	    that we don't keep anywhere. Don't worry, it is attached
+	    to the object tree, and can be easily retrieved later
+	    on. In fact, you can browse the object tree very easily
+	    and retrieve any data you may be interested in. Keep
+	    reading.
+	  </p>
+
+	</subsection>
+
+	<subsection>
+	  <heading>Traversing the object tree</heading>
+
+	  <p>PyTables, following the Python tradition, offers powerful
+	    instropection capabilities, i.e. you can easily ask
+	    information about any component of the object tree as well
+	    as traverse the tree searching for something. To start
+	    with, you can get a first glance image of the object tree,
+	    by simply printing the existing <verb>File</verb>
+	    instance:
+	  </p>
+
+	  <verbatim>
+>>> print h5file
+Filename: tutorial.h5 \\ Title: "Test file" \\ Format version: 1.0
+/ (Group) "Test file"
+/columns (Group) "Pressure and Name"
+/columns/name Array(4, 16) "Name column selection"
+/columns/pressure Array(4,) "Pressure column selection"
+/detector (Group) "Detector information"
+/detector/readout Table(8, 10) "Readout example"
+
+>>>
+	  </verbatim>
+
+	  <p>Right, it seems that all our objects are there. We can
+	    use the <verb>walkGroups</verb> method of
+	    <verb>File</verb> class to list all the groups in tree:
+	  </p>
+
+	  <verbatim>
+>>> for group in h5file.walkGroups("/"):
+...     print group
+... 
+/ (Group) "Test file"
+/columns (Group) "Pressure and Name"
+/detector (Group) "Detector information"
+	  </verbatim>
+
+	  <p>Note that <verb>walkGroups</verb> actually returns an
+	    iterator, not a list of objects. And combining it with the
+	    <verb>listNodes</verb> method, we can do very powerful
+	    lists. Let's see an example listing all the arrays in the
+	    tree:
+	  </p>
+
+	  <verbatim>
+>>> for group in h5file.walkGroups("/"):
+...     for array in h5file.listNodes(group, classname = 'Array'):
+...         print array
+... 
+/columns/name Array(4, 16) "Name column selection"
+/columns/pressure Array(4,) "Pressure column selection"
+	  </verbatim>
+
+	  <p><verb>listNodes</verb> lists all the nodes hanging from a
+	    <verb>group</verb>, and if <em>classname</em> keyword is
+	    specified, the method will filter all instances which are
+	    not representants of it. We have specified so as to return
+	    only the <verb>Array</verb> instances.
+	  </p>
+	  <p>
+	    <visual markup="bf">Caveat emptor</visual>:
+	    <verb>listNodes</verb> (conversely to
+	    <verb>walkGroups</verb>) returns an actual list, and not
+	    an iterator!.
+	  </p>
+
+	  <p>As a final example, we will list all the
+	    <verb>Leaf</verb> (i.e. <verb>Table</verb> or
+	    <verb>Array</verb>) objects in <em>/detector</em>
+	    group. Check that we have only one representant of
+	    <verb>Table</verb> class in this group:
+	  </p>
+
+	  <verbatim>
+>>> for table in h5file.listNodes("/detector", 'Leaf'):
+...     print table
+... 
+/detector/readout Table(8, 10) "Readout example"
+>>> 
+	  </verbatim>
+
+	  <p>Of course you can do more sophisticated node selections
+	    using this two powerful funtions, but first, we need to
+	    learn a bit about important instance variable of PyTables
+	    objects.
+	  </p>
+
+	</subsection>
+
+	<subsection>
+	  <heading>Getting object metadata</heading>
+
+	  <p>Each object in PyTables has metadata about the actual
+	    data on the file. Normally this metainformation is
+	    accessible trough the node instance variables. Let's see
+	    some examples:
+	  </p>
+
+	  <verbatim>
+>>> # Get the "/detector/table"
+... table = h5file.getNode("/detector/readout", classname = 'Table')
+>>> # Get metadata from table
+... print "Object:", table
+Object: /detector/readout Table(8, 10) "Readout example"
+>>> print "Table name:", table.name
+Table name: readout
+>>> print "Table title:", table.title
+Table title: Readout example
+>>> print "Number of rows in table: %d" % (table.nrows)
+Number of rows in table: 10
+>>> print "Table variable names (sorted alphanumerically) with their type:"
+Table variable names (sorted alphanumerically) with their type:
+>>> for i in range(len(table.varnames)):
+...     print "  ", table.varnames[i], ':=', table.vartypes[i]
+... 
+   ADCcount := H
+   TDCcount := B
+   energy := d
+   grid_i := i
+   grid_j := i
+   idnumber := Q
+   name := 16s
+   pressure := f
+
+	  </verbatim>
+
+	  <p>
+	    Here, the <verb>name</verb>, <verb>title</verb>,
+	    <verb>nrows</verb>, <verb>varnames</verb> and
+	    <verb>vartypes</verb> attributes of <verb>table</verb>
+	    object give us quite a lot of information about actual
+	    table data.
+	  </p>
+	  <p>Observe how we have used the <verb>getNode</verb> method
+	    of <verb>File</verb> class to access a node in the tree,
+	    instead of using the natural naming method. Both are
+	    useful, and depending on the context you will prefer to
+	    use one or another. <verb>getNode</verb> has the advantage
+	    that can get a node from the pathname string (like in this
+	    example), and you can force that the node in that location
+	    has to be a <em>classname</em> instance. However, natural
+	    naming is more elegant and quicker to specify (specially
+	    if you are using the name completion capability present in
+	    interactive console).
+	  </p>
+
+	  <p>Now, print some metadata in <em>/columns/pressure</em>
+	    Array object:
+	  </p>
+
+	  <verbatim>
+>>> # Get the object in "/columns pressure"
+... pressureObject = h5file.getNode("/columns", "pressure")
+>>> 
+>>> # Get some metadata on this object
+... print "Info on the object:", pressureObject
+Info on the object: /columns/pressure Array(4,) "Pressure column selection"
+>>> print "  shape: ==>", pressureObject.shape
+  shape: ==> (4,)
+>>> print "  title: ==>", pressureObject.title
+  title: ==> Pressure column selection
+>>> print "  typecode ==>", pressureObject.typecode
+  typecode ==> d
+	  </verbatim>
+
+	  <p>If you look at the <verb>typecode</verb> attribute of the
+	    <verb>pressureObject</verb>, you can certify that this is
+	    a "d"ouble <verb>Numeric</verb> array, and that by looking
+	    at their <verb>shape</verb> attribute the array on disk is
+	    unidimensional and has 4 elements.
+	  </p>
+
+	</subsection>
+
+	<subsection>
+	  <heading>Reading actual data from <visual
+	  markup="tt">Array</visual> objects</heading>
+
+	  <p>Once you have found the desired <verb>Array</verb> and
+	    decided that you want to retrieve the actual
+	    <verb>Numeric</verb> array from it, you should use the
+	    <verb>read</verb> method of the <verb>Array</verb>
+	    object:</p>
+
+	  <verbatim>
+>>> # Read the 'pressure' actual data
+... pressureArray = pressureObject.read()
+>>> 
+>>> # Read the 'name' Array actual data
+... nameArray = h5file.root.columns.name.read()
+>>> 
+>>> # Check what kind of object we have created (they should be Numeric arrays)
+... print "pressureArray is object of type:", type(pressureArray)
+pressureArray is object of type: &lt;type 'array'>
+>>> print "nameArray is object of type:", type(nameArray)
+nameArray is object of type: &lt;type 'array'>
+>>> 
+	  </verbatim>
+
+	  <p>You can verify that<verb> read()</verb> returns an
+	    authentic <verb>Numeric</verb> array looking at the output
+	    of the <verb>type()</verb> call.
+	  </p>
+
+	</subsection>
+
+	<subsection>
+	  <heading>Appending data to an existing table</heading>
+
+	  <p>To finish this tutorial, let's have a look at how we can
+	    add records to an existing on-disk table. Let's use our
+	    well-known <em>readout</em> <verb>Table</verb> instance
+	    and let's append some new values to it:
+	  </p>
+
+	  <verbatim>
+>>> # Create a shortcut to table object
+... table = h5file.root.detector.readout
+>>> 
+>>> # Get the object record from table
+... particle = table.record
+>>> 
+>>> # Append 5 new particles to table (yes, tables can be enlarged!)
+... for i in xrange(10, 15):
+...     particle.name  = 'Particle: %6d' % (i)
+...     particle.TDCcount = i % 256
+...     particle.ADCcount = (i * 256) % (1 &lt;&lt; 16)
+...     particle.grid_i = i
+...     particle.grid_j = 10 - i
+...     particle.pressure = float(i*i)
+...     particle.energy = float(particle.pressure ** 4)
+...     particle.idnumber = i * (2 ** 34)  # This exceeds long integer range
+...     table.appendAsRecord(particle)
+... 
+>>> # Flush this table
+... table.flush()
+	  </verbatim>
+
+	  <p>That works exactly in the same way than filling a new
+	    table. PyTables knows that this table is on disk, and when
+	    you add new records, they are appended to the end of the
+	    table<footnote>Note that you can only append values to
+	    tables, not array objects. However, I plan to support
+	    unlimited dimension arrays in short term. Keep
+	    tuned.</footnote>.
+	  </p>
+	  <p>
+	    If you look carefully at the code you will see that we
+	    have used the <verb>table.record</verb> attribute to
+	    access to a <verb>Particle</verb> instance and that way we
+	    could use it to fill new values. However, it should be
+	    stressed that it is not necessary to have the original
+	    class definition (Particle) in our code to re-create it:
+	    it will be created only from metadata existing on file,
+	    and it behaves exactly as an original Particle
+	    instance!. This is part of the magic that allow the use of
+	    <em>metaclasses</em> in PyTables, and that will easy the
+	    creation of portable aplications that can read any
+	    PyTables file <visual markup="bf">regardless</visual> of
+	    having access to the original Python record class
+	    definition.
+	  </p>
+
+	  <p>Let's have a look at some columns of the resulting table:
+	  </p>
+
+	  <verbatim>
+>>> for x in table.readAsRecords():
+...     print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
+...        (x.name, x.pressure, x.energy, x.grid_i, x.grid_j,
+...         x.TDCcount)
+... 
+Particle:      0 |         0.0 |           0 |      0 |     10 |        0 |
+Particle:      1 |         1.0 |           1 |      1 |      9 |        1 |
+Particle:      2 |         4.0 |         256 |      2 |      8 |        2 |
+Particle:      3 |         9.0 |        6561 |      3 |      7 |        3 |
+Particle:      4 |        16.0 |   6.554e+04 |      4 |      6 |        4 |
+Particle:      5 |        25.0 |   3.906e+05 |      5 |      5 |        5 |
+Particle:      6 |        36.0 |    1.68e+06 |      6 |      4 |        6 |
+Particle:      7 |        49.0 |   5.765e+06 |      7 |      3 |        7 |
+Particle:      8 |        64.0 |   1.678e+07 |      8 |      2 |        8 |
+Particle:      9 |        81.0 |   4.305e+07 |      9 |      1 |        9 |
+Particle:     10 |       100.0 |       1e+08 |     10 |      0 |       10 |
+Particle:     11 |       121.0 |   2.144e+08 |     11 |     -1 |       11 |
+Particle:     12 |       144.0 |     4.3e+08 |     12 |     -2 |       12 |
+Particle:     13 |       169.0 |   8.157e+08 |     13 |     -3 |       13 |
+Particle:     14 |       196.0 |   1.476e+09 |     14 |     -4 |       14 |
+>>> print
+
+>>> print "Total numbers of entries after appending new rows:", table.nrows
+Total numbers of entries after appending new rows: 15
+
+	  </verbatim>
+
+	  <p>In <ref refid="tutorial-h5">figure</ref> you can see an
+	    view created with <verb>hdfview</verb> Java application of
+	    the PyTables file we have created.
+	  </p>
+
+	  <figure id="tutorial-h5">
+	    <graphics file="tutorial-h5" scale="0.6" kind="bitmap">
+	    </graphics>
+	    <caption>The PyTables file created in tutorial.</caption>
+	  </figure>
+
+
+	  <p>We are near the end of the tutorial. Ei!, do not forget to
+	    close the file after you finish all the work:
+	  </p>
+
+	  <verbatim>
+>>> h5file.close()
+>>> ^D
+$ 
+
+	  </verbatim>
+
+	</subsection>
+
       </section>
 
       <section id="secondExample">
@@ -771,14 +1395,14 @@ ValueError: Error packing record object:
 
       <p>Feel free to visit the rest of examples in directory
         <verb>examples</verb>, and try to understand them. I've tried
-        to make the cases as orthogonal as possible to give you an
-        idea of the <visual markup="tt">PyTables</visual> capabilities
-        and its way of dealing with HDF5 objects.</p>
+        to make several cases in different to give you an idea of the
+        <visual markup="tt">PyTables</visual> capabilities and its way
+        of dealing with HDF5 objects.</p>
 
       </section>
     </chapter>
 
-    <chapter>
+    <chapter id='libraryReference'>
       <heading>Library Reference</heading>
       
       <p><verb>PyTables</verb> implements several classes to represent
@@ -1327,7 +1951,7 @@ ValueError: Error packing record object:
 	    <term>varnames</term>
 	    <item>The field names for the table.</item>
 
-	    <term>varnames</term>
+	    <term>vartypes</term>
 	    <item>The typecodes for the table fields.</item>
 
 	  </description>
@@ -1601,7 +2225,7 @@ ValueError: Error packing record object:
 	  Python.</em> ScientificPython is a collection of Python
 	  modules that are useful for scientific computing. Its NetCDF
 	  module is a powerful interface for NetCDF data format. <url
-	  name="http://starship.python.net/~hinsen/ScientificPython/ScientificPythonManual/Scientific_24.html"/>
+	  name="http://starship.python.net/~hinsen/ScientificPython/ScientificPythonManual/"/>
 	</item>
 
 	<item id="Numerical"><em>Numerical Python.</em> Package to
