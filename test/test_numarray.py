@@ -212,16 +212,34 @@ class BasicTestCase(unittest.TestCase):
         self.WriteRead(b)
 	return
 
-class BasicScalarTestCase(BasicTestCase):
+class Basic0DOneTestCase(BasicTestCase):
     # Scalar case
     tupleInt = 3
     tupleChar = "3"
     endiancheck = 1
     
-class Basic1DTestCase(BasicTestCase):
+class Basic0DTwoTestCase(BasicTestCase):
+    # Scalar case
+    tupleInt = 3
+    tupleChar = "33"
+    endiancheck = 1
+    
+class Basic1DOneTestCase(BasicTestCase):
+    # 1D case
+    tupleInt = (3,)
+    tupleChar = ("a",)
+    endiancheck = 1
+    
+class Basic1DTwoTestCase(BasicTestCase):
+    # 1D case
+    tupleInt = (3, 4)
+    tupleChar = ("aaa",)
+    endiancheck = 1
+    
+class Basic1DThreeTestCase(BasicTestCase):
     # 1D case
     tupleInt = (3, 4, 5)
-    tupleChar = ("aaa", "bbb", "ccc")
+    tupleChar = ("aaa", "bbb",)
     endiancheck = 1
     
 class Basic2DTestCase(BasicTestCase):
@@ -528,8 +546,11 @@ def suite():
     theSuite = unittest.TestSuite()
 
     # The scalar case test should be refined in order to work
-    theSuite.addTest(unittest.makeSuite(BasicScalarTestCase))
-    theSuite.addTest(unittest.makeSuite(Basic1DTestCase))
+    theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
+    theSuite.addTest(unittest.makeSuite(Basic0DTwoTestCase))
+    theSuite.addTest(unittest.makeSuite(Basic1DOneTestCase))
+    theSuite.addTest(unittest.makeSuite(Basic1DTwoTestCase))
+    theSuite.addTest(unittest.makeSuite(Basic1DThreeTestCase))
     theSuite.addTest(unittest.makeSuite(Basic2DTestCase))
     theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
     # The 32 dimensions case is tested on GroupsArray

@@ -102,16 +102,14 @@ class BasicTestCase(unittest.TestCase):
     def test00_char(self):
         "Checking a character array"
         
-	a = array(self.tupleChar)
+	a = array(self.tupleChar,'c')
 	self.WriteRead(a)
 	return
 
     def test00b_char_nc(self):
         "Checking a non-contiguous character array"
         
-        if not self.checknoncontiguous:
-            return
-	a = array(self.tupleChar)
+	a = array(self.tupleChar, 'c')
         b = a[::2]
         # Ensure that this chararray is non-contiguous
         assert b.iscontiguous() == 0
@@ -161,8 +159,6 @@ class BasicTestCase(unittest.TestCase):
     def test05b_signedInt_nc(self):
         "Checking a non-contiguous signed integer array"
         
-        if not self.checknoncontiguous:
-            return
         a = array(self.tupleInt)
         a = a.astype('i')
         # This should not be tested for the scalar case
@@ -209,8 +205,6 @@ class BasicTestCase(unittest.TestCase):
     def test09b_double_nc(self):
         "Checking a non-contiguous double precision array"
 
-        if not self.checknoncontiguous:
-            return
 	a = array(self.tupleInt)
         a = a.astype('d')
         # This should not be tested for the scalar case
@@ -222,22 +216,35 @@ class BasicTestCase(unittest.TestCase):
         self.WriteRead(b)
 	return
 
-class BasicScalarTestCase(BasicTestCase):
+class Basic0DOneTestCase(BasicTestCase):
     # Scalar case
     tupleInt = 3
     tupleChar = "3"
     
-class Basic1DTestCase(BasicTestCase):
+class Basic0DTwoTestCase(BasicTestCase):
+    # Scalar case
+    tupleInt = 3
+    tupleChar = "33"
+    
+class Basic1DOneTestCase(BasicTestCase):
+    # 1D case
+    tupleInt = (3,)
+    tupleChar = ("a",)
+    
+class Basic1DTwoTestCase(BasicTestCase):
+    # 1D case
+    tupleInt = (3, 4)
+    tupleChar = ("aaa",)
+    
+class Basic1DThreeTestCase(BasicTestCase):
     # 1D case
     tupleInt = (3, 4, 5)
-    tupleChar = ("aaa", "bbb", "ccc")
-    checknoncontiguous = 0
+    tupleChar = ("aaa", "bbb",)
     
 class Basic2DTestCase(BasicTestCase):
     # 2D case
     tupleInt = reshape(array(arange((4)**2)), (4,)*2)
-    tupleChar = [["aa","dd"],["dd","ss"]]
-    checknoncontiguous = 0
+    tupleChar = [["aa","dd"],["dd","ss"],["ss","tt"]]
     
 class Basic10DTestCase(BasicTestCase):
     # 10D case
@@ -245,8 +252,7 @@ class Basic10DTestCase(BasicTestCase):
     # Chararray seems to cause some problems with somewhat large dimensions
     # Reverting to 2D case
     #tupleChar = chararray.array("abc"*2**10, shape=(2,)*10, itemsize=3)
-    tupleChar = [["aa","dd"],["dd","ss"]]
-    checknoncontiguous = 0
+    tupleChar = [["aa","dd"],["tt","ss"]]
     
 class Basic32DTestCase(BasicTestCase):
     # 32D case (maximum)
@@ -380,8 +386,10 @@ class GroupsArrayTestCase(unittest.TestCase):
 	group = fileh.root
 	
 	# Set the type codes to test
+        # "w" and "u" not tested due to some inconsistencies in charcodes
+        # between numarray and Numeric
 	#typecodes = ["c", 'b', '1', 's', 'w', 'i', 'u', 'l', 'f', 'd']
-	typecodes = ["c", 'b', '1', 's', 'i', 'l', 'f', 'd']
+	typecodes = ['c', 'b', '1', 's', 'i', 'l', 'f', 'd']
 	i = 1
 	for typecode in typecodes:
 	    # Create an array of typecode, with incrementally bigger ranges
@@ -412,13 +420,16 @@ class GroupsArrayTestCase(unittest.TestCase):
 	    dset = getattr(group, 'array_' + typecodes[i-1])
 	    # Get the actual array
 	    b = dset.read()
-	    if verbose:
+	    if not allequal(a,b) and verbose:
+		print "Array a original. Shape: ==>", a.shape
+		print "Array a original. Data: ==>", a
 		print "Info from dataset:", dset._v_pathname
 		print "  Shape: ==>", dset.shape, 
 		print "  typeclass ==> %s" % dset.typeclass
 		print "Array b read from file. Shape: ==>", b.shape,
 		print ". Type ==> %s" % b.typecode()
-	    assert a.shape == b.shape
+                
+            assert a.shape == b.shape
             if a.typecode() == "i":
                 # Special expection. We have no way to distinguish between
                 # "l" and "i" typecode, and we can consider them the same
@@ -490,7 +501,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 	    b = group.array.read()
 	    if verbose:
 		print "%3d," % (rank),
-	    if verbose and 0:
+	    if not a.tolist() == b.tolist() and verbose:
 		print "Info from dataset:", dset._v_pathname
 		print "  Shape: ==>", dset.shape, 
 		print "  typecode ==> %c" % dset.typecode
@@ -534,8 +545,11 @@ def suite():
     theSuite = unittest.TestSuite()
 
     # The scalar case test should be refined in order to work
-    #theSuite.addTest(unittest.makeSuite(BasicScalarTestCase))
-    theSuite.addTest(unittest.makeSuite(Basic1DTestCase))
+    theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
+    theSuite.addTest(unittest.makeSuite(Basic0DTwoTestCase))
+    theSuite.addTest(unittest.makeSuite(Basic1DOneTestCase))
+    theSuite.addTest(unittest.makeSuite(Basic1DTwoTestCase))
+    theSuite.addTest(unittest.makeSuite(Basic1DThreeTestCase))
     theSuite.addTest(unittest.makeSuite(Basic2DTestCase))
     theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
     # The 32 dimensions case is tested on GroupsArray

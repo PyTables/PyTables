@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.15 2003/02/14 20:56:09 falted Exp $
+#       $Id: Array.py,v 1.16 2003/02/17 21:01:43 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.15 $"
+__version__ = "$Revision: 1.16 $"
 import types, warnings, sys
 from Leaf import Leaf
 import hdf5Extension
@@ -103,23 +103,36 @@ class Array(Leaf, hdf5Extension.Array):
         elif (Numeric_imported and type(arr) == type(Numeric.array(1))):
             flavor = "NUMERIC"
             if arr.typecode() == "c":
-                # To emulate as colse as possible Numeric character arrays,
+                # To emulate as close as possible Numeric character arrays,
                 # itemsize for chararrays will be always 1
-                if len(arr.shape) > 1:
-                    shape = list(arr.shape)
-                    itemsize = shape.pop()
-                else: # arr is unidimensional
-                    shape = (1,)
-                    itemsize = arr.shape[0]
-                naarr = chararray.array(buffer(arr),
-                                        itemsize=itemsize,
-                                        shape=shape)
+                if arr.iscontiguous():
+                    # This the fastest way to convert from Numeric to numarray
+                    # because no data copy is involved
+                    naarr = chararray.array(buffer(arr),
+                                            itemsize=1,
+                                            shape=arr.shape)
+                else:
+                    # Here we absolutely need a copy so as to obtain a buffer.
+                    # Perhaps this can be avoided or optimized by using
+                    # the tolist() method, but this should be tested.
+                    naarr = chararray.array(buffer(arr.copy()),
+                                            itemsize=1,
+                                            shape=arr.shape)
             else:
-                # This the fastest way to convert from Numeric to numarray
-                # because no data copy is involved
-                naarr = numarray.array(buffer(arr),
-                                       type=arr.typecode(),
-                                       shape=arr.shape)
+                if arr.iscontiguous():
+                    # This the fastest way to convert from Numeric to numarray
+                    # because no data copy is involved
+                    naarr = numarray.array(buffer(arr),
+                                           type=arr.typecode(),
+                                           shape=arr.shape)
+                else:
+                    # Here we absolutely need a copy in order
+                    # to obtain a buffer.
+                    # Perhaps this can be avoided or optimized by using
+                    # the tolist() method, but this should be tested.
+                    naarr = numarray.array(buffer(arr.copy()),
+                                           type=arr.typecode(),
+                                           shape=arr.shape)                    
 
         elif (isinstance(arr, chararray.CharArray)):
             flavor = "CHARARRAY"
@@ -169,6 +182,8 @@ class Array(Leaf, hdf5Extension.Array):
         """Read the array from disk and return it as numarray."""
 
         if repr(self.typeclass) == "CharType":
+            #print "self.shape ==>", self.shape
+            #print "self.shape 2 ==>", self.itemsize
             arr = chararray.array(None, itemsize=self.itemsize,
                                   shape=self.shape)
         else:
@@ -185,18 +200,20 @@ class Array(Leaf, hdf5Extension.Array):
             if Numeric_imported:
                 # This works for both numeric and chararrays
                 # arr=Numeric.array(arr, typecode=arr.typecode())
-                # The next is 10 times faster
+                # The next is 10 times faster (for tolist(),
+                # we should check for tostring()!)
                 if repr(self.typeclass) == "CharType":
-                    arrlist = arr.tolist()
-                    if len(arrlist) > 1:
-                        arr=Numeric.array(arrlist, typecode="c")
-                    else:
-                        arr=Numeric.array(arrlist[0], typecode="c")
-                    # Special case for the shape
-                    self.shape = arr.shape
+                    arrstr = arr.tostring()
+                    arr=Numeric.reshape(Numeric.array(arrstr), arr.shape)
                 else:
                     # tolist() method creates a list with a sane byteorder
-                    arr=Numeric.array(arr.tolist(), typecode=arr.typecode())
+                    if arr.shape <> ():
+                        arr=Numeric.array(arr.tolist(), typecode=arr.typecode())
+                    else:
+                        # This works for rank-0 arrays
+                        # (but is slower for big arrays)
+                        arr=Numeric.array(arr, typecode=arr.typecode())
+                        
             else:
                 # Warn the user
                 warnings.warn( \
