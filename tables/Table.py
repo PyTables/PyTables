@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.73 2003/09/15 19:22:48 falted Exp $
+#       $Id: Table.py,v 1.74 2003/09/16 19:49:18 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.73 $"
+__version__ = "$Revision: 1.74 $"
 
 from __future__ import generators
 import sys
@@ -251,8 +251,10 @@ class Table(Leaf, hdf5Extension.Table, object):
         #self.colnames = tuple(self.description.__slots__)
         self.colnames = tuple(self.description.__names__)
         self._v_fmt = self.description._v_fmt
+        #print self._v_fmt
+        #self.rowsize = struct.calcsize(self._v_fmt)
         #print "self._v_fmt (create)-->", self._v_fmt
-        self._calcBufferSize(self._v_expectedrows)
+        #self._calcBufferSize(self._v_expectedrows)
         # Create the table on disk
         self._createTable(self.new_title, self._v_complib)
         # Initialize the shape attribute
@@ -270,6 +272,21 @@ class Table(Leaf, hdf5Extension.Table, object):
         #self._v_buffercpy = self._newBuffer(init=1)
         #self.row = hdf5Extension.Row(self._v_buffer, self)
         self.row = hdf5Extension.Row(self)
+
+    def _buildDescription(self, itemsizes, colshapes, coltypes):
+
+        fields = {}
+        for i in range(len(self.colnames)):
+            if coltypes[i] == "CharType":
+                itemsize = itemsizes[i]
+                fields[self.colnames[i]] = StringCol(length = itemsize,
+                                                     shape = colshapes[i],
+                                                     pos = i)
+            else:
+                fields[self.colnames[i]] = Col(dtype = coltypes[i],
+                                               shape = colshapes[i],
+                                               pos = i)
+        return fields
                          
     def _open(self):
         """Opens a table from disk and read the metadata on it.
@@ -279,39 +296,41 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         """
         # Get table info
-        (self.nrows, self.colnames, self._v_fmt) = self._getTableInfo()
-        #print "self._v_fmt (open)-->", self._v_fmt
+        (self.nrows, self.colnames, self.rowsize, itemsizes, colshapes,
+         coltypes, self._v_fmt) = self._getTableInfo()
+#         print "colnames:", self.colnames
+#         print "colshapes:", colshapes
+#         print "itemsizes:", itemsizes
+#         print "coltypes:", coltypes
         # This one is probably not necessary to set it, but...
         self._v_compress = 0  # This means, we don't know if compression
                               # is active or not. Maybe it is worth to save
-                              # this info in a table attribute?
+                              # this info on a table attribute?
 
         # Get the byteorder
         byteorder = self._v_fmt[0]
         # Remove the byteorder
         self._v_fmt = self._v_fmt[1:]
         self.byteorder = byteorderDict[byteorder]
-        # Create a recarray with no data
-        headerRA = records.array(None, formats=self._v_fmt)
-        rowsize = headerRA._itemsize
-        # Get the column types
-        coltypes = [str(f) for f in headerRA._fmt]
-        # Get the column shapes
-        colshapes = headerRA._repeats
+        coltypes = [str(records.numfmt[type]) for type in coltypes]
         # Build a dictionary with the types as values and colnames as keys
-        fields = {}
-        for i in range(len(self.colnames)):
-            if coltypes[i] == "CharType":
-                itemsize = headerRA._itemsizes[i]
-                fields[self.colnames[i]] = StringCol(length = itemsize,
-                                                     shape = colshapes[i],
-                                                     pos = i)
-            else:
-                fields[self.colnames[i]] = Col(dtype = coltypes[i],
-                                               shape = colshapes[i],
-                                               pos = i)
+#         fields = {}
+#         for i in range(len(self.colnames)):
+#             if coltypes[i] == "CharType":
+#                 itemsize = itemsizes[i]
+#                 fields[self.colnames[i]] = StringCol(length = itemsize,
+#                                                      shape = colshapes[i],
+#                                                      pos = i)
+#             else:
+#                 fields[self.colnames[i]] = Col(dtype = coltypes[i],
+#                                                shape = colshapes[i],
+#                                                pos = i)
+        fields = self._buildDescription(itemsizes, colshapes, coltypes)
         # Set the alignment!
         fields['_v_align'] = byteorder
+        if self._v_file._format_version <> "unknown":
+            # Checking of validity names for fields is not necessary
+            fields['__check_validity'] = 0
         # Create an instance description to host the record fields
         # The next line makes memory leaks to appear!
         #self.description = metaIsDescription("", (), fields)()
@@ -338,14 +357,9 @@ class Table(Leaf, hdf5Extension.Table, object):
         optimized doing more experiments.
 
         """
-        fmt = self._v_fmt
+
         compress = self._v_compress
-        # Create a helper RecArray with no data
-        if hasattr(self, "description"):
-            headerRA = records.array(None, formats=self.description._v_recarrfmt)
-            rowsize = headerRA._itemsize
-        else:
-            rowsize = struct.calcsize(fmt)
+        rowsize = self.rowsize
 
         # Protection against row sizes too large (HDF5 refuse to work
         # with row sizes larger than 10 KB or so).
@@ -354,7 +368,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         """Row size too large. Maximum size is 8192 bytes, and you are asking
         for a row size of %s bytes.""" % (rowsize)
             
-        self.rowsize = rowsize
         # A bigger buffer makes the writing faster and reading slower (!)
         #bufmultfactor = 1000 * 10
         # A smaller buffer also makes the tests to not take too much memory

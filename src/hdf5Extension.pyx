@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.76 2003/09/15 19:22:48 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.77 2003/09/16 19:49:18 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.76 $"
+__version__ = "$Revision: 1.77 $"
 
 
 import sys, os
@@ -577,7 +577,14 @@ cdef extern from "calcoffset.h":
 
 # Funtion to get info from fields in a table
 cdef extern from "getfieldfmt.h":
-  herr_t getfieldfmt(hid_t loc_id, char *table_name, char *fmt)
+  #herr_t getfieldfmt(hid_t loc_id, char *table_name, char *fmt)
+  herr_t getfieldfmt( hid_t loc_id, 
+                      char *dset_name,
+                      object shapes,
+                      object sizes,
+                      object types,
+                      char *fmt )
+
 
 # Helper routines
 cdef extern from "utils.h":
@@ -742,7 +749,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.76 2003/09/15 19:22:48 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.77 2003/09/16 19:49:18 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1193,7 +1200,7 @@ cdef class Group:
 
 cdef class Table:
   # instance variables
-  cdef size_t  rowsize
+  #cdef size_t  rowsize  # this is defined on the Python descendent
   cdef size_t  field_offset[MAX_FIELDS]
   cdef size_t  field_sizes[MAX_FIELDS]
   cdef hsize_t nfields
@@ -1246,6 +1253,9 @@ cdef class Table:
     self.rowsize = calcoffset(self.fmt, &nvar, fieldtypes,
                               self.field_sizes, self.field_offset)
     self.nfields = nvar
+    
+    # Compute some values for buffering and I/O parameters
+    self._calcBufferSize(self._v_expectedrows)
     
     # test if there is data to be saved initially
     if hasattr(self, "_v_recarray"):
@@ -1354,16 +1364,9 @@ cdef class Table:
     cdef hsize_t nrecords, nfields
     cdef hsize_t dims[1] # Tables are one-dimensional
     cdef H5T_class_t class_id
-    cdef object  read_buffer, names_tuple
+    cdef object  read_buffer, names
     cdef size_t  rowsize
     cdef char    fmt[2048]
-
-    # Get info about the table dataset
-    ret = H5LTget_dataset_info(self.parent_id, self.name,
-                               dims, &class_id, &rowsize)
-    if ret < 0:
-      raise RuntimeError("Problems getting table dataset info")
-    self.rowsize = rowsize
 
     # First, know how many records (& fields) has the table
     ret = H5TBget_table_info(self.parent_id, self.name,
@@ -1383,19 +1386,27 @@ cdef class Table:
                              self.field_offset, &rowsize)
     if ret < 0:
       raise RuntimeError("Problems getting field info")
-    ret = getfieldfmt(self.parent_id, self.name, fmt)
+    self.rowsize = rowsize
+    
+    shapes = []
+    types = []
+    sizes = []
+    ret = getfieldfmt(self.parent_id, self.name, shapes, sizes, types, fmt)
     if ret < 0:
       raise RuntimeError("Problems getting field format")
     self.fmt = fmt
     
     # Create a python tuple with the field names
-    names_tuple = []
+    names = []
+    #sizes = []
     for i in range(nfields):
-      names_tuple.append(self.field_names[i])
-    names_tuple = tuple(names_tuple)
+      names.append(self.field_names[i])
+      #sizes.append(self.field_sizes[i])
+    names = tuple(names)
+    #sizes = tuple(sizes)
 
     # Return the buffer as a Python String
-    return (nrecords, names_tuple, fmt)
+    return (nrecords, names, rowsize, sizes, shapes, types, fmt)
 
   def _open_read(self, object recarr):
     cdef int buflen
@@ -1527,8 +1538,8 @@ cdef class Table:
     #print "Destroying object Table in Extension"
     free(<void *>self.name)
     for i from  0 <= i < self.nfields:
-      # Strings could not be larger than 255
       free(<void *>self.field_names[i])
+
 
 cdef class Row:
   """Row Class

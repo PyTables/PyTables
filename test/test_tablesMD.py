@@ -181,6 +181,7 @@ class BasicTestCase(unittest.TestCase):
         result = [ rec['var2'][0][0] for rec in table.iterrows()
                    if rec['var2'][0][0] < 20 ]
         if verbose:
+            print "Table:", repr(table)
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last record in table ==>", rec
             print "Total selected records in table ==> ", len(result)

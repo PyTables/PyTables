@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.19 2003/09/08 10:15:30 falted Exp $
+#       $Id: IsDescription.py,v 1.20 2003/09/16 19:49:18 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.19 $"
+__version__ = "$Revision: 1.20 $"
 
 
 import warnings
@@ -310,6 +310,11 @@ class Description(object):
             keys.sort()
             
         recarrfmt = []
+        if "__check_validity" in keys:
+            check_validity = classdict["__check_validity"]
+        else:
+            check_validity = 1   # Default value for name validity check
+        #print "check_validity:", check_validity
         for k in keys:
             if (k.startswith('__') or k.startswith('_v_')):
                 if k in newdict:
@@ -324,8 +329,10 @@ class Description(object):
                     newdict[k] = classdict[k]
             else:
                 # Class variables
-                # Check for key name validity
-                checkNameValidity(k)
+                if check_validity:
+                    # Check for key name validity
+                    #print "Entering checknamevalidity"
+                    checkNameValidity(k)
                 object = classdict[k]
                 if not isinstance(object, Col):
                     raise TypeError, \

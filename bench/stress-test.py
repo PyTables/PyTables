@@ -140,16 +140,17 @@ def readFile(filename, ngroups, recsize, verbose):
                 print "MaxTuples:", table._v_maxTuples
 
             nrow = 0
-            for row in table:
-                try:
-                    assert row["ngroup"] == ngroup
-                    assert row["ntable"] == ntable
-                    assert row["nrow"] == nrow
-                except:
-                    print "Error in group: %d, table: %d, row: %d" % \
-                          (ngroup, ntable, nrow)
-                    print "Record ==>", row
-                nrow += 1
+            if table.nrows > 0:  # only read if we have rows in tables
+                for row in table:
+                    try:
+                        assert row["ngroup"] == ngroup
+                        assert row["ntable"] == ntable
+                        assert row["nrow"] == nrow
+                    except:
+                        print "Error in group: %d, table: %d, row: %d" % \
+                              (ngroup, ntable, nrow)
+                        print "Record ==>", row
+                    nrow += 1
                     
             assert nrow == table.nrows
 	    rowsread += table.nrows

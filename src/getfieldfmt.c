@@ -20,6 +20,9 @@ int format_element(hid_t type_id,
 		   size_t member_size,
 		   H5T_sign_t sign,
 		   int position,
+		   PyObject *shapes,
+		   PyObject *sizes,
+		   PyObject *types,
 		   char *format) 
 {
   hsize_t dims[MAXDIM];
@@ -29,33 +32,59 @@ int format_element(hid_t type_id,
   H5T_class_t super_class_id;
   H5T_sign_t super_sign;
   char temp[2048], arrfmt[255] = "", *t;
-  
+  PyObject *tuple_temp;
+
+  if (shapes){
+    /* Default value for shape */
+    PyList_Append(shapes, PyInt_FromLong(1));
+    PyList_Append(sizes, PyInt_FromLong(member_size));
+  }
+  else {
+    /* For Array types */
+    PyList_SetItem(sizes, position, PyInt_FromLong(member_size));
+  }
   switch(class) {
   case H5T_INTEGER:                /* int (byte, short, long, long long) */
     switch (member_size) {
     case 1:                        /* byte */
-      if ( sign )
+      if ( sign ) {
 	strcat( format, "i1," );     /* signed byte */
-      else
+	PyList_Append(types, PyString_FromString("i1"));
+      }
+      else {
 	strcat( format, "u1," );     /* unsigned byte */
+	PyList_Append(types, PyString_FromString("u1"));
+      }
       break;
     case 2:                        /* short */
-      if ( sign )
+      if ( sign ) {
 	strcat( format, "i2," );     /* signed short */
-      else
+	PyList_Append(types, PyString_FromString("i2"));
+      }
+      else {
 	strcat( format, "u2," );     /* unsigned short */
+	PyList_Append(types, PyString_FromString("u2"));
+      }
       break;
     case 4:                        /* long */
-      if ( sign )
+      if ( sign ) {
 	strcat( format, "i4," );     /* signed long */
-      else
+	PyList_Append(types, PyString_FromString("i4"));
+      }
+      else {
 	strcat( format, "u4," );     /* unsigned long */
+	PyList_Append(types, PyString_FromString("u4"));
+      }
       break;
     case 8:                        /* long long */
-      if ( sign )
+      if ( sign ) {
 	strcat( format, "i8," );     /* signed long long */
-      else
+	PyList_Append(types, PyString_FromString("i8"));
+      }
+      else {
 	strcat( format, "u8," );     /* unsigned long long */
+	PyList_Append(types, PyString_FromString("u8"));
+      }
       break;
     default:
       /* This should never happen */
@@ -66,9 +95,11 @@ int format_element(hid_t type_id,
     switch (member_size) {
     case 4:
 	strcat( format, "f4," );      /* float */
+	PyList_Append(types, PyString_FromString("f4"));
 	break;
     case 8:
 	strcat( format, "f8," );      /* double */
+	PyList_Append(types, PyString_FromString("f8"));
 	break;
     default:
       /* This should never happen */
@@ -77,6 +108,7 @@ int format_element(hid_t type_id,
     break; /* case H5T_FLOAT */
   case H5T_STRING:                  /* char or string */
     snprintf(temp, 255, "a%d,", member_size);  /* Always a CharArray */
+    PyList_Append(types, PyString_FromString("a"));
     strcat( format, temp );       /* string */
     break; /* case H5T_STRING */
   case H5T_ARRAY:
@@ -103,25 +135,30 @@ int format_element(hid_t type_id,
 
     /* Find the super member format */
     if ( format_element(super_type_id, super_class_id, super_type_size,
-			super_sign, position, arrfmt) < 0)
+			super_sign, position, NULL, sizes, types, arrfmt) < 0)
 	 goto out; 
     
     /* Return this format as well as the array size */
     t = temp;
     if (ndims > 1) {
+      tuple_temp = PyTuple_New(ndims);
       sprintf(t++, "(");
       for(i=0;i<ndims;i++) {
 	t += sprintf(t, "%d,", (int)dims[i]);
+	PyTuple_SetItem(tuple_temp, i, PyInt_FromLong((long)dims[i]) );
       }
       t--; 			/* Delete the trailing comma */
       sprintf(t++, ")");
     }
     else {
       sprintf(temp, "%d", (int)dims[0]);
+      tuple_temp = PyInt_FromLong((long)dims[0]);
     }
+    /* Modify the shape for this element */
+    PyList_SetItem(shapes, position, tuple_temp);
+    /* Add the format to the shape */
     strcat(temp, arrfmt);
-
-    strcat( format, temp );       /* string */
+    strcat( format, temp );       /* array */
 
     break; /* case H5T_ARRAY */
     
@@ -142,6 +179,9 @@ int format_element(hid_t type_id,
 
 herr_t getfieldfmt( hid_t loc_id, 
 		    const char *dset_name,
+		    PyObject *shapes,
+		    PyObject *sizes,
+		    PyObject *types,
 		    char *fmt )
 {
 
@@ -216,7 +256,8 @@ herr_t getfieldfmt( hid_t loc_id,
 	sign = -1;
 
       /* Get the member format */
-      if ( format_element(member_type_id, class, member_size, sign, i, fmt) < 0)
+      if ( format_element(member_type_id, class, member_size, sign, i,
+			  shapes, sizes, types, fmt) < 0)
 	 goto out; 
       
       /* Close the member type */

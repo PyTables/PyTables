@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.51 2003/09/08 10:15:30 falted Exp $
+#       $Id: File.py,v 1.52 2003/09/16 19:49:18 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.51 $"
+__version__ = "$Revision: 1.52 $"
 format_version = "1.1"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -314,7 +314,7 @@ class File(hdf5Extension.File, object):
             #self._format_version = attrsRoot.PYTABLES_FORMAT_VERSION
             self._format_version = hdf5Extension.read_f_attr(self._v_groupId,
                                                      'PYTABLES_FORMAT_VERSION')
-            if self._format_version == None:
+            if not self._format_version:
                 # PYTABLES_FORMAT_VERSION attribute is not present
                 self._format_version = "unknown"
                           

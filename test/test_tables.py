@@ -1152,6 +1152,7 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
     #theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
+    #theSuite.addTest(unittest.makeSuite(LargeRowSize))
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
