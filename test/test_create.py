@@ -260,14 +260,12 @@ class createTestCase(unittest.TestCase):
 
 
 class createAttrTestCase(unittest.TestCase):
-    
     file  = "test.h5"
     title = "This is the table title"
     expectedrows = 100
     maxshort = 2 ** 15
     maxint   = 2147483648   # (2 ** 31)
     compress = 0
-
     
     def setUp(self):
         # Create an instance of HDF5 Table
@@ -285,7 +283,6 @@ class createAttrTestCase(unittest.TestCase):
                                             "Group title")
 
     def tearDown(self):
-
         self.fileh.close()
         os.remove(self.file)
 
@@ -298,18 +295,24 @@ class createAttrTestCase(unittest.TestCase):
 	# Try to put a long string attribute on a group object
 	attr = self.fileh.setAttrNode(self.root.agroup,
                                       "attr1", "p" * attrlength)
-        assert self.fileh.getAttrNode(self.root.agroup, 'attr1') == \
-               "p" * attrlength
-	
 	# Now, try with a Table object
 	attr = self.fileh.setAttrNode(self.root.atable,
                                       "attr1", "a" * attrlength)
-        assert self.fileh.getAttrNode(self.root.atable, 'attr1') == \
-               "a" * attrlength
-	    
 	# Finally, try with an Array object
 	attr = self.fileh.setAttrNode(self.root.anarray,
                                       "attr1", "n" * attrlength)
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+
+        assert self.fileh.getAttrNode(self.root.agroup, 'attr1') == \
+               "p" * attrlength
+        assert self.fileh.getAttrNode(self.root.atable, 'attr1') == \
+               "a" * attrlength
         assert self.fileh.getAttrNode(self.root.anarray, 'attr1') == \
                "n" * attrlength
 	    
@@ -320,14 +323,21 @@ class createAttrTestCase(unittest.TestCase):
 	attrlength = 2048
 	# Try to put a long string attribute on a group object
         self.root.agroup._f_setAttr('attr1', "p" * attrlength)
-        assert self.root.agroup._f_getAttr('attr1') == "p" * attrlength
-	
 	# Now, try with a Table object
         self.root.atable.setAttr('attr1', "a" * attrlength)
-	assert self.root.atable.getAttr("attr1") == "a" * attrlength
 	    
 	# Finally, try with an Array object
         self.root.anarray.setAttr('attr1', "n" * attrlength)
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+
+        assert self.root.agroup._f_getAttr('attr1') == "p" * attrlength
+	assert self.root.atable.getAttr("attr1") == "a" * attrlength
 	assert self.root.anarray.getAttr("attr1") == "n" * attrlength
 	    
 	    
@@ -337,15 +347,21 @@ class createAttrTestCase(unittest.TestCase):
 	attrlength = 2048
 	# Try to put a long string attribute on a group object
         self.group._v_attrs.attr1 = "p" * attrlength
-        assert self.group._v_attrs.attr1 == "p" * attrlength
-	
 	# Now, try with a Table object
         self.table.attrs.attr1 = "a" * attrlength
-	assert self.table.attrs.attr1 == "a" * attrlength
-	    
 	# Finally, try with an Array object
         self.array.attrs.attr1 = "n" * attrlength
-	assert self.array.attrs.attr1 == "n" * attrlength
+        
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+
+        assert self.root.agroup._v_attrs.attr1 == "p" * attrlength
+	assert self.root.atable.attrs.attr1 == "a" * attrlength
+	assert self.root.anarray.attrs.attr1 == "n" * attrlength
 	    
     def test04_listAttributes(self):
         """Checking listing attributes """
@@ -356,39 +372,50 @@ class createAttrTestCase(unittest.TestCase):
         self.group._v_attrs.rs = "3"
         if verbose:
             print "Attribute list:", self.group._v_attrs._f_list()
-        assert self.group._v_attrs._f_list("user") == \
-               ["pq", "qr", "rs"]
-        assert self.group._v_attrs._f_list("sys") == \
-               ['CLASS', 'TITLE','VERSION']
-        assert self.group._v_attrs._f_list("all") == \
-               ['CLASS', 'TITLE', 'VERSION', "pq", "qr", "rs"]
-	
+
 	# Now, try with a Table object
         self.table.attrs.a = "1"
         self.table.attrs.c = "2"
         self.table.attrs.b = "3"
         if verbose:
             print "Attribute list:", self.table.attrs._f_list()
-        assert self.table.attrs._f_list() == ["a", "b", "c"]
-        assert self.table.attrs._f_list("sys") == \
-               ['CLASS', 'FIELD_0_NAME', 'FIELD_1_NAME', 'FIELD_2_NAME',
-                'FIELD_3_NAME', 'FIELD_4_NAME', 'TITLE','VERSION']
-        assert self.table.attrs._f_list("readonly") == ['CLASS', 'VERSION']
-        assert self.table.attrs._f_list("all") == \
-               ['CLASS', 'FIELD_0_NAME', 'FIELD_1_NAME', 'FIELD_2_NAME',
-                'FIELD_3_NAME', 'FIELD_4_NAME', 'TITLE', 'VERSION',
-                "a", "b", "c"]
-	    
+
 	# Finally, try with an Array object
         self.array.attrs.k = "1"
         self.array.attrs.j = "2"
         self.array.attrs.i = "3"
         if verbose:
             print "Attribute list:", self.array.attrs._f_list()
-        assert self.array.attrs._f_list() == ["i", "j", "k"]
-        assert self.array.attrs._f_list("sys") == \
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            
+        assert self.root.agroup._v_attrs._f_list("user") == \
+               ["pq", "qr", "rs"]
+        assert self.root.agroup._v_attrs._f_list("sys") == \
+               ['CLASS', 'TITLE','VERSION']
+        assert self.root.agroup._v_attrs._f_list("all") == \
+               ['CLASS', 'TITLE', 'VERSION', "pq", "qr", "rs"]
+
+        assert self.root.atable.attrs._f_list() == ["a", "b", "c"]
+        assert self.root.atable.attrs._f_list("sys") == \
+               ['CLASS', 'FIELD_0_NAME', 'FIELD_1_NAME', 'FIELD_2_NAME',
+                'FIELD_3_NAME', 'FIELD_4_NAME', 'TITLE','VERSION']
+        assert self.root.atable.attrs._f_list("readonly") == \
+               ['CLASS', 'VERSION']
+        assert self.root.atable.attrs._f_list("all") == \
+               ['CLASS', 'FIELD_0_NAME', 'FIELD_1_NAME', 'FIELD_2_NAME',
+                'FIELD_3_NAME', 'FIELD_4_NAME', 'TITLE', 'VERSION',
+                "a", "b", "c"]
+	    
+        assert self.root.anarray.attrs._f_list() == ["i", "j", "k"]
+        assert self.root.anarray.attrs._f_list("sys") == \
                ['CLASS', 'FLAVOR', 'TITLE', 'VERSION']
-        assert self.array.attrs._f_list("all") == \
+        assert self.root.anarray.attrs._f_list("all") == \
                ['CLASS', 'FLAVOR', 'TITLE', 'VERSION', "i", "j", "k"]
 
     def test05_removeAttributes(self):
@@ -400,26 +427,36 @@ class createAttrTestCase(unittest.TestCase):
         self.group._v_attrs.rs = "3"
         # delete an attribute
         del self.group._v_attrs.pq
+        
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            
         if verbose:
-            print "Attribute list:", self.group._v_attrs._f_list()
+            print "Attribute list:", self.root.agroup._v_attrs._f_list()
         # Check the local attributes names
-        assert self.group._v_attrs._f_list() == ["qr", "rs"]
+        assert self.root.agroup._v_attrs._f_list() == ["qr", "rs"]
         if verbose:
-            print "Attribute list in disk:", self.group._v_attrs._f_list("all")
+            print "Attribute list in disk:", \
+                  self.root.agroup._v_attrs._f_list("all")
         # Check the disk attribute names
-        assert self.group._v_attrs._f_list("all") == \
+        assert self.root.agroup._v_attrs._f_list("all") == \
                ['CLASS', 'TITLE', 'VERSION', "qr", "rs"]
 
         # delete an attribute (__delattr__ method)
-        del self.group._v_attrs.qr
+        del self.root.agroup._v_attrs.qr
         if verbose:
-            print "Attribute list:", self.group._v_attrs._f_list()
+            print "Attribute list:", self.root.agroup._v_attrs._f_list()
         # Check the local attributes names
-        assert self.group._v_attrs._f_list() == ["rs"]
+        assert self.root.agroup._v_attrs._f_list() == ["rs"]
         if verbose:
-            print "Attribute list in disk:", self.group._v_attrs._g_listAttr()
+            print "Attribute list in disk:", \
+                  self.root.agroup._v_attrs._g_listAttr()
         # Check the disk attribute names
-        assert self.group._v_attrs._f_list("all") == \
+        assert self.root.agroup._v_attrs._f_list("all") == \
                ['CLASS', 'TITLE', 'VERSION', "rs"]
 
     def test06_removeAttributes(self):
@@ -447,14 +484,22 @@ class createAttrTestCase(unittest.TestCase):
         self.group._v_attrs.rs = "3"
         # rename an attribute
         self.group._v_attrs._f_rename("pq", "op")
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            
         if verbose:
-            print "Attribute list:", self.group._v_attrs._f_list()
+            print "Attribute list:", self.root.agroup._v_attrs._f_list()
         # Check the local attributes names (alphabetically sorted)
-        assert self.group._v_attrs._f_list() == ["op", "qr", "rs"]
+        assert self.root.agroup._v_attrs._f_list() == ["op", "qr", "rs"]
         if verbose:
-            print "Attribute list in disk:", self.group._v_attrs._f_list("all")
+            print "Attribute list in disk:", self.root.agroup._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
-        assert self.group._v_attrs._f_list("all") == \
+        assert self.root.agroup._v_attrs._f_list("all") == \
                ['CLASS', 'TITLE', 'VERSION', "op", "qr", "rs"]
 
     def test08_renameAttributes(self):
@@ -485,9 +530,16 @@ class createAttrTestCase(unittest.TestCase):
             print "qr -->", self.table.attrs.qr
             print "rs -->", self.table.attrs.rs
             
-        assert self.table.attrs.pq == 1
-        assert self.table.attrs.qr == 2
-        assert self.table.attrs.rs == 3
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            
+        assert self.root.atable.attrs.pq == 1
+        assert self.root.atable.attrs.qr == 2
+        assert self.root.atable.attrs.rs == 3
 
     def test09b_setIntAttributes(self):
         """Checking setting Int (byte, short, int) attributes"""
@@ -511,9 +563,16 @@ class createAttrTestCase(unittest.TestCase):
             print "qr -->", self.table.attrs.qr
             print "rs -->", self.table.attrs.rs
             
-        assert self.table.attrs.pq == 1
-        assert self.table.attrs.qr == 2
-        assert self.table.attrs.rs == 3
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+
+        assert self.root.atable.attrs.pq == 1
+        assert self.root.atable.attrs.qr == 2
+        assert self.root.atable.attrs.rs == 3
 
     def test10_setFloatAttributes(self):
         """Checking setting Float (double) attributes"""
@@ -529,9 +588,16 @@ class createAttrTestCase(unittest.TestCase):
             print "qr -->", self.table.attrs.qr
             print "rs -->", self.table.attrs.rs
             
-        assert self.table.attrs.pq == 1.0
-        assert self.table.attrs.qr == 2.0
-        assert self.table.attrs.rs == 3.0
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+
+        assert self.root.atable.attrs.pq == 1.0
+        assert self.root.atable.attrs.qr == 2.0
+        assert self.root.atable.attrs.rs == 3.0
 
     def test10b_setFloatAttributes(self):
         """Checking setting Float (float) attributes"""
@@ -555,9 +621,16 @@ class createAttrTestCase(unittest.TestCase):
             print "qr -->", self.table.attrs.qr
             print "rs -->", self.table.attrs.rs
             
-        assert self.table.attrs.pq == 1.0
-        assert self.table.attrs.qr == 2.0
-        assert self.table.attrs.rs == 3.0
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+
+        assert self.root.atable.attrs.pq == 1.0
+        assert self.root.atable.attrs.qr == 2.0
+        assert self.root.atable.attrs.rs == 3.0
 
     def test11_setObjectAttributes(self):
         """Checking setting Object attributes"""
@@ -573,20 +646,34 @@ class createAttrTestCase(unittest.TestCase):
             print "qr -->", self.table.attrs.qr
             print "rs -->", self.table.attrs.rs
             
-        assert self.table.attrs.pq == [1.0, 2]             
-        assert self.table.attrs.qr == (1,2)
-        assert self.table.attrs.rs == {"ddf":32.1, "dsd":1}
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
 
+        assert self.root.atable.attrs.pq == [1.0, 2]             
+        assert self.root.atable.attrs.qr == (1,2)
+        assert self.root.atable.attrs.rs == {"ddf":32.1, "dsd":1}
+
+
+class createAttrNotCloseTestCase(createAttrTestCase):
+    close = 0
+
+class createAttrCloseTestCase(createAttrTestCase):
+    close = 1
 	
 #----------------------------------------------------------------------
 
 def suite():
     theSuite = unittest.TestSuite()
+    niter = 1
 
-    for i in range(1):
+    for i in range(niter):
         theSuite.addTest(unittest.makeSuite(createTestCase))
-    for i in range(1):
-        theSuite.addTest(unittest.makeSuite(createAttrTestCase))
+        theSuite.addTest(unittest.makeSuite(createAttrNotCloseTestCase))
+        theSuite.addTest(unittest.makeSuite(createAttrCloseTestCase))
 
     return theSuite
 

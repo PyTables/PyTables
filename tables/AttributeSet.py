@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.22 2004/01/12 10:07:58 falted Exp $
+#       $Id: AttributeSet.py,v 1.23 2004/01/20 19:03:45 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.22 $"
+__version__ = "$Revision: 1.23 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -190,7 +190,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
             retval = value
 
         # Beware! From 0.7.1 on, a lazy attribute reading is on.
-        self.__dict__[name] = value
+        #self.__dict__[name] = value
+        self.__dict__[name] = retval
         return retval
 
     def __setattr__(self, name, value):
@@ -223,19 +224,20 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 """ % (self.node._v_pathname, MAX_ATTRS_IN_NODE), UserWarning)
 
         # Save this attribute to disk
+        # (overwriting an existing one if needed)
         self._g_setAttr(name, value)
             
+        # New attribute
+        # Beware! From 0.7.1 on, a lazy attribute reading is on.
+        self.__dict__[name] = value
+
         # Finally, add this attribute to the list if not present
         if not name in self._v_attrnames:
             self._v_attrnames.append(name)
             self._v_attrnamesuser.append(name)
-            # New attribute
-            # Beware! From 0.7.1 on, a lazy attribute reading is on.
-            self.__dict__[name] = value
-
-        # Sort the attributes
-        self._v_attrnames.sort()
-        self._v_attrnamesuser.sort()
+            # Sort the attributes
+            self._v_attrnames.sort()
+            self._v_attrnamesuser.sort()
 
     def __delattr__(self, name):
         "Remove the attribute attrname from the attribute set"

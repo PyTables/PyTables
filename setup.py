@@ -126,7 +126,8 @@ if os.name == 'posix':
     hdf5incdir = hdf5libdir = None
     if not HDF5_DIR:
         for instdir in ('/usr/', '/usr/local/'):
-            for ext in ('.a', '.so'):
+            # ".dylib" is the extension for dynamic libraries for MacOSX
+            for ext in ('.a', '.so', '.dylib'):
                 libhdf5 = os.path.join(instdir, "lib/libhdf5"+ext)
                 if os.path.isfile(libhdf5):
                     HDF5_DIR = instdir
@@ -176,7 +177,7 @@ where they can be found."""
         lookup_directories = ('/usr/', '/usr/local/')
         
     for instdir in lookup_directories:
-        for ext in ('.a', '.so'):
+        for ext in ('.a', '.so', '.dylib'):
             libzlib = os.path.join(instdir, "lib/libz"+ext)
             if os.path.isfile(libzlib):
                 ZLIB_DIR = instdir
@@ -222,7 +223,7 @@ where they can be found."""
         lookup_directories = ('/usr/', '/usr/local/')
         
     for instdir in lookup_directories:
-        for ext in ('.a', '.so'):
+        for ext in ('.a', '.so', '.dylib'):
             liblzo = os.path.join(instdir, "lib/liblzo"+ext)
             if os.path.isfile(liblzo):
                 LZO_DIR = instdir
@@ -261,7 +262,7 @@ support for them."""
         lookup_directories = ('/usr/', '/usr/local/')
         
     for instdir in lookup_directories:
-        for ext in ('.a', '.so'):
+        for ext in ('.a', '.so', '.dylib'):
             libucl = os.path.join(instdir, "lib/libucl"+ext)
             if os.path.isfile(libucl):
                 UCL_DIR = instdir
