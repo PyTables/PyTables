@@ -35,26 +35,9 @@
 #   define TRUE (!FALSE)
 #endif
 
-/* General maximum length of names used */
-#define NAMELEN     256
-/* Maximum number of childs hanging from a group */
-/* There is a protection against creating a number of childs bigger than 
-   that in Group.py. But it is necessary to syncronize both values!. */
-#define MAX_CHILDS_IN_GROUP  4096
-
-/* Maximum attributes in a node */
-/* This number has to be syncronized with that on AttributeSet.py */ 
-#define MAX_ATTRS_IN_NODE  4096
-
 /* Maximum dimensions in an array */
 /* This number has been taken from numarray/numarray.h */ 
 #define MAXDIM  40
-
-/* Custom group iteration callback data */
-typedef struct {
-    char name[NAMELEN];     /* The name of the object */
-    int type;               /* The type of the object */
-} iter_info;
 
 /* Use %ld to print the value because long should cover most cases. */
 /* Used to make certain a return value _is_not_ a value */

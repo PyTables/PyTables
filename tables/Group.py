@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.74 2004/04/29 17:04:30 falted Exp $
+#       $Id: Group.py,v 1.75 2004/04/29 17:53:40 falted Exp $
 #
 ########################################################################
 
@@ -33,11 +33,10 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.74 $"
+__version__ = "$Revision: 1.75 $"
 
+# Recommended values for maximum number of groups and maximum depth in tree
 MAX_DEPTH_IN_TREE = 2048
-# Note: the next constant has to be syncronized with the
-# MAX_CHILDS_IN_GROUP constant in util.h!
 MAX_CHILDS_IN_GROUP = 4096
 
 from __future__ import generators
