@@ -6,10 +6,10 @@ import numarray as NA
 from tables import *
 
 # This class is accessible only for the examples
-class Small(IsColDescr):
+class Small(IsDescription):
     """ A record has several columns. They are represented here as
     class attributes, whose names are the column names and their
-    values will become their types. The IsColDescr class will take care
+    values will become their types. The IsDescription class will take care
     the user will not add any new variables and that its type is
     correct."""
     
@@ -18,7 +18,7 @@ class Small(IsColDescr):
     var3 = Col("Float64", 1, 0)
 
 # Define a user record to characterize some kind of particles
-class Medium(IsColDescr):
+class Medium(IsDescription):
     name        = Col('CharType', 16, "")  # 16-character String
     float1      = Col("Float64", 2, NA.arange(2))
     #float1      = Col("Float64", 1, 2.3)
@@ -31,7 +31,7 @@ class Medium(IsColDescr):
     energy      = Col("Float64", 1, 0)    # double (double-precision)
 
 # Define a user record to characterize some kind of particles
-class Big(IsColDescr):
+class Big(IsDescription):
     name        = Col('CharType', 16, "")  # 16-character String
     float1      = Col("Float64", 32, NA.arange(32))
     float2      = Col("Float64", 32, 2.2)
@@ -57,16 +57,16 @@ def createFile(filename, totalrows, complevel, recsize):
     for j in range(3):
         # Create a table
         if recsize == "big":
-            table = fileh.createTable(group, 'tuple'+str(j), Big(), title,
+            table = fileh.createTable(group, 'tuple'+str(j), Big, title,
                                       complevel, totalrows)
             arr = NA.array(NA.arange(32), type=NA.Float64)
             arr2 = NA.array(NA.arange(32), type=NA.Float64)
         elif recsize == "medium":
-            table = fileh.createTable(group, 'tuple'+str(j), Medium(), title,
+            table = fileh.createTable(group, 'tuple'+str(j), Medium, title,
                                       complevel, totalrows)
             arr = NA.array(NA.arange(2), type=NA.Float64)
         elif recsize == "small":
-            table = fileh.createTable(group, 'tuple'+str(j), Small(), title,
+            table = fileh.createTable(group, 'tuple'+str(j), Small, title,
                                       complevel, totalrows)
         else:
             raise RuntimeError, "This should never happen"
