@@ -217,7 +217,7 @@ class OpenFileTestCase(unittest.TestCase):
         """Checking alternate root access to the object tree"""
         
         # Open the existent HDF5 file
-        fileh = openFile(self.file, mode = "r", root="/agroup")
+        fileh = openFile(self.file, mode = "r", rootUEP="/agroup")
         # Get the CLASS attribute of the arr object
         if verbose:
             print "\nFile tree dump:", fileh
@@ -232,7 +232,7 @@ class OpenFileTestCase(unittest.TestCase):
         """Checking non-existent alternate root access to the object tree"""
 
         try:
-            fileh = openFile(self.file, mode = "r", root="/nonexistent")
+            fileh = openFile(self.file, mode = "r", rootUEP="/nonexistent")
         except RuntimeError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()

@@ -60,7 +60,6 @@ class TreeTestCase(unittest.TestCase):
             table.flush()
             
             # Create a couple of arrays in each group
-            # Aci tenim un problema!!!!!
             var1List = [ x['var1'] for x in table.iterrows() ]
             var4List = [ x['var4'] for x in table.iterrows() ]
 
@@ -77,7 +76,7 @@ class TreeTestCase(unittest.TestCase):
         if self.h5file.isopen:
             self.h5file.close()
 
-        #os.remove(self.file)
+        os.remove(self.file)
 
     #----------------------------------------
 

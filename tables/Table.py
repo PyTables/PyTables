@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.62 2003/07/24 13:01:35 falted Exp $
+#       $Id: Table.py,v 1.63 2003/07/25 14:31:57 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.62 $"
+__version__ = "$Revision: 1.63 $"
 
 from __future__ import generators
 import sys
@@ -353,7 +353,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         # We choose the smaller one
         # In addition, with the new iterator in the Row class, this seems to
         # be the best choice in terms of performance!
-        bufmultfactor = 1000 * 1
+        bufmultfactor = int(1000 * 1.0)
         # Counter for the binary tuples
         self._v_recunsaved = 0
         rowsizeinfile = rowsize
@@ -368,7 +368,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         # chunksize:  The chunksize for the HDF5 library
         # buffersize: The Table internal buffer size
         #
-        # Reasoning: HDF5 takes the data in bunches of chunksize length
+        # Rational: HDF5 takes the data in bunches of chunksize length
         # to write the on disk. A BTree in memory is used to map structures
         # on disk. The more chunks that are allocated for a dataset the
         # larger the B-tree. Large B-trees take memory and causes file
@@ -402,7 +402,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             buffersize = 50 * bufmultfactor
             chunksize = 8192
         else:  # Greater than 200 MB
-            # This values gives an increment of memory of 50 MB for a table
+            # These values gives an increment of memory of 50 MB for a table
             # size of 2.2 GB. I think this increment should be attributed to
             # the BTree created to save the table data.
             # If we increment this values more than that, the HDF5 takes
@@ -450,99 +450,99 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
 
-    def _fetchall(self):
-        """Iterate over all the rows
+#     def _fetchall(self):
+#         """Iterate over all the rows
 
-        This method is a generator, i.e. it keeps track on the last
-        record returned so that next time it is invoked it returns the
-        next available record.
+#         This method is a generator, i.e. it keeps track on the last
+#         record returned so that next time it is invoked it returns the
+#         next available record.
 
-        """
+#         """
 
-        # It is not possible to call the _open_read() method in the Row class.
-        # If we do this, we get weird things when reading a table after a
-        # Table.flush() without closing and re-opening it!.
-        # The test_tree.TreeTestCase detects the problem! 
-        # 2003/07/21
-        self._open_read(self._v_buffer)  # Open the table for readin
-        #return iter(self.row)
-        return self.row()
+#         # It is not possible to call the _open_read() method in the Row class.
+#         # If we do this, we get weird things when reading a table after a
+#         # Table.flush() without closing and re-opening it!.
+#         # The test_tree.TreeTestCase detects the problem! 
+#         # 2003/07/21
+#         self._open_read(self._v_buffer)  # Open the table for readin
+#         #return iter(self.row)
+#         return self.row()
 
-    def _fetchall_orig(self):
-        """Iterate over all the rows
+#     def _fetchall_orig(self):
+#         """Iterate over all the rows
 
-        This method is a generator, i.e. it keeps track on the last
-        record returned so that next time it is invoked it returns the
-        next available record.
+#         This method is a generator, i.e. it keeps track on the last
+#         record returned so that next time it is invoked it returns the
+#         next available record.
 
-        """
-        # Create a buffer for the readout
-        nrowsinbuf = self._v_maxTuples
-        buffer = self._v_buffer
-        self._open_read(buffer)  # Open the table for reading
-        row = self.row   # get the pointer to the Row object
-        row._initLoop(0, self.nrows, 1)
-        for i in xrange(0, self.nrows, nrowsinbuf):
-            recout = self._read_records(i, nrowsinbuf)
-            #recout = nrowsinbuf
-            if self.byteorder <> sys.byteorder:
-                #buffer.byteswap()
-                #buffer.togglebyteorder()
-                buffer._byteswap()
-            # Set the buffer counter (case for step=1)
-            row._setBaseRow(i, 0)
-            for j in xrange(recout):
-                #yield row()
-                yield row._getRow()
+#         """
+#         # Create a buffer for the readout
+#         nrowsinbuf = self._v_maxTuples
+#         buffer = self._v_buffer
+#         self._open_read(buffer)  # Open the table for reading
+#         row = self.row   # get the pointer to the Row object
+#         row._initLoop(0, self.nrows, 1)
+#         for i in xrange(0, self.nrows, nrowsinbuf):
+#             recout = self._read_records(i, nrowsinbuf)
+#             #recout = nrowsinbuf
+#             if self.byteorder <> sys.byteorder:
+#                 #buffer.byteswap()
+#                 #buffer.togglebyteorder()
+#                 buffer._byteswap()
+#             # Set the buffer counter (case for step=1)
+#             row._setBaseRow(i, 0)
+#             for j in xrange(recout):
+#                 #yield row()
+#                 yield row._getRow()
 
-        self._close_read()  # Close the table
+#         self._close_read()  # Close the table
 
-    # Making this a Pyrex iteratior remains as a task to be done
-    def _fetchrange(self, start, stop, step):
-        """Iterate over a range of rows"""
+#     # Making this a Pyrex iteratior remains as a task to be done
+#     def _fetchrange(self, start, stop, step):
+#         """Iterate over a range of rows"""
 
-        #print "start, stop, step ----->", start, stop, step
-        self._open_read(self._v_buffer)  # Open the table for readin
-        return self.row(start, stop, step)
+#         #print "start, stop, step ----->", start, stop, step
+#         self._open_read(self._v_buffer)  # Open the table for readin
+#         return self.row(start, stop, step)
 
-    # Making this a Pyrex iteratior remains as a task to be done
-    def _fetchrange_orig(self, start, stop, step):
-        """Iterate over a range of rows"""
-        row = self.row   # get the pointer to the Row object
-        nrowsinbuf = self._v_maxTuples   # Shortcut
-        buffer = self._v_buffer  # Shortcut to the buffer
-        self._open_read(buffer)  # Open the table for reading
-        # Some start values for the main loop
-        nrowsread = start
-        startb = 0
-        nextelement = start
-        row._initLoop(start, stop, step)
-        for i in xrange(start, stop, nrowsinbuf):
-            # Skip this iteration if there is no interesting information
-            if ((nextelement >= nrowsread + nrowsinbuf) or 
-                (startb >= stop - nrowsread)):
-                nrowsread += nrowsinbuf
-                continue
-            # Compute the end for this iteration
-            stopb = stop - nrowsread
-            if stopb > nrowsinbuf:
-                stopb = nrowsinbuf
-            # Read a chunk
-            nrowsread += self._read_records(i, nrowsinbuf)
-            if self.byteorder <> sys.byteorder:
-                #buffer.byteswap()
-                buffer.togglebyteorder()
+#     # Making this a Pyrex iteratior remains as a task to be done
+#     def _fetchrange_orig(self, start, stop, step):
+#         """Iterate over a range of rows"""
+#         row = self.row   # get the pointer to the Row object
+#         nrowsinbuf = self._v_maxTuples   # Shortcut
+#         buffer = self._v_buffer  # Shortcut to the buffer
+#         self._open_read(buffer)  # Open the table for reading
+#         # Some start values for the main loop
+#         nrowsread = start
+#         startb = 0
+#         nextelement = start
+#         row._initLoop(start, stop, step)
+#         for i in xrange(start, stop, nrowsinbuf):
+#             # Skip this iteration if there is no interesting information
+#             if ((nextelement >= nrowsread + nrowsinbuf) or 
+#                 (startb >= stop - nrowsread)):
+#                 nrowsread += nrowsinbuf
+#                 continue
+#             # Compute the end for this iteration
+#             stopb = stop - nrowsread
+#             if stopb > nrowsinbuf:
+#                 stopb = nrowsinbuf
+#             # Read a chunk
+#             nrowsread += self._read_records(i, nrowsinbuf)
+#             if self.byteorder <> sys.byteorder:
+#                 #buffer.byteswap()
+#                 buffer.togglebyteorder()
                                 
-            # Set the buffer counter
-            row._setBaseRow(i, startb)
-            # Loop over the values for this buffer
-            for j in xrange(startb, stopb, step):
-                yield row._getRow()
-            # Compute some indexes for the next iteration
-            startb = (j+step) % nrowsinbuf
-            nextelement += step
+#             # Set the buffer counter
+#             row._setBaseRow(i, startb)
+#             # Loop over the values for this buffer
+#             for j in xrange(startb, stopb, step):
+#                 yield row._getRow()
+#             # Compute some indexes for the next iteration
+#             startb = (j+step) % nrowsinbuf
+#             nextelement += step
 
-        self._close_read()  # Close the table
+#         self._close_read()  # Close the table
 
     def _processRange(self, start=None, stop=None, step=None):
         
@@ -716,25 +716,6 @@ class Table(Leaf, hdf5Extension.Table, object):
 "Numeric", "Tuple" and "List".""" % (flavor)
 
         return arr
-
-    def removeRows(self, start=None, stop=None):
-        """Remove a range of rows.
-
-        If only "start" is supplied, this row is to be deleted.
-        If "start" and "stop" parameters are supplied, a row
-        range is selected to be removed.
-
-        """
-
-        # If "stop" is not provided, select the index pointed by start only
-        if stop is None:
-            stop = start + 1
-        # Check for correct values of start and stop    
-        (start, stop, step) = self._processRange(start, stop, 1)
-        nrows = stop - start
-        nrows = self._remove_row(start, nrows)
-        self.nrows -= nrows    # discount the removed rows from the total
-        return nrows
 
     def _readCol(self, start=None, stop=None, step=None, field=None):
         """Read a range of rows and return an in-memory object.
@@ -917,6 +898,25 @@ class Table(Leaf, hdf5Extension.Table, object):
         #if self._v_recunsaved > 0:
         if hasattr(self, 'row') and self.row._getUnsavedNRows() > 0:
           self._saveBufferedRows()
+
+    def removeRows(self, start=None, stop=None):
+        """Remove a range of rows.
+
+        If only "start" is supplied, this row is to be deleted.
+        If "start" and "stop" parameters are supplied, a row
+        range is selected to be removed.
+
+        """
+
+        # If "stop" is not provided, select the index pointed by start only
+        if stop is None:
+            stop = start + 1
+        # Check for correct values of start and stop    
+        (start, stop, step) = self._processRange(start, stop, 1)
+        nrows = stop - start
+        nrows = self._remove_row(start, nrows)
+        self.nrows -= nrows    # discount the removed rows from the total
+        return nrows
 
     # Moved out of scope
     def _g_del__(self):

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.67 2003/07/23 18:46:54 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.68 2003/07/25 14:31:57 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.67 $"
+__version__ = "$Revision: 1.68 $"
 
 
 import sys, os
@@ -720,7 +720,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.67 2003/07/23 18:46:54 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.68 2003/07/25 14:31:57 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1699,9 +1699,42 @@ cdef class Row:
     self._unsavednrows = self._unsavednrows + 1
     # When the buffer is full, flush it
     if self._unsavednrows == self.nrowsinbuf:
+      # Save the records on disk
       self._saveBufferedRows()
       # Get again the self._fields of the new buffer
       self._fields = self._table._v_buffer._fields
+      
+    return
+      
+  # This is the Pyrex version of the append, but it is not faster than
+  # the original, so disable it!.
+#   def _append_pyrex(self):
+#     """Append self object to the output buffer.
+    
+#     """
+#     self._row = self._row + 1 # update the current buffer read counter
+#     self._unsavednrows = self._unsavednrows + 1
+#     # When the buffer is full, flush it
+#     if self._unsavednrows == self.nrowsinbuf:
+#       #self._saveBufferedRows()
+#       self._table._append_records(self._table._v_buffer, self._unsavednrows)
+#       # Get a fresh copy of the default values
+#       # This copy seems to make the writing with compression a 5%
+#       # faster than if the copy is not made. Why??
+#       if hasattr(self._table, "_v_buffercpy"):
+#         self._table._v_buffer[:] = self._table._v_buffercpy[:]
+
+#       # Update the number of saved rows in this buffer
+#       self._table.nrows = self._table.nrows + self._unsavednrows
+#       # Reset the buffer unsaved counter and the buffer read row counter
+#       #self._setUnsavedNRows(0)
+#       self._unsavednrows = 0
+#       self._row = 0 # set the current buffer read counter
+#       # Set the shape attribute (the self.nrows may be less than the maximum)
+#       self._table.shape = (self._table.nrows,)
+
+#       # Get again the self._fields of the new buffer
+#       self._fields = self._table._v_buffer._fields
 
   def _setUnsavedNRows(self, row):
     """ set the buffer row number for this buffer """

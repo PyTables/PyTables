@@ -4,9 +4,10 @@ TODO list (as of 7th, May 2003):
 
 - Implement relations (like and object oriented database) between objects.
 
-- Add general attributes to tree node objects. Try to support general
-  Python objects as attributes (this is partially solved by the
-  addition of setAttrNode/getAttrNode methods and the use of cPickle).
+- Right now, each Table has its own buffer which can take a lot of
+  memory (between 5 KB and 60 KB per Table) if you have many
+  Tables. It would be nice to implement lazy creation of the buffer,
+  and a destruction when it is no longer needed.
 
 - Improve the performance (although no much room remains for doing
   that).

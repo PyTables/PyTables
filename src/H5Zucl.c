@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "H5Zucl.h"
 #include "utils.h"
+#include "math.h"  		/* For ceil() */
 
 #ifdef HAVE_UCL_LIB
 #   include "ucl/ucl.h"
@@ -17,9 +18,16 @@
    space and a 2% more of CPU, which is almost negligible.
    F. Alted 2003/07/22
 */
-#undef CHECKSUM
+#define CHECKSUM
 
 #undef DEBUG
+
+/* Adding more memory to the nrve seems to make it more resistant to
+ seg faults. But I don't fully understand were is exactly the problem,
+ anyway.  F. Alted 2003/07/24 */
+/* Adding a combination of the zlib method and ucl to the output buffer */
+#define H5Z_UCL_SIZE_ADJUST(s) (ceil((double)((s)*1.001))+((s)/8)+256+12)
+/* #define H5Z_UCL_SIZE_ADJUST(s) ((s)+((s)/8)+256) */ /* Old value */
 
 int register_ucl(void) {
 
@@ -120,7 +128,7 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
       printf("nalloc -->%d\n", nalloc);
       printf("max_len_buffer -->%d\n", max_len_buffer);
 #endif /* DEBUG */
-      status = ucl_nrv2d_decompress_safe_8(*buf, (ucl_uint)nbytes, outbuf,
+      status = ucl_nrv2e_decompress_safe_8(*buf, (ucl_uint)nbytes, outbuf,
 					   &out_len, NULL);
       /* Check if success */
       if (status == UCL_E_OK) {
@@ -174,11 +182,10 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
     ucl_byte *z_src = (ucl_byte*)(*buf);
     ucl_byte *z_dst;         /*destination buffer            */
     ucl_uint z_src_nbytes = (ucl_uint)(nbytes);
-/*     ucl_uint z_dst_nbytes = (ucl_uint)(nbytes + (nbytes / 8) + 256 + 16); */
 #ifdef CHECKSUM
-    ucl_uint z_dst_nbytes = (ucl_uint)(nbytes + (nbytes / 8) + 256 + 4);
+    ucl_uint z_dst_nbytes = (ucl_uint)H5Z_UCL_SIZE_ADJUST(nbytes)+4;
 #else
-    ucl_uint z_dst_nbytes = (ucl_uint)(nbytes + (nbytes / 8) + 256);
+    ucl_uint z_dst_nbytes = (ucl_uint)H5Z_UCL_SIZE_ADJUST(nbytes);
 #endif
 
     if (NULL==(z_dst=outbuf=(void *)ucl_malloc(z_dst_nbytes))) {
@@ -194,15 +201,24 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
 
        Way to make this code to crash (with the nrv2e compressor):
 
-       $ python table-bench.py -p -l ucl -c 1 -s small -i 300000 test.h5
+       $ python table-bench.py -p -l ucl -c 1 -s small -i 1000000 test.h5
        
        The nrv2b and nrv2d seems to give no problems. I'm adopting the
        nrv2d which is slightly better (more compression) than
        nrv2b. The best is, though, the nrv2e.
 
-       F. Alted 2003/07/22 */
+       F. Alted 2003/07/22 
+       
+       New note: I've discovered that adding some more space to the
+       nrv2e compressor, it seems to work fine. I¡m pretty sure that
+       this does not solve the problem, it just makes the seg faults
+       harder to appear. I'm adopting this strategy in order to keep
+       backward compatibility with the existing files writen with
+       pytables 0.5.x.  F. Alted 2003/07/24
 
-    status = ucl_nrv2d_99_compress(z_src, z_src_nbytes, z_dst, &z_dst_nbytes,
+*/
+
+    status = ucl_nrv2e_99_compress(z_src, z_src_nbytes, z_dst, &z_dst_nbytes,
 				   0, complevel, NULL, NULL);
  
 #ifdef CHECKSUM

@@ -142,16 +142,6 @@ def readFile(filename, recsize, verbose):
                 print "MaxTuples:", table._v_maxTuples
 
             if recsize == "big" or recsize == "medium":
-                # Caution: Inform to the user that if he wants to keep the
-                #     array
-                #     as a separate object, he have to deeply copy it.
-                # Pros: The selection speed do not degrade
-                # Cons: The user has to be concious to copy the array if he
-                #       want to use it outside the loop
-                # For example:
-                #e = [ copy.deepcopy(p.float1) for p in table.iterrows()
-                #      if p.grid_i < 2 ]
-                # If you use this, you will get corrupted data!.
                 #e = [ p.float1 for p in table.iterrows() 
                 #      if p.grid_i < 2 ]
                 #e = [ str(p) for p in table.iterrows() ]

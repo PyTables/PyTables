@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.45 2003/07/24 13:01:34 falted Exp $
+#       $Id: File.py,v 1.46 2003/07/25 14:31:57 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.45 $"
+__version__ = "$Revision: 1.46 $"
 format_version = "1.1"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -52,7 +52,7 @@ from Array import Array
 from AttributeSet import AttributeSet
 import numarray
 
-def openFile(filename, mode="r", title="", trMap={}, root=""):
+def openFile(filename, mode="r", title="", trMap={}, rootUEP="/"):
 
     """Open an HDF5 file an returns a File object.
 
@@ -82,10 +82,11 @@ def openFile(filename, mode="r", title="", trMap={}, root=""):
              is useful when you need to name HDF5 nodes with invalid
              or reserved words in Python.
 
-    root -- (Optional) A group in the HDF5 hierarchy which is taken as
-            the starting point to create the object tree. The group
-            has to be named after its HDF5 name and can be a path. If
-            it does not exist, a RuntimeError is issued.
+    rootUEP -- (Optional) The root User Entry Point. It is a group in
+            the file hierarchy which is taken as the starting point to
+            create the object tree. The group can be whatever existing
+            path in the file. If it does not exist, a RuntimeError is
+            issued.
 
     """
     
@@ -152,7 +153,7 @@ def openFile(filename, mode="r", title="", trMap={}, root=""):
         new = 1
             
     # Finally, create the File instance, and return it
-    return File(path, mode, title, new, trMap, root)
+    return File(path, mode, title, new, trMap, rootUEP)
 
 
 class File(hdf5Extension.File, object):
@@ -185,6 +186,7 @@ class File(hdf5Extension.File, object):
         mode -- mode in which the filename was opened
         title -- the title of the root group in file
         root -- the root group in file
+        rootUEP -- the root User Entry Point group in file
         trMap -- the mapping between python and HDF5 domain names
         objects -- dictionary with all objects (groups or leaves) on tree
         groups -- dictionary with all object groups on tree
@@ -193,7 +195,7 @@ class File(hdf5Extension.File, object):
     """
 
     def __init__(self, filename, mode="r", title="",
-                 new=1, trMap={}, root=""):
+                 new=1, trMap={}, rootUEP="/"):
         
         """Open an HDF5 file. The supported access modes are: "r" means
         read-only; no data can be modified. "w" means write; a new file is
@@ -216,7 +218,7 @@ class File(hdf5Extension.File, object):
         self.trMap = trMap
         
         # Get the root group from this file
-        self.root = self.__getRootGroup(root)
+        self.root = self.__getRootGroup(rootUEP)
 
         # Set the flag to indicate that the file has been opened
         self.isopen = 1
@@ -224,7 +226,7 @@ class File(hdf5Extension.File, object):
         return
 
     
-    def __getRootGroup(self, root=""):
+    def __getRootGroup(self, rootUEP):
         
         """Returns a Group instance which will act as the root group
         in the hierarchical tree. If file is opened in "r", "r+" or
@@ -238,14 +240,13 @@ class File(hdf5Extension.File, object):
         self._v_groupId = self._getFileId()
         self._v_depth = 0
 
-        if root in [None, "", "/"]:
-            root = "/"
-        hdf5name = self.trMap.get(root, root)
+        if rootUEP in [None, ""]:
+            rootUEP = "/"
 
-        # Save the User Acces Point in a variable
-        self.rootUAP=hdf5name
+        # Save the User Entry Point in a variable class
+        self.rootUEP=rootUEP
 
-        rootname = "/"
+        rootname = "/"   # Always the name of the root group
 
         # Global dictionaries for the file paths.
         # These are used to keep track of all the childs and group objects
@@ -268,15 +269,16 @@ class File(hdf5Extension.File, object):
         newattr["_v_filename"] = self.filename  # Only root group has this
 
         newattr["_v_name"] = rootname
-        newattr["_v_hdf5name"] = hdf5name
-        newattr["_v_pathname"] = rootname   # Can be hdf5name?
+        newattr["_v_hdf5name"] = rootUEP
+        newattr["_v_pathname"] = rootname   # Can be rootUEP? I don't think so
         
         # Update global path variables for Group
         self.groups["/"] = rootGroup
         self.objects["/"] = rootGroup
         
         # Open the root group. We do that always, be the file new or not
-        newattr["_v_groupId"] = rootGroup._g_openGroup(self._v_groupId, root)
+        newattr["_v_groupId"] = rootGroup._g_openGroup(self._v_groupId,
+                                                       rootUEP)
 
         # Attach the AttributeSet attribute to the rootGroup group
         newattr["_v_attrs"] = AttributeSet(rootGroup)
@@ -700,7 +702,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
                   ', title=' + repr(self.title) + \
                   ', mode=' + repr(self.mode) + \
                   ', trMap=' + repr(self.trMap) + \
-                  ', root=' + repr(self.rootUAP) + \
+                  ', rootUEP=' + repr(self.rootUEP) + \
                   ')\n'
         for group in self.walkGroups("/"):
             astring += str(group) + '\n'

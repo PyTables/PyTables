@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!DOCTYPE book PUBLIC "-//Torsten Bronger//DTD tbook 1.3//EN"
+<!DOCTYPE book PUBLIC "-//Torsten Bronger//DTD tbook 1.5//EN"
                       "/usr/local/share/xml/tbook/tbook.dtd">
 <book>
   <frontmatter>
     <title><visual markup="tt">PyTables</visual> User's Guide</title>
     <author>Francesc Alted</author>
     <subtitle>Release 0.6</subtitle>
-    <date>June, 12th</date>
+    <date>July, 28th</date>
     <year>2003</year>
     <legalnotice>
 
@@ -2594,11 +2594,12 @@ if __name__=="__main__":
     print readFile("myfile.h5")
 	</verbatim>
 
-	<p>In order to accelerate this piece of code, you can write in
-	  your main program the next code:
+	<p>In order to accelerate this piece of code, you can rewrite
+	  your main program to look like:
 	</p>
 
 	<verbatim>
+if __name__=="__main__":
     import pysco
     psyco.bind(readFile)
     print readFile("myfile.h5")
@@ -2620,8 +2621,8 @@ if __name__=="__main__":
 	  this advantage will disappear progressively when the number
 	  of rows grows well over one million. However if you use
 	  compression, you will probably see improvements even beyond
-	  this. As always, there is no replacement for experimentation
-	  with your own dataset.
+	  this limit. As always, there is no substitute for
+	  experimentation with your own dataset.
 	</p>
 
 	<figure id="psycoWriteComparison">
@@ -2639,6 +2640,62 @@ if __name__=="__main__":
 	  <caption>Reading tables with/without Psyco and compression.
 	  </caption>
 	</figure>
+
+      </section>
+
+      <section>
+	<heading>Selecting an User Entry Point (UEP) in your
+	  tree</heading>
+
+	<p>If you have a <visual markup="bf">huge</visual> tree in
+	  your data file with many nodes on it, creating the object
+	  tree would take long time. Many times, however, you are
+	  interested only in access to a part of the complete tree, so
+	  you won't strictly need PyTables to build the entire object
+	  tree in-memory, but only the <em>interesting</em> part.
+	</p>
+
+	<p>This is were the <verb>rootUEP</verb> parameter of
+	  <verb>openFile()</verb> function (see <ref
+	  refid="openFileDescr"></ref>) can be helpful. Imagine that
+	  you have a file called <verb>"test.h5"</verb> with the tree
+	  that you can see in figure <ref refid="rootUEPfig1"></ref>,
+	  and you are interested only in the section marked in red.
+	  You can avoid the build of all the object tree by saying to
+	  <verb>openFile</verb> that your root will be the
+	  <verb>/Group2/Group3</verb> group. That is:
+	</p>
+	<verbatim>
+	  fileh = openFile("test.h5", rootUEP="/Group2/Group3")
+	</verbatim>
+
+	<p>As a result, the actual object tree built will be like the
+	  one that can be seen in <ref
+	  refid="rootUEPfig2">figure</ref>.
+	</p>
+
+	<p>Of course this has been a simple example and it was not
+	  necessary at all to do that. But when you have
+	  <em>thousands</em> of nodes on a tree, you will certainly
+	  appreciate the <verb>rootUEP</verb> parameter.
+	</p>
+
+	<figure id="rootUEPfig1">
+	  <graphics file="rootUEP1" scale="0.6" kind="vector">
+	  </graphics>
+	  <caption>Complete tree in file "test.h5", and
+	    subtree of interest for the user.
+	  </caption>
+	</figure>
+
+	<figure id="rootUEPfig2">
+	  <graphics file="rootUEP2" scale="0.75" kind="vector">
+	  </graphics>
+	  <caption>Resulting object tree derived from the use of the
+	    rootUEP parameter.
+	  </caption>
+	</figure>
+	
 
       </section>
 
@@ -2701,7 +2758,9 @@ if __name__=="__main__":
 	  <heading>Global functions</heading>
 
 	  <description id="openFileDescr">
-	    <term>openFile(filename, mode='r', title='', trMap={})</term>
+	    <term>openFile(filename, mode='r', title='', trMap={},
+	      rootUEP="/")
+	    </term>
 	    <item>Open a <verb>PyTables</verb> file and returns a File
 	    object.
 	    
@@ -2751,13 +2810,23 @@ if __name__=="__main__":
 		  or reserved words in Python.
 		</item>
 
+		<term>rootUEP</term> <item>The root User Entry
+		  Point. This is a group in the HDF5 hierarchy which
+		  will be taken as the starting point to create the
+		  object tree. The group has to be named after its
+		  HDF5 name and can be a path. If it does not exist, a
+		  <verb>RuntimeError</verb> is issued. Use this if you
+		  do not want to build the <visual
+		  markup="bf">entire</visual> object tree, but rather
+		  only a <visual markup="bf">subtree</visual>.
+		</item>
 	      </description>
 
 	    </item>
 
 	    <term>isHDF5(filename)</term> <item>Determines whether
-	      filename is in the HDF5 format. When successful, returns
-	      a positive value, for TRUE, or 0 (zero), for
+	      filename is in the HDF5 format or not. When successful,
+	      returns a positive value, for TRUE, or 0 (zero), for
 	      FALSE. Otherwise returns a negative value.  To this
 	      function to work, it needs a closed file.
 	    </item>
@@ -2862,8 +2931,8 @@ if __name__=="__main__":
 	  <verb>PyTables</verb> files. Also, <verb>File</verb> class
 	  offer methods to traverse the object tree, as well as to
 	  create, rename and delete nodes. One of its attributes
-	  (<verb>root</verb>) is quite important because represents
-	  the entry point to the object tree attached to the file.
+	  (<verb>rootUEP</verb>) represents the <em>user entry
+	  point</em> to the object tree attached to the file.
 	</p>
 
 	<p>Next, we will discuss the attributes and methods for File
@@ -2879,7 +2948,7 @@ if __name__=="__main__":
 
 	    <term>filename</term> <item>Filename opened.</item>
 
-	    <term>isopen</term> <item>It has the value 1 if the
+	    <term>isopen</term> <item>It takes the value 1 if the
 	      underlying file is open. 0 otherwise.</item>
 
 	    <term>mode</term> <item>Mode in which the filename was
@@ -2888,8 +2957,9 @@ if __name__=="__main__":
 	    <term>title</term> <item>The title of the root group in
 	      file.</item>
 
-	    <term>root</term> <item>The root group in file. This is
-	      the entry point to the object tree.</item>
+	    <term>rootUEP</term> <item>The UEP (User Entry Point)
+	      group in file (see <ref
+	      refid="openFileDescr"></ref>).</item>
 
 	    <term>trMap</term> <item>This is a dictionary that maps
 	      node names between python and HDF5 domain names. Its
@@ -3576,32 +3646,6 @@ if __name__=="__main__":
 	  </subsubsection>
 
 	  <subsubsection>
-	    <heading id="removeRowsDescr">removeRows(start=None,
-	      stop=None)</heading>
-
-	    <p>Removes a range of rows in the table.  If only
-	      <em>start</em> is supplied, this row is to be
-	      deleted. If a range is supplied, i.e. both the
-	      <em>start</em> and <em>stop</em> parameters are passed,
-	      all the rows in the range are removed. A <em>step</em>
-	      parameter is not supported yet.
-	    </p>
-	    <description>
-		<term>start</term> <item>Sets the starting row to
-		  be removed. It accepts negative values meaning that
-		  the count starts from the end.</item>
-
-		<term>stop</term> <item>Sets the last row to be
-		  removed to stop - 1, i.e. the end point is omitted
-		  (in the Python <verb>range</verb> tradition). It
-		  accepts, likewise start, negative values. A special
-		  value of 0 means the last row.
-		</item>
-
-	      </description>
-	  </subsubsection>
-
-	  <subsubsection>
 	    <heading id="readDescr">read(self, start=None, stop=None,
 	      step=None, field=None, flavor=None)</heading>
 
@@ -3642,6 +3686,33 @@ if __name__=="__main__":
 
 	    </description>
 	  </subsubsection>
+
+	  <subsubsection>
+	    <heading id="removeRowsDescr">removeRows(start=None,
+	      stop=None)</heading>
+
+	    <p>Removes a range of rows in the table.  If only
+	      <em>start</em> is supplied, this row is to be
+	      deleted. If a range is supplied, i.e. both the
+	      <em>start</em> and <em>stop</em> parameters are passed,
+	      all the rows in the range are removed. A <em>step</em>
+	      parameter is not supported yet.
+	    </p>
+	    <description>
+		<term>start</term> <item>Sets the starting row to
+		  be removed. It accepts negative values meaning that
+		  the count starts from the end.</item>
+
+		<term>stop</term> <item>Sets the last row to be
+		  removed to <em>stop</em> - 1, i.e. the end point is
+		  omitted (in the Python <verb>range</verb>
+		  tradition). It accepts, likewise start, negative
+		  values. A special value of 0 means the last row.
+		</item>
+
+	      </description>
+	  </subsubsection>
+
 	</subsection>
       </section>
 
@@ -4000,3 +4071,4 @@ sgml-local-catalogs:nil
 sgml-local-ecat-files:nil
 End:
 -->
+
