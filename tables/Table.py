@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.66 2003/07/27 20:40:16 falted Exp $
+#       $Id: Table.py,v 1.67 2003/08/04 10:08:32 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.66 $"
+__version__ = "$Revision: 1.67 $"
 
 from __future__ import generators
 import sys
@@ -181,7 +181,7 @@ class Table(Leaf, hdf5Extension.Table, object):
 		self._v_complib = complib
 	    else:
 		warnings.warn( \
-"""You are asking for the %s compression library, but this is not installed locally.
+"""You are asking for the %s compression library, but it is not available.
   Defaulting to zlib instead!.""" %(complib))
                 self._v_complib = "zlib"   # Should always exists
 
@@ -897,7 +897,12 @@ class Table(Leaf, hdf5Extension.Table, object):
         if isinstance(key, types.IntType):
             return self._readAllFields(key, key+1, 1)[0]
         elif isinstance(key, types.SliceType):
-            return self._readAllFields(key.start, key.stop, key.step)
+            # To manage the [##:] case
+            if key.stop == None:
+                stop = 0
+            else:
+                stop = key.stop
+            return self._readAllFields(key.start, stop, key.step)
         elif isinstance(key, types.StringType):
             return self._readCol(field=key)
         else:

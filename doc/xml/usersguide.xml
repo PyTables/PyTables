@@ -59,8 +59,9 @@
 	<newline vspace="0.25cm"/>
       </p>
 
-      <p>See more information about the terms of the license at:
-	http://hdf.ncsa.uiuc.edu/HDF5/doc/Copyright.html
+      <p>See more information about the terms of this license at:
+	<newline/> <url
+	name="http://hdf.ncsa.uiuc.edu/HDF5/doc/Copyright.html"><verb>http://hdf.ncsa.uiuc.edu/HDF5/doc/Copyright.html</verb></url>
 	<newline vspace="1cm"/>
       </p>
 
@@ -617,9 +618,10 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	      and <verb>numarray 0.6</verb> or higher installed (I'm
 	      using <verb>HDF5 1.6.0</verb> and <verb>numarray
 	      0.6</verb> currently). If don't, you can find them at
-	      <newline/>
-	      <verb>http://hdf.ncsa.uiuc.edu/HDF5</verb> and
-	      <verb>http://www.pfdubois.com/numpy</verb>. Compile/install
+	      <newline/> <url
+	      name="http://hdf.ncsa.uiuc.edu/HDF5"><verb>http://hdf.ncsa.uiuc.edu/HDF5</verb></url>
+	      and <url
+	      name="http://www.pfdubois.com/numpy"><verb>http://www.pfdubois.com/numpy</verb></url>. Compile/install
 	      them.
 	    </p>
 	    <p>Optionally, consider to install the excellent LZO and
@@ -711,9 +713,9 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		  6.0). You have been warned!.
 		</p>
 
-		<p>Besides, you may want to fetch the LZO and UCL
-		  binaries from:
-		  <verb>http://gnuwin32.sourceforge.net/</verb>. Normally,
+		<p>Besides, you may want to fetch the <verb>LZO</verb>
+		  and <verb>UCL</verb> binaries from:<newline/> <url
+		  name="http://gnuwin32.sourceforge.net/"><verb>http://gnuwin32.sourceforge.net/</verb></url>. Normally,
 		  you will only need to fetch and install the
 		  <verb>&lt;package>-&lt;version>-bin.zip</verb> file,
 		  although in some cases the headers are in
@@ -868,56 +870,86 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  have Unix, or want to compile PyTables for Windows, jump to
 	  the <ref refid="sourceInstallationDescr">section</ref>.
 	</p>
-	<p>First, make sure that you have HDF5 1.6.x or higher and
-	  numarray 0.6 or higher installed (I'm using HDF5 1.6.0 and
-	  numarray 0.6 currently). If don't, you can find them at
-	  <verb>http://hdf.ncsa.uiuc.edu/HDF5</verb> and
-	  <verb>http://sourceforge.net/projects/numpy/</verb>. Download
-	  the binary packages and install them. For the HDF5 it should
-	  be enough to manually copying the <verb>hdf5dll.dll</verb>
-	  <visual markup="bf">and</visual> <verb>szipdll.dll</verb>
-	  files to a directory in your <verb>PATH</verb> environment
-	  variable (for example <verb>C:\WINDOWS\SYSTEM</verb>).
-	</p>
 
-	<p><visual markup="bf">Caveat:</visual>When downloading the
-	  binary file for HDF5 libraries, select one compiled with the
-	  MSVC 6.0, like for example, the file
-	  <verb>5-160-win2k.zip</verb>, no matter if you are using
-	  Win2k or WinXP. The file <verb>5-160-winxp-net.zip</verb>was
-	  compiled with the MSVC 7.0 (aka "<verb>.NET</verb>") and
-	  does <visual markup="bf">not</visual> work well with the
-	  PyTables binary (which has been generated with MSVC
-	  6.0). You have been warned!.
-	</p>
-	<p>Download the
-	  <verb>tables-&lt;version>.win32-py&lt;version>.exe</verb>
-	  file and execute it. You are done!.
-	</p>
-	<p>You can (<em>you should</em>) test your installation by
-	  unpacking the source tarball. Go to the <verb>test/</verb>
-	  directory, add the directory "<verb>..</verb>" to the
-	  <verb>PYTHONPATH</verb>environment variable, e.g.:
-	</p>
+	<subsection id="basicBinInst">
+	  <heading>Basic installation (i.e. with no <visual
+	      markup="tt">LZO</visual> and <visual
+	      markup="tt">UCL</visual> compression libraries support)
+	  </heading>
 
-	<verbatim>
-	  set PYTHONPATH=..
-	</verbatim>
+	  <p>First, make sure that you have HDF5 1.6.x or higher and
+	    numarray 0.6 or higher installed (I'm using HDF5 1.6.0 and
+	    numarray 0.6 currently). If don't, you can find them at <url
+	      name="http://hdf.ncsa.uiuc.edu/HDF5"><verb>http://hdf.ncsa.uiuc.edu/HDF5</verb></url>
+	    and <url
+	      name="http://sourceforge.net/projects/numpy/"><verb>http://sourceforge.net/projects/numpy/</verb></url>. Download
+	    the binary packages and install them. For the HDF5 it should
+	    be enough to manually copying the <verb>hdf5dll.dll</verb>
+	    <visual markup="bf">and</visual> <verb>szipdll.dll</verb>
+	    files to a directory in your <verb>PATH</verb> environment
+	    variable (for example <verb>C:\WINDOWS\SYSTEM</verb>). Also,
+	    you should know that HDF5 <visual markup="bf">needs</visual>
+	    the <visual markup="bf"><visual
+		markup="tt">zlib</visual></visual> compression library to
+	    work, so you will have to download and install it as well; a
+	    pre-compiled version is avalilable at <url
+	      name="ftp://ftp.ncsa.uiuc.edu/HDF/gzip/windows/"><verb>ftp://ftp.ncsa.uiuc.edu/HDF/gzip/windows/</verb></url>.
+	  </p>
 
-	<p>and execute the <verb>test_all.py</verb> script. If all the
-	  tests passes (maybe with a couple of warnings, related with
-	  the possibly missing LZO and UCL libs, but that's ok for the
-	  binary version) you already have a working, well tested,
-	  copy of PyTables installed!. If don't, please, execute the
-	  <verb>test_all.py -v</verb> and return the output to me.
-	</p>
-	<p>If you want support for LZO and UCL libraries (see <ref
-	  refid="compressionIssues">section</ref> for hints about what
-	  they are useful for), fetch
-	  <verb>tables-&lt;version>-LU.win32-py&lt;version>.exe</verb>
-	  instead, and remember to install the LZO and UCL DLL
-	  libraries.
-	</p>
+	  <p><visual markup="bf">Caveat:</visual>When downloading the
+	    binary file for HDF5 libraries, select one compiled with the
+	    MSVC 6.0, like for example, the file
+	    <verb>5-160-win2k.zip</verb>, no matter if you are using
+	    Win2k or WinXP. The file <verb>5-160-winxp-net.zip</verb>
+	    was compiled with the MSVC 7.0 (aka "<verb>.NET</verb>") and
+	    does <visual markup="bf">not</visual> work well with the
+	    PyTables binary (which has been generated with MSVC
+	    6.0). You have been warned!.
+	  </p>
+	  <p>Download the
+	    <verb>tables-&lt;version>.win32-py&lt;version>.exe</verb>
+	    file and execute it. You are done!.
+	  </p>
+	  <p>You can (<em>you should</em>) test your installation by
+	    unpacking the source tarball, changing to the
+	    <verb>test/</verb> subdirectory and execute the
+	    <verb>test_all.py</verb> script. If all the tests passes
+	    (maybe with a couple of warnings, related with the possible
+	    unavailability of LZO and UCL libs, but that's ok for the
+	    binary version) you already have a working, well tested,
+	    copy of PyTables installed!. If don't, please, execute the
+	    <verb>test_all.py -v verbose</verb> and return the output to
+	    me.
+	  </p>
+	</subsection>
+
+	<subsection>
+	  <heading>Advanced installation (i.e. with support for
+	      <visual markup="tt">LZO</visual> and <visual
+	      markup="tt">UCL</visual> compression libraries)
+	  </heading>
+
+	  <p>If you want support for LZO and UCL libraries (see <ref
+	    refid="compressionIssues">section</ref> for hints about
+	    what they are useful for), install the <verb>LZO</verb>
+	    and <verb>UCL</verb> DLL libraries by fetching the
+	    binaries from:<url
+	    name="http://gnuwin32.sourceforge.net/"><verb>http://gnuwin32.sourceforge.net/</verb></url>. Normally,
+	    you will only need to fetch and install the
+	    <verb>&lt;package>-&lt;version>-bin.zip</verb> file.
+	  </p>
+
+	  <p>Finally, follow the same steps than in <ref
+	    refid="basicBinInst">section</ref>, but fetch and
+	    install<newline/>
+	    <verb>tables-&lt;version>-LU.win32-py&lt;version>.exe</verb>
+	    in place of<newline/>
+	    <verb>tables-&lt;version>.win32-py&lt;version>.exe</verb>.
+	  </p>
+
+	</subsection>
+
+	<newline vspace="0.25cm"/>
 
 	<p>That's it!. Now, proceed with the next chapter to see how to
 	  use <verb>PyTables</verb>.
@@ -1333,14 +1365,15 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 >>>
 	  </verbatim>
 
-	  <p>Note how we have omitted the iterrows() call in the list
-	    comprehension. This is because and __iter__() special
-	    function is implemented in the Table class, so that it
+	  <p>Note how we have omitted the <verb>iterrows()</verb> call
+	    in the list comprehension. This is because the
+	    <verb>Table</verb> class has an implementation of the
+	    special method called <verb>__iter__()</verb>, so that it
 	    implements the iterator protocol over all the rows in the
-	    table. In fact, iterrows() internally calls this special
-	    __iter__() method. This way to access all the rows in a
-	    table turns out to be very convenient, specially for
-	    interactive use.
+	    table. In fact, <verb>iterrows()</verb> internally calls
+	    this special <verb>__iter__()</verb> method. This way to
+	    access all the rows in a table turns out to be very
+	    convenient, specially for interactive use.
 	  </p>
 
 	  <p>Ok. that's enough for selections. Next section will show
@@ -1739,7 +1772,8 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	  <p>If you want to have a look at the current attribute set
 	  of <verb>/detector/table</verb>, you can print its
 	  representation (try also hitting the <verb>TAB</verb> key
-	  twice if you are on a Python console):
+	  twice if you are on a Unix Python console with the
+	  <verb>rlcompleter</verb> module active):
 	  </p>
 
 	  <verbatim>
@@ -2473,7 +2507,7 @@ AttributeError: Error setting "ADCcount" attr.
 	  <figure id="tutorial2">
 	    <graphics file="tutorial2-tableview" scale="0.5" kind="bitmap">
 	    </graphics>
-	    <caption>Table hierarchy for second example.</caption>
+	    <caption>Table hierarchy for tutorial 2.</caption>
 	  </figure>
 
 	  <p>Feel free to visit the rest of examples in directory
@@ -2812,7 +2846,7 @@ if __name__=="__main__":
 	  disk. The more chunks that are allocated for a dataset the
 	  larger the B-tree. Large B-trees take memory and causes
 	  file storage overhead as well as more disk I/O and higher
-	  contention for the meta data cache. Consequently, it's
+	  contention for the metadata cache. Consequently, it's
 	  important to balance between memory and I/O overhead
 	  (small B-trees) and time to access to data (big B-trees).
 	</p>
@@ -2826,15 +2860,15 @@ if __name__=="__main__":
 	    refid="createTableDescr"></ref>).
 	</p>
 
-	<p>When your dataset size is bigger than 1 MB (take this
-	  figure only as a reference, not strictly), by providing
-	  this guess of the number of rows, you will be optimizing
-	  the access to your table data. When the dataset size is
-	  larger than, say 100MB, you are <visual
-	    markup="bf">strongly</visual> suggested to provide such a
-	  guess; failing to do that may cause your application doing
-	  very slow I/O operations and demanding huge amounts
-	  of memory. You have been warned!.
+	<p>When your table size is bigger than 1 MB (take this figure
+	  only as a reference, not strictly), by providing this guess
+	  of the number of rows you will be optimizing the access to
+	  your data. When the table size is larger than, say 100MB,
+	  you are <visual markup="bf">strongly</visual> suggested to
+	  provide such a guess; failing to do that may cause your
+	  application doing very slow I/O operations and demanding
+	  <visual markup="bf">huge</visual> amounts of memory. You
+	  have been warned!.
 	</p>
 
       </section>
@@ -2851,15 +2885,15 @@ if __name__=="__main__":
 	  tree in-memory, but only the <em>interesting</em> part.
 	</p>
 
-	<p>This is were the <verb>rootUEP</verb> parameter of
+	<p>This is where the <verb>rootUEP</verb> parameter of
 	  <verb>openFile()</verb> function (see <ref
 	  refid="openFileDescr"></ref>) can be helpful. Imagine that
-	  you have a file called <verb>"test.h5"</verb> with the tree
-	  that you can see in figure <ref refid="rootUEPfig1"></ref>,
-	  and you are interested only in the section marked in red.
-	  You can avoid the build of all the object tree by saying to
-	  <verb>openFile</verb> that your root will be the
-	  <verb>/Group2/Group3</verb> group. That is:
+	  you have a file called <verb>"test.h5"</verb> with the
+	  associated tree that you can see in figure <ref
+	  refid="rootUEPfig1"></ref>, and you are interested only in
+	  the section marked in red.  You can avoid the build of all
+	  the object tree by saying to <verb>openFile</verb> that your
+	  root will be the <verb>/Group2/Group3</verb> group. That is:
 	</p>
 	<verbatim>
 	  fileh = openFile("test.h5", rootUEP="/Group2/Group3")
@@ -2870,7 +2904,7 @@ if __name__=="__main__":
 	  refid="rootUEPfig2">figure</ref>.
 	</p>
 
-	<p>Of course this has been a simple example and it and the use
+	<p>Of course this has been a simple example and the use
 	  of the <verb>rootUEP</verb> parameter was not very
 	  necessary. But when you have <em>thousands</em> of nodes on
 	  a tree, you will certainly appreciate the

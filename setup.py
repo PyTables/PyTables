@@ -392,23 +392,20 @@ if exists('src/hdf5Extension.c'):
 
 setup(name = 'tables',
       version = VERSION,
-      description = 'Python interface for working with scientific data tables',
+      description = 'A hierarchical database for Python',
       long_description = """\
 
-The goal of PyTables is to enable the end user to
-manipulate easily scientific data tables, numarray
-objects and Numerical Python objects in a
-persistent, hierarchical structure.
+PyTables is a hierarchical database package
+designed to efficently manage very large amounts
+of data. PyTables is built on top of the HDF5
+library and the numarray package and features an
+object-oriented interface that, combined with
+C-code generated from Pyrex sources, makes of it a
+fast, yet extremely easy to use tool for
+interactively save and retrieve large amounts of
+data.
 
-The foundation of the underlying hierachical data
-organization is the excellent HDF5 library. By no
-means this package will try to be a complete
-wrapper for all the HDF5 API. Instead, its goal is
-to allow working with tables and Numeric objects
-in a hierarchical structure.  Please see the
-documents in the doc directory of the source
-distribution or at the website for more details on
-the objects and methods provided.""",
+""",
       
       author = 'Francesc Alted',
       #author_email = 'pytables-users@lists.sourceforge.net',
