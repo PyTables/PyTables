@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.22 2003/03/09 19:16:53 falted Exp $
+#       $Id: File.py,v 1.23 2003/03/10 11:24:02 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.22 $"
+__version__ = "$Revision: 1.23 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -153,7 +153,7 @@ class File(hdf5Extension.File):
     Methods:
 
         createGroup(where, name[, title])
-        createTable(where, name, recordObject [, title]
+        createTable(where, name, ColDescr [, title]
                     [, compress] [, expectedrows])
         createArray(where, name, arrayObject, [, title])
         getNode(where [, name] [,classname])
@@ -320,7 +320,7 @@ class File(hdf5Extension.File):
         return object
 
 
-    def createTable(self, where, name, RecordObject, title = "",
+    def createTable(self, where, name, ColDescr, title = "",
                     compress = 3, expectedrows = 10000):
 
         """Create a new Table instance with name "name" in "where" location.
@@ -336,7 +336,7 @@ class File(hdf5Extension.File):
 
         name -- The name of the new table.
 
-        RecordObject -- The IsRecord instance. If None, the table
+        ColDescr -- The IsColDescr instance. If None, the table
             metadata is read from disk, else, it's taken from previous
             parameters.
 
@@ -347,10 +347,10 @@ class File(hdf5Extension.File):
             default is compression level 3, that balances between
             compression effort and CPU consumption.
 
-        expectedrows -- An user estimate about the number of records
+        expectedrows -- An user estimate about the number of rows
             that will be on table. If not provided, the default value
             is appropiate for tables until 1 MB in size (more or less,
-            depending on the record size). If you plan to save bigger
+            depending on the row size). If you plan to save bigger
             tables try providing a guess; this will optimize the HDF5
             B-Tree creation and management process time and memory
             used.
@@ -358,7 +358,7 @@ class File(hdf5Extension.File):
         """
     
         group = self.getNode(where, classname = 'Group')
-        object = Table(RecordObject, title, compress, expectedrows)
+        object = Table(ColDescr, title, compress, expectedrows)
         setattr(group, name, object)
         return object
 

@@ -9,10 +9,10 @@ import psyco
 
 
 # This class is accessible only for the examples
-class Small(IsRecord):
+class Small(IsColDescr):
     """ A record has several columns. They are represented here as
     class attributes, whose names are the column names and their
-    values will become their types. The IsRecord class will take care
+    values will become their types. The IsColDescr class will take care
     the user will not add any new variables and that its type is
     correct."""
     
@@ -21,7 +21,7 @@ class Small(IsRecord):
     var3 = defineType("Float64", 1, 0)
 
 # Define a user record to characterize some kind of particles
-class Medium(IsRecord):
+class Medium(IsColDescr):
     name        = defineType('CharType', 16, "")  # 16-character String
     float1      = defineType("Float64", 2, 2.3)
     #float1      = defineType("Float64", 1, 1.3)
@@ -33,7 +33,7 @@ class Medium(IsRecord):
     energy      = defineType("Float64", 1, 0)    # double (double-precision)
 
 # Define a user record to characterize some kind of particles
-class Big(IsRecord):
+class Big(IsColDescr):
     name        = defineType('CharType', 16, "")  # 16-character String
     #float1      = defineType("Float64", 32, NA.arange(32))
     #float2      = defineType("Float64", 32, NA.arange(32))

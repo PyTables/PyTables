@@ -1,6 +1,6 @@
 from tables import *
 
-class Record(IsRecord):
+class Record(IsColDescr):
     field1        = Col("CharType", 22, " ")  # 22-character String
     field2        = Col("CharType", 22, " ")  # 20-character String
 

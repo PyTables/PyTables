@@ -8,9 +8,9 @@ from tables import *
 from test_all import verbose
 
 # Test Record class
-class Record(IsRecord):
+class Record(IsColDescr):
     """ A record has several columns. Represent the here as class
-    variables, whose values are their types. The IsRecord
+    variables, whose values are their types. The IsColDescr
     class will take care the user won't add any new variables and
     that their type is correct.  """
     

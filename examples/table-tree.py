@@ -6,7 +6,7 @@ import chararray
 import recarray
 from tables import *
 
-class Particle(IsRecord):
+class Particle(IsColDescr):
     ADCcount    = Col("Int16", 1, 0)    # signed short integer
     TDCcount    = Col("UInt8", 1, 0)    # unsigned byte
     grid_i      = Col("Int32", 1, 0)    # integer
@@ -24,7 +24,7 @@ Particle2 = {
     "grid_j"      : Col("Int32", 1, 0),    # integer
     "idnumber"    : Col("Int64", 1, 0),    #signed long long 
     "name"        : Col('CharType', 16, ""),  # 16-character String
-    "__name"      : "Hola, pardal",  # To pass a special variable to IsRecord
+    "__name"      : "Hola, pardal",  # To pass a special variable to IsColDescr
     "pressure"    : Col("Float32", 2, 0),  # float  (single-precision)
     #"pressure"    : Col("Float32", 1, 0),  # float  (single-precision)
     "temperature" : Col("Float64", 1, 0),  # double (double-precision)
@@ -117,6 +117,8 @@ recarrt = h5file.createTable("/detector", 'recarray2', r2,
 print recarrt
 print
 
+print repr(h5file.root.detector.table.description)
+print str(h5file.root.detector.table.description)
 # Close the file
 h5file.close()
 
@@ -324,6 +326,8 @@ h5file.removeNode(h5file.root, "newgroup")
 h5file.renameNode(h5file.root.columns, "newcolumns")
 
 print h5file
+
+print h5file.root.detector.table.description
 
 
 # Close this file

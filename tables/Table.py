@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.35 2003/03/09 19:16:53 falted Exp $
+#       $Id: Table.py,v 1.36 2003/03/10 11:24:02 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.35 $"
+__version__ = "$Revision: 1.36 $"
 
 from __future__ import generators
 import sys
@@ -42,7 +42,7 @@ import recarray
 import recarray2         # Private version of recarray for PyTables
 import hdf5Extension
 from Leaf import Leaf
-from IsRecord import IsRecord, metaIsRecord, Col, fromstructfmt
+from IsColDescr import IsColDescr, metaIsColDescr, Col, fromstructfmt
 
 try:
     import Numeric
@@ -111,7 +111,7 @@ class Table(Leaf, hdf5Extension.Table):
 
         Keyword arguments:
 
-        description -- The IsRecord instance. If None, the table metadata
+        description -- The IsColDescr instance. If None, the table metadata
             is read from disk, else, it's taken from previous
             parameters. It can be a dictionary where the keys are the
             field names, and the values the type definitions. And it
@@ -143,7 +143,7 @@ class Table(Leaf, hdf5Extension.Table):
         # Initialize this object in case is a new Table
         if isinstance(description, types.DictType):
             # Dictionary case
-            self.description = metaIsRecord("", (), description)()
+            self.description = metaIsColDescr("", (), description)()
             # Flag that tells if this table is new or has to be read from disk
             self._v_new = 1
         elif isinstance(description, recarray.RecArray):
@@ -157,7 +157,7 @@ class Table(Leaf, hdf5Extension.Table):
             # Flag that tells if this table is new or has to be read from disk
             self._v_new = 1
         elif description:
-            # IsRecord subclass case
+            # IsColDescr subclass case
             self.description = description
             # Flag that tells if this table is new or has to be read from disk
             self._v_new = 1
@@ -210,7 +210,7 @@ class Table(Leaf, hdf5Extension.Table):
         # Append this entry to indicate the alignment!
         fields['_v_align'] = revbyteorderDict[recarr._byteorder]
         # Create an instance description to host the record fields
-        self.description = metaIsRecord("", (), fields)()
+        self.description = metaIsColDescr("", (), fields)()
         # The rest of the info is automatically added when self.create()
         # is called
 
@@ -270,7 +270,7 @@ class Table(Leaf, hdf5Extension.Table):
         fields['_v_align'] = self._v_fmt[0]
         self.byteorder = byteorderDict[self._v_fmt[0]]
         # Create an instance description to host the record fields
-        self.description = metaIsRecord("", (), fields)()
+        self.description = metaIsColDescr("", (), fields)()
         # Extract the coltypes
         self.coltypes = self.description.__types__
         # Extract the shapes for columns

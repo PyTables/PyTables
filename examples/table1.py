@@ -1,6 +1,6 @@
 from tables import *
 
-class Particle(IsRecord):
+class Particle(IsColDescr):
     name        = Col("CharType", 16)  # 16-character String
     lati        = Col("Int32", 1)    # integer
     longi       = Col("Int32", 1)    # integer
@@ -19,13 +19,13 @@ particle = table.row
 # Fill the table with 10 particles
 for i in xrange(10):
     # First, assign the values to the Particle record
-    particle.name  = 'Particle: %6d' % (i)
-    particle.lati = i 
-    particle.longi = 10 - i
-    particle.pressure = float(i*i)
-    particle.temperature = float(i**2)
+    particle['name']  = 'Particle: %6d' % (i)
+    particle['lati'] = i 
+    particle['longi'] = 10 - i
+    particle['pressure'] = float(i*i)
+    particle['temperature'] = float(i**2)
     # This injects the row values.
-    table.append(particle)      
+    particle.append()
 
 # We need to flush the buffers in table in order to get an
 # accurate number of records on it.
@@ -49,8 +49,8 @@ print "Table name: %s. Table title: %s" % (table.name, table.title)
 print "Rows saved on table: %d" % (table.nrows)
 
 print "Variable names on table with their type:"
-for i in range(len(table.colnames)):
-    print "  ", table.colnames[i], ':=', table.coltypes[i] 
+for name in table.colnames:
+    print "  ", name, ':=', table.coltypes[name] 
     
 # Finally, close the file
 fileh.close()

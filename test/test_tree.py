@@ -11,7 +11,7 @@ from tables import Group, Leaf, Table, Array
 from test_all import verbose
 
 # Test Record class
-class Record(IsRecord):
+class Record(IsColDescr):
     var1 = Col("CharType", 4)   # 4-character String
     var2 = Col("Int32", 1)      # integer
     var3 = Col("Int16", 1)      # short integer. 

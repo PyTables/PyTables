@@ -14,7 +14,7 @@ from tables import *
 	#'-**-**-**-**-**-**- user record definition  -**-**-**-**-**-**-**-'
 
 # Define a user record to characterize some kind of particles
-class Particle(IsRecord):
+class Particle(IsColDescr):
     name      = Col('CharType', 16)  # 16-character String
     idnumber  = Col("UInt64", 1)     # Unsigned long long 
     ADCcount  = Col("UInt16", 1)     # Unsigned short integer

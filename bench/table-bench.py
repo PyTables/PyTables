@@ -6,10 +6,10 @@ import numarray as NA
 from tables import *
 
 # This class is accessible only for the examples
-class Small(IsRecord):
+class Small(IsColDescr):
     """ A record has several columns. They are represented here as
     class attributes, whose names are the column names and their
-    values will become their types. The IsRecord class will take care
+    values will become their types. The IsColDescr class will take care
     the user will not add any new variables and that its type is
     correct."""
     
@@ -18,7 +18,7 @@ class Small(IsRecord):
     var3 = Col("Float64", 1, 0)
 
 # Define a user record to characterize some kind of particles
-class Medium(IsRecord):
+class Medium(IsColDescr):
     name        = Col('CharType', 16, "")  # 16-character String
     float1      = Col("Float64", 2, NA.arange(2))
     #float1      = Col("Float64", 1, 2.3)
@@ -31,7 +31,7 @@ class Medium(IsRecord):
     energy      = Col("Float64", 1, 0)    # double (double-precision)
 
 # Define a user record to characterize some kind of particles
-class Big(IsRecord):
+class Big(IsColDescr):
     name        = Col('CharType', 16, "")  # 16-character String
     float1      = Col("Float64", 32, NA.arange(32))
     float2      = Col("Float64", 32, 2.2)
@@ -283,12 +283,12 @@ if __name__=="__main__":
 
     print "Compression level:", complevel
     if testwrite:
-	t1 = time.clock()
+	t1 = time.time()
         if psyco_imported:
             psyco.bind(createFile)
             pass
 	(rowsw, rowsz) = createFile(file, iterations, complevel, recsize)
-	t2 = time.clock()
+	t2 = time.time()
 	tapprows = round(t2-t1, 3)
 	print "Rows written:", rowsw, " Row size:", rowsz
 	print "Time appending rows:", tapprows
@@ -296,7 +296,7 @@ if __name__=="__main__":
 	print "Write KB/s :", int(rowsw * rowsz / (tapprows * 1024))
 	
     if testread:
-	t1 = time.clock()
+	t1 = time.time()
         if psyco_imported:
             psyco.bind(readFile)
             #psyco.bind(readField)
@@ -306,7 +306,7 @@ if __name__=="__main__":
             pass
         else:
             (rowsr, rowsz) = readFile(file, recsize, verbose)
-	t2 = time.clock()
+	t2 = time.time()
 	treadrows = round(t2-t1, 3)
 	print "Rows read:", rowsr, " Row size:", rowsz
 	print "Time reading rows:", treadrows

@@ -4,19 +4,19 @@
 #       Created:        September 21, 2002
 #       Author:  Francesc Alted - falted@openlc.org
 #
-#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Attic/IsRecord.py,v $
-#       $Id: IsRecord.py,v 1.12 2003/03/09 19:16:53 falted Exp $
+#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Attic/IsColDescr.py,v $
+#       $Id: IsColDescr.py,v 1.1 2003/03/10 11:24:02 falted Exp $
 #
 ########################################################################
 
-"""Classes and metaclasses for defining user data records.
+"""Classes and metaclasses for defining user data columns for Table objects.
 
-See the metaIsRecord for a deep explanation on how exactly this works.
+See the metaIsColDescr for a deep explanation on how exactly this works.
 
 Classes:
 
-    metaIsRecord
-    IsRecord
+    metaIsColDescr
+    IsColDescr
 
 Functions:
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.12 $"
+__version__ = "$Revision: 1.1 $"
 
 
 import warnings
@@ -60,14 +60,16 @@ fromstructfmt = {'b':NA.Int8, 'B':NA.UInt8,
 
 class Col:
 
-    def __init__(self, dtype="Float64", length=1, dflt=None, pos = None):
+    def __init__(self, dtype="Float64", shape=(1,), dflt=None, pos = None):
 
         self.pos = pos
 
-        if length != None:
-            if type(length) in [types.IntType, types.LongType]:
-                self.length = length
-            else: raise ValueError, "Illegal length %s" % `length`
+        if shape != None:
+            if type(shape) in [types.IntType, types.LongType]:
+                self.shape = (shape,)
+            elif type(shape) in [types.ListType, types.TupleType]:
+                self.shape = list(shape)
+            else: raise ValueError, "Illegal shape %s" % `shape`
 
         self.dflt = dflt
 
@@ -83,12 +85,12 @@ class Col:
         self.rectype = tostructfmt[self.type]
 
     def __str__(self):
-        out = "type: " + str(self.type) + " \\\\ length: " + str(self.length)
+        out = "type: " + str(self.type) + " \\\\ shape: " + str(self.shape)
         return out
 
     def __repr__(self):
         out = "\n  type: " + str(self.type) + \
-              "\n  length: " +  str(self.length) + \
+              "\n  shape: " +  str(self.shape) + \
               "\n  position: " +  str(self.pos) + \
               "\n"
         return out
@@ -98,40 +100,44 @@ class Col:
         print "Deleting Col object"
 
     
-class metaIsRecord(type):
+class metaIsColDescr(type):
     """
-    metaclass for "Record": implicitly defines __slots__, __init__
-    __repr__ and some others from variables bound in class scope.
+    
+    metaclass for Table "Col"umn "Descr"iption: implicitly defines
+    __slots__, __init__ __repr__ and some others from variables bound
+    in class scope.
 
-    An instance of metaIsRecord (a class whose metaclass is metaIsRecord)
-    defines only class-scope variables (and possibly special methods, but
-    NOT __init__ and __repr__!).  metaIsRecord removes those variables from
-    class scope, snuggles them instead as items in a class-scope dict named
-    __dflts__, and puts in the class a __slots__ listing those variables'
-    names, an __init__ that takes as optional keyword arguments each of
-    them (using the values in __dflts__ as defaults for missing ones), and
-    a __repr__ that shows the repr of each attribute that differs from its
-    default value (the output of __repr__ can be passed to __eval__ to make
-    an equal instance, as per the usual convention in the matter).
+    An instance of metaIsColDescr (a class whose metaclass is
+    metaIsColDescr) defines only class-scope variables (and
+    possibly special methods, but NOT __init__ and __repr__!).
+    metaIsColDescr removes those variables from class scope,
+    snuggles them instead as items in a class-scope dict named
+    __dflts__, and puts in the class a __slots__ listing those
+    variables' names, an __init__ that takes as optional keyword
+    arguments each of them (using the values in __dflts__ as defaults
+    for missing ones), and a __repr__ that shows the repr of each
+    attribute that differs from its default value (the output of
+    __repr__ can be passed to __eval__ to make an equal instance, as
+    per the usual convention in the matter).
 
     Author:
     
-    This metaclass is largely based on an example from Alex Martelli
+    This metaclass is loosely based on an example from Alex Martelli
     (http://mail.python.org/pipermail/python-list/2002-July/112007.html)
-    I've modified things quite a bit, but the spirit is the same, more
-    or less.
+    However, I've modified things quite a bit, and the ultimate goal
+    has changed.
 
     Usage:
 
-class Record(IsRecord):
+class ColDescr(IsColDescr):
     x = 'l'
     y = 'd'
     color = '3s'
 
-q = Record()
+q = ColDescr()
 print q
 
-p = Record(x=4, y=3.4, color = "pwpwp")
+p = ColDescr(x=4, y=3.4, color = "pwpwp")
 print p
 
     """
@@ -157,21 +163,32 @@ print p
                 setattr(self, k, kw[k])
 
 	def __repr__(self):
-            """ Gives a record representation ready to be passed to eval
+            """ Gives a Table representation ready to be passed to eval
             """
-            rep = [ '%s=%r' % (k, getattr(self, k)) for k in self.__slots__ ]
-            return '%s(%s)' % (classname, ', '.join(rep))
+            #rep = [ '%s=%r' % (k, getattr(self, k)) for k in self.__slots__ ]
+            if classname:
+                rep = [ '%s = Col(\"%r\", %r)' %  \
+                        (k, self.__types__[k], self._v_shapes[k])
+                        for k in self.__slots__ ]
+                return '%s(IsColDescr):\n   %s)' % (classname, '\n   '.join(rep))
+            else:
+                rep = [ '\"%s\": Col(\"%r\", %r)' %  \
+                        (k, self.__types__[k], self._v_shapes[k])
+                        for k in self.__slots__ ]
+                return '{%s}' % (',\n '.join(rep))
 
 	
         def __str__(self):
-            """ Gives a record representation for printing purposes
+            """ Gives a Table representation for printing purposes
             """
-            rep = [ '  %s=%r' % (k, getattr(self, k)) for k in self.__slots__ ]
-            return '%s(\n%s)' % (classname, ', \n'.join(rep))
+            rep = [ '%s(%r%r)' %  \
+                    (k, self.__types__[k], self._v_shapes[k])
+                    for k in self.__slots__ ]
+            return '[%s]' % (', '.join(rep))
 
         # Moved out of scope
         def _f_del__(self):
-            print "Deleting IsRecord object"
+            print "Deleting IsColDescr object"
             pass
 
         def testtype(object):
@@ -196,11 +213,11 @@ print p
         
         # Build the newdict that we'll use as dict for the new class.
         # Warning!. You have to list here all attributes and methods
-        # you want see exported to the new Record class.
+        # you want see exported to the new ColDescr class.
         
         newdict = { '__slots__':[], '__types__':{}, '__dflts__':{},
                     '__init__':__init__, '__repr__':__repr__,
-                    '__str__':__str__, '_v_record':None,
+                    '__str__':__str__,
                     '_v_fmt': "", "_v_shapes":{},
                     '_v_recarrfmt': "", '_v_formats':[],
                     }
@@ -243,7 +260,7 @@ print p
             if (k.startswith('__') or k.startswith('_v_')):
                 if k in newdict:
                     # special methods &c: copy to newdict, warn about conflicts
-                    warnings.warn("Can't set attr %r in record-class %r" % (
+                    warnings.warn("Can't set attr %r in coldescr-class %r" % (
                         k, classname))
                 else:
                     # Beware, in this case, we don't allow fields with
@@ -273,9 +290,9 @@ print p
                 else:
                     newdict['__dflts__'][k] = testtype(object)
 
-                newdict['_v_fmt'] += str(object.length) + object.rectype
-                recarrfmt.append(str(object.length) + object.recarrtype)
-                newdict['_v_shapes'][k] = (object.length,)
+                newdict['_v_fmt'] += str(object.shape[0]) + object.rectype
+                recarrfmt.append(str(object.shape[0]) + object.recarrtype)
+                newdict['_v_shapes'][k] = object.shape
 
         # Set up the alignment 
         if newdict.has_key('_v_align'):
@@ -288,11 +305,11 @@ print p
         return type.__new__(cls, classname, bases, newdict)
 
 
-class IsRecord(object):
-    """ For convenience: inheriting from IsRecord can be used to get
+class IsColDescr(object):
+    """ For convenience: inheriting from IsColDescr can be used to get
         the new metaclass (same as defining __metaclass__ yourself).
     """
-    __metaclass__ = metaIsRecord
+    __metaclass__ = metaIsColDescr
 
 
 if __name__=="__main__":
@@ -303,12 +320,12 @@ if __name__=="__main__":
     
     """
     
-    class Record(IsRecord):
-        """A record that has several columns.
+    class ColDescr(IsColDescr):
+        """A description that has several columns.
 
         Represent the here as class variables, whose values are their
-        types. The metaIsRecord class will take care the user won't
-        add any new variables and that their type is correct.
+        types. The metaIsColDescr class will take care the user
+        won't add any new variables and that their type is correct.
 
         """
         #color = '3s'
@@ -318,7 +335,7 @@ if __name__=="__main__":
         color = Col("CharType", 2, " ")
 
     # example cases of class Point
-    rec = Record()  # Default values
+    rec = ColDescr()  # Default values
     print "rec value ==>", rec
     print "Slots ==>", rec.__slots__
     print "Format for this table ==>", rec._v_fmt

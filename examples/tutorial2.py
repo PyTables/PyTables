@@ -8,14 +8,14 @@ Example to be used in the second tutorial in the User's Guide.
 import warnings
 from tables import *
 
-class Particle(IsRecord):
+class Particle(IsColDescr):
     name      = Col('CharType', 16)  # 16-character String
     lati      = Col("Int32", 1)      # integer
     longi     = Col("Int32", 1)      # integer
     pressure  = Col("Float32", 1)    # float  (single-precision)
     temperature = Col("Float64", 1)    # double (double-precision)
 
-class Event(IsRecord):
+class Event(IsColDescr):
     name      = Col('CharType', 16)    # 16-character String
     TDCcount  = Col("UInt8", 1)        # unsigned byte
     ADCcount  = Col("UInt16", 1)       # Unsigned short integer
