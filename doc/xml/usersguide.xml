@@ -7,10 +7,11 @@
     <author>Francesc Alted</author>
 
     <subtitle><visual markup="sf">A hierarchical database for
-      Python</visual><newline/> Release 0.7.1</subtitle>
+      Python</visual><newline/> Release 0.7.2</subtitle>
 
-    <date>2003, August, 08th</date>
+    <date>2003, September, 22th</date>
     <year>2002, 2003</year>
+    <graphics kind="bitmap" file="logo4-ombra"/>
 <!--     <city>Castelló de la Plana, Spain</city> -->
     <typeset>Francesc Alted</typeset>
 
@@ -316,7 +317,7 @@ class Particle(IsDescription):
 	    do.
 	  </item>
 	  <item><em>Support of arrays:</em> <verb>Numeric</verb> (see
-	    <cite refid="Numeric"></cite>) or <verb>numarray</verb>
+	    <cite refid="Numeric"></cite>) and <verb>numarray</verb>
 	    (see <cite refid="Numarray"></cite>) arrays are a very
 	    useful complement of tables to keep homogeneous table
 	    slices (like selections of table columns).
@@ -341,8 +342,8 @@ class Particle(IsDescription):
 	    <verb>Table</verb> objects) or homogeneous datasets (that
 	    will be mapped to <verb>Array</verb> objects). However, as
 	    these kind of data is the most common to be saved HDF5
-	    format, <verb>PyTables</verb> can probably most of the
-	    HDF5 files out there.
+	    format, <verb>PyTables</verb> can probably access most of
+	    the HDF5 files out there.
 	  </item>
 	  <item><em>Data compression:</em> It supports data
 	    compression (through the use of the <visual
@@ -603,9 +604,9 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  <verb>numarray</verb> (see <cite refid="Numarray"></cite>)
 	  package. Although you won't need <verb>Numerical Python</verb>
 	  (see <cite refid="Numeric"></cite>) in order to compile
-	  PyTables, it is supported; you only will need a reasonably
+	  PyTables, it is supported; you will only need a reasonably
 	  recent version of it (>= 21.x). PyTables has been successfully
-	  tested with Numeric 21.3, 22.0 and 23.0. If you have
+	  tested with Numeric 21.3, 22.0 and 23.0. If you already have
 	  <verb>Numeric</verb> installed, the test driver module will
 	  detect it and will run the tests for <verb>Numeric</verb>
 	  automatically.
@@ -617,7 +618,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    <p>First, make sure that you have <verb>HDF5 1.6.x</verb>
 	      and <verb>numarray 0.6</verb> or higher installed (I'm
 	      using <verb>HDF5 1.6.0</verb> and <verb>numarray
-	      0.6</verb> currently). If don't, you can find them at
+	      0.7</verb> currently). If don't, you can find them at
 	      <newline/> <url
 	      name="http://hdf.ncsa.uiuc.edu/HDF5"><verb>http://hdf.ncsa.uiuc.edu/HDF5</verb></url>
 	      and <url
@@ -698,19 +699,6 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		  files to a directory in your <verb>PATH</verb>
 		  environment variable (for example
 		  <verb>C:\WINDOWS\SYSTEM</verb>).
-		</p>
-
-		<p><visual markup="bf">Caveat:</visual>When
-		  downloading the binary file for HDF5 libraries,
-		  select one compiled with the MSVC 6.0, like for
-		  example, the file <verb>5-160-win2k.zip</verb>, no
-		  matter if you are using Win2k or WinXP (it should
-		  work fine on both O.S.). The file
-		  <verb>5-160-winxp-net.zip</verb> was compiled with
-		  the MSVC 7.0 (aka "<verb>.NET</verb>") and does
-		  <visual markup="bf">not</visual> work well with the
-		  PyTables binary (which has been generated with MSVC
-		  6.0). You have been warned!.
 		</p>
 
 		<p>Besides, you may want to fetch the <verb>LZO</verb>
@@ -897,30 +885,34 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  </p>
 
 	  <p><visual markup="bf">Caveat:</visual>When downloading the
-	    binary file for HDF5 libraries, select one compiled with the
-	    MSVC 6.0, like for example, the file
+	    binary file for HDF5 libraries, select one compiled with
+	    the MSVC 6.0, like for example, the file
 	    <verb>5-160-win2k.zip</verb>, no matter if you are using
-	    Win2k or WinXP. The file <verb>5-160-winxp-net.zip</verb>
-	    was compiled with the MSVC 7.0 (aka "<verb>.NET</verb>") and
-	    does <visual markup="bf">not</visual> work well with the
-	    PyTables binary (which has been generated with MSVC
-	    6.0). You have been warned!.
+	    Win2k or WinXP (it should work fine on both). The file
+	    <verb>5-160-winxp-net.zip</verb> was compiled with the
+	    MSVC 7.0 (aka "<verb>.NET</verb>") and <visual
+	    markup="bf">does not</visual> work well with the PyTables
+	    binary (which has been generated with MSVC 6.0). You have
+	    been warned!.
 	  </p>
+
 	  <p>Download the
 	    <verb>tables-&lt;version>.win32-py&lt;version>.exe</verb>
 	    file and execute it. You are done!.
 	  </p>
+
 	  <p>You can (<em>you should</em>) test your installation by
 	    unpacking the source tarball, changing to the
 	    <verb>test/</verb> subdirectory and execute the
 	    <verb>test_all.py</verb> script. If all the tests passes
-	    (maybe with a couple of warnings, related with the possible
-	    unavailability of LZO and UCL libs, but that's ok for the
-	    binary version) you already have a working, well tested,
-	    copy of PyTables installed!. If don't, please, execute the
-	    <verb>test_all.py -v verbose</verb> and return the output to
-	    me.
+	    (maybe with a couple of warnings, related with the
+	    possible unavailability of LZO and UCL libs, but that's ok
+	    for the binary version) you already have a working, well
+	    tested, copy of PyTables installed!. If don't, please,
+	    execute the <verb>test_all.py -v verbose</verb> and return
+	    the output to me.
 	  </p>
+
 	</subsection>
 
 	<subsection>
@@ -2539,7 +2531,7 @@ AttributeError: Error setting "ADCcount" attr.
 	<verb>IsDescription</verb>. An important function, called
 	<verb>openFile</verb> is responsible to create, open or append
 	to files. In addition, a few utility functions are defined to
-	guess if an user supplied file is a <verb>PyTables</verb> or
+	guess if the user supplied file is a <verb>PyTables</verb> or
 	<verb>HDF5</verb> file. These are called
 	<verb>isPyTablesFile</verb> and <verb>isHDF5</verb>. Finally,
 	several first-level variables are also available to the user

@@ -1,108 +1,46 @@
-Announcing PyTables 0.7
------------------------
+Announcing PyTables 0.7.2
+-------------------------
 
 PyTables is a hierarchical database package designed to efficently
 manage very large amounts of data. PyTables is built on top of the
 HDF5 library and the numarray package and features an object-oriented
-interface that, combined with C-code generated from Pyrex sources,
-makes it a fast, yet extremely easy to use tool for interactively save
-and retrieve large amounts of data.
+interface that, combined with natural naming and C-code generated from
+Pyrex sources, makes it a fast, yet extremely easy to use tool for
+interactively save and retrieve large amounts of data.
  
-Release 0.7 is the third public beta release. The version 0.6 was
-internal and will never be released.
-
 On this release you will find:
-       - new AttributeSet class 
-       - 25% I/O speed improvement 
-       - fully multidimensional table cells support
-       - new column descriptors
-       - row deletion in tables is finally here
-       - much more!
+       - fixed a memory leak
+       - memory consumption is beig addressed
+       - much faster opening of files
+       - Some Table.read() cases optimized
 
 More in detail:
 
 What's new
 -----------
 
-- A new AttributeSet class has been added. This will allow the
-  addition and deletion of generic attributes (any scalar type plus
-  any Python object supported by Pickle) as easy as this:
+        - Fixed a nasty memory leak located on the C libraries (It was
+          occurring during attribute writes). After that, the memory
+          consumption when using large object trees has dropped quite
+          a bit. However, there remains some small leaks that has been
+          tracked down to the underlying numarray library. These leaks
+          has been reported, and hopefully they should be fixed more
+          sooner than later.
 
-  table.attrs.date = "2003/07/28 10:32"     # Attach a string to table
-  group._v_attrs.tempShift = 1.2            # Attach a float to group
-  array.attrs.detectorList = [1,2,3,4]      # Attach a list to array
-  del array.attrs.detectorList        # Detach detectorList attr from array
+        - Table buffers are built dinamically now, so if Tables are
+	  not accessed for reading or writing this memory will not be
+	  booked. This will help to reduce the memory consumption.
 
-- PyTables now has support for fully multidimensional table cells. This
-  has been made possible in part by implementation of multidimensional
-  cells in numarray.records.RecArray object. Thanks to numarray crew,
-  and especially to Jin-chung Hsu, for willingly accepting to do
-  that, and also for including some cache improvements in RecArray.
+	- The opening of files with lots of nodes has been optimized
+	  between a factor 2 and 3. For example, a file with 10 groups
+	  and 3000 tables that takes 9.3 seconds to open in 0.7.1, now
+	  takes only 2.8 seconds.
 
-- New column descriptors added: IntCol, Int8Col, UInt8Col, Int16Col,
-  UInt16Col, Int32Col, UInt32Col, Int64Col, UInt64Col, FloatCol,
-  Float32Col, Float64Col and StringCol. I think they are more explicit
-  and easy-to-use than the now deprecated (but still supported)
-  Col() descriptor. All the examples and user's manual has been
-  accordingly updated.
-
-- The new Table.removeRows(start, stop) function allows you to remove 
-  rows from tables. This feature was requested a long time ago. There 
-  are still limitations, however: you cannot delete rows in extremely 
-  large Tables (as the remaining rows after the stop parameter 
-  are stored in memory). Nor is the performance optimized.  These issues 
-  will hopefully be addressed in future releases.
-
-- Added iterators to File, Group and Table (they now support the special
-  __iter__() method). They make the object much more user-friendly,
-  especially in interactive mode. See documentation for usage examples.
-
-- Added a __getitem__() method to Table that works more or less like
-  read(), but with extended slices support.
-
-- As a consequence of rewriting table iterators in C (with the help of
-  Pyrex, of course) the table read performance has been improved
-  between 20% and 30%. Data selections in PyTables are now starting to
-  beat powerful relational databases like SQLite, even compared to
-  in-core selects (!). I think there is still room for another 20% or
-  30% speed improvement, so stay tuned.
-
-- A checksum is now added automatically when using LZO (not with UCL
-  where I'm having some difficulties implementing that
-  capability). The Adler32 algorithm has been chosen because of its
-  speed. With that, the compressing/decompressing speed has dropped 1%
-  or 2%, which is hardly noticeable. I think this addition will allow
-  the cautious user to be a bit more confident about this excellent
-  compressor. Code has been added to be able to read files created
-  without this checksum (so you can be confident that you will be able
-  to read your existing files compressed with LZO and UCL).
-
-- Recursion has been removed from PyTables. Before, this made the
-  maximum depth tree to be less than the Python recursion limit (which
-  depends on implementation, but is around 900, at least in
-  Linux). Now, the limit has been set (somewhat arbitrarily) at
-  2048. Thanks to John Nielsen for implementing the new iterative
-  method!.
-
-- A new rootUEP parameter to openFile() has been added. You can now 
-  define the root from which you want to start to build the object tree. 
-  Thanks to John Nielsen for the suggestion and a first implementation.
-
-- A small bug fixed when dealing with non-native PyTables files that
-  prevented the use of the "classname" filter during a listNodes()
-  call. Thanks to Jeff Robbins for reporting that.
-
-- Some (non-serious) bugs were discovered and fixed.
-
-- Updated documentation to explain all these new bells and whistles. It 
-  is also available on the web:
-  http://pytables.sourceforge.net/html-doc/usersguide-html.html
-
-- Added more unit tests (more than 350 now!)
-
-- PyTables 0.7 *needs* numarray 0.6 or higher and HDF-1.6.0 or higher
-  to compile and work. It has been tested with Python 2.2 and 2.3 and
-  should work fine on both versions.
+	- The Table.read() method has been refactored and optimized
+	  and some parts of its code has been moved to Pyrex. In
+	  particular, in the special case of step=1, up to a factor 5
+	  of speedup (reaching 160 MB/s on a Pentium4 @ 2 GHz) when
+	  reading table contents can be achieved now.
 
 What is a table?
 ----------------

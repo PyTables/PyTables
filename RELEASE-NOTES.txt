@@ -1,32 +1,34 @@
-PyTables 0.7.1 is out!
-----------------------
+What's new in PyTables 0.7.2
+----------------------------
 
-This is a mainly a bug-fixing release, where the next problems has
+This is a mainly a maintenance release, where the next issues has
 been addressed:
 
-        - Fixed several memory leaks. After that, the memory
-          consumption when using large object trees has dropped
-          sensibly. However, there remains some small leaks, but
-          hopefully they are not very important unless you use *huge*
-          object trees.
+        - Fixed a nasty memory leak located on the C libraries (It was
+          occurring during attribute writes). After that, the memory
+          consumption when using large object trees has dropped quite
+          a bit. However, there remains some small leaks that has been
+          tracked down to the underlying numarray library. These leaks
+          has been reported, and hopefully they should be fixed more
+          sooner than later.
 
-	- Fixed a bug that make the __getitem__ special method in
-          table to fail when the stop parameter in a extended slice
-          was not specified. That is, table[10:] now correctly returns
-          table[10:table.nrows+1], and not table[10:11].
+        - Table buffers are built dinamically now, so if Tables are
+	  not accessed for reading or writing this memory will not be
+	  booked. This will help to reduce the memory consumption.
 
-	- The removeRows() method in Table did not update the NROWS
-          attribute in Table objects, giving place to errors after
-          doing further updating operations (removing or adding more
-          rows) in the same table. This has been fixed now.
+	- The opening of files with lots of nodes has been optimized
+	  between a factor 2 and 3. For example, a file with 10 groups
+	  and 3000 tables that takes 9.3 seconds to open in 0.7.1, now
+	  takes only 2.8 seconds.
 
-Apart of these fixes, a new lazy reading algorithm for attributes has
-been activated by default. With that, the opening of objects with
-large hierarchies has been improved by 60% (you can obtain another
-additional 10% if using python 2.3 instead of python 2.2).
+	- The Table.read() method has been refactored and optimized
+	  and some parts of its code has been moved to Pyrex. In
+	  particular, in the special case of step=1, up to a factor 5
+	  of speedup (reaching 160 MB/s on a Pentium4 @ 2 GHz) when
+	  reading table contents can be achieved now.
 
-Let me know of any bugs, suggestions, gripes, kudos, etc. you may
-have.
+
+Enjoy!,
 
 -- Francesc Alted
 falted@openlc.org

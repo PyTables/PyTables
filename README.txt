@@ -1,7 +1,7 @@
 README.txt
-PyTables 0.7 (third beta version)
+PyTables 0.7.2
 http://pytables.sf.net/
-Aug 09, 2003
+Sep 22, 2003
 --------------------------------------
 
 The goal of PyTables is to enable the end user to manipulate easily
@@ -50,8 +50,8 @@ compression libraries support you will also need recent versions of
 them. These two compression libraries are, however, optional.
 
 I've tested this PyTables version with HDF5 1.6.0 version and numarray
-0.6, and you *need* to use these versions or higher to make use of
-PyTables. Although you won't need Numeric Python in order to compile
+0.6 and 0.7, and you *need* to these versions or higher to make use of
+PyTables. Albeit you won't need Numeric Python in order to compile
 PyTables, it is supported; you only will need a reasonably recent
 version of it (>= 21.x). PyTables has been succesfully tested with
 Numeric 21.3, 22.0 and 23.0.
@@ -80,7 +80,7 @@ of MS Visual C++ (>= 6.0) compiler. A GCC compiler is asumed for Unix,
 but other compilers should work as well.
 
 1. First, make sure that you have HDF5 1.6.x and numarray 0.6 or
-   higher installed (I'm using HDF5 1.6.0 and numarray 0.6
+   higher installed (I'm using HDF5 1.6.0 and numarray 0.7
    currently). If don't, you can find them at
    http://hdf.ncsa.uiuc.edu/HDF5 and
    http://sourceforge.net/projects/numpy/. Compile/install them.
@@ -228,15 +228,22 @@ This section is only intended for Windows platforms. If you have Unix,
 or want to compile PyTables for Windows, jump to the next section.
 
 First, make sure that you have HDF5 1.6.x and numarray 0.6 or higher
-installed (I'm using HDF5 1.6.0 and numarray 0.6 currently). If don't,
+installed (I'm using HDF5 1.6.0 and numarray 0.7 currently). If don't,
 you can find them at http://hdf.ncsa.uiuc.edu/HDF5 and
 http://sourceforge.net/projects/numpy/. Download the binary packages
-and install them. For the HDF5 it should be enough by manually copying
-the hdf5dll.dll and szipdll.dll files to a directory in your PATH
-environment variable (for example C:\WINDOWS\SYSTEM). Also, you should
-know that HDF5 needs the zlib compression library to work, so you will
-have to download and install it as well; a pre-compiled version is
-avalilable at ftp://ftp.ncsa.uiuc.edu/HDF/gzip/windows/.
+and install them. Caveat: When downloading the binary file for HDF5
+libraries, select one compiled with the MSVC 6.0, like for example,
+the file 5-160-win2k.zip, no matter if you are using Win2k or
+WinXP. The file 5-160-winxp-net.zip was compiled with the MSVC 7.0
+(aka ".NET") and does not work well with the PyTables binary (which
+has been generated with MSVC 6.0). You have been warned!.
+
+For the HDF5 it should be enough by manually copying the hdf5dll.dll
+and szipdll.dll files to a directory in your PATH environment variable
+(for example C:\WINDOWS\SYSTEM). Also, you should know that HDF5 needs
+the zlib compression library to work, so you will have to download and
+install it as well; a pre-compiled version is avalilable at
+ftp://ftp.ncsa.uiuc.edu/HDF/gzip/windows/.
 
 Download the tables-<version>.win32-py<version>.exe file and execute
 it.

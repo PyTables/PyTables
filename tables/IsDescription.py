@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.20 2003/09/16 19:49:18 falted Exp $
+#       $Id: IsDescription.py,v 1.21 2003/09/22 12:05:16 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.20 $"
+__version__ = "$Revision: 1.21 $"
 
 
 import warnings
@@ -82,7 +82,6 @@ class Col:
 
         if dtype in NA.typeDict:
             self.type = NA.typeDict[dtype]
-            #self.recarrtype = recarray2.revfmt[self.type]
             self.recarrtype = records.revfmt[self.type]
             self.itemsize = self.type.bytes
         elif dtype == "CharType" or isinstance(dtype, records.Char):

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.75 2003/09/17 15:13:42 falted Exp $
+#       $Id: Table.py,v 1.76 2003/09/22 12:05:16 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.75 $"
+__version__ = "$Revision: 1.76 $"
 
 from __future__ import generators
 import sys
@@ -433,6 +433,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         #if expectedrows//self._v_maxTuples > 50:
         #    buffersize *= 4
         #    self._v_maxTuples = buffersize // rowsize
+        buffersize = 100    # For testing purposes
         self._v_chunksize = chunksize
 
     def _saveBufferedRows(self):
