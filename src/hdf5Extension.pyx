@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.147 2004/10/27 16:55:12 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.148 2004/10/28 11:09:55 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.147 $"
+__version__ = "$Revision: 1.148 $"
 
 
 import sys, os
@@ -619,6 +619,10 @@ cdef extern from "H5VLARRAY.h":
                                   int nobjects, hsize_t nrecords,
                                   void *data )  
 
+  herr_t H5VLARRAYmodify_records( hid_t loc_id, char *dset_name,
+                                  hsize_t nrow, int nobjects,
+                                  void *data )  
+
   herr_t H5VLARRAYread( hid_t loc_id, char *dset_name,
                         hsize_t start,  hsize_t nrows, hsize_t step,
                         hvl_t *rdata, hsize_t *rdatalen )
@@ -941,7 +945,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.147 2004/10/27 16:55:12 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.148 2004/10/28 11:09:55 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -2758,9 +2762,13 @@ cdef class Array:
     cdef int ret
     cdef void *rbuf, *temp
     cdef hsize_t *start, *step, *count
+    cdef long buflen, offset
 
     # Get the pointer to the buffer data area
     buflen = NA_getBufferPtrAndSize(narr._data, 1, &rbuf)
+    # Correct the start of the buffer with the _byteoffset
+    offset = narr._byteoffset
+    rbuf = <void *>(<char *>rbuf + offset)
 
     # Get the start, step and count values
     buflen = NA_getBufferPtrAndSize(startl._data, 1, <void **>&start)
@@ -3261,31 +3269,6 @@ cdef class VLArray:
 
     return self.type
     
-  def _append(self, object naarr, int nobjects):
-    cdef int ret
-    cdef void *rbuf
-    cdef long buflen, offset
-
-    # Get the pointer to the buffer data area
-    if nobjects:
-      buflen = NA_getBufferPtrAndSize(naarr._data, 1, &rbuf)
-      # Correct the start of the buffer with the _byteoffset
-      offset = naarr._byteoffset
-      rbuf = <void *>(<char *>rbuf + offset)
-    else:
-      rbuf = NULL
-
-    # Append the records:
-    ret = H5VLARRAYappend_records(self.parent_id, self.name,
-                                  nobjects, self.nrecords,
-                                  rbuf)
-    if ret < 0:
-      raise RuntimeError("Problems appending the records.")
-
-    self.nrecords = self.nrecords + 1
-
-    return self.nrecords
-
   def _openArray(self):
     cdef object shape
     cdef char byteorder[16]  # "non-relevant" fits easily here
@@ -3337,6 +3320,50 @@ cdef class VLArray:
     self._atomicshape = shape
     # The <int> cast avoids returning a Long integer
     return <int>nrecords[0]
+
+  def _append(self, object naarr, int nobjects):
+    cdef int ret
+    cdef void *rbuf
+    cdef long buflen, offset
+
+    # Get the pointer to the buffer data area
+    if nobjects:
+      buflen = NA_getBufferPtrAndSize(naarr._data, 1, &rbuf)
+      # Correct the start of the buffer with the _byteoffset
+      offset = naarr._byteoffset
+      rbuf = <void *>(<char *>rbuf + offset)
+    else:
+      rbuf = NULL
+
+    # Append the records:
+    ret = H5VLARRAYappend_records(self.parent_id, self.name,
+                                  nobjects, self.nrecords,
+                                  rbuf)
+    if ret < 0:
+      raise RuntimeError("Problems appending the records.")
+
+    self.nrecords = self.nrecords + 1
+
+    return self.nrecords
+
+  def _modify(self, hsize_t nrow, object naarr, int nobjects):
+    cdef int ret
+    cdef void *rbuf
+    cdef long buflen, offset
+
+    # Get the pointer to the buffer data area
+    buflen = NA_getBufferPtrAndSize(naarr._data, 1, &rbuf)
+    # Correct the start of the buffer with the _byteoffset
+    offset = naarr._byteoffset
+    rbuf = <void *>(<char *>rbuf + offset)
+
+    # Append the records:
+    ret = H5VLARRAYmodify_records(self.parent_id, self.name,
+                                  nrow, nobjects, rbuf)
+    if ret < 0:
+      raise RuntimeError("Problems modifying the record.")
+
+    return nobjects
 
   def _readArray(self, hsize_t start, hsize_t stop, hsize_t step):
     cdef herr_t ret

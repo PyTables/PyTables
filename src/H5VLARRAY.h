@@ -30,6 +30,12 @@ herr_t H5VLARRAYappend_records( hid_t loc_id,
 				hsize_t nrecords,
 				const void *data );
 
+herr_t H5VLARRAYmodify_records( hid_t loc_id, 
+				const char *dset_name,
+				hsize_t nrow,
+				int nobjects,
+				const void *data );
+
 herr_t H5VLARRAYread( hid_t loc_id, 
 		      const char *dset_name,
 		      hsize_t start,

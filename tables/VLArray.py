@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.33 2004/10/05 12:30:32 falted Exp $
+#       $Id: VLArray.py,v 1.34 2004/10/28 11:09:56 falted Exp $
 #
 ########################################################################
 
@@ -30,7 +30,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.33 $"
+__version__ = "$Revision: 1.34 $"
 
 # default version for VLARRAY objects
 #obversion = "1.0"    # initial version
@@ -563,7 +563,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         return arr
 
     def __getitem__(self, key):
-        """Returns a table row, table slice or table column.
+        """Returns a vlarray row or slice.
 
         It takes different actions depending on the type of the "key"
         parameter:
@@ -571,7 +571,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         If "key"is an integer, the corresponding row is returned. If
         "key" is a slice, the row slice determined by key is returned.
 
-"""
+        """
 
         if isinstance(key, types.IntType):
             if key >= self.nrows:
@@ -586,15 +586,98 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
                                                key.start, key.stop, key.step)
             return self.read(start, stop, step, slice_specified=1)
         else:
-            raise ValueError, "Non-valid index or slice: %s" % \
+            raise IndexError, "Non-valid index or slice: %s" % \
                   key
         
+    def __setitem__(self, keys, value):
+        """Updates a vlarray row "keys" by setting it to "value".
+
+        If "keys" is an integer, it refers to the number of row to be
+        modified.
+
+        If "keys" is a tuple, the first element refers to the row
+        to be modified, and the second element to the range (so, it
+        can be an integer or an slice) of the row that will be
+        updated.
+
+        It returns the number of fields updated in the affected row.
+
+        """
+
+        assert not self._v_file.mode == "r", "Attempt to write over a file opened in read-only mode"
+
+        if not isinstance(keys, types.TupleType):
+            keys = (keys, None)
+        if len(keys) > 2:
+            raise IndexError, "You cannot specify more than two dimensions"
+        nrow, rng = keys
+        # Process the first index
+        if not isinstance(nrow, types.IntType):
+            raise IndexError, "The first dimension only can be an integer"
+        if nrow >= self.nrows:
+            raise IndexError, "First index out of range"
+        if nrow < 0:
+            # To support negative values
+            nrow += self.nrows
+        # Process the second index
+        if isinstance(rng, types.IntType):
+            start = rng; stop = start+1; step = 1
+        elif isinstance(rng, types.SliceType):
+            start, stop, step = rng.start, rng.stop, rng.step
+        elif isinstance(rng, types.NoneType):
+            start, stop, step = None, None, None
+        else:
+            raise IndexError, "Non-valid second index or slice: %s" % rng
+        
+#         object = value
+#         # Prepare the object to convert it into a numarray object
+#         if self.atom.flavor == "Object":
+#             # Special case for a generic object
+#             # (to be pickled and saved as an array of unsigned bytes)
+#             object = numarray.array(cPickle.dumps(object), type=numarray.UInt8)
+#         elif self.atom.flavor == "VLString":
+#             # Special case for a generic object
+#             # (to be pickled and saved as an array of unsigned bytes)
+#             if not (isinstance(object, types.StringType) or
+#                     isinstance(object, types.UnicodeType)):
+#                 raise TypeError, \
+# """The object "%s" is not of type String or Unicode.""" % (str(object))
+#             try:
+#                 object = object.encode('utf-8')
+#             except:
+#                 (type, value, traceback) = sys.exc_info()
+#                 raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, value)
+#             object = numarray.array(object, type=numarray.UInt8)
+
+#         value = convertIntoNA(object, self.atom)
+        #nobjects = self._checkShape(value)
+
+        nobjects = len(value)
+
+        # Get the previous value
+        naarr = self.read(nrow, nrow+1, 1, slice_specified=0)
+        nobjects = len(naarr)
+        if len(value) > nobjects:
+            raise ValueError, \
+"Length of value (%s) is larger than number of elements in row (%s)" % \
+(len(value), nobjects)
+        # Assign the value to it
+        try:
+            naarr[slice(start, stop, step)] = value
+        except:
+            (type, value2, traceback) = sys.exc_info()
+            raise ValueError, \
+"Value parameter:\n'%r'\ncannot be converted into an array object compliant vlarray[%s] row: \n'%r'\nThe error was: <%s>" % \
+        (value, keys, naarr[slice(start, stop, step)], value2)
+
+        if naarr.size() > 0:
+            self._modify(nrow, naarr, nobjects)
+        return naarr.size()
+
     # Accessor for the _readArray method in superclass
     def read(self, start=None, stop=None, step=1, slice_specified=0):
         """Read the array from disk and return it as a self.flavor object."""
 
-#         if stop <> None:
-#             stop_specified = 1
         start, stop, step = processRangeRead(self.nrows, start, stop, step)
 
         if start == stop:

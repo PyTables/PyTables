@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.77 2004/10/27 16:55:12 falted Exp $
+#       $Id: Array.py,v 1.78 2004/10/28 11:09:55 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.77 $"
+__version__ = "$Revision: 1.78 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -415,7 +415,9 @@ class Array(Leaf, hdf5Extension.Array, object):
         If "key" is an integer, the corresponding row is assigned to value. If
         "key" is a slice, the row slice determined by key is assigned
         to value. The value is broadcasted to fit in the desired
-        range, if needed.
+        range, if needed. If the slice to updated exceeds the actual
+        shape of the array, only the values in the existing range are
+        updated, i.e. the range error will be silently ignored.
 
         It returns the number of elements modified in earray.
 

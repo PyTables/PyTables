@@ -378,6 +378,93 @@ out:
 
 
 /*-------------------------------------------------------------------------
+ * Function: H5ARRAYmodify_records
+ *
+ * Purpose: Modify records of an array
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmers: 
+ *  Francesc Alted
+ *
+ * Date: October 28, 2004
+ *
+ * Comments: Uses memory offsets
+ *
+ * Modifications: 
+ *
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t H5VLARRAYmodify_records( hid_t loc_id, 
+				const char *dset_name,
+				hsize_t nrow,
+				int nobjects,
+				const void *data )  
+{
+
+ hid_t    dataset_id;
+ hid_t    type_id;
+ hid_t    space_id;
+ hid_t    mem_space_id;
+ hssize_t start[1];
+ hsize_t  dims_new[1] = {1};	/* Only a record on each update */
+ hvl_t    wdata;   /* Information to write */
+
+ /* Initialize VL data to write */
+ wdata.p=(void *)data;
+ wdata.len=nobjects;
+
+ /* Open the dataset. */
+ if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+  goto out;
+
+ /* Get the datatype */
+ if ( (type_id = H5Dget_type( dataset_id )) < 0 )
+  goto out;
+
+ /* Create a simple memory data space */
+ if ( (mem_space_id = H5Screate_simple( 1, dims_new, NULL )) < 0 )
+  return -1;
+
+ /* Get the file data space */
+ if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+  return -1;
+
+ /* Define a hyperslab in the dataset */
+ start[0] = nrow;
+ if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, start, NULL, dims_new, NULL) < 0 )
+   goto out;
+
+ if ( H5Dwrite( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, &wdata ) < 0 )
+     goto out;
+
+ /* Terminate access to the dataspace */
+ if ( H5Sclose( space_id ) < 0 )
+  goto out;
+ 
+ if ( H5Sclose( mem_space_id ) < 0 )
+  goto out;
+ 
+ /* Release the datatype. */
+ if ( H5Tclose( type_id ) < 0 )
+  return -1;
+
+ /* End access to the dataset */
+ if ( H5Dclose( dataset_id ) < 0 )
+  goto out;
+
+return 1;
+
+out:
+ H5Dclose( dataset_id );
+ return -1;
+
+}
+
+
+/*-------------------------------------------------------------------------
  * Function: H5VLARRAYread
  *
  * Purpose: Reads an array from disk.

@@ -38,9 +38,10 @@ New features:
   well as updating the User's Manual and adding unit tests for the new
   functionality.
 
-- Modification of values. You can modifiy Table (Array, EArray and
-  VLArray support may come later) values both by rows or columns. See
-  Table.modifyRows and Table.modifyColumns in User's Manual.
+- Modification of values. You can modifiy Table, Array, EArray and
+   VLArray values. See Table.modifyRows, Table.modifyColumns() and the
+   newly introduced __setitem__() method for Table, Array, EArray and
+   VLArray entities in the Library Reference of User's Manual.
 
 Improvements:
 
@@ -68,6 +69,15 @@ Bug fixes:
   effectively flushing all the file contents to disk. Thanks to Shack
   Toms for reporting this and providing a patch.
 
+- SF #1054683: Security hole in utils.checkNameValidity(). Reported in
+  2004-10-26 by ivilata
+
+- SF #1049297: Suggestion: new method File.delAttrNode(). Reported in 
+  2004-10-18 by ivilata
+
+- SF #1049285: Leak in AttributeSet.__delattr__(). Reported in
+  2004-10-18 by ivilata
+ 
 - SF #1014298: Wrong method call in examples/tutorial1-2.py. Reported
   in 2004-08-23 by ivilata
 
