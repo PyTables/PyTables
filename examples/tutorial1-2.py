@@ -38,7 +38,7 @@ print
 
 # Now, only list all the groups on tree
 print "Groups in file:"
-for group in h5file(classname="Group"):
+for group in h5file.walkNodes(classname="Group"):
     print group
 print
 
@@ -50,7 +50,7 @@ for group in h5file.walkGroups("/"):
 
 # This do the same result
 print "Arrays in file (II):"
-for array in h5file("/", "Array"):
+for array in h5file.walkNodes("/", "Array"):
     print array
 print
 # And finally, list only leafs on /detector group (there should be one!)

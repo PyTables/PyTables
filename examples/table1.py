@@ -47,7 +47,7 @@ for node in fileh.listNodes(group):
 print
 
 print "Leaves everywhere in file", fileh.filename,":"
-for leaf in fileh(classname="Leaf"):
+for leaf in fileh.walkNodes(classname="Leaf"):
     print leaf
 print
 

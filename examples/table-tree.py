@@ -137,7 +137,7 @@ print h5file
 
 # And finally, only the Arrays (Array objects)
 print "Arrays in file:"
-for array in h5file("/", classname="Array"):
+for array in h5file.walkNodes("/", classname="Array"):
     print array
 print
 
