@@ -6,7 +6,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.156 2004/12/27 22:18:35 falted Exp $
+#       $Id$
 #
 ########################################################################
 
@@ -967,7 +967,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.156 2004/12/27 22:18:35 falted Exp $ "
+  return "$Id$ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1029,6 +1029,7 @@ def _convertTime64(object naarr, hsize_t nrecords, int sense):
 
   Numarray to HDF5 conversion is performed when 'sense' is 0.
   Otherwise, HDF5 to Numarray conversion is performed.
+  The conversion is done in place, i.e. 'naarr' is modified.
   """
 
   cdef void *t64buf
@@ -1696,6 +1697,7 @@ cdef class Table:
 
     Numarray to HDF5 conversion is performed when 'sense' is 0.
     Otherwise, HDF5 to Numarray conversion is performed.
+    The conversion is done in place, i.e. 'recarr' is modified.
     """
 
     # This should be generalised to support other type conversions.
@@ -2808,6 +2810,7 @@ cdef class Array:
 
     Numarray to HDF5 conversion is performed when 'sense' is 0.
     Otherwise, HDF5 to Numarray conversion is performed.
+    The conversion is done in place, i.e. 'naarr' is modified.
     """
 
     # This should be generalised to support other type conversions.
@@ -3464,16 +3467,17 @@ cdef class VLArray:
     # The <int> cast avoids returning a Long integer
     return <int>nrecords[0]
 
-  def _convertTypes(self, object naarr, int nobjects, int sense):
+  def _convertTypes(self, object naarr, int sense):
     """Converts Time64 elements in 'naarr' between Numarray and HDF5 formats.
 
     Numarray to HDF5 conversion is performed when 'sense' is 0.
     Otherwise, HDF5 to Numarray conversion is performed.
+    The conversion is done in place, i.e. 'naarr' is modified.
     """
 
     # This should be generalised to support other type conversions.
     if self._atomicstype == 'Time64':
-      _convertTime64(naarr, nobjects, sense)
+      _convertTime64(naarr, len(naarr), sense)
 
   def _append(self, object naarr, int nobjects):
     cdef int ret
@@ -3486,11 +3490,11 @@ cdef class VLArray:
       # Correct the start of the buffer with the _byteoffset
       offset = naarr._byteoffset
       rbuf = <void *>(<char *>rbuf + offset)
+
+      # Convert some Numarray types to HDF5 before storing.
+      self._convertTypes(naarr, 0)
     else:
       rbuf = NULL
-
-    # Convert some Numarray types to HDF5 before storing.
-    self._convertTypes(naarr, nobjects, 0)
 
     # Append the records:
     Py_BEGIN_ALLOW_THREADS
@@ -3516,8 +3520,9 @@ cdef class VLArray:
     offset = naarr._byteoffset
     rbuf = <void *>(<char *>rbuf + offset)
 
-    # Convert some Numarray types to HDF5 before storing.
-    self._convertTypes(naarr, nobjects, 0)
+    if nobjects:
+      # Convert some Numarray types to HDF5 before storing.
+      self._convertTypes(naarr, 0)
 
     # Append the records:
     Py_BEGIN_ALLOW_THREADS
@@ -3581,7 +3586,7 @@ cdef class VLArray:
         naarr = numarray.array(rbuf, type=self._atomictype, shape=shape)
 
       # Convert some HDF5 types to Numarray after reading.
-      self._convertTypes(naarr, vllen, 1)
+      self._convertTypes(naarr, 1)
 
       datalist.append(naarr)
 
