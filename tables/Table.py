@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.42 2003/03/16 14:07:48 falted Exp $
+#       $Id: Table.py,v 1.43 2003/04/28 17:46:01 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.42 $"
+__version__ = "$Revision: 1.43 $"
 
 from __future__ import generators
 import sys
@@ -36,6 +36,7 @@ import types
 import re
 import copy
 import string
+import warnings
 from numarray import *
 import chararray
 import recarray
@@ -106,7 +107,7 @@ class Table(Leaf, hdf5Extension.Table):
     """
 
     def __init__(self, description = None, title = "",
-                 compress = 0, expectedrows = 10000):
+                 compress = 0, complib="zlib", expectedrows = 10000):
         """Create an instance Table.
 
         Keyword arguments:
@@ -122,6 +123,9 @@ class Table(Leaf, hdf5Extension.Table):
         compress -- Specifies a compress level for data. The allowed
             range is 0-9. A value of 0 disables compression. The
             default is 0 (no compression).
+
+        complib -- Specifies the compression library to be used. Right
+            now, "zlib", "lzo" and "ucl" values are supported.
 
         expectedrows -- An user estimate about the number of rows
             that will be on table. If not provided, the default value
@@ -168,6 +172,15 @@ class Table(Leaf, hdf5Extension.Table):
             raise ValueError, \
 """description parameter is not one of the supported types:
   IsDescription subclass, dictionary or RecArray."""
+
+	if self._v_new:
+	    if hdf5Extension.isLibAvailable(complib):
+		self._v_complib = complib
+	    else:
+		warnings.warn( \
+"""You are asking for the %s compression library, but this is not installed locally.
+  Defaulting to zlib instead!.""" %(complib))
+                self._v_complib = "zlib"   # Should always exists
 
     def _newBuffer(self, init=0):
         """Create a new recarray buffer for I/O purposes"""
@@ -227,7 +240,7 @@ class Table(Leaf, hdf5Extension.Table):
         self._v_fmt = self.description._v_fmt
         self._calcBufferSize(self._v_expectedrows)
         # Create the table on disk
-        self._createTable(self.title)
+        self._createTable(self.title, self._v_complib)
         # Initialize the shape attribute
         self.shape = (self.nrows,)
         # Get the column types
@@ -239,7 +252,6 @@ class Table(Leaf, hdf5Extension.Table):
         # Create the arrays for buffering
         self._v_buffer = self._newBuffer()
         self.row = hdf5Extension.Row(self._v_buffer, self)
-        #self.row = Row(self._v_buffer)
                          
     def _open(self):
         """Opens a table from disk and read the metadata on it.
@@ -362,13 +374,14 @@ class Table(Leaf, hdf5Extension.Table):
             # overhead needed to traverse the BTree.
             buffersize = 60 * bufmultfactor
             chunksize = 16384
-        # Correction for compression. Double the chunksize
-        # to improve compression level
+        # Correction for compression.
         if compress:
-            #chunksize *= 2
+            chunksize = 1024   # This seems optimal for compression
             pass
+
         # Max Tuples to fill the buffer
         self._v_maxTuples = buffersize // rowsize
+        #self._v_maxTuples = 100  # For testing only!
         # A new correction for avoid too many calls to HDF5 I/O calls
         # But this does not apport advantages rather the contrary,
         # the memory comsumption grows, and performance is worse.
@@ -388,7 +401,7 @@ class Table(Leaf, hdf5Extension.Table):
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
         
-    def _fetchall(self):
+    def _fetchall_orig(self):
         """Return an iterator yielding record instances built from rows
 
         This method is a generator, i.e. it keeps track on the last
@@ -409,7 +422,7 @@ class Table(Leaf, hdf5Extension.Table):
             # size for all levels a factor of ten.
             # This has made the performance to increase between a
             # 10% and 300%, depending on the working set size
-            recout = self._read_records(i, nrowsinbuf, buffer)
+            recout = self._read_records_orig(i, nrowsinbuf, buffer)
             #recout = nrowsinbuf
             if self.byteorder <> sys.byteorder:
                 buffer.byteswap()
@@ -419,11 +432,39 @@ class Table(Leaf, hdf5Extension.Table):
             for j in xrange(recout):
                 yield row()
         
+    def _fetchall(self):
+        """Iterate over all the rows
+
+        This method is a generator, i.e. it keeps track on the last
+        record returned so that next time it is invoked it returns the
+        next available record.
+
+        """
+        # Create a buffer for the readout
+        nrowsinbuf = self._v_maxTuples
+        buffer = self._v_buffer
+        self._open_read(buffer)  # Open the table for reading
+        row = self.row   # get the pointer to the Row object
+        row._initLoop(0, self.nrows, 1, nrowsinbuf)
+        for i in xrange(0, self.nrows, nrowsinbuf):
+            recout = self._read_records(i, nrowsinbuf)
+            #recout = nrowsinbuf
+            if self.byteorder <> sys.byteorder:
+                buffer.byteswap()
+            # Set the buffer counter
+            # Case for step=1
+            row._setBaseRow(i, 0)
+            for j in xrange(recout):
+                yield row()
+                
+        self._close_read()  # Close the table
+        
     def _fetchrange(self, start, stop, step):
         """Iterate over a range of rows"""
         row = self.row   # get the pointer to the Row object
         nrowsinbuf = self._v_maxTuples   # Shortcut
         buffer = self._v_buffer  # Shortcut to the buffer
+        self._open_read(buffer)  # Open the table for reading
         # Some start values for the main loop
         nrowsread = start
         startb = 0
@@ -440,7 +481,7 @@ class Table(Leaf, hdf5Extension.Table):
             if stopb > nrowsinbuf:
                 stopb = nrowsinbuf
             # Read a chunk
-            nrowsread += self._read_records(i, nrowsinbuf, buffer)
+            nrowsread += self._read_records(i, nrowsinbuf)
             if self.byteorder <> sys.byteorder:
                 buffer.byteswap()
             # Set the buffer counter
@@ -451,6 +492,8 @@ class Table(Leaf, hdf5Extension.Table):
             # Compute some indexes for the next iteration
             startb = (j+step) % nrowsinbuf
             nextelement += step
+
+        self._close_read()  # Close the table
 
     def _processRange(self, start=None, stop=None, step=None):
         
@@ -490,6 +533,7 @@ class Table(Leaf, hdf5Extension.Table):
 
     def _readAllFields(self, start=None, stop=None, step=None):
         """Read a range of rows and return a RecArray"""
+
         (start, stop, step) = self._processRange(start, stop, step)
         # Create a recarray for the readout
         if start >= stop:
@@ -505,6 +549,7 @@ class Table(Leaf, hdf5Extension.Table):
         nrowsinbuf = self._v_maxTuples   # Shortcut
         #nrowsinbuf = 3   # Small value is useful when debugging
         buffer = self._v_buffer  # Get a recarray as buffer
+        self._open_read(buffer)  # Open the table for reading
         nrowsread = start
         startr = 0
         startb = 0
@@ -520,7 +565,7 @@ class Table(Leaf, hdf5Extension.Table):
                 stopb = nrowsinbuf
             stopr = startr + ((stopb-startb-1)//step) + 1
             # Read a chunk
-            nrowsread += self._read_records(i, nrowsinbuf, buffer)
+            nrowsread += self._read_records(i, nrowsinbuf)
             # Assign the correct part to result
             result[startr:stopr] = buffer[startb:stopb:step]
             # Compute some indexes for the next iteration
@@ -528,6 +573,8 @@ class Table(Leaf, hdf5Extension.Table):
             j = range(startb, stopb, step)[-1]
             startb = (j+step) % nrowsinbuf
             nextelement += step
+
+        self._close_read()  # Close the table
 
         # Set the byteorder properly
         result._byteorder = self.byteorder
@@ -568,6 +615,7 @@ class Table(Leaf, hdf5Extension.Table):
         # Setup a buffer for the readout
         nrowsinbuf = self._v_maxTuples   # Shortcut
         buffer = self._v_buffer  # Get a recarray as buffer
+        self._open_read(buffer)  # Open the table for reading
         nrowsread = start
         startr = 0
         startb = 0
@@ -583,7 +631,7 @@ class Table(Leaf, hdf5Extension.Table):
                 stopb = nrowsinbuf
             stopr = startr + ((stopb-startb-1)//step) + 1
             # Read a chunk
-            nrowsread += self._read_records(i, nrowsinbuf, buffer)
+            nrowsread += self._read_records(i, nrowsinbuf)
             #nrowsread += nrowsinbuf
             # Assign the correct part to result
             # The bottleneck is in this assignment. Hope that the numarray
@@ -594,6 +642,8 @@ class Table(Leaf, hdf5Extension.Table):
             j = range(startb, stopb, step)[-1]
             startb = (j+step) % nrowsinbuf
             nextelement += step
+
+        self._close_read()  # Close the table
 
         # Set the byteorder properly
         result._byteorder = self.byteorder
@@ -702,6 +752,7 @@ class Table(Leaf, hdf5Extension.Table):
             else:
                 buffer = numarray.array(shape=(nrowsinbuf, ), type=typeField)
             typesize *= buffer._type.bytes
+        self._open_read(buffer)  # Open the table for reading
         nrowsread = start
         startr = 0
         startb = 0
@@ -718,7 +769,7 @@ class Table(Leaf, hdf5Extension.Table):
             stopr = startr + ((stopb-startb-1)//step) + 1
             # Read a chunk
             #nrowsread += self._read_records(i, nrowsinbuf, buffer)
-            nrowsread += self._read_field_name(field, i, nrowsinbuf, buffer)
+            nrowsread += self._read_field_name(field, i, nrowsinbuf)
             #nrowsread += nrowsinbuf
             # Assign the correct part to result
             # The bottleneck is in this assignment. Hope that the numarray
@@ -730,6 +781,8 @@ class Table(Leaf, hdf5Extension.Table):
             j = range(startb, stopb, step)[-1]
             startb = (j+step) % nrowsinbuf
             nextelement += step
+
+        self._close_read()  # Close the table
 
         # Set the byteorder properly
         result._byteorder = self.byteorder

@@ -44,12 +44,14 @@ herr_t H5TBmake_table( const char *table_title,
                        hsize_t nfields,
                        hsize_t nrecords,
                        size_t type_size,
-                       const char *field_names[],
+                       /* const char *field_names[], */
+                       char *field_names[],
                        const size_t *field_offset,
                        const hid_t *field_types,
                        hsize_t chunk_size,
                        void *fill_data,
                        int compress,
+		       char *complib,
                        const void *data );
 
 

@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.29 2003/03/16 14:07:48 falted Exp $
+#       $Id: File.py,v 1.30 2003/04/28 17:45:59 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.29 $"
+__version__ = "$Revision: 1.30 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -337,7 +337,7 @@ class File(hdf5Extension.File):
 
 
     def createTable(self, where, name, description, title = "",
-                    compress = 3, expectedrows = 10000):
+                    compress = 0, complib = "zlib", expectedrows = 10000):
 
         """Create a new Table instance with name "name" in "where" location.
         
@@ -365,6 +365,9 @@ class File(hdf5Extension.File):
             default is compression level 3, that balances between
             compression effort and CPU consumption.
 
+        complib -- Specifies the compression library to be used. Right
+            now, "zlib", "lzo" and "ucl" values are supported.
+
         expectedrows -- An user estimate about the number of rows
             that will be on table. If not provided, the default value
             is appropiate for tables until 1 MB in size (more or less,
@@ -376,7 +379,10 @@ class File(hdf5Extension.File):
         """
     
         group = self.getNode(where, classname = 'Group')
-        object = Table(description, title, compress, expectedrows)
+        if complib not in ["zlib","lzo","ucl"]:
+            raise ValueError, "Wrong \'complib\' parameter value: '%s'" % \
+                  (str(complib))
+        object = Table(description, title, compress, complib, expectedrows)
         setattr(group, name, object)
         return object
 

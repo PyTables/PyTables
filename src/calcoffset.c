@@ -45,7 +45,7 @@ static const formatdef *getentry(int c, const formatdef *f)
 	}
 #ifdef DEBUG
         printf("Error: bad char <%c> in struct format\n", c);
-#endif DEBUG
+#endif /* DEBUG */
 	return NULL;
 }
 
@@ -165,7 +165,7 @@ static hid_t conventry(int c, int numel)
     default:
 #ifdef DEBUG
       printf("Error: bad char <%c> in struct format\n", c);
-#endif DEBUG
+#endif /* DEBUG */
       return -1;
    }
 }
@@ -217,7 +217,7 @@ int calcoffset(char *fmt, size_t *offsets)
 	       printf("overflow in item count\n");
 	       return -1;
 	    }
-#endif DEBUG
+#endif /* DEBUG */
 	    num = x;
 	 }
 	 if (c == '\0')
@@ -258,12 +258,12 @@ int calcoffset(char *fmt, size_t *offsets)
 	 printf("total struct size too long\n");
 	 return -1;
       }
-#endif DEBUG
+#endif /* DEBUG */
    }
 
 #ifdef PRINT
    printf("The size computed in calcoffset is %d\n", size);
-#endif PRINT
+#endif /* PRINT */
 
    return nattrib;
 }
@@ -299,7 +299,7 @@ calctypes(fmt, types, size_types)
 	       printf("overflow in item count\n");
 	       return -1;
 	    }
-#endif DEBUG
+#endif /* DEBUG */
 	    num = x;
 	 }
 	 if (c == '\0')
@@ -342,12 +342,12 @@ calctypes(fmt, types, size_types)
 	 printf("total struct size too long\n");
 	 return -1;
       }
-#endif DEBUG
+#endif /* DEBUG */
    }
 
 #ifdef PRINT
    printf("The size computed in calctypes is %d\n", size);
-#endif PRINT
+#endif /* PRINT */
 
 /*    return nattrib; */
    return size;
@@ -390,4 +390,4 @@ int main(int args, char *argv[])
        printf(" %d,", size_types[i]);
      printf("\n");
 }
-#endif MAIN
+#endif /* MAIN */

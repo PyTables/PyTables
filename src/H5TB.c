@@ -12,6 +12,8 @@
 
 
 #include "H5TB.h"
+#include "H5Zlzo.h"
+#include "H5Zucl.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -67,12 +69,16 @@ herr_t H5TBmake_table( const char *table_title,
                        hsize_t nfields,
                        hsize_t nrecords,
                        size_t type_size,
-                       const char *field_names[],
+		       /* This has been changed to remove a Pyrex/gcc
+			  warning */
+                       /* const char *field_names[], */
+                       char *field_names[],
                        const size_t *field_offset,
                        const hid_t *field_types,
                        hsize_t chunk_size,
                        void *fill_data,
                        int compress,
+		       char *complib,
                        const void *data ) 
 {
 
@@ -92,6 +98,7 @@ herr_t H5TBmake_table( const char *table_title,
  char    aux[255];
  hsize_t i;
  unsigned char *tmp_buf;
+ unsigned int cd_values[1];
 
  dims[0]       = nrecords;
  dims_chunk[0] = chunk_size;
@@ -143,10 +150,28 @@ herr_t H5TBmake_table( const char *table_title,
   */
  if ( compress )
  {
-  /* Modified this to use the compress level stated in compress */
-  /* if ( H5Pset_deflate( plist_id, 6) < 0 ) */
-  if ( H5Pset_deflate( plist_id, compress) < 0 ) 
-   return -1;
+   /* The default compressor in HDF5 (zlib) */
+   if (strcmp(complib, "zlib") == 0) {
+     /* Modified this to use the compress level stated in compress */
+     /*   if ( H5Pset_deflate( plist_id, 6) < 0 ) */
+     if ( H5Pset_deflate( plist_id, compress) < 0 )
+       return -1;
+   }
+   /* The LZO compressor does not accept parameters */
+   else if (strcmp(complib, "lzo") == 0) {
+     if ( H5Pset_filter( plist_id, FILTER_LZO, 0, 0, NULL) < 0 )
+       return -1;
+   }
+   /* The UCL compress does accept parameters */
+   else if (strcmp(complib, "ucl") == 0) {
+     cd_values[0] = compress;
+     if ( H5Pset_filter( plist_id, FILTER_UCL, 0, 1, cd_values) < 0 )
+       return -1;
+   }
+   else {
+     /* Compression library not supported */
+     return -1;
+   }
  }
   
  /* Create the dataset. */
@@ -365,6 +390,14 @@ herr_t H5TBappend_records( hid_t loc_id,
 
   if ( H5Tinsert(mem_type_id, field_names[i], field_offset[i], member_type_id ) < 0 )
    goto out;
+
+  /* Close the member datatype. */
+  /* This solves a relatively large memory leak, specially when this function
+     is invoked a lot.
+     F. Alted. 2003/04/20 */
+  if ( H5Tclose( member_type_id ) < 0 )
+     goto out; 
+
  }
 
 
@@ -515,6 +548,14 @@ herr_t H5TBwrite_records( hid_t loc_id,
 
   if ( H5Tinsert(mem_type_id, field_names[i], field_offset[i], member_type_id ) < 0 )
    goto out;
+
+  /* Close the member datatype. */
+  /* This solves a relatively large memory leak, specially when this function
+     is invoked a lot.
+     F. Alted. 2003/04/20 */
+  if ( H5Tclose( member_type_id ) < 0 )
+     goto out; 
+
  }
 
  /* Get the dataspace handle */
@@ -1048,6 +1089,14 @@ herr_t H5TBread_records( hid_t loc_id,
 
   if ( H5Tinsert(mem_type_id, field_names[i], field_offset[i], member_type_id ) < 0 )
    goto out;
+
+  /* Close the member datatype. */
+  /* This solves a relatively large memory leak, specially when this function
+     is invoked a lot.
+     F. Alted. 2003/04/20 */
+  if ( H5Tclose( member_type_id ) < 0 )
+     goto out; 
+
  }
 
   /* Get the dataspace handle */
@@ -1831,6 +1880,14 @@ herr_t H5TBinsert_record( hid_t loc_id,
 
   if ( H5Tinsert(mem_type_id, field_names[i], field_offset[i], member_type_id ) < 0 )
    goto out;
+
+  /* Close the member datatype. */
+  /* This solves a relatively large memory leak, specially when this function
+     is invoked a lot.
+     F. Alted. 2003/04/20 */
+  if ( H5Tclose( member_type_id ) < 0 )
+     goto out; 
+
  }
 
 
@@ -2279,6 +2336,13 @@ herr_t H5TBcombine_tables( hid_t loc_id1,
     
    if ( H5Aclose( attr_id ) < 0 )
     goto out;
+
+  /* Close the member datatype. */
+  /* This solves a relatively large memory leak, specially when this function
+     is invoked a lot.
+     F. Alted. 2003/04/20 */
+  if ( H5Tclose( member_type_id ) < 0 )
+     goto out; 
 
   }
 
@@ -2877,6 +2941,13 @@ herr_t H5TBinsert_field( hid_t loc_id,
    if ( H5Aclose( attr_id ) < 0 )
     goto out;
 
+  /* Close the member datatype. */
+  /* This solves a relatively large memory leak, specially when this function
+     is invoked a lot.
+     F. Alted. 2003/04/20 */
+  if ( H5Tclose( member_type_id ) < 0 )
+     goto out; 
+
   }
 
   
@@ -2906,6 +2977,12 @@ herr_t H5TBinsert_field( hid_t loc_id,
    if ( H5Aclose( attr_id ) < 0 )
     goto out;
 
+  /* Close the member datatype. */
+  /* This solves a relatively large memory leak, specially when this function
+     is invoked a lot.
+     F. Alted. 2003/04/20 */
+  if ( H5Tclose( member_type_id ) < 0 )
+     goto out; 
   
  }
   
@@ -3373,6 +3450,13 @@ herr_t H5TBdelete_field( hid_t loc_id,
     
    if ( H5Aclose( attr_id ) < 0 )
     goto out;
+
+  /* Close the member datatype. */
+  /* This solves a relatively large memory leak, specially when this function
+     is invoked a lot.
+     F. Alted. 2003/04/20 */
+  if ( H5Tclose( member_type_id ) < 0 )
+     goto out; 
 
   }
   

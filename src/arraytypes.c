@@ -67,7 +67,7 @@ hid_t
     default:
 #ifdef DEBUG
       printf("Error: bad char <%c> in array format\n", fmt);
-#endif DEBUG
+#endif /* DEBUG */
       return -1;
    }
 
@@ -168,4 +168,4 @@ int main(int args, char *argv[])
    printf("The array format is %c\n", fmt);
    printf("The correspondent HDF5 variable is %d\n", convArrayType(fmt));
 }
-#endif MAIN
+#endif /* MAIN */

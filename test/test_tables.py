@@ -218,7 +218,7 @@ class BasicTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         #del self.fileh, self.rootgroup
-        os.remove(self.file)
+        #os.remove(self.file)
         
     #----------------------------------------
 
@@ -792,9 +792,8 @@ class RecArrayIO(unittest.TestCase):
 
         # Read it again
         r2 = fileh.root.recarray.read()
-
         assert r.tostring() == r2.tostring()
-        
+
         fileh.close()
         os.remove(file)
 

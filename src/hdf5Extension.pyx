@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.37 2003/03/18 18:18:59 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.38 2003/04/28 17:45:55 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.37 $"
+__version__ = "$Revision: 1.38 $"
 
 
 import sys, os
@@ -350,7 +350,7 @@ cdef extern from "H5TB.h":
                          hsize_t nrecords, size_t type_size,
                          char *field_names[], size_t *field_offset,
                          hid_t *field_types, hsize_t chunk_size,
-                         void *fill_data, int compress,
+                         void *fill_data, int compress, char *complib,
                          void *data )
                          
   herr_t H5TBappend_records ( hid_t loc_id, char *dset_name,
@@ -371,12 +371,48 @@ cdef extern from "H5TB.h":
   herr_t H5TBread_records ( hid_t loc_id, char *table_name,
                             hsize_t start, hsize_t nrecords, size_t type_size,
                             size_t *field_offset, void *data )
-  
+
   herr_t H5TBread_fields_name ( hid_t loc_id, char *table_name,
                                 char *field_names, hsize_t start,
                                 hsize_t nrecords, size_t type_size,
                                 size_t *field_offset, void *data )
+
+cdef extern from "H5TB-opt.h":
+
+  herr_t H5TBOopen_read( hid_t *dataset_id,
+                         hid_t *space_id,
+                         hid_t *mem_type_id,
+                         hid_t loc_id,
+                         char *dset_name,
+                         hsize_t nfields,
+                         char **field_names,
+                         size_t type_size,
+                         size_t *field_offset)
+
+  herr_t H5TBOread_records( hid_t *dataset_id, hid_t *space_id,
+                            hid_t *mem_type_id, hsize_t start,
+                            hsize_t nrecords, void *data )
+
+  herr_t H5TBOclose_read( hid_t *dataset_id,
+                          hid_t *space_id,
+                          hid_t *mem_type_id )
+
+
+  # These are maintained here just in case I want to use them in the future.
+  # F.Alted 2003/04/20 
+
+  herr_t H5TBOopen_append( hid_t loc_id, 
+                           char *dset_name,
+                           hsize_t nfields,
+                           size_t type_size,
+                           size_t *field_offset )
   
+  herr_t H5TBOappend_records( hsize_t nrecords,
+                              hsize_t nrecords_orig,
+                              void *data )
+
+  herr_t H5TBOclose_append( )
+
 # Declarations from PyTables local functions
 
 # Funtion to compute the offset of a struct format
@@ -398,8 +434,36 @@ cdef extern from "utils.h":
   object Giterate(hid_t loc_id, char *name)
   H5T_class_t getHDF5ClassID(hid_t loc_id, char *name)
 
+cdef int available_lzo
+cdef int available_ucl
+# LZO library
+cdef extern from "H5Zlzo.h":
+  int register_lzo()
+
+# Initialize & register lzo
+available_lzo = register_lzo()
+
+# UCL library
+cdef extern from "H5Zucl.h":
+  int register_ucl()
+
+# Initialize & register ucl
+available_ucl = register_ucl()
+
 # utility funtions (these can be directly invoked from Python)
 
+def isLibAvailable(char *name):
+    "Tell if an optional library is available or not"
+    
+    if (strcmp(name, "zlib") == 0):
+        return 1   # Should be always available
+    if (strcmp(name, "lzo") == 0):
+        return available_lzo
+    elif (strcmp(name, "ucl") == 0):
+        return available_ucl
+    else:
+        return 0
+    
 def whichClass( hid_t loc_id, char *name):
   cdef H5T_class_t class_id
 
@@ -475,7 +539,6 @@ def getHDF5Version():
   ret = H5get_libversion(&majnum, &minnum, &relnum )
   if ret < 0:
     raise RuntimeError("Problems getting the HDF5 library version.")
-  #print "Release Numbers:", majnum, minnum, relnum
   snprintf(buffer, MAX_CHARS, "%d.%d.%d", majnum, minnum, relnum )
   
   return buffer
@@ -490,7 +553,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.37 2003/03/18 18:18:59 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.38 2003/04/28 17:45:55 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -783,13 +846,15 @@ cdef class Table:
   cdef char    *fmt
   cdef char    *field_names[MAX_FIELDS]
   cdef int     compress
+  cdef char    *complib
+  cdef hid_t   dataset_id, space_id, mem_type_id
 
   def _g_new(self, where, name):
     self.name = strdup(name)
     # The parent group id for this object
     self.group_id = where._v_groupId
 
-  def _createTable(self, title):
+  def _createTable(self, title, complib):
     cdef int nvar, offset
     cdef int i, nrecords, ret, buflen
     cdef hid_t fieldtypes[MAX_FIELDS]
@@ -811,6 +876,7 @@ cdef class Table:
     if (nvar > MAX_FIELDS):
         raise IndexError("A maximum of %d fields on tables is allowed" % \
                          MAX_FIELDS)
+    self.nfields = nvar
 
     # Compute the field type sizes
     self.rowsize = calctypes(self.fmt, fieldtypes, self.field_sizes)
@@ -832,32 +898,18 @@ cdef class Table:
     fill_data = NULL
 
     self.xtitle=strdup(title)
+    self.complib=strdup(complib)
     ret = H5TBmake_table(self.xtitle, self.group_id, self.name,
                          nvar, self.nrows, self.rowsize, self.field_names,
                          self.field_offset, fieldtypes, self._v_chunksize,
-                         fill_data, self._v_compress, data)
+                         fill_data, self._v_compress, self.complib, data)
     if ret < 0:
       raise RuntimeError("Problems creating the table")
     
-    
-  def _append_records0(self, PyStringObject records, int nrecords):
-    cdef int ret
-
-    #print "About to save %d records..." % nrecords
-    # Append the records:
-    ret = H5TBappend_records(self.group_id, self.name, nrecords,
-                   self.rowsize, self.field_offset, <void *>records.ob_sval)
-    if ret < 0:
-      raise RuntimeError("Problems appending the records")
-    #print "After saving %d records..." % nrecords
-    self.totalrecords = self.totalrecords + nrecords
-
-  # _append_records0 and append_records perfom similar speed (!)
   def _append_records(self, object recarr, int nrecords):
     cdef int ret, buflen
     cdef void *rbuf
 
-    #print "About to save %d records..." % nrecords
     # Get the pointer to the buffer data area
     ret = PyObject_AsWriteBuffer(recarr._data, &rbuf, &buflen)    
     if ret < 0:
@@ -868,9 +920,42 @@ cdef class Table:
                    self.rowsize, self.field_offset, rbuf)
     if ret < 0:
       raise RuntimeError("Problems appending the records")
-    #print "After saving %d records..." % nrecords
+
     self.totalrecords = self.totalrecords + nrecords
 
+  def _open_append(self, object recarr):
+    cdef int buflen, ret
+
+    # Get the pointer to the buffer data area
+    ret = PyObject_AsWriteBuffer(recarr._data, &self.rbuf, &buflen)
+    if ret < 0:
+      raise RuntimeError("Problems getting the pointer to the buffer.")
+
+    # Readout to the buffer
+    if ( H5TBOopen_append(self.group_id, self.name, self.nfields,
+                          self.rowsize, self.field_offset) < 0 ):
+      raise RuntimeError("Problems opening table for append.")
+
+  def _append_records2(self, object recarr, int nrecords):
+    cdef int ret,
+    cdef void *rbuf
+
+    self._open_append(recarr)
+    
+    # Append the records:
+    ret = H5TBOappend_records(nrecords, self.totalrecords, self.rbuf)
+    if ret < 0:
+      raise RuntimeError("Problems appending the records.")
+
+    self.totalrecords = self.totalrecords + nrecords
+    self._close_append()
+    
+  def _close_append(self):
+
+    # Close the table for append
+    if ( H5TBOclose_append() < 0 ):
+      raise RuntimeError("Problems closing table for append.")
+    
   def _getTableInfo(self):
     "Get info from a table on disk. This method is standalone."
     cdef int     i, ret
@@ -925,10 +1010,9 @@ cdef class Table:
     # Return the buffer as a Python String
     return (nrecords, names_tuple, fmt)
 
-  def _read_records(self, hsize_t start, hsize_t nrecords,
-                   object recarr):
+  def _read_records_orig(self, hsize_t start, hsize_t nrecords,
+                         object recarr):
     cdef herr_t ret
-    cdef void *rbuf
     cdef int buflen, ret2
 
     # Correct the number of records to read, if needed
@@ -947,7 +1031,40 @@ cdef class Table:
 
     return nrecords
 
-  def _read_field_name(self, char *field_name, hsize_t start,
+  def _open_read(self, object recarr):
+    cdef int buflen
+
+    # Get the pointer to the buffer data area
+    if ( PyObject_AsWriteBuffer(recarr._data, &self.rbuf, &buflen) < 0 ):
+      raise RuntimeError("Problems getting the pointer to the buffer")
+
+    # Readout to the buffer
+    if ( H5TBOopen_read(&self.dataset_id, &self.space_id, &self.mem_type_id,
+                        self.group_id, self.name, self.nfields,
+                        self.field_names, self.rowsize,
+                        self.field_offset) < 0 ):
+      raise RuntimeError("Problems opening table for read.")
+
+  def _read_records(self, hsize_t start, hsize_t nrecords):
+
+    # Correct the number of records to read, if needed
+    if (start + nrecords) > self.totalrecords:
+      nrecords = self.totalrecords - start
+
+    if ( H5TBOread_records(&self.dataset_id, &self.space_id,
+                           &self.mem_type_id, start,
+                           nrecords, self.rbuf) < 0 ):
+      raise RuntimeError("Problems reading records.")
+
+    return nrecords
+
+  def _close_read(self):
+
+    if ( H5TBOclose_read(&self.dataset_id, &self.space_id,
+                         &self.mem_type_id) < 0 ):
+      raise RuntimeError("Problems closing table for read.")
+    
+  def _read_field_name_orig(self, char *field_name, hsize_t start,
                        hsize_t nrecords, object recarr):
     cdef herr_t ret
     cdef void *rbuf
@@ -974,16 +1091,35 @@ cdef class Table:
 
     return nrecords
 
+  def _read_field_name(self, char *field_name, hsize_t start,
+                       hsize_t nrecords):
+    cdef herr_t ret
+    cdef int i, fieldpos
+
+    # Correct the number of records to read, if needed
+    if (start + nrecords) > self.totalrecords:
+      nrecords = self.totalrecords - start
+
+    for i in range(self.nfields):
+      if strcmp(self.field_names[i], field_name) == 0:
+        fieldpos = i
+        
+    # Readout to the buffer
+    ret = H5TBread_fields_name(self.group_id, self.name, field_name,
+                               start, nrecords, self.field_sizes[fieldpos],
+                               self.field_offset, self.rbuf )
+
+    if ret < 0:
+      raise RuntimeError("Problems reading records.")
+
+    return nrecords
+
   def __dealloc__(self):
     cdef int ret
     #print "Destroying object Table in Extension"
     free(<void *>self.name)
 
 cdef class Row:
-  cdef object _fields, _array, _table, _saveBufferedRows
-  cdef int _row, _nbuf, _nrow, _unsavednrows, _maxTuples
-  cdef int start, stop, step, nextelement, nrowsinbuf
-
   """Row Class
 
   This class hosts accessors to a recarray row. The fields on a
@@ -992,6 +1128,10 @@ cdef class Row:
   is recommended because it is faster.
     
   """
+
+  cdef object _fields, _array, _table, _saveBufferedRows
+  cdef int _row, _nbuf, _nrow, _unsavednrows, _maxTuples
+  cdef int start, stop, step, nextelement, nrowsinbuf
 
   def __new__(self, input, table):
     self._array = input
@@ -1059,11 +1199,12 @@ cdef class Row:
     self._unsavednrows = self._unsavednrows + 1
     return self._unsavednrows
 
-  # This is twice as faster than __getattr__ because no lookup in local
-  # dictionary
+  # This is twice as faster than __getattr__ because there is not a lookup
+  # in the local dictionary
   def __getitem__(self, fieldName):
     try:
       return self._fields[fieldName][self._row]
+      #return 40
     except:
       (type, value, traceback) = sys.exc_info()
       raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
@@ -1165,7 +1306,8 @@ cdef class Array:
       byteorder = strcache
     elif isinstance(arr, chararray.CharArray):
       self.type = CharType
-      self.enumtype = 'a'
+      #self.enumtype = 'a'
+      self.enumtype = toenum[CharType]
       # Get a contiguous chararray object (well-behaved buffer)
       array = arr.contiguous()
       itemsize = array._itemsize

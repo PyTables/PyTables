@@ -54,7 +54,7 @@ herr_t gitercb(hid_t loc_id, const char *name, void *data) {
     strcpy(out_info->name, name);
 #ifdef DEBUG
     printf("object name=%s\n",name);
-#endif DEBUG
+#endif
 
     /*
      * Get type of the object and check it.
@@ -67,7 +67,7 @@ herr_t gitercb(hid_t loc_id, const char *name, void *data) {
     printf("Object type ==> %d\n", out_info->type); */
 #ifdef DEBUG
     printf("statbuf.type=%d\n",statbuf.type);
-#endif DEBUG
+#endif
     
     return(1);     /* Exit after this object is visited */
     /* return(0); */  /* Loop until no more objects remain in directory */
@@ -94,18 +94,18 @@ PyObject *Giterate(hid_t loc_id, const char *name) {
     if (i <= MAX_CHILDS_IN_GROUP) {
 #ifdef DEBUG
       printf("Object type ==> %d\n", info.type);
-#endif DEBUG
+#endif
       if (info.type == H5G_GROUP) {
 	namesdir[j++] = strdup(info.name);
 #ifdef DEBUG
 	printf("Dir name ==> %s\n", info.name);
-#endif DEBUG
+#endif
       }
       else if (info.type == H5G_DATASET) {
 	namesdset[k++] = strdup(info.name);
 #ifdef DEBUG
 	printf("Dataset name ==> %s\n", info.name);
-#endif DEBUG
+#endif
       }
     }
     else {
@@ -118,7 +118,7 @@ PyObject *Giterate(hid_t loc_id, const char *name) {
   totalobjects = i;
 #ifdef DEBUG
   printf("Total numer of objects ==> %d\n", totalobjects);
-#endif DEBUG
+#endif
   tdir  = createNamesTuple(namesdir, j);
   tdset = createNamesTuple(namesdset, k);
   t = PyTuple_New(2);
