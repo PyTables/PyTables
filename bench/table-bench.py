@@ -160,10 +160,10 @@ def readFile(filename, recsize, verbose):
                 #      if p.grid_i < 2 ]
                 #e = [ str(p) for p in table.iterrows() ]
                 #      if p.grid_i < 2 ]
-                e = [ p['grid_i'] for p in table.iterrows() 
-                      if p['grid_j'] == 20 and p['grid_i'] < 20 ]
 #                 e = [ p['grid_i'] for p in table.iterrows() 
-#                       if p['grid_j'] == 20 ]
+#                       if p['grid_j'] == 20 and p['grid_i'] < 20 ]
+                e = [ p['grid_i'] for p in table.iterrows() 
+                      if p['grid_j'] == 20 ]
 #                 e = [ p['grid_i'] for p in table.iterrows() 
 #                       if p.nrow() == 20 ]
 #                 e = [ table.delrow(p.nrow()) for p in table.iterrows() 

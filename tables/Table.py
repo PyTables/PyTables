@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.59 2003/07/21 16:51:28 falted Exp $
+#       $Id: Table.py,v 1.60 2003/07/21 20:06:25 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.59 $"
+__version__ = "$Revision: 1.60 $"
 
 from __future__ import generators
 import sys
@@ -450,18 +450,38 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
         
-    def _fetchall_new(self):
+    def __iter__(self):
         """Iterate over all the rows
 
-        This method returns an iterator, i.e. it keeps track on the last
+        This method is a true python iterator.
+        """
+
+        # It is not possible to call the _open_read() method in the Row class.
+        # If we do this, we get weird things when reading a table after a
+        # Table.flush() without closing and re-opening it!.
+        # The test_tree.TreeTestCase detects the problem! 
+        # 2003/07/21
+        self._open_read(self._v_buffer)  # Open the table for reading
+        return iter(self.row)
+
+    def _fetchall(self):
+        """Iterate over all the rows
+
+        This method is a generator, i.e. it keeps track on the last
         record returned so that next time it is invoked it returns the
-        next available record until data is exhausted.
+        next available record.
 
         """
-        
+
+        # It is not possible to call the _open_read() method in the Row class.
+        # If we do this, we get weird things when reading a table after a
+        # Table.flush() without closing and re-opening it!.
+        # The test_tree.TreeTestCase detects the problem! 
+        # 2003/07/21
+        self._open_read(self._v_buffer)  # Open the table for reading
         return iter(self.row)
-        
-    def _fetchall(self):
+
+    def _fetchall_orig(self):
         """Iterate over all the rows
 
         This method is a generator, i.e. it keeps track on the last

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.64 2003/07/21 16:51:23 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.65 2003/07/21 20:06:25 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.64 $"
+__version__ = "$Revision: 1.65 $"
 
 
 import sys, os
@@ -720,7 +720,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.64 2003/07/21 16:51:23 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.65 2003/07/21 20:06:25 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1491,22 +1491,24 @@ cdef class Row:
     self.stop = stop
     self.step = step
     self.nrowsinbuf = self._table._v_maxTuples
-
+    self.bufcounter = 0             # We have fetch the first buffer
+    self._nrow = -1                 # Start a loop
+    
   def __call__(self):
     """ return the row for this record object and update counters"""
     self._row = self._row + 1
     self._nrow = self._nrowinbuf + self._row
     return self
 
-  # The iterator is only valid for fetch all the rows in a table
   def __iter__(self):
     "Iterator that traverses all the data in the Table"
-    
-    self._table._open_read(self._recarray)  # Open the table for reading
+
     self.nrows = self._table.nrows  # Need to refresh this value here
     self._initLoop(0, self.nrows, 1)      # Do some loop initialization
-    self.bufcounter = 0             # We have fetch the first buffer
-    self._nrow = -1                 # Start a loop
+    # It is not possible to call the _open_read() method here. If we do this,
+    # we get weird things when reading a table after a Table.flush() without
+    # closing and re-opening it!. 2003/07/21
+    #self._table._open_read(self._recarray)  # Open the table for reading
     return self
 
   def __next__(self):
@@ -1520,15 +1522,15 @@ cdef class Row:
     else:
       if self.nrow1 >= self.bufcounter:
         #print "self.nrow1-->", self.nrow1
-        self.recout = self._table._read_records(self.nrow1,
-                                                self.nrowsinbuf)
+        self.recout = self._table._read_records(self.nrow1, self.nrowsinbuf)
         if self._table.byteorder <> sys.byteorder:
-          #self._recarray.byteswap()
           self._recarray._byteswap()
-          #self._recarray.togglebyteorder()
 
         self.bufcounter = self.bufcounter + self.nrowsinbuf
-        self._setBaseRow(self.nrow1, 0)
+        #self._setBaseRow(self.nrow1, 0)
+        # The next lines are equivalent
+        #self._nrowinbuf = start    # This is not necessary in this context
+        self._row = 0 - self.step
 
       # The next is equivalent to "return self()"
       self._row = self._row + 1

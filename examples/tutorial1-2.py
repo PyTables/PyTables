@@ -202,7 +202,8 @@ for r in table.iterrows():
        (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'], 
         r['TDCcount'])
 
-for r in table.row:
+print "-- Using the table iterator:"
+for r in table:
     print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
        (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'], 
         r['TDCcount'])
