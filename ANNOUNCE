@@ -1,34 +1,64 @@
-Announcing PyTables 0.4
------------------------
+Announcing PyTables 0.4.5
+-------------------------
 
-This is the first public beta release because it has been thoroughly
-tested. Besides, from now on, the API will remain mostly stable, so
-you can start using PyTables now with the guarantee that your code
-will (well, mostly ;-) also work in the future. The large amount of
-unit tests included in PyTables will also ensure the backward
-compatibility as well as the quality of future releases will remain at
-least as good as it is now (although hopefully it should increase!).
+This is the second public beta release. On this release you will find
+a 20% of improvement over the last public release, some bugs has been
+fixed and support for a couple of compression (LZO and UCL) libraries
+has been added. And... a Windows version is finally available!.
+
 
 What's new
 -----------
 
-- First beta release (programming API will be stable)
+- Second beta release (programming API is stable).
 
-- numarray objects (NumArray, CharArray and RecArray) supported
+- PyTables has been tested against newest numarray 0.5 and it works
+  just fine. It even works well with Python 2.3b1.
 
-- As a consequence of a large internal code redesign (numarray is at
-  the core of PyTables now), performance has been improved by a factor
-  of 10 (see "How Fast Is It?" section)
+- As a consequence of some twiking the write/read performance has been
+  improved by a 20% overall (numarray 0.5 performance improvements
+  also helped here). Now, the reading speed is reaching its
+  theoretical maximum (at least when using Python).
 
-- It consumes far less memory than previous version
+- Support for two new compression libraries: LZO and UCL
+  (http://www.oberhumer.com/opensource/). These libraries are made by
+  Markus F.X.J. Oberhumer, and they stand for allowing *very* fast
+  decompression. Now, if your data is compressible, you can obtain
+  better reading speed than if not using compression at all!. The
+  improvement is still more noticeable if your are dealing with
+  extremely large (and compressible) data sets.
 
-- Support for reading generic HDF5 files added (!)
+- A couple of memory leaks has been isolated and fixed (it was very
+  hard, but finally I succeeded!).
 
-- Some bugs and memory leaks existing in 0.2 solved
+- A bug with column ordering of tables that happens in some special
+  situations has been fixed (thanks to Stan Heckman for reporting this
+  and suggesting the patch).
 
-- Updated documentation
+- The compression was enabled by default in version 0.4, despite of
+  what was stated in the documentation. Now, this has been corrected
+  and compression is *disabled* by default.
 
-- Added more unit tests (more than 200 now!)
+- When reading a Table object, and the user wants to fetch column
+  elements which are unidimensional arrays, a copy is delivered
+  automatically to him, so there is no need to make a call to .copy()
+  method of the numarray arrays anymore. It think this is more
+  comfortable for the user.
+
+- File class has now an 'isopen' attribute in order to check if a file
+  is open or not.
+
+- Updated documentation, specially for giving advice about the use of
+  the new compression libraries. See "Compression issues" subsection,
+  (also on the web:
+  http://pytables.sourceforge.net/html-doc/usersguide-html.html)
+
+- Added more unit tests (218 now!)
+
+- And last, but not least, a Windows version is available!. Thanks to
+  Alan McIntyre for its porting!. There is even a binary ready for
+  click and install.
+
 
 What it is
 ----------
@@ -78,13 +108,14 @@ times faster than cPickle and between 8 and 10 times faster than
 struct.
 
 When compared with SQLite (http://www.sqlite.org/), one of the fastest
-(free) relational databases available, PyTables achieves between a 60%
-and 80% the speed of SQLite during selects of dataset sizes that fit
+(free) relational databases available, PyTables achieves between a 70%
+and 90% the speed of SQLite during selects of dataset sizes that fit
 in the O.S. filesystem memory cache. However, when those sizes does
 not fit in the cache (i.e. when dealing with large amounts of data),
 PyTables beats SQLite by a factor of 2 or even more (depending on the
 kind of record selected), and its performance in this case is only
-limited by the I/O speed of the disk subsystem.
+limited by the I/O speed of the disk subsystem. Besides, if data is
+compressible, the advantage is even better.
 
 Go to http://pytables.sourceforge.net/doc/PyCon.html#section4 for a
 detailed description on the conducted benchmarks.
@@ -98,8 +129,8 @@ also passed all the tests on a UltraSparc platform with Solaris 7 and
 Solaris 8. It also compiles and passes all the tests on a SGI
 Origin2000 with MIPS R12000 processors and running IRIX 6.5.
 
-If you are using Windows and you get the library to work, please let
-me know.
+With Windows, I've only tested (all the tests passes) PyTables with
+XP, but it should work just fine with other flavors.
 
 An example?
 -----------

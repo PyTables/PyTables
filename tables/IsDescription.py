@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.3 2003/05/07 07:31:44 falted Exp $
+#       $Id: IsDescription.py,v 1.4 2003/05/07 19:34:32 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.3 $"
+__version__ = "$Revision: 1.4 $"
 
 
 import warnings
@@ -152,13 +152,11 @@ print p
 
         # define as local functions the __init__ and __repr__ that we'll
         # use in the new class
-
         def __init__(self, **kw):
             """ Simplistic __init__: first set all attributes to default
                 values, then override those explicitly passed in kw.
             """
             # Initialize this values
-            #print "dflts ==>", self.__dflts__
             for k in self.__dflts__: setattr(self, k, self.__dflts__[k])
 
             # Initialize the values passed as keyword parameters
@@ -168,13 +166,6 @@ print p
 	def __repr__(self):
             """ Gives a Table representation ready to be passed to eval
             """
-            #rep = [ '%s=%r' % (k, getattr(self, k)) for k in self.__slots__ ]
-#             if classname:
-#                 rep = [ '%s = Col(\"%r\", %r)' %  \
-#                         (k, self.__types__[k], self._v_shapes[k])
-#                         for k in self.__slots__ ]
-#                 return '%s(IsDescription):\n   %s)' % (classname, '\n   '.join(rep))
-#             else:
             rep = [ '\"%s\": Col(\"%r\", %r)' %  \
                     (k, self.__types__[k], self._v_shapes[k])
                     for k in self.__slots__ ]
@@ -191,13 +182,11 @@ print p
         # Moved out of scope
         def _f_del__(self):
             print "Deleting IsDescription object"
-            pass
 
         def testtype(object):
             """Test if datatype is valid and returns a default value for
             each one.
             """
-            #datatype = tostructfmt[object.type]
             datatype = object.rectype
             if datatype in ('b', 'B', 'h', 'H', 'i', 'I', 'l', 'L', 'q', 'Q'):
                 dfltvalue = int(0)
@@ -227,10 +216,6 @@ print p
 
         def cmpkeys(key1, key2):
             """Helps .sort() to respect pos field in type definition"""
-            # This is buggy, as Stan Heckman remarked
-#             if (key1.startswith('__') or key1.startswith('_v_') or
-#                 key2.startswith('__') or key2.startswith('_v_')):
-#                 return 0
             # Do not try to order variables that starts with special
             # prefixes
             if ((key1.startswith('__') or key1.startswith('_v_')) and

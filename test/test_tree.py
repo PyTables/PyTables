@@ -73,7 +73,7 @@ class TreeTestCase(unittest.TestCase):
     
     def tearDown(self):
         # Close the file
-        if self.h5file._isopen:
+        if self.h5file.isopen:
             self.h5file.close()
 
         os.remove(self.file)

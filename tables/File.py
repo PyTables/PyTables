@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.31 2003/05/06 20:21:20 falted Exp $
+#       $Id: File.py,v 1.32 2003/05/07 19:34:32 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.31 $"
+__version__ = "$Revision: 1.32 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -172,13 +172,14 @@ class File(hdf5Extension.File):
     Instance variables:
 
         filename -- filename opened
+        isopen -- 1 if the underlying file is still open; 0 if not
         mode -- mode in which the filename was opened
         title -- the title of the root group in file
         root -- the root group in file
         trMap -- the mapping between python and HDF5 domain names
-        objects -- Dictionary with all objects (groups or leaves) on tree.
-        groups -- Dictionary with all object groups on tree.
-        leaves -- Dictionary with all object leaves on tree.
+        objects -- dictionary with all objects (groups or leaves) on tree
+        groups -- dictionary with all object groups on tree
+        leaves -- dictionary with all object leaves on tre.
 
     """
 
@@ -209,7 +210,7 @@ class File(hdf5Extension.File):
         self.root = self.__getRootGroup()
 
         # Set the flag to indicate that the file has been opened
-        self._isopen = 1
+        self.isopen = 1
 
         return
 
@@ -603,7 +604,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         """Close all the objects in HDF5 file and close the file."""
 
         # If the file is already closed, return immediately
-        if not self._isopen:
+        if not self.isopen:
             return
         
         for group in self.walkGroups(self.root):
@@ -619,7 +620,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         del self.root
 
         # Set the flag to indicate that the file is closed
-        self._isopen = 0
+        self.isopen = 0
 
         return
 

@@ -254,7 +254,6 @@ class BasicTestCase(unittest.TestCase):
         if isinstance(rec['var5'], NumArray):
             assert allequal(rec['var5'], array((float(nrows),)*4))
         else:
-            print "-->",rec['var5']
             assert rec['var5'] == float(nrows)
         assert len(result) == 20
         
@@ -288,7 +287,6 @@ class BasicTestCase(unittest.TestCase):
             assert allequal(result[10], array((float(10),)*4))
             assert allequal(rec['var5'], array((float(nrows),)*4))
         else:
-            print "-->",rec['var5']
             assert rec['var5'] == float(nrows)
         assert len(result) == 20
         
@@ -498,7 +496,7 @@ class BasicRangeTestCase(unittest.TestCase):
 
 
     def tearDown(self):
-        if self.fileh._isopen:
+        if self.fileh.isopen:
             self.fileh.close()
         #del self.fileh, self.rootgroup
         os.remove(self.file)
@@ -907,9 +905,8 @@ class RecArrayIO(unittest.TestCase):
 
 def suite():
     theSuite = unittest.TestSuite()
-    niter = 0
-    theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
-    #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
+    niter = 1
+    
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(DictWriteTestCase))

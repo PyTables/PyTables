@@ -54,7 +54,9 @@ class OpenFileTestCase(unittest.TestCase):
         # Get the CLASS attribute of the arr object
         class_ = fileh.root.array.getAttr("CLASS")
 
+        # Close and delete the file
         fileh.close()
+        os.remove(file)
 
         assert class_ == "ARRAY"
         

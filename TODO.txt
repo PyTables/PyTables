@@ -1,4 +1,4 @@
-TODO list (as of 18th, March 2003):
+TODO list (as of 7th, May 2003):
 
 - Add unlimited dimension arrays, a la ScientificPython.IO.NetCDF module.
 

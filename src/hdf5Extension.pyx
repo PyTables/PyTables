@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.41 2003/05/07 09:40:22 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.42 2003/05/07 19:34:31 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.41 $"
+__version__ = "$Revision: 1.42 $"
 
 
 import sys, os
@@ -582,7 +582,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.41 2003/05/07 09:40:22 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.42 2003/05/07 19:34:31 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1282,11 +1282,8 @@ cdef class Row:
         # Call the universal indexing function
         # Make a copy of the (multi) dimensional array
         # so that the user does not have to do that!
-        arr = self._fields[fieldName][self._row]
-        array = ndarray.NDArray.copy(arr)
-        array._byteorder = arr._byteorder
-        array._type = arr._type
-        return array
+        arr = self._fields[fieldName][self._row].copy()
+        return arr
     except:
       (type, value, traceback) = sys.exc_info()
       raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \

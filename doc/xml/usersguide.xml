@@ -5,8 +5,8 @@
   <frontmatter>
     <title><visual markup="tt">PyTables</visual> User's Guide</title>
     <author>Francesc Alted</author>
-    <subtitle>Release 0.4</subtitle>
-    <date>March, 18th</date>
+    <subtitle>Release 0.4.5</subtitle>
+    <date>May, 07th</date>
     <year>2003</year>
     <legalnotice>
 
@@ -40,15 +40,17 @@
 <!-- NCSA license -->
 
       <p><visual markup="bf">Copyright Notice and Statement for NCSA
-	  HDF5 (Hierarchical Data Format 5) Software Library and
+	  Hierarchical Data Format (HDF) Software Library and
 	  Utilities</visual>
       </p>
 
+
       <p>NCSA HDF5 (Hierarchical Data Format 5) Software Library and
-	Utilities Copyright 1998, 1999, 2000, 2001, 2002 by the Board
-	of Trustees of the University of Illinois <newline/>
-	<visual markup="bf">All rights reserved.</visual>
+	Utilities Copyright 1998, 1999, 2000, 2001, 2002, 2003 by the
+	Board of Trustees of the University of Illinois.  All rights
+	reserved.
       </p>
+
       <p>Contributors: National Center for Supercomputing Applications
 	(NCSA) at the University of Illinois at Urbana-Champaign
 	(UIUC), Lawrence Livermore National Laboratory (LLNL), Sandia
@@ -62,16 +64,15 @@
       </p>
 
       <enumerate>
-	<item>
+        <item>
 	  Redistributions of source code must retain the above
-	  copyright notice, this list of conditions, and the
-	  following disclaimer.
+	  copyright notice, this list of conditions, and the following
+	  disclaimer.
 	</item>
-	<item>
-	  Redistributions in binary form must reproduce the above
-	  copyright notice, this list of conditions, and the
-	  following disclaimer in the documentation and/or materials
-	  provided with the distribution.
+	<item>Redistributions in binary form must reproduce the above
+	  copyright notice, this list of conditions, and the following
+	  disclaimer in the documentation and/or materials provided
+	  with the distribution.
 	</item>
 	<item>In addition, redistributions of modified forms of the
 	  source or binary code must carry prominent notices stating
@@ -82,17 +83,15 @@
 	  features or use of this software are asked, but not
 	  required, to acknowledge that it was developed by the
 	  National Center for Supercomputing Applications at the
-	  University of Illinois at Urbana-Champaign and to credit
-	  the contributors.
+	  University of Illinois at Urbana-Champaign and to credit the
+	  contributors.
 	</item>
-	<item>Neither the name of the University nor the names of
-	  the Contributors may be used to endorse or promote
-	  products derived from this software without specific prior
-	  written permission from the University or the
-	  Contributors, as appropriate for the name(s) to be
-	  used.
+	<item>Neither the name of the University nor the names of the
+	  Contributors may be used to endorse or promote products
+	  derived from this software without specific prior written
+	  permission from the University or the Contributors, as
+	  appropriate for the name(s) to be used.
 	</item>
-
 	<item>THIS SOFTWARE IS PROVIDED BY THE UNIVERSITY AND THE
 	  CONTRIBUTORS "AS IS" WITH NO WARRANTY OF ANY KIND, EITHER
 	  EXPRESSED OR IMPLIED.  In no event shall the University or
@@ -100,44 +99,44 @@
 	  users arising out of the use of this software, even if
 	  advised of the possibility of such damage.
 	</item>
-
       </enumerate>
-
       <p>Portions of HDF5 were developed with support from the
 	University of California, Lawrence Livermore National
-	Laboratory (UC LLNL). The following statement applies to those
-	portions of the product and must be retained in any
+	Laboratory (UC LLNL).  The following statement applies to
+	those portions of the product and must be retained in any
 	redistribution of source code, binaries, documentation, and/or
 	accompanying materials:
       </p>
-      <p>This work was partially produced at the University of
+      <p> This work was partially produced at the University of
 	California, Lawrence Livermore National Laboratory (UC LLNL)
-	under contract no. W-7405-ENG-48 (Contract 48) between the
+	under contract no.  W-7405-ENG-48 (Contract 48) between the
 	U.S. Department of Energy (DOE) and The Regents of the
 	University of California (University) for the operation of UC
 	LLNL.
       </p>
 
 <!-- This paragraph does not fit well. Skip it!
-      <p><visual markup="bf">DISCLAIMER:</visual> This work was
-	prepared as an account of work sponsored by an agency of the
-	United States Government. Neither the United States Government
-	nor the University of California nor any of their employees,
-	makes any warranty, express or implied, or assumes any
-	liability or responsibility for the accuracy, completeness, or
-	usefulness of any information, apparatus, product, or process
-	disclosed, or represents that its use would not infringe
-	privately- owned rights. Reference herein to any specific
-	commercial products, process, or service by trade name,
-	trademark, manufacturer, or otherwise, does not necessarily
-	constitute or imply its endorsement, recommendation, or
-	favoring by the United States Government or the University of
-	California. The views and opinions of authors expressed herein
-	do not necessarily state or reflect those of the United States
-	Government or the University of California, and shall not be
-	used for advertising or product endorsement purposes.
+
+      <visual markup="bf">DISCLAIMER:</visual>
+      <p> This work was prepared as an account of work sponsored by an
+	agency of the United States Government.  Neither the United
+	States Government nor the University of California nor any of
+	their employees, makes any warranty, express or implied, or
+	assumes any liability or responsibility for the accuracy,
+	completeness, or usefulness of any information, apparatus,
+	product, or process disclosed, or represents that its use
+	would not infringe privately- owned rights.  Reference herein
+	to any specific commercial products, process, or service by
+	trade name, trademark, manufacturer, or otherwise, does not
+	necessarily constitute or imply its endorsement,
+	recommendation, or favoring by the United States Government or
+	the University of California.  The views and opinions of
+	authors expressed herein do not necessarily state or reflect
+	those of the United States Government or the University of
+	California, and shall not be used for advertising or product
+	endorsement purposes.
       </p>
--->
+ -->
     </legalnotice>
   </frontmatter>
 
@@ -166,26 +165,24 @@
 
   <mainmatter>
 
-<!--    <chapter kind='preface'>
-      <heading></heading>
+<!--    <chapter kind='preface'> -->
+<!--       <heading></heading> -->
 
-      <aphorism>La sabiduría no vale la pena si no es posible servirse
-	de ella para inventar una nueva manera de preparar los
-	garbanzos.<caption>Un sabio catalán<newline/> in "Cien años de
-	soledad"<newline/> Gabriel García
-	Márquez</caption>
-      </aphorism>
+<!--       <aphorism>La sabiduría no vale la pena si no es posible servirse -->
+<!-- 	de ella para inventar una nueva manera de preparar los -->
+<!-- 	garbanzos.  <caption>in "Cien años de soledad". Gabriel García -->
+<!-- 	Márquez</caption> -->
+<!--       </aphorism> -->
 
-    </chapter>
--->
+<!--     </chapter> -->
+
     <chapter>
       <heading>Introduction</heading>
 
       <aphorism>La sabiduría no vale la pena si no es posible servirse
 	de ella para inventar una nueva manera de preparar los
 	garbanzos.<caption>Un sabio catalán<newline/> in "Cien años de
-	soledad"<newline/> Gabriel García
-	Márquez</caption>
+	soledad"<newline/> Gabriel García Márquez</caption>
       </aphorism>
 
       <p>The goal of <verb>PyTables</verb> is to enable the end user
@@ -194,7 +191,7 @@
 	hierarchical structure. The foundation of the underlying
 	hierarchical data organization is the excellent
 	<verb>HDF5</verb> library
-	(<verb>http://hdf.ncsa.uiuc.edu/HDF5</verb>). Right now,
+	(see <cite refid="HDFWhatIs"></cite>). Right now,
 	<verb>PyTables</verb> provides limited support of all the HDF5
 	functions, but I hope to add the more interesting ones (for
 	<verb>PyTables</verb> needs) in the near future.
@@ -314,7 +311,7 @@ class Particle(IsDescription):
 	  </item>
 	  <item><em>Data compression:</em> It supports data
 	    compression (through the use of the <visual
-	    markup="tt"><visual markup="bf">zlib</visual></visual>
+	    markup="tt"><visual markup="bf">Zlib</visual></visual>
 	    library) out of the box. This become important when you
 	    have repetitive data patterns and don't want to loose your
 	    time searching for an optimized way to save them (i.e. it
@@ -377,7 +374,10 @@ class Particle(IsDescription):
 	<p>The support for <em>natural naming</em> is a key aspect of
 	  <verb>PyTables</verb> and means that the names of instance
 	  variables of the node objects are the same as the names of
-	  the element's children. This is very
+	  the element's children<footnote>I have got this simple but
+	  powerful idea from the excellent <visual
+	  markup="tt">Objectify</visual> module by David Mertz (see
+	  <cite refid="Objectify"></cite>)</footnote>. This is very
 	  <em>Pythonic</em> and comfortable in many cases, as you can
 	  check in the tutorial <ref
 	  refid="readingAndSelectingUsage">section</ref>.
@@ -1885,7 +1885,7 @@ AttributeError: Error accessing "ADCcount" attr.
 	  already tuned to handle that perfectly.
 	</p>
 
-	<subsection>
+	<subsection id="compressionIssues">
 	  <heading>Compression issues</heading>
 
 	  <p>One of the beauties of <verb>PyTables</verb> is that it
@@ -1897,6 +1897,7 @@ AttributeError: Error accessing "ADCcount" attr.
 	    are willing to check if compression can help reducing your
 	    dataset, keep reading.
 	  </p>
+
 	  <p>There is an usual scenario where users need to save
 	    duplicated data in some record fields, while the others
 	    have varying values. In a relational database approach
@@ -1908,42 +1909,129 @@ AttributeError: Error accessing "ADCcount" attr.
 	  </p>
 
 	  <p><verb>PyTables</verb> transparent compression allows the
-	     user to not worry about finding which is their optimum
-	     data tables strategy, but rather use less, not directly
-	     related, tables with a larger number of columns while
-	     still not cluttering the database too much with
-	     duplicated data (compression is responsible to avoid
-	     that). As a side effect, data selections can be made more
-	     easily because you have more fields available in a single
-	     table, and they can be referred in the same loop. This
-	     process may normally end in a simple, yet powerful manner
-	     to process your data (although you should still be
-	     careful about what kind of scenarios compression is
-	     convenient or not).
+	    user to not worry about finding which is their optimum
+	    data tables strategy, but rather use less, not directly
+	    related, tables with a larger number of columns while
+	    still not cluttering the database too much with duplicated
+	    data (compression is responsible to avoid that). As a side
+	    effect, data selections can be made more easily because
+	    you have more fields available in a single table, and they
+	    can be referred in the same loop. This process may
+	    normally end in a simple, yet powerful manner to process
+	    your data (although you should still be careful about what
+	    kind of scenarios compression is convenient or not).
 	  </p>
 
-	  <p>The compression library used is the <visual
-	    markup="bf">zlib</visual> (see <cite
-	    refid="zlibRef"></cite>), and the compression level that I
-	    recommend to use for <verb>Table</verb> objects is 1. This
-	    is the lowest level of compression, but if you take the
-	    approach suggested above, normally the redundant data is
-	    to be found in the same row, so the redundant data
-	    locality is very high and such a small level of
-	    compression should be enough to compress well the possible
-	    redundancy on your compound tables, saving CPU cycles for
-	    doing other things.
+	  <p>The compression library used by default is the <visual
+	    markup="bf">Zlib</visual> (see <cite
+	    refid="zlibRef"></cite>), and as HDF5 <em>requires</em>
+	    it, you can safely use it and expect that your HDF5 files
+	    can be read on any other platform that has HDF5 libraries
+	    installed. Zlib provides good compression ratio, although
+	    somewhat slow, and reasonably fast decompression. Because
+	    of that, it is a good candidate to be used for compress
+	    you data.
 	  </p>
 
-	  <p>Nonetheless, in some situations you may want to check how
-	    compression level affects your application. You can
-	    control it by setting the <verb>compress</verb> keyword in
-	    the <verb>createTable</verb> method (see <ref
-	    refid="createTableDescr"></ref>). A value of 0 will
-	    completely disable compression, 1 is the less CPU time
-	    demanding level, while 9 is the maximum level and most CPU
-	    intensive.
+	  <p>However, in many situations (i.e. write <em>once</em>,
+	    read <em>multiple</em>), it is critical to have <em>very
+	    good</em> decompression speed (at expense of whether less
+	    compression or more CPU wasted on compression, as we will
+	    see soon). This is why support for two new compressors has
+	    been added to PyTables: LZO and UCL (see <cite
+	    refid="lzouclRef"></cite>). Following his author (and
+	    checked by the author of this manual), LZO offers pretty
+	    fast compression (although small compression ratio) and
+	    extremly fast decompression while UCL achieve an excellent
+	    compression ratio (at the price of spending much more CPU
+	    time) while allowing very fast decompression (and <em>very
+	    close</em> to the LZO one). In fact, LZO and UCL are so
+	    fast when decompressing that, in general (that depends on
+	    your data, of course), writing and reading a compressed
+	    table is actually faster (and sometimes <visual
+	    markup="bf">much faster</visual>) than if it is
+	    uncompressed. This fact is very important, specially if
+	    you have to deal with very large amounts of data.
 	  </p>
+
+	  <p>Be aware that the LZO and UCL support in PyTables is not
+	    standard on HDF5, so if you are going to use your PyTables
+	    files in other contexts different from PyTables you will
+	    not be able to read them. You have been warned.
+	  </p>
+
+	  <p>In order to give you a raw idea of what ratios would be
+	    achieved, and what resources would be consumed, look at
+	    the <ref refid="comprTblComparison">table</ref>. This
+	    table has been obtained from synthetic data, so take this
+	    just as a guide as your mileage will probably
+	    vary.
+	  </p>
+	  <p>
+	    However, you can expect that, in general, LZO would be the
+	    fastest both compressing and uncompressing, but the one
+	    that achieves the worse compression ratio (but that may be
+	    just ok for many situations). UCL is the slowest when
+	    compressing, but is faster than Zlib when decompressing,
+	    and, besides, it achieves very good compression
+	    ratios. Zlib represents a balance between them: it's
+	    somewhat slow compressing, the slowest during
+	    decompressing, but it normally achieves fairly good
+	    compression ratios.
+	  </p>
+
+	  <p>So, if your ultimate goal is reading fast as possible,
+	    choose LZO. If you want to reduce as much as possible your
+	    data, while retaining good read speed, choose UCL. If you
+	    don't mind too much about the above parameters and/or
+	    portability is important for you, Zlib is your best bet.
+	  </p>
+
+	  <table id="comprTblComparison">
+	    <tabular preamble="lrrrrr">
+	      <tabhead>
+		<srow>Compr. Lib | File size (MB) | Time writing (s) |
+		  Time reading (s) | Speed writing (Krow/s) | 
+		  Speed reading (Krow/s) </srow>
+	      </tabhead>
+	      <tabbody>
+		<srow>NO COMPR     | 244.0 | 24.4 | 16.00 | 18.0 |  27.8</srow>
+		<srow>Zlib (lvl 1) |   8.5 | 17.0 |  3.11 | 26.5 | 144.4</srow>
+		<srow>Zlib (lvl 6) |   7.1 | 20.1 |  3.10 | 22.4 | 144.9</srow>
+		<srow>Zlib (lvl 9) |   7.2 | 42.5 |  3.10 | 10.6 | 145.1</srow>
+		<srow>LZO (lvl 1)  |   9.7 | 14.6 |  1.95 | 30.6 | 230.5</srow>
+		<srow>UCL (lvl 1)  |   6.9 | 38.3 |  2.58 | 11.7 | 185.4</srow>
+	      </tabbody>
+	    </tabular>
+	    <caption>Comparison between different compression
+	      libaries. The tests has been conducted on a Pentium 4 at 2
+	      GHz and a hard disk at 4200 RPM.</caption>
+	  </table>
+
+	  <p>The compression level that I recommend to use for all
+	    compression libraries is 1. This is the lowest level of
+	    compression, but if you take the approach suggested above,
+	    normally the redundant data is to be found in the same
+	    row, so the redundant data locality is very high and such
+	    a small level of compression should be enough to achieve a
+	    good compression ratio on your data tables, saving CPU
+	    cycles for doing other things. Nonetheless, in some
+	    situations you may want to check how compression level
+	    affects your application.
+	  </p>
+
+	  <p> You can select the compression library and level by
+	    setting the <verb>complib</verb> and <verb>compress</verb>
+	    keywords in the <verb>createTable</verb> method (see <ref
+	    refid="createTableDescr"></ref>). A compression level of 0
+	    will completely disable compression (the default), 1 is
+	    the less CPU time demanding level, while 9 is the maximum
+	    level and most CPU intensive. Take into account that LZO
+	    is not accepting right now a compression level, so, when
+	    using LZO, 0 means that compression is not active, and any
+	    other value means that LZO is active.
+	  </p>
+
 
 	</subsection>
 
@@ -2060,6 +2148,9 @@ AttributeError: Error accessing "ADCcount" attr.
 		  <verb>".hdf5"</verb> extensions, although this is
 		  not mandatory.
 		</item>
+
+		<term>isopen</term> <item>It has the value 1 if the
+		  underlying file is still open. 0 otherwise.</item>
 
 		<term>mode</term> <item>The mode to open the file. It
 		  can be one of the following:
@@ -2284,7 +2375,7 @@ AttributeError: Error accessing "ADCcount" attr.
 
 	  <subsubsection>
 	    <heading id="createTableDescr">createTable(where, name,
-	      description, title='', compress=0,
+	      description, title='', compress=0, complib = 'zlib',
 	      expectedrows=10000)</heading>
 
 	    <p>Create a new <verb>Table</verb> instance with name
@@ -2292,56 +2383,61 @@ AttributeError: Error accessing "ADCcount" attr.
 	    </p>
 
 	    <description>
-		<term>where</term> <item>The parent group where the
-		  new table will hang. <em>where</em> parameter can be
-		  a path string (for example
-		  <verb>"/Particles/TParticle1"</verb>), or Group
-		  instance. </item>
+	      <term>where</term> <item>The parent group where the
+		new table will hang. <em>where</em> parameter can be
+		a path string (for example
+		<verb>"/Particles/TParticle1"</verb>), or Group
+		instance. </item>
 
-		<term>name</term>
-		<item>The name of the new table.</item>
+	      <term>name</term>
+	      <item>The name of the new table.</item>
 
-		<term>description</term> <item>An instance of a
-		  user-defined class (derived from the
-		  <verb>IsDescription</verb> class) where table fields
-		  are defined. However, in certain situations, it is
-		  more handy to allow this description to be supplied
-		  as a dictionary (for example, when you do not know
-		  beforehand which structure will have your table). In
-		  such a cases, you can pass the description as a
-		  dictionary as well. See <ref
+	      <term>description</term> <item>An instance of a
+		user-defined class (derived from the
+		<verb>IsDescription</verb> class) where table fields
+		are defined. However, in certain situations, it is
+		more handy to allow this description to be supplied
+		as a dictionary (for example, when you do not know
+		beforehand which structure will have your table). In
+		such a cases, you can pass the description as a
+		dictionary as well. See <ref
 		  refid="secondExample">section</ref> for an example
-		  of use. Finally, a <verb>RecArray</verb> object from
-		  the <verb>numarray</verb> package is also accepted,
-		  and all the information about columns and other
-		  metadata is used as a basis to create the
-		  <verb>Table</verb> object. Moreover, if the
-		  <verb>RecArray</verb> has actual data this is also
-		  injected on the newly created <verb>Table</verb>
-		  object.
-		</item>
+		of use. Finally, a <verb>RecArray</verb> object from
+		the <verb>numarray</verb> package is also accepted,
+		and all the information about columns and other
+		metadata is used as a basis to create the
+		<verb>Table</verb> object. Moreover, if the
+		<verb>RecArray</verb> has actual data this is also
+		injected on the newly created <verb>Table</verb>
+		object.
+	      </item>
 
-		<term>title</term> <item>A description for this object.
-		</item>
+	      <term>title</term> <item>A description for this object.
+	      </item>
 
-		<term>compress</term> <item>Specifies a compress level
-		  for data. The allowed range is 0-9. A value of 0
-		  disables compression. The default is that
-		  compression is disabled, that balances between
-		  compression effort and CPU consumption.
-		</item>
-
-		<term>expectedrows</term> <item>An user estimate of
-		  the number of records that will be on table. If not
-		  provided, the default value is appropriate for tables
-		  until 1 MB in size (more or less, depending on the
-		  record size). If you plan to save bigger tables you
-		  should provide a guess; this will optimize the HDF5
-		  B-Tree creation and management process time and
-		  memory used. See <ref
-		  refid="expectedRowsOptim">section</ref> for a
-		  detailed justification of that issue.
-		</item>
+	      <term>compress</term> <item>Specifies a compress level
+		for data. The allowed range is 0-9. A value of 0
+		disables compression. The default is that
+		compression is disabled, that balances between
+		compression effort and CPU consumption.
+	      </item>
+	      <term>complib</term> <item> Specifies the compression
+		library to be used. Right now, <verb>"zlib"</verb>
+		(default), <verb>"lzo"</verb> and <verb>"ucl"</verb>
+		values are supported. See <ref
+		refid="compressionIssues">section</ref> for some advice
+		on which library is better suited to your needs.
+	      </item>
+	      <term>expectedrows</term> <item>An user estimate of the
+		number of records that will be on table. If not
+		provided, the default value is appropriate for tables
+		until 1 MB in size (more or less, depending on the
+		record size). If you plan to save bigger tables you
+		should provide a guess; this will optimize the HDF5
+		B-Tree creation and management process time and memory
+		used. See <ref refid="expectedRowsOptim">section</ref>
+		for a detailed justification of that issue.
+	      </item>
 
 	    </description>
 	  </subsubsection>
@@ -2373,10 +2469,10 @@ AttributeError: Error accessing "ADCcount" attr.
 		  <verb>NumArray</verb> arrays (including
 		  <verb>CharArrays</verb> string arrays). However,
 		  these objects must be regular (i.e. they cannot be
-		  like, for example, [[1,2],2]). Also, objects that
-		  has some of its dimension equal to zero are not
-		  supported (this will be solved when unlimited arrays
-		  will be implemented).
+		  like, for example, <verb>[[1,2],2]</verb>). Also,
+		  objects that has some of its dimension equal to zero
+		  are not supported (this will be solved when
+		  unlimited arrays will be implemented).
 		</item>
 
 		<term>title</term> <item>A description for this
