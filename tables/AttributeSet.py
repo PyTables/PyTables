@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.5 2003/06/05 10:24:06 falted Exp $
+#       $Id: AttributeSet.py,v 1.6 2003/06/06 16:46:08 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.5 $"
+__version__ = "$Revision: 1.6 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -109,6 +109,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         self.__dict__["_v_attrnamessys"] = []
         self.__dict__["_v_attrnamesuser"] = []
         for attr in self._v_attrnames:
+            # New attribute (to allow tab-completion in interactive mode)
+            self.__dict__[attr] = self.__getattr__(attr)
             if issysattrname(attr):
                 self._v_attrnamessys.append(attr)
             else:
@@ -136,7 +138,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         if not name in self._v_attrnames:
             return None
 
-        value = self._g_getAttrStr(name)
+        value = self._g_getAttr(name)
 
         # Check if value is pickled 
         try:
@@ -178,16 +180,19 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         elif isinstance(value, types.IntType):
             self._g_setAttrInt(name, value)
         elif isinstance(value, types.FloatType):
-            self._g_setAttrFloat(name, value)
+            self._g_setAttrDouble(name, value)
         else:
-            # Convert this object to a string
-            pickledvalue = cPickle.dumps(value)
+            # Convert this object to a null-terminated string
+            # (binary pickles are not supported at this moment)
+            pickledvalue = cPickle.dumps(value, 0)
             self._g_setAttrStr(name, pickledvalue)
             
         # Finally, add this attribute to the list if not present
         if not name in self._v_attrnames:
             self._v_attrnames.append(name)
             self._v_attrnamesuser.append(name)
+            # New attribute (to allow tab-completion in interactive mode)
+            self.__dict__[name] = value
 
         # Sort the attributes
         self._v_attrnames.sort()

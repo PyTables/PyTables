@@ -74,7 +74,7 @@ class LargeRowSize(unittest.TestCase):
         assert r.tostring() == r2.tostring()
         
         fileh.close()
-        #os.remove(file)
+        os.remove(file)
 
     def test01(self):
         "Checking saving a Table with an extremely large rowsize"

@@ -2,7 +2,7 @@ from numarray import *
 from tables import *
 
 # Open a new empty HDF5 file
-fileh = openFile("attributes1.h5", mode = "w")
+fileh = openFile("attributes1.h5", mode = "w", title="Testing attributes")
 # Get the root group
 root = fileh.root
 
@@ -15,6 +15,9 @@ hdfarray = fileh.createArray(root, 'array', a, "Integer array")
 
 # A string
 hdfarray.attrs.string = "This is an example"
+
+# A Char
+hdfarray.attrs.char = "1"
 
 # An integer
 hdfarray.attrs.int = 12

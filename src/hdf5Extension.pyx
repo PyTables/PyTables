@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.51 2003/06/05 10:24:06 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.52 2003/06/06 16:46:08 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.51 $"
+__version__ = "$Revision: 1.52 $"
 
 
 import sys, os
@@ -221,7 +221,7 @@ cdef extern from "hdf5.h":
   int H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, H5F_ACC_EXCL
   int H5F_ACC_DEBUG, H5F_ACC_CREAT
   int H5P_DEFAULT, H5S_ALL
-  int H5T_NATIVE_CHAR, H5T_NATIVE_INT, H5T_NATIVE_FLOAT, H5T_NATIVE_DOUBLE
+  #int H5T_NATIVE_CHAR, H5T_NATIVE_INT, H5T_NATIVE_FLOAT, H5T_NATIVE_DOUBLE
 
   ctypedef int hid_t  # In H5Ipublic.h
   ctypedef int herr_t
@@ -252,6 +252,23 @@ cdef extern from "hdf5.h":
     H5G_LINK_ERROR      = -1,
     H5G_LINK_HARD       = 0,
     H5G_LINK_SOFT       = 1
+
+  # Native types
+  cdef enum:
+    H5T_NATIVE_CHAR  
+    H5T_NATIVE_SCHAR 
+    H5T_NATIVE_UCHAR 
+    H5T_NATIVE_SHORT 
+    H5T_NATIVE_USHORT
+    H5T_NATIVE_INT   
+    H5T_NATIVE_UINT  
+    H5T_NATIVE_LONG  
+    H5T_NATIVE_ULONG 
+    H5T_NATIVE_LLONG 
+    H5T_NATIVE_ULLONG
+    H5T_NATIVE_FLOAT 
+    H5T_NATIVE_DOUBLE
+    H5T_NATIVE_LDOUBLE
 
                 
 # Functions from HDF5
@@ -321,17 +338,35 @@ cdef extern from "H5LT.h":
   herr_t H5LTset_attribute_string( hid_t loc_id, char *obj_name,
                                    char *attr_name, char *attr_data )
 
-  herr_t H5LTset_attribute_int   ( hid_t loc_id, 
-                                   char *obj_name, 
-                                   char *attr_name,
-                                   int *data,
-                                   size_t size )
+  herr_t H5LTset_attribute_char( hid_t loc_id, 
+                                 char *obj_name, 
+                                 char *attr_name,
+                                 char *data,
+                                 size_t size )
+  
+  herr_t H5LTset_attribute_short( hid_t loc_id, 
+                                  char *obj_name, 
+                                  char *attr_name,
+                                  short *data,
+                                  size_t size )
+  
+  herr_t H5LTset_attribute_int( hid_t loc_id, 
+                                char *obj_name, 
+                                char *attr_name,
+                                int *data,
+                                size_t size )
   
   herr_t H5LTset_attribute_long   ( hid_t loc_id, 
                                     char *obj_name, 
                                     char *attr_name,
                                     long *data,
                                     size_t size )
+  
+  herr_t H5LTset_attribute_float( hid_t loc_id, 
+                                  char *obj_name, 
+                                  char *attr_name,
+                                  float *data,
+                                  size_t size )
   
   herr_t H5LTset_attribute_double( hid_t loc_id, 
                                    char *obj_name, 
@@ -342,6 +377,16 @@ cdef extern from "H5LT.h":
   herr_t H5LTget_attribute_string( hid_t loc_id, char *obj_name,
                                    char *attr_name, char *attr_data )
 
+  herr_t H5LTget_attribute_char( hid_t loc_id, 
+                                 char *obj_name, 
+                                 char *attr_name,
+                                 char *data ) 
+
+  herr_t H5LTget_attribute_short( hid_t loc_id, 
+                                  char *obj_name, 
+                                  char *attr_name,
+                                  short *data ) 
+
   herr_t H5LTget_attribute_int( hid_t loc_id, 
                                 char *obj_name, 
                                 char *attr_name,
@@ -351,6 +396,11 @@ cdef extern from "H5LT.h":
                                  char *obj_name, 
                                  char *attr_name,
                                  long *data ) 
+
+  herr_t H5LTget_attribute_float( hid_t loc_id, 
+                                  char *obj_name, 
+                                  char *attr_name,
+                                  float *data ) 
 
   herr_t H5LTget_attribute_double( hid_t loc_id, 
                                    char *obj_name, 
@@ -623,7 +673,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.51 2003/06/05 10:24:06 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.52 2003/06/06 16:46:08 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -734,16 +784,43 @@ cdef class AttributeSet:
       raise RuntimeError("Can't set attribute '%s' in node:\n %s." % 
                          (attrname, self.node))
 
-  def _g_setAttrInt(self, char *attrname, int attrvalue):
+  def _g_setAttrChar(self, char *attrname, char attrvalue):
     cdef int ret
 
-    ret = H5LTset_attribute_int(self.parent_id, self.name,
-                                   attrname, &attrvalue, 1)
+    ret = H5LTset_attribute_char(self.parent_id, self.name,
+                                 attrname, &attrvalue, 1)
     if ret < 0:
       raise RuntimeError("Can't set attribute '%s' in node:\n %s." % 
                          (attrname, self.node))
 
-  def _g_setAttrFloat(self, char *attrname, double attrvalue):
+  def _g_setAttrShort(self, char *attrname, short attrvalue):
+    cdef int ret
+
+    ret = H5LTset_attribute_short(self.parent_id, self.name,
+                                  attrname, &attrvalue, 1)
+    if ret < 0:
+      raise RuntimeError("Can't set attribute '%s' in node:\n %s." % 
+                         (attrname, self.node))
+
+  def _g_setAttrInt(self, char *attrname, int attrvalue):
+    cdef int ret
+
+    ret = H5LTset_attribute_int(self.parent_id, self.name,
+                                attrname, &attrvalue, 1)
+    if ret < 0:
+      raise RuntimeError("Can't set attribute '%s' in node:\n %s." % 
+                         (attrname, self.node))
+
+  def _g_setAttrFloat(self, char *attrname, float attrvalue):
+    cdef int ret
+
+    ret = H5LTset_attribute_float(self.parent_id, self.name,
+                                  attrname, &attrvalue, 1)
+    if ret < 0:
+      raise RuntimeError("Can't set attribute '%s' in node:\n %s." % 
+                         (attrname, self.node))
+
+  def _g_setAttrDouble(self, char *attrname, double attrvalue):
     cdef int ret
 
     ret = H5LTset_attribute_double(self.parent_id, self.name,
@@ -752,13 +829,13 @@ cdef class AttributeSet:
       raise RuntimeError("Can't set attribute '%s' in node:\n %s." % 
                          (attrname, self.node))
 
-  def _g_getAttrStr(self, char *attrname):
+  def _g_getAttr(self, char *attrname):
     cdef object attrvalue
     cdef hid_t loc_id
 
     if isinstance(self.node, Group):
-      attrvalue = self._g_getNodeAttrStr(self.parent_id, self.node._v_groupId,
-                                         self.name, attrname)
+      attrvalue = self._g_getNodeAttr(self.parent_id, self.node._v_groupId,
+                                      self.name, attrname)
     else:
       # Get the dataset ID
       loc_id = H5Dopen(self.parent_id, self.name)
@@ -766,8 +843,8 @@ cdef class AttributeSet:
         raise RuntimeError("Cannot open the dataset '%s' in node '%s'" % \
                            (self.name, self._v_parent._v_name))
 
-      attrvalue = self._g_getNodeAttrStr(self.parent_id, loc_id,
-                                         self.name, attrname)
+      attrvalue = self._g_getNodeAttr(self.parent_id, loc_id,
+                                      self.name, attrname)
       # Close this dataset
       ret = H5Dclose(loc_id)
       if ret < 0:
@@ -777,7 +854,7 @@ cdef class AttributeSet:
 
   # This funtion is useful to retrieve attributes of Leafs that are
   # still not open
-  def _g_getChildAttrStr(self, char *dsetname, char *attrname):
+  def _g_getChildAttr(self, char *dsetname, char *attrname):
     cdef object attrvalue
     cdef hid_t loc_id
 
@@ -787,8 +864,8 @@ cdef class AttributeSet:
       raise RuntimeError("Cannot open the child '%s' of node '%s'" % \
                          (dsetname, self.name))
 
-    attrvalue = self._g_getNodeAttrStr(self.node._v_groupId, loc_id,
-                                       dsetname, attrname)
+    attrvalue = self._g_getNodeAttr(self.node._v_groupId, loc_id,
+                                    dsetname, attrname)
     # Close this dataset
     ret = H5Dclose(loc_id)
     if ret < 0:
@@ -797,14 +874,19 @@ cdef class AttributeSet:
     return attrvalue
 
   # Get attributes (only supports string attributes right now)
-  def _g_getNodeAttrStr(self, hid_t parent_id, hid_t loc_id,
+  def _g_getNodeAttr(self, hid_t parent_id, hid_t loc_id,
                         char *dsetname, char *attrname):
     cdef hsize_t *dims, nelements
     cdef H5T_class_t class_id
     cdef size_t type_size
-    cdef char   *attrvalue
-    cdef long   attrvaluelong
-    cdef double attrvaluedouble
+    cdef char  *attrvaluestr
+    cdef char  attrvaluechar
+    cdef short  attrvalueshort
+    cdef long  attrvaluelong
+    cdef float  attrvaluefloat
+    cdef double  attrvaluedouble
+    cdef object retvalue
+    cdef hid_t mem_type
     cdef int rank
     cdef int ret, i
         
@@ -834,48 +916,50 @@ cdef class AttributeSet:
         raise RuntimeError("Can't get info on attribute %s in node %s." %
                                (attrname, dsetname))
 
-    #print "rank -->", rank
-    #print "dims -->", <int>dims[0]
-    #print "type_size -->", type_size
+    if rank > 0 and dims[0] > 1:
+      print \
+"""Info: Can't deal with multidimensional attribute '%s' in node '%s'.""" % \
+(attrname, dsetname)
+      return None
 
     if class_id == H5T_INTEGER:
-      if dims[0] > 1:
-        print \
-"""Info: Can't deal with multidimensional attribute '%s' in node '%s'. Sorry about that!""" % (attrname, dsetname)
-        return None
-
-      ret = H5LTget_attribute_long(parent_id, dsetname,
-                                  attrname, &attrvaluelong)
-      if ret < 0:
-        raise RuntimeError("Attribute %s exists in node %s, but can't get it."\
-                           % (attrname, dsetname))
-      return PyInt_FromLong(attrvaluelong)
+      if type_size == 1:
+        ret = H5LTget_attribute_char(parent_id, dsetname,
+                                     attrname, &attrvaluechar)
+        retvalue = PyInt_FromLong(<long>attrvaluechar)
+      if type_size == 2:
+        ret = H5LTget_attribute_short(parent_id, dsetname,
+                                      attrname, &attrvalueshort)
+        retvalue = PyInt_FromLong(<long>attrvalueshort)
+      if type_size == 4:
+        ret = H5LTget_attribute_long(parent_id, dsetname,
+                                     attrname, &attrvaluelong)
+        retvalue = PyInt_FromLong(attrvaluelong)
     elif class_id == H5T_FLOAT:
-      if dims[0] > 1:
-        print \
-"""Info: Can't deal with multidimensional attribute '%s' in node '%s'. Sorry about that!""" % (attrname, dsetname)
-        return None
-      
-      ret = H5LTget_attribute_double(parent_id, dsetname,
-                                     attrname, &attrvaluedouble)
-      if ret < 0:
-        raise RuntimeError("Attribute %s exists in node %s, but can't get it."\
-                           % (attrname, dsetname))
-      return PyFloat_FromDouble(attrvaluedouble)
+      if type_size == 4:
+        ret = H5LTget_attribute_float(parent_id, dsetname,
+                                      attrname, &attrvaluefloat)
+        retvalue = PyFloat_FromDouble(<double>attrvaluefloat)
+      if type_size == 8:
+        ret = H5LTget_attribute_double(parent_id, dsetname,
+                                       attrname, &attrvaluedouble)
+        retvalue = PyFloat_FromDouble(attrvaluedouble)
     elif class_id == H5T_STRING:
-      attrvalue = <char *>malloc(type_size * sizeof(char))
+      attrvaluestr = <char *>malloc(type_size * sizeof(char))
       ret = H5LTget_attribute_string(parent_id, dsetname,
-                                     attrname, attrvalue)
-      if ret < 0:
-        raise RuntimeError("Attribute %s exists in node %s, but can't get it."\
-                           % (attrname, dsetname))
-      return attrvalue
+                                     attrname, attrvaluestr)
+      retvalue = PyString_FromString(attrvaluestr)
     else:
       print \
 """Info: Type of attribute '%s' in node '%s' is not supported. Sorry about that!""" % (attrname, dsetname)
+      return None
 
-    # If we reach this, return None
-    return None
+    # Check the return value of H5LTget_attribute_* call
+    if ret < 0:
+      raise RuntimeError("Attribute %s exists in node %s, but can't get it."\
+                         % (attrname, dsetname))
+
+    return retvalue
 
   # Get attributes (only supports string attributes right now)
   def _g_getNodeAttrInt(self, hid_t parent_id, hid_t loc_id,

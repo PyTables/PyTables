@@ -26,7 +26,7 @@ hid_t
       type_id = H5Tcopy(H5T_C_S1);
       /* I use set_strpad instead of set_size as per section 3.6 
        * (Character and String Datatype Issues) of the HDF5 User's Manual,
-       * altough they both seems to work well for character types */
+       * although they both seems to work well for character types */
       H5Tset_size(type_id, size);
       /* H5Tset_strpad(s1, H5T_STR_NULLPAD); */
       

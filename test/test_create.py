@@ -465,13 +465,65 @@ class createAttrTestCase(unittest.TestCase):
         assert self.table.attrs.qr == 2
         assert self.table.attrs.rs == 3
 
+    def test09b_setIntAttributes(self):
+        """Checking setting Int (byte, short, int) attributes"""
+
+        # With a Table object
+        self.table.attrs._g_setAttrChar("pq", chr(1))
+        self.table.attrs._v_attrnames.append("pq")
+        self.table.attrs._v_attrnamesuser.append("pq")
+
+        self.table.attrs._g_setAttrShort("qr", 2)
+        self.table.attrs._v_attrnames.append("qr")
+        self.table.attrs._v_attrnamesuser.append("qr")
+        
+        self.table.attrs._g_setAttrInt("rs", 3)
+        self.table.attrs._v_attrnames.append("rs")
+        self.table.attrs._v_attrnamesuser.append("rs")
+
+        # Check the results
+        if verbose:
+            print "pq -->", self.table.attrs.pq
+            print "qr -->", self.table.attrs.qr
+            print "rs -->", self.table.attrs.rs
+            
+        assert self.table.attrs.pq == 1
+        assert self.table.attrs.qr == 2
+        assert self.table.attrs.rs == 3
+
     def test10_setFloatAttributes(self):
-        """Checking setting Float attributes"""
+        """Checking setting Float (double) attributes"""
 
         # With a Table object
         self.table.attrs.pq = 1.0
         self.table.attrs.qr = 2.0
         self.table.attrs.rs = 3.0
+
+        # Check the results
+        if verbose:
+            print "pq -->", self.table.attrs.pq
+            print "qr -->", self.table.attrs.qr
+            print "rs -->", self.table.attrs.rs
+            
+        assert self.table.attrs.pq == 1.0
+        assert self.table.attrs.qr == 2.0
+        assert self.table.attrs.rs == 3.0
+
+    def test10b_setFloatAttributes(self):
+        """Checking setting Float (float) attributes"""
+
+        # With a Table object
+        self.table.attrs._g_setAttrFloat("pq", 1.0)
+        self.table.attrs._v_attrnames.append("pq")
+        self.table.attrs._v_attrnamesuser.append("pq")
+
+        self.table.attrs._g_setAttrFloat("qr", 2.0)
+        self.table.attrs._v_attrnames.append("qr")
+        self.table.attrs._v_attrnamesuser.append("qr")
+        
+        self.table.attrs._g_setAttrFloat("rs", 3.0)
+        self.table.attrs._v_attrnames.append("rs")
+        self.table.attrs._v_attrnamesuser.append("rs")
 
         # Check the results
         if verbose:
