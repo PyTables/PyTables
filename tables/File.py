@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.59 2003/12/16 11:09:50 falted Exp $
+#       $Id: File.py,v 1.60 2003/12/19 13:17:32 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.59 $"
+__version__ = "$Revision: 1.60 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays
@@ -381,7 +381,8 @@ class File(hdf5Extension.File, object):
 
 
     def createTable(self, where, name, description, title = "",
-                    compress = 0, complib = "zlib", expectedrows = 10000):
+                    compress = 0, complib = "zlib", shuffle = 0,
+                    expectedrows = 10000):
 
         """Create a new Table instance with name "name" in "where" location.
         
@@ -411,6 +412,11 @@ class File(hdf5Extension.File, object):
         complib -- Specifies the compression library to be used. Right
             now, "zlib", "lzo" and "ucl" values are supported.
 
+        shuffle -- Whether or not to use the shuffle filter in the
+            HDF5 library. This is normally used to improve the
+            compression ratio. A value of 0 disables shuffling and it
+            is the default.
+
         expectedrows -- An user estimate about the number of rows that
             will be on table. If not provided, the default value is
             10000. If you plan to save bigger tables try providing a
@@ -423,7 +429,11 @@ class File(hdf5Extension.File, object):
         if complib not in ["zlib","lzo","ucl"]:
             raise ValueError, "Wrong \'complib\' parameter value: '%s'" % \
                   (str(complib))
-        object = Table(description, title, compress, complib, expectedrows)
+        if shuffle and not compress:
+            # Shuffling and not compressing makes not sense
+            shuffle = 0
+        object = Table(description, title, compress, complib, shuffle,
+                       expectedrows)
         setattr(group, name, object)
         return object
 

@@ -83,6 +83,7 @@ herr_t H5TBmake_table( const char *table_title,
                        void *fill_data,
                        int compress,
 		       char *complib,
+		       int shuffle,
                        const void *data ) 
 {
 
@@ -153,9 +154,7 @@ herr_t H5TBmake_table( const char *table_title,
   Note that compression can be used only when dataset is chunked. 
   */
 
-/*  if (shuffle) */
- if (1)
- {
+ if (shuffle) {
    if ( H5Pset_shuffle( plist_id) < 0 )
      return -1;
  }

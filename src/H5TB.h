@@ -45,6 +45,7 @@ herr_t H5TBmake_table( const char *table_title,
                        void *fill_data,
                        int compress,
 		       char *complib,
+		       int shuffle,
                        const void *data );
 
 

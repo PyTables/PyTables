@@ -399,7 +399,20 @@ else:
 
 #--------------------------------------------------------------------
 
-setup(name = 'tables',
+#Having the Python version included in the package name makes managing a
+#system with multiple versions of Python much easier.
+
+def find_name(base = 'tables'):
+    '''If "--name-with-python-version" is on the command line then
+    append "-pyX.Y" to the base name'''
+    name = base
+    if '--name-with-python-version' in sys.argv:
+        name += '-py%i.%i'%(sys.version_info[0],sys.version_info[0])
+        sys.argv.remove('--name-with-python-version')
+    return name
+
+name = find_name()
+setup(name = name,
       version = VERSION,
       description = 'A hierarchical database for Python',
       long_description = """\
@@ -421,7 +434,6 @@ data.
       maintainer = 'Francesc Alted',
       maintainer_email = 'falted@openlc.org',
       url = 'http://pytables.sf.net/',
-
       packages = ['tables'],
       ext_modules = [ Extension("tables.hdf5Extension",
                                 include_dirs = inc_dirs,
@@ -444,6 +456,5 @@ data.
                                 #runtime_library is not supported on Windows
                                 runtime_library_dirs = rlib_dirs,
                                 )],
-      # You may uncomment this line if pyrex installed
       cmdclass = cmdclass
 )

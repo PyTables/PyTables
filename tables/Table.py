@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.84 2003/12/18 10:13:11 falted Exp $
+#       $Id: Table.py,v 1.85 2003/12/19 13:17:32 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.84 $"
+__version__ = "$Revision: 1.85 $"
 
 from __future__ import generators
 import sys
@@ -109,7 +109,8 @@ class Table(Leaf, hdf5Extension.Table, object):
     """
 
     def __init__(self, description = None, title = "",
-                 compress = 0, complib="zlib", expectedrows = 10000):
+                 compress = 0, complib="zlib", shuffle=0,
+                 expectedrows = 10000):
         """Create an instance Table.
 
         Keyword arguments:
@@ -129,6 +130,11 @@ class Table(Leaf, hdf5Extension.Table, object):
         complib -- Specifies the compression library to be used. Right
             now, "zlib", "lzo" and "ucl" values are supported.
 
+        shuffle -- Whether or not to use the shuffle filter in the
+            HDF5 library. This is normally used to improve the
+            compression ratio. A value of 0 disables shuffling and it
+            is the default.
+
         expectedrows -- An user estimate about the number of rows
             that will be on table. If not provided, the default value
             is appropiate for tables until 1 MB in size (more or less,
@@ -142,6 +148,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Common variables
         self.new_title = title
         self._v_compress = compress
+        self._v_shuffle = shuffle
         self._v_expectedrows = expectedrows
         # Initialize the number of rows to a default
         self.nrows = 0

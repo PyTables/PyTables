@@ -73,6 +73,7 @@ class BasicTestCase(unittest.TestCase):
     expectedrows = 100
     appendrows = 20
     compress = 0
+    shuffle = 0
     complib = "zlib"  # Default compression library
     record = Record
     recarrayinit = 0
@@ -135,6 +136,7 @@ class BasicTestCase(unittest.TestCase):
             table = self.fileh.createTable(group, 'table'+str(j), self.record,
                                            title = self.title,
                                            compress = self.compress,
+                                           shuffle = self.shuffle,
                                            expectedrows = self.expectedrows,
                                            complib=self.complib)
             if not self.recarrayinit:
@@ -533,14 +535,32 @@ class CompressLZOTablesTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
     
+class CompressLZOShuffleTablesTestCase(BasicTestCase):
+    title = "CompressLZOTables"
+    compress = 1
+    shuffle = 1
+    complib = "lzo"
+    
 class CompressUCLTablesTestCase(BasicTestCase):
     title = "CompressUCLTables"
     compress = 1
     complib = "ucl"
     
+class CompressUCLShuffleTablesTestCase(BasicTestCase):
+    title = "CompressUCLTables"
+    compress = 1
+    shuffle = 1
+    complib = "ucl"
+    
 class CompressZLIBTablesTestCase(BasicTestCase):
     title = "CompressOneTables"
     compress = 1
+    complib = "zlib"
+
+class CompressZLIBShuffleTablesTestCase(BasicTestCase):
+    title = "CompressOneTables"
+    compress = 1
+    shuffle = 1
     complib = "zlib"
 
 class CompressTwoTablesTestCase(BasicTestCase):
@@ -563,6 +583,7 @@ class BasicRangeTestCase(unittest.TestCase):
     maxshort = 1 << 15
     expectedrows = 100
     compress = 0
+    shuffle = 1
     # Default values
     nrows = 20
     maxTuples = 3  # Choose a small value for the buffer size
@@ -587,6 +608,7 @@ class BasicRangeTestCase(unittest.TestCase):
             table = self.fileh.createTable(group, 'table'+str(j), self.record,
                                            title = self.title,
                                            compress = self.compress,
+                                           shuffle = self.shuffle,
                                            expectedrows = self.expectedrows)
             # Get the row object associated with the new table
             row = table.row
@@ -1184,8 +1206,11 @@ def suite():
         theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
         theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
+        theSuite.addTest(unittest.makeSuite(CompressLZOShuffleTablesTestCase))
 	theSuite.addTest(unittest.makeSuite(CompressUCLTablesTestCase))
+	theSuite.addTest(unittest.makeSuite(CompressUCLShuffleTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressZLIBTablesTestCase))
+        theSuite.addTest(unittest.makeSuite(CompressZLIBShuffleTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressTwoTablesTestCase))
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))

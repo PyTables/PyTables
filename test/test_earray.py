@@ -553,7 +553,8 @@ class ZlibComprTestCase(BasicTestCase):
     step = 10
 
 class ZlibShuffleTestCase(BasicTestCase):
-    shuffle = 1   # That should be enough to activate the compression
+    shuffle = 1
+    compress = 1
     complib = "zlib"
     # case start < stop , i.e. no rows read
     start = 3
@@ -670,7 +671,6 @@ class NumericComprTestCase(BasicTestCase):
     shuffle = 1
     shape = (0,)
     compr = 1
-    shuffle = 1
     chunksize = 2
     nappends = 1
     start = 51
