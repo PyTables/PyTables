@@ -90,6 +90,7 @@ for i in range(root.array_b.nrows):
 print "array_c[1:2]", repr(root.array_c[1:2])
 print "array_c[1:3]", repr(root.array_c[1:3])
 print "array_b[:]", root.array_b[:]
+print "array_s[0]", repr(root.array_s[0])
 
 print repr(root.array_c)
 # Close the file

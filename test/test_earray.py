@@ -21,7 +21,13 @@ from test_all import verbose
 def allequal(a,b):
     """Checks if two numarrays are equal"""
 
+    if not hasattr(b, "shape"):
+        return a == b
+
     if a.shape <> b.shape:
+        return 0
+
+    if a.type() <> b.type():
         return 0
 
     # Rank-0 case
@@ -42,8 +48,10 @@ class BasicTestCase(unittest.TestCase):
     # Default values
     type = Int32
     shape = (2,0)
-    chunksize = 5
+    start = 0
+    stop = 10
     step = 1
+    chunksize = 5
     nappends = 10
     compress = 0
     complib = "zlib"  # Default compression library
@@ -80,7 +88,7 @@ class BasicTestCase(unittest.TestCase):
         object = arange(self.objsize, shape=self.rowshape, type=earray.type)
         if verbose:
             # print "-->", object
-            print "-->", object.info()
+            print "Object to append -->", object.info()
         for i in range(self.nappends):
             #print "i-->", i
             earray.append(object*i)
@@ -107,53 +115,88 @@ class BasicTestCase(unittest.TestCase):
         earray._v_maxTuples = 3
         if verbose:
             print "Array descr:", repr(earray)
+            print "shape of read array ==>", earray.shape
         # Build the array to do comparisons
         object_ = arange(self.objsize, shape=self.rowshape, type=earray.type)
         object_.swapaxes(earray.extdim, 0)
         # Read all the array
-        for row in earray(step=self.step):
+        for row in earray:
             chunk = (earray.nrow % self.chunksize)
             if chunk == 0:
                  object__ = object_ * (earray.nrow / self.chunksize)
             object = object__[chunk]
-#             if verbose:
-#                 print "number of row ==>", earray.nrow
-#                 print "shape of row ==>", earray.shape
-#                 print "shape should look as:", object.shape
-#                 print "row in earray ==>", repr(row)
-#                 print "Should look like ==>", repr(object)
+            if verbose:
+                print "number of row ==>", earray.nrow
+                if hasattr(object, "shape"):
+                    print "shape should look as:", object.shape
+                print "row in earray ==>", repr(row)
+                print "Should look like ==>", repr(object)
 
             assert self.nappends*self.chunksize == earray.nrows
             assert allequal(row, object)
-            assert len(row.shape) == len(self.shape) - 1
+            if hasattr(row, "shape"):
+                assert len(row.shape) == len(self.shape) - 1
+            else:
+                # Scalar case
+                assert len(self.shape) == 1
 
-    def notest02_emptyEarray(self):
-        """Checking creation of empty VL arrays"""
+    def test02_stepEArray(self):
+        """Checking enlargeable array read with start, stop and step"""
 
         rootgroup = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test02_emptyEarray..." % self.__class__.__name__
+            print "Running %s.test02_stepEArray..." % self.__class__.__name__
 
         # Create an instance of an HDF5 Table
-        self.fileh = openFile(self.file, "w")
-        earray = self.fileh.createEarray(self.fileh.root, 'earray2',
-                                           Int32Atom(),
-                                           "ragged array if ints",
-                                           compress = self.compress,
-                                           complib = self.complib)
-        # Try to read info from there:
-        row = earray.read()
-        # The result should be the empty list
-        assert row == []
+        self.fileh = openFile(self.file, "r")
+        earray = self.fileh.getNode("/earray1")
+
+        # Choose a small value for buffer size
+        earray._v_maxTuples = 3
+        if verbose:
+            print "Array descr:", repr(earray)
+            print "shape of read array ==>", earray.shape
+        # Build the array to do comparisons
+        object_ = arange(self.objsize, shape=self.rowshape, type=earray.type)
+        object_.swapaxes(earray.extdim, 0)
+        # Read all the array
+        for row in earray(start=self.start, stop=self.stop, step=self.step):
+            chunk = (earray.nrow % self.chunksize)
+            if (chunk - self.start) == 0:
+                 object__ = object_ * (earray.nrow / self.chunksize)
+            object = object__[chunk]
+            if verbose:
+                print "number of row ==>", earray.nrow
+                if hasattr(object, "shape"):
+                    print "shape should look as:", object.shape
+                print "row in earray ==>", repr(row)
+                print "Should look like ==>", repr(object)
+
+            assert self.nappends*self.chunksize == earray.nrows
+            assert allequal(row, object)
+            if hasattr(row, "shape"):
+                assert len(row.shape) == len(self.shape) - 1
+            else:
+                # Scalar case
+                assert len(self.shape) == 1
+
 
 class BasicWriteTestCase(BasicTestCase):
     type = Int32
-    shape = (2, 0)
+    shape = (0,)
     chunksize = 5
     nappends = 10
+    step = 1
 
-# This is good for testing
+class EmptyArrayTestCase(BasicTestCase):
+    type = Int32
+    shape = (2, 0)
+    chunksize = 5
+    nappends = 0
+    start = 0
+    step = 1
+
 class MD3WriteTestCase(BasicTestCase):
     type = Int32
     shape = (2, 0, 3)
@@ -163,43 +206,88 @@ class MD3WriteTestCase(BasicTestCase):
 class MD5WriteTestCase(BasicTestCase):
     type = Int32
     shape = (2, 0, 3, 4, 5)  # ok
-    #shape = (2, 0, 3, 4, 5)  # ok
     #shape = (1, 1, 0, 1)  # Minimum shape that shows problems with HDF5 1.6.1
     #shape = (2, 3, 0, 4, 5)  # Floating point exception (HDF5 1.6.1)
-    chunksize = 1
     #shape = (2, 3, 3, 0, 5, 6) # Segmentation fault (HDF5 1.6.1)
-    shape = (2, 3, 3, 4, 5, 0) # Segmentation fault (HDF5 1.6.1)
-    #chunksize = 500
-    #nappends = 100
+    chunksize = 1
+    nappends = 1
+    start = 1
+    stop = 10
+    step = 10
 
 class MD10WriteTestCase(BasicTestCase):
     type = Int32
     shape = (1, 2, 3, 4, 5, 5, 4, 3, 2, 0)
-    #shape.append(0)
     chunksize = 5
     nappends = 10
+    start = -1
+    stop = -1
+    step = 10
 
 class ZlibComprTestCase(BasicTestCase):
     compress = 1
     complib = "zlib"
+    start = 3
+    stop = 0   # means last row
+    step = 10
 
-class ZlibShuffleComprTestCase(BasicTestCase):
+class ZlibShuffleTestCase(BasicTestCase):
     shuffle = 1   # That should be enough to activate the compression
     complib = "zlib"
+    # case start < stop , i.e. no rows read
+    start = 3
+    stop = 1
+    step = 10
 
 class LZOComprTestCase(BasicTestCase):
     compress = 1
-    chunksize = 1
-    nappends = 1
     complib = "lzo"
+    chunksize = 10
+    nappends = 100
+    start = 3
+    stop = 10
+    step = 3
+
+class LZOShuffleTestCase(BasicTestCase):
+    compress = 1
+    shuffle = 1
+    complib = "lzo"
+    chunksize = 100
+    nappends = 10
+    start = 3
+    stop = 10
+    step = 7
 
 class UCLComprTestCase(BasicTestCase):
     compress = 1
     complib = "ucl"
+    chunksize = 100
+    nappends = 10
+    start = 3
+    stop = 10
+    step = 8
+
+class UCLShuffleTestCase(BasicTestCase):
+    compress = 1
+    shuffle = 1
+    complib = "ucl"
+    chunksize = 100
+    nappends = 10
+    start = 3
+    stop = 10
+    step = 6
 
 class FloatTypeTestCase(BasicTestCase):
     type = Float64
+    shape = (2,0)
+    chunksize = 5
+    nappends = 10
+    start = 3
+    stop = 10
+    step = 20
 
+# Provar a afegir tests per a scalars i chararrays
+# Afegir tests per a getitem
 
 #----------------------------------------------------------------------
 
@@ -209,24 +297,30 @@ def suite():
     niter = 1
 
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
+    #theSuite.addTest(unittest.makeSuite(EmptyArrayTestCase))
     #theSuite.addTest(unittest.makeSuite(MD3WriteTestCase))
     #theSuite.addTest(unittest.makeSuite(MD5WriteTestCase))
     #theSuite.addTest(unittest.makeSuite(MD10WriteTestCase))
     #theSuite.addTest(unittest.makeSuite(ZlibComprTestCase))
-    #theSuite.addTest(unittest.makeSuite(ZlibShuffleComprTestCase))
+    #theSuite.addTest(unittest.makeSuite(ZlibShuffleTestCase))
     #theSuite.addTest(unittest.makeSuite(LZOComprTestCase))
+    #theSuite.addTest(unittest.makeSuite(LZOShuffleTestCase))
     #theSuite.addTest(unittest.makeSuite(UCLComprTestCase))
+    #theSuite.addTest(unittest.makeSuite(UCLShuffleTestCase))
     #theSuite.addTest(unittest.makeSuite(FloatTypeTestCase))
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
+        theSuite.addTest(unittest.makeSuite(EmptyArrayTestCase))
         theSuite.addTest(unittest.makeSuite(MD3WriteTestCase))
         theSuite.addTest(unittest.makeSuite(MD5WriteTestCase))
         theSuite.addTest(unittest.makeSuite(MD10WriteTestCase))
         theSuite.addTest(unittest.makeSuite(ZlibComprTestCase))
-        theSuite.addTest(unittest.makeSuite(ZlibShuffleComprTestCase))
+        theSuite.addTest(unittest.makeSuite(ZlibShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(LZOComprTestCase))
+        theSuite.addTest(unittest.makeSuite(LZOShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(UCLComprTestCase))
+        theSuite.addTest(unittest.makeSuite(UCLShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(FloatTypeTestCase))
     
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.41 2003/12/09 20:35:33 falted Exp $
+#       $Id: Array.py,v 1.42 2003/12/11 10:25:18 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.41 $"
+__version__ = "$Revision: 1.42 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -360,8 +360,12 @@ class Array(Leaf, hdf5Extension.Array, object):
         It is, therefore, a shorter way to call it.
         """
 
-        (self._start, self._stop, self._step) = \
-                     processRange(self.nrows, start, stop, step)
+        try:
+            (self._start, self._stop, self._step) = \
+                          processRange(self.nrows, start, stop, step)
+        except IndexError:
+            # If problems with indexes, silently return the null tuple
+            return ()
         self._initLoop()
         return self
         
@@ -400,21 +404,18 @@ class Array(Leaf, hdf5Extension.Array, object):
                     self._stopb = self._stop
                 self.listarr = self.read(self._startb, self._stopb, self._step)
                 # Swap the axes to easy the return of elements
-                #print "start, stop, step:", self._startb, self._stopb, self._step
-                if (self._stopb - self._startb) > self._step:
-                    # The case == step has been dealt in read() method
+                if self.extdim > 0:
                     self.listarr.swapaxes(self.extdim, 0)
-                else:
-                    self.nrow += self._step   # Update self.nrow
-                    self._nrowsread += self._step  # Stop condition
-                    return self.listarr
                 self._row = -1
                 self._startb = self._stopb
             self._row += 1
             self.nrow += self._step
             self._nrowsread += self._step
-            #print self._row,
-            return self.listarr[self._row]
+            if self.listarr.shape:
+                return self.listarr[self._row]
+            else:
+                # Scalar case
+                return self.listarr
 
     def __getitem__(self, key):
         """Returns a table row, table slice or table column.
@@ -432,12 +433,21 @@ class Array(Leaf, hdf5Extension.Array, object):
 """
 
         if isinstance(key, types.IntType):
-            return self.read(key, key+1, 1)
+            (start, stop, step) = (key, key+1, 1)
+            ret = self.read(start, stop, step)
         elif isinstance(key, types.SliceType):
-            return self.read(key.start, key.stop, key.step)
+            (start, stop, step) = processRange(self.nrows, key.start, key.stop, key.step)
+            ret = self.read(start, stop, step)
         else:
             raise ValueError, "Non-valid index or slice: %s" % \
                   key
+
+        print "start, stop, step", start, stop, step
+        if (stop - start) < step and self.extdim > 0:
+            self.listarr.swapaxes(self.extdim, 0)
+            return ret[0]
+        else:
+            return ret
         
     def _convToFlavor(self, arr):
         "Convert the numarray parameter to the correct flavor"
@@ -486,11 +496,8 @@ class Array(Leaf, hdf5Extension.Array, object):
             extdim = 0
         else:
             extdim = self.extdim
-        if self.shape:
-            nrows = self.shape[extdim]
-        else:
-            nrows = 1
-        (start, stop, step) = processRange(nrows, start, stop, step)
+
+        (start, stop, step) = processRange(self.nrows, start, stop, step)
         rowstoread = ((stop - start - 1) / step) + 1
         shape = list(self.shape)
         if shape:
@@ -515,13 +522,6 @@ class Array(Leaf, hdf5Extension.Array, object):
             # Arrays that have non-zero dimensionality
             self._readArray(start, stop, step, arr._data)
             
-        # If only one row is required and enlargeable arrays,
-        # swap the axes to eliminate one dimension
-        if ((stop - start) == step and
-            self.extdim >= 0 and len(self.shape) > 1): 
-                arr.swapaxes(self.extdim, 0)
-                arr = arr[0]
-            
         if self.flavor <> "NumArray":
             return self._convToFlavor(arr)
         else:
@@ -531,9 +531,9 @@ class Array(Leaf, hdf5Extension.Array, object):
         """This provides more metainfo in addition to standard __str__"""
 
         if self.extdim >= 0:
-            enlargeable = "Array enlargeable"
+            enlargeable = "Enlargeable"
         else:
-            enlargeable = "Array not enlargeable"
+            enlargeable = "Not enlargeable"
         
         return """%s
   type = %r

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.81 2003/11/28 19:09:40 falted Exp $
+#       $Id: Table.py,v 1.82 2003/12/11 10:25:18 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.81 $"
+__version__ = "$Revision: 1.82 $"
 
 from __future__ import generators
 import sys
@@ -592,7 +592,9 @@ class Table(Leaf, hdf5Extension.Table, object):
         # If "stop" is not provided, select the index pointed by start only
         if stop is None:
             stop = start + 1
-        # Check for correct values of start and stop    
+        # Check for correct values of start and stop
+        if stop > self.nrows:
+            stop = self.nrows
         (start, stop, step) = processRange(self.nrows, start, stop, 1)
         nrows = stop - start
         nrows = self._remove_row(start, nrows)
