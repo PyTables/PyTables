@@ -654,18 +654,18 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		or perhaps just
 		<verbatim>
 		  --rpath="/stuff/hdf5-1.6.2/lib"
-		</verbatim>
-		Check your compiler and linker documentation as well
-		as the Python <verb>Distutils</verb> documentation for
-		the correct syntax.
+		</verbatim> 
+		
+		Check your compiler and linker documentation as well as
+		the Python <verb>Distutils</verb> documentation for the
+		correct syntax.
 	      </p>
 
-	      <p>It is also possible to link specific libraries with
-		the standard <verb>Distutils</verb>
-		<verb>--libraries</verb> switch:
+	      <p>It is also possible to link with specific libraries by
+		setting the <verb>LIBS</verb> environment variable:
 		<verbatim>
-		  --libraries="-lhdf5-1.6.5"
-		  --libraries="-lhdf5-1.6.5 -lnsl"
+		  LIBS="hdf5-1.6.5"
+		  LIBS="hdf5-1.6.5 nsl"
 		</verbatim>
 	      </p>
 	    </item>

@@ -101,7 +101,11 @@ if os.name == 'posix':
     LZO_DIR = os.environ.get('LZO_DIR', '')
     UCL_DIR = os.environ.get('UCL_DIR', '')
     LFLAGS = os.environ.get('LFLAGS', [])
+    if LFLAGS:
+        LFLAGS = string.split(LFLAGS)
     LIBS = os.environ.get('LIBS', [])
+    if LIBS:
+        LIBS = string.split(LIBS)    
 
     # ...then the command line.
     # Handle --hdf5=[PATH] --lzo=[PATH] --ucl=[PATH] --lflags=[FLAGS] and debug
@@ -130,7 +134,7 @@ if os.name == 'posix':
             #sys.argv.remove(arg)
 
     libnames = LIBS
-    if LFLAGS or LIBS:
+    if LFLAGS:
         lflags_arg = LFLAGS
 
     lib_dirs = []
@@ -344,8 +348,12 @@ elif os.name == 'nt':
     LZO_DIR = os.environ.get('LZO_DIR', '')
     UCL_DIR = os.environ.get('UCL_DIR', '')
     LFLAGS = os.environ.get('LFLAGS', [])
+    if LFLAGS:
+        LFLAGS = string.split(LFLAGS)
     LIBS = os.environ.get('LIBS', [])
-
+    if LIBS:
+        LIBS = string.split(LIBS)
+        
     # ...then the command line.
     # Handle --hdf5=[PATH] --lzo=[PATH] --ucl=[PATH] --lflags=[FLAGS] and
     # --debug
@@ -374,7 +382,7 @@ elif os.name == 'nt':
             #sys.argv.remove(arg)
 
     libnames = LIBS
-    if LFLAGS or LIBS:
+    if LFLAGS:
         lflags_arg = LFLAGS
 
     # HDF5 library (mandatory)
