@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.60 2003/07/14 19:14:59 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.61 2003/07/16 20:17:56 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.60 $"
+__version__ = "$Revision: 1.61 $"
 
 
 import sys, os
@@ -486,6 +486,12 @@ cdef extern from "H5TB.h":
                                 hsize_t nrecords, size_t type_size,
                                 size_t *field_offset, void *data )
 
+  herr_t H5TBdelete_record( hid_t loc_id, 
+                            char *dset_name,
+                            hsize_t start,
+                            hsize_t nrecords )
+
+
 cdef extern from "H5TB-opt.h":
 
   herr_t H5TBOopen_read( hid_t *dataset_id,
@@ -679,7 +685,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.60 2003/07/14 19:14:59 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.61 2003/07/16 20:17:56 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1337,9 +1343,6 @@ cdef class Table:
     if (start + nrecords) > self.totalrecords:
       nrecords = self.totalrecords - start
 
-    # Get the pointer to the buffer data area
-    #ret2 = PyObject_AsWriteBuffer(recarr._data, &self.rbuf, &buflen)
-
     if ( H5TBOread_records(&self.dataset_id, &self.space_id,
                            &self.mem_type_id, start,
                            nrecords, self.rbuf) < 0 ):
@@ -1370,6 +1373,18 @@ cdef class Table:
 
     return nrecords
  
+  def _remove_row(self, nrow, nrecords):
+
+    if (H5TBdelete_record(self.parent_id, self.name, nrow, nrecords) < 0):
+      #raise RuntimeError("Problems deleting records.")
+      print "Problems deleting records."
+      # Return no removed records
+      return 0
+    else:
+      self.totalrecords = self.totalrecords - nrecords
+      # Return the number of records removed
+      return nrecords
+
   def _close_read(self):
 
     if ( H5TBOclose_read(&self.dataset_id, &self.space_id,

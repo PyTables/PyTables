@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.56 2003/07/15 18:52:48 falted Exp $
+#       $Id: Table.py,v 1.57 2003/07/16 20:17:56 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.56 $"
+__version__ = "$Revision: 1.57 $"
 
 from __future__ import generators
 import sys
@@ -511,6 +511,18 @@ class Table(Leaf, hdf5Extension.Table, object):
 
     def _processRange(self, start=None, stop=None, step=None):
         
+        assert (type(start) in
+                [types.NoneType, types.IntType, types.LongType]), \
+            "Non valid start parameter: %s" % start
+        
+        assert (type(stop) in
+                [types.NoneType, types.IntType, types.LongType]), \
+            "Non valid stop parameter: %s" % stop
+        
+        assert (type(step) in
+                [types.NoneType, types.IntType, types.LongType]), \
+            "Non valid step parameter: %s" % step
+        
         if (not (start is None)) and ((stop is None) and (step is None)):
             step = 1
             if start < 0:
@@ -724,6 +736,25 @@ class Table(Leaf, hdf5Extension.Table, object):
 "Numeric", "Tuple" and "List".""" % (flavor)
 
         return arr
+
+    def removeRow(self, start=None, stop = None):
+        """Remove a range of rows.
+
+        If only "start" is supplied, this row is to be deleted.
+        If "start" and "stop" parameters are supplied, a row
+        range is selected to be removed.
+
+        """
+
+        # If "stop" is not provided, select the index pointed by start only
+        if stop is None:
+            stop = start + 1
+        # Check for correct values of start and stop    
+        (start, stop, step) = self._processRange(start, stop, 1)
+        nrows = stop - start
+        nrows = self._remove_row(start, nrows)
+        self.nrows -= nrows    # discount the removed rows from the total
+        return nrows
             
     # This version of _readCol does not work well. Perhaps a bug in the
     # H5TB_read_fields_name entry?

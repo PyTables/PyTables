@@ -281,7 +281,6 @@ class BasicTestCase(unittest.TestCase):
         else:
             add = 20
         assert len(result) == 20 + add  # because we appended new rows
-        #del table
 
     # CAVEAT: The next test only works for tables with rows < 2**15
     def test03_endianess(self):
@@ -308,7 +307,111 @@ class BasicTestCase(unittest.TestCase):
         nrows = self.expectedrows - 1
         assert (rec['var1'], rec['var6']) == ("0001", nrows)
         assert len(result) == 20
+
+    def test04_delete(self):
+        """Checking if a single row can be deleted"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04_delete..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        self.fileh = openFile(self.file, "a")
+        table = self.fileh.getNode("/table0")
+
+        # Read the records and select the ones with "var2" column less than 20
+        result = [ r['var2'] for r in table.iterrows() if r['var2'] < 20]
         
+        if verbose:
+            print "Nrows in", table._v_pathname, ":", table.nrows
+            print "Last selected value ==>", result[-1]
+            print "Total selected records in table ==>", len(result)
+
+        nrows = table.nrows
+        # Delete the twenty-th row
+        table.removeRow(19)
+
+        # Re-read the records
+        result2 = [ r['var2'] for r in table.iterrows() if r['var2'] < 20]
+
+        if verbose:
+            print "Nrows in", table._v_pathname, ":", table.nrows
+            print "Last selected value ==>", result2[-1]
+            print "Total selected records in table ==>", len(result2)
+
+        assert table.nrows == nrows - 1
+        # Check that the new list is smaller than the original one
+        assert len(result) == len(result2) + 1
+        assert result[:-1] == result2
+
+    def test04b_delete(self):
+        """Checking if a range of rows can be deleted"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04b_delete..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        self.fileh = openFile(self.file, "a")
+        table = self.fileh.getNode("/table0")
+
+        # Read the records and select the ones with "var2" column less than 20
+        result = [ r['var2'] for r in table.iterrows() if r['var2'] < 20]
+
+        if verbose:
+            print "Nrows in", table._v_pathname, ":", table.nrows
+            print "Last selected value ==>", result[-1]
+            print "Total selected records in table ==>", len(result)
+
+        nrows = table.nrows
+        # Delete the last ten rows 
+        table.removeRow(10, 20)
+
+        # Re-read the records
+        result2 = [ r['var2'] for r in table.iterrows() if r['var2'] < 20]
+
+        if verbose:
+            print "Nrows in", table._v_pathname, ":", table.nrows
+            print "Last selected value ==>", result2[-1]
+            print "Total selected records in table ==>", len(result2)
+
+        assert table.nrows == nrows - 10
+        # Check that the new list is smaller than the original one
+        assert len(result) == len(result2) + 10
+        assert result[:10] == result2
+
+    def test04c_delete(self):
+        """Checking if removing a bad range of rows is detected"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04c_delete..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        self.fileh = openFile(self.file, "a")
+        table = self.fileh.getNode("/table0")
+
+        # Read the records and select the ones with "var2" column less than 20
+        result = [ r['var2'] for r in table.iterrows() if r['var2'] < 20]
+        
+        nrows = table.nrows
+
+        # Delete a too large range of rows 
+        table.removeRow(10, nrows + 100)
+
+        # Re-read the records
+        result2 = [ r['var2'] for r in table.iterrows() if r['var2'] < 20]
+
+        if verbose:
+            print "Nrows in", table._v_pathname, ":", table.nrows
+            print "Last selected value ==>", result2[-1]
+            print "Total selected records in table ==>", len(result2)
+
+        assert table.nrows == 10
+        # Check that the new list is smaller than the original one
+        assert len(result) == len(result2) + 10
+        assert result[:10] == result2
+
 class BasicWriteTestCase(BasicTestCase):
     title = "BasicWrite"
 
@@ -980,6 +1083,7 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
     #theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
     #theSuite.addTest(unittest.makeSuite(CompressUCLTablesTestCase))
+    #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))

@@ -17,7 +17,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if 0
+/* Define this because we are using HDF5 > 1.6 */
+/* F. Alted  2003/07/16 */
+#if 1  
 #define SHRINK
 #endif
 
@@ -1715,15 +1717,18 @@ herr_t H5TBdelete_record( hid_t loc_id,
 
  read_start = start + nrecords;
  read_nrecords = ntotal_records - read_start;
- tmp_buf = (unsigned char *)calloc((size_t) read_nrecords, src_size );
+ /* This check added for the case that there are no records to be read */
+ /* F. Alted  2003/07/16 */
+ if (read_nrecords > 0) {
+   tmp_buf = (unsigned char *)calloc((size_t) read_nrecords, src_size );
 
- if ( tmp_buf == NULL )
-  return -1;
+   if ( tmp_buf == NULL )
+     return -1;
 
- /* Read the records after the deleted one(s) */
- if ( H5TBread_records( loc_id, dset_name, read_start, read_nrecords, src_size, 
-		    src_offset, tmp_buf ) < 0 )
-  return -1;
+   /* Read the records after the deleted one(s) */
+   if ( H5TBread_records( loc_id, dset_name, read_start, read_nrecords, src_size, 
+			  src_offset, tmp_buf ) < 0 )
+     return -1;
 
 
 /*-------------------------------------------------------------------------
@@ -1731,43 +1736,50 @@ herr_t H5TBdelete_record( hid_t loc_id,
  *-------------------------------------------------------------------------
  */
 
- /* Open the dataset. */
- if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
-  return -1;
+   /* Open the dataset. */
+   if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+     return -1;
  
- /* Get the datatype */
- if ( (type_id = H5Dget_type( dataset_id )) < 0 )
-  goto out;
+   /* Get the datatype */
+   if ( (type_id = H5Dget_type( dataset_id )) < 0 )
+     goto out;
 
- /* Get the dataspace handle */
- if ( (space_id = H5Dget_space( dataset_id )) < 0 )
-  goto out;
+   /* Get the dataspace handle */
+   if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+     goto out;
 
- /* Define a hyperslab in the dataset of the size of the records */
- offset[0] = start;
- count[0]  = read_nrecords;
- if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
-  goto out;
+   /* Define a hyperslab in the dataset of the size of the records */
+   offset[0] = start;
+   count[0]  = read_nrecords;
+   if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
+     goto out;
 
- /* Create a memory dataspace handle */
- mem_size[0] = count[0];
- if ( (mem_space_id = H5Screate_simple( 1, mem_size, NULL )) < 0 )
-  goto out;
+   /* Create a memory dataspace handle */
+   mem_size[0] = count[0];
+   if ( (mem_space_id = H5Screate_simple( 1, mem_size, NULL )) < 0 )
+     goto out;
 
- if ( H5Dwrite( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, tmp_buf ) < 0 )
-  goto out;
+   if ( H5Dwrite( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, tmp_buf ) < 0 )
+     goto out;
 
- /* Terminate access to the memory dataspace */
- if ( H5Sclose( mem_space_id ) < 0 )
-  goto out;
+   /* Terminate access to the memory dataspace */
+   if ( H5Sclose( mem_space_id ) < 0 )
+     goto out;
 
- /* Terminate access to the dataspace */
- if ( H5Sclose( space_id ) < 0 )
-  goto out;
+   /* Terminate access to the dataspace */
+   if ( H5Sclose( space_id ) < 0 )
+     goto out;
 
- /* Release the datatype. */
- if ( H5Tclose( type_id ) < 0 )
-  goto out;
+   /* Release the datatype. */
+   if ( H5Tclose( type_id ) < 0 )
+     goto out;
+
+ } /*  if (nread_nrecords > 0) */
+ else {
+   /* Open the dataset. */
+   if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+     return -1;
+ } 
 
 
 /*-------------------------------------------------------------------------
@@ -1785,7 +1797,10 @@ herr_t H5TBdelete_record( hid_t loc_id,
  if ( H5Dclose( dataset_id ) < 0 )
   return -1;
   
- free( tmp_buf );
+ /* F. Alted 2003/07/16 */
+ if (read_nrecords > 0) {
+   free( tmp_buf );
+ }
  free( src_offset );
 
 /*-------------------------------------------------------------------------

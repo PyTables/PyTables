@@ -14,7 +14,7 @@ class Small(IsDescription):
     correct."""
     
     #var1 = Col("CharType", 4, "")
-    var1 = StringCol(4, dflt="")
+    var1 = StringCol(dflt="", itemsize=4)
     #var1 = Col("Float32", 1, 0.0)
     var2 = Col("Int32", 1, 0)
     var3 = Col("Float64", 1, 0)
@@ -22,7 +22,7 @@ class Small(IsDescription):
 # Define a user record to characterize some kind of particles
 class Medium(IsDescription):
     #name        = Col('CharType', 16, "")  # 16-character String
-    name        = StringCol(16, dflt="")  # 16-character String
+    name        = StringCol(dflt="", itemsize=16)  # 16-character String
     float1      = Col("Float64", 2, NA.arange(2))
     #float1      = Col("Float64", 1, 2.3)
     #float2      = Col("Float64", 1, 2.3)
@@ -36,7 +36,7 @@ class Medium(IsDescription):
 # Define a user record to characterize some kind of particles
 class Big(IsDescription):
     #name        = Col('CharType', 16, "")  # 16-character String
-    name        = StringCol(16, dflt="")  # 16-character String
+    name        = StringCol(itemsize=16, dflt="")  # 16-character String
     float1      = Col("Float64", 32, NA.arange(32))
     float2      = Col("Float64", 32, 2.2)
     TDCcount    = Col("Int8", 1, 0)    # signed short integer
@@ -160,8 +160,14 @@ def readFile(filename, recsize, verbose):
                 #      if p.grid_i < 2 ]
                 #e = [ str(p) for p in table.iterrows() ]
                 #      if p.grid_i < 2 ]
-                e = [ p['grid_i'] for p in table.iterrows() 
-                      if p['grid_j'] == 20 ]
+#                 e = [ p['grid_i'] for p in table.iterrows() 
+#                       if p['grid_j'] == 20 and p['grid_i'] < 20 ]
+#                 e = [ p['grid_i'] for p in table.iterrows() 
+#                       if p['grid_j'] == 20 ]
+#                 e = [ p['grid_i'] for p in table.iterrows() 
+#                       if p.nrow() == 20 ]
+                e = [ table.delrow(p.nrow()) for p in table.iterrows() 
+                      if p.nrow() == 20 ]
                 # The version with a for loop is only 1% better than
                 # comprenhension list
                 #e = []
@@ -169,11 +175,13 @@ def readFile(filename, recsize, verbose):
                 #    if p.grid_i < 20:
                 #        e.append(p.grid_j)
             else:  # small record case
-                e = [ p['var3'] for p in table.iterrows()
-                      if p['var2'] == 20 ]
+#                 e = [ p['var3'] for p in table.iterrows()
+#                       if p['var2'] == 20 and p['var3'] < 20 ]
+#                 e = [ p['var3'] for p in table.iterrows()
+#                       if p['var2'] == 20 ]
                 #e = [ p['var3'] for p in table.iterrows(0,21) ]
-                #e = [ p['var3'] for p in table.iterrows()
-                #      if p.nrow() <= 20 ]
+                e = [ p['var3'] for p in table.iterrows()
+                     if p.nrow() <= 20 ]
                 #e = [ p['var3'] for p in table.iterrows(1,0,1000)]
                 #e = [ p['var3'] for p in table.iterrows(1,100)]
                 #e = [ p['var3'] for p in table.iterrows(step=2)
