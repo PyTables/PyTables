@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.9 2003/01/31 12:41:46 falted Exp $
+#       $Id: Group.py,v 1.10 2003/02/03 10:13:08 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.9 $"
+__version__ = "$Revision: 1.10 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -42,17 +42,11 @@ MAX_CHILDS_IN_GROUP = 4096
 
 from __future__ import generators
 
-import warnings
+import warnings, types
 import hdf5Extension
 from Table import Table
 from Array import Array
-
-# Reserved prefixes for special attributes in Group class
-reservedprefixes = [
-  '_c_',   # For class variables
-  '_f_',   # For class functions
-  '_v_',   # For instance variables
-]
+from utils import checkNameValidity
 
 class Group(hdf5Extension.Group):
     """This is the python counterpart of a group in the HDF5 structure.
@@ -128,11 +122,12 @@ class Group(hdf5Extension.Group):
 
         """
         pgroupId =  self._v_parent._v_groupId
-        (groups, leaves) = self._f_listGroup(pgroupId, self._v_name)
+        (groups, leaves) = self._f_listGroup(pgroupId, self._v_hdf5name)
         for name in groups:
             objgroup = Group(new = 0)
             # Insert this group as a child of mine
             objgroup._f_putObjectInTree(name, self)
+            #setattr(self, name, objgroup)
             # Call openFile recursively over the group's tree
             objgroup._f_openFile()
         for name in leaves:
@@ -155,6 +150,7 @@ class Group(hdf5Extension.Group):
                       class ID: %s""" % class_
             # Set some attributes to caracterize and open this object
             objgroup._f_putObjectInTree(name, self)
+            #setattr(self, name, objgroup)
         
     def _f_join(self, name):
         """Helper method to correctly concatenate a name child object
@@ -169,15 +165,24 @@ class Group(hdf5Extension.Group):
         """Set some properties for general objects (Group and Leaf) in the
         tree."""
 
-        # Update instance variable
-        self._v_objchilds[name] = value
         # New attributes for the new Group instance
         newattr = value.__dict__
         newattr["_v_" + "rootgroup"] = self._v_rootgroup
         newattr["_v_" + "parent"] = self
         newattr["_v_" + "depth"] = self._v_depth + 1
-        newattr["_v_" + "name"] = name
-        newattr["_v_" + "pathname"] = self._f_join(name)
+        # Get the alternate name (if any)
+        trTable = self._v_rootgroup._v_parent._v_trTable
+        revtrTable = self._v_rootgroup._v_parent._v_revtrTable
+        if value._v_new:
+            newattr["_v_name"] = name
+            newattr["_v_hdf5name"] = trTable.get(name, name)
+        else:
+            newattr["_v_name"] = revtrTable.get(name, name)
+            newattr["_v_hdf5name"] = name
+
+        newattr["_v_" + "pathname"] = self._f_join(value._v_name)
+        # Update instance variable
+        self._v_objchilds[value._v_name] = value
         # In the future this should be read from disk in case of an opening
         # To be done when general Attribute module available
         newattr["_v_class"] = value.__class__.__name__
@@ -190,15 +195,17 @@ class Group(hdf5Extension.Group):
         
         # Update the parent instance attributes
         parent._f_setproperties(name, self)
-        parent._v_objgroups[name] = self
+        #self._f_new(parent, name)
+        self._f_new(parent, self._v_hdf5name)
+        parent._v_objgroups[self._v_name] = self
         # Update class variables
         self._c_objgroups[self._v_pathname] = self
         if self._v_new:
-            self._f_create(name, parent)
+            self._f_create()
         else:
-            self._f_open(name, parent)
+            self._f_open(parent, self._v_hdf5name)
 
-    def _f_open(self, name, parent):
+    def _f_open(self, parent, name):
         """Call the openGroup method in super class to open the existing
         group on disk. Also get attributes for this group. """
         
@@ -213,13 +220,13 @@ class Group(hdf5Extension.Group):
         self.__dict__["_v_version"] = \
                       self._f_getGroupAttrStr('VERSION')
 
-    def _f_create(self, name, parent):
+    def _f_create(self):
         """Call the createGroup method in super class to create the group on
         disk. Also set attributes for this group. """
 
         # Call the superclass method to create a new group
         self.__dict__["_v_groupId"] = \
-                     self._f_createGroup(parent._v_groupId, name)
+                     self._f_createGroup()
         # Set the title, class and version attribute
         self._f_setGroupAttrStr('TITLE', self._v_title)
         self._f_setGroupAttrStr('CLASS', "Group")
@@ -318,40 +325,10 @@ class Group(hdf5Extension.Group):
         a valid Python identifier.
 
         """
-        global reservedprefixes
-        global MAX_DEPTH_IN_TREE, MAX_CHILDS_IN_GROUP
 
-
-        # Check if name starts with a reserved prefix
-        for prefix in reservedprefixes:
-            if (name.startswith(prefix)):
-                raise NameError, \
-"""Sorry, you cannot start a node name with the following reserved prefixes:\
-  %s""" % (reservedprefixes)
-                
-        # Check if new  node name have the appropriate set of characters
-        # and is not one of the Python reserved word!
-        # We use the next trick: exec the assignment 'name = 1' and
-        # if a SyntaxError raises, catch it and re-raise a personalized error.
+        # Check for name validity
+        checkNameValidity(name)
         
-        # Get a copy of name (so as to not modify name's value)
-        backname = name
-        testname = '_' + name + '_'
-        try:
-            exec(testname + ' = 1')  # Test for trailing and ending spaces
-            exec(name + '= 1')  # Test for name validity
-        except SyntaxError:
-            raise SyntaxError, \
-"""\'%s\' is not a valid python identifier.
-  Check for special symbols ($, %%, @, ...), spaces or reserved words.""" % \
-  (name)
-        else:
-            # Retrieves the original value for name
-            name = backname
-            # Delete testname and backname
-            del testname
-            del backname
-
         # Check if we are too much deeper in tree
         if self._v_depth > MAX_DEPTH_IN_TREE:
             raise RuntimeError, \
@@ -371,7 +348,12 @@ class Group(hdf5Extension.Group):
             raise RuntimeError, \
                "'%s' group has exceeded the maximum number of childs (%d)" % \
                (self._v_pathname, MAX_CHILDS_IN_GROUP) 
-            
+
+    def _f_cleanup(self):
+        """Reset all class attributes"""
+        self._c_objgroups.clear()
+        self._c_objleaves.clear()
+        self._c_objects.clear()
                   
     def __str__(self):
         """The string representation for this object."""

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.12 2003/01/31 12:41:40 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.13 2003/02/03 10:13:07 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.12 $"
+__version__ = "$Revision: 1.13 $"
 
 
 import sys, os.path
@@ -465,7 +465,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.12 2003/01/31 12:41:40 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.13 2003/02/03 10:13:07 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -480,7 +480,8 @@ cdef class File:
   cdef hid_t   file_id
   cdef char    *name
 
-  def __new__(self, char *name, char *mode, char *title, int new):
+  def __new__(self, char *name, char *mode, char *title,
+              int new, object trTable):
     # Create a new file using default properties
     # Improve this to check if the file exists or not before
     self.name = name
@@ -541,17 +542,17 @@ cdef class Group:
   def _f_new(self, where, name):
     # Initialize the C attributes of Group object
     self.name = strdup(name)
+    # The parent group id for this object
+    self.parent_id = where._v_groupId
     
-  def _f_createGroup(self, hid_t loc_id, char *name):
+  def _f_createGroup(self):
     cdef hid_t ret
     
     # Create a new group
-    self.name = strdup(name)
-    ret = H5Gcreate(loc_id, name, 0)
+    ret = H5Gcreate(self.parent_id, self.name, 0)
     if ret < 0:
       raise RuntimeError("Can't create the group %s." % self.name)
     self.group_id = ret
-    self.parent_id = loc_id
     return self.group_id
 
   def _f_openGroup(self, hid_t loc_id, char *name):
@@ -559,7 +560,7 @@ cdef class Group:
     
     # Open a existing group
     self.name = strdup(name)
-    ret = H5Gopen(loc_id, name)
+    ret = H5Gopen(loc_id, self.name)
     if ret < 0:
       raise RuntimeError("Can't open the group %s." % self.name)
     self.group_id = ret

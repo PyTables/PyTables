@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.11 2003/01/31 12:41:46 falted Exp $
+#       $Id: Table.py,v 1.12 2003/02/03 10:13:08 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.11 $"
+__version__ = "$Revision: 1.12 $"
 
 from __future__ import generators
 import sys
@@ -195,8 +195,7 @@ class Table(Leaf, hdf5Extension.Table):
             recordDict[varname] = defineType(vartype, length)
             i += 1
         # Append this entry to indicate the alignment!
-        # Not needed anymore because the alignment is now always "="
-        #recordDict['_v_align'] = self._v_fmt[0]
+        recordDict['_v_align'] = self._v_fmt[0]
         self._v_byteorder = byteorderDict[self._v_fmt[0]]
         # Create an instance record to host the record fields
         RecordObject = metaIsRecord("", (), recordDict)()

@@ -23,6 +23,7 @@ Particle2 = {
     "grid_j"      : defineType("Int32", 1, 0),    # integer
     "idnumber"    : defineType("Int64", 1, 0),    #signed long long 
     "name"        : defineType('CharType', 16, ""),  # 16-character String
+    "__name"      : "Hola, pardal",  # To pass a special variable to IsRecord
     #"pressure"    : defineType("Float32", 2, 0),  # float  (single-precision)
     "pressure"    : defineType("Float32", 1, 0),  # float  (single-precision)
     "temperature" : defineType("Float64", 1, 0),  # double (double-precision)
@@ -30,9 +31,13 @@ Particle2 = {
 
 # The name of our HDF5 filename
 filename = "table-tree.h5"
+
+trTable = {"detector": "for",  # A reserved word
+           "table": " 11 ",}   # A non-valid python variable name
     
 # Open a file in "w"rite mode
-h5file = openFile(filename, mode = "w")
+h5file = openFile(filename, mode = "w", trTable=trTable)
+#h5file = openFile(filename, mode = "w")
 
 # Create a new group under "/" (root)
 group = h5file.createGroup("/", 'detector')
@@ -105,7 +110,8 @@ h5file.close()
 #sys.exit()
 
 # Reopen it in append mode
-h5file = openFile(filename, "a")
+h5file = openFile(filename, "a", trTable=trTable)
+#h5file = openFile(filename, "a")
 
 # Ok. let's start browsing the tree from this filename
 print "Reading info from filename:", h5file.filename
@@ -128,13 +134,14 @@ for group in h5file.walkGroups("/"):
 	print array
 print
 
-# Add code to test invalid variable names for node names
+# Added code to test the next invalid variable names for node names
 #print h5file.createGroup("/", '_ _pepe__')
 #print h5file.root.__pepe__
 
 
 # Get group /detector and print some info on it
 detector = h5file.getNode("/detector")
+print "detector object ==>", detector
 
 # List only leaves on detector
 print "Leaves in group", detector, ":"
@@ -156,6 +163,7 @@ print
 
 
 # Get "/detector" Group object
+print "Before asking for /detector"
 group = h5file.getNode(h5file.root, "detector", classname = 'Group')
 print "/detector ==>", group 
 

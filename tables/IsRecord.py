@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Attic/IsRecord.py,v $
-#       $Id: IsRecord.py,v 1.5 2003/01/29 10:22:14 falted Exp $
+#       $Id: IsRecord.py,v 1.6 2003/02/03 10:13:08 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.5 $"
+__version__ = "$Revision: 1.6 $"
 
 
 import warnings
@@ -36,6 +36,8 @@ import sys
 
 import numarray as NA
 import recarray2 as recarray
+
+from utils import checkNameValidity
 
 # Map between the numarray types and struct datatypes
 tostructfmt = {NA.Int8:'b', NA.UInt8:'B',
@@ -184,17 +186,23 @@ print p
         newdict['_v_fmt'] = "=" # Force the "standard" alignment (no align)
         recarrfmt = []
         for k in keys:
-            if (k.startswith('__') or k.startswith('_v_') 
-                or k.startswith('_f_')):
+            if (k.startswith('__') or k.startswith('_v_')):
                 if k in newdict:
                     # special methods &c: copy to newdict, warn about conflicts
                     warnings.warn("Can't set attr %r in record-class %r" % (
                         k, classname))
                 else:
+                    # Beware, in this case, we don't allow fields with
+                    # prefix "_v_". This is reserved to pass special
+                    # variables to the new class.
+                    #print "Special variable!:", k
                     newdict[k] = classdict[k]
             else:
                 # class variables, store name in __slots__ and name and
                 # value as an item in __dflts__
+
+                # Check for key name validity
+                checkNameValidity(k)
                 newdict['__slots__'].append(k)
                 object = classdict[k]
                 newdict['__types__'][k] = object.type

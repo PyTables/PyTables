@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.9 2003/01/31 11:11:52 falted Exp $
+#       $Id: File.py,v 1.10 2003/02/03 10:13:08 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.9 $"
+__version__ = "$Revision: 1.10 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -48,7 +48,7 @@ from Table import Table
 from Array import Array
 import numarray
 
-def openFile(filename, mode = "r", title = ""):
+def openFile(filename, mode="r", title="", trTable={}):
 
     """Open a PyTables file an returns a File object.
 
@@ -142,7 +142,7 @@ def openFile(filename, mode = "r", title = ""):
         new = 1
             
     # Finally, create the File instance, and return it
-    return File(path, mode, title, new)
+    return File(path, mode, title, new, trTable)
 
 
 class File(hdf5Extension.File):
@@ -173,7 +173,8 @@ class File(hdf5Extension.File):
 
     """
 
-    def __init__(self, filename, mode="r", title="", new=1):
+    def __init__(self, filename, mode="r", title="",
+                 new=1, trTable={}):
         
         """Open an HDF5 file. The supported access modes are: "r" means
         read-only; no data can be modified. "w" means write; a new file is
@@ -192,7 +193,13 @@ class File(hdf5Extension.File):
         
         # _v_new informs if this file is old or new
         self._v_new = new
-
+        # Assign the trTable and build the reverse translation
+        self._v_trTable = trTable
+        revtrTable = {}
+        for (key, value) in trTable.items():
+            revtrTable[value] = key
+        self._v_revtrTable = revtrTable
+        
         # Get the root group from this file
         self.root = self.__getRootGroup()
         return
@@ -212,7 +219,7 @@ class File(hdf5Extension.File):
         self._v_groupId = self.getFileId()
         self._v_depth = 0
 
-        root = Group()
+        root = Group(self._v_new)
         
         # Create new attributes for the root Group instance
         newattr = root.__dict__
@@ -221,7 +228,9 @@ class File(hdf5Extension.File):
         newattr["_v_parent"] = self
         newattr["_v_depth"] = 1
         newattr["_v_filename"] = self.filename  # Only root group has this
+
         newattr["_v_name"] = "/"
+        newattr["_v_hdf5name"] = "/"  # For root, this is always "/"
         newattr["_v_pathname"] = "/"
         
         # Update class variable for Group
@@ -397,7 +406,7 @@ future). Giving up.""" % \
         to find the object in "where". If a "classname" parameter is
         supplied, returns only an instance of this class name. Allowed names
         in "classname" are: 'Group', 'Leaf', 'Table' and 'Array'."""
-        
+
         if isinstance(where, str):
             # This is a string pathname. Get the object ...
             if name:
@@ -492,6 +501,9 @@ Instead, a %s() object has been found there.""" % \
         self.flush()
         #print "Closing the %s HDF5 file ...." % self.filename
         self.closeFile()
+        # Delete the Group class variables
+        self.root._f_cleanup()
+
         # Add code to recursively delete the object tree
         # (or it's enough with deleting the root group object?)
         #del self.root

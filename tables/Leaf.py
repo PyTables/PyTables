@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.4 2003/01/31 12:41:46 falted Exp $
+#       $Id: Leaf.py,v 1.5 2003/02/03 10:13:08 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.4 $"
+__version__ = "$Revision: 1.5 $"
 
 
 class Leaf:
@@ -59,11 +59,11 @@ class Leaf:
         
         # New attributes for the this Leaf instance
         parent._f_setproperties(name, self)
-        self.name = name     # This is a standard attribute for Leaves
+        self.name = self._v_name     # This is a standard attribute for Leaves
         # Call the new method in Leaf superclass 
-        self._f_new(parent, name)
+        self._f_new(parent, self._v_hdf5name)
         # Update this instance attributes
-        parent._v_objleaves[name] = self
+        parent._v_objleaves[self._v_name] = self
         # Update class variables
         parent._c_objleaves[self._v_pathname] = self
         self._v_groupId = parent._v_groupId
@@ -75,7 +75,7 @@ class Leaf:
     def getAttrStr(self, attrname):
         """Get a leaf attribute as a string"""
         
-        return self._v_parent._f_getLeafAttrStr(self._v_name, attrname)
+        return self._v_parent._f_getLeafAttrStr(self._v_hdf5name, attrname)
             
     def __str__(self):
         """The string reprsentation choosed for this object is its pathname
