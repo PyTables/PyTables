@@ -14,25 +14,23 @@ from test_all import verbose
 
 # Test Record class
 class Record(IsDescription):
-
-    # A (2,2) chararray of strings of 4 elements in size
-    var1 = StringCol(itemsize=4, shape=(2,2), dflt="abcd")   
-    var2 = Col("Int32", (2,2), ((1,1),(1,1)))    # integer
-    var3 = Col("Int16", 1, 2)           # short integer 
-    var4 = Col("Float64", 1, 3.1)       # double (double-precision)
-    var5 = Col("Float32", 1, 4.2)       # float  (single-precision)
-    var6 = Col("Int16", 1, 5)           # short integer 
+    var1 = StringCol("abcd", itemsize=4, shape=(2,2))   # string array
+    var2 = IntCol(((1,1),(1,1)), shape=(2,2))           # integer array
+    var3 = IntCol(2, itemsize=2)                # short integer 
+    var4 = FloatCol(3.1)                        # double (double-precision)
+    var5 = FloatCol(4.2, itemsize=4)            # float  (single-precision)
+    var6 = IntCol(5, itemsize=2, sign=0)        # unsigned short integer 
     var7 = StringCol(itemsize=1, dflt="e")      # 1-character String
 
 # From 0.3 on, you can dynamically define the tables with a dictionary
 RecordDescriptionDict = {
     'var1': StringCol(itemsize=4, shape=(2,2)),   # 4-character String
-    'var2': Col("Int32", (2,2)),      # integer
-    'var3': Col("Int16", 1),      # short integer 
-    'var4': Col("Float64", 2),    # double (double-precision)
-    'var5': Col("Float32", 4),    # float  (single-precision)
-    'var6': Col("Int16", 1),      # short integer
-    'var7': StringCol(itemsize=1),   # 1-character String
+    'var2': IntCol(shape=(2,2)),                  # integer array
+    'var3': IntCol(itemsize=2),                   # short integer 
+    'var4': FloatCol(),                           # double (double-precision)
+    'var5': FloatCol(itemsize=4),                 # float  (single-precision)
+    'var6': IntCol(itemsize=2, sign=0),           # unsigned short integer 
+    'var7': StringCol(itemsize=1),                # 1-character String
     }
 
 def allequal(a,b):

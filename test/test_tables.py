@@ -13,29 +13,34 @@ from test_all import verbose
 
 # Test Record class
 class Record(IsDescription):
-    """ A record has several columns. Represent the here as class
-    variables, whose values are their types. The IsDescription
-    class will take care the user won't add any new variables and
-    that their type is correct.  """
-    
     var1 = StringCol(itemsize=4, dflt="abcd")   # 4-character String
-    var2 = Col("Int32", 1, 1)           # integer
-    var3 = Col("Int16", 1, 2)           # short integer 
-    var4 = Col("Float64", 1, 3.1)       # double (double-precision)
-    var5 = Col("Float32", 1, 4.2)       # float  (single-precision)
-    var6 = Col("Int16", 1, 5)           # short integer 
+    var2 = IntCol(1)                            # integer
+    var3 = IntCol(2, itemsize=2)                # short integer 
+    var4 = FloatCol(3.1)                        # double (double-precision)
+    var5 = FloatCol(4.2, itemsize=4)            # float  (single-precision)
+    var6 = IntCol(5, itemsize=2, sign=0)        # unsigned short integer 
     var7 = StringCol(itemsize=1, dflt="e")      # 1-character String
 
 # From 0.3 on, you can dynamically define the tables with a dictionary
 RecordDescriptionDict = {
-    'var1': StringCol(itemsize=4),   # 4-character String
-    'var2': Col("Int32", 1),      # integer
-    'var3': Col("Int16", 1),      # short integer 
-    'var4': Col("Float64", 2),    # double (double-precision)
-    'var5': Col("Float32", 4),    # float  (single-precision)
-    'var6': Col("Int16", 1),      # short integer
-    'var7': StringCol(itemsize=1),   # 1-character String
+    'var1': StringCol(itemsize=4),              # 4-character String
+    'var2': IntCol(1),                          # integer
+    'var3': IntCol(2, itemsize=2),              # short integer 
+    'var4': FloatCol(3.1),                      # double (double-precision)
+    'var5': FloatCol(4.2, itemsize=4),          # float  (single-precision)
+    'var6': IntCol(5, itemsize=2, sign=0),      # unsigned short integer 
+    'var7': StringCol(itemsize=1),              # 1-character String
     }
+
+# Old fashion of defining tables (for testing backward compatibility)
+class OldRecord(IsDescription):
+    var1 = Col("CharType", 4, dflt="abcd")   # 4-character String
+    var2 = Col("Int32", 1, 1)                # integer
+    var3 = Col("Int16", 1, 2)                # short integer
+    var4 = Col("Float64", 1, 3.1)            # double (double-precision)
+    var5 = Col("Float32", 1, 4.2)            # float  (single-precision)
+    var6 = Col("Int16", 1, 5)                # short integer 
+    var7 = Col("CharType", 1, dflt="e")      # 1-character String
 
 def allequal(a,b):
     """Checks if two numarrays are equal"""
@@ -306,7 +311,10 @@ class BasicTestCase(unittest.TestCase):
         
 class BasicWriteTestCase(BasicTestCase):
     title = "BasicWrite"
-    pass
+
+class OldRecordBasicWriteTestCase(BasicTestCase):
+    title = "OldRecordBasicWrite"
+    record = OldRecord
 
 class DictWriteTestCase(BasicTestCase):
     # This checks also unidimensional arrays as columns
@@ -908,6 +916,7 @@ class LargeRowSize(unittest.TestCase):
 
 
 class DefaultValues(unittest.TestCase):
+    record = Record
 
     def test00(self):
         "Checking saving a Table with default values"
@@ -916,7 +925,7 @@ class DefaultValues(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a table
-        table = fileh.createTable(fileh.root, 'table', Record)
+        table = fileh.createTable(fileh.root, 'table', self.record)
 
         # Take a number of records a bit greater
         nrows = int(table._v_maxTuples * 1.1)
@@ -957,6 +966,10 @@ class DefaultValues(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
+class OldRecordDefaultValues(DefaultValues):
+    title = "OldRecordDefaultValues"
+    record = OldRecord
+
 
 #----------------------------------------------------------------------
 
@@ -970,6 +983,7 @@ def suite():
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
+        theSuite.addTest(unittest.makeSuite(OldRecordBasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(DictWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
@@ -985,6 +999,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(RecArrayIO))
         theSuite.addTest(unittest.makeSuite(LargeRowSize))
         theSuite.addTest(unittest.makeSuite(DefaultValues))
+        theSuite.addTest(unittest.makeSuite(OldRecordDefaultValues))
             
     return theSuite
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.55 2003/07/12 12:12:39 falted Exp $
+#       $Id: Table.py,v 1.56 2003/07/15 18:52:48 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.55 $"
+__version__ = "$Revision: 1.56 $"
 
 from __future__ import generators
 import sys
@@ -219,15 +219,17 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.colnames = recarr._names
         fields = {}
         for i in range(len(self.colnames)):
+            colname = self.colnames[i]
             # Special case for strings (from numarray 0.6 on)
             if isinstance(recarr._fmt[i], records.Char):
-                fields[self.colnames[i]] = StringCol(recarr._itemsizes[i],
-                                                     recarr._repeats[i],
-                                                     pos=i)  # Position matters
+                fields[colname] =  StringCol(dflt=None,
+                                             itemsize=recarr._itemsizes[i],
+                                             shape=recarr._repeats[i],
+                                             pos=i)
             else:
-                fields[self.colnames[i]] = Col(recarr._fmt[i],
-                                               recarr._repeats[i],
-                                               pos=i)  # Position matters
+                fields[colname] = Col(dtype=recarr._fmt[i],
+                                      shape=recarr._repeats[i],
+                                      pos=i)  # Position matters
         # Set the byteorder
         self.byteorder = recarr._byteorder
         # Append this entry to indicate the alignment!
@@ -294,10 +296,12 @@ class Table(Leaf, hdf5Extension.Table, object):
         for i in range(len(self.colnames)):
             if coltypes[i] == "CharType":
                 itemsize = headerRA._itemsizes[i]
-                fields[self.colnames[i]] = StringCol(itemsize, colshapes[i],
+                fields[self.colnames[i]] = StringCol(itemsize = itemsize,
+                                                     shape = colshapes[i],
                                                      pos = i)
             else:
-                fields[self.colnames[i]] = Col(coltypes[i], colshapes[i],
+                fields[self.colnames[i]] = Col(dtype = coltypes[i],
+                                               shape = colshapes[i],
                                                pos = i)
         # Set the alignment!
         fields['_v_align'] = byteorder

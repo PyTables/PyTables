@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.12 2003/07/12 12:12:38 falted Exp $
+#       $Id: IsDescription.py,v 1.13 2003/07/15 18:52:48 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.12 $"
+__version__ = "$Revision: 1.13 $"
 
 
 import warnings
@@ -85,6 +85,23 @@ class Col:
             #self.recarrtype = recarray2.revfmt[self.type]
             self.recarrtype = records.revfmt[self.type]
             self.itemsize = self.type.bytes
+        elif dtype == "CharType" or isinstance(dtype, records.Char):
+            # Special case for Strings
+            self.type = records.CharType
+            if type(shape) in [types.IntType, types.LongType]:
+                self.shape = 1
+                self.itemsize = shape
+            else:
+                shape = list(self.shape)
+                self.itemsize = shape.pop()
+                if shape == ():
+                    self.shape = 1
+                elif len(shape) == 1:
+                    self.shape = shape[0]
+                else:
+                    self.shape = tuple(shape)
+                    
+            self.recarrtype = records.revfmt[self.type]
         else:
             raise TypeError, "Illegal type: %s" % `dtype`
 
@@ -109,10 +126,40 @@ class Col:
 
 class StringCol(Col):
     """ Define a string column """
-    def __init__(self, itemsize=1, shape=1, dflt=None, pos = None):
+    
+    def __init__(self, dflt=None, itemsize=1, shape=1, pos = None):
 
         self.pos = pos
 
+        assert shape != None and shape != 0 and shape != (0,), \
+               "None or zero-valued shapes are not supported '%s'" % `shape`
+        
+        if type(shape) in [types.IntType, types.LongType]:
+            self.shape = shape
+        elif type(shape) in [types.ListType, types.TupleType]:
+            self.shape = tuple(shape)
+        else: raise ValueError, "Illegal shape %s" % `shape`
+
+        self.dflt = dflt
+
+        self.type = records.CharType
+        self.itemsize = itemsize
+        self.recarrtype = records.revfmt[self.type]
+        self.rectype = tostructfmt[self.type]
+
+    
+class IntCol(Col):
+    """ Define an integer column """
+    def __init__(self, dflt=0, itemsize=4, shape=1, sign=1, pos=None):
+
+        self.pos = pos
+
+        assert shape != None and shape != 0 and shape != (0,), \
+               "None or zero-valued shapes are not supported '%s'" % `shape`
+
+        assert itemsize in [1, 2, 4, 8], \
+               "Integer itemsizes different from 1,2,4 or 8 are not supported"
+        
         if shape != None and shape != 0 and shape != (0,):
             if type(shape) in [types.IntType, types.LongType]:
                 self.shape = shape
@@ -122,10 +169,61 @@ class StringCol(Col):
 
         self.dflt = dflt
 
-        self.type = records.CharType
         self.itemsize = itemsize
+        if itemsize == 1:
+            if sign:
+                self.type = "Int8"
+            else:
+                self.type = "UInt8"
+        elif itemsize == 2:
+            if sign:
+                self.type = "Int16"
+            else:
+                self.type = "UInt16"
+        elif itemsize == 4:
+            if sign:
+                self.type = "Int32"
+            else:
+                self.type = "UInt32"
+        elif itemsize == 8:
+            if sign:
+                self.type = "Int64"
+            else:
+                self.type = "UInt64"
+                
         self.recarrtype = records.revfmt[self.type]
+        self.rectype = tostructfmt[self.type]
 
+    
+class FloatCol(Col):
+    """ Define a float column """
+    def __init__(self, dflt=0.0, itemsize=8, shape=1, pos=None):
+
+        self.pos = pos
+
+        assert shape != None and shape != 0 and shape != (0,), \
+               "None or zero-valued shapes are not supported '%s'" % `shape`
+
+        assert itemsize in [4,8], \
+               "Float itemsizes different from 4 and 8 are not supported"
+        
+        if shape != None and shape != 0 and shape != (0,):
+            if type(shape) in [types.IntType, types.LongType]:
+                self.shape = shape
+            elif type(shape) in [types.ListType, types.TupleType]:
+                self.shape = tuple(shape)
+            else: raise ValueError, "Illegal shape %s" % `shape`
+
+        self.dflt = dflt
+
+        self.itemsize = itemsize
+        if itemsize == 4:
+            self.type = "Float32"
+        elif itemsize == 8:
+            self.type = "Float64"
+            
+                
+        self.recarrtype = records.revfmt[self.type]
         self.rectype = tostructfmt[self.type]
 
     

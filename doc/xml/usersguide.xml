@@ -549,9 +549,21 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
     <chapter>
       <heading>Installation</heading>
 
-      <aphorism>El meu país es tan petit <newline/> que quan el sol
-	se'n va a dormir <newline/> no està mai prou segur d'haver-lo
-	vist <caption>Lluís Llach in the song "Petit País"</caption>
+<!--       <aphorism>El meu país es tan petit <newline/> que quan el sol -->
+<!-- 	se'n va a dormir <newline/> no està mai prou segur d'haver-lo -->
+<!-- 	vist <caption>Lluís Llach in the song "Petit País"</caption> -->
+<!--       </aphorism> -->
+
+      <aphorism>T'adones, company,<newline/>
+	no volen arguments,<newline/>
+	usen la força,<newline/>
+	t'adones, amic.<newline/>
+	T'adones, company,<newline/>
+	que hem de sortir al carrer<newline/>
+	junts, molts, com més millor,<newline/>
+	si no volem perdre-ho tot,<newline/>
+	t'adones, amic.<newline/>
+	<caption>Raimon in the song "T'adones, amic"</caption>
       </aphorism>
 
 <!--       <aphorism>Make things as simple as possible, but not any -->

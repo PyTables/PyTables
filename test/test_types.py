@@ -9,16 +9,11 @@ from test_all import verbose
 
 # Test Record class
 class Record(IsDescription):
-    """ A record has several columns. Represent the here as class
-    variables, whose values are their types. The IsDescription
-    class will take care the user won't add any new variables and
-    that their type is correct.  """
-    
-    var1 = StringCol(itemsize=4)   # 4-character String
-    var2 = Col("Int32", 1)      # integer
-    var3 = Col("Int16", 1)      # short integer. 
-    var4 = Col("Float64", 1)    # double (double-precision)
-    var5 = Col("Float32", 1)    # float  (single-precision)
+    var1 = StringCol(itemsize=4)  # 4-character String
+    var2 = IntCol()               # integer
+    var3 = IntCol(itemsize=2)     # short integer
+    var4 = FloatCol()             # double (double-precision)
+    var5 = FloatCol(itemsize=4)   # float  (single-precision)
 
 
 class RangeTestCase(unittest.TestCase):
