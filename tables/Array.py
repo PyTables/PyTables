@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.47 2003/12/18 10:13:11 falted Exp $
+#       $Id: Array.py,v 1.48 2003/12/18 13:03:18 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.47 $"
+__version__ = "$Revision: 1.48 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -394,11 +394,14 @@ class Array(Leaf, hdf5Extension.Array, object):
         stopl = numarray.array(None, shape=shape, type=numarray.Int64)
         stepl = numarray.array(None, shape=shape, type=numarray.Int64)
         dim = 0
+        stop_None_in_1st_dim = 0
         if not isinstance(keys, types.TupleType):
             keys = (keys,)
         for key in keys:
             if isinstance(key, types.IntType):
                 (start, stop, step) = processRange(self.shape[dim], key, key+1, 1)
+                if dim == 0:
+                    stop_None_in_1st_dim = 1
             elif isinstance(key, types.SliceType):
                 if key.stop == None:
                     stop = self.shape[dim]
@@ -423,10 +426,10 @@ class Array(Leaf, hdf5Extension.Array, object):
 #         print "startl-->", startl
 #         print "stopl-->", stopl
 #         print "stepl-->", stepl
-        return self._readSlice(startl, stopl, stepl)
+        return self._readSlice(startl, stopl, stepl, stop_None_in_1st_dim)
 
     # Accessor for the _readArray method in superclass
-    def _readSlice(self, startl, stopl, stepl):
+    def _readSlice(self, startl, stopl, stepl, stop_None_in_1st_dim):
 
         if self.extdim < 0:
             extdim = 0
@@ -437,7 +440,8 @@ class Array(Leaf, hdf5Extension.Array, object):
         for dim in range(len(self.shape)):
             shape.append(((stopl[dim] - startl[dim] - 1) / stepl[dim]) + 1)
 
-        if shape[0] == 1:
+        #if shape[0] == 1:
+        if shape[0] == 1 and stop_None_in_1st_dim:
             # Correction for only one row in first dimension
             shape = shape[1:]
             
