@@ -3416,6 +3416,67 @@ if __name__=="__main__":
 	  </subsubsection>
 
 	</subsection>
+
+	<subsection>
+	  <heading><visual markup="tt">File</visual> special
+	      methods</heading>
+
+	  <p>Following are described the methods that automatically
+	    trigger actions when a <verb>File</verb> instance is
+	    accessed in a special way (e.g.,
+	    <verb>fileh("/detector")</verb> will cause a call to
+	    <verb>group.__call__("/detector")</verb>).
+	  </p>
+
+	  <subsubsection>
+	    <heading id="__callFileDescr">__call__(where="/",
+	      classname="")</heading>
+
+	    <p>Recursively iterate over the childs in the
+	      <verb>File</verb> instance. It takes two parameters:</p>
+
+	    <description>
+
+	      <term>where</term> <item>If supplied, the iteration
+	      starts from this group.</item>
+
+	      <term>classname</term> <item><em>(String)</em> If
+	      supplied, only instances of this class are
+	      returned.</item>
+
+	    </description>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      # Recursively print all the nodes hanging from '/detector'
+	      print "Nodes hanging from group '/detector':"
+	      for node in h5file("/detector"):
+	          print node
+	    </verbatim>
+
+	  </subsubsection>
+
+	  <subsubsection>
+	    <heading id="__iterFileDescr">__iter__()</heading>
+
+	    <p>Iterate over the childs on the <verb>File</verb>
+	      instance. However, this does not accept parameters. This
+	      iterator <em>is recursive</em>.</p>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      # Recursively list all the nodes in the object tree
+	      print "All nodes in the object tree:"
+	      for node in h5file:
+	          print node
+	    </verbatim>
+
+	  </subsubsection>
+
+	</subsection>
+
       </section>
 
       <section id="GroupClassDescr">
@@ -3575,6 +3636,69 @@ if __name__=="__main__":
 	  </description>
 
 	</subsection>
+
+	<subsection>
+	  <heading><visual markup="tt">Group</visual> special
+	      methods</heading>
+
+	  <p>Following are described the methods that automatically
+	    trigger actions when a <verb>Group</verb> instance is
+	    accessed in a special way (e.g.,
+	    <verb>group("Table")</verb> will cause a call to
+	    <verb>group.__call__("Table")</verb>).
+	  </p>
+
+	  <subsubsection>
+	    <heading id="__callGroupDescr">__call__(classname="",
+	      recursive=0)</heading>
+
+	    <p>Iterate over the childs in the <verb>Group</verb>
+	      instance. It takes two parameters:</p>
+
+	    <description>
+
+	      <term>classname</term> <item><em>(String)</em> If
+	      supplied, only instances of this class are
+	      returned.</item>
+
+	      <term>recursive</term> <item><em>(Integer)</em> If
+	      false, only childs hanging immediately after the group
+	      are returned. If true, a recursion over all the groups
+	      hanging from it is performed. </item>
+
+	    </description>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      # Recursively print all the arrays hanging from '/'
+	      print "Arrays the object tree '/':"
+	      for array in h5file.root(classname="Array", recursive=1):
+	          print array
+	    </verbatim>
+
+	  </subsubsection>
+
+	  <subsubsection>
+	    <heading id="__iterGroupDescr">__iter__()</heading>
+
+	    <p>Iterate over the childs on the group instance. However,
+	      this does not accept parameters. This iterator is not
+	      recursive.</p>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      # Non-recursively list all the nodes hanging from '/detector'
+	      print "Nodes in '/detector' group:"
+	      for node in h5file.root.detector:
+	          print node
+	    </verbatim>
+
+	  </subsubsection>
+
+	</subsection>
+
       </section>
 
       <section id="LeafClassDescr">
@@ -3804,8 +3928,8 @@ if __name__=="__main__":
 	  <p>Following are described the methods that automatically
 	    trigger actions when a <verb>Table</verb> instance is
 	    accessed in a special way (e.g.,
-	    <verb>table[1:14:3]</verb> will call table.__getitem__(1,
-	    14, 3)).
+	    <verb>table["var2"]</verb> will cause a call to
+	    <verb>table.__getitem__("var2")</verb>).
 	  </p>
 
 	  <subsubsection>
@@ -3815,6 +3939,21 @@ if __name__=="__main__":
 	    <p>It returns the same iterator than
 	      <verb>Table.iterrows(start, stop, step)</verb>. It is,
 	      therefore, a shorter way to call it.</p>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      result = [ row['var2'] for row in table(step=4)
+                          	      if row['var1'] &lt;= 20 ]
+	    </verbatim>
+
+	    <p>Which is equivalent to:</p>
+
+	    <verbatim>
+	      result = [ row['var2'] for row in table.iterrows(step=4) 
+                          	      if row['var1'] &lt;= 20 ]
+	    </verbatim>
+
 	  </subsubsection>
 	  <subsubsection>
 	    <heading id="__iterTableDescr">__iter__()</heading>
@@ -3822,6 +3961,21 @@ if __name__=="__main__":
 	    <p>It returns the same iterator than
 	      <verb>Table.iterrows(0,0,1)</verb>. However, this does not
 	      accept parameters.</p>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      result = [ row['var2'] for row in table 
+                                      if row['var1'] &lt;= 20 ]
+	    </verbatim>
+
+	    <p>Which is equivalent to:</p>
+
+	    <verbatim>
+	      result = [ row['var2'] for row in table.iterrows() 
+                          	      if row['var1'] &lt;= 20 ]
+	    </verbatim>
+
 	  </subsubsection>
 
 	  <subsubsection>
@@ -3843,10 +3997,28 @@ if __name__=="__main__":
 
 	      <term><visual markup="tt">key</visual> is a
 		<verb>String</verb></term> <item>The <verb>key</verb>
-		is interpreted as a <em>column</em> of the table, and
-		it is read and returned as a NumArray or CharArray
-		object (whatever is appropriate).</item>
+		is interpreted as a <em>column</em> name of the table,
+		and, if it exists, it is read and returned as a
+		<verb>NumArray</verb> or <verb>CharArray</verb> object
+		(whatever is appropriate).</item>
 	    </description>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      record = table[4]
+	      recarray = table[4:1000:2]
+	      narray = table["var2"]
+	    </verbatim>
+
+	    <p>Which is equivalent to:</p>
+
+	    <verbatim>
+	      record = table.read(start=4)[0]
+	      recarray = table.read(start=4, stop=1000, step=2)
+	      narray = table.read(field="var2")
+	    </verbatim>
+
 	  </subsubsection>
 	</subsection>
       </section>

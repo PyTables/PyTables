@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.44 2003/07/17 18:57:28 falted Exp $
+#       $Id: Group.py,v 1.45 2003/07/26 18:42:54 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.44 $"
+__version__ = "$Revision: 1.45 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -114,12 +114,12 @@ class Group(hdf5Extension.Group, object):
         self.__dict__["_v_childs"] = {}
         return
     
-    def __iter__(self, classname="", recursive=0):
+    def __iter__(self, classname=None, recursive=0):
         """Iterate over the childs on self"""
 
         return self._f_iterGroup(classname, recursive)
 
-    def _f_iterGroup(self, classname="", recursive=0):
+    def _f_iterGroup(self, classname=None, recursive=0):
 
         assert classname in [None, "", "Group", "Leaf", "Table", "Array"], \
                "Incorrect specification of 'classname'"
@@ -138,9 +138,15 @@ class Group(hdf5Extension.Group, object):
                     for leaf in group._f_listNodes(classname):
                         yield leaf
                 
-    def __call__(self, classname="", recursive=0):
-        """Iterate over the childs on self"""
+    def __call__(self, classname=None, recursive=0):
+        """Iterate over the childs on self
 
+	      If "classname" is supplied, only instances of this class
+	      are returned. If "recursive" is false, only childs
+	      hanging immediately after the group are returned. If
+	      true, a recursion over all the groups hanging from it is
+	      performed. """
+        
         return self.__iter__(classname, recursive)
 
     # This iterative version of _g_openFile is due to John Nielsen

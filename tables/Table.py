@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.64 2003/07/25 19:34:17 falted Exp $
+#       $Id: Table.py,v 1.65 2003/07/26 18:42:54 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.64 $"
+__version__ = "$Revision: 1.65 $"
 
 from __future__ import generators
 import sys
@@ -589,17 +589,19 @@ class Table(Leaf, hdf5Extension.Table, object):
         return self.__call__(start, stop, step)
 
     def __call__(self, start=None, stop=None, step=None):
-        """Iterate over all the rows or a range"""
-
+        """Iterate over all the rows or a range.
+        
+        It returns the same iterator than
+        Table.iterrows(start, stop, step).
+        It is, therefore, a shorter way to call it.
+        """
+        
         (start, stop, step) = self._processRange(start, stop, step)
 
         return self.row(start, stop, step)
         
     def __iter__(self):
-        """Iterate over the rows or a range
-
-        This method is a true python iterator.
-        """
+        """Iterate over the rows or a range."""
 
         # It is not possible to call the _open_read() method in the Row class.
         # If we do this, we get weird things when reading a table after a
@@ -876,22 +878,42 @@ class Table(Leaf, hdf5Extension.Table, object):
         result._byteorder = self.byteorder
         return result
 
-    def __getitem__(self, slice):
-        """Returns a column, a table row or a table slice."""
+    def __getitem__(self, key):
+        """Returns a table row, table slice or table column.
 
-        if isinstance(slice, types.IntType):
-            start, stop, step = self._processRange(slice, slice+1, 1)
-            return self.read(start, stop, step)[0]
-        elif isinstance(slice, types.SliceType):
-            start, stop, step = self._processRange(slice.start,
-                                                   slice.stop,
-                                                   slice.step)
-            return self.read(start, stop, step)
-        elif isinstance(slice, types.StringType):
-            return self._readCol(field=slice)
+        It takes different actions depending on the type of the "key"
+        parameter:
+
+        If "key"is an integer, the corresponding table row is returned
+        as a RecArray.Record object. If "key" is a slice, the row
+        slice determined by key is returned as a RecArray object.
+        Finally, if "key" is a string, it is interpreted as a column
+        name in the table, and, if it exists, it is read and returned
+        as a NumArray or CharArray object (whatever is appropriate).
+
+"""
+
+        if isinstance(key, types.IntType):
+            return self._readAllFields(key, key+1, 1)[0]
+        elif isinstance(key, types.SliceType):
+            return self._readAllFields(key.start, key.stop, key.step)
+        elif isinstance(key, types.StringType):
+            return self._readCol(field=key)
         else:
             raise ValueError, "Non-valid __getitem__ parameter %s" % \
-                  slice
+                  key
+
+    # This addtion has to be thought more carefully because of two things
+    # 1.- The colnames has to be valid python identifiers, and that
+    #     restriction has still to be added.
+    # 2.- The access to local variables in Table is slowed down, because
+    #     __getattr__ is always called
+    # 3.- The most important, a colname cannot be the same of a standard
+    #     Table attribute, because, if so, this attribute can't be reached.
+#     def __getattr__(self, colname):
+#         """Get the table column object named "colname"."""
+
+#         return self._readCol(field=colname)
 
     def flush(self):
         """Flush the table buffers."""

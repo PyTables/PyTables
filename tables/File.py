@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.46 2003/07/25 14:31:57 falted Exp $
+#       $Id: File.py,v 1.47 2003/07/26 18:42:53 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.46 $"
+__version__ = "$Revision: 1.47 $"
 format_version = "1.1"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -593,12 +593,12 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         
     def listNodes(self, where, classname = ""):
         
-        """Returns a list with all the object nodes (Group or Leaf) hanging
-        from "where". The list is alphanumerically sorted by node name.
-        "where" can be a path string or Group instance. If a "classname"
-        parameter is supplied, the iterator will return only instances of
-        this class (or subclasses of it). The only supported classes in
-        "classname" are 'Group' and 'Leaf'."""
+        """Returns a list with all the object nodes (Group or Leaf)
+        hanging from "where". The list is alphanumerically sorted by
+        node name.  "where" can be a path string or Group instance. If
+        a "classname" parameter is supplied, only instances of this
+        class (or subclasses of it) are returned. The only supported
+        classes in "classname" are 'Group' and 'Leaf'."""
 
         group = self.getNode(where, classname = 'Group')
         if group <> -1:
@@ -607,12 +607,12 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
             return []
     
     def __iter__(self, where="/", classname=""):
-        """Iterate over the nodes hanging from 'where'."""
+        """Iterate over the nodes in the object tree."""
 
-        return self.iterTree(where, classname)
+        return self._iterTree(where, classname)
 
-    def iterTree(self, where="/", classname=""):
-        """Iterate over all the nodes on tree"""
+    def _iterTree(self, where="/", classname=""):
+        """Iterate over the nodes in the object tree."""
         
         assert classname in [None, "", "Group", "Leaf", "Table", "Array"], \
                "Incorrect specification of 'classname'"
@@ -626,7 +626,13 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
                     yield leaf
                 
     def __call__(self, where="/", classname=""):
-        """Iterate over the nodes hanging from 'where'."""
+        """Iterate over the nodes in the object tree.
+
+        If "where" supplied, the iteration starts from this group.
+        If "classname" is supplied, only instances of this class are
+        returned.
+
+        """
 
         return self.__iter__(where, classname)
 
