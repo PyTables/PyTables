@@ -334,6 +334,64 @@ class TreeTestCase(unittest.TestCase):
         if verbose:
             print "walkGroups(pathname) test passed"
 
+    def test04_iterTree(self):
+        "Checking the iterTree, iterGroup and family"
+        
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04_iterTree..." % self.__class__.__name__
+
+        self.h5file = openFile(self.file, "r")
+        groups = []
+        tables = []
+        tables2 = []
+        arrays = []
+        for group in self.h5file(classname="Group"):
+            groups.append(group._v_pathname)
+            for table in group(classname='Table'):
+                tables.append(table._v_pathname)
+                
+        # Test the recursivity    
+        for table in self.h5file.root(classname='Table', recursive=1):
+            tables2.append(table._v_pathname)
+
+        for arr in self.h5file(classname='Array'):
+            arrays.append(arr._v_pathname)
+
+        assert groups == ["/", "/group0", "/group0/group1",
+                          "/group0/group1/group2"]
+        assert tables == ["/table0", "/group0/table1",
+                          "/group0/group1/table2"]
+        assert tables2 == ["/table0", "/group0/table1",
+                           "/group0/group1/table2"]
+        assert arrays == ['/var1', '/var4',
+                          '/group0/var1', '/group0/var4',
+                          '/group0/group1/var1', '/group0/group1/var4']
+                          
+        if verbose:
+            print "File.__iter__() and Group.__iter__ test passed"
+
+        groups = []
+        tables = []
+        arrays = []
+        for group in self.h5file("/group0/group1", classname="Group"):
+            groups.append(group._v_pathname)
+            for table in group('Table'):
+                tables.append(table._v_pathname)
+            for arr in self.h5file(group, 'Array'):
+                arrays.append(arr._v_pathname)
+
+        assert groups == ["/group0/group1",
+                          "/group0/group1/group2"]
+                          
+        assert tables == ["/group0/group1/table2"]
+
+        assert arrays == ['/group0/group1/var1', '/group0/group1/var4']
+        
+        if verbose:
+            print "iterTree(pathname, classname) test passed"
+
+
 class DeepTreeTestCase(unittest.TestCase):
     """Checks for maximum deepest level in PyTables trees.
     

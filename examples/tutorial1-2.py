@@ -30,17 +30,28 @@ print	'-**-**-**-**-**-**- traverse tree methods -**-**-**-**-**-**-**-'
 # List all the nodes (Group and Leaf objects) on tree
 print h5file
 
+# List all the nodes (using File iterator) on tree
+print "Nodes in file:"
+for node in h5file:
+    print node
+print
+
+# List all the Leafs (using File iterator) on tree
+print "Leafs in file:"
+for node in h5file(classname="Leaf"):
+    print node
+print
+
 # Now, only list all the groups on tree
 print "Groups in file:"
-for group in h5file.walkGroups("/"):
+for group in h5file(classname="Group"):
     print group
 print
 
-# List only the arrays (Array objects) on tree
-print "Arrays in file:"
-for group in h5file.walkGroups("/"):
-    for array in h5file.listNodes(group, classname = 'Array'):
-	print array
+# List only the arrays (Array objects) hanging from /
+print "Arrays in /:"
+for array in h5file.root(classname="Array",recursive=1):
+    print array
 print
 
 # And finally, list only tables on /detector group (there should be one!)

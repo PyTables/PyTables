@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.42 2003/07/14 19:15:01 falted Exp $
+#       $Id: Group.py,v 1.43 2003/07/17 11:46:24 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.42 $"
+__version__ = "$Revision: 1.43 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -112,6 +112,36 @@ class Group(hdf5Extension.Group, object):
         self.__dict__["_v_groups"] = {}
         self.__dict__["_v_leaves"] = {}
         self.__dict__["_v_childs"] = {}
+        return
+    
+    def __iter__(self, classname="", recursive=0):
+        """Iterate over the childs on self"""
+
+        return self._f_iterGroup(classname, recursive)
+
+    def _f_iterGroup(self, classname="", recursive=0):
+
+        assert classname in [None, "", "Group", "Leaf", "Table", "Array"], \
+               "Incorrect specification of 'classname'"
+
+        if not recursive:
+            # Non-recursive algorithm
+            for leaf in self._f_listNodes(classname):
+                yield leaf
+        else:
+            if classname == "Group":
+                # Recursive algorithm
+                for group in self._f_walkGroups():
+                    yield group
+            else:
+                for group in self._f_walkGroups():
+                    for leaf in group._f_listNodes(classname):
+                        yield leaf
+                
+    def __call__(self, classname="", recursive=0):
+        """Iterate over the childs on self"""
+
+        return self.__iter__(classname, recursive)
 
     # This iterative version of _g_openFile is due to John Nielsen
     def _g_openFile(self, root = ""):
@@ -356,7 +386,7 @@ I can't promise getting the correct object, but I will do my best!.""",
             raise ValueError, \
 """"classname" can only take 'Group', 'Leaf', 'Table' or 'Array' values"""
 
-    def _f_walkGroups(self):
+    def _f_walkGroups_old(self):
         """Returns the list of Groups (not Leaves) hanging from self.
 
         The group list returned is ordered from top to bottom, and
@@ -379,6 +409,27 @@ I can't promise getting the correct object, but I will do my best!.""",
                 
         return groups
 
+    def _f_walkGroups(self):
+        """Iterate over the Groups (not Leaves) hanging from self.
+
+        The groups are returned ordered from top to bottom, and
+        alphanumerically sorted when in the same level.
+
+        """
+        
+        stack = [self]
+        yield self
+        # Iterate over the descendants
+        while stack:
+            objgroup=stack.pop()
+            groupnames = objgroup._v_groups.keys()
+            # Sort the groups before delivering. This uses the groups names
+            # for groups in tree (in order to sort() can classify them).
+            groupnames.sort()
+            for groupname in groupnames:
+                stack.append(objgroup._v_groups[groupname])
+                yield objgroup._v_groups[groupname]
+                
     def __delattr__(self, name):
         """Remove *recursively* all the objects hanging from name child."""
 

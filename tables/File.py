@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.41 2003/07/09 17:43:20 falted Exp $
+#       $Id: File.py,v 1.42 2003/07/17 11:46:24 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.41 $"
+__version__ = "$Revision: 1.42 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -584,6 +584,29 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         else:
             return []
     
+    def __iter__(self, where="/", classname=""):
+        """Iterate over the Groups (not Leaves) hanging from 'where'."""
+
+        return self.iterTree(where, classname)
+
+    def iterTree(self, where="/", classname=""):
+        """Iterate over all the nodes on tree"""
+        
+        assert classname in [None, "", "Group", "Leaf", "Table", "Array"], \
+               "Incorrect specification of 'classname'"
+        
+        if classname == "Group":
+            for group in self.walkGroups(where):
+                yield group
+        else:
+            for group in self.walkGroups(where):
+                for leaf in self.listNodes(group, classname):
+                    yield leaf
+                
+    def __call__(self, where="/", classname=""):
+        """Iterate over the Groups (not Leaves) hanging from 'where'."""
+
+        return self.__iter__(where, classname)
 
     def walkGroups(self, where = "/"):
         """Returns the list of Groups (not Leaves) hanging from "where".

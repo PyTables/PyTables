@@ -585,6 +585,8 @@ class CheckFileTestCase(unittest.TestCase):
         fileh.close()
 	
         # When file has an HDF5 format, always returns 1
+        if verbose:
+            print "\nisHDF5(%s) --> %d" % (file, isHDF5(file))
         assert isHDF5(file) == 1
 	
         # Then, delete the file
@@ -621,12 +623,12 @@ class CheckFileTestCase(unittest.TestCase):
 	version = isPyTablesFile(file)
         # When file has a PyTables format, always returns "1.0" string or
         # greater
-        assert version >= "1.0"
         if verbose:
             print
-            print "PyTables format version number ==> %s" % \
+            print "\nPyTables format version number ==> %s" % \
               version
-	
+        assert version >= "1.0"
+
         # Then, delete the file
         os.remove(file)
 
