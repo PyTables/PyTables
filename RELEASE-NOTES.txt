@@ -4,133 +4,131 @@ What's new in PyTables 0.8
 On this release, many enhancements has been added and some bugs has
 been fixed. Here is the (non-exhaustive) list:
 
-	- New VLArray class allows to keep large lists of rows having
-          each of these rows a variable number of elements. The
-          elements can be scalars or fully multimensional objects, in
-          the PyTables tradition. This class supports two special
-          objects as rows, which are Unicode strings (UTF-8
-          codification is used internally) and generic Python objects
-          (though the use of cPickle).
+	- The new VLArray class enables you to store large lists of rows 
+	  containing variable numbers of elements. The elements can 
+	  be scalars or fully multimensional objects, in the PyTables 
+	  tradition. This class supports two special objects as rows: 
+	  Unicode strings (UTF-8 codification is used internally) and 
+	  generic Python objects (through the use of cPickle).
 
-	- New EArray class allow to enlarge already existing
-          multidimensional objects of homogeneous data. This can be
-          seen as an extension of the already existing Array class,
-          but with more functionality, as for example, on-line
-          compression or other filters can be applied to EArray
-          instances.
+	- The new EArray class allows you to enlarge already existing
+	  multidimensional homogeneous data objects. Consider it
+	  an extension of the already existing Array class, but 
+	  with more functionality. Online compression or other filters 
+	  can be applied to EArray instances, for example.
 
-	  Another nice feature of EA's is that they support fully
-          multidimensional data selection with extended slices, i.e.,
-          you can write: earray[1,2:3,...,4:200] and get the desired
-          data from the disk. This is implemented using the powerful
-          selection capabilities of the HDF5 library, so this is very
-          efficient in terms of I/O operations. The same functionality
-          has been added to Array objects as well.
+	  Another nice feature of EA's is their support for fully
+	  multidimensional data selection with extended slices.  You
+	  can write "earray[1,2:3,...,4:200]", for example, to get the
+	  desired dataset slice from the disk. This is implemented
+	  using the powerful selection capabilities of the HDF5
+	  library, which results in very highly efficient I/O
+	  operations. The same functionality has been added to Array
+	  objects as well.
 
 	- New UnImplemented class. If a dataset contains unsupported
-          datatypes, it will be associated with an UnImplemented
-          instance and added to the object tree in the normal way. In
-          that way, you can continue to work with other possible
-          supported objects, while retaining access to attributes of
-          unsupported datatypes. This behaviour has changed from
-          previous versions, where a RuntimeError was issued in case
-          of an unsupported object.
+	  datatypes, it will be associated with an UnImplemented
+	  instance, then inserted into to the object tree as usual.
+	  This allows you to continue to work with supported objects
+	  while retaining access to attributes of unsupported
+	  datasets.  This has changed from previous versions, where a
+	  RuntimeError occurred when an unsupported object was
+	  encountered.
 
-	  The new UnImplemented class together with the support for
-          new datatypes will enable PyTables to greatly enlarge the
-          range of native HDF5 files that can be read/modified.
+	  The combination of the new UnImplemented class with the 
+	  support for new datatypes will enable PyTables to greatly 
+	  increase the number of types of native HDF5 files that can
+	  be read and modified.
 
 	- Boolean support has been added for all the Leaf objects.
 
-	- Table has now an append() method that allows to save big
-          buffers of data in one shot (i.e. bypassing the Row
-          accessor). This can largely improve the speed of data
-          gathering.
+	- The Table class has now an append() method that allows you
+	  to save large buffers of data in one go (i.e. bypassing the
+	  Row accessor). This can greatly improve data gathering
+	  speed.
 
-	- The standard shuffle compression enabler filter present in
-          HDF5 is supported.
+	- The standard HDF5 shuffle filter (to further enhance the
+          compression level) is supported.
 
-	- The standard fletcher32 checksum filter present in HDF5 is
-          supported.
+	- The standard HDF5 fletcher32 checksum filter is supported.
 
-	- As the supported number of filters is getting large (and
-          that may be further increased in the future), a Filters()
-          class has been introduced to deal more easily with filter
-          information. A consequence of that is a slightly backward
-          incompatible change in the createTable() function, in the
-          sense that "compress" and "complib" parameters are
-          deprecated now and you should use the "filters"
-          parameter. However, you will be able to continue using the
-          old parameters (only a Deprecation warning will be issued)
-          for a couple of versions, but you should migrate to the new
-          version as soon as possible. In general, you can easily
-          migrate old code by substituting code like:
+	- As the supported number of filters is growing (and may be
+          further increased in the future), a Filters() class has been
+          introduced to handle filters more easily.  In order to add
+          support for this class, it was necessary to make a change in
+          the createTable() method that is not backwards compatible:
+          the "compress" and "complib" parameters are deprecated now
+          and the "filters" parameter should be used in their
+          place. You will be able to continue using the old parameters
+          (only a Deprecation warning will be issued) for the next few
+          releases, but you should migrate to the new version as soon
+          as possible. In general, you can easily migrate old code by
+          substituting code in its place:
 
-                table = fileh.createTable(group, 'table', Test, '',
-                                          complevel, complib, nrows)
-	  by
+                table = fileh.createTable(group, 'table', Test, '',
+                                          complevel, complib)
+	  should be replaced by
 
-                table = fileh.createTable(group, 'table', Test, '',
-                                          Filters(complevel, complib), nrows)
+                table = fileh.createTable(group, 'table', Test, '',
+                                          Filters(complevel, complib))
 
 
-	- A copy() method that supports slicing and change of
-          filtering capabilities has been added for all the Leaf
-          objects. See User's Manual for more info.
+	- A copy() method that supports slicing and modification of
+          filtering capabilities has been added for all the Leaf
+          objects. See the User's Manual for more information.
 
 	- A couple of new methods, namely copyFile() and copyChilds(),
-          has been added to File class, so that you can replicate
-          complete hierarchies or sub-hierarchies very easily, even to
-          other files. You can change the filters during the copy
-          process as well.
+          have been added to File class, to permit easy replication
+          of complete hierarchies or sub-hierarchies, even to
+          other files. You can change filters during the copy
+          process as well.
 
 	- Two new utilities has been added: ptdump and
-          ptrepack. ptdump allows the user to have a look at the
-          contents of PyTables files (both metadata and actual
-          data). ptrepack is a powerful utility that lets you to
-          selectively copy (parts of) hierarchies to specific
-          locations in other files. It can be also useful as an
-          importer for generic HDF5 files.
+          ptrepack. The utility ptdump allows the user to examine 
+          the contents of PyTables files (both metadata and actual
+          data). The powerful ptrepack utility lets you 
+          selectively copy (portions of) hierarchies to specific
+          locations in other files. It can be also used as an
+          importer for generic HDF5 files.
 
-        - The meaning of the stop parameter in read() methods has
-          changed. Now a value of 'None' means the last row, and a
-          value of 0 (zero) means the first row. This is more
-          consistent with the range() function in python and the
-          __getitem__() special method in numarray.
+        - The meaning of the stop parameter in read() methods has
+          changed. Now a value of 'None' means the last row, and a
+          value of 0 (zero) means the first row. This is more
+          consistent with the range() function in python and the
+          __getitem__() special method in numarray.
 
-	- The limitation on table size for Table.removeRows() to work
-          has been removed. Now, you can delete rows on tables no
-          matter how large are they.
+	- The method Table.removeRows() is no longer limited by table 
+	  size.  You can now delete rows regardless of the size of the 
+	  table.
 
 	- The "numarray" value has been added to the flavor parameter
-          in Table.read() method for completeness.
+          in the Table.read() method for completeness.
 
 	- The attributes (.attr instance variable) are Python
-          properties now, and the access to their values is no longer
-          lazy, i.e. you will be able to see both system or user
-          attributes from the command line using the tab-completion
-          capability of your python console (if enabled).
+          properties now. Access to their values is no longer
+          lazy, i.e. you will be able to see both system or user
+          attributes from the command line using the tab-completion
+          capability of your python console (if enabled).
 
-	- Documentation has been largely improved to include all the
-          new functionality. In particular, the internal format of
-          PyTables has been fully described. So, you can build
-          "native" PyTables files using any other generic HDF5
-          software by just mimicking their format.
+	- Documentation has been greatly improved to explain all the
+          new functionality. In particular, the internal format of
+          PyTables is now fully described. You can now build
+          "native" PyTables files using any generic HDF5 software 
+          by just duplicating their format.
 
-	- Many tests units has been added not only to check new
-          functionality but also to put more stringent checks on
-          existing functionality. There are more than 800 different
-          tests now (and the number is increasing :).
+	- Many new tests have been added, not only to check new
+          functionality but also to more stringently check 
+          existing functionality. There are more than 800 different
+          tests now (and the number is increasing :).
 
-	- As always, some bugs has been solved (specially when
-          deleting and/or overwriting attributes).
+	- As always, some bugs have been solved (especially bugs that
+          occur when deleting and/or overwriting attributes).
 
-	- And last, but not least, a new donations section has been
-          added to the PyTables web site
-          (http://sourceforge.net/projects/pytables, then follow
-          "Donations" tag). If you like PyTables and want this effort
-          to continue, please, donate!.
-
+	- And last, but definitely not least, a new donations section
+	  has been added to the PyTables web site
+	  (http://sourceforge.net/projects/pytables, then follow the
+	  "Donations" tag). If you like PyTables and want this effort
+	  to continue, please, donate!
 
 Enjoy!,
 

@@ -7,12 +7,13 @@
     <author>Francesc Alted</author>
     <author>Scott Prater</author>
 
-    <subtitle><visual markup="sf">A hierarchical database for
+    <subtitle><visual markup="sf">Hierarchical datasets in
       Python</visual><newline/> Release 0.8</subtitle>
 
-    <date>2004, February, 2th</date>
+    <date>2004, March, 1st</date>
     <year>2002, 2003, 2004</year>
-    <graphics kind="bitmap" file="logo4-ombra"/>
+<!--     <graphics kind="bitmap" file="logo4-ombra"/> -->
+    <graphics kind="bitmap" file="logo3-ombra"/>
 <!--     <city>Castelló de la Plana, Spain</city> -->
     <typeset>Francesc Alted and Scott Prater</typeset>
 
@@ -69,10 +70,9 @@
 
 
       <p>NCSA HDF5 (Hierarchical Data Format 5) Software Library and
-	Utilities Copyright 1998, 1999, 2000, 2001, 2002, 2003 by the
-	Board of Trustees of the University of Illinois.  All rights
-	reserved.
-	<newline vspace="0.25cm"/>
+	Utilities Copyright 1998, 1999, 2000, 2001, 2002, 2003, 2004 by
+	the Board of Trustees of the University of Illinois.  All rights
+	reserved.  <newline vspace="0.25cm"/>
       </p>
 
       <p>See more information about the terms of this license at:

@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+
+""" This script allows to create arbitrarily large files with the desired
+combination of groups, tables per group and rows per table.
+
+Issue "python stress-test3.py" without parameters for a help on usage.
+
+"""
+
 import sys, time, random, gc
 import numarray
 from tables import *
@@ -72,7 +81,7 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
             # Create a table
             table = fileh.createTable(group, 'table%04d'% j, Test,
                                       'Table%04d'%j,
-                                      complevel, complib, nrows)
+                                      Filters(complevel, complib), nrows)
             rowsize = table.rowsize
             # Get the row object associated with the new table
             row = table.row

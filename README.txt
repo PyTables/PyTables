@@ -4,26 +4,24 @@ http://pytables.sf.net/
 Feb 28, 2004
 --------------------------------------
 
-PyTables is a hierarchical database package designed to efficently
+PyTables is a hierarchical database package designed to efficiently
 manage very large amounts of data. PyTables is built on top of the
-HDF5 library (http://hdf.ncsa.uiuc.edu/HDF5/) and the numarray package
-(http://www.stsci.edu/resources/software_hardware/numarray). It
-features an object-oriented interface that, combined with natural
-naming and C-code generated from Pyrex sources, makes it a fast, yet
-extremely easy to use tool for interactively save and retrieve very
-large amounts of data. Besides, it provides flexible indexed access on
-disk to anywhere in the data you want to go.
+HDF5 library and the numarray package. It features an object-oriented
+interface that, combined with natural naming and C-code generated from
+Pyrex sources, makes it a fast, yet extremely easy-to-use tool for
+interactively saving and retrieving very large amounts of data.  It also
+provides flexible indexed access on disk to anywhere in the data.
 
-PyTables is not designed to work as a relational database opponent,
-but rather as a teammate. If you want to deal with large datasets of
-multidimensional data (for example for multidimensional analysis), or
+PyTables is not designed to work as a relational database competitor,
+but rather as a teammate. If you want to work with large datasets of
+multidimensional data (for example, for multidimensional analysis), or
 just provide a categorized structure for some portions of your
-cluttered RDBS, then give PyTables a try. It works just great for
-storing data coming from data acquisition systems (DAS), simulation
-software, network data monitoring systems (for example for
-monitorizing IP packets on routers), or as a centralized repository
-for system logs, to name only a few.
- 
+cluttered RDBS, then give PyTables a try. It works well for
+storing data from data acquisition systems (DAS), simulation
+software, network data monitoring systems (for example, traffic
+measurements of IP packets on routers), or as a centralized repository
+for system logs, to name only a few possible uses.
+
 A table is defined as a collection of records whose values are stored
 in fixed-length fields. All records have the same structure and all
 values in each field have the same data type.  The terms
@@ -80,8 +78,8 @@ with MIPS R12000 processors running IRIX 6.5 (with both gcc and
 MIPSPro compilers), Microsoft Windows and MacOSX (10.2 although 10.3
 should work fine as well). In particular, it has been thoroughly
 tested on 64-bit platforms, like Linux-64 on top of an AMD Opteron
-running SuSe Linux Enterprise Server, as well as IRIX64 and all the
-tests passes on these platforms.
+running SuSe Linux Enterprise Server where all the tests pass
+successfully.
 
 Nonetheless, caveat emptor: more testing is needed to achieve complete
 portability, I'd appreciate input on how it compiles and installs on
