@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import copy
+import sys
 
 import time
 import numarray as NA
@@ -12,26 +12,18 @@ import numarray
 from numarray import strings
 from numarray import random_array
 
-randomvalues = 0
-standarddeviation = 10000
 # Initialize the random generator always with the same integer
 # in order to have reproductible results
 random.seed(19)
 random_array.seed(19, 20)
 
+randomvalues = 0
 worst=0
-
-# class Small(IsDescription):
-#     _v_indexprops = IndexProps(auto=0, filters=Filters(complevel=1, complib="zlib", shuffle=1))
-#     var1 = StringCol(length=4, dflt="", indexed=1)
-#     var2 = IntCol(0, indexed=1)
-#     var3 = FloatCol(0, indexed=1)
-#     var4 = BoolCol(0, indexed=1)
 
 Small = {
     #"_v_indexprops" : IndexProps(auto=1),
     # var1 column will be indexed if not heavy test
-    "var1" : StringCol(length=4, dflt="", indexed=0, pos=2),
+    "var1" : StringCol(length=4, dflt="", indexed=1, pos=2),
     "var2" : IntCol(0, indexed=1, pos=1),
     "var3" : FloatCol(0, indexed=1, pos=0),
     #"var4" : BoolCol(0, indexed=1),
@@ -100,50 +92,36 @@ def createFile(filename, nrows, filters, index, heavy, auto, verbose):
     else:
         auto = 0
         Small["_v_indexprops"] = IndexProps(auto=0, filters=filters)
-    if not heavy:
-        # make the index entry indexed as well
-        Small["var1"] = StringCol(length=4, dflt="", indexed=1)
+    if heavy:
+        # make the string entry not indexed
+        Small["var1"] = StringCol(length=4, dflt="", indexed=0)
         
     # Create the test table
     table = fileh.createTable(fileh.root, 'table', Small, "test table",
                               None, nrows)
     t1 = time.time()
     cpu1 = time.clock()
-#     for i in xrange(nrows):
-#         # Assigning a string takes lots of time!
-#         if not heavy:
-#             table.row['var1'] = str(i)
-#         #table.row['var2'] = random.randrange(nrows)
-#         table.row['var2'] = i
-#         table.row['var3'] = nrows-i
-#         #table.row['var3'] = float(nrows-i)
-#         #table.row['var4'] = i % 2
-#         #table.row['var4'] = i > 2
-#         table.row.append()
-    # This way of filling is much faster
     nrowsbuf = table._v_maxTuples
-    #mean = nrows / 2.; stddev = nrows/100.
-    # with a fixed stddev, the compression rate does not change
-    mean = nrows / 2.; stddev = float(standarddeviation)
+    minimum = 0
+    maximum = nrows
     for i in xrange(0, nrows, nrowsbuf):
         if i+nrowsbuf > nrows:
             j = nrows
         else:
             j = i+nrowsbuf
-        var1 = strings.array(None, shape=[j-i], itemsize=4)
         if randomvalues:
-            var3 = random_array.normal(mean, stddev, shape=[j-i])
-            var2 = numarray.array(var3, type=numarray.Int32)
+            var3 = random_array.uniform(minimum, maximum, shape=[j-i])
         else:
-            var2 = numarray.arange(i, j, type=numarray.Int32)
-            # var3 = numarray.arange(i, j, type=numarray.Float64)
-            var3 = numarray.arange(nrows-i, nrows-j, -1, type=numarray.Float64)
+            var3 = numarray.arange(i, j, type=numarray.Float64)
+            #var3 += random_array.uniform(-3, 3, shape=[j-i])
+        var2 = numarray.array(var3, type=numarray.Int32)
+        var1 = strings.array(None, shape=[j-i], itemsize=4)
         if not heavy:
             for n in xrange(j-i):
                 var1[n] = str("%.4s" % var2[n])
         table.append([var3, var2, var1])
-    rowswritten += nrows
     table.flush()
+    rowswritten += nrows
     time1 = time.time()-t1
     tcpu1 = time.clock()-cpu1
     print "Time for filling:", round(time1,3),\
@@ -232,7 +210,6 @@ def benchCreate(file, nrows, filters, index, bfile, heavy, auto,
               (round(tidxrows,3), cpuidxrows, tpercent)
     rowseci = irows / tidxrows
     table.row["rowseci"] = rowseci
-    #print "Index rows/sec: ", rowseci
     table.row.append()
     bf.close()
     
@@ -244,7 +221,6 @@ def readFile(filename, atom, riter, indexmode, verbose):
     var1 = table.cols.var1
     var2 = table.cols.var2
     var3 = table.cols.var3
-    #var4 = table.cols.var4
     if indexmode == "indexed":
         if var2.index.nelements > 0:
             where = table.whereIndexed
@@ -269,67 +245,15 @@ def readFile(filename, atom, riter, indexmode, verbose):
     tcpu2 = 0.
     results = []
     print "Select mode:", indexmode, ". Selecting for type:", atom
-    if randomvalues:
-        # algorithm to choose a value separated from mean
-#         # If want to select fewer values, select this
-#         if table.nrows/2 > standarddeviation*3:
-#             # Choose five standard deviations away from mean value
-#             dev = standarddeviation*5
-#             #dev = standarddeviation*math.log10(table.nrows/1000.)
-
-        # This algorithm give place to too asymmetric result values
-#         if table.nrows/2 > standarddeviation*10:
-#             # Choose five standard deviations away from mean value
-#             dev = standarddeviation*4
-#             #dev = standarddeviation*math.log10(table.nrows/1000.)
-#         else:
-#             dev = 100
-        # Yet Another Algorithm
-        if table.nrows/2 > standarddeviation*10:
-            dev = standarddeviation*4.
-        elif table.nrows/2 > standarddeviation:
-            dev = standarddeviation*2.
-        elif table.nrows/2 > standarddeviation/10.:
-            dev = standarddeviation/10.
-        else:
-            dev = standarddeviation/100.
-
-        valmax = int(round((table.nrows/2.)-dev))
-        # split the selection range in regular chunks
-        if riter > valmax*2:
-            riter = valmax*2
-        #print "valmax, riter-->", valmax, riter
-        #chunksize = valmax*2/riter
-        # use a chunksize ten times larger
-        #chunksize = int(round(valmax*2/riter))*10 
-        chunksize = (valmax*2/riter)*10 
-        # Get a list of integers for the intervals
-        randlist = range(0, valmax, chunksize)
-        randlist.extend(range(table.nrows-valmax, table.nrows, chunksize))
-        # expand the list ten times so as to use the cache
-        randlist = randlist*10
-        # shuffle the list
-        random.shuffle(randlist)
-        # reset the value of chunksize
-        #chunksize = int(round(chunksize/10))
-        # Protection to avoid too large chunksizes with small tables
-        chunksize = chunksize/10
-#         if table.nrows > 1000000:
-#             chunksize = chunksize/10
-#         else:
-# #            chunksize = chunksize/100
-#             chunksize = 100
-        #print "chunksize-->", chunksize
-        #randlist.sort();print "randlist-->", randlist
-    else:
-        chunksize = 3
-    #print "riter-->", riter
+    # The interval for look values at. This is aproximately equivalent to
+    # the number of elements to select
+    chunksize = 1000  # Change here for selecting more or less entries 
+    # Initialize the random generator always with the same integer
+    # in order to have reproductible results
+    random.seed(19)
+    random_array.seed(19, 20)
     for i in xrange(riter):
-        #randlist.sort();print "randlist-->", randlist
-        if randomvalues:
-            rnd = randlist[i]
-        else:
-            rnd = random.randrange(table.nrows)
+        rnd = random.randrange(table.nrows)
         cpu1 = time.clock()
         t1 = time.time()
         if atom == "string":
@@ -364,6 +288,7 @@ def readFile(filename, atom, riter, indexmode, verbose):
                            if rnd <= p["var2"] < rnd+chunksize]
         elif atom == "float":
             if indexmode in ["indexed", "inkernel"]:
+                t1=time.time()
                 results = [p.nrow()
                            # for p in where(var3 < 5.)]
                            #for p in where(3. <= var3 < 5.)]
@@ -372,6 +297,8 @@ def readFile(filename, atom, riter, indexmode, verbose):
                            for p in where(rnd <= var3 < rnd+chunksize)]
                            # for p in where(1000.-i <= var3 < 1000.+i)]
                            # for p in where(100*i <= var3 < 100*(i+1))]
+                #print "time for complete selection-->", time.time()-t1
+                #print "results-->", results, rnd
             else:
                 results = [p.nrow() for p in table
                            # if p["var3"] < 5.]
@@ -380,15 +307,10 @@ def readFile(filename, atom, riter, indexmode, verbose):
                            if float(rnd) <= p["var3"] < float(rnd+chunksize)]
                            # if 1000.-i <= p["var3"] < 1000.+i]
                            # if 100*i <= p["var3"] < 100*(i+1)]
-#         elif atom == "bool":
-#             if indexmode in ["indexed", "inkernel"]:
-#                 results = [p.nrow() for p in where(var4 == 0)]
-#             else:
-#                 results = [p.nrow() for p in table if p["var4"] == 0]
         else:
             raise ValueError, "Value for atom '%s' not supported." % atom
         rowselected += len(results)
-        #results.sort(); print "selected values-->", results
+        #print "selected values-->", results
         if i == 0:
             # First iteration
             time1 = time.time() - t1
