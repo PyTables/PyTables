@@ -78,8 +78,12 @@ Platforms
 
 I'm using Linux as the main development platform, but PyTables should
 be easy to compile/install on other UNIX machines. Thanks to Scott
-Prater, this package has passed all the tests on a UltraSparc
-platform with Solaris 7.
+Prater, this package has passed all the tests on a UltraSparc platform
+with Solaris 7. It also compiles and passes all the tests on a SGI
+Origin2000 with MIPS R12000 processors and running IRIX 6.5.
+
+If you are using Windows and you get the library to work, please let
+me know.
 
 An example?
 -----------

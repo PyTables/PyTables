@@ -62,8 +62,10 @@ In particular, I foresee problems on platforms that do not support the
 "long long int" type (needed to create files with sizes larger than 2
 GB).
 
-Thanks to Scott Prater, this package has also been successfully tested on a
-UltraSparc platform with Solaris 7.
+Thanks to Scott Prater, this package has also been successfully tested
+on a UltraSparc platform with Solaris 7. It also compiles and passes
+all the tests on a SGI Origin2000 with MIPS R12000 processors and
+running IRIX 6.5.
 
 Installation
 ------------
