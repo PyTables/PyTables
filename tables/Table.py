@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.18 2003/02/06 21:18:00 falted Exp $
+#       $Id: Table.py,v 1.19 2003/02/07 11:01:30 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.18 $"
+__version__ = "$Revision: 1.19 $"
 
 from __future__ import generators
 import sys
@@ -44,6 +44,7 @@ from Leaf import Leaf
 from IsRecord import IsRecord, metaIsRecord, Col, fromstructfmt
 
 byteorderDict={"=": sys.byteorder,
+               "@": sys.byteorder,
                '<': 'little',
                '>': 'big'}
 
@@ -429,14 +430,15 @@ class Table(Leaf, hdf5Extension.Table):
         if stop > self.nrows:
             stop = self.nrows
         #print " start, stop, step:", start, stop, step
+        #nrows = len(range(start, stop, step)) # a calcular!
         nrows = len(range(start, stop, step)) # a calcular!
         # Create the resulting recarray
         result = recarray.array(None, formats=self.metarecord._v_recarrfmt,
                                 shape=(nrows,),
                                 names = self.colnames)
         # Setup a buffer for the readout
-        nrowsinbuf = self._v_maxTuples   # Shortcut
-        # nrowsinbuf = 3   # Small value is useful when debugging
+        #nrowsinbuf = self._v_maxTuples   # Shortcut
+        nrowsinbuf = 3   # Small value is useful when debugging
         buffer = self._v_buffer  # Get a recarray as buffer
         nrowsread = start
         startr = 0

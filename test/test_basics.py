@@ -2,6 +2,7 @@ import sys
 import unittest
 import os
 import tempfile
+import warnings
 
 from Numeric import *
 from tables import *
@@ -32,11 +33,11 @@ class OpenFileTestCase(unittest.TestCase):
         arr = fileh.createArray(fileh.root, 'array', array([1,2]),
                                 title = "Title example")
         # Get the CLASS attribute of the arr object
-        class_ = fileh.root._f_getDsetAttr("array", "CLASS")
+        class_ = fileh.root._f_getLeafAttrStr("array", "CLASS")
 
         fileh.close()
 
-        assert class_ == "Array"
+        assert class_ == "ARRAY"
         
     def test01_openFile(self):
         """Checking opening of an existing file"""
@@ -44,7 +45,7 @@ class OpenFileTestCase(unittest.TestCase):
         # Open the old HDF5 file
         fileh = openFile(self.file, mode = "r")
         # Get the CLASS attribute of the arr object
-        title = fileh.root._f_getDsetAttr("array", "TITLE")
+        title = fileh.root._f_getLeafAttrStr("array", "TITLE")
 
         assert title == "Title example"
     
@@ -60,7 +61,7 @@ class OpenFileTestCase(unittest.TestCase):
         # Open this file in read-only mode
         fileh = openFile(self.file, mode = "r")
         # Get the CLASS attribute of the arr object
-        title = fileh.root._f_getDsetAttr("array2", "TITLE")
+        title = fileh.root._f_getLeafAttrStr("array2", "TITLE")
 
         assert title == "Title example 2"
 
@@ -76,7 +77,7 @@ class OpenFileTestCase(unittest.TestCase):
         # Open this file in read-only mode
         fileh = openFile(self.file, mode = "r")
         # Get the CLASS attribute of the arr object
-        title = fileh.root._f_getDsetAttr("array2", "TITLE")
+        title = fileh.root._f_getLeafAttrStr("array2", "TITLE")
 
         assert title == "Title example 2"
 
@@ -124,12 +125,13 @@ class OpenFileTestCase(unittest.TestCase):
     def test05_openErrorFile(self):
         """Checking opening a non HDF5 file extension"""
 
+        warnings.filterwarnings("error", category=UserWarning)
         try:
             fileh = openFile("nonexistent", mode = "r")
-        except AssertionError:
+        except UserWarning:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next AssertionError was catched!"
+                print "\nGreat!, the next UserWarning was catched!"
                 print value
         except IOError:
             # Just in case someone run the test with -O optimization flag!
@@ -139,7 +141,8 @@ class OpenFileTestCase(unittest.TestCase):
                 print value
         else:
             self.fail("expected an AssertionError or IOError")
-        
+        # Reset the warnings
+        warnings.resetwarnings()
 
 class CheckFileTestCase(unittest.TestCase):
     

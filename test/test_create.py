@@ -15,18 +15,16 @@ import tempfile
 from Numeric import *
 from tables import *
 # important objects to test
-from tables import File, Group, Leaf, Table, Array, metaIsRecord
+from tables import File, Group, Leaf, Table, Array
 
 from test_all import verbose
 
 class Record(IsRecord):
-    var1 = '4s'   # 4-character String
-    var2 = 'i'    # integer
-    var3 = 'h'    # short integer. This is chosen in this place for 
-                  # discovery of alignment issues!
-    var4 = 'd'    # double (double-precision)
-    var5 = 'f'    # float  (single-precision)
-
+    var1 = Col("CharType", 4)   # 4-character String
+    var2 = Col("Int32", 1)      # integer
+    var3 = Col("Int16", 1)      # short integer. 
+    var4 = Col("Float64", 1)    # double (double-precision)
+    var5 = Col("Float32", 1)    # float  (single-precision)
 
 class createTestCase(unittest.TestCase):
     
@@ -46,7 +44,6 @@ class createTestCase(unittest.TestCase):
 	# Create a table object
 	self.table = self.fileh.createTable(self.root, 'atable',
                                             Record(), "Table title")
-	#self.table = createTable(Record(), "Table title")
 	
 	# Create an array object
 	self.array = self.fileh.createArray(self.root, 'anarray',
@@ -95,60 +92,61 @@ class createTestCase(unittest.TestCase):
         try:
             self.array = self.fileh.createArray(self.root, ' array',
                                                 array([1]), "Array title")
-        except SyntaxError:
+        except NameError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next SyntaxError was catched!"
+                print "\nGreat!, the next NameError was catched!"
                 print value
         else:
-            self.fail("expected a SyntaxError")
+            self.fail("expected a NameError")
 	    
-	# another syntax error
+	# another name error
         try:
             self.array = self.fileh.createArray(self.root, '$array',
                                                 array([1]), "Array title")
-        except SyntaxError:
+        except NameError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next SyntaxError was catched!"
+                print "\nGreat!, the next NameError was catched!"
                 print value
         else:
-            self.fail("expected a SyntaxError")
+            self.fail("expected a NameError")
 
 	# Finally, test a reserved word
         try:
             self.array = self.fileh.createArray(self.root, 'for',
                                                 array([1]), "Array title")
-        except SyntaxError:
+        except NameError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next SyntaxError was catched!"
+                print "\nGreat!, the next NameError was catched!"
                 print value
         else:
-            self.fail("expected a SyntaxError")
+            self.fail("expected a NameError")
 
-    def test03_titleLenght(self):
-        """Checking title character length limit (255)"""
-	
+    def test03_titleLength(self):
+        """Checking large title character length limit (1024)"""
+
+	titlelength = 1024
 	# Try to put a very long title on a group object
 	group = self.fileh.createGroup(self.root, 'group',
-                                       "t" * 1000)
+                                       "t" * titlelength)
         # For Group, unlimited title lenght is supported
-        assert group._f_getGroupAttrStr('TITLE') == "t" * 1000
+        assert group._f_getGroupAttrStr('TITLE') == "t" * titlelength
 	
 	# Now, try with a table object
 	# This supports titles until 255 characters. The rest is lost.
 	table = self.fileh.createTable(self.root, 'table',
-                                       Record(), "t" * 512)
+                                       Record(), "t" * titlelength)
 	# getTableTitle can retrieve only the first 255 charactes
-	assert table.getTitle() == "t" * 255
+	assert table.getAttrStr("TITLE") == "t" * titlelength
 	    
 	# Finally, try with an Array object
 	# This supports titles until 255 characters. The rest is lost.
         arr = self.fileh.createArray(self.root, 'arr',
-                                     array([1]), "t" * 512)
+                                     array([1]), "t" * titlelength)
 	# getTitle can retrieve only the first 255 charactes
-	assert arr.getTitle() == "t" * 255
+	assert arr.title == "t" * titlelength
 	    
     def test04_maxFields(self):
 	"Checking the maximum number of fields (255) in tables"
@@ -160,39 +158,31 @@ class createTestCase(unittest.TestCase):
 	for i in range(varnumber):
 	    varnames.append('int%d' % i)
             
-	# The format string for this record
-	fmt = "@" + ("i" * varnumber)
-        
-	# Get the variable types
-	vartypes = re.findall(r'(\d*\w)', fmt)
-	
 	# Build a dictionary with the types as values and varnames as keys
 	recordDict = {}
 	i = 0
 	for varname in varnames:
-	    recordDict[varname] = vartypes[i]
+	    #recordDict[varname] = vartypes[i]
+	    recordDict[varname] = Col("Int32", 1)
 	    i += 1
             
 	# Append this entry to indicate the alignment!
-	recordDict['_v_align'] = fmt[0]
-	
-	# Create an instance record to host the record fields
-	record = metaIsRecord("", (), recordDict)()
+	recordDict['_v_align'] = "="
         
 	# Now, create a table with this record object
-	table = Table(record, "MetaRecord instance")
+	table = Table(recordDict, "MetaRecord instance")
 
 	# Attach the table to object tree
 	self.root.table = table
-	
+	row = table.row
 	# Write 10 records
         for j in range(10):
             i = 0
             for varname in varnames:
-                setattr(record, varname, i*j)
+                setattr(row, varname, i*j)
                 i += 1
 	    
-            table.appendAsRecord(record)
+            table.appendAsRecord(row)
 
         # write data on disk
 	table.flush()
@@ -201,9 +191,9 @@ class createTestCase(unittest.TestCase):
 	for recout in table.readAsRecords():
             pass
 
-        # Compare the last input record and last output
+        # Compare the last input row and last output
         # They should be equal
-        assert record == recout
+        assert row == recout
 	    
     def test05_maxFieldsExceeded(self):
         
@@ -216,27 +206,19 @@ class createTestCase(unittest.TestCase):
 	for i in range(varnumber):
 	    varnames.append('int%d' % i)
             
-	# The format string for this record
-	fmt = "@" + ("i" * varnumber)
-        
-	# Get the variable types
-	vartypes = re.findall(r'(\d*\w)', fmt)
-	
 	# Build a dictionary with the types as values and varnames as keys
 	recordDict = {}
 	i = 0
 	for varname in varnames:
-	    recordDict[varname] = vartypes[i]
+	    #recordDict[varname] = vartypes[i]
+	    recordDict[varname] = Col("Int32", 1)
 	    i += 1
             
 	# Append this entry to indicate the alignment!
-	recordDict['_v_align'] = fmt[0]
-	
-	# Create an instance record to host the record fields
-	record = metaIsRecord("", (), recordDict)()
+	recordDict['_v_align'] = "="
         
 	# Now, create a table with this record object
-	table = Table(record, "MetaRecord instance")
+	table = Table(recordDict, "MetaRecord instance")
 
 	# Attach the table to object tree
         # Here, IndexError should be raised!

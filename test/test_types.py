@@ -14,12 +14,11 @@ class Record(IsRecord):
     class will take care the user won't add any new variables and
     that their type is correct.  """
     
-    var1 = '4s'   # 4-character String
-    var2 = 'i'    # integer
-    var3 = 'h'    # short integer. This is chosen in this place for 
-                  # discovery of alignment issues!
-    var4 = 'd'    # double (double-precision)
-    var5 = 'f'    # float  (single-precision)
+    var1 = Col("CharType", 4)   # 4-character String
+    var2 = Col("Int32", 1)      # integer
+    var3 = Col("Int16", 1)      # short integer. 
+    var4 = Col("Float64", 1)    # double (double-precision)
+    var5 = Col("Float32", 1)    # float  (single-precision)
 
 
 class RangeTestCase(unittest.TestCase):
@@ -49,7 +48,7 @@ class RangeTestCase(unittest.TestCase):
 
     def test00_range(self):
         """Testing the range check"""
-        rec = Record()
+        rec = self.table.row
         # Save a record
         i = self.maxshort
         rec.var1 = '%04d' % (i)
@@ -67,31 +66,30 @@ class RangeTestCase(unittest.TestCase):
                 print value
             pass
         else:
-            print rec
-            self.fail("expected a ValueError")
+            if verbose:
+                print "\nNow, the range overflow no longer issues a ValueError"
 
     def test01_type(self):
         """Testing the type check"""
-        rec = Record()
+        rec = self.table.row
         # Save a record
         i = self.maxshort
         rec.var1 = '%04d' % (i)
         rec.var2 = i 
         rec.var3 = i % self.maxshort
         #rec.var3 = i
-        rec.var4 = "124"
         rec.var5 = float(i)
         try:
-            self.table.appendAsRecord(rec)  
-        except ValueError:
+            rec.var4 = "124"
+        except TypeError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next ValueError was catched!"
+                print "\nGreat!, the next TypeError was catched!"
                 print value
             pass
         else:
             print rec
-            self.fail("expected a ValueError")
+            self.fail("expected a TypeError")
 
 #----------------------------------------------------------------------
 

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.15 2003/02/06 21:09:12 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.16 2003/02/07 11:01:27 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.15 $"
+__version__ = "$Revision: 1.16 $"
 
 
 import sys, os.path
@@ -285,6 +285,9 @@ cdef extern from "H5LT.h":
   herr_t H5LTset_attribute_string( hid_t loc_id, char *obj_name,
                                    char *attr_name, char *attr_data )
 
+  herr_t H5LTget_attribute_string( hid_t loc_id, char *obj_name,
+                                   char *attr_name, char *attr_data )
+
   herr_t H5LT_find_attribute( hid_t loc_id, char *attr_name )
 
 
@@ -465,7 +468,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.15 2003/02/06 21:09:12 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.16 2003/02/07 11:01:27 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -572,9 +575,12 @@ cdef class Group:
     return Giterate(loc_id, name)
 
   def _f_getLeafAttrStr(self, char *dsetname, char *attrname):
-    cdef hid_t local_id
-    cdef int ret
-    cdef char attrvalue[MAX_CHARS]
+    cdef hsize_t *dims, nelements
+    cdef H5T_class_t class_id
+    cdef size_t type_size
+    cdef char *attrvalue
+    cdef int rank
+    cdef int ret, i
 
     # Get the dataset
     loc_id = H5Dopen(self.group_id, dsetname)
@@ -585,11 +591,35 @@ cdef class Group:
     if H5LT_find_attribute(loc_id, attrname) <= 0:
         return None
       
-    # Get the table TITLE attribute
-    ret = H5LT_get_attribute_disk(loc_id, attrname, attrvalue)
+    ret = H5LTget_attribute_ndims(self.group_id, dsetname, attrname, &rank )
     if ret < 0:
-      raise RuntimeError("Attribute '%s' exists, but can't get it" % attrname)
+      raise RuntimeError("Can't get ndims on attribute %s in dset %s." %
+                             (attrname, dsetname))
 
+    # Allocate memory to collect the dimension of objects with dimensionality
+    if rank > 0:
+        dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
+
+    ret = H5LTget_attribute_info(self.group_id, dsetname, attrname,
+                                 dims, &class_id, &type_size)
+    if ret < 0:
+        raise RuntimeError("Can't get info on attribute %s in dset %s." %
+                               (attrname, dsetname))
+
+    if rank == 0:
+      attrvalue = <char *>malloc(type_size * sizeof(char))
+    else:
+      elements = dim[0]
+      for i from  0 < i < rank:
+        nelements = nelements * dim[i]
+      attrvalue = <char *>malloc(type_size * nelements * sizeof(char))
+
+    ret = H5LTget_attribute_string(self.group_id, dsetname,
+                                    attrname, attrvalue)
+    if ret < 0:
+      raise RuntimeError("Attribute %s exists in dset %s, but can't get it." \
+                         % (attrname, dsetname))
+                            
     # Close this dataset
     ret = H5Dclose(loc_id)
     if ret < 0:
@@ -599,14 +629,42 @@ cdef class Group:
 
   # Get attributes (only supports string attributes right now)
   def _f_getGroupAttrStr(self, char *attrname):
-    cdef int ret
-    cdef char attrvalue[MAX_CHARS]
+    cdef hsize_t *dims, nelements
+    cdef H5T_class_t class_id
+    cdef size_t type_size
+    cdef char *attrvalue
+    cdef int rank
+    cdef int ret, i
         
     # Check if attribute exists
     if H5LT_find_attribute(self.group_id, attrname) <= 0:
         return None
 
-    ret = H5LT_get_attribute_disk(self.group_id, attrname, attrvalue)
+    ret = H5LTget_attribute_ndims(self.parent_id, self.name, attrname, &rank )
+    if ret < 0:
+      raise RuntimeError("Can't get ndims on attribute %s in group %s." %
+                             (attrname, self.name))
+
+    # Allocate memory to collect the dimension of objects with dimensionality
+    if rank > 0:
+        dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
+
+    ret = H5LTget_attribute_info(self.parent_id, self.name, attrname,
+                                 dims, &class_id, &type_size)
+    if ret < 0:
+        raise RuntimeError("Can't get info on attribute %s in group %s." %
+                               (attrname, self.name))
+
+    if rank == 0:
+      attrvalue = <char *>malloc(type_size * sizeof(char))
+    else:
+      elements = dim[0]
+      for i from  0 < i < rank:
+        nelements = nelements * dim[i]
+      attrvalue = <char *>malloc(type_size * nelements * sizeof(char))
+
+    ret = H5LTget_attribute_string(self.parent_id, self.name,
+                                    attrname, attrvalue)
     if ret < 0:
       raise RuntimeError("Attribute %s exists in group %s, but can't get it." \
                          % (attrname, self.name))

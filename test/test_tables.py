@@ -14,13 +14,11 @@ class Record(IsRecord):
     class will take care the user won't add any new variables and
     that their type is correct.  """
     
-    var1 = '4s'   # 4-character String
-    var2 = 'i'    # integer
-    var3 = 'h'    # short integer. This is chosen in this place for 
-                  # discovery of alignment issues!
-    var4 = 'd'    # double (double-precision)
-    var5 = 'f'    # float  (single-precision)
-
+    var1 = Col("CharType", 4)   # 4-character String
+    var2 = Col("Int32", 1)      # integer
+    var3 = Col("Int16", 1)      # short integer. 
+    var4 = Col("Float64", 1)    # double (double-precision)
+    var5 = Col("Float32", 1)    # float  (single-precision)
 
 class BasicTestCase(unittest.TestCase):
     file  = "test.h5"
@@ -47,8 +45,8 @@ class BasicTestCase(unittest.TestCase):
                                         title = self.title,
                                         compress = self.compress,
                                         expectedrows = self.expectedrows)
-            # Get the record object associated with the new table
-            d = table.record
+            # Get the row object associated with the new table
+            d = table.row
 	    
             # Fill the table
             for i in xrange(self.expectedrows):
@@ -116,8 +114,8 @@ class BasicTestCase(unittest.TestCase):
         maxshort = 1 << 15
         # Get a table
         table = self.fileh.getNode("/group0/table1")
-        # Get their record object
-        rec = table.record
+        # Get their row object
+        rec = table.row
         if verbose:
             print "Nrows in old", table._v_pathname, ":", table.nrows
             print "Record Format ==>", rec._v_fmt
@@ -161,8 +159,8 @@ class BigTablesTestCase(BasicTestCase):
 class BigFastTablesTestCase(BasicTestCase):
     #expectedrows = 10000
     #appendrows = 1000
-    expectedrows = 10000
-    appendrows = 1000
+    expectedrows = 1000
+    appendrows = 100
     fast = 1
 
 
@@ -174,7 +172,7 @@ def suite():
     theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
     theSuite.addTest(unittest.makeSuite(CompressTablesTestCase))
     theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
-    theSuite.addTest(unittest.makeSuite(BigFastTablesTestCase))
+    #theSuite.addTest(unittest.makeSuite(BigFastTablesTestCase))
 
     return theSuite
 
