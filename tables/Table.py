@@ -663,8 +663,10 @@ class Table(Leaf, hdf5Extension.Table, object):
                             typecode = arr.typecode()                        
                         # tolist() method creates a list with a sane byteorder
                         if arr.shape <> ():
-                            arr=Numeric.array(arr.tolist(),
-                                              typecode=arr.typecode())
+                            shape = arr.shape
+			    arr=Numeric.fromstring(arr._data,
+			                           typecode=arr.typecode())
+			    arr.shape = shape
                         else:
                             # This works for rank-0 arrays
                             # (but is slower for big arrays)

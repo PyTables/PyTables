@@ -526,11 +526,14 @@ The error was: <%s>""" % (value, self, value2)
                     if arr.shape <> ():
                         #arr=Numeric.array(arr.tolist(), typecode=arr.typecode())
 			# The next is 10 to 100 times faster. 2005-02-09
-                        arr=Numeric.fromstring(arr._data, typecode=arr.typecode())
+			shape = arr.shape
+			arr=Numeric.fromstring(arr._data,
+			                       typecode=arr.typecode())
+			arr.shape = shape
                     else:
                         # This works for rank-0 arrays
                         # (but is slower for big arrays)
-                        arr=Numeric.array(arr[()], typecode=arr.typecode())			
+                        arr=Numeric.array(arr[()], typecode=arr.typecode())
             else:
                 # Warn the user
                 warnings.warn( \
