@@ -1,7 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
+
 <!DOCTYPE html
-  PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xml:lang="en" lang="en"><head><title>PyTables User's Guide</title><object id="MathPlayer" classid="clsid:32F66A20-7614-11D4-BD11-00104BD3F987"> </object><?import namespace="mml" implementation="#MathPlayer"?><meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8"/><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"/><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"/><meta name="robots" content="index"/><meta name="DC.Title" content="PyTables User's Guide"/><meta name="DC.Description" content="PyTables User's Guide"/><meta name="DC.Creator" content="Francesc Alted"/><meta name="Author" content="Francesc Alted"/><meta name="DC.Date" content="2002-11-14T18:48:56Z"/><meta name="Date" content="2002-11-14T18:48:56Z"/><meta name="DC.Rights" content="(c) 2002 Francesc AltedPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &#34;Software&#34;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or"/><meta name="Copyright" content="(c) 2002 Francesc AltedPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &#34;Software&#34;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or"/><meta name="DC.Type" content="Text"/><meta name="DC.Format" content="application/xhtml+xml"/><meta name="DC.Language" scheme="rfc3066" content="en"/><meta name="Language" content="en"/><meta http-equiv="Content-Style-Type" content="text/css"/><style type="text/css">
+  PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" lang="en"><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <title>PyTables User's Guide</title><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2002-11-15T09:57:19Z"><meta name="Date" content="2002-11-15T09:57:19Z"><meta name="DC.Rights" content="(c) 2002 Francesc AltedPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &#34;Software&#34;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or"><meta name="Copyright" content="(c) 2002 Francesc AltedPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &#34;Software&#34;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -31,9 +33,7 @@
     div.footnote { }
     div.mathdisplay { text-align: center;
     margin-top: 2ex; margin-bottom: 2ex }
-    div.figure, div.table, div.mathml-remark { float: right; clear: both;
-      text-align: right; position: relative; right: -145px;
-      margin-left: -145px; padding-left: 2em; margin-bottom: 3ex;
+    div.figure, div.table, div.mathml-remark { margin-bottom: 3ex;
             margin-top: 2ex}
     div.mathml-remark { width: 50%; text-align: left; text-indent: 0pt }
     div.caption { margin-top: 1ex; width: 20em}
@@ -120,8 +120,8 @@
     dd { text-indent: 0pt }
     pre { text-indent: 0pt }
     span.i-see { font-style: italic; }
-</style></head><body><div class="document">
-  <div class="header"><div class="authorlist"><span>Francesc Alted</span></div><div class="title"><tt>PyTables</tt> User's Guide</div><div class="legal">All rights reserved.<br/>© 2002 Francesc Alted<br/><br/><br/>
+</style></head><body bgcolor="#FFFFFF"><div class="document">
+  <div class="header"><div class="authorlist"><span>Francesc&nbsp;Alted</span></div><p></p><font size="7" face="Sans-Serif"><b><div class="title"><tt>PyTables</tt> User's Guide</div></b></font><p></p><div class="legal">All rights reserved.<br>&copy;&nbsp;2002 Francesc&nbsp;Alted<br><br><br>
 
 
 
@@ -147,7 +147,7 @@
 	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 	OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-	<div style="margin-bottom: 1cm"/>
+	<div style="margin-bottom: 1cm"></div><p></p>
       </p>
 
 
@@ -159,7 +159,7 @@
 
       <p>NCSA HDF5 (Hierarchical Data Format 5) Software Library and
 	Utilities Copyright 1998, 1999, 2000, 2001, 2002 by the Board
-	of Trustees of the University of Illinois <br/>
+	of Trustees of the University of Illinois <br>
 	<b>All rights reserved.</b>
       </p>
       <p>Contributors: National Center for Supercomputing Applications
@@ -232,29 +232,29 @@
       </p>
 
 
-    </div></div><hr/><div class="toc" id="tb:table-of-contents"><h1 class="toc">Table of Contents</h1><table class="toc" cellspacing="0pt" cellpadding="0pt"><tr><td class="number1"><div class="toplevel-toc">1</div></td><td colspan="3"><div class="toplevel-toc"><a href="#chapter1">Introduction</a></div></td></tr><tr><td> </td><td class="number2">1.1</td><td colspan="2"><a href="#section1.1">Main Features</a></td></tr><tr><td> </td><td class="number2">1.2</td><td colspan="2"><a href="#section1.2">The Object Tree</a></td></tr><tr><td class="number1"><div class="toplevel-toc">2</div></td><td colspan="3"><div class="toplevel-toc"><a href="#chapter2">Installation</a></div></td></tr><tr><td class="number1"><div class="toplevel-toc">3</div></td><td colspan="3"><div class="toplevel-toc"><a href="#chapter3">Usage</a></div></td></tr><tr><td> </td><td class="number2">3.1</td><td colspan="2"><a href="#section3.1">Getting started</a></td></tr><tr><td colspan="2"> </td><td class="number3">3.1.1</td><td><a href="#subsection3.1.1">Importing <tt>tables</tt>
-	    objects</a></td></tr><tr><td colspan="2"> </td><td class="number3">3.1.2</td><td><a href="#subsection3.1.2">Declaring a Record</a></td></tr><tr><td colspan="2"> </td><td class="number3">3.1.3</td><td><a href="#subsection3.1.3">Creating a <tt>PyTables</tt> file from scratch</a></td></tr><tr><td colspan="2"> </td><td class="number3">3.1.4</td><td><a href="#subsection3.1.4">Creating a new group</a></td></tr><tr><td colspan="2"> </td><td class="number3">3.1.5</td><td><a href="#subsection3.1.5">Creating a new table</a></td></tr><tr><td colspan="2"> </td><td class="number3">3.1.6</td><td><a href="#subsection3.1.6">Reading (and selecting) data in table</a></td></tr><tr><td colspan="2"> </td><td class="number3">3.1.7</td><td><a href="#subsection3.1.7">Creating new array objects</a></td></tr><tr><td colspan="2"> </td><td class="number3">3.1.8</td><td><a href="#subsection3.1.8">Closing the file and looking at its content</a></td></tr><tr><td> </td><td class="number2">3.2</td><td colspan="2"><a href="#section3.2">Browsing the <i>object tree</i>
-	  and more</a></td></tr><tr><td colspan="2"> </td><td class="number3">3.2.1</td><td><a href="#subsection3.2.1">Traversing the object tree</a></td></tr><tr><td colspan="2"> </td><td class="number3">3.2.2</td><td><a href="#subsection3.2.2">Getting object metadata</a></td></tr><tr><td colspan="2"> </td><td class="number3">3.2.3</td><td><a href="#subsection3.2.3">Reading actual data from <tt>Array</tt> objects</a></td></tr><tr><td colspan="2"> </td><td class="number3">3.2.4</td><td><a href="#subsection3.2.4">Appending data to an existing table</a></td></tr><tr><td> </td><td class="number2">3.3</td><td colspan="2"><a href="#section3.3"><tt>PyTables</tt> automatic
-	  sanity checks</a></td></tr><tr><td colspan="2"> </td><td class="number3">3.3.1</td><td><a href="#subsection3.3.1">Field name checking</a></td></tr><tr><td colspan="2"> </td><td class="number3">3.3.2</td><td><a href="#subsection3.3.2">Data range checking</a></td></tr><tr><td colspan="2"> </td><td class="number3">3.3.3</td><td><a href="#subsection3.3.3">Data type checking</a></td></tr><tr><td> </td><td class="number2">3.4</td><td colspan="2"><a href="#section3.4">Optimization tips</a></td></tr><tr><td colspan="2"> </td><td class="number3">3.4.1</td><td><a href="#subsection3.4.1">Compression issues</a></td></tr><tr><td colspan="2"> </td><td class="number3">3.4.2</td><td><a href="#subsection3.4.2">Informing <tt>PyTables</tt>
-	    about expected number of rows in tables</a></td></tr><tr><td colspan="2"> </td><td class="number3">3.4.3</td><td><a href="#subsection3.4.3">Optimized ways to fill and read data from
-	    tables</a></td></tr><tr><td class="number1"><div class="toplevel-toc">4</div></td><td colspan="3"><div class="toplevel-toc"><a href="#chapter4">Library Reference</a></div></td></tr><tr><td> </td><td class="number2">4.1</td><td colspan="2"><a href="#section4.1"><tt>tables</tt> variables and
-	  functions</a></td></tr><tr><td colspan="2"> </td><td class="number3">4.1.1</td><td><a href="#subsection4.1.1">Global variables</a></td></tr><tr><td colspan="2"> </td><td class="number3">4.1.2</td><td><a href="#subsection4.1.2">Global functions</a></td></tr><tr><td> </td><td class="number2">4.2</td><td colspan="2"><a href="#section4.2">The <tt>IsRecord</tt> class</a></td></tr><tr><td> </td><td class="number2">4.3</td><td colspan="2"><a href="#section4.3">The <tt>File</tt> class</a></td></tr><tr><td colspan="2"> </td><td class="number3">4.3.1</td><td><a href="#subsection4.3.1"><tt>File</tt> instance
-	    variables</a></td></tr><tr><td colspan="2"> </td><td class="number3">4.3.2</td><td><a href="#subsection4.3.2"><tt>File</tt> methods</a></td></tr><tr><td> </td><td class="number2">4.4</td><td colspan="2"><a href="#section4.4">The <tt>Group</tt> class</a></td></tr><tr><td colspan="2"> </td><td class="number3">4.4.1</td><td><a href="#subsection4.4.1"><tt>Group</tt> class variables</a></td></tr><tr><td colspan="2"> </td><td class="number3">4.4.2</td><td><a href="#subsection4.4.2"><tt>Group</tt> instance variables</a></td></tr><tr><td colspan="2"> </td><td class="number3">4.4.3</td><td><a href="#subsection4.4.3"><tt>Group</tt> methods</a></td></tr><tr><td> </td><td class="number2">4.5</td><td colspan="2"><a href="#section4.5">The <tt>Leaf</tt> class</a></td></tr><tr><td> </td><td class="number2">4.6</td><td colspan="2"><a href="#section4.6">The <tt>Table</tt> class</a></td></tr><tr><td colspan="2"> </td><td class="number3">4.6.1</td><td><a href="#subsection4.6.1"><tt>Table</tt> instance
-	    variables</a></td></tr><tr><td colspan="2"> </td><td class="number3">4.6.2</td><td><a href="#subsection4.6.2"><tt>Table</tt>
-	    methods</a></td></tr><tr><td> </td><td class="number2">4.7</td><td colspan="2"><a href="#section4.7">The <tt>Array</tt> class</a></td></tr><tr><td colspan="2"> </td><td class="number3">4.7.1</td><td><a href="#subsection4.7.1"><tt>Array</tt> instance
-	    variables</a></td></tr><tr><td colspan="2"> </td><td class="number3">4.7.2</td><td><a href="#subsection4.7.2"><tt>Array</tt>
-	    methods</a></td></tr><tr><td class="number1"><div class="toplevel-toc">A</div></td><td colspan="3"><div class="toplevel-toc"><a href="#chapterA">Supported data types in tables</a></div></td></tr></table></div>
+    </div></div><hr><div class="toc" id="tb:table-of-contents"><h1 class="toc">Table of Contents</h1><table class="toc" cellspacing="0pt" cellpadding="0pt"><tr><td class="number1"><div class="toplevel-toc">1</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="#chapter1">Introduction</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">1.1</td><td colspan="2"><a href="#section1.1">Main Features</a></td></tr><tr><td>&nbsp;</td><td class="number2">1.2</td><td colspan="2"><a href="#section1.2">The Object Tree</a></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">2</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="#chapter2">Installation</a></div></b></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">3</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="#chapter3">Usage</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">3.1</td><td colspan="2"><a href="#section3.1">Getting started</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.1.1</td><td><a href="#subsection3.1.1">Importing <tt>tables</tt>
+	    objects</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.1.2</td><td><a href="#subsection3.1.2">Declaring a Record</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.1.3</td><td><a href="#subsection3.1.3">Creating a <tt>PyTables</tt> file from scratch</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.1.4</td><td><a href="#subsection3.1.4">Creating a new group</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.1.5</td><td><a href="#subsection3.1.5">Creating a new table</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.1.6</td><td><a href="#subsection3.1.6">Reading (and selecting) data in table</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.1.7</td><td><a href="#subsection3.1.7">Creating new array objects</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.1.8</td><td><a href="#subsection3.1.8">Closing the file and looking at its content</a></td></tr><tr><td>&nbsp;</td><td class="number2">3.2</td><td colspan="2"><a href="#section3.2">Browsing the <i>object tree</i>
+	  and more</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.2.1</td><td><a href="#subsection3.2.1">Traversing the object tree</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.2.2</td><td><a href="#subsection3.2.2">Getting object metadata</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.2.3</td><td><a href="#subsection3.2.3">Reading actual data from <tt>Array</tt> objects</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.2.4</td><td><a href="#subsection3.2.4">Appending data to an existing table</a></td></tr><tr><td>&nbsp;</td><td class="number2">3.3</td><td colspan="2"><a href="#section3.3"><tt>PyTables</tt> automatic
+	  sanity checks</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.3.1</td><td><a href="#subsection3.3.1">Field name checking</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.3.2</td><td><a href="#subsection3.3.2">Data range checking</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.3.3</td><td><a href="#subsection3.3.3">Data type checking</a></td></tr><tr><td>&nbsp;</td><td class="number2">3.4</td><td colspan="2"><a href="#section3.4">Optimization tips</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.4.1</td><td><a href="#subsection3.4.1">Compression issues</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.4.2</td><td><a href="#subsection3.4.2">Informing <tt>PyTables</tt>
+	    about expected number of rows in tables</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.4.3</td><td><a href="#subsection3.4.3">Optimized ways to fill and read data from
+	    tables</a></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">4</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="#chapter4">Library Reference</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">4.1</td><td colspan="2"><a href="#section4.1"><tt>tables</tt> variables and
+	  functions</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.1.1</td><td><a href="#subsection4.1.1">Global variables</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.1.2</td><td><a href="#subsection4.1.2">Global functions</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.2</td><td colspan="2"><a href="#section4.2">The <tt>IsRecord</tt> class</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.3</td><td colspan="2"><a href="#section4.3">The <tt>File</tt> class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.3.1</td><td><a href="#subsection4.3.1"><tt>File</tt> instance
+	    variables</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.3.2</td><td><a href="#subsection4.3.2"><tt>File</tt> methods</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.4</td><td colspan="2"><a href="#section4.4">The <tt>Group</tt> class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.4.1</td><td><a href="#subsection4.4.1"><tt>Group</tt> class variables</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.4.2</td><td><a href="#subsection4.4.2"><tt>Group</tt> instance variables</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.4.3</td><td><a href="#subsection4.4.3"><tt>Group</tt> methods</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.5</td><td colspan="2"><a href="#section4.5">The <tt>Leaf</tt> class</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.6</td><td colspan="2"><a href="#section4.6">The <tt>Table</tt> class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.6.1</td><td><a href="#subsection4.6.1"><tt>Table</tt> instance
+	    variables</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.6.2</td><td><a href="#subsection4.6.2"><tt>Table</tt>
+	    methods</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.7</td><td colspan="2"><a href="#section4.7">The <tt>Array</tt> class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.7.1</td><td><a href="#subsection4.7.1"><tt>Array</tt> instance
+	    variables</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.7.2</td><td><a href="#subsection4.7.2"><tt>Array</tt>
+	    methods</a></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">A</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="#chapterA">Supported data types in tables</a></div></b></td></tr></table></div>
 
   
 
   <div>
-      <h1 id="chapter1">Chapter 1: Introduction</h1>
+      <h1 id="chapter1"><a name="chapter1"></a>Chapter&nbsp;1: Introduction</h1>
 
-      <div class="aphorism">La sabiduría no vale la pena si no es posible servirse
+      <div class="aphorism">La sabidur&iacute;a no vale la pena si no es posible servirse
 	de ella para inventar una nueva manera de preparar los
-	garbanzos.<div class="aphorism-origin">—Un sabio catalán<br/> in "Cien años de
-	soledad"<br/> Gabriel García
-	Márquez</div>
+	garbanzos.<div class="aphorism-origin">&#8212;Un sabio catal&aacute;n<br> in "Cien a&ntilde;os de
+	soledad"<br> Gabriel Garc&iacute;a
+	M&aacute;rquez</div>
       </div>
 
       <p class="first">The goal of <tt class="verb">PyTables</tt> is to enable the end user
@@ -322,7 +322,7 @@ class Particle(IsRecord):
 	<tt class="verb">PyTables</tt>.</p>
 
       <div>
-	<h2><span class="headlinenumber" id="section1.1">1.1 </span>Main Features</h2> <p class="first"><tt>PyTables</tt> has the next capabilities:</p>
+	<h2><span class="headlinenumber" id="section1.1"><a name="section1.1"></a>1.1 </span>Main Features</h2> <p class="first"><tt>PyTables</tt> has the next capabilities:</p>
 
 	<ul>
 	  <li><em>Support of table entities:</em> Allows working
@@ -380,7 +380,7 @@ class Particle(IsRecord):
 	  selected HDF5 functionality (for this, have a look at
 	  HL-HDF5, the Swedish Meteorological and Hydrological
 	  Institute effort to provide another Python interface to
-	  HDF5; see <a href="#HL-HDF">reference <strong>??</strong></a>), but to
+	  HDF5; see <a href="#HL-HDF">reference&nbsp;<strong>??</strong></a>), but to
 	  provide a flexible, <em>very Pythonic</em> tool to deal with
 	  (arbitrary) large amounts of data (typically bigger than
 	  available memory) in tables and arrays organized in a
@@ -394,8 +394,8 @@ class Particle(IsRecord):
 	</p>
       </div>
 
-      <div id="NaturalTreeSection">
-	<h2><span class="headlinenumber" id="section1.2">1.2 </span>The Object Tree</h2>
+      <div id="NaturalTreeSection"><a name="NaturalTreeSection"></a>
+	<h2><span class="headlinenumber" id="section1.2"><a name="section1.2"></a>1.2 </span>The Object Tree</h2>
 
 	<p class="first">The hierarchical model of the underlying HDF5 library
 	  allows <tt class="verb">PyTables</tt> to manage tables and arrays in
@@ -439,7 +439,7 @@ class Particle(IsRecord):
 	  variables of the node objects are the same as the names of
 	  the element's children<a href="#footnote3" name="footnoteback3"><sup>3)</sup></a>. This is very
 	  <em>Pythonic</em> and comfortable in many cases, as you can
-	  check in the tutorial <a href="#readingAndSelectingUsage">section 3.1.6</a>.
+	  check in the tutorial <a href="#readingAndSelectingUsage">section&nbsp;3.1.6</a>.
 	</p>
 	<p>You should also note that not all the data present on file
 	  is loaded in the object tree, but only the <em>metadata</em>
@@ -462,7 +462,7 @@ class Particle(IsRecord):
 	  script actually exists and you can find it in
 	  <tt class="verb">examples/objecttree.py</tt>; check it out!) that
 	  creates a simple <tt class="verb">PyTables</tt> file, with the
-	  structure that appears in <a href="#objecttree-h5">figure 1.1</a>. During creation time,
+	  structure that appears in <a href="#objecttree-h5">figure&nbsp;1.1</a>. During creation time,
 	  metadata in the object tree is updated in memory while the
 	  actual data is being saved on disk and when you close the
 	  file the object tree becomes unavailable. But, when you will
@@ -472,38 +472,46 @@ class Particle(IsRecord):
 	  during the original creation process.
 	</p>
 
-	<div class="figure" id="objecttree-h5">
-	  <a target="_blank" href="objecttree-h5.jpg"><img class="graphics" width="850" height="1100" alt="An HDF5 example with 2 subgroups and 3 tabl... (Click for original bitmap)" src="objecttree-h5-web.jpg"/></a>
-	  <div class="caption" style="width: 850px"><div class="caption-text"><span class="captionlabel">Figure 1.1:</span>An HDF5 example with 2 subgroups and 3 tables.</div></div>
+	<div class="figure" id="objecttree-h5"><a name="objecttree-h5"></a>
+	<!--  <a target="_blank" href="objecttree-h5.jpg"><img class="graphics"
+width="850" height="1100" alt="An HDF5 example with 2 subgroups and 3
+tabl... (Click for original bitmap)" src="objecttree-h5.jpg"></a> -->
+	  <a target="_blank" href="objecttree-h5.jpg"><img class="graphics"
+ alt="An HDF5 example with 2 subgroups and 3
+tabl... (Click for original bitmap)" src="objecttree-h5.png"></a>
+	  <div class="caption" style="width: 850px"><div
+class="caption-text"><span class="captionlabel">Figure&nbsp;1.1:</span> An
+HDF5 example with 2 subgroups and 3 tables.</div></div>
+
 	</div>
 
-	<p>In <a href="#objecttree">figure 1.2</a> you can see an
+	<p>In <a href="#objecttree">figure&nbsp;1.2</a> you can see an
 	  example of the object tree created by reading a
 	  <tt class="verb">PyTables</tt> file (in fact, this file is the same
-	  as that of the <a href="#objecttree-h5">figure 1.1</a>). If
+	  as that of the <a href="#objecttree-h5">figure&nbsp;1.1</a>). If
 	  you are going to become a <tt>PyTables</tt> user, take your time to
 	  understand it<a href="#footnote4" name="footnoteback4"><sup>4)</sup></a>. That will also make you more proactive by
 	  avoiding programming mistakes.
 	</p>
 
-	<div class="figure" id="objecttree">
+	<div class="figure" id="objecttree"><a name="objecttree"></a>
 	  
-	  <img class="graphics" width="658" height="806" alt="An object tree example in PyTables.&#xA;	  " src="objecttree-web.png"/>
-	  <div class="caption" style="width: 658px"><div class="caption-text"><span class="captionlabel">Figure 1.2:</span>An object tree example in <tt>PyTables</tt>.
+	  <img class="graphics" width="658" height="806" alt="An object tree example in PyTables.&#xA;	  " src="objecttree-web.png">
+	  <div class="caption" style="width: 658px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;1.2:</span> An object tree example in <tt>PyTables</tt>.
 	  </div></div>
 	</div>
 
       </div>
 
     </div><div>
-      <h1 id="chapter2">Chapter 2: Installation</h1>
+      <h1 id="chapter2"><a name="chapter2"></a>Chapter&nbsp;2: Installation</h1>
 
       <p class="first">This are instructions for Unix/Linux system. If you are using
 	Windows, and you get the library to work, please tell me about.
       </p>
 
       <p>Extensions in <tt>PyTables</tt> has been
-	made using Pyrex (see <a href="#Pyrex">reference <strong>??</strong></a>) and
+	made using Pyrex (see <a href="#Pyrex">reference&nbsp;<strong>??</strong></a>) and
 	C language. You can rebuild everything from scratch if you got
 	Pyrex installed, but this is not necessary, as the Pyrex
 	compiled source is included in the distribution. In order to
@@ -625,15 +633,15 @@ class Particle(IsRecord):
 	use <tt class="verb">PyTables</tt>.
       </p>
 
-    </div><div id="usage">
-      <h1 id="chapter3">Chapter 3: Usage</h1>
+    </div><div id="usage"><a name="usage"></a>
+      <h1 id="chapter3"><a name="chapter3"></a>Chapter&nbsp;3: Usage</h1>
 
       <p class="first">This chapter begins with a series of simple, yet
 	comprehensive sections written in a tutorial style that will
 	let you understand the main features that
 	<tt class="verb">PyTables</tt> provide. If during the trip you want
 	more information on some specific instance variable, global
-	function or method, go to the library reference in <a href="#libraryReference">chapter 4</a>. However, if you are
+	function or method, go to the library reference in <a href="#libraryReference">chapter&nbsp;4</a>. However, if you are
 	reading this in PDF or HTML formats, there should be an
 	hyperlink to its reference near each new introduced
 	entity. Finally, you can get deeper knowledge of
@@ -642,7 +650,7 @@ class Particle(IsRecord):
       </p>
 
       <div>
-	<h2><span class="headlinenumber" id="section3.1">3.1 </span>Getting started</h2>
+	<h2><span class="headlinenumber" id="section3.1"><a name="section3.1"></a>3.1 </span>Getting started</h2>
 
 	<p class="first">In this section, we will see how to define our own records
 	  from Python and save collections of them (i.e. a <b>table</b>) on a file. Then, we will select
@@ -660,7 +668,7 @@ class Particle(IsRecord):
 	</p>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection3.1.1">3.1.1 </span>Importing <tt>tables</tt>
+	  <h3><span class="headlinenumber" id="subsection3.1.1"><a name="subsection3.1.1"></a>3.1.1 </span>Importing <tt>tables</tt>
 	    objects</h3>
 	  
 	  <p class="first">Before to do anything you need to import the
@@ -703,7 +711,7 @@ class Particle(IsRecord):
 	</div>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection3.1.2">3.1.2 </span>Declaring a Record</h3>
+	  <h3><span class="headlinenumber" id="subsection3.1.2"><a name="subsection3.1.2"></a>3.1.2 </span>Declaring a Record</h3>
 
 	  <p class="first">Now, imagine that we have a particle detector and we want
 	    to declare a record object in order to save data that
@@ -751,7 +759,7 @@ class Particle(IsRecord):
 	  <p>This definition class is quite
 	    auto-explanatory. Basically, you have to declare a class
 	    variable for each field you need, and as its value you put
-	    the typecode for this data field. See <a href="#datatypesSupported">appendix A</a> for a list of
+	    the typecode for this data field. See <a href="#datatypesSupported">appendix&nbsp;A</a> for a list of
 	    typecodes supported in record classes
 	    (<tt class="verb">IsRecord</tt> descendants).
 	  </p>
@@ -772,7 +780,7 @@ class Particle(IsRecord):
 	</div>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection3.1.3">3.1.3 </span>Creating a <tt>PyTables</tt> file from scratch</h3>
+	  <h3><span class="headlinenumber" id="subsection3.1.3"><a name="subsection3.1.3"></a>3.1.3 </span>Creating a <tt>PyTables</tt> file from scratch</h3>
 
 	  <p class="first">To create a <tt class="verb">PyTables</tt> file use the
 	    first-level <tt class="verb">openFile</tt> (see <a href="#openFileDescr"><strong>??</strong></a>) function:
@@ -795,7 +803,7 @@ class Particle(IsRecord):
 	</div>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection3.1.4">3.1.4 </span>Creating a new group</h3>
+	  <h3><span class="headlinenumber" id="subsection3.1.4"><a name="subsection3.1.4"></a>3.1.4 </span>Creating a new group</h3>
 
 	  <p class="first">Now, to better organize our data, we will create a group
 	    hanging from the root called <em>detector</em>. We will
@@ -818,7 +826,7 @@ class Particle(IsRecord):
 
 	</div>
 	<div>
-	  <h3><span class="headlinenumber" id="subsection3.1.5">3.1.5 </span>Creating a new table</h3>
+	  <h3><span class="headlinenumber" id="subsection3.1.5"><a name="subsection3.1.5"></a>3.1.5 </span>Creating a new table</h3>
 
 	  <p class="first">Let's now create the <tt class="verb">Table</tt> (see <a href="#TableClassDescr">4.6</a>) object hanging from the new
 	    created group. We do that by calling the
@@ -898,8 +906,8 @@ class Particle(IsRecord):
 
 	</div>
 
-	<div id="readingAndSelectingUsage">
-	  <h3><span class="headlinenumber" id="subsection3.1.6">3.1.6 </span>Reading (and selecting) data in table</h3>
+	<div id="readingAndSelectingUsage"><a name="readingAndSelectingUsage"></a>
+	  <h3><span class="headlinenumber" id="subsection3.1.6"><a name="subsection3.1.6"></a>3.1.6 </span>Reading (and selecting) data in table</h3>
 
 	  <p class="first">Ok. We have now our data on disk but to this data be
 	    useful we need to access it and select some values we are
@@ -922,7 +930,7 @@ class Particle(IsRecord):
 	  </p>
 
 	  <p>The last two lines are a Python comprehensive list. It
-	    loops on records returned by <br/>
+	    loops on records returned by <br>
 	    <tt class="verb">table.readAsRecords()</tt> (see <a href="#readAsRecordsDescr"><strong>??</strong></a>) iterator that returns
 	    values until table data is exhausted. This records are
 	    filtered using the expression <tt class="verb">x.TDCcount &gt; 3 and
@@ -952,7 +960,7 @@ class Particle(IsRecord):
 	</div>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection3.1.7">3.1.7 </span>Creating new array objects</h3>
+	  <h3><span class="headlinenumber" id="subsection3.1.7"><a name="subsection3.1.7"></a>3.1.7 </span>Creating new array objects</h3>
 
 	  <p class="first">In order to separate the selected data from the detector
 	    data, we will create a new group, called
@@ -1008,7 +1016,7 @@ class Particle(IsRecord):
 	</div>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection3.1.8">3.1.8 </span>Closing the file and looking at its content</h3>
+	  <h3><span class="headlinenumber" id="subsection3.1.8"><a name="subsection3.1.8"></a>3.1.8 </span>Closing the file and looking at its content</h3>
 
 	  <p class="first">To finish this first tutorial, we use the
 	    <tt class="verb">close</tt> method of the h5file <tt class="verb">File</tt>
@@ -1079,7 +1087,7 @@ Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
       </div>
 
       <div>
-	<h2><span class="headlinenumber" id="section3.2">3.2 </span>Browsing the <i>object tree</i>
+	<h2><span class="headlinenumber" id="section3.2"><a name="section3.2"></a>3.2 </span>Browsing the <i>object tree</i>
 	  and more</h2>
 
 	<p class="first">In this section, we will learn how to browse the tree while
@@ -1095,7 +1103,7 @@ Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
 	</p>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection3.2.1">3.2.1 </span>Traversing the object tree</h3>
+	  <h3><span class="headlinenumber" id="subsection3.2.1"><a name="subsection3.2.1"></a>3.2.1 </span>Traversing the object tree</h3>
 
 	  <p class="first">First of all, let's open the file we have recently
 	    created in last tutorial section, as we will take it as a
@@ -1203,7 +1211,7 @@ Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
 	</div>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection3.2.2">3.2.2 </span>Getting object metadata</h3>
+	  <h3><span class="headlinenumber" id="subsection3.2.2"><a name="subsection3.2.2"></a>3.2.2 </span>Getting object metadata</h3>
 
 	  <p class="first">Each object in <tt class="verb">PyTables</tt> has metadata about
 	    the actual data on the file. Normally this metainformation
@@ -1279,12 +1287,12 @@ Info on the object: /columns/pressure Array(4,) "Pressure column selection"
 	    a "d"ouble <tt class="verb">Numeric</tt> array, and that by looking
 	    at their <tt class="verb">shape</tt> attribute the array on disk is
 	    unidimensional and has 4 elements. See <a href="#ArrayClassInstanceVariables">4.7.1</a> for the
-	    complete <tt class="verb">Array</tt> attribute list
+	    complete <tt class="verb">Array</tt> attribute list.
 	  </p>
 	</div>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection3.2.3">3.2.3 </span>Reading actual data from <tt>Array</tt> objects</h3>
+	  <h3><span class="headlinenumber" id="subsection3.2.3"><a name="subsection3.2.3"></a>3.2.3 </span>Reading actual data from <tt>Array</tt> objects</h3>
 
 	  <p class="first">Once you have found the desired <tt class="verb">Array</tt> and
 	    decided that you want to retrieve the actual
@@ -1326,7 +1334,7 @@ Particle:      7 --&gt; 49.0
 	</div>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection3.2.4">3.2.4 </span>Appending data to an existing table</h3>
+	  <h3><span class="headlinenumber" id="subsection3.2.4"><a name="subsection3.2.4"></a>3.2.4 </span>Appending data to an existing table</h3>
 
 	  <p class="first">To finish this section, let's have a look at how
 	    we can add records to an existing on-disk table. Let's use
@@ -1407,13 +1415,13 @@ Total numbers of entries after appending new rows: 15
 &gt;&gt;&gt;
 	  </pre>
 
-	  <p>In <a href="#tutorial-h5">figure 3.1</a> you can see a
+	  <p>In <a href="#tutorial-h5">figure&nbsp;3.1</a> you can see a
 	    view of the <tt class="verb">PyTables</tt> file we have created.
 	  </p>
 
-	  <div class="figure" id="tutorial-h5">
-	    <a target="_blank" href="tutorial-h5.jpg"><img class="graphics" width="850" height="1100" alt="The data file after appending some rows.&#xA;	 ... (Click for original bitmap)" src="tutorial-h5-web.jpg"/></a>
-	    <div class="caption" style="width: 850px"><div class="caption-text"><span class="captionlabel">Figure 3.1:</span>The data file after appending some rows.
+	  <div class="figure" id="tutorial-h5"><a name="tutorial-h5"></a>
+	    <a target="_blank" href="tutorial-h5.jpg"><img class="graphics" width="850" height="1100" alt="The data file after appending some rows.&#xA;	 ... (Click for original bitmap)" src="tutorial-h5-web.jpg"></a>
+	    <div class="caption" style="width: 850px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.1:</span> The data file after appending some rows.
 	    </div></div>
 	  </div>
 
@@ -1433,8 +1441,8 @@ $
 
       </div>
 
-      <div id="secondExample">
-	<h2><span class="headlinenumber" id="section3.3">3.3 </span><tt>PyTables</tt> automatic
+      <div id="secondExample"><a name="secondExample"></a>
+	<h2><span class="headlinenumber" id="section3.3"><a name="section3.3"></a>3.3 </span><tt>PyTables</tt> automatic
 	  sanity checks</h2>
 
 	<p class="first">Now, time for a more real life example (i.e. with errors in
@@ -1542,7 +1550,7 @@ fileh.close()
 	</pre>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection3.3.1">3.3.1 </span>Field name checking</h3>
+	  <h3><span class="headlinenumber" id="subsection3.3.1"><a name="subsection3.3.1"></a>3.3.1 </span>Field name checking</h3>
 
 	<p class="first">If you have read the code carefully it looks pretty good,
 	  but it won't work. When you run this example, you will get
@@ -1573,7 +1581,7 @@ AttributeError: 'Event' object has no attribute 'xcoor'
 	</div>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection3.3.2">3.3.2 </span>Data range checking</h3>
+	  <h3><span class="headlinenumber" id="subsection3.3.2"><a name="subsection3.3.2"></a>3.3.2 </span>Data range checking</h3>
 
 	<p class="first">After correcting the last attribute error in the source,
 	  and running the script again... oooops! we find another
@@ -1629,7 +1637,7 @@ ValueError: Error packing record object:
 	</div>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection3.3.3">3.3.3 </span>Data type checking</h3>
+	  <h3><span class="headlinenumber" id="subsection3.3.3"><a name="subsection3.3.3"></a>3.3.3 </span>Data type checking</h3>
 
 	<p class="first">Finally, in order to test the type checking, we will change
 	  the next line:
@@ -1670,15 +1678,15 @@ ValueError: Error packing record object:
 	<p>that states the error.</p>
 
 	<p>You can admire the structure we have created with this
-	  (corrected) script in <a href="#tutorial2">figure 3.2</a>. As
+	  (corrected) script in <a href="#tutorial2">figure&nbsp;3.2</a>. As
 	  before, you will find this example in source file
 	  <tt class="verb">tutorial2.py</tt> that is located in the directory
 	  <tt class="verb">examples</tt>.
 	</p>
 
-	<div class="figure" id="tutorial2">
-	  <a target="_blank" href="tutorial2-h5.jpg"><img class="graphics" width="850" height="1100" alt="Table hierarchy for second example. (Click for original bitmap)" src="tutorial2-h5-web.jpg"/></a>
-	  <div class="caption" style="width: 850px"><div class="caption-text"><span class="captionlabel">Figure 3.2:</span>Table hierarchy for second example.</div></div>
+	<div class="figure" id="tutorial2"><a name="tutorial2"></a>
+	  <a target="_blank" href="tutorial2-h5.jpg"><img class="graphics" width="850" height="1100" alt="Table hierarchy for second example. (Click for original bitmap)" src="tutorial2-h5-web.jpg"></a>
+	  <div class="caption" style="width: 850px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.2:</span> Table hierarchy for second example.</div></div>
 	</div>
 
 	<p>Feel free to visit the rest of examples in directory
@@ -1691,8 +1699,8 @@ ValueError: Error packing record object:
 	</div>
       </div>
 
-      <div id="optimizationTips">
-	<h2><span class="headlinenumber" id="section3.4">3.4 </span>Optimization tips</h2>
+      <div id="optimizationTips"><a name="optimizationTips"></a>
+	<h2><span class="headlinenumber" id="section3.4"><a name="section3.4"></a>3.4 </span>Optimization tips</h2>
 
 	<p class="first"><tt class="verb">PyTables</tt> has several places where the user can
 	  improve the performance of his application. If you are
@@ -1705,7 +1713,7 @@ ValueError: Error packing record object:
 	</p>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection3.4.1">3.4.1 </span>Compression issues</h3>
+	  <h3><span class="headlinenumber" id="subsection3.4.1"><a name="subsection3.4.1"></a>3.4.1 </span>Compression issues</h3>
 
 	  <p class="first">One of the beauties of <tt class="verb">PyTables</tt> is that it
 	    comes with compression activated by <b>default</b> for tables. This might be a
@@ -1778,8 +1786,8 @@ ValueError: Error packing record object:
 
 	</div>
 
-	<div id="expectedRowsOptim">
-	  <h3><span class="headlinenumber" id="subsection3.4.2">3.4.2 </span>Informing <tt>PyTables</tt>
+	<div id="expectedRowsOptim"><a name="expectedRowsOptim"></a>
+	  <h3><span class="headlinenumber" id="subsection3.4.2"><a name="subsection3.4.2"></a>3.4.2 </span>Informing <tt>PyTables</tt>
 	    about expected number of rows in tables</h3>
 
 	  <p class="first">The underlying HDF5 library that is used by
@@ -1821,8 +1829,8 @@ ValueError: Error packing record object:
 
 	</div>
 
-	<div id="tuplesOptim">
-	  <h3><span class="headlinenumber" id="subsection3.4.3">3.4.3 </span>Optimized ways to fill and read data from
+	<div id="tuplesOptim"><a name="tuplesOptim"></a>
+	  <h3><span class="headlinenumber" id="subsection3.4.3"><a name="subsection3.4.3"></a>3.4.3 </span>Optimized ways to fill and read data from
 	    tables</h3>
 
 	  <p class="first">The <tt class="verb">appendAsRecord</tt> and
@@ -1878,8 +1886,8 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 
       </div>
 
-    </div><div id="libraryReference">
-      <h1 id="chapter4">Chapter 4: Library Reference</h1>
+    </div><div id="libraryReference"><a name="libraryReference"></a>
+      <h1 id="chapter4"><a name="chapter4"></a>Chapter&nbsp;4: Library Reference</h1>
       
       <p class="first"><tt class="verb">PyTables</tt> implements several classes to represent
 	the different nodes in the object tree. They are named
@@ -1905,11 +1913,11 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
       </p>
 
       <div>
-	<h2><span class="headlinenumber" id="section4.1">4.1 </span><tt>tables</tt> variables and
+	<h2><span class="headlinenumber" id="section4.1"><a name="section4.1"></a>4.1 </span><tt>tables</tt> variables and
 	  functions</h2>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection4.1.1">4.1.1 </span>Global variables</h3>
+	  <h3><span class="headlinenumber" id="subsection4.1.1"><a name="subsection4.1.1"></a>4.1.1 </span>Global variables</h3>
 
 	  <dl>
 
@@ -1928,9 +1936,9 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	</div>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection4.1.2">4.1.2 </span>Global functions</h3>
+	  <h3><span class="headlinenumber" id="subsection4.1.2"><a name="subsection4.1.2"></a>4.1.2 </span>Global functions</h3>
 
-	  <dl id="openFileDescr">
+	  <dl id="openFileDescr"><a name="openFileDescr"></a>
 	    <dt>openFile(filename, mode='r', title='')</dt>
 	    <dd>Open a <tt class="verb">PyTables</tt> file and returns a File
 	    object.
@@ -1994,8 +2002,8 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	</div>
       </div>
 
-      <div id="IsRecordClassDescr">
-	<h2><span class="headlinenumber" id="section4.2">4.2 </span>The <tt>IsRecord</tt> class</h2>
+      <div id="IsRecordClassDescr"><a name="IsRecordClassDescr"></a>
+	<h2><span class="headlinenumber" id="section4.2"><a name="section4.2"></a>4.2 </span>The <tt>IsRecord</tt> class</h2>
 
 	<p class="first">This class is in fact a so-called <em>metaclass</em>
 	  object. There is nothing special on this fact, except that
@@ -2012,20 +2020,20 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	  descendent from <em>IsRecord</em>, with many attributes as
 	  fields you want in your record. To declare their types, you
 	  simply assign to these attributes their
-	  <em>typecode</em>. See the <a href="#datatypesSupported">appendix A</a> for a relation of
+	  <em>typecode</em>. See the <a href="#datatypesSupported">appendix&nbsp;A</a> for a relation of
 	  data types supported in a <tt>IsRecord</tt> class declaration.
 	</p>
 	<p> That's all, from now on, you can instantiate objects from
 	  your new class and use them as a very flexible record
 	  objects with safe features like automatic name field, data
-	  type and range checks (see the <a href="#secondExample">section 3.3</a> for an example on how it
+	  type and range checks (see the <a href="#secondExample">section&nbsp;3.3</a> for an example on how it
 	  works).
 	</p>
 
       </div>
 
-      <div id="FileClassDescr">
-	<h2><span class="headlinenumber" id="section4.3">4.3 </span>The <tt>File</tt> class</h2>
+      <div id="FileClassDescr"><a name="FileClassDescr"></a>
+	<h2><span class="headlinenumber" id="section4.3"><a name="section4.3"></a>4.3 </span>The <tt>File</tt> class</h2>
 
 	<p class="first">This class is returned when a <tt class="verb">PyTables</tt> is
 	  opened with the <tt class="verb">openFile</tt> function. It has
@@ -2041,8 +2049,8 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	  class<a href="#footnote8" name="footnoteback8"><sup>8)</sup></a>.
 	</p>
 
-	<div id="FileInstanceVariablesDescr">
-	  <h3><span class="headlinenumber" id="subsection4.3.1">4.3.1 </span><tt>File</tt> instance
+	<div id="FileInstanceVariablesDescr"><a name="FileInstanceVariablesDescr"></a>
+	  <h3><span class="headlinenumber" id="subsection4.3.1"><a name="subsection4.3.1"></a>4.3.1 </span><tt>File</tt> instance
 	    variables</h3>
 	  <dl>
 
@@ -2062,11 +2070,11 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	</div>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection4.3.2">4.3.2 </span><tt>File</tt> methods</h3>
+	  <h3><span class="headlinenumber" id="subsection4.3.2"><a name="subsection4.3.2"></a>4.3.2 </span><tt>File</tt> methods</h3>
 
 	  <dl>
 
-	    <dt id="createGroupDescr">createGroup(where, name,
+	    <dt id="createGroupDescr"><a name="createGroupDescr"></a>createGroup(where, name,
 	      title='') </dt> <dd>Create a new Group instance with
 	      name <em>name</em> in <em>where</em> location.
 
@@ -2087,7 +2095,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	      </dl>
 	    </dd>
 
-	    <dt id="createTableDescr">createTable(where, name,
+	    <dt id="createTableDescr"><a name="createTableDescr"></a>createTable(where, name,
 	      RecordObject, title='', compress=3,
 	      expectedrows=10000)</dt> <dd>Create a new
 	      <tt class="verb">Table</tt> instance with name <em>name</em> in
@@ -2127,14 +2135,14 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 		  record size). If you plan to save bigger tables you
 		  should provide a guess; this will optimize the HDF5
 		  B-Tree creation and management process time and
-		  memory used. See <a href="#expectedRowsOptim">section 3.4.2</a> for a
+		  memory used. See <a href="#expectedRowsOptim">section&nbsp;3.4.2</a> for a
 		  detailed justification of that issue.
 		</dd>
 
 	      </dl>
 	    </dd>
 
-	    <dt id="createArrayDescr">createArray(where, name,
+	    <dt id="createArrayDescr"><a name="createArrayDescr"></a>createArray(where, name,
 	      NumericObject, title='')</dt> <dd>Create a new
 	      <tt class="verb">Array</tt> instance with name <em>name</em> in
 	      <em>where</em> location.
@@ -2163,7 +2171,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	      </dl>
 	    </dd>
 
-	    <dt id="getNodeDescr">getNode(where, name='',
+	    <dt id="getNodeDescr"><a name="getNodeDescr"></a>getNode(where, name='',
 	      classname='')</dt> <dd>Returns the object node
 	      <em>name</em> under <em>where</em> location
 
@@ -2193,7 +2201,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	      </dl>
 	    </dd>
 
-	    <dt id="listNodesDescr">listNodes(where,
+	    <dt id="listNodesDescr"><a name="listNodesDescr"></a>listNodes(where,
 	      classname='')</dt> <dd>Returns a list with all the
 	      object nodes (Group or Leaf) hanging from
 	      <em>where</em>. The list is alphanumerically sorted by
@@ -2217,7 +2225,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	      </dl>
 	    </dd>
 
-	    <dt id="walkGroupsDescr">walkGroups(where='/')</dt>
+	    <dt id="walkGroupsDescr"><a name="walkGroupsDescr"></a>walkGroups(where='/')</dt>
 	      <dd><em>Iterator</em> that recursively obtains groups
 	      (not leaves) hanging from <em>where</em>. If
 	      <em>where</em> is not supplied, the root object is taken
@@ -2247,8 +2255,8 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	</div>
       </div>
 
-      <div id="GroupClassDescr">
-	<h2><span class="headlinenumber" id="section4.4">4.4 </span>The <tt>Group</tt> class</h2>
+      <div id="GroupClassDescr"><a name="GroupClassDescr"></a>
+	<h2><span class="headlinenumber" id="section4.4"><a name="section4.4"></a>4.4 </span>The <tt>Group</tt> class</h2>
 
 	<p class="first">Instances of this class are a grouping structure containing
 	  instances of zero or more groups or leaves, together with
@@ -2264,7 +2272,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	  complete object path written in the Pythonic fashion known
 	  as <em>natural name</em> schema (like in
 	  <tt class="verb">file.root.group1.group2</tt>) and discussed in the
-	  <a href="#NaturalTreeSection">section 1.2</a>.
+	  <a href="#NaturalTreeSection">section&nbsp;1.2</a>.
 	</p>
 
 	<p>A collateral effect of the <em>natural naming</em> schema
@@ -2281,7 +2289,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	</p>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection4.4.1">4.4.1 </span><tt>Group</tt> class variables</h3>
+	  <h3><span class="headlinenumber" id="subsection4.4.1"><a name="subsection4.4.1"></a>4.4.1 </span><tt>Group</tt> class variables</h3>
 	  <dl>
 
 	    <dt>_c_objects</dt> <dd>Dictionary with all objects
@@ -2298,7 +2306,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	</div>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection4.4.2">4.4.2 </span><tt>Group</tt> instance variables</h3>
+	  <h3><span class="headlinenumber" id="subsection4.4.2"><a name="subsection4.4.2"></a>4.4.2 </span><tt>Group</tt> instance variables</h3>
 	  <dl>
 
 	    <dt>_v_title</dt>
@@ -2328,7 +2336,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	</div>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection4.4.3">4.4.3 </span><tt>Group</tt> methods</h3>
+	  <h3><span class="headlinenumber" id="subsection4.4.3"><a name="subsection4.4.3"></a>4.4.3 </span><tt>Group</tt> methods</h3>
 
 	  <p class="first"><b>Caveat: </b>These methods are
 	    documented for completeness, and they can be used without
@@ -2366,8 +2374,8 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	</div>
       </div>
 
-      <div id="LeafClassDescr">
-	<h2><span class="headlinenumber" id="section4.5">4.5 </span>The <tt>Leaf</tt> class</h2>
+      <div id="LeafClassDescr"><a name="LeafClassDescr"></a>
+	<h2><span class="headlinenumber" id="section4.5"><a name="section4.5"></a>4.5 </span>The <tt>Leaf</tt> class</h2>
 
 	<p class="first">This is a helper class useful to place common functionality
 	  of all Leaf objects. It is also useful for classifying
@@ -2387,8 +2395,8 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	</p>
       </div>
 
-      <div id="TableClassDescr">
-	<h2><span class="headlinenumber" id="section4.6">4.6 </span>The <tt>Table</tt> class</h2>
+      <div id="TableClassDescr"><a name="TableClassDescr"></a>
+	<h2><span class="headlinenumber" id="section4.6"><a name="section4.6"></a>4.6 </span>The <tt>Table</tt> class</h2>
 
 	<p class="first">Instances of this class represents table objects in the
 	  object tree. It provides methods to create new tables or
@@ -2404,12 +2412,12 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	  have to be in the correct order (alphanumerically ordered by
 	  field names). If not, unexpected results can appear (most
 	  probably <tt class="verb">ValueError</tt> exceptions will be
-	  raised). See <a href="#tuplesOptim">section 3.4.3</a> for
+	  raised). See <a href="#tuplesOptim">section&nbsp;3.4.3</a> for
 	  usage details.
 	</p>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection4.6.1">4.6.1 </span><tt>Table</tt> instance
+	  <h3><span class="headlinenumber" id="subsection4.6.1"><a name="subsection4.6.1"></a>4.6.1 </span><tt>Table</tt> instance
 	    variables</h3>
 	  <dl>
 
@@ -2436,11 +2444,11 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	</div>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection4.6.2">4.6.2 </span><tt>Table</tt>
+	  <h3><span class="headlinenumber" id="subsection4.6.2"><a name="subsection4.6.2"></a>4.6.2 </span><tt>Table</tt>
 	    methods</h3>
 	  <dl>
 
-	    <dt id="appendAsRecordDescr">appendAsRecord(RecordObject)</dt>
+	    <dt id="appendAsRecordDescr"><a name="appendAsRecordDescr"></a>appendAsRecord(RecordObject)</dt>
 	      <dd>Append the <tt class="verb">RecordObject</tt> to the output
 	      buffer of the table instance.
 
@@ -2456,7 +2464,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 
 	    </dd>
 
-	    <dt id="appendAsTupleDescr">appendAsTuple(tupleValues)</dt>
+	    <dt id="appendAsTupleDescr"><a name="appendAsTupleDescr"></a>appendAsTuple(tupleValues)</dt>
 	      <dd>Append the <em>tupleValues</em> tuple to the
 	      output buffer of the table instance. This method is
 	      faster (but also unsafer, because requires user to
@@ -2474,7 +2482,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	      </dl>
 	    </dd>
 
-	    <dt id="appendAsValuesDescr">appendAsValues(*values)</dt>
+	    <dt id="appendAsValuesDescr"><a name="appendAsValuesDescr"></a>appendAsValues(*values)</dt>
 	      <dd> Append the <em>values</em> parameters to the
 	      table output buffer. This method is faster (and unsafer,
 	      because requires user to introduce the values in correct
@@ -2492,7 +2500,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	      </dl>
 	    </dd>
 
-	    <dt id="readAsRecordsDescr">readAsRecords()</dt>
+	    <dt id="readAsRecordsDescr"><a name="readAsRecordsDescr"></a>readAsRecords()</dt>
 	      <dd>Returns an iterator yielding record instances
 	      built from rows in table. This method is a
 	      <em>generator</em>, i.e. it keeps track on the last
@@ -2501,7 +2509,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	      <tt class="verb">readAsTuples</tt> but in exchange, it returns
 	      full-fledged instance records.</dd>
 
-	    <dt id="readAsTuplesDescr">readAsTuples()</dt>
+	    <dt id="readAsTuplesDescr"><a name="readAsTuplesDescr"></a>readAsTuples()</dt>
 	      <dd>Returns an iterator yielding tuples built from
 	      rows in table. This method is a <em>generator</em>,
 	      i.e. it keeps track on the last record returned so that
@@ -2522,8 +2530,8 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 
       </div>
 
-      <div id="ArrayClassDescr">
-	<h2><span class="headlinenumber" id="section4.7">4.7 </span>The <tt>Array</tt> class</h2>
+      <div id="ArrayClassDescr"><a name="ArrayClassDescr"></a>
+	<h2><span class="headlinenumber" id="section4.7"><a name="section4.7"></a>4.7 </span>The <tt>Array</tt> class</h2>
 
 	<p class="first">Represents a <tt class="verb">Numeric</tt> array on file. It
 	  provides methods to create new arrays or open existing ones,
@@ -2533,13 +2541,13 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	<p><b>Caveat:</b> All
 	  <tt class="verb">Numeric</tt> typecodes are supported except
 	  "<tt class="verb">F</tt>" and "<tt class="verb">D</tt>" which corresponds to
-	  complex data types<a href="#footnote9" name="footnoteback9"><sup>9)</sup></a>. See <a href="#Numerical">reference <strong>??</strong></a> to know more about the
+	  complex data types<a href="#footnote9" name="footnoteback9"><sup>9)</sup></a>. See <a href="#Numerical">reference&nbsp;<strong>??</strong></a> to know more about the
 	  <tt class="verb">Numerical Python</tt> package, and in particular
 	  about supported data types.
 	</p>
 
-	<div id="ArrayClassInstanceVariables">
-	  <h3><span class="headlinenumber" id="subsection4.7.1">4.7.1 </span><tt>Array</tt> instance
+	<div id="ArrayClassInstanceVariables"><a name="ArrayClassInstanceVariables"></a>
+	  <h3><span class="headlinenumber" id="subsection4.7.1"><a name="subsection4.7.1"></a>4.7.1 </span><tt>Array</tt> instance
 	    variables</h3>
 	  <dl>
 
@@ -2560,7 +2568,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	</div>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection4.7.2">4.7.2 </span><tt>Array</tt>
+	  <h3><span class="headlinenumber" id="subsection4.7.2"><a name="subsection4.7.2"></a>4.7.2 </span><tt>Array</tt>
 	    methods</h3>
 
 	  <p class="first">The methods for this class are very few. Please note that
@@ -2570,7 +2578,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 
 	  <dl>
 
-	    <dt id="readArrayDescr">read()</dt> <dd>Read the
+	    <dt id="readArrayDescr"><a name="readArrayDescr"></a>read()</dt> <dd>Read the
 	      array from disk and return it as a Numeric object. Note
 	      that while this method is not called, the actual array
 	      data is resident on disk.</dd>
@@ -2587,21 +2595,21 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
       </div>
 
     </div><div>
-      <div id="datatypesSupported">
-	<h1 id="chapterA">Appendix A: Supported data types in tables</h1>
+      <div id="datatypesSupported"><a name="datatypesSupported"></a>
+	<h1 id="chapterA"><a name="chapterA"></a>Appendix&nbsp;A: Supported data types in tables</h1>
 
 	<p class="first"><tt class="verb">IsRecord</tt> descendants supports a limited set of
 	  data types to define the table fields. This is roughly the
 	  same that the set supported by the <tt>array</tt> module in Python, with some
 	  additions that will be briefly discussed shortly. The
-	  supported set is listed on <a href="#datatypesSupported">table A</a>.
+	  supported set is listed on <a href="#datatypesSupported">table&nbsp;A</a>.
 	</p>
 
-	<div class="table" id="datatypesSupportedTable">
-	  <table class="tabular" cellspacing="0" cellpadding="5" frame="hsides" rules="groups"><caption><span class="captionlabel">Table A.1:</span> Data types supported by <tt>IsRecord</tt> descendants.</caption><col align="left"/><col align="left"/><col align="left"/><col align="center"/><col align="left"/>
-	  <thead><tr><td colspan="5" class="thickline"/></tr>
+	<div class="table" id="datatypesSupportedTable"><a name="datatypesSupportedTable"></a>
+	  <table class="tabular" cellspacing="0" cellpadding="5" frame="hsides" rules="groups"><caption><span class="captionlabel">Table&nbsp;A.1:</span> Data types supported by <tt>IsRecord</tt> descendants.</caption><col align="left"><col align="left"><col align="left"><col align="center"><col align="left">
+	  <thead><tr><td colspan="5" class="thickline"></td></tr>
 	    <tr><th align="left">Type Code</th><th align="left">Description</th><th align="left">C Type</th><th align="center">Size (in bytes)</th><th align="left">Python Counterpart</th></tr>
-	  <tr><td colspan="5" class="thinline"/></tr></thead>
+	  <tr><td colspan="5" class="thinline"></td></tr></thead>
 	  <tbody>
 	    <tr><td align="left">'c'</td><td align="left">8-bit character</td><td align="left">char</td><td align="center">1</td><td align="left">String of length 1</td></tr>
 	    <tr><td align="left">'b'</td><td align="left">8-bit integer</td><td align="left">signed char</td><td align="center">1</td><td align="left">Integer</td></tr>
@@ -2617,7 +2625,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	    <tr><td align="left">'f'</td><td align="left">single-precision float</td><td align="left">float</td><td align="center">4</td><td align="left">Float</td></tr>
 	    <tr><td align="left">'d'</td><td align="left">double-precision float</td><td align="left">double</td><td align="center">8</td><td align="left">Float</td></tr>
 	    <tr><td align="left">'s'</td><td align="left">arbitrary length string</td><td align="left">char[]</td><td align="center">*</td><td align="left">String</td></tr>
-	  <tr><td colspan="5" class="thickline"/></tr></tbody>
+	  <tr><td colspan="5" class="thickline"></td></tr></tbody>
 	</table>
 	  
 	</div>
@@ -2647,25 +2655,27 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 
     
   
-<hr align="left" noshade="true" style="text-align: left; width: 20%; color: black"/><div class="footnote"><a name="footnote1" href="#footnoteback1"><sup>1)</sup></a> Well, I didn't actually test
-	    that in real world, but if you do, please, tell
-	    me.</div><div class="footnote"><a name="footnote2" href="#footnoteback2"><sup>2)</sup></a> Except <tt class="verb">Attribute</tt> instances
-	  in the short future</div><div class="footnote"><a name="footnote3" href="#footnoteback3"><sup>3)</sup></a> I have got this simple but
+<hr align="left" noshade="true" style="text-align: left; width: 20%; color: black"><div class="footnote"><a name="footnote1" href="#footnoteback1"><sup>1)</sup></a>&nbsp;I do actually tested that
+	    between a Sparc machine (big-endian) and an Intel machine
+	    (little-endian) and it works only for tables but not for
+	    arrays!. This flaw will hopefully be addressed in next
+	    release.</div><div class="footnote"><a name="footnote2" href="#footnoteback2"><sup>2)</sup></a>&nbsp;Except <tt class="verb">Attribute</tt> instances
+	  in the short future</div><div class="footnote"><a name="footnote3" href="#footnoteback3"><sup>3)</sup></a>&nbsp;I have got this simple but
 	  powerful idea from the excellent <tt>Objectify</tt> module by David Mertz (see
-	  references <a href="#Objectify"><strong>??</strong></a> and <a href="#GnosisUtils"><strong>??</strong></a>)</div><div class="footnote"><a name="footnote4" href="#footnoteback4"><sup>4)</sup></a> Bear in mind, however, that this
+	  references <a href="#Objectify"><strong>??</strong></a> and <a href="#GnosisUtils"><strong>??</strong></a>)</div><div class="footnote"><a name="footnote4" href="#footnoteback4"><sup>4)</sup></a>&nbsp;Bear in mind, however, that this
 	  diagram is <b>not</b> a standard UML
 	  class diagram; I've used an UML tool to draw it, that's
-	  all.</div><div class="footnote"><a name="footnote5" href="#footnoteback5"><sup>5)</sup></a> <tt class="verb">IsRecord</tt> is
+	  all.</div><div class="footnote"><a name="footnote5" href="#footnoteback5"><sup>5)</sup></a>&nbsp;<tt class="verb">IsRecord</tt> is
 	    actually a <em>metaclass</em> in object slang, but we
 	    don't need to explain nothing more about it in this
 	    context. Check the sources if you are interested on how
-	    that works.</div><div class="footnote"><a name="footnote6" href="#footnoteback6"><sup>6)</sup></a> Note that you can only
+	    that works.</div><div class="footnote"><a name="footnote6" href="#footnoteback6"><sup>6)</sup></a>&nbsp;Note that you can only
 	    append values to tables, not array objects. However, I
 	    plan to support unlimited dimension arrays in short
-	    term. Keep tuned.</div><div class="footnote"><a name="footnote7" href="#footnoteback7"><sup>7)</sup></a>  In fact, descendants of
+	    term. Keep tuned.</div><div class="footnote"><a name="footnote7" href="#footnoteback7"><sup>7)</sup></a>&nbsp; In fact, descendants of
 	  <tt class="verb">IsRecord</tt> class has a few more, internal
 	  attributes, but they start with prefixes like <tt>"__"</tt>, <tt>"_v_"</tt> or <tt>"_f_"</tt>, so you should not use attribute
-	  names starting with these prefixes</div><div class="footnote"><a name="footnote8" href="#footnoteback8"><sup>8)</sup></a> On the following, the term <tt class="verb">Leaf</tt>
+	  names starting with these prefixes</div><div class="footnote"><a name="footnote8" href="#footnoteback8"><sup>8)</sup></a>&nbsp;On the following, the term <tt class="verb">Leaf</tt>
 	  will refer to a <tt class="verb">Table</tt> or <tt class="verb">Array</tt>
-	  node object.</div><div class="footnote"><a name="footnote9" href="#footnoteback9"><sup>9)</sup></a> However, these might be included
+	  node object.</div><div class="footnote"><a name="footnote9" href="#footnoteback9"><sup>9)</sup></a>&nbsp;However, these might be included
 	  in short future</div></div></body></html>

@@ -1,0 +1,145 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2"><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2002-11-15T14:07:42Z"><meta name="Date" content="2002-11-15T14:07:42Z"><meta name="DC.Rights" content="(c) 2002 Francesc Alted"><meta name="Copyright" content="(c) 2002 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+    body {
+      font-family: serif; text-align: justify;
+      margin: 0pt; line-height: 1.3; background-color: white; color: black }
+    body.letter { background-image: none }
+    h1, h2, h3, h4, h5, h6, div.partheadline, div.title,
+      div.title-article {
+      font-family: sans-serif; font-weight: bold; font-stretch: condensed;
+      text-align: left; }
+    h1, h2, h3, h4, h5, h6, div.partheadline { padding-left: 18pt }
+    h1 { clear: both }
+    h1.toc { clear: none }
+    div.document, div.letter { margin-left: 80px; margin-right: 150px;
+      padding-top: 3ex; padding-bottom: 5ex }
+    div.authorlist { font-family: sans-serif;
+      font-stretch: condensed; text-align: left; font-size: x-large;
+      margin-bottom: 1ex }
+    div.authorlist-article { font-size: x-large; text-align: center;
+      margin-bottom: 2ex }
+    div.title { font-size: xx-large; color: gray; margin-bottom: 5ex; }
+    div.title-article { font-size: xx-large; text-align: center;
+      margin-bottom: 2ex }
+    div.date-article { font-size: large; text-align: center;
+      margin-bottom: 5ex }
+    div.subtitle { text-align: left; margin-bottom: 3ex }
+    div.legal { text-align: right }
+    div.partheadline { font-size: xx-large; margin-top: 1ex; margin-bottom: 1ex }
+    div.footnote { }
+    div.mathdisplay { text-align: center;
+    margin-top: 2ex; margin-bottom: 2ex }
+    div.figure, div.table, div.mathml-remark { margin-bottom: 3ex;
+            margin-top: 2ex}
+    div.mathml-remark { width: 50%; text-align: left; text-indent: 0pt }
+    div.caption { margin-top: 1ex; width: 20em}
+    div.caption-text { font-size: small;
+      padding-left: 1em; text-indent: -1em; text-align: justify}
+    caption { max-width: 100%; min-width: 200px; margin-bottom: 1ex;
+      text-align: justify }
+    div.verse { white-space: pre }
+    div.toc { margin-bottom: 6ex }
+    div.biblio, div.index { }
+    div.aphorism { margin-bottom: 2ex; font-style: italic; text-align: right;
+      margin-left: 50%}
+    div.aphorism-origin { margin-top: 1ex }
+    div.letter { }
+    div.subject { margin-top: 3ex; margin-bottom: 3ex }
+    div.opening { margin-top: 3ex; margin-bottom: 3ex }
+    div.closing { margin-top: 3ex; text-align: right }
+    div.to { margin-top: 3ex; margin-bottom: 3ex }
+    span.subject { font-weight: bold }
+    div.speedbar-top, div.speedbar-bottom { margin-left: 1em; margin-right: 1em }
+    div.speedbar-top { margin-top: 2ex }
+    div.speedbar-bottom { margin-bottom: 3ex }
+    table.speedbar { width: 100% }
+    hr.speedbar { clear: both }
+    div.theorem-plain, div.theorem-definition, div.theorem-remark { margin-top: 2ex;
+      margin-bottom: 2ex }
+    div.theorem-plain { font-style: italic }
+    div.proof { margin-top: 2ex; margin-bottom: 2ex }
+    span.theorem-head-plain, span.theorem-head-definition, span.theorem-head-remark
+      { margin-right: 0.66em }
+    span.theorem-head-plain, span.theorem-head-definition
+      { font-style: normal; font-weight: bold }
+    span.theorem-head-remark { font-style: italic }
+    span.proof-head { font-style: italic; margin-right: 0.66em }
+    acronym { font-size: 95%; letter-spacing: 0.1em; text-transform: uppercase }
+    td.header { text-align: center; font-weight: bold }
+    table.toc { }
+    table.tabular { font-size: smaller }
+    td.thickline { height: 0pt; border-bottom: medium solid; padding: 2px }
+    td.thinline { height: 0pt; border-bottom: thin solid;   padding: 2px }
+     /* FixMe: Following definition Still bad */
+    div.part-toc { margin-top: 2ex; font-weight: bold; font-size: larger }
+     /* FixMe: Following definition: How cleaner? */
+    div.toplevel-toc { margin-top: 1ex; font-weight: bold }
+    td.number1 { width: 1.5em }
+    td.number2 { width: 2em }
+    td.number3 { width: 3em }
+    td.author { text-align: center }
+    div { }  /* Must remain empty! */
+    span.captionlabel { font-family: sans-serif; font-weight: bold;
+      margin-right: 0.66em }
+    span.captionlabel:after { content: " " }
+    b.captionlabel {  }
+    b.captionlabel:after { content: " " }
+    span.headlinenumber { margin-right: 0.66em }
+    tt.verb {font-family: monospace }
+    span.bibtag { font-weight: bold; margin-right: 1em }
+    span.bib-author { }
+    span.bib-lastname { font-variant: small-caps }
+    span.bib-title { font-style: italic }
+    span.bib-booktitle { }
+    span.bib-journal { }
+    span.bib-journal-volume { font-weight: bold }
+    span.bib-publisher { }
+    span.bib-school { }
+    span.bib-year { }
+    span.bib-note { }
+    span { } /* Muss leer bleiben! */
+    li.bibitem { margin-left: 1em; text-indent: -1em }
+    img.graphics { border: 0pt }
+    p,div.p { margin: 0pt; text-indent: 18pt }
+    ul, dl, ol { text-indent: 0pt; }
+    p.first, div.p-first { margin: 0pt; text-indent: 0pt }
+    p.bibitem { margin-top: 1.5ex; margin-left: 3em; text-indent: -3em }
+    ul.biblio { list-style: none }
+    mi.ch { font-style: normal }
+    math[display="block"], div.equation {
+      margin-top: 1ex; margin-bottom: 1ex }
+    div.i-lettergroup { font-size: larger; font-weight: bold; padding-left: 18pt;
+      margin-top: 3ex; margin-bottom: 1.5ex }
+    div.i-item { }
+    div.i-main { }
+    dt { display: compact; font-weight: bold }
+    dd { text-indent: 0pt }
+    pre { text-indent: 0pt }
+    span.i-see { font-style: italic; }
+</style></head><body bgcolor="#FFFFFF"><div class="speedbar-top"><table class="speedbar"><tr><td style="text-align: left; width: 15%"><a href="usersguide-html5.html">previous</a></td><td style="text-align: center"><a href="usersguide-html.html#tb:table-of-contents">Table of Contents</a> &#8212; <a href="usersguide-html6.html">References</a></td><td style="text-align: right; width: 15%">&nbsp;</td></tr><tr><td colspan="3">&nbsp;</td></tr></table><hr class="speedbar"></div><div class="document"><div class="bib"><h1>References</h1><div style="text-align: left">
+<p class="bibitem" id="Numerical"><a name="Numerical"></a><span style="font-variant: small-caps">Ascher</span>, David, Paul&nbsp;F. <span style="font-variant: small-caps">Dubois</span>, Konrad <span style="font-variant: small-caps">Hinsen</span>,
+  Jim <span style="font-variant: small-caps">Hugunin</span>, and Travis <span style="font-variant: small-caps">Oliphant</span>, : <em>Numerical
+  Python</em>.
+Package to speed-up arithmetic operations on arrays of numbers.<br><a href="http://www.pfdubois.com/numpy/">http://www.pfdubois.com/numpy/</a></p><p class="bibitem" id="Pyrex"><a name="Pyrex"></a><span style="font-variant: small-caps">Ewing</span>, Greg, : <em>Pyrex. A Language for Writing Python Extension
+  Modules</em>.<br><a href="http://www.cosc.canterbury.ac.nz/%C2%A0greg/python/Pyrex">http://www.cosc.canterbury.ac.nz/&nbsp;greg/python/Pyrex</a></p><p class="bibitem" id="zlibRef"><a name="zlibRef"></a><span style="font-variant: small-caps">Gailly</span>, JeanLoup and Mark <span style="font-variant: small-caps">Adler</span>, : <em>zlib. A Massively
+  Spiffy Yet Delicately Unobtrusive Compression Library</em>.
+A standard library for compression purposes.<br><a href="http://www.gzip.org/zlib/">http://www.gzip.org/zlib/</a></p><p class="bibitem" id="HL-HDF"><a name="HL-HDF"></a><span style="font-variant: small-caps">Henja</span>, Anders and Daniel&nbsp;B. <span style="font-variant: small-caps">Michelson</span>, : <em>A high level
+  interface to the HDF5 file format</em>.
+HL-HDF is a high level interface to the Hierarchical Data Format, version 5.
+  HL-HDF also contains an interface to the Python programming language, called
+  PyHL.<br><a href="ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/contrib/hl-hdf5/README.html">ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/contrib/hl-hdf5/README.html</a></p><p class="bibitem" id="GnosisUtils"><a name="GnosisUtils"></a><span style="font-variant: small-caps">Mertz</span>, David, <em>a</em>: <em>gnosis.xml.objectify</em>.
+This module is part of the Gnosis utilities, and allows to create a mapping
+  between any XML element to native Python objects.<br><a href="http://gnosis.cx/download/Gnosis_Utils-current.tar.gz">http://gnosis.cx/download/Gnosis_Utils-current.tar.gz</a></p><p class="bibitem" id="Objectify"><a name="Objectify"></a><span style="font-variant: small-caps">Mertz</span>, David, <em>b</em>: <em>Objectify. On the 'Pythonic'
+  treatment of XML documents as objects(II)</em>.
+Article describing XML Objectify, a Python module that allows working with XML
+  documents as Python objects. Some of the ideas presented here are used in
+  PyTables.<br><a href="http://www-106.ibm.com/developerworks/xml/library/xml-matters2/index.html">http://www-106.ibm.com/developerworks/xml/library/xml-matters2/index.html</a></p><p class="bibitem" id="HDF5TableExamples"><a name="HDF5TableExamples"></a><span style="font-variant: small-caps">NCSA</span>, <em>a</em>: <em>The HDF5 table programming model</em>.
+Examples on using HDF5 tables with the C API.<br><a href="http://hdf.ncsa.uiuc.edu/HDF5/hdf5_hl/doc/RM_hdf5tb_ex.html">http://hdf.ncsa.uiuc.edu/HDF5/hdf5_hl/doc/RM_hdf5tb_ex.html</a></p><p class="bibitem" id="HDF5Intr"><a name="HDF5Intr"></a><span style="font-variant: small-caps">NCSA</span>, <em>b</em>: <em>Introduction to HDF5</em>.
+Introduction to the HDF5 data model and programming model.<br><a href="http://hdf.ncsa.uiuc.edu/HDF5/doc/H5.intro.html">http://hdf.ncsa.uiuc.edu/HDF5/doc/H5.intro.html</a></p><p class="bibitem" id="HDF5WhatIs"><a name="HDF5WhatIs"></a><span style="font-variant: small-caps">NCSA</span>, <em>c</em>: <em>What is HDF5?</em>.
+Concise description about HDF5 capabilities and its differences from earlier
+  versions (HDF4).<br><a href="http://hdf.ncsa.uiuc.edu/whatishdf5.html">http://hdf.ncsa.uiuc.edu/whatishdf5.html</a></p>
+</div></div></div><div class="speedbar-bottom"><hr class="speedbar"><table class="speedbar"><tr><td style="text-align: left; width: 15%"><a href="usersguide-html5.html">previous</a></td><td style="text-align: center"><a href="usersguide-html.html#tb:table-of-contents">Table of Contents</a> &#8212; <a href="usersguide-html6.html">References</a></td><td style="text-align: right; width: 15%">&nbsp;</td></tr></table></div></body></html>

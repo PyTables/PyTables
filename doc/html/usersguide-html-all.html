@@ -3,7 +3,7 @@
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" lang="en"><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2002-11-14T19:48:05Z"><meta name="Date" content="2002-11-14T19:48:05Z"><meta name="DC.Rights" content="(c) 2002 Francesc AltedPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &#34;Software&#34;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or"><meta name="Copyright" content="(c) 2002 Francesc AltedPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &#34;Software&#34;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2002-11-15T14:05:20Z"><meta name="Date" content="2002-11-15T14:05:20Z"><meta name="DC.Rights" content="(c) 2002 Francesc Alted"><meta name="Copyright" content="(c) 2002 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -121,118 +121,7 @@
     pre { text-indent: 0pt }
     span.i-see { font-style: italic; }
 </style></head><body bgcolor="#FFFFFF"><div class="document">
-  <div class="header"><div class="authorlist"><span>Francesc&nbsp;Alted</span></div><p></p><font size="7" face="Sans-Serif"><b><div class="title"><tt>PyTables</tt> User's Guide</div></b></font><p></p><div class="legal">All rights reserved.<br>&copy;&nbsp;2002 Francesc&nbsp;Alted<br><br><br>
-
-
-
-
-      <p class="first">Permission is hereby granted, free of charge, to any person
-	obtaining a copy of this software and associated documentation
-	files (the "Software"), to deal in the Software without
-	restriction, including without limitation the rights to use,
-	copy, modify, merge, publish, distribute, sublicense, and/or
-	sell copies of the Software, and to permit persons to whom the
-	Software is furnished to do so, subject to the following
-	conditions:
-      </p>
-      <p>The above copyright notice and this permission notice shall
-	be included in all copies or substantial portions of the
-	Software.
-      </p>
-      <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-	KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-	WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-	PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-	COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-	OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-	<div style="margin-bottom: 1cm"></div><p></p>
-      </p>
-
-
-
-      <p><b>Copyright Notice and Statement for NCSA
-	  HDF5 (Hierarchical Data Format 5) Software Library and
-	  Utilities</b>
-      </p>
-
-      <p>NCSA HDF5 (Hierarchical Data Format 5) Software Library and
-	Utilities Copyright 1998, 1999, 2000, 2001, 2002 by the Board
-	of Trustees of the University of Illinois <br>
-	<b>All rights reserved.</b>
-      </p>
-      <p>Contributors: National Center for Supercomputing Applications
-	(NCSA) at the University of Illinois at Urbana-Champaign
-	(UIUC), Lawrence Livermore National Laboratory (LLNL), Sandia
-	National Laboratories (SNL), Los Alamos National Laboratory
-	(LANL), Jean-loup Gailly and Mark Adler (gzip library).
-      </p>
-      <p>Redistribution and use in source and binary forms, with or
-	without modification, are permitted for any purpose (including
-	commercial purposes) provided that the following conditions
-	are met:
-      </p>
-
-      <ol>
-	<li>
-	  Redistributions of source code must retain the above
-	  copyright notice, this list of conditions, and the
-	  following disclaimer.
-	</li>
-	<li>
-	  Redistributions in binary form must reproduce the above
-	  copyright notice, this list of conditions, and the
-	  following disclaimer in the documentation and/or materials
-	  provided with the distribution.
-	</li>
-	<li>In addition, redistributions of modified forms of the
-	  source or binary code must carry prominent notices stating
-	  that the original code was changed and the date of the
-	  change.
-	</li>
-	<li>All publications or advertising materials mentioning
-	  features or use of this software are asked, but not
-	  required, to acknowledge that it was developed by the
-	  National Center for Supercomputing Applications at the
-	  University of Illinois at Urbana-Champaign and to credit
-	  the contributors.
-	</li>
-	<li>Neither the name of the University nor the names of
-	  the Contributors may be used to endorse or promote
-	  products derived from this software without specific prior
-	  written permission from the University or the
-	  Contributors, as appropriate for the name(s) to be
-	  used.
-	</li>
-
-	<li>THIS SOFTWARE IS PROVIDED BY THE UNIVERSITY AND THE
-	  CONTRIBUTORS "AS IS" WITH NO WARRANTY OF ANY KIND, EITHER
-	  EXPRESSED OR IMPLIED.  In no event shall the University or
-	  the Contributors be liable for any damages suffered by the
-	  users arising out of the use of this software, even if
-	  advised of the possibility of such damage.
-	</li>
-
-      </ol>
-
-      <p>Portions of HDF5 were developed with support from the
-	University of California, Lawrence Livermore National
-	Laboratory (UC LLNL). The following statement applies to those
-	portions of the product and must be retained in any
-	redistribution of source code, binaries, documentation, and/or
-	accompanying materials:
-      </p>
-      <p>This work was partially produced at the University of
-	California, Lawrence Livermore National Laboratory (UC LLNL)
-	under contract no. W-7405-ENG-48 (Contract 48) between the
-	U.S. Department of Energy (DOE) and The Regents of the
-	University of California (University) for the operation of UC
-	LLNL.
-      </p>
-
-
-    </div></div><hr><div class="toc" id="tb:table-of-contents"><h1 class="toc">Table of Contents</h1><table class="toc" cellspacing="0pt" cellpadding="0pt"><tr><td class="number1"><div class="toplevel-toc">1</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="#chapter1">Introduction</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">1.1</td><td colspan="2"><a href="#section1.1">Main Features</a></td></tr><tr><td>&nbsp;</td><td class="number2">1.2</td><td colspan="2"><a href="#section1.2">The Object Tree</a></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">2</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="#chapter2">Installation</a></div></b></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">3</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="#chapter3">Usage</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">3.1</td><td colspan="2"><a href="#section3.1">Getting started</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.1.1</td><td><a href="#subsection3.1.1">Importing <tt>tables</tt>
+  <div class="header"><div class="authorlist"><span>Francesc&nbsp;Alted</span></div><p></p><font size="7" face="Sans-Serif"><b><div class="title"><tt>PyTables</tt> User's Guide</div></b></font><p></p><div class="legal">All rights reserved.<br>&copy;&nbsp;2002 Francesc&nbsp;Alted<br></div></div><hr><div class="toc" id="tb:table-of-contents"><h1 class="toc">Table of Contents</h1><table class="toc" cellspacing="0pt" cellpadding="0pt"><tr><td class="number1"><div class="toplevel-toc">1</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="#chapter1">Introduction</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">1.1</td><td colspan="2"><a href="#section1.1">Main Features</a></td></tr><tr><td>&nbsp;</td><td class="number2">1.2</td><td colspan="2"><a href="#section1.2">The Object Tree</a></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">2</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="#chapter2">Installation</a></div></b></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">3</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="#chapter3">Usage</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">3.1</td><td colspan="2"><a href="#section3.1">Getting started</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.1.1</td><td><a href="#subsection3.1.1">Importing <tt>tables</tt>
 	    objects</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.1.2</td><td><a href="#subsection3.1.2">Declaring a Record</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.1.3</td><td><a href="#subsection3.1.3">Creating a <tt>PyTables</tt> file from scratch</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.1.4</td><td><a href="#subsection3.1.4">Creating a new group</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.1.5</td><td><a href="#subsection3.1.5">Creating a new table</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.1.6</td><td><a href="#subsection3.1.6">Reading (and selecting) data in table</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.1.7</td><td><a href="#subsection3.1.7">Creating new array objects</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.1.8</td><td><a href="#subsection3.1.8">Closing the file and looking at its content</a></td></tr><tr><td>&nbsp;</td><td class="number2">3.2</td><td colspan="2"><a href="#section3.2">Browsing the <i>object tree</i>
 	  and more</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.2.1</td><td><a href="#subsection3.2.1">Traversing the object tree</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.2.2</td><td><a href="#subsection3.2.2">Getting object metadata</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.2.3</td><td><a href="#subsection3.2.3">Reading actual data from <tt>Array</tt> objects</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.2.4</td><td><a href="#subsection3.2.4">Appending data to an existing table</a></td></tr><tr><td>&nbsp;</td><td class="number2">3.3</td><td colspan="2"><a href="#section3.3"><tt>PyTables</tt> automatic
 	  sanity checks</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.3.1</td><td><a href="#subsection3.3.1">Field name checking</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.3.2</td><td><a href="#subsection3.3.2">Data range checking</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.3.3</td><td><a href="#subsection3.3.3">Data type checking</a></td></tr><tr><td>&nbsp;</td><td class="number2">3.4</td><td colspan="2"><a href="#section3.4">Optimization tips</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.4.1</td><td><a href="#subsection3.4.1">Compression issues</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.4.2</td><td><a href="#subsection3.4.2">Informing <tt>PyTables</tt>
@@ -245,8 +134,6 @@
 	    variables</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.7.2</td><td><a href="#subsection4.7.2"><tt>Array</tt>
 	    methods</a></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">A</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="#chapterA">Supported data types in tables</a></div></b></td></tr></table></div>
 
-  
-
   <div>
       <h1 id="chapter1"><a name="chapter1"></a>Chapter&nbsp;1: Introduction</h1>
 
@@ -258,16 +145,15 @@
       </div>
 
       <p class="first">The goal of <tt class="verb">PyTables</tt> is to enable the end user
-	to manipulate easily scientific data <b>tables</b> and <em>Numerical Python</em>
-	objects in a hierarchical structure. The foundation of the
-	underlying hierarchical data organization is the excellent
-	<tt class="verb">HDF5</tt> library
-	(<tt class="verb">http://hdf.ncsa.uiuc.edu/HDF5</tt>). Right now,
-	<tt class="verb">PyTables</tt> provides limited support of all the HDF5
-	functions, but I hope to add the more interesting ones (for
-	<tt class="verb">PyTables</tt> needs) in the near future. Nonetheless,
-	this package is not intended to serve as a complete wrapper
-	for the entire HDF5 API.
+	to manipulate easily scientific data <b>tables</b> and <em>Numerical Python</em> (
+	see <a href="#Numerical">Ascher <em>et&nbsp;al.</em> ()</a>) objects in a hierarchical
+	structure. The foundation of the underlying hierarchical data
+	organization is the excellent <tt class="verb">HDF5</tt> library (see
+	<a href="#HDF5WhatIs">NCSA (<em>c</em>)</a> and <a href="#HDF5Intr">NCSA (<em>b</em>)</a>). Right now, <tt class="verb">PyTables</tt> provides
+	limited support of all the HDF5 functions, but I hope to add
+	the more interesting ones (for <tt class="verb">PyTables</tt> needs) in
+	the near future. Nonetheless, this package is not intended to
+	serve as a complete wrapper for the entire HDF5 API.
       </p>
 
       <p>A table is defined as a collection of records whose values
@@ -289,7 +175,8 @@
 	overflows. <tt class="verb">PyTables</tt> also provides a powerful
 	interface to process table data. Records in tables are also
 	known, in the <tt class="verb">HDF5</tt> naming scheme, as
-	<em>compound</em> data types.
+	<em>compound</em> data types. See <a href="#HDF5TableExamples">NCSA (<em>a</em>)</a> for examples in HDF5 tables
+	(in C language!).
       </p>
 
       <p>For example, you can define arbitrary records in Python
@@ -380,7 +267,7 @@ class Particle(IsRecord):
 	  selected HDF5 functionality (for this, have a look at
 	  HL-HDF5, the Swedish Meteorological and Hydrological
 	  Institute effort to provide another Python interface to
-	  HDF5; see <a href="#HL-HDF">reference&nbsp;<strong>??</strong></a>), but to
+	  HDF5; see <a href="#HL-HDF">Henja and Michelson ()</a>), but to
 	  provide a flexible, <em>very Pythonic</em> tool to deal with
 	  (arbitrary) large amounts of data (typically bigger than
 	  available memory) in tables and arrays organized in a
@@ -473,8 +360,8 @@ class Particle(IsRecord):
 	</p>
 
 	<div class="figure" id="objecttree-h5"><a name="objecttree-h5"></a>
-	  <a target="_blank" href="objecttree-h5.jpg"><img class="graphics" width="850" height="1100" alt="An HDF5 example with 2 subgroups and 3 tabl... (Click for original bitmap)" src="objecttree-h5-web.jpg"></a>
-	  <div class="caption" style="width: 850px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;1.1:</span> An HDF5 example with 2 subgroups and 3 tables.</div></div>
+	  <a target="_blank" href="objecttree-h5.png"><img class="graphics" alt="An HDF5 example with 2 subgroups and 3 tabl... (Click for original bitmap)" src="objecttree-h5-web.png"></a>
+	  <div class="caption" style="width: 800px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;1.1:</span> An HDF5 example with 2 subgroups and 3 tables.</div></div>
 	</div>
 
 	<p>In <a href="#objecttree">figure&nbsp;1.2</a> you can see an
@@ -488,8 +375,8 @@ class Particle(IsRecord):
 
 	<div class="figure" id="objecttree"><a name="objecttree"></a>
 	  
-	  <img class="graphics" width="658" height="806" alt="An object tree example in PyTables.&#xA;	  " src="objecttree-web.png">
-	  <div class="caption" style="width: 658px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;1.2:</span> An object tree example in <tt>PyTables</tt>.
+	  <img class="graphics" alt="An object tree example in PyTables.&#xA;	  " src="objecttree-web.png">
+	  <div class="caption" style="width: 800px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;1.2:</span> An object tree example in <tt>PyTables</tt>.
 	  </div></div>
 	</div>
 
@@ -503,7 +390,7 @@ class Particle(IsRecord):
       </p>
 
       <p>Extensions in <tt>PyTables</tt> has been
-	made using Pyrex (see <a href="#Pyrex">reference&nbsp;<strong>??</strong></a>) and
+	made using Pyrex (see <a href="#Pyrex">Ewing ()</a>) and
 	C language. You can rebuild everything from scratch if you got
 	Pyrex installed, but this is not necessary, as the Pyrex
 	compiled source is included in the distribution. In order to
@@ -775,7 +662,7 @@ class Particle(IsRecord):
 	  <h3><span class="headlinenumber" id="subsection3.1.3"><a name="subsection3.1.3"></a>3.1.3 </span>Creating a <tt>PyTables</tt> file from scratch</h3>
 
 	  <p class="first">To create a <tt class="verb">PyTables</tt> file use the
-	    first-level <tt class="verb">openFile</tt> (see <a href="#openFileDescr"><strong>??</strong></a>) function:
+	    first-level <tt class="verb">openFile</tt> (see <a href="#GlobalFunctionsDescr">4.1.2</a>) function:
 	  </p>
 
 	  <pre>
@@ -808,7 +695,7 @@ class Particle(IsRecord):
 
 	  <p>Here, we have taken the <tt class="verb">File</tt> instance
 	    <tt class="verb">h5file</tt> and invoked its
-	    <tt class="verb">createGroup</tt> method (see<a href="#createGroupDescr"><strong>??</strong></a>), telling that we want to
+	    <tt class="verb">createGroup</tt> method (see<a href="#FileMethodsDescr">4.3.2</a>), telling that we want to
 	    create a new group called <em>detector</em> hanging from
 	    "<em>/</em>", which is other way to refer to the
 	    <tt class="verb">h5file.root</tt> object we mentioned before. This
@@ -822,7 +709,7 @@ class Particle(IsRecord):
 
 	  <p class="first">Let's now create the <tt class="verb">Table</tt> (see <a href="#TableClassDescr">4.6</a>) object hanging from the new
 	    created group. We do that by calling the
-	    <tt class="verb">createTable</tt> (see <a href="#createTableDescr"><strong>??</strong></a>) method from the
+	    <tt class="verb">createTable</tt> (see <a href="#FileMethodsDescr">4.3.2</a>) method from the
 	    <tt class="verb">h5file</tt> object:
 	  </p>
 	  <pre>
@@ -881,7 +768,7 @@ class Particle(IsRecord):
 	  <p>This code is quite easy to understand. The lines inside
 	    the loop just assigned values to the <tt class="verb">particle</tt>
 	    record object and then a call to the
-	    <tt class="verb">appendAsRecord</tt> (see <a href="#appendAsRecordDescr"><strong>??</strong></a>) method of
+	    <tt class="verb">appendAsRecord</tt> (see <a href="#TableMethodsDescr">4.6.2</a>) method of
 	    <tt class="verb">table</tt> instance is made to put this
 	    information in the <tt class="verb">table</tt> I/O buffer.
 	  </p>
@@ -923,7 +810,7 @@ class Particle(IsRecord):
 
 	  <p>The last two lines are a Python comprehensive list. It
 	    loops on records returned by <br>
-	    <tt class="verb">table.readAsRecords()</tt> (see <a href="#readAsRecordsDescr"><strong>??</strong></a>) iterator that returns
+	    <tt class="verb">table.readAsRecords()</tt> (see <a href="#TableMethodsDescr">4.6.2</a>) iterator that returns
 	    values until table data is exhausted. This records are
 	    filtered using the expression <tt class="verb">x.TDCcount &gt; 3 and
 	    x.pressure &lt; 50</tt>, and the <tt class="verb">pressure</tt>
@@ -983,7 +870,7 @@ class Particle(IsRecord):
 	  </pre>
 
 	  <p>We already know the first two parameters of the
-	    <tt class="verb">createArray</tt> (see <a href="#createArrayDescr"><strong>??</strong></a>) methods (these are the
+	    <tt class="verb">createArray</tt> (see <a href="#FileMethodsDescr">4.3.2</a>) methods (these are the
 	    same as the firsts in <tt class="verb">createTable</tt>): they are
 	    the parent group <em>where</em> <tt class="verb">Array</tt> will be
 	    created and the <tt class="verb">Array</tt> instance
@@ -1134,8 +1021,8 @@ Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
 	  </pre>
 
 	  <p>That's right, it seems that all our objects are there. We
-	    can use the <tt class="verb">walkGroups</tt> method (see <a href="#walkGroupsDescr"><strong>??</strong></a>) of <tt class="verb">File</tt> class
-	    to list all the groups on tree:
+	    can use the <tt class="verb">walkGroups</tt> method (see <a href="#FileMethodsDescr">4.3.2</a>) of <tt class="verb">File</tt>
+	    class to list all the groups on tree:
 	  </p>
 
 	  <pre>
@@ -1165,11 +1052,12 @@ Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
 &gt;&gt;&gt;
 	  </pre>
 
-	  <p><tt class="verb">listNodes</tt> (see <a href="#listNodesDescr"><strong>??</strong></a>) lists all the nodes hanging
-	    from a <tt class="verb">group</tt>, and if <em>classname</em>
-	    keyword is specified, the method will filter all instances
-	    which are not descendants of it. We have specified it so
-	    as to return only the <tt class="verb">Array</tt> instances.
+	  <p><tt class="verb">listNodes</tt> (see <a href="#FileMethodsDescr">4.3.2</a>) lists all the nodes
+	    hanging from a <tt class="verb">group</tt>, and if
+	    <em>classname</em> keyword is specified, the method will
+	    filter all instances which are not descendants of it. We
+	    have specified it so as to return only the
+	    <tt class="verb">Array</tt> instances.
 	  </p>
 	  <p>
 	    <b>Caveat emptor</b>:
@@ -1279,7 +1167,7 @@ Info on the object: /columns/pressure Array(4,) "Pressure column selection"
 	    a "d"ouble <tt class="verb">Numeric</tt> array, and that by looking
 	    at their <tt class="verb">shape</tt> attribute the array on disk is
 	    unidimensional and has 4 elements. See <a href="#ArrayClassInstanceVariables">4.7.1</a> for the
-	    complete <tt class="verb">Array</tt> attribute list
+	    complete <tt class="verb">Array</tt> attribute list.
 	  </p>
 	</div>
 
@@ -1311,7 +1199,7 @@ Particle:      7 --&gt; 49.0
 &gt;&gt;&gt; 
 	  </pre>
 
-	  <p>You can verify that <tt class="verb">read</tt> method (see <a href="#readArrayDescr"><strong>??</strong></a>) returns an authentic
+	  <p>You can verify that <tt class="verb">read</tt> method (see <a href="#ArrayMethodsDescr">4.7.2</a>) returns an authentic
 	    <tt class="verb">Numeric</tt> array looking at the output of the
 	    <tt class="verb">type()</tt> call. Check also that
 	    <tt class="verb">nameArray</tt> is actually a 2-dimensional Numeric
@@ -1412,8 +1300,8 @@ Total numbers of entries after appending new rows: 15
 	  </p>
 
 	  <div class="figure" id="tutorial-h5"><a name="tutorial-h5"></a>
-	    <a target="_blank" href="tutorial-h5.jpg"><img class="graphics" width="850" height="1100" alt="The data file after appending some rows.&#xA;	 ... (Click for original bitmap)" src="tutorial-h5-web.jpg"></a>
-	    <div class="caption" style="width: 850px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.1:</span> The data file after appending some rows.
+	    <a target="_blank" href="tutorial-h5.png"><img class="graphics" alt="The data file after appending some rows.&#xA;	 ... (Click for original bitmap)" src="tutorial-h5-web.png"></a>
+	    <div class="caption" style="width: 800px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.1:</span> The data file after appending some rows.
 	    </div></div>
 	  </div>
 
@@ -1677,8 +1565,8 @@ ValueError: Error packing record object:
 	</p>
 
 	<div class="figure" id="tutorial2"><a name="tutorial2"></a>
-	  <a target="_blank" href="tutorial2-h5.jpg"><img class="graphics" width="850" height="1100" alt="Table hierarchy for second example. (Click for original bitmap)" src="tutorial2-h5-web.jpg"></a>
-	  <div class="caption" style="width: 850px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.2:</span> Table hierarchy for second example.</div></div>
+	  <a target="_blank" href="tutorial2-h5.png"><img class="graphics" alt="Table hierarchy for second example. (Click for original bitmap)" src="tutorial2-h5-web.png"></a>
+	  <div class="caption" style="width: 800px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.2:</span> Table hierarchy for second example.</div></div>
 	</div>
 
 	<p>Feel free to visit the rest of examples in directory
@@ -1737,7 +1625,7 @@ ValueError: Error packing record object:
 	    comprehension list).
 	  </p>
 
-	  <p>The compression library used is the <b>zlib</b> (see reference <a href="#zlibRef"><strong>??</strong></a>), and the compression level used by
+	  <p>The compression library used is the <b>zlib</b> (see reference <a href="#zlibRef">Gailly and Adler ()</a>), and the compression level used by
 	    default for <tt class="verb">Table</tt> objects is 3. This level is
 	    less than 6 which is the default level recommend in zlib
 	    documentation as a compromise between speed and
@@ -1770,7 +1658,7 @@ ValueError: Error packing record object:
 	  <p>Nonetheless, in some situations you may want to check how
 	    compression level affects your application. You can
 	    control it by setting the <tt class="verb">compress</tt> keyword in
-	    the <tt class="verb">createTable</tt> method (see <a href="#createTableDescr"><strong>??</strong></a>). A value of 0 will
+	    the <tt class="verb">createTable</tt> method (see <a href="#FileMethodsDescr">4.3.2</a>). A value of 0 will
 	    completely disable compression, 1 is the less CPU time
 	    demanding level, while 9 is the maximum level and most CPU
 	    intensive.
@@ -1806,7 +1694,7 @@ ValueError: Error packing record object:
 	    it by providing an estimation of the number of rows for a
 	    table. This must be made in table creation time by passing
 	    this value in the <tt class="verb">expectedrows</tt> keyword of
-	    <tt class="verb">createTable</tt> method (see <a href="#createTableDescr"><strong>??</strong></a>).
+	    <tt class="verb">createTable</tt> method (see <a href="#FileMethodsDescr">4.3.2</a>).
 	  </p>
 
 	  <p>When your dataset size is bigger than 1 MB (take this
@@ -1833,7 +1721,7 @@ ValueError: Error packing record object:
 	    have to deal with large tables, you can use the alternate
 	    methods <tt class="verb">appendAsValues</tt>,
 	    <tt class="verb">appendAsTuple</tt> and
-	    <tt class="verb">readAsTuples</tt>. Look at sections <a href="#appendAsValuesDescr"><strong>??</strong></a>, <a href="#appendAsTupleDescr"><strong>??</strong></a> and <a href="#readAsTuplesDescr"><strong>??</strong></a> for a detailed reference
+	    <tt class="verb">readAsTuples</tt>. Look at sections <a href="#TableMethodsDescr">4.6.2</a>, <a href="#TableMethodsDescr">4.6.2</a> and <a href="#TableMethodsDescr">4.6.2</a> for a detailed reference
 	    of these optimized methods.
 	  </p>
 
@@ -1927,7 +1815,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	  
 	</div>
 
-	<div>
+	<div id="GlobalFunctionsDescr"><a name="GlobalFunctionsDescr"></a>
 	  <h3><span class="headlinenumber" id="subsection4.1.2"><a name="subsection4.1.2"></a>4.1.2 </span>Global functions</h3>
 
 	  <dl id="openFileDescr"><a name="openFileDescr"></a>
@@ -2061,7 +1949,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 
 	</div>
 
-	<div>
+	<div id="FileMethodsDescr"><a name="FileMethodsDescr"></a>
 	  <h3><span class="headlinenumber" id="subsection4.3.2"><a name="subsection4.3.2"></a>4.3.2 </span><tt>File</tt> methods</h3>
 
 	  <dl>
@@ -2435,7 +2323,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 
 	</div>
 
-	<div>
+	<div id="TableMethodsDescr"><a name="TableMethodsDescr"></a>
 	  <h3><span class="headlinenumber" id="subsection4.6.2"><a name="subsection4.6.2"></a>4.6.2 </span><tt>Table</tt>
 	    methods</h3>
 	  <dl>
@@ -2533,9 +2421,9 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	<p><b>Caveat:</b> All
 	  <tt class="verb">Numeric</tt> typecodes are supported except
 	  "<tt class="verb">F</tt>" and "<tt class="verb">D</tt>" which corresponds to
-	  complex data types<a href="#footnote9" name="footnoteback9"><sup>9)</sup></a>. See <a href="#Numerical">reference&nbsp;<strong>??</strong></a> to know more about the
-	  <tt class="verb">Numerical Python</tt> package, and in particular
-	  about supported data types.
+	  complex data types<a href="#footnote9" name="footnoteback9"><sup>9)</sup></a>. See <a href="#Numerical">Ascher <em>et&nbsp;al.</em> ()</a> to
+	  know more about the <tt class="verb">Numerical Python</tt> package,
+	  and in particular about supported data types.
 	</p>
 
 	<div id="ArrayClassInstanceVariables"><a name="ArrayClassInstanceVariables"></a>
@@ -2559,7 +2447,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 
 	</div>
 
-	<div>
+	<div id="ArrayMethodsDescr"><a name="ArrayMethodsDescr"></a>
 	  <h3><span class="headlinenumber" id="subsection4.7.2"><a name="subsection4.7.2"></a>4.7.2 </span><tt>Array</tt>
 	    methods</h3>
 
@@ -2644,15 +2532,38 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 
     
 
-
-    
+    <div class="bib"><h1>References</h1><div style="text-align: left">
+<p class="bibitem" id="Numerical"><a name="Numerical"></a><span style="font-variant: small-caps">Ascher</span>, David, Paul&nbsp;F. <span style="font-variant: small-caps">Dubois</span>, Konrad <span style="font-variant: small-caps">Hinsen</span>,
+  Jim <span style="font-variant: small-caps">Hugunin</span>, and Travis <span style="font-variant: small-caps">Oliphant</span>, : <em>Numerical
+  Python</em>.
+Package to speed-up arithmetic operations on arrays of numbers.<br><a href="http://www.pfdubois.com/numpy/">http://www.pfdubois.com/numpy/</a></p><p class="bibitem" id="Pyrex"><a name="Pyrex"></a><span style="font-variant: small-caps">Ewing</span>, Greg, : <em>Pyrex. A Language for Writing Python Extension
+  Modules</em>.<br><a href="http://www.cosc.canterbury.ac.nz/%C2%A0greg/python/Pyrex">http://www.cosc.canterbury.ac.nz/&nbsp;greg/python/Pyrex</a></p><p class="bibitem" id="zlibRef"><a name="zlibRef"></a><span style="font-variant: small-caps">Gailly</span>, JeanLoup and Mark <span style="font-variant: small-caps">Adler</span>, : <em>zlib. A Massively
+  Spiffy Yet Delicately Unobtrusive Compression Library</em>.
+A standard library for compression purposes.<br><a href="http://www.gzip.org/zlib/">http://www.gzip.org/zlib/</a></p><p class="bibitem" id="HL-HDF"><a name="HL-HDF"></a><span style="font-variant: small-caps">Henja</span>, Anders and Daniel&nbsp;B. <span style="font-variant: small-caps">Michelson</span>, : <em>A high level
+  interface to the HDF5 file format</em>.
+HL-HDF is a high level interface to the Hierarchical Data Format, version 5.
+  HL-HDF also contains an interface to the Python programming language, called
+  PyHL.<br><a href="ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/contrib/hl-hdf5/README.html">ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/contrib/hl-hdf5/README.html</a></p><p class="bibitem" id="GnosisUtils"><a name="GnosisUtils"></a><span style="font-variant: small-caps">Mertz</span>, David, <em>a</em>: <em>gnosis.xml.objectify</em>.
+This module is part of the Gnosis utilities, and allows to create a mapping
+  between any XML element to native Python objects.<br><a href="http://gnosis.cx/download/Gnosis_Utils-current.tar.gz">http://gnosis.cx/download/Gnosis_Utils-current.tar.gz</a></p><p class="bibitem" id="Objectify"><a name="Objectify"></a><span style="font-variant: small-caps">Mertz</span>, David, <em>b</em>: <em>Objectify. On the 'Pythonic'
+  treatment of XML documents as objects(II)</em>.
+Article describing XML Objectify, a Python module that allows working with XML
+  documents as Python objects. Some of the ideas presented here are used in
+  PyTables.<br><a href="http://www-106.ibm.com/developerworks/xml/library/xml-matters2/index.html">http://www-106.ibm.com/developerworks/xml/library/xml-matters2/index.html</a></p><p class="bibitem" id="HDF5TableExamples"><a name="HDF5TableExamples"></a><span style="font-variant: small-caps">NCSA</span>, <em>a</em>: <em>The HDF5 table programming model</em>.
+Examples on using HDF5 tables with the C API.<br><a href="http://hdf.ncsa.uiuc.edu/HDF5/hdf5_hl/doc/RM_hdf5tb_ex.html">http://hdf.ncsa.uiuc.edu/HDF5/hdf5_hl/doc/RM_hdf5tb_ex.html</a></p><p class="bibitem" id="HDF5Intr"><a name="HDF5Intr"></a><span style="font-variant: small-caps">NCSA</span>, <em>b</em>: <em>Introduction to HDF5</em>.
+Introduction to the HDF5 data model and programming model.<br><a href="http://hdf.ncsa.uiuc.edu/HDF5/doc/H5.intro.html">http://hdf.ncsa.uiuc.edu/HDF5/doc/H5.intro.html</a></p><p class="bibitem" id="HDF5WhatIs"><a name="HDF5WhatIs"></a><span style="font-variant: small-caps">NCSA</span>, <em>c</em>: <em>What is HDF5?</em>.
+Concise description about HDF5 capabilities and its differences from earlier
+  versions (HDF4).<br><a href="http://hdf.ncsa.uiuc.edu/whatishdf5.html">http://hdf.ncsa.uiuc.edu/whatishdf5.html</a></p>
+</div></div>
   
-<hr align="left" noshade="true" style="text-align: left; width: 20%; color: black"><div class="footnote"><a name="footnote1" href="#footnoteback1"><sup>1)</sup></a>&nbsp;Well, I didn't actually test
-	    that in real world, but if you do, please, tell
-	    me.</div><div class="footnote"><a name="footnote2" href="#footnoteback2"><sup>2)</sup></a>&nbsp;Except <tt class="verb">Attribute</tt> instances
+<hr align="left" noshade="true" style="text-align: left; width: 20%; color: black"><div class="footnote"><a name="footnote1" href="#footnoteback1"><sup>1)</sup></a>&nbsp;I do actually tested that
+	    between a Sparc machine (big-endian) and an Intel machine
+	    (little-endian) and it works only for tables but not for
+	    arrays!. This flaw will hopefully be addressed in next
+	    release.</div><div class="footnote"><a name="footnote2" href="#footnoteback2"><sup>2)</sup></a>&nbsp;Except <tt class="verb">Attribute</tt> instances
 	  in the short future</div><div class="footnote"><a name="footnote3" href="#footnoteback3"><sup>3)</sup></a>&nbsp;I have got this simple but
 	  powerful idea from the excellent <tt>Objectify</tt> module by David Mertz (see
-	  references <a href="#Objectify"><strong>??</strong></a> and <a href="#GnosisUtils"><strong>??</strong></a>)</div><div class="footnote"><a name="footnote4" href="#footnoteback4"><sup>4)</sup></a>&nbsp;Bear in mind, however, that this
+	  references <a href="#Objectify">Mertz (<em>b</em>)</a> and <a href="#GnosisUtils">Mertz (<em>a</em>)</a>)</div><div class="footnote"><a name="footnote4" href="#footnoteback4"><sup>4)</sup></a>&nbsp;Bear in mind, however, that this
 	  diagram is <b>not</b> a standard UML
 	  class diagram; I've used an UML tool to draw it, that's
 	  all.</div><div class="footnote"><a name="footnote5" href="#footnoteback5"><sup>5)</sup></a>&nbsp;<tt class="verb">IsRecord</tt> is

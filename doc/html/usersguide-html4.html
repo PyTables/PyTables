@@ -1,0 +1,837 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" id="libraryReference"><a name="libraryReference"></a><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2002-11-15T14:07:42Z"><meta name="Date" content="2002-11-15T14:07:42Z"><meta name="DC.Rights" content="(c) 2002 Francesc Alted"><meta name="Copyright" content="(c) 2002 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+    body {
+      font-family: serif; text-align: justify;
+      margin: 0pt; line-height: 1.3; background-color: white; color: black }
+    body.letter { background-image: none }
+    h1, h2, h3, h4, h5, h6, div.partheadline, div.title,
+      div.title-article {
+      font-family: sans-serif; font-weight: bold; font-stretch: condensed;
+      text-align: left; }
+    h1, h2, h3, h4, h5, h6, div.partheadline { padding-left: 18pt }
+    h1 { clear: both }
+    h1.toc { clear: none }
+    div.document, div.letter { margin-left: 80px; margin-right: 150px;
+      padding-top: 3ex; padding-bottom: 5ex }
+    div.authorlist { font-family: sans-serif;
+      font-stretch: condensed; text-align: left; font-size: x-large;
+      margin-bottom: 1ex }
+    div.authorlist-article { font-size: x-large; text-align: center;
+      margin-bottom: 2ex }
+    div.title { font-size: xx-large; color: gray; margin-bottom: 5ex; }
+    div.title-article { font-size: xx-large; text-align: center;
+      margin-bottom: 2ex }
+    div.date-article { font-size: large; text-align: center;
+      margin-bottom: 5ex }
+    div.subtitle { text-align: left; margin-bottom: 3ex }
+    div.legal { text-align: right }
+    div.partheadline { font-size: xx-large; margin-top: 1ex; margin-bottom: 1ex }
+    div.footnote { }
+    div.mathdisplay { text-align: center;
+    margin-top: 2ex; margin-bottom: 2ex }
+    div.figure, div.table, div.mathml-remark { margin-bottom: 3ex;
+            margin-top: 2ex}
+    div.mathml-remark { width: 50%; text-align: left; text-indent: 0pt }
+    div.caption { margin-top: 1ex; width: 20em}
+    div.caption-text { font-size: small;
+      padding-left: 1em; text-indent: -1em; text-align: justify}
+    caption { max-width: 100%; min-width: 200px; margin-bottom: 1ex;
+      text-align: justify }
+    div.verse { white-space: pre }
+    div.toc { margin-bottom: 6ex }
+    div.biblio, div.index { }
+    div.aphorism { margin-bottom: 2ex; font-style: italic; text-align: right;
+      margin-left: 50%}
+    div.aphorism-origin { margin-top: 1ex }
+    div.letter { }
+    div.subject { margin-top: 3ex; margin-bottom: 3ex }
+    div.opening { margin-top: 3ex; margin-bottom: 3ex }
+    div.closing { margin-top: 3ex; text-align: right }
+    div.to { margin-top: 3ex; margin-bottom: 3ex }
+    span.subject { font-weight: bold }
+    div.speedbar-top, div.speedbar-bottom { margin-left: 1em; margin-right: 1em }
+    div.speedbar-top { margin-top: 2ex }
+    div.speedbar-bottom { margin-bottom: 3ex }
+    table.speedbar { width: 100% }
+    hr.speedbar { clear: both }
+    div.theorem-plain, div.theorem-definition, div.theorem-remark { margin-top: 2ex;
+      margin-bottom: 2ex }
+    div.theorem-plain { font-style: italic }
+    div.proof { margin-top: 2ex; margin-bottom: 2ex }
+    span.theorem-head-plain, span.theorem-head-definition, span.theorem-head-remark
+      { margin-right: 0.66em }
+    span.theorem-head-plain, span.theorem-head-definition
+      { font-style: normal; font-weight: bold }
+    span.theorem-head-remark { font-style: italic }
+    span.proof-head { font-style: italic; margin-right: 0.66em }
+    acronym { font-size: 95%; letter-spacing: 0.1em; text-transform: uppercase }
+    td.header { text-align: center; font-weight: bold }
+    table.toc { }
+    table.tabular { font-size: smaller }
+    td.thickline { height: 0pt; border-bottom: medium solid; padding: 2px }
+    td.thinline { height: 0pt; border-bottom: thin solid;   padding: 2px }
+     /* FixMe: Following definition Still bad */
+    div.part-toc { margin-top: 2ex; font-weight: bold; font-size: larger }
+     /* FixMe: Following definition: How cleaner? */
+    div.toplevel-toc { margin-top: 1ex; font-weight: bold }
+    td.number1 { width: 1.5em }
+    td.number2 { width: 2em }
+    td.number3 { width: 3em }
+    td.author { text-align: center }
+    div { }  /* Must remain empty! */
+    span.captionlabel { font-family: sans-serif; font-weight: bold;
+      margin-right: 0.66em }
+    span.captionlabel:after { content: " " }
+    b.captionlabel {  }
+    b.captionlabel:after { content: " " }
+    span.headlinenumber { margin-right: 0.66em }
+    tt.verb {font-family: monospace }
+    span.bibtag { font-weight: bold; margin-right: 1em }
+    span.bib-author { }
+    span.bib-lastname { font-variant: small-caps }
+    span.bib-title { font-style: italic }
+    span.bib-booktitle { }
+    span.bib-journal { }
+    span.bib-journal-volume { font-weight: bold }
+    span.bib-publisher { }
+    span.bib-school { }
+    span.bib-year { }
+    span.bib-note { }
+    span { } /* Muss leer bleiben! */
+    li.bibitem { margin-left: 1em; text-indent: -1em }
+    img.graphics { border: 0pt }
+    p,div.p { margin: 0pt; text-indent: 18pt }
+    ul, dl, ol { text-indent: 0pt; }
+    p.first, div.p-first { margin: 0pt; text-indent: 0pt }
+    p.bibitem { margin-top: 1.5ex; margin-left: 3em; text-indent: -3em }
+    ul.biblio { list-style: none }
+    mi.ch { font-style: normal }
+    math[display="block"], div.equation {
+      margin-top: 1ex; margin-bottom: 1ex }
+    div.i-lettergroup { font-size: larger; font-weight: bold; padding-left: 18pt;
+      margin-top: 3ex; margin-bottom: 1.5ex }
+    div.i-item { }
+    div.i-main { }
+    dt { display: compact; font-weight: bold }
+    dd { text-indent: 0pt }
+    pre { text-indent: 0pt }
+    span.i-see { font-style: italic; }
+</style></head><body bgcolor="#FFFFFF"><div class="speedbar-top"><table class="speedbar"><tr><td style="text-align: left; width: 15%"><a href="usersguide-html3.html">previous</a></td><td style="text-align: center"><a href="usersguide-html.html#tb:table-of-contents">Table of Contents</a> &#8212; <a href="usersguide-html6.html">References</a></td><td style="text-align: right; width: 15%"><a href="usersguide-html5.html">next</a></td></tr><tr><td colspan="3">&nbsp;</td></tr></table><hr class="speedbar"></div><div class="document"><div id="libraryReference"><a name="libraryReference"></a>
+      <h1 id="chapter4"><a name="chapter4"></a>Chapter&nbsp;4: Library Reference</h1>
+      
+      <p class="first"><tt class="verb">PyTables</tt> implements several classes to represent
+	the different nodes in the object tree. They are named
+	<tt class="verb">File</tt>, <tt class="verb">Group</tt>, <tt class="verb">Leaf</tt>,
+	<tt class="verb">Table</tt> and <tt class="verb">Array</tt>. Another one is
+	responsible to build record objects from a subclass user
+	declaration, and performs field, type and range checks; its
+	name is <tt class="verb">IsRecord</tt>. An important function, called
+	<tt class="verb">openFile</tt> is responsible to create, open or append
+	to files. In addition, a few utility functions are defined to
+	guess if an user supplied file is a <tt class="verb">PyTables</tt> or
+	<tt class="verb">HDF5</tt> file. These are called
+	<tt class="verb">isPyTablesFile</tt> and <tt class="verb">isHDF5</tt>. Finally,
+	several first-level variables are also available to the user
+	that informs about <tt class="verb">PyTables</tt> version, file format
+	version or underlying libraries (as for example
+	<tt class="verb">HDF5</tt>) version number.
+      </p>
+
+      <p>Let's start discussing the first-level variables and
+	functions available to the user, then the methods in the
+	classes defined in <tt class="verb">PyTables</tt>.
+      </p>
+
+      <div>
+	<h2><span class="headlinenumber" id="section4.1"><a name="section4.1"></a>4.1 </span><tt>tables</tt> variables and
+	  functions</h2>
+
+	<div>
+	  <h3><span class="headlinenumber" id="subsection4.1.1"><a name="subsection4.1.1"></a>4.1.1 </span>Global variables</h3>
+
+	  <dl>
+
+	    <dt>__version__</dt> <dd>The <tt class="verb">PyTables</tt>
+	    version number.</dd>
+
+	    <dt>HDF5Version</dt>
+	    <dd>The underlying HDF5 library version number.</dd>
+
+	    <dt>ExtVersion</dt> <dd>The Pyrex extension types
+	      version. This might be useful when reporting
+	      bugs.</dd>
+
+	  </dl>
+	  
+	</div>
+
+	<div id="GlobalFunctionsDescr"><a name="GlobalFunctionsDescr"></a>
+	  <h3><span class="headlinenumber" id="subsection4.1.2"><a name="subsection4.1.2"></a>4.1.2 </span>Global functions</h3>
+
+	  <dl id="openFileDescr"><a name="openFileDescr"></a>
+	    <dt>openFile(filename, mode='r', title='')</dt>
+	    <dd>Open a <tt class="verb">PyTables</tt> file and returns a File
+	    object.
+	    
+	      <dl>
+
+		<dt>filename</dt> <dd>The name of the file
+		  (supports environment variable expansion). It must
+		  have any of <tt class="verb">".h5"</tt>, <tt class="verb">".hdf"</tt>
+		  or <tt class="verb">".hdf5"</tt> extensions.
+		</dd>
+
+		<dt>mode</dt> <dd>The mode to open the file. It
+		  can be one of the following:
+
+		  <dl>
+
+		    <dt>'r'</dt> <dd>read-only; no data can be
+		      modified.</dd>
+
+		    <dt>'w'</dt> <dd>write; a new file is created
+		      (an existing file with the same name is
+		      deleted).</dd>
+
+		    <dt>'a'</dt> <dd>append; an existing file is
+		      opened for reading and writing, and if the file does
+		      not exist it is created.</dd>
+
+		    <dt>'r+'</dt> <dd>is similar to 'a', but the
+		      file must already exist.</dd>
+
+		  </dl>
+		</dd>
+
+		<dt>title</dt> <dd>If filename is new, this will
+		  set a title for the root group in this file. If
+		  filename is not new, the title will be read from
+		  disk, and this will not have any effect.
+		</dd>
+
+	      </dl>
+
+	    </dd>
+
+	    <dt>isHDF5(filename)</dt> <dd>Determines whether
+	      filename is in the HDF5 format. When successful, returns
+	      a positive value, for TRUE, or 0 (zero), for
+	      FALSE. Otherwise returns a negative value.  To this
+	      function to work, it needs a closed file.
+	    </dd>
+
+	    <dt>isPyTablesFile(filename)</dt> <dd>Determines
+	      whether a file is in the <tt class="verb">PyTables</tt> format.
+	      When successful, returns the format version string, for
+	      TRUE, or 0 (zero), for FALSE. Otherwise returns a
+	      negative value.  To this function to work, it needs a
+	      closed file.
+	    </dd>
+
+	  </dl>
+	</div>
+      </div>
+
+      <div id="IsRecordClassDescr"><a name="IsRecordClassDescr"></a>
+	<h2><span class="headlinenumber" id="section4.2"><a name="section4.2"></a>4.2 </span>The <tt>IsRecord</tt> class</h2>
+
+	<p class="first">This class is in fact a so-called <em>metaclass</em>
+	  object. There is nothing special on this fact, except that
+	  their subclasses attributes are transformed during its
+	  instantiation phase, and new methods for instances are
+	  defined based on the values of the class attributes.
+	</p>
+	<p>That way, <tt class="verb">PyTables</tt> <em>force</em> the
+	  resulting instance to only accept assignments on the
+	  declared attributes<a href="#footnote7" name="footnoteback7"><sup>7)</sup></a>. If you try to
+	  do an assignment to a non-declared attribute, <tt>PyTables</tt> will raise an error.</p>
+
+	<p>To define such a special class, you have to declare it as
+	  descendent from <em>IsRecord</em>, with many attributes as
+	  fields you want in your record. To declare their types, you
+	  simply assign to these attributes their
+	  <em>typecode</em>. See the <a href="usersguide-html5.html#datatypesSupported">appendix&nbsp;A</a> for a relation of
+	  data types supported in a <tt>IsRecord</tt> class declaration.
+	</p>
+	<p> That's all, from now on, you can instantiate objects from
+	  your new class and use them as a very flexible record
+	  objects with safe features like automatic name field, data
+	  type and range checks (see the <a href="usersguide-html3.html#secondExample">section&nbsp;3.3</a> for an example on how it
+	  works).
+	</p>
+
+      </div>
+
+      <div id="FileClassDescr"><a name="FileClassDescr"></a>
+	<h2><span class="headlinenumber" id="section4.3"><a name="section4.3"></a>4.3 </span>The <tt>File</tt> class</h2>
+
+	<p class="first">This class is returned when a <tt class="verb">PyTables</tt> is
+	  opened with the <tt class="verb">openFile</tt> function. It has
+	  methods to create, open, flush and close
+	  <tt class="verb">PyTables</tt> files. Also, <tt class="verb">File</tt> class
+	  offer methods to traverse the object tree, as well as to
+	  create new nodes. One of its attributes (<tt class="verb">root</tt>)
+	  is quite important because represents the entry point to the
+	  object tree attached to the file.
+	</p>
+
+	<p>Next, we will discuss the attributes and methods for File
+	  class<a href="#footnote8" name="footnoteback8"><sup>8)</sup></a>.
+	</p>
+
+	<div id="FileInstanceVariablesDescr"><a name="FileInstanceVariablesDescr"></a>
+	  <h3><span class="headlinenumber" id="subsection4.3.1"><a name="subsection4.3.1"></a>4.3.1 </span><tt>File</tt> instance
+	    variables</h3>
+	  <dl>
+
+	    <dt>filename</dt> <dd>Filename opened.</dd>
+
+	    <dt>mode</dt> <dd>Mode in which the filename was
+	      opened.</dd>
+
+	    <dt>title</dt> <dd>The title of the root group in
+	      file.</dd>
+
+	    <dt>root</dt> <dd>The root group in file. This is
+	      the entry point to the object tree.</dd>
+
+	  </dl>
+
+	</div>
+
+	<div id="FileMethodsDescr"><a name="FileMethodsDescr"></a>
+	  <h3><span class="headlinenumber" id="subsection4.3.2"><a name="subsection4.3.2"></a>4.3.2 </span><tt>File</tt> methods</h3>
+
+	  <dl>
+
+	    <dt id="createGroupDescr"><a name="createGroupDescr"></a>createGroup(where, name,
+	      title='') </dt> <dd>Create a new Group instance with
+	      name <em>name</em> in <em>where</em> location.
+
+	      <dl>
+
+		<dt>where</dt> <dd>The parent group where the new
+		  group will hang. <em>where</em> parameter can be a
+		  path string (for example
+		  <tt class="verb">"/Particles/TParticle1"</tt>), or another
+		  Group instance. </dd>
+
+		<dt>name</dt>
+		<dd>The name of the new group.</dd>
+
+		<dt>title</dt> <dd>A description for this
+		group.</dd>
+
+	      </dl>
+	    </dd>
+
+	    <dt id="createTableDescr"><a name="createTableDescr"></a>createTable(where, name,
+	      RecordObject, title='', compress=3,
+	      expectedrows=10000)</dt> <dd>Create a new
+	      <tt class="verb">Table</tt> instance with name <em>name</em> in
+	      <em>where</em> location.
+
+	      <dl>
+
+		<dt>where</dt> <dd>The parent group where the
+		  new table will hang. <em>where</em> parameter can be
+		  a path string (for example
+		  <tt class="verb">"/Particles/TParticle1"</tt>), or Group
+		  instance. </dd>
+
+		<dt>name</dt>
+		<dd>The name of the new table.</dd>
+
+		<dt>RecordObject</dt> <dd>An instance of a
+		  user-defined class (derived from the
+		  <tt class="verb">IsRecord</tt> class) where table fields are
+		  defined.
+		</dd>
+
+		<dt>title</dt> <dd>A description for this object.
+		</dd>
+
+		<dt>compress</dt> <dd>Specifies a compress level
+		  for data. The allowed range is 0-9. A value of 0
+		  disables compression. The default is compression
+		  level 3, that balances between compression effort
+		  and CPU consumption.
+		</dd>
+
+		<dt>expectedrows</dt> <dd>An user estimate of
+		  the number of records that will be on table. If not
+		  provided, the default value is appropriate for tables
+		  until 1 MB in size (more or less, depending on the
+		  record size). If you plan to save bigger tables you
+		  should provide a guess; this will optimize the HDF5
+		  B-Tree creation and management process time and
+		  memory used. See <a href="usersguide-html3.html#expectedRowsOptim">section&nbsp;3.4.2</a> for a
+		  detailed justification of that issue.
+		</dd>
+
+	      </dl>
+	    </dd>
+
+	    <dt id="createArrayDescr"><a name="createArrayDescr"></a>createArray(where, name,
+	      NumericObject, title='')</dt> <dd>Create a new
+	      <tt class="verb">Array</tt> instance with name <em>name</em> in
+	      <em>where</em> location.
+
+	      <dl>
+
+		<dt>where</dt> <dd>The parent group where the
+		  new array will hang. <em>where</em> parameter can be
+		  a path string (for example
+		  <tt class="verb">"/Particles/TParticle1"</tt>), or
+		  <tt class="verb">Group</tt> instance. 
+		</dd>
+
+		<dt>name</dt> <dd>The name of the new
+		  array.
+		</dd>
+
+		<dt>NumericObject</dt> <dd>The Numeric array to
+		  be saved.
+		</dd>
+
+		<dt>title</dt> <dd>A description for this
+		  object.
+		</dd>
+
+	      </dl>
+	    </dd>
+
+	    <dt id="getNodeDescr"><a name="getNodeDescr"></a>getNode(where, name='',
+	      classname='')</dt> <dd>Returns the object node
+	      <em>name</em> under <em>where</em> location
+
+	      <dl>
+
+		<dt>where</dt> <dd>Can be a path string or
+		  <tt class="verb">Group</tt> instance. If <em>where</em>
+		  doesn't exists or has not a child called
+		  <em>name</em>, a <tt class="verb">ValueError</tt> error is
+		  raised.
+		</dd>
+
+		<dt>name</dt> <dd>The object name desired. If
+		  <em>name</em> is a null string (''), or not
+		  supplied, this method assumes to find the object in
+		  <em>where</em>.
+		</dd>
+
+		<dt>classname</dt> <dd>If supplied, returns only
+		  an instance of this class name. Allowed names in
+		  <em>classname</em> are: <tt class="verb">'Group'</tt>,
+		  <tt class="verb">'Leaf'</tt>, <tt class="verb">'Table'</tt> and
+		  <tt class="verb">'Array'</tt>. Note that these values are
+		  strings.
+		</dd>
+
+	      </dl>
+	    </dd>
+
+	    <dt id="listNodesDescr"><a name="listNodesDescr"></a>listNodes(where,
+	      classname='')</dt> <dd>Returns a list with all the
+	      object nodes (Group or Leaf) hanging from
+	      <em>where</em>. The list is alphanumerically sorted by
+	      node name.
+
+	      <dl>
+
+		<dt>where</dt> <dd>The parent group. Can be a
+		  path string or <tt class="verb">Group</tt> instance.
+		</dd>
+
+		<dt>classname</dt> <dd>If a <em>classname</em>
+		  parameter is supplied, the iterator will return only
+		  instances of this class (or subclasses of it). The
+		  only supported classes in <em>classname</em> are
+		  <tt class="verb">'Group'</tt>, <tt class="verb">'Leaf'</tt>,
+		  <tt class="verb">'Table'</tt> and <tt class="verb">'Array'</tt>. Note
+		  that these values are strings.
+		</dd>
+
+	      </dl>
+	    </dd>
+
+	    <dt id="walkGroupsDescr"><a name="walkGroupsDescr"></a>walkGroups(where='/')</dt>
+	      <dd><em>Iterator</em> that recursively obtains groups
+	      (not leaves) hanging from <em>where</em>. If
+	      <em>where</em> is not supplied, the root object is taken
+	      as origin. The groups are returned from in a top to
+	      bottom order, and alphanumerically sorted when they are
+	      at the same level.
+
+	      <dl>
+
+		<dt>where</dt> <dd>The origin group. Can be a
+		  path string or <tt class="verb">Group</tt> instance.
+		</dd>
+
+	      </dl>
+	    </dd>
+
+	    <dt>flush()</dt> <dd>Flush all the leaves existing
+	      in the object tree.
+	    </dd>
+
+	    <dt>close()</dt> <dd>Flush all the objects in
+	      object tree and close the file.
+	    </dd>
+
+	  </dl>
+
+	</div>
+      </div>
+
+      <div id="GroupClassDescr"><a name="GroupClassDescr"></a>
+	<h2><span class="headlinenumber" id="section4.4"><a name="section4.4"></a>4.4 </span>The <tt>Group</tt> class</h2>
+
+	<p class="first">Instances of this class are a grouping structure containing
+	  instances of zero or more groups or leaves, together with
+	  supporting metadata.
+	</p>
+
+	<p>Working with groups and leaves is similar in many ways to
+	  working with directories and files, respectively, in a Unix
+	  filesystem. As with Unix directories and files, objects in
+	  the object tree are often described by giving their full (or
+	  absolute) path names. This full path can be specified either
+	  as string (like in <tt class="verb">'/group1/group2'</tt>) or as a
+	  complete object path written in the Pythonic fashion known
+	  as <em>natural name</em> schema (like in
+	  <tt class="verb">file.root.group1.group2</tt>) and discussed in the
+	  <a href="usersguide-html1.html#NaturalTreeSection">section&nbsp;1.2</a>.
+	</p>
+
+	<p>A collateral effect of the <em>natural naming</em> schema
+	  is that you must be aware when assigning a new attribute to
+	  a Group object to not collide with existing children node
+	  names. For this reason and to not pollute the children
+	  namespace, it is explicitly forbidden to assign "normal"
+	  attributes to Group instances, and the only ones allowed
+	  must start with "<tt class="verb">_c_</tt>" (for class variables),
+	  "<tt class="verb">_f_</tt>" (for methods) or "<tt class="verb">_v_</tt>" (for
+	  instance variables) prefixes. Any attempt to assign a new
+	  attribute that does not starts with these prefixes, will
+	  raise a <tt class="verb">NameError</tt> exception.
+	</p>
+
+	<div>
+	  <h3><span class="headlinenumber" id="subsection4.4.1"><a name="subsection4.4.1"></a>4.4.1 </span><tt>Group</tt> class variables</h3>
+	  <dl>
+
+	    <dt>_c_objects</dt> <dd>Dictionary with all objects
+	      (groups or leaves) on tree.</dd>
+
+	    <dt>_c_objgroups</dt> <dd>Dictionary with all object
+	      groups on tree.</dd>
+
+	    <dt>_c_objleaves</dt> <dd>Dictionary with all object
+	      leaves on tree.</dd>
+
+	  </dl>
+
+	</div>
+
+	<div>
+	  <h3><span class="headlinenumber" id="subsection4.4.2"><a name="subsection4.4.2"></a>4.4.2 </span><tt>Group</tt> instance variables</h3>
+	  <dl>
+
+	    <dt>_v_title</dt>
+	    <dd>A description for this group.</dd>
+
+	    <dt>_v_name</dt>
+	    <dd>The name of this group.</dd>
+
+	    <dt>_v_pathname</dt>
+	    <dd>A string representation of the group location
+	      in tree.</dd>
+
+	    <dt>_v_parent</dt>
+	    <dd>The parent Group instance.</dd>
+
+	    <dt>_v_objchilds</dt> <dd>Dictionary with all nodes
+	      (groups or leaves) hanging from this instance.</dd>
+
+	    <dt>_v_objgroups</dt> <dd>Dictionary with all node
+	      groups hanging from this instance.</dd>
+
+	    <dt>_v_objleaves</dt> <dd>Dictionary with all node
+	      leaves hanging from this instance.</dd>
+
+	  </dl>
+
+	</div>
+
+	<div>
+	  <h3><span class="headlinenumber" id="subsection4.4.3"><a name="subsection4.4.3"></a>4.4.3 </span><tt>Group</tt> methods</h3>
+
+	  <p class="first"><b>Caveat: </b>These methods are
+	    documented for completeness, and they can be used without
+	    any problem. However, you should use the high-level
+	    counterpart methods in the <tt class="verb">File</tt> class,
+	    because these are most used in documentation and examples,
+	    and are a bit more powerful than those exposed here.
+	  </p>
+
+	  <dl>
+
+	    <dt>_f_join(name)</dt>
+	    <dd>Helper method to correctly concatenate a name child object
+	      with the pathname of this group.</dd>
+
+	    <dt>_f_listNodes(classname='')</dt> <dd>Returns a
+	      <em>list</em> with all the object nodes hanging from
+	      this instance. The list is alphanumerically sorted by
+	      node name. If a <em>classname</em> parameter is
+	      supplied, it will only return instances of this class
+	      (or subclasses of it). The supported classes in
+	      <em>classname</em> are <tt class="verb">'Group'</tt>,
+	      <tt class="verb">'Leaf'</tt>, <tt class="verb">'Table'</tt> and
+	      <tt class="verb">'Array'</tt>.</dd>
+
+	    <dt>_f_walkGroups()</dt> <dd><em>Iterator</em> that
+	      recursively obtains Groups (not Leaves) hanging from
+	      self. The groups are returned from top to bottom, and
+	      are alphanumerically sorted when they are at the same
+	      level.
+	    </dd>
+
+	  </dl>
+
+	</div>
+      </div>
+
+      <div id="LeafClassDescr"><a name="LeafClassDescr"></a>
+	<h2><span class="headlinenumber" id="section4.5"><a name="section4.5"></a>4.5 </span>The <tt>Leaf</tt> class</h2>
+
+	<p class="first">This is a helper class useful to place common functionality
+	  of all Leaf objects. It is also useful for classifying
+	  purposes. A Leaf object is an end-node, that is, a node that
+	  can hang directly from a group object, but that is not a
+	  group itself. Right now this set is composed by
+	  <tt class="verb">Table</tt> and <tt class="verb">Array</tt> objects. In fact,
+	  <tt class="verb">Table</tt> and <tt class="verb">Array</tt> classes inherit
+	  functionality from this class using the <em>mix-in</em>
+	  technique.
+	</p>
+	<p>Normally the user will not need to call any method from
+	  here, but it is useful to know that it exists because it can
+	  be used as a filter in methods like
+	  <tt class="verb">File.GetNode()</tt> or
+	  <tt class="verb">File.listNodes()</tt>, against others.
+	</p>
+      </div>
+
+      <div id="TableClassDescr"><a name="TableClassDescr"></a>
+	<h2><span class="headlinenumber" id="section4.6"><a name="section4.6"></a>4.6 </span>The <tt>Table</tt> class</h2>
+
+	<p class="first">Instances of this class represents table objects in the
+	  object tree. It provides methods to create new tables or
+	  open existing ones, as well as methods to read/write data
+	  and metadata from/to table objects in the file.
+	</p>
+	<p>Data can be read or written both as records or as tuples
+	  and <em>different</em> methods are provided to that
+	  end. Records are recommended because they are more intuitive
+	  and less error prone although they are slow. Using tuples
+	  (or value sequences) is faster, but the user must be very
+	  careful because when passing the sequence of values, they
+	  have to be in the correct order (alphanumerically ordered by
+	  field names). If not, unexpected results can appear (most
+	  probably <tt class="verb">ValueError</tt> exceptions will be
+	  raised). See <a href="usersguide-html3.html#tuplesOptim">section&nbsp;3.4.3</a> for
+	  usage details.
+	</p>
+
+	<div>
+	  <h3><span class="headlinenumber" id="subsection4.6.1"><a name="subsection4.6.1"></a>4.6.1 </span><tt>Table</tt> instance
+	    variables</h3>
+	  <dl>
+
+	    <dt>name</dt>
+	    <dd>The node name.</dd>
+
+	    <dt>title</dt>
+	    <dd>The title for this node.</dd>
+
+	    <dt>record</dt>
+	    <dd>The record object for this table.</dd>
+
+	    <dt>nrows</dt>
+	    <dd>The number of rows (records) in this table.</dd>
+
+	    <dt>varnames</dt>
+	    <dd>The field names for the table.</dd>
+
+	    <dt>vartypes</dt>
+	    <dd>The typecodes for the table fields.</dd>
+
+	  </dl>
+
+	</div>
+
+	<div id="TableMethodsDescr"><a name="TableMethodsDescr"></a>
+	  <h3><span class="headlinenumber" id="subsection4.6.2"><a name="subsection4.6.2"></a>4.6.2 </span><tt>Table</tt>
+	    methods</h3>
+	  <dl>
+
+	    <dt id="appendAsRecordDescr"><a name="appendAsRecordDescr"></a>appendAsRecord(RecordObject)</dt>
+	      <dd>Append the <tt class="verb">RecordObject</tt> to the output
+	      buffer of the table instance.
+
+	      <dl>
+
+		<dt>RecordObject</dt> <dd>An instance of the
+		  user-defined record class. It has to be a
+		  <tt class="verb">IsRecord</tt> descendant instance. If it is
+		  not, a <tt class="verb">ValueError</tt> exception is
+		  raised.</dd>
+
+	      </dl>
+
+	    </dd>
+
+	    <dt id="appendAsTupleDescr"><a name="appendAsTupleDescr"></a>appendAsTuple(tupleValues)</dt>
+	      <dd>Append the <em>tupleValues</em> tuple to the
+	      output buffer of the table instance. This method is
+	      faster (but also unsafer, because requires user to
+	      introduce the values in correct order!) than
+	      <tt class="verb">appendAsRecord</tt> method.
+
+	      <dl>
+
+		<dt>tupleValues</dt> <dd> is a tuple that has
+		  values for all the user record fields. The user has
+		  to provide them in the order determined by
+		  alphanumerically sorting the record name
+		  fields.</dd>
+
+	      </dl>
+	    </dd>
+
+	    <dt id="appendAsValuesDescr"><a name="appendAsValuesDescr"></a>appendAsValues(*values)</dt>
+	      <dd> Append the <em>values</em> parameters to the
+	      table output buffer. This method is faster (and unsafer,
+	      because requires user to introduce the values in correct
+	      order) than <tt class="verb">appendAsRecord</tt> method. It is
+	      similar to the <tt class="verb">appendAsTuple</tt> method, but
+	      accepts separate parameters as values instead of a
+	      monolithic tuple.
+        
+	      <dl>
+		<dt>values</dt> <dd>Is a series of parameters
+		that provides values for all the user record
+		fields. The user has to provide them in the order
+		determined by alphanumerically sorting the record
+		fields.</dd>
+	      </dl>
+	    </dd>
+
+	    <dt id="readAsRecordsDescr"><a name="readAsRecordsDescr"></a>readAsRecords()</dt>
+	      <dd>Returns an iterator yielding record instances
+	      built from rows in table. This method is a
+	      <em>generator</em>, i.e. it keeps track on the last
+	      record returned so that next time it is invoked it
+	      returns the next available record. It is slower than
+	      <tt class="verb">readAsTuples</tt> but in exchange, it returns
+	      full-fledged instance records.</dd>
+
+	    <dt id="readAsTuplesDescr"><a name="readAsTuplesDescr"></a>readAsTuples()</dt>
+	      <dd>Returns an iterator yielding tuples built from
+	      rows in table. This method is a <em>generator</em>,
+	      i.e. it keeps track on the last record returned so that
+	      next time it is invoked it returns the next available
+	      record. This method is twice as faster than
+	      readAsRecords, but it yields the rows as
+	      (alphanumerically ordered) tuples, instead of
+	      full-fledged instance records.</dd>
+
+	    <dt>flush()</dt> <dd>Flush the table buffers.</dd>
+
+	    <dt>close()</dt> <dd>Flush the table buffers and
+	      close the HDF5 dataset.</dd>
+
+	  </dl>
+
+	</div>
+
+      </div>
+
+      <div id="ArrayClassDescr"><a name="ArrayClassDescr"></a>
+	<h2><span class="headlinenumber" id="section4.7"><a name="section4.7"></a>4.7 </span>The <tt>Array</tt> class</h2>
+
+	<p class="first">Represents a <tt class="verb">Numeric</tt> array on file. It
+	  provides methods to create new arrays or open existing ones,
+	  as well as methods to write/read data and metadata to/from
+	  array objects in the file.
+	</p>
+	<p><b>Caveat:</b> All
+	  <tt class="verb">Numeric</tt> typecodes are supported except
+	  "<tt class="verb">F</tt>" and "<tt class="verb">D</tt>" which corresponds to
+	  complex data types<a href="#footnote9" name="footnoteback9"><sup>9)</sup></a>. See <a href="usersguide-html6.html#Numerical">Ascher <em>et&nbsp;al.</em> ()</a> to
+	  know more about the <tt class="verb">Numerical Python</tt> package,
+	  and in particular about supported data types.
+	</p>
+
+	<div id="ArrayClassInstanceVariables"><a name="ArrayClassInstanceVariables"></a>
+	  <h3><span class="headlinenumber" id="subsection4.7.1"><a name="subsection4.7.1"></a>4.7.1 </span><tt>Array</tt> instance
+	    variables</h3>
+	  <dl>
+
+	    <dt>name</dt>
+	    <dd>The node name.</dd>
+
+	    <dt>title</dt>
+	    <dd>The node title.</dd>
+
+	    <dt>shape</dt> <dd>tuple with the array shape (in
+	      the Numeric style).</dd>
+
+	    <dt>typecode</dt>
+	    <dd>The typecode of the represented array.</dd>
+
+	  </dl>
+
+	</div>
+
+	<div id="ArrayMethodsDescr"><a name="ArrayMethodsDescr"></a>
+	  <h3><span class="headlinenumber" id="subsection4.7.2"><a name="subsection4.7.2"></a>4.7.2 </span><tt>Array</tt>
+	    methods</h3>
+
+	  <p class="first">The methods for this class are very few. Please note that
+	    this object has not internal I/O buffers, so there is no
+	    need to call flush() method. However, it is included for
+	    consistency with <tt class="verb">Leaf</tt> nodes.</p>
+
+	  <dl>
+
+	    <dt id="readArrayDescr"><a name="readArrayDescr"></a>read()</dt> <dd>Read the
+	      array from disk and return it as a Numeric object. Note
+	      that while this method is not called, the actual array
+	      data is resident on disk.</dd>
+
+	    <dt>flush()</dt> <dd>Flush the internal
+	      buffers. Remember: this is a do-nothing method.</dd>
+
+	    <dt>close()</dt> <dd>Close the array on file.</dd>
+
+	  </dl>
+
+	</div>
+
+      </div>
+
+    </div><hr align="left" noshade="true" style="text-align: left; width: 20%; color: black"><div class="footnote"><a name="footnote7" href="#footnoteback7"><sup>7)</sup></a>&nbsp; In fact, descendants of
+	  <tt class="verb">IsRecord</tt> class has a few more, internal
+	  attributes, but they start with prefixes like <tt>"__"</tt>, <tt>"_v_"</tt> or <tt>"_f_"</tt>, so you should not use attribute
+	  names starting with these prefixes</div><div class="footnote"><a name="footnote8" href="#footnoteback8"><sup>8)</sup></a>&nbsp;On the following, the term <tt class="verb">Leaf</tt>
+	  will refer to a <tt class="verb">Table</tt> or <tt class="verb">Array</tt>
+	  node object.</div><div class="footnote"><a name="footnote9" href="#footnoteback9"><sup>9)</sup></a>&nbsp;However, these might be included
+	  in short future</div></div><div class="speedbar-bottom"><hr class="speedbar"><table class="speedbar"><tr><td style="text-align: left; width: 15%"><a href="usersguide-html3.html">previous</a></td><td style="text-align: center"><a href="usersguide-html.html#tb:table-of-contents">Table of Contents</a> &#8212; <a href="usersguide-html6.html">References</a></td><td style="text-align: right; width: 15%"><a href="usersguide-html5.html">next</a></td></tr></table></div></body></html>

@@ -7,161 +7,7 @@
     <author>Francesc Alted</author>
     <date>November, 13th</date>
     <year>2002</year>
-    <legalnotice>
-
-
-<!--	   Copyright (c) 2002 Francesc Alted -->
-
-      <p>Permission is hereby granted, free of charge, to any person
-	obtaining a copy of this software and associated documentation
-	files (the "Software"), to deal in the Software without
-	restriction, including without limitation the rights to use,
-	copy, modify, merge, publish, distribute, sublicense, and/or
-	sell copies of the Software, and to permit persons to whom the
-	Software is furnished to do so, subject to the following
-	conditions:
-      </p>
-      <p>The above copyright notice and this permission notice shall
-	be included in all copies or substantial portions of the
-	Software.
-      </p>
-      <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-	KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-	WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-	PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-	COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-	OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-	<newline vspace="1cm"/>
-      </p>
-
-<!-- NCSA license -->
-
-      <p><visual markup="bf">Copyright Notice and Statement for NCSA
-	  HDF5 (Hierarchical Data Format 5) Software Library and
-	  Utilities</visual>
-      </p>
-
-      <p>NCSA HDF5 (Hierarchical Data Format 5) Software Library and
-	Utilities Copyright 1998, 1999, 2000, 2001, 2002 by the Board
-	of Trustees of the University of Illinois <newline/>
-	<visual markup="bf">All rights reserved.</visual>
-      </p>
-      <p>Contributors: National Center for Supercomputing Applications
-	(NCSA) at the University of Illinois at Urbana-Champaign
-	(UIUC), Lawrence Livermore National Laboratory (LLNL), Sandia
-	National Laboratories (SNL), Los Alamos National Laboratory
-	(LANL), Jean-loup Gailly and Mark Adler (gzip library).
-      </p>
-      <p>Redistribution and use in source and binary forms, with or
-	without modification, are permitted for any purpose (including
-	commercial purposes) provided that the following conditions
-	are met:
-      </p>
-
-      <enumerate>
-	<item>
-	  Redistributions of source code must retain the above
-	  copyright notice, this list of conditions, and the
-	  following disclaimer.
-	</item>
-	<item>
-	  Redistributions in binary form must reproduce the above
-	  copyright notice, this list of conditions, and the
-	  following disclaimer in the documentation and/or materials
-	  provided with the distribution.
-	</item>
-	<item>In addition, redistributions of modified forms of the
-	  source or binary code must carry prominent notices stating
-	  that the original code was changed and the date of the
-	  change.
-	</item>
-	<item>All publications or advertising materials mentioning
-	  features or use of this software are asked, but not
-	  required, to acknowledge that it was developed by the
-	  National Center for Supercomputing Applications at the
-	  University of Illinois at Urbana-Champaign and to credit
-	  the contributors.
-	</item>
-	<item>Neither the name of the University nor the names of
-	  the Contributors may be used to endorse or promote
-	  products derived from this software without specific prior
-	  written permission from the University or the
-	  Contributors, as appropriate for the name(s) to be
-	  used.
-	</item>
-
-	<item>THIS SOFTWARE IS PROVIDED BY THE UNIVERSITY AND THE
-	  CONTRIBUTORS "AS IS" WITH NO WARRANTY OF ANY KIND, EITHER
-	  EXPRESSED OR IMPLIED.  In no event shall the University or
-	  the Contributors be liable for any damages suffered by the
-	  users arising out of the use of this software, even if
-	  advised of the possibility of such damage.
-	</item>
-
-      </enumerate>
-
-      <p>Portions of HDF5 were developed with support from the
-	University of California, Lawrence Livermore National
-	Laboratory (UC LLNL). The following statement applies to those
-	portions of the product and must be retained in any
-	redistribution of source code, binaries, documentation, and/or
-	accompanying materials:
-      </p>
-      <p>This work was partially produced at the University of
-	California, Lawrence Livermore National Laboratory (UC LLNL)
-	under contract no. W-7405-ENG-48 (Contract 48) between the
-	U.S. Department of Energy (DOE) and The Regents of the
-	University of California (University) for the operation of UC
-	LLNL.
-      </p>
-
-<!-- This paragraph does not fit well. Skip it!
-      <p><visual markup="bf">DISCLAIMER:</visual> This work was
-	prepared as an account of work sponsored by an agency of the
-	United States Government. Neither the United States Government
-	nor the University of California nor any of their employees,
-	makes any warranty, express or implied, or assumes any
-	liability or responsibility for the accuracy, completeness, or
-	usefulness of any information, apparatus, product, or process
-	disclosed, or represents that its use would not infringe
-	privately- owned rights. Reference herein to any specific
-	commercial products, process, or service by trade name,
-	trademark, manufacturer, or otherwise, does not necessarily
-	constitute or imply its endorsement, recommendation, or
-	favoring by the United States Government or the University of
-	California. The views and opinions of authors expressed herein
-	do not necessarily state or reflect those of the United States
-	Government or the University of California, and shall not be
-	used for advertising or product endorsement purposes.
-      </p>
--->
-    </legalnotice>
   </frontmatter>
-
-  <!--  This is only for article
-  <abstract>
-
-  <p><visual markup="tt">PyTables</visual> is a Python package whose
-    goal is to allow dealing easily, but in a powerful way, with
-    scientific data tables and Numerical Python objects organized in a
-    hierarchical structure. Such a tables are defined as a collection
-    of records whose values are stored in fixed-length fields. As a
-    foundation for the underlying hierarchical data organization the
-    excellent HDF5 library (http://hdf.ncsa.uiuc.edu/HDF5) has been
-    chosen.
-  </p>
-
-  <p><visual markup="tt">PyTables</visual> is intended to be
-    easy-to-use, and tries to be a high-performance interface to
-    HDF5. To achieve this, the newest improvements introduced in
-    Python 2.2 (like generators or slots and metaclasses in new-brand
-    classes) has been used. Pyrex creation extension tool has been
-    chosen to access the HDF5 library.
-  </p>
-
-  </abstract> -->
 
   <mainmatter>
 
@@ -189,16 +35,16 @@
 
       <p>The goal of <verb>PyTables</verb> is to enable the end user
 	to manipulate easily scientific data <visual
-	markup="bf">tables</visual> and <em>Numerical Python</em>
-	objects in a hierarchical structure. The foundation of the
-	underlying hierarchical data organization is the excellent
-	<verb>HDF5</verb> library
-	(<verb>http://hdf.ncsa.uiuc.edu/HDF5</verb>). Right now,
-	<verb>PyTables</verb> provides limited support of all the HDF5
-	functions, but I hope to add the more interesting ones (for
-	<verb>PyTables</verb> needs) in the near future. Nonetheless,
-	this package is not intended to serve as a complete wrapper
-	for the entire HDF5 API.
+	markup="bf">tables</visual> and <em>Numerical Python</em> (
+	see <cite refid="Numerical"></cite>) objects in a hierarchical
+	structure. The foundation of the underlying hierarchical data
+	organization is the excellent <verb>HDF5</verb> library (see
+	<cite refid="HDF5WhatIs"/> and <cite
+	refid="HDF5Intr"/>). Right now, <verb>PyTables</verb> provides
+	limited support of all the HDF5 functions, but I hope to add
+	the more interesting ones (for <verb>PyTables</verb> needs) in
+	the near future. Nonetheless, this package is not intended to
+	serve as a complete wrapper for the entire HDF5 API.
       </p>
 
       <p>A table is defined as a collection of records whose values
@@ -220,7 +66,9 @@
 	overflows. <verb>PyTables</verb> also provides a powerful
 	interface to process table data. Records in tables are also
 	known, in the <verb>HDF5</verb> naming scheme, as
-	<em>compound</em> data types.
+	<em>compound</em> data types. See <cite
+	refid="HDF5TableExamples"></cite> for examples in HDF5 tables
+	(in C language!).
       </p>
 
       <p>For example, you can define arbitrary records in Python
@@ -318,7 +166,7 @@ class Particle(IsRecord):
 	  selected HDF5 functionality (for this, have a look at
 	  HL-HDF5, the Swedish Meteorological and Hydrological
 	  Institute effort to provide another Python interface to
-	  HDF5; see <ref refid="HL-HDF">reference</ref>), but to
+	  HDF5; see <cite refid="HL-HDF"/>), but to
 	  provide a flexible, <em>very Pythonic</em> tool to deal with
 	  (arbitrary) large amounts of data (typically bigger than
 	  available memory) in tables and arrays organized in a
@@ -379,8 +227,8 @@ class Particle(IsRecord):
 	  the element's children<footnote>I have got this simple but
 	  powerful idea from the excellent <visual
 	  markup="tt">Objectify</visual> module by David Mertz (see
-	  references <ref refid="Objectify"></ref> and <ref
-	  refid="GnosisUtils"></ref>)</footnote>. This is very
+	  references <cite refid="Objectify"/> and <cite
+	  refid="GnosisUtils"/>)</footnote>. This is very
 	  <em>Pythonic</em> and comfortable in many cases, as you can
 	  check in the tutorial <ref
 	  refid="readingAndSelectingUsage">section</ref>.
@@ -465,7 +313,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
       </p>
 
       <p>Extensions in <visual markup="tt">PyTables</visual> has been
-	made using Pyrex (see <ref refid="Pyrex">reference</ref>) and
+	made using Pyrex (see <cite refid="Pyrex"/>) and
 	C language. You can rebuild everything from scratch if you got
 	Pyrex installed, but this is not necessary, as the Pyrex
 	compiled source is included in the distribution. In order to
@@ -749,7 +597,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
 	  <p>To create a <verb>PyTables</verb> file use the
 	    first-level <verb>openFile</verb> (see <ref
-	    refid="openFileDescr"></ref>) function:
+	    refid="GlobalFunctionsDescr"></ref>) function:
 	  </p>
 
 	  <verbatim>
@@ -783,7 +631,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  <p>Here, we have taken the <verb>File</verb> instance
 	    <verb>h5file</verb> and invoked its
 	    <verb>createGroup</verb> method (see<ref
-	    refid="createGroupDescr"></ref>), telling that we want to
+	    refid="FileMethodsDescr"></ref>), telling that we want to
 	    create a new group called <em>detector</em> hanging from
 	    "<em>/</em>", which is other way to refer to the
 	    <verb>h5file.root</verb> object we mentioned before. This
@@ -800,7 +648,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    refid="TableClassDescr"></ref>) object hanging from the new
 	    created group. We do that by calling the
 	    <verb>createTable</verb> (see <ref
-	    refid="createTableDescr"></ref>) method from the
+	    refid="FileMethodsDescr"></ref>) method from the
 	    <verb>h5file</verb> object:
 	  </p>
 	  <verbatim>
@@ -860,7 +708,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    the loop just assigned values to the <verb>particle</verb>
 	    record object and then a call to the
 	    <verb>appendAsRecord</verb> (see <ref
-	    refid="appendAsRecordDescr"></ref>) method of
+	    refid="TableMethodsDescr"></ref>) method of
 	    <verb>table</verb> instance is made to put this
 	    information in the <verb>table</verb> I/O buffer.
 	  </p>
@@ -904,7 +752,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  <p>The last two lines are a Python comprehensive list. It
 	    loops on records returned by <newline/>
 	    <verb>table.readAsRecords()</verb> (see <ref
-	    refid="readAsRecordsDescr"></ref>) iterator that returns
+	    refid="TableMethodsDescr"></ref>) iterator that returns
 	    values until table data is exhausted. This records are
 	    filtered using the expression <verb>x.TDCcount > 3 and
 	    x.pressure &lt; 50</verb>, and the <verb>pressure</verb>
@@ -965,7 +813,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
 	  <p>We already know the first two parameters of the
 	    <verb>createArray</verb> (see <ref
-	    refid="createArrayDescr"></ref>) methods (these are the
+	    refid="FileMethodsDescr"></ref>) methods (these are the
 	    same as the firsts in <verb>createTable</verb>): they are
 	    the parent group <em>where</em> <verb>Array</verb> will be
 	    created and the <verb>Array</verb> instance
@@ -1117,8 +965,8 @@ Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
 
 	  <p>That's right, it seems that all our objects are there. We
 	    can use the <verb>walkGroups</verb> method (see <ref
-	    refid="walkGroupsDescr"></ref>) of <verb>File</verb> class
-	    to list all the groups on tree:
+	    refid="FileMethodsDescr"></ref>) of <verb>File</verb>
+	    class to list all the groups on tree:
 	  </p>
 
 	  <verbatim>
@@ -1149,11 +997,12 @@ Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
 	  </verbatim>
 
 	  <p><verb>listNodes</verb> (see <ref
-	    refid="listNodesDescr"></ref>) lists all the nodes hanging
-	    from a <verb>group</verb>, and if <em>classname</em>
-	    keyword is specified, the method will filter all instances
-	    which are not descendants of it. We have specified it so
-	    as to return only the <verb>Array</verb> instances.
+	    refid="FileMethodsDescr"></ref>) lists all the nodes
+	    hanging from a <verb>group</verb>, and if
+	    <em>classname</em> keyword is specified, the method will
+	    filter all instances which are not descendants of it. We
+	    have specified it so as to return only the
+	    <verb>Array</verb> instances.
 	  </p>
 	  <p>
 	    <visual markup="bf">Caveat emptor</visual>:
@@ -1300,7 +1149,7 @@ Particle:      7 --> 49.0
 	  </verbatim>
 
 	  <p>You can verify that <verb>read</verb> method (see <ref
-	    refid="readArrayDescr"></ref>) returns an authentic
+	    refid="ArrayMethodsDescr"></ref>) returns an authentic
 	    <verb>Numeric</verb> array looking at the output of the
 	    <verb>type()</verb> call. Check also that
 	    <verb>nameArray</verb> is actually a 2-dimensional Numeric
@@ -1734,8 +1583,8 @@ ValueError: Error packing record object:
 	  </p>
 
 	  <p>The compression library used is the <visual
-	    markup="bf">zlib</visual> (see reference <ref
-	    refid="zlibRef"></ref>), and the compression level used by
+	    markup="bf">zlib</visual> (see reference <cite
+	    refid="zlibRef"/>), and the compression level used by
 	    default for <verb>Table</verb> objects is 3. This level is
 	    less than 6 which is the default level recommend in zlib
 	    documentation as a compromise between speed and
@@ -1769,7 +1618,7 @@ ValueError: Error packing record object:
 	    compression level affects your application. You can
 	    control it by setting the <verb>compress</verb> keyword in
 	    the <verb>createTable</verb> method (see <ref
-	    refid="createTableDescr"></ref>). A value of 0 will
+	    refid="FileMethodsDescr"></ref>). A value of 0 will
 	    completely disable compression, 1 is the less CPU time
 	    demanding level, while 9 is the maximum level and most CPU
 	    intensive.
@@ -1806,7 +1655,7 @@ ValueError: Error packing record object:
 	    table. This must be made in table creation time by passing
 	    this value in the <verb>expectedrows</verb> keyword of
 	    <verb>createTable</verb> method (see <ref
-	    refid="createTableDescr"></ref>).
+	    refid="FileMethodsDescr"></ref>).
 	  </p>
 
 	  <p>When your dataset size is bigger than 1 MB (take this
@@ -1835,9 +1684,9 @@ ValueError: Error packing record object:
 	    methods <verb>appendAsValues</verb>,
 	    <verb>appendAsTuple</verb> and
 	    <verb>readAsTuples</verb>. Look at sections <ref
-	    refid="appendAsValuesDescr"></ref>, <ref
-	    refid="appendAsTupleDescr"></ref> and <ref
-	    refid="readAsTuplesDescr"></ref> for a detailed reference
+	    refid="TableMethodsDescr"></ref>, <ref
+	    refid="TableMethodsDescr"></ref> and <ref
+	    refid="TableMethodsDescr"></ref> for a detailed reference
 	    of these optimized methods.
 	  </p>
 
@@ -1933,7 +1782,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	  
 	</subsection>
 
-	<subsection>
+	<subsection id="GlobalFunctionsDescr">
 	  <heading>Global functions</heading>
 
 	  <description id="openFileDescr">
@@ -2079,7 +1928,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 
 	</subsection>
 
-	<subsection>
+	<subsection id="FileMethodsDescr">
 	  <heading><visual markup="tt">File</visual> methods</heading>
 
 	  <description>
@@ -2454,7 +2303,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 
 	</subsection>
 
-	<subsection>
+	<subsection id="TableMethodsDescr">
 	  <heading><visual markup="tt">Table</visual>
 	    methods</heading>
 	  <description>
@@ -2556,10 +2405,9 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	  <verb>Numeric</verb> typecodes are supported except
 	  "<verb>F</verb>" and "<verb>D</verb>" which corresponds to
 	  complex data types<footnote>However, these might be included
-	  in short future</footnote>. See <ref
-	  refid="Numerical">reference</ref> to know more about the
-	  <verb>Numerical Python</verb> package, and in particular
-	  about supported data types.
+	  in short future</footnote>. See <cite refid="Numerical"/> to
+	  know more about the <verb>Numerical Python</verb> package,
+	  and in particular about supported data types.
 	</p>
 
 	<subsection id="ArrayClassInstanceVariables">
@@ -2583,7 +2431,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 
 	</subsection>
 
-	<subsection>
+	<subsection id="ArrayMethodsDescr">
 	  <heading><visual markup="tt">Array</visual>
 	    methods</heading>
 
@@ -2681,91 +2529,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 
     <!-- latex code="\renewcommand{\refname}{References}"/> -->
 
-
-    <references>
-      <enumerate>
-
-	<item id="HDF5WhatIs"><em>What is HDF5?.</em> Concise
-	  description about HDF5 capabilities and its differences from
-	  earlier versions (HDF4). <url
-	  name="http://hdf.ncsa.uiuc.edu/whatishdf5.html"/>
-	</item>
-
-	<item id="HDF5Intr"><em>Introduction to HDF5.</em>
-	  Introduction to the HDF5 data model and programming
-	  model. <url
-	  name="http://hdf.ncsa.uiuc.edu/HDF5/doc/H5.intro.html"/>
-	</item>
-
-	<item id="HDF5_HL"><em>HDF5: High Level APIs.</em> A set of
-	  functions built on top of the basic HDF5 library. <url
-	  name="http://hdf.ncsa.uiuc.edu/HDF5/hdf5_hl/doc/"/>
-	</item>
-
-	<item id="HDF5TableExamples"><em>The HDF5 table programming
-	  model.</em> Examples on using HDF5 tables with the C
-	  API. <url
-	  name="http://hdf.ncsa.uiuc.edu/HDF5/hdf5_hl/doc/RM_hdf5tb_ex.html"/>
-	</item>
-
-	<item id="HL-HDF"><em>HL-HDF.</em> A High Level Interface to
-	  the HDF5 File Format. <url
-	  name="ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/contrib/hl-hdf5/README.html"/>
-	</item>
-
-	<item id="zlibRef"><em>zlib.</em>A Massively Spiffy Yet
-	  Delicately Unobtrusive Compression Library. 
-	  <url name="http://www.gzip.org/zlib/"/>
-	</item>
-
-	<item id="Objectify"><em>On the 'Pythonic' treatment of XML
-	  documents as objects(II).</em> Article describing XML
-	  Objectify, a Python module that allows working with XML
-	  documents as Python objects. Some of the ideas presented
-	  here are used in <visual markup="tt">PyTables</visual>. <url
-	  name="http://www-106.ibm.com/developerworks/xml/library/xml-matters2/index.html"/>
-	</item>
-
-	<item id="GnosisUtils"><em>gnosis.xml.objectify.</em> This
-	  module is part of the Gnosis utilities, and allows to create
-	  a mapping between any XML element to "native" Python
-	  objects. <url
-	  name="http://gnosis.cx/download/Gnosis_Utils-current.tar.gz"/>
-	</item>
-
-	<item id="Pyrex"><em>Pyrex.</em> A Language for Writing Python
-	  Extension Modules. <url
-	  name="http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex"/>
-	</item>
-
-	<item id="NetCDF"><em>NetCDF (network Common Data Form).</em>
-	  This is an interface for array-oriented data access and a
-	  library that provides an implementation of the
-	  interface. <url
-	  name="http://www.unidata.ucar.edu/packages/netcdf/"/>
-	</item>
-
-	<item id="NetCDFSP"><em>NetCDF module on Scientific
-	  Python.</em> ScientificPython is a collection of Python
-	  modules that are useful for scientific computing. Its NetCDF
-	  module is a powerful interface for NetCDF data format. <url
-	  name="http://starship.python.net/~hinsen/ScientificPython/ScientificPythonManual/"/>
-	</item>
-
-	<item id="Numerical"><em>Numerical Python.</em> Package to
-	  speed-up arithmetic operations on arrays of numbers. <url
-	  name="http://www.pfdubois.com/numpy/"/>
-	</item>
-
-	<item id="Numarray"><em>Numarray.</em> Reimplementation of
-	  Numeric which adds the ability to efficiently manipulate
-	  large numeric arrays in ways similar to Matlab and
-	  IDL. Among others, Numarray provides the record array
-	  extension. <url name="http://stsdas.stsci.edu/numarray/"/>
-	</item>
-
-      </enumerate>
-    </references>
+    <references bibfile="usersguide-html"/>
   </backmatter>
 </book>
 
