@@ -783,42 +783,61 @@ class FiltersTreeTestCase(unittest.TestCase):
             print "Test filter:", repr(self.filters)
             print "Filters in file:", repr(self.h5file.filters)
 
-        assert repr(self.filters) == repr(self.h5file.filters)
+        if self.filters == None:
+            filters = Filters()
+        else:
+            filters = self.filters
+        assert repr(filters) == repr(self.h5file.filters)
         # The next nodes have to have the same filter properties as
-        # self.filter
+        # self.filters
         nodelist = ['/table1', '/group0/earray1', '/group0']
         for node in nodelist:
             object = self.h5file.getNode(node)
             if isinstance(object, Group):
-                assert repr(self.filters) == repr(object._v_filters)
+                assert repr(filters) == repr(object._v_filters)
             else:
-                assert repr(self.filters) == repr(object.filters)
+                assert repr(filters) == repr(object.filters)
                 
         # Second and third level check
         group1 = self.h5file.root.group0.group1
+        if self.gfilters == None:
+            if self.filters == None:
+                gfilters = Filters()
+            else:
+                gfilters = self.filters
+        else:
+            gfilters = self.gfilters
         if verbose:
-            print "Test filter:", repr(self.gfilters)
+            print "Test gfilter:", repr(gfilters)
             print "Filters in file:", repr(group1._v_filters)
 
-        repr(self.gfilters) == repr(group1._v_filters)
+        assert repr(gfilters) == repr(group1._v_filters)
         # The next nodes have to have the same filter properties as
-        # self.gfile
+        # gfilters
         nodelist = ['/group0/group1', '/group0/group1/earray1',
                     '/group0/group1/table1', '/group0/group1/group2/table1']
         for node in nodelist:
             object = self.h5file.getNode(node)
             if isinstance(object, Group):
-                assert repr(self.gfilters) == repr(object._v_filters)
+                assert repr(gfilters) == repr(object._v_filters)
             else:
-                assert repr(self.gfilters) == repr(object.filters)
+                assert repr(gfilters) == repr(object.filters)
 
         # Fourth and fifth level check
+        if self.filters == None:
+            # If None, the filters are inherited!
+            if self.gfilters == None:
+                filters = Filters()
+            else:
+                filters = self.gfilters
+        else:
+            filters = self.filters
         group3 = self.h5file.root.group0.group1.group2.group3
         if verbose:
-            print "Test filter:", repr(self.filters)
+            print "Test filter:", repr(filters)
             print "Filters in file:", repr(group3._v_filters)
 
-        repr(self.filters) == repr(group3._v_filters)
+        assert repr(filters) == repr(group3._v_filters)
         # The next nodes have to have the same filter properties as
         # self.filter
         nodelist = ['/group0/group1/group2/group3',
@@ -828,9 +847,9 @@ class FiltersTreeTestCase(unittest.TestCase):
         for node in nodelist:
             object = self.h5file.getNode(node)
             if isinstance(object, Group):
-                assert repr(self.filters) == repr(object._v_filters)
+                assert repr(filters) == repr(object._v_filters)
             else:
-                assert repr(self.filters) == repr(object.filters)
+                assert repr(filters) == repr(object.filters)
 
 
         # Checking the special case for Arrays in which the compression
@@ -859,48 +878,66 @@ class FiltersTreeTestCase(unittest.TestCase):
         self.h5file = openFile(self.file, "r")
 
         # First level check
+        if self.filters == None:
+            filters = Filters()
+        else:
+            filters = self.filters
         if verbose:
-            print "Test filter:", repr(self.filters)
+            print "Test filter:", repr(filters)
             print "Filters in file:", repr(self.h5file.filters)
 
-        assert repr(self.filters) == repr(self.h5file.filters)
+        assert repr(filters) == repr(self.h5file.filters)
         # The next nodes have to have the same filter properties as
-        # self.filter
+        # self.filters
         nodelist = ['/table1', '/group0/earray1', '/group0']
         for node in nodelist:
             object = self.h5file.getNode(node)
             if isinstance(object, Group):
-                assert repr(self.filters) == repr(object._v_filters)
+                assert repr(filters) == repr(object._v_filters)
             else:
-                assert repr(self.filters) == repr(object.filters)
+                assert repr(filters) == repr(object.filters)
 
         # Second and third level check
         group1 = self.h5file.root.group0.group1
+        if self.gfilters == None:
+            if self.filters == None:
+                gfilters = Filters()
+            else:
+                gfilters = self.filters
+        else:
+            gfilters = self.gfilters
         if verbose:
-            print "Test filter:", repr(self.gfilters)
+            print "Test filter:", repr(gfilters)
             print "Filters in file:", repr(group1._v_filters)
 
-        repr(self.gfilters) == repr(group1._v_filters)
+        repr(gfilters) == repr(group1._v_filters)
         # The next nodes have to have the same filter properties as
-        # self.gfile
+        # gfilters
         nodelist = ['/group0/group1', '/group0/group1/earray1',
                     '/group0/group1/table1', '/group0/group1/group2/table1']
         for node in nodelist:
             object = self.h5file.getNode(node)
             if isinstance(object, Group):
-                assert repr(self.gfilters) == repr(object._v_filters)
+                assert repr(gfilters) == repr(object._v_filters)
             else:
-                assert repr(self.gfilters) == repr(object.filters)
+                assert repr(gfilters) == repr(object.filters)
 
         # Fourth and fifth level check
+        if self.filters == None:
+            if self.gfilters == None:
+                filters = Filters()
+            else:
+                filters = self.gfilters
+        else:
+            filters = self.filters
         group3 = self.h5file.root.group0.group1.group2.group3
         if verbose:
-            print "Test filter:", repr(self.filters)
+            print "Test filter:", repr(filters)
             print "Filters in file:", repr(group3._v_filters)
 
-        repr(self.filters) == repr(group3._v_filters)
+        repr(filters) == repr(group3._v_filters)
         # The next nodes have to have the same filter properties as
-        # self.filter
+        # self.filters
         nodelist = ['/group0/group1/group2/group3',
                     '/group0/group1/group2/group3/earray1',
                     '/group0/group1/group2/group3/table1',
@@ -908,9 +945,9 @@ class FiltersTreeTestCase(unittest.TestCase):
         for node in nodelist:
             object = self.h5file.getNode(node)
             if isinstance(object, Group):
-                assert repr(self.filters) == repr(object._v_filters)
+                assert repr(filters) == repr(object._v_filters)
             else:
-                assert repr(self.filters) == repr(object.filters)
+                assert repr(filters) == repr(object.filters)
 
         # Checking the special case for Arrays in which the compression
         # should always be the empty Filter()
@@ -946,6 +983,353 @@ class FiltersCase5(FiltersTreeTestCase):
     filters = Filters(fletcher32=1)
     gfilters = Filters(complevel=1, shuffle=0)
 
+class FiltersCase6(FiltersTreeTestCase):
+    filters = None
+    gfilters = Filters(complevel=1, shuffle=0)
+
+class FiltersCase7(FiltersTreeTestCase):
+    filters = Filters(complevel=1)
+    gfilters = None
+
+class FiltersCase8(FiltersTreeTestCase):
+    filters = None
+    gfilters = None
+
+class CopyGroupTestCase(unittest.TestCase):
+    title = "A title"
+    nrows = 10
+
+    def setUp(self):
+        # Create a temporary file
+        self.file = tempfile.mktemp(".h5") 
+        self.file2 = tempfile.mktemp(".h5") 
+        # Create the source file
+        self.h5file = openFile(self.file, "w")
+        # Create the destination
+        self.h5file2 = openFile(self.file2, "w")
+        self.populateFile()
+            
+    def populateFile(self):
+        group = self.h5file.root
+        # Add some user attrs:
+        group._v_attrs.attr1 = "an string for root group"
+        group._v_attrs.attr2 = 124
+        # Create a tree
+        for j in range(5):
+            for i in range(2):
+                # Create a new group (brother of group)
+                group2 = self.h5file.createGroup(group, 'bgroup'+str(i),
+                                                 filters=None)
+
+                # Create a table
+                table = self.h5file.createTable(group2, 'table1', Record2,
+                                            title = self.title,
+                                            filters = None)
+                # Get the record object associated with the new table
+                d = table.row 
+                # Fill the table
+                for i in xrange(self.nrows):
+                    d['var1'] = '%04d' % (self.nrows - i)
+                    d['var2'] = i 
+                    d['var3'] = i * 2
+                    d.append()      # This injects the Record values
+                # Flush the buffer for this table
+                table.flush()
+
+                # Add some user attrs:
+                table.attrs.attr1 = "an string"
+                table.attrs.attr2 = 234
+
+                # Create a couple of arrays in each group
+                var1List = [ x['var1'] for x in table.iterrows() ]
+                var3List = [ x['var3'] for x in table.iterrows() ]
+
+                self.h5file.createArray(group2, 'array1', var1List, "col 1")
+                self.h5file.createArray(group2, 'array2', var3List, "col 3")
+
+                # Create a couple of EArrays as well
+                ea1 = self.h5file.createEArray(group2, 'earray1',
+                                               StringAtom(shape=(0,), length=4),
+                                               "col 1")
+                ea2 = self.h5file.createEArray(group2, 'earray2',
+                                               Int16Atom(shape=(0,)), "col 3")
+                # Add some user attrs:
+                ea1.attrs.attr1 = "an string for earray"
+                ea2.attrs.attr2 = 123
+                # And fill them with some values
+                ea1.append(var1List)
+                ea2.append(var3List)
+
+            # Create a new group (descendant of group)
+            group3 = self.h5file.createGroup(group, 'group'+str(j),
+                                             filters=None)
+            # Iterate over this new group (group3)
+            group = group3
+            # Add some user attrs:
+            group._v_attrs.attr1 = "an string for group"
+            group._v_attrs.attr2 = 124
+    
+    def tearDown(self):
+        # Close the file
+        if self.h5file.isopen:
+            self.h5file.close()
+        if self.h5file2.isopen:
+            self.h5file2.close()
+
+        os.remove(self.file)
+        os.remove(self.file2)
+
+    #----------------------------------------
+
+    def test00_nonRecursive(self):
+        "Checking non-recursive copy of a Group"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00_nonRecursive..." % self.__class__.__name__
+
+
+        # Copy a group non-recursively
+        srcgroup = self.h5file.root.group0.group1
+        srcgroup._f_copyChilds(self.h5file2.root,
+                               recursive=0,
+                               filters=self.filters)
+        if self.close:
+            # Close the destination file
+            self.h5file2.close()
+            # And open it again
+            self.h5file2 = openFile(self.file2, "r")
+
+        # Check that the copy has been done correctly
+        dstgroup = self.h5file2.root
+        nodelist1 = srcgroup._v_childs.keys()
+        nodelist2 = dstgroup._v_childs.keys()
+        # Sort the lists
+        nodelist1.sort(); nodelist2.sort()
+        if verbose:
+            print "The origin node list -->", nodelist1
+            print "The copied node list -->", nodelist2
+        assert srcgroup._v_nchilds == dstgroup._v_nchilds
+        assert nodelist1 == nodelist2
+
+    def test01_nonRecursiveAttrs(self):
+        "Checking non-recursive copy of a Group (attributes copied)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_nonRecursiveAttrs..." % self.__class__.__name__
+
+        # Copy a group non-recursively with attrs
+        srcgroup = self.h5file.root.group0.group1
+        srcgroup._f_copyChilds(self.h5file2.root,
+                               recursive=0,
+                               filters=self.filters,
+                               copyuserattrs = 1)
+        if self.close:
+            # Close the destination file
+            self.h5file2.close()
+            # And open it again
+            self.h5file2 = openFile(self.file2, "r")
+
+        # Check that the copy has been done correctly
+        dstgroup = self.h5file2.root
+        for srcnode in srcgroup:
+            dstnode = getattr(dstgroup, srcnode._v_name)
+            if isinstance(srcnode, Group):
+                srcattrs = srcnode._v_attrs
+                srcattrskeys = srcattrs._f_list("all")
+                dstattrs = dstnode._v_attrs
+                dstattrskeys = dstattrs._f_list("all")
+            else:
+                srcattrs = srcnode.attrs
+                srcattrskeys = srcattrs._f_list("all")
+                dstattrs = dstnode.attrs
+                dstattrskeys = dstattrs._f_list("all")
+            # These lists should already be ordered
+            if verbose:
+                print "srcattrskeys for node %s: %s" %(srcnode._v_name,
+                                                       srcattrskeys)
+                print "dstattrskeys for node %s: %s" %(dstnode._v_name,
+                                                       dstattrskeys)
+            assert srcattrskeys == dstattrskeys
+            if verbose:
+                print "The attrs names has been copied correctly"
+
+            # Now, for the contents of attributes
+            for srcattrname in srcattrskeys:
+                srcattrvalue = str(getattr(srcattrs, srcattrname))
+                dstattrvalue = str(getattr(dstattrs, srcattrname))
+                if srcattrname == "FILTERS":
+                    if self.filters == None:
+                        filters = Filters()
+                    else:
+                        filters = self.filters
+                    assert str(filters) == dstattrvalue
+                else:
+                    assert srcattrvalue == dstattrvalue
+                    
+            if verbose:
+                print "The attrs contents has been copied correctly"
+
+    def test02_Recursive(self):
+        "Checking recursive copy of a Group"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_Recursive..." % self.__class__.__name__
+
+
+        # Create the destination node
+        group = self.h5file2.root
+        for groupname in self.dstnode.split("/"):
+            if groupname:
+                group = self.h5file2.createGroup(group, groupname)
+        dstgroup = self.h5file2.getNode(self.dstnode)
+
+        # Copy a group non-recursively
+        srcgroup = self.h5file.getNode(self.srcnode)
+        srcgroup._f_copyChilds(dstgroup,
+                               recursive=1,
+                               filters=self.filters)
+        lenSrcGroup = len(srcgroup._v_pathname)
+        if lenSrcGroup == 1:
+            lenSrcGroup = 0  # Case where srcgroup == "/"
+        if self.close:
+            # Close the destination file
+            self.h5file2.close()
+            # And open it again
+            self.h5file2 = openFile(self.file2, "r")
+            dstgroup = self.h5file2.getNode(self.dstnode)
+
+        # Check that the copy has been done correctly
+        lenDstGroup = len(dstgroup._v_pathname)
+        if lenDstGroup == 1:
+            lenDstGroup = 0  # Case where dstgroup == "/"
+        first = 1
+        nodelist1 = []
+        for node in srcgroup(recursive=1):
+            if first:
+                # skip the first group
+                first = 0
+                continue
+            nodelist1.append(node._v_pathname[lenSrcGroup:])
+
+        first = 1
+        nodelist2 = []
+        for node in dstgroup(recursive=1):
+            if first:
+                # skip the first group
+                first = 0
+                continue
+            nodelist2.append(node._v_pathname[lenDstGroup:])
+
+        if verbose:
+            print "The origin node list -->", nodelist1
+            print "The copied node list -->", nodelist2
+        assert nodelist1 == nodelist2
+            
+    def test03_RecursiveFilters(self):
+        "Checking recursive copy of a Group (cheking Filters)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_RecursiveFilters..." % self.__class__.__name__
+
+        # Create the destination node
+        group = self.h5file2.root
+        for groupname in self.dstnode.split("/"):
+            if groupname:
+                group = self.h5file2.createGroup(group, groupname)
+        dstgroup = self.h5file2.getNode(self.dstnode)
+
+        # Copy a group non-recursively
+        srcgroup = self.h5file.getNode(self.srcnode)
+        srcgroup._f_copyChilds(dstgroup,
+                               recursive=1,
+                               filters=self.filters)
+        lenSrcGroup = len(srcgroup._v_pathname)
+        if lenSrcGroup == 1:
+            lenSrcGroup = 0  # Case where srcgroup == "/"
+        if self.close:
+            # Close the destination file
+            self.h5file2.close()
+            # And open it again
+            self.h5file2 = openFile(self.file2, "r")
+            dstgroup = self.h5file2.getNode(self.dstnode)
+
+        # Check that the copy has been done correctly
+        lenDstGroup = len(dstgroup._v_pathname)
+        if lenDstGroup == 1:
+            lenDstGroup = 0  # Case where dstgroup == "/"
+        first = 1
+        nodelist1 = {}
+        for node in srcgroup(recursive=1):
+            if first:
+                # skip the first group
+                first = 0
+                continue
+            nodelist1[node._v_name] = node._v_pathname[lenSrcGroup:]
+
+        first = 1
+        for node in dstgroup(recursive=1):
+            if first:
+                # skip the first group
+                first = 0
+                continue
+            if isinstance(node, Group):
+                repr(node._v_filters) == repr(nodelist1[node._v_name])
+            else:
+                repr(node.filters) == repr(nodelist1[node._v_name])
+                
+            
+class CopyGroupCase1(CopyGroupTestCase):
+    close = 0
+    filters = None
+    srcnode = '/group0/group1'
+    dstnode = '/'
+        
+class CopyGroupCase2(CopyGroupTestCase):
+    close = 1
+    filters = None
+    srcnode = '/group0/group1'
+    dstnode = '/'
+        
+class CopyGroupCase3(CopyGroupTestCase):
+    close = 0
+    filters = None
+    srcnode = '/group0'
+    dstnode = '/group2/group3'
+        
+class CopyGroupCase4(CopyGroupTestCase):
+    close = 1
+    filters = Filters(complevel=1)
+    srcnode = '/group0'
+    dstnode = '/group2/group3'
+
+class CopyGroupCase5(CopyGroupTestCase):
+    close = 0
+    filters = Filters()
+    srcnode = '/'
+    dstnode = '/group2/group3'
+        
+class CopyGroupCase6(CopyGroupTestCase):
+    close = 1
+    filters = Filters(fletcher32=1)
+    srcnode = '/group0'
+    dstnode = '/group2/group3'
+        
+class CopyGroupCase7(CopyGroupTestCase):
+    close = 0
+    filters = Filters(complevel=1, shuffle=0)
+    srcnode = '/'
+    dstnode = '/'
+        
+class CopyGroupCase8(CopyGroupTestCase):
+    close = 1
+    filters = Filters(complevel=1, complib="lzo")
+    srcnode = '/'
+    dstnode = '/'
+        
 	
 #----------------------------------------------------------------------
 
@@ -962,6 +1346,17 @@ def suite():
         theSuite.addTest(unittest.makeSuite(FiltersCase3))
         theSuite.addTest(unittest.makeSuite(FiltersCase4))
         theSuite.addTest(unittest.makeSuite(FiltersCase5))
+        theSuite.addTest(unittest.makeSuite(FiltersCase6))
+        theSuite.addTest(unittest.makeSuite(FiltersCase7))
+        theSuite.addTest(unittest.makeSuite(FiltersCase8))
+        theSuite.addTest(unittest.makeSuite(CopyGroupCase1))
+        theSuite.addTest(unittest.makeSuite(CopyGroupCase2))
+        theSuite.addTest(unittest.makeSuite(CopyGroupCase3))
+        theSuite.addTest(unittest.makeSuite(CopyGroupCase4))
+        theSuite.addTest(unittest.makeSuite(CopyGroupCase5))
+        theSuite.addTest(unittest.makeSuite(CopyGroupCase6))
+        theSuite.addTest(unittest.makeSuite(CopyGroupCase7))
+        theSuite.addTest(unittest.makeSuite(CopyGroupCase8))
 
     return theSuite
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.38 2004/02/06 19:23:48 falted Exp $
+#       $Id: Leaf.py,v 1.39 2004/02/07 17:44:46 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.38 $"
+__version__ = "$Revision: 1.39 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -92,7 +92,7 @@ class Filters:
         filters = "Filters("
         if self.complevel:
             filters += "complevel=%s" % (self.complevel)
-            filters += ", complib=%s" % (self.complib)
+            filters += ", complib='%s'" % (self.complib)
             if self.shuffle:
                 filters += ", shuffle=%s" % (self.shuffle)
             if self.fletcher32:

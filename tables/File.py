@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.73 2004/02/06 19:23:47 falted Exp $
+#       $Id: File.py,v 1.74 2004/02/07 17:44:46 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.73 $"
+__version__ = "$Revision: 1.74 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -249,7 +249,6 @@ class File(hdf5Extension.File, object):
         
         self.mode = mode
         self.title = title
-        self.filters = filters
         self._isPTFile = isPTFile
         
         # _v_new informs if this file is old or new
@@ -257,20 +256,19 @@ class File(hdf5Extension.File, object):
         # Assign the trMap and build the reverse translation
         self.trMap = trMap
         
-        # Get the root group from this file
-        self.root = self.__getRootGroup(rootUEP)
-
-        # Set the flag to indicate that the file has been opened
-        self.isopen = 1
-
         # Filters
         if self._v_new:
             if filters is None:
                 # Set the defaults
                 self.filters = Filters()
             else:
-                # Some defaults
-                self.filters = _checkFilters(filters, 0, "zlib") 
+                self.filters = filters
+
+        # Get the root group from this file
+        self.root = self.__getRootGroup(rootUEP)
+
+        # Set the flag to indicate that the file has been opened
+        self.isopen = 1
 
         return
 
@@ -373,7 +371,10 @@ class File(hdf5Extension.File, object):
             #self.title = hdf5Extension.read_f_attr(self._v_objectID, 'TITLE')
             self.title = rootGroup._v_title
             # Get the filters for the file
-            self.filters = attrsRoot.FILTERS
+            filters = attrsRoot.FILTERS
+            if filters is None:
+                filters = Filters()
+            self.filters = filters
                       
             # Get all the groups recursively
             rootGroup._g_openFile()

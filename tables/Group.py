@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.66 2004/02/06 19:23:48 falted Exp $
+#       $Id: Group.py,v 1.67 2004/02/07 17:44:46 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.66 $"
+__version__ = "$Revision: 1.67 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -48,6 +48,7 @@ from Table import Table
 from Array import Array
 from EArray import EArray
 from VLArray import VLArray
+from Leaf import Filters
 from UnImplemented import UnImplemented
 from AttributeSet import AttributeSet
 from utils import checkNameValidity
@@ -76,15 +77,17 @@ class Group(hdf5Extension.Group, object):
 
     Methods:
     
-        _f_listNodes([classname])
+        _f_listNodes(classname)
         _f_walkGroups()
         __delattr__(name)
         __getattr__(name)
         __setattr__(name, object)
+        __iter__()
         _f_rename(newname)
         _f_remove(recursive=0)
         _f_getAttr(attrname)
         _f_setAttr(attrname, attrvalue)
+        _f_copyChilds(where, recursive=0, filters=None, copyuserattrs=1)
         _f_close()
         
     Instance variables:
@@ -228,7 +231,10 @@ self._g_join(name), UserWarning)
     def _g_join(self, name):
         """Helper method to correctly concatenate a name child object
         with the pathname of this group."""
-        
+
+        if name == "/":
+            # This case can happen when doing copies
+            return self._v_pathname
         if self._v_pathname == "/":
             return "/" + name
         else:
@@ -332,7 +338,10 @@ self._g_join(name), UserWarning)
 
     # Define _v_filters as a property
     def _f_get_filters(self):
-        return self._v_attrs.FILTERS
+        filters = self._v_attrs.FILTERS
+        if filters == None:
+            filters = Filters()
+        return filters
     
     # _v_filters can't be set nor deleted
     _v_filters = property(_f_get_filters, None, None,
@@ -621,25 +630,15 @@ self._g_join(name), UserWarning)
             self._f_close()
             self._g_deleteGroup()
 
-    def _g_copyAttrs(self, dstNode=None):
-        """Copy the attributes from self to "dstNode".
-
-        "dstNode" is the destination and can be whether a path string
-        or a Node object.
-        
-        """
-
-        # Get the source node
-        dstObject = self._v_file.getNode(dstNode)
-        self._v_attrs._f_copy(dstObject)
-
     def _f_copyChilds(self, where, recursive=0, filters=None,
                       copyuserattrs=1):
-        "(Recursively)Copy a group into another location"
+        "(Recursively) Copy a group into another location"
 
         # Get the base names of the source
         srcBasePath = self._v_pathname
-        lenSrcBasePath = len(srcBasePath)
+        lenSrcBasePath = len(srcBasePath)+1 # To include the trailing '/'
+        if lenSrcBasePath == 2:
+            lenSrcBasePath = 1  # This is a protection for srcBase == "/"
         # Get the parent group of destination
         if isinstance(where, Group):
             # The destination path can be anywhere
@@ -650,9 +649,6 @@ self._g_join(name), UserWarning)
             dstBaseGroup = self._v_file.getNode(where, classname = "Group")
             dstFile = self._v_file
         dstBasePath = dstBaseGroup._v_pathname
-        # Append a trailing "/", if not root
-        if dstBasePath <> "/":
-            dstBasePath += "/"
         ngroups = 0
         nleafs = 0
         if recursive:
@@ -662,17 +658,24 @@ self._g_join(name), UserWarning)
                 if first:
                     # The first group itself is not copied, only its childs
                     first = 0
+                    depth = group._v_depth
                     dstGroup = dstBaseGroup
+                    parentDstPath = dstBasePath
                 else:
                     dstName = group._v_name
-                    lenDstName = len(dstName)
-                    endName = group._v_pathname[lenSrcBasePath:-lenDstName]
-                    parentDstPath = dstBasePath+endName
+                    lenDstName = len(dstName)+1  # To include the trailing '/'
+                    endGName = group._v_pathname[lenSrcBasePath:-lenDstName]
+                    parentDstPath = dstBaseGroup._g_join(endGName)
+#                     print "src-->", group._v_pathname
+#                     print "parentDstName-->", parentDstPath
+#                     print "endGname-->", endGName
+#                     print "dstName-->", dstName
                     dstGroup = dstFile.createGroup(parentDstPath, dstName,
-                                                   title=group._v_title)
+                                                   title=group._v_title,
+                                                   filters=filters)
                     if copyuserattrs:
                         group._v_attrs._f_copy(dstGroup)
-                        #group._f_copyAttrs(dstGroup)
+                        depth = group._v_depth
                     ngroups += 1
                 for leaf in group._f_listNodes('Leaf'):
                     leaf.copy(dstGroup, leaf.name, title=leaf.title,
@@ -681,6 +684,15 @@ self._g_join(name), UserWarning)
                     nleafs +=1
         else:
             # Non recursive copy
+            # First, copy groups
+            for group in self._f_listNodes('Group'):
+                dstGroup = dstFile.createGroup(dstBaseGroup, group._v_name,
+                                               title=group._v_title,
+                                               filters=filters)
+                if copyuserattrs:
+                    group._v_attrs._f_copy(dstGroup)
+                ngroups +=1
+            # Then, leafs
             for leaf in self._f_listNodes('Leaf'):
                 leaf.copy(dstBaseGroup, leaf.name, title=leaf.title,
                           filters=filters,
