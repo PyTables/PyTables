@@ -114,7 +114,7 @@ def suite():
                     'test_earray',
 		    'test_tree',
                     # Sub-packages
-                    #'test_filenode',
+                    'test_filenode',
 		    ]
 
     # Add test_Numeric only if Numeric is installed

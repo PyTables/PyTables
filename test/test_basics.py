@@ -895,3 +895,7 @@ def suite():
  
 if __name__ == '__main__':
     unittest.main( defaultTest='suite' )
+
+## Local Variables:
+## mode: python
+## End:

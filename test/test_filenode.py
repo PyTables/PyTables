@@ -5,19 +5,21 @@
 #	Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/test/test_filenode.py,v $
-#	$Id: test_filenode.py,v 1.1 2004/10/28 16:42:41 falted Exp $
+#	$Id: test_filenode.py,v 1.2 2004/10/29 10:05:05 falted Exp $
 #
 ########################################################################
 
 "Unit test for the FileNode module."
 
-import unittest, tempfile, os
+import unittest, tempfile, os, sys
 import tables
 from tables.nodes import FileNode
+import warnings
+
+from test_all import verbose
 
 
-
-__revision__ = '$Id: test_filenode.py,v 1.1 2004/10/28 16:42:41 falted Exp $'
+__revision__ = '$Id: test_filenode.py,v 1.2 2004/10/29 10:05:05 falted Exp $'
 
 
 
@@ -278,9 +280,9 @@ class OpenFileTestCase(unittest.TestCase):
 
 		node = self.h5file.getNode('/test')
 		# 2004-10-02: This method doesn't exist! (BUG #1049297)
-		##self.h5file.delAttrNode('/test', '_type')
+		self.h5file.delAttrNode('/test', '_type')
 		#   So the value is changed to get the same result.
-		self.h5file.setAttrNode('/test', '_type', 'foobar')
+		#self.h5file.setAttrNode('/test', '_type', 'foobar')
 		self.assertRaises(ValueError, FileNode.openNode, node)
 
 
@@ -737,6 +739,21 @@ class ClosedH5FileTestCase(unittest.TestCase):
 		"Writing to a file node in a closed PyTables file."
 
 		self.assertRaises(ValueError, self.fnode.write, 'data')
+		# Uncomment this if there is a need to catch a UserWarning
+		# in the future
+# 		warnings.filterwarnings("error", category=UserWarning)
+# 		try:
+# 			self.fnode.write('data')
+# 			# self.fnode.write('data')
+# 		except UserWarning:
+# 			if verbose:
+# 				(type, value, traceback) = sys.exc_info()
+# 				print "\nGreat!, the next UserWarning was catched!"
+# 				print value
+# 		else:
+# 			self.fail("expected an UserWarning")
+# 		# Reset the warning
+# 		warnings.filterwarnings("default", category=UserWarning)
 
 
 	def test01_Attrs(self):
@@ -746,8 +763,20 @@ class ClosedH5FileTestCase(unittest.TestCase):
 
 
 
+#----------------------------------------------------------------------
+
+def suite():
+	theSuite = unittest.TestSuite()
+
+	theSuite.addTest(unittest.makeSuite(ClosedH5FileTestCase))
+
+	return theSuite
+
+ 
 if __name__ == '__main__':
 	unittest.main()
+	#unittest.main( defaultTest='suite' )
+
 
 
 
