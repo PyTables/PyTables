@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.3 2003/11/27 19:55:47 falted Exp $
+#       $Id: VLArray.py,v 1.4 2003/11/28 19:09:40 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.3 $"
+__version__ = "$Revision: 1.4 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -56,12 +56,12 @@ def checkflavor(flavor):
     else:
         raise ValueError, \
 """flavor must be one of the "NumArray", "CharArray", "Numeric", "Tuple",
-  "List", "String" or "Object" values, and you try to set it to "%s".""" % \
-    (flavor)
+ "List", "String" or "Object" values, and you try to set it to "%s".
+"""  % (flavor)
 
 # Class to support variable length strings as components of VLArray
 # It supports UNICODE strings as well.
-class VLString(IntCol):
+class VLStringAtom(IntCol):
     """ Define an atom of type Variable Length String """
     def __init__(self):
         # This special strings will be represented by unsigned bytes
@@ -69,13 +69,27 @@ class VLString(IntCol):
         self.flavor = "VLString"
 
     def __repr__(self):
-        out = "VLString()"
-        return out
+        return "VLString()"
 
     def atomsize(self):
-        " Compute the size of the VLString "
+        " Compute the item size of the VLStringAtom "
         # Always return 1 because strings are saved in UTF-8 format
         return 1
+
+class ObjectAtom(IntCol):
+    """ Define an atom of type Object """
+    def __init__(self):
+        IntCol.__init__(self, shape=1, itemsize=1, sign=0)
+        self.flavor = "Object"
+
+    def __repr__(self):
+        return "Object()"
+
+    def atomsize(self):
+        " Compute the item size of the Object "
+        # Always return 1 because strings are saved in UInt8 format
+        return 1
+
 
 class Atom(Col):
     """ Define an Atomic object to be used in VLArray objects """
@@ -194,12 +208,6 @@ class Float64Atom(Atom, FloatCol):
     """ Define an atom of type Float64 """
     def __init__(self, shape=1, flavor="NumArray"):
         FloatCol.__init__(self, shape=shape, itemsize=8)
-        self.flavor = checkflavor(flavor)
-
-class ObjectAtom(Atom, IntCol):
-    """ Define an atom of type Object """
-    def __init__(self, shape=1, flavor="Object"):
-        IntCol.__init__(self, shape=shape, itemsize=1, sign=0)
         self.flavor = checkflavor(flavor)
 
         
@@ -334,6 +342,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         self._atomicshape = self.atom.shape
         self._atomicsize = self.atom.atomsize()
         self._basesize = self.atom.itemsize
+        self.flavor = self.atom.flavor
         
         # Compute the optimal chunksize
         self._v_chunksize = calcChunkSize(self._v_expectedsizeinMB,
@@ -385,6 +394,8 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             # Test if arr can be converted to a numarray object of the
             # correct type
             try:
+#                 print "arr-->", arr
+#                 print "type-->", self.atom.type
                 naarr = numarray.array(arr, type=self.atom.type)
             # If not, test with a chararray
             except TypeError:
@@ -403,13 +414,24 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 
         # Test that this object is shape and type compliant
         # deal with scalars or strings
-        if not hasattr(naarr[0], "shape"):
-            shape = 1
+        if len(naarr):
+            if hasattr(naarr, "shape") and naarr.shape == self.atom.shape:
+                # Case of only one element
+                shape = self.atom.shape
+                self._nobjects = 1
+            else:
+                # See if naarr is made of elements with the correct shape
+                if not hasattr(naarr[0], "shape"):
+                    shape = 1
+                else:
+                    shape = naarr[0].shape
+                self._nobjects = len(naarr)
+                if shape <> self.atom.shape:
+                    raise TypeError, \
+"""The object '%s' is composed of elements with shape '%s', not '%s'.""" % \
+    (arr, shape, self.atom.shape)
         else:
-            shape = naarr[0].shape
-        if shape <> self.atom.shape:
-            raise TypeError, \
-"""The object '%s' is not composed of elements with shape '%s'.""" % (arr, self.atom.shape)
+            self._nobjects = 0
         if not hasattr(naarr, "type"):  # To deal with string objects
             datatype = records.CharType
             # Made an additional check for strings
@@ -439,7 +461,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 """The append method only accepts one parameter for 'VLString' data type."""
             else:
                 object = objects
-
+        #print "Objects to append-->", object
         # Convert the object to a numarray object
         if self.atom.flavor == "Object":
             # Special case for a generic object
@@ -458,8 +480,34 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
                 (type, value, traceback) = sys.exc_info()
                 raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, value)
             object = numarray.array(object, type=numarray.UInt8)
+    # Strings Atoms with UString (unicode strings) flavor can't be safely
+    # supported because the strings can be cut in the middle of a utf-8
+    # codification and that can lead to errors like:
+    #     >>> print 'a\xc3'.decode('utf-8')
+    # Traceback (most recent call last):
+    #   File "<stdin>", line 1, in ?
+    # UnicodeDecodeError: 'utf8' codec can't decode byte 0xc3 in position 1: unexpected end of data
+
+#         elif self.atom.flavor == "UString":
+#             # Special case for a generic object
+#             # (to be pickled and saved as an array of unsigned bytes)
+#             out = []
+#             for strobject in object:
+#                 if not (isinstance(strobject, types.StringType) or
+#                         isinstance(strobject, types.UnicodeType)):
+#                     raise TypeError, \
+# """The object "%s" is not of type String or Unicode.""" % (str(strobject))
+#                 try:
+#                     out.append(strobject.encode('utf-8'))
+#                 except:
+#                     (type, value, traceback) = sys.exc_info()
+#                     raise ValueError, \
+# """Problems when converting the object '%s' to the encoding 'utf-8'.
+#   The error was: %s" % (strobject, value)
+#             object = strings.array(out)
+            
         naarr = self._convertIntoNA(object)
-        if self._append(naarr) > 0:
+        if self._append(naarr, self._nobjects) > 0:
             self.nrows += 1
             self.shape = (self.nrows,)
             # Return the last entry in object
@@ -472,7 +520,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         self.nrows = self._openArray()
         self.shape = (self.nrows,)
         if self.flavor == "VLString":
-            self.atom = VLString()
+            self.atom = VLStringAtom()
         else:
             if str(self._atomictype) == "CharType":
                 self.atom = StringAtom(shape=self._atomicshape,
@@ -573,11 +621,22 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         elif self.flavor == "List":
             arr = arr.tolist()
         elif self.flavor == "String":
-            arr = tuple(arr)
+            arr = arr.tolist()
+#         elif self.flavor == "UString":
+#             out = []
+#             for str in tuple(arr):
+#                 out.append(str.decode('utf-8'))
+#             arr = tuple(out)
         elif self.flavor == "VLString":
             arr = arr.tostring().decode('utf-8')
         elif self.flavor == "Object":
             arr = cPickle.loads(arr.tostring())
+
+        # Check for unitary length lists or tuples
+        # it is better to disable it, as it is more consistent to return
+        # unitary values as an additional dimension than removing it
+#         if len(arr) == 1:
+#             arr = arr[0]
 
         return arr
 
@@ -591,9 +650,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             listarr = []
         else:
             listarr = self._readArray(start, stop, step)
-            
-        #self.flavor = self.getAttr("FLAVOR")
-        self.flavor = self.attrs.FLAVOR
+
         if self.flavor <> "NumArray":
             # Convert the list to the right flavor
             outlistarr = [self._convToFlavor(arr) for arr in listarr ]
@@ -601,10 +658,34 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             # NumArray flavor does not need additional conversion
             outlistarr = listarr
 
+        # Check for unitary length lists or tuples
         if len(outlistarr) == 1:
             outlistarr = outlistarr[0]
             
         return outlistarr
+
+    def __getitem__(self, key):
+        """Returns a table row, table slice or table column.
+
+        It takes different actions depending on the type of the "key"
+        parameter:
+
+        If "key"is an integer, the corresponding table row is returned
+        as a RecArray.Record object. If "key" is a slice, the row
+        slice determined by key is returned as a RecArray object.
+        Finally, if "key" is a string, it is interpreted as a column
+        name in the table, and, if it exists, it is read and returned
+        as a NumArray or CharArray object (whatever is appropriate).
+
+"""
+
+        if isinstance(key, types.IntType):
+            return self.read(key, key+1, 1)[0]
+        elif isinstance(key, types.SliceType):
+            return self.read(key.start, key.stop, key.step)
+        else:
+            raise ValueError, "Non-valid index or slice: %s" % \
+                  key
         
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""

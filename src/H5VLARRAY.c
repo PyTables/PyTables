@@ -174,7 +174,7 @@ herr_t H5VLARRAYmake( hid_t loc_id,
 
  /* Modify dataset creation properties, i.e. enable chunking  */
  plist_id = H5Pcreate (H5P_DATASET_CREATE);
- if ( H5Pset_chunk ( plist_id, rank, dims_chunk ) < 0 )
+ if ( H5Pset_chunk ( plist_id, 1, dims_chunk ) < 0 )
    return -1;
 
  /* 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/__init__.py,v $
-#       $Id: __init__.py,v 1.16 2003/11/19 18:07:46 falted Exp $
+#       $Id: __init__.py,v 1.17 2003/11/28 19:09:40 falted Exp $
 #
 ########################################################################
 
@@ -59,7 +59,7 @@ __all__ = ["isHDF5", "isPyTablesFile", "isLibAvailable",
            "IntCol", "Int8Col", "UInt8Col", "Int16Col", "UInt16Col",
            "Int32Col", "UInt32Col", "Int64Col", "UInt64Col",
            "FloatCol", "Float32Col", "Float64Col",
-           "Atom", "BoolAtom", "StringAtom", "ObjectAtom", "VLString",
+           "Atom", "ObjectAtom", "VLStringAtom", "StringAtom", "BoolAtom",
            "IntAtom", "Int8Atom", "UInt8Atom", "Int16Atom", "UInt16Atom",
            "Int32Atom", "UInt32Atom", "Int64Atom", "UInt64Atom",
            "FloatAtom", "Float32Atom", "Float64Atom"]

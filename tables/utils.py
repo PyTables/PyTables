@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.5 2003/11/25 11:26:26 falted Exp $
+#       $Id: utils.py,v 1.6 2003/11/28 19:09:40 falted Exp $
 #
 ########################################################################
 
@@ -214,10 +214,10 @@ def processRange(nrows, start=None, stop=None, step=None):
                   "Zero or negative step values are not allowed!"
         
     # Protection against reading more than available records
-#     if stop > nrows or start > nrows:
-#         raise IndexError, \
-# "Start (%s) or stop (%s) value is greater than number of rows (%s)." % \
-# (start, stop, self.nrows)
+    if stop > nrows or start > nrows:
+        raise IndexError, \
+"Start (%s) or stop (%s) value is greater than number of rows (%s)." % \
+(start, stop, nrows)
 
     return (start, stop, step)
     

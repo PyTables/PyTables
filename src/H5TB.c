@@ -1946,7 +1946,8 @@ herr_t H5TBdelete_record( hid_t loc_id,
  /* This check added for the case that there are no records to be read */
  /* F. Alted  2003/07/16 */
  if (read_nrecords > 0) {
-   tmp_buf = (unsigned char *)calloc((size_t) read_nrecords, src_size );
+/*    tmp_buf = (unsigned char *)calloc((size_t) read_nrecords, src_size ); */
+   tmp_buf = (unsigned char *)malloc((size_t) read_nrecords * src_size );
 
    if ( tmp_buf == NULL )
      return -1;

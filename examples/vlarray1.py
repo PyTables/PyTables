@@ -61,13 +61,13 @@ vlarray.append(1,0,3,0)  # This will be converted to a boolean
 #vlarray.append([1,0,1])
 
 # Unicode variable length strings (latin-1 encoding
-vlarray = fileh.createVLArray(root, 'vlarray7', VLString(),
+vlarray = fileh.createVLArray(root, 'vlarray7', VLStringAtom(),
                                "Variable Length String")
 vlarray.append(u"asd")
 vlarray.append(u"aaañá")
 
 # Unicode variable length strings (utf-8 encoding)
-vlarray = fileh.createVLArray(root, 'vlarray8', VLString(),
+vlarray = fileh.createVLArray(root, 'vlarray8', VLStringAtom(),
                                "Variable Length String")
 vlarray.append(u"aaañá")
 vlarray.append(u"asd")

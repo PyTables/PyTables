@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.86 2003/11/27 19:55:47 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.87 2003/11/28 19:09:40 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.86 $"
+__version__ = "$Revision: 1.87 $"
 
 
 import sys, os
@@ -812,7 +812,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.86 2003/11/27 19:55:47 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.87 2003/11/28 19:09:40 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -2158,14 +2158,14 @@ cdef class VLArray:
 
     return self.type
     
-  def _append(self, object naarr):
+  def _append(self, object naarr, int nobjects):
     cdef int ret
-    cdef int nobjects
+    #cdef int nobjects
     cdef void *rbuf
     cdef int buflen
 
     # Get the number of objects (last dimension)
-    nobjects = naarr.shape[0]
+    #nobjects = naarr.shape[0]
     
     # Get the pointer to the buffer data area
     if PyObject_AsWriteBuffer(naarr._data, &rbuf, &buflen) < 0:
@@ -2253,9 +2253,13 @@ cdef class VLArray:
       # Number of atoms in row
       vllen = rdata[i].len
       # Get the pointer to the buffer data area
-      rbuf = PyBuffer_FromReadWriteMemory(rdata[i].p, vllen*self._atomicsize)
-      if not rbuf:
-        raise RuntimeError("Problems creating a python buffer for read data.")
+      if vllen > 0:
+        rbuf = PyBuffer_FromReadWriteMemory(rdata[i].p, vllen*self._atomicsize)
+        if not rbuf:
+          raise RuntimeError("Problems creating python buffer for read data.")
+      else:
+        # Case where there is info with zero lentgh
+        rbuf = []
       # Compute the shape for the read array
       if (isinstance(self._atomicshape, types.TupleType)):
         shape = list(self._atomicshape)
