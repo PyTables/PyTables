@@ -3780,14 +3780,24 @@ out:
  *-------------------------------------------------------------------------
  */
 
-
 int H5TB_find_field( const char *field, const char *field_list )
 {
+   
+    const char *start = field_list;
+    const char *end;
+   
+    while ( (end = strstr( start, "," )) != 0 ) 
+     {
+	
+	    if ( strncmp(start,field,end-start) == 0 ) return 1;
+	    start = end + 1;
+     }
+   
+   
+    if ( strcmp( start, field ) == 0 ) return 1;
+   
+    return -1;
 
- if ( strstr( field_list, field ) != 0 )
-  return 1;
-
- return -1;   
 }   
 
 
