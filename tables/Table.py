@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.142 2004/12/26 15:53:34 ivilata Exp $
+#       $Id$
 #
 ########################################################################
 
@@ -280,24 +280,21 @@ class Table(Leaf, hdf5Extension.Table, object):
         self._time64colnames = self._getTime64ColNames()
         # Create the Row object helper
         self.row = hdf5Extension.Row(self)
-        # Get if a column is indexed or not in creation time
+
+        self.colindexed = {}  # Is the key column indexed?
+        self.indexed = 0      # Are there any indexed columns?
         colobjects = self.description._v_ColObjects
-        self.colindexed = {}
-        self.indexed = 0  # Specifies that some column is indexed in Table
-        for colname in self.colnames:
-            if colobjects[colname].indexed:
-                self.colindexed[colname] = 1
-                self.indexed = 1
-            else:
-                self.colindexed[colname] = 0
+        for (colname, colobj) in colobjects.iteritems():
+            colindexed = colobj.indexed
+            self.colindexed[colname] = colindexed
+            if colindexed:
+                self.indexed = 1 # True
+
         if self.indexed:
             # Check whether we want automatic indexing after an append or not
-            # The default is yes
-            if hasattr(self.description, "_v_indexprops"):
-                self.indexprops = self.description._v_indexprops
-            else:
-                # if user has not defined properties, assign the default
-                self.indexprops = IndexProps()
+            # If the user has not defined properties, assign the default
+            self.indexprops = getattr(
+                self.description, '_v_indexprops', IndexProps())
             self._indexedrows = 0
             self._unsaved_indexedrows = 0
             # Save AUTOMATIC_INDEX and REINDEX flags as attributes
@@ -324,26 +321,33 @@ class Table(Leaf, hdf5Extension.Table, object):
         self._v_expectedrows = self.nrows
         self.byteorder = byteorderDict[byteorder]
         colstypes = [str(codeToNAType[type]) for type in colstypes]
-        # Build a dictionary with the types as values and colnames as keys
-        fields = {}
+
+        fields = {}           # Maps column names to Col objects.
+        self.colindexed = {}  # Is the specified column indexed?
+        self.indexed = 0      # Are there any indexed columns?
+        indexcname = None     # Column name of some indexed column.
         for i in xrange(len(self.colnames)):
+            colname = self.colnames[i]
+            colshape = colshapes[i]
+            colstype = colstypes[i]
+
             # Is this column indexed?
-            iname = "_i_"+self.name+"_"+self.colnames[i]
-            if iname in self._v_parent._v_indices:
-                indexed = 1
-            else:
-                indexed = 0
-            if colstypes[i] == "CharType":
+            indexname = '_i_%s_%s' % (self.name, colname)
+            indexed = indexname in self._v_parent._v_indices
+            self.colindexed[colname] = indexed
+            if indexed:
+                self.indexed = 1 # True
+                indexcname = colname
+
+            if colstype == 'CharType':
                 itemsize = itemsizes[i]
-                fields[self.colnames[i]] = StringCol(length = itemsize,
-                                                     shape = colshapes[i],
-                                                     pos = i,
-                                                     indexed = indexed)
+                colobj = StringCol(length = itemsize, shape = colshape,
+                                   pos = i, indexed = indexed)
             else:
-                fields[self.colnames[i]] = Col(dtype = colstypes[i],
-                                               shape = colshapes[i],
-                                               pos = i,
-                                               indexed = indexed)
+                colobj = Col(dtype = colstype, shape = colshape,
+                             pos = i, indexed = indexed)
+            fields[colname] = colobj
+
         # Set the alignment!
         fields['_v_align'] = byteorder
         if self._v_file._isPTFile:
@@ -370,28 +374,18 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.row = hdf5Extension.Row(self)
         # Create a cols accessor
         self.cols = Cols(self)
-        # Check whether the columns are indexed or not
-        self.colindexed = {}
-        self.indexed = 0
-        for colname in self.colnames:
-            iname = "_i_"+self.name+"_"+colname
-            if iname in self._v_parent._v_indices:
-                self.colindexed[colname] = 1
-                indexobj = getattr(self.cols, colname).index
-                self.indexed = 1
-            else:
-                self.colindexed[colname] = 0
+
+        # Create an index properties object.
+        # It does not matter to which column 'indexcname' belongs,
+        # since their respective index objects share
+        # the same filters and number of elements.
         if self.indexed:
-            if hasattr(self.attrs, "AUTOMATIC_INDEX"):
-                automatic_index = self.attrs.AUTOMATIC_INDEX
-            else:
-                automatic_index = None
-            if hasattr(self.attrs, "REINDEX"):
-                reindex = self.attrs.REINDEX
-            else:
-                reindex = None
-            self.indexprops=IndexProps(auto=automatic_index, reindex=reindex,
-                                       filters=indexobj.filters)
+            autoindex = getattr(self.attrs, 'AUTOMATIC_INDEX', None)
+            reindex = getattr(self.attrs, 'REINDEX', None)
+            indexobj = getattr(self.cols, indexcname).index
+
+            self.indexprops = IndexProps(auto = autoindex, reindex = reindex,
+                                         filters = indexobj.filters)
             self._indexedrows = indexobj.nelements
             self._unsaved_indexedrows = self.nrows - self._indexedrows
 
@@ -425,7 +419,7 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         If the column to which the condition is applied is indexed,
         the index will be used in order to accelerate the
-        search. Else, the in-kernel iterator will be choosed instead.
+        search. Else, the in-kernel iterator will be chosen instead.
         
         """
 
@@ -1330,10 +1324,10 @@ class Column(object):
         self.name = name
         self.type = table.coltypes[name]
         # Check whether an index exists or not
-        iname = "_i_"+table.name+"_"+name
+        indexname = '_i_%s_%s' % (table.name, name)
         self.index = None
-        if iname in table._v_parent._v_indices:
-            self.index = Index(where=self, name=iname,
+        if indexname in table._v_parent._v_indices:
+            self.index = Index(where=self, name=indexname,
                                expectedrows=table._v_expectedrows)
         elif hasattr(table, "colindexed") and table.colindexed[name]:
             # The user wants to indexate this column,
