@@ -4,7 +4,7 @@
 #
 # F. Alted 27 / August / 2002
 
-cvsid = "$Id: hdf5Extension.pyx,v 1.1 2002/10/02 17:20:06 falted Exp $"
+cvsid = "$Id: hdf5Extension.pyx,v 1.2 2002/10/04 20:13:44 falted Exp $"
 
 # This does not work. I think it's a Pyrex problem.
 #cdef extern from "version.h":
@@ -212,7 +212,7 @@ def getExtCVSVersion():
   # is made. So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.1 2002/10/02 17:20:06 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.2 2002/10/04 20:13:44 falted Exp $ "
 
 def getTablesVersion():
   """Returns this extension version."""
@@ -221,34 +221,34 @@ def getTablesVersion():
 
 cdef class File:
   cdef hid_t   file_id
-  cdef char    *filename
+  cdef char    *name
 
-  def __new__(self, char *filename, char *mode):
+  def __new__(self, char *name, char *mode):
     # Create a new file using default properties
     # Improve this to check if the file exists or not before
-    self.filename = filename
+    self.name = name
     self.mode = mode
     if (strcmp(mode, "r") == 0 or strcmp(mode, "r+") == 0):
-      if (os.path.isfile(filename) and H5Fis_hdf5(filename) > 0):
+      if (os.path.isfile(name) and H5Fis_hdf5(name) > 0):
         # The file exists and is HDF5, that's ok
-        #print "File %s exists... That's ok!" % filename
+        #print "File %s exists... That's ok!" % name
         if strcmp(mode, "r") == 0:
-          self.file_id = H5Fopen(filename, H5F_ACC_RDONLY, H5P_DEFAULT)
+          self.file_id = H5Fopen(name, H5F_ACC_RDONLY, H5P_DEFAULT)
         elif strcmp(mode, "r+") == 0:
-          self.file_id = H5Fopen(filename, H5F_ACC_RDWR, H5P_DEFAULT)
+          self.file_id = H5Fopen(name, H5F_ACC_RDWR, H5P_DEFAULT)
       else:
-        raise RuntimeError("File %s doesn't exist or not a HDF5 file." % self.filename )
+        raise RuntimeError("File %s doesn't exist or not a HDF5 file." % self.name )
     elif strcmp(mode, "a") == 0:
-      if os.path.isfile(filename):
-        if H5Fis_hdf5(filename) > 0:
-          self.file_id = H5Fopen(filename, H5F_ACC_RDWR, H5P_DEFAULT)
+      if os.path.isfile(name):
+        if H5Fis_hdf5(name) > 0:
+          self.file_id = H5Fopen(name, H5F_ACC_RDWR, H5P_DEFAULT)
         else:
-          raise RuntimeError("File %s exist but is not a HDF5 file." % self.filename )
+          raise RuntimeError("File %s exist but is not a HDF5 file." % self.name )
       else:
-        self.file_id = H5Fcreate(filename, H5F_ACC_TRUNC,
+        self.file_id = H5Fcreate(name, H5F_ACC_TRUNC,
                                  H5P_DEFAULT, H5P_DEFAULT)
     elif strcmp(mode, "w") == 0:
-      self.file_id = H5Fcreate(filename, H5F_ACC_TRUNC,
+      self.file_id = H5Fcreate(name, H5F_ACC_TRUNC,
                                H5P_DEFAULT, H5P_DEFAULT)
     else:
       raise RuntimeError("Invalid mode %s for opening a file." % self.mode )
@@ -266,10 +266,10 @@ cdef class File:
     cdef int ret
 
     if self.file_id:
-      print "Closing the HDF5 file", filename," because user didn't do that!."
+      print "Closing the HDF5 file", name," because user didn't do that!."
       ret = H5Fclose(self.file_id)
       if ret < 0:
-        raise RuntimeError("Problems closing the file %s" % self.filename )
+        raise RuntimeError("Problems closing the file %s" % self.name )
 
 
 cdef class Group:
@@ -342,13 +342,17 @@ cdef class Table:
   cdef char    **field_names
   cdef int     compress
 
-  def __new__(self, where, name, root_id):
+  def __new__(self, where, name, rootgroup):
     # where is not needed
     self.tablename = strdup(name)
     # This parameter is not needed here
     #self.root_id = root_id
     # The parent group id for this object
-    self.group_id = where._v_groupId
+    if type(where) == type(""):
+      group = rootgroup._f_getObjectFromPath(where)
+      self.group_id = group._v_groupId
+    else:
+      self.group_id = where._v_groupId
 
   def openTable(self):
     """ Open the table, and read the table TITLE attribute."""
@@ -431,8 +435,8 @@ cdef class Table:
       raise RuntimeError("Problems creating the table")
     # Initialize the total number of records for this table
     self.totalrecords = 0
-    # We don't need to fill up the loc_id
-    #self.openTable()  
+    # We need to assign loc_id a value to close the table afterwards
+    self.openTable()  
 
   def append_record(self, PyStringObject record):
     cdef int ret, len
