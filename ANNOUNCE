@@ -4,24 +4,32 @@ Announcing PyTables 0.5
 This is the second public beta release. On this release you will find
 a 20% of I/O speed improvement over the last public release, some bugs
 has been fixed and support for a couple of compression (LZO and UCL)
-libraries has been added. And... a long expected Windows version is
+libraries has been added. And... a long awaited Windows version is
 finally available!.
 
+More in detail:
 
 What's new
 -----------
 
-- Second beta release (programming API is stable).
-
-- PyTables has been tested against newest numarray 0.5 and it works
-  just fine. It even works well with Python 2.3b1.
-
 - As a consequence of some twiking the write/read performance has been
-  improved by a 20% overall, and when column elements are made of
-  unidimensional arrays, up to a factor 6 of speed-up is achieved
-  (recent improvements in numarray 0.5 performance also helped
-  here). With that, the reading speed is reaching its theoretical
-  maximum (at least when using the current data access schema).
+  improved by a 20% overall. One particular case were performance has
+  largely increased (0.5 is up to 6 times faster than 0.4) is when
+  column elements are unidimensional arrays. This impressive speed-up
+  is mainly because of the recent improvements in numarray 0.5
+  performance (good work, folks!). With that, the reading speed is
+  reaching its theoretical maximum (at least when using the current
+  data access schema).
+
+- When reading a Table object, and the user wants to fetch column
+  elements which are unidimensional arrays, a copy of the array from
+  the I/O buffer is delivered automatically to him, so there is no
+  need to make a call to .copy() method of the numarray arrays
+  anymore. It think this is more comfortable for the user.
+
+- The compression was enabled by default in version 0.4, despite of
+  what was stated in the documentation. Now, this has been corrected
+  and compression is *disabled* by default.
 
 - Support for two new compression libraries: LZO and UCL
   (http://www.oberhumer.com/opensource/). These libraries are made by
@@ -31,22 +39,12 @@ What's new
   improvement is still more noticeable if your are dealing with
   extremely large (and compressible) data sets.
 
-- A couple of memory leaks has been isolated and fixed (it was very
-  hard, but finally I succeeded!).
+- A couple of memory leaks has been isolated and fixed (it was
+  hard, but I finally succeeded!).
 
 - A bug with column ordering of tables that happens in some special
   situations has been fixed (thanks to Stan Heckman for reporting this
   and suggesting the patch).
-
-- The compression was enabled by default in version 0.4, despite of
-  what was stated in the documentation. Now, this has been corrected
-  and compression is *disabled* by default.
-
-- When reading a Table object, and the user wants to fetch column
-  elements which are unidimensional arrays, a copy is delivered
-  automatically to him, so there is no need to make a call to .copy()
-  method of the numarray arrays anymore. It think this is more
-  comfortable for the user.
 
 - File class has now an 'isopen' attribute in order to check if a file
   is open or not.
@@ -56,7 +54,10 @@ What's new
   (also on the web:
   http://pytables.sourceforge.net/html-doc/usersguide-html.html)
 
-- Added more unit tests (218 now!)
+- Added more unit tests (up to 218 now!)
+
+- PyTables has been tested against newest numarray 0.5 and it works
+  just fine. It even works well with Python 2.3b1.
 
 - And last, but not least, a Windows version is available!. Thanks to
   Alan McIntyre for its porting!. There is even a binary ready for
@@ -67,7 +68,7 @@ What it is
 ----------
 
 In short, PyTables provides a powerful and very Pythonic interface to
-process table and array data.
+process and organize your table and array data on disk.
 
 Its goal is to enable the end user to manipulate easily scientific
 data tables and Numerical and numarray Python objects in a persistent
@@ -132,8 +133,8 @@ also passed all the tests on a UltraSparc platform with Solaris 7 and
 Solaris 8. It also compiles and passes all the tests on a SGI
 Origin2000 with MIPS R12000 processors and running IRIX 6.5.
 
-With Windows, I've only tested (all the tests passes) PyTables with
-XP, but it should also work with other flavors.
+With Windows, PyTables has been tested with Windows2000 Workstation
+and XP, but it should also work with other flavors.
 
 An example?
 -----------
