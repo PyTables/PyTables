@@ -17,14 +17,21 @@
    correction capabilities).  Anyway, this takes only a 1% more of
    space and a 2% more of CPU, which is almost negligible.
    F. Alted 2003/07/22
+ * Undef CHECKSUM for pytables 0.5 backward compatibility.
+ * F. Alted 2003/07/28
 */
-#define CHECKSUM
+#undef CHECKSUM  		       
 
 #undef DEBUG
 
 /* Adding more memory to the nrve seems to make it more resistant to
  seg faults. But I don't fully understand were is exactly the problem,
- anyway.  F. Alted 2003/07/24 */
+ anyway.  F. Alted 2003/07/24 
+ * 
+ * I'm suspucious now about a possible interaction between psyco and
+ * ucl nrve that makes the checksum to fail. 2003/07/28
+ * 
+ */
 /* Adding a combination of the zlib method and ucl to the output buffer */
 #define H5Z_UCL_SIZE_ADJUST(s) (ceil((double)((s)*1.001))+((s)/8)+256+12)
 /* #define H5Z_UCL_SIZE_ADJUST(s) ((s)+((s)/8)+256) */ /* Old value */
@@ -88,9 +95,7 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
   /* max_len_buffer will keep the likely output buffer size
      after processing the first chunk */
   static unsigned int max_len_buffer = 0;
-#ifdef CHECKSUM
   ucl_uint32 checksum;
-#endif /* CHECKSUM */
 
   /* Check arguments */
   if (cd_nelmts!=1 || cd_values[0]>9) {

@@ -1,7 +1,7 @@
 README.txt
 PyTables 0.6 (third beta version)
 http://pytables.sf.net/
-Jun 17, 2003
+Jul 29, 2003
 --------------------------------------
 
 The goal of PyTables is to enable the end user to manipulate easily
@@ -25,13 +25,13 @@ an efficient manner that reduces demand on CPU time and I/O.
 
 In order to emulate records (C structs in HDF5) in Python, PyTables
 implements a special metaclass that detects errors in field
-assignments as well as range overflows. PyTables also provides a
-powerful interface to process table data.
+assignments. PyTables also provides an easy to use, yet powerful,
+interface to process table data.
 
 Quite a bit effort has been invested to make browsing the hierarchical
-data structure a pleasant experience. PyTables implements just two
-(orthogonal) easy-to-use methods for browsing. See the documentation
-(located in the doc/ directory) for more details.
+data structure a pleasant experience. PyTables implements a few
+easy-to-use methods for browsing. See the documentation (located in
+the doc/ directory) for more details.
 
 One of the principal objectives of PyTables is to be user-friendly.
 To that end, the latest improvements introduced in Python 2.2 (such
@@ -39,7 +39,9 @@ as generators, slots and metaclasses in new-brand classes) have been
 used. Python 2.2 is also required in order to allow PyTables make
 use of Pyrex, a convenient tool to access C libraries from Python
 using Python syntax. For these reasons, you will need to use Python
-2.2 or higher to take advantage of PyTables.
+2.2 or higher to take advantage of PyTables. In addition, iterators
+has been implemented were context was appropriate so as to enable
+the interative work to be as productive as possible.
 
 To compile PyTables you will need, at least, a recent version of HDF5
 (C flavor) library, the Zlib compression library and the numarray
@@ -47,21 +49,18 @@ package. Besides, if you want to take advantage of the LZO and UCL
 compression libraries support you will also need recent versions of
 them. These two compression libraries are, however, optional.
 
-I've tested this PyTables version with HDF5 1.4.4, 1.4.5 versions and
-numarray 0.4 and 0.5, but it should work well with all HDF5 1.4.x
-versions and a relatively new version of numarray (>= 0.4). Although
-you won't need Numeric Python in order to compile PyTables, it is
-supported; you only will need a reasonably recent version of it (>=
-21.x). PyTables has been succesfully tested with Numeric 21.3, 22.0
-and 23.0.
+I've tested this PyTables version with HDF5 1.6.0 version and numarray
+0.6, and you *need* to use these versions or higher to make use of
+PyTables. Although you won't need Numeric Python in order to compile
+PyTables, it is supported; you only will need a reasonably recent
+version of it (>= 21.x). PyTables has been succesfully tested with
+Numeric 21.3, 22.0 and 23.0.
 
 I'm using Linux on top of Intel as the main development platform, but
 PyTables should be easy to compile/install on other UNIX
 machines. Nonetheless, caveat emptor: more testing is needed to
 achieve complete portability, I'd appreciate input on how it compiles
-and installs on other platforms.  In particular, I foresee problems on
-platforms that do not support the "long long" integer type (needed to
-create files with sizes larger than 2 GB).
+and installs on other platforms.
 
 This package has also been successfully compiled and tested on a
 UltraSparc platform with Solaris 7 and Solaris 8, a SGI Origin2000
@@ -74,8 +73,8 @@ Binary installation (Windows)
 This section is only intended for Windows platforms. If you have Unix,
 or want to compile PyTables for Windows, jump to the next section.
 
-First, make sure that you have HDF5 1.4.x and numarray 0.6 or higher
-installed (I'm using HDF5 1.4.5-post2 and numarray 0.6 currently). If
+First, make sure that you have HDF5 1.6.x and numarray 0.6 or higher
+installed (I'm using HDF5 1.6.0 and numarray 0.6 currently). If
 don't, you can find them at http://hdf.ncsa.uiuc.edu/HDF5 and
 http://sourceforge.net/projects/numpy/. Download the binary packages
 and install them. For the HDF5 it should be enough by manually copying
@@ -85,11 +84,12 @@ Download the tables-<version>.win32-py<version>.exe file and execute
 it.
 
 You can (you should) test your installation by unpacking the source
-tarball. Go to the test/ directory and execute the "test_all.py"
+tarball. Go to the test/ directory, set the PYTHONPATH environment
+variable to ".." (set PYTHONPATH=..) and execute the "test_all.py"
 script. If all the tests passes (maybe with a couple of warnings,
 related with the possibly missing LZO and UCL libs, but that's ok for
 the binary version) you already have a working, well tested, copy of
-PyTables installed!. If not, please, execute the "test_all.py -v" and
+PyTables installed!. If don't, please, execute the "test_all.py -v" and
 return the output to me.
 
 If you want support for LZO and UCL libraries (see
@@ -110,8 +110,8 @@ are using Windows, it is assumed that you are using a recent version
 of MS Visual C++ (>= 6.0) compiler. A GCC compiler is asumed for Unix,
 but other compilers should work as well.
 
-1. First, make sure that you have HDF5 1.4.x and numarray 0.6 or
-   higher installed (I'm using HDF5 1.4.5-post2 and numarray 0.6
+1. First, make sure that you have HDF5 1.6.x and numarray 0.6 or
+   higher installed (I'm using HDF5 1.6.0 and numarray 0.6
    currently). If don't, you can find them at
    http://hdf.ncsa.uiuc.edu/HDF5 and
    http://sourceforge.net/projects/numpy/. Compile/install them.
@@ -145,7 +145,7 @@ but other compilers should work as well.
    libraries) or on the command line by specifying the directory
    containing the include and lib directory. For example:
 
-            --hdf5=/stuff/hdf5-1.4.4
+            --hdf5=/stuff/hdf5-1.6.0
             --ucl=/stuff/ucl-1.0.1
 
    If your libraries were built as shared libraries, and if this
@@ -153,19 +153,19 @@ but other compilers should work as well.
    specify the additional linker flags needed to find the shared
    libraries on the command line as well. For example:
 
-           --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.4.4/lib"
+           --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.0/lib"
 
    or perhaps just
 
-           --lflags="-R /stuff/hdf5-1.4.4/lib"
+           --lflags="-R /stuff/hdf5-1.6.0/lib"
 
    Check your compiler and linker documentation for correct syntax.
 
    It is also possible to link against different libraries
    with the --libs switch:
 
-           --libs="-lhdf5-1.6"
-           --libs="-lhdf5-1.6 -lnsl"
+           --libs="-lhdf5-1.6.5"
+           --libs="-lhdf5-1.6.5 -lnsl"
 </Unix>
 
 <Windows>
@@ -185,7 +185,7 @@ but other compilers should work as well.
 
    For example:
 
-            set HDF5_DIR=c:\stuff\5-145-winVS\c\release
+            set HDF5_DIR=c:\stuff\5-160-winVS\c\release
             set LZO_DIR=c:\stuff\lzo-1.07
             set UCL_DIR=c:\stuff\ucl-1.01
 
@@ -193,7 +193,7 @@ but other compilers should work as well.
    specifying the directory containing the include and lib directory.
    For example:
 
-            --hdf5=c:\stuff\5-16-winVS\c\release --lzo=c:\stuff\lzo-1.08
+            --hdf5=c:\stuff\5-160-winVS\c\release --lzo=c:\stuff\lzo-1.08
             --ucl=c:\stuff\ucl-1.01
 
 </Windows>

@@ -18,10 +18,16 @@ void *wrkmem;
 
 /* Activate the checksum. It is safer and takes only a 1% more of
    space and a 2% more of CPU (but sometimes is faster than without
-   checksum, which is almost negligible.
+   checksum, which is almost negligible.  However, this change will
+   make impossible to read the old format without CHECKSUM. The
+   VERSION in table can be used to distinguish the cases?. I think that
+   can be a good solution. F. Alted 2003/07/22
+ * 
+ * Undef CHECKSUM for pytables 0.5 backward compatibility.
+ * F. Alted 2003/07/28
 */
 
-#define CHECKSUM
+#undef CHECKSUM
 
 int register_lzo(void) {
 

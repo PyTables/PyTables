@@ -203,14 +203,6 @@
 <!--    <chapter kind='preface'> -->
 <!--       <heading></heading> -->
 
-<!--       <aphorism>La sabiduría no vale la pena si no es posible servirse -->
-<!-- 	de ella para inventar una nueva manera de preparar los -->
-<!-- 	garbanzos.  <caption>in "Cien años de soledad". Gabriel García -->
-<!-- 	Márquez</caption> -->
-<!--       </aphorism> -->
-
-<!--     </chapter> -->
-
     <chapter>
       <heading>Introduction</heading>
 
@@ -225,19 +217,21 @@
 	markup="bf">tables</visual> and array objects objects in a
 	hierarchical structure. The foundation of the underlying
 	hierarchical data organization is the excellent
-	<verb>HDF5</verb> library
-	(see <cite refid="HDFWhatIs"></cite>). Right now,
-	<verb>PyTables</verb> provides limited support of all the HDF5
-	functions, but I hope to add the more interesting ones (for
-	<verb>PyTables</verb> needs) in the near future.
+	<verb>HDF5</verb> library (see <cite
+	refid="HDFWhatIs"></cite>).<!--  Right now, <verb>PyTables</verb> -->
+<!-- 	provides limited support for importing generic HDF5 files -->
+<!-- 	(i.e., those which were created with other tools than -->
+<!-- 	<verb>PyTables</verb>), but I hope to add the more interesting -->
+<!-- 	ones as time goes on. Still, I think <verb>PyTables</verb> can -->
+<!-- 	read a wide range of such files. -->
       </p>
       <p>
-	Nonetheless, this package is not intended to serve as a
-	complete wrapper for the entire HDF5 API, but to provide a
-	flexible, <em>very Pythonic</em> tool to deal with (arbitrary)
-	large amounts of data (typically bigger than available memory)
-	in tables and arrays organized in a hierarchical, persistent
-	disk storage.
+	It is important to remark that this package is not intended to
+	serve as a complete wrapper for the entire HDF5 API, but to
+	provide a flexible, <em>very Pythonic</em> tool to deal with
+	(arbitrary) large amounts of data (typically bigger than
+	available memory) in tables and arrays organized in a
+	hierarchical, persistent disk storage.
       </p>
 
       <p>A table is defined as a collection of records whose values
@@ -268,14 +262,14 @@
 
 <verbatim>
 class Particle(IsDescription):
-    name      = Col("CharType", 16)  # 16-character String
-    idnumber  = Col("Int64", 1)      # Signed 64-bit integer
-    ADCcount  = Col("UInt16", 1)     # Unsigned short integer
-    TDCcount  = Col("UInt8", 1)      # unsigned byte
-    grid_i    = Col("Int32", 1)      # integer
-    grid_j    = Col("Int32", 1)      # integer
-    pressure  = Col("Float32", 1)    # float  (single-precision)
-    energy    = Col("Float64", 1)    # double (double-precision)
+    name      = StringCol(16)   # 16-character String
+    idnumber  = Int64Col()      # Signed 64-bit integer
+    ADCcount  = UInt16Col()     # Unsigned short integer
+    TDCcount  = UInt8Col()      # unsigned byte
+    grid_i    = Int32Col()      # integer
+    grid_j    = IntCol()        # integer (equivalent to Int32Col)
+    pressure  = Float32Col(shape=(2,3)) # 2-D float array (single-precision)
+    energy    = FloatCol(shape=(2,3,4)) # 3-D float array (double-precision) 
 </verbatim>
 
       <p>then, you have to pass this class to the table constructor,
@@ -309,6 +303,11 @@ class Particle(IsDescription):
 	    copying the dataset or redefining its structure, even
 	    between different Python sessions.
 	  </item>
+	  <item><em>Multidimensional table cells:</em> You can declare
+	    a column to be formed by general array cells, in addition
+	    to only scalars, as the majority of relational databases
+	    do.
+	  </item>
 	  <item><em>Support of arrays:</em> <verb>Numeric</verb> (see
 	    <cite refid="Numeric"></cite>) or <verb>numarray</verb>
 	    (see <cite refid="Numarray"></cite>) arrays are a very
@@ -321,12 +320,6 @@ class Particle(IsDescription):
 	    tree</em> in memory that replicates the underlying file
 	    data structure. Access to the file objects is achieved by
 	    walking throughout this object tree, and manipulating it.
-	  </item>
-	  <item><em>Automatically check for correct field name, and
-	    data type:</em> That reduces programmer mistakes and if
-	    <visual markup="tt">PyTables</visual> does not report an
-	    error, you can be more confident that your data is
-	    probably ok.
 	  </item>
 	  <item><em>Support of files bigger than 2 GB:</em> The
 	    underlying HDF5 library already can do that (if your
@@ -451,9 +444,9 @@ class Particle(IsDescription):
 from tables import *
 
 class Particle(IsDescription):
-    identity = Col("CharType", 16, " ", pos = 0)  # character String
-    idnumber = Col("Int16", 1, pos = 1)  # short integer
-    speed = Col("Float32", 1, pos = 1)  # single-precision
+    identity = StringCol(length=22, dflt=" ", pos = 0)  # character String
+    idnumber = Int16Col(1, pos = 1)  # short integer
+    speed    = Float32Col(1, pos = 1)  # single-precision
 
 # Open a file in "w"rite mode
 fileh = openFile("objecttree.h5", mode = "w")
@@ -505,7 +498,7 @@ fileh.close()
 	</p>
 
 	<figure id="objecttree-h5">
-	  <graphics file="objecttree-h5" scale="0.6" kind="bitmap">
+	  <graphics file="objecttree-h5" scale="0.5" kind="bitmap">
 	  </graphics>
 	  <caption>An HDF5 example with 2 subgroups, 2 tables and 1
 	    array.</caption>
@@ -554,20 +547,20 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 <!-- 	vist <caption>Lluís Llach in the song "Petit País"</caption> -->
 <!--       </aphorism> -->
 
-      <aphorism>T'adones, company,<newline/>
-	no volen arguments,<newline/>
-	usen la força,<newline/>
-	t'adones, amic.<newline/>
-	T'adones, company,<newline/>
-	que hem de sortir al carrer<newline/>
-	junts, molts, com més millor,<newline/>
-	si no volem perdre-ho tot,<newline/>
-	t'adones, amic.<newline/>
-	<caption>Raimon in the song "T'adones, amic"</caption>
-      </aphorism>
+<!--       <aphorism>T'adones, company,<newline/> -->
+<!-- 	no volen arguments,<newline/> -->
+<!-- 	usen la força,<newline/> -->
+<!-- 	t'adones, amic.<newline/> -->
+<!-- 	T'adones, company,<newline/> -->
+<!-- 	que hem de sortir al carrer<newline/> -->
+<!-- 	junts, molts, com més millor,<newline/> -->
+<!-- 	si no volem perdre-ho tot,<newline/> -->
+<!-- 	t'adones, amic.<newline/> -->
+<!-- 	<caption>Raimon in the song "T'adones, amic"</caption> -->
+<!--       </aphorism> -->
 
-<!--       <aphorism>Make things as simple as possible, but not any -->
-<!-- 	simpler.  <caption>Einstein</caption> </aphorism> -->
+      <aphorism>Make things as simple as possible, but not any
+	simpler.  <caption>Albert Einstein</caption> </aphorism>
 
       <p>The Python <verb>Distutils</verb> are used to build and
 	install <verb>PyTables</verb>, so it is fairly simple to get
@@ -581,8 +574,8 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  have Unix, or want to compile PyTables for Windows, jump to
 	  the next section.
 	</p>
-	<p>First, make sure that you have HDF5 1.4.x or higher and
-	  numarray 0.6 or higher installed (I'm using HDF5 1.4.5-post2
+	<p>First, make sure that you have HDF5 1.6.x or higher and
+	  numarray 0.6 or higher installed (I'm using HDF5 1.6.0
 	  and numarray 0.6 currently). If don't, you can find them at
 	  <verb>http://hdf.ncsa.uiuc.edu/HDF5</verb> and
 	  <verb>http://sourceforge.net/projects/numpy/</verb>. Download
@@ -593,17 +586,24 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	</p>
 	<p>Download the
 	  <verb>tables-&lt;version>.win32-py&lt;version>.exe</verb>
-	  file and execute it.
+	  file and execute it. You are done!.
 	</p>
 	<p>You can (<em>you should</em>) test your installation by
 	  unpacking the source tarball. Go to the <verb>test/</verb>
-	  directory and execute the <verb>test_all.py</verb>
-	  script. If all the tests passes (maybe with a couple of
-	  warnings, related with the possibly missing LZO and UCL
-	  libs, but that's ok for the binary version) you already have
-	  a working, well tested, copy of PyTables installed!. If not,
-	  please, execute the <verb>test_all.py -v</verb> and return
-	  the output to me.
+	  directory, add the directory "<verb>..</verb>" to the
+	  <verb>PYTHONPATH</verb>environment variable, e.g.:
+	</p>
+
+	<verbatim>
+	  set PYTHONPATH=..
+	</verbatim>
+
+	<p>and execute the <verb>test_all.py</verb> script. If all the
+	  tests passes (maybe with a couple of warnings, related with
+	  the possibly missing LZO and UCL libs, but that's ok for the
+	  binary version) you already have a working, well tested,
+	  copy of PyTables installed!. If don't, please, execute the
+	  <verb>test_all.py -v</verb> and return the output to me.
 	</p>
 	<p>If you want support for LZO and UCL libraries (see <ref
 	  refid="compressionIssues">section</ref> for hints about what
@@ -656,9 +656,9 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	<enumerate>
 
 	  <item>
-	    <p>First, make sure that you have <verb>HDF5 1.4.x</verb>
+	    <p>First, make sure that you have <verb>HDF5 1.6.x</verb>
 	      and <verb>numarray 0.6</verb> or higher installed (I'm
-	      using <verb>HDF5 1.4.5-post2</verb> and <verb>numarray
+	      using <verb>HDF5 1.6.0</verb> and <verb>numarray
 	      0.6</verb> currently). If don't, you can find them at
 	      <newline/>
 	      <verb>http://hdf.ncsa.uiuc.edu/HDF5</verb> and
@@ -716,7 +716,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		</p>
 
 		<verbatim>
-		  --hdf5=/stuff/hdf5-1.4.5
+		  --hdf5=/stuff/hdf5-1.6.0
 		  --ucl=/stuff/ucl-1.0.1
 		</verbatim>
 
@@ -727,12 +727,12 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		  library on the command line as well. For example:
 		</p>
 		<verbatim>
-		  --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.4.5/lib"
+		  --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.0/lib"
 		</verbatim>
 		<p>or perhaps just
 		</p>
 		<verbatim>
-		  --lflags="-R /stuff/hdf5-1.4.5/lib"
+		  --lflags="-R /stuff/hdf5-1.6.0/lib"
 		</verbatim>
 
 		<p>Check your compiler and linker documentation for correct
@@ -743,8 +743,8 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		  libraries with the <verb>--libs</verb> switch:
 		</p>
 		<verbatim>
-		  --libs="-lhdf5-1.4.6"
-		  --libs="-lhdf5-1.4.6 -lnsl"
+		  --libs="-lhdf5-1.6.5"
+		  --libs="-lhdf5-1.6.5 -lnsl"
 		</verbatim>
 	      </item>
 	      <term>Windows</term>
@@ -776,7 +776,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		<p>For example:
 		</p>
 		<verbatim>
-		  set HDF5_DIR=c:\stuff\5-145-winVS\c\release
+		  set HDF5_DIR=c:\stuff\5-160-winVS\c\release
 		  set LZO_DIR=c:\stuff\lzo-1.07
 		  set UCL_DIR=c:\stuff\ucl-1.01
 		</verbatim>
@@ -788,7 +788,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		</p>
 
 		<verbatim>
-		  --hdf5=c:\stuff\5-146-winVS\c\release --lzo=c:\stuff\lzo-1.07
+		  --hdf5=c:\stuff\5-160-winVS\c\release --lzo=c:\stuff\lzo-1.07
 		  --ucl=c:\stuff\ucl-1.01
 		</verbatim>	
 	      </item>
@@ -859,11 +859,11 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		point to the directory where the libraries are.
 	      </item>
 	      <term>Windows</term> <item>Put the DLL libraries
-	      (<verb>hdf5dll.dll</verb> and, optionally,
-	      <verb>lzo.dll</verb> and <verb>ucl.dll</verb>) on a
-	      directory listed on your <verb>PATH</verb> environment
-	      variable.  The <verb>setup.py</verb> should already
-	      warned you about that.
+		(<verb>hdf5dll.dll</verb> and, optionally,
+		<verb>lzo.dll</verb> and <verb>ucl.dll</verb>) on a
+		directory listed on your <verb>PATH</verb> environment
+		variable.  The <verb>setup.py</verb> should already
+		warned you about that.
 	      </item>
 	    </description>
 	  </item>
@@ -2247,11 +2247,9 @@ Event = {
 fileh = openFile("tutorial2.h5", mode = "w")
 # Get the HDF5 root group
 root = fileh.root
-
 # Create the groups:
 for groupname in ("Particles", "Events"):
     group = fileh.createGroup(root, groupname)
-
 # Now, create and fill the tables in Particles group
 gparticles = root.Particles
 # Create 3 new tables
@@ -2267,11 +2265,13 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
         particle['name'] = 'Particle: %6d' % (i)
         particle['lati'] = i 
         particle['longi'] = 10 - i
-        particle['pressure'] = array(i*arange(2*3), shape=(2,3))
-        particle['temperature'] = array((i**2)*arange(2*3, shape=(2,3)))
+        ########### Detectable errors start here. Play with them!
+        particle['pressure'] = array(i*arange(2*3), shape=(2,4))  # Incorrect
+        #particle['pressure'] = array(i*arange(2*3), shape=(2,3))  # Correct
+        ########### End of errors
+        particle['temperature'] = (i**2)     # Broadcasting
         # This injects the Record values
         particle.append()      
-
     # Flush the table buffers
     table.flush()
 
@@ -2288,8 +2288,8 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
         event['name']  = 'Event: %6d' % (i)
         event['TDCcount'] = i % (1&lt;&lt;8)   # Correct range
         ########### Detectable errors start here. Play with them!
-        event['xcoord'] = float(i**2)   # Correct spelling
-        #event['xcoor'] = float(i**2)     # Wrong spelling
+        #event['xcoord'] = float(i**2)   # Correct spelling
+        event['xcoor'] = float(i**2)     # Wrong spelling
         event['ADCcount'] = i * 2        # Correct type
         #event['ADCcount'] = "s"          # Wrong type
         ########### End of errors
@@ -2307,17 +2307,60 @@ e = [ p['TDCcount'] for p in table
 print "Last record ==>", p
 print "Selected values ==>", e
 print "Total selected records ==> ", len(e)
-
 # Finally, close the file (this also will flush all the remaining buffers!)
 fileh.close()
 	</verbatim>
 
 	<subsection>
-	  <heading>Field name checking</heading>
+	  <heading>Shape checking</heading>
 
 	  <p>If you have read the code carefully it looks pretty good,
 	    but it won't work. When you run this example, you will get
-	    the next error:
+	    the next error:</p>
+
+	<verbatim>
+$ python tutorial2.py
+Traceback (most recent call last):
+  File "tutorial2.py", line 53, in ?
+    particle['pressure'] = array(i*arange(2*3), shape=(2,4))  # Incorrect
+  File "/usr/local/lib/python2.2/site-packages/numarray/numarraycore.py", line 281, in array
+    a.setshape(shape)
+  File "/usr/local/lib/python2.2/site-packages/numarray/generic.py", line 530, in setshape
+    raise ValueError("New shape is not consistent with the old shape")
+ValueError: New shape is not consistent with the old shape
+	</verbatim>
+
+	  <p>which is saying that you are trying to assign an array of
+	    incompatible shape to a table cell. If you look at the
+	    source, we were trying to assign an array of shape
+	    <verb>(2,4)</verb> to a pressure<verb></verb> element,
+	    which was defined to have a shape of
+	    <verb>(2,3)</verb>.
+	  </p>
+	  <p>In general, this kind of operations are forbidden, with
+	    a honorable exception: when you tries to assign an
+	    <em>scalar</em> value to a column cell that is
+	    multidimensional, all the cell elements are populated with
+	    the value of this scalar. This happens in the next line:
+	  </p>
+
+	  <verbatim>
+        particle['temperature'] = (i**2)    # Broadcasting
+	  </verbatim>
+
+	  <p>So, the value <verb>i**2</verb> is assigned to all the
+	    elements of the <verb>temperature</verb> table cell. This
+	    capability is provided by the <verb>numarray</verb>
+	    package and is known as <em>broadcasting</em>.
+	  </p>
+
+	</subsection>
+
+	<subsection>
+	  <heading>Field name checking</heading>
+
+	  <p>After fixing the previous error, and re-running again the
+	  program, we will get another one:
 	  </p>
 	  <verbatim>
 $ python tutorial2.py
@@ -2425,6 +2468,94 @@ AttributeError: Error setting "ADCcount" attr.
 	perfectly.
       </p>
 
+      <section>
+	<heading>Taking advantage of Psyco</heading>
+
+	<p>Psyco (see <cite refid="psycoRef"></cite>)is a kind of
+	  specialized compiler for Python that typically accelerates
+	  Python applications with no change in source code. You can
+	  think of Psyco as a kind of just-in-time (JIT) compiler, a
+	  little bit like Java's, that emit machine code on the fly
+	  instead of interpreting your Python program step by
+	  step. The result is that your unmodified Python programs run
+	  faster.
+	</p>
+
+	<p>Psyco is very easy to install and use, so in most scenarios
+	  it is worth to have it a try. However, it only runs on Intel
+	  386 architectures, so if you are using other architectures,
+	  you are out of luck (at least until Psyco will support
+	  yours).
+	</p>
+
+	<p>As an example, imagine that you have a small script that
+	  reads and selects data over a series of datasets, like this:
+	</p>
+
+	<verbatim>
+def readFile(filename):
+    "Select data from all the tables in filename"
+
+    fileh = openFile(filename, mode = "r")
+    result = []
+    for table in fileh("/", 'Table'):
+        result = [ p['var3'] for p in table if p['var2'] &lt;= 20 ]
+
+    fileh.close()
+    return e
+
+if __name__=="__main__":
+    print readFile("myfile.h5")
+	</verbatim>
+
+	<p>In order to accelerate this piece of code, you can rewrite
+	  your main program to look like:
+	</p>
+
+	<verbatim>
+if __name__=="__main__":
+    import pysco
+    psyco.bind(readFile)
+    print readFile("myfile.h5")
+	</verbatim>
+
+	<p>That's all!. From now on, each time that you execute your
+	  python script, Psyco will deploy its sophisticated
+	  algorithms so as to accelerate your calculations.
+	</p>
+
+	<p>You can see in the graphs <ref
+	  refid="psycoWriteComparison"></ref> and <ref
+	  refid="psycoReadComparison"></ref> how much I/O speed
+	  improvement you can get by using Psyco. By looking at this
+	  figures you can get an idea if these improvements are of
+	  your interest or not. In general, if you are not going to
+	  use compression you will take advantage of Psyco if your
+	  tables are medium sized (1e+3 &lt; nrows &lt; 1e+6), and
+	  this advantage will disappear progressively when the number
+	  of rows grows well over one million. However if you use
+	  compression, you will probably see improvements even beyond
+	  this limit (see <ref
+	  refid="compressionIssues">section</ref>). As always, there
+	  is no substitute for experimentation with your own dataset.
+	</p>
+
+	<figure id="psycoWriteComparison">
+	  <graphics file="write-medium-psyco-nopsyco-comparison" scale="0.75" kind="vector">
+	  </graphics>
+	  <caption>Writing tables with/without Psyco.
+	  </caption>
+	</figure>
+
+	<figure id="psycoReadComparison">
+	  <graphics file="read-medium-psyco-nopsyco-comparison" scale="0.75" kind="vector">
+	  </graphics>
+	  <caption>Reading tables with/without Psyco.
+	  </caption>
+	</figure>
+
+      </section>
+
       <section id="compressionIssues">
 	<heading>Compression issues</heading>
 
@@ -2504,18 +2635,23 @@ AttributeError: Error setting "ADCcount" attr.
 	<p>In order to give you a raw idea of what ratios would be
 	  achieved, and what resources would be consumed, look at the
 	  <ref refid="comprTblComparison">table</ref>. This table has
-	  been obtained from synthetic data, so take this just as a
+	  been obtained from synthetic data and with a somewhat
+	  outdated PyTables version (0.5), so take this just as a
 	  guide because your mileage will probably vary. Have also a
 	  look at the graphs <ref
 	  refid="lzozlibuclWriteComparison"></ref> and <ref
 	  refid="lzozlibuclReadComparison"></ref> (these graphs has
-	  been obtained with tables with different row sizes than the
-	  previous example, so, do not try to compare the
-	  figures). They show how evolves the speed of writing/reading
-	  rows as the size (the row number) of tables grows. Even
-	  though in these graphs the size of one single row is 56
-	  bytes, you can most probably extrapolate this figures to
-	  other row sizes.
+	  been obtained with tables with different row sizes and
+	  PyTables version than the previous example, so, do not try
+	  to directly compare the figures). They show how evolves the
+	  speed of writing/reading rows as the size (the row number)
+	  of tables grows. Even though in these graphs the size of one
+	  single row is 56 bytes, you can most probably extrapolate
+	  this figures to other row sizes. If you are curious how well
+	  can perform compression together with Psyco, look at the
+	  graphs <ref refid="psycolzozlibuclWriteComparison"></ref>
+	  and <ref refid="psycolzozlibuclReadComparison"></ref>. As
+	  you can see, the results are pretty interesting.
 	</p>
 
 	<table id="comprTblComparison">
@@ -2556,16 +2692,32 @@ AttributeError: Error setting "ADCcount" attr.
 	  </caption>
 	</figure>
 
+	<figure id="psycolzozlibuclWriteComparison">
+	  <graphics file="write-medium-psyco-lzo-zlib-ucl-comparison" scale="0.75" kind="vector">
+	  
+	  </graphics>
+	  <caption>Writing tables with several compressors and Psyco.
+	  </caption>
+	</figure>
+
+	<figure id="psycolzozlibuclReadComparison">
+	  <graphics file="read-medium-psyco-lzo-zlib-ucl-comparison" scale="0.75" kind="vector">
+	  
+	  </graphics>
+	  <caption>Reading tables with several compressors and Psyco.
+	  </caption>
+	</figure>
+
 	<p>
-	  However, you can expect that, in general, LZO would be the
-	  fastest both compressing and uncompressing, but the one
-	  that achieves the worse compression ratio (although that
-	  may be just ok for many situations). UCL is the slowest
-	  when compressing, but is faster than Zlib when
-	  decompressing, and, besides, it achieves very good
-	  compression ratios (generally better than Zlib). Zlib
-	  represents a balance between them: it's somewhat slow
-	  compressing, the slowest during decompressing, but it
+	  By looking at graphs, you can expect that, generally
+	  speaking, LZO would be the fastest both compressing and
+	  uncompressing, but the one that achieves the worse
+	  compression ratio (although that may be just ok for many
+	  situations). UCL is the slowest when compressing, but is
+	  faster than Zlib when decompressing, and, besides, it
+	  achieves very good compression ratios (generally better than
+	  Zlib). Zlib represents a balance between them: it's somewhat
+	  slow compressing, the slowest during decompressing, but it
 	  normally achieves fairly good compression ratios.
 	</p>
 
@@ -2599,97 +2751,6 @@ AttributeError: Error setting "ADCcount" attr.
 	  when using LZO, 0 means that compression is not active,
 	  and any other value means that LZO is active.
 	</p>
-
-      </section>
-
-      <section>
-	<heading>Taking advantage of Psyco</heading>
-
-	<p>Psyco (see <cite refid="psycoRef"></cite>)is a kind of
-	  specialized compiler for Python that typically accelerates
-	  Python applications with no change in source code. You can
-	  think of Psyco as a kind of just-in-time (JIT) compiler, a
-	  little bit like Java's, that emit machine code on the fly
-	  instead of interpreting your Python program step by
-	  step. The result is that your unmodified Python programs run
-	  faster.
-	</p>
-
-	<p>Psyco is very easy to install and use, so in most scenarios
-	  it is worth to have it a try. However, Psyco only runs on
-	  Intel 386 architectures. So, if you are using other
-	  architectures you are out of luck (at least until Psyco will
-	  support yours).
-	</p>
-
-	<p>As an example, imagine that you have a small script that
-	  reads and selects data over a series of datasets, like this:
-	</p>
-
-	<verbatim>
-def readFile(filename):
-    "Select data from a filename"
-
-    fileh = openFile(filename, mode = "r")
-    result = []
-    for groupobj in fileh.walkGroups(fileh.root):
-        for table in fileh.listNodes(groupobj, 'Table'):
-            rowsize = table.rowsize
-                result = [ p['var3'] for p in table.iterrows()
-                           if p['var2'] == 20 ]
-
-    fileh.close()
-
-    return e
-
-if __name__=="__main__":
-    print readFile("myfile.h5")
-	</verbatim>
-
-	<p>In order to accelerate this piece of code, you can rewrite
-	  your main program to look like:
-	</p>
-
-	<verbatim>
-if __name__=="__main__":
-    import pysco
-    psyco.bind(readFile)
-    print readFile("myfile.h5")
-	</verbatim>
-
-	<p>That's all!. From now on, each time that you execute your
-	  python script, Psyco will deploy its sophisticated
-	  algorithms so as to accelerate your calculations.
-	</p>
-
-	<p>You can see in the graphs <ref
-	  refid="psycoWriteComparison"></ref> and <ref
-	  refid="psycoReadComparison"></ref> how much I/O speed
-	  improvement you can get by using Psyco. By looking at this
-	  figures you can get an idea if these improvements are of
-	  your interest or not. In general, if you are not going to
-	  use compression you will take advantage of Psyco if your
-	  tables are medium sized (1000 &lt; nrows &lt; 100000), and
-	  this advantage will disappear progressively when the number
-	  of rows grows well over one million. However if you use
-	  compression, you will probably see improvements even beyond
-	  this limit. As always, there is no substitute for
-	  experimentation with your own dataset.
-	</p>
-
-	<figure id="psycoWriteComparison">
-	  <graphics file="write-medium-psyco-lzo-comparison" scale="1.0" kind="vector">
-	  </graphics>
-	  <caption>Writing tables with/without Psyco and compression.
-	  </caption>
-	</figure>
-
-	<figure id="psycoReadComparison">
-	  <graphics file="read-medium-psyco-lzo-comparison" scale="1.0" kind="vector">
-	  </graphics>
-	  <caption>Reading tables with/without Psyco and compression.
-	  </caption>
-	</figure>
 
       </section>
 
@@ -2769,10 +2830,11 @@ if __name__=="__main__":
 	  refid="rootUEPfig2">figure</ref>.
 	</p>
 
-	<p>Of course this has been a simple example and it was not
-	  necessary at all to do that. But when you have
-	  <em>thousands</em> of nodes on a tree, you will certainly
-	  appreciate the <verb>rootUEP</verb> parameter.
+	<p>Of course this has been a simple example and it and the use
+	  of the <verb>rootUEP</verb> parameter was not very
+	  necessary. But when you have <em>thousands</em> of nodes on
+	  a tree, you will certainly appreciate the
+	  <verb>rootUEP</verb> parameter.
 	</p>
 
 	<figure id="rootUEPfig1">

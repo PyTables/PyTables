@@ -29,11 +29,9 @@ Event = {
 fileh = openFile("tutorial2.h5", mode = "w")
 # Get the HDF5 root group
 root = fileh.root
-
 # Create the groups:
 for groupname in ("Particles", "Events"):
     group = fileh.createGroup(root, groupname)
-
 # Now, create and fill the tables in Particles group
 gparticles = root.Particles
 # Create 3 new tables
@@ -49,11 +47,13 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
         particle['name'] = 'Particle: %6d' % (i)
         particle['lati'] = i 
         particle['longi'] = 10 - i
-        particle['pressure'] = array(i*arange(2*3), shape=(2,3))
-        particle['temperature'] = array((i**2)*arange(2*3, shape=(2,3)))
+        ########### Detectable errors start here. Play with them!
+        particle['pressure'] = array(i*arange(2*3), shape=(2,4))  # Incorrect
+        #particle['pressure'] = array(i*arange(2*3), shape=(2,3))  # Correct
+        ########### End of errors
+        particle['temperature'] = (i**2)     # Broadcasting
         # This injects the Record values
         particle.append()      
-
     # Flush the table buffers
     table.flush()
 
@@ -70,15 +70,14 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
         event['name']  = 'Event: %6d' % (i)
         event['TDCcount'] = i % (1<<8)   # Correct range
         ########### Detectable errors start here. Play with them!
-        event['xcoord'] = float(i**2)   # Correct spelling
-        #event['xcoor'] = float(i**2)     # Wrong spelling
+        #event['xcoord'] = float(i**2)   # Correct spelling
+        event['xcoor'] = float(i**2)     # Wrong spelling
         event['ADCcount'] = i * 2        # Correct type
         #event['ADCcount'] = "s"          # Wrong type
         ########### End of errors
         event['ycoord'] = float(i)**4
         # This injects the Record values
         event.append()
-
     # Flush the buffers
     table.flush()
 
@@ -89,6 +88,5 @@ e = [ p['TDCcount'] for p in table
 print "Last record ==>", p
 print "Selected values ==>", e
 print "Total selected records ==> ", len(e)
-
 # Finally, close the file (this also will flush all the remaining buffers!)
 fileh.close()
