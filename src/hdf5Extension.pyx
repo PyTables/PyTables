@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.48 2003/06/03 20:22:58 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.49 2003/06/04 11:14:56 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.48 $"
+__version__ = "$Revision: 1.49 $"
 
 
 import sys, os
@@ -287,6 +287,8 @@ cdef extern from *:
 
   herr_t H5check_version(unsigned majnum, unsigned minnum,
           unsigned relnum )
+
+  herr_t H5Adelete(hid_t loc_id, char *name )
      
 # Functions from HDF5 HL Lite
 cdef extern from "H5LT.h":
@@ -585,7 +587,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.48 2003/06/03 20:22:58 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.49 2003/06/04 11:14:56 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -672,57 +674,50 @@ cdef class AttributeSet:
     cdef hid_t loc_id
 
     if isinstance(self.node, Group):
-      #print "self.node._v_groupId ==>", self.node._v_groupId
-      #print "self.node ==>", self.node._v_name
       # Return a tuple with the attribute list
       attrlist = Aiterate(self.node._v_groupId)
     else:
       # Get the dataset ID (the Leaf objects are always closed)
       loc_id = H5Dopen(self.parent_id, self.name)
       if loc_id < 0:
-        raise RuntimeError("Cannot open the dataset \"%s\"" % self.name)
+        raise RuntimeError("Cannot open the dataset '%s'" % self.name)
       attrlist = Aiterate(loc_id)
       # Close this dataset
       ret = H5Dclose(loc_id)
       if ret < 0:
-        raise RuntimeError("Cannot close the dataset \"%s\"" % self.name)
+        raise RuntimeError("Cannot close the dataset '%s'" % self.name)
 
     return attrlist
 
-  def _g_setLeafAttrStr(self, char *dsetname, char *attrname, char *attrvalue):
+  def _g_setAttrStr(self, char *attrname, char *attrvalue):
     cdef int ret
-      
-    ret = H5LTset_attribute_string(self.parent_id, dsetname,
-                                   attrname, attrvalue)
-    if ret < 0:
-      raise RuntimeError("Can't set attribute %s in leaf %s." % 
-                             (self.attrname, dsetname))
 
-  def _g_setGroupAttrStr(self, char *attrname, char *attrvalue):
-    cdef int ret
-      
     ret = H5LTset_attribute_string(self.parent_id, self.name,
                                    attrname, attrvalue)
     if ret < 0:
-      raise RuntimeError("Can't set attribute %s in group %s." % 
-                             (self.attrname, self.name))
+      raise RuntimeError("Can't set attribute '%s' in node:\n %s." % 
+                         (attrname, self.node))
 
-  def _g_getLeafAttrStr(self, char *dsetname, char *attrname):
+  def _g_getAttrStr(self, char *attrname):
     cdef object attrvalue
     cdef hid_t loc_id
 
-    # Get the dataset ID
-    loc_id = H5Dopen(self.parent_id, dsetname)
-    if loc_id < 0:
-      raise RuntimeError("Cannot open the dataset %s in node %s" % \
-                         (dsetname, self.name))
+    if isinstance(self.node, Group):
+      attrvalue = self._g_getNodeAttrStr(self.parent_id, self.node._v_groupId,
+                                         self.name, attrname)
+    else:
+      # Get the dataset ID
+      loc_id = H5Dopen(self.parent_id, self.name)
+      if loc_id < 0:
+        raise RuntimeError("Cannot open the dataset '%s' in node '%s'" % \
+                           (self.name, self._v_parent._v_name))
 
-    attrvalue = self._g_getNodeAttrStr(self.parent_id, loc_id,
-                                       dsetname, attrname)
-    # Close this dataset
-    ret = H5Dclose(loc_id)
-    if ret < 0:
-      raise RuntimeError("Cannot close the dataset %s" % dsetname)
+      attrvalue = self._g_getNodeAttrStr(self.parent_id, loc_id,
+                                         self.name, attrname)
+      # Close this dataset
+      ret = H5Dclose(loc_id)
+      if ret < 0:
+        raise RuntimeError("Cannot close the dataset '%s'" % self.name)
 
     return attrvalue
 
@@ -733,7 +728,7 @@ cdef class AttributeSet:
     # Get the dataset ID
     loc_id = H5Dopen(self.node._v_groupId, dsetname)
     if loc_id < 0:
-      raise RuntimeError("Cannot open the child %s of node %s" % \
+      raise RuntimeError("Cannot open the child '%s' of node '%s'" % \
                          (dsetname, self.name))
 
     attrvalue = self._g_getNodeAttrStr(self.node._v_groupId, loc_id,
@@ -741,14 +736,9 @@ cdef class AttributeSet:
     # Close this dataset
     ret = H5Dclose(loc_id)
     if ret < 0:
-      raise RuntimeError("Cannot close the dataset %s" % dsetname)
+      raise RuntimeError("Cannot close the dataset '%s'" % dsetname)
 
     return attrvalue
-
-  def _g_getGroupAttrStr(self, char *attrname):
-
-    return self._g_getNodeAttrStr(self.parent_id, self.node._v_groupId,
-                                  self.name, attrname)
 
   # Get attributes (only supports string attributes right now)
   def _g_getNodeAttrStr(self, hid_t parent_id, hid_t loc_id,
@@ -796,6 +786,33 @@ cdef class AttributeSet:
                          % (attrname, dsetname))
                             
     return attrvalue
+
+  def _g_remove(self, attrname):
+    cdef int ret
+    cdef hid_t loc_id
+    
+    if isinstance(self.node, Group):
+      ret = H5Adelete(self.node._v_groupId, attrname ) 
+      if ret < 0:
+        raise RuntimeError("Attribute '%s' exists in node '%s', but cannot be deleted." \
+                         % (attrname, dsetname))
+    else:
+      # Open the dataset
+      loc_id = H5Dopen(self.parent_id, self.name)
+      if loc_id < 0:
+        raise RuntimeError("Cannot open the dataset '%s' in node '%s'" % \
+                           (dsetname, self.name))
+
+    
+      ret = H5Adelete(loc_id, attrname ) 
+      if ret < 0:
+        raise RuntimeError("Attribute '%s' exists in node '%s', but cannot be deleted." \
+                         % (attrname, self.name))
+
+      # Close this dataset
+      ret = H5Dclose(loc_id)
+      if ret < 0:
+        raise RuntimeError("Cannot close the dataset '%s'" % self.name)
 
 
 cdef class Group:

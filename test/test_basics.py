@@ -52,13 +52,13 @@ class OpenFileTestCase(unittest.TestCase):
         arr = fileh.createArray(fileh.root, 'array', [1,2],
                                 title = "Title example")
         # Get the CLASS attribute of the arr object
-        class_ = fileh.root.array.getAttr("CLASS")
+        class_ = fileh.root.array.attrs.CLASS
 
         # Close and delete the file
         fileh.close()
         os.remove(file)
 
-        assert class_ == "Array"
+        assert class_.capitalize() == "Array"
         
     def test01_openFile(self):
         """Checking opening of an existing file"""
@@ -262,7 +262,7 @@ class OpenFileTestCase(unittest.TestCase):
         fileh.close()
 
     def test05b_removeGroupRecursively(self):
-        """Checking removing a group recursively and access immediately"""
+        """Checking removing a group recursively and access to it immediately"""
 
         # Delete a group with leafs
         fileh = openFile(self.file, mode = "r+")
@@ -282,6 +282,37 @@ class OpenFileTestCase(unittest.TestCase):
 
         # This should work now
         fileh.removeNode(fileh.root, 'agroup', recursive=1)
+
+        # Try to get the removed object
+        try:
+            object = fileh.root.agroup
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
+        # Try to get a child of the removed object
+        try:
+            object = fileh.getNode("/agroup/agroup3")
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
+        fileh.close()
+
+    def test05c_removeGroupRecursively(self):
+        """Checking removing a group recursively (__delattr__ version)"""
+
+        # Delete a group with leafs
+        fileh = openFile(self.file, mode = "r+")
+        
+        # Delete a group recursively
+        del fileh.root.agroup
 
         # Try to get the removed object
         try:

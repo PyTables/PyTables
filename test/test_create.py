@@ -319,7 +319,57 @@ class createTestCase(unittest.TestCase):
         if verbose:
             print "Attribute list:", self.array.attrs._f_listAttrs()
         assert self.array.attrs._f_listAttrs() == ["i", "j", "k"]
-	    
+
+    def test10_removeAttributes(self):
+        """Checking removing attributes """
+
+        # With a Group object
+        self.group._v_attrs.pq = "1"
+        self.group._v_attrs.qr = "2"
+        self.group._v_attrs.rs = "3"
+        # delete an attribute
+        self.group._v_attrs._f_remove("pq")
+        if verbose:
+            print "Attribute list:", self.group._v_attrs._f_listAttrs()
+        # Check the local attributes names
+        assert self.group._v_attrs._f_listAttrs() == ["qr", "rs"]
+        if verbose:
+            print "Attribute list in disk:", self.group._v_attrs._g_listAttr()
+        # Check the disk attribute names
+        assert self.group._v_attrs._g_listAttr() == \
+               ('TITLE', 'CLASS', 'VERSION', "qr", "rs")
+
+        # delete an attribute (__delattr__ method)
+        del self.group._v_attrs.qr
+        if verbose:
+            print "Attribute list:", self.group._v_attrs._f_listAttrs()
+        # Check the local attributes names
+        assert self.group._v_attrs._f_listAttrs() == ["rs"]
+        if verbose:
+            print "Attribute list in disk:", self.group._v_attrs._g_listAttr()
+        # Check the disk attribute names
+        assert self.group._v_attrs._g_listAttr() == \
+               ('TITLE', 'CLASS', 'VERSION', "rs")
+
+    def test11_renameAttributes(self):
+        """Checking renaming attributes """
+
+        # With a Group object
+        self.group._v_attrs.pq = "1"
+        self.group._v_attrs.qr = "2"
+        self.group._v_attrs.rs = "3"
+        # rename an attribute
+        self.group._v_attrs._f_rename("pq", "op")
+        if verbose:
+            print "Attribute list:", self.group._v_attrs._f_listAttrs()
+        # Check the local attributes names (alphabetically sorted)
+        assert self.group._v_attrs._f_listAttrs() == ["op", "qr", "rs"]
+        if verbose:
+            print "Attribute list in disk:", self.group._v_attrs._g_listAttr()
+        # Check the disk attribute names (not sorted)
+        assert self.group._v_attrs._g_listAttr() == \
+               ('TITLE', 'CLASS', 'VERSION', "qr", "rs", "op")
+
         
 #----------------------------------------------------------------------
 

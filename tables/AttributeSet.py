@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.2 2003/06/03 20:22:58 falted Exp $
+#       $Id: AttributeSet.py,v 1.3 2003/06/04 11:14:57 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.2 $"
+__version__ = "$Revision: 1.3 $"
 
 # Note: the next constant has to be syncronized with the
 # MAX_ATTRS_IN_NODE constant in util.h!
@@ -67,18 +67,20 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     Methods:
     
         _f_listAttrs()
-        _f_rename(newname)
-        _f_remove()
         __getattr__(attrname)
-        __getAttr__(attrname, attrvalue)
+        __setattr__(attrname, attrvalue)
+        __delattr__(attrname)
+        _f_remove(attrname)
+        _f_rename(oldattrname, newattrname)
         _f_close()
         
     Instance variables:
 
         attrname -- The name of an attribute in Python namespace
-        _v_attrname_hdf5name -- The name of this attrname in HDF5 file namespace
         _v_node -- The parent node instance
-        _v_attrnames -- List with attribute names
+        _v_attrnames -- List with all attribute names
+        _v_attrnamessys -- List with system attribute names
+        _v_attrnamesuser -- List with user attribute names
 
     """
 
@@ -104,8 +106,14 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
             else:
                 self._v_attrnamesuser.append(attr)
 
+        # Sort the attributes
+        self._v_attrnames.sort()
+        self._v_attrnamessys.sort()
+        self._v_attrnamesuser.sort()
+
     def _f_listAttrs(self, set="user"):
         "Return the list of attributes of the parent node"
+        
         if set == "user":
             return self._v_attrnamesuser
         elif set == "sys":
@@ -116,18 +124,11 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     def __getattr__(self, name):
         """Get the HDF5 attribute named "name"."""
 
-        #print self._v_node._v_name
-        #print "Getting the", name, "attribute in node", self._v_node._v_pathname
-        #print self._v_attrnames
-
         # If attribute does not exists, return None
         if not name in self._v_attrnames:
             return None
 
-        if isinstance(self._v_node, Group.Group):
-            return self._g_getGroupAttrStr(name)
-        else:
-            return self._g_getLeafAttrStr(self._v_node._v_hdf5name, name)
+        return self._g_getAttrStr(name)
 
     def __setattr__(self, name, value):
         """Attach new nodes to the tree.
@@ -141,8 +142,6 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         """
 
-        #print "Setting the", name, "attribute in node", self._v_node._v_pathname
-        #print self._v_attrnames
         # Check for name validity
         checkNameValidity(name)
 
@@ -160,11 +159,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
             
         # Check if we have too much numbers of attributes
         if len(self._v_attrnames) < MAX_ATTRS_IN_NODE:
-            if isinstance(self._v_node, Group.Group):
-                self._g_setGroupAttrStr(name, value)
-            else:
-                self._g_setLeafAttrStr(self._v_node._v_hdf5name, name, value)
-
+            self._g_setAttrStr(name, value)
         else:
             raise RuntimeError, \
                "'%s' node has exceeded the maximum number of attrs (%d)" % \
@@ -174,6 +169,69 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         if not name in self._v_attrnames:
             self._v_attrnames.append(name)
             self._v_attrnamesuser.append(name)
+
+        # Sort the attributes
+        self._v_attrnames.sort()
+        self._v_attrnamesuser.sort()
+
+    def __delattr__(self, name):
+        "Remove the attribute attrname from the attribute set"
+        self._f_remove(name)
+
+    def _f_remove(self, attrname):
+        "Remove the attribute attrname from the attribute set"
+
+        # Check if attribute exists
+        if attrname not in self._v_attrnames:
+            raise RuntimeError, \
+                  "Attribute ('%s') does not exist in node '%s'" % \
+                  (name, self._v_node._v_name)
+
+        # The system attributes are protected
+        if attrname in self._v_attrnamessys:
+            raise RuntimeError, \
+                  "System attribute ('%s') cannot be overwritten" % (name)
+
+        # Delete the attribute from disk
+        self._g_remove(attrname)
+
+        # Delete the attribute from local lists
+        self._v_attrnames.remove(attrname)
+        self._v_attrnamesuser.remove(attrname)
+
+    def _f_rename(self, oldattrname, newattrname):
+        "Rename an attribute"
+
+        if oldattrname == newattrname:
+            # Do nothing
+            return
+        
+        # if oldattrname or newattrname are system attributes, raise an error
+        for name in [oldattrname, newattrname]:
+            if (name in SYS_ATTR or
+                reduce(lambda x,y: x+y,
+                       [name.startswith(prefix)
+                        for prefix in SYS_ATTR_PREFIXES])):
+                raise RuntimeError, \
+                      "System attribute ('%s') cannot be overwritten or renamed" % (name)
+
+
+        # First, fetch the value of the oldattrname
+        attrvalue = getattr(self, oldattrname)
+
+        # Now, create the new attribute
+        setattr(self, newattrname, attrvalue)
+
+        # Finally, remove the old attribute
+        self._f_remove(oldattrname)
+
+    def _f_close():
+        "Delete all the local variables in self to free memory"
+
+        del self._v_node
+        del self._v_attrnames
+        del self._v_attrnamesuser
+        del self._v_attrnamessys
 
     def __str__(self):
         """The string representation for this object."""

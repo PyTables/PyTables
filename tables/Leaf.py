@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.19 2003/06/03 20:22:58 falted Exp $
+#       $Id: Leaf.py,v 1.20 2003/06/04 11:14:57 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.19 $"
+__version__ = "$Revision: 1.20 $"
 
 import types
 from utils import checkNameValidity
@@ -182,6 +182,6 @@ class Leaf:
         shape = str(self.shape)
         # The title
         title = self.attrs.TITLE
-        return "%s %s%s %r" % \
+        return "%s (%s%s) %r" % \
                (pathname, classname, shape, title)
 

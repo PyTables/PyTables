@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.32 2003/06/03 20:22:58 falted Exp $
+#       $Id: Group.py,v 1.33 2003/06/04 11:14:57 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.32 $"
+__version__ = "$Revision: 1.33 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -74,6 +74,9 @@ class Group(hdf5Extension.Group, object):
     
         _f_listNodes([classname])
         _f_walkGroups()
+        __delattr__(name)
+        __getattr__(name)
+        __setattr__(name, object)
         _f_rename(newname)
         _f_remove(recursive=0)
         _f_getAttr(attrname)
@@ -121,12 +124,12 @@ class Group(hdf5Extension.Group, object):
             objgroup = Group(new = 0)
             # Insert this group as a child of mine
             objgroup._g_putObjectInTree(name, self)
-            #setattr(self, name, objgroup)
             # Call openFile recursively over the group's tree
             objgroup._g_openFile()
         for name in leaves:
-            #class_ = self._g_getLeafAttrStr(name, "CLASS")
             class_ = self._v_attrs._g_getChildAttrStr(name, "CLASS")
+            if class_:
+                class_ = class_.capitalize()
             if class_ is None:
                 # No CLASS attribute, try a guess
                 warnings.warn( \
@@ -134,7 +137,9 @@ class Group(hdf5Extension.Group, object):
   I can't promise getting the correct object, but I will do my best!.""",
                 UserWarning)
                 class_ = hdf5Extension.whichClass(self._v_groupId, name)
-                if class_ == "UNSUPPORTED":
+                if class_:
+                    class_ = class_.capitalize()
+                if class_ == "Unsupported":
                     raise RuntimeError, \
                     """Dataset object \'%s\' in file is unsupported!.""" % \
                           name
@@ -211,9 +216,9 @@ class Group(hdf5Extension.Group, object):
         self.__dict__["_v_attrs"] = AttributeSet(self)
         if self._v_new:
             # Set the title, class and version attribute
-            self._v_attrs._g_setGroupAttrStr('TITLE',  self._v_title)
-            self._v_attrs._g_setGroupAttrStr('CLASS', "Group")
-            self._v_attrs._g_setGroupAttrStr('VERSION', "1.0")
+            self._v_attrs._g_setAttrStr('TITLE',  self._v_title)
+            self._v_attrs._g_setAttrStr('CLASS', "GROUP")
+            self._v_attrs._g_setAttrStr('VERSION', "1.0")
             # Add these attributes to the dictionary
             self._v_attrs._v_attrnames.extend(['TITLE','CLASS','VERSION'])
         else:
@@ -319,7 +324,7 @@ class Group(hdf5Extension.Group, object):
             listobjects = []
             # Process alphanumerically sorted 'Leaf' objects
             for leaf in self._f_listNodes('Leaf'):
-                if leaf.attrs.CLASS == classname:
+                if leaf.attrs.CLASS.capitalize() == classname:
                     listobjects.append(leaf)
             # Returns all the 'classname' objects alphanumerically sorted
             return listobjects
@@ -346,22 +351,17 @@ class Group(hdf5Extension.Group, object):
             for x in self._v_groups[groupname]._f_walkGroups():
                 yield x
 
-#     def __delattr__(self, name):
-#         """In the future, this should delete objects both in memory
-#         and in the file."""
-        
-#         if name in self._v_childs:
-#             #print "Add code to delete", name, "attribute"
-#             pass
-#             #self._v_leaves.remove(name)
-#         else:
-#             raise AttributeError, "%s instance has no child %s" % \
-#                   (str(self.__class__), name)
+    def __delattr__(self, name):
+        """Remove *recursively* all the objects hanging from name child."""
+
+        if name in self._v_groups:
+            return self._v_groups[name]._f_remove(1)
+        elif name in self._v_leaves:
+            return self._v_leaves[name].remove()
 
     def __getattr__(self, name):
         """Get the object named "name" hanging from me."""
         
-        #print "Getting the", name, "attribute in Group", self
         if name in self._v_groups:
             return self._v_groups[name]
         elif name in self._v_leaves:

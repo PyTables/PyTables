@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.35 2003/06/03 20:22:58 falted Exp $
+#       $Id: File.py,v 1.36 2003/06/04 11:14:57 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.35 $"
+__version__ = "$Revision: 1.36 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -268,13 +268,13 @@ class File(hdf5Extension.File, object):
             newattr["_v_title"] = self.title
             
             # Save the root attributes on disk
-            root._v_attrs._g_setGroupAttrStr('TITLE',  self.title)
-            root._v_attrs._g_setGroupAttrStr('CLASS', "Group")
-            root._v_attrs._g_setGroupAttrStr('VERSION', "1.0")
+            root._v_attrs._g_setAttrStr('TITLE',  self.title)
+            root._v_attrs._g_setAttrStr('CLASS', "GROUP")
+            root._v_attrs._g_setAttrStr('VERSION', "1.0")
             
             # Finally, save the PyTables format version for this file
             self._format_version = format_version
-            root._v_attrs._g_setGroupAttrStr('PYTABLES_FORMAT_VERSION',
+            root._v_attrs._g_setAttrStr('PYTABLES_FORMAT_VERSION',
                                              format_version)
             # Add these attributes to the dictionary
             root._v_attrs._v_attrnames.extend(['TITLE','CLASS','VERSION',
