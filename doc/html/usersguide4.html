@@ -1,0 +1,524 @@
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xmlns:pref="http://www.w3.org/2002/Math/preference" id="optimizationTips"><a name="optimizationTips"></a><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide A hierarchical database for Python Release 0.7"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2003-07-29T19:25:32+02:00"><meta name="Date" content="2003-07-29T19:25:32+02:00"><meta name="DC.Rights" content="(c) 2002, 2003 Francesc Alted"><meta name="Copyright" content="(c) 2002, 2003 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+    body {
+      font-family: serif; text-align: justify;
+      margin: 0pt; line-height: 1.3; background-color: white; color: black }
+    body.letter { background-image: none }
+    h1, h2, h3, h4, h5, h6, div.partheadline, div.title,
+      div.title-article {
+      font-family: sans-serif; font-weight: bold; font-stretch: condensed;
+      text-align: left; }
+    h1, h2, h3, h4, h5, h6, div.partheadline { padding-left: 18pt }
+    h1 { clear: both }
+    h1.toc { clear: none }
+    a:link, a:visited, a:active { text-decoration: none }
+    a:hover { text-decoration: underline; color: #0066FF; }
+    div.document, div.letter { margin-left: 80px; margin-right: 150px;
+      padding-top: 3ex; padding-bottom: 5ex }
+    div.authorlist { font-family: sans-serif;
+      font-stretch: condensed; text-align: left; font-size: x-large;
+      margin-bottom: 1ex }
+    div.authorlist-article { font-size: x-large; text-align: center;
+      margin-bottom: 2ex }
+    div.title { font-size: xx-large; color: gray; margin-bottom: 5ex; }
+    div.title-article { font-size: xx-large; text-align: center;
+      margin-bottom: 1ex }
+    div.date-article { font-size: large; text-align: center;
+      margin-bottom: 5ex }
+    div.subtitle { text-align: left; margin-bottom: 3ex }
+    div.legal { text-align: right }
+    div.legalnotice { margin-top: 3ex; text-align: left }
+    div.partheadline { font-size: xx-large; margin-top: 1ex; margin-bottom: 1ex }
+    div.footnote { }
+    hr.footnoterule { text-align: left; width: 20%; color: black }
+    div.mathdisplay { text-align: center;
+    margin-top: 2ex; margin-bottom: 2ex }
+    div.figure, div.table, div.mathml-remark { margin-bottom: 3ex;
+            margin-top: 2ex}
+    div.mathml-remark { width: 50%; text-align: left; text-indent: 0pt }
+    div.caption { margin-top: 1ex; width: 20em}
+    div.caption-text { font-size: small;
+      padding-left: 1em; text-indent: -1em; text-align: left}
+    caption { max-width: 100%; min-width: 200px; margin-bottom: 1ex;
+      text-align: left }
+    div.verse { white-space: pre; margin-left: 2em;
+      margin-top: 2ex; margin-bottom: 2ex }
+    div.toc { margin-bottom: 6ex }
+    div.biblio { }
+    div.index { width: 100% }
+    div.aphorism { margin-bottom: 2ex; font-style: italic; text-align: right;
+      margin-left: 50%}
+    div.aphorism-origin { margin-top: 1ex }
+    div.letter { }
+    div.subject { margin-top: 3ex; margin-bottom: 3ex }
+    div.opening { margin-top: 3ex; margin-bottom: 3ex }
+    div.closing { margin-top: 3ex; text-align: right }
+    div.to { margin-top: 3ex; margin-bottom: 3ex }
+    span.subject { font-weight: bold }
+    div.speedbar-top, div.speedbar-bottom { margin-left: 1em; margin-right: 1em }
+    div.speedbar-top { margin-top: 2ex }
+    div.speedbar-bottom { margin-bottom: 3ex }
+    table.speedbar { width: 100% }
+    hr.speedbar { clear: both }
+    div.theorem-plain, div.theorem-definition, div.theorem-remark { margin-top: 2ex;
+      margin-bottom: 2ex }
+    div.theorem-plain { font-style: italic }
+    div.proof { margin-top: 2ex; margin-bottom: 2ex }
+    span.theorem-head-plain, span.theorem-head-definition, span.theorem-head-remark
+      { margin-right: 0.66em }
+    span.theorem-head-plain, span.theorem-head-definition
+      { font-style: normal; font-weight: bold }
+    span.theorem-head-remark { font-style: italic }
+    span.proof-head { font-style: italic; margin-right: 0.66em }
+    acronym { font-size: 95%; letter-spacing: 0.1em; text-transform: uppercase }
+    td.header { text-align: center; font-weight: bold }
+    table.toc { }
+    table.tabular { font-size: smaller }
+    td.thickline { height: 0pt; border-bottom: medium solid; padding: 2px }
+    td.thinline { height: 0pt; border-bottom: thin solid;   padding: 2px }
+     /* FixMe: Following definition Still bad */
+    div.part-toc { margin-top: 2ex; font-weight: bold; font-size: larger }
+     /* FixMe: Following definition: How cleaner? */
+    div.toplevel-toc { margin-top: 1ex; font-weight: bold }
+    td.number1 { width: 1.5em }
+    td.number2 { width: 2em }
+    td.number3 { width: 3em }
+    td.author { text-align: center; width: 50% }
+    div { }  /* Must remain empty! */
+    span.captionlabel { font-family: sans-serif; font-weight: bold;
+      margin-right: 0.66em }
+    span.captionlabel:after { content: " " }
+    b.captionlabel {  }
+    b.captionlabel:after { content: " " }
+    span.headlinenumber { margin-right: 0.66em }
+    tt.verb {font-family: monospace }
+    span.bibtag { font-weight: bold; margin-right: 1em }
+    span.bib-author { }
+    span.bib-lastname { font-variant: small-caps }
+    span.bib-title { font-style: italic }
+    span.bib-booktitle { }
+    span.bib-journal { }
+    span.bib-journal-volume { font-weight: bold }
+    span.bib-publisher { }
+    span.bib-school { }
+    span.bib-year { }
+    span.bib-note { }
+    span { } /* Muss leer bleiben! */
+    li.bibitem { margin-left: 1em; text-indent: -1em }
+    img.graphics { border: 0pt }
+    p,div.p { margin: 0pt; text-indent: 18pt }
+    ul, dl, ol { text-indent: 0pt; }
+    p.first, div.p-first { margin: 0pt; text-indent: 0pt }
+    p.bibitem { margin-top: 1.5ex; margin-left: 3em; text-indent: -3em }
+    ul.biblio { list-style: none }
+    mi.ch { font-style: normal }
+    math[display="block"], div.equation {
+      margin-top: 1ex; margin-bottom: 1ex }
+    div.i-lettergroup { font-size: larger; font-weight: bold; padding-left: 18pt;
+      margin-top: 3ex; margin-bottom: 1.5ex }
+    div.i-item { }
+    div.i-main { }
+    dt { display: compact; font-weight: bold }
+    dd { text-indent: 0pt }
+    pre { text-indent: 0pt }
+    span.i-see { font-style: italic; }
+
+h1 { color: red }
+h2 { color: olive }
+h3 { color: navy }
+h4 { color: maroon }
+body { background-image: url("tile.jpg");
+         background-color: white;
+         color: black;
+	 font-size: 13pt; }
+hr.footnoterule { color: white }
+div.title { font-size: x-large; color: maroon }
+div.subtitle { font-size: x-large; color: olive }
+div.title-article { font-size: x-large }
+div.partheadline { font-size: x-large }
+</style></head><body><div class="speedbar-top"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide3.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide5.html">next</a></td></tr><tr><td colspan="3">&nbsp;</td></tr></tbody></table><hr class="speedbar"></div><div class="document"><div id="optimizationTips"><a name="optimizationTips"></a>
+      <h1 id="chapter4"><a name="chapter4"></a>Chapter&nbsp;4: Optimization tips</h1>
+
+      <div class="aphorism">"Tenho pensamentos que, se pudesse revel&aacute;-los e
+	faz&ecirc;-los viver, acrescentariam nova luminosidade &agrave;s estrelas,
+	nova beleza ao mundo e maior amor ao cora&ccedil;&atilde;o dos homens."
+	<div class="aphorism-origin">&#8212;Fernando Pessoa, in "O Eu Profundo"</div>
+      </div>
+
+      <p class="first">On this chapter, you will get deeper knowledge of
+	<tt class="verb">PyTables</tt> internals. <tt class="verb">PyTables</tt> has
+	several places where the user can improve the performance of
+	his application. If you are planning to deal with really large
+	data, you should read carefully this section in order to learn
+	how to get an important boost for your code. But if your
+	dataset is small or medium size (say, up to 1 MB), you should
+	not worry about that as the default parameters in
+	<tt class="verb">PyTables</tt> are already tuned to handle that
+	perfectly.
+      </p>
+
+      <div>
+	<h2 id="section4.1"><span class="headlinenumber"><a name="section4.1"></a>4.1 </span>Taking advantage of Psyco</h2>
+
+	<p class="first">Psyco (see <a href="#psycoRef"></a>)is a kind of
+	  specialized compiler for Python that typically accelerates
+	  Python applications with no change in source code. You can
+	  think of Psyco as a kind of just-in-time (JIT) compiler, a
+	  little bit like Java's, that emit machine code on the fly
+	  instead of interpreting your Python program step by
+	  step. The result is that your unmodified Python programs run
+	  faster.
+	</p>
+
+	<p>Psyco is very easy to install and use, so in most scenarios
+	  it is worth to have it a try. However, it only runs on Intel
+	  386 architectures, so if you are using other architectures,
+	  you are out of luck (at least until Psyco will support
+	  yours).
+	</p>
+
+	<p>As an example, imagine that you have a small script that
+	  reads and selects data over a series of datasets, like this:
+	</p>
+
+	<pre>
+def readFile(filename):
+    "Select data from all the tables in filename"
+
+    fileh = openFile(filename, mode = "r")
+    result = []
+    for table in fileh("/", 'Table'):
+        result = [ p['var3'] for p in table if p['var2'] &lt;= 20 ]
+
+    fileh.close()
+    return e
+
+if __name__=="__main__":
+    print readFile("myfile.h5")
+	</pre>
+
+	<p>In order to accelerate this piece of code, you can rewrite
+	  your main program to look like:
+	</p>
+
+	<pre>
+if __name__=="__main__":
+    import pysco
+    psyco.bind(readFile)
+    print readFile("myfile.h5")
+	</pre>
+
+	<p>That's all!. From now on, each time that you execute your
+	  python script, Psyco will deploy its sophisticated
+	  algorithms so as to accelerate your calculations.
+	</p>
+
+	<p>You can see in the graphs <a href="#psycoWriteComparison">4.1</a> and <a href="#psycoReadComparison">4.2</a> how much I/O speed
+	  improvement you can get by using Psyco. By looking at this
+	  figures you can get an idea if these improvements are of
+	  your interest or not. In general, if you are not going to
+	  use compression you will take advantage of Psyco if your
+	  tables are medium sized (1e+3 &lt; nrows &lt; 1e+6), and
+	  this advantage will disappear progressively when the number
+	  of rows grows well over one million. However if you use
+	  compression, you will probably see improvements even beyond
+	  this limit (see <a href="#compressionIssues">section&nbsp;4.2</a>). As always, there
+	  is no substitute for experimentation with your own dataset.
+	</p>
+
+	<div class="figure" id="psycoWriteComparison"><a name="psycoWriteComparison"></a>
+	  <img class="graphics" alt="Writing tables with/without Psyco.&#xA;	  " src="write-medium-psyco-nopsyco-comparison-web.png">
+	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;4.1:</span> Writing tables with/without Psyco.
+	  </div></div>
+	</div>
+
+	<div class="figure" id="psycoReadComparison"><a name="psycoReadComparison"></a>
+	  <img class="graphics" alt="Reading tables with/without Psyco.&#xA;	  " src="read-medium-psyco-nopsyco-comparison-web.png">
+	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;4.2:</span> Reading tables with/without Psyco.
+	  </div></div>
+	</div>
+
+      </div>
+
+      <div id="compressionIssues"><a name="compressionIssues"></a>
+	<h2 id="section4.2"><span class="headlinenumber"><a name="section4.2"></a>4.2 </span>Compression issues</h2>
+
+	<p class="first">One of the beauties of <tt class="verb">PyTables</tt> is that it
+	  supports compression on tables (but not on arrays!, that may
+	  come later), although it is disabled by default. Compression
+	  of big amounts of data might be a bit controversial feature,
+	  because compression has a legend of being a very big CPU
+	  time resources consumer. However, if you are willing to
+	  check if compression can help not only reducing your dataset
+	  file size but <b>also</b> improving
+	  your I/O efficiency, keep reading.
+	</p>
+
+	<p>There is an usual scenario where users need to save
+	  duplicated data in some record fields, while the others
+	  have varying values. In a relational database approach
+	  such a redundant data can normally be moved to other
+	  tables and a relationship between the rows on the separate
+	  tables can be created. But that takes analysis and
+	  implementation time, and made the underlying libraries
+	  more complex and slower.
+	</p>
+
+	<p><tt class="verb">PyTables</tt> transparent compression allows the
+	  user to not worry about finding which is their optimum data
+	  tables strategy, but rather use less, not directly related,
+	  tables with a larger number of columns while still not
+	  cluttering the database too much with duplicated data
+	  (compression is responsible to avoid that). As a side
+	  effect, data selections can be made more easily because you
+	  have more fields available in a single table, and they can
+	  be referred in the same loop. This process may normally end
+	  in a simpler, yet powerful manner to process your data
+	  (although you should still be careful about what kind of
+	  scenarios compression use is convenient or not).
+	</p>
+
+	<p>The compression library used by default is the <b>Zlib</b> (see <a href="#zlibRef"></a>), and as HDF5 <em>requires</em>
+	  it, you can safely use it and expect that your HDF5 files
+	  can be read on any other platform that has HDF5 libraries
+	  installed. Zlib provides good compression ratio, although
+	  somewhat slow, and reasonably fast decompression. Because
+	  of that, it is a good candidate to be used for compress
+	  you data.
+	</p>
+
+	<p>However, in many situations (i.e. write <em>once</em>, read
+	  <em>multiple</em>), it is critical to have <em>very
+	  good</em> decompression speed (at expense of whether less
+	  compression or more CPU wasted on compression, as we will
+	  see soon). This is why support for two additional
+	  compressors has been added to PyTables: LZO and UCL (see
+	  <a href="#lzouclRef"></a>). Following his author (and
+	  checked by the author of this manual), LZO offers pretty
+	  fast compression (although small compression ratio) and
+	  extremely fast decompression while UCL achieve an excellent
+	  compression ratio (at the price of spending much more CPU
+	  time) while allowing very fast decompression (and <em>very
+	  close</em> to the LZO one). In fact, LZO and UCL are so fast
+	  when decompressing that, in general (that depends on your
+	  data, of course), writing and reading a compressed table is
+	  actually faster (and sometimes <b>much
+	  faster</b>) than if it is uncompressed. This fact is
+	  very important, specially if you have to deal with very
+	  large amounts of data.
+	</p>
+
+	<p>Be aware that the LZO and UCL support in PyTables is not
+	  standard on HDF5, so if you are going to use your PyTables
+	  files in other contexts different from PyTables you will
+	  not be able to read them.
+	</p>
+
+	<p>In order to give you a raw idea of what ratios would be
+	  achieved, and what resources would be consumed, look at the
+	  <a href="#comprTblComparison">table&nbsp;4.1</a>. This table has
+	  been obtained from synthetic data and with a somewhat
+	  outdated PyTables version (0.5), so take this just as a
+	  guide because your mileage will probably vary. Have also a
+	  look at the graphs <a href="#lzozlibuclWriteComparison">4.3</a> and <a href="#lzozlibuclReadComparison">4.4</a> (these graphs has
+	  been obtained with tables with different row sizes and
+	  PyTables version than the previous example, so, do not try
+	  to directly compare the figures). They show how evolves the
+	  speed of writing/reading rows as the size (the row number)
+	  of tables grows. Even though in these graphs the size of one
+	  single row is 56 bytes, you can most probably extrapolate
+	  this figures to other row sizes. If you are curious how well
+	  can perform compression together with Psyco, look at the
+	  graphs <a href="#psycolzozlibuclWriteComparison">4.5</a>
+	  and <a href="#psycolzozlibuclReadComparison">4.6</a>. As
+	  you can see, the results are pretty interesting.
+	</p>
+
+	<div class="table" id="comprTblComparison"><a name="comprTblComparison"></a>
+	  
+	  <table class="tabular" cellspacing="0" cellpadding="5" frame="hsides" rules="groups"><caption><span class="captionlabel">Table&nbsp;4.1:</span> Comparison between different compression
+	    libraries. The tests has been conducted on a Pentium 4 at 2
+	    GHz and a hard disk at 4200 RPM.</caption><col align="left"><col align="center"><col align="center"><col align="center"><col align="center"><col align="center">
+	    <thead><tr><td colspan="6" class="thickline"></td></tr>
+	      <tr><th align="left">Compr. Lib</th><th align="center">File size (MB)</th><th align="center">Time writing (s)</th><th align="center">Time reading (s)</th><th align="center">Speed writing (Krow/s)</th><th align="center">Speed reading (Krow/s)</th></tr>
+	    <tr><td colspan="6" class="thinline"></td></tr></thead>
+	    <tbody>
+	      <tr><td align="left">NO COMPR</td><td align="center">244.0</td><td align="center">24.4</td><td align="center">16.0</td><td align="center">18.0</td><td align="center">27.8</td></tr>
+	      <tr><td align="left">Zlib (lvl 1)</td><td align="center">8.5</td><td align="center">17.0</td><td align="center">3.11</td><td align="center">26.5</td><td align="center">144.4</td></tr>
+	      <tr><td align="left">Zlib (lvl 6)</td><td align="center">7.1</td><td align="center">20.1</td><td align="center">3.10</td><td align="center">22.4</td><td align="center">144.9</td></tr>
+	      <tr><td align="left">Zlib (lvl 9)</td><td align="center">7.2</td><td align="center">42.5</td><td align="center">3.10</td><td align="center">10.6</td><td align="center">145.1</td></tr>
+	      <tr><td align="left">LZO (lvl 1)</td><td align="center">9.7</td><td align="center">14.6</td><td align="center">1.95</td><td align="center">30.6</td><td align="center">230.5</td></tr>
+	      <tr><td align="left">UCL (lvl 1)</td><td align="center">6.9</td><td align="center">38.3</td><td align="center">2.58</td><td align="center">11.7</td><td align="center">185.4</td></tr>
+	    <tr><td colspan="6" class="thickline"></td></tr></tbody>
+	  </table>
+	  
+	</div>
+
+	<div class="figure" id="lzozlibuclWriteComparison"><a name="lzozlibuclWriteComparison"></a>
+	  <img class="graphics" alt="Writing tables with several compressors.&#xA;	  " src="write-medium-lzo-zlib-ucl-comparison-web.png">
+	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;4.3:</span> Writing tables with several compressors.
+	  </div></div>
+	</div>
+
+	<div class="figure" id="lzozlibuclReadComparison"><a name="lzozlibuclReadComparison"></a>
+	  <img class="graphics" alt="Reading tables with several compressors.&#xA;	  " src="read-medium-lzo-zlib-ucl-comparison-web.png">
+	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;4.4:</span> Reading tables with several compressors.
+	  </div></div>
+	</div>
+
+	<div class="figure" id="psycolzozlibuclWriteComparison"><a name="psycolzozlibuclWriteComparison"></a>
+	  <img class="graphics" alt="Writing tables with several compressors and Psyco.&#xA;	  " src="write-medium-psyco-lzo-zlib-ucl-comparison-web.png">
+	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;4.5:</span> Writing tables with several compressors and Psyco.
+	  </div></div>
+	</div>
+
+	<div class="figure" id="psycolzozlibuclReadComparison"><a name="psycolzozlibuclReadComparison"></a>
+	  <img class="graphics" alt="Reading tables with several compressors and Psyco.&#xA;	  " src="read-medium-psyco-lzo-zlib-ucl-comparison-web.png">
+	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;4.6:</span> Reading tables with several compressors and Psyco.
+	  </div></div>
+	</div>
+
+	<p>
+	  By looking at graphs, you can expect that, generally
+	  speaking, LZO would be the fastest both compressing and
+	  uncompressing, but the one that achieves the worse
+	  compression ratio (although that may be just ok for many
+	  situations). UCL is the slowest when compressing, but is
+	  faster than Zlib when decompressing, and, besides, it
+	  achieves very good compression ratios (generally better than
+	  Zlib). Zlib represents a balance between them: it's somewhat
+	  slow compressing, the slowest during decompressing, but it
+	  normally achieves fairly good compression ratios.
+	</p>
+
+	<p>So, if your ultimate goal is reading as fast as possible,
+	  choose LZO. If you want to reduce as much as possible your
+	  data, while retaining good read speed, choose UCL. If you
+	  don't mind too much about the above parameters and/or
+	  portability is important for you, Zlib is your best bet.
+	</p>
+
+	<p>The compression level that I recommend to use for all
+	  compression libraries is 1. This is the lowest level of
+	  compression, but if you take the approach suggested above,
+	  normally the redundant data is to be found in the same
+	  row, so the redundant data locality is very high and such
+	  a small level of compression should be enough to achieve a
+	  good compression ratio on your data tables, saving CPU
+	  cycles for doing other things. Nonetheless, in some
+	  situations you may want to check how compression level
+	  affects your application.
+	</p>
+
+	<p> You can select the compression library and level by
+	  setting the <tt class="verb">complib</tt> and <tt class="verb">compress</tt>
+	  keywords in the <tt class="verb">createTable</tt> method (see <a href="#createTableDescr"><strong>??</strong></a>). A compression level of 0
+	  will completely disable compression (the default), 1 is
+	  the less CPU time demanding level, while 9 is the maximum
+	  level and most CPU intensive. Finally, have in mind that
+	  LZO is not accepting a compression level right now, so,
+	  when using LZO, 0 means that compression is not active,
+	  and any other value means that LZO is active.
+	</p>
+
+      </div>
+
+      <div id="expectedRowsOptim"><a name="expectedRowsOptim"></a>
+	<h2 id="section4.3"><span class="headlinenumber"><a name="section4.3"></a>4.3 </span>Informing <tt>PyTables</tt>
+	  about expected number of rows in tables</h2>
+
+	<p class="first">The underlying HDF5 library that is used by
+	  <tt class="verb">PyTables</tt> takes the data in bunches of a
+	  certain length, so-called <em>chunks</em>, to write them
+	  on disk as a whole, i.e. the HDF5 library treats chunks as
+	  atomic objects and disk I/O is always made in terms of
+	  complete chunks. This allows data filters to be defined by
+	  the application to perform tasks such as compression,
+	  encryption, checksumming, etc. on entire chunks.
+	</p>
+
+	<p>An in-memory B-tree is used to map chunk structures on
+	  disk. The more chunks that are allocated for a dataset the
+	  larger the B-tree. Large B-trees take memory and causes
+	  file storage overhead as well as more disk I/O and higher
+	  contention for the meta data cache. Consequently, it's
+	  important to balance between memory and I/O overhead
+	  (small B-trees) and time to access to data (big B-trees).
+	</p>
+
+	<p><tt class="verb">PyTables</tt> can determine an optimum chunk size
+	  to make B-trees adequate to your dataset size if you help
+	  it by providing an estimation of the number of rows for a
+	  table. This must be made in table creation time by passing
+	  this value in the <tt class="verb">expectedrows</tt> keyword of
+	  <tt class="verb">createTable</tt> method (see <a href="#createTableDescr"><strong>??</strong></a>).
+	</p>
+
+	<p>When your dataset size is bigger than 1 MB (take this
+	  figure only as a reference, not strictly), by providing
+	  this guess of the number of rows, you will be optimizing
+	  the access to your table data. When the dataset size is
+	  larger than, say 100MB, you are <b>strongly</b> suggested to provide such a
+	  guess; failing to do that may cause your application doing
+	  very slow I/O operations and demanding huge amounts
+	  of memory. You have been warned!.
+	</p>
+
+      </div>
+
+      <div>
+	<h2 id="section4.4"><span class="headlinenumber"><a name="section4.4"></a>4.4 </span>Selecting an User Entry Point (UEP) in your
+	  tree</h2>
+
+	<p class="first">If you have a <b>huge</b> tree in
+	  your data file with many nodes on it, creating the object
+	  tree would take long time. Many times, however, you are
+	  interested only in access to a part of the complete tree, so
+	  you won't strictly need PyTables to build the entire object
+	  tree in-memory, but only the <em>interesting</em> part.
+	</p>
+
+	<p>This is were the <tt class="verb">rootUEP</tt> parameter of
+	  <tt class="verb">openFile()</tt> function (see <a href="#openFileDescr"><strong>??</strong></a>) can be helpful. Imagine that
+	  you have a file called <tt class="verb">"test.h5"</tt> with the tree
+	  that you can see in figure <a href="#rootUEPfig1">4.7</a>,
+	  and you are interested only in the section marked in red.
+	  You can avoid the build of all the object tree by saying to
+	  <tt class="verb">openFile</tt> that your root will be the
+	  <tt class="verb">/Group2/Group3</tt> group. That is:
+	</p>
+	<pre>
+	  fileh = openFile("test.h5", rootUEP="/Group2/Group3")
+	</pre>
+
+	<p>As a result, the actual object tree built will be like the
+	  one that can be seen in <a href="#rootUEPfig2">figure&nbsp;4.8</a>.
+	</p>
+
+	<p>Of course this has been a simple example and it and the use
+	  of the <tt class="verb">rootUEP</tt> parameter was not very
+	  necessary. But when you have <em>thousands</em> of nodes on
+	  a tree, you will certainly appreciate the
+	  <tt class="verb">rootUEP</tt> parameter.
+	</p>
+
+	<div class="figure" id="rootUEPfig1"><a name="rootUEPfig1"></a>
+	  <img class="graphics" alt="Complete tree in file test.h5, and subtree of interest for&#xA;	    the us..." src="rootUEP1-web.png">
+	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;4.7:</span> Complete tree in file <tt>test.h5</tt>, and subtree of interest for
+	    the user.
+	  </div></div>
+	</div>
+
+	<div class="figure" id="rootUEPfig2"><a name="rootUEPfig2"></a>
+	  <img class="graphics" alt="Resulting object tree derived from the use of the&#xA;	    rootUEP paramet..." src="rootUEP2-web.png">
+	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;4.8:</span> Resulting object tree derived from the use of the
+	    <tt>rootUEP</tt> parameter.
+	  </div></div>
+	</div>
+	
+      </div>
+
+    </div></div><div class="speedbar-bottom"><hr class="speedbar"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide3.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide5.html">next</a></td></tr></tbody></table></div></body></html>

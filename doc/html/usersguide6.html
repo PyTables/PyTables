@@ -1,0 +1,179 @@
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xmlns:pref="http://www.w3.org/2002/Math/preference" id="datatypesSupported"><a name="datatypesSupported"></a><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide A hierarchical database for Python Release 0.7"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2003-07-29T19:25:32+02:00"><meta name="Date" content="2003-07-29T19:25:32+02:00"><meta name="DC.Rights" content="(c) 2002, 2003 Francesc Alted"><meta name="Copyright" content="(c) 2002, 2003 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+    body {
+      font-family: serif; text-align: justify;
+      margin: 0pt; line-height: 1.3; background-color: white; color: black }
+    body.letter { background-image: none }
+    h1, h2, h3, h4, h5, h6, div.partheadline, div.title,
+      div.title-article {
+      font-family: sans-serif; font-weight: bold; font-stretch: condensed;
+      text-align: left; }
+    h1, h2, h3, h4, h5, h6, div.partheadline { padding-left: 18pt }
+    h1 { clear: both }
+    h1.toc { clear: none }
+    a:link, a:visited, a:active { text-decoration: none }
+    a:hover { text-decoration: underline; color: #0066FF; }
+    div.document, div.letter { margin-left: 80px; margin-right: 150px;
+      padding-top: 3ex; padding-bottom: 5ex }
+    div.authorlist { font-family: sans-serif;
+      font-stretch: condensed; text-align: left; font-size: x-large;
+      margin-bottom: 1ex }
+    div.authorlist-article { font-size: x-large; text-align: center;
+      margin-bottom: 2ex }
+    div.title { font-size: xx-large; color: gray; margin-bottom: 5ex; }
+    div.title-article { font-size: xx-large; text-align: center;
+      margin-bottom: 1ex }
+    div.date-article { font-size: large; text-align: center;
+      margin-bottom: 5ex }
+    div.subtitle { text-align: left; margin-bottom: 3ex }
+    div.legal { text-align: right }
+    div.legalnotice { margin-top: 3ex; text-align: left }
+    div.partheadline { font-size: xx-large; margin-top: 1ex; margin-bottom: 1ex }
+    div.footnote { }
+    hr.footnoterule { text-align: left; width: 20%; color: black }
+    div.mathdisplay { text-align: center;
+    margin-top: 2ex; margin-bottom: 2ex }
+    div.figure, div.table, div.mathml-remark { margin-bottom: 3ex;
+            margin-top: 2ex}
+    div.mathml-remark { width: 50%; text-align: left; text-indent: 0pt }
+    div.caption { margin-top: 1ex; width: 20em}
+    div.caption-text { font-size: small;
+      padding-left: 1em; text-indent: -1em; text-align: left}
+    caption { max-width: 100%; min-width: 200px; margin-bottom: 1ex;
+      text-align: left }
+    div.verse { white-space: pre; margin-left: 2em;
+      margin-top: 2ex; margin-bottom: 2ex }
+    div.toc { margin-bottom: 6ex }
+    div.biblio { }
+    div.index { width: 100% }
+    div.aphorism { margin-bottom: 2ex; font-style: italic; text-align: right;
+      margin-left: 50%}
+    div.aphorism-origin { margin-top: 1ex }
+    div.letter { }
+    div.subject { margin-top: 3ex; margin-bottom: 3ex }
+    div.opening { margin-top: 3ex; margin-bottom: 3ex }
+    div.closing { margin-top: 3ex; text-align: right }
+    div.to { margin-top: 3ex; margin-bottom: 3ex }
+    span.subject { font-weight: bold }
+    div.speedbar-top, div.speedbar-bottom { margin-left: 1em; margin-right: 1em }
+    div.speedbar-top { margin-top: 2ex }
+    div.speedbar-bottom { margin-bottom: 3ex }
+    table.speedbar { width: 100% }
+    hr.speedbar { clear: both }
+    div.theorem-plain, div.theorem-definition, div.theorem-remark { margin-top: 2ex;
+      margin-bottom: 2ex }
+    div.theorem-plain { font-style: italic }
+    div.proof { margin-top: 2ex; margin-bottom: 2ex }
+    span.theorem-head-plain, span.theorem-head-definition, span.theorem-head-remark
+      { margin-right: 0.66em }
+    span.theorem-head-plain, span.theorem-head-definition
+      { font-style: normal; font-weight: bold }
+    span.theorem-head-remark { font-style: italic }
+    span.proof-head { font-style: italic; margin-right: 0.66em }
+    acronym { font-size: 95%; letter-spacing: 0.1em; text-transform: uppercase }
+    td.header { text-align: center; font-weight: bold }
+    table.toc { }
+    table.tabular { font-size: smaller }
+    td.thickline { height: 0pt; border-bottom: medium solid; padding: 2px }
+    td.thinline { height: 0pt; border-bottom: thin solid;   padding: 2px }
+     /* FixMe: Following definition Still bad */
+    div.part-toc { margin-top: 2ex; font-weight: bold; font-size: larger }
+     /* FixMe: Following definition: How cleaner? */
+    div.toplevel-toc { margin-top: 1ex; font-weight: bold }
+    td.number1 { width: 1.5em }
+    td.number2 { width: 2em }
+    td.number3 { width: 3em }
+    td.author { text-align: center; width: 50% }
+    div { }  /* Must remain empty! */
+    span.captionlabel { font-family: sans-serif; font-weight: bold;
+      margin-right: 0.66em }
+    span.captionlabel:after { content: " " }
+    b.captionlabel {  }
+    b.captionlabel:after { content: " " }
+    span.headlinenumber { margin-right: 0.66em }
+    tt.verb {font-family: monospace }
+    span.bibtag { font-weight: bold; margin-right: 1em }
+    span.bib-author { }
+    span.bib-lastname { font-variant: small-caps }
+    span.bib-title { font-style: italic }
+    span.bib-booktitle { }
+    span.bib-journal { }
+    span.bib-journal-volume { font-weight: bold }
+    span.bib-publisher { }
+    span.bib-school { }
+    span.bib-year { }
+    span.bib-note { }
+    span { } /* Muss leer bleiben! */
+    li.bibitem { margin-left: 1em; text-indent: -1em }
+    img.graphics { border: 0pt }
+    p,div.p { margin: 0pt; text-indent: 18pt }
+    ul, dl, ol { text-indent: 0pt; }
+    p.first, div.p-first { margin: 0pt; text-indent: 0pt }
+    p.bibitem { margin-top: 1.5ex; margin-left: 3em; text-indent: -3em }
+    ul.biblio { list-style: none }
+    mi.ch { font-style: normal }
+    math[display="block"], div.equation {
+      margin-top: 1ex; margin-bottom: 1ex }
+    div.i-lettergroup { font-size: larger; font-weight: bold; padding-left: 18pt;
+      margin-top: 3ex; margin-bottom: 1.5ex }
+    div.i-item { }
+    div.i-main { }
+    dt { display: compact; font-weight: bold }
+    dd { text-indent: 0pt }
+    pre { text-indent: 0pt }
+    span.i-see { font-style: italic; }
+
+h1 { color: red }
+h2 { color: olive }
+h3 { color: navy }
+h4 { color: maroon }
+body { background-image: url("tile.jpg");
+         background-color: white;
+         color: black;
+	 font-size: 13pt; }
+hr.footnoterule { color: white }
+div.title { font-size: x-large; color: maroon }
+div.subtitle { font-size: x-large; color: olive }
+div.title-article { font-size: x-large }
+div.partheadline { font-size: x-large }
+</style></head><body><div class="speedbar-top"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide5.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide7.html">next</a></td></tr><tr><td class="header" colspan="3">Appendix</td></tr></tbody></table><hr class="speedbar"></div><div class="document"><div id="datatypesSupported"><a name="datatypesSupported"></a>
+	<h1 id="chapterA"><a name="chapterA"></a>Appendix&nbsp;A: Supported data types in tables</h1>
+
+	<p class="first"><tt class="verb">IsDescription</tt> subclasses supports a limited
+	  set of data types to define the table fields. Such a set is
+	  roughly the same than the types supported by the <tt>numarray</tt> package (see <a href="#Numarray"></a>) in Python, with the exception of
+	  the complex datatypes that are not supported yet.
+	</p>
+	<p>These data types in table columns can be set through the
+	  use of the <tt class="verb">Col</tt> class and its descendants (<a href="usersguide5.html#ColClassDescr">see&nbsp;5.3</a>). You may find useful the
+	  <a href="#datatypesSupported">table&nbsp;A</a> as a quick
+	  reference to the complete set of supported data types in
+	  PyTables.
+	</p>
+
+	<div class="table" id="datatypesSupportedTable"><a name="datatypesSupportedTable"></a>
+	  <table class="tabular" cellspacing="0" cellpadding="5" frame="hsides" rules="groups"><caption><span class="captionlabel">Table&nbsp;A.1:</span> Data types supported by subclasses of <tt>IsDescription</tt> definitions.</caption><col align="left"><col align="left"><col align="left"><col align="center"><col align="left">
+	  <thead><tr><td colspan="5" class="thickline"></td></tr>
+	    <tr><th align="left">Type Code</th><th align="left">Description</th><th align="left">C Type</th><th align="center">Size (in bytes)</th><th align="left">Python Counterpart</th></tr>
+	  <tr><td colspan="5" class="thinline"></td></tr></thead>
+	  <tbody>
+	    <tr><td align="left">Int8</td><td align="left">8-bit integer</td><td align="left">signed char</td><td align="center">1</td><td align="left">Integer</td></tr>
+	    <tr><td align="left">UInt8</td><td align="left">8-bit unsigned integer</td><td align="left">unsigned char</td><td align="center">1</td><td align="left">Integer</td></tr>
+	    <tr><td align="left">Int16</td><td align="left">16-bit integer</td><td align="left">short</td><td align="center">2</td><td align="left">Integer</td></tr>
+	    <tr><td align="left">UInt16</td><td align="left">16-bit unsigned integer</td><td align="left">unsigned short</td><td align="center">2</td><td align="left">Integer</td></tr>
+	    <tr><td align="left">Int32</td><td align="left">integer</td><td align="left">int</td><td align="center">4</td><td align="left">Integer</td></tr>
+	    <tr><td align="left">UInt32</td><td align="left">unsigned integer</td><td align="left">unsigned int</td><td align="center">4</td><td align="left">Long</td></tr>
+	    <tr><td align="left">Int64</td><td align="left">64-bit integer</td><td align="left">long long</td><td align="center">8</td><td align="left">Long</td></tr>
+	    <tr><td align="left">UInt64</td><td align="left">unsigned 64-bit integer</td><td align="left">unsigned long long</td><td align="center">8</td><td align="left">Long</td></tr>
+	    <tr><td align="left">Float32</td><td align="left">single-precision float</td><td align="left">float</td><td align="center">4</td><td align="left">Float</td></tr>
+	    <tr><td align="left">Float64</td><td align="left">double-precision float</td><td align="left">double</td><td align="center">8</td><td align="left">Float</td></tr>
+	    <tr><td align="left">CharType</td><td align="left">arbitrary length string</td><td align="left">char[]</td><td align="center">*</td><td align="left">String</td></tr>
+	  <tr><td colspan="5" class="thickline"></td></tr></tbody>
+	</table>
+	  
+	</div>
+
+      </div></div><div class="speedbar-bottom"><hr class="speedbar"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide5.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide7.html">next</a></td></tr></tbody></table></div></body></html>

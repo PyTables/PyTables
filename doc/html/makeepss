@@ -1,0 +1,32 @@
+# This is a generated file. Do not edit it.
+# If you call this as a batch file, it converts all
+# jpeg image files into eps files for dvips.
+
+
+echo
+echo "---- processing image 1/4 (\"objecttree-h5\") ----"
+# 
+if test ! $1 || test $1 == "objecttree-h5"; then
+jpeg2ps -r 0 -h objecttree-h5.jpg > objecttree-h5.eps
+echo -n; else echo "**** skipped"; fi
+
+echo
+echo "---- processing image 2/4 (\"tutorial1-tableview\") ----"
+# 
+if test ! $1 || test $1 == "tutorial1-tableview"; then
+jpeg2ps -r 0 -h tutorial1-tableview.jpg > tutorial1-tableview.eps
+echo -n; else echo "**** skipped"; fi
+
+echo
+echo "---- processing image 3/4 (\"tutorial1-general\") ----"
+# 
+if test ! $1 || test $1 == "tutorial1-general"; then
+jpeg2ps -r 0 -h tutorial1-general.jpg > tutorial1-general.eps
+echo -n; else echo "**** skipped"; fi
+
+echo
+echo "---- processing image 4/4 (\"tutorial2-tableview\") ----"
+# 
+if test ! $1 || test $1 == "tutorial2-tableview"; then
+jpeg2ps -r 0 -h tutorial2-tableview.jpg > tutorial2-tableview.eps
+echo -n; else echo "**** skipped"; fi
