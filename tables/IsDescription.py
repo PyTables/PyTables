@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.2 2003/05/06 20:21:20 falted Exp $
+#       $Id: IsDescription.py,v 1.3 2003/05/07 07:31:44 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.2 $"
+__version__ = "$Revision: 1.3 $"
 
 
 import warnings
@@ -233,14 +233,14 @@ print p
 #                 return 0
             # Do not try to order variables that starts with special
             # prefixes
-            if (key1.startswith('__') or key1.startswith('_v_') and
-                key2.startswith('__') or key2.startswith('_v_')):
+            if ((key1.startswith('__') or key1.startswith('_v_')) and
+                (key2.startswith('__') or key2.startswith('_v_'))):
                 return 0
             # A variable that starts with a special prefix
             # is always greather than a normal variable
-            elif key1.startswith('__') or key1.startswith('_v_'):
+            elif (key1.startswith('__') or key1.startswith('_v_')):
                 return 1
-            elif key2.startswith('__') or key2.startswith('_v_'):
+            elif (key2.startswith('__') or key2.startswith('_v_')):
                 return -1
             pos1 = classdict[key1].pos
             pos2 = classdict[key2].pos
