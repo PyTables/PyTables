@@ -1174,7 +1174,7 @@ class SelectValuesTestCase(unittest.TestCase):
         #print "t1col-->", t1col[:]
         # First selection
         results1 = [p['var1'] for p in table1.whereInRange(t1col<=sl,2,10)]
-        results2 = [p["var1"] for p in table2(2, 10)
+        results2 = [p["var1"] for p in table2.iterrows(2, 10)
                     if p["var1"] <= sl]
         if verbose:
             print "Limit:", sl
@@ -1187,7 +1187,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         results1 = [p['var1'] for p in table1.whereInRange(il<t1col<sl,2,30,2)]
-        results2 = [p["var1"] for p in table2(2,30,2)
+        results2 = [p["var1"] for p in table2.iterrows(2,30,2)
                     if il<p["var1"]<sl]
         if verbose:
             print "Limits:", il, sl            
@@ -1200,7 +1200,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         results1 = [p['var1'] for p in table1.whereInRange(il>t1col>sl,2,-5)]
-        results2 = [p["var1"] for p in table2(2, -5)  # Negative indices
+        results2 = [p["var1"] for p in table2.iterrows(2, -5)  # Negative indices
                     if (il > p["var1"] > sl)]
         if verbose:
             print "Limits:", il, sl
@@ -1214,7 +1214,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # This selection to be commented out
 #         results1 = [p['var1'] for p in table1.whereInRange(t1col>=sl,2,-1,1)]
-#         results2 = [p["var1"] for p in table2(2, -1, 1)
+#         results2 = [p["var1"] for p in table2.iterrows(2, -1, 1)
 #                     if p["var1"] >= sl]
 #         if verbose:
 #             print "Limit:", sl
@@ -1229,7 +1229,7 @@ class SelectValuesTestCase(unittest.TestCase):
         #print "t1col-->", t1col[:]
         #results1 = [p['var1'] for p in table1.whereInRange(t1col>=sl,2,-1,3)]
         results1 = [p['var1'] for p in table1.whereInRange(t1col>=sl,2,-1,3)]
-        results2 = [p["var1"] for p in table2(2, -1, 3)
+        results2 = [p["var1"] for p in table2.iterrows(2, -1, 3)
                     if p["var1"] >= sl]
         if verbose:
             print "Limits:", il, sl
@@ -1259,7 +1259,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # First selection
         results1 = [p['var4'] for p in table1.whereInRange(t1col < sl, 2, 5)]
-        results2 = [p["var4"] for p in table2(2, 5)
+        results2 = [p["var4"] for p in table2.iterrows(2, 5)
                     if p["var4"] < sl]
         if verbose:
             print "Limit:", sl
@@ -1272,7 +1272,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         results1 = [p['var4'] for p in table1.whereInRange(il < t1col<=sl, 2, -1, 2)]
-        results2 = [p["var4"] for p in table2(2,-1,2)
+        results2 = [p["var4"] for p in table2.iterrows(2,-1,2)
                     if il < p["var4"] <= sl]
         if verbose:
             print "Limit:", sl
@@ -1285,7 +1285,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         results1 = [p['var4'] for p in table1.whereInRange(il<=t1col<=sl, 2, -5)]
-        results2 = [p["var4"] for p in table2(2, -5)  # Negative indices
+        results2 = [p["var4"] for p in table2.iterrows(2, -5)  # Negative indices
                     if il <= p["var4"] <= sl]
         if verbose:
             print "Limit:", sl
@@ -1298,7 +1298,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         results1 = [p['var4'] for p in table1.whereInRange(t1col>=sl, 0, -1, 3)]
-        results2 = [p["var4"] for p in table2(0, -1, 3)
+        results2 = [p["var4"] for p in table2.iterrows(0, -1, 3)
                     if p["var4"] >= sl]
         if verbose:
             print "Limit:", sl
@@ -1329,7 +1329,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # First selection
         results1 = [p['var1'] for p in table1.whereInRange(t1col>=sl,2,-1,3)]
-        results2 = [p["var1"] for p in table2(2, -1, 3)
+        results2 = [p["var1"] for p in table2.iterrows(2, -1, 3)
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1345,7 +1345,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         results1 = [p['var1'] for p in table1.whereInRange(t1col>=sl,5,-1,10)]
-        results2 = [p["var1"] for p in table2(5, -1, 10)
+        results2 = [p["var1"] for p in table2.iterrows(5, -1, 10)
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1361,7 +1361,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         results1 = [p['var1'] for p in table1.whereInRange(t1col>=sl,5,-3,11)]
-        results2 = [p["var1"] for p in table2(5, -3, 11)
+        results2 = [p["var1"] for p in table2.iterrows(5, -3, 11)
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1377,7 +1377,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         results1 = [p['var1'] for p in table1.whereInRange(t1col>=sl,2,-1,300)]
-        results2 = [p["var1"] for p in table2(2, -1, 300)
+        results2 = [p["var1"] for p in table2.iterrows(2, -1, 300)
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1411,7 +1411,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # First selection
         results1 = [p['var3'] for p in table1.whereInRange(t3col>=sl,2,-1,3)]
-        results2 = [p["var3"] for p in table2(2, -1, 3)
+        results2 = [p["var3"] for p in table2.iterrows(2, -1, 3)
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1427,7 +1427,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         results1 = [p['var3'] for p in table1.whereInRange(t3col>=sl,5,-1,10)]
-        results2 = [p["var3"] for p in table2(5, -1, 10)
+        results2 = [p["var3"] for p in table2.iterrows(5, -1, 10)
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1443,7 +1443,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         results1 = [p['var3'] for p in table1.whereInRange(t3col>=sl,5,-3,11)]
-        results2 = [p["var3"] for p in table2(5, -3, 11)
+        results2 = [p["var3"] for p in table2.iterrows(5, -3, 11)
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1459,7 +1459,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         results1 = [p['var3'] for p in table1.whereInRange(t3col>=sl,2,-1,300)]
-        results2 = [p["var3"] for p in table2(2, -1, 300)
+        results2 = [p["var3"] for p in table2.iterrows(2, -1, 300)
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1493,7 +1493,7 @@ class SelectValuesTestCase(unittest.TestCase):
         # First selection
         #print "-->", table1.whereIndexed(t1col<=sl,2,10)
         results1 = [p['var1'] for p in table1.whereIndexed(t1col<=sl,2,10)]
-        results2 = [p["var1"] for p in table2(2, 10)
+        results2 = [p["var1"] for p in table2.iterrows(2, 10)
                     if p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1509,7 +1509,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Selection to be deleted
         results1 = [p['var1'] for p in table1.whereIndexed(il<=t1col<=sl,2,30,1)]
-        results2 = [p["var1"] for p in table2(2,30,1)
+        results2 = [p["var1"] for p in table2.iterrows(2,30,1)
                     if il<=p["var1"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1525,7 +1525,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         results1 = [p['var1'] for p in table1.whereIndexed(il<=t1col<=sl,2,30,2)]
-        results2 = [p["var1"] for p in table2(2,30,2)
+        results2 = [p["var1"] for p in table2.iterrows(2,30,2)
                     if il<=p["var1"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1541,7 +1541,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         results1 = [p['var1'] for p in table1.whereIndexed(il<t1col<sl,2,-5)]
-        results2 = [p["var1"] for p in table2(2, -5)  # Negative indices
+        results2 = [p["var1"] for p in table2.iterrows(2, -5)  # Negative indices
                     if (il < p["var1"] < sl)]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1558,7 +1558,7 @@ class SelectValuesTestCase(unittest.TestCase):
         # Fourth selection
         results1 = [p['var1'] for p in table1.whereIndexed(t1col>=sl,1,-1,3)]
         #print "results1-->", results1
-        results2 = [p["var1"] for p in table2(1, -1, 3)
+        results2 = [p["var1"] for p in table2.iterrows(1, -1, 3)
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1591,7 +1591,7 @@ class SelectValuesTestCase(unittest.TestCase):
         # First selection
         #print "-->", table1.whereIndexed(t3col<=sl,2,10)
         results1 = [p['var3'] for p in table1.whereIndexed(t3col<=sl,2,10)]
-        results2 = [p["var3"] for p in table2(2, 10)
+        results2 = [p["var3"] for p in table2.iterrows(2, 10)
                     if p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1607,7 +1607,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         results1 = [p['var3'] for p in table1.whereIndexed(il<=t3col<=sl,2,30,2)]
-        results2 = [p["var3"] for p in table2(2,30,2)
+        results2 = [p["var3"] for p in table2.iterrows(2,30,2)
                     if il<=p["var3"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1623,7 +1623,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         results1 = [p['var3'] for p in table1.whereIndexed(il<t3col<sl,2,-5)]
-        results2 = [p["var3"] for p in table2(2, -5)  # Negative indices
+        results2 = [p["var3"] for p in table2.iterrows(2, -5)  # Negative indices
                     if (il < p["var3"] < sl)]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1640,7 +1640,7 @@ class SelectValuesTestCase(unittest.TestCase):
         # Fourth selection
         #print "t3col-->", t3col[:]
         results1 = [p['var3'] for p in table1.whereIndexed(t3col>=sl,1,-1,3)]
-        results2 = [p["var3"] for p in table2(1, -1, 3)
+        results2 = [p["var3"] for p in table2.iterrows(1, -1, 3)
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1674,7 +1674,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # First selection
         results1 = [p['var1'] for p in table1.whereIndexed(t1col>=sl,2,-1,3)]
-        results2 = [p["var1"] for p in table2(2, -1, 3)
+        results2 = [p["var1"] for p in table2.iterrows(2, -1, 3)
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1690,7 +1690,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         results1 = [p['var1'] for p in table1.whereIndexed(t1col>=sl,5,-1,10)]
-        results2 = [p["var1"] for p in table2(5, -1, 10)
+        results2 = [p["var1"] for p in table2.iterrows(5, -1, 10)
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1706,7 +1706,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         results1 = [p['var1'] for p in table1.whereIndexed(t1col>=sl,5,-3,11)]
-        results2 = [p["var1"] for p in table2(5, -3, 11)
+        results2 = [p["var1"] for p in table2.iterrows(5, -3, 11)
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1722,7 +1722,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         results1 = [p['var1'] for p in table1.whereIndexed(t1col>=sl,2,-1,300)]
-        results2 = [p["var1"] for p in table2(2, -1, 300)
+        results2 = [p["var1"] for p in table2.iterrows(2, -1, 300)
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1756,7 +1756,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # First selection
         results1 = [p['var3'] for p in table1.whereIndexed(t3col>=sl,2,-1,3)]
-        results2 = [p["var3"] for p in table2(2, -1, 3)
+        results2 = [p["var3"] for p in table2.iterrows(2, -1, 3)
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1772,7 +1772,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         results1 = [p['var3'] for p in table1.whereIndexed(t3col>=sl,5,-1,10)]
-        results2 = [p["var3"] for p in table2(5, -1, 10)
+        results2 = [p["var3"] for p in table2.iterrows(5, -1, 10)
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1788,7 +1788,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         results1 = [p['var3'] for p in table1.whereIndexed(t3col>=sl,5,-3,11)]
-        results2 = [p["var3"] for p in table2(5, -3, 11)
+        results2 = [p["var3"] for p in table2.iterrows(5, -3, 11)
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1804,7 +1804,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         results1 = [p['var3'] for p in table1.whereIndexed(t3col>=sl,2,-1,300)]
-        results2 = [p["var3"] for p in table2(2, -1, 300)
+        results2 = [p["var3"] for p in table2.iterrows(2, -1, 300)
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)

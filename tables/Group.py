@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.79 2004/08/12 20:52:30 falted Exp $
+#       $Id: Group.py,v 1.80 2004/09/20 13:12:09 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.79 $"
+__version__ = "$Revision: 1.80 $"
 
 # Recommended values for maximum number of groups and maximum depth in tree
 # However, these limits are somewhat arbitraries and can be increased
@@ -80,6 +80,7 @@ class Group(hdf5Extension.Group, object):
     
         _f_listNodes(classname)
         _f_walkGroups()
+        _f_walkNodes(classname, recursive)
         __delattr__(name)
         __getattr__(name)
         __setattr__(name, object)
@@ -135,9 +136,16 @@ class Group(hdf5Extension.Group, object):
     def __iter__(self, classname=None, recursive=0):
         """Iterate over the children on self"""
 
-        return self._f_iterGroup(classname, recursive)
+        return self._f_walkNodes(classname, recursive)
 
-    def _f_iterGroup(self, classname=None, recursive=0):
+    def _f_walkNodes(self, classname=None, recursive=0):
+        """Iterate over the nodes of self
+
+        If "classname" is supplied, only instances of this class
+        are returned. If "recursive" is false, only children
+        hanging immediately after the group are returned. If
+        true, a recursion over all the groups hanging from it is
+        performed. """
 
         if not recursive:
             # Non-recursive algorithm
@@ -153,17 +161,6 @@ class Group(hdf5Extension.Group, object):
                     for leaf in group._f_listNodes(classname):
                         yield leaf
                 
-    def __call__(self, classname=None, recursive=0):
-        """Iterate over the children on self
-
-	      If "classname" is supplied, only instances of this class
-	      are returned. If "recursive" is false, only children
-	      hanging immediately after the group are returned. If
-	      true, a recursion over all the groups hanging from it is
-	      performed. """
-        
-        return self.__iter__(classname, recursive)
-
     # This iterative version of _g_openFile is due to John Nielsen
     def _g_openFile(self):
         """Recusively reads an HDF5 file and generates a tree object.

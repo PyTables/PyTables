@@ -1098,8 +1098,7 @@ class CopyGroupTestCase(unittest.TestCase):
 #                                recursive=0,
 #                                filters=self.filters)
         self.h5file.copyChildren(srcgroup, self.h5file2.root,
-                               recursive=0,
-                               filters=self.filters)
+                                 recursive=0, filters=self.filters)
         if self.close:
             # Close the destination file
             self.h5file2.close()
@@ -1128,9 +1127,9 @@ class CopyGroupTestCase(unittest.TestCase):
         # Copy a group non-recursively with attrs
         srcgroup = self.h5file.root.group0.group1
         srcgroup._f_copyChildren(self.h5file2.root,
-                               recursive=0,
-                               filters=self.filters,
-                               copyuserattrs = 1)
+                                 recursive=0,
+                                 filters=self.filters,
+                                 copyuserattrs = 1)
         if self.close:
             # Close the destination file
             self.h5file2.close()
@@ -1216,7 +1215,7 @@ class CopyGroupTestCase(unittest.TestCase):
             lenDstGroup = 0  # Case where dstgroup == "/"
         first = 1
         nodelist1 = []
-        for node in srcgroup(recursive=1):
+        for node in srcgroup._f_walkNodes(recursive=1):
             if first:
                 # skip the first group
                 first = 0
@@ -1225,7 +1224,7 @@ class CopyGroupTestCase(unittest.TestCase):
 
         first = 1
         nodelist2 = []
-        for node in dstgroup(recursive=1):
+        for node in dstgroup._f_walkNodes(recursive=1):
             if first:
                 # skip the first group
                 first = 0
@@ -1272,7 +1271,7 @@ class CopyGroupTestCase(unittest.TestCase):
             lenDstGroup = 0  # Case where dstgroup == "/"
         first = 1
         nodelist1 = {}
-        for node in srcgroup(recursive=1):
+        for node in srcgroup._f_walkNodes(recursive=1):
             if first:
                 # skip the first group
                 first = 0
@@ -1280,7 +1279,7 @@ class CopyGroupTestCase(unittest.TestCase):
             nodelist1[node._v_name] = node._v_pathname[lenSrcGroup:]
 
         first = 1
-        for node in dstgroup(recursive=1):
+        for node in dstgroup._f_walkNodes(recursive=1):
             if first:
                 # skip the first group
                 first = 0

@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.85 2004/09/17 11:51:48 falted Exp $
+#       $Id: File.py,v 1.86 2004/09/20 13:12:09 falted Exp $
 #
 ########################################################################
 
@@ -34,7 +34,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.85 $"
+__version__ = "$Revision: 1.86 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -926,11 +926,15 @@ class File(hdf5Extension.File, object):
     def __iter__(self, where="/", classname=""):
         """Iterate over the nodes in the object tree."""
 
-        return self._iterTree(where, classname)
+        return self.walkNodes(where, classname)
 
-    def _iterTree(self, where="/", classname=""):
-        """Iterate over the nodes in the object tree."""
+    def walkNodes(self, where="/", classname=""):
+        """Iterate over the nodes in the object tree.
+        If "where" supplied, the iteration starts from this group.
+        If "classname" is supplied, only instances of this class are
+        returned.
         
+        """        
         if classname == "Group":
             for group in self.walkGroups(where):
                 yield group
@@ -944,17 +948,6 @@ class File(hdf5Extension.File, object):
                 for leaf in self.listNodes(group, classname):
                     yield leaf
                 
-    def __call__(self, where="/", classname=""):
-        """Iterate over the nodes in the object tree.
-
-        If "where" supplied, the iteration starts from this group.
-        If "classname" is supplied, only instances of this class are
-        returned.
-
-        """
-
-        return self.__iter__(where, classname)
-
     def walkGroups(self, where = "/"):
         """Returns the list of Groups (not Leaves) hanging from "where".
 
@@ -1022,15 +1015,12 @@ class File(hdf5Extension.File, object):
         
         # Print all the nodes (Group and Leaf objects) on object tree
         date = time.asctime(time.localtime(os.stat(self.filename)[8]))
-        astring = "Filename: " + repr(self.filename) + ' '
-        if self.title <> "unknown":
-            astring += "Title: "+repr(self.title)
-        astring += "; Last modif.: " + repr(date)
-        astring += '; rootUEP=' + repr(self.rootUEP)
-        astring += '; filters=' + repr(self.filters)
-
-        if self.format_version <> "unknown":
-            astring += "; Format version: " + self.format_version + '\n'
+        astring =  self.filename + ' (File) ' + repr(self.title) + '\n'
+#         astring += 'rootUEP :=' + repr(self.rootUEP) + '; '
+#         astring += 'format_version := ' + self.format_version + '\n'
+#         astring += 'filters :=' + repr(self.filters) + '\n'
+        astring += 'Last modif.: ' + repr(date) + '\n'
+        astring += 'Object Tree: \n'
 
         for group in self.walkGroups("/"):
             astring += str(group) + '\n'

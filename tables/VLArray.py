@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.30 2004/09/17 11:51:48 falted Exp $
+#       $Id: VLArray.py,v 1.31 2004/09/20 13:12:10 falted Exp $
 #
 ########################################################################
 
@@ -30,7 +30,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.30 $"
+__version__ = "$Revision: 1.31 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -465,16 +465,8 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
                                  self.flavor)
 
     def iterrows(self, start=None, stop=None, step=None):
-        """Iterator over all the rows or a range"""
-
-        return self.__call__(start, stop, step)
-
-    def __call__(self, start=None, stop=None, step=None):
         """Iterate over all the rows or a range.
-        
-        It returns the same iterator than
-        Table.iterrows(start, stop, step).
-        It is, therefore, a shorter way to call it.
+
         """
 
         (self._start, self._stop, self._step) = \

@@ -1681,13 +1681,13 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	  </p>
 
 	  <p>We can combine both calls by using the
-	      <verb>__call__(where, classname)</verb> special method
+	      <verb>walkNodes(where, classname)</verb> special method
 	      of the <verb>File</verb> object (<ref
-	      refid="__callFileDescr">see</ref>). For example:
+	      refid="walkNodesFileDescr">see</ref>). For example:
 	  </p>
 
 	  <verbatim>
->>> for array in h5file("/", "Array"):
+>>> for array in h5file.walkNodes("/", "Array"):
 ...   print array
 ...
 /columns/name (Array(3,)) 'Name column selection'
@@ -1707,16 +1707,16 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	  </p>
 
 	  <verbatim>
->>> for leaf in h5file.root.detector('Leaf'):
+>>> for leaf in h5file.root.detector._f_walkNodes('Leaf'):
 ...   print leaf
 ...
 /detector/readout (Table(10,)) 'Readout example'
 	  </verbatim>
 
 	  <p>We have used a call to the
-	    <verb>Group.__call__(classname, recursive)</verb> special
-	    method (<ref refid="__callGroupDescr"></ref>), using
-	    the <em>natural naming</em> path specification.</p>
+	    <verb>Group._f_walkNodes(classname, recursive)</verb>
+	    method (<ref refid="_f_walkNodesGroupDescr"></ref>), using the
+	    <em>natural naming</em> path specification.</p>
 
 	  <p>Of course you can do more sophisticated node selections
 	    using these powerful methods. But first, let's take a look
@@ -2603,152 +2603,162 @@ KeyError: Error setting "ADCcount" field.
 	<subsection id="GlobalFunctDescr">
 	  <heading>Global functions</heading>
 
-	  <description>
-
-	    <term>copyFile(srcFilename=None, dstFilename=None, title=None,
+	  <subsubsection id="copyFileDescr">
+	    <heading>copyFile(srcFilename=None, dstFilename=None, title=None,
 	      filters=None, copyuserattrs=1, overwrite=0)
-	    </term>
+	    </heading>
 
-	    <item>Copy a closed <verb>PyTables</verb> (or generic
+	    <p>Copy a closed <verb>PyTables</verb> (or generic
 	      <verb>HDF5</verb>) file specified by
 	      <em>srcFilename</em> to <em>dstFilename</em>. Returns a
 	      tuple in the form <verb>(ngroups, nleaves,
 	      nbytes)</verb> specifiying the number of groups, leaves
 	      and bytes copied.
+	    </p>
+
+	    <description>
+
+	      <term>title</term> <item>The title for the new
+		file. If not specified, the source file title will
+		be copied.
+	      </item>
+
+	      <term>filters</term> <item>A Filters instance (see
+		<ref refid="FiltersClassDescr"></ref>). If
+		specified, it will override the original filter
+		properties in <visual markup="bf">all</visual>
+		source nodes.
+	      </item>
+
+	      <term>copyuserattrs</term> <item>You can prevent the
+		user attributes from being copied by setting this
+		parameter to 0. The default is to copy them.
+	      </item>
+
+	      <term>overwrite</term><item>If
+		<verb>dstFilename</verb> file already exists and
+		overwrite is 1, it will be silently overwritten. The
+		default is not overwriting.
+	      </item>
+
+	    </description>
 	    
-	      <description id="copyFileDescr">
+	  </subsubsection>
 
-		<term>title</term> <item>The title for the new
-		  file. If not specified, the source file title will
-		  be copied.
-		</item>
-
-		<term>filters</term> <item>A Filters instance (see
-		    <ref refid="FiltersClassDescr"></ref>). If
-		    specified, it will override the original filter
-		    properties in <visual markup="bf">all</visual>
-		    source nodes.
-		</item>
-
-		<term>copyuserattrs</term> <item>You can prevent the
-		  user attributes from being copied by setting this
-		  parameter to 0. The default is to copy them.
-		</item>
-
-		<term>overwrite</term><item>If
-		  <verb>dstFilename</verb> file already exists and
-		  overwrite is 1, it will be silently overwritten. The
-		  default is not overwriting.
-		</item>
-
-	      </description>
-
-	    </item>
-
-	    <term>isHDF5(filename)</term> <item>Determines whether
-	      filename is in the HDF5 format or not. When successful,
-	      returns a positive value, for TRUE, or 0 (zero), for
-	      FALSE. Otherwise returns a negative value. To this
-	      function to work, it needs a closed file.
-	    </item>
-
-	    <term>isPyTablesFile(filename)</term> <item>Determines
-	      whether a file is in the <verb>PyTables</verb> format.
-	      When successful, returns the format version string, for
+	  <subsubsection id="isHDF5Descr">
+	    <heading>isHDF5(filename)</heading>
+	    
+	    <p>Determines whether filename is in the HDF5 format or
+	      not. When successful, returns a positive value, for
 	      TRUE, or 0 (zero), for FALSE. Otherwise returns a
 	      negative value. To this function to work, it needs a
 	      closed file.
-	    </item>
+	    </p>
+	  </subsubsection>
 
-	    <term>openFile(filename, mode='r', title='', trMap={},
-	      rootUEP="/", filters=None)
-	    </term>
+	  <subsubsection id="isPyTablesFileDescr">
+	    <heading>isHDF5(filename)</heading>
 
-	    <item>Open a <verb>PyTables</verb> (or generic
-	    <verb>HDF5</verb>) file and returns a <verb>File</verb>
-	    object.
+	    <p>Determines whether a file is in the
+	      <verb>PyTables</verb> format.  When successful, returns
+	      the format version string, for TRUE, or 0 (zero), for
+	      FALSE. Otherwise returns a negative value. To this
+	      function to work, it needs a closed file.
+	    </p>
+
+	  </subsubsection>
+
+	  <subsubsection id="openFileDescr">
+	    <heading>openFile(filename, mode='r', title='', trMap={},
+	      rootUEP="/", filters=None)</heading>
+
+	    <p>Open a <verb>PyTables</verb> (or generic
+	      <verb>HDF5</verb>) file and returns a <verb>File</verb>
+	      object.
+	    </p>
 	    
-	      <description id="openFileDescr">
+	    <description>
 
-		<term>filename</term> <item>The name of the file
-		  (supports environment variable expansion). It is
-		  suggested that it should have any of
-		  <verb>".h5"</verb>, <verb>".hdf"</verb> or
-		  <verb>".hdf5"</verb> extensions, although this is
-		  not mandatory.
-		</item>
+	      <term>filename</term> <item>The name of the file
+		(supports environment variable expansion). It is
+		suggested that it should have any of
+		<verb>".h5"</verb>, <verb>".hdf"</verb> or
+		<verb>".hdf5"</verb> extensions, although this is
+		not mandatory.
+	      </item>
 
-		<term>mode</term> <item>The mode to open the file. It
-		  can be one of the following:
+	      <term>mode</term> <item>The mode to open the file. It
+		can be one of the following:
 
-		  <description>
+		<description>
 
-		    <term>'r'</term> <item>read-only; no data can be
-		      modified.</item>
+		  <term>'r'</term> <item>read-only; no data can be
+		    modified.</item>
+		  
+		  <term>'w'</term> <item>write; a new file is
+		    created (an existing file with the same name
+		    would be deleted).</item>
 
-		    <term>'w'</term> <item>write; a new file is
-		      created (an existing file with the same name
-		      would be deleted).</item>
+		  <term>'a'</term> <item>append; an existing file is
+		    opened for reading and writing, and if the file
+		    does not exist it is created.</item>
+		  
+		  <term>'r+'</term> <item>is similar to 'a', but the
+		    file must already exist.</item>
+		  
+		</description>
+	      </item>
 
-		    <term>'a'</term> <item>append; an existing file is
-		      opened for reading and writing, and if the file
-		      does not exist it is created.</item>
+	      <term>title</term> <item>If filename is new, this will
+		set a title for the root group in this file. If
+		filename is not new, the title will be read from
+		disk, and this will not have any effect.
+	      </item>
 
-		    <term>'r+'</term> <item>is similar to 'a', but the
-		      file must already exist.</item>
+	      <term>trMap</term> <item>A dictionary to map names in
+		the object tree Python namespace into different HDF5
+		names in file namespace. The keys are the Python
+		names, while the values are the HDF5 names. This is
+		useful when you need to use HDF5 node names with
+		invalid or reserved words in Python.
+	      </item>
 
-		  </description>
-		</item>
-
-		<term>title</term> <item>If filename is new, this will
-		  set a title for the root group in this file. If
-		  filename is not new, the title will be read from
-		  disk, and this will not have any effect.
-		</item>
-
-		<term>trMap</term> <item>A dictionary to map names in
-		  the object tree Python namespace into different HDF5
-		  names in file namespace. The keys are the Python
-		  names, while the values are the HDF5 names. This is
-		  useful when you need to use HDF5 node names with
-		  invalid or reserved words in Python.
-		</item>
-
-		<term>rootUEP</term> <item>The root User Entry
-		  Point. This is a group in the HDF5 hierarchy which
-		  will be taken as the starting point to create the
-		  object tree. The group has to be named after its
-		  HDF5 name and can be a path. If it does not exist, a
-		  <verb>RuntimeError</verb> exception is issued. Use
-		  this if you do not want to build the <visual
+	      <term>rootUEP</term> <item>The root User Entry
+		Point. This is a group in the HDF5 hierarchy which
+		will be taken as the starting point to create the
+		object tree. The group has to be named after its
+		HDF5 name and can be a path. If it does not exist, a
+		<verb>RuntimeError</verb> exception is issued. Use
+		this if you do not want to build the <visual
 		  markup="bf">entire</visual> object tree, but rather
-		  only a <visual markup="bf">subtree</visual> of it.
-		</item>
+		only a <visual markup="bf">subtree</visual> of it.
+	      </item>
 
-		<term>filters</term><item>An instance of the
-		  <verb>Filters</verb> class (see section<ref
+	      <term>filters</term><item>An instance of the
+		<verb>Filters</verb> class (see section <ref
 		  refid="FiltersClassDescr"></ref>) that provides
-		  information about the desired I/O filters applicable
-		  to the leaves that hangs directly from <em>root</em>
-		  (unless other filters properties are specified for
-		  these leaves). Besides, if you do not specify filter
-		  properties for its child groups, they will inherit
-		  these ones. So, if you open a new file with this
-		  parameter set, all the leaves that would be created
-		  in the file will recursively inherit this filtering
-		  properties (again, if you don't prevent that from
-		  happening by specifying other filters on the child
-		  groups or leaves).
-		</item>
+		information about the desired I/O filters applicable
+		to the leaves that hangs directly from <em>root</em>
+		(unless other filters properties are specified for
+		these leaves). Besides, if you do not specify filter
+		properties for its child groups, they will inherit
+		these ones. So, if you open a new file with this
+		parameter set, all the leaves that would be created
+		in the file will recursively inherit this filtering
+		properties (again, if you don't prevent that from
+		happening by specifying other filters on the child
+		groups or leaves).
+	      </item>
 
-	      </description>
+	    </description>
+	  </subsubsection>
 
-	    </item>
+	  <subsubsection id="whichLibVersionDescr">
+	    <heading>whichLibVersion(libname)</heading>
 
-	    <term>whichLibVersion(libname)</term> <item>Returns info
-	      about versions of the underlying C libraries. <visual
-	      markup="bf">libname</visual> can be whether
-	      <verb>"hdf5"</verb>, <verb>"zlib"</verb>,
+	    <p>Returns info about versions of the underlying C
+	      libraries. <visual markup="bf">libname</visual> can be
+	      whether <verb>"hdf5"</verb>, <verb>"zlib"</verb>,
 	      <verb>"lzo"</verb> or <verb>"ucl"</verb>. It always
 	      returns a tuple of 3 elements. When successful, the
 	      first element of this tuple has a positive value, and is
@@ -2756,10 +2766,9 @@ KeyError: Error setting "ADCcount" field.
 	      or UCL). In case the library is available, the second
 	      element of tuple contains the library version and the
 	      third element the date (if available) of that version.
-	    </item>
+	    </p>
 
-
-	  </description>
+	  </subsubsection>
 	</subsection>
       </section>
 
@@ -2982,8 +2991,8 @@ KeyError: Error setting "ADCcount" field.
 
 	  </subsubsection>
 
-	  <subsubsection>
-	    <heading id="createTableDescr">createTable(where, name,
+	  <subsubsection id="createTableDescr">
+	    <heading>createTable(where, name,
 	      description, title='', filters=None,
 	      expectedrows=10000)
 	    </heading>
@@ -3037,8 +3046,8 @@ KeyError: Error setting "ADCcount" field.
 	    </description>
 	  </subsubsection>
 
-	  <subsubsection>
-	    <heading id="createArrayDescr">createArray(where, name,
+	  <subsubsection id="createArrayDescr">
+	    <heading>createArray(where, name,
 	      object, title='')</heading>
 
 	    <p>Create a new <verb>Array</verb> instance with name
@@ -3067,8 +3076,8 @@ KeyError: Error setting "ADCcount" field.
 	    </p>
 	  </subsubsection>
 
-	  <subsubsection>
-	    <heading id="createEArrayDescr">createEArray(where, name,
+	  <subsubsection id="createEArrayDescr">
+	    <heading>createEArray(where, name,
 	      atom, title='', filters=None, expectedrows=1000)
 	    </heading>
 
@@ -3108,8 +3117,8 @@ KeyError: Error setting "ADCcount" field.
 	    </p>
 	  </subsubsection>
 
-	  <subsubsection>
-	    <heading id="createVLArrayDescr">createVLArray(where,
+	  <subsubsection id="createVLArrayDescr">
+	    <heading>createVLArray(where,
 	      name, atom=None, title='', filters=None,
 	      expectedsizeinMB=1.0)
 	    </heading>
@@ -3144,8 +3153,8 @@ KeyError: Error setting "ADCcount" field.
 	    </p>
 	  </subsubsection>
 
-	  <subsubsection>
-	    <heading id="getNodeDescr">getNode(where, name='',
+	  <subsubsection id="getNodeDescr">
+	    <heading>getNode(where, name='',
 	      classname='')</heading>
 
 	    <p>Returns the object node <em>name</em> under
@@ -3179,8 +3188,8 @@ KeyError: Error setting "ADCcount" field.
 	      </description>
 	  </subsubsection>
 
-	  <subsubsection>
-	    <heading id="getAttrNodeDescr">getAttrNode(where,
+	  <subsubsection id="getAttrNodeDescr">
+	    <heading>getAttrNode(where,
 	      attrname, name='' )</heading>
 
 	    <p>Returns the attribute <em>attrname</em> under
@@ -3208,8 +3217,8 @@ KeyError: Error setting "ADCcount" field.
 	    </description>
 	  </subsubsection>
 
-	  <subsubsection>
-	    <heading id="setAttrNodeDescr">setAttrNode(where,
+	  <subsubsection id="setAttrNodeDescr">
+	    <heading>setAttrNode(where,
 	      attrname, attrvalue, name='')</heading>
 
 	    <p>Sets the attribute <em>attrname</em> with value
@@ -3244,8 +3253,8 @@ KeyError: Error setting "ADCcount" field.
 	    </description>
 	  </subsubsection>
 
-	  <subsubsection>
-	    <heading id="listNodesDescr">listNodes(where,
+	  <subsubsection id="listNodesDescr">
+	    <heading>listNodes(where,
 	      classname='')</heading>
 
 	    <p>Returns a list with all the object nodes (Group or
@@ -3272,8 +3281,8 @@ KeyError: Error setting "ADCcount" field.
 	    </description>
 	  </subsubsection>
 
-	  <subsubsection>
-	    <heading id="removeNodeDescr">removeNode(where, name = "",
+	  <subsubsection id="removeNodeDescr">
+	    <heading>removeNode(where, name = "",
 	      recursive=0)</heading>
 
 	    <p>Removes the object node
@@ -3300,8 +3309,8 @@ KeyError: Error setting "ADCcount" field.
 	    </description>
 	  </subsubsection>
 
-	  <subsubsection>
-	    <heading id="renameNodeDescr">renameNode(where, newname,
+	  <subsubsection id="renameNodeDescr">
+	    <heading>renameNode(where, newname,
 	      name)</heading>
 
 	    <p>Rename the object node <em>name</em> under
@@ -3325,8 +3334,8 @@ KeyError: Error setting "ADCcount" field.
 	    </description>
 	  </subsubsection>
 
-	  <subsubsection>
-	    <heading id="walkGroupsDescr">walkGroups(where='/')</heading>
+	  <subsubsection id="walkGroupsDescr">
+	    <heading>walkGroups(where='/')</heading>
 
 	    <p><em>Iterator</em> that returns the list of Groups (not
 	      Leaves) hanging from <em>where</em>. If <em>where</em>
@@ -3341,6 +3350,34 @@ KeyError: Error setting "ADCcount" field.
 		</item>
 
 	    </description>
+	  </subsubsection>
+
+	  <subsubsection id="walkNodesFileDescr">
+	    <heading>walkNodes(where="/", classname="")</heading>
+
+	    <p>Recursively iterate over the nodes in the
+	      <verb>File</verb> instance. It takes two parameters:</p>
+
+	    <description>
+
+	      <term>where</term> <item>If supplied, the iteration
+	      starts from this group.</item>
+
+	      <term>classname</term> <item><em>(String)</em> If
+	      supplied, only instances of this class are
+	      returned.</item>
+
+	    </description>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      # Recursively print all the nodes hanging from '/detector'
+	      print "Nodes hanging from group '/detector':"
+	      for node in h5file.walkNodes("/detector"):
+	          print node
+	    </verbatim>
+
 	  </subsubsection>
 
 	  <subsubsection>
@@ -3365,42 +3402,11 @@ KeyError: Error setting "ADCcount" field.
 
 	  <p>Following are described the methods that automatically
 	    trigger actions when a <verb>File</verb> instance is
-	    accessed in a special way (e.g.,
-	    <verb>fileh("/detector")</verb> will cause a call to
-	    <verb>group.__call__("/detector")</verb>).
+	    accessed in a special way.
 	  </p>
 
-	  <subsubsection>
-	    <heading id="__callFileDescr">__call__(where="/",
-	      classname="")</heading>
-
-	    <p>Recursively iterate over the children in the
-	      <verb>File</verb> instance. It takes two parameters:</p>
-
-	    <description>
-
-	      <term>where</term> <item>If supplied, the iteration
-	      starts from this group.</item>
-
-	      <term>classname</term> <item><em>(String)</em> If
-	      supplied, only instances of this class are
-	      returned.</item>
-
-	    </description>
-
-	    <p>Example of use:</p>
-
-	    <verbatim>
-	      # Recursively print all the nodes hanging from '/detector'
-	      print "Nodes hanging from group '/detector':"
-	      for node in h5file("/detector"):
-	          print node
-	    </verbatim>
-
-	  </subsubsection>
-
-	  <subsubsection>
-	    <heading id="__iterFileDescr">__iter__()</heading>
+	  <subsubsection id="__iterFileDescr">
+	    <heading>__iter__()</heading>
 
 	    <p>Iterate over the children on the <verb>File</verb>
 	      instance. However, this does not accept parameters. This
@@ -3418,7 +3424,40 @@ KeyError: Error setting "ADCcount" field.
 
 	  </subsubsection>
 
+	  <subsubsection id="__strFileDescr">
+	    <heading>__str__()</heading>
+
+	    <p>Prints a short description of the <verb>File</verb>
+	      object.</p>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+>>> f=tables.openFile("data/test.h5")
+>>> print f
+data/test.h5 (File) 'Table Benchmark'
+Last modif.: 'Mon Sep 20 12:40:47 2004'
+Object Tree:
+/ (Group) 'Table Benchmark'
+/tuple0 (Table(100L,)) 'This is the table title'
+/group0 (Group) ''
+/group0/tuple1 (Table(100L,)) 'This is the table title'
+/group0/group1 (Group) ''
+/group0/group1/tuple2 (Table(100L,)) 'This is the table title'
+/group0/group1/group2 (Group) ''
+	    </verbatim>
+	  </subsubsection>
+
+	  <subsubsection id="__reprFileDescr">
+	    <heading>__repr__()</heading>
+
+	    <p>Prints a detailed description of the <verb>File</verb>
+	      object.</p>
+
+	  </subsubsection>
+
 	</subsection>
+
 
       </section>
 
@@ -3600,14 +3639,45 @@ KeyError: Error setting "ADCcount" field.
 	      <verb>'UnImplemented'</verb>.
 	    </p>
 	  </subsubsection>
-	  <subsubsection id="Group_f_walkGroups">
+	  <subsubsection id="_f_walkGroupsGroupDescr">
 	    <heading>_f_walkGroups()
 	    </heading>
-	    <p>Iterator that returns the list of Groups (not Leaves)
-	      hanging from <em>self</em>. The returned Group list is
-	      in a top-bottom order, and alpha-numerically sorted when
-	      they are at the same level.
+	    <p>Iterate over the list of Groups (not Leaves) hanging
+	      from <em>self</em>. The returned Group list is in a
+	      top-bottom order, and alpha-numerically sorted when they
+	      are at the same level.
 	    </p>
+	  </subsubsection>
+
+	  <subsubsection id="_f_walkNodesGroupDescr">
+	    <heading>_f_walkNodes(classname="",
+	      recursive=0)</heading>
+
+	    <p>Iterate over the nodes in the <verb>Group</verb>
+	      instance. It takes two parameters:</p>
+
+	    <description>
+
+	      <term>classname</term> <item><em>(String)</em> If
+	      supplied, only instances of this class are
+	      returned.</item>
+
+	      <term>recursive</term> <item><em>(Integer)</em> If
+	      false, only children hanging immediately after the group
+	      are returned. If true, a recursion over all the groups
+	      hanging from it is performed. </item>
+
+	    </description>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      # Recursively print all the arrays hanging from '/'
+	      print "Arrays the object tree '/':"
+	      for array in h5file.root._f_walkNodes("Array", recursive=1):
+	          print array
+	    </verbatim>
+
 	  </subsubsection>
 
 	  <subsubsection id="Group_f_close">
@@ -3673,44 +3743,11 @@ KeyError: Error setting "ADCcount" field.
 
 	  <p>Following are described the methods that automatically
 	    trigger actions when a <verb>Group</verb> instance is
-	    accessed in a special way (e.g.,
-	    <verb>group("Table")</verb> will be equivalent to a call
-	    to <verb>group.__call__("Table")</verb>).
+	    accessed in a special way.
 	  </p>
 
-	  <subsubsection>
-	    <heading id="__callGroupDescr">__call__(classname="",
-	      recursive=0)</heading>
-
-	    <p>Iterate over the children in the <verb>Group</verb>
-	      instance. It takes two parameters:</p>
-
-	    <description>
-
-	      <term>classname</term> <item><em>(String)</em> If
-	      supplied, only instances of this class are
-	      returned.</item>
-
-	      <term>recursive</term> <item><em>(Integer)</em> If
-	      false, only children hanging immediately after the group
-	      are returned. If true, a recursion over all the groups
-	      hanging from it is performed. </item>
-
-	    </description>
-
-	    <p>Example of use:</p>
-
-	    <verbatim>
-	      # Recursively print all the arrays hanging from '/'
-	      print "Arrays the object tree '/':"
-	      for array in h5file.root(classname="Array", recursive=1):
-	          print array
-	    </verbatim>
-
-	  </subsubsection>
-
-	  <subsubsection>
-	    <heading id="__iterGroupDescr">__iter__()</heading>
+	  <subsubsection id="__iterGroupDescr">
+	    <heading>__iter__()</heading>
 
 	    <p>Iterate over the children on the group instance. However,
 	      this does not accept parameters. This iterator is
@@ -3727,8 +3764,39 @@ KeyError: Error setting "ADCcount" field.
 
 	  </subsubsection>
 
-	</subsection>
+	  <subsubsection id="__strGroupDescr">
+	    <heading>__str__()</heading>
 
+	    <p>Prints a short description of the <verb>Group</verb>
+	      object.</p>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+>>> f=tables.openFile("data/test.h5")
+>>> print f.root.group0
+/group0 (Group) 'First Group'
+>>>
+	    </verbatim>
+	  </subsubsection>
+
+	  <subsubsection id="__reprGroupDescr">
+	    <heading>__repr__()</heading>
+
+	    <p>Prints a detailed description of the <verb>Group</verb>
+	      object.</p>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+>>> f=tables.openFile("data/test.h5")
+>>> f.root.group0
+/group0 (Group) 'First Group'
+  children := ['tuple1' (Table), 'group1' (Group)]
+>>>
+	    </verbatim>
+	  </subsubsection>
+	</subsection>
       </section>
 
       <section id="LeafClassDescr">
@@ -3818,9 +3886,9 @@ KeyError: Error setting "ADCcount" field.
 	<subsection>
 	  <heading><visual markup="tt">Leaf</visual> methods</heading>
 
-	  <subsubsection>
+	  <subsubsection id="copyLeafDescr">
 
-	    <heading id="copyLeafDescr">copy(where, name, title=None,
+	    <heading>copy(where, name, title=None,
 	      filters=None, copyuserattrs=1, start=0, stop=None,
 	      step=1, overwrite=0)
 	    </heading>
@@ -3867,33 +3935,33 @@ KeyError: Error setting "ADCcount" field.
 
 	  </subsubsection>
 
-	  <subsubsection>
-	    <heading id="removeLeafDescr">remove()</heading>
+	  <subsubsection id="removeLeafDescr">
+	    <heading>remove()</heading>
 	    <p>Remove this leaf.</p>
 	  </subsubsection>
-	  <subsubsection>
-	    <heading id="renameLeafDescr">rename(newname)</heading>
+	  <subsubsection id="renameLeafDescr">
+	    <heading>rename(newname)</heading>
 	    <p>Change the name of this leaf to <em>newname</em>.</p>
 	  </subsubsection>
-	  <subsubsection>
-	    <heading id="getAttrLeafDescr">getAttr(attrname)</heading>
+	  <subsubsection id="getAttrLeafDescr">
+	    <heading>getAttr(attrname)</heading>
 	    <p>Gets the HDF5 attribute <em>attrname</em> of this leaf.
 	    </p>
 	  </subsubsection>
-	  <subsubsection>
-	    <heading id="setAttrLeafDescr">setAttr(attrname,
+	  <subsubsection id="setAttrLeafDescr">
+	    <heading>setAttr(attrname,
 	      attrvalue)
 	    </heading>
 	    <p>Sets the attribute <em>attrname</em> of this leaf to
 	      the value <em>attrvalue</em>.
 	    </p>
 	  </subsubsection>
-	  <subsubsection>
-	    <heading id="flushLeafDescr">flush()</heading>
+	  <subsubsection id="flushLeafDescr">
+	    <heading>flush()</heading>
 	    <p>Flush the leaf buffers (if any).</p>
 	  </subsubsection>
-	  <subsubsection>
-	    <heading id="closeLeafDescr">close()</heading> <p>Flush
+	  <subsubsection id="closeLeafDescr">
+	    <heading>close()</heading> <p>Flush
 	    the leaf buffers (if any) and close the dataset.</p>
 	  </subsubsection>
 	</subsection>
@@ -3961,8 +4029,8 @@ KeyError: Error setting "ADCcount" field.
 	<subsection>
 	  <heading><visual markup="tt">Table</visual> methods
 	  </heading>
-	  <subsubsection>
-	    <heading id="appendTableDescr">append(rows=None)
+	  <subsubsection id="appendTableDescr">
+	    <heading>append(rows=None)
 	    </heading>
 	    <p>Append a series of rows to this <verb>Table</verb>
 	      instance. <em>rows</em> is an object that can keep the
@@ -3997,8 +4065,8 @@ fileh.close()
 	    </p>
 	  </subsubsection>
 
-	  <subsubsection>
-	    <heading id="iterrowsTableDescr">iterrows(start=None,
+	  <subsubsection id="iterrowsTableDescr">
+	    <heading>iterrows(start=None,
 	      stop=None, step=1)</heading>
 
 	    <p>Returns an iterator yielding <verb>Row</verb> (see <ref
@@ -4007,10 +4075,9 @@ fileh.close()
 	      the <em>start</em>, <em>stop</em> or <em>step</em>
 	      parameters are passed), only the appropriate rows are
 	      returned. Else, all the rows are returned. See also the
-	      <verb>__call__()</verb> and <verb>__iter__()</verb>
-	      special methods in <ref
-	      refid="TableSpecialMethods">section</ref> for shorter
-	      ways to call this iterator.
+	      <verb>__iter__()</verb> special method in <ref
+	      refid="TableSpecialMethods">section</ref> for a shorter
+	      way to call this iterator.
 	    </p>
 	    <p>The meaning of the <em>start</em>, <em>stop</em> and
 	      <em>step</em> parameters is the same as in the
@@ -4023,10 +4090,17 @@ fileh.close()
 	      markup="bf">all the rows</visual> in the object are
 	      selected.
 	    </p>
+
+	    <p>Example of use:</p>
+	    <verbatim>
+	      result = [ row['var2'] for row in table.iterrows(step=5)
+                                     if row['var1'] &lt;= 20 ]
+	    </verbatim>
+
 	  </subsubsection>
 
-	  <subsubsection>
-	    <heading id="readTableDescr">read(start=None, stop=None,
+	  <subsubsection id="readTableDescr">
+	    <heading>read(start=None, stop=None,
 	      step=1, field=None, flavor="numarray")</heading>
 
 	    <p>Returns the actual data in <verb>Table</verb>. If
@@ -4064,8 +4138,8 @@ fileh.close()
 	    </description>
 	  </subsubsection>
 
-	  <subsubsection>
-	    <heading id="removeRowsDescr">removeRows(start=None,
+	  <subsubsection id="removeRowsDescr">
+	    <heading>removeRows(start=None,
 	      stop=None)</heading>
 
 	    <p>Removes a range of rows in the table.  If only
@@ -4106,31 +4180,8 @@ fileh.close()
 	    <verb>table.__getitem__("var2")</verb>).
 	  </p>
 
-	  <subsubsection>
-	    <heading id="__callTableDescr">__call__(start=None,
-	    stop=None, step=1)</heading>
-
-	    <p>It returns the same iterator than
-	      <verb>Table.iterrows(start, stop, step)</verb>. It is,
-	      therefore, a shorter way to call it.</p>
-
-	    <p>Example of use:</p>
-
-	    <verbatim>
-	      result = [ row['var2'] for row in table(step=4)
-                          	      if row['var1'] &lt;= 20 ]
-	    </verbatim>
-
-	    <p>Which is equivalent to:</p>
-
-	    <verbatim>
-	      result = [ row['var2'] for row in table.iterrows(step=4) 
-                          	      if row['var1'] &lt;= 20 ]
-	    </verbatim>
-
-	  </subsubsection>
-	  <subsubsection>
-	    <heading id="__iterTableDescr">__iter__()</heading>
+	  <subsubsection id="__iterTableDescr">
+	    <heading>__iter__()</heading>
 
 	    <p>It returns the same iterator than
 	      <verb>Table.iterrows(0,0,1)</verb>. However, this does not
@@ -4152,8 +4203,8 @@ fileh.close()
 
 	  </subsubsection>
 
-	  <subsubsection>
-	    <heading id="__getitemTableDescr">__getitem__(key)</heading>
+	  <subsubsection id="__getitemTableDescr">
+	    <heading>__getitem__(key)</heading>
 
 	    <p>It takes different actions depending on the
 	      type of the <verb>key</verb> parameter:</p>
@@ -4393,8 +4444,8 @@ Select table.cols['temperature'][:]--> [ 100.  121.  144.]
 	    already on disk.
 	  </p>
 
-	  <subsubsection>
-	    <heading id="iterrowsArrayDescr">iterrows(start=None,
+	  <subsubsection id="iterrowsArrayDescr">
+	    <heading>iterrows(start=None,
 	      stop=None, step=1)</heading>
 
 	    <p>Returns an iterator yielding <verb>numarray</verb>
@@ -4405,10 +4456,10 @@ Select table.cols['temperature'][:]--> [ 100.  121.  144.]
 	      a range is supplied (i.e. some of the <em>start</em>,
 	      <em>stop</em> or <em>step</em> parameters are passed),
 	      only the appropriate rows are returned. Else, all the
-	      rows are returned. See also the <verb>__call__()</verb>
-	      and <verb>__iter__()</verb> special methods in <ref
-	      refid="ArraySpecialMethods">section</ref> for shorter
-	      ways to call this iterator.
+	      rows are returned. See also the and
+	      <verb>__iter__()</verb> special methods in <ref
+	      refid="ArraySpecialMethods">section</ref> for a shorter
+	      way to call this iterator.
 	    </p>
 
 	    <p>The meaning of the <em>start</em>, <em>stop</em> and
@@ -4421,6 +4472,12 @@ Select table.cols['temperature'][:]--> [ 100.  121.  144.]
 	      <em>start</em> nor <em>stop</em>, then all the rows in
 	      the object are selected.
 	    </p>
+
+	    <p>Example of use:</p>
+	    <verbatim>
+	      result = [ row for row in arrayInstance.iterrows(step=4) ]
+	    </verbatim>
+
 	  </subsubsection>
 
 	  <subsubsection id="readArrayDescr">
@@ -4460,29 +4517,8 @@ Select table.cols['temperature'][:]--> [ 100.  121.  144.]
 	    Ellipsis, slice(None, None, 2))</verb>).
 	  </p>
 
-	  <subsubsection>
-	    <heading id="__callArrayDescr">__call__(start=None,
-	      stop=None, step=1)</heading>
-
-	    <p>It returns the same iterator than
-	      <verb>Array.iterrows(start, stop, step)</verb>. It is,
-	      therefore, a shorter way to call it.</p>
-
-	    <p>Example of use:</p>
-
-	    <verbatim>
-	      result = [ row for row in arrayInstance(step=4) ]
-	    </verbatim>
-
-	    <p>Which is equivalent to:</p>
-
-	    <verbatim>
-	      result = [ row for row in arrayInstance.iterrows(step=4) ]
-	    </verbatim>
-
-	  </subsubsection>
-	  <subsubsection>
-	    <heading id="__iterArrayDescr">__iter__()</heading>
+	  <subsubsection id="__iterArrayDescr">
+	    <heading>__iter__()</heading>
 
 	    <p>It returns the same iterator than
 	      <verb>Array.iterrows(0,0,1)</verb>. However, this does not
@@ -4503,8 +4539,8 @@ Select table.cols['temperature'][:]--> [ 100.  121.  144.]
 
 	  </subsubsection>
 
-	  <subsubsection>
-	    <heading id="__getitemArrayDescr">__getitem__(key)</heading>
+	  <subsubsection id="__getitemArrayDescr">
+	    <heading>__getitem__(key)</heading>
 
 	    <p>It returns a <verb>numarray</verb> (default) object (or
 	      an object with the same original <em>flavor</em> that it
@@ -4704,18 +4740,18 @@ fileh.close()
 
 	  </subsubsection> <!-- VLArray.append() -->
 
-	  <subsubsection>
-	    <heading id="iterrowsVLArrayDescr">iterrows(start=None,
+	  <subsubsection id="iterrowsVLArrayDescr">
+	    <heading>iterrows(start=None,
 	      stop=None, step=1)</heading>
 
 	    <p>Returns an iterator yielding one row per iteration. If
 	      a range is supplied (i.e. some of the <em>start</em>,
 	      <em>stop</em> or <em>step</em> parameters are passed),
 	      only the appropriate rows are returned. Else, all the
-	      rows are returned. See also the <verb>__call__()</verb>
-	      and <verb>__iter__()</verb> special methods in <ref
-	      refid="VLArraySpecialMethods">section</ref> for shorter
-	      ways to call this iterator.
+	      rows are returned. See also the <verb>__iter__()</verb>
+	      special methods in <ref
+	      refid="VLArraySpecialMethods">section</ref> for a
+	      shorter way to call this iterator.
 	    </p>
 	    <p>The meaning of the <em>start</em>, <em>stop</em> and
 	      <em>step</em> parameters is the same as in the
@@ -4728,10 +4764,17 @@ fileh.close()
 	      the object are selected.
 	    </p>
 
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      for row in vlarray.iterrows(step=4):
+	          print vlarray.name+"["+str(vlarray.nrow)+"]-->", row
+	    </verbatim>
+
 	  </subsubsection> <!-- VLArray.iterrows -->
 
-	  <subsubsection>
-	    <heading id="readVLArrayDescr">read(start=None, stop=None,
+	  <subsubsection id="readVLArrayDescr">
+	    <heading>read(start=None, stop=None,
 	      step=1)</heading>
 
 	    <p>Returns the actual data in <verb>VLArray</verb>. As the
@@ -4764,31 +4807,8 @@ fileh.close()
 	    <verb>vlarray.__getitem__(slice(2,5,None)</verb>).
 	  </p>
 
-	  <subsubsection>
-	    <heading id="__callVLArrayDescr">__call__(start=None,
-	      stop=None, step=1)</heading>
-
-	    <p>It returns the same iterator than
-	      <verb>VLArray.iterrows(start, stop, step)</verb>. It is,
-	      therefore, a shorter way to call it.</p>
-
-	    <p>Example of use:</p>
-
-	    <verbatim>
-	      for row in vlarray(step=4):
-	          print vlarray.name+"["+str(vlarray.nrow)+"]-->", row
-	    </verbatim>
-
-	    <p>Which is equivalent to:</p>
-
-	    <verbatim>
-	      for row in vlarray.iterrows(step=4):
-	          print vlarray.name+"["+str(vlarray.nrow)+"]-->", row
-	    </verbatim>
-
-	  </subsubsection>
-	  <subsubsection>
-	    <heading id="__iterVLArrayDescr">__iter__()</heading>
+	  <subsubsection id="__iterVLArrayDescr">
+	    <heading>__iter__()</heading>
 
 	    <p>It returns the same iterator than
 	      <verb>VLArray.iterrows(0,0,1)</verb>. However, this does
@@ -4808,8 +4828,8 @@ fileh.close()
 
 	  </subsubsection>
 
-	  <subsubsection>
-	    <heading id="__getitemVLArrayDescr">__getitem__(key)</heading>
+	  <subsubsection id="__getitemVLArrayDescr">
+	    <heading>__getitem__(key)</heading>
 
 	    <p>It returns the slice of rows determined by
 	      <verb>key</verb>, which can be an integer index or an

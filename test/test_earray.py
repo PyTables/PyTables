@@ -226,7 +226,7 @@ class BasicTestCase(unittest.TestCase):
             object_ = Numeric.swapaxes(object_, earray.extdim, 0)
             
         # Read all the array
-        for row in earray(start=self.start, stop=self.stop, step=self.step):
+        for row in earray.iterrows(start=self.start, stop=self.stop, step=self.step):
             if self.chunksize == 1:
                 index = 0
             else:

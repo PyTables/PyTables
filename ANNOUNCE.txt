@@ -1,4 +1,4 @@
-Announcing PyTables 0.8.5
+Announcing PyTables 0.9
 -------------------------
 
 Improvements:
@@ -6,6 +6,13 @@ Improvements:
 - New __len__(self) methods added in Arrays, Tables and Columns. This,
   in combination with __getitem__(self,key) allows to better emulate
   sequences.
+
+API changes:
+
+- The __call__ special method has been removed from objects File,
+  Group, Table, Array, EArray and VLArray. Now, you should use
+  walkNodes() in File and Group and iterrows in Table, Array, EArray
+  and VLArray to get the same functionality.
 
 Bug fixes:
 

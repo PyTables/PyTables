@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.71 2004/09/16 16:18:31 falted Exp $
+#       $Id: Array.py,v 1.72 2004/09/20 13:12:09 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.71 $"
+__version__ = "$Revision: 1.72 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -248,16 +248,8 @@ class Array(Leaf, hdf5Extension.Array, object):
 #                                   self.filters.complevel)
 
     def iterrows(self, start=None, stop=None, step=None):
-        """Iterator over all the rows or a range"""
-
-        return self.__call__(start, stop, step)
-
-    def __call__(self, start=None, stop=None, step=None):
         """Iterate over all the rows or a range.
         
-        It returns the same iterator than
-        Table.iterrows(start, stop, step).
-        It is, therefore, a shorter way to call it.
         """
 
         try:
@@ -298,9 +290,10 @@ class Array(Leaf, hdf5Extension.Array, object):
         else:
             #print "start, stop, step:", self._start, self._stop, self._step
             # Read a chunk of rows
+            maxTuples = 1000
             if self._row+1 >= self._v_maxTuples or self._row < 0:
                 #print "self._v_maxTuples", self._v_maxTuples
-                self._stopb = self._startb+self._step*self._v_maxTuples
+                self._stopb = self._startb+self._step*maxTuples
                 # Protection for reading more elements than needed
                 if self._stopb > self._stop:
                     self._stopb = self._stop

@@ -338,28 +338,28 @@ class TreeTestCase(unittest.TestCase):
         if verbose:
             print "walkGroups(pathname) test passed"
 
-    def test04_iterTree(self):
-        "Checking the iterTree, iterGroup and family"
+    def test04_walkNodes(self):
+        "Checking File.walkNodes"
         
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test04_iterTree..." % self.__class__.__name__
+            print "Running %s.test04_walkNodes..." % self.__class__.__name__
 
         self.h5file = openFile(self.file, "r")
         groups = []
         tables = []
         tables2 = []
         arrays = []
-        for group in self.h5file(classname="Group"):
+        for group in self.h5file.walkNodes(classname="Group"):
             groups.append(group._v_pathname)
-            for table in group(classname='Table'):
+            for table in group._f_walkNodes(classname='Table'):
                 tables.append(table._v_pathname)
                 
         # Test the recursivity    
-        for table in self.h5file.root(classname='Table', recursive=1):
+        for table in self.h5file.root._f_walkNodes('Table', recursive=1):
             tables2.append(table._v_pathname)
 
-        for arr in self.h5file(classname='Array'):
+        for arr in self.h5file.walkNodes(classname='Array'):
             arrays.append(arr._v_pathname)
 
         assert groups == ["/", "/group0", "/group0/group1",
@@ -378,11 +378,11 @@ class TreeTestCase(unittest.TestCase):
         groups = []
         tables = []
         arrays = []
-        for group in self.h5file("/group0/group1", classname="Group"):
+        for group in self.h5file.walkNodes("/group0/group1", classname="Group"):
             groups.append(group._v_pathname)
-            for table in group('Table'):
+            for table in group._f_walkNodes('Table'):
                 tables.append(table._v_pathname)
-            for arr in self.h5file(group, 'Array'):
+            for arr in self.h5file.walkNodes(group, 'Array'):
                 arrays.append(arr._v_pathname)
 
         assert groups == ["/group0/group1",
@@ -393,7 +393,7 @@ class TreeTestCase(unittest.TestCase):
         assert arrays == ['/group0/group1/var1', '/group0/group1/var4']
         
         if verbose:
-            print "iterTree(pathname, classname) test passed"
+            print "walkNodes(pathname, classname) test passed"
 
 
 class DeepTreeTestCase(unittest.TestCase):

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.128 2004/09/16 16:18:32 falted Exp $
+#       $Id: Table.py,v 1.129 2004/09/20 13:12:10 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.128 $"
+__version__ = "$Revision: 1.129 $"
 
 from __future__ import generators
 import sys
@@ -79,7 +79,6 @@ class Table(Leaf, hdf5Extension.Table, object):
     
     Methods:
 
-        __call__(start, stop, step)
         __getitem__(key)
         __iter__()
         __setitem__(key, value)
@@ -518,11 +517,10 @@ class Table(Leaf, hdf5Extension.Table, object):
         coords = numarray.array(sequence, type=numarray.Int64) 
         return self.row(coords=coords, ncoords=-1)
         
-    def __call__(self, start=None, stop=None, step=None):
+    def iterrows(self, start=None, stop=None, step=None):
         """Iterate over all the rows or a range.
         
-        It returns the same iterator than Table.iterrows(start, stop,
-        step).  It is, therefore, a shorter way to call it.
+        Specifying a negative value of step is not supported yet.
         
         """
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
@@ -537,16 +535,7 @@ class Table(Leaf, hdf5Extension.Table, object):
     def __iter__(self):
         """Iterate over all the rows."""
 
-        return self.__call__()
-
-    def iterrows(self, start=None, stop=None, step=None):
-        """Iterator over all the rows or a range
-
-        Specifying a negative value of step is not supported yet.
-
-        """
-
-        return self.__call__(start, stop, step)
+        return self.iterrows()
 
     def read(self, start=None, stop=None, step=None,
              field=None, flavor="numarray", coords = None):

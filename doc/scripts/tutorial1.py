@@ -158,7 +158,7 @@ for group in h5file.walkGroups("/"):
 
 # This gives the same result
 tutsep()
-for array in h5file("/", "Array"):
+for array in h5file.walkNodes("/", "Array"):
     print array
 
 # And finally, list only leafs on /detector group (there should be one!)
