@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.5 2002/11/10 13:31:50 falted Exp $
+#       $Id: Group.py,v 1.6 2002/11/10 20:21:30 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.5 $"
+__version__ = "$Revision: 1.6 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -65,7 +65,8 @@ class Group(hdf5Extension.Group):
     In Group instances, a special feature called "natural naming" is
     used, i.e. the instance attributes that represent HDF5 groups are
     the same as the names of the children. This offers the user a very
-    convenient way to access nodes in tree by simply
+    convenient way to access nodes in tree by simply naming all the
+    path from the root group.
 
     For this reason and to not pollute the children namespace, it is
     explicitely forbidden to assign "normal" attributes to Group
@@ -83,12 +84,15 @@ class Group(hdf5Extension.Group):
 
         _c_objgroups -- Dictionary with object groups on tree
         _c_objleaves -- Dictionaly with object leaves on tree
-        _c_objchilds -- Dictionary with object childs (groups or
-                        leaves) on tree
+        _c_objects -- Dictionary with all objects (groups or leaves) on tree
 
     Instance variables:
 
-        _v_title -- TITLE attribute for this group
+        _v_title -- TITLE attribute of this group.
+        _v_name -- The name of this group.
+        _v_pathname -- A string representation of the group location
+            in tree.
+        _v_parent -- The parent Group instance.
         _v_objgroups -- Dictionary with object groups
         _v_objleaves -- Dictionaly with object leaves
         _v_objchilds -- Dictionary with object childs (groups or leaves)
@@ -215,10 +219,10 @@ class Group(hdf5Extension.Group):
         """Return a list with all the object nodes hanging from self.
 
         The list is alphanumerically sorted by node name. If a
-        "classname" parameter is supplied, the iterator will only
-        return instances of this class (or subclasses of it). The
-        supported classes in "classname" are 'Group', 'Leaf', 'Table'
-        and 'Array'.
+        "classname" parameter is supplied, it will only return
+        instances of this class (or subclasses of it). The supported
+        classes in "classname" are 'Group', 'Leaf', 'Table' and
+        'Array'.
 
         """
         if not classname:

@@ -59,7 +59,7 @@ if __name__=="__main__":
                 print "Info on the object:", table
                 print "  name ==>", table.name
                 print "  title ==>", table.title
-                print "  records on table ==> %d" % (table.nrecords)
+                print "  rows on table ==> %d" % (table.nrows)
                 print "  variable names with their type:"
                 for i in range(len(table.varnames)):
                     print "    ", table.varnames[i], ':=', table.vartypes[i] 

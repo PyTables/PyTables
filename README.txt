@@ -14,7 +14,7 @@ November 11, 2002
 #######################################
 
 The goal of PyTables is to enable the end user to manipulate easily
-scientific data tables and Numeric Python objects (new in 0.2!)  in
+scientific data tables and Numerical Python objects (new in 0.2!)  in
 a hierarchical structure. The foundation of the underlying hierachical
 data organization is the excellent HDF5 library
 (http://hdf.ncsa.uiuc.edu/HDF5). Right now, PyTables provides limited
@@ -50,9 +50,9 @@ PyTables make use of Pyrex, a convenient tool to access C libraries
 from Python using Python syntax. For these reasons, you will need to
 use Python 2.2 or higher to take advantage of PyTables.
 
-I've tested this PyTables version with HDF5 1.4.4 and Numeric 22.0,
-but it should work well with all HDF5 1.4.x versions and a relatively 
-new version of Numeric (>= 20.x).
+I've tested this PyTables version with HDF5 1.4.4 and Numerical Python
+22.0, but it should work well with all HDF5 1.4.x versions and a
+relatively new version of Numeric (>= 20.x).
 
 I'm using Linux as the main development platform, but PyTables should
 be easy to compile/install on other UNIX machines. Nonetheless, caveat
@@ -71,7 +71,7 @@ and you get the library to work, please let me know.
 The Python Distutils are used to build and install PyTables, so it is
 fairly simple to get things ready to go.
 
-1. First, make sure that you have HDF5 1.4.x and Numeric Python
+1. First, make sure that you have HDF5 1.4.x and Numerical Python
    installed (I'm using HDF5 1.4.4 and Numeric 22.0 currently). If
    don't, you can find them at http://hdf.ncsa.uiuc.edu/HDF5 and
    http://www.pfdubois.com/numpy. Compile/install them.

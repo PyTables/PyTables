@@ -58,7 +58,7 @@ def readFile(filename, fast):
         #print "Group pathname:", groupobj._v_pathname
         for table in fileh.listNodes(groupobj, 'Table'):
             #print "Table title for", table._v_pathname, ":", table.tableTitle
-            print "Nrecords in", table._v_pathname, ":", table.nrecords
+            print "Rows in", table._v_pathname, ":", table.nrows
 
             if fast:
                 # Example of tuple selection (fast version)
@@ -81,7 +81,7 @@ def addRecords(filename, addedrows, fast):
         #print "Group pathname:", groupobj._v_pathname
         for table in fileh.listNodes(groupobj, 'Table'):
             #print "Table title for", table._v_pathname, ":", table.tableTitle
-            print "Nrecords in old", table._v_pathname, ":", table.nrecords
+            print "Rows in old", table._v_pathname, ":", table.nrows
 
             # Get the record object associated with the new table
             d = table.record 

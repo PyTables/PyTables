@@ -131,7 +131,7 @@ print "/detector/table ==>", table
 print "Object:", table
 print "Table name:", table.name
 print "Table title:", table.title
-print "Records saved on table: %d" % (table.nrecords)
+print "Rows saved on table: %d" % (table.nrows)
 
 print "Variable names on table with their type:"
 for i in range(len(table.varnames)):

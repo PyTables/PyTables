@@ -7,13 +7,82 @@
     <author>Francesc Alted</author>
     <date>October, 8th</date>
     <year>2002</year>
+    <legalnotice>
+
+
+	   Copyright (c) 2002 Francesc Alted
+
+      <p>Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+</p>
+      <p>The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+</p>
+      <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+</p>
+
+<!-- NCSA license -->
+
+      <p>Copyright Notice and Statement for NCSA HDF5 (Hierarchical Data Format
+	5) Software Library and Utilities
+      </p>
+
+      <p>NCSA HDF5 (Hierarchical Data Format 5) Software Library and
+	Utilities Copyright 1998, 1999, 2000, 2001, 2002 by the Board
+	of Trustees of the University of Illinois All rights reserved.
+      </p>
+      <p>Contributors: National Center for Supercomputing Applications
+	(NCSA) at the University of Illinois at Urbana-Champaign
+	(UIUC), Lawrence Livermore National Laboratory (LLNL), Sandia
+	National Laboratories (SNL), Los Alamos National Laboratory
+	(LANL), Jean-loup Gailly and Mark Adler (gzip library).
+      </p>
+      <p>Redistribution and use in source and binary forms, with or
+	without modification, are permitted for any purpose (including
+	commercial purposes) provided that the following conditions
+	are met:
+      </p>
+
+      <p>Put here the conditions....
+      </p>
+
+      <p>DISCLAIMER: This work was prepared as an account of work
+	sponsored by an agency of the United States
+	Government. Neither the United States Government nor the
+	University of California nor any of their employees, makes any
+	warranty, express or implied, or assumes any liability or
+	responsibility for the accuracy, completeness, or usefulness
+	of any information, apparatus, product, or process disclosed,
+	or represents that its use would not infringe privately- owned
+	rights. Reference herein to any specific commercial products,
+	process, or service by trade name, trademark, manufacturer, or
+	otherwise, does not necessarily constitute or imply its
+	endorsement, recommendation, or favoring by the United States
+	Government or the University of California. The views and
+	opinions of authors expressed herein do not necessarily state
+	or reflect those of the United States Government or the
+	University of California, and shall not be used for
+	advertising or product endorsement purposes.
+      </p>
+    </legalnotice>
   </frontmatter>
 
   <!-- <abstract>
 
   <p><visual markup="tt">PyTables</visual> is a Python package whose
     goal is to allow dealing easily, but in a powerful way, with
-    scientific data tables and Numeric Python objects organized in a
+    scientific data tables and Numerical Python objects organized in a
     hierarchical structure. Such a tables are defined as a collection
     of records whose values are stored in fixed-length fields. As a
     foundation for the underlying hierachical data organization the
@@ -37,7 +106,7 @@
 
       <p>The goal of PyTables is to enable the end user to manipulate
 	easily scientific data <visual markup="bf">tables</visual> and
-	<em>Numeric Python</em> objects in a hierarchical structure. The
+	<em>Numerical Python</em> objects in a hierarchical structure. The
 	foundation of the underlying hierachical data organization is
 	the excellent <verb>HDF5</verb> library
 	(<verb>http://hdf.ncsa.uiuc.edu/HDF5</verb>). Right now,
@@ -104,7 +173,7 @@ class Particle(IsRecord):
 	    working with large number of records that don't fit in
 	    memory.
 	  </item>
-	  <item><em>Support of <visual markup="tt">Numeric
+	  <item><em>Support of <visual markup="tt">Numerical
 	    Python</visual> arrays:</em> Numeric arrays are a very
 	    useful complement of tables to keep homogeneus table
 	    slices (like selections of table columns).
@@ -167,7 +236,7 @@ class Particle(IsRecord):
 	</p>
       </section>
 
-      <section>
+      <section id="NaturalTreeSection">
 	<heading>The object tree</heading>
 
 	<p>The hierarchical model of the underlying HDF5 library
@@ -289,7 +358,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
 	<item>
 	  <p>First, make sure that you have <verb>HDF5 1.4.x</verb>
-	    and <verb>Numeric Python</verb> installed (I'm using
+	    and <verb>Numerical Python</verb> installed (I'm using
 	    <verb>HDF5 1.4.4</verb> and <verb>Numeric 22.0</verb>
 	    currently). If don't, you can find them at
 	    <verb>http://hdf.ncsa.uiuc.edu/HDF5</verb> and
@@ -840,9 +909,44 @@ ValueError: Error packing record object:
 	</subsection>
       </section>
 
+      <section id="IsRecordClass">
+	<heading>The <visual markup="tt">IsRecord</visual> class</heading>
+
+	<p>This class is in fact a so-called <em>metaclass</em>
+	  object. There is nothing special on it, except that their
+	  subclasses attributes are transformed during its
+	  construction phase, and new methods for the are defined
+	  based on the values of the attributes. In that way, we can
+	  <em>force</em> the resulting instance to only accept
+	  assignments on the declared attributes (in fact, it has a
+	  few more, but they are hidden with prefixes like <visual
+	  markup="tt">"__"</visual>, <visual
+	  markup="tt">"_v_"</visual> or <visual
+	  markup="tt">"_f_"</visual>, so please, don't use attributes
+	  names starting with these prefixes). If you try to do an
+	  assignment to a non-declared attribute, <visual markup="tt">PyTables</visual> will raise
+	  an error.</p>
+
+	<p>To use such a particular class, you have to declare a
+	  descendent class from <em>IsRecord</em>, with many
+	  attributes as fields you want in your record. To declare
+	  their types, you simply assign to these attributes their
+	  <em>typecode</em>. That's all, from now on, you can
+	  instantiate objects from you new class and use them as a
+	  very flexible record object with safe features like
+	  automatic name field, data type and range checks (see the
+	  <ref refid="secondExample">section</ref> for an example on
+	  how it works).
+	</p>
+	<p>See the <ref refid="datatypesSupported">appendix</ref> for
+	  a relation of data types supported in a <visual
+	  markup="tt">IsRecord</visual> class declaration.
+	</p>
+
+      </section>
 
       <section id="FileClass">
-	<heading>The <em>File</em> class</heading>
+	<heading>The <visual markup="tt">File</visual> class</heading>
 
 	<p>This class is returned when a PyTables is opened with the
 	  <verb>openFile</verb> function. It is in charge of create,
@@ -861,7 +965,7 @@ ValueError: Error packing record object:
 	</p>
 
 	<subsection>
-	  <heading>File attributes</heading>
+	  <heading><visual markup="tt">File</visual> instance variables</heading>
 	  <description>
 
 	    <term>filename</term> <item>Filename opened.</item>
@@ -881,7 +985,7 @@ ValueError: Error packing record object:
 	</subsection>
 
 	<subsection>
-	  <heading>File methods</heading>
+	  <heading><visual markup="tt">File</visual> methods</heading>
 
 	  <description>
 
@@ -922,8 +1026,10 @@ ValueError: Error packing record object:
 		<term>name</term>
 		<item>The name of the new table.</item>
 
-		<term>RecordObject</term> <item>A IsRecord instance
-		  where all the table fields are defined.</item>
+		<term>RecordObject</term> <item>An instance of a
+		  user-defined class (derived from the
+		  <verb>IsRecord</verb> class) where table fields are
+		  defined.</item>
 
 		<term>title</term>
 		<item>A descrition for this table.</item>
@@ -1009,17 +1115,19 @@ ValueError: Error packing record object:
 		  parameter is supplied, the iterator will return only
 		  instances of this class (or subclasses of it). The
 		  only supported classes in <em>classname</em> are
-		  'Group' and 'Leaf'.</item>
+		  <verb>'Group'</verb>, <verb>'Leaf'</verb>,
+		  <verb>'Table'</verb> and
+		  <verb>'Array'</verb>.</item>
 
 	      </description>
 	    </item>
 
-	    <term>walkGroups(where='/')</term> <item>Recursively
-	      obtains Groups (not Leaves) hanging from
-	      <em>where</em>. If <em>where</em> is not supplied, the
-	      root object is taken as origin. The groups are returned
-	      from top to bottom, and alphanumerically sorted when in
-	      the same level.
+	    <term>walkGroups(where='/')</term> <item><em>Iterator</em>
+	      that recursively obtains Groups (not Leaves) hanging
+	      from <em>where</em>. If <em>where</em> is not supplied,
+	      the root object is taken as origin. The groups are
+	      returned from top to bottom, and they are
+	      alphanumerically sorted when they are at the same level.
 
 	      <description>
 
@@ -1043,41 +1151,333 @@ ValueError: Error packing record object:
 	</subsection>
       </section>
 
-      <section id="IsRecordClass">
-	<heading>The <em>IsRecord</em> class.</heading>
+      <section id="GroupClass">
+	<heading>The <visual markup="tt">Group</visual> class</heading>
 
-	<p>This class is in fact a so-called <em>metaclass</em>
-	  object. There is nothing special on it, except that their
-	  subclasses attributes are transformed during its
-	  construction phase, and new methods for the are defined
-	  based on the values of the attributes. In that way, we can
-	  <em>force</em> the resulting instance to only accept
-	  assignments on the declared attributes (in fact, it has a
-	  few more, but they are hidden with prefixes like <visual
-	  markup="tt">"__"</visual>, <visual
-	  markup="tt">"_v_"</visual> or <visual
-	  markup="tt">"_f_"</visual>, so please, don't use attributes
-	  names starting with these prefixes). If you try to do an
-	  assignment to a non-declared attribute, <visual markup="tt">PyTables</visual> will raise
-	  an error.</p>
+	<p>Instances of this class are a grouping structure containing
+	  instances of zero or more groups or leaves, together with
+	  supporting metadata.
+	</p>
 
-	<p>To use such a particular class, you have to declare a
-	  descendent class from <em>IsRecord</em>, with many
-	  attributes as fields you want in your record. To declare
-	  their types, you simply assign to these attributes their
-	  <em>typecode</em>. That's all, from now on, you can
-	  instantiate objects from you new class and use them as a
-	  very flexible record object with safe features like
-	  automatic name field, data type and range checks (see the
-	  <ref refid="secondExample">section</ref> for an example on
-	  how it works).
+	<p>Working with groups and leaves is similar in many ways to
+	  working with directories and files, respectively, in a Unix
+	  filesystem. As with Unix directories and files, objects in
+	  the object tree are often described by giving their full (or
+	  absolute) path names. This full path can be specified either
+	  as string (like in <verb>'/group1/group2'</verb>) or as a
+	  complete object path written in the Pythonic fashion known
+	  as <em>natural name</em> schema (like in
+	  <verb>file.root.group1.group2</verb>) and discussed in the
+	  <ref refid='NaturalTreeSection'>section</ref>.
 	</p>
-	<p>See the <ref refid="datatypesSupported">appendix</ref> for
-	  a relation of data types supported in a <visual
-	  markup="tt">IsRecord</visual> class declaration.
+
+	<p>A collateral effect of the <em>natural naming</em> schema
+	  is that you must be aware when assigning a new attribute to
+	  a Group object to no collide with existing children node
+	  names. For this reason and to not pollute the children
+	  namespace, it is explicitely forbidden to assign "normal"
+	  attributes to Group instances, and the only ones allowed
+	  must start with "<verb>_c_</verb>" (for class variables),
+	  "<verb>_f_</verb>" (for methods) or "<verb>_v_</verb>" (for
+	  instance variables) prefixes. Any attempt to assign a new
+	  attribute that does not starts with these prefixes, will
+	  raise a <verb>NameError</verb> exception.
 	</p>
+
+	<subsection>
+	  <heading><visual markup="tt">Group</visual> class variables</heading>
+	  <description>
+
+	    <term>_c_objects</term> <item>Dictionary with all objects
+	      (groups or leaves) on tree.</item>
+
+	    <term>_c_objgroups</term> <item>Dictionary with all object
+	      groups on tree.</item>
+
+	    <term>_c_objleaves</term> <item>Dictionary with all object
+	      leaves on tree.</item>
+
+	  </description>
+
+	</subsection>
+
+	<subsection>
+	  <heading><visual markup="tt">Group</visual> instance variables</heading>
+	  <description>
+
+	    <term>_v_title</term>
+	    <item>A description for this group.</item>
+
+	    <term>_v_name</term>
+	    <item>The name of this group.</item>
+
+	    <term>_v_pathname</term>
+	    <item>A string representation of the group location
+            in tree.</item>
+
+	    <term>_v_parent</term>
+	    <item>The parent Group instance.</item>
+
+	    <term>_v_objchilds</term> <item>Dictionary with all objects
+	      (groups or leaves) hanging from this instance.</item>
+
+	    <term>_v_objgroups</term> <item>Dictionary with all object
+	      groups hanging from this instance.</item>
+
+	    <term>_v_objleaves</term> <item>Dictionaly with all object
+	      leaves hanging from this instance.</item>
+
+	  </description>
+
+	</subsection>
+
+	<subsection>
+	  <heading><visual markup="tt">Group</visual> methods</heading>
+
+	  <p>This methods are documented for completeness, and they
+	    can be used without any problem. However, you should use
+	    the high-level counterpart methods in the
+	    <verb>File</verb> class, because these are most used in
+	    documentation and examples, and are a bit more powerful
+	    than those exposed here. </p>
+
+	  <description>
+
+	    <term>_f_join(name)</term>
+	    <item>Helper method to correctly concatenate a name child object
+	      with the pathname of this group.</item>
+
+	    <term>_f_listNodes(classname='')</term> <item>Return a
+	      list with all the object nodes hanging from this
+	      instance. The list is alphanumerically sorted by node
+	      name. If a <em>classname</em> parameter is supplied, it
+	      will only return instances of this class (or subclasses
+	      of it). The supported classes in <em>classname</em> are
+	      <verb>'Group'</verb>, <verb>'Leaf'</verb>,
+	      <verb>'Table'</verb> and <verb>'Array'</verb>.</item>
+
+	    <term>_f_walkGroups()</term> <item><em>Iterator</em> that
+	      recursively obtains Groups (not Leaves) hanging from
+	      self. The groups are returned from top to bottom, and
+	      are alphanumerically sorted when they are at the same
+	      level.
+	    </item>
+
+	  </description>
+
+	</subsection>
+      </section>
+
+      <section id="LeafClass">
+	<heading>The <visual markup="tt">Leaf</visual> class</heading>
+
+	<p>This is a helper class useful to place common functionality
+	  of all Leaf objects. A Leaf object is an end-node, that is,
+	  a node that can hang directly from a group object, but that
+	  is not a group itself. Right now this set is composed by
+	  <verb>Table</verb> and <verb>Array</verb> objects. In fact,
+	  <verb>Table</verb> and <verb>Array</verb> classes inherit
+	  functionality from this class using the <em>mix-in</em>
+	  technique.
+	</p>
+	<p>Normally the user will not need to call any method from
+	  here, but it is useful to know that it exists because it can
+	  be used as a filter in methods like
+	  <verb>File.GetNode()</verb> or
+	  <verb>File.listNodes()</verb>, against others.
+	</p>
+      </section>
+
+      <section id="TableClass">
+	<heading>The <visual markup="tt">Table</visual> class</heading>
+
+	<p>Instances of this class represents table objects in the
+	  object tree. It provides methods to create new tables or
+	  open existing ones, as well as methods to write/read data
+	  and metadata to/from table objects in the file.
+	</p>
+	<p>Data can be written or read both as records or as
+	  tuples. Records are recommended because they are more
+	  intuitive and less error prone although they are slow. Using
+	  tuples (or value sequences) is faster, but the user must be
+	  very careful because when passing the sequence of values,
+	  they have to be in the correct order (alphanumerically
+	  ordered by field names). If not, unexpected results can
+	  appear (most probably <verb>ValueError</verb> exceptions
+	  will be raised).
+	</p>
+
+	<subsection>
+	  <heading><visual markup="tt">Table</visual> instance
+	    variables</heading>
+	  <description>
+
+	    <term>name</term>
+	    <item>The node name.</item>
+
+	    <term>title</term>
+	    <item>The title for this node.</item>
+
+	    <term>record</term>
+	    <item>The record object for this table.</item>
+
+	    <term>nrows</term>
+	    <item>The number of rows (records) in this table.</item>
+
+	    <term>varnames</term>
+	    <item>The field names for the table.</item>
+
+	    <term>varnames</term>
+	    <item>The typecodes for the table fields.</item>
+
+	  </description>
+
+	</subsection>
+
+	<subsection>
+	  <heading><visual markup="tt">Table</visual>
+	    methods</heading>
+	  <description>
+
+	    <term>appendAsRecord(RecordObject)</term> <item>Append the
+	      <verb>RecordObject</verb> to the output buffer of the
+	      table instance.
+
+	      <description>
+
+		<term>RecordObject</term> <item>An instance of the
+		  user-defined record class. It has to be a
+		  <verb>IsRecord</verb> descendant instance and if
+		  not, a ValueError exception is raised.</item>
+
+	      </description>
+
+	    </item>
+
+	    <term>appendAsTuple(tupleValues)</term> <item>Append the
+	      <em>tupleValues</em> tuple to the output buffer of the
+	      table instance. This method is faster (but also unsafer,
+	      because requires user to introduce the values in correct
+	      order!) than <verb>appendAsRecord</verb> method.
+
+	      <description>
+
+		<term>tupleValues</term> <item> is a tuple that has
+		  values for all the user record fields. The user has
+		  to provide them in the order determined by
+		  alphanumerically sorting the record name
+		  fields.</item>
+
+	      </description>
+	    </item>
+
+	    <term>appendAsValues(*values)</term> <item> Append the
+	      <em>values</em> parameters to the table output
+	      buffer. This method is faster (and unsafer, because
+	      requires user to introduce the values in correct order)
+	      than <verb>appendAsRecord</verb> method. It is similar
+	      to the <verb>appendAsTuple</verb> method, but accepts
+	      separate parameters as values instead of a monolithic
+	      tuple.
+        
+	      <description>
+		<term>values</term> <item>Is a serie of parameters
+		that provides values for all the user record
+		fields. The user has to provide them in the order
+		determined by alphanumerically sorting the record
+		fields.</item>
+	      </description>
+	    </item>
+
+	    <term>readAsRecords()</term> <item>Return a record
+	      instance from rows in table each time. This method is a
+	      <em>generator</em>, i.e. it keeps track on the last
+	      record returned so that next time it is invoked it
+	      returns the next available record. It is slower than
+	      <verb>readAsTuples</verb> but in exchange, it returns
+	      full-fledged instance records.</item>
+
+	    <term>readAsTuples()</term> <item>Return a tuple from rows
+	      in table each time. This method is a <em>generator</em>,
+	      i.e. it keeps track on the last record returned so that
+	      next time it is invoked it returns the next available
+	      record. This method is twice as faster than
+	      readAsRecords, but it yields the rows as
+	      (alphanumerically orderd) tuples, instead of
+	      full-fledged instance records.</item>
+
+	    <term>flush()</term> <item>Flush the table buffers.</item>
+
+	    <term>close()</term> <item>Flush the table buffers and
+	      close the HDF5 dataset.</item>
+
+	  </description>
+
+	</subsection>
 
       </section>
+
+      <section id="ArrayClass">
+	<heading>The <visual markup="tt">Array</visual> class</heading>
+
+	<p> Represent a Numeric Array in HDF5 file. It provides
+	  methods to create new arrays or open existing ones, as well
+	  as methods to write/read data and metadata to/from array
+	  objects in the file.
+	</p>
+	<p> All Numeric typecodes are supported except
+	  "<verb>F</verb>" and "<verb>D</verb>" which corresponds to
+	  complex datatypes. These might be included in short future.
+	</p>
+
+	<subsection>
+	  <heading><visual markup="tt">Array</visual> instance
+	    variables</heading>
+	  <description>
+
+	    <term>name</term>
+	    <item>The node name.</item>
+
+	    <term>title</term>
+	    <item>The node title.</item>
+
+	    <term>shape</term> <item>tuple with the array shape (in
+	      the Numeric fashion).</item>
+
+	    <term>typecode</term>
+	    <item>The typecode of the represented array.</item>
+
+	  </description>
+
+	</subsection>
+
+	<subsection>
+	  <heading><visual markup="tt">Array</visual>
+	    methods</heading>
+
+	  <p>The methods for this class are very few. Please note that
+	    this object has not internal I/O buffers, so there is no
+	    need to call flush() method. However, it is included for
+	    consistency with <verb>Leaf</verb> nodes.</p>
+
+	  <description>
+
+	    <term>read()</term> <item>Read the array from disk and
+	      return it as a Numeric object. Note that while this
+	      method is not called, the actual array data is resident
+	      on disk.</item>
+
+	    <term>flush()</term> <item>Flush the internal
+	      buffers. Remember: this is a do-nothing method.</item>
+
+	    <term>close()</term> <item>Close the array on file.</item>
+
+	  </description>
+
+	</subsection>
+
+      </section>
+
     </chapter>
 
     <appendix>

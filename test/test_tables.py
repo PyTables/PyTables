@@ -94,7 +94,7 @@ class BasicTestCase(unittest.TestCase):
         # Read the records and select the ones with "var2" file less than 20
         result = [ rec.var2 for rec in table.readAsRecords() if rec.var2 < 20 ]
         if verbose:
-            print "Nrecords in", table._v_pathname, ":", table.nrecords
+            print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last record in table ==>", rec
             print "Total selected records in table ==> ", len(result)
         nrows = self.expectedrows - 1
@@ -119,7 +119,7 @@ class BasicTestCase(unittest.TestCase):
         # Get their record object
         rec = table.record
         if verbose:
-            print "Nrecords in old", table._v_pathname, ":", table.nrecords
+            print "Nrows in old", table._v_pathname, ":", table.nrows
             print "Record Format ==>", rec._v_fmt
             print "Record Size ==>", table._v_rowsize
         # Append some records

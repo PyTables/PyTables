@@ -47,7 +47,7 @@ print
 table = fileh.getNode("/newgroup/table", classname = 'Table')
 print "Object:", table
 print "Table name: %s. Table title: %s" % (table.name, table.title)
-print "Records saved on table: %d" % (table.nrecords)
+print "Rows saved on table: %d" % (table.nrows)
 
 print "Variable names on table with their type:"
 for i in range(len(table.varnames)):

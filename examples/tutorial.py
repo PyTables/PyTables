@@ -145,7 +145,7 @@ table = h5file.getNode("/detector/readout", classname = 'Table')
 print "Object:", table
 print "Table name:", table.name
 print "Table title:", table.title
-print "Number of records in table: %d" % (table.nrecords)
+print "Number of rows in table: %d" % (table.nrows)
 
 print "Table variable names (sorted alphanumerically) with their type:"
 for i in range(len(table.varnames)):
@@ -221,7 +221,7 @@ for x in table.readAsRecords():
         x.TDCcount)
        
 print
-print "Total numbers of entries after appending new rows:", table.nrecords
+print "Total numbers of entries after appending new rows:", table.nrows
 
 # Close the file
 h5file.close()
