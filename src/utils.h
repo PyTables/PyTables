@@ -77,7 +77,7 @@ PyObject *get_attribute_string_sys( hid_t loc_id,
 				    const char *attr_name);
 
 
-herr_t set_byteorder(hid_t type_id, const char *byteorder);
+herr_t set_order(hid_t type_id, const char *byteorder);
 
 int is_complex(hid_t type_id);
 

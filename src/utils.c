@@ -668,7 +668,7 @@ herr_t _close_id( hid_t obj_id,
 static H5T_order_t get_complex_order(hid_t type_id) {
   hid_t class_id, base_type_id;
   hid_t real_type;
-  H5T_order_t result;
+  H5T_order_t result = 0;
 
   class_id = H5Tget_class(type_id);
   if (class_id == H5T_COMPOUND) {
@@ -681,8 +681,10 @@ static H5T_order_t get_complex_order(hid_t type_id) {
     real_type = H5Tget_member_type(base_type_id, 0);
     H5Tclose(base_type_id);
   }
-  result = H5Tget_order(real_type);
-  H5Tclose(real_type);
+  if ((class_id == H5T_COMPOUND) || (class_id == H5T_ARRAY)) {
+    result = H5Tget_order(real_type);
+    H5Tclose(real_type);
+  }
   return result;
 }
 
@@ -714,7 +716,7 @@ int is_complex(hid_t type_id) {
 /* This is effectively an extension of H5Tget_order
    to handle complex types */
 H5T_order_t get_order(hid_t type_id) {
-  hid_t class_id, base_type_id;
+  hid_t class_id;
 
   class_id = H5Tget_class(type_id);
 /*   printf("Class ID-->%d. Iscomplex?:%d\n", class_id, is_complex(type_id)); */
