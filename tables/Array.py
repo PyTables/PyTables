@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.70 2004/08/03 21:02:53 falted Exp $
+#       $Id: Array.py,v 1.71 2004/09/16 16:18:31 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.70 $"
+__version__ = "$Revision: 1.71 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -488,7 +488,7 @@ class Array(Leaf, hdf5Extension.Array, object):
                     else:
                         # This works for rank-0 arrays
                         # (but is slower for big arrays)
-                        arr=Numeric.array(arr, typecode=arr.typecode())
+                        arr=Numeric.array(arr[()], typecode=arr.typecode())
                         
             else:
                 # Warn the user

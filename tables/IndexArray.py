@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IndexArray.py,v $
-#       $Id: IndexArray.py,v 1.8 2004/08/25 21:26:56 falted Exp $
+#       $Id: IndexArray.py,v 1.9 2004/09/16 16:18:31 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.8 $"
+__version__ = "$Revision: 1.9 $"
 # default version for IndexARRAY objects
 obversion = "1.0"    # initial version
 
@@ -76,21 +76,35 @@ def calcChunksize(expectedrows, testmode=0):
     if expKrows < 0.1: # expected rows < 100 thousand
         nelemslice = 5000  # (best experimental)
         chunksize = 1000
+#         nelemslice = 5*1024 
+#         chunksize = 1024
     elif expKrows < 1: # expected rows < 1 milion
         nelemslice = 20000  # (best experimental)
-        chunksize = 5000
+        chunksize = 2000   # (best experimental)
+#         nelemslice = 5*1024 
+#         chunksize = 1024
+#         chunksize = 2048  # (best experimental)
+#         nelemslice = 10*chunksize   # (best experimental)
+       #chunksize = 2048
+       #nelemslice = 10*chunksize 
     elif expKrows < 10:  # expected rows < 10 milion
         #nelemslice = 500000  # > 1/20th (best for best case)
-        nelemslice = 100000 # Best for worst case
         #chunksize = 5000  # Experimental (best for best case)
-        chunksize = 5000  # best for worst case
+        nelemslice = 100000 # Best for worst case (experimental)
+        chunksize = 2000  # best for worst case (experimental)
+        #chunksize = 4096  # (best experimental)
+        #nelemslice = 10*chunksize   # (best experimental)
+#         nelemslice = 20*4096 
+#         chunksize = 4096
     elif expKrows < 100: # expected rows < 100 milions
-        nelemslice = 100000 
+        nelemslice = 100000
         chunksize = 5000
+#         nelemslice = 20*4096 
+#         chunksize = 4096
     elif expKrows < 1000: # expected rows < 1000 millions
         nelemslice = 200000 # Experimental (best)
         #chunksize = 10000   # Experimental (best)
-        chunksize = 10000
+        chunksize = 5000
     else:  # expected rows > 1 billion
         #nelemslice = 1000000 # 1/1000  # Better for small machines
         #nelemslice = 2000000 # 2/1000  # Better for big machines

@@ -4,6 +4,7 @@
 #include "H5Zlzo.h"  		       /* Import FILTER_LZO */
 #include "H5Zucl.h"  		       /* Import FILTER_UCL */
 
+
 /*-------------------------------------------------------------------------
  * 
  * Private functions
@@ -652,4 +653,139 @@ herr_t _close_id( hid_t obj_id,
 
 }
 
+
+/* The next provides functions to support a complex datatype.
+   HDF5 does not provide an atomic type class for complex numbers
+   so we make one from a HDF5 compound type class.
+
+   Added by Tom Hedley <thedley@users.sourceforge.net> April 2004.
+*/
+
+/* Return the byteorder of a complex datatype.
+   It is obtained from the real part, 
+   which is the first member. */
+static H5T_order_t get_complex_order(hid_t type_id) {
+  hid_t class_id, base_type_id;
+  hid_t real_type;
+  H5T_order_t result;
+
+  class_id = H5Tget_class(type_id);
+  if (class_id == H5T_COMPOUND) {
+    real_type = H5Tget_member_type(type_id, 0);
+  } 
+  else if (class_id == H5T_ARRAY) {
+    /* Get the array base component */
+    base_type_id = H5Tget_super(type_id);
+    /* Get the type of real component. */
+    real_type = H5Tget_member_type(base_type_id, 0);
+    H5Tclose(base_type_id);
+  }
+  result = H5Tget_order(real_type);
+  H5Tclose(real_type);
+  return result;
+}
+
+/* Test whether the datatype is of class complex 
+   return 1 if it corresponds to our complex class, otherwise 0 */
+/* It simply checks if its a H5T_COMPOUND type,
+   but we could be more strict by checking names and classes
+   of the members*/
+int is_complex(hid_t type_id) {
+  hid_t class_id, base_type_id, base_class_id;
+  int result = 0;
+  class_id = H5Tget_class(type_id);
+  if (class_id == H5T_COMPOUND) {
+    result = 1;
+  }
+  /* Is an Array of Complex? */
+  else if (class_id == H5T_ARRAY) {
+    /* Get the array base component */
+    base_type_id = H5Tget_super(type_id);
+    /* Get the class of base component. */
+    base_class_id = H5Tget_class(base_type_id);
+    if (base_class_id == H5T_COMPOUND)
+      result = 1;
+  }
+  return result;
+}
+
+/* Return the byteorder of a HDF5 data type */
+/* This is effectively an extension of H5Tget_order
+   to handle complex types */
+H5T_order_t get_order(hid_t type_id) {
+  hid_t class_id, base_type_id;
+
+  class_id = H5Tget_class(type_id);
+/*   printf("Class ID-->%d. Iscomplex?:%d\n", class_id, is_complex(type_id)); */
+  if (is_complex(type_id)) {
+    return get_complex_order(type_id);
+  }
+  else {
+    return H5Tget_order(type_id);
+  }
+}
+
+/* Set the byteorder of type_id. */
+/* This only works for datatypes that are not Complex. However,
+   this types should already been created with correct byteorder */
+herr_t set_order(hid_t type_id, const char *byteorder) {
+  herr_t status=0;
+  if (! is_complex(type_id)) {
+    if (strcmp(byteorder, "little") == 0) 
+      status = H5Tset_order(type_id, H5T_ORDER_LE);
+    else if (strcmp(byteorder, "big") == 0) 
+      status = H5Tset_order(type_id, H5T_ORDER_BE );
+    else {
+      fprintf(stderr, "Error: unsupported byteorder <%s>\n", byteorder);
+      status = -1;
+    }
+  }
+  return status;
+}
+
+/* Create a HDF5 compound datatype that represents complex numbers 
+   defined by numarray as Complex64.
+   We must set the byteorder before we create the type */
+hid_t create_native_complex64(const char *byteorder) {
+  hid_t float_id, complex_id;
+
+  float_id = H5Tcopy(H5T_NATIVE_DOUBLE);
+  complex_id = H5Tcreate (H5T_COMPOUND, sizeof(Complex64));
+  set_order(float_id, byteorder);
+  H5Tinsert (complex_id, "r", HOFFSET(Complex64,r),
+	     float_id);
+  H5Tinsert (complex_id, "i", HOFFSET(Complex64,i),
+	     float_id);
+  H5Tclose(float_id);
+  return complex_id;
+}
+
+/* Create a HDF5 compound datatype that represents complex numbers 
+   defined by numarray as Complex32.
+   We must set the byteorder before we create the type */
+hid_t create_native_complex32(const char *byteorder) {
+  hid_t float_id, complex_id;
+  float_id = H5Tcopy(H5T_NATIVE_FLOAT);
+  complex_id = H5Tcreate (H5T_COMPOUND, sizeof(Complex32));
+  set_order(float_id, byteorder);
+  H5Tinsert (complex_id, "r", HOFFSET(Complex32,r),
+	     float_id);
+  H5Tinsert (complex_id, "i", HOFFSET(Complex32,i),
+	     float_id);
+  H5Tclose(float_id);
+  return complex_id;
+}
+
+/* return the number of significant bits in the 
+   real and imaginary parts */
+/* This is effectively an extension of H5Tget_precision
+   to handle complex types */
+size_t get_complex_precision(hid_t type_id) {
+  hid_t real_type;
+  size_t result;
+  real_type = H5Tget_member_type(type_id, 0);
+  result = H5Tget_precision(real_type);
+  H5Tclose(real_type);
+  return result;
+}
 

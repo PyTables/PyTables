@@ -271,8 +271,13 @@ def readFile(filename, atom, riter, indexmode, verbose):
     print "Select mode:", indexmode, ". Selecting for type:", atom
     if randomvalues:
         # algorithm to choose a value separated from mean
-        if standarddeviation*10 < table.nrows/2:
-            # Choose three standard deviations away from mean value
+#         # If want to select fewer values, select this
+#         if table.nrows/2 > standarddeviation*3:
+#             # Choose five standard deviations away from mean value
+#             dev = standarddeviation*5
+#             #dev = standarddeviation*math.log10(table.nrows/1000.)
+        if table.nrows/2 > standarddeviation*10:
+            # Choose five standard deviations away from mean value
             dev = standarddeviation*4
             #dev = standarddeviation*math.log10(table.nrows/1000.)
         else:
@@ -281,6 +286,7 @@ def readFile(filename, atom, riter, indexmode, verbose):
         # split the selection range in regular chunks
         if riter > valmax*2:
             riter = valmax*2
+        #print "valmax, riter-->", valmax, riter
         #chunksize = valmax*2/riter
         # use a chunksize ten times larger
         #chunksize = int(round(valmax*2/riter))*10 
@@ -293,8 +299,14 @@ def readFile(filename, atom, riter, indexmode, verbose):
         # shuffle the list
         random.shuffle(randlist)
         # reset the value of chunksize
-        #chunksize = int(round(chunksize/10)) 
+        #chunksize = int(round(chunksize/10))
+        # Protection to avoid too large chunksizes with small tables
         chunksize = chunksize/10
+#         if table.nrows > 1000000:
+#             chunksize = chunksize/10
+#         else:
+# #            chunksize = chunksize/100
+#             chunksize = 100
         #print "chunksize-->", chunksize
         #randlist.sort();print "randlist-->", randlist
     else:
@@ -560,6 +572,7 @@ if __name__=="__main__":
                 raise ValueError, "Indexmode should be any of '%s' and you passed '%s'" % (supported_imodes, indexmode)
         elif option[0] == '-n':
             nrows = int(float(option[1])*1000)
+            #nrows = int(float(option[1])*1024)
         elif option[0] == '-k':
             riter = int(option[1])
 

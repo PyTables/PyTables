@@ -8,7 +8,7 @@ writedata () {
   bfile=$2
   smode=$3
   psyco=$4
-  cmd="${python} sqlite-search-bench.py -R -h -b ${bfile} ${psyco} -m ${smode} -w -n ${nrows} data.nobackup/sqlite-${nrows}k-${smode}.h5"
+  cmd="${python} sqlite-search-bench.py -R -h -b ${bfile} ${psyco} -m ${smode} -w -n ${nrows} data.nobackup/sqlite-${nrows}k.h5"
   echo ${cmd}
   ${cmd}
 }
@@ -20,15 +20,19 @@ readdata () {
   psyco=$4
 
   if [ "$smode" = "indexed" ]; then
-      repeats=100
+      #repeats=100
+      repeats=20
   else
       repeats=2
   fi
-  cmd="${python} sqlite-search-bench.py -R -h -b ${bfile} ${psyco} -n ${nrows} -m ${smode} -r -k ${repeats} data.nobackup/sqlite-${nrows}k-${smode}.h5"
+  cmd="${python} sqlite-search-bench.py -R -h -b ${bfile} ${psyco} -n ${nrows} -m ${smode} -r -k ${repeats} data.nobackup/sqlite-${nrows}k.h5"
   echo ${cmd}
   ${cmd}
   # Finally, delete the source (if desired)
-  #rm -f data.nobackup/sqlite-${nrows}k-${smode}.h5
+  if [ "$smode" = "indexed" ]; then
+      echo "Deleting data file data.nobackup/sqlite-${nrows}k.h5"
+      rm -f data.nobackup/sqlite-${nrows}k.h5
+  fi
   return
 }
 
@@ -58,13 +62,15 @@ else
 fi
 
 # Configuration for testing
-#nrowsliststd="1 2 5 10 20 50"
-#nrowslistidx="1 2 5 10 20 50"
+#nrowsliststd="1 2 10 20"
+#nrowslistidx="1 2 10 20"
 #nrowsliststd="1 2 5 10 20 50 100 200 500 1000 2000 5000 10000 20000 50000"
 #nrowsliststd="1 2 5 10 20"
 #nrowslistidx="1 2 5 10 20"
-nrowsliststd="1 2 5 10 20 50 100 200 500 1000 2000 5000 10000"
-nrowslistidx="1 2 5 10 20 50 100 200 500 1000 2000 5000 10000"
+# nrowsliststd="1 2 5 10 20 50 100 200 500 1000 2000 5000 10000"
+# nrowslistidx="1 2 5 10 20 50 100 200 500 1000 2000 5000 10000"
+nrowsliststd="1 2 5 10 20 50 100 200 500 1000 2000 5000 10000 20000 50000 100000"
+nrowslistidx="1 2 5 10 20 50 100 200 500 1000 2000 5000 10000 20000 50000 100000"
 
 for smode in standard indexed; do
 #for smode in indexed; do

@@ -13,37 +13,43 @@ from test_all import verbose, allequal, heavy
 
 # Test Record class
 class Record(IsDescription):
-    var1 = StringCol(length=4, dflt="abcd")     # 4-character String
-    var2 = IntCol(1)                            # integer
-    var3 = Int16Col(2)                          # short integer 
-    var4 = Float64Col(3.1)                      # double (double-precision)
-    var5 = Float32Col(4.2)                      # float  (single-precision)
-    var6 = UInt16Col(5)                         # unsigned short integer 
-    var7 = StringCol(length=1, dflt="e")        # 1-character String
-    var8 = BoolCol(1)                           # boolean
+    var1 = StringCol(length=4, dflt="abcd", pos=0) # 4-character String
+    var2 = IntCol(1, pos=1)                        # integer
+    var3 = Int16Col(2, pos=2)                      # short integer 
+    var4 = Float64Col(3.1, pos=3)                  # double (double-precision)
+    var5 = Float32Col(4.2, pos=4)                  # float  (single-precision)
+    var6 = UInt16Col(5, pos=5)                     # unsigned short integer 
+    var7 = StringCol(length=1, dflt="e", pos=6)    # 1-character String
+    var8 = BoolCol(1, pos=7)                       # boolean
+    var9 = Complex32Col((0.+1.j), pos=8)           # Complex single precision
+    var10 = Complex64Col((1.-0.j), pos=9)          # Complex double precision
 
 # From 0.3 on, you can dynamically define the tables with a dictionary
 RecordDescriptionDict = {
-    'var1': StringCol(4, "abcd"),               # 4-character String
-    'var2': IntCol(1),                          # integer
-    'var3': Int16Col(2),                        # short integer 
-    'var4': FloatCol(3.1),                      # double (double-precision)
-    'var5': Float32Col(4.2),                    # float  (single-precision)
-    'var6': UInt16Col(5),                       # unsigned short integer 
-    'var7': StringCol(1, "e"),                  # 1-character String
-    'var8': BoolCol(1),                         # boolean
+    'var1': StringCol(4, "abcd", pos=0),        # 4-character String
+    'var2': IntCol(1, pos=1),                   # integer
+    'var3': Int16Col(2, pos=2),                 # short integer 
+    'var4': FloatCol(3.1, pos=3),               # double (double-precision)
+    'var5': Float32Col(4.2, pos=4),             # float  (single-precision)
+    'var6': UInt16Col(5, pos=5),                # unsigned short integer 
+    'var7': StringCol(1, "e", pos=6),           # 1-character String
+    'var8': BoolCol(1, pos=7),                  # boolean
+    'var9': Complex32Col((0.+1.j), pos=8),      # Complex single precision
+    'var10': Complex64Col((1.-0.j), pos=9),     # Complex double precision
     }
 
 # Old fashion of defining tables (for testing backward compatibility)
 class OldRecord(IsDescription):
-    var1 = Col("CharType", shape=4, dflt="abcd")   # 4-character String
-    var2 = Col(Int32, 1, 1)                # integer
-    var3 = Col(Int16, 1, 2)                # short integer
-    var4 = Col("Float64", 1, 3.1)            # double (double-precision)
-    var5 = Col("Float32", 1, 4.2)            # float  (single-precision)
-    var6 = Col("UInt16", 1, 5)                # unisgned short integer 
-    var7 = Col("CharType", shape=1, dflt="e")      # 1-character String
-    var8 = Col("Bool", shape=1, dflt=1)      # boolean
+    var1 = Col("CharType", shape=4, dflt="abcd", pos=0)
+    var2 = Col(Int32, 1, 1, pos=1)
+    var3 = Col(Int16, 1, 2, pos=2)
+    var4 = Col("Float64", 1, 3.1, pos=3)
+    var5 = Col("Float32", 1, 4.2, pos=4)
+    var6 = Col("UInt16", 1, 5, pos=5)
+    var7 = Col("CharType", shape=1, dflt="e", pos=6)
+    var8 = Col("Bool", shape=1, dflt=1, pos=7)
+    var9 = Col("Complex32", shape=1, dflt=(0.+1.j), pos=8)
+    var10 = Col("Complex64", shape=1, dflt=(1.-0.j), pos = 9)
 
 class BasicTestCase(unittest.TestCase):
     #file  = "test.h5"
@@ -98,6 +104,14 @@ class BasicTestCase(unittest.TestCase):
                 tmplist.append([0, 10])  # should be equivalent to [0,1]
             else:
                 tmplist.append(10) # should be equivalent to 1
+            if isinstance(row.field('var9'), NumArray):
+                tmplist.append([0.+float(i)*1j, float(i)+0.j])  
+            else:
+                tmplist.append(float(i)+0j) 
+            if isinstance(row.field('var10'), NumArray):
+                tmplist.append([float(i)+0j, 1+float(i)*1j])
+            else:
+                tmplist.append(1+float(i)*1j) 
             buflist.append(tmplist)
 
         self.record=records.array(buflist, formats=record._formats,
@@ -138,6 +152,14 @@ class BasicTestCase(unittest.TestCase):
                         row['var8'] = [0, 1]
                     else:
                         row['var8'] = 1
+                    if isinstance(row['var9'], NumArray):
+                        row['var9'] = [0.+float(i)*1j, float(i)+0.j]
+                    else:
+                        row['var9'] = float(i)+0.j
+                    if isinstance(row['var10'], NumArray):
+                        row['var10'] = [float(i)+0.j, 1.+float(i)*1j]
+                    else:
+                        row['var10'] = 1.+float(i)*1j
                     if isinstance(row['var5'], NumArray):
                         row['var5'] = array((float(i),)*4)
                     else:
@@ -259,6 +281,14 @@ class BasicTestCase(unittest.TestCase):
                 row['var8'] = [0, 1]
             else:
                 row['var8'] = 1
+            if isinstance(row['var9'], NumArray):
+                row['var9'] = [0.+float(i)*1j, float(i)+0.j]
+            else:
+                row['var9'] = float(i)+0.j
+            if isinstance(row['var10'], NumArray):
+                row['var10'] = [float(i)+0.j, 1.+float(i)*1j]
+            else:
+                row['var10'] = 1.+float(i)*1j
             if isinstance(row['var5'], NumArray):
                 row['var5'] = array((float(i),)*4)
             else:
@@ -457,6 +487,14 @@ class BasicTestCase(unittest.TestCase):
                 row['var8'] = [0, 1]
             else:
                 row['var8'] = 1
+            if isinstance(row['var9'], NumArray):
+                row['var9'] = [0.+float(i)*1j, float(i)+0.j]
+            else:
+                row['var9'] = float(i)+0.j
+            if isinstance(row['var10'], NumArray):
+                row['var10'] = [float(i)+0.j, 1.+float(i)*1j]
+            else:
+                row['var10'] = 1.+float(i)*1j
             if isinstance(row['var5'], NumArray):
                 row['var5'] = array((float(i),)*4)
             else:
@@ -532,24 +570,24 @@ class DictWriteTestCase(BasicTestCase):
 
 class RecArrayOneWriteTestCase(BasicTestCase):
     title = "RecArrayOneWrite"
-    record=records.array(formats="a4,i4,i2,2f8,f4,i2,a1,b1",
-                         names='var1,var2,var3,var4,var5,var6,var7,var8')
+    record=records.array(formats="a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16",
+                         names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10')
 
 class RecArrayTwoWriteTestCase(BasicTestCase):
     title = "RecArrayTwoWrite"
     expectedrows = 100
     recarrayinit = 1
-    recordtemplate=records.array(formats="a4,i4,i2,f8,f4,i2,a1,b1",
-                                 names='var1,var2,var3,var4,var5,var6,var7,var8',
+    recordtemplate=records.array(formats="a4,i4,i2,f8,f4,i2,a1,b1,2c8,c16",
+                                 names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10',
                                  shape=1)
 
 class RecArrayThreeWriteTestCase(BasicTestCase):
     title = "RecArrayThreeWrite"
     expectedrows = 100
     recarrayinit = 1
-    recordtemplate=records.array(formats="a4,i4,i2,2f8,4f4,i2,a1,b1",
-                                  names='var1,var2,var3,var4,var5,var6,var7,var8',
-                                  shape=1)
+    recordtemplate=records.array(formats="a4,i4,i2,2f8,4f4,i2,a1,2b1,c8,c16",
+                                 names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10',
+                                 shape=1)
 
 class CompressLZOTablesTestCase(BasicTestCase):
     title = "CompressLZOTables"
@@ -2995,8 +3033,8 @@ class DefaultValues(unittest.TestCase):
         table.flush()
 
         # Create a recarray with the same default values
-        r=records.array([["abcd", 1, 2, 3.1, 4.2, 5, "e", 1]]*nrows,
-                          formats='a4,i4,i2,f8,f4,i2,a1,b1')
+        r=records.array([["abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1+0j]]*nrows,
+                          formats='a4,i4,i2,f8,f4,i2,a1,b1,c8,c16')
         
         # Assign the value exceptions
         r.field("c2")[3] = 2 
@@ -3117,6 +3155,11 @@ def suite():
     niter = 1
     #heavy = 1  # uncomment this only for testing purposes
 
+    #theSuite.addTest(unittest.makeSuite(DefaultValues))
+    #theSuite.addTest(unittest.makeSuite(getItemTestCase))
+    #theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
+    #theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
+    #theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayIO1))
     #theSuite.addTest(unittest.makeSuite(RecArrayIO2))

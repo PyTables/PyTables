@@ -1,9 +1,6 @@
-/* Include file for calcoffset.c 
- * F. Alted 
- * 2002/09/17 */
-
-#include "Python.h"
-#include "hdf5.h"
+#include <Python.h>
+#include <numarray/numarray.h>
+#include <hdf5.h>
 
 /* Define this variable for error printings */
 /*#define DEBUG 1 */
@@ -78,3 +75,17 @@ int GetIndicesEx(PyObject *s, int length,
 PyObject *get_attribute_string_sys( hid_t loc_id,
 				    const char *obj_name,
 				    const char *attr_name);
+
+
+herr_t set_byteorder(hid_t type_id, const char *byteorder);
+
+int is_complex(hid_t type_id);
+
+size_t get_complex_precision(hid_t type_id);
+
+H5T_order_t get_order(hid_t type_id);
+
+hid_t create_native_complex64(const char *byteorder);
+
+hid_t create_native_complex32(const char *byteorder);
+

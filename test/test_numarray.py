@@ -119,7 +119,7 @@ class BasicTestCase(unittest.TestCase):
 
         # UInt64 seems to be unsupported on 64-bit machines!
 	typecodes = [Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64,
-                     Float32, Float64]
+                     Float32, Float64, Complex32, Complex64]
 
 	for typecode in typecodes:
             a = array(self.tupleInt, typecode)
@@ -132,7 +132,7 @@ class BasicTestCase(unittest.TestCase):
 
         # UInt64 seems to be unsupported on 64-bit machines!
 	typecodes = [Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64,
-                     Float32, Float64]
+                     Float32, Float64, Complex32, Complex64]
 
 	for typecode in typecodes:
             a = array(self.tupleInt, typecode)
@@ -389,33 +389,6 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         assert a.type() == numarray.Float64
 	self.WriteRead(a)
 	return
-    
-    def test11_complexSimple(self):
-        "Checking a complex floating point array (not supported)"
-	a = numarray.array( [1,2], numarray.Complex32)
-        try:
-            self.WriteRead(a)
-        except TypeError:
-            if verbose:
-                (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next TypeError was catched!"
-                print value
-        else:
-            self.fail("expected an TypeError")
-            
-    def test12_complexDouble(self):
-        "Checking a complex floating point array (not supported)"
-
-	a = numarray.array( [1,2], numarray.Complex64)
-        try:
-            self.WriteRead(a)
-        except TypeError:
-            if verbose:
-                (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next TypeError was catched!"
-                print value
-        else:
-            self.fail("expected an TypeError")
 
     
 class GroupsArrayTestCase(unittest.TestCase):
@@ -445,7 +418,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 	#typecodes = ["c", 'b', '1', 's', 'w', 'i', 'u', 'l', 'f', 'd']
         # UInt64 seems to be unsupported on 64-bit machines!
 	typecodes = [Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64,
-                     Float32, Float64]
+                     Float32, Float64, Complex32, Complex64]
 	i = 1
 	for typecode in typecodes:
 	    # Create an array of typecode, with incrementally bigger ranges

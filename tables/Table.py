@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.127 2004/08/25 21:26:56 falted Exp $
+#       $Id: Table.py,v 1.128 2004/09/16 16:18:32 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.127 $"
+__version__ = "$Revision: 1.128 $"
 
 from __future__ import generators
 import sys
@@ -1138,10 +1138,10 @@ class Table(Leaf, hdf5Extension.Table, object):
             self.row._cleanup()
             pass
 
-    def close(self):
+    def close(self, flush=1):
         """Flush the buffers and close this object on tree"""
         # Close the Table
-        Leaf.close(self)
+        Leaf.close(self, flush=flush)
         if hasattr(self, "cols"):
             self.cols._f_close()
             self.cols = None
@@ -1524,8 +1524,11 @@ class Column(object):
         "Actions to delete the associated index"
         # delete some references
         if self.index:
+            print "1"
             self.index._g_remove()
+            print "2"            
             self.index = None
+            print "3"            
             self.table.colindexed[self.name] = 0
         else:
             return  # Do nothing

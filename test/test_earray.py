@@ -717,6 +717,15 @@ class FloatTypeTestCase(BasicTestCase):
     stop = 10
     step = 20
 
+class ComplexTypeTestCase(BasicTestCase):
+    type = Complex64
+    shape = (2,0)
+    chunksize = 5
+    nappends = 10
+    start = 3
+    stop = 10
+    step = 20
+
 class CharTypeTestCase(BasicTestCase):
     type = "CharType"
     length = 20
@@ -1709,6 +1718,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(UCLComprTestCase))
         theSuite.addTest(unittest.makeSuite(UCLShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(FloatTypeTestCase))
+        theSuite.addTest(unittest.makeSuite(ComplexTypeTestCase))
         theSuite.addTest(unittest.makeSuite(CharTypeTestCase))    
         theSuite.addTest(unittest.makeSuite(CharType2TestCase))    
         theSuite.addTest(unittest.makeSuite(CharTypeComprTestCase))

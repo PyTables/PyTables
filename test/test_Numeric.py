@@ -99,7 +99,7 @@ class BasicTestCase(unittest.TestCase):
     def test02_types(self):
         "Data integrity during recovery (numerical types)"
 
-        typecodes = ['b', '1', 's', 'i', 'l', 'f', 'd']
+        typecodes = ['b', '1', 's', 'i', 'l', 'f', 'd', 'F', 'D']
 
 	for typecode in typecodes:
             a = self.tupleInt.astype(typecode)                
@@ -110,7 +110,7 @@ class BasicTestCase(unittest.TestCase):
     def test03_types_nc(self):
         "Data integrity during recovery (non-contiguous numerical types)"
 
-        typecodes = ['b', '1', 's', 'i', 'l', 'f', 'd']
+        typecodes = ['b', '1', 's', 'i', 'l', 'f', 'd', 'F', 'D']
 
 	for typecode in typecodes:
             a = self.tupleInt.astype(typecode)
@@ -248,33 +248,6 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         assert allequal(a,b, "Numeric")
 
         return
-    
-    def test10_complexSimple(self):
-        "Checking a complex floating point array (not supported)"
-	a = array([1,2], 'F')
-        try:
-            self.WriteRead(a)
-        except TypeError:
-            if verbose:
-                (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next TypeError was catched!"
-                print value
-        else:
-            self.fail("expected an TypeError")
-            
-    def test11_complexDouble(self):
-        "Checking a complex floating point array (not supported)"
-
-	a = array([1,2], 'D')
-        try:
-            self.WriteRead(a)
-        except TypeError:
-            if verbose:
-                (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next TypeError was catched!"
-                print value
-        else:
-            self.fail("expected an TypeError")
 
     
 class GroupsArrayTestCase(unittest.TestCase):
@@ -304,7 +277,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         # "w" and "u" not tested due to some inconsistencies in charcodes
         # between numarray and Numeric
 	#typecodes = ["c", 'b', '1', 's', 'w', 'i', 'u', 'l', 'f', 'd']
-	typecodes = ['c', 'b', '1', 's', 'i', 'l', 'f', 'd']
+	typecodes = ['c', 'b', '1', 's', 'i', 'l', 'f', 'd', 'F', 'D']
 	i = 1
 	for typecode in typecodes:
 	    # Create an array of typecode, with incrementally bigger ranges

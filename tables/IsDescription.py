@@ -5,13 +5,11 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.32 2004/07/29 17:01:21 falted Exp $
+#       $Id: IsDescription.py,v 1.33 2004/09/16 16:18:31 falted Exp $
 #
 ########################################################################
 
 """Classes and metaclasses for defining user data columns for Table objects.
-
-See the metaIsDescription for a deep explanation on how exactly this works.
 
 Classes:
 
@@ -26,7 +24,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.32 $"
+__version__ = "$Revision: 1.33 $"
 
 
 import warnings
@@ -44,6 +42,7 @@ tostructfmt = {NA.Int8:'b', NA.UInt8:'B',
                NA.Int32:'i', NA.UInt32:'I',
                NA.Int64:'q', NA.UInt64:'Q',
                NA.Float32:'f', NA.Float64:'d',
+               NA.Complex32:'F', NA.Complex64:'D',
                NA.Bool:'c', records.CharType:'s', 
                }
 
@@ -53,11 +52,13 @@ fromstructfmt = {'b':NA.Int8, 'B':NA.UInt8,
                  'i':NA.Int32, 'I':NA.UInt32,
                  'q':NA.Int64, 'Q':NA.UInt64,
                  'f':NA.Float32, 'd':NA.Float64,
+                 'F':NA.Complex32, 'D':NA.Complex64,
                  'c':NA.Bool, 's':records.CharType,
               }
 
+#class BaseCol:
 class Col:
-    """ Define a column """
+    """ Define a general column that supports all numarray data types"""
     def __init__(self, dtype="Float64", shape=1, dflt=None, pos=None,
                  indexed=0):
 
@@ -87,6 +88,8 @@ class Col:
             self.type = NA.typeDict[dtype]
             self.recarrtype = records.revfmt[self.type]
             self.itemsize = self.type.bytes
+#             if dtype == NA.Complex32 or dtype == NA.Complex64:
+#                 raise TypeError, "'%s' not supported" % repr(dtype)
         elif dtype == "CharType" or isinstance(dtype, records.Char):
             # Special case for Strings
             self.type = records.CharType
@@ -134,6 +137,16 @@ class Col:
     def __close(self):
         self.__dict__.clear()
         
+# # Col cannot initialise complex data types
+# class Col(BaseCol):
+#     """ Define a column """
+#     def __init__(self, dtype="Float64", shape=1, dflt=None, pos=None,
+#                  indexed=0):
+#         if dtype in NA.typeDict:
+#             type = NA.typeDict[dtype]
+#             if type == NA.Complex32 or type == NA.Complex64:
+#                 raise TypeError, "'%s' not supported" % `type`
+#         BaseCol.__init__(self, dtype, shape, dflt, pos, indexed)    
 
 class BoolCol(Col):
     """ Define a string column """
@@ -351,6 +364,53 @@ class Float64Col(FloatCol):
         FloatCol.__init__(self, dflt , shape=shape, itemsize=8,
                           pos=pos, indexed=indexed)
         
+class ComplexCol(Col):
+    """ Define a complex column """
+    def __init__(self, dflt=(0.0+0.0j), shape=1, itemsize=16, pos=None,
+                 indexed=0):
+
+        self.pos = pos
+        self.indexed = indexed
+
+        assert shape != None and shape != 0, \
+               "None or zero-valued shapes are not supported '%s'" % `shape`
+
+        assert itemsize in [8, 16], \
+               "Copmplex itemsizes different from 8 and 16 are not supported"
+        
+        if type(shape) in [types.IntType, types.LongType]:
+            # To prevent confusions between 2 and (2,): the meaning is the same
+            if shape == 1:
+                self.shape = shape
+            else:
+                self.shape = (shape,)
+        elif type(shape) in [types.ListType, types.TupleType]:
+            self.shape = tuple(shape)
+        else: raise ValueError, "Illegal shape %s" % `shape`
+
+        self.dflt = dflt
+
+        self.itemsize = itemsize
+        if itemsize == 8:
+            self.type = NA.typeDict["Complex32"]
+        elif itemsize == 16:
+            self.type = NA.typeDict["Complex64"]
+                
+        self.recarrtype = records.revfmt[self.type]
+        self.rectype = tostructfmt[self.type]
+
+class Complex32Col(ComplexCol):
+    "Description class for a complex of simple precision "
+    def __init__(self, dflt=(0.0+0.0j), shape=1, pos=None, indexed=0):
+        ComplexCol.__init__(self, dflt , shape=shape, itemsize=8,
+                            pos=pos, indexed=indexed)
+        
+class Complex64Col(ComplexCol):
+    "Description class for a complex of double precision "
+    def __init__(self, dflt=(0.0+0.0j), shape=1, pos=None, indexed=0):
+        ComplexCol.__init__(self, dflt , shape=shape, itemsize=16,
+                            pos=pos, indexed=indexed)
+        
     
 class Description(object):
     "Regular class to keep table description metadata"
@@ -481,6 +541,8 @@ class Description(object):
             dfltvalue = int(0)
         elif datatype in ('f', 'd'):
             dfltvalue = float(0)
+        elif datatype in ('F', 'D'):
+            dfltvalue = complex(0)
         elif datatype in ('c',):
 #             dfltvalue = str(" ")
             dfltvalue = int(0)

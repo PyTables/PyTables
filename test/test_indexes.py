@@ -264,7 +264,7 @@ class BasicTestCase(unittest.TestCase):
         assert len(rowList1) == len(rowList2)
         assert rowList1 == rowList2
 
-    def test09_removeIndex(self):
+    def _test09_removeIndex(self):
         """Checking removing an index"""
 
         if verbose:
@@ -314,9 +314,10 @@ class BasicTestCase(unittest.TestCase):
             print "var1 column:", idxcol
         assert idxcol is not None
         assert table.colindexed["var1"] == 1
-
+        print "before removeIndex"
         # delete the index
         table.removeIndex(idxcol)
+        print "after removeIndex"
 
         # close and reopen the file
         self.fileh.close()
@@ -411,6 +412,7 @@ class WarningTestCase(unittest.TestCase):
     nrows = 100 # Small enough to raise the warning
     
     def test01(self):
+        "Checking the user waring for too few entries to index"
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
@@ -1081,13 +1083,13 @@ class AI12TestCase(AutomaticIndexingTestCase):
 
 def suite():
     theSuite = unittest.TestSuite()
-    niter = 1
+    niter = 0
     #heavy = 1  # Uncomment this only for testing purposes!
 
     #theSuite.addTest(unittest.makeSuite(AI3TestCase))
     #theSuite.addTest(unittest.makeSuite(AI4aTestCase))
     #theSuite.addTest(unittest.makeSuite(AI4aTestCase))
-    #theSuite.addTest(unittest.makeSuite(BasicReadTestCase))
+    theSuite.addTest(unittest.makeSuite(BasicReadTestCase))
     #theSuite.addTest(unittest.makeSuite(OneHalfTestCase))
     #theSuite.addTest(unittest.makeSuite(UpperBoundTestCase))
     #theSuite.addTest(unittest.makeSuite(LowerBoundTestCase))

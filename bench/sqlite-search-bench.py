@@ -74,12 +74,13 @@ def createNewBenchFile(bfile, verbose):
     
 def createFile(dbfile, nrows, indexmode, bfile):
 
-    if os.path.exists(dbfile):
-        print "removing:", dbfile
-        os.remove(dbfile)
-    print "Creating a new database:", dbfile
-    instd=os.popen("/usr/local/bin/sqlite "+dbfile, "w")
-    CREATESTD="""
+#     if os.path.exists(dbfile):
+#         print "removing:", dbfile
+#         os.remove(dbfile)
+    if indexmode == "standard":
+        print "Creating a new database:", dbfile
+        instd=os.popen("/usr/local/bin/sqlite "+dbfile, "w")
+        CREATESTD="""
 CREATE TABLE small (	
 -- Name		Type	        -- Example 
 ---------------------------------------
@@ -89,7 +90,7 @@ var2		INTEGER,	-- 111
 var3            FLOAT        --  12.32
 );
 """
-    CREATEIDX="""
+        CREATEIDX="""
 CREATE TABLE small (	
 -- Name		Type	        -- Example 
 ---------------------------------------
@@ -102,58 +103,55 @@ CREATE INDEX ivar1 ON small(var1);
 CREATE INDEX ivar2 ON small(var2);
 CREATE INDEX ivar3 ON small(var3);
 """
-#     if indexmode == "indexed":
-#         instd.write(CREATEIDX)
-#     else:
-#         instd.write(CREATESTD)
-    # Creating the table first and indexing afterwards is a little bit faster
-    instd.write(CREATESTD)
-    instd.close()
+        # Creating the table first and indexing afterwards is a bit faster
+        instd.write(CREATESTD)
+        instd.close()
 
     conn = sqlite.connect(dbfile)
     cursor = conn.cursor()
-    place_holders = ",".join(['%s']*3)
-    # Insert rows
-    SQL = "insert into small values(NULL, %s)" % place_holders
-    time1 = time.time()
-    cpu1 = time.clock()
-#     for rowcount in xrange(nrows):
-#         fields = ("%.4s" % rowcount, rowcount, float(nrows-rowcount))
-#         cursor.execute(SQL, fields)
-#############################################
-    # This way of filling is to copy the PyTables benchmark
-    nrowsbuf = 1000
-    #mean = nrows / 2.; stddev = nrows/100.
-    # with a fixed stddev, the compression rate does not change
-    mean = nrows / 2.; stddev = float(standarddeviation)
-    for i in xrange(0, nrows, nrowsbuf):
-        if i+nrowsbuf > nrows:
-            j = nrows
-        else:
-            j = i+nrowsbuf
-        var1 = strings.array(None, shape=[j-i], itemsize=4)
-        if randomvalues:
-            var3 = random_array.normal(mean, stddev, shape=[j-i])
-            var2 = numarray.array(var3, type=numarray.Int32)
-        else:
-            var2 = numarray.arange(i, j, type=numarray.Int32)
-            # var3 = numarray.arange(i, j, type=numarray.Float64)
-            var3 = numarray.arange(nrows-i, nrows-j, -1, type=numarray.Float64)
-        if not heavy:
+    if indexmode == "standard":
+        place_holders = ",".join(['%s']*3)
+        # Insert rows
+        SQL = "insert into small values(NULL, %s)" % place_holders
+        time1 = time.time()
+        cpu1 = time.clock()
+        # This way of filling is to copy the PyTables benchmark
+        nrowsbuf = 1000
+        #mean = nrows / 2.; stddev = nrows/100.
+        # with a fixed stddev, the compression rate does not change
+        mean = nrows / 2.; stddev = float(standarddeviation)
+        for i in xrange(0, nrows, nrowsbuf):
+            if i+nrowsbuf > nrows:
+                j = nrows
+            else:
+                j = i+nrowsbuf
+            var1 = strings.array(None, shape=[j-i], itemsize=4)
+            if randomvalues:
+                var3 = random_array.normal(mean, stddev, shape=[j-i])
+                var2 = numarray.array(var3, type=numarray.Int32)
+            else:
+                var2 = numarray.arange(i, j, type=numarray.Int32)
+                # var3 = numarray.arange(i, j, type=numarray.Float64)
+                var3 = numarray.arange(nrows-i, nrows-j, -1, type=numarray.Float64)
+            if not heavy:
+                for n in xrange(j-i):
+                    var1[n] = str("%.4s" % var2[n])
             for n in xrange(j-i):
-                var1[n] = str("%.4s" % var2[n])
-        for n in xrange(j-i):
-            fields = (var1[n], var2[n], var3[n])
-            cursor.execute(SQL, fields)
-        conn.commit()
-###########################################
-    t1 = round(time.time()-time1, 5)
-    tcpu1 = round(time.clock()-cpu1, 5)
-    rowsecf = nrows/t1
-    size1 = os.stat(dbfile)[6]
-    print "******** Results for writing nrows = %s" % (nrows), "*********"
-    print "Insert time:", t1, ", KRows/s:", round((nrows/10.**3)/t1, 3),
-    print ", File size:", round(size1/(1024.*1024.), 3), "MB"
+                fields = (var1[n], var2[n], var3[n])
+                cursor.execute(SQL, fields)
+            conn.commit()
+        t1 = round(time.time()-time1, 5)
+        tcpu1 = round(time.clock()-cpu1, 5)
+        rowsecf = nrows/t1
+        size1 = os.stat(dbfile)[6]
+        print "******** Results for writing nrows = %s" % (nrows), "*********"
+        print "Insert time:", t1, ", KRows/s:", round((nrows/10.**3)/t1, 3),
+        print ", File size:", round(size1/(1024.*1024.), 3), "MB"
+    else:
+        t1 = 0.
+        tcpu1 = 0.
+        rowsecf = 0.
+        size1 = 0.
     # Indexem
     if indexmode == "indexed":
         time1 = time.time()
@@ -231,10 +229,14 @@ def readFile(dbfile, nrows, indexmode, bfile, riter):
     # Some previous computations for the case of random values
     if randomvalues:
         # algorithm to choose a value separated from mean
+#         # If want to select fewer values, select this
+#         if table.nrows/2 > standarddeviation*3:
+#             # Choose five standard deviations away from mean value
+#             dev = standarddeviation*5
+#             #dev = standarddeviation*math.log10(table.nrows/1000.)
         if standarddeviation*10 < nrows/2:
-            # Choose three standard deviations away from mean value
+            # Choose four standard deviations away from mean value
             dev = standarddeviation*4
-            #dev = standarddeviation*math.log10(nrows/1000.)
         else:
             dev = 100
         valmax = int(round((nrows/2.)-dev))

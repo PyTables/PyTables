@@ -107,6 +107,22 @@ int format_element(hid_t type_id,
       goto out;
     }
     break; /* case H5T_FLOAT */
+  case H5T_COMPOUND:                /* might be complex (single or double) */
+    if (is_complex(type_id))
+      switch (member_size) {
+      case 8:
+	strcat( format, "c8," );      /* float complex */
+	PyList_Append(types, PyString_FromString("c8"));
+	break;
+      case 16:
+	strcat( format, "c16," );      /* double complex */
+	PyList_Append(types, PyString_FromString("c16"));
+	break;
+      default:
+	/* This should never happen */
+	goto out;
+      }
+    break; /* case H5T_COMPOUND */
   case H5T_STRING:                  /* char or string */
     snprintf(temp, 255, "a%d,", (int)member_size);  /* Always a CharArray */
     PyList_Append(types, PyString_FromString("a"));
@@ -289,7 +305,8 @@ herr_t getfieldfmt( hid_t loc_id,
       if ( ( member_type_id = H5Tget_member_type( type_id, i )) < 0 )
 	goto out;
   
-      switch (order = H5Tget_order(member_type_id)) {
+/*       switch (order = H5Tget_order(member_type_id)) { */
+      switch (order = get_order(member_type_id)) {
       case H5T_ORDER_LE:
 	fmt[0] = '<';
 	break;

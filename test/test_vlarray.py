@@ -345,6 +345,8 @@ class TypesTestCase(unittest.TestCase):
 
         ttypes = {"Float32": Float32,
                   "Float64": Float64,
+                  "Complex32": Complex32,
+                  "Complex64": Complex64
                   }
         root = self.rootgroup
         if verbose:
@@ -711,6 +713,8 @@ class MDTypesTestCase(unittest.TestCase):
 
         ttypes = {"Float32": Float32,
                   "Float64": Float64,
+                  "Complex32": Complex32,
+                  "Complex64": Complex64
                   }
         root = self.rootgroup
         if verbose:
@@ -1217,6 +1221,8 @@ class FlavorTestCase(unittest.TestCase):
 
         ttypes = {"Float32": Float32,
                   "Float64": Float64,
+                  "Complex32": Complex32,
+                  "Complex64": Complex64
                   }
         root = self.rootgroup
         if verbose:

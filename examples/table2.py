@@ -2,18 +2,20 @@
 from tables import *
 class Particle(IsDescription):
     name        = StringCol(16, pos=1)   # 16-character String
-    lati        = IntCol(shape=(2,),pos=2)        # integer
+    lati        = IntCol(pos=2)        # integer
     longi       = IntCol(pos=3)        # integer
-    pressure    = Float32Col(pos=4)    # float  (single-precision)
-    temperature = FloatCol(pos=5)      # double (double-precision)
+    vector      = Int32Col(shape=(2,), pos=4)    # Integer
+    matrix2D    = FloatCol(shape=(2,2), pos=5)      # double (double-precision)
 
 # Open a file in "w"rite mode
 fileh = openFile("table2.h5", mode = "w")
 table = fileh.createTable(fileh.root, 'table', Particle, "A table")
 # Append several rows in only one call
-table.append([("Particle:     10", (10, 11), 0, 10*9, 10**2),
-              ("Particle:     11", (11, 12), -1, 11*10, 11**2),
-              ("Particle:     12", (12, 13), -2, 12*11, 12**2)])
+table.append([("Particle:     10", 10, 0, (10*9,1), [[10**2,11*3]]*2),
+              ("Particle:     11", 11, -1, (11*10,2), [[11**2,10*3]]*2),
+              ("Particle:     12", 12, -2, (12*11,3), [[12**2,9*3]]*2),
+              ("Particle:     13", 13, -3, (13*11,4), [[13**2,8*3]]*2),
+              ("Particle:     14", 14, -4, (14*11,5), [[14**2,7*3]]*2)])
 
 print "str(Cols)-->", table.cols
 print "repr(Cols)-->", repr(table.cols)
@@ -27,7 +29,7 @@ print "Select table.cols.name[:]-->", table.cols.name[:]
 print "Select table.cols['name'][:]-->", table.cols['name'][:]
 print "Select table.cols.lati[1]-->", table.cols.lati[1]
 print "Select table.cols.lati[1:2]-->", table.cols.lati[1:2]
-print "Select table.cols.pressure[:]-->", table.cols.pressure[:]
-print "Select table.cols['temperature'][:]-->", table.cols['temperature'][:]
+print "Select table.cols.vector[:]-->", table.cols.vector[:]
+print "Select table.cols['matrix2D'][:]-->", table.cols.matrix2D[:]
 
 fileh.close()

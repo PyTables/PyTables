@@ -31,6 +31,10 @@ for i in xrange(10):
 # accurate number of records on it.
 table.flush()
 
+# Add a couple of user attrs
+table.attrs.user_attr1=1.023
+table.attrs.user_attr2="This is the second user attr"
+
 # Append several rows in only one call
 table.append([("Particle:     10", 10, 0, 10*10, 10**2),
               ("Particle:     11", 11, -1, 11*11, 11**2),

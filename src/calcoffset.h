@@ -29,7 +29,8 @@ typedef struct { char c; int x; } s_int;
 typedef struct { char c; long x; } s_long;
 typedef struct { char c; float x; } s_float;
 typedef struct { char c; double x; } s_double;
-/* typedef struct { char c; LL_TYPE x; } s_longlong; */
+typedef struct { char c; float x; float y; } s_complex32;
+typedef struct { char c; double x; double y; } s_complex64;
 typedef struct { char c; PY_LONG_LONG x; } s_longlong;
 typedef struct { char c; void *x; } s_void_p;
 
@@ -38,6 +39,8 @@ typedef struct { char c; void *x; } s_void_p;
 #define LONG_ALIGN (sizeof(s_long) - sizeof(long))
 #define FLOAT_ALIGN (sizeof(s_float) - sizeof(float))
 #define DOUBLE_ALIGN (sizeof(s_double) - sizeof(double))
+#define COMPLEX32_ALIGN (sizeof(s_complex32) - sizeof(double))
+#define COMPLEX64_ALIGN (sizeof(s_complex64) - sizeof(double)*2)
 /* #define LONGLONG_ALIGN (sizeof(s_longlong) - sizeof(LL_TYPE)) */
 #define LONGLONG_ALIGN (sizeof(s_longlong) - sizeof(PY_LONG_LONG))
 #define VOID_P_ALIGN (sizeof(s_void_p) - sizeof(void *))
@@ -67,8 +70,8 @@ static formatdef native_table[] = {
      {'L',	sizeof(long),		LONG_ALIGN},
      {'f',	sizeof(float),		FLOAT_ALIGN},
      {'d',	sizeof(double),		DOUBLE_ALIGN},
-/*      {'q',	sizeof(LL_TYPE),	LONGLONG_ALIGN}, */
-/*      {'Q',	sizeof(LL_TYPE),	LONGLONG_ALIGN}, */
+     {'F',	sizeof(s_complex32),	COMPLEX32_ALIGN},
+     {'D',	sizeof(s_complex64),	COMPLEX64_ALIGN},
      {'q',	sizeof(PY_LONG_LONG),	LONGLONG_ALIGN},
      {'Q',	sizeof(PY_LONG_LONG),	LONGLONG_ALIGN},
 /*     {'P',	sizeof(void *),		VOID_P_ALIGN},*/ /* Not supported */
@@ -90,6 +93,8 @@ static formatdef bigendian_table[] = {
      {'L',	4,		0},
      {'f',	4,		0},
      {'d',	8,		0},
+     {'F',	8,		0},
+     {'D',	16,		0},
      {'q',	8,		0},
      {'Q',	8,		0},
      {0}
@@ -109,6 +114,8 @@ static formatdef lilendian_table[] = {
      {'L',	4,		0},
      {'f',	4,		0},
      {'d',	8,		0},
+     {'F',	8,		0},
+     {'D',	16,		0},
      {'q',	8,		0},
      {'Q',	8,		0},
      {0}

@@ -362,7 +362,7 @@ class Particle(IsDescription):
 	  <em>object tree</em> entity is <em>dynamically</em> created
 	  imitating the HDF5 structure on disk.  The HDF5 objects are
 	  read by walking through this object tree.  You can get a
-	  good picture of what kind data is kept in the object by
+	  good picture of what kind of data is kept in the object by
 	  examining the <em>metadata</em> nodes.
 	</p>
 
@@ -433,7 +433,7 @@ from tables import *
 class Particle(IsDescription):
     identity = StringCol(length=22, dflt=" ", pos = 0)  # character String
     idnumber = Int16Col(1, pos = 1)  # short integer
-    speed    = Float32Col(1, pos = 1)  # single-precision
+    speed    = Float32Col(1, pos = 2)  # single-precision
 
 # Open a file in "w"rite mode
 fileh = openFile("objecttree.h5", mode = "w")
@@ -2776,7 +2776,7 @@ KeyError: Error setting "ADCcount" field.
 
 	<p>Next, we will discuss the attributes and methods for File
 	  class<footnote>On the following, the term <verb>Leaf</verb>
-	  will whether refer to a <verb>Table</verb>,
+	  will refer to either a <verb>Table</verb>,
 	  <verb>Array</verb>, <verb>EArray</verb>,
 	  <verb>VLArray</verb> or <verb>UnImplemented</verb> node
 	  object.</footnote>.
@@ -4333,20 +4333,19 @@ Select table.cols['temperature'][:]--> [ 100.  121.  144.]
 
 	<p>Represents an array on file. It provides methods to
 	  write/read data to/from array objects in the file. This
-	  class does not allow to enlarge the datasets on disk; see
-	  the <verb>EArray</verb> descendant in <ref
+	  class does not allow you to enlarge the datasets on disk;
+	  see the <verb>EArray</verb> descendant in <ref
 	  refid="EArrayClassDescr">section</ref> if you want
 	  enlargeable dataset support and/or compression features.
 	</p>
 
-	<p><visual markup="bf">Caveat:</visual> All
-	  <verb>Numeric</verb> and <verb>numarray</verb> data types
-	  are supported except those that corresponds to complex data
-	  types<footnote>However, these might be included in the
-	  future</footnote>. See <verb>numarray</verb> manual (<cite
-	  refid="Numarray"></cite>) to know more about the supported
-	  data types, or see <ref
-	  refid="datatypesSupported">appendix</ref>.
+        <!-- arrays now support complex data types -->
+	<p>The array data types supported are the same as the set
+	  provided by <verb>Numeric</verb> and <verb>numarray</verb>.
+	  For details of these data types see <ref
+	  refid="datatypesSupported">appendix</ref>, or the
+	  <verb>numarray</verb> reference manual (<cite
+	  refid="Numarray"></cite>).
 	</p>
 
 	<p>Note that this object inherits all the public attributes
@@ -5003,6 +5002,7 @@ fileh.close()
 	    these column descriptions easier to the user. In general,
 	    it is recommended to use these descendant classes, as they
 	    are more meaningful when found in the middle of the code.
+	    Caveat: tables do not yet support complex datatypes.
 	  </p>
 	  <p>Note that the only public method accessible in these
 	    classes is the constructor itself.
@@ -5018,12 +5018,15 @@ fileh.close()
 	      <description>
 
 		<term>dtype</term> <item>The data type for the
-		  column. See the <ref
-		    refid="datatypesSupported">appendix</ref> for a
-		  relation of data types supported in a <visual
-		    markup="tt">IsDescription</visual> class
-		  declaration. The type description is accepted both in
-		  string format and as numarray data type.</item>
+		  column. 
+		  It is an error to specify a complex datatype in the Col
+		  constructor or in a <visual
+		  markup="tt">IsDescription</visual> class declaration.
+		  However, all
+		  other types listed in <ref refid="datatypesSupported">
+		  appendix</ref> are valid data types for columns.
+		  The type description is accepted both in
+		  string format and as a numarray data type.</item>
 
 		<term>shape</term> <item>An integer or a tuple, that
 		  specifies the number of <em>dtype</em> items for
@@ -5291,6 +5294,28 @@ fileh.close()
 
 		<term>Float64Atom(shape=1, flavor="NumArray")</term>
 		<item>Define an atom of type <verb>Float64</verb>.</item>
+
+	      </description>
+	    </item>
+
+	    <term>ComplexAtom(shape=1, itemsize=16, flavor="NumArray")
+	    </term>
+	    <item>Define an atom to be of <verb>ComplexXX</verb>
+	      type, depending on the value of <verb>itemsize</verb>. The
+	      <verb>itemsize</verb> parameter sets the number of bytes
+	      of the floats in the atom and the default is 16 bytes
+	      (double precision complex). The meaning of the other parameters
+	      are the same as those in the <verb>Atom</verb> class.
+
+	      <p>This class has two descendants:
+	      </p>
+
+	      <description>
+		<term>Complex32Atom(shape=1, flavor="NumArray")</term>
+		<item>Define an atom of type <verb>Complex32</verb>.</item>
+
+		<term>Complex64Atom(shape=1, flavor="NumArray")</term>
+		<item>Define an atom of type <verb>Complex64</verb>.</item>
 
 	      </description>
 	    </item>
@@ -6106,44 +6131,54 @@ if __name__=="__main__":
 	<heading>Supported data types in <visual
 	markup="tt">PyTables</visual></heading>
 
-	<p><verb>IsDescription</verb> subclasses supports a limited
-	  set of data types to define the table fields. Such a set is
-	  roughly the same than the types supported by the <visual
+	<p>The Array, VLArray and EArray classes can all 
+	  handle all the data types supported by the <visual
 	  markup="tt">numarray</visual> package (see <cite
-	  refid="Numarray"></cite>) in Python, with the exception of
-	  the complex datatypes that are not supported yet.
+	  refid="Numarray"></cite>) in Python.
+	  The data types for array elements can be set through
+	  the use of the <verb>Atom</verb> class and its descendants
+	  (<ref refid="AtomClassDescr">see</ref>).
 	</p>
-	<p>These data types in table columns can be set through the
-	  use of the <verb>Col</verb> class and its descendants (<ref
-	  refid="ColClassDescr">see</ref>). You may find useful the
-	  <ref refid="datatypesSupported">table</ref> as a quick
-	  reference to the complete set of supported data types in
-	  PyTables.
+	<p>In the case of tables, a subset of the numarray data types 
+	  can be used to define the fields.
+	  Such a set is the same as for arrays, with the exception of
+	  the complex datatypes that are not supported yet.
+	  The table fields can be set via the constructor for the <verb>
+	  Col</verb> class and its decendants
+	  (<ref refid="ColClassDescr">see</ref>),
+	  or in a <verb>IsDescription</verb> class declaration
+	  (<ref refid="IsDescriptionClassDescr">see</ref>).
+	</p>
+	<p>A quick reference to the complete set of data types supported by
+	  PyTables is given in <ref refid="datatypesSupported">table</ref>.
 	</p>
 
 	<table id="datatypesSupportedTable">
-	  <tabular preamble="lllcl">
+	  <tabular preamble="lllclc">
 	  <tabhead>
 	    <srow>Type Code | Description | C Type | Size (in bytes) |
-	      Python Counterpart</srow>
+	      Python Counterpart | Supported in tables</srow>
 	  </tabhead>
 	  <tabbody>
-	    <srow>Bool | boolean | unsigned char | 1 | Boolean </srow>
-	    <srow>Int8 | 8-bit integer | signed char | 1 | Integer </srow>
-	    <srow>UInt8 | 8-bit unsigned integer | unsigned char | 1 | Integer </srow>
-	    <srow>Int16 | 16-bit integer | short | 2 | Integer </srow>
-	    <srow>UInt16 | 16-bit unsigned integer | unsigned short | 2 | Integer </srow>
-	    <srow>Int32 | integer | int | 4  | Integer </srow>
-	    <srow>UInt32 | unsigned integer | unsigned int | 4 | Long </srow>
-	    <srow>Int64 | 64-bit integer | long long | 8 | Long </srow>
-	    <srow>UInt64 | unsigned 64-bit integer | unsigned long long | 8 | Long </srow>
-	    <srow>Float32 | single-precision float | float | 4 | Float </srow>
-	    <srow>Float64 | double-precision float | double | 8 | Float </srow>
-	    <srow>CharType | arbitrary length string | char[] | * | String </srow>
+	    <srow>Bool | boolean | unsigned char | 1 | Boolean | yes </srow>
+	    <srow>Int8 | 8-bit integer | signed char | 1 | Integer | yes </srow>
+	    <srow>UInt8 | 8-bit unsigned integer | unsigned char | 1 | Integer | yes </srow>
+	    <srow>Int16 | 16-bit integer | short | 2 | Integer | yes </srow>
+	    <srow>UInt16 | 16-bit unsigned integer | unsigned short | 2 | Integer | yes </srow>
+	    <srow>Int32 | integer | int | 4  | Integer | yes </srow>
+	    <srow>UInt32 | unsigned integer | unsigned int | 4 | Long | yes </srow>
+	    <srow>Int64 | 64-bit integer | long long | 8 | Long | yes </srow>
+	    <srow>UInt64 | unsigned 64-bit integer | unsigned long long | 8 | Long | yes </srow>
+	    <srow>Float32 | single-precision float | float | 4 | Float | yes </srow>
+	    <srow>Float64 | double-precision float | double | 8 | Float | yes </srow>
+	    <srow>Complex32 | single-precision complex | struct {float r, i;} | 8 | Complex | no </srow>
+	    <srow>Complex64 | double-precision complex | struct {double r, i;} | 16 | Complex | no </srow>
+	    <srow>CharType | arbitrary length string | char[] | * | String | yes </srow>
 	  </tabbody>
 	</tabular>
-	  <caption>Data types supported by subclasses of <visual
-	      markup="tt">IsDescription</visual> definitions.</caption>
+	  <caption>Data types supported for array elements and
+	      tables columns in PyTables.
+	  </caption>
 	</table>
 
       </chapter>  <!-- Data types supported -->
@@ -6506,16 +6541,32 @@ if __name__=="__main__":
 	    <subsubsection>
 	      <heading>Datatypes supported</heading>
 
-	      <p>The elements of <verb>Array</verb> must have HDF5
-		<em>atomic</em> datatypes, and can currently be one of
-		the next HDF5 datatypes <em>classes</em>:
+	      <p>The elements of <verb>Array</verb> must have HDF5 either
+		<em>atomic</em> datatypes or a <em>compound</em> datatype 
+		representing a complex number.
+		The atomic datatypes and can currently be one of
+		the next HDF5 datatype <em>classes</em>:
 		H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT and
 		H5T_STRING. See the <verb>Table</verb> format
 		description in <ref
 		refid="TableFormatDescr">section</ref> for more info
 		about these types.
 	      </p>
-	      
+
+	      <p>In addition to the HDF5 atomic datatypes, the Array
+		format supports complex numbers with the H5T_COMPOUND
+		datatype class. The H5T_COMPOUND type class contains two
+		members. Both members must have the H5T_FLOAT atomic
+		datatype class. The name of the first member should 
+		be "r" and represents the real
+		part. The name of the second member should be "i" and
+		represents the imaginary part.
+		The <em>precision</em> property of both of the H5T_FLOAT members
+		must be either 32 significant bits (e.g. H5T_NATIVE_FLOAT) or 
+		64 significant bits (e.g. H5T_NATIVE_DOUBLE). 
+		They represent Complex32 and Complex64 types respectively.
+	      </p>
+
 	      <p>You should note that H5T_ARRAY class datatypes are
 		not allowed in <verb>Array</verb> objects.
 	      </p>
@@ -6575,14 +6626,21 @@ if __name__=="__main__":
 	    <subsubsection>
 	      <heading>Datatypes supported</heading>
 
-	      <p>The elements of <verb>EArray</verb> must have HDF5
-		<em>atomic</em> datatypes, and can currently be one of
-		the next HDF5 datatypes <em>classes</em>:
-		H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT and
-		H5T_STRING. See the <verb>Table</verb> format
+	      <p>The elements of <verb>EArray</verb> are allowed to have
+		the same
+		datatypes as for the elements in the Array format.
+		They can be one of the HDF5 <em>atomic</em> datatype 
+		<em>classes</em>:
+		H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT or
+		H5T_STRING, see the <verb>Table</verb> format
 		description in <ref
 		refid="TableFormatDescr">section</ref> for more info
-		about these types.
+		about these types. 
+		They can also be a HDF5 <em>compound</em> 
+		datatype representing a complex number, 
+		see the <verb>Array</verb> format
+		description in <ref
+		refid="ArrayFormatDescr">section</ref>.
 	      </p>
 	      
 	      <p>You should note that H5T_ARRAY class datatypes are
@@ -6705,8 +6763,16 @@ if __name__=="__main__":
 		<item>H5T_STRING</item>
 		<item>H5T_ARRAY</item>
 	      </itemize>
+	      <p>They can also be a HDF5 <em>compound</em> 
+		datatype representing a complex number, 
+		see the <verb>Array</verb> format
+		description in <ref
+		refid="ArrayFormatDescr">section</ref> for a 
+		detailed description.
+	      </p>
 	      <p>You should note that this does not include another VL
-		datatype, or compound datatype. Note as well that, for
+		datatype, or a compound datatype that does not fit
+		the description of a complex number. Note as well that, for
 		<verb>Object</verb> and <verb>VLString</verb>
 		special flavors, the base for the VL datatype is
 		always a H5T_NATIVE_UCHAR. That means that the

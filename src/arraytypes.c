@@ -1,4 +1,5 @@
 #include "arraytypes.h"
+#include "utils.h"
 
 /* Get the correct HDF5 type for a format code.
  * I can't manage to do the mapping with a table because
@@ -71,6 +72,13 @@ hid_t
     case tFloat64:
       type_id = H5Tcopy(H5T_NATIVE_DOUBLE);
       break;
+    case tComplex32:
+      type_id = create_native_complex32(byteorder);
+/*       return type_id; */
+      break;
+    case tComplex64:
+      type_id = create_native_complex64(byteorder);
+      break;
     default:
 #ifdef DEBUG
       printf("Error: bad char <%c> in array format\n", fmt);
@@ -79,14 +87,7 @@ hid_t
    }
 
    /* Set the byteorder datatype */
-   if (strcmp(byteorder, "little") == 0) 
-     H5Tset_order(type_id, H5T_ORDER_LE);
-   else if (strcmp(byteorder, "big") == 0) 
-     H5Tset_order(type_id, H5T_ORDER_BE );
-   else {
-     fprintf(stderr, "Error: unsupported byteorder <%s>\n", byteorder);
-     return -1;   }
-   /* printf("datatype byteorder: %d\n", H5Tget_order(type_id )); */
+   if (set_order(type_id, byteorder) < 0) return -1;
 
    return type_id;
 }
@@ -159,6 +160,24 @@ size_t getArrayType(hid_t type_id,
       goto out;
     }
     break; /* case H5T_FLOAT */
+  case H5T_COMPOUND:                /* might be complex (single or double) */
+    if (is_complex(type_id)) {
+      switch (get_complex_precision(type_id)) {
+      case 32:
+	*fmt = tComplex32;               /* float complex */
+	break;
+      case 64:
+	*fmt = tComplex64;               /* double complex */
+	break;
+      default:
+	/* This should never happen */
+	goto out;
+      }
+    } else {
+      fprintf(stderr, "this H5T_COMPOUND class is not a complex number\n");
+      goto out;
+    }
+    break; /* case H5T_COMPOUND */
   case H5T_STRING:                  /* char or string */
     /* I map this to "a" until a enum NumarrayType is assigned to it! */
       *fmt = (int)'a';                   /* chararray */

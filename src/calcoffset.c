@@ -7,7 +7,7 @@
 #include <limits.h>
 #include <ctype.h>
 #include "calcoffset.h"
-#include "utils.h"  /* To access the MAXDIM value */
+#include "utils.h"
 
 /* Define this as 1 if native alignment is needed, although this
    doesn't seem to be necessary. Before pytables 0.6 this was
@@ -61,15 +61,16 @@ static const formatdef *getentry(int c, const formatdef *f)
 
 
 /* Get the correct HDF5 type for a format code.
- * I can't manage to do the mapping by a table because
+ * I can't manage to do the mapping with a table because
  * the HDF5 types are not constant values and are
  * defined by executing a function. 
  * So we do that in a switch case. */
 
-static hid_t conventry(int c, int rank, hsize_t *dims)
+static hid_t conventry(int c, int rank, hsize_t *dims, char *byteorder)
 {
    hid_t string_type;
    hid_t ret_type;
+   hid_t tid, tid2;
    int atomic, i;
    hsize_t shape[MAXDIM];
 
@@ -176,6 +177,26 @@ static hid_t conventry(int c, int rank, hsize_t *dims)
       else {
 	 return H5Tarray_create(H5T_NATIVE_DOUBLE, rank, dims, NULL);
       }
+    case 'F':
+      tid = create_native_complex32(byteorder);
+      if (atomic == 1) {
+	return tid;
+      } 
+      else {
+	 tid2 = H5Tarray_create(tid, rank, dims, NULL);
+	 H5Tclose(tid);
+	 return tid2;
+      }
+    case 'D':
+      tid = create_native_complex64(byteorder);
+      if (atomic == 1) {
+	return tid;
+      } 
+      else {
+	 tid2 = H5Tarray_create(tid, rank, dims, NULL);
+	 H5Tclose(tid);
+	 return tid2;
+      }
     case 's':
       string_type = H5Tcopy(H5T_C_S1);
       H5Tset_size(string_type, (size_t)dims[rank-1]);
@@ -234,9 +255,29 @@ int calcoffset(char *fmt, int *nattrs, hid_t *types,
    int ndim;
    int size, num, itemsize, x;
    hid_t hdf5type;
-   char byteorder;
+   char byteorder[10];
 
-   byteorder = fmt[0];
+   /* Get the byteorder */
+   switch (*fmt) {
+   case '<':
+     strcpy(byteorder, "little");
+     break;
+   case '>':
+     strcpy(byteorder, "big");
+     break;
+   case '!': /* Network byte order is big-endian */
+     strcpy(byteorder, "big");
+     break;
+   case '=': { /* Host byte order -- different from native in aligment! */
+     int n = 1;
+     char *p = (char *) &n;
+     if (*p == 1)
+       strcpy(byteorder, "little");
+     else
+       strcpy(byteorder, "big");
+   }
+   }
+   
    f = whichtable(&fmt);
    s = fmt;
    size = 0;
@@ -314,10 +355,11 @@ int calcoffset(char *fmt, int *nattrs, hid_t *types,
       printf(")\n");
 #endif
       e = getentry(c, f);
-      if (e == NULL)
+      if (e == NULL) {
 	return -1;
+      }
       /* Get the proper hdf5 type */
-      hdf5type = H5Tcopy(conventry(c, ndim+1, shape));
+      hdf5type = H5Tcopy(conventry(c, ndim+1, shape, byteorder));
       if (hdf5type == -1)
 	return -1;
       itemsize = H5Tget_size(hdf5type);
@@ -337,12 +379,13 @@ int calcoffset(char *fmt, int *nattrs, hid_t *types,
       *types++ = hdf5type;
 
       /* Set the byteorder datatype (if needed) */
-      if (c != 's') {
-	if (byteorder == '<') 
-	  H5Tset_order(hdf5type, H5T_ORDER_LE);
-	else if (byteorder == '>') {
-	  H5Tset_order(hdf5type, H5T_ORDER_BE );
-	}
+      if (c != 's' || c != 'F' || c != 'D') {
+	set_order(hdf5type, byteorder);
+/* 	if (byteorder == '<')  */
+/* 	  H5Tset_order(hdf5type, H5T_ORDER_LE); */
+/* 	else if (byteorder == '>') { */
+/* 	  H5Tset_order(hdf5type, H5T_ORDER_BE ); */
+/* 	} */
       }
    }
 

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.138 2004/08/12 20:52:29 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.139 2004/09/16 16:18:31 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.138 $"
+__version__ = "$Revision: 1.139 $"
 
 
 import sys, os
@@ -223,6 +223,7 @@ toenum = {numarray.Bool:tBool,   # Boolean type added
           numarray.Int32:tInt32,     numarray.UInt32:tUInt32,
           numarray.Int64:tInt64,     numarray.UInt64:tUInt64,
           numarray.Float32:tFloat32, numarray.Float64:tFloat64,
+          numarray.Complex32:tComplex32, numarray.Complex64:tComplex64,
           CharType:97   # ascii(97) --> 'a' # Special case (to be corrected)
           }
 
@@ -232,6 +233,7 @@ toclass = {tBool:numarray.Bool,  # Boolean type added
            tInt32:numarray.Int32,     tUInt32:numarray.UInt32,
            tInt64:numarray.Int64,     tUInt64:numarray.UInt64,
            tFloat32:numarray.Float32, tFloat64:numarray.Float64,
+           tComplex32:numarray.Complex32, tComplex64:numarray.Complex64,
            97:CharType   # ascii(97) --> 'a' # Special case (to be corrected)
           }
 
@@ -926,7 +928,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.138 2004/08/12 20:52:29 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.139 2004/09/16 16:18:31 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1480,6 +1482,16 @@ cdef class Group:
     if ret < 0:
       raise RuntimeError("Problems deleting the Leaf '%s'" % dsetname )
     return ret
+
+#   def _g_deleteLeaf2(self, char *dsetname, object hdf5object):
+#     cdef int ret
+
+#     # Delete the leaf child
+#     hdf5object.close()
+#     ret = H5Gunlink(self.group_id, dsetname)
+#     if ret < 0:
+#       raise RuntimeError("Problems deleting the Leaf '%s'" % dsetname )
+#     return ret
 
   def __dealloc__(self):
     cdef int ret

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.16 2004/08/25 21:26:56 falted Exp $
+#       $Id: Index.py,v 1.17 2004/09/16 16:18:31 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.16 $"
+__version__ = "$Revision: 1.17 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -599,16 +599,23 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         # Delete the associated IndexArrays
         #self.sorted._close()
         #self.indices._close()
+        self.sorted.flush()
+        self.indices.flush()
+        print "1-1"
         self._g_deleteLeaf(self.sorted.name)
+        print "1-2"
         self._g_deleteLeaf(self.indices.name)
-        #self.sorted.remove()
-        #self.indices.remove()
+        self.sorted.remove()
+        self.indices.remove()
         self.sorted = None
         self.indices = None
         # close the Index Group
+        print "1-3"
         self._f_close()
         # delete it (this is defined in hdf5Extension)
+        print "1-4"
         self._g_deleteGroup()
+        print "1-5"
 
     def _f_close(self):
         # close the indices
