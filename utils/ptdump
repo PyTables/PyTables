@@ -7,7 +7,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/utils/ptdump,v $
-#       $Id: ptdump,v 1.6 2004/06/28 12:03:24 falted Exp $
+#       $Id: ptdump,v 1.7 2004/08/10 07:48:51 falted Exp $
 #
 ########################################################################
 
@@ -28,6 +28,9 @@ def dumpLeaf(leaf):
     global dump
     global showattrs
     global rng
+    global colinfo
+    global idxinfo
+
     if verbose:
         print repr(leaf)
     else:
@@ -38,16 +41,45 @@ def dumpLeaf(leaf):
         print "  Data dump:"
         # print leaf.read(rng.start, rng.stop, rng.step)
         # This is better for large objects
-        if rng.start == None:
+        if rng.start is None:
             start = 0
-        if rng.stop == None:
+        else:
+            start = rng.start
+        if rng.stop is None:
             stop = leaf.nrows
-        if rng.step == None:
+        else:
+            stop = rng.stop
+        if rng.step is None:
             step = 1
-        for i in range(rng.start, rng.stop, rng.step):
+        else:
+            step = rng.step
+        for i in range(start, stop, step):
             print "[%s] %s" % (i, leaf[i])
 
-    
+    if isinstance(leaf, Table) and colinfo:
+        # Show info of columns
+        #print repr(leaf.cols)
+        for colname in leaf.colnames:
+            print repr(leaf.cols[colname])
+
+    if isinstance(leaf, Table) and idxinfo:
+        # Show info of indexes
+        for colname in leaf.colnames:
+            if leaf.cols[colname].index is not None:
+                idx = leaf.cols[colname].index
+                print repr(idx)
+                # The next piece of code does not work very well :-/
+#                 if dump:
+#                     row = idx.nelements % (idx.nelemslice
+#                     j = start
+#                     for i in range(start, stop, step):
+#                         if i > idx.nelemslice:
+#                             row += 1
+#                             j = 0
+#                         print "[%s] %s" % (i, idx.sorted[row][j])
+#                         j += step
+
+            
 def dumpGroup(h5file):
     global verbose
     global dump
@@ -68,32 +100,15 @@ def dumpGroup(h5file):
         if showattrs:
             print "  "+repr(group._v_attrs)
         for leaf in h5file.listNodes(group, 'Leaf'):
-            if verbose:
-                print repr(leaf)
-            else:
-                print str(leaf)
-            if showattrs:
-                print "  "+repr(leaf.attrs)
-            if dump:
-                print "  Data dump:"
-                #print leaf.read(rng.start, rng.stop, rng.step)
-                # This is better for large objects
-                if rng.start == None:
-                    start = 0
-                if rng.stop == None:
-                    stop = leaf.nrows
-                if rng.step == None:
-                    step = 1
-                for i in range(start, stop, step):
-                    print "[%s] %s" % (i, leaf[i])
-                    #print leaf[i]
-            #print
+            dumpLeaf(leaf)
 
 
 usage = \
 """usage: %s [-R start,stop,step] [-a] [-h] [-d] [-v] file[:nodepath]
   -R select a range of rows in the form "start,stop,step"
-  -a show attributes in nodes (only useful when -v or -d are active as well)
+  -a show attributes in nodes (only useful when -v or -d are active)
+  -c show info of columns in tables (only useful when -v or -d are active)
+  -i show info of indexed in columns (only useful when -v or -d are active)
   -d dump data information on leaves
   -h print help on usage
   -v dump more metainformation on nodes
@@ -101,7 +116,7 @@ usage = \
 % os.path.basename(sys.argv[0])
 
 try:
-    opts, pargs = getopt.getopt(sys.argv[1:], 'R:ahdv')
+    opts, pargs = getopt.getopt(sys.argv[1:], 'R:ahdvci')
 except:
     sys.stderr.write(usage)
     sys.exit(0)
@@ -116,6 +131,8 @@ rng = slice(None)
 showattrs = 0
 verbose = 0
 dump = 0
+colinfo = 0
+idxinfo = 0
 
 # Get the options
 for option in opts:
@@ -138,6 +155,10 @@ for option in opts:
         verbose = 1
     elif option[0] == '-d':
         dump = 1
+    elif option[0] == '-c':
+        colinfo = 1
+    elif option[0] == '-i':
+        idxinfo = 1
     else:
         print option[0], ": Unrecognized option"
         sys.stderr.write(usage)

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.136 2004/08/06 16:34:34 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.137 2004/08/10 07:48:51 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.136 $"
+__version__ = "$Revision: 1.137 $"
 
 
 import sys, os
@@ -648,6 +648,16 @@ cdef extern from "H5TB.h":
                               hsize_t nrecords, size_t type_size, 
                               size_t *field_offset, void *data )
                                         
+  herr_t H5TBwrite_records ( hid_t loc_id, char *dset_name,
+                             hsize_t start, hsize_t nrecords,
+                             size_t type_size, size_t *field_offset,
+                             void *data )
+                                        
+  herr_t H5TBwrite_fields_name( hid_t loc_id, char *dset_name,
+                                char *field_names, hsize_t start,
+                                hsize_t nrecords, size_t type_size,
+                                size_t *field_offset, void *data )
+  
   herr_t H5TBget_table_info ( hid_t loc_id, char *table_name,
                               hsize_t *nfields, hsize_t *nrecords )
 
@@ -911,7 +921,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.136 2004/08/06 16:34:34 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.137 2004/08/10 07:48:51 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1463,7 +1473,7 @@ cdef class Group:
     # Delete the leaf child
     ret = H5Gunlink(self.group_id, dsetname)
     if ret < 0:
-      raise RuntimeError("Problems deleting the Leaf %s" % dsetname )
+      raise RuntimeError("Problems deleting the Leaf '%s'" % dsetname )
     return ret
 
   def __dealloc__(self):
@@ -1578,7 +1588,8 @@ cdef class Table:
     fill_data = NULL
     nrecords = <hsize_t>PyInt_AsLong(nvar)
     oid = H5TBmake_table(title, self.parent_id, self.name,
-                         nrecords, self.nrows, self.rowsize, self.field_names,
+                         nrecords, self.nrows, self.rowsize,
+                         self.field_names,
                          self.field_offset, field_types, self._v_chunksize,
                          fill_data, self.filters.complevel, complib,
                          self.filters.shuffle, self.filters.fletcher32,
@@ -1610,8 +1621,7 @@ cdef class Table:
   # but it is not faster than the Python version, so I removed it
   
   def _append_records(self, object recarr, int nrecords):
-    cdef int ret,
-    cdef void *rbuf
+    cdef int ret
 
     if not self._open:
       self._open_append(recarr)
@@ -1635,6 +1645,57 @@ cdef class Table:
 
     self._open = 0
 
+  def _modify_records(self, hsize_t start, object recarr):
+    cdef int ret
+    cdef void *rbuf
+    cdef hsize_t nrecords
+
+    # Get the pointer to the buffer data area
+    buflen = NA_getBufferPtrAndSize(recarr._data, 1, &rbuf)
+
+    # Modify the records:
+    nrecords = len(recarr)
+    ret = H5TBwrite_records(self.parent_id, self.name,
+                            start, nrecords, self.rowsize,
+                            self.field_offset, rbuf )
+    if ret < 0:
+      raise RuntimeError("Problems modifying the records.")
+
+# The next doesn't work well. We use the method _modify_records for all
+# cases. 2004-08-09
+#   def _modify_records_names(self, hsize_t start, object recarr, object names):
+#     cdef int ret
+#     cdef void *rbuf
+#     cdef hsize_t nrecords
+#     cdef int nfields
+#     cdef char *field_names
+#     cdef size_t type_size
+#     cdef size_t *field_offset
+
+#     # Get the pointer to the buffer data area
+#     buflen = NA_getBufferPtrAndSize(recarr._data, 1, &rbuf)
+
+#     # Get a pointer to the field names
+#     field_names = PyString_AsString("\n".join(names))
+#     # Modify the records:
+#     nrecords = len(recarr)
+#     type_size = recarr._itemsize
+#     nfields = recarr._nfields
+#     sizes = recarr._sizes
+#     field_offset = <size_t *>malloc(nrecords * sizeof(size_t))
+#     field_offset[0] = 0
+#     print "field_offset-->", field_offset[0],
+#     for i in range(nfields-1):
+#       field_offset[i+1] = field_offset[i]+sizes[i]
+#       print "field_offset-->", field_offset[i+1],
+#     print
+#     ret = H5TBwrite_fields_name(self.parent_id, self.name, field_names,
+#                                 start, nrecords, type_size,
+#                                 self.field_offset, rbuf )
+#     if ret < 0:
+#       raise RuntimeError("Problems modifying the records.")
+#     free(field_offset)
+    
   def _getTableInfo(self):
     "Get info from a table on disk. This method is standalone."
     cdef int     i, ret

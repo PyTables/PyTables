@@ -703,10 +703,10 @@ herr_t H5TBwrite_fields_name( hid_t loc_id,
 
   /* Get the member name */
   member_name = H5Tget_member_name( type_id, (unsigned)i );
-
+/*   printf("member_name, field_names: %s, %s\n", member_name, field_names); */
   if ( H5TB_find_field( member_name, field_names ) > 0 )
   {
-
+/*     printf("Found\n"); */
    /* Get the member type */
    if ( ( member_type_id = H5Tget_member_type( type_id,(int) i )) < 0 )
     goto out;

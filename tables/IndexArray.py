@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IndexArray.py,v $
-#       $Id: IndexArray.py,v 1.6 2004/08/06 16:34:36 falted Exp $
+#       $Id: IndexArray.py,v 1.7 2004/08/10 07:48:51 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.6 $"
+__version__ = "$Revision: 1.7 $"
 # default version for IndexARRAY objects
 obversion = "1.0"    # initial version
 
@@ -65,6 +65,7 @@ def calcChunksize(expectedrows, testmode=0):
         else:
             raise ValueError, \
                   "expected rows cannot be larger than 10000 in test mode"
+        #print "-->", (nelemslice, chunksize)
         return (nelemslice, chunksize)
 
     # expKrows < 0.01 is to few for indexing to represent a significant gain
@@ -141,12 +142,14 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
 
     """
     
-    def __init__(self, atom = None, title = "",
+    def __init__(self, parent = None, atom = None, title = "",
                  filters = None, expectedrows = 1000000,
                  testmode=0):
         """Create an IndexArray instance.
 
         Keyword arguments:
+
+        parent -- The Index class from which this object will hang off
 
         atom -- An Atom object representing the shape, type and flavor
             of the atomic objects to be saved. Only scalar atoms are
@@ -163,6 +166,7 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
             value is 1000000 slices.
 
         """
+        self._v_parent = parent
         self._v_new_title = title
         self._v_new_filters = filters
         self._v_expectedrows = expectedrows
@@ -354,10 +358,15 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
         del self.type
         del self.atom
         del self.filters
-        self.__dict__.clear()
+        #self.__dict__.clear()
+
+    def __str__(self):
+        "A compact representation of this class"
+        return "IndexArray(path=%s)" % \
+               (self._v_parent._g_join(self.name))
 
     def __repr__(self):
-        """This provides more metainfo in addition to standard __str__"""
+        """A verbose representation of this class"""
 
         return """%s
   type = %r

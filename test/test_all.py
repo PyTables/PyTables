@@ -174,11 +174,11 @@ if __name__ == '__main__':
 """Performing the complete test suite!"""
         else:
             print \
-"""Performing only a light (yet comprehensive) subset of the complete
-test suite.  If you have a big system and lots of CPU to waste, try
-passing the --heavy flag to this script. The complete suite will take
-more than 7 minutes to complete on a relatively modern CPU
-(Pentium4@2GHz) and around 80 MB of memory."""
+"""Performing only a light (yet comprehensive) subset of the test
+suite.  If you have a big system and lots of CPU to waste and want to
+do a more complete test, try passing the --heavy flag to this script.
+The whole suite will take more than 10 minutes to complete on a
+relatively modern CPU and around 100 MB of main memory."""
         print '-=' * 38
 
         unittest.main( defaultTest='suite' )

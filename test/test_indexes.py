@@ -16,10 +16,10 @@ import numarray
 minRowIndex = 10
 
 class Small(IsDescription):
-    var1 = StringCol(length=4, dflt="")
-    var2 = BoolCol(0)
-    var3 = IntCol(0)
-    var4 = FloatCol(0)
+    var1 = StringCol(length=4, dflt="", pos=1)
+    var2 = BoolCol(0, pos=2)
+    var3 = IntCol(0, pos=3)
+    var4 = FloatCol(0, pos=4)
 
 class BasicTestCase(unittest.TestCase):
     compress = 0
@@ -264,6 +264,80 @@ class BasicTestCase(unittest.TestCase):
         assert len(rowList1) == len(rowList2)
         assert rowList1 == rowList2
 
+    def test09_removeIndex(self):
+        """Checking removing an index"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test09_removeIndex..." % self.__class__.__name__
+
+        # Open the HDF5 file in read-only mode
+        self.fileh = openFile(self.file, mode = "a")
+        table = self.fileh.root.table
+        idxcol = table.cols.var1.index
+        if verbose:
+            print "Before deletion"
+            print "var1 column:", idxcol
+        assert idxcol is not None
+        assert table.colindexed["var1"] == 1
+
+        # delete the index
+        table.removeIndex(idxcol)
+        if verbose:
+            print "After deletion"
+            print "var1 column:", idxcol
+        assert table.cols.var1.index is None
+        assert table.colindexed["var1"] == 0
+
+        # re-create the index again
+        indexrows = table.cols.var1.createIndex(testmode=1)
+        idxcol = table.cols.var1.index
+        if verbose:
+            print "After re-creation"
+            print "var1 column:", idxcol
+        assert idxcol is not None
+        assert table.colindexed["var1"] == 1
+
+    def test10_removeIndex(self):
+        """Checking removing an index (persistent version)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test10_removeIndex..." % self.__class__.__name__
+
+        # Open the HDF5 file in read-only mode
+        self.fileh = openFile(self.file, mode = "a")
+        table = self.fileh.root.table
+        idxcol = table.cols.var1.index
+        if verbose:
+            print "Before deletion"
+            print "var1 column:", idxcol
+        assert idxcol is not None
+        assert table.colindexed["var1"] == 1
+
+        # delete the index
+        table.removeIndex(idxcol)
+
+        # close and reopen the file
+        self.fileh.close()
+        self.fileh = openFile(self.file, mode = "a")
+        table = self.fileh.root.table
+        idxcol = table.cols.var1.index        
+
+        if verbose:
+            print "After deletion"
+            print "var1 column:", idxcol
+        assert table.cols.var1.index is None
+        assert table.colindexed["var1"] == 0
+
+        # re-create the index again
+        indexrows = table.cols.var1.createIndex(testmode=1)
+        idxcol = table.cols.var1.index
+        if verbose:
+            print "After re-creation"
+            print "var1 column:", idxcol
+        assert idxcol is not None
+        assert table.colindexed["var1"] == 1
 
 class BasicReadTestCase(BasicTestCase):
     compress = 0
@@ -370,25 +444,25 @@ class WarningTestCase(unittest.TestCase):
         
 class Small2(IsDescription):
     _v_indexprops = IndexProps(auto=0)
-    var1 = StringCol(length=4, dflt="", indexed=1)
-    var2 = BoolCol(0, indexed=1)
-    var3 = IntCol(0, indexed=1)
-    var4 = FloatCol(0, indexed=0)
+    var1 = StringCol(length=4, dflt="", pos=1, indexed=1)
+    var2 = BoolCol(0, indexed=1, pos = 2)
+    var3 = IntCol(0, indexed=1, pos = 3)
+    var4 = FloatCol(0, indexed=0, pos = 4)
 
 class Small3(IsDescription):
     _v_indexprops = IndexProps(reindex=0)
-    var1 = StringCol(length=4, dflt="", indexed=1)
-    var2 = BoolCol(0, indexed=1)
-    var3 = IntCol(0, indexed=1)
-    var4 = FloatCol(0, indexed=0)
+    var1 = StringCol(length=4, dflt="", indexed=1, pos=1)
+    var2 = BoolCol(0, indexed=1, pos=2)
+    var3 = IntCol(0, indexed=1, pos=3)
+    var4 = FloatCol(0, indexed=0, pos=4)
 
 class Small4(IsDescription):
     _v_indexprops = IndexProps(filters=Filters(complevel=6, complib="zlib",
                                                shuffle=0, fletcher32=1))
-    var1 = StringCol(length=4, dflt="", indexed=1)
-    var2 = BoolCol(0, indexed=1)
-    var3 = IntCol(0, indexed=1)
-    var4 = FloatCol(0, indexed=0)
+    var1 = StringCol(length=4, dflt="", indexed=1, pos=1)
+    var2 = BoolCol(0, indexed=1, pos=2)
+    var3 = IntCol(0, indexed=1, pos=3)
+    var4 = FloatCol(0, indexed=0, pos=4)
 
 
 class AutomaticIndexingTestCase(unittest.TestCase):
@@ -431,24 +505,24 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             assert table.indexed == 1
         if self.klass is Small:
             assert table.colindexed["var1"] == 0
-            assert table.cols.var1.indexed == 0
+            assert table.cols.var1.index is None
             assert table.colindexed["var2"] == 0
-            assert table.cols.var2.indexed == 0
+            assert table.cols.var2.index is None
             assert table.colindexed["var3"] == 0
-            assert table.cols.var3.indexed == 0
+            assert table.cols.var3.index is None
             assert table.colindexed["var4"] == 0
-            assert table.cols.var4.indexed == 0
+            assert table.cols.var4.index is None
         else:
             # Check that the var1, var2 and var3 (and only these)
             # has been indexed
             assert table.colindexed["var1"] == 1
-            assert table.cols.var1.indexed == 1
+            assert table.cols.var1.index is not None
             assert table.colindexed["var2"] == 1
-            assert table.cols.var2.indexed == 1
+            assert table.cols.var2.index is not None
             assert table.colindexed["var3"] == 1
-            assert table.cols.var3.indexed == 1
+            assert table.cols.var3.index is not None
             assert table.colindexed["var4"] == 0
-            assert table.cols.var4.indexed == 0
+            assert table.cols.var4.index is None
                     
     def test02_attrs(self):
         "Checking indexing attributes (part2)"
@@ -528,7 +602,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             print "Running %s.test04_noauto..." % self.__class__.__name__
         table = self.table
         # Force a sync in indexes
-        table.addRowsToIndex()
+        table._addRowsToIndex()
         # Check the counters for indexes
         if verbose:
             if table.indexed:
@@ -574,28 +648,35 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             assert str(table.indexprops.filters) == str(filters)
             
 
-    def test05_noreindex(self):
-        "Checking indexing counters (non-reindex mode)"
+    def test05_icounters(self):
+        "Checking indexing counters (removeRows)"
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test05_noreindex..." % self.__class__.__name__
+            print "Running %s.test05_icounters..." % self.__class__.__name__
         table = self.table
         # Force a sync in indexes
-        table.addRowsToIndex()
+        table._addRowsToIndex()
         # No unidexated rows should remain here
         if self.klass is not Small:
             indexedrows = table._indexedrows
             unsavedindexedrows = table._unsaved_indexedrows
         # Now, remove some rows:
         table.removeRows(3,5)
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
         # Check the counters for indexes
         if verbose:
             if table.indexed:
                 print "indexedrows:", table._indexedrows
+                print "original indexedrows:", indexedrows
                 print "unsavedindexedrows:", table._unsaved_indexedrows
+                print "original unsavedindexedrows:", unsavedindexedrows
                 index = table.cols.var1.index
                 indexedrows = index.nelements
                 print "computed indexed rows:", indexedrows
+                print "index dirty:", table.cols.var1.dirty
             else:
                 print "Table is not indexed"
 
@@ -604,7 +685,10 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         if self.klass is Small3:
             # The unsaved indexed rows counter should be unchanged
             assert table._indexedrows == indexedrows
-            assert table._unsaved_indexedrows == unsavedindexedrows
+            if self.reopen:
+                assert table._unsaved_indexedrows == unsavedindexedrows - 2
+            else:
+                assert table._unsaved_indexedrows == unsavedindexedrows
         elif self.klass is Small2:
             index = table.cols.var1.index
             indexedrows = index.nrows * index.nelemslice
@@ -643,9 +727,13 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             print "Running %s.test06_dirty..." % self.__class__.__name__
         table = self.table
         # Force a sync in indexes
-        table.addRowsToIndex()
+        table._addRowsToIndex()
         # Now, remove some rows:
         table.removeRows(3,5)
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
         # Check the dirty flag for indexes
         if verbose:
             for colname in table.colnames:
@@ -653,32 +741,269 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                       (colname, table.cols[colname].dirty)
         # Check the flags
         for colname in table.colnames:
-            if (table.cols[colname].indexed and not table.indexprops.reindex):
+            if (table.cols[colname].index and not table.indexprops.reindex):
                 assert table.cols[colname].dirty == 1
             else:
                 assert table.cols[colname].dirty == 0
 
-        # Check non-default values for index saving policy
-        if self.klass is Small:
-            assert not hasattr(table, "indexprops")
+    def test07_noreindex(self):
+        "Checking indexing counters (modifyRows, no-reindex mode)"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test07_noreindex..." % self.__class__.__name__
+        table = self.table
+        # Force a sync in indexes
+        table._addRowsToIndex()
+        # Non indexated rows should remain here
+        if self.klass is not Small:
+            indexedrows = table._indexedrows
+            unsavedindexedrows = table._unsaved_indexedrows
+        # Now, modify just one row:
+        table.modifyRows(3, [["asa",0,3,3.1]])
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+        # Check the counters for indexes
+        if verbose:
+            if table.indexed:
+                print "indexedrows:", table._indexedrows
+                print "unsavedindexedrows:", table._unsaved_indexedrows
+                index = table.cols.var1.index
+                indexedrows = index.nelements
+                print "computed indexed rows:", indexedrows
+            else:
+                print "Table is not indexed"
+        # Check the counters
+        assert table.nrows == self.nrows
+        if self.klass is Small3:
+            # The unsaved indexed rows counter should be unchanged
+            assert table._indexedrows == indexedrows
+            assert table._unsaved_indexedrows == unsavedindexedrows
         elif self.klass is Small2:
-            assert table.indexprops.auto == 0
-            assert table.indexprops.reindex == 1
-            filters = Filters(complevel=1, complib="zlib",
-                              shuffle=1, fletcher32=0)
-            assert str(table.indexprops.filters) == str(filters)
+            index = table.cols.var1.index
+            indexedrows = index.nrows * index.nelemslice
+            assert table._indexedrows == indexedrows
+            indexedrows = index.nelements
+            assert table._indexedrows == indexedrows
+            assert table._unsaved_indexedrows == self.nrows - indexedrows
+
+        # Check the dirty flag for indexes
+        if verbose:
+            for colname in table.colnames:
+                print "dirty flag col %s: %s" % \
+                      (colname, table.cols[colname].dirty)
+        for colname in table.colnames:
+            if (table.cols[colname].index and not table.indexprops.reindex):
+                assert table.cols[colname].dirty == 1
+            else:
+                assert table.cols[colname].dirty == 0
+
+    def test08_dirty(self):
+        "Checking dirty flags (modifyColumns)"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test08_dirty..." % self.__class__.__name__
+        table = self.table
+        # Force a sync in indexes
+        table._addRowsToIndex()
+        # Non indexated rows should remain here
+        if self.klass is not Small:
+            indexedrows = table._indexedrows
+            unsavedindexedrows = table._unsaved_indexedrows
+        # Now, modify a couple of rows:
+        table.modifyColumns(1, columns=[["asa","asb"],[1.,2.]],
+                            names=["var1", "var4"])
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+
+        # Check the counters
+        assert table.nrows == self.nrows
+        if self.klass is Small3:
+            # The unsaved indexed rows counter should be unchanged
+            assert table._indexedrows == indexedrows
+            assert table._unsaved_indexedrows == unsavedindexedrows
+        elif self.klass is Small2:
+            index = table.cols.var1.index
+            indexedrows = index.nrows * index.nelemslice
+            assert table._indexedrows == indexedrows
+            indexedrows = index.nelements
+            assert table._indexedrows == indexedrows
+            assert table._unsaved_indexedrows == self.nrows - indexedrows
+
+        # Check the dirty flag for indexes
+        if verbose:
+            for colname in table.colnames:
+                print "dirty flag col %s: %s" % \
+                      (colname, table.cols[colname].dirty)
+        for colname in table.colnames:
+            if (table.cols[colname].index and
+                not table.indexprops.reindex):
+                if colname in ["var1"]:
+                    assert table.cols[colname].dirty == 1
+                else:
+                    assert table.cols[colname].dirty == 0                    
+            else:
+                assert table.cols[colname].dirty == 0
+            
+    def test09_copyIndex(self):
+        "Checking copy Index feature in copyTable (attrs)"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test09_copyIndex..." % self.__class__.__name__
+        table = self.table
+        # Don't force a sync in indexes
+        #table._addRowsToIndex()
+        # Non indexated rows should remain here
+        if self.klass is not Small:
+            indexedrows = table._indexedrows
+            unsavedindexedrows = table._unsaved_indexedrows
+        # Now, remove some rows to make columns dirty
+        #table.removeRows(3,5)
+        # Copy a Table to another location
+        table2, size = table.copy("/", 'table2')
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+            table2 = self.fileh.root.table2
+
+        index1 = table.cols.var1.index
+        index2 = table2.cols.var1.index
+        if verbose:
+            print "Copied index:", index2
+            print "Original index:", index1
+            if index1:
+                print "Elements in copied index:", index2.nelements
+                print "Elements in original index:", index1.nelements
+        # Check the counters
+        assert table.nrows == table2.nrows
+        if table.indexed:
+            assert table2.indexed
+            assert table._indexedrows == table2._indexedrows
+            assert table._unsaved_indexedrows == table2._unsaved_indexedrows
+        if self.klass is Small:
+            # No index: the index should not exist
+            assert index1 is None
+            assert index2 is None
+        elif self.klass is Small2:
+            # No auto: the index should exists, but be empty
+            assert index2 is not None
+            assert index2.nelements == 0
         elif self.klass is Small3:
-            assert table.indexprops.auto == 1
-            assert table.indexprops.reindex == 0
-            filters = Filters(complevel=1, complib="zlib",
-                              shuffle=1, fletcher32=0)
-            assert str(table.indexprops.filters) == str(filters)            
-        elif self.klass is Small4:
-            assert table.indexprops.auto == 1
-            assert table.indexprops.reindex == 1
-            filters = Filters(complevel=6, complib="zlib",
-                              shuffle=0, fletcher32=1)
-            assert str(table.indexprops.filters) == str(filters)
+            # Auto: the index should exists, and have elements
+            assert index2 is not None
+            assert index2.nelements == index1.nelements
+            
+        # Check the dirty flag for indexes
+        if verbose:
+            for colname in table2.colnames:
+                print "dirty flag col %s: %s" % \
+                      (colname, table2.cols[colname].dirty)
+        for colname in table2.colnames:
+            assert table2.cols[colname].dirty == 0                    
+            
+    def test10_copyIndex(self):
+        "Checking copy Index feature in copyTable (values)"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s._test10_copyIndex..." % self.__class__.__name__
+        table = self.table
+        # Don't force a sync in indexes
+        #table._addRowsToIndex()
+        # Non indexated rows should remain here
+        if self.klass is not Small:
+            indexedrows = table._indexedrows
+            unsavedindexedrows = table._unsaved_indexedrows
+        # Now, remove some rows to make columns dirty
+        #table.removeRows(3,5)
+        # Copy a Table to another location
+        table2, size = table.copy("/", 'table2')
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+            table2 = self.fileh.root.table2
+
+        index1 = table.cols.var3.index
+        index2 = table2.cols.var3.index
+        if verbose:
+            print "Copied index:", index2
+            print "Original index:", index1
+            if index1:
+                print "Elements in copied index:", index2.nelements
+                print "Elements in original index:", index1.nelements
+                if index2.nelements > 10:
+                    print "First 10 elements in copied index (sorted):\n", \
+                          index2.sorted[0,:10]
+                    print "First 10 elements in orig index (sorted):\n", \
+                          index1.sorted[0,:10]
+                    print "First 10 elements in copied index (indices):\n", \
+                          index2.indices[0,:10]
+                    print "First 10 elements in orig index (indices):\n", \
+                          index1.indices[0,:10]
+        if self.klass is Small3:
+            # Auto: the index should exists, and have equal elements
+            assert allequal(index2.sorted.read(), index1.sorted.read())
+            # The next assertion cannot be guaranteed. Why?
+            # sorting algorithm in numarray is not deterministic?
+            #assert allequal(index2.indices.read(), index1.indices.read())
+            
+    def test11_copyIndex(self):
+        "Checking copy Index feature in copyTable (dirty flags)"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s._test11_copyIndex..." % self.__class__.__name__
+        table = self.table
+        # Force a sync in indexes
+        table._addRowsToIndex()
+        # Non indexated rows should remain here
+        if self.klass is not Small:
+            indexedrows = table._indexedrows
+            unsavedindexedrows = table._unsaved_indexedrows
+        # Now, modify an indexed column and an unindexed one
+        # to make the "var1" dirty
+        table.modifyColumns(1, columns=[["asa","asb"],[1.,2.]],
+                            names=["var1", "var4"])
+        # Copy a Table to another location
+        table2, size = table.copy("/", 'table2')
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+            table2 = self.fileh.root.table2
+
+        index1 = table.cols.var1.index
+        index2 = table2.cols.var1.index
+        if verbose:
+            print "Copied index:", index2
+            print "Original index:", index1
+            if index1:
+                print "Elements in copied index:", index2.nelements
+                print "Elements in original index:", index1.nelements
+
+        # Check the dirty flag for indexes
+        if verbose:
+            for colname in table2.colnames:
+                print "dirty flag col %s: %s" % \
+                      (colname, table2.cols[colname].dirty)
+        for colname in table2.colnames:
+            if (table2.cols[colname].index and
+                not table2.indexprops.reindex):
+                if colname in ["var1"]:
+                    #print "-->", index2.sorted[:]
+                    # All the destination columns should be non-dirty because
+                    # the copy removes the dirty state and puts the
+                    # index in a sane state
+                    assert table.cols[colname].dirty == 1
+                    assert table2.cols[colname].dirty == 0
+                else:
+                    assert table2.cols[colname].dirty == 0                    
+            else:
+                assert table2.cols[colname].dirty == 0
+            
             
 minRowIndex = 10000
 class AI1TestCase(AutomaticIndexingTestCase):
@@ -696,9 +1021,14 @@ class AI3TestCase(AutomaticIndexingTestCase):
     reopen = 1
     klass = Small3
     
-class AI4TestCase(AutomaticIndexingTestCase):
+class AI4aTestCase(AutomaticIndexingTestCase):
     nrows = 10002
     reopen = 0
+    klass = Small3
+    
+class AI4bTestCase(AutomaticIndexingTestCase):
+    nrows = 10012
+    reopen = 1
     klass = Small3
     
 class AI5TestCase(AutomaticIndexingTestCase):
@@ -754,7 +1084,10 @@ def suite():
     niter = 1
     #heavy = 1  # Uncomment this only for testing purposes!
 
-    #theSuite.addTest(unittest.makeSuite(BasicReadTestCase))
+    #theSuite.addTest(unittest.makeSuite(AI3TestCase))
+    #theSuite.addTest(unittest.makeSuite(AI4aTestCase))
+    #theSuite.addTest(unittest.makeSuite(AI4aTestCase))
+    theSuite.addTest(unittest.makeSuite(BasicReadTestCase))
     #theSuite.addTest(unittest.makeSuite(OneHalfTestCase))
     #theSuite.addTest(unittest.makeSuite(UpperBoundTestCase))
     #theSuite.addTest(unittest.makeSuite(LowerBoundTestCase))
@@ -774,18 +1107,19 @@ def suite():
         theSuite.addTest(unittest.makeSuite(AI1TestCase))
         theSuite.addTest(unittest.makeSuite(AI2TestCase))
         theSuite.addTest(unittest.makeSuite(AI3TestCase))
-        theSuite.addTest(unittest.makeSuite(AI4TestCase))
+        theSuite.addTest(unittest.makeSuite(AI4aTestCase))
         theSuite.addTest(unittest.makeSuite(AI9TestCase))
         theSuite.addTest(unittest.makeSuite(AI10TestCase))
     
-        if heavy:
-            # These are too heavy for normal testing
-            theSuite.addTest(unittest.makeSuite(AI5TestCase))
-            theSuite.addTest(unittest.makeSuite(AI6TestCase))
-            theSuite.addTest(unittest.makeSuite(AI7TestCase))
-            theSuite.addTest(unittest.makeSuite(AI8TestCase))
-            theSuite.addTest(unittest.makeSuite(AI11TestCase))
-            theSuite.addTest(unittest.makeSuite(AI12TestCase))
+    if heavy:
+        # These are too heavy for normal testing
+        theSuite.addTest(unittest.makeSuite(AI4bTestCase))
+        theSuite.addTest(unittest.makeSuite(AI5TestCase))
+        theSuite.addTest(unittest.makeSuite(AI6TestCase))
+        theSuite.addTest(unittest.makeSuite(AI7TestCase))
+        theSuite.addTest(unittest.makeSuite(AI8TestCase))
+        theSuite.addTest(unittest.makeSuite(AI11TestCase))
+        theSuite.addTest(unittest.makeSuite(AI12TestCase))
         
     return theSuite
 

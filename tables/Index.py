@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.12 2004/08/06 16:34:36 falted Exp $
+#       $Id: Index.py,v 1.13 2004/08/10 07:48:51 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.12 $"
+__version__ = "$Revision: 1.13 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -199,6 +199,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         
     Instance variables:
 
+        column -- The column object this index belongs to
         type -- The type class for the array.
         itemsize -- The size of the atomic items. Specially useful for
             CharArrays.
@@ -247,6 +248,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         self._v_new_filters = filters
         self._v_expectedrows = expectedrows
         self.testmode = testmode
+        self.column = where
         self._v_parent = where.table._v_parent  #Parent of table in object tree
         # Check whether we have to create a new object or read their contents
         # from disk
@@ -257,6 +259,19 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         else:
             self._v_new = 0
             self._open()
+
+    def _g_join(self, name):
+        """Helper method to correctly concatenate a name child object
+        with the pathname of this group."""
+
+        pathname = self._v_parent._g_join(self.name)
+        if name == "/":
+            # This case can happen when doing copies
+            return pathname
+        if pathname == "/":
+            return "/" + name
+        else:
+            return pathname + "/" + name
 
     def _addAttrs(self, object, klassname):
         """ Add attributes to object """
@@ -300,7 +315,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         self._v_objectID = self._g_createGroup()
         self.filters = self._addAttrs(self, "INDEX")
         # Create the IndexArray for sorted values
-        object = IndexArray(self.atom, "Sorted Values",
+        object = IndexArray(self, self.atom, "Sorted Values",
                             self.filters, self._v_expectedrows,
                             self.testmode)
         object.name = object._v_name = object._v_hdf5name = "sortedArray"
@@ -317,7 +332,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         self.chunksize = object.chunksize
         self.byteorder = object.byteorder
         # Create the IndexArray for index values
-        object = IndexArray(Atom("Int32", shape=1), "Reverse indices",
+        object = IndexArray(self, Atom("Int32", shape=1), "Reverse Indices",
                             self.filters, self._v_expectedrows,
                             self.testmode)
         object.name = object._v_name = object._v_hdf5name = "revIndexArray"
@@ -336,10 +351,11 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         """Get the metadata info for an array in file."""
         self._g_new(self._v_parent, self.name)
         self._v_objectID = self._g_openIndex()
+        self.__dict__["_v_attrs"] = AttributeSet(self)
         # Get the title, filters attributes for this index
-        self.title = self._g_getAttr("TITLE")
+        self.title = self._v_attrs._g_getAttr("TITLE")
         # Open the IndexArray for sorted values
-        object = IndexArray()
+        object = IndexArray(parent=self)
         object._v_parent = self
         object._v_file = self._v_parent._v_file  
         object.name = object._v_name = object._v_hdf5name = "sortedArray"
@@ -353,7 +369,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         self.chunksize = object.chunksize
         self.byteorder = object.byteorder
         # Open the IndexArray for reverse Index values
-        object = IndexArray()
+        object = IndexArray(parent=self)
         object._v_parent = self
         object._v_file = self._v_parent._v_file
         object.name = object._v_name = object._v_hdf5name = "revIndexArray"
@@ -381,6 +397,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         # Update nrows after a successful append
         self.nrows = self.sorted.nrows
         self.nelements = self.nrows * self.nelemslice
+        self.shape = (self.nrows, self.nelemslice)
         
     def search(self, item, notequal):
         """Do a binary search in this index for an item"""
@@ -571,46 +588,61 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         #print "time reading indices:", time.time()-t1
         return ncoords
 
-    def _f_remove(self):
+    def _g_remove(self):
         """Remove this Index object"""
-
-        # First, close the Index Group
+        # Delete the associated IndexArrays
+        #self.sorted._close()
+        #self.indices._close()
+        self._g_deleteLeaf(self.sorted.name)
+        self._g_deleteLeaf(self.indices.name)
+        #self.sorted.remove()
+        #self.indices.remove()
+        self.sorted = None
+        self.indices = None
+        # close the Index Group
         self._f_close()
-        # Then, delete it (this is defined in hdf5Extension)
+        # delete it (this is defined in hdf5Extension)
         self._g_deleteGroup()
 
     def _f_close(self):
         # close the indices
-        self.sorted._close()
-        self.indices._close()
-#         self.sorted.flush()
-#         self.indices.flush()
-        # Delete some references to the object tree
-#         del self.indices._v_parent
-#         del self.sorted._v_parent
-#         if hasattr(self.indices, "_v_file"):
-#             del self.indices._v_file
-#             del self.sorted._v_file
-        del self.indices
-        del self.sorted
-        del self._v_parent
+        if self.sorted:  # that might be already removed
+            self.sorted._close()
+        if self.indices: # that might be already removed
+            self.indices._close()
+        # delete some references
+        self.atom=None
+        self.column=None
+        self.filters=None
+        self.indices = None
+        self.sorted = None
+        self._v_attrs = None
+        self._v_parent = None
         # Close this group
         self._g_closeGroup()
-        self.__dict__.clear()
+        #self.__dict__.clear()
 
     def __str__(self):
-        """This provides more metainfo in addition to standard __repr__"""
-        return "Index()"
-        
+        """This provides a more compact representation than __repr__"""
+        return "Index(%s, shape=%s, chunksize=%s)" % \
+               (self.nelements, self.shape, self.chunksize)
+    
     def __repr__(self):
-        """This provides more metainfo in addition to standard __repr__"""
+        """This provides more metainfo than standard __repr__"""
 
-        return """%s
-  type = %r
-  shape = %s
-  itemsize = %s
-  nrows = %s
-  nelemslice = %s
-  chunksize = %s
-  byteorder = %r""" % (self, self.type, self.shape, self.itemsize, self.nrows,
-                       self.nelemslice, self.chunksize, self.byteorder)
+        cpathname = self.column.table._v_pathname + ".cols." + self.column.name
+        pathname = self._v_parent._g_join(self.name)
+        dirty = self._v_attrs.DIRTY
+        return """%s (Index for column %s)
+  type := %r
+  nelements := %s
+  shape := %s
+  chunksize := %s
+  byteorder := %r
+  filters := %s
+  dirty := %s
+  sorted := %s
+  indices := %s""" % (pathname, cpathname,
+                     self.type, self.nelements, self.shape,
+                     self.chunksize, self.byteorder,
+                     self.filters, dirty, self.sorted, self.indices)

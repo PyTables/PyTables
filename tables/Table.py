@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.123 2004/08/06 16:34:36 falted Exp $
+#       $Id: Table.py,v 1.124 2004/08/10 07:48:51 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.123 $"
+__version__ = "$Revision: 1.124 $"
 
 from __future__ import generators
 import sys
@@ -79,18 +79,24 @@ class Table(Leaf, hdf5Extension.Table, object):
     
     Methods:
 
-        append(rows)
         __call__(start, stop, step)
+        __getitem__(key)
         __iter__()
-        iterrows(start, stop, step)
-        read([start] [, stop] [, step] [, field [, flavor]])
-        removeRows(start, stop)
-        where(condition)
-        whereInRange(condition [, start] [, stop] [, step])
+        __setitem__(key, value)
+        append(rows)
         getWhereList(condition [, flavor])
+        iterrows(start, stop, step)
         iterWhereList(sequence)
+        modifyRows(start, rows)
+        modifyColumns(start, columns, names)
+        read([start] [, stop] [, step] [, field [, flavor]])
         reIndex()
         reIndexDirty()
+        removeRows(start, stop)
+        removeIndex(column)
+        where(condition [, start] [, stop] [, step])
+        whereIndexed(condition)
+        whereInRange(condition [, start] [, stop] [, step])
 
     Instance variables:
 
@@ -146,6 +152,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Initialize the possible cuts in columns
         self.ops = []
         self.opsValues = []
+        self.opsColnames = []
         # Initialize this object in case is a new Table
         if isinstance(description, types.DictType):
             # Dictionary case
@@ -269,11 +276,11 @@ class Table(Leaf, hdf5Extension.Table, object):
             else:
                 # if user has not defined properties, assign the default
                 self.indexprops = IndexProps()
+            self._indexedrows = 0
+            self._unsaved_indexedrows = 0
             # Save AUTOMATIC_INDEX and REINDEX flags as attributes
             self.attrs.AUTOMATIC_INDEX = self.indexprops.auto
             self.attrs.REINDEX = self.indexprops.reindex
-            self._indexedrows = 0
-            self._unsaved_indexedrows = 0
         # Create a cols accessor
         self.cols = Cols(self)
 
@@ -291,20 +298,30 @@ class Table(Leaf, hdf5Extension.Table, object):
         byteorder = self._v_fmt[0]
         # Remove the byteorder
         self._v_fmt = self._v_fmt[1:]
+        # The expectedrows would be the actual number
+        self._v_expectedrows = self.nrows
         self.byteorder = byteorderDict[byteorder]
         coltypes = [str(records.numfmt[type]) for type in coltypes]
         # Build a dictionary with the types as values and colnames as keys
         fields = {}
         for i in xrange(len(self.colnames)):
+            # Is this column indexed?
+            iname = "_i_"+self.name+"_"+self.colnames[i]
+            if iname in self._v_parent._v_indices:
+                indexed = 1
+            else:
+                indexed = 0
             if coltypes[i] == "CharType":
                 itemsize = itemsizes[i]
                 fields[self.colnames[i]] = StringCol(length = itemsize,
                                                      shape = colshapes[i],
-                                                     pos = i)
+                                                     pos = i,
+                                                     indexed = indexed)
             else:
                 fields[self.colnames[i]] = Col(dtype = coltypes[i],
                                                shape = colshapes[i],
-                                               pos = i)
+                                               pos = i,
+                                               indexed = indexed)
         # Set the alignment!
         fields['_v_align'] = byteorder
         if self._v_file._isPTFile:
@@ -339,11 +356,11 @@ class Table(Leaf, hdf5Extension.Table, object):
                 self.indexed = 1
             else:
                 self.colindexed[colname] = 0
-        # Get the automatic_indexing attribute
         if self.indexed:
             automatic_index = self.attrs.AUTOMATIC_INDEX
             reindex = self.attrs.REINDEX
-            self.indexprops=IndexProps(auto=automatic_index, reindex=reindex)
+            self.indexprops=IndexProps(auto=automatic_index, reindex=reindex,
+                                       filters=indexobj.filters)
             self._indexedrows = indexobj.nelements
             self._unsaved_indexedrows = self.nrows - self._indexedrows
 
@@ -356,7 +373,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         # faster than if the copy is not made. Why??
         if hasattr(self, "_v_buffercpy"):
             self._v_buffer[:] = self._v_buffercpy[:]
-
+            
         # Update the number of saved rows in this buffer
         self.nrows += self.row._getUnsavedNRows()
         # Reset the buffer unsaved counter and the buffer read row counter
@@ -364,17 +381,10 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
         if self.indexed and self.indexprops.auto:
-            start = self._indexedrows
-            nrows = self._unsaved_indexedrows
-            for (colname, colindexed) in self.colindexed.iteritems():
-                if colindexed:
-                    indexcol = getattr(self.cols, colname)
-                    rowsadded = indexcol.addRowsToIndex(start, nrows)
-            self._unsaved_indexedrows -= rowsadded
-            self._indexedrows += rowsadded
+            self._addRowsToIndex()
         return
 
-    def where(self, condition=None):
+    def where(self, condition=None, start=None, stop=None, step=None):
         """Iterator that selects values fulfilling the 'condition' param.
         
         condition can be used to specify selections along a column in the
@@ -383,21 +393,38 @@ class Table(Leaf, hdf5Extension.Table, object):
         condition=(0<table.cols.col1<0.3)
 
         If the column to which the condition is applied is indexed,
-        the index will be used so as to accelerate the search.
+        and you don't pass any range parametere (start, stop or step)
+        the index will be used so as to accelerate the search. Else,
+        the in-kernel iterator will be choosed instead.
         
         """
 
         assert isinstance(condition, Column), \
 "Wrong condition parameter type. Only Column instances are suported."
 
-        self.whereColname = condition.name   # Flag for Row.__iter__
-        if condition.indexed and not condition.dirty:
-            # Get the coordinates to lookup
-            ncoords = condition.index._getLookupRange(condition)
-            return self.row(coords=None, ncoords=ncoords)
+        if start == None and stop == None and step == None:
+            if condition.index and not condition.dirty:
+                # Call the indexed version method
+                return self.whereIndexed(condition)
         # Fall back to in-kernel selection method
-        (start, stop, step) = processRangeRead(self.nrows, None, None, None)
-        return self.row(start, stop, step, coords=None, ncoords=0)
+        return self.whereInRange(condition, start, stop, step)
+
+    def whereIndexed(self, condition):
+        """Iterator that selects values fulfilling the 'condition' param.
+        
+        condition can be used to specify selections along a column in the
+        form:
+
+        condition=(0<table.cols.col1<0.3)
+
+        This method is only intended to be used for indexed columns
+        """
+        
+        self.whereColname = condition.name   # Flag for Row.__iter__
+        # Get the coordinates to lookup
+        ncoords = condition.index._getLookupRange(condition)
+        # Call the indexed version of Row iterator (coords=None, ncoords<>None)
+        return self.row(coords=None, ncoords=ncoords)
 
     def whereInRange(self, condition, start=None, stop=None, step=None):
         """Iterator that selects values fulfilling the 'condition' param.
@@ -423,9 +450,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             # we don't want to use the indexed search method because
             # it doesn't support index range searches
             self._dontuseindex = 1
-            #self.colindexed[condition.name] = 0
-            # call row with coords=None and ncoords=0
-            # (in-kernel selection method)
+            # call row with coords=None and ncoords=None (in-kernel selection)
             return self.row(start, stop, step, coords=None, ncoords=0)
         # Fall-back action is to return an empty RecArray
         return records.array(None,
@@ -451,7 +476,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         assert flavor in ["NumArray", "List", "Tuple"], \
 "Wrong condition parameter type. Only Column instances are suported."
         # Take advantage of indexation, if present
-        if condition.indexed == 1:
+        if condition.index is not None:
             # get the number of coords and set-up internal variables
             ncoords = condition.index._getLookupRange(condition)
             # create buffers for indices
@@ -474,6 +499,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         # re-initialize internal selection values
         self.ops = []
         self.opsValues = []
+        self.opsColnames = []
         self.whereColname = None
         # do some conversion (if needed)
         if flavor == "List":
@@ -715,12 +741,12 @@ class Table(Leaf, hdf5Extension.Table, object):
         It takes different actions depending on the type of the "key"
         parameter:
 
-        If "key"is an integer, the corresponding table row is returned
-        as a RecArray.Record object. If "key" is a slice, the row
-        slice determined by key is returned as a RecArray object.
-        Finally, if "key" is a string, it is interpreted as a column
-        name in the table, and, if it exists, it is read and returned
-        as a NumArray or CharArray object (whatever is appropriate).
+        If 'key' is an integer, the corresponding table row is
+        returned as a tuple object. If 'key' is a slice, the row slice
+        determined by key is returned as a RecArray object.  Finally,
+        if 'key' is a string, it is interpreted as a column name in
+        the table, and, if it exists, it is read and returned as a
+        NumArray or CharArray object (whatever is appropriate).
 
 """
 
@@ -745,16 +771,63 @@ class Table(Leaf, hdf5Extension.Table, object):
         else:
             raise ValueError, "Non-valid index or slice: %s" % key
 
+    def __setitem__(self, key, value):
+        """Sets a table row or table slice.
+
+        It takes different actions depending on the type of the 'key'
+        parameter:
+
+        If 'key' is an integer, the corresponding table row is set to
+        'value' (List or Tuple) . If 'key' is a slice, the row slice
+        determined by key is set to value (a RecArray or list of
+        rows).
+
+        """
+
+        if isinstance(key, types.IntType):
+            # Index out of range protection
+            if key >= self.nrows:
+                raise IndexError, "Index out of range"
+            if key < 0:
+                # To support negative values
+                key += self.nrows
+            return self.modifyRows(key, [value])
+        elif isinstance(key, types.SliceType):
+            if key.step is not None:
+                raise IndexError, \
+            "A step parameter is not allowed when setting a table slice"
+            (start, stop, step) = processRange(self.nrows,
+                                               key.start, key.stop, key.step)
+            if len(value)>stop-start:
+                value = value[:stop-start]  # cut the unnecessary values
+            elif len(value) < stop-start:
+                raise ValueError, \
+             "The value has not enough elements to fill-in the specified range"
+            return self.modifyRows(start, value)
+        else:
+            raise ValueError, "Non-valid index or slice: %s" % key
+
     def append(self, rows=None):
         """Append a series of rows to the end of the table
 
         rows can be either a recarray or a structure that is able to
         be converted to a recarray compliant with the table format.
 
+        Returns the number of rows appended.
+
+        It raises an 'ValueError' in case the rows parameter could not
+        be converted to an object compliant with table description.
+
         """
 
-        if rows == None:
-            return
+        if rows is None:
+            return 0
+# The next does not work well
+#         # First, check if rows is of dimension > 1:
+#         if not isinstance(rows, records.RecArray) and hasattr(rows, "__len__"):
+#             if not hasattr(rows[0], "__len__"):
+#                 # wrap the rows with a new level of nesting
+#                 rows = [rows]
         # Try to convert the object into a recarray
         try:
             recarray = records.array(rows,
@@ -776,11 +849,145 @@ class Table(Leaf, hdf5Extension.Table, object):
         if self.indexed and self.indexprops.auto:
             # Update the number of unsaved indexed rows
             self._unsaved_indexedrows += lenrows
-            self.addRowsToIndex()
-        return
+            self._addRowsToIndex()
+        return lenrows
 
-    def addRowsToIndex(self):
-        "Add remaining rows to index"
+    def modifyRows(self, start=None, rows=None):
+        """Modify a series of rows starting at 'start'
+
+        rows can be either a recarray or a structure that is able to
+        be converted to a recarray compliant with the table format.
+
+        Returns the number of modified rows.
+
+        It raises an 'ValueError' in case the rows parameter could not
+        be converted to an object compliant with table description.
+
+        It raises an 'IndexError' in case the modification will exceed
+        the length of the table.
+
+        """
+
+        assert start is not None, "You must provide a value for start param"
+        if rows is None:      # Nothing to be done
+            return
+        # Try to convert the object into a recarray
+        try:
+            recarray = records.array(rows,
+                                     formats=self.description._v_recarrfmt,
+                                     names=self.colnames)
+            # records.array does not seem to change the names
+            # attibute in case rows is a recarray.
+            # Change it manually and report this
+            # 2004-08-08
+            recarray._names = self.colnames
+        except:
+            (type, value, traceback) = sys.exc_info()
+            raise ValueError, \
+"rows parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), value)
+        lenrows = len(recarray)
+        if start + lenrows > self.nrows:
+            raise IndexError, \
+"This modification will exceed the length of the table. Giving up."
+        self._modify_records(start, recarray)
+        # Redo the index if needed
+        if self.indexed:
+            # Mark all the indexes as dirty
+            for (colname, colindexed) in self.colindexed.iteritems():
+                if colindexed:
+                    indexcol = getattr(self.cols, colname)
+                    indexcol.dirty = 1
+            if self.indexprops.reindex:
+                self._indexedrows = self.reIndex()
+                self._unsaved_indexedrows = self.nrows - self._indexedrows
+        return lenrows
+
+    def modifyColumns(self, start=None, columns=None, names=None):
+        """Modify a series of columns starting at row 'start'
+
+        columns can be either a recarray or a list of arrays (the
+        columns) that is able to be converted to a recarray compliant
+        with the specified colnames subset of the table format.
+
+        names specifies the column names of the table to be modified.
+
+        Returns the number of modified rows.
+
+        It raises an 'ValueError' in case the rows parameter could not
+        be converted to an object compliant with table description.
+
+        It raises an 'IndexError' in case the modification will exceed
+        the length of the table.
+
+        """
+
+        assert start is not None, \
+               "You must provide a value for start parameter"
+        assert (isinstance(names, types.ListType) or
+                isinstance(names, types.TupleType)), \
+               "The columns parameter has to be a list of strings"
+        if columns is None:      # Nothing to be done
+            return 0
+        # Get the column formats to be modified:
+        formats = []
+        colnames = list(self.colnames)
+        for colname in names:
+            if colname in colnames:
+                pos = colnames.index(colname)
+                formats.append(self.description._v_recarrfmt[pos])
+            else:
+                raise KeyError, \
+                      "Column '%s' does not exists on table"
+        # Try to convert the object columns into a recarray
+        #print "before conversion-->", columns
+        try:
+            if isinstance(columns, records.RecArray):
+                recarray = records.array(columns, formats=formats,
+                                         names=names)
+                # records.array does not seem to change the names
+                # attibute in case rows is a recarray.
+                # Change it manually and report this
+                # 2004-08-08
+                recarray._names = names
+                # I don't know why I should do that here
+                recarray._fields = recarray._get_fields()  # Refresh the cache
+            else:
+                recarray = records.fromarrays(columns, formats=formats,
+                                              names=names)
+        except:
+            (type, value, traceback) = sys.exc_info()
+            raise ValueError, \
+"columns parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), value)
+        #print "after conversion-->", recarray
+        lenrows = recarray.shape[0]
+        if start + lenrows > self.nrows:
+            raise IndexError, \
+"This modification will exceed the length of the table. Giving up."
+        # Now, read the original values:
+        stop = start+lenrows
+        mod_recarr = self.read(start, stop)
+        mod_recarr._fields = mod_recarr._get_fields()  # Refresh the cache
+        # Modify the appropriate columns in the original recarray
+        for name in names:
+            #mod_recarr._fields[name][start:stop] = recarray._fields[name]
+            mod_recarr._fields[name][:] = recarray._fields[name]
+        # save this modified rows in table
+        self._modify_records(start, mod_recarr)
+        # Redo the index if needed
+        if self.indexed:
+            # First, mark the modified indexes as dirty
+            for (colname, colindexed) in self.colindexed.iteritems():
+                if colindexed and colname in names:
+                    indexcol = getattr(self.cols, colname)
+                    indexcol.dirty = 1
+            # Then, reindex if needed
+            if self.indexprops.reindex:
+                self._indexedrows = self.reIndex()
+                self._unsaved_indexedrows = self.nrows - self._indexedrows
+        return lenrows
+
+    def _addRowsToIndex(self):
+        "Add remaining rows to non-dirty indexes"
         if self.indexed:
             # Update the number of unsaved indexed rows
             start = self._indexedrows
@@ -788,7 +995,8 @@ class Table(Leaf, hdf5Extension.Table, object):
             for (colname, colindexed) in self.colindexed.iteritems():
                 if colindexed:
                     indexcol = getattr(self.cols, colname)
-                    rowsadded = indexcol.addRowsToIndex(start, nrows)
+                    if not indexcol.dirty:
+                        rowsadded = indexcol._addRowsToIndex(start, nrows)
             self._unsaved_indexedrows -= rowsadded
             self._indexedrows += rowsadded
         return
@@ -818,6 +1026,12 @@ class Table(Leaf, hdf5Extension.Table, object):
                         indexcol = getattr(self.cols, colname)
                         indexcol.dirty = 1
         return nrows
+
+    def removeIndex(self, index=None):
+        "Remove the index associated with the specified column"
+        assert isinstance(index, Index), \
+"Wrong index parameter type. Only Index instances are accepted."
+        index.column.removeIndex()
 
     def reIndex(self):
         """Recompute the existing indexes in table"""
@@ -864,32 +1078,24 @@ class Table(Leaf, hdf5Extension.Table, object):
     def _g_copy(self, group, name, start, stop, step, title, filters):
         "Private part of Leaf.copy() for each kind of leaf"
         # Build the new Table object
-        object = Table(self.description._v_ColObjects, title=title,
+        description = self.description._v_ColObjects
+        # Add a possible IndexProps property to that
+        if hasattr(self, "indexprops"):
+            description["_v_indexprops"] = self.indexprops
+        #object = Table(self.description._v_ColObjects, title=title,
+        object = Table(description, title=title,
                        filters=filters,
                        expectedrows=self.nrows)
         setattr(group, name, object)
         # Now, fill the new table with values from the old one
         self._g_copyRows(object, start, stop, step)
         nbytes=self.nrows*self.rowsize
+        if object.indexed:
+            object._indexedrows = 0
+            object._unsaved_indexedrows = object.nrows
+            if object.indexprops.auto:
+                object._addRowsToIndex()
         return (object, nbytes)
-
-    # No optimized version
-#     def _g_copy_orig(self, group, name, start, stop, step, title, filters):
-#         "Private part of Leaf.copy() for each kind of leaf"
-#         # Build the new Table object
-#         object = Table(self.description._v_ColObjects, title=title,
-#                        filters=filters,
-#                        expectedrows=self.nrows)
-#         setattr(group, name, object)
-#         # Now, fill the new table with values from the old one
-#         nrowsinbuf = self._v_maxTuples
-#         for start2 in xrange(start, stop, step*nrowsinbuf):
-#             # Save the records on disk
-#             stop2 = start2+step*nrowsinbuf
-#             if stop2 > stop:
-#                 stop2 = stop
-#             object.append(self[start2:stop2:step])
-#         return object
 
     def flush(self):
         """Flush the table buffers."""
@@ -911,11 +1117,11 @@ class Table(Leaf, hdf5Extension.Table, object):
 
     def close(self):
         """Flush the buffers and close this object on tree"""
+        # Close the Table
+        Leaf.close(self)
         if hasattr(self, "cols"):
             self.cols._f_close()
             self.cols = None
-        # Close the Table
-        Leaf.close(self)
         # We must delete the row object, as this make a back reference to Table
         # In some situations, this maybe undefined
         if hasattr(self, "row"):
@@ -934,8 +1140,16 @@ class Table(Leaf, hdf5Extension.Table, object):
     def __repr__(self):
         """This provides column metainfo in addition to standard __str__"""
 
-        return "%s\n  description := %r\n  byteorder := %s" % \
-               (str(self), self.description, self.byteorder)
+        if self.indexed:
+            return \
+"""%s
+  description := %r
+  indexprops := %r
+  byteorder := %s""" % \
+        (str(self), self.description, self.indexprops, self.byteorder)
+        else:
+            return "%s\n  description := %r\n  byteorder := %s" % \
+                   (str(self), self.description, self.byteorder)
                
 
 class Cols(object):
@@ -1034,19 +1248,17 @@ class Column(object):
         table -- the parent table instance
         name -- the name of the associated column
         type -- the type of column
-        nrows -- the number of rows of the column
-        index -- the Index object
-        indexed -- Whether the column is indexed or not
-        dirty -- whether the index is dirty or not
+        index -- the Index object (None if don't exists)
+        dirty -- whether the index is dirty or not (property)
 
     Methods:
     
         __getitem__(key)
         createIndex()
-        addRowsToIndex()
         reIndex()
         reIndexDirty()
-        closeIndexes()
+        removeIndex()
+        closeIndex()
         
     """
 
@@ -1060,20 +1272,37 @@ class Column(object):
         self.table = table
         self.name = name
         self.type = table.coltypes[name]
-        self.nrows = table.nrows
         # Check whether an index exists or not
         iname = "_i_"+table.name+"_"+name
         self.index = None
-        self.indexed = 0
-        self.dirty = 0
         if iname in table._v_parent._v_indices:
             self.index = Index(where=self, name=iname,
                                expectedrows=table._v_expectedrows)
-            self.indexed = 1
         elif hasattr(table, "colindexed") and table.colindexed[name]:
             # The user wants to indexate this column,
             # but it doesn't exists yet. Create it without a warning.
             self.createIndex(warn=0)
+
+    # Define dirty as a property
+    def _get_dirty(self):
+        if self.index:
+            dirty = self.index._v_attrs._g_getAttr("DIRTY") 
+            if dirty is None:
+                return 0
+            else:
+                return dirty
+        else:
+            # The index does not exist, so it can't be dirty
+            return 0
+    
+    def _set_dirty(self, dirty):
+        # Only set the index column as dirty if it exists
+        if self.index:
+            self.index._v_attrs._g_setAttr("DIRTY", dirty)
+        
+    # Define a property.  The 'delete this attribute'
+    # method is defined as None, so the attribute can't be deleted.
+    dirty = property(_get_dirty, _set_dirty, None, "Column dirtyness")
 
     def __len__(self):
         return self.table.nrows
@@ -1081,18 +1310,21 @@ class Column(object):
     def __getitem__(self, key):
         """Returns a column element or slice
 
-        It takes different actions depending on the type of the
-        "key" parameter:
+        It takes different actions depending on the type of the 'key'
+        parameter:
 
-        If "key" is an integer, the corresponding element in the
+        If 'key' is an integer, the corresponding element in the
         column is returned as a NumArray/CharArray, or a scalar
-        object, depending on its shape. If "key" is a slice, the row
+        object, depending on its shape. If 'key' is a slice, the row
         slice determined by this slice is returned as a NumArray or
         CharArray object (whatever is appropriate).
 
         """
         
         if isinstance(key, types.IntType):
+            # Index out of range protection
+            if key >= self.table.nrows:
+                raise IndexError, "Index out of range"
             if key < 0:
                 # To support negative values
                 key += self.table.nrows
@@ -1106,9 +1338,55 @@ class Column(object):
             raise TypeError, "'%s' key type is not valid in this context" % \
                   (key)
 
-    def __lt__(self, other):
-        self.table.ops.append(1)
+    def __setitem__(self, key, value):
+        """Sets a column element or slice.
+
+        It takes different actions depending on the type of the 'key'
+        parameter:
+
+        If 'key' is an integer, the corresponding element in the
+        column is set to 'value' (scalar or NumArray/CharArray,
+        depending on column's shape) . If 'key' is a slice, the row
+        slice determined by 'key' is set to value (a
+        NumArray/CharArray or list of elements).
+
+        """
+
+        if isinstance(key, types.IntType):
+            # Index out of range protection
+            if key >= self.table.nrows:
+                raise IndexError, "Index out of range"
+            if key < 0:
+                # To support negative values
+                key += self.table.nrows
+            return self.table.modifyColumns(key, [[value]], names=[self.name])
+        elif isinstance(key, types.SliceType):
+            if key.step is not None:
+                raise IndexError, \
+            "A step parameter is not allowed when setting a column slice"
+            (start, stop, step) = processRange(self.table.nrows,
+                                               key.start, key.stop, key.step)
+            if len(value) > stop-start:
+                value = value[:stop-start]  # cut the unnecessary values
+            elif len(value) < stop-start:
+                raise ValueError, \
+             "The value has not enough elements to fill-in the specified range"
+            return self.table.modifyColumns(start, [value], names=[self.name])
+        else:
+            raise ValueError, "Non-valid index or slice: %s" % key
+
+    def _addComparison(self, noper, other):
+        self.table.ops.append(noper)
         self.table.opsValues.append(other)
+        self.table.opsColnames.append(self.name)
+#         if (len(self.table.ops) > 1 and
+#             (self.table.ops[-1] < 10 and self.table.ops[-2] < 10)):
+#             # To deal with 'number < col < number' style comparisons
+#             # add a logical and
+#             self._addLogical(10)  # 10 is __and__
+
+    def __lt__(self, other):
+        self._addComparison(1, other)
         return self
 
     def __le__(self, other):
@@ -1136,7 +1414,24 @@ class Column(object):
         self.table.opsValues.append(other)
         return self
 
-    def createIndex(self, filters=None, warn=1, testmode=0):
+    def _addLogical(self, noper):
+        self.table.ops.append(noper)
+        self.table.opsValues.append(None)
+        self.table.opsColnames.append(None)
+        
+    def __and__(self, other):
+        self._addLogical(10)
+        return self
+
+    def __or__(self, other):
+        self._addLogical(11)
+        return self
+
+    def __xor__(self, other):
+        self._addLogical(12)
+        return self
+
+    def createIndex(self, warn=1, testmode=0):
         """Create an index for this column"""
         assert self.table.colshapes[self.name] == 1, \
                "Only scalar columns can be indexed."
@@ -1151,15 +1446,16 @@ class Column(object):
         # Compose the name
         name = "_i_"+self.table.name+"_"+self.name
         # The filters for indexes are not inherited anymore. 2004-08-04
-        if filters is None and hasattr(self.table, "indexprops"):
+        if hasattr(self.table, "indexprops"):
             filters = self.table.indexprops.filters
+        else:
+            filters = None  # Get the defaults
         # Create the index itself
         self.index = Index(atom, self, name,
-                           "Index for "+self.table.name+":"+self.name,
+                           "Index for "+self.table._v_pathname+".cols."+self.name,
                            filters=filters,
                            expectedrows=self.table._v_expectedrows,
                            testmode=testmode)
-        self.indexed = 1
         self.dirty = 0
         self.table.colindexed[self.name] = 1
         # Feed the index with values
@@ -1170,9 +1466,9 @@ class Column(object):
                 warnings.warn( \
 "Not enough rows for indexing. You need at least %s rows and you provided %s." % (self.index.sorted.nelemslice, self.table.nrows))
             return 0
-        return self.addRowsToIndex(0, self.table.nrows)
+        return self._addRowsToIndex(0, self.table.nrows)
 
-    def addRowsToIndex(self, start, nrows):
+    def _addRowsToIndex(self, start, nrows):
         """Add more elements to the existing index """
         nelemslice = self.index.nelemslice
         indexedrows = 0
@@ -1184,26 +1480,36 @@ class Column(object):
         
     def reIndex(self):
         """Recompute the existing index"""
-        if self.indexed:
+        if self.index is not None:
             # Delete the existing Index
-            self.index._f_remove()
+            self.index._g_remove()
             # Create a new Index without warnings
-            return self.createIndex(warn=1)
+            return self.createIndex(warn=0)
         else:
             return 0  # The column is not intended for indexing
  
     def reIndexDirty(self):
         """Recompute the existing index only if it is dirty"""
-        if self.indexed and self.dirty:
+        if self.index is not None and self.dirty:
             # Delete the existing Index
-            self.index._f_remove()
-            # Create a new Index withoutr warnings
+            self.index._g_remove()
+            # Create a new Index without warnings
             return self.createIndex(warn=0)
         else:
             # The column is not intended for indexing or is not dirty
             return 0  
  
-    def closeIndexes(self):
+    def removeIndex(self):
+        "Actions to delete the associated index"
+        # delete some references
+        if self.index:
+            self.index._g_remove()
+            self.index = None
+            self.table.colindexed[self.name] = 0
+        else:
+            return  # Do nothing
+
+    def closeIndex(self):
         """Close any open index of this column"""
         if self.index:
             self.index._f_close()
@@ -1212,7 +1518,7 @@ class Column(object):
     def close(self):
         """Close this column"""
         # Close indexes
-        self.closeIndexes()
+        self.closeIndex()
         # delete some back references
         self.table = None
         self.type = None
@@ -1229,8 +1535,8 @@ class Column(object):
             shape = (1,)
         # The type
         tcol = self.table.coltypes[self.name]
-        return "%s.cols.%s (%s%s, %s)" % (pathname, self.name,
-                                          classname, shape, tcol)
+        return "%s.cols.%s (%s%s, %s, idx=%s)" % \
+               (pathname, self.name, classname, shape, tcol, self.index)
 
     def __repr__(self):
         """A detailed string representation for this object."""
