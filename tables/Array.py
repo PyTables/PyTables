@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.42 2003/12/11 10:25:18 falted Exp $
+#       $Id: Array.py,v 1.43 2003/12/12 11:43:04 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.42 $"
+__version__ = "$Revision: 1.43 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -442,9 +442,9 @@ class Array(Leaf, hdf5Extension.Array, object):
             raise ValueError, "Non-valid index or slice: %s" % \
                   key
 
-        print "start, stop, step", start, stop, step
-        if (stop - start) < step and self.extdim > 0:
-            self.listarr.swapaxes(self.extdim, 0)
+        #print "start, stop, step -->", start, stop, step
+        if len(range(start, stop, step)) == 1 and self.extdim > 0:
+            ret.swapaxes(self.extdim, 0)
             return ret[0]
         else:
             return ret

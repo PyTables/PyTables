@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.9 2003/12/11 10:25:18 falted Exp $
+#       $Id: utils.py,v 1.10 2003/12/12 11:43:04 falted Exp $
 #
 ########################################################################
 
@@ -196,23 +196,25 @@ def processRange(nrows, start=None, stop=None, step=None):
         step = 1
         if start < 0:
             start = nrows + start
+        elif start >= nrows:
+            raise IndexError, "start value (%s) is greater or equal than available rows: (%s)" % (start, nrows)
         stop = start + 1
     else:
         if start is None:
             start = 0
+                
         elif start < 0:
             start = nrows + start
         elif start >= nrows:
-            raise IndexError, "start value (%s) is greater or equal than available rows: (%s)" % (start, nrows)
-            #start = nrows
+            start = nrows
 
         if stop is None:
             stop = nrows
         elif stop <= 0 :
             stop = nrows + stop
         elif stop > nrows:
-            raise IndexError, "stop value (%s) is greater than available rows: (%s)" % (stop, nrows)
-            #stop = nrows
+#             raise IndexError, "stop value (%s) is greater than available rows: (%s)" % (stop, nrows)
+            stop = nrows
 
         if step is None:
             step = 1
@@ -220,11 +222,12 @@ def processRange(nrows, start=None, stop=None, step=None):
             raise ValueError, \
                   "Zero or negative step values are not allowed!"
         
-    # Protection against reading more than available records
-    if stop > nrows or start > nrows:
+    # Protection against start greater than available records
+    # nrows == 0 is a special case for empty objects
+    if nrows > 0 and start >= nrows:
         raise IndexError, \
-"Start (%s) or stop (%s) value is greater than number of rows (%s)." % \
-(start, stop, nrows)
+"Start (%s) value is greater than number of rows (%s)." % \
+(start, nrows)
 
     return (start, stop, step)
     

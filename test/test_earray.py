@@ -37,6 +37,13 @@ def allequal(a,b):
         else:
             return 0
 
+    # Null arrays
+    if len(a._data) == 0:  # len(a) is not correct for generic shapes
+        if len(b._data) == 0:
+            return 1
+        else:
+            return 0
+
     # Multidimensional case
     result = (a == b)
     for i in range(len(a.shape)):
@@ -83,6 +90,7 @@ class BasicTestCase(unittest.TestCase):
         for i in self.rowshape:
             if i <> 0:
                 self.objsize *= i
+        self.extdim = earray.extdim
         self.objsize *= self.chunksize
         self.rowshape[earray.extdim] = self.chunksize
         object = arange(self.objsize, shape=self.rowshape, type=earray.type)
@@ -99,13 +107,13 @@ class BasicTestCase(unittest.TestCase):
         
     #----------------------------------------
 
-    def test01_readEArray(self):
-        """Checking enlargeable array read"""
+    def test01_iterArray(self):
+        """Checking enlargeable array iterator"""
 
         rootgroup = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test01_readEArray..." % self.__class__.__name__
+            print "Running %s.test01_iterArray..." % self.__class__.__name__
 
         # Create an instance of an HDF5 Table
         self.fileh = openFile(self.file, "r")
@@ -125,7 +133,8 @@ class BasicTestCase(unittest.TestCase):
             if chunk == 0:
                  object__ = object_ * (earray.nrow / self.chunksize)
             object = object__[chunk]
-            if verbose:
+            # The next adds much more verbosity
+            if verbose and 0:
                 print "number of row ==>", earray.nrow
                 if hasattr(object, "shape"):
                     print "shape should look as:", object.shape
@@ -140,13 +149,13 @@ class BasicTestCase(unittest.TestCase):
                 # Scalar case
                 assert len(self.shape) == 1
 
-    def test02_stepEArray(self):
-        """Checking enlargeable array read with start, stop and step"""
+    def test02_sssArray(self):
+        """Checking enlargeable array iterator with (start, stop, step)"""
 
         rootgroup = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test02_stepEArray..." % self.__class__.__name__
+            print "Running %s.test02_sssArray..." % self.__class__.__name__
 
         # Create an instance of an HDF5 Table
         self.fileh = openFile(self.file, "r")
@@ -166,7 +175,8 @@ class BasicTestCase(unittest.TestCase):
             if (chunk - self.start) == 0:
                  object__ = object_ * (earray.nrow / self.chunksize)
             object = object__[chunk]
-            if verbose:
+            # The next adds much more verbosity
+            if verbose and 0:
                 print "number of row ==>", earray.nrow
                 if hasattr(object, "shape"):
                     print "shape should look as:", object.shape
@@ -180,6 +190,135 @@ class BasicTestCase(unittest.TestCase):
             else:
                 # Scalar case
                 assert len(self.shape) == 1
+
+    def test03_readArray(self):
+        """Checking read() of enlargeable arrays"""
+
+        rootgroup = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_readArray..." % self.__class__.__name__
+            
+        # Create an instance of an HDF5 Table
+        self.fileh = openFile(self.file, "r")
+        earray = self.fileh.getNode("/earray1")
+
+        # Choose a small value for buffer size
+        earray._v_maxTuples = 3
+        if verbose:
+            print "Array descr:", repr(earray)
+            print "shape of read array ==>", earray.shape
+
+        # Build the array to do comparisons
+        object_ = arange(self.objsize, shape=self.rowshape, type=earray.type)
+        object_.swapaxes(earray.extdim, 0)
+        rowshape = self.rowshape
+        rowshape[self.extdim] *= self.nappends
+        object__ = array(None, shape = rowshape, type=self.type)
+        object__.swapaxes(0, self.extdim)
+        for i in range(self.nappends):
+            j = i * self.chunksize
+            object__[j:j+self.chunksize] = object_ * i
+        object__.swapaxes(0, self.extdim)
+        stop = self.stop
+        if self.nappends:
+            # Protection against number of elements less than existing
+            if rowshape[self.extdim] < self.stop or self.stop == 0:
+                # self.stop == 0 means last row
+                stop = rowshape[self.extdim]
+            object = take(object__, range(self.start,stop,self.step),
+                          axis = self.extdim)
+        else:
+            object = array(None, shape = self.shape, type=self.type)
+                
+        # Read all the array
+        try:
+            row = earray.read(self.start,self.stop,self.step)
+        except IndexError:
+            row = array(None, shape = self.shape, type=self.type)
+
+        # The next adds much more verbosity
+        if verbose and 1:
+            if hasattr(object, "shape"):
+                print "shape should look as:", object.shape
+            print "Object read ==>", repr(row)
+            print "Should look like ==>", repr(object)
+
+        assert self.nappends*self.chunksize == earray.nrows
+        assert allequal(row, object)
+        if hasattr(row, "shape"):
+            assert len(row.shape) == len(self.shape)
+        else:
+            # Scalar case
+            assert len(self.shape) == 1
+
+    def test04_getitemArray(self):
+        """Checking enlargeable array __getitem__ special method"""
+
+        rootgroup = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04_getitemArray..." % self.__class__.__name__
+            
+        # Create an instance of an HDF5 Table
+        self.fileh = openFile(self.file, "r")
+        earray = self.fileh.getNode("/earray1")
+
+        # Choose a small value for buffer size
+        earray._v_maxTuples = 3
+        if verbose:
+            print "Array descr:", repr(earray)
+            print "shape of read array ==>", earray.shape
+
+        # Build the array to do comparisons
+        object_ = arange(self.objsize, shape=self.rowshape, type=earray.type)
+        object_.swapaxes(earray.extdim, 0)
+        rowshape = self.rowshape
+        rowshape[self.extdim] *= self.nappends
+        object__ = array(None, shape = rowshape, type=self.type)
+        object__.swapaxes(0, self.extdim)
+        for i in range(self.nappends):
+            j = i * self.chunksize
+            object__[j:j+self.chunksize] = object_ * i
+        object__.swapaxes(0, self.extdim)
+        stop = self.stop
+        if self.nappends:
+            # Protection against number of elements less than existing
+            if rowshape[self.extdim] < self.stop or self.stop == 0:
+                # self.stop == 0 means last row
+                stop = rowshape[self.extdim]
+            object = take(object__, range(self.start,stop,self.step),
+                          axis = self.extdim)
+        else:
+            object = array(None, shape = self.shape, type=self.type)
+        if (len(range(self.start, stop, self.step)) == 1 and
+            self.extdim > 0):
+            object.swapaxes(self.extdim, 0)
+            object = object[0]
+            correction = 1
+        else:
+            correction = 0
+                
+        # Read all the array
+        try:
+            row = earray[self.start:self.stop:self.step]
+        except IndexError:
+            row = array(None, shape = self.shape, type=self.type)
+
+        # The next adds much more verbosity
+        if verbose and 1:
+            if hasattr(object, "shape"):
+                print "shape should look as:", object.shape
+            print "Object read ==>", repr(row)
+            print "Should look like ==>", repr(object)
+
+        assert self.nappends*self.chunksize == earray.nrows
+        assert allequal(row, object)
+        if hasattr(row, "shape"):
+            assert len(row.shape) == len(self.shape) - correction
+        else:
+            # Scalar case
+            assert len(self.shape) == 1
 
 
 class BasicWriteTestCase(BasicTestCase):
@@ -287,7 +426,6 @@ class FloatTypeTestCase(BasicTestCase):
     step = 20
 
 # Provar a afegir tests per a scalars i chararrays
-# Afegir tests per a getitem
 
 #----------------------------------------------------------------------
 
