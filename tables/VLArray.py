@@ -8,7 +8,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.35 2004/10/28 16:42:39 falted Exp $
+#       $Id: VLArray.py,v 1.36 2004/10/30 13:17:59 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.35 $"
+__version__ = "$Revision: 1.36 $"
 
 # default version for VLARRAY objects
 #obversion = "1.0"    # initial version
@@ -603,8 +603,6 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         can be an integer or an slice) of the row that will be
         updated.
 
-        It returns the number of fields updated in the affected row.
-
         Note: When updating VLStrings (codification UTF-8) or Objects,
         there is a problem: we can only update values with *exactly*
         the same bytes than in the original row. With UTF-8 encoding
@@ -689,7 +687,6 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 
         if naarr.size() > 0:
             self._modify(nrow, naarr, nobjects)
-        return naarr.size()
 
     # Accessor for the _readArray method in superclass
     def read(self, start=None, stop=None, step=1, slice_specified=0):

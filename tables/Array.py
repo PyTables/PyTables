@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.78 2004/10/28 11:09:55 falted Exp $
+#       $Id: Array.py,v 1.79 2004/10/30 13:17:59 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.78 $"
+__version__ = "$Revision: 1.79 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -406,20 +406,23 @@ class Array(Leaf, hdf5Extension.Array, object):
         return self._readSlice(startl, stopl, stepl, stop_None)
 
 
-    def __setitem__(self, keys, value):
+    def __setitem__(self, key, value):
         """Sets an Array element, row or extended slice.
 
         It takes different actions depending on the type of the "key"
         parameter:
 
-        If "key" is an integer, the corresponding row is assigned to value. If
-        "key" is a slice, the row slice determined by key is assigned
-        to value. The value is broadcasted to fit in the desired
-        range, if needed. If the slice to updated exceeds the actual
-        shape of the array, only the values in the existing range are
-        updated, i.e. the range error will be silently ignored.
-
-        It returns the number of elements modified in earray.
+        If "key" is an integer, the corresponding row is assigned to
+        value.
+        
+        If "key" is a slice, the row slice determined by it is
+        assigned to "value". If needed, this "value" is broadcasted to
+        fit in the desired range. If the slice to be updated exceeds
+        the actual shape of the array, only the values in the existing
+        range are updated, i.e. the index error will be silently
+        ignored. If "value" is a multidimensional object, then its
+        shape must be compatible with the slice specified in "key",
+        otherwhise, a ValueError will be issued.
 
         """
 
@@ -433,8 +436,10 @@ class Array(Leaf, hdf5Extension.Array, object):
         stopl = numarray.array(None, shape=shape, type=numarray.Int64)
         stepl = numarray.array(None, shape=shape, type=numarray.Int64)
         stop_None = numarray.zeros(shape=shape, type=numarray.Int64)
-        if not isinstance(keys, types.TupleType):
-            keys = (keys,)
+        if not isinstance(key, types.TupleType):
+            keys = (key,)
+        else:
+            keys = key
         nkeys = len(keys)
         dim = 0
         # Here is some problem when dealing with [...,...] params
@@ -505,7 +510,6 @@ class Array(Leaf, hdf5Extension.Array, object):
 
         if narr.size():
             self._modify(startl, stepl, countl, narr)
-        return narr.size()
 
     # Accessor for the _readArray method in superclass
     def _readSlice(self, startl, stopl, stepl, stop_None):

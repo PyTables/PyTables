@@ -15,21 +15,28 @@ compressible) than other solutions, like for example, relational or
 object oriented databases.
 
 On this release it is included a series of quite exciting new
-features, being the most important the in-kernel selections,
-indexing capabilities, support for complex datatypes and the
-possibility to modify values in tables (yes, finally :).
+features, being the most important the in-kernel selections, indexing
+capabilities, support for complex datatypes and the possibility to
+modify values in both tables *and* arrays (yes, finally :).
 
 Changes more in depth
 ---------------------
 
 New features:
 
+- Indexing of columns in tables. That allow to make data selections on
+  tables up to 1000 times faster than standard selections. The most
+  interesting thing about indexing algorithm implemented by PyTables
+  is that the time taken to index grows *lineraly* with the length of
+  the data, so, it is *scalable* (quite differently to many relational
+  databases). That means that it can index, in a relatively quick way,
+  arbitrarily large table columns (for ex. indexing a column of 100
+  milion of rows takes just 100s). See more detailed info about that
+  in http://pytables.sourceforge.net/doc/SciPy04.pdf.
+
 - In-kernel selections. This feature allow to make data selections on
   tables up to 10 times faster than standard selections (i.e. pre-0.9
   selections), without a need to create an index (see below).
-
-- Indexing of columns in tables. That allow to make data selections on
-  tables up to 1000 times faster than standard selections.
 
 - Support of complex datatypes for all the data objects (i.e. Table,
   Array, EArray and VLArray). With that, the complete set of datatypes
@@ -62,6 +69,12 @@ API changes:
   walkNodes() in File and Group and iterrows in Table, Array, EArray
   and VLArray to get the same functionality. This would provide better
   compatibility with IPython as well.
+
+Contributions:
+
+- Jeff Whitaker has contributed a script to easily convert NetCDF
+  files into HDF5 files using Scientific Python and PyTables. It has
+  been included in the contrib/ directory.
 
 Bug fixes:
 

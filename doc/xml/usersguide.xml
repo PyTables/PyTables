@@ -3245,10 +3245,41 @@ KeyError: Error setting "ADCcount" field.
 		</item>
 
 		<term>attrvalue</term> <item>The value of the
-		  attribute to set. Only strings attributes are
-		  supported natively right now. However, you can
-		  always use <verb>(c)Pickle</verb> so as to serialize
-		  any object you want save therein.
+		  attribute to set. Any scalar (string, ints or
+		  floats) attribute is supported natively. However,
+		  <verb>(c)Pickle</verb> is automatically used so as
+		  to serialize other kind of objects (like lists,
+		  tuples, dicts, small Numeric/numarray objects, ...)
+		  that you might want to save.
+		</item>
+
+		<term>name</term> <item>The node name desired. If
+		  <em>name</em> is a null string (''), or not
+		  supplied, this method assumes to find the object in
+		  <em>where</em>.
+		</item>
+
+	    </description>
+	  </subsubsection>
+
+	  <subsubsection id="delAttrNodeDescr">
+	    <heading>delAttrNode(where, attrname, name = "")
+	    </heading>
+
+	    <p>Delete the attribute <em>attrname</em> in
+	      <em>where.name</em> location.
+	    </p>
+	    <description>
+
+		<term>where</term> <item>Can be a path string or
+		  <verb>Group</verb> instance. If <em>where</em>
+		  doesn't exist or has not a child called
+		  <em>name</em>, a <verb>ValueError</verb> error is
+		  raised.
+		</item>
+
+		<term>attrname</term> <item>The name of the attribute
+		  to delete on disk.
 		</item>
 
 		<term>name</term> <item>The node name desired. If
@@ -3626,8 +3657,20 @@ Object Tree:
 	    <heading>_f_setAttr(attrname, attrvalue)
 	    </heading>
 	    <p>Sets the attribute <em>attrname</em> of this group to
-	      the value <em>attrvalue</em>. Only string values are
-	      allowed.
+	      the value <em>attrvalue</em>. Any scalar (string, ints
+	      or floats) attribute is supported natively. However,
+	      <verb>(c)Pickle</verb> is automatically used so as to
+	      serialize other kind of objects (like lists, tuples,
+	      dicts, small Numeric/numarray objects, ...)  that you
+	      might want to save.
+	    </p>
+	  </subsubsection>
+
+	  <subsubsection id="Group_f_delAttr">
+	    <heading>_f_delAttr(attrname)
+	    </heading>
+	    <p>Delete the attribute <em>attrname</em> of this
+	      group.
 	    </p>
 	  </subsubsection>
 
@@ -3960,6 +4003,11 @@ Object Tree:
 	    </heading>
 	    <p>Sets the attribute <em>attrname</em> of this leaf to
 	      the value <em>attrvalue</em>.
+	    </p>
+	  </subsubsection>
+	  <subsubsection id="delAttrLeafDescr">
+	    <heading>delAttr(attrname)</heading> <p>Delete the HDF5
+	      attribute <em>attrname</em> of this leaf.
 	    </p>
 	  </subsubsection>
 	  <subsubsection id="flushLeafDescr">
@@ -4986,6 +5034,47 @@ Select table.cols['temperature'][:]--> [ 100.  121.  144.]
 	    </verbatim>
 
 	  </subsubsection> <!-- __getitem__() -->
+
+	  <subsubsection id="__setitemArrayDescr">
+	    <heading>__setitem__(key, value)</heading>
+
+	    <p>Sets an Array element, row or extended slice. It takes
+	      different actions depending on the type of the
+	      <verb>key</verb> parameter:
+	    </p>
+	    <description>
+	      <term><verb>key</verb> is an integer:</term> <item>The
+		corresponding row is assigned to value. If needed,
+		this <verb>value</verb> is broadcasted to fit the
+		specified row.</item>
+	      
+	      <term><verb>key</verb> is a slice:</term> <item>The row
+		slice determined by it is assigned to
+		<verb>value</verb>. If needed, this <verb>value</verb>
+		is broadcasted to fit in the desired range. If the
+		slice to be updated exceeds the actual shape of the
+		array, only the values in the existing range are
+		updated, i.e. the index error will be silently
+		ignored. If <verb>value</verb> is a multidimensional
+		object, then its shape must be compatible with the
+		slice specified in <verb>key</verb>, otherwhise, a
+		<verb>ValueError</verb> will be issued.</item>
+
+	    </description>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      a1[0] = 333       # Assign an integer to a Integer Array row
+	      a2[0] = "b"       # Assign a string to a string Array row
+	      a3[1:4] = 5       # Broadcast 5 to slice 1:4
+	      a4[1:4:2] = "xXx" # Broadcast "xXx" to slice 1:4:2
+	      # General slice update (a5.shape = (4,3,2,8,5,10)
+	      a5[1, ..., ::2, 1:4, 4:] = arange(1728, shape=(4,3,2,4,3,6))
+	    </verbatim>
+
+	  </subsubsection> <!-- __setitem__() -->
+
 	</subsection> <!-- Special methods -->
       </section> <!-- Array class -->
 
@@ -5271,6 +5360,57 @@ fileh.close()
 	    </verbatim>
 
 	  </subsubsection> <!-- VLArray __getitem__ -->
+
+	  <subsubsection id="__setitemVLArrayDescr">
+	    <heading>__setitem__(keys, value)</heading>
+
+	    <p>Updates a vlarray row described by <verb>keys</verb> by
+	      setting it to <verb>value</verb>. Depending on the value
+	      of <verb>keys</verb>, the action taken is different:
+	    </p>
+	    <description>
+	      <term><verb>keys</verb> is an integer:</term> <item>It
+		refers to the number of row to be modified. The
+		<verb>value</verb> object must be type and shape
+		compatible with the object that exists in the vlarray
+		row.</item>
+
+	      <term><verb>keys</verb> is a tuple:</term> <item>The
+		first element refers to the row to be modified, and
+		the second element to the range (so, it can be an
+		integer or an slice) of the row that will be
+		updated. As above, the <verb>value</verb> object must
+		be type and shape compatible with the object specified
+		in the vlarray row <em>and</em> range.</item>
+	    </description>
+
+
+	    <p><visual markup="bf">Note:</visual> When updating
+	      <verb>VLStrings</verb> (codification UTF-8) or
+	      <verb>Objects</verb> atoms, there is a problem: one can
+	      only update values with <em>exactly</em> the same bytes
+	      than in the original row. With UTF-8 encoding this is
+	      problematic because, for instance, '<verb>c</verb>'
+	      takes 1 byte, but '<verb>ç</verb>' takes two. The same
+	      applies when using <verb>Objects</verb> atoms, because
+	      when cPickle applies to a class instance (for example),
+	      it does not guarantee to return the same number of bytes
+	      than over other instance, even of the same class than
+	      the former. These facts effectively limit the number of
+	      objects than can be updated in <verb>VLArrays</verb>.
+	    </p>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      vlarray[0] = vlarray[0]*2+3
+	      vlarray[99,3:] = arange(96)*2+3
+	      # Negative values for start and stop (but not step) are supported
+	      vlarray[99,-99:-89:2] = vlarray[5]*2+3 
+	    </verbatim>
+
+	  </subsubsection> <!-- VLArray __setitem__ -->
+
 	</subsection> <!-- VLArray special methods --> 
       </section> <!-- VLArray class -->
 
@@ -5361,14 +5501,23 @@ fileh.close()
 
 	  <p>Note that this class define the <verb>__setattr__</verb>,
 	    <verb>__getattr__</verb> and <verb>__delattr__</verb> and
-	    they work as normally intended. So, you can access, assign
-	    or delete attributes on disk by just using the next
+	    they work as normally intended. Any scalar (string, ints
+	    or floats) attribute is supported natively as an
+	    attribute. However, <verb>(c)Pickle</verb> is
+	    automatically used so as to serialize other kind of
+	    objects (like lists, tuples, dicts, small Numeric/numarray
+	    objects, ...)  that you might want to save.
+	  </p>
+	  <p>With these special methods, you can access, assign or
+	    delete attributes on disk by just using the next
 	    constructs:
 
 	    <verbatim>
-	      leaf.attrs.myattr = "string attr"  # Set the attribute myattr
-	      attrib = leaf.attrs.myattr  # Get the attribute myattr
-	      del leaf.attrs.myattr       # Delete the attribute myattr
+	      leaf.attrs.myattr = "str attr"  # Set a string (native support)
+	      leaf.attrs.myattr2 = 3          # Set an integer (native support)
+	      leaf.attrs.myattr3 = [3,(1,2)]  # A generic object (Pickled)
+	      attrib = leaf.attrs.myattr      # Get the attribute myattr
+	      del leaf.attrs.myattr           # Delete the attribute myattr
 	    </verbatim>             
 
 	  </p>

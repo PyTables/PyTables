@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from __future__ import generators
 
 import tables,types,cPickle,copy,time

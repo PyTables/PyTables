@@ -1,0 +1,9 @@
+In these directories you can find some scripts contributed by PyTables
+users. If you have any suggestion on them, please, contact the original
+authors.
+
+nctoh5: Converts netcdf files to hdf5
+Author: Jeff Whitaker <jeffrey.s.whitaker@noaa.gov>
+
+make_hdf: Converts general python data structures into hdf5
+Author: John Nielsen <John.N.1@bwc.state.oh.us>
