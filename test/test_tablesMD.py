@@ -194,7 +194,7 @@ class BasicTestCase(unittest.TestCase):
         assert len(result) == 20
         
     def test01b_readTable(self):
-        """Checking table read and cuts (unidimensional columns case)"""
+        """Checking table read and cuts (multidimensional columns case)"""
 
         rootgroup = self.rootgroup
         if verbose:
@@ -225,7 +225,28 @@ class BasicTestCase(unittest.TestCase):
         else:
             assert rec['var5'] == float(nrows)
         assert len(result) == 20
-        
+
+        # Read the records and select those with "var2" file less than 20
+        result = [ rec['var1'] for rec in table.iterrows()
+                   if rec['var2'][0][0] < 20 ]
+
+        if isinstance(rec['var1'], strings.CharArray):
+            a = strings.array([['%04d' % (self.expectedrows - 0)]*2]*2)
+            assert allequal(result[0], a)
+            a = strings.array([['%04d' % (self.expectedrows - 1)]*2]*2)
+            assert allequal(result[1], a)
+            a = strings.array([['%04d' % (self.expectedrows - 2)]*2]*2)
+            assert allequal(result[2], a)
+            a = strings.array([['%04d' % (self.expectedrows - 3)]*2]*2)
+            assert allequal(result[3], a)
+            a = strings.array([['%04d' % (self.expectedrows - 10)]*2]*2)
+            assert allequal(result[10], a)
+            a = strings.array([['%04d' % (self.expectedrows - 99)]*2]*2)
+            assert allequal(rec['var1'], a)
+        else:
+            assert rec['var1'] == "0001"
+        assert len(result) == 20
+                
     def test02_AppendRows(self):
         """Checking whether appending record rows works or not"""
 
@@ -960,6 +981,7 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
+    #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.65 2003/07/21 20:06:25 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.66 2003/07/22 18:10:57 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.65 $"
+__version__ = "$Revision: 1.66 $"
 
 
 import sys, os
@@ -720,7 +720,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.65 2003/07/21 20:06:25 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.66 2003/07/22 18:10:57 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1478,7 +1478,9 @@ cdef class Row:
     self._enumtypes = <int *>malloc(nfields * sizeof(int))
     for field in input._names:
       self._indexes[field] = i
-      if input._repeats[i] == 1 or input._repeats[i] == (1,):
+      # If _repeats[i] = (1,) this is a numarray object, and not a scalar
+      #if input._repeats[i] == 1 or input._repeats[i] == (1,):
+      if input._repeats[i] == 1:
         self._scalar[i] = 1
       else:
         self._scalar[i] = 0
@@ -1516,26 +1518,23 @@ cdef class Row:
 
     self.nrow1 = self._nrow + 1   # displacement
     if self.nrow1 >= self.nrows:
-      #print "Closing table..."
       self._table._close_read()  # Close the table
       raise StopIteration        # end of iteration
     else:
       if self.nrow1 >= self.bufcounter:
-        #print "self.nrow1-->", self.nrow1
         self.recout = self._table._read_records(self.nrow1, self.nrowsinbuf)
         if self._table.byteorder <> sys.byteorder:
           self._recarray._byteswap()
 
         self.bufcounter = self.bufcounter + self.nrowsinbuf
-        #self._setBaseRow(self.nrow1, 0)
+        # self._setBaseRow(self.nrow1, 0)
         # The next lines are equivalent
-        #self._nrowinbuf = start    # This is not necessary in this context
+        # self._nrowinbuf = start    # This is not necessary in this context
         self._row = 0 - self.step
 
       # The next is equivalent to "return self()"
       self._row = self._row + 1
       self._nrow = self._nrow + 1
-      #print "Nrow-->", self._nrow
       return self
 
   def _setBaseRow(self, start, startb):
@@ -1581,7 +1580,7 @@ cdef class Row:
     self._unsavednrows = self._unsavednrows + 1
     return self._unsavednrows
 
-  def __getitem__original(self, fieldName):
+  def __getitem__orig(self, fieldName):
     try:
       return self._fields[fieldName][self._row]
       #return 40  # Just for testing purposes
@@ -1607,23 +1606,21 @@ cdef class Row:
       index = self._indexes[fieldName]
 
       if (self._enumtypes[index] <> CHARTYPE and self._scalar[index]):
-        # return 40   # Just for tests purposes
-         #print "self._row -->", self._row, fieldName, self._strides
-        #print "self._fields[fieldName] -->", self._fields[fieldName]
+        #return 40   # Just for tests purposes
+        # print "self._row -->", self._row, fieldName, self._strides
+        # print "self._fields[fieldName] -->", self._fields[fieldName]
         # if not NA_updateDataPtr(self._fields[fieldName]):
         #  return None
         # This optimization sucks when using numarray 0.4!
+        # And it works better with python 2.2 than python 2.3
         offset = self._row * self._strides
         return NA_getPythonScalar(<object>self._fields[fieldName], offset)
-        # return self._fields[fieldName][self._row]
-      elif (self._enumtypes[index] == CHARTYPE):
-        # CharType columns can only be unidimensional charrays right now,
-        # so the elements has to be strings, so a copy() is not applicable here
-        # But this should be addressed when multidimensional recarrays
-        # will be supported
+        #return self._fields[fieldName][self._row]
+      elif (self._enumtypes[index] == CHARTYPE and self._scalar[index]):
+        # Case of a plain string in the cell
         # Call the universal indexing function
         return self._fields[fieldName][self._row]
-      else:  # Case when dimensions > 1 and not CharType
+      else:  # Case when dimensions > 1
         # Call the universal indexing function
         # Make a copy of the (multi) dimensional array
         # so that the user does not have to do that!

@@ -10,13 +10,14 @@
 #   include "ucl/ucl.h"
 #endif
 
-/* This code is a bit unstable. If CHECKSUM is computed, that
-   seems to work. Otherwise, it does a segmentation fault.
-   Activate this until the bug is solved. 
-   Anyway, this takes only a 1% more of space and a 2% more of CPU, which is
-   almost negligible.
+/* CHECKSUM symbol adds some safety to the code, but does not seems
+   actually necessary for common systems. It can be activated under
+   special scenarios (like transmitting through a net with no error
+   correction capabilities).  Anyway, this takes only a 1% more of
+   space and a 2% more of CPU, which is almost negligible.
+   F. Alted 2003/07/22
 */
-#define CHECKSUM
+#undef CHECKSUM
 
 #undef DEBUG
 
@@ -119,7 +120,7 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
       printf("nalloc -->%d\n", nalloc);
       printf("max_len_buffer -->%d\n", max_len_buffer);
 #endif /* DEBUG */
-      status = ucl_nrv2e_decompress_safe_8(*buf, (ucl_uint)nbytes, outbuf,
+      status = ucl_nrv2d_decompress_safe_8(*buf, (ucl_uint)nbytes, outbuf,
 					   &out_len, NULL);
       /* Check if success */
       if (status == UCL_E_OK) {
@@ -173,16 +174,35 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
     ucl_byte *z_src = (ucl_byte*)(*buf);
     ucl_byte *z_dst;         /*destination buffer            */
     ucl_uint z_src_nbytes = (ucl_uint)(nbytes);
+/*     ucl_uint z_dst_nbytes = (ucl_uint)(nbytes + (nbytes / 8) + 256 + 16); */
+#ifdef CHECKSUM
     ucl_uint z_dst_nbytes = (ucl_uint)(nbytes + (nbytes / 8) + 256 + 4);
+#else
+    ucl_uint z_dst_nbytes = (ucl_uint)(nbytes + (nbytes / 8) + 256);
+#endif
 
-    if (NULL==(z_dst=outbuf=(void *)malloc(z_dst_nbytes))) {
+    if (NULL==(z_dst=outbuf=(void *)ucl_malloc(z_dst_nbytes))) {
 	fprintf(stderr, "unable to allocate deflate destination buffer");
 	ret_value = 0; /* fail */
 	goto done;
     }
 
     /* Compress this buffer */
-    status = ucl_nrv2e_99_compress(z_src, z_src_nbytes, z_dst, &z_dst_nbytes,
+
+    /* The ucl_nrv2e version of the UCL compressor seems to give some
+       segmentation faults in certain scenarios.  
+
+       Way to make this code to crash (with the nrv2e compressor):
+
+       $ python table-bench.py -p -l ucl -c 1 -s small -i 300000 test.h5
+       
+       The nrv2b and nrv2d seems to give no problems. I'm adopting the
+       nrv2d which is slightly better (more compression) than
+       nrv2b. The best is, though, the nrv2e.
+
+       F. Alted 2003/07/22 */
+
+    status = ucl_nrv2d_99_compress(z_src, z_src_nbytes, z_dst, &z_dst_nbytes,
 				   0, complevel, NULL, NULL);
  
 #ifdef CHECKSUM
@@ -194,11 +214,12 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
 #endif /* CHECKSUM */
 
     if (z_dst_nbytes >= nbytes) {
-      fprintf(stderr,"overflow");
-      ret_value = 0; /* fail */
+/*       fprintf(stderr,"overflow"); */
+      ret_value = 0; /* Incompressible chunk */
       goto done;
     } else if (UCL_E_OK != status) {
-      fprintf(stderr,"ucl error");
+      /* This should never happen! */
+      fprintf(stderr,"ucl error!. This should not happen!.\n");
       ret_value = 0; /* fail */
       goto done;
     } else {
