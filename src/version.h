@@ -1,1 +1,1 @@
-#define PYTABLES_VERSION "0.5.5"
+#define PYTABLES_VERSION "0.6"

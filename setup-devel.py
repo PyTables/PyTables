@@ -17,7 +17,7 @@ from Pyrex.Distutils import build_ext
 # And also put pyrex = 1
 pyrex = 1
 
-VERSION = "0.5.5"
+VERSION = "0.6"
 
 #----------------------------------------------------------------------
 
@@ -69,7 +69,7 @@ def check_lib(libname, maindir, dll_lib,
 
 if os.name == 'posix':
     # Define macros for UNIX platform
-    def_macros = [('DEBUG', 1)]
+    def_macros = [('NDEBUG', 1)]
 
     # Allow setting the HDF5 dir and additional link flags either in
     # the environment or on the command line.
@@ -155,8 +155,15 @@ compile and run."""
         
         sys.exit(1)
     else:
-        print "Found numarray %s package installed" % numarray.__version__
+        if numarray.__version__ >= "0.6":
+            print "Found numarray %s package installed" % numarray.__version__
+        else:
+            print "###########################################################"
+            print "You need numarray 0.6 or greather!. Exiting..."
+            print "###########################################################"
+            sys.exit(1)
 
+            
     # Look for optional compression libraries (LZO and UCL)
     # figure out from the base setting where the lib and .h are
     if COMPR_DIR:
@@ -336,6 +343,14 @@ compile and run."""
         sys.exit(1)
     else:
         print "Found numarray %s package installed" % numarray.__version__
+        if numarray.__version__ >= "0.6":
+            print "Found numarray %s package installed" % numarray.__version__
+        else:
+            print "###########################################################"
+            print "You need numarray 0.6 or greather!. Exiting..."
+            print "###########################################################"
+            sys.exit(1)
+            
 
     # Set the appropriate flavor hdf5Extension.c source file:
     if pyrex:

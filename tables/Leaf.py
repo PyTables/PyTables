@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.21 2003/06/11 10:48:45 falted Exp $
+#       $Id: Leaf.py,v 1.22 2003/06/11 19:30:43 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.21 $"
+__version__ = "$Revision: 1.22 $"
 
 import types
 from utils import checkNameValidity
@@ -59,6 +59,7 @@ class Leaf:
         title -- the leaf title
         shape -- the leaf shape
         byteorder -- the byteorder of the leaf
+        attrs -- The associated AttributeSet instance
 
     """
 

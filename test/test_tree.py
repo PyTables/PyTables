@@ -419,8 +419,8 @@ class WideTreeTestCase(unittest.TestCase):
     
     
     """
-    def test00_wideTree(self):
-        """Checking creation of large number of childs (1024) per group 
+    def test00_Leafs(self):
+        """Checking creation of large number of leafs (1024) per group 
         
         Variable 'maxchilds' controls this check. PyTables support
         up to 4096 childs per group, but this would take too much
@@ -429,10 +429,9 @@ class WideTreeTestCase(unittest.TestCase):
         A 512 childs test takes around 25 MB.
         
         """
-        # But with the new memory housekeeping introduced in PyTables
-        # 0.3 that provokes a memory endless grow-up.
-        # 128 is a better number so as to not expose these problems
-        maxchilds = 512
+
+        import time
+        maxchilds = 1024
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_wideTree..." % \
@@ -456,13 +455,15 @@ class WideTreeTestCase(unittest.TestCase):
         # Close the file
         fileh.close()
 
+        t1 = time.time()
         # Open the previous HDF5 file in read-only mode
         fileh = openFile(file, mode = "r")
         if verbose:
+            print "\nTime spent opening a file with %d arrays: %s s" % \
+                  (maxchilds, time.time()-t1)
             print "\nChildren reading progress: ",
         # Get the metadata on the previosly saved arrays
         for child in range(maxchilds):
-            # Save it on the HDF5 file
             if verbose:
                 print "%3d," % (child),
             # Create an array for later comparison
@@ -472,6 +473,63 @@ class WideTreeTestCase(unittest.TestCase):
             b = array_.read()
             # Arrays a and b must be equal
             assert a == b
+        if verbose:
+            print # This flush the stdout buffer
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+        
+    def test01_wideTree(self):
+        """Checking creation of large number of groups (1024) per group 
+        
+        Variable 'maxchilds' controls this check. PyTables support
+        up to 4096 childs per group, but this would take too much
+        memory (up to 64 MB) for testing purposes (may be we can add a
+        test for big platforms). A 1024 childs run takes up to 30 MB.
+        A 512 childs test takes around 25 MB.
+        
+        """
+
+        import time
+        maxchilds = 1024
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00_wideTree..." % \
+                  self.__class__.__name__
+            print "Maximum number of childs tested :", maxchilds
+        # Open a new empty HDF5 file
+        file = tempfile.mktemp(".h5")
+        #file = "test_widetree.h5"
+
+        fileh = openFile(file, mode = "w")
+        if verbose:
+            print "Children writing progress: ",
+        for child in range(maxchilds):
+            if verbose:
+                print "%3d," % (child),
+            fileh.createGroup(fileh.root, 'group' + str(child),
+                              "child: %d" % child)
+        if verbose:
+            print
+        # Close the file
+        fileh.close()
+
+        t1 = time.time()
+        # Open the previous HDF5 file in read-only mode
+        fileh = openFile(file, mode = "r")
+        if verbose:
+            print "\nTime spent opening a file with %d groups: %s s" % \
+                  (maxchilds, time.time()-t1)
+            print "\nChildren reading progress: ",
+        # Get the metadata on the previosly saved arrays
+        for child in range(maxchilds):
+            if verbose:
+                print "%3d," % (child),
+            # Get the actual group
+            group = getattr(fileh.root, 'group' + str(child))
+            # Arrays a and b must be equal
+            assert group._v_title == "child: %d" % child
         if verbose:
             print # This flush the stdout buffer
         # Close the file

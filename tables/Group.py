@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.36 2003/06/11 10:48:45 falted Exp $
+#       $Id: Group.py,v 1.37 2003/06/11 19:30:43 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.36 $"
+__version__ = "$Revision: 1.37 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -96,6 +96,7 @@ class Group(hdf5Extension.Group, object):
         _v_groups -- Dictionary with object groups
         _v_leaves -- Dictionaly with object leaves
         _v_childs -- Dictionary with object childs (groups or leaves)
+        _v_attrs -- The associated AttributeSet instance
 
     """
 

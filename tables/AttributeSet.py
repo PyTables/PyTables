@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.8 2003/06/11 10:48:44 falted Exp $
+#       $Id: AttributeSet.py,v 1.9 2003/06/11 19:30:42 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.8 $"
+__version__ = "$Revision: 1.9 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -66,11 +66,19 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     information extracted from the HDF5 attributes belonging to a
     node.
 
-    In AttributeSet instances, a special feature called "natural
-    naming" is used, i.e. the names of the instance attributes that
-    represent HDF5 attributes are the same. This offers the user a
-    very convenient way to access node attributes by simply specifying
-    them like a "normal" attribute class.
+    Like with Group instances, in AttributeSet instances, a special
+    feature called natural naming is used, i.e. you can access the
+    HDF5 attributes like if they were normal AttributeSet
+    attributes. This offers the user a very convenient way to access
+    (but also set and delete) node attributes by simply specifying
+    them like a normal attribute class.
+
+    Like with Group instances, in AttributeSet instances, a special
+    feature called "natural naming" is used, i.e. the names of the
+    instance attributes that represent HDF5 attributes are the
+    same. This offers the user a very convenient way to access node
+    attributes by simply specifying them like a "normal" attribute
+    class.
 
     For this reason and in order to not pollute the object namespace,
     it is explicitely forbidden to assign "normal" attributes to
@@ -78,16 +86,6 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     "_c_" (for class variables), "_f_" (for methods), "_g_" (for
     private methods) or "_v_" (for instance variables) prefixes.
 
-    Methods:
-    
-        _f_listAttrs()
-        __getattr__(attrname)
-        __setattr__(attrname, attrvalue)
-        __delattr__(attrname)
-        _f_remove(attrname)
-        _f_rename(oldattrname, newattrname)
-        _f_close()
-        
     Instance variables:
 
         _v_node -- The parent node instance
@@ -95,6 +93,16 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         _v_attrnamessys -- List with system attribute names
         _v_attrnamesuser -- List with user attribute names
 
+    Methods:
+    
+        _f_list(attrset)
+        __getattr__(attrname)
+        __setattr__(attrname, attrvalue)
+        __delattr__(attrname)
+        _f_remove(attrname)
+        _f_rename(oldattrname, newattrname)
+        _f_close()
+        
     """
 
     def __init__(self, node):
@@ -127,14 +135,21 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         self._v_attrnamessys.sort()
         self._v_attrnamesuser.sort()
 
-    def _f_listAttrs(self, set="user"):
-        "Return the list of attributes of the parent node"
+    def _f_list(self, attrset="user"):
+        """Return the list of attributes of the parent node
+
+        The parameter attrset the attribute set to be returned. An
+        "user" value returns only the user attributes. This is the
+        default. "sys" returns only the system (read-only)
+        attributes. "all" returns both the system and user attributes.
+
+        """
         
-        if set == "user":
+        if attrset == "user":
             return self._v_attrnamesuser
-        elif set == "sys":
+        elif attrset == "sys":
             return self._v_attrnamessys
-        elif set == "all":
+        elif attrset == "all":
             return self._v_attrnames
 
     def __getattr__(self, name):

@@ -17,7 +17,7 @@ from distutils.dep_util import newer
 # And also put pyrex = 1
 pyrex = 0
 
-VERSION = "0.5.5"
+VERSION = "0.6"
 
 #----------------------------------------------------------------------
 
@@ -155,7 +155,14 @@ compile and run."""
         
         sys.exit(1)
     else:
-        print "Found numarray %s package installed" % numarray.__version__
+        if numarray.__version__ >= "0.6":
+            print "Found numarray %s package installed" % numarray.__version__
+        else:
+            print "###########################################################"
+            print "You need numarray 0.6 or greather!. Exiting..."
+            print "###########################################################"
+            sys.exit(1)
+
 
     # Look for optional compression libraries (LZO and UCL)
     # figure out from the base setting where the lib and .h are
@@ -335,7 +342,13 @@ compile and run."""
         
         sys.exit(1)
     else:
-        print "Found numarray %s package installed" % numarray.__version__
+        if numarray.__version__ >= "0.6":
+            print "Found numarray %s package installed" % numarray.__version__
+        else:
+            print "###########################################################"
+            print "You need numarray 0.6 or greather!. Exiting..."
+            print "###########################################################"
+            sys.exit(1)
 
     # Set the appropriate flavor hdf5Extension.c source file:
     if pyrex:
