@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.26 2003/03/09 13:51:57 falted Exp $
+#       $Id: Array.py,v 1.27 2003/03/13 11:18:54 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.26 $"
+__version__ = "$Revision: 1.27 $"
 import types, warnings, sys
 from Leaf import Leaf
 import hdf5Extension
@@ -111,11 +111,11 @@ class Array(Leaf, hdf5Extension.Array):
         self.byteorder = sys.byteorder  # Default byteorder
         # Check for Numeric objects
         if isinstance(arr, numarray.NumArray):
-            flavor = "NUMARRAY"
+            flavor = "NumArray"
             naarr = arr
             self.byteorder = arr._byteorder
         elif (Numeric_imported and type(arr) == type(Numeric.array(1))):
-            flavor = "NUMERIC"
+            flavor = "Numeric"
             if arr.typecode() == "c":
                 # To emulate as close as possible Numeric character arrays,
                 # itemsize for chararrays will be always 1
@@ -149,7 +149,7 @@ class Array(Leaf, hdf5Extension.Array):
                                            shape=arr.shape)                    
 
         elif (isinstance(arr, chararray.CharArray)):
-            flavor = "CHARARRAY"
+            flavor = "CharArray"
             naarr = arr
             self.byteorder = "non-relevant" 
         elif (isinstance(arr, types.TupleType) or
@@ -167,18 +167,19 @@ class Array(Leaf, hdf5Extension.Array):
 """The object '%s' can't be converted to a numerical or character array.
   Sorry, but this object is not supported.""" % (arr)
             if isinstance(arr, types.TupleType):
-                flavor = "TUPLE"
+                flavor = "Tuple"
             else:
-                flavor = "LIST"
+                flavor = "List"
         elif isinstance(arr, types.IntType):
             naarr = numarray.array(arr)
-            flavor = "INT"
+            flavor = "Int"
         elif isinstance(arr, types.FloatType):
             naarr = numarray.array(arr)
-            flavor = "FLOAT"
+
+            flavor = "Float"
         elif isinstance(arr, types.StringType):
             naarr = chararray.array(arr)
-            flavor = "STRING"
+            flavor = "String"
         else:
             raise ValueError, \
 """The object '%s' is not in the list of supported objects (numarray,
@@ -204,7 +205,7 @@ class Array(Leaf, hdf5Extension.Array):
                         self._openArray()
 
         self.title = self.getAttr("TITLE")
-        # NUMERIC, NUMARRAY, TUPLE, LIST or other flavor 
+        # Numeric, NumArray, CharArray, Tuple, List, String, Int or Float
         self.flavor = self.getAttr("FLAVOR")
         
     # Accessor for the _readArray method in superclass
@@ -226,7 +227,7 @@ class Array(Leaf, hdf5Extension.Array):
         self._readArray(arr._data)
 
         # Convert to Numeric, tuple or list if needed
-        if self.flavor == "NUMERIC":
+        if self.flavor == "Numeric":
             if Numeric_imported:
                 # This works for both numeric and chararrays
                 # arr=Numeric.array(arr, typecode=arr.typecode())
@@ -249,15 +250,15 @@ class Array(Leaf, hdf5Extension.Array):
                 warnings.warn( \
 """The object on-disk is type Numeric, but Numeric is not installed locally.
   Returning a numarray object instead!.""")
-        elif self.flavor == "TUPLE":
+        elif self.flavor == "Tuple":
             arr = tuple(arr.tolist())
-        elif self.flavor == "LIST":
+        elif self.flavor == "List":
             arr = arr.tolist()
-        elif self.flavor == "INT":
+        elif self.flavor == "Int":
             arr = int(arr)
-        elif self.flavor == "FLOAT":
+        elif self.flavor == "Float":
             arr = float(arr)
-        elif self.flavor == "STRING":
+        elif self.flavor == "String":
             arr = arr.tostring()
         
         return arr

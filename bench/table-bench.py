@@ -311,7 +311,8 @@ if __name__=="__main__":
             (rowsr, rowsz) = readField(file, fieldName, rng, verbose)
             pass
         else:
-            (rowsr, rowsz) = readFile(file, recsize, verbose)
+            for i in range(1):
+                (rowsr, rowsz) = readFile(file, recsize, verbose)
 	t2 = time.time()
         cpu2 = time.clock()
 	treadrows = round(t2-t1, 3)

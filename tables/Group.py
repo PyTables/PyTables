@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.24 2003/03/11 12:55:48 falted Exp $
+#       $Id: Group.py,v 1.25 2003/03/13 11:18:54 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.24 $"
+__version__ = "$Revision: 1.25 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -74,7 +74,7 @@ class Group(hdf5Extension.Group):
         _f_listNodes([classname])
         _f_walkGroups()
         _f_rename(newname)
-        _f_remove()
+        _f_remove(recursive=0)
         _f_getAttr(attrname)
         _f_setAttr(attrname, attrvalue)
         _f_close()
@@ -87,6 +87,7 @@ class Group(hdf5Extension.Group):
         _v_pathname -- A string representation of the group location
             in tree
         _v_parent -- The parent Group instance
+        _v_file -- The associated File object
         _v_rootgroup - Always point to the root group object
         _v_objgroups -- Dictionary with object groups
         _v_objleaves -- Dictionaly with object leaves

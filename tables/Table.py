@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.37 2003/03/11 12:55:48 falted Exp $
+#       $Id: Table.py,v 1.38 2003/03/13 11:18:54 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.37 $"
+__version__ = "$Revision: 1.38 $"
 
 from __future__ import generators
 import sys
@@ -95,7 +95,7 @@ class Table(Leaf, hdf5Extension.Table):
         byteorder -- the byteorder of the leaf
         
       Specific of Table:
-        description -- the metaobject for this table (can be a dictionary)
+        description -- the metaobject describing this table
         row -- a reference to the Row object associated with this table
         nrows -- the number of rows in this table
         rowsize -- the size, in bytes, of each row
@@ -377,15 +377,6 @@ class Table(Leaf, hdf5Extension.Table):
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
         
-    def _append(self, row):
-        """Append the "row" object to the output buffer.
-
-        "row" has to be a recarray2.Row object 
-
-        """
-        if row._incUnsavedNRows() == self._v_maxTuples:
-            self._saveBufferedRows()
-
     def _fetchall(self):
         """Return an iterator yielding record instances built from rows
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Attic/IsColDescr.py,v $
-#       $Id: IsColDescr.py,v 1.2 2003/03/11 12:55:48 falted Exp $
+#       $Id: IsColDescr.py,v 1.3 2003/03/13 11:18:54 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.2 $"
+__version__ = "$Revision: 1.3 $"
 
 
 import warnings
@@ -68,6 +68,9 @@ class Col:
             if type(shape) in [types.IntType, types.LongType]:
                 self.shape = (shape,)
             elif type(shape) in [types.ListType, types.TupleType]:
+                if len(shape) > 1:
+                    raise ValueError, \
+                       "Multidimensional column elements are not yet supported"
                 self.shape = list(shape)
             else: raise ValueError, "Illegal shape %s" % `shape`
 

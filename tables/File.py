@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.24 2003/03/11 12:55:48 falted Exp $
+#       $Id: File.py,v 1.25 2003/03/13 11:18:54 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.24 $"
+__version__ = "$Revision: 1.25 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -72,8 +72,11 @@ def openFile(filename, mode="r", title="", trMap={}):
     title -- (Optional) A TITLE string attribute will be set on the
              root group with its value.
 
-    trMap -- (Optional) A dictionary to map names in the object tree into
-             different HDF5 names in file.
+    trMap -- (Optional) A dictionary to map names in the object tree
+             into different HDF5 names in file. The keys are the
+             Python names, while the values are the HDF5 names. This
+             is useful when you need to name HDF5 nodes with invalid
+             or reserved words in Python.
 
     """
     
@@ -158,8 +161,8 @@ class File(hdf5Extension.File):
         createArray(where, name, arrayObject, [, title])
         getNode(where [, name] [,classname])
         listNodes(where [, classname])
-        renameNode(where, newname [, name])
         removeNode(where [, name] [, recursive])
+        renameNode(where, newname [, name])
         getAttrNode(self, where, attrname [, name])
         setAttrNode(self, where, attrname, attrname [, name])
         walkGroups([where])
@@ -461,7 +464,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         doesn't exists or has not a child called "name", a LookupError
         error is raised. If "name" is a null string (""), or not
         supplied, this method assumes to find the object in "where".
-        "newname" is the new name of be assigned to the child.
+        "newname" is the new name of be assigned to the node.
         
         """
 

@@ -229,7 +229,7 @@
       </p>
 
 <verbatim>
-class Particle(IsRecord):
+class Particle(IsColDescr):
     name        = '16s'  # 16-character String
     idnumber    = 'Q'    # unsigned long long (i.e. 64-bit integer)
     TDCcount    = 'B'    # unsigned byte
@@ -655,7 +655,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  <p>which will export in your caller application namespace the
 	    next objects: <verb>openFile</verb>, <verb>isHDF5</verb>,
 	    <verb>isPyTablesFile</verb> and
-	    <verb>IsRecord</verb>. These are a rather small number of
+	    <verb>IsColDescr</verb>. These are a rather small number of
 	    objects, and for commodity we will use this last way to
 	    access them.
 	  </p>
@@ -707,7 +707,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  </p>
 
 	  <verbatim>
->>> class Particle(IsRecord):
+>>> class Particle(IsColDescr):
 ...     name        = '16s'  # 16-character String
 ...     idnumber    = 'Q'    # unsigned long long (i.e. 64-bit integer)
 ...     TDCcount    = 'B'    # unsigned byte
@@ -725,14 +725,14 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    the typecode for this data field. See <ref
 	    refid="datatypesSupported">appendix</ref> for a list of
 	    typecodes supported in record classes
-	    (<verb>IsRecord</verb> descendants).
+	    (<verb>IsColDescr</verb> descendants).
 	  </p>
 	  <p>From now on, we can use <verb>Particle</verb> instances
 	    as a container for our detector data and, as you will see
 	    shortly, we will benefit of some magic properties
 	    associated with these instances derived from the fact that
 	    they are descendants from the class
-	    <verb>IsRecord</verb><footnote><verb>IsRecord</verb> is
+	    <verb>IsColDescr</verb><footnote><verb>IsColDescr</verb> is
 	    actually a <em>metaclass</em> in object slang, but we
 	    don't need to explain nothing more about it in this
 	    context. Check the sources if you are interested on how
@@ -1459,14 +1459,14 @@ $
 	<verbatim>
 from tables import *
 
-class Particle(IsRecord):
+class Particle(IsColDescr):
     name        = '16s'  # 16-character String
     lati        = 'i'    # integer
     longi       = 'i'    # integer
     pressure    = 'f'    # float  (single-precision)
     temperature = 'd'    # double (double-precision)
 
-class Event(IsRecord):
+class Event(IsColDescr):
     name        = '16s'  # 16-character String
     TDCcount    = 'B'    # unsigned char
     ADCcount    = 'H'    # unsigned short
@@ -1562,7 +1562,7 @@ AttributeError: 'Event' object has no attribute 'xcoor'
 	  dealing with an object that has fixed list of variable names
 	  (the user record, that is responsible for defining the table
 	  columns). So, thanks to the magic that provides the
-	  <verb>IsRecord</verb> metaclass, all instance variables
+	  <verb>IsColDescr</verb> metaclass, all instance variables
 	  (data fields) are declared internally as class
 	  <verb>__slots__</verb>. This is why the last error appeared.
 	</p>
@@ -1583,10 +1583,10 @@ Traceback (most recent call last):
   File "/usr/lib/python2.2/site-packages/tables/Table.py", line 210, in
 appendAsRecord
     self._v_packedtuples.append(recordObject._f_pack2())
-  File "/usr/lib/python2.2/site-packages/tables/IsRecord.py", line 121, in 
+  File "/usr/lib/python2.2/site-packages/tables/IsColDescr.py", line 121, in 
 _f_pack2
     self._f_raiseValueError()
-  File "/usr/lib/python2.2/site-packages/tables/IsRecord.py", line 130, in 
+  File "/usr/lib/python2.2/site-packages/tables/IsColDescr.py", line 130, in 
 _f_raiseValueError
     raise ValueError, \
 ValueError: Error packing record object: 
@@ -1652,10 +1652,10 @@ Traceback (most recent call last):
   File "/home/falted/PyTables/pytables-0.2/tables/Table.py", line 279,
 in appendAsRecord
     self._v_packedtuples.append(RecordObject._f_pack2())
-  File "/home/falted/PyTables/pytables-0.2/tables/IsRecord.py", line
+  File "/home/falted/PyTables/pytables-0.2/tables/IsColDescr.py", line
 181, in_f_pack2
     self._f_raiseValueError()
-  File "/home/falted/PyTables/pytables-0.2/tables/IsRecord.py", line
+  File "/home/falted/PyTables/pytables-0.2/tables/IsColDescr.py", line
 135, in _f_raiseValueError
     raise ValueError, \
 ValueError: Error packing record object: 
@@ -1896,7 +1896,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	<verb>Table</verb> and <verb>Array</verb>. Another one is
 	responsible to build record objects from a subclass user
 	declaration, and performs field, type and range checks; its
-	name is <verb>IsRecord</verb>. An important function, called
+	name is <verb>IsColDescr</verb>. An important function, called
 	<verb>openFile</verb> is responsible to create, open or append
 	to files. In addition, a few utility functions are defined to
 	guess if an user supplied file is a <verb>PyTables</verb> or
@@ -1940,16 +1940,18 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	  <heading>Global functions</heading>
 
 	  <description id="openFileDescr">
-	    <term>openFile(filename, mode='r', title='')</term>
+	    <term>openFile(filename, mode='r', title='', trMap={})</term>
 	    <item>Open a <verb>PyTables</verb> file and returns a File
 	    object.
 	    
 	      <description>
 
 		<term>filename</term> <item>The name of the file
-		  (supports environment variable expansion). It must
-		  have any of <verb>".h5"</verb>, <verb>".hdf"</verb>
-		  or <verb>".hdf5"</verb> extensions.
+		  (supports environment variable expansion). It is
+		  suggested that it should have any of
+		  <verb>".h5"</verb>, <verb>".hdf"</verb> or
+		  <verb>".hdf5"</verb> extensions, although this is
+		  not mandatory.
 		</item>
 
 		<term>mode</term> <item>The mode to open the file. It
@@ -1980,6 +1982,14 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 		  disk, and this will not have any effect.
 		</item>
 
+		<term>trMap</term> <item>A dictionary to map names in
+		  the object tree Python namespace into different HDF5
+		  names in file namespace. The keys are the Python
+		  names, while the values are the HDF5 names. This is
+		  useful when you need to name HDF5 nodes with invalid
+		  or reserved words in Python.
+		</item>
+
 	      </description>
 
 	    </item>
@@ -2003,8 +2013,8 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	</subsection>
       </section>
 
-      <section id="IsRecordClassDescr">
-	<heading>The <visual markup="tt">IsRecord</visual> class</heading>
+      <section id="IsColDescrClassDescr">
+	<heading>The <visual markup="tt">IsColDescr</visual> class</heading>
 
 	<p>This class is in fact a so-called <em>metaclass</em>
 	  object. There is nothing special on this fact, except that
@@ -2012,48 +2022,86 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	  instantiation phase, and new methods for instances are
 	  defined based on the values of the class attributes.
 	</p>
-	<p>That way, <verb>PyTables</verb> <em>force</em> the
-	  resulting instance to only accept assignments on the
-	  declared attributes<footnote> In fact, descendants of
-	  <verb>IsRecord</verb> class has a few more, internal
-	  attributes, but they start with prefixes like <visual
-	  markup="tt">"__"</visual>, <visual
-	  markup="tt">"_v_"</visual> or <visual
-	  markup="tt">"_f_"</visual>, so you should not use attribute
-	  names starting with these prefixes</footnote>. If you try to
-	  do an assignment to a non-declared attribute, <visual
-	  markup="tt">PyTables</visual> will raise an error.</p>
+	<p>It is designed to be used as an easy, yet meaningful way to
+	  define columns in <verb>Table</verb> objects through the use
+	  of classes that inherit properties from it. In order to
+	  define such an special class, you have to declare it as
+	  descendent from <em>IsColDescr</em>, with many attributes as
+	  columns you want in your table. The name of these attributes
+	  will become the name of the columns, while its values are
+	  the properties of the columns that are obtained through the
+	  use of the <verb>Col</verb> class constructor. See the <ref
+	  refid="ColDescr">section</ref> for instructions on how define
+	  the properties of the table columns.
+	</p>
+	<p>Then, you can pass an instance of this object to the
+	  <verb>Table</verb> constructor, where all the information it
+	  contains will be used to define the table structure. See
+	  the <ref refid="secondExample">section</ref> for an example
+	  on how that works.
+	</p>
 
-	<p>To define such a special class, you have to declare it as
-	  descendent from <em>IsRecord</em>, with many attributes as
-	  fields you want in your record. To declare their types, you
-	  simply assign to these attributes their
-	  <em>typecode</em>. See the <ref
-	  refid="datatypesSupported">appendix</ref> for a relation of
-	  data types supported in a <visual
-	  markup="tt">IsRecord</visual> class declaration.
+      </section>
+
+      <section id="ColDescr">
+	<heading>The <visual markup="tt">Col</visual> class</heading>
+
+	<p>
+	  This class is used as a mean to declare the different
+	  properties of a column of a table. The only public method
+	  accesible is the constructor itself.
 	</p>
-	<p> That's all, from now on, you can instantiate objects from
-	  your new class and use them as a very flexible record
-	  objects with safe features like automatic name field, data
-	  type and range checks (see the <ref
-	  refid="secondExample">section</ref> for an example on how it
-	  works).
-	</p>
+
+	<description>
+
+	  <term>Col(dtype="Float64", shape=(1,), dflt=None, pos =
+	    None)
+	  </term>
+	  <item>Define properties for a <verb>Table</verb> column.
+
+	    <description>
+
+	      <term>dtype</term> <item>The data type for the column. See
+		the <ref refid="datatypesSupported">appendix</ref> for a
+		relation of data types supported in a <visual
+		  markup="tt">IsColDescr</visual> class declaration.</item>
+
+	      <term>shape</term> <item>An integer (or, for
+		multidimensional cases, a tuple, although this is not yet
+		supported as for the version 0.4) that specifies the
+		number of <em>dtype</em> items for each element (or shape,
+		for multidimensional elements) of this column.</item>
+
+	      <term>dflt</term> <item>The default value for elements of
+		this column. If the user does not supply a value for an
+		element while filling a table, this default value will be
+		written to disk. If <em>dflt</em> is not supplied, a
+		appropriate zero value (or <em>null</em> string) will be
+		chosen by default.</item>
+
+	      <term>pos</term> <item>By default, columns are disposed in
+		memory following an alphanumerical order of the column
+		names. In some situations, however, it is convenient to
+		impose a user defined ordering. <em>pos</em> parameter
+		allows the user to force the wanted disposition.</item>
+
+	    </description>
+	  </item>
+	</description>
 
       </section>
 
       <section id="FileClassDescr">
 	<heading>The <visual markup="tt">File</visual> class</heading>
 
-	<p>This class is returned when a <verb>PyTables</verb> is
+	<p>This class is returned when a <verb>PyTables</verb> file is
 	  opened with the <verb>openFile</verb> function. It has
 	  methods to create, open, flush and close
 	  <verb>PyTables</verb> files. Also, <verb>File</verb> class
 	  offer methods to traverse the object tree, as well as to
-	  create new nodes. One of its attributes (<verb>root</verb>)
-	  is quite important because represents the entry point to the
-	  object tree attached to the file.
+	  create, rename and delete nodes. One of its attributes
+	  (<verb>root</verb>) is quite important because represents
+	  the entry point to the object tree attached to the file.
 	</p>
 
 	<p>Next, we will discuss the attributes and methods for File
@@ -2078,6 +2126,21 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	    <term>root</term> <item>The root group in file. This is
 	      the entry point to the object tree.</item>
 
+	    <term>trMap</term> <item>This is a dictionary that maps
+	      node names between python and HDF5 domain names. You can
+	      even change its contents <em>after</em> a file is opened
+	      and the new map will take effect on any new object added
+	      to the tree.</item>
+
+	    <term>_c_objects</term> <item>Dictionary with all objects
+	      (groups or leaves) on tree.</item>
+
+	    <term>_c_objgroups</term> <item>Dictionary with all object
+	      groups on tree.</item>
+
+	    <term>_c_objleaves</term> <item>Dictionary with all object
+	      leaves on tree.</item>
+
 	  </description>
 
 	</subsection>
@@ -2088,8 +2151,8 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	  <description>
 
 	    <term id="createGroupDescr">createGroup(where, name,
-	      title='') </term> <item>Create a new Group instance with
-	      name <em>name</em> in <em>where</em> location.
+	      title='') </term> <item>Create a new Group instance
+	      with name <em>name</em> in <em>where</em> location.
 
 	      <description>
 
@@ -2109,7 +2172,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	    </item>
 
 	    <term id="createTableDescr">createTable(where, name,
-	      RecordObject, title='', compress=3,
+	      ColDescr, title='', compress=0,
 	      expectedrows=10000)</term> <item>Create a new
 	      <verb>Table</verb> instance with name <em>name</em> in
 	      <em>where</em> location.
@@ -2125,10 +2188,23 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 		<term>name</term>
 		<item>The name of the new table.</item>
 
-		<term>RecordObject</term> <item>An instance of a
+		<term>ColDescr</term> <item>An instance of a
 		  user-defined class (derived from the
-		  <verb>IsRecord</verb> class) where table fields are
-		  defined.
+		  <verb>IsColDescr</verb> class) where table fields
+		  are defined. However, in certain situations, it is
+		  more handy to allow this description to be supplied
+		  as a dictionary (for example, when you do not know
+		  beforehand which structure will have your table). In
+		  such a cases, you can pass the description as a
+		  dictionary as well. See section ?? for an example of
+		  use. Finally, a <verb>RecArray</verb> object from
+		  the <verb>numarray</verb> package is also accepted,
+		  and all the information about columns and other
+		  metadata is used as a basis to create the
+		  <verb>Table</verb> object. Moreover, if the
+		  <verb>RecArray</verb> has actual data this is also
+		  injected on the newly created <verb>Table</verb>
+		  object.
 		</item>
 
 		<term>title</term> <item>A description for this object.
@@ -2136,9 +2212,9 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 
 		<term>compress</term> <item>Specifies a compress level
 		  for data. The allowed range is 0-9. A value of 0
-		  disables compression. The default is compression
-		  level 3, that balances between compression effort
-		  and CPU consumption.
+		  disables compression. The default is that
+		  compression is disabled, that balances between
+		  compression effort and CPU consumption.
 		</item>
 
 		<term>expectedrows</term> <item>An user estimate of
@@ -2157,7 +2233,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	    </item>
 
 	    <term id="createArrayDescr">createArray(where, name,
-	      NumericObject, title='')</term> <item>Create a new
+	      ArrayObject, title='')</term> <item>Create a new
 	      <verb>Array</verb> instance with name <em>name</em> in
 	      <em>where</em> location.
 
@@ -2174,8 +2250,15 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 		  array.
 		</item>
 
-		<term>NumericObject</term> <item>The Numeric array to
-		  be saved.
+		<term>ArrayObject</term> <item>The regular array to be
+		  saved. Currently accepted values are: lists, tuples,
+		  scalars (int and float), strings and
+		  (multidimensional) <verb>Numeric</verb> and
+		  <verb>numarray</verb> arrays (including
+		  <verb>CharArrays</verb>). However, objects that has
+		  some of its dimension equal to zero is not supported
+		  (this will be solved when unlimited arrays would be
+		  implemented).
 		</item>
 
 		<term>title</term> <item>A description for this
@@ -2215,6 +2298,66 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	      </description>
 	    </item>
 
+	    <term id="getAttrNodeDescr">getAttrNode(where, attrname,
+	      name='' )</term> <item>Returns the attribute
+	      <em>attrname</em> under <em>where.name</em> location.
+
+	      <description>
+
+		<term>where</term> <item>Can be a path string or
+		  <verb>Group</verb> instance. If <em>where</em>
+		  doesn't exists or has not a child called
+		  <em>name</em>, a <verb>ValueError</verb> error is
+		  raised.
+		</item>
+
+		<term>attrname</term> <item>The name of the attribute
+		  to get.
+		</item>
+
+		<term>name</term> <item>The node name desired. If
+		  <em>name</em> is a null string (''), or not
+		  supplied, this method assumes to find the object in
+		  <em>where</em>.
+		</item>
+
+	      </description>
+	    </item>
+
+	    <term id="setAttrNodeDescr">setAttrNode(where, attrname,
+	      attrvalue, name='')</term> <item>Sets the attribute
+	      <em>attrname</em> with value <em>attrvalue</em> under
+	      <em>where.name</em> location.
+
+	      <description>
+
+		<term>where</term> <item>Can be a path string or
+		  <verb>Group</verb> instance. If <em>where</em>
+		  doesn't exists or has not a child called
+		  <em>name</em>, a <verb>ValueError</verb> error is
+		  raised.
+		</item>
+
+		<term>attrname</term> <item>The name of the attribute
+		  to set on disk.
+		</item>
+
+		<term>attrvalue</term> <item>The value of the
+		  attribute to set. Only strings attributes are
+		  supported natively rigth now. However, you can
+		  always use <verb>(c)Pickle</verb> so as to serialize
+		  any object you want save therein.
+		</item>
+
+		<term>name</term> <item>The node name desired. If
+		  <em>name</em> is a null string (''), or not
+		  supplied, this method assumes to find the object in
+		  <em>where</em>.
+		</item>
+
+	      </description>
+	    </item>
+
 	    <term id="listNodesDescr">listNodes(where,
 	      classname='')</term> <item>Returns a list with all the
 	      object nodes (Group or Leaf) hanging from
@@ -2239,6 +2382,53 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	      </description>
 	    </item>
 
+	    <term id="removeNodeDescr">removeNode(where, name = "",
+	      recursive=0)</term> <item>Removes the object node
+	      <em>name</em> under <em>where</em> location.
+
+	      <description>
+
+		<term>where</term> <item>Can be a path string or
+		  <verb>Group</verb> instance.  If <em>where</em>
+		  doesn't exists or has not a child called
+		  <em>name</em>, a <verb>LookupError</verb> error is
+		  raised.</item>
+
+		<term>name</term> <item>The name of the node to be
+		  removed. If not provided, the <em>where</em> node is
+		  changed.</item>
+
+		<term>recursive</term> <item>If not supplied, the
+		  object will be removed only if it has no
+		  children. If supplied with a true value, the object
+		  and all its descendents will be completely
+		  removed.</item>
+
+	      </description>
+	    </item>
+
+	    <term id="renameNodeDescr">renameNode(where, newname,
+	      name) </term> <item>Rename the object node
+	      <em>name</em> under <em>where</em> location.
+
+	      <description>
+
+		<term>where</term> <item>Can be a path string or
+		  <verb>Group</verb> instance.  If <em>where</em>
+		  doesn't exists or has not a child called
+		  <em>name</em>, a <verb>LookupError</verb> error is
+		  raised.</item>
+
+		<term>newname</term> <item>Is the new name to be
+		  assigned to the node.</item>
+
+		<term>name</term> <item>The name of the node to be
+		  changed. If not provided, the <em>where</em> node is
+		  changed.</item>
+
+	      </description>
+	    </item>
+
 	    <term id="walkGroupsDescr">walkGroups(where='/')</term>
 	      <item><em>Iterator</em> that recursively obtains groups
 	      (not leaves) hanging from <em>where</em>. If
@@ -2256,12 +2446,12 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	      </description>
 	    </item>
 
-	    <term>flush()</term> <item>Flush all the leaves existing
-	      in the object tree.
+	    <term>flush()</term> <item>Flush all the leaves in the
+	      object tree.
 	    </item>
 
-	    <term>close()</term> <item>Flush all the objects in
-	      object tree and close the file.
+	    <term>close()</term> <item>Flush all the leaves in object
+	      tree and close the file.
 	    </item>
 
 	  </description>
@@ -2290,37 +2480,31 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	</p>
 
 	<p>A collateral effect of the <em>natural naming</em> schema
-	  is that you must be aware when assigning a new attribute to
-	  a Group object to not collide with existing children node
-	  names. For this reason and to not pollute the children
-	  namespace, it is explicitly forbidden to assign "normal"
-	  attributes to Group instances, and the only ones allowed
-	  must start with "<verb>_c_</verb>" (for class variables),
+	  is that you must be aware when assigning a new attribute
+	  variable to a Group object to not collide with existing
+	  children node names. For this reason and to not pollute the
+	  children namespace, it is explicitly forbidden to assign
+	  "normal" attributes to Group instances, and the only ones
+	  allowed must start with some reserved prefixes, like
 	  "<verb>_f_</verb>" (for methods) or "<verb>_v_</verb>" (for
 	  instance variables) prefixes. Any attempt to assign a new
 	  attribute that does not starts with these prefixes, will
 	  raise a <verb>NameError</verb> exception.
 	</p>
 
-	<subsection>
-	  <heading><visual markup="tt">Group</visual> class variables</heading>
-	  <description>
-
-	    <term>_c_objects</term> <item>Dictionary with all objects
-	      (groups or leaves) on tree.</item>
-
-	    <term>_c_objgroups</term> <item>Dictionary with all object
-	      groups on tree.</item>
-
-	    <term>_c_objleaves</term> <item>Dictionary with all object
-	      leaves on tree.</item>
-
-	  </description>
-
-	</subsection>
+	<p>Other effect is that you cannot use reserved Python names
+	  or other non-allowed python names (like for example "$a" or
+	  "44") as node names. You can, however, make use of a
+	  translation map dictionary in the
+	  <verb>File.openfile()</verb> method (see section <ref
+	  refid="openFileDescr"></ref>) so as to use non valid Python
+	  names as node names in the file.
+	</p>
 
 	<subsection>
-	  <heading><visual markup="tt">Group</visual> instance variables</heading>
+
+	  <heading><visual markup="tt">Group</visual> instance
+	    variables</heading>
 	  <description>
 
 	    <term>_v_title</term>
@@ -2329,12 +2513,21 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	    <term>_v_name</term>
 	    <item>The name of this group.</item>
 
+	    <term>_v_hdf5name</term> <item>The name of this group in
+	      HDF5 file namespace.</item>
+
 	    <term>_v_pathname</term>
 	    <item>A string representation of the group location
 	      in tree.</item>
 
 	    <term>_v_parent</term>
 	    <item>The parent Group instance.</item>
+
+	    <term>_v_rootgroup</term>
+	    <item>Pointer to the root group object.</item>
+
+	    <term>_v_file</term>
+	    <item>Pointer to the associated File object.</item>
 
 	    <term>_v_objchilds</term> <item>Dictionary with all nodes
 	      (groups or leaves) hanging from this instance.</item>
@@ -2357,7 +2550,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	    any problem. However, you should use the high-level
 	    counterpart methods in the <verb>File</verb> class,
 	    because these are most used in documentation and examples,
-	    and are a bit more powerful than those exposed here.
+	    and are a bit more powerful than ones those exposed here.
 	  </p>
 
 	  <description>
@@ -2365,6 +2558,21 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	    <term>_f_join(name)</term>
 	    <item>Helper method to correctly concatenate a name child object
 	      with the pathname of this group.</item>
+
+	    <term>_f_rename(newname)</term>
+	    <item>Change the name of this group to <em>newname</em>.</item>
+
+	    <term>_f_remove(recursive=0)</term> <item>Remove this
+	      object. If <em>recursive</em> is true, force the removal
+	      even if this group has children.</item>
+
+	    <term>_f_getAttr(attrname)</term> <item>Gets the HDF5
+	      attribute <em>attrname</em> of this group.</item>
+
+	    <term>_f_setAttr(attrname, attrvalue)</term> <item>Sets
+	      the attribute <em>attrname</em> of this group to the
+	      value <em>attrvalue</em>. Only string values are
+	      allowed.</item>
 
 	    <term>_f_listNodes(classname='')</term> <item>Returns a
 	      <em>list</em> with all the object nodes hanging from
@@ -2382,6 +2590,9 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	      are alphanumerically sorted when they are at the same
 	      level.
 	    </item>
+
+	    <term>_f_close()</term> <item>Close this group, making it
+	      and its children unaccessible in the object tree.</item>
 
 	  </description>
 
@@ -2401,12 +2612,60 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	  functionality from this class using the <em>mix-in</em>
 	  technique.
 	</p>
-	<p>Normally the user will not need to call any method from
-	  here, but it is useful to know that it exists because it can
-	  be used as a filter in methods like
-	  <verb>File.GetNode()</verb> or
-	  <verb>File.listNodes()</verb>, against others.
-	</p>
+
+	<p>The public variables and methods that <verb>Table</verb>
+	  and <verb>Array</verb> inherits from <verb>Leaf</verb> are
+	  listed below.</p>
+
+	<subsection>
+	  <heading><visual markup="tt">Leaf</visual> instance
+	    variables</heading>
+	  <description>
+
+	    <term>name</term> <item>The Leaf node name in Python
+	      namespace.</item>
+	    
+	    <term>hdf5name</term> <item>The Leaf node name in HDF5
+	      namespace.</item>
+	    
+	    <term>title</term> <item>The Leaf title.</item>
+
+	    <term>shape</term> <item>The shape of the associated data
+	      in the Leaf.</item>
+
+	    <term>byteorder</term> <item>The byteorder of
+	      the associated data of the Leaf.</item>
+
+	  </description>
+	</subsection>
+
+	<subsection>
+	  <heading><visual markup="tt">Leaf</visual> instance
+	    variables</heading>
+	  <description>
+
+	    <term>rename(newname)</term>
+	    <item>Change the name of this leaf to <em>newname</em>.</item>
+
+	    <term>remove()</term> <item>Remove this
+	      leaf.</item>
+
+	    <term>getAttr(attrname)</term> <item>Gets the HDF5
+	      attribute <em>attrname</em> of this leaf.</item>
+
+	    <term>setAttr(attrname, attrvalue)</term> <item>Sets
+	      the attribute <em>attrname</em> of this leaf to the
+	      value <em>attrvalue</em>. Only string values are
+	      allowed.</item>
+
+	    <term>flush()</term> <item>Flush the leaf buffers.</item>
+
+	    <term>close()</term> <item>Flush the leaf buffers and
+	      close the HDF5 dataset.</item>
+
+	  </description>
+	</subsection>
+
       </section>
 
       <section id="TableClassDescr">
@@ -2417,17 +2676,14 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	  open existing ones, as well as methods to read/write data
 	  and metadata from/to table objects in the file.
 	</p>
-	<p>Data can be read or written both as records or as tuples
-	  and <em>different</em> methods are provided to that
-	  end. Records are recommended because they are more intuitive
-	  and less error prone although they are slow. Using tuples
-	  (or value sequences) is faster, but the user must be very
-	  careful because when passing the sequence of values, they
-	  have to be in the correct order (alphanumerically ordered by
-	  field names). If not, unexpected results can appear (most
-	  probably <verb>ValueError</verb> exceptions will be
-	  raised). See <ref refid="tuplesOptim">section</ref> for
-	  usage details.
+	<p>Data can be read from or written to tables by accessing to
+	  an special object that hangs from <verb>Table</verb>. This
+	  object is an instance of the <verb>Row</verb> class (see
+	  <ref refid="RowClassDescr"></ref>). See
+	  example ?? on how to use the <verb>Row</verb> interface.
+	</p>
+	<p>Please note that this object inherits all the public
+	  attributes and methods from <verb>Leaf</verb>.
 	</p>
 
 	<subsection>
@@ -2435,120 +2691,145 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	    variables</heading>
 	  <description>
 
-	    <term>name</term>
-	    <item>The node name.</item>
+	    <term>description</term> <item>The metaobject describing
+	      this table</item>
 
-	    <term>title</term>
-	    <item>The title for this node.</item>
-
-	    <term>record</term>
-	    <item>The record object for this table.</item>
+	    <term>row</term> <item>The <verb>Row</verb> instance for
+	      this table.</item>
 
 	    <term>nrows</term>
-	    <item>The number of rows (records) in this table.</item>
+	    <item>The number of rows in this table.</item>
 
-	    <term>varnames</term>
-	    <item>The field names for the table.</item>
+	    <term>colnames</term>
+	    <item>The field names for the table (list).</item>
 
-	    <term>vartypes</term>
-	    <item>The typecodes for the table fields.</item>
+	    <term>coltypes</term>
+	    <item>The data types for the table fields (dictionary).</item>
+
+	    <term>colshapes</term>
+	    <item>The shapes for the table fields (dictionary).</item>
 
 	  </description>
 
 	</subsection>
 
 	<subsection>
-	  <heading><visual markup="tt">Table</visual>
-	    methods</heading>
+	  <heading><visual markup="tt">Table</visual> methods</heading>
+
 	  <description>
 
-	    <term
-	      id="appendAsRecordDescr">appendAsRecord(RecordObject)</term>
-	      <item>Append the <verb>RecordObject</verb> to the output
-	      buffer of the table instance.
+	    <term id="iterrowsDescr">iterrows(start=None, stop=None,
+	      step=None)</term> <item>Returns an iterator yielding Row
+	      instances built from rows in table. This method is
+	      actually a <em>generator</em>, i.e. it keeps track on
+	      the last record returned so that next time it is invoked
+	      it returns the next available row. If a range is
+	      supplied (i.e. some of the <em>start</em>, <em>stop</em>
+	      or <em>step</em> parameters are passed), only the
+	      appropriate rows are returned. Else, all the rows are
+	      returned.
 
 	      <description>
+		<term>start</term> <item>Sets the starting row to
+		  return data. It accepts negative values meaning that
+		  the count starts from the end.</item>
 
-		<term>RecordObject</term> <item>An instance of the
-		  user-defined record class. It has to be a
-		  <verb>IsRecord</verb> descendant instance. If it is
-		  not, a <verb>ValueError</verb> exception is
-		  raised.</item>
+		<term>stop</term> <item>Sets the last row to be
+		  returned to stop - 1, i.e. the end point is omitted
+		  (in the Python <verb>range</verb> tradition). It
+		  accepts, likewise start, negative values. A special
+		  value of 0 means the last row.
+		</item>
+
+		<term>step</term> <item>When step is given, it
+		  specifies the increment. Negative values are not
+		  allowed right now.</item>
 
 	      </description>
 
 	    </item>
 
-	    <term
-	      id="appendAsTupleDescr">appendAsTuple(tupleValues)</term>
-	      <item>Append the <em>tupleValues</em> tuple to the
-	      output buffer of the table instance. This method is
-	      faster (but also unsafer, because requires user to
-	      introduce the values in correct order!) than
-	      <verb>appendAsRecord</verb> method.
+	    <term id="readDescr">read(self, start=None, stop=None,
+	      step=None, field=None, flavor=None)</term> <item>Returns
+	      the actual data in <verb>Table</verb>. If <em>field</em>
+	      is not supplied, it returns the data as a
+	      <verb>RecArray</verb> object table.
 
 	      <description>
 
-		<term>tupleValues</term> <item> is a tuple that has
-		  values for all the user record fields. The user has
-		  to provide them in the order determined by
-		  alphanumerically sorting the record name
-		  fields.</item>
+		<term>start</term> <item>Sets the starting row to
+		  return data. It accepts negative values meaning that
+		  the count starts from the end.</item>
+
+		<term>stop</term> <item>Sets the last row to be
+		  returned to stop - 1, i.e. the end point is omitted
+		  (in the Python <verb>range</verb> tradition). It
+		  accepts, likewise start, negative values. A special
+		  value of 0 means the last row.
+		</item>
+
+		<term>step</term> <item>When step is given, it
+		  specifies the increment. Negative values are not
+		  allowed right now.</item>
+
+		<term>field</term> <item>If specified, only the column
+		  <em>field</em> is returned as a
+		  <verb>NumArray</verb> object. If this is not
+		  supplied, all the fields are selected and a RecArray
+		  is returned.</item>
+
+		<term>flavor</term> <item>When a field in table is
+		  selected, passing a <em>flavor</em> parameter make
+		  an additional conversion to happen in the default
+		  <verb>NumArray</verb> object. <em>flavor</em> must
+		  have any of the next values: <verb>Numeric</verb>,
+		  <verb>Tuple</verb> or <verb>List</verb>. </item>
 
 	      </description>
 	    </item>
-
-	    <term
-	      id="appendAsValuesDescr">appendAsValues(*values)</term>
-	      <item> Append the <em>values</em> parameters to the
-	      table output buffer. This method is faster (and unsafer,
-	      because requires user to introduce the values in correct
-	      order) than <verb>appendAsRecord</verb> method. It is
-	      similar to the <verb>appendAsTuple</verb> method, but
-	      accepts separate parameters as values instead of a
-	      monolithic tuple.
-        
-	      <description>
-		<term>values</term> <item>Is a series of parameters
-		that provides values for all the user record
-		fields. The user has to provide them in the order
-		determined by alphanumerically sorting the record
-		fields.</item>
-	      </description>
-	    </item>
-
-	    <term id="readAsRecordsDescr">readAsRecords()</term>
-	      <item>Returns an iterator yielding record instances
-	      built from rows in table. This method is a
-	      <em>generator</em>, i.e. it keeps track on the last
-	      record returned so that next time it is invoked it
-	      returns the next available record. It is slower than
-	      <verb>readAsTuples</verb> but in exchange, it returns
-	      full-fledged instance records.</item>
-
-	    <term id="readAsTuplesDescr">readAsTuples()</term>
-	      <item>Returns an iterator yielding tuples built from
-	      rows in table. This method is a <em>generator</em>,
-	      i.e. it keeps track on the last record returned so that
-	      next time it is invoked it returns the next available
-	      record. This method is twice as faster than
-	      readAsRecords, but it yields the rows as
-	      (alphanumerically ordered) tuples, instead of
-	      full-fledged instance records.</item>
-
-	    <term>flush()</term> <item>Flush the table buffers.</item>
-
-	    <term>close()</term> <item>Flush the table buffers and
-	      close the HDF5 dataset.</item>
-
 	  </description>
-
 	</subsection>
+      </section>
 
+      <section id="RowClassDescr">
+	<heading>The <visual markup="tt">Row</visual>
+	class</heading>
+
+	<p>This class is used to fetch and set values on the table
+	  fields. It works very much like a dictionary, where the keys
+	  are the field names of the associated table and the values
+	  are the values of those fields in a specific row.
+	</p>
+	<p>This object turns out to actually be an extension type, so
+	  you won't be able to access their documentation
+	  interactively. Neither you won't be able to access it's
+	  internal attributes (they are not directly accessible from
+	  Python), although that <em>accessors</em> (i.e. methods that
+	  return an internal attribute) has been defined for the most
+	  important variables.
+	</p>
+
+	<subsection>
+	  <heading><visual markup="tt">Row</visual>
+	    methods</heading>
+
+	  <description>
+
+	    <term id="appendRowDescr">append()</term> <item>Once you
+	    have filled the proper fields for the current row, calling
+	    this method actually commit this data to the disk
+	    (actually data is written to the output buffer).</item>
+
+	    <term>nrow()</term> <item>Accessor that returns the current
+	      row in the table. It is useful to know which row is being
+	      dealt with in the middle of a loop.</item>
+	  </description>
+	</subsection>
       </section>
 
       <section id="ArrayClassDescr">
-	<heading>The <visual markup="tt">Array</visual> class</heading>
+	<heading>The <visual markup="tt">Array</visual>
+	class</heading>
 
 	<p>Represents a <verb>Numeric</verb> array on file. It
 	  provides methods to create new arrays or open existing ones,
@@ -2556,13 +2837,17 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	  array objects in the file.
 	</p>
 	<p><visual markup="bf">Caveat:</visual> All
-	  <verb>Numeric</verb> typecodes are supported except
-	  "<verb>F</verb>" and "<verb>D</verb>" which corresponds to
-	  complex data types<footnote>However, these might be included
-	  in short future</footnote>. See <ref
-	  refid="Numerical">reference</ref> to know more about the
-	  <verb>Numerical Python</verb> package, and in particular
-	  about supported data types.
+	  <verb>Numeric</verb> and <verb>numarray</verb> typecodes are
+	  supported except those that corresponds to complex data
+	  types<footnote>However, these might be included in the
+	  future</footnote>. See <verb>numarray</verb> manual (<ref
+	  refid="Numarray">reference</ref>) to know more about the
+	  supported data types, or see <ref
+	  refid="datatypesSupported">appendix</ref>.
+	</p>
+
+	<p>Please note that this object inherits all the public
+	  attributes and methods from <verb>Leaf</verb>.
 	</p>
 
 	<subsection id="ArrayClassInstanceVariables">
@@ -2570,17 +2855,14 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	    variables</heading>
 	  <description>
 
-	    <term>name</term>
-	    <item>The node name.</item>
+	    <term>type</term> <item>The type class of the represented
+	      array.</item>
 
-	    <term>title</term>
-	    <item>The node title.</item>
-
-	    <term>shape</term> <item>tuple with the array shape (in
-	      the Numeric style).</item>
-
-	    <term>typecode</term>
-	    <item>The typecode of the represented array.</item>
+	    <term>flavor</term> <item>The string object representation
+	      for this array. It can be any of <em>"NumArray"</em>,
+	      <em>"CharArray"</em>, <em>"Numeric"</em>,
+	      <em>"List"</em>, <em>"Tuple"</em>, <em>"String"</em>,
+	      <em>"Int"</em> or <em>"Float"</em> values.</item>
 
 	  </description>
 
@@ -2590,41 +2872,40 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	  <heading><visual markup="tt">Array</visual>
 	    methods</heading>
 
-	  <p>The methods for this class are very few. Please note that
-	    this object has not internal I/O buffers, so there is no
-	    need to call flush() method. However, it is included for
-	    consistency with <verb>Leaf</verb> nodes.</p>
+	  <p>Note that, as this object has not internal I/O buffers,
+	    there is no point in calling flush() method inherited from
+	    <verb>Leaf</verb>.
+	  </p>
 
 	  <description>
 
 	    <term id="readArrayDescr">read()</term> <item>Read the
-	      array from disk and return it as a Numeric object. Note
-	      that while this method is not called, the actual array
-	      data is resident on disk.</item>
-
-	    <term>flush()</term> <item>Flush the internal
-	      buffers. Remember: this is a do-nothing method.</item>
-
-	    <term>close()</term> <item>Close the array on file.</item>
+	      array from disk and return it as a <verb>NumArray</verb>
+	      (default) object, or if possible, with the original
+	      <em>flavor</em> that it was saved. The supported flavors
+	      are: <verb>NumArray</verb>, <verb>CharArray</verb>,
+	      <verb>Numeric</verb>, <verb>List</verb>,
+	      <verb>Tuple</verb>, <verb>String</verb>,
+	      <verb>Int</verb> or <verb>Float</verb>. Note that as
+	      long as this method is not called, the actual array data
+	      is resident on disk, not in memory.</item>
 
 	  </description>
-
 	</subsection>
-
       </section>
-
     </chapter>
 
     <appendix>
       <chapter id="datatypesSupported">
 	<heading>Supported data types in tables</heading>
 
-	<p><verb>IsRecord</verb> descendants supports a limited set of
-	  data types to define the table fields. This is roughly the
-	  same that the set supported by the <visual
-	  markup="tt">array</visual> module in Python, with some
-	  additions that will be briefly discussed shortly. The
-	  supported set is listed on <ref
+	<p><verb>IsColDescr</verb> descendants supports a limited set
+	  of data types to define the table fields. This is roughly
+	  the same that the set supported by the <visual
+	  markup="tt">numarray</visual> package (see <ref
+	  refid="Numarray">reference</ref>) in Python, with the
+	  exception of the complex datatypes that are not supported
+	  yet. The supported set is listed on <ref
 	  refid="datatypesSupported">table</ref>.
 	</p>
 
@@ -2635,44 +2916,23 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	      Python Counterpart</srow>
 	  </tabhead>
 	  <tabbody>
-	    <srow>'c' | 8-bit character | char | 1 | String of length 1 </srow>
-	    <srow>'b' | 8-bit integer | signed char | 1 | Integer </srow>
-	    <srow>'B' | 8-bit unsigned integer | unsigned char | 1 | Integer </srow>
-	    <srow>'h' | 16-bit integer | short | 2 | Integer </srow>
-	    <srow>'H' | 16-bit unsigned integer | unsigned short | 2 | Integer </srow>
-	    <srow>'i' | integer | int | 4 or 8 | Integer </srow>
-	    <srow>'I' | unsigned integer | unsigned int | 4 or 8 | Long </srow>
-	    <srow>'l' | long integer | long | 4 or 8 | Integer </srow>
-	    <srow>'L' | unsigned long integer | unsigned long | 4 or 8 | Long </srow>
-	    <srow>'q' | long long integer | long long | 8 | Long </srow>
-	    <srow>'Q' | unsigned long long integer | unsigned long long | 8 | Long </srow>
-	    <srow>'f' | single-precision float | float | 4 | Float </srow>
-	    <srow>'d' | double-precision float | double | 8 | Float </srow>
-	    <srow>'s' | arbitrary length string | char[] | * | String </srow>
+	    <srow>'Int8' | 8-bit integer | signed char | 1 | Integer </srow>
+	    <srow>'UInt8' | 8-bit unsigned integer | unsigned char | 1 | Integer </srow>
+	    <srow>'Int16' | 16-bit integer | short | 2 | Integer </srow>
+	    <srow>'UInt16' | 16-bit unsigned integer | unsigned short | 2 | Integer </srow>
+	    <srow>'Int32' | integer | int | 4  | Integer </srow>
+	    <srow>'UInt32' | unsigned integer | unsigned int | 4 | Long </srow>
+	    <srow>'Int64' | long long integer | long long | 8 | Long </srow>
+	    <srow>'UInt64' | unsigned long long integer | unsigned long long | 8 | Long </srow>
+	    <srow>'Float32' | single-precision float | float | 4 | Float </srow>
+	    <srow>'Float64' | double-precision float | double | 8 | Float </srow>
+	    <srow>'CharType' | arbitrary length string | char[] | * | String </srow>
 	  </tabbody>
 	</tabular>
 	  <caption>Data types supported by <visual
-	      markup="tt">IsRecord</visual> descendants.</caption>
+	      markup="tt">IsColDescr</visual> descendants.</caption>
 	</table>
 
-	<p>The additions to the array module typecodes are the <visual
-	  markup="tt">'q'</visual>, <visual markup="tt">'Q'</visual>
-	  and <visual markup="tt">'s'</visual>.  The <visual
-	  markup="tt">'q'</visual> and <visual
-	  markup="tt">'Q'</visual> conversion codes are available in
-	  native mode only if the platform C compiler supports C long
-	  long, or, on Windows, __int64. They are always available in
-	  standard modes. The <visual markup="tt">'s'</visual>
-	  typecode can be preceded by an integer to indicate the
-	  maximum length of the string, so <visual
-	  markup="tt">'16s'</visual> represents a 16-byte string.</p>
-
-	<p>Also note that when the <visual markup="tt">'I'</visual>
-	  and <visual markup="tt">'L'</visual> codetypes are used in
-	  records, Python uses internally <visual
-	  markup="tt">Long</visual> integers to represent them, that
-	  can (or cannot, depending on what you are trying to do) be
-	  a source of inefficiency in your code.</p>
       </chapter>
     </appendix>
   </mainmatter>
