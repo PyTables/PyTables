@@ -304,8 +304,8 @@ class CompareTestCase(unittest.TestCase):
 		h5file.close()
 
 		arr = numarray.array(arr)
-		orig_val = numarray.arange(
-			0.012, nrows, type = numarray.Float64, shape = (nrows, 1))
+		orig_val = numarray.arange(0, nrows, 0.5, type = numarray.Int32,
+		                           shape = (nrows, 1, 2)) + 0.012
 		if verbose:
 			print "Original values:", orig_val
 			print "Saved values:", arr
