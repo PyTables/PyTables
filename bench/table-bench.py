@@ -158,8 +158,9 @@ def readFile(filename, recsize, verbose):
                 #      if p.grid_i < 2 ]
 #                 e = [ p['grid_i'] for p in table.iterrows() 
 #                       if p['grid_j'] == 20 and p['grid_i'] < 20 ]
-                e = [ p['grid_i'] for p in table(step=1) 
-                      if p['grid_j'] == 20 ]
+#                 e = [ p['grid_i'] for p in table(step=1) 
+#                       if p['grid_j'] <= 2 ]
+                e = [ p['grid_i'] for p in table(step=1, where=("grid_i<=20"))]
 #                 e = [ p['grid_i'] for p in table.iterrows() 
 #                       if p.nrow() == 20 ]
 #                 e = [ table.delrow(p.nrow()) for p in table.iterrows() 
@@ -171,8 +172,10 @@ def readFile(filename, recsize, verbose):
                 #    if p.grid_i < 20:
                 #        e.append(p.grid_j)
             else:  # small record case
-                e = [ p['var3'] for p in table.iterrows()
-                      if p['var2'] < 20 and p['var3'] < 20 ]
+#                 e = [ p['var3'] for p in table.iterrows()
+#                       if p['var2'] < 20 and p['var3'] < 20 ]
+               e = [ p['var3'] for p in table(where="var3 <= 20")
+                     if p['var2'] < 20 ]
 #                 e = [ p['var3'] for p in table.iterrows()
 #                       if p['var2'] <= 20 ]
                 #e = [ p['var3'] for p in table.iterrows(0,21) ]

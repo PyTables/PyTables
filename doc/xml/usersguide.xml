@@ -57,7 +57,7 @@
 	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 	EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-	<newline vspace="1cm"/>
+	<newline vspace="1cm"/> 
       </p>
 
 <!-- NCSA license -->
@@ -78,39 +78,8 @@
       <p>See more information about the terms of this license at:
 	<newline/> <url
 	name="http://hdf.ncsa.uiuc.edu/HDF5/doc/Copyright.html"><verb>http://hdf.ncsa.uiuc.edu/HDF5/doc/Copyright.html</verb></url>
-	<newline vspace="1cm"/>
+<!--	<newline vspace="1cm"/> -->
       </p>
-
-      <!-- numarray license -->
-
-      <!-- This is not needed anymore, as PyTables does not include a
-      private copy of the numarray.records module -->
-
-<!--       <p><visual markup="bf">Copyright Notice and Statement for AURA -->
-<!-- 	  <em>numarray</em> software library</visual> -->
-<!-- 	<newline vspace="0.25cm"/> -->
-<!--       </p> -->
-
-
-<!--       <p>Copyright (C) 2001 Association of Universities for Research -->
-<!-- 	in Astronomy (AURA) <newline vspace="0.25cm"/> -->
-<!--       </p> -->
-
-
-<!--       <p> -->
-<!-- 	THIS SOFTWARE IS PROVIDED BY AURA ``AS IS'' AND ANY EXPRESS OR -->
-<!-- 	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED -->
-<!-- 	WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR -->
-<!-- 	PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL AURA BE LIABLE FOR -->
-<!-- 	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR -->
-<!-- 	CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, -->
-<!-- 	PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, -->
-<!-- 	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND -->
-<!-- 	ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT -->
-<!-- 	LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING -->
-<!-- 	IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF -->
-<!-- 	THE POSSIBILITY OF SUCH DAMAGE. -->
-<!--       </p> -->
 
     </legalnotice>
   </frontmatter>
@@ -127,7 +96,7 @@
     foundation for the underlying hierarchical data organization.
   </p>
 
-  <p><visual markup="tt">PyTables</visual> is designed to be
+    <p><visual markup="tt">PyTables</visual> is designed to be
     an easy-to-use as well as high-performance interface to
     HDF5.  The latest improvements introduced in Python 2.2 (such as 
     generators, iterators and metaclasses in new-brand classes) have been 

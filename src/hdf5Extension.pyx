@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.123 2004/04/29 17:04:27 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.124 2004/05/06 17:34:35 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.123 $"
+__version__ = "$Revision: 1.124 $"
 
 
 import sys, os
@@ -853,7 +853,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.123 2004/04/29 17:04:27 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.124 2004/05/06 17:34:35 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1738,7 +1738,13 @@ cdef class Row:
   cdef int _row, _nrowinbuf, _nrow, _unsavednrows, _strides
   cdef int start, stop, step, nextelement, nrowsinbuf, nrows, nrowsread
   cdef int bufcounter, recout, counter, startb, stopb,  _all
-  cdef int *_scalar, *_enumtypes, _r_initialized_buffer, _w_initialized_buffer
+  cdef int *_scalar, *_enumtypes, _r_initialized_buffer,_w_initialized_buffer
+  cdef int indexChunk
+  cdef object indexValid
+  cdef int whereCond
+  cdef double startcond, stopcond
+  cdef int op1, op2
+  cdef char *colname
 
   def __new__(self, table):
   #def __new__(self, Table table):
@@ -1820,15 +1826,25 @@ cdef class Row:
     self._nrow = start - self.step
     self._table._open_read(self._recarray)  # Open the table for reading
 
+    # Do we have selections?
+    self.whereCond = 0
+    if hasattr(self._table, "whereColname"):
+      self.whereCond = 1
+      # Get values for the where condition
+      self.startcond = self._table.startcond
+      self.stopcond = self._table.stopcond
+      self.op1 = self._table.op1
+      self.op2 = self._table.op2
+      self.colname = PyString_AsString(self._table.whereColname)
+
   # This is the general version for __next__, and the more compact and fastest
   def __next__(self):
     "next() method for __iter__() that is called on each iteration"
-    
+    cdef long offset
+    cdef object indexValid1, indexValid2
+
     self.nextelement = self._nrow + self.step
-    if self.nextelement >= self.stop:
-      self._table._close_read()  # Close the table
-      raise StopIteration        # end of iteration
-    else:
+    while self.nextelement < self.stop:
       if self.nextelement >= self.nrowsread:
         # Skip until there is interesting information
         while self.nextelement >= self.nrowsread + self.nrowsinbuf:
@@ -1844,14 +1860,48 @@ cdef class Row:
         self.nrowsread = self.nrowsread + self.recout
         if self._table.byteorder <> sys.byteorder:
           self._recarray._byteswap()
+        self.indexChunk = -1
+        # Do we have a select condition?
+        if self.whereCond:
+          if self.op1 == 1:
+            indexValid1 = self._fields[self.colname].__gt__(self.startcond)
+          elif self.op1 == 2:
+            indexValid1 = self._fields[self.colname].__ge__(self.startcond)
+          if self.op2 == 1:
+            indexValid2 = self._fields[self.colname].__lt__(self.stopcond)
+          elif self.op2 == 2:
+            indexValid2 = self._fields[self.colname].__le__(self.stopcond)
+          if self.op1 and self.op2:
+            self.indexValid = indexValid1.__and__(indexValid2)
+          elif self.op1:
+            self.indexValid = indexValid1
+          elif self.op2:
+            self.indexValid = indexValid2
 
+          # Is still there any interesting information in this buffer?
+          if not numarray.sometrue(self.indexValid):
+            # No, so take the next one
+            self.nextelement = self.nextelement + self.nrowsinbuf
+            continue
+      
+      self.indexChunk = self.indexChunk + 1
       self._row = self._row + self.step
       self._nrow = self.nextelement
       if self._row + self.step >= self.stopb:
         # Compute the start row for the next buffer
         self.startb = (self._row + self.step) % self.nrowsinbuf
 
-      return self
+      self.nextelement = self._nrow + self.step
+      # Return only if this value is interesting
+      if self.whereCond:
+        if self.indexValid[self.indexChunk]:
+          return self
+      else:
+        return self
+    else:
+      self._table._close_read()  # Close the table
+      raise StopIteration        # end of iteration
+
 
   def _fillCol(self, result, start, stop, step, field):
     "Read a field from a table on disk and put the result in result"

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.107 2004/05/03 16:41:50 falted Exp $
+#       $Id: Table.py,v 1.108 2004/05/06 17:34:35 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.107 $"
+__version__ = "$Revision: 1.108 $"
 
 from __future__ import generators
 import sys
@@ -315,6 +315,44 @@ class Table(Leaf, hdf5Extension.Table, object):
         Table.iterrows(start, stop, step).
         It is, therefore, a shorter way to call it.
         """
+
+        if where and 1:   # Proves
+            # Parse the condition in the form : {number <{=}} name {<{=} number}
+            regex = r'([\d\.eE]*)\s*(<={0,1})*\s*(\w*)\s*(<={0,1})*\s*([\d\.eE]*)'
+            m=re.search(regex, where)
+            (startcond, op1, colname, op2, stopcond) = m.groups()
+            #print "-->", (startcond, op1, colname, op2, stopcond)
+            if (startcond == None and stopcond == None):
+                raise RuntimeError, \
+                      "The selection has not proper limits (inf and sup)."
+            if (op1 == None and op2 == None):
+                raise RuntimeError, \
+                      "The selection has not a relational operand."
+            if colname == None:
+                raise RuntimeError, \
+                      "The selection has not a column name to operate on."
+                
+            if startcond:
+                self.startcond = float(startcond)
+            else:
+                self.startcond = 0.0
+            if stopcond:
+                self.stopcond = float(stopcond)
+            else:
+                self.stopcond = 0.0
+            if op1 == "<":
+                self.op1 = 1
+            elif op1 == "<=":
+                self.op1 = 2
+            else:
+                self.op1 = 0
+            if op2 == "<":
+                self.op2 = 1
+            elif op2 == "<=":
+                self.op2 = 2
+            else:
+                self.op2 = 0
+            self.whereColname = colname
 
         if where and 0:   # Suport per a indexacio
             # Parse the condition in the form : {number <{=}} name {<{=} number}

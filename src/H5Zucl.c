@@ -9,6 +9,8 @@
 
 #ifdef HAVE_UCL_LIB
 #   include "ucl.h"
+/* Comment this until ucl 1.02 and on are more spread... */
+/* #   include "ucl_asm.h" */
 #endif
 #include "tables.h"
 
@@ -195,6 +197,10 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
       else
 	status = ucl_nrv2e_decompress_safe_8(*buf, (ucl_uint)nbytes, outbuf,
 					     &out_len, NULL);
+	/* This _asm version goes a 15% faster than de C version,
+	 but until ucl 1.02 spreads, it is better to keep the C version */
+/* 	status = ucl_nrv2e_decompress_asm_safe_8(*buf, (ucl_uint)nbytes, */
+/* 						 outbuf, &out_len, NULL); */
       /* Check if success */
       if (status == UCL_E_OK) {
 #ifdef DEBUG
