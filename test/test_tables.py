@@ -342,6 +342,7 @@ class BasicTestCase(unittest.TestCase):
             print "Total selected records in table ==>", len(result2)
 
         assert table.nrows == nrows - 1
+        assert table.shape == (nrows - 1,)
         # Check that the new list is smaller than the original one
         assert len(result) == len(result2) + 1
         assert result[:-1] == result2
@@ -379,6 +380,7 @@ class BasicTestCase(unittest.TestCase):
             print "Total selected records in table ==>", len(result2)
 
         assert table.nrows == nrows - 10
+        assert table.shape == (nrows - 10,)
         # Check that the new list is smaller than the original one
         assert len(result) == len(result2) + 10
         assert result[:10] == result2
@@ -411,6 +413,7 @@ class BasicTestCase(unittest.TestCase):
             print "Total selected records in table ==>", len(result2)
 
         assert table.nrows == 10
+        assert table.shape == (10,)
         # Check that the new list is smaller than the original one
         assert len(result) == len(result2) + 10
         assert result[:10] == result2
@@ -474,6 +477,7 @@ class BasicTestCase(unittest.TestCase):
             print "Total selected records in table ==>", len(result2)
 
         assert table.nrows == nrows - 5
+        assert table.shape == (nrows - 5,)
         # Check that the new list is smaller than the original one
         assert len(result) == len(result2) + 5
         # The last values has to be equal

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.15 2004/08/21 17:10:04 falted Exp $
+#       $Id: Index.py,v 1.16 2004/08/25 21:26:56 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.15 $"
+__version__ = "$Revision: 1.16 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -390,8 +390,14 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
             arr.sort()
             self.sorted.append(arr)
         else:
-            self.sorted.append(numarray.sort(arr))
-            self.indices.append(numarray.argsort(arr))
+            #self.sorted.append(numarray.sort(arr))
+            #self.indices.append(numarray.argsort(arr))
+            # The next is a 10% faster, but the ideal solution would
+            # be to find a funtion in numarray that returns both
+            # sorted and argsorted all in one call
+            s=numarray.argsort(arr)
+            self.indices.append(s)
+            self.sorted.append(arr[s][0])
         # Update nrows after a successful append
         self.nrows = self.sorted.nrows
         self.nelements = self.nrows * self.nelemslice

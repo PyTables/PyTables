@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IndexArray.py,v $
-#       $Id: IndexArray.py,v 1.7 2004/08/10 07:48:51 falted Exp $
+#       $Id: IndexArray.py,v 1.8 2004/08/25 21:26:56 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.7 $"
+__version__ = "$Revision: 1.8 $"
 # default version for IndexARRAY objects
 obversion = "1.0"    # initial version
 
@@ -69,40 +69,33 @@ def calcChunksize(expectedrows, testmode=0):
         return (nelemslice, chunksize)
 
     # expKrows < 0.01 is to few for indexing to represent a significant gain
-    if expKrows < 0.01: # expected rows < 10 thousand
-        nelemslice = 1000  # > 1/100th
+    # (that has been checked experimentally)
+#     if expKrows < 0.01: # expected rows < 10 thousand
+#         nelemslice = 1000  # > 1/100th
+#         chunksize = 1000
+    if expKrows < 0.1: # expected rows < 100 thousand
+        nelemslice = 5000  # (best experimental)
         chunksize = 1000
-    elif expKrows < 0.1: # expected rows < 100 thousand
-        nelemslice = 10000  # > 1/10th
-        chunksize = 1000
-        #chunksize = 2000  # Experimental
     elif expKrows < 1: # expected rows < 1 milion
-        nelemslice = 100000  # > 1/10th
-        #chunksize = 1000
-        chunksize = 5000  # Experimental
+        nelemslice = 20000  # (best experimental)
+        chunksize = 5000
     elif expKrows < 10:  # expected rows < 10 milion
-        nelemslice = 500000  # > 1/20th
-        #chunksize = 1000
-        chunksize = 5000  # Experimental (best)
-        #chunksize = 10000  # Experimental
+        #nelemslice = 500000  # > 1/20th (best for best case)
+        nelemslice = 100000 # Best for worst case
+        #chunksize = 5000  # Experimental (best for best case)
+        chunksize = 5000  # best for worst case
     elif expKrows < 100: # expected rows < 100 milions
-        nelemslice = 1000000 # > 6/100th
-        #chunksize = 2000
-        chunksize = 10000  # Experimental
+        nelemslice = 100000 
+        chunksize = 5000
     elif expKrows < 1000: # expected rows < 1000 millions
-#             nelemslice = 1000000 # > 1/1000th
-#             chunksize = 1500
-#            nelemslice = 1500000 # > 1/1000th
-        nelemslice = 1500000 # > 1/1000th
-        #chunksize = 5000
-        chunksize = 10000   # Experimental
+        nelemslice = 200000 # Experimental (best)
+        #chunksize = 10000   # Experimental (best)
+        chunksize = 10000
     else:  # expected rows > 1 billion
         #nelemslice = 1000000 # 1/1000  # Better for small machines
-        #chunksize = 1000
-#             nelemslice = 1500000 # 1.5/1000  # Better for medium machines
-#             chunksize = 3000
-        nelemslice = 2000000 # 2/1000  # Better for big machines
-        #chunksize = 10000
+        #nelemslice = 2000000 # 2/1000  # Better for big machines
+        nelemslice = 500000
+        #chunksize = 5000
         chunksize = 10000  # Experimental
 
     #print "nelemslice, chunksize -->", (nelemslice, chunksize)
@@ -238,6 +231,7 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
 
     def append(self, arr):
         """Append the object to this (enlargeable) object"""
+        #print "arr.shape-->", arr.shape
         arr.shape = (1, arr.shape[0])
         self._append(arr)
 

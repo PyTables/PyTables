@@ -6,9 +6,21 @@ import sys
 import os
 import os.path
 from tables import *
+import numarray
+from numarray import strings
+from numarray import random_array
 
-# pysco is off by default
+randomvalues = 0
+standarddeviation = 10000
+# Initialize the random generator always with the same integer
+# in order to have reproductible results
+random.seed(19)
+random_array.seed(19, 20)
+
+# defaults
+heavy = 0
 psycon = 0
+worst = 0
 
 def createNewBenchFile(bfile, verbose):
 
@@ -21,8 +33,8 @@ def createNewBenchFile(bfile, verbose):
         tcidx   = FloatCol(pos=5)
         rowsecf = FloatCol(pos=6)
         rowseci = FloatCol(pos=7)
-        fsizek  = FloatCol(pos=8)
-        fsizeik = FloatCol(pos=9)
+        fsize   = FloatCol(pos=8)
+        isize   = FloatCol(pos=9)
         psyco   = BoolCol(pos=10)
 
     class Search(IsDescription):
@@ -47,7 +59,8 @@ def createNewBenchFile(bfile, verbose):
         if recsize == "small":
             group._v_attrs.rowsize = 16
         # Create a Table for writing bench
-        bf.createTable(group, "create", Create, "create bench")
+        bf.createTable(group, "create_indexed", Create, "indexed values")
+        bf.createTable(group, "create_standard", Create, "standard values")
         # create a group for searching bench
         groupS = bf.createGroup(group, "search", "Search Group")
         # Create Tables for searching
@@ -104,43 +117,75 @@ CREATE INDEX ivar3 ON small(var3);
     SQL = "insert into small values(NULL, %s)" % place_holders
     time1 = time.time()
     cpu1 = time.clock()
-    for rowcount in xrange(nrows):
-        fields = ("%.4s" % rowcount, rowcount, float(nrows-rowcount))
-        cursor.execute(SQL, fields)
-    conn.commit()
+#     for rowcount in xrange(nrows):
+#         fields = ("%.4s" % rowcount, rowcount, float(nrows-rowcount))
+#         cursor.execute(SQL, fields)
+#############################################
+    # This way of filling is to copy the PyTables benchmark
+    nrowsbuf = 1000
+    #mean = nrows / 2.; stddev = nrows/100.
+    # with a fixed stddev, the compression rate does not change
+    mean = nrows / 2.; stddev = float(standarddeviation)
+    for i in xrange(0, nrows, nrowsbuf):
+        if i+nrowsbuf > nrows:
+            j = nrows
+        else:
+            j = i+nrowsbuf
+        var1 = strings.array(None, shape=[j-i], itemsize=4)
+        if randomvalues:
+            var3 = random_array.normal(mean, stddev, shape=[j-i])
+            var2 = numarray.array(var3, type=numarray.Int32)
+        else:
+            var2 = numarray.arange(i, j, type=numarray.Int32)
+            # var3 = numarray.arange(i, j, type=numarray.Float64)
+            var3 = numarray.arange(nrows-i, nrows-j, -1, type=numarray.Float64)
+        if not heavy:
+            for n in xrange(j-i):
+                var1[n] = str("%.4s" % var2[n])
+        for n in xrange(j-i):
+            fields = (var1[n], var2[n], var3[n])
+            cursor.execute(SQL, fields)
+        conn.commit()
+###########################################
     t1 = round(time.time()-time1, 5)
     tcpu1 = round(time.clock()-cpu1, 5)
-    rowsecf = round((nrows/10.**6)/t1, 3)
-    size1 = round(os.stat(dbfile)[6] / (1024.*1024), 3)
+    rowsecf = nrows/t1
+    size1 = os.stat(dbfile)[6]
     print "******** Results for writing nrows = %s" % (nrows), "*********"
     print "Insert time:", t1, ", KRows/s:", round((nrows/10.**3)/t1, 3),
-    print ", File size:", size1, "MB"
+    print ", File size:", round(size1/(1024.*1024.), 3), "MB"
     # Indexem
     if indexmode == "indexed":
         time1 = time.time()
         cpu1 = time.clock()
-        cursor.execute("CREATE INDEX ivar1 ON small(var1)")
+        if not heavy:
+            cursor.execute("CREATE INDEX ivar1 ON small(var1)")
+            conn.commit()
         cursor.execute("CREATE INDEX ivar2 ON small(var2)")
+        conn.commit()
         cursor.execute("CREATE INDEX ivar3 ON small(var3)")
         conn.commit()
         t2 = round(time.time()-time1, 5)
         tcpu2 = round(time.clock()-cpu1, 5)
-        rowseci = round((nrows/10.**6)/t2, 3)
+        rowseci = nrows/t2
         print "Index time:", t2, ", IKRows/s:", round((nrows/10.**3)/t2, 3),
-        size2 = round(os.stat(dbfile)[6] / (1024.*1024), 3)
-        print ", Final size with index:", size2, "MB"
+        size2 = os.stat(dbfile)[6] - size1
+        print ", Final size with index:", round(size2/(1024.*1024),3), "MB"
     else:
         t2 = 0.
         tcpu2 = 0.
         rowseci = 0.
-        size2 = size1
+        size2 = 0.
 
     conn.close()
 
     # Collect benchmark data
     bf = openFile(bfile,"a")
     recsize = "sqlite_small"
-    table = bf.getNode("/"+recsize+"/create")
+    if indexmode == "indexed":
+        table = bf.getNode("/"+recsize+"/create_indexed")
+    else:
+        table = bf.getNode("/"+recsize+"/create_standard")
     table.row["nrows"] = nrows
     table.row["irows"] = nrows
     table.row["tfill"] = t1
@@ -150,8 +195,8 @@ CREATE INDEX ivar3 ON small(var3);
     table.row["psyco"] = psycon
     table.row["rowsecf"] = rowsecf
     table.row["rowseci"] = rowseci
-    table.row["fsizek"] = size1
-    table.row["fsizeik"] = size2
+    table.row["fsize"] = size1
+    table.row["isize"] = size2
     table.row.append()
     bf.close()
 
@@ -179,27 +224,62 @@ def readFile(dbfile, nrows, indexmode, bfile, riter):
 
     # Open the benchmark database
     bf = openFile(bfile,"a")
-    # Execute queries
+    #default values for the case that columns are not indexed
     rowselected = 0
     t2 = 0.
     tcpu2 = 0.
-    for atom in ["string", "int", "float"]:
+    # Some previous computations for the case of random values
+    if randomvalues:
+        # algorithm to choose a value separated from mean
+        if standarddeviation*10 < nrows/2:
+            # Choose three standard deviations away from mean value
+            dev = standarddeviation*4
+            #dev = standarddeviation*math.log10(nrows/1000.)
+        else:
+            dev = 100
+        valmax = int(round((nrows/2.)-dev))
+        # split the selection range in regular chunks
+        if riter > valmax*2:
+            riter = valmax*2
+        chunksize = (valmax*2/riter)*10 
+        # Get a list of integers for the intervals
+        randlist = range(0, valmax, chunksize)
+        randlist.extend(range(nrows-valmax, nrows, chunksize))
+        # expand the list ten times so as to use the cache
+        randlist = randlist*10
+        # shuffle the list
+        random.shuffle(randlist)
+        # reset the value of chunksize
+        chunksize = chunksize/10
+        #print "chunksize-->", chunksize
+        #randlist.sort();print "randlist-->", randlist
+    else:
+        chunksize = 3
+    if heavy:
+        searchmodelist = ["int", "float"]
+    else:
+        searchmodelist = ["string", "int", "float"]
+    # Execute queries
+    for atom in searchmodelist:
         time2 = 0
         cpu2 = 0
         rowsel = 0
         for i in xrange(riter):
-            rnd = random.randrange(nrows)
+            if randomvalues:
+                rnd = randlist[i]
+            else:
+                rnd = random.randrange(nrows)
             time1 = time.time()
             cpu1 = time.clock()
             if atom == "string":
                 #cursor.execute(SQL1, "1111")
                 cursor.execute(SQL1, str(rnd)[-4:])
             elif atom == "int":
-                #cursor.execute(SQL2 % (3, 5))
-                cursor.execute(SQL2 % (rnd, rnd+3))
+                #cursor.execute(SQL2 % (rnd, rnd+3))
+                cursor.execute(SQL2 % (rnd, rnd+chunksize))
             elif atom == "float":
-                #cursor.execute(SQL3 % (3, 5))
-                cursor.execute(SQL3 % (float(rnd), float(rnd+3)))
+                #cursor.execute(SQL3 % (float(rnd), float(rnd+3)))
+                cursor.execute(SQL3 % (float(rnd), float(rnd+chunksize)))
             else:
                 raise ValueError, "atom must take a value in ['string','int','float']"
             if i == 0:
@@ -243,9 +323,9 @@ def readFile(dbfile, nrows, indexmode, bfile, riter):
         table.row["tcpu1"] = tcpu1
         table.row["tcpu2"] = tcpu2
         table.row["psyco"] = psycon
-        table.row["rowsec1"] = round(nrows / float(t1), 4)/10**6
+        table.row["rowsec1"] = nrows/t1
         if t2 > 0:
-            table.row["rowsec2"] = round(nrows / float(t2), 4)/10**6
+            table.row["rowsec2"] = nrows/t2
         table.row.append()
         table.flush()  # Flush the data
 
@@ -267,9 +347,12 @@ if __name__=="__main__":
     
     import time
 
-    usage = """usage: %s [-v] [-p] [-r] [-w] [-n nrows] [-b file] [-k riter] [-m indexmode] datafile
+    usage = """usage: %s [-v] [-p] [-R] [-h] [-t] [-r] [-w] [-n nrows] [-b file] [-k riter] [-m indexmode] datafile
             -v verbose
 	    -p use "psyco" if available
+            -R use Random values for filling
+            -h heavy mode (exclude strings from timings)
+            -t worsT searching case (to emulate PyTables worst cases)
 	    -r only read test
 	    -w only write test
             -n the number of rows (in krows)
@@ -277,7 +360,7 @@ if __name__=="__main__":
             -k number of iterations for reading\n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'vprwn:b:k:m:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'vpRhtrwn:b:k:m:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -303,7 +386,13 @@ if __name__=="__main__":
         if option[0] == '-v':
             verbose = 1
         if option[0] == '-p':
-            usepsyco = 1
+            usepsyco = 1  
+        elif option[0] == '-R':
+            randomvalues = 1
+        elif option[0] == '-h':
+            heavy = 1
+        elif option[0] == '-t':
+            worst = 1
         elif option[0] == '-r':
             testwrite = 0
         elif option[0] == '-w':
@@ -322,6 +411,9 @@ if __name__=="__main__":
     # remaining parameters
     dbfile=pargs[0]
 
+    if worst:
+        nrows -= 1  # the worst case
+            
     # Create the benchfile (if needed)
     if not os.path.exists(bfile):
         createNewBenchFile(bfile, verbose)

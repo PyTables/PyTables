@@ -33,10 +33,11 @@ readdata () {
   if [ "$heavy" = "-h" -a "$smode" = "standard" ]; then
       # For heavy mode don't do a standard search
       echo "Skipping the standard search for heavy mode"
+  else
+      cmd="${python} search-bench.py -b ${bfile} ${heavy} ${psyco} -m ${smode} -r -k ${repeats} data.nobackup/bench-${libcomp}-${nrows}k.h5"
+      echo ${cmd}
+      ${cmd}
   fi
-  cmd="${python} search-bench.py -b ${bfile} ${heavy} ${psyco} -m ${smode} -r -k ${repeats} data.nobackup/bench-${libcomp}-${nrows}k.h5"
-  echo ${cmd}
-  ${cmd}
   if [ "$smode" = "standard" -a "1" = "0" ]; then
       # Finally, after the final search, delete the source (if desired)
       rm -f data.nobackup/bench-${libcomp}-${nrows}k.h5
@@ -77,11 +78,17 @@ fi
 #nrowslist="1 2"
 #nrowslistheavy="5 10"
 # This config takes 10 minutes to complete (psyco, zlib)
-nrowslist="1 2 5 10 20 50 100 200 500 1000"
-nrowslistheavy="2000 5000 10000"
+#nrowslist="1 2 5 10 20 50 100 200 500 1000"
+#nrowslistheavy="2000 5000 10000"
+nrowslist=""
+nrowslistheavy="1 2 5 10 20 50 100 200 500 1000 2000 5000 10000 20000 50000 100000"
+
 # Normal test
 #nrowslist="1 2 5 10 20 50 100 200 500 1000 2000 5000 10000"
 #nrowslistheavy="20000 50000 100000 200000 500000 1000000"
+# Big test
+#nrowslist="1 2 5 10 20 50 100 200 500 1000 2000 5000 10000"
+#nrowslistheavy="20000 50000 100000 200000 500000 1000000 2000000 5000000"
 
 for heavy in "" -h; do
     # Write data files (light mode)
@@ -94,15 +101,15 @@ for heavy in "" -h; do
 	nrowslist=$nrowslistheavy
     fi
     # Write data file
-#     for nrows in $nrowslist; do
-# 	echo "*************************************************************"
-# 	echo "Writing for nrows=$nrows Krows, psyco=$psyco, heavy='${heavy}'"
-# 	echo "*************************************************************"
-# 	writedata ${nrows} ${bfile} "${heavy}" "${psyco}"
-#     done
+    for nrows in $nrowslist; do
+	echo "*************************************************************"
+	echo "Writing for nrows=$nrows Krows, psyco=$psyco, heavy='${heavy}'"
+	echo "*************************************************************"
+	writedata ${nrows} ${bfile} "${heavy}" "${psyco}"
+    done
     # Read data files
-#    for smode in indexed inkernel standard; do
-    for smode in indexed; do
+    for smode in indexed inkernel standard; do
+#    for smode in indexed; do
 	${python} cacheout.py
 	for nrows in $nrowslist; do
 	    echo "***********************************************************"

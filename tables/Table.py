@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.126 2004/08/21 17:10:04 falted Exp $
+#       $Id: Table.py,v 1.127 2004/08/25 21:26:56 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.126 $"
+__version__ = "$Revision: 1.127 $"
 
 from __future__ import generators
 import sys
@@ -1036,6 +1036,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         nrows = stop - start
         nrows = self._remove_row(start, nrows)
         self.nrows -= nrows    # discount the removed rows from the total
+        self.shape = (self.nrows,)    # update to the new shape
         # removeRows is a invalidating index operation
         if self.indexed:
             if self.indexprops.reindex:
@@ -1491,7 +1492,7 @@ class Column(object):
         """Add more elements to the existing index """
         nelemslice = self.index.nelemslice
         indexedrows = 0
-        for i in xrange(start, nrows-nelemslice+1, nelemslice):
+        for i in xrange(start, start+nrows-nelemslice+1, nelemslice):
             arr = self[i:i+nelemslice]
             self.index.append(arr)
             indexedrows += nelemslice

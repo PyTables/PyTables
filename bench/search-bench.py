@@ -6,7 +6,20 @@ import time
 import numarray as NA
 from tables import *
 import random
+import math
 import warnings
+import numarray
+from numarray import strings
+from numarray import random_array
+
+randomvalues = 0
+standarddeviation = 10000
+# Initialize the random generator always with the same integer
+# in order to have reproductible results
+random.seed(19)
+random_array.seed(19, 20)
+
+worst=0
 
 # class Small(IsDescription):
 #     _v_indexprops = IndexProps(auto=0, filters=Filters(complevel=1, complib="zlib", shuffle=1))
@@ -16,7 +29,7 @@ import warnings
 #     var4 = BoolCol(0, indexed=1)
 
 Small = {
-    "_v_indexprops" : IndexProps(auto=0, filters=Filters(complevel=1, complib="zlib", shuffle=1)),
+    #"_v_indexprops" : IndexProps(auto=1),
     # var1 column will be indexed if not heavy test
     "var1" : StringCol(length=4, dflt="", indexed=0, pos=2),
     "var2" : IntCol(0, indexed=1, pos=1),
@@ -35,7 +48,9 @@ def createNewBenchFile(bfile, verbose):
         tcidx   = FloatCol(pos=5)
         rowsecf = FloatCol(pos=6)
         rowseci = FloatCol(pos=7)
-        psyco   = BoolCol(pos=8)
+        fsize   = FloatCol(pos=8)
+        isize   = FloatCol(pos=9)
+        psyco   = BoolCol(pos=10)
 
     class Search(IsDescription):
         nrows   = IntCol(pos=0)
@@ -59,26 +74,32 @@ def createNewBenchFile(bfile, verbose):
         if recsize == "small":
             group._v_attrs.rowsize = 16
         # Create a Table for writing bench
-        bf.createTable(group, "create", Create, "create bench")
-        # create a group for searching bench
-        groupS = bf.createGroup(group, "search", "Search Group")
-        # Create Tables for searching
-        for mode in ["indexed", "inkernel", "standard"]:
-            group = bf.createGroup(groupS, mode, mode+" Group")
-            # for searching bench
-            #for atom in ["string", "int", "float", "bool"]:
-            for atom in ["string", "int", "float"]:
-                bf.createTable(group, atom, Search, atom+" bench")
+        bf.createTable(group, "create_best", Create, "best case")
+        bf.createTable(group, "create_worst", Create, "worst case")
+        for case in ["best","worst"]:
+            # create a group for searching bench (best case)
+            groupS = bf.createGroup(group, "search_"+case, "Search Group")
+            # Create Tables for searching
+            for mode in ["indexed", "inkernel", "standard"]:
+                groupM = bf.createGroup(groupS, mode, mode+" Group")
+                # for searching bench
+                #for atom in ["string", "int", "float", "bool"]:
+                for atom in ["string", "int", "float"]:
+                    bf.createTable(groupM, atom, Search, atom+" bench")
     bf.close()
     
-def createFile(filename, nrows, filters, index, heavy, verbose):
+def createFile(filename, nrows, filters, index, heavy, auto, verbose):
 
     # Open a file in "w"rite mode
     fileh = openFile(filename, mode = "w", title="Searchsorted Benchmark",
                      filters=filters)
     rowswritten = 0
     # set the properties of the index (the same of table)
-    Small["_v_indexprops"] = IndexProps(auto=0, filters=filters)
+    if index:
+        Small["_v_indexprops"] = IndexProps(auto=auto, filters=filters)
+    else:
+        auto = 0
+        Small["_v_indexprops"] = IndexProps(auto=0, filters=filters)
     if not heavy:
         # make the index entry indexed as well
         Small["var1"] = StringCol(length=4, dflt="", indexed=1)
@@ -86,56 +107,100 @@ def createFile(filename, nrows, filters, index, heavy, verbose):
     # Create the test table
     table = fileh.createTable(fileh.root, 'table', Small, "test table",
                               None, nrows)
-    print "Filling...",
-    #print "Filling...nrows:", nrows, "Mrows:", nrows / 10**6
     t1 = time.time()
     cpu1 = time.clock()
-    for i in xrange(nrows):
-        # Assigning a string takes lots of time!
+#     for i in xrange(nrows):
+#         # Assigning a string takes lots of time!
+#         if not heavy:
+#             table.row['var1'] = str(i)
+#         #table.row['var2'] = random.randrange(nrows)
+#         table.row['var2'] = i
+#         table.row['var3'] = nrows-i
+#         #table.row['var3'] = float(nrows-i)
+#         #table.row['var4'] = i % 2
+#         #table.row['var4'] = i > 2
+#         table.row.append()
+    # This way of filling is much faster
+    nrowsbuf = table._v_maxTuples
+    #mean = nrows / 2.; stddev = nrows/100.
+    # with a fixed stddev, the compression rate does not change
+    mean = nrows / 2.; stddev = float(standarddeviation)
+    for i in xrange(0, nrows, nrowsbuf):
+        if i+nrowsbuf > nrows:
+            j = nrows
+        else:
+            j = i+nrowsbuf
+        var1 = strings.array(None, shape=[j-i], itemsize=4)
+        if randomvalues:
+            var3 = random_array.normal(mean, stddev, shape=[j-i])
+            var2 = numarray.array(var3, type=numarray.Int32)
+        else:
+            var2 = numarray.arange(i, j, type=numarray.Int32)
+            # var3 = numarray.arange(i, j, type=numarray.Float64)
+            var3 = numarray.arange(nrows-i, nrows-j, -1, type=numarray.Float64)
         if not heavy:
-            table.row['var1'] = str(i)
-        #table.row['var2'] = random.randrange(nrows)
-        table.row['var2'] = i
-        table.row['var3'] = float(nrows-i)
-        #table.row['var4'] = i % 2
-        #table.row['var4'] = i > 2
-        table.row.append()
+            for n in xrange(j-i):
+                var1[n] = str("%.4s" % var2[n])
+        table.append([var3, var2, var1])
     rowswritten += nrows
     table.flush()
     time1 = time.time()-t1
     tcpu1 = time.clock()-cpu1
-    print "Time for filling:", round(time1,3), "rows/s:", round(nrows/time1,3)
+    print "Time for filling:", round(time1,3),\
+          "Krows/s:", round(nrows/1000./time1,3),
+    fileh.close()
+    size1 = os.stat(filename)[6]
+    print ", File size:", round(size1/(1024.*1024.), 3), "MB"
+    fileh = openFile(filename, mode = "a", title="Searchsorted Benchmark",
+                     filters=filters)
+    table = fileh.root.table
     rowsize = table.rowsize
-    indexrows = 0
     if index:
-        print "Indexing...",
-        #print "Indexing... nrows:", nrows, "Mrows:", nrows / 10**6
         t1 = time.time()
         cpu1 = time.clock()
         # Index all entries
-        indexrows = table.flushRowsToIndex()
+        if not auto:
+            indexrows = table.flushRowsToIndex()
+        else:
+            indexrows = table.cols.var2.index.nelements
         time2 = time.time()-t1
-        print "Time for indexing:", round(time2,3), \
-              "irows/s:", round(indexrows/time2,3)
+        if not auto:
+            print "Time for indexing:", round(time2,3), \
+                  "iKrows/s:", round(indexrows/1000./time2,3),
 	tcpu2 = time.clock()-cpu1
+    else:
+        indexrows = 0
+        time2 = 0.0000000001  # an ugly hack
+        tcpu2 = 0.
+
     if verbose:
         if index:
             idx = table.cols.var1.index
             print "Index parameters:", repr(idx)
         else:
             print "NOT indexing rows"
-    # Close the file (eventually destroy the extended type)
+    # Close the file
     fileh.close()
-    return (rowswritten, indexrows, rowsize, time1, time2, tcpu1, tcpu2)
+        
+    size2 = os.stat(filename)[6] - size1
+    if not auto and index:
+        print ", Index size:", round(size2/(1024.*1024.), 3), "MB"
+    return (rowswritten, indexrows, rowsize, time1, time2,
+            tcpu1, tcpu2, size1, size2)
 
-def benchCreate(file, nrows, filters, index, bfile, heavy, psyco, verbose):
+def benchCreate(file, nrows, filters, index, bfile, heavy, auto,
+                psyco, verbose):
 
     # Open the benchfile in append mode
     bf = openFile(bfile,"a")
     recsize = "small"
-    table = bf.getNode("/"+recsize+"/create")
-    (rowsw, irows, rowsz, time1, time2, tcpu1, tcpu2) = \
-            createFile(file, nrows, filters, index, heavy, verbose)
+    if worst:
+        table = bf.getNode("/"+recsize+"/create_worst")
+    else:
+        table = bf.getNode("/"+recsize+"/create_best")
+        
+    (rowsw, irows, rowsz, time1, time2, tcpu1, tcpu2, size1, size2) = \
+            createFile(file, nrows, filters, index, heavy, auto, verbose)
     # Collect data
     table.row["nrows"] = rowsw
     table.row["irows"] = irows
@@ -143,6 +208,8 @@ def benchCreate(file, nrows, filters, index, bfile, heavy, psyco, verbose):
     table.row["tidx"]  = time2
     table.row["tcfill"] = tcpu1
     table.row["tcidx"] = tcpu2
+    table.row["fsize"] = size1
+    table.row["isize"] = size2
     table.row["psyco"] = psyco
     tapprows = round(time1, 3)
     cpuapprows = round(tcpu1, 3)
@@ -150,17 +217,20 @@ def benchCreate(file, nrows, filters, index, bfile, heavy, psyco, verbose):
     print "Rows written:", rowsw, " Row size:", rowsz
     print "Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
           (tapprows, cpuapprows, tpercent)
-    rowsecf = int(rowsw / float(tapprows))
+    rowsecf = rowsw / tapprows
     table.row["rowsecf"] = rowsecf
     #print "Write rows/sec: ", rowsecf
-    print "Write KB/s :", int(rowsw * rowsz / (tapprows * 1024))
-    tidxrows = round(time2, 3)
+    print "Total file size:", round((size1+size2)/(1024.*1024.), 3), "MB",
+    print ", Write KB/s (pure data):", int(rowsw * rowsz / (tapprows * 1024))
+    #print "Write KB/s :", int((size1+size2) / ((time1+time2) * 1024))
+    tidxrows = time2
     cpuidxrows = round(tcpu2, 3)
     tpercent = int(round(cpuidxrows/tidxrows, 2)*100)
     print "Rows indexed:", irows, " (IMRows):", irows / float(10**6)
-    print "Time indexing rows: %s s (real) %s s (cpu)  %s%%" % \
-          (tidxrows, cpuidxrows, tpercent)
-    rowseci = int(irows / float(tidxrows))
+    if not auto:
+        print "Time indexing rows: %s s (real) %s s (cpu)  %s%%" % \
+              (round(tidxrows,3), cpuidxrows, tpercent)
+    rowseci = irows / tidxrows
     table.row["rowseci"] = rowseci
     #print "Index rows/sec: ", rowseci
     table.row.append()
@@ -179,7 +249,7 @@ def readFile(filename, atom, riter, indexmode, verbose):
         if var2.index.nelements > 0:
             where = table.whereIndexed
         else:
-            warnings.warn("Not indexed table or empty index. Defaulting to in-kernel selections")
+            warnings.warn("Not indexed table or empty index. Defaulting to in-kernel selection")
             indexmode = "inkernel"
             where = table.whereInRange
     elif indexmode == "inkernel":
@@ -199,8 +269,42 @@ def readFile(filename, atom, riter, indexmode, verbose):
     tcpu2 = 0.
     results = []
     print "Select mode:", indexmode, ". Selecting for type:", atom
+    if randomvalues:
+        # algorithm to choose a value separated from mean
+        if standarddeviation*10 < table.nrows/2:
+            # Choose three standard deviations away from mean value
+            dev = standarddeviation*4
+            #dev = standarddeviation*math.log10(table.nrows/1000.)
+        else:
+            dev = 100
+        valmax = int(round((table.nrows/2.)-dev))
+        # split the selection range in regular chunks
+        if riter > valmax*2:
+            riter = valmax*2
+        #chunksize = valmax*2/riter
+        # use a chunksize ten times larger
+        #chunksize = int(round(valmax*2/riter))*10 
+        chunksize = (valmax*2/riter)*10 
+        # Get a list of integers for the intervals
+        randlist = range(0, valmax, chunksize)
+        randlist.extend(range(table.nrows-valmax, table.nrows, chunksize))
+        # expand the list ten times so as to use the cache
+        randlist = randlist*10
+        # shuffle the list
+        random.shuffle(randlist)
+        # reset the value of chunksize
+        #chunksize = int(round(chunksize/10)) 
+        chunksize = chunksize/10
+        #print "chunksize-->", chunksize
+        #randlist.sort();print "randlist-->", randlist
+    else:
+        chunksize = 3
     for i in xrange(riter):
-        rnd = random.randrange(table.nrows)
+        #randlist.sort();print "randlist-->", randlist
+        if randomvalues:
+            rnd = randlist[i]
+        else:
+            rnd = random.randrange(table.nrows)
         cpu1 = time.clock()
         t1 = time.time()
         if atom == "string":
@@ -222,7 +326,8 @@ def readFile(filename, atom, riter, indexmode, verbose):
                            # for p in where(110*i <= var2 < 110*(i+1))]
                            # for p in where(1000-30 < var2 < 1000+60)]
                            # for p in where(3 <= var2 < 5)]
-                           for p in where(rnd <= var2 < rnd+3)]
+                           #for p in where(rnd <= var2 < rnd+3)]
+                           for p in where(rnd <= var2 < rnd+chunksize)]
             else:
                 results = [p.nrow() for p in table
                            # if p["var2"] < 10+i]
@@ -230,21 +335,24 @@ def readFile(filename, atom, riter, indexmode, verbose):
                            # if 110*i <= p["var2"] < 110*(i+1)]
                            # if 1000-30 < p["var2"] < 1000+60]
                            #if 3 <= p["var2"] < 5]
-                           if rnd <= p["var2"] < rnd+3]
+                           #if rnd <= p["var2"] < rnd+3]
+                           if rnd <= p["var2"] < rnd+chunksize]
         elif atom == "float":
             if indexmode in ["indexed", "inkernel"]:
                 results = [p.nrow()
                            # for p in where(var3 < 5.)]
                            #for p in where(3. <= var3 < 5.)]
                            #for p in where(float(rnd) <= var3 < float(rnd+3))]
-                           for p in where(rnd <= var3 < rnd+3)]
+                           #for p in where(rnd <= var3 < rnd+3)]
+                           for p in where(rnd <= var3 < rnd+chunksize)]
                            # for p in where(1000.-i <= var3 < 1000.+i)]
                            # for p in where(100*i <= var3 < 100*(i+1))]
             else:
                 results = [p.nrow() for p in table
                            # if p["var3"] < 5.]
                            #if 3. <= p["var3"] < 5.]
-                           if float(rnd) <= p["var3"] < float(rnd+3)]
+                           #if float(rnd) <= p["var3"] < float(rnd+3)]
+                           if float(rnd) <= p["var3"] < float(rnd+chunksize)]
                            # if 1000.-i <= p["var3"] < 1000.+i]
                            # if 100*i <= p["var3"] < 100*(i+1)]
 #         elif atom == "bool":
@@ -255,6 +363,7 @@ def readFile(filename, atom, riter, indexmode, verbose):
         else:
             raise ValueError, "Value for atom '%s' not supported." % atom
         rowselected += len(results)
+        #results.sort(); print "selected values-->", results
         if i == 0:
             # First iteration
             time1 = time.time() - t1
@@ -295,7 +404,11 @@ def benchSearch(file, riter, indexmode, bfile, heavy, psyco, verbose):
     # Open the benchfile in append mode
     bf = openFile(bfile,"a")
     recsize = "small"
-    tableparent = "/"+recsize+"/search/"+indexmode+"/"
+    if worst:
+        tableparent = "/"+recsize+"/search_worst/"+indexmode+"/"
+    else:
+        tableparent = "/"+recsize+"/search_best/"+indexmode+"/"
+        
     # Do the benchmarks
     if not heavy:
         #atomlist = ["string", "int", "float", "bool"]
@@ -316,7 +429,7 @@ def benchSearch(file, riter, indexmode, bfile, heavy, psyco, verbose):
         table.row["time2"] = time2
         cpureadrows = round(tcpu1, 4)
         table.row["tcpu1"] = tcpu1
-        cpureadrows2 = round(tcpu1, 4)
+        cpureadrows2 = round(tcpu2, 4)
         table.row["tcpu2"] = tcpu2
         table.row["psyco"] = psyco
         tpercent = int(round(cpureadrows/treadrows, 2)*100)
@@ -324,8 +437,8 @@ def benchSearch(file, riter, indexmode, bfile, heavy, psyco, verbose):
             tpercent2 = int(round(cpureadrows2/treadrows2, 2)*100)
         else:
             tpercent2 = 0.
-        tMrows = rowsr/(1000*1000.)
-        sKrows = rowsel/1000.
+        tMrows = rowsr / (1000*1000.)
+        sKrows = rowsel / 1000.
         if atom == "string": # just to print once
             print "Rows read:", rowsr, "Mread:", round(tMrows, 4), "Mrows"
         print "Rows selected:", rowsel, "Ksel:", round(sKrows,4), "Krows"
@@ -334,14 +447,15 @@ def benchSearch(file, riter, indexmode, bfile, heavy, psyco, verbose):
         if riter > 1:
             print "Time selecting (cached): %s s (real) %s s (cpu)  %s%%" % \
                   (treadrows2, cpureadrows2, tpercent2)
-        rowsec1 = round(rowsr / float(treadrows), 4)/10**6
+        #rowsec1 = round(rowsr / float(treadrows), 4)/10**6
+        rowsec1 = rowsr / treadrows
         table.row["rowsec1"] = rowsec1
         print "Read Mrows/sec: ",
-        print rowsec1, "(first time)",
+        print round(rowsec1 / 10.**6, 4), "(first time)",
         if riter > 1:
-            rowsec2 = round(rowsr / float(treadrows2), 4)/10**6
+            rowsec2 = rowsr / treadrows2
             table.row["rowsec2"] = rowsec2
-            print rowsec2, "(cached time)"
+            print round(rowsec2 / 10.**6, 4), "(cache time)"
         else:
             print
         # Append the info to the table
@@ -361,25 +475,27 @@ if __name__=="__main__":
     
     import time
     
-    usage = """usage: %s [-v] [-p] [-R range] [-r] [-w] [-c level] [-l complib] [-S] [-F] [-n nrows] [-x] [-b file] [-h] [-k riter] [-m indexmode] datafile
+    usage = """usage: %s [-v] [-p] [-a] [-r] [-w] [-c level] [-l complib] [-S] [-F] [-n nrows] [-x] [-b file] [-t] [-h] [-k riter] [-m indexmode] datafile
             -v verbose
 	    -p use "psyco" if available
-            -R select a range in a field in the form "start,stop,step"
+            -a automatic indexing (default is separate indexing)
+            -R use Random values for filling
 	    -r only read test
 	    -w only write test
             -c sets a compression level (do not set it or 0 for no compression)
-            -l sets the compression library to be used ("zlib", "lzo", "ucl")
+            -l sets the compression library ("zlib", "lzo", "ucl" or "none")
             -S activate shuffling filter
             -F activate fletcher32 filter
             -n set the number of rows in tables (in krows)
             -x don't make indexes
             -b bench filename
+            -t worsT searching case
             -h heavy benchmark (operations with strings)
             -m index mode for reading ("indexed" | "inkernel" | "standard")
             -k number of iterations for reading\n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'vpSFR:rowxhk:b:c:l:n:m:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'vpaSFRrowxthk:b:c:l:n:m:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -391,7 +507,7 @@ if __name__=="__main__":
 
     # default options
     verbose = 0
-    rng = None
+    auto = 0
     fieldName = None
     testread = 1
     testwrite = 1
@@ -400,7 +516,7 @@ if __name__=="__main__":
     shuffle = 0
     fletcher32 = 0
     complib = "zlib"
-    nrows = 100
+    nrows = 1000
     index = 1
     heavy = 0
     bfile = "bench.h5"
@@ -414,12 +530,14 @@ if __name__=="__main__":
             verbose = 1
         if option[0] == '-p':
             usepsyco = 1
+        if option[0] == '-a':
+            auto = 1
+        if option[0] == '-R':
+            randomvalues = 1
         if option[0] == '-S':
             shuffle = 1
         if option[0] == '-F':
             fletcher32 = 1
-        elif option[0] == '-R':
-            rng = [int(i) for i in option[1].split(",")]
         elif option[0] == '-r':
             testwrite = 0
         elif option[0] == '-w':
@@ -428,6 +546,8 @@ if __name__=="__main__":
             index = 0
         elif option[0] == '-h':
             heavy = 1
+        elif option[0] == '-t':
+            worst = 1
         elif option[0] == '-b':
             bfile = option[1]
         elif option[0] == '-c':
@@ -442,7 +562,15 @@ if __name__=="__main__":
             nrows = int(float(option[1])*1000)
         elif option[0] == '-k':
             riter = int(option[1])
-            
+
+    if worst:
+        nrows -= 1  # the worst case
+
+    if complib == "none":
+        # This means no compression at all
+        complib="zlib"  # just to make PyTables not complaining
+        complevel=0
+        
     # Catch the hdf5 file passed as the last argument
     file = pargs[0]
 
@@ -463,7 +591,7 @@ if __name__=="__main__":
                     print "Suffling..."
         if psyco_imported and usepsyco:
             psyco.bind(createFile)
-        benchCreate(file, nrows, filters, index, bfile, heavy,
+        benchCreate(file, nrows, filters, index, bfile, heavy, auto,
                     usepsyco, verbose)
     if testread:
         if psyco_imported and usepsyco:

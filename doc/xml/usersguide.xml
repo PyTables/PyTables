@@ -4085,7 +4085,8 @@ fileh.close()
 		  omitted (in the Python <verb>range</verb>
 		  tradition). It accepts, likewise <em>start</em>,
 		  negative values. A special value of
-		  <verb>None</verb> means the last row.
+		  <verb>None</verb> (the default) means removing just
+		  the row supplied in start.
 		</item>
 
 	      </description>
