@@ -206,9 +206,9 @@ herr_t H5LTget_attribute_string( hid_t loc_id,
                                  const char *attr_name,
                                  char *data );
 
-PyObject *H5LTget_attribute_sys( hid_t loc_id, 
-				 const char *obj_name, 
-				 const char *attr_name);
+PyObject *H5LTget_attribute_string_sys( hid_t loc_id, 
+					const char *obj_name, 
+					const char *attr_name);
 
 herr_t H5LTget_attribute_char( hid_t loc_id, 
                                const char *obj_name, 
