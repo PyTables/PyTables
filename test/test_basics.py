@@ -30,9 +30,12 @@ class OpenFileTestCase(unittest.TestCase):
                                    [2], "Array title 1")
 	array2 = fileh.createArray(group, 'anarray2',
                                    [2], "Array title 2")
-	# Create a lonely group
-	group = fileh.createGroup(root, 'agroup2',
+	# Create a lonely group in first level
+	group2 = fileh.createGroup(root, 'agroup2',
                                   "Group title 2")
+        # Create a new group in the second level
+	group3 = fileh.createGroup(group, 'agroup3',
+                                   "Group title 3")
                                             
         fileh.close()
         
@@ -181,17 +184,16 @@ class OpenFileTestCase(unittest.TestCase):
         # Open this file in read-only mode
         fileh = openFile(self.file, mode = "r")
 
-        # Here, a RuntimeError should be raised!
         try:
             # Try to get the 'array' object in the old existing file
             arr = fileh.root.array
-        except AttributeError:
+        except LookupError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next AttributeError was catched!"
+                print "\nGreat!, the next LookupError was catched!"
                 print value
         else:
-            self.fail("expected an AttributeError")
+            self.fail("expected an LookupError")
         fileh.close()
         
     def test04_openErrorFile(self):
@@ -207,7 +209,7 @@ class OpenFileTestCase(unittest.TestCase):
         else:
             self.fail("expected an IOError")
 
-    def test05_removeGroupRecursively(self):
+    def test05a_removeGroupRecursively(self):
         """Checking removing a group recursively"""
 
         # Delete a group with leafs
@@ -236,16 +238,70 @@ class OpenFileTestCase(unittest.TestCase):
         # Try to get the removed object
         try:
             object = fileh.root.agroup
-        except AttributeError:
+        except LookupError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next AttributeError was catched!"
+                print "\nGreat!, the next LookupError was catched!"
                 print value
         else:
-            self.fail("expected an AttributeError")
+            self.fail("expected an LookupError")
+        # Try to get a child of the removed object
+        try:
+            object = fileh.getNode("/agroup/agroup3")
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
         fileh.close()
 
-    def test06_removeGroup(self):
+    def test05b_removeGroupRecursively(self):
+        """Checking removing a group recursively and access immediately"""
+
+        # Delete a group with leafs
+        fileh = openFile(self.file, mode = "r+")
+        
+        warnings.filterwarnings("error", category=UserWarning)
+        try:
+            fileh.removeNode(fileh.root, 'agroup')
+        except UserWarning:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next UserWarning was catched!"
+                print value
+        else:
+            self.fail("expected an UserWarning")
+        # Reset the warning
+        warnings.filterwarnings("default", category=UserWarning)
+
+        # This should work now
+        fileh.removeNode(fileh.root, 'agroup', recursive=1)
+
+        # Try to get the removed object
+        try:
+            object = fileh.root.agroup
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
+        # Try to get a child of the removed object
+        try:
+            object = fileh.getNode("/agroup/agroup3")
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
+        fileh.close()
+
+    def test06a_removeGroup(self):
         """Checking removing a lonely group from an existing file"""
 
         fileh = openFile(self.file, mode = "r+")
@@ -257,16 +313,16 @@ class OpenFileTestCase(unittest.TestCase):
         # Try to get the removed object
         try:
             object = fileh.root.agroup2
-        except AttributeError:
+        except LookupError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next AttributeError was catched!"
+                print "\nGreat!, the next LookupError was catched!"
                 print value
         else:
-            self.fail("expected an AttributeError")
+            self.fail("expected an LookupError")
         fileh.close()
 
-    def test06_removeLeaf(self):
+    def test06b_removeLeaf(self):
         """Checking removing Leaves from an existing file"""
 
         fileh = openFile(self.file, mode = "r+")
@@ -278,13 +334,172 @@ class OpenFileTestCase(unittest.TestCase):
         # Try to get the removed object
         try:
             object = fileh.root.anarray
-        except AttributeError:
+        except LookupError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next AttributeError was catched!"
+                print "\nGreat!, the next LookupError was catched!"
                 print value
         else:
-            self.fail("expected an AttributeError")
+            self.fail("expected an LookupError")
+        fileh.close()
+
+    def test06c_removeLeaf(self):
+        """Checking removing Leaves and access it immediately"""
+
+        fileh = openFile(self.file, mode = "r+")
+        fileh.removeNode(fileh.root, 'anarray')
+        
+        # Try to get the removed object
+        try:
+            object = fileh.root.anarray
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
+        fileh.close()
+
+    def test07_renameLeaf(self):
+        """Checking renaming a leave and access it after a close/open"""
+
+        fileh = openFile(self.file, mode = "r+")
+        fileh.moveNode(fileh.root, 'anarray', 'anarray2')
+        fileh.close()
+
+        # Open this file in read-only mode
+        fileh = openFile(self.file, mode = "r")
+        # Ensure that the new name exists
+        array_ = fileh.root.anarray2
+        assert array_.name == "anarray2"
+        assert array_._v_pathname == "/anarray2"
+        # Try to get the previous object with the old name
+        try:
+            object = fileh.root.anarray
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
+        fileh.close()
+
+    def test07b_renameLeaf(self):
+        """Checking renaming Leaves and accesing them immediately"""
+
+        fileh = openFile(self.file, mode = "r+")
+        fileh.moveNode(fileh.root, 'anarray', 'anarray2')
+
+        # Ensure that the new name exists
+        array_ = fileh.root.anarray2
+        assert array_.name == "anarray2"
+        assert array_._v_pathname == "/anarray2"
+        # Try to get the previous object with the old name
+        try:
+            object = fileh.root.anarray
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
+        fileh.close()
+
+    def test08_renameToExistingLeaf(self):
+        """Checking renaming a node to an existing name"""
+
+        # Open this file
+        fileh = openFile(self.file, mode = "r+")
+        # Try to get the previous object with the old name
+        try:
+            fileh.moveNode(fileh.root, 'anarray', 'array')        
+        except RuntimeError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next RuntimeError was catched!"
+                print value
+        else:
+            self.fail("expected an RuntimeError")
+        fileh.close()
+
+    def test09_renameGroup(self):
+        """Checking renaming a Group and access it after a close/open"""
+
+        fileh = openFile(self.file, mode = "r+")
+        fileh.moveNode(fileh.root, 'agroup', 'agroup3')
+        fileh.close()
+
+        # Open this file in read-only mode
+        fileh = openFile(self.file, mode = "r")
+        # Ensure that the new name exists
+        group = fileh.root.agroup3
+        assert group._v_name == "agroup3"
+        assert group._v_pathname == "/agroup3"
+        # The childs of this group also must be accessible through the
+        # new name path
+        group2 = fileh.getNode("/agroup3/agroup3")
+        assert group2._v_name == "agroup3"
+        assert group2._v_pathname == "/agroup3/agroup3"
+        # Try to get the previous object with the old name
+        try:
+            object = fileh.root.agroup
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
+        # Try to get a child with the old pathname
+        try:
+            object = fileh.getNode("/agroup/agroup3")
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
+        fileh.close()
+
+    def test09b_renameGroup(self):
+        """Checking renaming a Group and access it immediately"""
+
+        fileh = openFile(self.file, mode = "r+")
+        fileh.moveNode(fileh.root, 'agroup', 'agroup3')
+
+        # Ensure that the new name exists
+        group = fileh.root.agroup3
+        assert group._v_name == "agroup3"
+        assert group._v_pathname == "/agroup3"
+        # The childs of this group also must be accessible through the
+        # new name path
+        group2 = fileh.getNode("/agroup3/agroup3")
+        assert group2._v_name == "agroup3"
+        assert group2._v_pathname == "/agroup3/agroup3"
+        # Try to get the previous object with the old name
+        try:
+            object = fileh.root.agroup
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
+        # Try to get a child with the old pathname
+        try:
+            object = fileh.getNode("/agroup/agroup3")
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
         fileh.close()
 
 class CheckFileTestCase(unittest.TestCase):

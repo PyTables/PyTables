@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.28 2003/02/28 21:22:51 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.29 2003/03/04 17:29:57 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.28 $"
+__version__ = "$Revision: 1.29 $"
 
 
 import sys, os.path
@@ -485,7 +485,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.28 2003/02/28 21:22:51 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.29 2003/03/04 17:29:57 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -711,28 +711,26 @@ cdef class Group:
   def _f_moveNode(self, char *oldname, char *newname):
     cdef int ret
 
-    print "Renaming the HDF5 Node", oldname, "to", newname
+    #print "Renaming the HDF5 Node", oldname, "to", newname
     ret = H5Gmove(self.group_id, oldname, newname)
     if ret < 0:
-      raise RuntimeError("Problems renaming the Node %s" % dsetname )
-    self.name = strdup(newname)
+      raise RuntimeError("Problems renaming the node %s" % oldname )
     return ret
 
   def _f_deleteGroup(self):
     cdef int ret
 
-    # First, close this group
-    #self._f_closeGroup()
-    # Delete the group
+    # Delete this group
     #print "Removing the HDF5 Group", self.name
     ret = H5Gunlink(self.parent_id, self.name)
     if ret < 0:
-      raise RuntimeError("Problems deleting the Group %s" % dsetname )
+      raise RuntimeError("Problems deleting the Group %s" % self.name )
     return ret
 
   def _f_deleteLeaf(self, char *dsetname):
     cdef int ret
 
+    # Delete the leaf child
     #print "Removing the HDF5 Leaf", dsetname
     ret = H5Gunlink(self.group_id, dsetname)
     if ret < 0:

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.16 2003/02/28 21:22:56 falted Exp $
+#       $Id: Group.py,v 1.17 2003/03/04 17:29:58 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.16 $"
+__version__ = "$Revision: 1.17 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -214,6 +214,59 @@ class Group(hdf5Extension.Group):
         else:
             self._f_open(parent, self._v_hdf5name)
 
+    def _f_renameObject(self, newname):
+        
+        """Rename this group in the object tree as well as in the HDF5 file."""
+
+        parent = self._v_parent
+        newattr = self.__dict__
+        name = newname
+
+        # Falta que açò s'invoque recursivament per a refrescar les
+        # _v_pathnames en l'arbre.
+        # Delete references to the oldname
+        del parent._v_objgroups[self._v_name]
+        del parent._v_objchilds[self._v_name]
+
+        # Get the alternate name (if any)
+        trTable = self._v_rootgroup._v_parent.trTable
+        # New attributes for the this Group instance
+        newattr["_v_name"] = newname
+        newattr["_v_hdf5name"] = trTable.get(newname, newname)
+        # Update class variables
+        parent._c_objgroups[self._v_pathname] = self
+        parent._c_objects[self._v_pathname] = self
+        # Call the _f_new method in Group superclass 
+        self._f_new(parent, self._v_hdf5name)
+        # Update this instance attributes
+        parent._v_objgroups[newname] = self
+        parent._v_objchilds[newname] = self
+
+        # Finally, change the old pathname in the object childs recursively
+        oldpathname = self._v_pathname
+        newpathname = parent._f_join(newname)
+        for group in self._f_walkGroups():
+            oldgpathname = group._v_pathname
+            newgpathname = oldgpathname.replace(oldpathname, newpathname, 1)
+            group.__dict__["_v_pathname"] = newgpathname
+            # Update class variables
+            del parent._c_objgroups[oldgpathname]
+            del parent._c_objects[oldgpathname]
+            parent = group._v_parent
+            parent._c_objgroups[newgpathname] = group
+            parent._c_objects[newgpathname] = group
+            for node in group._f_listNodes("Leaf"):
+                oldgpathname = node._v_pathname
+                newgpathname = oldgpathname.replace(oldpathname, newpathname, 1)
+                node.__dict__["_v_pathname"] = newgpathname
+                # Update class variables
+                del parent._c_objleaves[oldgpathname]
+                del parent._c_objects[oldgpathname]
+                parent = node._v_parent
+                parent._c_objleaves[newgpathname] = node
+                parent._c_objects[newgpathname] = node
+
+
     def _f_open(self, parent, name):
         """Call the openGroup method in super class to open the existing
         group on disk. Also get attributes for this group. """
@@ -319,7 +372,7 @@ class Group(hdf5Extension.Group):
         elif name in self._v_objleaves:
             return self._v_objleaves[name]
         else:
-            raise AttributeError, "'%s' group has not a \"%s\" attribute!" % \
+            raise LookupError, "'%s' group has not a \"%s\" child!" % \
                                   (self._v_pathname, name)
 
     def __setattr__(self, name, value):
@@ -379,18 +432,14 @@ class Group(hdf5Extension.Group):
     # Ens hem quedat aci...
     def _f_move(self, object, newname):
         """Rename an HDF5 node"""
+        if newname in self._v_objchilds:
+            raise RuntimeError, \
+        """Another sibling (%s) already has the name '%s' """ % \
+                   (self._v_objchilds[newname], newname)
         oldname = object._v_name
-        print self.__dict__
-        del self._v_objgroups[oldname]
-        del self._v_objchilds[oldname]
-        self._v_objgroups[newname] = object
-        self._v_objchilds[newname] = object
-        del self._c_objgroups[object._v_pathname]
-        del self._c_objects[object._v_pathname]
-        newpathname = self._f_join(self._v_pathname, newname)
-        self._v_objgroups[newpathname] = object
-        self._v_objchilds[newpathname] = object
-        return self._f_moveNode(oldname, newname)
+        # Rename all the appearances of oldname in the object tree
+        object._f_renameObject(newname)
+        self._f_moveNode(oldname, newname)
         
     def _f_remove(self):
         """Remove this HDF5 group"""

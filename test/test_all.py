@@ -36,7 +36,8 @@ def suite():
     # Add test_Numeric only if Numeric is installed
     try:
         import Numeric
-        print "Numeric is present. Adding the Numeric test suite."
+        print "Numeric (version %s) is present. Adding the Numeric test suite." % \
+              (Numeric.__version__)
         test_modules.append("test_Numeric")
     except:
         print "Skipping Numeric test suite"

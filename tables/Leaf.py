@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.8 2003/02/28 21:22:57 falted Exp $
+#       $Id: Leaf.py,v 1.9 2003/03/04 17:29:58 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.8 $"
+__version__ = "$Revision: 1.9 $"
 
 
 class Leaf:
@@ -72,6 +72,35 @@ class Leaf:
         else:
             self.open()
 
+    def _f_renameObject(self, newname):
+        
+        """Rename this leaf in the object tree as well as in the HDF5 file."""
+
+        parent = self._v_parent
+        newattr = self.__dict__
+
+        # Delete references to the oldname
+        del parent._c_objleaves[self._v_pathname]
+        del parent._c_objects[self._v_pathname]
+        del parent._v_objleaves[self._v_name]
+        del parent._v_objchilds[self._v_name]
+
+        # Get the alternate name (if any)
+        trTable = self._v_rootgroup._v_parent.trTable
+        # New attributes for the this Leaf instance
+        newattr["_v_name"] = newname
+        newattr["_v_hdf5name"] = trTable.get(newname, newname)
+        newattr["_v_pathname"] = parent._f_join(newname)
+        # Update class variables
+        parent._c_objects[self._v_pathname] = self
+        parent._c_objleaves[self._v_pathname] = self
+        self.name = newname     # This is a standard attribute for Leaves
+        # Call the _f_new method in Leaf superclass 
+        self._f_new(parent, self._v_hdf5name)
+        # Update this instance attributes
+        parent._v_objchilds[newname] = self
+        parent._v_objleaves[newname] = self
+        
     def getAttrStr(self, attrname):
         """Get a leaf attribute as a string"""
         

@@ -295,7 +295,11 @@ result = [ rec.c1 for rec in table.fetchall() if rec.nrow() < 2 ]
 print result
 
 # Test the File.moveNode() method
+#print h5file
 h5file.moveNode(h5file.root.detector, "recarray2", "recarray3")
+#print h5file
+#print h5file.root.detector.recarray3
+#print h5file.root.__dict__
 # Test the File.removeNode() method
 # Delete a Leaf from the HDF5 tree
 h5file.removeNode(h5file.root.detector.recarray3)
@@ -304,6 +308,12 @@ h5file.removeNode(h5file.root.detector, recursive=1)
 # Create a Group and then remove it
 h5file.createGroup(h5file.root, "newgroup")
 h5file.removeNode(h5file.root, "newgroup")
+# If we change the name of a group with childs, we have to recursively change
+# all the paths of the children!
+h5file.moveNode(h5file.root.columns, "TDC", "name")
+h5file.moveNode(h5file.root, "columns", "newcolumns")
+
+print h5file
 
 # Close this file
 h5file.close()
