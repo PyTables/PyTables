@@ -1915,7 +1915,7 @@ for a row size of %s bytes.""" % (self.rowsize)
     
     return nrecords
 
-  def _read_records(self, hsize_t start, hsize_t nrecords):
+  def _read_records(self, object recarr, hsize_t start, hsize_t nrecords):
     cdef int ret
 
     # Correct the number of records to read, if needed
@@ -1936,30 +1936,7 @@ for a row size of %s bytes.""" % (self.rowsize)
 
     return nrecords
 
-# This verion with a shift is not used at all. So comment it
-#   def _read_elements_shift(self, size_t shift, object elements):
-#     cdef long buflen
-#     cdef hsize_t nrecords
-#     cdef void *coords
-#     cdef int ret
-    
-#     # Get the chunk of the coords that correspond to a buffer
-#     nrecords = len(elements)
-#     coords_array = numarray.array(elements+shift, type=numarray.Int64)
-#     # Get the pointer to the buffer data area
-#     buflen = NA_getBufferPtrAndSize(coords_array._data, 1, &coords)
-    
-#     Py_BEGIN_ALLOW_THREADS
-#     ret = H5TBOread_elements(&self.dataset_id, &self.space_id,
-#                              &self.mem_type_id, nrecords,
-#                              coords, self.rbuf)
-#     Py_END_ALLOW_THREADS
-#     if ret < 0:
-#       raise RuntimeError("Problems reading records.")
-
-#     return nrecords
-
-  def _read_elements(self, object elements):
+  def _read_elements(self, object recarr, object elements):
     cdef long buflen
     cdef hsize_t nrecords
     cdef void *coords
@@ -1981,6 +1958,9 @@ for a row size of %s bytes.""" % (self.rowsize)
     if ret < 0:
       raise RuntimeError("Problems reading records.")
 
+    # Convert some HDF5 types to Numarray after reading.
+    self._convertTypes(recarr, nrecords, 1)	
+  
     return nrecords
 
   def _read_elements_ra(self, object recarr, object elements):
@@ -2004,6 +1984,9 @@ for a row size of %s bytes.""" % (self.rowsize)
       raise RuntimeError("Problems reading records.")
 
     self._close_read()   # Close the table for reading
+
+    # Convert some HDF5 types to Numarray after reading.
+    self._convertTypes(recarr, nrecords, 1)	
 
     return nrecords
 
@@ -2215,7 +2198,7 @@ cdef class Row:
           self.bufcoords = tmp
         self._row = -1
         if len(self.bufcoords):
-          recout = self._table._read_elements(self.bufcoords)
+          recout = self._table._read_elements(self._recarray, self.bufcoords)
           if self._table.byteorder <> sys.byteorder:
             self._recarray._byteswap()
         else:
@@ -2341,8 +2324,8 @@ cdef class Row:
           self.stopb = self.nrowsinbuf
         self._row = self.startb - self.step
         # Read a chunk
-        recout = self._table._read_records(self.nextelement,
-                                           self.nrowsinbuf)
+        recout = self._table._read_records(
+          self._recarray, self.nextelement, self.nrowsinbuf)
         self.nrowsread = self.nrowsread + recout
         if self._table.byteorder <> sys.byteorder:
           self._recarray._byteswap()
@@ -2432,8 +2415,8 @@ cdef class Row:
           self.stopb = self.nrowsinbuf
         self._row = self.startb - self.step
         # Read a chunk
-        recout = self._table._read_records(self.nrowsread,
-                                           self.nrowsinbuf)
+        recout = self._table._read_records(
+          self._recarray, self.nrowsread, self.nrowsinbuf)
         self.nrowsread = self.nrowsread + recout
         if self._table.byteorder <> sys.byteorder:
           self._recarray._byteswap()
@@ -2481,7 +2464,8 @@ cdef class Row:
         istopb = inrowsinbuf
       stopr = startr + ((istopb - istartb - 1) / istep) + 1
       # Read a chunk
-      inrowsread = inrowsread + self._table._read_records(i, inrowsinbuf)
+      inrowsread = (
+        inrowsread + self._table._read_records(self._recarray, i, inrowsinbuf))
       # Assign the correct part to result
       # The bottleneck is in this assignment. Hope that the numarray
       # people might improve this in the short future

@@ -136,8 +136,7 @@ class Array(Leaf, hdf5Extension.Array, object):
 
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
-                            calcBufferSize(self.rowsize, self._v_expectedrows,
-                                           self.filters.complevel)
+                            calcBufferSize(self.rowsize, self._v_expectedrows)
 
         self.shape = naarr.shape
         if naarr.shape:
@@ -254,8 +253,7 @@ Sorry, but this object is not supported.""" % (arr)
             self.nrows = 1   # Scalar case
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
-                            calcBufferSize(self.rowsize, self.nrows,
-                                           self.filters.complevel)
+                            calcBufferSize(self.rowsize, self.nrows)
             
 
     def iterrows(self, start=None, stop=None, step=None):

@@ -298,6 +298,7 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
         # Version, type, shape, flavor, byteorder
         self._v_version = obversion
         self.type = self.atom.type
+        self.stype = self.atom.stype
         if self.type == "CharType" or isinstance(self.type, records.Char):
             self.byteorder = "non-relevant"
         else:
@@ -334,7 +335,7 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
 
     def _open(self):
         """Get the metadata info for an array in file."""
-        (self.type, self.shape, self.itemsize,
+        (self.type, self.stype, self.shape, self.itemsize,
          self.byteorder, chunksizes) = self._openArray()
         self.chunksize = chunksizes[1]  # Get the second dim
         # Post-condition
@@ -344,7 +345,7 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
         if str(self.type) == "CharType":
             self.atom = StringAtom(shape=1, length=self.itemsize)
         else:
-            self.atom = Atom(dtype=self.type, shape=1)
+            self.atom = Atom(dtype=self.stype, shape=1)
         # Compute the rowsize for each element
         self.rowsize = self.atom.atomsize() * self.nelemslice
         # nrows in this instance
@@ -664,6 +665,7 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
         # Delete back references
         del self._v_parent
         del self._v_file
+        del self.stype
         del self.type
         del self.atom
         del self.filters

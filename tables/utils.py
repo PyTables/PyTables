@@ -140,14 +140,13 @@ def _calcBufferSize(rowsize, expectedrows):
 
     return buffersize
 
-def calcBufferSize(rowsize, expectedrows, compress):
+def calcBufferSize(rowsize, expectedrows):
     """Calculate the buffer size and the HDF5 chunk size.
 
-    The logic followed here is based purely in experiments playing
-    with different buffer sizes, chunksize and compression flag. It is
-    obvious that using big buffers optimize the I/O speed when dealing
-    with tables. This might (should) be further optimized doing more
-    experiments.
+    The logic followed here is based purely in experiments playing with
+    different buffer sizes and chunksize. It is obvious that using big
+    buffers optimize the I/O speed when dealing with tables. This might
+    (should) be further optimized doing more experiments.
 
     """
 

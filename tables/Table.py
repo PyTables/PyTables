@@ -765,9 +765,9 @@ class Table(Leaf, hdf5Extension.Table, object):
             self._open_read(result)
             if isinstance(coords, numarray.NumArray):
                 if len(coords) > 0:
-                    self._read_elements(0, coords)
+                    self._read_elements(result, coords)
             else:
-                self._read_records(start, stop-start)
+                self._read_records(result, start, stop-start)
             self._close_read()  # Close the table
         elif field and 1:
             # This optimization works in Pyrex, but the call to row._fillCol
@@ -1197,15 +1197,13 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Flush any unsaved row
         if hasattr(self, 'row') and self.row._getUnsavedNRows() > 0:
             self._saveBufferedRows()
+            # Flush the data to disk
+            Leaf.flush(self)
         if hasattr(self, "indexed") and self.indexed and self.indexprops.auto:
-        #if self.indexed and self.indexprops.auto:
-            #print "passant per 1"
             # Flush any unindexed row
             rowsadded = self.flushRowsToIndex(lastrow=1)
             if rowsadded > 0 and self._indexedrows <> self.nrows:
                 raise RuntimeError , "Internal error: the number of indexed rows (%s) and rows in table (%s) must be equal!. Please, report this to the author." % (self._indexedrows, self.nrows)
-        # Flush the data to disk
-        Leaf.flush(self)
         # Close a possible opened table for append
         self._close_append()
         # Clean the Row instance

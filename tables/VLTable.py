@@ -51,7 +51,7 @@ from Leaf import Leaf, Filters
 from Table import Table, Column
 from Index import Index, IndexProps
 from IsDescription import IsDescription, Description, metaIsDescription, \
-     Col, StringCol, fromstructfmt
+     Col, StringCol
 from VLArray import Atom, StringAtom
 
 try:
