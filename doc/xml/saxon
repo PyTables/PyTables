@@ -1,0 +1,6 @@
+#!/bin/sh
+
+CLASSPATH=/usr/share/java/saxon.jar:$CLASSPATH
+export CLASSPATH
+java -ms15000000 com.icl.saxon.StyleSheet $1 $2 $3 $4 $5 $6 $7 $8 $9
+
