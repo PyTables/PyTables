@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.130 2004/09/22 17:13:04 falted Exp $
+#       $Id: Table.py,v 1.131 2004/09/24 11:58:13 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.130 $"
+__version__ = "$Revision: 1.131 $"
 
 from __future__ import generators
 import sys
@@ -682,7 +682,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             if isinstance(typeField, records.Char):
                 # String-column case
                 result = strings.array(shape=shape, itemsize=itemsize)
-            elif field:
+            else:
                 # Non-string column case
                 result = numarray.array(shape=shape, type=typeField)
         else:
@@ -1510,11 +1510,8 @@ class Column(object):
         "Actions to delete the associated index"
         # delete some references
         if self.index:
-            print "1"
             self.index._g_remove()
-            print "2"            
             self.index = None
-            print "3"            
             self.table.colindexed[self.name] = 0
         else:
             return  # Do nothing

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.17 2004/09/16 16:18:31 falted Exp $
+#       $Id: Index.py,v 1.18 2004/09/24 11:58:13 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.17 $"
+__version__ = "$Revision: 1.18 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -386,9 +386,12 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
 
         # Save the sorted array
         if str(self.sorted.type) == "CharType":
-            self.indices.append(arr.argsort())
-            arr.sort()
-            self.sorted.append(arr)
+            s=arr.argsort()
+            # Caveat: this conversion is necessary for portability on
+            # 64-bit systems because indexes are 64-bit long on these
+            # platforms
+            self.indices.append(numarray.array(s, type="Int32"))
+            self.sorted.append(arr[s])
         else:
             #self.sorted.append(numarray.sort(arr))
             #self.indices.append(numarray.argsort(arr))
@@ -396,8 +399,11 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
             # be to find a funtion in numarray that returns both
             # sorted and argsorted all in one call
             s=numarray.argsort(arr)
-            self.indices.append(s)
-            self.sorted.append(arr[s][0])
+            # Caveat: this is conversion necessary for portability on
+            # 64-bit systems because indexes are 64-bit long on these
+            # platforms
+            self.indices.append(numarray.array(s, type="Int32"))
+            self.sorted.append(arr[s])
         # Update nrows after a successful append
         self.nrows = self.sorted.nrows
         self.nelements = self.nrows * self.nelemslice
@@ -419,7 +425,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
             tlen += stop - start
         self.sorted._destroySortedSlice()
         #print "time reading indices:", time.time()-t1
-        #print "ntotaliter-->", ntotaliter
+        #print "ntotaliter:", ntotaliter
         assert tlen >= 0, "Post-condition failed. Please, report this to the authors."
         return tlen
 
@@ -456,9 +462,9 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
 
         # I don't know if sorting the coordinates is better or not actually
         # Some careful tests must be carried out in order to do that
+        #selections = self.indices.arrAbs[:relCoords]
         selections = numarray.sort(self.indices.arrAbs[:relCoords])
         #print "time getting coords:", time.time()-t1
-        #selections = self.indices.arrAbs[:relCoords]
         return selections
 
 # This tries to be a version of getCoords that keeps track of visited rows
@@ -601,21 +607,19 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         #self.indices._close()
         self.sorted.flush()
         self.indices.flush()
-        print "1-1"
+        #print "delete Leaf %s in %s" % (self.sorted.name, self.name)
+        #sys.exit(1)
         self._g_deleteLeaf(self.sorted.name)
-        print "1-2"
         self._g_deleteLeaf(self.indices.name)
         self.sorted.remove()
         self.indices.remove()
         self.sorted = None
         self.indices = None
         # close the Index Group
-        print "1-3"
         self._f_close()
         # delete it (this is defined in hdf5Extension)
-        print "1-4"
         self._g_deleteGroup()
-        print "1-5"
+
 
     def _f_close(self):
         # close the indices

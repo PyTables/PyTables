@@ -264,7 +264,7 @@ class BasicTestCase(unittest.TestCase):
         assert len(rowList1) == len(rowList2)
         assert rowList1 == rowList2
 
-    def _test09_removeIndex(self):
+    def test09_removeIndex(self):
         """Checking removing an index"""
 
         if verbose:
@@ -282,7 +282,9 @@ class BasicTestCase(unittest.TestCase):
         assert table.colindexed["var1"] == 1
 
         # delete the index
+        print "Before deletion"
         table.removeIndex(idxcol)
+        print "After deletion"
         if verbose:
             print "After deletion"
             print "var1 column:", idxcol
@@ -1083,13 +1085,13 @@ class AI12TestCase(AutomaticIndexingTestCase):
 
 def suite():
     theSuite = unittest.TestSuite()
-    niter = 0
+    niter = 1
     #heavy = 1  # Uncomment this only for testing purposes!
 
     #theSuite.addTest(unittest.makeSuite(AI3TestCase))
     #theSuite.addTest(unittest.makeSuite(AI4aTestCase))
     #theSuite.addTest(unittest.makeSuite(AI4aTestCase))
-    theSuite.addTest(unittest.makeSuite(BasicReadTestCase))
+    #theSuite.addTest(unittest.makeSuite(BasicReadTestCase))
     #theSuite.addTest(unittest.makeSuite(OneHalfTestCase))
     #theSuite.addTest(unittest.makeSuite(UpperBoundTestCase))
     #theSuite.addTest(unittest.makeSuite(LowerBoundTestCase))

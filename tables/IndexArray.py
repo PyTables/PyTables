@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IndexArray.py,v $
-#       $Id: IndexArray.py,v 1.9 2004/09/16 16:18:31 falted Exp $
+#       $Id: IndexArray.py,v 1.10 2004/09/24 11:58:13 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.9 $"
+__version__ = "$Revision: 1.10 $"
 # default version for IndexARRAY objects
 obversion = "1.0"    # initial version
 
@@ -65,7 +65,6 @@ def calcChunksize(expectedrows, testmode=0):
         else:
             raise ValueError, \
                   "expected rows cannot be larger than 10000 in test mode"
-        #print "-->", (nelemslice, chunksize)
         return (nelemslice, chunksize)
 
     # expKrows < 0.01 is to few for indexing to represent a significant gain
@@ -112,7 +111,7 @@ def calcChunksize(expectedrows, testmode=0):
         #chunksize = 5000
         chunksize = 10000  # Experimental
 
-    #print "nelemslice, chunksize -->", (nelemslice, chunksize)
+    #print "nelemslice, chunksize:", (nelemslice, chunksize)
     return (nelemslice, chunksize)
 
 class IndexArray(EArray, hdf5Extension.IndexArray, object):
@@ -245,7 +244,6 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
 
     def append(self, arr):
         """Append the object to this (enlargeable) object"""
-        #print "arr.shape-->", arr.shape
         arr.shape = (1, arr.shape[0])
         self._append(arr)
 
@@ -261,17 +259,12 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
 
         # First, look at the beginning of the slice (that could save lots of time)
         buffer = self._readSortedSlice(nrow, 0, chunksize)
-        #print "buffer-->", buffer
         #buffer = xrange(0, chunksize)  # test  # 0.02 over 0.5 seg
         # Look for items at the beginning of sorted slices
-        #print "item1, item2-->", repr(item1), repr(item2)
         result1 = self._bisect_left(buffer, item1, chunksize)
         if 0 <= result1 < chunksize:
             item1done = 1
         result2 = self._bisect_right(buffer, item2, chunksize)
-        # print "item1done, item2done-->", item1done, item2done
-        # print "result1, result2-->", result1, result2
-        # print "chunksize-->", chunksize
         if 0 <= result2 < chunksize:
             item2done = 1
         if item1done and item2done:
@@ -282,13 +275,11 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
         buffer = self._readSortedSlice(nrow, hi-chunksize, hi)
         #buffer = xrange(hi-chunksize, hi)  # test
         niter += 1
-        # print "item1done, item2done-->", item1done, item2done
         if not item1done:
             result1 = self._bisect_left(buffer, item1, chunksize)
             if 0 < result1 <= chunksize:
                 item1done = 1
                 result1 = hi - chunksize + result1
-                # print "item1done, item2done-->", item1done, item2done
         if not item2done:
             result2 = self._bisect_right(buffer, item2, chunksize)
             if 0 < result2 <= chunksize:
@@ -297,7 +288,6 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
         if item1done and item2done:
             # print "done 2"
             return (result1, result2, niter)
-        # print "item1done, item2done-->", item1done, item2done
     
         # Finally, do a lookup for item1 and item2 if they were not found
         # Lookup in the middle of slice for item1
@@ -317,7 +307,6 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
                 else:
                     hi = result1        # one chunk to the left
                     lo = hi - chunksize  
-                    #print "lo, hi, beginning-->", lo, hi, beginning
             result1 = tmpresult1
         # Lookup in the middle of slice for item1
         if not item2done:
@@ -336,25 +325,9 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
                 else:
                     hi = result2 + chunksize      # one chunk to the right
                     lo = result2
-                    #print "lo, hi, ending-->", lo, hi, ending
             result2 = tmpresult2
             niter = niter + iter
-        #print "done 3"
         return (result1, result2, niter)
-
-#     def searchBin(self, item):
-#         """Do a binary search in this index for an item"""
-#         ntotaliter = 0  # for counting the number of reads on each
-#         inflimit = []; suplimit = []
-#         bufsize = self.chunksize # number of elements/chunksize
-#         self._initSortedSlice(bufsize)
-#         for i in xrange(self.nrows):
-#             (result1, result2, niter) = self._searchBin(i, item)
-#             inflimit.append(result1)
-#             suplimit.append(result2)
-#             ntotaliter = ntotaliter + niter
-#         self._destroySortedSlice()
-#         return (inflimit, suplimit, ntotaliter)
 
     def _close(self):
         """Close this object and exit"""

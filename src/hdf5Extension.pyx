@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.141 2004/09/22 17:13:03 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.142 2004/09/24 11:58:11 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.141 $"
+__version__ = "$Revision: 1.142 $"
 
 
 import sys, os
@@ -933,7 +933,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.141 2004/09/22 17:13:03 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.142 2004/09/24 11:58:11 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1474,6 +1474,7 @@ cdef class Group:
     cdef int ret
 
     # Delete this group
+    #print "Deleting leaf -->", self.name
     ret = H5Gunlink(self.parent_id, self.name)
     if ret < 0:
       raise RuntimeError("Problems deleting the Group %s" % self.name )
@@ -2832,7 +2833,7 @@ cdef class IndexArray(Array):
     cdef int *rbufR
     cdef long long *rbufA
     cdef long long offset
-    cdef int j, len
+    cdef long j, len
 
     # Correct the start of the buffer with offsetl
     rbufR = <int *>self.vrbufR + offsetl
@@ -2846,7 +2847,7 @@ cdef class IndexArray(Array):
     # Now, compute the absolute coords for table rows by adding the offset
     len = stop-start
     offset = irow*self.nelemslice
-    for j from 0 <= j < len: 
+    for j from 0 <= j < len:
       rbufA[j] = rbufR[j] + offset
       
     return 

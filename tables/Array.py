@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.73 2004/09/22 17:13:04 falted Exp $
+#       $Id: Array.py,v 1.74 2004/09/24 11:58:13 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.73 $"
+__version__ = "$Revision: 1.74 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -288,11 +288,8 @@ class Array(Leaf, hdf5Extension.Array, object):
             del self._init
             raise StopIteration        # end of iteration
         else:
-            #print "start, stop, step:", self._start, self._stop, self._step
             # Read a chunk of rows
-            #maxTuples = 1000
             if self._row+1 >= self._v_maxTuples or self._row < 0:
-                #print "self._v_maxTuples", self._v_maxTuples
                 self._stopb = self._startb+self._step*self._v_maxTuples
                 # Protection for reading more elements than needed
                 if self._stopb > self._stop:

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.34 2004/09/16 17:56:31 falted Exp $
+#       $Id: IsDescription.py,v 1.35 2004/09/24 11:58:13 falted Exp $
 #
 ########################################################################
 
@@ -24,7 +24,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.34 $"
+__version__ = "$Revision: 1.35 $"
 
 
 import warnings
@@ -88,8 +88,9 @@ class Col:
             self.type = NA.typeDict[dtype]
             self.recarrtype = records.revfmt[self.type]
             self.itemsize = self.type.bytes
-#             if dtype == NA.Complex32 or dtype == NA.Complex64:
-#                 raise TypeError, "'%s' not supported" % repr(dtype)
+            if self.indexed and (dtype == NA.Complex32 or
+                                 dtype == NA.Complex64):
+                raise TypeError, "'%s' do not support indexation" % repr(dtype)
         elif dtype == "CharType" or isinstance(dtype, records.Char):
             # Special case for Strings
             self.type = records.CharType
@@ -133,21 +134,10 @@ class Col:
               ")"
         return out
 
-    # Just a test
-    def __close(self):
-        self.__dict__.clear()
+#     # Just a test
+#     def __close(self):
+#         self.__dict__.clear()
         
-# # Col cannot initialise complex data types
-# class Col(BaseCol):
-#     """ Define a column """
-#     def __init__(self, dtype="Float64", shape=1, dflt=None, pos=None,
-#                  indexed=0):
-#         if dtype in NA.typeDict:
-#             type = NA.typeDict[dtype]
-#             if type == NA.Complex32 or type == NA.Complex64:
-#                 raise TypeError, "'%s' not supported" % `type`
-#         BaseCol.__init__(self, dtype, shape, dflt, pos, indexed)    
-
 class BoolCol(Col):
     """ Define a string column """
     
@@ -366,12 +356,10 @@ class Float64Col(FloatCol):
         
 class ComplexCol(Col):
     """ Define a complex column """
-    def __init__(self, dflt=(0.0+0.0j), shape=1, itemsize=16, pos=None,
-                 indexed=0):
+    def __init__(self, dflt=(0.0+0.0j), shape=1, itemsize=16, pos=None):
 
         self.pos = pos
-        self.indexed = indexed
-
+        self.indexed = 0  # This attribuet is needed
         assert shape != None and shape != 0, \
                "None or zero-valued shapes are not supported '%s'" % `shape`
 
@@ -401,17 +389,15 @@ class ComplexCol(Col):
 
 class Complex32Col(ComplexCol):
     "Description class for a complex of simple precision "
-    def __init__(self, dflt=(0.0+0.0j), shape=1, pos=None, indexed=0):
-        ComplexCol.__init__(self, dflt , shape=shape, itemsize=8,
-                            pos=pos, indexed=indexed)
+    def __init__(self, dflt=(0.0+0.0j), shape=1, pos=None):
+        ComplexCol.__init__(self, dflt, shape=shape, itemsize=8, pos=pos)
         
 class Complex64Col(ComplexCol):
     "Description class for a complex of double precision "
-    def __init__(self, dflt=(0.0+0.0j), shape=1, pos=None, indexed=0):
-        ComplexCol.__init__(self, dflt , shape=shape, itemsize=16,
-                            pos=pos, indexed=indexed)
-        
-    
+    def __init__(self, dflt=(0.0+0.0j), shape=1, pos=None):
+        ComplexCol.__init__(self, dflt , shape=shape, itemsize=16, pos=pos)
+
+
 class Description(object):
     "Regular class to keep table description metadata"
 

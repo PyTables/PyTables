@@ -241,6 +241,7 @@ herr_t getfieldfmt( hid_t loc_id,
   /* Get the type size */
 /*   if ( ( *rowsize = H5Tget_size( type_id )) < 0 ) */
 /*     goto out; */
+
   /* The size of type will be determined by the sum of the sizes of
      the components. This is to manage situations where there are
      "gaps" in the definition of original compound types (mainly Table
@@ -282,6 +283,7 @@ herr_t getfieldfmt( hid_t loc_id,
      F. Alted 2004-09-22
 
  */
+
   *rowsize = 0;
 
   /* Get records */
