@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.84 2004/12/09 13:02:00 falted Exp $
+#       $Id: Group.py,v 1.85 2004/12/24 18:16:01 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.84 $"
+__version__ = "$Revision: 1.85 $"
 
 # Recommended values for maximum number of groups and maximum depth in tree
 # However, these limits are somewhat arbitraries and can be increased
@@ -42,7 +42,7 @@ MAX_CHILDS_IN_GROUP = 4096
 
 from __future__ import generators
 
-import sys, warnings, types
+import sys, warnings
 import hdf5Extension
 from Table import Table
 from Array import Array
@@ -53,6 +53,7 @@ from Leaf import Filters
 from UnImplemented import UnImplemented
 from AttributeSet import AttributeSet
 from utils import checkNameValidity
+from exceptions import NodeError
 import cPickle
 
 class Group(hdf5Extension.Group, object):
@@ -195,7 +196,7 @@ class Group(hdf5Extension.Group, object):
                     try:
                         objleaf._g_putObjectInTree(name, objgroup)
                     except:
-                        (type, value, traceback) = sys.exc_info()
+                        (typerr, value, traceback) = sys.exc_info()
                         warnings.warn( \
 """Problems loading '%s' object. The error was: <%s>. This object will be cast into an UnImplemented instance. Continuing...""" % \
 (objleaf._v_pathname, value), UserWarning)
@@ -472,7 +473,7 @@ self._g_join(name), UserWarning)
             return listobjects
         else:
             raise ValueError, \
-""""classname" can only take 'Group', 'Leaf', 'Table', 'Array', 'EArray', 'IndexArray', 'VLArray', 'UnImplemented' values"""
+                "\"classname\" argument can only take 'Group', 'Leaf', 'Table', 'Array', 'EArray', 'IndexArray', 'VLArray', 'UnImplemented' values"""
 
     def _f_walkGroups(self):
         """Iterate over the Groups (not Leaves) hanging from self.
@@ -521,7 +522,7 @@ self._g_join(name), UserWarning)
         elif name in self._v_leaves:
             return self._v_leaves[name].remove()
         else:
-            raise LookupError, "'%s' group has not a \"%s\" child!" % \
+            raise NodeError, "'%s' group has not a \"%s\" child!" % \
                                   (self._v_pathname, name)
 
     def __getattr__(self, name):
@@ -535,7 +536,7 @@ self._g_join(name), UserWarning)
         elif name in self._v_leaves:
             return self._v_leaves[name]
         else:
-            raise LookupError, "'%s' group has not a \"%s\" child!" % \
+            raise NodeError, "'%s' group has not a \"%s\" child!" % \
                                   (self._v_pathname, name)
 
     def __setattr__(self, name, value):
@@ -544,10 +545,9 @@ self._g_join(name), UserWarning)
         name -- The name of the new node
         value -- The new node object
 
-        If "name" group already exists in "self", raise the NameError
-        exception. A NameError is also raised when the "name" starts
-        by a reserved prefix. A SyntaxError is raised if "name" is not
-        a valid Python identifier.
+        If "name" group already exists in "self", raise the NodeError
+        exception. A ValueError is raised when the "name" starts
+        by a reserved prefix is not a valid Python identifier.
 
         """
 
@@ -576,7 +576,7 @@ self._g_join(name), UserWarning)
         if name not in self._v_children:
             value._g_putObjectInTree(name, self)
         else:
-            raise NameError, \
+            raise NodeError, \
                   "'%s' group already has a child named '%s' in file '%s'" % \
                   (self._v_pathname, name, self._v_rootgroup._v_filename)
 
@@ -631,9 +631,9 @@ self._g_join(name), UserWarning)
         checkNameValidity(newname)
         # Check if self has a child with the same name
         if newname in self._v_parent._v_children:
-            raise RuntimeError, \
-        """Another sibling (%s) already has the name '%s' """ % \
-                   (self._v_parent._v_children[newname], newname)
+            raise NodeError, \
+                "Another sibling (%s) already has the name '%s'" % \
+                (self._v_parent._v_children[newname], newname)
         # Rename all the appearances of oldname in the object tree
         oldname = self._v_name
         self._g_renameObject(newname)
@@ -670,7 +670,7 @@ self._g_join(name), UserWarning)
         """(Recursively) Copy the children of a group into another location
 
         "whereSrc" is the source group and "whereDst" is the
-        destination group.  Both groups should exist or a LookupError
+        destination group.  Both groups should exist or a NodeError
         will be raised. They can be specified as strings or as Group
         instances. "recursive" specifies whether the copy should
         recurse into subgroups or not. The default is not

@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IndexArray.py,v $
-#       $Id: IndexArray.py,v 1.12 2004/12/09 13:02:00 falted Exp $
+#       $Id: IndexArray.py,v 1.13 2004/12/24 18:16:01 falted Exp $
 #
 ########################################################################
 
@@ -27,11 +27,11 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.12 $"
+__version__ = "$Revision: 1.13 $"
 # default version for IndexARRAY objects
 obversion = "1.0"    # initial version
 
-import types, warnings, sys
+import warnings, sys
 from EArray import EArray
 from VLArray import Atom, StringAtom
 import hdf5Extension

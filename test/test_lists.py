@@ -140,13 +140,13 @@ class ExceptionTestCase(unittest.TestCase):
         a = self.charList
         try:
             WriteRead(a)
-        except ValueError:
+        except TypeError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next error was catched!"
                 print type, ":", value
         else:
-            self.fail("expected an ValueError")
+            self.fail("expected an TypeError")
             
 
 	return

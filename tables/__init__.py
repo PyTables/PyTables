@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/__init__.py,v $
-#       $Id: __init__.py,v 1.31 2004/12/17 16:45:39 falted Exp $
+#       $Id: __init__.py,v 1.32 2004/12/24 18:16:02 falted Exp $
 #
 ########################################################################
 
@@ -73,5 +73,5 @@ __all__ = ["isHDF5", "isPyTablesFile", "whichLibVersion", "copyFile",
            "FloatAtom", "Float32Atom", "Float64Atom",
            "ComplexAtom", "Complex32Atom", "Complex64Atom",
 #          Exceptions and warnings
-           "NaturalNameWarning",
+           "NaturalNameWarning", "NodeError"
            ]

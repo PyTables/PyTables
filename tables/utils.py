@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.33 2004/12/17 16:45:39 falted Exp $
+#       $Id: utils.py,v 1.34 2004/12/24 18:16:02 falted Exp $
 #
 ########################################################################
 
@@ -13,7 +13,7 @@
 
 """
 
-import types, re
+import re
 import warnings
 #from warnings import Warning
 # The second line is better for some installations
@@ -51,10 +51,11 @@ def checkNameValidity(name):
 
     # Check if name starts with a reserved prefix
     for prefix in reservedprefixes:
-        if (name.startswith(prefix)):
-            raise NameError, \
-"""Sorry, you cannot use a name like "%s" with the following reserved prefixes:\
-  %s in this context""" % (name, reservedprefixes)
+        if name.startswith(prefix):
+            raise ValueError, """Sorry, the name "%s" contains one of the reserved prefixes: %s, and cannot be used in this context""" % (name, reservedprefixes)
+
+    if name.find('/') <> -1:
+        raise ValueError, """Sorry, the name "%s" contains a '/' which is forbidden in hdf5-identifiers""" % (name)
                 
     # Check if new  node name have the appropriate set of characters
     # and is not one of the Python reserved word!
@@ -65,8 +66,7 @@ def checkNameValidity(name):
         exec(testname + ' = 1')  # Test for trailing and ending spaces
         exec(name + '= 1')  # Test for name validity
     except SyntaxError:
-        
-        warnings.warn("""\'%s\' is not a valid python identifier and cannot be used for natural naming purposes. Be sure to access it later on by using getattr().""" % (name), NaturalNameWarning)
+        warnings.warn(""""%s" is not a valid python identifier, so the associated element cannot be accessed by natural naming. Check for special symbols ($, %%, @, ...), spaces or reserved words, or be sure to access it later on by using getattr().""" % (name), NaturalNameWarning)
         
 #         raise NameError, \
 #  """\'%s\' is not a valid python identifier and cannot be used in this context.
@@ -177,7 +177,7 @@ def calcBufferSize(rowsize, expectedrows, compress):
 # This function is appropriate for calls to __getitem__ methods
 def processRange(nrows, start=None, stop=None, step=1):
     if step and step < 0:
-        raise ValueError, "slice step canot be negative"
+        raise ValueError, "slice step cannot be negative"
     # slice object does not have a indices method in python 2.2
     # the next is a workaround for that (basically the code for indices
     # has been copied from python2.3 to hdf5Extension.pyx)
@@ -193,18 +193,15 @@ def processRangeRead(nrows, start=None, stop=None, step=1):
     if start is not None and stop is None:
         # Protection against start greater than available records
         # nrows == 0 is a special case for empty objects
-        if (isinstance(start, types.IntType) or
-            isinstance(start, types.LongType)):
-            if nrows > 0 and start >= nrows:
-                raise IndexError, \
-"Start (%s) value is greater than number of rows (%s)." % (start, nrows)
-            step = 1
-            if start == -1:  # corner case
-                stop = nrows
-            else:
-                stop = start + 1
+        if type(start) not in (int,long):
+            raise TypeError, "Start must be an integer and you passed: %s which is of type %s" % (repr(start), type(start))
+        if nrows > 0 and start >= nrows:
+            raise IndexError, "Start of range (%s) is greater than number of rows (%s)." % (start, nrows)
+        step = 1
+        if start == -1:  # corner case
+            stop = nrows
         else:
-            raise IndexError, "start must be an integer and you passed: %s which os of type %s" % (repr(start), type(start))
+            stop = start + 1
     # Finally, get the correct values
     start, stop, step = processRange(nrows, start, stop, step)
 
@@ -241,8 +238,7 @@ def convertIntoNA(arr, atom):
             naarr = strings.array(arr.tolist(), itemsize=atom.itemsize)
             # If still doesn't, issues an error
         except:
-            raise TypeError, \
-"""The object '%s' can't be converted into a CharArray object of type '%s'. Sorry, but this object is not supported in this context.""" % (arr, atom)
+            raise TypeError, """The object '%s' can't be converted into a CharArray object of type '%s'. Sorry, but this object is not supported in this context.""" % (arr, atom)
     else:
         # Test if arr can be converted to a numarray object of the
         # correct type
@@ -254,8 +250,7 @@ def convertIntoNA(arr, atom):
                 naarr = strings.array(arr, itemsize=atom.itemsize)
             # If still doesn't, issues an error
             except:
-                raise TypeError, \
-"""The object '%s' can't be converted into a numarray object of type '%s'. Sorry, but this object is not supported in this context.""" % (arr, atom)
+                raise TypeError, """The object '%s' can't be converted into a numarray object of type '%s'. Sorry, but this object is not supported in this context.""" % (arr, atom)
 
     # Convert to the atom type, if necessary
     if (isinstance(naarr, numarray.NumArray) and naarr.type() <> atom.type):

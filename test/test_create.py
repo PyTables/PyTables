@@ -74,13 +74,13 @@ class createTestCase(unittest.TestCase):
         try:
             self.array = self.fileh.createArray(self.root, 'anarray',
                                                 [1], "Array title")
-        except NameError:
+        except NodeError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next NameError was catched!"
                 print value
         else:
-            self.fail("expected a NameError")
+            self.fail("expected a NodeError")
 	
     def test02_syntaxname(self):
         """Checking syntax in object tree names"""

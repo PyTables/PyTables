@@ -31,11 +31,10 @@ test_all.verbose = verbose
 test_all.heavy = heavy
 
 def cleanup(klass):
-    klass.__dict__.clear()
+    #klass.__dict__.clear()     # This is too hard. Don't do that
 #    print "Class attributes deleted"
-#     for key in klass.__dict__.keys():
-#         klass.__dict__[key] = None
-    pass
+    for key in klass.__dict__.keys():
+        klass.__dict__[key] = None
 
 def allequal(a,b, flavor="numarray"):
     """Checks if two numarrays are equal"""
@@ -114,9 +113,9 @@ def suite():
                     'test_numarray',
                     'test_lists',
                     'test_tables',
+                    'test_tablesMD',
                     'test_indexes',
                     'test_indexvalues',
-                    'test_tablesMD',
                     'test_vlarray',
                     'test_earray',
 		    'test_tree',

@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.83 2004/12/17 10:27:15 falted Exp $
+#       $Id: Array.py,v 1.84 2004/12/24 18:16:01 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.83 $"
+__version__ = "$Revision: 1.84 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -111,9 +111,9 @@ class Array(Leaf, hdf5Extension.Array, object):
             # Problems converting data. Close this node.
             #print "Problems converting input object:", str(self.object)
             self.close(flush=0)
-            (type, value, traceback) = sys.exc_info()
+            (typerr, value, traceback) = sys.exc_info()
             # Re-raise the exception
-            raise type, value
+            raise typerr, value
 
         if naarr.shape:
             self._v_expectedrows = naarr.shape[0]
@@ -131,7 +131,7 @@ class Array(Leaf, hdf5Extension.Array, object):
             if i>0:
                 self.rowsize *= i
             else:
-                raise ValueError, "An Array object cannot be empty."
+                raise ValueError, "An Array object cannot have zero-dimensions."
 
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
@@ -149,9 +149,9 @@ class Array(Leaf, hdf5Extension.Array, object):
         except:
             # Problems creating the Array on disk. Close this node
             self.close(flush=0)
-            (type, value, traceback) = sys.exc_info()
+            (typerr, value, traceback) = sys.exc_info()
             # Re-raise the exception
-            raise type, value
+            raise typerr, value
 
     def _convertIntoNA(self, object):
         "Convert a generic object into a numarray object"
@@ -198,8 +198,8 @@ class Array(Leaf, hdf5Extension.Array, object):
                                            type=arr.typecode(),
                                            shape=arr.shape)                    
 
-        elif (isinstance(arr, types.TupleType) or
-              isinstance(arr, types.ListType)):
+        elif (isinstance(arr, tuple) or
+              isinstance(arr, list)):
             # Test if can convert to numarray object
             try:
                 naarr = numarray.array(arr)
@@ -209,24 +209,24 @@ class Array(Leaf, hdf5Extension.Array, object):
                     naarr = strings.array(arr)
                 # If still doesn't, issues an error
                 except:
-                    raise ValueError, \
+                    raise TypeError, \
 """The object '%s' can't be converted into a numerical or character array.
-  Sorry, but this object is not supported.""" % (arr)
-            if isinstance(arr, types.TupleType):
+Sorry, but this object is not supported.""" % (arr)
+            if isinstance(arr, tuple):
                 flavor = "Tuple"
             else:
                 flavor = "List"
-        elif isinstance(arr, types.IntType):
+        elif isinstance(arr, int):
             naarr = numarray.array(arr)
             flavor = "Int"
-        elif isinstance(arr, types.FloatType):
+        elif isinstance(arr, float):
             naarr = numarray.array(arr)
             flavor = "Float"
-        elif isinstance(arr, types.StringType):
+        elif isinstance(arr, str):
             naarr = strings.array(arr)
             flavor = "String"
         else:
-            raise ValueError, \
+            raise TypeError, \
 """The object '%s' is not in the list of supported objects (NumArray, CharArray, Numeric, homogeneous list or homogeneous tuple, int, float or str). Sorry, but this object is not supported.""" % (arr)
 
         # We always want a contiguous buffer
@@ -332,24 +332,16 @@ class Array(Leaf, hdf5Extension.Array, object):
             else:
                 return self.listarr    # Scalar case
 
-    def __getitem__(self, keys):
-        """Returns an Array element, row or extended slice.
-
-        It takes different actions depending on the type of the "key"
-        parameter:
-
-        If "key" is an integer, the corresponding row is returned. If
-        "key" is a slice, the row slice determined by key is returned.
-
-        """
-
+    def _interpret_indexing(self, keys):
+        """Internal routine used by __getitem__ and __setitem__"""
+    
         maxlen = len(self.shape)
         shape = (maxlen,)
         startl = numarray.array(None, shape=shape, type=numarray.Int64)
         stopl = numarray.array(None, shape=shape, type=numarray.Int64)
         stepl = numarray.array(None, shape=shape, type=numarray.Int64)
         stop_None = numarray.zeros(shape=shape, type=numarray.Int64)
-        if not isinstance(keys, types.TupleType):
+        if not isinstance(keys, tuple):
             keys = (keys,)
         nkeys = len(keys)
         dim = 0
@@ -357,9 +349,6 @@ class Array(Leaf, hdf5Extension.Array, object):
         # but this is a bit weird way to pass parameters anyway
         for key in keys:
             ellipsis = 0  # Sentinel
-            if dim >= maxlen:
-                raise IndexError, "Too many indices for object '%s'" % \
-                      self._v_pathname
             if isinstance(key, types.EllipsisType):
                 ellipsis = 1
                 for diml in xrange(dim, len(self.shape) - (nkeys - dim) + 1):
@@ -367,7 +356,10 @@ class Array(Leaf, hdf5Extension.Array, object):
                     stopl[dim] = self.shape[diml]
                     stepl[dim] = 1
                     dim += 1
-            elif type(key) in [types.IntType, types.LongType]:
+            elif dim >= maxlen:
+                raise IndexError, "Too many indices for object '%s'" % \
+                      self._v_pathname
+            elif type(key) in (int, long):
                 # Index out of range protection
                 if key >= self.shape[dim]:
                     raise IndexError, "Index out of range"
@@ -381,7 +373,7 @@ class Array(Leaf, hdf5Extension.Array, object):
                 start, stop, step = processRange(self.shape[dim],
                                                  key.start, key.stop, key.step)
             else:
-                raise ValueError, "Non-valid index or slice: %s" % \
+                raise TypeError, "Non-valid index or slice: %s" % \
                       key
             if not ellipsis:
                 startl[dim] = start
@@ -397,10 +389,25 @@ class Array(Leaf, hdf5Extension.Array, object):
                 stepl[dim] = 1
                 dim += 1
 
+        return startl, stopl, stepl, stop_None
+
+    def __getitem__(self, keys):
+        """Returns an Array element, row or extended slice.
+
+        It takes different actions depending on the type of the "keys"
+        parameter:
+
+        If "keys" is an integer, the corresponding row is returned. If
+        "keys" is a slice, the row slice determined by key is returned.
+
+        """
+
+        startl, stopl, stepl, stop_None = self._interpret_indexing(keys)
+        
         return self._readSlice(startl, stopl, stepl, stop_None)
 
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, keys, value):
         """Sets an Array element, row or extended slice.
 
         It takes different actions depending on the type of the "key"
@@ -420,66 +427,7 @@ class Array(Leaf, hdf5Extension.Array, object):
 
         """
 
-        maxlen = len(self.shape)
-        shape = (maxlen,)
-        startl = numarray.array(None, shape=shape, type=numarray.Int64)
-        stopl = numarray.array(None, shape=shape, type=numarray.Int64)
-        stepl = numarray.array(None, shape=shape, type=numarray.Int64)
-        stop_None = numarray.zeros(shape=shape, type=numarray.Int64)
-        if not isinstance(key, types.TupleType):
-            keys = (key,)
-        else:
-            keys = key
-        nkeys = len(keys)
-        dim = 0
-        # Here is some problem when dealing with [...,...] params
-        # but this is a bit weird way to pass parameters anyway
-        for key in keys:
-            ellipsis = 0  # Sentinel
-            if isinstance(key, types.EllipsisType):
-                ellipsis = 1
-                for diml in xrange(dim, len(self.shape) - (nkeys - dim) + 1):
-                    
-                    startl[dim] = 0
-                    stopl[dim] = self.shape[diml]
-                    stepl[dim] = 1
-                    dim += 1
-            elif dim >= maxlen:
-                raise IndexError, "Too many indices for object '%s'" % \
-                      self._v_pathname
-            # The next sentence makes several tests in test_numarray to fail
-            # I don't know why. 2004-12-17
-            #elif type(key) in [types.IntType, types.LongType]:
-            elif (isinstance(key, types.IntType) or
-                  isinstance(key, types.LongType)):
-                # Index out of range protection
-                if key >= self.shape[dim]:
-                    raise IndexError, "Index out of range"
-                if key < 0:
-                    # To support negative values (Fixes bug #968149)
-                    key += self.shape[dim]
-                start, stop, step = processRange(self.shape[dim],
-                                                 key, key+1, 1)
-                stop_None[dim] = 1
-            elif isinstance(key, types.SliceType):
-                start, stop, step = processRange(self.shape[dim],
-                                                 key.start, key.stop, key.step)
-            else:
-                raise ValueError, "Non-valid index or slice: %s" % \
-                      key
-            if not ellipsis:
-                startl[dim] = start
-                stopl[dim] = stop
-                stepl[dim] = step
-                dim += 1
-            
-        # Complete the other dimensions, if needed
-        if dim < len(self.shape):
-            for diml in xrange(dim, len(self.shape)):
-                startl[dim] = 0
-                stopl[dim] = self.shape[diml]
-                stepl[dim] = 1
-                dim += 1
+        startl, stopl, stepl, stop_None = self._interpret_indexing(keys)
 
         # Create an array compliant with the specified slice
         countl = ((stopl - startl - 1) / stepl) + 1
@@ -493,10 +441,11 @@ class Array(Leaf, hdf5Extension.Array, object):
         try:
             narr[...] = value
         except:
-            (type, value2, traceback) = sys.exc_info()
+            (typerr, value2, traceback) = sys.exc_info()
             raise ValueError, \
-"value parameter '%s' cannot be converted into an array object compliant with earray: \n'%r'\nThe error was: <%s>" % \
-        (value, self, value2)
+"""value parameter '%s' cannot be converted into an array object compliant with earray:
+'%r'
+The error was: <%s>""" % (value, self, value2)
 
         if narr.size():
             self._modify(startl, stepl, countl, narr)

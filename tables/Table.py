@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.140 2004/12/17 10:27:15 falted Exp $
+#       $Id: Table.py,v 1.141 2004/12/24 18:16:02 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.140 $"
+__version__ = "$Revision: 1.141 $"
 
 from __future__ import generators
 import sys
@@ -154,7 +154,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.opsValues = []
         self.opsColnames = []
         # Initialize this object in case is a new Table
-        if isinstance(description, types.DictType):
+        if isinstance(description, dict):
             # Dictionary case
             self.description = Description(description)
             # Flag that tells if this table is new or has to be read from disk
@@ -685,7 +685,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         if field:
             shape = self.colshapes[field]
             itemsize = self.colitemsizes[field]
-            if type(shape) in [types.IntType, types.LongType]:
+            if type(shape) in (int,long):
                 if shape == 1:
                     shape = (nrows,)
                 else:
@@ -758,7 +758,7 @@ class Table(Leaf, hdf5Extension.Table, object):
 
 """
 
-        if type(key) in [types.IntType, types.LongType]:
+        if type(key) in (int,long):
             # Index out of range protection
             if key >= self.nrows:
                 raise IndexError, "Index out of range"
@@ -774,7 +774,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             (start, stop, step) = processRange(self.nrows,
                                                key.start, key.stop, key.step)
             return self._read(start, stop, step, None, None)
-        elif isinstance(key, types.StringType):
+        elif isinstance(key, str):
             return self.read(field=key)
         else:
             raise ValueError, "Non-valid index or slice: %s" % str(key)
@@ -793,7 +793,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         """
         assert self._v_file.mode <> "r", "Attempt to write over a file opened in read-only mode"
 
-        if type(key) in [types.IntType, types.LongType]:
+        if type(key) in (int,long):
             # Index out of range protection
             if key >= self.nrows:
                 raise IndexError, "Index out of range"
@@ -836,7 +836,7 @@ class Table(Leaf, hdf5Extension.Table, object):
                                      formats=self.description._v_recarrfmt,
                                      names=self.colnames)
         except:
-            (type, value, traceback) = sys.exc_info()
+            (typerr, value, traceback) = sys.exc_info()
             raise ValueError, \
 "rows parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), value)
         lenrows = recarray.shape[0]
@@ -901,7 +901,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             # 2004-08-08
             recarray._names = self.colnames
         except:
-            (type, value, traceback) = sys.exc_info()
+            (typerr, value, traceback) = sys.exc_info()
             raise ValueError, \
 "rows parameter cannot be converted into a recarray object compliant with table format '%s'. The error was: <%s>" % (str(self.description._v_recarrfmt), value)
         lenrows = len(recarray)
@@ -942,8 +942,7 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         """
 
-        assert (isinstance(names, types.ListType) or
-                isinstance(names, types.TupleType)), \
+        assert (type(names) in(list,tuple)), \
                "The columns parameter has to be a list of strings"
         if columns is None:      # Nothing to be done
             return 0
@@ -977,7 +976,7 @@ class Table(Leaf, hdf5Extension.Table, object):
                 recarray = records.fromarrays(columns, formats=formats,
                                               names=names)
         except:
-            (type, value, traceback) = sys.exc_info()
+            (typerr, value, traceback) = sys.exc_info()
             raise ValueError, \
 "columns parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), value)
 
@@ -1223,12 +1222,12 @@ class Cols(object):
     def __getitem__(self, name):
         """Get the column named "name" as an item."""
 
-        if not isinstance(name, types.StringType):
+        if not isinstance(name, str):
             raise TypeError, \
 "Only strings are allowed as keys of a Cols instance. You passed object: %s" % name
         # If attribute does not exist, return None
         if not name in self._v_colnames:
-            raise AttributeError, \
+            raise KeyError, \
 "Column name '%s' does not exist in table:\n'%s'" % (name, str(self._v_table))
 
         return self.__dict__[name]
@@ -1354,7 +1353,7 @@ class Column(object):
 
         """
 
-        if type(key) in [types.IntType, types.LongType]:
+        if type(key) in (int,long):
             # Index out of range protection
             if key >= self.table.nrows:
                 raise IndexError, "Index out of range"
@@ -1386,7 +1385,7 @@ class Column(object):
         """
         assert self.table._v_file.mode <> "r", "Attempt to write over a file opened in read-only mode"
 
-        if type(key) in [types.IntType, types.LongType]:
+        if type(key) in (int,long):
             # Index out of range protection
             if key >= self.table.nrows:
                 raise IndexError, "Index out of range"

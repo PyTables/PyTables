@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.23 2004/12/09 13:01:59 falted Exp $
+#       $Id: EArray.py,v 1.24 2004/12/24 18:16:01 falted Exp $
 #
 ########################################################################
 
@@ -27,12 +27,12 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.23 $"
+__version__ = "$Revision: 1.24 $"
 # default version for EARRAY objects
 #obversion = "1.0"    # initial version
 obversion = "1.1"    # support for complex datatypes
 
-import types, warnings, sys
+import warnings, sys
 from Array import Array
 from VLArray import Atom
 from utils import convertIntoNA, processRangeRead
@@ -209,7 +209,7 @@ class EArray(Array, hdf5Extension.Array, object):
         global obversion
         
         assert isinstance(self.atom, Atom), "The object passed to the IndexArray constructor must be a descendent of the Atom class."
-        assert isinstance(self.atom.shape, types.TupleType), "The Atom shape has to be a tuple for IndexArrays, and you passed a '%s' object." % (self.atom.shape)
+        assert isinstance(self.atom.shape, tuple), "The Atom shape has to be a tuple for IndexArrays, and you passed a '%s' object." % (self.atom.shape)
         # Version, type, shape, flavor, byteorder
         self._v_version = obversion
         self.type = self.atom.type

@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.57 2004/12/09 13:02:00 falted Exp $
+#       $Id: Leaf.py,v 1.58 2004/12/24 18:16:02 falted Exp $
 #
 ########################################################################
 
@@ -28,9 +28,9 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.57 $"
+__version__ = "$Revision: 1.58 $"
 
-import types, warnings
+import warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
 from AttributeSet import AttributeSet
 import Group

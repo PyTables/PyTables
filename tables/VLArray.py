@@ -8,7 +8,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.40 2004/12/18 10:51:51 ivilata Exp $
+#       $Id: VLArray.py,v 1.41 2004/12/24 18:16:02 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.40 $"
+__version__ = "$Revision: 1.41 $"
 
 # default version for VLARRAY objects
 #obversion = "1.0"    # initial version
@@ -134,7 +134,7 @@ class Atom(Col):
     def atomsize(self):
         " Compute the size of the atom type "
         atomicsize = self.itemsize
-        if isinstance(self.shape, types.TupleType):
+        if isinstance(self.shape, tuple):
             for i in self.shape:
                 if i > 0:  # To deal with EArray Atoms
                     atomicsize *= i
@@ -377,7 +377,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         shape = naarr.shape
         atom_shape = self.atom.shape
         shapelen = len(naarr.shape)
-        if isinstance(atom_shape, types.TupleType):
+        if isinstance(atom_shape, tuple):
             atomshapelen = len(self.atom.shape)
         else:
             atom_shape = (self.atom.shape,)
@@ -427,14 +427,13 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         elif self.atom.flavor == "VLString":
             # Special case for a generic object
             # (to be pickled and saved as an array of unsigned bytes)
-            if not (isinstance(object, types.StringType) or
-                    isinstance(object, types.UnicodeType)):
+            if type(object) not in (str,unicode):
                 raise TypeError, \
 """The object "%s" is not of type String or Unicode.""" % (str(object))
             try:
                 object = object.encode('utf-8')
             except:
-                (type, value, traceback) = sys.exc_info()
+                (typerr, value, traceback) = sys.exc_info()
                 raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, value)
             object = numarray.array(object, type=numarray.UInt8)
 
@@ -577,8 +576,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 
         """
 
-        if (isinstance(key, types.IntType) or
-            isinstance(key, types.LongType)):
+        if type(key) in (int,long):
             if key >= self.nrows:
                 raise IndexError, "Index out of range"
             if key < 0:
@@ -619,14 +617,13 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 
         assert not self._v_file.mode == "r", "Attempt to write over a file opened in read-only mode"
 
-        if not isinstance(keys, types.TupleType):
+        if not isinstance(keys, tuple):
             keys = (keys, None)
         if len(keys) > 2:
             raise IndexError, "You cannot specify more than two dimensions"
         nrow, rng = keys
         # Process the first index
-        if not (isinstance(nrow, types.IntType) or
-                isinstance(nrow, types.LongType)):
+        if type(nrow) not in (int,long):
             raise IndexError, "The first dimension only can be an integer"
         if nrow >= self.nrows:
             raise IndexError, "First index out of range"
@@ -634,12 +631,11 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             # To support negative values
             nrow += self.nrows
         # Process the second index
-        if (isinstance(rng, types.IntType) or
-            isinstance(rng, types.LongType)):
+        if type(rng) in (int,long):
             start = rng; stop = start+1; step = 1
         elif isinstance(rng, types.SliceType):
             start, stop, step = rng.start, rng.stop, rng.step
-        elif isinstance(rng, types.NoneType):
+        elif rng is None:
             start, stop, step = None, None, None
         else:
             raise IndexError, "Non-valid second index or slice: %s" % rng
@@ -653,14 +649,13 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         elif self.atom.flavor == "VLString":
             # Special case for a generic object
             # (to be pickled and saved as an array of unsigned bytes)
-            if not (isinstance(object, types.StringType) or
-                    isinstance(object, types.UnicodeType)):
+            if type(object) not in (str,unicode):
                 raise TypeError, \
 """The object "%s" is not of type String or Unicode.""" % (str(object))
             try:
                 object = object.encode('utf-8')
             except:
-                (type, value, traceback) = sys.exc_info()
+                (typerr, value, traceback) = sys.exc_info()
                 raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, value)
             object = numarray.array(object, type=numarray.UInt8)
 
@@ -681,7 +676,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         try:
             naarr[slice(start, stop, step)] = value
         except:
-            (type, value2, traceback) = sys.exc_info()
+            (typerr, value2, traceback) = sys.exc_info()
             raise ValueError, \
 "Value parameter:\n'%r'\ncannot be converted into an array object compliant vlarray[%s] row: \n'%r'\nThe error was: <%s>" % \
         (value, keys, naarr[slice(start, stop, step)], value2)

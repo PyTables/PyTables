@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.28 2004/12/17 10:27:15 falted Exp $
+#       $Id: Index.py,v 1.29 2004/12/24 18:16:01 falted Exp $
 #
 ########################################################################
 
@@ -27,12 +27,12 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.28 $"
+__version__ = "$Revision: 1.29 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
 import cPickle
-import types, warnings, sys
+import warnings, sys
 from IndexArray import IndexArray
 from VLArray import Atom
 from Leaf import Filters
@@ -291,7 +291,7 @@ class IndexProps(object):
         elif isinstance(filters, Filters):
             self.filters = filters
         else:
-            raise ValueError, \
+            raise TypeError, \
 "If you pass a filters parameter, it should be a Filters instance."
 
     def __repr__(self):
@@ -650,28 +650,22 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         for limit in ilimit:
             # Check for strings
             if str(ctype) == "CharType":
-                assert type(limit) == types.StringType, \
+                assert type(limit) == str, \
 "Bounds (or range limits) for strings columns can only be strings."
             # Check for booleans
             elif isinstance(numarray.typeDict[str(ctype)],
                           numarray.BooleanType):
-                assert (type(limit) == types.IntType or
-                        type(limit) == types.LongType or
-                        type(limit) == types.BooleanType), \
+                assert type(limit) in (int,long,bool), \
 "Bounds (or range limits) for bool columns can only be ints or booleans."
             # Check for ints
             elif isinstance(numarray.typeDict[str(ctype)],
                           numarray.IntegralType):
-                assert (type(limit) == types.IntType or
-                        type(limit) == types.LongType or
-                        type(limit) == types.FloatType), \
+                assert (type(limit) in (int,long,float)), \
 "Bounds (or range limits) for integer columns can only be ints or floats."
             # Check for floats
             elif isinstance(numarray.typeDict[str(ctype)],
                           numarray.FloatingType):
-                assert (type(limit) == types.IntType or
-                        type(limit) == types.LongType or
-                        type(limit) == types.FloatType), \
+                assert (type(limit) in (int,long,float)), \
 "Bounds (or range limits) for float columns can only be ints or floats."
             else:
                 raise ValueError, \
@@ -685,7 +679,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
                 return ncoords
             else:
                 raise NotImplementedError, \
-                      "Only equality operator is suported for boolean columns."
+                      "Only equality operator is supported for boolean columns."
         # Other types are treated here
         if len(ilimit) == 1:
             ilimit = ilimit[0]

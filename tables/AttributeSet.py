@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.38 2004/12/17 08:42:09 falted Exp $
+#       $Id: AttributeSet.py,v 1.39 2004/12/24 18:16:01 falted Exp $
 #
 ########################################################################
 
@@ -31,9 +31,9 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.38 $"
+__version__ = "$Revision: 1.39 $"
 
-import warnings, types, cPickle
+import warnings, cPickle
 import hdf5Extension
 import Group
 import Leaf
@@ -183,7 +183,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         # Check whether the value is pickled
         # Pickled values always seems to end with a "."
-        if type(value) is types.StringType and value and value[-1] == ".":
+        if type(value) is str and value and value[-1] == ".":
             try:
                 retval = cPickle.loads(value)
             except:
@@ -203,11 +203,12 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         name -- The name of the new attribute
         value -- The new attribute value
 
-        A NameError is also raised when the "name" starts by a
-        reserved prefix. A SyntaxError is raised if "name" is not a
-        valid Python identifier. An AttributeError is raised if a
-        read-only attribute is to be overwritten or if
-        MAX_ATTRS_IN_NODE is going to be exceeded.
+        A ValueError is raised when the "name" starts by a reserved
+        prefix or contains a '/'. A NaturalNameWarning is given if
+        "name" is not a valid Python identifier. An AttributeError is
+        raised if a read-only attribute is to be overwritten. A
+        UserWarning is issued when MAX_ATTRS_IN_NODE is going to be
+        exceeded.
 
         """
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.39 2004/12/18 11:15:17 falted Exp $
+#       $Id: IsDescription.py,v 1.40 2004/12/24 18:16:01 falted Exp $
 #
 ########################################################################
 
@@ -24,12 +24,11 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.39 $"
+__version__ = "$Revision: 1.40 $"
 
 
 import warnings
 import struct
-import types
 import sys
 
 import numarray as NA
@@ -67,7 +66,7 @@ class Col:
         assert shape != None and shape != 0, \
                "None or zero-valued shapes are not supported '%s'" % `shape`
 
-        if type(shape) in [types.IntType, types.LongType]:
+        if type(shape) in (int,long):
             if shape < 1:
                 raise ValueError(
                     "Shape value must be greater than 0: %s" % (shape,))
@@ -77,13 +76,13 @@ class Col:
                 # To prevent confusions between 2 and (2,):
                 # the meaning is the same
                 self.shape = (shape,)
-        elif type(shape) in [types.ListType, types.TupleType]:
+        elif type(shape) in (list,tuple):
             # HDF5 does not support ranks greater than 32
             assert len(shape) <= 32, \
                "Shapes with rank > 32 are not supported '%s'" % `shape`
             self.shape = tuple(shape)
         else:
-            raise ValueError, "Illegal shape object: '%s'" % `shape`
+            raise TypeError, "Illegal shape object: '%s'" % `shape`
 
         self.dflt = dflt
 
@@ -97,7 +96,7 @@ class Col:
         elif dtype == "CharType" or isinstance(dtype, records.Char):
             # Special case for Strings
             self.type = records.CharType
-            if type(shape) in [types.IntType, types.LongType]:
+            if type(shape) in (int,long):
                 self.shape = 1
                 self.itemsize = shape
             else:
@@ -148,7 +147,7 @@ class BoolCol(Col):
         assert shape != None and shape != 0, \
                "None or zero-valued shapes are not supported '%s'" % `shape`
 
-        if type(shape) in [types.IntType, types.LongType]:
+        if type(shape) in (int,long):
             if shape < 1:
                 raise ValueError(
                     "Shape value must be greater than 0: %s" % (shape,))
@@ -158,7 +157,7 @@ class BoolCol(Col):
                 # To prevent confusions between 2 and (2,):
                 # the meaning is the same
                 self.shape = (shape,)
-        elif type(shape) in [types.ListType, types.TupleType]:
+        elif type(shape) in (list,tuple):
             self.shape = tuple(shape)
         else: raise ValueError, "Illegal shape %s" % `shape`
 
@@ -179,7 +178,7 @@ class StringCol(Col):
         self.pos = pos
         self.indexed = indexed
 
-        assert isinstance(dflt, types.StringTypes) or dflt == None, \
+        assert isinstance(dflt, str) or dflt == None, \
                "Invalid default value: '%s'" % dflt
         
         assert shape != None and shape != 0, \
@@ -193,7 +192,7 @@ class StringCol(Col):
 """You must specify at least a length or a default value where this length
   can be infered from."""
         
-        if type(shape) in [types.IntType, types.LongType]:
+        if type(shape) in (int,long):
             if shape < 1:
                 raise ValueError(
                     "Shape value must be greater than 0: %s" % (shape,))
@@ -203,7 +202,7 @@ class StringCol(Col):
                 # To prevent confusions between 2 and (2,):
                 # the meaning is the same
                 self.shape = (shape,)
-        elif type(shape) in [types.ListType, types.TupleType]:
+        elif type(shape) in (list,tuple):
             self.shape = tuple(shape)
         else: raise ValueError, "Illegal shape %s" % `shape`
 
@@ -229,7 +228,7 @@ class IntCol(Col):
         assert itemsize in [1, 2, 4, 8], \
                "Integer itemsizes different from 1,2,4 or 8 are not supported"
         
-        if type(shape) in [types.IntType, types.LongType]:
+        if type(shape) in (int,long):
             if shape < 1:
                 raise ValueError(
                     "Shape value must be greater than 0: %s" % (shape,))
@@ -239,7 +238,7 @@ class IntCol(Col):
                 # To prevent confusions between 2 and (2,):
                 # the meaning is the same
                 self.shape = (shape,)
-        elif type(shape) in [types.ListType, types.TupleType]:
+        elif type(shape) in (list,tuple):
             self.shape = tuple(shape)
         else: raise ValueError, "Illegal shape %s" % `shape`
 
@@ -332,7 +331,7 @@ class FloatCol(Col):
         assert itemsize in [4,8], \
                "Float itemsizes different from 4 and 8 are not supported"
         
-        if type(shape) in [types.IntType, types.LongType]:
+        if type(shape) in (int,long):
             if shape < 1:
                 raise ValueError(
                     "Shape value must be greater than 0: %s" % (shape,))
@@ -342,7 +341,7 @@ class FloatCol(Col):
                 # To prevent confusions between 2 and (2,):
                 # the meaning is the same
                 self.shape = (shape,)
-        elif type(shape) in [types.ListType, types.TupleType]:
+        elif type(shape) in (list,tuple):
             self.shape = tuple(shape)
         else: raise ValueError, "Illegal shape %s" % `shape`
 
@@ -381,7 +380,7 @@ class ComplexCol(Col):
         assert itemsize in [8, 16], \
                "Copmplex itemsizes different from 8 and 16 are not supported"
         
-        if type(shape) in [types.IntType, types.LongType]:
+        if type(shape) in (int,long):
             if shape < 1:
                 raise ValueError(
                     "Shape value must be greater than 0: %s" % (shape,))
@@ -391,7 +390,7 @@ class ComplexCol(Col):
                 # To prevent confusions between 2 and (2,):
                 # the meaning is the same
                 self.shape = (shape,)
-        elif type(shape) in [types.ListType, types.TupleType]:
+        elif type(shape) in (list,tuple):
             self.shape = tuple(shape)
         else: raise ValueError, "Illegal shape %s" % `shape`
 
@@ -482,7 +481,7 @@ class Description(object):
                 if object.recarrtype == "a":
                     # This needs to be fixed when calcoffset will support
                     # the recarray format, for ex: "(1,3)f4,3i4,(2,)a5,i2"
-                    if type(object.shape) in [types.IntType, types.LongType]:
+                    if type(object.shape) in (int,long):
                         # If shape is int type, it is always 1
                         shape = object.itemsize
                     else:

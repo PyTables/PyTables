@@ -4,7 +4,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.93 2004/12/09 13:01:59 falted Exp $
+#       $Id: File.py,v 1.94 2004/12/24 18:16:01 falted Exp $
 #
 ########################################################################
 
@@ -34,7 +34,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.93 $"
+__version__ = "$Revision: 1.94 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 #format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -47,7 +47,6 @@ compatible_formats = [] # Old format versions we can read
 from __future__ import generators
 
 import sys
-import types
 import warnings
 import time
 import os, os.path
@@ -63,6 +62,7 @@ from EArray import EArray
 from VLArray import VLArray
 from UnImplemented import UnImplemented
 from AttributeSet import AttributeSet
+from exceptions import NodeError
 import numarray
 
 def _checkFilters(filters, compress=None, complib=None):
@@ -75,8 +75,7 @@ def _checkFilters(filters, compress=None, complib=None):
     elif isinstance(filters, Filters):
         fprops = filters
     else:
-        raise ValueError, \
-              "filter parameter has to be None or a Filter instance and the passed type is: '%s'" % type(filters)
+        raise ValueError, "filter parameter has to be None or a Filter instance and the passed type is: '%s'" % type(filters)
     return fprops
 
 
@@ -163,8 +162,8 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
     # Expand the environment variables
     path = os.path.expandvars(path)
     
-# The file extension warning commmented out by people at GL suggestion
-
+# The file extension warning commmented out because a suggestion made
+# by people at GL suggestion
 #     if not (fnmatch(path, "*.h5") or
 #             fnmatch(path, "*.hdf") or
 #             fnmatch(path, "*.hdf5")):
@@ -172,24 +171,19 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
 # """filename '%s'should have one of the next file extensions
 #   '.h5', '.hdf' or '.hdf5'. Continuing anyway.""" % path, UserWarning)
 
-    # Only accept modes 'w', 'r', 'r+' or 'a'
-    assert mode in ['w', 'r', 'r+', 'a'], \
-"""arg 2 must take one of this values: ['w', 'r', 'r+', 'a']"""
-
     if (mode == "r" or mode == "r+"):
         # For 'r' and 'r+' check that path exists and is a HDF5 file
         if not os.path.isfile(path):
             raise IOError, \
-        """'%s' pathname does not exist or is not a regular file""" % path
+                """'%s' pathname does not exist or is not a regular file""" % path
         else:
             if not hdf5Extension.isHDF5(path):
                 raise IOError, \
-        """'%s' does exist but it is not an HDF5 file""" % path
+                    """'%s' does exist but it is not an HDF5 file""" % path
             
             elif not hdf5Extension.isPyTablesFile(path):
-                warnings.warn( \
-"""\n'%s' does exist, is an HDF5 file, but has not a PyTables format. Trying to guess what's there using HDF5 metadata. I can't promise you getting the correct objects, but I will do my best!.""" % \
-path, UserWarning)
+                warnings.warn(
+                    """\n'%s' does exist, is an HDF5 file, but has not a PyTables format. Trying to guess what's there using HDF5 metadata. I can't promise you getting the correct objects, but I will do my best!.""" % path, UserWarning)
   
                 isPTFile = 0
                     
@@ -202,17 +196,15 @@ path, UserWarning)
         if os.path.isfile(path):
             if not hdf5Extension.isHDF5(path):
                 raise IOError, \
-        """'%s' does exist but it is not an HDF5 file""" % path
+                    """'%s' does exist but it is not an HDF5 file""" % path
             
             elif not hdf5Extension.isPyTablesFile(path):
-                warnings.warn( \
-"""'%s' does exist, is an HDF5 file, but has not a PyTables format.
-  Trying to guess what's here from HDF5 metadata. I can't promise you getting
-  the correct object, but I will do my best!."""  % path, UserWarning)
+                warnings.warn(
+                    """'%s' does exist, is an HDF5 file, but has not a PyTables format. Trying to guess what's here from HDF5 metadata. I can't promise you getting the correct object, but I will do my best!."""  % path, UserWarning)
                 isPTFile = 0
     else:
-        raise IOError, \
-        """arg 2 can only take the new values: "r", "r+", "w" and "a" """
+        raise ValueError, \
+            """mode can only take the new values: "r", "r+", "w" and "a" """
     
     # new informs if this file is old or new
     if (mode == "r" or
@@ -450,7 +442,7 @@ class File(hdf5Extension.File, object):
             object = VLArray(*args, **kwargs)
         else:
             raise ValueError,\
-            """Parameter 1 can only take 'Group', 'Table', 'Array', EArray or VLArray values."""
+                """classname argument must be one of 'Group', 'Table', 'Array', 'EArray' or 'VLArray'."""
 
         group = self.getNode(where, classname = 'Group')
         # Put the object on the tree
@@ -596,7 +588,7 @@ class File(hdf5Extension.File, object):
         setattr(group, name, Object)
         return Object
 
-    def createVLArray(self, where, name, atom=None, title="",
+    def createVLArray(self, where, name, atom, title="",
                       filters=None, expectedsizeinMB=1.0,
                       compress=None, complib=None):
         
@@ -629,9 +621,6 @@ class File(hdf5Extension.File, object):
             """
 
         group = self.getNode(where, classname = 'Group')
-        if atom == None:
-                raise ValueError, \
-                      "please, expecify an atom argument."
         filters = _checkFilters(filters, compress, complib)
         Object = VLArray(atom, title, filters, expectedsizeinMB)
         setattr(group, name, Object)
@@ -643,7 +632,7 @@ class File(hdf5Extension.File, object):
         """Returns the object node "name" under "where" location.
 
         "where" can be a path string or Group instance. If "where"
-        doesn't exists or has not a child called "name", a LookupError
+        doesn't exists or has not a child called "name", a NodeError
         error is raised. If "name" is a null string (""), or not
         supplied, this method assumes to find the object in
         "where". If a "classname" parameter is supplied, returns only
@@ -669,9 +658,7 @@ class File(hdf5Extension.File, object):
             if strObject in self.objects:
                 object = self.objects[strObject]
             else:
-                # We didn't find the pathname in the object tree.
-                # This should be signaled as an error!.
-                raise LookupError, \
+                raise NodeError, \
                       "\"%s\" pathname not found in file: '%s'." % \
                       (strObject, self.filename)
                       
@@ -682,11 +669,9 @@ class File(hdf5Extension.File, object):
                 object = where
                 
         elif isinstance(where, Leaf):
-            
             if name:
-                raise LookupError, \
-"""'where' parameter (with value '%s') is a Leaf instance in file '%s' so it cannot have a 'name' child node (with value '%s')""" % \
-(where, self.filename, name)
+                raise NodeError, \
+                    """'where' parameter (with value '%s') is a Leaf instance in file '%s' so it cannot have a 'name' child node (with value '%s')""" % (where, self.filename, name)
 
             else:
                 object = where
@@ -701,21 +686,16 @@ class File(hdf5Extension.File, object):
             if isinstance(object, classobj):
                 return object
             else:
-                #warnings.warn( \
-                # This warning has been changed to a LookupError because
-                # I think it is more consistent
-                raise LookupError, \
-"""\n  A %s() instance cannot be found at "%s". Instead, a %s() object has been found there.""" % \
-(classname, object._v_pathname, object.__class__.__name__)
-                #, UserWarning)
-                #return -1
+                raise NodeError, \
+                    """\n  A %s() instance cannot be found at "%s". Instead, a %s() object has been found there.""" % \
+                    (classname, object._v_pathname, object.__class__.__name__)
         return object
 
     def renameNode(self, where, newname, name = ""):
         """Rename the object node "name" under "where" location.
 
         "where" can be a path string or Group instance. If "where"
-        doesn't exists or has not a child called "name", a LookupError
+        doesn't exist or has not a child called "name", a NodeError
         error is raised. If "name" is a null string (""), or not
         supplied, this method assumes to find the object in "where".
         "newname" is the new name of be assigned to the node.
@@ -733,7 +713,7 @@ class File(hdf5Extension.File, object):
         """Removes the object node "name" under "where" location.
 
         "where" can be a path string or Group instance. If "where"
-        doesn't exists or has not a child called "name", a LookupError
+        doesn't exists or has not a child called "name", a NodeError
         error is raised. If "name" is a null string (""), or not
         supplied, this method assumes to find the object in "where".
         If "recursive" is zero or not supplied, the object will be
@@ -753,7 +733,7 @@ class File(hdf5Extension.File, object):
         """Returns the attribute "attrname" of node "where"."name".
 
         "where" can be a path string or Group instance. If "where"
-        doesn't exists or has not a child called "name", a LookupError
+        doesn't exists or has not a child called "name", a NodeError
         error is raised. If "name" is a null string (""), or not
         supplied, this method assumes to find the object in "where".
         "attrname" is the name of the attribute to get.
@@ -770,7 +750,7 @@ class File(hdf5Extension.File, object):
         """Set the attribute "attrname" of node "where"."name".
 
         "where" can be a path string or Group instance. If "where"
-        doesn't exists or has not a child called "name", a LookupError
+        doesn't exists or has not a child called "name", a NodeError
         error is raised. If "name" is a null string (""), or not
         supplied, this method assumes to find the object in "where".
         "attrname" is the name of the attribute to set and "attrvalue"
@@ -788,7 +768,7 @@ class File(hdf5Extension.File, object):
         """Delete the attribute "attrname" of node "where"."name".
 
         "where" can be a path string or Group instance. If "where"
-        doesn't exists or has not a child called "name", a LookupError
+        doesn't exists or has not a child called "name", a NodeError
         error is raised. If "name" is a null string (""), or not
         supplied, this method assumes to find the object in "where".
         "attrname" is the name of the attribute to delete.
@@ -805,7 +785,7 @@ class File(hdf5Extension.File, object):
         """Copy the attributes from node "where"."name" to "dstNode".
 
         "where" can be a path string or Group instance. If "where"
-        doesn't exist or has not a child called "name", a LookupError
+        doesn't exist or has not a child called "name", a NodeError
         error is raised. If "name" is a null string (""), or not
         supplied, this method assumes to find the object in "where".
         "dstNode" is the destination and can be either a path string
@@ -827,7 +807,7 @@ class File(hdf5Extension.File, object):
         """(Recursively) Copy the children of a group into another location
 
         "whereSrc" is the source group and "whereDst" is the
-        destination group.  Both groups should exist or a LookupError
+        destination group.  Both groups should exist or a NodeError
         will be raised. They can be specified as strings or as Group
         instances. "recursive" specifies whether the copy should
         recurse into subgroups or not. The default is not
