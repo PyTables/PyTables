@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.7 2003/01/29 16:52:09 falted Exp $
+#       $Id: Array.py,v 1.8 2003/01/30 16:21:18 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.7 $"
+__version__ = "$Revision: 1.8 $"
 
 import types
 from Leaf import Leaf
@@ -141,17 +141,17 @@ class Array(Leaf, hdf5Extension.Array):
 
     def open(self):
         """Get the metadata info for an array in file."""
-        (self.typecode, self.shape, self.typesize) = self.openArray()
-        #self.title = self.getArrayTitle()
+        (self.typecode, self.shape, self.typesize, self.byteorder) = \
+                        self.openArray()
+
         self.title = self._v_parent._f_getDsetAttr(self._v_name, "TITLE")
         # NUMERIC, NUMARRAY, TUPLE, LIST or other flavor 
         self.flavor = self._v_parent._f_getDsetAttr(self._v_name, "FLAVOR")
-        #print "Flavor -->", self.flavor
         
     # Accessor for the readArray method in superclass
     def read(self):
         """Read the array from disk and return it as Numeric."""
-        print "Typecode ==>", repr(self.typecode)
+        
         if repr(self.typecode) == "CharType":
             arr = chararray.array(None, itemsize=self.typesize,
                                   shape=self.shape)
@@ -159,11 +159,12 @@ class Array(Leaf, hdf5Extension.Array):
             arr = numarray.array(buffer=None,
                                  type=self.typecode,
                                  shape=self.shape)
+            # Set the same byteorder than on-disk
+            arr._byteorder = self.byteorder
         # Do the actual data read
         self.readArray(arr._data)
         
         # Convert to Numeric, tuple or list if needed
-        print "read arr -->", arr
         if self.flavor == "NUMERIC":
             # This works for both numeric and chararrays
             # arr=Numeric.array(arr, typecode=arr.typecode())

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.9 2003/01/29 16:52:09 falted Exp $
+#       $Id: Table.py,v 1.10 2003/01/30 16:21:18 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.9 $"
+__version__ = "$Revision: 1.10 $"
 
 from __future__ import generators
 import sys
@@ -41,6 +41,10 @@ import recarray2 as recarray
 import hdf5Extension
 from Leaf import Leaf
 from IsRecord import IsRecord, metaIsRecord, defineType, fromstructfmt
+
+byteorderDict={"=": sys.byteorder,
+               '<': 'little',
+               '>': 'big'}
 
 class Table(Leaf, hdf5Extension.Table):
     """Represent a table in the object tree.
@@ -152,6 +156,8 @@ class Table(Leaf, hdf5Extension.Table):
         self.shape = (len(self.varnames), self.nrows)
         # Get the variable types
         self.vartypes = re.findall(r'(\d*\w)', self._v_fmt)
+        # Compute the byte order
+        self._v_byteorder = byteorderDict[self._v_fmt[0]]
         # Create the arrays for buffering
         self._v_buffer = self.newBuffer()
         self.row = self._v_buffer._row
@@ -197,6 +203,7 @@ class Table(Leaf, hdf5Extension.Table):
         # Append this entry to indicate the alignment!
         # Not needed anymore because the alignment is now always "="
         #recordDict['_v_align'] = self._v_fmt[0]
+        self._v_byteorder = byteorderDict[self._v_fmt[0]]
         # Create an instance record to host the record fields
         RecordObject = metaIsRecord("", (), recordDict)()
         self.record = RecordObject   # This points to the RecordObject
@@ -373,6 +380,8 @@ class Table(Leaf, hdf5Extension.Table):
         row = vars.__dict__["_row"]
         for i in xrange(0, self.nrows, nrowsinbuf):
             recout = self.read_records(i, nrowsinbuf, buffer)
+            if self._v_byteorder <> sys.byteorder:
+                buffer.byteswap()
             for j in xrange(recout):
                 varsdict["_row"] = j  # Up to 186000 lines/s
                 yield vars

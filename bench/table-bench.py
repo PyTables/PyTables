@@ -133,6 +133,7 @@ def readFile(filename, recsize):
     rowsread = 0
     for groupobj in fileh.walkGroups(fileh.root):
         #print "Group pathname:", groupobj._v_pathname
+        row = 0
         for table in fileh.listNodes(groupobj, 'Table'):
             #print "Table title for", table._v_pathname, ":", table.tableTitle
             if verbose:
@@ -154,8 +155,10 @@ def readFile(filename, recsize):
                 # For the moment we work under the assumption that the user is
                 # responsible to do it (case 2).
                 import copy
-                e = [ copy.deepcopy(p.float1) for p in table.readAsRecords()
-                      if p.grid_i < 2 ]
+                e = [ p._row for p in table.readAsRecords()
+                      if p._row < 2 ]
+                #e = [ copy.deepcopy(p.float1) for p in table.readAsRecords()
+                #      if p.grid_i < 2 ]
                 # Next line can be used in case 1. If used in case 2 you will
                 # get corrupted data!.
                 #e = [ p.float1 for p in table.readAsRecords() 
@@ -178,6 +181,7 @@ def readFile(filename, recsize):
                 print "resulting selection list ==>", e
 
 	    rowsread += table.nrows
+            row += 1
             if verbose:
                 print "Total selected records ==> ", len(e)
         

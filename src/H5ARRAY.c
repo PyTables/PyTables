@@ -52,7 +52,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
    if ( (space_id = H5Screate_simple( rank, dims, NULL )) < 0 )
      return -1;
    /*
-    * Define array datatype for the data in the file.
+    * Define atomic datatype for the data in the file.
     */
    datatype = type_id;
  }
@@ -245,13 +245,15 @@ herr_t H5ARRAYget_info( hid_t loc_id,
 			const char *dset_name,
 			hsize_t *dims,
 			H5T_class_t *class_id,
-			H5T_sign_t *sign, /* Added this parameter */
+			H5T_sign_t *sign, 
+			char *byteorder,
 			size_t *type_size )
 {
   hid_t       dataset_id;  
   hid_t       type_id;
   hid_t       space_id; 
   H5T_class_t class_arr_id;
+  H5T_order_t order;
   hid_t       super_type_id; 
 
   /* Open the dataset. */
@@ -282,7 +284,24 @@ herr_t H5ARRAYget_info( hid_t loc_id,
     /* Get the size. */
     *type_size = H5Tget_size( super_type_id );
  
-    /* Get dimensions */
+    /* Get the byteorder */
+    /* Only class integer and float can be byteordered */
+    if ( (*class_id == H5T_INTEGER) || (*class_id == H5T_FLOAT) ) {
+      order = H5Tget_order( super_type_id );
+      if (order == H5T_ORDER_LE) 
+	strcpy(byteorder, "little");
+      else if (order == H5T_ORDER_BE)
+	strcpy(byteorder, "big");
+      else {
+	fprintf(stderr, "Error: unsupported byteorder: %d\n", order);
+	goto out;
+      }
+    }
+    else {
+      strcpy(byteorder, "undefined");
+    }
+
+     /* Get dimensions */
     if ( H5Tget_array_dims(type_id, dims, NULL) < 0 )
       goto out;
 
@@ -301,6 +320,23 @@ herr_t H5ARRAYget_info( hid_t loc_id,
     /* Get the size. */
     *type_size = H5Tget_size( type_id );
    
+    /* Get the byteorder */
+    /* Only class integer and float can be byteordered */
+    if ( (*class_id == H5T_INTEGER) || (*class_id == H5T_FLOAT) ) {
+      order = H5Tget_order( type_id );
+      if (order == H5T_ORDER_LE) 
+	strcpy(byteorder, "little");
+      else if (order == H5T_ORDER_BE)
+	strcpy(byteorder, "big");
+      else {
+	fprintf(stderr, "Error: unsupported byteorder: %d\n", order);
+	goto out;
+      }
+    }
+    else {
+      strcpy(byteorder, "undefined");
+    }
+
     
     /* Get the dataspace handle */
     if ( (space_id = H5Dget_space( dataset_id )) < 0 )

@@ -7,11 +7,12 @@
  * So we do that in a switch case. */
 
 hid_t
-  convArrayType(fmt, size)
+  convArrayType(fmt, size, byteorder)
     int fmt;
     size_t size;
+    char *byteorder;
 {
-   hid_t s1;
+   hid_t type_id;
    
    switch(fmt) {
     /* I have this "a" map until a enum NumarrayType is assigned to it!
@@ -22,42 +23,65 @@ hid_t
        * so, we have to create a string type of lenght 1 so as to
        * represent a char.
        */
-      s1 = H5Tcopy(H5T_C_S1);
+      type_id = H5Tcopy(H5T_C_S1);
       /* I use set_strpad instead of set_size as per section 3.6 
        * (Character and String Datatype Issues) of the HDF5 User's Manual,
        * altough they both seems to work well for character types */
-      H5Tset_size(s1, size);
+      H5Tset_size(type_id, size);
       /* H5Tset_strpad(s1, H5T_STR_NULLPAD); */
       
-      return s1;
+      return type_id;
     case tBool:
-      return H5T_NATIVE_HBOOL;
+      type_id = H5Tcopy(H5T_NATIVE_HBOOL);
+      break;
     case tInt8:
-      return H5T_NATIVE_SCHAR;
+      type_id = H5Tcopy(H5T_NATIVE_SCHAR);
+      break;
     case tUInt8:
-      return H5T_NATIVE_UCHAR;
+      type_id = H5Tcopy(H5T_NATIVE_UCHAR);
+      break;
     case tInt16:
-      return H5T_NATIVE_SHORT;
+      type_id = H5Tcopy(H5T_NATIVE_SHORT);
+      break;
     case tUInt16:
-      return H5T_NATIVE_USHORT;
+      type_id = H5Tcopy(H5T_NATIVE_USHORT);
+      break;
     case tInt32:
-      return H5T_NATIVE_INT;
+      type_id = H5Tcopy(H5T_NATIVE_INT);
+      break;
     case tUInt32:
-      return H5T_NATIVE_UINT;
+      type_id = H5Tcopy(H5T_NATIVE_UINT);
+      break;
     case tInt64:
-      return H5T_NATIVE_LLONG;
+      type_id = H5Tcopy(H5T_NATIVE_LLONG);
+      break;
     case tUInt64:
-      return H5T_NATIVE_ULLONG;
+      type_id = H5Tcopy(H5T_NATIVE_ULLONG);
+      break;
     case tFloat32:
-      return H5T_NATIVE_FLOAT;
+      type_id = H5Tcopy(H5T_NATIVE_FLOAT);
+      break;
     case tFloat64:
-      return H5T_NATIVE_DOUBLE;
+      type_id = H5Tcopy(H5T_NATIVE_DOUBLE);
+      break;
     default:
 #ifdef DEBUG
       printf("Error: bad char <%c> in array format\n", fmt);
 #endif DEBUG
       return -1;
    }
+
+   /* Set the byteorder datatype */
+   if (strcmp(byteorder, "little") == 0) 
+     H5Tset_order(type_id, H5T_ORDER_LE);
+   else if (strcmp(byteorder, "big") == 0) 
+     H5Tset_order(type_id, H5T_ORDER_BE );
+   else {
+     fprintf(stderr, "Error: unsupported byteorder <%s>\n", byteorder);
+     return -1;   }
+   /* printf("datatype byteorder: %d\n", H5Tget_order(type_id )); */
+
+   return type_id;
 }
 
 /* Routine to map the atomic type to a Numeric typecode 

@@ -36,7 +36,8 @@ herr_t H5ARRAYget_info( hid_t loc_id,
 			const char *dset_name,
 			hsize_t *dims,
 			H5T_class_t *class_id,
-			H5T_sign_t *sign, /* Added this parameter */
+			H5T_sign_t *sign,
+			char *byteorder,
 			size_t *type_size );
 
 #ifdef __cplusplus

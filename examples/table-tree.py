@@ -185,6 +185,7 @@ print "Info on the object:", pressureObject
 print "  shape: ==>", pressureObject.shape
 print "  title: ==>", pressureObject.title
 print "  typecode ==> ", pressureObject.typecode
+print "  byteorder ==> ", pressureObject.byteorder
 
 # Read the pressure actual data
 #pressureArray = Numeric.array(pressureObject.read().tolist())

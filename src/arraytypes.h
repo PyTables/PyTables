@@ -11,7 +11,7 @@
   
 /* Functions in arraytypes.c we want to made accessible */
 
-hid_t convArrayType(int fmt, size_t size);
+hid_t convArrayType(int fmt, size_t size, char *byteorder);
 
 int getArrayType(H5T_class_t class_id,
 		 size_t type_size,

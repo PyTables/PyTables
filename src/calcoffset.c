@@ -298,7 +298,9 @@ calctypes(fmt, types, size_types)
    char c;
    int nattrib, size,  num, itemsize, x, j;
    hid_t hdf5type;
+   char byteorder;
 
+   byteorder = fmt[0];
    f = whichtable(&fmt);
    s = fmt;
    size = 0;
@@ -330,29 +332,25 @@ calctypes(fmt, types, size_types)
       itemsize = e->size;
       size = align(size, c, e);
       if (num >= 1 && c != 'x') {
-	 hdf5type = conventry(c, num);
-	 if (hdf5type == -1)
-	   return -1;
-	 *types++ = hdf5type;
-	 /* The case for a number before string is special */
-	 /*	 if (c != 's') {
-	    *size_types++ = itemsize;
-	    for (j=0; j < num - 1; j++) {
-	       *types++ = hdf5type;
-	       *size_types++ = itemsize;
-	    }
-	    nattrib += num; 
-	    } */
-	 if (c != 's') {
-	    nattrib ++; 
-	    *size_types++ = num*itemsize;
-	    } 
-	 else { /* Case of string */
-	    /* Increment nattrib only by one */
-	    nattrib++;
-	    /* Set the type size equal to the string length */
-	    *size_types++ = num;
-	 }
+	hdf5type = H5Tcopy(conventry(c, num));
+	if (hdf5type == -1)
+	  return -1;
+	if (c != 's') {
+	  *size_types++ = num*itemsize;
+	  /* Set the byteorder datatype (if needed) */
+	  if (byteorder == '<') 
+	    H5Tset_order(hdf5type, H5T_ORDER_LE);
+	  else if (byteorder == '>') {
+	    H5Tset_order(hdf5type, H5T_ORDER_BE );
+	  }
+	} 
+	else { /* Case of string */
+	  /* Set the type size equal to the string length */
+	  *size_types++ = num;
+	}
+	/* Increment nattrib only by one */
+	nattrib++;
+	*types++ = hdf5type;
       }
       
       x = num * itemsize;

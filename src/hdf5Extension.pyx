@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.8 2003/01/29 19:07:28 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.9 2003/01/30 16:21:17 falted Exp $
 #
 ########################################################################
 
@@ -36,10 +36,10 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.8 $"
+__version__ = "$Revision: 1.9 $"
 
 
-import os.path
+import sys, os.path
 import numarray as num
 import chararray
 import recarray2 as recarray
@@ -307,13 +307,14 @@ cdef extern from "H5ARRAY.h":
   
   herr_t H5ARRAYget_info( hid_t loc_id, char *dset_name,
                           hsize_t *dims, H5T_class_t *class_id,
-                          H5T_sign_t *sign, size_t *type_size )
+                          H5T_sign_t *sign, char *byteorder,
+                          size_t *type_size )
 
 
 # Funtion to compute the HDF5 type from a numarray enum type
 cdef extern from "arraytypes.h":
     
-  hid_t convArrayType(int fmt, size_t size)
+  hid_t convArrayType(int fmt, size_t size, char *byteorder)
   int getArrayType(H5T_class_t class_id, size_t type_size,
                    H5T_sign_t sign, int *format)
                    
@@ -451,7 +452,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.8 2003/01/29 19:07:28 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.9 2003/01/30 16:21:17 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -630,7 +631,9 @@ cdef class Group:
     if ret < 0:
       raise RuntimeError("Cannot close the dataset")
 
-    return PyString_FromString(attrvalue)
+    # These two works in the same way!
+    #return PyString_FromString(attrvalue)
+    return attrvalue
 
 cdef class Table:
   # instance variables
@@ -848,9 +851,9 @@ cdef class Array:
     cdef hid_t type_id
     cdef void *rbuf
     cdef int buflen, ret2
-    cdef object array
+    cdef object array, strcache
     cdef int itemsize
-    cdef char *tmp
+    cdef char *tmp, *byteorder
 
     if isinstance(arr, num.NumArray):
       self.type = arr._type
@@ -858,14 +861,21 @@ cdef class Array:
       # Convert the array object to a an object with a well-behaved buffer
       array = <object>NA_InputArray(arr, self.enumtype, C_ARRAY)
       itemsize = array.type().bytes
+      # The next is a trick to avoid a warning in Pyrex
+      strcache = array._byteorder
+      byteorder = strcache
     elif isinstance(arr, chararray.CharArray):
       self.type = CharType
       self.enumtype = 'a'
       # Get a contiguous chararray object (well-behaved buffer)
       array = arr.contiguous()
       itemsize = array._itemsize
+      # In CharArrays byteorder does not matter, but we need one
+      # to pass it as convArrayType parameter
+      strcache = sys.byteorder
+      byteorder = strcache
       
-    type_id = convArrayType(self.enumtype, itemsize)
+    type_id = convArrayType(self.enumtype, itemsize, byteorder)
     if type_id < 0:
       raise TypeError, \
         """type '%s' is not supported right now. Sorry about that.""" \
@@ -900,6 +910,7 @@ cdef class Array:
     cdef size_t type_size
     cdef H5T_class_t class_id
     cdef H5T_sign_t sign
+    cdef char byteorder[10]  # "little" fits easily here
     cdef int i
     cdef herr_t ret
 
@@ -910,8 +921,9 @@ cdef class Array:
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Get info on dimensions, class and type size
     ret = H5ARRAYget_info(self.group_id, self.name, self.dims,
-                             &class_id, &sign, &type_size)
-    
+                             &class_id, &sign, byteorder, &type_size)
+
+    # Get the array type
     ret = getArrayType(class_id, type_size,
                        sign, &self.enumtype)
     if ret < 0:
@@ -938,7 +950,7 @@ cdef class Array:
       shape.append(self.dims[i])
     shape = tuple(shape)
 
-    return (toclass[self.enumtype], shape, type_size)
+    return (toclass[self.enumtype], shape, type_size, byteorder)
   
   def readArray(self, object buf):
     cdef herr_t ret

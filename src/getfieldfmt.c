@@ -42,7 +42,7 @@ herr_t getfieldfmt( hid_t loc_id,
      is returned in standard size and alignment */
   strcpy(fmt, "=");
   order = H5T_ORDER_NONE;  /* Initialize the byte order to NONE */
-  /* Iterate tru the members */
+  /* Iterate thru the members */
   for ( i = 0; i < nfields; i++)
     {
 
