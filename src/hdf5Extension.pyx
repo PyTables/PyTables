@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.55 2003/06/19 11:14:35 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.56 2003/07/04 19:04:03 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.55 $"
+__version__ = "$Revision: 1.56 $"
 
 
 import sys, os
@@ -95,13 +95,13 @@ cdef extern from "Python.h":
   char *PyString_AsString(object string)
   object PyString_FromString(char *)
 
-  ctypedef class PyStringObject [type PyString_Type]:
-    cdef char *ob_sval
-    cdef int  ob_size
+#  ctypedef class __builtin__.str [object PyStringObject]:
+#    cdef char *ob_sval
+#    cdef int  ob_size
 
-  ctypedef class PyTupleObject [type PyTuple_Type]:
-    cdef object ob_item
-    cdef int    ob_size
+#   ctypedef class __builtin__.tuple [object PyTupleObject]:
+#     cdef object ob_item
+#     cdef int    ob_size
 
   # To access to Memory (Buffer) objects presents in numarray
   object PyBuffer_FromMemory(void *ptr, int size)
@@ -148,29 +148,31 @@ cdef extern from "numarray/numarray.h":
     tLong
   
 # Declaration for the PyArrayObject
+# This does not work with pyrex 0.8 and better anymore. It's worth
+# analyzing what's going on.
   
-  struct PyArray_Descr:
-     int type_num, elsize
-     char type
+#   struct PyArray_Descr:
+#      int type_num, elsize
+#      char type
         
-  ctypedef class PyArrayObject [type PyArray_Type]:
-    # Compatibility with Numeric
-    cdef char *data
-    cdef int nd
-    cdef int *dimensions, *strides
-    cdef object base
-    cdef PyArray_Descr *descr
-    cdef int flags
-    # New attributes for numarray objects
-    cdef object _data         # object must meet buffer API */
-    cdef object _shadows      # ill-behaved original array. */
-    cdef int    nstrides      # elements in strides array */
-    cdef long   byteoffset    # offset into buffer where array data begins */
-    cdef long   bytestride    # basic seperation of elements in bytes */
-    cdef long   itemsize      # length of 1 element in bytes */
-    cdef char   byteorder     # NUM_BIG_ENDIAN, NUM_LITTLE_ENDIAN */
-    cdef char   _aligned      # test override flag */
-    cdef char   _contiguous   # test override flag */
+#   ctypedef class numarray.numarraycore.NumArray [object PyArrayObject]:
+#     # Compatibility with Numeric
+#     cdef char *data
+#     cdef int nd
+#     cdef int *dimensions, *strides
+#     cdef object base
+#     cdef PyArray_Descr *descr
+#     cdef int flags
+#     # New attributes for numarray objects
+#     cdef object _data         # object must meet buffer API */
+#     cdef object _shadows      # ill-behaved original array. */
+#     cdef int    nstrides      # elements in strides array */
+#     cdef long   byteoffset    # offset into buffer where array data begins */
+#     cdef long   bytestride    # basic seperation of elements in bytes */
+#     cdef long   itemsize      # length of 1 element in bytes */
+#     cdef char   byteorder     # NUM_BIG_ENDIAN, NUM_LITTLE_ENDIAN */
+#     cdef char   _aligned      # test override flag */
+#     cdef char   _contiguous   # test override flag */
 
   # The numarray initialization funtion
   void import_array()
@@ -206,14 +208,14 @@ cdef enum:
 
 # Functions from numarray API
 cdef extern from "numarray/libnumarray.h":
-  PyArrayObject NA_InputArray (object, NumarrayType, int)
-  PyArrayObject NA_OutputArray (object, NumarrayType, int)
-  PyArrayObject NA_IoArray (object, NumarrayType, int)
-  PyArrayObject PyArray_FromDims(int nd, int *d, int type)
-  PyArrayObject NA_Empty(int nd, int *d, NumarrayType type)
-  object        NA_updateDataPtr(object)
-  object        NA_getPythonScalar(object, long)
-  object        NA_setFromPythonScalar  (object, int, object)
+  object NA_InputArray (object, NumarrayType, int)
+  object NA_OutputArray (object, NumarrayType, int)
+  object NA_IoArray (object, NumarrayType, int)
+  object PyArray_FromDims(int nd, int *d, int type)
+  object NA_Empty(int nd, int *d, NumarrayType type)
+  object NA_updateDataPtr(object)
+  object NA_getPythonScalar(object, long)
+  object NA_setFromPythonScalar  (object, int, object)
 
   object PyArray_ContiguousFromObject(object op, int type,
                                       int min_dim, int max_dim)
@@ -674,7 +676,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.55 2003/06/19 11:14:35 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.56 2003/07/04 19:04:03 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
