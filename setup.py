@@ -120,6 +120,8 @@ if os.name == 'posix':
     if LFLAGS or LIBS:
         lflags_arg = LFLAGS
 
+    lib_dirs = []
+    inc_dirs = []
     # If we were not told where it is, go looking for it.
     hdf5incdir = hdf5libdir = None
     if not HDF5_DIR:
@@ -130,14 +132,18 @@ if os.name == 'posix':
                     HDF5_DIR = instdir
                     hdf5libdir = os.path.join(instdir, "lib")
                     print "Found HDF5 libraries at " + hdf5libdir
-                    lib_dirs = [os.path.join(HDF5_DIR, 'lib')]
+                    # This is not necessary because /usr and /usr/local
+                    # should be already available on search paths
+                    #lib_dirs = [os.path.join(HDF5_DIR, 'lib')]
                     break
 
             headerhdf5 = os.path.join(instdir, "include/H5public.h")
             if os.path.isfile(headerhdf5):
                 hdf5incdir = os.path.join(instdir, "include")
                 print "Found HDF5 header files at " + hdf5incdir
-                inc_dirs = [ os.path.join(HDF5_DIR, 'include')]
+                # This is not necessary because /usr and /usr/local
+                # should be already available on search paths
+                #inc_dirs = [ os.path.join(HDF5_DIR, 'include')]
                 break
             else:
                 hdf5incdir = None
@@ -176,7 +182,8 @@ where they can be found."""
                 ZLIB_DIR = instdir
                 zliblibdir = os.path.join(instdir, "lib")
                 print "Found ZLIB libraries at " + zliblibdir
-                if zliblibdir not in lib_dirs:
+                if (zliblibdir not in lib_dirs and
+                    instdir not in ['/usr/', '/usr/local/']):
                     lib_dirs.append(zliblibdir)
                 break
             else:
@@ -186,7 +193,8 @@ where they can be found."""
         if os.path.isfile(headerzlib):
             zlibincdir = os.path.join(instdir, "include")
             print "Found ZLIB header files at " + zlibincdir
-            if zlibincdir not in inc_dirs:
+            if (zlibincdir not in inc_dirs and
+                instdir not in ['/usr/', '/usr/local/']):
                 inc_dirs.append(zlibincdir)
             if zliblibdir and (not '-lz' in LIBS):
                 libnames.append('z')
@@ -220,7 +228,8 @@ where they can be found."""
                 LZO_DIR = instdir
                 lzolibdir = os.path.join(instdir, "lib")
                 print "Found LZO libraries at " + lzolibdir
-                if lzolibdir not in lib_dirs:
+                if (lzolibdir not in lib_dirs and
+                    instdir not in ['/usr/', '/usr/local/']):
                     lib_dirs.append(lzolibdir)
                 break
             else:
@@ -230,7 +239,8 @@ where they can be found."""
         if os.path.isfile(headerlzo):
             lzoincdir = os.path.join(instdir, "include")
             print "Found LZO header files at " + lzoincdir
-            if lzoincdir not in inc_dirs:
+            if (lzoincdir not in inc_dirs and
+                instdir not in ['/usr/', '/usr/local/']):
                 inc_dirs.append(lzoincdir)
             if lzolibdir and (not '-llzo' in LIBS):
                 libnames.append('lzo')
@@ -257,7 +267,8 @@ support for them."""
                 UCL_DIR = instdir
                 ucllibdir = os.path.join(instdir, "lib")
                 print "Found UCL libraries at " + ucllibdir
-                if ucllibdir not in lib_dirs:
+                if (ucllibdir not in lib_dirs and
+                    instdir not in ['/usr/', '/usr/local/']):
                     lib_dirs.append(ucllibdir)
                 break
             else:
@@ -293,6 +304,9 @@ support for them."""
         hdf5Extension = "src/hdf5Extension.pyx"
     else:
         hdf5Extension = "src/hdf5Extension.c"
+
+    #print "lib_dirs-->", lib_dirs
+    #print "inc_dirs-->", inc_dirs
         
 #-----------------------------------------------------
    

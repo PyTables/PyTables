@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.103 2004/01/08 20:28:54 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.104 2004/01/09 17:30:59 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.103 $"
+__version__ = "$Revision: 1.104 $"
 
 
 import sys, os
@@ -787,7 +787,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.103 2004/01/08 20:28:54 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.104 2004/01/09 17:30:59 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1362,21 +1362,21 @@ cdef class Table:
     # The next is settable if we have default values
     fill_data = NULL
     nrecords = <hsize_t>PyInt_AsLong(nvar)
-    nrows = <hsize_t>PyInt_AsLong(self.nrows)
-    rowsize = <size_t>PyInt_AsLong(self.rowsize)
+    #nrows = <hsize_t>PyInt_AsLong(self.nrows)
+    #rowsize = <size_t>PyInt_AsLong(self.rowsize)
     #field_names = <char **>self.field_names
     chunk_size = <hsize_t>PyInt_AsLong(self._v_chunksize)
-    field_offset = <size_t *>self.field_offset
-    complevel = <int>PyInt_AsLong(self.complevel)
+    #field_offset = <size_t *>self.field_offset
+    #complevel = <int>PyInt_AsLong(self.complevel)
     #complib = <char *>self.complib
     #complib = PyString_AsString(self.complib)
-    shuffle = <int>PyInt_AsLong(self.shuffle)
+    #shuffle = <int>PyInt_AsLong(self.shuffle)
 
     oid = H5TBmake_table(title, self.parent_id, self.name,
-                         nrecords, nrows, rowsize, field_names,
-                         field_offset, field_types, chunk_size,
-                         fill_data, complevel, complib,
-                         shuffle, data)
+                         nrecords, self.nrows, self.rowsize, field_names,
+                         self.field_offset, field_types, chunk_size,
+                         fill_data, self.complevel, complib,
+                         self.shuffle, data)
 #     oid = H5TBmake_table(title, self.parent_id, self.name,
 #                          nvar, self.nrows, self.rowsize, self.field_names,
 #                          self.field_offset, fieldtypes, self._v_chunksize,
