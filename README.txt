@@ -4,7 +4,7 @@ http://pytables.sourceforge.net/
 October 4, 2002
 --------------------------------------
 
-This module is intended to be an easy-to-use HDF5 interface for
+This package is intended to be an easy-to-use HDF5 interface for
 Python. To achieve this, the newest improvements introduced in Python
 2.2 (like generators or slots and metaclasses in new-brand classes)
 has been used. Another important reason to choose Python 2.2 has been
@@ -59,21 +59,24 @@ The Python Distutils are used to build and install tables, so it is
 fairly simple to get things ready to go.
 
 1. First, make sure that you have hdf5 1.4.x and hdf5_hl libraries
-   installed (I'm using hdf5 1.4.4 and hdf5_hl beta2 currently).
+   installed (I'm using hdf5 1.4.4 and hdf5_hl beta2 currently). If
+   not, you can find them at http://hdf.ncsa.uiuc.edu/HDF5;
+   compile/install them.
+
    setup.py will detect these libraries and include files under either
    /usr or /usr/local; this will catch installations from RPMs and
    most hand installations under Unix.  If setup.py can't find your
-   libhdf5 & libhdf5_hl or if you have several versions and wants to
-   select one of them, then you can give it a hint either in the
-   environment (using the HDF5_DIR evironment variable) or on the
-   command line by specifying the directory containing the include and
-   lib directory.  For example:
+   libhdf5 and libhdf5_hl or if you have several versions installed
+   and wants to select one of them, then you can give it a hint either
+   in the environment (using the HDF5_DIR evironment variable) or on
+   the command line by specifying the directory containing the include
+   and lib directory.  For example:
 
 	    --hdf5=/stuff/hdf5-1.4.4
 
-   The libraries can installed everywhere on the filesystem, but
-   remeber to always place them together. For example, if libhdf5.so
-   is installed in /usr/lib, so does hdf5_hl. The same applies to
+   The libraries can installed anywhere on the filesystem, but
+   remember to always place them together. For example, if libhdf5.so
+   is installed in /usr/lib, so does hdf5_hl.so. The same applies to
    the headers.
 
    If your HDF5 libs were built as shared libraries, and if these
@@ -89,7 +92,7 @@ fairly simple to get things ready to go.
 
    Check your compiler and linker documentation to be sure.
 
-   It is also possible to specify linking against a different library
+   It is also possible to specify linking against different libraries
    with the --libs switch:
 
            --libs="-lhdf5-1.4.6 -lhdf5_hl-beta2"
@@ -119,9 +122,8 @@ fairly simple to get things ready to go.
 	python test_types.py
 
 
-4. To install the extension module and the Python modules in the
-   tables package, change back to the root distribution directory and
-   run this command as the root user:
+4. To install the entire PyTables Python package, change back to the
+   root distribution directory and run this command as the root user:
 
 	python setup.py install
 

@@ -1,0 +1,853 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE article PUBLIC "-//Torsten Bronger//DTD tbook 1.3//EN"
+                      "/usr/local/share/xml/tbook/tbook.dtd">
+<article>
+  <title>PyTables User's Guide</title>
+  <author>Francesc Alted</author>
+  <date>October 2002</date>
+  <year>2002</year>
+  <abstract>
+    <p>PyTables is a Python package which allows dealing with HDF5
+      tables. Such a table is defined as a collection of records whose
+      values are stored in fixed-length fields. PyTables is intended
+      to be easy-to-use, and tries to be a high-performance interface
+      to HDF5. To achieve this, the newest improvements introduced in
+      Python 2.2 (like generators or slots and metaclasses in
+      new-brand classes) has been used. Pyrex creation extension tool
+      has been chosen to access the HDF5 library.
+    </p>
+  </abstract>
+    <section>
+      <heading>Introduction</heading>
+
+      <p>PyTables is a Python package which allows dealing with HDF5
+	tables. In this document, the term <em>table</em> means
+	exactly the same than in HDF5 sense:
+      </p>
+      <quote>
+	"A table is defined as a collection of records whose values
+	are stored in fixed-length fields. All records have the same
+	structure and all values in each field have the same data
+	type."
+      </quote>
+      <p>Records in tables are also known, in the HDF5 naming scheme,
+	as <em>compound</em> data types.
+      </p>
+      <p>So, you can define arbitrary records in Python, like in:
+      </p>
+<verbatim>
+class Particle(IsRecord):
+    name        = '16s'  # 16-character String
+    lati        = 'i'    # integer
+    longi       = 'i'    # integer
+    pressure    = 'f'    # float  (single-precision)
+    temperature = 'd'    # double (double-precision)
+
+</verbatim>
+      <p>fill it with your values, and save (large) collections of
+      them in a file. Then, this data can be retrieved and
+      post-processed quite easily with PyTables or another HDF5
+      application.</p>
+
+      <p>You probably noted that the terms "fixed-length" and strict
+	"data types" present in the table definition seems to be
+	strange concepts for an interpreted language like Python, but
+	supporting them is fundamental when we want to save *lots* of
+	data (mainly for scientific applications, but not only that),
+	if we want to do that in a efficient (both in terms of CPU and
+	I/O requirements) way. PyTables allows that.
+      </p>
+
+      <subsection>
+	<heading>Features</heading>
+	<p>PyTables has the next features:</p>
+
+	<itemize>
+	  <item><em>Support of HDF5 table entities:</em> Allows working
+	    with large number of records which don't fit in memory.
+	  </item>
+	  <item><em>Supports a hierarchical data model:</em> So, you
+	    can structure very clearly all your data. This is also very
+	    important when dealing with XML data.
+	  </item>
+	  <item><em>Allows field name, data type and range
+	    checking:</em> So you can be confident that if PyTables
+	    doesn't report an error, you can be confident that your
+	    data is probably ok.
+	  </item>
+	  <item><em>Support of files bigger than 2 GB:</em> This is
+	    because HDF5 already can do that (if your platform supports
+	    the C long long integer,  or, on Windows, __int64).
+	  </item>
+	  <item><em>Big-Endian/Low-Endian safety:</em> PyTables has
+	    been coded (as HDF5 is) to care with
+	    little-endian/big-endian byte orderings. So, in principle,
+	    you can write a file in a big-endian machine and read it
+	    in other little-endian without problems<footnote>Well, I
+	    didn't actually test that in real world, but if you do,
+	    please, tell me</footnote>.</item>
+	</itemize>
+
+	<p>It's important to stress that PyTables doesn't support
+	  every functionality present on HDF5, so you would be able to
+	  create HDF5 files with PyTables, and read them with other
+	  HDF5 generic tools (like h4dump), but you can't hope
+	  PyTables can read every HDF5 file created with tools
+	  different than PyTables, as it supports only table objects
+	  (but I hope to extend the support to other objects too, like
+	  NumArray entities).
+	</p>
+	<p>In the same sense, it should noted that PyTables do not
+	  pretends to be merely a wrapper of HDF5_HL library (don't
+	  confuse with HL-HDF5, the Swedish Meteorological and
+	  Hydrological Institute effort to provide another high Level
+	  interface to HDF5), but to provide a flexible tool to deal
+	  with HDF5 files. This is achieved by taking advantage of the
+	  powerful object orientation and introspection capabilities
+	  offered by Python.
+	</p>
+      </subsection>
+
+      <subsection>
+	<heading>The object tree</heading>
+
+      <p>PyTables take advantage of the HDF5 hierarchical model to
+	allow tables to be managed in a tree-like structure. It
+	achieves that by creating an object tree imitating the HDF5
+	structure on disk. That way, the access to the HDF5 objects is
+	made by walking throughout the PyTables object tree, and
+	manipulating them. You should note that not all the data
+	present on the HDF5 file is loaded in PyTables tree, but only
+	the <em>metadata</em> (i.e. the data which describes the
+	structure of the real data). The actual access to the real
+	data is provided through the methods of those objects.
+      </p>
+      <p>For example, imagine we have made a script (in fact, this
+	script exists; its name is <verb>objecttree.py</verb> and you
+	can find it in the <verb>examples/</verb> directory) which has
+	created a simple HDF5 file, with the structure that appears in
+	<ref refid="objecttree-h5">figure</ref> (we have used the java
+	program <verb>hdfview</verb> to obtain this image. If you
+	re-open again this file (in read only mode, for example), the
+	object tree with the HDF5 metadata will be constructed from
+	this hierarchy.
+      </p>
+
+      <figure id="objecttree-h5">
+	<graphics file="objecttree-h5" scale="0.5" kind="bitmap">
+	</graphics>
+	<caption>An HDF5 example with 2 subgroups and 3 tables.</caption>
+      </figure>
+
+      <p>In <ref refid="objecttree">figure</ref> you can see an
+	example of the object tree created by reading an HDF5 file
+	(previously written with PyTables). It's important that you get
+	familiar with this diagram to better understand how to work
+	with PyTables. If you are going to be a PyTables user, take
+	your time to study and understand it (bear in mind, however,
+	that this diagram is not a standard UML class diagram; I've
+	used a UML tool to draw it, that's all).
+	</p>
+
+	<figure id="objecttree">
+	  <!--<graphics file="objecttree" scale="0.125" kind="vector">
+	  -->
+	  <!-- We have a processing error here. We solved this by
+	  converting the eps to jpeg with command:
+pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
+	  and then, applying a new conversion to jpg with
+	  convert objecttree.png objecttree.jpg
+	  -->
+	  <graphics file="objecttree" scale="0.5" kind="bitmap">
+	  </graphics>
+	  <caption>An object tree example in PyTables.</caption>
+	</figure>
+      
+      <p>It's important to bear all this in mind while you are working
+	with PyTables, because it will easy your work and will make
+	you more proactive by avoiding programming mistakes.
+      </p>
+
+    </subsection>
+
+  </section>
+
+  <section>
+    <heading>Installation</heading>
+
+    <p>This are instructions for Unix/Linux system. If you are using
+      Windows, and get the library working, please, tell me about.
+    </p>
+
+    <p>The Python Distutils are used to build and install tables, so it is
+      fairly simple to get things ready to go.
+    </p>
+    <enumerate>
+
+      <item>
+	<p>First, make sure that you have <verb>hdf5 1.4.x</verb> and
+	  <verb>hdf5_hl</verb> libraries installed (I'm using
+	  <verb>hdf5 1.4.4</verb> and <verb>hdf5_hl beta2</verb>
+	  currently). If not, you can find them at
+	  <verb>http://hdf.ncsa.uiuc.edu/HDF5</verb>; compile/install
+	  them.
+	</p>
+	<p><verb>setup.py</verb> will detect these libraries and
+	  include files under either <verb>/usr</verb> or
+	  <verb>/usr/local</verb>; this will catch installations from
+	  RPMs and most hand installations under Unix.  If
+	  <verb>setup.py</verb> can't find your <verb>libhdf5</verb>
+	  and <verb>libhdf5_hl</verb> or if you have several versions
+	  installed and wants to select one of them, then you can give
+	  it a hint either in the environment (using the
+	  <verb>HDF5_DIR</verb> environment variable) or on the command
+	  line by specifying the directory containing the include and
+	  lib directory.  For example:
+	</p>
+	<verbatim>
+           --hdf5=/stuff/hdf5-1.4.4
+	</verbatim>
+	<p>The libraries can installed anywhere on the filesystem,
+	  but remember to always place them together. For example, if
+	  <verb>libhdf5.so</verb> is installed in
+	  <verb>/usr/lib</verb>, so does <verb>hdf5_hl.so</verb>. The
+	  same applies to the headers.
+	</p>
+
+	<p>If your <verb>HDF5</verb> libs were built as shared
+	  libraries, and if these shared libraries are not on the
+	  runtime load path, then you can specify the additional
+	  linker flags needed to find the shared library on the
+	  command line as well. For example:
+	</p>
+	<verbatim>
+           --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.4.4/lib"
+	</verbatim>
+	<p>or perhaps just
+	</p>
+	<verbatim>
+           --lflags="-R /stuff/hdf5-1.4.4/lib"
+	</verbatim>
+
+	<p>Check your compiler and linker documentation to be sure.
+	</p>
+
+	<p>It is also possible to specify linking against different
+	  libraries with the --libs switch:
+	</p>
+	<verbatim>
+           --libs="-lhdf5-1.4.6 -lhdf5_hl-beta2"
+           --libs="-lhdf5-1.4.6 -lhdf5_hl-beta2 -lnsl"
+	</verbatim>
+      </item>
+      <item>
+	<p>From the main pytables distribution directory run this
+	  command, (plus any extra flags needed as discussed above):
+	</p>
+	<verbatim>
+        python setup.py build_ext --inplace
+	</verbatim>
+	<p>depending on the compiler flags used when compiling your
+	  Python executable, it may appear lots of warnings. Don't
+	  worry, almost all of them are caused by variables declared
+	  but never used. That's normal in Pyrex extensions.
+	</p>
+      </item>
+      <item>
+	<p>To run the test suite change into the test directory and run this
+	  command, (assuming your shell is bash or compatible):
+	</p>
+	<verbatim>
+        export PYTHONPATH=..
+        python test_all.py
+	</verbatim>
+
+	<p>If you would like to see some verbose output from the tests
+	  simply add the word <verb>verbose</verb> to the command
+	  line.  You can also run only the tests in a particular test
+	  module by themselves.  For example:</p>
+	<verbatim>
+        python test_types.py
+	</verbatim>
+      </item>
+      <item>
+	<p>To install the entire PyTables Python package, change back
+	  to the root distribution directory and run this command as
+	  the root user:
+	</p>
+        python setup.py install
+      </item>
+    </enumerate>
+
+    <p>That's it!. Now, read on the next section to see some program
+      examples.
+    </p>
+
+  </section>
+
+  <section>
+      <heading>Usage</heading>
+
+      <subsection>
+	<heading id="firstexample">A first example</heading>
+      <p>Let's start by showing a simple example. For simplicity and direct
+	comparison, I'll choose the same that is exposed in an HDF5_HL example
+	(http://hdf.ncsa.uiuc.edu/HDF5/hdf5_hl/doc/RM_hdf5tb_ex.html).
+      </p>
+      <p>So, we want to create a table whose records are particle
+	properties. Each particle (record) has a name, a position
+	(specified by latitude and longitude), pressure and
+	temperature.
+      </p>
+      <p>We start by define this record in PyTables by declaring a
+	subclass of <verb>IsRecord</verb>. But first, the necessary
+	imports:
+      </p>
+      <verbatim>
+from tables import File, IsRecord
+
+class Particle(IsRecord):
+    name        = '16s'  # 16-character String
+    lati        = 'i'    # integer
+    longi       = 'i'    # integer
+    pressure    = 'f'    # float  (single-precision)
+    temperature = 'd'    # double (double-precision)
+</verbatim>
+      <p>As you see, we define the Particle class as a subclass of
+	IsRecord which is a metaclass, but this is not important
+	now. The name of each Particle attribute will be the name of
+	the record field and its value will become its data type. '16s'
+	typecode means a 16-character string, 'i' an integer, 'd' a
+	double, and so on. For a complete list of data types supported
+	see <ref refid="datatypesSupported">table</ref>.
+      </p>
+      <p>Now, we open an HDF5 file in write mode:
+      </p>
+      <verbatim>
+fileh = File(filename = "example1.h5", mode = "w")
+      </verbatim>
+      <p>and get the object which is the root directory in HDF5 hierarchy:
+      </p>
+      <verbatim>
+group = fileh.getRootGroup()
+      </verbatim>
+      <p>then, create a new table object
+      </p>
+      <verbatim>
+table = fileh.newTable(group, 'table', Particle(), "Title example")
+      </verbatim>
+      <p>get the the Particle instance associated with the table
+      </p>
+      <verbatim>
+particle = fileh.getRecordObject(table)
+      </verbatim>
+      <p>and fill the table with 10 particles
+      </p>
+      <verbatim>
+for i in xrange(10):
+    # First, assign the values to the Particle record
+    particle.name  = '%16d' % i
+    particle.lati = i 
+    particle.longi = i
+    particle.pressure = float(i)
+    particle.temperature = float(i)
+    # This injects the Particle values
+    fileh.appendRecord(table, particle)
+      </verbatim>
+      <p>and finally, close the file:
+      </p>
+      <verbatim>
+fileh.close()
+      </verbatim>
+      <p>That's it!. We can see here the complete example for a better
+	inspection, with a few additional comments:
+      </p>
+      <verbatim>
+from tables import File, IsRecord
+
+class Particle(IsRecord):
+    name        = '16s'  # 16-character String
+    lati        = 'i'    # integer
+    longi       = 'i'    # integer
+    pressure    = 'f'    # float  (single-precision)
+    temperature = 'd'    # double (double-precision)
+
+# Open a file in "w"rite mode
+fileh = File(name = "example1.h5", mode = "w")
+# Get the HDF5 root group
+root = fileh.getRootGroup()
+# Create a new table
+table = fileh.newTable(root, 'table', Particle(), "Title example")
+#print "Table name ==>", table._v_name
+# Get the record object associated with the table: all three ways are valid
+#particle = table.record
+particle = fileh.getRecordObject(table)  # This is really an accessor
+#particle = fileh.getRecordObject("/table")
+# Fill the table with 10 particles
+for i in xrange(10):
+    # First, assign the values to the Particle record
+    particle.name  = 'Particle: %6d' % (i)
+    particle.lati = i 
+    particle.longi = 10 - i
+    particle.pressure = float(i*i)
+    particle.temperature = float(i**2)
+    # This injects the Record values. Both ways do that.
+    #table.appendRecord(particle)      
+    fileh.appendRecord(table, particle)      
+
+# Finally, close the file
+fileh.close()
+      </verbatim> 
+
+      <p>In <ref refid="example1">figure</ref> you can see the table we
+	have created in this example. You will find in the directory
+	<verb>examples</verb> the working version of the code
+	(source file <verb>example1.py</verb>).
+      </p>
+
+      <figure id="example1">
+	<graphics file="example1" scale="0.5" kind="bitmap">
+	</graphics>
+	<caption>A simple table in HDF5.</caption>
+      </figure>
+      </subsection>
+
+      <subsection>
+	<heading id="secondExample">A somewhat more complex exercise</heading>
+
+      <p>Now, time for a more sophisticated example. Here, we will
+	create a couple of directories (groups, in HDF5 jargon)
+	hanging directly from the root directory called
+	<verb>Particles</verb> and <verb>Events</verb>. Then, we will
+	put 3 tables in each group; in <verb>Particles</verb> we will
+	put instances of <verb>Particle</verb> records and in
+	<verb>Events</verb>, instances of <verb>Event</verb>. After
+	that, we will feed the tables with 257 (you will see soon why
+	I choose such a "esoteric" number) entries each. Finally, we
+	will read the recently created table
+	<verb>/Events/TEvent3</verb> and select some values from it
+	using a comprehension list.
+      </p>
+      <p>Lets go,</p>
+
+      <verbatim>
+from tables import File, IsRecord
+
+class Particle(IsRecord):
+    name        = '16s'  # 16-character String
+    lati        = 'i'    # integer
+    longi       = 'i'    # integer
+    pressure    = 'f'    # float  (single-precision)
+    temperature = 'd'    # double (double-precision)
+
+class Event(IsRecord):
+    name        = '16s'  # 16-character String
+    TDCcount    = 'B'    # unsigned char
+    ADCcount    = 'H'    # unsigned short
+    xcoord      = 'f'    # float  (single-precision)
+    ycoord      = 'f'    # float  (single-precision)
+
+# Open a file in "w"rite mode
+fileh = File(name = "example2.h5", mode = "w")
+# Get the HDF5 root group
+root = fileh.getRootGroup()
+
+# Create the groups:
+for groupname in ("Particles", "Events"):
+    group = fileh.newGroup(root, groupname)
+
+# Now, create and fill the tables in Particles group
+gparticles = fileh.getNode("/Particles")
+# You can achieve the same result with the next notation
+# (it can be convenient and more intuitive in some contexts)
+#gparticles = root.Particles
+# Create 3 new tables
+for tablename in ("TParticle1", "TParticle2", "TParticle3"):
+    # Create a table
+    table = fileh.newTable("/Particles", tablename, Particle(),
+                           "Particles: "+tablename)
+    # Get the record object associated with the table:
+    particle = fileh.getRecordObject(table)
+    # Fill the table with 10 particles
+    for i in xrange(257):
+        # First, assign the values to the Particle record
+        particle.name  = 'Particle: %6d' % (i)
+        particle.lati = i 
+        particle.longi = 10 - i
+        particle.pressure = float(i*i)
+        particle.temperature = float(i**2)
+        # This injects the Record values
+        fileh.appendRecord(table, particle)      
+
+    # Flush the table buffers
+    fileh.flushTable(table)
+
+# Now, go for Events:
+for tablename in ("TEvent1", "TEvent2", "TEvent3"):
+    # Create a table. Look carefully at how we reference the Events group!.
+    table = fileh.newTable(root.Events, tablename, Event(),
+                           "Events: "+tablename)
+    # Get the record object associated with the table:
+    event = table.record
+    # Fill the table with 10 events
+    for i in xrange(257):
+        # First, assign the values to the Event record
+        event.name  = 'Event: %6d' % (i)
+        #event.TDCcount = i
+        event.ADCcount = i * 2
+        event.xcoor = float(i**2)
+        event.ycoord = float(i**4)
+        # This injects the Record values
+        fileh.appendRecord(table, event)      
+
+    # Flush the buffers
+    fileh.flushTable(table)
+
+# Read the records from table "/Events/TEvent3" and select some
+e = [ p.TDCcount for p in fileh.readRecords("/Events/TEvent3")
+      if p.ADCcount &lt; 20 and 4&lt;= p.TDCcount &lt; 15 ]
+print "Last record ==>", p
+print "Selected values ==>", e
+print "Total selected records ==> ", len(e)
+
+# Finally, close the file (this also will flush all the remaining buffers!)
+fileh.close()
+      </verbatim>
+
+      <p>Throughout the comments, you can see that PyTables let's you
+      do things in, generally, more than one way. I don't know if
+      that's good or not, but I'm afraid it is not. This is in part
+      due to the fact that PyTables is in first stages of development,
+      and probably as the API matures, there will be less choices.</p>
+
+      <p>If you have read the code carefully it looks pretty good, but
+      it won't work. If you run this example, you will get the next
+      error:
+      </p>
+      <verbatim>
+Traceback (most recent call last):
+  File "example2.py", line 68, in ?
+    event.xcoor  = float(i**2)
+AttributeError: 'Event' object has no attribute 'xcoor'
+      </verbatim>
+      <p>This error is saying us that we tried to assign a value to a
+	non-existent field in an <verb>Event</verb> object. By looking
+	carefully at the <verb>Event</verb> attributes, we see that we
+	misspelled the <verb>xcoord</verb> field (we wrote
+	<verb>xcoor</verb> instead). So we correct this in the source,
+	and run it again.</p>
+      <p>And again, we find another problem:
+      </p>
+      <verbatim>
+Traceback (most recent call last):
+  File "example2.py", line 69, in ?
+    table.appendRecord(event)      
+  File "/usr/lib/python2.2/site-packages/tables/Table.py", line 210, in appendRecord
+    self._v_packedtuples.append(recordObject._f_pack2())
+  File "/usr/lib/python2.2/site-packages/tables/IsRecord.py", line 121, in _f_pack2
+    self._f_raiseValueError()
+  File "/usr/lib/python2.2/site-packages/tables/IsRecord.py", line 130, in 
+_f_raiseValueError
+    raise ValueError, \
+ValueError: Error packing record object: 
+ [('ADCcount', 'H', 256), ('TDCcount', 'B', 256), ('name', '16s', 'Event:    256'),
+ ('xcoord', 'f', 65536.0), ('ycoord', 'f', 4294967296.0)]
+ Error was: ubyte format requires 0&lt;=number&lt;=255
+      </verbatim>
+      <p>This other error is saying that one of the records is having
+	trouble to be converted to the data types stated in the Event
+	class definition. By looking carefully to the record object
+	which is responsible of the problem, we see that we are trying
+	to assign a value of 256 to the 'TDCcount' field which has a
+	'B' (C unsigned char) typecode and the allowed range for it is
+	<verb>0&lt;=TDCcount&lt;=255</verb>. This is a very powerful
+	capability to automatically check for ranges: the message
+	error is explicit enough to figure out what is happening. Here
+	you can solve the problem by promoting the
+	<verb>TDCcount</verb> to 'H' which is a unsigned 16-bit
+	integer, or avoid the mistake you probably made in assigning a
+	value greater than 255 to a 'B' typecode.
+      </p>
+      <p>If we change the line:
+      </p>
+      <verbatim>event.TDCcount = i
+      </verbatim>
+      <p>by the next one:
+      </p>
+      <verbatim>event.TDCcount = i % (1&lt;&lt;8)
+      </verbatim>
+      <p>you will see that our problem has disappeared, and the HDF5
+	file has been created. As before, you will find in the
+	directory <verb>examples</verb> the working version of the
+	code (source file <verb>example2.py</verb>).
+      </p>
+      <p>Finally, admire the structure we have created in <ref
+      refid="example2">figure</ref>.</p>
+
+      <figure id="example2">
+	<graphics file="example2" scale="0.5" kind="bitmap">
+	</graphics>
+	<caption>Tables structured in a hierarchical order.</caption>
+      </figure>
+
+      <p>Feel free to visit the rest of examples in directory
+        <verb>examples</verb>, and try to understand them. I've tried
+        to make the cases as orthogonal as possible to give you an idea
+        of the <verb>PyTables</verb> capabilities and its way of
+        dealing with HDF5 objects.</p>
+
+      </subsection>
+    </section>
+
+    <section>
+      <heading>Library Reference</heading>
+
+      <p>This package implements an important class to deal with HDF5
+	files, called <verb>File</verb>, one class to help defining
+	records, with field, type and range checks, which is called
+	IsRecord. There exists other important classes called
+	<verb>Group</verb> and <verb>Table</verb> which do their work
+	silently behind the scenes. The user has to be aware of its
+	existence, but generally speaking, they won't need to call
+	their methods explicitly.
+      </p>
+      <subsection id="FileClass">
+	<heading>The <em>File</em> class.</heading>
+
+	<p>The <verb>File</verb> class hosts the most part of PyTables
+          user interface. It is in charge of create, open, flush and
+          close the HDF5 files. In addition it provides accessors to
+          functionality present in <verb>Group</verb> and
+          <verb>Table</verb> classes.
+	</p>
+	
+	<p>This class defines the next methods<footnote>On the
+	    following, the term <verb>Leaf</verb> will refer to a
+	    <verb>Table</verb> instance. Right now the only supported
+	    <verb>Leaf</verb> object is <verb>Table</verb>, but that will
+	    change in the short future.</footnote>:</p>
+
+	<description>
+	  <term>File(filename, mode="r"):</term> <item>This is the
+	    constructor and opens an HDF5 file. The supported access
+	    modes are: "r" means read-only; no data can be
+	    modified. "w" means write; a new file is created, an
+	    existing file with the same name is deleted. "a" means
+	    append (in analogy with serial files); an existing file is
+	    opened for reading and writing, and if the file does not
+	    exist it is created. "r+" is similar to "a", but the file
+	    must already exist.</item>
+	</description>
+
+	<description>
+	  <term>getRootGroup():</term> <item>Returns a
+	    <verb>Group</verb> instance which will act as the root
+	    group in the hierarchical tree. If file is opened in "r",
+	    "r+" or "a" mode, and the file already exists, this method
+	    dynamically builds a python object tree emulating the
+	    structure present on file. It <em>must</em> be always
+	    called after the File object is constructed.</item>
+	</description>
+
+	<description>
+	  <term>newTable(where, name, tableTitle = "", compress = 1,
+	    expectedrows = 10000):</term> <item>Returns a new
+	    <verb>Table</verb> instance with name <em>name</em> in
+	    <em>where</em> location.  <em>where</em> parameter can be
+	    a path string, or another group instance.  Other optional
+	    parameters are: <em>tableTitle</em> which set a
+	    <verb>TITLE</verb> attribute on the HDF5 table entity.
+	    <em>compress</em> is a boolean option and specifies if
+	    data compression will be enabled or
+	    not. <em>expectedrows</em> is an user estimate about the
+	    number of records that will be on table. This parameter is
+	    used to set important internal parameters, as buffer size
+	    or HDF5 chunk size. If not provided, the default value is
+	    appropriate to tables until 100 KB in size. If you plan to
+	    save bigger tables by providing a guess to PyTables will
+	    optimize the HDF5 B-Tree creation and management process
+	    time and memory used.</item>
+	</description>
+
+	<description>
+	  <term>newGroup(where, name):</term> <item>Returns a new
+	    <verb>Group</verb> instance with name <em>name</em> in
+	    <em>where</em> location.  <em>where</em> parameter can be
+	    a path (for example <em>"/Particles/TParticle1"</em>
+	    string, or another <verb>Group</verb> instance.</item>
+	</description>
+
+	<description>
+	  <term>getNode(where):</term> <item>Returns the object node
+	    (<verb>Group</verb> or Leave) in <em>where</em>
+	    location. <em>where</em> can be a path string,
+	    <verb>Group</verb> instance or a <verb>Table</verb>
+	    instance.</item>
+	</description>
+
+	<description>
+	  <term>getGroup(where):</term> <item>Returns the object group
+	    in <em>where</em> location. <em>where</em> can be a path
+	    string or a <verb>Group</verb> instance. If <em>where</em>
+	    doesn't point to a <verb>Group</verb>, a ValueError error
+	    is raised.</item>
+	</description>
+
+	<description>
+	  <term>getTable(where):</term> <item>Returns the object table
+	    in <em>where</em> location. <em>where</em> can be a path
+	    string or a <verb>Table</verb> instance. If <em>where</em>
+	    doesn't point to a <verb>Table</verb>, a ValueError error
+	    is raised.</item>
+	</description>
+
+	<description>
+	  <term>listNodes(where):</term> <item>Returns all the object
+	    nodes (groups or tables) hanging from
+	    <em>where</em>. <em>where</em> can be a path string or
+	    group instance.</item>
+	</description>
+
+	<description>
+	  <term>listGroups(where):</term> <item>Returns all the groups
+	    hanging from <em>where</em>. <em>where</em> can be a path
+	    string or group instance.</item>
+	</description>
+
+	<description>
+	  <term>listLeaves(where):</term> <item>Returns all the Leaves
+	    objects hanging from <em>where</em>. <em>where</em> can be
+	    a path string or group instance.</item>
+	</description>
+
+	<description>
+	  <term>walkGroups(where):</term> <item>Recursively obtains
+	    groups (not leaves) hanging from <em>where</em>.</item>
+	</description>
+
+	<description>
+	  <term>getRecordObject(table):</term> <item>Returns the
+	    record object associated with the <em>table</em>.
+	    <em>table</em> can be a path string or table
+	    instance.</item>
+	</description>
+
+	<description>
+	  <term>appendRecord(table, record):</term> <item>Append the
+	    <em>record</em> object to the <em>table</em> output
+	    buffer. <em>table</em> can be a path string or table
+	    instance.</item>
+	</description>
+
+	<description>
+	  <term>readRecords(table):</term> <item>Generator thats return
+	    a Record instance from a <em>table</em> object each time
+	    it is called. <em>table</em> can be a path string or table
+	    instance.</item>
+	</description>
+
+	<description>
+	  <term>flushTable(table):</term> <item>Flush the table object
+	    to disk. <em>table</em> can be a path string or table
+	    instance.</item>
+	</description>
+
+	<description>
+	  <term>flush():</term> <item>Flush the buffers for all the
+	    objects on the HDF5 file tree.</item>
+	</description>
+
+	<description>
+	  <term>close():</term> <item>Flush all the objects in HDF5
+	    file and close the file.</item>
+	</description>
+
+      </subsection>
+
+      <subsection id="IsRecordClass">
+	<heading>The <em>IsRecord</em> class.</heading>
+
+	<p>This class is in fact a so-called <em>metaclass</em>
+	  object. There is nothing special on it, except that their
+	  subclasses attributes are transformed during its
+	  construction phase, and new methods for the are defined
+	  based on the values of the attributes. In that way, we can
+	  <em>force</em> the resulting instance to only accept
+	  assignments on the declared attributes (in fact, it has a
+	  few more, but they are hidden with prefixes like <visual
+	  markup="tt">"__"</visual>, <visual
+	  markup="tt">"_v_"</visual> or <visual
+	  markup="tt">"_f_"</visual>, so please, don't use attributes
+	  names starting with these prefixes). If you try to do an
+	  assignment to a non-declared attribute, PyTables will raise
+	  an error.</p>
+
+	<p>To use such a particular class, you have to declare a
+	  descendent class from <em>IsRecord</em>, with many
+	  attributes as fields you want in your record. To declare
+	  their types, you simply assign to these attributes their
+	  <em>typecode</em>. That's all, from now on, you can
+	  instantiate objects from you new class and use them as a
+	  very flexible record object with safe features like
+	  automatic name field, data type and range checks (see the
+	  <ref refid="secondExample">section</ref> for an example on
+	  how it works).</p>
+
+        <p>The supported data types are the same which are supported
+	  by the array module in Python, with some additions, which
+	  will be briefly discussed shortly. The typecodes for the
+	  supported data types are listed on <ref
+	  refid="datatypesSupported">table</ref>.
+	</p>
+
+	<table id="datatypesSupported">
+	  <tabular preamble="lllcl">
+	  <tabhead>
+	    <srow>Type Code | Description | C Type | Size (in bytes) |
+	      Python Counterpart</srow>
+	  </tabhead>
+	  <tabbody>
+	    <srow>'c' | 8-bit character | char | 1 | String of lenght 1 </srow>
+	    <srow>'b' | 8-bit integer | signed char | 1 | Integer </srow>
+	    <srow>'B' | 8-bit unsigned integer | unsigned char | 1 | Integer </srow>
+	    <srow>'h' | 16-bit integer | short | 2 | Integer </srow>
+	    <srow>'H' | 16-bit unsigned integer | unsigned short | 2 | Integer </srow>
+	    <srow>'i' | integer | int | 4 or 8 | Integer </srow>
+	    <srow>'I' | unsigned integer | unsigned int | 4 or 8 | Long </srow>
+	    <srow>'l' | long integer | long | 4 or 8 | Integer </srow>
+	    <srow>'L' | unsigned long integer | unsigned long | 4 or 8 | Long </srow>
+	    <srow>'q' | long long integer | long long | 8 | Long </srow>
+	    <srow>'Q' | unsigned long long integer | unsigned long long | 8 | Long </srow>
+	    <srow>'f' | single-precision float | float | 4 | Float </srow>
+	    <srow>'d' | double-precision float | double | 8 | Float </srow>
+	    <srow>'s' | arbitrary lenght string | char[] | * | String </srow>
+	  </tabbody>
+	</tabular>
+	  <caption>Data types supported by PyTables</caption>
+	</table>
+
+	<p>The additions to the array module typecodes are the <visual
+	  markup="tt">'q'</visual>, <visual markup="tt">'Q'</visual>
+	  and <visual markup="tt">'s'</visual>.  The <visual
+	  markup="tt">'q'</visual> and <visual
+	  markup="tt">'Q'</visual> conversion codes are available in
+	  native mode only if the platform C compiler supports C long
+	  long, or, on Windows, __int64. They are always available in
+	  standard modes. The <visual markup="tt">'s'</visual>
+	  typecode can be preceded by an integer to indicate the
+	  maximum length of the string, so <visual
+	  markup="tt">'16s'</visual> represents a 16-byte string.</p>
+
+	<p>Also note that when the <visual markup="tt">'I'</visual>
+	  and <visual markup="tt">'L'</visual> codetypes are used in
+	  records, Python uses internally <visual
+	  markup="tt">Long</visual> integers to represent them, which
+	  can (or can not, depending on what you are trying to do) be
+	  a source of inefficiency in your code.</p>
+    </subsection>
+  </section>
+  <!-- This tag is mandatory. Why? -->
+  <references>
+  </references>
+</article>
+
