@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.22 2003/03/08 17:32:10 falted Exp $
+#       $Id: Group.py,v 1.23 2003/03/09 13:51:57 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.22 $"
+__version__ = "$Revision: 1.23 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -180,12 +180,12 @@ class Group(hdf5Extension.Group):
         newattr["_v_" + "parent"] = self
         newattr["_v_" + "depth"] = self._v_depth + 1
         # Get the alternate name (if any)
-        trTable = self._v_rootgroup._v_parent.trTable
+        trMap = self._v_rootgroup._v_parent.trMap
         if value._v_new:
             newattr["_v_name"] = name
-            newattr["_v_hdf5name"] = trTable.get(name, name)
+            newattr["_v_hdf5name"] = trMap.get(name, name)
         else:
-            for (namepy, namedisk) in trTable.items():
+            for (namepy, namedisk) in trMap.items():
                 if namedisk == name:
                     newattr["_v_name"] = namepy
                     break
@@ -237,10 +237,10 @@ class Group(hdf5Extension.Group):
         del parent.__dict__[self._v_name]
 
         # Get the alternate name (if any)
-        trTable = self._v_rootgroup._v_parent.trTable
+        trMap = self._v_rootgroup._v_parent.trMap
         # New attributes for the this Group instance
         newattr["_v_name"] = newname
-        newattr["_v_hdf5name"] = trTable.get(newname, newname)
+        newattr["_v_hdf5name"] = trMap.get(newname, newname)
         # Update class variables
         parent._c_objgroups[self._v_pathname] = self
         parent._c_objects[self._v_pathname] = self

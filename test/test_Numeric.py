@@ -79,13 +79,13 @@ class BasicTestCase(unittest.TestCase):
             # "l" and "i" typecode, and we can consider them the same
             # to all practical effects
             assert b.typecode() == "l"
-            assert self.root.somearray.typeclass == typeDict["l"]
+            assert self.root.somearray.type == typeDict["l"]
         elif a.typecode() == "c":
             assert a.typecode() == b.typecode()
-            assert str(self.root.somearray.typeclass) == "CharType"
+            assert str(self.root.somearray.type) == "CharType"
         else:
             assert a.typecode() == b.typecode()
-            assert typeDict[a.typecode()] ==  self.root.somearray.typeclass
+            assert typeDict[a.typecode()] ==  self.root.somearray.type
 
         assert allequal(a,b)
         
@@ -253,13 +253,13 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
             # "l" and "i" typecode, and we can consider them the same
             # to all practical effects
             assert b.typecode() == "l"
-            assert self.root.somearray.typeclass == typeDict["l"]
+            assert self.root.somearray.type == typeDict["l"]
         elif a.typecode() == "c":
             assert a.typecode() == b.typecode()
-            assert str(self.root.somearray.typeclass) == "CharType"
+            assert str(self.root.somearray.type) == "CharType"
         else:
             assert a.typecode() == b.typecode()
-            assert typeDict[a.typecode()] ==  self.root.somearray.typeclass
+            assert typeDict[a.typecode()] ==  self.root.somearray.type
 
         assert allequal(a,b)
 
@@ -355,8 +355,8 @@ class GroupsArrayTestCase(unittest.TestCase):
 		print "Array a original. Shape: ==>", a.shape
 		print "Array a original. Data: ==>", a
 		print "Info from dataset:", dset._v_pathname
-		print "  Shape: ==>", dset.shape, 
-		print "  typeclass ==> %s" % dset.typeclass
+		print "  shape ==>", dset.shape, 
+		print "  type ==> %s" % dset.type
 		print "Array b read from file. Shape: ==>", b.shape,
 		print ". Type ==> %s" % b.typecode()
                 

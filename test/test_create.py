@@ -132,7 +132,7 @@ class createTestCase(unittest.TestCase):
 	# Now, try with a table object
 	table = self.fileh.createTable(self.root, 'table',
                                        Record(), "t" * titlelength)
-	assert table._f_getAttr("TITLE") == "t" * titlelength
+	assert table.getAttr("TITLE") == "t" * titlelength
 	    
 	# Finally, try with an Array object
         arr = self.fileh.createArray(self.root, 'arr',
@@ -171,12 +171,12 @@ class createTestCase(unittest.TestCase):
         assert self.root.agroup._f_getAttr('attr1') == "p" * attrlength
 	
 	# Now, try with a Table object
-        self.root.atable._f_setAttr('attr1', "a" * attrlength)
-	assert self.root.atable._f_getAttr("attr1") == "a" * attrlength
+        self.root.atable.setAttr('attr1', "a" * attrlength)
+	assert self.root.atable.getAttr("attr1") == "a" * attrlength
 	    
 	# Finally, try with an Array object
-        self.root.anarray._f_setAttr('attr1', "n" * attrlength)
-	assert self.root.anarray._f_getAttr("attr1") == "n" * attrlength
+        self.root.anarray.setAttr('attr1', "n" * attrlength)
+	assert self.root.anarray.getAttr("attr1") == "n" * attrlength
 	    
 	    
     def test04_maxFields(self):

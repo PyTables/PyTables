@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.33 2003/03/08 17:32:10 falted Exp $
+#       $Id: Table.py,v 1.34 2003/03/09 13:51:57 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.33 $"
+__version__ = "$Revision: 1.34 $"
 
 from __future__ import generators
 import sys
@@ -44,6 +44,13 @@ import hdf5Extension
 from Leaf import Leaf
 from IsRecord import IsRecord, metaIsRecord, Col, fromstructfmt
 
+try:
+    import Numeric
+    Numeric_imported = 1
+except:
+    Numeric_imported = 0
+
+
 byteorderDict={"=": sys.byteorder,
                "@": sys.byteorder,
                '<': 'little',
@@ -57,42 +64,44 @@ class Table(Leaf, hdf5Extension.Table):
     """Represent a table in the object tree.
 
     It provides methods to create new tables or open existing ones, as
-    well as methods to write/read data and metadata to/from table
-    objects over the file.
+    well as methods to write/read data to/from table objects over the
+    file. A method is also provided to iterate over the rows without
+    loading the entire array in memory.
 
-    Data can be written or read both as records or as tuples. Records
-    are recommended because they are more intuitive and less error
-    prone although they are slow. Using tuples (or value sequences) is
-    faster, but the user must be very careful because when passing the
-    sequence of values, they have to be in the correct order
-    (alphanumerically ordered by field names). If not, unexpected
-    results can appear (most probably ValueError exceptions will be
-    raised).
-
+    Data can be written or read both as Row() instances or as numarray
+    (NumArray or RecArray) objects.
+    
     Methods:
-
-        getRecArray() -- read actual Table data as a RecArray
-        getCol() -- read a Table column and return a numarray
-        iterrows() -- iterate over all the rows in Table
-        flush() -- flush the buffers
+    
+      Common to all leaves:
+        close()
+        flush()
+        getAttr(attrname)
+        rename(newname)
+        remove()
+        setAttr(attrname, attrvalue)
+        
+      Specific of Table:
+        iterrows()
+        read([start] [, stop] [, step] [, field])
 
     Instance variables:
-
-        name -- the node name
-        _v_hdf5name -- the HDF5 file node name
-        title -- the title for this node
+    
+      Common to all leaves:
+        name -- the leaf node name
+        hdf5name -- the HDF5 leaf node name
+        title -- the leaf title
+        shape -- the leaf shape
+        byteorder -- the byteorder of the leaf
+        
+      Specific of Table:
         description -- the metaobject for this table (can be a dictionary)
-        record -- a pointer to the current record object
+        row -- a reference to the Row object associated with this table
         nrows -- the number of rows in this table
-        shape -- the number of rows but in tuple format (nrows,)
-        row -- t reference to the Row object associated with this table
-        _v_rowsize -- the size, in bytes, of each row
+        rowsize -- the size, in bytes, of each row
         colnames -- the field names for the table
         coltypes -- the type class for the table fields
         colshapes -- the shapes for the table fields
-        byteorder -- the byteorder of this object
-        _v_compress -- the level of compression of this Table (if known)
-        _v_class -- class of this object
 
     """
 
@@ -236,7 +245,7 @@ class Table(Leaf, hdf5Extension.Table):
         """
         # Get table info
         (self.nrows, self.colnames, self._v_fmt) = self._getTableInfo()
-        self.title = self._f_getAttr("TITLE")
+        self.title = self.getAttr("TITLE")
         # This one is probably not necessary to set it, but...
         self._v_compress = 0  # This means, we don't know if compression
                               # is active or not. May be save this info
@@ -285,7 +294,7 @@ class Table(Leaf, hdf5Extension.Table):
         compress = self._v_compress
         rowsize = struct.calcsize(fmt)
         #rowsize = self.description._v_record.itemsize()
-        self._v_rowsize = rowsize
+        self.rowsize = rowsize
         # Counter for the binary tuples
         self._v_recunsaved = 0
         if fmt[0] not in "@=<>!":
@@ -470,8 +479,8 @@ class Table(Leaf, hdf5Extension.Table):
         else:
             return self._fetchrange(start, stop, step)
 
-    def getRecArray(self, start=None, stop=None, step=None):
-        """Get a recarray from a table in a row range"""
+    def _readAllFields(self, start=None, stop=None, step=None):
+        """Read a range of rows and return a RecArray"""
         (start, stop, step) = self._processRange(start, stop, step)
         # Create a recarray for the readout
         if start >= stop:
@@ -515,9 +524,10 @@ class Table(Leaf, hdf5Extension.Table):
         result._byteorder = self.byteorder
         return result
 
-    def getCol(self, field=None, start=None, stop=None, step=None):
-        """Get a column from a table in a row range"""
-
+    def _readCol(self, start=None, stop=None, step=None, field=None):
+        """Read a range of rows and return an in-memory object.
+        """
+        
         nfield = 0
         for fieldTable in self.description.__slots__:
             if fieldTable == field:
@@ -582,10 +592,64 @@ class Table(Leaf, hdf5Extension.Table):
         result._byteorder = self.byteorder
         return result
 
-    # This version of getCol does not work well. Perhaps a bug in the
+    def read(self, start=None, stop=None, step=None, field=None, flavor=None):
+        """Read a range of rows and return an in-memory object.
+
+        If "start", "stop", or "step" parameters are supplied, a row
+        range is selected. If "field" is specified, only this "field"
+        is returned as a NumArray object. If "field" is not supplied
+        all the fields are selected and a RecArray is returned.  If
+        both "field" and "flavor" are provided, an additional
+        conversion to an object of this flavor is made. "flavor" must
+        have any of the next values: "Numeric", "Tuple" or "List".
+
+        """
+        if field == None:
+            return self._readAllFields(start, stop, step)
+        elif flavor == None:
+            return self._readCol(start, stop, step, field)
+        else:
+            arr = self._readCol(start, stop, step, field)
+            # Convert to Numeric, tuple or list if needed
+            if flavor == "Numeric":
+                if Numeric_imported:
+                    # This works for both numeric and chararrays
+                    # arr=Numeric.array(arr, typecode=arr.typecode())
+                    # The next is 10 times faster (for tolist(),
+                    # we should check for tostring()!)
+                    if arr.__class__.__name__ == "CharArray":
+                        arrstr = arr.tostring()
+                        arr=Numeric.reshape(Numeric.array(arrstr), arr.shape)
+                    else:
+                        # tolist() method creates a list with a sane byteorder
+                        if arr.shape <> ():
+                            arr=Numeric.array(arr.tolist(),
+                                              typecode=arr.typecode())
+                        else:
+                            # This works for rank-0 arrays
+                            # (but is slower for big arrays)
+                            arr=Numeric.array(arr, typecode=arr.typecode())
+                        
+                else:
+                    # Warn the user
+                    warnings.warn( \
+"""You are asking for a Numeric object, but Numeric is not installed locally.
+  Returning a numarray object instead!.""")
+            elif flavor == "Tuple":
+                arr = tuple(arr.tolist())
+            elif flavor == "List":
+                arr = arr.tolist()
+            else:
+                raise ValueError, \
+"""You are asking for an unsupported flavor (%s). Supported values are:
+"Numeric", "Tuple" and "List".""" % (flavor)
+
+        return arr
+            
+    # This version of _readCol does not work well. Perhaps a bug in the
     # H5TB_read_fields_name entry?
-    def _getCol2(self, field=None, start=None, stop=None, step=None):
-        """Get a column from a table in a row range"""
+    def _readCol2(self, start=None, stop=None, step=None, field=None):
+        """Read a column from a table in a row range"""
 
         nfield = 0
         for fieldTable in self.description.__slots__:
@@ -688,7 +752,7 @@ class Table(Leaf, hdf5Extension.Table):
             step = slice.step
             if step is None:
                 step = 1
-        return self.getRecArray(start, stop, step)
+        return self.read(start, stop, step)
 
     def flush(self):
         """Flush the table buffers."""

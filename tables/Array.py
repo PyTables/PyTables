@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.25 2003/03/08 17:32:10 falted Exp $
+#       $Id: Array.py,v 1.26 2003/03/09 13:51:57 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.25 $"
+__version__ = "$Revision: 1.26 $"
 import types, warnings, sys
 from Leaf import Leaf
 import hdf5Extension
@@ -41,29 +41,40 @@ except:
     Numeric_imported = 0
 
 class Array(Leaf, hdf5Extension.Array):
-    """Represent a Numeric Array in HDF5 file.
+    """Represent an homogeneous dataset in HDF5 file.
 
-    It provides methods to create new arrays or open existing ones, as
-    well as methods to write/read data and metadata to/from array
-    objects over the HDF5 file.
+    It enables to create new datasets on-disk from Numeric, numarray,
+    lists, tuples, strings or scalars, or open existing ones.
 
-    All Numeric typecodes are supported except "F" and "D" which
-    corresponds to complex datatypes.
+    All Numeric and numarray typecodes are supported except for complex
+    datatypes.
 
     Methods:
 
-        read() -- read the actual data on disk
+      Common to all leaves:
+        close()
+        flush()
+        getAttr(attrname)
+        rename(newname)
+        remove()
+        setAttr(attrname, attrvalue)
+        
+      Specific of Array:
+        read()
 
     Instance variables:
 
-        name -- the node name
-        title -- the node title  # This can be moved to Leaf
-        shape -- tuple with the array shape (in Numeric sense)
-        typeclass -- the type class for the array
-        byteorder -- the byteorder of this object
+      Common to all leaves:
+        name -- the leaf node name
+        hdf5name -- the HDF5 leaf node name
+        title -- the leaf title
+        shape -- the leaf shape
+        byteorder -- the byteorder of the leaf
+        
+      Specific of Array:
+        type -- the type class for the array
         flavor -- the object type of this object (numarray, Numeric, list,
                   tuple)
-        _v_class -- Class of this object ("Array")
 
     """
     
@@ -180,7 +191,7 @@ class Array(Leaf, hdf5Extension.Array):
   Sorry, but this object is not supported.""" % (arr)
             
             
-        self.typeclass = self._createArray(naarr, self.title,
+        self.type = self._createArray(naarr, self.title,
                                            flavor, obversion, self.atomictype)
         # Get some important attributes
         self.shape = naarr.shape
@@ -189,25 +200,25 @@ class Array(Leaf, hdf5Extension.Array):
 
     def _open(self):
         """Get the metadata info for an array in file."""
-        (self.typeclass, self.shape, self.itemsize, self.byteorder) = \
+        (self.type, self.shape, self.itemsize, self.byteorder) = \
                         self._openArray()
 
-        self.title = self._f_getAttr("TITLE")
+        self.title = self.getAttr("TITLE")
         # NUMERIC, NUMARRAY, TUPLE, LIST or other flavor 
-        self.flavor = self._f_getAttr("FLAVOR")
+        self.flavor = self.getAttr("FLAVOR")
         
     # Accessor for the _readArray method in superclass
     def read(self):
         """Read the array from disk and return it as numarray."""
 
-        if repr(self.typeclass) == "CharType":
+        if repr(self.type) == "CharType":
             #print "self.shape ==>", self.shape
             #print "self.shape 2 ==>", self.itemsize
             arr = chararray.array(None, itemsize=self.itemsize,
                                   shape=self.shape)
         else:
             arr = numarray.array(buffer=None,
-                                 type=self.typeclass,
+                                 type=self.type,
                                  shape=self.shape)
             # Set the same byteorder than on-disk
             arr._byteorder = self.byteorder
@@ -221,7 +232,7 @@ class Array(Leaf, hdf5Extension.Array):
                 # arr=Numeric.array(arr, typecode=arr.typecode())
                 # The next is 10 times faster (for tolist(),
                 # we should check for tostring()!)
-                if repr(self.typeclass) == "CharType":
+                if repr(self.type) == "CharType":
                     arrstr = arr.tostring()
                     arr=Numeric.reshape(Numeric.array(arrstr), arr.shape)
                 else:
@@ -261,4 +272,4 @@ class Array(Leaf, hdf5Extension.Array):
         """This provides more metainfo in addition to standard __str__"""
 
         return "%s\n  Typeclass: %s\n  Itemsize: %s\n  Byteorder: %s\n" % \
-               (self, repr(self.typeclass), self.itemsize, self.byteorder)
+               (self, repr(self.type), self.itemsize, self.byteorder)

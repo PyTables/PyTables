@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.20 2003/03/08 17:32:10 falted Exp $
+#       $Id: File.py,v 1.21 2003/03/09 13:51:57 falted Exp $
 #
 ########################################################################
 
@@ -21,7 +21,7 @@ Classes:
 
 Functions:
 
-    openFile(name [, mode = "r" [, title [, trTable]]])
+    openFile(name [, mode = "r"] [, title] [, trMap])
 
 Misc variables:
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.20 $"
+__version__ = "$Revision: 1.21 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -48,7 +48,7 @@ from Table import Table
 from Array import Array
 import numarray
 
-def openFile(filename, mode="r", title="", trTable={}):
+def openFile(filename, mode="r", title="", trMap={}):
 
     """Open an HDF5 file an returns a File object.
 
@@ -72,7 +72,7 @@ def openFile(filename, mode="r", title="", trTable={}):
     title -- (Optional) A TITLE string attribute will be set on the
              root group with its value.
 
-    trTable -- (Optional) A dictionary to map names in the object tree into
+    trMap -- (Optional) A dictionary to map names in the object tree into
              different HDF5 names in file.
 
     """
@@ -140,7 +140,7 @@ def openFile(filename, mode="r", title="", trTable={}):
         new = 1
             
     # Finally, create the File instance, and return it
-    return File(path, mode, title, new, trTable)
+    return File(path, mode, title, new, trMap)
 
 
 class File(hdf5Extension.File):
@@ -162,22 +162,22 @@ class File(hdf5Extension.File):
         removeNode(where [, name] [, recursive])
         getAttrNode(self, where, attrname [, name])
         setAttrNode(self, where, attrname, attrname [, name])
-        walkGroups(where = "/")
+        walkGroups([where])
         flush()
         close()
 
     Instance variables:
 
-        filename -- Filename opened
-        mode -- Mode in which the filename was opened
-        title -- The title of the root group in file
-        root -- The root group in file
-        trTable -- The mapping between python and HDF5 domain names
+        filename -- filename opened
+        mode -- mode in which the filename was opened
+        title -- the title of the root group in file
+        root -- the root group in file
+        trMap -- the mapping between python and HDF5 domain names
 
     """
 
     def __init__(self, filename, mode="r", title="",
-                 new=1, trTable={}):
+                 new=1, trMap={}):
         
         """Open an HDF5 file. The supported access modes are: "r" means
         read-only; no data can be modified. "w" means write; a new file is
@@ -196,8 +196,8 @@ class File(hdf5Extension.File):
         
         # _v_new informs if this file is old or new
         self._v_new = new
-        # Assign the trTable and build the reverse translation
-        self.trTable = trTable
+        # Assign the trMap and build the reverse translation
+        self.trMap = trMap
         
         # Get the root group from this file
         self.root = self.__getRootGroup()
@@ -457,7 +457,10 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
 
         # Get the node to be renamed
         object = self.getNode(where, name=name)
-        object._f_rename(newname)
+        if object._v_class == "Group":
+            object._f_rename(newname)
+        else:
+            object.rename(newname)
         
     def removeNode(self, where, name = "", recursive = 0):
         """Removes the object node "name" under "where" location.
@@ -474,7 +477,10 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
 
         # Get the node to be removed
         object = self.getNode(where, name=name)
-        object._f_remove(recursive)
+        if object._v_class == "Group":
+            object._f_remove(recursive)
+        else:
+            object.remove()            
         
     def getAttrNode(self, where, attrname, name = ""):
         """Returns the attribute "attrname" of node "where"."name".
@@ -489,8 +495,11 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
 
         # Get the node to be renamed
         object = self.getNode(where, name=name)
-        return object._f_getAttr(attrname)
-        
+        if object._v_class == "Group":
+            return object._f_getAttr(attrname)
+        else:
+            return object.getAttr(attrname)
+            
     def setAttrNode(self, where, attrname, attrvalue, name=""):
         """Set the attribute "attrname" of node "where"."name".
 
@@ -505,7 +514,10 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
 
         # Get the node to be renamed
         object = self.getNode(where, name=name)
-        object._f_setAttr(attrname, attrvalue)
+        if object._v_class == "Group":
+            object._f_setAttr(attrname, attrvalue)
+        else:
+            object.setAttr(attrname, attrvalue)
         
     def listNodes(self, where, classname = ""):
         
@@ -592,7 +604,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         string += ' Title: ' + str(self.title) + ' \\\\'
         string += ' Format version: ' + str(self._format_version) + '\n'
         string += '  mode: ' + self.mode + '\n'
-        string += '  trTable: ' + str(self.trTable) + '\n'
+        string += '  trMap: ' + str(self.trMap) + '\n'
         for group in self.walkGroups("/"):
             string += str(group) + '\n'
             for leaf in self.listNodes(group, 'Leaf'):

@@ -95,10 +95,10 @@ class BasicTestCase(unittest.TestCase):
         assert a.shape == b.shape
         assert a.shape == self.root.somearray.shape
         if (isinstance(a, chararray.CharArray)):
-            assert str(self.root.somearray.typeclass) == "CharType"
+            assert str(self.root.somearray.type) == "CharType"
         else:
             assert a.type() == b.type()
-            assert a.type() == self.root.somearray.typeclass
+            assert a.type() == self.root.somearray.type
             assert a._byteorder == b._byteorder
             assert a._byteorder == self.root.somearray.byteorder
             if self.endiancheck:
@@ -309,10 +309,10 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         assert a.shape == b.shape
         assert a.shape == self.root.somearray.shape
         if (isinstance(a, chararray.CharArray)):
-            assert str(self.root.somearray.typeclass) == "CharType"
+            assert str(self.root.somearray.type) == "CharType"
         else:
             assert a.type() == b.type()
-            assert a.type() == self.root.somearray.typeclass
+            assert a.type() == self.root.somearray.type
             assert a._byteorder == b._byteorder
             assert a._byteorder == self.root.somearray.byteorder
             
@@ -507,8 +507,8 @@ class GroupsArrayTestCase(unittest.TestCase):
 	    b = dset.read()
 	    if verbose:
 		print "Info from dataset:", dset._v_pathname
-		print "  Shape: ==>", dset.shape, 
-		print "  typeclass ==> %s" % dset.typeclass
+		print "  shape ==>", dset.shape, 
+		print "  type ==> %s" % dset.type
 		print "Array b read from file. Shape: ==>", b.shape,
 		print ". Type ==>" % b.type()
 	    assert a.shape == b.shape

@@ -52,7 +52,7 @@ class OpenFileTestCase(unittest.TestCase):
         arr = fileh.createArray(fileh.root, 'array', [1,2],
                                 title = "Title example")
         # Get the CLASS attribute of the arr object
-        class_ = fileh.root.array._f_getAttr("CLASS")
+        class_ = fileh.root.array.getAttr("CLASS")
 
         fileh.close()
         os.remove(file)
@@ -65,16 +65,16 @@ class OpenFileTestCase(unittest.TestCase):
         # Open the old HDF5 file
         fileh = openFile(self.file, mode = "r")
         # Get the CLASS attribute of the arr object
-        title = fileh.root.array._f_getAttr("TITLE")
+        title = fileh.root.array.getAttr("TITLE")
 
         assert title == "Title example"
     
-    def test01b_trTable(self):
+    def test01b_trMap(self):
         """Checking the translation table capability for reading"""
 
         # Open the old HDF5 file
-        trTable = {"pythonarray": "array"}
-        fileh = openFile(self.file, mode = "r", trTable=trTable)
+        trMap = {"pythonarray": "array"}
+        fileh = openFile(self.file, mode = "r", trMap=trMap)
         # Get the array objects in the file
         array_ = fileh.getNode("/pythonarray")
 
@@ -93,13 +93,13 @@ class OpenFileTestCase(unittest.TestCase):
         else:
             self.fail("expected an LookupError")
     
-    def test01c_trTable(self):
+    def test01c_trMap(self):
         """Checking the translation table capability for writing"""
 
         # Create an HDF5 file
         file = tempfile.mktemp(".h5")
-        trTable = {"pythonarray": "array"}
-        fileh = openFile(file, mode = "w", trTable=trTable)
+        trMap = {"pythonarray": "array"}
+        fileh = openFile(file, mode = "w", trMap=trMap)
         arr = fileh.createArray(fileh.root, 'pythonarray', [1,2],
                                 title = "Title example")
 
@@ -110,7 +110,7 @@ class OpenFileTestCase(unittest.TestCase):
 
         fileh.close()
         
-        # Open the old HDF5 file (without the trTable parameter)
+        # Open the old HDF5 file (without the trMap parameter)
         fileh = openFile(self.file, mode = "r")
         # Get the array objects in the file
         array_ = fileh.getNode("/array")
@@ -147,7 +147,7 @@ class OpenFileTestCase(unittest.TestCase):
         # Open this file in read-only mode
         fileh = openFile(self.file, mode = "r")
         # Get the CLASS attribute of the arr object
-        title = fileh.root.array2._f_getAttr("TITLE")
+        title = fileh.root.array2.getAttr("TITLE")
 
         assert title == "Title example 2"
         fileh.close()
@@ -164,7 +164,7 @@ class OpenFileTestCase(unittest.TestCase):
         # Open this file in read-only mode
         fileh = openFile(self.file, mode = "r")
         # Get the CLASS attribute of the arr object
-        title = fileh.root.array2._f_getAttr("TITLE")
+        title = fileh.root.array2.getAttr("TITLE")
 
         assert title == "Title example 2"
         fileh.close()

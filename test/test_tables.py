@@ -71,7 +71,7 @@ class RecArrayIO(unittest.TestCase):
         fileh.createTable(fileh.root, 'recarray', r)
 
         # Read it again
-        r2 = fileh.root.recarray.getRecArray()
+        r2 = fileh.root.recarray.read()
 
         assert r.tostring() == r2.tostring()
         
@@ -94,7 +94,7 @@ class RecArrayIO(unittest.TestCase):
         fileh.createTable(fileh.root, 'recarray', r1)
 
         # Read it again
-        r2 = fileh.root.recarray.getRecArray()
+        r2 = fileh.root.recarray.read()
 
         assert r1.tostring() == r2.tostring()
         
@@ -117,7 +117,7 @@ class RecArrayIO(unittest.TestCase):
         fileh.createTable(fileh.root, 'recarray', r1)
 
         # Read it again
-        r2 = fileh.root.recarray.getRecArray()
+        r2 = fileh.root.recarray.read()
 
         assert r1.tostring() == r2.tostring()
         
@@ -455,13 +455,13 @@ class BasicRangeTestCase(unittest.TestCase):
 
         table._v_maxTuples = self.maxTuples
         if self.checkrecarray:
-            recarray = table.getRecArray(self.start, self.stop, self.step)
+            recarray = table.read(self.start, self.stop, self.step)
             result = []
             for nrec in range(len(recarray)):
                 if recarray.field('var2')[nrec] < self.nrows:
                     result.append(recarray.field('var2')[nrec])
         elif self.checkgetCol:
-            column = table.getCol('var2', self.start, self.stop, self.step)
+            column = table.read(self.start, self.stop, self.step, 'var2')
             result = []
             for nrec in range(len(column)):
                 if column[nrec] < self.nrows:
@@ -762,7 +762,7 @@ class getColRangeTestCase(BasicRangeTestCase):
         table = self.fileh.getNode("/table0")
 
         try:
-            column = table.getCol('non-existent-column')
+            column = table.read(field='non-existent-column')
         except LookupError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -788,7 +788,7 @@ class RecArrayIO(unittest.TestCase):
         fileh.createTable(fileh.root, 'recarray', r)
 
         # Read it again
-        r2 = fileh.root.recarray.getRecArray()
+        r2 = fileh.root.recarray.read()
 
         assert r.tostring() == r2.tostring()
         
@@ -811,7 +811,7 @@ class RecArrayIO(unittest.TestCase):
         fileh.createTable(fileh.root, 'recarray', r1)
 
         # Read it again
-        r2 = fileh.root.recarray.getRecArray()
+        r2 = fileh.root.recarray.read()
 
         assert r1.tostring() == r2.tostring()
         
@@ -834,7 +834,7 @@ class RecArrayIO(unittest.TestCase):
         fileh.createTable(fileh.root, 'recarray', r1)
 
         # Read it again
-        r2 = fileh.root.recarray.getRecArray()
+        r2 = fileh.root.recarray.read()
 
         assert r1.tostring() == r2.tostring()
         

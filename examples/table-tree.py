@@ -33,11 +33,12 @@ Particle2 = {
 # The name of our HDF5 filename
 filename = "table-tree.h5"
 
-trTable = {"detector": "for",  # A reserved word
-           "table": " 11 ",}   # A non-valid python variable name
+# A translation map
+trMap = {"detector": "for",  # A reserved word
+         "table": " 11 ",}   # A non-valid python variable name
     
 # Open a file in "w"rite mode
-h5file = openFile(filename, mode = "w", trTable=trTable)
+h5file = openFile(filename, mode = "w", trMap=trMap)
 #h5file = openFile(filename, mode = "w")
 
 # Create a new group under "/" (root)
@@ -83,7 +84,7 @@ print "columns ==>", gcolumns, pressure
 # Create a Numeric array with this info under '/columns'
 h5file.createArray(gcolumns, 'pressure', Numeric.array(pressure),
                    "Pressure column", atomictype=0)
-print "gcolumns.pressure typeclass ==> ", gcolumns.pressure.typeclass
+print "gcolumns.pressure type ==> ", gcolumns.pressure.type
 
 # Do the same with TDCcount
 TDC = [ p.TDCcount for p in table.iterrows() ]
@@ -100,7 +101,7 @@ print "names ==>", names
 h5file.createArray('/columns', 'name', names, "Name column")
 # This works even with homogeneous tuples or lists (!)
 print "gcolumns.name shape ==>", gcolumns.name.shape 
-print "gcolumns.name typeclass ==> ", gcolumns.name.typeclass
+print "gcolumns.name type ==> ", gcolumns.name.type
 
 print "Table dump:"
 for p in table.iterrows():
@@ -123,7 +124,7 @@ h5file.close()
 #sys.exit()
 
 # Reopen it in append mode
-h5file = openFile(filename, "a", trTable=trTable)
+h5file = openFile(filename, "a", trMap=trMap)
 #h5file = openFile(filename, "a")
 
 # Ok. let's start browsing the tree from this filename
@@ -203,9 +204,9 @@ pressureObject = h5file.getNode("/columns", "pressure")
 
 # Get some metadata on this object
 print "Info on the object:", pressureObject
-print "  shape: ==>", pressureObject.shape
-print "  title: ==>", pressureObject.title
-print "  typeclass ==> ", pressureObject.typeclass
+print "  shape ==>", pressureObject.shape
+print "  title ==>", pressureObject.title
+print "  type ==> ", pressureObject.type
 print "  byteorder ==> ", pressureObject.byteorder
 
 # Read the pressure actual data
@@ -220,9 +221,9 @@ nameObject = h5file.root.columns.name
 
 # Get some metadata on this object
 print "Info on the object:", nameObject
-print "  shape: ==>", nameObject.shape
-print "  title: ==>", nameObject.title
-#print "  typeclass ==> %c" % nameObject.typeclass
+print "  shape ==>", nameObject.shape
+print "  title ==>", nameObject.title
+print "  type ==> " % nameObject.type
 
 
 # Read the 'name' actual data
@@ -270,32 +271,35 @@ for p in table.iterrows():
     print p.name, '-->', p.pressure
 print
 
-print table.getCol("ADCcount")
-print table.getCol("name", 0, 0, 1)
-print table.getCol("pressure", 0, 0, 2)
+print table.read(field="ADCcount")
+print table.read(field="ADCcount", flavor="Numeric")
+print table.read(0, 0, 1, "name")
+print table.read(0, 0, 1, "name", flavor="List")
+print table.read(0, 0, 2, "pressure")
+print table.read(0, 0, 2, "pressure", flavor="Tuple")
 
-#sys.exit()
+sys.exit()
 
 # Several range selections
 print "Extended slice in selection: [0:7:6]"
-print table.getRecArray(0,7,6)
+print table.read(0,7,6)
 print "Single record in selection: [1]"
-print table.getRecArray(1)
+print table.read(1)
 print "Last record in selection: [-1]"
-print table.getRecArray(-1)
+print table.read(-1)
 print "Two records before the last in selection: [-3:-1]"
-print table.getRecArray(-3, -1)
+print table.read(-3, -1)
 
 # Print a recarray in table form
 table = h5file.root.detector.recarray2
 print "recarray2:", table
-print "  shape:", table.shape
-print "  byteorder:", table._v_byteorder
+print "  nrows:", table.nrows
+print "  byteorder:", table.byteorder
 print "  coltypes:", table.coltypes
 print "  colnames:", table.colnames
 
 #print table[:]
-print table.getRecArray()
+print table.read()
 for p in table.iterrows():
     print p.c1, '-->', p.c2
 print
@@ -317,8 +321,6 @@ h5file.removeNode(h5file.root.detector.recarray3)
 # Create a Group and then remove it
 h5file.createGroup(h5file.root, "newgroup")
 h5file.removeNode(h5file.root, "newgroup")
-# If we change the name of a group with childs, we have to recursively change
-# all the paths of the children!
 h5file.renameNode(h5file.root.columns, "newcolumns")
 
 print h5file
