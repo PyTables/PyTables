@@ -5,7 +5,7 @@
 #	Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/test/test_filenode.py,v $
-#	$Id: test_filenode.py,v 1.7 2004/11/18 19:10:30 ivilata Exp $
+#	$Id: test_filenode.py,v 1.8 2004/11/18 19:21:23 ivilata Exp $
 #
 ########################################################################
 
@@ -17,7 +17,7 @@ from tables.nodes import FileNode
 import warnings
 
 
-__revision__ = '$Id: test_filenode.py,v 1.7 2004/11/18 19:10:30 ivilata Exp $'
+__revision__ = '$Id: test_filenode.py,v 1.8 2004/11/18 19:21:23 ivilata Exp $'
 
 
 
@@ -127,8 +127,8 @@ class ClosedFileTestCase(unittest.TestCase):
 
 		try:
 			self.fnode.close()
-		except:
-			self.fail("Closing a closed file produced an error.")
+		except ValueError:
+			self.fail("Could not close an already closed file.")
 
 
 	def test01_Flush(self):
