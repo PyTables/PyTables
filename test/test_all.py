@@ -34,7 +34,8 @@ def cleanup(klass):
     #klass.__dict__.clear()     # This is too hard. Don't do that
 #    print "Class attributes deleted"
     for key in klass.__dict__.keys():
-        klass.__dict__[key] = None
+	if not klass.__dict__[key].__class__.__name__ in ('instancemethod'):
+	    klass.__dict__[key] = None
 
 def allequal(a,b, flavor="numarray"):
     """Checks if two numarrays are equal"""
