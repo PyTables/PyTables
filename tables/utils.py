@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.32 2004/12/17 10:27:17 falted Exp $
+#       $Id: utils.py,v 1.33 2004/12/17 16:45:39 falted Exp $
 #
 ########################################################################
 
@@ -19,7 +19,7 @@ import warnings
 # The second line is better for some installations
 #from tables.hdf5Extension import getIndices
 from hdf5Extension import getIndices
-from PTExceptions import NaturalNameWarning
+from exceptions import NaturalNameWarning
 import numarray
 from numarray import strings
 try:
