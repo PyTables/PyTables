@@ -1,11 +1,11 @@
 /* Include file for calcoffset.c 
- * F. Alted 
+ * F. Altet 
  * 2002/08/28 */
 
 /* For the sake of code simplicity I've stripped out all the alignment
    stuff, as it seems not necessary for HDF5. If it is needed, you can
    find the complete code version in CVS with tag 1.14.
-   F. Alted 2004-09-16 */
+   F. Altet 2004-09-16 */
 
 /* Define this variable for error printings */
 /*#define DEBUG 1 */

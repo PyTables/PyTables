@@ -1,5 +1,5 @@
 /* Routine to compute the offsets of a packed struct (package struct in Python)
- * F.Alted
+ * F.Altet
  * 2002/08/28 */
 
 #include <stddef.h>
@@ -12,7 +12,7 @@
    stuff. It not necessary because the offset for each element on
    Table struct is computed prior to read the data. If, for any
    reason, it is needed again, you can find the complete code version
-   in CVS with tag 1.7.  F. Alted 2004-09-16 */
+   in CVS with tag 1.7.  F. Altet 2004-09-16 */
 
 /* Get the correct HDF5 type for a format code.
  * I can't manage to do the mapping with a table because

@@ -462,7 +462,7 @@ class BasicTestCase(unittest.TestCase):
         if self.__class__.__name__ == "Ellipsis6EArrayTestCase":
             # We have a problem with test design here, but I think
             # it is not worth the effort to solve it
-            # F.Alted 2004-10-27
+            # F.Altet 2004-10-27
             return
         if verbose:
             print '\n', '-=' * 30

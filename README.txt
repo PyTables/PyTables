@@ -151,4 +151,4 @@ That's it!  Good luck, and let me know of any bugs, suggestions, gripes,
 kudos, etc. you may have.
 
 -- Francesc Altet
-falted@pytables.org
+faltet@carabos.com

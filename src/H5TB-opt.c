@@ -10,7 +10,7 @@
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@pytables.org
+ * Programmer: Francesc Altet, faltet@carabos.com
  *
  * Date: April 19, 2003
  *
@@ -89,7 +89,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@pytables.org
+ * Programmer: Francesc Altet, faltet@carabos.com
  *
  * Date: April 19, 2003
  *
@@ -184,7 +184,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@pytables.org
+ * Programmer: Francesc Altet, faltet@carabos.com
  *
  * Date: April 19, 2003
  *
@@ -231,7 +231,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@pytables.org
+ * Programmer: Francesc Altet, faltet@carabos.com
  *
  * Date: April 20, 2003
  *
@@ -323,7 +323,7 @@ out:
  * Return: Success: 0, Failure: -1
  *
  * Programmers: 
- *  Francesc Alted, falted@pytables.org
+ *  Francesc Altet, faltet@carabos.com
  *
  * Date: April 20, 2003
  *
@@ -406,7 +406,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@pytables.org
+ * Programmer: Francesc Altet, faltet@carabos.com
  *
  * Date: April 20, 2003
  *
@@ -469,7 +469,7 @@ out:
  *
  * Modifications: 
  * -  Added a step parameter in order to support strided writing.
- *    Francesc Alted, falted@pytables.org. 2004-08-12
+ *    Francesc Altet, faltet@carabos.com. 2004-08-12
  *
  *
  *-------------------------------------------------------------------------

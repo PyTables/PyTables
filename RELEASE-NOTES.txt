@@ -66,5 +66,5 @@ Bug fixes:
 Enjoy data!,
 
 -- Francesc Altet
-falted@pytables.org
+faltet@carabos.com
 

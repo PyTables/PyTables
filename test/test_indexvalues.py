@@ -2115,7 +2115,7 @@ def suite():
         # """Warning: Encountered invalid numeric result(s)  in less_equal"""
         # series of messages and I don't want to worry normal users
         # about this (I don't think this is grave anyway)
-        # F. Alted 2004-08-12
+        # F. Altet 2004-08-12
         theSuite.addTest(unittest.makeSuite(SV7aTestCase))
         theSuite.addTest(unittest.makeSuite(SV9aTestCase))
         theSuite.addTest(unittest.makeSuite(SV10aTestCase))

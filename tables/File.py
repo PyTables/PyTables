@@ -1,10 +1,10 @@
 #
 #       License:        BSD
 #       Created:        September 4, 2002
-#       Author:  Francesc Alted - falted@pytables.org
+#       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.92 2004/12/09 11:34:55 falted Exp $
+#       $Id: File.py,v 1.93 2004/12/09 13:01:59 falted Exp $
 #
 ########################################################################
 
@@ -34,7 +34,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.92 $"
+__version__ = "$Revision: 1.93 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 #format_version = "1.2"  # Support for enlargeable arrays and VLA's

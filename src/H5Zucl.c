@@ -19,10 +19,10 @@
    special scenarios (like transmitting through a net with no error
    correction capabilities).  Anyway, this takes only a 1% more of
    space and a 2% more of CPU, which is almost negligible.
-   F. Alted 2003/07/22
+   F. Altet 2003/07/22
 
    Added code for pytables 0.5 backward compatibility.
-   F. Alted 2003/07/28
+   F. Altet 2003/07/28
 
    Now, it seems that CHECKSUM makes the code to crash when running the 
    test_all.py script. De-activate it until more investigations is done.
@@ -32,12 +32,12 @@
 /* Ok. from pytables 0.8 on I decided to let the user select the
    fletcher32 checksum provided in HDF5 1.6 or higher. So, even though
    the CHECKSUM support here seems pretty stable it will be disabled.
-   F. Alted 2004/01/12 */
+   F. Altet 2004/01/12 */
 #undef CHECKSUM  		       
 
 /* Adding more memory to the nrve seems to make it more resistant to
  seg faults. But I don't fully understand were is exactly the problem,
- anyway.  F. Alted 2003/07/24 
+ anyway.  F. Altet 2003/07/24 
  * 
  * I'm suspucious now about a possible interaction between psyco and
  * ucl nrve that makes the checksum to fail. 2003/07/28
@@ -293,14 +293,14 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
        
        The nrv2b and nrv2d seems to give no problems. I'm adopting the
        nrv2d which is slightly better (more compression) than
-       nrv2b. The best is, though, the nrv2e. F. Alted 2003/07/22 
+       nrv2b. The best is, though, the nrv2e. F. Altet 2003/07/22 
        
        Note: I've discovered that adding some more space to the
        nrv2e compressor, it seems to work fine. I'm pretty sure that
        this does not solve the problem, it just makes the seg faults
        harder to appear. I'm adopting this strategy in order to keep
        backward compatibility with the existing files writen with
-       pytables 0.5.x.  F. Alted 2003/07/24
+       pytables 0.5.x.  F. Altet 2003/07/24
 
        Note: Finally, I think I've found what was causing problems
        with nrv2e.  It seems that after forcing returning the
@@ -308,7 +308,7 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
        crashes due to the UCL compressor has disappeared. I upgraded
        both the Table and Array version to 2.1 in order to get back to
        use nrv2e, that gives a little better compression ratio.
-       F. Alted 2003/12/09
+       F. Altet 2003/12/09
 
     */
 

@@ -2,10 +2,10 @@
 #
 #       License: BSD
 #       Created: September 4, 2002
-#       Author:  Francesc Alted - falted@pytables.org
+#       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.138 2004/12/09 12:24:43 falted Exp $
+#       $Id: Table.py,v 1.139 2004/12/09 13:02:00 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.138 $"
+__version__ = "$Revision: 1.139 $"
 
 from __future__ import generators
 import sys

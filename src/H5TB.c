@@ -19,7 +19,7 @@
 #include <string.h>
 
 /* Define this because we are using HDF5 > 1.6 */
-/* F. Alted  2003/07/16 */
+/* F. Altet  2003/07/16 */
 #if 1  
 #define SHRINK
 #endif
@@ -1429,7 +1429,7 @@ herr_t H5TBread_fields_index( hid_t loc_id,
   goto out;
 
  /* Create a memory dataspace handle */
- /* This three lines added. 2003/09/11. F. Alted */
+ /* This three lines added. 2003/09/11. F. Altet */
  mem_size[0] = count[0];
  if ( (mem_space_id = H5Screate_simple( 1, mem_size, NULL )) < 0 )
   goto out;
@@ -1598,7 +1598,7 @@ out:
  * Return: Success: 0, Failure: -1
  *
  * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
- * Modified by: F. Alted (buffered rewriting of trailing rows)
+ * Modified by: F. Altet (buffered rewriting of trailing rows)
  *
  * Date: November 26, 2001
  *
@@ -1669,7 +1669,7 @@ herr_t H5TBdelete_record( hid_t loc_id,
  write_start = start;
  read_nrecords = ntotal_records - read_start;
  /* This check added for the case that there are no records to be read */
- /* F. Alted  2003/07/16 */
+ /* F. Altet  2003/07/16 */
  if (read_nrecords > 0) {
    nrowsread = 0;
 
@@ -2305,7 +2305,7 @@ herr_t H5TBcombine_tables( hid_t loc_id1,
 
    /* Close the member type */
    /* This was not included in HDF5_HL 1.2. Why not?
-      F. Alted. 2003/07/14 */
+      F. Altet. 2003/07/14 */
    if ( H5Tclose( member_type_id ) < 0 )
     goto out; 
    
@@ -2935,7 +2935,7 @@ herr_t H5TBinsert_field( hid_t loc_id,
 
    /* Close the member type */
    /* This was not included in HDF5_HL 1.2. Why not?
-      F. Alted. 2003/07/14 */
+      F. Altet. 2003/07/14 */
    if ( H5Tclose( member_type_id ) < 0 )
     goto out; 
    
@@ -3656,7 +3656,7 @@ out:
 }
 
 /* This does not work because of the H5Tget_native_type call 
-   F. Alted 2004-04-21 */
+   F. Altet 2004-04-21 */
 herr_t H5TBget_field_info_new( hid_t loc_id, 
                            const char *dset_name,
                            char *field_names[],

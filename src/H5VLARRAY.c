@@ -120,7 +120,7 @@ void test_vltypes_free_custom_orig(void *_mem, void *info)
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: F. Alted
+ * Programmer: F. Altet
  *
  * Date: November 08, 2003
  *-------------------------------------------------------------------------
@@ -289,7 +289,7 @@ out:
  * Return: Success: 0, Failure: -1
  *
  * Programmers: 
- *  Francesc Alted
+ *  Francesc Altet
  *
  * Date: October 30, 2003
  *
@@ -385,7 +385,7 @@ out:
  * Return: Success: 0, Failure: -1
  *
  * Programmers: 
- *  Francesc Alted
+ *  Francesc Altet
  *
  * Date: October 28, 2004
  *
@@ -471,7 +471,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@pytables.org
+ * Programmer: Francesc Altet, faltet@carabos.com
  *
  * Date: November 19, 2003
  *
@@ -586,7 +586,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted
+ * Programmer: Francesc Altet
  *
  * Date: November 19, 2003
  *
@@ -655,7 +655,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted
+ * Programmer: Francesc Altet
  *
  * Date: November 19, 2003
  *

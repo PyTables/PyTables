@@ -38,7 +38,7 @@ herr_t H5TBOclose_read( hid_t *dataset_id,
 
 
   /* These are maintained here just in case I want to use them in the future.
-     F.Alted 2003/04/20  */
+     F.Altet 2003/04/20  */
 
 
 herr_t H5TBOopen_append( hid_t *dataset_id,

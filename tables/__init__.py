@@ -2,10 +2,10 @@
 #
 #       License: BSD
 #       Created: October 1, 2002
-#       Author:  Francesc Alted - falted@pytables.org
+#       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/__init__.py,v $
-#       $Id: __init__.py,v 1.28 2004/10/28 16:42:40 falted Exp $
+#       $Id: __init__.py,v 1.29 2004/12/09 13:02:01 falted Exp $
 #
 ########################################################################
 

@@ -280,7 +280,7 @@ herr_t getfieldfmt( hid_t loc_id,
 
      Thanks to Stephen Walton for reporting this example.
 
-     F. Alted 2004-09-22
+     F. Altet 2004-09-22
 
  */
 

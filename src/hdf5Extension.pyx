@@ -3,10 +3,10 @@
 #
 #       License: BSD
 #       Created: September 21, 2002
-#       Author:  Francesc Alted - falted@pytables.org
+#       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.149 2004/12/09 11:34:55 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.150 2004/12/09 13:01:58 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.149 $"
+__version__ = "$Revision: 1.150 $"
 
 
 import sys, os
@@ -60,7 +60,7 @@ cdef extern from "stdlib.h":
   #ctypedef int size_t
   # The correct correspondence between size_t and a basic type is *long*
   # instead of int, because they are the same size even for 64-bit platforms
-  # F. Alted 2003-01-08
+  # F. Altet 2003-01-08
   ctypedef long size_t
   void *malloc(size_t size)
   void free(void *ptr)
@@ -72,7 +72,7 @@ cdef extern from "time.h":
 # The next has been substituted by equivalents in Python, so that this
 # functions could be accessible in Windows systems
 # Thanks to Shack Toms for this!
-# F. Alted 2004-10-01
+# F. Altet 2004-10-01
 # cdef extern from "math.h":
 #   double nextafter(double x, double y)
 #   float nextafterf(float x, float y)
@@ -949,7 +949,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.149 2004/12/09 11:34:55 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.150 2004/12/09 13:01:58 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1952,7 +1952,7 @@ cdef class Row:
     # The MIPSPro C compiler on a SGI does not like to have an assignation
     # of a type Table to a type object. For now, as we do not have to call
     # C methods in Tables, I'll declare table as object.
-    # F. Alted 2004-02-11
+    # F. Altet 2004-02-11
     self._table = table
     self._unsavednrows = 0
     self._row = 0

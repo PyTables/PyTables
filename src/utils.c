@@ -11,7 +11,7 @@
  * Private functions
  * These are a replica of those in H5LT.c, but get_attribute_string_sys
  * needs them, so it is better to copy them here.
- * F. Alted 2004-04-20
+ * F. Altet 2004-04-20
  *
  *-------------------------------------------------------------------------
  */
@@ -108,7 +108,7 @@ PyObject *createNamesList(char *buffer[], int nelements)
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@pytables.org
+ * Programmer: Francesc Altet, faltet@carabos.com
  *
  * Date: December 19, 2003
  *
@@ -425,7 +425,7 @@ out:
    funtion similar to the method slice.indices(length) introduced in
    python 2.3, but for 2.2 */
 
-/* F. Alted 2004-01-19 */
+/* F. Altet 2004-01-19 */
 
 int GetIndicesEx(PyObject *s, int length,
 		 int *start, int *stop, int *step, int *slicelength)
@@ -492,7 +492,7 @@ int GetIndicesEx(PyObject *s, int length,
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@pytables.org
+ * Programmer: Francesc Altet, faltet@carabos.com
  *
  * Date: September 19, 2003
  *
@@ -669,7 +669,7 @@ herr_t _close_id( hid_t obj_id,
    so we make one from a HDF5 compound type class.
 
    Added by Tom Hedley <thedley@users.sourceforge.net> April 2004.
-   Adapted to support Tables by F. Alted September 2004.
+   Adapted to support Tables by F. Altet September 2004.
 */
 
 /* Return the byteorder of a complex datatype.

@@ -1,5 +1,5 @@
 /* Include file for calcoffset.c 
- * F. Alted 
+ * F. Altet 
  * 2002/08/28 */
 
 #include "H5TB.h"
