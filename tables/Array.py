@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.85 2004/12/26 15:53:33 ivilata Exp $
+#       $Id$
 #
 ########################################################################
 
@@ -487,12 +487,7 @@ The error was: <%s>""" % (value, self, value2)
             arr._byteorder = self.byteorder
 
         # Protection against reading empty arrays
-        zerodim = 0
-        for i in xrange(len(shape)):
-            if shape[i] == 0:
-                zerodim = 1
-
-        if not zerodim:
+        if 0 not in shape:
             # Arrays that have non-zero dimensionality
             self._g_readSlice(startl, stopl, stepl, arr)
 
@@ -582,13 +577,9 @@ The error was: <%s>""" % (value, self, value2)
             arr = numarray.array(None, type=self.type, shape=shape)
             # Set the same byteorder than on-disk
             arr._byteorder = self.byteorder
-        # Protection against reading empty arrays
-        zerodim = 0
-        for i in xrange(len(shape)):
-            if shape[i] == 0:
-                zerodim = 1
 
-        if not zerodim:
+        # Protection against reading empty arrays
+        if 0 not in shape:
             # Arrays that have non-zero dimensionality
             self._readArray(start, stop, step, arr)
             
