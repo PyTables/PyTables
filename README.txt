@@ -1,11 +1,11 @@
 README.txt
-PyTables pre-0.3 (This is first beta version)
+PyTables 0.4 (This is first beta version)
 http://pytables.sf.net/
-February 07, 2003
+March 07, 2003
 --------------------------------------
 
 The goal of PyTables is to enable the end user to manipulate easily
-scientific data tables, numarray objects (new in 0.3!) and Numerical
+scientific data tables, numarray objects (new in 0.4!) and Numerical
 Python objects in a persistent, hierarchical structure. The foundation
 of the underlying hierachical data organization is the excellent HDF5
 library (http://hdf.ncsa.uiuc.edu/HDF5). Right now, PyTables provides
@@ -41,11 +41,13 @@ PyTables make use of Pyrex, a convenient tool to access C libraries
 from Python using Python syntax. For these reasons, you will need to
 use Python 2.2 or higher to take advantage of PyTables.
 
-I've tested this PyTables version with HDF5 1.4.4 and numarray 0.4,
-but it should work well with all HDF5 1.4.x versions and a relatively
-new version of numarray (>= 0.4) and Numeric Python (>= 20.x), in case
-you still want to stick with Numeric instead of using numarray, its
-successor.
+I've tested this PyTables version with HDF5 1.4.4, 1.4.5 versions and
+numarray 0.4 (also with the latest CVS version), but it should work
+well with all HDF5 1.4.x versions and a relatively new version of
+numarray (>= 0.4). Although you won't need Numeric Python in order to
+compile PyTables, it is supported; you only will need a reasonably
+recent version of it (>= 21.x). PyTables has been succesfully tested
+with Numeric 21.3, 22.0 and 23.0.
 
 I'm using Linux as the main development platform, but PyTables should
 be easy to compile/install on other UNIX machines. Nonetheless, caveat
@@ -127,10 +129,6 @@ fairly simple to get things ready to go.
    For example:
 
         python test_types.py -v
-
-   If you run into problems because Python can't load hdf5 shared
-   libraries, try to set the LD_LIBRARY_PATH environment variable to
-   point to the directory where the libraries are.
 
 4. To install the entire PyTables Python package, change back to the
    root distribution directory and run this command as the root user

@@ -178,13 +178,13 @@ class createTestCase(unittest.TestCase):
                 setattr(row, varname, i*j)
                 i += 1
 	    
-            table.append(row)
+            row.append()
 
         # write data on disk
 	table.flush()
 	
 	# Read all the data as records 
-	for recout in table.fetchall():
+	for recout in table.iterrows():
             pass
 
         # Compare the last input row and last output

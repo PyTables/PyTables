@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.10 2003/03/07 08:20:58 falted Exp $
+#       $Id: Leaf.py,v 1.11 2003/03/07 21:18:17 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.10 $"
+__version__ = "$Revision: 1.11 $"
 
 
 class Leaf:
@@ -43,7 +43,8 @@ class Leaf:
 
     Methods:
 
-        _f_putObjectInTree(name, parent)
+        getAttrStr(attrname)
+        _f_renameObject(newname)
 
     Instance variables:
 
@@ -52,28 +53,27 @@ class Leaf:
     """
 
     
-    def _f_putObjectInTree(self, name, parent):
+    def _g_putObjectInTree(self, name, parent):
         
         """Given a new Leaf object (fresh or in a HDF5 file), set
         links and attributes to include it in the object tree."""
         
         # New attributes for the this Leaf instance
-        parent._f_setproperties(name, self)
+        parent._g_setproperties(name, self)
         self.name = self._v_name     # This is a standard attribute for Leaves
         # Call the new method in Leaf superclass 
-        self._f_new(parent, self._v_hdf5name)
+        self._g_new(parent, self._v_hdf5name)
         # Update this instance attributes
         parent._v_objleaves[self._v_name] = self
         # Update class variables
         parent._c_objleaves[self._v_pathname] = self
         self._v_groupId = parent._v_groupId
         if self._v_new:
-            self.create()
+            self._create()
         else:
-            self.open()
+            self._open()
 
     def _f_renameObject(self, newname):
-        
         """Rename this leaf in the object tree as well as in the HDF5 file."""
 
         parent = self._v_parent
@@ -91,13 +91,13 @@ class Leaf:
         # New attributes for the this Leaf instance
         newattr["_v_name"] = newname
         newattr["_v_hdf5name"] = trTable.get(newname, newname)
-        newattr["_v_pathname"] = parent._f_join(newname)
+        newattr["_v_pathname"] = parent._g_join(newname)
         # Update class variables
         parent._c_objects[self._v_pathname] = self
         parent._c_objleaves[self._v_pathname] = self
         self.name = newname     # This is a standard attribute for Leaves
-        # Call the _f_new method in Leaf superclass 
-        self._f_new(parent, self._v_hdf5name)
+        # Call the _g_new method in Leaf superclass 
+        self._g_new(parent, self._v_hdf5name)
         # Update this instance attributes
         parent._v_objchilds[newname] = self
         parent._v_objleaves[newname] = self

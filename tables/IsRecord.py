@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Attic/IsRecord.py,v $
-#       $Id: IsRecord.py,v 1.10 2003/02/24 12:06:00 falted Exp $
+#       $Id: IsRecord.py,v 1.11 2003/03/07 21:18:15 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.10 $"
+__version__ = "$Revision: 1.11 $"
 
 
 import warnings
@@ -267,6 +267,7 @@ print p
 
 """ % object
                 newdict['__slots__'].append(k)
+                #newdict[k] = object
                 newdict['__types__'][k] = object.type
                 if hasattr(object, 'dflt'):
                     newdict['__dflts__'][k] = object.dflt

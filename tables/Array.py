@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.22 2003/02/28 21:22:53 falted Exp $
+#       $Id: Array.py,v 1.23 2003/03/07 21:18:12 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.22 $"
+__version__ = "$Revision: 1.23 $"
 import types, warnings, sys
 from Leaf import Leaf
 import hdf5Extension
@@ -88,9 +88,9 @@ class Array(Leaf, hdf5Extension.Array):
         else:
             self._v_new = 0
             
-    def create(self):
+    def _create(self):
         """Save a fresh array (i.e., not present on HDF5 file)."""
-        # Call the createArray superclass method to create the table
+        # Call the _createArray superclass method to create the table
         # on disk
 
         obversion = "1.0"    # default version for ARRAY objects
@@ -178,22 +178,23 @@ class Array(Leaf, hdf5Extension.Array):
   Sorry, but this object is not supported.""" % (arr)
             
             
-        self.typeclass = self.createArray(naarr, self.title,
-                                     flavor, obversion, self.atomictype)
+        self.typeclass = self._createArray(naarr, self.title,
+                                           flavor, obversion, self.atomictype)
         # Get some important attributes
         self.shape = naarr.shape
         self.itemsize = naarr._itemsize
+        self.flavor = flavor
 
-    def open(self):
+    def _open(self):
         """Get the metadata info for an array in file."""
         (self.typeclass, self.shape, self.itemsize, self.byteorder) = \
-                        self.openArray()
+                        self._openArray()
 
         self.title = self.getAttrStr("TITLE")
         # NUMERIC, NUMARRAY, TUPLE, LIST or other flavor 
         self.flavor = self.getAttrStr("FLAVOR")
         
-    # Accessor for the readArray method in superclass
+    # Accessor for the _readArray method in superclass
     def read(self):
         """Read the array from disk and return it as numarray."""
 
@@ -209,7 +210,7 @@ class Array(Leaf, hdf5Extension.Array):
             # Set the same byteorder than on-disk
             arr._byteorder = self.byteorder
         # Do the actual data read
-        self.readArray(arr._data)
+        self._readArray(arr._data)
 
         # Convert to Numeric, tuple or list if needed
         if self.flavor == "NUMERIC":
@@ -254,7 +255,7 @@ class Array(Leaf, hdf5Extension.Array):
         # class don't support buffers
     
     # Moved out of scope
-    def _f_del__(self):
+    def _g_del__(self):
         """Delete some objects"""
         print "Deleting Array object"
         pass

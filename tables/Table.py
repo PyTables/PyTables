@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.30 2003/03/06 10:42:30 falted Exp $
+#       $Id: Table.py,v 1.31 2003/03/07 21:18:19 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.30 $"
+__version__ = "$Revision: 1.31 $"
 
 from __future__ import generators
 import sys
@@ -52,81 +52,6 @@ byteorderDict={"=": sys.byteorder,
 revbyteorderDict={'little': '<',
                   'big': '>'}
 
-class Row:
-    """Row Class
-
-    This class hosts accessors to a recarray row.
-    
-    """
-
-    def __init__(self, input):
-
-        self.__dict__["_array"] = input
-        self.__dict__["_fields"] = input._fields
-        self.__dict__["_row"] = 0
-
-    def __call__(self, row):
-        """ set the row for this record object """
-        
-        if row < self._array.shape[0]:
-            self.__dict__["_row"] = row
-            return self
-        else:
-            return None
-
-    def __getattr__(self, fieldName):
-        """ get the field data of the record"""
-
-        # In case that the value is an array, the user should be responsible to
-        # copy it if he wants to keep it.
-        try:
-            #value = self._fields[fieldName][self._row]
-            # If we use this line:
-            #return self._fields[fieldName][self._row]
-            # we get weird endless memory leaks.
-            # The next one works just perfect. But, why?
-            return self.__dict__["_fields"][fieldName][self.__dict__['_row']]
-            #return -1
-            #return self._array.field(fieldName)[self._row]
-        except:
-            (type, value, traceback) = sys.exc_info()
-            raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
-                  (fieldName, "Error was: \"%s: %s\"" % (type,value))
-
-        if isinstance(value, num.NumArray):
-            return copy.deepcopy(value)
-        else:
-             return value
-
-    def __setattr__(self, fieldName, value):
-        """ set the field data of the record"""
-
-        #self._fields[fieldName][self._row] = value
-        self.__dict__["_fields"][fieldName][self.__dict__['_row']] = value
-        #self._array.field(fieldName)[self._row] = value
-
-    def __str__(self):
-        """ represent the record as an string """
-        
-        outlist = []
-        for name in self._array._names:
-            outlist.append(`self._fields[name][self._row]`)
-            #outlist.append(`self._array.field(name)[self._row]`)
-        return "(" + ", ".join(outlist) + ")"
-
-    def _all(self):
-        """ represent the record as a list """
-        
-        outlist = []
-        for name in self._fields:
-            outlist.append(self._fields[name][self._row])
-            #outlist.append(self._array.field(name)[self._row])
-        return outlist
-
-    # Moved out of scope
-    def _f_del__(self):
-        print "Deleting Row object"
-        pass
 
 class Table(Leaf, hdf5Extension.Table):
     """Represent a table in the object tree.
@@ -146,10 +71,10 @@ class Table(Leaf, hdf5Extension.Table):
 
     Methods:
 
-        append(RecordObject)
-        fetchall()
-        flush()  # This can be moved to Leaf
-        close()  # This can be moved to Leaf
+        getRecArray()
+        getCol()
+        iterrows()
+        flush()
 
     Instance variables:
 
@@ -206,7 +131,7 @@ class Table(Leaf, hdf5Extension.Table):
             self._v_new = 1
         elif isinstance(description, recarray.RecArray):
             # RecArray object case
-            self.newRecArray(description)
+            self._newRecArray(description)
             # Provide a better guess for the expected number of rows
             # But beware with the small recarray lengths!
             # Commented out until a better approach is found
@@ -222,7 +147,7 @@ class Table(Leaf, hdf5Extension.Table):
         else:
             self._v_new = 0
 
-    def newBuffer(self, init=0):
+    def _newBuffer(self, init=0):
         """Create a new recarray buffer for I/O purposes"""
 
         recarr = recarray2.array(None, formats=self.description._v_recarrfmt,
@@ -238,7 +163,7 @@ class Table(Leaf, hdf5Extension.Table):
 
         return recarr
 
-    def newRecArray(self, recarr):
+    def _newRecArray(self, recarr):
         """Save a recarray to disk, and map it as a Table object
 
         This method is aware of byteswapped and non-contiguous recarrays
@@ -272,7 +197,7 @@ class Table(Leaf, hdf5Extension.Table):
         # The rest of the info is automatically added when self.create()
         # is called
 
-    def create(self):
+    def _create(self):
         """Create a new table on disk."""
 
         # Compute some important parameters for createTable
@@ -280,7 +205,7 @@ class Table(Leaf, hdf5Extension.Table):
         self._v_fmt = self.description._v_fmt
         self._calcBufferSize(self._v_expectedrows)
         # Create the table on disk
-        self.createTable(self.title)
+        self._createTable(self.title)
         # Initialize the shape attribute
         self.shape = (self.nrows,)
         # Get the column types
@@ -290,11 +215,11 @@ class Table(Leaf, hdf5Extension.Table):
         # Compute the byte order
         self._v_byteorder = byteorderDict[self._v_fmt[0]]
         # Create the arrays for buffering
-        self._v_buffer = self.newBuffer()
+        self._v_buffer = self._newBuffer()
         self.row = hdf5Extension.Row(self._v_buffer, self)
         #self.row = Row(self._v_buffer)
                          
-    def open(self):
+    def _open(self):
         """Opens a table from disk and read the metadata on it.
 
         Creates an user description on the flight to easy the access to
@@ -302,7 +227,7 @@ class Table(Leaf, hdf5Extension.Table):
 
         """
         # Get table info
-        (self.nrows, self.colnames, self._v_fmt) = self.getTableInfo()
+        (self.nrows, self.colnames, self._v_fmt) = self._getTableInfo()
         self.title = self.getAttrStr("TITLE")
         # This one is probably not necessary to set it, but...
         self._v_compress = 0  # This means, we don't know if compression
@@ -334,7 +259,7 @@ class Table(Leaf, hdf5Extension.Table):
         # Extract the shapes for columns
         self.colshapes = self.description._v_shapes
         # Create the arrays for buffering
-        self._v_buffer = self.newBuffer(init=0)
+        self._v_buffer = self._newBuffer(init=0)
         #self.row = self._v_buffer._row
         self.row = hdf5Extension.Row(self._v_buffer, self)
         
@@ -426,26 +351,24 @@ class Table(Leaf, hdf5Extension.Table):
 
     def _saveBufferedRows(self):
         """Save buffered table rows."""
-        self.append_records(self._v_buffer, self.row.getUnsavedNRows())
+        self._append_records(self._v_buffer, self.row._getUnsavedNRows())
         # Update the number of saved rows in this buffer
-        self.nrows += self.row.getUnsavedNRows()
+        self.nrows += self.row._getUnsavedNRows()
         # Reset the buffer unsaved counter and the buffer read row counter
-        self.row.setUnsavedNRows(0)
+        self.row._setUnsavedNRows(0)
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
         
-    def append(self, row):
+    def _append(self, row):
         """Append the "row" object to the output buffer.
 
         "row" has to be a recarray2.Row object 
 
         """
-        #bufrow = row.incUnsavedNRows()
-        #if bufrow == self._v_maxTuples:
-        if row.incUnsavedNRows() == self._v_maxTuples:
+        if row._incUnsavedNRows() == self._v_maxTuples:
             self._saveBufferedRows()
 
-    def fetchall(self):
+    def _fetchall(self):
         """Return an iterator yielding record instances built from rows
 
         This method is a generator, i.e. it keeps track on the last
@@ -458,19 +381,19 @@ class Table(Leaf, hdf5Extension.Table):
         nrowsinbuf = self._v_maxTuples
         buffer = self._v_buffer  # Get a recarray as buffer
         row = self.row   # get the pointer to the Row object
-        row.initLoop(0, self.nrows, 1, nrowsinbuf)
+        row._initLoop(0, self.nrows, 1, nrowsinbuf)
         for i in xrange(0, self.nrows, nrowsinbuf):
-            recout = self.read_records(i, nrowsinbuf, buffer)
+            recout = self._read_records(i, nrowsinbuf, buffer)
             #recout = nrowsinbuf
             if self._v_byteorder <> sys.byteorder:
                 buffer.byteswap()
             # Set the buffer counter
             # Case for step=1
-            row.setBaseRow(i, 0)
+            row._setBaseRow(i, 0)
             for j in xrange(recout):
                 yield row()
         
-    def fetchrange(self, start, stop, step):
+    def _fetchrange(self, start, stop, step):
         """Iterate over a range of rows"""
         row = self.row   # get the pointer to the Row object
         nrowsinbuf = self._v_maxTuples   # Shortcut
@@ -479,7 +402,7 @@ class Table(Leaf, hdf5Extension.Table):
         nrowsread = start
         startb = 0
         nextelement = start
-        row.initLoop(start, stop, step, nrowsinbuf)
+        row._initLoop(start, stop, step, nrowsinbuf)
         for i in xrange(start, stop, nrowsinbuf):
             # Skip this iteration if there is no interesting information
             if ((nextelement >= nrowsread + nrowsinbuf) or 
@@ -491,14 +414,14 @@ class Table(Leaf, hdf5Extension.Table):
             if stopb > nrowsinbuf:
                 stopb = nrowsinbuf
             # Read a chunk
-            nrowsread += self.read_records(i, nrowsinbuf, buffer)
+            nrowsread += self._read_records(i, nrowsinbuf, buffer)
             if self._v_byteorder <> sys.byteorder:
                 buffer.byteswap()
             # Set the buffer counter
-            row.setBaseRow(i, startb)
+            row._setBaseRow(i, startb)
             # Loop over the values for this buffer
             for j in xrange(startb, stopb, step):
-                yield row.getRow()
+                yield row._getRow()
             # Compute some indexes for the next iteration
             startb = (j+step) % nrowsinbuf
             nextelement += step
@@ -535,9 +458,9 @@ class Table(Leaf, hdf5Extension.Table):
         
         (start, stop, step) = self._processRange(start, stop, step)
         if (start == 0) and ((stop == self.nrows) and (step == 1)):
-            return self.fetchall()
+            return self._fetchall()
         else:
-            return self.fetchrange(start, stop, step)
+            return self._fetchrange(start, stop, step)
 
     def getRecArray(self, start=None, stop=None, step=None):
         """Get a recarray from a table in a row range"""
@@ -571,7 +494,7 @@ class Table(Leaf, hdf5Extension.Table):
                 stopb = nrowsinbuf
             stopr = startr + ((stopb-startb-1)//step) + 1
             # Read a chunk
-            nrowsread += self.read_records(i, nrowsinbuf, buffer)
+            nrowsread += self._read_records(i, nrowsinbuf, buffer)
             # Assign the correct part to result
             result[startr:stopr] = buffer[startb:stopb:step]
             # Compute some indexes for the next iteration
@@ -584,7 +507,7 @@ class Table(Leaf, hdf5Extension.Table):
         result._byteorder = self._v_byteorder
         return result
 
-    def getColumn(self, field=None, start=None, stop=None, step=None):
+    def getCol(self, field=None, start=None, stop=None, step=None):
         """Get a column from a table in a row range"""
 
         nfield = 0
@@ -635,7 +558,7 @@ class Table(Leaf, hdf5Extension.Table):
                 stopb = nrowsinbuf
             stopr = startr + ((stopb-startb-1)//step) + 1
             # Read a chunk
-            nrowsread += self.read_records(i, nrowsinbuf, buffer)
+            nrowsread += self._read_records(i, nrowsinbuf, buffer)
             #nrowsread += nrowsinbuf
             # Assign the correct part to result
             # The bottleneck is in this assignment. Hope that the numarray
@@ -651,12 +574,11 @@ class Table(Leaf, hdf5Extension.Table):
         result._byteorder = self._v_byteorder
         return result
 
-    # This version does not work well. Perhaps a bug in the
+    # This version of getCol does not work well. Perhaps a bug in the
     # H5TB_read_fields_name entry?
-    def getColumn2(self, field=None, start=None, stop=None, step=None):
+    def _getCol2(self, field=None, start=None, stop=None, step=None):
         """Get a column from a table in a row range"""
 
-        print "passant per getColumn"
         nfield = 0
         for fieldTable in self.description.__slots__:
             if fieldTable == field:
@@ -705,7 +627,6 @@ class Table(Leaf, hdf5Extension.Table):
         startr = 0
         startb = 0
         nextelement = start
-        print "passant per getColumn2"
         for i in xrange(start, stop, nrowsinbuf):
             if ((nextelement >= nrowsread + nrowsinbuf) or
                 (startb >= stop - nrowsread)):
@@ -717,14 +638,13 @@ class Table(Leaf, hdf5Extension.Table):
                 stopb = nrowsinbuf
             stopr = startr + ((stopb-startb-1)//step) + 1
             # Read a chunk
-            #nrowsread += self.read_records(i, nrowsinbuf, buffer)
-            nrowsread += self.read_field_name(field, i, nrowsinbuf, buffer)
+            #nrowsread += self._read_records(i, nrowsinbuf, buffer)
+            nrowsread += self._read_field_name(field, i, nrowsinbuf, buffer)
             #nrowsread += nrowsinbuf
             # Assign the correct part to result
             # The bottleneck is in this assignment. Hope that the numarray
             # people might improve this in the short future
             #result[startr:stopr] = buffer._fields[field][startb:stopb:step]
-            print "passant per getColumn3", startb, stopb, step
             result[startr:stopr] = buffer[startb:stopb:step]
             # Compute some indexes for the next iteration
             startr = stopr
@@ -737,7 +657,7 @@ class Table(Leaf, hdf5Extension.Table):
         return result
 
     # Moved out of scope
-    def _f_getitem__(self, slice):
+    def _g_getitem__(self, slice):
 
         if isinstance(slice, types.IntType):
             step = 1
@@ -765,11 +685,11 @@ class Table(Leaf, hdf5Extension.Table):
     def flush(self):
         """Flush the table buffers."""
         #if self._v_recunsaved > 0:
-        if hasattr(self, 'row') and self.row.getUnsavedNRows() > 0:
+        if hasattr(self, 'row') and self.row._getUnsavedNRows() > 0:
           self._saveBufferedRows()
 
     # Moved out of scope
-    def _f_del__(self):
+    def _g_del__(self):
         """Delete some objects"""
         print "Deleting Table object", self._v_name
         pass

@@ -58,7 +58,7 @@ class RangeTestCase(unittest.TestCase):
         rec.var4 = float(i)
         rec.var5 = float(i)
         try:
-            self.table.append(rec)
+            rec.append()
         except ValueError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()

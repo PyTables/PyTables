@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.17 2003/03/07 08:20:58 falted Exp $
+#       $Id: File.py,v 1.18 2003/03/07 21:18:13 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.17 $"
+__version__ = "$Revision: 1.18 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -241,7 +241,7 @@ class File(hdf5Extension.File):
         root._c_objects["/"] = root
         
         # Open the root group. We do that always, be the file new or not
-        root._f_openGroup(self._v_groupId, "/")
+        root._g_openGroup(self._v_groupId, "/")
 
         if self._v_new:
             # Set the title, class and version attributes
@@ -250,13 +250,13 @@ class File(hdf5Extension.File):
             newattr["_v_version"] = "1.0"
             
             # Do the same on disk
-            root._f_setGroupAttrStr('TITLE', root._v_title)
-            root._f_setGroupAttrStr('CLASS', root._v_class)
-            root._f_setGroupAttrStr('VERSION', root._v_version)
+            root._g_setGroupAttrStr('TITLE', root._v_title)
+            root._g_setGroupAttrStr('CLASS', root._v_class)
+            root._g_setGroupAttrStr('VERSION', root._v_version)
             
             # Finally, save the PyTables format version for this file
             self.format_version = format_version
-            root._f_setGroupAttrStr('PYTABLES_FORMAT_VERSION', format_version)
+            root._g_setGroupAttrStr('PYTABLES_FORMAT_VERSION', format_version)
         
         else:
             # Firstly, get the PyTables format version for this file
@@ -295,7 +295,7 @@ future). Giving up.""" % \
                       root._f_getGroupAttrStr('VERSION')
                       
             # Get all the groups recursively
-            root._f_openFile()
+            root._g_openFile()
         
         return root
 
@@ -586,7 +586,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
 
         self.closeFile()
         # Delete the Group class variables
-        self.root._f_cleanup()
+        self.root._g_cleanup()
                     
         # Delete the root object (this should recursively delete the
         # object tree)
@@ -627,7 +627,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
                 
         return string
 
-    def _f_del__(self):
+    def _g_del__(self):
         """Delete some objects"""
         #print "Deleting File object"
         pass

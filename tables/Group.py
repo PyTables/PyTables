@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.19 2003/03/07 08:20:58 falted Exp $
+#       $Id: Group.py,v 1.20 2003/03/07 21:18:14 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.19 $"
+__version__ = "$Revision: 1.20 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -63,18 +63,22 @@ class Group(hdf5Extension.Group):
     convenient way to access nodes in tree by simply naming all the
     path from the root group.
 
-    For this reason and to not pollute the children namespace, it is
-    explicitely forbidden to assign "normal" attributes to Group
-    instances, and the only ones allowed must start by "_c_" (for
-    class variables), "_f_" (for methods) or "_v_" (for instance
-    variables) prefixes.
+    For this reason and in order to not pollute the children
+    namespace, it is explicitely forbidden to assign "normal"
+    attributes to Group instances, and the only ones allowed must
+    start by "_c_" (for class variables), "_f_" (for methods), "_g_"
+    for private methods or "_v_" (for instance variables) prefixes.
 
     Methods:
     
-        _f_join(name)
         _f_listNodes([classname])
         _f_walkGroups()
-
+        _f_renameObject(newname)
+        _f_close()
+        _f_move(object, newname)
+        _f_remove(self)
+        _f_removeLeaf(self)
+        
     Class variables:
 
         _c_objgroups -- Dictionary with object groups on tree
@@ -115,21 +119,21 @@ class Group(hdf5Extension.Group):
         self.__dict__["_v_objleaves"] = {}
         self.__dict__["_v_objchilds"] = {}
 
-    def _f_openFile(self):
+    def _g_openFile(self):
         """Recusively reads an HDF5 file and generates a tree object.
 
         This tree is the python replica of the file hierarchy.
 
         """
         pgroupId =  self._v_parent._v_groupId
-        (groups, leaves) = self._f_listGroup(pgroupId, self._v_hdf5name)
+        (groups, leaves) = self._g_listGroup(pgroupId, self._v_hdf5name)
         for name in groups:
             objgroup = Group(new = 0)
             # Insert this group as a child of mine
-            objgroup._f_putObjectInTree(name, self)
+            objgroup._g_putObjectInTree(name, self)
             #setattr(self, name, objgroup)
             # Call openFile recursively over the group's tree
-            objgroup._f_openFile()
+            objgroup._g_openFile()
         for name in leaves:
             class_ = self._f_getLeafAttrStr(name, "CLASS")
             if class_ is None:
@@ -152,10 +156,10 @@ class Group(hdf5Extension.Group):
                       """Dataset object in file is unknown!
                       class ID: %s""" % class_
             # Set some attributes to caracterize and open this object
-            objgroup._f_putObjectInTree(name, self)
+            objgroup._g_putObjectInTree(name, self)
             #setattr(self, name, objgroup)
         
-    def _f_join(self, name):
+    def _g_join(self, name):
         """Helper method to correctly concatenate a name child object
         with the pathname of this group."""
         
@@ -164,7 +168,7 @@ class Group(hdf5Extension.Group):
         else:
             return self._v_pathname + "/" + name
 
-    def _f_setproperties(self, name, value):
+    def _g_setproperties(self, name, value):
         """Set some properties for general objects (Group and Leaf) in the
         tree."""
 
@@ -189,7 +193,7 @@ class Group(hdf5Extension.Group):
             # This attribute is always the name in disk
             newattr["_v_hdf5name"] = name
                 
-        newattr["_v_" + "pathname"] = self._f_join(value._v_name)
+        newattr["_v_" + "pathname"] = self._g_join(value._v_name)
         # Update instance variable
         self._v_objchilds[value._v_name] = value
         # New attribute (to allow tab-completion in interactive mode)
@@ -201,19 +205,19 @@ class Group(hdf5Extension.Group):
         # Update class variables
         self._c_objects[value._v_pathname] = value
 
-    def _f_putObjectInTree(self, name, parent):
+    def _g_putObjectInTree(self, name, parent):
         """Set attributes for a new or existing Group instance."""
         
         # Update the parent instance attributes
-        parent._f_setproperties(name, self)
-        self._f_new(parent, self._v_hdf5name)
+        parent._g_setproperties(name, self)
+        self._g_new(parent, self._v_hdf5name)
         parent._v_objgroups[self._v_name] = self
         # Update class variables
         self._c_objgroups[self._v_pathname] = self
         if self._v_new:
-            self._f_create()
+            self._g_create()
         else:
-            self._f_open(parent, self._v_hdf5name)
+            self._g_open(parent, self._v_hdf5name)
 
     def _f_renameObject(self, newname):
         
@@ -238,8 +242,8 @@ class Group(hdf5Extension.Group):
         # Update class variables
         parent._c_objgroups[self._v_pathname] = self
         parent._c_objects[self._v_pathname] = self
-        # Call the _f_new method in Group superclass 
-        self._f_new(parent, self._v_hdf5name)
+        # Call the _g_new method in Group superclass 
+        self._g_new(parent, self._v_hdf5name)
         # Update this instance attributes
         parent._v_objgroups[newname] = self
         parent._v_objchilds[newname] = self
@@ -247,7 +251,7 @@ class Group(hdf5Extension.Group):
 
         # Finally, change the old pathname in the object childs recursively
         oldpathname = self._v_pathname
-        newpathname = parent._f_join(newname)
+        newpathname = parent._g_join(newname)
         for group in self._f_walkGroups():
             oldgpathname = group._v_pathname
             newgpathname = oldgpathname.replace(oldpathname, newpathname, 1)
@@ -270,13 +274,13 @@ class Group(hdf5Extension.Group):
                 parent._c_objects[newgpathname] = node
 
 
-    def _f_open(self, parent, name):
+    def _g_open(self, parent, name):
         """Call the openGroup method in super class to open the existing
         group on disk. Also get attributes for this group. """
         
         # Call the superclass method to open the existing group
         self.__dict__["_v_groupId"] = \
-                      self._f_openGroup(parent._v_groupId, name)
+                      self._g_openGroup(parent._v_groupId, name)
         # Get the title, class and version attributes
         self.__dict__["_v_title"] = \
                       self._f_getGroupAttrStr('TITLE')
@@ -285,17 +289,17 @@ class Group(hdf5Extension.Group):
         self.__dict__["_v_version"] = \
                       self._f_getGroupAttrStr('VERSION')
 
-    def _f_create(self):
+    def _g_create(self):
         """Call the createGroup method in super class to create the group on
         disk. Also set attributes for this group. """
 
         # Call the superclass method to create a new group
         self.__dict__["_v_groupId"] = \
-                     self._f_createGroup()
+                     self._g_createGroup()
         # Set the title, class and version attribute
-        self._f_setGroupAttrStr('TITLE', self._v_title)
-        self._f_setGroupAttrStr('CLASS', "Group")
-        self._f_setGroupAttrStr('VERSION', "1.0")
+        self._g_setGroupAttrStr('TITLE', self._v_title)
+        self._g_setGroupAttrStr('CLASS', "Group")
+        self._g_setGroupAttrStr('VERSION', "1.0")
 
     def _f_listNodes(self, classname = ""):
         """Return a list with all the object nodes hanging from self.
@@ -404,7 +408,7 @@ class Group(hdf5Extension.Group):
         if len(self._v_objchilds.values()) < MAX_CHILDS_IN_GROUP:
             # Put value object with name name in object tree
             if name not in self._v_objchilds:
-                value._f_putObjectInTree(name, self)
+                value._g_putObjectInTree(name, self)
             else:
                 raise NameError, \
                       "\"%s\" group already has a child named %s" % \
@@ -414,7 +418,7 @@ class Group(hdf5Extension.Group):
                "'%s' group has exceeded the maximum number of childs (%d)" % \
                (self._v_pathname, MAX_CHILDS_IN_GROUP) 
 
-    def _f_cleanup(self):
+    def _g_cleanup(self):
         """Reset all class attributes"""
         self._c_objgroups.clear()
         self._c_objleaves.clear()
@@ -422,7 +426,7 @@ class Group(hdf5Extension.Group):
 
     def _f_close(self):
         """Close this HDF5 group"""
-        self._f_closeGroup()
+        self._g_closeGroup()
         # Delete the back references in Group
         if self._v_hdf5name <> "/":
             del self._v_parent._v_objgroups[self._v_name]
@@ -446,18 +450,18 @@ class Group(hdf5Extension.Group):
         oldname = object._v_name
         # Rename all the appearances of oldname in the object tree
         object._f_renameObject(newname)
-        self._f_moveNode(oldname, newname)
+        self._g_moveNode(oldname, newname)
         
     def _f_remove(self):
         """Remove this HDF5 group"""
-        self._f_deleteGroup()
+        self._g_deleteGroup()
         
     def _f_removeLeaf(self, object):
         """Remove an HDF5 Leaf that is child of this group"""
-        self._f_deleteLeaf(object._v_name)
+        self._g_deleteLeaf(object._v_name)
         
     # Moved out of scope
-    def _f_del__(self):
+    def _g_del__(self):
         print "Deleting Group name:", self._v_name
 
     def __str__(self):

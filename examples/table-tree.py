@@ -64,13 +64,14 @@ for i in xrange(10):
     particle.temperature = float(i**2)
     particle.idnumber = i * (2 ** 34)  # This exceeds integer range
     # This injects the Record values.
-    table.append(particle)      
+    #table.append(particle)
+    particle.append()
 
 # Flush the buffers for table
 table.flush()
 
 # Get actual data from table. We are interested in column pressure.
-pressure = [ p.pressure for p in table.fetchall() ]
+pressure = [ p.pressure for p in table.iterrows() ]
 print "Last record ==>", p
 print "Column pressure ==>", array(pressure)
 print "Total records in table ==> ", len(pressure)
@@ -85,13 +86,13 @@ h5file.createArray(gcolumns, 'pressure', Numeric.array(pressure),
 print "gcolumns.pressure typeclass ==> ", gcolumns.pressure.typeclass
 
 # Do the same with TDCcount
-TDC = [ p.TDCcount for p in table.fetchall() ]
+TDC = [ p.TDCcount for p in table.iterrows() ]
 print "TDC ==>", TDC
 print "TDC shape ==>", array(TDC).shape
 h5file.createArray('/columns', 'TDC', array(TDC), "TDCcount column")
 
 # Do the same with name column
-names = [ p.name for p in table.fetchall() ]
+names = [ p.name for p in table.iterrows() ]
 #names = chararray.array(names)
 #names = Numeric.array(names)
 names = names
@@ -102,7 +103,7 @@ print "gcolumns.name shape ==>", gcolumns.name.shape
 print "gcolumns.name typeclass ==> ", gcolumns.name.typeclass
 
 print "Table dump:"
-for p in table.fetchall():
+for p in table.iterrows():
     print p
 
 # Save a recarray object under detector
@@ -257,20 +258,21 @@ for i in xrange(10, 15):
     particle.pressure = [float(i*i), float(i*2)]
     particle.temperature = float(i**2)
     particle.idnumber = i * (2 ** 34)  # This exceeds integer range
-    table.append(particle)
+    #table.append(particle)
+    particle.append()
 
 # Flush this table
 table.flush()
 
 print "Columns name and pressure on expanded table:"
 # Print some table columns, for comparison with array data
-for p in table.fetchall():
+for p in table.iterrows():
     print p.name, '-->', p.pressure
 print
 
-print table.getColumn("ADCcount")
-print table.getColumn("name", 0, 0, 1)
-print table.getColumn("pressure", 0, 0, 2)
+print table.getCol("ADCcount")
+print table.getCol("name", 0, 0, 1)
+print table.getCol("pressure", 0, 0, 2)
 
 #sys.exit()
 
@@ -294,11 +296,11 @@ print "  colnames:", table.colnames
 
 #print table[:]
 print table.getRecArray()
-for p in table.fetchall():
+for p in table.iterrows():
     print p.c1, '-->', p.c2
 print
 
-result = [ rec.c1 for rec in table.fetchall() if rec.nrow() < 2 ]
+result = [ rec.c1 for rec in table.iterrows() if rec.nrow() < 2 ]
 print result
 
 # Test the File.moveNode() method

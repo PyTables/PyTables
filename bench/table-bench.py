@@ -107,7 +107,7 @@ def createFile(filename, totalrows, complevel, recsize):
                 d.energy = d.pressure
                 # d.idnumber = i * (2 ** 34) 
                 #table.append(d)
-                d.add()
+                d.append()
         else: # Small record
             for i in xrange(totalrows):
                 # __setattr__ is faster than setField!
@@ -118,7 +118,7 @@ def createFile(filename, totalrows, complevel, recsize):
                 #d.var3 = 12.1e10
                 #d['var3'] = 12.1e10
                 d['var3'] = i
-                d.add()  # This is a 10% faster than table.append()
+                d.append()  # This is a 10% faster than table.append()
                 #table.append(d)
 		    
             #rowswritten += 1
@@ -150,52 +150,42 @@ def readFile(filename, recsize, verbose):
                 print "MaxTuples:", table._v_maxTuples
 
             if recsize == "big" or recsize == "medium":
-                # There are two possibilities in doing selects
-                # 1.- Modify recarray2.Record2 to check if the field is a
-                #     NumArray, and if yes, do a deepcopy before to deliver it
-                # Pros: the array object is a real one to the user,
-                #       not a reference
-                # Cons: This makes all the selections a 25% to 35% slower
-                # 2.- Inform to the user that if he wants to keep the array
+                # Caution: Inform to the user that if he wants to keep the
+                #     array
                 #     as a separate object, he have to deeply copy it.
                 # Pros: The selection speed do not degrade
                 # Cons: The user has to be concious to copy the array if he
                 #       want to use it outside the loop
-
-                # For the moment we work under the assumption that the user is
-                # responsible to do it (case 2).
-                #e = [ p._row for p in table.fetchall()
+                # For example:
+                #e = [ copy.deepcopy(p.float1) for p in table.iterrows()
                 #      if p.grid_i < 2 ]
-                #e = [ copy.deepcopy(p.float1) for p in table.fetchall()
+                # If you use this, you will get corrupted data!.
+                #e = [ p.float1 for p in table.iterrows() 
                 #      if p.grid_i < 2 ]
-                # Next line can be used in case 1. If used in case 2 you will
-                # get corrupted data!.
-                #e = [ p.float1 for p in table.fetchall() 
+                #e = [ str(p) for p in table.iterrows() ]
                 #      if p.grid_i < 2 ]
-                #e = [ str(p) for p in table.fetchall() ]
-                #      if p.grid_i < 2 ]
-                e = [ p['grid_i'] for p in table.fetchall() 
+                e = [ p['grid_i'] for p in table.iterrows() 
                       if p['grid_j'] == 20 ]
                 # The version with a for loop is only 1% better than
                 # comprenhension list
                 #e = []
-                #for p in table.fetchall(): 
+                #for p in table.iterrows(): 
                 #    if p.grid_i < 20:
                 #        e.append(p.grid_j)
             else:
-                #e = [ p['var3'] for p in table.fetchall()
+                #e = [ p['var3'] for p in table.iterrows()
                 #      if p['var2'] == 20 ]
-                #e = [ p['var3'] for p in table.fetchrange(0,21)
+                #e = [ p['var3'] for p in table.iterrows(0,21)
                 #      if p['var2'] == 20 ]
                 #e = [ p['var3'] for p in table.iterrows(0,21)
                 #      if p.nrow() <= 20 ]
-                #e = [ p['var3'] for p in table.iterows(1,0,1000)]
+                #e = [ p['var3'] for p in table.iterrows(1,0,1000)]
                 #e = [ p['var3'] for p in table.iterrows(1,100)]
-                e = [ p['var3'] for p in table.iterrows(step=2)
-                      if p.nrow() < 20 ]
-                #e = [ p.var3 for p in table.fetchall()
-                #      if p.var2 == 2 ]
-                #for p in table.fetchall():
+                #e = [ p['var3'] for p in table.iterrows(step=2)
+                #      if p.nrow() < 20 ]
+                e = [ p['var2'] for p in table.iterrows()
+                      if p['var2'] < 20 ]
+                #for p in table.iterrows():
                 #      pass
             if verbose:
                 #print "Last record read:", p
@@ -223,7 +213,7 @@ def readField(filename, field, rng, verbose):
                 print "MaxTuples:", table._v_maxTuples
                 print "(field, start, stop, step) ==>", (field, rng[0], rng[1], rng[2])
 
-            e = table.getColumn(field, rng[0], rng[1], rng[2])
+            e = table.getCol(field, rng[0], rng[1], rng[2])
 
 	    rowsread += table.nrows
             if verbose:

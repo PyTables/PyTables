@@ -137,7 +137,7 @@ class BasicTestCase(unittest.TestCase):
                         row.var5 = float(i)
                     # bar6 will be like var2 but byteswaped
                     row.var6 = ((row.var3>>8) & 0xff) + ((row.var3<<8) & 0xff00)
-                    table.append(row)
+                    row.append()
 		
             # Flush the buffer for this table
             table.flush()
@@ -167,7 +167,7 @@ class BasicTestCase(unittest.TestCase):
         table = self.fileh.getNode("/table0")
 	
         # Read the records and select those with "var2" file less than 20
-        result = [ rec['var2'] for rec in table.fetchall()
+        result = [ rec['var2'] for rec in table.iterrows()
                    if rec['var2'] < 20 ]
         if verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
@@ -213,11 +213,11 @@ class BasicTestCase(unittest.TestCase):
                 row.var5 = array((float(i),)*4)
             else:
                 row.var5 = float(i)
-            table.append(row)
+            row.append()
 	    
 	# Flush the buffer for this table and read it
         table.flush()
-        result = [ row.var2 for row in table.fetchall() if row.var2 < 20 ]
+        result = [ row.var2 for row in table.iterrows() if row.var2 < 20 ]
 	
         nrows = self.appendrows - 1
         assert (row.var1, row.var2) == ("0001", nrows)
@@ -249,7 +249,7 @@ class BasicTestCase(unittest.TestCase):
         table._v_byteorder = {"little":"big","big":"little"}[table._v_byteorder]
 	
         # Read the records and select the ones with "var6" column less than 20
-        result = [ rec.var2 for rec in table.fetchall() if rec.var6 < 20]
+        result = [ rec.var2 for rec in table.iterrows() if rec.var6 < 20]
         if verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last record in table ==>", rec
@@ -327,7 +327,7 @@ class BasicRangeTestCase(unittest.TestCase):
     start = 1
     stop = nrows
     checkrecarray = 0
-    checkgetColumn = 0
+    checkgetCol = 0
 
     def setUp(self):
         # Create an instance of an HDF5 Table
@@ -363,7 +363,7 @@ class BasicRangeTestCase(unittest.TestCase):
                     row.var5 = float(i)
                 # bar6 will be like var2 but byteswaped
                 row.var6 = ((row.var3>>8) & 0xff) + ((row.var3<<8) & 0xff00)
-                table.append(row)
+                row.append()
 		
             # Flush the buffer for this table
             table.flush()
@@ -394,8 +394,8 @@ class BasicRangeTestCase(unittest.TestCase):
             for nrec in range(len(recarray)):
                 if recarray.field('var2')[nrec] < self.nrows:
                     result.append(recarray.field('var2')[nrec])
-        elif self.checkgetColumn:
-            column = table.getColumn('var2', self.start, self.stop, self.step)
+        elif self.checkgetCol:
+            column = table.getCol('var2', self.start, self.stop, self.step)
             result = []
             for nrec in range(len(column)):
                 if column[nrec] < self.nrows:
@@ -423,8 +423,8 @@ class BasicRangeTestCase(unittest.TestCase):
             if self.start < self.stop:
                 if self.checkrecarray:
                     print "Last record *read* in recarray ==>", recarray[-1]
-                elif self.checkgetColumn:
-                    print "Last value *read* in getColumn ==>", column[-1]
+                elif self.checkgetCol:
+                    print "Last value *read* in getCol ==>", column[-1]
                 else:
                     print "Last record *read* in table range ==>", rec
             print "Total number of selected records ==>", len(result)
@@ -434,7 +434,7 @@ class BasicRangeTestCase(unittest.TestCase):
             print "start, stop, step ==>", startr, stopr, self.step
 
         assert result == range(startr, stopr, self.step)
-        if startr < stopr and not (self.checkrecarray or self.checkgetColumn):
+        if startr < stopr and not (self.checkrecarray or self.checkgetCol):
             if self.nrows < self.expectedrows:
                 assert rec.var2 == range(self.start, self.stop, self.step)[-1]
             else:
@@ -680,11 +680,11 @@ class IterRangeTestCase(BasicRangeTestCase):
 class RecArrayRangeTestCase(BasicRangeTestCase):
     checkrecarray = 1
 
-class getColumnRangeTestCase(BasicRangeTestCase):
-    checkgetColumn = 1
+class getColRangeTestCase(BasicRangeTestCase):
+    checkgetCol = 1
 
     def test01_nonexistentField(self):
-        """Checking non-existing Field in getColumn method """
+        """Checking non-existing Field in getCol method """
 
         if verbose:
             print '\n', '-=' * 30
@@ -696,7 +696,7 @@ class getColumnRangeTestCase(BasicRangeTestCase):
         table = self.fileh.getNode("/table0")
 
         try:
-            column = table.getColumn('non-existent-column')
+            column = table.getCol('non-existent-column')
         except LookupError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -724,7 +724,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CompressTwoTablesTestCase))
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
-        theSuite.addTest(unittest.makeSuite(getColumnRangeTestCase))
+        theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
         theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
 
     return theSuite

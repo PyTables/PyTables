@@ -392,7 +392,8 @@ class GroupsArrayTestCase(unittest.TestCase):
 	# bug getting the shape of the object, that creates lots of
 	# problems (segmentation faults, memory faults...)
 	minrank = 1
-	maxrank = 32
+        # maxrank = 32 # old limit (Numeric <= 22.0) 
+	maxrank = 30  # This limit is set in Numeric 23.0
 	
 	if verbose:
             print '\n', '-=' * 30

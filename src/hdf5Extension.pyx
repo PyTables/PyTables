@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.31 2003/03/07 08:20:58 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.32 2003/03/07 21:18:10 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.31 $"
+__version__ = "$Revision: 1.32 $"
 
 
 import sys, os.path
@@ -490,7 +490,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.31 2003/03/07 08:20:58 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.32 2003/03/07 21:18:10 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -565,13 +565,13 @@ cdef class Group:
   cdef hid_t   parent_id
   cdef char    *name
 
-  def _f_new(self, where, name):
+  def _g_new(self, where, name):
     # Initialize the C attributes of Group object
     self.name = strdup(name)
     # The parent group id for this object
     self.parent_id = where._v_groupId
     
-  def _f_createGroup(self):
+  def _g_createGroup(self):
     cdef hid_t ret
     
     # Create a new group
@@ -581,7 +581,7 @@ cdef class Group:
     self.group_id = ret
     return self.group_id
 
-  def _f_openGroup(self, hid_t loc_id, char *name):
+  def _g_openGroup(self, hid_t loc_id, char *name):
     cdef hid_t ret
     
     # Open a existing group
@@ -594,7 +594,7 @@ cdef class Group:
     self.parent_id = loc_id
     return self.group_id
 
-  def _f_listGroup(self, hid_t loc_id, char *name):
+  def _g_listGroup(self, hid_t loc_id, char *name):
     # Return a tuple with the objects groups and objects dsets
     return Giterate(loc_id, name)
 
@@ -695,7 +695,7 @@ cdef class Group:
                             
     return attrvalue
 
-  def _f_setGroupAttrStr(self, char *attrname, char *attrvalue):
+  def _g_setGroupAttrStr(self, char *attrname, char *attrvalue):
     cdef int ret
       
     ret = H5LTset_attribute_string(self.parent_id, self.name,
@@ -704,7 +704,7 @@ cdef class Group:
       raise RuntimeError("Can't set attribute %s in group %s." % 
                              (self.attrname, self.name))
 
-  def _f_closeGroup(self):
+  def _g_closeGroup(self):
     cdef int ret
     
     #print "Closing the HDF5 Group", self.name
@@ -713,7 +713,7 @@ cdef class Group:
       raise RuntimeError("Problems closing the Group %s" % self.name )
     self.group_id = 0  # indicate that this group is closed
 
-  def _f_moveNode(self, char *oldname, char *newname):
+  def _g_moveNode(self, char *oldname, char *newname):
     cdef int ret
 
     #print "Renaming the HDF5 Node", oldname, "to", newname
@@ -722,7 +722,7 @@ cdef class Group:
       raise RuntimeError("Problems renaming the node %s" % oldname )
     return ret
 
-  def _f_deleteGroup(self):
+  def _g_deleteGroup(self):
     cdef int ret
 
     # Delete this group
@@ -732,7 +732,7 @@ cdef class Group:
       raise RuntimeError("Problems deleting the Group %s" % self.name )
     return ret
 
-  def _f_deleteLeaf(self, char *dsetname):
+  def _g_deleteLeaf(self, char *dsetname):
     cdef int ret
 
     # Delete the leaf child
@@ -765,12 +765,12 @@ cdef class Table:
   cdef char    *field_names[MAX_FIELDS]
   cdef int     compress
 
-  def _f_new(self, where, name):
+  def _g_new(self, where, name):
     self.name = strdup(name)
     # The parent group id for this object
     self.group_id = where._v_groupId
 
-  def createTable(self, title):
+  def _createTable(self, title):
     cdef int nvar
     cdef int i, nrecords, ret, buflen
     cdef hid_t fieldtypes[MAX_FIELDS]
@@ -818,7 +818,7 @@ cdef class Table:
       raise RuntimeError("Problems creating the table")
     
     
-  def append_records0(self, PyStringObject records, int nrecords):
+  def _append_records0(self, PyStringObject records, int nrecords):
     cdef int ret
 
     #print "About to save %d records..." % nrecords
@@ -830,8 +830,8 @@ cdef class Table:
     #print "After saving %d records..." % nrecords
     self.totalrecords = self.totalrecords + nrecords
 
-  # append_records0 and append_records perfom similar speed (!)
-  def append_records(self, object recarr, int nrecords):
+  # _append_records0 and append_records perfom similar speed (!)
+  def _append_records(self, object recarr, int nrecords):
     cdef int ret, buflen
     cdef void *rbuf
 
@@ -849,7 +849,7 @@ cdef class Table:
     #print "After saving %d records..." % nrecords
     self.totalrecords = self.totalrecords + nrecords
 
-  def getTableInfo(self):
+  def _getTableInfo(self):
     "Get info from a table on disk. This method is standalone."
     cdef int     i, ret
     cdef hsize_t nrecords, nfields
@@ -903,7 +903,7 @@ cdef class Table:
     # Return the buffer as a Python String
     return (nrecords, names_tuple, fmt)
 
-  def read_records(self, hsize_t start, hsize_t nrecords,
+  def _read_records(self, hsize_t start, hsize_t nrecords,
                    object recarr):
     cdef herr_t ret
     cdef void *rbuf
@@ -925,7 +925,7 @@ cdef class Table:
 
     return nrecords
 
-  def read_field_name(self, char *field_name, hsize_t start,
+  def _read_field_name(self, char *field_name, hsize_t start,
                        hsize_t nrecords, object recarr):
     cdef herr_t ret
     cdef void *rbuf
@@ -978,7 +978,7 @@ cdef class Row:
     self._maxTuples = table._v_maxTuples
     self._saveBufferedRows = table._saveBufferedRows
 
-  def initLoop(self, start, stop, step, nrowsinbuf):
+  def _initLoop(self, start, stop, step, nrowsinbuf):
     self.start = start
     self.stop = stop
     self.step = step
@@ -991,14 +991,14 @@ cdef class Row:
     self._nrow = self._nbuf + self._row
     return self
 
-  def getRow(self):
+  def _getRow(self):
     """ return the row for this record object and update counters"""
     self._row = self._row + self.step
     self._nrow = self._nbuf + self._row
     #print "Delivering row:", self._nrow, "// Buffer row:", self._row
     return self
 
-  def setBaseRow(self, start, startb):
+  def _setBaseRow(self, start, startb):
     """ set the global row number and reset the local buffer row counter """
     self._nbuf = start
     self._row = startb - self.step
@@ -1007,7 +1007,7 @@ cdef class Row:
     """ get the global row number for this table """
     return self._nrow
 
-  def add(self):
+  def append(self):
     """Append the "row" object to the output buffer.
     
     "row" has to be a recarray2.Row object 
@@ -1019,16 +1019,16 @@ cdef class Row:
     if self._unsavednrows == self._maxTuples:
       self._saveBufferedRows()
 
-  def setUnsavedNRows(self, row):
+  def _setUnsavedNRows(self, row):
     """ set the buffer row number for this buffer """
     self._unsavednrows = row
     self._row = row # set the current buffer read counter
 
-  def getUnsavedNRows(self):
+  def _getUnsavedNRows(self):
     """ get the buffer row number for this buffer """
     return self._unsavednrows
 
-  def incUnsavedNRows(self):
+  def _incUnsavedNRows(self):
     """ set the row for this record object """
     self._row = self._row + 1 # update the current buffer read counter
     self._unsavednrows = self._unsavednrows + 1
@@ -1094,7 +1094,7 @@ cdef class Row:
     return outlist
 
   # Moved out of scope
-  def _f_dealloc__(self):
+  def _g_dealloc__(self):
     print "Deleting Row object"
     pass
 
@@ -1108,13 +1108,13 @@ cdef class Array:
   cdef object  type
   cdef int     enumtype
 
-  def _f_new(self, where, name):
+  def _g_new(self, where, name):
     # Initialize the C attributes of Group object (Very important!)
     self.name = strdup(name)
     # The parent group id for this object
     self.group_id = where._v_groupId
 
-  def createArray(self, object arr, char *title,
+  def _createArray(self, object arr, char *title,
                   char *flavor, char *obversion, int atomictype):
     cdef int i
     cdef herr_t ret
@@ -1201,7 +1201,7 @@ cdef class Array:
 
     return self.type
     
-  def openArray(self):
+  def _openArray(self):
     cdef object shape
     cdef size_t type_size
     cdef H5T_class_t class_id
@@ -1248,7 +1248,7 @@ cdef class Array:
 
     return (toclass[self.enumtype], shape, type_size, byteorder)
   
-  def readArray(self, object buf):
+  def _readArray(self, object buf):
     cdef herr_t ret
     cdef void *rbuf
     cdef int buflen, ret2

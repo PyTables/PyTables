@@ -117,6 +117,9 @@ elif os.name == 'nt':
 # Update the version .h file if this file is newer
 if newer('setup.py', 'src/version.h'):
     open('src/version.h', 'w').write('#define PYTABLES_VERSION "%s"\n' % VERSION)
+# Beware: as distutils does not support dependencies in Python 2.2, you must
+# manually touch the src/utils.c in order to actually refresh the version
+# number. However, distutils from Python 2.3 will support dependencies!
 
 setup(name = 'tables',
       version = VERSION,
