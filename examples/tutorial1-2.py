@@ -108,7 +108,7 @@ table.attrs._f_rename("temp_scale","tempScale")
 
 # Try to rename a system attribute:
 try:
-    table.attrs._v_rename("VERSION", "version")
+    table.attrs._f_rename("VERSION", "version")
 except:
     print "You can not rename a VERSION attribute: it is read only!."
 

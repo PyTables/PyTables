@@ -1,16 +1,21 @@
 README.txt
-PyTables 0.8.1
+PyTables 0.9
 http://pytables.sf.net/
-Jul 10, 2004
+Oct 6, 2004
 --------------------------------------
 
 PyTables is a hierarchical database package designed to efficiently
-manage very large amounts of data. PyTables is built on top of the
-HDF5 library and the numarray package. It features an object-oriented
-interface that, combined with natural naming and C-code generated from
-Pyrex sources, makes it a fast, yet extremely easy-to-use tool for
-interactively saving and retrieving very large amounts of data.  It also
-provides flexible indexed access on disk to anywhere in the data.
+manage very large amounts of data.
+
+It is built on top of the HDF5 library and the numarray package. It
+features an object-oriented interface that, combined with C extensions
+for the peformance-critical parts of the code (generated using Pyrex),
+makes it a fast, yet extremely easy to use tool for interactively save
+and retrieve very large amounts of data. One important feature of
+PyTables is that it optimizes memory and disk resources so that they
+take much less space (between a factor 3 to 5, and more if the data is
+compressible) than other solutions, like for example, relational or
+object oriented databases.
 
 PyTables is not designed to work as a relational database competitor,
 but rather as a teammate. If you want to work with large datasets of
@@ -63,12 +68,12 @@ package. Besides, if you want to take advantage of the LZO and UCL
 compression libraries support you will also need recent versions of
 them. These two compression libraries are, however, optional.
 
-I've tested this PyTables version with HDF5 1.6.2 version and
-numarray 1.0, and you *need* to these versions or higher to make use
-of PyTables. Albeit you won't need Numeric Python in order to
-compile PyTables, it is supported; you only will need a reasonably
-recent version of it (>= 21.x). PyTables has been succesfully tested
-with Numeric 21.3, 22.0, 23.0 and 23.1.
+I've tested this PyTables version with HDF5 1.6.2 and 1.6.3-patch
+versions and numarray 1.0 and 1.1, and you *need* to use these
+versions or higher to make use of PyTables. Albeit you won't need
+Numeric Python in order to compile PyTables, it is supported; you only
+will need a reasonably recent version of it (>= 21.x). PyTables has
+been succesfully tested against Numeric 21.3, 22.0, 23.0 and 23.1.
 
 I'm using Linux on top of Intel as the main development platform, but
 PyTables should be easy to compile/install on other UNIX machines.
@@ -77,9 +82,9 @@ UltraSparc platform with Solaris 7 and Solaris 8, a SGI Origin2000
 with MIPS R12000 processors running IRIX 6.5 (with both gcc and
 MIPSPro compilers), Microsoft Windows and MacOSX (10.2 although 10.3
 should work fine as well). In particular, it has been thoroughly
-tested on 64-bit platforms, like Linux-64 on top of an AMD Opteron
-running SuSe Linux Enterprise Server where all the tests pass
-successfully.
+tested on 64-bit platforms, like Linux-64 on top of an Intel Itanium,
+AMD Opteron (in 64-bit mode) or PowerPC G5 (in 64-bit mode) where all
+the tests pass successfully.
 
 Nonetheless, caveat emptor: more testing is needed to achieve complete
 portability, I'd appreciate input on how it compiles and installs on
@@ -97,9 +102,15 @@ available in Chapter 2 of the User's Manual (doc/usersguide.pdf or
 http://pytables.sourceforge.net/html-doc/usersguide.html).
 
 1. First, make sure that you have HDF5 and numarray installed (you
-   will need at least HDF5 1.6.2 and numarray 0.8). If don't, you can
+   will need at least HDF5 1.6.2 and numarray 1.0). If don't, you can
    find them at http://hdf.ncsa.uiuc.edu/HDF5 and
    http://sourceforge.net/projects/numpy/. Compile/install them.
+
+   Caveat emptor: HDF5 1.6.3 has a bug that cause a seg fault when
+   deleting a chunked dataset. This bug is exposed in pytables when
+   deleting indexes. If you are having this problem, then go to
+   ftp://hdf.ncsa.uiuc.edu/HDF5/hdf5-1.6.3/src/patches and download
+   the patched version (1.6.3-patch) that has a cure for this.
 
    Optionally, consider to install the excellent LZO and UCL
    compression libraries from http://www.oberhumer.com/opensource/.

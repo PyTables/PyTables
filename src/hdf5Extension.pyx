@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.144 2004/10/01 16:01:51 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.145 2004/10/05 12:30:30 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.144 $"
+__version__ = "$Revision: 1.145 $"
 
 
 import sys, os
@@ -937,7 +937,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.144 2004/10/01 16:01:51 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.145 2004/10/05 12:30:30 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -2380,6 +2380,7 @@ cdef class Row:
     """Append self object to the output buffer.
     
     """
+    assert self._table._v_file.mode <> "r", "Attempt to write over a file opened in read-only mode"
     if not self._w_initialized_buffer:
       # Create the arrays for buffering
       self._newBuffer(write=1)
@@ -2465,6 +2466,7 @@ cdef class Row:
   # This is slightly faster (around 3%) than __setattr__
   def __setitem__(self, object fieldName, object value):
 
+    assert self._table._v_file.mode <> "r", "Attempt to write over a file opened in read-only mode"
     if not self._w_initialized_buffer:
       # Create the arrays for buffering
       self._newBuffer(write=1)

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.20 2004/09/30 17:53:42 falted Exp $
+#       $Id: EArray.py,v 1.21 2004/10/05 12:30:31 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.20 $"
+__version__ = "$Revision: 1.21 $"
 # default version for EARRAY objects
 #obversion = "1.0"    # initial version
 obversion = "1.1"    # support for complex datatypes
@@ -192,6 +192,7 @@ class EArray(Array, hdf5Extension.Array, object):
             
     def append(self, object):
         """Append the object to this (enlargeable) object"""
+        assert self._v_file.mode <> "r", "Attempt to write over a file opened in read-only mode"
 
         # Convert the object into a numarray object
         naarr = convertIntoNA(object, self.atom)

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.32 2004/09/30 17:53:42 falted Exp $
+#       $Id: VLArray.py,v 1.33 2004/10/05 12:30:32 falted Exp $
 #
 ########################################################################
 
@@ -30,7 +30,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.32 $"
+__version__ = "$Revision: 1.33 $"
 
 # default version for VLARRAY objects
 #obversion = "1.0"    # initial version
@@ -401,6 +401,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             
     def append(self, *objects):
         """Append the objects to this enlargeable object"""
+        assert not self._v_file.mode == "r", "Attempt to write over a file opened in read-only mode"
 
         # To make append([1,0,1]) equivalent to append(1,0,1)
         if len(objects) == 0:

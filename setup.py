@@ -141,30 +141,34 @@ if os.name == 'posix':
     inc_dirs = []
     # If we were not told where it is, go looking for it.
     hdf5incdir = hdf5libdir = None
-    if not HDF5_DIR:
-        for instdir in ('/usr/', '/usr/local/'):
-            # ".dylib" is the extension for dynamic libraries for MacOSX
-            for ext in ('.a', '.so', '.dylib'):
-                libhdf5 = os.path.join(instdir, "lib/libhdf5"+ext)
-                if os.path.isfile(libhdf5):
-                    HDF5_DIR = instdir
-                    hdf5libdir = os.path.join(instdir, "lib")
-                    print "Found HDF5 libraries at " + hdf5libdir
-                    # This is not necessary because /usr and /usr/local
-                    # should be already available on search paths
-                    #lib_dirs = [os.path.join(HDF5_DIR, 'lib')]
-                    break
+    if HDF5_DIR:
+        lookup_directories = (HDF5_DIR, '/usr/', '/usr/local/')
+    else:
+        lookup_directories = ('/usr/', '/usr/local/')
 
-            headerhdf5 = os.path.join(instdir, "include/H5public.h")
-            if os.path.isfile(headerhdf5):
-                hdf5incdir = os.path.join(instdir, "include")
-                print "Found HDF5 header files at " + hdf5incdir
-                # This is not necessary because /usr and /usr/local
-                # should be already available on search paths
-                #inc_dirs = [ os.path.join(HDF5_DIR, 'include')]
+    for instdir in lookup_directories:
+        # ".dylib" is the extension for dynamic libraries for MacOSX
+        for ext in ('.a', '.so', '.dylib'):
+            libhdf5 = os.path.join(instdir, "lib/libhdf5"+ext)
+            if os.path.isfile(libhdf5):
+                HDF5_DIR = instdir
+                hdf5libdir = os.path.join(instdir, "lib")
+                print "Found HDF5 libraries at " + hdf5libdir
+                # If libraries are in /usr and /usr/local
+                # they should be already available on search paths
+                if instdir not in ('/usr/', '/usr/local/'):
+                    lib_dirs.append(hdf5libdir)
                 break
-            else:
-                hdf5incdir = None
+
+        headerhdf5 = os.path.join(instdir, "include/H5public.h")
+        if os.path.isfile(headerhdf5):
+            hdf5incdir = os.path.join(instdir, "include")
+            print "Found HDF5 header files at " + hdf5incdir
+            # If headers are in /usr and /usr/local
+            # they should be already available on search paths
+            if instdir not in ('/usr/', '/usr/local/'):
+                inc_dirs.append(hdf5incdir)
+            break
 
 
     if not HDF5_DIR and not hdf5incdir and not hdf5libdir:
@@ -179,10 +183,10 @@ where they can be found."""
         sys.exit(1)
 	
     # figure out from the base setting where the lib and .h are
-    if not hdf5incdir:
-        inc_dirs = [ os.path.join(HDF5_DIR, 'include')]
-    if not hdf5libdir:
-        lib_dirs = [os.path.join(HDF5_DIR, 'lib')]
+#     if not hdf5incdir:
+#         inc_dirs = [ os.path.join(HDF5_DIR, 'include')]
+#     if not hdf5libdir:
+#         lib_dirs = [os.path.join(HDF5_DIR, 'lib')]
     if (not '-lhdf5' in LIBS):
         libnames.append('hdf5')
 

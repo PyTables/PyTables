@@ -54,7 +54,8 @@ PyObject *getHDF5VersionInfo(void) {
   /* Get a binary number */
   binver = majnum << 16 | minnum << 8 | relnum;
   /* A string number */
-  snprintf(strver, 16, "%d.%d.%d", majnum, minnum, relnum);
+  snprintf(strver, 16, "%d.%d.%d-%s", majnum, minnum, relnum,
+	   H5_VERS_SUBRELEASE);
 
   t = PyTuple_New(2);
   PyTuple_SetItem(t, 0, PyInt_FromLong(binver));

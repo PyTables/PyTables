@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.52 2004/10/03 12:48:05 falted Exp $
+#       $Id: Leaf.py,v 1.53 2004/10/05 12:30:31 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.52 $"
+__version__ = "$Revision: 1.53 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -146,6 +146,10 @@ class Leaf(hdf5Extension.Leaf, object):
         byteorder -- the byteorder of the leaf
         filters -- information for active filters
         attrs -- The associated AttributeSet instance
+        _v_parent -- the parent Group instance
+        _v_rootgroup -- always point to the root group object
+        _v_file -- the associated File object
+        _v_depth -- the depth level in tree for this leaf
 
     """
 

@@ -1,5 +1,5 @@
 Announcing PyTables 0.9
--------------------------
+-----------------------
 
 PyTables is a hierarchical database package designed to efficiently
 manage very large amounts of data.
@@ -15,14 +15,29 @@ compressible) than other solutions, like for example, relational or
 object oriented databases.
 
 On this release it is included a series of quite exciting new
-features, being the most important the indexing capabilities and the
-possibility to modify values in tables (yes, finally).
+features, being the most important the in-kernel selections, indexing
+capabilities, support for complex datatypes and the possibility to
+modify values in tables (yes, finally). More in depth:
 
 New features:
 
-- Indexing
+- In-kernel selections. This feature allow to make data selections on
+  tables up to 10 times faster than standard selections (i.e. pre-0.9
+  selections), without a need to create an index (see below).
 
-- Modification of values
+- Indexing of columns in tables. That allow to make data selections on
+  tables up to 1000 times faster than standard selections.
+
+- Support of complex datatypes for all the data objects (i.e. Table,
+  Array, EArray and VLArray). With that, the complete set of datatypes
+  of Numeric and numarray packages are supported. Thanks to Tom Hedley
+  for providing the patches for Array, EArray and VLArray objects, as
+  well as updating the User's Manual and adding unit tests for the new
+  functionality.
+
+- Modification of values. You can modifiy Table (Array, EArray and
+  VLArray support may come later) values both by rows or columns. See
+  Table.modifyRows and Table.modifyColumns in User's Manual.
 
 Improvements:
 
@@ -46,8 +61,21 @@ API changes:
 
 Bug fixes:
 
-- 
+- A call to File.flush() now invoke a call to H5Fflush() so to
+  effectively flushing all the file contents to disk. Thanks to Shack
+  Toms for reporting this and providing a patch.
 
+- SF #1014298: Wrong method call in examples/tutorial1-2.py. Reported
+  in 2004-08-23 by ivilata
+
+- SF #1013202: Cryptic error appending to EArray on RO file. Reported
+  in 2004-08-21 by ivilata
+
+- SF #991715: Table.read(field="var1", flavor="List") fails. Reported
+  in 2004-07-15 by falted
+
+- SF #988547: Wrong file type assumption in File.__new__. Reported in
+  2004-07-10 by ivilata
 
 Where PyTables can be applied?
 ------------------------------

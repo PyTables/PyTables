@@ -10,7 +10,7 @@
     <subtitle><visual markup="sf">Hierarchical datasets in
       Python</visual><newline/> Release 0.9 </subtitle>
 
-    <date>2004, September, 30th</date>
+    <date>2004, October, 6th</date>
     <year>2002, 2003, 2004</year>
     <graphics kind="bitmap" file="logo3-ombra"/>
 <!--     <graphics kind="bitmap" file="logo4-ombra"/> -->
@@ -607,14 +607,16 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
         <subsection id="PrerequisitesSourceDescr">
 	  <heading>Prerequisites</heading>
 
-	  <p>First, make sure that you have <verb>HDF5 1.6.2</verb>
-	    and <verb>numarray 1.0</verb> or higher installed (I'm
-	    using <verb>HDF5 1.6.2</verb> and <verb>numarray
-	    1.0</verb> currently). If you don't, you can find them at
-	    <url
-	    name="http://hdf.ncsa.uiuc.edu/HDF5"><verb>http://hdf.ncsa.uiuc.edu/HDF5</verb></url>
-	    and <url
-	    name="http://www.pfdubois.com/numpy"><verb>http://www.pfdubois.com/numpy</verb></url>.
+	  <p>First, make sure that you have at least HDF5 1.6.2 and
+	  numarray 1.0 or higher installed (I'm using HDF5
+	  1.6.3-patch<footnote>Unfortunately, HDF5 1.6.3 was released
+	  with a bug that causes a segmentation fault when an index is
+	  deleted. The 1.6.3-patch and higher versions solve
+	  this.</footnote> and numarray 1.1 currently). If you don't,
+	  you can find them at <url
+	  name="http://hdf.ncsa.uiuc.edu/HDF5"><verb>http://hdf.ncsa.uiuc.edu/HDF5</verb></url>
+	  and <url
+	  name="http://www.stsci.edu/resources/software_hardware/numarray"><verb>http://www.stsci.edu/resources/software_hardware/numarray</verb></url>.
 	  </p>
 	  <p>
 	    Compile and install these packages (but see <ref
@@ -656,7 +658,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	      <verbatim>
 		--hdf5=/stuff/hdf5-1.6.2
 		--lzo=/stuff/lzo-1.08
-		--ucl=/stuff/ucl-1.02
+		--ucl=/stuff/ucl-1.03
 	      </verbatim>
 
 	      <p>If your <verb>HDF5</verb> library was built as
@@ -894,12 +896,17 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  <heading>Windows prerequisites</heading>
 
 	  <p>First, make sure that you have HDF5 1.6.2 or higher and
-	    numarray 1.0 or higher installed (I'm using HDF5 1.6.2 and
-	    numarray 1.0 currently). If don't, you can find them at
-	    <url
+	    numarray 1.0 or higher installed (I'm using HDF5
+	    1.6.3-patch<footnote>Unfortunately, HDF5 1.6.3 was
+	    released with a bug that causes a segmentation fault when
+	    an index is deleted. The 1.6.3-patch and higher versions
+	    solve this. You can find a binary version in
+	    <verb>ftp://hdf.ncsa.uiuc.edu/HDF5/hdf5-1.6.3/src/patches/bin/Win2000.tar.gz</verb></footnote>
+	    and numarray 1.1 currently). If don't, you can find them
+	    at <url
 	    name="http://hdf.ncsa.uiuc.edu/HDF5"><verb>http://hdf.ncsa.uiuc.edu/HDF5</verb></url>
 	    and <url
-	    name="http://sourceforge.net/projects/numpy/"><verb>http://sourceforge.net/projects/numpy/</verb></url>. Download
+	    name="http://www.stsci.edu/resources/software_hardware/numarray"><verb>http://www.stsci.edu/resources/software_hardware/numarray</verb></url>. Download
 	    the binary packages (or sources, if you want to compile
 	    everything yourself) and install them.
           </p>
@@ -911,15 +918,15 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  </p>
 
 	  <p><visual markup="bf">Caveat:</visual> When downloading the
-	    binary distribution for HDF5 libraries, select one compiled with
-	    MSVC 6.0, such as the package
-	    <verb>5-162-win2k.zip</verb>, regardless of whether you are using
-	    Win2k or WinXP (it should work fine on both). The file
-	    <verb>5-162-winxp-net.zip</verb> was compiled with the
-	    MSVC 7.0 (aka "<verb>.NET</verb>") and <visual
-	    markup="bf">does not</visual> work well with the PyTables
-	    binary (which has been generated with MSVC 6.0). You have
-	    been warned!
+	    binary distribution for HDF5 libraries, select one
+	    compiled with MSVC 6.0, such as the package
+	    <verb>5-162-winxp-net.zip</verb>, regardless of whether
+	    you are using Win2k or WinXP (it should work fine on
+	    both). The file <verb>5-162-winxp-net.zip</verb> was
+	    compiled with the MSVC 7.0 (aka "<verb>.NET</verb>") and
+	    <visual markup="bf">does not</visual> work well with the
+	    PyTables binary (which has been generated with MSVC
+	    6.0). You have been warned!
 	  </p>
 
 <!-- 	  <p>Normally, the NCSA team generate binaries that links -->
@@ -1982,7 +1989,6 @@ pressure := Float32, 1
 	  <verbatim>
 >>> print table.__doc__
 Represent a table in the object tree.
-
     It provides methods to create new tables or open existing ones, as
     well as to write/read data to/from table objects over the
     file. A method is also provided to iterate over the rows without
@@ -1992,37 +1998,40 @@ Represent a table in the object tree.
     (NumArray or RecArray) objects.
     
     Methods:
-    
-      Common to all leaves:
-        close()
-        flush()
-        getAttr(attrname)
-        rename(newname)
-        remove()
-        setAttr(attrname, attrvalue)
-        
-      Specific of Table:
-        iterrows()
+
+        __getitem__(key)
+        __iter__()
+        __setitem__(key, value)
+        append(rows)
+        flushRowsToIndex()
+        iterrows(start, stop, step)
+        itersequence(sequence)
+        modifyRows(start, rows)
+        modifyColumns(start, columns, names)
         read([start] [, stop] [, step] [, field [, flavor]])
+        reIndex()
+        reIndexDirty()
         removeRows(start, stop)
+        removeIndex(column)
+        where(condition [, start] [, stop] [, step])
+        whereIndexed(condition [, start] [, stop] [, step])
+        whereInRange(condition [, start] [, stop] [, step])
+        getWhereList(condition [, flavor])
 
     Instance variables:
-    
-      Common to all leaves:
-        name -- the leaf node name
-        hdf5name -- the HDF5 leaf node name
-        title -- the leaf title
-        shape -- the leaf shape
-        byteorder -- the byteorder of the leaf
-        
-      Specific of Table:
+
         description -- the metaobject describing this table
         row -- a reference to the Row object associated with this table
         nrows -- the number of rows in this table
         rowsize -- the size, in bytes, of each row
+        cols -- accessor to the columns using a natural name schema
         colnames -- the field names for the table (list)
         coltypes -- the type class for the table fields (dictionary)
         colshapes -- the shapes for the table fields (dictionary)
+        colindexed -- whether the table fields are indexed (dictionary)
+        indexed -- whether or not some field in Table is indexed
+        indexprops -- properties of an indexed Table. Exists only
+            if the Table is indexed
 
 	  </verbatim>
 
@@ -3852,7 +3861,6 @@ Object Tree:
 	      refid="FiltersClassDescr">section</ref> for more
 	      information on this object.
 	    </item>
-
 	  </description>
 
 	  <p>Besides, the next instance variables are also defined and

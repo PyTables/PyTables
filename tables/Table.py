@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.133 2004/09/28 17:17:50 falted Exp $
+#       $Id: Table.py,v 1.134 2004/10/05 12:30:31 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.133 $"
+__version__ = "$Revision: 1.134 $"
 
 from __future__ import generators
 import sys
@@ -774,6 +774,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         rows).
 
         """
+        assert self._v_file.mode <> "r", "Attempt to write over a file opened in read-only mode"
 
         if isinstance(key, types.IntType):
             # Index out of range protection
@@ -802,6 +803,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         be converted to an object compliant with table description.
 
         """
+        assert self._v_file.mode <> "r", "Attempt to write over a file opened in read-only mode"
 
         if rows is None:
             return 0
@@ -1363,6 +1365,7 @@ class Column(object):
         NumArray/CharArray or list of elements).
 
         """
+        assert self.table._v_file.mode <> "r", "Attempt to write over a file opened in read-only mode"
 
         if isinstance(key, types.IntType):
             # Index out of range protection

@@ -167,6 +167,9 @@ if __name__ == '__main__':
         if arg == '--show-versions-only':
             only_versions = 1
             sys.argv.remove(arg)
+        elif arg == '--show-versions':
+            only_versions = 1
+            sys.argv.remove(arg)
 
     if not only_versions:
         if heavy:
