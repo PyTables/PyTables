@@ -47,6 +47,30 @@ class OpenFileTestCase(unittest.TestCase):
 
         assert title == "Title example"
     
+    def test01b_trTable(self):
+        """Checking the translation table capability"""
+
+        # Open the old HDF5 file
+        trTable = {"pythonarray": "array"}
+        fileh = openFile(self.file, mode = "r", trTable=trTable)
+        # Get the array objects in the file
+        array_ = fileh.getNode("/pythonarray")
+
+        assert array_.name == "pythonarray"
+        assert array_._v_hdf5name == "array"
+
+        # This should throw an LookupError exception
+        try:
+            # Try to get the 'array' object in the old existing file
+            array_ = fileh.getNode("/array")
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
+    
     def test02_appendFile(self):
         """Checking appending objects to an existing file"""
 

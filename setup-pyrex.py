@@ -6,7 +6,7 @@ import sys, os, string
 
 if not (sys.version_info[0] >= 2 and sys.version_info[1] >= 2):
     print "################################################################"
-    print "You need Python 2.2 or greather to compile PyTables!. Exiting..."
+    print "You need Python 2.2 or greather to install PyTables!. Exiting..."
     print "################################################################"
     sys.exit(1)
 
