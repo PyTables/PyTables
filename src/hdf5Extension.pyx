@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.110 2004/01/19 20:54:26 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.111 2004/01/24 18:03:29 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.110 $"
+__version__ = "$Revision: 1.111 $"
 
 
 import sys, os
@@ -826,7 +826,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.110 2004/01/19 20:54:26 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.111 2004/01/24 18:03:29 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1411,13 +1411,10 @@ cdef class Table:
                           self.rowsize, self.field_offset) < 0 ):
       raise RuntimeError("Problems opening table for append.")
 
-    # Test
-    #self.mmfilew = open(self.name+".mmap", "w")
-
     self._open = 1
 
   # A version of Table._saveBufferRows in Pyrex is available in 0.7.2,
-  # but it is not faster than the Python version, so remove it
+  # but it is not faster than the Python version, so I removed it
   
   def _append_records(self, object recarr, int nrecords):
     cdef int ret,
@@ -1434,9 +1431,6 @@ cdef class Table:
 
     self.totalrecords = self.totalrecords + nrecords
     
-    # Test
-    #recarr[:nrecords].tofile(self.mmfilew)
-    
   def _close_append(self):
 
     if self._open > 0:
@@ -1446,10 +1440,6 @@ cdef class Table:
                              self.parent_id) < 0 ):
         raise RuntimeError("Problems closing table for append.")
 
-      # Test
-      #print "Tancant:", self.name+".mmap"
-      #self.mmfilew.close()
-      
     self._open = 0
 
   def _getTableInfo(self):

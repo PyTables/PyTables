@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.94 2004/01/21 16:31:44 falted Exp $
+#       $Id: Table.py,v 1.95 2004/01/24 18:04:35 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.94 $"
+__version__ = "$Revision: 1.95 $"
 
 from __future__ import generators
 import sys
@@ -42,6 +42,7 @@ import numarray.strings as strings
 import numarray.records as records
 import hdf5Extension
 from utils import calcBufferSize, processRange, processRangeRead
+import Group
 from Leaf import Leaf
 from IsDescription import IsDescription, Description, metaIsDescription, \
      Col, StringCol, fromstructfmt
@@ -448,7 +449,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         return arr
 
     #def _read(self, start, stop, step, field=None):
-    def _read(self, start, stop, step, field=None, coords = None):
+    def _read(self, start, stop, step, field=None, coords=None):
         """Read a range of rows and return an in-memory object.
         """
 
@@ -625,27 +626,64 @@ You are asking ordering by a non-existing field (%s) or not a supported type!.
         object._close_append()  # Close the destination table
         print "newtable done!", time()-t, clock()
         # Update the number of saved rows in this buffer
-        object.nrows = self.nrows
+        #object.nrows = self.nrows
+        object.nrows = ((stop - start - 1) // step) + 2
         # Reset the buffer unsaved counter and the buffer read row counter
         object.row._setUnsavedNRows(0)
         # Set the shape attribute (the self.nrows may be less than the maximum)
-        object.shape = self.shape
+        object.shape = (object.nrows-1,)
 
-    def copy(self, dstname, title=None, complevel=None, complib=None,
-             shuffle=None, fletcher32 = None):
+    def append(self, rows):
+        """Append a series of rows to the end of the table
+
+        rows can be either a recarray or a structure that is able to
+        be converted to a recarray compliant with the table format.
+
+        """
+
+        # Try to convert the object into a recarray
+        try:
+            recarray = records.array(rows,
+                                     formats=self.description._v_recarrfmt,
+                                     names=self.colnames)
+        except:
+            raise ValueError, \
+"rows parameter cannot be converted into a recarray object compliant with table '%s'" % str(self)
+        self._open_append(recarray)
+        self._append_records(recarray, recarray.shape[0])
+        self._close_append()
+
+    def _copy_funciona(self, name, where=None, title=None, compress=None,
+             complib=None, shuffle=None, fletcher32=None):
         """Copy this table to other location"""
 
+        if isinstance(where, str):
+            if where not in self._v_file.objects:
+                raise LookupError, "'%s' path cannot be found in file '%s'" % \
+                      (where, self._v_filename)
+            if where in self._v_file.groups:
+                group = self._v_file.groups[where]
+            else:
+                raise ValueError, "'%s' is not a group '%s'"
+        elif isinstance(where, Group.Group):
+            group = where
+        elif where == None:
+            group = self._v_parent
+        else:
+            raise TypeError, \
+"'where' has to be a Group or string instance, not type '%s'" % (type(where))
+
         if title == None: title = self.title
-        if complevel == None: complevel = self.complevel
+        if compress == None: compress = self.complevel
         if complib == None: complib = self.complib
         if shuffle == None: shuffle = self.shuffle
         if fletcher32 == None: fletcher32 = self.fletcher32
         # Build the new Table object
-        object = Table(self.description._v_ColObjects, title=self.title,
-                       compress=complevel, complib=complib,
+        object = Table(self.description._v_ColObjects, title=title,
+                       compress=compress, complib=complib,
                        shuffle=shuffle, fletcher32=fletcher32,
                        expectedrows=self.nrows)
-        setattr(self._v_parent, dstname, object)
+        setattr(group, name, object)
 
         # Now, fill the new table with values from the old one
         self._v_buffer = self._newBuffer(init=0)
@@ -664,6 +702,65 @@ You are asking ordering by a non-existing field (%s) or not a supported type!.
         object.row._setUnsavedNRows(0)
         # Set the shape attribute (the self.nrows may be less than the maximum)
         object.shape = self.shape
+        return object
+
+    def copy(self, where, name, start=0, stop=None, step=1, title=None,
+             compress=None, complib=None, shuffle=None, fletcher32 = None,
+             copyuserattrs=1):
+        """Copy this table to other location"""
+
+        if isinstance(where, str):
+            if where not in self._v_file.objects:
+                raise LookupError, "'%s' path cannot be found in file '%s'" % \
+                      (where, self._v_filename)
+            if where in self._v_file.groups:
+                group = self._v_file.groups[where]
+            else:
+                raise ValueError, "'%s' is not a group '%s'"
+        elif isinstance(where, Group.Group):
+            group = where
+        elif where == None:
+            group = self._v_parent
+        else:
+            raise TypeError, \
+"'where' has to be a Group or string instance, not type '%s'" % (type(where))
+        # Get the correct indices
+        if stop == None:
+            stop = self.nrows
+        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        if title == None: title = self.title
+        if compress == None: compress = self.complevel
+        if complib == None: complib = self.complib
+        if shuffle == None: shuffle = self.shuffle
+        if fletcher32 == None: fletcher32 = self.fletcher32
+        # Build the new Table object
+        object = Table(self.description._v_ColObjects, title=title,
+                       compress=compress, complib=complib,
+                       shuffle=shuffle, fletcher32=fletcher32,
+                       expectedrows=self.nrows)
+        setattr(group, name, object)
+        # Now, fill the new table with values from the old one
+        nrowsinbuf = self._v_maxTuples
+        for start2 in range(start, stop, step*nrowsinbuf):
+            # Save the records on disk
+            stop2 = start2+step*nrowsinbuf
+            if stop2 > stop:
+                stop2 = stop 
+            object.append(self[start2:stop2:step])
+        object._close_append()  # Close the destination table
+        # Update the number of saved rows in this buffer
+        #object.nrows = self.nrows
+        object.nrows = ((stop - start - 1) // step) + 1
+        # Reset the buffer unsaved counter and the buffer read row counter
+        object.row._setUnsavedNRows(0)
+        # Set the shape attribute (the self.nrows may be less than the maximum)
+        object.shape = (object.nrows,)
+
+        # Finally, copy the user attributes, if needed
+        if copyuserattrs:
+            for attrname in self.attrs._v_attrnamesuser:
+                setattr(object.attrs, attrname, getattr(self.attrs, attrname))
+        
         return object
 
     def flush(self):

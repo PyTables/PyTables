@@ -433,10 +433,11 @@ herr_t H5TBOclose_append(hid_t *dataset_id,
  *-------------------------------------------------------------------------
  */
 
-/* We can get here a loss of rows if the number of then does not
-   keep on a integer of 4 bytes. However, we need a safe way to save integers of 8 bytes,
-   and, again, this could not guarantee compatibility with HDF5_HL.
-   I should report this to Pedro. F. Alted 2004-01-19  */
+/* We can get here a loss of rows if the number of them does not fit
+   in a integer of 4 bytes. However, we need a safe way to save
+   integers of 8 bytes, and, again, this could not guarantee
+   compatibility with HDF5_HL.  I should report this to
+   Pedro. F. Alted 2004-01-19  */
 
  nrows = (int)ntotal_records;
  /* Set the attribute */

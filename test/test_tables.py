@@ -1148,7 +1148,15 @@ class CopyTestCase(unittest.TestCase):
         table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
 
         # Copy to another table
-        table2 = table1.copy('table2')
+        table2 = table1.copy('/', 'table2')
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            table1 = fileh.root.table1
+            table2 = fileh.root.table2
 
         if verbose:
             print "table1-->", table1.read()
@@ -1173,7 +1181,10 @@ class CopyTestCase(unittest.TestCase):
         assert table1.colnames == table2.colnames
         assert table1.coltypes == table2.coltypes
         assert table1.colshapes == table2.colshapes
-        assert table1.description._v_ColObjects == table2.description._v_ColObjects
+#         print "colobjects(1)-->", table1.description._v_ColObjects
+#         print "colobjects(2)-->", table2.description._v_ColObjects
+        # This could be not the same when re-opening the file
+        #assert table1.description._v_ColObjects == table2.description._v_ColObjects
         # Leaf attributes
         assert table1.title == table2.title
         assert table1.complevel == table2.complevel
@@ -1184,6 +1195,448 @@ class CopyTestCase(unittest.TestCase):
         # Close the file
         fileh.close()
         os.remove(file)
+
+    def test02_copy(self):
+        """Checking Table.copy() method (where specified)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a recarray
+        r=records.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
+        # Save it in a table:
+        table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
+
+        # Copy to another table in another group
+        group1 = fileh.createGroup("/", "group1")
+        table2 = table1.copy(group1, 'table2')
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            table1 = fileh.root.table1
+            table2 = fileh.root.group1.table2
+
+        if verbose:
+            print "table1-->", table1.read()
+            print "table2-->", table2.read()
+            print "attrs table1-->", repr(table1.attrs)
+            print "attrs table2-->", repr(table2.attrs)
+            
+        # Check that all the elements are equal
+        for row1 in table1:
+            nrow = row1.nrow()   # current row
+            for colname in table1.colnames:
+                # Both ways to compare works well
+                assert row1[colname] == table2[nrow].field(colname)
+                #assert row1[colname] == table2.read(nrow, field=colname)[0]
+
+        # Assert other properties in table
+        assert table1.nrows == table2.nrows
+        assert table1.colnames == table2.colnames
+        assert table1.coltypes == table2.coltypes
+        assert table1.colshapes == table2.colshapes
+        # Leaf attributes
+        assert table1.title == table2.title
+        assert table1.complevel == table2.complevel
+        assert table1.complib == table2.complib
+        assert table1.shuffle == table2.shuffle
+        assert table1.fletcher32 == table2.fletcher32
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test03_copy(self):
+        """Checking Table.copy() method (table larger than buffer)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a recarray exceeding buffers capability
+        # This works, but takes too much CPU for a test
+        # It is better to reduce the buffer size (table1._v_maxTuples)
+#         r=records.array('aaaabbbbccccddddeeeeffffgggg'*20000,
+#                         formats='2i2,i4, (2,3)u2, (1,)f4, f8',shape=700)
+        r=records.array('aaaabbbbccccddddeeeeffffgggg'*200,
+                        formats='2i2,i4, (2,3)u2, (1,)f4, f8',shape=7)
+        # Save it in a table:
+        table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
+        
+        # Copy to another table in another group and other title
+        group1 = fileh.createGroup("/", "group1")
+        table1._v_maxTuples = 2  # small value of buffer
+        table2 = table1.copy(group1, 'table2', title="title table2")
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            table1 = fileh.root.table1
+            table2 = fileh.root.group1.table2
+
+        if verbose:
+            print "table1-->", table1.read()
+            print "table2-->", table2.read()
+            print "attrs table1-->", repr(table1.attrs)
+            print "attrs table2-->", repr(table2.attrs)
+            
+        # Check that all the elements are equal
+        for row1 in table1:
+            nrow = row1.nrow()   # current row
+            for colname in table1.colnames:
+                assert allequal(row1[colname], table2[nrow].field(colname))
+
+        # Assert other properties in table
+        assert table1.nrows == table2.nrows
+        assert table1.colnames == table2.colnames
+        assert table1.coltypes == table2.coltypes
+        assert table1.colshapes == table2.colshapes
+        # Leaf attributes
+        assert "title table2" == table2.title
+        assert table1.complevel == table2.complevel
+        assert table1.complib == table2.complib
+        assert table1.shuffle == table2.shuffle
+        assert table1.fletcher32 == table2.fletcher32
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test04_copy(self):
+        """Checking Table.copy() method (different compress level)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a recarray
+        r=records.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
+        # Save it in a table:
+        table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
+
+        # Copy to another table in another group
+        group1 = fileh.createGroup("/", "group1")
+        table2 = table1.copy(group1, 'table2', compress=6)
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            table1 = fileh.root.table1
+            table2 = fileh.root.group1.table2
+
+        if verbose:
+            print "table1-->", table1.read()
+            print "table2-->", table2.read()
+            print "attrs table1-->", repr(table1.attrs)
+            print "attrs table2-->", repr(table2.attrs)
+            
+        # Check that all the elements are equal
+        for row1 in table1:
+            nrow = row1.nrow()   # current row
+            for colname in table1.colnames:
+                # Both ways to compare works well
+                assert row1[colname] == table2[nrow].field(colname)
+                #assert row1[colname] == table2.read(nrow, field=colname)[0]
+
+        # Assert other properties in table
+        assert table1.nrows == table2.nrows
+        assert table1.colnames == table2.colnames
+        assert table1.coltypes == table2.coltypes
+        assert table1.colshapes == table2.colshapes
+        # Leaf attributes
+        assert table1.title == table2.title
+        assert 6 == table2.complevel
+        assert table1.complib == table2.complib
+        assert table1.shuffle == table2.shuffle
+        assert table1.fletcher32 == table2.fletcher32
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test05_copy(self):
+        """Checking Table.copy() method (user attributes copied)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a recarray
+        r=records.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
+        # Save it in a table:
+        table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
+        # Add some user attributes
+        table1.attrs.attr1 = "attr1"
+        table1.attrs.attr2 = 2
+        # Copy to another table in another group
+        group1 = fileh.createGroup("/", "group1")
+        table2 = table1.copy(group1, 'table2', compress=6, copyuserattrs=1)
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            table1 = fileh.root.table1
+            table2 = fileh.root.group1.table2
+
+        if verbose:
+            print "table1-->", table1.read()
+            print "table2-->", table2.read()
+            print "attrs table1-->", repr(table1.attrs)
+            print "attrs table2-->", repr(table2.attrs)
+            
+        # Check that all the elements are equal
+        for row1 in table1:
+            nrow = row1.nrow()   # current row
+            for colname in table1.colnames:
+                assert row1[colname] == table2[nrow].field(colname)
+
+        # Assert other properties in table
+        assert table1.nrows == table2.nrows
+        assert table1.colnames == table2.colnames
+        assert table1.coltypes == table2.coltypes
+        assert table1.colshapes == table2.colshapes
+        # Leaf attributes
+        assert table1.title == table2.title
+        assert 6 == table2.complevel
+        assert table1.complib == table2.complib
+        assert table1.shuffle == table2.shuffle
+        assert table1.fletcher32 == table2.fletcher32
+        # User attributes
+        table2.attrs.attr1 == "attr1"
+        table2.attrs.attr2 == 2
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test05b_copy(self):
+        """Checking Table.copy() method (user attributes not copied)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05b_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a recarray
+        r=records.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
+        # Save it in a table:
+        table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
+        # Add some user attributes
+        table1.attrs.attr1 = "attr1"
+        table1.attrs.attr2 = 2
+        # Copy to another table in another group
+        group1 = fileh.createGroup("/", "group1")
+        table2 = table1.copy(group1, 'table2', compress=6, copyuserattrs=0)
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            table1 = fileh.root.table1
+            table2 = fileh.root.group1.table2
+
+        if verbose:
+            print "table1-->", table1.read()
+            print "table2-->", table2.read()
+            print "attrs table1-->", repr(table1.attrs)
+            print "attrs table2-->", repr(table2.attrs)
+            
+        # Check that all the elements are equal
+        for row1 in table1:
+            nrow = row1.nrow()   # current row
+            for colname in table1.colnames:
+                assert row1[colname] == table2[nrow].field(colname)
+
+        # Assert other properties in table
+        assert table1.nrows == table2.nrows
+        assert table1.colnames == table2.colnames
+        assert table1.coltypes == table2.coltypes
+        assert table1.colshapes == table2.colshapes
+        # Leaf attributes
+        assert table1.title == table2.title
+        assert 6 == table2.complevel
+        assert table1.complib == table2.complib
+        assert table1.shuffle == table2.shuffle
+        assert table1.fletcher32 == table2.fletcher32
+        # User attributes
+        table2.attrs.attr1 == None
+        table2.attrs.attr2 == None
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+class CloseCopyTestCase(CopyTestCase):
+    close = 1
+
+class OpenCopyTestCase(CopyTestCase):
+    close = 0
+
+
+class CopyIndexTestCase(unittest.TestCase):
+
+    def test01_index(self):
+        """Checking Table.copy() method with indexes"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a recarray exceeding buffers capability
+        r=records.array('aaaabbbbccccddddeeeeffffgggg'*200,
+                        #formats='2i2,i4, (2,3)u2, (1,)f4, f8',shape=10)
+                        # to avoid an ugly warning
+                        formats='2i2,i4, (2,3)u2, f4, f8',shape=10)
+        # Save it in a table:
+        table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
+        
+        # Copy to another table
+        table1._v_maxTuples = self.maxTuples
+        table2 = table1.copy("/", 'table2',
+                             start=self.start,
+                             stop=self.stop,
+                             step=self.step)
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            table1 = fileh.root.table1
+            table2 = fileh.root.table2
+
+        if verbose:
+            print "table1-->", table1.read()
+            print "table2-->", table2.read()
+            print "attrs table1-->", repr(table1.attrs)
+            print "attrs table2-->", repr(table2.attrs)
+            
+        # Check that all the elements are equal
+        r2 = r[self.start:self.stop:self.step]
+        for nrow in range(r2.shape[0]):
+            for colname in table1.colnames:
+#                 print "r2[nrow]-->", r2[nrow]
+#                 print "table2[nrow]-->", table2[nrow]
+#                 print "table2[nrow]-->", table2[nrow].field(colname)
+#                 assert allequal(table1[nrow].field(colname),
+#                                 table2[nrow].field(colname))
+                # The next gives a warning because a Table cannot distinguish
+                # between a '(1,)f4' format and a 'f4' format.
+                # This should be adressed? 2004-01-24
+                assert allequal(r2[nrow].field(colname),
+                                table2[nrow].field(colname))
+
+        # Assert the number of rows in table
+        if verbose:
+            print "nrows in table2-->", table2.nrows
+            print "and it should be-->", r2.shape[0]
+        assert r2.shape[0] == table2.nrows
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+class CopyIndex1TestCase(CopyIndexTestCase):
+    close = 1
+    maxTuples = 2
+    start = 0
+    stop = 7
+    step = 1
+
+class CopyIndex2TestCase(CopyIndexTestCase):
+    close = 0
+    maxTuples = 2
+    start = 0
+    stop = 7
+    step = 1
+
+class CopyIndex3TestCase(CopyIndexTestCase):
+    close = 1
+    maxTuples = 3
+    start = 1
+    stop = 7
+    step = 1
+
+class CopyIndex4TestCase(CopyIndexTestCase):
+    close = 1
+    maxTuples = 4
+    start = 0
+    stop = 6
+    step = 1
+
+class CopyIndex5TestCase(CopyIndexTestCase):
+    close = 1
+    maxTuples = 2
+    start = 3
+    stop = 7
+    step = 1
+
+class CopyIndex6TestCase(CopyIndexTestCase):
+    close = 1
+    maxTuples = 2
+    start = 3
+    stop = 6
+    step = 2
+
+class CopyIndex7TestCase(CopyIndexTestCase):
+    close = 1
+    maxTuples = 2
+    start = 0
+    stop = 7
+    step = 10
+
+class CopyIndex8TestCase(CopyIndexTestCase):
+    close = 1
+    maxTuples = 2
+    start = 6
+    stop = 3
+    step = 1
+
+class CopyIndex9TestCase(CopyIndexTestCase):
+    close = 1
+    maxTuples = 2
+    start = 3
+    stop = 4
+    step = 1
+
+class CopyIndex10TestCase(CopyIndexTestCase):
+    close = 1
+    maxTuples = 2
+    start = 3
+    stop = 4
+    step = 2
 
 class LargeRowSize(unittest.TestCase):
 
@@ -1307,7 +1760,8 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(LargeRowSize)) 
     #theSuite.addTest(unittest.makeSuite(DefaultValues))
     #theSuite.addTest(unittest.makeSuite(OldRecordDefaultValues))
-    #theSuite.addTest(unittest.makeSuite(CopyTestCase))
+    #theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
+    #theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
     #theSuite.addTest(unittest.makeSuite(Fletcher32TablesTestCase))
     #theSuite.addTest(unittest.makeSuite(AllFiltersTablesTestCase))
 
@@ -1332,7 +1786,19 @@ def suite():
         theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
         theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayIO))
-        theSuite.addTest(unittest.makeSuite(CopyTestCase))
+        theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
+        theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex2TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex3TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex4TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex5TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex6TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex7TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex8TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex9TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex10TestCase))
         theSuite.addTest(unittest.makeSuite(LargeRowSize))
         theSuite.addTest(unittest.makeSuite(DefaultValues))
         theSuite.addTest(unittest.makeSuite(OldRecordDefaultValues))

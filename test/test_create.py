@@ -404,12 +404,12 @@ class createAttrTestCase(unittest.TestCase):
         assert self.root.atable.attrs._f_list() == ["a", "b", "c"]
         assert self.root.atable.attrs._f_list("sys") == \
                ['CLASS', 'FIELD_0_NAME', 'FIELD_1_NAME', 'FIELD_2_NAME',
-                'FIELD_3_NAME', 'FIELD_4_NAME', 'TITLE','VERSION']
+                'FIELD_3_NAME', 'FIELD_4_NAME', 'NROWS', 'TITLE', 'VERSION']
         assert self.root.atable.attrs._f_list("readonly") == \
-               ['CLASS', 'VERSION']
+               ['CLASS', 'NROWS', 'VERSION']
         assert self.root.atable.attrs._f_list("all") == \
                ['CLASS', 'FIELD_0_NAME', 'FIELD_1_NAME', 'FIELD_2_NAME',
-                'FIELD_3_NAME', 'FIELD_4_NAME', 'TITLE', 'VERSION',
+                'FIELD_3_NAME', 'FIELD_4_NAME', 'NROWS', 'TITLE', 'VERSION',
                 "a", "b", "c"]
 	    
         assert self.root.anarray.attrs._f_list() == ["i", "j", "k"]

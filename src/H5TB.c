@@ -105,6 +105,7 @@ herr_t H5TBmake_table( const char *table_title,
  hsize_t i;
  unsigned char *tmp_buf;
  unsigned int cd_values[3];
+ int     nrows;
 
  dims[0]       = nrecords;
  dims_chunk[0] = chunk_size;
@@ -233,6 +234,13 @@ herr_t H5TBmake_table( const char *table_title,
  /* Attach the TITLE attribute */
  if ( H5LTset_attribute_string( loc_id, dset_name, "TITLE", table_title ) < 0 )
   goto out;
+
+ /* Attach the NROWS attribute */
+ nrows = (int)nrecords;
+ /* Set the attribute */
+ if ( H5LTset_attribute_int( loc_id, dset_name, "NROWS", &nrows, 1 ) < 0 )
+   return -1;
+
 
  /* Attach the FIELD_ name attribute */
  for ( i = 0; i < nfields; i++)
