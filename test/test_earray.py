@@ -441,12 +441,6 @@ class BasicTestCase(unittest.TestCase):
             # Convert the object to Numeric
             object = Numeric.array(object, typecode=typecode[self.type])
 
-        if len(object) == 1:
-            object = object[0]
-            correction = 1
-        else:
-            correction = 0
-                
         # Read all the array
         row = earray.__getitem__(self.slices)
         try:
@@ -468,7 +462,7 @@ class BasicTestCase(unittest.TestCase):
         assert self.nappends*self.chunksize == earray.nrows
         assert allequal(row, object, self.flavor)
         if hasattr(row, "shape"):
-            assert len(row.shape) == len(self.shape) - correction
+            assert len(row.shape) == len(self.shape)
         else:
             # Scalar case
             assert len(self.shape) == 1
