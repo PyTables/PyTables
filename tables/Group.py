@@ -380,6 +380,8 @@ self._g_join(name), UserWarning)
         parent._v_file.objects[self._v_pathname] = self
         # Call the _g_new method in Group superclass 
         self._g_new(parent, self._v_hdf5name)
+        # Inform to the AttributeSet super class of the name change
+        self._v_attrs._g_new(self)
         # Update this instance attributes
         parent._v_groups[newname] = self
         parent._v_children[newname] = self

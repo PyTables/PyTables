@@ -568,6 +568,22 @@ class OpenFileTestCase(unittest.TestCase):
             self.fail("expected an LookupError")
         fileh.close()
 
+    def test07c_renameLeaf(self):
+        """Checking renaming Leaves and modify attributes after that"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test07c_renameLeaf..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+        fileh.renameNode(fileh.root.anarray, 'anarray2')
+        fileh.root.anarray2.attrs.TITLE = "hello"
+        # Ensure that the new attribute has been written correctly
+        array_ = fileh.root.anarray2
+        assert array_.title == "hello"
+        assert array_.attrs.TITLE == "hello"
+        fileh.close()
+
     def test08_renameToExistingLeaf(self):
         """Checking renaming a node to an existing name"""
 
@@ -696,6 +712,23 @@ class OpenFileTestCase(unittest.TestCase):
                 print value
         else:
             self.fail("expected an LookupError")
+        fileh.close()
+
+    def test09c_renameGroup(self):
+        """Checking renaming a Group and modify attributes afterwards"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test09c_renameGroup..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+        fileh.renameNode(fileh.root.agroup, 'agroup3')
+
+        # Ensure that we can modify attributes in the new group
+        group = fileh.root.agroup3
+        group._v_attrs.TITLE = "Hello"
+        assert group._v_title == "Hello"
+        assert group._v_attrs.TITLE == "Hello"
         fileh.close()
 
 class CheckFileTestCase(unittest.TestCase):
