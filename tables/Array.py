@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.76 2004/10/03 12:48:04 falted Exp $
+#       $Id: Array.py,v 1.77 2004/10/27 16:55:12 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.76 $"
+__version__ = "$Revision: 1.77 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -333,12 +333,12 @@ class Array(Leaf, hdf5Extension.Array, object):
                 return self.listarr    # Scalar case
 
     def __getitem__(self, keys):
-        """Returns an Array row or slice.
+        """Returns an Array element, row or extended slice.
 
         It takes different actions depending on the type of the "key"
         parameter:
 
-        If "key"is an integer, the corresponding row is returned. If
+        If "key" is an integer, the corresponding row is returned. If
         "key" is a slice, the row slice determined by key is returned.
 
         """
@@ -404,6 +404,106 @@ class Array(Leaf, hdf5Extension.Array, object):
                 dim += 1
 
         return self._readSlice(startl, stopl, stepl, stop_None)
+
+
+    def __setitem__(self, keys, value):
+        """Sets an Array element, row or extended slice.
+
+        It takes different actions depending on the type of the "key"
+        parameter:
+
+        If "key" is an integer, the corresponding row is assigned to value. If
+        "key" is a slice, the row slice determined by key is assigned
+        to value. The value is broadcasted to fit in the desired
+        range, if needed.
+
+        It returns the number of elements modified in earray.
+
+        """
+
+        if self.shape == ():
+            # Scalar case
+            raise IndexError, "You cannot read scalar Arrays through indexing. Try using the read() method better."
+
+        maxlen = len(self.shape)
+        shape = (maxlen,)
+        startl = numarray.array(None, shape=shape, type=numarray.Int64)
+        stopl = numarray.array(None, shape=shape, type=numarray.Int64)
+        stepl = numarray.array(None, shape=shape, type=numarray.Int64)
+        stop_None = numarray.zeros(shape=shape, type=numarray.Int64)
+        if not isinstance(keys, types.TupleType):
+            keys = (keys,)
+        nkeys = len(keys)
+        dim = 0
+        # Here is some problem when dealing with [...,...] params
+        # but this is a bit weird way to pass parameters anyway
+        for key in keys:
+            ellipsis = 0  # Sentinel
+            if dim >= maxlen:
+                raise IndexError, "Too many indices for object '%s'" % \
+                      self._v_pathname
+            if isinstance(key, types.EllipsisType):
+                ellipsis = 1
+                for diml in xrange(dim, len(self.shape) - (nkeys - dim) + 1):
+                    
+                    startl[dim] = 0
+                    stopl[dim] = self.shape[diml]
+                    stepl[dim] = 1
+                    dim += 1
+            elif isinstance(key, types.IntType):
+                # Index out of range protection
+                if key >= self.shape[dim]:
+                    raise IndexError, "Index out of range"
+                if key < 0:
+                    # To support negative values (Fixes bug #968149)
+                    key += self.shape[dim]
+                start, stop, step = processRange(self.shape[dim],
+                                                 key, key+1, 1)
+                stop_None[dim] = 1
+            elif isinstance(key, types.SliceType):
+                start, stop, step = processRange(self.shape[dim],
+                                                 key.start, key.stop, key.step)
+            else:
+                raise ValueError, "Non-valid index or slice: %s" % \
+                      key
+            if not ellipsis:
+                startl[dim] = start
+                stopl[dim] = stop
+                stepl[dim] = step
+                dim += 1
+            
+        # Complete the other dimensions, if needed
+        if dim < len(self.shape):
+            for diml in xrange(dim, len(self.shape)):
+                startl[dim] = 0
+                stopl[dim] = self.shape[diml]
+                stepl[dim] = 1
+                dim += 1
+
+        # Create an array compliant with the specified slice
+        countl = ((stopl - startl - 1) / stepl) + 1
+        if str(self.type) == "CharType":
+            if shape <> []:
+                narr = strings.array(None, itemsize=self.itemsize,
+                                     shape=countl)
+            else:
+                narr = strings.array([""], itemsize=self.itemsize,
+                                     shape=countl)
+        else:
+            narr = numarray.array(None, shape=countl, type=self.type)
+
+        # Assign the value to it
+        try:
+            narr[:] = value
+        except:
+            (type, value2, traceback) = sys.exc_info()
+            raise ValueError, \
+"value parameter '%s' cannot be converted into an array object compliant with earray: \n'%r'\nThe error was: <%s>" % \
+        (value, self, value2)
+
+        if narr.size():
+            self._modify(startl, stepl, countl, narr)
+        return narr.size()
 
     # Accessor for the _readArray method in superclass
     def _readSlice(self, startl, stopl, stepl, stop_None):

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.135 2004/10/05 19:22:22 falted Exp $
+#       $Id: Table.py,v 1.136 2004/10/27 16:55:14 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.135 $"
+__version__ = "$Revision: 1.136 $"
 
 from __future__ import generators
 import sys
@@ -803,6 +803,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         be converted to an object compliant with table description.
 
         """
+        #print "self-->", self
         assert self._v_file.mode <> "r", "Attempt to write over a file opened in read-only mode"
 
         if rows is None:

@@ -552,7 +552,8 @@ herr_t H5TBOwrite_records( hid_t loc_id,
  if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
   goto out;
 
- if ( start + nrecords > dims[0] )
+/*  if ( start + nrecords > dims[0] ) */
+ if ( start + (nrecords-1) * step + 1 > dims[0] )
   goto out;
   
  /* Define a hyperslab in the dataset of the size of the records */

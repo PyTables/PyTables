@@ -1690,6 +1690,51 @@ class setItem(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
+    def test09(self):
+        "Modifying beyond the table extend (__setitem__, step)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test09..." % self.__class__.__name__
+
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a new table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+        table._v_maxTuples = self.buffersize  # set buffer value
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        
+        # Try to modify beyond the extend
+        # This will silently exclude the non-fitting rows
+        rows = records.array([[457,'db1',1.2],[6,'de2',1.3],[457,'db1',1.2]],
+                             formats="i4,a3,f8")
+        table[1:6:2] = rows
+        # How it should look like
+        r1 = records.array([[456,'dbe',1.2],[457,'db1',1.2],
+                            [457,'db1',1.2],[6,'de2',1.3]],
+                           formats="i4,a3,f8")
+
+        # Read the modified table
+        if self.reopen:
+            fileh.close()
+            fileh = openFile(file, "r")
+            table = fileh.root.recarray
+            table._v_maxTuples = self.buffersize  # set buffer value
+        r2 = table.read()
+        if verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+        fileh.close()
+        os.remove(file)
+
 
 class setItem1(setItem):
     reopen=0

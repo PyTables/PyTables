@@ -331,6 +331,87 @@ out:
 }
 
 /*-------------------------------------------------------------------------
+ * Function: H5ARRAYwrite_records
+ *
+ * Purpose: Write records to an array
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmers: 
+ *  Francesc Alted
+ *
+ * Date: October 26, 2004
+ *
+ * Comments: Uses memory offsets
+ *
+ * Modifications: 
+ *
+ *
+ *-------------------------------------------------------------------------
+ */
+
+
+herr_t H5ARRAYwrite_records( hid_t loc_id, 
+			     const char *dset_name,
+			     const int rank,
+			     hsize_t *start,
+			     hsize_t *step,
+			     hsize_t *count,
+			     const void *data )  
+{
+
+ hid_t    dataset_id;
+ hid_t    type_id;
+ hid_t    space_id;
+ hid_t    mem_space_id;
+
+ /* Open the dataset. */
+ if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+  goto out;
+
+ /* Get the datatype */
+ if ( (type_id = H5Dget_type( dataset_id )) < 0 )
+  goto out;
+
+ /* Create a simple memory data space */
+ if ( (mem_space_id = H5Screate_simple( rank, count, NULL )) < 0 )
+  return -1;
+
+ /* Get the file data space */
+ if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+  return -1;
+
+ /* Define a hyperslab in the dataset */
+ if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, start, step, count, NULL) < 0 )
+   goto out;
+
+ if ( H5Dwrite( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
+     goto out;
+
+ /* Terminate access to the dataspace */
+ if ( H5Sclose( mem_space_id ) < 0 )
+  goto out;
+ 
+ if ( H5Sclose( space_id ) < 0 )
+  goto out;
+ 
+ /* Release the datatype. */
+ if ( H5Tclose( type_id ) < 0 )
+  goto out;
+
+ /* End access to the dataset */
+ if ( H5Dclose( dataset_id ) < 0 )
+  goto out;
+
+return 0;
+
+out:
+ H5Dclose( dataset_id );
+ return -1;
+
+}
+
+/*-------------------------------------------------------------------------
  * Function: H5ARRAYread
  *
  * Purpose: Reads an array from disk.

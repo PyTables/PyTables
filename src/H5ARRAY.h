@@ -39,6 +39,14 @@ herr_t H5ARRAYappend_records( hid_t loc_id,
 			      int extdim,
 			      const void *data );
 
+herr_t H5ARRAYwrite_records( hid_t loc_id, 
+			     const char *dset_name,
+			     const int rank,
+			     hsize_t *start,
+			     hsize_t *step,
+			     hsize_t *count,
+			     const void *data );
+
 herr_t H5ARRAYread( hid_t loc_id, 
 		    const char *dset_name,
 		    hsize_t start,

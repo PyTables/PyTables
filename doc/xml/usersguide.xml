@@ -613,16 +613,13 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
         <subsection id="PrerequisitesSourceDescr">
 	  <heading>Prerequisites</heading>
 
-	  <p>First, make sure that you have at least HDF5 1.6.2 and
-	  numarray 1.0 or higher installed (I'm using HDF5
+	  <p>First, make sure that you have at least HDF5 1.6.3-patch
+	  and numarray 1.1 or higher installed (I'm using HDF5
 	  1.6.3-patch<footnote>Unfortunately, HDF5 1.6.3 was released
 	  with a bug that causes a segmentation fault when an index is
 	  deleted. The 1.6.3-patch and higher versions solve
 	  this.</footnote> and numarray 1.1 currently). If you don't,
-	  you can find them at <url
-	  name="http://hdf.ncsa.uiuc.edu/HDF5"><verb>http://hdf.ncsa.uiuc.edu/HDF5</verb></url>
-	  and <url
-	  name="http://www.stsci.edu/resources/software_hardware/numarray"><verb>http://www.stsci.edu/resources/software_hardware/numarray</verb></url>.
+	  fetch and install them before proceeding.
 	  </p>
 	  <p>
 	    Compile and install these packages (but see <ref
@@ -662,7 +659,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	      </p>
 
 	      <verbatim>
-		--hdf5=/stuff/hdf5-1.6.2
+		--hdf5=/stuff/hdf5-1.6.3
 		--lzo=/stuff/lzo-1.08
 		--ucl=/stuff/ucl-1.03
 	      </verbatim>
@@ -673,11 +670,11 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		find the shared library on the command line as well. 
 		For example:
 		<verbatim>
-		  --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.2/lib"
+		  --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.3/lib"
 		</verbatim>
 		or perhaps just
 		<verbatim>
-		  --rpath="/stuff/hdf5-1.6.2/lib"
+		  --rpath="/stuff/hdf5-1.6.3/lib"
 		</verbatim> 
 		
 		Check your compiler and linker documentation as well as
@@ -901,20 +898,15 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	<subsection id="prerequisitesBinInst">
 	  <heading>Windows prerequisites</heading>
 
-	  <p>First, make sure that you have HDF5 1.6.2 or higher and
-	    numarray 1.0 or higher installed (I'm using HDF5
-	    1.6.3-patch<footnote>Unfortunately, HDF5 1.6.3 was
-	    released with a bug that causes a segmentation fault when
-	    an index is deleted. The 1.6.3-patch and higher versions
-	    solve this. You can find a binary version in
-	    <verb>ftp://hdf.ncsa.uiuc.edu/HDF5/hdf5-1.6.3/src/patches/bin/Win2000.tar.gz</verb></footnote>
-	    and numarray 1.1 currently). If don't, you can find them
-	    at <url
-	    name="http://hdf.ncsa.uiuc.edu/HDF5"><verb>http://hdf.ncsa.uiuc.edu/HDF5</verb></url>
-	    and <url
-	    name="http://www.stsci.edu/resources/software_hardware/numarray"><verb>http://www.stsci.edu/resources/software_hardware/numarray</verb></url>. Download
-	    the binary packages (or sources, if you want to compile
-	    everything yourself) and install them.
+	  <p>First, make sure that you have HDF5
+	  1.6.3-patch<footnote>Unfortunately, HDF5 1.6.3 was released
+	  with a bug that causes a segmentation fault when an index is
+	  deleted. The 1.6.3-patch and higher versions solve this. You
+	  can find a binary version of libraries in
+	  <verb>ftp://hdf.ncsa.uiuc.edu/HDF5/hdf5-1.6.3/src/patches/bin/WinXP-patch.tar.gz</verb></footnote>
+	  or higher and numarray 1.1 or higher installed (I have built
+	  the <verb>PyTables</verb> binaries using HDF5 1.6.3-patch
+	  and numarray 1.1).
           </p>
           <p>For the HDF5 it should be enough to manually copy the
 	    <verb>hdf5dll.dll</verb>, <verb>zlib1.dll</verb> <visual
@@ -922,7 +914,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    a directory in your <verb>PATH</verb> environment variable
 	    (for example <verb>C:\WINDOWS\SYSTEM</verb>).
 	  </p>
-
+<!--
 	  <p><visual markup="bf">Caveat:</visual> When downloading the
 	    binary distribution for HDF5 libraries, select one
 	    compiled with MSVC 6.0, such as the package
@@ -934,7 +926,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    PyTables binary (which has been generated with MSVC
 	    6.0). You have been warned!
 	  </p>
-
+-->
 <!-- 	  <p>Normally, the NCSA team generate binaries that links -->
 <!-- 	    against the Zlib binary libraries that can be found at: -->
 <!-- 	    <url -->
