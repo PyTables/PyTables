@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.81 2004/12/09 13:01:59 falted Exp $
+#       $Id: Array.py,v 1.82 2004/12/15 17:57:45 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.81 $"
+__version__ = "$Revision: 1.82 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -343,11 +343,6 @@ class Array(Leaf, hdf5Extension.Array, object):
 
         """
 
-#	The following restriction is unnecessary: it should work fine for keys == () ...
-#        if self.shape == ():
-#            # Scalar case
-#            raise IndexError, "You cannot read scalar Arrays through indexing. Try using the read() method better."
-
         maxlen = len(self.shape)
         shape = (maxlen,)
         startl = numarray.array(None, shape=shape, type=numarray.Int64)
@@ -379,8 +374,6 @@ class Array(Leaf, hdf5Extension.Array, object):
                 if key < 0:
                     # To support negative values (Fixes bug #968149)
                     key += self.shape[dim]
-#                 start, stop, step = processRangeRead(self.shape[dim],
-#                                                      key, key+1, 1)
                 start, stop, step = processRange(self.shape[dim],
                                                  key, key+1, 1)
                 stop_None[dim] = 1
@@ -427,10 +420,6 @@ class Array(Leaf, hdf5Extension.Array, object):
 
         """
 
-        if self.shape == ():
-            # Scalar case
-            raise IndexError, "You cannot read scalar Arrays through indexing. Try using the read() method better."
-
         maxlen = len(self.shape)
         shape = (maxlen,)
         startl = numarray.array(None, shape=shape, type=numarray.Int64)
@@ -447,9 +436,6 @@ class Array(Leaf, hdf5Extension.Array, object):
         # but this is a bit weird way to pass parameters anyway
         for key in keys:
             ellipsis = 0  # Sentinel
-            if dim >= maxlen:
-                raise IndexError, "Too many indices for object '%s'" % \
-                      self._v_pathname
             if isinstance(key, types.EllipsisType):
                 ellipsis = 1
                 for diml in xrange(dim, len(self.shape) - (nkeys - dim) + 1):
@@ -458,6 +444,9 @@ class Array(Leaf, hdf5Extension.Array, object):
                     stopl[dim] = self.shape[diml]
                     stepl[dim] = 1
                     dim += 1
+            elif dim >= maxlen:
+                raise IndexError, "Too many indices for object '%s'" % \
+                      self._v_pathname
             elif isinstance(key, types.IntType):
                 # Index out of range protection
                 if key >= self.shape[dim]:
@@ -491,18 +480,14 @@ class Array(Leaf, hdf5Extension.Array, object):
         # Create an array compliant with the specified slice
         countl = ((stopl - startl - 1) / stepl) + 1
         if str(self.type) == "CharType":
-            if shape <> []:
-                narr = strings.array(None, itemsize=self.itemsize,
-                                     shape=countl)
-            else:
-                narr = strings.array([""], itemsize=self.itemsize,
-                                     shape=countl)
+            narr = strings.array(None, itemsize=self.itemsize,
+                                 shape=countl)
         else:
             narr = numarray.array(None, shape=countl, type=self.type)
 
         # Assign the value to it
         try:
-            narr[:] = value
+            narr[...] = value
         except:
             (type, value2, traceback) = sys.exc_info()
             raise ValueError, \

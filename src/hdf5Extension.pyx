@@ -6,7 +6,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.151 2004/12/15 13:41:50 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.152 2004/12/15 17:57:44 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.151 $"
+__version__ = "$Revision: 1.152 $"
 
 
 import sys, os
@@ -943,7 +943,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.151 2004/12/15 13:41:50 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.152 2004/12/15 17:57:44 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -2787,7 +2787,7 @@ cdef class Array:
                                start, step, count, rbuf)
     Py_END_ALLOW_THREADS
     if ret < 0:
-      raise RuntimeError("Problems modifying the elements")
+      raise RuntimeError("Internal error modifying the elements (H5ARRAYwrite_records returned errorcode -%i)"%(-ret))
 
   def _truncateArray(self, hsize_t size):
     cdef hsize_t extdim

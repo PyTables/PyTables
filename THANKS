@@ -29,7 +29,7 @@ C99 standard, they are not at the official places in Microsoft VC++
 Jeff Whitaker for providing the initial version of the NetCDF to HDF5
 (nctoh5) utility.
 
-Norbert Nemec for providing some interesting patches.
+Norbert Nemec for providing several interesting patches.
 
 Andrew Straw for suggesting to bracket the most intensive parts of
 PyTables with BEGIN_ALLOW_THREADS and END_ALLOW_THREADS. That will

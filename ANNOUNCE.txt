@@ -43,6 +43,9 @@ Improvements:
   on multiprocessor machines. Thanks to Andrew Straw for suggesting
   this.
 
+- Now, one can modify rank-0 (scalar) EArrays. Thanks to Norbert Nemec
+  for providing a patch for this.
+
 Backward-incompatible changes:
 
 - Now, the deletion and getting of a non-existing attribute raises an

@@ -344,7 +344,8 @@ out:
  *
  * Comments: Uses memory offsets
  *
- * Modifications: 
+ * Modifications: Norbert Nemec for dealing with arrays of zero dimensions
+ *                Date: Wed, 15 Dec 2004 18:48:07 +0100
  *
  *
  *-------------------------------------------------------------------------
@@ -364,51 +365,50 @@ herr_t H5ARRAYwrite_records( hid_t loc_id,
  hid_t    type_id;
  hid_t    space_id;
  hid_t    mem_space_id;
+ herr_t   retval;
 
  /* Open the dataset. */
  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
-  goto out;
+  return -1;
 
  /* Get the datatype */
- if ( (type_id = H5Dget_type( dataset_id )) < 0 )
-  goto out;
+ else if ( (type_id = H5Dget_type( dataset_id )) < 0 )
+  retval = -2;
 
  /* Create a simple memory data space */
- if ( (mem_space_id = H5Screate_simple( rank, count, NULL )) < 0 )
-  return -1;
+ else if ( (mem_space_id = H5Screate_simple( rank, count, NULL )) < 0 )
+  retval = -3;
 
  /* Get the file data space */
- if ( (space_id = H5Dget_space( dataset_id )) < 0 )
-  return -1;
+ else if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+  retval = -4;
 
  /* Define a hyperslab in the dataset */
- if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, start, step, count, NULL) < 0 )
-   goto out;
+ else if ( rank != 0 && H5Sselect_hyperslab( space_id, H5S_SELECT_SET, start, step, count, NULL) < 0 )
+  retval = -5;
 
- if ( H5Dwrite( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
-     goto out;
+ else if ( H5Dwrite( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
+  retval = -6;
 
  /* Terminate access to the dataspace */
- if ( H5Sclose( mem_space_id ) < 0 )
-  goto out;
+ else if ( H5Sclose( mem_space_id ) < 0 )
+  retval = -7;
  
- if ( H5Sclose( space_id ) < 0 )
-  goto out;
+ else if ( H5Sclose( space_id ) < 0 )
+  retval = -8;
  
  /* Release the datatype. */
- if ( H5Tclose( type_id ) < 0 )
-  goto out;
+ else if ( H5Tclose( type_id ) < 0 )
+  retval = -9;
+
+ else
+  retval = 0;
 
  /* End access to the dataset */
  if ( H5Dclose( dataset_id ) < 0 )
-  goto out;
-
-return 0;
-
-out:
- H5Dclose( dataset_id );
- return -1;
-
+  return retval - 10;
+ else
+  return retval;
 }
 
 
