@@ -296,7 +296,8 @@ if __name__=="__main__":
 	cpuapprows = round(cpu2-cpu1, 3)
         tpercent = int(round(cpuapprows/tapprows, 2)*100)
 	print "Rows written:", rowsw, " Row size:", rowsz
-	print "Time appending rows:", tapprows, cpuapprows, tpercent
+	print "Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
+              (tapprows, cpuapprows, tpercent)
 	print "Write rows/sec: ", int(rowsw / float(tapprows))
 	print "Write KB/s :", int(rowsw * rowsz / (tapprows * 1024))
 	
@@ -319,7 +320,8 @@ if __name__=="__main__":
         cpureadrows = round(cpu2-cpu1, 3)
         tpercent = int(round(cpureadrows/treadrows, 2)*100)
 	print "Rows read:", rowsr, " Row size:", rowsz
-	print "Time reading rows:", treadrows, cpureadrows, tpercent
+	print "Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
+              (treadrows, cpureadrows, tpercent)
 	print "Read rows/sec: ", int(rowsr / float(treadrows))
 	print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))
     
