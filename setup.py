@@ -18,7 +18,7 @@ from distutils.dep_util import newer
 # And also put pyrex = 1
 pyrex = 0
 
-VERSION = "0.7.2"
+VERSION = "0.8a"
 
 #----------------------------------------------------------------------
 
@@ -241,6 +241,10 @@ support for them."""
 
     # Set the runtime library search path
     rlib_dirs = lib_dirs
+    # The use of rlib_dirs is avoided, because debian lintian says that
+    # this is not a good practice, although I does not further investigated
+    # that. 2003/09/30
+    rlib_dirs = []
         
     # Set the appropriate flavor hdf5Extension.c source file:
     if pyrex:
@@ -394,7 +398,6 @@ setup(name = 'tables',
       version = VERSION,
       description = 'A hierarchical database for Python',
       long_description = """\
-
 PyTables is a hierarchical database package
 designed to efficently manage very large amounts
 of data. PyTables is built on top of the HDF5
@@ -404,12 +407,13 @@ C-code generated from Pyrex sources, makes of it a
 fast, yet extremely easy to use tool for
 interactively save and retrieve large amounts of
 data.
-
 """,
       
       author = 'Francesc Alted',
       #author_email = 'pytables-users@lists.sourceforge.net',
       author_email = 'falted@openlc.org',
+      maintainer = 'Francesc Alted',
+      maintainer_email = 'falted@openlc.org',
       url = 'http://pytables.sf.net/',
 
       packages = ['tables'],
