@@ -71,6 +71,7 @@ hid_t
       return -1;
    }
 
+   /* printf("Byteorder to save: %s\n", byteorder); */
    /* Set the byteorder datatype */
    if (strcmp(byteorder, "little") == 0) 
      H5Tset_order(type_id, H5T_ORDER_LE);

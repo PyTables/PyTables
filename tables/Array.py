@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.14 2003/02/13 14:17:27 falted Exp $
+#       $Id: Array.py,v 1.15 2003/02/14 20:56:09 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.14 $"
+__version__ = "$Revision: 1.15 $"
 import types, warnings, sys
 from Leaf import Leaf
 import hdf5Extension
@@ -195,6 +195,7 @@ class Array(Leaf, hdf5Extension.Array):
                     # Special case for the shape
                     self.shape = arr.shape
                 else:
+                    # tolist() method creates a list with a sane byteorder
                     arr=Numeric.array(arr.tolist(), typecode=arr.typecode())
             else:
                 # Warn the user

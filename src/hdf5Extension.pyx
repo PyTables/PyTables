@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.19 2003/02/13 14:17:26 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.20 2003/02/14 20:56:05 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.19 $"
+__version__ = "$Revision: 1.20 $"
 
 
 import sys, os.path
@@ -470,7 +470,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.19 2003/02/13 14:17:26 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.20 2003/02/14 20:56:05 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -889,7 +889,18 @@ cdef class Array:
       """Type class '%s' not supported rigth now. Sorry about that.
       """ % repr(arr._type)
       # Convert the array object to a an object with a well-behaved buffer
-      array = <object>NA_InputArray(arr, self.enumtype, C_ARRAY)
+      #array = <object>NA_InputArray(arr, self.enumtype, C_ARRAY)
+      # Do a copy of the array in case is not contiguous or not aligned
+      if not arr.iscontiguous() or not arr.isaligned():
+        array = arr.copy()
+      else:
+        array = arr
+
+      #print arr._byteorder, array._byteorder
+      if arr._byteorder <> array._byteorder:
+        # Change again the byteorder so as to keep the original one
+        # (copy() resets the byteorder to that of the host machine)
+        array.byteswap()
       itemsize = array.type().bytes
       # The next is a trick to avoid a warning in Pyrex
       strcache = array._byteorder

@@ -9,11 +9,12 @@ from numarray import typeDict
 
 from test_all import verbose
 
-class ArrayTestCase(unittest.TestCase):
+class BasicTestCase(unittest.TestCase):
     """Basic test for all the supported typecodes present in Numeric.
     All of them are included on pytables.
     """
-    
+    endiancheck = 0
+
     def setUp(self):
         # Create an instance of HDF5 Table
         self.file = tempfile.mktemp(".h5")
@@ -35,6 +36,9 @@ class ArrayTestCase(unittest.TestCase):
 
 	# Create the array under root and name 'somearray'
 	a = testArray
+        if self.endiancheck and not (isinstance(a, chararray.CharArray)):
+            a.byteswap()
+            pass
         #self.root.somearray = createArray(a, "Some array")
         self.fileh.createArray(self.root, 'somearray', a, "Some array")
 	
@@ -60,10 +64,9 @@ class ArrayTestCase(unittest.TestCase):
 	    print "Array read itemsize:", b.itemsize()
 	    print "Array read type:", b.type()
 
-        # Check the array equality in this way, not as in:
+        # Check the array equality as follows, not as in:
         # assert a == b
         # because the result is not what we want.
-        #print "shape a, b -->", a.shape, b.shape, self.root.somearray.shape
         assert a.shape == b.shape
         assert a.shape == self.root.somearray.shape
         if (isinstance(a, chararray.CharArray)):
@@ -71,137 +74,92 @@ class ArrayTestCase(unittest.TestCase):
         else:
             assert a.type() == b.type()
             assert a.type() == self.root.somearray.typeclass
+            assert a._byteorder == b._byteorder
+            assert a._byteorder == self.root.somearray.byteorder
 	assert a.tolist() == b.tolist()
 	return
     
     def test00_char(self):
         "Checking a character array"
         
-	a = chararray.array(['1', '2', '4'])
+	a = chararray.array(self.tupleChar)
 	self.WriteRead(a)
 	return
 
     def test01_unsignedByte(self):
         "Checking a unsigned byte array"
         
-	a = array([[[-1, -3, -8], [2, 3, 8],[3, 3, 8]],
-		   [[4, 3, 8], [5, 3, 8],[6, 3, 8]],
-		   [[7, 3, 8], [8, 3, 8],[9, 3, 8]],
-		   [[10, 3, 8], [11, 3, 8],[12, 3, 8]],
-		   ], UInt8)
+	a = array(self.tupleInt, UInt8)
 	self.WriteRead(a)
 	return
     
     def test02_signedByte(self):
         "Checking a signed byte array"
         
-	a = array([[[-1, -3, -8], [2, 3, 8],[3, 3, 8]],
-		   [[4, 3, 8], [5, 3, 8],[6, 3, 8]],
-		   [[7, 3, 8], [8, 3, 8],[9, 3, 8]],
-		   [[10, 3, 8], [11, 3, 8],[12, 3, 8]],
-		   ], Int8)
+	a = array(self.tupleInt, Int8)
 	self.WriteRead(a)
 	return
     
     def test03_signedShort(self):
         "Checking a signed short integer array"
                 
-	a = array([[[-1, -3, -8], [2, 3, 8],[3, 3, 8]],
-		   [[4, 3, 8], [5, 3, 8],[6, 3, 8]],
-		   [[7, 3, 8], [8, 3, 8],[9, 3, 8]],
-		   [[10, 3, 8], [11, 3, 8],[12, 3, 8]],
-		   ], Int16)
+	a = array( self.tupleInt, Int16)
 	self.WriteRead(a)
 	return
         
     def test04_unsignedShort(self):
         "Checking an unsigned short integer array"
                 
-	a = array([[[-1, -3, -8], [2, 3, 8],[3, 3, 8]],
-		   [[4, 3, 8], [5, 3, 8],[6, 3, 8]],
-		   [[7, 3, 8], [8, 3, 8],[9, 3, 8]],
-		   [[10, 3, 8], [11, 3, 8],[12, 3, 8]],
-		   ], UInt16)
+	a = array( self.tupleInt, UInt16)
 	self.WriteRead(a)
 	return
         
     def test05_signedInt(self):
         "Checking a signed integer array"
 
-	a = array([[[-1, -3, -8], [2, 3, 8],[3, 3, 8]],
-		   [[4, 3, 8], [5, 3, 8],[6, 3, 8]],
-		   [[7, 3, 8], [8, 3, 8],[9, 3, 8]],
-		   [[10, 3, 8], [11, 3, 8],[12, 3, 8]],
-		   ], Int32)
+	a = array( self.tupleInt, Int32)
 	self.WriteRead(a)
 	return
     
     def test06_unsignedInt(self):
         "Checking an unsigned integer array"
 
-	a = array([[[-1, -3, -8], [2, 3, 8],[3, 3, 8]],
-		   [[4, 3, 8], [5, 3, 8],[6, 3, 8]],
-		   [[7, 3, 8], [8, 3, 8],[9, 3, 8]],
-		   [[10, 3, 8], [11, 3, 8],[12, 3, 8]],
-		   ], UInt32)
+	a = array( self.tupleInt, UInt32)
 	self.WriteRead(a)
 	return
     
     def test07_LongLong(self):
         "Checking a signed long integer array"
 
-	a = array([[[-1, -3, -8], [2, 3, 8],[3, 3, 8]],
-		   [[4, 3, 8], [5, 3, 8],[6, 3, 8]],
-		   [[7, 3, 8], [8, 3, 8],[9, 3, 8]],
-		   [[10, 3, 8], [11, 3, 8],[12, 3, 8]],
-		   ], Int64)
+	a = array( self.tupleInt, Int64)
 	self.WriteRead(a)
 	return
     
     def test07b_unsignedLongLong(self):
         "Checking a unsigned long integer array"
 
-	a = array([[[-1, -3, -8], [2, 3, 8],[3, 3, 8]],
-		   [[4, 3, 8], [5, 3, 8],[6, 3, 8]],
-		   [[7, 3, 8], [8, 3, 8],[9, 3, 8]],
-		   [[10, 3, 8], [11, 3, 8],[12, 3, 8]],
-		   ], UInt64)
+	a = array( self.tupleInt, UInt64)
 	self.WriteRead(a)
 	return
     
     def test08_float(self):
         "Checking a single precision floating point array"
 
-	a = array([[[1.0, 3.5, 8.4], [1.0, 3.5, 8.4],[1.0, 3.5, 8.4]],
-		   [[1.0, 3.5, 8.4], [1.0, 3.5, 8.4],[1.0, 3.5, 8.4]],
-		   [[1.0, 3.5, 8.4], [1.0, 3.5, 8.4],[1.0, 3.5, 8.4]],
-		   [[1.0, 3.5, 8.4], [1.0, 3.5, 8.4],[1.0, 3.5, 8.4]],
-		   [[1.0, 3.5, 8.4], [1.0, 3.5, 8.4],[1.0, 3.5, 8.4]],
-		   ], Float32)
+	a = array( self.tupleInt, Float32)
 	self.WriteRead(a)
 	return
     
     def test09_double(self):
         "Checking a double precision floating point array"
 
-	a = array([[1.0, 3.5, 8.4],
-	           [2.3, 6.6, 4.1],
-		   [2.3, 6.6, 4.1],
-		   [2.3, 6.6, 4.1],
-		   [2.3, 6.6, 4.1],
-		   ], Float64)
+	a = array( self.tupleInt, Float64)
 	self.WriteRead(a)
 	return
 
     def test10_complexSimple(self):
         "Checking a complex floating point array (not supported)"
 
-	a = array([[1.0, 3.5],
-	           [2.3, 6.6],
-		   [2.3, 6.6],
-		   [2.3, 6.6],
-		   [2.3, 6.6],
-		   ], Complex32)
+	a = array( self.tupleInt, Complex32)
         try:
             self.WriteRead(a)
         except TypeError:
@@ -215,12 +173,7 @@ class ArrayTestCase(unittest.TestCase):
     def test11_complexDouble(self):
         "Checking a complex floating point array (not supported)"
 
-	a = array([[1.0, 3.5],
-	           [2.3, 6.6],
-		   [2.3, 6.6],
-		   [2.3, 6.6],
-		   [2.3, 6.6],
-		   ], Complex64)
+	a = array( self.tupleInt, Complex64)
         try:
             self.WriteRead(a)
         except TypeError:
@@ -230,8 +183,40 @@ class ArrayTestCase(unittest.TestCase):
                 print value
         else:
             self.fail("expected an TypeError")
-            
 
+class BasicScalarTestCase(BasicTestCase):
+    # Scalar case
+    tupleInt = 3
+    tupleChar = "3"
+    
+class Basic1DTestCase(BasicTestCase):
+    # 1D case
+    tupleInt = (3, 4, 5)
+    tupleChar = ("aaa", "bbb", "ccc")
+    endiancheck = 1
+    
+class Basic2DTestCase(BasicTestCase):
+    # 2D case
+    tupleInt = array(arange((4)**2), shape=(4,)*2) 
+    tupleChar = chararray.array("abc"*3**2, shape=(3,)*2, itemsize=3)
+    endiancheck = 1
+    
+class Basic10DTestCase(BasicTestCase):
+    # 10D case
+    tupleInt = array(arange((2)**10), shape=(2,)*10)
+    # Chararray seems to cause some problems with somewhat large dimensions
+    # Reverting to 2D case
+    #tupleChar = chararray.array("abc"*2**10, shape=(2,)*10, itemsize=3)
+    tupleChar = chararray.array("abc"*3**3, shape=(3,)*3, itemsize=3)
+    
+class Basic32DTestCase(BasicTestCase):
+    # 32D case (maximum)
+    tupleInt = array((32,), shape=(1,)*32) 
+    # Chararray seems to cause some problems with somewhat large dimensions
+    # Reverting to 2D case
+    #tupleChar = chararray.array("121", shape=(1,)*32, itemsize=3)
+    tupleChar = chararray.array("121"*3**2, shape=(3,)*2, itemsize=3)
+    
 class GroupsArrayTestCase(unittest.TestCase):
     """This test class checks combinations of arrays with groups.
     It also uses arrays ranks which ranges until 10.
@@ -397,7 +382,12 @@ class GroupsArrayTestCase(unittest.TestCase):
 def suite():
     theSuite = unittest.TestSuite()
 
-    theSuite.addTest(unittest.makeSuite(ArrayTestCase))
+    # The scalar case test should be refined in order to work
+    # theSuite.addTest(unittest.makeSuite(BasicScalarTestCase))
+    theSuite.addTest(unittest.makeSuite(Basic1DTestCase))
+    theSuite.addTest(unittest.makeSuite(Basic2DTestCase))
+    theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
+    theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
     theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))
 
     return theSuite

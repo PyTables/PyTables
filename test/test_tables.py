@@ -161,6 +161,7 @@ class BasicWriteTestCase(BasicTestCase):
     pass
 
 class CompressTablesTestCase(BasicTestCase):
+    
     compress = 1
 
 class BigTablesTestCase(BasicTestCase):
