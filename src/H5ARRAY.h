@@ -18,9 +18,9 @@ herr_t H5ARRAYmake( hid_t loc_id,
 		    const char *title,
 		    const char *flavor,
 		    const char *obversion,
-		    int atomic,
 		    const int rank, 
 		    const hsize_t *dims,
+		    int   extdim,
 		    hid_t type_id,
 		    hsize_t chunk_size,	/* New */
 		    void  *fill_data,	/* New */
@@ -34,10 +34,15 @@ herr_t H5ARRAYappend_records( hid_t loc_id,
 			      const int rank,
 			      hsize_t *dims_orig,
 			      hsize_t *dims_new,
+			      int extdim,
 			      const void *data );
 
 herr_t H5ARRAYread( hid_t loc_id, 
 		    const char *dset_name,
+		    hsize_t start,
+		    hsize_t nrows,
+		    hsize_t step,
+		    int extdim,
 		    void *data );
 
 herr_t H5ARRAYget_ndims( hid_t loc_id, 

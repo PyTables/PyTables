@@ -1,6 +1,3 @@
-# Eh! python!, We are going to include isolatin characters here
-# -*- coding: latin-1 -*-
-
 from numarray import *
 from numarray import strings
 from tables import *
@@ -13,35 +10,44 @@ root = fileh.root
 # Create an array
 a = strings.array(['1', '2', '4'])
 # Save it on the HDF5 file
-hdfarray = fileh.createArray(root, 'array_c', a, "Character array")
+hdfarray = fileh.createArray(root, 'array_c', a, "Character array",
+                             extdim=0)
+hdfarray.append(strings.array(['c', 'b', 'c']))
+# The next is legal:
+hdfarray.append(strings.array(['c', 'b', 'c', 'd']))
+# but these are not:
+#hdfarray.append(strings.array([['c', 'b'], ['c', 'd']]))
+#hdfarray.append(array([[1,2,3],[3,2,1]], type=UInt8, shape=(2,1,3)))
 
-# Create other
+# Create other Array
 a = array([-1, 2, 4], Int16)
 # Save it on the HDF5 file
 hdfarray = fileh.createArray(root, 'array_1', a, "Signed byte array")
 
 # Create an empty array
-#a = zeros((2,0,3),type=UInt8)
-a = zeros((2,0,3),type=Bool)
+a = zeros((2,0,3),type=UInt16)
+hdfarray = fileh.createArray(root, 'array_e', a, "Unsigned byte array")
+
+# Create an enlargeable array
+a = zeros((2,0,3),type=UInt8)
 
 #a = [[],[]]  # not supported
+#a = []  # supported (Int32 array)
 # Save it on the HDF5 file
 hdfarray = fileh.createArray(root, 'array_b', a, "Unsigned byte array",
                              compress = 1)
 # Append an array to this table
-hdfarray.append(array([[1,0,1],[0,0,1]], type=Bool, shape=(2,1,3)))
-# hdfarray.append(array([[1,2,3],[3,2,1]], type=UInt8, shape=(2,1,3)))#
-# hdfarray.append([[[1,2,3]],[[3,2,1]]])
-# hdfarray.append(array([[1,2,3],[3,2,1]]*2, type=UInt8, shape=(2,2,3)))
-# hdfarray.append(array([[4,5,6],[6,5,4]], type=UInt8, shape=(2,1,3)))
-# hdfarray.append(array([[7,8,9],[9,8,7]], type=UInt8, shape=(2,1,3)))
+hdfarray.append(array([[1,2,3],[3,2,1]], type=UInt8, shape=(2,1,3)))
+hdfarray.append(array([[1,2,3],[3,2,1],[2,4,6],[6,4,2]],
+                      type=UInt8, shape=(2,2,3))*2)
+# The next should give a type error:
+#hdfarray.append(array([[1,0,1],[0,0,1]], type=Bool, shape=(2,1,3)))
 
 # # Create an empty array with two potentially enlargeable dimensions
 # # that must generate an error
 # a = zeros((2,0,0),type=UInt8)
 # # Save it on the HDF5 file
-# hdfarray = fileh.createArray(root, 'array_d', a, "Unsigned byte array",
-#                              compress = 1)
+# hdfarray = fileh.createArray(root, 'array_d', a, "Unsigned byte array")
 
 # Close the file
 fileh.close()
@@ -55,8 +61,15 @@ a = root.array_c.read()
 print "Character array -->",repr(a), a.shape
 a = root.array_1.read()
 print "Signed byte array -->",repr(a), a.shape
-a = root.array_b.read()
+a = root.array_e.read()
 print "Empty array (yes, this is suported) -->",repr(a), a.shape
+a = root.array_b.read(step=2)
+print "Int8 array, even rows (step = 2) -->",repr(a), a.shape
+
+print "Testing iterator:",
+for x in root.array_b.iterrows(start=2):
+    print "Element-->",x
+
 
 # Close the file
 fileh.close()

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.87 2003/11/28 19:09:40 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.88 2003/12/02 18:37:00 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.87 $"
+__version__ = "$Revision: 1.88 $"
 
 
 import sys, os
@@ -474,19 +474,20 @@ cdef extern from "H5LT.h":
 cdef extern from "H5ARRAY.h":  
 
   herr_t H5ARRAYmake( hid_t loc_id, char *dset_name, char *title,
-                      char *flavor, char *obversion, int atomictype,
-                      int rank, hsize_t *dims, hid_t type_id,
-                      hsize_t chunk_size, void  *fill_data,
-                      int   compress, char  *complib, int shuffle,
+                      char *flavor, char *obversion,
+                      int rank, hsize_t *dims, int extdim,
+                      hid_t type_id, hsize_t chunk_size, void  *fill_data,
+                      int compress, char  *complib, int shuffle,
                       void *data)
 
   herr_t H5ARRAYappend_records( hid_t loc_id, char *dset_name,
                                 int rank, hsize_t *dims_orig,
-                                hsize_t *dims_new, void *data )
+                                hsize_t *dims_new, int extdim, void *data )
 
   herr_t H5ARRAYread( hid_t loc_id, char *dset_name,
-                         void *data )
-
+                      hsize_t start,  hsize_t nrows, hsize_t step,
+                      int extdim, void *data )
+  
   herr_t H5ARRAYget_ndims( hid_t loc_id, char *dset_name, int *rank )
 
   herr_t H5ARRAYget_info( hid_t loc_id, char *dset_name,
@@ -812,7 +813,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.87 2003/11/28 19:09:40 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.88 2003/12/02 18:37:00 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1973,10 +1974,9 @@ cdef class Array:
     flavor = PyString_AsString(self.flavor)
     complib = PyString_AsString(self._v_complib)
     version = PyString_AsString(self._v_version)
-    
     ret = H5ARRAYmake(self.parent_id, self.name, title,
-                      flavor, version, self._v_atomictype, self.rank,
-                      self.dims, self.type_id, self._v_chunksize, rbuf,
+                      flavor, version, self.rank, self.dims, self.extdim,
+                      self.type_id, self._v_chunksize, rbuf,
                       self._v_compress, complib, self._v_shuffle,
                       rbuf)
     if ret < 0:
@@ -1986,6 +1986,36 @@ cdef class Array:
 
     return self.type
     
+  def _append(self, object naarr):
+    cdef int ret, rank
+    cdef hsize_t *dims_arr
+    cdef void *rbuf
+    cdef int buflen
+    cdef object shape
+
+    # Allocate space for the dimension axis info
+    rank = len(naarr.shape)
+    dims_arr = <hsize_t *>malloc(rank * sizeof(hsize_t))
+    # Fill the dimension axis info with adequate info (and type!)
+    for i from  0 <= i < rank:
+        dims_arr[i] = naarr.shape[i]
+        
+    # Get the pointer to the buffer data area
+    if PyObject_AsWriteBuffer(naarr._data, &rbuf, &buflen) < 0:
+      raise RuntimeError("Problems getting the buffer area.")
+
+    # Append the records:
+    ret = H5ARRAYappend_records(self.parent_id, self.name, self.rank,
+                                self.dims, dims_arr, self.extdim, rbuf)
+    free(dims_arr)
+    if ret < 0:
+      raise RuntimeError("Problems appending the records.")
+    # Update the new dimensionality
+    shape = list(self.shape)
+    shape[self.extdim] = self.dims[self.extdim]
+    self.nrows = self.dims[self.extdim]
+    self.shape = tuple(shape)
+    
   def _openArray(self):
     cdef object shape
     cdef size_t type_size, type_precision
@@ -1994,6 +2024,8 @@ cdef class Array:
     cdef char byteorder[16]  # "non-relevant" fits easily here
     cdef int i
     cdef herr_t ret
+    cdef int extdim
+    cdef char flavor[256]
 
     # Get the rank for this array object
     ret = H5ARRAYget_ndims(self.parent_id, self.name, &self.rank)
@@ -2003,6 +2035,17 @@ cdef class Array:
     ret = H5ARRAYget_info(self.parent_id, self.name, self.dims,
                           &self.type_id, &class_id, byteorder)
 
+    ret = H5LTget_attribute_string(self.parent_id, self.name, "FLAVOR", flavor)
+    if ret < 0:
+      strcpy(flavor, "unknown")
+    self.flavor = flavor
+    ret = H5LTget_attribute_int(self.parent_id, self.name, "EXTDIM", &extdim)
+    if ret < 0:
+      # The EXTDIM attribute does not seem to exist
+      self.extdim = -1
+    else:
+      self.extdim = extdim
+    
     # Get the array type
     type_size = getArrayType(self.type_id, &self.enumtype)
     if type_size < 0:
@@ -2033,40 +2076,22 @@ cdef class Array:
 
     return (toclass[self.enumtype], shape, type_size, byteorder)
   
-  def _append(self, object naarr):
-    cdef int ret, rank
-    cdef hsize_t *dims_arr
-    cdef void *rbuf
-    cdef int buflen, ret2
-
-    # Allocate space for the dimension axis info
-    rank = len(naarr.shape)
-    dims_arr = <hsize_t *>malloc(rank * sizeof(hsize_t))
-    # Fill the dimension axis info with adequate info (and type!)
-    for i from  0 <= i < rank:
-        dims_arr[i] = naarr.shape[i]
-        
-    # Get the pointer to the buffer data area
-    if PyObject_AsWriteBuffer(naarr._data, &rbuf, &buflen) < 0:
-      raise RuntimeError("Problems getting the buffer area.")
-
-    # Append the records:
-    ret = H5ARRAYappend_records(self.parent_id, self.name, self.rank,
-                                self.dims, dims_arr, rbuf)
-    if ret < 0:
-      raise RuntimeError("Problems appending the records.")
-
-  def _readArray(self, object buf):
+  def _readArray(self, hsize_t start, hsize_t stop, hsize_t step,
+                 object buf):
     cdef herr_t ret
     cdef void *rbuf
     cdef int buflen, ret2
+    cdef hsize_t nrows
 
     # Get the pointer to the buffer data area
     ret2 = PyObject_AsWriteBuffer(buf, &rbuf, &buflen)
     if ret2 < 0:
       raise RuntimeError("Problems getting the buffer area.")
 
-    ret = H5ARRAYread(self.parent_id, self.name, rbuf)
+    # Number of rows to read
+    nrows = ((stop - start - 1) / step) + 1  # (stop-start)/step  do not work
+    ret = H5ARRAYread(self.parent_id, self.name, start, nrows, step,
+                      self.extdim, rbuf)
     if ret < 0:
       raise RuntimeError("Problems reading the array data.")
 

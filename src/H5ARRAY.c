@@ -38,46 +38,34 @@ herr_t H5ARRAYmake( hid_t loc_id,
 		    const char *title,
 		    const char *flavor,
 		    const char *obversion,    /* The Array VERSION number */
-		    int atomictype,
 		    const int rank, 
 		    const hsize_t *dims,
+		    int   extdim,
 		    hid_t type_id,
-		    hsize_t chunk_size,	/* New */
-		    void  *fill_data,	/* New */
-		    int   compress,	/* New */
-		    char  *complib,	/* New */
-		    int   shuffle,	/* New */
+		    hsize_t chunk_size,
+		    void  *fill_data,
+		    int   compress,
+		    char  *complib,
+		    int   shuffle,
 		    const void *data)
 {
 
  hid_t   dataset_id, space_id, datatype;  
  hsize_t dataset_dims[1] = {1};	/* Only one array initially */
  hsize_t *maxdims = NULL;
- hid_t   plist_id;
  hsize_t *dims_chunk = NULL;
+ hid_t   plist_id;
  unsigned int cd_values[2];
  int     enlargeable = 0;
- int     i, fixedmatsize, extdim;
+ int     i, fixedmatsize;
 
- extdim = -1;   		/* Default is not extensible */
- /* Check for a dimension equal to 0 */
- for(i=0;i<rank;i++) {
-   if (dims[i] == 0) {
-     atomictype = 1;
-     if (chunk_size == 0) {
-       chunk_size = 1024;  	/* A safe default for small arrays */
-     }
-     extdim = i;
-     break;
-   }
- }
- /* If a chunk size greater than zero, the array should be enlargeable */
- if (chunk_size > 0) {
+ /* Check if the array is enlargeable or not */
+ if (extdim >= 0) {
    enlargeable = 1;
  }
 
- fixedmatsize = 1;
  if (enlargeable) {
+   fixedmatsize = 1;
    maxdims = malloc(rank*sizeof(hsize_t));
    dims_chunk = malloc(rank*sizeof(hsize_t));
 
@@ -103,22 +91,12 @@ herr_t H5ARRAYmake( hid_t loc_id,
  }
 
  /* Create the data space for the dataset. */
- if (atomictype) {
-   if ( (space_id = H5Screate_simple( rank, dims, maxdims )) < 0 )
-     return -1;
-   /*
-    * Define atomic datatype for the data in the file.
-    */
-   datatype = type_id;
- }
- else { 
-   if ( (space_id = H5Screate_simple( 1, dataset_dims, maxdims )) < 0)
-     return -1;
-   /*
-    * Define array datatype for the data in the file.
-    */
-   datatype = H5Tarray_create(type_id, rank, dims, NULL); 
- }   
+ if ( (space_id = H5Screate_simple( rank, dims, maxdims )) < 0 )
+   return -1;
+ /*
+  * Define atomic datatype for the data in the file.
+  */
+ datatype = type_id;
 
  if (enlargeable) {
    /* Modify dataset creation properties, i.e. enable chunking  */
@@ -147,8 +125,6 @@ herr_t H5ARRAYmake( hid_t loc_id,
    if (compress) {
      /* The default compressor in HDF5 (zlib) */
      if (strcmp(complib, "zlib") == 0) {
-       /* Modified this to use the compress level stated in compress */
-       /*   if ( H5Pset_deflate( plist_id, 6) < 0 ) */
        if ( H5Pset_deflate( plist_id, compress) < 0 )
 	 return -1;
      }
@@ -178,7 +154,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
 			       space_id, plist_id )) < 0 )
      goto out;
  }  
- else {
+ else {  			/* Not enlargeable case */
    /* Create the dataset. */
    if ((dataset_id = H5Dcreate(loc_id, dset_name, datatype,
 			       space_id, H5P_DEFAULT )) < 0 )
@@ -200,12 +176,6 @@ herr_t H5ARRAYmake( hid_t loc_id,
  /* Terminate access to the data space. */ 
  if ( H5Sclose( space_id ) < 0 )
   return -1;
-
- /* Release the datatype in the case that it is not an atomic type */
- if (!atomictype) {
-   if ( H5Tclose( datatype ) < 0 )
-     return -1;
- }
 
 
 /*-------------------------------------------------------------------------
@@ -231,7 +201,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
 
  /* Attach the EXTDIM attribute */
  if ( H5LTset_attribute_int( loc_id, dset_name, "EXTDIM", &extdim, 1 ) < 0 )
-  goto out;
+   goto out;
 
  /* Release resources */
  if (maxdims)
@@ -279,6 +249,7 @@ herr_t H5ARRAYappend_records( hid_t loc_id,
 			      const int rank,
 			      hsize_t *dims_orig,
 			      hsize_t *dims_new,
+			      int extdim,
 			      const void *data )  
 {
 
@@ -287,7 +258,7 @@ herr_t H5ARRAYappend_records( hid_t loc_id,
  hid_t    space_id;
  hid_t    mem_space_id;
  hsize_t  *dims, *start;
- int      i, extdim;
+ int      i;
 
  /* Open the dataset. */
  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
@@ -297,15 +268,12 @@ herr_t H5ARRAYappend_records( hid_t loc_id,
  if ( (type_id = H5Dget_type( dataset_id )) < 0 )
   goto out;
 
- /* Get the extensible dimension */
- if ( H5LTget_attribute_int( loc_id, dset_name, "EXTDIM", &extdim ) < 0 )
-   goto out;
-
  /* Compute the arrays for new dimensions and coordinates and extents */
  dims = malloc(rank*sizeof(hsize_t));
  start = malloc(rank*sizeof(hsize_t));
  for(i=0;i<rank;i++) {
    dims[i] = dims_orig[i];
+/*    printf("dims_new[%d]: %d\n",i, (int)dims_new[i]); */
    start[i] = 0;
  }
  dims[extdim] += dims_new[extdim];
@@ -376,10 +344,29 @@ out:
 
 herr_t H5ARRAYread( hid_t loc_id, 
 		    const char *dset_name,
+		    hsize_t start,
+		    hsize_t nrows,
+		    hsize_t step,
+		    int extdim,
 		    void *data )
 {
- hid_t   dataset_id;  
- hid_t   type_id;
+ hid_t    dataset_id;  
+ hid_t    space_id;
+ hid_t    mem_space_id;
+ hid_t    type_id;
+ hsize_t  *dims = NULL;
+ hsize_t  *count = NULL;    
+ hsize_t  *stride = NULL;    
+ hssize_t *offset = NULL;
+ int      rank;
+ int      i;
+ int      _extdim;
+
+ /* If dataset is not extensible, choose the first dimension as selectable */
+ if (extdim < 0)
+   _extdim = 0;
+ else
+   _extdim = extdim;
 
  /* Open the dataset. */
  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
@@ -389,15 +376,69 @@ herr_t H5ARRAYread( hid_t loc_id,
  if ( (type_id = H5Dget_type(dataset_id)) < 0 )
      return -1;
  
+  /* Get the dataspace handle */
+ if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+  goto out;
+ 
+ /* Get the rank */
+ if ( (rank = H5Sget_simple_extent_ndims(space_id)) < 0 )
+   goto out;
+
+ /* Book some memory for the selections */
+ dims = (hsize_t *)malloc(rank*sizeof(hsize_t));
+ count = (hsize_t *)malloc(rank*sizeof(hsize_t));
+ stride = (hsize_t *)malloc(rank*sizeof(hsize_t));
+ offset = (hsize_t *)malloc(rank*sizeof(hsize_t));
+
+ /* Get dataset dimensionality */
+ if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
+  goto out;
+
+ if ( start + nrows > dims[_extdim] ) {
+   printf("Asking for a range of rows exceeding the available ones!.\n");
+   goto out;
+ }
+
+ /* Define a hyperslab in the dataset of the size of the records */
+ for (i=0; i<rank;i++) {
+   offset[i] = 0;
+   count[i] = dims[i];
+   stride[i] = 1;
+/*    printf("dims[%d]: %d\n",i, (int)dims[i]); */
+ }
+ offset[_extdim] = start;
+ count[_extdim]  = nrows;
+ stride[_extdim] = step;
+ if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, stride, count, NULL) < 0 )
+  goto out;
+
+ /* Create a memory dataspace handle */
+ if ( (mem_space_id = H5Screate_simple( rank, count, NULL )) < 0 )
+  goto out;
+
  /* Read */
- if (H5Dread(dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data) < 0)
+ if ( H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
+   goto out;
+
+ /* Release resources */
+ free(dims);
+ free(count);
+ free(stride);
+ free(offset);
+
+ /* Terminate access to the memory dataspace */
+ if ( H5Sclose( mem_space_id ) < 0 )
+  goto out;
+
+ /* Terminate access to the dataspace */
+ if ( H5Sclose( space_id ) < 0 )
   goto out;
 
  /* End access to the dataset and release resources used by it. */
  if ( H5Dclose( dataset_id ) )
   return -1;
 
- /* Release resources */
+ /* Close the vlen type */
  if ( H5Tclose(type_id))
    return -1;
 
@@ -405,6 +446,10 @@ herr_t H5ARRAYread( hid_t loc_id,
 
 out:
  H5Dclose( dataset_id );
+ if (dims) free(dims);
+ if (count) free(count);
+ if (stride) free(stride);
+ if (offset) free(offset);
  return -1;
 
 }

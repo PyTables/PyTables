@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.4 2003/11/28 19:09:40 falted Exp $
+#       $Id: VLArray.py,v 1.5 2003/12/02 18:37:00 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.4 $"
+__version__ = "$Revision: 1.5 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -41,7 +41,7 @@ from Leaf import Leaf
 #from utils import calcBufferSize
 import hdf5Extension
 from IsDescription import Col, BoolCol, StringCol, IntCol, FloatCol
-from utils import processRange
+from utils import processRange, convertIntoNA
 
 try:
     import Numeric
@@ -332,7 +332,6 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         self._v_version = obversion
         # Only support for creating objects in system byteorder
         self.byteorder  = sys.byteorder
-        # Special case for Strings (the last value is the string size)
         dtype = self.atom.type
         shape = self.atom.shape
         if dtype == "CharType" or isinstance(dtype, records.Char):
@@ -351,69 +350,23 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         self.shape = (0,)
         self._createArray(self.new_title)
 
-    def _convertIntoNA(self, arr):
-        "Convert a generic object into a numarray object"
-        # Check for Numeric objects
-        if (isinstance(arr, numarray.NumArray) or
-            isinstance(arr, strings.CharArray)):
-            naarr = arr
-        elif (Numeric_imported and type(arr) == type(Numeric.array(1))):
-            if arr.typecode() == "c":
-                # To emulate as close as possible Numeric character arrays,
-                # itemsize for chararrays will be always 1
-                if arr.iscontiguous():
-                    # This the fastest way to convert from Numeric to numarray
-                    # because no data copy is involved
-                    naarr = strings.array(buffer(arr),
-                                          itemsize=1,
-                                          shape=arr.shape)
-                else:
-                    # Here we absolutely need a copy so as to obtain a buffer.
-                    # Perhaps this can be avoided or optimized by using
-                    # the tolist() method, but this should be tested.
-                    naarr = strings.array(buffer(arr.copy()),
-                                          itemsize=1,
-                                          shape=arr.shape)
-            else:
-                if arr.iscontiguous():
-                    # This the fastest way to convert from Numeric to numarray
-                    # because no data copy is involved
-                    naarr = numarray.array(buffer(arr),
-                                           type=arr.typecode(),
-                                           shape=arr.shape)
-                else:
-                    # Here we absolutely need a copy in order
-                    # to obtain a buffer.
-                    # Perhaps this can be avoided or optimized by using
-                    # the tolist() method, but this should be tested.
-                    naarr = numarray.array(buffer(arr.copy()),
-                                           type=arr.typecode(),
-                                           shape=arr.shape)                    
-
-        else:
-            # Test if arr can be converted to a numarray object of the
-            # correct type
-            try:
-#                 print "arr-->", arr
-#                 print "type-->", self.atom.type
-                naarr = numarray.array(arr, type=self.atom.type)
-            # If not, test with a chararray
-            except TypeError:
-                try:
-                    naarr = strings.array(arr)
-                # If still doesn't, issues an error
-                except:
-                    raise TypeError, \
-"""The object '%s' can't be converted into a numarray object of type '%s'. Sorry, but this object is not supported in this context.""" % (arr, self.atom.type)
-
-        # We always want a contiguous buffer
-        # (no matter if has an offset or not; that will be corrected later)
-        if (not naarr.iscontiguous()):
-            # Do a copy of the array in case is not contiguous
-            naarr = numarray.NDArray.copy(naarr)
-
+    def _checkTypeShape(self, naarr):
         # Test that this object is shape and type compliant
-        # deal with scalars or strings
+        # Check for type
+        if not hasattr(naarr, "type"):  # To deal with string objects
+            datatype = records.CharType
+            # Made an additional check for strings
+            if self.atom.itemsize <> naarr.itemsize():
+                raise TypeError, \
+"""The object '%s' has not a base string size of '%s'.""" % \
+(naarr, self.atom.itemsize)
+        else:
+            datatype = naarr.type()
+        if str(datatype) <> str(self.atom.type):
+            raise TypeError, \
+"""The object '%s' is not composed of elements of type '%s'.""" % \
+(arr, self.atom.type)
+
         if len(naarr):
             if hasattr(naarr, "shape") and naarr.shape == self.atom.shape:
                 # Case of only one element
@@ -429,23 +382,10 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
                 if shape <> self.atom.shape:
                     raise TypeError, \
 """The object '%s' is composed of elements with shape '%s', not '%s'.""" % \
-    (arr, shape, self.atom.shape)
+    (naarr, shape, self.atom.shape)
         else:
             self._nobjects = 0
-        if not hasattr(naarr, "type"):  # To deal with string objects
-            datatype = records.CharType
-            # Made an additional check for strings
-            if self.atom.itemsize <> naarr.itemsize():
-                raise TypeError, \
-"""The object '%s' has not a base string size of '%s'.""" % \
-(arr, self.atom.itemsize)
-        else:
-            datatype = naarr.type()
-        if datatype <> self.atom.type:
-            raise TypeError, \
-"""The object '%s' is not composed of elements of type '%s'.""" % \
-(arr, self.atom.type)
-
+        # Ok. all conditions are meet. Return the numarray object
         return naarr
             
     def append(self, *objects):
@@ -462,7 +402,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             else:
                 object = objects
         #print "Objects to append-->", object
-        # Convert the object to a numarray object
+        # Prepare the object to convert it into a numarray object
         if self.atom.flavor == "Object":
             # Special case for a generic object
             # (to be pickled and saved as an array of unsigned bytes)
@@ -480,33 +420,9 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
                 (type, value, traceback) = sys.exc_info()
                 raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, value)
             object = numarray.array(object, type=numarray.UInt8)
-    # Strings Atoms with UString (unicode strings) flavor can't be safely
-    # supported because the strings can be cut in the middle of a utf-8
-    # codification and that can lead to errors like:
-    #     >>> print 'a\xc3'.decode('utf-8')
-    # Traceback (most recent call last):
-    #   File "<stdin>", line 1, in ?
-    # UnicodeDecodeError: 'utf8' codec can't decode byte 0xc3 in position 1: unexpected end of data
-
-#         elif self.atom.flavor == "UString":
-#             # Special case for a generic object
-#             # (to be pickled and saved as an array of unsigned bytes)
-#             out = []
-#             for strobject in object:
-#                 if not (isinstance(strobject, types.StringType) or
-#                         isinstance(strobject, types.UnicodeType)):
-#                     raise TypeError, \
-# """The object "%s" is not of type String or Unicode.""" % (str(strobject))
-#                 try:
-#                     out.append(strobject.encode('utf-8'))
-#                 except:
-#                     (type, value, traceback) = sys.exc_info()
-#                     raise ValueError, \
-# """Problems when converting the object '%s' to the encoding 'utf-8'.
-#   The error was: %s" % (strobject, value)
-#             object = strings.array(out)
             
-        naarr = self._convertIntoNA(object)
+        naarr = convertIntoNA(object, self.atom.type)
+        self._checkTypeShape(naarr)
         if self._append(naarr, self._nobjects) > 0:
             self.nrows += 1
             self.shape = (self.nrows,)
@@ -622,11 +538,6 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             arr = arr.tolist()
         elif self.flavor == "String":
             arr = arr.tolist()
-#         elif self.flavor == "UString":
-#             out = []
-#             for str in tuple(arr):
-#                 out.append(str.decode('utf-8'))
-#             arr = tuple(out)
         elif self.flavor == "VLString":
             arr = arr.tostring().decode('utf-8')
         elif self.flavor == "Object":

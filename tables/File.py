@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.56 2003/11/19 18:07:46 falted Exp $
+#       $Id: File.py,v 1.57 2003/12/02 18:37:00 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.56 $"
+__version__ = "$Revision: 1.57 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays
@@ -424,8 +424,7 @@ class File(hdf5Extension.File, object):
 
     
     def createArray(self, where, name, object,
-                    title = "", atomictype = 1,
-                    enlargeable = 0, compress = 0,
+                    title = "", extdim = -1, compress = 0,
                     complib = "zlib", shuffle = 0,
                     expectedobjects = 1000):
         
@@ -443,19 +442,18 @@ class File(hdf5Extension.File, object):
         object -- The (regular) object to be saved. It can be any of
             NumArray, CharArray, Numeric, List, Tuple, String, Int of
             Float types, provided that they are regular (i.e. they are
-            not like [[1,2],2]).
+            not like [[1,2],2]). One of its dimensions can be 0, and
+            that will mean that the resulting Array object can be
+            extended along this dimension. Multiple enlargeable
+            dimensions are not supported right now.
 
         title -- Sets a TITLE attribute on the array entity.
 
-        atomictype -- is a boolean that specifies the underlying HDF5
-            type; if 1 an atomic data type (i.e. it can't be
-            decomposed in smaller types) is used; if 0 an HDF5 array
-            datatype is used. Note: using an atomic type is not
-            compatible with an enlargeable Array (see above).
-
-        enlargeable -- a boolean specifying whether the Array object
-            could be enlarged or not by appending more elements like
-            "object" ones.
+        extdim -- an integer specifying which dimension of the Array
+            object can be extended by appending more elements like
+            "object" ones. 0 means the first dimension, 1 the second,
+            and so on. -1 means that the Array object will be not
+            enlargeable.
 
         compress -- Specifies a compress level for data. The allowed
             range is 0-9. A value of 0 disables compression and this
@@ -481,13 +479,10 @@ class File(hdf5Extension.File, object):
             """
 
         group = self.getNode(where, classname = 'Group')
-        if compress and not enlargeable:
-            # compression is supported only with enlargeable arrays
-            enlargeable = 1
         if shuffle and not compress:
             # Shuffling and not compressing makes not sense
             shuffle = 0
-        Object = Array(object, title, atomictype, enlargeable,
+        Object = Array(object, title, extdim,
                        compress, complib, shuffle, expectedobjects)
         setattr(group, name, Object)
         return Object
@@ -538,6 +533,9 @@ class File(hdf5Extension.File, object):
         if vlatom == None:
                 raise ValueError, \
                       "vlatom argument should be not 'None'."
+        if shuffle and not compress:
+            # Shuffling and not compressing makes not sense
+            shuffle = 0
         Object = VLArray(vlatom, title, compress, complib, shuffle,
                          expectedsizeinMB)
         setattr(group, name, Object)

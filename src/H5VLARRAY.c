@@ -190,8 +190,6 @@ herr_t H5VLARRAYmake( hid_t loc_id,
  if (compress) {
    /* The default compressor in HDF5 (zlib) */
    if (strcmp(complib, "zlib") == 0) {
-     /* Modified this to use the compress level stated in compress */
-     /*   if ( H5Pset_deflate( plist_id, 6) < 0 ) */
      if ( H5Pset_deflate( plist_id, compress) < 0 )
        return -1;
    }
@@ -398,8 +396,6 @@ herr_t H5VLARRAYread( hid_t loc_id,
  hid_t    xfer_pid;   /* Dataset transfer property list ID */
  hsize_t  size;       /* Number of bytes which will be used */
  size_t   mem_used=0; /* Memory used during allocation */
- int      i, *j;
- int      rank;
 
  /* Open the dataset. */
  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
@@ -445,7 +441,7 @@ herr_t H5VLARRAYread( hid_t loc_id,
  if ( (mem_space_id = H5Screate_simple( 1, count, NULL )) < 0 )
   goto out;
 
- /* All these possibilities do work: */
+ /* These two possibilities do work: */
  if ( H5Dread( dataset_id, type_id, mem_space_id, space_id, xfer_pid, data ) < 0 )
 /*  if ( H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 ) */
   goto out;
