@@ -400,7 +400,21 @@ def find_name(base = 'tables'):
         sys.argv.remove('--name-with-python-version')
     return name
 
+
 name = find_name()
+
+classifiers = """\
+Development Status :: 5 - Production/Stable
+Intended Audience :: Developers
+Intended Audience :: Information Technology
+Intended Audience :: Science/Research
+License :: OSI Approved :: BSD License
+Programming Language :: Python
+Topic :: Database
+Topic :: Software Development :: Libraries :: Python Modules
+Operating System :: Microsoft :: Windows
+Operating System :: Unix
+"""
 setup(name = name,
       version = VERSION,
       description = 'Hierarchical datasets for Python',
@@ -417,7 +431,7 @@ interactively save and retrieve large amounts of
 data.
 
 """,
-      
+      classifiers = filter(None, classifiers.split("\n")),
       author = 'Francesc Altet',
       author_email = 'falted@pytables.org',
       maintainer = 'Francesc Altet',
