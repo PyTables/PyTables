@@ -3,7 +3,7 @@
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" id="usage"><a name="usage"></a><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2002-11-15T18:10:02Z"><meta name="Date" content="2002-11-15T18:10:02Z"><meta name="DC.Rights" content="(c) 2002 Francesc Alted"><meta name="Copyright" content="(c) 2002 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2003-03-17T19:55:03+01:00"><meta name="Date" content="2003-03-17T19:55:03+01:00"><meta name="DC.Rights" content="(c) 2003 Francesc Alted"><meta name="Copyright" content="(c) 2003 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -128,12 +128,19 @@
 	let you understand the main features that
 	<tt class="verb">PyTables</tt> provide. If during the trip you want
 	more information on some specific instance variable, global
-	function or method, go to the library reference in <a href="usersguide-html4.html#libraryReference">chapter&nbsp;4</a>. However, if you are
+	function or method, look at the doc strings or go to the
+	library reference in <a href="usersguide-html4.html#libraryReference">chapter&nbsp;4</a>. However, if you are
 	reading this in PDF or HTML formats, there should be an
-	hyperlink to its reference near each new introduced
+	hyperlink to its reference near each newly introduced
 	entity. Finally, you can get deeper knowledge of
 	<tt class="verb">PyTables</tt> internals by reading the last section
 	(<a href="#optimizationTips">3.4</a>) in this chapter.
+      </p>
+
+      <p>Please, note that throughout this document the terms
+	<em>column</em> and <em>field</em> will be used
+	interchangeably with the same meaning, and the same goes for
+	the terms <em>row</em> and <em>record</em>.
       </p>
 
       <div>
@@ -147,18 +154,20 @@
 	</p>
 	<p>
 	  In <em>examples/tutorial1-1.py</em> you will find the
-	  working version of all the code in this section. However,
-	  this tutorial series has been written to allow you reproduce
-	  it in a Python interactive console. You are encouraged to
-	  take advantage of that by doing parallel testing and
-	  inspecting the created objects during the voyage!.
+	  working version of all the code in this
+	  section. Nonetheless, this tutorial series has been written
+	  to allow you reproduce it in a Python interactive
+	  console. You are encouraged to take advantage of that by
+	  doing parallel testing and inspecting the created objects
+	  (variables, docs, children objects, etc.) during the
+	  voyage!.
 	</p>
 
 	<div>
 	  <h3><span class="headlinenumber" id="subsection3.1.1"><a name="subsection3.1.1"></a>3.1.1 </span>Importing <tt>tables</tt>
 	    objects</h3>
 	  
-	  <p class="first">Before to do anything you need to import the
+	  <p class="first">Before doing anything you need to import the
 	    public objects in the <tt class="verb">tables</tt> package. You
 	    normally do that by issuing:
 	  </p>
@@ -166,7 +175,7 @@
 &gt;&gt;&gt; import tables
 &gt;&gt;&gt;
 	  </pre>
-	  <p>That is the recommended way to import <tt class="verb">tables</tt>
+	  <p>This is the recommended way to import <tt class="verb">tables</tt>
 	    if you don't want to pollute too much your
 	    namespace. However, <tt class="verb">PyTables</tt> has a very
 	    reduced set of first-level primitives, so you may consider
@@ -176,33 +185,34 @@
 &gt;&gt;&gt; from tables import *
 &gt;&gt;&gt;
 	  </pre>
-	  <p>which will export in your caller application namespace the
+	  <p>that will export in your caller application namespace the
 	    next objects: <tt class="verb">openFile</tt>, <tt class="verb">isHDF5</tt>,
 	    <tt class="verb">isPyTablesFile</tt> and
-	    <tt class="verb">IsRecord</tt>. These are a rather small number of
-	    objects, and for commodity we will use this last way to
-	    access them.
+	    <tt class="verb">IsDescription</tt>. These are a rather small number
+	    of objects, and for convenience, we will use this last way
+	    to access them.
 	  </p>
-	  <p>If you are going to deal with <tt class="verb">Numeric</tt> arrays
-	    (and normally, you will) you also need to import some
-	    objects from it. You can do that in the normal way. So, to
-	    access to <tt class="verb">PyTables</tt> functionality normally you
-	    should start you programs with:
+	  <p>If you are going to deal with <tt class="verb">Numeric</tt> or
+	    <tt class="verb">numarray</tt> arrays (and normally, you will) you
+	    also need to import some objects from it. You can do that
+	    in the normal way. So, to access to <tt class="verb">PyTables</tt>
+	    functionality normally you should start you programs with:
 	  </p>
 	  <pre>
-&gt;&gt;&gt; from tables import *
-&gt;&gt;&gt; from Numeric import *
+&gt;&gt;&gt; import tables        # but in this tutorial we use "from tables import *"
+&gt;&gt;&gt; from Numeric import *  # or "from numarray import *"
 &gt;&gt;&gt;
 	  </pre>
-
 	</div>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection3.1.2"><a name="subsection3.1.2"></a>3.1.2 </span>Declaring a Record</h3>
+	  <h3><span class="headlinenumber" id="subsection3.1.2"><a name="subsection3.1.2"></a>3.1.2 </span>Declaring a Column Descriptor</h3>
 
 	  <p class="first">Now, imagine that we have a particle detector and we want
-	    to declare a record object in order to save data that
-	    comes from it.
+	    to create a table object in order to save data that comes
+	    from it. You need first to define that table, how many
+	    columns it have, which kind of object is each element on
+	    the columns, and so on.
 	  </p>
 	  <p>Our detector has a TDC (Time to Digital Converter)
 	    counter with a dynamic range of 8 bits and an ADC
@@ -224,44 +234,41 @@
 	    a couple of fields: <tt class="verb">name</tt> will be the a string
 	    of up-to 16 characters and because we want to deal with a
 	    really huge number of particles, <tt class="verb">idnumber</tt>
-	    will be an integer of 64-bits.
+	    will be an integer of 64 bits.
 	  </p>
 	  <p>With all of that, we can declare a new
 	    <tt class="verb">Particle</tt> class that will keep all this info:
 	  </p>
 
 	  <pre>
-&gt;&gt;&gt; class Particle(IsRecord):
-...     name        = '16s'  # 16-character String
-...     idnumber    = 'Q'    # unsigned long long (i.e. 64-bit integer)
-...     TDCcount    = 'B'    # unsigned byte
-...     ADCcount    = 'H'    # unsigned short integer
-...     grid_i      = 'i'    # integer
-...     grid_j      = 'i'    # integer
-...     pressure    = 'f'    # float  (single-precision)
-...     energy      = 'd'    # double (double-precision)
-... 
-&gt;&gt;&gt; 
+&gt;&gt;&gt; class Particle(IsDescription):
+...     name      = Col("CharType", 16)  # 16-character String
+...     idnumber  = Col("UInt64", 1)     # Unsigned long long
+...     ADCcount  = Col("UInt16", 1)     # Unsigned short integer
+...     TDCcount  = Col("UInt8", 1)      # unsigned byte
+...     grid_i    = Col("Int32", 1)      # integer
+...     grid_j    = Col("Int32", 1)      # integer
+...     pressure  = Col("Float32", 1)    # float  (single-precision)
+...     energy    = Col("Float64", 1)    # double (double-precision)
+...
+&gt;&gt;&gt;
 	  </pre>
 	  <p>This definition class is quite
 	    auto-explanatory. Basically, you have to declare a class
-	    variable for each field you need, and as its value you put
-	    the typecode for this data field. See <a href="usersguide-html5.html#datatypesSupported">appendix&nbsp;A</a> for a list of
-	    typecodes supported in record classes
-	    (<tt class="verb">IsRecord</tt> descendants).
+	    variable for each field you need, and as its value we
+	    assign a <tt class="verb">Col</tt> instance, that takes as
+	    arguments the data type and the number of items on each
+	    column element (in fact, the <tt class="verb">Col()</tt>
+	    constructor accepts a few more arguments, see <a href="usersguide-html4.html#ColClassDescr">section&nbsp;4.3</a> for a detailed
+	    descrition). See <a href="usersguide-html5.html#datatypesSupported">appendix&nbsp;A</a> for a list of
+	    data types supported in <tt class="verb">Col</tt> constructors.
 	  </p>
 	  <p>From now on, we can use <tt class="verb">Particle</tt> instances
-	    as a container for our detector data and, as you will see
-	    shortly, we will benefit of some magic properties
-	    associated with these instances derived from the fact that
-	    they are descendants from the class
-	    <tt class="verb">IsRecord</tt><a href="#footnote5" name="footnoteback5"><sup>5)</sup></a>.
-	  </p>
-
-	  <p>In order to do something useful with this record we need
-	    to attach it to a <tt class="verb">Table</tt> object. But first, we
-	    must create a file where all the actual data pushed into
-	    <tt class="verb">Table</tt> will be saved.
+	    as a descriptor for our detector data table. We will see
+	    how to pass this object to the <tt class="verb">Table</tt>
+	    constructor. But first, we must create a file where all
+	    the actual data pushed into <tt class="verb">Table</tt> will be
+	    saved.
 	  </p>
 
 	</div>
@@ -270,7 +277,7 @@
 	  <h3><span class="headlinenumber" id="subsection3.1.3"><a name="subsection3.1.3"></a>3.1.3 </span>Creating a <tt>PyTables</tt> file from scratch</h3>
 
 	  <p class="first">To create a <tt class="verb">PyTables</tt> file use the
-	    first-level <tt class="verb">openFile</tt> (see <a href="usersguide-html4.html#GlobalFunctionsDescr">4.1.2</a>) function:
+	    first-level <tt class="verb">openFile</tt> (see <a href="#openFileDescr"><strong>??</strong></a>) function:
 	  </p>
 
 	  <pre>
@@ -280,10 +287,10 @@
 	    by the "<tt class="verb">from tables import *</tt>", do you
 	    remember?. Here, we are telling that we want to create a
 	    new file called "<tt class="verb">tutorial1.h5</tt>" in
-	    "<tt class="verb">w</tt>"rite mode and with an informative title
+	    "<tt class="verb">w</tt>"rite mode and with an descriptive title
 	    string ("<tt class="verb">Test file</tt>"). This function tries to
 	    open the file, and if successful, returns a
-	    <tt class="verb">File</tt> (see <a href="usersguide-html4.html#FileClassDescr">4.3</a>)
+	    <tt class="verb">File</tt> (see <a href="usersguide-html4.html#FileClassDescr">4.4</a>)
 	    instance which hosts the root of the object tree on its
 	    <tt class="verb">root</tt> attribute.
 	  </p>
@@ -303,11 +310,11 @@
 
 	  <p>Here, we have taken the <tt class="verb">File</tt> instance
 	    <tt class="verb">h5file</tt> and invoked its
-	    <tt class="verb">createGroup</tt> method (see<a href="usersguide-html4.html#FileMethodsDescr">4.3.2</a>), telling that we want to
+	    <tt class="verb">createGroup</tt> method (see<a href="#createGroupDescr"><strong>??</strong></a>), telling that we want to
 	    create a new group called <em>detector</em> hanging from
 	    "<em>/</em>", which is other way to refer to the
 	    <tt class="verb">h5file.root</tt> object we mentioned before. This
-	    will create a new <tt class="verb">Group</tt> (see<a href="usersguide-html4.html#GroupClassDescr">4.4</a>) instance that will be
+	    will create a new <tt class="verb">Group</tt> (see<a href="usersguide-html4.html#GroupClassDescr">4.5</a>) instance that will be
 	    assigned to the <tt class="verb">group</tt> variable.
 	  </p>
 
@@ -315,76 +322,131 @@
 	<div>
 	  <h3><span class="headlinenumber" id="subsection3.1.5"><a name="subsection3.1.5"></a>3.1.5 </span>Creating a new table</h3>
 
-	  <p class="first">Let's now create the <tt class="verb">Table</tt> (see <a href="usersguide-html4.html#TableClassDescr">4.6</a>) object hanging from the new
+	  <p class="first">Let's now create the <tt class="verb">Table</tt> (see <a href="usersguide-html4.html#TableClassDescr">4.7</a>) object hanging from the new
 	    created group. We do that by calling the
-	    <tt class="verb">createTable</tt> (see <a href="usersguide-html4.html#FileMethodsDescr">4.3.2</a>) method from the
+	    <tt class="verb">createTable</tt> (see <a href="#createTableDescr"><strong>??</strong></a>) method from the
 	    <tt class="verb">h5file</tt> object:
 	  </p>
 	  <pre>
-&gt;&gt;&gt; table = h5file.createTable(group, 'readout', Particle(), "Readout example")
+&gt;&gt;&gt; table = h5file.createTable(group, 'readout', Particle, "Readout example")
 &gt;&gt;&gt;
 	  </pre>
 
 	  <p>You can see how we asked to create the <tt class="verb">Table</tt>
 	    instance hanging from <tt class="verb">group</tt>, with name
-	    <em>'readout'</em>. As the record object we have passed an
-	    instance of Particle, the class that we have declared
-	    before, and finally we attach it a "<em>Readout
-	    example</em>" title. With all this information, a new
-	    <tt class="verb">Table</tt> instance is created and assigned to
-	    <tt class="verb">table</tt> variable.
+	    <em>'readout'</em>. We have passed <tt class="verb">Particle</tt>,
+	    the class that we have declared before, as the
+	    <em>description</em> parameter and finally we have used
+	    "<em>Readout example</em>" as a <tt class="verb">Table</tt>
+	    title. With all this information, a new <tt class="verb">Table</tt>
+	    instance is created and assigned to <em>table</em>
+	    variable.
 	  </p>
 
-	  <p>Now, time to fill this table with some values. But first,
-	    we want to get a pointer to the record object in this
-	    <tt class="verb">table</tt> instance:
+	  <p>If you are getting curious how the object tree looks like
+	    at this moment, simply print the name of the
+	    <tt class="verb">File</tt> instance, <em>h5file</em>, and look at
+	    their output:
 	  </p>
+
 	  <pre>
-&gt;&gt;&gt; particle = table.record
+&gt;&gt;&gt; print h5file
+Filename: tutorial1.h5 'Test file'
+/ (Group) 'Test file'
+/detector (Group) 'Detector information'
+/detector/readout Table(0,) 'Readout example'
+
 &gt;&gt;&gt;
 	  </pre>
 
-	  <p>The <tt class="verb">record</tt> attribute of <tt class="verb">table</tt>
-	    points to the <tt class="verb">Particle</tt> instance used to
-	    create the table, and we assign it to the
-	    <tt class="verb">particle</tt> variable that will be used as a
-	    shortcut. This step is not really necessary, but helps to
-	    code legibility (and allows me to introduce the
-	    <tt class="verb">record</tt> attribute).
-	  </p>
-
-	  <p>We can proceed right now to the filling process:
+	  <p>As you can see, a dump of the object tree has been shown
+	    and it's very easy to visualize the <tt class="verb">Group</tt> and
+	    <tt class="verb">Table</tt> objects we have just created. If you
+	    want more information, just type the name of the
+	    <tt class="verb">File</tt> instance:
 	  </p>
 
 	  <pre>
+&gt;&gt;&gt; h5file
+&gt;&gt;&gt; h5file
+Filename: tutorial1.h5 'Test file'
+  mode = 'w'
+  trMap = {}
+/ (Group) 'Test file'
+/detector (Group) 'Detector information'
+/detector/readout Table(0,) 'Readout example'
+  description = {
+    'ADCcount': Col('UInt16', (1,)),
+    'TDCcount': Col('UInt8', (1,)),
+    'energy': Col('Float64', (1,)),
+    'grid_i': Col('Int32', (1,)),
+    'grid_j': Col('Int32', (1,)),
+    'idnumber': Col('UInt64', (1,)),
+    'name': Col('CharType', (16,)),
+    'pressure': Col('Float32', (1,)) }
+  byteorder = little
+
+&gt;&gt;&gt;
+	  </pre>
+
+	  <p>where more detailed info is printed on each object on the
+	    tree. Pay attention on how <tt class="verb">Particle</tt>, our
+	    column descriptor class, is printed as part of the
+	    <em>readout</em> table description information. In
+	    general, you can obtain lot of information on the objects
+	    and its children by just printing them. That introspection
+	    capability is quite powerful, so I recommend you to use it
+	    extensively.
+	  </p>
+
+	  <p>Now, time to fill this table with some values. But first,
+	    we are going to get a pointer to the <tt class="verb">Row</tt>
+	    instance of this <tt class="verb">table</tt> instance:
+	  </p>
+	  <pre>
+&gt;&gt;&gt; particle = table.row
+&gt;&gt;&gt;
+	  </pre>
+
+	  <p>The <tt class="verb">row</tt> attribute of <tt class="verb">table</tt>
+	    points to the <tt class="verb">Row</tt> (see <a href="usersguide-html4.html#RowClassDescr">4.8</a>) instance that will be used
+	    to input data rows into the table. We achieve this by just
+	    assigning it the values for each row as if it was a
+	    dictionary (although it is actually an <em>extension
+	    class</em>) and using the column names as keys.
+	  </p>
+
+	  <p>Look at how the filling process works like:
+	  </p>
+
+	  <pre>
+&gt;&gt;&gt; particle = table.row
 &gt;&gt;&gt; for i in xrange(10):
-...     # First, assign the values to the Particle record
-...     particle.name  = 'Particle: %6d' % (i)
-...     particle.TDCcount = i % 256    
-...     particle.ADCcount = (i * 256) % (1 &lt;&lt; 16)
-...     particle.grid_i = i 
-...     particle.grid_j = 10 - i
-...     particle.pressure = float(i*i)
-...     particle.energy = float(particle.pressure ** 4)
-...     particle.idnumber = i * (2 ** 34)  # This exceeds long integer range
+...     particle['name']  = 'Particle: %6d' % (i)
+...     particle['TDCcount'] = i % 256
+...     particle['ADCcount'] = (i * 256) % (1 &lt;&lt; 16)
+...     particle['grid_i'] = i
+...     particle['grid_j'] = 10 - i
+...     particle['pressure'] = float(i*i)
+...     particle['energy'] = float(particle['pressure'] ** 4)
+...     particle['idnumber'] = i * (2 ** 34)
 ...     # Insert a new particle record
-...     table.appendAsRecord(particle)      
+...     particle.append()
 ...
-&gt;&gt;&gt; 
+&gt;&gt;&gt;
 	  </pre>
 	  
 	  <p>This code is quite easy to understand. The lines inside
-	    the loop just assigned values to the <tt class="verb">particle</tt>
-	    record object and then a call to the
-	    <tt class="verb">appendAsRecord</tt> (see <a href="usersguide-html4.html#TableMethodsDescr">4.6.2</a>) method of
-	    <tt class="verb">table</tt> instance is made to put this
+	    the loop just assign values to the different columns in
+	    the <tt class="verb">particle</tt> row object and then a call to
+	    its <tt class="verb">append()</tt> (see <a href="usersguide-html4.html#RowClassDescr">4.8</a>) method is made to put this
 	    information in the <tt class="verb">table</tt> I/O buffer.
 	  </p>
 
-	  <p>After we have filled all our data, we should flush the
+	  <p>After we have pushed all our data, we should flush the
 	    I/O buffer for the table if we want to consolidate all
-	    this data on disk. We do that by calling the
-	    <tt class="verb">table</tt> <tt class="verb">flush</tt> method.
+	    this data on disk. We can achieve that by calling the
+	    <tt class="verb">table.flush()</tt> method.
 	  </p>
 	  <pre>
 &gt;&gt;&gt; table.flush()
@@ -403,8 +465,10 @@
 	  </p>
 	  <pre>
 &gt;&gt;&gt; table = h5file.root.detector.readout
-&gt;&gt;&gt; pressure = [ x.pressure for x in table.readAsRecords()
-...                  if x.TDCcount &gt; 3 and x.pressure &lt; 50 ]
+&gt;&gt;&gt; pressure = [ x['pressure'] for x in table.iterrows()
+...              if x['TDCcount'] &gt; 3 and x['pressure'] &lt; 50 ]
+&gt;&gt;&gt; pressure
+[16.0, 25.0, 36.0, 49.0]
 &gt;&gt;&gt;
 	  </pre>
 
@@ -412,36 +476,38 @@
 	    to the <em>readout</em> table which is a bit deeper on the
 	    object tree. As you can see, we have used the <b>natural naming</b> schema to access
 	    it. We could also have used the
-	    <tt class="verb">h5file.getNode</tt> method instead, and we
-	    certainly do that later on.
+	    <tt class="verb">h5file.getNode()</tt> method instead, and we
+	    will certainly do that later on.
 	  </p>
 
 	  <p>The last two lines are a Python comprehensive list. It
-	    loops on records returned by <br>
-	    <tt class="verb">table.readAsRecords()</tt> (see <a href="usersguide-html4.html#TableMethodsDescr">4.6.2</a>) iterator that returns
-	    values until table data is exhausted. This records are
-	    filtered using the expression <tt class="verb">x.TDCcount &gt; 3 and
-	    x.pressure &lt; 50</tt>, and the <tt class="verb">pressure</tt>
-	    field for satisfying records is selected to form the final
-	    list that is assigned to <tt class="verb">pressure</tt> variable.
+	    loops over rows in <em>table</em> as they are provided by
+	    <tt class="verb">table.iterrows()</tt> iterator (see <a href="#iterrowsDescr"><strong>??</strong></a>) that returns values until
+	    data in table is exhausted. This rows are filtered using
+	    the expression <tt class="verb">x['TDCcount'] &gt; 3 and x['pressure']
+	    &lt; 50</tt>, and the <tt class="verb">pressure</tt> field for
+	    satisfying records is selected to form the final list that
+	    is assigned to <tt class="verb">pressure</tt> variable.
 	  </p>
 
-	  <p>We could have used a normal <tt class="verb">for</tt> loop to do
-	    that, but I find comprehension syntax more compact and
-	    elegant (and faster to execute!).
+	  <p>We could indeed have used a normal <tt class="verb">for</tt> loop
+	    to do that, but I find comprehension syntax more compact
+	    and elegant.
 	  </p>
 
 	  <p>Let's select the names for the same set of particles:
 	  </p>
 
 	  <pre>
-&gt;&gt;&gt; names = [ x.name for x in table.readAsRecords()
-...               if x.TDCcount &gt; 3 and x.pressure &lt; 50 ]
+&gt;&gt;&gt; names = [ x['name'] for x in table.iterrows()
+...           if x['TDCcount'] &gt; 3 and x['pressure'] &lt; 50 ]
+&gt;&gt;&gt; names
+['Particle:      4', 'Particle:      5', 'Particle:      6', 'Particle:      7']
 &gt;&gt;&gt;
 	  </pre>
 
 	  <p>Ok. that's enough for selections. Next section will show
-	    you how save these selections on file.
+	    you how to save these selections on file.
 	  </p>
 
 	</div>
@@ -464,42 +530,74 @@
 	    instead of using an absolute path string ("/").
 	  </p>
 
-	  <p>Now, create the <tt class="verb">Array</tt> objects on file:
+	  <p>Now, create one <tt class="verb">Array</tt> object:
 	  </p>
 
 	  <pre>
 &gt;&gt;&gt; h5file.createArray(gcolumns, 'pressure', array(pressure),
 ...                    "Pressure column selection")
-&lt;tables.Array.Array object at 0x8217cac&gt;
-&gt;&gt;&gt; h5file.createArray('/columns', 'name', array(names), 
-...                    "Name column selection")
-&lt;tables.Array.Array object at 0x814c3dc&gt;
-&gt;&gt;&gt;
+/columns/pressure Array(4,) 'Pressure column selection'
+  type = 'Float64'
+  itemsize = 8
+  flavor = 'Numeric'
+  byteorder = 'little'
 	  </pre>
 
 	  <p>We already know the first two parameters of the
-	    <tt class="verb">createArray</tt> (see <a href="usersguide-html4.html#FileMethodsDescr">4.3.2</a>) methods (these are the
+	    <tt class="verb">createArray</tt> (see <a href="#createArrayDescr"><strong>??</strong></a>) methods (these are the
 	    same as the firsts in <tt class="verb">createTable</tt>): they are
 	    the parent group <em>where</em> <tt class="verb">Array</tt> will be
 	    created and the <tt class="verb">Array</tt> instance
 	    <em>name</em>. You can figure out that the fourth
 	    parameter is the <em>title</em>. And in the third position
-	    we have the <tt class="verb">Numeric</tt> object we want to save on
-	    disk. They are built from the selection lists we created
-	    before, and their typecodes are automatically selected by
-	    the <tt class="verb">array()</tt> constructor to store the list of
-	    values. In this case they are double-precision arrays, as
-	    we will see in short.
+	    we have the <em>object</em> we want to save on disk. In
+	    this case, it is a <tt class="verb">Numeric</tt> array that is
+	    built from the selection lists we created before.
 	  </p>
 
-	  <p>Note that <tt class="verb">createArray</tt> method returns an
-	    <tt class="verb">Array</tt> instance that is not assigned to any
-	    variable. Don't worry, this was intentional. The
-	    <tt class="verb">Array</tt> object has been attached to the object
-	    tree and saved in disk. Keep reading, in short I will show
-	    you how to retrieve it.
+	  <p>Now, we are going to save the other selection. In this
+	    case it's a list of strings, and we want to save this
+	    object as is, with no further conversion. Look at how this
+	    is done:
 	  </p>
 
+	  <pre>
+&gt;&gt;&gt; h5file.createArray(gcolumns, 'name', names, "Name column selection")
+/columns/name Array(4,) 'Name column selection'
+  type = 'CharType'
+  itemsize = 16
+  flavor = 'List'
+  byteorder = 'little'
+&gt;&gt;&gt;
+	  </pre>
+
+	  <p>You see, <tt class="verb">createArray()</tt> accepts
+	    <em>names</em> (which is a regular Python list) as
+	    <em>object</em> parameter. Actually, it accepts a variety
+	    of other regular objects (see <a href="#createArrayDescr"><strong>??</strong></a>). We will check that we can
+	    retrieve exactly this same object from disk later on.
+	  </p>
+	  <p>Note that in this examples, <tt class="verb">createArray</tt>
+	    method returns an <tt class="verb">Array</tt> instance that is not
+	    assigned to any variable. Don't worry, this was
+	    intentional, because I wanted to show you the kind of
+	    object we have created by showing its
+	    representation. Indeed, the <tt class="verb">Array</tt> objects has
+	    been attached to the object tree and saved on disk, as you
+	    can see if you print the complete object tree:
+	  </p>
+	  <pre>
+&gt;&gt;&gt; print h5file
+Filename: tutorial1.h5 'Test file'
+/ (Group) 'Test file'
+/columns (Group) 'Pressure and Name'
+/columns/name Array(4, 16) 'Name column selection'
+/columns/pressure Array(4,) 'Pressure column selection'
+/detector (Group) 'Detector information'
+/detector/readout Table(10,) 'Readout example'
+
+&gt;&gt;&gt;
+	  </pre>
 	</div>
 
 	<div>
@@ -523,19 +621,17 @@
 	    <tt class="verb">tutorial1.h5</tt> file:
 	  </p>
 	  <pre>
-$ h5ls -rd tutorial1.h5 
-/tutorial1.h5/columns    Group
-/tutorial1.h5/columns/name Dataset {1}
+$ h5ls -rd tutorial1.h5
+/columns                 Group
+/columns/name            Dataset {4}
     Data:
-        (0) ["P","a","r","t","i","c","l","e",":"," "," "," "," "," "," ","4",
-        (0)  "P","a","r","t","i","c","l","e",":"," "," "," "," "," "," ","5",
-        (0)  "P","a","r","t","i","c","l","e",":"," "," "," "," "," "," ","6",
-        (0)  "P","a","r","t","i","c","l","e",":"," "," "," "," "," "," ","7"]
-/tutorial1.h5/columns/pressure Dataset {1}
+        (0) "Particle:      4", "Particle:      5", "Particle:      6",
+        (3) "Particle:      7"
+/columns/pressure        Dataset {4}
     Data:
-        (0) [16,25,36,49]
-/tutorial1.h5/detector   Group
-/tutorial1.h5/detector/readout Dataset {10/Inf}
+        (0) 16, 25, 36, 49
+/detector                Group
+/detector/readout        Dataset {10/Inf}
     Data:
         (0) {0, 0, 0, 0, 10, 0, "Particle:      0", 0},
         (1) {256, 1, 1, 1, 9, 17179869184, "Particle:      1", 1},
@@ -547,7 +643,6 @@ $ h5ls -rd tutorial1.h5
         (7) {1792, 7, 5764801, 7, 3, 120259084288, "Particle:      7", 49},
         (8) {2048, 8, 16777216, 8, 2, 137438953472, "Particle:      8", 64},
         (9) {2304, 9, 43046721, 9, 1, 154618822656, "Particle:      9", 81}
-
 	  </pre>
 
 	  <p>or, using the "dumpFile.py" <tt class="verb">PyTables</tt> utility
@@ -555,20 +650,22 @@ $ h5ls -rd tutorial1.h5
 	  </p>
 
 	  <pre>
+$ python dumpFile.py tutorial1.h5
 Filename: tutorial1.h5
 All objects:
-Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
-/ (Group) "Test file"
-/columns (Group) "Pressure and Name"
-/columns/name Array(4, 16) "Name column selection"
-/columns/pressure Array(4,) "Pressure column selection"
-/detector (Group) "Detector information"
-/detector/readout Table(8, 10) "Readout example"
+Filename: tutorial1.h5 'Test file'
+/ (Group) 'Test file'
+/columns (Group) 'Pressure and Name'
+/columns/name Array(4, 16) 'Name column selection'
+/columns/pressure Array(4,) 'Pressure column selection'
+/detector (Group) 'Detector information'
+/detector/readout Table(10,) 'Readout example'
 
 	  </pre>
 
-	  <p>You can pass the <tt class="verb">-v</tt> option to
-	    <tt class="verb">dumpFile.py</tt> if you want more verbosity. Try it!.
+	  <p>You can pass the <tt class="verb">-v</tt> or <tt class="verb">-d</tt>
+	    options to <tt class="verb">dumpFile.py</tt> if you want more
+	    verbosity. Try it!.
 	  </p>
 	</div>
       </div>
@@ -617,55 +714,53 @@ Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
 
 	  <pre>
 &gt;&gt;&gt; print h5file
-Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
-/ (Group) "Test file"
-/columns (Group) "Pressure and Name"
-/columns/name Array(4, 16) "Name column selection"
-/columns/pressure Array(4,) "Pressure column selection"
-/detector (Group) "Detector information"
-/detector/readout Table(8, 10) "Readout example"
+Filename: tutorial1.h5 'Test file'
+/ (Group) 'Test file'
+/columns (Group) 'Pressure and Name'
+/columns/name Array(4,) 'Name column selection'
+/columns/pressure Array(4,) 'Pressure column selection'
+/detector (Group) 'Detector information'
+/detector/readout Table(10,) 'Readout example'
 
 &gt;&gt;&gt;
 	  </pre>
 
 	  <p>That's right, it seems that all our objects are there. We
-	    can use the <tt class="verb">walkGroups</tt> method (see <a href="usersguide-html4.html#FileMethodsDescr">4.3.2</a>) of <tt class="verb">File</tt>
-	    class to list all the groups on tree:
+	    can use the <tt class="verb">walkGroups</tt> method (see <a href="#walkGroupsDescr"><strong>??</strong></a>) of <tt class="verb">File</tt> class
+	    to list all the groups on tree:
 	  </p>
 
 	  <pre>
 &gt;&gt;&gt; for group in h5file.walkGroups("/"):
-...     print group
-... 
-/ (Group) "Test file"
-/columns (Group) "Pressure and Name"
-/detector (Group) "Detector information"
+...   print group
+...
+/ (Group) 'Test file'
+/columns (Group) 'Pressure and Name'
+/detector (Group) 'Detector information'
 &gt;&gt;&gt;
 	  </pre>
 
-	  <p>Note that <tt class="verb">walkGroups</tt> actually returns an
-	    <em>iterator</em>, not a list of objects. And combining it
-	    with the <tt class="verb">listNodes</tt> method, we can do very
-	    powerful things. Let's see an example listing all the
-	    arrays in the tree:
+	  <p>Note that <tt class="verb">walkGroups()</tt> actually returns an
+	    <em>iterator</em>, not a list of objects. Combining this
+	    iterator with the <tt class="verb">listNodes()</tt> method, we can
+	    do very powerful things. Let's see an example listing all
+	    the arrays in the tree:
 	  </p>
 
 	  <pre>
 &gt;&gt;&gt; for group in h5file.walkGroups("/"):
 ...     for array in h5file.listNodes(group, classname = 'Array'):
 ...         print array
-... 
-/columns/name Array(4, 16) "Name column selection"
-/columns/pressure Array(4,) "Pressure column selection"
-&gt;&gt;&gt;
+...
+/columns/name Array(4,) 'Name column selection'
+/columns/pressure Array(4,) 'Pressure column selection'
 	  </pre>
 
-	  <p><tt class="verb">listNodes</tt> (see <a href="usersguide-html4.html#FileMethodsDescr">4.3.2</a>) lists all the nodes
-	    hanging from a <tt class="verb">group</tt>, and if
-	    <em>classname</em> keyword is specified, the method will
-	    filter all instances which are not descendants of it. We
-	    have specified it so as to return only the
-	    <tt class="verb">Array</tt> instances.
+	  <p><tt class="verb">listNodes()</tt> (see <a href="#listNodesDescr"><strong>??</strong></a>) lists all the nodes hanging
+	    from a <em>group</em>, and if <em>classname</em>
+	    keyword is specified, the method will filter all instances
+	    which are not descendants of it. We have specified it so
+	    as to return only the <tt class="verb">Array</tt> instances.
 	  </p>
 	  <p>
 	    <b>Caveat emptor</b>:
@@ -676,17 +771,18 @@ Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
 
 	  <p>As a final example, we will list all the
 	    <tt class="verb">Leaf</tt> (i.e. <tt class="verb">Table</tt> and
-	    <tt class="verb">Array</tt> instances, see <a href="usersguide-html4.html#LeafClassDescr">4.5</a> for detailed information on
-	    <tt class="verb">leaf</tt> class) objects in <em>/detector</em>
+	    <tt class="verb">Array</tt> instances, see <a href="usersguide-html4.html#LeafClassDescr">4.6</a> for detailed information on
+	    <tt class="verb">Leaf</tt> class) objects in <em>/detector</em>
 	    group. Check that only one instance of <tt class="verb">Table</tt>
-	    class will be selected in this group (as it should be):
+	    class (i.e. <em>readout</em>), will be selected in this
+	    group (as it should be):
 	  </p>
 
 	  <pre>
-&gt;&gt;&gt; for table in h5file.listNodes("/detector", 'Leaf'):
-...     print table
-... 
-/detector/readout Table(8, 10) "Readout example"
+&gt;&gt; for table in h5file.listNodes("/detector", 'Leaf'):
+...   print table
+...
+/detector/readout Table(10,) 'Readout example'
 &gt;&gt;&gt; 
 	  </pre>
 
@@ -704,78 +800,146 @@ Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
 	  <p class="first">Each object in <tt class="verb">PyTables</tt> has metadata about
 	    the actual data on the file. Normally this metainformation
 	    is accessible through the node instance variables. Let's
-	    see some examples:
+	    have a look at some examples:
 	  </p>
 
 	  <pre>
-&gt;&gt;&gt; table = h5file.root.detector.readout
 &gt;&gt;&gt; print "Object:", table
-Object: /detector/readout Table(8, 10) "Readout example"
+Object: /detector/readout Table(10,) 'Readout example'
 &gt;&gt;&gt; print "Table name:", table.name
 Table name: readout
 &gt;&gt;&gt; print "Table title:", table.title
 Table title: Readout example
 &gt;&gt;&gt; print "Number of rows in table: %d" % (table.nrows)
 Number of rows in table: 10
-&gt;&gt;&gt; print "Table variable names (sorted alphanumerically) with their type:"
-Table variable names (sorted alphanumerically) with their type:
-&gt;&gt;&gt; for i in range(len(table.varnames)):
-...     print "  ", table.varnames[i], ':=', table.vartypes[i]
-... 
-   ADCcount := H
-   TDCcount := B
-   energy := d
-   grid_i := i
-   grid_j := i
-   idnumber := Q
-   name := 16s
-   pressure := f
+&gt;&gt;&gt; print "Table variable names with their type and shape:"
+Table variable names with their type and shape:
+&gt;&gt;&gt; for name in table.colnames:
+...     print "  ", name, ':=', table.coltypes[name], table.colshapes[name]
+...
+   ADCcount := UInt16 (1,)
+   TDCcount := UInt8 (1,)
+   energy := Float64 (1,)
+   grid_i := Int32 (1,)
+   grid_j := Int32 (1,)
+   idnumber := UInt64 (1,)
+   name := CharType (16,)
+   pressure := Float32 (1,)
 &gt;&gt;&gt;
 	  </pre>
 
 	  <p>
 	    Here, the <tt class="verb">name</tt>, <tt class="verb">title</tt>,
-	    <tt class="verb">nrows</tt>, <tt class="verb">varnames</tt> and
-	    <tt class="verb">vartypes</tt> attributes (see <a href="usersguide-html4.html#FileInstanceVariablesDescr">4.3.1</a> for a complete
+	    <tt class="verb">nrows</tt>, <tt class="verb">colnames</tt>,
+	    <tt class="verb">coltypes</tt> and <tt class="verb">colshapes</tt>
+	    attributes (see <a href="usersguide-html4.html#FileInstanceVariablesDescr">4.4.1</a> for a complete
 	    attribute list) of <tt class="verb">Table</tt> object give us quite
 	    a lot of information about actual table data.
 	  </p>
-	  <p>Observe how we have used the <tt class="verb">getNode</tt> method
-	    of <tt class="verb">File</tt> class to access a node in the tree,
-	    as well as the natural naming method. Both are useful, and
-	    depending on the context you will prefer to use one or
-	    another. <tt class="verb">getNode</tt> has the advantage that can
-	    get a node from the pathname string (like in this
-	    example), and you can force that the node in that location
-	    has to be a <em>classname</em> instance. However, natural
-	    naming is more elegant and quicker to specify (specially
-	    if you are using the name completion capability present in
-	    interactive console).
+
+	  <p>In general, you can get up-to-the-minute information
+	    about the public objects in PyTables in a interactive way
+	    by printing its internal doc strings:
 	  </p>
 
+	  <pre>
+&gt;&gt;&gt; print table.__doc__
+Represent a table in the object tree.
+
+    It provides methods to create new tables or open existing ones, as
+    well as to write/read data to/from table objects over the
+    file. A method is also provided to iterate over the rows without
+    loading the entire table or column in memory.
+
+    Data can be written or read both as Row() instances or as numarray
+    (NumArray or RecArray) objects.
+
+    Methods:
+
+      Common to all leaves:
+        close()
+        flush()
+        getAttr(attrname)
+        rename(newname)
+        remove()
+        setAttr(attrname, attrvalue)
+
+      Specific of Table:
+        iterrows()
+        read([start] [, stop] [, step] [, field [, flavor]])
+
+    Instance variables:
+
+      Common to all leaves:
+        name -- the leaf node name
+        hdf5name -- the HDF5 leaf node name
+        title -- the leaf title
+        shape -- the leaf shape
+        byteorder -- the byteorder of the leaf
+
+      Specific of Table:
+        description -- the metaobject describing this table
+        row -- a reference to the Row object associated with this table
+        nrows -- the number of rows in this table
+        rowsize -- the size, in bytes, of each row
+        colnames -- the field names for the table (list)
+        coltypes -- the type class for the table fields (dictionary)
+        colshapes -- the shapes for the table fields (dictionary)
+
+
+&gt;&gt;&gt;
+	  </pre>
+
+	  <p>This is very handy if you don't have this manual at
+	    hand. Try yourself with other objects docs!.
+	  </p>
 	  <p>Now, print some metadata in <em>/columns/pressure</em>
-	    Array object:
+	    <tt class="verb">Array</tt> object:
 	  </p>
 
 	  <pre>
 &gt;&gt;&gt; pressureObject = h5file.getNode("/columns", "pressure")
-&gt;&gt;&gt; print "Info on the object:", pressureObject
-Info on the object: /columns/pressure Array(4,) "Pressure column selection"
+&gt;&gt;&gt; print "Info on the object:", repr(pressureObject)
+Info on the object: /columns/pressure Array(4,) 'Pressure column selection'
+  type = 'Float64'
+  itemsize = 8
+  flavor = 'Numeric'
+  byteorder = 'little'
 &gt;&gt;&gt; print "  shape: ==&gt;", pressureObject.shape
   shape: ==&gt; (4,)
 &gt;&gt;&gt; print "  title: ==&gt;", pressureObject.title
   title: ==&gt; Pressure column selection
-&gt;&gt;&gt; print "  typecode ==&gt;", pressureObject.typecode
-  typecode ==&gt; d
+&gt;&gt;&gt; print "  type ==&gt;", pressureObject.type
+  type ==&gt; Float64
 &gt;&gt;&gt;
 	  </pre>
 
+	  <p>Observe how we have used the <tt class="verb">getNode()</tt>
+	    method of <tt class="verb">File</tt> class to access a node in the
+	    tree, instead of the natural naming method. Both are
+	    useful, and depending on the context you will prefer to
+	    use one or another. <tt class="verb">getNode()</tt> has the
+	    advantage that it can get a node from the pathname string
+	    (like in this example), and, besides, you can force a
+	    filter so that the node in that location has to be a
+	    <em>classname</em> instance. However, natural naming is
+	    more elegant and quicker to specify, specially if you are
+	    using the name completion capability present in
+	    interactive console. I suggest to give a try at this
+	    powerful combination of natural naming and completion
+	    capabilities present on most Python shell. You will see
+	    that browsing the object tree in that way is a very
+	    pleasant experience (well, as far as this activity can be
+	    qualified in that way).
+	  </p>
 	  <p>If you look at the <tt class="verb">typecode</tt> attribute of the
 	    <tt class="verb">pressureObject</tt>, you can certify that this is
-	    a "d"ouble <tt class="verb">Numeric</tt> array, and that by looking
-	    at their <tt class="verb">shape</tt> attribute the array on disk is
-	    unidimensional and has 4 elements. See <a href="usersguide-html4.html#ArrayClassInstanceVariables">4.7.1</a> for the
-	    complete <tt class="verb">Array</tt> attribute list.
+	    a "<b>Float64</b>" array, and that
+	    by looking at their <tt class="verb">shape</tt> attribute, it can
+	    deduced that the array on disk is unidimensional and has 4
+	    elements. See <a href="usersguide-html4.html#ArrayClassInstanceVariables">4.9.1</a> or the internal
+	    string docs for the complete <tt class="verb">Array</tt> attribute
+	    list.
 	  </p>
 	</div>
 
@@ -783,22 +947,26 @@ Info on the object: /columns/pressure Array(4,) "Pressure column selection"
 	  <h3><span class="headlinenumber" id="subsection3.2.3"><a name="subsection3.2.3"></a>3.2.3 </span>Reading actual data from <tt>Array</tt> objects</h3>
 
 	  <p class="first">Once you have found the desired <tt class="verb">Array</tt> and
-	    decided that you want to retrieve the actual
-	    <tt class="verb">Numeric</tt> array from it, you should use the
-	    <tt class="verb">read</tt> method of the <tt class="verb">Array</tt>
-	    object:</p>
+	    decided that you want to retrieve the actual data array
+	    from it, you should use the <tt class="verb">read()</tt> method of
+	    the <tt class="verb">Array</tt> object:</p>
 
 	  <pre>
 &gt;&gt;&gt; pressureArray = pressureObject.read()
 &gt;&gt;&gt; nameArray = h5file.root.columns.name.read()
-&gt;&gt;&gt; print "pressureArray is object of type:", type(pressureArray)
-pressureArray is object of type: &lt;type 'array'&gt;
-&gt;&gt;&gt; print "nameArray is object of type:", type(nameArray)
-nameArray is object of type: &lt;type 'array'&gt;
+&gt;&gt;&gt; print "pressureArray is an object of type:", type(pressureArray)
+pressureArray is an object of type: &lt;type 'array'&gt;
+&gt;&gt;&gt; pressureArray
+array([ 16.,  25.,  36.,  49.])
+&gt;&gt;&gt; print "nameArray is an object of type:", type(nameArray)
+nameArray is an object of type: &lt;type 'list'&gt;
+&gt;&gt;&gt; nameArray
+['Particle:      4', 'Particle:      5', 'Particle:      6', 'Particle:      7']
+&gt;&gt;&gt;
 &gt;&gt;&gt; print "Data on arrays nameArray and pressureArray:"
 Data on arrays nameArray and pressureArray:
 &gt;&gt;&gt; for i in range(pressureObject.shape[0]):
-...     print "".join(nameArray[i]), "--&gt;", pressureArray[i]
+...     print nameArray[i], "--&gt;", pressureArray[i]
 ... 
 Particle:      4 --&gt; 16.0
 Particle:      5 --&gt; 25.0
@@ -807,16 +975,20 @@ Particle:      7 --&gt; 49.0
 &gt;&gt;&gt; 
 	  </pre>
 
-	  <p>You can verify that <tt class="verb">read</tt> method (see <a href="usersguide-html4.html#ArrayMethodsDescr">4.7.2</a>) returns an authentic
+	  <p>You can verify as the <tt class="verb">read()</tt> method (see
+	    <a href="#readArrayDescr"><strong>??</strong></a>) returns an authentic
 	    <tt class="verb">Numeric</tt> array looking at the output of the
-	    <tt class="verb">type()</tt> call. Check also that
-	    <tt class="verb">nameArray</tt> is actually a 2-dimensional Numeric
-	    array. This is because Numeric does not support arrays of
-	    strings, and these are represented as arrays of characters
-	    plus one dimension (that of the string dimension). This is
-	    why we have used the standard <tt class="verb">join</tt> method to
-	    glue the characters on this extra dimension and get the
-	    original arrays.
+	    <tt class="verb">type()</tt> call. This is because the type of the
+	    object saved is kept as an HDF5 attribute (named
+	    <tt class="verb">FLAVOR</tt>) for this object on disk. This
+	    attribute is then read as part of the <tt class="verb">Array</tt>
+	    metainformation and accessible through the
+	    <tt class="verb">Array.flavor</tt> instance variable, enabling the
+	    read array to be converted into the original object. This
+	    provides a means to save a large variety of objects as
+	    arrays, with the guarantee that you will be able to
+	    recover them in its original form afterwards. See <a href="#createArrayDescr">section&nbsp;<strong>??</strong></a> for a complete list
+	    of supported objects.
 	  </p>
 
 	</div>
@@ -824,26 +996,26 @@ Particle:      7 --&gt; 49.0
 	<div>
 	  <h3><span class="headlinenumber" id="subsection3.2.4"><a name="subsection3.2.4"></a>3.2.4 </span>Appending data to an existing table</h3>
 
-	  <p class="first">To finish this section, let's have a look at how
-	    we can add records to an existing on-disk table. Let's use
-	    our well-known <em>readout</em> <tt class="verb">Table</tt>
-	    instance and let's append some new values to it:
+	  <p class="first">To finish this section, let's have a look at how we can
+	    add records to an existing on-disk table. Let's use our
+	    well-known <em>readout</em> <tt class="verb">Table</tt> instance
+	    and let's append some new values to it:
 	  </p>
 
 	  <pre>
 &gt;&gt;&gt; table = h5file.root.detector.readout
-&gt;&gt;&gt; particle = table.record
+&gt;&gt;&gt; particle = table.row
 &gt;&gt;&gt; for i in xrange(10, 15):
-...     particle.name  = 'Particle: %6d' % (i)
-...     particle.TDCcount = i % 256
-...     particle.ADCcount = (i * 256) % (1 &lt;&lt; 16)
-...     particle.grid_i = i
-...     particle.grid_j = 10 - i
-...     particle.pressure = float(i*i)
-...     particle.energy = float(particle.pressure ** 4)
-...     particle.idnumber = i * (2 ** 34)  # This exceeds long integer range
-...     table.appendAsRecord(particle)
-... 
+...     particle['name']  = 'Particle: %6d' % (i)
+...     particle['TDCcount'] = i % 256
+...     particle['ADCcount'] = (i * 256) % (1 &lt;&lt; 16)
+...     particle['grid_i'] = i
+...     particle['grid_j'] = 10 - i
+...     particle['pressure'] = float(i*i)
+...     particle['energy'] = float(particle['pressure'] ** 4)
+...     particle['idnumber'] = i * (2 ** 34)
+...     particle.append()
+...
 &gt;&gt;&gt; table.flush()
 &gt;&gt;&gt;
 	  </pre>
@@ -851,36 +1023,27 @@ Particle:      7 --&gt; 49.0
 	  <p>That works exactly in the same way than filling a new
 	    table. <tt class="verb">PyTables</tt> knows that this table is on
 	    disk, and when you add new records, they are appended to
-	    the end of the table<a href="#footnote6" name="footnoteback6"><sup>6)</sup></a>.
+	    the end of the table<a href="#footnote2" name="footnoteback2"><sup>2)</sup></a>.
 	  </p>
 	  <p>
 	    If you look carefully at the code you will see that we
-	    have used the <tt class="verb">table.record</tt> attribute to
-	    access to a <tt class="verb">Particle</tt> instance and that way we
-	    could use it to fill new values. However, it should be
-	    stressed that it is not necessary to have the original
-	    class definition (<tt class="verb">Particle</tt>) in our code to
-	    re-create it (in fact, we don't even declared it in our
-	    current python session!): it will be created only from
-	    metadata existing on file, and it behaves exactly as an
-	    original <tt class="verb">Particle</tt> instance!.
+	    have used the <tt class="verb">table.row</tt> attribute so as to
+	    access a table row and fill it up with the new values.
+	    Each time that its <tt class="verb">append()</tt> method is called,
+	    the actual row is committed to the output buffer and the
+	    row pointer is incremented to point to the next table
+	    record.
 	  </p>
-	  <p>This is part of the magic that allow the use of
-	    <em>metaclasses</em> in <tt class="verb">PyTables</tt>, and that
-	    will easy the creation of portable applications that can
-	    read any <tt class="verb">PyTables</tt> file <b>regardless</b> of having access to the
-	    original Python record class definition.
-	  </p>
-
 	  <p>Let's have a look at some columns of the resulting table:
 	  </p>
 
 	  <pre>
-&gt;&gt;&gt; for x in table.readAsRecords():
+&gt;&gt;&gt; for r in table.iterrows():
 ...     print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
-...        (x.name, x.pressure, x.energy, x.grid_i, x.grid_j,
-...         x.TDCcount)
-... 
+...        (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'],
+...         r['TDCcount'])
+...
+...
 Particle:      0 |         0.0 |           0 |      0 |     10 |        0 |
 Particle:      1 |         1.0 |           1 |      1 |      9 |        1 |
 Particle:      2 |         4.0 |         256 |      2 |      8 |        2 |
@@ -896,30 +1059,23 @@ Particle:     11 |       121.0 |   2.144e+08 |     11 |     -1 |       11 |
 Particle:     12 |       144.0 |     4.3e+08 |     12 |     -2 |       12 |
 Particle:     13 |       169.0 |   8.157e+08 |     13 |     -3 |       13 |
 Particle:     14 |       196.0 |   1.476e+09 |     14 |     -4 |       14 |
-&gt;&gt;&gt; print
-
-&gt;&gt;&gt; print "Total numbers of entries after appending new rows:", table.nrows
-Total numbers of entries after appending new rows: 15
-&gt;&gt;&gt;
 	  </pre>
 
 	  <p>In <a href="#tutorial-h5">figure&nbsp;3.1</a> you can see a
-	    view of the <tt class="verb">PyTables</tt> file we have created.
+	    graphical view of the <tt class="verb">PyTables</tt> file we have
+	    just created.
 	  </p>
 
 	  <div class="figure" id="tutorial-h5"><a name="tutorial-h5"></a>
-	  
-	    <a target="_blank" href="tutorial-h5.png"><img class="graphics"
-	    alt="The data file after appending some rows.&#xA;
-... (Click for original bitmap)" src="tutorial-h5-web.png"></a>
-	    
-	    <div class="caption" style="width: 562px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.1:</span> The data file after appending some rows.
+	    <a target="_blank" href="tutorial-h5.jpg"><img class="graphics" width="619" height="312" alt="The data file after appending some rows.&#xA;	 ... (Click for original bitmap)" src="tutorial-h5-web.jpg"></a>
+	    <div class="caption" style="width: 619px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.1:</span> The data file after appending some rows.
 	    </div></div>
 	  </div>
 
 
-	  <p>We are near the end of this first tutorial. Ei!, do not
-	    forget to close the file after you finish all the work:
+	  <p>We are near the end of this first tutorial. But, ei!, do
+	    not forget to close the file after you finish all the
+	    work:
 	  </p>
 
 	  <pre>
@@ -938,43 +1094,58 @@ $
 	  sanity checks</h2>
 
 	<p class="first">Now, time for a more real life example (i.e. with errors in
-	  code). Here, we will create a couple of directories (groups,
-	  in HDF5 jargon) hanging directly from <tt class="verb">root</tt>
-	  called <tt class="verb">Particles</tt> and <tt class="verb">Events</tt>. Then,
-	  we will put 3 tables in each group; in
-	  <tt class="verb">Particles</tt> we will put instances of
-	  <tt class="verb">Particle</tt> records and in <tt class="verb">Events</tt>,
-	  instances of <tt class="verb">Event</tt>.
+	  code). Here, we will create a couple of groups hanging
+	  directly from <tt class="verb">root</tt> called
+	  <tt class="verb">Particles</tt> and <tt class="verb">Events</tt>. Then, we
+	  will put 3 tables in each group; in <tt class="verb">Particles</tt>
+	  we will put tables based on <tt class="verb">Particle</tt> descriptor
+	  and in <tt class="verb">Events</tt>, tables based <tt class="verb">Event</tt>
+	  descriptor.
 	</p>
 	<p>
-	  After that, we will feed the tables with 257 (you will see
-	  soon why I choose such an <em>esoteric</em> number) entries
-	  each. Finally, we will read the recently created table
+	  After that, we will feed the tables with a number of
+	  records. Finally, we will read the recently created table
 	  <tt class="verb">/Events/TEvent3</tt> and select some values from it
 	  using a comprehension list.
 	</p>
-	<p>Look at the next script. It seems to do all of that, but a
-	  couple of small bugs will be shown up. Note that this
-	  <tt class="verb">Particle</tt> class is not directly related with the
-	  one defined in last example; this is simpler.
+	<p>Look at the next script (you can find it in
+	  <tt class="verb">examples/tutorial2.py</tt>). It seems to do all of
+	  that, but a couple of small bugs will be shown up. Note that
+	  this <tt class="verb">Particle</tt> class is not directly related
+	  with the one defined in last example; this one is
+	  simpler. And we will introduce a new manner to describe a
+	  <tt class="verb">Table</tt> as a dictionary, as you can see in the
+	  <tt class="verb">Event</tt> description. See section <a href="#createTableDescr"><strong>??</strong></a> about the different kinds of
+	  descriptor objects that can be passed to the
+	  <tt class="verb">createTable()</tt> method.
 	</p>
 
 	<pre>
+"""This program shows the different protections that PyTables offer to
+the user in order to insure a correct data injection in tables.
+
+Example to be used in the second tutorial in the User's Guide.
+
+"""
+
 from tables import *
 
-class Particle(IsRecord):
-    name        = '16s'  # 16-character String
-    lati        = 'i'    # integer
-    longi       = 'i'    # integer
-    pressure    = 'f'    # float  (single-precision)
-    temperature = 'd'    # double (double-precision)
+# Describe a particle record
+class Particle(IsDescription):
+    name      = Col("CharType", 16)  # 16-character String
+    lati      = Col("Int32", 1)      # integer
+    longi     = Col("Int32", 1)      # integer
+    pressure  = Col("Float32", 1)    # float  (single-precision)
+    temperature = Col("Float64", 1)    # double (double-precision)
 
-class Event(IsRecord):
-    name        = '16s'  # 16-character String
-    TDCcount    = 'B'    # unsigned char
-    ADCcount    = 'H'    # unsigned short
-    xcoord      = 'f'    # float  (single-precision)
-    ycoord      = 'f'    # float  (single-precision)
+# Another way to describe the columns of a table
+Event = {
+    "name"    : Col("CharType", 16),    # 16-character String
+    "TDCcount": Col("UInt8", 1),        # unsigned byte
+    "ADCcount": Col("UInt16", 1),       # Unsigned short integer
+    "xcoord"  : Col("Float32", 1),      # integer
+    "ycoord"  : Col("Float32", 1),      # integer
+    }
 
 # Open a file in "w"rite mode
 fileh = openFile("tutorial2.h5", mode = "w")
@@ -990,20 +1161,20 @@ gparticles = root.Particles
 # Create 3 new tables
 for tablename in ("TParticle1", "TParticle2", "TParticle3"):
     # Create a table
-    table = fileh.createTable("/Particles", tablename, Particle(),
+    table = fileh.createTable("/Particles", tablename, Particle,
                            "Particles: "+tablename)
     # Get the record object associated with the table:
-    particle = table.record
-    # Fill the table with 10 particles
+    particle = table.row
+    # Fill the table with 257 particles
     for i in xrange(257):
         # First, assign the values to the Particle record
-        particle.name  = 'Particle: %6d' % (i)
-        particle.lati = i 
-        particle.longi = 10 - i
-        particle.pressure = float(i*i)
-        particle.temperature = float(i**2)
+        particle['name'] = 'Particle: %6d' % (i)
+        particle['lati'] = i 
+        particle['longi'] = 10 - i
+        particle['pressure'] = float(i*i)
+        particle['temperature'] = float(i**2)
         # This injects the Record values
-        table.appendAsRecord(particle)      
+        particle.append()      
 
     # Flush the table buffers
     table.flush()
@@ -1011,185 +1182,126 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
 # Now, go for Events:
 for tablename in ("TEvent1", "TEvent2", "TEvent3"):
     # Create a table in Events group
-    table = fileh.createTable(root.Events, tablename, Event(),
+    table = fileh.createTable(root.Events, tablename, Event,
                            "Events: "+tablename)
     # Get the record object associated with the table:
-    event = table.record
+    event = table.row
     # Fill the table with 257 events
     for i in xrange(257):
         # First, assign the values to the Event record
-        event.name  = 'Event: %6d' % (i)
-        event.TDCcount = i
-        event.ADCcount = i * 2
-        event.xcoor = float(i**2)
-        event.ycoord = float(i**4)
+        event['name']  = 'Event: %6d' % (i)
+        # Range checks no longer works on 0.4. Hope that
+        # next version of numarray can support that!
+        #event['TDCcount'] = i            # Wrong range.
+        event['TDCcount'] = i % (1&lt;&lt;8)   # Correct range
+        ########### Detectable errors start here. Play with them!
+        #event['xcoord'] = float(i**2)   # Correct spelling
+        event['xcoor'] = float(i**2)     # Wrong spelling. This works on 0.3
+        event['ADCcount'] = i * 2        # Correct type
+        #event['ADCcount'] = "s"          # Wrong type
+        ########### End of errors
+        event['ycoord'] = float(i)**4
         # This injects the Record values
-        table.appendAsRecord(event)
+        event.append()
 
     # Flush the buffers
     table.flush()
 
 # Read the records from table "/Events/TEvent3" and select some
 table = root.Events.TEvent3
-e = [ p.TDCcount for p in table.readAsRecords()
-      if p.ADCcount &lt; 20 and 4 &lt;= p.TDCcount &lt; 15 ]
+e = [ p['TDCcount'] for p in table.iterrows()
+      if p['ADCcount'] &lt; 20 and 4 &lt;= p['TDCcount'] &lt; 15 ]
 print "Last record ==&gt;", p
 print "Selected values ==&gt;", e
 print "Total selected records ==&gt; ", len(e)
 
-# Finally, close the file
+# Finally, close the file (this also will flush all the remaining buffers!)
 fileh.close()
 	</pre>
 
 	<div>
 	  <h3><span class="headlinenumber" id="subsection3.3.1"><a name="subsection3.3.1"></a>3.3.1 </span>Field name checking</h3>
 
-	<p class="first">If you have read the code carefully it looks pretty good,
-	  but it won't work. When you run this example, you will get
-	  the next error:
-	</p>
-	<pre>
-Traceback (most recent call last):
-  File "tutorial2.py", line 68, in ?
-    event.xcoor  = float(i**2)
-AttributeError: 'Event' object has no attribute 'xcoor'
-	</pre>
-	<p>This error is telling us that we tried to assign a value to
-	  a non-existent field in an <tt class="verb">Event</tt> object. By
-	  looking carefully at the <tt class="verb">Event</tt> attributes, we
-	  see that we misspelled the <tt class="verb">xcoord</tt> field (we
-	  wrote <tt class="verb">xcoor</tt> instead). This is very unusual in
-	  Python because if you try to assign a value to a
-	  non-existent instance variable, a new one is created with
-	  that name. Such a feature is not satisfactory when we are
-	  dealing with an object that has fixed list of variable names
-	  (the user record, that is responsible for defining the table
-	  columns). So, thanks to the magic that provides the
-	  <tt class="verb">IsRecord</tt> metaclass, all instance variables
-	  (data fields) are declared internally as class
-	  <tt class="verb">__slots__</tt>. This is why the last error appeared.
-	</p>
-
-	</div>
-
-	<div>
-	  <h3><span class="headlinenumber" id="subsection3.3.2"><a name="subsection3.3.2"></a>3.3.2 </span>Data range checking</h3>
-
-	<p class="first">After correcting the last attribute error in the source,
-	  and running the script again... oooops! we find another
-	  problem:
-	</p>
-	<pre>
+	  <p class="first">If you have read the code carefully it looks pretty good,
+	    but it won't work. When you run this example, you will get
+	    the next error:
+	  </p>
+	  <pre>
 Traceback (most recent call last):
   File "tutorial2.py", line 69, in ?
-    table.appendAsRecord(event)      
-  File "/usr/lib/python2.2/site-packages/tables/Table.py", line 210, in
-appendAsRecord
-    self._v_packedtuples.append(recordObject._f_pack2())
-  File "/usr/lib/python2.2/site-packages/tables/IsRecord.py", line 121, in 
-_f_pack2
-    self._f_raiseValueError()
-  File "/usr/lib/python2.2/site-packages/tables/IsRecord.py", line 130, in 
-_f_raiseValueError
-    raise ValueError, \
-ValueError: Error packing record object: 
- [('ADCcount', 'H', 256), ('TDCcount', 'B', 256), ('name', '16s', 'Event: 256'),
- ('xcoord', 'f', 65536.0), ('ycoord', 'f', 4294967296.0)]
- Error was: ubyte format requires 0&lt;=number&lt;=255
-	</pre>
-	<p>This time the exception is telling us that one of the
-	  records is having trouble to be converted to the data types
-	  stated in the Event class definition. By looking carefully
-	  at the record object causing the problem, we see that we are
-	  trying to assign a value of 256 to the <tt class="verb">TDCcount</tt>
-	  field which has a <tt class="verb">'B'</tt> (C unsigned char)
-	  typecode and the allowed range for it is
-	  <tt class="verb">0&lt;=TDCcount&lt;=255</tt>. This is a very powerful
-	  capability to automatically check for ranges and the message
-	  error should be explicit enough to figure out what is
-	  happening. In this case you can solve the problem either by
-	  promoting the <tt class="verb">TDCcount</tt> to <tt class="verb">'H'</tt>
-	  which is an unsigned 16-bit integer, or, by avoiding the
-	  mistake we have probably made in assigning a value greater
-	  than 255 to a 'B' typecode.
-	</p>
-	<p>If we change the line:
-	</p>
-	<pre>
-          event.TDCcount = i
-	</pre>
-	<p>by the next one:
-	</p>
-	<pre>
-           event.TDCcount = i % (1&lt;&lt;8)
-	</pre>
-	<p>you will see that our problem has disappeared, and that the
-	  HDF5 file has been created.
-	</p>
+    event['xcoor'] = float(i**2)     # Wrong spelling
+  File "/home/falted/PyTables/pytables-0.4/src/hdf5Extension.pyx",
+  line 1078, in __setitem__
+    raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
+AttributeError: Error accessing "xcoor" attr.
+ Error was: "exceptions.KeyError: xcoor"
+	  </pre>
+
+	  <p>This error is telling us that we tried to assign a value to
+	    a non-existent field in the <em>event</em> table
+	    object. By looking carefully at the <tt class="verb">Event</tt>
+	    class attributes, we see that we misspelled the
+	    <tt class="verb">xcoord</tt> field (we wrote <tt class="verb">xcoor</tt>
+	    instead). This is very unusual in Python because if you
+	    try to assign a value to a non-existent instance variable,
+	    a new one is created with that name. Such a feature is not
+	    satisfactory when we are dealing with an object that has
+	    fixed list of field names. So, a check is made inside
+	    PyTables so that if you try to assign a value to a
+	    non-existing field a <tt class="verb">KeyError</tt> is raised.
+	  </p>
+
 	</div>
 
 	<div>
-	  <h3><span class="headlinenumber" id="subsection3.3.3"><a name="subsection3.3.3"></a>3.3.3 </span>Data type checking</h3>
+	  <h3><span class="headlinenumber" id="subsection3.3.2"><a name="subsection3.3.2"></a>3.3.2 </span>Data type checking</h3>
 
-	<p class="first">Finally, in order to test the type checking, we will change
-	  the next line:
-	</p>
-	<pre>
-	  event.ADCcount = i * 2        # Correct type
-	</pre>
+	  <p class="first">Finally, in order to test the type checking, we will change
+	    the next line:
+	  </p>
+	  <pre>
+	    event.ADCcount = i * 2        # Correct type
+	  </pre>
 
-	<p>to read:</p>
+	  <p>to read:</p>
 
-	<pre>
-	  event.ADCcount = "s"          # Wrong type
-	</pre>
+	  <pre>
+	    event.ADCcount = "s"          # Wrong type
+	  </pre>
 
-	<p>After this modification, the next exception will be raised
-	  when the script is executed:
-	</p>
+	  <p>After this modification, the next exception will be
+	    raised when the script is executed:
+	  </p>
 
-	<pre>
+	  <pre>
 Traceback (most recent call last):
   File "tutorial2.py", line 68, in ?
-    table.appendAsRecord(event)      
-  File "/home/falted/PyTables/pytables-0.2/tables/Table.py", line 279,
-in appendAsRecord
-    self._v_packedtuples.append(RecordObject._f_pack2())
-  File "/home/falted/PyTables/pytables-0.2/tables/IsRecord.py", line
-181, in_f_pack2
-    self._f_raiseValueError()
-  File "/home/falted/PyTables/pytables-0.2/tables/IsRecord.py", line
-135, in _f_raiseValueError
-    raise ValueError, \
-ValueError: Error packing record object: 
- [('ADCcount', 'H', '0'), ('TDCcount', 'B', 0), ('name', '16s',
-   'Event:      0'), ('xcoord', 'f', 0.0), ('ycoord', 'f', 0.0)]
- Error was: required argument is not an integer
-	</pre>
+    event['ADCcount'] = "s"      # Wrong type
+  File "/home/falted/PyTables/pytables-0.4/src/hdf5Extension.pyx",
+  line 1078, in __setitem__
+    raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
+AttributeError: Error accessing "ADCcount" attr.
+ Error was: "exceptions.TypeError: NA_setFromPythonScalar: bad value type."
+	  </pre>
 
-	<p>that states the error.</p>
+	  <p>that states the kind of error (<tt class="verb">TypeError</tt>).
+	  </p>
 
-	<p>You can admire the structure we have created with this
-	  (corrected) script in <a href="#tutorial2">figure&nbsp;3.2</a>. As
-	  before, you will find this example in source file
-	  <tt class="verb">tutorial2.py</tt> that is located in the directory
-	  <tt class="verb">examples</tt>.
-	</p>
+	  <p>You can admire the structure we have created with this
+	    (corrected) script in <a href="#tutorial2">figure&nbsp;3.2</a>.
+	  </p>
 
-	<div class="figure" id="tutorial2"><a name="tutorial2"></a>
-	
-	  <a target="_blank" href="tutorial2-h5.png"><img class="graphics"
-	  alt="Table hierarchy for second example. (Click for original bitmap)" src="tutorial2-h5-web.png"></a>
-	  
-	  <div class="caption" style="width: 587px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.2:</span> Table hierarchy for second example.</div></div>
-	</div>
+	  <div class="figure" id="tutorial2"><a name="tutorial2"></a>
+	    <a target="_blank" href="tutorial2-h5.jpg"><img class="graphics" width="592" height="389" alt="Table hierarchy for second example. (Click for original bitmap)" src="tutorial2-h5-web.jpg"></a>
+	    <div class="caption" style="width: 592px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.2:</span> Table hierarchy for second example.</div></div>
+	  </div>
 
-	<p>Feel free to visit the rest of examples in directory
-	  <tt class="verb">examples</tt>, and try to understand them. I've
-	  tried to make several use cases to give you an idea of the
-	  <tt>PyTables</tt> capabilities and its
-	  way of dealing with HDF5 objects.
-	</p>
+	  <p>Feel free to visit the rest of examples in directory
+	    <tt class="verb">examples</tt>, and try to understand them. I've
+	    tried to make several use cases to give you an idea of the
+	    <tt>PyTables</tt> capabilities and its
+	    way of dealing with HDF5 objects.
+	  </p>
 
 	</div>
       </div>
@@ -1200,7 +1312,7 @@ ValueError: Error packing record object:
 	<p class="first"><tt class="verb">PyTables</tt> has several places where the user can
 	  improve the performance of his application. If you are
 	  planning to deal with really large data, you should read
-	  carefully this section so as to learn how to get an
+	  carefully this section in order to learn how to get an
 	  important boost for your code. But if your dataset is small
 	  or medium size (say, up to 1 MB), you should not worry about
 	  that as the default parameters in <tt class="verb">PyTables</tt> are
@@ -1211,69 +1323,54 @@ ValueError: Error packing record object:
 	  <h3><span class="headlinenumber" id="subsection3.4.1"><a name="subsection3.4.1"></a>3.4.1 </span>Compression issues</h3>
 
 	  <p class="first">One of the beauties of <tt class="verb">PyTables</tt> is that it
-	    comes with compression activated by <b>default</b> for tables. This might be a
-	    bit controversial feature, because compression has a
-	    legend of being a very CPU time resources consumer (but if
-	    you are completely against compression, you can disable
-	    it; keep reading).
+	    supports compression on tables (but not on arrays!, that
+	    may come later), although it is disabled by
+	    default. Compression of big amounts of data might be a bit
+	    controversial feature, because compression has a legend of
+	    being a very CPU time resources consumer. However, if you
+	    are willing to check if compression can help reducing your
+	    dataset, keep reading.
 	  </p>
-	  <p> However, there is an usual scenario where users need to
-	    save duplicated data in some record fields, while the
-	    others have varying values. In a relational database
-	    approach such a redundant data can normally be moved to
-	    other tables and a relationship between the rows on the
-	    separate tables can be created. But that takes analysis
-	    and implementation time, and made the underlying libraries
+	  <p>There is an usual scenario where users need to save
+	    duplicated data in some record fields, while the others
+	    have varying values. In a relational database approach
+	    such a redundant data can normally be moved to other
+	    tables and a relationship between the rows on the separate
+	    tables can be created. But that takes analysis and
+	    implementation time, and made the underlying libraries
 	    more complex and slower.
 	  </p>
 
-	  <p><tt class="verb">PyTables</tt> approach is to not support
-	    relationships between tables, but to compress duplicated
-	    data in tables. That allows the user to not worry about
-	    finding their optimum data tables strategy, but rather use
-	    less, not directly related, tables with a larger number of
-	    columns while still not cluttering the database too much
-	    with duplicated data (compression is responsible to avoid
-	    that). As a side effect, data selections can be made more
-	    easily because you have more fields available in a single
-	    table, and they can be referred in the same loop (or
-	    comprehension list).
+	  <p><tt class="verb">PyTables</tt> transparent compression allows the
+	     user to not worry about finding which is their optimum
+	     data tables strategy, but rather use less, not directly
+	     related, tables with a larger number of columns while
+	     still not cluttering the database too much with
+	     duplicated data (compression is responsible to avoid
+	     that). As a side effect, data selections can be made more
+	     easily because you have more fields available in a single
+	     table, and they can be referred in the same loop. This
+	     process may normally end in a simple, yet powerful manner
+	     to process your data (although you should still be
+	     careful about what kind of scenarios compression is
+	     convenient or not).
 	  </p>
 
-	  <p>The compression library used is the <b>zlib</b> (see reference <a href="usersguide-html6.html#zlibRef">Gailly and Adler ()</a>), and the compression level used by
-	    default for <tt class="verb">Table</tt> objects is 3. This level is
-	    less than 6 which is the default level recommend in zlib
-	    documentation as a compromise between speed and
-	    compression. I've made this decision for two reasons:
+	  <p>The compression library used is the <b>zlib</b> (see <a href="usersguide-html6.html#zlibRef">Gailly and Adler ()</a>), and the compression level that I
+	    recommend to use for <tt class="verb">Table</tt> objects is 1. This
+	    is the lowest level of compression, but if you take the
+	    approach suggested above, normally the redundant data is
+	    to be found in the same row, so the redundant data
+	    locality is very high and such a small level of
+	    compression should be enough to compress well the possible
+	    redundancy on your compound tables, saving CPU cycles for
+	    doing other things.
 	  </p>
-
-	  <ul>
-
-	    <li>Choosing level 3 is a more conservative (in terms of
-	      CPU usage) value. This fact together with the generally
-	      available fast CPU today, can make a better balance
-	      between CPU usage and I/O performance. It would be even
-	      possible in certain situations that reading a compressed
-	      table would take less wall-clock time than not using
-	      compression at all.
-	    </li>
-
-	    <li>Normally (except in some degenerate cases), table
-	      columns values are stored very closely in memory
-	      (i.e. they have a high degree of locality), so the
-	      compression algorithm has to make little effort to
-	      discover data duplication (as the majority of this
-	      duplication would appear in values of the same
-	      column). So a small compression level should offer
-	      roughly the same results as a big one.
-	    </li>
-
-	  </ul>
 
 	  <p>Nonetheless, in some situations you may want to check how
 	    compression level affects your application. You can
 	    control it by setting the <tt class="verb">compress</tt> keyword in
-	    the <tt class="verb">createTable</tt> method (see <a href="usersguide-html4.html#FileMethodsDescr">4.3.2</a>). A value of 0 will
+	    the <tt class="verb">createTable</tt> method (see <a href="#createTableDescr"><strong>??</strong></a>). A value of 0 will
 	    completely disable compression, 1 is the less CPU time
 	    demanding level, while 9 is the maximum level and most CPU
 	    intensive.
@@ -1309,7 +1406,7 @@ ValueError: Error packing record object:
 	    it by providing an estimation of the number of rows for a
 	    table. This must be made in table creation time by passing
 	    this value in the <tt class="verb">expectedrows</tt> keyword of
-	    <tt class="verb">createTable</tt> method (see <a href="usersguide-html4.html#FileMethodsDescr">4.3.2</a>).
+	    <tt class="verb">createTable</tt> method (see <a href="#createTableDescr"><strong>??</strong></a>).
 	  </p>
 
 	  <p>When your dataset size is bigger than 1 MB (take this
@@ -1323,69 +1420,9 @@ ValueError: Error packing record object:
 	  </p>
 
 	</div>
-
-	<div id="tuplesOptim"><a name="tuplesOptim"></a>
-	  <h3><span class="headlinenumber" id="subsection3.4.3"><a name="subsection3.4.3"></a>3.4.3 </span>Optimized ways to fill and read data from
-	    tables</h3>
-
-	  <p class="first">The <tt class="verb">appendAsRecord</tt> and
-	    <tt class="verb">readAsRecords</tt> methods in <tt class="verb">Table</tt>
-	    class are very convenient to use when you are dealing with
-	    small to medium size tables. They are safe and intuitive,
-	    <b>but</b> they are slow. When you
-	    have to deal with large tables, you can use the alternate
-	    methods <tt class="verb">appendAsValues</tt>,
-	    <tt class="verb">appendAsTuple</tt> and
-	    <tt class="verb">readAsTuples</tt>. Look at sections <a href="usersguide-html4.html#TableMethodsDescr">4.6.2</a>, <a href="usersguide-html4.html#TableMethodsDescr">4.6.2</a> and <a href="usersguide-html4.html#TableMethodsDescr">4.6.2</a> for a detailed reference
-	    of these optimized methods.
-	  </p>
-
-	  <p>These three new methods are different to the two formers
-	    in that they accept or return the values to/from rows in
-	    table as Python tuples (or independent values in the case
-	    of <tt class="verb">appendAsValues</tt>). They are much faster (at
-	    least a factor two or even more) than
-	    <tt class="verb">xxxxAsRecord</tt> counterparts, but they are also
-	    unsafer, because it is your responsibility to pass the
-	    correct order of parameters to be appended to the table
-	    (or guess the correct order of fields in tuple when
-	    reading). This field order is however well defined
-	    as the result of alphanumerically sorting the names of
-	    table fields (or columns).
-	  </p>
-
-	  <p>For example, if you have a table with three fields named
-	    "<em>TDCcount</em>", "<em>ADCcount</em>" and
-	    "<em>energy</em>", you have to feed
-	    <tt class="verb">appendAsValues</tt> with a series of parameters
-	    like in:
-	  </p>
-	  <pre>
-table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
-	  </pre>
-
-	  <p>For <tt class="verb">readAsTuple</tt> method you have to follow
-	    the same rule, i.e. you must unpack the values in the
-	    returned tuple in alphanumerical order, like in:
-	  </p>
-	  <pre>
-(ADCcountValue, TDCcountValue, energyValue) = table.readAsTuple()
-	  </pre>
-
-	  <p>For a working example that also allows you to do some
-	    timings easily, look at the
-	    <em>examples/table-bench.py</em> script.
-	  </p>
-
-	</div>
-
       </div>
-
-    </div><hr align="left" noshade="true" style="text-align: left; width: 20%; color: black"><div class="footnote"><a name="footnote5" href="#footnoteback5"><sup>5)</sup></a>&nbsp;<tt class="verb">IsRecord</tt> is
-	    actually a <em>metaclass</em> in object slang, but we
-	    don't need to explain nothing more about it in this
-	    context. Check the sources if you are interested on how
-	    that works.</div><div class="footnote"><a name="footnote6" href="#footnoteback6"><sup>6)</sup></a>&nbsp;Note that you can only
+    </div><hr align="left" noshade="true" style="text-align: left; width: 20%; color: black"><div class="footnote"><a name="footnote2" href="#footnoteback2"><sup>2)</sup></a>&nbsp;Note that you can only
 	    append values to tables, not array objects. However, I
-	    plan to support unlimited dimension arrays in short
-	    term. Keep tuned.</div></div><div class="speedbar-bottom"><hr class="speedbar"><table class="speedbar"><tr><td style="text-align: left; width: 15%"><a href="usersguide-html2.html">previous</a></td><td style="text-align: center"><a href="usersguide-html.html#tb:table-of-contents">Table of Contents</a> &#8212; <a href="usersguide-html6.html">References</a></td><td style="text-align: right; width: 15%"><a href="usersguide-html4.html">next</a></td></tr></table></div></body></html>
+	    plan to support unlimited dimension of arrays shortly, in
+	    the tradition of the NetCDF module (see <a href="usersguide-html6.html#NetCDF">Davis <em>et&nbsp;al.</em> ()</a>) of the Scientific Python package
+	    (<a href="usersguide-html6.html#NetCDFSP">Hinsen </a>).</div></div><div class="speedbar-bottom"><hr class="speedbar"><table class="speedbar"><tr><td style="text-align: left; width: 15%"><a href="usersguide-html2.html">previous</a></td><td style="text-align: center"><a href="usersguide-html.html#tb:table-of-contents">Table of Contents</a> &#8212; <a href="usersguide-html6.html">References</a></td><td style="text-align: right; width: 15%"><a href="usersguide-html4.html">next</a></td></tr></table></div></body></html>

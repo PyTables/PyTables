@@ -3,7 +3,7 @@
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2"><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2002-11-15T18:10:02Z"><meta name="Date" content="2002-11-15T18:10:02Z"><meta name="DC.Rights" content="(c) 2002 Francesc Alted"><meta name="Copyright" content="(c) 2002 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2003-03-17T19:55:03+01:00"><meta name="Date" content="2003-03-17T19:55:03+01:00"><meta name="DC.Rights" content="(c) 2003 Francesc Alted"><meta name="Copyright" content="(c) 2003 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -131,15 +131,22 @@
       </div>
 
       <p class="first">The goal of <tt class="verb">PyTables</tt> is to enable the end user
-	to manipulate easily scientific data <b>tables</b> and <em>Numerical Python</em> (
-	see <a href="usersguide-html6.html#Numerical">Ascher <em>et&nbsp;al.</em> ()</a>) objects in a hierarchical
-	structure. The foundation of the underlying hierarchical data
-	organization is the excellent <tt class="verb">HDF5</tt> library (see
-	<a href="usersguide-html6.html#HDFWhatIs">NCSA (<em>c</em>)</a> and <a href="usersguide-html6.html#HDFIntr">NCSA (<em>b</em>)</a>). Right now, <tt class="verb">PyTables</tt> provides
-	limited support of all the HDF5 functions, but I hope to add
-	the more interesting ones (for <tt class="verb">PyTables</tt> needs) in
-	the near future. Nonetheless, this package is not intended to
-	serve as a complete wrapper for the entire HDF5 API.
+	to manipulate easily scientific data <b>tables</b> and array objects objects in a
+	hierarchical structure. The foundation of the underlying
+	hierarchical data organization is the excellent
+	<tt class="verb">HDF5</tt> library
+	(<tt class="verb">http://hdf.ncsa.uiuc.edu/HDF5</tt>). Right now,
+	<tt class="verb">PyTables</tt> provides limited support of all the HDF5
+	functions, but I hope to add the more interesting ones (for
+	<tt class="verb">PyTables</tt> needs) in the near future.
+      </p>
+      <p>
+	Nonetheless, this package is not intended to serve as a
+	complete wrapper for the entire HDF5 API, but to provide a
+	flexible, <em>very Pythonic</em> tool to deal with (arbitrary)
+	large amounts of data (typically bigger than available memory)
+	in tables and arrays organized in a hierarchical, persistent
+	disk storage.
       </p>
 
       <p>A table is defined as a collection of records whose values
@@ -156,57 +163,61 @@
 
       <p>In order to emulate records (that will be mapped to C structs
 	in HDF5) in Python <tt class="verb">PyTables</tt> implements a special
-	<em>metaclass</em> object with the capability to detect errors
-	in field assignments as well as type and range
-	overflows. <tt class="verb">PyTables</tt> also provides a powerful
-	interface to process table data. Records in tables are also
-	known, in the <tt class="verb">HDF5</tt> naming scheme, as
-	<em>compound</em> data types. See <a href="usersguide-html6.html#HDF5TableExamples">NCSA (<em>a</em>)</a> for examples in HDF5 tables
-	(in C language!).
+	<em>metaclass</em> object in order to easily define all its
+	fields and other properties.  <tt class="verb">PyTables</tt> also
+	provides a powerful interface to mine data in table. Records
+	in tables are also known, in the <tt class="verb">HDF5</tt> naming
+	scheme, as <em>compound</em> data types.
       </p>
 
-      <p>For example, you can define arbitrary records in Python
+      <p>For example, you can define arbitrary tables in Python
 	simply by declaring a class with the name field and types
 	information, like in:
       </p>
 
 <pre>
-class Particle(IsRecord):
-    name        = '16s'  # 16-character String
-    idnumber    = 'Q'    # unsigned long long (i.e. 64-bit integer)
-    TDCcount    = 'B'    # unsigned byte
-    ADCcount    = 'H'    # unsigned short integer
-    grid_i      = 'i'    # integer
-    grid_j      = 'i'    # integer
-    pressure    = 'f'    # float  (single-precision)
-    energy      = 'd'    # double (double-precision)
-
+class Particle(IsDescription):
+    name      = Col("CharType", 16)  # 16-character String
+    idnumber  = Col("UInt64", 1)     # Unsigned long long 
+    ADCcount  = Col("UInt16", 1)     # Unsigned short integer
+    TDCcount  = Col("UInt8", 1)      # unsigned byte
+    grid_i    = Col("Int32", 1)      # integer
+    grid_j    = Col("Int32", 1)      # integer
+    pressure  = Col("Float32", 1)    # float  (single-precision)
+    energy    = Col("Float64", 1)    # double (double-precision)
 </pre>
 
-      <p>then, you will normally instantiate that class, fill the
-	instance with your values, and save (arbitrary large)
+      <p>then, you have to pass this class to the table constructor,
+	fill its rows with your values, and save (arbitrary large)
 	collections of them in a file for persistent storage. After
 	that, this data can be retrieved and post-processed quite
 	easily with <tt>PyTables</tt> or even with
-	another <tt class="verb">HDF5</tt> application.
+	another <tt class="verb">HDF5</tt> application (in C, Fortran, Java or
+	whatever language that provides an interface to HDF5).
       </p>
 
       <p>Next section describes the most interesting capabilities of
-	<tt class="verb">PyTables</tt>.</p>
+	<tt class="verb">PyTables</tt>.
+      </p>
 
       <div>
-	<h2><span class="headlinenumber" id="section1.1"><a name="section1.1"></a>1.1 </span>Main Features</h2> <p class="first"><tt>PyTables</tt> has the next capabilities:</p>
+	<h2><span class="headlinenumber" id="section1.1"><a name="section1.1"></a>1.1 </span>Main Features</h2>
+	<p class="first">
+	  <tt class="verb">PyTables</tt> take advantage of the powerful object
+	  orientation and introspection capabilities offered by Python
+	  to bring the next features to the user:
+	</p>
 
 	<ul>
 	  <li><em>Support of table entities:</em> Allows working
 	    with a large number of records, i.e. that don't fit in
 	    memory.
 	  </li>
-	  <li><em>Support of <tt>Numerical
-		Python</tt> arrays:</em> <tt class="verb">Numeric</tt>
-		arrays are a very useful complement of tables to keep
-		homogeneous table slices (like selections of table
-		columns).
+	  <li><em>Support of arrays:</em> <tt class="verb">Numeric</tt> (see
+	    <a href="usersguide-html6.html#Numeric">Ascher <em>et&nbsp;al.</em> ()</a>) or <tt class="verb">numarray</tt>
+	    (see <a href="usersguide-html6.html#Numarray">Greenfield <em>et&nbsp;al.</em> ()</a>) arrays are a very
+	    useful complement of tables to keep homogeneous table
+	    slices (like selections of table columns).
 	  </li>
 	  <li><em>Supports a hierarchical data model:</em> That way,
 	    you can structure very clearly all your
@@ -215,24 +226,16 @@ class Particle(IsRecord):
 	    data structure. Access to the file objects is achieved by
 	    walking throughout this object tree, and manipulating it.
 	  </li>
-	  <li><em>Incremental I/O:</em> It supports adding records
-	    to already created tables. So you won't need to book large
-	    amounts of memory to fill the entire table and then save
-	    it to disk but you can do that incrementally, even between
-	    different Python sessions.
-	  </li>
-	  
 	  <li><em>Appendable tables:</em> It supports adding records
-	    to already created tables. This can be done without copying the
-	    dataset or redefining its structure, even between different
-	    Python sessions.
+	    to already created tables. This can be done without
+	    copying the dataset or redefining its structure, even
+	    between different Python sessions.
 	  </li>
-			    
-	  <li><em>Automatically check for correct field name, data
-	    type and data range:</em> That reduces programmer mistakes
-	    and if <tt>PyTables</tt> does not
-	    report an error, you can be more confident that your data
-	    is probably ok.
+	  <li><em>Automatically check for correct field name, and
+	    data type:</em> That reduces programmer mistakes and if
+	    <tt>PyTables</tt> does not report an
+	    error, you can be more confident that your data is
+	    probably ok.
 	  </li>
 	  <li><em>Support of files bigger than 2 GB:</em> The
 	    underlying HDF5 library already can do that (if your
@@ -240,42 +243,37 @@ class Particle(IsRecord):
 	    __int64), and <tt class="verb">PyTables</tt> automatically inherits
 	    this capability.
 	  </li>
+	  <li><em>Can read generic HDF5 files:</em>
+	    <tt class="verb">PyTables</tt> can access to objects in generic
+	    HDF5 files provided they contain any combination of
+	    groups, compound type datasets (that will be mapped to
+	    <tt class="verb">Table</tt> objects) or homogeneous datasets (that
+	    will be mapped to <tt class="verb">Array</tt> objects). However, as
+	    these kind of data is the most common to be saved HDF5
+	    format, <tt class="verb">PyTables</tt> can probably most of the
+	    HDF5 files out there.
+	  </li>
 	  <li><em>Data compression:</em> It supports data
 	    compression (through the use of the <tt><b>zlib</b></tt>
 	    library) out of the box. This become important when you
 	    have repetitive data patterns and don't want to loose your
 	    time searching for an optimized way to save them (i.e. it
-	    saves you data organization analysis time). This feature
-	    is also inherited from HDF5.
+	    saves you data organization analysis time).
 	  </li>
+
 	  <li><em>Architecture-independent:</em> <tt>PyTables</tt> has been carefully coded (as
-	    HDF5 itself) with little-endian/big-endian byte orderings issues
-	    in mind. So, in principle, you can write a file in a big-endian
-	    machine (like a Sparc or MIPS) and read it in other
-	    little-endian (like Intel or Alpha)
-	    without problems<a href="#footnote1" name="footnoteback1"><sup>1)</sup></a>.</li>
+	    HDF5 itself) with little-endian/big-endian byte orderings
+	    issues in mind . So, in principle, you can write a file in
+	    a big-endian machine (like a Sparc or MIPS) and read it in
+	    other little-endian (like Intel or Alpha) without
+	    problems.
+	  </li>
+
 	</ul>
 
-	<p>It should noted that <tt>PyTables</tt>
-	  is not intended to merely be a high level wrapper of
-	  selected HDF5 functionality (for this, have a look at
-	  HL-HDF5, the Swedish Meteorological and Hydrological
-	  Institute effort to provide another Python interface to
-	  HDF5; see <a href="usersguide-html6.html#HL-HDF">Henja and Michelson ()</a>), but to
-	  provide a flexible, <em>very Pythonic</em> tool to deal with
-	  (arbitrary) large amounts of data (typically bigger than
-	  available memory) in tables and arrays organized in a
-	  hierarchical, persistent disk storage.
-	</p>
-	<p>
-	  <tt class="verb">PyTables</tt> take advantage of the powerful object
-	  orientation and introspection capabilities offered by Python
-	  to bring all those exposed features to the user in a
-	  friendly manner.
-	</p>
       </div>
 
-      <div id="NaturalTreeSection"><a name="NaturalTreeSection"></a>
+      <div id="ObjectTreeSection"><a name="ObjectTreeSection"></a>
 	<h2><span class="headlinenumber" id="section1.2"><a name="section1.2"></a>1.2 </span>The Object Tree</h2>
 
 	<p class="first">The hierarchical model of the underlying HDF5 library
@@ -296,10 +294,10 @@ class Particle(IsRecord):
 	  <tt class="verb">Leaf</tt>. <tt class="verb">Group</tt> instances (that we
 	  will be calling <em>groups</em> from now on) are a grouping
 	  structure containing instances of zero or more groups or
-	  leaves, together with supporting metadata. <tt class="verb">Leaf</tt>
-	  instances (that will be called <em>leaves</em>) are
-	  containers for actual data and cannot contain any other
-	  instances<a href="#footnote2" name="footnoteback2"><sup>2)</sup></a>. The <tt class="verb">Table</tt> and
+	  leaves, together with supplementary metadata.
+	  <tt class="verb">Leaf</tt> instances (that will be called
+	  <em>leaves</em>) are containers for actual data and cannot
+	  contain further groups or leaves. The <tt class="verb">Table</tt> and
 	  <tt class="verb">Array</tt> classes are descendants of
 	  <tt class="verb">Leaf</tt>, and inherits all its properties.
 	</p>
@@ -318,7 +316,7 @@ class Particle(IsRecord):
 	<p>The support for <em>natural naming</em> is a key aspect of
 	  <tt class="verb">PyTables</tt> and means that the names of instance
 	  variables of the node objects are the same as the names of
-	  the element's children<a href="#footnote3" name="footnoteback3"><sup>3)</sup></a>. This is very
+	  the element's children. This is very
 	  <em>Pythonic</em> and comfortable in many cases, as you can
 	  check in the tutorial <a href="usersguide-html3.html#readingAndSelectingUsage">section&nbsp;3.1.6</a>.
 	</p>
@@ -326,68 +324,107 @@ class Particle(IsRecord):
 	  is loaded in the object tree, but only the <em>metadata</em>
 	  (i.e. special data that describes the structure of the
 	  actual data). The actual data is not read until you ask for
-	  it (by calling a method in a particular node). By making use
+	  it (by calling a method on a particular node). By making use
 	  of the object tree (the metadata) you can get information on
-	  the objects on disk such as table names, title, name fields,
-	  data types in fields, number of records, or, in the case of
-	  arrays, shapes, typecode, and so on. You can also traverse
-	  the tree in order to search for something and when you find
-	  the data you are interested in you can read it and process
-	  it. In some sense, you can think of <tt class="verb">PyTables</tt> as
-	  a tool that provide the same introspection capabilities of
-	  Python objects, but applied to the persistent storage of
-	  large amounts of data.
+	  the objects on disk such as table names, title, name
+	  columns, data types in columns, the number of rows, or, in
+	  the case of arrays, the shape, the typecode, and so on. You
+	  can also traverse the tree in order to search for something
+	  and when you find the data you are interested in you can
+	  read it and process it. In some sense, you can think of
+	  <tt class="verb">PyTables</tt> as a tool that provide the same
+	  introspection capabilities of Python objects, but applied to
+	  the persistent storage of large amounts of data.
 	</p>
 	<p>To better understand the dynamic nature of this object tree
-	  entity, imagine that we have made a script (in fact, this
-	  script actually exists and you can find it in
-	  <tt class="verb">examples/objecttree.py</tt>; check it out!) that
-	  creates a simple <tt class="verb">PyTables</tt> file, with the
-	  structure that appears in <a href="#objecttree-h5">figure&nbsp;1.1</a>. During creation time,
-	  metadata in the object tree is updated in memory while the
-	  actual data is being saved on disk and when you close the
-	  file the object tree becomes unavailable. But, when you will
-	  open again this file the object tree with will be
+	  entity, let's start by a first example and try to realize
+	  what kind of object tree the next script (you can find it in
+	  <tt class="verb">examples/objecttree.py</tt>) would create:
+	</p>
+
+	<pre>
+from tables import *
+
+class Particle(IsDescription):
+    identity = Col("CharType", 16, " ", pos = 0)  # character String
+    idnumber = Col("Int16", 1, pos = 1)  # short integer
+    speed = Col("Float32", 1, pos = 1)  # single-precision
+
+# Open a file in "w"rite mode
+fileh = openFile("objecttree.h5", mode = "w")
+# Get the HDF5 root group
+root = fileh.root
+
+# Create the groups:
+group1 = fileh.createGroup(root, "group1")
+group2 = fileh.createGroup(root, "group2")
+
+# Now, create a table in "group0" group
+array1 = fileh.createArray(root, "array1", ["string", "array"], "String array")
+# Create 2 new tables in group1
+table1 = fileh.createTable(group1, "table1", Particle)
+table2 = fileh.createTable("/group2", "table2", Particle)
+# Create the last table in group2
+array2 = fileh.createArray("/group1", "array2", [1,2,3,4])
+
+# Now, fill the tables:
+for table in (table1, table2):
+    # Get the record object associated with the table:
+    row = table.row
+    # Fill the table with 10 records
+    for i in xrange(10):
+        # First, assign the values to the Particle record
+        row['identity']  = 'This is particle: %2d' % (i)
+        row['idnumber'] = i
+        row['speed']  = i * 2.
+        # This injects the Record values
+        row.append()
+
+    # Flush the table buffers
+    table.flush()
+
+# Finally, close the file (this also will flush all the remaining buffers!)
+fileh.close()
+	</pre>
+
+	<p>This small program creates a simple HDF5 file, called
+	  <tt class="verb">objecttree.h5</tt>, with the structure that appears
+	  in <a href="#objecttree-h5">figure&nbsp;1.1</a>. During creation
+	  time, metadata in the object tree is updated in memory while
+	  the actual data is being saved on disk and when you close
+	  the file the object tree becomes unavailable. But, when you
+	  will open again this file the object tree with will be
 	  re-constructed in memory from the metadata existent on disk,
 	  so that you can work with it exactly in the same way than
 	  during the original creation process.
 	</p>
 
 	<div class="figure" id="objecttree-h5"><a name="objecttree-h5"></a>
-	
-	  <a target="_blank" href="objecttree-h5.png"><img class="graphics"
-	  alt="An HDF5 example with 2 subgroups and
-	  3 tables (Click for original bitmap)" src="objecttree-h5-web.png"></a>
-	  
-	  <div class="caption" style="width: 800px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;1.1:</span> An HDF5 example with 2 subgroups and 3 tables.</div></div>
+	  <a target="_blank" href="objecttree-h5.jpg"><img class="graphics" width="510" height="288" alt="An HDF5 example with 2 subgroups, 2 tables ... (Click for original bitmap)" src="objecttree-h5-web.jpg"></a>
+	  <div class="caption" style="width: 510px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;1.1:</span> An HDF5 example with 2 subgroups, 2 tables and 1
+	    array.</div></div>
 	</div>
 
 	<p>In <a href="#objecttree">figure&nbsp;1.2</a> you can see an
-	  example of the object tree created by reading a
-	  <tt class="verb">PyTables</tt> file (in fact, this file is the same
-	  as that of the <a href="#objecttree-h5">figure&nbsp;1.1</a>). If
-	  you are going to become a <tt>PyTables</tt> user, take your time to
-	  understand it<a href="#footnote4" name="footnoteback4"><sup>4)</sup></a>. That will also make you more proactive by
-	  avoiding programming mistakes.
+	  example of the object tree created by reading the above
+	  <tt class="verb">objecttree.h5</tt> file (in fact, such an object is
+	  always created when reading any supported generic HDF5
+	  file). If you are going to become a <tt>PyTables</tt> user, take your time to
+	  understand it<a href="#footnote1" name="footnoteback1"><sup>1)</sup></a>. That will
+	  also make you more proactive by avoiding programming
+	  mistakes.
 	</p>
 
 	<div class="figure" id="objecttree"><a name="objecttree"></a>
-	  
-	  <img class="graphics" width="658" height="806" alt="An object tree example in PyTables.&#xA;	  " src="objecttree-web.png">
-	  <div class="caption" style="width: 658px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;1.2:</span> An object tree example in <tt>PyTables</tt>.
+	  <img class="graphics" width="523" height="579" alt="An object tree example in PyTables.&#xA;	  " src="objecttree-web.png">
+	  <div class="caption" style="width: 523px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;1.2:</span> An object tree example in <tt>PyTables</tt>.
 	  </div></div>
 	</div>
 
       </div>
 
-    </div><hr align="left" noshade="true" style="text-align: left; width: 20%; color: black"><div class="footnote"><a name="footnote1" href="#footnoteback1"><sup>1)</sup></a>&nbsp;I do actually tested that
-	    between a Sparc machine (big-endian) and an Intel machine
-	    (little-endian) and it works only for tables but not for
-	    arrays!. This flaw will hopefully be addressed in next
-	    release.</div><div class="footnote"><a name="footnote2" href="#footnoteback2"><sup>2)</sup></a>&nbsp;Except <tt class="verb">Attribute</tt> instances
-	  in the short future</div><div class="footnote"><a name="footnote3" href="#footnoteback3"><sup>3)</sup></a>&nbsp;I have got this simple but
-	  powerful idea from the excellent <tt>Objectify</tt> module by David Mertz (see
-	  references <a href="usersguide-html6.html#Objectify">Mertz (<em>b</em>)</a> and <a href="usersguide-html6.html#GnosisUtils">Mertz (<em>a</em>)</a>)</div><div class="footnote"><a name="footnote4" href="#footnoteback4"><sup>4)</sup></a>&nbsp;Bear in mind, however, that this
+    </div><hr align="left" noshade="true" style="text-align: left; width: 20%; color: black"><div class="footnote"><a name="footnote1" href="#footnoteback1"><sup>1)</sup></a>&nbsp;Bear in mind, however, that this
 	  diagram is <b>not</b> a standard UML
-	  class diagram; I've used an UML tool to draw it, that's
-	  all.</div></div><div class="speedbar-bottom"><hr class="speedbar"><table class="speedbar"><tr><td style="text-align: left; width: 15%">&nbsp;</td><td style="text-align: center"><a href="usersguide-html.html#tb:table-of-contents">Table of Contents</a> &#8212; <a href="usersguide-html6.html">References</a></td><td style="text-align: right; width: 15%"><a href="usersguide-html2.html">next</a></td></tr></table></div></body></html>
+	  class diagram; it is rather meant to show the connexions
+	  between the <tt class="verb">PyTables</tt> objects and some of its
+	  most important attributes and methods.</div></div><div class="speedbar-bottom"><hr class="speedbar"><table class="speedbar"><tr><td style="text-align: left; width: 15%">&nbsp;</td><td style="text-align: center"><a href="usersguide-html.html#tb:table-of-contents">Table of Contents</a> &#8212; <a href="usersguide-html6.html">References</a></td><td style="text-align: right; width: 15%"><a href="usersguide-html2.html">next</a></td></tr></table></div></body></html>

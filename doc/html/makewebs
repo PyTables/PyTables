@@ -17,7 +17,7 @@ latex -interaction=batchmode \
 dvips -P tbook -O 0pt,0pt -q* -R -o objecttree-h5-for-conv.ps usersguide-html-image-gallery
 gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
      -r100 -q -dNOPAUSE -dBATCH -sOutputFile=objecttree-h5-web.pnm -sDEVICE=ppm objecttree-h5-for-conv.ps
-ppmtojpeg objecttree-h5-web.pnm --comment="(c) 2002 Francesc Alted" \
+ppmtojpeg objecttree-h5-web.pnm --comment="(c) 2003 Francesc Alted" \
     --progressive --grayscale > objecttree-h5-web.jpg
 cat objecttree-h5-web.pnm | pnmfile > objecttree-h5-image-size.txt
 rm -f objecttree-h5-web.pnm
@@ -55,7 +55,7 @@ latex -interaction=batchmode \
 dvips -P tbook -O 0pt,0pt -q* -R -o tutorial-h5-for-conv.ps usersguide-html-image-gallery
 gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
      -r100 -q -dNOPAUSE -dBATCH -sOutputFile=tutorial-h5-web.pnm -sDEVICE=ppm tutorial-h5-for-conv.ps
-ppmtojpeg tutorial-h5-web.pnm --comment="(c) 2002 Francesc Alted" \
+ppmtojpeg tutorial-h5-web.pnm --comment="(c) 2003 Francesc Alted" \
     --progressive --grayscale > tutorial-h5-web.jpg
 cat tutorial-h5-web.pnm | pnmfile > tutorial-h5-image-size.txt
 rm -f tutorial-h5-web.pnm
@@ -74,7 +74,7 @@ latex -interaction=batchmode \
 dvips -P tbook -O 0pt,0pt -q* -R -o tutorial2-h5-for-conv.ps usersguide-html-image-gallery
 gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
      -r100 -q -dNOPAUSE -dBATCH -sOutputFile=tutorial2-h5-web.pnm -sDEVICE=ppm tutorial2-h5-for-conv.ps
-ppmtojpeg tutorial2-h5-web.pnm --comment="(c) 2002 Francesc Alted" \
+ppmtojpeg tutorial2-h5-web.pnm --comment="(c) 2003 Francesc Alted" \
     --progressive --grayscale > tutorial2-h5-web.jpg
 cat tutorial2-h5-web.pnm | pnmfile > tutorial2-h5-image-size.txt
 rm -f tutorial2-h5-web.pnm
