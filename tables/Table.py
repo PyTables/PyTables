@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.6 2002/11/12 13:52:05 falted Exp $
+#       $Id: Table.py,v 1.7 2002/11/13 20:35:35 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.6 $"
+__version__ = "$Revision: 1.7 $"
 
 from __future__ import generators
 import struct
@@ -321,7 +321,7 @@ class Table(Leaf, hdf5Extension.Table):
             self._saveBufferedRows()
 
     def readAsRecords(self):
-        """Return a record instance from rows on table each time.
+        """Return an iterator yielding record instances built from rows
 
         This method is a generator, i.e. it keeps track on the last
         record returned so that next time it is invoked it returns the
@@ -343,7 +343,7 @@ class Table(Leaf, hdf5Extension.Table):
                 #print "tupla %d ==> %s" % (i + j, tupla)
         
     def readAsTuples(self):
-        """Return a tuple from rows in table each time.
+        """Returns an iterator yielding tuples built from rows
         
         This method is a generator, i.e. it keeps track on the last
         record returned so that next time it is invoked it returns the

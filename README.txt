@@ -81,7 +81,7 @@ fairly simple to get things ready to go.
    most hand installations under Unix. If setup.py can't find your
    libhdf5 or if you have several versions installed and want to
    select one of them, then you can give it a hint either in the
-   environment (using the HDF5_DIR evironment variable) or on the
+   environment (using the HDF5_DIR environment variable) or on the
    command line by specifying the directory containing the include
    and lib directory.  For example:
 
@@ -106,7 +106,7 @@ fairly simple to get things ready to go.
            --libs="-lhdf5-1.4.6"
            --libs="-lhdf5-1.4.6 -lnsl"
 
-2. From the main pytables distribution directory run this command,
+2. From the main PyTables distribution directory run this command,
    (plus any extra flags needed as discussed above):
 
         python setup.py build_ext --inplace
