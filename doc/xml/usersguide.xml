@@ -10,12 +10,14 @@
     <subtitle><visual markup="sf">Hierarchical datasets in
       Python</visual><newline/> Release 0.9(beta) </subtitle>
 
-    <date>2004, August, 12th</date>
+    <date>2004, September, 17th</date>
     <year>2002, 2003, 2004</year>
-<!--     <graphics kind="bitmap" file="logo4-ombra"/> -->
     <graphics kind="bitmap" file="logo3-ombra"/>
+<!--     <graphics kind="bitmap" file="logo4-ombra"/> -->
+<!--     <graphics kind="vector" scale="0.3" file="enjoylogo-1"/> -->
+<!--     <graphics kind="bitmap" file="pytables-logo-menut"/> -->
 <!--     <city>Castelló de la Plana, Spain</city> -->
-    <typeset>Francesc Alted and Scott Prater</typeset>
+    <typeset>Francesc Alted, Scott Prater, Ivan Vilata and Tom Hedley</typeset>
 
     <legalnotice>
 
@@ -3025,12 +3027,12 @@ KeyError: Error setting "ADCcount" field.
 	      <term>expectedrows</term> <item>An user estimate of the
 		number of records that will be on table. If not
 		provided, the default value is appropriate for tables
-		until 1 MB in size (more or less, depending on the
-		record size). If you plan to save bigger tables you
-		should provide a guess; this will optimize the HDF5
-		B-Tree creation and management process time and memory
-		used. See <ref refid="expectedRowsOptim">section</ref>
-		for a discussion on that issue.
+		until 10 MB in size (more or less). If you plan to
+		save bigger tables you should provide a guess; this
+		will optimize the HDF5 B-Tree creation and management
+		process time and memory used. See <ref
+		refid="expectedRowsOptim">section</ref> for a
+		discussion on that issue.
 	      </item>
 	    </description>
 	  </subsubsection>
@@ -4339,7 +4341,6 @@ Select table.cols['temperature'][:]--> [ 100.  121.  144.]
 	  enlargeable dataset support and/or compression features.
 	</p>
 
-        <!-- arrays now support complex data types -->
 	<p>The array data types supported are the same as the set
 	  provided by <verb>Numeric</verb> and <verb>numarray</verb>.
 	  For details of these data types see <ref
@@ -5002,7 +5003,6 @@ fileh.close()
 	    these column descriptions easier to the user. In general,
 	    it is recommended to use these descendant classes, as they
 	    are more meaningful when found in the middle of the code.
-	    Caveat: tables do not yet support complex datatypes.
 	  </p>
 	  <p>Note that the only public method accessible in these
 	    classes is the constructor itself.
@@ -5018,15 +5018,11 @@ fileh.close()
 	      <description>
 
 		<term>dtype</term> <item>The data type for the
-		  column. 
-		  It is an error to specify a complex datatype in the Col
-		  constructor or in a <visual
-		  markup="tt">IsDescription</visual> class declaration.
-		  However, all
-		  other types listed in <ref refid="datatypesSupported">
-		  appendix</ref> are valid data types for columns.
-		  The type description is accepted both in
-		  string format and as a numarray data type.</item>
+		  column. All types listed in <ref
+		  refid="datatypesSupported"> appendix</ref> are valid
+		  data types for columns.  The type description is
+		  accepted both in string format and as a numarray
+		  data type.</item>
 
 		<term>shape</term> <item>An integer or a tuple, that
 		  specifies the number of <em>dtype</em> items for
@@ -5112,7 +5108,7 @@ fileh.close()
 
 	    </item>
 
-	    <term>FloatCol(dflt=0, shape=1, itemsize=8, pos=None)
+	    <term>FloatCol(dflt=0.0, shape=1, itemsize=8, pos=None)
 	    </term>
 	    <item>Define a column to be of type <verb>FloatXX</verb>,
 	      depending on the value of <verb>itemsize</verb>. The
@@ -5133,8 +5129,31 @@ fileh.close()
 
 	      </description>
 	    </item>
-	  </description>
 
+	    <term>ComplexCol(dflt=0.+0.j, shape=1, itemsize=16, pos=None)
+	    </term>
+	    <item>Define a column to be of type
+	      <verb>ComplexXX</verb>, depending on the value of
+	      <verb>itemsize</verb>. The <verb>itemsize</verb>
+	      parameter sets the number of bytes of the complex types
+	      in the column and the default is 16 bytes (double
+	      precision complex). The meaning of the other parameters
+	      are the same as those in the <verb>Col</verb> class.
+
+	      <p>This class has two descendants:
+	      </p>
+
+	      <description>
+		<term>Complex32Col(dflt=0.+0.j, shape=1, pos=None)</term>
+		<item>Define a column of type <verb>Complex32</verb>.</item>
+
+		<term>Float64Col(dflt=0+0.j, shape=1, pos=None)</term>
+		<item>Define a column of type <verb>Complex64</verb>.</item>
+
+	      </description>
+	    </item>
+
+	  </description>
 	</subsection> <!-- Col classes -->
 
 	<subsection id="AtomClassDescr">
@@ -5300,12 +5319,13 @@ fileh.close()
 
 	    <term>ComplexAtom(shape=1, itemsize=16, flavor="NumArray")
 	    </term>
-	    <item>Define an atom to be of <verb>ComplexXX</verb>
-	      type, depending on the value of <verb>itemsize</verb>. The
+	    <item>Define an atom to be of <verb>ComplexXX</verb> type,
+	      depending on the value of <verb>itemsize</verb>. The
 	      <verb>itemsize</verb> parameter sets the number of bytes
 	      of the floats in the atom and the default is 16 bytes
-	      (double precision complex). The meaning of the other parameters
-	      are the same as those in the <verb>Atom</verb> class.
+	      (double precision complex). The meaning of the other
+	      parameters are the same as those in the
+	      <verb>Atom</verb> class.
 
 	      <p>This class has two descendants:
 	      </p>
@@ -5596,7 +5616,7 @@ Result Array:
 	his application. If you are planning to deal with really large
 	data, you should read carefully this section in order to learn
 	how to get an important boost for your code. But if your
-	dataset is small or medium size (say, up to 1 MB), you should
+	dataset is small or medium size (say, up to 10 MB), you should
 	not worry about that as the default parameters in
 	<verb>PyTables</verb> are already tuned to handle that
 	perfectly.
@@ -6011,7 +6031,7 @@ if __name__=="__main__":
 	    refid="createTableDescr"></ref>).
 	</p>
 
-	<p>When your table size is bigger than 1 MB (take this figure
+	<p>When your table size is bigger than 10 MB (take this figure
 	  only as a reference, not strictly), by providing this guess
 	  of the number of rows you will be optimizing the access to
 	  your data. When the table size is larger than, say 100MB,
@@ -6131,49 +6151,43 @@ if __name__=="__main__":
 	<heading>Supported data types in <visual
 	markup="tt">PyTables</visual></heading>
 
-	<p>The Array, VLArray and EArray classes can all 
-	  handle all the data types supported by the <visual
+	<p>The Table, Array, VLArray and EArray classes can all handle
+	  the complete set of data types supported by the <visual
 	  markup="tt">numarray</visual> package (see <cite
-	  refid="Numarray"></cite>) in Python.
-	  The data types for array elements can be set through
-	  the use of the <verb>Atom</verb> class and its descendants
-	  (<ref refid="AtomClassDescr">see</ref>).
-	</p>
-	<p>In the case of tables, a subset of the numarray data types 
-	  can be used to define the fields.
-	  Such a set is the same as for arrays, with the exception of
-	  the complex datatypes that are not supported yet.
-	  The table fields can be set via the constructor for the <verb>
-	  Col</verb> class and its decendants
-	  (<ref refid="ColClassDescr">see</ref>),
-	  or in a <verb>IsDescription</verb> class declaration
-	  (<ref refid="IsDescriptionClassDescr">see</ref>).
+	  refid="Numarray"></cite>) and <visual
+	  markup="tt">Numeric</visual> (see <cite
+	  refid="Numeric"></cite>) in Python.  The data types for
+	  table fields can be set via the constructor for the
+	  <verb>Col</verb> class and its descendants (<ref
+	  refid="ColClassDescr">see</ref> while array elements can be
+	  set through the use of the <verb>Atom</verb> class and its
+	  descendants (<ref refid="AtomClassDescr">see</ref>).
 	</p>
 	<p>A quick reference to the complete set of data types supported by
 	  PyTables is given in <ref refid="datatypesSupported">table</ref>.
 	</p>
 
 	<table id="datatypesSupportedTable">
-	  <tabular preamble="lllclc">
+	  <tabular preamble="lllcl">
 	  <tabhead>
 	    <srow>Type Code | Description | C Type | Size (in bytes) |
-	      Python Counterpart | Supported in tables</srow>
+	      Python Counterpart </srow>
 	  </tabhead>
 	  <tabbody>
-	    <srow>Bool | boolean | unsigned char | 1 | Boolean | yes </srow>
-	    <srow>Int8 | 8-bit integer | signed char | 1 | Integer | yes </srow>
-	    <srow>UInt8 | 8-bit unsigned integer | unsigned char | 1 | Integer | yes </srow>
-	    <srow>Int16 | 16-bit integer | short | 2 | Integer | yes </srow>
-	    <srow>UInt16 | 16-bit unsigned integer | unsigned short | 2 | Integer | yes </srow>
-	    <srow>Int32 | integer | int | 4  | Integer | yes </srow>
-	    <srow>UInt32 | unsigned integer | unsigned int | 4 | Long | yes </srow>
-	    <srow>Int64 | 64-bit integer | long long | 8 | Long | yes </srow>
-	    <srow>UInt64 | unsigned 64-bit integer | unsigned long long | 8 | Long | yes </srow>
-	    <srow>Float32 | single-precision float | float | 4 | Float | yes </srow>
-	    <srow>Float64 | double-precision float | double | 8 | Float | yes </srow>
-	    <srow>Complex32 | single-precision complex | struct {float r, i;} | 8 | Complex | no </srow>
-	    <srow>Complex64 | double-precision complex | struct {double r, i;} | 16 | Complex | no </srow>
-	    <srow>CharType | arbitrary length string | char[] | * | String | yes </srow>
+	    <srow>Bool | boolean | unsigned char | 1 | Boolean </srow>
+	    <srow>Int8 | 8-bit integer | signed char | 1 | Integer </srow>
+	    <srow>UInt8 | 8-bit unsigned integer | unsigned char | 1 | Integer </srow>
+	    <srow>Int16 | 16-bit integer | short | 2 | Integer </srow>
+	    <srow>UInt16 | 16-bit unsigned integer | unsigned short | 2 | Integer </srow>
+	    <srow>Int32 | integer | int | 4  | Integer </srow>
+	    <srow>UInt32 | unsigned integer | unsigned int | 4 | Long </srow>
+	    <srow>Int64 | 64-bit integer | long long | 8 | Long </srow>
+	    <srow>UInt64 | unsigned 64-bit integer | unsigned long long | 8 | Long </srow>
+	    <srow>Float32 | single-precision float | float | 4 | Float </srow>
+	    <srow>Float64 | double-precision float | double | 8 | Float </srow>
+	    <srow>Complex32 | single-precision complex | struct {float r, i;} | 8 | Complex </srow>
+	    <srow>Complex64 | double-precision complex | struct {double r, i;} | 16 | Complex </srow>
+	    <srow>CharType | arbitrary length string | char[] | * | String </srow>
 	  </tabbody>
 	</tabular>
 	  <caption>Data types supported for array elements and
@@ -6182,626 +6196,6 @@ if __name__=="__main__":
 	</table>
 
       </chapter>  <!-- Data types supported -->
-
-      <chapter id="PyTablesInternalFormat">
-	<heading><visual markup="tt">PyTables</visual> File
-	  Format</heading>
-
-	<p><verb>PyTables</verb> has a powerful capability to deal
-	  with native HDF5 files created with another tools. However,
-	  there are situations were you may want to create truly
-	  native <verb>PyTables</verb> files with those tools while
-	  retaining fully compatibility with <verb>PyTables</verb>
-	  format. That is perfectly possible, and in this appendix is
-	  presented the format that you should endow to your
-	  own-generated files in order to get a fully
-	  <verb>PyTables</verb> compatible file.
-	</p>
-
-	<p>We are going to describe the <visual markup="bf">1.2
-	  version of <verb>PyTables</verb> file format</visual>
-	  (introduced in <verb>PyTables</verb> version 0.8). At this
-	  stage, this file format is considered stable enough to do
-	  not introduce significant changes during a reasonable
-	  amount of time. As times goes by, some changes will be
-	  introduced (and documented here) in order to cope with new
-	  necessities. However, the changes will be carefully analyzed
-	  so as to ensure backward compatibility whenever is possible.
-	</p>
-
-	<p>A <verb>PyTables</verb> file is composed with arbitrarily
-	  large amounts of HDF5 groups (<verb>Groups</verb> in
-	  <verb>PyTables</verb> naming scheme) and datasets
-	  (<verb>Leaves</verb> in <verb>PyTables</verb> naming
-	  scheme). For groups, the only requirements are that they
-	  must have some <em>system attributes</em> available. By
-	  convention, system attributes in <verb>PyTables</verb> are
-	  written in upper case, and user attributes in lower case but
-	  this is not enforced by the software. In the case of
-	  datasets, besides the mandatory system attributes, some
-	  conditions are further needed in their storage layout, as
-	  well as in the datatypes used in there, as we will see
-	  shortly.
-	</p>
-
-	<p>As a final remark, you can use any filter as you want to
-	  create a <verb>PyTables</verb> file, provided that the
-	  filter is a standard one in HDF5, like <em>zlib</em>,
-	  <em>shuffle</em> or <em>szip</em> (although the last one
-	  cannot be used from within <verb>PyTables</verb> to create a
-	  new file, datasets compressed with szip can be read, because
-	  it is the HDF5 library which do the decompression
-	  transparently).
-	</p>
-
-	<section>
-	  <heading>Mandatory attributes for a <visual
-	      markup="tt">File</visual></heading>
-
-	  <p>The <verb>File</verb> object is, in fact, an special HDF5
-	    <em>group</em> structure that is <em>root</em> for the
-	    rest of the objects on the object tree. The next
-	    attributes are mandatory for the HDF5 <em>root group</em>
-	    structure in <verb>PyTables</verb> files:
-	  </p>
-
-	  <description>
-	    <term>CLASS</term> <item>This attribute should always be
-	    set to <verb>'GROUP'</verb> for group structures.</item>
-	    <term>PYTABLES_FORMAT_VERSION</term> <item>It represents
-	    the internal format version, and currently should be set
-	    to the <verb>'1.2'</verb> string.</item>
-	    <term>TITLE</term> <item>A string where the user can put
-	    some description on what is this group used for. </item>
-	    <term>VERSION</term> <item>Should contains the string
-	    <verb>'1.0'</verb>.</item>
-	  </description>
-
-	</section>
-	<section>
-	  <heading>Mandatory attributes for a <visual
-	      markup="tt">Group</visual></heading>
-
-	  <p>The next attributes are mandatory for <em>group</em>
-	    structures:
-	  </p>
-
-	  <description>
-	    <term>CLASS</term> <item>This attribute should always be
-	    set to <verb>'GROUP'</verb> for group structures.</item>
-	    <term>TITLE</term> <item>A string where the user can put
-	    some description on what is this group used for. </item>
-	    <term>VERSION</term> <item>Should contains the string
-	    <verb>'1.0'</verb>.</item>
-	  </description>
-
-	  <p>There exist a special <verb>Group</verb>, called the
-	    <em>root</em>, that, in addition to the attributes listed
-	    above, it requires the next one:
-	  </p>
-
-	  <description>
-	    <term>PYTABLES_FORMAT_VERSION</term> <item>It represents
-	    the internal format version, and currently should be set
-	    to the <verb>'1.2'</verb> string.</item>
-	  </description>
-
-	</section>
-
-	<section>
-	  <heading>Mandatory attributes, storage layout and supported
-	      datatypes for <visual markup="tt">Leaves</visual>
-	      </heading>
-
-	  <p>This depends on the kind of <verb>Leaf</verb>. The
-	    format for each type follows.
-	  </p>
-
-	  <subsection id="TableFormatDescr">
-	    <heading><visual markup="tt">Table</visual>
-	    format</heading>
-
-	    <subsubsection>
-	      <heading>Mandatory attributes</heading>
-
-	      <p>The next attributes are mandatory for <em>table</em>
-		structures:
-	      </p>
-
-	      <description>
-		<term>CLASS</term> <item>Must be set to
-		  <verb>'TABLE'</verb>.</item>
-
-		<term>TITLE</term> <item>A string where the user can
-		  put some description on what is this dataset used
-		  for. </item>
-
-		<term>VERSION</term> <item>Should contain the string
-		  <verb>'2.1'</verb>.</item>
-
-		<term>FIELD_X_NAME</term> <item>It contains the names
-		  of the different fields. The <verb>X</verb> means
-		  the number of the field (beware, order do
-		  matter). You should add as many attributes of this
-		  kind as fields you have in your records.
-		</item>
-
-		<term>NROWS</term> <item>This should contain the
-		  number of <em>compound</em> datatype entries in the
-		  dataset. It must be an <em>int</em> datatype.</item>
-	      </description>
-
-	    </subsubsection>
-
-	    <subsubsection>
-	      <heading>Storage Layout</heading>
-
-	      <p>A <verb>Table</verb> has a <em>dataspace</em> with a
-		<em>1-dimensional chunked</em> layout.
-	      </p>
-	    </subsubsection>
-
-	    <subsubsection>
-	      <heading>Datatypes supported</heading>
-
-	      <p>The datatype of the elements (rows) of
-		<verb>Table</verb> must be the H5T_COMPOUND
-		<em>compound</em> datatype, and each of these compound
-		components must be built with only the next HDF5
-		datatypes <em>classes</em>:
-	      </p>
-
-	      <description>
-		<term>H5T_BITFIELD</term> <item>This class is used to
-		  represent the <verb>Bool</verb> type. Such a type
-		  must be build using a H5T_NATIVE_B8 datatype,
-		  followed by a HDF5 <verb>H5Tset_precision</verb>
-		  call to set its precision to be just 1 bit.
-		</item>
-		<term>H5T_INTEGER</term> <item>This includes the next
-		  datatypes:
-		  <description>
-		    <term>H5T_NATIVE_SCHAR</term> <item>This
-		      represents a <em>signed char</em> C type, but it
-		      is effectively used to represent an
-		      <verb>Int8</verb> type.
-		    </item>
-		    <term>H5T_NATIVE_UCHAR</term> <item>This
-		      represents an <em>unsigned char</em> C type, but
-		      it is effectively used to represent an
-		      <verb>UInt8</verb> type.
-		    </item>
-		    <term>H5T_NATIVE_SHORT</term> <item>This
-		      represents a <em>short</em> C type, and
-		      it is effectively used to represent an
-		      <verb>Int16</verb> type.
-		    </item>
-		    <term>H5T_NATIVE_USHORT</term> <item>This
-		      represents an <em>unsigned short</em> C type, and
-		      it is effectively used to represent an
-		      <verb>UInt16</verb> type.
-		    </item>
-		    <term>H5T_NATIVE_INT</term> <item>This represents
-		      an <em>int</em> C type, and it is effectively
-		      used to represent an <verb>Int32</verb> type.
-		    </item>
-		    <term>H5T_NATIVE_UINT</term> <item>This
-		      represents an <em>unsigned int</em> C type, and
-		      it is effectively used to represent an
-		      <verb>UInt32</verb> type.
-		    </item>
-		    <term>H5T_NATIVE_LONG</term> <item>This represents
-		      a <em>long</em> C type, and it is effectively
-		      used to represent an <verb>Int32</verb> or an
-		      <verb>Int64</verb>, depending on whether you are
-		      running a 32-bit or 64-bit architecture.
-		    </item>
-		    <term>H5T_NATIVE_ULONG</term> <item>This
-		      represents an <em>unsigned long</em> C type, and
-		      it is effectively used to represent an
-		      <verb>UInt32</verb> or an <verb>UInt64</verb>,
-		      depending on whether you are running a 32-bit or
-		      64-bit architecture.
-		    </item>
-		    <term>H5T_NATIVE_LLONG</term> <item>This
-		      represents a <em>long long</em> C type
-		      (<verb>__int64</verb>, if you are using a
-		      Windows system) and it is effectively
-		      used to represent an <verb>Int64</verb> type.
-		    </item>
-		    <term>H5T_NATIVE_ULLONG</term> <item>This
-		      represents an <em>unsigned long long</em> C type
-		      (beware: this type does not have a
-		      correspondence on Windows systems) and it is
-		      effectively used to represent an
-		      <verb>UInt64</verb> type.
-		    </item>
-		  </description>
-		</item>	<!-- H5T_INTEGER -->
-		<term>H5T_FLOAT</term> <item>This includes the next
-		  datatypes:
-		  <description>
-		    <term>H5T_NATIVE_FLOAT</term> <item>This
-		      represents a <em>float</em> C type and it is
-		      effectively used to represent an
-		      <verb>Float32</verb> type.
-		    </item>
-		    <term>H5T_NATIVE_DOUBLE</term> <item>This
-		      represents a <em>double</em> C type and it is
-		      effectively used to represent an
-		      <verb>Float64</verb> type.
-		    </item>
-		  </description>
-		</item>
-		<term>H5T_STRING</term> <item>The datatype used to
-		  describe strings in PyTables is H5T_C_S1 (i.e. a
-		  <em>string</em> C type) followed with a call to the
-		  HDF5 <verb>H5Tset_size()</verb> function to set
-		  their length.
-		</item>
-		<term>H5T_ARRAY</term> <item>This allows the
-		  construction of homogeneous, multi-dimensional
-		  arrays, so that you can include such objects in
-		  compound records. The types supported as elements of
-		  H5T_ARRAY datatypes are the ones described
-		  above. Currently, PyTables<verb></verb> does not
-		  support nested H5T_ARRAY types.
-		</item>
-	      </description>
-	      
-	      <p>You should note that <em>nested compound</em>
-		datatypes are not allowed in <verb>Table</verb>
-		objects.
-	      </p>
-
-	    </subsubsection>
-
-	  </subsection>	<!-- Table -->
-
-	  <subsection id="ArrayFormatDescr">
-	    <heading><visual markup="tt">Array</visual>
-	      format</heading>
-
-	    <subsubsection>
-	      <heading>Mandatory attributes</heading>
-
-	      <p>The next attributes are mandatory for <em>array</em>
-		structures:
-	      </p>
-
-	      <description>
-		<term>CLASS</term> <item>Must be set to
-		  <verb>'ARRAY'</verb>.
-		</item>
-
-		<term>FLAVOR</term> <item>This is meant to provide the
-		  information about the kind of object kept in the
-		  <verb>Array</verb>, i.e. when the dataset is read,
-		  it will be converted to the indicated flavor. It can
-		  take one the next string values:
-
-		  <description>
-		    <term>"NumArray"</term> <item>The dataset will be
-		      returned as a <verb>NumArray</verb> object (from
-		      the <verb>numarray</verb> package).
-		    </item>
-		    <term>"CharArray"</term> <item>The dataset will be
-		      returned as a <verb>CharArray</verb> object
-		      (from the <verb>numarray</verb> package).
-		    </item>
-		    <term>"Numeric"</term> <item>The dataset will be
-		      returned as an <verb>array</verb> object
-		      (from the <verb>Numeric</verb> package).
-		    </item>
-		    <term>"List"</term> <item>The dataset will be
-		      returned as a Python <verb>List</verb> object.
-		    </item>
-		    <term>"Tuple"</term> <item>The dataset will be
-		      returned as a Python <verb>Tuple</verb> object.
-		    </item>
-		    <term>"Int"</term> <item>The dataset will be
-		      returned as a Python <verb>Int</verb>
-		      object. This is meant mainly for scalar
-		      (i.e. without dimensions) integer values.
-		    </item>
-		    <term>"Float"</term> <item>The dataset will be
-		      returned as a Python <verb>Float</verb>
-		      object. This is meant mainly for scalar
-		      (i.e. without dimensions) floating point values.
-		    </item>
-		    <term>"String"</term> <item>The dataset will be
-		      returned as a Python <verb>String</verb>
-		      object. This is meant mainly for scalar
-		      (i.e. without dimensions) string values.
-		    </item>
-		  </description>
-		</item>
-
-		<term>TITLE</term> <item>A string where the user can
-		  put some description on what is this dataset used
-		  for.
-		</item>
-
-		<term>VERSION</term> <item>Should contain the string
-		  <verb>'2.0'</verb>.
-		</item>
-	      </description>
-	    </subsubsection>
-
-	    <subsubsection>
-	      <heading>Storage Layout</heading>
-
-	      <p>An <verb>Array</verb> has a <em>dataspace</em> with a
-		<em>N-dimensional contiguous</em> layout (if you
-		prefer a <em>chunked</em> layout see
-		<verb>EArray</verb> below).
-	      </p>
-	    </subsubsection>
-
-	    <subsubsection>
-	      <heading>Datatypes supported</heading>
-
-	      <p>The elements of <verb>Array</verb> must have HDF5 either
-		<em>atomic</em> datatypes or a <em>compound</em> datatype 
-		representing a complex number.
-		The atomic datatypes and can currently be one of
-		the next HDF5 datatype <em>classes</em>:
-		H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT and
-		H5T_STRING. See the <verb>Table</verb> format
-		description in <ref
-		refid="TableFormatDescr">section</ref> for more info
-		about these types.
-	      </p>
-
-	      <p>In addition to the HDF5 atomic datatypes, the Array
-		format supports complex numbers with the H5T_COMPOUND
-		datatype class. The H5T_COMPOUND type class contains two
-		members. Both members must have the H5T_FLOAT atomic
-		datatype class. The name of the first member should 
-		be "r" and represents the real
-		part. The name of the second member should be "i" and
-		represents the imaginary part.
-		The <em>precision</em> property of both of the H5T_FLOAT members
-		must be either 32 significant bits (e.g. H5T_NATIVE_FLOAT) or 
-		64 significant bits (e.g. H5T_NATIVE_DOUBLE). 
-		They represent Complex32 and Complex64 types respectively.
-	      </p>
-
-	      <p>You should note that H5T_ARRAY class datatypes are
-		not allowed in <verb>Array</verb> objects.
-	      </p>
-	    </subsubsection>
-	  </subsection>	<!-- Array -->
-
-	  <subsection id="EArrayFormatDescr">
-	    <heading><visual markup="tt">EArray</visual>
-	      format</heading>
-
-	    <subsubsection>
-	      <heading>Mandatory attributes</heading>
-
-	      <p>The next attributes are mandatory for <em>earray</em>
-		structures:
-	      </p>
-
-	      <description>
-		<term>CLASS</term> <item>Must be set to
-		  <verb>'EARRAY'</verb>.
-		</item>
-
-		<term>EXTDIM</term> <item>(<em>Integer</em>) Must be
-		  set to the extensible dimension. Only one extensible
-		  dimension is supported right now.
-		</item>
-
-		<term>FLAVOR</term> <item>This is meant to provide the
-		  information about the kind of objects kept in the
-		  <verb>EArray</verb>, i.e. when the dataset is read,
-		  it will be converted to the indicated flavor. It can
-		  take the same values as the <verb>Array</verb>
-		  object (see <ref refid="ArrayFormatDescr"></ref>),
-		  except <verb>"Int"</verb> and <verb>"Float"</verb>.
-
-		</item>
-		<term>TITLE</term> <item>A string where the user can
-		  put some description on what is this dataset used
-		  for.
-		</item>
-
-		<term>VERSION</term> <item>Should contain the string
-		  <verb>'1.0'</verb>.
-		</item>
-
-	      </description>
-	    </subsubsection>
-
-	    <subsubsection>
-	      <heading>Storage Layout</heading>
-
-	      <p>An <verb>EArray</verb> has a <em>dataspace</em> with
-		a <em>N-dimensional chunked</em> layout.
-	      </p>
-	    </subsubsection>
-
-	    <subsubsection>
-	      <heading>Datatypes supported</heading>
-
-	      <p>The elements of <verb>EArray</verb> are allowed to have
-		the same
-		datatypes as for the elements in the Array format.
-		They can be one of the HDF5 <em>atomic</em> datatype 
-		<em>classes</em>:
-		H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT or
-		H5T_STRING, see the <verb>Table</verb> format
-		description in <ref
-		refid="TableFormatDescr">section</ref> for more info
-		about these types. 
-		They can also be a HDF5 <em>compound</em> 
-		datatype representing a complex number, 
-		see the <verb>Array</verb> format
-		description in <ref
-		refid="ArrayFormatDescr">section</ref>.
-	      </p>
-	      
-	      <p>You should note that H5T_ARRAY class datatypes are
-		not allowed in <verb>EArray</verb> objects.
-	      </p>
-	    </subsubsection>
-	  </subsection>	<!-- EArray -->
-
-	  <subsection id="VLArrayFormatDescr">
-	    <heading><visual markup="tt">VLArray</visual>
-	      format</heading>
-
-	    <subsubsection>
-	      <heading>Mandatory attributes</heading>
-
-	      <p>The next attributes are mandatory for
-		<em>vlarray</em> structures:
-	      </p>
-
-	      <description>
-		<term>CLASS</term> <item>Must be set to
-		  <verb>'VLARRAY'</verb>.
-		</item>
-
-		<term>FLAVOR</term> <item>This is meant to provide the
-		  information about the kind of objects kept in the
-		  <verb>VLArray</verb>, i.e. when the dataset is read,
-		  it will be converted to the indicated flavor. It can
-		  take one of the next values:
-
-		  <description>
-		    <term>"NumArray"</term> <item>The elements in
-		      dataset will be returned as
-		      <verb>NumArray</verb> objects (from the
-		      <verb>numarray</verb> package).
-		    </item>
-		    <term>"CharArray"</term> <item>The elements in
-		      dataset will be returned as
-		      <verb>CharArray</verb> objects (from the
-		      <verb>numarray</verb> package).
-		    </item>
-		    <term>"String"</term> <item>The elements in the
-		      dataset will be returned as Python
-		      <verb>String</verb> objects of <em>fixed</em>
-		      length (and not as <verb>CharArrays</verb>).
-		    </item>
-		    <term>"Numeric"</term> <item>The elements in the
-		      dataset will be returned as
-		      <verb>array</verb> objects (from the
-		      <verb>Numeric</verb> package).
-		    </item>
-		    <term>"List"</term> <item>The elements in the
-		      dataset will be returned as Python
-		      <verb>List</verb> objects.
-		    </item>
-		    <term>"Tuple"</term> <item>The elements in the
-		      dataset will be returned as Python
-		      <verb>Tuple</verb> objects.
-		    </item>
-		    <term>"Object"</term> <item>The elements in the
-		      dataset will be interpreted as pickled
-		      (i.e. serialized objects through the use of the
-		      <verb>Pickle</verb> Python module) objects and
-		      returned as Python <em>generic</em>
-		      objects. Only one of such objects will be
-		      supported per entry. As the <verb>Pickle</verb>
-		      module is not normally available in other
-		      languages, this flavor won't be useful in
-		      general.
-		    </item>
-		    <term>"VLString"</term> <item>The elements in the
-		      dataset will be returned as Python
-		      <verb>String</verb> objects of <em>any</em>
-		      length, with the twist that <visual
-		      markup="bf">Unicode</visual> strings are
-		      supported as well (provided you use the <visual
-		      markup="bf">UTF-8</visual> codification, see
-		      below). However, only one of such objects will
-		      be supported per entry.
-		    </item>
-		  </description>
-		</item>
-
-		<term>TITLE</term> <item>A string where the user can
-		  put some description on what is this dataset used
-		  for.
-		</item>
-
-		<term>VERSION</term> <item>Should contain the string
-		  <verb>'1.0'</verb>.
-		</item>
-
-	      </description>
-	    </subsubsection>
-
-	    <subsubsection>
-	      <heading>Storage Layout</heading>
-
-	      <p>An <verb>VLArray</verb> has a <em>dataspace</em> with
-		a <em>1-dimensional chunked</em> layout. 
-	      </p>
-	    </subsubsection>
-
-	    <subsubsection>
-	      <heading>Datatypes supported</heading>
-
-	      <p>The datatype of the elements (rows) of
-		<verb>VLArray</verb> objects must be the H5T_VLEN
-		<em>variable-length</em> (or VL for short) datatype,
-		and the base datatype specified for the VL datatype
-		can be of any <em>atomic</em> HDF5 datatype that is
-		listed in the <verb>Table</verb> format <ref
-		refid="TableFormatDescr">description
-		section</ref>. That includes the classes:
-	      </p>
-	      <itemize>
-		<item>H5T_BITFIELD</item>
-		<item>H5T_INTEGER</item>
-		<item>H5T_FLOAT</item>
-		<item>H5T_STRING</item>
-		<item>H5T_ARRAY</item>
-	      </itemize>
-	      <p>They can also be a HDF5 <em>compound</em> 
-		datatype representing a complex number, 
-		see the <verb>Array</verb> format
-		description in <ref
-		refid="ArrayFormatDescr">section</ref> for a 
-		detailed description.
-	      </p>
-	      <p>You should note that this does not include another VL
-		datatype, or a compound datatype that does not fit
-		the description of a complex number. Note as well that, for
-		<verb>Object</verb> and <verb>VLString</verb>
-		special flavors, the base for the VL datatype is
-		always a H5T_NATIVE_UCHAR. That means that the
-		complete row entry in the dataset has to be used in
-		order to fully serialize the object or the variable
-		length string.
-	      </p>
-	      <p>In addition, if you plan to use a
-		<verb>VLString</verb> flavor for your text data and
-		you are using ascii-7 (7 bits ASCII) codification for
-		your strings, but you don't know (or just don't want)
-		to convert it to the required UTF-8 codification, you
-		should not worry too much about that because the ASCII
-		characters with values in the range [0x00, 0x7f] are
-		directly mapped to Unicode characters in the range
-		[U+0000, U+007F] and the UTF-8 encoding has the useful
-		property that an UTF-8 encoded ascii-7 string is
-		indistinguishable from a traditional ascii-7 string.
-		So, you will not need any further conversion in order
-		to save your ascii-7 strings and have an
-		<verb>VLString</verb> flavor.
-	      </p>
-
-	    </subsubsection>
-	  </subsection>	<!-- VLArray -->
-
-	</section> <!-- Leaf -->
-
-      </chapter> <!-- PyTables Internal Format -->
 
       <chapter id="PTutilities">
 	<heading>Utilities</heading>
@@ -7215,6 +6609,635 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:17:13 2004';
 	  </subsection>
 	</section> <!-- ptrepack -->
       </chapter>
+
+      <chapter id="PyTablesInternalFormat">
+	<heading><visual markup="tt">PyTables</visual> File
+	  Format</heading>
+
+	<p><verb>PyTables</verb> has a powerful capability to deal
+	  with native HDF5 files created with another tools. However,
+	  there are situations were you may want to create truly
+	  native <verb>PyTables</verb> files with those tools while
+	  retaining fully compatibility with <verb>PyTables</verb>
+	  format. That is perfectly possible, and in this appendix is
+	  presented the format that you should endow to your
+	  own-generated files in order to get a fully
+	  <verb>PyTables</verb> compatible file.
+	</p>
+
+	<p>We are going to describe the <visual markup="bf">1.2
+	  version of <verb>PyTables</verb> file format</visual>
+	  (introduced in <verb>PyTables</verb> version 0.8). At this
+	  stage, this file format is considered stable enough to do
+	  not introduce significant changes during a reasonable amount
+	  of time. As time goes by, some changes will be introduced
+	  (and documented here) in order to cope with new
+	  necessities. However, the changes will be carefully analyzed
+	  so as to ensure backward compatibility whenever is possible.
+	</p>
+
+	<p>A <verb>PyTables</verb> file is composed with arbitrarily
+	  large amounts of HDF5 groups (<verb>Groups</verb> in
+	  <verb>PyTables</verb> naming scheme) and datasets
+	  (<verb>Leaves</verb> in <verb>PyTables</verb> naming
+	  scheme). For groups, the only requirements are that they
+	  must have some <em>system attributes</em> available. By
+	  convention, system attributes in <verb>PyTables</verb> are
+	  written in upper case, and user attributes in lower case but
+	  this is not enforced by the software. In the case of
+	  datasets, besides the mandatory system attributes, some
+	  conditions are further needed in their storage layout, as
+	  well as in the datatypes used in there, as we will see
+	  shortly.
+	</p>
+
+	<p>As a final remark, you can use any filter as you want to
+	  create a <verb>PyTables</verb> file, provided that the
+	  filter is a standard one in HDF5, like <em>zlib</em>,
+	  <em>shuffle</em> or <em>szip</em> (although the last one
+	  cannot be used from within <verb>PyTables</verb> to create a
+	  new file, datasets compressed with szip can be read, because
+	  it is the HDF5 library which do the decompression
+	  transparently).
+	</p>
+
+	<section>
+	  <heading>Mandatory attributes for a <visual
+	      markup="tt">File</visual></heading>
+
+	  <p>The <verb>File</verb> object is, in fact, an special HDF5
+	    <em>group</em> structure that is <em>root</em> for the
+	    rest of the objects on the object tree. The next
+	    attributes are mandatory for the HDF5 <em>root group</em>
+	    structure in <verb>PyTables</verb> files:
+	  </p>
+
+	  <description>
+	    <term>CLASS</term> <item>This attribute should always be
+	    set to <verb>'GROUP'</verb> for group structures.</item>
+	    <term>PYTABLES_FORMAT_VERSION</term> <item>It represents
+	    the internal format version, and currently should be set
+	    to the <verb>'1.2'</verb> string.</item>
+	    <term>TITLE</term> <item>A string where the user can put
+	    some description on what is this group used for. </item>
+	    <term>VERSION</term> <item>Should contains the string
+	    <verb>'1.0'</verb>.</item>
+	  </description>
+
+	</section>
+	<section>
+	  <heading>Mandatory attributes for a <visual
+	      markup="tt">Group</visual></heading>
+
+	  <p>The next attributes are mandatory for <em>group</em>
+	    structures:
+	  </p>
+
+	  <description>
+	    <term>CLASS</term> <item>This attribute should always be
+	    set to <verb>'GROUP'</verb> for group structures.</item>
+	    <term>TITLE</term> <item>A string where the user can put
+	    some description on what is this group used for. </item>
+	    <term>VERSION</term> <item>Should contains the string
+	    <verb>'1.0'</verb>.</item>
+	  </description>
+
+	  <p>There exist a special <verb>Group</verb>, called the
+	    <em>root</em>, that, in addition to the attributes listed
+	    above, it requires the next one:
+	  </p>
+
+	  <description>
+	    <term>PYTABLES_FORMAT_VERSION</term> <item>It represents
+	    the internal format version, and currently should be set
+	    to the <verb>'1.2'</verb> string.</item>
+	  </description>
+
+	</section>
+
+	<section>
+	  <heading>Mandatory attributes, storage layout and supported
+	      datatypes for <visual markup="tt">Leaves</visual>
+	      </heading>
+
+	  <p>This depends on the kind of <verb>Leaf</verb>. The
+	    format for each type follows.
+	  </p>
+
+	  <subsection id="TableFormatDescr">
+	    <heading><visual markup="tt">Table</visual>
+	    format</heading>
+
+	    <subsubsection>
+	      <heading>Mandatory attributes</heading>
+
+	      <p>The next attributes are mandatory for <em>table</em>
+		structures:
+	      </p>
+
+	      <description>
+		<term>CLASS</term> <item>Must be set to
+		  <verb>'TABLE'</verb>.</item>
+
+		<term>TITLE</term> <item>A string where the user can
+		  put some description on what is this dataset used
+		  for. </item>
+
+		<term>VERSION</term> <item>Should contain the string
+		  <verb>'2.1'</verb>.</item>
+
+		<term>FIELD_X_NAME</term> <item>It contains the names
+		  of the different fields. The <verb>X</verb> means
+		  the number of the field (beware, order do
+		  matter). You should add as many attributes of this
+		  kind as fields you have in your records.
+		</item>
+
+		<term>NROWS</term> <item>This should contain the
+		  number of <em>compound</em> datatype entries in the
+		  dataset. It must be an <em>int</em> datatype.</item>
+	      </description>
+
+	    </subsubsection>
+
+	    <subsubsection>
+	      <heading>Storage Layout</heading>
+
+	      <p>A <verb>Table</verb> has a <em>dataspace</em> with a
+		<em>1-dimensional chunked</em> layout.
+	      </p>
+	    </subsubsection>
+
+	    <subsubsection>
+	      <heading>Datatypes supported</heading>
+
+	      <p>The datatype of the elements (rows) of
+		<verb>Table</verb> must be the H5T_COMPOUND
+		<em>compound</em> datatype, and each of these compound
+		components must be built with only the next HDF5
+		datatypes <em>classes</em>:
+	      </p>
+
+	      <description>
+		<term>H5T_BITFIELD</term> <item>This class is used to
+		  represent the <verb>Bool</verb> type. Such a type
+		  must be build using a H5T_NATIVE_B8 datatype,
+		  followed by a HDF5 <verb>H5Tset_precision</verb>
+		  call to set its precision to be just 1 bit.
+		</item>
+		<term>H5T_INTEGER</term> <item>This includes the next
+		  datatypes:
+		  <description>
+		    <term>H5T_NATIVE_SCHAR</term> <item>This
+		      represents a <em>signed char</em> C type, but it
+		      is effectively used to represent an
+		      <verb>Int8</verb> type.
+		    </item>
+		    <term>H5T_NATIVE_UCHAR</term> <item>This
+		      represents an <em>unsigned char</em> C type, but
+		      it is effectively used to represent an
+		      <verb>UInt8</verb> type.
+		    </item>
+		    <term>H5T_NATIVE_SHORT</term> <item>This
+		      represents a <em>short</em> C type, and
+		      it is effectively used to represent an
+		      <verb>Int16</verb> type.
+		    </item>
+		    <term>H5T_NATIVE_USHORT</term> <item>This
+		      represents an <em>unsigned short</em> C type, and
+		      it is effectively used to represent an
+		      <verb>UInt16</verb> type.
+		    </item>
+		    <term>H5T_NATIVE_INT</term> <item>This represents
+		      an <em>int</em> C type, and it is effectively
+		      used to represent an <verb>Int32</verb> type.
+		    </item>
+		    <term>H5T_NATIVE_UINT</term> <item>This
+		      represents an <em>unsigned int</em> C type, and
+		      it is effectively used to represent an
+		      <verb>UInt32</verb> type.
+		    </item>
+		    <term>H5T_NATIVE_LONG</term> <item>This represents
+		      a <em>long</em> C type, and it is effectively
+		      used to represent an <verb>Int32</verb> or an
+		      <verb>Int64</verb>, depending on whether you are
+		      running a 32-bit or 64-bit architecture.
+		    </item>
+		    <term>H5T_NATIVE_ULONG</term> <item>This
+		      represents an <em>unsigned long</em> C type, and
+		      it is effectively used to represent an
+		      <verb>UInt32</verb> or an <verb>UInt64</verb>,
+		      depending on whether you are running a 32-bit or
+		      64-bit architecture.
+		    </item>
+		    <term>H5T_NATIVE_LLONG</term> <item>This
+		      represents a <em>long long</em> C type
+		      (<verb>__int64</verb>, if you are using a
+		      Windows system) and it is effectively
+		      used to represent an <verb>Int64</verb> type.
+		    </item>
+		    <term>H5T_NATIVE_ULLONG</term> <item>This
+		      represents an <em>unsigned long long</em> C type
+		      (beware: this type does not have a
+		      correspondence on Windows systems) and it is
+		      effectively used to represent an
+		      <verb>UInt64</verb> type.
+		    </item>
+		  </description>
+		</item>	<!-- H5T_INTEGER -->
+		<term>H5T_FLOAT</term> <item>This includes the next
+		  datatypes:
+		  <description>
+		    <term>H5T_NATIVE_FLOAT</term> <item>This
+		      represents a <em>float</em> C type and it is
+		      effectively used to represent an
+		      <verb>Float32</verb> type.
+		    </item>
+		    <term>H5T_NATIVE_DOUBLE</term> <item>This
+		      represents a <em>double</em> C type and it is
+		      effectively used to represent an
+		      <verb>Float64</verb> type.
+		    </item>
+		  </description>
+		</item>
+		<term>H5T_STRING</term> <item>The datatype used to
+		  describe strings in PyTables is H5T_C_S1 (i.e. a
+		  <em>string</em> C type) followed with a call to the
+		  HDF5 <verb>H5Tset_size()</verb> function to set
+		  their length.
+		</item>
+		<term>H5T_ARRAY</term> <item>This allows the
+		  construction of homogeneous, multi-dimensional
+		  arrays, so that you can include such objects in
+		  compound records. The types supported as elements of
+		  H5T_ARRAY datatypes are the ones described
+		  above. Currently, <verb>PyTables</verb> does not
+		  support nested H5T_ARRAY types.
+		</item>
+		<term>H5T_COMPOUND</term> <item>This allows the
+		  support of complex numbers. Its format is described
+		  below:
+		  <p>
+		    The H5T_COMPOUND type class contains two
+		    members. Both members must have the H5T_FLOAT
+		    atomic datatype class. The name of the first
+		    member should be "r" and represents the real
+		    part. The name of the second member should be "i"
+		    and represents the imaginary part.  The
+		    <em>precision</em> property of both of the
+		    H5T_FLOAT members must be either 32 significant
+		    bits (e.g. H5T_NATIVE_FLOAT) or 64 significant
+		    bits (e.g. H5T_NATIVE_DOUBLE).  They represent
+		    Complex32 and Complex64 types respectively.
+		  </p>
+		</item>
+	      </description>
+	      
+	      <p>Currently, <verb>PyTables</verb> does not support
+		nested H5T_COMPOUND types, the only exception being
+		supporting complex numbers in <verb>Table</verb>
+		objects as described above.
+	      </p>
+
+	    </subsubsection>
+
+	  </subsection>	<!-- Table -->
+
+	  <subsection id="ArrayFormatDescr">
+	    <heading><visual markup="tt">Array</visual>
+	      format</heading>
+
+	    <subsubsection>
+	      <heading>Mandatory attributes</heading>
+
+	      <p>The next attributes are mandatory for <em>array</em>
+		structures:
+	      </p>
+
+	      <description>
+		<term>CLASS</term> <item>Must be set to
+		  <verb>'ARRAY'</verb>.
+		</item>
+
+		<term>FLAVOR</term> <item>This is meant to provide the
+		  information about the kind of object kept in the
+		  <verb>Array</verb>, i.e. when the dataset is read,
+		  it will be converted to the indicated flavor. It can
+		  take one the next string values:
+
+		  <description>
+		    <term>"NumArray"</term> <item>The dataset will be
+		      returned as a <verb>NumArray</verb> object (from
+		      the <verb>numarray</verb> package).
+		    </item>
+		    <term>"CharArray"</term> <item>The dataset will be
+		      returned as a <verb>CharArray</verb> object
+		      (from the <verb>numarray</verb> package).
+		    </item>
+		    <term>"Numeric"</term> <item>The dataset will be
+		      returned as an <verb>array</verb> object
+		      (from the <verb>Numeric</verb> package).
+		    </item>
+		    <term>"List"</term> <item>The dataset will be
+		      returned as a Python <verb>List</verb> object.
+		    </item>
+		    <term>"Tuple"</term> <item>The dataset will be
+		      returned as a Python <verb>Tuple</verb> object.
+		    </item>
+		    <term>"Int"</term> <item>The dataset will be
+		      returned as a Python <verb>Int</verb>
+		      object. This is meant mainly for scalar
+		      (i.e. without dimensions) integer values.
+		    </item>
+		    <term>"Float"</term> <item>The dataset will be
+		      returned as a Python <verb>Float</verb>
+		      object. This is meant mainly for scalar
+		      (i.e. without dimensions) floating point values.
+		    </item>
+		    <term>"String"</term> <item>The dataset will be
+		      returned as a Python <verb>String</verb>
+		      object. This is meant mainly for scalar
+		      (i.e. without dimensions) string values.
+		    </item>
+		  </description>
+		</item>
+
+		<term>TITLE</term> <item>A string where the user can
+		  put some description on what is this dataset used
+		  for.
+		</item>
+
+		<term>VERSION</term> <item>Should contain the string
+		  <verb>'2.0'</verb>.
+		</item>
+	      </description>
+	    </subsubsection>
+
+	    <subsubsection>
+	      <heading>Storage Layout</heading>
+
+	      <p>An <verb>Array</verb> has a <em>dataspace</em> with a
+		<em>N-dimensional contiguous</em> layout (if you
+		prefer a <em>chunked</em> layout see
+		<verb>EArray</verb> below).
+	      </p>
+	    </subsubsection>
+
+	    <subsubsection>
+	      <heading>Datatypes supported</heading>
+
+	      <p>The elements of <verb>Array</verb> must have either
+		HDF5 <em>atomic</em> datatypes or a <em>compound</em>
+		datatype representing a complex number.  The atomic
+		datatypes can currently be one of the next HDF5
+		datatype <em>classes</em>: H5T_BITFIELD, H5T_INTEGER,
+		H5T_FLOAT and H5T_STRING. See the <verb>Table</verb>
+		format description in <ref
+		refid="TableFormatDescr">section</ref> for more info
+		about these types.
+	      </p>
+
+	      <p>In addition to the HDF5 atomic datatypes, the Array
+		format supports complex numbers with the H5T_COMPOUND
+		datatype class. See the <verb>Table</verb> format
+		description in <ref
+		refid="TableFormatDescr">section</ref> for more info
+		about this special type.
+	      </p>
+
+	      <p>You should note that H5T_ARRAY class datatypes are
+		not allowed in <verb>Array</verb> objects.
+	      </p>
+
+	    </subsubsection>
+	  </subsection>	<!-- Array -->
+
+	  <subsection id="EArrayFormatDescr">
+	    <heading><visual markup="tt">EArray</visual>
+	      format</heading>
+
+	    <subsubsection>
+	      <heading>Mandatory attributes</heading>
+
+	      <p>The next attributes are mandatory for <em>earray</em>
+		structures:
+	      </p>
+
+	      <description>
+		<term>CLASS</term> <item>Must be set to
+		  <verb>'EARRAY'</verb>.
+		</item>
+
+		<term>EXTDIM</term> <item>(<em>Integer</em>) Must be
+		  set to the extensible dimension. Only one extensible
+		  dimension is supported right now.
+		</item>
+
+		<term>FLAVOR</term> <item>This is meant to provide the
+		  information about the kind of objects kept in the
+		  <verb>EArray</verb>, i.e. when the dataset is read,
+		  it will be converted to the indicated flavor. It can
+		  take the same values as the <verb>Array</verb>
+		  object (see <ref refid="ArrayFormatDescr"></ref>),
+		  except <verb>"Int"</verb> and <verb>"Float"</verb>.
+
+		</item>
+		<term>TITLE</term> <item>A string where the user can
+		  put some description on what is this dataset used
+		  for.
+		</item>
+
+		<term>VERSION</term> <item>Should contain the string
+		  <verb>'1.0'</verb>.
+		</item>
+
+	      </description>
+	    </subsubsection>
+
+	    <subsubsection>
+	      <heading>Storage Layout</heading>
+
+	      <p>An <verb>EArray</verb> has a <em>dataspace</em> with
+		a <em>N-dimensional chunked</em> layout.
+	      </p>
+	    </subsubsection>
+
+	    <subsubsection>
+	      <heading>Datatypes supported</heading>
+
+	      <p>The elements of <verb>EArray</verb> are allowed to
+		have the same datatypes as for the elements in the
+		Array format.  They can be one of the HDF5
+		<em>atomic</em> datatype <em>classes</em>:
+		H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT or H5T_STRING,
+		see the <verb>Table</verb> format description in <ref
+		refid="TableFormatDescr">section</ref> for more info
+		about these types.  They can also be a H5T_COMPOUND
+		datatype representing a complex number, see the
+		<verb>Table</verb> format description in <ref
+		refid="TableFormatDescr">section</ref>.
+	      </p>
+	      
+	      <p>You should note that H5T_ARRAY class datatypes are
+		not allowed in <verb>EArray</verb> objects.
+	      </p>
+
+	    </subsubsection>
+	  </subsection>	<!-- EArray -->
+
+	  <subsection id="VLArrayFormatDescr">
+	    <heading><visual markup="tt">VLArray</visual>
+	      format</heading>
+
+	    <subsubsection>
+	      <heading>Mandatory attributes</heading>
+
+	      <p>The next attributes are mandatory for
+		<em>vlarray</em> structures:
+	      </p>
+
+	      <description>
+		<term>CLASS</term> <item>Must be set to
+		  <verb>'VLARRAY'</verb>.
+		</item>
+
+		<term>FLAVOR</term> <item>This is meant to provide the
+		  information about the kind of objects kept in the
+		  <verb>VLArray</verb>, i.e. when the dataset is read,
+		  it will be converted to the indicated flavor. It can
+		  take one of the next values:
+
+		  <description>
+		    <term>"NumArray"</term> <item>The elements in
+		      dataset will be returned as
+		      <verb>NumArray</verb> objects (from the
+		      <verb>numarray</verb> package).
+		    </item>
+		    <term>"CharArray"</term> <item>The elements in
+		      dataset will be returned as
+		      <verb>CharArray</verb> objects (from the
+		      <verb>numarray</verb> package).
+		    </item>
+		    <term>"String"</term> <item>The elements in the
+		      dataset will be returned as Python
+		      <verb>String</verb> objects of <em>fixed</em>
+		      length (and not as <verb>CharArrays</verb>).
+		    </item>
+		    <term>"Numeric"</term> <item>The elements in the
+		      dataset will be returned as
+		      <verb>array</verb> objects (from the
+		      <verb>Numeric</verb> package).
+		    </item>
+		    <term>"List"</term> <item>The elements in the
+		      dataset will be returned as Python
+		      <verb>List</verb> objects.
+		    </item>
+		    <term>"Tuple"</term> <item>The elements in the
+		      dataset will be returned as Python
+		      <verb>Tuple</verb> objects.
+		    </item>
+		    <term>"Object"</term> <item>The elements in the
+		      dataset will be interpreted as pickled
+		      (i.e. serialized objects through the use of the
+		      <verb>Pickle</verb> Python module) objects and
+		      returned as Python <em>generic</em>
+		      objects. Only one of such objects will be
+		      supported per entry. As the <verb>Pickle</verb>
+		      module is not normally available in other
+		      languages, this flavor won't be useful in
+		      general.
+		    </item>
+		    <term>"VLString"</term> <item>The elements in the
+		      dataset will be returned as Python
+		      <verb>String</verb> objects of <em>any</em>
+		      length, with the twist that <visual
+		      markup="bf">Unicode</visual> strings are
+		      supported as well (provided you use the <visual
+		      markup="bf">UTF-8</visual> codification, see
+		      below). However, only one of such objects will
+		      be supported per entry.
+		    </item>
+		  </description>
+		</item>
+
+		<term>TITLE</term> <item>A string where the user can
+		  put some description on what is this dataset used
+		  for.
+		</item>
+
+		<term>VERSION</term> <item>Should contain the string
+		  <verb>'1.0'</verb>.
+		</item>
+
+	      </description>
+	    </subsubsection>
+
+	    <subsubsection>
+	      <heading>Storage Layout</heading>
+
+	      <p>An <verb>VLArray</verb> has a <em>dataspace</em> with
+		a <em>1-dimensional chunked</em> layout. 
+	      </p>
+	    </subsubsection>
+
+	    <subsubsection>
+	      <heading>Datatypes supported</heading>
+
+	      <p>The datatype of the elements (rows) of
+		<verb>VLArray</verb> objects must be the H5T_VLEN
+		<em>variable-length</em> (or VL for short) datatype,
+		and the base datatype specified for the VL datatype
+		can be of any <em>atomic</em> HDF5 datatype that is
+		listed in the <verb>Table</verb> format <ref
+		refid="TableFormatDescr">description
+		section</ref>. That includes the classes:
+	      </p>
+	      <itemize>
+		<item>H5T_BITFIELD</item>
+		<item>H5T_INTEGER</item>
+		<item>H5T_FLOAT</item>
+		<item>H5T_STRING</item>
+		<item>H5T_ARRAY</item>
+	      </itemize>
+	      <p>They can also be a H5T_COMPOUND datatype representing
+		a complex number, see the <verb>Table</verb> format
+		description in <ref
+		refid="TableFormatDescr">section</ref> for a detailed
+		description.
+	      </p>
+	      <p>You should note that this does not include another VL
+		datatype, or a compound datatype that does not fit the
+		description of a complex number. Note as well that,
+		for <verb>Object</verb> and <verb>VLString</verb>
+		special flavors, the base for the VL datatype is
+		always a H5T_NATIVE_UCHAR. That means that the
+		complete row entry in the dataset has to be used in
+		order to fully serialize the object or the variable
+		length string.
+	      </p>
+	      <p>In addition, if you plan to use a
+		<verb>VLString</verb> flavor for your text data and
+		you are using ascii-7 (7 bits ASCII) codification for
+		your strings, but you don't know (or just don't want)
+		to convert it to the required UTF-8 codification, you
+		should not worry too much about that because the ASCII
+		characters with values in the range [0x00, 0x7f] are
+		directly mapped to Unicode characters in the range
+		[U+0000, U+007F] and the UTF-8 encoding has the useful
+		property that an UTF-8 encoded ascii-7 string is
+		indistinguishable from a traditional ascii-7 string.
+		So, you will not need any further conversion in order
+		to save your ascii-7 strings and have an
+		<verb>VLString</verb> flavor.
+	      </p>
+
+	    </subsubsection>
+	  </subsection>	<!-- VLArray -->
+
+	</section> <!-- Leaf -->
+
+      </chapter> <!-- PyTables Internal Format -->
+
     </appendix>	
 
   </mainmatter>
