@@ -54,8 +54,6 @@ class createTestCase(unittest.TestCase):
 
         self.fileh.close()
         os.remove(self.file)
-        # Delete references
-        #del self.fileh, self.root, self.table, self.array, self.group
 
     #----------------------------------------
 
@@ -236,8 +234,41 @@ class createTestCase(unittest.TestCase):
                 print value
         else:
             self.fail("expected an IndexError")
-	
-    def test06_setAttributes(self):
+
+
+class createAttrTestCase(unittest.TestCase):
+    
+    file  = "test.h5"
+    title = "This is the table title"
+    expectedrows = 100
+    maxshort = 2 ** 15
+    maxint   = 2147483648   # (2 ** 31)
+    compress = 0
+
+    
+    def setUp(self):
+        # Create an instance of HDF5 Table
+        self.fileh = openFile(self.file, mode = "w")
+        self.root = self.fileh.root
+
+	# Create a table object
+	self.table = self.fileh.createTable(self.root, 'atable',
+                                            Record, "Table title")
+	# Create an array object
+	self.array = self.fileh.createArray(self.root, 'anarray',
+                                            [1], "Array title")
+	# Create a group object
+	self.group = self.fileh.createGroup(self.root, 'agroup',
+                                            "Group title")
+
+    def tearDown(self):
+
+        self.fileh.close()
+        os.remove(self.file)
+
+#---------------------------------------
+
+    def test01_setAttributes(self):
         """Checking setting large string attributes (File methods)"""
 
 	attrlength = 2048
@@ -260,7 +291,7 @@ class createTestCase(unittest.TestCase):
                "n" * attrlength
 	    
 	    
-    def test07_setAttributes(self):
+    def test02_setAttributes(self):
         """Checking setting large string attributes (Node methods)"""
 
 	attrlength = 2048
@@ -277,7 +308,7 @@ class createTestCase(unittest.TestCase):
 	assert self.root.anarray.getAttr("attr1") == "n" * attrlength
 	    
 	    
-    def test08_setAttributes(self):
+    def test03_setAttributes(self):
         """Checking setting large string attributes (AttributeSet methods)"""
 
 	attrlength = 2048
@@ -293,7 +324,7 @@ class createTestCase(unittest.TestCase):
         self.array.attrs.attr1 = "n" * attrlength
 	assert self.array.attrs.attr1 == "n" * attrlength
 	    
-    def test09_listAttributes(self):
+    def test04_listAttributes(self):
         """Checking listing attributes """
 
         # With a Group object
@@ -336,7 +367,7 @@ class createTestCase(unittest.TestCase):
         assert self.array.attrs._f_listAttrs("all") == \
                ['CLASS', 'FLAVOR', 'TITLE', 'VERSION', "i", "j", "k"]
 
-    def test10a_removeAttributes(self):
+    def test05_removeAttributes(self):
         """Checking removing attributes """
 
         # With a Group object
@@ -367,7 +398,7 @@ class createTestCase(unittest.TestCase):
         assert self.group._v_attrs._g_listAttr() == \
                ('TITLE', 'CLASS', 'VERSION', "rs")
 
-    def test10b_removeAttributes(self):
+    def test06_removeAttributes(self):
         """Checking removing system attributes """
 
         # remove a system attribute
@@ -383,7 +414,7 @@ class createTestCase(unittest.TestCase):
         else:
             self.fail("expected a RuntimeError")
 
-    def test11a_renameAttributes(self):
+    def test07_renameAttributes(self):
         """Checking renaming attributes """
 
         # With a Group object
@@ -402,7 +433,7 @@ class createTestCase(unittest.TestCase):
         assert self.group._v_attrs._g_listAttr() == \
                ('TITLE', 'CLASS', 'VERSION', "qr", "rs", "op")
 
-    def test11b_renameAttributes(self):
+    def test08_renameAttributes(self):
         """Checking renaming system attributes """
 
         # rename a system attribute
@@ -416,7 +447,61 @@ class createTestCase(unittest.TestCase):
         else:
             self.fail("expected a RuntimeError")
 
-        
+    def test09_setIntAttributes(self):
+        """Checking setting Int attributes"""
+
+        # With a Table object
+        self.table.attrs.pq = 1
+        self.table.attrs.qr = 2
+        self.table.attrs.rs = 3
+
+        # Check the results
+        if verbose:
+            print "pq -->", self.table.attrs.pq
+            print "qr -->", self.table.attrs.qr
+            print "rs -->", self.table.attrs.rs
+            
+        assert self.table.attrs.pq == 1
+        assert self.table.attrs.qr == 2
+        assert self.table.attrs.rs == 3
+
+    def test10_setFloatAttributes(self):
+        """Checking setting Float attributes"""
+
+        # With a Table object
+        self.table.attrs.pq = 1.0
+        self.table.attrs.qr = 2.0
+        self.table.attrs.rs = 3.0
+
+        # Check the results
+        if verbose:
+            print "pq -->", self.table.attrs.pq
+            print "qr -->", self.table.attrs.qr
+            print "rs -->", self.table.attrs.rs
+            
+        assert self.table.attrs.pq == 1.0
+        assert self.table.attrs.qr == 2.0
+        assert self.table.attrs.rs == 3.0
+
+    def test11_setObjectAttributes(self):
+        """Checking setting Object attributes"""
+
+        # With a Table object
+        self.table.attrs.pq = [1.0, 2]
+        self.table.attrs.qr = (1,2)
+        self.table.attrs.rs = {"ddf":32.1, "dsd":1}
+
+        # Check the results
+        if verbose:
+            print "pq -->", self.table.attrs.pq
+            print "qr -->", self.table.attrs.qr
+            print "rs -->", self.table.attrs.rs
+            
+        assert self.table.attrs.pq == [1.0, 2]             
+        assert self.table.attrs.qr == (1,2)
+        assert self.table.attrs.rs == {"ddf":32.1, "dsd":1}
+
+	
 #----------------------------------------------------------------------
 
 def suite():
@@ -424,6 +509,8 @@ def suite():
 
     for i in range(1):
         theSuite.addTest(unittest.makeSuite(createTestCase))
+    for i in range(1):
+        theSuite.addTest(unittest.makeSuite(createAttrTestCase))
 
     return theSuite
 

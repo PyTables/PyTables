@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.4 2003/06/04 18:25:39 falted Exp $
+#       $Id: AttributeSet.py,v 1.5 2003/06/05 10:24:06 falted Exp $
 #
 ########################################################################
 
@@ -29,9 +29,9 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.4 $"
+__version__ = "$Revision: 1.5 $"
 
-import warnings, types
+import warnings, types, cPickle
 import hdf5Extension
 import Group
 from utils import checkNameValidity
@@ -136,7 +136,15 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         if not name in self._v_attrnames:
             return None
 
-        return self._g_getAttrStr(name)
+        value = self._g_getAttrStr(name)
+
+        # Check if value is pickled 
+        try:
+            retval = cPickle.loads(value)
+        except:
+            retval = value
+
+        return retval
 
     def __setattr__(self, name, value):
         """Attach new nodes to the tree.
@@ -153,23 +161,29 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # Check for name validity
         checkNameValidity(name)
 
-        if type(value) <> types.StringType:
-            raise ValueError, \
-"""Only string values are supported as attributes right now"""
-        
         # Check that the attribute is not a system one (read-only)
         if issysattrname(name):
             raise RuntimeError, \
                   "System attribute ('%s') cannot be overwritten" % (name)
             
         # Check if we have too much numbers of attributes
-        if len(self._v_attrnames) < MAX_ATTRS_IN_NODE:
-            self._g_setAttrStr(name, value)
-        else:
+        if len(self._v_attrnames) > MAX_ATTRS_IN_NODE:
             raise RuntimeError, \
                "'%s' node has exceeded the maximum number of attrs (%d)" % \
                (self._v_node._v_pathname, MAX_ATTRS_IN_NODE)
 
+        # Append this attribute on disk
+        if isinstance(value, types.StringType):
+            self._g_setAttrStr(name, value)
+        elif isinstance(value, types.IntType):
+            self._g_setAttrInt(name, value)
+        elif isinstance(value, types.FloatType):
+            self._g_setAttrFloat(name, value)
+        else:
+            # Convert this object to a string
+            pickledvalue = cPickle.dumps(value)
+            self._g_setAttrStr(name, pickledvalue)
+            
         # Finally, add this attribute to the list if not present
         if not name in self._v_attrnames:
             self._v_attrnames.append(name)
