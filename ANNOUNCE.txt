@@ -16,7 +16,7 @@ just provide a categorized structure for some portions of your cluttered
 RDBS, then give PyTables a try. It works well for storing data from data
 acquisition systems (DAS), simulation software, network data monitoring
 systems (for example, traffic measurements of IP packets on routers),
-dealing with very large XML files or as a centralized repository for
+working with very large XML files or as a centralized repository for
 system logs, to name only a few possible uses.
  
 In this release you will find:

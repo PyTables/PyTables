@@ -1,4 +1,4 @@
-December 2003
+March 2004
 
 I would like to thank the people have contributed directly or
 indirectly to PyTables. 
@@ -6,22 +6,6 @@ indirectly to PyTables.
 Scott Prater for editing the user's manual in order to make it more
 readable in english, as well as conducting the tests of PyTables on
 Solaris.
-
-Torsten Bronger for writing tbook, an excellent XML authoring system,
-which is used to create the different versions of the User's Manual
-(both the PDF and HTML versions). He promptly answered my questions
-and he was always very helpful.
-
-Henner Eisen and Berthold Höllmann from Germanischer Lloyd, for
-suggesting me to implement new capabilities, report on bugs, and
-supporting the PyTables project with contracts.
-
-Todd Miller and Perry Greenfield for promptly helping me to understand
-many of the intricacies of the numarray package and Jin-chung Hsu for
-discussions on recarray module (now numarray.records module). They
-have been very receptive and promptly worked-out most of the
-improvements in numarray (specially in the records module) that were
-necessary for PyTables.
 
 Alan McIntyre for porting PyTables to Windows.
 
@@ -34,3 +18,27 @@ The HDF5 team at NCSA for making such an excellent library for data
 persistence, and specially Pedro Vicente and Quincey Koziol, for
 quickly including my suggested patches to the HDF5_HL and solving the
 reported bugs in HDF5 library.
+
+Todd Miller and Perry Greenfield for promptly helping me to understand
+many of the intricacies of the numarray package and Jin-chung Hsu for
+discussions on recarray module (now numarray.records module). They
+have been very receptive and promptly worked-out most of the
+improvements in numarray (specially in the records module) that were
+necessary for PyTables.
+
+Greg Ewing for writing the excelent Pyrex tool and allowing to beginners
+like me to quickly and safely start writing Python extensions. He was
+also very responsive about questions on Pyrex.
+
+Torsten Bronger for writing tbook, an excellent XML authoring system,
+which is used to create the different versions of the User's Manual
+(both the PDF and HTML versions). He promptly answered my questions
+and he was always very helpful.
+
+Guido, you know who ;-).
+
+And last, but definetely not least!, Henner Eisen and Berthold Höllmann
+from Germanischer Lloyd, for suggesting me to implement new
+capabilities, report on bugs, and supporting the PyTables project with
+contracts.
+
