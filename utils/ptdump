@@ -7,7 +7,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/utils/ptdump,v $
-#       $Id: ptdump,v 1.4 2004/02/25 16:09:00 falted Exp $
+#       $Id: ptdump,v 1.5 2004/04/06 18:26:28 falted Exp $
 #
 ########################################################################
 
@@ -74,9 +74,9 @@ usage = \
 """usage: %s [-R start,stop,step] [-a] [-h] [-d] [-v] file[:nodepath]
   -R select a range of rows in the form "start,stop,step"
   -a show attributes in nodes (only useful when -v or -d are active as well)
-  -d dump data information onb leaves
-  -h prints help on usage
-  -v means dumping more metainformation on nodes
+  -d dump data information on leaves
+  -h print help on usage
+  -v dump more metainformation on nodes
             \n""" \
 % os.path.basename(sys.argv[0])
 

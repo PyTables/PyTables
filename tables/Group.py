@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.72 2004/02/25 16:08:59 falted Exp $
+#       $Id: Group.py,v 1.73 2004/04/06 18:26:28 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.72 $"
+__version__ = "$Revision: 1.73 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -218,6 +218,8 @@ self._g_join(name), UserWarning)
         if class_ == "TABLE":
             return Table()
         elif class_ == "ARRAY":
+            return Array()
+        elif class_ == "IMAGE":
             return Array()
         elif class_ == "EARRAY":
             return EArray()

@@ -6763,9 +6763,9 @@ $ ptdump -h
 usage: ptdump [-R start,stop,step] [-a] [-h] [-d] [-v] file[:nodepath]
   -R select a range of rows in the form "start,stop,step"
   -a show attributes in nodes (only useful when -v or -d are active as well)
-  -d dump data information onb leaves
-  -h prints help on usage
-  -v means dumping more metainformation on nodes
+  -d dump data information on leaves
+  -h print help on usage
+  -v dump more metainformation on nodes
 	      </verbatim>
 	    </p>
 
@@ -6921,9 +6921,9 @@ $ ptrepack -h
 	      to see the message usage:
 
 	      <verbatim>
-usage: ptrepack [-h] [-v] [-o] [-R range] [--non-recursive] 
+usage: ptrepack [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] 
  [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes]
- [--complevel=(0-9)] [-complib=lib] [--shuffle=(0|1)]
+ [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)]
  [--fletcher32=(0|1)] [--keep-source-filters] 
  sourcefile:sourcegroup destfile:destgroup
  -h -- Print usage message.

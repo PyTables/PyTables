@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.63 2004/03/09 07:48:56 falted Exp $
+#       $Id: Array.py,v 1.64 2004/04/06 18:26:14 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.63 $"
+__version__ = "$Revision: 1.64 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -483,8 +483,6 @@ class Array(Leaf, hdf5Extension.Array, object):
         if repr(self.type) == "CharType":
             arr = strings.array(None, itemsize=self.itemsize, shape=shape)
         else:
-            # keyword buffer deprecated
-            #arr = numarray.array(buffer=None, type=self.type, shape=shape)
             arr = numarray.array(None, type=self.type, shape=shape)
             # Set the same byteorder than on-disk
             arr._byteorder = self.byteorder

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.20 2004/02/25 16:09:00 falted Exp $
+#       $Id: utils.py,v 1.21 2004/04/06 18:26:28 falted Exp $
 #
 ########################################################################
 
@@ -13,7 +13,9 @@
 
 """
 
-from tables.hdf5Extension import getIndices
+# The second line is better for some installations
+#from tables.hdf5Extension import getIndices
+from hdf5Extension import getIndices
 import numarray
 from numarray import strings
 try:
@@ -71,8 +73,7 @@ def calcBufferSize(rowsize, expectedrows, compress):
     # We choose the smaller one
     # In addition, with the new iterator in the Row class, this seems to
     # be the best choice in terms of performance!
-    #bufmultfactor = int(1000 * 1.0) # Original value
-    bufmultfactor = int(1000 * 1.0)  # *** Increase the chunksize here ***
+    bufmultfactor = int(1000 * 1.0) # Original value
     rowsizeinfile = rowsize
     expectedfsizeinKb = (expectedrows * rowsizeinfile) / 1024
 
@@ -144,6 +145,7 @@ def calcBufferSize(rowsize, expectedrows, compress):
     #if expectedrows//maxTuples > 50:
     #    buffersize *= 4
     #    maxTuples = buffersize // rowsize
+    #chunksize *= 10  # just to test
     return (maxTuples, chunksize)
 
 # This function is appropriate for calls to __getitem__ methods

@@ -7,7 +7,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/utils/ptrepack,v $
-#       $Id: ptrepack,v 1.5 2004/02/25 16:09:00 falted Exp $
+#       $Id: ptrepack,v 1.6 2004/04/06 18:26:28 falted Exp $
 #
 ########################################################################
 
@@ -177,7 +177,7 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
 
 # Main program starts here
 
-usage = """usage: %s [-h] [-v] [-o] [-R range] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [-complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] sourcefile:sourcegroup destfile:destgroup
+usage = """usage: %s [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] sourcefile:sourcegroup destfile:destgroup
  -h -- Print usage message.
  -v -- Show more information.
  -o -- Overwite destination file.

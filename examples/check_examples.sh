@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/sh
 # Small script to check the example repository quickly
 python array1.py
 python array2.py
