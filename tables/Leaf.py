@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.31 2004/01/12 21:15:38 falted Exp $
+#       $Id: Leaf.py,v 1.32 2004/01/13 12:31:45 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.31 $"
+__version__ = "$Revision: 1.32 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize
@@ -105,7 +105,7 @@ class Leaf:
     title = property(get_title, set_title, None,
                      "Title of this object")
 
-    def _g_setComprAttr(self, complevel, complib, shuffle, fletcher32):
+    def _g_setFilters(self, complevel, complib, shuffle, fletcher32):
         if shuffle and not complevel:
             # Shuffling and not compressing makes not sense
             shuffle = 0
@@ -123,29 +123,28 @@ class Leaf:
 
     def _g_getFilters(self):
         # Default values
-        complib = "zlib"
-        complevel = 0
-        shuffle = 0
-        fletcher32 = 0
+        self.complib = "zlib"
+        self.complevel = 0
+        self.shuffle = 0
+        self.fletcher32 = 0
         filters = hdf5Extension._getFilters(self._v_parent._v_objectID,
                                             self._v_hdf5name)
-        #print "Filters on %s: %s" % (self.name, filters)
         if filters:
             for name in filters:
                 if name.startswith("lzo"):
-                    complib = "lzo"
-                    complevel = filters[name][0]
+                    self.complib = "lzo"
+                    self.complevel = filters[name][0]
                 elif name.startswith("ucl"):
-                    complib = "ucl"
-                    complevel = filters[name][0]
+                    self.complib = "ucl"
+                    self.complevel = filters[name][0]
                 elif name.startswith("deflate"):
-                    complib = "zlib"
-                    complevel = filters[name][0]
+                    self.complib = "zlib"
+                    self.complevel = filters[name][0]
                 elif name.startswith("shuffle"):
-                    shuffle = 1
+                    self.shuffle = 1
                 elif name.startswith("fletcher32"):
-                    fletcher32 = 1
-        return (complevel, complib, shuffle, fletcher32)
+                    self.fletcher32 = 1
+        return
         
     def _g_renameObject(self, newname):
         """Rename this leaf in the object tree as well as in the HDF5 file."""
@@ -259,14 +258,12 @@ class Leaf:
         # The title
         title = self.attrs.TITLE
         filters = ""
+        if self.fletcher32:
+            filters += ", fletcher32"
         if self.complevel:
-            filters += ", %s(%s)" % (self.complib, self.complevel)
             if self.shuffle:
                 filters += ", shuffle"
-            if self.fletcher32:
-                filters += ", fletcher32"
-#         return "%s (%s%s%s) (ID: %s) %r" % \
-#                (pathname, classname, shape, filters, self.objectID, title)
+            filters += ", %s(%s)" % (self.complib, self.complevel)
         return "%s (%s%s%s) %r" % \
                (pathname, classname, shape, filters, title)
 

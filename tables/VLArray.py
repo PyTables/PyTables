@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.16 2004/01/12 21:15:38 falted Exp $
+#       $Id: VLArray.py,v 1.17 2004/01/13 12:31:45 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.16 $"
+__version__ = "$Revision: 1.17 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -317,7 +317,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         if atom is not None:
             self.atom = atom
             self._v_new = 1
-            self._g_setComprAttr(compress, complib, shuffle, fletcher32)
+            self._g_setFilters(compress, complib, shuffle, fletcher32)
         else:
             self._v_new = 0
 
@@ -502,8 +502,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
                 self.atom = Atom(self._atomictype, self._atomicshape,
                                  self.flavor)
         # Get info about existing filters
-        self.complevel, self.complib, self.shuffle, self.fletcher32 = \
-                        self._g_getFilters()
+        self._g_getFilters()
 
     def iterrows(self, start=None, stop=None, step=None):
         """Iterator over all the rows or a range"""

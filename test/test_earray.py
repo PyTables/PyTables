@@ -168,6 +168,21 @@ class BasicTestCase(unittest.TestCase):
                 # Scalar case
                 assert len(self.shape) == 1
 
+            # Check filters:
+            if self.compress <> earray.complevel and verbose:
+                print "Error in compress. Class:", self.__class__.__name__
+                print "self, earray:", self.compress, earray.complevel
+            assert earray.complib == self.complib
+            assert earray.complevel == self.compress
+            if self.shuffle <> earray.shuffle and verbose:
+                print "Error in shuffle. Class:", self.__class__.__name__
+                print "self, earray:", self.shuffle, earray.shuffle
+            assert self.shuffle == earray.shuffle
+            if self.fletcher32 <> earray.fletcher32 and verbose:
+                print "Error in fletcher32. Class:", self.__class__.__name__
+                print "self, earray:", self.fletcher32, earray.fletcher32
+            assert self.fletcher32 == earray.fletcher32
+
     def test02_sssEArray(self):
         """Checking enlargeable array iterator with (start, stop, step)"""
 
@@ -731,7 +746,7 @@ class Numeric1TestCase(BasicTestCase):
     #flavor = "Numeric"
     type = "Int32"
     shape = (2,0)
-    compr = 1
+    compress = 1
     shuffle = 1
     chunksize = 50
     nappends = 20
@@ -743,7 +758,7 @@ class Numeric2TestCase(BasicTestCase):
     flavor = "Numeric"
     type = "Float32"
     shape = (0,)
-    compr = 1
+    compress = 1
     shuffle = 1
     chunksize = 2
     nappends = 1
@@ -947,6 +962,7 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(Numeric2TestCase))
     #theSuite.addTest(unittest.makeSuite(NumericComprTestCase))
     #theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))
+    #theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))
     #theSuite.addTest(unittest.makeSuite(AllFiltersTestCase))
 
     for n in range(niter):

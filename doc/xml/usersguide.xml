@@ -2828,7 +2828,7 @@ AttributeError: Error setting "ADCcount" attr.
 	      <term>where</term> <item>The parent group where the new
 		group will hang from. <em>where</em> parameter can be
 		a path string (for example
-		<verb>"/level1/leaf5"</verb>), or another Group
+		<verb>"/level1/group5"</verb>), or another Group
 		instance. </item>
 
 	      <term>name</term>
@@ -2843,8 +2843,8 @@ AttributeError: Error setting "ADCcount" attr.
 
 	  <subsubsection>
 	    <heading id="createTableDescr">createTable(where, name,
-	      description, title='', compress=0, complib = 'zlib',
-	      shuffle = 1, expectedrows=10000)</heading>
+	      description, title='', compress=0, complib='zlib',
+	      shuffle=1, fletcher32=0, expectedrows=10000)</heading>
 
 	    <p>Create a new <verb>Table</verb> instance with name
 	      <em>name</em> in <em>where</em> location.
@@ -2892,15 +2892,20 @@ AttributeError: Error setting "ADCcount" attr.
 		on which library is better suited to your needs.
 	      </item>
               <term>shuffle</term><item>Whether or not to use the
-                shuffle filter present in the <verb>HDF5</verb>
-                library. This is normally used to improve the
-                compression ratio (at the cost of consuming a little
-                bit more CPU time). A value of 0 disables shuffling
-                and 1 makes it active. The default value depends on
-                whether compression is enabled or not; if compression
-                is enabled, shuffling defaults to be active, else
-                shuffling is disabled.
+                <em>shuffle</em> filter present in the
+                <verb>HDF5</verb> library. This is normally used to
+                improve the compression ratio (at the cost of
+                consuming a little bit more CPU time). A value of 0
+                disables shuffling and 1 makes it active. The default
+                value depends on whether compression is enabled or
+                not; if compression is enabled, shuffling defaults to
+                be active, else shuffling is disabled.
               </item>
+	      <term>fletcher32</term> <item>Whether or not to use the
+		<em>fletcher32</em> filter in the HDF5 library. This
+		is used to add a checksum on each data chunk. A value
+		of 0 disables the checksum and it is the default.
+	      </item>
 	      <term>expectedrows</term> <item>An user estimate of the
 		number of records that will be on table. If not
 		provided, the default value is appropriate for tables
@@ -2922,55 +2927,38 @@ AttributeError: Error setting "ADCcount" attr.
 	      <em>name</em> in <em>where</em> location.
 	    </p>
 	    <description>
-
-		<term>where</term> <item>The parent group where the
-		  new array will hang from. <em>where</em> parameter
-		  can be a path string (for example
-		  <verb>"/level1/leaf5"</verb>), or <verb>Group</verb>
-		  instance.
-		</item>
-
-		<term>name</term> <item>The name of the new
-		  array.
-		</item>
-
-		<term>object</term> <item>The regular array to be
-		  saved. Currently accepted values are: lists, tuples,
-		  scalars (int and float), strings and
-		  (multidimensional) <verb>Numeric</verb> and
-		  <verb>NumArray</verb> arrays (including
-		  <verb>CharArrays</verb> string arrays). However,
-		  these objects must be regular (i.e. they cannot be
-		  like, for example, <verb>[[1,2],2]</verb>). Also,
-		  objects that has some of its dimension equal to zero
-		  are not supported (this will be solved when
-		  unlimited arrays will be implemented).
-		</item>
-
-		<term>title</term> <item>A description for this
-		  object.
-		</item>
-
-	      </description>
+	      <term>object</term> <item>The regular array to be
+		saved. Currently accepted values are: lists, tuples,
+		scalars (int and float), strings and
+		(multidimensional) <verb>Numeric</verb> and
+		<verb>NumArray</verb> arrays (including
+		<verb>CharArrays</verb> string arrays). However, these
+		objects must be regular (i.e. they cannot be like, for
+		example, <verb>[[1,2],2]</verb>). Also, objects that
+		has some of its dimension equal to zero are not
+		supported (this will be solved when unlimited arrays
+		will be implemented).
+	      </item>
+	    </description>
+	    <p>See <ref
+	      refid="createTableDescr"><verb>createTable</verb>
+	      description</ref> for more information on the
+	      <em>where</em>, <em>name</em>, <em>title</em>,
+	      <em>compress</em>, <em>complib</em>, <em>shuffle</em>
+	      and <em>fletcher32</em> parameters.
+	    </p>
 	  </subsubsection>
 
 	  <subsubsection>
 	    <heading id="createEArrayDescr">createEArray(where, name,
-	      object, title='', compress=0, complib = 'zlib',
-	      shuffle = 1, expectedrows=1000)</heading>
+	      object, title='', compress=0, complib='zlib',
+	      shuffle=1, fletcher32=0, expectedrows=1000)</heading>
 
 	    <p>Create a new <verb>EArray</verb> instance with name
 	      <em>name</em> in <em>where</em> location.
 	    </p>
 
 	    <description>
-	      <term>where</term> <item>The parent group where the new
-		table will hang from. <em>where</em> parameter can be
-		a path string (for example
-		<verb>"/level1/leaf5"</verb>), or Group instance.
-               </item>
-	      <term>name</term> <item>The name of the new table.
-              </item>
               <term>object</term> <item>An object describing the kind
                 of objects that you can append to the
                 <verb>EArray</verb> object. It can be an instance of
@@ -2980,31 +2968,6 @@ AttributeError: Error setting "ADCcount" attr.
                 dimension being 0 means that the resulting EArray
                 object can be extended along it. Multiple enlargeable
                 dimensions are not supported right now.
-              </item>
-	      <term>title</term> <item>A description for this object.
-	      </item>
-	      <term>compress</term> <item>Specifies a compress level
-		for data. The allowed range is 0-9. A value of 0
-		disables compression. The default is that
-		compression is disabled, that balances between
-		compression effort and CPU consumption.
-	      </item>
-	      <term>complib</term> <item> Specifies the compression
-		library to be used. Right now, <verb>"zlib"</verb>
-		(default), <verb>"lzo"</verb> and <verb>"ucl"</verb>
-		values are supported. See <ref
-		refid="compressionIssues">section</ref> for some advice
-		on which library is better suited to your needs.
-	      </item>
-              <term>shuffle</term><item>Whether or not to use the
-                shuffle filter present in the <verb>HDF5</verb>
-                library. This is normally used to improve the
-                compression ratio (at the cost of consuming a little
-                bit more CPU time). A value of 0 disables shuffling and
-                1 makes it active. The default value depends on
-                whether compression is enabled or not; if compression
-                is enabled, shuffling defaults to be active, else
-                shuffling is disabled.
               </item>
 	      <term>expectedrows</term> <item>In the case of
                 enlargeable arrays this represents an user estimate
@@ -3017,12 +2980,19 @@ AttributeError: Error setting "ADCcount" attr.
                 memory used.
 	      </item>
 	    </description>
+	    <p>See <ref
+	      refid="createTableDescr"><verb>createTable</verb>
+	      description</ref> for more information on the
+	      <em>where</em>, <em>name</em>, <em>title</em>,
+	      <em>compress</em>, <em>complib</em>, <em>shuffle</em>
+	      and <em>fletcher32</em> parameters.
+	    </p>
 	  </subsubsection>
 
 	  <subsubsection>
 	    <heading id="createVLArrayDescr">createVLArray(where,
 	      name, atom=None, title='', compress=0, complib = 'zlib',
-	      shuffle=1, expectedsizeinMB=1.0)</heading>
+	      shuffle=1, fletcher32=0, expectedsizeinMB=1.0)</heading>
 
 	    <p>Create a new <verb>VLArray</verb> instance with name
 	      <em>name</em> in <em>where</em> location. See the <ref
@@ -3031,43 +3001,11 @@ AttributeError: Error setting "ADCcount" attr.
 	    </p>
 
 	    <description>
-	      <term>where</term> <item>The parent group where the new
-		table will hang from. <em>where</em> parameter can be
-		a path string (for example
-		<verb>"/level1/leaf5"</verb>), or Group instance.
-               </item>
-	      <term>name</term> <item>The name of the new table.
-              </item>
 	      <term>atom</term> <item>An <verb>Atom</verb> instance
                 representing the shape, type and flavor of the atomic
                 object to be saved. See <ref
                 refid="AtomDescr">section</ref> for the supported set
                 of <verb>Atom</verb> class descendants.
-              </item>
-	      <term>title</term> <item>A description for this object.
-	      </item>
-	      <term>compress</term> <item>Specifies a compress level
-		for data. The allowed range is 0-9. A value of 0
-		disables compression. The default is that
-		compression is disabled, that balances between
-		compression effort and CPU consumption.
-	      </item>
-	      <term>complib</term> <item> Specifies the compression
-		library to be used. Right now, <verb>"zlib"</verb>
-		(default), <verb>"lzo"</verb> and <verb>"ucl"</verb>
-		values are supported. See <ref
-		refid="compressionIssues">section</ref> for some advice
-		on which library is better suited to your needs.
-	      </item>
-              <term>shuffle</term><item>Whether or not to use the
-                shuffle filter present in the <verb>HDF5</verb>
-                library. This is normally used to improve the
-                compression ratio (at the cost of consuming a little
-                bit more CPU time). A value of 0 disables shuffling
-                and 1 makes it active. The default value depends on
-                whether compression is enabled or not; if compression
-                is enabled, shuffling defaults to be active, else
-                shuffling is disabled.
               </item>
               <term>expectedsizeinMB</term> <item>An user estimate
                 about the size (in MB) in the final
@@ -3078,6 +3016,13 @@ AttributeError: Error setting "ADCcount" attr.
                 management process time and the amount of memory used.
               </item>
 	    </description>
+	    <p>See <ref
+	      refid="createTableDescr"><verb>createTable</verb>
+	      description</ref> for more information on the
+	      <em>where</em>, <em>name</em>, <em>title</em>,
+	      <em>compress</em>, <em>complib</em>, <em>shuffle</em>
+	      and <em>fletcher32</em> parameters.
+	    </p>
 	  </subsubsection>
 
 	  <subsubsection>
@@ -3622,8 +3567,11 @@ AttributeError: Error setting "ADCcount" attr.
 	    <term>complib</term> <item>The compression filter used (in
 	    case of a compressed dataset).
 	    </item>
-	    <term>shuffle</term> <item>Whether the shuffle filter is
-	      active or not.
+	    <term>shuffle</term> <item>Whether the <em>shuffle</em>
+	      filter is active or not.
+	    </item>
+	    <term>fletcher32</term> <item>Whether the
+	      <em>fletcher32</em> filter is active or not.
 	    </item>
 	    <term>attrs</term><item>The associated
 	      <verb>AttributeSet</verb> instance (see <ref

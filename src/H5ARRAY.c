@@ -48,6 +48,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
 		    int   compress,
 		    char  *complib,
 		    int   shuffle,
+		    int   fletcher32,
 		    const void *data)
 {
 
@@ -105,15 +106,19 @@ herr_t H5ARRAYmake( hid_t loc_id,
 
    /* 
       Dataset creation property list is modified to use 
-      GZIP compression with the compression effort set to 6. 
-      Note that compression can be used only when dataset is chunked. 
    */
 
+   /* Fletcher must be first */
+   if (fletcher32) {
+     if ( H5Pset_fletcher32( plist_id) < 0 )
+       return -1;
+   }
+   /* Then shuffle */
    if (shuffle) {
      if ( H5Pset_shuffle( plist_id) < 0 )
        return -1;
    }
-
+   /* Finally compression */
    if (compress) {
      cd_values[0] = compress;
      cd_values[1] = (int)(atof(obversion) * 10);

@@ -52,6 +52,7 @@ class BasicTestCase(unittest.TestCase):
     appendrows = 20
     compress = 0
     shuffle = 0
+    fletcher32 = 0
     complib = "zlib"  # Default compression library
     record = Record
     recarrayinit = 0
@@ -115,6 +116,7 @@ class BasicTestCase(unittest.TestCase):
                                            title = self.title,
                                            compress = self.compress,
                                            shuffle = self.shuffle,
+                                           fletcher32 = self.fletcher32,
                                            expectedrows = self.expectedrows,
                                            complib=self.complib)
             if not self.recarrayinit:
@@ -470,6 +472,34 @@ class BasicTestCase(unittest.TestCase):
         # The last values has to be equal
         assert result[10:15] == result2[10:15]
 
+    def test05_filtersTable(self):
+        """Checking tablefilters"""
+
+        rootgroup = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05_filtersTable..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        self.fileh = openFile(self.file, "r")
+        table = self.fileh.getNode("/table0")
+
+        # Check filters:
+        if self.compress <> table.complevel and verbose:
+            print "Error in compress. Class:", self.__class__.__name__
+            print "self, table:", self.compress, table.complevel
+        assert table.complib == self.complib
+        assert table.complevel == self.compress
+        if self.shuffle <> table.shuffle and verbose:
+            print "Error in shuffle. Class:", self.__class__.__name__
+            print "self, table:", self.shuffle, table.shuffle
+        assert self.shuffle == table.shuffle
+        if self.fletcher32 <> table.fletcher32 and verbose:
+            print "Error in fletcher32. Class:", self.__class__.__name__
+            print "self, table:", self.fletcher32, table.fletcher32
+        assert self.fletcher32 == table.fletcher32
+        
+
 class BasicWriteTestCase(BasicTestCase):
     title = "BasicWrite"
 
@@ -538,6 +568,19 @@ class CompressZLIBTablesTestCase(BasicTestCase):
 class CompressZLIBShuffleTablesTestCase(BasicTestCase):
     title = "CompressOneTables"
     compress = 1
+    shuffle = 1
+    complib = "zlib"
+
+class Fletcher32TablesTestCase(BasicTestCase):
+    title = "Fletcher32Tables"
+    fletcher32 = 1
+    shuffle = 0
+    complib = "zlib"
+
+class AllFiltersTablesTestCase(BasicTestCase):
+    title = "AllFiltersTables"
+    compress = 1
+    fletcher32 = 1
     shuffle = 1
     complib = "zlib"
 
@@ -1232,6 +1275,8 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(DefaultValues))
     #theSuite.addTest(unittest.makeSuite(OldRecordDefaultValues))
     #theSuite.addTest(unittest.makeSuite(CopyTestCase))
+    #theSuite.addTest(unittest.makeSuite(Fletcher32TablesTestCase))
+    #theSuite.addTest(unittest.makeSuite(AllFiltersTablesTestCase))
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
@@ -1246,6 +1291,8 @@ def suite():
 	theSuite.addTest(unittest.makeSuite(CompressUCLShuffleTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressZLIBTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressZLIBShuffleTablesTestCase))
+        theSuite.addTest(unittest.makeSuite(Fletcher32TablesTestCase))
+        theSuite.addTest(unittest.makeSuite(AllFiltersTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressTwoTablesTestCase))
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))

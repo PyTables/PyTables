@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.53 2004/01/01 21:01:46 falted Exp $
+#       $Id: Array.py,v 1.54 2004/01/13 12:31:45 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.53 $"
+__version__ = "$Revision: 1.54 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -91,6 +91,7 @@ class Array(Leaf, hdf5Extension.Array, object):
         self.complevel = 0  # An Array can not be compressed
         self.complib = "zlib"  # Some default value
         self.shuffle = 0   # Values of an Array cannot be shuffled
+        self.fletcher32 = 0   # Checksum is not applicable to Array
         self.extdim = -1   # An Array object is not enlargeable
         # Check if we have to create a new object or read their contents
         # from disk

@@ -127,20 +127,21 @@ void test_vltypes_free_custom_orig(void *_mem, void *info)
  */
 
 herr_t H5VLARRAYmake( hid_t loc_id, 
-		    const char *dset_name,
-		    const char *title,
-		    const char *flavor,
-		    const char *obversion,    /* The Array VERSION number */
-		    const int rank, 
-		    const int scalar, 
-		    const hsize_t *dims,
-		    hid_t type_id,
-		    hsize_t chunk_size,
-		    void  *fill_data,
-		    int   compress,
-		    char  *complib,
-		    int   shuffle,
-		    const void *data)
+		      const char *dset_name,
+		      const char *title,
+		      const char *flavor,
+		      const char *obversion,    /* The Array VERSION number */
+		      const int rank, 
+		      const int scalar, 
+		      const hsize_t *dims,
+		      hid_t type_id,
+		      hsize_t chunk_size,
+		      void  *fill_data,
+		      int   compress,
+		      char  *complib,
+		      int   shuffle,
+		      int   fletcher32,
+		      const void *data)
 {
 
  hvl_t   vldata;
@@ -186,14 +187,19 @@ herr_t H5VLARRAYmake( hid_t loc_id,
 
  /* 
     Dataset creation property list is modified to use 
-    GZIP compression with the compression effort set to 6. 
-    Note that compression can be used only when dataset is chunked. 
  */
+
+ /* Fletcher must be first */
+ if (fletcher32) {
+   if ( H5Pset_fletcher32( plist_id) < 0 )
+     return -1;
+ }
+ /* Then shuffle */
  if (shuffle) {
    if ( H5Pset_shuffle( plist_id) < 0 )
      return -1;
  }
-
+ /* Finally compression */
  if (compress) {
    cd_values[0] = compress;
    cd_values[1] = (int)(atof(obversion) * 10);

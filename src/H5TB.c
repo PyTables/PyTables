@@ -151,19 +151,19 @@ herr_t H5TBmake_table( const char *table_title,
 
  /* 
   Dataset creation property list is modified to use 
-  Note that compression can be used only when dataset is chunked. 
   */
 
- if (shuffle) {
-   if ( H5Pset_shuffle( plist_id) < 0 )
-     return -1;
- }
-
+ /* Fletcher must be first */
  if (fletcher32) {
    if ( H5Pset_fletcher32( plist_id) < 0 )
      return -1;
  }
-
+ /* Then shuffle */
+ if (shuffle) {
+   if ( H5Pset_shuffle( plist_id) < 0 )
+     return -1;
+ }
+ /* Finally compression */
  if ( compress )
  {
    cd_values[0] = compress;

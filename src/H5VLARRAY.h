@@ -16,11 +16,12 @@ herr_t H5VLARRAYmake( hid_t loc_id,
 		      const int scalar, 
 		      const hsize_t *dims,
 		      hid_t type_id,
-		      hsize_t chunk_size,	/* New */
-		      void  *fill_data,		/* New */
-		      int   compress,		/* New */
-		      char  *complib,		/* New */
-		      int   shuffle,		/* New */
+		      hsize_t chunk_size,
+		      void  *fill_data,
+		      int   compress,
+		      char  *complib,
+		      int   shuffle,
+		      int   fletcher32,
 		      const void *data);
 
 herr_t H5VLARRAYappend_records( hid_t loc_id, 

@@ -118,12 +118,11 @@ PyObject *get_filter_names( hid_t loc_id,
  /* Get the properties container */
  dcpl = H5Dget_create_plist(dset);
 
- filters = PyDict_New();
  /* Collect information about filters on chunked storage */
  if (H5D_CHUNKED==H5Pget_layout(dcpl)) {
    /*      ndims = H5Pget_chunk(dcpl, 64, chsize/\*out*\/); */
+   filters = PyDict_New();
    if ((nf = H5Pget_nfilters(dcpl))>0) {
-/*      filter_names = PyTuple_New(nf); */
      for (i=0; i<nf; i++) {
        cd_nelmts = 20;
        filt_id = H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
@@ -133,12 +132,8 @@ PyObject *get_filter_names( hid_t loc_id,
        for (j=0;j<cd_nelmts;j++) {
 	 PyTuple_SetItem(filter_values, j, PyInt_FromLong(cd_values[j]));
        }
-/*        PyTuple_SetItem(filter_names, i, PyString_FromString(f_name)); */
        PyMapping_SetItemString (filters, f_name, filter_values);
      }
-   }
-   else {
-     filters = PyDict_New(); /* Return an empty dictionary */
    }
  }
  else {

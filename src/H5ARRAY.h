@@ -27,6 +27,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
 		    int   compress,
 		    char  *complib,
 		    int   shuffle,
+		    int   fletcher32,
 		    const void *data);
 
 herr_t H5ARRAYappend_records( hid_t loc_id, 

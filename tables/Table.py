@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.92 2004/01/12 21:15:38 falted Exp $
+#       $Id: Table.py,v 1.93 2004/01/13 12:31:45 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.92 $"
+__version__ = "$Revision: 1.93 $"
 
 from __future__ import generators
 import sys
@@ -174,7 +174,7 @@ class Table(Leaf, hdf5Extension.Table, object):
   IsDescription subclass, dictionary or RecArray."""
 
         if self._v_new:
-            self._g_setComprAttr(compress, complib, shuffle, fletcher32)
+            self._g_setFilters(compress, complib, shuffle, fletcher32)
 
     def _newBuffer(self, init=1):
         """Create a new recarray buffer for I/O purposes"""
@@ -293,8 +293,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.colshapes = self.description._v_shapes
         self.colitemsizes = self.description._v_itemsizes
         # Get info about existing filters
-        self.complevel, self.complib, self.shuffle, self.fletcher32 = \
-                        self._g_getFilters()
+        self._g_getFilters()
         # Compute buffer size
         (self._v_maxTuples, self._v_chunksize) = \
               calcBufferSize(self.rowsize, self.nrows, self.complevel)
@@ -579,7 +578,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         return nrows
 
     def _copy_orig(self, dstname, orderby=None,
-             complevel=0, complib="zlib", shuffle=1):
+                   complevel=0, complib="zlib", shuffle=1):
         """Copy this table to other location, optionally ordered by column
         """
         from time import time, clock

@@ -24,7 +24,7 @@ class C:
 class BasicTestCase(unittest.TestCase):
     compress = 0
     complib = "zlib"
-    shuffle = 1
+    shuffle = 0
     fletcher32 = 0
     flavor = "NumArray"
 
@@ -104,6 +104,21 @@ class BasicTestCase(unittest.TestCase):
             assert row == (1, 2)
             assert row2 == ()
         assert len(row) == 2
+
+        # Check filters:
+        if self.compress <> vlarray.complevel and verbose:
+            print "Error in compress. Class:", self.__class__.__name__
+            print "self, vlarray:", self.compress, vlarray.complevel
+        assert vlarray.complib == self.complib
+        assert vlarray.complevel == self.compress
+        if self.shuffle <> vlarray.shuffle and verbose:
+            print "Error in shuffle. Class:", self.__class__.__name__
+            print "self, vlarray:", self.shuffle, vlarray.shuffle
+        assert self.shuffle == vlarray.shuffle
+        if self.fletcher32 <> vlarray.fletcher32 and verbose:
+            print "Error in fletcher32. Class:", self.__class__.__name__
+            print "self, vlarray:", self.fletcher32, vlarray.fletcher32
+        assert self.fletcher32 == vlarray.fletcher32
 
 
 class BasicNumArrayTestCase(BasicTestCase):
