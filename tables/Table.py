@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.106 2004/04/29 17:04:30 falted Exp $
+#       $Id: Table.py,v 1.107 2004/05/03 16:41:50 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.106 $"
+__version__ = "$Revision: 1.107 $"
 
 from __future__ import generators
 import sys
@@ -529,8 +529,12 @@ class Table(Leaf, hdf5Extension.Table, object):
 """
 
         if isinstance(key, types.IntType):
+            if key < 0:
+                # To support negative values
+                key += self.nrows
             (start, stop, step) = processRange(self.nrows, key, key+1, 1)
             return self._read(start, stop, step, None, None)[0]
+            #return self._read(start, stop, step, None, None)
         elif isinstance(key, types.SliceType):
             (start, stop, step) = processRange(self.nrows,
                                                key.start, key.stop, key.step)
@@ -802,6 +806,9 @@ class Column(object):
         """
         
         if isinstance(key, types.IntType):
+            if key < 0:
+                # To support negative values
+                key += self.table.nrows
             (start, stop, step) = processRange(self.table.nrows, key, key+1, 1)
             return self.table._read(start, stop, step, self.name, None)[0]
         elif isinstance(key, types.SliceType):

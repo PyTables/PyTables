@@ -679,21 +679,18 @@ class BasicRangeTestCase(unittest.TestCase):
     def tearDown(self):
         if self.fileh.isopen:
             self.fileh.close()
-        #del self.fileh, self.rootgroup
         os.remove(self.file)
         
     #----------------------------------------
 
     def check_range(self):
 
-        rootgroup = self.rootgroup
         # Create an instance of an HDF5 Table
         self.fileh = openFile(self.file, "r")
         table = self.fileh.getNode("/table0")
 
         table._v_maxTuples = self.maxTuples
         r = slice(self.start, self.stop, self.step)
-        #resrange = r.indices(table.nrows)
         resrange = getIndices(r,table.nrows)
         reslength = len(range(*resrange))
         if self.checkrecarray:
@@ -1041,6 +1038,240 @@ class getColRangeTestCase(BasicRangeTestCase):
             print rec
             self.fail("expected a LookupError")
 
+
+class getItemTestCase(unittest.TestCase):
+    mode  = "w" 
+    title = "This is the table title"
+    record = Record
+    maxshort = 1 << 15
+    expectedrows = 100
+    compress = 0
+    shuffle = 1
+    # Default values
+    nrows = 20
+    maxTuples = 3  # Choose a small value for the buffer size
+    start = 1
+    stop = nrows
+    checkrecarray = 0
+    checkgetCol = 0
+
+    def setUp(self):
+        # Create an instance of an HDF5 Table
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, self.mode)
+        self.rootgroup = self.fileh.root
+        self.populateFile()
+        # Close the file (eventually destroy the extended type)
+        self.fileh.close()
+
+    def populateFile(self):
+        group = self.rootgroup
+        for j in range(3):
+            # Create a table
+            filterprops = Filters(complevel = self.compress,
+                                  shuffle = self.shuffle)
+            table = self.fileh.createTable(group, 'table'+str(j), self.record,
+                                           title = self.title,
+                                           filters = filterprops,
+                                           expectedrows = self.expectedrows)
+            # Get the row object associated with the new table
+            row = table.row
+
+            # Fill the table
+            for i in xrange(self.expectedrows):
+                row['var1'] = '%04d' % (self.expectedrows - i)
+                row['var7'] = row['var1'][-1]
+                row['var2'] = i 
+                row['var3'] = i % self.maxshort
+                if isinstance(row['var4'], NumArray):
+                    row['var4'] = [float(i), float(i*i)]
+                else:
+                    row['var4'] = float(i)
+                if isinstance(row['var5'], NumArray):
+                    row['var5'] = array((float(i),)*4)
+                else:
+                    row['var5'] = float(i)
+                # var6 will be like var3 but byteswaped
+                row['var6'] = ((row['var3'] >> 8) & 0xff) + \
+                              ((row['var3'] << 8) & 0xff00)
+                row.append()
+		
+            # Flush the buffer for this table
+            table.flush()
+            # Create a new group (descendant of group)
+            group2 = self.fileh.createGroup(group, 'group'+str(j))
+            # Iterate over this new group (group2)
+            group = group2
+
+
+    def tearDown(self):
+        if self.fileh.isopen:
+            self.fileh.close()
+        os.remove(self.file)
+        
+    #----------------------------------------
+
+    def test01a_singleItem(self):
+        """Checking __getitem__ method with single parameter """
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01a_singleItem..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        table = self.fileh.root.table0
+        result = table[2]
+        assert result.field("var2") == 2
+        result = table[25]
+        assert result.field("var2") == 25
+        result = table[self.expectedrows-1]
+        assert result.field("var2") == self.expectedrows - 1
+
+    def test01b_singleItem(self):
+        """Checking __getitem__ method with single parameter (negative)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01b_singleItem..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        table = self.fileh.root.table0
+        result = table[-5]
+        assert result.field("var2") == self.expectedrows - 5
+        result = table[-1]
+        assert result.field("var2") == self.expectedrows - 1
+        result = table[-self.expectedrows]
+        assert result.field("var2") == 0
+
+    def test02_twoItems(self):
+        """Checking __getitem__ method with start, stop parameters """
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_twoItem..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        table = self.fileh.root.table0
+        result = table[2:6]
+        assert result.field("var2").tolist() == range(2,6)
+        result = table[2:-6]
+        assert result.field("var2").tolist() == range(2,self.expectedrows-6)
+        result = table[2:]
+        assert result.field("var2").tolist() == range(2,self.expectedrows)
+        result = table[-2:]
+        assert result.field("var2").tolist() == range(self.expectedrows-2,self.expectedrows)
+
+    def test03_threeItems(self):
+        """Checking __getitem__ method with start, stop, step parameters """
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_threeItem..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        table = self.fileh.root.table0
+        result = table[2:6:3]
+        assert result.field("var2").tolist() == range(2,6,3)
+        result = table[2::3]
+        assert result.field("var2").tolist() == range(2,self.expectedrows,3)
+        result = table[:6:2]
+        assert result.field("var2").tolist() == range(0,6,2)
+        result = table[::]
+        assert result.field("var2").tolist() == range(0,self.expectedrows,1)
+
+    def test04_negativeStep(self):
+        """Checking __getitem__ method with negative step parameter"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04_negativeStep..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        table = self.fileh.root.table0
+        try:
+            table[2:3:-3]
+        except ValueError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+		print "\nGreat!, the next RuntimeError was catched!"
+                print value
+        else:
+            self.fail("expected a RuntimeError")
+            
+
+    def test06a_singleItemCol(self):
+        """Checking __getitem__ method in Col with single parameter """
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test06a_singleItemCol..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        colvar2 = self.fileh.root.table0.cols.var2
+        assert colvar2[2] == 2
+        assert colvar2[25] == 25
+        assert colvar2[self.expectedrows-1] == self.expectedrows - 1
+
+    def test06b_singleItemCol(self):
+        """Checking __getitem__ method in Col with single parameter (negative)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test06b_singleItem..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        colvar2 = self.fileh.root.table0.cols.var2
+        assert colvar2[-5] == self.expectedrows - 5
+        assert colvar2[-1] == self.expectedrows - 1
+        assert colvar2[-self.expectedrows] == 0
+
+    def test07_twoItemsCol(self):
+        """Checking __getitem__ method in Col with start, stop parameters """
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test07_twoItemCol..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        colvar2 = self.fileh.root.table0.cols.var2
+        assert colvar2[2:6].tolist() == range(2,6)
+        assert colvar2[2:-6].tolist() == range(2,self.expectedrows-6)
+        assert colvar2[2:].tolist() == range(2,self.expectedrows)
+        assert colvar2[-2:].tolist() == range(self.expectedrows-2,self.expectedrows)
+
+    def test08_threeItemsCol(self):
+        """Checking __getitem__ method in Col with start, stop, step parameters """
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test08_threeItemCol..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        colvar2 = self.fileh.root.table0.cols.var2
+        assert colvar2[2:6:3].tolist() == range(2,6,3)
+        assert colvar2[2::3].tolist() == range(2,self.expectedrows,3)
+        assert colvar2[:6:2].tolist() == range(0,6,2)
+        assert colvar2[::].tolist() == range(0,self.expectedrows,1)
+
+    def test09_negativeStep(self):
+        """Checking __getitem__ method in Col with negative step parameter"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test09_negativeStep..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        colvar2 = self.fileh.root.table0.cols.var2
+        try:
+            colvar2[2:3:-3]
+        except ValueError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+		print "\nGreat!, the next RuntimeError was catched!"
+                print value
+        else:
+            self.fail("expected a RuntimeError")
+            
 
 class RecArrayIO(unittest.TestCase):
 
@@ -1953,6 +2184,7 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
+    #theSuite.addTest(unittest.makeSuite(getItemTestCase))
     #theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
@@ -1996,6 +2228,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
         theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
+        theSuite.addTest(unittest.makeSuite(getItemTestCase))
         theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayIO))
         theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
