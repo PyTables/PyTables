@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.113 2004/01/30 16:38:47 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.114 2004/02/04 10:28:27 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.113 $"
+__version__ = "$Revision: 1.114 $"
 
 
 import sys, os
@@ -47,6 +47,11 @@ from numarray import records
 from numarray import strings
 from numarray import memmap
 from utils import calcBufferSize
+try:
+  import zlib
+  zlib_imported = 1
+except:
+  zlib_imported = 0
 
 # For defining the long long type
 cdef extern from "type-longlong.h":
@@ -680,7 +685,7 @@ cdef extern from "getfieldfmt.h":
 # Helper routines
 cdef extern from "utils.h":
   object _getTablesVersion()
-  object getZLIBVersionInfo()
+  #object getZLIBVersionInfo()
   object getHDF5VersionInfo()
   object createNamesTuple(char *buffer[], int nelements)
   object get_filter_names( hid_t loc_id, char *dset_name)
@@ -727,8 +732,13 @@ def whichLibVersion(char *name):
     binver, strver = getHDF5VersionInfo()
     return (binver, strver, None)     # Should be always available
   elif (strcmp(name, "zlib") == 0):
-    binver, strver = getZLIBVersionInfo()
-    return (binver, strver, None)   # Should be always available
+    if zlib_imported:
+      return (1, zlib.ZLIB_VERSION, None)
+    else:
+      return (0, 0, None)
+    # We want to avoid dependencies of the zlib library
+#     binver, strver = getZLIBVersionInfo()
+#     return (binver, strver, None)   # Should be always available
   elif (strcmp(name, "lzo") == 0):
     if lzo_version:
       (lzo_version_string, lzo_version_date) = getLZOVersionInfo()
@@ -826,7 +836,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.113 2004/01/30 16:38:47 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.114 2004/02/04 10:28:27 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""

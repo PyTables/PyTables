@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.70 2004/01/30 16:38:47 falted Exp $
+#       $Id: File.py,v 1.71 2004/02/04 10:28:27 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.70 $"
+__version__ = "$Revision: 1.71 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -778,6 +778,8 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
             for leaf in self.listNodes(group, classname = 'Leaf'):
                 leaf.close()
             #print "File: Closing Group ==>", group
+            #if group._v_pathname <> "/":
+            #    group._f_close()
             group._f_close()
             
         # Delete the root object (this should recursively delete the

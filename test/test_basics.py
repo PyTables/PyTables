@@ -719,24 +719,44 @@ class CheckFileTestCase(unittest.TestCase):
         assert ui._v_name == "pressure"
         if verbose:
             print "UnImplement object -->",repr(ui)
-            #print "instance variables-->", ui.__dict__
-            #print "complib-->", ui.complib
-            #print "attrs-->", repr(ui.attrs)
-
-#         try:
-#             array_ = fileh.getNode(columns, "pressure", classname="Array")
-#         except LookupError:
-#             if verbose:
-#                 (type, value, traceback) = sys.exc_info()
-#                 print "\nGreat!, the next LookupError was catched:"
-#                 print value
-#         else:
-#             self.fail("expected an LookupError")
 
         # A Table
         table = fileh.getNode("/detector", "table", classname="Table")
         assert table._v_name == "table"
         
+        fileh.close()
+
+    def test05_copyUnimplemented(self):
+        """Checking that an UnImplemented object cannot be copied"""
+
+        # Open an existing generic HDF5 file
+        # We don't need to wrap this in a try clause because
+        # it has already been tried and the warning will not happen again
+        fileh = openFile("ex-noattr.h5", mode = "r")
+        # An unsupported object (the deprecated H5T_ARRAY type in
+        # Array, from pytables 0.8 on)
+        ui = fileh.getNode(fileh.root.columns, "pressure")
+        assert ui._v_name == "pressure"
+        if verbose:
+            print "UnImplement object -->",repr(ui)
+
+        # Check that it cannot be copied to another file
+        file2 = tempfile.mktemp(".h5")
+        fileh2 = openFile(file2, mode = "w")
+        try:
+            ui.copy(fileh2.root, "newui")
+        except NotImplementedError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next NotImplementedError was catched:"
+                print value
+        else:
+            self.fail("expected an UserWarning")
+
+        # Delete the new (empty) file
+        fileh2.close()
+        os.remove(file2)
+
         fileh.close()
 
 

@@ -133,7 +133,10 @@ if __name__ == '__main__':
     print "HDF5 version:      %s" % tables.whichLibVersion("hdf5")[1]
     #print "HDF5 version:      %s" % tables.HDF5Version
     print "numarray version:  %s" % numarray.__version__
-    print "Zlib version:      %s" % tables.whichLibVersion("zlib")[1]
+    #print "Zlib version:      %s" % tables.whichLibVersion("zlib")[1]
+    tinfo = tables.whichLibVersion("zlib")
+    if tinfo[0]:
+        print "Zlib version:      %s" % (tinfo[1])
     tinfo = tables.whichLibVersion("lzo")
     if tinfo[0]:
         print "LZO version:       %s (%s)" % (tinfo[1], tinfo[2])
@@ -147,11 +150,11 @@ if __name__ == '__main__':
     print 'Byte-ordering:     %s' % sys.byteorder
     print '-=' * 38
 
-    # Handle --only-versions
+    # Handle --show-versions-only
     only_versions = 0
     args = sys.argv[:]
     for arg in args:
-        if arg == '--only-versions':
+        if arg == '--show-versions-only':
             only_versions = 1
             sys.argv.remove(arg)
 

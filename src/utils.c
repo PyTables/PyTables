@@ -1,30 +1,30 @@
 #include <stdarg.h>
 #include "utils.h"
 #include "version.h"
-#include "zlib.h"
+/* #include "zlib.h" */
 
 
 PyObject *_getTablesVersion() {
   return PyString_FromString(PYTABLES_VERSION);
 }
 
-PyObject *getZLIBVersionInfo(void) {
-  long binver;
-  PyObject *t;
+/* PyObject *getZLIBVersionInfo(void) { */
+/*   long binver; */
+/*   PyObject *t; */
 
-#ifdef ZLIB_VERNUM		/* Only available for zlib >= 1.2 */
-  binver = ZLIB_VERNUM;  	/* This is not exactly the user's lib
-				   version but that of the binary
-				   packager version!  However, this
-				   should be not too important */
-#else
-  binver = 1;  			/* For version of zlib < 1.2 */
-#endif
-  t = PyTuple_New(2);
-  PyTuple_SetItem(t, 0, PyInt_FromLong(binver));
-  PyTuple_SetItem(t, 1, PyString_FromString(zlibVersion()));
-  return t;
-}
+/* #ifdef ZLIB_VERNUM		/\* Only available for zlib >= 1.2 *\/ */
+/*   binver = ZLIB_VERNUM;  	/\* This is not exactly the user's lib */
+/* 				   version but that of the binary */
+/* 				   packager version!  However, this */
+/* 				   should be not too important *\/ */
+/* #else */
+/*   binver = 1;  			/\* For version of zlib < 1.2 *\/ */
+/* #endif */
+/*   t = PyTuple_New(2); */
+/*   PyTuple_SetItem(t, 0, PyInt_FromLong(binver)); */
+/*   PyTuple_SetItem(t, 1, PyString_FromString(zlibVersion())); */
+/*   return t; */
+/* } */
 
 PyObject *getHDF5VersionInfo(void) {
   long binver;

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.98 2004/01/28 18:32:16 falted Exp $
+#       $Id: Table.py,v 1.99 2004/02/04 10:28:27 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.98 $"
+__version__ = "$Revision: 1.99 $"
 
 from __future__ import generators
 import sys
@@ -592,7 +592,41 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.shape = (self.nrows,)
         return
 
+    # This is an optimized version of copy
     def _g_copy(self, group, name, start, stop, step, title, filters):
+        "Private part of Leaf.copy() for each kind of leaf"
+        # Build the new Table object
+        object = Table(self.description._v_ColObjects, title=title,
+                       filters=filters,
+                       expectedrows=self.nrows)
+        setattr(group, name, object)
+        # Now, fill the new table with values from the old one
+        nrowsinbuf = self._v_maxTuples
+        recarray = self._newBuffer(init=0)
+        object._open_append(recarray)
+        nrowsdest = 0
+        for start2 in range(start, stop, step*nrowsinbuf):
+            # Save the records on disk
+            stop2 = start2+step*nrowsinbuf
+            if stop2 > stop:
+                stop2 = stop
+            #object.append(self[start2:stop2:step])
+            # Optimized version (it saves some conversions)
+            nrows = ((stop2 - start2 - 1) // step) + 1    
+            #recarray[:nrows] = self[start2:stop2:step]
+            self.row._fillCol(recarray, start2, stop2, step, None)
+            #nrows = buf.shape[0]
+            object._append_records(recarray, nrows)
+            nrowsdest += nrows
+        object._close_append()
+        # Update the number of saved rows in this buffer
+        object.nrows = nrowsdest
+        # Set the shape attribute (the self.nrows may be less than the maximum)
+        self.shape = (nrowsdest,)
+        return object
+
+    # No optimized version
+    def _g_copy_orig(self, group, name, start, stop, step, title, filters):
         "Private part of Leaf.copy() for each kind of leaf"
         # Build the new Table object
         object = Table(self.description._v_ColObjects, title=title,
@@ -605,9 +639,8 @@ class Table(Leaf, hdf5Extension.Table, object):
             # Save the records on disk
             stop2 = start2+step*nrowsinbuf
             if stop2 > stop:
-                stop2 = stop 
+                stop2 = stop
             object.append(self[start2:stop2:step])
-        object._close_append()  # Close the destination table
         return object
 
     def flush(self):

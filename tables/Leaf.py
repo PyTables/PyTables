@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.34 2004/01/28 18:32:16 falted Exp $
+#       $Id: Leaf.py,v 1.35 2004/02/04 10:28:27 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.34 $"
+__version__ = "$Revision: 1.35 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -253,6 +253,11 @@ class Leaf:
             to the destination or not. The default is copy them.
 
         """
+
+        # First, check if the copy() method has been defined for this object
+        if not hasattr(self, "_g_copy"):
+            raise NotImplementedError, \
+                  "<%s> has not a copy() method" % str(self)
              
         if isinstance(where, str):
             if where not in self._v_file.objects:

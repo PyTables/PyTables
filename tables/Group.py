@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.62 2004/01/16 14:00:27 falted Exp $
+#       $Id: Group.py,v 1.63 2004/02/04 10:28:27 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.62 $"
+__version__ = "$Revision: 1.63 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -275,6 +275,7 @@ self._g_join(name), UserWarning)
         else:
             self._g_open()
         # Attach the AttributeSet attribute
+        # This becomes a property
         self.__dict__["_v_attrs"] = AttributeSet(self)
         if self._v_new:
             # Set the title, class and version attribute
@@ -291,6 +292,14 @@ self._g_join(name), UserWarning)
             # Get the title on disk
             #self.__dict__["_v_title"] = self._v_attrs.TITLE
             pass
+
+    # Define attrs as a property.
+    # In the case of groups, it is faster to not define the _v_attrs property
+    # I don't know exactly why. This should be further investigated.
+#     def _get_attrs (self):
+#         return AttributeSet(self)
+#     # attrs can't be set or deleted by the user
+#     _v_attrs = property(_get_attrs, None, None, "Attrs of this object")
 
     # Define _v_title as a property
     def _f_get_title (self):

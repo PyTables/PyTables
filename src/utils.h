@@ -69,7 +69,7 @@ typedef struct {
 
 PyObject *_getTablesVersion(void);
 
-PyObject *getZLIBVersionInfo(void);
+/* PyObject *getZLIBVersionInfo(void); */
 
 PyObject *getHDF5VersionInfo(void);
 

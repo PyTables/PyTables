@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.24 2004/01/27 20:28:34 falted Exp $
+#       $Id: AttributeSet.py,v 1.25 2004/02/04 10:28:27 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.24 $"
+__version__ = "$Revision: 1.25 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -119,7 +119,10 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         for attr in self._v_attrnames:
             # New attribute (to allow tab-completion in interactive mode)
             # Beware! From 0.7.1 on, a lazy attribute reading is on.
-            #self.__dict__[attr] = self.__getattr__(attr)
+            # From 0.8 on, attrs is a property, so we can againg
+            # put the attributes on the local dictionary to allow
+            # tab-completion
+            self.__dict__[attr] = self.__getattr__(attr)
             if issysattrname(attr):
                 self._v_attrnamessys.append(attr)
             else:

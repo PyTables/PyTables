@@ -149,12 +149,13 @@
       others.  I'd translate all the aphorisms, as it's a little
       pendantic to assume your readers can read French, Spanish,
       Valencian, Catalan, Portuguese, etc. -->
+
       <aphorism>La sabiduría no vale la pena si no es posible servirse
 	de ella para inventar una nueva manera de preparar los
-	garbanzos (Wisdom isn't worth anything if you can't use it to
-	come up with a new way to cook garbanzos).
-	<caption>A wise Catalan<newline/>in "Cien años de soledad"<newline/>
-	Gabriel García Márquez</caption>
+	garbanzos.<newline/>(Wisdom isn't worth anything if you can't
+	use it to come up with a new way to cook garbanzos).
+	<caption>A wise Catalan<newline/>in "Cien años de
+	soledad"<newline/> Gabriel García Márquez</caption>
       </aphorism>
 
       <p>The goal of <verb>PyTables</verb> is to enable the end user
@@ -616,28 +617,27 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    <term>Unix</term>
 	    <item>
 	      <p><verb>setup.py</verb> will detect <verb>HDF5</verb>,
-		<verb>Zlib</verb>, <verb>LZO</verb> or
-		<verb>UCL</verb> libraries and include files under
-		<verb>/usr</verb> or <verb>/usr/local</verb>; this
-		will cover most manual installations as well as
-		installations from packages.  If <verb>setup.py</verb>
-		can't find <verb>libhdf5</verb> or <verb>libz</verb>
-		(or <verb>liblzo</verb> or <verb>libucl</verb> that
-		you may wish to use) or if you have several versions
-		of a library installed and want to use a particular
-		one, then you can set the path to the resource in the
+		<verb>LZO</verb> or <verb>UCL</verb> libraries and
+		include files under <verb>/usr</verb> or
+		<verb>/usr/local</verb>; this will cover most manual
+		installations as well as installations from packages.
+		If <verb>setup.py</verb> can't find
+		<verb>libhdf5</verb> or <verb>libz</verb> (or
+		<verb>liblzo</verb> or <verb>libucl</verb> that you
+		may wish to use) or if you have several versions of a
+		library installed and want to use a particular one,
+		then you can set the path to the resource in the
 		environment, setting the values of the
-		<verb>HDF5_DIR</verb>, <verb>ZLIB_DIR</verb>,
-		<verb>LZO_DIR</verb> or <verb>UCL_DIR</verb>
-		environment variables to the path to the particular
-		resource.  You may also specify the locations of the
-		resource root directories on the <verb>setup.py</verb>
-		command line. For example:
+		<verb>HDF5_DIR</verb>, <verb>LZO_DIR</verb> or
+		<verb>UCL_DIR</verb> environment variables to the path
+		to the particular resource.  You may also specify the
+		locations of the resource root directories on the
+		<verb>setup.py</verb> command line. For example:
 	      </p>
 
 	      <verbatim>
 		--hdf5=/stuff/hdf5-1.6.2
-		--zlib=/stuff/zlib-1.2.1
+		--lzo=/stuff/lzo-1.07
 		--ucl=/stuff/ucl-1.0.1
 	      </verbatim>
 
@@ -682,9 +682,9 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		  directory (where the include/ and dll/ directories
 		  can be found). <em>Mandatory</em>.</item>
 		
-		<term>ZLIB_DIR</term> <item>Points to the root ZLIB
-		  directory (where the include/ and lib/ directories
-		  can be found). <em>Mandatory</em>.</item>
+<!-- 		<term>ZLIB_DIR</term> <item>Points to the root ZLIB -->
+<!-- 		  directory (where the include/ and lib/ directories -->
+<!-- 		  can be found). <em>Mandatory</em>.</item> -->
 
 		<term>LZO_DIR</term> <item>Points to the root LZO
 		  directory (where the include/ and lib/ directories
@@ -699,7 +699,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	      <p>For example:
 		<verbatim>
 		  set HDF5_DIR=c:\stuff\5-162-win2k\c\release
-		  set ZLIB_DIR=c:\stuff\zlib121
+		  set UCL_DIR=c:\stuff\ucl-1-01
 		  set LZO_DIR=c:\stuff\lzo-1-07
 		</verbatim>
 
@@ -709,7 +709,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	      </p>
 
 	      <verbatim>
-		--hdf5=c:\stuff\5-162-win2k\c\release --zlib=c:\stuff\zlib121
+		--hdf5=c:\stuff\5-162-win2k\c\release
 		--lzo=c:\stuff\lzo-1-07 --ucl=c:\stuff\ucl-1-01
 	      </verbatim>	
 	    </item>
@@ -719,7 +719,9 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	</subsection>
 
         <subsection id="PyTablesSourceInstallationDescr">
-	  <heading>PyTables package installation</heading>
+	  <heading><visual markup="tt">PyTables</visual> package
+	    installation
+	  </heading>
 
           <p>Once you have installed the HDF5 library and numarray
             packages, you can proceed with the <verb>PyTables</verb>
@@ -771,10 +773,16 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		  python test_types.py -v
 		</verbatim>
 		If a test fails, please enable verbose output (the
-		<verb>-v</verb> <visual markup="bf">and</visual>
-		<verb>verbose</verb> flags), run the failing test module
-		again, and send back the output to developers so that we
-		may continue improving <verb>PyTables</verb>.
+		<verb>-v</verb> flag <visual markup="bf">and</visual>
+		<verb>verbose</verb> option), run the failing test
+		module again, and, very important, add your
+		<verb>PyTables</verb> version information by running
+		the command:
+		<verbatim>
+		  python test_all.py --show-versions-only
+		</verbatim>
+		and send back the output to developers so that we may
+		continue improving <verb>PyTables</verb>.
 	      </p>
 
 	      <p> If you run into problems because Python can't load the
@@ -788,13 +796,12 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		  be found.
 		</item>
 		<term>Windows</term> <item>Put the DLL libraries
-		  (<verb>hdf5dll.dll</verb>, <verb>zlib1.dll</verb> and,
-		  optionally, <verb>lzo.dll</verb> and
-		  <verb>ucl.dll</verb>) in a directory listed in your
-		  <verb>PATH</verb> environment variable.  The
-		  <verb>setup.py</verb> installation program will print
-		  out a warning to that effect if the libraries can't be
-		  found.
+		  (<verb>hdf5dll.dll</verb> and, optionally,
+		  <verb>lzo.dll</verb> and <verb>ucl.dll</verb>) in a
+		  directory listed in your <verb>PATH</verb>
+		  environment variable.  The <verb>setup.py</verb>
+		  installation program will print out a warning to
+		  that effect if the libraries can't be found.
 		</item>
 	      </description>
 	    </item>
@@ -856,9 +863,9 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	<heading>Binary installation (Windows)</heading>
 
 	<p>This section is only intended for installing precompiled
-	  binaries on Windows platforms. If you´re installing on Unix, 
-	  or want to compile PyTables for Windows, jump to
-	  the <ref refid="sourceInstallationDescr">section</ref>.
+	  binaries on Windows platforms. If you´re installing on Unix,
+	  or want to compile <verb>PyTables</verb> for Windows, jump
+	  to the <ref refid="sourceInstallationDescr">section</ref>.
 	</p>
 
 	<subsection id="prerequisitesBinInst">
@@ -881,7 +888,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    (for example <verb>C:\WINDOWS\SYSTEM</verb>).
 	  </p>
 
-	  <p><visual markup="bf">Caveat:</visual>When downloading the
+	  <p><visual markup="bf">Caveat:</visual> When downloading the
 	    binary distribution for HDF5 libraries, select one compiled with
 	    MSVC 6.0, such as the package
 	    <verb>5-162-win2k.zip</verb>, regardless of whether you are using
@@ -893,49 +900,50 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    been warned!
 	  </p>
 
-	  <p>Normally, the NCSA team generate binaries that links
-	    against the Zlib binary libraries that can be found at:
-	    <url
-	    name="http://www.gzip.org/zlib/">http://www.gzip.org/zlib/</url>.
-	    Please, use this build if you don't want to run into
-	    problems.
-	  </p>
+<!-- 	  <p>Normally, the NCSA team generate binaries that links -->
+<!-- 	    against the Zlib binary libraries that can be found at: -->
+<!-- 	    <url -->
+<!-- 	    name="http://www.gzip.org/zlib/">http://www.gzip.org/zlib/</url>. -->
+<!-- 	    Please, use this build if you don't want to run into -->
+<!-- 	    problems. -->
+<!-- 	  </p> -->
 
 	  <p>To enable compression with optional LZO and UCL libraries
 	    (see the <ref refid="compressionIssues">section</ref> for
 	    hints about how they may be used to improve performance),
 	    fetch and install the <verb>LZO</verb> and
 	    <verb>UCL</verb> binaries from:<newline/> <url
-	    name="http://gnuwin32.sourceforge.net/"><verb>http://gnuwin32.sourceforge.net/</verb></url>. Normally,
+	    name="http://gnuwin32.sourceforge.net/">
+	    <verb>http://gnuwin32.sourceforge.net/</verb></url>. Normally,
 	    you will only need to fetch and install the<newline/>
 	    <verb>&lt;package>-&lt;version>-bin.zip</verb> file and
 	    copy the <verb>lzo.dll</verb> or <verb>ucl.dll</verb>
 	    files in a directory in the <verb>PATH</verb> environment
-	    variable, so that they can be found by the PyTables
-	    extensions.
+	    variable, so that they can be found by the <visual
+	    markup="tt">PyTables</visual> extensions.
           </p>
-          <p><visual markup="bf">Note:</visual>If you are reading this
-	    because you have been redirected from the <ref
+          <p><visual markup="bf">Note:</visual> If you are reading
+	    this because you have been redirected from the <ref
 	    refid="sourceInstallationDescr">section</ref>
 	    (<em>Installation from source</em>), some of the headers
 	    you will need are in the
 	    <verb>&lt;package>-&lt;version>-lib.zip</verb> file.
 	  </p>
 
-	  <!-- SGP:  I assume that the zlib prerequisite is discussed
+	  <!-- SGP: I assume that the zlib prerequisite is discussed
 	  in the HDF5 installation manual.  In any event, you don't
-	  need to mention it here;  simply say that a working HDF5
-	  library installation is required. 
-	  In fact, this whole section is superfluous;  you've already 
-	  covered it in "Prerequisites".  I'd cut straight to the chase 
-	  and talk about installing the PyTables precompiled Windows
-	  binaries.
-          Done! -->
+	  need to mention it here; simply say that a working HDF5
+	  library installation is required.  In fact, this whole
+	  section is superfluous; you've already covered it in
+	  "Prerequisites".  I'd cut straight to the chase and talk
+	  about installing the PyTables precompiled Windows binaries.  Done! -->
 
         </subsection>
 
         <subsection id="PyTablesBinInstallDescr">
-	  <heading>PyTables package installation</heading>
+	  <heading><visual markup="tt">PyTables</visual> package
+	    installation
+	  </heading>
 
 	  <p>Download the
 	    <verb>tables-&lt;version>.win32-py&lt;version>.exe</verb>
@@ -951,14 +959,20 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    <verb>test_all.py</verb> script. If all the tests pass
 	    (possibly with a few warnings, related to the potential
 	    unavailability of LZO and UCL libs) you already have a
-	    working, well-tested copy of PyTables installed! If any
-	    test fails, please try to locate which test module is
-	    failing and execute:
+	    working, well-tested copy of <verb>PyTables</verb>
+	    installed! If any test fails, please try to locate which
+	    test module is failing and execute:
           
 	    <verbatim>
 	      test_&lt;module>.py -v verbose
 	    </verbatim>
+	    
+	    and also:
 
+	    <verbatim>
+	      python test_all.py --show-versions-only
+	    </verbatim>
+	    
 	    Mail the output to the developers so that we may work to
 	    improve the installation process.
 	  </p>
@@ -1031,7 +1045,6 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  </p>
 	  <verbatim>
 >>> import tables
->>>
 	  </verbatim>
 	  <p>This is the recommended way to import <verb>tables</verb>
 	    if you don't want to pollute your namespace. However, 
@@ -1040,7 +1053,6 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  </p>
 	  <verbatim>
 >>> from tables import *
->>>
 	  </verbatim>
 	  <p>which will export in your caller application namespace the
 	    following objects: <verb>openFile</verb>, <verb>isHDF5</verb>,
@@ -1057,7 +1069,6 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  <verbatim>
 >>> import tables        # but in this tutorial we use "from tables import *"
 >>> from numarray import *  # or "from Numeric import *"
->>>
 	  </verbatim>
 	</subsection>
 
@@ -2490,7 +2501,8 @@ $ python tutorial2.py
 Traceback (most recent call last):
   File "tutorial2.py", line 76, in ?
     event['ADCcount'] = "s"          # Wrong type
-  File "/home/falted/PyTables/pytables-0.7/src/hdf5Extension.pyx", line 1812, in hdf5Extension.Row.__setitem__
+  File "/home/falted/PyTables/pytables-0.7/src/hdf5Extension.pyx",
+ line 1812, in hdf5Extension.Row.__setitem__
     raise AttributeError, "Error setting \"%s\" attr.\n %s" % \
 AttributeError: Error setting "ADCcount" attr.
  Error was: "exceptions.TypeError: NA_setFromPythonScalar: bad value type."
@@ -2707,7 +2719,7 @@ AttributeError: Error setting "ADCcount" attr.
 	  class<footnote>On the following, the term <verb>Leaf</verb>
 	  will whether refer to a <verb>Table</verb>,
 	  <verb>Array</verb>, <verb>EArray</verb>,
-	  <verb>VLArray</verb> or <verb>UnImplemented</verb>node
+	  <verb>VLArray</verb> or <verb>UnImplemented</verb> node
 	  object.</footnote>.
 	</p>
 
@@ -4846,7 +4858,7 @@ fileh.close()
 	</subsection> <!-- Col classes -->
 
 	<subsection id="AtomClassDescr">
-	  <heading>The <visual markup="bf">Atom</visual> class and its
+	  <heading>The <visual markup="tt">Atom</visual> class and its
 	    descendants.</heading>
 	  <!-- Modified by F. Alted 2004-1-30 -->
 
