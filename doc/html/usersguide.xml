@@ -13,6 +13,7 @@
     <year>2002, 2003</year>
 <!--     <city>Castelló de la Plana, Spain</city> -->
     <typeset>Francesc Alted</typeset>
+
   </frontmatter>
 
   <!--  This is only for article
@@ -462,29 +463,6 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	      refid="compressionIssues"></ref>).
 	    </p>
 	    <description>
-	      <term>Windows</term>
-	      <item>
-		<p>If you are using Windows, and don't want to
-		  compile the libraries by hand, there are available
-		  binary packages for them. You can fetch the HDF5 and
-		  numarray binaries from their homes.
-		</p>
-
-		<p>Besides, you can (should) fetch the LZO and UCL
-		  binaries from:
-		  <verb>http://gnuwin32.sourceforge.net/</verb>. Normally,
-		  you will only need to fetch and install the
-		  <verb>&lt;package>-&lt;version>-bin.zip</verb> file,
-		  although in some cases the headers are in
-		  <verb>&lt;package>-&lt;version>-lib.zip</verb> file.
-		</p>
-		<p>Note that you need to copy manually the
-		  <verb>hdf5dll.dll</verb> (and <verb>lzo.dll</verb>
-		  or <verb>ucl.dll</verb> if you want them) to a
-		  directory in the <verb>PATH</verb>, so that they can
-		  be find by PyTables extensions.</p>
-	      </item>
-
 	      <term>Unix</term>
 	      <item>
 
@@ -538,8 +516,49 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		  --libs="-lhdf5-1.6.5 -lnsl"
 		</verbatim>
 	      </item>
+
 	      <term>Windows</term>
 	      <item>
+		<p>If you are using Windows, and don't want to
+		  compile the libraries by hand, there are available
+		  binary packages for them. You can fetch the HDF5 and
+		  numarray binaries from their homes.
+		</p>
+
+		<p>For the HDF5 you must manually copy the
+		  <verb>hdf5dll.dll</verb> <visual
+		  markup="bf">and</visual> <verb>szipdll.dll</verb>
+		  files to a directory in your <verb>PATH</verb>
+		  environment variable (for example
+		  <verb>C:\WINDOWS\SYSTEM</verb>).
+		</p>
+
+		<p><visual markup="bf">Caveat:</visual>When
+		  downloading the binary file for HDF5 libraries,
+		  select one compiled with the MSVC 6.0, like for
+		  example, the file <verb>5-160-win2k.zip</verb>, no
+		  matter if you are using Win2k or WinXP (it should
+		  work fine on both O.S.). The file
+		  <verb>5-160-winxp-net.zip</verb> was compiled with
+		  the MSVC 7.0 (aka "<verb>.NET</verb>") and does
+		  <visual markup="bf">not</visual> work well with the
+		  PyTables binary (which has been generated with MSVC
+		  6.0). You have been warned!.
+		</p>
+
+		<p>Besides, you may want to fetch the LZO and UCL
+		  binaries from:
+		  <verb>http://gnuwin32.sourceforge.net/</verb>. Normally,
+		  you will only need to fetch and install the
+		  <verb>&lt;package>-&lt;version>-bin.zip</verb> file,
+		  although in some cases the headers are in
+		  <verb>&lt;package>-&lt;version>-lib.zip</verb> file.
+		</p>
+		
+		<p>As before, you will need to copy manually the
+		  <verb>lzo.dll</verb> or <verb>ucl.dll</verb> to a
+		  directory in the <verb>PATH</verb>, so that they can
+		  be found by PyTables extensions.</p>
 
 		<p><verb>setup.py</verb> will need that you inform it
 		  about where the library <em>stubs</em>
@@ -567,9 +586,9 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		<p>For example:
 		</p>
 		<verbatim>
-		  set HDF5_DIR=c:\stuff\5-160-winVS\c\release
-		  set LZO_DIR=c:\stuff\lzo-1.07
-		  set UCL_DIR=c:\stuff\ucl-1.01
+		  set HDF5_DIR=c:\stuff\5-160-win2k\c\release
+		  set LZO_DIR=c:\stuff\lzo-1-07
+		  set UCL_DIR=c:\stuff\ucl-1-01
 		</verbatim>
 
 		<p>Or you can pass this info to <verb>setup.py</verb>
@@ -579,8 +598,8 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		</p>
 
 		<verbatim>
-		  --hdf5=c:\stuff\5-160-winVS\c\release --lzo=c:\stuff\lzo-1.07
-		  --ucl=c:\stuff\ucl-1.01
+		  --hdf5=c:\stuff\5-160-win2k\c\release --lzo=c:\stuff\lzo-1-07
+		  --ucl=c:\stuff\ucl-1-01
 		</verbatim>	
 	      </item>
 
@@ -685,14 +704,26 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  the <ref refid="sourceInstallationDescr">section</ref>.
 	</p>
 	<p>First, make sure that you have HDF5 1.6.x or higher and
-	  numarray 0.6 or higher installed (I'm using HDF5 1.6.0
-	  and numarray 0.6 currently). If don't, you can find them at
+	  numarray 0.6 or higher installed (I'm using HDF5 1.6.0 and
+	  numarray 0.6 currently). If don't, you can find them at
 	  <verb>http://hdf.ncsa.uiuc.edu/HDF5</verb> and
 	  <verb>http://sourceforge.net/projects/numpy/</verb>. Download
 	  the binary packages and install them. For the HDF5 it should
-	  be enough by manually copying the <verb>hdf5dll.dll</verb>
-	  file to a directory in your <verb>PATH</verb> environment
-	  variable.
+	  be enough to manually copying the <verb>hdf5dll.dll</verb>
+	  <visual markup="bf">and</visual> <verb>szipdll.dll</verb>
+	  files to a directory in your <verb>PATH</verb> environment
+	  variable (for example <verb>C:\WINDOWS\SYSTEM</verb>).
+	</p>
+
+	<p><visual markup="bf">Caveat:</visual>When downloading the
+	  binary file for HDF5 libraries, select one compiled with the
+	  MSVC 6.0, like for example, the file
+	  <verb>5-160-win2k.zip</verb>, no matter if you are using
+	  Win2k or WinXP. The file <verb>5-160-winxp-net.zip</verb>was
+	  compiled with the MSVC 7.0 (aka "<verb>.NET</verb>") and
+	  does <visual markup="bf">not</visual> work well with the
+	  PyTables binary (which has been generated with MSVC
+	  6.0). You have been warned!.
 	</p>
 	<p>Download the
 	  <verb>tables-&lt;version>.win32-py&lt;version>.exe</verb>
@@ -720,7 +751,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  they are useful for), fetch
 	  <verb>tables-&lt;version>-LU.win32-py&lt;version>.exe</verb>
 	  instead, and remember to install the LZO and UCL DLL
-	  libraries (see next section).
+	  libraries.
 	</p>
 
 	<p>That's it!. Now, proceed with the next chapter to see how to

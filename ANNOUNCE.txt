@@ -18,7 +18,7 @@ On this release you will find:
        - new column descriptors
        - row deletion in tables is finally here
        - much more!
- 
+
 More in detail:
 
 What's new
@@ -33,40 +33,39 @@ What's new
   array.attrs.detectorList = [1,2,3,4]      # Attach a list to array
   del array.attrs.detectorList        # Detach detectorList attr from array
 
-- PyTables now has fully multidimensional table cells support. This
-  has been possible in part by the implementation of multidimensional
-  cells in numarray.records.RecArray object. Thanks to numarray crew
-  for their hard work!.
+- PyTables now has support for fully multidimensional table cells. This
+  has been made possible in part by implementation of multidimensional
+  cells in numarray.records.RecArray object. Thanks to numarray crew,
+  and especially to Jin-chung Hsu, for willingly accepting to do
+  that, and also for including some cache improvements in RecArray.
 
 - New column descriptors added: IntCol, Int8Col, UInt8Col, Int16Col,
   UInt16Col, Int32Col, UInt32Col, Int64Col, UInt64Col, FloatCol,
   Float32Col, Float64Col and StringCol. I think they are more explicit
-  and easy-to-use than the, now deprecated (but still supported!),
+  and easy-to-use than the now deprecated (but still supported)
   Col() descriptor. All the examples and user's manual has been
   accordingly updated.
 
-- The new Table.removeRows(start, stop) allow to remove rows from
-  tables!. This was a long-time asked feature. There is still a
-  limitation, though: you cannot delete rows in extremely large Tables
-  (because it is needed to put the remaining rows after the stop
-  parameter in memory). Also, in this release, the performance is not 
-  optimized. These issues will hopefully be addressed in future
-  releases.
+- The new Table.removeRows(start, stop) function allows you to remove 
+  rows from tables. This feature was requested a long time ago. There 
+  are still limitations, however: you cannot delete rows in extremely 
+  large Tables (as the remaining rows after the stop parameter 
+  are stored in memory). Nor is the performance optimized.  These issues 
+  will hopefully be addressed in future releases.
 
-- Added iterators to File, Group and Table (they support now the
-  __iter__() special method). They allow much better object usability,
-  especially in interactive mode. See documentation for examples of
-  use.
+- Added iterators to File, Group and Table (they now support the special
+  __iter__() method). They make the object much more user-friendly,
+  especially in interactive mode. See documentation for usage examples.
 
-- Added a __getitem__() method to Table, that works more or less like
+- Added a __getitem__() method to Table that works more or less like
   read(), but with extended slices support.
 
 - As a consequence of rewriting table iterators in C (with the help of
   Pyrex, of course) the table read performance has been improved
-  between 20% and 30%. With that, data selections in PyTables are
-  starting to beat powerful relational databases like SQLite, even for
-  the in-core case (!). I think there is still room for another 20% to
-  30% improvement, so stay tuned.
+  between 20% and 30%. Data selections in PyTables are now starting to
+  beat powerful relational databases like SQLite, even compared to
+  in-core selects (!). I think there is still room for another 20% or
+  30% speed improvement, so stay tuned.
 
 - A checksum is now added automatically when using LZO (not with UCL
   where I'm having some difficulties implementing that
@@ -74,46 +73,35 @@ What's new
   speed. With that, the compressing/decompressing speed has dropped 1%
   or 2%, which is hardly noticeable. I think this addition will allow
   the cautious user to be a bit more confident about this excellent
-  compressor. Code has been added to still be able to read files
-  created without this checksum (so you can be confident that you will
-  be able to read your existing files compressed with LZO and UCL).
+  compressor. Code has been added to be able to read files created
+  without this checksum (so you can be confident that you will be able
+  to read your existing files compressed with LZO and UCL).
 
 - Recursion has been removed from PyTables. Before, this made the
   maximum depth tree to be less than the Python recursion limit (which
   depends on implementation, but is around 900, at least in
-  Linux). Now, the limit has been set (somewhat arbitrarily) to be
+  Linux). Now, the limit has been set (somewhat arbitrarily) at
   2048. Thanks to John Nielsen for implementing the new iterative
   method!.
 
-- A new rootUEP parameter to openFile() has been added. You can now
-  define the root from where you want to start build the object
-  tree. Thanks to John Nielsen for the suggestion and a first
-  implementation of it.
+- A new rootUEP parameter to openFile() has been added. You can now 
+  define the root from which you want to start to build the object tree. 
+  Thanks to John Nielsen for the suggestion and a first implementation.
 
 - Some (non-serious) bugs were discovered and fixed.
 
-- Updated documentation, so that you can learn more about how to use
-  all these new jingles and bells. It is also available on the web:
+- Updated documentation to explain all these new bells and whistles. It 
+  is also available on the web:
   http://pytables.sourceforge.net/html-doc/usersguide-html.html
 
-- Added more unit tests (up to 353 now!)
+- Added more unit tests (more than 350 now!)
 
 - PyTables 0.7 *needs* the newest numarray 0.6 and HDF-1.6.0 to
   compile and work. It has been tested with Python 2.2.3 and Python
   2.3 and should work fine on both versions.
 
-
-A more detailed explanation of PyTables
----------------------------------------
-
-In short, PyTables provides a powerful and very Pythonic interface to
-process and organize your table and array data on disk.
-
-Its goal is to enable the end user to manipulate easily scientific
-data tables and Numerical and numarray Python objects in a persistent
-hierarchical structure. The foundation of the underlying hierarchical
-data organization is the excellent HDF5 library
-(http://hdf.ncsa.uiuc.edu/HDF5).
+What is a table?
+----------------
 
 A table is defined as a collection of records whose values are stored
 in fixed-length fields. All records have the same structure and all
@@ -165,8 +153,6 @@ and
 
 http://pytables.sourceforge.net/tut/tutorial1-2.html
 
-There is also an small one attached at the end of this message.
-
 Web site
 --------
 
@@ -185,51 +171,3 @@ Have fun!
 -- Francesc Alted
 falted@openlc.org
 
---------------- Example of use --------------------------------------
-from numarray import *
-from tables import *
-
-class Particle(IsDescription):
-    name        = StringCol(length=16)    # 16-character String
-    lati        = Int16Col()              # integer
-    longi       = IntCol()                # integer
-    pressure    = Float32Col(shape=(2,3)) # 2-D float array (single-precision)
-    temperature = Float64Col(shape=(2,3)) # 2-D float array (double-precision)
-
-# Open a file in "w"rite mode
-fileh = openFile("table-simple.h5", mode = "w")
-
-# Create a new table in root
-table = fileh.createTable(fileh.root, 'table', Particle, "Title example")
-particle = table.row
-
-# Fill the table with 10 particles
-for i in xrange(10):
-    # First, assign the values to the Particle record
-    particle['name']  = 'Particle: %6d' % (i)
-    particle['lati'] = i 
-    particle['longi'] = 10 - i
-    particle['pressure'] = array(i*arange(2*3), shape=(2,3))
-    particle['temperature'] = float(i**2)
-    # This injects the row values.
-    particle.append()
-
-# We need to flush the buffers in table in order to get an
-# accurate number of records on it.
-table.flush()
-
-# Delete the third and fourth row
-table.removeRows(3,5)
-
-print "Table metadata:"
-print repr(table)
-
-print "Table contents:"
-for row in table:
-    print row
-
-print "name column of the 5th row:"
-print table[4].field("name")
-
-# Finally, close the file
-fileh.close()
