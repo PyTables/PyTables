@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.79 2003/09/22 12:05:16 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.80 2003/10/08 10:18:22 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.79 $"
+__version__ = "$Revision: 1.80 $"
 
 
 import sys, os
@@ -543,10 +543,6 @@ cdef extern from "H5TB-opt.h":
                           hid_t *space_id,
                           hid_t *mem_type_id )
 
-
-  # These are maintained here just in case I want to use them in the future.
-  # F.Alted 2003/04/20 
-
   herr_t H5TBOopen_append( hid_t *dataset_id,
                            hid_t *mem_type_id,
                            hid_t loc_id, 
@@ -747,7 +743,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.79 2003/09/22 12:05:16 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.80 2003/10/08 10:18:22 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""

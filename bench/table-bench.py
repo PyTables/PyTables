@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.2
+#!/usr/bin/env python
 
 import copy
                 
@@ -162,13 +162,13 @@ def readFile(filename, recsize, verbose):
                 #    if p.grid_i < 20:
                 #        e.append(p.grid_j)
             else:  # small record case
-                e = [ p['var3'] for p in table.iterrows()
-                      if p['var2'] < 20 and p['var3'] < 20 ]
+#                 e = [ p['var3'] for p in table.iterrows()
+#                       if p['var2'] < 20 and p['var3'] < 20 ]
 #                 e = [ p['var3'] for p in table.iterrows()
 #                       if p['var2'] <= 20 ]
                 #e = [ p['var3'] for p in table.iterrows(0,21) ]
-#                 e = [ p['var3'] for p in table.iterrows()
-#                      if p.nrow() <= 20 ]
+                 e = [ p['var3'] for p in table.iterrows()
+                      if p.nrow() <= 20 ]
                 #e = [ p['var3'] for p in table.iterrows(1,0,1000)]
                 #e = [ p['var3'] for p in table.iterrows(1,100)]
                 #e = [ p['var3'] for p in table.iterrows(step=2)

@@ -1735,7 +1735,7 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	    <verb>Group</verb> node. In general, you can save any
 	    standard Python data structure as an attribute node, but
 	    see <ref refid="AttributeSetClassDescr">section</ref> for
-	    a more detailed explanation of how this are serialized on
+	    a more detailed explanation of how are them serialized on
 	    disk.
 	  </p>
 
@@ -1789,7 +1789,7 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	  </verbatim>
 
 	  <p>You can get a list only the user or system attributes
-	    with the <verb>_v_list()</verb> method.
+	    with the <verb>_f_list()</verb> method.
 	  </p>
 
 	  <verbatim>
