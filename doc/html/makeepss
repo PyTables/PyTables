@@ -1,32 +1,57 @@
+#! /bin/sh
 # This is a generated file. Do not edit it.
 # If you call this as a batch file, it converts all
 # jpeg image files into eps files for dvips.
 
+if [ ! -x "`which jpeg2ps`" ] ; then echo "jpeg2ps not found." ; exit ; fi
+
 
 echo
-echo "---- processing image 1/4 (\"objecttree-h5\") ----"
+echo "---- processing image 1/5 (\"logo3-ombra\") ----"
 # 
-if test ! $1 || test $1 == "objecttree-h5"; then
-jpeg2ps -r 0 -h objecttree-h5.jpg > objecttree-h5.eps
-echo -n; else echo "**** skipped"; fi
+if test -z "$1" || test "XX$1" = "XXlogo3-ombra" ; then
+  jpeg2ps -r 0 -h logo3-ombra.jpg > logo3-ombra.eps ;
+else 
+  echo "**** skipped" ;
+fi 
+
 
 echo
-echo "---- processing image 2/4 (\"tutorial1-tableview\") ----"
+echo "---- processing image 2/5 (\"objecttree-h5\") ----"
 # 
-if test ! $1 || test $1 == "tutorial1-tableview"; then
-jpeg2ps -r 0 -h tutorial1-tableview.jpg > tutorial1-tableview.eps
-echo -n; else echo "**** skipped"; fi
+if test -z "$1" || test "XX$1" = "XXobjecttree-h5" ; then
+  jpeg2ps -r 0 -h objecttree-h5.jpg > objecttree-h5.eps ;
+else 
+  echo "**** skipped" ;
+fi 
+
 
 echo
-echo "---- processing image 3/4 (\"tutorial1-general\") ----"
+echo "---- processing image 3/5 (\"tutorial1-tableview\") ----"
 # 
-if test ! $1 || test $1 == "tutorial1-general"; then
-jpeg2ps -r 0 -h tutorial1-general.jpg > tutorial1-general.eps
-echo -n; else echo "**** skipped"; fi
+if test -z "$1" || test "XX$1" = "XXtutorial1-tableview" ; then
+  jpeg2ps -r 0 -h tutorial1-tableview.jpg > tutorial1-tableview.eps ;
+else 
+  echo "**** skipped" ;
+fi 
+
 
 echo
-echo "---- processing image 4/4 (\"tutorial2-tableview\") ----"
+echo "---- processing image 4/5 (\"tutorial1-general\") ----"
 # 
-if test ! $1 || test $1 == "tutorial2-tableview"; then
-jpeg2ps -r 0 -h tutorial2-tableview.jpg > tutorial2-tableview.eps
-echo -n; else echo "**** skipped"; fi
+if test -z "$1" || test "XX$1" = "XXtutorial1-general" ; then
+  jpeg2ps -r 0 -h tutorial1-general.jpg > tutorial1-general.eps ;
+else 
+  echo "**** skipped" ;
+fi 
+
+
+echo
+echo "---- processing image 5/5 (\"tutorial2-tableview\") ----"
+# 
+if test -z "$1" || test "XX$1" = "XXtutorial2-tableview" ; then
+  jpeg2ps -r 0 -h tutorial2-tableview.jpg > tutorial2-tableview.eps ;
+else 
+  echo "**** skipped" ;
+fi 
+

@@ -1,8 +1,8 @@
 <!DOCTYPE html
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xmlns:pref="http://www.w3.org/2002/Math/preference" id="PTutilities"><a name="PTutilities"></a><head>
+<html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.8"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Date" content="2004-03-09T09:19:02+01:00"><meta name="Date" content="2004-03-09T09:19:02+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.9"><meta name="DC.Creator" content="Francesc Altet"><meta name="Author" content="Francesc Altet"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Creator" content="Ivan Vilata"><meta name="Author" content="Ivan Vilata"><meta name="DC.Creator" content="Tom Hedley"><meta name="Author" content="Tom Hedley"><meta name="DC.Date" content="2004-11-05T12:38:42+01:00"><meta name="Date" content="2004-11-05T12:38:42+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -15,7 +15,7 @@
     h1 { clear: both }
     h1.toc { clear: none }
     a:link, a:visited, a:active { text-decoration: none }
-    a:hover { text-decoration: underline; color: #0066FF; }
+    a:hover[href] { text-decoration: underline; color: #0066FF; }
     div.document, div.letter { margin-left: 80px; margin-right: 150px;
       padding-top: 3ex; padding-bottom: 5ex }
     div.authorlist { font-family: sans-serif;
@@ -33,7 +33,7 @@
     div.legalnotice { margin-top: 3ex; text-align: left }
     div.partheadline { font-size: xx-large; margin-top: 1ex; margin-bottom: 1ex }
     div.footnote { }
-    hr.footnoterule { text-align: left; width: 20%; color: black }
+    hr.footnoterule { text-align: left; width: 40%; margin-right: 60%; color: black }
     div.mathdisplay { text-align: center;
     margin-top: 2ex; margin-bottom: 2ex }
     div.figure, div.table, div.mathml-remark { margin-bottom: 3ex;
@@ -147,7 +147,7 @@ div.subtitle { font-size: x-large; color: olive }
 div.title-article { font-size: x-large }
 div.partheadline { font-size: x-large }
 </style></head><body><div class="speedbar-top"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide7.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide9.html">next</a></td></tr><tr><td class="header" colspan="3">Appendix</td></tr></tbody></table><hr class="speedbar"></div><div class="document"><div id="PTutilities"><a name="PTutilities"></a>
-	<h1 id="chapterC"><a name="chapterC"></a>Appendix&nbsp;C: Utilities</h1>
+	<h1 id="chapterB"><a name="chapterB"></a>Appendix&nbsp;B: Utilities</h1>
 
 	<p class="first"><tt class="verb">PyTables</tt> comes with a couple of utilities that
 	  make the life easier to the user. One is called
@@ -168,7 +168,7 @@ div.partheadline { font-size: x-large }
 	</p>
 
 	<div id="ptdumpDescr"><a name="ptdumpDescr"></a>
-	  <h2 id="sectionC.1"><span class="headlinenumber"><a name="sectionC.1"></a>C.1 </span>ptdump</h2>
+	  <h2 id="sectionB.1"><span class="headlinenumber"><a name="sectionB.1"></a>B.1 </span>ptdump</h2>
 
 	  <p class="first">As has been said before, <tt class="verb">ptdump</tt> utility
 	    allows you look into the contents of your
@@ -179,7 +179,7 @@ div.partheadline { font-size: x-large }
 	  </p>
 
 	  <div>
-	    <h3 id="subsectionC.1.1"><span class="headlinenumber"><a name="subsectionC.1.1"></a>C.1.1 </span>Usage</h3>
+	    <h3 id="subsectionB.1.1"><span class="headlinenumber"><a name="subsectionB.1.1"></a>B.1.1 </span>Usage</h3>
 
 	    <div class="p-first">For instructions on how to use it, just pass the
 	      <tt class="verb">-h</tt> flag to the command:
@@ -192,17 +192,19 @@ $ ptdump -h
 
 	      <pre>
 usage: ptdump [-R start,stop,step] [-a] [-h] [-d] [-v] file[:nodepath]
-  -R select a range of rows in the form "start,stop,step"
-  -a show attributes in nodes (only useful when -v or -d are active as well)
-  -d dump data information onb leaves
-  -h prints help on usage
-  -v means dumping more metainformation on nodes
+  -R RANGE -- Select a RANGE of rows in the form "start,stop,step"
+  -a -- Show attributes in nodes (only useful when -v or -d are active)
+  -c -- Show info of columns in tables (only useful when -v or -d are active)
+  -i -- Show info of indexed columns (only useful when -v or -d are active)
+  -d -- Dump data information on leaves
+  -h -- Print help on usage
+  -v -- Dump more metainformation on nodes
 	      </pre>
 	    </div>
 
 	  </div>
 	  <div>
-	    <h3 id="subsectionC.1.2"><span class="headlinenumber"><a name="subsectionC.1.2"></a>C.1.2 </span>A small tutorial on <tt>ptdump</tt>
+	    <h3 id="subsectionB.1.2"><span class="headlinenumber"><a name="subsectionB.1.2"></a>B.1.2 </span>A small tutorial on <tt>ptdump</tt>
 	    </h3>
 
 	    <div class="p-first">Let's suppose that we want to know only the
@@ -321,7 +323,7 @@ $ ptdump -R2,4 -vad vlarray1.h5:/vlarray1
 	</div> 
 
 	<div id="ptrepackDescr"><a name="ptrepackDescr"></a>
-	  <h2 id="sectionC.2"><span class="headlinenumber"><a name="sectionC.2"></a>C.2 </span>ptrepack</h2>
+	  <h2 id="sectionB.2"><span class="headlinenumber"><a name="sectionB.2"></a>B.2 </span>ptrepack</h2>
 
 	  <p class="first">This utility is a very powerful one and let's you to copy
 	    any leaf, group or complete subtree into another
@@ -339,7 +341,7 @@ $ ptdump -R2,4 -vad vlarray1.h5:/vlarray1
 	  </p>
 
 	  <div>
-	    <h3 id="subsectionC.2.1"><span class="headlinenumber"><a name="subsectionC.2.1"></a>C.2.1 </span>Usage</h3>
+	    <h3 id="subsectionB.2.1"><span class="headlinenumber"><a name="subsectionB.2.1"></a>B.2.1 </span>Usage</h3>
 
 	    <div class="p-first">For instructions on how to use it, just pass the
 	      <tt class="verb">-h</tt> flag to the command:
@@ -351,28 +353,29 @@ $ ptrepack -h
 	      to see the message usage:
 
 	      <pre>
-usage: ptrepack [-h] [-v] [-o] [-R range] [--non-recursive] 
- [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes]
- [--complevel=(0-9)] [-complib=lib] [--shuffle=(0|1)]
- [--fletcher32=(0|1)] [--keep-source-filters] 
- sourcefile:sourcegroup destfile:destgroup
+usage: ptrepack [-h] [-v] [-o] [-R start,stop,step] [--non-recursive]
+  [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes]
+  [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)]
+  [--fletcher32=(0|1)] [--keep-source-filters] 
+  sourcefile:sourcegroup destfile:destgroup
  -h -- Print usage message.
  -v -- Show more information.
  -o -- Overwite destination file.
- -R start,stop,step -- Select a slice in *all* leaves.
- --non-recursive -- Do not do a recursive copy. Default is do it.
+ -R RANGE -- Select a RANGE of rows (in the form "start,stop,step")
+     during the copy of *all* the leaves.
+ --non-recursive -- Do not do a recursive copy. Default is to do it.
  --dest-title=title -- Title for the new file (if not specified,
      the source is copied).
- --dont-copy-userattrs -- Do not copy the user attrs (default is do it)
+ --dont-copy-userattrs -- Do not copy the user attrs (default is to do it)
  --overwrite-nodes -- Overwrite destination nodes if they exist. Default is
-     not overwrite them.
- --complevel=(0-9) -- Sets a compression level (0 for no compression, which
+     to not overwrite them.
+ --complevel=(0-9) -- Set a compression level (0 for no compression, which
      is the default).
- --complib=lib -- Sets the compression library to be used during the copy.
+ --complib=lib -- Set the compression library to be used during the copy.
      lib can be set to "zlib", "lzo" or "ucl". Defaults to "zlib".
  --shuffle=(0|1) -- Activate or not the shuffling filter (default is active
      if complevel&gt;0).
- --fletcher32=(0|1) -- Whether activate or not the fletcher32 filter (not
+ --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter (not
      active by default).
  --keep-source-filters -- Use the original filters in source files. The
      default is not doing that if any of --complevel, --complib, --shuffle
@@ -381,13 +384,13 @@ usage: ptrepack [-h] [-v] [-o] [-R range] [--non-recursive]
 	    </div>
 	  </div>
 	  <div>
-	    <h3 id="subsectionC.2.2"><span class="headlinenumber"><a name="subsectionC.2.2"></a>C.2.2 </span>A small tutorial on <tt>ptrepack</tt>
+	    <h3 id="subsectionB.2.2"><span class="headlinenumber"><a name="subsectionB.2.2"></a>B.2.2 </span>A small tutorial on <tt>ptrepack</tt>
 	    </h3>
 
 	    <div class="p-first">Imagine that we have ended the tutorial 1 (see the
-	      output of <tt class="verb">examples/tutorial1-1.py</tt>, and we
+	      output of <tt class="verb">examples/tutorial1-1.py</tt>), and we
 	      want to copy our reduced data (i.e. those datasets that
-	      hangs from the <tt class="verb">/column</tt> group to another
+	      hangs from the <tt class="verb">/column</tt> group) to another
 	      file. First, let's remember the content of the
 	      <tt class="verb">examples/tutorial1.h5</tt>:
 
@@ -442,7 +445,7 @@ Filename: 'reduced.h5' Title: '' , Last modif.: 'Fri Feb 20 15:39:15 2004' ,
 /columns/name (Array(3,)) 'Name column selection'
 /columns/pressure (Array(3,)) 'Pressure column selection'
 	      </pre>
-	      Ok. much better. But you want to get rid of the existing
+	      Ok. Much better. But you want to get rid of the existing
 	      nodes on the new file. You can achieve this by adding
 	      the -o flag:
 
@@ -549,6 +552,73 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:17:13 2004';
 	      <tt class="verb">aslice</tt> destination. Note as well how the
 	      previously inexistent <tt class="verb">slices</tt> group has been
 	      created in the same operation.
+	    </div>
+	  </div>
+	</div> 
+
+	<div id="nctoh5Descr"><a name="nctoh5Descr"></a>
+	  <h2 id="sectionB.3"><span class="headlinenumber"><a name="sectionB.3"></a>B.3 </span>nctoh5</h2>
+
+	  <p class="first">This tool is able to convert a file in <a href="http://www.unidata.ucar.edu/packages/netcdf/"><tt class="verb">NetCDF</tt></a>
+	    format to a <tt class="verb">PyTables</tt> file (and hence, to a
+	    HDF5 file). However, for this to work, you will need the
+	    NetCDF interface for Python that comes with the excellent
+	    <tt class="verb">Scientific Python</tt> (see <a href="#scientificpythonRef"></a>) package. This script
+	    was initially contributed by Jeff Whitaker. It has been
+	    updated to support selectable filters from the command
+	    line and some other small improvements.
+	  </p>
+
+	  <p>If you want other file formats to be converted to
+	    <tt class="verb">PyTables</tt>, have a look at the
+	    <tt class="verb">SciPy</tt> (see <a href="#scipyRef"></a>)
+	    project (subpackage <tt class="verb">io</tt>), and look for
+	    different methods to import them into
+	    <tt class="verb">Numeric/numarray</tt> objects. Following the
+	    <tt class="verb">SciPy</tt> documentation, you can read, among
+	    other formats, ASCII files (<tt class="verb">read_array</tt>),
+	    binary files in C or Fortran (<tt class="verb">fopen</tt>) and
+	    <tt class="verb">MATLAB</tt> (version 4 or 5) files
+	    (<tt class="verb">loadmat</tt>). Once you have the content of your
+	    files as <tt class="verb">Numeric/numarray</tt> objects, you can
+	    save them as regular <tt class="verb">(E)Arrays</tt> in
+	    <tt class="verb">PyTables</tt> files. Remember, if you end with a
+	    nice conversor, do not forget to contribute it back to the
+	    community. Thanks!.
+	  </p>
+
+	  <div>
+	    <h3 id="subsectionB.3.1"><span class="headlinenumber"><a name="subsectionB.3.1"></a>B.3.1 </span>Usage</h3>
+
+	    <div class="p-first">For instructions on how to use it, just pass the
+	      <tt class="verb">-h</tt> flag to the command:
+
+	      <pre>
+$ nctoh5 -h
+	      </pre>
+
+	      to see the message usage:
+
+	      <pre>
+usage: nctoh5 [-h] [-v] [-o] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)]
+ [--fletcher32=(0|1)] netcdffilename hdf5filename
+ -h -- Print usage message.
+ -v -- Show more information.
+ -o -- Overwite destination file.
+ --complevel=(0-9) -- Set a compression level (0 for no compression, which
+     is the default).
+ --complib=lib -- Set the compression library to be used during the copy.
+     lib can be set to "zlib", "lzo" or "ucl". Defaults to "zlib".
+ --shuffle=(0|1) -- Activate or not the shuffling filter (default is active
+     if complevel&gt;0).
+ --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter (not
+     active by default).
+	      </pre>
+
+	      If you have followed the small tutorial on the
+	      <tt class="verb">ptrepack</tt> utility (see <a href="#ptrepackDescr">B.2</a>), you should easily realize
+	      what the different flags would mean.
+
 	    </div>
 	  </div>
 	</div> 

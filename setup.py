@@ -424,7 +424,7 @@ data.
       url = 'http://www.pytables.org/',
       license = 'http://www.opensource.org/licenses/bsd-license.php',
       platforms = ['any'],
-      packages = ['tables'],
+      packages = ['tables', 'tables.nodes'],
       ext_modules = [ Extension("tables.hdf5Extension",
                                 include_dirs = inc_dirs,
                                 define_macros = def_macros,

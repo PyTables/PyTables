@@ -1,8 +1,8 @@
 <!DOCTYPE html
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xmlns:pref="http://www.w3.org/2002/Math/preference"><head>
+<html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.8"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Date" content="2004-03-09T09:19:02+01:00"><meta name="Date" content="2004-03-09T09:19:02+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.9"><meta name="DC.Creator" content="Francesc Altet"><meta name="Author" content="Francesc Altet"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Creator" content="Ivan Vilata"><meta name="Author" content="Ivan Vilata"><meta name="DC.Creator" content="Tom Hedley"><meta name="Author" content="Tom Hedley"><meta name="DC.Date" content="2004-11-05T12:38:42+01:00"><meta name="Date" content="2004-11-05T12:38:42+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -15,7 +15,7 @@
     h1 { clear: both }
     h1.toc { clear: none }
     a:link, a:visited, a:active { text-decoration: none }
-    a:hover { text-decoration: underline; color: #0066FF; }
+    a:hover[href] { text-decoration: underline; color: #0066FF; }
     div.document, div.letter { margin-left: 80px; margin-right: 150px;
       padding-top: 3ex; padding-bottom: 5ex }
     div.authorlist { font-family: sans-serif;
@@ -33,7 +33,7 @@
     div.legalnotice { margin-top: 3ex; text-align: left }
     div.partheadline { font-size: xx-large; margin-top: 1ex; margin-bottom: 1ex }
     div.footnote { }
-    hr.footnoterule { text-align: left; width: 20%; color: black }
+    hr.footnoterule { text-align: left; width: 40%; margin-right: 60%; color: black }
     div.mathdisplay { text-align: center;
     margin-top: 2ex; margin-bottom: 2ex }
     div.figure, div.table, div.mathml-remark { margin-bottom: 3ex;
@@ -160,10 +160,11 @@ div.partheadline { font-size: x-large }
       </div>
 
       <p class="first">The goal of <tt class="verb">PyTables</tt> is to enable the end user
-	to manipulate easily scientific data <b>tables</b> and <b>array</b> objects in a hierarchical
-	structure. The foundation of the underlying hierarchical data
-	organization is the excellent <tt class="verb">HDF5</tt> library (see
-	<a href="#HDFWhatIs"></a>).     
+	to manipulate easily data <b>tables</b>
+	and <b>array</b> objects in a
+	hierarchical structure. The foundation of the underlying
+	hierarchical data organization is the excellent
+	<tt class="verb">HDF5</tt> library (see <a href="#HDFWhatIs"></a>).     
       </p>
       <p>
 	It should be noted that this package is not intended to
@@ -181,9 +182,9 @@ div.partheadline { font-size: x-large }
 	<em>data types</em> may seem to be a strange requirement for
 	an interpreted language like Python, but they serve a useful
 	function if the goal is to save very large quantities of data
-	(such as is generated by many Internet services applications
-	or scientific applications, for example) in an efficient
-	manner that reduces demand on CPU time and I/O.
+	(such as is generated by many data aquisition systems,
+	Internet services or scientific applications, for example) in
+	an efficient manner that reduces demand on CPU time and I/O.
       </p>
 
       <p>In order to emulate in Python records mapped to HDF5 C
@@ -223,17 +224,15 @@ class Particle(IsDescription):
 
       
       
-      <p>Other important entities in <tt>PyTables</tt> are the <em>array</em> objects
-        that are analogous to tables with the difference that all of
-        their components are homogeneous.  They come in different
-        flavors, like <em>generic</em> (they provide a quick and fast
-        way to deal with for numerical arrays), <em>enlargeable</em>
-        (arrays can be extended in any single dimension) and
-        <em>variable length</em> (each row in the array can have a
-        different number of elements).
+      <p>Other important entities in <tt>PyTables</tt> are the <b>array</b> objects that are analogous to
+        tables with the difference that all of their components are
+        homogeneous.  They come in different flavors, like
+        <em>generic</em> (they provide a quick and fast way to deal
+        with for numerical arrays), <em>enlargeable</em> (arrays can
+        be extended in any single dimension) and <em>variable
+        length</em> (each row in the array can have a different number
+        of elements).
       </p>
-
-      
 
       <p>The next section describes the most interesting capabilities of
 	<tt class="verb">PyTables</tt>.
@@ -242,15 +241,18 @@ class Particle(IsDescription):
       <div>
 	<h2 id="section1.1"><span class="headlinenumber"><a name="section1.1"></a>1.1 </span>Main Features</h2>
 	<p class="first">
-	  <tt class="verb">PyTables</tt> takes advantage of the powerful object
-	  orientation and introspection capabilities offered by Python
-	  to provide these features:
+	  <tt class="verb">PyTables</tt> takes advantage of the object
+	  orientation and introspection capabilities offered by
+	  <tt class="verb">Python</tt>, the <tt class="verb">HDF5</tt> powerful data
+	  management features and <tt class="verb">numarray</tt> flexibility
+	  and high-performance manipulation of large sets of objects
+	  organized in grid-like fashion to provide these features:
 	</p>
 
 	<ul>
 	  <li><em>Support for table entities:</em> Allows the user
-	    to work with a large number of records, i.e. more
-	    than will fit into memory.
+	    to work with a large number of records (up to 2**63),
+	    i.e. more than will fit into memory.
 	  </li>
 	  <li><em>Appendable tables:</em> Supports adding records
 	    to already created tables. This can be done even between
@@ -262,15 +264,19 @@ class Particle(IsDescription):
 	    scalars, which is the only dimensionality allowed the
 	    majority of relational databases.
 	  </li>
-	  <li><em>Support for numerical arrays:</em>
-	    <tt class="verb">Numeric</tt> (see <a href="#Numeric"></a>)
-	    and <tt class="verb">numarray</tt> (see <a href="#Numarray"></a>) arrays can be used as a useful
-	    complement of tables to store homogeneous table slices
-	    (such as selections of table columns).
+	  <li><em>User defined metadata:</em> Besides suporting
+	    system metadata (number of rows of a table, shape, flavor,
+	    etc.) the user may specify its own metadata (as for
+	    example, room temperature, or protocol for IP traffic that
+	    was collected) that complement the meaning of his actual
+	    data.
+	  </li>
+	  <li><em>Support for numerical
+	    arrays:</em> <tt class="verb">Numeric</tt> (see <a href="#Numeric"></a>) and <tt class="verb">numarray</tt> (see
+	    <a href="#Numarray"></a>) arrays can be used as a
+	    useful complement of tables to store homogeneous data.
 	  </li>
      
-          
-
           <li><em>Enlargeable arrays:</em> You can add new elements
             to existing arrays on disk in any dimension you want (but
             only one). Besides, you can access to only a slice of your
@@ -282,8 +288,6 @@ class Particle(IsDescription):
             row. This provides a lot of flexibility when dealing with
             complex data.
           </li>
-
-          
 
 	  <li><em>Supports a hierarchical data model:</em> Allows
 	    the user to clearly structure all the data. 
@@ -306,7 +310,7 @@ class Particle(IsDescription):
 	    objects) or variable length record datasets (that can be
 	    mapped to <tt class="verb">VLArray</tt> objects).  Besides, if a
 	    dataset is not supported, it will be mapped into a special
-	    <tt class="verb">UnImplemented</tt> class (see <a href="usersguide4.html#UnImplementedClassDescr">4.9</a>), that will let the
+	    <tt class="verb">UnImplemented</tt> class (see <a href="usersguide4.html#UnImplementedClassDescr">4.10</a>), that will let the
 	    user see that the data is there, although it would be
 	    unreachable (still, you will be able to access the
 	    attributes and some metadata in the dataset).  With that,
@@ -330,12 +334,13 @@ class Particle(IsDescription):
 	    your data is compressible, even that limit is surmountable!
 	  </li>
 	  <li><em>Architecture-independent:</em> <tt>PyTables</tt> has been carefully coded (as
-	    has HDF5 itself) with little-endian/big-endian byte orderings
-	    issues in mind.  In principle you can write a file on
-	    a big-endian machine (like a Sparc or MIPS) and read it on
-	    other little-endian machine (like an Intel or Alpha) without
-	    problems. In addition, it has been tested successfully
-	    with 64 bit platforms (Intel-64, MIPS, UltraSparc).
+	    has HDF5 itself) with little-endian/big-endian byte
+	    orderings issues in mind.  In principle you can write a
+	    file on a big-endian machine (like a Sparc or MIPS) and
+	    read it on other little-endian machine (like an Intel or
+	    Alpha) without problems. In addition, it has been tested
+	    successfully with 64 bit platforms (Intel-64, AMD-64,
+	    PowerPC-G5, MIPS, UltraSparc).
 	  </li>
 
 	</ul>
@@ -351,7 +356,7 @@ class Particle(IsDescription):
 	  <em>object tree</em> entity is <em>dynamically</em> created
 	  imitating the HDF5 structure on disk.  The HDF5 objects are
 	  read by walking through this object tree.  You can get a
-	  good picture of what kind data is kept in the object by
+	  good picture of what kind of data is kept in the object by
 	  examining the <em>metadata</em> nodes.
 	</p>
 
@@ -385,7 +390,7 @@ class Particle(IsDescription):
 	<p>Support for <em>natural naming</em> is a key aspect of
 	  <tt class="verb">PyTables</tt>.  It means that the names of instance
 	  variables of the node objects are the same as the names of
-	  the element's children<a href="#footnote1" name="footnoteback1"><sup title="I got this simple but powerful idea from the excellent Objectify module by David Mertz (see )">1)</sup></a>. This is very
+	  the element's children<a href="#footnote1" id="footnoteback1"><sup title="I got this simple but powerful idea from the excellent Objectify module by David Mertz (see )">1)</sup></a>. This is very
           <em>Pythonic</em> and intuitive in many cases. Check the 
 	  tutorial <a href="usersguide3.html#readingAndSelectingUsage">section&nbsp;3.1.6</a>
 	  for usage examples.
@@ -411,13 +416,14 @@ class Particle(IsDescription):
 	  to create a HDF5 file:
 	</p>
 
+	
 	<pre>
 from tables import *
 
 class Particle(IsDescription):
     identity = StringCol(length=22, dflt=" ", pos = 0)  # character String
     idnumber = Int16Col(1, pos = 1)  # short integer
-    speed    = Float32Col(1, pos = 1)  # single-precision
+    speed    = Float32Col(1, pos = 2)  # single-precision
 
 # Open a file in "w"rite mode
 fileh = openFile("objecttree.h5", mode = "w")
@@ -429,11 +435,12 @@ group1 = fileh.createGroup(root, "group1")
 group2 = fileh.createGroup(root, "group2")
 
 # Now, create an array in the root group
-array1 = fileh.createArray(root, "array1", ["string", "array"], "String array")
-# Create 2 new tables in group1
+array1 = fileh.createArray(root, "array1", 
+                           ["this is", "a string array"], "String array")
+# Create 2 new tables in group1 and group2
 table1 = fileh.createTable(group1, "table1", Particle)
 table2 = fileh.createTable("/group2", "table2", Particle)
-# Create the last table in group2
+# Create one more Array in group1
 array2 = fileh.createArray("/group1", "array2", [1,2,3,4])
 
 # Now, fill the tables:
@@ -459,16 +466,17 @@ fileh.close()
 	<p>This small program creates a simple HDF5 file called
 	  <tt class="verb">objecttree.h5</tt> with the structure that appears
 	  in <a href="#objecttree-h5">figure&nbsp;1.1</a>. When the file is
-	  created, metadata in the object tree is updated in memory while
-	  the actual data is saved disk. When you close the file the object 
-	  tree is no longer available. However, when you reopen this file 
-	  the object tree will be reconstructed in memory from the metadata 
-	  on disk, allowing you to work with it in exactly the same
-	  way as when you originally created it.
+	  created, the metadata in the object tree is updated in
+	  memory while the actual data is saved to disk. When you
+	  close the file the object tree is no longer
+	  available. However, when you reopen this file the object
+	  tree will be reconstructed in memory from the metadata on
+	  disk, allowing you to work with it in exactly the same way
+	  as when you originally created it.
 	</p>
 
 	<div class="figure" id="objecttree-h5"><a name="objecttree-h5"></a>
-	  <a target="_blank" href="objecttree-h5.jpg"><img class="graphics" alt="An HDF5 example with 2 subgroups, 2 tables ... (Click for original bitmap)" src="objecttree-h5-web.jpg"></a>
+	  <a href="objecttree-h5.jpg"><img class="graphics" width="" height="" alt="An HDF5 example with 2 subgroups, 2 tables ... (Click for original bitmap)" src="objecttree-h5-web.jpg"></a>
 	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;1.1:</span> An HDF5 example with 2 subgroups, 2 tables and 1
 	    array.</div></div>
 	</div>
@@ -478,12 +486,12 @@ fileh.close()
 	  <tt class="verb">objecttree.h5</tt> file is read (in fact, such an object is
 	  always created when reading any supported generic HDF5
 	  file).  It's worthwhile to take your time to understand
-	  it<a href="#footnote2" name="footnoteback2"><sup title="Bear in mind, however, that this diagram is not a standard UML class diagram; it is rather meant to show the connections between the PyTables objects and some of its most important attributes and methods.">2)</sup></a>. It will
+	  it<a href="#footnote2" id="footnoteback2"><sup title="Bear in mind, however, that this diagram is not a standard UML class diagram; it is rather meant to show the connections between the PyTables objects and some of its most important attributes and methods.">2)</sup></a>. It will
 	  help you to avoid programming mistakes.
 	</p>
 
 	<div class="figure" id="objecttree"><a name="objecttree"></a>
-	  <img class="graphics" alt="A PyTables object tree&#xA;	      example.&#xA;	  " src="objecttree-web.png">
+	  <img class="graphics" width="" height="" alt="A PyTables object tree&#xA;	      example.&#xA;	  " src="objecttree-web.png">
 	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;1.2:</span> A <tt>PyTables</tt> object tree
 	      example.
 	  </div></div>
@@ -491,9 +499,9 @@ fileh.close()
 
       </div>
 
-    </div><hr align="left" noshade="true" class="footnoterule"><div class="footnote"><a name="footnote1" href="#footnoteback1"><sup>1)</sup></a>&nbsp;I got this simple but
+    </div><hr class="footnoterule"><div class="footnote"><a id="footnote1" href="#footnoteback1"><sup>1)</sup></a>&nbsp;I got this simple but
 	  powerful idea from the excellent <tt>Objectify</tt> module by David Mertz (see
-	  <a href="#Objectify"></a>)</div><div class="footnote"><a name="footnote2" href="#footnoteback2"><sup>2)</sup></a>&nbsp;Bear in mind, however, that this
+	  <a href="#Objectify"></a>)</div><div class="footnote"><a id="footnote2" href="#footnoteback2"><sup>2)</sup></a>&nbsp;Bear in mind, however, that this
 	  diagram is <b>not</b> a standard UML
 	  class diagram; it is rather meant to show the connections
 	  between the <tt class="verb">PyTables</tt> objects and some of its

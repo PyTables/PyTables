@@ -1,3 +1,4 @@
+#! /bin/sh
 # This is a generated file. Do not edit it.
 # If you call this as a batch file, it converts all
 # image files into png/jpg files for HTML use.
@@ -9,248 +10,375 @@ echo "<root \
 
 
 echo
-echo "---- processing image 1/13 (\"objecttree-h5\") ----"
+echo "---- processing image 1/17 (\"logo3-ombra\") ----"
 # 
-if test ! $1 || test $1 == "objecttree-h5"; then
+if test -z "$1" || test "XX$1" = "XXlogo3-ombra" ; then
 latex -interaction=batchmode \
     "\batchmode\def\PictureNumber{1}\def\BeginHook{}\input usersguide-image-gallery"
-dvips -P tbook -O 0pt,0pt -q* -R -o objecttree-h5-for-conv.ps usersguide-image-gallery
+dvips -P tbook -O 0pt,0pt -q -R -o logo3-ombra-for-conv.ps usersguide-image-gallery
+gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
+     -r100 -q -dNOPAUSE -dBATCH -sOutputFile=logo3-ombra-web.pnm -sDEVICE=pnm logo3-ombra-for-conv.ps
+ppmtojpeg logo3-ombra-web.pnm --comment="(c) 2002, 2003, 2004 Francesc Altet" \
+    --progressive  > logo3-ombra-web.jpg
+cat logo3-ombra-web.pnm | pnmfile --allimages > logo3-ombra-image-size.txt
+rm -f logo3-ombra-web.pnm
+rm -f logo3-ombra-for-conv.ps ;
+else 
+  echo "**** skipped" ;
+fi 
+
+echo "<entry file=\"logo3-ombra\">" >> usersguide-image-sizes.xml
+cat logo3-ombra-image-size.txt >> usersguide-image-sizes.xml
+echo "</entry>" >> usersguide-image-sizes.xml
+
+echo
+echo "---- processing image 2/17 (\"objecttree-h5\") ----"
+# 
+if test -z "$1" || test "XX$1" = "XXobjecttree-h5" ; then
+latex -interaction=batchmode \
+    "\batchmode\def\PictureNumber{2}\def\BeginHook{}\input usersguide-image-gallery"
+dvips -P tbook -O 0pt,0pt -q -R -o objecttree-h5-for-conv.ps usersguide-image-gallery
 gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
      -r100 -q -dNOPAUSE -dBATCH -sOutputFile=objecttree-h5-web.pnm -sDEVICE=pnm objecttree-h5-for-conv.ps
-ppmtojpeg objecttree-h5-web.pnm --comment="(c) 2002, 2003 Francesc Alted" \
+ppmtojpeg objecttree-h5-web.pnm --comment="(c) 2002, 2003, 2004 Francesc Altet" \
     --progressive  > objecttree-h5-web.jpg
-cat objecttree-h5-web.pnm | pnmfile > objecttree-h5-image-size.txt
+cat objecttree-h5-web.pnm | pnmfile --allimages > objecttree-h5-image-size.txt
 rm -f objecttree-h5-web.pnm
-rm -f objecttree-h5-for-conv.ps
-echo -n; else echo "**** skipped"; fi
+rm -f objecttree-h5-for-conv.ps ;
+else 
+  echo "**** skipped" ;
+fi 
+
 echo "<entry file=\"objecttree-h5\">" >> usersguide-image-sizes.xml
 cat objecttree-h5-image-size.txt >> usersguide-image-sizes.xml
 echo "</entry>" >> usersguide-image-sizes.xml
 
 echo
-echo "---- processing image 2/13 (\"objecttree\") ----"
+echo "---- processing image 3/17 (\"objecttree\") ----"
 # 
-if test ! $1 || test $1 == "objecttree"; then
+if test -z "$1" || test "XX$1" = "XXobjecttree" ; then
 latex -interaction=batchmode \
-    "\batchmode\def\PictureNumber{2}\def\BeginHook{}\input usersguide-image-gallery"
-dvips -P tbook -O 0pt,0pt -q* -R -o objecttree-for-conv.ps usersguide-image-gallery
+    "\batchmode\def\PictureNumber{3}\def\BeginHook{}\input usersguide-image-gallery"
+dvips -P tbook -O 0pt,0pt -q -R -o objecttree-for-conv.ps usersguide-image-gallery
 gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
      -r100 -q -dNOPAUSE -dBATCH -sOutputFile=objecttree-web.pnm -sDEVICE=pnm objecttree-for-conv.ps
 pnmtopng -interlace -compression 9 -text objecttree-image-comment.txt \
     objecttree-web.pnm > objecttree-web.png
-cat objecttree-web.pnm | pnmfile > objecttree-image-size.txt
+cat objecttree-web.pnm | pnmfile --allimages > objecttree-image-size.txt
 rm -f objecttree-web.pnm
-rm -f objecttree-for-conv.ps
-echo -n; else echo "**** skipped"; fi
+rm -f objecttree-for-conv.ps ;
+else 
+  echo "**** skipped" ;
+fi 
+
 echo "<entry file=\"objecttree\">" >> usersguide-image-sizes.xml
 cat objecttree-image-size.txt >> usersguide-image-sizes.xml
 echo "</entry>" >> usersguide-image-sizes.xml
 
 echo
-echo "---- processing image 3/13 (\"tutorial1-tableview\") ----"
+echo "---- processing image 4/17 (\"tutorial1-tableview\") ----"
 # 
-if test ! $1 || test $1 == "tutorial1-tableview"; then
+if test -z "$1" || test "XX$1" = "XXtutorial1-tableview" ; then
 latex -interaction=batchmode \
-    "\batchmode\def\PictureNumber{3}\def\BeginHook{}\input usersguide-image-gallery"
-dvips -P tbook -O 0pt,0pt -q* -R -o tutorial1-tableview-for-conv.ps usersguide-image-gallery
+    "\batchmode\def\PictureNumber{4}\def\BeginHook{}\input usersguide-image-gallery"
+dvips -P tbook -O 0pt,0pt -q -R -o tutorial1-tableview-for-conv.ps usersguide-image-gallery
 gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
      -r100 -q -dNOPAUSE -dBATCH -sOutputFile=tutorial1-tableview-web.pnm -sDEVICE=pnm tutorial1-tableview-for-conv.ps
-ppmtojpeg tutorial1-tableview-web.pnm --comment="(c) 2002, 2003 Francesc Alted" \
+ppmtojpeg tutorial1-tableview-web.pnm --comment="(c) 2002, 2003, 2004 Francesc Altet" \
     --progressive  > tutorial1-tableview-web.jpg
-cat tutorial1-tableview-web.pnm | pnmfile > tutorial1-tableview-image-size.txt
+cat tutorial1-tableview-web.pnm | pnmfile --allimages > tutorial1-tableview-image-size.txt
 rm -f tutorial1-tableview-web.pnm
-rm -f tutorial1-tableview-for-conv.ps
-echo -n; else echo "**** skipped"; fi
+rm -f tutorial1-tableview-for-conv.ps ;
+else 
+  echo "**** skipped" ;
+fi 
+
 echo "<entry file=\"tutorial1-tableview\">" >> usersguide-image-sizes.xml
 cat tutorial1-tableview-image-size.txt >> usersguide-image-sizes.xml
 echo "</entry>" >> usersguide-image-sizes.xml
 
 echo
-echo "---- processing image 4/13 (\"tutorial1-general\") ----"
+echo "---- processing image 5/17 (\"tutorial1-general\") ----"
 # 
-if test ! $1 || test $1 == "tutorial1-general"; then
+if test -z "$1" || test "XX$1" = "XXtutorial1-general" ; then
 latex -interaction=batchmode \
-    "\batchmode\def\PictureNumber{4}\def\BeginHook{}\input usersguide-image-gallery"
-dvips -P tbook -O 0pt,0pt -q* -R -o tutorial1-general-for-conv.ps usersguide-image-gallery
+    "\batchmode\def\PictureNumber{5}\def\BeginHook{}\input usersguide-image-gallery"
+dvips -P tbook -O 0pt,0pt -q -R -o tutorial1-general-for-conv.ps usersguide-image-gallery
 gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
      -r100 -q -dNOPAUSE -dBATCH -sOutputFile=tutorial1-general-web.pnm -sDEVICE=pnm tutorial1-general-for-conv.ps
-ppmtojpeg tutorial1-general-web.pnm --comment="(c) 2002, 2003 Francesc Alted" \
+ppmtojpeg tutorial1-general-web.pnm --comment="(c) 2002, 2003, 2004 Francesc Altet" \
     --progressive  > tutorial1-general-web.jpg
-cat tutorial1-general-web.pnm | pnmfile > tutorial1-general-image-size.txt
+cat tutorial1-general-web.pnm | pnmfile --allimages > tutorial1-general-image-size.txt
 rm -f tutorial1-general-web.pnm
-rm -f tutorial1-general-for-conv.ps
-echo -n; else echo "**** skipped"; fi
+rm -f tutorial1-general-for-conv.ps ;
+else 
+  echo "**** skipped" ;
+fi 
+
 echo "<entry file=\"tutorial1-general\">" >> usersguide-image-sizes.xml
 cat tutorial1-general-image-size.txt >> usersguide-image-sizes.xml
 echo "</entry>" >> usersguide-image-sizes.xml
 
 echo
-echo "---- processing image 5/13 (\"tutorial2-tableview\") ----"
+echo "---- processing image 6/17 (\"tutorial2-tableview\") ----"
 # 
-if test ! $1 || test $1 == "tutorial2-tableview"; then
+if test -z "$1" || test "XX$1" = "XXtutorial2-tableview" ; then
 latex -interaction=batchmode \
-    "\batchmode\def\PictureNumber{5}\def\BeginHook{}\input usersguide-image-gallery"
-dvips -P tbook -O 0pt,0pt -q* -R -o tutorial2-tableview-for-conv.ps usersguide-image-gallery
+    "\batchmode\def\PictureNumber{6}\def\BeginHook{}\input usersguide-image-gallery"
+dvips -P tbook -O 0pt,0pt -q -R -o tutorial2-tableview-for-conv.ps usersguide-image-gallery
 gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
      -r100 -q -dNOPAUSE -dBATCH -sOutputFile=tutorial2-tableview-web.pnm -sDEVICE=pnm tutorial2-tableview-for-conv.ps
-ppmtojpeg tutorial2-tableview-web.pnm --comment="(c) 2002, 2003 Francesc Alted" \
+ppmtojpeg tutorial2-tableview-web.pnm --comment="(c) 2002, 2003, 2004 Francesc Altet" \
     --progressive  > tutorial2-tableview-web.jpg
-cat tutorial2-tableview-web.pnm | pnmfile > tutorial2-tableview-image-size.txt
+cat tutorial2-tableview-web.pnm | pnmfile --allimages > tutorial2-tableview-image-size.txt
 rm -f tutorial2-tableview-web.pnm
-rm -f tutorial2-tableview-for-conv.ps
-echo -n; else echo "**** skipped"; fi
+rm -f tutorial2-tableview-for-conv.ps ;
+else 
+  echo "**** skipped" ;
+fi 
+
 echo "<entry file=\"tutorial2-tableview\">" >> usersguide-image-sizes.xml
 cat tutorial2-tableview-image-size.txt >> usersguide-image-sizes.xml
 echo "</entry>" >> usersguide-image-sizes.xml
 
 echo
-echo "---- processing image 6/13 (\"write-medium-psyco-nopsyco-comparison\") ----"
+echo "---- processing image 7/17 (\"searchTimes-int-itanium\") ----"
 # 
-if test ! $1 || test $1 == "write-medium-psyco-nopsyco-comparison"; then
-latex -interaction=batchmode \
-    "\batchmode\def\PictureNumber{6}\def\BeginHook{}\input usersguide-image-gallery"
-dvips -P tbook -O 0pt,0pt -q* -R -o write-medium-psyco-nopsyco-comparison-for-conv.ps usersguide-image-gallery
-gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
-     -r100 -q -dNOPAUSE -dBATCH -sOutputFile=write-medium-psyco-nopsyco-comparison-web.pnm -sDEVICE=pnm write-medium-psyco-nopsyco-comparison-for-conv.ps
-pnmtopng -interlace -compression 9 -text write-medium-psyco-nopsyco-comparison-image-comment.txt \
-    write-medium-psyco-nopsyco-comparison-web.pnm > write-medium-psyco-nopsyco-comparison-web.png
-cat write-medium-psyco-nopsyco-comparison-web.pnm | pnmfile > write-medium-psyco-nopsyco-comparison-image-size.txt
-rm -f write-medium-psyco-nopsyco-comparison-web.pnm
-rm -f write-medium-psyco-nopsyco-comparison-for-conv.ps
-echo -n; else echo "**** skipped"; fi
-echo "<entry file=\"write-medium-psyco-nopsyco-comparison\">" >> usersguide-image-sizes.xml
-cat write-medium-psyco-nopsyco-comparison-image-size.txt >> usersguide-image-sizes.xml
-echo "</entry>" >> usersguide-image-sizes.xml
-
-echo
-echo "---- processing image 7/13 (\"read-medium-psyco-nopsyco-comparison\") ----"
-# 
-if test ! $1 || test $1 == "read-medium-psyco-nopsyco-comparison"; then
+if test -z "$1" || test "XX$1" = "XXsearchTimes-int-itanium" ; then
 latex -interaction=batchmode \
     "\batchmode\def\PictureNumber{7}\def\BeginHook{}\input usersguide-image-gallery"
-dvips -P tbook -O 0pt,0pt -q* -R -o read-medium-psyco-nopsyco-comparison-for-conv.ps usersguide-image-gallery
+dvips -P tbook -O 0pt,0pt -q -R -o searchTimes-int-itanium-for-conv.ps usersguide-image-gallery
 gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
-     -r100 -q -dNOPAUSE -dBATCH -sOutputFile=read-medium-psyco-nopsyco-comparison-web.pnm -sDEVICE=pnm read-medium-psyco-nopsyco-comparison-for-conv.ps
-pnmtopng -interlace -compression 9 -text read-medium-psyco-nopsyco-comparison-image-comment.txt \
-    read-medium-psyco-nopsyco-comparison-web.pnm > read-medium-psyco-nopsyco-comparison-web.png
-cat read-medium-psyco-nopsyco-comparison-web.pnm | pnmfile > read-medium-psyco-nopsyco-comparison-image-size.txt
-rm -f read-medium-psyco-nopsyco-comparison-web.pnm
-rm -f read-medium-psyco-nopsyco-comparison-for-conv.ps
-echo -n; else echo "**** skipped"; fi
-echo "<entry file=\"read-medium-psyco-nopsyco-comparison\">" >> usersguide-image-sizes.xml
-cat read-medium-psyco-nopsyco-comparison-image-size.txt >> usersguide-image-sizes.xml
+     -r100 -q -dNOPAUSE -dBATCH -sOutputFile=searchTimes-int-itanium-web.pnm -sDEVICE=pnm searchTimes-int-itanium-for-conv.ps
+pnmtopng -interlace -compression 9 -text searchTimes-int-itanium-image-comment.txt \
+    searchTimes-int-itanium-web.pnm > searchTimes-int-itanium-web.png
+cat searchTimes-int-itanium-web.pnm | pnmfile --allimages > searchTimes-int-itanium-image-size.txt
+rm -f searchTimes-int-itanium-web.pnm
+rm -f searchTimes-int-itanium-for-conv.ps ;
+else 
+  echo "**** skipped" ;
+fi 
+
+echo "<entry file=\"searchTimes-int-itanium\">" >> usersguide-image-sizes.xml
+cat searchTimes-int-itanium-image-size.txt >> usersguide-image-sizes.xml
 echo "</entry>" >> usersguide-image-sizes.xml
 
 echo
-echo "---- processing image 8/13 (\"write-medium-lzo-zlib-ucl-comparison\") ----"
+echo "---- processing image 8/17 (\"searchTimes-float-itanium\") ----"
 # 
-if test ! $1 || test $1 == "write-medium-lzo-zlib-ucl-comparison"; then
+if test -z "$1" || test "XX$1" = "XXsearchTimes-float-itanium" ; then
 latex -interaction=batchmode \
     "\batchmode\def\PictureNumber{8}\def\BeginHook{}\input usersguide-image-gallery"
-dvips -P tbook -O 0pt,0pt -q* -R -o write-medium-lzo-zlib-ucl-comparison-for-conv.ps usersguide-image-gallery
+dvips -P tbook -O 0pt,0pt -q -R -o searchTimes-float-itanium-for-conv.ps usersguide-image-gallery
+gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
+     -r100 -q -dNOPAUSE -dBATCH -sOutputFile=searchTimes-float-itanium-web.pnm -sDEVICE=pnm searchTimes-float-itanium-for-conv.ps
+pnmtopng -interlace -compression 9 -text searchTimes-float-itanium-image-comment.txt \
+    searchTimes-float-itanium-web.pnm > searchTimes-float-itanium-web.png
+cat searchTimes-float-itanium-web.pnm | pnmfile --allimages > searchTimes-float-itanium-image-size.txt
+rm -f searchTimes-float-itanium-web.pnm
+rm -f searchTimes-float-itanium-for-conv.ps ;
+else 
+  echo "**** skipped" ;
+fi 
+
+echo "<entry file=\"searchTimes-float-itanium\">" >> usersguide-image-sizes.xml
+cat searchTimes-float-itanium-image-size.txt >> usersguide-image-sizes.xml
+echo "</entry>" >> usersguide-image-sizes.xml
+
+echo
+echo "---- processing image 9/17 (\"indexTimes-itanium\") ----"
+# 
+if test -z "$1" || test "XX$1" = "XXindexTimes-itanium" ; then
+latex -interaction=batchmode \
+    "\batchmode\def\PictureNumber{9}\def\BeginHook{}\input usersguide-image-gallery"
+dvips -P tbook -O 0pt,0pt -q -R -o indexTimes-itanium-for-conv.ps usersguide-image-gallery
+gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
+     -r100 -q -dNOPAUSE -dBATCH -sOutputFile=indexTimes-itanium-web.pnm -sDEVICE=pnm indexTimes-itanium-for-conv.ps
+pnmtopng -interlace -compression 9 -text indexTimes-itanium-image-comment.txt \
+    indexTimes-itanium-web.pnm > indexTimes-itanium-web.png
+cat indexTimes-itanium-web.pnm | pnmfile --allimages > indexTimes-itanium-image-size.txt
+rm -f indexTimes-itanium-web.pnm
+rm -f indexTimes-itanium-for-conv.ps ;
+else 
+  echo "**** skipped" ;
+fi 
+
+echo "<entry file=\"indexTimes-itanium\">" >> usersguide-image-sizes.xml
+cat indexTimes-itanium-image-size.txt >> usersguide-image-sizes.xml
+echo "</entry>" >> usersguide-image-sizes.xml
+
+echo
+echo "---- processing image 10/17 (\"write-medium-lzo-zlib-ucl-comparison\") ----"
+# 
+if test -z "$1" || test "XX$1" = "XXwrite-medium-lzo-zlib-ucl-comparison" ; then
+latex -interaction=batchmode \
+    "\batchmode\def\PictureNumber{10}\def\BeginHook{}\input usersguide-image-gallery"
+dvips -P tbook -O 0pt,0pt -q -R -o write-medium-lzo-zlib-ucl-comparison-for-conv.ps usersguide-image-gallery
 gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
      -r100 -q -dNOPAUSE -dBATCH -sOutputFile=write-medium-lzo-zlib-ucl-comparison-web.pnm -sDEVICE=pnm write-medium-lzo-zlib-ucl-comparison-for-conv.ps
 pnmtopng -interlace -compression 9 -text write-medium-lzo-zlib-ucl-comparison-image-comment.txt \
     write-medium-lzo-zlib-ucl-comparison-web.pnm > write-medium-lzo-zlib-ucl-comparison-web.png
-cat write-medium-lzo-zlib-ucl-comparison-web.pnm | pnmfile > write-medium-lzo-zlib-ucl-comparison-image-size.txt
+cat write-medium-lzo-zlib-ucl-comparison-web.pnm | pnmfile --allimages > write-medium-lzo-zlib-ucl-comparison-image-size.txt
 rm -f write-medium-lzo-zlib-ucl-comparison-web.pnm
-rm -f write-medium-lzo-zlib-ucl-comparison-for-conv.ps
-echo -n; else echo "**** skipped"; fi
+rm -f write-medium-lzo-zlib-ucl-comparison-for-conv.ps ;
+else 
+  echo "**** skipped" ;
+fi 
+
 echo "<entry file=\"write-medium-lzo-zlib-ucl-comparison\">" >> usersguide-image-sizes.xml
 cat write-medium-lzo-zlib-ucl-comparison-image-size.txt >> usersguide-image-sizes.xml
 echo "</entry>" >> usersguide-image-sizes.xml
 
 echo
-echo "---- processing image 9/13 (\"read-medium-lzo-zlib-ucl-comparison\") ----"
+echo "---- processing image 11/17 (\"read-medium-lzo-zlib-ucl-comparison\") ----"
 # 
-if test ! $1 || test $1 == "read-medium-lzo-zlib-ucl-comparison"; then
+if test -z "$1" || test "XX$1" = "XXread-medium-lzo-zlib-ucl-comparison" ; then
 latex -interaction=batchmode \
-    "\batchmode\def\PictureNumber{9}\def\BeginHook{}\input usersguide-image-gallery"
-dvips -P tbook -O 0pt,0pt -q* -R -o read-medium-lzo-zlib-ucl-comparison-for-conv.ps usersguide-image-gallery
+    "\batchmode\def\PictureNumber{11}\def\BeginHook{}\input usersguide-image-gallery"
+dvips -P tbook -O 0pt,0pt -q -R -o read-medium-lzo-zlib-ucl-comparison-for-conv.ps usersguide-image-gallery
 gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
      -r100 -q -dNOPAUSE -dBATCH -sOutputFile=read-medium-lzo-zlib-ucl-comparison-web.pnm -sDEVICE=pnm read-medium-lzo-zlib-ucl-comparison-for-conv.ps
 pnmtopng -interlace -compression 9 -text read-medium-lzo-zlib-ucl-comparison-image-comment.txt \
     read-medium-lzo-zlib-ucl-comparison-web.pnm > read-medium-lzo-zlib-ucl-comparison-web.png
-cat read-medium-lzo-zlib-ucl-comparison-web.pnm | pnmfile > read-medium-lzo-zlib-ucl-comparison-image-size.txt
+cat read-medium-lzo-zlib-ucl-comparison-web.pnm | pnmfile --allimages > read-medium-lzo-zlib-ucl-comparison-image-size.txt
 rm -f read-medium-lzo-zlib-ucl-comparison-web.pnm
-rm -f read-medium-lzo-zlib-ucl-comparison-for-conv.ps
-echo -n; else echo "**** skipped"; fi
+rm -f read-medium-lzo-zlib-ucl-comparison-for-conv.ps ;
+else 
+  echo "**** skipped" ;
+fi 
+
 echo "<entry file=\"read-medium-lzo-zlib-ucl-comparison\">" >> usersguide-image-sizes.xml
 cat read-medium-lzo-zlib-ucl-comparison-image-size.txt >> usersguide-image-sizes.xml
 echo "</entry>" >> usersguide-image-sizes.xml
 
 echo
-echo "---- processing image 10/13 (\"write-medium-psyco-lzo-zlib-ucl-comparison\") ----"
+echo "---- processing image 12/17 (\"write-medium-psyco-lzo-zlib-ucl-comparison\") ----"
 # 
-if test ! $1 || test $1 == "write-medium-psyco-lzo-zlib-ucl-comparison"; then
+if test -z "$1" || test "XX$1" = "XXwrite-medium-psyco-lzo-zlib-ucl-comparison" ; then
 latex -interaction=batchmode \
-    "\batchmode\def\PictureNumber{10}\def\BeginHook{}\input usersguide-image-gallery"
-dvips -P tbook -O 0pt,0pt -q* -R -o write-medium-psyco-lzo-zlib-ucl-comparison-for-conv.ps usersguide-image-gallery
+    "\batchmode\def\PictureNumber{12}\def\BeginHook{}\input usersguide-image-gallery"
+dvips -P tbook -O 0pt,0pt -q -R -o write-medium-psyco-lzo-zlib-ucl-comparison-for-conv.ps usersguide-image-gallery
 gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
      -r100 -q -dNOPAUSE -dBATCH -sOutputFile=write-medium-psyco-lzo-zlib-ucl-comparison-web.pnm -sDEVICE=pnm write-medium-psyco-lzo-zlib-ucl-comparison-for-conv.ps
 pnmtopng -interlace -compression 9 -text write-medium-psyco-lzo-zlib-ucl-comparison-image-comment.txt \
     write-medium-psyco-lzo-zlib-ucl-comparison-web.pnm > write-medium-psyco-lzo-zlib-ucl-comparison-web.png
-cat write-medium-psyco-lzo-zlib-ucl-comparison-web.pnm | pnmfile > write-medium-psyco-lzo-zlib-ucl-comparison-image-size.txt
+cat write-medium-psyco-lzo-zlib-ucl-comparison-web.pnm | pnmfile --allimages > write-medium-psyco-lzo-zlib-ucl-comparison-image-size.txt
 rm -f write-medium-psyco-lzo-zlib-ucl-comparison-web.pnm
-rm -f write-medium-psyco-lzo-zlib-ucl-comparison-for-conv.ps
-echo -n; else echo "**** skipped"; fi
+rm -f write-medium-psyco-lzo-zlib-ucl-comparison-for-conv.ps ;
+else 
+  echo "**** skipped" ;
+fi 
+
 echo "<entry file=\"write-medium-psyco-lzo-zlib-ucl-comparison\">" >> usersguide-image-sizes.xml
 cat write-medium-psyco-lzo-zlib-ucl-comparison-image-size.txt >> usersguide-image-sizes.xml
 echo "</entry>" >> usersguide-image-sizes.xml
 
 echo
-echo "---- processing image 11/13 (\"read-medium-psyco-lzo-zlib-ucl-comparison\") ----"
+echo "---- processing image 13/17 (\"read-medium-psyco-lzo-zlib-ucl-comparison\") ----"
 # 
-if test ! $1 || test $1 == "read-medium-psyco-lzo-zlib-ucl-comparison"; then
+if test -z "$1" || test "XX$1" = "XXread-medium-psyco-lzo-zlib-ucl-comparison" ; then
 latex -interaction=batchmode \
-    "\batchmode\def\PictureNumber{11}\def\BeginHook{}\input usersguide-image-gallery"
-dvips -P tbook -O 0pt,0pt -q* -R -o read-medium-psyco-lzo-zlib-ucl-comparison-for-conv.ps usersguide-image-gallery
+    "\batchmode\def\PictureNumber{13}\def\BeginHook{}\input usersguide-image-gallery"
+dvips -P tbook -O 0pt,0pt -q -R -o read-medium-psyco-lzo-zlib-ucl-comparison-for-conv.ps usersguide-image-gallery
 gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
      -r100 -q -dNOPAUSE -dBATCH -sOutputFile=read-medium-psyco-lzo-zlib-ucl-comparison-web.pnm -sDEVICE=pnm read-medium-psyco-lzo-zlib-ucl-comparison-for-conv.ps
 pnmtopng -interlace -compression 9 -text read-medium-psyco-lzo-zlib-ucl-comparison-image-comment.txt \
     read-medium-psyco-lzo-zlib-ucl-comparison-web.pnm > read-medium-psyco-lzo-zlib-ucl-comparison-web.png
-cat read-medium-psyco-lzo-zlib-ucl-comparison-web.pnm | pnmfile > read-medium-psyco-lzo-zlib-ucl-comparison-image-size.txt
+cat read-medium-psyco-lzo-zlib-ucl-comparison-web.pnm | pnmfile --allimages > read-medium-psyco-lzo-zlib-ucl-comparison-image-size.txt
 rm -f read-medium-psyco-lzo-zlib-ucl-comparison-web.pnm
-rm -f read-medium-psyco-lzo-zlib-ucl-comparison-for-conv.ps
-echo -n; else echo "**** skipped"; fi
+rm -f read-medium-psyco-lzo-zlib-ucl-comparison-for-conv.ps ;
+else 
+  echo "**** skipped" ;
+fi 
+
 echo "<entry file=\"read-medium-psyco-lzo-zlib-ucl-comparison\">" >> usersguide-image-sizes.xml
 cat read-medium-psyco-lzo-zlib-ucl-comparison-image-size.txt >> usersguide-image-sizes.xml
 echo "</entry>" >> usersguide-image-sizes.xml
 
 echo
-echo "---- processing image 12/13 (\"rootUEP1\") ----"
+echo "---- processing image 14/17 (\"write-medium-psyco-nopsyco-comparison\") ----"
 # 
-if test ! $1 || test $1 == "rootUEP1"; then
+if test -z "$1" || test "XX$1" = "XXwrite-medium-psyco-nopsyco-comparison" ; then
 latex -interaction=batchmode \
-    "\batchmode\def\PictureNumber{12}\def\BeginHook{}\input usersguide-image-gallery"
-dvips -P tbook -O 0pt,0pt -q* -R -o rootUEP1-for-conv.ps usersguide-image-gallery
+    "\batchmode\def\PictureNumber{14}\def\BeginHook{}\input usersguide-image-gallery"
+dvips -P tbook -O 0pt,0pt -q -R -o write-medium-psyco-nopsyco-comparison-for-conv.ps usersguide-image-gallery
+gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
+     -r100 -q -dNOPAUSE -dBATCH -sOutputFile=write-medium-psyco-nopsyco-comparison-web.pnm -sDEVICE=pnm write-medium-psyco-nopsyco-comparison-for-conv.ps
+pnmtopng -interlace -compression 9 -text write-medium-psyco-nopsyco-comparison-image-comment.txt \
+    write-medium-psyco-nopsyco-comparison-web.pnm > write-medium-psyco-nopsyco-comparison-web.png
+cat write-medium-psyco-nopsyco-comparison-web.pnm | pnmfile --allimages > write-medium-psyco-nopsyco-comparison-image-size.txt
+rm -f write-medium-psyco-nopsyco-comparison-web.pnm
+rm -f write-medium-psyco-nopsyco-comparison-for-conv.ps ;
+else 
+  echo "**** skipped" ;
+fi 
+
+echo "<entry file=\"write-medium-psyco-nopsyco-comparison\">" >> usersguide-image-sizes.xml
+cat write-medium-psyco-nopsyco-comparison-image-size.txt >> usersguide-image-sizes.xml
+echo "</entry>" >> usersguide-image-sizes.xml
+
+echo
+echo "---- processing image 15/17 (\"read-medium-psyco-nopsyco-comparison\") ----"
+# 
+if test -z "$1" || test "XX$1" = "XXread-medium-psyco-nopsyco-comparison" ; then
+latex -interaction=batchmode \
+    "\batchmode\def\PictureNumber{15}\def\BeginHook{}\input usersguide-image-gallery"
+dvips -P tbook -O 0pt,0pt -q -R -o read-medium-psyco-nopsyco-comparison-for-conv.ps usersguide-image-gallery
+gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
+     -r100 -q -dNOPAUSE -dBATCH -sOutputFile=read-medium-psyco-nopsyco-comparison-web.pnm -sDEVICE=pnm read-medium-psyco-nopsyco-comparison-for-conv.ps
+pnmtopng -interlace -compression 9 -text read-medium-psyco-nopsyco-comparison-image-comment.txt \
+    read-medium-psyco-nopsyco-comparison-web.pnm > read-medium-psyco-nopsyco-comparison-web.png
+cat read-medium-psyco-nopsyco-comparison-web.pnm | pnmfile --allimages > read-medium-psyco-nopsyco-comparison-image-size.txt
+rm -f read-medium-psyco-nopsyco-comparison-web.pnm
+rm -f read-medium-psyco-nopsyco-comparison-for-conv.ps ;
+else 
+  echo "**** skipped" ;
+fi 
+
+echo "<entry file=\"read-medium-psyco-nopsyco-comparison\">" >> usersguide-image-sizes.xml
+cat read-medium-psyco-nopsyco-comparison-image-size.txt >> usersguide-image-sizes.xml
+echo "</entry>" >> usersguide-image-sizes.xml
+
+echo
+echo "---- processing image 16/17 (\"rootUEP1\") ----"
+# 
+if test -z "$1" || test "XX$1" = "XXrootUEP1" ; then
+latex -interaction=batchmode \
+    "\batchmode\def\PictureNumber{16}\def\BeginHook{}\input usersguide-image-gallery"
+dvips -P tbook -O 0pt,0pt -q -R -o rootUEP1-for-conv.ps usersguide-image-gallery
 gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
      -r100 -q -dNOPAUSE -dBATCH -sOutputFile=rootUEP1-web.pnm -sDEVICE=pnm rootUEP1-for-conv.ps
 pnmtopng -interlace -compression 9 -text rootUEP1-image-comment.txt \
     rootUEP1-web.pnm > rootUEP1-web.png
-cat rootUEP1-web.pnm | pnmfile > rootUEP1-image-size.txt
+cat rootUEP1-web.pnm | pnmfile --allimages > rootUEP1-image-size.txt
 rm -f rootUEP1-web.pnm
-rm -f rootUEP1-for-conv.ps
-echo -n; else echo "**** skipped"; fi
+rm -f rootUEP1-for-conv.ps ;
+else 
+  echo "**** skipped" ;
+fi 
+
 echo "<entry file=\"rootUEP1\">" >> usersguide-image-sizes.xml
 cat rootUEP1-image-size.txt >> usersguide-image-sizes.xml
 echo "</entry>" >> usersguide-image-sizes.xml
 
 echo
-echo "---- processing image 13/13 (\"rootUEP2\") ----"
+echo "---- processing image 17/17 (\"rootUEP2\") ----"
 # 
-if test ! $1 || test $1 == "rootUEP2"; then
+if test -z "$1" || test "XX$1" = "XXrootUEP2" ; then
 latex -interaction=batchmode \
-    "\batchmode\def\PictureNumber{13}\def\BeginHook{}\input usersguide-image-gallery"
-dvips -P tbook -O 0pt,0pt -q* -R -o rootUEP2-for-conv.ps usersguide-image-gallery
+    "\batchmode\def\PictureNumber{17}\def\BeginHook{}\input usersguide-image-gallery"
+dvips -P tbook -O 0pt,0pt -q -R -o rootUEP2-for-conv.ps usersguide-image-gallery
 gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
      -r100 -q -dNOPAUSE -dBATCH -sOutputFile=rootUEP2-web.pnm -sDEVICE=pnm rootUEP2-for-conv.ps
 pnmtopng -interlace -compression 9 -text rootUEP2-image-comment.txt \
     rootUEP2-web.pnm > rootUEP2-web.png
-cat rootUEP2-web.pnm | pnmfile > rootUEP2-image-size.txt
+cat rootUEP2-web.pnm | pnmfile --allimages > rootUEP2-image-size.txt
 rm -f rootUEP2-web.pnm
-rm -f rootUEP2-for-conv.ps
-echo -n; else echo "**** skipped"; fi
+rm -f rootUEP2-for-conv.ps ;
+else 
+  echo "**** skipped" ;
+fi 
+
 echo "<entry file=\"rootUEP2\">" >> usersguide-image-sizes.xml
 cat rootUEP2-image-size.txt >> usersguide-image-sizes.xml
 echo "</entry>" >> usersguide-image-sizes.xml

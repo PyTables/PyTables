@@ -5,7 +5,7 @@
 #	Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/test/test_filenode.py,v $
-#	$Id: test_filenode.py,v 1.2 2004/10/29 10:05:05 falted Exp $
+#	$Id: test_filenode.py,v 1.3 2004/11/05 15:35:26 falted Exp $
 #
 ########################################################################
 
@@ -19,7 +19,7 @@ import warnings
 from test_all import verbose
 
 
-__revision__ = '$Id: test_filenode.py,v 1.2 2004/10/29 10:05:05 falted Exp $'
+__revision__ = '$Id: test_filenode.py,v 1.3 2004/11/05 15:35:26 falted Exp $'
 
 
 
@@ -34,7 +34,7 @@ class NewFileTestCase(unittest.TestCase):
 		  * 'h5file', the writable, empty, temporary HDF5 file
 		"""
 
-		self.h5fname = tempfile.mktemp(suffix = '.h5', dir = '.')
+		self.h5fname = tempfile.mktemp(suffix = '.h5')
 		self.h5file = tables.openFile(
 			self.h5fname, 'w', title = "Test for creating a new file node")
 
@@ -119,7 +119,7 @@ class WriteFileTestCase(unittest.TestCase):
 		  * 'fnode', the writable file node in '/test'
 		"""
 
-		self.h5fname = tempfile.mktemp(suffix = '.h5', dir = '.')
+		self.h5fname = tempfile.mktemp(suffix = '.h5')
 		self.h5file = tables.openFile(
 			self.h5fname, 'w', title = "Test for writing a file node")
 		self.fnode = FileNode.newNode(self.h5file, where = '/', name = 'test')
@@ -216,7 +216,7 @@ class OpenFileTestCase(unittest.TestCase):
 		  * 'h5file', the writable, temporary HDF5 file with a '/test' node
 		"""
 
-		self.h5fname = tempfile.mktemp(suffix = '.h5', dir = '.')
+		self.h5fname = tempfile.mktemp(suffix = '.h5')
 		self.h5file = tables.openFile(
 			self.h5fname, 'w', title = "Test for opening a file node")
 
@@ -305,7 +305,7 @@ class ReadFileTestCase(unittest.TestCase):
 
 		self.datafile = file(self.datafname)
 
-		self.h5fname = tempfile.mktemp(suffix = '.h5', dir = '.')
+		self.h5fname = tempfile.mktemp(suffix = '.h5')
 		self.h5file = tables.openFile(
 			self.h5fname, 'w', title = "Test for reading a file node")
 
@@ -386,7 +386,7 @@ class ReadlineTestCaseMixin:
 
 		linesep = self.lineSeparator
 
-		self.h5fname = tempfile.mktemp(suffix = '.h5', dir = '.')
+		self.h5fname = tempfile.mktemp(suffix = '.h5')
 		self.h5file = tables.openFile(
 			self.h5fname, 'w',
 			title = "Test for reading text lines from a file node")
@@ -569,7 +569,7 @@ class LineSeparatorTestCase(unittest.TestCase):
 		  * 'fnode', the writable file node in '/test'
 		"""
 
-		self.h5fname = tempfile.mktemp(suffix = '.h5', dir = '.')
+		self.h5fname = tempfile.mktemp(suffix = '.h5')
 		self.h5file = tables.openFile(
 			self.h5fname, 'w',
 			title = "Test for line separator manipulation in a file node")
@@ -632,7 +632,7 @@ class AttrsTestCase(unittest.TestCase):
 		  * 'fnode', the writable file node in '/test'
 		"""
 
-		self.h5fname = tempfile.mktemp(suffix = '.h5', dir = '.')
+		self.h5fname = tempfile.mktemp(suffix = '.h5')
 		self.h5file = tables.openFile(
 			self.h5fname, 'w', title = "Test for file node attribute handling")
 		self.fnode = FileNode.newNode(self.h5file, where = '/', name = 'test')
@@ -714,7 +714,7 @@ class ClosedH5FileTestCase(unittest.TestCase):
 		  * 'fnode', the writable file node in '/test'
 		"""
 
-		self.h5fname = tempfile.mktemp(suffix = '.h5', dir = '.')
+		self.h5fname = tempfile.mktemp(suffix = '.h5')
 		self.h5file = tables.openFile(
 			self.h5fname, 'w',
 			title = "Test for accessing a file node on a closed h5file")

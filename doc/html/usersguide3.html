@@ -1,8 +1,8 @@
 <!DOCTYPE html
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xmlns:pref="http://www.w3.org/2002/Math/preference" id="usage"><a name="usage"></a><head>
+<html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.8"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Date" content="2004-03-09T09:19:02+01:00"><meta name="Date" content="2004-03-09T09:19:02+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.9"><meta name="DC.Creator" content="Francesc Altet"><meta name="Author" content="Francesc Altet"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Creator" content="Ivan Vilata"><meta name="Author" content="Ivan Vilata"><meta name="DC.Creator" content="Tom Hedley"><meta name="Author" content="Tom Hedley"><meta name="DC.Date" content="2004-11-05T12:38:42+01:00"><meta name="Date" content="2004-11-05T12:38:42+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -15,7 +15,7 @@
     h1 { clear: both }
     h1.toc { clear: none }
     a:link, a:visited, a:active { text-decoration: none }
-    a:hover { text-decoration: underline; color: #0066FF; }
+    a:hover[href] { text-decoration: underline; color: #0066FF; }
     div.document, div.letter { margin-left: 80px; margin-right: 150px;
       padding-top: 3ex; padding-bottom: 5ex }
     div.authorlist { font-family: sans-serif;
@@ -33,7 +33,7 @@
     div.legalnotice { margin-top: 3ex; text-align: left }
     div.partheadline { font-size: xx-large; margin-top: 1ex; margin-bottom: 1ex }
     div.footnote { }
-    hr.footnoterule { text-align: left; width: 20%; color: black }
+    hr.footnoterule { text-align: left; width: 40%; margin-right: 60%; color: black }
     div.mathdisplay { text-align: center;
     margin-top: 2ex; margin-bottom: 2ex }
     div.figure, div.table, div.mathml-remark { margin-bottom: 3ex;
@@ -154,6 +154,14 @@ div.partheadline { font-size: x-large }
 
 
 
+      <div class="aphorism">Ser&aacute;s la clau que obre tots els panys, <br>
+	ser&agrave;s la llum, la llum il.limitada, <br> ser&agrave;s conf&iacute; on
+	l'aurora comen&ccedil;a, <br>ser&agrave;s forment, escala il.luminada!
+	<br><div class="aphorism-origin">&#8212;M'aclame a tu <br>Lyrics: Vicent
+	Andr&eacute;s i Estell&eacute;s <br>Music: Ovidi Montllor</div>
+      </div>
+
+
       <p class="first">This chapter consists of a series of simple yet comprehensive
 	tutorials that will enable you to understand
 	<tt class="verb">PyTables</tt>' main features. If you would like more
@@ -237,7 +245,7 @@ div.partheadline { font-size: x-large }
 	  </p>
 	  <p>Our particle detector has a TDC (Time to Digital Converter)
 	    counter with a dynamic range of 8 bits and an ADC
-	    (Analogic to Digital Converter) with a range of 16
+	    (Analogical to Digital Converter) with a range of 16
 	    bits. For these values, we will define 2 fields in our
 	    record object called <tt class="verb">TDCcount</tt> and
 	    <tt class="verb">ADCcount</tt>. We also want to save the grid
@@ -280,8 +288,8 @@ div.partheadline { font-size: x-large }
 	    its value you assign an instance of the appropriate
 	    <tt class="verb">Col</tt> subclass, according to the kind of column
 	    defined (the data type, the length, the shape, etc).  See
-	    the <a href="usersguide4.html#ColClassDescr">section&nbsp;4.11.2</a> for a
-	    complete description of these subclasses. See also <a href="usersguide6.html#datatypesSupported">appendix&nbsp;A</a> for a list of
+	    the <a href="usersguide4.html#ColClassDescr">section&nbsp;4.12.2</a> for a
+	    complete description of these subclasses. See also <a href="usersguide7.html#datatypesSupported">appendix&nbsp;A</a> for a list of
 	    data types supported by the <tt class="verb">Col</tt> constructor.
 	  </p>
 	  <p>From now on, we can use <tt class="verb">Particle</tt> instances
@@ -296,14 +304,14 @@ div.partheadline { font-size: x-large }
 	<div>
 	  <h3 id="subsection3.1.3"><span class="headlinenumber"><a name="subsection3.1.3"></a>3.1.3 </span>Creating a <tt>PyTables</tt> file from scratch</h3>
 
-	  <p class="first">Use the first-level <tt class="verb">openFile</tt> (see <a href="#openFileDescr"><strong>??</strong></a>) function to create a 
+	  <p class="first">Use the first-level <tt class="verb">openFile</tt> (see <a href="usersguide4.html#openFileDescr">4.1.2</a>) function to create a 
 	    <tt class="verb">PyTables</tt> file:
 	  </p>
 
 	  <pre>
 &gt;&gt;&gt; h5file = openFile("tutorial1.h5", mode = "w", title = "Test file")
 	  </pre>
-	  <p><tt class="verb">openFile</tt> (<a href="#openFileDescr">see&nbsp;<strong>??</strong></a>) is one of the objects
+	  <p><tt class="verb">openFile</tt> (<a href="usersguide4.html#openFileDescr">see&nbsp;4.1.2</a>) is one of the objects
 	    imported by the "<tt class="verb">from tables import *</tt>"
 	    statement. Here, we are saying that we want to create
 	    a new file in the current working directory called 
@@ -343,7 +351,7 @@ div.partheadline { font-size: x-large }
 
 	  <p class="first">Let's now create a <tt class="verb">Table</tt> (see <a href="usersguide4.html#TableClassDescr">4.5</a>) object as a branch off the 
 	    newly-created group. We do that by calling the
-	    <tt class="verb">createTable</tt> (see <a href="#createTableDescr"><strong>??</strong></a>) method of the
+	    <tt class="verb">createTable</tt> (see <a href="usersguide4.html#createTableDescr">4.2.2</a>) method of the
 	    <tt class="verb">h5file</tt> object:
 	  </p>
 	  <pre>
@@ -490,7 +498,7 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	  <div class="p">You will recognize the last two lines as a Python list
 	    comprehension. It loops over the rows in <em>table</em> as
 	    they are provided by the <tt class="verb">table.iterrows()</tt>
-	    iterator (see <a href="#iterrowsTableDescr"><strong>??</strong></a>). The
+	    iterator (see <a href="usersguide4.html#iterrowsTableDescr">4.5.2</a>). The
 	    iterator returns values until all the data in table is
 	    exhausted. These rows are filtered using the expression:
 	    <pre>
@@ -567,7 +575,7 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	  </pre>
 
 	  <p>We already know the first two parameters of the
-	    <tt class="verb">createArray</tt> (see <a href="#createArrayDescr"><strong>??</strong></a>) methods (these are the
+	    <tt class="verb">createArray</tt> (see <a href="usersguide4.html#createArrayDescr">4.2.2</a>) methods (these are the
 	    same as the first two in <tt class="verb">createTable</tt>): they are
 	    the parent group <em>where</em> <tt class="verb">Array</tt> will be
 	    created and the <tt class="verb">Array</tt> instance
@@ -594,7 +602,7 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	  <p>As you can see, <tt class="verb">createArray()</tt> accepts
 	    <em>names</em> (which is a regular Python list) as an
 	    <em>object</em> parameter. Actually, it accepts a variety
-	    of different regular objects (see <a href="#createArrayDescr"><strong>??</strong></a>) as parameters. The
+	    of different regular objects (see <a href="usersguide4.html#createArrayDescr">4.2.2</a>) as parameters. The
 	    <tt class="verb">flavor</tt> attribute (see the output above) saves
 	    the original kind of object that was saved. Based on this
 	    <em>flavor</em>, <tt class="verb">PyTables</tt> will be able to
@@ -602,9 +610,9 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	  </p>
 	  <p>Note that in these examples, the <tt class="verb">createArray</tt>
 	    method returns an <tt class="verb">Array</tt> instance that is not
-	    assigned to any variable. Don't worry, this is
-	    intentional to show the kind of object we have created by
-	    displaying its representation.  The <tt class="verb">Array</tt> objects has
+	    assigned to any variable. Don't worry, this is intentional
+	    to show the kind of object we have created by displaying
+	    its representation.  The <tt class="verb">Array</tt> objects have
 	    been attached to the object tree and saved to disk, as you
 	    can see if you print the complete object tree:
 	  </p>
@@ -758,7 +766,7 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 /detector/readout (Table(10,)) 'Readout example'
 	  </pre>
 	  
-	  <p>We can use the <tt class="verb">walkGroups</tt> method (see <a href="#walkGroupsDescr"><strong>??</strong></a>) of the <tt class="verb">File</tt> class
+	  <p>We can use the <tt class="verb">walkGroups</tt> method (see <a href="usersguide4.html#walkGroupsDescr">4.2.2</a>) of the <tt class="verb">File</tt> class
 	    to list only the <em>groups</em> on tree:
 	  </p>
 
@@ -783,11 +791,11 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 ...     for array in h5file.listNodes(group, classname = 'Array'):
 ...         print array
 ...
-/columns/name Array(4,) 'Name column selection'
-/columns/pressure Array(4,) 'Pressure column selection'
+/columns/name Array(3,) 'Name column selection'
+/columns/pressure Array(3,) 'Pressure column selection'
 	  </pre>
 
-	  <p><tt class="verb">listNodes()</tt> (see <a href="#listNodesDescr"><strong>??</strong></a>) returns a list containing
+	  <p><tt class="verb">listNodes()</tt> (see <a href="usersguide4.html#listNodesDescr">4.2.2</a>) returns a list containing
 	    all the nodes hanging off a specific <tt class="verb">Group</tt>.
 	    If the <em>classname</em> keyword is specified, the method
 	    will filter out all instances which are not descendants of
@@ -796,12 +804,12 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	  </p>
 
 	  <p>We can combine both calls by using the
-	      <tt class="verb">__call__(where, classname)</tt> special method
-	      of the <tt class="verb">File</tt> object (<a href="#__callFileDescr">see&nbsp;<strong>??</strong></a>). For example:
+	      <tt class="verb">walkNodes(where, classname)</tt> special method
+	      of the <tt class="verb">File</tt> object (<a href="usersguide4.html#walkNodesFileDescr">see&nbsp;4.2.2</a>). For example:
 	  </p>
 
 	  <pre>
-&gt;&gt;&gt; for array in h5file("/", "Array"):
+&gt;&gt;&gt; for array in h5file.walkNodes("/", "Array"):
 ...   print array
 ...
 /columns/name (Array(3,)) 'Name column selection'
@@ -810,26 +818,27 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 
 	  <p>This is a nice shortcut when working interactively.</p>
 
-	  <p>Finally, we will list all the
-	    <tt class="verb">Leaf</tt>, i.e. <tt class="verb">Table</tt> and
-	    <tt class="verb">Array</tt>, instances (see <a href="usersguide4.html#LeafClassDescr">4.4</a> for detailed information on
-	    <tt class="verb">Leaf</tt> class), in the <tt class="verb">/detector</tt>
-	    group. Note that only one instance of the <tt class="verb">Table</tt>
-	    class (i.e. <tt class="verb">readout</tt>) will be selected in this
-	    group (as should be the case):
+	  <p>Finally, we will list all the <tt class="verb">Leaf</tt>,
+	    i.e. <tt class="verb">Table</tt> and <tt class="verb">Array</tt> instances
+	    (see <a href="usersguide4.html#LeafClassDescr">4.4</a> for detailed
+	    information on <tt class="verb">Leaf</tt> class), in the
+	    <tt class="verb">/detector</tt> group. Note that only one instance
+	    of the <tt class="verb">Table</tt> class
+	    (i.e. <tt class="verb">readout</tt>) will be selected in this group
+	    (as should be the case):
 	  </p>
 
 	  <pre>
-&gt;&gt;&gt; for leaf in h5file.root.detector('Leaf'):
+&gt;&gt;&gt; for leaf in h5file.root.detector._f_walkNodes('Leaf'):
 ...   print leaf
 ...
 /detector/readout (Table(10,)) 'Readout example'
 	  </pre>
 
 	  <p>We have used a call to the
-	    <tt class="verb">Group.__call__(classname, recursive)</tt> special
-	    method (<a href="#__callGroupDescr"><strong>??</strong></a>), using
-	    the <em>natural naming</em> path specification.</p>
+	    <tt class="verb">Group._f_walkNodes(classname, recursive)</tt>
+	    method (<a href="usersguide4.html#_f_walkNodesGroupDescr">4.3.2</a>), using the
+	    <em>natural naming</em> path specification.</p>
 
 	  <p>Of course you can do more sophisticated node selections
 	    using these powerful methods. But first, let's take a look
@@ -844,7 +853,7 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 
 	  <p class="first">PyTables provides an easy and concise way to complement
 	    the meaning of your node objects on the tree by using the
-	    <tt class="verb">AttributeSet</tt> class (see <a href="usersguide4.html#AttributeSetClassDescr">section&nbsp;4.10</a>). You can
+	    <tt class="verb">AttributeSet</tt> class (see <a href="usersguide4.html#AttributeSetClassDescr">section&nbsp;4.11</a>). You can
 	    access this object through the standard attribute
 	    <tt class="verb">attrs</tt> in <tt class="verb">Leaf</tt> nodes and
 	    <tt class="verb">_v_attrs</tt> in <tt class="verb">Group</tt> nodes.
@@ -876,7 +885,7 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	    the <tt class="verb">_v_attrs</tt> attribute because detector is a
 	    <tt class="verb">Group</tt> node. In general, you can save any
 	    standard Python data structure as an attribute node.
-	    See <a href="usersguide4.html#AttributeSetClassDescr">section&nbsp;4.10</a> for
+	    See <a href="usersguide4.html#AttributeSetClassDescr">section&nbsp;4.11</a> for
 	    a more detailed explanation of how they are serialized for
 	    export to disk.
 	  </p>
@@ -964,9 +973,10 @@ Traceback (most recent call last):
 RuntimeError: Read-only attribute ('VERSION') cannot be renamed
 	  </pre>
 
-	  <p>After your terminating your session, you can use
-	  <tt class="verb">h5ls</tt> to read the <tt class="verb">/detector/readout</tt> 
-	  attributes from the file written to disk:
+	  <p>If you would terminate your session now, you would be
+	  able to use the <tt class="verb">h5ls</tt> command to read the
+	  <tt class="verb">/detector/readout</tt> attributes from the file
+	  written to disk:
 	  </p>
 
 	  <pre>
@@ -1092,7 +1102,6 @@ pressure := Float32, 1
 	  <pre>
 &gt;&gt;&gt; print table.__doc__
 Represent a table in the object tree.
-
     It provides methods to create new tables or open existing ones, as
     well as to write/read data to/from table objects over the
     file. A method is also provided to iterate over the rows without
@@ -1102,37 +1111,40 @@ Represent a table in the object tree.
     (NumArray or RecArray) objects.
     
     Methods:
-    
-      Common to all leaves:
-        close()
-        flush()
-        getAttr(attrname)
-        rename(newname)
-        remove()
-        setAttr(attrname, attrvalue)
-        
-      Specific of Table:
-        iterrows()
+
+        __getitem__(key)
+        __iter__()
+        __setitem__(key, value)
+        append(rows)
+        flushRowsToIndex()
+        iterrows(start, stop, step)
+        itersequence(sequence)
+        modifyRows(start, rows)
+        modifyColumns(start, columns, names)
         read([start] [, stop] [, step] [, field [, flavor]])
+        reIndex()
+        reIndexDirty()
         removeRows(start, stop)
+        removeIndex(column)
+        where(condition [, start] [, stop] [, step])
+        whereIndexed(condition [, start] [, stop] [, step])
+        whereInRange(condition [, start] [, stop] [, step])
+        getWhereList(condition [, flavor])
 
     Instance variables:
-    
-      Common to all leaves:
-        name -- the leaf node name
-        hdf5name -- the HDF5 leaf node name
-        title -- the leaf title
-        shape -- the leaf shape
-        byteorder -- the byteorder of the leaf
-        
-      Specific of Table:
+
         description -- the metaobject describing this table
         row -- a reference to the Row object associated with this table
         nrows -- the number of rows in this table
         rowsize -- the size, in bytes, of each row
+        cols -- accessor to the columns using a natural name schema
         colnames -- the field names for the table (list)
         coltypes -- the type class for the table fields (dictionary)
         colshapes -- the shapes for the table fields (dictionary)
+        colindexed -- whether the table fields are indexed (dictionary)
+        indexed -- whether or not some field in Table is indexed
+        indexprops -- properties of an indexed Table. Exists only
+            if the Table is indexed
 
 	  </pre>
 
@@ -1187,8 +1199,8 @@ Info on the object: /columns/pressure (Array(3,)) 'Pressure column selection'
 	    <tt class="verb">pressureObject</tt> object, you can verify that it is
 	    a "<b>Float64</b>" array. 
 	    By looking at its <tt class="verb">shape</tt> attribute, you can
-	    deduce that the array on disk is unidimensional and has 4
-	    elements. See <a href="usersguide4.html#ArrayClassInstanceVariables">4.6.1</a> or the internal
+	    deduce that the array on disk is unidimensional and has 3
+	    elements. See <a href="usersguide4.html#ArrayClassInstanceVariables">4.7.1</a> or the internal
 	    string docs for the complete <tt class="verb">Array</tt> attribute
 	    list.
 	  </p>
@@ -1226,7 +1238,7 @@ Particle:      7 --&gt; 49.0
 	  </pre>
 
 	  <p>You can see that the <tt class="verb">read()</tt> method (see
-	    <a href="usersguide4.html#readArrayDescr">section&nbsp;4.6.2</a>) returns an authentic
+	    <a href="usersguide4.html#readArrayDescr">section&nbsp;4.7.2</a>) returns an authentic
 	    <tt class="verb">numarray</tt> object for the
 	    <tt class="verb">pressureObject</tt> instance by looking at the
 	    output of the <tt class="verb">type()</tt> call.  A <tt class="verb">read()</tt>
@@ -1240,7 +1252,7 @@ Particle:      7 --&gt; 49.0
 	    read array to be converted into the original object. This
 	    provides a means to save a large variety of objects as
 	    arrays with the guarantee that you will be able to later recover
-	    them in their original form. See <a href="#createArrayDescr">section&nbsp;<strong>??</strong></a> for a complete list
+	    them in their original form. See <a href="usersguide4.html#createArrayDescr">section&nbsp;4.2.2</a> for a complete list
 	    of supported objects for the <tt class="verb">Array</tt> object class.
 	  </p>
 
@@ -1275,7 +1287,7 @@ Particle:      7 --&gt; 49.0
 	  <p>It's the same method we used to fill a new
 	    table. <tt class="verb">PyTables</tt> knows that this table is on
 	    disk, and when you add new records, they are appended to
-	    the end of the table<a href="#footnote3" name="footnoteback3"><sup title="Note that you can append not only scalar values to tables, but also fully multidimensional array objects.">3)</sup></a>.
+	    the end of the table<a href="#footnote5" id="footnoteback5"><sup title="Note that you can append not only scalar values to tables, but also fully multidimensional array objects.">5)</sup></a>.
 	  </p>
 	  <p>
 	    If you look carefully at the code you will see that we
@@ -1335,7 +1347,7 @@ Particle:     14 |       196.0 |   1.476e+09 |     14 |     -4 |       14 |
 5
 	  </pre>
 
-	  <p><tt class="verb">removeRows(start, stop)</tt> (<a href="#removeRowsDescr">see&nbsp;<strong>??</strong></a>) deletes the rows in
+	  <p><tt class="verb">removeRows(start, stop)</tt> (<a href="usersguide4.html#removeRowsDescr">see&nbsp;4.5.2</a>) deletes the rows in
 	      the range (start, stop). It returns the number of rows
 	      effectively removed.
 	  </p>
@@ -1359,14 +1371,14 @@ $
 	  </p>
 
 	  <div class="figure" id="tutorial1-tableview"><a name="tutorial1-tableview"></a>
-	    <a target="_blank" href="tutorial1-tableview.jpg"><img class="graphics" alt="The final version of the data file for tuto... (Click for original bitmap)" src="tutorial1-tableview-web.jpg"></a>
+	    <a href="tutorial1-tableview.jpg"><img class="graphics" width="" height="" alt="The final version of the data file for tuto... (Click for original bitmap)" src="tutorial1-tableview-web.jpg"></a>
 	    <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.1:</span> The final version of the data file for tutorial 1,
 	    with a view of the data objects.
 	    </div></div>
 	  </div>
 
 	  <div class="figure" id="tutorial1-general"><a name="tutorial1-general"></a>
-	    <a target="_blank" href="tutorial1-general.jpg"><img class="graphics" alt="General properties of the /detector/readout... (Click for original bitmap)" src="tutorial1-general-web.jpg"></a>
+	    <a href="tutorial1-general.jpg"><img class="graphics" width="" height="" alt="General properties of the /detector/readout... (Click for original bitmap)" src="tutorial1-general-web.jpg"></a>
 	    <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.2:</span> General properties of the <tt>/detector/readout</tt> table.
 	    </div></div>
 	  </div>
@@ -1404,7 +1416,7 @@ $
 	</p>
 	<p>We also introduce a new manner to describe a <tt class="verb">Table</tt>
 	  as a dictionary, as you can see in the <tt class="verb">Event</tt>
-	  description. See section <a href="#createTableDescr"><strong>??</strong></a> about the different kinds of
+	  description. See section <a href="usersguide4.html#createTableDescr">4.2.2</a> about the different kinds of
 	  descriptor objects that can be passed to the
 	  <tt class="verb">createTable()</tt> method.
 	</p>
@@ -1478,7 +1490,7 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
         #event['xcoord'] = float(i**2)   # Correct spelling
         event['xcoor'] = float(i**2)     # Wrong spelling
         event['ADCcount'] = i * 2        # Correct type
-        #event['ADCcount'] = "s"          # Wrong type
+        #event['ADCcount'] = "sss"          # Wrong type
         ########### End of errors
         event['ycoord'] = float(i)**4
         # This injects the Record values
@@ -1554,10 +1566,10 @@ $ python tutorial2.py
 Traceback (most recent call last):
   File "tutorial2.py", line 74, in ?
     event['xcoor'] = float(i**2)     # Wrong spelling
-  File "/home/falted/PyTables/pytables-0.7/src/hdf5Extension.pyx",
+  File "/home/falted/PyTables/pytables-0.8/src/hdf5Extension.pyx",
  line 1812, in hdf5Extension.Row.__setitem__
-    raise AttributeError, "Error setting \"%s\" attr.\n %s" % \
-AttributeError: Error setting "xcoor" attr.
+    raise KeyError, "Error setting \"%s\" field.\n %s" % \
+KeyError: Error setting "xcoor" field.
  Error was: "exceptions.KeyError: xcoor"
 	  </pre>
 
@@ -1590,7 +1602,7 @@ AttributeError: Error setting "xcoor" attr.
 	  <p>to read:</p>
 
 	  <pre>
-	    event.ADCcount = "s"          # Wrong type
+	    event.ADCcount = "sss"          # Wrong type
 	  </pre>
 
 	  <p>This modification will cause the following <tt class="verb">TypeError</tt>
@@ -1601,11 +1613,11 @@ AttributeError: Error setting "xcoor" attr.
 $ python tutorial2.py
 Traceback (most recent call last):
   File "tutorial2.py", line 76, in ?
-    event['ADCcount'] = "s"          # Wrong type
-  File "/home/falted/PyTables/pytables-0.7/src/hdf5Extension.pyx",
+    event['ADCcount'] = "sss"          # Wrong type
+  File "/home/falted/PyTables/pytables-0.8/src/hdf5Extension.pyx",
  line 1812, in hdf5Extension.Row.__setitem__
-    raise AttributeError, "Error setting \"%s\" attr.\n %s" % \
-AttributeError: Error setting "ADCcount" attr.
+    raise KeyError, "Error setting \"%s\" field.\n %s" % \
+KeyError: Error setting "ADCcount" field.
  Error was: "exceptions.TypeError: NA_setFromPythonScalar: bad value type."
 	  </pre>
 
@@ -1616,7 +1628,7 @@ AttributeError: Error setting "ADCcount" attr.
 	  </p>
 
 	  <div class="figure" id="tutorial2"><a name="tutorial2"></a>
-	    <a target="_blank" href="tutorial2-tableview.jpg"><img class="graphics" alt="Table hierarchy for tutorial 2. (Click for original bitmap)" src="tutorial2-tableview-web.jpg"></a>
+	    <a href="tutorial2-tableview.jpg"><img class="graphics" width="" height="" alt="Table hierarchy for tutorial 2. (Click for original bitmap)" src="tutorial2-tableview-web.jpg"></a>
 	    <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.3:</span> Table hierarchy for tutorial 2.</div></div>
 	  </div>
 
@@ -1630,6 +1642,6 @@ AttributeError: Error setting "ADCcount" attr.
 
 	</div>
       </div>
-    </div><hr align="left" noshade="true" class="footnoterule"><div class="footnote"><a name="footnote3" href="#footnoteback3"><sup>3)</sup></a>&nbsp;Note that you can append not
+    </div><hr class="footnoterule"><div class="footnote"><a id="footnote5" href="#footnoteback5"><sup>5)</sup></a>&nbsp;Note that you can append not
 	    only scalar values to tables, but also fully
 	    multidimensional array objects.</div></div><div class="speedbar-bottom"><hr class="speedbar"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide2.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide4.html">next</a></td></tr></tbody></table></div></body></html>

@@ -1,8 +1,8 @@
 <!DOCTYPE html
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xmlns:pref="http://www.w3.org/2002/Math/preference" id="optimizationTips"><a name="optimizationTips"></a><head>
+<html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.8"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Date" content="2004-03-09T09:19:02+01:00"><meta name="Date" content="2004-03-09T09:19:02+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.9"><meta name="DC.Creator" content="Francesc Altet"><meta name="Author" content="Francesc Altet"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Creator" content="Ivan Vilata"><meta name="Author" content="Ivan Vilata"><meta name="DC.Creator" content="Tom Hedley"><meta name="Author" content="Tom Hedley"><meta name="DC.Date" content="2004-11-05T12:38:42+01:00"><meta name="Date" content="2004-11-05T12:38:42+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -15,7 +15,7 @@
     h1 { clear: both }
     h1.toc { clear: none }
     a:link, a:visited, a:active { text-decoration: none }
-    a:hover { text-decoration: underline; color: #0066FF; }
+    a:hover[href] { text-decoration: underline; color: #0066FF; }
     div.document, div.letter { margin-left: 80px; margin-right: 150px;
       padding-top: 3ex; padding-bottom: 5ex }
     div.authorlist { font-family: sans-serif;
@@ -33,7 +33,7 @@
     div.legalnotice { margin-top: 3ex; text-align: left }
     div.partheadline { font-size: xx-large; margin-top: 1ex; margin-bottom: 1ex }
     div.footnote { }
-    hr.footnoterule { text-align: left; width: 20%; color: black }
+    hr.footnoterule { text-align: left; width: 40%; margin-right: 60%; color: black }
     div.mathdisplay { text-align: center;
     margin-top: 2ex; margin-bottom: 2ex }
     div.figure, div.table, div.mathml-remark { margin-bottom: 3ex;
@@ -146,513 +146,622 @@ div.title { font-size: x-large; color: maroon }
 div.subtitle { font-size: x-large; color: olive }
 div.title-article { font-size: x-large }
 div.partheadline { font-size: x-large }
-</style></head><body><div class="speedbar-top"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide4.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide6.html">next</a></td></tr><tr><td colspan="3">&nbsp;</td></tr></tbody></table><hr class="speedbar"></div><div class="document"><div id="optimizationTips"><a name="optimizationTips"></a>
-      <h1 id="chapter5"><a name="chapter5"></a>Chapter&nbsp;5: Optimization tips</h1>
-
-
-
-
-
-
-      <p class="first">On this chapter, you will get deeper knowledge of
-	<tt class="verb">PyTables</tt> internals. <tt class="verb">PyTables</tt> has
-	several places where the user can improve the performance of
-	his application. If you are planning to deal with really large
-	data, you should read carefully this section in order to learn
-	how to get an important boost for your code. But if your
-	dataset is small or medium size (say, up to 1 MB), you should
-	not worry about that as the default parameters in
-	<tt class="verb">PyTables</tt> are already tuned to handle that
-	perfectly.
-      </p>
+</style></head><body><div class="speedbar-top"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide4.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide6.html">next</a></td></tr><tr><td colspan="3">&nbsp;</td></tr></tbody></table><hr class="speedbar"></div><div class="document"><div id="FileNode"><a name="FileNode"></a>
+      <h1 id="chapter5"><a name="chapter5"></a>Chapter&nbsp;5: FileNode</h1>
 
       <div>
-	<h2 id="section5.1"><span class="headlinenumber"><a name="section5.1"></a>5.1 </span>Taking advantage of Psyco</h2>
+	<h2 id="section5.1"><span class="headlinenumber"><a name="section5.1"></a>5.1 </span>What is <tt>FileNode</tt>?</h2>
 
-	<p class="first">Psyco (see <a href="#psycoRef"></a>)is a kind of
-	  specialized compiler for Python that typically accelerates
-	  Python applications with no change in source code. You can
-	  think of Psyco as a kind of just-in-time (JIT) compiler, a
-	  little bit like Java's, that emit machine code on the fly
-	  instead of interpreting your Python program step by
-	  step. The result is that your unmodified Python programs run
-	  faster.
+	<p class="first"><tt class="verb">FileNode</tt> is a module which enables you to
+	  create a <tt class="verb">PyTables</tt> database of nodes which can
+	  be used like regular opened files in Python.  In other
+	  words, you can store a file in a <tt class="verb">PyTables</tt>
+	  database, and read and write it as you would do with any
+	  other file in Python.  Used in conjunction with
+	  <tt class="verb">PyTables</tt> hierarchical database organisation,
+	  you can have your database turned into an open, extensible,
+	  efficient, high capacity, portable and metadata-rich
+	  filesystem for data exchange with other systems (including
+	  backup purposes).
 	</p>
 
-	<p>Psyco is very easy to install and use, so in most scenarios
-	  it is worth to have it a try. However, it only runs on Intel
-	  386 architectures, so if you are using other architectures,
-	  you are out of luck (at least until Psyco will support
-	  yours).
+	<p>Between the main features of <tt class="verb">FileNode</tt>, one can
+	  list:</p>
+
+	<ul>
+	  <li><em>Open:</em> Since it relies on
+	    <tt class="verb">PyTables</tt>, which in turn, sits over HDF5 (see
+	    <a href="#HDFWhatIs"></a>), a standard hierarchical
+	    data format from NCSA.</li>
+
+	  <li><em>Extensible:</em> You can define new types of
+	    nodes, and their instances will be safely preserved (as
+	    are normal groups, leafs and attributes) by
+	    <tt class="verb">PyTables</tt> applications having no knowledge of
+	    their types.  Moreover, the set of possible attributes for
+	    a node is not fixed, so you can define your own node
+	    attributes.
+	  </li>
+
+	  <li><em>Efficient:</em> Thanks to PyTables' proven
+	    extreme efficiency on handling huge amounts of data.
+	    FileNode can make use of PyTables' on-the-fly compression
+	    and decompression of data.</li>
+
+	  <li><em>High capacity:</em> Since PyTables and HDF5 are
+	    designed for massive data storage (they use 64-bit
+	    addressing even where the platform does not support it
+	    natively).</li>
+
+	  <li><em>Portable:</em> Since the HDF5 format has an
+	    architecture-neutral design, and the HDF5 libraries and
+	    PyTables are known to run under a variety of platforms.
+	    Besides that, a PyTables database fits into a single file,
+	    which poses no trouble for transportation.</li>
+
+	  <li><em>Metadata-rich:</em> Since PyTables can store
+	    arbitrary key-value pairs (even Python objects!) for every
+	    database node.  Metadata may include authorship, keywords,
+	    MIME types and encodings, ownership information, access
+	    control lists (ACL), decoding functions and anything you
+	    can imagine!</li>
+
+	</ul>
+      </div>
+
+      <div>
+	<h2 id="section5.2"><span class="headlinenumber"><a name="section5.2"></a>5.2 </span>Current limitations</h2>
+
+	<p class="first"><tt class="verb">FileNode</tt> is still a young piece of software,
+	  so it lacks some functionality.  This is a list of known
+	  current limitations:
 	</p>
 
-	<p>As an example, imagine that you have a small script that
-	  reads and selects data over a series of datasets, like this:
+	<ol>
+	  <li>Node file names are constrained to
+	    <tt class="verb">PyTables</tt> node names (i.e. most valid Python
+	    identifiers).  For the moment, if you want arbitrary names
+	    you will have to use a translation map (see <a href="usersguide4.html#openFileDescr">4.1.2</a>) or the node title.  The same
+	    restriction applies to attribute names.
+	  </li>
+	  <li>Node files can only be opened for read-only or read
+	    and append mode.  This will be enhanced in the future.
+	  </li>
+	  <li>There is no universal newline support yet.  This is
+	    likely to be implemented in a near future.
+	  </li>
+	  <li>Sparse files (files with lots of zeros) are not
+	    treated specially; if you want them to take less space,
+	    you should be better off using compression.
+	  </li>
+	</ol>
+
+	<p>These limitations still make <tt class="verb">FileNode</tt> entirely
+	  adequate to work with most binary and text files.  Of
+	  course, suggestions and patches are welcome.
 	</p>
 
+      </div>
+
+      <div>
+	<h2 id="section5.3"><span class="headlinenumber"><a name="section5.3"></a>5.3 </span>Finding a <tt>FileNode</tt>
+	  node</h2>
+
+	<p class="first"><tt>FileNode</tt> nodes can be
+	  recognised because they have a <tt class="verb">_type</tt> attribute
+	  with a <tt class="verb">'file'</tt> value.  It is recommended that
+	  you use the <tt class="verb">getAttrNode()</tt> method (see <a href="usersguide4.html#getAttrNodeDescr">4.2.2</a>) of <tt class="verb">tables.File</tt>
+	  class to get the <tt class="verb">_type</tt> attribute independently
+	  of the nature (group or leaf) of the node, so you do not
+	  need to care about.
+	</p>
+      </div>
+
+      <div>
+	<h2 id="section5.4"><span class="headlinenumber"><a name="section5.4"></a>5.4 </span>Using <tt>FileNode</tt></h2>
+
+	<p class="first">The <tt>FileNode</tt> module is part of
+	  the <tt class="verb">nodes</tt> sub-package of <tt class="verb">PyTables</tt>.
+	  The recommended way to import the module is:
+	</p>
 	<pre>
-def readFile(filename):
-    "Select data from all the tables in filename"
-
-    fileh = openFile(filename, mode = "r")
-    result = []
-    for table in fileh("/", 'Table'):
-        result = [ p['var3'] for p in table if p['var2'] &lt;= 20 ]
-
-    fileh.close()
-    return e
-
-if __name__=="__main__":
-    print readFile("myfile.h5")
+  &gt;&gt;&gt; from tables.nodes import FileNode
 	</pre>
 
-	<p>In order to accelerate this piece of code, you can rewrite
-	  your main program to look like:
+	<p>However, <tt>FileNode</tt> exports very
+	  few symbols, so you can import <tt class="verb">*</tt> for
+	  interactive usage.  In fact, you will most probably only use
+	  the <tt class="verb">NodeType</tt> constant and the
+	  <tt class="verb">newNode()</tt> and <tt class="verb">openNode()</tt> calls.
+	</p>
+	<p>The <tt class="verb">NodeType</tt> constant contains the value that
+	  the <tt class="verb">_type</tt> attribute of a node file is expected
+	  to contain (<tt class="verb">'file'</tt>, as we have seen).  Although
+	  this is not expected to change, you should use <tt>FileNode.NodeType</tt> instead of the
+	  literal <tt class="verb">'file'</tt> when possible.
+	</p>
+	<p><tt class="verb">newNode()</tt> and <tt class="verb">openNode()</tt> are the
+	  equivalent to the Python <tt class="verb">file()</tt> call (alias
+	  <tt class="verb">open()</tt>) for ordinary files.  Their arguments
+	  differ from that of <tt class="verb">file()</tt>, but this is the
+	  only point where you will note the difference between
+	  working with a node file and working with an ordinary file.
 	</p>
 
+	<p>For this little tutorial, we will assume that we have a
+	  <tt class="verb">PyTables</tt> database opened for writing. Also, if
+	  you are somewhat lazy at typing sentences, the code that we
+	  are going to explain is included in the
+	  <tt class="verb">examples/filenodes1.py</tt> file.
+	</p>
+	<p>You can create a brand new file with these sentences:
+	</p>
 	<pre>
-if __name__=="__main__":
-    import pysco
-    psyco.bind(readFile)
-    print readFile("myfile.h5")
+  &gt;&gt;&gt; import tables
+  &gt;&gt;&gt; h5file = tables.openFile('fnode.h5', 'w')
 	</pre>
 
-	<p>That's all!. From now on, each time that you execute your
-	  python script, Psyco will deploy its sophisticated
-	  algorithms so as to accelerate your calculations.
-	</p>
+	<div>
+	  <h3 id="subsection5.4.1"><span class="headlinenumber"><a name="subsection5.4.1"></a>5.4.1 </span>Creating a new file node</h3>
 
-	<p>You can see in the graphs <a href="#psycoWriteComparison">5.1</a> and <a href="#psycoReadComparison">5.2</a> how much I/O speed
-	  improvement you can get by using Psyco. By looking at this
-	  figures you can get an idea if these improvements are of
-	  your interest or not. In general, if you are not going to
-	  use compression you will take advantage of Psyco if your
-	  tables are medium sized (1e+3 &lt; nrows &lt; 1e+6), and
-	  this advantage will disappear progressively when the number
-	  of rows grows well over one million. However if you use
-	  compression, you will probably see improvements even beyond
-	  this limit (see <a href="#compressionIssues">section&nbsp;5.2</a>). As always, there
-	  is no substitute for experimentation with your own dataset.
-	</p>
+	  <p class="first">Creation of a new file node is achieved with the
+	    <tt class="verb">newNode()</tt> call.  You must tell it in which
+	    <tt class="verb">PyTables</tt> file you want to create it, where in
+	    the <tt class="verb">PyTables</tt> hierarchy you want to create the
+	    node and which will be its name.  The
+	    <tt class="verb">PyTables</tt> file is the first argument to
+	    <tt class="verb">newNode()</tt>; it will be also called the
+	    <tt class="verb">'host PyTables file'</tt>.  The other two
+	    arguments must be given as keyword arguments
+	    <tt class="verb">where</tt> and <tt class="verb">name</tt>, respectively.
+	    As a result of the call, a brand new appendable and
+	    readable file node object is returned.
+	  </p>
+	  <p>So let us create a new node file in the previously opened
+	    <tt class="verb">h5file</tt> <tt class="verb">PyTables</tt> file, named
+	    <tt class="verb">'fnode_test'</tt> and placed right under the root
+	    of the database hierarchy.  This is that command:
+	  </p>
+	  <pre>
+  &gt;&gt;&gt; fnode = FileNode.newNode(h5file, where='/', name='fnode_test')
+	  </pre>
 
-	<div class="figure" id="psycoWriteComparison"><a name="psycoWriteComparison"></a>
-	  <img class="graphics" alt="Writing tables with/without Psyco.&#xA;	  " src="write-medium-psyco-nopsyco-comparison-web.png">
-	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;5.1:</span> Writing tables with/without Psyco.
-	  </div></div>
+	  <p>That is basically all you need to create a file node.
+	    Simple, isn't it?  From that point on, you can use
+	    <tt class="verb">fnode</tt> as any opened Python file (i.e. you can
+	    write data, read data, lines of text and so on).
+	  </p>
+
+	  <p><tt class="verb">newNode()</tt> accepts some more keyword
+	    arguments.  You can give a title to your file with the
+	    <tt class="verb">title</tt> argument.  You can use
+	    <tt class="verb">PyTables</tt>' compression features with the
+	    <tt class="verb">filters</tt> argument.  If you know beforehand the
+	    size that your file will have, you can give its final file
+	    size in bytes to the <tt class="verb">expectedsize</tt> argument so
+	    that the <tt class="verb">PyTables</tt> library would be able to
+	    optimise the data access.
+	  </p>
+
+	  <p><tt class="verb">newNode()</tt> creates a <tt class="verb">PyTables</tt>
+	    node where it is told to.  To prove it, we will try to get
+	    the <tt class="verb">_type</tt> attribute from the newly created
+	    node.
+	  </p>
+	  <pre>
+  &gt;&gt;&gt; print h5file.getAttrNode('/fnode_test', '_type')
+  file
+	  </pre>
 	</div>
 
-	<div class="figure" id="psycoReadComparison"><a name="psycoReadComparison"></a>
-	  <img class="graphics" alt="Reading tables with/without Psyco.&#xA;	  " src="read-medium-psyco-nopsyco-comparison-web.png">
-	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;5.2:</span> Reading tables with/without Psyco.
-	  </div></div>
+	<div>
+	  <h3 id="subsection5.4.2"><span class="headlinenumber"><a name="subsection5.4.2"></a>5.4.2 </span>Using a file node</h3>
+
+	  <p class="first">As stated above, you can use the new node file as any
+	    other opened file.  Let us try to write some text in and
+	    read it.
+	  </p>
+	  <pre>
+  &gt;&gt;&gt; print &gt;&gt; fnode, "This is a test text line."
+  &gt;&gt;&gt; print &gt;&gt; fnode, "And this is another one."
+  &gt;&gt;&gt; print &gt;&gt; fnode
+  &gt;&gt;&gt; fnode.write("Of course, file methods can also be used.")
+  &gt;&gt;&gt; 
+  &gt;&gt;&gt; fnode.seek(0)  # Go back to the beginning of file.
+  &gt;&gt;&gt; 
+  &gt;&gt;&gt; for line in fnode:
+  ...   print repr(line)
+  'This is a test text line.\n'
+  'And this is another one.\n'
+  '\n'
+  'Of course, file methods can also be used.'
+	  </pre>
+
+	  <p>This was run on a Unix system, so newlines are expressed
+	    as <tt class="verb">'\n'</tt>.  In fact, you can override the line
+	    separator for a file by setting its
+	    <tt class="verb">lineSeparator</tt> property to any string you
+	    want.
+	  </p>
+
+	  <p>While using a file node, you should take care of closing
+	    it <b>before</b> you close the
+	    <tt class="verb">PyTables</tt> host file.  Because of the way
+	    <tt class="verb">PyTables</tt> works, your data it will not be at a
+	    risk, but every operation you execute after closing the
+	    host file will fail with a <tt class="verb">ValueError</tt>.  To
+	    close a file node, simply delete it or call its
+	    <tt class="verb">close()</tt> method.
+	  </p>
+	  <pre>
+  &gt;&gt;&gt; fnode.close()
+  &gt;&gt;&gt; print fnode.closed
+  True
+	  </pre>
+	</div>
+
+	<div>
+	  <h3 id="subsection5.4.3"><span class="headlinenumber"><a name="subsection5.4.3"></a>5.4.3 </span>Opening an existing file node</h3>
+
+	  <p class="first">If you have a file node that you created using
+	    <tt class="verb">newNode()</tt>, you can open it later by calling
+	    <tt class="verb">openNode()</tt>.  Its arguments are similar to
+	    that of <tt class="verb">file()</tt> or <tt class="verb">open()</tt>: the
+	    first argument is the <tt class="verb">PyTables</tt> node that you
+	    want to open (i.e. a node with a <tt class="verb">_type</tt>
+	    attribute having a <tt class="verb">'file'</tt> value), and the
+	    second argument is a mode string indicating how to open
+	    the file.  Contrary to <tt class="verb">file()</tt>,
+	    <tt class="verb">openNode()</tt> can not be used to create a new
+	    file node.
+	  </p>
+
+	  <p>File nodes can be opened in read-only mode
+	    (<tt class="verb">'r'</tt>) or in read-and-append mode
+	    (<tt class="verb">'a+'</tt>).  Reading from a file node is allowed
+	    in both modes, but appending is only allowed in the second
+	    one.  Just like Python files do, writing data to an
+	    appendable file places it after the file pointer if it is
+	    on or beyond the end of the file, or otherwise after the
+	    existing data.  Let us see an example:
+	  </p>
+	  <pre>
+  &gt;&gt;&gt; node = h5file.root.fnode_test
+  &gt;&gt;&gt; fnode = FileNode.openNode(node, 'a+')
+  &gt;&gt;&gt; print repr(fnode.readline())
+  'This is a test text line.\n'
+  &gt;&gt;&gt; print fnode.tell()
+  26
+  &gt;&gt;&gt; print &gt;&gt; fnode, "This is a new line."
+  &gt;&gt;&gt; print repr(fnode.readline())
+  ''
+	  </pre>
+
+	  <p>Of course, the data append process places the pointer at
+	    the end of the file, so the last <tt class="verb">readline()</tt>
+	    call hit <tt class="verb">EOF</tt>.  Let us seek to the beginning
+	    of the file to see the whole contents of our file.
+	  </p>
+	  <pre>
+  &gt;&gt;&gt; fnode.seek(0)
+  &gt;&gt;&gt; for line in fnode:
+  ...   print repr(line)
+  'This is a test text line.\n'
+  'And this is another one.\n'
+  '\n'
+  'Of course, file methods can also be used.This is a new line.\n'
+	  </pre>
+
+	  <p>As you can check, the last string we wrote was correctly
+	    appended at the end of the file, instead of overwriting
+	    the second line, where the file pointer was positioned by
+	    the time of the appending.
+	  </p>
+	</div>
+
+	<div>
+	  <h3 id="subsection5.4.4"><span class="headlinenumber"><a name="subsection5.4.4"></a>5.4.4 </span>Adding metadata to a file node</h3>
+
+	  <p class="first">You can associate arbitrary metadata to any open node
+	    file, regardless of its mode, as long as the host
+	    <tt class="verb">PyTables</tt> file is writable.  Of course, you
+	    could use the <tt class="verb">setAttrNode()</tt> method of
+	    <tt class="verb">tables.File</tt> to do it directly on the proper
+	    node, but <tt>FileNode</tt> offers a
+	    much more comfortable way to do it.  <tt class="verb">FileNode</tt>
+	    objects have an <tt class="verb">attrs</tt> property which gives
+	    you direct access to their corresponding
+	    <tt class="verb">AttributeSet</tt> object.
+	  </p>
+
+	  <p>For instance, let us see how to associate MIME type
+	    metadata to our file node:
+	  </p>
+	  <pre>
+  &gt;&gt;&gt; fnode.attrs.content_type = 'text/plain; charset=us-ascii'
+	  </pre>
+
+	  <p>As simple as A-B-C.  You can put nearly anything in an
+	    attribute, which opens the way to authorship, keywords,
+	    permissions and more.  Moreover, there is not a fixed list
+	    of attributes.  However, you should avoid names in all
+	    caps or starting with <tt class="verb">'_'</tt>, since
+	    <tt class="verb">PyTables</tt> and <tt>FileNode</tt> may use them internally.
+	    Some valid examples:
+	  </p>
+
+	  <pre> 
+  &gt;&gt;&gt; fnode.attrs.author = "Ivan Vilata i Balaguer"
+  &gt;&gt;&gt; fnode.attrs.creation_date = '2004-10-20T13:25:25+0200'
+  &gt;&gt;&gt; fnode.attrs.keywords_en = ["FileNode", "test", "metadata"]
+  &gt;&gt;&gt; fnode.attrs.keywords_ca = ["FileNode", "prova", "metadades"]
+  &gt;&gt;&gt; fnode.attrs.owner = 'ivan'
+  &gt;&gt;&gt; fnode.attrs.acl = {'ivan': 'rw', '@users': 'r'}
+	  </pre>
+
+	  <p>You can check that these attributes get stored by running
+	    the <tt class="verb">ptdump</tt> command on the host
+	    <tt class="verb">PyTables</tt> file:
+	  </p>
+	  <pre>
+  $ ptdump -a fnode.h5:/fnode_test
+  /fnode_test (EArray(113, 1)) ''
+    /fnode_test.attrs (AttributeSet), 14 attributes:
+     [CLASS := 'EARRAY',
+      EXTDIM := 0,
+      FLAVOR := 'NumArray',
+      TITLE := '',
+      VERSION := '1.0',
+      _type := 'file',
+      _type_version := 1,
+      acl := {'ivan': 'rw', '@users': 'r'},
+      author := 'Ivan Vilata i Balaguer',
+      content_type := 'text/plain; charset=us-ascii',
+      creation_date := '2004-10-20T13:25:25+0200',
+      keywords_ca := ['FileNode', 'prova', 'metadades'],
+      keywords_en := ['FileNode', 'test', 'metadata'],
+      owner := 'ivan']
+	  </pre>
+
+	  <p>Please note that <tt>FileNode</tt>
+	    makes no assumptions about the meaning of your metadata,
+	    so its handling is entirely left to your needs and
+	    imagination.
+	  </p>
+	</div>
+      </div>
+
+      <div>
+	<h2 id="section5.5"><span class="headlinenumber"><a name="section5.5"></a>5.5 </span>Complementary notes</h2>
+
+	<p class="first">You can use <tt class="verb">FileNodes</tt> and
+	  <tt class="verb">PyTables</tt> groups to mimic a filesystem with
+	  files and directories.  Since you can store nearly anything
+	  you want as file metadata, this enables you to use a
+	  <tt class="verb">PyTables</tt> file as a portable compressed backup,
+	  even between radically different platforms.  Take this with
+	  a grain of salt, since node files are restricted in their
+	  naming (only valid Python identifiers are valid); however,
+	  remember that you can use node titles and metadata to
+	  overcome this limitation.  Also, you may need to devise some
+	  strategy to represent special files such as devices, sockets
+	  and such (not necessarily using <tt>FileNode</tt>).
+	</p>
+
+	<p>We are eager to hear your opinion about <tt>FileNode</tt> and its potential uses.
+	  Suggestions to improve <tt>FileNode</tt>
+	  and create other node types are also welcome.  Do not
+	  hesitate to contact us!
+	</p>
+
+      </div>
+
+      <div>
+	<h2 id="section5.6"><span class="headlinenumber"><a name="section5.6"></a>5.6 </span><tt>FileNode</tt> module
+	  reference</h2>
+
+	<div>
+	  <h3 id="subsection5.6.1"><span class="headlinenumber"><a name="subsection5.6.1"></a>5.6.1 </span>Global constants</h3>
+
+	  <dl>
+	    <dt>NodeType</dt> <dd>Value for <tt class="verb">_type</tt>
+	      node attribute.</dd>
+
+	    <dt>NodeTypeVersions</dt> <dd>Supported values for
+	      <tt class="verb">_type_version</tt> node attribute.</dd>
+	  </dl>
+
+	</div>
+
+	<div>
+	  <h3 id="subsection5.6.2"><span class="headlinenumber"><a name="subsection5.6.2"></a>5.6.2 </span>Global functions</h3>
+
+	  <div>
+	    <h4 id="subsubsection5.6.2.1">newNode(h5file, where, name, title="",
+	      filters=None, expectedsize=1000)</h4>
+	    
+	    <p class="first">Creates a new file node object in the specified
+	      <tt class="verb">PyTables</tt> file object.  Additional named
+	      arguments <tt class="verb">where</tt> and <tt class="verb">name</tt> must
+	      be passed to specify where the file node is to be
+	      created.  Other named arguments such as
+	      <tt class="verb">title</tt> and <tt class="verb">filters</tt> may also be
+	      passed. The special named argument
+	      <tt class="verb">expectedsize</tt>, indicating an estimate of the
+	      file size in bytes, may also be passed. It returns the
+	      filenode object.
+	    </p>
+	  </div>
+
+	  <div>
+	    <h4 id="subsubsection5.6.2.2">openNode(node, mode = 'r')</h4>
+
+	    <p class="first">Opens an existing file node. Returns a file node object
+	      from the existing specified PyTables node.  If mode is
+	      not specified or it is <tt class="verb">'r'</tt>, the file can
+	      only be read, and the pointer is positioned at the
+	      beginning of the file.  If mode is <tt class="verb">'a+'</tt>,
+	      the file can be read and appended, and the pointer is
+	      positioned at the end of the file.
+	    </p>
+
+	  </div>
+	</div> 
+
+	<div>
+	  <h3 id="subsection5.6.3"><span class="headlinenumber"><a name="subsection5.6.3"></a>5.6.3 </span>The <tt>FileNode</tt>
+	    abstract class</h3>
+
+	  <p class="first">This is the ancestor of <tt class="verb">ROFileNode</tt> and
+	    <tt class="verb">RWFileNode</tt> (see below). Instances of these
+	    classes are returned when <tt class="verb">newNode()</tt> or
+	    <tt class="verb">openNode()</tt> are called. It represents a new
+	    file node associated with a <tt class="verb">PyTables</tt> node,
+	    providing a standard Python file interface to it.
+	  </p>
+	  <p>This abstract class provides only an implementation of
+	    the reading methods needed to implement a file-like object
+	    over a <tt class="verb">PyTables</tt> node.  The attribute set of
+	    the node becomes available via the <tt class="verb">attrs</tt>
+	    property.  You can add attributes there, but try to avoid
+	    attribute names in all caps or starting with
+	    <tt class="verb">'_'</tt>, since they may clash with internal
+	    attributes.
+	  </p>
+	  <p>The node used as storage is also made available via the
+	    read-only attribute <tt class="verb">node</tt>.  Please do not
+	    tamper with this object unless unavoidably, since you may
+	    break the operation of the file node object.
+	  </p>
+	  <p>The <tt class="verb">lineSeparator</tt> property contains the
+	    string used as a line separator, and defaults to
+	    <tt class="verb">os.linesep</tt>.  It can be set to any
+	    reasonably-sized string you want.
+	  </p>
+	  <p>The constructor sets the <tt class="verb">closed</tt>,
+	    <tt class="verb">softspace</tt> and <tt class="verb">_lineSeparator</tt>
+	    attributes to their initial values, as well as the
+	    <tt class="verb">node</tt> attribute to <tt class="verb">None</tt>.
+	    Sub-classes should set the <tt class="verb">node</tt>,
+	    <tt class="verb">mode</tt> and <tt class="verb">offset</tt> attributes.
+	  </p>
+	  <p>Version 1 implements the file storage as a
+	    <tt class="verb">UInt8</tt> uni-dimensional <tt class="verb">EArray</tt>.
+	  </p>
+
+	  <div>
+	    <h4 id="subsubsection5.6.3.1"><tt>FileNode</tt>
+	      methods</h4>
+
+	    <dl>
+
+	      <dt>getLineSeparator()</dt> <dd>Returns the line
+		separator string.</dd>
+
+	      <dt>setLineSeparator()</dt> <dd>Sets the line
+		separator string.</dd>
+
+	      <dt>getAttrs()</dt> <dd>Returns the attribute set
+		of the file node.</dd>
+
+	      <dt>close()</dt> <dd>Flushes the file and closes
+		it.  The <tt class="verb">node</tt> attribute becomes
+		<tt class="verb">None</tt> and the <tt class="verb">attrs</tt> property
+		becomes no longer available.</dd>
+
+	      <dt>next()</dt> <dd>Returns the next line of text.
+		Raises <tt class="verb">StopIteration</tt> when lines are
+		exhausted.  See <tt class="verb">file.next.__doc__</tt> for
+		more information.</dd>
+
+	      <dt>read(size=None)</dt> <dd>Reads at most
+		<tt class="verb">size</tt> bytes.  See
+		<tt class="verb">file.read.__doc__</tt> for more
+		information</dd>
+
+	      <dt>readline(size=-1)</dt> <dd>Reads the next text
+		line.  See <tt class="verb">file.readline.__doc__</tt> for more
+		information</dd>
+
+	      <dt>readlines(sizehint=-1)</dt> <dd>Reads the text
+		lines.  See <tt class="verb">file.readlines.__doc__</tt> for
+		more information.</dd>
+
+	      <dt>seek(offset, whence=0)</dt> <dd>Moves to a new
+		file position.  See <tt class="verb">file.seek.__doc__</tt> for
+		more information.</dd>
+
+	      <dt>tell()</dt> <dd> Gets the current file
+		position.  See <tt class="verb">file.tell.__doc__</tt> for more
+		information.</dd>
+
+	      <dt>xreadlines()</dt> <dd>For backward
+		compatibility.  See
+		<tt class="verb">file.xreadlines.__doc__</tt> for more
+		information.</dd>
+
+	    </dl>
+
+	  </div>
+
+	</div>
+
+	<div>
+	  <h3 id="subsection5.6.4"><span class="headlinenumber"><a name="subsection5.6.4"></a>5.6.4 </span>The <tt>ROFileNode</tt>
+	    class</h3>
+
+	  <p class="first">Instances of this class are returned when
+	    <tt class="verb">openNode()</tt> is called in read-only mode
+	    (<tt class="verb">'r'</tt>). This is a descendant of
+	    <tt class="verb">FileNode</tt> class, so it inherits all its
+	    methods. Moreover, it does not define any other useful
+	    method, just some protections against users intents to
+	    write on file.
+	  </p>
+
+	</div>
+
+	<div>
+	  <h3 id="subsection5.6.5"><span class="headlinenumber"><a name="subsection5.6.5"></a>5.6.5 </span>The <tt>RWFileNode</tt>
+	    class</h3>
+
+	  <p class="first">Instances of this class are returned when either
+	    <tt class="verb">newNode()</tt> is called or when
+	    <tt class="verb">openNode()</tt> is called in append mode
+	    (<tt class="verb">'a+'</tt>). This is a descendant of
+	    <tt class="verb">FileNode</tt> class, so it inherits all its
+	    methods. It provides additional methods that allow to
+	    write on file nodes.
+	  </p>
+
+	  <dl>
+
+	    <dt>flush()</dt> <dd>Flushes the file node.  See
+	      <tt class="verb">file.flush.__doc__</tt> for more
+	      information.</dd>
+
+	    <dt>truncate(size=None)</dt> <dd>Truncates the file
+	      node to at most <tt class="verb">size</tt> bytes. Currently, this
+	      method only makes sense to grow the file node, since
+	      data can not be rewritten nor deleted.  See
+	      <tt class="verb">file.truncate.__doc__</tt> for more
+	      information.</dd>
+
+	    <dt>write(string)</dt> <dd>Writes the string to the
+		file.  Writing an empty string does nothing, but
+		requires the file to be open.  See
+		<tt class="verb">file.write.__doc__</tt> for more
+		information.</dd>
+
+	    <dt>writelines(sequence)</dt> <dd>Writes the
+		sequence of strings to the file.  See
+		<tt class="verb">file.writelines.__doc__</tt> for more
+		information.</dd>
+
+	  </dl>
+
 	</div>
 
       </div> 
-
-      <div id="compressionIssues"><a name="compressionIssues"></a>
-	<h2 id="section5.2"><span class="headlinenumber"><a name="section5.2"></a>5.2 </span>Compression issues</h2>
-
-	<p class="first">One of the beauties of <tt class="verb">PyTables</tt> is that it
-	  supports compression on tables (but not on arrays!, that may
-	  come later), although it is disabled by default. Compression
-	  of big amounts of data might be a bit controversial feature,
-	  because compression has a legend of being a very big CPU
-	  time resources consumer. However, if you are willing to
-	  check if compression can help not only reducing your dataset
-	  file size but <b>also</b> improving
-	  your I/O efficiency, keep reading.
-	</p>
-
-	<p>There is an usual scenario where users need to save
-	  duplicated data in some record fields, while the others
-	  have varying values. In a relational database approach
-	  such a redundant data can normally be moved to other
-	  tables and a relationship between the rows on the separate
-	  tables can be created. But that takes analysis and
-	  implementation time, and made the underlying libraries
-	  more complex and slower.
-	</p>
-
-	<p><tt class="verb">PyTables</tt> transparent compression allows the
-	  user to not worry about finding which is their optimum data
-	  tables strategy, but rather use less, not directly related,
-	  tables with a larger number of columns while still not
-	  cluttering the database too much with duplicated data
-	  (compression is responsible to avoid that). As a side
-	  effect, data selections can be made more easily because you
-	  have more fields available in a single table, and they can
-	  be referred in the same loop. This process may normally end
-	  in a simpler, yet powerful manner to process your data
-	  (although you should still be careful about what kind of
-	  scenarios compression use is convenient or not).
-	</p>
-
-	<p>The compression library used by default is the <b>Zlib</b> (see <a href="#zlibRef"></a>), and as HDF5 <em>requires</em>
-	  it, you can safely use it and expect that your HDF5 files
-	  can be read on any other platform that has HDF5 libraries
-	  installed. Zlib provides good compression ratio, although
-	  somewhat slow, and reasonably fast decompression. Because
-	  of that, it is a good candidate to be used for compress
-	  you data.
-	</p>
-
-	<p>However, in many situations (i.e. write <em>once</em>, read
-	  <em>multiple</em>), it is critical to have <em>very
-	  good</em> decompression speed (at expense of whether less
-	  compression or more CPU wasted on compression, as we will
-	  see soon). This is why support for two additional
-	  compressors has been added to PyTables: LZO and UCL (see
-	  <a href="#lzouclRef"></a>). Following his author (and
-	  checked by the author of this manual), LZO offers pretty
-	  fast compression (although small compression ratio) and
-	  extremely fast decompression while UCL achieve an excellent
-	  compression ratio (at the price of spending much more CPU
-	  time) while allowing very fast decompression (and <em>very
-	  close</em> to the LZO one). In fact, LZO and UCL are so fast
-	  when decompressing that, in general (that depends on your
-	  data, of course), writing and reading a compressed table is
-	  actually faster (and sometimes <b>much
-	  faster</b>) than if it is uncompressed. This fact is
-	  very important, specially if you have to deal with very
-	  large amounts of data.
-	</p>
-
-	<p>Be aware that the LZO and UCL support in PyTables is not
-	  standard on HDF5, so if you are going to use your PyTables
-	  files in other contexts different from PyTables you will not
-	  be able to read them. Still, see the <a href="usersguide8.html#ptrepackDescr">appendix&nbsp;C.2</a> where the
-	  <tt class="verb">ptrepack</tt> utility is described to find a way to
-	  free your files from LZO or UCL dependencies, so that you
-	  can use these compressors locally with the guaranty that you
-	  can replace them by ZLIB (or even remove compression
-	  completely) if you want to export the files to other HDF5
-	  tools afterwards.
-	</p>
-
-	<p>In order to give you a raw idea of what ratios would be
-	  achieved, and what resources would be consumed, look at the
-	  <a href="#comprTblComparison">table&nbsp;5.1</a>. This table has
-	  been obtained from synthetic data and with a somewhat
-	  outdated PyTables version (0.5), so take this just as a
-	  guide because your mileage will probably vary. Have also a
-	  look at the graphs <a href="#lzozlibuclWriteComparison">5.3</a> and <a href="#lzozlibuclReadComparison">5.4</a> (these graphs has
-	  been obtained with tables with different row sizes and
-	  PyTables version than the previous example, so, do not try
-	  to directly compare the figures). They show how evolves the
-	  speed of writing/reading rows as the size (the row number)
-	  of tables grows. Even though in these graphs the size of one
-	  single row is 56 bytes, you can most probably extrapolate
-	  this figures to other row sizes. If you are curious how well
-	  can perform compression together with Psyco, look at the
-	  graphs <a href="#psycolzozlibuclWriteComparison">5.5</a>
-	  and <a href="#psycolzozlibuclReadComparison">5.6</a>. As
-	  you can see, the results are pretty interesting.
-	</p>
-
-	<div class="table" id="comprTblComparison"><a name="comprTblComparison"></a>
-	  
-	  <table class="tabular" cellspacing="0" cellpadding="5" frame="hsides" rules="groups"><caption><span class="captionlabel">Table&nbsp;5.1:</span> Comparison between different compression
-	    libraries. The tests has been conducted on a Pentium 4 at 2
-	    GHz and a hard disk at 4200 RPM.</caption><col align="left"><col align="center"><col align="center"><col align="center"><col align="center"><col align="center">
-	    <thead><tr><td colspan="6" class="thickline"></td></tr>
-	      <tr><th align="left">Compr. Lib</th><th align="center">File size (MB)</th><th align="center">Time writing (s)</th><th align="center">Time reading (s)</th><th align="center">Speed writing (Krow/s)</th><th align="center">Speed reading (Krow/s)</th></tr>
-	    <tr><td colspan="6" class="thinline"></td></tr></thead>
-	    <tbody>
-	      <tr><td align="left">NO COMPR</td><td align="center">244.0</td><td align="center">24.4</td><td align="center">16.0</td><td align="center">18.0</td><td align="center">27.8</td></tr>
-	      <tr><td align="left">Zlib (lvl 1)</td><td align="center">8.5</td><td align="center">17.0</td><td align="center">3.11</td><td align="center">26.5</td><td align="center">144.4</td></tr>
-	      <tr><td align="left">Zlib (lvl 6)</td><td align="center">7.1</td><td align="center">20.1</td><td align="center">3.10</td><td align="center">22.4</td><td align="center">144.9</td></tr>
-	      <tr><td align="left">Zlib (lvl 9)</td><td align="center">7.2</td><td align="center">42.5</td><td align="center">3.10</td><td align="center">10.6</td><td align="center">145.1</td></tr>
-	      <tr><td align="left">LZO (lvl 1)</td><td align="center">9.7</td><td align="center">14.6</td><td align="center">1.95</td><td align="center">30.6</td><td align="center">230.5</td></tr>
-	      <tr><td align="left">UCL (lvl 1)</td><td align="center">6.9</td><td align="center">38.3</td><td align="center">2.58</td><td align="center">11.7</td><td align="center">185.4</td></tr>
-	    <tr><td colspan="6" class="thickline"></td></tr></tbody>
-	  </table>
-	  
-	</div>
-
-	<div class="figure" id="lzozlibuclWriteComparison"><a name="lzozlibuclWriteComparison"></a>
-	  <img class="graphics" alt="Writing tables with several compressors.&#xA;	  " src="write-medium-lzo-zlib-ucl-comparison-web.png">
-	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;5.3:</span> Writing tables with several compressors.
-	  </div></div>
-	</div>
-
-	<div class="figure" id="lzozlibuclReadComparison"><a name="lzozlibuclReadComparison"></a>
-	  <img class="graphics" alt="Reading tables with several compressors.&#xA;	  " src="read-medium-lzo-zlib-ucl-comparison-web.png">
-	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;5.4:</span> Reading tables with several compressors.
-	  </div></div>
-	</div>
-
-	<div class="figure" id="psycolzozlibuclWriteComparison"><a name="psycolzozlibuclWriteComparison"></a>
-	  <img class="graphics" alt="Writing tables with several compressors and Psyco.&#xA;	  " src="write-medium-psyco-lzo-zlib-ucl-comparison-web.png">
-	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;5.5:</span> Writing tables with several compressors and Psyco.
-	  </div></div>
-	</div>
-
-	<div class="figure" id="psycolzozlibuclReadComparison"><a name="psycolzozlibuclReadComparison"></a>
-	  <img class="graphics" alt="Reading tables with several compressors and Psyco.&#xA;	  " src="read-medium-psyco-lzo-zlib-ucl-comparison-web.png">
-	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;5.6:</span> Reading tables with several compressors and Psyco.
-	  </div></div>
-	</div>
-
-	<p>
-	  By looking at graphs, you can expect that, generally
-	  speaking, LZO would be the fastest both compressing and
-	  uncompressing, but the one that achieves the worse
-	  compression ratio (although that may be just ok for many
-	  situations). UCL is the slowest when compressing, but is
-	  faster than Zlib when decompressing, and, besides, it
-	  achieves very good compression ratios (generally better than
-	  Zlib). Zlib represents a balance between them: it's somewhat
-	  slow compressing, the slowest during decompressing, but it
-	  normally achieves fairly good compression ratios.
-	</p>
-
-	<p>So, if your ultimate goal is reading as fast as possible,
-	  choose LZO. If you want to reduce as much as possible your
-	  data, while retaining good read speed, choose UCL. If you
-	  don't mind too much about the above parameters and/or
-	  portability is important for you, Zlib is your best bet.
-	</p>
-
-	<p>The compression level that I recommend to use for all
-	  compression libraries is 1. This is the lowest level of
-	  compression, but if you take the approach suggested above,
-	  normally the redundant data is to be found in the same
-	  row, so the redundant data locality is very high and such
-	  a small level of compression should be enough to achieve a
-	  good compression ratio on your data tables, saving CPU
-	  cycles for doing other things. Nonetheless, in some
-	  situations you may want to check how compression level
-	  affects your application.
-	</p>
-
-	<p> You can select the compression library and level by
-	  setting the <tt class="verb">complib</tt> and <tt class="verb">compress</tt>
-	  keywords in the <tt class="verb">Filters</tt> class (see <a href="usersguide4.html#FiltersClassDescr">4.12.1</a>). A compression level of 0
-	  will completely disable compression (the default), 1 is the
-	  less CPU time demanding level, while 9 is the maximum level
-	  and most CPU intensive. Finally, have in mind that LZO is
-	  not accepting a compression level right now, so, when using
-	  LZO, 0 means that compression is not active, and any other
-	  value means that LZO is active.
-	</p>
-
-      </div>
-
-      <div>
-	<h2 id="section5.3"><span class="headlinenumber"><a name="section5.3"></a>5.3 </span>Shuffling (or how to make the compression process
-	  more effective)</h2>
-
-	<p class="first">The <tt class="verb">HDF5</tt> library provides an interesting
-	  filter that can leverage the results of your favorite
-	  compressor. Its name is <em>shuffle</em>, and because it can
-	  greatly benefit compression and don't take many CPU
-	  resources, it is active by <em>default</em> in
-	  <tt class="verb">PyTables</tt> whenever the compression is activated
-	  (independently of the compressor choosed). It is of course
-	  deactivated when compression is off (which is the default,
-	  as you already should know).
-	</p>
-
-	<p>From the HDF5 reference manual:</p>
-
-	<blockquote>The <em>shuffle</em> filter de-interlaces a block of data
-	  by reordering the bytes. All the bytes from one consistent
-	  byte position of each data element are placed together in
-	  one block; all bytes from a second consistent byte position
-	  of each data element are placed together a second block;
-	  etc. For example, given three data elements of a 4-byte
-	  datatype stored as 012301230123, shuffling will re-order
-	  data as 000111222333. This can be a valuable step in an
-	  effective compression algorithm because the bytes in each
-	  byte position are often closely related to each other and
-	  putting them together can increase the compression
-	  ratio.
-	</blockquote>
-
-	<p>In <a href="#comprShuffleComparison">table&nbsp;5.2</a> you can
-	  see a benchmark that shows how the <em>shuffle</em> filter
-	  can help to the different libraries to compress data in
-	  three table datasets. Generally speaking, <em>shuffle</em>
-	  makes the writing process (shuffling+compressing) faster
-	  (between 7% and 22%), which is an interesting result in
-	  itself. However, the reading process
-	  (unshuffling+decompressing) is slower, but by a lesser
-	  extent (between 3% and 18%).
-	</p>
-	<p>But the most remarkable fact is the level of compression
-	  that compressor filters can achieve after <em>shuffle</em>
-	  has passed over the data: the total file size can be up to
-	  40 times smaller than the uncompressed file, and up to 5
-	  times smaller than the already compressed files (!). Of
-	  course, the data for doing this test is synthetic, and
-	  <em>shuffle</em> seems to do a great work with it, so in
-	  general, the results will vary in your case. However, due to
-	  the small drawbacks (read are slowed down by a small extent)
-	  and its potential gains (faster writing, but specially much
-	  better compression level), I do believe that it is a good
-	  thing to have such a filter enabled by default in the battle
-	  for discovering redundancy in your data.
-	</p>
-
-	<div class="table" id="comprShuffleComparison"><a name="comprShuffleComparison"></a>
-	  
-	  <table class="tabular" cellspacing="0" cellpadding="5" frame="hsides" rules="groups"><caption><span class="captionlabel">Table&nbsp;5.2:</span> Comparison between different compression
-	    libraries. The tests has been conducted on a Pentium 4 at 2
-	    GHz and a hard disk at 4200 RPM.</caption><col align="left"><col align="right"><col align="center"><col align="center"><col align="center"><col align="center">
-	    <thead><tr><td colspan="6" class="thickline"></td></tr>
-	      <tr><th align="left">Compr. Lib</th><th align="right">File size (MB)</th><th align="center">Time writing (s)</th><th align="center">Time reading (s)</th><th align="center">Speed writing (MB/s)</th><th align="center">Speed reading (MB/s)</th></tr>
-	    <tr><td colspan="6" class="thinline"></td></tr></thead>
-	    <tbody>
-	      <tr><td align="left">NO COMPR</td><td align="right">165.4</td><td align="center">24.5</td><td align="center">17.13</td><td align="center">6.6</td><td align="center">9.6</td></tr>
-	      <tr><td align="left">Zlib (lvl 1)</td><td align="right">26.4</td><td align="center">22.2</td><td align="center">5.77</td><td align="center">7.3</td><td align="center">28.4</td></tr>
-	      <tr><td align="left">Zlib+shuffle</td><td align="right">4.0</td><td align="center">19.0</td><td align="center">5.94</td><td align="center">8.6</td><td align="center">27.6</td></tr>
-	      <tr><td align="left">LZO (lvl 1)</td><td align="right">44.9</td><td align="center">17.8</td><td align="center">4.13</td><td align="center">9.2</td><td align="center">39.7</td></tr>
-	      <tr><td align="left">LZO+shuffle</td><td align="right">4.3</td><td align="center">16.4</td><td align="center">5.03</td><td align="center">9.9</td><td align="center">32.6</td></tr>
-	      <tr><td align="left">UCL (lvl 1)</td><td align="right">27.4</td><td align="center">48.8</td><td align="center">5.02</td><td align="center">3.3</td><td align="center">32.7</td></tr>
-	      <tr><td align="left">UCL+shuffle</td><td align="right">3.5</td><td align="center">38.1</td><td align="center">5.31</td><td align="center">4.3</td><td align="center">30.9</td></tr>
-	    <tr><td colspan="6" class="thickline"></td></tr></tbody>
-	  </table>
-	  
-	</div>
-
-
-
-      </div> 
-
-      <div id="expectedRowsOptim"><a name="expectedRowsOptim"></a>
-	<h2 id="section5.4"><span class="headlinenumber"><a name="section5.4"></a>5.4 </span>Informing <tt>PyTables</tt>
-	  about expected number of rows in tables</h2>
-
-	<p class="first">The underlying HDF5 library that is used by
-	  <tt class="verb">PyTables</tt> takes the data in bunches of a
-	  certain length, so-called <em>chunks</em>, to write them
-	  on disk as a whole, i.e. the HDF5 library treats chunks as
-	  atomic objects and disk I/O is always made in terms of
-	  complete chunks. This allows data filters to be defined by
-	  the application to perform tasks such as compression,
-	  encryption, checksumming, etc. on entire chunks.
-	</p>
-
-	<p>An in-memory B-tree is used to map chunk structures on
-	  disk. The more chunks that are allocated for a dataset the
-	  larger the B-tree. Large B-trees take memory and causes
-	  file storage overhead as well as more disk I/O and higher
-	  contention for the metadata cache. Consequently, it's
-	  important to balance between memory and I/O overhead
-	  (small B-trees) and time to access to data (big B-trees).
-	</p>
-
-	<p><tt class="verb">PyTables</tt> can determine an optimum chunk size
-	  to make B-trees adequate to your dataset size if you help
-	  it by providing an estimation of the number of rows for a
-	  table. This must be made in table creation time by passing
-	  this value in the <tt class="verb">expectedrows</tt> keyword of
-	  <tt class="verb">createTable</tt> method (see <a href="#createTableDescr"><strong>??</strong></a>).
-	</p>
-
-	<p>When your table size is bigger than 1 MB (take this figure
-	  only as a reference, not strictly), by providing this guess
-	  of the number of rows you will be optimizing the access to
-	  your data. When the table size is larger than, say 100MB,
-	  you are <b>strongly</b> suggested to
-	  provide such a guess; failing to do that may cause your
-	  application doing very slow I/O operations and demanding
-	  <b>huge</b> amounts of memory. You
-	  have been warned!.
-	</p>
-
-      </div>
-
-      <div>
-	<h2 id="section5.5"><span class="headlinenumber"><a name="section5.5"></a>5.5 </span>Selecting an User Entry Point (UEP) in your
-	  tree</h2>
-
-	<p class="first">If you have a <b>huge</b> tree in
-	  your data file with many nodes on it, creating the object
-	  tree would take long time. Many times, however, you are
-	  interested only in access to a part of the complete tree, so
-	  you won't strictly need PyTables to build the entire object
-	  tree in-memory, but only the <em>interesting</em> part.
-	</p>
-
-	<p>This is where the <tt class="verb">rootUEP</tt> parameter of
-	  <tt class="verb">openFile</tt> function (see <a href="#openFileDescr"><strong>??</strong></a>) can be helpful. Imagine that
-	  you have a file called <tt class="verb">"test.h5"</tt> with the
-	  associated tree that you can see in figure <a href="#rootUEPfig1">5.7</a>, and you are interested only in
-	  the section marked in red.  You can avoid the build of all
-	  the object tree by saying to <tt class="verb">openFile</tt> that your
-	  root will be the <tt class="verb">/Group2/Group3</tt> group. That is:
-	</p>
-	<pre>
-	  fileh = openFile("test.h5", rootUEP="/Group2/Group3")
-	</pre>
-
-	<p>As a result, the actual object tree built will be like the
-	  one that can be seen in <a href="#rootUEPfig2">figure&nbsp;5.8</a>.
-	</p>
-
-	<p>Of course this has been a simple example and the use
-	  of the <tt class="verb">rootUEP</tt> parameter was not very
-	  necessary. But when you have <em>thousands</em> of nodes on
-	  a tree, you will certainly appreciate the
-	  <tt class="verb">rootUEP</tt> parameter.
-	</p>
-
-	<div class="figure" id="rootUEPfig1"><a name="rootUEPfig1"></a>
-	  <img class="graphics" alt="Complete tree in file test.h5, and subtree of interest for&#xA;	    the us..." src="rootUEP1-web.png">
-	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;5.7:</span> Complete tree in file <tt>test.h5</tt>, and subtree of interest for
-	    the user.
-	  </div></div>
-	</div>
-
-	<div class="figure" id="rootUEPfig2"><a name="rootUEPfig2"></a>
-	  <img class="graphics" alt="Resulting object tree derived from the use of the&#xA;	    rootUEP paramet..." src="rootUEP2-web.png">
-	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;5.8:</span> Resulting object tree derived from the use of the
-	    <tt>rootUEP</tt> parameter.
-	  </div></div>
-	</div>
-	
-      </div>
-
-      <div>
-	<h2 id="section5.6"><span class="headlinenumber"><a name="section5.6"></a>5.6 </span>Compacting your <tt>PyTables</tt>
-	  files
-	</h2>
-
-	<p class="first">Let's suppose that you have a file on which you have made a
-	  lot of row deletions on one or more tables, or deleted many
-	  leaves or even entire subtrees. These operations migth leave
-	  <em>holes</em> (i.e. space that is not used anymore) in your
-	  files, that may potentially affect not only the size of the
-	  files but, more importantly, the performance of I/O. This is
-	  because when you delete a lot of rows on a table, the space
-	  is not automatically recovered on-the-flight. In addition,
-	  if you add many more rows to a table than specified in the
-	  <tt class="verb">expectedrows</tt> keyword in creation time this may
-	  affect performace as well as explained in <a href="#expectedRowsOptim">section&nbsp;5.4</a>.
-	</p>
-
-	<p>In order to cope with these issues, you should be aware
-	  that a handy <tt class="verb">PyTables</tt> utility called
-	  <tt class="verb">ptrepack</tt> can be very useful, not only to
-	  compact your already existing <em>leaky</em> files, but also
-	  to adjust some internal parameters (both in memory and in
-	  file) in order to create adequate buffer sizes and chunk
-	  sizes for optimum I/O speed. Please, check the <a href="usersguide8.html#ptrepackDescr">appendix&nbsp;C.2</a> for a brief tutorial on
-	  its use.
-	</p>
-
-	<p>Another thing that you might want to use
-	  <tt class="verb">ptrepack</tt> for is changing the compression
-	  filters or compression levels on your existing data for
-	  different goals, like checking how this can affect both
-	  final size and I/O performance, or getting ride of the
-	  optional compressors like <tt class="verb">LZO</tt> or
-	  <tt class="verb">UCL</tt> in your existing files in case you want to
-	  use them with generic HDF5 tools that does not have support
-	  for these filters.
-	</p>
-
-      </div>
 
     </div></div><div class="speedbar-bottom"><hr class="speedbar"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide4.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide6.html">next</a></td></tr></tbody></table></div></body></html>

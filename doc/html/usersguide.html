@@ -1,8 +1,8 @@
 <!DOCTYPE html
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xmlns:pref="http://www.w3.org/2002/Math/preference" lang="en"><head>
+<html lang="en"><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.8"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Date" content="2004-03-09T09:19:02+01:00"><meta name="Date" content="2004-03-09T09:19:02+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.9"><meta name="DC.Creator" content="Francesc Altet"><meta name="Author" content="Francesc Altet"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Creator" content="Ivan Vilata"><meta name="Author" content="Ivan Vilata"><meta name="DC.Creator" content="Tom Hedley"><meta name="Author" content="Tom Hedley"><meta name="DC.Date" content="2004-11-05T12:38:42+01:00"><meta name="Date" content="2004-11-05T12:38:42+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -15,7 +15,7 @@
     h1 { clear: both }
     h1.toc { clear: none }
     a:link, a:visited, a:active { text-decoration: none }
-    a:hover { text-decoration: underline; color: #0066FF; }
+    a:hover[href] { text-decoration: underline; color: #0066FF; }
     div.document, div.letter { margin-left: 80px; margin-right: 150px;
       padding-top: 3ex; padding-bottom: 5ex }
     div.authorlist { font-family: sans-serif;
@@ -33,7 +33,7 @@
     div.legalnotice { margin-top: 3ex; text-align: left }
     div.partheadline { font-size: xx-large; margin-top: 1ex; margin-bottom: 1ex }
     div.footnote { }
-    hr.footnoterule { text-align: left; width: 20%; color: black }
+    hr.footnoterule { text-align: left; width: 40%; margin-right: 60%; color: black }
     div.mathdisplay { text-align: center;
     margin-top: 2ex; margin-bottom: 2ex }
     div.figure, div.table, div.mathml-remark { margin-bottom: 3ex;
@@ -146,101 +146,8 @@ div.title { font-size: x-large; color: maroon }
 div.subtitle { font-size: x-large; color: olive }
 div.title-article { font-size: x-large }
 div.partheadline { font-size: x-large }
-</style></head><body><div class="document"><div class="header"><div class="authorlist"><span>Francesc&nbsp;Alted</span>&nbsp;&#8226; <span>Scott&nbsp;Prater</span></div><p></p><font size="7" face="Sans-Serif"><b><div class="title"><tt>PyTables</tt> User's Guide</div></b></font><p></p><div class="subtitle"><span style="font-family: sans-serif">Hierarchical datasets in
-      Python</span><br> Release 0.8</div><div class="legal">All rights reserved.<br>&copy;&nbsp;2002, 2003, 2004 Francesc&nbsp;Alted<br><div class="legalnotice">
-
-
-
-      <p class="first"><b>Copyright Notice and Statement for
-	  <tt class="verb">PyTables</tt> Software Library and
-	  Utilities</b> <div style="margin-bottom: 0.25cm"></div><p></p>
-      </p>
-
-      <p>Redistribution and use in source and binary forms, with or
-	without modification, are permitted provided that the
-	following conditions are met:
-
-	<div style="margin-bottom: 0.1cm"></div><p></p>
-      </p>
-
-      <p>1. Redistributions of source code must retain the above copyright
-	notice, this list of conditions and the following disclaimer.
-      </p>
-      <p>2. Redistributions in binary form must reproduce the above
-	copyright notice, this list of conditions and the following
-	disclaimer in the documentation and/or other materials
-	provided with the distribution.
-
-	<div style="margin-bottom: 0.25cm"></div><p></p>
-      </p>
-
-      <p>THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY
-	EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-	THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-	PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
-	AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-	SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-	<div style="margin-bottom: 1cm"></div><p></p>
-      </p>
-
-
-
-      <p><b>Copyright Notice and Statement for NCSA
-	  Hierarchical Data Format (HDF) Software Library and
-	  Utilities</b>
-	<div style="margin-bottom: 0.1cm"></div><p></p>
-      </p>
-
-
-      <p>NCSA HDF5 (Hierarchical Data Format 5) Software Library and
-	Utilities Copyright 1998, 1999, 2000, 2001, 2002, 2003, 2004 by
-	the Board of Trustees of the University of Illinois.  All rights
-	reserved.  <div style="margin-bottom: 0.25cm"></div><p></p>
-      </p>
-
-      <p>See more information about the terms of this license at:
-	<br> <a href="http://hdf.ncsa.uiuc.edu/HDF5/doc/Copyright.html"><tt class="verb">http://hdf.ncsa.uiuc.edu/HDF5/doc/Copyright.html</tt></a>
-	<div style="margin-bottom: 1cm"></div><p></p>
-      </p>
-
-      
-
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    </div></div></div><hr><div class="toc" id="tb:table-of-contents"><h1 class="toc">Table of Contents</h1><table class="toc" cellspacing="0pt" cellpadding="0pt"><tbody><tr><td class="number1"><div class="toplevel-toc">1</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="usersguide1.html">Introduction</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">1.1</td><td colspan="2"><a href="usersguide1.html#section1.1">Main Features</a></td></tr><tr><td>&nbsp;</td><td class="number2">1.2</td><td colspan="2"><a href="usersguide1.html#section1.2">The Object Tree</a></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">2</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="usersguide2.html">Installation</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">2.1</td><td colspan="2"><a href="usersguide2.html#section2.1">Installation from source</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">2.1.1</td><td><a href="usersguide2.html#subsection2.1.1">Prerequisites</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">2.1.2</td><td><a href="usersguide2.html#subsection2.1.2"><tt>PyTables</tt> package
+</style></head><body><div class="document"><div class="header"><div class="authorlist"><span>Francesc&nbsp;Altet</span>&nbsp;&#8226; <span>Scott&nbsp;Prater</span>&nbsp;&#8226; <span>Ivan&nbsp;Vilata</span>&nbsp;&#8226; <span>Tom&nbsp;Hedley</span></div><p></p><font size="7" face="Sans-Serif"><b><div class="title"><tt>PyTables</tt> User's Guide</div></b></font><p></p><div class="subtitle"><span style="font-family: sans-serif">Hierarchical datasets in
+      Python</span><br> Release 0.9 </div><div class="legal">All rights reserved.<br>&copy;&nbsp;2002, 2003, 2004 Francesc&nbsp;Altet<br></div></div><hr><div class="toc" id="tb:table-of-contents"><h1 class="toc">Table of Contents</h1><table class="toc" cellspacing="0pt" cellpadding="0pt"><tbody><tr><td class="number1"><div class="toplevel-toc">1</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="usersguide1.html">Introduction</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">1.1</td><td colspan="2"><a href="usersguide1.html#section1.1">Main Features</a></td></tr><tr><td>&nbsp;</td><td class="number2">1.2</td><td colspan="2"><a href="usersguide1.html#section1.2">The Object Tree</a></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">2</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="usersguide2.html">Installation</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">2.1</td><td colspan="2"><a href="usersguide2.html#section2.1">Installation from source</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">2.1.1</td><td><a href="usersguide2.html#subsection2.1.1">Prerequisites</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">2.1.2</td><td><a href="usersguide2.html#subsection2.1.2"><tt>PyTables</tt> package
 	    installation
 	  </a></td></tr><tr><td>&nbsp;</td><td class="number2">2.2</td><td colspan="2"><a href="usersguide2.html#section2.2">Binary installation (Windows)</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">2.2.1</td><td><a href="usersguide2.html#subsection2.2.1">Windows prerequisites</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">2.2.2</td><td><a href="usersguide2.html#subsection2.2.2"><tt>PyTables</tt> package
 	    installation
@@ -255,35 +162,46 @@ div.partheadline { font-size: x-large }
 	      methods</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.4</td><td colspan="2"><a href="usersguide4.html#section4.4">The <tt>Leaf</tt> class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.4.1</td><td><a href="usersguide4.html#subsection4.4.1"><tt>Leaf</tt> instance
 	    variables</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.4.2</td><td><a href="usersguide4.html#subsection4.4.2"><tt>Leaf</tt> methods</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.5</td><td colspan="2"><a href="usersguide4.html#section4.5">The <tt>Table</tt> class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.5.1</td><td><a href="usersguide4.html#subsection4.5.1"><tt>Table</tt> instance
 	    variables</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.5.2</td><td><a href="usersguide4.html#subsection4.5.2"><tt>Table</tt> methods
-	  </a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.5.3</td><td><a href="usersguide4.html#subsection4.5.3"><tt>Table</tt> special
-	      methods</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.5.4</td><td><a href="usersguide4.html#subsection4.5.4">The <tt>Row</tt> class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.5.5</td><td><a href="usersguide4.html#subsection4.5.5">The <tt>Cols</tt> class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.5.6</td><td><a href="usersguide4.html#subsection4.5.6">The <tt>Column</tt> class</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.6</td><td colspan="2"><a href="usersguide4.html#section4.6">The <tt>Array</tt>
-	class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.6.1</td><td><a href="usersguide4.html#subsection4.6.1"><tt>Array</tt> instance
-	    variables</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.6.2</td><td><a href="usersguide4.html#subsection4.6.2"><tt>Array</tt>
-	    methods</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.6.3</td><td><a href="usersguide4.html#subsection4.6.3"><tt>Array</tt> special
-	      methods</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.7</td><td colspan="2"><a href="usersguide4.html#section4.7">The <tt>EArray</tt> class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.7.1</td><td><a href="usersguide4.html#subsection4.7.1"><tt>EArray</tt> instance
-	    variables</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.7.2</td><td><a href="usersguide4.html#subsection4.7.2"><tt>EArray</tt>
-	    methods</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.8</td><td colspan="2"><a href="usersguide4.html#section4.8">The <tt>VLArray</tt> class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.8.1</td><td><a href="usersguide4.html#subsection4.8.1"><tt>VLArray</tt> instance
-	    variables</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.8.2</td><td><a href="usersguide4.html#subsection4.8.2"><tt>VLArray</tt> methods</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.8.3</td><td><a href="usersguide4.html#subsection4.8.3"><tt>VLArray</tt> special
-	      methods</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.9</td><td colspan="2"><a href="usersguide4.html#section4.9">The <tt>UnImplemented</tt> class</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.10</td><td colspan="2"><a href="usersguide4.html#section4.10">The <tt>AttributeSet</tt>
-	class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.10.1</td><td><a href="usersguide4.html#subsection4.10.1"><tt>AttributeSet</tt> instance
-	    variables</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.10.2</td><td><a href="usersguide4.html#subsection4.10.2"><tt>AttributeSet</tt>
-	    methods</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.11</td><td colspan="2"><a href="usersguide4.html#section4.11">Declarative classes
-	</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.11.1</td><td><a href="usersguide4.html#subsection4.11.1">The <tt>IsDescription</tt>
-	    class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.11.2</td><td><a href="usersguide4.html#subsection4.11.2">The <tt>Col</tt> class and its descendants</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.11.3</td><td><a href="usersguide4.html#subsection4.11.3">The <tt>Atom</tt> class and its
+	  </a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.5.3</td><td><a href="usersguide4.html#subsection4.5.3"><tt>Table</tt> special methods
+	  </a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.5.4</td><td><a href="usersguide4.html#subsection4.5.4">The <tt>Row</tt> class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.5.5</td><td><a href="usersguide4.html#subsection4.5.5">The <tt>Cols</tt> class</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.6</td><td colspan="2"><a href="usersguide4.html#section4.6">The <tt>Column</tt> class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.6.1</td><td><a href="usersguide4.html#subsection4.6.1"><tt>Column</tt> instance
+	    variables
+	  </a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.6.2</td><td><a href="usersguide4.html#subsection4.6.2"><tt>Column</tt> methods
+	  </a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.6.3</td><td><a href="usersguide4.html#subsection4.6.3"><tt>Column</tt> special methods
+	  </a></td></tr><tr><td>&nbsp;</td><td class="number2">4.7</td><td colspan="2"><a href="usersguide4.html#section4.7">The <tt>Array</tt>
+	class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.7.1</td><td><a href="usersguide4.html#subsection4.7.1"><tt>Array</tt> instance
+	    variables</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.7.2</td><td><a href="usersguide4.html#subsection4.7.2"><tt>Array</tt>
+	    methods</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.7.3</td><td><a href="usersguide4.html#subsection4.7.3"><tt>Array</tt> special
+	      methods</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.8</td><td colspan="2"><a href="usersguide4.html#section4.8">The <tt>EArray</tt> class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.8.1</td><td><a href="usersguide4.html#subsection4.8.1"><tt>EArray</tt> instance
+	    variables</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.8.2</td><td><a href="usersguide4.html#subsection4.8.2"><tt>EArray</tt>
+	    methods</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.9</td><td colspan="2"><a href="usersguide4.html#section4.9">The <tt>VLArray</tt> class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.9.1</td><td><a href="usersguide4.html#subsection4.9.1"><tt>VLArray</tt> instance
+	    variables</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.9.2</td><td><a href="usersguide4.html#subsection4.9.2"><tt>VLArray</tt> methods</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.9.3</td><td><a href="usersguide4.html#subsection4.9.3"><tt>VLArray</tt> special
+	      methods</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.10</td><td colspan="2"><a href="usersguide4.html#section4.10">The <tt>UnImplemented</tt> class</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.11</td><td colspan="2"><a href="usersguide4.html#section4.11">The <tt>AttributeSet</tt>
+	class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.11.1</td><td><a href="usersguide4.html#subsection4.11.1"><tt>AttributeSet</tt> instance
+	    variables</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.11.2</td><td><a href="usersguide4.html#subsection4.11.2"><tt>AttributeSet</tt>
+	    methods</a></td></tr><tr><td>&nbsp;</td><td class="number2">4.12</td><td colspan="2"><a href="usersguide4.html#section4.12">Declarative classes
+	</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.12.1</td><td><a href="usersguide4.html#subsection4.12.1">The <tt>IsDescription</tt>
+	    class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.12.2</td><td><a href="usersguide4.html#subsection4.12.2">The <tt>Col</tt> class and its descendants</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.12.3</td><td><a href="usersguide4.html#subsection4.12.3">The <tt>Atom</tt> class and its
 	    descendants.
-	  </a></td></tr><tr><td>&nbsp;</td><td class="number2">4.12</td><td colspan="2"><a href="usersguide4.html#section4.12">Helper classes</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.12.1</td><td><a href="usersguide4.html#subsection4.12.1">The <tt>Filters</tt> class
-	  </a></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">5</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="usersguide5.html">Optimization tips</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">5.1</td><td colspan="2"><a href="usersguide5.html#section5.1">Taking advantage of Psyco</a></td></tr><tr><td>&nbsp;</td><td class="number2">5.2</td><td colspan="2"><a href="usersguide5.html#section5.2">Compression issues</a></td></tr><tr><td>&nbsp;</td><td class="number2">5.3</td><td colspan="2"><a href="usersguide5.html#section5.3">Shuffling (or how to make the compression process
-	  more effective)</a></td></tr><tr><td>&nbsp;</td><td class="number2">5.4</td><td colspan="2"><a href="usersguide5.html#section5.4">Informing <tt>PyTables</tt>
-	  about expected number of rows in tables</a></td></tr><tr><td>&nbsp;</td><td class="number2">5.5</td><td colspan="2"><a href="usersguide5.html#section5.5">Selecting an User Entry Point (UEP) in your
-	  tree</a></td></tr><tr><td>&nbsp;</td><td class="number2">5.6</td><td colspan="2"><a href="usersguide5.html#section5.6">Compacting your <tt>PyTables</tt>
+	  </a></td></tr><tr><td>&nbsp;</td><td class="number2">4.13</td><td colspan="2"><a href="usersguide4.html#section4.13">Helper classes</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.13.1</td><td><a href="usersguide4.html#subsection4.13.1">The <tt>Filters</tt> class
+	  </a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.13.2</td><td><a href="usersguide4.html#subsection4.13.2">The <tt>IndexProps</tt> class
+	  </a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.13.3</td><td><a href="usersguide4.html#subsection4.13.3">The <tt>Index</tt> class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.13.4</td><td><a href="usersguide4.html#subsection4.13.4">The <tt>IndexArray</tt>
+	    class</a></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">5</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="usersguide5.html">FileNode</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">5.1</td><td colspan="2"><a href="usersguide5.html#section5.1">What is <tt>FileNode</tt>?</a></td></tr><tr><td>&nbsp;</td><td class="number2">5.2</td><td colspan="2"><a href="usersguide5.html#section5.2">Current limitations</a></td></tr><tr><td>&nbsp;</td><td class="number2">5.3</td><td colspan="2"><a href="usersguide5.html#section5.3">Finding a <tt>FileNode</tt>
+	  node</a></td></tr><tr><td>&nbsp;</td><td class="number2">5.4</td><td colspan="2"><a href="usersguide5.html#section5.4">Using <tt>FileNode</tt></a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">5.4.1</td><td><a href="usersguide5.html#subsection5.4.1">Creating a new file node</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">5.4.2</td><td><a href="usersguide5.html#subsection5.4.2">Using a file node</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">5.4.3</td><td><a href="usersguide5.html#subsection5.4.3">Opening an existing file node</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">5.4.4</td><td><a href="usersguide5.html#subsection5.4.4">Adding metadata to a file node</a></td></tr><tr><td>&nbsp;</td><td class="number2">5.5</td><td colspan="2"><a href="usersguide5.html#section5.5">Complementary notes</a></td></tr><tr><td>&nbsp;</td><td class="number2">5.6</td><td colspan="2"><a href="usersguide5.html#section5.6"><tt>FileNode</tt> module
+	  reference</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">5.6.1</td><td><a href="usersguide5.html#subsection5.6.1">Global constants</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">5.6.2</td><td><a href="usersguide5.html#subsection5.6.2">Global functions</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">5.6.3</td><td><a href="usersguide5.html#subsection5.6.3">The <tt>FileNode</tt>
+	    abstract class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">5.6.4</td><td><a href="usersguide5.html#subsection5.6.4">The <tt>ROFileNode</tt>
+	    class</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">5.6.5</td><td><a href="usersguide5.html#subsection5.6.5">The <tt>RWFileNode</tt>
+	    class</a></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">6</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="usersguide6.html">Optimization tips</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">6.1</td><td colspan="2"><a href="usersguide6.html#section6.1">Informing <tt>PyTables</tt>
+	  about expected number of rows in tables</a></td></tr><tr><td>&nbsp;</td><td class="number2">6.2</td><td colspan="2"><a href="usersguide6.html#section6.2">Accelerating your searches</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">6.2.1</td><td><a href="usersguide6.html#subsection6.2.1">In-kernel searches</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">6.2.2</td><td><a href="usersguide6.html#subsection6.2.2">Indexed searches</a></td></tr><tr><td>&nbsp;</td><td class="number2">6.3</td><td colspan="2"><a href="usersguide6.html#section6.3">Compression issues</a></td></tr><tr><td>&nbsp;</td><td class="number2">6.4</td><td colspan="2"><a href="usersguide6.html#section6.4">Shuffling (or how to make the compression process
+	  more effective)</a></td></tr><tr><td>&nbsp;</td><td class="number2">6.5</td><td colspan="2"><a href="usersguide6.html#section6.5">Taking advantage of Psyco</a></td></tr><tr><td>&nbsp;</td><td class="number2">6.6</td><td colspan="2"><a href="usersguide6.html#section6.6">Selecting an User Entry Point (UEP) in your
+	  tree</a></td></tr><tr><td>&nbsp;</td><td class="number2">6.7</td><td colspan="2"><a href="usersguide6.html#section6.7">Compacting your <tt>PyTables</tt>
 	  files
-	</a></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">A</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="usersguide6.html">Supported data types in <tt>PyTables</tt></a></div></b></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">B</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="usersguide7.html"><tt>PyTables</tt> File
-	  Format</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">B.1</td><td colspan="2"><a href="usersguide7.html#sectionB.1">Mandatory attributes for a <tt>File</tt></a></td></tr><tr><td>&nbsp;</td><td class="number2">B.2</td><td colspan="2"><a href="usersguide7.html#sectionB.2">Mandatory attributes for a <tt>Group</tt></a></td></tr><tr><td>&nbsp;</td><td class="number2">B.3</td><td colspan="2"><a href="usersguide7.html#sectionB.3">Mandatory attributes, storage layout and supported
+	</a></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">A</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="usersguide7.html">Supported data types in <tt>PyTables</tt></a></div></b></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">B</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="usersguide8.html">Utilities</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">B.1</td><td colspan="2"><a href="usersguide8.html#sectionB.1">ptdump</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">B.1.1</td><td><a href="usersguide8.html#subsectionB.1.1">Usage</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">B.1.2</td><td><a href="usersguide8.html#subsectionB.1.2">A small tutorial on <tt>ptdump</tt>
+	    </a></td></tr><tr><td>&nbsp;</td><td class="number2">B.2</td><td colspan="2"><a href="usersguide8.html#sectionB.2">ptrepack</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">B.2.1</td><td><a href="usersguide8.html#subsectionB.2.1">Usage</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">B.2.2</td><td><a href="usersguide8.html#subsectionB.2.2">A small tutorial on <tt>ptrepack</tt>
+	    </a></td></tr><tr><td>&nbsp;</td><td class="number2">B.3</td><td colspan="2"><a href="usersguide8.html#sectionB.3">nctoh5</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">B.3.1</td><td><a href="usersguide8.html#subsectionB.3.1">Usage</a></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">C</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="usersguide9.html"><tt>PyTables</tt> File
+	  Format</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">C.1</td><td colspan="2"><a href="usersguide9.html#sectionC.1">Mandatory attributes for a <tt>File</tt></a></td></tr><tr><td>&nbsp;</td><td class="number2">C.2</td><td colspan="2"><a href="usersguide9.html#sectionC.2">Mandatory attributes for a <tt>Group</tt></a></td></tr><tr><td>&nbsp;</td><td class="number2">C.3</td><td colspan="2"><a href="usersguide9.html#sectionC.3">Mandatory attributes, storage layout and supported
 	      datatypes for <tt>Leaves</tt>
-	      </a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">B.3.1</td><td><a href="usersguide7.html#subsectionB.3.1"><tt>Table</tt>
-	    format</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">B.3.2</td><td><a href="usersguide7.html#subsectionB.3.2"><tt>Array</tt>
-	      format</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">B.3.3</td><td><a href="usersguide7.html#subsectionB.3.3"><tt>EArray</tt>
-	      format</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">B.3.4</td><td><a href="usersguide7.html#subsectionB.3.4"><tt>VLArray</tt>
-	      format</a></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">C</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="usersguide8.html">Utilities</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">C.1</td><td colspan="2"><a href="usersguide8.html#sectionC.1">ptdump</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">C.1.1</td><td><a href="usersguide8.html#subsectionC.1.1">Usage</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">C.1.2</td><td><a href="usersguide8.html#subsectionC.1.2">A small tutorial on <tt>ptdump</tt>
-	    </a></td></tr><tr><td>&nbsp;</td><td class="number2">C.2</td><td colspan="2"><a href="usersguide8.html#sectionC.2">ptrepack</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">C.2.1</td><td><a href="usersguide8.html#subsectionC.2.1">Usage</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">C.2.2</td><td><a href="usersguide8.html#subsectionC.2.2">A small tutorial on <tt>ptrepack</tt>
-	    </a></td></tr></tbody></table></div></div></body></html>
+	      </a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">C.3.1</td><td><a href="usersguide9.html#subsectionC.3.1"><tt>Table</tt>
+	    format</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">C.3.2</td><td><a href="usersguide9.html#subsectionC.3.2"><tt>Array</tt>
+	      format</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">C.3.3</td><td><a href="usersguide9.html#subsectionC.3.3"><tt>EArray</tt>
+	      format</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">C.3.4</td><td><a href="usersguide9.html#subsectionC.3.4"><tt>VLArray</tt>
+	      format</a></td></tr></tbody></table></div></div></body></html>

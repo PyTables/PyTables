@@ -1,8 +1,8 @@
 <!DOCTYPE html
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xmlns:pref="http://www.w3.org/2002/Math/preference"><head>
+<html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.8"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Date" content="2004-03-09T09:19:02+01:00"><meta name="Date" content="2004-03-09T09:19:02+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.9"><meta name="DC.Creator" content="Francesc Altet"><meta name="Author" content="Francesc Altet"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Creator" content="Ivan Vilata"><meta name="Author" content="Ivan Vilata"><meta name="DC.Creator" content="Tom Hedley"><meta name="Author" content="Tom Hedley"><meta name="DC.Date" content="2004-11-05T12:38:42+01:00"><meta name="Date" content="2004-11-05T12:38:42+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -15,7 +15,7 @@
     h1 { clear: both }
     h1.toc { clear: none }
     a:link, a:visited, a:active { text-decoration: none }
-    a:hover { text-decoration: underline; color: #0066FF; }
+    a:hover[href] { text-decoration: underline; color: #0066FF; }
     div.document, div.letter { margin-left: 80px; margin-right: 150px;
       padding-top: 3ex; padding-bottom: 5ex }
     div.authorlist { font-family: sans-serif;
@@ -33,7 +33,7 @@
     div.legalnotice { margin-top: 3ex; text-align: left }
     div.partheadline { font-size: xx-large; margin-top: 1ex; margin-bottom: 1ex }
     div.footnote { }
-    hr.footnoterule { text-align: left; width: 20%; color: black }
+    hr.footnoterule { text-align: left; width: 40%; margin-right: 60%; color: black }
     div.mathdisplay { text-align: center;
     margin-top: 2ex; margin-bottom: 2ex }
     div.figure, div.table, div.mathml-remark { margin-bottom: 3ex;
@@ -177,8 +177,12 @@ div.partheadline { font-size: x-large }
 	running Windows and want to install precompiled binaries jump
 	to <a href="#binaryInstallationDescr">section&nbsp;2.2</a>). In
 	addition, packages are starting to appear in different Linux
-	distributions (like for instance <a href="http://www.rocklinux.org/"><tt class="verb">RockLinux</tt></a>
-	or <a href="http://www.debian.org/"><tt class="verb">Debian</tt></a>).
+	distributions, for instance <a href="http://www.rocklinux.org/"><tt class="verb">RockLinux</tt></a>,
+	<a href="http://www.debian.org/"><tt class="verb">Debian</tt></a>,
+	<a href="http://monkeyrpms.net/fedora/linux/monkeyrpms/1/i386/html/pytables.html"><tt class="verb">Fedora</tt></a>
+	or <a href="http://www.gentoo.org/"><tt class="verb">Gentoo</tt></a>.
+	There also packages for other Unices like <a href="http://www.freshports.org/"><tt class="verb">FreeBSD</tt></a>
+	or <a href="http://www.opendarwin.org/"><tt class="verb">MacOSX</tt></a>
       </p>
 
       <div id="sourceInstallationDescr"><a name="sourceInstallationDescr"></a>
@@ -193,10 +197,10 @@ div.partheadline { font-size: x-large }
 	</p>
 
 	<p>Extensions in <tt>PyTables</tt> have
-	  developed in Pyrex (see <a href="#Pyrex"></a>) and C
-	  language. You can rebuild everything from scratch if you
-	  have Pyrex installed, but this is not necessary, as the Pyrex
-	  compiled source is included in the distribution.
+	  been developed in Pyrex (see <a href="#Pyrex"></a>)
+	  and C language. You can rebuild everything from scratch if
+	  you have Pyrex installed, but this is not necessary, as the
+	  Pyrex compiled source is included in the distribution.
 	</p>
 
 	<p>To compile <tt class="verb">PyTables</tt> you will need a recent
@@ -217,12 +221,10 @@ div.partheadline { font-size: x-large }
         <div id="PrerequisitesSourceDescr"><a name="PrerequisitesSourceDescr"></a>
 	  <h3 id="subsection2.1.1"><span class="headlinenumber"><a name="subsection2.1.1"></a>2.1.1 </span>Prerequisites</h3>
 
-	  <p class="first">First, make sure that you have <tt class="verb">HDF5 1.6.2</tt>
-	    and <tt class="verb">numarray 0.8</tt> or higher installed (I'm
-	    using <tt class="verb">HDF5 1.6.2</tt> and <tt class="verb">numarray
-	      0.8</tt> currently). If you don't, you can find them
-	    at <a href="http://hdf.ncsa.uiuc.edu/HDF5"><tt class="verb">http://hdf.ncsa.uiuc.edu/HDF5</tt></a>
-	    and <a href="http://www.pfdubois.com/numpy"><tt class="verb">http://www.pfdubois.com/numpy</tt></a>.
+	  <p class="first">First, make sure that you have at least HDF5 1.6.3-patch
+	  and numarray 1.1 or higher installed (I'm using HDF5
+	  1.6.3-patch<a href="#footnote3" id="footnoteback3"><sup title="Unfortunately, HDF5 1.6.3 was released with a bug that causes a segmentation fault when an index is deleted. The 1.6.3-patch and higher versions solve this.">3)</sup></a> and numarray 1.1 currently). If you don't,
+	  fetch and install them before proceeding.
 	  </p>
 	  <p>
 	    Compile and install these packages (but see <a href="#prerequisitesBinInst">section&nbsp;2.2.1</a> for
@@ -235,7 +237,7 @@ div.partheadline { font-size: x-large }
 	    <tt class="verb">HDF5</tt> as well. You may also optionally install
 	    the excellent <tt class="verb">LZO</tt> and <tt class="verb">UCL</tt>
 	    compression libraries (see <a href="#lzouclRef"></a>
-	    and section <a href="usersguide5.html#compressionIssues">5.2</a>).
+	    and section <a href="usersguide6.html#compressionIssues">6.3</a>).
 	  </p>
 	  <dl>
 	    <dt>Unix</dt>
@@ -260,9 +262,9 @@ div.partheadline { font-size: x-large }
 	      </p>
 
 	      <pre>
-		--hdf5=/stuff/hdf5-1.6.2
-		--lzo=/stuff/lzo-1.07
-		--ucl=/stuff/ucl-1.0.1
+		--hdf5=/stuff/hdf5-1.6.3
+		--lzo=/stuff/lzo-1.08
+		--ucl=/stuff/ucl-1.03
 	      </pre>
 
 	      <div class="p">If your <tt class="verb">HDF5</tt> library was built as
@@ -271,11 +273,11 @@ div.partheadline { font-size: x-large }
 		find the shared library on the command line as well. 
 		For example:
 		<pre>
-		  --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.2/lib"
+		  --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.3/lib"
 		</pre>
 		or perhaps just
 		<pre>
-		  --rpath="/stuff/hdf5-1.6.2/lib"
+		  --rpath="/stuff/hdf5-1.6.3/lib"
 		</pre> 
 		
 		Check your compiler and linker documentation as well as
@@ -323,8 +325,8 @@ div.partheadline { font-size: x-large }
 	      <div class="p">For example:
 		<pre>
 		  set HDF5_DIR=c:\stuff\5-162-win2k\c\release
-		  set UCL_DIR=c:\stuff\ucl-1-01
-		  set LZO_DIR=c:\stuff\lzo-1-07
+		  set UCL_DIR=c:\stuff\ucl-1-02
+		  set LZO_DIR=c:\stuff\lzo-1-08
 		</pre>
 
 		Or, you can pass this information to
@@ -334,7 +336,8 @@ div.partheadline { font-size: x-large }
 
 	      <pre>
 		--hdf5=c:\stuff\5-162-win2k\c\release
-		--lzo=c:\stuff\lzo-1-07 --ucl=c:\stuff\ucl-1-01
+		--lzo=c:\stuff\lzo-1-08
+		--ucl=c:\stuff\ucl-1-02
 	      </pre>	
 	    </dd>
 
@@ -456,12 +459,12 @@ div.partheadline { font-size: x-large }
 		<tt class="verb">--prefix</tt> flag to install in a non-standard
 		place, you should properly setup your
 		<tt class="verb">PYTHONPATH</tt> environment variable, so that
-		the python interpreter would be able to find your new
+		the Python interpreter would be able to find your new
 		<tt class="verb">PyTables</tt> installation.
 	      </div>
 
 	      <div class="p">You have more installation options available in
-		distutils package. Issue a:
+		the distutils package. Issue a:
 		<pre>
 		  python setup.py install --help
 		</pre>
@@ -473,7 +476,8 @@ div.partheadline { font-size: x-large }
 
 	</div>
 
-	<p>That's it! The next chapter describes how to use
+	
+	<p>That's it! Now you can skip to the next chapter to learn how to use
 	  <tt class="verb">PyTables</tt>. 
 	</p>
 
@@ -492,29 +496,16 @@ div.partheadline { font-size: x-large }
 	<div id="prerequisitesBinInst"><a name="prerequisitesBinInst"></a>
 	  <h3 id="subsection2.2.1"><span class="headlinenumber"><a name="subsection2.2.1"></a>2.2.1 </span>Windows prerequisites</h3>
 
-	  <p class="first">First, make sure that you have HDF5 1.6.2 or higher and
-	    numarray 0.8 or higher installed (I'm using HDF5 1.6.2 and
-	    numarray 0.8 currently). If don't, you can find them at
-	    <a href="http://hdf.ncsa.uiuc.edu/HDF5"><tt class="verb">http://hdf.ncsa.uiuc.edu/HDF5</tt></a>
-	    and <a href="http://sourceforge.net/projects/numpy/"><tt class="verb">http://sourceforge.net/projects/numpy/</tt></a>. Download
-	    the binary packages (or sources, if you want to compile
-	    everything yourself) and install them.
+	  <p class="first">First, make sure that you have HDF5
+	  1.6.3-patch<a href="#footnote4" id="footnoteback4"><sup title="Unfortunately, HDF5 1.6.3 was released with a bug that causes a segmentation fault when an index is deleted. The 1.6.3-patch and higher versions solve this. You can find a binary version of libraries in ftp://hdf.ncsa.uiuc.edu/HDF5/hdf5-1.6.3/src/patches/bin/WinXP-patch.tar.gz">4)</sup></a>
+	  or higher and numarray 1.1 or higher installed (I have built
+	  the <tt class="verb">PyTables</tt> binaries using HDF5 1.6.3-patch
+	  and numarray 1.1).
           </p>
           <p>For the HDF5 it should be enough to manually copy the
 	    <tt class="verb">hdf5dll.dll</tt>, <tt class="verb">zlib1.dll</tt> <b>and</b> <tt class="verb">szipdll.dll</tt> files to
 	    a directory in your <tt class="verb">PATH</tt> environment variable
 	    (for example <tt class="verb">C:\WINDOWS\SYSTEM</tt>).
-	  </p>
-
-	  <p><b>Caveat:</b> When downloading the
-	    binary distribution for HDF5 libraries, select one compiled with
-	    MSVC 6.0, such as the package
-	    <tt class="verb">5-162-win2k.zip</tt>, regardless of whether you are using
-	    Win2k or WinXP (it should work fine on both). The file
-	    <tt class="verb">5-162-winxp-net.zip</tt> was compiled with the
-	    MSVC 7.0 (aka "<tt class="verb">.NET</tt>") and <b>does not</b> work well with the PyTables
-	    binary (which has been generated with MSVC 6.0). You have
-	    been warned!
 	  </p>
 
 
@@ -526,7 +517,7 @@ div.partheadline { font-size: x-large }
 
 
 	  <p>To enable compression with optional LZO and UCL libraries
-	    (see the <a href="usersguide5.html#compressionIssues">section&nbsp;5.2</a> for
+	    (see the <a href="usersguide6.html#compressionIssues">section&nbsp;6.3</a> for
 	    hints about how they may be used to improve performance),
 	    fetch and install the <tt class="verb">LZO</tt> and
 	    <tt class="verb">UCL</tt> binaries from:<br> <a href="http://gnuwin32.sourceforge.net/">
@@ -596,4 +587,11 @@ div.partheadline { font-size: x-large }
       </div>
 
 
-    </div></div><div class="speedbar-bottom"><hr class="speedbar"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide1.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide3.html">next</a></td></tr></tbody></table></div></body></html>
+    </div><hr class="footnoterule"><div class="footnote"><a id="footnote3" href="#footnoteback3"><sup>3)</sup></a>&nbsp;Unfortunately, HDF5 1.6.3 was released
+	  with a bug that causes a segmentation fault when an index is
+	  deleted. The 1.6.3-patch and higher versions solve
+	  this.</div><div class="footnote"><a id="footnote4" href="#footnoteback4"><sup>4)</sup></a>&nbsp;Unfortunately, HDF5 1.6.3 was released
+	  with a bug that causes a segmentation fault when an index is
+	  deleted. The 1.6.3-patch and higher versions solve this. You
+	  can find a binary version of libraries in
+	  <tt class="verb">ftp://hdf.ncsa.uiuc.edu/HDF5/hdf5-1.6.3/src/patches/bin/WinXP-patch.tar.gz</tt></div></div><div class="speedbar-bottom"><hr class="speedbar"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide1.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide3.html">next</a></td></tr></tbody></table></div></body></html>

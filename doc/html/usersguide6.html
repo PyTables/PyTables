@@ -1,8 +1,8 @@
 <!DOCTYPE html
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xmlns:pref="http://www.w3.org/2002/Math/preference" id="datatypesSupported"><a name="datatypesSupported"></a><head>
+<html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.8"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Date" content="2004-03-09T09:19:02+01:00"><meta name="Date" content="2004-03-09T09:19:02+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.9"><meta name="DC.Creator" content="Francesc Altet"><meta name="Author" content="Francesc Altet"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Creator" content="Ivan Vilata"><meta name="Author" content="Ivan Vilata"><meta name="DC.Creator" content="Tom Hedley"><meta name="Author" content="Tom Hedley"><meta name="DC.Date" content="2004-11-05T12:38:42+01:00"><meta name="Date" content="2004-11-05T12:38:42+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -15,7 +15,7 @@
     h1 { clear: both }
     h1.toc { clear: none }
     a:link, a:visited, a:active { text-decoration: none }
-    a:hover { text-decoration: underline; color: #0066FF; }
+    a:hover[href] { text-decoration: underline; color: #0066FF; }
     div.document, div.letter { margin-left: 80px; margin-right: 150px;
       padding-top: 3ex; padding-bottom: 5ex }
     div.authorlist { font-family: sans-serif;
@@ -33,7 +33,7 @@
     div.legalnotice { margin-top: 3ex; text-align: left }
     div.partheadline { font-size: xx-large; margin-top: 1ex; margin-bottom: 1ex }
     div.footnote { }
-    hr.footnoterule { text-align: left; width: 20%; color: black }
+    hr.footnoterule { text-align: left; width: 40%; margin-right: 60%; color: black }
     div.mathdisplay { text-align: center;
     margin-top: 2ex; margin-bottom: 2ex }
     div.figure, div.table, div.mathml-remark { margin-bottom: 3ex;
@@ -146,42 +146,743 @@ div.title { font-size: x-large; color: maroon }
 div.subtitle { font-size: x-large; color: olive }
 div.title-article { font-size: x-large }
 div.partheadline { font-size: x-large }
-</style></head><body><div class="speedbar-top"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide5.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide7.html">next</a></td></tr><tr><td class="header" colspan="3">Appendix</td></tr></tbody></table><hr class="speedbar"></div><div class="document"><div id="datatypesSupported"><a name="datatypesSupported"></a>
-	<h1 id="chapterA"><a name="chapterA"></a>Appendix&nbsp;A: Supported data types in <tt>PyTables</tt></h1>
+</style></head><body><div class="speedbar-top"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide5.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide7.html">next</a></td></tr><tr><td colspan="3">&nbsp;</td></tr></tbody></table><hr class="speedbar"></div><div class="document"><div id="optimizationTips"><a name="optimizationTips"></a>
+      <h1 id="chapter6"><a name="chapter6"></a>Chapter&nbsp;6: Optimization tips</h1>
 
-	<p class="first"><tt class="verb">IsDescription</tt> subclasses supports a limited
-	  set of data types to define the table fields. Such a set is
-	  roughly the same than the types supported by the <tt>numarray</tt> package (see <a href="#Numarray"></a>) in Python, with the exception of
-	  the complex datatypes that are not supported yet.
-	</p>
-	<p>These data types in table columns can be set through the
-	  use of the <tt class="verb">Col</tt> class and its descendants (<a href="usersguide4.html#ColClassDescr">see&nbsp;4.11.2</a>). You may find useful the
-	  <a href="#datatypesSupported">table&nbsp;A</a> as a quick
-	  reference to the complete set of supported data types in
-	  PyTables.
+      <div class="aphorism">... durch planm&auml;ssiges
+	Tattonieren. <br>[... through systematic, palpable
+	experimentation.] <div class="aphorism-origin">&#8212;Johann Karl Friedrich Gauss
+	<br>[asked how he came upon his theorems]</div>
+      </div>
+
+      <p class="first">On this chapter, you will get deeper knowledge of
+	<tt class="verb">PyTables</tt> internals. <tt class="verb">PyTables</tt> has
+	several places where the user can improve the performance of
+	his application. If you are planning to deal with really large
+	data, you should read carefully this section in order to learn
+	how to get an important boost for your code. But if your
+	dataset is small or medium size (say, up to 10 MB), you should
+	not worry about that as the default parameters in
+	<tt class="verb">PyTables</tt> are already tuned to handle that
+	perfectly.
+      </p>
+
+      <div id="expectedRowsOptim"><a name="expectedRowsOptim"></a>
+	<h2 id="section6.1"><span class="headlinenumber"><a name="section6.1"></a>6.1 </span>Informing <tt>PyTables</tt>
+	  about expected number of rows in tables</h2>
+
+	<p class="first">The underlying HDF5 library that is used by
+	  <tt class="verb">PyTables</tt> takes the data in bunches of a
+	  certain length, so-called <em>chunks</em>, to write them
+	  on disk as a whole, i.e. the HDF5 library treats chunks as
+	  atomic objects and disk I/O is always made in terms of
+	  complete chunks. This allows data filters to be defined by
+	  the application to perform tasks such as compression,
+	  encryption, checksumming, etc. on entire chunks.
 	</p>
 
-	<div class="table" id="datatypesSupportedTable"><a name="datatypesSupportedTable"></a>
-	  <table class="tabular" cellspacing="0" cellpadding="5" frame="hsides" rules="groups"><caption><span class="captionlabel">Table&nbsp;A.1:</span> Data types supported by subclasses of <tt>IsDescription</tt> definitions.</caption><col align="left"><col align="left"><col align="left"><col align="center"><col align="left">
-	  <thead><tr><td colspan="5" class="thickline"></td></tr>
-	    <tr><th align="left">Type Code</th><th align="left">Description</th><th align="left">C Type</th><th align="center">Size (in bytes)</th><th align="left">Python Counterpart</th></tr>
-	  <tr><td colspan="5" class="thinline"></td></tr></thead>
-	  <tbody>
-	    <tr><td align="left">Bool</td><td align="left">boolean</td><td align="left">unsigned char</td><td align="center">1</td><td align="left">Boolean</td></tr>
-	    <tr><td align="left">Int8</td><td align="left">8-bit integer</td><td align="left">signed char</td><td align="center">1</td><td align="left">Integer</td></tr>
-	    <tr><td align="left">UInt8</td><td align="left">8-bit unsigned integer</td><td align="left">unsigned char</td><td align="center">1</td><td align="left">Integer</td></tr>
-	    <tr><td align="left">Int16</td><td align="left">16-bit integer</td><td align="left">short</td><td align="center">2</td><td align="left">Integer</td></tr>
-	    <tr><td align="left">UInt16</td><td align="left">16-bit unsigned integer</td><td align="left">unsigned short</td><td align="center">2</td><td align="left">Integer</td></tr>
-	    <tr><td align="left">Int32</td><td align="left">integer</td><td align="left">int</td><td align="center">4</td><td align="left">Integer</td></tr>
-	    <tr><td align="left">UInt32</td><td align="left">unsigned integer</td><td align="left">unsigned int</td><td align="center">4</td><td align="left">Long</td></tr>
-	    <tr><td align="left">Int64</td><td align="left">64-bit integer</td><td align="left">long long</td><td align="center">8</td><td align="left">Long</td></tr>
-	    <tr><td align="left">UInt64</td><td align="left">unsigned 64-bit integer</td><td align="left">unsigned long long</td><td align="center">8</td><td align="left">Long</td></tr>
-	    <tr><td align="left">Float32</td><td align="left">single-precision float</td><td align="left">float</td><td align="center">4</td><td align="left">Float</td></tr>
-	    <tr><td align="left">Float64</td><td align="left">double-precision float</td><td align="left">double</td><td align="center">8</td><td align="left">Float</td></tr>
-	    <tr><td align="left">CharType</td><td align="left">arbitrary length string</td><td align="left">char[]</td><td align="center">*</td><td align="left">String</td></tr>
-	  <tr><td colspan="5" class="thickline"></td></tr></tbody>
-	</table>
+	<p>An in-memory B-tree is used to map chunk structures on
+	  disk. The more chunks that are allocated for a dataset the
+	  larger the B-tree. Large B-trees take memory and cause
+	  file storage overhead as well as more disk I/O and higher
+	  contention for the metadata cache. Consequently, it's
+	  important to balance between memory and I/O overhead
+	  (small B-trees) and time to access data (big B-trees).
+	</p>
+
+	<p><tt class="verb">PyTables</tt> can determine an optimum chunk size
+	  to make B-trees adequate to your dataset size if you help
+	  it by providing an estimation of the number of rows for a
+	  table. This must be made in table creation time by passing
+	  this value in the <tt class="verb">expectedrows</tt> keyword of
+	  <tt class="verb">createTable</tt> method (see <a href="usersguide4.html#createTableDescr">4.2.2</a>).
+	</p>
+
+	<p>When your table size is bigger than 10 MB (take this figure
+	  only as a reference, not strictly), by providing this guess
+	  of the number of rows you will be optimizing the access to
+	  your data. When the table size is larger than, say 100MB,
+	  you are <b>strongly</b> suggested to
+	  provide such a guess; failing to do that may cause your
+	  application doing very slow I/O operations and demanding
+	  <b>huge</b> amounts of memory. You
+	  have been warned!.
+	</p>
+
+      </div> 
+
+      <div id="searchOptim"><a name="searchOptim"></a>
+	<h2 id="section6.2"><span class="headlinenumber"><a name="section6.2"></a>6.2 </span>Accelerating your searches</h2>
+
+	<div class="p-first">If you are going to use a lot of searches like the next one:
+
+	  <pre>
+row = table.row
+result = [ row['var2'] for row in table if row['var1'] &lt;= 20 ]
+	  </pre>
+
+	  (for future reference, we will call this the
+	  <em>standard</em> selection mode) and want to improve the
+	  time taken by it, keep reading.
+	</div>
+
+
+	<div id="inkernelSearch"><a name="inkernelSearch"></a>
+	  <h3 id="subsection6.2.1"><span class="headlinenumber"><a name="subsection6.2.1"></a>6.2.1 </span>In-kernel searches</h3>
+
+	  <div class="p-first"><tt class="verb">PyTables</tt> provides a way to accelerate data
+	    selections when they are simple, i.e. only a column is
+	    implied in the selection process, through the use of the
+	    <tt class="verb">where</tt> iterator (see <a href="usersguide4.html#whereTableDescr">4.5.2</a>). We will call this mode of
+	    selecting data as <em>in-kernel</em>. Let's see an example
+	    of <em>in-kernel</em> selection based on the
+	    <em>standard</em> selection mentioned above:
+
+	    <pre>
+row = table
+result = [ row['var2'] for row in table.where(table.cols.var1 &lt;= 20)]
+	    </pre>
+
+	    This simple change of mode selection can account for an
+	    improvement in search times up to a factor of 10 (see the
+	    <a href="#searchTimes-int">figure&nbsp;6.1</a>).
+	  </div>
+
+	  <div class="figure" id="searchTimes-int"><a name="searchTimes-int"></a>
+	    <img class="graphics" alt="Times for different selection modes over Int32 values. Benchmark made ..." src="searchTimes-int-itanium-web.png">
+	    <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;6.1:</span> Times for different selection modes over <tt>Int32</tt> values. Benchmark made on a
+		machine with Itanium (IA64) @ 900 MHz processors with
+		SCSI disk @ 10K RPM.
+	    </div></div>
+	  </div>
+
+	  <div class="figure" id="searchTimes-float"><a name="searchTimes-float"></a>
+	    <img class="graphics" alt="Times for different selection modes over Float64 values. Benchmark mad..." src="searchTimes-float-itanium-web.png">
+	    <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;6.2:</span> Times for different selection modes over <tt>Float64</tt> values. Benchmark made on
+		a machine with Itanium (IA64) @ 900 MHz processors
+		with SCSI disk @ 10K RPM.
+	    </div></div>
+	  </div>
+
+	  <p>So, where is the trick?. It's easy. In the
+	    <em>standard</em> selection mode the data for column
+	    <tt class="verb">var1</tt> has to be carried up to Python space so
+	    as to evaluate the condition and decide if the
+	    <tt class="verb">var2</tt> value should be added to the
+	    <tt class="verb">result</tt> list. On the contrary, in the
+	    <em>in-kernel</em> mode, the <em>condition</em> is passed
+	    to the <tt class="verb">PyTables</tt> kernel, written in C (hence
+	    the name), and evaluated there at C speed (with some help
+	    of the <tt class="verb">numarray</tt> package), so that the only
+	    values that were brought to the Python space where the
+	    references for <tt class="verb">rows</tt> that fulfilled the
+	    condition.
+	  </p>
+
+	  <div class="p">You should note, however, that currently the
+	    <tt class="verb">where</tt> method only accepts conditions along a
+	    single column<a href="#footnote8" id="footnoteback8"><sup title="Although this may change in the future">8)</sup></a>. Fortunately, you can mix the
+	    <em>in-kernel</em> and <em>standard</em> selection modes
+	    for evaluating arbitrarily complex conditions along several
+	    columns at once. Look at this example:
+
+	    <pre>
+row = table
+result = [ row['var2'] for row in table.where(table.cols.var3 == "foo")]
+                       if row['var1'] &lt;= 20 ]
+	    </pre>
+
+	    here, we have used a <em>in-kernel</em> selection to filter
+	    the rows whose <tt class="verb">var3</tt> field is equal to string
+	    <tt class="verb">"foo"</tt>. Then, we apply a <em>standard</em>
+	    selection to complete the query.
+	  </div>
+
+	  <p>Of course, when you mix the <em>in-kernel</em> and
+	    <em>standard</em> selection modes you should pass the most
+	    restrictive condition to the <em>in-kernel</em> part,
+	    i.e. to the <tt class="verb">where</tt> iterator. In situations
+	    where it is not clear which is the most restrictive
+	    condition, you might want to experiment a bit in order to
+	    find the best combination.
+	  </p>
+
+	</div> 
+
+	<div id="indexedSearches"><a name="indexedSearches"></a>
+	  <h3 id="subsection6.2.2"><span class="headlinenumber"><a name="subsection6.2.2"></a>6.2.2 </span>Indexed searches</h3>
+
+	  <p class="first">When you need more speed than <em>in-kernel</em>
+	    selections can offer you, <tt class="verb">PyTables</tt> offer a
+	    third selection method, so-called <em>indexed</em>
+	    mode. On this mode, you have to decide which column(s) are
+	    you going to do your selections and index them. Indexing
+	    is just a kind of sort operation, so that next searches
+	    along a column will look at the sorted information using a
+	    <em>binary search</em> which is much faster than a
+	    <em>sequential search</em>.
+	  </p>
+
+	  <p>You can index your selected columns in several ways:
+	  </p>
+
+	  <dl>
+	    <dt>Declaratively</dt> <dd>In this mode, you can
+	      declare a column as being indexed by passing the
+	      <em>indexed</em> parameter to the column
+	      descriptor. That is:
+
+	      <pre>
+class Example(IsDescription):
+    var1 = StringCol(length=4, dflt="", pos=1, indexed=1)
+    var2 = BoolCol(0, indexed=1, pos = 2)
+    var3 = IntCol(0, indexed=1, pos = 3)
+    var4 = FloatCol(0, indexed=0, pos = 4)
+
+	      </pre>
+
+	      In this case, we are telling that <tt class="verb">var1</tt>,
+	      <tt class="verb">var2</tt> and <tt class="verb">var3</tt> columns will be
+	      indexed automatically when you add rows to the table
+	      with this description.
+
+	    </dd>
+
+	    <dt>Calling Column.createIndex()</dt> <dd>In this
+	      mode, you can create an index even on an already created
+	      table. For example:
+
+	      <pre>
+indexrows = table.cols.var1.createIndex()
+indexrows = table.cols.var2.createIndex()
+indexrows = table.cols.var3.createIndex()
+	      </pre>
+
+	      will create indexes for all <tt class="verb">var1</tt>,
+	      <tt class="verb">var2</tt> and <tt class="verb">var3</tt> columns, and
+	      after doing that, they will behave as regular indexes.
+	    </dd>
+
+	  </dl>
+
+	  <div class="p">After you have indexed a column, you can proceed to use
+	    it through the use of <tt class="verb">Table.where</tt> method:
+
+	    <pre>
+row = table
+result = [ row['var2'] for row in table.where(table.cols.var1 == "foo")]
+	    </pre>
+
+	    or, if you want to add more conditions, you can mix the
+	    indexed selection with a standard one:
+
+	    <pre>
+row = table
+result = [ row['var2'] for row in table.where(table.cols.var3 &lt;= 20)]
+                       if row['var1'] == "foo" ]
+	    </pre>
+
+	    rememeber to pass the most restictive condition to the
+	    <tt class="verb">where</tt> iterator.
+	  </div>
+
+	  <p>You can see in figures <a href="#searchTimes-int">6.1</a> and <a href="#searchTimes-float">6.2</a> that indexing can
+	      accelerate quite a lots your data selections in
+	      tables. For moderately large tables (&gt; one million
+	      rows), you can see that you can achieve speed-ups in the
+	      order of 100x respect to <em>in-kernel</em> selections
+	      and in the order of 1000x respecte to <em>standard</em>
+	      selections.
+	  </p>
+
+	  <p>One important aspect of indexation in
+	    <tt class="verb">PyTables</tt> is that it has been implemented with
+	    the goal of being capable to manage effectively very large
+	    tables. In <a href="#indexTimes">figure&nbsp;6.3</a>, you can
+	    see that the times to index columns in tables always grows
+	    <em>linearly</em>. In particular, the time to index a
+	    couple of columns with 1 billion of rows each is 40
+	    min. (roughly 20 min. each), which is a quite reasonable
+	    figure. This is because <tt class="verb">PyTables</tt> has choosed
+	    an algorithm that do a <em>partial</em> sorting of the
+	    columns in order to ensure that the indexing time grows
+	    <em>linearly</em>. On the contrary, most of relational
+	    databases try to do a <em>complete</em> sorting of
+	    columns, and this makes the time to index to grow
+	    <em>quadratically</em> with the number of rows.
+	  </p>
+	  <p>The fact that relational databases uses a complete
+	    sorting algorithm for indexes means that their index would
+	    be more effective (but not by a large extent) for
+	    searching purposes that the <tt class="verb">PyTables</tt>
+	    approach. However, for relatively large tables (&gt; 10
+	    millions of rows) the time required for completing such a
+	    sort can be so large, that indexing is not normally worth
+	    the effort. In other words, <tt class="verb">PyTables</tt> indexing
+	    scales much better than relational databases. So, don't
+	    worry if you have extremely large columns to index:
+	    <tt class="verb">PyTables</tt> is designed to handle with that
+	    perfectly.
+	  </p>
+
+	  <div class="figure" id="indexTimes"><a name="indexTimes"></a>
+	    <img class="graphics" alt="Times for indexing a couple of columns of&#xA;		datatypes Int32 and&#xA;		Floa..." src="indexTimes-itanium-web.png">
+	    <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;6.3:</span> Times for indexing a couple of columns of
+		datatypes <tt>Int32</tt> and
+		<tt>Float64</tt>. Benchmark made
+		on a machine with Itanium (IA64) @ 900 MHz processors
+		with SCSI disk @ 10K RPM.
+	    </div></div>
+	  </div>
+
+	</div>
+      </div> 
+
+      <div id="compressionIssues"><a name="compressionIssues"></a>
+	<h2 id="section6.3"><span class="headlinenumber"><a name="section6.3"></a>6.3 </span>Compression issues</h2>
+
+	<p class="first">One of the beauties of <tt class="verb">PyTables</tt> is that it
+	  supports compression on tables and arrays<a href="#footnote9" id="footnoteback9"><sup title="More precisely, it is supported in EArray and VLArray objects, not in Array objects itself.">9)</sup></a>, although it is disabled by
+	  default. Compression of big amounts of data might be a bit
+	  controversial feature, because compression has a legend of
+	  being a very big CPU time resources consumer. However, if
+	  you are willing to check if compression can help not only
+	  reducing your dataset file size but <b>also</b> improving your I/O efficiency,
+	  keep reading.
+	</p>
+
+	<p>There is an usual scenario where users need to save
+	  duplicated data in some record fields, while the others
+	  have varying values. In a relational database approach
+	  such redundant data can normally be moved to other
+	  tables and a relationship between the rows on the separate
+	  tables can be created. But that takes analysis and
+	  implementation time, and makes the underlying libraries
+	  more complex and slower.
+	</p>
+
+	<p><tt class="verb">PyTables</tt> transparent compression allows the
+	  users to not worry about finding which is their optimum data
+	  tables strategy, but rather use less, not directly related,
+	  tables with a larger number of columns while still not
+	  cluttering the database too much with duplicated data
+	  (compression is responsible to avoid that). As a side
+	  effect, data selections can be made more easily because you
+	  have more fields available in a single table, and they can
+	  be referred in the same loop. This process may normally end
+	  in a simpler, yet powerful manner to process your data
+	  (although you should still be careful about in which kind of
+	  scenarios compression use is convenient or not).
+	</p>
+
+	<p>The compression library used by default is the <b>Zlib</b> (see <a href="#zlibRef"></a>), and as HDF5 <em>requires</em>
+	  it, you can safely use it and expect that your HDF5 files
+	  will be readable on any other platform that has HDF5 libraries
+	  installed. Zlib provides good compression ratio, although
+	  somewhat slow, and reasonably fast decompression. Because
+	  of that, it is a good candidate to be used for compressing
+	  you data.
+	</p>
+
+	<p>However, in many situations (i.e. write <em>once</em>, read
+	  <em>multiple</em>), it is critical to have <em>very
+	  good</em> decompression speed (at expense of whether less
+	  compression or more CPU wasted on compression, as we will
+	  see soon). This is why support for two additional
+	  compressors has been added to PyTables: LZO and UCL (see
+	  <a href="#lzouclRef"></a>). Following his author (and
+	  checked by the author of this manual), LZO offers pretty
+	  fast compression (although small compression ratio) and
+	  extremely fast decompression while UCL achieves an excellent
+	  compression ratio (at the price of spending much more CPU
+	  time) while allowing very fast decompression (and <em>very
+	  close</em> to the LZO one). In fact, LZO and UCL are so fast
+	  when decompressing that, in general (that depends on your
+	  data, of course), writing and reading a compressed table is
+	  actually faster (and sometimes <b>much
+	  faster</b>) than if it is uncompressed. This fact is
+	  very important, specially if you have to deal with very
+	  large amounts of data.
+	</p>
+
+	<p>Be aware that the LZO and UCL support in PyTables is not
+	  standard on HDF5, so if you are going to use your PyTables
+	  files in other contexts different from PyTables you will not
+	  be able to read them. Still, see the <a href="usersguide8.html#ptrepackDescr">appendix&nbsp;B.2</a> where the
+	  <tt class="verb">ptrepack</tt> utility is described to find a way to
+	  free your files from LZO or UCL dependencies, so that you
+	  can use these compressors locally with the warranty that you
+	  can replace them with ZLIB (or even remove compression
+	  completely) if you want to export the files to other HDF5
+	  tools afterwards.
+	</p>
+
+	<p>In order to give you a raw idea of what ratios would be
+	  achieved, and what resources would be consumed, look at the
+	  <a href="#comprTblComparison">table&nbsp;6.1</a>. This table has
+	  been obtained from synthetic data and with a somewhat
+	  outdated PyTables version (0.5), so take this just as a
+	  guide because your mileage will probably vary. Have also a
+	  look at the graphs <a href="#lzozlibuclWriteComparison">6.4</a> and <a href="#lzozlibuclReadComparison">6.5</a> (these graphs have
+	  been obtained with tables with different row sizes and
+	  PyTables version than the previous example, so do not try
+	  to directly compare the figures). They show how the speed of
+	  writing/reading rows evolves as the size (the row number)
+	  of tables grows. Even though in these graphs the size of one
+	  single row is 56 bytes, you can most probably extrapolate
+	  this figures to other row sizes. If you are curious about how well
+	  compression can perform together with Psyco, look at the
+	  graphs <a href="#psycolzozlibuclWriteComparison">6.6</a>
+	  and <a href="#psycolzozlibuclReadComparison">6.7</a>. As
+	  you can see, the results are pretty interesting.
+	</p>
+
+	<div class="table" id="comprTblComparison"><a name="comprTblComparison"></a>
+	  
+	  <table class="tabular" cellspacing="0" cellpadding="5" frame="hsides" rules="groups"><caption><span class="captionlabel">Table&nbsp;6.1:</span> Comparison between different compression
+	    libraries. The tests have been conducted on a Pentium 4 at 2
+	    GHz and a hard disk at 4200 RPM.</caption><col align="left"><col align="center"><col align="center"><col align="center"><col align="center"><col align="center">
+	    <thead><tr><td colspan="6" class="thickline"></td></tr>
+	      <tr><th align="left">Compr. Lib</th><th align="center">File size (MB)</th><th align="center">Time writing (s)</th><th align="center">Time reading (s)</th><th align="center">Speed writing (Krow/s)</th><th align="center">Speed reading (Krow/s)</th></tr>
+	    <tr><td colspan="6" class="thinline"></td></tr></thead>
+	    <tbody>
+	      <tr><td align="left">NO COMPR</td><td align="center">244.0</td><td align="center">24.4</td><td align="center">16.0</td><td align="center">18.0</td><td align="center">27.8</td></tr>
+	      <tr><td align="left">Zlib (lvl 1)</td><td align="center">8.5</td><td align="center">17.0</td><td align="center">3.11</td><td align="center">26.5</td><td align="center">144.4</td></tr>
+	      <tr><td align="left">Zlib (lvl 6)</td><td align="center">7.1</td><td align="center">20.1</td><td align="center">3.10</td><td align="center">22.4</td><td align="center">144.9</td></tr>
+	      <tr><td align="left">Zlib (lvl 9)</td><td align="center">7.2</td><td align="center">42.5</td><td align="center">3.10</td><td align="center">10.6</td><td align="center">145.1</td></tr>
+	      <tr><td align="left">LZO (lvl 1)</td><td align="center">9.7</td><td align="center">14.6</td><td align="center">1.95</td><td align="center">30.6</td><td align="center">230.5</td></tr>
+	      <tr><td align="left">UCL (lvl 1)</td><td align="center">6.9</td><td align="center">38.3</td><td align="center">2.58</td><td align="center">11.7</td><td align="center">185.4</td></tr>
+	    <tr><td colspan="6" class="thickline"></td></tr></tbody>
+	  </table>
 	  
 	</div>
 
-      </div></div><div class="speedbar-bottom"><hr class="speedbar"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide5.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide7.html">next</a></td></tr></tbody></table></div></body></html>
+	<div class="figure" id="lzozlibuclWriteComparison"><a name="lzozlibuclWriteComparison"></a>
+	  <img class="graphics" width="" height="" alt="Writing tables with several compressors.&#xA;	  " src="write-medium-lzo-zlib-ucl-comparison-web.png">
+	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;6.4:</span> Writing tables with several compressors.
+	  </div></div>
+	</div>
+
+	<div class="figure" id="lzozlibuclReadComparison"><a name="lzozlibuclReadComparison"></a>
+	  <img class="graphics" width="" height="" alt="Reading tables with several compressors.&#xA;	  " src="read-medium-lzo-zlib-ucl-comparison-web.png">
+	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;6.5:</span> Reading tables with several compressors.
+	  </div></div>
+	</div>
+
+	<div class="figure" id="psycolzozlibuclWriteComparison"><a name="psycolzozlibuclWriteComparison"></a>
+	  <img class="graphics" width="" height="" alt="Writing tables with several compressors and Psyco.&#xA;	  " src="write-medium-psyco-lzo-zlib-ucl-comparison-web.png">
+	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;6.6:</span> Writing tables with several compressors and Psyco.
+	  </div></div>
+	</div>
+
+	<div class="figure" id="psycolzozlibuclReadComparison"><a name="psycolzozlibuclReadComparison"></a>
+	  <img class="graphics" width="" height="" alt="Reading tables with several compressors and Psyco.&#xA;	  " src="read-medium-psyco-lzo-zlib-ucl-comparison-web.png">
+	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;6.7:</span> Reading tables with several compressors and Psyco.
+	  </div></div>
+	</div>
+
+	<p>
+	  By looking at graphs, you can expect that, generally
+	  speaking, LZO would be the fastest both compressing and
+	  uncompressing, but the one that achieves the worse
+	  compression ratio (although that may be just ok for many
+	  situations). UCL is the slowest when compressing, but is
+	  faster than Zlib when decompressing, and, besides, it
+	  achieves very good compression ratios (generally better than
+	  Zlib). Zlib represents a balance between them: it's somewhat
+	  slow compressing, the slowest during decompression, but it
+	  normally achieves fairly good compression ratios.
+	</p>
+
+	<p>So, if your ultimate goal is reading as fast as possible,
+	  choose LZO. If you want to reduce as much as possible your
+	  data, while retaining good read speed, choose UCL. If you
+	  don't mind too much about the above parameters and/or
+	  portability is important for you, Zlib is your best bet.
+	</p>
+
+	<p>The compression level that I recommend to use for all
+	  compression libraries is 1. This is the lowest level of
+	  compression, but if you take the approach suggested above,
+	  normally the redundant data is to be found in the same
+	  row, so the redundant data locality is very high and such
+	  a small level of compression should be enough to achieve a
+	  good compression ratio on your data tables, saving CPU
+	  cycles for doing other things. Nonetheless, in some
+	  situations you may want to check how compression level
+	  affects your application.
+	</p>
+
+	<p> You can select the compression library and level by
+	  setting the <tt class="verb">complib</tt> and <tt class="verb">compress</tt>
+	  keywords in the <tt class="verb">Filters</tt> class (see <a href="usersguide4.html#FiltersClassDescr">4.13.1</a>). A compression level of 0
+	  will completely disable compression (the default), 1 is the
+	  less CPU time demanding level, while 9 is the maximum level
+	  and most CPU intensive. Finally, have in mind that LZO is
+	  not accepting a compression level right now, so, when using
+	  LZO, 0 means that compression is not active, and any other
+	  value means that LZO is active.
+	</p>
+
+      </div>
+
+      <div>
+	<h2 id="section6.4"><span class="headlinenumber"><a name="section6.4"></a>6.4 </span>Shuffling (or how to make the compression process
+	  more effective)</h2>
+
+	<p class="first">The <tt class="verb">HDF5</tt> library provides an interesting
+	  filter that can leverage the results of your favorite
+	  compressor. Its name is <em>shuffle</em>, and because it can
+	  greatly benefit compression and it doesn't take many CPU
+	  resources, it is active by <em>default</em> in
+	  <tt class="verb">PyTables</tt> whenever compression is activated
+	  (independently of the chosen compressor). It is of course
+	  deactivated when compression is off (which is the default,
+	  as you already should know).
+	</p>
+
+	<p>From the HDF5 reference manual:</p>
+
+	<q>The <em>shuffle</em> filter de-interlaces a block of data
+	  by reordering the bytes. All the bytes from one consistent
+	  byte position of each data element are placed together in
+	  one block; all bytes from a second consistent byte position
+	  of each data element are placed together a second block;
+	  etc. For example, given three data elements of a 4-byte
+	  datatype stored as 012301230123, shuffling will re-order
+	  data as 000111222333. This can be a valuable step in an
+	  effective compression algorithm because the bytes in each
+	  byte position are often closely related to each other and
+	  putting them together can increase the compression
+	  ratio.
+	</q>
+
+	<p>In <a href="#comprShuffleComparison">table&nbsp;6.2</a> you can
+	  see a benchmark that shows how the <em>shuffle</em> filter
+	  can help to the different libraries to compress data in
+	  three table datasets. Generally speaking, <em>shuffle</em>
+	  makes the writing process (shuffling+compressing) faster
+	  (between 7% and 22%), which is an interesting result in
+	  itself. However, the reading process
+	  (unshuffling+decompressing) is slower, but by a lesser
+	  extent (between 3% and 18%).
+	</p>
+	<p>But the most remarkable fact is the level of compression
+	  that compressor filters can achieve after <em>shuffle</em>
+	  has passed over the data: the total file size can be up to
+	  40 times smaller than the uncompressed file, and up to 5
+	  times smaller than the already compressed files (!). Of
+	  course, the data for doing this test is synthetic, and
+	  <em>shuffle</em> seems to do a great work with it, so in
+	  general, the results will vary in your case. However, due to
+	  the small drawbacks (reads are slowed down by a small extent)
+	  and its potential gains (faster writing, but specially much
+	  better compression level), I do believe that it is a good
+	  thing to have such a filter enabled by default in the battle
+	  for discovering redundancy in your data.
+	</p>
+
+	<div class="table" id="comprShuffleComparison"><a name="comprShuffleComparison"></a>
+	  
+	  <table class="tabular" cellspacing="0" cellpadding="5" frame="hsides" rules="groups"><caption><span class="captionlabel">Table&nbsp;6.2:</span> Comparison between different compression
+	    libraries, with and without shuffling.
+	    The tests have been conducted on a Pentium 4 at 2
+	    GHz and a hard disk at 4200 RPM.</caption><col align="left"><col align="right"><col align="center"><col align="center"><col align="center"><col align="center">
+	    <thead><tr><td colspan="6" class="thickline"></td></tr>
+	      <tr><th align="left">Compr. Lib</th><th align="right">File size (MB)</th><th align="center">Time writing (s)</th><th align="center">Time reading (s)</th><th align="center">Speed writing (MB/s)</th><th align="center">Speed reading (MB/s)</th></tr>
+	    <tr><td colspan="6" class="thinline"></td></tr></thead>
+	    <tbody>
+	      <tr><td align="left">NO COMPR</td><td align="right">165.4</td><td align="center">24.5</td><td align="center">17.13</td><td align="center">6.6</td><td align="center">9.6</td></tr>
+	      <tr><td align="left">Zlib (lvl 1)</td><td align="right">26.4</td><td align="center">22.2</td><td align="center">5.77</td><td align="center">7.3</td><td align="center">28.4</td></tr>
+	      <tr><td align="left">Zlib+shuffle</td><td align="right">4.0</td><td align="center">19.0</td><td align="center">5.94</td><td align="center">8.6</td><td align="center">27.6</td></tr>
+	      <tr><td align="left">LZO (lvl 1)</td><td align="right">44.9</td><td align="center">17.8</td><td align="center">4.13</td><td align="center">9.2</td><td align="center">39.7</td></tr>
+	      <tr><td align="left">LZO+shuffle</td><td align="right">4.3</td><td align="center">16.4</td><td align="center">5.03</td><td align="center">9.9</td><td align="center">32.6</td></tr>
+	      <tr><td align="left">UCL (lvl 1)</td><td align="right">27.4</td><td align="center">48.8</td><td align="center">5.02</td><td align="center">3.3</td><td align="center">32.7</td></tr>
+	      <tr><td align="left">UCL+shuffle</td><td align="right">3.5</td><td align="center">38.1</td><td align="center">5.31</td><td align="center">4.3</td><td align="center">30.9</td></tr>
+	    <tr><td colspan="6" class="thickline"></td></tr></tbody>
+	  </table>
+	  
+	</div>
+
+      </div> 
+
+      <div>
+	<h2 id="section6.5"><span class="headlinenumber"><a name="section6.5"></a>6.5 </span>Taking advantage of Psyco</h2>
+
+	<p class="first">Psyco (see <a href="#psycoRef"></a>) is a kind of
+	  specialized compiler for Python that typically accelerates
+	  Python applications with no change in source code. You can
+	  think of Psyco as a kind of just-in-time (JIT) compiler, a
+	  little bit like Java's, that emits machine code on the fly
+	  instead of interpreting your Python program step by
+	  step. The result is that your unmodified Python programs run
+	  faster.
+	</p>
+
+	<p>Psyco is very easy to install and use, so in most scenarios
+	  it is worth to give it a try. However, it only runs on Intel
+	  386 architectures, so if you are using other architectures,
+	  you are out of luck (at least until Psyco will support
+	  yours).
+	</p>
+
+	<p>As an example, imagine that you have a small script that
+	  reads and selects data over a series of datasets, like this:
+	</p>
+
+	<pre>
+def readFile(filename):
+    "Select data from all the tables in filename"
+
+    fileh = openFile(filename, mode = "r")
+    result = []
+    for table in fileh("/", 'Table'):
+        result = [ p['var3'] for p in table if p['var2'] &lt;= 20 ]
+
+    fileh.close()
+    return e
+
+if __name__=="__main__":
+    print readFile("myfile.h5")
+	</pre>
+
+	<p>In order to accelerate this piece of code, you can rewrite
+	  your main program to look like:
+	</p>
+
+	<pre>
+if __name__=="__main__":
+    import pysco
+    psyco.bind(readFile)
+    print readFile("myfile.h5")
+	</pre>
+
+	<p>That's all!. From now on, each time that you execute your
+	  Python script, Psyco will deploy its sophisticated
+	  algorithms so as to accelerate your calculations.
+	</p>
+
+	<p>You can see in the graphs <a href="#psycoWriteComparison">6.8</a> and <a href="#psycoReadComparison">6.9</a> how much I/O speed
+	  improvement you can get by using Psyco. By looking at this
+	  figures you can get an idea if these improvements are of
+	  your interest or not. In general, if you are not going to
+	  use compression you will take advantage of Psyco if your
+	  tables are medium sized (from a thousand to a million rows),
+	  and this advantage will disappear progressively when the
+	  number of rows grows well over one million. However if you
+	  use compression, you will probably see improvements even
+	  beyond this limit (see <a href="#compressionIssues">section&nbsp;6.3</a>). As always, there
+	  is no substitute for experimentation with your own dataset.
+	</p>
+
+	<div class="figure" id="psycoWriteComparison"><a name="psycoWriteComparison"></a>
+	  <img class="graphics" width="" height="" alt="Writing tables with/without Psyco.&#xA;	  " src="write-medium-psyco-nopsyco-comparison-web.png">
+	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;6.8:</span> Writing tables with/without Psyco.
+	  </div></div>
+	</div>
+
+	<div class="figure" id="psycoReadComparison"><a name="psycoReadComparison"></a>
+	  <img class="graphics" width="" height="" alt="Reading tables with/without Psyco.&#xA;	  " src="read-medium-psyco-nopsyco-comparison-web.png">
+	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;6.9:</span> Reading tables with/without Psyco.
+	  </div></div>
+	</div>
+
+      </div> 
+
+      <div>
+	<h2 id="section6.6"><span class="headlinenumber"><a name="section6.6"></a>6.6 </span>Selecting an User Entry Point (UEP) in your
+	  tree</h2>
+
+	<p class="first">If you have a <b>huge</b> tree in
+	  your data file with many nodes on it, creating the object
+	  tree would take long time. Many times, however, you are
+	  interested only in access to a part of the complete tree, so
+	  you won't strictly need PyTables to build the entire object
+	  tree in-memory, but only the <em>interesting</em> part.
+	</p>
+
+	<p>This is where the <tt class="verb">rootUEP</tt> parameter of
+	  <tt class="verb">openFile</tt> function (see <a href="usersguide4.html#openFileDescr">4.1.2</a>) can be helpful. Imagine that
+	  you have a file called <tt class="verb">"test.h5"</tt> with the
+	  associated tree that you can see in figure <a href="#rootUEPfig1">6.10</a>, and you are interested only in
+	  the section marked in red.  You can avoid the build of all
+	  the object tree by saying to <tt class="verb">openFile</tt> that your
+	  root will be the <tt class="verb">/Group2/Group3</tt> group. That is:
+	</p>
+	<pre>
+	  fileh = openFile("test.h5", rootUEP="/Group2/Group3")
+	</pre>
+
+	<p>As a result, the actual object tree built will be like the
+	  one that can be seen in <a href="#rootUEPfig2">figure&nbsp;6.11</a>.
+	</p>
+
+	<p>Of course this has been a simple example and the use
+	  of the <tt class="verb">rootUEP</tt> parameter was not very
+	  necessary. But when you have <em>thousands</em> of nodes on
+	  a tree, you will certainly appreciate the
+	  <tt class="verb">rootUEP</tt> parameter.
+	</p>
+
+	<div class="figure" id="rootUEPfig1"><a name="rootUEPfig1"></a>
+	  <img class="graphics" width="" height="" alt="Complete tree in file test.h5, and subtree of interest for&#xA;	    the us..." src="rootUEP1-web.png">
+	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;6.10:</span> Complete tree in file <tt>test.h5</tt>, and subtree of interest for
+	    the user.
+	  </div></div>
+	</div>
+
+	<div class="figure" id="rootUEPfig2"><a name="rootUEPfig2"></a>
+	  <img class="graphics" width="" height="" alt="Resulting object tree derived from the use of the&#xA;	    rootUEP paramet..." src="rootUEP2-web.png">
+	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;6.11:</span> Resulting object tree derived from the use of the
+	    <tt>rootUEP</tt> parameter.
+	  </div></div>
+	</div>
+	
+      </div>
+
+      <div>
+	<h2 id="section6.7"><span class="headlinenumber"><a name="section6.7"></a>6.7 </span>Compacting your <tt>PyTables</tt>
+	  files
+	</h2>
+
+	<p class="first">Let's suppose that you have a file on which you have made a
+	  lot of row deletions on one or more tables, or deleted many
+	  leaves or even entire subtrees. These operations migth leave
+	  <em>holes</em> (i.e. space that is not used anymore) in your
+	  files, that may potentially affect not only the size of the
+	  files but, more importantly, the performance of I/O. This is
+	  because when you delete a lot of rows on a table, the space
+	  is not automatically recovered on-the-flight. In addition,
+	  if you add many more rows to a table than specified in the
+	  <tt class="verb">expectedrows</tt> keyword in creation time this may
+	  affect performace as well, as explained in <a href="#expectedRowsOptim">section&nbsp;6.1</a>.
+	</p>
+
+	<p>In order to cope with these issues, you should be aware
+	  that a handy <tt class="verb">PyTables</tt> utility called
+	  <tt class="verb">ptrepack</tt> can be very useful, not only to
+	  compact your already existing <em>leaky</em> files, but also
+	  to adjust some internal parameters (both in memory and in
+	  file) in order to create adequate buffer sizes and chunk
+	  sizes for optimum I/O speed. Please, check the <a href="usersguide8.html#ptrepackDescr">appendix&nbsp;B.2</a> for a brief tutorial on
+	  its use.
+	</p>
+
+	<p>Another thing that you might want to use
+	  <tt class="verb">ptrepack</tt> for is changing the compression
+	  filters or compression levels on your existing data for
+	  different goals, like checking how this can affect both
+	  final size and I/O performance, or getting rid of the
+	  optional compressors like <tt class="verb">LZO</tt> or
+	  <tt class="verb">UCL</tt> in your existing files in case you want to
+	  use them with generic HDF5 tools that do not have support
+	  for these filters.
+	</p>
+
+      </div>
+
+    </div><hr class="footnoterule"><div class="footnote"><a id="footnote8" href="#footnoteback8"><sup>8)</sup></a>&nbsp;Although this may change in the
+	    future</div><div class="footnote"><a id="footnote9" href="#footnoteback9"><sup>9)</sup></a>&nbsp;More
+	  precisely, it is supported in <tt class="verb">EArray</tt> and
+	  <tt class="verb">VLArray</tt> objects, not in <tt class="verb">Array</tt>
+	  objects itself.</div></div><div class="speedbar-bottom"><hr class="speedbar"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide5.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide7.html">next</a></td></tr></tbody></table></div></body></html>
