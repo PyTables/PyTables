@@ -57,8 +57,7 @@ class createTestCase(unittest.TestCase):
         self.fileh.close()
         os.remove(self.file)
         # Delete references
-        #del self.fileh, self.root, self.table, self.array, self.group
-        self.__dict__.clear()
+        del self.fileh, self.root, self.table, self.array, self.group
 
     #----------------------------------------
 

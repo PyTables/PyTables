@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.17 2003/02/20 13:12:34 falted Exp $
+#       $Id: Array.py,v 1.18 2003/02/21 11:54:46 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.17 $"
+__version__ = "$Revision: 1.18 $"
 import types, warnings, sys
 from Leaf import Leaf
 import hdf5Extension
@@ -156,12 +156,27 @@ class Array(Leaf, hdf5Extension.Array):
                 flavor = "TUPLE"
             else:
                 flavor = "LIST"
+        elif isinstance(arr, types.IntType):
+            naarr = numarray.array(arr)
+            flavor = "INT"
+        elif isinstance(arr, types.FloatType):
+            naarr = numarray.array(arr)
+            flavor = "FLOAT"
+        elif isinstance(arr, types.StringType):
+            naarr = chararray.array(arr)
+            flavor = "STRING"
         else:
             raise ValueError, \
 """The object '%s' is not in the list of supported objects (numarray,
-  chararray,homogeneous list or homogeneous tuple).
+  chararray,homogeneous list or homogeneous tuple, int, float or str).
   Sorry, but this object is not supported.""" % (arr)
 
+        if naarr.shape == (0,):
+            raise ValueError, \
+"""The object '%s' has a zero sized dimension.
+  Sorry, but this object is not supported.""" % (arr)
+            
+            
         self.typeclass = self.createArray(naarr, self.title,
                                      flavor, obversion, self.atomic)
         # Get some important attributes
@@ -223,6 +238,12 @@ class Array(Leaf, hdf5Extension.Array):
             arr = tuple(arr.tolist())
         elif self.flavor == "LIST":
             arr = arr.tolist()
+        elif self.flavor == "INT":
+            arr = int(arr)
+        elif self.flavor == "FLOAT":
+            arr = float(arr)
+        elif self.flavor == "STRING":
+            naarr = arr.tostring()
         
         return arr
         

@@ -28,6 +28,7 @@ def suite():
                     'test_create',
                     'test_types',
                     'test_numarray',
+                    'test_lists',
                     # if test_tables is before test_tree the memory
                     # consumption grows up to 500 MB
                     # If it is placed after, it remains at 15 MB

@@ -34,13 +34,6 @@ class BasicTestCase(unittest.TestCase):
     """
     endiancheck = 0
 
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        # Delete trhe references to the object tree
-        self.__dict__.clear()
-
     def WriteRead(self, testArray):
         if verbose:
             print '\n', '-=' * 30
@@ -219,8 +212,6 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 
         # Then, delete the file
         os.remove(self.file)
-        # Delete trhe references to the object tree
-        #self.__dict__.clear()
 
     def WriteRead(self, testArray):
         if verbose:

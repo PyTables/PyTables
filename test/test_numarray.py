@@ -35,17 +35,10 @@ def allequal(a,b):
     return result
 
 class BasicTestCase(unittest.TestCase):
-    """Basic test for all the supported typecodes present in Numeric.
+    """Basic test for all the supported typecodes present in numarray.
     All of them are included on pytables.
     """
     endiancheck = 0
-
-    def setUp(self):
-        pass
-    
-    def tearDown(self):
-        # Delete the references to the object tree
-        self.__dict__.clear()
     
     def WriteRead(self, testArray):
         if verbose:
@@ -229,7 +222,7 @@ class Basic32DTestCase(BasicTestCase):
     tupleChar = chararray.array("121", shape=(1,)*32, itemsize=3)
 
 class UnalignedAndComplexTestCase(unittest.TestCase):
-    """Basic test for all the supported typecodes present in Numeric.
+    """Basic test for all the supported typecodes present in numarray.
     All of them are included on pytables.
     """
     endiancheck = 0
@@ -246,8 +239,6 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 
         # Then, delete the file
         os.remove(self.file)
-        # Delete trhe references to the object tree
-        self.__dict__.clear()
 
     def WriteRead(self, testArray):
         if verbose:
