@@ -5,7 +5,7 @@
 #	Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/nodes/FileNode.py,v $
-#	$Id: FileNode.py,v 1.4 2004/11/18 19:10:40 ivilata Exp $
+#	$Id: FileNode.py,v 1.5 2004/11/22 17:13:43 ivilata Exp $
 #
 ########################################################################
 
@@ -25,12 +25,12 @@ Constants:
 	NodeTypeVersions -- Supported values for '_type_version' node attribute.
 """
 
-import os, warnings
+import os, warnings, numarray
 import tables
 
 
 
-__revision__ = '$Id: FileNode.py,v 1.4 2004/11/18 19:10:40 ivilata Exp $'
+__revision__ = '$Id: FileNode.py,v 1.5 2004/11/22 17:13:43 ivilata Exp $'
 
 NodeType         = 'file'
 NodeTypeVersions = [1]
@@ -99,13 +99,23 @@ class FileNode(object):
 	The constructor sets the 'closed', 'softspace' and '_lineSeparator'
 	attributes to their initial values, as well as the 'node' attribute
 	to None.
-	Sub-classes should set the 'node', 'mode' and 'offset' attributes.
+	Sub-classes should set the 'node', 'mode', 'offset'
+	and '_version' attributes.
 
 	Version 1 implements the file storage as a UInt8 uni-dimensional EArray.
 	"""
 
-	# The atom representing a byte in the array.
-	_byteAtom = tables.UInt8Atom(shape=(0, 1))
+	# The atom representing a byte in the array, for each version.
+	_byteAtom = [
+		None,
+		tables.UInt8Atom(shape=(0, 1)),
+		tables.UInt8Atom(shape=(0,))]
+
+	# A lambda to turn a size into a shape, for each version.
+	_sizeToShape = [
+		None,
+		lambda l: (l, 1),
+		lambda l: (l,)]
 
 	# The number of bytes readline() reads at a time.
 	_lineChunkSize = 128
@@ -167,7 +177,7 @@ class FileNode(object):
 		super(FileNode, self).__init__()
 
 		# The constructor of the subclass must set the value of
-		# the instance attributes 'node', 'mode', and 'offset'.
+		# the instance attributes 'node', 'mode', 'offset' and '_version'.
 		# It also has to set or check the node attributes.
 		self.closed = False
 		self.sofstpace = 0
@@ -176,6 +186,7 @@ class FileNode(object):
 		self.node   = None
 		self.mode   = None
 		self.offset = None
+		self._version = None
 
 
 	def __del__(self):
@@ -196,7 +207,7 @@ class FileNode(object):
 
 		attrs = node.attrs
 		attrs._type         = NodeType
-		attrs._type_version = 1
+		attrs._type_version = NodeTypeVersions[-1]
 
 
 	def _checkAttributes(self, node):
@@ -479,6 +490,7 @@ class ROFileNode(FileNode):
 		self.node = node
 		self.mode = 'r'
 		self.offset = 0L
+		self._version = node.attrs._type_version
 
 
 	def __del__(self):
@@ -547,8 +559,9 @@ class RWFileNode(FileNode):
 		super(RWFileNode, self).__init__()
 
 		if node is not None:
-			# Open an existing node.
+			# Open an existing node and get its version.
 			self._checkAttributes(node)
+			self._version = node.attrs._type_version
 		elif h5file is not None:
 			# Check for allowed keyword arguments,
 			# to avoid unwanted arguments falling through to array constructor.
@@ -566,7 +579,10 @@ class RWFileNode(FileNode):
 				kwargs['expectedrows'] = expectedrows
 
 			# Create a new array in the specified PyTables file.
-			node = h5file.createEArray(atom = self._byteAtom, **kwargs)
+			self._version = NodeTypeVersions[-1]
+			node = h5file.createEArray(
+				atom = self._byteAtom[self._version], **kwargs)
+
 			# Set the node attributes, else remove the array itself.
 			try:
 				self._setAttributes(node)
@@ -574,12 +590,14 @@ class RWFileNode(FileNode):
 				h5file.removeNode(kwargs['where'], kwargs['name'])
 				raise
 
+		# Set required attributes (besides of '_version').
 		self.node = node
 		self.mode = 'a+'
 		self.offset = 0L
 
-		import numarray
-		self._na = numarray
+		# Cache some dictionary lookups regarding file version.
+		self.__vType = self._byteAtom[self._version].type
+		self.__vShape = self._sizeToShape[self._version]
 
 
 	def __del__(self):
@@ -598,7 +616,7 @@ class RWFileNode(FileNode):
 			return
 		# XXX This may be redone to avoid a potentially large in-memory array.
 		self.node.append(
-			self._na.zeros(type = self._byteAtom.type, shape = (size, 1)))
+			numarray.zeros(type = self.__vType, shape = self.__vShape(size)))
 
 
 	def flush(self):
@@ -654,8 +672,9 @@ class RWFileNode(FileNode):
 
 		# Append data.
 		self.node.append(
-			self._na.array(
-				string, type = self._byteAtom.type, shape = (len(string), 1)))
+			numarray.array(
+				string,
+				type = self.__vType, shape = self.__vShape(len(string))))
 
 		# Move the pointer to the end of the written data.
 		self.offset = self.node.nrows
