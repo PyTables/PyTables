@@ -130,8 +130,13 @@ fairly simple to get things ready to go.
 
         python test_types.py -v
 
+   If you run into problems because Python can't load hdf5 shared
+   libraries, try to set the LD_LIBRARY_PATH environment variable to
+   point to the directory where the libraries are.
+
 4. To install the entire PyTables Python package, change back to the
-   root distribution directory and run this command as the root user:
+   root distribution directory and run this command as the root user
+   (remember to add any extra flags needed):
 
         python setup.py install
 

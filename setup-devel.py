@@ -66,9 +66,11 @@ if os.name == 'posix':
     if not HDF5_DIR and not incdir and not libdir:
         print """\
 Can't find a local hdf5 installation.
-Please, read carefully the README and remember to
-install the hdf5_hl library and headers in the
-same place as hdf5 does."""
+Please, read carefully the README and if your
+hdf5 libraries are not in a standard place
+use the HDF5_DIR envornment variable or
+use the flag --hdf5 to give a hint of
+where they can be found."""
         
         sys.exit(1)
 
