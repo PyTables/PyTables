@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.100 2003/12/28 23:10:08 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.101 2003/12/29 00:03:51 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.100 $"
+__version__ = "$Revision: 1.101 $"
 
 
 import sys, os
@@ -57,7 +57,7 @@ cdef extern from "type-longlong.h":
 # C funtions and variable declaration from its headers
 
 #from c_libs cimport size_t, malloc, free
-cimport c_libs
+#cimport c_libs
 
 # Type size_t is defined in stdlib.h
 cdef extern from "stdlib.h":
@@ -784,7 +784,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.100 2003/12/28 23:10:08 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.101 2003/12/29 00:03:51 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
