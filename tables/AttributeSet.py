@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.7 2003/06/07 16:29:02 falted Exp $
+#       $Id: AttributeSet.py,v 1.8 2003/06/11 10:48:44 falted Exp $
 #
 ########################################################################
 
@@ -19,17 +19,19 @@ Classes:
 
 Functions:
 
+    issysattrname(name)
 
 Misc variables:
 
     __version__
     
-
     MAX_ATTRS_IN_NODE -- Maximum allowed number of attributes in a node
+    SYS_ATTR -- List with attributes considered as read-only
+    SYS_ATTR_PREFIXES -- List with prefixes for system attributes
 
 """
 
-__version__ = "$Revision: 1.7 $"
+__version__ = "$Revision: 1.8 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -37,7 +39,7 @@ import Group
 from utils import checkNameValidity
 
 # Note: the next constant has to be syncronized with the
-# MAX_ATTRS_IN_NODE constant in util.h!
+# MAX_ATTRS_IN_NODE constant in util.h
 MAX_ATTRS_IN_NODE = 4096
 
 # System attributes (read only)
@@ -88,7 +90,6 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         
     Instance variables:
 
-        attrname -- The name of an attribute in Python namespace
         _v_node -- The parent node instance
         _v_attrnames -- List with all attribute names
         _v_attrnamessys -- List with system attribute names
@@ -99,7 +100,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     def __init__(self, node):
         """Create the basic structures to keep the attribute information.
 
-        node -- The node that contains this attributes
+        Reads all the HDF5 attributes (if any) on disk for the node "node".
+
+        node -- The parent node
         
         """
         self._g_new(node)
@@ -135,7 +138,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
             return self._v_attrnames
 
     def __getattr__(self, name):
-        """Get the HDF5 attribute named "name"."""
+        """Get the attribute named "name"."""
 
         # If attribute does not exists, return None
         if not name in self._v_attrnames:
@@ -153,14 +156,16 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         return retval
 
     def __setattr__(self, name, value):
-        """Attach new nodes to the tree.
+        """Set new attribute to node.
 
         name -- The name of the new attribute
         value -- The new attribute value
 
         A NameError is also raised when the "name" starts by a
         reserved prefix. A SyntaxError is raised if "name" is not a
-        valid Python identifier.
+        valid Python identifier. A RuntimeError is raised if a system
+        attribute is to be overwritten or if MAX_ATTR_IN_NODE is going
+        to be exceeded.
 
         """
 
@@ -197,28 +202,24 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
     def __delattr__(self, name):
         "Remove the attribute attrname from the attribute set"
-        self._f_remove(name)
-
-    def _f_remove(self, attrname):
-        "Remove the attribute attrname from the attribute set"
 
         # Check if attribute exists
-        if attrname not in self._v_attrnames:
+        if name not in self._v_attrnames:
             raise RuntimeError, \
                   "Attribute ('%s') does not exist in node '%s'" % \
                   (name, self._v_node._v_name)
 
         # The system attributes are protected
-        if attrname in self._v_attrnamessys:
+        if name in self._v_attrnamessys:
             raise RuntimeError, \
-                  "System attribute ('%s') cannot be overwritten" % (attrname)
+                  "System attribute ('%s') cannot be overwritten" % (name)
 
         # Delete the attribute from disk
-        self._g_remove(attrname)
+        self._g_remove(name)
 
         # Delete the attribute from local lists
-        self._v_attrnames.remove(attrname)
-        self._v_attrnamesuser.remove(attrname)
+        self._v_attrnames.remove(name)
+        self._v_attrnamesuser.remove(name)
 
     def _f_rename(self, oldattrname, newattrname):
         "Rename an attribute"
@@ -233,7 +234,6 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
                 raise RuntimeError, \
             "System attribute ('%s') cannot be overwritten or renamed" % (name)
 
-
         # First, fetch the value of the oldattrname
         attrvalue = getattr(self, oldattrname)
 
@@ -241,15 +241,23 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         setattr(self, newattrname, attrvalue)
 
         # Finally, remove the old attribute
-        self._f_remove(oldattrname)
+        delattr(self, oldattrname)
 
-    def _f_close():
+    def _f_close(self):
         "Delete all the local variables in self to free memory"
 
-        del self._v_node
-        del self._v_attrnames
-        del self._v_attrnamesuser
-        del self._v_attrnamessys
+        self.__dict__.clear()
+#         for attr in self._v_attrnames:
+#             # New attribute (to allow tab-completion in interactive mode)
+#             # Beware! This imply that all the attributes are resident
+#             # in-memory. However, as attributes should not be large
+#             # this should be ok for most of the cases.
+#             del self.__dict__[attr]
+#         del self._v_node
+#         del self._v_attrnames
+#         del self._v_attrnamesuser
+#         del self._v_attrnamessys
+
 
     def __str__(self):
         """The string representation for this object."""
@@ -265,7 +273,6 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
     def __repr__(self):
         """A detailed string representation for this object."""
-        #return str(self)
         
         rep = [ '%s := %r' %  (attr, getattr(self, attr) )
                 for attr in self._v_attrnames ]

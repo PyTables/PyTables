@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.48 2003/06/07 16:29:02 falted Exp $
+#       $Id: Table.py,v 1.49 2003/06/11 10:48:46 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.48 $"
+__version__ = "$Revision: 1.49 $"
 
 from __future__ import generators
 import sys
@@ -37,10 +37,10 @@ import re
 import copy
 import string
 import warnings
-from numarray import *
-import chararray
-import recarray
-import recarray2         # Private version of recarray for PyTables
+import numarray
+import numarray.strings as strings
+import numarray.records as records
+import recarray2         # Private version of records for PyTables
 import hdf5Extension
 from Leaf import Leaf
 from IsDescription import IsDescription, metaIsDescription, Col, fromstructfmt
@@ -150,7 +150,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             self.description = metaIsDescription("", (), description)()
             # Flag that tells if this table is new or has to be read from disk
             self._v_new = 1
-        elif isinstance(description, recarray.RecArray):
+        elif isinstance(description, records.RecArray):
             # RecArray object case
             self._newRecArray(description)
             # Provide a better guess for the expected number of rows
@@ -519,12 +519,12 @@ class Table(Leaf, hdf5Extension.Table, object):
         (start, stop, step) = self._processRange(start, stop, step)
         # Create a recarray for the readout
         if start >= stop:
-            return recarray.array(None, formats=self.description._v_recarrfmt,
+            return records.array(None, formats=self.description._v_recarrfmt,
                                   shape=(0,),
                                   names = self.colnames)
         nrows = ((stop - start - 1) // step) + 1
         # Create the resulting recarray
-        result = recarray.array(None, formats=self.description._v_recarrfmt,
+        result = records.array(None, formats=self.description._v_recarrfmt,
                                 shape=(nrows,),
                                 names = self.colnames)
         # Setup a buffer for the readout
@@ -579,15 +579,15 @@ class Table(Leaf, hdf5Extension.Table, object):
         (start, stop, step) = self._processRange(start, stop, step)
         # Return a rank-0 array if start > stop
         if start >= stop:
-            if isinstance(typeField, recarray.Char):
-                return chararray.array(shape=(0,), itemsize = 0)
+            if isinstance(typeField, records.Char):
+                return strings.array(shape=(0,), itemsize = 0)
             else:
                 return numarray.array(shape=(0,), type=typeField)
                 
         nrows = ((stop - start - 1) // step) + 1
         # Create the resulting recarray
-        if isinstance(typeField, recarray.Char):
-            result = chararray.array(shape=(nrows,), itemsize=lengthField)
+        if isinstance(typeField, records.Char):
+            result = strings.array(shape=(nrows,), itemsize=lengthField)
         else:
             if lengthField > 1:
                 result = numarray.array(shape=(nrows, lengthField),
@@ -705,15 +705,15 @@ class Table(Leaf, hdf5Extension.Table, object):
         (start, stop, step) = self._processRange(start, stop, step)
         # Return a rank-0 array if start > stop
         if start >= stop:
-            if isinstance(typeField, recarray.Char):
-                return chararray.array(shape=(0,), itemsize = 0)
+            if isinstance(typeField, records.Char):
+                return strings.array(shape=(0,), itemsize = 0)
             else:
                 return numarray.array(shape=(0,), type=typeField)
                 
         nrows = ((stop - start - 1) // step) + 1
         # Create the resulting recarray
-        if isinstance(typeField, recarray.Char):
-            result = chararray.array(shape=(nrows,), itemsize=lengthField)
+        if isinstance(typeField, records.Char):
+            result = strings.array(shape=(nrows,), itemsize=lengthField)
         else:
             if lengthField > 1:
                 result = numarray.array(shape=(nrows, lengthField),
@@ -725,8 +725,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         #buffer = self._v_buffer  # Get a recarray as buffer
         # Create the buffer array
         typesize = lengthField
-        if isinstance(typeField, recarray.Char):
-            buffer = chararray.array(shape=(nrowsinbuf,), itemsize=lengthField)
+        if isinstance(typeField, records.Char):
+            buffer = strings.array(shape=(nrowsinbuf,), itemsize=lengthField)
         else:
             if lengthField > 1:
                 buffer = numarray.array(shape=(nrowsinbuf, lengthField),

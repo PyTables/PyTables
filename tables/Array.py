@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.31 2003/06/02 14:24:18 falted Exp $
+#       $Id: Array.py,v 1.32 2003/06/11 10:48:44 falted Exp $
 #
 ########################################################################
 
@@ -27,12 +27,12 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.31 $"
+__version__ = "$Revision: 1.32 $"
 import types, warnings, sys
 from Leaf import Leaf
 import hdf5Extension
-import chararray
 import numarray
+import numarray.strings as strings
 
 try:
     import Numeric
@@ -125,14 +125,14 @@ class Array(Leaf, hdf5Extension.Array, object):
                 if arr.iscontiguous():
                     # This the fastest way to convert from Numeric to numarray
                     # because no data copy is involved
-                    naarr = chararray.array(buffer(arr),
+                    naarr = strings.array(buffer(arr),
                                             itemsize=1,
                                             shape=arr.shape)
                 else:
                     # Here we absolutely need a copy so as to obtain a buffer.
                     # Perhaps this can be avoided or optimized by using
                     # the tolist() method, but this should be tested.
-                    naarr = chararray.array(buffer(arr.copy()),
+                    naarr = strings.array(buffer(arr.copy()),
                                             itemsize=1,
                                             shape=arr.shape)
             else:
@@ -151,7 +151,7 @@ class Array(Leaf, hdf5Extension.Array, object):
                                            type=arr.typecode(),
                                            shape=arr.shape)                    
 
-        elif (isinstance(arr, chararray.CharArray)):
+        elif (isinstance(arr, strings.CharArray)):
             flavor = "CharArray"
             naarr = arr
             self.byteorder = "non-relevant" 
@@ -163,7 +163,7 @@ class Array(Leaf, hdf5Extension.Array, object):
             # If not, test with a chararray
             except TypeError:
                 try:
-                    naarr = chararray.array(arr)
+                    naarr = strings.array(arr)
                 # If still doesn't, issues an error
                 except:
                     raise ValueError, \
@@ -181,7 +181,7 @@ class Array(Leaf, hdf5Extension.Array, object):
 
             flavor = "Float"
         elif isinstance(arr, types.StringType):
-            naarr = chararray.array(arr)
+            naarr = strings.array(arr)
             flavor = "String"
         else:
             raise ValueError, \
@@ -214,7 +214,7 @@ class Array(Leaf, hdf5Extension.Array, object):
         if repr(self.type) == "CharType":
             #print "self.shape ==>", self.shape
             #print "self.shape 2 ==>", self.itemsize
-            arr = chararray.array(None, itemsize=self.itemsize,
+            arr = strings.array(None, itemsize=self.itemsize,
                                   shape=self.shape)
         else:
             arr = numarray.array(buffer=None,

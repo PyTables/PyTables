@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.37 2003/06/04 18:25:39 falted Exp $
+#       $Id: File.py,v 1.38 2003/06/11 10:48:45 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.37 $"
+__version__ = "$Revision: 1.38 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -365,7 +365,7 @@ class File(hdf5Extension.File, object):
         description -- A IsDescription subclass or a dictionary where
             the keys are the field names, and the values the type
             definitions. And it can be also a RecArray object (from
-            recarray module).
+            numarray.records module).
 
         title -- Sets a TITLE attribute on the table entity.
 

@@ -177,11 +177,8 @@ class Basic2DTestCase(BasicTestCase):
 class Basic10DTestCase(BasicTestCase):
     # 10D case
     title = "Rank-10 case 1"
-    #numericalList = [[[[[[[[[[1,2],],[3,4],],],],],],],],]*5
-    # Dimensions greather than 6 in chararray gives some warnings
-    #charList = [[[[[[[[[["a","b"],],["qq","zz"],],],],],],],],]*5
     numericalList = [[[[[[[[[[1,2],[3,4]]]]]]]]]]*5
-    # Dimensions greather than 6 in chararray gives some warnings
+    # Dimensions greather than 6 in strings gives some warnings
     charList = [[[[[[[[[["a","b"],["qq","zz"]]]]]]]]]]*5
     
 

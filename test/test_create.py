@@ -375,7 +375,7 @@ class createAttrTestCase(unittest.TestCase):
         self.group._v_attrs.qr = "2"
         self.group._v_attrs.rs = "3"
         # delete an attribute
-        self.group._v_attrs._f_remove("pq")
+        del self.group._v_attrs.pq
         if verbose:
             print "Attribute list:", self.group._v_attrs._f_listAttrs()
         # Check the local attributes names
@@ -405,7 +405,7 @@ class createAttrTestCase(unittest.TestCase):
         try:
             if verbose:
                 print "System attrs:", self.group._v_attrs._v_attrnamessys
-            self.group._v_attrs._f_remove("CLASS")
+            del self.group._v_attrs.CLASS
         except RuntimeError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()

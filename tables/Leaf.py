@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.20 2003/06/04 11:14:57 falted Exp $
+#       $Id: Leaf.py,v 1.21 2003/06/11 10:48:45 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.20 $"
+__version__ = "$Revision: 1.21 $"
 
 import types
 from utils import checkNameValidity
@@ -169,6 +169,11 @@ class Leaf:
         del self._v_parent
         del self._v_rootgroup
         del self._v_file
+        # Detach the AttributeSet instance
+        # this seems to do not help when freeing memory
+        del self.title
+        if hasattr(self, "attrs"):
+            self.attrs._f_close()
 
     def __str__(self):
         """The string reprsentation choosed for this object is its pathname

@@ -107,7 +107,7 @@ class BasicTestCase(unittest.TestCase):
                 
 	a = array(self.tupleChar, 'c')
         b = a[::2]
-        # Ensure that this chararray is non-contiguous
+        # Ensure that this numarray string is non-contiguous
         assert b.iscontiguous() == 0
 	self.WriteRead(b)
 	return
@@ -188,9 +188,8 @@ class Basic10DTestCase(BasicTestCase):
 class Basic32DTestCase(BasicTestCase):
     # 32D case (maximum)
     tupleInt = reshape(array((32,)), (1,)*32)
-    # Chararray seems to cause some problems with somewhat large dimensions
+    # Strings seems to cause some problems with somewhat large dimensions
     # Reverting to 2D case
-    #tupleChar = chararray.array("121", shape=(1,)*32, itemsize=3)
     tupleChar = [["aa","dd"],["dd","ss"]]
     
 

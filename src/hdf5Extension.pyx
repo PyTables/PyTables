@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.53 2003/06/07 16:28:58 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.54 2003/06/11 10:48:39 falted Exp $
 #
 ########################################################################
 
@@ -36,14 +36,12 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.53 $"
+__version__ = "$Revision: 1.54 $"
 
 
 import sys, os
 import types, cPickle
-import numarray as num
-import ndarray
-import chararray
+import numarray
 import recarray2 as recarray
 
 # For defining the long long type
@@ -184,19 +182,19 @@ import_array()
 CharType = recarray.CharType
 
 # Conversion tables from/to classes to the numarray enum types
-toenum = {num.Int8:tInt8,       num.UInt8:tUInt8,
-          num.Int16:tInt16,     num.UInt16:tUInt16,
-          num.Int32:tInt32,     num.UInt32:tUInt32,
-          num.Int64:tInt64,     num.UInt64:tUInt64,
-          num.Float32:tFloat32, num.Float64:tFloat64,
+toenum = {numarray.Int8:tInt8,       numarray.UInt8:tUInt8,
+          numarray.Int16:tInt16,     numarray.UInt16:tUInt16,
+          numarray.Int32:tInt32,     numarray.UInt32:tUInt32,
+          numarray.Int64:tInt64,     numarray.UInt64:tUInt64,
+          numarray.Float32:tFloat32, numarray.Float64:tFloat64,
           CharType:97   # ascii(97) --> 'a' # Special case (to be corrected)
           }
 
-toclass = {tInt8:num.Int8,       tUInt8:num.UInt8,
-           tInt16:num.Int16,     tUInt16:num.UInt16,
-           tInt32:num.Int32,     tUInt32:num.UInt32,
-           tInt64:num.Int64,     tUInt64:num.UInt64,
-           tFloat32:num.Float32, tFloat64:num.Float64,
+toclass = {tInt8:numarray.Int8,       tUInt8:numarray.UInt8,
+           tInt16:numarray.Int16,     tUInt16:numarray.UInt16,
+           tInt32:numarray.Int32,     tUInt32:numarray.UInt32,
+           tInt64:numarray.Int64,     tUInt64:numarray.UInt64,
+           tFloat32:numarray.Float32, tFloat64:numarray.Float64,
            97:CharType   # ascii(97) --> 'a' # Special case (to be corrected)
           }
 
@@ -674,7 +672,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.53 2003/06/07 16:28:58 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.54 2003/06/11 10:48:39 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1621,7 +1619,7 @@ cdef class Array:
     cdef int itemsize, offset
     cdef char *tmp, *byteorder
 
-    if isinstance(arr, num.NumArray):
+    if isinstance(arr, numarray.NumArray):
       self.type = arr._type
       try:
         self.enumtype = toenum[arr._type]
@@ -1641,7 +1639,9 @@ cdef class Array:
         #  array._byteswap()
         # The next code is more efficient as it doesn't reverse the byteorder
         # twice (if byteorder is different than this of the machine).
-        array = ndarray.NDArray.copy(arr)
+        #array = ndarray.NDArray.copy(arr)
+        # For numarray 0.6
+        array = numarray.NDArray.copy(arr)
         array._byteorder = arr._byteorder
         array._type = arr._type
       else:
@@ -1651,7 +1651,7 @@ cdef class Array:
       # The next is a trick to avoid a warning in Pyrex
       strcache = arr._byteorder
       byteorder = strcache
-    elif isinstance(arr, chararray.CharArray):
+    elif isinstance(arr, numarray.strings.CharArray):
       self.type = CharType
       #self.enumtype = 'a'
       self.enumtype = toenum[CharType]

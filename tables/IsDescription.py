@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.6 2003/06/07 16:29:02 falted Exp $
+#       $Id: IsDescription.py,v 1.7 2003/06/11 10:48:45 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.6 $"
+__version__ = "$Revision: 1.7 $"
 
 
 import warnings
@@ -35,7 +35,8 @@ import types
 import sys
 
 import numarray as NA
-import recarray
+#import recarray
+import numarray.records as records
 import recarray2
 
 from utils import checkNameValidity
@@ -46,7 +47,7 @@ tostructfmt = {NA.Int8:'b', NA.UInt8:'B',
                NA.Int32:'i', NA.UInt32:'I',
                NA.Int64:'q', NA.UInt64:'Q',
                NA.Float32:'f', NA.Float64:'d',
-               recarray.CharType:'s', 
+               records.CharType:'s', 
                }
 
 # translation table from the Struct data types to numarray types
@@ -55,7 +56,7 @@ fromstructfmt = {'b':NA.Int8, 'B':NA.UInt8,
                  'i':NA.Int32, 'I':NA.UInt32,
                  'q':NA.Int64, 'Q':NA.UInt64,
                  'f':NA.Float32, 'd':NA.Float64,
-                 's':recarray.CharType,
+                 's':records.CharType,
               }
 
 class Col:
@@ -79,9 +80,9 @@ class Col:
         if dtype in NA.typeDict:
             self.type = NA.typeDict[dtype]
             self.recarrtype = recarray2.revfmt[self.type]
-        elif dtype == "CharType" or isinstance(dtype, recarray.Char):
-            self.type = recarray.CharType
-            self.recarrtype = recarray.revfmt[self.type]
+        elif dtype == "CharType" or isinstance(dtype, records.Char):
+            self.type = records.CharType
+            self.recarrtype = records.revfmt[self.type]
         else:
             raise TypeError, "Illegal type: %s" % `dtype`
 

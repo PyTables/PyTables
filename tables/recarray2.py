@@ -1,7 +1,8 @@
 import numarray as num
-import ndarray as mda
+#import ndarray as mda
+import generic as mda
 import memory
-import chararray
+import numarray.strings as chararray
 import sys, copy, os, re, types, string
 
 __version__ = '1.0'

@@ -3,8 +3,10 @@ import unittest
 import os
 import tempfile
 
+import numarray
 from numarray import *
-import recarray
+#import recarray
+import numarray.records as records
 from tables import *
 
 from test_all import verbose
@@ -80,7 +82,7 @@ class DefaultValues(unittest.TestCase):
         table.flush()
 
         # Create a recarray with the same default values
-        r=recarray.array([["abcd", 1, 2, 3.1, 4.2, 5, "e"]]*nrows,
+        r=records.array([["abcd", 1, 2, 3.1, 4.2, 5, "e"]]*nrows,
                           formats='4a,i4,i2,f8,f4,i2,1a')
         
         # Assign the value exceptions
@@ -113,7 +115,7 @@ class LargeRowSize(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        r=recarray.array([[arange(100)]*2])
+        r=records.array([[arange(100)]*2])
 
         # Save it in a table:
         fileh.createTable(fileh.root, 'largerow', r)
@@ -132,7 +134,7 @@ class LargeRowSize(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        r=recarray.array([[arange(1000)]*4])
+        r=records.array([[arange(1000)]*4])
 
         # Save it in a table:
         try:
@@ -156,7 +158,7 @@ class RecArrayIO(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        r=recarray.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
+        r=records.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
 
         # Save it in a table:
         fileh.createTable(fileh.root, 'recarray', r)
@@ -175,7 +177,7 @@ class RecArrayIO(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        r=recarray.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
+        r=records.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
 
         # Get an offsetted bytearray
         r1 = r[1:]
@@ -198,7 +200,7 @@ class RecArrayIO(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        r=recarray.array('a'*200000,'r,3i,5a,s',3000)
+        r=records.array('a'*200000,'r,3i,5a,s',3000)
 
         # Get an offsetted bytearray
         r1 = r[2000:]
@@ -264,7 +266,7 @@ class BasicTestCase(unittest.TestCase):
             tmplist.append(var7)
             buflist.append(tmplist)
 
-        self.record=recarray.array(buflist, formats=record._formats,
+        self.record=records.array(buflist, formats=record._formats,
                                    names=record._names,
                                    shape = self.expectedrows)
 
@@ -477,14 +479,14 @@ class DictWriteTestCase(BasicTestCase):
 
 class RecArrayOneWriteTestCase(BasicTestCase):
     title = "RecArrayOneWrite"
-    record=recarray.array(formats="4a,i4,i2,2f8,f4,i2,1a",
+    record=records.array(formats="4a,i4,i2,2f8,f4,i2,1a",
                           names='var1,var2,var3,var4,var5,var6,var7')
 
 class RecArrayTwoWriteTestCase(BasicTestCase):
     title = "RecArrayTwoWrite"
     expectedrows = 100
     recarrayinit = 1
-    recordtemplate=recarray.array(formats="4a,i4,i2,f8,f4,i2,1a",
+    recordtemplate=records.array(formats="4a,i4,i2,f8,f4,i2,1a",
                                   names='var1,var2,var3,var4,var5,var6,var7',
                                   shape=1)
 
@@ -492,7 +494,7 @@ class RecArrayThreeWriteTestCase(BasicTestCase):
     title = "RecArrayThreeWrite"
     expectedrows = 100
     recarrayinit = 1
-    recordtemplate=recarray.array(formats="4a,i4,i2,2f8,4f4,i2,1a",
+    recordtemplate=records.array(formats="4a,i4,i2,2f8,4f4,i2,1a",
                                   names='var1,var2,var3,var4,var5,var6,var7',
                                   shape=1)
 
@@ -935,7 +937,7 @@ class RecArrayIO(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        r=recarray.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
+        r=records.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
 
         # Save it in a table:
         fileh.createTable(fileh.root, 'recarray', r)
@@ -953,7 +955,7 @@ class RecArrayIO(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        r=recarray.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
+        r=records.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
 
         # Get an offsetted bytearray
         r1 = r[1:]
@@ -976,7 +978,7 @@ class RecArrayIO(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        r=recarray.array('a'*200000,'r,3i,5a,s',3000)
+        r=records.array('a'*200000,'r,3i,5a,s',3000)
 
         # Get an offsetted bytearray
         r1 = r[2000:]

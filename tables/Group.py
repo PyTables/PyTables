@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.35 2003/06/06 16:46:08 falted Exp $
+#       $Id: Group.py,v 1.36 2003/06/11 10:48:45 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.35 $"
+__version__ = "$Revision: 1.36 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -423,6 +423,9 @@ class Group(hdf5Extension.Group, object):
         del self._v_parent
         del self._v_rootgroup
         del self._v_file
+        # Detach the AttributeSet instance
+        # This do not seem to help to free memory
+        self._v_attrs._f_close()
 
     def _f_getAttr(self, attrname):
         """Get a group attribute as a string"""
