@@ -99,8 +99,10 @@ class BasicTestCase(unittest.TestCase):
             assert allequal(row2, array([], type=Int32))
         elif self.flavor == "Numeric":
             assert type(row) == type(Numeric.array([1, 2]))
-            assert allequal(row, Numeric.array([1, 2]), self.flavor)
-            assert allequal(row2, Numeric.array([]), self.flavor)
+            # The next two lines has been corrected by Ciro Catutto
+            # (2004-04-20)
+            assert allequal(row, (1, 2), self.flavor)
+            assert allequal(row2, Numeric.array([], typecode='i'), self.flavor)
         elif self.flavor == "Tuple":
             assert row == (1, 2)
             assert row2 == ()

@@ -58,8 +58,9 @@ class BasicTestCase(unittest.TestCase):
             # Special expection. We have no way to distinguish between
             # "l" and "i" typecode, and we can consider them the same
             # to all practical effects
-            assert b.typecode() == "l"
-            assert self.root.somearray.type == typeDict["l"]
+            assert b.typecode() == "l" or b.typecode() == "i"
+            assert self.root.somearray.type == typeDict["l"] or \
+                   self.root.somearray.type == typeDict["i"]
         elif a.typecode() == "c":
             assert a.typecode() == b.typecode()
             assert str(self.root.somearray.type) == "CharType"
@@ -344,7 +345,7 @@ class GroupsArrayTestCase(unittest.TestCase):
                 # Special expection. We have no way to distinguish between
                 # "l" and "i" typecode, and we can consider them the same
                 # to all practical effects
-                assert b.typecode() == "l"
+                assert b.typecode() == "l" or  b.typecode() == "i"
             else:
                 assert a.typecode() == b.typecode()
             assert allequal(a,b, "Numeric")
@@ -424,7 +425,7 @@ class GroupsArrayTestCase(unittest.TestCase):
                 # Special expection. We have no way to distinguish between
                 # "l" and "i" typecode, and we can consider them the same
                 # to all practical effects
-                assert b.typecode() == "l"
+                assert b.typecode() == "l" or b.typecode() == "i"
             else:
                 assert a.typecode() == b.typecode()
 
