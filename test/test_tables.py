@@ -3217,10 +3217,10 @@ class Length2TestCase(LengthTestCase):
 
 def suite():
     theSuite = unittest.TestSuite()
-    niter = 0
+    niter = 1
     #heavy = 1  # uncomment this only for testing purposes
 
-    theSuite.addTest(unittest.makeSuite(RecArrayIO1))
+    #theSuite.addTest(unittest.makeSuite(RecArrayIO1))
     #theSuite.addTest(unittest.makeSuite(setItem1))
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
     for n in range(niter):
