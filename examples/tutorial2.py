@@ -9,18 +9,18 @@ Example to be used in the second tutorial in the User's Guide.
 from tables import *
 
 class Particle(IsRecord):
-    name        = '16s'  # 16-character String
-    lati        = 'i'    # integer
-    longi       = 'i'    # integer
-    pressure    = 'f'    # float  (single-precision)
-    temperature = 'd'    # double (double-precision)
+    name      = Col('CharType', 16)  # 16-character String
+    lati      = Col("Int32", 1)      # integer
+    longi     = Col("Int32", 1)      # integer
+    pressure  = Col("Float32", 1)    # float  (single-precision)
+    temperature = Col("Float64", 1)    # double (double-precision)
 
 class Event(IsRecord):
-    name        = '16s'  # 16-character String
-    TDCcount    = 'B'    # unsigned char
-    ADCcount    = 'H'    # unsigned short
-    xcoord      = 'f'    # float  (single-precision)
-    ycoord      = 'f'    # float  (single-precision)
+    name      = Col('CharType', 16)    # 16-character String
+    TDCcount  = Col("UInt8", 1)        # unsigned byte
+    ADCcount  = Col("UInt16", 1)       # Unsigned short integer
+    xcoord    = Col("Float32", 1)      # integer
+    ycoord    = Col("Float32", 1)      # integer
 
 # Open a file in "w"rite mode
 fileh = openFile("tutorial2.h5", mode = "w")
@@ -39,7 +39,7 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
     table = fileh.createTable("/Particles", tablename, Particle(),
                            "Particles: "+tablename)
     # Get the record object associated with the table:
-    particle = table.record
+    particle = table.row
     # Fill the table with 10 particles
     for i in xrange(257):
         # First, assign the values to the Particle record
@@ -60,15 +60,16 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
     table = fileh.createTable(root.Events, tablename, Event(),
                            "Events: "+tablename)
     # Get the record object associated with the table:
-    event = table.record
+    event = table.row
     # Fill the table with 257 events
     for i in xrange(257):
         # First, assign the values to the Event record
         event.name  = 'Event: %6d' % (i)
         ########### Errors start here. Play with them!
-        #event.TDCcount = i            # Wrong range
+        # Range checks no longer works on 0.3
+        #event.TDCcount = i            # Wrong range.
         event.ADCcount = i * 2        # Correct type
-        #event.xcoor = float(i**2)     # Wrong spelling
+        #event.xcoor = float(i**2)     # Wrong spelling. This works on 0.3
         event.TDCcount = i % (1<<8)   # Correct range
         #event.ADCcount = str(i)      # Wrong range
         event.xcoord = float(i**2)   # Correct spelling

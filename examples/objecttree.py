@@ -1,8 +1,8 @@
 from tables import *
 
 class Record(IsRecord):
-    field1        = '22s'  # 22-character String
-    field2        = '20s'  # 20-character String
+    field1        = Col("CharType", 22, " ")  # 22-character String
+    field2        = Col("CharType", 22, " ")  # 20-character String
 
 # Open a file in "w"rite mode
 fileh = openFile("objecttree.h5", mode = "w")
@@ -24,7 +24,7 @@ table4 = fileh.createTable("/subgroup2", "table3", Record())
 # Now, fill the tables:
 for table in (table1, table2, table3, table4):
     # Get the record object associated with the table:
-    rec = table.record
+    rec = table.row
     # Fill the table with 10 records
     for i in xrange(10):
         # First, assign the values to the Particle record

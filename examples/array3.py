@@ -18,10 +18,7 @@ hdfarray = fileh.createArray(root, 'carray', a, "Large array")
 
 # Get metadata on the previously saved array
 print
-print "Info on this object (root.carray):"
-print "  shape: ==>", root.carray.shape
-print "  title: ==>", root.carray.title
-print "  typecode ==>", root.carray.typecode
+print "Info on the object:", repr(root.carray)
 
 # Close the file
 fileh.close()
@@ -33,10 +30,7 @@ root = fileh.root
 
 # Get metadata on the previously saved array
 print
-print "Getting info on retrieved /carray object:"
-print "  shape: ==>", root.carray.shape
-print "  title: ==>", root.carray.title
-print "  typecode ==>", root.carray.typecode
+print "Getting info on retrieved /carray object:", repr(root.carray)
 
 # Get the actual array
 #b = fileh.readArray("/carray")
@@ -45,7 +39,8 @@ b = root.carray.read()
 print
 print "Array b read from file"
 print "  with shape: ==>", b.shape
-print "  and typecode ==>", b.typecode()
+print "  with typecode: ==>", b.typecode()
+#print "  contents:", b
 
 # Close the file
 fileh.close()

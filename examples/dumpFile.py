@@ -1,6 +1,5 @@
 from tables import *
 
-
 if __name__=="__main__":
     import sys
     import getopt
@@ -56,25 +55,13 @@ if __name__=="__main__":
         print "Tables:"
         for group in h5file.walkGroups(h5file.root):
             for table in h5file.listNodes(group, 'Table'):
-                print "Info on the object:", table
-                print "  name ==>", table.name
-                print "  title ==>", table.title
-                print "  rows on table ==> %d" % (table.nrows)
-                print "  variable names with their type:"
-                for i in range(len(table.varnames)):
-                    print "    ", table.varnames[i], ':=', table.vartypes[i] 
+                print "Info on the object:", repr(table)
 
         print
         print "Arrays:"
         for group in h5file.walkGroups(h5file.root):
             for array_ in h5file.listNodes(group, 'Array'):
-                print "Info on the object:", array_
-                print "  name ==>", array_.name
-                print "  title ==>", array_.title
-                print "  shape ==>", array_.shape
-                print "  typecode ==>", array_.typecode
-                print "  byteorder ==>", array_.byteorder
-                #print "  content:\n", array_.read()
+                print "Info on the object:", repr(array_)
     
     # Close the file
     h5file.close()

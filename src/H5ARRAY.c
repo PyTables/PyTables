@@ -298,7 +298,7 @@ herr_t H5ARRAYget_info( hid_t loc_id,
       }
     }
     else {
-      strcpy(byteorder, "undefined");
+      strcpy(byteorder, "non-relevant");
     }
 
      /* Get dimensions */
@@ -334,7 +334,7 @@ herr_t H5ARRAYget_info( hid_t loc_id,
       }
     }
     else {
-      strcpy(byteorder, "undefined");
+      strcpy(byteorder, "non-relevant");
     }
 
     

@@ -17,10 +17,7 @@ hdfarray = fileh.createArray(root, 'carray', a, "Float array")
 
 # Get metadata on the previously saved array
 print
-print "Info on the object:", root.carray
-print "  shape: ==>", root.carray.shape
-print "  title: ==>", root.carray.title
-print "  typecode ==>", root.carray.typecode
+print "Info on the object:", repr(root.carray)
 
 # Close the file
 fileh.close()
@@ -32,10 +29,7 @@ root = fileh.root
 
 # Get metadata on the previously saved array
 print
-print "Info on the object:", root.carray
-print "  shape: ==>", root.carray.shape
-print "  title: ==>", root.carray.title
-print "  typecode ==>", root.carray.typecode
+print "Info on the object:", repr(root.carray)
 
 # Get the actual array
 b = root.carray.read()

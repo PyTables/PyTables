@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.10 2003/02/03 10:13:08 falted Exp $
+#       $Id: Group.py,v 1.11 2003/02/06 21:09:12 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.10 $"
+__version__ = "$Revision: 1.11 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -134,7 +134,10 @@ class Group(hdf5Extension.Group):
             class_ = self._f_getLeafAttrStr(name, "CLASS")
             if class_ is None:
                 # No CLASS attribute, try a guess
-                warnings.warn("No CLASS attribute found. Trying to guess what's here. I can't promise you getting the correct object, but I will do my best!.")
+                warnings.warn( \
+"""No CLASS attribute found. Trying to guess what's here.
+  I can't promise getting the correct object, but I will do my best!.""",
+                UserWarning)
                 class_ = hdf5Extension.whichClass(self._v_groupId, name)
                 if class_ == "UNSUPPORTED":
                     raise RuntimeError, \

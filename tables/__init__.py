@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/__init__.py,v $
-#       $Id: __init__.py,v 1.5 2003/02/03 20:24:19 falted Exp $
+#       $Id: __init__.py,v 1.6 2003/02/06 21:09:13 falted Exp $
 #
 ########################################################################
 
@@ -44,10 +44,10 @@ from Group import Group
 from Leaf import Leaf
 from Table import Table
 from Array import Array
-from IsRecord import IsRecord, DType
+from IsRecord import IsRecord, Col
 from hdf5Extension import isHDF5, isPyTablesFile
 
 #import recarray2
 
 # List here only the objects we want to be publicly available
-__all__ = [ "openFile", "isHDF5", "isPyTablesFile", "IsRecord", "DType" ]
+__all__ = [ "openFile", "isHDF5", "isPyTablesFile", "IsRecord", "Col" ]

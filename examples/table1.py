@@ -1,11 +1,11 @@
 from tables import *
 
 class Particle(IsRecord):
-    name        = '16s'  # 16-character String
-    lati        = 'i'    # integer
-    longi       = 'i'    # integer
-    pressure    = 'f'    # float  (single-precision)
-    temperature = 'd'    # double (double-precision)
+    name        = Col("CharType", 16)  # 16-character String
+    lati        = Col("Int32", 1)    # integer
+    longi       = Col("Int32", 1)    # integer
+    pressure    = Col("Float32", 1)    # float  (single-precision)
+    temperature = Col("Float64", 1)    # double (double-precision)
 
 # Open a file in "w"rite mode
 fileh = openFile("table1.h5", mode = "w")
@@ -13,8 +13,8 @@ fileh = openFile("table1.h5", mode = "w")
 group = fileh.createGroup(fileh.root, "newgroup")
 
 # Create a new table in newgroup group
-particle = Particle()  # First, create an instance of the user Record
-table = fileh.createTable(group, 'table', particle, "Title example")
+table = fileh.createTable(group, 'table', Particle(), "Title example")
+particle = table.row
 
 # Fill the table with 10 particles
 for i in xrange(10):
@@ -50,8 +50,8 @@ print "Table name: %s. Table title: %s" % (table.name, table.title)
 print "Rows saved on table: %d" % (table.nrows)
 
 print "Variable names on table with their type:"
-for i in range(len(table.varnames)):
-    print "  ", table.varnames[i], ':=', table.vartypes[i] 
+for i in range(len(table.colnames)):
+    print "  ", table.colnames[i], ':=', table.coltypes[i] 
     
 # Finally, close the file
 fileh.close()

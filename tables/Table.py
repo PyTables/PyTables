@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.16 2003/02/06 13:03:14 falted Exp $
+#       $Id: Table.py,v 1.17 2003/02/06 21:09:13 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.16 $"
+__version__ = "$Revision: 1.17 $"
 
 from __future__ import generators
 import sys
@@ -41,7 +41,7 @@ import recarray
 import recarray2         # Private version of recarray for PyTables
 import hdf5Extension
 from Leaf import Leaf
-from IsRecord import IsRecord, metaIsRecord, DType, fromstructfmt
+from IsRecord import IsRecord, metaIsRecord, Col, fromstructfmt
 
 byteorderDict={"=": sys.byteorder,
                '<': 'little',
@@ -80,21 +80,21 @@ class Table(Leaf, hdf5Extension.Table):
 
         name -- the node name
         title -- the title for this node  # This can be moved to Leaf
-        record -- the record object for this table (can be a dictionary)
-        row -- A pointer to the current row object
+        metarecord -- the metaobject for this table (can be a dictionary)
+        record -- A pointer to the current record object
         nrows -- the number of rows in this table
-        varnames -- the field names for the table
-        vartypes -- the type class for the table fields
+        colnames -- the field names for the table
+        coltypes -- the type class for the table fields
 
     """
 
-    def __init__(self, record = None, title = "",
+    def __init__(self, metarecord = None, title = "",
                  compress = 0, expectedrows = 10000):
         """Create an instance Table.
 
         Keyword arguments:
 
-        record -- The IsRecord instance. If None, the table metadata
+        metarecord -- The IsRecord instance. If None, the table metadata
             is read from disk, else, it's taken from previous
             parameters. It can be a dictionary where the keys are the
             field names, and the values the type definitions. And it
@@ -124,22 +124,22 @@ class Table(Leaf, hdf5Extension.Table):
         self.nrows = 0
         
         # Initialize this object in case is a new Table
-        if isinstance(record, types.DictType):
+        if isinstance(metarecord, types.DictType):
             # Dictionary case
-            self.record = metaIsRecord("", (), record)()
+            self.metarecord = metaIsRecord("", (), metarecord)()
             # Flag that tells if this table is new or has to be read from disk
             self._v_new = 1
-        elif isinstance(record, recarray.RecArray):
+        elif isinstance(metarecord, recarray.RecArray):
             # RecArray object case
-            self.newRecArray(record)
+            self.newRecArray(metarecord)
             # Provide a better guess for the expected number of rows
             if self._v_expectedrows == expectedrows:
                 self._v_expectedrows = self.nrows
             # Flag that tells if this table is new or has to be read from disk
             self._v_new = 1
-        elif record:
+        elif metarecord:
             # IsRecord subclass case
-            self.record = record
+            self.metarecord = metarecord
             # Flag that tells if this table is new or has to be read from disk
             self._v_new = 1
         else:
@@ -149,13 +149,13 @@ class Table(Leaf, hdf5Extension.Table):
         """Create a new recarray buffer for I/O purposes"""
         
         # Create the recarray buffer
-        recarr = recarray2.array(None, formats=self.record._v_recarrfmt,
+        recarr = recarray2.array(None, formats=self.metarecord._v_recarrfmt,
                                 shape=(self._v_maxTuples,),
-                                names = self.varnames)
-        # Initialize the recarray with the defaults in record
+                                names = self.colnames)
+        # Initialize the recarray with the defaults in metarecord
         if init:
-            for field in self.record.__slots__:
-                recarr._fields[field][:] = self.record.__dflts__[field]
+            for field in self.metarecord.__slots__:
+                recarr._fields[field][:] = self.metarecord.__dflts__[field]
         return recarr
 
     def newRecArray(self, recarr):
@@ -171,37 +171,43 @@ class Table(Leaf, hdf5Extension.Table):
             # between fields
             recarr = recarr.copy()
         self._v_recarray = recarr
-        self.varnames = recarr._names
+        self.colnames = recarr._names
         fields = {}
-        for i in range(len(self.varnames)):
-            fields[self.varnames[i]] = DType(recarr._fmt[i],
-                                             recarr._repeats[i],
-                                             pos=i)  # Position matters!
+        for i in range(len(self.colnames)):
+            fields[self.colnames[i]] = Col(recarr._fmt[i],
+                                           recarr._repeats[i],
+                                           pos=i)  # Position matters!
         # Set the byteorder
         self._v_byteorder = recarr._byteorder
         # Append this entry to indicate the alignment!
         fields['_v_align'] = revbyteorderDict[recarr._byteorder]
-        # Create an instance record to host the record fields
-        self.record = metaIsRecord("", (), fields)()
-        # Extract the vartypes
-        self.vartypes = self.record._v_formats
+        # Create an instance metarecord to host the record fields
+        self.metarecord = metaIsRecord("", (), fields)()
+        # Extract the coltypes
+        self.coltypes = self.metarecord._v_formats
+        # Extract the shapes for columns
+        self.colshapes = self.metarecord._v_shapes
         # Initialize the number of rows
         self.nrows = len(recarr)
+        # Create the arrays for buffering
+        self._v_buffer = self.newBuffer()
+        self.row = self._v_buffer._row
 
     def create(self):
         """Create a new table on disk."""
         
         # Compute some important parameters for createTable
-        self.varnames = tuple(self.record.__slots__)
-        self._v_fmt = self.record._v_fmt
+        self.colnames = tuple(self.metarecord.__slots__)
+        self._v_fmt = self.metarecord._v_fmt
         self._calcBufferSize(self._v_expectedrows)
         # Create the table on disk
         self.createTable()
         # Initialize the shape attribute
         self.shape = (self.nrows,)
-        # Get the variable types
-        #self.vartypes = re.findall(r'(\d*\w)', self._v_fmt)
-        self.vartypes = self.record._v_formats
+        # Get the column types
+        self.coltypes = self.metarecord._v_formats
+        # Extract the shapes for columns
+        self.colshapes = self.metarecord._v_shapes
         # Compute the byte order
         self._v_byteorder = byteorderDict[self._v_fmt[0]]
         # Create the arrays for buffering
@@ -211,12 +217,12 @@ class Table(Leaf, hdf5Extension.Table):
     def open(self):
         """Opens a table from disk and read the metadata on it.
 
-        Creates an user Record on the flight to easy the access to the
-        actual data.
+        Creates an user metarecord on the flight to easy the access to
+        the actual data.
 
         """
         # Get table info
-        (self.nrows, self.varnames, self._v_fmt) = self.getTableInfo()
+        (self.nrows, self.colnames, self._v_fmt) = self.getTableInfo()
         self.title = self.getAttrStr("TITLE")
         # This one is probably not necessary to set it, but...
         self._v_compress = 0  # This means, we don't know if compression
@@ -228,23 +234,25 @@ class Table(Leaf, hdf5Extension.Table):
         self.shape = (self.nrows,)
         # Get the variable types
         lengthtypes = re.findall(r'(\d*\w)', self._v_fmt)
-        # Build a dictionary with the types as values and varnames as keys
+        # Build a dictionary with the types as values and colnames as keys
         fields = {}
-        for i in range(len(self.varnames)):
+        for i in range(len(self.colnames)):
             try:
                 length = int(lengthtypes[i][:-1])
             except:
                 length = 1
             vartype = fromstructfmt[lengthtypes[i][-1]]
-            fields[self.varnames[i]] = DType(vartype, length, pos = i)
+            fields[self.colnames[i]] = Col(vartype, length, pos = i)
 
         # Append this entry to indicate the alignment!
         fields['_v_align'] = self._v_fmt[0]
         self._v_byteorder = byteorderDict[self._v_fmt[0]]
-        # Create an instance record to host the record fields
-        self.record = metaIsRecord("", (), fields)()
-        # Extract the vartypes
-        self.vartypes = self.record._v_formats
+        # Create an instance metarecord to host the record fields
+        self.metarecord = metaIsRecord("", (), fields)()
+        # Extract the coltypes
+        self.coltypes = self.metarecord._v_formats
+        # Extract the shapes for columns
+        self.colshapes = self.metarecord._v_shapes
         # Create the arrays for buffering
         self._v_buffer = self.newBuffer(init=0)
         self.row = self._v_buffer._row
@@ -262,7 +270,7 @@ class Table(Leaf, hdf5Extension.Table):
         fmt = self._v_fmt
         compress = self._v_compress
         rowsize = struct.calcsize(fmt)
-        #rowsize = self.record._v_record.itemsize()
+        #rowsize = self.metarecord._v_record.itemsize()
         self._v_rowsize = rowsize
         self.spacebuffer = " " * rowsize
         # List to collect binary tuples
@@ -354,17 +362,15 @@ class Table(Leaf, hdf5Extension.Table):
         Versió per a llista de arrays...
         Aquesta versio treu 28600 rows/sec
 
-        "record" has to be a IsRecord descendant instance.
+        "record" has to be a recarray2.Row object 
 
         """
         self._v_recunsaved += 1
-        #record(self._v_recunsaved) 
         record.__dict__["_row"] = self._v_recunsaved
         if self._v_recunsaved  == self._v_maxTuples:
             self._saveBufferedRows()
-            #record(self._v_recunsaved) 
             record.__dict__["_row"] = 0
-            #record.__dict__["_row"][0] = 0
+
 
     def appendAsTuple(self, tupleValues):
         """Append the "tupleValues" tuple to the table output buffer.
@@ -411,18 +417,17 @@ class Table(Leaf, hdf5Extension.Table):
         """
         # Create a buffer for the readout
         nrowsinbuf = self._v_maxTuples
-        #buffer = self.newBuffer(init=0)  # Get a recarray as buffer
         buffer = self._v_buffer  # Get a recarray as buffer
-        vars = buffer._row   # get the pointer to the Record object
-        varsdict = vars.__dict__
-        row = vars.__dict__["_row"]
+        record = buffer._row   # get the pointer to the Record object
+        recorddict = record.__dict__
+        row = record.__dict__["_row"]
         for i in xrange(0, self.nrows, nrowsinbuf):
             recout = self.read_records(i, nrowsinbuf, buffer)
             if self._v_byteorder <> sys.byteorder:
                 buffer.byteswap()
             for j in xrange(recout):
-                varsdict["_row"] = j  # Up to 186000 lines/s
-                yield vars
+                recorddict["_row"] = j  # Up to 186000 lines/s
+                yield record
         
     def getRows(self, start, stop, step = 1):
         # Create a recarray for the readout
@@ -431,9 +436,9 @@ class Table(Leaf, hdf5Extension.Table):
         #print " start, stop, step:", start, stop, step
         nrows = len(range(start, stop, step)) # a calcular!
         # Create the resulting recarray
-        result = recarray.array(None, formats=self.record._v_recarrfmt,
+        result = recarray.array(None, formats=self.metarecord._v_recarrfmt,
                                 shape=(nrows,),
-                                names = self.varnames)
+                                names = self.colnames)
         # Setup a buffer for the readout
         nrowsinbuf = self._v_maxTuples   # Shortcut
         # nrowsinbuf = 3   # Small value is useful when debugging
@@ -480,7 +485,6 @@ class Table(Leaf, hdf5Extension.Table):
     
     def __getitem__(self, slice):
 
-        print "Slice -->", slice
         if isinstance(slice, types.IntType):
             step = 1
             start = slice
@@ -535,3 +539,18 @@ class Table(Leaf, hdf5Extension.Table):
         """Flush the table buffers and close the HDF5 dataset."""
         self.flush()
 
+    def __repr__(self):
+        """This provides column metainfo in addition to standard __str__"""
+
+        header = str(self)
+        byteorder = self._v_byteorder
+        columns = ["Number of columns: %s\n  Column metainfo:" % \
+                   len(self.colnames)]
+        columns += ['%s := (%s, %s)' % (self.colnames[i],
+                                       repr(self.coltypes[i]),
+                                       self.colshapes[i])
+                    for i in range(len(self.colnames))]
+        columns = "\n    ".join(columns)
+        
+        return "%s\n  Byteorder: %s\n  %s" % \
+               (header, byteorder, columns)

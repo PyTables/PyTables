@@ -8,7 +8,9 @@ fileh = openFile(file, mode = "w")
 # Get the root group
 group = fileh.root
 # Set the type codes to test
-typecodes = ["c", 'b', '1', 's', 'w', 'i', 'u', 'l', 'f', 'd']
+#typecodes = ["c", 'b', '1', 's', 'w', 'i', 'u', 'l', 'f', 'd']
+# Reduce the set of typecodes because numarray miss some
+typecodes = ['c', 'b', '1', 's', 'i', 'l', 'f', 'd']
 i = 1
 for typecode in typecodes:
     # Create an array of typecode, with incrementally bigger ranges
@@ -31,16 +33,14 @@ fileh = openFile(file, mode = "r")
 # Get the root group
 group = fileh.root
 # Get the metadata on the previosly saved arrays
-for i in range(1,10):
+for i in range(1,len(typecodes)):
     # Create an array for later comparison
     a = ones((basedim,) * (i), typecodes[i-1])
     # Get the dset object hangin from group
     dset = getattr(group, 'array_' + typecodes[i-1])
+    print "Info from dataset:", repr(dset)
     # Read the actual data in array
     b = dset.read()
-    print "Info from dataset:", dset._v_pathname
-    print "  Shape: ==>", dset.shape, 
-    print "  typecode ==> %c" % dset.typecode
     print "Array b read from file. Shape: ==>", b.shape,
     print ". Typecode ==> %c" % b.typecode()
     assert a == b

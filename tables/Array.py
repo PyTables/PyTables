@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.11 2003/02/06 13:03:14 falted Exp $
+#       $Id: Array.py,v 1.12 2003/02/06 21:09:12 falted Exp $
 #
 ########################################################################
 
@@ -27,8 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.11 $"
-
+__version__ = "$Revision: 1.12 $"
 import types, warnings, sys
 from Leaf import Leaf
 import hdf5Extension
@@ -62,7 +61,7 @@ class Array(Leaf, hdf5Extension.Array):
         name -- the node name
         title -- the node title  # This can be moved to Leaf
         shape -- tuple with the array shape (in Numeric sense)
-        typecode -- the typecode for the array
+        type -- the type class for the array
 
     """
     
@@ -95,15 +94,23 @@ class Array(Leaf, hdf5Extension.Array):
 
         obversion = "1.0"    # default version for ARRAY objects
         arr = self.object
+        self.byteorder = sys.byteorder  # Default byteorder
         # Check for Numeric objects
         if isinstance(arr, numarray.NumArray):
             flavor = "NUMARRAY"
             naarr = arr
+            self.byteorder = arr._byteorder
         elif (Numeric_imported and type(arr) == type(Numeric.array(1))):
             flavor = "NUMERIC"
             if arr.typecode() == "c":
-                shape = list(arr.shape)
-                itemsize = shape.pop()
+                # To emulate as colse as possible Numeric character arrays,
+                # itemsize for chararrays will be always 1
+                if len(arr.shape) > 1:
+                    shape = list(arr.shape)
+                    itemsize = shape.pop()
+                else: # arr is unidimensional
+                    shape = (1,)
+                    itemsize = arr.shape[0]
                 naarr = chararray.array(buffer(arr),
                                         itemsize=itemsize,
                                         shape=shape)
@@ -139,14 +146,15 @@ class Array(Leaf, hdf5Extension.Array):
   Sorry, but this object is not supported.""" % (arr)
 
         #print "Array to saved:", naarr
-        self.typecode = self.createArray(naarr, self.title,
-                                         flavor, obversion, self.atomic)
+        self.typeclass = self.createArray(naarr, self.title,
+                                     flavor, obversion, self.atomic)
         # Get some important attributes
         self.shape = naarr.shape
+        self.itemsize = naarr._itemsize
 
     def open(self):
         """Get the metadata info for an array in file."""
-        (self.typecode, self.shape, self.typesize, self.byteorder) = \
+        (self.typeclass, self.shape, self.itemsize, self.byteorder) = \
                         self.openArray()
 
         self.title = self.getAttrStr("TITLE")
@@ -156,26 +164,29 @@ class Array(Leaf, hdf5Extension.Array):
     # Accessor for the readArray method in superclass
     def read(self):
         """Read the array from disk and return it as numarray."""
-        
-        if repr(self.typecode) == "CharType":
-            arr = chararray.array(None, itemsize=self.typesize,
+
+        if repr(self.typeclass) == "CharType":
+            arr = chararray.array(None, itemsize=self.itemsize,
                                   shape=self.shape)
         else:
             arr = numarray.array(buffer=None,
-                                 type=self.typecode,
+                                 type=self.typeclass,
                                  shape=self.shape)
             # Set the same byteorder than on-disk
             arr._byteorder = self.byteorder
         # Do the actual data read
         self.readArray(arr._data)
-        
+
         # Convert to Numeric, tuple or list if needed
         if self.flavor == "NUMERIC":
             if Numeric_imported:
                 # This works for both numeric and chararrays
                 # arr=Numeric.array(arr, typecode=arr.typecode())
                 # The next is 10 times faster
-                arr=Numeric.array(arr.tolist(), typecode=arr.typecode())
+                if repr(self.typeclass) == "CharType":
+                    arr=Numeric.array(arr.tolist(), typecode="c")
+                else:
+                    arr=Numeric.array(arr.tolist(), typecode=arr.typecode())
             else:
                 # Warn the user
                 warnings.warn( \
@@ -196,3 +207,9 @@ class Array(Leaf, hdf5Extension.Array):
     def close(self):
         """Flush the array buffers and close this object on file."""
         self.flush()
+
+    def __repr__(self):
+        """This provides more metainfo in addition to standard __str__"""
+
+        return "%s\n  Typeclass: %s\n  Itemsize: %s\n  Byteorder: %s\n" % \
+               (self, repr(self.typeclass), self.itemsize, self.byteorder)

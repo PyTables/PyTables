@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.14 2003/02/03 20:24:19 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.15 2003/02/06 21:09:12 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.14 $"
+__version__ = "$Revision: 1.15 $"
 
 
 import sys, os.path
@@ -465,7 +465,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.14 2003/02/03 20:24:19 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.15 2003/02/06 21:09:12 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -649,9 +649,9 @@ cdef class Table:
     # Get a pointer to the table format
     self.fmt = PyString_AsString(self._v_fmt)
       
-    # Assign the field_names pointers to the Tuple varnames strings
+    # Assign the field_names pointers to the Tuple colnames strings
     i = 0
-    for name in self.varnames:
+    for name in self.colnames:
       # The next works thanks to Pyrex magic
       self.field_names[i] = name
       i = i + 1

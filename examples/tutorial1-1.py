@@ -15,14 +15,14 @@ from tables import *
 
 # Define a user record to characterize some kind of particles
 class Particle(IsRecord):
-    name        = '16s'  # 16-character String
-    idnumber    = 'Q'    # unsigned long long (i.e. 64-bit integer)
-    TDCcount    = 'B'    # unsigned byte
-    ADCcount    = 'H'    # unsigned short integer
-    grid_i      = 'i'    # integer
-    grid_j      = 'i'    # integer
-    pressure    = 'f'    # float  (single-precision)
-    energy      = 'd'    # double (double-precision)
+    name      = Col('CharType', 16)  # 16-character String
+    idnumber  = Col("UInt64", 1)     # Unsigned long long 
+    ADCcount  = Col("UInt16", 1)     # Unsigned short integer
+    TDCcount  = Col("UInt8", 1)      # unsigned byte
+    grid_i    = Col("Int32", 1)      # integer
+    grid_j    = Col("Int32", 1)      # integer
+    pressure  = Col("Float32", 1)    # float  (single-precision)
+    energy    = Col("Float64", 1)    # double (double-precision)
 
 print
 print	'-**-**-**-**-**-**- file creation  -**-**-**-**-**-**-**-'
@@ -47,7 +47,7 @@ table = h5file.createTable(group, 'readout', Particle(), "Readout example")
 print "Table '/detector/readout' created"
 
 # Get a shortcut to the record object in table
-particle = table.record
+particle = table.row
 
 # Fill the table with 10 particles
 for i in xrange(10):

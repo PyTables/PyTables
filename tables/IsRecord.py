@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Attic/IsRecord.py,v $
-#       $Id: IsRecord.py,v 1.8 2003/02/06 13:03:14 falted Exp $
+#       $Id: IsRecord.py,v 1.9 2003/02/06 21:09:12 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.8 $"
+__version__ = "$Revision: 1.9 $"
 
 
 import warnings
@@ -58,7 +58,7 @@ fromstructfmt = {'b':NA.Int8, 'B':NA.UInt8,
                  's':recarray.CharType,
               }
 
-class DType:
+class Col:
 
     def __init__(self, dtype="Float64", length=1, dflt=None, pos = None):
 
@@ -83,7 +83,7 @@ class DType:
         self.rectype = tostructfmt[self.type]
 
     def __str__(self):
-        out = "type: " + str(self.type) + "length: " + str(self.length)
+        out = "type: " + str(self.type) + " \\\\ length: " + str(self.length)
         return out
 
     def __repr__(self):
@@ -192,7 +192,7 @@ print p
         newdict = { '__slots__':[], '__types__':{}, '__dflts__':{},
                     '__init__':__init__, '__repr__':__repr__,
                     '__str__':__str__, '_v_record':None,
-                    '_v_fmt': "",
+                    '_v_fmt': "", "_v_shapes":[],
                     '_v_recarrfmt': "", '_v_formats':[],
                     }
         
@@ -217,10 +217,18 @@ print p
                 return 0
             if pos1 > pos2:
                 return 1
-            
+
         keys = classdict.keys()
-        keys.sort(cmpkeys) # Sort the keys to establish an order
-        
+        # Check if we have any .pos position attribute
+        for column in classdict.values():
+            if hasattr(column, "pos") and column.pos:
+                keys.sort(cmpkeys)
+                break
+        else:
+            # No .pos was set
+            # fall back to alphanumerical order
+            keys.sort()
+            
         recarrfmt = []
         for k in keys:
             if (k.startswith('__') or k.startswith('_v_')):
@@ -240,8 +248,16 @@ print p
 
                 # Check for key name validity
                 checkNameValidity(k)
-                newdict['__slots__'].append(k)
                 object = classdict[k]
+                if not isinstance(object, Col):
+                    raise TypeError, \
+"""Passing an incorrect value to a table column.
+
+  Please, make use of the Col() constructor to properly initialize
+  columns. Expected a Col instance and got: "%s"
+
+""" % object
+                newdict['__slots__'].append(k)
                 newdict['__types__'][k] = object.type
                 if object.dflt:
                     newdict['__dflts__'][k] = object.dflt
@@ -250,6 +266,7 @@ print p
 
                 newdict['_v_fmt'] += str(object.length) + object.rectype
                 recarrfmt.append(str(object.length) + object.recarrtype)
+                newdict['_v_shapes'].append(object.length)
                 # Formats in numarray notation
                 newdict['_v_formats'].append(object.type)
 
@@ -288,10 +305,10 @@ if __name__=="__main__":
 
         """
         #color = '3s'
-        x = DType("Int32", 2, 0)
-        y = DType("Float64", 1, 1)
-        z = DType("UInt8", 1, 1)
-        color = DType("CharType", 2, " ")
+        x = Col("Int32", 2, 0)
+        y = Col("Float64", 1, 1)
+        z = Col("UInt8", 1, 1)
+        color = Col("CharType", 2, " ")
 
     # example cases of class Point
     rec = Record()  # Default values

@@ -61,19 +61,15 @@ print "Table name:", table.name
 print "Table title:", table.title
 print "Number of rows in table: %d" % (table.nrows)
 print "Table variable names (sorted alphanumerically) with their type:"
-for i in range(len(table.varnames)):
-    print "  ", table.varnames[i], ':=', table.vartypes[i] 
+for i in range(len(table.colnames)):
+    print "  ", table.colnames[i], ':=', table.coltypes[i] 
 print    
 
 # Get the object in "/columns pressure"
 pressureObject = h5file.getNode("/columns", "pressure")
 
 # Get some metadata on this object
-print "Info on the object:", pressureObject
-print "  shape: ==>", pressureObject.shape
-print "  title: ==>", pressureObject.title
-print "  typecode ==>", pressureObject.typecode
-
+print "Info on the object:", repr(pressureObject)
 print
 print	'-**-**-**-**-**- reading actual data from arrays -**-**-**-**-**-**-'
 
@@ -99,8 +95,8 @@ print	'-**-**-**-**- append records to existing table -**-**-**-**-**-'
 # Create a shortcut to table object
 table = h5file.root.detector.readout
 
-# Get the object record from table
-particle = table.record
+# Get the object row from table
+particle = table.row
 
 # Append 5 new particles to table (yes, tables can be enlarged!)
 for i in xrange(10, 15):

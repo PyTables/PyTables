@@ -7,27 +7,27 @@ import recarray
 from tables import *
 
 class Particle(IsRecord):
-    ADCcount    = DType("Int16", 1, 0)    # signed short integer
-    TDCcount    = DType("UInt8", 1, 0)    # unsigned byte
-    grid_i      = DType("Int32", 1, 0)    # integer
-    grid_j      = DType("Int32", 1, 0)    # integer
-    idnumber    = DType("Int64", 1, 0)    #signed long long 
-    name        = DType('CharType', 16, "")  # 16-character String
-    #pressure    = DType("Float32", 2, 0)  # float  (single-precision)
-    pressure    = DType("Float32", 1, 0)  # float  (single-precision)
-    temperature = DType("Float64", 1, 0)  # double (double-precision)
+    ADCcount    = Col("Int16", 1, 0)    # signed short integer
+    TDCcount    = Col("UInt8", 1, 0)    # unsigned byte
+    grid_i      = Col("Int32", 1, 0)    # integer
+    grid_j      = Col("Int32", 1, 0)    # integer
+    idnumber    = Col("Int64", 1, 0)    #signed long long 
+    name        = Col('CharType', 16, "")  # 16-character String
+    #pressure    = Col("Float32", 2, 0)  # float  (single-precision)
+    pressure    = Col("Float32", 1, 0)  # float  (single-precision)
+    temperature = Col("Float64", 1, 0)  # double (double-precision)
 
 Particle2 = {
-    "ADCcount"    : DType("Int16", 1, 0),    # signed short integer
-    "TDCcount"    : DType("UInt8", 1, 0),    # unsigned byte
-    "grid_i"      : DType("Int32", 1, 0),    # integer
-    "grid_j"      : DType("Int32", 1, 0),    # integer
-    "idnumber"    : DType("Int64", 1, 0),    #signed long long 
-    "name"        : DType('CharType', 16, ""),  # 16-character String
+    "ADCcount"    : Col("Int16", 1, 0),    # signed short integer
+    "TDCcount"    : Col("UInt8", 1, 0),    # unsigned byte
+    "grid_i"      : Col("Int32", 1, 0),    # integer
+    "grid_j"      : Col("Int32", 1, 0),    # integer
+    "idnumber"    : Col("Int64", 1, 0),    #signed long long 
+    "name"        : Col('CharType', 16, ""),  # 16-character String
     "__name"      : "Hola, pardal",  # To pass a special variable to IsRecord
-    #"pressure"    : DType("Float32", 2, 0),  # float  (single-precision)
-    "pressure"    : DType("Float32", 1, 0),  # float  (single-precision)
-    "temperature" : DType("Float64", 1, 0),  # double (double-precision)
+    #"pressure"    : Col("Float32", 2, 0),  # float  (single-precision)
+    "pressure"    : Col("Float32", 1, 0),  # float  (single-precision)
+    "temperature" : Col("Float64", 1, 0),  # double (double-precision)
 }
 
 # The name of our HDF5 filename
@@ -82,7 +82,7 @@ print "columns ==>", gcolumns
 # Create a Numeric array with this info under '/columns'
 h5file.createArray(gcolumns, 'pressure', Numeric.array(pressure),
                    "Pressure column", atomic=0)
-print "gcolumns.pressure typecode ==> ", gcolumns.pressure.typecode
+print "gcolumns.pressure typeclass ==> ", gcolumns.pressure.typeclass
 
 # Do the same with TDCcount
 TDC = [ p.TDCcount for p in table.readAsRecords() ]
@@ -99,7 +99,7 @@ print "names ==>", names
 h5file.createArray('/columns', 'name', names, "Name column")
 # This works even with homogeneous tuples or lists (!)
 print "gcolumns.name shape ==>", gcolumns.name.shape 
-print "gcolumns.name typecode ==> ", gcolumns.name.typecode
+print "gcolumns.name typeclass ==> ", gcolumns.name.typeclass
 
 print "Table dump:"
 for p in table.readAsRecords():
@@ -190,8 +190,8 @@ print "Table title:", table.title
 print "Rows saved on table: %d" % (table.nrows)
 
 print "Variable names on table with their type:"
-for i in range(len(table.varnames)):
-    print "  ", table.varnames[i], ':=', table.vartypes[i] 
+for i in range(len(table.colnames)):
+    print "  ", table.colnames[i], ':=', table.coltypes[i] 
 print    
 
 # Read arrays in /columns/names and /columns/pressure
@@ -203,7 +203,7 @@ pressureObject = h5file.getNode("/columns", "pressure")
 print "Info on the object:", pressureObject
 print "  shape: ==>", pressureObject.shape
 print "  title: ==>", pressureObject.title
-print "  typecode ==> ", pressureObject.typecode
+print "  typeclass ==> ", pressureObject.typeclass
 print "  byteorder ==> ", pressureObject.byteorder
 
 # Read the pressure actual data
@@ -220,7 +220,7 @@ nameObject = h5file.root.columns.name
 print "Info on the object:", nameObject
 print "  shape: ==>", nameObject.shape
 print "  title: ==>", nameObject.title
-#print "  typecode ==> %c" % nameObject.typecode
+#print "  typeclass ==> %c" % nameObject.typeclass
 
 
 # Read the 'name' actual data
@@ -294,8 +294,8 @@ table = h5file.root.detector.recarray2
 print "recarray2:", table
 print "  shape:", table.shape
 print "  byteorder:", table._v_byteorder
-print "  vartypes:", table.vartypes
-print "  varnames:", table.varnames
+print "  coltypes:", table.coltypes
+print "  colnames:", table.colnames
 
 print table[:]
 
