@@ -51,6 +51,7 @@ particle = table.row
 
 # Fill the table with 10 particles
 for i in xrange(10):
+    print i
     particle['name']  = 'Particle: %6d' % (i)
     particle['TDCcount'] = i % 256    
     particle['ADCcount'] = (i * 256) % (1 << 16)
@@ -58,6 +59,7 @@ for i in xrange(10):
     particle['grid_j'] = 10 - i
     particle['pressure'] = float(i*i)
     particle['energy'] = float(particle['pressure'] ** 4)
+    #particle['energy'] = 4
     particle['idnumber'] = i * (2 ** 34)
     # Insert a new particle record
     particle.append()

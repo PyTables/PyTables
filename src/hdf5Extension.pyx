@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.44 2003/05/12 09:42:26 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.45 2003/05/12 12:25:47 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.44 $"
+__version__ = "$Revision: 1.45 $"
 
 
 import sys, os
@@ -207,6 +207,7 @@ cdef extern from "numarray/libnumarray.h":
   PyArrayObject NA_IoArray (object, NumarrayType, int)
   PyArrayObject PyArray_FromDims(int nd, int *d, int type)
   PyArrayObject NA_Empty(int nd, int *d, NumarrayType type)
+  object        NA_updateDataPtr(object)
   object        NA_getPythonScalar(object, long)
 
   object PyArray_ContiguousFromObject(object op, int type,
@@ -582,7 +583,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.44 2003/05/12 09:42:26 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.45 2003/05/12 12:25:47 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1158,7 +1159,7 @@ cdef class Row:
   """
 
   cdef object _fields, _recarray, _table, _saveBufferedRows, _indexes
-  cdef int _row, _nbuf, _nrow, _unsavednrows, _maxTuples, _strides
+  cdef int _row, _nrowinbuf, _nrow, _unsavednrows, _maxTuples, _strides, _opt
   cdef int start, stop, step, nextelement, nrowsinbuf
   cdef int *_dimensions, *_enumtypes
 
@@ -1170,6 +1171,8 @@ cdef class Row:
     #self.__dict__["_fields"] = input._fields ## Not allowed in pyrex!
     self._fields = input._fields
     self._unsavednrows = 0
+    self._row = 0
+    self._opt = 0
     self._nrow = 0
     self._strides = input._strides[0]
     nfields = input._nfields
@@ -1193,24 +1196,26 @@ cdef class Row:
     self.step = step
     self.nextelement = start
     self.nrowsinbuf = nrowsinbuf
+    self._opt=1
 
   def __call__(self):
     """ return the row for this record object and update counters"""
     self._row = self._row + 1
-    self._nrow = self._nbuf + self._row
+    self._nrow = self._nrowinbuf + self._row
     return self
 
   def _getRow(self):
     """ return the row for this record object and update counters"""
     self._row = self._row + self.step
-    self._nrow = self._nbuf + self._row
+    self._nrow = self._nrowinbuf + self._row
     #print "Delivering row:", self._nrow, "// Buffer row:", self._row
     return self
 
   def _setBaseRow(self, start, startb):
     """ set the global row number and reset the local buffer row counter """
-    self._nbuf = start
+    self._nrowinbuf = start
     self._row = startb - self.step
+    self._opt = 0
 
   def nrow(self):
     """ get the global row number for this table """
@@ -1271,6 +1276,10 @@ cdef class Row:
         # return 40   # Just for tests purposes
         # This optimization sucks when using numarray 0.4!
         #offset = self._row * self._strides
+        #print "self._row -->", self._row, fieldName, self._strides
+        #print "self._fields[fieldName] -->", self._fields[fieldName]
+        # if not NA_updateDataPtr(self._fields[fieldName]):
+        #  return None
         #return NA_getPythonScalar(self._fields[fieldName], offset)
         return self._fields[fieldName][self._row]
       elif (self._enumtypes[index] == CHARTYPE):
