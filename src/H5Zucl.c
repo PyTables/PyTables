@@ -17,10 +17,11 @@
    correction capabilities).  Anyway, this takes only a 1% more of
    space and a 2% more of CPU, which is almost negligible.
    F. Alted 2003/07/22
- * Undef CHECKSUM for pytables 0.5 backward compatibility.
- * F. Alted 2003/07/28
+
+   Added code for pytables 0.5 backward compatibility.
+   F. Alted 2003/07/28
 */
-#undef CHECKSUM  		       
+#define CHECKSUM  		       
 
 #undef DEBUG
 
@@ -33,8 +34,13 @@
  * 
  */
 /* Adding a combination of the zlib method and ucl to the output buffer */
-#define H5Z_UCL_SIZE_ADJUST(s) (ceil((double)((s)*1.001))+((s)/8)+256+12)
-/* #define H5Z_UCL_SIZE_ADJUST(s) ((s)+((s)/8)+256) */ /* Old value */
+/* #define H5Z_UCL_SIZE_ADJUST(s) (ceil((double)((s)*1.001))+((s)/8)+256+12) */
+/* From table VERSION 2.0 on, we use nrvd compressor by default */
+/* From version of Table 2.0 and higher we fall back to nrvd compressor
+   that seems more resistent to seg faults that nrv2e seems to be.
+   This should be further analyzed. */
+/* With the nrv2d enabled by default this seems to work just fine */
+#define H5Z_UCL_SIZE_ADJUST(s) ((s)+((s)/8)+256) /* Correct value */
 
 int register_ucl(void) {
 
@@ -92,17 +98,25 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
   ucl_uint out_len = (ucl_uint) nalloc;
   void *outbuf;
   int complevel = 1;
+  int object_version = 10;    	/* Default version 1.0 */
   /* max_len_buffer will keep the likely output buffer size
      after processing the first chunk */
   static unsigned int max_len_buffer = 0;
   ucl_uint32 checksum;
 
+  /* Shut the compiler up */
+  checksum = checksum;
+
   /* Check arguments */
-  if (cd_nelmts!=1 || cd_values[0]>9) {
+  if (cd_nelmts<1 || cd_values[0]>9) {
     printf("invalid deflate aggression level");
   }
+#ifdef DEBUG
+  printf("Version level: %d. ", cd_values[1]);
+#endif
 
   complevel = cd_values[0];
+  object_version = cd_values[1];
 
   if (flags & H5Z_FLAG_REVERSE) {
     /* Input */
@@ -119,9 +133,13 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
       nalloc =  max_len_buffer;
     }
 
+    /* From version 2.0 and on we save a checksum in data, but before don't */
 #ifdef CHECKSUM
-    nbytes -= 4;
+    if (object_version >= 20) {
+      nbytes -= 4;
+    }
 #endif
+
     while(1) {
       /* The assembler version of the decompression routine is 25%
 	 faster than the C version.  However, this is not automatically
@@ -133,8 +151,12 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
       printf("nalloc -->%d\n", nalloc);
       printf("max_len_buffer -->%d\n", max_len_buffer);
 #endif /* DEBUG */
-      status = ucl_nrv2e_decompress_safe_8(*buf, (ucl_uint)nbytes, outbuf,
-					   &out_len, NULL);
+      if (object_version >= 20)
+	status = ucl_nrv2d_decompress_safe_8(*buf, (ucl_uint)nbytes, outbuf,
+					     &out_len, NULL);
+      else 
+	status = ucl_nrv2e_decompress_safe_8(*buf, (ucl_uint)nbytes, outbuf,
+					     &out_len, NULL);
       /* Check if success */
       if (status == UCL_E_OK) {
 #ifdef DEBUG
@@ -161,14 +183,19 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
     }
  
 #ifdef CHECKSUM
-    /* Compute the checksum */
-    checksum=ucl_adler32(ucl_adler32(0,NULL,0), outbuf, out_len);
+    if (object_version >= 20) {
+#ifdef DEBUG
+      printf("Checksum uncompressing...");
+#endif
+      /* Compute the checksum */
+      checksum=ucl_adler32(ucl_adler32(0,NULL,0), outbuf, out_len);
   
-    /* Compare */
-    if (memcmp(&checksum, (char*)(*buf)+nbytes, 4)) {
-      ret_value = 0; /*fail*/
-      fprintf(stderr,"Checksum failed!.\n");
-      goto done;
+      /* Compare */
+      if (memcmp(&checksum, (char*)(*buf)+nbytes, 4)) {
+	ret_value = 0; /*fail*/
+	fprintf(stderr,"Checksum failed!.\n");
+	goto done;
+      }
     }
 #endif /* CHECKSUM */
 
@@ -187,10 +214,12 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
     ucl_byte *z_src = (ucl_byte*)(*buf);
     ucl_byte *z_dst;         /*destination buffer            */
     ucl_uint z_src_nbytes = (ucl_uint)(nbytes);
-#ifdef CHECKSUM
-    ucl_uint z_dst_nbytes = (ucl_uint)H5Z_UCL_SIZE_ADJUST(nbytes)+4;
-#else
     ucl_uint z_dst_nbytes = (ucl_uint)H5Z_UCL_SIZE_ADJUST(nbytes);
+
+#ifdef CHECKSUM
+    if (object_version >= 20) {
+      z_dst_nbytes += 4;
+    }
 #endif
 
     if (NULL==(z_dst=outbuf=(void *)ucl_malloc(z_dst_nbytes))) {
@@ -215,24 +244,33 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
        F. Alted 2003/07/22 
        
        New note: I've discovered that adding some more space to the
-       nrv2e compressor, it seems to work fine. I¡m pretty sure that
+       nrv2e compressor, it seems to work fine. I'm pretty sure that
        this does not solve the problem, it just makes the seg faults
        harder to appear. I'm adopting this strategy in order to keep
        backward compatibility with the existing files writen with
        pytables 0.5.x.  F. Alted 2003/07/24
 
 */
+    /* For compression, use nrv2e only if table VERSION is less than 2.0 */
+    if (object_version >= 20)
+      status = ucl_nrv2d_99_compress(z_src, z_src_nbytes, z_dst, &z_dst_nbytes,
+				     0, complevel, NULL, NULL);
+    else
+      status = ucl_nrv2e_99_compress(z_src, z_src_nbytes, z_dst, &z_dst_nbytes,
+				     0, complevel, NULL, NULL);
 
-    status = ucl_nrv2e_99_compress(z_src, z_src_nbytes, z_dst, &z_dst_nbytes,
-				   0, complevel, NULL, NULL);
- 
 #ifdef CHECKSUM
-    /* Append checksum of *uncompressed* data at the end */
-    checksum = ucl_adler32(ucl_adler32(0,NULL,0), *buf, nbytes);
-    memcpy((char*)(z_dst)+z_dst_nbytes, &checksum, 4);
-    z_dst_nbytes += (ucl_uint)4;
-    nbytes += 4; 
-#endif /* CHECKSUM */
+    if (object_version >= 20) {
+#ifdef DEBUG
+      printf("Checksum compressing ...");
+#endif
+      /* Append checksum of *uncompressed* data at the end */
+      checksum = ucl_adler32(ucl_adler32(0,NULL,0), *buf, nbytes);
+      memcpy((char*)(z_dst)+z_dst_nbytes, &checksum, 4);
+      z_dst_nbytes += (ucl_uint)4;
+      nbytes += 4; 
+    }
+#endif
 
     if (z_dst_nbytes >= nbytes) {
 /*       fprintf(stderr,"overflow"); */

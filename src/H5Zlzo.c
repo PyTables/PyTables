@@ -18,16 +18,13 @@ void *wrkmem;
 
 /* Activate the checksum. It is safer and takes only a 1% more of
    space and a 2% more of CPU (but sometimes is faster than without
-   checksum, which is almost negligible.  However, this change will
-   make impossible to read the old format without CHECKSUM. The
-   VERSION in table can be used to distinguish the cases?. I think that
-   can be a good solution. F. Alted 2003/07/22
- * 
- * Undef CHECKSUM for pytables 0.5 backward compatibility.
- * F. Alted 2003/07/28
+   checksum, which is almost negligible.  F. Alted 2003/07/22
+  
+   Added code for pytables 0.5 backward compatibility.
+   F. Alted 2003/07/28
 */
 
-#undef CHECKSUM
+#define CHECKSUM
 
 int register_lzo(void) {
 
@@ -90,9 +87,15 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
   /* max_len_buffer will keep the likely output buffer size
      after processing the first chunk */
   static unsigned int max_len_buffer = 0;
+  int complevel = 1;
+  int object_version = 10;    	/* Default version 1.0 */
 #ifdef CHECKSUM
   lzo_uint32 checksum;
 #endif
+
+  /* Collect arguments */
+  complevel = cd_values[0];	/* This do nothing right now */
+  object_version = cd_values[1]; /* The table VERSION attribute */
 
   if (flags & H5Z_FLAG_REVERSE) {
     /* Input */
@@ -110,13 +113,15 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
     }
 
 #ifdef CHECKSUM
-    nbytes -=4;
+    if (object_version >= 20) {
+      nbytes -= 4;
+    }
 #endif
     while(1) {
       /* The assembler version isn't faster than the C version with 
 	 gcc 3.2.2, and it's unsafe */
-	status = lzo1x_decompress_safe(*buf, (lzo_uint)nbytes, outbuf,
-				       &out_len, NULL);
+      status = lzo1x_decompress_safe(*buf, (lzo_uint)nbytes, outbuf,
+				     &out_len, NULL);
 
       if (status == LZO_E_OK) {
 #ifdef DEBUG
@@ -142,14 +147,19 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
     }
 
 #ifdef CHECKSUM
-    /* Compute the checksum */
-    checksum=lzo_adler32(lzo_adler32(0,NULL,0), outbuf, out_len);
+    if (object_version >= 20) {
+#ifdef DEBUG
+      printf("Checksum uncompressing...");
+#endif
+      /* Compute the checksum */
+      checksum=lzo_adler32(lzo_adler32(0,NULL,0), outbuf, out_len);
 
-    /* Compare */
-    if (memcmp(&checksum, (char*)(*buf)+nbytes, 4)) {
-      ret_value = 0; /*fail*/
-      fprintf(stderr,"Checksum failed!.\n");
-      goto done;
+      /* Compare */
+      if (memcmp(&checksum, (char*)(*buf)+nbytes, 4)) {
+	ret_value = 0; /*fail*/
+	fprintf(stderr,"Checksum failed!.\n");
+	goto done;
+      }
     }
 #endif /* CHECKSUM */
 
@@ -183,10 +193,15 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
 			       wrkmem);
 #ifdef CHECKSUM
     /* Append checksum of *uncompressed* data at the end */
-    checksum = lzo_adler32(lzo_adler32(0,NULL,0), *buf, nbytes);
-    memcpy((char*)(z_dst)+z_dst_nbytes, &checksum, 4);
-    z_dst_nbytes += (lzo_uint)4;
-    nbytes += 4; 
+    if (object_version >= 20) {
+#ifdef DEBUG
+      printf("Checksum compression...");
+#endif
+      checksum = lzo_adler32(lzo_adler32(0,NULL,0), *buf, nbytes);
+      memcpy((char*)(z_dst)+z_dst_nbytes, &checksum, 4);
+      z_dst_nbytes += (lzo_uint)4;
+      nbytes += 4; 
+    }
 #endif /* CHECKSUM */
 
     if (z_dst_nbytes >= nbytes) {

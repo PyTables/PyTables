@@ -1,5 +1,5 @@
 README.txt
-PyTables 0.6 (third beta version)
+PyTables 0.7 (third beta version)
 http://pytables.sf.net/
 Jul 29, 2003
 --------------------------------------

@@ -1,69 +1,102 @@
-Announcing PyTables 0.6
+Announcing PyTables 0.7
 -----------------------
 
-This is the third public beta release. On this release you will find a
-20% of I/O speed improvement over the previous one (0.5.1), some bugs
-has been fixed, 
+This is the third public beta release. The version 0.6 was internal
+and will never be released.
 
-(a completar...)
-
+On this release you will find a new AttributeSet class, a 25% of I/O
+speed improvement over the previous public release (0.5.1), fully
+multidimensional table cells support, new column descriptors, row
+deletion in tables is finally here, and much more!. All of that while
+keeping backward compatibility with the previous beta versions.
+ 
 More in detail:
 
 What's new
 -----------
 
-- As a consequence of some twiking the write/read performance has been
-  improved by a 20% overall. One particular case were performance has
-  largely increased (0.5 is up to 6 times faster than 0.4) is when
-  column elements are unidimensional arrays. This impressive speed-up
-  is mainly because of the recent improvements in numarray 0.5
-  performance (good work, folks!). With that, the reading speed is
-  reaching its theoretical maximum (at least when using the current
-  data access schema).
+- A new AttributeSet class has been added. This will allow the
+  addition and deletion of generic attributes (any scalar type plus
+  any Python object support by Pickle) as easy as this:
 
-- When reading a Table object, and the user wants to fetch column
-  elements which are unidimensional arrays, a copy of the array from
-  the I/O buffer is delivered automatically to him, so that there is
-  no need to make a call to .copy() method of the numarray arrays
-  anymore. It think this is more comfortable for the user.
+  table.attrs.date = "2003/07/28 10:32"     # Attach a string to table
+  group._v_attrs.tempShift = 1.2     # Attach a float to group
+  array.attrs.detectorList = [1,2,3,4]     # Attach a list to array
 
-- The compression was enabled by default in version 0.4, despite of
-  what was stated in the documentation. Now, this has been corrected
-  and compression is *disabled* by default.
+- PyTables has got fully multidimensional table cells support. This
+  has been possible in part by the implementation of multidimensional
+  cells in numarray.records.RecArray object. Thanks to numarray crew,
+  and most specially to Jin-chung Hsu, for willingly accepting doing
+  that, and also for including some cache improvements in RecArray!.
 
-- Support for two new compression libraries: LZO and UCL
-  (http://www.oberhumer.com/opensource/). These libraries are made by
-  Markus F.X.J. Oberhumer, and they stand for allowing *very* fast
-  decompression. Now, if your data is compressible, you can obtain
-  better reading speed than if not using compression at all!. The
-  improvement is still more noticeable if your are dealing with
-  extremely large (and compressible) data sets. Read the online
-  documentation  for more info about that:
-http://pytables.sourceforge.net/html-doc/usersguide-html3.html#subsection3.4.1
+- New column descriptors added: IntCol, Int8Col, UInt8Col, Int16Col,
+  UInt16Col, Int32Col, UInt32Col, Int64Col, UInt64Col, FloatCol,
+  Float32Col, Float64Col and StringCol. I think they are more explicit
+  and easy-to-use than the, now deprecated (but still supported!),
+  Col() descriptor. All the examples and user's manual has been
+  accordingly updated.
 
-- A couple of memory leaks has been isolated and fixed (it was
-  hard, but I finally did it!).
+- The new Table.removeRows(start, stop) allow to remove rows from
+  tables!. This was a long-time asked feature. There is still a
+  limitation, though: you cannot delete rows in extremely large Tables
+  (because it is needed to put the remaining rows after the stop
+  parameter in memory). The performance shouldn't be great
+  neither. These issues will hopefully be addressed in future
+  releases.
 
-- A bug with column ordering of tables that happens in some special
-  situations has been fixed (thanks to Stan Heckman for reporting this
-  and suggesting the patch).
+- Added iterators to File, Group and Table (they support now the
+  __iter__() special method). They allow much better object usability,
+  specially in interactive mode. See documentation for examples of
+  use.
 
-- File class has now an 'isopen' attribute in order to check if a file
-  is open or not.
+- Added a __getitem__() method to Table, that works more or less like
+  read(), but with extended slices support.
 
-- Updated documentation, specially for giving advice about the use of
-  the new compression libraries. See "Compression issues" subsection,
-  (also on the web:
-  http://pytables.sourceforge.net/html-doc/usersguide-html.html)
+- As a consequence of rewriting table iterators in C (with the help of
+  Pyrex, of course) the table read performance has been improved
+  between a 20% and 30%. With that, data selections in PyTables are
+  starting to beat powerful relational databases like SQLite, even for
+  the in-core case (!). I think there is still room for another 20% or
+  30% of improvement, so stay tuned.
 
-- Added more unit tests (up to 218 now!)
+- A checksum is now added automatically when using LZO and UCL
+  compressors. The Adler32 algorithm has been chosen because of its
+  speed. With that, the compressing/decompressing speed has dropped a
+  1% or 2%, which is hardly noticeable. I think this addition will
+  allow the suspicious user to be a bit more confident about these
+  excellent compressors. Code has been added to still be able to read
+  files created without this checksum (so you can be confident that
+  you will be able to read your existing files compressed with LZO and
+  UCL).
 
-- PyTables has been tested against newest numarray 0.5 and it works
-  just fine. It even works well with Python 2.3b1.
+- The compressor nrve has been deprecated when using UCL compression,
+  and now nrvd is used. I've been having problems with nrve with the
+  new HDF5 library, so I decided to switch to nrvd (which seems to
+  work well) until I learn more about the problem. Of course, code has
+  been added so as to be able to still read the files written with
+  previous PyTables versions.
 
-- And last, but not least, a Windows version is available!. Thanks to
-  Alan McIntyre for its porting!. There is even a binary ready for
-  click and install.
+- PyTables has get rid of recursion. Before, this made the maximum
+  depth tree to be less than the Python recursion limit (which depends
+  on implementation, but is around 900, at least in Linux). Now, the
+  limit has been (somewhat arbitrarily) put to be 2048. Thanks to John
+  Nielsen for implementing the new iterative method!.
+
+- A new rootUEP parameter to openFile() has been added. You can define
+  now the root you want to start build the object tree from. Thanks to
+  John Nielsen for the suggestion and a first implementation of it.
+
+- Some (non-serious) bugs were discovered and fixed.
+
+- Updated documentation, so that you can learn more about how to use
+  all these new jingles and bells. It is also available on the web:
+  http://pytables.sourceforge.net/html-doc/usersguide-html.html
+
+- Added more unit tests (up to 353 now!)
+
+- PyTables 0.7 *needs* the newest numarray 0.6 and HDF-1.6.0 to
+  compile and work. It has been tested with Python 2.2.3 and Python
+  2.3c2 and should work fine on both versions.
 
 
 What it is
@@ -115,8 +148,7 @@ Solaris 8. It also compiles and passes all the tests on a SGI
 Origin2000 with MIPS R12000 processors and running IRIX 6.5.
 
 Regarding Windows platforms, PyTables has been tested with Windows
-2000 Professional, Service Pack 1, and Windows XP, but it should also
-work with other flavors.
+2000 and Windows XP, but it should also work with other flavors.
 
 An example?
 -----------
@@ -129,6 +161,7 @@ and
 
 http://pytables.sourceforge.net/tut/tutorial1-2.html
 
+There is also an small one attached at the end of this message.
 
 Web site
 --------
@@ -148,3 +181,51 @@ Have fun!
 -- Francesc Alted
 falted@openlc.org
 
+--------------- Example of use --------------------------------------
+from numarray import *
+from tables import *
+
+class Particle(IsDescription):
+    name        = StringCol(length=16)  # 16-character String
+    lati        = Int16Col()            # integer
+    longi       = IntCol()              # integer
+    pressure    = Float32Col(shape=(2,3)) # 2-D float array (single-precision)
+    temperature = Float64Col(shape=(2,3)) # 2-D float array (double-precision)
+
+# Open a file in "w"rite mode
+fileh = openFile("table-simple.h5", mode = "w")
+
+# Create a new table in root
+table = fileh.createTable(fileh.root, 'table', Particle, "Title example")
+particle = table.row
+
+# Fill the table with 10 particles
+for i in xrange(10):
+    # First, assign the values to the Particle record
+    particle['name']  = 'Particle: %6d' % (i)
+    particle['lati'] = i 
+    particle['longi'] = 10 - i
+    particle['pressure'] = array(i*arange(2*3), shape=(2,3))
+    particle['temperature'] = float(i**2)
+    # This injects the row values.
+    particle.append()
+
+# We need to flush the buffers in table in order to get an
+# accurate number of records on it.
+table.flush()
+
+# Delete the third and fourth row
+table.removeRows(3,5)
+
+print "Table metadata:"
+print repr(table)
+
+print "Table contents:"
+for row in table:
+    print row
+
+print "name column of the 5th row:"
+print table[4].field("name")
+
+# Finally, close the file
+fileh.close()

@@ -5,7 +5,7 @@
   <frontmatter>
     <title><visual markup="tt">PyTables</visual> User's Guide</title>
     <author>Francesc Alted</author>
-    <subtitle>Release 0.6</subtitle>
+    <subtitle>Release 0.7</subtitle>
     <date>July, 28th</date>
     <year>2003</year>
     <legalnotice>
@@ -1754,7 +1754,7 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 >>> table.attrs._f_rename("VERSION", "version")
 Traceback (most recent call last):
   File "&gt;stdin>", line 1, in ?
-  File "/home/falted/PyTables/pytables-0.6/tables/AttributeSet.py", line 249, in _f_rename
+  File "/home/falted/PyTables/pytables-0.7/tables/AttributeSet.py", line 249, in _f_rename
     raise RuntimeError, \
 RuntimeError: Read-only attribute ('VERSION') cannot be renamed
 >>>
@@ -2367,7 +2367,7 @@ $ python tutorial2.py
 Traceback (most recent call last):
   File "tutorial2.py", line 74, in ?
     event['xcoor'] = float(i**2)     # Wrong spelling
-  File "/home/falted/PyTables/pytables-0.6/src/hdf5Extension.pyx",
+  File "/home/falted/PyTables/pytables-0.7/src/hdf5Extension.pyx",
  line 1812, in hdf5Extension.Row.__setitem__
     raise AttributeError, "Error setting \"%s\" attr.\n %s" % \
 AttributeError: Error setting "xcoor" attr.
@@ -2415,7 +2415,7 @@ $ python tutorial2.py
 Traceback (most recent call last):
   File "tutorial2.py", line 76, in ?
     event['ADCcount'] = "s"          # Wrong type
-  File "/home/falted/PyTables/pytables-0.6/src/hdf5Extension.pyx", line 1812, in hdf5Extension.Row.__setitem__
+  File "/home/falted/PyTables/pytables-0.7/src/hdf5Extension.pyx", line 1812, in hdf5Extension.Row.__setitem__
     raise AttributeError, "Error setting \"%s\" attr.\n %s" % \
 AttributeError: Error setting "ADCcount" attr.
  Error was: "exceptions.TypeError: NA_setFromPythonScalar: bad value type."

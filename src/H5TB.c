@@ -95,15 +95,18 @@ herr_t H5TBmake_table( const char *table_title,
  hsize_t dims_chunk[1];
  hsize_t maxdims[1] = { H5S_UNLIMITED };
  char    attr_name[255];
+ char    *VERSION = "2.0";
  char    *member_name;
  hid_t   attr_id;
  char    aux[255];
  hsize_t i;
  unsigned char *tmp_buf;
- unsigned int cd_values[1];
+ unsigned int cd_values[2];
 
  dims[0]       = nrecords;
  dims_chunk[0] = chunk_size;
+ /* The Table VERSION number */
+/*  strcpy("2.0", VERSION); */
 
  /* Create the memory data type. */
  if ((mem_type_id = H5Tcreate (H5T_COMPOUND, type_size )) < 0 )
@@ -159,15 +162,18 @@ herr_t H5TBmake_table( const char *table_title,
      if ( H5Pset_deflate( plist_id, compress) < 0 )
        return -1;
    }
-   /* The LZO compressor does not accept parameters */
+   /* The LZO compressor does accept parameters */
    else if (strcmp(complib, "lzo") == 0) {
-     if ( H5Pset_filter( plist_id, FILTER_LZO, 0, 0, NULL) < 0 )
+     cd_values[0] = compress;
+     cd_values[1] = (int)(atof(VERSION) * 10);
+     if ( H5Pset_filter( plist_id, FILTER_LZO, 0, 2, cd_values) < 0 )
        return -1;
    }
    /* The UCL compress does accept parameters */
    else if (strcmp(complib, "ucl") == 0) {
      cd_values[0] = compress;
-     if ( H5Pset_filter( plist_id, FILTER_UCL, 0, 1, cd_values) < 0 )
+     cd_values[1] = (int)(atof(VERSION) * 10);
+     if ( H5Pset_filter( plist_id, FILTER_UCL, 0, 2, cd_values) < 0 )
        return -1;
    }
    else {
@@ -213,7 +219,7 @@ herr_t H5TBmake_table( const char *table_title,
   goto out;
 
  /* Attach the VERSION attribute */
- if ( H5LTset_attribute_string( loc_id, dset_name, "VERSION", "2.0" ) < 0 )
+ if ( H5LTset_attribute_string( loc_id, dset_name, "VERSION", VERSION ) < 0 )
   goto out;
   
  /* Attach the TITLE attribute */
@@ -245,7 +251,7 @@ herr_t H5TBmake_table( const char *table_title,
  if ( fill_data )
  {
 
-  tmp_buf = fill_data;
+   tmp_buf = fill_data;
 
   /* Open the dataset. */
   if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
@@ -1691,6 +1697,8 @@ herr_t H5TBdelete_record( hid_t loc_id,
  size_t   *src_offset;
  int      nrows;
 
+ /* Shut the compiler up */
+ tmp_buf = NULL;
   
 /*-------------------------------------------------------------------------
  * First we get information about type size and offsets on disk

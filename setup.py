@@ -18,7 +18,7 @@ from distutils.dep_util import newer
 # And also put pyrex = 1
 pyrex = 0
 
-VERSION = "0.6"
+VERSION = "0.7"
 
 #----------------------------------------------------------------------
 
