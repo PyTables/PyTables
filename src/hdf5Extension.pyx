@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.85 2003/11/25 11:26:24 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.86 2003/11/27 19:55:47 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.85 $"
+__version__ = "$Revision: 1.86 $"
 
 
 import sys, os
@@ -812,7 +812,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.85 2003/11/25 11:26:24 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.86 2003/11/27 19:55:47 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1573,11 +1573,9 @@ cdef class Table:
     #coords_array = numarray.array(elements[start:start+nrecords])
     if ( PyObject_AsWriteBuffer(elements._data, &coords, &buflen) < 0 ):
       raise RuntimeError("Problems getting the pointer to the buffer")
-    #print "nrecords-->", nrecords
     rsize = self.rowsize
     csize = sizeof(long)  # Change if the elements array is not Int32
     coords = coords + start * csize
-    #print "-->2"    
     for i from 0 <= i < nrecords:
       dst = self.rbuf+i*rsize
       #coordi = <int *>(coords + i * csize)
@@ -1586,7 +1584,6 @@ cdef class Table:
       #src = self.mmrbuf + coordi[0] * rsize
       src = self.mmrbuf + coordint * rsize
       memcpy(dst, src, rsize)
-    #print "-->3"      
     return nrecords
 
   def _close_read(self):
@@ -1704,7 +1701,6 @@ cdef class Row:
     self.startb = 0
     self.nrowsread = start
     self._nrow = start - self.step
-    #print "start, stop, step, self._nrow -->", start, stop, step, self._nrow
     self._table._open_read(self._recarray)  # Open the table for reading
 
   # This is the general version for __next__, and the more compact and fastest
@@ -1843,8 +1839,6 @@ cdef class Row:
 
       if (self._enumtypes[index] <> CHARTYPE and self._scalar[index]):
         #return 40   # Just for tests purposes
-        # print "self._row -->", self._row, fieldName, self._strides
-        # print "self._fields[fieldName] -->", self._fields[fieldName]
         # if not NA_updateDataPtr(self._fields[fieldName]):
         #  return None
         # This optimization sucks when using numarray 0.4!
@@ -2096,8 +2090,6 @@ cdef class VLArray:
   cdef hsize_t nrecords
   cdef int     nelements
   cdef int     scalar
-  cdef int     atomicsize
-  cdef size_t  base_type_size
 
   def _g_new(self, where, name):
     # Initialize the C attributes of Group object (Very important!)
@@ -2164,16 +2156,6 @@ cdef class VLArray:
     else:
       self.nrecords = 0  # Initialize the number of records saved
 
-    # Append the encoding attribute, if it exists
-#     if hasattr(self.atom, "encoding"):
-#       encoding = PyString_AsString(self.atom.encoding)
-#       print "atomicencoding-->", encoding
-#       ret = H5LTset_attribute_string(self.parent_id, self.name,
-#                                      "ENCODING", encoding)
-#       if ret < 0:
-#         raise RuntimeError("Can't set attribute '%s' in node:\n %s." % 
-#                            (attrname, self.node))
-
     return self.type
     
   def _append(self, object naarr):
@@ -2198,13 +2180,15 @@ cdef class VLArray:
     else:
       self.nrecords = self.nrecords + 1
 
+    return self.nrecords
+
   def _openArray(self):
     cdef object shape
     cdef char byteorder[16]  # "non-relevant" fits easily here
     cdef int i
     cdef herr_t ret
     cdef hsize_t nrecords[1]
-    cdef object naatomictype
+    cdef char flavor[256]
     
     # Get the rank for the atom in the array object
     ret = H5VLARRAYget_ndims(self.parent_id, self.name, &self.rank)
@@ -2217,27 +2201,35 @@ cdef class VLArray:
     ret = H5VLARRAYget_info(self.parent_id, self.name, nrecords,
                             self.dims, &self.type_id, byteorder)
 
+    ret = H5LTget_attribute_string(self.parent_id, self.name, "FLAVOR", flavor)
+    if ret < 0:
+      strcpy(flavor, "unknown")
+
+    # Give to these variables class visibility
+    self.flavor = flavor
+    self.byteorder = byteorder
+
     # Get the array type
-    self.base_type_size = getArrayType(self.type_id, &self.enumtype)
-    if self.base_type_size < 0:
+    self._basesize = getArrayType(self.type_id, &self.enumtype)
+    if self._basesize < 0:
       raise TypeError, "The HDF5 class of object does not seem VLEN. Sorry!"
 
     # Get the type of the atomic type
-    naatomictype = toclass[self.enumtype]
+    self._atomictype = toclass[self.enumtype]
     # Get the size and shape of the atomic type
-    self.atomicsize = self.base_type_size
+    self._atomicsize = self._basesize
     if self.rank:
       shape = []
       for i from 0 <= i < self.rank:
         shape.append(self.dims[i])
-        self.atomicsize = self.atomicsize * self.dims[i]
+        self._atomicsize = self._atomicsize * self.dims[i]
       shape = tuple(shape)
     else:
       # rank zero means a scalar
       shape = 1
-    #print "atomicsize -->", self.atomicsize
 
-    return (naatomictype, nrecords[0], shape, byteorder)
+    self._atomicshape = shape
+    return nrecords[0]
 
   def _readArray(self, hsize_t start, hsize_t stop, hsize_t step):
     cdef herr_t ret
@@ -2260,22 +2252,24 @@ cdef class VLArray:
     for i from 0 <= i < nrows:
       # Number of atoms in row
       vllen = rdata[i].len
-      #print "datalen-->", vllen
       # Get the pointer to the buffer data area
-      rbuf = PyBuffer_FromReadWriteMemory(rdata[i].p, vllen*self.atomicsize)
+      rbuf = PyBuffer_FromReadWriteMemory(rdata[i].p, vllen*self._atomicsize)
       if not rbuf:
         raise RuntimeError("Problems creating a python buffer for read data.")
       # Compute the shape for the read array
-      if (isinstance(self.atomicshape, types.TupleType)):
-        shape = list(self.atomicshape)
+      if (isinstance(self._atomicshape, types.TupleType)):
+        shape = list(self._atomicshape)
         shape.insert(0, vllen)  # put the length at the beginning of the shape
+      elif self._atomicshape > 1:
+        shape = (vllen, self._atomicshape)
       else:
-        shape = (vllen, self.atomicshape)
+        # Case of scalars (self._atomicshape == 1)
+        shape = (vllen,)
       # Create an array to keep this info
-      if str(self.atomictype) == "CharType":
-        naarr = strings.array(rbuf, itemsize=self.base_type_size, shape=shape)
+      if str(self._atomictype) == "CharType":
+        naarr = strings.array(rbuf, itemsize=self._basesize, shape=shape)
       else:
-        naarr = numarray.array(rbuf, type=self.atomictype, shape=shape)
+        naarr = numarray.array(rbuf, type=self._atomictype, shape=shape)
       datalist.append(naarr)
 
     # Release resources

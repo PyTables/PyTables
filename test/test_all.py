@@ -31,6 +31,7 @@ def suite():
                     'test_lists',
                     'test_tables',
                     'test_tablesMD',
+                    'test_vlarray',
 		    'test_tree',
 		    ]
 

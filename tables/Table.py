@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.79 2003/11/25 11:26:25 falted Exp $
+#       $Id: Table.py,v 1.80 2003/11/27 19:55:47 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.79 $"
+__version__ = "$Revision: 1.80 $"
 
 from __future__ import generators
 import sys
@@ -430,6 +430,11 @@ class Table(Leaf, hdf5Extension.Table, object):
                         shape.append(arr.itemsize())
                         arr=Numeric.reshape(Numeric.array(arrstr), shape)
                     else:
+                        if str(arr.type()) == "Bool":
+                            # Typecode boolean does not exist on Numeric
+                            typecode = "1"
+                        else:
+                            typecode = arr.typecode()                        
                         # tolist() method creates a list with a sane byteorder
                         if arr.shape <> ():
                             arr=Numeric.array(arr.tolist(),

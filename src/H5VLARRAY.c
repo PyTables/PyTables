@@ -28,6 +28,20 @@ void *test_vltypes_alloc_custom(size_t size, void *info)
 {
     void *ret_value=NULL;       /* Pointer to return */
     size_t *mem_used=(size_t *)info;  /* Get the pointer to the memory used */
+
+    if((ret_value=malloc(size))!=NULL) {
+        *(size_t *)ret_value=size;
+        *mem_used+=size;
+    }
+    ret_value=((unsigned char *)ret_value);
+    return(ret_value);
+}
+
+/* This version does not return aligned memory for Float64 variables */
+void *test_vltypes_alloc_custom_orig(size_t size, void *info)
+{
+    void *ret_value=NULL;       /* Pointer to return */
+    size_t *mem_used=(size_t *)info;  /* Get the pointer to the memory used */
     size_t extra;               /* Extra space needed */
 
     /*
@@ -57,6 +71,19 @@ void *test_vltypes_alloc_custom(size_t size, void *info)
 ** 
 ****************************************************************/
 void test_vltypes_free_custom(void *_mem, void *info)
+{
+    unsigned char *mem;
+    size_t *mem_used=(size_t *)info;  /* Get the pointer to the memory used */
+
+    if(_mem!=NULL) {
+        mem=((unsigned char *)_mem);
+        *mem_used-=*(size_t *)mem;
+        free(mem);
+    } /* end if */
+}
+
+/* This version does not return aligned memory for Float64 variables */
+void test_vltypes_free_custom_orig(void *_mem, void *info)
 {
     unsigned char *mem;
     size_t *mem_used=(size_t *)info;  /* Get the pointer to the memory used */
@@ -544,7 +571,7 @@ herr_t H5VLARRAYget_info( hid_t   loc_id,
 			  hsize_t *nrecords,
 			  hsize_t *base_dims,
 			  hid_t   *base_type_id,
-			  char    *base_byteorder)
+			  char    *base_byteorder )
 {
   hid_t       dataset_id;  
   hid_t       type_id;

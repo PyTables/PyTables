@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.2 2003/11/25 11:26:26 falted Exp $
+#       $Id: VLArray.py,v 1.3 2003/11/27 19:55:47 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.2 $"
+__version__ = "$Revision: 1.3 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -49,6 +49,16 @@ try:
 except:
     Numeric_imported = 0
 
+def checkflavor(flavor):
+    if flavor in ["NumArray", "CharArray", "Numeric", "Tuple", "List",
+                  "String", "Object"]:
+        return flavor
+    else:
+        raise ValueError, \
+"""flavor must be one of the "NumArray", "CharArray", "Numeric", "Tuple",
+  "List", "String" or "Object" values, and you try to set it to "%s".""" % \
+    (flavor)
+
 # Class to support variable length strings as components of VLArray
 # It supports UNICODE strings as well.
 class VLString(IntCol):
@@ -61,13 +71,18 @@ class VLString(IntCol):
     def __repr__(self):
         out = "VLString()"
         return out
-            
+
+    def atomsize(self):
+        " Compute the size of the VLString "
+        # Always return 1 because strings are saved in UTF-8 format
+        return 1
 
 class Atom(Col):
     """ Define an Atomic object to be used in VLArray objects """
 
     def __init__(self, dtype="Float64", shape=1, flavor="NumArray"):
         Col.__init__(self, dtype, shape)
+        self.flavor = checkflavor(flavor)
 
     def __repr__(self):
         if self.type == "CharType" or isinstance(self.type, records.Char):
@@ -80,101 +95,112 @@ class Atom(Col):
         else:
             shape = self.shape
 
-        out = "Atom(type='" +  str(self.type) + "'" + \
+        out = "Atom(type=" +  str(self.type) + \
               ", shape=" +  str(shape) + \
-              ", flavor=" +  str(self.flavor) + \
+              ", flavor=" + "'" + str(self.flavor) + "'" + \
               ")"
         return out
+
+    def atomsize(self):
+        " Compute the size of the atom type "
+        atomicsize = self.itemsize
+        if isinstance(self.shape, types.TupleType):
+            for i in self.shape:
+                atomicsize *= i
+        else:
+            atomicsize *= self.shape
+        return atomicsize
+
     
-class StringAtom(StringCol, Atom):
+class StringAtom(Atom, StringCol):
     """ Define an atom of type String """
     def __init__(self, shape=1, length=None, flavor="CharArray"):
         StringCol.__init__(self, length=length, shape=shape)
-        self.flavor = flavor
+        self.flavor = checkflavor(flavor)
         
-class BoolAtom(BoolCol, Atom):
+class BoolAtom(Atom, BoolCol):
     """ Define an atom of type Bool """
     def __init__(self, shape=1, flavor="NumArray"):
         BoolCol.__init__(self, shape=shape)
-        self.flavor = flavor
+        self.flavor = checkflavor(flavor)
 
-class IntAtom(IntCol, Atom):
+class IntAtom(Atom, IntCol):
     """ Define an atom of type Integer """
     def __init__(self, shape=1, itemsize=4, sign=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=itemsize, sign=sign)
-        self.flavor = flavor
+        self.flavor = checkflavor(flavor)
 
-class Int8Atom(IntCol, Atom):
+class Int8Atom(Atom, IntCol):
     """ Define an atom of type Int8 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=1, sign=1)
-        self.flavor = flavor
+        self.flavor = checkflavor(flavor)
 
-class UInt8Atom(IntCol, Atom):
+class UInt8Atom(Atom, IntCol):
     """ Define an atom of type UInt8 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=1, sign=0)
-        self.flavor = flavor
+        self.flavor = checkflavor(flavor)
 
-class Int16Atom(IntCol, Atom):
+class Int16Atom(Atom, IntCol):
     """ Define an atom of type Int16 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=2, sign=1)
-        self.flavor = flavor
+        self.flavor = checkflavor(flavor)
 
-class UInt16Atom(IntCol, Atom):
+class UInt16Atom(Atom, IntCol):
     """ Define an atom of type UInt16 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=2, sign=0)
-        self.flavor = flavor
+        self.flavor = checkflavor(flavor)
 
-class Int32Atom(IntCol, Atom):
+class Int32Atom(Atom, IntCol):
     """ Define an atom of type Int32 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=4, sign=1)
-        self.flavor = flavor
+        self.flavor = checkflavor(flavor)
 
 class UInt32Atom(IntCol, Atom):
     """ Define an atom of type UInt32 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=4, sign=0)
-        self.flavor = flavor
+        self.flavor = checkflavor(flavor)
 
-class Int64Atom(IntCol, Atom):
+class Int64Atom(Atom, IntCol):
     """ Define an atom of type Int64 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=8, sign=1)
-        self.flavor = flavor
+        self.flavor = checkflavor(flavor)
 
-class UInt64Atom(IntCol, Atom):
+class UInt64Atom(Atom, IntCol):
     """ Define an atom of type UInt64 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=8, sign=0)
-        self.flavor = flavor
+        self.flavor = checkflavor(flavor)
 
-class FloatAtom(FloatCol, Atom):
+class FloatAtom(Atom, FloatCol):
     """ Define an atom of type Float """
     def __init__(self, shape=1, itemsize=8, flavor="NumArray"):
         FloatCol.__init__(self, shape=shape, itemsize=itemsize)
-        self.flavor = flavor
+        self.flavor = checkflavor(flavor)
 
-class Float32Atom(FloatCol, Atom):
+class Float32Atom(Atom, FloatCol):
     """ Define an atom of type Float32 """
     def __init__(self, shape=1, flavor="NumArray"):
         FloatCol.__init__(self, shape=shape, itemsize=4)
-        self.flavor = flavor
+        self.flavor = checkflavor(flavor)
 
-class Float64Atom(FloatCol, Atom):
+class Float64Atom(Atom, FloatCol):
     """ Define an atom of type Float64 """
     def __init__(self, shape=1, flavor="NumArray"):
         FloatCol.__init__(self, shape=shape, itemsize=8)
-        self.flavor = flavor
+        self.flavor = checkflavor(flavor)
 
-class ObjectAtom(IntCol, Atom):
+class ObjectAtom(Atom, IntCol):
     """ Define an atom of type Object """
     def __init__(self, shape=1, flavor="Object"):
         IntCol.__init__(self, shape=shape, itemsize=1, sign=0)
-        self.flavor = flavor
+        self.flavor = checkflavor(flavor)
 
         
 def calcChunkSize(expectedsizeinMB, compress):
@@ -282,6 +308,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         self._v_complib = complib
         self._v_shuffle = shuffle
         self._v_expectedsizeinMB = expectedsizeinMB
+        self._nrowsinbuf = 100    # Maybe enough for most applications
         # Check if we have to create a new object or read their contents
         # from disk
         if atom is not None:
@@ -303,6 +330,11 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         if dtype == "CharType" or isinstance(dtype, records.Char):
             self.atom.type = records.CharType
 
+        self._atomictype = self.atom.type
+        self._atomicshape = self.atom.shape
+        self._atomicsize = self.atom.atomsize()
+        self._basesize = self.atom.itemsize
+        
         # Compute the optimal chunksize
         self._v_chunksize = calcChunkSize(self._v_expectedsizeinMB,
                                           self._v_compress)
@@ -437,11 +469,18 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 
     def _open(self):
         """Get the metadata info for an array in file."""
-        (self.atomictype, self.nrows, self.atomicshape, self.byteorder) = \
-                        self._openArray()
+        self.nrows = self._openArray()
         self.shape = (self.nrows,)
-        # self.attrs is not available yet
-        #self.flavor = self.getAttr("FLAVOR")
+        if self.flavor == "VLString":
+            self.atom = VLString()
+        else:
+            if str(self._atomictype) == "CharType":
+                self.atom = StringAtom(shape=self._atomicshape,
+                                       length=self._basesize,
+                                       flavor=self.flavor)
+            else:
+                self.atom = Atom(self._atomictype, self._atomicshape,
+                                 self.flavor)
 
     def iterrows(self, start=None, stop=None, step=None):
         """Iterator over all the rows or a range"""
@@ -456,7 +495,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         It is, therefore, a shorter way to call it.
         """
 
-        (self.start, self.stop, self.step) = \
+        (self._start, self._stop, self._step) = \
                      processRange(self.nrows, start, stop, step)
         self._initLoop()
         return self
@@ -466,9 +505,9 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 
         if not hasattr(self, "_init"):
             # If the iterator is called directly, assign default variables
-            self.start = 0
-            self.stop = self.nrows
-            self.step = 1
+            self._start = 0
+            self._stop = self.nrows
+            self._step = 1
             # and initialize the loop
             self._initLoop()
         return self
@@ -476,29 +515,71 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
     def _initLoop(self):
         "Initialization for the __iter__ iterator"
 
-        self._nrowsinbuf = 100    # Maybe enough for most applications
-        self.nrowsread = self.start
-        self.startb = self.start
+        self._nrowsread = self._start
+        self._startb = self._start
         self._row = -1   # Sentinel
         self._init = 1    # Sentinel
 
     def next(self):
         "next() method for __iter__() that is called on each iteration"
-        if self.nrowsread >= self.stop:
+        if self._nrowsread >= self._stop:
             del self._init
             raise StopIteration        # end of iteration
         else:
             # Read a chunk of rows
             if self._row > self._nrowsinbuf or self._row < 0:
-                self.stopb = self.startb+self.step*self._nrowsinbuf
-                self.listarr = self.read(self.startb, self.stopb, self.step)
-                #print "listarr-->", self.listarr
+                self._stopb = self._startb+self._step*self._nrowsinbuf
+                self.listarr = self.read(self._startb, self._stopb, self._step)
                 self._row = -1
-                self.startb = self.stopb
+                self._startb = self._stopb
             self._row += 1
-            self.nrowsread += self.step
-            #print "_row-->", self._row
+            self._nrowsread += self._step
             return self.listarr[self._row]
+
+    def _convToFlavor(self, arr):
+        "next() method for __iter__() that is called on each iteration"
+
+        # Convert to Numeric, tuple or list if needed
+        if self.flavor == "Numeric":
+            if Numeric_imported:
+                # This works for both numeric and chararrays
+                # arr=Numeric.array(arr, typecode=arr.typecode())
+                # The next is 10 times faster (for tolist(),
+                # we should check for tostring()!)
+                if str(self._atomictype) == "CharType":
+                    arrstr = arr.tostring()
+                    arr=Numeric.reshape(Numeric.array(arrstr), arr.shape)
+                else:
+                    if str(arr.type()) == "Bool":
+                        # Typecode boolean does not exist on Numeric
+                        typecode = "1"
+                    else:
+                        typecode = arr.typecode()                        
+                    # tolist() method creates a list with a sane byteorder
+                    if arr.shape <> ():
+                        arr=Numeric.array(arr.tolist(), typecode)
+                    else:
+                        # This works for rank-0 arrays
+                        # (but is slower for big arrays)
+                        arr=Numeric.array(arr, typecode)
+
+            else:
+                # Warn the user
+                warnings.warn( \
+"""The object on-disk is type Numeric, but Numeric is not installed locally.
+  Returning a numarray object instead!.""")
+        elif self.flavor == "Tuple":
+            arr = tuple(arr.tolist())
+        elif self.flavor == "List":
+            arr = arr.tolist()
+        elif self.flavor == "String":
+            arr = tuple(arr)
+        elif self.flavor == "VLString":
+            arr = arr.tostring().decode('utf-8')
+        elif self.flavor == "Object":
+            arr = cPickle.loads(arr.tostring())
+
+        return arr
 
     # Accessor for the _readArray method in superclass
     def read(self, start=None, stop=None, step=None):
@@ -513,52 +594,20 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             
         #self.flavor = self.getAttr("FLAVOR")
         self.flavor = self.attrs.FLAVOR
-        outlistarr = []
-        for arr in listarr:
-            # Convert to Numeric, tuple or list if needed
-            if self.flavor == "Numeric":
-                if Numeric_imported:
-                    # This works for both numeric and chararrays
-                    # arr=Numeric.array(arr, typecode=arr.typecode())
-                    # The next is 10 times faster (for tolist(),
-                    # we should check for tostring()!)
-                    if repr(self.atomictype) == "CharType":
-                        arrstr = arr.tostring()
-                        arr=Numeric.reshape(Numeric.array(arrstr), arr.shape)
-                    else:
-                        # tolist() method creates a list with a sane byteorder
-                        if arr.shape <> ():
-                            arr=Numeric.array(arr.tolist(), typecode=arr.typecode())
-                        else:
-                            # This works for rank-0 arrays
-                            # (but is slower for big arrays)
-                            arr=Numeric.array(arr, typecode=arr.typecode())
+        if self.flavor <> "NumArray":
+            # Convert the list to the right flavor
+            outlistarr = [self._convToFlavor(arr) for arr in listarr ]
+        else:
+            # NumArray flavor does not need additional conversion
+            outlistarr = listarr
 
-                else:
-                    # Warn the user
-                    warnings.warn( \
-    """The object on-disk is type Numeric, but Numeric is not installed locally.
-      Returning a numarray object instead!.""")
-            elif self.flavor == "Tuple":
-                arr = tuple(arr.tolist())
-            elif self.flavor == "List":
-                arr = arr.tolist()
-            elif self.flavor == "Int":
-                arr = int(arr)
-            elif self.flavor == "Float":
-                arr = float(arr)
-            elif self.flavor == "String":
-                arr = arr.tostring()
-            elif self.flavor == "VLString":
-                arr = arr.tostring().decode('utf-8')
-            elif self.flavor == "Object":
-                arr = cPickle.loads(arr.tostring())
-
-            outlistarr.append(arr)
+        if len(outlistarr) == 1:
+            outlistarr = outlistarr[0]
+            
         return outlistarr
         
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
 
-        return "%s\n  type = %r\n  shape = %r\n  flavor = %r\n  byteorder = %r" % \
-               (self, self.atom.type, self.shape, self.attrs.FLAVOR, self.byteorder)
+        return "%s\n  atom = %r\n  shape = %r\n  byteorder = %r" % \
+               (self, self.atom, self.shape, self.byteorder)
