@@ -1,0 +1,470 @@
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xmlns:pref="http://www.w3.org/2002/Math/preference"><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide A hierarchical database for Python Release 0.7"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2003-07-29T17:46:14+02:00"><meta name="Date" content="2003-07-29T17:46:14+02:00"><meta name="DC.Rights" content="(c) 2002, 2003 Francesc Alted"><meta name="Copyright" content="(c) 2002, 2003 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+    body {
+      font-family: serif; text-align: justify;
+      margin: 0pt; line-height: 1.3; background-color: white; color: black }
+    body.letter { background-image: none }
+    h1, h2, h3, h4, h5, h6, div.partheadline, div.title,
+      div.title-article {
+      font-family: sans-serif; font-weight: bold; font-stretch: condensed;
+      text-align: left; }
+    h1, h2, h3, h4, h5, h6, div.partheadline { padding-left: 18pt }
+    h1 { clear: both }
+    h1.toc { clear: none }
+    a:link, a:visited, a:active { text-decoration: none }
+    a:hover { text-decoration: underline; color: #0066FF; }
+    div.document, div.letter { margin-left: 80px; margin-right: 150px;
+      padding-top: 3ex; padding-bottom: 5ex }
+    div.authorlist { font-family: sans-serif;
+      font-stretch: condensed; text-align: left; font-size: x-large;
+      margin-bottom: 1ex }
+    div.authorlist-article { font-size: x-large; text-align: center;
+      margin-bottom: 2ex }
+    div.title { font-size: xx-large; color: gray; margin-bottom: 5ex; }
+    div.title-article { font-size: xx-large; text-align: center;
+      margin-bottom: 1ex }
+    div.date-article { font-size: large; text-align: center;
+      margin-bottom: 5ex }
+    div.subtitle { text-align: left; margin-bottom: 3ex }
+    div.legal { text-align: right }
+    div.legalnotice { margin-top: 3ex; text-align: left }
+    div.partheadline { font-size: xx-large; margin-top: 1ex; margin-bottom: 1ex }
+    div.footnote { }
+    hr.footnoterule { text-align: left; width: 20%; color: black }
+    div.mathdisplay { text-align: center;
+    margin-top: 2ex; margin-bottom: 2ex }
+    div.figure, div.table, div.mathml-remark { margin-bottom: 3ex;
+            margin-top: 2ex}
+    div.mathml-remark { width: 50%; text-align: left; text-indent: 0pt }
+    div.caption { margin-top: 1ex; width: 20em}
+    div.caption-text { font-size: small;
+      padding-left: 1em; text-indent: -1em; text-align: left}
+    caption { max-width: 100%; min-width: 200px; margin-bottom: 1ex;
+      text-align: left }
+    div.verse { white-space: pre; margin-left: 2em;
+      margin-top: 2ex; margin-bottom: 2ex }
+    div.toc { margin-bottom: 6ex }
+    div.biblio { }
+    div.index { width: 100% }
+    div.aphorism { margin-bottom: 2ex; font-style: italic; text-align: right;
+      margin-left: 50%}
+    div.aphorism-origin { margin-top: 1ex }
+    div.letter { }
+    div.subject { margin-top: 3ex; margin-bottom: 3ex }
+    div.opening { margin-top: 3ex; margin-bottom: 3ex }
+    div.closing { margin-top: 3ex; text-align: right }
+    div.to { margin-top: 3ex; margin-bottom: 3ex }
+    span.subject { font-weight: bold }
+    div.speedbar-top, div.speedbar-bottom { margin-left: 1em; margin-right: 1em }
+    div.speedbar-top { margin-top: 2ex }
+    div.speedbar-bottom { margin-bottom: 3ex }
+    table.speedbar { width: 100% }
+    hr.speedbar { clear: both }
+    div.theorem-plain, div.theorem-definition, div.theorem-remark { margin-top: 2ex;
+      margin-bottom: 2ex }
+    div.theorem-plain { font-style: italic }
+    div.proof { margin-top: 2ex; margin-bottom: 2ex }
+    span.theorem-head-plain, span.theorem-head-definition, span.theorem-head-remark
+      { margin-right: 0.66em }
+    span.theorem-head-plain, span.theorem-head-definition
+      { font-style: normal; font-weight: bold }
+    span.theorem-head-remark { font-style: italic }
+    span.proof-head { font-style: italic; margin-right: 0.66em }
+    acronym { font-size: 95%; letter-spacing: 0.1em; text-transform: uppercase }
+    td.header { text-align: center; font-weight: bold }
+    table.toc { }
+    table.tabular { font-size: smaller }
+    td.thickline { height: 0pt; border-bottom: medium solid; padding: 2px }
+    td.thinline { height: 0pt; border-bottom: thin solid;   padding: 2px }
+     /* FixMe: Following definition Still bad */
+    div.part-toc { margin-top: 2ex; font-weight: bold; font-size: larger }
+     /* FixMe: Following definition: How cleaner? */
+    div.toplevel-toc { margin-top: 1ex; font-weight: bold }
+    td.number1 { width: 1.5em }
+    td.number2 { width: 2em }
+    td.number3 { width: 3em }
+    td.author { text-align: center; width: 50% }
+    div { }  /* Must remain empty! */
+    span.captionlabel { font-family: sans-serif; font-weight: bold;
+      margin-right: 0.66em }
+    span.captionlabel:after { content: " " }
+    b.captionlabel {  }
+    b.captionlabel:after { content: " " }
+    span.headlinenumber { margin-right: 0.66em }
+    tt.verb {font-family: monospace }
+    span.bibtag { font-weight: bold; margin-right: 1em }
+    span.bib-author { }
+    span.bib-lastname { font-variant: small-caps }
+    span.bib-title { font-style: italic }
+    span.bib-booktitle { }
+    span.bib-journal { }
+    span.bib-journal-volume { font-weight: bold }
+    span.bib-publisher { }
+    span.bib-school { }
+    span.bib-year { }
+    span.bib-note { }
+    span { } /* Muss leer bleiben! */
+    li.bibitem { margin-left: 1em; text-indent: -1em }
+    img.graphics { border: 0pt }
+    p,div.p { margin: 0pt; text-indent: 18pt }
+    ul, dl, ol { text-indent: 0pt; }
+    p.first, div.p-first { margin: 0pt; text-indent: 0pt }
+    p.bibitem { margin-top: 1.5ex; margin-left: 3em; text-indent: -3em }
+    ul.biblio { list-style: none }
+    mi.ch { font-style: normal }
+    math[display="block"], div.equation {
+      margin-top: 1ex; margin-bottom: 1ex }
+    div.i-lettergroup { font-size: larger; font-weight: bold; padding-left: 18pt;
+      margin-top: 3ex; margin-bottom: 1.5ex }
+    div.i-item { }
+    div.i-main { }
+    dt { display: compact; font-weight: bold }
+    dd { text-indent: 0pt }
+    pre { text-indent: 0pt }
+    span.i-see { font-style: italic; }
+</style></head><body bgcolor="#FFFFFF"><div class="speedbar-top"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide1.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide3.html">next</a></td></tr><tr><td colspan="3">&nbsp;</td></tr></tbody></table><hr class="speedbar"></div><div class="document"><div>
+      <h1 id="chapter2"><a name="chapter2"></a>Chapter&nbsp;2: Installation</h1>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      <div class="aphorism">Make things as simple as possible, but not any
+	simpler.  <div class="aphorism-origin">&#8212;Albert Einstein</div> </div>
+
+      <p class="first">The Python <tt class="verb">Distutils</tt> are used to build and
+	install <tt class="verb">PyTables</tt>, so it is fairly simple to get
+	things ready to go.
+      </p>
+
+      <div>
+	<h2 id="section2.1"><span class="headlinenumber"><a name="section2.1"></a>2.1 </span>Binary installation (Windows)</h2>
+
+	<p class="first">This section is only intended for Windows platforms. If you
+	  have Unix, or want to compile PyTables for Windows, jump to
+	  the next section.
+	</p>
+	<p>First, make sure that you have HDF5 1.6.x or higher and
+	  numarray 0.6 or higher installed (I'm using HDF5 1.6.0
+	  and numarray 0.6 currently). If don't, you can find them at
+	  <tt class="verb">http://hdf.ncsa.uiuc.edu/HDF5</tt> and
+	  <tt class="verb">http://sourceforge.net/projects/numpy/</tt>. Download
+	  the binary packages and install them. For the HDF5 it should
+	  be enough by manually copying the <tt class="verb">hdf5dll.dll</tt>
+	  file to a directory in your <tt class="verb">PATH</tt> environment
+	  variable.
+	</p>
+	<p>Download the
+	  <tt class="verb">tables-&lt;version&gt;.win32-py&lt;version&gt;.exe</tt>
+	  file and execute it. You are done!.
+	</p>
+	<p>You can (<em>you should</em>) test your installation by
+	  unpacking the source tarball. Go to the <tt class="verb">test/</tt>
+	  directory, add the directory "<tt class="verb">..</tt>" to the
+	  <tt class="verb">PYTHONPATH</tt>environment variable, e.g.:
+	</p>
+
+	<pre>
+	  set PYTHONPATH=..
+	</pre>
+
+	<p>and execute the <tt class="verb">test_all.py</tt> script. If all the
+	  tests passes (maybe with a couple of warnings, related with
+	  the possibly missing LZO and UCL libs, but that's ok for the
+	  binary version) you already have a working, well tested,
+	  copy of PyTables installed!. If don't, please, execute the
+	  <tt class="verb">test_all.py -v</tt> and return the output to me.
+	</p>
+	<p>If you want support for LZO and UCL libraries (see <a href="usersguide4.html#compressionIssues">section&nbsp;4.2</a> for hints about what
+	  they are useful for), fetch
+	  <tt class="verb">tables-&lt;version&gt;-LU.win32-py&lt;version&gt;.exe</tt>
+	  instead, and remember to install the LZO and UCL DLL
+	  libraries (see next section).
+	</p>
+
+	<p>That's it!. Now, proceed with the next chapter to see how to
+	  use <tt class="verb">PyTables</tt>.
+	</p>
+
+      </div>
+
+      <div>
+	<h2 id="section2.2"><span class="headlinenumber"><a name="section2.2"></a>2.2 </span>Installation from sources</h2>
+
+	<p class="first">
+	  These instructions are both for Unix/Linux and Windows
+	  systems. If you are using Windows, it is assumed that you
+	  are using a recent version of <tt class="verb">MS Visual C++</tt> (&gt;=
+	  6.0) compiler. A <tt class="verb">GCC</tt> compiler is asumed for
+	  Unix, but other compilers should work as well.
+	</p>
+
+	<p>Extensions in <tt>PyTables</tt> has been
+	  made using Pyrex (see <a href="#Pyrex"></a>) and C
+	  language. You can rebuild everything from scratch if you got
+	  Pyrex installed, but this is not necessary, as the Pyrex
+	  compiled source is included in the distribution. In order to
+	  do that, merely replace <tt>setup.py</tt>
+	  script in these instructions by <tt>setup-pyrex.py</tt>.
+	</p>
+
+	<p>To compile <tt class="verb">PyTables</tt> you will need a recent
+	  version of <tt class="verb">HDF5</tt> (C flavor) library and
+	  <tt class="verb">numarray</tt> (see <a href="#Numarray"></a>)
+	  package. Although you won't need <tt class="verb">Numerical Python</tt>
+	  (see <a href="#Numeric"></a>) in order to compile
+	  PyTables, it is supported; you only will need a reasonably
+	  recent version of it (&gt;= 21.x). PyTables has been successfully
+	  tested with Numeric 21.3, 22.0 and 23.0. If you have
+	  <tt class="verb">Numeric</tt> installed, the test driver module will
+	  detect it and will run the tests for <tt class="verb">Numeric</tt>
+	  automatically.
+	</p>
+
+	<ol>
+
+	  <li>
+	    <p class="first">First, make sure that you have <tt class="verb">HDF5 1.6.x</tt>
+	      and <tt class="verb">numarray 0.6</tt> or higher installed (I'm
+	      using <tt class="verb">HDF5 1.6.0</tt> and <tt class="verb">numarray
+	      0.6</tt> currently). If don't, you can find them at
+	      <br>
+	      <tt class="verb">http://hdf.ncsa.uiuc.edu/HDF5</tt> and
+	      <tt class="verb">http://www.pfdubois.com/numpy</tt>. Compile/install
+	      them.
+	    </p>
+	    <p>Optionally, consider to install the excellent LZO and
+	      UCL compression libraries (see <a href="#lzouclRef"></a> and section <a href="usersguide4.html#compressionIssues">4.2</a>).
+	    </p>
+	    <dl>
+	      <dt>Windows</dt>
+	      <dd>
+		<p class="first">If you are using Windows, and don't want to
+		  compile the libraries by hand, there are available
+		  binary packages for them. You can fetch the HDF5 and
+		  numarray binaries from their homes.
+		</p>
+
+		<p>Besides, you can (should) fetch the LZO and UCL
+		  binaries from:
+		  <tt class="verb">http://gnuwin32.sourceforge.net/</tt>. Normally,
+		  you will only need to fetch and install the
+		  <tt class="verb">&lt;package&gt;-&lt;version&gt;-bin.zip</tt> file,
+		  although in some cases the headers are in
+		  <tt class="verb">&lt;package&gt;-&lt;version&gt;-lib.zip</tt> file.
+		</p>
+		<p>Note that you need to copy manually the
+		  <tt class="verb">hdf5dll.dll</tt> (and <tt class="verb">lzo.dll</tt>
+		  or <tt class="verb">ucl.dll</tt> if you want them) to a
+		  directory in the <tt class="verb">PATH</tt>, so that they can
+		  be find by PyTables extensions.</p>
+	      </dd>
+
+	      <dt>Unix</dt>
+	      <dd>
+
+		<p class="first"><tt class="verb">setup.py</tt> will detect
+		  <tt class="verb">HDF5</tt>, <tt class="verb">LZO</tt> or
+		  <tt class="verb">UCL</tt> libraries and include files under
+		  <tt class="verb">/usr</tt> or <tt class="verb">/usr/local</tt>; this
+		  will catch installations from RPMs, DEBs and most
+		  hand installations under Unix. If
+		  <tt class="verb">setup.py</tt> can't find your
+		  <tt class="verb">libhdf5</tt> (or any other library you may
+		  wish) or if you have several versions installed and
+		  want to select one of them, then you can give it a
+		  hint either in the environment (using the
+		  <tt class="verb">HDF5_DIR</tt> environment variable or
+		  <tt class="verb">LZO_DIR</tt> and <tt class="verb">UCL_DIR</tt> for
+		  the optional libraries) or on the command line by
+		  specifying the directory containing the include and
+		  lib directory. For example:
+		</p>
+
+		<pre>
+		  --hdf5=/stuff/hdf5-1.6.0
+		  --ucl=/stuff/ucl-1.0.1
+		</pre>
+
+		<p>If your <tt class="verb">HDF5</tt> library was built as
+		  shared library, and if this shared library is not in
+		  the runtime load path, then you can specify the
+		  additional linker flags needed to find the shared
+		  library on the command line as well. For example:
+		</p>
+		<pre>
+		  --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.0/lib"
+		</pre>
+		<p>or perhaps just
+		</p>
+		<pre>
+		  --lflags="-R /stuff/hdf5-1.6.0/lib"
+		</pre>
+
+		<p>Check your compiler and linker documentation for correct
+		  syntax.
+		</p>
+
+		<p>It is also possible to specify linking against different
+		  libraries with the <tt class="verb">--libs</tt> switch:
+		</p>
+		<pre>
+		  --libs="-lhdf5-1.6.5"
+		  --libs="-lhdf5-1.6.5 -lnsl"
+		</pre>
+	      </dd>
+	      <dt>Windows</dt>
+	      <dd>
+
+		<p class="first"><tt class="verb">setup.py</tt> will need that you inform it
+		  about where the library <em>stubs</em>
+		  (<tt class="verb">.lib</tt>) are installed as well as the
+		  <em>header</em> files (<tt class="verb">.h</tt>). To tell
+		  setup.py<tt class="verb"></tt> where the stubs and headers
+		  are, set the next environment variables:
+		</p>
+
+		<dl>
+		  <dt>HDF5_DIR</dt><dd>Points to the HDF5 main
+		    directory (where the include/ and dll/ directories
+		    hangs). <em>Mandatory</em>.</dd>
+		    
+		  <dt>LZO_DIR</dt> <dd>Points to the LZO main
+		    directory (where the include/ and lib/ directories
+		    hangs). <em>Optional</em>.</dd>
+
+		  <dt>UCL_DIR</dt> <dd>Points to the UCL main
+		    directory (where the include/ and lib/ directories
+		    hangs). <em>Optional</em>.</dd>
+
+		</dl> 
+
+		<p>For example:
+		</p>
+		<pre>
+		  set HDF5_DIR=c:\stuff\5-160-winVS\c\release
+		  set LZO_DIR=c:\stuff\lzo-1.07
+		  set UCL_DIR=c:\stuff\ucl-1.01
+		</pre>
+
+		<p>Or you can pass this info to <tt class="verb">setup.py</tt>
+		  within the command line by specifying the directory
+		  containing the include and lib directory. For
+		  example:
+		</p>
+
+		<pre>
+		  --hdf5=c:\stuff\5-160-winVS\c\release --lzo=c:\stuff\lzo-1.07
+		  --ucl=c:\stuff\ucl-1.01
+		</pre>	
+	      </dd>
+
+	    </dl>
+
+	  </li>
+
+	  <li>
+ 	    <p class="first">From the main <tt class="verb">PyTables</tt> distribution
+	      directory run this command, (plus any extra flags needed
+	      as discussed above):
+	    </p>
+	    <pre>
+	      python setup.py build_ext --inplace
+	    </pre>
+	    <p>depending on the compiler flags used when compiling your
+	      Python executable, there may appear lots of warnings. Don't
+	      worry, almost all of them are caused by variables declared
+	      but never used. That's normal in Pyrex extensions.
+	    </p>
+	  </li>
+	  <li>
+	    <p class="first">To run the test suite change into the test directory
+	      and run this command:
+	    </p>
+	    <dl>
+	      <dt>Unix</dt> <dd>In the shell <tt class="verb">sh</tt> and
+	      its variants:
+		<pre>
+		  PYTHONPATH=..  
+		  export PYTHONPATH
+		  python test_all.py
+		</pre>
+	      </dd>
+	      <dt>Windows</dt>
+	      <dd>Open a DOS terminal and write:
+		<pre>
+		  set PYTHONPATH=..  
+		  python test_all.py
+		</pre>
+	      </dd>
+	    </dl>
+
+	    <p>If you would like to see some verbose output from the
+	      tests simply add the flag <tt class="verb">-v</tt> and/or the word
+	      <tt class="verb">verbose</tt> to the command line. You can also
+	      run just the tests in a particular test module. For
+	      example:
+	    </p>
+	    <pre>
+	      python test_types.py -v
+	    </pre>
+
+	    <p>If there is some test that do not pass, please, run the
+	      failing test module with all verbosity enabled (flags
+	      <tt class="verb">-v verbose</tt>), and send back the output to
+	      developers.
+	    </p>
+
+	    <p> If you run into problems because Python can't load the
+	      HDF5, or any other shared library:
+	    </p>
+	    <dl>
+	      <dt>Unix</dt>
+	      <dd>
+		Try to set the LD_LIBRARY_PATH environment variable to
+		point to the directory where the libraries are.
+	      </dd>
+	      <dt>Windows</dt> <dd>Put the DLL libraries
+		(<tt class="verb">hdf5dll.dll</tt> and, optionally,
+		<tt class="verb">lzo.dll</tt> and <tt class="verb">ucl.dll</tt>) on a
+		directory listed on your <tt class="verb">PATH</tt> environment
+		variable.  The <tt class="verb">setup.py</tt> should already
+		warned you about that.
+	      </dd>
+	    </dl>
+	  </li>
+	  <li>
+	    <p class="first">To install the entire <tt>PyTables</tt> Python package, change back
+	      to the root distribution directory and run this command as
+	      the root user (remember to add any extra flags needed):
+	    </p>
+	    <pre>
+	      python setup.py install
+	    </pre>
+
+	  </li>
+	</ol>
+
+	<p>That's it!. Now, proceed with the next chapter to see how to
+	  use <tt class="verb">PyTables</tt>.
+	</p>
+
+      </div>
+
+    </div></div><div class="speedbar-bottom"><hr class="speedbar"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide1.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide3.html">next</a></td></tr></tbody></table></div></body></html>
