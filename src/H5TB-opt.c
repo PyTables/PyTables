@@ -341,10 +341,10 @@ herr_t H5TBOappend_records( hid_t *dataset_id,
 			    hsize_t nrecords_orig,
 			    const void *data )  
 {
- hid_t    space_id;
- hsize_t  count[1];    
+ hid_t    space_id = -1; 	/* Shut up the compiler */
+ hsize_t  count[1];
  hssize_t offset[1];
- hid_t    mem_space_id;
+ hid_t    mem_space_id = -1;    /* Shut up the compiler */
  int      rank;
  hsize_t  dims[1];
  hsize_t  mem_dims[1];

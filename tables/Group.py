@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.77 2004/07/06 09:11:36 falted Exp $
+#       $Id: Group.py,v 1.78 2004/08/03 21:02:53 falted Exp $
 #
 ########################################################################
 
@@ -33,9 +33,10 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.77 $"
+__version__ = "$Revision: 1.78 $"
 
 # Recommended values for maximum number of groups and maximum depth in tree
+# However, these limits are somewhat arbitraries and can be increased
 MAX_DEPTH_IN_TREE = 2048
 MAX_CHILDS_IN_GROUP = 4096
 
@@ -185,7 +186,9 @@ class Group(hdf5Extension.Group, object):
                     stack.append(new_objgroup)
                 else:
                     # and their names will be append to a list
-                    self._v_indices.append(name)
+                    if classname == "INDEX":
+                        # only INDEX names will be appended
+                        self._v_indices.append(name)
             for name in leaves:
                 objleaf=objgroup._g_getLeaf(name)
                 if objleaf <> None:

@@ -256,8 +256,8 @@ herr_t H5ARRAYappend_records( hid_t loc_id,
  hid_t    type_id;
  hid_t    space_id;
  hid_t    mem_space_id;
- hsize_t  *dims;
- hssize_t *start;
+ hsize_t  *dims = NULL;  	/* Shut up the compiler */
+ hssize_t *start = NULL;        /* Shut up the compiler */
  int      i;
 
  /* Open the dataset. */

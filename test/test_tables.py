@@ -103,7 +103,6 @@ class BasicTestCase(unittest.TestCase):
         self.record=records.array(buflist, formats=record._formats,
                                    names=record._names,
                                    shape = self.expectedrows)
-
         return
 		
     def populateFile(self):
@@ -2193,6 +2192,89 @@ class OldRecordDefaultValues(DefaultValues):
     title = "OldRecordDefaultValues"
     record = OldRecord
 
+class Record2(IsDescription):
+    var1 = StringCol(length=4, dflt="abcd")     # 4-character String
+    var2 = IntCol(1)                            # integer
+    var3 = Int16Col(2)                          # short integer 
+    var4 = Float64Col(3.1)                      # double (double-precision)
+
+class LengthTestCase(unittest.TestCase):
+    record = Record
+    nrows = 20
+
+    def setUp(self):
+        # Create an instance of an HDF5 Table
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "w")
+        self.rootgroup = self.fileh.root
+        self.populateFile()
+
+    def populateFile(self):
+        group = self.rootgroup
+        # Create a table
+        table = self.fileh.createTable(self.fileh.root, 'table',
+                                       self.record, title = "__length__ test")
+        # Get the row object associated with the new table
+        row = table.row
+
+        # Fill the table
+        for i in xrange(self.nrows):
+            row.append()
+		
+        # Flush the buffer for this table
+        table.flush()
+        self.table = table
+
+    def tearDown(self):
+        if self.fileh.isopen:
+            self.fileh.close()
+        os.remove(self.file)
+        
+    #----------------------------------------
+
+    def test01_lengthrows(self):
+        """Checking __length__ in Table"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_lengthrows..." % self.__class__.__name__
+
+        # Number of rows
+        len(self.table) == self.nrows
+
+    def test02_lengthcols(self):
+        """Checking __length__ in Cols"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_lengthcols..." % self.__class__.__name__
+
+        # Number of columns
+        if self.record is Record:
+            len(self.table.cols) == 8
+        elif self.record is Record2:
+            len(self.table.cols) == 4
+
+    def test03_lengthcol(self):
+        """Checking __length__ in Column"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_lengthcol..." % self.__class__.__name__
+
+        # Number of rows for all columns column
+        for colname in self.table.colnames:
+            len(getattr(self.table.cols, colname)) == self.nrows
+                
+
+class Length1TestCase(LengthTestCase):
+    record = Record
+    nrows = 20
+
+class Length2TestCase(LengthTestCase):
+    record = Record2
+    nrows = 100
+
 
 #----------------------------------------------------------------------
 
@@ -2265,6 +2347,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(LargeRowSize))
         theSuite.addTest(unittest.makeSuite(DefaultValues))
         theSuite.addTest(unittest.makeSuite(OldRecordDefaultValues))
+        theSuite.addTest(unittest.makeSuite(Length1TestCase))
+        theSuite.addTest(unittest.makeSuite(Length2TestCase))
             
     return theSuite
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.121 2004/07/29 17:32:36 falted Exp $
+#       $Id: Table.py,v 1.122 2004/08/03 21:02:53 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.121 $"
+__version__ = "$Revision: 1.122 $"
 
 from __future__ import generators
 import sys
@@ -43,7 +43,6 @@ import numarray
 import numarray.strings as strings
 import numarray.records as records
 import hdf5Extension
-from hdf5Extension import PyNextAfter, PyNextAfterF
 from utils import calcBufferSize, processRange, processRangeRead
 import Group
 from Leaf import Leaf, Filters
@@ -67,72 +66,6 @@ byteorderDict={"=": sys.byteorder,
 revbyteorderDict={'little': '<',
                   'big': '>'}
 
-maxFloat=float(2**1024 - 2**971)  # From the IEEE 754 standard
-maxFloatF=float(2**128 - 2**104)  # From the IEEE 754 standard
-Finf=float("inf")  # Infinite in the IEEE 754 standard
-
-# Utility functions
-def infType(type, itemsize, sign=0):
-    """Return a superior limit for maximum representable data type"""
-    if str(type) != "CharType":
-        if sign:
-            return -Finf
-        else:
-            return Finf
-    else:
-        if sign:
-            return "\x00"*itemsize
-        else:
-            return "\xff"*itemsize
-
-def CharTypeNextAfter(x, direction):
-    "Return the next representable neighbor of x in the appropriate direction."
-    xlist = list(x); xlist.reverse()
-    i = 0
-    if direction > 0:
-        for xchar in xlist:
-            if ord(xchar) < 0xff:
-                xlist[i] = chr(ord(xchar)+1)
-                break
-            i += 1
-    else:
-        for xchar in xlist:
-            if ord(xchar) > 0x00:
-                xlist[i] = chr(ord(xchar)-1)
-                break
-            i += 1
-    xlist.reverse()
-    return "".join(xlist)
-        
-
-def nextafter(x, direction, type):
-    "Return the next representable neighbor of x in the apprppriate direction."
-
-    if direction == 0:
-        return x
-
-    if type in ["Int8", "UInt8","Int16", "UInt16",
-                "Int32", "UInt32","Int64", "UInt64"]:
-        if direction < 0:
-            return x-1
-        else:
-            return x+1
-    elif type == "Float32":
-        if direction < 0:
-            return PyNextAfterF(x,x-1)
-        else:
-            return PyNextAfterF(x,x+1)
-    elif type == "Float64":
-        if direction < 0:
-            return PyNextAfter(x,x-1)
-        else:
-            return PyNextAfter(x,x+1)
-    elif str(type) == "CharType":
-        return CharTypeNextAfter(x, direction)
-    else:
-        raise TypeError, "Type %s is not supported" % type
-
-
 class Table(Leaf, hdf5Extension.Table, object):
     """Represent a table in the object tree.
 
@@ -147,9 +80,14 @@ class Table(Leaf, hdf5Extension.Table, object):
     Methods:
 
         append(rows)
-        iterrows()
+        __call__(start, stop, step)
+        __iter__()
+        iterrows(start, stop, step)
         read([start] [, stop] [, step] [, field [, flavor]])
         removeRows(start, stop)
+        reIndex()
+        reIndexDirty()
+        where(condition)
 
     Instance variables:
 
@@ -207,7 +145,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Initialize the possible cuts in columns
         self.ops = []
         self.opsValues = []
-        self.whereColumn = None
         # Initialize this object in case is a new Table
         if isinstance(description, types.DictType):
             # Dictionary case
@@ -273,7 +210,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             self._v_recarray = recarr
         self.colnames = recarr._names
         fields = {}
-        for i in range(len(self.colnames)):
+        for i in xrange(len(self.colnames)):
             colname = self.colnames[i]
             # Special case for strings (from numarray 0.6 on)
             if isinstance(recarr._fmt[i], records.Char):
@@ -363,7 +300,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         coltypes = [str(records.numfmt[type]) for type in coltypes]
         # Build a dictionary with the types as values and colnames as keys
         fields = {}
-        for i in range(len(self.colnames)):
+        for i in xrange(len(self.colnames)):
             if coltypes[i] == "CharType":
                 itemsize = itemsizes[i]
                 fields[self.colnames[i]] = StringCol(length = itemsize,
@@ -441,107 +378,62 @@ class Table(Leaf, hdf5Extension.Table, object):
             self._indexedrows += rowsadded
         return
 
-    def iterrows(self, start=None, stop=None, step=None, where=None):
-        """Iterator over all the rows or a range
-
+    def where(self, where=None):
+        """Iterator that selects values fulfilling the where condition
+        
         where can be used to specify selections along a column in the
         form:
 
         where=(0<table.cols.col1<0.3)
-
-        However, specifying where and a step value different than 1 is
-        not implemented yet.
-
         """
 
-        return self.__call__(start, stop, step, where)
+        assert isinstance(where, Column), \
+"Wrong where parameter type. Only Column instances are suported."
 
-    def _getLookupRange(self):
+        self.whereColname = where.name   # Flag for Row.__iter__
+        if where.indexed and not where.dirty:
+            # Get the coordinates to lookup
+            ncoords = where.index._getLookupRange(where)
+            return self.row(coords=None, ncoords=ncoords)
+        # Fall back to in-kernel selection method
+        return self.row(coords=None, ncoords=0)
 
-        import time
-        colname = self.whereColname
-        # Get the coordenates for those values
-        ilimit = self.opsValues
-        ctype = self.coltypes[colname]
-        itemsize = self.colitemsizes[colname]
-        notequal = 0
-        if len(ilimit) == 1:
-            ilimit = ilimit[0]
-            op = self.ops[0]
-            if op == 1: # __lt__
-                item = (infType(type=ctype, itemsize=itemsize, sign=-1),
-                        nextafter(ilimit, -1, ctype))
-            elif op == 2: # __le__
-                item = (infType(type=ctype, itemsize=itemsize, sign=-1),
-                        ilimit)
-            elif op == 3: # __gt__
-                item = (nextafter(ilimit, +1, ctype),
-                        infType(type=ctype, itemsize=itemsize, sign=0))
-            elif op == 4: # __ge__
-                item = (ilimit,
-                        infType(type=ctype, itemsize=itemsize, sign=0))
-            elif op == 5: # __eq__
-                item = (ilimit, ilimit)
-            elif op == 6: # __ne__
-                # I need to cope with this
-                raise NotImplementedError, "'!=' or '<>' not supported yet"
-                notequal = 1
-        elif len(ilimit) == 2:
-            op1, op2 = self.ops
-            item1, item2 = ilimit
-            if op1 == 3 and op2 == 1:  # item1 < col < item2
-                item = (nextafter(item1, +1, ctype),
-                        nextafter(item2, -1, ctype))
-            elif op1 == 4 and op2 == 1:  # item1 <= col < item2
-                item = (item1, nextafter(item2, -1, ctype))
-            elif op1 == 3 and op2 == 2:  # item1 < col <= item2
-                item = (nextafter(item1, +1, ctype), item2)
-            elif op1 == 4 and op2 == 2:  # item1 <= col <= item2
-                item = (item1, item2)
-            else:
-                raise SyntaxError, \
-"Combination of operators not supported. Use val1 <{=} col <{=} val2"
-                      
-        #t1=time.time()
-        ncoords = self.cols[colname].index.search(item, notequal)
-        #print "time reading indices:", time.time()-t1
-        return ncoords
+    def getRowCoords(self, where=None, flavor="NumArray"):
+        """Get the row coordinates that fulfill the 'where' condition"""
+
+        assert isinstance(where, Column), \
+"Wrong where parameter type. Only Column instances are suported."
+        assert flavor in ["NumArray", "List", "Tuple"], \
+"Wrong where parameter type. Only Column instances are suported."
+        ncoords = where.index._getLookupRange(where)
+        # create buffers for indices
+        where.index.indices._initIndexSlice(ncoords)
+        coords = where.index.getCoords(0, ncoords)
+        # Remove buffers for indices
+        where.index.indices._destroyIndexSlice()
+        if flavor == "List":
+            coords = coords.tolist()
+        elif flavor == "Tuple":
+            coords = tuple(coords.tolist())
+        return coords
+
+    def iterCoordsOfRows(self, coords=None):
+        """Iterate over a list of row coordinates."""
         
-    def __call__(self, start=None, stop=None, step=None, where=None):
+        assert hasattr(coords, "__getitem__"), \
+"Wrong coords parameter type. Only sequences are suported."
+        return self.row(start, stop, step, coords=coords, ncoords=0)
+        
+    def __call__(self, start=None, stop=None, step=None):
         """Iterate over all the rows or a range.
         
         It returns the same iterator than Table.iterrows(start, stop,
-        step, where).  It is, therefore, a shorter way to call it.
+        step).  It is, therefore, a shorter way to call it.
         
         """
-
-        assert isinstance(where, Column) or where is None, \
-"Wrong where parameter type. Only Column instances are suported."
-
-        if where and (start != None or stop != None or step != None):
-            raise NotImplementedError, \
-                  """You can't pass start, stop or step parameter when a where
-                  parameter is specified."""
-
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
-
-        coords = None
-        ncoords = 0
-        if where and self.colindexed[self.whereColname]:            
-#             ncoords = self._getLookupRange()
-            if str(self.coltypes[self.whereColname]) == "Bool":
-                if len(self.ops) == 1 and self.ops[0] == 5: # __eq__
-                    item = (self.opsValues[0], self.opsValues[0])
-                    strCol = self.cols[self.whereColname]
-                    ncoords = strCol.index.search(item, 0)
-                else:
-                    raise NotImplementedError, \
-                          "Only equality is suported for boolean columns."
-            else:
-                ncoords = self._getLookupRange()
         if start < stop:
-            if coords == None or ncoords > 0:
-                return self.row(start, stop, step, coords, ncoords=ncoords)
+            return self.row(start, stop, step, coords=None, ncoords=0)
         # Fall-back action is to return an empty RecArray
         return records.array(None,
                              formats=self.description._v_recarrfmt,
@@ -552,6 +444,15 @@ class Table(Leaf, hdf5Extension.Table, object):
         """Iterate over all the rows."""
 
         return self.__call__()
+
+    def iterrows(self, start=None, stop=None, step=None):
+        """Iterator over all the rows or a range
+
+        Specifying a negative value of step is not supported yet.
+
+        """
+
+        return self.__call__(start, stop, step)
 
     def read(self, start=None, stop=None, step=None,
              field=None, flavor="numarray", coords = None):
@@ -640,13 +541,13 @@ class Table(Leaf, hdf5Extension.Table, object):
         """Converts a RecArray or Record to a list of rows"""
         outlist = []
         if isinstance(arr, records.Record):
-            for i in range(arr.array._nfields):
+            for i in xrange(arr.array._nfields):
                 outlist.append(arr.array.field(i)[arr.row])
             outlist = tuple(outlist)  # return a tuple for records
         elif isinstance(arr, records.RecArray):
-            for j in range(arr.nelements()):
+            for j in xrange(arr.nelements()):
                 tmplist = []
-                for i in range(arr._nfields):
+                for i in xrange(arr._nfields):
                     tmplist.append(arr.field(i)[j])
                 outlist.append(tuple(tmplist))
         # Fixes bug #991715
@@ -730,7 +631,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             self._read_field_name(result, start, stop, step, field)
             # Column index version
 #             field_index = -1
-#             for i in range(len(self.colnames)):
+#             for i in xrange(len(self.colnames)):
 #                 if self.colnames[i] == field:
 #                     field_index = i
 #                     break
@@ -841,10 +742,16 @@ class Table(Leaf, hdf5Extension.Table, object):
         nrows = self._remove_row(start, nrows)
         self.nrows -= nrows    # discount the removed rows from the total
         # removeRows is a invalidating index operation
-        if self.indexed and self.reindex:
-            self._indexedrows = self.reIndex()
-            self._unsavedindexedrows = self.nrows - self._indexedrows
-            
+        if self.indexed:
+            if self.reindex:
+                self._indexedrows = self.reIndex()
+                self._unsavedindexedrows = self.nrows - self._indexedrows
+            else:
+                # Mark all the indexes as dirty
+                for (colname, colindexed) in self.colindexed.iteritems():
+                    if colindexed:
+                        indexcol = getattr(self.cols, colname)
+                        indexcol.dirty = 1
         return nrows
 
     def reIndex(self):
@@ -855,6 +762,14 @@ class Table(Leaf, hdf5Extension.Table, object):
                 indexedrows = indexcol.reIndex()
         return indexedrows
 
+    def reIndexDirty(self):
+        """Recompute the existing indexes in table if they are dirty"""
+        for (colname, colindexed) in self.colindexed.iteritems():
+            if colindexed:
+                indexcol = getattr(self.cols, colname)
+                indexedrows = indexcol.reIndexDirty()
+        return indexedrows
+
     def _g_copyRows(self, object, start, stop, step):
         "Copy rows from self to object"
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
@@ -862,7 +777,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         recarray = self._newBuffer(init=0)
         object._open_append(recarray)
         nrowsdest = object.nrows
-        for start2 in range(start, stop, step*nrowsinbuf):
+        for start2 in xrange(start, stop, step*nrowsinbuf):
             # Save the records on disk
             stop2 = start2+step*nrowsinbuf
             if stop2 > stop:
@@ -903,7 +818,7 @@ class Table(Leaf, hdf5Extension.Table, object):
 #         setattr(group, name, object)
 #         # Now, fill the new table with values from the old one
 #         nrowsinbuf = self._v_maxTuples
-#         for start2 in range(start, stop, step*nrowsinbuf):
+#         for start2 in xrange(start, stop, step*nrowsinbuf):
 #             # Save the records on disk
 #             stop2 = start2+step*nrowsinbuf
 #             if stop2 > stop:
@@ -931,12 +846,10 @@ class Table(Leaf, hdf5Extension.Table, object):
 
     def close(self):
         """Flush the buffers and close this object on tree"""
-        # First, close the columns (ie possible indices open)
-        #for col in self.colnames:
-        #    self.cols[col].close()
-        # It seems that there can be cases where cols does not exists??
-        #del self.cols
-        # The the Table
+        if hasattr(self, "cols"):
+            self.cols._f_close()
+            self.cols = None
+        # Close the Table
         Leaf.close(self)
         # We must delete the row object, as this make a back reference to Table
         # In some situations, this maybe undefined
@@ -992,7 +905,7 @@ class Cols(object):
             self.__dict__[name] = Column(table, name)
 
     def __len__(self):
-        return self._v_table.nrows
+        return len(self._v_colnames)
 
     def __getitem__(self, name):
         """Get the column named "name" as an item."""
@@ -1006,6 +919,18 @@ class Cols(object):
 "Column name '%s' does not exist in table:\n'%s'" % (name, str(self._v_table))
 
         return self.__dict__[name]
+
+    def _f_close(self):
+        # First, close the columns (ie possible indices open)
+        for col in self._v_colnames:
+            self[col].close()
+            # Delete the reference to column
+            del self.__dict__[col]
+        # delete back references:
+        self._v_table == None
+        self._v_colnames = None
+        # Delete all the columns references
+        #self.__dict__.clear()
 
     def __str__(self):
         """The string representation for this object."""
@@ -1039,12 +964,22 @@ class Column(object):
 
     Instance variables:
 
-        table -- The parent table instance
-        name -- The name of the associated column
+        table -- the parent table instance
+        name -- the name of the associated column
+        type -- the type of column
+        nrows -- the number of rows of the column
+        index -- the Index object
+        indexed -- Whether the column is indexed or not
+        dirty -- whether the index is dirty or not
 
     Methods:
     
         __getitem__(key)
+        createIndex()
+        addRowsToIndex()
+        reIndex()
+        reIndexDirty()
+        closeIndexes()
         
     """
 
@@ -1057,10 +992,13 @@ class Column(object):
         """
         self.table = table
         self.name = name
+        self.type = table.coltypes[name]
+        self.nrows = table.nrows
         # Check whether an index exists or not
         iname = "_i_"+table.name+"_"+name
         self.index = None
         self.indexed = 0
+        self.dirty = 0
         if iname in table._v_parent._v_indices:
             self.index = Index(where=self, name=iname,
                                expectedrows=table._v_expectedrows)
@@ -1069,6 +1007,9 @@ class Column(object):
             # The user wants to indexate this column,
             # but it doesn't exists yet. Create it without a warning.
             self.createIndex(warn=0)
+
+    def __len__(self):
+        return self.table.nrows
 
     def __getitem__(self, key):
         """Returns a column element or slice
@@ -1101,40 +1042,34 @@ class Column(object):
     def __lt__(self, other):
         self.table.ops.append(1)
         self.table.opsValues.append(other)
-        self.table.whereColname = self.name
         return self
 
     def __le__(self, other):
         self.table.ops.append(2)
         self.table.opsValues.append(other)
-        self.table.whereColname = self.name
         return self
 
     def __gt__(self, other):
         self.table.ops.append(3)
         self.table.opsValues.append(other)
-        self.table.whereColname = self.name
         return self
 
     def __ge__(self, other):
         self.table.ops.append(4)
         self.table.opsValues.append(other)
-        self.table.whereColname = self.name
         return self
 
     def __eq__(self, other):
         self.table.ops.append(5)
         self.table.opsValues.append(other)
-        self.table.whereColname = self.name
         return self
 
     def __ne__(self, other):
         self.table.ops.append(6)
         self.table.opsValues.append(other)
-        self.table.whereColname = self.name
         return self
 
-    def createIndex(self, filters=None, warn=1):
+    def createIndex(self, filters=None, warn=1, testmode=0):
         """Create an index for this column"""
         assert self.table.colshapes[self.name] == 1, \
                "Only scalar columns can be indexed."
@@ -1154,8 +1089,10 @@ class Column(object):
         self.index = Index(atom, self, name,
                            "Index for "+self.table.name+":"+self.name,
                            filters=filters,
-                           expectedrows=self.table._v_expectedrows)
+                           expectedrows=self.table._v_expectedrows,
+                           testmode=testmode)
         self.indexed = 1
+        self.dirty = 0
         self.table.colindexed[self.name] = 1
         # Feed the index with values
         nelemslice = self.index.sorted.nelemslice
@@ -1182,24 +1119,35 @@ class Column(object):
         if self.indexed:
             # Delete the existing Index
             self.index._f_remove()
+            # Create a new Index without warnings
+            return self.createIndex(warn=1)
+        else:
+            return 0  # The column is not intended for indexing
+ 
+    def reIndexDirty(self):
+        """Recompute the existing index only if it is dirty"""
+        if self.indexed and self.dirty:
+            # Delete the existing Index
+            self.index._f_remove()
             # Create a new Index withoutr warnings
             return self.createIndex(warn=0)
         else:
-            return 0  # The column is not intended for indexing, so return 0
+            # The column is not intended for indexing or is not dirty
+            return 0  
  
-#     def search(self, item, notequal=0):
-#         if self.index:
-#             return self.index.search(item, notequal)
-#         else:
-#             raise UnsupportedError, \
-#                   "Non-indexed columns do not suport searches"
-
-    def close(self):
+    def closeIndexes(self):
         """Close any open index of this column"""
         if self.index:
             self.index._f_close()
-            del self.index
+            self.index = None
 
+    def close(self):
+        """Close this column"""
+        # Close indexes
+        self.closeIndexes()
+        # delete some back references
+        self.table = None
+        self.type = None
 
     def __str__(self):
         """The string representation for this object."""

@@ -108,72 +108,6 @@ out:
 }
 
 
-herr_t H5ARRAYOread_readSlice_orig( hid_t dataset_id,
-			       hid_t space_id,
-			       hid_t type_id,
-			       hsize_t *start,
-			       hsize_t *stop,
-			       hsize_t *step,
-			       void *data )
-{
- hid_t    mem_space_id;
- hsize_t  *dims = NULL;
- hsize_t  *count = NULL;
- hsize_t  *stride = (hsize_t *)step;
- hssize_t *offset = (hssize_t *)start;
- int      rank;
- int      i;
-
- /* Get the rank */
- if ( (rank = H5Sget_simple_extent_ndims(space_id)) < 0 )
-   goto out;
-
- /* Book some memory for the selections */
- count = (hsize_t *)malloc(rank*sizeof(hsize_t));
- dims = (hsize_t *)malloc(rank*sizeof(hsize_t));
-
- /* Get dataset dimensionality */
- if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
-   goto out;
-
- for(i=0;i<rank;i++) {
-   count[i] = stop[i] - start[i];
-   if ( stop[i] > dims[i] ) {
-     printf("Asking for a range of rows exceeding the available ones!.\n");
-     goto out;
-   }
- }
- /* Define a hyperslab in the dataset of the size of the records */
- if ( H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, stride, count, NULL) < 0 )
-   goto out;
-
- /* Create a memory dataspace handle */
- if ( (mem_space_id = H5Screate_simple( rank, count, NULL )) < 0 )
-   goto out;
-
- /* Read */
- if ( H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
-   goto out;
-
- /* Terminate access to the memory dataspace */
- if ( H5Sclose( mem_space_id ) < 0 )
-   goto out;
-
- /* Release resources */
- free(dims);
- free(count);
-
-return 0;
-
-out:
- H5Dclose( dataset_id );
- if (dims) free(dims);
- if (count) free(count);
- return -1;
-
-}
-
-
 /*-------------------------------------------------------------------------
  * Function: H5ARRAYOclose_readSlice
  *
@@ -202,13 +136,13 @@ herr_t H5ARRAYOclose_readSlice(hid_t dataset_id,
  if ( H5Sclose( space_id ) < 0 )
   goto out;
 
- /* End access to the dataset and release resources used by it. */
- if ( H5Dclose( dataset_id ) )
-  return -1;
-
  /* Close the vlen type */
  if ( H5Tclose( type_id))
    return -1;
+
+ /* End access to the dataset and release resources used by it. */
+ if ( H5Dclose( dataset_id ) )
+  return -1;
 
 return 0;
 

@@ -9,6 +9,7 @@ from numarray import *
 from numarray import strings
 
 verbose = 0
+niterHeavy = 0  # Default is not doing heavy testing of indexation
 if 'verbose' in sys.argv:
     verbose = 1
     sys.argv.remove('verbose')
@@ -102,6 +103,7 @@ def suite():
                     'test_lists',
                     'test_tables',
                     'test_indexes',
+                    'test_indexvalues',
                     'test_tablesMD',
                     'test_vlarray',
                     'test_earray',
@@ -113,9 +115,11 @@ def suite():
         import Numeric
         print "Numeric (version %s) is present. Adding the Numeric test suite." % \
               (Numeric.__version__)
+        print '-=' * 38
         test_modules.append("test_Numeric")
     except:
         print "Skipping Numeric test suite"
+        print '-=' * 38
 
     alltests = unittest.TestSuite()
     for name in test_modules:
@@ -158,7 +162,17 @@ if __name__ == '__main__':
         if arg == '--show-versions-only':
             only_versions = 1
             sys.argv.remove(arg)
+        if arg == '--heavy-indexes':
+            niterHeavy = 1
+            sys.argv.remove(arg)
 
     if not only_versions:
+        if not niterHeavy:
+            print \
+"""I shall perform only a light subset of the indexation test suite.
+If you have a powerful system and lots of CPU to waste, try passing
+the --heavy-indexes flag to this (%s) script. """ % sys.argv[0]
+            print '-=' * 38
+
         unittest.main( defaultTest='suite' )
 

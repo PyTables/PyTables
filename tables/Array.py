@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.69 2004/07/29 17:32:36 falted Exp $
+#       $Id: Array.py,v 1.70 2004/08/03 21:02:53 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.69 $"
+__version__ = "$Revision: 1.70 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -234,7 +234,7 @@ class Array(Leaf, hdf5Extension.Array, object):
         
         # Compute the rowsize for each element
         self.rowsize = self.itemsize
-        for i in range(len(self.shape)):
+        for i in xrange(len(self.shape)):
             self.rowsize *= self.shape[i]
         # Assign a value to nrows in case we are a non-enlargeable object
         if self.shape:
@@ -366,7 +366,7 @@ class Array(Leaf, hdf5Extension.Array, object):
                       self._v_pathname
             if isinstance(key, types.EllipsisType):
                 ellipsis = 1
-                for diml in range(dim, len(self.shape) - (nkeys - dim) + 1):
+                for diml in xrange(dim, len(self.shape) - (nkeys - dim) + 1):
                     startl[dim] = 0
                     stopl[dim] = self.shape[diml]
                     stepl[dim] = 1
@@ -397,7 +397,7 @@ class Array(Leaf, hdf5Extension.Array, object):
             
         # Complete the other dimensions, if needed
         if dim < len(self.shape):
-            for diml in range(dim, len(self.shape)):
+            for diml in xrange(dim, len(self.shape)):
                 startl[dim] = 0
                 stopl[dim] = self.shape[diml]
                 stepl[dim] = 1
@@ -414,7 +414,7 @@ class Array(Leaf, hdf5Extension.Array, object):
             extdim = self.extdim
 
         shape = []
-        for dim in range(len(self.shape)):
+        for dim in xrange(len(self.shape)):
             new_dim = ((stopl[dim] - startl[dim] - 1) / stepl[dim]) + 1
             if not (new_dim == 1 and stop_None[dim]):
                 # Append dimension
@@ -442,7 +442,7 @@ class Array(Leaf, hdf5Extension.Array, object):
 
         # Protection against reading empty arrays
         zerodim = 0
-        for i in range(len(shape)):
+        for i in xrange(len(shape)):
             if shape[i] == 0:
                 zerodim = 1
 
@@ -538,7 +538,7 @@ class Array(Leaf, hdf5Extension.Array, object):
             arr._byteorder = self.byteorder
         # Protection against reading empty arrays
         zerodim = 0
-        for i in range(len(shape)):
+        for i in xrange(len(shape)):
             if shape[i] == 0:
                 zerodim = 1
 

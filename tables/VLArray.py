@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.27 2004/06/18 12:31:08 falted Exp $
+#       $Id: VLArray.py,v 1.28 2004/08/03 21:02:53 falted Exp $
 #
 ########################################################################
 
@@ -30,7 +30,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.27 $"
+__version__ = "$Revision: 1.28 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -620,7 +620,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         nrowscopied = 0
         nbytes = 0
         atomsize = self.atom.atomsize()
-        for start2 in range(start, stop, step*nrowsinbuf):
+        for start2 in xrange(start, stop, step*nrowsinbuf):
             # Save the records on disk
             stop2 = start2+step*nrowsinbuf
             if stop2 > stop:

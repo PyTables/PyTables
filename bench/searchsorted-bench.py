@@ -4,241 +4,144 @@ import copy
 
 import time
 import numarray as NA
-#import bisect
 from tables import *
-from numarray import random_array
+import random
 
-def createFile(filename, chunksize, nchunks, filters, atom, verbose):
+class Small(IsDescription):
+    var1 = StringCol(length=4, dflt="")
+    var2 = IntCol(0)
+    var3 = FloatCol(0)
+    var4 = BoolCol(0)
+
+# Define a user record to characterize some kind of particles
+class Medium(IsDescription):
+    var1        = StringCol(length=16, dflt="")  # 16-character String
+    #float1      = Col("Float64", 1, 2.3)
+    #float2      = Col("Float64", 1, 2.3)
+    #zADCcount    = Col("Int16", 1, 0)    # signed short integer
+    var2        = Col("Int32", 1, 0)    # signed short integer
+    var3        = Col("Float64", 1, 0)
+    grid_i      = Col("Int32", 1, 0)    # integer
+    grid_j      = Col("Int32", 1, 0)    # integer
+    pressure    = Col("Float32", 1, 0)    # float  (single-precision)
+    energy      = Col("Float64", 2, 0)    # double (double-precision)
+
+def createFile(filename, nrows, filters, atom, recsize, index, verbose):
 
     # Open a file in "w"rite mode
     fileh = openFile(filename, mode = "w", title="Searchsorted Benchmark",
                      filters=filters)
     title = "This is the IndexArray title"
     # Create an IndexArray instance
-    group = fileh.root
     rowswritten = 0
-    if atom == "float":
-        atomtype = FloatAtom()
-        #arr = random_array.uniform(0, chunksize)
-    elif atom == "int":
-        atomtype = IntAtom()
-        #arr = random_array.randint(0, chunksize)
-    elif atom == "bool":
-        atomtype = BoolAtom()
-    elif atom == "string":
-        atomtype = StringAtom(length=4)
-    else:
-        raise RuntimeError, "This should never happen"
-    for j in range(3):
-        # Create an entry
-        table = fileh.createIndexArray(group, 'iarray'+str(j),
-                                       atomtype,
-                                       title,
-                                       None,  # Filters are inherited
-                                       nchunks*chunksize)
-        recnchunks = (nchunks * chunksize) / table.nelemslice
-        if verbose and j == 0:
-            print "elements per slice:", table.nelemslice
-            print "chunksize:", table.chunksize
-            print "nchunks:", recnchunks
-
-        arr = NA.arange(table.nelemslice, type=atomtype.type,
-                        shape=(1, table.nelemslice))
-        for i in range(recnchunks):
-            #table.append(xrange(table.nelemslice))
-            table.append(arr)
-#             a = xrange(table.nelemslice)
-#             col = NA.array(a, shape=(1, table.nelemslice),
-#                            type=atomtype.type)
-#             time.sleep(0.2)
-            rowswritten += 1
-        # Create a new group
-        group2 = fileh.createGroup(group, 'group'+str(j))
-        # Iterate over this new group (group2)
-        group = group2
-
+    # Create an entry
+    klass = {"small":Small, "medium":Medium}
+    table = fileh.createTable(fileh.root, 'table', klass[recsize], title,
+                              None, nrows)
+    for i in xrange(nrows):
+        #table.row['var1'] = str(i)
+        #table.row['var2'] = random.randrange(nrows)
+        table.row['var2'] = i
+        table.row['var3'] = i
+        #table.row['var4'] = i % 2
+        table.row['var4'] = i > 2
+        table.row.append()
+    rowswritten += nrows
+    table.flush()
     rowsize = table.rowsize
+    indexrows = 0
+        
+    # Index one entry:
+    if index:
+        if atom == "string":
+            indexrows = table.cols.var1.createIndex()
+        elif atom == "bool":
+            indexrows = table.cols.var4.createIndex()
+        elif atom == "int":
+            indexrows = table.cols.var2.createIndex()
+        elif atom == "float":
+            indexrows = table.cols.var3.createIndex()
+        else:
+            raise ValueError, "Index type not supported yet"
+        if verbose:
+            print "Number of indexed rows:", indexrows
     # Close the file (eventually destroy the extended type)
     fileh.close()
     
     return (rowswritten, rowsize)
 
-def readFile(filename, atom, verbose):
+def readFile(filename, atom, niter, verbose):
     # Open the HDF5 file in read-only mode
 
     fileh = openFile(filename, mode = "r")
-    rowsread = 0
-    level = 0
-    for groupobj in fileh.walkGroups(fileh.root):
-        for table in fileh.listNodes(groupobj, 'IndexArray'):
-            rowsize = table.rowsize
-            print "reading", table
-            if verbose and level == 0:
-                print "Max rows in buf:", table._v_maxTuples
-                print "Rows in", table._v_pathname, ":", table.nrows
-                print "Buffersize:", table.rowsize * table._v_maxTuples
-                print "MaxTuples:", table._v_maxTuples
-                print "Chunksize:", table.chunksize
+    table = fileh.root.table
+    print "reading", table
+    if atom == "string":
+        idxcol = table.cols.var1.index
+    elif atom == "bool":
+        idxcol = table.cols.var4.index
+    elif atom == "int":
+        idxcol = table.cols.var2.index
+    else:
+        idxcol = table.cols.var3.index
+    if verbose:
+        print "Max rows in buf:", table._v_maxTuples
+        print "Rows in", table._v_pathname, ":", table.nrows
+        print "Buffersize:", table.rowsize * table._v_maxTuples
+        print "MaxTuples:", table._v_maxTuples
+        print "Chunk size:", idxcol.sorted.chunksize
+        print "Number of elements per slice:", idxcol.nelemslice
+        print "Slice number in", table._v_pathname, ":", idxcol.nrows
 
-            for i in range(table.nrows):
-                arr = table[i,:]
-            if verbose:
-                print "last value read ==>", arr[-1]
+    rowselected = 0
+    if atom == "string":
+        for i in xrange(niter):
+            #results = [table.row["var3"] for i in table.where(2+i<=table.cols.var2 < 10+i)]
+#             results = [table.row.nrow() for i in table.where(2<=table.cols.var2 < 10)]
+            results = [p["var1"] #p.nrow()
+                       for p in table.where(table.cols.var1 == "1111")]
+#                      for p in table.where("1000"<=table.cols.var1<="1010")]
+            rowselected += len(results)
+    elif atom == "bool":
+        for i in xrange(niter):
+            results = [p["var2"] #p.nrow()
+                       for p in table.where(table.cols.var4==0)]
+            rowselected += len(results)
+    elif atom == "int":
+        for i in xrange(niter):
+            #results = [table.row["var3"] for i in table.where(2+i<=table.cols.var2 < 10+i)]
+#             results = [table.row.nrow() for i in table.where(2<=table.cols.var2 < 10)]
+            results = [p["var2"] #p.nrow()
+#                        for p in table.where(110*i<=table.cols.var2<110*(i+1))]
+#                       for p in table.where(1000-30<table.cols.var2<1000+60)]
+                       for p in table.where(table.cols.var2<=400)]
+            rowselected += len(results)
+    elif atom == "float":
+        for i in xrange(niter):
+#         results = [(table.row.nrow(), table.row["var3"])
+#                    for i in table.where(3<=table.cols.var3 < 5.)]
+#             results = [(p.nrow(), p["var3"])
+#                        for p in table.where(1000.-i<=table.cols.var3<1000.+i)]
+            results = [p["var3"] # (p.nrow(), p["var3"]) 
+                       for p in table.where(100*i<=table.cols.var3<100*(i+1))]
+#                        for p in table
+#                        if 100*i<=p["var3"]<100*(i+1)]
+#             results = [ (p.nrow(), p["var3"]) for p in table
+#                         if (1000.-i <= p["var3"] < 1000.+i) ]
+            rowselected += len(results)
+        else:
+            raise ValueError, "Unsuported atom value"
+    if verbose and 1:
+        print "Values that fullfill the conditions:"
+        print results
 
-	    rowsread += table.nrows
-            level += 1
+    rowsread = table.nrows * niter
+    rowsize = table.rowsize 
         
     # Close the file (eventually destroy the extended type)
     fileh.close()
 
-    return (rowsread, rowsize)
-
-
-def searchBin_orig(table, i, item):
-
-    lo = 0
-    hi = table.nelemslice   # Number of elements / slice
-    bufsize = table.chunksize # Number of elements / chunk
-    buffer = table._readSortedSlice(i, 0, bufsize)
-    #buffer = table[i,0:bufsize]    # 1.5 / 2.1 sec
-    #buffer = NA.arange(0,bufsize)  # test  # 0.44 / 2 sec
-    #buffer = range(0,bufsize)  # test   #
-    #buffer = xrange(0,bufsize)  # test  # 0.02 / 2 sec
-    result = bisect_left(buffer, item)
-    niter = 1
-    if 0 <= result < bufsize:
-        return result, niter
-    # The end
-    buffer = table._readSortedSlice(i, hi-bufsize, hi)
-    #buffer = table[i,-bufsize:]
-    #buffer = NA.arange(hi-bufsize,hi)  # test
-    #buffer = range(hi-bufsize,hi) # test
-    #buffer = xrange(hi-bufsize,hi) # test
-    niter = 2
-    result = bisect_left(buffer, item)
-    if 0 < result < bufsize:
-        return hi - bufsize + result, niter
-    elif result == bufsize:
-        return hi, niter
-    while lo < hi:
-        mid = (lo+hi)//2
-        start = (mid/bufsize)*bufsize
-        buffer = table._readSortedSlice(i, start, start+bufsize)
-        #buffer = table[i,start:start+bufsize]
-        #buffer = NA.arange(start,start+bufsize)  # test
-        #buffer = range(start,start+bufsize) # test
-        #buffer = xrange(start,start+bufsize) # test
-        niter += 1
-        result = bisect_left(buffer, item)
-        if result == 0:
-            if buffer[result] == item:
-                lo = start
-                break
-            # The item is at left
-            hi = mid
-        elif result == bufsize:
-            # The item is at the right
-            lo = mid+1
-        else:
-            # Item has been found. Exit the loop and return
-            lo = result+start
-            break
-    return (lo, niter)
-
-# This has been copied from the standard module bisect.
-# Checks for the values out of limits has been added at the beginning
-# because I forsee that this should be a very common case.
-# 2004-05-20
-def bisect_left(a, x, lo=0, hi=None):
-    """Return the index where to insert item x in list a, assuming a is sorted.
-
-    The return value i is such that all e in a[:i] have e < x, and all e in
-    a[i:] have e >= x.  So if x already appears in the list, i points just
-    before the leftmost x already there.
-
-    """
-
-    if hi == None:
-        hi = len(a)
-    if x <= a[0]: return 0
-    if a[-1] < x: return hi
-    while lo < hi:
-        mid = (lo+hi)//2
-        if a[mid] < x: lo = mid+1
-        else: hi = mid
-    return lo
-
-def interSearch(table, nrow, bufsize, item, lo, hi):
-    niter = 0
-    while lo < hi:
-        mid = (lo+hi)//2
-        start = (mid/bufsize)*bufsize
-        buffer = table._readSortedSlice(nrow, start, start+bufsize)
-        niter += 1
-        result = bisect_left(buffer, item, hi=bufsize)
-        if result == 0:
-            if buffer[result] == item:
-                lo = start
-                break
-            # The item is at left
-            hi = mid
-        elif result == bufsize:
-            # The item is at the right
-            lo = mid+1
-        else:
-            # Item has been found. Exit the loop and return
-            lo = result+start
-            break
-    return (lo, niter)
-
-def searchBin(table, nrow, item):
-    hi = table.nelemslice   # Number of elements / chunk
-    item1, item2 = item
-    item1done = 0; item2done = 0
-    # Look for items at the beginning
-    bufsize = table.chunksize # Number of elements/chunksize
-    buffer = table._readSortedSlice(nrow, 0, bufsize)
-    niter = 1
-    result1 = bisect_left(buffer, item1, hi=bufsize)
-    if 0 <= result1 < bufsize:
-        item1done = 1
-    result2 = bisect_left(buffer, item2, hi=bufsize)
-    if 0 <= result2 < bufsize:
-        item2done = 1
-    if item1done and item2done:
-        return (result1, result2, niter)
-    # The end
-    buffer = table._readSortedSlice(nrow, hi-bufsize, hi)
-    niter = 2
-    if not item1done:
-        result1 = bisect_left(buffer, item1, hi=bufsize)
-        if 0 < result1 < bufsize:
-            item1done = 1
-            result1 = hi - bufsize + result
-        elif result1 == bufsize:
-            item1done = 1
-            result1 = hi
-    if not item2done:
-        result2 = bisect_left(buffer, item2, hi=bufsize)
-        if 0 < result2 < bufsize:
-            item2done = 1
-            result2 = hi - bufsize + result
-        elif result2 == bufsize:
-            item2done = 1
-            result2 = hi
-    if item1done and item2done:
-        return (result1, result2, niter)
-
-    lo = 0
-    # Intermediate look for item1
-    if not item1done:
-        (result1, iter) = interSearch(table, nrow, bufsize, item1, lo, hi)
-        niter += iter
-    # Intermediate look for item1
-    if not item2done:
-        (result2, iter) = interSearch(table, nrow, bufsize, item2, lo, hi)
-        niter += iter
-    return (result1, result2, niter)
+    return (rowsread, rowselected, rowsize)
 
 
 def searchFile(filename, atom, verbose, item):
@@ -246,45 +149,39 @@ def searchFile(filename, atom, verbose, item):
 
     fileh = openFile(filename, mode = "r")
     rowsread = 0
-    level = 0
     uncomprBytes = 0
-    ntotaliter = 0
-    for groupobj in fileh.walkGroups(fileh.root):
-        for table in fileh.listNodes(groupobj, 'IndexArray'):
-            rowsize = table.rowsize
-            print "reading", table
-            if verbose and level == 0:
-                print "Chunk size:", table.chunksize
-                print "Chunk number in", table._v_pathname, ":", table.nrows
-                print "Buffersize:", table.rowsize * table._v_maxTuples
-                print "MaxTuples:", table._v_maxTuples
+    table = fileh.root.table
+    rowsize = table.rowsize
+    if atom == "int":
+        idxcol = table.cols.var2.index
+    elif atom == "float":
+        idxcol = table.cols.var3.index
+    else:
+        raise ValueError, "Unsuported atom value"
+    print "Searching", table, "..."
+    if verbose:
+        print "Chunk size:", idxcol.sorted.chunksize
+        print "Number of elements per slice:", idxcol.sorted.nelemslice
+        print "Slice number in", table._v_pathname, ":", idxcol.sorted.nrows
 
-            #buffer = table[0]  # Test
-#             niter = 0  # for tests
-#             #buffer = xrange(table.shape[1])  # Test
-#             bufsize = table.chunksize # # of elements/chunksize
-#             table._initSortedSlice(bufsize, table.type)
-#             for i in range(table.nrows):
-#                 #(result1, result2, niter) = searchBin(table, i, item)
-#                 (result1, result2, niter) = table._searchBin(i, item)
-#                 #result = searchBin(buffer, 0, item)
-#                 #result = bisect_left(buffer, item)
-#             table._destroySortedSlice()
-            (result1, result2, niter) = table.searchBin(item)
-            if verbose and level == 0:
-                print "Position for item ==>", (item, (result1[0],
-                                                       result2[0]),
-                                                niter/table.nrows)
+    (positions, niter) = idxcol.search(item)
+    if verbose:
+        print "Positions for item",item,"==>",positions
+        print "Total iterations in search:", niter
 
-	    rowsread += table.nrows
-            uncomprBytes += table.chunksize * niter * table.itemsize
-            ntotaliter += niter
-            level += 1
+    rowsread += table.nrows
+    uncomprBytes += idxcol.sorted.chunksize * niter * idxcol.sorted.itemsize
+
+    results = table.read(coords=positions)
+    print "results length:", len(results)
+    if verbose:
+        print "Values that fullfill the conditions:"
+        print results
         
     # Close the file (eventually destroy the extended type)
     fileh.close()
 
-    return (rowsread, table.nelemslice, uncomprBytes, ntotaliter)
+    return (rowsread, uncomprBytes, niter)
 
 
 if __name__=="__main__":
@@ -298,24 +195,27 @@ if __name__=="__main__":
     
     import time
     
-    usage = """usage: %s [-v] [-p] [-R range] [-r] [-w] [-s item ] [-a
-    atom] [-c level] [-l complib] [-S] [-F] [-i chunksize] [-n nchunks] file
+    usage = """usage: %s [-v] [-p] [-R range] [-r] [-w] [-s recsize ] [-a
+    atom] [-c level] [-l complib] [-S] [-F] [-i item] [-n nrows] [-x]
+    [-k niter] file
             -v verbose
 	    -p use "psyco" if available
             -R select a range in a field in the form "start,stop,step"
 	    -r only read test
 	    -w only write test
-            -s item to search
+            -s record size
             -a use [float], [int], [bool] or [string] atom
             -c sets a compression level (do not set it or 0 for no compression)
             -S activate shuffling filter
             -F activate fletcher32 filter
             -l sets the compression library to be used ("zlib", "lzo", "ucl")
-            -i sets the chunksize (number of records on each chunk)
-            -k sets the number of chunks on each index\n""" % sys.argv[0]
+            -i item to search
+            -n set the number of rows in tables
+            -x don't make indexes
+            -k number of iterations for reading\n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'vpSFR:rws:a:c:l:i:n:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'vpSFR:rwxk:s:a:c:l:i:n:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -329,7 +229,7 @@ if __name__=="__main__":
     verbose = 0
     rng = None
     item = None
-    atom = "float"
+    atom = "int"
     fieldName = None
     testread = 1
     testwrite = 1
@@ -338,8 +238,10 @@ if __name__=="__main__":
     shuffle = 0
     fletcher32 = 0
     complib = "zlib"
-    chunksize = 1000000
-    nchunks = 100
+    nrows = 100
+    recsize = "small"
+    index = 1
+    niter = 1
 
     # Get the options
     for option in opts:
@@ -357,8 +259,10 @@ if __name__=="__main__":
             testwrite = 0
         elif option[0] == '-w':
             testread = 0
+        elif option[0] == '-x':
+            index = 0
         elif option[0] == '-s':
-            item = eval(option[1])
+            recsize = option[1]
         elif option[0] == '-a':
             atom = option[1]
             if atom not in ["float", "int", "bool", "string"]:
@@ -369,18 +273,12 @@ if __name__=="__main__":
         elif option[0] == '-l':
             complib = option[1]
         elif option[0] == '-i':
-            chunksize = int(option[1])
+            item = eval(option[1])
         elif option[0] == '-n':
-            nchunks = int(option[1])
+            nrows = int(option[1])
+        elif option[0] == '-k':
+            niter = int(option[1])
             
-#     if atom == "float":
-#         item = float(eval(item))
-#     elif atom == "int":
-#         item = int(eval(item))
-#     elif atom == "bool":
-#         item = int(eval(item))
-#     else:  # string atom case
-#         item = int(eval(item))
     # Build the Filters instance
     filters = Filters(complevel=complevel, complib=complib,
                       shuffle=shuffle, fletcher32=fletcher32)
@@ -398,8 +296,8 @@ if __name__=="__main__":
 	cpu1 = time.clock()
         if psyco_imported and usepsyco:
             psyco.bind(createFile)
-	(rowsw, rowsz) = createFile(file, chunksize, nchunks, filters,
-                                    atom, verbose)
+	(rowsw, rowsz) = createFile(file, nrows, filters,
+                                    atom, recsize, index, verbose)
 	t2 = time.time()
         cpu2 = time.clock()
 	tapprows = round(t2-t1, 3)
@@ -414,27 +312,28 @@ if __name__=="__main__":
     if testread:
         if psyco_imported and usepsyco:
             psyco.bind(readFile)
-            psyco.bind(searchBin)
+            psyco.bind(searchFile)
 	t1 = time.time()
         cpu1 = time.clock()
         if rng or item:
-            (rowsr, rowsz, uncomprB, niter) = searchFile(file, atom, verbose, item)
+            (rowsr, uncomprB, niter) = searchFile(file, atom, verbose, item)
         else:
             for i in range(1):
-                (rowsr, rowsz) = readFile(file, atom, verbose)
+                (rowsr, rowsel, rowsz) = readFile(file, atom, niter, verbose)
 	t2 = time.time()
         cpu2 = time.clock()
 	treadrows = round(t2-t1, 3)
         cpureadrows = round(cpu2-cpu1, 3)
         tpercent = int(round(cpureadrows/treadrows, 2)*100)
-        tMrows = rowsr*rowsz/(1000*1000)
-	print "Rows read:", rowsr, " Row size:", rowsz, \
-              "Total:", tMrows, "Mrows"
+        tMrows = rowsr/(1000*1000.)
+        sKrows = rowsel/1000.
+	print "Rows read:", rowsr, "Mread:", round(tMrows, 3), "Mrows"
+	print "Rows selected:", rowsel, "Ksel:", round(sKrows,3), "Krows"
 	print "Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
               (treadrows, cpureadrows, tpercent)
-	print "Read Mrows/sec: ", int(tMrows / float(treadrows))
+	print "Read Mrows/sec: ", round(tMrows / float(treadrows), 3)
 	#print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))
-	print "Uncompr MB :", int(uncomprB / (1024 * 1024))
-	print "Uncompr MB/s :", int(uncomprB / (treadrows * 1024 * 1024))
-	print "Total chunks uncompr :", int(niter)
+# 	print "Uncompr MB :", int(uncomprB / (1024 * 1024))
+# 	print "Uncompr MB/s :", int(uncomprB / (treadrows * 1024 * 1024))
+#	print "Total chunks uncompr :", int(niter)
     

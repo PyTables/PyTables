@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.10 2004/07/29 17:01:21 falted Exp $
+#       $Id: Index.py,v 1.11 2004/08/03 21:02:53 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.10 $"
+__version__ = "$Revision: 1.11 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -37,8 +37,89 @@ from IndexArray import IndexArray
 from VLArray import Atom
 from AttributeSet import AttributeSet
 import hdf5Extension
+from hdf5Extension import PyNextAfter, PyNextAfterF
 import numarray
 import time
+
+maxFloat=float(2**1024 - 2**971)  # From the IEEE 754 standard
+maxFloatF=float(2**128 - 2**104)  # From the IEEE 754 standard
+Finf=float("inf")  # Infinite in the IEEE 754 standard
+
+# Utility functions
+def infType(type, itemsize, sign=0):
+    """Return a superior limit for maximum representable data type"""
+    if str(type) != "CharType":
+        if sign:
+            return -Finf
+        else:
+            return Finf
+    else:
+        if sign:
+            return "\x00"*itemsize
+        else:
+            return "\xff"*itemsize
+
+def CharTypeNextAfter(x, direction, itemsize):
+    "Return the next representable neighbor of x in the appropriate direction."
+    # Pad the string with \x00 chars until itemsize completion
+    padsize = itemsize - len(x)
+    if padsize > 0:
+        x += "\x00"*padsize
+    xlist = list(x); xlist.reverse()
+    i = 0
+    if direction > 0:
+        if xlist == "\xff"*itemsize:
+            # Maximum value, return this
+            return "".join(xlist)
+        for xchar in xlist:
+            if ord(xchar) < 0xff:
+                xlist[i] = chr(ord(xchar)+1)
+                break
+            else:
+                xlist[i] = "\x00"
+            i += 1
+    else:
+        if xlist == "\x00"*itemsize:
+            # Minimum value, return this
+            return "".join(xlist)
+        for xchar in xlist:
+            if ord(xchar) > 0x00:
+                xlist[i] = chr(ord(xchar)-1)
+                break
+            else:
+                xlist[i] = "\xff"
+            i += 1
+    xlist.reverse()
+    return "".join(xlist)
+        
+
+def nextafter(x, direction, type, itemsize):
+    "Return the next representable neighbor of x in the apprppriate direction."
+
+    if direction == 0:
+        return x
+
+    if type in ["Int8", "UInt8","Int16", "UInt16",
+                "Int32", "UInt32","Int64", "UInt64"]:
+        if direction < 0:
+            return x-1
+        else:
+            return x+1
+    elif type == "Float32":
+        if direction < 0:
+            return PyNextAfterF(x,x-1)
+        else:
+            return PyNextAfterF(x,x+1)
+    elif type == "Float64":
+        if direction < 0:
+            return PyNextAfter(x,x-1)
+        else:
+            return PyNextAfter(x,x+1)
+    elif str(type) == "CharType":
+        return CharTypeNextAfter(x, direction, itemsize)
+    else:
+        raise TypeError, "Type %s is not supported" % type
+
 
 class Index(hdf5Extension.Group, hdf5Extension.Index, object):
     """Represent the index (sorted and reverse index) dataset in HDF5 file.
@@ -69,7 +150,8 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
     """
 
     def __init__(self, atom = None, where= None, name = None,
-                 title = "", filters = None, expectedrows = 1000):
+                 title = "", filters = None, expectedrows = 1000,
+                 testmode = 0):
         """Create an IndexArray instance.
 
         Keyword arguments:
@@ -99,6 +181,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         self._v_new_title = title
         self._v_new_filters = filters
         self._v_expectedrows = expectedrows
+        self.testmode = testmode
         self._v_parent = where.table._v_parent  #Parent of table in object tree
         # Check whether we have to create a new object or read their contents
         # from disk
@@ -149,12 +232,14 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         self.filters = self._addAttrs(self, "INDEX")
         # Create the IndexArray for sorted values
         object = IndexArray(self.atom, "Sorted Values",
-                            self.filters, self._v_expectedrows)
+                            self.filters, self._v_expectedrows,
+                            self.testmode)
         object.name = object._v_name = object._v_hdf5name = "sortedArray"
         object._g_new(self, object.name)
         object.filters = self.filters
         object._create()
         object._v_parent = self
+        object._v_file = self._v_parent._v_file  
         self._addAttrs(object, "IndexArray")
         self.sorted = object
         self.type = object.type
@@ -164,12 +249,14 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         self.byteorder = object.byteorder
         # Create the IndexArray for index values
         object = IndexArray(Atom("Int32", shape=1), "Reverse indices",
-                            self.filters, self._v_expectedrows)
+                            self.filters, self._v_expectedrows,
+                            self.testmode)
         object.name = object._v_name = object._v_hdf5name = "revIndexArray"
         object._g_new(self, object.name)
         object.filters = self.filters
         object._create()
         object._v_parent = self
+        object._v_file = self._v_parent._v_file  
         self.nrows = object.nrows
         self.nelemslice = object.nelemslice
         self._addAttrs(object, "IndexArray")
@@ -213,7 +300,6 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
 
         # Save the sorted array
         if str(self.sorted.type) == "CharType":
-            #print "arr-->", arr
             self.indices.append(arr.argsort())
             arr.sort()
             self.sorted.append(arr)
@@ -223,16 +309,12 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         # Update nrows after a successful append
         self.nrows = self.sorted.nrows
         
-# This has been passed to Pyrex. However, with pyrex it has the same speed,
-# but anyway
     def search(self, item, notequal):
         """Do a binary search in this index for an item"""
         #t1=time.time()
         ntotaliter = 0; tlen = 0
         self.starts = []; self.lengths = []
-        bufsize = self.sorted._v_chunksize[1] # number of elements/chunksize
-        self.nelemslice = self.sorted.nelemslice   # number of columns/slice
-        self.sorted._initSortedSlice(bufsize)
+        self.sorted._initSortedSlice(self.chunksize)
         # Do the lookup for values fullfilling the conditions
         for i in xrange(self.sorted.nrows):
             (start, stop, niter) = self.sorted._searchBin(i, item)
@@ -247,45 +329,166 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         return tlen
 
 # This has been passed to Pyrex. However, with pyrex it has the same speed,
-# but anyway
+# so, it's better to stay here
     def getCoords(self, startCoords, maxCoords):
         """Get the coordinates of indices satisfiying the cuts"""
-        #t1=time.time()
         len1 = 0; len2 = 0;
-        stop = 0; relCoords = 0
-        #print "startCoords, maxCoords-->", startCoords, maxCoords
-        #print "lengths-->", self.lengths
+        relCoords = 0
+        # Correction against asking too many elements
+        nindexedrows = self.nelemslice*self.nrows
+        if startCoords + maxCoords > nindexedrows:
+            maxCoords = nindexedrows - startCoords
         for irow in xrange(self.sorted.nrows):
             leni = self.lengths[irow]; len2 += leni
             if (leni > 0 and len1 <= startCoords < len2):
                 startl = self.starts[irow] + (startCoords-len1)
-                #print "leni, maxCoords, startl, len1-->",leni, maxCoords, startl, len1
-                #if maxCoords >= leni - (startCoords-len1):
-                if (startl + leni) < maxCoords:
-                    # Values fit on buffer
-                    stopl = startl + leni
-                else:
-                    stopl = startl + maxCoords
-                    # Correction if stopl exceeds the limits
-                    # Perhaps some cases are not figured out here
-                    # I must do exhaustive a test suite!
-                    if stopl > self.nelemslice:
-                        stopl = self.nelemslice
-                    # Stop after this iteration
-                    stop = 1
-                #print "startl, stopl-->", startl, stopl, stop
+                # Read maxCoords as maximum
+                stopl = startl + maxCoords
+                # Correction if stopl exceeds the limits
+                if stopl > self.starts[irow] + self.lengths[irow]:
+                    stopl = self.starts[irow] + self.lengths[irow]
                 self.indices._g_readIndex(irow, startl, stopl, relCoords)
                 relCoords += stopl - startl
-                if stop:
-                    break
-                maxCoords -= leni - (startCoords-len1)
-                startCoords += leni - (startCoords-len1)
+                break
             len1 += leni
-                
+
+        # I don't know if sorting the coordinates is better or not actually
+        # Some careful tests must be carried out in order to do that
         selections = numarray.sort(self.indices.arrAbs[:relCoords])
         #selections = self.indices.arrAbs[:relCoords]
-        #print "time doing revIndexing:", time.time()-t1
         return selections
+
+# This tried to be a version of getCoords that would merge several
+# selected ranges in different rows in one single selection return array
+# However, I didn't managed to make it work well.
+# Beware, the logic behind doing this is not trivial at all. You have been
+# warned!. 2004-08-03
+
+#     def getCoords_orig_modif(self, startCoords, maxCoords):
+#         """Get the coordinates of indices satisfiying the cuts"""
+#         #t1=time.time()
+#         len1 = 0; len2 = 0;
+#         stop = 0; relCoords = 0
+#         # Correction against asking too many elements
+#         nindexedrows = self.nelemslice*self.nrows
+#         #print "nindexedrows-->", nindexedrows
+#         if startCoords + maxCoords > nindexedrows:
+#             maxCoords = nindexedrows - startCoords
+#         print "startCoords, maxCoords-->(1)", startCoords, maxCoords
+#         #print "lengths-->", self.lengths
+#         irow=self.irow
+#         #for irow in xrange(self.sorted.nrows):
+#         while irow < self.sorted.nrows:
+#             leni = self.lengths[irow]; len2 += leni
+#             print "len1, leni, len2-->", len1, leni, len2
+#             print "startCoords, maxCoords-->(loop)", startCoords, maxCoords
+#             newrow = 1
+#             if (leni > 0 and len1 <= startCoords < len2):
+#                 startl = self.starts[irow] + (startCoords-len1)
+#                 print "maxCoords, startl, leni-->", maxCoords, startl, leni
+#                 #if maxCoords >= leni - (startCoords-len1):
+#                 if (startl + leni) < maxCoords:
+#                     # Values do fit on buffer
+#                     stopl = startl + leni
+#                     maxCoords -= leni - (startCoords-len1)
+#                     startCoords += leni - (startCoords-len1)
+#                     #startCoords = len1 + leni
+#                     newrow=0  # Don't increment the row number in next iter
+#                 elif (startl + leni) > len2:
+#                     # Values fit on buffer, but we run out this section
+#                     stopl = len2
+#                     lenj = stopl - startl
+#                     maxCoords -= lenj
+#                     startCoords = len1 + lenj
+#                     #startCoords += lenj - (startCoords-len1)
+#                     newrow=0  # Don't increment the row number in next iter
+#                 else:
+#                     # Read maxCoords as maximum
+#                     stopl = startl + maxCoords
+#                     # Stop after this iteration
+#                     stop = 1
+# ####                # Correction if stopl exceeds the limits
+#                 if stopl > self.nelemslice:
+#                     stopl = self.nelemslice
+#                     newrow=0  # Don't increment the row number in next iter
+#                 print "irow, startl, stopl-->", irow, startl, stopl, stop
+#                 self.indices._g_readIndex(irow, startl, stopl, relCoords)
+#                 print "arrAbs-->", self.indices.arrAbs
+#                 relCoords += stopl - startl
+#                 if stop:
+#                     break
+#                 len1 += stopl-startl
+#             else:
+#                 len1 += leni
+#             if newrow: self.irow += 1
+
+#         # I don't know if sorting the coordinates is better or not actually
+#         # Some careful tests must be carried out in order to do that
+#         selections = numarray.sort(self.indices.arrAbs[:relCoords])
+#         #selections = self.indices.arrAbs[:relCoords]
+#         print "selections-->", selections
+#         #print "time doing revIndexing:", time.time()-t1
+#         return selections
+
+    def _getLookupRange(self, column):
+        #import time
+        table = column.table
+        # Get the coordenates for those values
+        ilimit = table.opsValues
+        ctype = column.type
+        itemsize = table.colitemsizes[column.name]
+        notequal = 0
+        # Boolean types are a special case
+        if str(ctype) == "Bool":
+            if len(table.ops) == 1 and table.ops[0] == 5: # __eq__
+                item = (ilimit[0], ilimit[0])
+                ncoords = self.search(item, notequal=0)
+                return ncoords
+            else:
+                raise NotImplementedError, \
+                      "Only equality operator is suported for boolean columns."
+        # Other types are treated here
+        if len(ilimit) == 1:
+            ilimit = ilimit[0]
+            op = table.ops[0]
+            if op == 1: # __lt__
+                item = (infType(type=ctype, itemsize=itemsize, sign=-1),
+                        nextafter(ilimit, -1, ctype, itemsize))
+            elif op == 2: # __le__
+                item = (infType(type=ctype, itemsize=itemsize, sign=-1),
+                        ilimit)
+            elif op == 3: # __gt__
+                item = (nextafter(ilimit, +1, ctype, itemsize),
+                        infType(type=ctype, itemsize=itemsize, sign=0))
+            elif op == 4: # __ge__
+                item = (ilimit,
+                        infType(type=ctype, itemsize=itemsize, sign=0))
+            elif op == 5: # __eq__
+                item = (ilimit, ilimit)
+            elif op == 6: # __ne__
+                # I need to cope with this
+                raise NotImplementedError, "'!=' or '<>' not supported yet"
+                notequal = 1
+        elif len(ilimit) == 2:
+            op1, op2 = table.ops
+            item1, item2 = ilimit
+            if op1 == 3 and op2 == 1:  # item1 < col < item2
+                item = (nextafter(item1, +1, ctype, itemsize),
+                        nextafter(item2, -1, ctype, itemsize))
+            elif op1 == 4 and op2 == 1:  # item1 <= col < item2
+                item = (item1, nextafter(item2, -1, ctype, itemsize))
+            elif op1 == 3 and op2 == 2:  # item1 < col <= item2
+                item = (nextafter(item1, +1, ctype, itemsize), item2)
+            elif op1 == 4 and op2 == 2:  # item1 <= col <= item2
+                item = (item1, item2)
+            else:
+                raise SyntaxError, \
+"Combination of operators not supported. Use val1 <{=} col <{=} val2"
+                      
+        #t1=time.time()
+        ncoords = self.search(item, notequal)
+        #print "time reading indices:", time.time()-t1
+        return ncoords
 
     def _f_remove(self):
         """Remove this Index object"""
@@ -296,20 +499,23 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         self._g_deleteGroup()
 
     def _f_close(self):
-        # flush the info for the indices
-        self.sorted.flush()
-        self.indices.flush()
+        # close the indices
+        self.sorted._close()
+        self.indices._close()
+#         self.sorted.flush()
+#         self.indices.flush()
         # Delete some references to the object tree
-        del self.indices._v_parent
-        del self.sorted._v_parent
-        if hasattr(self.indices, "_v_file"):
-            del self.indices._v_file
-            del self.sorted._v_file
+#         del self.indices._v_parent
+#         del self.sorted._v_parent
+#         if hasattr(self.indices, "_v_file"):
+#             del self.indices._v_file
+#             del self.sorted._v_file
         del self.indices
         del self.sorted
         del self._v_parent
         # Close this group
         self._g_closeGroup()
+        self.__dict__.clear()
 
     def __str__(self):
         """This provides more metainfo in addition to standard __repr__"""

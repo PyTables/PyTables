@@ -1,6 +1,3 @@
-# Eh! python!, We are going to include isolatin characters here
-# -*- coding: latin-1 -*-
-
 import unittest
 import os
 import tempfile
@@ -8,11 +5,13 @@ import warnings
 
 from tables import *
 from tables.Index import Index
-from test_all import verbose, allequal
+from tables.IndexArray import calcChunksize
+from test_all import verbose, allequal, niterHeavy
 
 # The minimum number of rows that can be indexed
-# Remember to change that if the number is changed in IndexArray._calcChunksize
-minRowIndex = 1000
+# Remember to change that if the number is changed in
+# IndexArray._calcChunksize
+minRowIndex = 10
 
 class Small(IsDescription):
     var1 = StringCol(length=4, dflt="")
@@ -56,10 +55,10 @@ class BasicTestCase(unittest.TestCase):
             table.row.append()
         table.flush()
         # Index all entries:
-        indexrows = table.cols.var1.createIndex()
-        indexrows = table.cols.var2.createIndex()
-        indexrows = table.cols.var3.createIndex()
-        indexrows = table.cols.var4.createIndex()
+        indexrows = table.cols.var1.createIndex(testmode=1)
+        indexrows = table.cols.var2.createIndex(testmode=1)
+        indexrows = table.cols.var3.createIndex(testmode=1)
+        indexrows = table.cols.var4.createIndex(testmode=1)
         if verbose:
             print "Number of written rows:", self.nrows
             print "Number of indexed rows:", indexrows
@@ -89,7 +88,8 @@ class BasicTestCase(unittest.TestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        results = [p["var1"] for p in table(where=table.cols.var1 == "1")]
+        results = [p["var1"] for p in table.where(table.cols.var1 == "1")]
+        #results = [p["var1"] for p in table(where=table.cols.var1 == "1")]
         assert len(results) == 1
 
     def test02_readIndex(self):
@@ -109,7 +109,7 @@ class BasicTestCase(unittest.TestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        results = [p["var2"] for p in table(where=table.cols.var2 == 1)]
+        results = [p["var2"] for p in table.where(table.cols.var2 == 1)]
         if verbose:
             print "Selected values:", results
         assert len(results) == self.nrows // 2
@@ -119,7 +119,7 @@ class BasicTestCase(unittest.TestCase):
 
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test02_readIndex..." % self.__class__.__name__
+            print "Running %s.test03_readIndex..." % self.__class__.__name__
 
         # Open the HDF5 file in read-only mode
         self.fileh = openFile(self.file, mode = "r")
@@ -131,7 +131,7 @@ class BasicTestCase(unittest.TestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        results = [p["var3"] for p in table(where=1< table.cols.var3 < 10)]
+        results = [p["var3"] for p in table.where(1< table.cols.var3 < 10)]
         if verbose:
             print "Selected values:", results
         assert len(results) == 8
@@ -141,7 +141,7 @@ class BasicTestCase(unittest.TestCase):
 
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test02_readIndex..." % self.__class__.__name__
+            print "Running %s.test04_readIndex..." % self.__class__.__name__
 
         # Open the HDF5 file in read-only mode
         self.fileh = openFile(self.file, mode = "r")
@@ -153,7 +153,7 @@ class BasicTestCase(unittest.TestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        results = [p["var4"] for p in table(where=table.cols.var4 < 10)]
+        results = [p["var4"] for p in table.where(table.cols.var4 < 10)]
         if verbose:
             print "Selected values:", results
         assert len(results) == 10
@@ -164,58 +164,68 @@ class BasicReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 0
     fletcher32 = 0
-    nrows = minRowIndex
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns
 
 class ZlibReadTestCase(BasicTestCase):
     compress = 1
     complib = "zlib"
     shuffle = 0
     fletcher32 = 0
-    nrows = minRowIndex
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns
 
 class LZOReadTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
     shuffle = 0
     fletcher32 = 0
-    nrows = minRowIndex
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns
 
 class UCLReadTestCase(BasicTestCase):
     compress = 1
     complib = "ucl"
     shuffle = 0
     fletcher32 = 0
-    nrows = minRowIndex
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns
 
 class ShuffleReadTestCase(BasicTestCase):
     compress = 1
     complib = "zlib"
     shuffle = 1
     fletcher32 = 0
-    nrows = minRowIndex
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns
 
 class Fletcher32ReadTestCase(BasicTestCase):
     compress = 1
     complib = "zlib"
     shuffle = 0
     fletcher32 = 1
-    nrows = minRowIndex
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns
 
 class ShuffleFletcher32ReadTestCase(BasicTestCase):
     compress = 1
     complib = "zlib"
     shuffle = 1
     fletcher32 = 1
-    nrows = minRowIndex
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns
 
 class OneHalfTestCase(BasicTestCase):
-    nrows = minRowIndex+500
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns+ns//2
 
 class UpperBoundTestCase(BasicTestCase):
-    nrows = minRowIndex+1
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns+1
 
 class LowerBoundTestCase(BasicTestCase):
-    nrows = minRowIndex*2-1
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns*2-1
 
 class WarningTestCase(unittest.TestCase):
     nrows = 100 # Small enough to raise the warning
@@ -268,8 +278,8 @@ class Small3(IsDescription):
     var3 = IntCol(0, indexed=1)
     var4 = FloatCol(0, indexed=0)
 
+
 class AutomaticIndexingTestCase(unittest.TestCase):
-    nrows = 10
     reopen = 1
     klass = Small2
     
@@ -296,11 +306,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         self.fileh.close()
         os.remove(self.file)
         
-    def test01_checkattrs(self):
+    def test01_attrs(self):
         "Checking indexing attributes (part1)"
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test01_checkattrs..." % self.__class__.__name__
+            print "Running %s.test01_attrs..." % self.__class__.__name__
 
         table = self.table
         if self.klass is Small:
@@ -327,11 +337,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             assert table.colindexed["var4"] == 0
             assert table.cols.var4.indexed == 0
                     
-    def test02_checkattrs(self):
+    def test02_attrs(self):
         "Checking indexing attributes (part2)"
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test02_checkattrs..." % self.__class__.__name__
+            print "Running %s.test02_attrs..." % self.__class__.__name__
 
         table = self.table
         # Check the policy parameters
@@ -361,11 +371,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             assert isinstance(table.cols.var3.index, Index)
             assert table.cols.var4.index == None
         
-    def test03_checkcounters(self):
+    def test03_counters(self):
         "Checking indexing counters"
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test03_checkcounters..." % self.__class__.__name__
+            print "Running %s.test03_counters..." % self.__class__.__name__
         table = self.table
         # Check the counters for indexes
         if verbose:
@@ -380,11 +390,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             assert table._indexedrows == indexedrows
             assert table._unsavedindexedrows == self.nrows - indexedrows
 
-    def test04_checknoauto(self):
+    def test04_noauto(self):
         "Checking indexing counters (non-automatic mode)"
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test04_checknoauto..." % self.__class__.__name__
+            print "Running %s.test04_noauto..." % self.__class__.__name__
         table = self.table
         # Force a sync in indexes
         table.addRowsToIndex()
@@ -405,11 +415,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             assert table._indexedrows == indexedrows
             assert table._unsavedindexedrows == self.nrows - indexedrows
 
-    def test05_checknoreindex(self):
+    def test05_noreindex(self):
         "Checking indexing counters (non-reindex mode)"
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test05_checknoreindex..." % self.__class__.__name__
+            print "Running %s.test05_noreindex..." % self.__class__.__name__
         table = self.table
         # Force a sync in indexes
         table.addRowsToIndex()
@@ -439,53 +449,81 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             assert table._indexedrows == indexedrows
             assert table._unsavedindexedrows == self.nrows - indexedrows - 2
 
+    def test06_dirty(self):
+        "Checking dirty flags (removeRows action)"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test06_dirty..." % self.__class__.__name__
+        table = self.table
+        # Force a sync in indexes
+        table.addRowsToIndex()
+        # Now, remove some rows:
+        table.removeRows(3,5)
+        # Check the dirty flag for indexes
+        if verbose:
+            for colname in table.colnames:
+                print "dirty flag col %s: %s" % \
+                      (colname, table.cols[colname].dirty)
+        # Check the flags
+        for colname in table.colnames:
+            if (table.cols[colname].indexed and not table.reindex):
+                assert table.cols[colname].dirty == 1
+            else:
+                assert table.cols[colname].dirty == 0
+
+minRowIndex = 10000
 class AI1TestCase(AutomaticIndexingTestCase):
-    nrows = 10
+    nrows = 10002
     reopen = 0
     klass = Small2
     
 class AI2TestCase(AutomaticIndexingTestCase):
-    nrows = 10
+    nrows = 10002
     reopen = 1
     klass = Small2
     
 class AI3TestCase(AutomaticIndexingTestCase):
-    nrows = 10
+    nrows = 10002
     reopen = 1
     klass = Small3
     
 class AI4TestCase(AutomaticIndexingTestCase):
-    nrows = 10
+    nrows = 10002
     reopen = 0
     klass = Small3
     
 class AI5TestCase(AutomaticIndexingTestCase):
-    nrows = 1000
+    ns, cs = calcChunksize(minRowIndex, testmode=0)
+    nrows = ns*11-1
     reopen = 0
     klass = Small2
     
 class AI6TestCase(AutomaticIndexingTestCase):
-    nrows = 1000
+    ns, cs = calcChunksize(minRowIndex, testmode=0)
+    nrows = ns*21+1
     reopen = 1
     klass = Small2
 
 class AI7TestCase(AutomaticIndexingTestCase):
-    nrows = 1000
+    ns, cs = calcChunksize(minRowIndex, testmode=0)
+    nrows = ns*12-1
     reopen = 0
     klass = Small3
     
 class AI8TestCase(AutomaticIndexingTestCase):
-    nrows = 1000
+    ns, cs = calcChunksize(minRowIndex, testmode=0)
+    nrows = ns*15+100
     reopen = 1
     klass = Small3
     
 class AI9TestCase(AutomaticIndexingTestCase):
-    nrows = 1000
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns
     reopen = 0
     klass = Small
     
 class AI10TestCase(AutomaticIndexingTestCase):
-    nrows = 10
+    nrows = 10002
     reopen = 1
     klass = Small
     
@@ -494,10 +532,16 @@ class AI10TestCase(AutomaticIndexingTestCase):
 
 def suite():
     theSuite = unittest.TestSuite()
-    niter = 1
+    niterLight = 1
+    #niterHeavy = 1  # Uncomment this only if you have a big machine!
 
+    #theSuite.addTest(unittest.makeSuite(OneHalfTestCase))
+    #theSuite.addTest(unittest.makeSuite(UpperBoundTestCase))
+    #theSuite.addTest(unittest.makeSuite(LowerBoundTestCase))
     #theSuite.addTest(unittest.makeSuite(BasicReadTestCase))
-    for n in range(niter):
+    #theSuite.addTest(unittest.makeSuite(AI6TestCase))
+    #theSuite.addTest(unittest.makeSuite(AI7TestCase))
+    for n in range(niterLight):
         theSuite.addTest(unittest.makeSuite(BasicReadTestCase))
         theSuite.addTest(unittest.makeSuite(ZlibReadTestCase))
         theSuite.addTest(unittest.makeSuite(LZOReadTestCase))
@@ -513,13 +557,15 @@ def suite():
         theSuite.addTest(unittest.makeSuite(AI2TestCase))
         theSuite.addTest(unittest.makeSuite(AI3TestCase))
         theSuite.addTest(unittest.makeSuite(AI4TestCase))
+    
+    for n in range(niterHeavy):
         theSuite.addTest(unittest.makeSuite(AI5TestCase))
         theSuite.addTest(unittest.makeSuite(AI6TestCase))
         theSuite.addTest(unittest.makeSuite(AI7TestCase))
         theSuite.addTest(unittest.makeSuite(AI8TestCase))
         theSuite.addTest(unittest.makeSuite(AI9TestCase))
         theSuite.addTest(unittest.makeSuite(AI10TestCase))
-    
+        
     return theSuite
 
 if __name__ == '__main__':

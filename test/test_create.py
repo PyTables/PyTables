@@ -167,37 +167,36 @@ class createTestCase(unittest.TestCase):
 	recordDict = {}
 	i = 0
 	for varname in varnames:
-	    recordDict[varname] = Col("Int32", 1)
+	    recordDict[varname] = Col("Int32", 1, pos=i)
 	    i += 1
 	# Append this entry to indicate the alignment!
 	recordDict['_v_align'] = "="
-	# Now, create a table with this record object
-	#table = Table(recordDict, "MetaRecord instance")
-	# Attach the table to the object tree
-	#self.root.table = table
-        # This works the same than above
 	table = self.fileh.createTable(self.root, 'table',
                                        recordDict, "MetaRecord instance")
 	row = table.row
+        listrows = []
 	# Write 10 records
         for j in range(10):
-            i = 0
-            for varname in varnames:
-                row[varname] = i*j
-                i += 1
+            rowlist = []
+            for i in range(len(table.cols)):
+                row[varnames[i]] = i*j
+                rowlist.append(i*j)
 	    
             row.append()
+            listrows.append(tuple(rowlist))
 
         # write data on disk
 	table.flush()
 
-	# Read all the data as records 
-	for recout in table.iterrows():
-            pass
+	# Read all the data as a list
+	listout = table.read(flavor="List")
 
-        # Compare the last input row and last output
-        # they should be equal
-        assert row == recout
+        # Compare the input rowlist and output row list. They should
+        # be equal.
+        if verbose:
+            print "Original row list:", listrows[-1]
+            print "Retrieved row list:", listout[-1]
+        assert listrows == listout
 
     def test05_maxFieldsExceeded(self):
 	"Checking an excess (256) of the maximum number of fields in tables"
@@ -1718,6 +1717,7 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
+    #theSuite.addTest(unittest.makeSuite(createTestCase))
     #theSuite.addTest(unittest.makeSuite(CopyGroupCase1))
     #theSuite.addTest(unittest.makeSuite(CopyGroupCase2))
     for i in range(niter):

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.134 2004/07/29 17:01:18 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.135 2004/08/03 21:02:52 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.134 $"
+__version__ = "$Revision: 1.135 $"
 
 
 import sys, os
@@ -911,7 +911,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.134 2004/07/29 17:01:18 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.135 2004/08/03 21:02:52 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1664,7 +1664,7 @@ cdef class Table:
     
     # Create a python tuple with the field names
     names = []
-    for i in range(nfields):
+    for i in xrange(nfields):
       names.append(self.field_names[i])
     names = tuple(names)
 
@@ -1721,7 +1721,7 @@ cdef class Table:
       
     # Search the field position
     fieldpos = -1
-    for i in range(self.nfields):
+    for i in xrange(self.nfields):
       if strcmp(self.field_names[i], field_name) == 0:
         fieldpos = i
     if fieldpos == -1:
@@ -1833,7 +1833,7 @@ cdef class Row:
   cdef object _fields, _recarray, _saveBufferedRows, _indexes
   cdef int _row, _nrowinbuf, _unsavednrows, _strides
   cdef readonly int _nrow # This is allowed from Pyrex 0.9 on
-  cdef int start, stop, step, nextelement, nrowsinbuf, nrows, nrowsread
+  cdef long long start, stop, step, nextelement, nrowsinbuf, nrows, nrowsread
   cdef int bufcounter, counter, startb, stopb,  _all
   cdef int *_scalar, *_enumtypes, _r_initialized_buffer,_w_initialized_buffer
   cdef int indexChunk
@@ -1910,7 +1910,8 @@ cdef class Row:
       self._enumtypes[i] = toenum[buff._fmt[i]]
       i = i + 1
 
-  def _initLoop(self, int start, int stop, int step, object coords, int ncoords):
+  def _initLoop(self, int start, int stop, int step,
+                object coords, int ncoords):
     "Initialization for the __iter__ iterator"
 
     if not self._r_initialized_buffer:
@@ -1918,6 +1919,7 @@ cdef class Row:
     self.start = start
     self.stop = stop
     self.step = step
+    self.coords = coords
     self.startb = 0
     self.nrowsread = start
     self._nrow = start - self.step
@@ -1934,17 +1936,15 @@ cdef class Row:
         self.indexed = 1
         self.index = self._table.cols[self.colname].index
         # create buffers for indices
-        if ncoords > self.nrowsinbuf:
-          self.index.indices._initIndexSlice(self.nrowsinbuf)
-        else:
-          self.index.indices._initIndexSlice(ncoords)
-        self.coords = coords
-        if self.coords:
-          self.stop = len(coords)
-        else:
-          self.stop = ncoords
+        self.index.indices._initIndexSlice(self.nrowsinbuf)
         self.nrowsread = 0
         self.nextelement = 0
+    if self.coords:
+      self.stop = len(coords)
+      self.nrowsread = 0
+      self.nextelement = 0
+    elif self.indexed:
+      self.stop = ncoords
 
   def __next__(self):
     "next() method for __iter__() that is called on each iteration"
@@ -1956,24 +1956,29 @@ cdef class Row:
       return self.__next__general()
 
   cdef __next__indexed(self):
-    """The version of next() for indexed columns, or with user coordinates"""
+    """The version of next() for indexed columns or with user coordinates"""
     cdef long offset
     cdef object indexValid1, indexValid2
     cdef int ncond, op, recout
+    cdef long long stop
     cdef object opValue, field
 
     while self.nextelement < self.stop:
       if self.nextelement >= self.nrowsread:
-        if self.coords:
-          self.bufcoords = self.coords[self.nrowsread:self.nrowsread+self.nrowsinbuf]
+        # Correction for avoiding reading past self.stop
+        if self.nrowsread+self.nrowsinbuf > self.stop:
+          stop = self.stop-self.nrowsread
         else:
-          self.bufcoords = self.index.getCoords(self.nrowsread, self.nrowsinbuf)
+          stop = self.nrowsinbuf
+        if self.coords:
+          self.bufcoords = self.coords[self.nrowsread:self.nrowsread+stop]
+        else:
+          self.bufcoords = self.index.getCoords(self.nrowsread, stop)
         self._row = -1
         recout = self._table._read_elements(0, self.bufcoords)
         if self._table.byteorder <> sys.byteorder:
           self._recarray._byteswap()
         self.nrowsread = self.nrowsread + recout
-
       self._row = self._row + 1
       self._nrow = self.bufcoords[self._row]
       self.nextelement = self.nextelement + 1
@@ -1983,7 +1988,7 @@ cdef class Row:
       # Re-initialize the possible cuts in columns
       self.indexed = 0
       self.coords = None
-      #self.index.indices._destroyIndexSlice()  # Remove buffers in indices
+      self.index.indices._destroyIndexSlice()  # Remove buffers in indices
       nextelement = self.index.nelemslice * self.index.nrows
       if nextelement >= self.nrows:
         self._table._close_read()  # Close the table
@@ -2314,14 +2319,12 @@ cdef class Row:
 
 cdef class Array:
   # Instance variables
-  cdef hid_t   parent_id
+  cdef hid_t   parent_id, type_id
   cdef char    *name
   cdef int     rank
   cdef hsize_t *dims
   cdef hsize_t *dims_chunk
   cdef int     enumtype
-  cdef hid_t   dataset_id, type_id, space_id, mem_space_id
-  cdef void    *rbuflb, *vrbufR, *vrbufA
   cdef hsize_t stride[2]
 
   def _g_new(self, where, name):
@@ -2612,6 +2615,11 @@ cdef class Array:
 
 cdef class IndexArray(Array):
   """Homogeneous dataset for keeping sorted and index values"""
+  cdef void    *rbuflb, *vrbufR, *vrbufA
+  cdef hid_t   dataset_id, type_id2, space_id
+  # It is necessary for arrRel and arrAbs to be accessible in IndexArray,
+  # so let's this commented out
+  #cdef object arrRel, arrAbs
 
   def _initIndexSlice(self, maxCoords):
     "Initialize the structures for doing a binary search"
@@ -2625,14 +2633,13 @@ cdef class IndexArray(Array):
 
     # Open the array for reading
     if (H5ARRAYOopen_readSlice(&self.dataset_id, &self.space_id,
-                               &self.type_id, self.parent_id, self.name) < 0):
+                               &self.type_id2, self.parent_id, self.name) < 0):
       raise RuntimeError("Problems opening the sorted array data.")
 
   def _g_readIndex(self, hsize_t irow, hsize_t start, hsize_t stop,
                    long offsetl):
     cdef herr_t ret
     cdef long buflen
-    #cdef void *vrbufR, *vrbufA
     cdef int *rbufR
     cdef long long *rbufA
     cdef long long offset
@@ -2642,7 +2649,7 @@ cdef class IndexArray(Array):
     rbufR = <int *>self.vrbufR + offsetl
     rbufA = <long long *>self.vrbufA + offsetl
     # Do the physical read
-    ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id, self.type_id,
+    ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id, self.type_id2,
                                  irow, start, stop, rbufR)
     if ret < 0:
       raise RuntimeError("Problems reading the array data.")
@@ -2658,11 +2665,8 @@ cdef class IndexArray(Array):
   def _destroyIndexSlice(self):
     # Close the array for reading
     if H5ARRAYOclose_readSlice(self.dataset_id, self.space_id,
-                               self.type_id) < 0:
+                               self.type_id2) < 0:
       raise RuntimeError("Problems closing the sorted array data.")
-    # Delete the buffers
-    del self.arrRel
-    del self.arrAbs
 
   def _initSortedSlice(self, int bufsize):
     "Initialize the structures for doing a binary search"
@@ -2685,14 +2689,14 @@ cdef class IndexArray(Array):
 
     # Open the array for reading
     if (H5ARRAYOopen_readSlice(&self.dataset_id, &self.space_id,
-                               &self.type_id, self.parent_id, self.name) < 0):
+                               &self.type_id2, self.parent_id, self.name) < 0):
       raise RuntimeError("Problems opening the sorted array data.")
 
   def _readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):
     "Read the sorted part of an index"
 
     #printf("rbuflb-->%x\n", self.rbuflb)
-    ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id, self.type_id,
+    ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id, self.type_id2,
                                  irow, start, stop, self.rbuflb)
     if ret < 0:
       raise RuntimeError("Problems reading the array data.")
@@ -2703,14 +2707,14 @@ cdef class IndexArray(Array):
     del self.bufferl
     # Close the array for reading
     if H5ARRAYOclose_readSlice(self.dataset_id, self.space_id,
-                               self.type_id) < 0:
+                               self.type_id2) < 0:
       raise RuntimeError("Problems closing the sorted array data.")
 
 # This has been copied from the standard module bisect.
 # Checks for the values out of limits has been added at the beginning
 # because I forsee that this should be a very common case.
 # 2004-05-20
-  cdef _bisect_left(self, a, x, int hi):
+  def _bisect_left(self, a, x, int hi):
     """Return the index where to insert item x in list a, assuming a is sorted.
 
     The return value i is such that all e in a[:i] have e < x, and all e in
@@ -2729,7 +2733,7 @@ cdef class IndexArray(Array):
         else: hi = mid
     return lo
 
-  cdef _bisect_right(self, a, x, int hi):
+  def _bisect_right(self, a, x, int hi):
     """Return the index where to insert item x in list a, assuming a is sorted.
 
     The return value i is such that all e in a[:i] have e <= x, and all e in
@@ -2748,7 +2752,7 @@ cdef class IndexArray(Array):
       else: lo = mid+1
     return lo
 
-  cdef _interSearch_left(self, int nrow, int chunksize, item, int lo, int hi):
+  def _interSearch_left(self, int nrow, int chunksize, item, int lo, int hi):
     cdef int niter, mid, start, result, beginning
     
     niter = 0
@@ -2776,7 +2780,7 @@ cdef class IndexArray(Array):
         break
     return (lo, beginning, niter)
 
-  cdef _interSearch_right(self, int nrow, int chunksize, item, int lo, int hi):
+  def _interSearch_right(self, int nrow, int chunksize, item, int lo, int hi):
     cdef int niter, mid, start, result, ending
     
     niter = 0
@@ -2803,102 +2807,105 @@ cdef class IndexArray(Array):
         break
     return (lo, ending, niter)
 
-  def _searchBin(self, int nrow, object item):
-    cdef int hi, lo, chunksize, niter, item1done, item2done
-    cdef int result1, result2, tmpresult1, tmpresult2, nelemslice
-    cdef int beginning, ending, iter
+# This is coded in python space as well, but the improvement in speed
+# here is very little. So, it's better to let _searchBin live there.
 
-    nelemslice = self.shape[1]
-    hi = nelemslice   
-    item1, item2 = item
-    item1done = 0; item2done = 0
-    chunksize = self._v_chunksize[1] # Number of elements/chunksize
+#   def _searchBin(self, int nrow, object item):
+#     cdef int hi, lo, chunksize, niter, item1done, item2done
+#     cdef int result1, result2, tmpresult1, tmpresult2, nelemslice
+#     cdef int beginning, ending, iter
 
-    # First, look at the beginning of the slice (that could save lots of time)
-    buffer = self._readSortedSlice(nrow, 0, chunksize)
-    #buffer = xrange(0, chunksize)  # test  # 0.02 over 0.5 seg
-    # Look for items at the beginning of sorted slices
-    niter = 1
-    result1 = self._bisect_left(buffer, item1, chunksize)
-    if 0 <= result1 < chunksize:
-      item1done = 1
-    result2 = self._bisect_right(buffer, item2, chunksize)
-    #print "item1done, item2done-->", item1done, item2done
-    #print "result1, result2-->", result1, result2
-    if 0 <= result2 < chunksize:
-      item2done = 1
-      # Commented out. The value can be repeated in the next chunk
-#     elif buffer[chunksize-1] == item2:
+#     nelemslice = self.shape[1]
+#     hi = nelemslice   
+#     item1, item2 = item
+#     item1done = 0; item2done = 0
+#     chunksize = self._v_chunksize[1] # Number of elements/chunksize
+
+#     # First, look at the beginning of the slice (that could save lots of time)
+#     buffer = self._readSortedSlice(nrow, 0, chunksize)
+#     #buffer = xrange(0, chunksize)  # test  # 0.02 over 0.5 seg
+#     # Look for items at the beginning of sorted slices
+#     niter = 1
+#     result1 = self._bisect_left(buffer, item1, chunksize)
+#     if 0 <= result1 < chunksize:
+#       item1done = 1
+#     result2 = self._bisect_right(buffer, item2, chunksize)
+#     #print "item1done, item2done-->", item1done, item2done
+#     #print "result1, result2-->", result1, result2
+#     if 0 <= result2 < chunksize:
 #       item2done = 1
-    if item1done and item2done:
-      #print "done 1"
-      return (result1, result2, niter)
+#       # Commented out. The value can be repeated in the next chunk
+# #     elif buffer[chunksize-1] == item2:
+# #       item2done = 1
+#     if item1done and item2done:
+#       #print "done 1"
+#       return (result1, result2, niter)
     
-    # Then, look for items at the end of the sorted slice
-    buffer = self._readSortedSlice(nrow, hi-chunksize, hi)
-    #buffer = xrange(hi-chunksize, hi)  # test
-    niter = 2
-    #print "item1done, item2done-->", item1done, item2done
-    if not item1done:
-      result1 = self._bisect_left(buffer, item1, chunksize)
-      if 0 < result1 <= chunksize:
-        item1done = 1
-        result1 = hi - chunksize + result1
-        # Commented out. The value can be repeated in the previous chunk
-#       elif buffer[0] == item1:
+#     # Then, look for items at the end of the sorted slice
+#     buffer = self._readSortedSlice(nrow, hi-chunksize, hi)
+#     #buffer = xrange(hi-chunksize, hi)  # test
+#     niter = 2
+#     #print "item1done, item2done-->", item1done, item2done
+#     if not item1done:
+#       result1 = self._bisect_left(buffer, item1, chunksize)
+#       if 0 < result1 <= chunksize:
 #         item1done = 1
-#         result1 = hi - chunksize
-    #print "item1done, item2done-->", item1done, item2done
-    if not item2done:
-      result2 = self._bisect_right(buffer, item2, chunksize)
-      if 0 < result2 <= chunksize:
-        item2done = 1
-        result2 = hi - chunksize + result2
-    if item1done and item2done:
-      #print "done 2"
-      return (result1, result2, niter)
-    #print "item1done, item2done-->", item1done, item2done
+#         result1 = hi - chunksize + result1
+#         # Commented out. The value can be repeated in the previous chunk
+# #       elif buffer[0] == item1:
+# #         item1done = 1
+# #         result1 = hi - chunksize
+#     #print "item1done, item2done-->", item1done, item2done
+#     if not item2done:
+#       result2 = self._bisect_right(buffer, item2, chunksize)
+#       if 0 < result2 <= chunksize:
+#         item2done = 1
+#         result2 = hi - chunksize + result2
+#     if item1done and item2done:
+#       #print "done 2"
+#       return (result1, result2, niter)
+#     #print "item1done, item2done-->", item1done, item2done
     
-    # Finally, do a lookup for item1 and item2 if they were not found
-    # Lookup in the middle of slice for item1
-    if not item1done:
-      lo = 0
-      hi = nelemslice
-      beginning = 1
-      result1 = 1  # a number different from 0
-      while beginning and result1 != 0:
-        (result1, beginning, iter) = self._interSearch_left(nrow, chunksize,
-                                                            item1, lo, hi)
-        tmpresult1 = result1
-        niter = niter + iter
-        if result1 == hi:  # The item is completely at right
-          break
-        else:
-          hi = result1        # one chunk to the left
-          lo = hi - chunksize  
-          #print "lo, hi, beginning-->", lo, hi, beginning
-      result1 = tmpresult1
-    # Lookup in the middle of slice for item1
-    if not item2done:
-      lo = 0
-      hi = nelemslice
-      ending = 1
-      result2 = 1  # a number different from 0
-      while ending and result2 != nelemslice:
-        (result2, ending, iter) = self._interSearch_right(nrow, chunksize,
-                                                          item2, lo, hi)
-        tmpresult2 = result2
-        niter = niter + iter
-        if result2 == lo:  # The item is completely at left
-          break
-        else:
-          hi = result2 + chunksize      # one chunk to the right
-          lo = result2
-          #print "lo, hi, ending-->", lo, hi, ending
-      result2 = tmpresult2
-      niter = niter + iter
-    #print "done 3"
-    return (result1, result2, niter)
+#     # Finally, do a lookup for item1 and item2 if they were not found
+#     # Lookup in the middle of slice for item1
+#     if not item1done:
+#       lo = 0
+#       hi = nelemslice
+#       beginning = 1
+#       result1 = 1  # a number different from 0
+#       while beginning and result1 != 0:
+#         (result1, beginning, iter) = self._interSearch_left(nrow, chunksize,
+#                                                             item1, lo, hi)
+#         tmpresult1 = result1
+#         niter = niter + iter
+#         if result1 == hi:  # The item is completely at right
+#           break
+#         else:
+#           hi = result1        # one chunk to the left
+#           lo = hi - chunksize  
+#           #print "lo, hi, beginning-->", lo, hi, beginning
+#       result1 = tmpresult1
+#     # Lookup in the middle of slice for item1
+#     if not item2done:
+#       lo = 0
+#       hi = nelemslice
+#       ending = 1
+#       result2 = 1  # a number different from 0
+#       while ending and result2 != nelemslice:
+#         (result2, ending, iter) = self._interSearch_right(nrow, chunksize,
+#                                                           item2, lo, hi)
+#         tmpresult2 = result2
+#         niter = niter + iter
+#         if result2 == lo:  # The item is completely at left
+#           break
+#         else:
+#           hi = result2 + chunksize      # one chunk to the right
+#           lo = result2
+#           #print "lo, hi, ending-->", lo, hi, ending
+#       result2 = tmpresult2
+#       niter = niter + iter
+#     #print "done 3"
+#     return (result1, result2, niter)
 
 
 cdef class Index:
