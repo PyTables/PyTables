@@ -282,10 +282,12 @@ print "Extended slice in selection: [1:7:6]"
 print table[1:7:6]
 print "Extended slice in selection: [0:7:6]"
 print table[0:7:6]
-print "Sigle record in selection: [1]"
+print "Single record in selection: [1]"
 print table[1]
 print "Last record in selection: [-1]"
 print table[-1]
+print "Two records before the last in selection: [-3:-1]"
+print table[-3:-1]
 
 # Print a recarray in table form
 table = h5file.root.detector.recarray2
@@ -294,9 +296,6 @@ print "  shape:", table.shape
 print "  byteorder:", table._v_byteorder
 print "  vartypes:", table.vartypes
 print "  varnames:", table.varnames
-for p in table.readAsRecords():
-    print p.c1, '|', p.c2, '|', p.c3, '|', p.c4
-print
 
 print table[:]
 

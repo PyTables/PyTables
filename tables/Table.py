@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.14 2003/02/05 13:01:36 falted Exp $
+#       $Id: Table.py,v 1.15 2003/02/05 18:15:23 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.14 $"
+__version__ = "$Revision: 1.15 $"
 
 from __future__ import generators
 import sys
@@ -424,11 +424,6 @@ class Table(Leaf, hdf5Extension.Table):
         
     def getRows(self, start, stop, step = 1):
         # Create a recarray for the readout
-        if start == -1:
-            start = self.nrows - 1
-            stop = self.nrows
-        if stop == -1:
-            stop = self.nrows
         if stop > self.nrows:
             stop = self.nrows
         #print " start, stop, step:", start, stop, step
@@ -483,18 +478,25 @@ class Table(Leaf, hdf5Extension.Table):
     
     def __getitem__(self, slice):
 
-        #print "Slice -->", slice
+        print "Slice -->", slice
         if isinstance(slice, types.IntType):
             step = 1
             start = slice
+            if start < 0:
+                start = self.nrows + start
             stop = start + 1
         else:
             start = slice.start
             if start is None:
                 start = 0
+            elif start < 0:
+                start = self.nrows + start
             stop = slice.stop
             if stop is None:
-                stop = -1
+                stop = self.nrows
+            elif stop < 0 :
+                stop = self.nrows + stop
+
             step = slice.step
             if step is None:
                 step = 1
