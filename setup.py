@@ -94,6 +94,7 @@ where they can be found.""" % (libname, libname,
     else:
         if not incdir or not libdir:
             print "Optional %s libraries or include files not found. Disabling support for them." % (libname,)
+            return
         else:
             # Necessary to include code for optional libs
             def_macros.append(("HAVE_"+libname.upper()+"_LIB", 1))
