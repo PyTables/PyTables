@@ -299,7 +299,7 @@ class Particle(IsDescription):
       
       <p>Other important entities in <visual
         markup="tt">PyTables</visual> are the <em>array</em> objects
-        that are analogous to tables with the difference that all
+        that are analogous to tables with the difference that all of
         their components are homogeneous.  They come in different
         flavors, like <em>generic</em> (they provide a quick and fast
         way to deal with for numerical arrays), <em>enlargeable</em>
@@ -379,8 +379,9 @@ class Particle(IsDescription):
 	    objects) or variable length record datasets (that can be
 	    mapped to <verb>VLArray</verb> objects).  Besides, if a
 	    dataset is not supported, it will be mapped into a special
-	    <verb>UnImplemented</verb> class, that will let the user
-	    see that the data is there, although it would be
+	    <verb>UnImplemented</verb> class (see <ref
+	    refid="UnImplementedClassDescr"></ref>), that will let the
+	    user see that the data is there, although it would be
 	    unreachable (still, you will be able to access the
 	    attributes and some metadata in the dataset).  With that,
 	    <verb>PyTables</verb> probably can access and
@@ -3059,9 +3060,11 @@ AttributeError: Error setting "ADCcount" attr.
 		<term>classname</term> <item>If supplied, returns only
 		  an instance of this class name. Allowed names in
 		  <em>classname</em> are: <verb>'Group'</verb>,
-		  <verb>'Leaf'</verb>, <verb>'Table'</verb> and
-		  <verb>'Array'</verb>. Note that these values are
-		  strings.
+		  <verb>'Leaf'</verb>, <verb>'Table'</verb>,
+		  <verb>'Array'</verb>, <verb>'EArray'</verb>,
+		  <verb>'VLArray'</verb> and
+		  <verb>'UnImplemented'</verb>. Note that these values
+		  are strings.
 		</item>
 
 	      </description>
@@ -3151,8 +3154,10 @@ AttributeError: Error setting "ADCcount" attr.
 		  instances of this class (or subclasses of it). The
 		  only supported classes in <em>classname</em> are
 		  <verb>'Group'</verb>, <verb>'Leaf'</verb>,
-		  <verb>'Table'</verb> and <verb>'Array'</verb>. Note
-		  that these values are strings.
+		  <verb>'Table'</verb>, <verb>'Array'</verb>,
+		  <verb>'EArray'</verb>, <verb>'VLArray'</verb> and
+		  <verb>'UnImplemented'</verb>. Note that these values
+		  are strings.
 		</item>
 
 	    </description>
@@ -3450,7 +3455,9 @@ AttributeError: Error setting "ADCcount" attr.
 	      (or subclasses of it). The supported classes in
 	      <em>classname</em> are <verb>'Group'</verb>,
 	      <verb>'Leaf'</verb>, <verb>'Table'</verb> and
-	      <verb>'Array'</verb>.</item>
+	      <verb>'Array'</verb>, <verb>'EArray'</verb>,
+	      <verb>'VLArray'</verb> and
+	      <verb>'UnImplemented'</verb>.</item>
 
 	    <term>_f_walkGroups()</term> <item>Iterator that returns
 	      the list of Groups (not Leaves) hanging from

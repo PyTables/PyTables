@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.60 2004/01/14 10:39:14 falted Exp $
+#       $Id: Group.py,v 1.61 2004/01/14 13:37:47 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.60 $"
+__version__ = "$Revision: 1.61 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -127,8 +127,8 @@ class Group(hdf5Extension.Group, object):
 
     def _f_iterGroup(self, classname=None, recursive=0):
 
-        assert classname in [None, "", "Group", "Leaf", "Table", "Array"], \
-               "Incorrect specification of 'classname'"
+#         assert classname in [None, "", "Group", "Leaf", "Table", "Array"], \
+#                "Incorrect specification of 'classname'"
 
         if not recursive:
             # Non-recursive algorithm
@@ -380,8 +380,8 @@ self._g_join(name), UserWarning)
         The list is alphanumerically sorted by node name. If a
         "classname" parameter is supplied, it will only return
         instances of this class (or subclasses of it). The supported
-        classes in "classname" are 'Group', 'Leaf', 'Table' and
-        'Array'.
+        classes in "classname" are 'Group', 'Leaf', 'Table', 'Array',
+        'EArray', 'VLArray' and 'UnImplemented'.
 
         """
         if not classname:
@@ -402,7 +402,8 @@ self._g_join(name), UserWarning)
         elif (classname == 'Table' or
               classname == 'Array' or
               classname == 'EArray' or
-              classname == 'VLArray'):
+              classname == 'VLArray' or
+              classname == 'UnImplemented'):
             listobjects = []
             # Process alphanumerically sorted 'Leaf' objects
             for leaf in self._f_listNodes('Leaf'):
@@ -412,7 +413,7 @@ self._g_join(name), UserWarning)
             return listobjects
         else:
             raise ValueError, \
-""""classname" can only take 'Group', 'Leaf', 'Table', 'Array', 'EArray' or 'VLArray' values"""
+""""classname" can only take 'Group', 'Leaf', 'Table', 'Array', 'EArray', 'VLArray', 'UnImplemented' values"""
 
     def _f_walkGroups(self):
         """Iterate over the Groups (not Leaves) hanging from self.
