@@ -66,9 +66,9 @@ class BasicTestCase(unittest.TestCase):
 	# Create the array under root and name 'somearray'
 	a = testArray
         if self.endiancheck and not (isinstance(a, chararray.CharArray)):
-            a.byteswap()
-            pass
-        #self.root.somearray = createArray(a, "Some array")
+            a._byteswap()
+            a.togglebyteorder()
+
         self.fileh.createArray(self.root, 'somearray', a, "Some array")
 	
         # Close the file
@@ -92,6 +92,9 @@ class BasicTestCase(unittest.TestCase):
 	    print "Array read shape:", b.shape
 	    print "Array read itemsize:", b.itemsize()
 	    print "Array read type:", b.type()
+            if not (isinstance(a, chararray.CharArray)):
+                print "Array written type:", a._byteorder
+                print "Array read type:", b._byteorder
 
         # Check strictly the array equality
         assert a.shape == b.shape
@@ -184,6 +187,7 @@ class Basic1DZeroTestCase(BasicTestCase):
     endiancheck = 0
 
 class Basic1DOneTestCase(BasicTestCase):
+    "Method doc"
     # 1D case
     title = "Rank-1 case 1"
     tupleInt = (3,)
@@ -199,7 +203,7 @@ class Basic1DTwoTestCase(BasicTestCase):
     
 class Basic1DThreeTestCase(BasicTestCase):
     # 1D case
-    title = "Rank-0 case 3"
+    title = "Rank-1 case 3"
     tupleInt = (3, 4, 5)
     tupleChar = ("aaa", "bbb",)
     endiancheck = 1

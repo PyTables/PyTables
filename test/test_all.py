@@ -30,7 +30,7 @@ def suite():
                     'test_numarray',
                     # if test_tables is before test_tree the memory
                     # consumption grows up to 500 MB
-                    # If it is placed after, it remains at 14 MB
+                    # If it is placed after, it remains at 15 MB
                     # I don't know what's happening
 		    'test_tree',
                     'test_tables',
