@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.38 2004/12/17 21:53:52 ivilata Exp $
+#       $Id: IsDescription.py,v 1.39 2004/12/18 11:15:17 falted Exp $
 #
 ########################################################################
 
@@ -24,7 +24,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.38 $"
+__version__ = "$Revision: 1.39 $"
 
 
 import warnings
@@ -56,7 +56,6 @@ fromstructfmt = {'b':NA.Int8, 'B':NA.UInt8,
                  'c':NA.Bool, 's':records.CharType,
                  }
 
-#class BaseCol:
 class Col:
     """ Define a general column that supports all numarray data types"""
     def __init__(self, dtype="Float64", shape=1, dflt=None, pos=None,
@@ -138,10 +137,6 @@ class Col:
               ")"
         return out
 
-#     # Just a test
-#     def __close(self):
-#         self.__dict__.clear()
-        
 class BoolCol(Col):
     """ Define a boolean column """
     
