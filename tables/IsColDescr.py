@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Attic/IsColDescr.py,v $
-#       $Id: IsColDescr.py,v 1.1 2003/03/10 11:24:02 falted Exp $
+#       $Id: IsColDescr.py,v 1.2 2003/03/11 12:55:48 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.1 $"
+__version__ = "$Revision: 1.2 $"
 
 
 import warnings
@@ -166,17 +166,16 @@ print p
             """ Gives a Table representation ready to be passed to eval
             """
             #rep = [ '%s=%r' % (k, getattr(self, k)) for k in self.__slots__ ]
-            if classname:
-                rep = [ '%s = Col(\"%r\", %r)' %  \
-                        (k, self.__types__[k], self._v_shapes[k])
-                        for k in self.__slots__ ]
-                return '%s(IsColDescr):\n   %s)' % (classname, '\n   '.join(rep))
-            else:
-                rep = [ '\"%s\": Col(\"%r\", %r)' %  \
-                        (k, self.__types__[k], self._v_shapes[k])
-                        for k in self.__slots__ ]
-                return '{%s}' % (',\n '.join(rep))
-
+#             if classname:
+#                 rep = [ '%s = Col(\"%r\", %r)' %  \
+#                         (k, self.__types__[k], self._v_shapes[k])
+#                         for k in self.__slots__ ]
+#                 return '%s(IsColDescr):\n   %s)' % (classname, '\n   '.join(rep))
+#             else:
+            rep = [ '\"%s\": Col(\"%r\", %r)' %  \
+                    (k, self.__types__[k], self._v_shapes[k])
+                    for k in self.__slots__ ]
+            return '{ %s }' % (',\n  '.join(rep))
 	
         def __str__(self):
             """ Gives a Table representation for printing purposes

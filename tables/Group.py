@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.23 2003/03/09 13:51:57 falted Exp $
+#       $Id: Group.py,v 1.24 2003/03/11 12:55:48 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.23 $"
+__version__ = "$Revision: 1.24 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -79,12 +79,6 @@ class Group(hdf5Extension.Group):
         _f_setAttr(attrname, attrvalue)
         _f_close()
         
-    Class variables:
-
-        _c_objgroups -- Dictionary with object groups on tree
-        _c_objleaves -- Dictionaly with object leaves on tree
-        _c_objects -- Dictionary with all objects (groups or leaves) on tree
-
     Instance variables:
 
         _v_title -- TITLE attribute of this group
@@ -99,14 +93,6 @@ class Group(hdf5Extension.Group):
         _v_objchilds -- Dictionary with object childs (groups or leaves)
 
     """
-
-    # Class variables to keep track of all the childs and group objects
-    # in tree object. They are dictionaries that will use the pathnames
-    # as keys and the actual objects as values.
-    # That way we can find objects in the object tree easily and fast. 
-    _c_objgroups = {}
-    _c_objleaves = {}
-    _c_objects = {}
 
     def __init__(self, title = "", new = 1):
         """Create the basic structures to keep group information.
@@ -174,9 +160,11 @@ class Group(hdf5Extension.Group):
         """Set some properties for general objects (Group and Leaf) in the
         tree."""
 
+        # File object
         # New attributes for the new Group instance
         newattr = value.__dict__
         newattr["_v_" + "rootgroup"] = self._v_rootgroup
+        newattr["_v_" + "file"] = self._v_rootgroup._v_parent
         newattr["_v_" + "parent"] = self
         newattr["_v_" + "depth"] = self._v_depth + 1
         # Get the alternate name (if any)
@@ -205,7 +193,7 @@ class Group(hdf5Extension.Group):
         newattr["_v_class"] = value.__class__.__name__
         newattr["_v_version"] = "1.0"
         # Update class variables
-        self._c_objects[value._v_pathname] = value
+        self._v_file._c_objects[value._v_pathname] = value
 
     def _g_putObjectInTree(self, name, parent):
         """Set attributes for a new or existing Group instance."""
@@ -215,7 +203,7 @@ class Group(hdf5Extension.Group):
         self._g_new(parent, self._v_hdf5name)
         parent._v_objgroups[self._v_name] = self
         # Update class variables
-        self._c_objgroups[self._v_pathname] = self
+        self._v_file._c_objgroups[self._v_pathname] = self
         if self._v_new:
             self._g_create()
         else:
@@ -242,8 +230,8 @@ class Group(hdf5Extension.Group):
         newattr["_v_name"] = newname
         newattr["_v_hdf5name"] = trMap.get(newname, newname)
         # Update class variables
-        parent._c_objgroups[self._v_pathname] = self
-        parent._c_objects[self._v_pathname] = self
+        parent._v_file._c_objgroups[self._v_pathname] = self
+        parent._v_file._c_objects[self._v_pathname] = self
         # Call the _g_new method in Group superclass 
         self._g_new(parent, self._v_hdf5name)
         # Update this instance attributes
@@ -259,21 +247,21 @@ class Group(hdf5Extension.Group):
             newgpathname = oldgpathname.replace(oldpathname, newpathname, 1)
             group.__dict__["_v_pathname"] = newgpathname
             # Update class variables
-            del parent._c_objgroups[oldgpathname]
-            del parent._c_objects[oldgpathname]
+            del parent._v_file._c_objgroups[oldgpathname]
+            del parent._v_file._c_objects[oldgpathname]
             parent = group._v_parent
-            parent._c_objgroups[newgpathname] = group
-            parent._c_objects[newgpathname] = group
+            parent._v_file._c_objgroups[newgpathname] = group
+            parent._v_file._c_objects[newgpathname] = group
             for node in group._f_listNodes("Leaf"):
                 oldgpathname = node._v_pathname
                 newgpathname = oldgpathname.replace(oldpathname, newpathname, 1)
                 node.__dict__["_v_pathname"] = newgpathname
                 # Update class variables
-                del parent._c_objleaves[oldgpathname]
-                del parent._c_objects[oldgpathname]
+                del parent._v_file._c_objleaves[oldgpathname]
+                del parent._v_file._c_objects[oldgpathname]
                 parent = node._v_parent
-                parent._c_objleaves[newgpathname] = node
-                parent._c_objects[newgpathname] = node
+                parent._v_file._c_objleaves[newgpathname] = node
+                parent._v_file._c_objects[newgpathname] = node
 
 
     def _g_open(self, parent, name):
@@ -420,12 +408,6 @@ class Group(hdf5Extension.Group):
                "'%s' group has exceeded the maximum number of childs (%d)" % \
                (self._v_pathname, MAX_CHILDS_IN_GROUP) 
 
-    def _g_cleanup(self):
-        """Reset all class attributes"""
-        self._c_objgroups.clear()
-        self._c_objleaves.clear()
-        self._c_objects.clear()
-
     def _f_close(self):
         """Close this HDF5 group"""
         self._g_closeGroup()
@@ -434,10 +416,11 @@ class Group(hdf5Extension.Group):
             del self._v_parent._v_objgroups[self._v_name]
             del self._v_parent._v_objchilds[self._v_name]
             del self._v_parent.__dict__[self._v_name]
+        del self._v_file._c_objgroups[self._v_pathname]
+        del self._v_file._c_objects[self._v_pathname]
         del self._v_parent
         del self._v_rootgroup
-        del self._c_objgroups[self._v_pathname]
-        del self._c_objects[self._v_pathname]
+        del self._v_file
 
     def _f_getAttr(self, attrname):
         """Get a group attribute as a string"""

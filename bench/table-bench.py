@@ -13,7 +13,7 @@ class Small(IsColDescr):
     the user will not add any new variables and that its type is
     correct."""
     
-    var1 = Col("CharType", 16, "")
+    var1 = Col("CharType", 4, "")
     var2 = Col("Int32", 1, 0)
     var3 = Col("Float64", 1, 0)
 
@@ -86,10 +86,10 @@ def createFile(filename, totalrows, complevel, recsize):
                 d['grid_i'] = i 
                 d['grid_j'] = 10 - i
                 d['pressure'] = float(i*i)
-                # d['energy'] = float(d.pressure ** 4)
-                d['energy'] = d.pressure
+                # d['energy'] = float(d['pressure'] ** 4)
+                d['energy'] = d['pressure']
                 # d['idnumber'] = i * (2 ** 34) 
-                table.append(d)
+                d.append()
         elif recsize == "medium":
             for i in xrange(totalrows):
                 #d['name']  = 'Part: %6d' % (i)
@@ -101,9 +101,8 @@ def createFile(filename, totalrows, complevel, recsize):
                 d['grid_i'] = i 
                 d['grid_j'] = 10 - i
                 d['pressure'] = i*2
-                # d['energy'] = float(d.pressure ** 4)
-                d['energy'] = d.pressure
-                # d['idnumber'] = i * (2 ** 34) 
+                # d['energy'] = float(d['pressure'] ** 4)
+                d['energy'] = d['pressure']
                 d.append()
         else: # Small record
             for i in xrange(totalrows):
@@ -136,6 +135,7 @@ def readFile(filename, recsize, verbose):
         for table in fileh.listNodes(groupobj, 'Table'):
             #print "Table title for", table._v_pathname, ":", table.tableTitle
             if verbose:
+                print "Max rows in buf:", table._v_maxTuples
                 print "Rows in", table._v_pathname, ":", table.nrows
                 print "Buffersize:", table.rowsize * table._v_maxTuples
                 print "MaxTuples:", table._v_maxTuples
@@ -199,6 +199,7 @@ def readField(filename, field, rng, verbose):
         row = 0
         for table in fileh.listNodes(groupobj, 'Table'):
             if verbose:
+                print "Max rows in buf:", table._v_maxTuples
                 print "Rows in", table._v_pathname, ":", table.nrows
                 print "Buffersize:", table.rowsize * table._v_maxTuples
                 print "MaxTuples:", table._v_maxTuples
@@ -284,19 +285,24 @@ if __name__=="__main__":
     print "Compression level:", complevel
     if testwrite:
 	t1 = time.time()
+	cpu1 = time.clock()
         if psyco_imported:
             psyco.bind(createFile)
             pass
 	(rowsw, rowsz) = createFile(file, iterations, complevel, recsize)
 	t2 = time.time()
+        cpu2 = time.clock()
 	tapprows = round(t2-t1, 3)
+	cpuapprows = round(cpu2-cpu1, 3)
+        tpercent = int(round(cpuapprows/tapprows, 2)*100)
 	print "Rows written:", rowsw, " Row size:", rowsz
-	print "Time appending rows:", tapprows
+	print "Time appending rows:", tapprows, cpuapprows, tpercent
 	print "Write rows/sec: ", int(rowsw / float(tapprows))
 	print "Write KB/s :", int(rowsw * rowsz / (tapprows * 1024))
 	
     if testread:
 	t1 = time.time()
+        cpu1 = time.clock()
         if psyco_imported:
             psyco.bind(readFile)
             #psyco.bind(readField)
@@ -307,10 +313,12 @@ if __name__=="__main__":
         else:
             (rowsr, rowsz) = readFile(file, recsize, verbose)
 	t2 = time.time()
+        cpu2 = time.clock()
 	treadrows = round(t2-t1, 3)
+        cpureadrows = round(cpu2-cpu1, 3)
+        tpercent = int(round(cpureadrows/treadrows, 2)*100)
 	print "Rows read:", rowsr, " Row size:", rowsz
-	print "Time reading rows:", treadrows
+	print "Time reading rows:", treadrows, cpureadrows, tpercent
 	print "Read rows/sec: ", int(rowsr / float(treadrows))
 	print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))
     
-

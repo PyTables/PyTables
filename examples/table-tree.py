@@ -326,8 +326,8 @@ h5file.removeNode(h5file.root, "newgroup")
 h5file.renameNode(h5file.root.columns, "newcolumns")
 
 print h5file
+print repr(h5file)
 
-print h5file.root.detector.table.description
 
 
 # Close this file

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.36 2003/03/10 11:24:02 falted Exp $
+#       $Id: Table.py,v 1.37 2003/03/11 12:55:48 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.36 $"
+__version__ = "$Revision: 1.37 $"
 
 from __future__ import generators
 import sys
@@ -293,8 +293,8 @@ class Table(Leaf, hdf5Extension.Table):
         fmt = self._v_fmt
         compress = self._v_compress
         rowsize = struct.calcsize(fmt)
-        #rowsize = self.description._v_record.itemsize()
         self.rowsize = rowsize
+        bufmultfactor = 1000 * 10
         # Counter for the binary tuples
         self._v_recunsaved = 0
         if fmt[0] not in "@=<>!":
@@ -328,22 +328,22 @@ class Table(Leaf, hdf5Extension.Table):
         
         if expectedfsizeinKb <= 100:
             # Values for files less than 100 KB of size
-            buffersize = 5000
+            buffersize = 5 * bufmultfactor
             chunksize = 1024
         elif (expectedfsizeinKb > 100 and
             expectedfsizeinKb <= 1000):
             # Values for files less than 1 MB of size
-            buffersize = 20000
+            buffersize = 20 * bufmultfactor
             chunksize = 2048
         elif (expectedfsizeinKb > 1000 and
               expectedfsizeinKb <= 20 * 1000):
             # Values for sizes between 1 MB and 20 MB
-            buffersize = 40000
+            buffersize = 40  * bufmultfactor
             chunksize = 4096
         elif (expectedfsizeinKb > 20 * 1000 and
               expectedfsizeinKb <= 200 * 1000):
             # Values for sizes between 20 MB and 200 MB
-            buffersize = 50000
+            buffersize = 50 * bufmultfactor
             chunksize = 8192
         else:  # Greater than 200 MB
             # This values gives an increment of memory of 50 MB for a table
@@ -355,12 +355,13 @@ class Table(Leaf, hdf5Extension.Table):
             # the BTree, and want to save files bigger than 2 GB,
             # try to increment this values, but be ready for a quite big
             # overhead needed to traverse the BTree.
-            buffersize = 60000
+            buffersize = 60 * bufmultfactor
             chunksize = 16384
         # Correction for compression. Double the chunksize
         # to improve compression level
         if compress:
-            chunksize *= 2
+            #chunksize *= 2
+            pass
         # Max Tuples to fill the buffer
         self._v_maxTuples = buffersize // rowsize
         #print "Buffersize, MaxTuples ==>", buffersize, self._v_maxTuples
@@ -400,6 +401,12 @@ class Table(Leaf, hdf5Extension.Table):
         row = self.row   # get the pointer to the Row object
         row._initLoop(0, self.nrows, 1, nrowsinbuf)
         for i in xrange(0, self.nrows, nrowsinbuf):
+            # There is a memory leak traced back to _read_records
+            # Probably the H5TBread_records is the responsible
+            # I alleviated the problem by incrementing the buffer
+            # size for all levels a factor of ten.
+            # This has made the performance to increase between a
+            # 10% and 300%, depending on the working set size
             recout = self._read_records(i, nrowsinbuf, buffer)
             #recout = nrowsinbuf
             if self.byteorder <> sys.byteorder:
@@ -767,15 +774,16 @@ class Table(Leaf, hdf5Extension.Table):
     def __repr__(self):
         """This provides column metainfo in addition to standard __str__"""
 
-        header = str(self)
-        byteorder = self.byteorder
-        columns = ["Number of columns: %s\n  Column metainfo:" % \
-                   len(self.colnames)]
-        columns += ['%s := (%s, %s)' % (name,
-                                       repr(self.coltypes[name]),
-                                       self.colshapes[name])
-                    for name in self.colnames]
-        columns = "\n    ".join(columns)
+#         header = str(self)
+#         byteorder = self.byteorder
+#         columns = ["Number of columns: %s\n  Column metainfo:" % \
+#                    len(self.colnames)]
+#         columns += ['%s := (%s, %s)' % (name,
+#                                        repr(self.coltypes[name]),
+#                                        self.colshapes[name])
+#                     for name in self.colnames]
+#         columns = "\n    ".join(columns)
         
-        return "%s\n  Byteorder: %s\n  %s" % \
-               (header, byteorder, columns)
+        return "%s\n  Byteorder: %s\n  %r" % \
+               (str(self), self.byteorder, self.description)
+               #(header, byteorder, columns)

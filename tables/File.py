@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.23 2003/03/10 11:24:02 falted Exp $
+#       $Id: File.py,v 1.24 2003/03/11 12:55:48 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.23 $"
+__version__ = "$Revision: 1.24 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -222,6 +222,15 @@ class File(hdf5Extension.File):
         self._v_groupId = self._getFileId()
         self._v_depth = 0
 
+        # Global dictionaries for the file paths.
+        # These are used to keep track of all the childs and group objects
+        # in tree object. They are dictionaries that will use the pathnames
+        # as keys and the actual objects as values.
+        # That way we can find objects in the object tree easily and quickly.
+        self._c_objgroups = {}
+        self._c_objleaves = {}
+        self._c_objects = {}
+
         root = Group(self._v_new)
         
         # Create new attributes for the root Group instance
@@ -229,6 +238,7 @@ class File(hdf5Extension.File):
         newattr["_v_rootgroup"] = root  # For compatibility with Group
         newattr["_v_groupId"] = self._v_groupId
         newattr["_v_parent"] = self
+        newattr["_v_file"] = self
         newattr["_v_depth"] = 1
         newattr["_v_filename"] = self.filename  # Only root group has this
 
@@ -236,9 +246,9 @@ class File(hdf5Extension.File):
         newattr["_v_hdf5name"] = "/"  # For root, this is always "/"
         newattr["_v_pathname"] = "/"
         
-        # Update class variable for Group
-        root._c_objgroups["/"] = root
-        root._c_objects["/"] = root
+        # Update global path variables for Group
+        self._c_objgroups["/"] = root
+        self._c_objects["/"] = root
         
         # Open the root group. We do that always, be the file new or not
         root._g_openGroup(self._v_groupId, "/")
@@ -402,8 +412,8 @@ class File(hdf5Extension.File):
             else:
                 strObject = where
             # Get the object pointed by strObject path
-            if strObject in self.root._c_objects:
-                object = self.root._c_objects[strObject]
+            if strObject in self._c_objects:
+                object = self._c_objects[strObject]
             else:
                 # We didn't find the pathname in the object tree.
                 # This should be signaled as an error!.
@@ -570,8 +580,6 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
             group._f_close()
 
         self._closeFile()
-        # Delete the Group class variables
-        self.root._g_cleanup()
                     
         # Delete the root object (this should recursively delete the
         # object tree)

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.35 2003/03/09 19:16:53 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.36 2003/03/11 12:55:47 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.35 $"
+__version__ = "$Revision: 1.36 $"
 
 
 import sys, os.path
@@ -490,7 +490,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.35 2003/03/09 19:16:53 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.36 2003/03/11 12:55:47 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -776,6 +776,7 @@ cdef class Table:
   cdef size_t  field_offset[MAX_FIELDS]
   cdef size_t  field_sizes[MAX_FIELDS]
   cdef hsize_t nfields
+  cdef void    *rbuf
   cdef hsize_t totalrecords
   cdef hid_t   group_id, loc_id
   cdef char    *name, *xtitle
@@ -935,12 +936,12 @@ cdef class Table:
       nrecords = self.totalrecords - start
 
     # Get the pointer to the buffer data area
-    ret2 = PyObject_AsWriteBuffer(recarr._data, &rbuf, &buflen)    
+    ret2 = PyObject_AsWriteBuffer(recarr._data, &self.rbuf, &buflen)
 
     # Readout to the buffer
     ret = H5TBread_records(self.group_id, self.name,
                            start, nrecords, self.rowsize,
-                           self.field_offset, rbuf )
+                           self.field_offset, self.rbuf )
     if ret < 0:
       raise RuntimeError("Problems reading records.")
 
