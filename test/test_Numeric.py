@@ -328,7 +328,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 	    # Save it on the HDF5 file
 	    dsetname = 'array_' + typecode
 	    if verbose:
-		print "Creating dataset:", group._f_join(dsetname)
+		print "Creating dataset:", group._g_join(dsetname)
 	    hdfarray = fileh.createArray(group, dsetname, a, "Large array")
 	    # Create a new group
 	    group = fileh.createGroup(group, 'group' + str(i))

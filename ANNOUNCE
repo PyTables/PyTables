@@ -1,6 +1,14 @@
 Announcing PyTables 0.4
 -----------------------
 
+This is the first public beta release because it has been thoroughly
+tested. Besides, from now on, the API will remain mostly stable, so
+you can start using PyTables now with the guarantee that your code
+will (well, mostly ;-) also work in the future. The large amount of
+unit tests included in PyTables will also ensure the backward
+compatibility as well as the quality of future releases will remain at
+least as good as it is now (although hopefully it should increase!).
+
 What's new
 -----------
 
@@ -25,7 +33,7 @@ What's new
 What it is
 ----------
 
-In short, PyTables provides a powerful and Pythonic interface to
+In short, PyTables provides a powerful and very Pythonic interface to
 process table and array data.
 
 Its goal is to enable the end user to manipulate easily scientific
@@ -69,17 +77,17 @@ present in the Standard Library); and retrieves information around 100
 times faster than cPickle and between 8 and 10 times faster than
 struct.
 
-When compared with SQLite, one of the fastest (free) relational
-databases available, PyTables achieves between a 60% and 80% the speed
-of SQLite during selects of dataset sizes that fit in the
-O.S. filesystem memory cache, but when those sizes does not fit on the
-cache (i.e. when dealing with large amounts of data), PyTables beats
-SQLite by a factor of 2 or even more (depending on the kind of record
-selected), and its performance in this case is only limited by the I/O
-speed of the disk subsystem.
+When compared with SQLite (http://www.sqlite.org/), one of the fastest
+(free) relational databases available, PyTables achieves between a 60%
+and 80% the speed of SQLite during selects of dataset sizes that fit
+in the O.S. filesystem memory cache. However, when those sizes does
+not fit in the cache (i.e. when dealing with large amounts of data),
+PyTables beats SQLite by a factor of 2 or even more (depending on the
+kind of record selected), and its performance in this case is only
+limited by the I/O speed of the disk subsystem.
 
-Go to http://pytables.sf.net/bench.html for a somewhat more detailed
-description of this small (and synthetic) benchmark.
+Go to http://pytables.sourceforge.net/doc/PyCon.html#section4 for a
+detailed description on the conducted benchmarks.
 
 Platforms
 ---------
@@ -97,7 +105,10 @@ An example?
 -----------
 
 At the bottom of this message there is some code that shows basic
-capabilities of PyTables.
+capabilities of PyTables. You may also look at
+http://pytables.sourceforge.net/tut/tutorial1-1.html and 
+http://pytables.sourceforge.net/tut/tutorial1-2.html
+for online code.
 
 Web site
 --------
@@ -106,18 +117,13 @@ Go to the PyTables web site for more details:
 
 http://pytables.sf.net/
 
-Final note
-----------
+Share your experience
+---------------------
 
-This is the first public beta release. From now on, the API will
-remain mostly stable, so you can start using PyTables now with the
-guarantee that you code will (well, mostly ;-) also work in the
-future. The large amount of unit tests included in PyTables will also
-ensure the backward compatibility as well as the quality of future
-releases will remain at least as it is now (hopefully still better!).
+Let me know of any bugs, suggestions, gripes, kudos, etc. you may
+have.
 
-Let me know of any bugs, suggestions, gripes, kudos, etc. you
-may have.
+Have fun!
 
 -- Francesc Alted
 falted@openlc.org

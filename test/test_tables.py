@@ -267,7 +267,7 @@ class BasicTestCase(unittest.TestCase):
         if verbose:
             print "Nrows in old", table._v_pathname, ":", table.nrows
             print "Record Format ==>", table._v_fmt
-            print "Record Size ==>", table._v_rowsize
+            print "Record Size ==>", table.rowsize
         # Append some rows
         for i in xrange(self.appendrows):
             row['var1'] = '%04d' % (self.appendrows - i)
