@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.25 2004/02/04 10:28:27 falted Exp $
+#       $Id: AttributeSet.py,v 1.26 2004/02/05 16:23:37 falted Exp $
 #
 ########################################################################
 
@@ -31,11 +31,12 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.25 $"
+__version__ = "$Revision: 1.26 $"
 
 import warnings, types, cPickle
 import hdf5Extension
 import Group
+import Leaf
 from utils import checkNameValidity
 
 # Note: the next constant has to be syncronized with the
@@ -44,12 +45,13 @@ MAX_ATTRS_IN_NODE = 4096
 
 # System attributes
 SYS_ATTRS = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
-             "FLAVOR", "ENCODING", "PYTABLES_FORMAT_VERSION"]
+             "FLAVOR", "ENCODING", "PYTABLES_FORMAT_VERSION",
+             "FILTERS"]
 # Prefixes of other system attributes
 SYS_ATTRS_PREFIXES = ["FIELD_"]
 # Read-only attributes:
 RO_ATTRS = ["CLASS", "FLAVOR", "VERSION", "NROWS", "EXTDIM",
-            "PYTABLES_FORMAT_VERSION"]
+            "PYTABLES_FORMAT_VERSION", "FILTERS"]
 
 def issysattrname(name):
     "Check if a name is a system attribute or not"
@@ -122,7 +124,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
             # From 0.8 on, attrs is a property, so we can againg
             # put the attributes on the local dictionary to allow
             # tab-completion
-            self.__dict__[attr] = self.__getattr__(attr)
+            #self.__dict__[attr] = self.__getattr__(attr)
+            self.__getattr__(attr)
             if issysattrname(attr):
                 self._v_attrnamessys.append(attr)
             else:
@@ -187,6 +190,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         # Beware! From 0.7.1 on, a lazy attribute reading is on.
         #self.__dict__[name] = value
+        # This is no longuer a lazy attribute
         self.__dict__[name] = retval
         return retval
 
@@ -223,8 +227,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # (overwriting an existing one if needed)
         self._g_setAttr(name, value)
             
-        # New attribute
-        # Beware! From 0.7.1 on, a lazy attribute reading is on.
+        # New attribute. Introduce it into the local directory
         self.__dict__[name] = value
 
         # Finally, add this attribute to the list if not present
@@ -277,6 +280,18 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         # Finally, remove the old attribute
         delattr(self, oldattrname)
+
+    def _f_copy(self, where):
+        "Copy the user attributes to 'where' object"
+        assert (isinstance(where, Group.Group) or
+                isinstance(where, Leaf.Leaf)), \
+                "The where has to be a Group or Leaf instance"
+        if isinstance(where, Group.Group):
+            dstAttrs = where._v_attrs
+        else:
+            dstAttrs = where.attrs
+        for attrname in self._v_attrnamesuser:
+            setattr(dstAttrs, attrname, getattr(self, attrname))
 
     def _f_close(self):
         "Delete some back-references"

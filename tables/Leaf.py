@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.35 2004/02/04 10:28:27 falted Exp $
+#       $Id: Leaf.py,v 1.36 2004/02/05 16:23:37 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.35 $"
+__version__ = "$Revision: 1.36 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -88,6 +88,20 @@ class Filters:
 "%s compression library is not available. Using zlib instead!." %(complib))
             self.complib = "zlib"   # Should always exists
 
+    def __repr__(self):
+        filters = "Filters("
+        if self.complevel:
+            filters += "complevel=%s" % (self.complevel)
+            filters += ", complib=%s" % (self.complib)
+            if self.shuffle:
+                filters += ", shuffle=%s" % (self.shuffle)
+            if self.fletcher32:
+                filters += ", "
+        if self.fletcher32:
+            filters += "fletcher32=%s" % (self.fletcher32)
+        filters += ")"
+        return filters
+    
     def __str__(self):
         """The string reprsentation choosed for this object is its pathname
         in the HDF5 object tree.
@@ -149,7 +163,11 @@ class Leaf:
         # Update class variables
         parent._v_file.leaves[self._v_pathname] = self
         if self._v_new:
+            # Set the filters instance variable
+            self.filters = self._g_setFilters(self._v_new_filters)
             self._create()
+            # Write the Filters object to an attribute
+            self.attrs._g_setAttr("FILTERS", self.filters)
         else:
             self._open()
 
@@ -171,12 +189,32 @@ class Leaf:
 
     def _g_setFilters(self, filters):
         if filters is None:
-            # If no filters, return the defaults
-            return Filters()
-        else:
-            return filters
+            # If no filters passed, check the parent defaults
+            filters = self._v_parent._v_filters
+            if filters is None:
+                # The parent group has not filters defaults
+                # Return the defaults
+                return Filters()
+        return filters
 
     def _g_getFilters(self):
+        # Try to get the filters object in attribute FILTERS
+        # Reading the FILTERS attribute is far more slower
+        # than using _getFilters, although I don't know exactly why.
+        # This is possibly because it forces the creation of the AttributeSet
+#         filters = self.attrs.FILTERS
+#         if filters is not None:
+#             return filters
+        #Besides, using _g_getSysAttr is not an option because if the
+        #FILTERS attribute does not exist, the HDF5 layer complains
+#         filters = self._v_parent._v_attrs._g_getSysAttr("FILTERS")
+#         if filters <> None:
+#             try:
+#                 filters = cPickle.loads(filters)
+#             except:
+#                 filters = None
+#             return filters
+        
         # Create a filters instance with default values
         filters = Filters()
         # Get a dictionary with all the filters
@@ -258,22 +296,14 @@ class Leaf:
         if not hasattr(self, "_g_copy"):
             raise NotImplementedError, \
                   "<%s> has not a copy() method" % str(self)
-             
-        if isinstance(where, str):
-            if where not in self._v_file.objects:
-                raise LookupError, "'%s' path cannot be found in file '%s'" % \
-                      (where, self._v_filename)
-            if where in self._v_file.groups:
-                group = self._v_file.groups[where]
-            else:
-                raise LookupError, "Path '%s' is not a group '%s'"
-        elif isinstance(where, Group.Group):
-            group = where
-        elif where == None:
-            group = self._v_parent
-        else:
-            raise TypeError, \
-"'where' has to be a Group or string instance, not type '%s'" % (type(where))
+
+        # Get the parent group of destination
+        group = self._v_file.getNode(where, classname = "Group")
+        # Check that the name does not exist under this group
+        if group._v_childs.has_key(name):
+            raise ValueError, \
+"The destination (%s) already exists. Delete it first if you really want to overwrite it." % (getattr(group, name))
+
         # Get the correct indices (all the Leafs have nrows attribute)
         if stop == None:
             stop = self.nrows
@@ -286,8 +316,7 @@ class Leaf:
 
         # Finally, copy the user attributes, if needed
         if copyuserattrs:
-            for attrname in self.attrs._v_attrnamesuser:
-                setattr(object.attrs, attrname, getattr(self.attrs, attrname))
+            self.attrs._f_copy(object)
         
         return object
 

@@ -44,11 +44,11 @@ class Big(IsDescription):
     pressure    = Col("Float32", 1, 0)    # float  (single-precision)
     energy      = Col("Float64", 1, 0)    # double (double-precision)
 
-def createFile(filename, totalrows, complevel, complib,
-               shuffle, fletcher32, recsize):
+def createFile(filename, totalrows, filters, recsize):
 
     # Open a file in "w"rite mode
-    fileh = openFile(filename, mode = "w")
+    fileh = openFile(filename, mode = "w", title="Table Benchmark",
+                     filters=filters)
 
     # Table title
     title = "This is the table title"
@@ -60,25 +60,23 @@ def createFile(filename, totalrows, complevel, complib,
         # Create a table
         if recsize == "big":
             table = fileh.createTable(group, 'tuple'+str(j), Big, title,
-                                      Filters(complevel, complib,
-                                              shuffle, fletcher32),
+                                      None,
                                       totalrows)
             arr = NA.array(NA.arange(32), type=NA.Float64)
             arr2 = NA.array(NA.arange(32), type=NA.Float64)
         elif recsize == "medium":
             table = fileh.createTable(group, 'tuple'+str(j), Medium, title,
-                                      Filters(complevel, complib,
-                                              shuffle, fletcher32),
+                                      None,
                                       totalrows)
             arr = NA.array(NA.arange(2), type=NA.Float64)
         elif recsize == "small":
             table = fileh.createTable(group, 'tuple'+str(j), Small, title,
-                                      Filters(complevel, complib,
-                                              shuffle, fletcher32),
+                                      None,
                                       totalrows)
         else:
             raise RuntimeError, "This should never happen"
 
+        table.attrs.test = 2
         rowsize = table.rowsize
         # Get the row object associated with the new table
         d = table.row
@@ -125,6 +123,7 @@ def createFile(filename, totalrows, complevel, complib,
 		    
         rowswritten += totalrows
 
+        group._v_attrs.test2 = "just a test"
         # Create a new group
         group2 = fileh.createGroup(group, 'group'+str(j))
         # Iterate over this new group (group2)
@@ -306,6 +305,10 @@ if __name__=="__main__":
             complib = option[1]
         elif option[0] == '-i':
             iterations = int(option[1])
+            
+    # Build the Filters instance
+    filters = Filters(complevel=complevel, complib=complib,
+                      shuffle=shuffle, fletcher32=fletcher32)
 
     # Catch the hdf5 file passed as the last argument
     file = pargs[0]
@@ -320,8 +323,7 @@ if __name__=="__main__":
 	cpu1 = time.clock()
         if psyco_imported and usepsyco:
             psyco.bind(createFile)
-	(rowsw, rowsz) = createFile(file, iterations, complevel, complib,
-                                    shuffle, fletcher32, recsize)
+	(rowsw, rowsz) = createFile(file, iterations, filters, recsize)
 	t2 = time.time()
         cpu2 = time.clock()
 	tapprows = round(t2-t1, 3)

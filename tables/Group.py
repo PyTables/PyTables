@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.63 2004/02/04 10:28:27 falted Exp $
+#       $Id: Group.py,v 1.64 2004/02/05 16:23:37 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.63 $"
+__version__ = "$Revision: 1.64 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -51,6 +51,7 @@ from VLArray import VLArray
 from UnImplemented import UnImplemented
 from AttributeSet import AttributeSet
 from utils import checkNameValidity
+import cPickle
 
 class Group(hdf5Extension.Group, object):
     """This is the python counterpart of a group in the HDF5 structure.
@@ -98,22 +99,25 @@ class Group(hdf5Extension.Group, object):
         _v_file -- The associated File object
         _v_rootgroup - Always point to the root group object
         _v_groups -- Dictionary with object groups
-        _v_leaves -- Dictionaly with object leaves
+        _v_leaves -- Dictionary with object leaves
         _v_childs -- Dictionary with object childs (groups or leaves)
         _v_nchilds -- Number of childs (groups or leaves) of this object 
         _v_attrs -- The associated AttributeSet instance
+        _v_filters -- The associated Filters instance
 
     """
 
-    def __init__(self, title = "", new = 1):
+    def __init__(self, title = "", new = 1, filters=None):
         """Create the basic structures to keep group information.
 
         title -- The title for this group
         new -- If this group is new or has to be read from disk
+        filters -- A Filters instance
         
         """
         self.__dict__["_v_new"] = new
         self.__dict__["_v_new_title"] = title
+        self.__dict__["_v_new_filters"] = filters
         self.__dict__["_v_groups"] = {}
         self.__dict__["_v_leaves"] = {}
         self.__dict__["_v_childs"] = {}
@@ -275,22 +279,31 @@ self._g_join(name), UserWarning)
         else:
             self._g_open()
         # Attach the AttributeSet attribute
-        # This becomes a property
+        # This doesn't becomes a property because it takes more time!
         self.__dict__["_v_attrs"] = AttributeSet(self)
         if self._v_new:
             # Set the title, class and version attribute
             self._v_attrs._g_setAttrStr('TITLE',  self._v_new_title)
             self._v_attrs._g_setAttrStr('CLASS', "GROUP")
             self._v_attrs._g_setAttrStr('VERSION', "1.0")
+            # Set the filters object
+            if self._v_new_filters is None:
+                # If not filters has been passed in the constructor,
+                filters = self._v_parent._v_filters
+            else:
+                filters = self._v_new_filters
+            filtersPickled = cPickle.dumps(filters, 0)
+            self._v_attrs._g_setAttrStr('FILTERS', filtersPickled)
             # Add these attributes to the dictionary
-            self._v_attrs._v_attrnames.extend(['TITLE','CLASS','VERSION'])
-            self._v_attrs._v_attrnamessys.extend(['TITLE','CLASS','VERSION'])
+            attrlist = ['TITLE','CLASS','VERSION','FILTERS']
+            self._v_attrs._v_attrnames.extend(attrlist)
+            self._v_attrs._v_attrnamessys.extend(attrlist)
             # Sort them
             self._v_attrs._v_attrnames.sort()
             self._v_attrs._v_attrnamessys.sort()
         else:
-            # Get the title on disk
-            #self.__dict__["_v_title"] = self._v_attrs.TITLE
+            # We don't need to get attributes on disk. The most importants
+            # are defined as properties
             pass
 
     # Define attrs as a property.
@@ -308,10 +321,17 @@ self._g_join(name), UserWarning)
     def _f_set_title (self, title):
         self._v_attrs.TITLE = title
 
-    # Define a property.  The 'delete this attribute'
-    # method is defined as None, so the attribute can't be deleted.
+    # _v_title can't be deleted.
     _v_title = property(_f_get_title, _f_set_title, None,
                         "Title of this object")
+
+    # Define _v_filters as a property
+    def _f_get_filters(self):
+        return self._v_attrs.FILTERS
+    
+    # _v_filters can't be set nor deleted
+    _v_filters = property(_f_get_filters, None, None,
+                          "Filters of this object")
 
     def _g_renameObject(self, newname):
         """Rename this group in the object tree as well as in the HDF5 file."""
@@ -521,8 +541,8 @@ self._g_join(name), UserWarning)
             value._g_putObjectInTree(name, self)
         else:
             raise NameError, \
-                  "\"%s\" group already has a child named %s" % \
-                  (self._v_pathname, name)
+                  "'%s' group already has a child named '%s' in file '%s'" % \
+                  (self._v_pathname, name, self._v_rootgroup._v_filename)
 
     def _f_close(self):
         """Close this HDF5 group"""
@@ -596,6 +616,73 @@ self._g_join(name), UserWarning)
             self._f_close()
             self._g_deleteGroup()
 
+    def _f_copyAttrs(self, dstNode=None):
+        """Copy the attributes from self to "dstNode".
+
+        "dstNode" is the destination and can be whether a path string
+        or a Node object.
+        
+        """
+
+        # Get the source node
+        dstObject = self._v_file.getNode(dstNode)
+        self._v_attrs._f_copy(dstObject)
+
+    def _f_copyChilds(self, where, recursive=0, filters=None,
+                      copyuserattrs=1):
+        "(Recursively)Copy a group into another location"
+
+        # Get the base names of the source
+        srcBasePath = self._v_pathname
+        lenSrcBasePath = len(srcBasePath)
+        # Get the parent group of destination
+        if isinstance(where, Group):
+            # The destination path can be anywhere
+            dstBaseGroup = where
+            dstFile = dstBaseGroup._v_file
+        else:
+            # The destination path should be in the same file as we are now
+            dstBaseGroup = self._v_file.getNode(where, classname = "Group")
+            dstFile = self._v_file
+        dstBasePath = dstBaseGroup._v_pathname
+        # Append a trailing "/", if not root
+        if dstBasePath <> "/":
+            dstBasePath += "/"
+        ngroups = 0
+        nleafs = 0
+        if recursive:
+            # Recursive copy
+            first = 1  # Sentinel
+            for group in self._f_walkGroups():
+                if first:
+                    # The first group itself is not copied, only its childs
+                    first = 0
+                    dstGroup = dstBaseGroup
+                else:
+                    dstName = group._v_name
+                    lenDstName = len(dstName)
+                    endName = group._v_pathname[lenSrcBasePath:-lenDstName]
+                    parentDstPath = dstBasePath+endName
+                    dstGroup = dstFile.createGroup(parentDstPath, dstName,
+                                                   title=group._v_title)
+                    if copyuserattrs:
+                        group._f_copyAttrs(dstGroup)
+                    ngroups += 1
+                for leaf in group._f_listNodes('Leaf'):
+                    leaf.copy(dstGroup, leaf.name, title=leaf.title,
+                              filters=filters,
+                              copyuserattrs=copyuserattrs)
+                    nleafs +=1
+        else:
+            # Non recursive copy
+            for leaf in self._f_listNodes('Leaf'):
+                leaf.copy(dstBaseGroup, leaf.name, title=leaf.title,
+                          filters=filters,
+                          copyuserattrs=copyuserattrs)
+                nleafs +=1
+        # return the number of objects copied
+        return (ngroups, nleafs)
+    
     def __str__(self):
         """The string representation for this object."""
         # Get the associated filename

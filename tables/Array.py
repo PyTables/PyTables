@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.57 2004/01/30 16:38:47 falted Exp $
+#       $Id: Array.py,v 1.58 2004/02/05 16:23:37 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.57 $"
+__version__ = "$Revision: 1.58 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -87,9 +87,9 @@ class Array(Leaf, hdf5Extension.Array, object):
         title -- Sets a TITLE attribute on the HDF5 array entity.
 
         """
-        self.new_title = title
-        # Assign some filter values by default
-        self.filters = Filters()
+        self._v_new_title = title
+        # Assign some filter values by default, i.e. no filters for Array
+        self._v_new_filters = Filters()
         self.extdim = -1   # An Array object is not enlargeable
         # Check if we have to create a new object or read their contents
         # from disk
@@ -134,7 +134,7 @@ class Array(Leaf, hdf5Extension.Array, object):
         else:
             self.nrows = 1    # Scalar case
         self.itemsize = naarr.itemsize()
-        self.type = self._createArray(naarr, self.new_title)
+        self.type = self._createArray(naarr, self._v_new_title)
 
     def _convertIntoNA(self, object):
         "Convert a generic object into a numarray object"
@@ -226,6 +226,8 @@ class Array(Leaf, hdf5Extension.Array, object):
                         self._openArray()
         # Compute the rowsize for each element
         self.rowsize = self.itemsize
+        # An empty Filters object
+        self.filters = Filters()
         for i in range(len(self.shape)):
             self.rowsize *= self.shape[i]
         # Assign a value to nrows in case we are a non-enlargeable object

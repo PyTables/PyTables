@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.11 2004/02/02 20:53:39 falted Exp $
+#       $Id: EArray.py,v 1.12 2004/02/05 16:23:37 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.11 $"
+__version__ = "$Revision: 1.12 $"
 # default version for EARRAY objects
 obversion = "1.0"    # initial version
 
@@ -110,14 +110,14 @@ class EArray(Array, hdf5Extension.Array, object):
             the amount of memory used.
 
         """
-        self.new_title = title
+        self._v_new_title = title
+        self._v_new_filters = filters
         self._v_expectedrows = expectedrows
         # Check if we have to create a new object or read their contents
         # from disk
         if atom is not None:
             self._v_new = 1
             self.atom = atom
-            self.filters = self._g_setFilters(filters)
         else:
             self._v_new = 0
             
@@ -159,7 +159,7 @@ class EArray(Array, hdf5Extension.Array, object):
                           self.filters.complevel)
         self.nrows = 0   # No rows initially
         self.itemsize = self.atom.itemsize
-        self._createEArray(self.new_title)
+        self._createEArray(self._v_new_title)
 
     def _checkTypeShape(self, naarr):
         "Test that naarr parameter is shape and type compliant"

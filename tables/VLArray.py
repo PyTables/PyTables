@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.21 2004/02/02 20:53:39 falted Exp $
+#       $Id: VLArray.py,v 1.22 2004/02/05 16:23:37 falted Exp $
 #
 ########################################################################
 
@@ -30,7 +30,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.21 $"
+__version__ = "$Revision: 1.22 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -301,7 +301,8 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             time and the amount of memory used.
 
         """
-        self.new_title = title
+        self._v_new_title = title
+        self._v_new_filters = filters
         self._v_expectedsizeinMB = expectedsizeinMB
         self._v_maxTuples = 100    # Maybe enough for most applications
         # Check if we have to create a new object or read their contents
@@ -309,7 +310,6 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         if atom is not None:
             self.atom = atom
             self._v_new = 1
-            self.filters = self._g_setFilters(filters)
         else:
             self._v_new = 0
 
@@ -341,7 +341,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
                                           self.filters.complevel)
         self.nrows = 0     # No rows in creation time
         self.shape = (0,)
-        self._createArray(self.new_title)
+        self._createArray(self._v_new_title)
             
     def _checkShape(self, naarr):
         # Check for zero dimensionality array

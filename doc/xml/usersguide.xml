@@ -2982,7 +2982,9 @@ AttributeError: Error setting "ADCcount" attr.
 
 		<term>where</term> <item>Can be a path string or
 		  <verb>Group</verb> instance. If <em>where</em>
-		  doesn't exists or has not a child called
+		<!-- Modif by F. Alted 2004-2-04 -->
+		  doesn't exists or has already a child called
+		<!-- End of modif by F. Alted 2004-2-04 -->
 		  <em>name</em>, a <verb>ValueError</verb> error is
 		  raised.
 		</item>

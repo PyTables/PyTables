@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.99 2004/02/04 10:28:27 falted Exp $
+#       $Id: Table.py,v 1.100 2004/02/05 16:23:37 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.99 $"
+__version__ = "$Revision: 1.100 $"
 
 from __future__ import generators
 import sys
@@ -125,7 +125,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         """
 
         # Common variables
-        self.new_title = title
+        self._v_new_title = title
+        self._v_new_filters = filters
         self._v_expectedrows = expectedrows
         # Initialize the number of rows to a default
         self.nrows = 0
@@ -160,9 +161,6 @@ class Table(Leaf, hdf5Extension.Table, object):
 """description parameter is not one of the supported types:
   IsDescription subclass, dictionary or RecArray."""
 
-        if self._v_new:
-            self.filters = self._g_setFilters(filters)
-            
     def _newBuffer(self, init=1):
         """Create a new recarray buffer for I/O purposes"""
 
@@ -226,7 +224,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.colnames = tuple(self.description.__names__)
         self._v_fmt = self.description._v_fmt
         # Create the table on disk
-        self._createTable(self.new_title, self.filters.complib)
+        self._createTable(self._v_new_title, self.filters.complib)
         # Initialize the shape attribute
         self.shape = (self.nrows,)
         # Get the column types

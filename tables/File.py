@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.71 2004/02/04 10:28:27 falted Exp $
+#       $Id: File.py,v 1.72 2004/02/05 16:23:37 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.71 $"
+__version__ = "$Revision: 1.72 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -47,6 +47,7 @@ import warnings
 import time
 import os, os.path
 from fnmatch import fnmatch
+import cPickle
 
 import hdf5Extension
 from Group import Group
@@ -59,13 +60,13 @@ from UnImplemented import UnImplemented
 from AttributeSet import AttributeSet
 import numarray
 
-def _checkFilters(filters, compress, complib):
+def _checkFilters(filters, compress=None, complib=None):
     if (filters is None) and ((compress is not None) or
                               (complib is not None)):
         warnings.warn("The use of compress or complib parameters is deprecated. Please, use a Filters() instance instead.", DeprecationWarning)
         fprops = Filters(complevel=compress, complib=complib)
     elif filters is None:
-        fprops = Filters()
+        fprops = None
     elif isinstance(filters, Filters):
         fprops = filters
     else:
@@ -73,7 +74,8 @@ def _checkFilters(filters, compress, complib):
               "filter parameter has to be None or a Filter instance and the passed type is: '%s'" % type(filters)
     return fprops
 
-def openFile(filename, mode="r", title="", trMap={}, rootUEP="/"):
+def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
+             filters=None):
 
     """Open an HDF5 file an returns a File object.
 
@@ -108,6 +110,10 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/"):
             create the object tree. The group can be whatever existing
             path in the file. If it does not exist, a RuntimeError is
             issued.
+
+    filters -- (Optional) An instance of the Filters class that
+            provides information about the desired I/O filters. That
+            information will be inherited by the child nodes.
 
     """
 
@@ -177,7 +183,7 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/"):
         new = 1
             
     # Finally, create the File instance, and return it
-    return File(path, mode, title, new, trMap, rootUEP, isPTFile)
+    return File(path, mode, title, new, trMap, rootUEP, isPTFile, filters)
 
 
 class File(hdf5Extension.File, object):
@@ -223,8 +229,8 @@ class File(hdf5Extension.File, object):
 
     """
 
-    def __init__(self, filename, mode="r", title="",
-                 new=1, trMap={}, rootUEP="/", isPTFile=1):
+    def __init__(self, filename, mode="r", title="", new=1, trMap={},
+                 rootUEP="/", isPTFile=1, filters=None):
         
         """Open an HDF5 file. The supported access modes are: "r" means
         read-only; no data can be modified. "w" means write; a new file is
@@ -240,6 +246,7 @@ class File(hdf5Extension.File, object):
         
         self.mode = mode
         self.title = title
+        self.filters = filters
         self._isPTFile = isPTFile
         
         # _v_new informs if this file is old or new
@@ -252,6 +259,15 @@ class File(hdf5Extension.File, object):
 
         # Set the flag to indicate that the file has been opened
         self.isopen = 1
+
+        # Filters
+        if self._v_new:
+            if filters is None:
+                # Set the defaults
+                self.filters = Filters()
+            else:
+                # Some defaults
+                self.filters = _checkFilters(filters, 0, "zlib") 
 
         return
 
@@ -317,21 +333,24 @@ class File(hdf5Extension.File, object):
         if self._v_new:
             # Set the title
             newattr["_v_title"] = self.title
+            # Set the filters instance
+            newattr["_v_filters"] = self.filters
             
             # Save the rootGroup attributes on disk
             attrsRoot._g_setAttrStr('TITLE',  self.title)
             attrsRoot._g_setAttrStr('CLASS', "GROUP")
             attrsRoot._g_setAttrStr('VERSION', "1.0")
-            
+            filtersPickled = cPickle.dumps(self.filters, 0)
+            attrsRoot._g_setAttrStr('FILTERS', filtersPickled)
+
             # Finally, save the PyTables format version for this file
             self.format_version = format_version
             attrsRoot._g_setAttrStr('PYTABLES_FORMAT_VERSION', format_version)
+            attrlist = ['TITLE','CLASS','VERSION','FILTERS',
+                        'PYTABLES_FORMAT_VERSION']
             # Add these attributes to the dictionary
-            attrsRoot._v_attrnames.extend(['TITLE','CLASS','VERSION',
-                                           'PYTABLES_FORMAT_VERSION'])
-            attrsRoot._v_attrnamessys.extend(['TITLE','CLASS',
-                                              'VERSION',
-                                              'PYTABLES_FORMAT_VERSION'])
+            attrsRoot._v_attrnames.extend(attrlist)
+            attrsRoot._v_attrnamessys.extend(attrlist)
             # Sort them
             attrsRoot._v_attrnames.sort()
             attrsRoot._v_attrnamessys.sort()
@@ -348,7 +367,10 @@ class File(hdf5Extension.File, object):
             # Get the title for the rootGroup group
             rootGroup.__dict__["_v_title"] = attrsRoot.TITLE
             # Get the title for the file
-            self.title =  hdf5Extension.read_f_attr(self._v_objectID, 'TITLE')
+            #self.title = hdf5Extension.read_f_attr(self._v_objectID, 'TITLE')
+            self.title = rootGroup._v_title
+            # Get the filters for the file
+            self.filters = attrsRoot.FILTERS
                       
             # Get all the groups recursively
             rootGroup._g_openFile()
@@ -384,16 +406,27 @@ class File(hdf5Extension.File, object):
         return object
 
     
-    def createGroup(self, where, name, title = ""):
-    
+    def createGroup(self, where, name, title = "", filters = None):
         """Create a new Group instance with name "name" in "where" location.
-        "where" parameter can be a path string (for example
-        "/level1/leaf5"), or another Group instance. A TITLE
-        attribute will be set on this group if optional "title" parameter is
-        passed."""
+
+        Keyword arguments:
+
+        where -- The parent group where the new group will hang
+            from. "where" parameter can be a path string (for example
+            "/level1/level2"), or Group instance.
+
+        name -- The name of the new group.
+
+        title -- Sets a TITLE attribute on the table entity.
+
+        filters -- An instance of the Filters class that provides
+            information about the desired I/O filters. That
+            information will be inherited by the child nodes.
+
+        """
 
         group = self.getNode(where, classname = 'Group')
-        setattr(group, name, Group(title))
+        setattr(group, name, Group(title, new=1, filters=filters))
         object = getattr(group, name)
         return object
 
@@ -567,6 +600,9 @@ class File(hdf5Extension.File, object):
         # To find out the caller
         #print repr(sys._getframe(1).f_code.co_name)
         if isinstance(where, str):
+            # Get rid of a possible trailing "/"
+            if len(where) > 1 and where[-1] == "/":
+                where = where[:-1]
             # This is a string pathname. Get the object ...
             if name:
                 if where == "/":
@@ -582,8 +618,8 @@ class File(hdf5Extension.File, object):
                 # We didn't find the pathname in the object tree.
                 # This should be signaled as an error!.
                 raise LookupError, \
-                      "\"%s\" pathname not found in object tree." % \
-                      (strObject)
+                      "\"%s\" pathname not found in file: '%s'." % \
+                      (strObject, self.filename)
                       
         elif isinstance(where, Group):
             if name:
@@ -595,14 +631,14 @@ class File(hdf5Extension.File, object):
             
             if name:
                 raise LookupError, \
-"""'where' parameter (with value \'%s\') is a Leaf instance so it cannot \
-have a 'name' child node (with value \'%s\')""" % (where, name)
+"""'where' parameter (with value '%s') is a Leaf instance in file '%s' so it cannot have a 'name' child node (with value '%s')""" % \
+(where, self.filename, name)
 
             else:
                 object = where
                 
         else:
-            raise TypeError, "Wrong \'where\' parameter type (%s)." % \
+            raise TypeError, "Wrong 'where' parameter type (%s)." % \
                   (type(where))
             
         # Finally, check if this object is a classname instance
@@ -692,6 +728,54 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
             object._f_setAttr(attrname, attrvalue)
         else:
             object.setAttr(attrname, attrvalue)
+        
+    def copyAttrs(self, where, name="", dstNode=None):
+        """Copy the attributes from node "where"."name" to "dstNode".
+
+        "where" can be a path string or Group instance. If "where"
+        doesn't exists or has not a child called "name", a LookupError
+        error is raised. If "name" is a null string (""), or not
+        supplied, this method assumes to find the object in "where".
+        "dstNode" is the destination and can be whether a path string
+        or a Node object.
+        
+        """
+
+        # Get the source node
+        srcObject = self.getNode(where, name=name)
+        dstObject = self.getNode(dstNode)
+        if isinstance(srcObject, Group):
+            object._v_attrs._f_copy(dstNode)
+        else:
+            object.attrs._f_copy(dstNode)
+        
+    def copyFile(self, dstFilename=None, overwrite=0, title=None,
+                 filters=None, copyuserattrs=1):
+        """Copy the contents of this file to "dstFilename".
+
+        "dstFilename" must be a path string. If this file already
+        exists and overwrite is 1, it is overwritten. The default is
+        not overwriting. It returns a tuple (ngroups, nleafs)
+        indicating the number of copied groups and leafs.
+
+        This copy also has the effect of compacting the destination
+        file during the process.
+        
+        """
+
+        if os.path.isfile(dstFilename) and not overwrite:
+            raise IOError, "The file '%s' already exists and will not be overwritten. Assert the overwrite parameter if you want overwrite it." % (dstFilename)
+
+        if title == None: title = self.title
+        if filters == None: filters = self.filters
+        dstFileh = openFile(dstFilename, mode="w", title=title)
+        # Copy the user attributes of the root group
+        self.root._f_copyAttrs(dstFileh.root)
+        # Copy all the hierarchy
+        ngroups, nleafs = self.root._f_copyChilds(dstFileh.root, recursive=1,
+                                                  filters=filters,
+                                                  copyuserattrs=copyuserattrs)
+        return (ngroups, nleafs)
         
     def listNodes(self, where, classname = ""):
         
@@ -814,12 +898,12 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
 #                   " Title: " + repr(self.title) + \
 #                   " Last modif.: " + repr(date) + \
 #                   '\n'
-        astring = "Filename: " + repr(self.filename)
-        if self.format_version <> "unknown":
-            astring += " Fmt: " + self.format_version + " "
+        astring = "Filename: " + repr(self.filename) + ' '
         if self.title <> "unknown":
-            astring += self.title + " "
-        astring += "Last modif.: " + repr(date) + '\n'
+            astring += "Title: '"+self.title+"'" + ' '
+        astring += "Last modif.: " + repr(date) + ' '
+        if self.format_version <> "unknown":
+            astring += " Format version: " + self.format_version + '\n'
 
         for group in self.walkGroups("/"):
             astring += str(group) + '\n'
@@ -837,6 +921,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
                   ', mode=' + repr(self.mode) + \
                   ', trMap=' + repr(self.trMap) + \
                   ', rootUEP=' + repr(self.rootUEP) + \
+                  ', filters=' + repr(self.filters) + \
                   ')\n'
         for group in self.walkGroups("/"):
             astring += str(group) + '\n'
@@ -844,9 +929,3 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
                 astring += repr(leaf) + '\n'
                 
         return astring
-
-    def _g_del__(self):
-        """Delete some objects"""
-        #print "Deleting File object"
-        pass
-
