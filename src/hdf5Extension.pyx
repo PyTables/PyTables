@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.66 2003/07/22 18:10:57 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.67 2003/07/23 18:46:54 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.66 $"
+__version__ = "$Revision: 1.67 $"
 
 
 import sys, os
@@ -720,7 +720,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.66 2003/07/22 18:10:57 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.67 2003/07/23 18:46:54 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1451,9 +1451,9 @@ cdef class Row:
   """
 
   cdef object _fields, _recarray, _table, _saveBufferedRows, _indexes
-  cdef int _row, _nrowinbuf, nrow1, _nrow, _unsavednrows, _strides
-  cdef int start, stop, step, nextelement, nrowsinbuf, nrows
-  cdef int bufcounter, recout, counter
+  cdef int _row, _nrowinbuf, _nrow, _unsavednrows, _strides
+  cdef int start, stop, step, nextelement, nrowsinbuf, nrows, nrowsread
+  cdef int bufcounter, recout, counter, startb, stopb,  _all
   cdef int *_scalar, *_enumtypes
 
   def __new__(self, input, table):
@@ -1468,6 +1468,9 @@ cdef class Row:
     self._nrow = 0
     self.nrows = self._table.nrows  # This value may change
     self.nrowsinbuf = table._v_maxTuples
+    self.start = 0
+    self.stop = self._table.nrows
+    self.step = 1
     self._strides = input._strides[0]
     nfields = input._nfields
     # Create a dictionary with the index columns of the recarray
@@ -1488,66 +1491,201 @@ cdef class Row:
       i = i + 1
     self._saveBufferedRows = table._saveBufferedRows
 
-  def _initLoop(self, start, stop, step):
-    self.start = start
-    self.stop = stop
-    self.step = step
-    self.nrowsinbuf = self._table._v_maxTuples
-    self.bufcounter = 0             # We have fetch the first buffer
-    self._nrow = -1                 # Start a loop
-    
-  def __call__(self):
+  def __call__(self, start=0, stop=0, step=1):
     """ return the row for this record object and update counters"""
-    self._row = self._row + 1
-    self._nrow = self._nrowinbuf + self._row
-    return self
+
+    self.nrows = self._table.nrows  # Need to refresh this value here
+    self.start = start
+    if stop == 0:
+      self.stop = self._table.nrows
+    else:
+      self.stop = stop
+    self.step = step
+    self._initLoop(self.start, self.stop, self.step)
+    # It is not possible to call the _open_read() method here. If we do this,
+    # we get weird things when reading a table after a Table.flush() without
+    # closing and re-opening it!. 2003/07/21
+    # After some code reordering, this call seems to be safe now here!
+    # I don't know why!!? 2003/07/23
+    self._table._open_read(self._recarray)  # Open the table for reading
+    return iter(self)
 
   def __iter__(self):
     "Iterator that traverses all the data in the Table"
 
-    self.nrows = self._table.nrows  # Need to refresh this value here
-    self._initLoop(0, self.nrows, 1)      # Do some loop initialization
-    # It is not possible to call the _open_read() method here. If we do this,
-    # we get weird things when reading a table after a Table.flush() without
-    # closing and re-opening it!. 2003/07/21
-    #self._table._open_read(self._recarray)  # Open the table for reading
     return self
 
-  def __next__(self):
-    "next() funtion for __iter__() that is called on each iteration"
+  def _initLoop(self, start, stop, step):
+    "Initialization for the __iter__ iterator"
+    if (start, stop, step) == (0, self._table.nrows, 1):
+      self._all = 1
+    else:
+      self._all = 0
+    self.start = start
+    self.stop = stop
+    self.step = step
+    self.nrowsinbuf = self._table._v_maxTuples    # Need to fetch this value
+    self.startb = 0
+    self.nrowsread = start
+    self._nrow = start - self.step
 
-    self.nrow1 = self._nrow + 1   # displacement
-    if self.nrow1 >= self.nrows:
+  # This is the general version for __next__, and the more compact and fastest
+  def __next__(self):
+    "next() method for __iter__() that is called on each iteration"
+    
+    self.nextelement = self._nrow + self.step
+    if self.nextelement >= self.stop:
       self._table._close_read()  # Close the table
       raise StopIteration        # end of iteration
     else:
-      if self.nrow1 >= self.bufcounter:
-        self.recout = self._table._read_records(self.nrow1, self.nrowsinbuf)
+      if self.nextelement >= self.nrowsread:
+        # Skip until there is interesting information
+        while self.nextelement >= self.nrowsread + self.nrowsinbuf:
+          self.nrowsread = self.nrowsread + self.nrowsinbuf
+        # Compute the end for this iteration
+        self.stopb = self.stop - self.nrowsread
+        if self.stopb > self.nrowsinbuf:
+          self.stopb = self.nrowsinbuf
+        self._row = self.startb - self.step
+        # Read a chunk
+        self.recout = self._table._read_records(self.nrowsread,
+                                                self.nrowsinbuf)
+        self.nrowsread = self.nrowsread + self.recout
         if self._table.byteorder <> sys.byteorder:
           self._recarray._byteswap()
 
-        self.bufcounter = self.bufcounter + self.nrowsinbuf
-        # self._setBaseRow(self.nrow1, 0)
-        # The next lines are equivalent
-        # self._nrowinbuf = start    # This is not necessary in this context
-        self._row = 0 - self.step
+      self._row = self._row + self.step
+      self._nrow = self.nextelement
+      if self._row + self.step >= self.stopb:
+        # Compute the start row for the next buffer
+        self.startb = (self._row + self.step) % self.nrowsinbuf
 
-      # The next is equivalent to "return self()"
-      self._row = self._row + 1
-      self._nrow = self._nrow + 1
       return self
 
-  def _setBaseRow(self, start, startb):
-    """ set the global row number and reset the local buffer row counter """
-    self._nrowinbuf = start
-    self._row = startb - self.step
+#   # This version of __next__ is more elegant, but it is a lot *slower*
+#   # because the functions called cannot be inlined!
+#   def __next__slow(self):
 
-  def _getRow(self):
-    """ return the row for this record object and update counters"""
-    self._row = self._row + self.step
-    self._nrow = self._nrowinbuf + self._row
-    #print "Delivering row:", self._nrow, "// Buffer row:", self._row
-    return self
+#     self.nextelement = self._nrow + self.step
+#     if self.nextelement >= self.stop:
+#       self._table._close_read()  # Close the table
+#       raise StopIteration        # end of iteration
+#     else:
+#       if self._all:
+#         return self._next_all()
+#       else:
+#         return self._next_range()
+      
+#   def _next_all(self):
+#     "next() version for the start, stop, step = (0, table.nrows, 1) case"
+
+#     if self.nextelement >= self.nrowsread:
+#       # Initialize the buffer counter
+#       self._row = -1
+
+#       #self.recout = self._table._read_records(self.nextelement,
+#       self.recout = self._table._read_records(self.nrowsread,
+#                                               self.nrowsinbuf)
+#       if self._table.byteorder <> sys.byteorder:
+#         self._recarray._byteswap()
+
+#       self.nrowsread = self.nrowsread + self.recout
+
+#     self._row = self._row + 1
+#     self._nrow = self._nrow + 1
+#     return self
+
+#   def _next_range(self):
+#     "next() version for the general case"
+
+#     if self.nextelement >= self.nrowsread:
+#       # Skip until there is interesting information
+#       while self.nextelement >= self.nrowsread + self.nrowsinbuf:
+#         self.nrowsread = self.nrowsread + self.nrowsinbuf
+#         #self.startnewbuf = self.startnewbuf + self.nrowsinbuf
+#       # Compute the end for this iteration
+#       self.stopb = self.stop - self.nrowsread
+#       if self.stopb > self.nrowsinbuf:
+#         self.stopb = self.nrowsinbuf
+#       # Initialize the buffer counter
+#       self._row = self.startb - self.step
+
+#       # Read a chunk
+#       self.recout = self._table._read_records(self.nrowsread,
+#                                               self.nrowsinbuf)
+#       #self.startnewbuf = self.startnewbuf + self.nrowsinbuf
+#       self.nrowsread = self.nrowsread + self.recout
+#       if self._table.byteorder <> sys.byteorder:
+#         self._recarray._byteswap()
+
+#     self._row = self._row + self.step
+#     self._nrow = self.nextelement
+#     if self._row + self.step >= self.stopb:
+#       # Compute the start row for the next buffer
+#       self.startb = (self._row + self.step) % self.nrowsinbuf
+
+#     return self
+
+#   # This version of __next__ is like __next__slow, but it is inlined
+#   # However, its speed is similar that the general __next__ version
+#   def __next__inlined(self):
+#     "next() method for __iter__() that is called on each iteration"
+    
+#     self.nextelement = self._nrow + self.step
+#     if self.nextelement >= self.stop:
+#       self._table._close_read()  # Close the table
+#       raise StopIteration        # end of iteration
+#     else:
+#       if self.nextelement >= self.nrowsread:
+#         if self._all:
+#           # Initialize the buffer counter
+#           self._row = -1
+#         else:
+#           # Skip until there is interesting information
+#           while self.nextelement >= self.nrowsread + self.nrowsinbuf:
+#             self.nrowsread = self.nrowsread + self.nrowsinbuf
+#           # Compute the end for this iteration
+#           self.stopb = self.stop - self.nrowsread
+#           if self.stopb > self.nrowsinbuf:
+#             self.stopb = self.nrowsinbuf
+#           # Initialize the buffer counter
+#           self._row = self.startb - self.step
+#         # Read a new buffer
+#         self.recout = self._table._read_records(self.nrowsread,
+#                                                 self.nrowsinbuf)
+#         if self._table.byteorder <> sys.byteorder:
+#           self._recarray._byteswap()
+#         self.nrowsread = self.nrowsread + self.recout
+
+#       # Update counters
+#       self._row = self._row + self.step
+#       self._nrow = self.nextelement
+#       if not self._all and self._row + self.step >= self.stopb:
+#         # Compute the start row for the next buffer
+#         self.startb = (self._row + self.step) % self.nrowsinbuf
+
+#       return self
+      
+#   # Method that was called in older versions of _fetchall and _fetchrange
+#   def _getRow(self):
+#     """ return the row for this record object and update counters"""
+#     self._row = self._row + self.step
+#     self._nrow = self._nrowinbuf + self._row
+#     #print "Delivering row:", self._nrow, "// Buffer row:", self._row
+#     return self
+
+#   # Method that was called in alder versions of _fetchall and _fetchrange
+#   def __call__orig(self):
+#     """ return the row for this record object and update counters"""
+#     self._row = self._row + 1
+#     self._nrow = self._nrowinbuf + self._row
+#     return self
+
+#   # Method that was called in alder versions of _fetchall and _fetchrange
+#   def _setBaseRow(self, start, startb):
+#     """ set the global row number and reset the local buffer row counter """
+#     self._nrowinbuf = start
+#     self._row = startb - self.step
 
   def nrow(self):
     """ get the global row number for this table """
@@ -1580,14 +1718,14 @@ cdef class Row:
     self._unsavednrows = self._unsavednrows + 1
     return self._unsavednrows
 
-  def __getitem__orig(self, fieldName):
-    try:
-      return self._fields[fieldName][self._row]
-      #return 40  # Just for testing purposes
-    except:
-      (type, value, traceback) = sys.exc_info()
-      raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
-            (fieldName, "Error was: \"%s: %s\"" % (type,value))
+#   def __getitem__orig(self, fieldName):
+#     try:
+#       return self._fields[fieldName][self._row]
+#       #return 40  # Just for testing purposes
+#     except:
+#       (type, value, traceback) = sys.exc_info()
+#       raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
+#             (fieldName, "Error was: \"%s: %s\"" % (type,value))
 
   # This method is twice as faster than __getattr__ because there is
   # not a lookup in the local dictionary
@@ -1613,9 +1751,10 @@ cdef class Row:
         #  return None
         # This optimization sucks when using numarray 0.4!
         # And it works better with python 2.2 than python 2.3
-        offset = self._row * self._strides
-        return NA_getPythonScalar(<object>self._fields[fieldName], offset)
-        #return self._fields[fieldName][self._row]
+        # I'll disable it until further study of it is done
+        #offset = self._row * self._strides
+        #return NA_getPythonScalar(<object>self._fields[fieldName], offset)
+        return self._fields[fieldName][self._row]
       elif (self._enumtypes[index] == CHARTYPE and self._scalar[index]):
         # Case of a plain string in the cell
         # Call the universal indexing function
@@ -1679,7 +1818,7 @@ cdef class Row:
 
     return str(self)
 
-  def _all(self):
+  def _all_old(self):
     """ represent the record as a list """
     
     outlist = []

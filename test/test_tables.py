@@ -605,7 +605,8 @@ class BasicRangeTestCase(unittest.TestCase):
             print "Selected records:\n", result
             print "Selected records should look like:\n", \
                   range(startr, stopr, self.step)
-            print "start, stop, step ==>", startr, stopr, self.step
+            print "start, stop, step ==>", self.start, self.stop, self.step
+            print "startr, stopr, step ==>", startr, stopr, self.step
 
         assert result == range(startr, stopr, self.step)
         if startr < stopr and not (self.checkrecarray or self.checkgetCol):
@@ -1091,6 +1092,7 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(CompressUCLTablesTestCase))
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
+    #theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))

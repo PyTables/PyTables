@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.60 2003/07/21 20:06:25 falted Exp $
+#       $Id: Table.py,v 1.61 2003/07/23 18:46:54 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.60 $"
+__version__ = "$Revision: 1.61 $"
 
 from __future__ import generators
 import sys
@@ -449,20 +449,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.row._setUnsavedNRows(0)
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
-        
-    def __iter__(self):
-        """Iterate over all the rows
-
-        This method is a true python iterator.
-        """
-
-        # It is not possible to call the _open_read() method in the Row class.
-        # If we do this, we get weird things when reading a table after a
-        # Table.flush() without closing and re-opening it!.
-        # The test_tree.TreeTestCase detects the problem! 
-        # 2003/07/21
-        self._open_read(self._v_buffer)  # Open the table for reading
-        return iter(self.row)
 
     def _fetchall(self):
         """Iterate over all the rows
@@ -478,8 +464,9 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Table.flush() without closing and re-opening it!.
         # The test_tree.TreeTestCase detects the problem! 
         # 2003/07/21
-        self._open_read(self._v_buffer)  # Open the table for reading
-        return iter(self.row)
+        self._open_read(self._v_buffer)  # Open the table for readin
+        #return iter(self.row)
+        return self.row()
 
     def _fetchall_orig(self):
         """Iterate over all the rows
@@ -505,12 +492,21 @@ class Table(Leaf, hdf5Extension.Table, object):
             # Set the buffer counter (case for step=1)
             row._setBaseRow(i, 0)
             for j in xrange(recout):
-                yield row()
+                #yield row()
+                yield row._getRow()
 
         self._close_read()  # Close the table
 
     # Making this a Pyrex iteratior remains as a task to be done
     def _fetchrange(self, start, stop, step):
+        """Iterate over a range of rows"""
+
+        #print "start, stop, step ----->", start, stop, step
+        self._open_read(self._v_buffer)  # Open the table for readin
+        return self.row(start, stop, step)
+
+    # Making this a Pyrex iteratior remains as a task to be done
+    def _fetchrange_orig(self, start, stop, step):
         """Iterate over a range of rows"""
         row = self.row   # get the pointer to the Row object
         nrowsinbuf = self._v_maxTuples   # Shortcut
@@ -588,13 +584,33 @@ class Table(Leaf, hdf5Extension.Table, object):
         return (start, stop, step)
     
     def iterrows(self, start=None, stop=None, step=None):
-        """Iterator over all the rows, or a range"""
-        
+        """Iterator over all the rows or a range"""
+
+        return self.__call__(start, stop, step)
+
+    def __call__(self, start=None, stop=None, step=None):
+        """Iterate over all the rows or a range"""
+
         (start, stop, step) = self._processRange(start, stop, step)
-        if (start == 0) and ((stop == self.nrows) and (step == 1)):
-            return self._fetchall()
-        else:
-            return self._fetchrange(start, stop, step)
+
+        return self.__iter__(start, stop, step)
+        
+    def __iter__(self, start, stop, step):
+        """Iterate over the rows or a range
+
+        This method is a true python iterator.
+        """
+
+        # It is not possible to call the _open_read() method in the Row class.
+        # If we do this, we get weird things when reading a table after a
+        # Table.flush() without closing and re-opening it!.
+        # The test_tree.TreeTestCase detects the problem! 
+        # 2003/07/21
+        # After some code reordering, this call seems to be safe now in Pyrex!
+        # I don't know why!!? 2003/07/23
+        #self._open_read(self._v_buffer)  # Open the table for reading
+
+        return self.row(start, stop, step)
 
     def _readAllFields(self, start=None, stop=None, step=None):
         """Read a range of rows and return a RecArray"""
