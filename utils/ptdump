@@ -7,7 +7,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/utils/ptdump,v $
-#       $Id: ptdump,v 1.9 2004/09/29 17:50:59 falted Exp $
+#       $Id: ptdump,v 1.10 2004/12/25 12:19:41 falted Exp $
 #
 ########################################################################
 
@@ -37,7 +37,7 @@ def dumpLeaf(leaf):
         print str(leaf)
     if showattrs:
         print "  "+repr(leaf.attrs)
-    if dump:
+    if dump and not isinstance(leaf, UnImplemented):
         print "  Data dump:"
         # print leaf.read(rng.start, rng.stop, rng.step)
         # This is better for large objects

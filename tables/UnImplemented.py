@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/UnImplemented.py,v $
-#       $Id: UnImplemented.py,v 1.6 2004/12/13 17:30:59 ivilata Exp $
+#       $Id: UnImplemented.py,v 1.7 2004/12/25 12:19:39 falted Exp $
 #
 ########################################################################
 
@@ -24,7 +24,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.6 $"
+__version__ = "$Revision: 1.7 $"
 
 from Leaf import Leaf
 import hdf5Extension
@@ -45,6 +45,7 @@ class UnImplemented(Leaf, hdf5Extension.UnImplemented, object):
     def _open(self):
         """Get the metadata info for an array in file."""
         (self.shape, self.byteorder) = self._openUnImplemented()
+        self.nrows = self.shape[0]
 
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
