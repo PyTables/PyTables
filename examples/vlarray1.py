@@ -14,5 +14,6 @@ print "Created VLArray:", repr(vlarray)
 # Now, read it through an iterator
 for x in vlarray:
     print vlarray.name+"["+str(vlarray.nrow)+"]-->", x
+
 # Close the file
 fileh.close()

@@ -65,12 +65,6 @@ herr_t H5ARRAYmake( hid_t loc_id,
    chunked = 1;
  }
 
-/*  if (compress > 0) { */
-/*    /\* Compression activated *\/ */
-/*    printf("Activated compression\n"); */
-/*    chunked = 1; */
-/*  } */
-
  if (chunked) {
    maxdims = malloc(rank*sizeof(hsize_t));
    dims_chunk = malloc(rank*sizeof(hsize_t));
@@ -471,6 +465,126 @@ out:
  if (count) free(count);
  if (stride) free(stride);
  if (offset) free(offset);
+ return -1;
+
+}
+  
+
+/*-------------------------------------------------------------------------
+ * Function: H5ARRAYreadSlice
+ *
+ * Purpose: Reads a slice of array from disk.
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Francesc Alted, falted@openlc.org
+ *
+ * Date: December 16, 2003
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t H5ARRAYreadSlice( hid_t loc_id, 
+			 const char *dset_name,
+			 hsize_t *start,
+			 hsize_t *stop,
+			 hsize_t *step,
+			 void *data )
+{
+ hid_t    dataset_id;  
+ hid_t    space_id;
+ hid_t    mem_space_id;
+ hid_t    type_id;
+ hsize_t  *dims = NULL;
+ hsize_t  *count = NULL;
+ hsize_t  *stride = (hsize_t *)step;
+ hssize_t *offset = (hsize_t *)start;
+ int      rank;
+ int      i;
+
+ /* Open the dataset. */
+ if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+  return -1;
+ 
+ /* Get the datatype */
+ if ( (type_id = H5Dget_type(dataset_id)) < 0 )
+     return -1;
+ 
+  /* Get the dataspace handle */
+ if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+  goto out;
+ 
+ /* Get the rank */
+ if ( (rank = H5Sget_simple_extent_ndims(space_id)) < 0 )
+   goto out;
+
+ if (rank) {  			/* Array case */
+
+   /* Book some memory for the selections */
+   dims = (hsize_t *)malloc(rank*sizeof(hsize_t));
+   count = (hsize_t *)malloc(rank*sizeof(hsize_t));
+
+   /* Get dataset dimensionality */
+   if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
+     goto out;
+
+   for(i=0;i<rank;i++) {
+     count[i] = ((stop[i] - start[i] - 1) / step[i]) + 1;
+/*      printf("dims[%d]: %d\n", i, (int)dims[i]); */
+/*      printf("offset[%d]: %d\n", i, (int)offset[i]); */
+/*      printf("count[%d]: %d\n", i, (int)count[i]); */
+/*      printf("stride[%d]: %d\n", i, (int)stride[i]); */
+     if ( stop[i] > dims[i] ) {
+       printf("Asking for a range of rows exceeding the available ones!.\n");
+       goto out;
+     }
+   }
+
+   /* Define a hyperslab in the dataset of the size of the records */
+   if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, stride, count, NULL) < 0 )
+     goto out;
+
+   /* Create a memory dataspace handle */
+   if ( (mem_space_id = H5Screate_simple( rank, count, NULL )) < 0 )
+     goto out;
+
+   /* Read */
+   if ( H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
+     goto out;
+
+   /* Release resources */
+   free(dims);
+   free(count);
+
+   /* Terminate access to the memory dataspace */
+   if ( H5Sclose( mem_space_id ) < 0 )
+     goto out;
+ }
+ else {  			/* Scalar case */
+
+   /* Read all the dataset */
+   if (H5Dread(dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data) < 0)
+     goto out;
+ }
+
+   /* Terminate access to the dataspace */
+ if ( H5Sclose( space_id ) < 0 )
+  goto out;
+
+ /* End access to the dataset and release resources used by it. */
+ if ( H5Dclose( dataset_id ) )
+  return -1;
+
+ /* Close the vlen type */
+ if ( H5Tclose(type_id))
+   return -1;
+
+ return 0;
+
+out:
+ H5Dclose( dataset_id );
+ if (dims) free(dims);
+ if (count) free(count);
  return -1;
 
 }

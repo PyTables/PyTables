@@ -45,6 +45,13 @@ herr_t H5ARRAYread( hid_t loc_id,
 		    int extdim,
 		    void *data );
 
+herr_t H5ARRAYreadSlice( hid_t loc_id, 
+			 const char *dset_name,
+			 hsize_t *start,
+			 hsize_t *stop,
+			 hsize_t *step,
+			 void *data );
+
 herr_t H5ARRAYget_ndims( hid_t loc_id, 
 			 const char *dset_name,
 			 int *rank );

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.93 2003/12/16 10:43:56 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.94 2003/12/16 20:54:19 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.93 $"
+__version__ = "$Revision: 1.94 $"
 
 
 import sys, os
@@ -488,7 +488,11 @@ cdef extern from "H5ARRAY.h":
   herr_t H5ARRAYread( hid_t loc_id, char *dset_name,
                       hsize_t start,  hsize_t nrows, hsize_t step,
                       int extdim, void *data )
-  
+
+  herr_t H5ARRAYreadSlice( hid_t loc_id, char *dset_name,
+                           hsize_t *start, hsize_t *stop,
+                           hsize_t *step, void *data )
+
   herr_t H5ARRAYget_ndims( hid_t loc_id, char *dset_name, int *rank )
 
   herr_t H5ARRAYget_info( hid_t loc_id, char *dset_name,
@@ -816,7 +820,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.93 2003/12/16 10:43:56 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.94 2003/12/16 20:54:19 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -2102,6 +2106,31 @@ cdef class Array:
       exdim = -1
     ret = H5ARRAYread(self.parent_id, self.name, start, nrows, step,
                       extdim, rbuf)
+    if ret < 0:
+      raise RuntimeError("Problems reading the array data.")
+
+    return 
+
+  def _g_readSlice(self, object startl, object stopl,
+                   object stepl, object buf):
+    cdef herr_t ret
+    cdef void *rbuf
+    cdef void *start, *stop, *step
+    cdef int buflen, ret2, ndims
+
+    # Get the pointer to the buffer data area of startl, stopl and stepl arrays
+    PyObject_AsWriteBuffer(startl._data, &start, &ndims)
+    PyObject_AsWriteBuffer(stopl._data, &stop, &ndims)
+    PyObject_AsWriteBuffer(stepl._data, &step, &ndims)
+
+    # Get the pointer to the buffer data area
+    ret2 = PyObject_AsWriteBuffer(buf, &rbuf, &buflen)
+    if ret2 < 0:
+      raise RuntimeError("Problems getting the buffer area.")
+
+    ret = H5ARRAYreadSlice(self.parent_id, self.name,
+                           <hsize_t *>start, <hsize_t *>stop,
+                           <hsize_t *>step, rbuf)
     if ret < 0:
       raise RuntimeError("Problems reading the array data.")
 

@@ -65,14 +65,17 @@ class BasicTestCase(unittest.TestCase):
                                            complib = self.complib,
                                            expectedsizeinMB = 1)
 
-        # Fill it with 4 rows
+        # Fill it with 5 rows
         vlarray.append(1, 2)
         if self.flavor == "NumArray":
             vlarray.append(array([3, 4, 5]))
+            vlarray.append(array([]))    # Empty entry
         elif self.flavor == "Numeric":
             vlarray.append(Numeric.array([3, 4, 5]))
+            vlarray.append(Numeric.array([]))     # Empty entry
         elif self.flavor == "Tuple":
             vlarray.append((3, 4, 5))
+            vlarray.append(())         # Empty entry
         vlarray.append([6, 7, 8, 9])
         vlarray.append(10, 11, 12, 13, 14)
 
@@ -98,20 +101,24 @@ class BasicTestCase(unittest.TestCase):
         vlarray._v_maxTuples = 3
         # Read the first row:
         row = vlarray.read(0)
+        row2 = vlarray.read(2)
         if verbose:
             print "Flavor:", vlarray.flavor
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row
             
-        nrows = 4
+        nrows = 5
         assert nrows == vlarray.nrows
         if self.flavor == "NumArray":
             assert allequal(row, array([1, 2]))
+            assert allequal(row2, array([]))
         elif self.flavor == "Numeric":
             assert type(row) == type(Numeric.array([1, 2]))
             assert allequal(row, Numeric.array([1, 2]))
+            assert  allequal(row2, Numeric.array([]))
         elif self.flavor == "Tuple":
             assert row == (1, 2)
+            assert row2 == ()
         assert len(row) == 2
 
     def test02_emptyVLArray(self):
@@ -125,7 +132,7 @@ class BasicTestCase(unittest.TestCase):
         # Create an instance of an HDF5 Table
         self.fileh = openFile(self.file, "w")
         vlarray = self.fileh.createVLArray(self.fileh.root, 'vlarray2',
-                                           Int32Atom(),
+                                           Int32Atom(flavor=self.flavor),
                                            "ragged array if ints",
                                            compress = self.compress,
                                            complib = self.complib)

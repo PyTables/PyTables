@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.11 2003/12/12 13:58:59 falted Exp $
+#       $Id: utils.py,v 1.12 2003/12/16 20:54:19 falted Exp $
 #
 ########################################################################
 
@@ -199,6 +199,63 @@ def processRange(nrows, start=None, stop=None, step=None):
         elif start >= nrows:
             raise IndexError, "start value (%s) is greater or equal than available rows: (%s)" % (start, nrows)
         stop = start + 1
+    else:
+        if start is None:
+            start = 0
+                
+        elif start < 0:
+            start = nrows + start
+        elif start >= nrows:
+            start = nrows
+
+        if stop is None:
+            stop = nrows
+        elif stop <= 0 :
+            stop = nrows + stop
+        elif stop > nrows:
+#             raise IndexError, "stop value (%s) is greater than available rows: (%s)" % (stop, nrows)
+            stop = nrows
+
+        if step is None:
+            step = 1
+        elif step <= 0:
+            raise ValueError, \
+                  "Zero or negative step values are not allowed!"
+
+    if start > stop:
+        stop = start
+        
+    # Protection against start greater than available records
+    # nrows == 0 is a special case for empty objects
+    if nrows > 0 and start >= nrows:
+        raise IndexError, \
+"Start (%s) value is greater than number of rows (%s)." % \
+(start, nrows)
+
+    return (start, stop, step)
+    
+
+def processRange2(nrows, start=None, stop=None, step=None):
+
+    assert (type(start) in
+            [types.NoneType, types.IntType, types.LongType]), \
+        "Non valid start parameter: %s" % start
+
+    assert (type(stop) in
+            [types.NoneType, types.IntType, types.LongType]), \
+        "Non valid stop parameter: %s" % stop
+
+    assert (type(step) in
+            [types.NoneType, types.IntType, types.LongType]), \
+        "Non valid step parameter: %s" % step
+
+    if (not (start is None)) and ((stop is None) and (step is None)):
+        step = 1
+        if start < 0:
+            start = nrows + start
+        elif start >= nrows:
+            raise IndexError, "start value (%s) is greater or equal than available rows: (%s)" % (start, nrows)
+        stop = nrows
     else:
         if start is None:
             start = 0

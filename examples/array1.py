@@ -8,18 +8,7 @@ fileh = openFile("array1.h5", mode = "w")
 # Get the root group
 root = fileh.root
 
-# Create an array
-a = strings.array(None, itemsize=1, shape=(0,))  # That needs numarray 0.8
-# Save it on the HDF5 file
-hdfarray = fileh.createArray(root, 'array_c', a, "Character array")
-hdfarray.append(strings.array(['a', 'b', 'c']))
-# The next is legal:
-hdfarray.append(strings.array(['c', 'b', 'c', 'd']))
-# but these are not:
-#hdfarray.append(strings.array([['c', 'b'], ['c', 'd']]))
-#hdfarray.append(array([[1,2,3],[3,2,1]], type=UInt8, shape=(2,1,3)))
-
-# Create other Array
+# Create an Array
 a = array([-1, 2, 4], Int16)
 # Save it on the HDF5 file
 hdfarray = fileh.createArray(root, 'array_1', a, "Signed short array")
@@ -29,30 +18,10 @@ a = array(4, Int16)
 # Save it on the HDF5 file
 hdfarray = fileh.createArray(root, 'array_s', a, "Scalar signed short array")
 
-# Create an empty array
-a = zeros((2,0,3),type=UInt16)
-hdfarray = fileh.createArray(root, 'array_e', a, "Unsigned short array")
-
-# Create an enlargeable array
-a = zeros((2,0,3),type=UInt8)
-
-#a = [[],[]]  # not supported
-#a = []  # supported (Int32 array)
+# Create a 3-d array of floats
+a = arange(64, type=Float64, shape=(2,4,8))
 # Save it on the HDF5 file
-hdfarray = fileh.createArray(root, 'array_b', a, "Unsigned byte array",
-                             compress = 1)
-# Append an array to this table
-hdfarray.append(array([[1,2,3],[3,2,1]], type=UInt8, shape=(2,1,3)))
-hdfarray.append(array([[1,2,3],[3,2,1],[2,4,6],[6,4,2]],
-                      type=UInt8, shape=(2,2,3))*2)
-# The next should give a type error:
-#hdfarray.append(array([[1,0,1],[0,0,1]], type=Bool, shape=(2,1,3)))
-
-# # Create an empty array with two potentially enlargeable dimensions
-# # that must generate an error
-# a = zeros((2,0,0),type=UInt8)
-# # Save it on the HDF5 file
-# hdfarray = fileh.createArray(root, 'array_d', a, "Unsigned byte array")
+hdfarray = fileh.createArray(root, 'array_f', a, "3-D float array")
 
 # Close the file
 fileh.close()
@@ -62,36 +31,22 @@ fileh = openFile("array1.h5", mode = "r")
 # Get the root group
 root = fileh.root
 
-a = root.array_c.read()
-print "Character array -->",repr(a), a.shape
 a = root.array_1.read()
 print "Signed byte array -->",repr(a), a.shape
-a = root.array_e.read()
-print "Empty array (yes, this is suported) -->",repr(a), a.shape
-a = root.array_b.read(step=2)
-print "Int8 array, even rows (step = 2) -->",repr(a), a.shape
 
-print "Testing iterator:",
-#for x in root.array_b.iterrows(step=2):
-for x in root.array_b:
-    print "nrow-->", root.array_b.nrow
-    print "Element-->",x
-
+print "Testing iterator (works even over scalar arrays):",
 arr = root.array_s
 for x in arr:
     print "nrow-->", arr.nrow
     print "Element-->", repr(x)
 
-#sys.exit()
+# print "Testing getitem:"
+# for i in range(root.array_1.nrows):
+#     print "array_1["+str(i)+"]", "-->", root.array_1[i]
+    
+print "array_f[:,2:3,2::2]", repr(root.array_f[:,2:3,2::2])
+print "array_f[1,2:]", repr(root.array_f[1,2:])
+print "array_f[1]", repr(root.array_f[1])
 
-print "Testing getitem:"
-for i in range(root.array_b.nrows):
-    print "array_b["+str(i)+"]", "-->", root.array_b[i]
-print "array_c[1:2]", repr(root.array_c[1:2])
-print "array_c[1:3]", repr(root.array_c[1:3])
-print "array_b[:]", root.array_b[:]
-print "array_s[0]", repr(root.array_s[0])
-
-print repr(root.array_c)
 # Close the file
 fileh.close()

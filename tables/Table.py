@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.82 2003/12/11 10:25:18 falted Exp $
+#       $Id: Table.py,v 1.83 2003/12/16 20:54:19 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.82 $"
+__version__ = "$Revision: 1.83 $"
 
 from __future__ import generators
 import sys
@@ -561,14 +561,21 @@ class Table(Leaf, hdf5Extension.Table, object):
         if isinstance(key, types.IntType):
             return self.read(key, key+1, 1)[0]
         elif isinstance(key, types.SliceType):
-            return self.read(key.start, key.stop, key.step)
+            if key.stop == None:
+                stop = self.nrows
+            else:
+                stop = key.stop
+            # In slices, a stop of None means the last index, not the
+            # next to start.
+            #return self.read(key.start, key.stop, key.step)
+            return self.read(key.start, stop, key.step)
         elif isinstance(key, types.StringType):
             return self.read(field=key)
         else:
             raise ValueError, "Non-valid index or slice: %s" % \
                   key
 
-    # This addtion has to be thought more carefully because of two things
+    # This addition has to be thought more carefully because of two things
     # 1.- The colnames has to be valid python identifiers, and that
     #     restriction has still to be added.
     # 2.- The access to local variables in Table is slowed down, because

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.45 2003/12/16 12:59:03 falted Exp $
+#       $Id: Array.py,v 1.46 2003/12/16 20:54:19 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.45 $"
+__version__ = "$Revision: 1.46 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -36,7 +36,7 @@ obversion = "2.0"    # Added an optional EXTDIM attribute
 
 import types, warnings, sys
 from Leaf import Leaf
-from utils import calcBufferSize, processRange
+from utils import calcBufferSize, processRange, processRange2
 import hdf5Extension
 import numarray
 import numarray.strings as strings
@@ -338,20 +338,19 @@ class Array(Leaf, hdf5Extension.Array, object):
             self._row += 1
             self.nrow += self._step
             self._nrowsread += self._step
-            return self.listarr[self._row]
+            if self.listarr.shape:
+                return self.listarr[self._row]
+            else:
+                return self.listarr    # Scalar case
 
-    def __getitem__(self, key):
+    def __getitem__orig(self, key):
         """Returns a table row, table slice or table column.
 
         It takes different actions depending on the type of the "key"
         parameter:
 
-        If "key"is an integer, the corresponding table row is returned
-        as a RecArray.Record object. If "key" is a slice, the row
-        slice determined by key is returned as a RecArray object.
-        Finally, if "key" is a string, it is interpreted as a column
-        name in the table, and, if it exists, it is read and returned
-        as a NumArray or CharArray object (whatever is appropriate).
+        If "key"is an integer, the corresponding row is returned. If
+        "key" is a slice, the row slice determined by key is returned.
 
 """
 
@@ -370,6 +369,94 @@ class Array(Leaf, hdf5Extension.Array, object):
             return ret[0]
         else:
             return ret
+        
+    def __getitem__(self, keys):
+        """Returns a table row, table slice or table column.
+
+        It takes different actions depending on the type of the "key"
+        parameter:
+
+        If "key"is an integer, the corresponding row is returned. If
+        "key" is a slice, the row slice determined by key is returned.
+
+"""
+
+        if self.shape == ():
+            # Scalar case
+            #return self.read()
+            raise IndexError, "You cannot read scalar arrays through indexing. Try using the read() method instead."
+                
+        shape = (len(self.shape),)
+        startl = numarray.array(None, shape=shape, type=numarray.Int64)
+        stopl = numarray.array(None, shape=shape, type=numarray.Int64)
+        stepl = numarray.array(None, shape=shape, type=numarray.Int64)
+        dim = 0
+        if not isinstance(keys, types.TupleType):
+            keys = (keys,)
+        for key in keys:
+            if isinstance(key, types.IntType):
+                (start, stop, step) = processRange(self.shape[dim], key, key+1, 1)
+            elif isinstance(key, types.SliceType):
+                if key.stop == None:
+                    stop = self.shape[dim]
+                else:
+                    stop = key.stop
+                (start, stop, step) = processRange(self.shape[dim], key.start, stop, key.step)
+            else:
+                raise ValueError, "Non-valid index or slice: %s" % \
+                      key
+            startl[dim] = start
+            stopl[dim] = stop
+            stepl[dim] = step
+            dim += 1
+        # Complete the other dimensions, if needed
+        if dim < len(self.shape):
+            for diml in range(dim, len(self.shape)):
+                startl[dim] = 0
+                stopl[dim] = self.shape[diml]
+                stepl[dim] = 1
+                dim += 1
+                
+        return self._readSlice(startl, stopl, stepl)
+
+    # Accessor for the _readArray method in superclass
+    def _readSlice(self, startl, stopl, stepl):
+
+        if self.extdim < 0:
+            extdim = 0
+        else:
+            extdim = self.extdim
+
+        shape = []
+        for dim in range(len(self.shape)):
+            shape.append(((stopl[dim] - startl[dim] - 1) / stepl[dim]) + 1)
+
+        if shape[0] == 1:
+            # Correction for only one row in first dimension
+            shape = shape[1:]
+            
+        #print "shape -->", shape
+        if repr(self.type) == "CharType":
+            arr = strings.array(None, itemsize=self.itemsize, shape=shape)
+        else:
+            arr = numarray.zeros(type=self.type, shape=shape)
+            # Set the same byteorder than on-disk
+            arr._byteorder = self.byteorder
+        # Protection against reading empty arrays
+        zerodim = 0
+        for i in range(len(shape)):
+            if shape[i] == 0:
+                zerodim = 1
+
+        if not zerodim:
+            # Arrays that have non-zero dimensionality
+            self._g_readSlice(startl, stopl, stepl, arr._data)
+            pass
+            
+        if self.flavor <> "NumArray":
+            return self._convToFlavor(arr)
+        else:
+            return arr
         
     def _convToFlavor(self, arr):
         "Convert the numarray parameter to the correct flavor"
