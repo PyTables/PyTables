@@ -1,0 +1,5 @@
+pytables (0.7.2-1) unstable; urgency=low
+
+  * First debian release.
+
+ -- Francesc Alted <falted@openlc.org>  Mon, 29 Sep 2003 13:48:21 +0200

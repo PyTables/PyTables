@@ -1,0 +1,64 @@
+Source: pytables
+Section: libs
+Priority: optional
+Maintainer: Francesc Alted <falted@openlc.org>
+Build-Depends: debhelper (>= 4.1.60), libz-dev, liblzo-dev, libucl-dev, libhdf5-serial-dev, python2.2-dev, python2.3-dev, python2.2-numarray (>= 0.7), python2.3-numarray (>= 0.7)
+Standards-Version: 3.5.10
+
+Package: python-tables
+Architecture: all
+Depends: python (>= 2.3), python (<< 2.4), python2.3-tables (= ${Source-Version})
+Suggests: python-tables-doc
+Description: PyTables - A hierarchical database for Python
+ PyTables is a hierarchical database package
+ designed to efficently manage very large amounts
+ of data. PyTables is built on top of the HDF5
+ library and the numarray package and features an
+ object-oriented interface that, combined with
+ C-code generated from Pyrex sources, makes of it a
+ fast, yet extremely easy to use tool for
+ interactively save and retrieve large amounts of
+ data.
+ .
+ This Debian package is an empty dummy package that always depends on
+ a package built for Debian's default Python version.
+
+Package: python2.2-tables
+Section: libs
+Architecture: any
+Depends: python2.2-numarray (>= 0.7), python2.2, ${shlibs:Depends}
+Description: PyTables - A hierarchical database for Python
+ PyTables is a hierarchical database package
+ designed to efficently manage very large amounts
+ of data. PyTables is built on top of the HDF5
+ library and the numarray package and features an
+ object-oriented interface that, combined with
+ C-code generated from Pyrex sources, makes of it a
+ fast, yet extremely easy to use tool for
+ interactively save and retrieve large amounts of
+ data.
+ .
+ This Debian package is built for Python 2.2.
+  
+Package: python2.3-tables
+Section: libs
+Architecture: any
+Depends: python2.2-numarray (>= 0.7), python2.2, ${shlibs:Depends}
+Description: PyTables - A hierarchical database for Python
+ PyTables is a hierarchical database package
+ designed to efficently manage very large amounts
+ of data. PyTables is built on top of the HDF5
+ library and the numarray package and features an
+ object-oriented interface that, combined with
+ C-code generated from Pyrex sources, makes of it a
+ fast, yet extremely easy to use tool for
+ interactively save and retrieve large amounts of
+ data.
+ .
+ This Debian package is built for Python 2.3.
+  
+Package: python-tables-doc
+Architecture: all
+Suggests: pdf-viewer
+Description: PyTables - A hierarchical database for Python - documentation
+ This package includes the manual in PDF and HTML formats.
