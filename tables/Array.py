@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.60 2004/02/06 19:23:47 falted Exp $
+#       $Id: Array.py,v 1.61 2004/02/16 14:14:31 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.60 $"
+__version__ = "$Revision: 1.61 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -509,7 +509,11 @@ class Array(Leaf, hdf5Extension.Array, object):
         # Build the new Array object
         object = Array(arr, title=title)
         setattr(group, name, object)
-        return object
+        nbytes = self.itemsize
+        for i in self.shape:
+            nbytes*=i
+
+        return (object, nbytes)
 
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""

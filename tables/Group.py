@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.69 2004/02/10 16:36:52 falted Exp $
+#       $Id: Group.py,v 1.70 2004/02/16 14:14:31 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.69 $"
+__version__ = "$Revision: 1.70 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -634,6 +634,7 @@ self._g_join(name), UserWarning)
                       overwrite = 0, start=0, stop=None, step=1):
         "(Recursively) Copy a group into another location"
 
+        tbytescopied = 0
         # Get the base names of the source
         srcBasePath = self._v_pathname
         lenSrcBasePath = len(srcBasePath)+1 # To include the trailing '/'
@@ -672,7 +673,11 @@ self._g_join(name), UserWarning)
                     parentDstGroup = dstFile.getNode(parentDstPath)
                     if hasattr(parentDstGroup, dstName) and overwrite:
                         dstGroup = getattr(parentDstGroup, dstName)
-                        dstGroup._f_remove(recursive=1)
+                        if dstGroup.__class__.__name__ == "Group":
+                            dstGroup._f_remove(recursive=1)
+                        else:
+                            # In case the destination is a Leaf!
+                            dstGroup.remove()
                     dstGroup = dstFile.createGroup(parentDstGroup, dstName,
                                                    title=title,
                                                    filters=filters)
@@ -686,13 +691,19 @@ self._g_join(name), UserWarning)
                     # Check whether we have to delete the leaf before copying
                     if hasattr(dstGroup, leaf.name) and overwrite:
                         dstLeaf = getattr(dstGroup,leaf.name)
-                        dstLeaf.remove()
-                    leaf.copy(dstGroup, leaf.name, title=title,
-                              filters=filters,
-                              copyuserattrs=copyuserattrs,
-                              start=start,
-                              stop=stop,
-                              step=step)
+                        if dstLeaf.__class__.__name__ == "Group":
+                            dstLeaf._f_remove(recursive=1)
+                        else:
+                            # In case the destination is a Group!
+                            dstLeaf.remove()
+                    (dstLeaf, nbytes) = \
+                              leaf.copy(dstGroup, leaf.name, title=title,
+                                        filters=filters,
+                                        copyuserattrs=copyuserattrs,
+                                        start=start,
+                                        stop=stop,
+                                        step=step)
+                    tbytescopied += nbytes
                     nleafs +=1
         else:
             # Non recursive copy
@@ -702,7 +713,11 @@ self._g_join(name), UserWarning)
                 if title is None: title = ""
                 if hasattr(dstBaseGroup, group._v_name) and overwrite:
                     dstGroup = getattr(dstBaseGroup, group._v_name)
-                    dstGroup._f_remove(recursive=1)
+                    if dstGroup.__class__.__name__ == "Group":
+                        dstGroup._f_remove(recursive=1)
+                    else:
+                        # In case the destination is a Leaf!
+                        dstGroup.remove()
                 dstGroup = dstFile.createGroup(dstBaseGroup, group._v_name,
                                                title=title,
                                                filters=filters)
@@ -716,16 +731,23 @@ self._g_join(name), UserWarning)
                 # Check whether we have to delete the leaf before copying
                 if hasattr(dstBaseGroup, leaf.name) and overwrite:
                     dstLeaf = getattr(dstBaseGroup, leaf.name)
-                    dstLeaf.remove()
-                leaf.copy(dstBaseGroup, leaf.name, title=title,
-                          filters=filters,
-                          copyuserattrs=copyuserattrs,
-                          start=start,
-                          stop=stop,
-                          step=step)
+                    if dstLeaf.__class__.__name__ == "Group":
+                        dstLeaf._f_remove(recursive=1)
+                    else:
+                        # In case the destination is a Leaf!
+                        dstLeaf.remove()
+                    (dstLeaf, nbytes) = \
+                              leaf.copy(dstBaseGroup, leaf.name,
+                                        title=title,
+                                        filters=filters,
+                                        copyuserattrs=copyuserattrs,
+                                        start=start,
+                                        stop=stop,
+                                        step=step)
+                    tbytescopied += nbytes
                 nleafs +=1
-        # return the number of objects copied
-        return (ngroups, nleafs)
+        # return the number of objects copied as well as the nuber of bytes
+        return (ngroups, nleafs, tbytescopied)
     
     def __str__(self):
         """The string representation for this object."""

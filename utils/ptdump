@@ -7,117 +7,145 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/utils/ptdump,v $
-#       $Id: ptdump,v 1.1 2004/02/13 08:56:21 falted Exp $
+#       $Id: ptdump,v 1.2 2004/02/16 14:14:32 falted Exp $
 #
 ########################################################################
 
-"""This utility lets you look into the data and metada of your data files.
+"""This utility lets you look into the data and metadata of your data files.
 
 Pass the flag -h to this for help on usage.
 
 """
 
-
 from tables import *
 
-if __name__=="__main__":
-    import sys
-    import getopt
+import sys
+import getopt
 
-    usage = \
-"""usage: %s [-h] [-d] [-v] file
-  -d means detailed information divided in Groups, Arrays and Tables
-  -h prints help on usage
-  -v means dumping Table and Array attributes
-            \n""" \
-    % sys.argv[0]
-
-    try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'hdv')
-    except:
-        sys.stderr.write(usage)
-        sys.exit(0)
-
-    # if we pass too much parameters, abort
-    if len(pargs) <> 1: 
-        sys.stderr.write(usage)
-        sys.exit(0)
-
-    # default options
-    verbose = 0
-    detailed = 0
-
-    # Get the options
-    for option in opts:
-        if option[0] == '-h':
-            sys.stderr.write(usage)
-            sys.exit(0)
-        elif option[0] == '-v':
-            verbose = 1
-        elif option[0] == '-d':
-            detailed = 1
-        else:
-            print option[0], ": Unrecognized option"
-            sys.stderr.write(usage)
-            sys.exit(0)
-
-    # Catch the hdf5 file passed as the last argument
-    file = pargs[0]
-
-    h5file = openFile(file, 'r')
-    # Print all their content
+def dumpLeaf(leaf):
+    global verbose
+    global dump
+    global showattrs
+    global rng
     if verbose:
-        print repr(h5file)
+        print repr(leaf)
     else:
+        print str(leaf)
+    if showattrs:
+        print "  "+repr(leaf.attrs)
+    if dump:
+        print "  Data dump:"
+        print leaf.read(rng.start, rng.stop, rng.step)
+    
+def dumpGroup(h5file):
+    global verbose
+    global dump
+    global showattrs
+    global rng
+    
+    if not verbose and not dump:
+        # Print the simplest object tree
         print h5file
+        return
 
-    if verbose:
-        # Print detailed info on leaf objects
-
-        print "Attribute info of the objects:"
-        for group in h5file(classname="Group"):
-            print repr(group._v_attrs)
-            for leaf in h5file.listNodes(group, 'Leaf'):
-                print repr(leaf.attrs)
-        print
-
-    if detailed:
-        # Print detailed info on leaf objects
-
-        print "Detailed info on this file object tree follows:"
-        print "Groups:"
-        for group in h5file.walkGroups(h5file.root):
+    # Print detailed info on nodes
+    for group in h5file(classname="Group"):
+        if verbose:
             print repr(group)
+        else:
+            print str(group)
+        if showattrs:
+            print "  "+repr(group._v_attrs)
+        for leaf in h5file.listNodes(group, 'Leaf'):
+            if verbose:
+                print repr(leaf)
+            else:
+                print str(leaf)
+            if showattrs:
+                print "  "+repr(leaf.attrs)
+            if dump:
+                print "  Data dump:"
+                print leaf.read(rng.start, rng.stop, rng.step)
+            print
 
-        print
-        print "Leaves:"
-        for group in h5file.walkGroups(h5file.root):
-            for leaf in h5file.listNodes(group, 'Leaf'):
-                print leaf
 
-        print
-        print "Tables:"
-        for group in h5file.walkGroups(h5file.root):
-            for table in h5file.listNodes(group, 'Table'):
-                print "Info on the object:", repr(table)
+usage = \
+"""usage: %s [-R start,stop,step] [-a] [-h] [-d] [-v] file[:nodepath]
+  -R select a range of rows in the form "start,stop,step"
+  -a show attributes in nodes (only useful when -v or -d are active as well)
+  -d dump data information onb leaves
+  -h prints help on usage
+  -v means dumping more metainformation on nodes
+            \n""" \
+% sys.argv[0]
 
-        print
-        print "Arrays:"
-        for group in h5file.walkGroups(h5file.root):
-            for array_ in h5file.listNodes(group, 'Array'):
-                print "Info on the object:", repr(array_)
+try:
+    opts, pargs = getopt.getopt(sys.argv[1:], 'R:ahdv')
+except:
+    sys.stderr.write(usage)
+    sys.exit(0)
 
-        print
-        print "EArrays:"
-        for group in h5file.walkGroups(h5file.root):
-            for array_ in h5file.listNodes(group, 'EArray'):
-                print "Info on the object:", repr(array_)
-        print
-        print "VLArrays:"
-        for group in h5file.walkGroups(h5file.root):
-            for array_ in h5file.listNodes(group, 'VLArray'):
-                print "Info on the object:", repr(array_)
-    
-    # Close the file
-    h5file.close()
-    
+# if we pass too much parameters, abort
+if len(pargs) <> 1: 
+    sys.stderr.write(usage)
+    sys.exit(0)
+
+# default options
+rng = slice(None)
+showattrs = 0
+verbose = 0
+dump = 0
+
+# Get the options
+for option in opts:
+    if option[0] == '-R':
+        try:
+            rng = eval("slice("+option[1]+")")
+        except:
+            print "Error when getting the range parameter."
+            (type, value, traceback) = sys.exc_info()
+            print "  The error was:", value
+            sys.stderr.write(usage)
+            sys.exit(0)
+
+    elif option[0] == '-a':
+        showattrs = 1
+    elif option[0] == '-h':
+        sys.stderr.write(usage)
+        sys.exit(0)
+    elif option[0] == '-v':
+        verbose = 1
+    elif option[0] == '-d':
+        dump = 1
+    else:
+        print option[0], ": Unrecognized option"
+        sys.stderr.write(usage)
+        sys.exit(0)
+
+# Catch the files passed as the last arguments
+src = pargs[0].split(':')
+if len(src) == 1:
+    filename, nodename = src[0], "/"
+else:
+    filename, nodename = src
+    if nodename == "":
+        # case where filename == "filename:" instead of "filename:/"
+        nodename = "/"
+
+# Check whether the specified node is a group or a leaf
+h5file = openFile(filename, 'r')
+nodeobject = h5file.getNode(nodename)
+if isinstance(nodeobject, Group):
+    # Close the file again and reopen using the rootUEP
+#     h5file.close()
+#     h5file = openFile(filename, 'r', rootUEP=nodename)
+    dumpGroup(h5file)
+elif isinstance(nodeobject, Leaf):
+    # If it is not a Group, it must be a Leaf
+    dumpLeaf(nodeobject)
+else:
+    # This should never happen
+    print "Unrecognized object:", nodeobject
+
+# Close the file
+h5file.close()

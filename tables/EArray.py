@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.15 2004/02/09 18:54:11 falted Exp $
+#       $Id: EArray.py,v 1.16 2004/02/16 14:14:31 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.15 $"
+__version__ = "$Revision: 1.16 $"
 # default version for EARRAY objects
 obversion = "1.0"    # initial version
 
@@ -250,7 +250,11 @@ class EArray(Array, hdf5Extension.Array, object):
             object._append(self.__getitem__(tuple(slices)))
         # Active the conversion again (default)
         self._v_convert = 1
-        return object
+        nbytes = self.itemsize
+        for i in self.shape:
+            nbytes*=i
+
+        return (object, nbytes)
 
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""

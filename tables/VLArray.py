@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.24 2004/02/09 13:24:31 falted Exp $
+#       $Id: VLArray.py,v 1.25 2004/02/16 14:14:32 falted Exp $
 #
 ########################################################################
 
@@ -30,7 +30,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.24 $"
+__version__ = "$Revision: 1.25 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -613,6 +613,8 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
         # Optimized version (no conversions, no type and shape checks, etc...)
         nrowscopied = 0
+        nbytes = 0
+        atomsize = self.atom.atomsize()
         for start2 in range(start, stop, step*nrowsinbuf):
             # Save the records on disk
             stop2 = start2+step*nrowsinbuf
@@ -621,10 +623,11 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             naarr = self._readArray(start=start2, stop=stop2, step=step)[0]
             nobjects = naarr.shape[0]
             object._append(naarr, nobjects)
+            nbytes += nobjects*atomsize
             nrowscopied +=1
         object.nrows = nrowscopied
         object.shape = (nrowscopied,)
-        return object
+        return (object, nbytes)
 
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""

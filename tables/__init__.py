@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/__init__.py,v $
-#       $Id: __init__.py,v 1.22 2004/02/09 18:54:11 falted Exp $
+#       $Id: __init__.py,v 1.23 2004/02/16 14:14:32 falted Exp $
 #
 ########################################################################
 
@@ -53,7 +53,9 @@ from hdf5Extension import isHDF5, isPyTablesFile, whichLibVersion
 
 # List here only the objects we want to be publicly available
 __all__ = ["isHDF5", "isPyTablesFile", "whichLibVersion", "copyFile",
-           "openFile", "IsDescription", "Description", "Filters",
+           "openFile",
+           "Group", "Leaf", "Table", "Array", "EArray", "VLArray",
+           "UnImplemented", "IsDescription", "Description", "Filters",
            "Col", "BoolCol", "StringCol",
            "IntCol", "Int8Col", "UInt8Col", "Int16Col", "UInt16Col",
            "Int32Col", "UInt32Col", "Int64Col", "UInt64Col",

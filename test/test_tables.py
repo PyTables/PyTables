@@ -1226,7 +1226,7 @@ class CopyTestCase(unittest.TestCase):
             table1 = fileh.root.table1
             
         # Copy to another table
-        table2 = table1.copy('/', 'table2')
+        table2, size = table1.copy('/', 'table2')
 
         if self.close:
             if verbose:
@@ -1300,7 +1300,7 @@ class CopyTestCase(unittest.TestCase):
             
         # Copy to another table in another group
         group1 = fileh.createGroup("/", "group1")
-        table2 = table1.copy(group1, 'table2')
+        table2, size = table1.copy(group1, 'table2')
 
         if self.close:
             if verbose:
@@ -1374,7 +1374,7 @@ class CopyTestCase(unittest.TestCase):
         # Copy to another table in another group and other title
         group1 = fileh.createGroup("/", "group1")
         table1._v_maxTuples = 2  # small value of buffer
-        table2 = table1.copy(group1, 'table2', title="title table2")
+        table2, size = table1.copy(group1, 'table2', title="title table2")
         if self.close:
             if verbose:
                 print "(closing file version)"
@@ -1439,7 +1439,7 @@ class CopyTestCase(unittest.TestCase):
             
         # Copy to another table in another group
         group1 = fileh.createGroup("/", "group1")
-        table2 = table1.copy(group1, 'table2',
+        table2, size = table1.copy(group1, 'table2',
                              filters=Filters(complevel=6))
 
         if self.close:
@@ -1511,7 +1511,7 @@ class CopyTestCase(unittest.TestCase):
             
         # Copy to another table in another group
         group1 = fileh.createGroup("/", "group1")
-        table2 = table1.copy(group1, 'table2',
+        table2, size = table1.copy(group1, 'table2',
                              copyuserattrs=1,
                              filters=Filters(complevel=6))
 
@@ -1585,7 +1585,7 @@ class CopyTestCase(unittest.TestCase):
             
         # Copy to another table in another group
         group1 = fileh.createGroup("/", "group1")
-        table2 = table1.copy(group1, 'table2',
+        table2, size = table1.copy(group1, 'table2',
                              copyuserattrs=0,
                              filters=Filters(complevel=6))
 
@@ -1667,7 +1667,7 @@ class CopyIndexTestCase(unittest.TestCase):
             
         # Copy to another table
         table1._v_maxTuples = self.maxTuples
-        table2 = table1.copy("/", 'table2',
+        table2, size = table1.copy("/", 'table2',
                              start=self.start,
                              stop=self.stop,
                              step=self.step)
@@ -1723,7 +1723,7 @@ class CopyIndexTestCase(unittest.TestCase):
             
         # Copy to another table
         table1._v_maxTuples = self.maxTuples
-        table2 = table1.copy("/", 'table2',
+        table2, size = table1.copy("/", 'table2',
                              start=self.start,
                              stop=self.stop,
                              step=self.step)

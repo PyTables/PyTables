@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.42 2004/02/10 16:36:52 falted Exp $
+#       $Id: Leaf.py,v 1.43 2004/02/16 14:14:31 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.42 $"
+__version__ = "$Revision: 1.43 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -309,7 +309,7 @@ class Leaf:
 #         return fileh.getNode(parent, origname)
 
     def copy(self, where, name, title=None, filters=None, copyuserattrs=1,
-             start=0, stop=None, step=1):
+             overwrite=0, start=0, stop=None, step=1):
         """Copy this leaf to other location
 
         where -- the group where the leaf will be copied.
@@ -338,8 +338,16 @@ class Leaf:
         group = self._v_file.getNode(where, classname = "Group")
         # Check that the name does not exist under this group
         if group._v_childs.has_key(name):
-            raise ValueError, \
-"The destination (%s) already exists. Delete it first if you really want to overwrite it." % (getattr(group, name))
+            if overwrite:
+                # Delete the destination object
+                dstNode = getattr(group, name)
+                if dstNode.__class__.__name__ == "Group":
+                    dstNode._f_remove(recursive=1)
+                else:
+                    dstNode.remove()
+            else:
+                raise ValueError, \
+"The destination (%s) already exists. Assert the overwrite parameter if you really want to overwrite it." % (getattr(group, name))
 
         # Get the correct indices (all the Leafs have nrows attribute)
         if stop == None:
@@ -349,13 +357,14 @@ class Leaf:
         if filters == None: filters = self.filters
 
         # Call the part of copy() that depends on the kind of the leaf
-        object = self._g_copy(group, name, start, stop, step, title, filters)
+        (object, nbytes) = self._g_copy(group, name,
+                                        start, stop, step, title, filters)
 
         # Finally, copy the user attributes, if needed
         if copyuserattrs:
             self.attrs._f_copy(object)
         
-        return object
+        return (object, nbytes)
 
     def remove(self):
         "Remove a leaf"

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.103 2004/02/09 13:24:31 falted Exp $
+#       $Id: Table.py,v 1.104 2004/02/16 14:14:31 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.103 $"
+__version__ = "$Revision: 1.104 $"
 
 from __future__ import generators
 import sys
@@ -619,7 +619,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         setattr(group, name, object)
         # Now, fill the new table with values from the old one
         self._g_copyRows(object, start, stop, step)
-        return object
+        nbytes=self.nrows*self.rowsize
+        return (object, nbytes)
 
     # No optimized version
     def _g_copy_orig(self, group, name, start, stop, step, title, filters):

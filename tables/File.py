@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.78 2004/02/13 08:56:21 falted Exp $
+#       $Id: File.py,v 1.79 2004/02/16 14:14:31 falted Exp $
 #
 ########################################################################
 
@@ -34,7 +34,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.78 $"
+__version__ = "$Revision: 1.79 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -98,14 +98,14 @@ def copyFile(srcFilename = None, dstFilename=None, title=None,
     srcFileh = openFile(srcFilename, mode="r")
 
     # Copy it to the destination
-    ngroups, nleafs = srcFileh.copyFile(dstFilename, title=title,
-                                        filters=filters,
-                                        copyuserattrs=copyuserattrs,
-                                        overwrite=overwrite)
+    ngroups, nleafs, nbytes = srcFileh.copyFile(dstFilename, title=title,
+                                                filters=filters,
+                                                copyuserattrs=copyuserattrs,
+                                                overwrite=overwrite)
 
     # Close the source file
     srcFileh.close()
-    return ngroups, nleafs
+    return ngroups, nleafs, nbytes
 
 
 def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
@@ -815,12 +815,13 @@ class File(hdf5Extension.File, object):
         # Copy the user attributes of the root group
         self.root._v_attrs._f_copy(dstFileh.root)
         # Copy all the hierarchy
-        ngroups, nleafs = self.root._f_copyChilds(dstFileh.root, recursive=1,
-                                                  filters=filters,
-                                                  copyuserattrs=copyuserattrs)
+        ngroups, nleafs, nbytes = \
+                 self.root._f_copyChilds(dstFileh.root, recursive=1,
+                                         filters=filters,
+                                         copyuserattrs=copyuserattrs)
         # Finally, close the file
         dstFileh.close()
-        return (ngroups, nleafs)
+        return (ngroups, nleafs, nbytes)
         
     def listNodes(self, where, classname = ""):
         
@@ -941,7 +942,7 @@ class File(hdf5Extension.File, object):
         date = time.asctime(time.localtime(os.stat(self.filename)[8]))
         astring = "Filename: " + repr(self.filename) + ' '
         if self.title <> "unknown":
-            astring += "Title: '"+repr(self.title)+"'" + ' '
+            astring += "Title: "+repr(self.title)+ ' '
         astring += ", Last modif.: " + repr(date) + ' '
         astring += ', rootUEP=' + repr(self.rootUEP)
         astring += ', filters=' + repr(self.filters)

@@ -7,7 +7,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/utils/ptrepack,v $
-#       $Id: ptrepack,v 1.1 2004/02/13 08:56:21 falted Exp $
+#       $Id: ptrepack,v 1.2 2004/02/16 14:14:32 falted Exp $
 #
 ########################################################################
 
@@ -27,54 +27,124 @@ def newdstGroup(dstfileh, dstgroup, title, filters):
     for nodeName in dstgroup.split('/'):
         if nodeName == '':
             continue
-        if not hasattr(group, nodeName):
-            # It does not exist. Create it
+        if not hasattr(dstfileh, nodeName):
             group2 = dstfileh.createGroup(group, nodeName,
                                           title=title,
                                           filters=filters)
+        else:
+            # We assume that nodeName is a group. If not, an error will
+            # be issued later on.
+            group2 = getattr(dstfileh, nodeName)
         group = group2
     return group
 
-def copyChilds(srcfile, dstfile, srcgroup, dstgroup, title,
-               recursive, filters, copyuserattrs, overwrite, overwrtnodes,
-               start, stop, step):
-    "Copy the childs from source group to destination group"
-    # Open the source file with srcgroup as rootUEP
-    # First, check that the source group do exist:
+def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
+             filters, copyuserattrs, overwritefile, overwrtnodes,
+             start, stop, step):
+    # Open the source file
     srcfileh = tables.openFile(srcfile, "r")
-    try:
-        srcGroup = srcfileh.getNode(srcgroup)
-    except:
-        # Problems
-        (type, value, traceback) = sys.exc_info()
-        print "Problems getting the '%s' source group in file '%s':" % \
-              (srcgroup, srcfile)
-        raise RuntimeError, "The error was: %s" % value
-    # Ok. we know that srcgroup do exist in srcfile
-    srcfileh.close()
-    srcfileh = tables.openFile(srcfile, "r", rootUEP=srcgroup)
-    #  Assign the root to srcGroup
-    srcGroup = srcfileh.root
-    
+    # Get the source node (that should exist)
+    srcNode = srcfileh.getNode(srcnode)    
+
+    # Get the destination node and its parent
+    last_slash = dstnode.rindex('/')
+    if last_slash == len(dstnode)-1:
+        print "Detected a trainling slash in destination node. Interpreting it as a destination group."
+        dstgroup = dstnode[:-1]
+    elif last_slash > 0:
+        dstgroup = dstnode[:last_slash]
+    else:
+        dstgroup = "/"
+    dstleaf = dstnode[last_slash+1:]
+    if dstleaf == "":
+        dstleaf = srcNode.name
     # Check whether the destination group exists or not
-    if os.path.isfile(dstfile) and not overwrite:
+    if os.path.isfile(dstfile) and not overwritefile:
         dstfileh = tables.openFile(dstfile, "a")
         try:
             dstGroup = dstfileh.getNode(dstgroup)
         except:
             # The dstgroup does not seem to exist. Try creating it.
             dstGroup = newdstGroup(dstfileh, dstgroup, title, filters)
-            # Close destionation and reopen with a rootUEP
-            dstfileh.close()
-            dstfileh = tables.openFile(dstfile, "a", rootUEP=dstgroup)
-            # If try succeeds, assign dstGroup to this root
-            dstGroup = dstfileh.root
         else:
-            # Ok. we know that dstgroup do exist in dstfile
-            dstfileh.close()
-            dstfileh = tables.openFile(dstfile, "a", rootUEP=dstgroup)
-            #  Assign the root to srcGroup
-            dstGroup = dstfileh.root
+            # The node exists, but it is really a group?
+            if not isinstance(dstGroup, tables.Group):
+                # No. Should we overwrite it?
+                if overwrtnodes:
+                    parent = dstGroup._v_parent
+                    last_slash = dstGroup._v_pathname.rindex('/')
+                    dstgroupname = dstGroup._v_pathname[last_slash+1:]
+                    dstGroup.remove()
+                    dstGroup = dstfileh.createGroup(parent, dstgroupname,
+                                                    title=title,
+                                                    filters=filters)
+                else:
+                    raise RuntimeError, "Please, check that the node names are not duplicated in destination, and if so, add the --overwrite-nodes flag if desired."
+                    
+    else:
+        # The destination file does not exist or will be overwritten.
+        dstfileh = tables.openFile(dstfile, "w", title=title, filters=filters)
+        dstGroup = newdstGroup(dstfileh, dstgroup, title="", filters=filters)
+
+    # Finally, copy srcNode to dstNode
+#     (dstNode, tbytes) = srcNode.copy(dstGroup, dstleaf,
+#                                      filters=filters,
+#                                      copyuserattrs=copyuserattrs,
+#                                      overwrite = overwrtnodes,
+#                                      start=start, stop=stop, step=step)
+    try:
+        (dstNode, tbytes) = srcNode.copy(dstGroup, dstleaf,
+                                         filters=filters,
+                                         copyuserattrs=copyuserattrs,
+                                         overwrite = overwrtnodes,
+                                         start=start, stop=stop, step=step)
+    except:
+        (type, value, traceback) = sys.exc_info()
+        print "Problems doing the copy from '%s:%s' to '%s:%s'" % \
+              (srcfile, srcnode, dstfile, dstnode)
+        print "The error was --> %s: %s" % (type, value)
+        print "The destination file looks like:\n", dstfileh
+        # Close all the open files:
+        srcfileh.close()
+        dstfileh.close()
+        raise RuntimeError, "Please, check that the node names are not duplicated in destination, and if so, add the --overwrite-nodes flag if desired."
+        
+    # Close all the open files:
+    srcfileh.close()
+    dstfileh.close()
+    return (0, 1, tbytes)  # 0 groups and 1 leaf copied
+    
+def copyChilds(srcfile, dstfile, srcgroup, dstgroup, title,
+               recursive, filters, copyuserattrs, overwritefile, overwrtnodes,
+               start, stop, step):
+    "Copy the childs from source group to destination group"
+    # Open the source file with srcgroup as rootUEP
+    srcfileh = tables.openFile(srcfile, "r", rootUEP=srcgroup)
+    #  Assign the root to srcGroup
+    srcGroup = srcfileh.root
+    
+    # Check whether the destination group exists or not
+    if os.path.isfile(dstfile) and not overwritefile:
+        dstfileh = tables.openFile(dstfile, "a")
+        try:
+            dstGroup = dstfileh.getNode(dstgroup)
+        except:
+            # The dstgroup does not seem to exist. Try creating it.
+            dstGroup = newdstGroup(dstfileh, dstgroup, title, filters)
+        else:
+            # The node exists, but it is really a group?
+            if not isinstance(dstGroup, tables.Group):
+                # No. Should we overwrite it?
+                if overwrtnodes:
+                    parent = dstGroup._v_parent
+                    last_slash = dstGroup._v_pathname.rindex('/')
+                    dstgroupname = dstGroup._v_pathname[last_slash+1:]
+                    dstGroup.remove()
+                    dstGroup = dstfileh.createGroup(parent, dstgroupname,
+                                                    title=title,
+                                                    filters=filters)
+                else:
+                    raise RuntimeError, "Please, check that the node names are not duplicated in destination, and if so, add the --overwrite-nodes flag if desired."
     else:
         # The destination file does not exist or will be overwritten.
         dstfileh = tables.openFile(dstfile, "w", title=title, filters=filters)
@@ -82,11 +152,11 @@ def copyChilds(srcfile, dstfile, srcgroup, dstgroup, title,
 
     # Finally, copy srcGroup to dstGroup
     try:
-        ng, nl = srcGroup._f_copyChilds(dstGroup, recursive=recursive,
-                                        filters=filters,
-                                        copyuserattrs=copyuserattrs,
-                                        overwrite = overwrtnodes,
-                                        start=start, stop=stop, step=step)
+        ng, nl, tb = srcGroup._f_copyChilds(dstGroup, recursive=recursive,
+                                            filters=filters,
+                                            copyuserattrs=copyuserattrs,
+                                            overwrite = overwrtnodes,
+                                            start=start, stop=stop, step=step)
     except:
         (type, value, traceback) = sys.exc_info()
         print "Problems doing the copy from '%s:%s' to '%s:%s'" % \
@@ -96,12 +166,12 @@ def copyChilds(srcfile, dstfile, srcgroup, dstgroup, title,
         # Close all the open files:
         srcfileh.close()
         dstfileh.close()
-        raise RuntimeError, "Please, check that the node names are not duplicated in destination, and if so, add the --overwrite-nodes flag if desired. In particular, pay attention that rootUEP does not loose you."
+        raise RuntimeError, "Please, check that the node names are not duplicated in destination, and if so, add the --overwrite-nodes flag if desired. In particular, pay attention that rootUEP is not fooling you."
         
     # Close all the open files:
     srcfileh.close()
     dstfileh.close()
-    return (ng, nl)
+    return (ng, nl, tb)
     
 
 # Main program starts here
@@ -159,7 +229,7 @@ if len(pargs) <> 2:
 
 # default options
 verbose = 0
-overwrite = 0
+overwritefile = 0
 keepfilters = 0
 complevel = None
 complib = None
@@ -179,7 +249,7 @@ for option in opts:
     elif option[0] == '-v':
         verbose = 1
     elif option[0] == '-o':
-        overwrite = 1
+        overwritefile = 1
     elif option[0] == '-R':
         try:
             rng = eval("slice("+option[1]+")")
@@ -216,13 +286,22 @@ for option in opts:
 src = pargs[0].split(':')
 dst = pargs[1].split(':')
 if len(src) == 1:
-    srcfile, srcgroup = src[0], "/"
+    srcfile, srcnode = src[0], "/"
 else:
-    srcfile, srcgroup = src
+    srcfile, srcnode = src
 if len(dst) == 1:
-    dstfile, dstgroup = dst[0], "/"
+    dstfile, dstnode = dst[0], "/"
 else:
-    dstfile, dstgroup = dst
+    dstfile, dstnode = dst
+
+if srcnode == "":
+    # case where filename == "filename:" instead of "filename:/"
+    srcnode = "/"
+
+if dstnode == "":
+    # case where filename == "filename:" instead of "filename:/"
+    dstnode = "/"
+
         
 # Build the Filters instance
 if ((complevel, complib, shuffle, fletcher32) == (None,)*4 or keepfilters):
@@ -251,29 +330,46 @@ if verbose:
     print "+=+"*20
     print "Recursive copy:", recursive
     print "Applying filters:", filters
-    print "Starting copying %s:%s to %s:%s" % (srcfile, srcgroup,
-                                               dstfile, dstgroup)
+    print "Starting copying %s:%s to %s:%s" % (srcfile, srcnode,
+                                               dstfile, dstnode)
     print "+=+"*20
-    
-ngroups, nleafs = copyChilds(srcfile, dstfile, srcgroup, dstgroup,
-                             title=title, recursive=recursive, 
-                             filters=filters, copyuserattrs=copyuserattrs,
-                             overwrite=overwrite, overwrtnodes=overwrtnodes,
-                             start=start, stop=stop, step=step)
+
+# Check whether the specified source node is a group or a leaf
+h5srcfile = tables.openFile(srcfile, 'r')
+srcnodeobject = h5srcfile.getNode(srcnode)
+objectclass = srcnodeobject.__class__.__name__
+# Close the file again
+h5srcfile.close()
+if objectclass == "Group":
+    ngroups, nleafs, nbytescopied = \
+             copyChilds(srcfile, dstfile, srcnode, dstnode,
+                        title=title, recursive=recursive, 
+                        filters=filters, copyuserattrs=copyuserattrs,
+                        overwritefile=overwritefile, overwrtnodes=overwrtnodes,
+                        start=start, stop=stop, step=step)
+else:
+    # If not a Group, it should be a Leaf
+    ngroups, nleafs, nbytescopied = \
+             copyLeaf(srcfile, dstfile, srcnode, dstnode,
+                      title=title,
+                      filters=filters, copyuserattrs=copyuserattrs,
+                      overwritefile=overwritefile, overwrtnodes=overwrtnodes,
+                      start=start, stop=stop, step=step)
+# Gather some statistics
 t2 = time.time()
 cpu2 = time.clock()
 tcopy = round(t2-t1, 3)
 cpucopy = round(cpu2-cpu1, 3)
 tpercent = int(round(cpucopy/tcopy, 2)*100)
-sizedst = os.stat(dstfile)[6]  # The size of the destination file
 if verbose:
     print "Groups copied:", ngroups, " Leaves copied:", nleafs
     if copyuserattrs:
         print "User attrs copied"
     else:
         print "User attrs not copied"
+    print "KBytes copied:", round(nbytescopied/1024.,3)
     print "Time copying: %s s (real) %s s (cpu)  %s%%" % \
           (tcopy, cpucopy, tpercent)
     print "Copied nodes/sec: ", round((ngroups+nleafs) / float(tcopy),1)
-    print "Copied KB/s :", int(sizedst / (tcopy * 1024))
+    print "Copied KB/s :", int(nbytescopied / (tcopy * 1024))
 
