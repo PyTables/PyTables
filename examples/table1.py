@@ -13,7 +13,7 @@ fileh = openFile("table1.h5", mode = "w")
 group = fileh.createGroup(fileh.root, "newgroup")
 
 # Create a new table in newgroup group
-table = fileh.createTable(group, 'table', Particle, "A table",1)
+table = fileh.createTable(group, 'table', Particle, "A table", Filters(1))
 particle = table.row
 
 # Fill the table with 10 particles

@@ -113,13 +113,14 @@ class BasicTestCase(unittest.TestCase):
             self.initRecArray()
         for j in range(3):
             # Create a table
+            filterprops = Filters(complevel = self.compress,
+                                  shuffle = self.shuffle,
+                                  fletcher32 = self.fletcher32,
+                                  complib = self.complib)
             table = self.fileh.createTable(group, 'table'+str(j), self.record,
                                            title = self.title,
-                                           compress = self.compress,
-                                           shuffle = self.shuffle,
-                                           fletcher32 = self.fletcher32,
-                                           expectedrows = self.expectedrows,
-                                           complib=self.complib)
+                                           filters = filterprops,
+                                           expectedrows = self.expectedrows)
             if not self.recarrayinit:
                 # Get the row object associated with the new table
                 row = table.row
@@ -486,23 +487,22 @@ class BasicTestCase(unittest.TestCase):
         table = self.fileh.getNode("/table0")
 
         # Check filters:
-        if self.compress <> table.complevel and verbose:
+        if self.compress <> table.filters.complevel and verbose:
             print "Error in compress. Class:", self.__class__.__name__
-            print "self, table:", self.compress, table.complevel
+            print "self, table:", self.compress, table.filters.complevel
         tinfo = whichLibVersion(self.complib)
         if tinfo[0] == 0:
             self.complib = "zlib"
-        assert table.complib == self.complib
-        assert table.complevel == self.compress
-        if self.shuffle <> table.shuffle and verbose:
+        assert table.filters.complib == self.complib
+        assert table.filters.complevel == self.compress
+        if self.shuffle <> table.filters.shuffle and verbose:
             print "Error in shuffle. Class:", self.__class__.__name__
-            print "self, table:", self.shuffle, table.shuffle
-        assert self.shuffle == table.shuffle
-        if self.fletcher32 <> table.fletcher32 and verbose:
+            print "self, table:", self.shuffle, table.filters.shuffle
+        assert self.shuffle == table.filters.shuffle
+        if self.fletcher32 <> table.filters.fletcher32 and verbose:
             print "Error in fletcher32. Class:", self.__class__.__name__
-            print "self, table:", self.fletcher32, table.fletcher32
-        assert self.fletcher32 == table.fletcher32
-        
+            print "self, table:", self.fletcher32, table.filters.fletcher32
+        assert self.fletcher32 == table.filters.fletcher32
 
 class BasicWriteTestCase(BasicTestCase):
     title = "BasicWrite"
@@ -634,10 +634,11 @@ class BasicRangeTestCase(unittest.TestCase):
         group = self.rootgroup
         for j in range(3):
             # Create a table
+            filterprops = Filters(complevel = self.compress,
+                                  shuffle = self.shuffle)
             table = self.fileh.createTable(group, 'table'+str(j), self.record,
                                            title = self.title,
-                                           compress = self.compress,
-                                           shuffle = self.shuffle,
+                                           filters = filterprops,
                                            expectedrows = self.expectedrows)
             # Get the row object associated with the new table
             row = table.row
@@ -1252,16 +1253,14 @@ class CopyTestCase(unittest.TestCase):
         assert table1.colnames == table2.colnames
         assert table1.coltypes == table2.coltypes
         assert table1.colshapes == table2.colshapes
-#         print "colobjects(1)-->", table1.description._v_ColObjects
-#         print "colobjects(2)-->", table2.description._v_ColObjects
         # This could be not the same when re-opening the file
         #assert table1.description._v_ColObjects == table2.description._v_ColObjects
         # Leaf attributes
         assert table1.title == table2.title
-        assert table1.complevel == table2.complevel
-        assert table1.complib == table2.complib
-        assert table1.shuffle == table2.shuffle
-        assert table1.fletcher32 == table2.fletcher32
+        assert table1.filters.complevel == table2.filters.complevel
+        assert table1.filters.complib == table2.filters.complib
+        assert table1.filters.shuffle == table2.filters.shuffle
+        assert table1.filters.fletcher32 == table2.filters.fletcher32
 
         # Close the file
         fileh.close()
@@ -1316,10 +1315,10 @@ class CopyTestCase(unittest.TestCase):
         assert table1.colshapes == table2.colshapes
         # Leaf attributes
         assert table1.title == table2.title
-        assert table1.complevel == table2.complevel
-        assert table1.complib == table2.complib
-        assert table1.shuffle == table2.shuffle
-        assert table1.fletcher32 == table2.fletcher32
+        assert table1.filters.complevel == table2.filters.complevel
+        assert table1.filters.complib == table2.filters.complib
+        assert table1.filters.shuffle == table2.filters.shuffle
+        assert table1.filters.fletcher32 == table2.filters.fletcher32
 
         # Close the file
         fileh.close()
@@ -1377,10 +1376,10 @@ class CopyTestCase(unittest.TestCase):
         assert table1.colshapes == table2.colshapes
         # Leaf attributes
         assert "title table2" == table2.title
-        assert table1.complevel == table2.complevel
-        assert table1.complib == table2.complib
-        assert table1.shuffle == table2.shuffle
-        assert table1.fletcher32 == table2.fletcher32
+        assert table1.filters.complevel == table2.filters.complevel
+        assert table1.filters.complib == table2.filters.complib
+        assert table1.filters.shuffle == table2.filters.shuffle
+        assert table1.filters.fletcher32 == table2.filters.fletcher32
 
         # Close the file
         fileh.close()
@@ -1404,7 +1403,8 @@ class CopyTestCase(unittest.TestCase):
 
         # Copy to another table in another group
         group1 = fileh.createGroup("/", "group1")
-        table2 = table1.copy(group1, 'table2', compress=6)
+        table2 = table1.copy(group1, 'table2',
+                             filters=Filters(complevel=6))
 
         if self.close:
             if verbose:
@@ -1435,10 +1435,10 @@ class CopyTestCase(unittest.TestCase):
         assert table1.colshapes == table2.colshapes
         # Leaf attributes
         assert table1.title == table2.title
-        assert 6 == table2.complevel
-        assert table1.complib == table2.complib
-        assert table1.shuffle == table2.shuffle
-        assert table1.fletcher32 == table2.fletcher32
+        assert 6 == table2.filters.complevel
+        assert table1.filters.complib == table2.filters.complib
+        assert 1 == table2.filters.shuffle
+        assert table1.filters.fletcher32 == table2.filters.fletcher32
 
         # Close the file
         fileh.close()
@@ -1464,7 +1464,9 @@ class CopyTestCase(unittest.TestCase):
         table1.attrs.attr2 = 2
         # Copy to another table in another group
         group1 = fileh.createGroup("/", "group1")
-        table2 = table1.copy(group1, 'table2', compress=6, copyuserattrs=1)
+        table2 = table1.copy(group1, 'table2',
+                             copyuserattrs=1,
+                             filters=Filters(complevel=6))
 
         if self.close:
             if verbose:
@@ -1493,10 +1495,10 @@ class CopyTestCase(unittest.TestCase):
         assert table1.colshapes == table2.colshapes
         # Leaf attributes
         assert table1.title == table2.title
-        assert 6 == table2.complevel
-        assert table1.complib == table2.complib
-        assert table1.shuffle == table2.shuffle
-        assert table1.fletcher32 == table2.fletcher32
+        assert 6 == table2.filters.complevel
+        assert table1.filters.complib == table2.filters.complib
+        assert 1 == table2.filters.shuffle
+        assert table1.filters.fletcher32 == table2.filters.fletcher32
         # User attributes
         table2.attrs.attr1 == "attr1"
         table2.attrs.attr2 == 2
@@ -1525,7 +1527,9 @@ class CopyTestCase(unittest.TestCase):
         table1.attrs.attr2 = 2
         # Copy to another table in another group
         group1 = fileh.createGroup("/", "group1")
-        table2 = table1.copy(group1, 'table2', compress=6, copyuserattrs=0)
+        table2 = table1.copy(group1, 'table2',
+                             copyuserattrs=0,
+                             filters=Filters(complevel=6))
 
         if self.close:
             if verbose:
@@ -1554,10 +1558,10 @@ class CopyTestCase(unittest.TestCase):
         assert table1.colshapes == table2.colshapes
         # Leaf attributes
         assert table1.title == table2.title
-        assert 6 == table2.complevel
-        assert table1.complib == table2.complib
-        assert table1.shuffle == table2.shuffle
-        assert table1.fletcher32 == table2.fletcher32
+        assert 6 == table2.filters.complevel
+        assert table1.filters.complib == table2.filters.complib
+        assert 1 == table2.filters.shuffle
+        assert table1.filters.fletcher32 == table2.filters.fletcher32
         # User attributes
         table2.attrs.attr1 == None
         table2.attrs.attr2 == None

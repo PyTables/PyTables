@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.32 2004/01/13 12:31:45 falted Exp $
+#       $Id: Leaf.py,v 1.33 2004/01/27 20:28:34 falted Exp $
 #
 ########################################################################
 
@@ -15,6 +15,7 @@ See Leaf class docstring for more info.
 
 Classes:
 
+    Filters
     Leaf
 
 Functions:
@@ -27,12 +28,78 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.32 $"
+__version__ = "$Revision: 1.33 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize
 from AttributeSet import AttributeSet
 import hdf5Extension
+
+class Filters:
+    """Container for filter properties
+
+    Instance variables:
+
+        complevel -- the compression level (0 means no compression)
+        complib -- the compression filter used (in case of compressed dataset)
+        shuffle -- whether the shuffle filter is active or not
+        fletcher32 -- whether the fletcher32 filter is active or not
+
+    """
+
+    def __init__(self, complevel=0, complib="zlib", shuffle=1, fletcher32=0):
+        """Create a new Filters instance
+        
+        compress -- Specifies a compress level for data. The allowed
+            range is 0-9. A value of 0 disables compression and this
+            is the default.
+
+        complib -- Specifies the compression library to be used. Right
+            now, "zlib", "lzo" and "ucl" values are supported.
+
+        shuffle -- Whether or not to use the shuffle filter in the
+            HDF5 library. This is normally used to improve the
+            compression ratio. A value of 0 disables shuffling and 1
+            makes it active. The default value depends on whether
+            compression is enabled or not; if compression is enabled,
+            shuffling defaults to be active, else shuffling is
+            disabled.
+
+        fletcher32 -- Whether or not to use the fletcher32 filter in
+            the HDF5 library. This is used to add a checksum on each
+            data chunk. A value of 0 disables the checksum and it is
+            the default.
+
+            """
+        if complib not in ["zlib","lzo","ucl"]:
+            raise ValueError, "Wrong \'complib\' parameter value: '%s'. It only can take the values: 'zlib', 'lzo' and 'ucl'." %  (str(complib))
+        if shuffle and not complevel:
+            # Shuffling and not compressing makes non sense
+            shuffle = 0
+        self.complevel = complevel
+        self.shuffle = shuffle
+        self.fletcher32 = fletcher32
+        # Select the library to do compression
+        if hdf5Extension.whichLibVersion(complib)[0]:
+            self.complib = complib
+        else:
+            warnings.warn( \
+"%s compression library is not available. Using zlib instead!." %(complib))
+            self.complib = "zlib"   # Should always exists
+
+    def __str__(self):
+        """The string reprsentation choosed for this object is its pathname
+        in the HDF5 object tree.
+        """
+        
+        filters = ""
+        if self.fletcher32:
+            filters += ", fletcher32"
+        if self.complevel:
+            if self.shuffle:
+                filters += ", shuffle"
+            filters += ", %s(%s)" % (self.complib, self.complevel)
+        return filters
 
 class Leaf:
     """A class to place common functionality of all Leaf objects.
@@ -61,10 +128,7 @@ class Leaf:
         title -- the leaf title (actually a property)
         shape -- the leaf shape
         byteorder -- the byteorder of the leaf
-        complevel -- the compression level (0 means no compression)
-        complib -- the compression filter used (in case of compressed dataset)
-        shuffle -- whether the shuffle filter is active or not
-        fletcher32 -- whether the fletcher32 filter is active or not
+        filters -- information for active filters
         attrs -- The associated AttributeSet instance
 
     """
@@ -87,64 +151,52 @@ class Leaf:
             self._create()
         else:
             self._open()
-        # Attach the AttributeSet attribute
-        self.attrs = AttributeSet(self)  # 1.6s/3.7s del temps
-        # Once the AttributeSet instance has been created, get the title
-        #self.title = self.attrs.TITLE   # 0.35s/2.7s del temps
-        # Get the compression filters and levels
+
+    # Define attrs as a property. This saves us 0.7s/3.8s
+    def _get_attrs (self):
+        return AttributeSet(self)
+    # attrs can't be set or deleted by the user
+    attrs = property(_get_attrs, None, None, "Attrs of this object")
 
     # Define title as a property
-    def get_title (self):
+    def _get_title (self):
         return self.attrs.TITLE
     
-    def set_title (self, title):
+    def _set_title (self, title):
         self.attrs.TITLE = title
-
     # Define a property.  The 'delete this attribute'
     # method is defined as None, so the attribute can't be deleted.
-    title = property(get_title, set_title, None,
-                     "Title of this object")
+    title = property(_get_title, _set_title, None, "Title of this object")
 
-    def _g_setFilters(self, complevel, complib, shuffle, fletcher32):
-        if shuffle and not complevel:
-            # Shuffling and not compressing makes not sense
-            shuffle = 0
-        self.complevel = complevel
-        self.complib = complib
-        self.shuffle = shuffle
-        self.fletcher32 = fletcher32
-        if complevel:
-            if hdf5Extension.whichLibVersion(complib)[0]:
-                self.complib = complib
-            else:
-                warnings.warn( \
-"%s compression library is not available. Using zlib instead!." %(complib))
-                self.complib = "zlib"   # Should always exists
+    def _g_setFilters(self, filters):
+        if filters is None:
+            # If no filters, return the defaults
+            return Filters()
+        else:
+            return filters
 
     def _g_getFilters(self):
-        # Default values
-        self.complib = "zlib"
-        self.complevel = 0
-        self.shuffle = 0
-        self.fletcher32 = 0
-        filters = hdf5Extension._getFilters(self._v_parent._v_objectID,
-                                            self._v_hdf5name)
-        if filters:
-            for name in filters:
+        # Create a filters instance with default values
+        filters = Filters()
+        # Get a dictionary with all the filters
+        filtersDict = hdf5Extension._getFilters(self._v_parent._v_objectID,
+                                                self._v_hdf5name)
+        if filtersDict:
+            for name in filtersDict:
                 if name.startswith("lzo"):
-                    self.complib = "lzo"
-                    self.complevel = filters[name][0]
+                    filters.complib = "lzo"
+                    filters.complevel = filtersDict[name][0]
                 elif name.startswith("ucl"):
-                    self.complib = "ucl"
-                    self.complevel = filters[name][0]
+                    filters.complib = "ucl"
+                    filters.complevel = filtersDict[name][0]
                 elif name.startswith("deflate"):
-                    self.complib = "zlib"
-                    self.complevel = filters[name][0]
+                    filters.complib = "zlib"
+                    filters.complevel = filtersDict[name][0]
                 elif name.startswith("shuffle"):
-                    self.shuffle = 1
+                    filters.shuffle = 1
                 elif name.startswith("fletcher32"):
-                    self.fletcher32 = 1
-        return
+                    filters.fletcher32 = 1
+        return filters
         
     def _g_renameObject(self, newname):
         """Rename this leaf in the object tree as well as in the HDF5 file."""
@@ -250,20 +302,10 @@ class Leaf:
         in the HDF5 object tree.
         """
         
-        # The pathname
-        pathname = self._v_pathname
         # Get this class name
         classname = self.__class__.__name__
-        shape = str(self.shape)
         # The title
         title = self.attrs.TITLE
-        filters = ""
-        if self.fletcher32:
-            filters += ", fletcher32"
-        if self.complevel:
-            if self.shuffle:
-                filters += ", shuffle"
-            filters += ", %s(%s)" % (self.complib, self.complevel)
         return "%s (%s%s%s) %r" % \
-               (pathname, classname, shape, filters, title)
+               (self._v_pathname, classname, self.shape, self.filters, title)
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.54 2004/01/13 12:31:45 falted Exp $
+#       $Id: Array.py,v 1.55 2004/01/27 20:28:34 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.54 $"
+__version__ = "$Revision: 1.55 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -35,7 +35,7 @@ obversion = "2.0"    # Added an optional EXTDIM attribute
 
 
 import types, warnings, sys
-from Leaf import Leaf
+from Leaf import Leaf, Filters
 from utils import calcBufferSize, processRange, processRangeRead
 import hdf5Extension
 import numarray
@@ -88,10 +88,8 @@ class Array(Leaf, hdf5Extension.Array, object):
 
         """
         self.new_title = title
-        self.complevel = 0  # An Array can not be compressed
-        self.complib = "zlib"  # Some default value
-        self.shuffle = 0   # Values of an Array cannot be shuffled
-        self.fletcher32 = 0   # Checksum is not applicable to Array
+        # Assign some filter values by default
+        self.filters = Filters()
         self.extdim = -1   # An Array object is not enlargeable
         # Check if we have to create a new object or read their contents
         # from disk
@@ -128,7 +126,7 @@ class Array(Leaf, hdf5Extension.Array, object):
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
                             calcBufferSize(self.rowsize, self._v_expectednrows,
-                                           self.complevel)
+                                           self.filters.complevel)
 
         self.shape = naarr.shape
         if naarr.shape:
@@ -237,7 +235,8 @@ class Array(Leaf, hdf5Extension.Array, object):
             self.nrows = 1   # Scalar case
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
-                   calcBufferSize(self.rowsize, self.nrows, self.complevel)
+                   calcBufferSize(self.rowsize, self.nrows,
+                                  self.filters.complevel)
 
     def iterrows(self, start=None, stop=None, step=None):
         """Iterator over all the rows or a range"""

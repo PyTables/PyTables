@@ -25,7 +25,6 @@ class TreeTestCase(unittest.TestCase):
     expectedrows = 10
     appendrows = 5
     fast = 0
-    compress = 0
 
     def setUp(self):
         # Create a temporary file
@@ -44,7 +43,7 @@ class TreeTestCase(unittest.TestCase):
             # Create a table
             table = self.h5file.createTable(group, 'table'+str(j), Record,
                                         title = self.title,
-                                        compress = self.compress,
+                                        filters = None,
                                         expectedrows = self.expectedrows)
             # Get the record object associated with the new table
             d = table.row 

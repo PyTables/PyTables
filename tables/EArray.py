@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.8 2004/01/13 12:31:45 falted Exp $
+#       $Id: EArray.py,v 1.9 2004/01/27 20:28:34 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.8 $"
+__version__ = "$Revision: 1.9 $"
 # default version for EARRAY objects
 obversion = "1.0"    # initial version
 
@@ -83,8 +83,7 @@ class EArray(Array, hdf5Extension.Array, object):
     """
     
     def __init__(self, object = None, title = "",
-                 compress = 0, complib = "zlib",
-                 shuffle = 1, fletcher32 = 0, expectednrows = 1000):
+                 filters = None, expectednrows = 1000):
         """Create EArray instance.
 
         Keyword arguments:
@@ -98,22 +97,9 @@ class EArray(Array, hdf5Extension.Array, object):
 
         title -- Sets a TITLE attribute on the array entity.
 
-        compress -- Specifies a compress level for data. The allowed
-            range is 0-9. A value of 0 disables compression and this
-            is the default.
-
-        complib -- Specifies the compression library to be used. Right
-            now, "zlib", "lzo" and "ucl" values are supported.
-
-        shuffle -- Whether or not to use the shuffle filter in the
-            HDF5 library. This is normally used to improve the
-            compression ratio. A value of 0 disables shuffling and it
-            is the default.
-
-        fletcher32 -- Whether or not to use the fletcher32 filter in
-            the HDF5 library. This is used to add a checksum on each
-            data chunk. A value of 0 disables the checksum and it is
-            the default.
+        filters -- An instance of the Filters class that provides
+            information about the desired I/O filters to be applied
+            during the life of this object.
 
         expectedrows -- In the case of enlargeable arrays this
             represents an user estimate about the number of row
@@ -132,7 +118,7 @@ class EArray(Array, hdf5Extension.Array, object):
         if object is not None:
             self._v_new = 1
             self.object = object
-            self._g_setFilters(compress, complib, shuffle, fletcher32)
+            self.filters = self._g_setFilters(filters)
         else:
             self._v_new = 0
             
@@ -169,7 +155,8 @@ class EArray(Array, hdf5Extension.Array, object):
                 self.rowsize *= i
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
-           calcBufferSize(self.rowsize, self._v_expectednrows, self.complevel)
+           calcBufferSize(self.rowsize, self._v_expectednrows,
+                          self.filters.complevel)
 
         self.shape = naarr.shape
         self.nrows = naarr.shape[self.extdim]
@@ -226,10 +213,11 @@ class EArray(Array, hdf5Extension.Array, object):
             else:
                 self.nrows = self.shape[i]
         # Get info about existing filters
-        self._g_getFilters()
+        self.filters = self._g_getFilters()
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
-                  calcBufferSize(self.rowsize, self.nrows, self.complevel)
+                  calcBufferSize(self.rowsize, self.nrows,
+                                 self.filters.complevel)
 
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""

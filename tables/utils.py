@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.16 2004/01/19 20:54:26 falted Exp $
+#       $Id: utils.py,v 1.17 2004/01/27 20:28:34 falted Exp $
 #
 ########################################################################
 
@@ -143,7 +143,7 @@ def calcBufferSize(rowsize, expectedrows, compress):
 def processRange(nrows, start=None, stop=None, step=1):
     if step and step < 0:
         raise ValueError, "slice step canot be negative"
-    # slice object does not have a indices in python 2.2
+    # slice object does not have a indices method in python 2.2
     # the next is a workaround for that (basically the code for indices
     # has been copied from python2.3 to hdf5Extension.pyx)
     #(start1, stop1, step1) = slice(start, stop, step).indices(nrows)
@@ -170,7 +170,7 @@ def processRangeRead(nrows, start=None, stop=None, step=1):
 "Start (%s) value is greater than number of rows (%s)." % (start, nrows)
 
     return (start, stop, step)
-    
+
 if __name__=="__main__":
     import sys
     import getopt

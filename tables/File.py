@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.68 2004/01/20 20:00:55 falted Exp $
+#       $Id: File.py,v 1.69 2004/01/27 20:28:34 falted Exp $
 #
 ########################################################################
 
@@ -31,10 +31,11 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.68 $"
+__version__ = "$Revision: 1.69 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
+                        # 1.2 was introduced in pytables 0.8
 compatible_formats = [] # Old format versions we can read
                         # Empty means that we support all the old formats
 
@@ -49,7 +50,7 @@ from fnmatch import fnmatch
 
 import hdf5Extension
 from Group import Group
-from Leaf import Leaf
+from Leaf import Leaf, Filters
 from Table import Table
 from Array import Array
 from EArray import EArray
@@ -57,6 +58,20 @@ from VLArray import VLArray
 from UnImplemented import UnImplemented
 from AttributeSet import AttributeSet
 import numarray
+
+def _checkFilters(filters, compress, complib):
+    if (filters is None) and ((compress is not None) or
+                              (complib is not None)):
+        warnings.warn("The use of compress or complib parameters is deprecated. Please, use a Filters() instance instead.", DeprecationWarning)
+        fprops = Filters(complevel=compress, complib="zlib")
+    elif filters is None:
+        fprops = Filters()
+    elif isinstance(filters, Filters):
+        fprops = filters
+    else:
+        raise ValueError, \
+              "filter parameter has to be None or a Filter instance and the passed type is: '%s'" % type(filters)
+    return fprops
 
 def openFile(filename, mode="r", title="", trMap={}, rootUEP="/"):
 
@@ -176,15 +191,12 @@ class File(hdf5Extension.File, object):
 
         createGroup(where, name[, title])
         createTable(where, name, description [, title]
-                    [, compress] [, complib] [, shuffle]
-                    [, fletcher32] [, expectedrows])
+                    [, filters] [, expectedrows])
         createArray(where, name, arrayObject, [, title])
         createEArray(where, name, object [, title]
-                     [, compress] [, complib] [, shuffle]
-                     [, fletcher32] [, expectedrows])
+                     [, filters] [, expectedrows])
         createVLArray(where, name, atom [, title]
-                      [, compress] [, complib] [, shuffle]
-                      [, fletcher32] [, expectedrows])
+                      [, filters] [, expectedsizeinMB])
         getNode(where [, name] [,classname])
         listNodes(where [, classname])
         removeNode(where [, name] [, recursive])
@@ -385,10 +397,9 @@ class File(hdf5Extension.File, object):
         object = getattr(group, name)
         return object
 
-
-    def createTable(self, where, name, description, title = "",
-                    compress = 0, complib = "zlib", shuffle = 1,
-                    fletcher32 = 0, expectedrows = 10000):
+    def createTable(self, where, name, description, title="",
+                    filters=None, expectedrows=10000,
+                    compress=None, complib=None):  # Deprecated
 
         """Create a new Table instance with name "name" in "where" location.
         
@@ -410,25 +421,9 @@ class File(hdf5Extension.File, object):
 
         title -- Sets a TITLE attribute on the table entity.
 
-        compress -- Specifies a compress level for data. The allowed
-            range is 0-9. A value of 0 disables compression and this
-            is the default.
-
-        complib -- Specifies the compression library to be used. Right
-            now, "zlib", "lzo" and "ucl" values are supported.
-
-        shuffle -- Whether or not to use the shuffle filter in the
-            HDF5 library. This is normally used to improve the
-            compression ratio. A value of 0 disables shuffling and 1
-            makes it active. The default value depends on whether
-            compression is enabled or not; if compression is enabled,
-            shuffling defaults to be active, else shuffling is
-            disabled.
-
-        fletcher32 -- Whether or not to use the fletcher32 filter in
-            the HDF5 library. This is used to add a checksum on each
-            data chunk. A value of 0 disables the checksum and it is
-            the default.
+        filters -- An instance of the Filters class that provides
+            information about the desired I/O filters to be applied
+            during the life of this object.
 
         expectedrows -- An user estimate about the number of rows that
             will be on table. If not provided, the default value is
@@ -437,16 +432,12 @@ class File(hdf5Extension.File, object):
             management process time and the amount of memory used.
 
         """
-    
+
         group = self.getNode(where, classname = 'Group')
-        if complib not in ["zlib","lzo","ucl"]:
-            raise ValueError, "Wrong \'complib\' parameter value: '%s'" % \
-                  (str(complib))
-        object = Table(description, title, compress, complib, shuffle,
-                       fletcher32, expectedrows)
+        filters = _checkFilters(filters, compress, complib)
+        object = Table(description, title, filters, expectedrows)
         setattr(group, name, object)
         return object
-
     
     def createArray(self, where, name, object, title = ""):
         
@@ -476,8 +467,8 @@ class File(hdf5Extension.File, object):
 
 
     def createEArray(self, where, name, object, title = "",
-                    compress = 0, complib = "zlib", shuffle = 1,
-                    fletcher32 = 0, expectedrows = 1000):
+                     filters=None, expectedrows = 1000,
+                     compress=None, complib=None):
         
         """Create a new instance EArray with name "name" in "where" location.
 
@@ -498,25 +489,9 @@ class File(hdf5Extension.File, object):
 
         title -- Sets a TITLE attribute on the array entity.
 
-        compress -- Specifies a compress level for data. The allowed
-            range is 0-9. A value of 0 disables compression and this
-            is the default.
-
-        complib -- Specifies the compression library to be used. Right
-            now, "zlib", "lzo" and "ucl" values are supported.
-
-        shuffle -- Whether or not to use the shuffle filter in the
-            HDF5 library. This is normally used to improve the
-            compression ratio. A value of 0 disables shuffling and 1
-            makes it active. The default value depends on whether
-            compression is enabled or not; if compression is enabled,
-            shuffling defaults to be active, else shuffling is
-            disabled.
-
-        fletcher32 -- Whether or not to use the fletcher32 filter in
-            the HDF5 library. This is used to add a checksum on each
-            data chunk. A value of 0 disables the checksum and it is
-            the default.
+        filters -- An instance of the Filters class that provides
+            information about the desired I/O filters to be applied
+            during the life of this object.
 
         expectedrows -- In the case of enlargeable arrays this
             represents an user estimate about the number of row
@@ -530,15 +505,15 @@ class File(hdf5Extension.File, object):
             """
 
         group = self.getNode(where, classname = 'Group')
-        Object = EArray(object, title,
-                        compress, complib, shuffle, fletcher32, expectedrows)
+        filters = _checkFilters(filters, compress, complib)
+        Object = EArray(object, title, filters, expectedrows)
         setattr(group, name, Object)
         return Object
 
 
-    def createVLArray(self, where, name, atom = None, title = "",
-                      compress = 0, complib = "zlib", shuffle = 1,
-                      fletcher32 = 0, expectedsizeinMB = 1.0):
+    def createVLArray(self, where, name, atom=None, title="",
+                      filters=None, expectedsizeinMB=1.0,
+                      compress=None, complib=None):
         
         """Create a new instance VLArray with name "name" in "where" location.
 
@@ -555,25 +530,9 @@ class File(hdf5Extension.File, object):
         atom -- A Atom object representing the shape, type and flavor
             of the atomic object to be saved.
 
-        compress -- Specifies a compress level for data. The allowed
-            range is 0-9. A value of 0 disables compression and this
-            is the default.
-
-        complib -- Specifies the compression library to be used. Right
-            now, "zlib", "lzo" and "ucl" values are supported.
-
-        shuffle -- Whether or not to use the shuffle filter in the
-            HDF5 library. This is normally used to improve the
-            compression ratio. A value of 0 disables shuffling and 1
-            makes it active. The default value depends on whether
-            compression is enabled or not; if compression is enabled,
-            shuffling defaults to be active, else shuffling is
-            disabled.
-
-        fletcher32 -- Whether or not to use the fletcher32 filter in
-            the HDF5 library. This is used to add a checksum on each
-            data chunk. A value of 0 disables the checksum and it is
-            the default.
+        filters -- An instance of the Filters class that provides
+            information about the desired I/O filters to be applied
+            during the life of this object.
 
         expectedsizeinMB -- An user estimate about the size (in MB) in
             the final VLArray object. If not provided, the default
@@ -588,8 +547,8 @@ class File(hdf5Extension.File, object):
         if atom == None:
                 raise ValueError, \
                       "please, expecify an atom argument."
-        Object = VLArray(atom, title, compress, complib, shuffle,
-                         fletcher32, expectedsizeinMB)
+        filters = _checkFilters(filters, compress, complib)
+        Object = VLArray(atom, title, filters, expectedsizeinMB)
         setattr(group, name, Object)
         return Object
 

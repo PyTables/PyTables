@@ -58,11 +58,12 @@ class BasicTestCase(unittest.TestCase):
                 object = Numeric.zeros(typecode=typecode[self.type],
                                        shape=self.shape)
         title = self.__class__.__name__
+        filters = Filters(complevel = self.compress,
+                          complib = self.complib,
+                          shuffle = self.shuffle,
+                          fletcher32 = self.fletcher32)
         earray = self.fileh.createEArray(group, 'earray1', object, title,
-                                         compress = self.compress,
-                                         complib = self.complib,
-                                         shuffle = self.shuffle,
-                                         fletcher32 = self.fletcher32,
+                                         filters = filters,
                                          expectedrows = 1)
 
         # Fill it with rows
@@ -169,22 +170,22 @@ class BasicTestCase(unittest.TestCase):
                 assert len(self.shape) == 1
 
             # Check filters:
-            if self.compress <> earray.complevel and verbose:
+            if self.compress <> earray.filters.complevel and verbose:
                 print "Error in compress. Class:", self.__class__.__name__
-                print "self, earray:", self.compress, earray.complevel
+                print "self, earray:", self.compress, earray.filters.complevel
             tinfo = whichLibVersion(self.complib)
             if tinfo[0] == 0:
                 self.complib = "zlib"
-            assert earray.complib == self.complib
-            assert earray.complevel == self.compress
-            if self.shuffle <> earray.shuffle and verbose:
+            assert earray.filters.complib == self.complib
+            assert earray.filters.complevel == self.compress
+            if self.shuffle <> earray.filters.shuffle and verbose:
                 print "Error in shuffle. Class:", self.__class__.__name__
-                print "self, earray:", self.shuffle, earray.shuffle
-            assert self.shuffle == earray.shuffle
-            if self.fletcher32 <> earray.fletcher32 and verbose:
+                print "self, earray:", self.shuffle, earray.filters.shuffle
+            assert self.shuffle == earray.filters.shuffle
+            if self.fletcher32 <> earray.filters.fletcher32 and verbose:
                 print "Error in fletcher32. Class:", self.__class__.__name__
-                print "self, earray:", self.fletcher32, earray.fletcher32
-            assert self.fletcher32 == earray.fletcher32
+                print "self, earray:", self.fletcher32, earray.filters.fletcher32
+            assert self.fletcher32 == earray.filters.fletcher32
 
     def test02_sssEArray(self):
         """Checking enlargeable array iterator with (start, stop, step)"""

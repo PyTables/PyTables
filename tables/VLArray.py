@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.18 2004/01/14 10:39:14 falted Exp $
+#       $Id: VLArray.py,v 1.19 2004/01/27 20:28:34 falted Exp $
 #
 ########################################################################
 
@@ -30,7 +30,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.18 $"
+__version__ = "$Revision: 1.19 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -272,13 +272,11 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         nrow -- On iterators, this is the index of the row currently
             dealed with.
         nrows -- The total number of rows
-            
 
     """
     
     def __init__(self, atom=None, title = "",
-                 compress = 0, complib = "zlib", shuffle = 1,
-                 fletcher32 = 0, expectedsizeinMB = 1.0):
+                 filters = None, expectedsizeinMB = 1.0):
         """Create the instance Array.
 
         Keyword arguments:
@@ -288,22 +286,10 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         
         title -- Sets a TITLE attribute on the HDF5 array entity.
 
-        compress -- Specifies a compress level for data. The allowed
-            range is 0-9. A value of 0 disables compression and this
-            is the default. A value greater than 0 implies enlargeable
-            Arrays (see above).
+        filters -- An instance of the Filters class that provides
+            information about the desired I/O filters to be applied
+            during the life of this object.
 
-        complib -- Specifies the compression library to be used. Right
-            now, "zlib", "lzo" and "ucl" values are supported.
-
-        shuffle -- Whether or not to use the shuffle filter in HDF5. This
-            is normally used to improve the compression ratio.
-
-        fletcher32 -- Whether or not to use the fletcher32 filter in
-            the HDF5 library. This is used to add a checksum on each
-            data chunk. A value of 0 disables the checksum and it is
-            the default.
-            
         expectedsizeinMB -- An user estimate about the size (in MB) in
             the final VLArray object. If not provided, the default
             value is 1 MB.  If you plan to create both much smaller or
@@ -320,7 +306,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         if atom is not None:
             self.atom = atom
             self._v_new = 1
-            self._g_setFilters(compress, complib, shuffle, fletcher32)
+            self.filters = self._g_setFilters(filters)
         else:
             self._v_new = 0
 
@@ -344,7 +330,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 
         # Compute the optimal chunksize
         self._v_chunksize = calcChunkSize(self._v_expectedsizeinMB,
-                                          self.complevel)
+                                          self.filters.complevel)
         self.nrows = 0     # No rows in creation time
         self.shape = (0,)
         self._createArray(self.new_title)
@@ -355,18 +341,13 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         # Check for type
         if not hasattr(naarr, "type"):  # To deal with string objects
             datatype = records.CharType
-            # Made an additional check for strings
-#             if self.atom.itemsize <> naarr.itemsize():
-#                 raise TypeError, \
-# """The object '%s' has not a base string size of '%s'.""" % \
-# (naarr, self.atom.itemsize)
         else:
             datatype = naarr.type()
         if str(datatype) <> str(self.atom.type):
             raise TypeError, \
 """The object '%s' is not composed of elements of type '%s'.""" % \
 (naarr, self.atom.type)
-
+        # Check for shape
         if len(naarr):
             if hasattr(naarr, "shape") and naarr.shape == self.atom.shape:
                 # Case of only one element
@@ -379,8 +360,8 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
                 else:
                     shape = naarr[0].shape
                 self._nobjects = len(naarr)
-                if (type(self.atom.shape) in [types.IntType, types.LongType] and
-                    type(shape) is types.TupleType):
+                if (type(self.atom.shape) in [types.IntType, types.LongType]
+                    and type(shape) is types.TupleType):
                     # To allow that a shape of 2 == (2,)
                     atom_shape = (self.atom.shape,)
                 else:
@@ -505,7 +486,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
                 self.atom = Atom(self._atomictype, self._atomicshape,
                                  self.flavor)
         # Get info about existing filters
-        self._g_getFilters()
+        self.filters = self._g_getFilters()
 
     def iterrows(self, start=None, stop=None, step=None):
         """Iterator over all the rows or a range"""

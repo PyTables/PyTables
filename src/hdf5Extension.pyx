@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.111 2004/01/24 18:03:29 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.112 2004/01/27 20:28:34 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.111 $"
+__version__ = "$Revision: 1.112 $"
 
 
 import sys, os
@@ -826,7 +826,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.111 2004/01/24 18:03:29 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.112 2004/01/27 20:28:34 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1370,7 +1370,8 @@ cdef class Table:
 
     # Compute some values for buffering and I/O parameters
     (self._v_maxTuples, self._v_chunksize) = \
-      calcBufferSize(self.rowsize, self._v_expectedrows, self.complevel)
+      calcBufferSize(self.rowsize, self._v_expectedrows,
+                     self.filters.complevel)
     
     # test if there is data to be saved initially
     if hasattr(self, "_v_recarray"):
@@ -1389,8 +1390,8 @@ cdef class Table:
     oid = H5TBmake_table(title, self.parent_id, self.name,
                          nrecords, self.nrows, self.rowsize, self.field_names,
                          self.field_offset, field_types, self._v_chunksize,
-                         fill_data, self.complevel, complib,
-                         self.shuffle, self.fletcher32, data)
+                         fill_data, self.filters.complevel, complib,
+                         self.filters.shuffle, self.filters.fletcher32, data)
     if oid < 0:
       raise RuntimeError("Problems creating the table")
     self.objectID = oid
@@ -2011,7 +2012,7 @@ cdef class Array:
 
     # Save the array
     flavor = PyString_AsString(self.flavor)
-    complib = PyString_AsString(self.complib)
+    complib = PyString_AsString(self.filters.complib)
     version = PyString_AsString(self._v_version)
     if hasattr(self, "extdim"):
       extdim = self.extdim
@@ -2020,8 +2021,8 @@ cdef class Array:
     oid = H5ARRAYmake(self.parent_id, self.name, title,
                       flavor, version, self.rank, self.dims, self.extdim,
                       self.type_id, self._v_maxTuples, rbuf,
-                      self.complevel, complib, self.shuffle, self.fletcher32,
-                      rbuf)
+                      self.filters.complevel, complib, self.filters.shuffle,
+                      self.filters.fletcher32, rbuf)
     if oid < 0:
       raise RuntimeError("Problems creating the (E)Array.")
     self.objectID = oid
@@ -2241,14 +2242,14 @@ cdef class VLArray:
 
     # Manually convert some string values that can't be done automatically
     flavor = PyString_AsString(self.atom.flavor)
-    complib = PyString_AsString(self.complib)
+    complib = PyString_AsString(self.filters.complib)
     version = PyString_AsString(self._v_version)
     # Create the vlarray
     oid = H5VLARRAYmake(self.parent_id, self.name, title,
                         flavor, version, self.rank, self.scalar,
                         self.dims, self.type_id, self._v_chunksize, rbuf,
-                        self.complevel, complib, self.shuffle,
-                        self.fletcher32, rbuf)
+                        self.filters.complevel, complib, self.filters.shuffle,
+                        self.filters.fletcher32, rbuf)
     if oid < 0:
       raise RuntimeError("Problems creating the VLArray.")
     self.objectID = oid

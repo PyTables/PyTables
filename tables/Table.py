@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.96 2004/01/26 10:24:24 falted Exp $
+#       $Id: Table.py,v 1.97 2004/01/27 20:28:34 falted Exp $
 #
 ########################################################################
 
@@ -16,6 +16,8 @@ See Table class docstring for more info.
 Classes:
 
     Table
+    Cols
+    Column
 
 Functions:
 
@@ -27,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.96 $"
+__version__ = "$Revision: 1.97 $"
 
 from __future__ import generators
 import sys
@@ -75,7 +77,8 @@ class Table(Leaf, hdf5Extension.Table, object):
     (NumArray or RecArray) objects.
     
     Methods:
-    
+
+        append(rows)
         iterrows()
         read([start] [, stop] [, step] [, field [, flavor]])
         removeRows(start, stop)
@@ -86,6 +89,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         row -- a reference to the Row object associated with this table
         nrows -- the number of rows in this table
         rowsize -- the size, in bytes, of each row
+        cols -- accessor to the columns using a natural name schema
         colnames -- the field names for the table (list)
         coltypes -- the type class for the table fields (dictionary)
         colshapes -- the shapes for the table fields (dictionary)
@@ -93,8 +97,7 @@ class Table(Leaf, hdf5Extension.Table, object):
     """
 
     def __init__(self, description = None, title = "",
-                 compress = 0, complib="zlib", shuffle=0,
-                 fletcher32=0, expectedrows = 10000):
+                 filters = None, expectedrows = 10000):
         """Create an instance Table.
 
         Keyword arguments:
@@ -107,25 +110,9 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         title -- Sets a TITLE attribute on the HDF5 table entity.
 
-        compress -- Specifies a compress level for data. The allowed
-            range is 0-9. A value of 0 disables compression. The
-            default is 0 (no compression).
-
-        complib -- Specifies the compression library to be used. Right
-            now, "zlib", "lzo" and "ucl" values are supported.
-
-        shuffle -- Whether or not to use the shuffle filter in the
-            HDF5 library. This is normally used to improve the
-            compression ratio. A value of 0 disables shuffling and 1
-            makes it active. The default value depends on whether
-            compression is enabled or not; if compression is enabled,
-            shuffling defaults to be active, else shuffling is
-            disabled.
-
-        fletcher32 -- Whether or not to use the fletcher32 filter in
-            the HDF5 library. This is used to add a checksum on each
-            data chunk. A value of 0 disables the checksum and it is
-            the default.
+        filters -- An instance of the Filters class that provides
+            information about the desired I/O filters to be applied
+            during the life of this object.
 
         expectedrows -- An user estimate about the number of rows
             that will be on table. If not provided, the default value
@@ -146,7 +133,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Initialize this object in case is a new Table
         if isinstance(description, types.DictType):
             # Dictionary case
-            #self.description = metaIsDescription("", (), description)()
             self.description = Description(description)
             # Flag that tells if this table is new or has to be read from disk
             self._v_new = 1
@@ -175,8 +161,8 @@ class Table(Leaf, hdf5Extension.Table, object):
   IsDescription subclass, dictionary or RecArray."""
 
         if self._v_new:
-            self._g_setFilters(compress, complib, shuffle, fletcher32)
-
+            self.filters = self._g_setFilters(filters)
+            
     def _newBuffer(self, init=1):
         """Create a new recarray buffer for I/O purposes"""
 
@@ -240,7 +226,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.colnames = tuple(self.description.__names__)
         self._v_fmt = self.description._v_fmt
         # Create the table on disk
-        self._createTable(self.new_title, self.complib)
+        self._createTable(self.new_title, self.filters.complib)
         # Initialize the shape attribute
         self.shape = (self.nrows,)
         # Get the column types
@@ -294,10 +280,10 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.colshapes = self.description._v_shapes
         self.colitemsizes = self.description._v_itemsizes
         # Get info about existing filters
-        self._g_getFilters()
+        self.filters = self._g_getFilters()
         # Compute buffer size
         (self._v_maxTuples, self._v_chunksize) = \
-              calcBufferSize(self.rowsize, self.nrows, self.complevel)
+              calcBufferSize(self.rowsize, self.nrows, self.filters.complevel)
         # Update the shape attribute
         self.shape = (self.nrows,)
         # Associate a Row object to table
@@ -606,9 +592,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.shape = (self.nrows,)
         return
 
-    def copy(self, where, name, start=0, copyuserattrs=1, stop=None, step=1,
-             title=None, compress=None, complib=None, shuffle=None,
-             fletcher32=None):
+    def copy(self, where, name, start=0, stop=None, step=1,
+             title=None, filters=None, copyuserattrs=1):
         """Copy this table to other location"""
              
         if isinstance(where, str):
@@ -631,14 +616,10 @@ class Table(Leaf, hdf5Extension.Table, object):
             stop = self.nrows
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
         if title == None: title = self.title
-        if compress == None: compress = self.complevel
-        if complib == None: complib = self.complib
-        if shuffle == None: shuffle = self.shuffle
-        if fletcher32 == None: fletcher32 = self.fletcher32
+        if filters == None: filters = self.filters
         # Build the new Table object
         object = Table(self.description._v_ColObjects, title=title,
-                       compress=compress, complib=complib,
-                       shuffle=shuffle, fletcher32=fletcher32,
+                       filters=filters,
                        expectedrows=self.nrows)
         setattr(group, name, object)
         # Now, fill the new table with values from the old one
@@ -695,4 +676,155 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         return "%s\n  description := %r\n  byteorder := %s" % \
                (str(self), self.description, self.byteorder)
+               
+
+    # Define cols as a property
+    def _get_cols (self):
+        return Cols(self)
+    
+    # Define a property.  The 'set this attribute' and 'delete this attribute'
+    # methods are defined as None, so the cols can't be set or deleted
+    # by the user.
+    cols = property(_get_cols, None, None, "Columns accessor")
+
+
+class Cols(object):
+    """This is a container for columns in a table
+
+    It provides methods to get Column objects that gives access to the
+    data in the column.
+
+    Like with Group instances and AttributeSet instances, the natural
+    naming is used, i.e. you can access the columns on a table like if
+    they were normal Cols attributes.
+    
+    Instance variables:
+
+        _v_table -- The parent table instance
+        _v_colnames -- List with all column names
+
+    Methods:
+    
+        __getattr__(colname)
+        
+    """
+
+    def __init__(self, table):
+        """Create the container to keep the column information.
+
+        table -- The parent table
+        
+        """
+        self.__dict__["_v_table"] = table
+        self.__dict__["_v_colnames"] = table.colnames
+        # Put the column in the local dictionary
+        for name in table.colnames:
+            self.__dict__[name] = Column(table, name)
+
+    def __getitem__(self, name):
+        """Get the column named "name" as an item."""
+
+        if not isinstance(name, types.StringType):
+            raise TypeError, \
+"Only strings are allowed as items of a Cols instance. You passed the object: %s" % name
+        # If attribute does not exist, return None
+        if not name in self._v_colnames:
+            raise AttributeError, \
+"Column name '%s' does not exist in table:\n'%s'" % (name, str(self._v_table))
+
+        return self.__dict__[name]
+
+    def __str__(self):
+        """The string representation for this object."""
+        # The pathname
+        pathname = self._v_table._v_pathname
+        # Get this class name
+        classname = self.__class__.__name__
+        # The number of columns
+        ncols = len(self._v_colnames)
+        return "%s.cols (%s), %s columns" % (pathname, classname, ncols)
+
+    def __repr__(self):
+        """A detailed string representation for this object."""
+
+        out = str(self) + "\n"
+        for name in self._v_colnames:
+            # Get this class name
+            classname = getattr(self, name).__class__.__name__
+            # The shape for this column
+            shape = self._v_table.colshapes[name]
+            # The type
+            tcol = self._v_table.coltypes[name]
+            if shape == 1:
+                shape = (1,)
+            out += "  %s (%s%s, %s)" % (name, classname, shape, tcol) + "\n"
+        return out
+               
+class Column(object):
+    """This is an accessor for the actual data in a table column
+
+    Instance variables:
+
+        table -- The parent table instance
+        name -- The name of the associated column
+
+    Methods:
+    
+        __getitem__(key)
+        
+    """
+
+    def __init__(self, table, name):
+        """Create the container to keep the column information.
+
+        table -- The parent table instance
+        name -- The name of the column that is associated with this object
+        
+        """
+        self.table = table
+        self.name = name
+
+    def __getitem__(self, key):
+        """Returns a column element or slice
+
+        It takes different actions depending on the type of the
+        "key" parameter:
+
+        If "key" is an integer, the corresponding element in the
+        column is returned as a NumArray/CharArray, or a scalar
+        object, depending on its shape. If "key" is a slice, the row
+        slice determined by this slice is returned as a NumArray or
+        CharArray object (whatever is appropriate).
+
+        """
+        
+        if isinstance(key, types.IntType):
+            (start, stop, step) = processRange(self.table.nrows, key, key+1, 1)
+            return self.table._read(start, stop, step, self.name, None)[0]
+        elif isinstance(key, types.SliceType):
+            (start, stop, step) = processRange(self.table.nrows, key.start,
+                                               key.stop, key.step)
+            return self.table._read(start, stop, step, self.name, None)
+        else:
+            raise TypeError, "'%s' key type is not valid in this context" % \
+                  (key)
+
+    def __str__(self):
+        """The string representation for this object."""
+        # The pathname
+        pathname = self.table._v_pathname
+        # Get this class name
+        classname = self.__class__.__name__
+        # The shape for this column
+        shape = self.table.colshapes[self.name]
+        if shape == 1:
+            shape = (1,)
+        # The type
+        tcol = self.table.coltypes[self.name]
+        return "%s.cols.%s (%s%s, %s)" % (pathname, self.name,
+                                          classname, shape, tcol)
+
+    def __repr__(self):
+        """A detailed string representation for this object."""
+        return str(self)
                

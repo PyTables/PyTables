@@ -78,7 +78,7 @@ gcolumns = h5file.createGroup("/", "columns")
 print "columns ==>", gcolumns, pressure
 # Create a Numeric array with this info under '/columns'
 h5file.createArray(gcolumns, 'pressure', Numeric.array(pressure),
-                   "Pressure column", atomictype=0)
+                   "Pressure column")
 print "gcolumns.pressure type ==> ", gcolumns.pressure.type
 
 # Do the same with TDCcount, but with a numarray object

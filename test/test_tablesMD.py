@@ -123,11 +123,12 @@ class BasicTestCase(unittest.TestCase):
             self.initRecArray()
         for j in range(3):
             # Create a table
+            filters = Filters(complevel = self.compress,
+                              complib = self.complib)
             table = self.fileh.createTable(group, 'table'+str(j), self.record,
                                            title = self.title,
-                                           compress = self.compress,
-                                           expectedrows = self.expectedrows,
-                                           complib=self.complib)
+                                           filters = filters,
+                                           expectedrows = self.expectedrows)
             if not self.recarrayinit:
                 # Get the row object associated with the new table
                 row = table.row
@@ -429,7 +430,7 @@ class BasicRangeTestCase(unittest.TestCase):
             # Create a table
             table = self.fileh.createTable(group, 'table'+str(j), self.record,
                                            title = self.title,
-                                           compress = self.compress,
+                                           filters = Filters(self.compress),
                                            expectedrows = self.expectedrows)
             # Get the row object associated with the new table
             row = table.row

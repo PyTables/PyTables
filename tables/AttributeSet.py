@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.23 2004/01/20 19:03:45 falted Exp $
+#       $Id: AttributeSet.py,v 1.24 2004/01/27 20:28:34 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.23 $"
+__version__ = "$Revision: 1.24 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -69,13 +69,6 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     It provides methods to get, set and ask for attributes based on
     information extracted from the HDF5 attributes belonging to a
     node.
-
-    Like with Group instances, in AttributeSet instances, a special
-    feature called natural naming is used, i.e. you can access the
-    HDF5 attributes like if they were normal AttributeSet
-    attributes. This offers the user a very convenient way to access
-    (but also set and delete) node attributes by simply specifying
-    them like a normal attribute class.
 
     Like with Group instances, in AttributeSet instances, a special
     feature called "natural naming" is used, i.e. the names of the
@@ -169,7 +162,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # Read the attribute from disk
         # This is commented out temporarily until decide if it is intereseting
         # or not having system attributes distinct from strings
-        # as for example NROWS for Tables and EXTDIM for Arrays
+        # as for example NROWS for Tables and EXTDIM for EArrays
 #         if name in self._v_attrnamessys:
 #             # _g_getSysAttr works only for string attributes
 #             # with length less than 256 bytes

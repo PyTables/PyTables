@@ -40,13 +40,14 @@ class BasicTestCase(unittest.TestCase):
 
     def populateFile(self):
         group = self.rootgroup
+        filters = Filters(complevel = self.compress,
+                          complib = self.complib,
+                          shuffle = self.shuffle,
+                          fletcher32 = self.fletcher32)
         vlarray = self.fileh.createVLArray(group, 'vlarray1',
                                            Int32Atom(flavor=self.flavor),
                                            "ragged array if ints",
-                                           compress = self.compress,
-                                           complib = self.complib,
-                                           shuffle = self.shuffle,
-                                           fletcher32 = self.fletcher32,
+                                           filters = filters,
                                            expectedsizeinMB = 1)
 
         # Fill it with 5 rows
@@ -106,22 +107,22 @@ class BasicTestCase(unittest.TestCase):
         assert len(row) == 2
 
         # Check filters:
-        if self.compress <> vlarray.complevel and verbose:
+        if self.compress <> vlarray.filters.complevel and verbose:
             print "Error in compress. Class:", self.__class__.__name__
-            print "self, vlarray:", self.compress, vlarray.complevel
+            print "self, vlarray:", self.compress, vlarray.filters.complevel
         tinfo = whichLibVersion(self.complib)
         if tinfo[0] == 0:
             self.complib = "zlib"
-        assert vlarray.complib == self.complib
-        assert vlarray.complevel == self.compress
-        if self.shuffle <> vlarray.shuffle and verbose:
+        assert vlarray.filters.complib == self.complib
+        assert vlarray.filters.complevel == self.compress
+        if self.shuffle <> vlarray.filters.shuffle and verbose:
             print "Error in shuffle. Class:", self.__class__.__name__
-            print "self, vlarray:", self.shuffle, vlarray.shuffle
-        assert self.shuffle == vlarray.shuffle
-        if self.fletcher32 <> vlarray.fletcher32 and verbose:
+            print "self, vlarray:", self.shuffle, vlarray.filters.shuffle
+        assert self.shuffle == vlarray.filters.shuffle
+        if self.fletcher32 <> vlarray.filters.fletcher32 and verbose:
             print "Error in fletcher32. Class:", self.__class__.__name__
-            print "self, vlarray:", self.fletcher32, vlarray.fletcher32
-        assert self.fletcher32 == vlarray.fletcher32
+            print "self, vlarray:", self.fletcher32, vlarray.filters.fletcher32
+        assert self.fletcher32 == vlarray.filters.fletcher32
 
 
 class BasicNumArrayTestCase(BasicTestCase):
@@ -1103,10 +1104,11 @@ class RangeTestCase(unittest.TestCase):
 
     def populateFile(self):
         group = self.rootgroup
+        filters = Filters(complevel = self.compress,
+                          complib = self.complib)
         vlarray = self.fileh.createVLArray(group, 'vlarray', Int32Atom(),
                                            "ragged array if ints",
-                                           compress = self.compress,
-                                           complib = self.complib,
+                                           filters = filters,
                                            expectedsizeinMB = 1)
 
         # Fill it with 100 rows with variable length
