@@ -416,7 +416,7 @@ class BasicTestCase(unittest.TestCase):
         assert result[:10] == result2
 
     def test04d_delete(self):
-        """Checking if removing several times at once is working"""
+        """Checking if removing rows several times at once is working"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -1147,8 +1147,10 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
     #theSuite.addTest(unittest.makeSuite(CompressUCLTablesTestCase))
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
+    #theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
     #theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
     #theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
+    #theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))

@@ -72,6 +72,7 @@ def createFile(filename, totalrows, complevel, complib, recsize):
     else:
         raise RuntimeError, "This should never happen"
 
+    rowsize = table.rowsize
     # Get the row object associated with the new table
     d = table.row
     # Fill the table
@@ -118,7 +119,7 @@ def createFile(filename, totalrows, complevel, complib, recsize):
     # Close the file (eventually destroy the extended type)
     fileh.close()
     
-    return (rowswritten, table.rowsize)
+    return (rowswritten, rowsize)
 
 def readFile(filename, recsize, verbose):
     # Open the HDF5 file in read-only mode
@@ -128,6 +129,7 @@ def readFile(filename, recsize, verbose):
     groupobj=fileh.root
     row = 0
     table = fileh.root.tuple
+    rowsize = table.rowsize
     #table._v_maxTuples = 100
     #print "Table title for", table._v_pathname, ":", table.tableTitle
     if verbose:
@@ -186,7 +188,7 @@ def readFile(filename, recsize, verbose):
     # Close the file (eventually destroy the extended type)
     fileh.close()
 
-    return (rowsread, table.rowsize)
+    return (rowsread, rowsize)
 
 def readField(filename, field, rng, verbose):
     fileh = openFile(filename, mode = "r")

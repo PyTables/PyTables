@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.73 2003/08/08 20:50:00 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.74 2003/09/10 16:42:44 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.73 $"
+__version__ = "$Revision: 1.74 $"
 
 
 import sys, os
@@ -730,7 +730,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.73 2003/08/08 20:50:00 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.74 2003/09/10 16:42:44 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1249,23 +1249,6 @@ cdef class Table:
     for i from  0 <= i < nvar:
       H5Tclose(fieldtypes[i])
     
-  def _append_records_orig(self, object recarr, int nrecords):
-    cdef int ret, buflen
-    cdef void *rbuf
-
-    # Get the pointer to the buffer data area
-    ret = PyObject_AsWriteBuffer(recarr._data, &rbuf, &buflen)    
-    if ret < 0:
-      raise RuntimeError("Problems getting the pointer to the buffer")
-    
-    # Append the records:
-    ret = H5TBappend_records(self.parent_id, self.name, nrecords,
-                             self.rowsize, self.field_offset, rbuf)
-    if ret < 0:
-      raise RuntimeError("Problems appending the records")
-
-    self.totalrecords = self.totalrecords + nrecords
-
   def _open_append(self, object recarr):
     cdef int buflen, ret
 
@@ -1281,6 +1264,38 @@ cdef class Table:
       raise RuntimeError("Problems opening table for append.")
 
     self._open = 1
+
+  # This is a version of Table._saveBufferRows in Pyrex, but it is not
+  # faster than the Python version, so disable it
+#   def _saveBufferedRows(self):
+#     """Save buffered table rows."""
+#     # Save the records on disk
+#     #self._append_records(self._v_buffer, self.row._getUnsavedNRows())
+#     nrecords = self.row._getUnsavedNRows()
+#     if not self._open:
+#       self._open_append(self._v_buffer)
+    
+#     # Append the records:
+#     ret = H5TBOappend_records(&self.dataset_id, &self.mem_type_id,
+#                               nrecords, self.totalrecords, self.rbuf)
+#     if ret < 0:
+#       raise RuntimeError("Problems appending the records.")
+
+#     self.totalrecords = self.totalrecords + nrecords
+#     # Get a fresh copy of the default values
+#     if hasattr(self, "_v_buffercpy"):
+#       self._v_buffer[:] = self._v_buffercpy[:]  # 600.000 rows/s
+#       #self._v_buffer = self._newBuffer(init=1)  # 400.000 rows/s
+# #       for field in self.colnames:  # 462.000 rows/s
+# #         self._v_buffer._fields[field][:] = self.description.__dflts__[field]
+
+
+#     # Update the number of saved rows in this buffer
+#     self.nrows = self.nrows + nrecords
+#     # Reset the buffer unsaved counter and the buffer read row counter
+#     self.row._setUnsavedNRows(0)
+#     # Set the shape attribute (the self.nrows may be less than the maximum)
+#     self.shape = (self.nrows,)
 
   def _append_records(self, object recarr, int nrecords):
     cdef int ret,
@@ -1447,60 +1462,23 @@ cdef class Row:
   cdef int _row, _nrowinbuf, _nrow, _unsavednrows, _strides
   cdef int start, stop, step, nextelement, nrowsinbuf, nrows, nrowsread
   cdef int bufcounter, recout, counter, startb, stopb,  _all
-  cdef int *_scalar, *_enumtypes
+  cdef int *_scalar, *_enumtypes, _r_initialized_buffer, _w_initialized_buffer
 
-  def __new__(self, input, table):
+  def __new__(self, table):
     cdef int nfields, i
     
-    self._recarray = input
     self._table = table
-    #self.__dict__["_fields"] = input._fields ## Not allowed in pyrex!
-    self._fields = input._fields
     self._unsavednrows = 0
     self._row = 0
     self._nrow = 0
-    self.nrows = self._table.nrows  # This value may change
-    self.nrowsinbuf = table._v_maxTuples
-    self.start = 0
-    self.stop = self._table.nrows
-    self.step = 1
-    self._strides = input._strides[0]
-    nfields = input._nfields
-    # Create a dictionary with the index columns of the recarray
-    # and other tables
-    i = 0
-    self._indexes = {}
-    self._scalar = <int *>malloc(nfields * sizeof(int))
-    self._enumtypes = <int *>malloc(nfields * sizeof(int))
-    for field in input._names:
-      self._indexes[field] = i
-      # If _repeats[i] = (1,) this is a numarray object, and not a scalar
-      #if input._repeats[i] == 1 or input._repeats[i] == (1,):
-      if input._repeats[i] == 1:
-        self._scalar[i] = 1
-      else:
-        self._scalar[i] = 0
-      self._enumtypes[i] = toenum[input._fmt[i]]
-      i = i + 1
-    self._saveBufferedRows = table._saveBufferedRows
+    self._r_initialized_buffer = 0
+    self._w_initialized_buffer = 0
+    self._saveBufferedRows = self._table._saveBufferedRows
 
   def __call__(self, start=0, stop=0, step=1):
     """ return the row for this record object and update counters"""
 
-    self.nrows = self._table.nrows  # Need to refresh this value here
-    self.start = start
-    if stop == 0:
-      self.stop = self._table.nrows
-    else:
-      self.stop = stop
-    self.step = step
-    self._initLoop(self.start, self.stop, self.step)
-    # It is not possible to call the _open_read() method here. If we do this,
-    # we get weird things when reading a table after a Table.flush() without
-    # closing and re-opening it!. 2003/07/21
-    # After some code reordering, this call seems to be safe now here!
-    # I don't know why!!? 2003/07/23
-    self._table._open_read(self._recarray)  # Open the table for reading
+    self._initLoop(start, stop, step)
     return iter(self)
 
   def __iter__(self):
@@ -1508,19 +1486,64 @@ cdef class Row:
 
     return self
 
+  def _newBuffer(self, write):
+    "Create the recarray for I/O buffering"
+    
+    if write:
+      buff = self._table._v_buffer = self._table._newBuffer(init=1)
+      self._table._v_buffercpy = self._table._newBuffer(init=1)
+      # Flag that tells that the buffer has been initialized for writing
+      self._w_initialized_buffer = 1
+      self._r_initialized_buffer = 1   # and also for reading...
+    else:
+      buff = self._table._v_buffer = self._table._newBuffer(init=0)
+      # Flag that tells that the buffer has been initialized for reading
+      self._r_initialized_buffer = 1
+      self._table._v_buffercpy = None  # Decrement the reference to the buffer
+                                       # copy (if it exists!)
+      self._w_initialized_buffer = 0   # buffer is not more valid for writing
+
+    self._recarray = buff
+    self.nrows = self._table.nrows  # This value may change
+    self.nrowsinbuf = self._table._v_maxTuples    # Need to fetch this value
+    self._fields = buff._fields
+    self._strides = buff._strides[0]
+    nfields = buff._nfields
+    # Create a dictionary with the index columns of the recarray
+    # and other tables
+    i = 0
+    self._indexes = {}
+    self._scalar = <int *>malloc(nfields * sizeof(int))
+    self._enumtypes = <int *>malloc(nfields * sizeof(int))
+    for field in buff._names:
+      self._indexes[field] = i
+      # If _repeats[i] = (1,) this is a numarray object, and not a scalar
+      #if buff._repeats[i] == 1 or buff._repeats[i] == (1,):
+      if buff._repeats[i] == 1:
+        self._scalar[i] = 1
+      else:
+        self._scalar[i] = 0
+      self._enumtypes[i] = toenum[buff._fmt[i]]
+      i = i + 1
+
   def _initLoop(self, start, stop, step):
     "Initialization for the __iter__ iterator"
-    if (start, stop, step) == (0, self._table.nrows, 1):
-      self._all = 1
-    else:
-      self._all = 0
+
+    if not self._r_initialized_buffer:
+      self._newBuffer(write=0)
+    # This might be useful if want to optimize the read all case    
+#     if (start, stop, step) == (0, self._table.nrows, 1):
+#       self._all = 1
+#     else:
+#       self._all = 0
     self.start = start
     self.stop = stop
     self.step = step
-    self.nrowsinbuf = self._table._v_maxTuples    # Need to fetch this value
     self.startb = 0
     self.nrowsread = start
     self._nrow = start - self.step
+    #print "start, stop, step, self._nrow -->", start, stop, step, self._nrow
+    self._table._open_read(self._recarray)  # Open the table for reading
 
   # This is the general version for __next__, and the more compact and fastest
   def __next__(self):
@@ -1533,8 +1556,6 @@ cdef class Row:
     else:
       if self.nextelement >= self.nrowsread:
         # Skip until there is interesting information
-#         while ((self.nextelement >= self.nrowsread + self.nrowsinbuf) or
-#                (self.startb >= self.stop - self.nrowsread)):
         while self.nextelement >= self.nrowsread + self.nrowsinbuf:
           self.nrowsread = self.nrowsread + self.nrowsinbuf
         # Compute the end for this iteration
@@ -1557,6 +1578,48 @@ cdef class Row:
 
       return self
 
+  def _fillCol(self, result, start, stop, step, field):
+    "Read a field from a table on disk and put the result in result"
+    cdef int startr, stopr, i, j, istartb, istopb
+    cdef int istart, istop, istep, inrowsinbuf, inextelement, inrowsread
+    cdef object fields
+    
+    self._initLoop(start, stop, step)
+    istart, istop, istep = (self.start, self.stop, self.step)
+    inrowsinbuf, inextelement, inrowsread = (self.nrowsinbuf, istart, istart)
+    istartb, startr = (self.startb, 0)
+    if field:
+      # If field is not None, select it
+      fields = self._recarray._fields[field]
+    else:
+      # if don't, select all fields
+      fields = self._recarray
+    i = istart
+    while i < istop:
+      if (inextelement >= inrowsread + inrowsinbuf):
+        inrowsread = inrowsread + inrowsinbuf
+        i = i + inrowsinbuf
+        continue
+      # Compute the end for this iteration
+      istopb = istop - inrowsread
+      if istopb > inrowsinbuf:
+        istopb = inrowsinbuf
+      stopr = startr + ((istopb - istartb - 1) / istep) + 1
+      # Read a chunk
+      inrowsread = inrowsread + self._table._read_records(i, inrowsinbuf)
+      # Assign the correct part to result
+      # The bottleneck is in this assignment. Hope that the numarray
+      # people might improve this in the short future
+      result[startr:stopr] = fields[istartb:istopb:istep]
+      # Compute some indexes for the next iteration
+      startr = stopr
+      j = istartb + ((istopb - istartb - 1) / istep) * istep
+      istartb = (j+istep) % inrowsinbuf
+      inextelement = inextelement + istep
+      i = i + inrowsinbuf
+    self._table._close_read()  # Close the table
+    return
+
   def nrow(self):
     """ get the global row number for this table """
     return self._nrow
@@ -1576,36 +1639,6 @@ cdef class Row:
       
     return
       
-  # This is the Pyrex version of the append, but it is not faster than
-  # the original, so disable it!.
-#   def append_pyrex(self):
-#     """Append self object to the output buffer.
-    
-#     """
-#     self._row = self._row + 1 # update the current buffer read counter
-#     self._unsavednrows = self._unsavednrows + 1
-#     # When the buffer is full, flush it
-#     if self._unsavednrows == self.nrowsinbuf:
-#       #self._saveBufferedRows()
-#       self._table._append_records(self._table._v_buffer, self._unsavednrows)
-#       # Get a fresh copy of the default values
-#       # This copy seems to make the writing with compression a 5%
-#       # faster than if the copy is not made. Why??
-#       if hasattr(self._table, "_v_buffercpy"):
-#         self._table._v_buffer[:] = self._table._v_buffercpy[:]
-
-#       # Update the number of saved rows in this buffer
-#       self._table.nrows = self._table.nrows + self._unsavednrows
-#       # Reset the buffer unsaved counter and the buffer read row counter
-#       #self._setUnsavedNRows(0)
-#       self._unsavednrows = 0
-#       self._row = 0 # set the current buffer read counter
-#       # Set the shape attribute (the self.nrows may be less than the maximum)
-#       self._table.shape = (self._table.nrows,)
-
-#       # Get again the self._fields of the new buffer
-#       self._fields = self._table._v_buffer._fields
-
   def _setUnsavedNRows(self, row):
     """ set the buffer row number for this buffer """
     self._unsavednrows = row
@@ -1678,6 +1711,11 @@ cdef class Row:
 
   # This is slightly faster (around 3%) than __setattr__
   def __setitem__(self, object fieldName, object value):
+
+    if not self._w_initialized_buffer:
+      # Create the arrays for buffering
+      self._newBuffer(write=1)
+
     try:
       self._fields[fieldName][self._unsavednrows] = value
     except:
@@ -1685,6 +1723,15 @@ cdef class Row:
       raise AttributeError, "Error setting \"%s\" attr.\n %s" % \
             (fieldName, "Error was: \"%s: %s\"" % (type,value))
 
+  # Delete the I/O buffers
+  def _cleanup(self):
+    self._fields = None         # Decrement the pointer to recarray fields
+    self._table._v_buffer = None   # Decrement the pointer to recarray
+    self._table._v_buffercpy = None  # Decrement the pointer to recarray copy
+    # Flag that tells that the buffer has been uninitialized
+    self._r_initialized_buffer = 0
+    self._w_initialized_buffer = 0
+    
   def __str__(self):
     """ represent the record as an string """
         
@@ -1697,15 +1744,6 @@ cdef class Row:
     """ represent the record as an string """
 
     return str(self)
-
-  def _all_old(self):
-    """ represent the record as a list """
-    
-    outlist = []
-    for name in self._fields:
-      outlist.append(self._fields[name][self._row])
-      #outlist.append(self._recarray.field(name)[self._row])
-    return outlist
 
   def __dealloc__(self):
     #print "Deleting Row object"
@@ -1882,5 +1920,6 @@ cdef class Array:
 
   def __dealloc__(self):
     #print "Destroying object Array in Extension"
+    self._table = None
     free(<void *>self.dims)
     free(<void *>self.name)

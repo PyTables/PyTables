@@ -495,13 +495,13 @@ class WideTreeTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         #file = "test_widetree.h5"
 
+        a = [1, 1]
         fileh = openFile(file, mode = "w")
         if verbose:
             print "Children writing progress: ",
         for child in range(maxchilds):
             if verbose:
                 print "%3d," % (child),
-            a = [1, 1]
             fileh.createArray(fileh.root, 'array' + str(child),
                               a, "child: %d" % child)
         if verbose:
@@ -510,6 +510,7 @@ class WideTreeTestCase(unittest.TestCase):
         fileh.close()
 
         t1 = time.time()
+        a = [1, 1]
         # Open the previous HDF5 file in read-only mode
         fileh = openFile(file, mode = "r")
         if verbose:
@@ -521,7 +522,6 @@ class WideTreeTestCase(unittest.TestCase):
             if verbose:
                 print "%3d," % (child),
             # Create an array for later comparison
-            a = [1, 1]
             # Get the actual array
             array_ = getattr(fileh.root, 'array' + str(child))
             b = array_.read()

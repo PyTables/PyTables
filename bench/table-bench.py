@@ -70,7 +70,8 @@ def createFile(filename, totalrows, complevel, complib, recsize):
                                       complevel, complib, totalrows)
         else:
             raise RuntimeError, "This should never happen"
-            
+
+        rowsize = table.rowsize
         # Get the row object associated with the new table
         d = table.row
         # Fill the table
@@ -122,7 +123,7 @@ def createFile(filename, totalrows, complevel, complib, recsize):
     # Close the file (eventually destroy the extended type)
     fileh.close()
     
-    return (rowswritten, table.rowsize)
+    return (rowswritten, rowsize)
 
 def readFile(filename, recsize, verbose):
     # Open the HDF5 file in read-only mode
@@ -196,6 +197,8 @@ def readField(filename, field, rng, verbose):
     for groupobj in fileh.walkGroups(fileh.root):
         row = 0
         for table in fileh.listNodes(groupobj, 'Table'):
+            rowsize = table.rowsize
+            #table._v_maxTuples = 3 # For testing purposes
             if verbose:
                 print "Max rows in buf:", table._v_maxTuples
                 print "Rows in", table._v_pathname, ":", table.nrows
@@ -203,7 +206,7 @@ def readField(filename, field, rng, verbose):
                 print "MaxTuples:", table._v_maxTuples
                 print "(field, start, stop, step) ==>", (field, rng[0], rng[1], rng[2])
 
-            e = table.getCol(field, rng[0], rng[1], rng[2])
+            e = table.read(rng[0], rng[1], rng[2], field)
 
 	    rowsread += table.nrows
             if verbose:
@@ -211,7 +214,7 @@ def readField(filename, field, rng, verbose):
         
     # Close the file (eventually destroy the extended type)
     fileh.close()
-    return (rowsread, table.rowsize)
+    return (rowsread, rowsize)
 
 if __name__=="__main__":
     import sys
@@ -249,7 +252,7 @@ if __name__=="__main__":
 
     # default options
     verbose = 0
-    rng = [0,0,1]  # All the range
+    rng = None
     recsize = "medium"
     fieldName = None
     testread = 1
@@ -316,7 +319,7 @@ if __name__=="__main__":
             psyco.bind(readFile)
             psyco.bind(readField)
             pass
-        if fieldName:
+        if rng:
             (rowsr, rowsz) = readField(file, fieldName, rng, verbose)
             pass
         else:

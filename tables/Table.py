@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.70 2003/09/08 10:15:30 falted Exp $
+#       $Id: Table.py,v 1.71 2003/09/10 16:42:44 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.70 $"
+__version__ = "$Revision: 1.71 $"
 
 from __future__ import generators
 import sys
@@ -265,10 +265,11 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Compute the byte order
         self.byteorder = byteorderDict[self._v_fmt[0]]
         # Create the arrays for buffering
-        self._v_buffer = self._newBuffer(init=1)
+        #self._v_buffer = self._newBuffer(init=1)
         # A copy of the original initialised recarray (useful when writing)
-        self._v_buffercpy = self._newBuffer(init=1)
-        self.row = hdf5Extension.Row(self._v_buffer, self)
+        #self._v_buffercpy = self._newBuffer(init=1)
+        #self.row = hdf5Extension.Row(self._v_buffer, self)
+        self.row = hdf5Extension.Row(self)
                          
     def _open(self):
         """Opens a table from disk and read the metadata on it.
@@ -324,9 +325,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         self._calcBufferSize(self.nrows)
         # Update the shape attribute
         self.shape = (self.nrows,)
-        # Create the arrays for buffering
-        self._v_buffer = self._newBuffer(init=0)
-        self.row = hdf5Extension.Row(self._v_buffer, self)
+        # Associate a Row object to table
+        self.row = hdf5Extension.Row(self)
         
     def _calcBufferSize(self, expectedrows):
         """Calculate the buffer size and the HDF5 chunk size.
@@ -515,67 +515,9 @@ class Table(Leaf, hdf5Extension.Table, object):
         return self.row(start, stop, step)
         
     def __iter__(self):
-        """Iterate over the rows or a range."""
+        """Iterate over all the rows."""
 
-        # It is not possible to call the _open_read() method in the Row class.
-        # If we do this, we get weird things when reading a table after a
-        # Table.flush() without closing and re-opening it!.
-        # The test_tree.TreeTestCase detects the problem! 
-        # 2003/07/21
-        # After some code reordering, this call seems to be safe now in Pyrex!
-        # I don't know why!!? 2003/07/23
-        #self._open_read(self._v_buffer)  # Open the table for reading
-
-        return self.row()
-
-    def _readAllFields(self, start=None, stop=None, step=None):
-        """Read a range of rows and return a RecArray"""
-
-        (start, stop, step) = self._processRange(start, stop, step)
-        # Create a recarray for the readout
-        if start >= stop:
-            return records.array(None, formats=self.description._v_recarrfmt,
-                                  shape=(0,),
-                                  names = self.colnames)
-        nrows = ((stop - start - 1) // step) + 1
-        # Create the resulting recarray
-        result = records.array(None, formats=self.description._v_recarrfmt,
-                                shape=(nrows,),
-                                names = self.colnames)
-        # Setup a buffer for the readout
-        nrowsinbuf = self._v_maxTuples   # Shortcut
-        #nrowsinbuf = 3   # Small value is useful when debugging
-        buffer = self._v_buffer  # Get a recarray as buffer
-        self._open_read(buffer)  # Open the table for reading
-        nrowsread = start
-        startr = 0
-        startb = 0
-        nextelement = start
-        for i in xrange(start, stop, nrowsinbuf):
-            if ((nextelement >= nrowsread + nrowsinbuf) or
-                (startb >= stop - nrowsread)):
-                nrowsread += nrowsinbuf
-                continue
-            # Compute the end for this iteration
-            stopb = stop - nrowsread
-            if stopb > nrowsinbuf:
-                stopb = nrowsinbuf
-            stopr = startr + ((stopb-startb-1)//step) + 1
-            # Read a chunk
-            nrowsread += self._read_records(i, nrowsinbuf)
-            # Assign the correct part to result
-            result[startr:stopr] = buffer[startb:stopb:step]
-            # Compute some indexes for the next iteration
-            startr = stopr
-            j = range(startb, stopb, step)[-1]
-            startb = (j+step) % nrowsinbuf
-            nextelement += step
-
-        self._close_read()  # Close the table
-
-        # Set the byteorder properly
-        result._byteorder = self.byteorder
-        return result
+        return self.__call__()
 
     def read(self, start=None, stop=None, step=None, field=None, flavor=None):
         """Read a range of rows and return an in-memory object.
@@ -589,6 +531,14 @@ class Table(Leaf, hdf5Extension.Table, object):
         have any of the next values: "Numeric", "Tuple" or "List".
 
         """
+        
+        if field and not field in self.colnames:
+            raise LookupError, \
+                  """The column name '%s' not found in table {%s}""" % \
+                  (field, self)
+        
+        (start, stop, step) = self._processRange(start, stop, step)
+        
         if field == None:
             return self._readAllFields(start, stop, step)
         elif flavor == None:
@@ -633,17 +583,81 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         return arr
 
-    def _readCol(self, start=None, stop=None, step=None, field=None):
+    # This has been replaced by another version with parts in Pyrex
+    # That has accelerated the reading in some extent (at least a 15%)
+#     def _readAllFields_original(self, start, stop, step):
+#         """Read a range of rows and return a RecArray"""
+
+#         # Create a recarray for the readout
+#         if start >= stop:
+#             return records.array(None, formats=self.description._v_recarrfmt,
+#                                   shape=(0,),
+#                                   names = self.colnames)
+#         nrows = ((stop - start - 1) // step) + 1
+#         # Create the resulting recarray
+#         result = records.array(None, formats=self.description._v_recarrfmt,
+#                                 shape=(nrows,),
+#                                 names = self.colnames)
+#         # Setup a buffer for the readout
+#         nrowsinbuf = self._v_maxTuples   # Shortcut
+#         #nrowsinbuf = 3   # Small value is useful when debugging
+#         #buffer = self._v_buffer  # Get a recarray as buffer
+#         buffer = self._newBuffer(init=0)
+#         self._open_read(buffer)  # Open the table for reading
+#         nrowsread = start
+#         startr = 0
+#         startb = 0
+#         nextelement = start
+#         for i in xrange(start, stop, nrowsinbuf):
+#             if ((nextelement >= nrowsread + nrowsinbuf) or
+#                 (startb >= stop - nrowsread)):
+#                 nrowsread += nrowsinbuf
+#                 continue
+#             # Compute the end for this iteration
+#             stopb = stop - nrowsread
+#             if stopb > nrowsinbuf:
+#                 stopb = nrowsinbuf
+#             stopr = startr + ((stopb-startb-1)//step) + 1
+#             # Read a chunk
+#             nrowsread += self._read_records(i, nrowsinbuf)
+#             # Assign the correct part to result
+#             result[startr:stopr] = buffer[startb:stopb:step]
+#             # Compute some indexes for the next iteration
+#             startr = stopr
+#             j = range(startb, stopb, step)[-1]
+#             startb = (j+step) % nrowsinbuf
+#             nextelement += step
+
+#         self._close_read()  # Close the table
+
+#         # Set the byteorder properly
+#         result._byteorder = self.byteorder
+#         return result
+
+    def _readAllFields(self, start, stop, step):
+        """Read a range of rows and return a RecArray"""
+
+        # Create a recarray for the readout
+        if start >= stop:
+            return records.array(None, formats=self.description._v_recarrfmt,
+                                  shape=(0,),
+                                  names = self.colnames)
+        nrows = ((stop - start - 1) // step) + 1
+        # Create the resulting recarray
+        result = records.array(None, formats=self.description._v_recarrfmt,
+                                shape=(nrows,),
+                                names = self.colnames)
+        # Call the routine to fill-up the resulting array
+        self.row._fillCol(result, start, stop, step, field=None)
+        # Set the byteorder properly
+        result._byteorder = self.byteorder
+        return result
+
+    def _readCol(self, start, stop, step, field):
         """Read a range of rows and return an in-memory object.
         """
         
-        if not field in self.colnames:
-            raise LookupError, \
-                  """The column name '%s' not found in table {%s}""" % \
-                  (field, self)
-
         typeField = self.coltypes[field]
-        (start, stop, step) = self._processRange(start, stop, step)
         # Return a rank-0 array if start > stop
         if start >= stop:
             if isinstance(typeField, records.Char):
@@ -671,127 +685,88 @@ class Table(Leaf, hdf5Extension.Table, object):
             result = strings.array(shape=shape, itemsize=itemsize)
         else:
             result = numarray.array(shape=shape, type=typeField)
-            
-        # Setup a buffer for the readout
-        nrowsinbuf = self._v_maxTuples   # Shortcut
-        buffer = self._v_buffer  # Get a recarray as buffer
-        self._open_read(buffer)  # Open the table for reading
-        nrowsread = start
-        startr = 0
-        startb = 0
-        nextelement = start
-        for i in xrange(start, stop, nrowsinbuf):
-            if ((nextelement >= nrowsread + nrowsinbuf) or
-                (startb >= stop - nrowsread)):
-                nrowsread += nrowsinbuf
-                continue
-            # Compute the end for this iteration
-            stopb = stop - nrowsread
-            if stopb > nrowsinbuf:
-                stopb = nrowsinbuf
-            stopr = startr + ((stopb-startb-1)//step) + 1
-            # Read a chunk
-            nrowsread += self._read_records(i, nrowsinbuf)
-            # Assign the correct part to result
-            # The bottleneck is in this assignment. Hope that the numarray
-            # people might improve this in the short future
-            result[startr:stopr] = buffer._fields[field][startb:stopb:step]
-            # Compute some indexes for the next iteration
-            startr = stopr
-            j = range(startb, stopb, step)[-1]
-            startb = (j+step) % nrowsinbuf
-            nextelement += step
 
-        self._close_read()  # Close the table
-
+        # Call the routine to fill-up the resulting array
+        self.row._fillCol(result, start, stop, step, field)
         # Set the byteorder properly
         result._byteorder = self.byteorder
         return result
 
-            
-    # This version of _readCol does not work well. Perhaps a bug in the
-    # H5TB_read_fields_name entry?
-    def _readCol_bad(self, start=None, stop=None, step=None, field=None):
-        """Read a column from a table in a row range"""
-
-        for fieldTable in self.colnames:
-            if fieldTable == field:
-                typeField = self.coltypes[field]
-                lengthField = self.colshapes[field][0]
-                break
-        else:
-            raise LookupError, \
-                  """The column name '%s' not found in table {%s}""" % \
-                  (field, self)
-            
-        (start, stop, step) = self._processRange(start, stop, step)
-        # Return a rank-0 array if start > stop
-        if start >= stop:
-            if isinstance(typeField, records.Char):
-                return strings.array(shape=(0,), itemsize = 0)
-            else:
-                return numarray.array(shape=(0,), type=typeField)
+    # Deprecated version of _readCol. The new version has parts in Pyrex
+    # that made the reading somewhat faster (although only less than 10%).
+#     def _readCol_old(self, start, stop, step, field):
+#         """Read a range of rows and return an in-memory object.
+#         """
+        
+#         typeField = self.coltypes[field]
+#         # Return a rank-0 array if start > stop
+#         if start >= stop:
+#             if isinstance(typeField, records.Char):
+#                 return strings.array(shape=(0,), itemsize = 0)
+#             else:
+#                 return numarray.array(shape=(0,), type=typeField)
                 
-        nrows = ((stop - start - 1) // step) + 1
-        # Create the resulting recarray
-        if isinstance(typeField, records.Char):
-            result = strings.array(shape=(nrows,), itemsize=lengthField)
-        else:
-            if lengthField > 1:
-                result = numarray.array(shape=(nrows, lengthField),
-                                        type=typeField)
-            else:
-                result = numarray.array(shape=(nrows, ), type=typeField)
-        # Setup a buffer for the readout
-        nrowsinbuf = self._v_maxTuples   # Shortcut
-        #buffer = self._v_buffer  # Get a recarray as buffer
-        # Create the buffer array
-        typesize = lengthField
-        if isinstance(typeField, records.Char):
-            buffer = strings.array(shape=(nrowsinbuf,), itemsize=lengthField)
-        else:
-            if lengthField > 1:
-                buffer = numarray.array(shape=(nrowsinbuf, lengthField),
-                                        type=typeField)
-            else:
-                buffer = numarray.array(shape=(nrowsinbuf, ), type=typeField)
-            typesize *= buffer._type.bytes
-        self._open_read(buffer)  # Open the table for reading
-        nrowsread = start
-        startr = 0
-        startb = 0
-        nextelement = start
-        for i in xrange(start, stop, nrowsinbuf):
-            if ((nextelement >= nrowsread + nrowsinbuf) or
-                (startb >= stop - nrowsread)):
-                nrowsread += nrowsinbuf
-                continue
-            # Compute the end for this iteration
-            stopb = stop - nrowsread
-            if stopb > nrowsinbuf:
-                stopb = nrowsinbuf
-            stopr = startr + ((stopb-startb-1)//step) + 1
-            # Read a chunk
-            #nrowsread += self._read_records(i, nrowsinbuf, buffer)
-            nrowsread += self._read_field_name(field, i, nrowsinbuf)
-            #nrowsread += nrowsinbuf
-            # Assign the correct part to result
-            # The bottleneck is in this assignment. Hope that the numarray
-            # people might improve this in the short future
-            #result[startr:stopr] = buffer._fields[field][startb:stopb:step]
-            result[startr:stopr] = buffer[startb:stopb:step]
-            # Compute some indexes for the next iteration
-            startr = stopr
-            j = range(startb, stopb, step)[-1]
-            startb = (j+step) % nrowsinbuf
-            nextelement += step
+#         nrows = ((stop - start - 1) // step) + 1
 
-        self._close_read()  # Close the table
+#         # Compute the shape of the resulting column object
+#         shape = self.colshapes[field]
+#         itemsize = self.colitemsizes[field]
+#         if type(shape) in [types.IntType, types.LongType]:
+#             if shape == 1:
+#                 shape = (nrows,)
+#             else:
+#                 shape = (nrows, shape)
+#         else:
+#             shape2 = [nrows]
+#             shape2.extend(shape)
+#             shape = tuple(shape2)
 
-        # Set the byteorder properly
-        result._byteorder = self.byteorder
-        return result
+#         # Create the resulting recarray
+#         if isinstance(typeField, records.Char):
+#             result = strings.array(shape=shape, itemsize=itemsize)
+#         else:
+#             result = numarray.array(shape=shape, type=typeField)
 
+#         #self.row._readCol2(result, start, stop, step, field)
+#         # Setup a buffer for the readout
+#         nrowsinbuf = self._v_maxTuples   # Shortcut
+#         #buffer = self._v_buffer  # Get a recarray as buffer
+#         buffer = self._newBuffer(init=0)
+#         self._open_read(buffer)  # Open the table for reading
+#         nextelement = start
+#         nrowsread = start
+#         startr = 0
+#         startb = 0
+#         for i in xrange(start, stop, nrowsinbuf):
+#             if ((nextelement >= nrowsread + nrowsinbuf) or
+#                 (startb >= stop - nrowsread)):
+#                 nrowsread += nrowsinbuf
+#                 continue
+#             # Compute the end for this iteration
+#             stopb = stop - nrowsread
+#             if stopb > nrowsinbuf:
+#                 stopb = nrowsinbuf
+#             stopr = startr + ((stopb-startb-1)//step) + 1
+#             #print "startr, stopr -->", startr, stopr
+#             #print "startb, stopb ==>", startb, stopb
+#             # Read a chunk
+#             nrowsread += self._read_records(i, nrowsinbuf)
+#             # Assign the correct part to result
+#             # The bottleneck is in this assignment. Hope that the numarray
+#             # people might improve this in the short future
+#             result[startr:stopr] = buffer._fields[field][startb:stopb:step]
+#             # Compute some indexes for the next iteration
+#             startr = stopr
+#             j = range(startb, stopb, step)[-1]
+#             startb = (j+step) % nrowsinbuf
+#             nextelement += step
+
+#         self._close_read()  # Close the table
+
+#         # Set the byteorder properly
+#         result._byteorder = self.byteorder
+#         return result
+            
     def __getitem__(self, key):
         """Returns a table row, table slice or table column.
 
@@ -808,16 +783,11 @@ class Table(Leaf, hdf5Extension.Table, object):
 """
 
         if isinstance(key, types.IntType):
-            return self._readAllFields(key, key+1, 1)[0]
+            return self.read(key, key+1, 1)[0]
         elif isinstance(key, types.SliceType):
-            # To manage the [##:] case
-            if key.stop == None:
-                stop = 0
-            else:
-                stop = key.stop
-            return self._readAllFields(key.start, stop, key.step)
+            return self.read(key.start, key.stop, key.step)
         elif isinstance(key, types.StringType):
-            return self._readCol(field=key)
+            return self.read(field=key)
         else:
             raise ValueError, "Non-valid __getitem__ parameter %s" % \
                   key
@@ -860,6 +830,15 @@ class Table(Leaf, hdf5Extension.Table, object):
           self._saveBufferedRows()
         # Close a possible opened table for append:
         self._close_append()
+        # Clean the Row instance
+        # In some situations, this maybe undefined (When?)
+        if hasattr(self, "row"):
+            # If not call row._cleanup()
+            # the memory consumption seems to increase instead of decrease (!)
+            # However, the reading/write speed seems to improve a bit (!!)
+            # I choose to favor 
+            self.row._cleanup()
+            pass
 
     def close(self):
         """Flush the buffers and close this object on tree"""
