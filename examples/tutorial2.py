@@ -57,12 +57,14 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
     for i in xrange(257):
         # First, assign the values to the Event record
         event.name  = 'Event: %6d' % (i)
+        ########### Errors start here. Play with them!
         #event.TDCcount = i            # Wrong range
-        event.TDCcount = i % (1<<8)   # Correct range
-        event.ADCcount = str(i)      # Wrong range
-        #event.ADCcount = i * 2        # Correct type
+        event.ADCcount = i * 2        # Correct type
         #event.xcoor = float(i**2)     # Wrong spelling
+        event.TDCcount = i % (1<<8)   # Correct range
+        #event.ADCcount = str(i)      # Wrong range
         event.xcoord = float(i**2)   # Correct spelling
+        ########### End of errors
         event.ycoord = float(i**4)
         # This injects the Record values
         table.appendAsRecord(event)      

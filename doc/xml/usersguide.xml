@@ -1285,23 +1285,23 @@ $
       </section>
 
       <section id="secondExample">
-	<heading>Checking for field name, data type and data range</heading>
+	<heading>Checking data in tables</heading>
 
-	<p>Now, time for a more sophisticated example. Here, we will
-	  create a couple of directories (groups, in HDF5 jargon)
-	  hanging directly from the root directory called
-	  <verb>Particles</verb> and <verb>Events</verb>. Then, we
-	  will put 3 tables in each group; in <verb>Particles</verb>
-	  we will put instances of <verb>Particle</verb> records and
-	  in <verb>Events</verb>, instances of
-	  <verb>Event</verb>. After that, we will feed the tables with
-	  257 (you will see soon why I choose such an "esoteric"
-	  number) entries each. Finally, we will read the recently
-	  created table <verb>/Events/TEvent3</verb> and select some
-	  values from it using a comprehension list.
+	<p>Now, time for a more real life example (i.e. with errors in
+	  code). Here, we will create a couple of directories (groups,
+	  in HDF5 jargon) hanging directly from the root directory
+	  called <verb>Particles</verb> and <verb>Events</verb>. Then,
+	  we will put 3 tables in each group; in
+	  <verb>Particles</verb> we will put instances of
+	  <verb>Particle</verb> records and in <verb>Events</verb>,
+	  instances of <verb>Event</verb>. After that, we will feed
+	  the tables with 257 (you will see soon why I choose such an
+	  <em>esoteric</em> number) entries each. Finally, we will
+	  read the recently created table <verb>/Events/TEvent3</verb>
+	  and select some values from it using a comprehension list.
 	</p>
 	<p>See at the next script. It seems to do all of that, but a
-	  couple of small suprises will appear:
+	  couple of small bugs will be shown up:
 	</p>
 
 	<verbatim>
@@ -1322,7 +1322,7 @@ class Event(IsRecord):
     ycoord      = 'f'    # float  (single-precision)
 
 # Open a file in "w"rite mode
-fileh = openFile("example2.h5", mode = "w")
+fileh = openFile("tutorial2.h5", mode = "w")
 # Get the HDF5 root group
 root = fileh.root
 
@@ -1386,26 +1386,47 @@ print "Total selected records ==> ", len(e)
 fileh.close()
 	</verbatim>
 
+	<subsection>
+	  <heading>Field name checking</heading>
+
 	<p>If you have read the code carefully it looks pretty good,
-	  but it won't work. If you run this example, you will get the
-	  next error:
+	  but it won't work. When you run this example, you will get
+	  the next error:
 	</p>
 	<verbatim>
 Traceback (most recent call last):
-  File "example2.py", line 68, in ?
+  File "tutorial2.py", line 68, in ?
     event.xcoor  = float(i**2)
 AttributeError: 'Event' object has no attribute 'xcoor'
 	</verbatim>
-	<p>This error is saying us that we tried to assign a value to
+	<p>This error is telling us that we tried to assign a value to
 	  a non-existent field in an <verb>Event</verb> object. By
 	  looking carefully at the <verb>Event</verb> attributes, we
 	  see that we misspelled the <verb>xcoord</verb> field (we
-	  wrote <verb>xcoor</verb> instead). After correcting this in
-	  the source, and running again, we find another problem:
+	  wrote <verb>xcoor</verb> instead). This is very inusual in
+	  Python because if you try to assign a value to a
+	  non-existent instance variable, a new one is created with
+	  that name. Such a feature is not satisfactory when we are
+	  dealing with an object that has fixed list of variable names
+	  (the user record, that is resposible for defining the table
+	  columns). So, thanks to the magic that provides the
+	  <verb>IsRecord</verb> metaclass, all instance variables
+	  (data fields) are declared internally as class
+	  <verb>__slots__</verb>. This is why the last error appeared.
+	</p>
+
+	</subsection>
+
+	<subsection>
+	  <heading>Data range checking</heading>
+
+	<p>After correcting the last attrribute error in the source,
+	  and running the script again... oooops! we find another
+	  problem:
 	</p>
 	<verbatim>
 Traceback (most recent call last):
-  File "example2.py", line 69, in ?
+  File "tutorial2.py", line 69, in ?
     table.appendRecord(event)      
   File "/usr/lib/python2.2/site-packages/tables/Table.py", line 210, in appendRecord
     self._v_packedtuples.append(recordObject._f_pack2())
@@ -1419,20 +1440,21 @@ ValueError: Error packing record object:
  ('xcoord', 'f', 65536.0), ('ycoord', 'f', 4294967296.0)]
  Error was: ubyte format requires 0&lt;=number&lt;=255
 	</verbatim>
-	<p>This other error is saying that one of the records is
-	  having trouble to be converted to the data types stated in
-	  the Event class definition. By looking carefully to the
-	  record object causing the problem, we see that we are trying
-	  to assign a value of 256 to the 'TDCcount' field which has a
-	  'B' (C unsigned char) typecode and the allowed range for it
-	  is <verb>0&lt;=TDCcount&lt;=255</verb>. This is a very
-	  powerful capability to automatically check for ranges: the
-	  message error is explicit enough to figure out what is
-	  happening. In this case you can solve the problem by
-	  promoting the <verb>TDCcount</verb> to 'H' which is a
-	  unsigned 16-bit integer, or avoid the mistake you probably
-	  made in assigning a value greater than 255 to a 'B'
-	  typecode.
+	<p>This time the exception is telling us that one of the
+	  records is having trouble to be converted to the data types
+	  stated in the Event class definition. By looking carefully
+	  at the record object causing the problem, we see that we are
+	  trying to assign a value of 256 to the <verb>TDCcount</verb>
+	  field which has a <verb>'B'</verb> (C unsigned char)
+	  typecode and the allowed range for it is
+	  <verb>0&lt;=TDCcount&lt;=255</verb>. This is a very powerful
+	  capability to automatically check for ranges and the message
+	  error should be explicit enough to figure out what is
+	  happening. In this case you can solve the problem either by
+	  promoting the <verb>TDCcount</verb> to <verb>'H'</verb>
+	  which is an unsigned 16-bit integer, or, by avoiding the
+	  mistake we have probably made in assigning a value greater
+	  than 255 to a 'B' typecode.
 	</p>
 	<p>If we change the line:
 	</p>
@@ -1444,12 +1466,16 @@ ValueError: Error packing record object:
 	<verbatim>
            event.TDCcount = i % (1&lt;&lt;8)
 	</verbatim>
-	<p>you will see that our problem has disappeared, and the HDF5
-	  file has been created.
+	<p>you will see that our problem has disappeared, and that the
+	  HDF5 file has been created.
 	</p>
-	<newline/>
-	<p>Finally, to test the type cheking, we will change the next
-	  line:
+	</subsection>
+
+	<subsection>
+	  <heading>Data type checking</heading>
+
+	<p>Finally, in order to test the type cheking, we will change
+	  the next line:
 	</p>
 	<verbatim>
 	  event.ADCcount = i * 2        # Correct type
@@ -1469,40 +1495,232 @@ ValueError: Error packing record object:
 Traceback (most recent call last):
   File "tutorial2.py", line 68, in ?
     table.appendAsRecord(event)      
-  File "/home/falted/PyTables/pytables-0.2/tables/Table.py", line 279, in appendAsRecord
+  File "/home/falted/PyTables/pytables-0.2/tables/Table.py", line 279,
+in appendAsRecord
     self._v_packedtuples.append(RecordObject._f_pack2())
-  File "/home/falted/PyTables/pytables-0.2/tables/IsRecord.py", line 181, in _f_pack2
+  File "/home/falted/PyTables/pytables-0.2/tables/IsRecord.py", line
+181, in_f_pack2
     self._f_raiseValueError()
-  File "/home/falted/PyTables/pytables-0.2/tables/IsRecord.py", line 135, in _f_raiseValueError
+  File "/home/falted/PyTables/pytables-0.2/tables/IsRecord.py", line
+135, in _f_raiseValueError
     raise ValueError, \
 ValueError: Error packing record object: 
- [('ADCcount', 'H', '0'), ('TDCcount', 'B', 0), ('name', '16s', 'Event:      0'), ('xcoord', 'f', 0.0), ('ycoord', 'f', 0.0)]
+ [('ADCcount', 'H', '0'), ('TDCcount', 'B', 0), ('name', '16s',
+   'Event:      0'), ('xcoord', 'f', 0.0), ('ycoord', 'f', 0.0)]
  Error was: required argument is not an integer
 	</verbatim>
 
 	<p>that states the error.</p>
 
-	<p>After correcting all this errors, admire the structure we
-	  have created in <ref refid="example2">figure</ref>. As
-	  before, you will find in the directory <verb>examples</verb>
-	  the working version of the code (source file
-	  <verb>tutorial2.py</verb>).
+	<p>You can admire the structure we have created with this
+	  (corrected) script in <ref refid="tutorial2">figure</ref>. As
+	  before, you will find this example in source file
+	  <verb>tutorial2.py</verb> that is located in the directory
+	  <verb>examples</verb>.
 	</p>
 
-	<figure id="example2">
-	  <graphics file="example2" scale="0.6" kind="bitmap">
+	<figure id="tutorial2">
+	  <graphics file="tutorial2-h5" scale="0.6" kind="bitmap">
 	  </graphics>
 	  <caption>Table hierarchy for second example.</caption>
 	</figure>
 
 	<p>Feel free to visit the rest of examples in directory
-	  <verb>examples</verb>, and try to understand them. I've tried
-	  to make several cases in different to give you an idea of the
-	  <visual markup="tt">PyTables</visual> capabilities and its way
-	  of dealing with HDF5 objects.
+	  <verb>examples</verb>, and try to understand them. I've
+	  tried to make several use cases to give you an idea of the
+	  <visual markup="tt">PyTables</visual> capabilities and its
+	  way of dealing with HDF5 objects.
 	</p>
 
+	</subsection>
       </section>
+
+      <section>
+	<heading>Optimization tips</heading>
+
+	<p>PyTables has several places where the user can improve the
+	  performace of his application. If you are planning to deal
+	  with really large data, you should read carefully this
+	  section if you want to get an important boost for your
+	  code. But if your dataset is small or medium size (say, up
+	  to 1 MB more or less), you should not worry about that as
+	  the default parameters in PyTables are already tuned to
+	  handle that perfectly.
+	</p>
+
+	<subsection>
+	  <heading>Compression issues</heading>
+
+	  <p>One of the beauties of PyTables is that it comes with
+	    compression activated by <visual
+	    markup="bf">default</visual> for tables. This may be a bit
+	    controversial feature, because compression has a legend of
+	    being a very CPU time resources consumer. However, there
+	    is an usual scenario where users need to save duplicated
+	    data in columns, while the others have changing values. In
+	    a relational database approach such a data can normally be
+	    moved to other tables and a relationship between the rows
+	    can be created. But that takes analysis and implementation
+	    time, and made the underlying libraries more complex and
+	    slower.
+	  </p>
+
+	  <p>PyTables approach is to not support relationships between
+	    tables, but to compress duplicated data in tables. That
+	    allows the user to not worry about finding their optimum
+	    data tables strategy, but rather use less, not directly
+	    related, tables with a larger number of columns while
+	    still not cluttering the database too much with duplicated
+	    data (compression is responsible to avoid that). As a side
+	    effect, data selections can be made more easily because
+	    you have more fields available in a single table, and can
+	    be referred in the same loop that reads rows of the table.
+	  </p>
+
+	  <p>The compression library used is the <visual
+	    markup="bf">zlib</visual> (http://www.gzip.org/zlib/), and
+	    the compression level used by default for
+	    <verb>Table</verb> objects is 3. This level is less than 6
+	    which is the default level recommend in zlib documentation
+	    as a compromise between speed and compression. I've made
+	    this decision for two reasons:
+	  </p>
+
+	  <itemize>
+
+	    <item>Choosing level 3 is a more conservative (in terms of
+	      CPU usage) value. This fact together with the generally
+	      available fast CPU today, can make a better balance
+	      between CPU usage and I/O performance. It would be even
+	      possible in certain situations that reading a compressed
+	      table would take less wall-clock time than not using
+	      compression at all.
+	    </item>
+
+	    <item>Normally (except is some degenerate cases), table
+	      columns values are stored very closely in memory
+	      (i.e. they have a high degree of locality), so the
+	      compression algorithm has to make little effort to
+	      discover data duplication (as the majority of this
+	      duplication would appear in values of the same
+	      column). So a small compression level (beware,
+	      non-zero!) should offer roughly the same results as a
+	      big one.
+	    </item>
+
+	  </itemize>
+
+	  <p>However, in some situations you may want to check how
+	    compression level affects you application. You can control
+	    it by setting the <verb>compress</verb> keyword in the
+	    <verb>createTable</verb> method of the <verb>File</verb>
+	    class. A value of 0 will disable compression, 1 is the
+	    less CPU time demanding level, while 9 is the maximum
+	    level and most CPU intensive.
+	  </p>
+
+	</subsection>
+
+	<subsection>
+	  <heading>Informing PyTables about expected row number in
+	    tables</heading>
+
+	  <p>The underlying HDF5 library that is used by PyTables takes
+	    the data in bunches of a certain length (this bunches are
+	    called <em>chunks</em>) to write them on disk as a whole,
+	    i.e. the HDF5 library treats chunks as atomic objects and
+	    disk I/O is always in terms of complete chunks. This
+	    allows data filters to be defined by the application to
+	    perform tasks such as compression, encryption,
+	    checksumming, etc. on entire chunks.
+	  </p>
+
+	  <p>An in-memory B-tree is used to map chunk structures on
+	    disk. The more chunks that are allocated for a dataset the
+	    larger the B-tree. Large B-trees take memory and causes
+	    file storage overhead as well as more disk I/O and higher
+	    contention for the meta data cache. So, it's important to
+	    balance between memory and I/O overhead (small B-trees)
+	    and time to access to data (big B-trees).
+	  </p>
+
+	  <p>PyTables can determine an optimum chunk size to make
+	    B-trees adecuate to your dataset size if you help it by
+	    setting an estimated number of rows for a table. This must
+	    be made in table creation time by passing this value in
+	    the <verb>expectedrows</verb> keyword of
+	    <verb>createTable</verb> method (in <verb>File</verb>
+	    class).
+	  </p>
+
+	  <p>When your dataset size is bigger than 1 MB (take this
+	    figure only as a reference, not strictly), by providing
+	    <verb>createTable</verb> with a guess of the number of
+	    rows that finally be in table, you will be optimizing the
+	    access to your table data. When the dataset size is larger
+	    than, say 100MB, you are <visual
+	    markup="bf">strongly</visual> suggested to provide such a
+	    guess; failing to do that may cause your application doing
+	    very sloooow I/O operations and huge memory demand. You
+	    have been warned!.
+	  </p>
+
+	</subsection>
+
+	<subsection>
+	  <heading>Optimized ways to fill and read data from
+	    tables</heading>
+
+	  <p>The <verb>appendAsRecord</verb> and
+	    <verb>readAsRecords</verb> methods in <verb>Table</verb>
+	    class are very convenient to use when you are dealing with
+	    small to medium size tables. They are safe and intuitive,
+	    <visual markup="bf">but</visual> they are slow. When you
+	    have to deal with large tables, you can use the alternate
+	    methods <verb>appendAsValues</verb>,
+	    <verb>appendAsTuple</verb> and <verb>readAsTuple</verb>.
+	  </p>
+
+	  <p>These methods are different to the two formers in that
+	    they accept or return the values to/from rows in table as
+	    Python tuples (or independent values in the case of
+	    <verb>appendAsValues</verb>). This methods are much faster
+	    (at least a factor two or even more) than
+	    <verb>xxxxAsRecord</verb> equivalents, but they are also
+	    unsafer, because it is up to you to pass the correct order
+	    of parameters to be appended (or guess the correct order
+	    of fields in tuple when reading). This table field order
+	    is however well defined as the result of alphanumerically
+	    sorting the names of table fields (or columns).
+	  </p>
+
+	  <p>For example, if you have a table with three fields named
+	    "<em>TDCcount</em>", "<em>ADCcount</em>" and
+	    "<em>energy</em>", you have to feed
+	    <verb>appendAsValues</verb> with a serie of parameters
+	    like in:
+	  </p>
+	  <verbatim>
+table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
+	  </verbatim>
+
+	  <p>For <verb>readAsTuple</verb> method you have to follow
+	    the same rule, i.e. you must unpack the values in the
+	    returned tuple that way:
+	  </p>
+	  <verbatim>
+(ADCcountValue, TDCcountValue, energyValue) = table.readAsTuple()
+	  </verbatim>
+
+	  <p>For a working example that also allows you to do some
+	    timmings easily, look at the
+	    <em>examples/table-bench.py</em> script.
+	  </p>
+
+	</subsection>
+
+      </section>
+
     </chapter>
 
     <chapter id='libraryReference'>
@@ -1550,25 +1768,9 @@ ValueError: Error packing record object:
 	    <item>The Pyrex extension types version. This may be
 	      useful for reporting bugs.</item>
 
-	</description>
-
-<!--	  <subsubsection>
-	    <heading>__version__</heading>
-
-	    <p>The PyTables version number.
-	    </p>
-	  </subsubsection>
-
-	  <subsubsection>
-	    <heading>HDF5Version</heading>
-	    
-	    <p>The underlying HDF5 library version number.
-	    </p>
-	  </subsubsection>
--->
+	  </description>
+	  
 	</subsection>
-
-
 
 	<subsection>
 	  <heading>Global Functions</heading>
