@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.20 2004/01/30 16:38:47 falted Exp $
+#       $Id: VLArray.py,v 1.21 2004/02/02 20:53:39 falted Exp $
 #
 ########################################################################
 
@@ -30,7 +30,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.20 $"
+__version__ = "$Revision: 1.21 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -265,7 +265,9 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 
         append(*objects)
         read(start, stop, step)
+        __iter__()
         iterrows(start, stop, step)
+        __getitem__(slice)
 
     Instance variables:
 
@@ -322,6 +324,11 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         shape = self.atom.shape
         if dtype == "CharType" or isinstance(dtype, records.Char):
             self.atom.type = records.CharType
+        # Check for zero dims in atom shape (not allowed in VLArrays)
+        zerodims = numarray.sum(numarray.array(shape) == 0)
+        if zerodims > 0:
+            raise ValueError, \
+                  "When creating VLArrays, none of the dimensions of the Atom instance can be zero."
 
         self._atomictype = self.atom.type
         self._atomicshape = self.atom.shape
@@ -335,46 +342,41 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         self.nrows = 0     # No rows in creation time
         self.shape = (0,)
         self._createArray(self.new_title)
-
-    
-    def _checkTypeShape(self, naarr):
-        # Test that this object is shape and type compliant
-        # Check for type
-        if not hasattr(naarr, "type"):  # To deal with string objects
-            datatype = records.CharType
+            
+    def _checkShape(self, naarr):
+        # Check for zero dimensionality array
+        zerodims = numarray.sum(numarray.array(naarr.shape) == 0)
+        if zerodims > 0:
+            # No objects to be added
+            return 0
+        shape = naarr.shape
+        atom_shape = self.atom.shape
+        shapelen = len(naarr.shape)
+        if isinstance(atom_shape, types.TupleType):
+            atomshapelen = len(self.atom.shape)
         else:
-            datatype = naarr.type()
-        if str(datatype) <> str(self.atom.type):
-            raise TypeError, \
-"""The object '%s' is not composed of elements of type '%s'.""" % \
-(naarr, self.atom.type)
-        # Check for shape
-        if len(naarr):
-            if hasattr(naarr, "shape") and naarr.shape == self.atom.shape:
-                # Case of only one element
-                shape = self.atom.shape
-                self._nobjects = 1
-            else:
-                # See if naarr is made of elements with the correct shape
-                if not hasattr(naarr[0], "shape"):
-                    shape = 1
-                else:
-                    shape = naarr[0].shape
-                self._nobjects = len(naarr)
-                if (type(self.atom.shape) in [types.IntType, types.LongType]
-                    and type(shape) is types.TupleType):
-                    # To allow that a shape of 2 == (2,)
-                    atom_shape = (self.atom.shape,)
-                else:
-                    atom_shape = self.atom.shape
-                if shape <> atom_shape:
-                    raise TypeError, \
-"""The object '%s' is composed of elements with shape '%s', not '%s'.""" % \
-    (naarr, shape, atom_shape)
+            atom_shape = (self.atom.shape,)
+            atomshapelen = 1
+        diflen = shapelen - atomshapelen
+        if shape == atom_shape:
+            nobjects = 1
+        elif (diflen == 1 and shape[diflen:] == atom_shape):
+            # Check if the leading dimensions are all ones
+            #if shape[:diflen-1] == (1,)*(diflen-1):
+            #    nobjects = shape[diflen-1]
+            #    shape = shape[diflen:]
+            # It's better to accept only inputs with the exact dimensionality
+            # i.e. a dimensionality only 1 element larger than atom
+            nobjects = shape[0]
+            shape = shape[1:]
+        elif atom_shape == (1,) and shapelen == 1:
+            # Case where shape = (N,) and shape_atom = 1 or (1,)
+            nobjects = shape[0]
         else:
-            self._nobjects = 0
-        # Ok. all conditions are meet. Return the numarray object
-        return naarr
+            raise ValueError, \
+"""The object '%s' is composed of elements with shape '%s', which is not compatible with the atom shape ('%s').""" % \
+(naarr, shape, atom_shape)
+        return nobjects
             
     def append(self, *objects):
         """Append the objects to this enlargeable object"""
@@ -411,12 +413,12 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             object = numarray.array(object, type=numarray.UInt8)
 
         if len(objects) > 0:
-            naarr = convertIntoNA(object, self.atom.type)
-            self._checkTypeShape(naarr)
+            naarr = convertIntoNA(object, self.atom)
+            nobjects = self._checkShape(naarr)
         else:
-            self._nobjects = 0
+            nobjects = 0
             naarr = None
-        if self._append(naarr, self._nobjects) > 0:
+        if self._append(naarr, nobjects) > 0:
             self.nrows += 1
             self.shape = (self.nrows,)
             # Return the last entry in object
@@ -561,19 +563,21 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 
         if isinstance(key, types.IntType):
             (start, stop, step) = processRange(self.nrows, key, key+1, 1)
-            return self.read(start, stop, step)
+            return self.read(start, stop, step, slice_specified=0)
         elif isinstance(key, types.SliceType):
             (start, stop, step) = processRange(self.nrows,
                                                key.start, key.stop, key.step)
-            return self.read(start, stop, step)
+            return self.read(start, stop, step, slice_specified=1)
         else:
             raise ValueError, "Non-valid index or slice: %s" % \
                   key
         
     # Accessor for the _readArray method in superclass
-    def read(self, start=None, stop=None, step=None):
+    def read(self, start=None, stop=None, step=1, slice_specified=0):
         """Read the array from disk and return it as a self.flavor object."""
 
+#         if stop <> None:
+#             stop_specified = 1
         start, stop, step = processRangeRead(self.nrows, start, stop, step)
 
         if start == stop:
@@ -589,10 +593,46 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             outlistarr = listarr
 
         # Check for unitary length lists or tuples
-        if len(outlistarr) == 1:
+        #if len(outlistarr) == 1 and not stop_specified:
+        if len(outlistarr) == 1 and not slice_specified:
             outlistarr = outlistarr[0]
             
         return outlistarr
+
+    def _g_copy(self, group, name, start, stop, step, title, filters):
+        "Private part of Leaf.copy() for each kind of leaf"
+        # Build the new VLArray object
+        object = VLArray(self.atom, title=title,
+                         filters=filters,
+                         expectedsizeinMB=self._v_expectedsizeinMB)
+        setattr(group, name, object)
+        # Now, fill the new vlarray with values from the old one
+        # This is not buffered because we cannot forsee the length
+        # of each record. So, the safest would be a copy row by row.
+        # In the future, some analysis can be done in order to buffer
+        # the copy process.
+        nrowsinbuf = 1
+        # Non-optimized version
+#         for start2 in range(start, stop, step*nrowsinbuf):
+#             # Save the records on disk
+#             stop2 = start2+step*nrowsinbuf
+#             if stop2 > stop:
+#                 stop2 = stop 
+#             object.append(self[start2])
+        # Optimized version (no conversions, no type and shape checks, etc...)
+        nrowscopied = 0
+        for start2 in range(start, stop, step*nrowsinbuf):
+            # Save the records on disk
+            stop2 = start2+step*nrowsinbuf
+            if stop2 > stop:
+                stop2 = stop 
+            naarr = self._readArray(start=start2, stop=stop2, step=step)[0]
+            nobjects = naarr.shape[0]
+            object._append(naarr, nobjects)
+            nrowscopied +=1
+        object.nrows = nrowscopied
+        object.shape = (nrowscopied,)
+        return object
 
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""

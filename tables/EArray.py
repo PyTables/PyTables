@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.10 2004/01/30 16:38:47 falted Exp $
+#       $Id: EArray.py,v 1.11 2004/02/02 20:53:39 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.10 $"
+__version__ = "$Revision: 1.11 $"
 # default version for EARRAY objects
 obversion = "1.0"    # initial version
 
@@ -193,7 +193,7 @@ class EArray(Array, hdf5Extension.Array, object):
         """Append the object to this (enlargeable) object"""
 
         # Convert the object into a numarray object
-        naarr = convertIntoNA(object, self.type)
+        naarr = convertIntoNA(object, self.atom)
         # Check if it is correct type and shape
         naarr = self._checkTypeShape(naarr)
         self._append(naarr)

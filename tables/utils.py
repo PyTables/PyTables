@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.18 2004/01/30 16:38:47 falted Exp $
+#       $Id: utils.py,v 1.19 2004/02/02 20:53:39 falted Exp $
 #
 ########################################################################
 
@@ -179,8 +179,8 @@ def processRangeRead(nrows, start=None, stop=None, step=1):
     return (start, stop, step)
 
 # This is used in VLArray and EArray to produce a numarray object
-# of type atomtype from a generic python type 
-def convertIntoNA(arr, atomtype):
+# of type atom from a generic python type 
+def convertIntoNA(arr, atom):
     "Convert a generic object into a numarray object"
     # Check for Numeric objects
     if (isinstance(arr, numarray.NumArray) or
@@ -206,16 +206,20 @@ def convertIntoNA(arr, atomtype):
         # Test if arr can be converted to a numarray object of the
         # correct type
         try:
-            naarr = numarray.array(arr, type=atomtype)
+            naarr = numarray.array(arr, type=atom.type)
         # If not, test with a chararray
         except TypeError:
             try:
-                naarr = strings.array(arr)
+                naarr = strings.array(arr, itemsize=atom.itemsize)
             # If still doesn't, issues an error
             except:
                 raise TypeError, \
-"""The object '%s' can't be converted into a numarray object of type '%s'. Sorry, but this object is not supported in this context.""" % (arr, atomtype)
+"""The object '%s' can't be converted into a numarray object of type '%s'. Sorry, but this object is not supported in this context.""" % (arr, atom)
 
+    # Convert to the atom type, if necessary
+    if (isinstance(naarr, numarray.NumArray) and naarr.type() <> atom.type):
+        naarr = naarr.astype(atom.type)         # Force a cast
+        
     # We always want a contiguous buffer
     # (no matter if has an offset or not; that will be corrected later)
     if not naarr.iscontiguous():

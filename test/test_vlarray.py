@@ -742,6 +742,203 @@ class MDTypesTestCase(unittest.TestCase):
 class MDTypesNumArrayTestCase(MDTypesTestCase):
     title = "MDTypes"
 
+class AppendShapeTestCase(unittest.TestCase):
+    mode  = "w" 
+
+    def setUp(self):
+
+        # Create an instance of an HDF5 Table
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, self.mode)
+        self.rootgroup = self.fileh.root
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        
+    #----------------------------------------
+
+    def test00_difinputs(self):
+        """Checking vlarray.append() with different inputs"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00_difinputs..." % self.__class__.__name__
+
+        # Create an string atom
+        vlarray = self.fileh.createVLArray(root, 'vlarray',
+                                           Int32Atom(flavor="Tuple"),
+                                           "Ragged array of ints")
+        # Check different ways to input
+        # All of the next should lead to the same rows
+        vlarray.append(1,2,3) # a list of parameters
+        vlarray.append((1,2,3)) # a tuple
+        vlarray.append([1,2,3]) # a unique list
+        vlarray.append(array([1,2,3], type=Int32)) # and array
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r")
+            vlarray = self.fileh.root.vlarray
+
+        # Read all the vlarray
+        row = vlarray.read()
+        if verbose:
+            print "Object read:", row
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "First row in vlarray ==>", row[0]
+            
+        assert vlarray.nrows == 4
+        assert row[0] == (1,2,3)
+        assert row[1] == (1,2,3)
+        assert row[2] == (1,2,3)
+        assert row[3] == (1,2,3)
+
+    def test01_toomanydims(self):
+        """Checking vlarray.append() with too many dimensions"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_toomanydims..." % self.__class__.__name__
+
+        # Create an string atom
+        vlarray = self.fileh.createVLArray(root, 'vlarray',
+                                           StringAtom(length=3),
+                                           "Ragged array of strings")
+        # Adding an array with one dimensionality more than allowed
+        try:
+            vlarray.append([["123", "456", "3"]])
+        except ValueError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+		print "\nGreat!, the next RuntimeError was catched!"
+                print value
+        else:
+            self.fail("expected a ValueError")
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r")
+            vlarray = self.fileh.root.vlarray
+            
+        # Read all the rows (there should be none)
+        row = vlarray.read()
+        if verbose:
+            print "Object read:", row
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            
+        assert vlarray.nrows == 0
+
+    def test02_zerodims(self):
+        """Checking vlarray.append() with a zero-dimensional array"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_zerodims..." % self.__class__.__name__
+
+        # Create an string atom
+        vlarray = self.fileh.createVLArray(root, 'vlarray',
+                                           Int32Atom(),
+                                           "Ragged array of ints")
+        vlarray.append(zeros(type=Int32, shape=(6,0)))
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r")
+            vlarray = self.fileh.root.vlarray
+
+        # Read the only row in vlarray
+        row = vlarray.read(0)
+        if verbose:
+            print "Object read:", row
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "First row in vlarray ==>", row.info()
+            
+        assert vlarray.nrows == 1
+        assert allequal(row, zeros(type=Int32, shape=(0,)))
+        assert len(row) == 0
+
+    def test03a_cast(self):
+        """Checking vlarray.append() with a casted array (upgrading case)"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03a_cast..." % self.__class__.__name__
+
+        # Create an string atom
+        vlarray = self.fileh.createVLArray(root, 'vlarray',
+                                           Int32Atom(),
+                                           "Ragged array of ints")
+        # This type has to be upgraded
+        vlarray.append(array([1,2], type=Int16))
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r")
+            vlarray = self.fileh.root.vlarray
+
+        # Read the only row in vlarray
+        row = vlarray.read(0)
+        if verbose:
+            print "Object read:", row
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "First row in vlarray ==>", row.info()
+            
+        assert vlarray.nrows == 1
+        assert allequal(row, array([1,2], type=Int32))
+        assert len(row) == 2
+
+    def test03b_cast(self):
+        """Checking vlarray.append() with a casted array (downgrading case)"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03b_cast..." % self.__class__.__name__
+
+        # Create an string atom
+        vlarray = self.fileh.createVLArray(root, 'vlarray',
+                                           Int32Atom(),
+                                           "Ragged array of ints")
+        # This type has to be dowgraded
+        vlarray.append(array([1,2], type=Float64))
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r")
+            vlarray = self.fileh.root.vlarray
+
+        # Read the only row in vlarray
+        row = vlarray.read(0)
+        if verbose:
+            print "Object read:", row
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "First row in vlarray ==>", row.info()
+            
+        assert vlarray.nrows == 1
+        assert allequal(row, array([1,2], type=Int32))
+        assert len(row) == 2
+
+class OpenAppendShapeTestCase(AppendShapeTestCase):
+    close = 0
+
+class CloseAppendShapeTestCase(AppendShapeTestCase):
+    close = 1
+
 class FlavorTestCase(unittest.TestCase):
     mode  = "w" 
     compress = 0
@@ -1224,10 +1421,11 @@ class RangeTestCase(unittest.TestCase):
             print "Second row in vlarray ==>", row[1]
 
         assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 0
+        assert len(row[0]) == 1
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0], arange(0, type=Int32))
+        for x in range(1):
+            assert allequal(row[0][x], arange(0, type=Int32))
         for x in range(10):
             assert allequal(row[1][x], arange(x, type=Int32))
         for x in range(99):
@@ -1383,6 +1581,495 @@ class RangeTestCase(unittest.TestCase):
             (type, value, traceback) = sys.exc_info()
             self.fail("expected a IndexError and got:\n%s" % value)
 
+class CopyTestCase(unittest.TestCase):
+
+    def test01_copy(self):
+        """Checking VLArray.copy() method """
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an Vlarray
+        arr = Int16Atom(shape=2, flavor="List")
+        array1 = fileh.createVLArray(fileh.root, 'array1', arr, "title array1")
+        array1.append([[2,3]])
+        array1.append()  # an empty row
+        array1.append([[3, 457],[2,4]])
+
+        # Copy it to another location
+        array2 = array1.copy('/', 'array2')
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.array2
+
+        if verbose:
+            print "array1-->", repr(array1.read())
+            print "array2-->", repr(array2.read())
+            #print "dirs-->", dir(array1), dir(array2)
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Check that all the elements are equal
+        assert array1.read() == array2.read()
+
+        # Assert other properties in array
+        assert array1.nrows == array2.nrows
+        assert array1.atom.flavor == array2.atom.flavor
+        assert array1.atom.type == array2.atom.type
+        assert array1.atom.itemsize == array2.atom.itemsize
+        assert array1.title == array2.title
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test02_copy(self):
+        """Checking VLArray.copy() method (where specified)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an VLArray
+        arr = Int16Atom(shape=2, flavor="List")
+        array1 = fileh.createVLArray(fileh.root, 'array1', arr, "title array1")
+        array1.append([[2,3]])
+        array1.append()  # an empty row
+        array1.append([[3, 457],[2,4]])
+
+        # Copy to another location
+        group1 = fileh.createGroup("/", "group1")
+        array2 = array1.copy(group1, 'array2')
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.group1.array2
+
+        if verbose:
+            print "array1-->", array1.read()
+            print "array2-->", array2.read()
+            #print "dirs-->", dir(array1), dir(array2)
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Check that all the elements are equal
+        assert array1.read() == array2.read()
+
+        # Assert other properties in array
+        assert array1.nrows == array2.nrows
+        assert array1.atom.flavor == array2.atom.flavor
+        assert array1.atom.type == array2.atom.type
+        assert array1.atom.itemsize == array2.atom.itemsize
+        assert array1.title == array2.title
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test03_copy(self):
+        """Checking VLArray.copy() method (Numeric flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an VLArray
+        if numeric:
+            arr = Int16Atom(shape=2, flavor="Numeric")
+        else:
+            arr = Int16Atom(shape=2, flavor="NumArray")
+        array1 = fileh.createVLArray(fileh.root, 'array1', arr,
+                                     "title array1")
+        array1.append([[2,3]])
+        array1.append()  # an empty row
+        array1.append([[3, 457],[2,4]])
+            
+        # Copy to another location
+        array2 = array1.copy('/', 'array2')
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.array2
+
+        if verbose:
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Assert other properties in array
+        assert array1.nrows == array2.nrows
+        assert array1.atom.flavor == array2.atom.flavor  # Very important here
+        assert array1.atom.type == array2.atom.type
+        assert array1.atom.itemsize == array2.atom.itemsize
+        assert array1.title == array2.title
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test03b_copy(self):
+        """Checking VLArray.copy() method (Tuple flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an VLArray
+        arr = Int16Atom(shape=2, flavor="Tuple")
+        array1 = fileh.createVLArray(fileh.root, 'array1', arr,
+                                     "title array1")
+        array1.append(((2,3),))
+        array1.append()  # an empty row
+        array1.append(((3, 457),(2,4)))
+            
+        # Copy to another location
+        array2 = array1.copy('/', 'array2')
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.array2
+
+        if verbose:
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Assert other properties in array
+        assert array1.nrows == array2.nrows
+        assert array1.atom.flavor == array2.atom.flavor  # Very important here
+        assert array1.atom.type == array2.atom.type
+        assert array1.atom.itemsize == array2.atom.itemsize
+        assert array1.title == array2.title
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test04_copy(self):
+        """Checking VLArray.copy() method (checking title copying)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an VLArray
+        atom = Int16Atom(shape=2)
+        array1 = fileh.createVLArray(fileh.root, 'array1', atom,
+                                     "title array1")
+        array1.append(((2,3),))
+        array1.append()  # an empty row
+        array1.append(((3, 457),(2,4)))
+        # Append some user attrs
+        array1.attrs.attr1 = "attr1"
+        array1.attrs.attr2 = 2
+
+        # Copy it to another Array
+        array2 = array1.copy('/', 'array2', title="title array2")
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.array2
+            
+        # Assert user attributes
+        if verbose:
+            print "title of destination array-->", array2.title
+        array2.title == "title array2"
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test05_copy(self):
+        """Checking VLArray.copy() method (user attributes copied)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an Array
+        atom=Int16Atom(shape=2)
+        array1 = fileh.createVLArray(fileh.root, 'array1', atom,
+                                     "title array1")
+        array1.append(((2,3),))
+        array1.append()  # an empty row
+        array1.append(((3, 457),(2,4)))
+        # Append some user attrs
+        array1.attrs.attr1 = "attr1"
+        array1.attrs.attr2 = 2
+        # Copy it to another Array
+        array2 = array1.copy('/', 'array2', copyuserattrs=1)
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.array2
+
+        if verbose:
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Assert user attributes
+        array2.attrs.attr1 == "attr1"
+        array2.attrs.attr2 == 2
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def notest05b_copy(self):
+        """Checking VLArray.copy() method (user attributes not copied)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05b_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an VLArray
+        atom=Int16Atom(shape=2)
+        array1 = fileh.createVLArray(fileh.root, 'array1', atom,
+                                     "title array1")
+        array1.append(((2,3),))
+        array1.append()  # an empty row
+        array1.append(((3, 457),(2,4)))
+        # Append some user attrs
+        array1.attrs.attr1 = "attr1"
+        array1.attrs.attr2 = 2
+        # Copy it to another Array
+        array2 = array1.copy('/', 'array2', copyuserattrs=0)
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.array2
+
+        if verbose:
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Assert user attributes
+        array2.attrs.attr1 == None
+        array2.attrs.attr2 == None
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+
+class CloseCopyTestCase(CopyTestCase):
+    close = 1
+
+class OpenCopyTestCase(CopyTestCase):
+    close = 0
+
+
+class CopyIndexTestCase(unittest.TestCase):
+
+    def test01_index(self):
+        """Checking VLArray.copy() method with indexes"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_index..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Array
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an VLArray
+        atom = Int32Atom(shape=(2,), flavor="List")
+        array1 = fileh.createVLArray(fileh.root, 'array1', atom, "t array1")
+        # The next creates 20 rows of variable length
+        r = []
+        for row in range(20):
+            r.append([[row, row+1]])
+            array1.append([row, row+1])
+        
+        # Copy to another array
+        array2 = array1.copy("/", 'array2',
+                             start=self.start,
+                             stop=self.stop,
+                             step=self.step)
+            
+        r2 = r[self.start:self.stop:self.step]
+        if verbose:
+            print "r2-->", r2
+            print "array2-->", array2[:]
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            print "nrows in array2-->", array2.nrows
+            print "and it should be-->", len(r2)
+        # Check that all the elements are equal
+        assert r2 == array2[:]
+        # Assert the number of rows in array
+        assert len(r2) == array2.nrows
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test02_indexclosef(self):
+        """Checking VLArray.copy() method with indexes (close file version)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_indexclosef..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Array
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an EArray
+        atom = Int32Atom(shape=(2,), flavor="Tuple")
+        array1 = fileh.createVLArray(fileh.root, 'array1', atom, "t array1")
+        # The next creates 20 rows of variable length
+        r = []
+        for row in range(20):
+            r.append(([row, row+1],))
+            array1.append([row, row+1])
+        
+
+        # Copy to another array
+        array2 = array1.copy("/", 'array2',
+                             start=self.start,
+                             stop=self.stop,
+                             step=self.step)
+        # Close and reopen the file
+        fileh.close()
+        fileh = openFile(file, mode = "r")
+        array1 = fileh.root.array1
+        array2 = fileh.root.array2
+
+        r2 = r[self.start:self.stop:self.step]
+        if verbose:
+            print "r2-->", r2
+            print "array2-->", array2[:]
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            print "nrows in array2-->", array2.nrows
+            print "and it should be-->", len(r2)
+        # Check that all the elements are equal
+        assert r2 == array2[:]
+        # Assert the number of rows in array
+        assert len(r2) == array2.nrows
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+class CopyIndex1TestCase(CopyIndexTestCase):
+    start = 0
+    stop = 7
+    step = 1
+
+class CopyIndex2TestCase(CopyIndexTestCase):
+    start = 0
+    stop = -1
+    step = 1
+	
+class CopyIndex3TestCase(CopyIndexTestCase):
+    start = 1
+    stop = 7
+    step = 1
+
+class CopyIndex4TestCase(CopyIndexTestCase):
+    start = 0
+    stop = 6
+    step = 1
+
+class CopyIndex5TestCase(CopyIndexTestCase):
+    start = 3
+    stop = 7
+    step = 1
+
+class CopyIndex6TestCase(CopyIndexTestCase):
+    start = 3
+    stop = 6
+    step = 2
+
+class CopyIndex7TestCase(CopyIndexTestCase):
+    start = 0
+    stop = 7
+    step = 10
+
+class CopyIndex8TestCase(CopyIndexTestCase):
+    start = 6
+    stop = -1  # Negative values means starting from the end
+    step = 1
+
+class CopyIndex9TestCase(CopyIndexTestCase):
+    start = 3
+    stop = 4
+    step = 1
+
+class CopyIndex10TestCase(CopyIndexTestCase):
+    start = 3
+    stop = 4
+    step = 2
+
+class CopyIndex11TestCase(CopyIndexTestCase):
+    start = -3
+    stop = -1
+    step = 2
+
+class CopyIndex12TestCase(CopyIndexTestCase):
+    start = -1   # Should point to the last element
+    stop = None  # None should mean the last element (including it)
+    step = 1
+
+
 
 #----------------------------------------------------------------------
 
@@ -1391,6 +2078,10 @@ def suite():
     global numeric
     niter = 1
 
+    #theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
+    #theSuite.addTest(unittest.makeSuite(OpenAppendShapeTestCase))
+    #theSuite.addTest(unittest.makeSuite(CloseAppendShapeTestCase))
+    #theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
     #theSuite.addTest(unittest.makeSuite(BasicNumArrayTestCase))
     #if numeric:
     #    theSuite.addTest(unittest.makeSuite(BasicNumericTestCase))
@@ -1416,6 +2107,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(UCLComprTestCase))
         theSuite.addTest(unittest.makeSuite(TypesNumArrayTestCase))
         theSuite.addTest(unittest.makeSuite(MDTypesNumArrayTestCase))
+        theSuite.addTest(unittest.makeSuite(OpenAppendShapeTestCase))
+        theSuite.addTest(unittest.makeSuite(CloseAppendShapeTestCase))
         theSuite.addTest(unittest.makeSuite(TupleFlavorTestCase))
         theSuite.addTest(unittest.makeSuite(ListFlavorTestCase))
         if numeric:
@@ -1425,9 +2118,22 @@ def suite():
         theSuite.addTest(unittest.makeSuite(ShuffleComprTestCase))
         theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))
         theSuite.addTest(unittest.makeSuite(AllFiltersTestCase))
-
+        theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
+        theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex2TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex3TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex4TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex5TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex6TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex7TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex8TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex9TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex10TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex11TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex12TestCase))
+    
     return theSuite
-
 
 if __name__ == '__main__':
     unittest.main( defaultTest='suite' )

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.28 2004/01/30 16:38:47 falted Exp $
+#       $Id: IsDescription.py,v 1.29 2004/02/02 20:53:39 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.28 $"
+__version__ = "$Revision: 1.29 $"
 
 
 import warnings
@@ -66,7 +66,11 @@ class Col:
                "None or zero-valued shapes are not supported '%s'" % `shape`
 
         if type(shape) in [types.IntType, types.LongType]:
-            self.shape = shape
+            # To prevent confusions between 2 and (2,): the meaning is the same
+            if shape == 1:
+                self.shape = shape
+            else:
+                self.shape = (shape,)
         elif type(shape) in [types.ListType, types.TupleType]:
             # HDF5 does not support ranks greater than 32
             assert len(shape) <= 32, \
@@ -94,7 +98,7 @@ class Col:
                     self.shape = 1
                 elif len(shape) == 1:
                     #self.shape = shape[0]
-                    # This is better for EArray Atoms
+                    # This is better for Atoms
                     self.shape = (shape[0],)
                 else:
                     self.shape = tuple(shape)
@@ -139,7 +143,11 @@ class BoolCol(Col):
                "None or zero-valued shapes are not supported '%s'" % `shape`
 
         if type(shape) in [types.IntType, types.LongType]:
-            self.shape = shape
+            # To prevent confusions between 2 and (2,): the meaning is the same
+            if shape == 1:
+                self.shape = shape
+            else:
+                self.shape = (shape,)
         elif type(shape) in [types.ListType, types.TupleType]:
             self.shape = tuple(shape)
         else: raise ValueError, "Illegal shape %s" % `shape`
@@ -174,7 +182,11 @@ class StringCol(Col):
   can be infered from."""
         
         if type(shape) in [types.IntType, types.LongType]:
-            self.shape = shape
+            # To prevent confusions between 2 and (2,): the meaning is the same
+            if shape == 1:
+                self.shape = shape
+            else:
+                self.shape = (shape,)
         elif type(shape) in [types.ListType, types.TupleType]:
             self.shape = tuple(shape)
         else: raise ValueError, "Illegal shape %s" % `shape`
@@ -200,7 +212,11 @@ class IntCol(Col):
                "Integer itemsizes different from 1,2,4 or 8 are not supported"
         
         if type(shape) in [types.IntType, types.LongType]:
-            self.shape = shape
+            # To prevent confusions between 2 and (2,): the meaning is the same
+            if shape == 1:
+                self.shape = shape
+            else:
+                self.shape = (shape,)
         elif type(shape) in [types.ListType, types.TupleType]:
             self.shape = tuple(shape)
         else: raise ValueError, "Illegal shape %s" % `shape`
@@ -285,7 +301,11 @@ class FloatCol(Col):
                "Float itemsizes different from 4 and 8 are not supported"
         
         if type(shape) in [types.IntType, types.LongType]:
-            self.shape = shape
+            # To prevent confusions between 2 and (2,): the meaning is the same
+            if shape == 1:
+                self.shape = shape
+            else:
+                self.shape = (shape,)
         elif type(shape) in [types.ListType, types.TupleType]:
             self.shape = tuple(shape)
         else: raise ValueError, "Illegal shape %s" % `shape`
@@ -381,10 +401,8 @@ class Description(object):
                     # This needs to be fixed when calcoffset will support
                     # the recarray format, for ex: "(1,3)f4,3i4,(2,)a5,i2"
                     if type(object.shape) in [types.IntType, types.LongType]:
-                        if object.shape == 1:
-                            shape = object.itemsize
-                        else:
-                            shape = (object.shape, object.itemsize)
+                        # If shape is int type, it is always 1
+                        shape = object.itemsize
                     else:
                         shape = list(object.shape)
                         shape.append(object.itemsize)

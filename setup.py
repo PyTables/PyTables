@@ -11,7 +11,12 @@ if not (sys.version_info[0] >= 2 and sys.version_info[1] >= 2):
     print "#################################################################"
     sys.exit(1)
 
-# To deal with detected problems with python 2.2.1
+# To deal with detected problems with python 2.2.1 and Pyrex 0.9
+# Now, this should be solved with the hdf5Extension.c, but I'm not sure
+# to disable this, because anybody can get into trouble if they use
+# Pyrex 0.9 to generate the new hdf5Extension.c
+# I definitely think it is safer to let this protection here.
+# F. Alted 2004-2-2
 if (sys.version_info[0] == 2 and sys.version_info[1] == 2 and
     sys.version_info[2] < 3):
     print "#################################################################"

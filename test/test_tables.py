@@ -1740,6 +1740,18 @@ class CopyIndex10TestCase(CopyIndexTestCase):
     stop = 4
     step = 2
 
+class CopyIndex11TestCase(CopyIndexTestCase):
+    maxTuples = 2
+    start = -3
+    stop = -1
+    step = 2
+
+class CopyIndex12TestCase(CopyIndexTestCase):
+    maxTuples = 3
+    start = -1   # Should point to the last element
+    stop = None  # None should mean the last element (including it)
+    step = 1
+
 class LargeRowSize(unittest.TestCase):
 
     def test00(self):
@@ -1902,6 +1914,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyIndex8TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex9TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex10TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex11TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex12TestCase))
         theSuite.addTest(unittest.makeSuite(LargeRowSize))
         theSuite.addTest(unittest.makeSuite(DefaultValues))
         theSuite.addTest(unittest.makeSuite(OldRecordDefaultValues))
