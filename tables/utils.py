@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.10 2003/12/12 11:43:04 falted Exp $
+#       $Id: utils.py,v 1.11 2003/12/12 13:58:59 falted Exp $
 #
 ########################################################################
 
@@ -221,6 +221,9 @@ def processRange(nrows, start=None, stop=None, step=None):
         elif step <= 0:
             raise ValueError, \
                   "Zero or negative step values are not allowed!"
+
+    if start > stop:
+        stop = start
         
     # Protection against start greater than available records
     # nrows == 0 is a special case for empty objects

@@ -7,7 +7,7 @@ import os
 import tempfile
 
 from numarray import *
-import numarray.strings as strings
+from numarray import strings
 from tables import *
 
 try:
@@ -25,9 +25,11 @@ def allequal(a,b):
         return a == b
 
     if a.shape <> b.shape:
+        if verbose:
+            print "Shape is not equal"
         return 0
 
-    if a.type() <> b.type():
+    if hasattr(b, "type") and a.type() <> b.type():
         return 0
 
     # Rank-0 case
@@ -35,6 +37,8 @@ def allequal(a,b):
         if str(equal(a,b)) == '1':
             return 1
         else:
+            if verbose:
+                print "Shape is not equal"
             return 0
 
     # Null arrays
@@ -42,13 +46,19 @@ def allequal(a,b):
         if len(b._data) == 0:
             return 1
         else:
+            if verbose:
+                print "length is not equal"
+                print "len(a._data) ==>", len(a._data)
+                print "len(b._data) ==>", len(b._data)
             return 0
 
     # Multidimensional case
     result = (a == b)
     for i in range(len(a.shape)):
         result = logical_and.reduce(result)
-
+    if not result and verbose:
+        print "The elements are not equal"
+        
     return result
 
 class BasicTestCase(unittest.TestCase):
@@ -58,6 +68,7 @@ class BasicTestCase(unittest.TestCase):
     start = 0
     stop = 10
     step = 1
+    length = 1
     chunksize = 5
     nappends = 10
     compress = 0
@@ -76,7 +87,11 @@ class BasicTestCase(unittest.TestCase):
         
     def populateFile(self):
         group = self.rootgroup
-        object = zeros(type=self.type, shape=self.shape)
+        if str(self.type) == "CharType":
+            object = strings.array(None, itemsize=self.length,
+                                   shape=self.shape)
+        else:
+            object = zeros(type=self.type, shape=self.shape)
         title = self.__class__.__name__
         earray = self.fileh.createArray(group, 'earray1', object, title,
                                         compress = self.compress,
@@ -86,20 +101,26 @@ class BasicTestCase(unittest.TestCase):
 
         # Fill it with rows
         self.rowshape = list(earray.shape)
-        self.objsize = 1
+        self.objsize = self.length
         for i in self.rowshape:
             if i <> 0:
                 self.objsize *= i
         self.extdim = earray.extdim
         self.objsize *= self.chunksize
         self.rowshape[earray.extdim] = self.chunksize
-        object = arange(self.objsize, shape=self.rowshape, type=earray.type)
+        if str(self.type) == "CharType":
+            object = strings.array("a"*self.objsize, shape=self.rowshape,
+                                   itemsize=earray.itemsize)
+        else:
+            object = arange(self.objsize, shape=self.rowshape,
+                            type=earray.type)
         if verbose:
-            # print "-->", object
             print "Object to append -->", object.info()
         for i in range(self.nappends):
-            #print "i-->", i
-            earray.append(object*i)
+            if str(self.type) == "CharType":
+                earray.append(object)
+            else:
+                earray.append(object*i)
 
     def tearDown(self):
         self.fileh.close()
@@ -125,13 +146,21 @@ class BasicTestCase(unittest.TestCase):
             print "Array descr:", repr(earray)
             print "shape of read array ==>", earray.shape
         # Build the array to do comparisons
-        object_ = arange(self.objsize, shape=self.rowshape, type=earray.type)
+        if str(self.type) == "CharType":
+            object_ = strings.array("a"*self.objsize, shape=self.rowshape,
+                                   itemsize=earray.itemsize)
+        else:
+            object_ = arange(self.objsize, shape=self.rowshape,
+                             type=earray.type)
         object_.swapaxes(earray.extdim, 0)
         # Read all the array
         for row in earray:
             chunk = (earray.nrow % self.chunksize)
             if chunk == 0:
-                 object__ = object_ * (earray.nrow / self.chunksize)
+                if str(self.type) == "CharType":
+                    object__ = object_
+                else:
+                    object__ = object_ * (earray.nrow / self.chunksize)
             object = object__[chunk]
             # The next adds much more verbosity
             if verbose and 0:
@@ -167,13 +196,21 @@ class BasicTestCase(unittest.TestCase):
             print "Array descr:", repr(earray)
             print "shape of read array ==>", earray.shape
         # Build the array to do comparisons
-        object_ = arange(self.objsize, shape=self.rowshape, type=earray.type)
+        if str(self.type) == "CharType":
+            object_ = strings.array("a"*self.objsize, shape=self.rowshape,
+                                   itemsize=earray.itemsize)
+        else:
+            object_ = arange(self.objsize, shape=self.rowshape,
+                             type=earray.type)
         object_.swapaxes(earray.extdim, 0)
         # Read all the array
         for row in earray(start=self.start, stop=self.stop, step=self.step):
             chunk = (earray.nrow % self.chunksize)
             if (chunk - self.start) == 0:
-                 object__ = object_ * (earray.nrow / self.chunksize)
+                if str(self.type) == "CharType":
+                    object__ = object_
+                else:
+                    object__ = object_ * (earray.nrow / self.chunksize)
             object = object__[chunk]
             # The next adds much more verbosity
             if verbose and 0:
@@ -210,35 +247,48 @@ class BasicTestCase(unittest.TestCase):
             print "shape of read array ==>", earray.shape
 
         # Build the array to do comparisons
-        object_ = arange(self.objsize, shape=self.rowshape, type=earray.type)
+        if str(self.type) == "CharType":
+            object_ = strings.array("a"*self.objsize, shape=self.rowshape,
+                                   itemsize=earray.itemsize)
+        else:
+            object_ = arange(self.objsize, shape=self.rowshape,
+                             type=earray.type)
         object_.swapaxes(earray.extdim, 0)
         rowshape = self.rowshape
         rowshape[self.extdim] *= self.nappends
-        object__ = array(None, shape = rowshape, type=self.type)
+        if str(self.type) == "CharType":
+            object__ = strings.array(None, shape=rowshape,
+                                     itemsize=earray.itemsize)
+        else:
+            object__ = array(None, shape = rowshape, type=self.type)
         object__.swapaxes(0, self.extdim)
         for i in range(self.nappends):
             j = i * self.chunksize
-            object__[j:j+self.chunksize] = object_ * i
-        object__.swapaxes(0, self.extdim)
+            if str(self.type) == "CharType":
+                object__[j:j+self.chunksize] = object_
+            else:
+                object__[j:j+self.chunksize] = object_ * i
         stop = self.stop
         if self.nappends:
             # Protection against number of elements less than existing
             if rowshape[self.extdim] < self.stop or self.stop == 0:
                 # self.stop == 0 means last row
                 stop = rowshape[self.extdim]
-            object = take(object__, range(self.start,stop,self.step),
-                          axis = self.extdim)
+            # do a copy() in order to ensure that len(object._data)
+            # actually do a measure of its length
+            object = object__[self.start:stop:self.step].copy()
+            # Swap the axes again to have normal ordering
+            object.swapaxes(0, self.extdim)
         else:
             object = array(None, shape = self.shape, type=self.type)
-                
+
         # Read all the array
         try:
             row = earray.read(self.start,self.stop,self.step)
         except IndexError:
             row = array(None, shape = self.shape, type=self.type)
 
-        # The next adds much more verbosity
-        if verbose and 1:
+        if verbose:
             if hasattr(object, "shape"):
                 print "shape should look as:", object.shape
             print "Object read ==>", repr(row)
@@ -271,26 +321,41 @@ class BasicTestCase(unittest.TestCase):
             print "shape of read array ==>", earray.shape
 
         # Build the array to do comparisons
-        object_ = arange(self.objsize, shape=self.rowshape, type=earray.type)
+        if str(self.type) == "CharType":
+            object_ = strings.array("a"*self.objsize, shape=self.rowshape,
+                                   itemsize=earray.itemsize)
+        else:
+            object_ = arange(self.objsize, shape=self.rowshape,
+                             type=earray.type)
         object_.swapaxes(earray.extdim, 0)
         rowshape = self.rowshape
         rowshape[self.extdim] *= self.nappends
-        object__ = array(None, shape = rowshape, type=self.type)
+        if str(self.type) == "CharType":
+            object__ = strings.array(None, shape=rowshape,
+                                     itemsize=earray.itemsize)
+        else:
+            object__ = array(None, shape = rowshape, type=self.type)
         object__.swapaxes(0, self.extdim)
         for i in range(self.nappends):
             j = i * self.chunksize
-            object__[j:j+self.chunksize] = object_ * i
-        object__.swapaxes(0, self.extdim)
+            if str(self.type) == "CharType":
+                object__[j:j+self.chunksize] = object_
+            else:
+                object__[j:j+self.chunksize] = object_ * i
         stop = self.stop
         if self.nappends:
             # Protection against number of elements less than existing
             if rowshape[self.extdim] < self.stop or self.stop == 0:
                 # self.stop == 0 means last row
                 stop = rowshape[self.extdim]
-            object = take(object__, range(self.start,stop,self.step),
-                          axis = self.extdim)
+            # do a copy() in order to ensure that len(object._data)
+            # actually do a measure of its length
+            object = object__[self.start:stop:self.step].copy()
+            # Swap the axes again to have normal ordering
+            object.swapaxes(0, self.extdim)
         else:
             object = array(None, shape = self.shape, type=self.type)
+
         if (len(range(self.start, stop, self.step)) == 1 and
             self.extdim > 0):
             object.swapaxes(self.extdim, 0)
@@ -305,12 +370,11 @@ class BasicTestCase(unittest.TestCase):
         except IndexError:
             row = array(None, shape = self.shape, type=self.type)
 
-        # The next adds much more verbosity
-        if verbose and 1:
+        if verbose:
             if hasattr(object, "shape"):
                 print "shape should look as:", object.shape
-            print "Object read ==>", repr(row)
-            print "Should look like ==>", repr(object)
+            print "Object read ==>", repr(row) #, row.info()
+            print "Should look like ==>", repr(object) #, row.info()
 
         assert self.nappends*self.chunksize == earray.nrows
         assert allequal(row, object)
@@ -425,7 +489,38 @@ class FloatTypeTestCase(BasicTestCase):
     stop = 10
     step = 20
 
-# Provar a afegir tests per a scalars i chararrays
+class CharTypeTestCase(BasicTestCase):
+    type = "CharType"
+    length = 20
+    shape = (2,0)
+    chunksize = 5
+    nappends = 10
+    start = 3
+    stop = 10
+    step = 20
+
+class CharType2TestCase(BasicTestCase):
+    type = "CharType"
+    length = 20
+    shape = (0,)
+    chunksize = 5
+    nappends = 10
+    start = 1
+    stop = 10
+    step = 2
+
+class CharTypeComprTestCase(BasicTestCase):
+    type = "CharType"
+    length = 20
+    shape = (20,0,10)
+    compr = 1
+    #shuffle = 1  # this should not do nothing on chars
+    chunksize = 50
+    nappends = 10
+    start = -1
+    stop = 100
+    step = 20
+
 
 #----------------------------------------------------------------------
 
@@ -446,6 +541,9 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(UCLComprTestCase))
     #theSuite.addTest(unittest.makeSuite(UCLShuffleTestCase))
     #theSuite.addTest(unittest.makeSuite(FloatTypeTestCase))
+    #theSuite.addTest(unittest.makeSuite(CharTypeTestCase))
+    #theSuite.addTest(unittest.makeSuite(CharType2TestCase))
+    #theSuite.addTest(unittest.makeSuite(CharTypeComprTestCase))
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
@@ -460,7 +558,9 @@ def suite():
         theSuite.addTest(unittest.makeSuite(UCLComprTestCase))
         theSuite.addTest(unittest.makeSuite(UCLShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(FloatTypeTestCase))
-    
+        theSuite.addTest(unittest.makeSuite(CharTypeTestCase))    
+        theSuite.addTest(unittest.makeSuite(CharType2TestCase))    
+        theSuite.addTest(unittest.makeSuite(CharTypeComprTestCase))
 
     return theSuite
 
