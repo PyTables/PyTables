@@ -657,6 +657,38 @@ class createAttrTestCase(unittest.TestCase):
         assert self.root.atable.attrs.qr == (1,2)
         assert self.root.atable.attrs.rs == {"ddf":32.1, "dsd":1}
 
+    def test12_overwriteAttributes(self):
+        """Checking overwriting attributes """
+
+        # With a Group object
+        self.group._v_attrs.pq = "1"
+        self.group._v_attrs.qr = "2"
+        self.group._v_attrs.rs = "3"
+        # overwrite attributes
+        self.group._v_attrs.pq = "4"
+        self.group._v_attrs.qr = 2
+        self.group._v_attrs.rs = [1,2,3]
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            
+        if verbose:
+            print "Value of Attribute pq:", self.root.agroup._v_attrs.pq
+        # Check the local attributes names (alphabetically sorted)
+        assert self.root.agroup._v_attrs.pq == "4"
+        assert self.root.agroup._v_attrs.qr == 2
+        assert self.root.agroup._v_attrs.rs == [1,2,3]
+        if verbose:
+            print "Attribute list in disk:", \
+                  self.root.agroup._v_attrs._f_list("all")
+        # Check the disk attribute names (not sorted)
+        assert self.root.agroup._v_attrs._f_list("all") == \
+               ['CLASS', 'TITLE', 'VERSION', "pq", "qr", "rs"]
+
 
 class createAttrNotCloseTestCase(createAttrTestCase):
     close = 0

@@ -1130,6 +1130,7 @@ class RecArrayIO(unittest.TestCase):
 
 class CopyTestCase(unittest.TestCase):
 
+    # Fer uns quants metodes mes per a xequejar open/closed, altres params, ...
     def test01_copy(self):
         """Checking Table.copy() method """
 
@@ -1144,19 +1145,41 @@ class CopyTestCase(unittest.TestCase):
         # Create a recarray
         r=records.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
         # Save it in a table:
-        table1 = fileh.createTable(fileh.root, 'table1', r)
+        table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
 
         # Copy to another table
         table2 = table1.copy('table2')
 
-        print "table1-->", table1.read()
-        print "table2-->", table2.read()
+        if verbose:
+            print "table1-->", table1.read()
+            print "table2-->", table2.read()
+            #print "dirs-->", dir(table1), dir(table2)
+            print "attrs table1-->", repr(table1.attrs)
+            print "attrs table2-->", repr(table2.attrs)
+            
         # Check that all the elements are equal
         for row1 in table1:
-            print "nrow-->", row1.nrow()
-            print "1-->", row1
-            print "2-->", table2[row1.nrow()]
-            assert row1 == table2[row1.nrow()]
+            nrow = row1.nrow()   # current row
+            # row1 is a Row instance, while table2[] is a
+            # RecArray.Record instance
+            #print "reprs-->", repr(row1), repr(table2.read(nrow))
+            for colname in table1.colnames:
+                # Both ways to compare works well
+                assert row1[colname] == table2[nrow].field(colname)
+                #assert row1[colname] == table2.read(nrow, field=colname)[0]
+
+        # Assert other properties in table
+        assert table1.nrows == table2.nrows
+        assert table1.colnames == table2.colnames
+        assert table1.coltypes == table2.coltypes
+        assert table1.colshapes == table2.colshapes
+        assert table1.description._v_ColObjects == table2.description._v_ColObjects
+        # Leaf attributes
+        assert table1.title == table2.title
+        assert table1.complevel == table2.complevel
+        assert table1.complib == table2.complib
+        assert table1.shuffle == table2.shuffle
+        assert table1.fletcher32 == table2.fletcher32
 
         # Close the file
         fileh.close()
@@ -1309,7 +1332,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
         theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayIO))
-        #theSuite.addTest(unittest.makeSuite(CopyTestCase))
+        theSuite.addTest(unittest.makeSuite(CopyTestCase))
         theSuite.addTest(unittest.makeSuite(LargeRowSize))
         theSuite.addTest(unittest.makeSuite(DefaultValues))
         theSuite.addTest(unittest.makeSuite(OldRecordDefaultValues))

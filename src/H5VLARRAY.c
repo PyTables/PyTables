@@ -663,7 +663,6 @@ herr_t H5VLARRAYget_info( hid_t   loc_id,
   return 0;
 
 out:
- H5Tclose( type_id );
  H5Dclose( dataset_id );
  return -1;
 

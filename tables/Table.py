@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.93 2004/01/13 12:31:45 falted Exp $
+#       $Id: Table.py,v 1.94 2004/01/21 16:31:44 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.93 $"
+__version__ = "$Revision: 1.94 $"
 
 from __future__ import generators
 import sys
@@ -631,24 +631,22 @@ You are asking ordering by a non-existing field (%s) or not a supported type!.
         # Set the shape attribute (the self.nrows may be less than the maximum)
         object.shape = self.shape
 
-    def _copy__dontwork(self, dstname, complevel=0, complib="zlib", shuffle=1):
-        """Copy this table to other location, optionally ordered by column
-        """
-        from time import time, clock
+    def copy(self, dstname, title=None, complevel=None, complib=None,
+             shuffle=None, fletcher32 = None):
+        """Copy this table to other location"""
 
-        t = time()
-        # Create a new table with the same information as self
-        dstDescr = {}
-        for name in self.colnames:
-            print "colobj-->", type(self.description._v_ColObjects[name])
-            dstDescr[name] = eval(str(self.description._v_ColObjects[name]))
-
-        print "dstDescr-->", dstDescr
-        object = Table(dstDescr, self.title,
-                       complevel, complib, shuffle, self.nrows)
+        if title == None: title = self.title
+        if complevel == None: complevel = self.complevel
+        if complib == None: complib = self.complib
+        if shuffle == None: shuffle = self.shuffle
+        if fletcher32 == None: fletcher32 = self.fletcher32
+        # Build the new Table object
+        object = Table(self.description._v_ColObjects, title=self.title,
+                       compress=complevel, complib=complib,
+                       shuffle=shuffle, fletcher32=fletcher32,
+                       expectedrows=self.nrows)
         setattr(self._v_parent, dstname, object)
 
-        print "formats-->", object.description._v_recarrfmt
         # Now, fill the new table with values from the old one
         self._v_buffer = self._newBuffer(init=0)
         self._open_read(self._v_buffer)  # Open the table for reading
@@ -656,17 +654,10 @@ You are asking ordering by a non-existing field (%s) or not a supported type!.
         for crow in range(0, self.nrows, self._v_maxTuples):
             if crow+nrecords > self.nrows:
                 nrecords = self.nrows - crow
-#             if orderby:
-#                 self._read_elements(crow, nrecords, coords)
-#             else:
-#                 self._read_records(crow, nrecords)
-
             self._read_records(crow, nrecords)
-            print "first row of buffer -->", self._v_buffer[0]
             object._append_records(self._v_buffer, nrecords)
         self._close_read()  # Close the source table
         object._close_append()  # Close the destination table
-        print "newtable done!", time()-t, clock()
         # Update the number of saved rows in this buffer
         object.nrows = self.nrows
         # Reset the buffer unsaved counter and the buffer read row counter

@@ -90,7 +90,8 @@ if os.name == 'posix':
     LIBS = os.environ.get('LIBS', [])
 
     # ...then the command line.
-    # Handle --hdf5=[PATH] --zlib=[PATH] --lzo=[PATH] --ucl=[PATH] --libs=[LIBS] and --lflags=[FLAGS] --debug
+    # Handle --hdf5=[PATH] --zlib=[PATH] --lzo=[PATH] --ucl=[PATH]
+    # --lflags=[FLAGS] and debug
     args = sys.argv[:]
     for arg in args:
         if string.find(arg, '--hdf5=') == 0:
@@ -105,16 +106,15 @@ if os.name == 'posix':
         if string.find(arg, '--ucl=') == 0:
             UCL_DIR = string.split(arg, '=')[1]
             sys.argv.remove(arg)
-        elif string.find(arg, '--libs=') == 0:
-            LIBS = string.split(string.split(arg, '=')[1])
-            sys.argv.remove(arg)
         elif string.find(arg, '--lflags=') == 0:
             LFLAGS = string.split(string.split(arg, '=')[1])
             sys.argv.remove(arg)
         elif string.find(arg, '--debug') == 0:
             # For debugging (mainly compression filters)
             def_macros = [('DEBUG', 1)]
-            sys.argv.remove(arg)
+            # Don't delete this argument. It maybe useful for distutils
+            # when adding more flags later on
+            #sys.argv.remove(arg)
 
     libnames = LIBS
     if LFLAGS or LIBS:
@@ -334,7 +334,7 @@ elif os.name == 'nt':
 
     # ...then the command line.
     # Handle --hdf5=[PATH] --zlib=[PATH] --lzo=[PATH] --ucl=[PATH]
-    # and --libs=[LIBS] and --lflags=[FLAGS]
+    # --lflags=[FLAGS] and --debug
     args = sys.argv[:]
     for arg in args:
         if string.find(arg, '--hdf5=') == 0:
@@ -349,12 +349,15 @@ elif os.name == 'nt':
         if string.find(arg, '--ucl=') == 0:
             UCL_DIR = string.split(arg, '=')[1]
             sys.argv.remove(arg)
-        elif string.find(arg, '--libs=') == 0:
-            LIBS = string.split(string.split(arg, '=')[1])
-            sys.argv.remove(arg)
         elif string.find(arg, '--lflags=') == 0:
             LFLAGS = string.split(string.split(arg, '=')[1])
             sys.argv.remove(arg)
+        elif string.find(arg, '--debug') == 0:
+            # For debugging (mainly compression filters)
+            def_macros = [('DEBUG', 1)]
+            # Don't delete this argument. It maybe useful for distutils
+            # when adding more flags later on
+            #sys.argv.remove(arg)
 
     libnames = LIBS
     if LFLAGS or LIBS:

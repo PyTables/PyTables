@@ -88,8 +88,8 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
 		    size_t *buf_size, void **buf)
 {
   size_t ret_value = 0;
-  void *outbuf = NULL;
 #ifdef HAVE_LZO_LIB
+  void *outbuf = NULL;
   int status;
   size_t  nalloc = *buf_size;
   lzo_uint out_len = (lzo_uint) nalloc;

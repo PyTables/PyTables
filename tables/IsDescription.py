@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.26 2004/01/02 19:32:45 falted Exp $
+#       $Id: IsDescription.py,v 1.27 2004/01/21 16:31:44 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.26 $"
+__version__ = "$Revision: 1.27 $"
 
 
 import warnings
@@ -327,7 +327,6 @@ class Description(object):
         newdict["_v_shapes"] = {}
         newdict["_v_itemsizes"] = {}
         newdict["_v_fmt"] = ""
-        newdict["_v_recarrfmt"] = ""
         # Check if we have any .pos position attribute
         for column in classdict.values():
             if hasattr(column, "pos") and column.pos:
@@ -407,8 +406,8 @@ class Description(object):
             newdict['_v_fmt'] = newdict['_v_align'] + newdict['_v_fmt']
         else:
             newdict['_v_fmt'] = "=" + newdict['_v_fmt']  # Standard align
-        # Strip the last comma from _v_recarrfmt
-        newdict['_v_recarrfmt'] = ','.join(recarrfmt)
+        # Assign the formats list to _v_recarrfmt
+        newdict['_v_recarrfmt'] = recarrfmt
         # finally delegate the rest of the work to type.__new__
         return
 
@@ -429,17 +428,11 @@ class Description(object):
         return '[%s]' % (', '.join(rep))
 
     def _close(self):
-        #del self.__slots__
-        #print self._v_ColObjects
-#         for object in self._v_ColObjects.values():
-#             object._close()
         self._v_ColObjects.clear()
         del self.__dict__["_v_ColObjects"]
         self._v_itemsizes.clear()
         self._v_shapes.clear()
         self.__dflts__.clear()
-        #del self.__slots__["_v_ColObjects"]
-        #self._v_formats = None
         self.__types__.clear()
         self.__dict__.clear()
         return

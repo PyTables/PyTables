@@ -108,7 +108,7 @@ int format_element(hid_t type_id,
     }
     break; /* case H5T_FLOAT */
   case H5T_STRING:                  /* char or string */
-    snprintf(temp, 255, "a%d,", member_size);  /* Always a CharArray */
+    snprintf(temp, 255, "a%d,", (int)member_size);  /* Always a CharArray */
     PyList_Append(types, PyString_FromString("a"));
     strcat( format, temp );       /* string */
     break; /* case H5T_STRING */

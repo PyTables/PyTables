@@ -714,27 +714,26 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		you can specify the additional linker flags needed to 
 		find the shared library on the command line as well. 
 		For example:
-	      </p>
-	      <verbatim>
-		--lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.2/lib"
-	      </verbatim>
-	      <p>or perhaps just
-	      </p>
-	      <verbatim>
-		--lflags="-R /stuff/hdf5-1.6.2/lib"
-	      </verbatim>
-
-	      <p>Check your compiler and linker documentation for
+		<verbatim>
+		  --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.2/lib"
+		</verbatim>
+		or perhaps just
+		<verbatim>
+		  --rpath="/stuff/hdf5-1.6.2/lib"
+		</verbatim>
+		Check your compiler and linker documentation as well
+		as the Python <verb>Distutils</verb> documentation for
 		the correct syntax.
 	      </p>
 
-	      <p>It is also possible to link specific 
-		libraries with the <verb>--libs</verb> switch:
+	      <p>It is also possible to link specific libraries with
+		the standard <verb>Distutils</verb>
+		<verb>--libraries</verb> switch:
+		<verbatim>
+		  --libraries="-lhdf5-1.6.5"
+		  --libraries="-lhdf5-1.6.5 -lnsl"
+		</verbatim>
 	      </p>
-	      <verbatim>
-		--libs="-lhdf5-1.6.5"
-		--libs="-lhdf5-1.6.5 -lnsl"
-	      </verbatim>
 	    </item>
 
 	    <term>Windows</term>
@@ -3679,9 +3678,10 @@ AttributeError: Error setting "ADCcount" attr.
 	    <heading id="iterrowsTableDescr">iterrows(start=None,
 	      stop=None, step=1)</heading>
 
-	    <p>Returns an iterator yielding Row instances built from
-	      rows in table. If a range is supplied (i.e. some of the
-	      <em>start</em>, <em>stop</em> or <em>step</em>
+	    <p>Returns an iterator yielding <verb>Row</verb> (see <ref
+	      refid="RowClassDescr">section</ref>) instances built
+	      from rows in table. If a range is supplied (i.e. some of
+	      the <em>start</em>, <em>stop</em> or <em>step</em>
 	      parameters are passed), only the appropriate rows are
 	      returned. Else, all the rows are returned. See also the
 	      <verb>__call__()</verb> and <verb>__iter__()</verb>
@@ -3696,8 +3696,9 @@ AttributeError: Error setting "ADCcount" attr.
 	      allowed. Moreover, if only <verb>start</verb> is
 	      specified, then <verb>stop</verb> will be set to
 	      <verb>start+1</verb>. If you do not especify neither
-	      <em>start</em> nor <em>stop</em>, then all the rows in
-	      the object are selected.
+	      <em>start</em> nor <em>stop</em>, then <visual
+	      markup="bf">all the rows</visual> in the object are
+	      selected.
 	    </p>
 
 	  </subsubsection>
