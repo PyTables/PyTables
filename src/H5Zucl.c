@@ -21,7 +21,7 @@
    Added code for pytables 0.5 backward compatibility.
    F. Alted 2003/07/28
 */
-#define CHECKSUM  		       
+#undef CHECKSUM  		       
 
 #undef DEBUG
 
@@ -111,12 +111,18 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
   if (cd_nelmts<1 || cd_values[0]>9) {
     printf("invalid deflate aggression level");
   }
-#ifdef DEBUG
-  printf("Version level: %d. ", cd_values[1]);
-#endif
+  /* For versions < 20, there were only one parameter */
+  if (cd_nelmts==1 ) {
+    complevel = cd_values[0];	/* This do nothing right now */
+  }
+  else if (cd_nelmts==2 ) {
+    complevel = cd_values[0];	/* This do nothing right now */
+    object_version = cd_values[1]; /* The table VERSION attribute */
+  }
 
-  complevel = cd_values[0];
-  object_version = cd_values[1];
+#ifdef DEBUG
+  printf("Version level: %d. ", object_version);
+#endif
 
   if (flags & H5Z_FLAG_REVERSE) {
     /* Input */
@@ -151,12 +157,14 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
       printf("nalloc -->%d\n", nalloc);
       printf("max_len_buffer -->%d\n", max_len_buffer);
 #endif /* DEBUG */
-      if (object_version >= 20)
+      if (object_version >= 20) {
 	status = ucl_nrv2d_decompress_safe_8(*buf, (ucl_uint)nbytes, outbuf,
 					     &out_len, NULL);
-      else 
+      }
+      else {
 	status = ucl_nrv2e_decompress_safe_8(*buf, (ucl_uint)nbytes, outbuf,
 					     &out_len, NULL);
+      }
       /* Check if success */
       if (status == UCL_E_OK) {
 #ifdef DEBUG

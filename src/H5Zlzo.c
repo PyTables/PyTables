@@ -93,9 +93,23 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
   lzo_uint32 checksum;
 #endif
 
-  /* Collect arguments */
-  complevel = cd_values[0];	/* This do nothing right now */
-  object_version = cd_values[1]; /* The table VERSION attribute */
+  /* Check arguments */
+/*   if (cd_nelmts<1 || cd_values[0]>9) { */
+/*     printf("invalid deflate aggression level"); */
+/*   } */
+  /* For versions < 20, there were no parameters */
+  if (cd_nelmts==1 ) {
+    complevel = cd_values[0];	/* This do nothing right now */
+    printf("invalid deflate aggression level");
+  }
+  else if (cd_nelmts==2 ) {
+    complevel = cd_values[0];	/* This do nothing right now */
+    object_version = cd_values[1]; /* The table VERSION attribute */
+  }
+
+#if DEBUG
+  printf("object_version:%d\n", object_version);
+#endif
 
   if (flags & H5Z_FLAG_REVERSE) {
     /* Input */
@@ -187,8 +201,6 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
     }
 
     /* Compress this buffer */
-/*     status = lzo1x_1_compress (z_src, z_src_nbytes, z_dst, &z_dst_nbytes, */
-/* 			       wrkmem); */
     status = lzo1x_1_compress (z_src, z_src_nbytes, z_dst, &z_dst_nbytes,
 			       wrkmem);
 #ifdef CHECKSUM
