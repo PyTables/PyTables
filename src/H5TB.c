@@ -1208,6 +1208,8 @@ herr_t H5TBread_fields_name( hid_t loc_id,
  char     *member_name;
  hssize_t nfields;
  hsize_t  count[1];    
+ hsize_t  mem_size[1];
+ hid_t    mem_space_id;
  hssize_t offset[1];
  hid_t    space_id;
  hssize_t i;
@@ -1239,6 +1241,7 @@ herr_t H5TBread_fields_name( hid_t loc_id,
   if ( H5TB_find_field( member_name, field_names ) > 0 )
   {
 
+/*     printf("Member_name --> %s\n", member_name); */
    /* Get the member type */
    if ( ( member_type_id = H5Tget_member_type( type_id, (int) i )) < 0 )
     goto out;
@@ -1276,9 +1279,20 @@ herr_t H5TBread_fields_name( hid_t loc_id,
  if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
   goto out;
 
- /* Read */
- if ( H5Dread( dataset_id, read_type_id, H5S_ALL, space_id, H5P_DEFAULT, data ) < 0 )
+ /* Create a memory dataspace handle */
+ /* This three lines added. 2003/09/11. F. Alted */
+ mem_size[0] = count[0];
+ if ( (mem_space_id = H5Screate_simple( 1, mem_size, NULL )) < 0 )
   goto out;
+
+ /* Read */
+ /* Modified by F. Alted 2003/09/11 */
+ if ( H5Dread( dataset_id, read_type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
+  goto out;
+
+ /* Terminate access to the memory dataspace */
+ if ( H5Sclose( mem_space_id ) < 0 )
+   goto out;
 
  /* Terminate access to the dataspace */
  if ( H5Sclose( space_id ) < 0 )
@@ -1343,6 +1357,8 @@ herr_t H5TBread_fields_index( hid_t loc_id,
  hssize_t member_size;
  char     *member_name;
  hsize_t  count[1];    
+ hsize_t  mem_size[1];
+ hid_t    mem_space_id;
  hssize_t offset[1];
  hid_t    space_id;
  hsize_t  i, j;
@@ -1404,9 +1420,19 @@ herr_t H5TBread_fields_index( hid_t loc_id,
  if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
   goto out;
 
- /* Read */
- if ( H5Dread( dataset_id, read_type_id, H5S_ALL, space_id, H5P_DEFAULT, data ) < 0 )
+ /* Create a memory dataspace handle */
+ /* This three lines added. 2003/09/11. F. Alted */
+ mem_size[0] = count[0];
+ if ( (mem_space_id = H5Screate_simple( 1, mem_size, NULL )) < 0 )
   goto out;
+
+ /* Read */
+ if ( H5Dread( dataset_id, read_type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
+  goto out;
+
+ /* Terminate access to the memory dataspace */
+ if ( H5Sclose( mem_space_id ) < 0 )
+   goto out;
 
  /* Terminate access to the dataspace */
  if ( H5Sclose( space_id ) < 0 )

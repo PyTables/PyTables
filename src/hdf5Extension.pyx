@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.74 2003/09/10 16:42:44 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.75 2003/09/12 17:14:31 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.74 $"
+__version__ = "$Revision: 1.75 $"
 
 
 import sys, os
@@ -508,6 +508,12 @@ cdef extern from "H5TB.h":
                                 hsize_t nrecords, size_t type_size,
                                 size_t *field_offset, void *data )
 
+  herr_t H5TBread_fields_index( hid_t loc_id, char *dset_name,
+                                hsize_t nfields, int *field_index,
+                                hsize_t start, hsize_t nrecords,
+                                size_t type_size, size_t *field_offset,
+                                void *data )
+
   herr_t H5TBdelete_record( hid_t loc_id, 
                             char *dset_name,
                             hsize_t start,
@@ -730,7 +736,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.74 2003/09/10 16:42:44 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.75 2003/09/12 17:14:31 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1331,8 +1337,6 @@ cdef class Table:
     cdef H5T_class_t class_id
     cdef object  read_buffer, names_tuple
     cdef size_t  rowsize
-    cdef size_t  field_offsets[MAX_FIELDS]
-    cdef hid_t   fieldtypes[MAX_FIELDS]
     cdef char    fmt[2048]
 
     # Get info about the table dataset
@@ -1388,26 +1392,7 @@ cdef class Table:
                         self.field_offset) < 0 ):
       raise RuntimeError("Problems opening table for read.")
 
-  def _read_records(self, hsize_t start, hsize_t nrecords):
-
-    # Correct the number of records to read, if needed
-    if (start + nrecords) > self.totalrecords:
-      nrecords = self.totalrecords - start
-
-    if ( H5TBOread_records(&self.dataset_id, &self.space_id,
-                           &self.mem_type_id, start,
-                           nrecords, self.rbuf) < 0 ):
-      raise RuntimeError("Problems reading records.")
-
-    return nrecords
-
-  def _close_read(self):
-
-    if ( H5TBOclose_read(&self.dataset_id, &self.space_id,
-                         &self.mem_type_id) < 0 ):
-      raise RuntimeError("Problems closing table for read.")
-
-  def _read_field_name(self, char *field_name, hsize_t start,
+  def _read_field_name_orig(self, char *field_name, hsize_t start,
                        hsize_t nrecords):
     cdef herr_t ret
     cdef int i, fieldpos
@@ -1430,6 +1415,83 @@ cdef class Table:
 
     return nrecords
  
+  def _read_field_name(self, object arr, hsize_t start, hsize_t stop,
+                       char *field_name):
+    cdef int buflen, i, fieldpos
+    cdef void *rbuf
+    cdef hsize_t nrecords
+
+    # Get the pointer to the buffer data area
+    if ( PyObject_AsWriteBuffer(arr._data, &rbuf, &buflen) < 0 ):
+      raise RuntimeError("Problems getting the pointer to the buffer")
+
+    # Correct the number of records to read, if needed
+    if stop > self.totalrecords:
+      nrecords = self.totalrecords - start
+    else:
+      nrecords = stop - start
+      
+    # Search the field position
+    #print "Field sizes for fmt:", self._v_fmt,
+    for i in range(self.nfields):
+      #print "offset:", self.field_offset[i],
+      #print "size:", self.field_sizes[i],
+      if strcmp(self.field_names[i], field_name) == 0:
+        fieldpos = i
+    #print "field position & size -->", fieldpos, self.field_sizes[fieldpos]
+    # Read the column
+    if ( H5TBread_fields_name(self.parent_id, self.name, field_name,
+                              start, nrecords, self.field_sizes[fieldpos],
+                              NULL, rbuf) < 0):
+                              #self.field_offset, rbuf) < 0):
+      raise RuntimeError("Problems reading table column.")
+    
+    return nrecords
+
+  def _read_field_index(self, object arr, hsize_t start, hsize_t stop,
+                        int index):
+    cdef int buflen, index_list[1]
+    cdef void *rbuf
+    cdef hsize_t nrecords
+
+    # Correct the number of records to read, if needed
+    if stop > self.totalrecords:
+      nrecords = self.totalrecords - start
+    else:
+      nrecords = stop - start
+
+    # Get the pointer to the buffer data area
+    if ( PyObject_AsWriteBuffer(arr._data, &rbuf, &buflen) < 0 ):
+      raise RuntimeError("Problems getting the pointer to the buffer")
+
+    index_list[0] = index
+    # Read the column
+    if ( H5TBread_fields_index(self.parent_id, self.name, 1, index_list,
+                              start, nrecords, self.field_sizes[index],
+                              NULL, rbuf) < 0):
+      raise RuntimeError("Problems reading table column.")
+    
+    return nrecords
+
+  def _read_records(self, hsize_t start, hsize_t nrecords):
+
+    # Correct the number of records to read, if needed
+    if (start + nrecords) > self.totalrecords:
+      nrecords = self.totalrecords - start
+
+    if ( H5TBOread_records(&self.dataset_id, &self.space_id,
+                           &self.mem_type_id, start,
+                           nrecords, self.rbuf) < 0 ):
+      raise RuntimeError("Problems reading records.")
+
+    return nrecords
+
+  def _close_read(self):
+
+    if ( H5TBOclose_read(&self.dataset_id, &self.space_id,
+                         &self.mem_type_id) < 0 ):
+      raise RuntimeError("Problems closing table for read.")
+
   def _remove_row(self, nrow, nrecords):
 
     if (H5TBdelete_record(self.parent_id, self.name, nrow, nrecords) < 0):

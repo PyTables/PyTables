@@ -1148,6 +1148,7 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(CompressUCLTablesTestCase))
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
+    #theSuite.addTest(unittest.makeSuite(DefaultValues))
     #theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
     #theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
