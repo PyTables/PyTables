@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IndexArray.py,v $
-#       $Id: IndexArray.py,v 1.2 2004/06/28 12:03:24 falted Exp $
+#       $Id: IndexArray.py,v 1.3 2004/07/06 09:11:36 falted Exp $
 #
 ########################################################################
 
@@ -27,13 +27,13 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.2 $"
+__version__ = "$Revision: 1.3 $"
 # default version for IndexARRAY objects
 obversion = "1.0"    # initial version
 
 import types, warnings, sys
 from EArray import EArray
-from VLArray import Atom
+from VLArray import Atom, StringAtom
 import hdf5Extension
 import numarray
 import numarray.strings as strings
@@ -165,7 +165,6 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
         self.type = self.atom.type
         if self.type == "CharType" or isinstance(self.type, records.Char):
             self.byteorder = "non-relevant"
-            raise NotImplementedError, "CharType indexing is unsuported right now."
         else:
             # Only support for creating objects in system byteorder
             self.byteorder  = sys.byteorder
@@ -202,7 +201,10 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
         assert self.extdim == 0, "extdim != 0: this should never happen!"
         self.nelemslice = self.shape[1] 
         # Create the atom instance. Not for strings yet!
-        self.atom = Atom(dtype=self.type, shape=1)
+        if str(self.type) == "CharType":
+            self.atom = StringAtom(shape=1, length=self.itemsize)
+        else:
+            self.atom = Atom(dtype=self.type, shape=1)
         # Compute the rowsize for each element
         self.rowsize = self.atom.atomsize() * self.nelemslice
         # nrows in this instance

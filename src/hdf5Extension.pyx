@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.129 2004/06/29 08:49:40 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.130 2004/07/06 09:11:35 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.129 $"
+__version__ = "$Revision: 1.130 $"
 
 
 import sys, os
@@ -204,10 +204,12 @@ cdef extern from "numarray/numarray.h":
     cdef char   _contiguous   # test override flag */
 
   # The numarray initialization funtion
+  #void import_libnumarray()
   void import_array()
     
 # The Numeric API requires this function to be called before
 # using any Numeric facilities in an extension module.
+#import_libnumarray()
 import_array()
 
 # CharArray type
@@ -909,7 +911,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.129 2004/06/29 08:49:40 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.130 2004/07/06 09:11:35 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1731,7 +1733,7 @@ cdef class Table:
     cdef int index_list[1]
     cdef void *rbuf
     cdef hsize_t nrecords
-    cdef long buflen
+    cdef int buflen
 
     # Correct the number of records to read, if needed
     if stop > self.totalrecords:
@@ -1741,6 +1743,8 @@ cdef class Table:
 
     # Get the pointer to the buffer data area
     buflen = NA_getBufferPtrAndSize(arr._data, 1, &rbuf)
+    #if (PyObject_AsReadBuffer(arr._data, &rbuf, &buflen) < 0):
+    #  print "Error getting buffer location"
 
     index_list[0] = index
     # Read the column
@@ -2347,7 +2351,7 @@ cdef class Array:
     % type
 
     # Get the pointer to the buffer data area
-    # the second parameter means the if the buffer is read-only or not
+    # the second parameter means whether the buffer is read-only or not
     buflen = NA_getBufferPtrAndSize(naarr._data, 1, &rbuf)
     # Correct the start of the buffer with the _byteoffset
     offset = naarr._byteoffset
@@ -2443,9 +2447,9 @@ cdef class Array:
 
     # Get the pointer to the buffer data area
     # Both methods do the same
-    #buflen = NA_getBufferPtrAndSize(naarr._data, 1, &rbuf)
-    if ( PyObject_AsReadBuffer(naarr._data, &rbuf, &buflen) < 0 ):
-      raise RuntimeError, "Error getting the buffer location"
+    buflen = NA_getBufferPtrAndSize(naarr._data, 1, &rbuf)
+    #if ( PyObject_AsReadBuffer(naarr._data, &rbuf, &buflen) < 0 ):
+    #  raise RuntimeError, "Error getting the buffer location"
     # Correct the start of the buffer with the _byteoffset
     offset = naarr._byteoffset
     rbuf = <void *>(<char *>rbuf + offset)
@@ -2650,16 +2654,22 @@ cdef class IndexArray(Array):
 
   def _initSortedSlice(self, int bufsize):
     "Initialize the structures for doing a binary search"
-    cdef long ndims, buflen
+    cdef long ndims
+    cdef int buflen
 
     # Create the buffer for reading sorted data chunks
-    self.bufferl = numarray.array(None,type=self.type, shape=bufsize)
-
-    # Set the same byteorder than on-disk
-    self.bufferl._byteorder = self.byteorder
+    if str(self.type) == "CharType":
+      self.bufferl = strings.array(None, itemsize=self.itemsize, shape=bufsize)
+    else:
+      self.bufferl = numarray.array(None, type=self.type, shape=bufsize)
+      # Set the same byteorder than on-disk
+      self.bufferl._byteorder = self.byteorder
 
     # Get the pointer to the buffer data area
+    # Both methods do the same
     buflen = NA_getBufferPtrAndSize(self.bufferl._data, 1, &self.rbuflb)
+    #if (PyObject_AsReadBuffer(self.bufferl._data, &self.rbuflb, &buflen) < 0):
+    #  print "Error getting buffer location"
 
     # Open the array for reading
     if (H5ARRAYOopen_readSlice(&self.dataset_id, &self.space_id,
@@ -2669,6 +2679,7 @@ cdef class IndexArray(Array):
   def _readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):
     "Read the sorted part of an index"
 
+    #printf("rbuflb-->%x\n", self.rbuflb)
     ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id, self.type_id,
                                  irow, start, stop, self.rbuflb)
     if ret < 0:
@@ -2699,41 +2710,81 @@ cdef class IndexArray(Array):
 
     lo = 0
     if x <= a[0]: return 0
-    # The NA_getPythonScalar takes the same time than normal indexinng
-    #if NA_getPythonScalar(a, 0) >= x: return 0
     if a[-1] < x: return hi
-    #if NA_getPythonScalar(a, (hi-1)*4) < x: return hi
     while lo < hi:
         mid = (lo+hi)/2
         if a[mid] < x: lo = mid+1
-        #if NA_getPythonScalar(a, mid*4) < x: lo = mid+1
         else: hi = mid
     return lo
 
-  cdef _interSearch(self, int nrow, int chunksize, item, int lo, int hi):
+  cdef _bisect_right(self, a, x, int hi):
+    """Return the index where to insert item x in list a, assuming a is sorted.
+
+    The return value i is such that all e in a[:i] have e <= x, and all e in
+    a[i:] have e > x.  So if x already appears in the list, i points just
+    beyond the rightmost x already there.
+
+    """
+    cdef int lo, mid
+
+    lo = 0
+    if x < a[0]: return 0
+    if a[-1] <= x: return hi
+    while lo < hi:
+      mid = (lo+hi)/2
+      if x < a[mid]: hi = mid
+      else: lo = mid+1
+    return lo
+
+  cdef _interSearch_left(self, int nrow, int chunksize, item, int lo, int hi):
     cdef int niter, mid, start, result
     
     niter = 0
     while lo < hi:
-        mid = (lo+hi)/2
-        start = (mid/chunksize)*chunksize
-        buffer = self._readSortedSlice(nrow, start, start+chunksize)
-        #buffer = xrange(start,start+chunksize) # test
-        niter = niter + 1
-        result = self._bisect_left(buffer, item, chunksize)
-        if result == 0:
-            if buffer[result] == item:
-                lo = start
-                break
-            # The item is at left
-            hi = mid
-        elif result == chunksize:
-            # The item is at the right
-            lo = mid+1
-        else:
-            # Item has been found. Exit the loop and return
-            lo = result+start
-            break
+      mid = (lo+hi)/2
+      start = (mid/chunksize)*chunksize
+      buffer = self._readSortedSlice(nrow, start, start+chunksize)
+      #buffer = xrange(start,start+chunksize) # test
+      niter = niter + 1
+      result = self._bisect_left(buffer, item, chunksize)
+      if result == 0:
+        if buffer[result] == item:
+          lo = start
+          break
+        # The item is at left
+        hi = mid
+      elif result == chunksize:
+        # The item is at the right
+        lo = mid+1
+      else:
+        # Item has been found. Exit the loop and return
+        lo = result+start
+        break
+    return (lo, niter)
+
+  cdef _interSearch_right(self, int nrow, int chunksize, item, int lo, int hi):
+    cdef int niter, mid, start, result
+    
+    niter = 0
+    while lo < hi:
+      mid = (lo+hi)/2
+      start = (mid/chunksize)*chunksize
+      buffer = self._readSortedSlice(nrow, start, start+chunksize)
+      niter = niter + 1
+      result = self._bisect_right(buffer, item, chunksize)
+      if result == 0:
+        # The item is at left
+        hi = mid
+      elif result == chunksize:
+        if buffer[result-1] == item:
+          lo = start+chunksize
+          break
+        # The item is at the right
+        lo = mid+1
+      else:
+        # Item has been found. Exit the loop and return
+        lo = result+start
+        break
     return (lo, niter)
 
   def _searchBin(self, int nrow, object item):
@@ -2746,47 +2797,48 @@ cdef class IndexArray(Array):
     chunksize = self._v_chunksize[1] # Number of elements/chunksize
     buffer = self._readSortedSlice(nrow, 0, chunksize)
     #buffer = xrange(0, chunksize)  # test  # 0.02 over 0.5 seg
-    # Look for items at the beginning
+    # Look for items at the beginning of sorted slices
     niter = 1
     result1 = self._bisect_left(buffer, item1, chunksize)
     if 0 <= result1 < chunksize:
-        item1done = 1
-    result2 = self._bisect_left(buffer, item2, chunksize)
+      item1done = 1
+    result2 = self._bisect_right(buffer, item2, chunksize)
     if 0 <= result2 < chunksize:
-        item2done = 1
+      item2done = 1
+    elif buffer[chunksize-1] == item2:
+      item2done = 1
     if item1done and item2done:
         return (result1, result2, niter)
-    # The end
+    # Look for items at the end of sorted slices
     buffer = self._readSortedSlice(nrow, hi-chunksize, hi)
     #buffer = xrange(hi-chunksize, hi)  # test
     niter = 2
     if not item1done:
         result1 = self._bisect_left(buffer, item1, chunksize)
-        if 0 < result1 < chunksize:
+        if 0 < result1 <= chunksize:
             item1done = 1
             result1 = hi - chunksize + result1
-        elif result1 == chunksize:
+        elif buffer[0] == item1:
             item1done = 1
-            result1 = hi
+            result1 = hi - chunksize
     if not item2done:
-        result2 = self._bisect_left(buffer, item2, chunksize)
-        if 0 < result2 < chunksize:
+        result2 = self._bisect_right(buffer, item2, chunksize)
+        if 0 < result2 <= chunksize:
             item2done = 1
             result2 = hi - chunksize + result2
-        elif result2 == chunksize:
-            item2done = 1
-            result2 = hi
     if item1done and item2done:
         return (result1, result2, niter)
 
     lo = 0
     # Intermediate look for item1
     if not item1done:
-        (result1, iter) = self._interSearch(nrow, chunksize, item1, lo, hi)
+        (result1, iter) = self._interSearch_left(nrow, chunksize,
+                                                 item1, lo, hi)
         niter = niter + iter
     # Intermediate look for item2
     if not item2done:
-        (result2, iter) = self._interSearch(nrow, chunksize, item2, lo, hi)
+        (result2, iter) = self._interSearch_right(nrow, chunksize,
+                                                  item2, lo, hi)
         niter = niter + iter
     return (result1, result2, niter)
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.112 2004/06/29 08:49:40 falted Exp $
+#       $Id: Table.py,v 1.113 2004/07/06 09:11:36 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.112 $"
+__version__ = "$Revision: 1.113 $"
 
 from __future__ import generators
 import sys
@@ -50,7 +50,7 @@ from Leaf import Leaf, Filters
 from Index import Index
 from IsDescription import IsDescription, Description, metaIsDescription, \
      Col, StringCol, fromstructfmt
-from VLArray import Atom
+from VLArray import Atom, StringAtom
 
 try:
     import Numeric
@@ -385,21 +385,20 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Get the coordenates for those values
         ilimit = self.opsValues
         ctype = self.coltypes[colname]
-        #print "ctype-->", ctype
         notequal = 0
         if len(ilimit) == 1:
             ilimit = ilimit[0]
             op = self.ops[0]
             if op == 1: # __lt__
-                item = (-Finf, ilimit)
+                item = (-Finf, nextafter(ilimit, ilimit-1, ctype))
             elif op == 2: # __le__
-                item = (-Finf, nextafter(ilimit, ilimit+1, ctype))
+                item = (-Finf, ilimit)
             elif op == 3: # __gt__
                 item = (nextafter(ilimit, ilimit+1, ctype), Finf)
             elif op == 4: # __ge__
                 item = (ilimit, Finf)
             elif op == 5: # __eq__
-                item = (ilimit, nextafter(ilimit, ilimit+1, ctype))
+                item = (ilimit, ilimit)
             elif op == 6: # __ne__
                 # I need to cope with this
                 raise NotImplementedError, "'!=' or '<>' not supported yet"
@@ -408,14 +407,16 @@ class Table(Leaf, hdf5Extension.Table, object):
             op1, op2 = self.ops
             item1, item2 = ilimit
             if op1 == 3 and op2 == 1:  # item1 < col < item2
-                item = (nextafter(item1, item1+1, ctype), item2)
+                item = (nextafter(item1, item1+1, ctype),
+                        nextafter(item2, item2-1, ctype))
             elif op1 == 4 and op2 == 1:  # item1 <= col < item2
-                item = (item1, item2)
+                item = (item1,
+                        nextafter(item2, item2-1, ctype))
             elif op1 == 3 and op2 == 2:  # item1 < col <= item2
                 item = (nextafter(item1, item1+1, ctype),
-                        nextafter(item2, item2+1, ctype))
+                        item2)
             elif op1 == 4 and op2 == 2:  # item1 <= col <= item2
-                item = (item1, nextafter(item2, item2+1, ctype))
+                item = (item1, item2)
             else:
                 raise SyntaxError, \
 "Combination of operators not supported. Use val1 <{=} col <{=} val2"
@@ -447,7 +448,16 @@ class Table(Leaf, hdf5Extension.Table, object):
         coords = None
         ncoords = 0
         if where and self.colindexed[self.whereColname]:
-            ncoords = self._getLookupRange()
+            if str(self.coltypes[self.whereColname]) == "CharType":
+                if len(self.ops) == 1 and self.ops[0] == 5: # __eq__
+                    item = (self.opsValues[0], self.opsValues[0])
+                    strCol = self.cols[self.whereColname]
+                    ncoords = strCol.index.search(item, 0)
+                else:
+                    raise NotImplementedError, \
+                          "Only equality is suported for string columns."
+            else:
+                ncoords = self._getLookupRange()
         if start < stop:
             if coords == None or ncoords > 0:
                 return self.row(start, stop, step, coords, ncoords=ncoords)
@@ -602,7 +612,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             # the row._fillCol method (up to 170 MB/s on a pentium IV @ 2GHz)
             self._open_read(result)
             if isinstance(coords, numarray.NumArray):
-                print "coords2-->", coords
+                #print "coords2-->", coords
                 if len(coords) > 0:
                     self._read_elements(0, coords)
             else:
@@ -1024,8 +1034,13 @@ class Column(object):
         assert self.table.colshapes[self.name] == 1, \
                "Only scalar columns can be indexed."
         # Create the atom
-        atom = Atom(dtype=self.table.coltypes[self.name],
-                    shape=self.table.colshapes[self.name])
+        atomtype = self.table.coltypes[self.name]
+        if str(atomtype) == "CharType":
+            atom = StringAtom(shape=self.table.colshapes[self.name],
+                              length=self.table.colitemsizes[self.name])
+        else:
+            atom = Atom(dtype=atomtype,
+                        shape=self.table.colshapes[self.name])
         # Compose the name
         name = "_i_"+self.table.name+"_"+self.name
         if not filters:

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.4 2004/06/29 08:49:40 falted Exp $
+#       $Id: Index.py,v 1.5 2004/07/06 09:11:36 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.4 $"
+__version__ = "$Revision: 1.5 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -201,8 +201,14 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         """Append the object to this (enlargeable) object"""
 
         # Save the sorted array
-        self.sorted.append(numarray.sort(arr))
-        self.indices.append(numarray.argsort(arr))
+        if str(self.sorted.type) == "CharType":
+            print "arr-->", arr
+            self.indices.append(arr.argsort())
+            arr.sort()
+            self.sorted.append(arr)
+        else:
+            self.sorted.append(numarray.sort(arr))
+            self.indices.append(numarray.argsort(arr))
         
 # This has been passed to Pyrex. However, with pyrex it has the same speed,
 # but anyway

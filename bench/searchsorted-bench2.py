@@ -38,7 +38,7 @@ def createFile(filename, nrows, filters, atom, recsize, index, verbose):
     table = fileh.createTable(fileh.root, 'table', klass[recsize], title,
                               None, nrows)
     for i in range(nrows):
-        # table.row['var1'] = str(i)
+        table.row['var1'] = str(i)
         #table.row['var2'] = random.randrange(nrows)
         table.row['var2'] = i
         table.row['var3'] = i
@@ -50,7 +50,9 @@ def createFile(filename, nrows, filters, atom, recsize, index, verbose):
         
     # Index one entry:
     if index:
-        if atom == "int":
+        if atom == "string":
+            indexrows = table.cols.var1.createIndex()
+        elif atom == "int":
             indexrows = table.cols.var2.createIndex()
         elif atom == "float":
             indexrows = table.cols.var3.createIndex()
@@ -69,7 +71,9 @@ def readFile(filename, atom, niter, verbose):
     fileh = openFile(filename, mode = "r")
     table = fileh.root.table
     print "reading", table
-    if atom == "int":
+    if atom == "string":
+        idxcol = table.cols.var1.index
+    elif atom == "int":
         idxcol = table.cols.var2.index
     else:
         idxcol = table.cols.var3.index
@@ -83,13 +87,21 @@ def readFile(filename, atom, niter, verbose):
         print "Slice number in", table._v_pathname, ":", idxcol.nrows
 
     rowselected = 0
-    if atom == "int":
+    if atom == "string":
+        for i in xrange(niter):
+            #results = [table.row["var3"] for i in table(where=2+i<=table.cols.var2 < 10+i)]
+#             results = [table.row.nrow() for i in table(where=2<=table.cols.var2 < 10)]
+            results = [p["var1"] #p.nrow()
+                       for p in table(where=table.cols.var1 == "1111")]
+#                       for p in table(where=100<=table.cols.var2<110)]
+            rowselected += len(results)
+    elif atom == "int":
         for i in xrange(niter):
             #results = [table.row["var3"] for i in table(where=2+i<=table.cols.var2 < 10+i)]
 #             results = [table.row.nrow() for i in table(where=2<=table.cols.var2 < 10)]
             results = [p["var2"] #p.nrow()
                        for p in table(where=100*i<=table.cols.var2<100*(i+1))]
-#                       for p in table(where=100<=table.cols.var2<110)]
+#                       for p in table(where=table.cols.var2==3999)]
             rowselected += len(results)
     elif atom == "float":
         for i in xrange(niter):

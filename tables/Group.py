@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.76 2004/06/18 12:31:08 falted Exp $
+#       $Id: Group.py,v 1.77 2004/07/06 09:11:36 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.76 $"
+__version__ = "$Revision: 1.77 $"
 
 # Recommended values for maximum number of groups and maximum depth in tree
 MAX_DEPTH_IN_TREE = 2048
@@ -190,6 +190,7 @@ class Group(hdf5Extension.Group, object):
                 objleaf=objgroup._g_getLeaf(name)
                 if objleaf <> None:
                     # Try if object can be loaded
+                    #objleaf._g_putObjectInTree(name, objgroup)
                     try:
                         objleaf._g_putObjectInTree(name, objgroup)
                     except:
