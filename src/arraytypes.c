@@ -99,13 +99,13 @@ size_t getArrayType(hid_t type_id,
 {
   H5T_class_t class_id;
   size_t type_size;
-  size_t type_precision;
+  /*   size_t type_precision; */  /* No used, but why? */
   H5T_sign_t sign;
 
   /* Get the necessary info from the type */
   class_id = H5Tget_class( type_id );
   type_size = H5Tget_size( type_id );
-  type_precision = H5Tget_precision( type_id );
+/*   type_precision = H5Tget_precision( type_id ); */
   if ( (class_id == H5T_INTEGER) ) /* Only class integer can be signed */
     sign = H5Tget_sign( type_id );
   else 

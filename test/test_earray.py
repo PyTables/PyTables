@@ -951,7 +951,7 @@ class CopyTestCase(unittest.TestCase):
             if verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = openFile(file, mode = "a")
             array1 = fileh.root.array1
             
         # Copy it to another location
@@ -1009,7 +1009,7 @@ class CopyTestCase(unittest.TestCase):
             if verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = openFile(file, mode = "a")
             array1 = fileh.root.array1
             
         # Copy to another location
@@ -1071,7 +1071,7 @@ class CopyTestCase(unittest.TestCase):
             if verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = openFile(file, mode = "a")
             array1 = fileh.root.array1
             
         # Copy to another location
@@ -1122,7 +1122,7 @@ class CopyTestCase(unittest.TestCase):
             if verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = openFile(file, mode = "a")
             array1 = fileh.root.array1
             
         # Copy to another location
@@ -1175,7 +1175,7 @@ class CopyTestCase(unittest.TestCase):
             if verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = openFile(file, mode = "a")
             array1 = fileh.root.array1
             
         # Copy to another location
@@ -1228,7 +1228,7 @@ class CopyTestCase(unittest.TestCase):
             if verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = openFile(file, mode = "a")
             array1 = fileh.root.array1
             
         # Copy to another location
@@ -1282,7 +1282,7 @@ class CopyTestCase(unittest.TestCase):
             if verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = openFile(file, mode = "a")
             array1 = fileh.root.array1
             
         # Copy to another location
@@ -1339,7 +1339,7 @@ class CopyTestCase(unittest.TestCase):
             if verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = openFile(file, mode = "a")
             array1 = fileh.root.array1
             
         # Copy it to another Array
@@ -1385,7 +1385,7 @@ class CopyTestCase(unittest.TestCase):
             if verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = openFile(file, mode = "a")
             array1 = fileh.root.array1
             
         # Copy it to another Array
@@ -1434,7 +1434,7 @@ class CopyTestCase(unittest.TestCase):
             if verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = openFile(file, mode = "a")
             array1 = fileh.root.array1
             
         # Copy it to another Array
@@ -1490,13 +1490,6 @@ class CopyIndexTestCase(unittest.TestCase):
         # Select a different buffer size:
         array1._v_maxTuples = self.maxTuples
         
-        if self.close:
-            if verbose:
-                print "(closing file version)"
-            fileh.close()
-            fileh = openFile(file, mode = "r")
-            array1 = fileh.root.array1
-            
         # Copy to another array
         array2 = array1.copy("/", 'array2',
                              start=self.start,
@@ -1542,13 +1535,6 @@ class CopyIndexTestCase(unittest.TestCase):
         # Select a different buffer size:
         array1._v_maxTuples = self.maxTuples
 
-        if self.close:
-            if verbose:
-                print "(closing file version)"
-            fileh.close()
-            fileh = openFile(file, mode = "r")
-            array1 = fileh.root.array1
-            
         # Copy to another array
         array2 = array1.copy("/", 'array2',
                              start=self.start,
@@ -1586,7 +1572,7 @@ class CopyIndex1TestCase(CopyIndexTestCase):
     stop = 7
     step = 1
 
-class CopyIndex2TestCase(CopyIndexTestCase):
+class CopyIndex2TestCase(CopyIndexTestCase): 
     maxTuples = 2
     start = 0
     stop = -1

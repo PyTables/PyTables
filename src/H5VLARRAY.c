@@ -313,7 +313,7 @@ herr_t H5VLARRAYappend_records( hid_t loc_id,
  hid_t    type_id;
  hid_t    space_id;
  hid_t    mem_space_id;
- hsize_t  start[1];
+ hssize_t  start[1];
  hsize_t  dataset_dims[1];
  hsize_t  dims_new[1] = {1};	/* Only a record on each append */
  hvl_t    wdata;   /* Information to write */

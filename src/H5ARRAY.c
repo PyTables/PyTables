@@ -266,7 +266,8 @@ herr_t H5ARRAYappend_records( hid_t loc_id,
  hid_t    type_id;
  hid_t    space_id;
  hid_t    mem_space_id;
- hsize_t  *dims, *start;
+ hsize_t  *dims;
+ hssize_t *start;
  int      i;
 
  /* Open the dataset. */
@@ -286,7 +287,7 @@ herr_t H5ARRAYappend_records( hid_t loc_id,
    start[i] = 0;
  }
  dims[extdim] += dims_new[extdim];
- start[extdim] = dims_orig[extdim];
+ start[extdim] = (hssize_t)dims_orig[extdim];
 
  /* Extend the dataset */
  if ( H5Dextend ( dataset_id, dims ) < 0 )
@@ -404,7 +405,7 @@ herr_t H5ARRAYread( hid_t loc_id,
    dims = (hsize_t *)malloc(rank*sizeof(hsize_t));
    count = (hsize_t *)malloc(rank*sizeof(hsize_t));
    stride = (hsize_t *)malloc(rank*sizeof(hsize_t));
-   offset = (hsize_t *)malloc(rank*sizeof(hsize_t));
+   offset = (hssize_t *)malloc(rank*sizeof(hsize_t));
 
    /* Get dataset dimensionality */
    if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
@@ -506,7 +507,7 @@ herr_t H5ARRAYreadSlice( hid_t loc_id,
  hsize_t  *dims = NULL;
  hsize_t  *count = NULL;
  hsize_t  *stride = (hsize_t *)step;
- hssize_t *offset = (hsize_t *)start;
+ hssize_t *offset = (hssize_t *)start;
  int      rank;
  int      i;
 

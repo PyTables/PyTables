@@ -14,7 +14,7 @@ root = fileh.root
 group1 = fileh.createGroup(root, "group1")
 group2 = fileh.createGroup(root, "group2")
 
-# Now, create a table in "group0" group
+# Now, create an array in root group
 array1 = fileh.createArray(root, "array1", ["string", "array"], "String array")
 # Create 2 new tables in group1
 table1 = fileh.createTable(group1, "table1", Particle)

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.117 2004/02/09 18:54:10 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.118 2004/02/11 17:24:41 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.117 $"
+__version__ = "$Revision: 1.118 $"
 
 
 import sys, os
@@ -836,7 +836,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.117 2004/02/09 18:54:10 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.118 2004/02/11 17:24:41 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1668,7 +1668,8 @@ cdef class Row:
     
   """
 
-  cdef Table _table   # To allow access C methods in Table
+  cdef object _table   # To allow compilation under MIPSPro C in SGI machines
+  #cdef Table _table   # To allow access C methods in Table
   cdef object _fields, _recarray, _saveBufferedRows, _indexes
   cdef int _row, _nrowinbuf, _nrow, _unsavednrows, _strides
   cdef int start, stop, step, nextelement, nrowsinbuf, nrows, nrowsread
@@ -1676,8 +1677,13 @@ cdef class Row:
   cdef int *_scalar, *_enumtypes, _r_initialized_buffer, _w_initialized_buffer
 
   def __new__(self, table):
+  #def __new__(self, Table table):
     cdef int nfields, i
     
+    # The MIPSPro C compiler on a SGI does not like to have an assignation
+    # of a type Table to a type object. For now, as we do not have to call
+    # C methods in Tables, I'll declare table as object.
+    # F. Alted 2004-02-11
     self._table = table
     self._unsavednrows = 0
     self._row = 0
