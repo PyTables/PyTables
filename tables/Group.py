@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.29 2003/05/01 17:25:36 falted Exp $
+#       $Id: Group.py,v 1.30 2003/05/22 12:24:12 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.29 $"
+__version__ = "$Revision: 1.30 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -48,7 +48,7 @@ from Table import Table
 from Array import Array
 from utils import checkNameValidity
 
-class Group(hdf5Extension.Group):
+class Group(hdf5Extension.Group, object):
     """This is the python counterpart of a group in the HDF5 structure.
 
     It provides methods to set properties based on information

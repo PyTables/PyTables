@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.44 2003/05/06 20:21:20 falted Exp $
+#       $Id: Table.py,v 1.45 2003/05/22 12:24:12 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.44 $"
+__version__ = "$Revision: 1.45 $"
 
 from __future__ import generators
 import sys
@@ -61,7 +61,7 @@ revbyteorderDict={'little': '<',
                   'big': '>'}
 
 
-class Table(Leaf, hdf5Extension.Table):
+class Table(Leaf, hdf5Extension.Table, object):
     """Represent a table in the object tree.
 
     It provides methods to create new tables or open existing ones, as
@@ -310,6 +310,13 @@ class Table(Leaf, hdf5Extension.Table):
         fmt = self._v_fmt
         compress = self._v_compress
         rowsize = struct.calcsize(fmt)
+        # Protection against row sizes too large (HDF5 refuse to work
+        # with row sizes larger than 10 KB or so).
+        if rowsize > 8192:
+            raise RuntimeError, \
+        """Row size too large. Maximum size is 8192 bytes, and you are asking
+        for a row size of %s bytes.""" % (rowsize)
+            
         self.rowsize = rowsize
         bufmultfactor = 1000 * 10
         # Counter for the binary tuples
@@ -381,14 +388,17 @@ class Table(Leaf, hdf5Extension.Table):
 
         # Max Tuples to fill the buffer
         self._v_maxTuples = buffersize // rowsize
-        #self._v_maxTuples = 100  # For testing only!
+        # Safeguard against row sizes being extremely large
+        # I think this is not necessary because of the protection against
+        # too large row sizes, but just in case.
+        if self._v_maxTuples == 0:
+            self._v_maxTuples = 1
         # A new correction for avoid too many calls to HDF5 I/O calls
         # But this does not apport advantages rather the contrary,
         # the memory comsumption grows, and performance is worse.
         #if expectedrows//self._v_maxTuples > 50:
         #    buffersize *= 4
         #    self._v_maxTuples = buffersize // rowsize
-        #print "Buffersize, MaxTuples ==>", buffersize, self._v_maxTuples
         self._v_chunksize = chunksize
 
     def _saveBufferedRows(self):

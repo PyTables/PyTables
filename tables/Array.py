@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.29 2003/03/14 19:37:25 falted Exp $
+#       $Id: Array.py,v 1.30 2003/05/22 12:24:12 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.29 $"
+__version__ = "$Revision: 1.30 $"
 import types, warnings, sys
 from Leaf import Leaf
 import hdf5Extension
@@ -40,7 +40,7 @@ try:
 except:
     Numeric_imported = 0
 
-class Array(Leaf, hdf5Extension.Array):
+class Array(Leaf, hdf5Extension.Array, object):
     """Represent an homogeneous dataset in HDF5 file.
 
     It enables to create new datasets on-disk from Numeric, numarray,
