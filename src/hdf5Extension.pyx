@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.49 2003/06/04 11:14:56 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.50 2003/06/04 18:25:37 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.49 $"
+__version__ = "$Revision: 1.50 $"
 
 
 import sys, os
@@ -587,7 +587,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.49 2003/06/04 11:14:56 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.50 2003/06/04 18:25:37 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -721,6 +721,8 @@ cdef class AttributeSet:
 
     return attrvalue
 
+  # This funtion is useful to retrieve attributes of Leafs that are
+  # still not open
   def _g_getChildAttrStr(self, char *dsetname, char *attrname):
     cdef object attrvalue
     cdef hid_t loc_id
@@ -742,6 +744,53 @@ cdef class AttributeSet:
 
   # Get attributes (only supports string attributes right now)
   def _g_getNodeAttrStr(self, hid_t parent_id, hid_t loc_id,
+                        char *dsetname, char *attrname):
+    cdef hsize_t *dims, nelements
+    cdef H5T_class_t class_id
+    cdef size_t type_size
+    cdef char *attrvalue
+    cdef int rank
+    cdef int ret, i
+        
+    # Check if attribute exists
+    if H5LT_find_attribute(loc_id, attrname) <= 0:
+      # If the attribute does not exists, return None
+      # and do not even warn the user
+      return None
+
+    ret = H5LTget_attribute_ndims(parent_id, dsetname, attrname, &rank )
+    if ret < 0:
+      raise RuntimeError("Can't get ndims on attribute %s in node %s." %
+                             (attrname, dsetname))
+
+    # Allocate memory to collect the dimension of objects with dimensionality
+    if rank > 0:
+        dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
+
+    ret = H5LTget_attribute_info(parent_id, dsetname, attrname,
+                                 dims, &class_id, &type_size)
+    if ret < 0:
+        raise RuntimeError("Can't get info on attribute %s in node %s." %
+                               (attrname, dsetname))
+
+    if rank == 0:
+      attrvalue = <char *>malloc(type_size * sizeof(char))
+    else:
+      elements = dim[0]
+      for i from  0 < i < rank:
+        nelements = nelements * dim[i]
+      attrvalue = <char *>malloc(type_size * nelements * sizeof(char))
+
+    ret = H5LTget_attribute_string(parent_id, dsetname,
+                                    attrname, attrvalue)
+    if ret < 0:
+      raise RuntimeError("Attribute %s exists in node %s, but can't get it." \
+                         % (attrname, dsetname))
+                            
+    return attrvalue
+
+  # Get attributes (only supports string attributes right now)
+  def _g_getNodeAttrInt(self, hid_t parent_id, hid_t loc_id,
                         char *dsetname, char *attrname):
     cdef hsize_t *dims, nelements
     cdef H5T_class_t class_id

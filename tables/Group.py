@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.33 2003/06/04 11:14:57 falted Exp $
+#       $Id: Group.py,v 1.34 2003/06/04 18:25:39 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.33 $"
+__version__ = "$Revision: 1.34 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -221,6 +221,10 @@ class Group(hdf5Extension.Group, object):
             self._v_attrs._g_setAttrStr('VERSION', "1.0")
             # Add these attributes to the dictionary
             self._v_attrs._v_attrnames.extend(['TITLE','CLASS','VERSION'])
+            self._v_attrs._v_attrnamessys.extend(['TITLE','CLASS','VERSION'])
+            # Sort them
+            self._v_attrs._v_attrnames.sort()
+            self._v_attrs._v_attrnamessys.sort()
         else:
             # Get the title on disk
             self.__dict__["_v_title"] = self._v_attrs.TITLE

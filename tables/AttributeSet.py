@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.3 2003/06/04 11:14:57 falted Exp $
+#       $Id: AttributeSet.py,v 1.4 2003/06/04 18:25:39 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,12 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.3 $"
+__version__ = "$Revision: 1.4 $"
+
+import warnings, types
+import hdf5Extension
+import Group
+from utils import checkNameValidity
 
 # Note: the next constant has to be syncronized with the
 # MAX_ATTRS_IN_NODE constant in util.h!
@@ -40,10 +45,17 @@ SYS_ATTR = ["CLASS", "FLAVOR", "VERSION", "PYTABLES_FORMAT_VERSION", "TITLE"]
 # Prefixes of other system attributes
 SYS_ATTR_PREFIXES = ["FIELD_"]
 
-import warnings, types
-import hdf5Extension
-import Group
-from utils import checkNameValidity
+def issysattrname(name):
+    "Check if a name is a system attribute or not"
+    
+    if (name in SYS_ATTR or
+        reduce(lambda x,y: x+y,
+               [name.startswith(prefix)
+                for prefix in SYS_ATTR_PREFIXES])):
+        return 1
+    else:
+        return 0
+
 
 class AttributeSet(hdf5Extension.AttributeSet, object):
     """This is a container for the HDF5 attributes of a node
@@ -97,11 +109,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         self.__dict__["_v_attrnamessys"] = []
         self.__dict__["_v_attrnamesuser"] = []
         for attr in self._v_attrnames:
-            if attr in SYS_ATTR:
-                self._v_attrnamessys.append(attr)
-            elif reduce(lambda x,y: x+y,
-                        [attr.startswith(prefix)
-                         for prefix in SYS_ATTR_PREFIXES]):
+            if issysattrname(attr):
                 self._v_attrnamessys.append(attr)
             else:
                 self._v_attrnamesuser.append(attr)
@@ -150,12 +158,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 """Only string values are supported as attributes right now"""
         
         # Check that the attribute is not a system one (read-only)
-        if (name in SYS_ATTR or
-            reduce(lambda x,y: x+y,
-                   [name.startswith(prefix)
-                    for prefix in SYS_ATTR_PREFIXES])):
+        if issysattrname(name):
             raise RuntimeError, \
-            "System attribute ('%s') cannot be overwritten" % (name)
+                  "System attribute ('%s') cannot be overwritten" % (name)
             
         # Check if we have too much numbers of attributes
         if len(self._v_attrnames) < MAX_ATTRS_IN_NODE:
@@ -190,7 +195,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # The system attributes are protected
         if attrname in self._v_attrnamessys:
             raise RuntimeError, \
-                  "System attribute ('%s') cannot be overwritten" % (name)
+                  "System attribute ('%s') cannot be overwritten" % (attrname)
 
         # Delete the attribute from disk
         self._g_remove(attrname)
@@ -208,12 +213,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         
         # if oldattrname or newattrname are system attributes, raise an error
         for name in [oldattrname, newattrname]:
-            if (name in SYS_ATTR or
-                reduce(lambda x,y: x+y,
-                       [name.startswith(prefix)
-                        for prefix in SYS_ATTR_PREFIXES])):
+            if issysattrname(name):
                 raise RuntimeError, \
-                      "System attribute ('%s') cannot be overwritten or renamed" % (name)
+            "System attribute ('%s') cannot be overwritten or renamed" % (name)
 
 
         # First, fetch the value of the oldattrname

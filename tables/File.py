@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.36 2003/06/04 11:14:57 falted Exp $
+#       $Id: File.py,v 1.37 2003/06/04 18:25:39 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.36 $"
+__version__ = "$Revision: 1.37 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -279,6 +279,15 @@ class File(hdf5Extension.File, object):
             # Add these attributes to the dictionary
             root._v_attrs._v_attrnames.extend(['TITLE','CLASS','VERSION',
                                                'PYTABLES_FORMAT_VERSION'])
+            # Add these attributes to the dictionary
+            root._v_attrs._v_attrnames.extend(['TITLE','CLASS','VERSION',
+                                               'PYTABLES_FORMAT_VERSION'])
+            root._v_attrs._v_attrnamessys.extend(['TITLE','CLASS','VERSION',
+                                                  'PYTABLES_FORMAT_VERSION'])
+            # Sort them
+            root._v_attrs._v_attrnames.sort()
+            root._v_attrs._v_attrnamessys.sort()
+
 
         
         else:

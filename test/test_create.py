@@ -302,25 +302,41 @@ class createTestCase(unittest.TestCase):
         self.group._v_attrs.rs = "3"
         if verbose:
             print "Attribute list:", self.group._v_attrs._f_listAttrs()
-        assert self.group._v_attrs._f_listAttrs() == ["pq", "qr", "rs"]
+        assert self.group._v_attrs._f_listAttrs("user") == \
+               ["pq", "qr", "rs"]
+        assert self.group._v_attrs._f_listAttrs("sys") == \
+               ['CLASS', 'TITLE','VERSION']
+        assert self.group._v_attrs._f_listAttrs("all") == \
+               ['CLASS', 'TITLE', 'VERSION', "pq", "qr", "rs"]
 	
 	# Now, try with a Table object
         self.table.attrs.a = "1"
-        self.table.attrs.b = "2"
-        self.table.attrs.c = "3"
+        self.table.attrs.c = "2"
+        self.table.attrs.b = "3"
         if verbose:
             print "Attribute list:", self.table.attrs._f_listAttrs()
         assert self.table.attrs._f_listAttrs() == ["a", "b", "c"]
+        assert self.table.attrs._f_listAttrs("sys") == \
+               ['CLASS', 'FIELD_0_NAME', 'FIELD_1_NAME', 'FIELD_2_NAME',
+                'FIELD_3_NAME', 'FIELD_4_NAME', 'TITLE','VERSION']
+        assert self.table.attrs._f_listAttrs("all") == \
+               ['CLASS', 'FIELD_0_NAME', 'FIELD_1_NAME', 'FIELD_2_NAME',
+                'FIELD_3_NAME', 'FIELD_4_NAME', 'TITLE', 'VERSION',
+                "a", "b", "c"]
 	    
 	# Finally, try with an Array object
-        self.array.attrs.i = "1"
+        self.array.attrs.k = "1"
         self.array.attrs.j = "2"
-        self.array.attrs.k = "3"
+        self.array.attrs.i = "3"
         if verbose:
             print "Attribute list:", self.array.attrs._f_listAttrs()
         assert self.array.attrs._f_listAttrs() == ["i", "j", "k"]
+        assert self.array.attrs._f_listAttrs("sys") == \
+               ['CLASS', 'FLAVOR', 'TITLE', 'VERSION']
+        assert self.array.attrs._f_listAttrs("all") == \
+               ['CLASS', 'FLAVOR', 'TITLE', 'VERSION', "i", "j", "k"]
 
-    def test10_removeAttributes(self):
+    def test10a_removeAttributes(self):
         """Checking removing attributes """
 
         # With a Group object
@@ -351,7 +367,23 @@ class createTestCase(unittest.TestCase):
         assert self.group._v_attrs._g_listAttr() == \
                ('TITLE', 'CLASS', 'VERSION', "rs")
 
-    def test11_renameAttributes(self):
+    def test10b_removeAttributes(self):
+        """Checking removing system attributes """
+
+        # remove a system attribute
+        try:
+            if verbose:
+                print "System attrs:", self.group._v_attrs._v_attrnamessys
+            self.group._v_attrs._f_remove("CLASS")
+        except RuntimeError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next RuntimeError was catched!"
+                print value
+        else:
+            self.fail("expected a RuntimeError")
+
+    def test11a_renameAttributes(self):
         """Checking renaming attributes """
 
         # With a Group object
@@ -369,6 +401,20 @@ class createTestCase(unittest.TestCase):
         # Check the disk attribute names (not sorted)
         assert self.group._v_attrs._g_listAttr() == \
                ('TITLE', 'CLASS', 'VERSION', "qr", "rs", "op")
+
+    def test11b_renameAttributes(self):
+        """Checking renaming system attributes """
+
+        # rename a system attribute
+        try:
+            self.group._v_attrs._f_rename("CLASS", "op")
+        except RuntimeError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next RuntimeError was catched!"
+                print value
+        else:
+            self.fail("expected a RuntimeError")
 
         
 #----------------------------------------------------------------------
