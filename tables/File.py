@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.7 2003/01/29 16:52:09 falted Exp $
+#       $Id: File.py,v 1.8 2003/01/30 19:04:43 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.7 $"
+__version__ = "$Revision: 1.8 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -147,7 +147,7 @@ class File(hdf5Extension.File):
         createGroup(where, name[, title])
         createTable(where, name, recordObject [, title
                     [, compress [, expectedrows]]])
-        createArray(where, name, NumericObject, [, title])
+        createArray(where, name, arrayObject, [, title])
         getNode(where [, name [, classname]])
         listNodes(where [, classname])
         walkGroups(where = "/")
@@ -359,44 +359,21 @@ future). Giving up.""" % \
         return object
 
     
-    def createArray(self, where, name, NumericObject,
+    def createArray(self, where, name, arrayObject,
                     title = "", atomic = 1):
         
         """Create a new instance Array with name "name" in "where"
         location.  "where" parameter can be a path string, or another
-        group instance. "NumericObject" is the Numeric array to be
-        saved. "title" sets a TITLE attribute on the HDF5 array
-        entity. "atomic" is a boolean that specifies the underlying
-        HDF5 type; if 1 and atomic (i.e. it can't be decomposed in
-        smaller types) is used; if 0 an HDF5 array datatype is
-        used. The created object is returned."""
+        group instance. "arrayObject" is the array to be saved; it can
+        be numarray, Numeric or homogeneous tuple or list. "title"
+        sets a TITLE attribute on the HDF5 array entity. "atomic" is a
+        boolean that specifies the underlying HDF5 type; if 1 and
+        atomic (i.e. it can't be decomposed in smaller types) is used;
+        if 0 an HDF5 array datatype is used. The created object is
+        returned."""
 
         group = self.getNode(where, classname = 'Group')
-        object = Array(NumericObject, title, atomic)
-        setattr(group, name, object)
-        return object
-
-
-    def createArray0(self, where, name, NumericObject, title = ""):
-        
-        """Create a new instance Array with name "name" in "where"
-        location.  "where" parameter can be a path string, or another
-        group instance. "NumericObject" is the Numeric array to be
-        saved. "title" sets a TITLE attribute on the HDF5 array
-        entity. The created object is returned."""
-
-        if len(NumericObject.shape) == 0:
-            raise ValueError, \
-"""Numeric array '%s' has a rank equal to 0, so is like an scalar.
-  Sorry, but this is not supported right now.""" % (NumericObject)
-  
-        elif len(NumericObject.shape) > 32:
-            raise ValueError, \
-"""Numeric array (param 3) has a rank greater than 32.
-  Sorry, but this is not supported right now."""
-        
-        group = self.getNode(where, classname = 'Group')
-        object = Array(NumericObject, title)
+        object = Array(arrayObject, title, atomic)
         setattr(group, name, object)
         return object
 

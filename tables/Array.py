@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.8 2003/01/30 16:21:18 falted Exp $
+#       $Id: Array.py,v 1.9 2003/01/30 19:04:43 falted Exp $
 #
 ########################################################################
 
@@ -27,14 +27,19 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.8 $"
+__version__ = "$Revision: 1.9 $"
 
-import types
+import types, warnings, sys
 from Leaf import Leaf
 import hdf5Extension
-import Numeric
 import chararray
 import numarray
+
+try:
+    import Numeric
+    Numeric_imported = 1
+except:
+    Numeric_imported = 0
 
 class Array(Leaf, hdf5Extension.Array):
     """Represent a Numeric Array in HDF5 file.
@@ -94,7 +99,7 @@ class Array(Leaf, hdf5Extension.Array):
         if isinstance(arr, numarray.NumArray):
             flavor = "NUMARRAY"
             naarr = arr
-        elif type(arr) == type(Numeric.array(1)):
+        elif (Numeric_imported and type(arr) == type(Numeric.array(1))):
             flavor = "NUMERIC"
             if arr.typecode() == "c":
                 shape = list(arr.shape)
@@ -146,11 +151,11 @@ class Array(Leaf, hdf5Extension.Array):
 
         self.title = self._v_parent._f_getDsetAttr(self._v_name, "TITLE")
         # NUMERIC, NUMARRAY, TUPLE, LIST or other flavor 
-        self.flavor = self._v_parent._f_getDsetAttr(self._v_name, "FLAVOR")
+        self.flavor = self._v_parent._f_getDsetAttr(self._v_name, "FLAVOR3")
         
     # Accessor for the readArray method in superclass
     def read(self):
-        """Read the array from disk and return it as Numeric."""
+        """Read the array from disk and return it as numarray."""
         
         if repr(self.typecode) == "CharType":
             arr = chararray.array(None, itemsize=self.typesize,
@@ -166,10 +171,16 @@ class Array(Leaf, hdf5Extension.Array):
         
         # Convert to Numeric, tuple or list if needed
         if self.flavor == "NUMERIC":
-            # This works for both numeric and chararrays
-            # arr=Numeric.array(arr, typecode=arr.typecode())
-            # The next is 10 times faster
-            arr=Numeric.array(arr.tolist(), typecode=arr.typecode())
+            if Numeric_imported:
+                # This works for both numeric and chararrays
+                # arr=Numeric.array(arr, typecode=arr.typecode())
+                # The next is 10 times faster
+                arr=Numeric.array(arr.tolist(), typecode=arr.typecode())
+            else:
+                # Warn the user
+                warnings.warn( \
+"""The object on-disk is type Numeric, but Numeric is not installed locally.
+  Returning a numarray object instead!.""")
         elif self.flavor == "TUPLE":
             arr = tuple(arr.tolist())
         elif self.flavor == "LIST":

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.9 2003/01/30 16:21:17 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.10 2003/01/30 19:04:40 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.9 $"
+__version__ = "$Revision: 1.10 $"
 
 
 import sys, os.path
@@ -161,7 +161,7 @@ cdef extern from "numarray/numarray.h":
     cdef char   _aligned      # test override flag */
     cdef char   _contiguous   # test override flag */
 
-  # The Numeric initialization funtion
+  # The numarray initialization funtion
   void import_array()
     
 # The Numeric API requires this function to be called before
@@ -195,10 +195,6 @@ cdef extern from "numarray/libnumarray.h":
   PyArrayObject NA_Empty(int nd, int *d, NumarrayType type)
   object PyArray_ContiguousFromObject(object op, int type,
                                       int min_dim, int max_dim)
-# Functions from numeric API
-#cdef extern from "Numeric/arrayobject.h":
-#  PyArrayObject PyArray_FromDims(int nd, int *d, int type)
-  
 # Functions from HDF5
 cdef extern from "hdf5.h":
   int H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, H5F_ACC_EXCL
@@ -375,8 +371,25 @@ cdef extern from "utils.h":
   object createNamesTuple(char *buffer[], int nelements)
   object createDimsTuple(int dimensions[], int nelements)
   object Giterate(hid_t loc_id, char *name)
+  H5T_class_t getHDF5ClassID(hid_t loc_id, char *name)
 
 # utility funtions (these can be directly invoked from Python)
+
+def whichClass( hid_t loc_id, char *name):
+  cdef H5T_class_t class_id
+
+  class_id = getHDF5ClassID(loc_id, name)
+  # Check if this a dataset of supported classtype for ARRAY
+  if ((class_id == H5T_ARRAY)   or
+      (class_id == H5T_INTEGER) or
+      (class_id == H5T_FLOAT)   or
+      (class_id == H5T_STRING)):
+    return "ARRAY"
+  elif class_id == H5T_COMPOUND:
+    return "TABLE"
+
+  # Fallback 
+  return "UNSUPPORTED"
 
 def isHDF5(char *filename):
   """Determines whether a file is in the HDF5 format.
@@ -452,7 +465,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.9 2003/01/30 16:21:17 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.10 2003/01/30 19:04:40 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -611,6 +624,7 @@ cdef class Group:
   def _f_getDsetAttr(self, char *dsetname, char *attrname):
     cdef int ret
     cdef char attrvalue[MAX_CHARS]
+    cdef object oattrvalue
 
     # Get the dataset
     loc_id = H5Dopen(self.group_id, dsetname)
@@ -623,8 +637,11 @@ cdef class Group:
       ret = H5LT_get_attribute_disk(loc_id, attrname, attrvalue)
       if ret < 0:
         raise RuntimeError("Cannot get '%s' attribute on dataset" % attrname)
+      else:
+        oattrvalue = PyString_FromString(attrvalue)
     else:
-      raise RuntimeError("Cannot get '%s' attribute on dataset" % attrname)
+      oattrvalue = None
+      #raise RuntimeError("Cannot get '%s' attribute on dataset" % attrname)
 
     # Close this dataset
     ret = H5Dclose(loc_id)
@@ -633,7 +650,7 @@ cdef class Group:
 
     # These two works in the same way!
     #return PyString_FromString(attrvalue)
-    return attrvalue
+    return oattrvalue
 
 cdef class Table:
   # instance variables

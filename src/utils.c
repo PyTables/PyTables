@@ -128,55 +128,13 @@ PyObject *Giterate(hid_t loc_id, const char *name) {
   return t;
 }
 
-/* IsArray and IsTable funtions are obsolete because we use now the
-   CLASS attribute to get this information */
 
 /****************************************************************
 **
-**  isTable(): Returns 1 if loc_id.name is a Table. 0 if not. -1 if error.
+**  getHDF5ClassID(): Returns class ID for loc_id.name. -1 if error.
 ** 
 ****************************************************************/
-int isTable(hid_t loc_id, const char *name) {
-   int         ret;
-   hid_t       dataset_id;  
-   hid_t       type_id;
-   H5T_class_t class_id;
-
-   /* Open the dataset. */
-   if ( (dataset_id = H5Dopen( loc_id, name )) < 0 )
-     return -1;
-   
-   /* Get an identifier for the datatype. */
-   type_id = H5Dget_type( dataset_id );
-   
-   /* Get the class. */
-   class_id = H5Tget_class( type_id );
-
-   /* Check if this is a COMPOUND type */
-   if ( (class_id == H5T_COMPOUND) )
-     ret = 1;
-   else
-     ret = 0;
-     
-   /* Release the datatype. */
-   if ( H5Tclose( type_id ) )
-     return -1;
-   
-   /* End access to the dataset */
-   if ( H5Dclose( dataset_id ) )
-     return -1;
-   
-   return ret;
-   
-}
-
-
-/****************************************************************
-**
-**  isArray(): Returns 1 if loc_id.name is an Array. 0 if not. -1 if error.
-** 
-****************************************************************/
-int isArray(hid_t loc_id, const char *name) {
+H5T_class_t getHDF5ClassID(hid_t loc_id, const char *name) {
    int         ret;
    hid_t       dataset_id;  
    hid_t       type_id;
@@ -191,13 +149,7 @@ int isArray(hid_t loc_id, const char *name) {
    
    /* Get the class. */
    class_id = H5Tget_class( type_id );
-   
-   /* Check if this an array */
-   if ( (class_id == H5T_ARRAY))
-     ret = 1;
-   else
-     ret = 0;
-     
+        
    /* Release the datatype. */
    if ( H5Tclose( type_id ) )
      return -1;
@@ -206,6 +158,6 @@ int isArray(hid_t loc_id, const char *name) {
    if ( H5Dclose( dataset_id ) )
      return -1;
    
-   return ret;
+   return class_id;
    
 }

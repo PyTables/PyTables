@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.7 2003/01/29 10:22:14 falted Exp $
+#       $Id: Group.py,v 1.8 2003/01/30 19:04:43 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.7 $"
+__version__ = "$Revision: 1.8 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -42,6 +42,7 @@ MAX_CHILDS_IN_GROUP = 4096
 
 from __future__ import generators
 
+import warnings
 import hdf5Extension
 from Table import Table
 from Array import Array
@@ -136,13 +137,22 @@ class Group(hdf5Extension.Group):
             objgroup._f_openFile()
         for name in leaves:
             class_ = self._f_getDsetAttr(name, "CLASS")
+            if class_ is None:
+                # No CLASS attribute, try a guess
+                warnings.warn("No CLASS attribute found. Trying to guess what's here. I can't promise you getting the correct object, but I will do my best!.")
+                class_ = hdf5Extension.whichClass(self._v_groupId, name)
+                if class_ == "UNSUPPORTED":
+                    raise RuntimeError, \
+                    """Dataset object \'%s\' in file is unsupported!.""" % \
+                          name
             if class_ == "TABLE":
                 objgroup = Table()
             elif class_ == "ARRAY":
                 objgroup = Array()
             else:
                 raise RuntimeError, \
-                      """Dataset object in file is unknown!"""
+                      """Dataset object in file is unknown!
+                      class ID: %s""" % class_
             # Set some attributes to caracterize and open this object
             objgroup._f_putObjectInTree(name, self)
         

@@ -68,6 +68,4 @@ PyObject *createDimsTuple(int dimensions[], int nelements);
 
 PyObject *Giterate(hid_t loc_id, const char *name);
 
-int isTable(hid_t loc_id, const char *name);
-
-int isArray(hid_t loc_id, const char *name);
+H5T_class_t getHDF5ClassID(hid_t loc_id, const char *name);
