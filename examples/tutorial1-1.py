@@ -16,7 +16,7 @@ from tables import *
 # Define a user record to characterize some kind of particles
 class Particle(IsDescription):
     name      = Col('CharType', 16)  # 16-character String
-    idnumber  = Col("UInt64", 1)     # Unsigned long long 
+    idnumber  = Col("Int64", 1)      # Signed 64-bit integer
     ADCcount  = Col("UInt16", 1)     # Unsigned short integer
     TDCcount  = Col("UInt8", 1)      # unsigned byte
     grid_i    = Col("Int32", 1)      # integer
@@ -51,7 +51,6 @@ particle = table.row
 
 # Fill the table with 10 particles
 for i in xrange(10):
-    print i
     particle['name']  = 'Particle: %6d' % (i)
     particle['TDCcount'] = i % 256    
     particle['ADCcount'] = (i * 256) % (1 << 16)

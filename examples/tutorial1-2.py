@@ -130,7 +130,7 @@ for r in table.iterrows():
         r['TDCcount'])
        
 print
-print "Total numbers of entries after appending new rows:", table.nrows
+print "Total number of entries after appending new rows:", table.nrows
 
 # Close the file
 h5file.close()

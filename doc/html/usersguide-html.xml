@@ -5,8 +5,8 @@
   <frontmatter>
     <title><visual markup="tt">PyTables</visual> User's Guide</title>
     <author>Francesc Alted</author>
-    <subtitle>Release 0.5</subtitle>
-    <date>May, 07th</date>
+    <subtitle>Release 0.5.1</subtitle>
+    <date>May, 12th</date>
     <year>2003</year>
     <legalnotice>
 
@@ -107,7 +107,7 @@
 <verbatim>
 class Particle(IsDescription):
     name      = Col("CharType", 16)  # 16-character String
-    idnumber  = Col("UInt64", 1)     # Unsigned long long 
+    idnumber  = Col("Int64", 1)      # Signed 64-bit integer
     ADCcount  = Col("UInt16", 1)     # Unsigned short integer
     TDCcount  = Col("UInt8", 1)      # unsigned byte
     grid_i    = Col("Int32", 1)      # integer
@@ -386,7 +386,12 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
     <chapter>
       <heading>Installation</heading>
-      
+
+      <aphorism>El meu país es tan petit <newline/> que quan el sol
+	se'n va a dormir <newline/> no està mai prou segur d'haver-lo
+	vist <caption>Lluís Llach in the song "Petit País"</caption>
+      </aphorism>
+
 <!--       <aphorism>Make things as simple as possible, but not any -->
 <!-- 	simpler.  <caption>Einstein</caption> </aphorism> -->
 
@@ -833,7 +838,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  <verbatim>
 >>> class Particle(IsDescription):
 ...     name      = Col("CharType", 16)  # 16-character String
-...     idnumber  = Col("UInt64", 1)     # Unsigned long long
+...     idnumber  = Col("Int64", 1)      # Signed 64-bit integer
 ...     ADCcount  = Col("UInt16", 1)     # Unsigned short integer
 ...     TDCcount  = Col("UInt8", 1)      # unsigned byte
 ...     grid_i    = Col("Int32", 1)      # integer
@@ -978,7 +983,7 @@ Filename: tutorial1.h5 'Test file'
     'energy': Col('Float64', (1,)),
     'grid_i': Col('Int32', (1,)),
     'grid_j': Col('Int32', (1,)),
-    'idnumber': Col('UInt64', (1,)),
+    'idnumber': Col('Int64', (1,)),
     'name': Col('CharType', (16,)),
     'pressure': Col('Float32', (1,)) }
   byteorder = little
@@ -1428,7 +1433,7 @@ Table variable names with their type and shape:
    energy := Float64 (1,)
    grid_i := Int32 (1,)
    grid_j := Int32 (1,)
-   idnumber := UInt64 (1,)
+   idnumber := Int64 (1,)
    name := CharType (16,)
    pressure := Float32 (1,)
 >>>
