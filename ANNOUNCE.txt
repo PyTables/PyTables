@@ -2,27 +2,17 @@ Announcing PyTables 0.8
 -----------------------
 
 PyTables is a hierarchical database package designed to efficiently
-manage very large amounts of data. PyTables is built on top of the
-HDF5 library and the numarray package. It features an object-oriented
+manage very large amounts of data. PyTables is built on top of the HDF5
+library and the numarray package. It features an object-oriented
 interface that, combined with natural naming and C-code generated from
 Pyrex sources, makes it a fast, yet extremely easy-to-use tool for
-interactively saving and retrieving very large amounts of data.  It also
+interactively saving and retrieving different kinds of datasets. It also
 provides flexible indexed access on disk to anywhere in the data.
 
-PyTables is not designed to work as a relational database competitor,
-but rather as a teammate. If you want to work with large datasets of
-multidimensional data (for example, for multidimensional analysis), or
-just provide a categorized structure for some portions of your cluttered
-RDBS, then give PyTables a try. It works well for storing data from data
-acquisition systems (DAS), simulation software, network data monitoring
-systems (for example, traffic measurements of IP packets on routers),
-working with very large XML files or as a centralized repository for
-system logs, to name only a few possible uses.
- 
 In this release you will find:
 	- Variable Length Arrays (VLA's) for saving a collection
-          of variable length of elements in each row of an array.
-	- Extensible Arrays (EA's) for extending homogeneous
+          of variable length of elements in each row of a dataset.
+	- Enlargeable Arrays (EA's) for enlarge homogeneous
        	  datasets on disk.
 	- Powerful replication capabilities, ranging from single leaves
 	  up to complete hierarchies.
@@ -30,13 +20,15 @@ In this release you will find:
 	  improved HDF5 native file import capabilities.
 	- Two new useful utilities: ptdump & ptrepack.
 	- Improved documentation (with the help of Scott Prater).
-        - New record on data size achieved: 5.6 TB (!) in one single
-          file.
 	- Enhanced platform support. New platforms: MacOSX, FreeBSD,
 	  Linux64, IRIX64 (yes, a clean 64-bit port is there) and
 	  probably more.
-	- More tests units (now exceeding 800).
+	- More test units (now exceeding 800).
 	- Many other minor improvements.
+
+Besides, using PyTables 0.8 a new record on data size has been achieved:
+5.6 TB (~ 1000 DVD's) in one single file (!). See the gory details in:
+http://pytables.sf.net/html/StressTests.html.
 
 More in detail:
 
@@ -57,20 +49,19 @@ What's new
 	  can be applied to EArray instances, for example.
 
 	  Another nice feature of EA's is their support for fully
-	  multidimensional data selection with extended slices.  You
-	  can write "earray[1,2:3,...,4:200]", for example, to get the
-	  desired dataset slice from the disk. This is implemented
-	  using the powerful selection capabilities of the HDF5
-	  library, which results in very highly efficient I/O
-	  operations. The same functionality has been added to Array
-	  objects as well.
+	  multidimensional data selection with extended slices. You can
+	  write "earray[1,2:3,...,4:200]", for example, to get the
+	  desired dataset slice from the disk. This is implemented using
+	  the powerful selection capabilities of the HDF5 library, which
+	  results in very highly efficient I/O operations. The same
+	  functionality has been added to Array objects as well.
 
 	- New UnImplemented class. If a dataset contains unsupported
 	  datatypes, it will be associated with an UnImplemented
 	  instance, then inserted into to the object tree as usual.
 	  This allows you to continue to work with supported objects
 	  while retaining access to attributes of unsupported
-	  datasets.  This has changed from previous versions, where a
+	  datasets. This has changed from previous versions, where a
 	  RuntimeError occurred when an unsupported object was
 	  encountered.
 
@@ -93,7 +84,7 @@ What's new
 
 	- As the supported number of filters is growing (and may be
           further increased in the future), a Filters() class has been
-          introduced to handle filters more easily.  In order to add
+          introduced to handle filters more easily. In order to add
           support for this class, it was necessary to make a change in
           the createTable() method that is not backwards compatible:
           the "compress" and "complib" parameters are deprecated now
@@ -137,7 +128,7 @@ What's new
           __getitem__() special method in numarray.
 
 	- The method Table.removeRows() is no longer limited by table 
-	  size.  You can now delete rows regardless of the size of the 
+	  size. You can now delete rows regardless of the size of the 
 	  table.
 
 	- The "numarray" value has been added to the flavor parameter
@@ -160,20 +151,13 @@ What's new
           existing functionality. There are more than 800 different
           tests now (and the number is increasing :).
 
-        - PyTables has a new record in the data size that fits in one
-          single file: more than 5 TB (yeah, more than 5000 GB), that
-          accounts for 11 GB compressed, has been created on an AMD
-          Opteron machine running Linux-64 (the 64 bits version of the
-          Linux kernel). See the gory details in:
-          http://pytables.sf.net/html/HowFast.html.
-
 	- New platforms supported: PyTables has been compiled and tested
-	  under Linux32 (Intel), Linux64 (AMD Opteron and Alpha), Win32
-	  (Intel), MacOSX (PowerPC), FreeBSD (Intel), Solaris (6, 7, 8
-	  and 9 with UltraSparc), IRIX64 (IRIX 6.5 with R12000) and it
-	  probably works in many more architectures. In particular,
-	  release 0.8 is the first one that provides a relatively clean
-	  porting to 64-bit platforms.
+	  under GNU/Linux32 (Intel), GNU/Linux64 (AMD Opteron and
+	  Alpha), Win32 (Intel), MacOSX (PowerPC), FreeBSD (Intel),
+	  Solaris (6, 7, 8 and 9 with UltraSparc), IRIX64 (IRIX 6.5 with
+	  R12000) and it probably works in many more architectures. In
+	  particular, release 0.8 is the first one that provides a
+	  relatively clean porting to 64-bit platforms.
 
 	- As always, some bugs have been solved (especially bugs that
           occur when deleting and/or overwriting attributes).
@@ -185,44 +169,56 @@ What's new
 	  to continue, please, donate!
 
 
+Where PyTables can be applied?
+------------------------------
+
+PyTables is not designed to work as a relational database competitor,
+but rather as a teammate. If you want to work with large datasets of
+multidimensional data (for example, for multidimensional analysis), or
+just provide a categorized structure for some portions of your cluttered
+RDBS, then give PyTables a try. It works well for storing data from data
+acquisition systems (DAS), simulation software, network data monitoring
+systems (for example, traffic measurements of IP packets on routers),
+working with very large XML files or as a centralized repository for
+system logs, to name only a few possible uses.
+ 
 What is a table?
 ----------------
 
-A table is defined as a collection of records whose values are stored
-in fixed-length fields. All records have the same structure and all
-values in each field have the same data type.  The terms
-"fixed-length" and "strict data types" seem to be quite a strange
-requirement for an language like Python that supports dynamic data
-types, but they serve a useful function if the goal is to save very
-large quantities of data (such as is generated by many scientific
-applications, for example) in an efficient manner that reduces demand
-on CPU time and I/O resources.
+A table is defined as a collection of records whose values are stored in
+fixed-length fields. All records have the same structure and all values
+in each field have the same data type.  The terms "fixed-length" and
+"strict data types" seem to be quite a strange requirement for a
+language like Python that supports dynamic data types, but they serve a
+useful function if the goal is to save very large quantities of data
+(such as is generated by many scientific applications, for example) in
+an efficient manner that reduces demand on CPU time and I/O resources.
 
 What is HDF5?
 -------------
 
-For those people who know nothing about HDF5, it is is a general
-purpose library and file format for storing scientific data made at
-NCSA. HDF5 can store two primary objects: datasets and groups. A
-dataset is essentially a multidimensional array of data elements, and
-a group is a structure for organizing objects in an HDF5 file. Using
-these two basic constructs, one can create and store almost any kind of
-scientific data structure, such as images, arrays of vectors, and
-structured and unstructured grids. You can also mix and match them in
-HDF5 files according to your needs.
+For those people who know nothing about HDF5, it is a general purpose
+library and file format for storing scientific data made at NCSA. HDF5
+can store two primary objects: datasets and groups. A dataset is
+essentially a multidimensional array of data elements, and a group is a
+structure for organizing objects in an HDF5 file. Using these two basic
+constructs, one can create and store almost any kind of scientific data
+structure, such as images, arrays of vectors, and structured and
+unstructured grids. You can also mix and match them in HDF5 files
+according to your needs.
 
 Platforms
 ---------
 
-I'm using Linux (32-bit) as the main development platform, but
+I'm using Linux (Intel 32-bit) as the main development platform, but
 PyTables should be easy to compile/install on many other UNIX
 machines. This package has also passed all the tests on a UltraSparc
 platform with Solaris 7 and Solaris 8. It also compiles and passes all
 the tests on a SGI Origin2000 with MIPS R12000 processors, with the
-MIPSPro compiler and running IRIX 6.5. It also runs fine on Linux
-64-bit platforms, like an AMD Opteron running SuSe Linux Enterprise
-Server (SLES). It has also been tested in MacOSX platforms (10.2 and
-10.3).
+MIPSPro compiler and running IRIX 6.5. It also runs fine on Linux 64-bit
+platforms, like an AMD Opteron running SuSe Linux Enterprise Server. It
+has also been tested in MacOSX platforms (10.2 but should also work on
+newer versions).
 
 Regarding Windows platforms, PyTables has been tested with Windows
 2000 and Windows XP (using the Microsoft Visual C compiler), but it
@@ -233,12 +229,12 @@ An example?
 
 For online code examples, have a look at
 
-http://pytables.sourceforge.net/tut/tutorial1-1.html
+http://pytables.sourceforge.net/html/tut/tutorial1-1.html
 
 
-and 
+and, for newly introduced Variable Length Arrays:
 
-http://pytables.sourceforge.net/tut/tutorial1-2.html
+http://pytables.sourceforge.net/html/tut/vlarray2.html
 
 
 Web site

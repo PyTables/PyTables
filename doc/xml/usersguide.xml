@@ -267,7 +267,8 @@ class Particle(IsDescription):
 	  </item>
 	  <item><em>Multidimensional table cells:</em> You can declare
 	    a column to consist of general array cells as well as
-	    scalars, as the majority of relational databases allow.
+	    scalars, which is the only dimensionality allowed the
+	    majority of relational databases.
 	  </item>
 	  <item><em>Support for numerical arrays:</em>
 	    <verb>Numeric</verb> (see <cite refid="Numeric"></cite>)
@@ -281,7 +282,9 @@ class Particle(IsDescription):
 
           <item><em>Enlargeable arrays:</em> You can add new elements
             to existing arrays on disk in any dimension you want (but
-            only one).
+            only one). Besides, you can access to only a slice of your
+            datasets by using the powerful extended slicing mechanism,
+            without need to load all your complete dataset in-memory.
           </item>
           <item><em>Variable length arrays:</em> The number of
             elements in these arrays can be variable from row to

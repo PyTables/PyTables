@@ -506,7 +506,7 @@ def find_name(base = 'tables'):
 name = find_name()
 setup(name = name,
       version = VERSION,
-      description = 'A hierarchical database for Python',
+      description = 'Hierarchical datasets for Python',
       long_description = """\
 
 PyTables is a hierarchical database package
@@ -525,7 +525,9 @@ data.
       author_email = 'falted@pytables.org',
       maintainer = 'Francesc Alted',
       maintainer_email = 'falted@pytables.org',
-      url = 'http://pytables.sf.net/',
+      url = 'http://www.pytables.org/',
+      license = 'http://www.opensource.org/licenses/bsd-license.php',
+      platforms = ['any'],
       packages = ['tables'],
       ext_modules = [ Extension("tables.hdf5Extension",
                                 include_dirs = inc_dirs,
