@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.117 2004/07/27 12:18:06 falted Exp $
+#       $Id: Table.py,v 1.118 2004/07/27 17:17:56 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.117 $"
+__version__ = "$Revision: 1.118 $"
 
 from __future__ import generators
 import sys
@@ -67,8 +67,8 @@ byteorderDict={"=": sys.byteorder,
 revbyteorderDict={'little': '<',
                   'big': '>'}
 
-maxFloat=float((2**1024 - 2**971))  # From the IEEE 754 standard
-maxFloatF=float((2**128 - 2**104))  # From the IEEE 754 standard
+maxFloat=float(2**1024 - 2**971)  # From the IEEE 754 standard
+maxFloatF=float(2**128 - 2**104)  # From the IEEE 754 standard
 Finf=float("inf")  # Infinite in the IEEE 754 standard
 
 # Utility functions
