@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.125 2004/08/12 20:52:45 falted Exp $
+#       $Id: Table.py,v 1.126 2004/08/21 17:10:04 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.125 $"
+__version__ = "$Revision: 1.126 $"
 
 from __future__ import generators
 import sys
@@ -84,6 +84,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         __iter__()
         __setitem__(key, value)
         append(rows)
+        flushRowsToIndex()
         getWhereList(condition [, flavor])
         iterrows(start, stop, step)
         iterWhereList(sequence)
@@ -95,7 +96,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         removeRows(start, stop)
         removeIndex(column)
         where(condition [, start] [, stop] [, step])
-        whereIndexed(condition)
+        whereIndexed(condition [, start] [, stop] [, step])
         whereInRange(condition [, start] [, stop] [, step])
 
     Instance variables:
@@ -381,7 +382,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
         if self.indexed and self.indexprops.auto:
-            self._addRowsToIndex()
+            self.flushRowsToIndex()
         return
 
     def where(self, condition=None, start=None, stop=None, step=None):
@@ -842,7 +843,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         if self.indexed and self.indexprops.auto:
             # Update the number of unsaved indexed rows
             self._unsaved_indexedrows += lenrows
-            self._addRowsToIndex()
+            self.flushRowsToIndex()
         return lenrows
 
     def modifyRows(self, start=None, stop=None, step=1, rows=None):
@@ -1006,8 +1007,9 @@ class Table(Leaf, hdf5Extension.Table, object):
                 self._unsaved_indexedrows = self.nrows - self._indexedrows
         return nrows
 
-    def _addRowsToIndex(self):
+    def flushRowsToIndex(self):
         "Add remaining rows to non-dirty indexes"
+        rowsadded = 0
         if self.indexed:
             # Update the number of unsaved indexed rows
             start = self._indexedrows
@@ -1015,11 +1017,11 @@ class Table(Leaf, hdf5Extension.Table, object):
             for (colname, colindexed) in self.colindexed.iteritems():
                 if colindexed:
                     indexcol = getattr(self.cols, colname)
-                    if not indexcol.dirty:
+                    if nrows > 0 and not indexcol.dirty:
                         rowsadded = indexcol._addRowsToIndex(start, nrows)
             self._unsaved_indexedrows -= rowsadded
             self._indexedrows += rowsadded
-        return
+        return rowsadded
 
     def removeRows(self, start=None, stop=None):
         """Remove a range of rows.
@@ -1114,7 +1116,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             object._indexedrows = 0
             object._unsaved_indexedrows = object.nrows
             if object.indexprops.auto:
-                object._addRowsToIndex()
+                object.flushRowsToIndex()
         return (object, nbytes)
 
     def flush(self):
@@ -1465,6 +1467,9 @@ class Column(object):
         else:
             filters = None  # Get the defaults
         # Create the index itself
+        if self.index:
+            raise ValueError, \
+"%s for column '%s' already exists. If you want to re-create it, please, try with reIndex() method better" % (str(self.index), str(self.name))
         self.index = Index(atom, self, name,
                            "Index for "+self.table._v_pathname+".cols."+self.name,
                            filters=filters,
@@ -1497,6 +1502,7 @@ class Column(object):
         if self.index is not None:
             # Delete the existing Index
             self.index._g_remove()
+            self.index = None
             # Create a new Index without warnings
             return self.createIndex(warn=0)
         else:

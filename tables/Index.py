@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.14 2004/08/12 20:52:45 falted Exp $
+#       $Id: Index.py,v 1.15 2004/08/21 17:10:04 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.14 $"
+__version__ = "$Revision: 1.15 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -63,7 +63,6 @@ def infType(type, itemsize, sign=0):
 def CharTypeNextAfter(x, direction, itemsize):
     "Return the next representable neighbor of x in the appropriate direction."
     # Pad the string with \x00 chars until itemsize completion
-    #print "original string-->", x
     padsize = itemsize - len(x)
     if padsize > 0:
         x += "\x00"*padsize
@@ -92,7 +91,6 @@ def CharTypeNextAfter(x, direction, itemsize):
                 xlist[i] = "\xff"
             i += 1
     xlist.reverse()
-    #print "new string-->", "".join(xlist)
     return "".join(xlist)
         
 
@@ -411,7 +409,6 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
             (start, stop, niter) = self.sorted._searchBin(i, item)
             self.starts.append(start)
             self.lengths.append(stop - start)
-            #print "start, stop-->", start, stop
             ntotaliter += niter
             tlen += stop - start
         self.sorted._destroySortedSlice()
@@ -570,7 +567,6 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
                 notequal = 1
         elif len(ilimit) == 2:
             item1, item2 = ilimit
-            #print "item1, item2-->", item1, item2, type(item1), type(item2)
             assert item1 <= item2, \
 "On 'val1 <{=} col <{=} val2' selections, val1 must be less or equal than val2"
             op1, op2 = table.ops
@@ -636,7 +632,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
 
         cpathname = self.column.table._v_pathname + ".cols." + self.column.name
         pathname = self._v_parent._g_join(self.name)
-        dirty = self._v_attrs.DIRTY
+        dirty = self.column.dirty
         return """%s (Index for column %s)
   type := %r
   nelements := %s

@@ -602,7 +602,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             print "Running %s.test04_noauto..." % self.__class__.__name__
         table = self.table
         # Force a sync in indexes
-        table._addRowsToIndex()
+        table.flushRowsToIndex()
         # Check the counters for indexes
         if verbose:
             if table.indexed:
@@ -655,7 +655,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             print "Running %s.test05_icounters..." % self.__class__.__name__
         table = self.table
         # Force a sync in indexes
-        table._addRowsToIndex()
+        table.flushRowsToIndex()
         # No unidexated rows should remain here
         if self.klass is not Small:
             indexedrows = table._indexedrows
@@ -727,7 +727,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             print "Running %s.test06_dirty..." % self.__class__.__name__
         table = self.table
         # Force a sync in indexes
-        table._addRowsToIndex()
+        table.flushRowsToIndex()
         # Now, remove some rows:
         table.removeRows(3,5)
         if self.reopen:
@@ -753,7 +753,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             print "Running %s.test07_noreindex..." % self.__class__.__name__
         table = self.table
         # Force a sync in indexes
-        table._addRowsToIndex()
+        table.flushRowsToIndex()
         # Non indexated rows should remain here
         if self.klass is not Small:
             indexedrows = table._indexedrows
@@ -806,7 +806,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             print "Running %s.test08_dirty..." % self.__class__.__name__
         table = self.table
         # Force a sync in indexes
-        table._addRowsToIndex()
+        table.flushRowsToIndex()
         # Non indexated rows should remain here
         if self.klass is not Small:
             indexedrows = table._indexedrows
@@ -855,7 +855,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             print "Running %s.test09_copyIndex..." % self.__class__.__name__
         table = self.table
         # Don't force a sync in indexes
-        #table._addRowsToIndex()
+        #table.flushRowsToIndex()
         # Non indexated rows should remain here
         if self.klass is not Small:
             indexedrows = table._indexedrows
@@ -912,7 +912,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             print "Running %s.test10_copyIndex..." % self.__class__.__name__
         table = self.table
         # Don't force a sync in indexes
-        #table._addRowsToIndex()
+        #table.flushRowsToIndex()
         # Non indexated rows should remain here
         if self.klass is not Small:
             indexedrows = table._indexedrows
@@ -958,7 +958,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             print "Running %s.test11_copyIndex..." % self.__class__.__name__
         table = self.table
         # Force a sync in indexes
-        table._addRowsToIndex()
+        table.flushRowsToIndex()
         # Non indexated rows should remain here
         if self.klass is not Small:
             indexedrows = table._indexedrows

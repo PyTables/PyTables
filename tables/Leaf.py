@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.50 2004/08/06 16:34:36 falted Exp $
+#       $Id: Leaf.py,v 1.51 2004/08/21 17:10:04 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.50 $"
+__version__ = "$Revision: 1.51 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -95,15 +95,19 @@ class Filters(object):
         """The string reprsentation choosed for this object.
         """
         filters = "Filters("
-        if self.complevel:
-            filters += "complevel=%s" % (self.complevel)
-            filters += ", complib='%s'" % (self.complib)
-            if self.shuffle:
-                filters += ", shuffle=%s" % (self.shuffle)
-            if self.fletcher32:
-                filters += ", "
-        if self.fletcher32:
-            filters += "fletcher32=%s" % (self.fletcher32)
+#         if self.complevel:
+#             filters += "complevel=%s" % (self.complevel)
+#             filters += ", complib='%s'" % (self.complib)
+#             if self.shuffle:
+#                 filters += ", shuffle=%s" % (self.shuffle)
+#             if self.fletcher32:
+#                 filters += ", "
+#         if self.fletcher32:
+#             filters += "fletcher32=%s" % (self.fletcher32)
+        filters += "complevel=%s" % (self.complevel)
+        filters += ", complib='%s'" % (self.complib)
+        filters += ", shuffle=%s" % (self.shuffle)
+        filters += ", fletcher32=%s" % (self.fletcher32)
         filters += ")"
         return filters
     
