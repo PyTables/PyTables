@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.39 2003/07/04 17:06:07 falted Exp $
+#       $Id: Group.py,v 1.40 2003/07/04 17:27:51 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.39 $"
+__version__ = "$Revision: 1.40 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -339,25 +339,6 @@ I can't promise getting the correct object, but I will do my best!.""",
         else:
             raise ValueError, \
 """"classname" can only take 'Group', 'Leaf', 'Table' or 'Array' values"""
-
-    def _f_walkGroups_orig(self):
-        """Recursively obtains Groups (not Leaves) hanging from self.
-
-        The groups are returned from top to bottom, and
-        alphanumerically sorted when in the same level.
-
-        """
-        # Returns this group
-        yield self
-        # Iterate over the descendants
-        #for group in self._v_groups.itervalues():
-        # Sort the groups before delivering. This uses the groups names
-        # for groups in tree (in order to sort() can classify them).
-        groupnames = self._v_groups.keys()
-        groupnames.sort()
-        for groupname in groupnames:
-            for x in self._v_groups[groupname]._f_walkGroups():
-                yield x
 
     def _f_walkGroups(self):
         """Returns the list of Groups (not Leaves) hanging from self.

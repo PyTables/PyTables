@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.39 2003/07/04 17:06:07 falted Exp $
+#       $Id: File.py,v 1.40 2003/07/04 17:27:51 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.39 $"
+__version__ = "$Revision: 1.40 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -584,8 +584,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
     
 
     def walkGroups(self, where = "/"):
-        
-        """Recursively obtains Groups (not Leaves) hanging from "where".
+        """Returns the list of Groups (not Leaves) hanging from "where".
 
         If "where" is not supplied, the root object is taken as
         origin. The groups are returned from top to bottom, and
