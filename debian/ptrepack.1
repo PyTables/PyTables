@@ -1,0 +1,95 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH PTREPACK 1 "March 25, 2004"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+ptrepack \- Copy any PyTables Leaf, Group or complete subtree into another file.
+.SH SYNOPSIS
+.B ptrepack
+.RB \-h
+.RB \-v
+.RB \-o 
+.RB \-R
+.IR start,stop,step
+.RB \-\-non\-recursive
+.RB \-\-dest-title=title
+.RB \-\-dont\-copyuser\-attrs
+.RB \-\-overwrite\-nodes
+.RB \-\-complevel=(0\-9)
+.RB \-\-complib=lib
+.RB \-\-shuffle=(0|1)
+.RB \-\-fletcher32=(0|1)
+.RB \-\-keep\-source\-filters
+.RB sourcefile:sourcegroup
+.RB destfile:destgroup
+.br
+.SH DESCRIPTION
+Copy any Leaf, Group or complete subtree from a PyTables file into another file.
+.SH OPTIONS
+A summary of options is included below.
+.TP
+.B \-h
+Prints a help text.
+.TP
+.B \-v
+Show more information.
+.TP
+.B \-o
+Overwite destination file.
+.TP
+.BI \-R\  start,stop,step
+Select a slice in \fIall\fR leaves.
+.TP
+.BI \-\-non\-recursive
+Do not do a recursive copy. Default is do it.
+.TP
+.BI \-\-dest\-title=title
+Title for the new file (if not specified, the source is copied).
+.TP
+.BI \-\-dont\-copy\-userattrs
+Do not copy the user attrs (default is do it).
+.TP
+.BI \-\-overwrite\-nodes
+Overwrite destination nodes if they exist. Default is not overwrite
+them.
+.TP
+.BI \-\-complevel=(0-9)
+Sets a compression level (0 for no compression, which is the default).
+.TP
+.BI \-\-complib=lib
+Sets the compression library to be used during the copy. \fIlib\fR can
+be set to "zlib", "lzo" or "ucl". Defaults to "zlib".
+.TP
+.BI \-\-shuffle=(0|1)
+Activate or not the shuffling filter (default is active if complevel>0).
+.TP
+.BI \-\-fletcher32=(0|1)
+Whether activate or not the fletcher32 filter (not active by default).
+.TP
+.BI  \-\-keep\-source\-filters
+Use the original filters in source files. The default is not doing that
+if any of \-\-complevel, \-\-complib, \-\-shuffle or \-\-fletcher32
+option is specified.
+
+.br
+
+.SH SEE ALSO
+.BR ptdump (1).
+.br
+These utilities are documented fully by
+.IR "PyTables user's manual".
+.SH AUTHOR
+This manual page was written by Francesc Alted <falted@pytables.org>.

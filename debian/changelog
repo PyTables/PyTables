@@ -1,6 +1,7 @@
 pytables (0.8-1) unstable; urgency=low
 
-   * New upstream release. It has now full 64-bit support (Closes:#221734).
+   * New upstream version. It has now full 64-bit support
+     (Closes: #226653).
 
  -- Francesc Alted <falted@pytables.org>  Thu, 25 Mar 2004 13:19:15 +0100
  

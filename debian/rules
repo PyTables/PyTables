@@ -36,13 +36,19 @@ install: build
 	dh_testroot
 	dh_clean -k
 	/usr/bin/python2.2 setup.py install --no-compile --prefix=$(CURDIR)/debian/python2.2-tables/usr
+	: # Delete scripts
+	rm -rf $(CURDIR)/debian/python2.2-tables/usr/bin
 	/usr/bin/python2.3 setup.py install --no-compile --prefix=$(CURDIR)/debian/python2.3-tables/usr
-
+	: # Delete scripts
+	rm -rf $(CURDIR)/debian/python2.3-tables/usr/bin
 # Build architecture-independent files here.
 binary-indep: install
 	dh_testdir
 	dh_testroot
-
+	dh_install -ppython-tables --sourcedir=utils/ ptdump ptrepack /usr/bin
+	gzip -9 < debian/ptdump.1 > /tmp/ptdump.1.gz
+	gzip -9 < debian/ptrepack.1 > /tmp/ptrepack.1.gz
+	dh_installman -ppython-tables /tmp/ptdump.1.gz /tmp/ptrepack.1.gz
 	dh_installdocs -ppython-tables README.txt changelog.gz changelog.Debian.gz ANNOUNCE.txt test/ examples/
 	: # remove executables from doc package
 	dh_installdocs -ppython-tables-doc -Xmake -Xgenerahtml.sh README.txt changelog.gz changelog.Debian.gz ANNOUNCE.txt doc/usersguide.pdf doc/html bench/
