@@ -79,13 +79,15 @@ herr_t H5ARRAYmake( hid_t loc_id,
      if (i == extdim) {
        maxdims[i] = H5S_UNLIMITED;
        if (chunk_size / fixedmatsize > 0)
-	 dims_chunk[i] = chunk_size / fixedmatsize;
+/* 	 dims_chunk[i] = chunk_size / fixedmatsize; */
+	 dims_chunk[i] = 1;	/* A test */
        else
 	 dims_chunk[i] = 1;
      }
      else {
        maxdims[i] = dims[i];
        dims_chunk[i] = dims[i];
+/*        dims_chunk[i] = 1; */
      }
    }
  }
@@ -260,10 +262,11 @@ herr_t H5ARRAYappend_records( hid_t loc_id,
  hsize_t  *dims, *start;
  int      i;
 
+ printf("***1***\n");
  /* Open the dataset. */
  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
   goto out;
-
+ printf("***2***\n");
  /* Get the datatype */
  if ( (type_id = H5Dget_type( dataset_id )) < 0 )
   goto out;
@@ -278,7 +281,7 @@ herr_t H5ARRAYappend_records( hid_t loc_id,
  }
  dims[extdim] += dims_new[extdim];
  start[extdim] = dims_orig[extdim];
-
+ printf("***3***\n");
  /* Extend the dataset */
  if ( H5Dextend ( dataset_id, dims ) < 0 )
   goto out;
@@ -286,7 +289,12 @@ herr_t H5ARRAYappend_records( hid_t loc_id,
  /* Create a simple memory data space */
  if ( (mem_space_id = H5Screate_simple( rank, dims_new, NULL )) < 0 )
   return -1;
-
+ printf("***4***\n");
+ for (i=0; i<rank;i++) {
+   printf("dims[%d] = %d\n", i, (int)dims[i]);
+   printf("start[%d] = %d\n", i, (int)start[i]);
+   printf("dims_new[%d] = %d\n", i, (int)dims_new[i]);
+ }
  /* Get the file data space */
  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
   return -1;
@@ -294,13 +302,13 @@ herr_t H5ARRAYappend_records( hid_t loc_id,
  /* Define a hyperslab in the dataset */
  if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, start, NULL, dims_new, NULL) < 0 )
    goto out;
-
+ printf("***5***\n");
  if ( H5Dwrite( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
      goto out;
 
  /* Update the original dimensions of the array after a successful append */
  dims_orig[extdim] += dims_new[extdim];
-
+ printf("***6***\n");
  /* Terminate access to the dataspace */
  if ( H5Sclose( mem_space_id ) < 0 )
   goto out;
@@ -319,7 +327,7 @@ herr_t H5ARRAYappend_records( hid_t loc_id,
  /* Release resources */
  free(start);
  free(dims);
-
+ printf("***7***\n");
 return 0;
 
 out:

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.7 2003/12/04 12:08:01 falted Exp $
+#       $Id: VLArray.py,v 1.8 2003/12/06 10:23:31 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.7 $"
+__version__ = "$Revision: 1.8 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -318,7 +318,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         self._v_complib = complib
         self._v_shuffle = shuffle
         self._v_expectedsizeinMB = expectedsizeinMB
-        self._nrowsinbuf = 100    # Maybe enough for most applications
+        self._v_maxTuples = 100    # Maybe enough for most applications
         # Check if we have to create a new object or read their contents
         # from disk
         if atom is not None:
@@ -494,8 +494,8 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             raise StopIteration        # end of iteration
         else:
             # Read a chunk of rows
-            if self._row > self._nrowsinbuf or self._row < 0:
-                self._stopb = self._startb+self._step*self._nrowsinbuf
+            if self._row+1 >= self._v_maxTuples or self._row < 0:
+                self._stopb = self._startb+self._step*self._v_maxTuples
                 self.listarr = self.read(self._startb, self._stopb, self._step)
                 self._row = -1
                 self._startb = self._stopb
@@ -505,7 +505,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             return self.listarr[self._row]
 
     def _convToFlavor(self, arr):
-        "next() method for __iter__() that is called on each iteration"
+        "convert the numarray parameter to to correct flavor"
 
         # Convert to Numeric, tuple or list if needed
         if self.flavor == "Numeric":

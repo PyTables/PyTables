@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.39 2003/12/04 12:08:01 falted Exp $
+#       $Id: Array.py,v 1.40 2003/12/06 10:23:31 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.39 $"
+__version__ = "$Revision: 1.40 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -91,9 +91,6 @@ class Array(Leaf, hdf5Extension.Array, object):
         flavor -- The object type of this object (Numarray, Numeric, List,
             Tuple, String, Int of Float).
             
-        extdim -- Tells which dimension can be extended. -1 means that
-            array is not enlargeable.
-
         nrows -- The value of the enlargeable dimension. If array is not
             enlargeable, this is the value of the first dimension.
             
@@ -102,8 +99,8 @@ class Array(Leaf, hdf5Extension.Array, object):
     """
     
     def __init__(self, object = None, title = "",
-                 extdim = -1, compress = 0, complib = "zlib",
-                 shuffle = 0, expectedobjects = 1000):
+                 compress = 0, complib = "zlib",
+                 shuffle = 0, expectednrows = 1000):
         """Create the instance Array.
 
         Keyword arguments:
@@ -118,12 +115,6 @@ class Array(Leaf, hdf5Extension.Array, object):
 
         title -- Sets a TITLE attribute on the HDF5 array entity.
 
-        extdim -- an integer specifying which dimension of the Array
-            object can be extended by appending more elements like
-            "object" ones. 0 means the first dimension, 1 the second,
-            and so on. -1 means that the Array object will be not
-            enlargeable.
-
         compress -- Specifies a compress level for data. The allowed
             range is 0-9. A value of 0 disables compression and this
             is the default. A value greater than 0 implies enlargeable
@@ -135,22 +126,20 @@ class Array(Leaf, hdf5Extension.Array, object):
         shuffle -- Whether or not to use the shuffle filter in HDF5. This
             is normally used to improve the compression ratio.
 
-        expectedobjects -- In the case of enlargeable arrays this
-            represents an user estimate about the number of object
-            elements that will be added to the Array object. If not
-            provided, the default value is 1000 objects. If you plan
-            to create both much smaller or much bigger Arrays try
-            providing a guess; this will optimize the HDF5 B-Tree
-            creation and management process time and the amount of
-            memory used.
+        expectednrows -- In the case of enlargeable arrays this
+            represents an user estimate about the number of rows that
+            will be added to the Array object. If not provided, the
+            default value is 1000 objects. If you plan to create both
+            much smaller or much bigger Arrays try providing a guess;
+            this will optimize the HDF5 B-Tree creation and management
+            process time and the amount of memory used.
 
         """
         self.new_title = title
-        self.extdim = extdim
         self._v_compress = compress
         self._v_complib = complib
         self._v_shuffle = shuffle
-        self._v_expectedobjects = expectedobjects
+        self._v_expectednrows = expectednrows
         # Check if we have to create a new object or read their contents
         # from disk
         if object is not None:
@@ -172,16 +161,12 @@ class Array(Leaf, hdf5Extension.Array, object):
             self.byteorder  = naarr._byteorder
 
         # Check for null dimensions
+        self.extdim = -1   # Not enlargeable by default
         zerodims = numarray.sum(numarray.array(naarr.shape) == 0)
         if zerodims > 0:
             if zerodims == 1:
-                # If there is some zero dimension, set the Array as
-                # enlargeable
+                # If there is some zero dimension, set the Array as enlargeable
                 extdim = list(naarr.shape).index(0)
-                if self.extdim >= 0 and not self.extdim == extdim:
-                    raise ValueError, \
-"""The object '%s' has a zero dimension that does not match with the specified
- enlargeable dimension: '%s'""" % (self.object, self.extdim)
                 self.extdim = extdim
             else:
                 raise NotImplementedError, \
@@ -200,7 +185,7 @@ class Array(Leaf, hdf5Extension.Array, object):
                     self.rowsize *= i
             # Compute the optimal chunksize
             (self._v_maxTuples, self._v_chunksize) = \
-               calcBufferSize(self.rowsize, self._v_expectedobjects,
+               calcBufferSize(self.rowsize, self._v_expectednrows,
                               self._v_compress)
         else:
             (self._v_maxTuples, self._v_chunksize) = (1,0)
@@ -291,9 +276,7 @@ class Array(Leaf, hdf5Extension.Array, object):
             flavor = "String"
         else:
             raise ValueError, \
-"""The object '%s' is not in the list of supported objects (NumArray,
- CharArray, Numeric, homogeneous list or homogeneous tuple, int, float or str).
- Sorry, but this object is not supported.""" % (arr)
+"""The object '%s' is not in the list of supported objects (NumArray, CharArray, Numeric, homogeneous list or homogeneous tuple, int, float or str). Sorry, but this object is not supported.""" % (arr)
 
         # We always want a contiguous buffer
         # (no matter if has an offset or not; that will be corrected later)
@@ -338,8 +321,11 @@ class Array(Leaf, hdf5Extension.Array, object):
         assert self.extdim >= 0, \
                "Sorry, the Array '%s' is not enlargeable." % (self._v_pathname)
         # Convert the object into a numarray object
+        print "+++1+++"
         naarr, self.flavor = self._convertIntoNA(object)
+        print "+++2+++"
         naarr = self._checkTypeShape(naarr)
+        print "+++3+++"
         self._append(naarr)
 
     def _open(self):
@@ -409,7 +395,7 @@ class Array(Leaf, hdf5Extension.Array, object):
             raise StopIteration        # end of iteration
         else:
             # Read a chunk of rows
-            if self._row > self._v_maxTuples or self._row < 0:
+            if self._row+1 >= self._v_maxTuples or self._row < 0:
                 self._stopb = self._startb+self._step*self._v_maxTuples
                 # Protection for reading more elements than needed
                 if self._stopb > self._stop:
@@ -427,6 +413,7 @@ class Array(Leaf, hdf5Extension.Array, object):
             self._row += 1
             self.nrow += self._step
             self._nrowsread += self._step
+            print self._row,
             return self.listarr[self._row]
 
     def __getitem__(self, key):
@@ -453,7 +440,7 @@ class Array(Leaf, hdf5Extension.Array, object):
                   key
         
     def _convToFlavor(self, arr):
-        "next() method for __iter__() that is called on each iteration"
+        "Convert the numarray parameter to the correct flavor"
 
         # Convert to Numeric, tuple or list if needed
         if self.flavor == "Numeric":
@@ -477,8 +464,7 @@ class Array(Leaf, hdf5Extension.Array, object):
             else:
                 # Warn the user
                 warnings.warn( \
-"""The object on-disk is type Numeric, but Numeric is not installed locally.
-  Returning a numarray object instead!.""")
+"""The object on-disk is type Numeric, but Numeric is not installed locally. Returning a numarray object instead!.""")
         elif self.flavor == "Tuple":
             arr = tuple(arr.tolist())
         elif self.flavor == "List":
@@ -544,12 +530,17 @@ class Array(Leaf, hdf5Extension.Array, object):
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
 
+        if self.extdim >= 0:
+            enlargeable = "Array enlargeable"
+        else:
+            enlargeable = "Array not enlargeable"
+        
         return """%s
   type = %r
   shape = %s
   itemsize = %s
   nrows = %s
-  extdim = %r
+  extdim = %r	(%s)
   flavor = %r
   byteorder = %r""" % (self, self.type, self.shape, self.itemsize, self.nrows,
-                       self.extdim, self.flavor, self.byteorder)
+                       self.extdim, enlargeable, self.flavor, self.byteorder)

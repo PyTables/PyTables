@@ -44,7 +44,7 @@ class C:
 
 class BasicTestCase(unittest.TestCase):
     compress = 0
-    complib = "zlib"  # Default compression library
+    complib = "zlib"
 
     def setUp(self):
 
@@ -77,7 +77,7 @@ class BasicTestCase(unittest.TestCase):
     #----------------------------------------
 
     def test01_readVLArray(self):
-        """Checking vlarray read and cuts"""
+        """Checking vlarray read"""
 
         rootgroup = self.rootgroup
         if verbose:
@@ -89,7 +89,7 @@ class BasicTestCase(unittest.TestCase):
         vlarray = self.fileh.getNode("/vlarray1")
 
         # Choose a small value for buffer size
-        vlarray._nrowsinbuf = 3
+        vlarray._v_maxTuples = 3
         # Read the first row:
         row = vlarray.read(0)
         if verbose:
@@ -127,17 +127,17 @@ class BasicWriteTestCase(BasicTestCase):
 class ZlibComprTestCase(BasicTestCase):
     title = "ZlibCompr"
     compress = 1
-    complib = "zlib"  # Default compression library
+    complib = "zlib"
 
 class LZOComprTestCase(BasicTestCase):
     title = "LZOCompr"
     compress = 1
-    complib = "lzo"  # Default compression library
+    complib = "lzo"
 
 class UCLComprTestCase(BasicTestCase):
     title = "UCLCompr"
     compress = 1
-    complib = "ucl"  # Default compression library
+    complib = "ucl"
 
 class TypesTestCase(unittest.TestCase):
     mode  = "w" 
@@ -216,13 +216,12 @@ class TypesTestCase(unittest.TestCase):
         assert len(row[1]) == 2
 
     # Strings Atoms with UString (unicode strings) flavor can't be safely
-    # supported because the strings can be cut in the middle of a utf-8
+    # implemented because the strings can be cut in the middle of a utf-8
     # codification and that can lead to errors like:
     #     >>> print 'a\xc3'.decode('utf-8')
     # Traceback (most recent call last):
     #   File "<stdin>", line 1, in ?
     # UnicodeDecodeError: 'utf8' codec can't decode byte 0xc3 in position 1: unexpected end of data
-
 
 #     def test01c_StringAtom(self):
 #         """Checking vlarray with numarray string atoms (UString flavor)"""

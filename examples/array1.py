@@ -11,8 +11,7 @@ root = fileh.root
 # Create an array
 a = strings.array(['1', '2', '4'])
 # Save it on the HDF5 file
-hdfarray = fileh.createArray(root, 'array_c', a, "Character array",
-                             extdim=0)
+hdfarray = fileh.createArray(root, 'array_c', a, "Character array")
 hdfarray.append(strings.array(['c', 'b', 'c']))
 # The next is legal:
 hdfarray.append(strings.array(['c', 'b', 'c', 'd']))
@@ -73,7 +72,8 @@ a = root.array_b.read(step=2)
 print "Int8 array, even rows (step = 2) -->",repr(a), a.shape
 
 print "Testing iterator:",
-for x in root.array_b.iterrows(step=2):
+#for x in root.array_b.iterrows(step=2):
+for x in root.array_b:
     print "nrow-->", root.array_b.nrow
     print "Element-->",x
 

@@ -387,7 +387,7 @@ compile and run."""
         
 # Update the version.h file if this file is newer
 if pyrex:
-    if newer('setup-pyrex.py', 'src/version.h'):
+    if newer('setup.py', 'src/version.h'):
         open('src/version.h', 'w').write('#define PYTABLES_VERSION "%s"\n' % VERSION)
 else:
     if newer('setup.py', 'src/version.h'):

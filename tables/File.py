@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.57 2003/12/02 18:37:00 falted Exp $
+#       $Id: File.py,v 1.58 2003/12/06 10:23:31 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.57 $"
+__version__ = "$Revision: 1.58 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays
@@ -423,10 +423,9 @@ class File(hdf5Extension.File, object):
         return object
 
     
-    def createArray(self, where, name, object,
-                    title = "", extdim = -1, compress = 0,
-                    complib = "zlib", shuffle = 0,
-                    expectedobjects = 1000):
+    def createArray(self, where, name, object, title = "",
+                    compress = 0, complib = "zlib", shuffle = 0,
+                    expectedrows = 1000):
         
         """Create a new instance Array with name "name" in "where" location.
 
@@ -449,12 +448,6 @@ class File(hdf5Extension.File, object):
 
         title -- Sets a TITLE attribute on the array entity.
 
-        extdim -- an integer specifying which dimension of the Array
-            object can be extended by appending more elements like
-            "object" ones. 0 means the first dimension, 1 the second,
-            and so on. -1 means that the Array object will be not
-            enlargeable.
-
         compress -- Specifies a compress level for data. The allowed
             range is 0-9. A value of 0 disables compression and this
             is the default. A value greater than 0 implies enlargeable
@@ -467,10 +460,10 @@ class File(hdf5Extension.File, object):
             HDF5 library. This is normally used to improve the
             compression ratio.
 
-        expectedobjects -- In the case of enlargeable arrays this
-            represents an user estimate about the number of object
+        expectedrows -- In the case of enlargeable arrays this
+            represents an user estimate about the number of rows
             elements that will be added to the Array object. If not
-            provided, the default value is 1000 objects. If you plan
+            provided, the default value is 1000 rows. If you plan
             to create both much smaller or much bigger Arrays try
             providing a guess; this will optimize the HDF5 B-Tree
             creation and management process time and the amount of
@@ -482,8 +475,8 @@ class File(hdf5Extension.File, object):
         if shuffle and not compress:
             # Shuffling and not compressing makes not sense
             shuffle = 0
-        Object = Array(object, title, extdim,
-                       compress, complib, shuffle, expectedobjects)
+        Object = Array(object, title,
+                       compress, complib, shuffle, expectedrows)
         setattr(group, name, Object)
         return Object
 
