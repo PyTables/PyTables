@@ -448,5 +448,5 @@ data.
                                 runtime_library_dirs = rlib_dirs,
                                 )],
       cmdclass = cmdclass,
-      scripts = ['utils/ptdump', 'utils/ptrepack'],
+      scripts = ['utils/ptdump', 'utils/ptrepack', 'utils/nctoh5'],
 )

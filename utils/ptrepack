@@ -7,7 +7,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/utils/ptrepack,v $
-#       $Id: ptrepack,v 1.7 2004/08/12 20:52:46 falted Exp $
+#       $Id: ptrepack,v 1.8 2004/11/02 17:47:36 falted Exp $
 #
 ########################################################################
 
@@ -202,11 +202,9 @@ usage = """usage: %s [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--de
      or --fletcher32 option is specified.
 \n""" % os.path.basename(sys.argv[0])
 
-# Obsolete options
-# -p -- Use "psyco" if available.
             
 try:
-    opts, pargs = getopt.getopt(sys.argv[1:], 'hvopR:',
+    opts, pargs = getopt.getopt(sys.argv[1:], 'hvoR:',
                                 ['non-recursive',
                                  'dest-title=',
                                  'dont-copy-userattrs',

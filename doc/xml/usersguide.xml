@@ -7961,6 +7961,76 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:17:13 2004';
 	    </p>
 	  </subsection>
 	</section> <!-- ptrepack -->
+
+	<section id="nctoh5Descr">
+	  <heading>nctoh5</heading>
+
+	  <p>This tool is able to convert a file in <url
+	    name="http://www.unidata.ucar.edu/packages/netcdf/"><verb>NetCDF</verb></url>
+	    format to a <verb>PyTables</verb> file (and hence, to a
+	    HDF5 file). However, for this to work, you will need the
+	    NetCDF interface for Python that comes with the excellent
+	    <verb>Scientific Python</verb> (see <cite
+	    refid="scientificpythonRef"></cite>) package. This script
+	    was initially contributed by Jeff Whitaker. It has been
+	    updated to support selectable filters from the command
+	    line and some other small improvements.
+	  </p>
+
+	  <p>If you want other file formats to be converted to
+	    <verb>PyTables</verb>, have a look at the
+	    <verb>SciPy</verb> (see <cite refid="scipyRef"></cite>)
+	    project (subpackage <verb>io</verb>), and look for
+	    different methods to import them into
+	    <verb>Numeric/numarray</verb> objects. Following the
+	    <verb>SciPy</verb> documentation, you can read, among
+	    other formats, ASCII files (<verb>read_array</verb>),
+	    binary files in C or Fortran (<verb>fopen</verb>) and
+	    <verb>MATLAB</verb> (version 4 or 5) files
+	    (<verb>loadmat</verb>). Once you have the content of your
+	    files as <verb>Numeric/numarray</verb> objects, you can
+	    save them as regular <verb>(E)Arrays</verb> in
+	    <verb>PyTables</verb> files. Remember, if you end with a
+	    nice conversor, do not forget to contribute it back to the
+	    community. Thanks!.
+	  </p>
+
+	  <subsection>
+	    <heading>Usage</heading>
+
+	    <p>For instructions on how to use it, just pass the
+	      <verb>-h</verb> flag to the command:
+
+	      <verbatim>
+$ nctoh5 -h
+	      </verbatim>
+
+	      to see the message usage:
+
+	      <verbatim>
+usage: nctoh5 [-h] [-v] [-o] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)]
+ [--fletcher32=(0|1)] netcdffilename hdf5filename
+ -h -- Print usage message.
+ -v -- Show more information.
+ -o -- Overwite destination file.
+ --complevel=(0-9) -- Set a compression level (0 for no compression, which
+     is the default).
+ --complib=lib -- Set the compression library to be used during the copy.
+     lib can be set to "zlib", "lzo" or "ucl". Defaults to "zlib".
+ --shuffle=(0|1) -- Activate or not the shuffling filter (default is active
+     if complevel>0).
+ --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter (not
+     active by default).
+	      </verbatim>
+
+	      If you have followed the small tutorial on the
+	      <verb>ptrepack</verb> utility (see <ref
+	      refid="ptrepackDescr"></ref>), you should easily realize
+	      what the different flags would mean.
+
+	    </p>
+	  </subsection>
+	</section> <!-- nctoh5 -->
       </chapter>
 
       <chapter id="PyTablesInternalFormat">

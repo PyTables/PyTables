@@ -11,14 +11,14 @@ makes it a fast, yet extremely easy to use tool for interactively save
 and retrieve very large amounts of data. One important feature of
 PyTables is that it optimizes memory and disk resources so that they
 take much less space (between a factor 3 to 5, and more if the data is
-compressible) than other solutions, like for example, relational or
-object oriented databases.
+compressible) than other solutions. Other important thing is that data
+can be retrieved very quickly, almost independently of its data size.
 
 On this release it is included a series of quite exciting new
 features, being the most important the indexing capabilities,
 in-kernel selections, support for complex datatypes and the
-possibility to modify values in both tables *and* arrays (yes, finally
-:).
+possibility to modify values in both tables *and* arrays (yeah,
+finally :).
 
 Changes more in depth
 ---------------------
@@ -59,7 +59,7 @@ New features:
   newly introduced __setitem__() method for Table, Array, EArray and
   VLArray entities in the Library Reference of User's Manual.
 
-- Inclusion of a new sub-package called "nodes". On it, there will be
+- A new sub-package called "nodes" is there. On it, there will be
   included different modules to make more easy working with different
   entities (like images, files, ...). The first module that has been
   added to this sub-package is "FileNode", whose mission is to enable
@@ -78,9 +78,9 @@ Improvements:
 - Better capabilities to import generic HDF5 files. In particular,
   Table objects (in the HDF5_HL naming schema) with "holes" in their
   compound type definition are supported. That allows to read certain
-  files produced by NASA (thanks to Stephen Walton to reporting this).
+  files produced by NASA (thanks to Stephen Walton for reporting this).
 
-API changes:
+Backward-incompatible API changes:
 
 - The __call__ special method has been removed from objects File,
   Group, Table, Array, EArray and VLArray. Now, you should use
@@ -88,11 +88,11 @@ API changes:
   and VLArray to get the same functionality. This would provide better
   compatibility with IPython as well.
 
-Contributions:
+'nctoh5', a new importing utility:
 
 - Jeff Whitaker has contributed a script to easily convert NetCDF
   files into HDF5 files using Scientific Python and PyTables. It has
-  been included in the contrib/ directory.
+  been included and documented as a new utility.
 
 Bug fixes:
 
