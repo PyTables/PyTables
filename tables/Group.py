@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.70 2004/02/16 14:14:31 falted Exp $
+#       $Id: Group.py,v 1.71 2004/02/18 13:45:58 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.70 $"
+__version__ = "$Revision: 1.71 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -87,7 +87,8 @@ class Group(hdf5Extension.Group, object):
         _f_remove(recursive=0)
         _f_getAttr(attrname)
         _f_setAttr(attrname, attrvalue)
-        _f_copyChilds(where, recursive=0, filters=None, copyuserattrs=1)
+        _f_copyChildren(where, recursive=0, filters=None, copyuserattrs=1,
+                        start=0, stop=None, step=1, overwrite=0)
         _f_close()
         
     Instance variables:
@@ -104,8 +105,8 @@ class Group(hdf5Extension.Group, object):
         _v_rootgroup - Always point to the root group object
         _v_groups -- Dictionary with object groups
         _v_leaves -- Dictionary with object leaves
-        _v_childs -- Dictionary with object childs (groups or leaves)
-        _v_nchilds -- Number of childs (groups or leaves) of this object 
+        _v_children -- Dictionary with object children (groups or leaves)
+        _v_nchildren -- Number of children (groups or leaves) of this object 
         _v_attrs -- The associated AttributeSet instance
         _v_filters -- The associated Filters instance
 
@@ -124,12 +125,12 @@ class Group(hdf5Extension.Group, object):
         self.__dict__["_v_new_filters"] = filters
         self.__dict__["_v_groups"] = {}
         self.__dict__["_v_leaves"] = {}
-        self.__dict__["_v_childs"] = {}
-        self.__dict__["_v_nchilds"] = 0
+        self.__dict__["_v_children"] = {}
+        self.__dict__["_v_nchildren"] = 0
         return
     
     def __iter__(self, classname=None, recursive=0):
-        """Iterate over the childs on self"""
+        """Iterate over the children on self"""
 
         return self._f_iterGroup(classname, recursive)
 
@@ -150,10 +151,10 @@ class Group(hdf5Extension.Group, object):
                         yield leaf
                 
     def __call__(self, classname=None, recursive=0):
-        """Iterate over the childs on self
+        """Iterate over the children on self
 
 	      If "classname" is supplied, only instances of this class
-	      are returned. If "recursive" is false, only childs
+	      are returned. If "recursive" is false, only children
 	      hanging immediately after the group are returned. If
 	      true, a recursion over all the groups hanging from it is
 	      performed. """
@@ -269,8 +270,8 @@ self._g_join(name), UserWarning)
                 
         newattr["_v_" + "pathname"] = self._g_join(value._v_name)
         # Update instance variable
-        self._v_childs[value._v_name] = value
-        self.__dict__["_v_nchilds"] += 1
+        self._v_children[value._v_name] = value
+        self.__dict__["_v_nchildren"] += 1
         # New attribute (to allow tab-completion in interactive mode)
         self.__dict__[value._v_name] = value
         # Update class variables
@@ -356,7 +357,7 @@ self._g_join(name), UserWarning)
 
         # Delete references to the oldname
         del parent._v_groups[self._v_name]
-        del parent._v_childs[self._v_name]
+        del parent._v_children[self._v_name]
         del parent.__dict__[self._v_name]
 
         # Get the alternate name (if any)
@@ -371,10 +372,10 @@ self._g_join(name), UserWarning)
         self._g_new(parent, self._v_hdf5name)
         # Update this instance attributes
         parent._v_groups[newname] = self
-        parent._v_childs[newname] = self
+        parent._v_children[newname] = self
         parent.__dict__[newname] = self
 
-        # Finally, change the old pathname in the object childs recursively
+        # Finally, change the old pathname in the object children recursively
         oldpathname = self._v_pathname
         newpathname = parent._g_join(newname)
         for group in self._f_walkGroups():
@@ -425,10 +426,10 @@ self._g_join(name), UserWarning)
 
         """
         if not classname:
-            # Returns all the childs alphanumerically sorted
-            names = self._v_childs.keys()
+            # Returns all the children alphanumerically sorted
+            names = self._v_children.keys()
             names.sort()
-            return [ self._v_childs[name] for name in names ]
+            return [ self._v_children[name] for name in names ]
         elif classname == 'Group':
             # Returns all the groups alphanumerically sorted
             names = self._v_groups.keys()
@@ -542,16 +543,16 @@ self._g_join(name), UserWarning)
  Be ready to see PyTables asking for *lots* of memory and possibly slow I/O.
 """ % (self._v_pathname, MAX_DEPTH_IN_TREE), UserWarning)
 
-        # Check if we have too much number of childs
-        #print "Group %s has %d nchilds" % (self._v_name, self._v_nchilds)
-        if self._v_nchilds == MAX_CHILDS_IN_GROUP:
+        # Check if we have too much number of children
+        #print "Group %s has %d children" % (self._v_name, self._v_nchildren)
+        if self._v_nchildren == MAX_CHILDS_IN_GROUP:
             warnings.warn( \
-"""'%s' group is exceeding the recommended maximum number of childs (%d).
+"""'%s' group is exceeding the recommended maximum number of children (%d).
  Be ready to see PyTables asking for *lots* of memory and possibly slow I/O.
 """ % (self._v_pathname, MAX_CHILDS_IN_GROUP), UserWarning)
             
         # Put value object with name "name" in object tree
-        if name not in self._v_childs:
+        if name not in self._v_children:
             value._g_putObjectInTree(name, self)
         else:
             raise NameError, \
@@ -564,13 +565,13 @@ self._g_join(name), UserWarning)
         # Delete the back references in Group
         if self._v_name <> "/":
             del self._v_parent._v_groups[self._v_name]  # necessary (checked)
-            del self._v_parent._v_childs[self._v_name]  # necessary (checked)
-            self._v_parent.__dict__["_v_nchilds"] -= 1 
+            del self._v_parent._v_children[self._v_name]  # necessary (checked)
+            self._v_parent.__dict__["_v_nchildren"] -= 1 
             del self._v_parent.__dict__[self._v_name]
         del self._v_file.groups[self._v_pathname]  
         del self._v_file.objects[self._v_pathname]
         ##################################
-        #self._v_childs.clear()
+        #self._v_children.clear()
         ##################################
         # Delete back references
         #del self._v_rootgroup    # This is incorrect!!
@@ -596,10 +597,10 @@ self._g_join(name), UserWarning)
         # Check for name validity
         checkNameValidity(newname)
         # Check if self has a child with the same name
-        if newname in self._v_parent._v_childs:
+        if newname in self._v_parent._v_children:
             raise RuntimeError, \
         """Another sibling (%s) already has the name '%s' """ % \
-                   (self._v_parent._v_childs[newname], newname)
+                   (self._v_parent._v_children[newname], newname)
         # Rename all the appearances of oldname in the object tree
         oldname = self._v_name
         self._g_renameObject(newname)
@@ -608,9 +609,9 @@ self._g_join(name), UserWarning)
     def _f_remove(self, recursive=0):
         """Remove this group"""
         
-        if self._v_childs <> {}:
+        if self._v_children <> {}:
             if recursive:
-                # First close all the childs hanging from this group
+                # First close all the children hanging from this group
                 for group in self._f_walkGroups():
                     for leaf in group._f_listNodes('Leaf'):
                         # Delete the back references in Leaf
@@ -621,20 +622,42 @@ self._g_join(name), UserWarning)
                 self._g_deleteGroup()
             else:
                 warnings.warn( \
-"""\n  The group '%s' has childs, but the 'recursive' flag is not on.
+"""\n  The group '%s' has children, but the 'recursive' flag is not on.
   Activate it if you really want to recursively delete this group.""" % \
 (self._v_pathname), UserWarning)
         else:
-            # This group has no childs, so we can delete it
+            # This group has no children, so we can delete it
             # without any other measure
             self._f_close()
             self._g_deleteGroup()
 
-    def _f_copyChilds(self, where, recursive=0, filters=None, copyuserattrs=1,
-                      overwrite = 0, start=0, stop=None, step=1):
-        "(Recursively) Copy a group into another location"
+    def _f_copyChildren(self, where, recursive=0, filters=None,
+                        copyuserattrs=1, start=0, stop=None, step=1,
+                        overwrite=0):
+        """(Recursively) Copy the children of a group into another location
 
-        tbytescopied = 0
+        "whereSrc" is the source group and "whereDst" is the
+        destination group.  Both groups should exist or a LookupError
+        will be raised. They can be specified as strings or as Group
+        instances. "recursive" specifies whether the copy should
+        recurse into subgroups or not. The default is not
+        recurse. Specifiying a "filters" parameter overrides the
+        original filter properties in source nodes. You can prevent
+        the user attributes from being copied by setting
+        "copyuserattrs" to 0; the default is copy them. "start",
+        "stop" and "step" specifies the range of rows in leaves to be
+        copied; the default is to copy all the rows. "overwrite"
+        means whether the possible existing children hanging from
+        "whereDst" and having the same names than "whereSrc" children
+        should overwrite the destination nodes or not.
+
+        It returns the tuple (ngroups, nleaves, nbytes) that specifies
+        the number of groups, leaves and bytes, respectively, that has
+        been copied in the operation.
+
+        """
+
+        nbytescopied = 0
         # Get the base names of the source
         srcBasePath = self._v_pathname
         lenSrcBasePath = len(srcBasePath)+1 # To include the trailing '/'
@@ -651,13 +674,13 @@ self._g_join(name), UserWarning)
             dstFile = self._v_file
         dstBasePath = dstBaseGroup._v_pathname
         ngroups = 0
-        nleafs = 0
+        nleaves = 0
         if recursive:
             # Recursive copy
             first = 1  # Sentinel
             for group in self._f_walkGroups():
                 if first:
-                    # The first group itself is not copied, only its childs
+                    # The first group itself is not copied, only its children
                     first = 0
                     depth = group._v_depth
                     dstGroup = dstBaseGroup
@@ -703,8 +726,8 @@ self._g_join(name), UserWarning)
                                         start=start,
                                         stop=stop,
                                         step=step)
-                    tbytescopied += nbytes
-                    nleafs +=1
+                    nbytescopied += nbytes
+                    nleaves +=1
         else:
             # Non recursive copy
             # First, copy groups
@@ -724,7 +747,7 @@ self._g_join(name), UserWarning)
                 if copyuserattrs:
                     group._v_attrs._f_copy(dstGroup)
                 ngroups +=1
-            # Then, leafs
+            # Then, leaves
             for leaf in self._f_listNodes('Leaf'):
                 title = leaf.title
                 if title is None: title = ""
@@ -744,10 +767,10 @@ self._g_join(name), UserWarning)
                                         start=start,
                                         stop=stop,
                                         step=step)
-                    tbytescopied += nbytes
-                nleafs +=1
-        # return the number of objects copied as well as the nuber of bytes
-        return (ngroups, nleafs, tbytescopied)
+                    nbytescopied += nbytes
+                nleaves +=1
+        # return the number of groups, leaves and bytes copied
+        return (ngroups, nleaves, nbytescopied)
     
     def __str__(self):
         """The string representation for this object."""
@@ -766,9 +789,9 @@ self._g_join(name), UserWarning)
         
         rep = [ '%r (%s)' %  \
                 (childname, child.__class__.__name__) 
-                for (childname, child) in self._v_childs.items() ]
+                for (childname, child) in self._v_children.items() ]
         childlist = '[%s]' % (', '.join(rep))
         
-        return "%s\n  childs := %s" % \
+        return "%s\n  children := %s" % \
                (str(self), childlist)
                

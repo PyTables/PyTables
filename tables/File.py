@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.79 2004/02/16 14:14:31 falted Exp $
+#       $Id: File.py,v 1.80 2004/02/18 13:45:58 falted Exp $
 #
 ########################################################################
 
@@ -34,7 +34,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.79 $"
+__version__ = "$Revision: 1.80 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -82,15 +82,16 @@ def copyFile(srcFilename = None, dstFilename=None, title=None,
              filters=None, copyuserattrs=1, overwrite=0):
     """Copy srcFilename to dstFilename
 
-    The srcFilename should exist and dstFilename should not. If
-    dsFilename exists and overwrite is true, it is overwritten. title
-    lets you put another title to the destination file. copyuserattrs
-    specifies whether the user attrs in origin nodes should be copied
-    or not; the default is copy them. Finally, specifiying a filters
-    parameter overwrite the original filter properties in srcFilename.
+    The "srcFilename" should exist and "dstFilename" should not. But
+    if "dsFilename" exists and "overwrite" is true, it is
+    overwritten. "title" lets you put another title to the destination
+    file. "copyuserattrs" specifies whether the user attrs in origin
+    nodes should be copied or not; the default is copy them. Finally,
+    specifiying a "filters" parameter overrides the original filter
+    properties of nodes in "srcFilename".
 
-    It returns the number of copied groups and leafs in the form
-    (ngroups, nleafs).
+    It returns the number of copied groups, leaves and bytes in the
+    form (ngroups, nleaves, nbytes).
 
     """
 
@@ -98,14 +99,14 @@ def copyFile(srcFilename = None, dstFilename=None, title=None,
     srcFileh = openFile(srcFilename, mode="r")
 
     # Copy it to the destination
-    ngroups, nleafs, nbytes = srcFileh.copyFile(dstFilename, title=title,
+    ngroups, nleaves, nbytes = srcFileh.copyFile(dstFilename, title=title,
                                                 filters=filters,
                                                 copyuserattrs=copyuserattrs,
                                                 overwrite=overwrite)
 
     # Close the source file
     srcFileh.close()
-    return ngroups, nleafs, nbytes
+    return ngroups, nleaves, nbytes
 
 
 def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
@@ -330,7 +331,7 @@ class File(hdf5Extension.File, object):
         rootname = "/"   # Always the name of the root group
 
         # Global dictionaries for the file paths.
-        # These are used to keep track of all the childs and group objects
+        # These are used to keep track of all the children and group objects
         # in tree object. They are dictionaries that will use the pathnames
         # as keys and the actual objects as values.
         # That way we can find objects in the object tree easily and quickly.
@@ -689,11 +690,14 @@ class File(hdf5Extension.File, object):
             if isinstance(object, classobj):
                 return object
             else:
-                warnings.warn( \
-"""\n  A %s() instance cannot be found at "%s".
-  Instead, a %s() object has been found there.""" % \
-(classname, object._v_pathname, object.__class__.__name__), UserWarning)
-                return -1
+                #warnings.warn( \
+                # This warning has been changed to a LookupError because
+                # I think it is more consistent
+                raise LookupError, \
+"""\n  A %s() instance cannot be found at "%s". Instead, a %s() object has been found there.""" % \
+(classname, object._v_pathname, object.__class__.__name__)
+                #, UserWarning)
+                #return -1
         return object
 
     def renameNode(self, where, newname, name = ""):
@@ -791,14 +795,52 @@ class File(hdf5Extension.File, object):
         else:
             object.attrs._f_copy(dstNode)
         
+    def copyChildren(self, whereSrc, whereDst, recursive=0, filters=None,
+                   copyuserattrs=1, start=0, stop=None, step=1,
+                   overwrite = 0):
+        """(Recursively) Copy the children of a group into another location
+
+        "whereSrc" is the source group and "whereDst" is the
+        destination group.  Both groups should exist or a LookupError
+        will be raised. They can be specified as strings or as Group
+        instances. "recursive" specifies whether the copy should
+        recurse into subgroups or not. The default is not
+        recurse. Specifiying a "filters" parameter overrides the
+        original filter properties in source nodes. You can prevent
+        the user attributes from being copied by setting
+        "copyuserattrs" to 0; the default is copy them. "start",
+        "stop" and "step" specifies the range of rows in leaves to be
+        copied; the default is to copy all the rows. "overwrite"
+        means whether the possible existing children hanging from
+        "whereDst" and having the same names than "whereSrc" children
+        should overwrite the destination nodes or not.
+
+        It returns the tuple (ngroups, nleaves, nbytes) that specifies
+        the number of groups, leaves and bytes, respectively, that has
+        been copied in the operation.
+
+        """
+
+        srcGroup = self.getNode(whereSrc, classname="Group")
+        ngroups, nleaves, nbytes = \
+                 srcGroup._f_copyChildren(where=whereDst, recursive=recursive,
+                                        filters=filters,
+                                        copyuserattrs=copyuserattrs,
+                                        start=start, stop=stop, step=step,
+                                        overwrite=overwrite)
+        # return the number of objects copied as well as the nuber of bytes
+        return (ngroups, nleaves, nbytes)
+        
     def copyFile(self, dstFilename=None, title=None,
                  filters=None, copyuserattrs=1, overwrite=0):
         """Copy the contents of this file to "dstFilename".
 
-        "dstFilename" must be a path string. If this file already
-        exists and overwrite is 1, it is overwritten. The default is
-        not overwriting. It returns a tuple (ngroups, nleafs)
-        indicating the number of copied groups and leafs.
+        "dstFilename" must be a path string.  Specifiying a "filters"
+        parameter overrides the original filter properties in source
+        nodes. If "dstFilename" file already exists and overwrite is
+        1, it is overwritten. The default is not overwriting. It
+        returns a tuple (ngroups, nleaves, nbytes) specifying the
+        number of copied groups and leaves.
 
         This copy also has the effect of compacting the destination
         file during the process.
@@ -815,13 +857,13 @@ class File(hdf5Extension.File, object):
         # Copy the user attributes of the root group
         self.root._v_attrs._f_copy(dstFileh.root)
         # Copy all the hierarchy
-        ngroups, nleafs, nbytes = \
-                 self.root._f_copyChilds(dstFileh.root, recursive=1,
+        ngroups, nleaves, nbytes = \
+                 self.root._f_copyChildren(dstFileh.root, recursive=1,
                                          filters=filters,
                                          copyuserattrs=copyuserattrs)
         # Finally, close the file
         dstFileh.close()
-        return (ngroups, nleafs, nbytes)
+        return (ngroups, nleaves, nbytes)
         
     def listNodes(self, where, classname = ""):
         
@@ -919,7 +961,7 @@ class File(hdf5Extension.File, object):
         # Pass Mr proper
 #         for group in listgroups:
 #             group.__dict__.clear()
-#             group._v_childs.clear()
+#             group._v_children.clear()
 #         self.groups.clear()
 
         # Close the file

@@ -2581,6 +2581,52 @@ AttributeError: Error setting "ADCcount" attr.
 
 	  <description>
 
+	    <!-- Modified by F. Alted 2004-2-18 -->
+
+	    <term>copyFile(srcFilename=None, dstFilename=None, title=None,
+	      filters=None, copyuserattrs=1, overwrite=0)
+	    </term>
+
+	    <!-- End modif by F. Alted 2004-2-06 -->
+
+	    <item>Copy a closed <verb>PyTables</verb> (or generic
+	      <verb>HDF5</verb>) file specified by
+	      <em>srcFilename</em> to <em>dstFilename</em>. Returns a
+	      tuple in the form <verb>(ngroups, nleaves,
+	      nbytes)</verb> specifiying the number of groups, leaves
+	      and bytes copied.
+	    
+	      <description id="copyFileDescr">
+
+		<term>title</term> <item>The title for the new
+		  file. If not specified, the source file title will
+		  be copied.
+		</item>
+
+		<term>filters</term> <item>A Filters instance (see
+		    <ref refid="FiltersClassDescr"></ref>). If
+		    specified, it will override the original filter
+		    properties in <visual markup="bf">all</visual>
+		    source nodes.
+		</item>
+
+		<term>copyuserattrs</term> <item>You can prevent the
+		  user attributes from being copied by setting this
+		  parameter to 0. The default is to copy them.
+		</item>
+
+		<term>overwrite</term><item>If
+		  <verb>dstFilename</verb> file already exists and
+		  overwrite is 1, it will be silently overwritten. The
+		  default is not overwriting.
+		</item>
+
+	      <!-- End of modif by F. Alted 2004-02-06 -->
+
+	      </description>
+
+	    </item>
+
 	    <term>isHDF5(filename)</term> <item>Determines whether
 	      filename is in the HDF5 format or not. When successful,
 	      returns a positive value, for TRUE, or 0 (zero), for
@@ -2768,15 +2814,11 @@ AttributeError: Error setting "ADCcount" attr.
 	      to the tree.
 	    </item>
 
-	    <!-- Modif. by F. Alted  -->
-
 	    <term>filters</term> <item>Container for filter properties
 	      associated to this file.  See <ref
 	      refid="FiltersClassDescr">section</ref> for more
 	      information on this object.
 	    </item>
-
-	    <!-- End of modif. F. Alted -->
 
 	    <term>objects</term> <item>Dictionary with all objects
 	      (groups or leaves) on tree.</item>
@@ -2794,14 +2836,113 @@ AttributeError: Error setting "ADCcount" attr.
 	<subsection>
 	  <heading><visual markup="tt">File</visual> methods</heading>
 
-	  <subsubsection id="createGroupDescr">
+	  <subsubsection id="FilecopyChildrenDescr">
 
-	    <!-- Modif by F. Alted -->
-
-	    <heading>createGroup(where, name, title='', filters=None)
+	    <heading>copyChildren(whereSrc, whereDst, recursive=0,
+                   filters=None, copyuserattrs=1, start=0, stop=None,
+                   step=1, overwrite = 0)
 	    </heading>
 
-	    <!-- End of modif by F. Alted -->
+	    <p>Copy (recursively) the children of a group into another
+	      location. Returns a tuple in the form <verb>(ngroups,
+	      nleaves, nbytes)</verb> specifiying the number of
+	      groups, leaves and bytes copied.
+	    </p>
+
+	    <description>
+	      <term>whereSrc</term> <item>The parent group where the
+		children to be copied are hanging on. This parameter
+		can be a path string (for example
+		<verb>"/level1/group5"</verb>), or another
+		<verb>Group</verb> instance.
+	      </item>
+
+	      <term>whereDst</term> <item>The parent group where the
+		source children will be copied to. This group must exist
+		or a <verb>LookupError</verb> will be issued. This
+		parameter can be a path string (for example
+		<verb>"/level1/group6"</verb>), or another
+		<verb>Group</verb> instance.
+	      </item>
+
+	      <term>recursive</term> <item>Specifies whether the copy
+		should recurse into subgroups or not. The default is
+		not recurse.
+	      </item>
+	      
+	      <term>filters</term> <item>Whether or not override the
+		original filter properties present in source nodes.
+		This parameter must be an instance of the
+		<verb>Filters</verb> class (see section<ref
+		refid="FiltersClassDescr"></ref>). The default is to
+		copy the filter attributes from source children.
+	      </item>
+
+	      <term>copyuserattrs</term> <item>You can prevent the
+		user attributes from being copied by setting this
+		parameter to 0. The default is to copy them.
+	      </item>
+
+	      <term>start, stop, step</term><item>Specifies the range
+		of rows in child leaves to be copied; the default is
+		to copy all the rows.
+	      </item>
+
+	      <term>overwrite</term><item>Whether the possible
+		existing children hanging from <verb>whereDst</verb>
+		and having the same names than <verb>whereSrc</verb>
+		children should overwrite the destination nodes or
+		not.
+	      </item>
+	    </description>
+	  </subsubsection> <!-- copyChildren -->
+
+	  <subsubsection id="FilecopyFileDescr">
+	    <heading>copyFile(dstFilename=None, title=None,
+                 filters=None, copyuserattrs=1, overwrite=0)
+	    </heading>
+
+	    <p>Copy the contents of this file to <em>dstFilename</em>.
+	      If the filename already exists it won't be overwritten
+	      unless <em>overwrite</em> is set to true (see later).
+	      Returns a tuple in the form <verb>(ngroups, nleaves,
+	      nbytes)</verb> specifiying the number of groups, leaves
+	      and bytes copied.
+	    </p>
+
+	    <description>
+	      <term>title</term> <item>The title for the new file. If
+		not specified, the source file title will be copied.
+	      </item>
+
+	      <term>filters</term> <item>Whether or not override the
+		original filter properties present in source nodes.
+		This parameter must be an instance of the
+		<verb>Filters</verb> class (see section<ref
+		refid="FiltersClassDescr"></ref>). The default is to
+		copy the filter attributes from source children.
+	      </item>
+
+	      <term>copyuserattrs</term> <item>You can prevent the
+		user attributes from being copied by setting this
+		parameter to 0. The default is to copy them.
+	      </item>
+
+	      <term>copyuserattrs</term> <item>You can prevent the
+		user attributes from being copied by setting this
+		parameter to 0. The default is to copy them.
+	      </item>
+
+	      <term>overwrite</term><item>Whether overwrite or not the
+		possibly existing <em>dstFilename</em> file. The
+		default is not overwrite it.
+	      </item>
+	    </description>
+	  </subsubsection> <!-- copyFile -->
+
+	  <subsubsection id="createGroupDescr">
+	    <heading>createGroup(where, name, title='', filters=None)
+	    </heading>
 
 	    <p>Create a new Group instance with name <em>name</em> in
 	      <em>where</em> location.
@@ -3365,14 +3506,13 @@ AttributeError: Error setting "ADCcount" attr.
 	    <term>_v_file</term>
 	    <item>Pointer to the associated File object.</item>
 
-	    <!-- Modif by F. Alted -->
-
 	    <term>_v_depth</term> <item>The depth level in tree for
 	      this group.</item>
 
-	    <!-- end modif F. Alted -->
+	    <term>_v_nchildren</term> <item>The number of children
+	      (groups or leaves) hanging from this instance.</item>
 
-	    <term>_v_childs</term> <item>Dictionary with all nodes
+	    <term>_v_children</term> <item>Dictionary with all nodes
 	      (groups or leaves) hanging from this instance.</item>
 
 	    <term>_v_groups</term> <item>Dictionary with all node
@@ -3401,7 +3541,7 @@ AttributeError: Error setting "ADCcount" attr.
 	  <p>This class define the <verb>__setattr__</verb>,
 	    <verb>__getattr__</verb> and <verb>__delattr__</verb> and
 	    they work as normally intended. So, you can access, assign
-	    or delete childs to a group by just using the next
+	    or delete children to a group by just using the next
 	    constructs:
 
 	    <verbatim>
@@ -3422,49 +3562,122 @@ AttributeError: Error setting "ADCcount" attr.
 	    here.
 	  </p>
 
-	  <description>
+	  <subsubsection id="Group_f_join">
+	    <heading>_f_join(name)
+	    </heading>
+	    <p>Helper method to correctly concatenate a name child object
+	      with the pathname of this group.
+	    </p>
+	  </subsubsection>
+	  <subsubsection id="Group_f_rename">
+	    <heading>_f_rename(newname)
+	    </heading>
+	    <p>Change the name of this group to <em>newname</em>.
+	    </p>
+	  </subsubsection>
+	  <subsubsection id="Group_f_remove">
+	    <heading>_f_remove(recursive=0)
+	    </heading>
+	    <p>Remove this object. If <em>recursive</em> is true,
+	      force the removal even if this group has children.
+	    </p>
+	  </subsubsection>
+	  <subsubsection id="Group_f_getAttr">
+	    <heading>_f_getAttr(attrname)
+	    </heading>
+	    <p>Gets the HDF5 attribute <em>attrname</em> of this
+	      group.
+	    </p>
+	  </subsubsection>
 
-	    <term>_f_join(name)</term>
-	    <item>Helper method to correctly concatenate a name child object
-	      with the pathname of this group.</item>
+	  <subsubsection id="Group_f_setAttr">
+	    <heading>_f_setAttr(attrname, attrvalue)
+	    </heading>
+	    <p>Sets the attribute <em>attrname</em> of this group to
+	      the value <em>attrvalue</em>. Only string values are
+	      allowed.
+	    </p>
+	  </subsubsection>
 
-	    <term>_f_rename(newname)</term>
-	    <item>Change the name of this group to <em>newname</em>.</item>
+	  <subsubsection id="Group_f_listNodes">
+	    <heading>_f_listNodes(classname='')
+	    </heading>
+	    <p>Returns a <em>list</em> with all the object nodes
+	      hanging from this instance. The list is
+	      alpha-numerically sorted by node name. If a
+	      <em>classname</em> parameter is supplied, it will only
+	      return instances of this class (or subclasses of
+	      it). The supported classes in <em>classname</em> are
+	      <verb>'Group'</verb>, <verb>'Leaf'</verb>,
+	      <verb>'Table'</verb> and <verb>'Array'</verb>,
+	      <verb>'EArray'</verb>, <verb>'VLArray'</verb> and
+	      <verb>'UnImplemented'</verb>.
+	    </p>
+	  </subsubsection>
+	  <subsubsection id="Group_f_walkGroups">
+	    <heading>_f_walkGroups()
+	    </heading>
+	    <p>Iterator that returns the list of Groups (not Leaves)
+	      hanging from <em>self</em>. The returned Group list is
+	      in a top-bottom order, and alpha-numerically sorted when
+	      they are at the same level.
+	    </p>
+	  </subsubsection>
 
-	    <term>_f_remove(recursive=0)</term> <item>Remove this
-	      object. If <em>recursive</em> is true, force the removal
-	      even if this group has children.</item>
+	  <subsubsection id="Group_f_close">
+	    <heading>_f_close()
+	    </heading>
+	    <p>Close this group, making it and its children
+	      unaccessible in the object tree.
+	    </p>
+	  </subsubsection>
 
-	    <term>_f_getAttr(attrname)</term> <item>Gets the HDF5
-	      attribute <em>attrname</em> of this group.</item>
+	  <subsubsection id="Group_f_copyChildrenDescr">
 
-	    <term>_f_setAttr(attrname, attrvalue)</term> <item>Sets
-	      the attribute <em>attrname</em> of this group to the
-	      value <em>attrvalue</em>. Only string values are
-	      allowed.</item>
+	    <heading>_f_copyChildren(where, recursive=0, filters=None,
+	      copyuserattrs=1, start=0, stop=None, step=1,
+	      overwrite=0)
+	    </heading>
 
-	    <term>_f_listNodes(classname='')</term> <item>Returns a
-	      <em>list</em> with all the object nodes hanging from
-	      this instance. The list is alpha-numerically sorted by
-	      node name. If a <em>classname</em> parameter is
-	      supplied, it will only return instances of this class
-	      (or subclasses of it). The supported classes in
-	      <em>classname</em> are <verb>'Group'</verb>,
-	      <verb>'Leaf'</verb>, <verb>'Table'</verb> and
-	      <verb>'Array'</verb>, <verb>'EArray'</verb>,
-	      <verb>'VLArray'</verb> and
-	      <verb>'UnImplemented'</verb>.</item>
+	    <p>Copy (recursively) the children of this group into
+	      another location specified by <em>where</em> (it can be
+	      a path string or a <verb>Group</verb> object). Returns a
+	      tuple in the form <verb>(ngroups, nleaves,
+	      nbytes)</verb> specifiying the number of groups, leaves
+	      and bytes copied.
+	    </p>
 
-	    <term>_f_walkGroups()</term> <item>Iterator that returns
-	      the list of Groups (not Leaves) hanging from
-	      <em>self</em>. The returned Group list is in a
-	      top-bottom order, and alpha-numerically sorted when they
-	      are at the same level. </item>
+	    <description>
+	      <term>recursive</term> <item>Specifies whether the copy
+		should recurse into subgroups or not. The default is
+		not recurse.
+	      </item>
+	      
+	      <term>filters</term> <item>Whether or not override the
+		original filter properties present in source nodes.
+		This parameter must be an instance of the
+		<verb>Filters</verb> class (see section<ref
+		refid="FiltersClassDescr"></ref>). The default is to
+		copy the filter attributes from source children.
+	      </item>
 
-	    <term>_f_close()</term> <item>Close this group, making it
-	      and its children unaccessible in the object tree.</item>
+	      <term>copyuserattrs</term> <item>You can prevent the
+		user attributes from being copied by setting this
+		parameter to 0. The default is to copy them.
+	      </item>
 
-	  </description>
+	      <term>start, stop, step</term><item>Specifies the range
+		of rows in child leaves to be copied; the default is
+		to copy all the rows.
+	      </item>
+
+	      <term>overwrite</term><item>Whether the possible
+		existing children hanging from this group and having
+		the same names than <verb>where</verb> children should
+		overwrite the destination nodes or not.
+	      </item>
+	    </description>
+	  </subsubsection> <!-- _f_copyChildren -->
 
 	</subsection>
 
@@ -3483,7 +3696,7 @@ AttributeError: Error setting "ADCcount" attr.
 	    <heading id="__callGroupDescr">__call__(classname="",
 	      recursive=0)</heading>
 
-	    <p>Iterate over the childs in the <verb>Group</verb>
+	    <p>Iterate over the children in the <verb>Group</verb>
 	      instance. It takes two parameters:</p>
 
 	    <description>
@@ -3493,7 +3706,7 @@ AttributeError: Error setting "ADCcount" attr.
 	      returned.</item>
 
 	      <term>recursive</term> <item><em>(Integer)</em> If
-	      false, only childs hanging immediately after the group
+	      false, only children hanging immediately after the group
 	      are returned. If true, a recursion over all the groups
 	      hanging from it is performed. </item>
 
@@ -3513,7 +3726,7 @@ AttributeError: Error setting "ADCcount" attr.
 	  <subsubsection>
 	    <heading id="__iterGroupDescr">__iter__()</heading>
 
-	    <p>Iterate over the childs on the group instance. However,
+	    <p>Iterate over the children on the group instance. However,
 	      this does not accept parameters. This iterator is
 	      <visual markup="bf">not</visual> recursive.</p>
 
@@ -3636,14 +3849,17 @@ AttributeError: Error setting "ADCcount" attr.
 	    <!-- Modif F. Alted 2004-2-10 -->
 
 	    <heading id="copyLeafDescr">copy(where, name, title=None,
-             filters=None, copyuserattrs=1, start=0, stop=None,
-             step=1)
+	      filters=None, copyuserattrs=1, start=0, stop=None,
+	      step=1, overwrite=0)
 	    </heading>
 
 	    <!-- end of Modif F. Alted 2004-2-10 -->
 
-	    <p>Copy this leaf into another location. The meaning of
-	      the parameters is explained below:
+	    <p>Copy this leaf into another location. It returns a
+	      tuple <verb>(object, nbytes)</verb> where
+	      <verb>object</verb> is the newly created object and
+	      <verb>nbytes</verb> is the number of bytes copied. The
+	      meaning of the parameters is explained below:
 	      <description>
 		<term>where</term> <item>Can be a path string or
 		  <verb>Group</verb> instance.  If <em>where</em>
@@ -3665,22 +3881,20 @@ AttributeError: Error setting "ADCcount" attr.
 		</item>
 		<term>copyuserattrs</term><item>Whether copy the user
 		  attributes of the source leaf to the destination or
-		  not. The default is copying them.
+		  not. The default is to copy them.
+		</item>
+		<term>start, stop, step</term><item>Specifies the
+		  range of rows to be copied; the default is to copy
+		  all the rows.
+		</item>
+		<term>overwrite</term><item>If the destination node
+		  <em>name</em> already exists this specifies whether
+		  it should be overwritten or not. The default is not
+		  overwrite it.
 		</item>
 	      </description>
 	    </p>
 
-	    <p>The meaning of the <em>start</em>, <em>stop</em> and
-	      <em>step</em> parameters is the same as in the
-	      <verb>range()</verb> python function, except that
-	      negative values of <verb>step</verb> are not
-	      allowed. Moreover, if only <verb>start</verb> is
-	      specified, then <verb>stop</verb> will be set to
-	      <verb>start+1</verb>. If you do not specify neither
-	      <em>start</em> nor <em>stop</em>, then <visual
-	      markup="bf">all the rows</visual> in the object are
-	      selected.
-	    </p>
 	  </subsubsection>
 
 	  <subsubsection>
@@ -4761,21 +4975,21 @@ fileh.close()
 	  </p>
 
 	  <description>
-	    <term id="listAttrDescr">_f_list(attrset = "user")
-	    </term><item>Return the list of attributes of the parent
-	      node.
-
-	      <description>
-		<term>attrset</term> <item>Selects the attribute set
-		  to be returned. An <verb>"user"</verb> value returns
-		  only the user attributes. This is the
-		  default. <verb>"sys"</verb> returns only the system
-		  (some of which are read-only)
-		  attributes. <verb>"readonly"</verb> returns the
-		  system read-only attributes. <verb>"all"</verb>
-		  returns both the system and user attributes.
-		</item>
-	      </description>
+	    <term id="copyAttrDescr">_f_copy(where)</term><item>Copy
+	      the user attributes to <em>where</em>
+	      object. <em>where</em> has to be a <verb>Group</verb> or
+	      <verb>Leaf</verb> instance.
+	    </item>
+	    <term id="listAttrDescr">_f_list(attrset = "user")</term>
+	    <item>Return the list of attributes of the parent
+	    node. <em>attrset</em> selects the attribute set to be
+	    returned. An <verb>"user"</verb> value returns only the
+	    user attributes and this is the
+	    default. <verb>"sys"</verb> returns only the system (some
+	    of which are read-only)
+	    attributes. <verb>"readonly"</verb> returns the system
+	    read-only attributes. <verb>"all"</verb> returns both the
+	    system and user attributes.
 	    </item>
 
 	    <term id="renameAttrDescr">_f_rename(oldattrname,
@@ -5303,7 +5517,7 @@ fileh.close()
 
 	  <p>This class is meant to serve as a container that keeps
 	    information about the filter properties associated with
-	    the enlargeable leafs, that is <verb>Table</verb>,
+	    the enlargeable leaves, that is <verb>Table</verb>,
 	    <verb>EArray</verb> and <verb>VLArray</verb>.
 	  </p>
 
@@ -5763,12 +5977,12 @@ if __name__=="__main__":
 	  (unshuffling+decompressing) is slower, but by a lesser
 	  extent (between 3% and 18%).
 	</p>
-	<p>But the most impressive is the level of compression that
-	  compressor filters can achieve after <em>shuffle</em> has
-	  passed over the data: the total file size can be up to 40
-	  times smaller than the uncompressed file, and up to 5 times
-	  smaller than the already compressed files (!). Of course,
-	  the data for doing this test is synthetic, and
+	<p>But the most remarkable fact is the level of compression
+	  that compressor filters can achieve after <em>shuffle</em>
+	  has passed over the data: the total file size can be up to
+	  40 times smaller than the uncompressed file, and up to 5
+	  times smaller than the already compressed files (!). Of
+	  course, the data for doing this test is synthetic, and
 	  <em>shuffle</em> seems to do a great work with it, so in
 	  general, the results will vary in your case. However, due to
 	  the small drawbacks (read are slowed down by a small extent)
@@ -6546,7 +6760,7 @@ if __name__=="__main__":
 	    </subsubsection>
 	  </subsection>	<!-- VLArray -->
 
-	</section> <!-- Leafs -->
+	</section> <!-- Leaf -->
 
       </chapter> <!-- PyTables Internal Format -->
 

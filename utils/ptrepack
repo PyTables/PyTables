@@ -7,7 +7,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/utils/ptrepack,v $
-#       $Id: ptrepack,v 1.2 2004/02/16 14:14:32 falted Exp $
+#       $Id: ptrepack,v 1.3 2004/02/18 13:45:58 falted Exp $
 #
 ########################################################################
 
@@ -114,10 +114,10 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
     dstfileh.close()
     return (0, 1, tbytes)  # 0 groups and 1 leaf copied
     
-def copyChilds(srcfile, dstfile, srcgroup, dstgroup, title,
-               recursive, filters, copyuserattrs, overwritefile, overwrtnodes,
-               start, stop, step):
-    "Copy the childs from source group to destination group"
+def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
+                 recursive, filters, copyuserattrs, overwritefile,
+                 overwrtnodes, start, stop, step):
+    "Copy the children from source group to destination group"
     # Open the source file with srcgroup as rootUEP
     srcfileh = tables.openFile(srcfile, "r", rootUEP=srcgroup)
     #  Assign the root to srcGroup
@@ -152,7 +152,7 @@ def copyChilds(srcfile, dstfile, srcgroup, dstgroup, title,
 
     # Finally, copy srcGroup to dstGroup
     try:
-        ng, nl, tb = srcGroup._f_copyChilds(dstGroup, recursive=recursive,
+        ng,nl,tb = srcGroup._f_copyChildren(dstGroup, recursive=recursive,
                                             filters=filters,
                                             copyuserattrs=copyuserattrs,
                                             overwrite = overwrtnodes,
@@ -342,7 +342,7 @@ objectclass = srcnodeobject.__class__.__name__
 h5srcfile.close()
 if objectclass == "Group":
     ngroups, nleafs, nbytescopied = \
-             copyChilds(srcfile, dstfile, srcnode, dstnode,
+             copyChildren(srcfile, dstfile, srcnode, dstnode,
                         title=title, recursive=recursive, 
                         filters=filters, copyuserattrs=copyuserattrs,
                         overwritefile=overwritefile, overwrtnodes=overwrtnodes,

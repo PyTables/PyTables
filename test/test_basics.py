@@ -623,7 +623,7 @@ class OpenFileTestCase(unittest.TestCase):
         group = fileh.root.agroup3
         assert group._v_name == "agroup3"
         assert group._v_pathname == "/agroup3"
-        # The childs of this group also must be accessible through the
+        # The children of this group also must be accessible through the
         # new name path
         group2 = fileh.getNode("/agroup3/agroup3")
         assert group2._v_name == "agroup3"
@@ -664,7 +664,7 @@ class OpenFileTestCase(unittest.TestCase):
         group = fileh.root.agroup3
         assert group._v_name == "agroup3"
         assert group._v_pathname == "/agroup3"
-        # The childs of this group also must be accessible through the
+        # The children of this group also must be accessible through the
         # new name path
         group2 = fileh.getNode("/agroup3/agroup3")
         assert group2._v_name == "agroup3"

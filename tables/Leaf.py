@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.43 2004/02/16 14:14:31 falted Exp $
+#       $Id: Leaf.py,v 1.44 2004/02/18 13:45:58 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.43 $"
+__version__ = "$Revision: 1.44 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -249,7 +249,7 @@ class Leaf:
         del parent._v_file.leaves[self._v_pathname]
         del parent._v_file.objects[self._v_pathname]
         del parent._v_leaves[self._v_name]
-        del parent._v_childs[self._v_name]
+        del parent._v_children[self._v_name]
         del parent.__dict__[self._v_name]
 
         # Get the alternate name (if any)
@@ -272,7 +272,7 @@ class Leaf:
         self._g_new(parent, self._v_hdf5name)
         
         # Update this instance attributes
-        parent._v_childs[newname] = self
+        parent._v_children[newname] = self
         parent._v_leaves[newname] = self
         parent.__dict__[newname] = self
 
@@ -309,7 +309,7 @@ class Leaf:
 #         return fileh.getNode(parent, origname)
 
     def copy(self, where, name, title=None, filters=None, copyuserattrs=1,
-             overwrite=0, start=0, stop=None, step=1):
+             start=0, stop=None, step=1, overwrite=0):
         """Copy this leaf to other location
 
         where -- the group where the leaf will be copied.
@@ -323,6 +323,7 @@ class Leaf:
         start -- the row to start copying.
         stop -- the row to cease copying. None means last row.
         step -- the increment of the row number during the copy
+        overwrite -- whether the destination should be overwritten or not.
 
         """
 
@@ -337,7 +338,7 @@ class Leaf:
         # Get the parent group of destination
         group = self._v_file.getNode(where, classname = "Group")
         # Check that the name does not exist under this group
-        if group._v_childs.has_key(name):
+        if group._v_children.has_key(name):
             if overwrite:
                 # Delete the destination object
                 dstNode = getattr(group, name)
@@ -378,10 +379,10 @@ class Leaf:
         # Check for name validity
         checkNameValidity(newname)
         # Check if self has a child with the same name
-        if newname in self._v_parent._v_childs:
+        if newname in self._v_parent._v_children:
             raise RuntimeError, \
         """Another sibling (%s) already has the name '%s' """ % \
-                   (self._v_parent._v_childs[newname], newname)
+                   (self._v_parent._v_children[newname], newname)
         # Rename all the appearances of oldname in the object tree
         oldname = self._v_name
         self._g_renameObject(newname)
@@ -407,8 +408,8 @@ class Leaf:
         parent = self._v_parent
         del parent._v_leaves[self._v_name]
         del parent.__dict__[self._v_name]
-        del parent._v_childs[self._v_name]
-        parent.__dict__["_v_nchilds"] -= 1
+        del parent._v_children[self._v_name]
+        parent.__dict__["_v_nchildren"] -= 1
         del parent._v_file.leaves[self._v_pathname]
         del parent._v_file.objects[self._v_pathname]
         del self._v_parent

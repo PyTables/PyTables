@@ -1091,7 +1091,10 @@ class CopyGroupTestCase(unittest.TestCase):
 
         # Copy a group non-recursively
         srcgroup = self.h5file.root.group0.group1
-        srcgroup._f_copyChilds(self.h5file2.root,
+#         srcgroup._f_copyChildren(self.h5file2.root,
+#                                recursive=0,
+#                                filters=self.filters)
+        self.h5file.copyChildren(srcgroup, self.h5file2.root,
                                recursive=0,
                                filters=self.filters)
         if self.close:
@@ -1102,14 +1105,14 @@ class CopyGroupTestCase(unittest.TestCase):
 
         # Check that the copy has been done correctly
         dstgroup = self.h5file2.root
-        nodelist1 = srcgroup._v_childs.keys()
-        nodelist2 = dstgroup._v_childs.keys()
+        nodelist1 = srcgroup._v_children.keys()
+        nodelist2 = dstgroup._v_children.keys()
         # Sort the lists
         nodelist1.sort(); nodelist2.sort()
         if verbose:
             print "The origin node list -->", nodelist1
             print "The copied node list -->", nodelist2
-        assert srcgroup._v_nchilds == dstgroup._v_nchilds
+        assert srcgroup._v_nchildren == dstgroup._v_nchildren
         assert nodelist1 == nodelist2
 
     def test01_nonRecursiveAttrs(self):
@@ -1121,7 +1124,7 @@ class CopyGroupTestCase(unittest.TestCase):
 
         # Copy a group non-recursively with attrs
         srcgroup = self.h5file.root.group0.group1
-        srcgroup._f_copyChilds(self.h5file2.root,
+        srcgroup._f_copyChildren(self.h5file2.root,
                                recursive=0,
                                filters=self.filters,
                                copyuserattrs = 1)
@@ -1188,7 +1191,10 @@ class CopyGroupTestCase(unittest.TestCase):
 
         # Copy a group non-recursively
         srcgroup = self.h5file.getNode(self.srcnode)
-        srcgroup._f_copyChilds(dstgroup,
+#         srcgroup._f_copyChildren(dstgroup,
+#                                recursive=1,
+#                                filters=self.filters)
+        self.h5file.copyChildren(srcgroup, dstgroup,
                                recursive=1,
                                filters=self.filters)
         lenSrcGroup = len(srcgroup._v_pathname)
@@ -1244,7 +1250,7 @@ class CopyGroupTestCase(unittest.TestCase):
 
         # Copy a group non-recursively
         srcgroup = self.h5file.getNode(self.srcnode)
-        srcgroup._f_copyChilds(dstgroup,
+        srcgroup._f_copyChildren(dstgroup,
                                recursive=1,
                                filters=self.filters)
         lenSrcGroup = len(srcgroup._v_pathname)
@@ -1443,14 +1449,14 @@ class CopyFileTestCase(unittest.TestCase):
         # Check that the copy has been done correctly
         srcgroup = self.h5file.root
         dstgroup = self.h5file2.root
-        nodelist1 = srcgroup._v_childs.keys()
-        nodelist2 = dstgroup._v_childs.keys()
+        nodelist1 = srcgroup._v_children.keys()
+        nodelist2 = dstgroup._v_children.keys()
         # Sort the lists
         nodelist1.sort(); nodelist2.sort()
         if verbose:
             print "The origin node list -->", nodelist1
             print "The copied node list -->", nodelist2
-        assert srcgroup._v_nchilds == dstgroup._v_nchilds
+        assert srcgroup._v_nchildren == dstgroup._v_nchildren
         assert nodelist1 == nodelist2
         assert self.h5file2.title == self.title
 
@@ -1460,8 +1466,6 @@ class CopyFileTestCase(unittest.TestCase):
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test00b_firstclass..." % self.__class__.__name__
-
-        #print "Original file-->", str(self.h5file)
 
         # Close the temporary file
         self.h5file.close()
@@ -1474,19 +1478,17 @@ class CopyFileTestCase(unittest.TestCase):
         self.h5file = openFile(self.file, "r")
         self.h5file2 = openFile(self.file2, "r")
 
-        #print "Destination file-->", str(self.h5file2)
-
         # Check that the copy has been done correctly
         srcgroup = self.h5file.root
         dstgroup = self.h5file2.root
-        nodelist1 = srcgroup._v_childs.keys()
-        nodelist2 = dstgroup._v_childs.keys()
+        nodelist1 = srcgroup._v_children.keys()
+        nodelist2 = dstgroup._v_children.keys()
         # Sort the lists
         nodelist1.sort(); nodelist2.sort()
         if verbose:
             print "The origin node list -->", nodelist1
             print "The copied node list -->", nodelist2
-        assert srcgroup._v_nchilds == dstgroup._v_nchilds
+        assert srcgroup._v_nchildren == dstgroup._v_nchildren
         assert nodelist1 == nodelist2
         assert self.h5file2.title == self.title
 
@@ -1515,14 +1517,14 @@ class CopyFileTestCase(unittest.TestCase):
         # Check that the copy has been done correctly
         srcgroup = self.h5file.root
         dstgroup = self.h5file2.root
-        nodelist1 = srcgroup._v_childs.keys()
-        nodelist2 = dstgroup._v_childs.keys()
+        nodelist1 = srcgroup._v_children.keys()
+        nodelist2 = dstgroup._v_children.keys()
         # Sort the lists
         nodelist1.sort(); nodelist2.sort()
         if verbose:
             print "The origin node list -->", nodelist1
             print "The copied node list -->", nodelist2
-        assert srcgroup._v_nchilds == dstgroup._v_nchilds
+        assert srcgroup._v_nchildren == dstgroup._v_nchildren
         assert nodelist1 == nodelist2
         assert self.h5file2.title == self.title
 
@@ -1712,6 +1714,8 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
+    #theSuite.addTest(unittest.makeSuite(CopyGroupCase1))
+    #theSuite.addTest(unittest.makeSuite(CopyGroupCase2))
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(createTestCase))
         theSuite.addTest(unittest.makeSuite(createAttrNotCloseTestCase))

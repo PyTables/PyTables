@@ -471,28 +471,28 @@ class DeepTreeTestCase(unittest.TestCase):
         os.remove(file)
         
 class WideTreeTestCase(unittest.TestCase):
-    """Checks for maximum number of childs for a Group.
+    """Checks for maximum number of children for a Group.
     
     
     """
     def test00_Leafs(self):
         """Checking creation of large number of leafs (1024) per group 
         
-        Variable 'maxchilds' controls this check. PyTables support
-        up to 4096 childs per group, but this would take too much
+        Variable 'maxchildren' controls this check. PyTables support
+        up to 4096 children per group, but this would take too much
         memory (up to 64 MB) for testing purposes (may be we can add a
-        test for big platforms). A 1024 childs run takes up to 30 MB.
-        A 512 childs test takes around 25 MB.
+        test for big platforms). A 1024 children run takes up to 30 MB.
+        A 512 children test takes around 25 MB.
         
         """
 
         import time
-        maxchilds = 1024
+        maxchildren = 1024
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_wideTree..." % \
                   self.__class__.__name__
-            print "Maximum number of childs tested :", maxchilds
+            print "Maximum number of children tested :", maxchildren
         # Open a new empty HDF5 file
         file = tempfile.mktemp(".h5")
         #file = "test_widetree.h5"
@@ -501,7 +501,7 @@ class WideTreeTestCase(unittest.TestCase):
         fileh = openFile(file, mode = "w")
         if verbose:
             print "Children writing progress: ",
-        for child in range(maxchilds):
+        for child in range(maxchildren):
             if verbose:
                 print "%3d," % (child),
             fileh.createArray(fileh.root, 'array' + str(child),
@@ -517,10 +517,10 @@ class WideTreeTestCase(unittest.TestCase):
         fileh = openFile(file, mode = "r")
         if verbose:
             print "\nTime spent opening a file with %d arrays: %s s" % \
-                  (maxchilds, time.time()-t1)
+                  (maxchildren, time.time()-t1)
             print "\nChildren reading progress: ",
         # Get the metadata on the previosly saved arrays
-        for child in range(maxchilds):
+        for child in range(maxchildren):
             if verbose:
                 print "%3d," % (child),
             # Create an array for later comparison
@@ -539,21 +539,21 @@ class WideTreeTestCase(unittest.TestCase):
     def test01_wideTree(self):
         """Checking creation of large number of groups (1024) per group 
         
-        Variable 'maxchilds' controls this check. PyTables support
-        up to 4096 childs per group, but this would take too much
+        Variable 'maxchildren' controls this check. PyTables support
+        up to 4096 children per group, but this would take too much
         memory (up to 64 MB) for testing purposes (may be we can add a
-        test for big platforms). A 1024 childs run takes up to 30 MB.
-        A 512 childs test takes around 25 MB.
+        test for big platforms). A 1024 children run takes up to 30 MB.
+        A 512 children test takes around 25 MB.
         
         """
 
         import time
-        maxchilds = 1024
+        maxchildren = 1024
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_wideTree..." % \
                   self.__class__.__name__
-            print "Maximum number of childs tested :", maxchilds
+            print "Maximum number of children tested :", maxchildren
         # Open a new empty HDF5 file
         file = tempfile.mktemp(".h5")
         #file = "test_widetree.h5"
@@ -561,7 +561,7 @@ class WideTreeTestCase(unittest.TestCase):
         fileh = openFile(file, mode = "w")
         if verbose:
             print "Children writing progress: ",
-        for child in range(maxchilds):
+        for child in range(maxchildren):
             if verbose:
                 print "%3d," % (child),
             fileh.createGroup(fileh.root, 'group' + str(child),
@@ -576,10 +576,10 @@ class WideTreeTestCase(unittest.TestCase):
         fileh = openFile(file, mode = "r")
         if verbose:
             print "\nTime spent opening a file with %d groups: %s s" % \
-                  (maxchilds, time.time()-t1)
+                  (maxchildren, time.time()-t1)
             print "\nChildren reading progress: ",
         # Get the metadata on the previosly saved arrays
-        for child in range(maxchilds):
+        for child in range(maxchildren):
             if verbose:
                 print "%3d," % (child),
             # Get the actual group
