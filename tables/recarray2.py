@@ -535,6 +535,7 @@ class Row:
         try:
             #value = self._fields[fieldName][self._row]
             return self._fields[fieldName][self._row]
+            #return -1
             #return self._array.field(fieldName)[self._row]
         except:
             (type, value, traceback) = sys.exc_info()

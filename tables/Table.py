@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.21 2003/02/13 14:17:27 falted Exp $
+#       $Id: Table.py,v 1.22 2003/02/18 20:24:43 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.21 $"
+__version__ = "$Revision: 1.22 $"
 
 from __future__ import generators
 import sys
@@ -374,16 +374,18 @@ class Table(Leaf, hdf5Extension.Table):
         # Create a buffer for the readout
         nrowsinbuf = self._v_maxTuples
         buffer = self._v_buffer  # Get a recarray as buffer
-        record = buffer._row   # get the pointer to the Record object
-        recorddict = record.__dict__
-        row = record.__dict__["_row"]
+        row = buffer._row   # get the pointer to the Row object
+        rowdict = row.__dict__
+        #self.nrow = 0
         for i in xrange(0, self.nrows, nrowsinbuf):
             recout = self.read_records(i, nrowsinbuf, buffer)
             if self._v_byteorder <> sys.byteorder:
                 buffer.byteswap()
             for j in xrange(recout):
-                recorddict["_row"] = j  # Up to 186000 lines/s
-                yield record
+                rowdict["_row"] = j  
+                self.nrow = i + j  # This line is faster
+                #self.nrow += 1
+                yield row
         
     def getRows(self, start, stop, step = 1):
         # Create a recarray for the readout

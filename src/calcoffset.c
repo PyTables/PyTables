@@ -8,9 +8,7 @@
 #include <ctype.h>
 #include "calcoffset.h"
 
-static const formatdef *
-whichtable(pfmt)
-	const char **pfmt;
+static const formatdef *whichtable(char **pfmt)
 {
 	const char *fmt = (*pfmt)++; /* May be backed out of later */
 	switch (*fmt) {
@@ -38,10 +36,7 @@ whichtable(pfmt)
 
 /* Get the table entry for a format code */
 
-static const formatdef *
-getentry(c, f)
-	int c;
-	const formatdef *f;
+static const formatdef *getentry(int c, const formatdef *f)
 {
 	for (; f->format != '\0'; f++) {
 		if (f->format == c) {
@@ -61,10 +56,7 @@ getentry(c, f)
  * defined by executing a function. 
  * So we do that in a switch case. */
 
-static hid_t
-conventry(c, numel)
-    int c;
-    int numel;
+static hid_t conventry(int c, int numel)
 {
    hid_t string_type;
    int rank;
@@ -181,20 +173,13 @@ conventry(c, numel)
 
 /* Align a size according to a format code */
 
-static int
-align(size, c, e)
-    int size;
-    int c;
-    const formatdef *e;
+static int align(int size, int c, const formatdef *e)
 {
-   /* This check is redundant! */
-   /*if (e->format == c) { */
    if (e->alignment) {
       size = ((size + e->alignment - 1)
 	      / e->alignment)
 	      * e->alignment;
    }
-/* } */
    return size;
 }
 
@@ -208,16 +193,13 @@ align(size, c, e)
 /* This routine don't have error checking at all
  * If you want this, call struct.calcsize first */
 
-int
-calcoffset(fmt, offsets)
-    char *fmt;
-    size_t *offsets;
+int calcoffset(char *fmt, size_t *offsets)
 {
    const formatdef *f, *e;
    const char *s;
    char c;
    size_t offset;
-   int nattrib, size,  num, itemsize, x, j;
+   int nattrib, size,  num, itemsize, x;
 
    f = whichtable(&fmt);
    s = fmt;
@@ -296,7 +278,7 @@ calctypes(fmt, types, size_types)
    const formatdef *f, *e;
    const char *s;
    char c;
-   int nattrib, size,  num, itemsize, x, j;
+   int nattrib, size,  num, itemsize, x;
    hid_t hdf5type;
    char byteorder;
 

@@ -136,7 +136,6 @@ herr_t H5ARRAYread( hid_t loc_id,
 {
  hid_t   dataset_id;  
  hid_t   type_id;
- int     value;
 
  /* Open the dataset. */
  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )

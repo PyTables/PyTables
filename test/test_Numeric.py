@@ -35,24 +35,22 @@ class BasicTestCase(unittest.TestCase):
     endiancheck = 0
 
     def setUp(self):
-        # Create an instance of HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, mode = "w")
-        self.root = self.fileh.root
+        pass
 
     def tearDown(self):
-        # Close the file (eventually destroy the extended type)
-        self.fileh.close()
-
-        # Then, delete the file
-        os.remove(self.file)
+        pass
 
     def WriteRead(self, testArray):
         if verbose:
             print '\n', '-=' * 30
 	    print "Running test for array with typecode '%s'" % \
-	          testArray.typecode()
+	          testArray.typecode(),
+            print "for class check:", self.title
 
+        # Create an instance of HDF5 Table
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w")
+        self.root = self.fileh.root
 	# Create the array under root and name 'somearray'
 	a = testArray
         self.fileh.createArray(self.root, 'somearray', a, "Some array")
@@ -97,18 +95,22 @@ class BasicTestCase(unittest.TestCase):
 
         assert allequal(a,b)
         
+        # Close the file (eventually destroy the extended type)
+        self.fileh.close()
+        # Then, delete the file
+        os.remove(self.file)
 	return
-    
+
     def test00_char(self):
-        "Checking a character array"
-        
-	a = array(self.tupleChar,'c')
+        "Data integrity during recovery (character objects)"
+
+        a = array(self.tupleChar,'c')
 	self.WriteRead(a)
 	return
 
-    def test00b_char_nc(self):
-        "Checking a non-contiguous character array"
-        
+    def test01_char_nc(self):
+        "Data integrity during recovery (non-contiguous character objects)"
+                
 	a = array(self.tupleChar, 'c')
         b = a[::2]
         # Ensure that this chararray is non-contiguous
@@ -116,143 +118,79 @@ class BasicTestCase(unittest.TestCase):
 	self.WriteRead(b)
 	return
 
-    def test01_unsignedByte(self):
-        "Checking a unsigned byte array"
-        
-	a = array(self.tupleInt)
-        a = a.astype('b')
-	self.WriteRead(a)
-	return
-    
-    def test02_signedByte(self):
-        "Checking a signed byte array"
-        
-	a = array(self.tupleInt)
-        a = a.astype('1')
-	self.WriteRead(a)
-	return
-    
-    def test03_signedShort(self):
-        "Checking a signed short integer array"
-                
-	a = array( self.tupleInt)
-        a = a.astype('s')
-	self.WriteRead(a)
-	return
-    
-#     def test04_unsignedShort(self):
-#         "Checking an unsigned short integer array"
-                
-# 	a = array( self.tupleInt)
-#       a = a.astype('w')
-# 	self.WriteRead(a)
-# 	return
-        
-    def test05_signedInt(self):
-        "Checking a signed integer array"
+    def test02_types(self):
+        "Data integrity during recovery (numerical types)"
 
-	a = array( self.tupleInt)
-        a = a.astype('i')
-	self.WriteRead(a)
-	return
-    
-    def test05b_signedInt_nc(self):
-        "Checking a non-contiguous signed integer array"
-        
-        a = array(self.tupleInt)
-        a = a.astype('i')
-        # This should not be tested for the scalar case
-        if len(a.shape) == 0:
-            return
-        b = a[::2]
-        # Ensure that this array is non-contiguous
-        assert b.iscontiguous() == 0
-	self.WriteRead(b)
-	return
+        typecodes = ['b', '1', 's', 'i', 'l', 'f', 'd']
 
-#     def test06_unsignedInt(self):
-#         "Checking an unsigned integer array"
+	for typecode in typecodes:
+            a = self.tupleInt.astype(typecode)                
+            self.WriteRead(a)
+            
+        return
 
-# 	a = array( self.tupleInt)
-#       a = a.astype('u')
-# 	self.WriteRead(a)
-# 	return
-    
-    def test07_long(self):
-        "Checking a signed long integer array"
+    def test03_types_nc(self):
+        "Data integrity during recovery (non-contiguous numerical types)"
 
-	a = array( self.tupleInt)
-        a = a.astype('l')
-	self.WriteRead(a)
-	return
-    
-    def test08_float(self):
-        "Checking a single precision floating point array"
+        typecodes = ['b', '1', 's', 'i', 'l', 'f', 'd']
 
-	a = array( self.tupleInt)
-        a = a.astype('f')
-	self.WriteRead(a)
-	return
-    
-    def test09_double(self):
-        "Checking a double precision floating point array"
+	for typecode in typecodes:
+            a = self.tupleInt.astype(typecode)
+            # This should not be tested for the rank-0 case
+            if len(a.shape) == 0:
+                return
+            b = a[::2]
+            # Ensure that this array is non-contiguous
+            assert b.iscontiguous() == 0
+            self.WriteRead(b)
+        print
 
-	a = array( self.tupleInt)
-        a = a.astype('d')
-	self.WriteRead(a)
-	return
+        return
 
-    def test09b_double_nc(self):
-        "Checking a non-contiguous double precision array"
-
-	a = array(self.tupleInt)
-        a = a.astype('d')
-        # This should not be tested for the scalar case
-        if len(a.shape) == 0:
-            return
-        b = a[::2]
-        # Ensure that this array is non-contiguous
-        assert b.iscontiguous() == 0
-        self.WriteRead(b)
-	return
 
 class Basic0DOneTestCase(BasicTestCase):
-    # Scalar case
-    tupleInt = 3
+    # Rank-0 case
+    title = "Rank-0 case 1"
+    tupleInt = array(3)
     tupleChar = "3"
     
 class Basic0DTwoTestCase(BasicTestCase):
-    # Scalar case
-    tupleInt = 3
+    # Rank-0 case
+    title = "Rank-0 case 2"
+    tupleInt = array(33)
     tupleChar = "33"
     
 class Basic1DOneTestCase(BasicTestCase):
     # 1D case
-    tupleInt = (3,)
+    title = "Rank-1 case 1"
+    tupleInt = array((3,))
     tupleChar = ("a",)
     
 class Basic1DTwoTestCase(BasicTestCase):
     # 1D case
-    tupleInt = (3, 4)
+    title = "Rank-1 case 2"
+    tupleInt = array((3, 4))
     tupleChar = ("aaa",)
     
 class Basic1DThreeTestCase(BasicTestCase):
     # 1D case
-    tupleInt = (3, 4, 5)
+    title = "Rank-1 case 3"
+    tupleInt = array((3, 4, 5))
     tupleChar = ("aaa", "bbb",)
     
 class Basic2DTestCase(BasicTestCase):
     # 2D case
-    tupleInt = reshape(array(arange((4)**2)), (4,)*2)
+    title = "Rank-2 case 1"
+    #tupleInt = reshape(array(arange((4)**2)), (4,)*2)
+    tupleInt = ones((4,)*2)
     tupleChar = [["aa","dd"],["dd","ss"],["ss","tt"]]
     
 class Basic10DTestCase(BasicTestCase):
     # 10D case
-    tupleInt = reshape(array(arange((2)**10)), (2,)*10)
-    # Chararray seems to cause some problems with somewhat large dimensions
-    # Reverting to 2D case
-    #tupleChar = chararray.array("abc"*2**10, shape=(2,)*10, itemsize=3)
-    tupleChar = [["aa","dd"],["tt","ss"]]
+    title = "Rank-10 case 1"
+    #tupleInt = reshape(array(arange((2)**10)), (2,)*10)
+    tupleInt = ones((2,)*10)
+    tupleChar = ones((2,)*10,'c')
     
 class Basic32DTestCase(BasicTestCase):
     # 32D case (maximum)

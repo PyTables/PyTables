@@ -24,8 +24,6 @@ class Medium(IsRecord):
     float1      = Col("Float64", 2, NA.arange(2))
     #float1      = Col("Float64", 1, 2.3)
     #float2      = Col("Float64", 1, 2.3)
-    #idnumber    = 'q'    # signed long long (i.e. 64-bit integer)
-    #TDCcount    = 'B'    # unsigned byte
     #zADCcount    = Col("Int16", 1, 0)    # signed short integer
     ADCcount    = Col("Int32", 1, 0)    # signed short integer
     grid_i      = Col("Int32", 1, 0)    # integer
@@ -153,7 +151,7 @@ def readFile(filename, recsize):
 
                 # For the moment we work under the assumption that the user is
                 # responsible to do it (case 2).
-                import copy
+                #import copy
                 e = [ p._row for p in table.fetchall()
                       if p._row < 2 ]
                 #e = [ copy.deepcopy(p.float1) for p in table.fetchall()
@@ -174,7 +172,9 @@ def readFile(filename, recsize):
                 #        e.append(p.grid_j)
             else:
                 e = [ p.var3 for p in table.fetchall()
-                      if p.var2 < 20 ]
+                      if p.var2 == 2 ]
+                #e = [ p.var3 for p in table.fetchall()
+                #      if table.nrow == 2 ]
                 #for p in table.fetchall():
                 #      pass
             if verbose:
@@ -194,7 +194,12 @@ def readFile(filename, recsize):
 if __name__=="__main__":
     import sys
     import getopt
-    import psyco
+    try:
+        import psyco
+        psyco_imported = 1
+    except:
+        psyco_imported = 0
+    
     import time
     
     usage = """usage: %s [-v] [-r] [-w] [-s recsize] [-f] [-c level] [-i iterations] file
@@ -249,7 +254,8 @@ if __name__=="__main__":
     print "Compression level:", complevel
     if testwrite:
 	t1 = time.clock()
-        psyco.bind(createFile)
+        if psyco_imported:
+            psyco.bind(createFile)
 	(rowsw, rowsz) = createFile(file, iterations, complevel, recsize)
 	t2 = time.clock()
 	tapprows = round(t2-t1, 3)
@@ -260,7 +266,8 @@ if __name__=="__main__":
 	
     if testread:
 	t1 = time.clock()
-        psyco.bind(readFile)
+        if psyco_imported:
+            psyco.bind(readFile)
 	(rowsr, rowsz) = readFile(file, recsize)
 	t2 = time.clock()
 	treadrows = round(t2-t1, 3)

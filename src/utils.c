@@ -135,7 +135,6 @@ PyObject *Giterate(hid_t loc_id, const char *name) {
 ** 
 ****************************************************************/
 H5T_class_t getHDF5ClassID(hid_t loc_id, const char *name) {
-   int         ret;
    hid_t       dataset_id;  
    hid_t       type_id;
    H5T_class_t class_id;
