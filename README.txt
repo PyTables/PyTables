@@ -1,19 +1,29 @@
 README.txt
-PyTables 0.7.2
+PyTables 0.8
 http://pytables.sf.net/
-Sep 22, 2003
+Feb 22, 2004
 --------------------------------------
 
-The goal of PyTables is to enable the end user to manipulate easily
-scientific data tables, numarray objects and Numerical Python objects
-in a persistent, hierarchical structure. The foundation of the
-underlying hierachical data organization is the excellent HDF5 library
-(http://hdf.ncsa.uiuc.edu/HDF5). Right now, PyTables provides limited
-support of all the HDF5 functions, but I hope to add the more
-interesting ones (for PyTables needs) in the near future.
-Nonetheless, this package is not intended to serve as a complete
-wrapper for the entire HDF5 API.
+PyTables is a hierarchical database package designed to efficently
+manage very large amounts of data. PyTables is built on top of the
+HDF5 library (http://hdf.ncsa.uiuc.edu/HDF5/) and the numarray package
+(http://www.stsci.edu/resources/software_hardware/numarray). It
+features an object-oriented interface that, combined with natural
+naming and C-code generated from Pyrex sources, makes it a fast, yet
+extremely easy to use tool for interactively save and retrieve very
+large amounts of data. Besides, it provides flexible indexed access on
+disk to anywhere in the data you want to go.
 
+PyTables is not designed to work as a relational database opponent,
+but rather as a teammate. If you want to deal with large datasets of
+multidimensional data (for example for multidimensional analysis), or
+just provide a categorized structure for some portions of your
+cluttered RDBS, then give PyTables a try. It works just great for
+storing data coming from data acquisition systems (DAS), simulation
+software, network data monitoring systems (for example for
+monitorizing IP packets on routers), or as a centralized repository
+for system logs, to name only a few.
+ 
 A table is defined as a collection of records whose values are stored
 in fixed-length fields. All records have the same structure and all
 values in each field have the same data type.  The terms
@@ -28,20 +38,26 @@ implements a special metaclass that detects errors in field
 assignments. PyTables also provides an easy to use, yet powerful,
 interface to process table data.
 
+There are other useful objects like arrays, enlargeable arrays or
+variable length arrays that can cope with different missions on your
+project (see the reference library chapter in User's Manual:
+http://pytables.sourceforge.net/html-doc/usersguide4.html).
+
 Quite a bit effort has been invested to make browsing the hierarchical
 data structure a pleasant experience. PyTables implements a few
 easy-to-use methods for browsing. See the documentation (located in
 the doc/ directory) for more details.
 
 One of the principal objectives of PyTables is to be user-friendly.
-To that end, the latest improvements introduced in Python 2.2 (such
-as generators, slots and metaclasses in new-brand classes) have been
-used. Python 2.2 is also required in order to allow PyTables make
+To that end, the improvements introduced in Python 2.2 (such as
+generators, slots and metaclasses in new-brand classes) have been
+used.  In addition, iterators has been implemented were context was
+appropriate so as to enable the interative work to be as productive as
+possible.  Python 2.2 is also required in order to allow PyTables make
 use of Pyrex, a convenient tool to access C libraries from Python
 using Python syntax. For these reasons, you will need to use Python
-2.2 or higher to take advantage of PyTables. In addition, iterators
-has been implemented were context was appropriate so as to enable
-the interative work to be as productive as possible.
+2.2 or higher (Python 2.3.3 or better recommended) to take advantage
+of PyTables.
 
 To compile PyTables you will need, at least, a recent version of HDF5
 (C flavor) library, the Zlib compression library and the numarray
@@ -49,143 +65,56 @@ package. Besides, if you want to take advantage of the LZO and UCL
 compression libraries support you will also need recent versions of
 them. These two compression libraries are, however, optional.
 
-I've tested this PyTables version with HDF5 1.6.0 version and numarray
-0.6 and 0.7, and you *need* to these versions or higher to make use of
+I've tested this PyTables version with HDF5 1.6.2 version and numarray
+0.8, and you *need* to these versions or higher to make use of
 PyTables. Albeit you won't need Numeric Python in order to compile
 PyTables, it is supported; you only will need a reasonably recent
 version of it (>= 21.x). PyTables has been succesfully tested with
-Numeric 21.3, 22.0 and 23.0.
+Numeric 21.3, 22.0, 23.0 and 23.1.
 
 I'm using Linux on top of Intel as the main development platform, but
-PyTables should be easy to compile/install on other UNIX
-machines. Nonetheless, caveat emptor: more testing is needed to
-achieve complete portability, I'd appreciate input on how it compiles
-and installs on other platforms.
-
+PyTables should be easy to compile/install on other UNIX machines.
 This package has also been successfully compiled and tested on a
 UltraSparc platform with Solaris 7 and Solaris 8, a SGI Origin2000
-with MIPS R12000 processors running IRIX 6.5, and Microsoft Windows
-(yes, a Windows version is available from 0.5 on).
+with MIPS R12000 processors running IRIX 6.5 (with both gcc and
+MIPSPro compilers), Microsoft Windows and MacOSX (10.2 although 10.3
+should work fine as well). In particular, it has been thoroughly
+tested on 64-bit platforms, like Linux-64 on top of an AMD Opteron
+running SuSe Linux Enterprise Server, as well as IRIX64 and all the
+tests passes on these platforms.
+
+Nonetheless, caveat emptor: more testing is needed to achieve complete
+portability, I'd appreciate input on how it compiles and installs on
+other platforms.
 
 
-Installation from sources
--------------------------
+Installation
+------------
 
 The Python Distutils are used to build and install PyTables, so it is
-fairly simple to get things ready to go.
+fairly simple to get things ready to go. Following are very simple
+instructions on how to proceed. However, more detailed instructions,
+including a section on binary installation for Windows users, is
+available in Chapter 2 of the User's Manual (doc/usersguide.pdf or
+http://pytables.sourceforge.net/html-doc/usersguide.html).
 
-These instructions are both for Unix/Linux and Windows systems. If you
-are using Windows, it is assumed that you are using a recent version
-of MS Visual C++ (>= 6.0) compiler. A GCC compiler is asumed for Unix,
-but other compilers should work as well.
-
-1. First, make sure that you have HDF5 1.6.x and numarray 0.6 or
-   higher installed (I'm using HDF5 1.6.0 and numarray 0.7
-   currently). If don't, you can find them at
-   http://hdf.ncsa.uiuc.edu/HDF5 and
+1. First, make sure that you have HDF5 and numarray installed (I'm
+   using HDF5 1.6.2 and numarray 0.8 currently). If don't, you can
+   find them at http://hdf.ncsa.uiuc.edu/HDF5 and
    http://sourceforge.net/projects/numpy/. Compile/install them.
 
    Optionally, consider to install the excellent LZO and UCL
    compression libraries from http://www.oberhumer.com/opensource/.
-
-<Unix>
-   setup.py will detect HDF5, LZO or UCL libraries and include files
-   under /usr or /usr/local; this will catch installations from RPMs,
-   DEBs and most hand installations under Unix. If setup.py can't find
-   your libhdf5 (or any other library you may wish) or if you have
-   several versions installed and want to select one of them, then you
-   can give it a hint either in the environment (using the HDF5_DIR
-   environment variable or LZO_DIR and UCL_DIR for the optional
-   libraries) or on the command line by specifying the directory
-   containing the include and lib directory. For example:
-
-            --hdf5=/stuff/hdf5-1.6.0
-            --ucl=/stuff/ucl-1.0.1
-
-   If your libraries were built as shared libraries, and if this
-   shared libraries are not in the runtime load path, then you can
-   specify the additional linker flags needed to find the shared
-   libraries on the command line as well. For example:
-
-           --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.0/lib"
-
-   or perhaps just
-
-           --lflags="-R /stuff/hdf5-1.6.0/lib"
-
-   Check your compiler and linker documentation for correct syntax.
-
-   It is also possible to link against different libraries
-   with the --libs switch:
-
-           --libs="-lhdf5-1.6.5"
-           --libs="-lhdf5-1.6.5 -lnsl"
-</Unix>
-
-<Windows>
-   If you are using Windows, and don't want to compile the libraries
-   by hand, there are available binary packages for them. You can
-   fetch the HDF5 and numarray binaries from their homes.
-
-   Besides, you can (should) fetch the LZO and UCL binaries from:
-   http://gnuwin32.sourceforge.net/. Normally, you will only need to
-   fetch and install the <package>-<version>-bin.zip file, although in
-   some cases the headers are in <package>-<version>-lib.zip file.
-
-   Note that you need to copy manually the hdf5dll.dll (and lzo.dll or
-   ucl.dll if you want them) to a directory in the PATH, so that the
-   installation works.
-
-   setup.py will need that you inform it about where the library stubs
-   (.lib) are installed as well as the header files (.h). To tell
-   setup.py where the stubs and headers are, set the next environment
-   variables:
-
-   HDF5_DIR --> Points to the HDF5 main directory (where the include/
-                and dll/ directories hangs). Mandatory.
-		    
-   LZO_DIR -->  Points to the LZO main directory (where the include/
-                and lib/ directories hangs). Optional.
-
-   UCL_DIR -->  Points to the UCL main directory (where the include/
-                and lib/ directories hangs). Optional.
-
-   For example:
-
-            set HDF5_DIR=c:\stuff\5-160-winVS\c\release
-            set LZO_DIR=c:\stuff\lzo-1.07
-            set UCL_DIR=c:\stuff\ucl-1.01
-
-   Or you can pass this info to setup.py within the command line by
-   specifying the directory containing the include and lib directory.
-   For example:
-
-            --hdf5=c:\stuff\5-160-winVS\c\release --lzo=c:\stuff\lzo-1.08
-            --ucl=c:\stuff\ucl-1.01
-</Windows>
 
 2. From the main PyTables distribution directory run this command,
    (plus any extra flags needed as discussed above):
 
         python setup.py build_ext --inplace
 
-   Depending on the compiler (and compiler flags) used when compiling
-   your Python executable, there may appear lots of warnings. Don't
-   worry, almost all of them are caused by variables declared but never
-   used. That's normal in the Pyrex extensions.
-
-3. To run the test suite change into the test directory and run this
-   command:
+3. To run the test suite change into the test directory, set the
+   PYTHONPATH environment variable to include the ".." directory and
+   issue the command:
    
-<Unix>
-       (in the shell "sh" and its variants):
-        PYTHONPATH=..
-	export PYTHONPATH
-</Unix>
-<Windows>
-        set PYTHONPATH=..
-</Windows>
-
         python test_all.py
 
    If you would like to see some verbose output from the tests simply
@@ -202,18 +131,6 @@ but other compilers should work as well.
    If you run into problems because Python can't load the HDF5, or any
    other shared library:
 
-<Unix>
-   try to set the LD_LIBRARY_PATH environment variable to
-   point to the directory where the libraries are.
-</Unix>
-
-<Windows> 
-   put the DLL libraries (hdf5dll.dll, zlibdll.dll, szlib.dll and,
-   optionally, lzo.dll and ucl.dll) on a directory listed on your PATH
-   environment variable.  The setup.py should already warned you about
-   that.
-  </Windows>
-
 4. To install the entire PyTables Python package, change back to the
    root distribution directory and run this command as the root user
    (remember to add any extra flags needed):
@@ -221,50 +138,8 @@ but other compilers should work as well.
         python setup.py install
 
 
-Binary installation (Windows)
------------------------------
-
-This section is only intended for Windows platforms. If you have Unix,
-or want to compile PyTables for Windows, jump to the next section.
-
-First, make sure that you have HDF5 1.6.x and numarray 0.6 or higher
-installed (I'm using HDF5 1.6.0 and numarray 0.7 currently). If don't,
-you can find them at http://hdf.ncsa.uiuc.edu/HDF5 and
-http://sourceforge.net/projects/numpy/. Download the binary packages
-and install them. Caveat: When downloading the binary file for HDF5
-libraries, select one compiled with the MSVC 6.0, like for example,
-the file 5-160-win2k.zip, no matter if you are using Win2k or
-WinXP. The file 5-160-winxp-net.zip was compiled with the MSVC 7.0
-(aka ".NET") and does not work well with the PyTables binary (which
-has been generated with MSVC 6.0). You have been warned!.
-
-For the HDF5 it should be enough by manually copying the hdf5dll.dll
-and szipdll.dll files to a directory in your PATH environment variable
-(for example C:\WINDOWS\SYSTEM). Also, you should know that HDF5 needs
-the zlib compression library to work, so you will have to download and
-install it as well; a pre-compiled version is avalilable at
-ftp://ftp.ncsa.uiuc.edu/HDF/gzip/windows/.
-
-Download the tables-<version>.win32-py<version>.exe file and execute
-it.
-
-You can (you should) test your installation by unpacking the source
-tarball. Go to the test/ directory and execute the "test_all.py"
-script. If all the tests passes (maybe with a couple of warnings,
-related with the possibly missing LZO and UCL libs, but that's ok for
-the binary version) you already have a working, well tested, copy of
-PyTables installed!. If don't, please, execute the "test_all.py -v" and
-return the output to me.
-
-If you want support for LZO and UCL libraries (see
-http://pytables.sourceforge.net/html-doc/html/usersguide5.html#section5.2
-for hints about what they are useful for), fetch the
-tables-<version>-LU.win32-py<version>.exe self-installer instead, and
-remember to install the LZO and UCL DLL libraries (see next section).
-
-
 That's it!  Good luck, and let me know of any bugs, suggestions, gripes,
 kudos, etc. you may have.
 
 -- Francesc Alted
-falted@openlc.org
+falted@pytables.org

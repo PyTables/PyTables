@@ -1,6 +1,7 @@
-TODO list (as of 7th, May 2003):
+TODO list (as of 22th, Feb 2004):
 
-- Add unlimited dimension arrays, a la ScientificPython.IO.NetCDF module.
+- Add a new type of table that allows variable length records and
+  fully multidimensional slice selections.
 
 - Implement relations (like and object oriented database) between objects.
 

@@ -4104,13 +4104,9 @@ fileh.close()
 	      <em>start</em> is supplied, this row is to be
 	      deleted. If a range is supplied, i.e. both the
 	      <em>start</em> and <em>stop</em> parameters are passed,
-	      all the rows in the range are removed<footnote>However,
-	      for <verb>removeRows()</verb> to work, you need that the
-	      rows <visual markup="bf">after</visual> the
-	      <verb>stop</verb> parameter will fit in-memory so as to
-	      method to work. This limitation will be hopefully
-	      removed in a future version.</footnote>. A <em>step</em>
-	      parameter is not supported yet.
+	      all the rows in the range are removed. A <em>step</em>
+	      parameter is not supported, and it is not foreseen to
+	      implement it anytime soon.
 	    </p>
 	    <description>
 		<term>start</term> <item>Sets the starting row to

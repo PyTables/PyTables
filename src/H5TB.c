@@ -1893,10 +1893,12 @@ out:
  * Return: Success: 0, Failure: -1
  *
  * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ * Modified by: F. Alted (buffered rewriting of trailing rows)
  *
  * Date: November 26, 2001
  *
  * Modifications: April 29, 2003
+ * Modifications: February 19, 2004
  *
  *
  *-------------------------------------------------------------------------
@@ -1905,13 +1907,17 @@ out:
 herr_t H5TBdelete_record( hid_t loc_id, 
                           const char *dset_name,
                           hsize_t start,
-                          hsize_t nrecords )
+                          hsize_t nrecords,
+			  hsize_t maxtuples)
 {
 
  hsize_t  nfields;
  hsize_t  ntotal_records;
+ hsize_t  nrowsread;
  hsize_t  read_start;
+ hsize_t  write_start;
  hsize_t  read_nrecords;
+ hsize_t  read_nbuf;
  hid_t    dataset_id;
  hid_t    type_id;    
  hsize_t  count[1];    
@@ -1952,20 +1958,30 @@ herr_t H5TBdelete_record( hid_t loc_id,
  */
 
  read_start = start + nrecords;
+ write_start = start;
  read_nrecords = ntotal_records - read_start;
  /* This check added for the case that there are no records to be read */
  /* F. Alted  2003/07/16 */
  if (read_nrecords > 0) {
-/*    tmp_buf = (unsigned char *)calloc((size_t) read_nrecords, src_size ); */
-   tmp_buf = (unsigned char *)malloc((size_t) read_nrecords * src_size );
 
-   if ( tmp_buf == NULL )
-     return -1;
+   nrowsread = 0;
 
-   /* Read the records after the deleted one(s) */
-   if ( H5TBread_records( loc_id, dset_name, read_start, read_nrecords,
-			  src_size, src_offset, tmp_buf ) < 0 )
-     return -1;
+   while (nrowsread < read_nrecords) {
+
+     if (nrowsread + maxtuples < read_nrecords)
+       read_nbuf = maxtuples;
+     else
+       read_nbuf = read_nrecords - nrowsread;
+
+     tmp_buf = (unsigned char *)malloc((size_t) read_nbuf * src_size );
+
+     if ( tmp_buf == NULL )
+       return -1;
+
+     /* Read the records after the deleted one(s) */
+     if ( H5TBread_records( loc_id, dset_name, read_start, read_nbuf,
+			    src_size, src_offset, tmp_buf ) < 0 )
+       return -1;
 
 
 /*-------------------------------------------------------------------------
@@ -1973,48 +1989,52 @@ herr_t H5TBdelete_record( hid_t loc_id,
  *-------------------------------------------------------------------------
  */
 
-   /* Open the dataset. */
-   if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
-     return -1;
+     /* Open the dataset. */
+     if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+       return -1;
  
-   /* Get the datatype */
-   if ( (type_id = H5Dget_type( dataset_id )) < 0 )
-     goto out;
+     /* Get the datatype */
+     if ( (type_id = H5Dget_type( dataset_id )) < 0 )
+       goto out;
 
-   /* Get the dataspace handle */
-   if ( (space_id = H5Dget_space( dataset_id )) < 0 )
-     goto out;
+     /* Get the dataspace handle */
+     if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+       goto out;
 
-   /* Define a hyperslab in the dataset of the size of the records */
-   offset[0] = start;
-   count[0]  = read_nrecords;
-   if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
-     goto out;
+     /* Define a hyperslab in the dataset of the size of the records */
+     offset[0] = write_start;
+     count[0]  = read_nbuf;
+     if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
+       goto out;
 
-   /* Create a memory dataspace handle */
-   mem_size[0] = count[0];
-   if ( (mem_space_id = H5Screate_simple( 1, mem_size, NULL )) < 0 )
-     goto out;
+     /* Create a memory dataspace handle */
+     mem_size[0] = count[0];
+     if ( (mem_space_id = H5Screate_simple( 1, mem_size, NULL )) < 0 )
+       goto out;
 
-   if ( H5Dwrite( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, tmp_buf ) < 0 )
-     goto out;
+     if ( H5Dwrite( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, tmp_buf ) < 0 )
+       goto out;
 
-   /* Terminate access to the memory dataspace */
-   if ( H5Sclose( mem_space_id ) < 0 )
-     goto out;
+     /* Terminate access to the memory dataspace */
+     if ( H5Sclose( mem_space_id ) < 0 )
+       goto out;
 
-   /* Terminate access to the dataspace */
-   if ( H5Sclose( space_id ) < 0 )
-     goto out;
-
-   /* Release the datatype. */
-   if ( H5Tclose( type_id ) < 0 )
-     goto out;
-
-   /* Release the reading buffer */
-   if (read_nrecords > 0) {
+     /* Release the reading buffer */
      free( tmp_buf );
- }
+
+     /* Terminate access to the dataspace */
+     if ( H5Sclose( space_id ) < 0 )
+       goto out;
+
+     /* Release the datatype. */
+     if ( H5Tclose( type_id ) < 0 )
+       goto out;
+
+     /* Update the counters */
+     read_start += read_nbuf;
+     write_start += read_nbuf;
+     nrowsread += read_nbuf;
+   } /* while (nrowsread < read_nrecords) */
  } /*  if (nread_nrecords > 0) */
  else {
    /* Open the dataset. */

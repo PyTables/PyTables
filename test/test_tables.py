@@ -330,6 +330,7 @@ class BasicTestCase(unittest.TestCase):
             print "Total selected records in table ==>", len(result)
 
         nrows = table.nrows
+        table._v_maxTuples = 3  # small value of the buffer
         # Delete the twenty-th row
         table.removeRows(19)
 
@@ -366,6 +367,7 @@ class BasicTestCase(unittest.TestCase):
             print "Total selected records in table ==>", len(result)
 
         nrows = table.nrows
+        table._v_maxTuples = 4  # small value of the buffer
         # Delete the last ten rows 
         table.removeRows(10, 20)
 
@@ -397,8 +399,8 @@ class BasicTestCase(unittest.TestCase):
         result = [ r['var2'] for r in table.iterrows() if r['var2'] < 20]
         
         nrows = table.nrows
-
-        # Delete a too large range of rows 
+        table._v_maxTuples = 5  # small value of the buffer
+        # Delete a too large range of rows
         table.removeRows(10, nrows + 100)
 
         # Re-read the records
@@ -429,9 +431,13 @@ class BasicTestCase(unittest.TestCase):
         result = [ r['var2'] for r in table if r['var2'] < 20]
         
         nrows = table.nrows
-
+        maxTuples = table._v_maxTuples
+        table._v_maxTuples = 6  # small value of the buffer
         # Delete some rows
         table.removeRows(10, 15)
+        # It's necessary to restore the value of buffer to use the row object
+        # afterwards...
+        table._v_maxTuples = maxTuples
 
         # Append some rows
         row = table.row

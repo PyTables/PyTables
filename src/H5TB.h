@@ -176,7 +176,8 @@ herr_t H5TBget_field_info( hid_t loc_id,
 herr_t H5TBdelete_record( hid_t loc_id, 
                           const char *dset_name,
                           hsize_t start,
-                          hsize_t nrecords );
+                          hsize_t nrecords,
+			  hsize_t maxtuples);
 
 herr_t H5TBinsert_record( hid_t loc_id, 
                           const char *dset_name,

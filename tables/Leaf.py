@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.44 2004/02/18 13:45:58 falted Exp $
+#       $Id: Leaf.py,v 1.45 2004/02/19 19:33:49 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.44 $"
+__version__ = "$Revision: 1.45 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -75,7 +75,7 @@ class Filters:
             """
         if complib is None:
             complib = "zlib"
-        if complib not in ["zlib","lzo","ucl"]:
+        if complib not in ["zlib","lzo","ucl","szip"]:
             raise ValueError, "Wrong \'complib\' parameter value: '%s'. It only can take the values: 'zlib', 'lzo' and 'ucl'." %  (str(complib))
         if shuffle and not complevel:
             # Shuffling and not compressing makes non sense
@@ -233,6 +233,11 @@ class Leaf:
                 elif name.startswith("deflate"):
                     filters.complib = "zlib"
                     filters.complevel = filtersDict[name][0]
+                elif name.startswith("szip"):
+                    filters.complib = "szip"
+                    #filters.complevel = filtersDict[name][0]
+                    filters.complevel = 1  # Because there is not a compression
+                                           # level equivalent for szip
                 elif name.startswith("shuffle"):
                     filters.shuffle = 1
                 elif name.startswith("fletcher32"):

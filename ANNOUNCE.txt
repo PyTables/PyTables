@@ -131,6 +131,10 @@ What's new
           consistent with the range() function in python and the
           __getitem__() special method in numarray.
 
+	- The limitation on the table size for Table.removeRows() to
+          work has been removed. Now, you can delete rows on tables no
+          matter how large are they.
+
 	- The "numarray" value has been added to the flavor parameter
           in Table.read() method for completeness.
 

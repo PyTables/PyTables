@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.119 2004/02/13 08:56:21 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.120 2004/02/19 19:33:48 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.119 $"
+__version__ = "$Revision: 1.120 $"
 
 
 import sys, os
@@ -615,7 +615,8 @@ cdef extern from "H5TB.h":
   herr_t H5TBdelete_record( hid_t loc_id, 
                             char *dset_name,
                             hsize_t start,
-                            hsize_t nrecords )
+                            hsize_t nrecords,
+                            hsize_t maxtuples)
 
 
 cdef extern from "H5TB-opt.h":
@@ -836,7 +837,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.119 2004/02/13 08:56:21 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.120 2004/02/19 19:33:48 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1641,7 +1642,8 @@ cdef class Table:
 
   def _remove_row(self, nrow, nrecords):
 
-    if (H5TBdelete_record(self.parent_id, self.name, nrow, nrecords) < 0):
+    if (H5TBdelete_record(self.parent_id, self.name, nrow, nrecords,
+                          self._v_maxTuples) < 0):
       #raise RuntimeError("Problems deleting records.")
       print "Problems deleting records."
       # Return no removed records

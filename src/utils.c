@@ -1,8 +1,8 @@
 #include <stdarg.h>
 #include "utils.h"
 #include "version.h"
-/* #include "zlib.h" */
-
+#include "H5Zlzo.h"  		       /* Import FILTER_LZO */
+#include "H5Zucl.h"  		       /* Import FILTER_UCL */
 
 PyObject *_getTablesVersion() {
   return PyString_FromString(PYTABLES_VERSION);
@@ -117,17 +117,40 @@ PyObject *get_filter_names( hid_t loc_id,
 
  /* Get the properties container */
  dcpl = H5Dget_create_plist(dset);
-
  /* Collect information about filters on chunked storage */
  if (H5D_CHUNKED==H5Pget_layout(dcpl)) {
    /*      ndims = H5Pget_chunk(dcpl, 64, chsize/\*out*\/); */
    filters = PyDict_New();
+    nf = H5Pget_nfilters(dcpl);
    if ((nf = H5Pget_nfilters(dcpl))>0) {
      for (i=0; i<nf; i++) {
        cd_nelmts = 20;
        filt_id = H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
 			       cd_values, sizeof(f_name), f_name);
-       f_name[sizeof(f_name)-1] = '\0';
+	/* This code has been added because a 
+	 bug in the H5Pget_filter call that
+	 returns a null string when DEFLATE filter is active */
+	switch (filt_id) {
+	 case H5Z_FILTER_DEFLATE:
+	   strcpy(f_name, "deflate");
+	   break;
+	 case H5Z_FILTER_SHUFFLE:
+	   strcpy(f_name, "shuffle");
+	   break;
+	 case H5Z_FILTER_FLETCHER32:
+	   strcpy(f_name, "fletcher32");
+	   break;
+	 case H5Z_FILTER_SZIP:
+	   strcpy(f_name, "szip");
+	   break;
+	 case FILTER_LZO:
+	   strcpy(f_name, "lzo");
+	   break;
+	 case FILTER_UCL:
+	   strcpy(f_name, "ucl");
+	   break;
+	}
+	
        filter_values = PyTuple_New(cd_nelmts);
        for (j=0;j<(long)cd_nelmts;j++) {
 	 PyTuple_SetItem(filter_values, j, PyInt_FromLong(cd_values[j]));
