@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.12 2003/02/03 10:13:08 falted Exp $
+#       $Id: Table.py,v 1.13 2003/02/03 20:24:19 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.12 $"
+__version__ = "$Revision: 1.13 $"
 
 from __future__ import generators
 import sys
@@ -37,14 +37,18 @@ import re
 import string
 from numarray import *
 import chararray
-import recarray2 as recarray
+import recarray
+import recarray2         # Private version of recarray for PyTables
 import hdf5Extension
 from Leaf import Leaf
-from IsRecord import IsRecord, metaIsRecord, defineType, fromstructfmt
+from IsRecord import IsRecord, metaIsRecord, DType, fromstructfmt
 
 byteorderDict={"=": sys.byteorder,
                '<': 'little',
                '>': 'big'}
+
+revbyteorderDict={'little': '<',
+                  'big': '>'}
 
 class Table(Leaf, hdf5Extension.Table):
     """Represent a table in the object tree.
@@ -80,20 +84,21 @@ class Table(Leaf, hdf5Extension.Table):
         row -- A pointer to the current row object
         nrows -- the number of rows in this table
         varnames -- the field names for the table
-        vartypes -- the typecodes for the table fields
+        vartypes -- the type class for the table fields
 
     """
 
-    def __init__(self, RecordObject = None, title = "",
+    def __init__(self, record = None, title = "",
                  compress = 0, expectedrows = 10000):
         """Create an instance Table.
 
         Keyword arguments:
 
-        RecordObject -- The IsRecord instance. If None, the table
-            metadata is read from disk, else, it's taken from previous
+        record -- The IsRecord instance. If None, the table metadata
+            is read from disk, else, it's taken from previous
             parameters. It can be a dictionary where the keys are the
-            field names, and the values the type definitions.
+            field names, and the values the type definitions. And it
+            can be also a RecArray object (from recarray module).
 
         title -- Sets a TITLE attribute on the HDF5 table entity.
 
@@ -110,27 +115,41 @@ class Table(Leaf, hdf5Extension.Table):
             used.
 
         """
+
+        # Common variables
+        self.title = title
+        self._v_compress = compress
+        self._v_expectedrows = expectedrows
+        # Initialize the number of rows to a default
+        self.nrows = 0
+        
         # Initialize this object in case is a new Table
-        if isinstance(RecordObject, types.DictType):
-            self.record = metaIsRecord("", (), RecordObject)()
-            self.title = title
-            self._v_compress = compress
-            self._v_expectedrows = expectedrows
+        if isinstance(record, types.DictType):
+            # Dictionary case
+            self.record = metaIsRecord("", (), record)()
             # Flag that tells if this table is new or has to be read from disk
             self._v_new = 1
-        elif RecordObject:
-            self.record = RecordObject   # Record points to the RecordObject
-            self.title = title
-            self._v_compress = compress
-            self._v_expectedrows = expectedrows
+        elif isinstance(record, recarray.RecArray):
+            # RecArray object case
+            self.newRecArray(record)
+            # Provide a better guess for the expected number of rows
+            if self._v_expectedrows == expectedrows:
+                self._v_expectedrows = self.nrows
+            # Flag that tells if this table is new or has to be read from disk
+            self._v_new = 1
+        elif record:
+            # IsRecord subclass case
+            self.record = record
             # Flag that tells if this table is new or has to be read from disk
             self._v_new = 1
         else:
             self._v_new = 0
 
     def newBuffer(self, init=1):
+        """Create a new recarray buffer for I/O purposes"""
+        
         # Create the recarray buffer
-        recarr = recarray.array(None, formats=self.record._v_recarrfmt,
+        recarr = recarray2.array(None, formats=self.record._v_recarrfmt,
                                 shape=(self._v_maxTuples,),
                                 names = self.varnames)
         # Initialize the recarray with the defaults in record
@@ -138,6 +157,34 @@ class Table(Leaf, hdf5Extension.Table):
             for field in self.record.__slots__:
                 recarr._fields[field][:] = self.record.__dflts__[field]
         return recarr
+
+    def newRecArray(self, recarr):
+        """Save a recarray to disk, and map it as a Table object
+
+        This method is aware of byteswapped and non-contiguous recarrays
+        """
+        # Check if recarray is discontigous:
+        if not recarr.iscontiguous():
+            # Make a copy to ensure that it is contiguous
+            # We always should make a copy because I think that
+            # HDF5 does not support strided buffers, but just offsets
+            # between fields
+            recarr = recarr.copy()
+        self._v_recarray = recarr
+        self.varnames = recarr._names
+        fields = {}
+        for i in range(len(self.varnames)):
+            fields[self.varnames[i]] = DType(recarr._fmt[i], recarr._repeats[i])
+        # Set the byteorder
+        self._v_byteorder = recarr._byteorder
+        # Append this entry to indicate the alignment!
+        fields['_v_align'] = revbyteorderDict[recarr._byteorder]
+        # Create an instance record to host the record fields
+        self.record = metaIsRecord("", (), fields)()
+        # Extract the vartypes
+        self.vartypes = self.record._v_formats
+        # Initialize the number of rows
+        self.nrows = len(recarr)
 
     def create(self):
         """Create a new table on disk."""
@@ -147,14 +194,12 @@ class Table(Leaf, hdf5Extension.Table):
         self._v_fmt = self.record._v_fmt
         self._calcBufferSize(self._v_expectedrows)
         # Create the table on disk
-        self.createTable(self.varnames, self._v_fmt, self.title,
-                         self._v_compress, self._v_chunksize)
-        # Initialize the number of rows
-        self.nrows = 0
+        self.createTable()
         # Initialize the shape attribute
-        self.shape = (len(self.varnames), self.nrows)
+        self.shape = (self.nrows,)
         # Get the variable types
-        self.vartypes = re.findall(r'(\d*\w)', self._v_fmt)
+        #self.vartypes = re.findall(r'(\d*\w)', self._v_fmt)
+        self.vartypes = self.record._v_formats
         # Compute the byte order
         self._v_byteorder = byteorderDict[self._v_fmt[0]]
         # Create the arrays for buffering
@@ -178,28 +223,26 @@ class Table(Leaf, hdf5Extension.Table):
         # Compute buffer size
         self._calcBufferSize(self.nrows)
         # Update the shape attribute
-        self.shape = (len(self.varnames), self.nrows)
+        self.shape = (self.nrows,)
         # Get the variable types
-        self.vartypes = re.findall(r'(\d*\w)', self._v_fmt)
+        lengthtypes = re.findall(r'(\d*\w)', self._v_fmt)
         # Build a dictionary with the types as values and varnames as keys
-        recordDict = {}
-        i = 0
-        for varname in self.varnames:
+        fields = {}
+        for i in range(len(self.varnames)):
             try:
-                #print "self.vartypes -->", self.vartypes
-                length = int(self.vartypes[i][:-1])
+                length = int(lengthtypes[i][:-1])
             except:
                 length = 1
-            vartype = fromstructfmt[self.vartypes[i][-1]]
-            #recordDict[varname] = self.vartypes[i]
-            recordDict[varname] = defineType(vartype, length)
-            i += 1
+            vartype = fromstructfmt[lengthtypes[i][-1]]
+            fields[self.varnames[i]] = DType(vartype, length)
+
         # Append this entry to indicate the alignment!
-        recordDict['_v_align'] = self._v_fmt[0]
+        fields['_v_align'] = self._v_fmt[0]
         self._v_byteorder = byteorderDict[self._v_fmt[0]]
         # Create an instance record to host the record fields
-        RecordObject = metaIsRecord("", (), recordDict)()
-        self.record = RecordObject   # This points to the RecordObject
+        self.record = metaIsRecord("", (), fields)()
+        # Extract the vartypes
+        self.vartypes = self.record._v_formats
         # Create the arrays for buffering
         self._v_buffer = self.newBuffer(init=0)
         self.row = self._v_buffer._row
@@ -302,7 +345,7 @@ class Table(Leaf, hdf5Extension.Table):
         self._v_packedtuples = []
         self._v_recunsaved = 0
         # Set the shape attribute (the self.nrows may be less than the maximum)
-        self.shape = (len(self.varnames), self.nrows)
+        self.shape = (self.nrows,)
         
     def appendAsRecord(self, record):
         """Append the "record" to the output buffer.

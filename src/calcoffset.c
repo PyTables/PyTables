@@ -210,7 +210,7 @@ align(size, c, e)
 
 int
 calcoffset(fmt, offsets)
-    const char *fmt;
+    char *fmt;
     size_t *offsets;
 {
    const formatdef *f, *e;
@@ -289,7 +289,7 @@ calcoffset(fmt, offsets)
 
 int
 calctypes(fmt, types, size_types)
-    const char *fmt;
+    char *fmt;
     hid_t *types;
     size_t *size_types;
 {

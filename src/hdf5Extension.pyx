@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.13 2003/02/03 10:13:07 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.14 2003/02/03 20:24:19 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.13 $"
+__version__ = "$Revision: 1.14 $"
 
 
 import sys, os.path
@@ -465,7 +465,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.13 2003/02/03 10:13:07 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.14 2003/02/03 20:24:19 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -624,13 +624,13 @@ cdef class Group:
 
 cdef class Table:
   # instance variables
-  cdef size_t  dst_size
+  cdef size_t  rowsize
   cdef size_t  field_offset[MAX_FIELDS]
   cdef size_t  field_sizes[MAX_FIELDS]
   cdef hsize_t nfields
   cdef hsize_t totalrecords
   cdef hid_t   group_id, loc_id
-  cdef char    *name, title[MAX_CHARS]
+  cdef char    *name, *xtitle
   cdef char    *fmt
   cdef char    *field_names[MAX_FIELDS]
   cdef int     compress
@@ -640,27 +640,18 @@ cdef class Table:
     # The parent group id for this object
     self.group_id = where._v_groupId
 
-  def createTable(self, PyTupleObject varnames, char *fmt,
-                  char *title, int compress, hsize_t chunksize):
-    cdef int     nvar
-    cdef int     i, nrecords, ret
-    cdef hid_t   fieldtypes[MAX_FIELDS]
-    cdef char    *fill_data, *data
+  def createTable(self):
+    cdef int nvar
+    cdef int i, nrecords, ret, buflen
+    cdef hid_t fieldtypes[MAX_FIELDS]
+    cdef void *fill_data, *data
 
-    self.fmt = fmt
-    self.compress = compress
-    # Save the title as a class variable
-    snprintf(self.title, MAX_CHARS, "%s", title)
-  
-    # Get the number of fields
-    self.nfields = varnames.ob_size
-    if (self.nfields > MAX_FIELDS):
-        raise IndexError("A maximum of %d fields on tables is allowed" % \
-                         MAX_FIELDS)
+    # Get a pointer to the table format
+    self.fmt = PyString_AsString(self._v_fmt)
       
     # Assign the field_names pointers to the Tuple varnames strings
     i = 0
-    for name in varnames:
+    for name in self.varnames:
       # The next works thanks to Pyrex magic
       self.field_names[i] = name
       i = i + 1
@@ -668,23 +659,27 @@ cdef class Table:
 
     # Compute the offsets
     nvar = calcoffset(self.fmt, self.field_offset)
+    if (nvar > MAX_FIELDS):
+        raise IndexError("A maximum of %d fields on tables is allowed" % \
+                         MAX_FIELDS)
 
     # Compute the field type sizes
-    rowsize = calctypes(self.fmt, fieldtypes, self.field_sizes)
-    self.dst_size = rowsize
-
-    if nvar <> self.nfields:
-      print 'nvar: ', nvar, 'nfields: ', self.nfields
-      raise RuntimeError("Format and varnames differ in variable number")
-
-    # Create the table
-    nrecords = 0     # Don't save any records now
+    self.rowsize = calctypes(self.fmt, fieldtypes, self.field_sizes)
+    
+    # test if there is data to be saved initially
+    if hasattr(self, "_v_recarray"):
+      ret = PyObject_AsWriteBuffer(self._v_recarray._data, &data, &buflen)
+      if ret < 0:
+        raise RuntimeError("Problems getting the pointer to the buffer")
+    else:
+      data = NULL
+    # The next is settable if we have default values
     fill_data = NULL
-    data = NULL
+
     ret = H5TBmake_table(self.title, self.group_id, self.name,
-                         nvar, nrecords, rowsize, self.field_names,
-                         self.field_offset, fieldtypes, chunksize,
-                         fill_data, self.compress, data)
+                         nvar, self.nrows, self.rowsize, self.field_names,
+                         self.field_offset, fieldtypes, self._v_chunksize,
+                         fill_data, self._v_compress, data)
     if ret < 0:
       raise RuntimeError("Problems creating the table")
     
@@ -697,7 +692,7 @@ cdef class Table:
     #print "About to save %d records..." % nrecords
     # Append the records:
     ret = H5TBappend_records(self.group_id, self.name, nrecords,
-                   self.dst_size, self.field_offset, <void *>records.ob_sval)
+                   self.rowsize, self.field_offset, <void *>records.ob_sval)
     if ret < 0:
       raise RuntimeError("Problems appending the records")
     #print "After saving %d records..." % nrecords
@@ -716,7 +711,7 @@ cdef class Table:
     
     # Append the records:
     ret = H5TBappend_records(self.group_id, self.name, nrecords,
-                   self.dst_size, self.field_offset, rbuf)
+                   self.rowsize, self.field_offset, rbuf)
     if ret < 0:
       raise RuntimeError("Problems appending the records")
     #print "After saving %d records..." % nrecords
@@ -741,7 +736,7 @@ cdef class Table:
                                dims, &class_id, &rowsize)
     if ret < 0:
       raise RuntimeError("Problems getting table dataset info")
-    self.dst_size = rowsize
+    self.rowsize = rowsize
 
     # First, know how many records (& fields) has the table
     ret = H5TBget_table_info(self.group_id, self.name,
@@ -791,7 +786,7 @@ cdef class Table:
 
     # Readout to the buffer
     ret = H5TBread_records(self.group_id, self.name,
-                           start, nrecords, self.dst_size,
+                           start, nrecords, self.rowsize,
                            self.field_offset, rbuf )
     if ret < 0:
       raise RuntimeError("Problems reading records.")

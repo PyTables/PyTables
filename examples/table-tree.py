@@ -3,30 +3,31 @@ import sys
 import Numeric
 from numarray import *
 import chararray
+import recarray
 from tables import *
 
 class Particle(IsRecord):
-    ADCcount    = defineType("Int16", 1, 0)    # signed short integer
-    TDCcount    = defineType("UInt8", 1, 0)    # unsigned byte
-    grid_i      = defineType("Int32", 1, 0)    # integer
-    grid_j      = defineType("Int32", 1, 0)    # integer
-    idnumber    = defineType("Int64", 1, 0)    #signed long long 
-    name        = defineType('CharType', 16, "")  # 16-character String
-    #pressure    = defineType("Float32", 2, 0)  # float  (single-precision)
-    pressure    = defineType("Float32", 1, 0)  # float  (single-precision)
-    temperature = defineType("Float64", 1, 0)  # double (double-precision)
+    ADCcount    = DType("Int16", 1, 0)    # signed short integer
+    TDCcount    = DType("UInt8", 1, 0)    # unsigned byte
+    grid_i      = DType("Int32", 1, 0)    # integer
+    grid_j      = DType("Int32", 1, 0)    # integer
+    idnumber    = DType("Int64", 1, 0)    #signed long long 
+    name        = DType('CharType', 16, "")  # 16-character String
+    #pressure    = DType("Float32", 2, 0)  # float  (single-precision)
+    pressure    = DType("Float32", 1, 0)  # float  (single-precision)
+    temperature = DType("Float64", 1, 0)  # double (double-precision)
 
 Particle2 = {
-    "ADCcount"    : defineType("Int16", 1, 0),    # signed short integer
-    "TDCcount"    : defineType("UInt8", 1, 0),    # unsigned byte
-    "grid_i"      : defineType("Int32", 1, 0),    # integer
-    "grid_j"      : defineType("Int32", 1, 0),    # integer
-    "idnumber"    : defineType("Int64", 1, 0),    #signed long long 
-    "name"        : defineType('CharType', 16, ""),  # 16-character String
+    "ADCcount"    : DType("Int16", 1, 0),    # signed short integer
+    "TDCcount"    : DType("UInt8", 1, 0),    # unsigned byte
+    "grid_i"      : DType("Int32", 1, 0),    # integer
+    "grid_j"      : DType("Int32", 1, 0),    # integer
+    "idnumber"    : DType("Int64", 1, 0),    #signed long long 
+    "name"        : DType('CharType', 16, ""),  # 16-character String
     "__name"      : "Hola, pardal",  # To pass a special variable to IsRecord
-    #"pressure"    : defineType("Float32", 2, 0),  # float  (single-precision)
-    "pressure"    : defineType("Float32", 1, 0),  # float  (single-precision)
-    "temperature" : defineType("Float64", 1, 0),  # double (double-precision)
+    #"pressure"    : DType("Float32", 2, 0),  # float  (single-precision)
+    "pressure"    : DType("Float32", 1, 0),  # float  (single-precision)
+    "temperature" : DType("Float64", 1, 0),  # double (double-precision)
 }
 
 # The name of our HDF5 filename
@@ -103,6 +104,16 @@ print "gcolumns.name typecode ==> ", gcolumns.name.typecode
 print "Table dump:"
 for p in table.readAsRecords():
     print p
+
+# Save a recarray object under detector
+r=recarray.array(str(arange(300)._data),'r,3i,5a,s',3)
+recarrt = h5file.createTable("/detector", 'recarray', r, "RecArray example")
+r2 = r[0:3:2]
+# Change the byteorder property
+r2._byteorder = {"little":"big","big":"little"}[r2._byteorder]
+recarrt = h5file.createTable("/detector", 'recarray2', r2,
+                             "Non-contiguous recarray")
+print recarrt
 
 # Close the file
 h5file.close()
@@ -257,6 +268,19 @@ print "Columns name and pressure on expanded table:"
 for p in table.readAsRecords():
     print p.name, '-->', p.pressure
 print
+
+# Print a recarray in table form
+table = h5file.root.detector.recarray2
+print "recarray2:", table
+print "  shape:", table.shape
+print "  byteorder:", table._v_byteorder
+print "  vartypes:", table.vartypes
+print "  varnames:", table.varnames
+for p in table.readAsRecords():
+    print p.c1, '|', p.c2, '|', p.c3, '|', p.c4
+print
+
+
 
 # Close this file
 h5file.close()

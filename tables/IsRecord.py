@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Attic/IsRecord.py,v $
-#       $Id: IsRecord.py,v 1.6 2003/02/03 10:13:08 falted Exp $
+#       $Id: IsRecord.py,v 1.7 2003/02/03 20:24:19 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.6 $"
+__version__ = "$Revision: 1.7 $"
 
 
 import warnings
@@ -35,7 +35,8 @@ import types
 import sys
 
 import numarray as NA
-import recarray2 as recarray
+import recarray
+import recarray2
 
 from utils import checkNameValidity
 
@@ -57,7 +58,7 @@ fromstructfmt = {'b':NA.Int8, 'B':NA.UInt8,
                  's':recarray.CharType,
               }
 
-class defineType:
+class DType:
 
     def __init__(self, dtype="Float64", length=1, dflt=None):
 
@@ -70,13 +71,15 @@ class defineType:
 
         if dtype in NA.typeDict:
             self.type = NA.typeDict[dtype]
+            self.recarrtype = recarray2.revfmt[self.type]
         elif dtype == "CharType" or isinstance(dtype, recarray.Char):
             self.type = recarray.CharType
+            self.recarrtype = recarray.revfmt[self.type]
         else:
-            raise TypeError, "Illegal type %s" % `dtype`
+            raise TypeError, "Illegal type: %s" % `dtype`
 
         self.rectype = tostructfmt[self.type]
-        self.recarrtype = recarray.revfmt[self.type]
+
     
 class metaIsRecord(type):
     """
@@ -183,7 +186,7 @@ print p
         keys = classdict.keys()
         keys.sort() # Sort the keys to establish an order
         
-        newdict['_v_fmt'] = "=" # Force the "standard" alignment (no align)
+        ##newdict['_v_fmt'] = "=" # Force the "standard" alignment (no align)
         recarrfmt = []
         for k in keys:
             if (k.startswith('__') or k.startswith('_v_')):
@@ -216,6 +219,11 @@ print p
                 # Formats in numarray notation
                 newdict['_v_formats'].append(object.type)
 
+        # Set up the alignment 
+        if newdict.has_key('_v_align'):
+            newdict['_v_fmt'] = newdict['_v_align'] + newdict['_v_fmt']
+        else:
+            newdict['_v_fmt'] = "=" + newdict['_v_fmt']  # Standard align
         # Strip the last comma from _v_recarrfmt
         newdict['_v_recarrfmt'] = ','.join(recarrfmt)
         # finally delegate the rest of the work to type.__new__
@@ -246,10 +254,10 @@ if __name__=="__main__":
 
         """
         #color = '3s'
-        x = defineType("Int32", 2, 0)
-        y = defineType("Float64", 1, 1)
-        z = defineType("UInt8", 1, 1)
-        color = defineType("CharType", 2, " ")
+        x = DType("Int32", 2, 0)
+        y = DType("Float64", 1, 1)
+        z = DType("UInt8", 1, 1)
+        color = DType("CharType", 2, " ")
 
     # example cases of class Point
     rec = Record()  # Default values
