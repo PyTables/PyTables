@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.59 2004/01/12 10:07:58 falted Exp $
+#       $Id: Group.py,v 1.60 2004/01/14 10:39:14 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.59 $"
+__version__ = "$Revision: 1.60 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -48,6 +48,7 @@ from Table import Table
 from Array import Array
 from EArray import EArray
 from VLArray import VLArray
+from UnImplemented import UnImplemented
 from AttributeSet import AttributeSet
 from utils import checkNameValidity
 
@@ -173,7 +174,17 @@ class Group(hdf5Extension.Group, object):
             for name in leaves:
                 objleaf=objgroup._g_getLeaf(name)
                 if objleaf <> None:
-                    # Only supported objects will be loaded in the object tree
+                    # Try if object can be loaded
+                    try:
+                        objleaf._g_putObjectInTree(name, objgroup)
+                    except:
+                        # If not, associate an UnImplemented object to it
+                        objleaf = UnImplemented()
+                        objleaf._g_putObjectInTree(name, objgroup)
+                else:
+                    # If objleaf is not recognized, associate an
+                    # UnImplemented object to it
+                    objleaf = UnImplemented()
                     objleaf._g_putObjectInTree(name, objgroup)
 
     def _g_getLeaf(self,name):
@@ -191,7 +202,7 @@ class Group(hdf5Extension.Group, object):
             class_ = hdf5Extension.whichClass(self._v_objectID, name)
             if class_ == "UNSUPPORTED":
                 warnings.warn( \
-"Leaf object '%s' in file is unsupported. This object will be unreachable." % \
+"Leaf object '%s' in file is unsupported. Will become UnImplemented type." % \
 self._g_join(name), UserWarning)
                 return None
         if class_ == "TABLE":
@@ -204,8 +215,9 @@ self._g_join(name), UserWarning)
             return VLArray()
         else:
             warnings.warn( \
-"Class ID '%s' for Leaf %s is unknown. This object will be unreachable." % \
+"Class ID '%s' for Leaf %s is unknown. Will become UnImplemented type." % \
 (class_, self._g_join(name)), UserWarning)
+            return None
 
     def _g_join(self, name):
         """Helper method to correctly concatenate a name child object

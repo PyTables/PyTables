@@ -713,16 +713,25 @@ class CheckFileTestCase(unittest.TestCase):
         array_ = fileh.getNode(columns, "TDC", classname="Array")
         assert array_._v_name == "TDC"
 
-        # An unsupported Array
-        try:
-            array_ = fileh.getNode(columns, "pressure", classname="Array")
-        except LookupError:
-            if verbose:
-                (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched:"
-                print value
-        else:
-            self.fail("expected an LookupError")
+        # An unsupported object (the deprecated H5T_ARRAY type in
+        # Array, from pytables 0.8 on)
+        ui = fileh.getNode(columns, "pressure", classname="UnImplemented")
+        assert ui._v_name == "pressure"
+        if verbose:
+            print "UnImplement object -->",repr(ui)
+            #print "instance variables-->", ui.__dict__
+            #print "complib-->", ui.complib
+            #print "attrs-->", repr(ui.attrs)
+
+#         try:
+#             array_ = fileh.getNode(columns, "pressure", classname="Array")
+#         except LookupError:
+#             if verbose:
+#                 (type, value, traceback) = sys.exc_info()
+#                 print "\nGreat!, the next LookupError was catched:"
+#                 print value
+#         else:
+#             self.fail("expected an LookupError")
 
         # A Table
         table = fileh.getNode("/detector", "table", classname="Table")

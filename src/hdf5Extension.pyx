@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.108 2004/01/13 12:31:45 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.109 2004/01/14 10:39:13 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.108 $"
+__version__ = "$Revision: 1.109 $"
 
 
 import sys, os
@@ -682,9 +682,8 @@ cdef extern from "utils.h":
   object get_filter_names( hid_t loc_id, char *dset_name)
   object Giterate(hid_t parent_id, hid_t loc_id, char *name)
   object Aiterate(hid_t loc_id)
-  H5T_class_t getHDF5ClassID(hid_t loc_id,
-                             char *name,
-                             H5D_layout_t *layout)
+  H5T_class_t getHDF5ClassID(hid_t loc_id, char *name, H5D_layout_t *layout)
+  object H5UIget_info( hid_t loc_id, char *name, char *byteorder)
 
 # LZO library
 cdef int lzo_version
@@ -813,7 +812,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.108 2004/01/13 12:31:45 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.109 2004/01/14 10:39:13 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -2380,4 +2379,27 @@ cdef class VLArray:
     H5Tclose(self.type_id)    # To avoid memory leaks
     if self.dims:
       free(<void *>self.dims)
+    free(<void *>self.name)
+
+
+cdef class UnImplemented:
+  # Instance variables
+  cdef hid_t   parent_id
+  cdef char    *name
+
+  def _g_new(self, where, name):
+    # Initialize the C attributes of Group object (Very important!)
+    self.name = strdup(name)
+    # The parent group id for this object
+    self.parent_id = where._v_objectID
+
+  def _openUnImplemented(self):
+    cdef object shape
+    cdef char byteorder[16]  # "non-relevant" fits easily here
+
+    # Get info on dimensions
+    shape = H5UIget_info(self.parent_id, self.name, byteorder)
+    return (shape, byteorder)
+  
+  def __dealloc__(self):
     free(<void *>self.name)

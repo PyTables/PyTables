@@ -273,3 +273,94 @@ H5T_class_t getHDF5ClassID(hid_t loc_id,
    return class_id;
    
 }
+
+/* Helper routine that returns the rank, dims and byteorder for
+   UnImplemented objects. 2004
+*/
+
+PyObject *H5UIget_info( hid_t loc_id, 
+			const char *dset_name,
+			char *byteorder)
+{
+  hid_t       dataset_id;  
+  int         rank;
+  hsize_t     *dims;
+  hid_t       space_id; 
+  H5T_class_t class_id;
+  H5T_order_t order;
+  hid_t       type_id; 
+  PyObject    *t;
+  int         i;
+
+  /* Open the dataset. */
+  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 ) {
+    Py_INCREF(Py_None);
+    return Py_None;  	/* Not chunked, so return None */
+  }
+
+  /* Get an identifier for the datatype. */
+  type_id = H5Dget_type( dataset_id );
+
+  /* Get the class. */
+  class_id = H5Tget_class( type_id );
+
+  /* Get the dataspace handle */
+  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+    goto out;
+
+  /* Get rank */
+  if ( (rank = H5Sget_simple_extent_ndims( space_id )) < 0 )
+    goto out;
+
+  /* Book resources for dims */
+  dims = (hsize_t *)malloc(rank * sizeof(hsize_t));
+
+  /* Get dimensions */
+  if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
+    goto out;
+
+  /* Assign the dimensions to a tuple */
+  t = PyTuple_New(rank);
+  for(i=0;i<rank;i++) {
+    /* I don't know if I should increase the reference count for dims[i]! */
+    PyTuple_SetItem(t, i, PyInt_FromLong((long)dims[i]));
+  }
+  
+  /* Release resources */
+  free(dims);
+
+  /* Terminate access to the dataspace */
+  if ( H5Sclose( space_id ) < 0 )
+    goto out;
+ 
+  /* Get the byteorder */
+  /* Only class integer and float can be byteordered */
+  if ( (class_id == H5T_INTEGER) || (class_id == H5T_FLOAT)
+       || (class_id == H5T_BITFIELD) ) {
+    order = H5Tget_order( type_id );
+    if (order == H5T_ORDER_LE) 
+      strcpy(byteorder, "little");
+    else if (order == H5T_ORDER_BE)
+      strcpy(byteorder, "big");
+    else {
+      fprintf(stderr, "Error: unsupported byteorder: %d\n", order);
+      goto out;
+    }
+  }
+  else {
+    strcpy(byteorder, "non-relevant");
+  }
+
+  /* End access to the dataset */
+  H5Dclose( dataset_id );
+
+  /* Return the dimensions tuple */
+  return t;
+
+out:
+ H5Tclose( type_id );
+ H5Dclose( dataset_id );
+ Py_INCREF(Py_None);
+ return Py_None;  	/* Not chunked, so return None */
+
+}

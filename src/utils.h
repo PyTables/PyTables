@@ -84,3 +84,7 @@ PyObject *Aiterate(hid_t loc_id);
 H5T_class_t getHDF5ClassID(hid_t loc_id,
 			   const char *name,
 			   H5D_layout_t *layout);
+
+PyObject *H5UIget_info( hid_t loc_id, 
+			const char *dset_name,
+			char *byteorder);

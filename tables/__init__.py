@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/__init__.py,v $
-#       $Id: __init__.py,v 1.19 2003/12/27 22:54:34 falted Exp $
+#       $Id: __init__.py,v 1.20 2004/01/14 10:39:14 falted Exp $
 #
 ########################################################################
 
@@ -46,6 +46,7 @@ from Table import Table
 from Array import Array
 from EArray import EArray
 from VLArray import *
+from UnImplemented import UnImplemented
                     
 from IsDescription import *
 from hdf5Extension import isHDF5, isPyTablesFile, whichLibVersion

@@ -5,20 +5,23 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.17 2004/01/13 12:31:45 falted Exp $
+#       $Id: VLArray.py,v 1.18 2004/01/14 10:39:14 falted Exp $
 #
 ########################################################################
 
-"""Here is defined the VLArray class.
+"""Here is defined the VLArray class and declarative classes for its components
 
-See VLArray class docstring for more info.
+See VLArray class docstring and *Atom docstrings for more info.
 
 Classes:
 
+    Atom, ObjectAtom, VLStringAtom, StringAtom, BoolAtom,
+    IntAtom, Int8Atom, UInt8Atom, Int16Atom, UInt16Atom,
     VLArray
 
 Functions:
 
+   checkflavor
 
 Misc variables:
 
@@ -27,7 +30,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.17 $"
+__version__ = "$Revision: 1.18 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
