@@ -4,6 +4,7 @@ import os
 import tempfile
 from Numeric import *
 from tables import *
+from numarray import typeDict
 
 from test_all import verbose
 
@@ -61,17 +62,21 @@ class ArrayTestCase(unittest.TestCase):
         # Check the array equality in this way, not as in:
         # assert a == b
         # because the result is not what we want.
+        #print "shape a, b -->", a.shape, b.shape, self.root.somearray.shape
         assert a.shape == b.shape
         assert a.shape == self.root.somearray.shape
-        if a.typecode() == "l":
+        if a.typecode() == "i":
             # Special expection. We have no way to distinguish between
             # "l" and "i" typecode, and we can consider them the same
             # to all practical effects
-            assert b.typecode() == "i"
-            assert self.root.somearray.typecode == "i"
+            assert b.typecode() == "l"
+            assert self.root.somearray.typeclass == typeDict["l"]
+        elif a.typecode() == "c":
+            assert a.typecode() == b.typecode()
+            assert str(self.root.somearray.typeclass) == "CharType"
         else:
             assert a.typecode() == b.typecode()
-            assert a.typecode() ==  self.root.somearray.typecode
+            assert typeDict[a.typecode()] ==  self.root.somearray.typeclass
 	assert a.tolist() == b.tolist()
 	return
     
@@ -138,16 +143,16 @@ class ArrayTestCase(unittest.TestCase):
 	self.WriteRead(a)
 	return
     
-    def test06_unsignedInt(self):
-        "Checking an unsigned integer array"
+#     def test06_unsignedInt(self):
+#         "Checking an unsigned integer array"
 
-	a = array([[[-1, -3, -8], [2, 3, 8],[3, 3, 8]],
-		   [[4, 3, 8], [5, 3, 8],[6, 3, 8]],
-		   [[7, 3, 8], [8, 3, 8],[9, 3, 8]],
-		   [[10, 3, 8], [11, 3, 8],[12, 3, 8]],
-		   ], "u")
-	self.WriteRead(a)
-	return
+# 	a = array([[[-1, -3, -8], [2, 3, 8],[3, 3, 8]],
+# 		   [[4, 3, 8], [5, 3, 8],[6, 3, 8]],
+# 		   [[7, 3, 8], [8, 3, 8],[9, 3, 8]],
+# 		   [[10, 3, 8], [11, 3, 8],[12, 3, 8]],
+# 		   ], "u")
+# 	self.WriteRead(a)
+# 	return
     
     def test07_long(self):
         "Checking a signed long integer array"
@@ -247,7 +252,8 @@ class GroupsArrayTestCase(unittest.TestCase):
 	group = fileh.root
 	
 	# Set the type codes to test
-	typecodes = ["c", 'b', '1', 's', 'w', 'i', 'u', 'l', 'f', 'd']
+	#typecodes = ["c", 'b', '1', 's', 'w', 'i', 'u', 'l', 'f', 'd']
+	typecodes = ['c', 'b', '1', 's', 'i', 'l', 'f', 'd']
 	i = 1
 	for typecode in typecodes:
 	    # Create an array of typecode, with incrementally bigger ranges
@@ -271,7 +277,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 	group = fileh.root
 
 	# Get the metadata on the previosly saved arrays
-	for i in range(1,10):
+	for i in range(1,len(typecodes)):
 	    # Create an array for later comparison
 	    a = ones((3,) * i, typecodes[i - 1])
 	    # Get the dset object hanging from group
@@ -281,15 +287,15 @@ class GroupsArrayTestCase(unittest.TestCase):
 	    if verbose:
 		print "Info from dataset:", dset._v_pathname
 		print "  Shape: ==>", dset.shape, 
-		print "  typecode ==> %c" % dset.typecode
+		print "  typeclass ==> %s" % dset.typeclass
 		print "Array b read from file. Shape: ==>", b.shape,
 		print ". Typecode ==> %c" % b.typecode()
 	    assert a.shape == b.shape
-            if a.typecode() == "l":
+            if a.typecode() == "i":
                 # Special expection. We have no way to distinguish between
                 # "l" and "i" typecode, and we can consider them the same
                 # to all practical effects
-                assert b.typecode() == "i"
+                assert b.typecode() == "l"
             else:
                 assert a.typecode() == b.typecode()            
             assert a.tolist() == b.tolist()
@@ -375,11 +381,11 @@ class GroupsArrayTestCase(unittest.TestCase):
             # we want to do!!
             # ************** WARNING!!! *****************
             assert a.shape == b.shape
-            if a.typecode() == "l":
+            if a.typecode() == "i":
                 # Special expection. We have no way to distinguish between
                 # "l" and "i" typecode, and we can consider them the same
                 # to all practical effects
-                assert b.typecode() == "i"
+                assert b.typecode() == "l"
             else:
                 assert a.typecode() == b.typecode()            
             assert a.tolist() == b.tolist()

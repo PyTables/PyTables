@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.12 2003/02/06 21:09:12 falted Exp $
+#       $Id: Array.py,v 1.13 2003/02/07 13:02:00 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.12 $"
+__version__ = "$Revision: 1.13 $"
 import types, warnings, sys
 from Leaf import Leaf
 import hdf5Extension
@@ -184,7 +184,13 @@ class Array(Leaf, hdf5Extension.Array):
                 # arr=Numeric.array(arr, typecode=arr.typecode())
                 # The next is 10 times faster
                 if repr(self.typeclass) == "CharType":
-                    arr=Numeric.array(arr.tolist(), typecode="c")
+                    arrlist = arr.tolist()
+                    if len(arrlist) > 1:
+                        arr=Numeric.array(arrlist, typecode="c")
+                    else:
+                        arr=Numeric.array(arrlist[0], typecode="c")
+                    # Special case for the shape
+                    self.shape = arr.shape
                 else:
                     arr=Numeric.array(arr.tolist(), typecode=arr.typecode())
             else:

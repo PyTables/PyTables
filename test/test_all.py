@@ -41,13 +41,13 @@ def suite():
 
 if __name__ == '__main__':
     import tables
-    import Numeric
+    import numarray
 
     print '-=' * 38
     print "PyTables version:  %s" % tables.__version__
     print "Extension version: %s" % tables.ExtVersion
     print "HDF5 version:      %s" % tables.HDF5Version
-    print "Numeric version:   %s" % Numeric.__version__
+    print "numarray version:  %s" % numarray.__version__
     print 'Python version:    %s' % sys.version
     if os.name == 'posix':
         (sysname, nodename, release, version, machine) = os.uname()

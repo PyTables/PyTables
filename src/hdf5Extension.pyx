@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.16 2003/02/07 11:01:27 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.17 2003/02/07 13:01:58 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.16 $"
+__version__ = "$Revision: 1.17 $"
 
 
 import sys, os.path
@@ -468,7 +468,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.16 2003/02/07 11:01:27 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.17 2003/02/07 13:01:58 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -879,7 +879,12 @@ cdef class Array:
 
     if isinstance(arr, num.NumArray):
       self.type = arr._type
-      self.enumtype = toenum[arr._type]
+      try:
+        self.enumtype = toenum[arr._type]
+      except KeyError:
+        raise TypeError, \
+      """Type class '%s' not supported rigth now. Sorry about that.
+      """ % repr(arr._type)
       # Convert the array object to a an object with a well-behaved buffer
       array = <object>NA_InputArray(arr, self.enumtype, C_ARRAY)
       itemsize = array.type().bytes

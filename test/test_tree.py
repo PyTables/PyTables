@@ -12,13 +12,11 @@ from test_all import verbose
 
 # Test Record class
 class Record(IsRecord):
-    
-    var1 = '4s'   # 4-character String
-    var2 = 'i'    # integer
-    var3 = 'h'    # short integer. This is chosen in this place for 
-                  # discovery of alignment issues!
-    var4 = 'd'    # double (double-precision)
-    var5 = 'f'    # float  (single-precision)
+    var1 = Col("CharType", 4)   # 4-character String
+    var2 = Col("Int32", 1)      # integer
+    var3 = Col("Int16", 1)      # short integer. 
+    var4 = Col("Float64", 1)    # double (double-precision)
+    var5 = Col("Float32", 1)    # float  (single-precision)
 
 class TreeTestCase(unittest.TestCase):
     file  = "test.h5"
@@ -46,7 +44,7 @@ class TreeTestCase(unittest.TestCase):
                                         compress = self.compress,
                                         expectedrows = self.expectedrows)
             # Get the record object associated with the new table
-            d = table.record 
+            d = table.row 
             # Fill the table
             for i in xrange(self.expectedrows):
                 d.var1 = '%04d' % (self.expectedrows - i)

@@ -118,7 +118,7 @@ class BasicTestCase(unittest.TestCase):
         rec = table.row
         if verbose:
             print "Nrows in old", table._v_pathname, ":", table.nrows
-            print "Record Format ==>", rec._v_fmt
+            print "Record Format ==>", table._v_fmt
             print "Record Size ==>", table._v_rowsize
         # Append some records
         for i in xrange(self.appendrows):
