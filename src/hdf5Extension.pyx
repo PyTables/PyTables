@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.38 2003/04/28 17:45:55 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.39 2003/05/01 17:23:28 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.38 $"
+__version__ = "$Revision: 1.39 $"
 
 
 import sys, os
@@ -190,6 +190,10 @@ toclass = {tInt8:num.Int8,       tUInt8:num.UInt8,
            97:CharType   # ascii(97) --> 'a' # Special case (to be corrected)
           }
 
+# Define the CharType code as a constant
+cdef enum:
+  CHARTYPE = 97
+
 # Functions from numarray API
 cdef extern from "numarray/libnumarray.h":
   PyArrayObject NA_InputArray (object, NumarrayType, int)
@@ -197,6 +201,8 @@ cdef extern from "numarray/libnumarray.h":
   PyArrayObject NA_IoArray (object, NumarrayType, int)
   PyArrayObject PyArray_FromDims(int nd, int *d, int type)
   PyArrayObject NA_Empty(int nd, int *d, NumarrayType type)
+  object        NA_getPythonScalar(object, long)
+
   object PyArray_ContiguousFromObject(object op, int type,
                                       int min_dim, int max_dim)
 # Functions from HDF5
@@ -434,21 +440,23 @@ cdef extern from "utils.h":
   object Giterate(hid_t loc_id, char *name)
   H5T_class_t getHDF5ClassID(hid_t loc_id, char *name)
 
-cdef int available_lzo
-cdef int available_ucl
+cdef int lzo_version
+cdef int ucl_version
 # LZO library
 cdef extern from "H5Zlzo.h":
   int register_lzo()
+  object getLZOVersionInfo()
 
 # Initialize & register lzo
-available_lzo = register_lzo()
+lzo_version = register_lzo()
 
 # UCL library
 cdef extern from "H5Zucl.h":
   int register_ucl()
-
+  object getUCLVersionInfo()
+  
 # Initialize & register ucl
-available_ucl = register_ucl()
+ucl_version = register_ucl()
 
 # utility funtions (these can be directly invoked from Python)
 
@@ -458,9 +466,17 @@ def isLibAvailable(char *name):
     if (strcmp(name, "zlib") == 0):
         return 1   # Should be always available
     if (strcmp(name, "lzo") == 0):
-        return available_lzo
+      if lzo_version:
+        (lzo_version_string, lzo_version_date) = getLZOVersionInfo()
+        return (lzo_version, lzo_version_string, lzo_version_date)
+      else:
+        return 0
     elif (strcmp(name, "ucl") == 0):
-        return available_ucl
+      if ucl_version:
+        (ucl_version_string, ucl_version_date) = getUCLVersionInfo()
+        return (ucl_version, ucl_version_string, ucl_version_date)
+      else:
+        return 0
     else:
         return 0
     
@@ -553,7 +569,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.38 2003/04/28 17:45:55 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.39 2003/05/01 17:23:28 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1129,17 +1145,33 @@ cdef class Row:
     
   """
 
-  cdef object _fields, _array, _table, _saveBufferedRows
-  cdef int _row, _nbuf, _nrow, _unsavednrows, _maxTuples
+  cdef object _fields, _recarray, _table, _saveBufferedRows, _indexes
+  cdef int _row, _nbuf, _nrow, _unsavednrows, _maxTuples, _strides
   cdef int start, stop, step, nextelement, nrowsinbuf
+  cdef int *_dimensions, *_enumtypes
 
   def __new__(self, input, table):
-    self._array = input
+    cdef int nfields, i
+    
+    self._recarray = input
     self._table = table
     #self.__dict__["_fields"] = input._fields ## Not allowed in pyrex!
     self._fields = input._fields
     self._unsavednrows = 0
     self._nrow = 0
+    self._strides = input._strides[0]
+    nfields = input._nfields
+    # Create a dictionary with the index columns of the recarray
+    # and other tables
+    i = 0
+    self._indexes = {}
+    self._dimensions = <int *>malloc(nfields * sizeof(int))
+    self._enumtypes = <int *>malloc(nfields * sizeof(int))
+    for field in input._names:
+      self._indexes[field] = i
+      self._dimensions[i] = input._repeats[i]
+      self._enumtypes[i] = toenum[input._fmt[i]]
+      i = i + 1
     self._maxTuples = table._v_maxTuples
     self._saveBufferedRows = table._saveBufferedRows
 
@@ -1199,16 +1231,40 @@ cdef class Row:
     self._unsavednrows = self._unsavednrows + 1
     return self._unsavednrows
 
-  # This is twice as faster than __getattr__ because there is not a lookup
-  # in the local dictionary
-  def __getitem__(self, fieldName):
+  def __getitem__original(self, fieldName):
     try:
       return self._fields[fieldName][self._row]
-      #return 40
+      #return 40  # Just for testing purposes
     except:
       (type, value, traceback) = sys.exc_info()
       raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
             (fieldName, "Error was: \"%s: %s\"" % (type,value))
+
+  # This method is twice as faster than __getattr__ because there is
+  # not a lookup in the local dictionary
+  def __getitem__(self, fieldName):
+    cdef int index, offset
+
+    # Optimization follows for the case that the field dimension is
+    # == 1, i.e. columns elements are scalars, and the column is not
+    # of CharType. This code accelerates the access to column
+    # elements a 20%
+    
+    # Get the column index. This is very fast!
+    index = self._indexes[fieldName]
+    
+    if (self._enumtypes[index] <> CHARTYPE and self._dimensions[index] == 1):
+      offset = self._row * self._strides
+      # return 40   # Just for tests purposes
+      return NA_getPythonScalar(self._fields[fieldName], offset)
+    else:
+      # Call the universal indexing function
+      try:
+        return self._fields[fieldName][self._row]
+      except:
+        (type, value, traceback) = sys.exc_info()
+        raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
+              (fieldName, "Error was: \"%s: %s\"" % (type,value))
 
   # This is slightly faster (around 3%) than __setattr__
   def __setitem__(self, fieldName, value):
@@ -1223,9 +1279,9 @@ cdef class Row:
     """ represent the record as an string """
         
     outlist = []
-    for name in self._array._names:
+    for name in self._recarray._names:
       outlist.append(`self._fields[name][self._row]`)
-            #outlist.append(`self._array.field(name)[self._row]`)
+            #outlist.append(`self._recarray.field(name)[self._row]`)
     return "(" + ", ".join(outlist) + ")"
 
   def __repr__(self):
@@ -1239,7 +1295,7 @@ cdef class Row:
     outlist = []
     for name in self._fields:
       outlist.append(self._fields[name][self._row])
-      #outlist.append(self._array.field(name)[self._row])
+      #outlist.append(self._recarray.field(name)[self._row])
     return outlist
 
   # Moved out of scope

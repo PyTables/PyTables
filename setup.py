@@ -15,7 +15,7 @@ from distutils.dep_util import newer
 # Uncomment this if Pyrex installed and want to rebuild everything
 #from Pyrex.Distutils import build_ext
 
-VERSION = "0.4"
+VERSION = "0.4.5"
 
 #----------------------------------------------------------------------
 
@@ -28,15 +28,19 @@ if os.name == 'posix':
     # the environment or on the command line.
     # First check the environment...
     HDF5_DIR = os.environ.get('HDF5_DIR', '')
+    COMPR_DIR = os.environ.get('COMPR_DIR', '')
     LFLAGS = os.environ.get('LFLAGS', [])
     LIBS = os.environ.get('LIBS', [])
 
     # ...then the command line.
-    # Handle --hdf5=[PATH] --libs=[LIBS] and --lflags=[FLAGS]
+    # Handle --hdf5=[PATH] --comprdir=[PATH] --libs=[LIBS] and --lflags=[FLAGS]
     args = sys.argv[:]
     for arg in args:
         if string.find(arg, '--hdf5=') == 0:
             HDF5_DIR = string.split(arg, '=')[1]
+            sys.argv.remove(arg)
+        if string.find(arg, '--comprdir=') == 0:
+            COMPR_DIR = string.split(arg, '=')[1]
             sys.argv.remove(arg)
         elif string.find(arg, '--libs=') == 0:
             LIBS = string.split(string.split(arg, '=')[1])
@@ -49,47 +53,50 @@ if os.name == 'posix':
         lflags_arg = LFLAGS + LIBS
 
     # If we were not told where it is, go looking for it.
-    incdir = libdir = None
+    hdf5incdir = hdf5libdir = None
     if not HDF5_DIR:
         for instdir in ('/usr/', '/usr/local/'):
             for ext in ('.a', '.so'):
                 libhdf5 = os.path.join(instdir, "lib/libhdf5"+ext)
                 if os.path.isfile(libhdf5):
                     HDF5_DIR = instdir
-                    libdir = os.path.join(instdir, "lib")
-                    print "Found HDF5 libraries at " + libdir
+                    hdf5libdir = os.path.join(instdir, "lib")
+                    print "Found HDF5 libraries at " + hdf5libdir
+                    lib_dirs = [os.path.join(HDF5_DIR, 'lib')]
                     break
 
             headerhdf5 = os.path.join(instdir, "include/H5public.h")
             if os.path.isfile(headerhdf5):
-                incdir = os.path.join(instdir, "include")
-                print "Found HDF5 header files at " + incdir
+                hdf5incdir = os.path.join(instdir, "include")
+                print "Found HDF5 header files at " + hdf5incdir
+                inc_dirs = [ os.path.join(HDF5_DIR, 'include')]
                 break
             else:
-                incdir = None
+                hdf5incdir = None
 
 
-    if not HDF5_DIR and not incdir and not libdir:
+    if not HDF5_DIR and not hdf5incdir and not hdf5libdir:
         print """\
 Can't find a local hdf5 installation.
 Please, read carefully the README and if your
 hdf5 libraries are not in a standard place
 set the HDF5_DIR environment variable or
 use the flag --hdf5 to give a hint of
-where they can be found.
-"""
+where they can be found."""
         
         sys.exit(1)
-
+	
     # figure out from the base setting where the lib and .h are
-    if not incdir: incdir = os.path.join(HDF5_DIR, 'include')
-    if not libdir: libdir = os.path.join(HDF5_DIR, 'lib')
+    if not hdf5incdir:
+        inc_dirs = [ os.path.join(HDF5_DIR, 'include')]
+    if not hdf5libdir:
+        lib_dirs = [os.path.join(HDF5_DIR, 'lib')]
     if (not '-lhdf5' in LIBS):
         libnames = ['hdf5']
     else:
         libnames = []
 
-    # Finally, check for numarray
+    # Check for numarray
     try:
         import numarray
     except:
@@ -103,9 +110,73 @@ compile and run."""
     else:
         print "Found numarray %s package installed" % numarray.__version__
 
+    # Look for optional compression libraries (LZO and UCL)
+    def_macros = [('NDEBUG', 1)]
+    # figure out from the base setting where the lib and .h are
+    if COMPR_DIR:
+        lookup_directories = (COMPR_DIR, '/usr/', '/usr/local/')
+    else:
+        lookup_directories = ('/usr/', '/usr/local/')
+        
+    for instdir in lookup_directories:
+        for ext in ('.a', '.so'):
+            liblzo = os.path.join(instdir, "lib/liblzo"+ext)
+            if os.path.isfile(liblzo):
+                LZO_DIR = instdir
+                lzolibdir = os.path.join(instdir, "lib")
+                print "Found LZO libraries at " + lzolibdir
+                lib_dirs.append(lzolibdir)
+                break
+            else:
+                lzolibdir = None
+
+        headerlzo = os.path.join(instdir, "include/lzo1x.h")
+        if os.path.isfile(headerlzo):
+            lzoincdir = os.path.join(instdir, "include")
+            print "Found LZO header files at " + lzoincdir
+            inc_dirs.append(os.path.join(instdir, "include"))
+            if lzolibdir and (not '-llzo' in LIBS):
+                libnames.append('lzo')
+                def_macros.append(("HAVE_LZO_LIB", 1))
+            break
+        else:
+            lzoincdir = None
+
+    if not lzolibdir or not lzoincdir:
+        print """Optional LZO libraries or include files not found. Disabling \
+support for them."""
+
+    for instdir in lookup_directories:
+        for ext in ('.a', '.so'):
+            libucl = os.path.join(instdir, "lib/libucl"+ext)
+            if os.path.isfile(libucl):
+                UCL_DIR = instdir
+                ucllibdir = os.path.join(instdir, "lib")
+                print "Found UCL libraries at " + ucllibdir
+                lib_dirs.append(ucllibdir)
+                break
+            else:
+                ucllibdir = None
+
+        headerucl = os.path.join(instdir, "include/ucl/ucl.h")
+        if os.path.isfile(headerucl):
+            uclincdir = os.path.join(instdir, "include")
+            print "Found UCL header files at " + uclincdir
+            inc_dirs.append(os.path.join(instdir, "include"))
+            if ucllibdir and (not '-lucl' in LIBS):
+                libnames.append('ucl')
+                def_macros.append(("HAVE_UCL_LIB", 1))
+            break
+        else:
+            uclincdir = None
+
+    if not ucllibdir or not uclincdir:
+        print """Optional UCL libraries or include files not found. Disabling \
+support for them."""
+
     # Set the runtime library search path
-    rlib_dirs = [libdir]
-                
+    rlib_dirs = lib_dirs
+        
 elif os.name == 'nt':
 
     print """I don't know how to cope with this. If you are interested
@@ -117,42 +188,41 @@ elif os.name == 'nt':
 # Update the version .h file if this file is newer
 if newer('setup.py', 'src/version.h'):
     open('src/version.h', 'w').write('#define PYTABLES_VERSION "%s"\n' % VERSION)
-# Beware: as distutils does not support dependencies in Python 2.2, you must
-# manually touch the src/utils.c in order to actually refresh the version
-# number. However, distutils from Python 2.3 will support dependencies!
 
 setup(name = 'tables',
       version = VERSION,
-      description = 'Python interface for working with tables in HDF5',
+      description = 'Python interface for working with scientific data tables',
       long_description = """\
 At this moment, this module provides limited
 support of HDF5 facilities, but I hope to add more
 in the short future. By no means this package will
 try to be a complete wrapper for all the HDF5
 API. Instead, its goal is to allow working with
-tables (and hopefully in short term also with
-NumArray objects) in a hierarchical structure.
+tables and Numeric objects in a hierarchical structure.
 Please see the documents in the doc directory of
 the source distribution or at the website for more
-details on the types and methods provided.""",
+details on the objects and methods provided.""",
       author = 'Francesc Alted',
-      author_email = 'pytables-users@lists.sourceforge.net',
-      #author_email = 'falted@openlc.org',
+      #author_email = 'pytables-users@lists.sourceforge.net',
+      author_email = 'falted@openlc.org',
       url = 'http://pytables.sf.net/',
 
       packages = ['tables'],
       ext_modules = [ Extension("tables.hdf5Extension",
-				include_dirs = [incdir],
-                                define_macros = [('NDEBUG', 1)],
+				include_dirs = inc_dirs,
+                                define_macros = def_macros,
                                 sources = ["src/hdf5Extension.c",
-                                            "src/calcoffset.c",
-                                            "src/arraytypes.c",
-                                            "src/getfieldfmt.c",
-                                            "src/utils.c",
-					    "src/H5ARRAY.c",
-					    "src/H5LT.c",
-					    "src/H5TB.c"],
-				library_dirs = [libdir],
+                                           "src/calcoffset.c",
+                                           "src/arraytypes.c",
+                                           "src/getfieldfmt.c",
+                                           "src/utils.c",
+                                           "src/H5Zlzo.c",
+                                           "src/H5Zucl.c",
+                                           "src/H5ARRAY.c",
+                                           "src/H5LT.c",
+                                           "src/H5TB.c",
+                                           "src/H5TB-opt.c"],
+				library_dirs = lib_dirs,
                                 libraries = libnames,
                                 runtime_library_dirs = rlib_dirs,
                                 )],

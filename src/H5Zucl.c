@@ -7,6 +7,7 @@
 #ifdef HAVE_UCL_LIB
 #   include "ucl/ucl.h"
 #   include "H5Zucl.h"
+#   include "utils.h"
 #endif
 
 #undef CHECKSUM
@@ -24,13 +25,25 @@ int register_ucl(void) {
   /* Register the ucl compressor */
   status = H5Zregister(FILTER_UCL, "ucl deflate", ucl_deflate);
   
-  return 1; /* lib is available */
+  return UCL_VERSION; /* lib is available */
 
 #else
   return 0; /* lib is not available */
 #endif /* HAVE_UCL_LIB */
 
 }
+
+#ifdef HAVE_UCL_LIB
+/* This routine only can be called if UCL is present */
+PyObject *getUCLVersionInfo(void) {
+  char *info[2];
+
+  info[0] = strdup(UCL_VERSION_STRING);
+  info[1] = strdup(UCL_VERSION_DATE);
+  return createNamesTuple(info, 2);
+}
+
+#endif /* HAVE_UCL_LIB */
 
 size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
 		   const unsigned int cd_values[], size_t nbytes,

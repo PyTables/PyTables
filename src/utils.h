@@ -4,7 +4,6 @@
 
 #include "Python.h"
 #include "hdf5.h"
-/*#include "H5private.h" */
 
 /* Define this variable for error printings */
 /*#define DEBUG 1 */

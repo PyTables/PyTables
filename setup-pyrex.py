@@ -15,7 +15,7 @@ from distutils.dep_util import newer
 # Uncomment this if Pyrex installed and want to rebuild everything
 from Pyrex.Distutils import build_ext
 
-VERSION = "0.4"
+VERSION = "0.4.5"
 
 #----------------------------------------------------------------------
 
@@ -186,7 +186,7 @@ elif os.name == 'nt':
     sys.exit(1)
     
 # Update the version .h file if this file is newer
-if newer('setup.py', 'src/version.h'):
+if newer('setup-pyrex.py', 'src/version.h'):
     open('src/version.h', 'w').write('#define PYTABLES_VERSION "%s"\n' % VERSION)
 
 setup(name = 'tables',
@@ -216,7 +216,6 @@ details on the objects and methods provided.""",
                                            "src/arraytypes.c",
                                            "src/getfieldfmt.c",
                                            "src/utils.c",
-                                           #"src/minilzo.c",
                                            "src/H5Zlzo.c",
                                            "src/H5Zucl.c",
                                            "src/H5ARRAY.c",

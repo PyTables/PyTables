@@ -22,6 +22,7 @@ class Record(IsDescription):
     var4 = Col("Float64", 1)    # double (double-precision)
     var5 = Col("Float32", 1)    # float  (single-precision)
     var6 = Col("Int16", 1)      # short integer 
+    var7 = Col("CharType", 1)   # 1-character String
 
 # In 0.3, you can dynamically define the tables with a dictionary
 RecordDescriptionDict = {
@@ -30,12 +31,13 @@ RecordDescriptionDict = {
     'var3': Col("Int16", 1),      # short integer 
     'var4': Col("Float64", 2),    # double (double-precision)
     'var5': Col("Float32", 4),    # float  (single-precision)
-    'var6': Col("Int16", 1),      # short integer 
+    'var6': Col("Int16", 1),      # short integer
+    'var7': Col("CharType", 1),   # 1-character String
     }
 
 # And even as an idle (or non-idle) recarray object!
-RecArrayDescription=recarray.array(formats="4a,i4,i2,2f8,f4,i2",
-                                   names='var1,var2,var3,var4,var5,var6')
+RecArrayDescription=recarray.array(formats="4a,i4,i2,2f8,f4,i2,1a",
+                                   names='var1,var2,var3,var4,var5,var6,var7')
 
 def allequal(a,b):
     """Checks if two numarrays are equal"""
@@ -131,11 +133,13 @@ class BasicTestCase(unittest.TestCase):
     expectedrows = 100
     appendrows = 20
     compress = 0
+    complib = "zlib"  # Default compression library
     record = Record
     recarrayinit = 0
     maxshort = 1 << 15
 
     def setUp(self):
+
         # Create an instance of an HDF5 Table
         self.fileh = openFile(self.file, self.mode)
         self.rootgroup = self.fileh.root
@@ -166,6 +170,8 @@ class BasicTestCase(unittest.TestCase):
                 tmplist.append(float(i))
             # bar6 will be like var2 but byteswaped
             tmplist.append(((var3>>8) & 0xff) + ((var3<<8) & 0xff00))
+            var7 = var1[-1]
+            tmplist.append(var7)
             buflist.append(tmplist)
 
         self.record=recarray.array(buflist, formats=record._formats,
@@ -184,7 +190,8 @@ class BasicTestCase(unittest.TestCase):
             table = self.fileh.createTable(group, 'table'+str(j), self.record,
                                            title = self.title,
                                            compress = self.compress,
-                                           expectedrows = self.expectedrows)
+                                           expectedrows = self.expectedrows,
+                                           complib=self.complib)
             if not self.recarrayinit:
                 # Get the row object associated with the new table
                 row = table.row
@@ -192,6 +199,7 @@ class BasicTestCase(unittest.TestCase):
                 # Fill the table
                 for i in xrange(self.expectedrows):
                     row['var1'] = '%04d' % (self.expectedrows - i)
+                    row['var7'] = row['var1'][-1]
                     row['var2'] = i 
                     row['var3'] = i % self.maxshort
                     if isinstance(row['var4'], NumArray):
@@ -205,6 +213,7 @@ class BasicTestCase(unittest.TestCase):
                     # bar6 will be like var2 but byteswaped
                     row['var6'] = ((row['var3']>>8) & 0xff) + \
                                   ((row['var3']<<8) & 0xff00)
+                    #print("Saving -->", row)
                     row.append()
 		
             # Flush the buffer for this table
@@ -242,7 +251,7 @@ class BasicTestCase(unittest.TestCase):
             print "Last record in table ==>", rec
             print "Total selected records in table ==> ", len(result)
         nrows = self.expectedrows - 1
-        assert (rec['var1'], rec['var2']) == ("0001", nrows)
+        assert (rec['var1'], rec['var2'], rec['var7']) == ("0001", nrows,"1")
         if isinstance(rec['var5'], NumArray):
             assert allequal(rec['var5'], array((float(nrows),)*4))
         else:
@@ -271,6 +280,7 @@ class BasicTestCase(unittest.TestCase):
         # Append some rows
         for i in xrange(self.appendrows):
             row['var1'] = '%04d' % (self.appendrows - i)
+            row['var7'] = row['var1'][-1]
             row['var2'] = i 
             row['var3'] = i % self.maxshort
             if isinstance(row['var4'], NumArray):
@@ -289,7 +299,7 @@ class BasicTestCase(unittest.TestCase):
                    if row['var2'] < 20 ]
 	
         nrows = self.appendrows - 1
-        assert (row['var1'], row['var2']) == ("0001", nrows)
+        assert (row['var1'], row['var2'], row['var7']) == ("0001", nrows, "1")
         if isinstance(row['var5'], NumArray):
             assert allequal(row['var5'], array((float(nrows),)*4))
         else:
@@ -344,28 +354,39 @@ class DictWriteTestCase(BasicTestCase):
 class RecArrayOneWriteTestCase(BasicTestCase):
     #record = RecArrayDescription
     title = "RecArrayOneWrite"
-    record=recarray.array(formats="4a,i4,i2,2f8,f4,i2",
-                          names='var1,var2,var3,var4,var5,var6')
+    record=recarray.array(formats="4a,i4,i2,2f8,f4,i2,1a",
+                          names='var1,var2,var3,var4,var5,var6,var7')
 
 class RecArrayTwoWriteTestCase(BasicTestCase):
     title = "RecArrayTwoWrite"
     expectedrows = 100
     recarrayinit = 1
-    recordtemplate=recarray.array(formats="4a,i4,i2,f8,f4,i2",
-                                  names='var1,var2,var3,var4,var5,var6',
+    recordtemplate=recarray.array(formats="4a,i4,i2,f8,f4,i2,1a",
+                                  names='var1,var2,var3,var4,var5,var6,var7',
                                   shape=1)
 
 class RecArrayThreeWriteTestCase(BasicTestCase):
     title = "RecArrayThreeWrite"
     expectedrows = 100
     recarrayinit = 1
-    recordtemplate=recarray.array(formats="4a,i4,i2,2f8,4f4,i2",
-                                  names='var1,var2,var3,var4,var5,var6',
+    recordtemplate=recarray.array(formats="4a,i4,i2,2f8,4f4,i2,1a",
+                                  names='var1,var2,var3,var4,var5,var6,var7',
                                   shape=1)
 
+class CompressLZOTablesTestCase(BasicTestCase):
+    title = "CompressLZOTables"
+    compress = 1
+    complib = "lzo"
+    
+class CompressUCLTablesTestCase(BasicTestCase):
+    title = "CompressUCLTables"
+    compress = 1
+    complib = "lzo"
+    
 class CompressOneTablesTestCase(BasicTestCase):
     title = "CompressOneTables"
     compress = 1
+    complib = "zlib"
 
 class CompressTwoTablesTestCase(BasicTestCase):
     title = "CompressTwoTables"
@@ -419,6 +440,7 @@ class BasicRangeTestCase(unittest.TestCase):
             # Fill the table
             for i in xrange(self.expectedrows):
                 row['var1'] = '%04d' % (self.expectedrows - i)
+                row['var7'] = row['var1'][-1]
                 row['var2'] = i 
                 row['var3'] = i % self.maxshort
                 if isinstance(row['var4'], NumArray):
@@ -856,6 +878,10 @@ def suite():
         theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
+        if isLibAvailable("lzo"):
+            theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
+        if isLibAvailable("ucl"):
+            theSuite.addTest(unittest.makeSuite(CompressUCLTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressOneTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressTwoTablesTestCase))
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))

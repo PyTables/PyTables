@@ -95,7 +95,7 @@ def createFile(filename, totalrows, complevel, complib, recsize):
             for i in xrange(totalrows):
                 #d['name']  = 'Part: %6d' % (i)
                 #d['float1'] = NA.array([i]*2, NA.Float64)
-                #d['float1'] = arr
+                d['float1'] = arr
                 #d['float1'] = i
                 #d['float2'] = float(i)
                 # Common part with big:

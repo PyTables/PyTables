@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.28 2003/03/15 12:02:42 falted Exp $
+#       $Id: Group.py,v 1.29 2003/05/01 17:25:36 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.28 $"
+__version__ = "$Revision: 1.29 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -218,7 +218,7 @@ class Group(hdf5Extension.Group):
         newattr = self.__dict__
         name = newname
 
-        # Falta que açò s'invoque recursivament per a refrescar les
+        # Falta que aco s'invoque recursivament per a refrescar les
         # _v_pathnames en l'arbre.
         # Delete references to the oldname
         del parent._v_groups[self._v_name]

@@ -7,6 +7,7 @@
 #ifdef HAVE_LZO_LIB
 #   include "lzo1x.h"
 #   include "H5Zlzo.h"
+#   include "utils.h"
 
 void *wrkmem;
 
@@ -32,13 +33,25 @@ int register_lzo(void) {
   /* Book a buffer for the compression */
   wrkmem = (void *)malloc(LZO1X_1_MEM_COMPRESS);
    
-  return 1; /* lib is available */
+  return LZO_VERSION; /* lib is available */
 
 #else
   return 0; /* lib is not available */
 #endif /* HAVE_LZO_LIB */
 
 }
+
+#ifdef HAVE_LZO_LIB
+/* This routine only can be called if LZO is present */
+PyObject *getLZOVersionInfo(void) {
+  char *info[3];
+
+  info[0] = strdup(LZO_VERSION_STRING);
+  info[1] = strdup(LZO_VERSION_DATE);
+  return createNamesTuple(info, 2);
+}
+
+#endif /* HAVE_LZO_LIB */
 
 size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
 		    const unsigned cd_values[], size_t nbytes,
