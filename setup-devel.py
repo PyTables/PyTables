@@ -69,7 +69,7 @@ def check_lib(libname, maindir, dll_lib,
 
 if os.name == 'posix':
     # Define macros for UNIX platform
-    def_macros = [('NDEBUG', 1)]
+    def_macros = [('DEBUG', 1)]
 
     # Allow setting the HDF5 dir and additional link flags either in
     # the environment or on the command line.

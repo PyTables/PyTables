@@ -1509,7 +1509,7 @@ herr_t H5LT_find_attribute( hid_t loc_id, const char* attr_name )
 
  attr_num = 0;
  /* ret = H5Aiterate( loc_id, &attr_num, find_attr, attr_name ); */
- /* Modified by F. Alted for preventing a compile warning to appear */
+ /* Modified by F. Alted to prevent a compile warning to appear */
  ret = H5Aiterate( loc_id, &attr_num, find_attr, (void *)attr_name );
 
  return ret;

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.30 2003/05/22 12:24:12 falted Exp $
+#       $Id: Group.py,v 1.31 2003/06/02 14:24:19 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.30 $"
+__version__ = "$Revision: 1.31 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -46,6 +46,7 @@ import warnings, types
 import hdf5Extension
 from Table import Table
 from Array import Array
+from AttributeSet import AttributeSet
 from utils import checkNameValidity
 
 class Group(hdf5Extension.Group, object):
@@ -99,7 +100,7 @@ class Group(hdf5Extension.Group, object):
         """Create the basic structures to keep group information.
 
         title -- The title for this group
-        new -- If this group is new or has to read from disk
+        new -- If this group is new or has to be read from disk
         
         """
         self.__dict__["_v_new"] = new
@@ -193,6 +194,8 @@ class Group(hdf5Extension.Group, object):
         # To be done when general Attribute module available
         newattr["_v_class"] = value.__class__.__name__
         newattr["_v_version"] = "1.0"
+        # Attach the AttributeSet attribute
+        #newattr["_v_attrs"] = AttributeSet(self)
         # Update class variables
         self._v_file.objects[value._v_pathname] = value
 
@@ -209,9 +212,15 @@ class Group(hdf5Extension.Group, object):
             self._g_create()
         else:
             self._g_open(parent, self._v_hdf5name)
+        # Attach the AttributeSet attribute
+        self.__dict__["_v_attrs"] = AttributeSet(self)
+        # Once the AttributeSet instance has been created, get the title,
+        # class and version attributes
+        self.__dict__["_v_title"] = self._v_attrs.TITLE
+        self.__dict__["_v_class"] = self._v_attrs.CLASS
+        self.__dict__["_v_version"] = self._v_attrs.VERSION
 
     def _g_renameObject(self, newname):
-        
         """Rename this group in the object tree as well as in the HDF5 file."""
 
         parent = self._v_parent
@@ -267,18 +276,11 @@ class Group(hdf5Extension.Group, object):
 
     def _g_open(self, parent, name):
         """Call the openGroup method in super class to open the existing
-        group on disk. Also get attributes for this group. """
+        group on disk. """
         
         # Call the superclass method to open the existing group
         self.__dict__["_v_groupId"] = \
                       self._g_openGroup(parent._v_groupId, name)
-        # Get the title, class and version attributes
-        self.__dict__["_v_title"] = \
-                      self._f_getAttr('TITLE')
-        self.__dict__["_v_class"] = \
-                      self._f_getAttr('CLASS')
-        self.__dict__["_v_version"] = \
-                      self._f_getAttr('VERSION')
 
     def _g_create(self):
         """Call the createGroup method in super class to create the group on
@@ -426,23 +428,14 @@ class Group(hdf5Extension.Group, object):
     def _f_getAttr(self, attrname):
         """Get a group attribute as a string"""
         
-        if attrname == "" or attrname is None:
-            raise ValueError, \
-"""You need to supply a valid attribute name"""            
-        return self._g_getGroupAttrStr(attrname)
+        #return self._g_getGroupAttrStr(attrname)
+        return getattr(self._v_attrs, attrname, None)
 
     def _f_setAttr(self, attrname, attrvalue):
         """Set an group attribute as a string"""
 
-        if attrname == "" or attrname is None:
-            raise ValueError, \
-"""You need to supply a valid attribute name"""            
-
-        if type(attrvalue) == types.StringType:
-            return self._g_setGroupAttrStr(attrname, attrvalue)
-        else:
-            raise ValueError, \
-"""Only string values are supported as attributes right now"""
+        #return self._g_setGroupAttrStr(attrname, attrvalue)
+        setattr(self._v_attrs, attrname, attrvalue)
 
     def _f_rename(self, newname):
         """Rename an HDF5 group"""

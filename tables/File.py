@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.33 2003/05/22 12:24:12 falted Exp $
+#       $Id: File.py,v 1.34 2003/06/02 14:24:19 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.33 $"
+__version__ = "$Revision: 1.34 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -46,6 +46,7 @@ from Group import Group
 from Leaf import Leaf
 from Table import Table
 from Array import Array
+from AttributeSet import AttributeSet
 import numarray
 
 def openFile(filename, mode="r", title="", trMap={}):
@@ -258,7 +259,9 @@ class File(hdf5Extension.File, object):
         self.objects["/"] = root
         
         # Open the root group. We do that always, be the file new or not
-        root._g_openGroup(self._v_groupId, "/")
+        newattr["_v_groupId"] = root._g_openGroup(self._v_groupId, "/")
+        # Attach the AttributeSet attribute to the root group
+        newattr["_v_attrs"] = AttributeSet(root)
 
         if self._v_new:
             # Set the title, class and version attributes
@@ -267,31 +270,37 @@ class File(hdf5Extension.File, object):
             newattr["_v_version"] = "1.0"
             
             # Do the same on disk
-            root._g_setGroupAttrStr('TITLE', root._v_title)
-            root._g_setGroupAttrStr('CLASS', root._v_class)
-            root._g_setGroupAttrStr('VERSION', root._v_version)
+#            root._g_setGroupAttrStr('TITLE', root._v_title)
+#            root._g_setGroupAttrStr('CLASS', root._v_class)
+#            root._g_setGroupAttrStr('VERSION', root._v_version)
+            root._v_attrs.TITLE = root._v_title
+            root._v_attrs.CLASS = root._v_class
+            root._v_attrs.VERSION = root._v_version
             
             # Finally, save the PyTables format version for this file
             self._format_version = format_version
-            root._g_setGroupAttrStr('PYTABLES_FORMAT_VERSION', format_version)
+            #root._g_setGroupAttrStr('PYTABLES_FORMAT_VERSION', format_version)
+            root._v_attrs.PYTABLES_FORMAT_VERSION = format_version
         
         else:
             # Firstly, get the PyTables format version for this file
-            self._format_version = \
-                                root._f_getAttr('PYTABLES_FORMAT_VERSION')
+#            self._format_version = \
+#                                root._f_getAttr('PYTABLES_FORMAT_VERSION')
+            self._format_version = root._v_attrs.PYTABLES_FORMAT_VERSION
             if self._format_version == None:
                 # PYTABLES_FORMAT_VERSION attribute is not present
                 self._format_version = "unknown"
                           
             # Get the title, class and version attributes
             # (only for root)
-            root.__dict__["_v_title"] = \
-                      root._f_getAttr('TITLE')
+            root.__dict__["_v_title"] = root._v_attrs.TITLE
+#                      root._f_getAttr('TITLE')
             self.title = root._v_title   # This is a standard File attribute
-            root.__dict__["_v_class"] = \
-                      root._f_getAttr('CLASS')
-            root.__dict__["_v_version"] = \
-                      root._f_getAttr('VERSION')
+            root.__dict__["_v_class"] = root._v_attrs.TITLE
+            #                      root._f_getAttr('CLASS')
+            root.__dict__["_v_version"] = root._v_attrs.VERSION
+            
+#                      root._f_getAttr('VERSION')
                       
             # Get all the groups recursively
             root._g_openFile()

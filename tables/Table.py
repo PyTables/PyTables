@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.45 2003/05/22 12:24:12 falted Exp $
+#       $Id: Table.py,v 1.46 2003/06/02 14:24:19 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.45 $"
+__version__ = "$Revision: 1.46 $"
 
 from __future__ import generators
 import sys
@@ -262,7 +262,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         """
         # Get table info
         (self.nrows, self.colnames, self._v_fmt) = self._getTableInfo()
-        self.title = self.getAttr("TITLE")
+        #self.title = self.getAttr("TITLE")
         # This one is probably not necessary to set it, but...
         self._v_compress = 0  # This means, we don't know if compression
                               # is active or not. May be save this info

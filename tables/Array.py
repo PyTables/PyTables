@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.30 2003/05/22 12:24:12 falted Exp $
+#       $Id: Array.py,v 1.31 2003/06/02 14:24:18 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.30 $"
+__version__ = "$Revision: 1.31 $"
 import types, warnings, sys
 from Leaf import Leaf
 import hdf5Extension
@@ -207,10 +207,6 @@ class Array(Leaf, hdf5Extension.Array, object):
         (self.type, self.shape, self.itemsize, self.byteorder) = \
                         self._openArray()
 
-        self.title = self.getAttr("TITLE")
-        # Numeric, NumArray, CharArray, Tuple, List, String, Int or Float
-        self.flavor = self.getAttr("FLAVOR")
-        
     # Accessor for the _readArray method in superclass
     def read(self):
         """Read the array from disk and return it as numarray."""
@@ -229,6 +225,9 @@ class Array(Leaf, hdf5Extension.Array, object):
         # Do the actual data read
         self._readArray(arr._data)
 
+        # Numeric, NumArray, CharArray, Tuple, List, String, Int or Float
+        self.flavor = self.getAttr("FLAVOR")
+        
         # Convert to Numeric, tuple or list if needed
         if self.flavor == "Numeric":
             if Numeric_imported:
@@ -276,4 +275,4 @@ class Array(Leaf, hdf5Extension.Array, object):
         """This provides more metainfo in addition to standard __str__"""
 
         return "%s\n  type = %r\n  itemsize = %r\n  flavor = %r\n  byteorder = %r" % \
-               (self, self.type, self.itemsize, self.flavor, self.byteorder)
+               (self, self.type, self.itemsize, self.attrs.FLAVOR, self.byteorder)

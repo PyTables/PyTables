@@ -63,8 +63,6 @@ herr_t gitercb(hid_t loc_id, const char *name, void *data) {
     CHECK(ret, FAIL, "H5Gget_objinfo");
 
     out_info->type = statbuf.type;
-    /* printf("Object name ==> %s\n", out_info->name);
-    printf("Object type ==> %d\n", out_info->type); */
 #ifdef DEBUG
     printf("statbuf.type=%d\n",statbuf.type);
 #endif
@@ -80,7 +78,6 @@ herr_t gitercb(hid_t loc_id, const char *name, void *data) {
 ****************************************************************/
 PyObject *Giterate(hid_t loc_id, const char *name) {
   int i, j, k, totalobjects;
-  int mcexceed = 0;
   PyObject  *t, *tdir, *tdset;
   iter_info info;                   /* Info of objects in the group */
   char      *namesdir[MAX_CHILDS_IN_GROUP];  /* Names of dirs in the group */
@@ -91,7 +88,7 @@ PyObject *Giterate(hid_t loc_id, const char *name) {
   i = 0; j = 0; k = 0;
   while (H5Giterate(loc_id, name, &i, gitercb, &info) > 0) {
     /* Check if we are surpassing our buffer capacities */
-    if (i <= MAX_CHILDS_IN_GROUP) {
+    if (i < MAX_CHILDS_IN_GROUP) {
 #ifdef DEBUG
       printf("Object type ==> %d\n", info.type);
 #endif
@@ -110,7 +107,6 @@ PyObject *Giterate(hid_t loc_id, const char *name) {
     }
     else {
       fprintf(stderr, "Maximum number of childs exceeded!");
-      mcexceed = 1;
       break;
     }
   }
@@ -126,6 +122,54 @@ PyObject *Giterate(hid_t loc_id, const char *name) {
   PyTuple_SetItem(t, 1, tdset);
   
   return t;
+}
+
+/****************************************************************
+**
+**  aitercb(): Custom attribute iteration callback routine.
+** 
+****************************************************************/
+static herr_t aitercb( hid_t loc_id, const char *name, void *data) {
+  iter_info *out_info=(iter_info *)data; 
+
+  /* Shut the compiler up */
+  loc_id=loc_id;
+  
+  /* Return the name of the attribute on op_data */
+  strcpy(out_info->name, name);
+  return(1);     /* Exit after this object is visited */
+} 
+
+
+/****************************************************************
+**
+**  Aiterate(): Attribute set iteration routine.
+** 
+****************************************************************/
+PyObject *Aiterate(hid_t loc_id) {
+  int i = 0;
+  iter_info info;                  /* Info of objects in the group */
+  char *names[MAX_ATTRS_IN_NODE];  /* Names of attrs in the node */
+
+  memset(&info, 0, sizeof info);
+  while (H5Aiterate(loc_id, &i, aitercb, &info) > 0) {
+    /* Check if we are surpassing our buffer capacities */
+    if (i < MAX_ATTRS_IN_NODE) {
+#ifdef DEBUG
+      printf("Attr name ==> %s. Attr number ==> %d\n", info.name, i);
+#endif
+      names[i-1] = strdup(info.name);
+    }
+    else {
+      fprintf(stderr, "Maximum number of attributes in a node exceeded!");
+      break;
+    }
+  }
+  
+#ifdef DEBUG
+  printf("Total numer of attrs ==> %d\n", i);
+#endif
+  return createNamesTuple(names, i);
 }
 
 

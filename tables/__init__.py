@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/__init__.py,v $
-#       $Id: __init__.py,v 1.9 2003/05/01 17:25:36 falted Exp $
+#       $Id: __init__.py,v 1.10 2003/06/02 14:24:19 falted Exp $
 #
 ########################################################################
 
@@ -42,6 +42,7 @@ ExtVersion  = getExtVersion()
 from File import File, openFile
 from Group import Group
 from Leaf import Leaf
+#from AttributeBag import AttributeBag
 from Table import Table
 from Array import Array
 from IsDescription import IsDescription, Col

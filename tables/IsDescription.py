@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.4 2003/05/07 19:34:32 falted Exp $
+#       $Id: IsDescription.py,v 1.5 2003/06/02 14:24:19 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.4 $"
+__version__ = "$Revision: 1.5 $"
 
 
 import warnings
@@ -158,7 +158,6 @@ print p
             """
             # Initialize this values
             for k in self.__dflts__: setattr(self, k, self.__dflts__[k])
-
             # Initialize the values passed as keyword parameters
             for k in kw:
                 setattr(self, k, kw[k])
@@ -205,7 +204,7 @@ print p
         # Build the newdict that we'll use as dict for the new class.
         # Warning!. You have to list here all attributes and methods
         # you want see exported to the new Description class.
-        
+
         newdict = { '__slots__':[], '__types__':{}, '__dflts__':{},
                     '__init__':__init__, '__repr__':__repr__,
                     '__str__':__str__,

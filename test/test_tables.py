@@ -24,7 +24,7 @@ class Record(IsDescription):
     var6 = Col("Int16", 1)      # short integer 
     var7 = Col("CharType", 1)   # 1-character String
 
-# From 0.3, you can dynamically define the tables with a dictionary
+# From 0.3 on, you can dynamically define the tables with a dictionary
 RecordDescriptionDict = {
     'var1': Col("CharType", 4),   # 4-character String
     'var2': Col("Int32", 1),      # integer
@@ -54,6 +54,49 @@ def allequal(a,b):
         result = logical_and.reduce(result)
 
     return result
+
+class LargeRowSize(unittest.TestCase):
+
+    def test00(self):
+        "Checking saving a Table with a moderately large rowsize"
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a recarray
+        r=recarray.array([[arange(100)]*2])
+
+        # Save it in a table:
+        fileh.createTable(fileh.root, 'largerow', r)
+
+        # Read it again
+        r2 = fileh.root.largerow.read()
+
+        assert r.tostring() == r2.tostring()
+        
+        fileh.close()
+        #os.remove(file)
+
+    def test01(self):
+        "Checking saving a Table with an extremely large rowsize"
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a recarray
+        r=recarray.array([[arange(1000)]*4])
+
+        # Save it in a table:
+        try:
+            fileh.createTable(fileh.root, 'largerow', r)
+        except RuntimeError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+		print "\nGreat!, the next RuntimeError was catched!"
+                print value
+        else:
+            self.fail("expected a RuntimeError")
+            
+        fileh.close()
+        os.remove(file)
 
 class RecArrayIO(unittest.TestCase):
 
@@ -906,7 +949,7 @@ class RecArrayIO(unittest.TestCase):
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
-    
+
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(DictWriteTestCase))
@@ -924,7 +967,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
         theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayIO))
-    
+        theSuite.addTest(unittest.makeSuite(LargeRowSize))
+            
     return theSuite
 
 

@@ -55,7 +55,7 @@ class createTestCase(unittest.TestCase):
         self.fileh.close()
         os.remove(self.file)
         # Delete references
-        del self.fileh, self.root, self.table, self.array, self.group
+        #del self.fileh, self.root, self.table, self.array, self.group
 
     #----------------------------------------
 
@@ -120,64 +120,40 @@ class createTestCase(unittest.TestCase):
         else:
             self.fail("expected a NameError")
 
-    def test03_titleLength(self):
+    def test03a_titleAttr(self):
+        """Checking the self.title attr in nodes"""
+
+        # Close the opened file to destroy the object tree 
+        self.fileh.close()
+        # Open the file again to re-create the objects
+        self.fileh = openFile(self.file,"r")
+
+        # Now, test that self.title exists and is correct in all the nodes
+        assert self.fileh.root.agroup._v_title == "Group title"
+        assert self.fileh.root.atable.title == "Table title"
+        assert self.fileh.root.anarray.title == "Array title"
+
+    def test03b_titleLength(self):
         """Checking large title character length limit (1024)"""
 
 	titlelength = 1024
 	# Try to put a very long title on a group object
 	group = self.fileh.createGroup(self.root, 'group',
                                        "t" * titlelength)
+        assert group._v_title == "t" * titlelength
         assert group._f_getAttr('TITLE') == "t" * titlelength
 	
 	# Now, try with a table object
 	table = self.fileh.createTable(self.root, 'table',
                                        Record, "t" * titlelength)
+	assert table.title == "t" * titlelength
 	assert table.getAttr("TITLE") == "t" * titlelength
 	    
 	# Finally, try with an Array object
         arr = self.fileh.createArray(self.root, 'arr',
                                      [1], "t" * titlelength)
 	assert arr.title == "t" * titlelength
-	    
-    def test03b_setAttributes(self):
-        """Checking setting large string attributes (File methods)"""
-
-	attrlength = 2048
-	# Try to put a long string attribute on a group object
-	attr = self.fileh.setAttrNode(self.root.agroup,
-                                      "attr1", "p" * attrlength)
-        assert self.fileh.getAttrNode(self.root.agroup, 'attr1') == \
-               "p" * attrlength
-	
-	# Now, try with a Table object
-	attr = self.fileh.setAttrNode(self.root.atable,
-                                      "attr1", "a" * attrlength)
-        assert self.fileh.getAttrNode(self.root.atable, 'attr1') == \
-               "a" * attrlength
-	    
-	# Finally, try with an Array object
-	attr = self.fileh.setAttrNode(self.root.anarray,
-                                      "attr1", "n" * attrlength)
-        assert self.fileh.getAttrNode(self.root.anarray, 'attr1') == \
-               "n" * attrlength
-	    
-	    
-    def test03c_setAttributes(self):
-        """Checking setting large string attributes (Node methods)"""
-
-	attrlength = 2048
-	# Try to put a long string attribute on a group object
-        self.root.agroup._f_setAttr('attr1', "p" * attrlength)
-        assert self.root.agroup._f_getAttr('attr1') == "p" * attrlength
-	
-	# Now, try with a Table object
-        self.root.atable.setAttr('attr1', "a" * attrlength)
-	assert self.root.atable.getAttr("attr1") == "a" * attrlength
-	    
-	# Finally, try with an Array object
-        self.root.anarray.setAttr('attr1', "n" * attrlength)
-	assert self.root.anarray.getAttr("attr1") == "n" * attrlength
-	    
+	assert arr.getAttr("TITLE") == "t" * titlelength
 	    
     def test04_maxFields(self):
 	"Checking the maximum number of fields (255) in tables"
@@ -188,23 +164,22 @@ class createTestCase(unittest.TestCase):
 	varnames = []
 	for i in range(varnumber):
 	    varnames.append('int%d' % i)
-            
+
 	# Build a dictionary with the types as values and varnames as keys
 	recordDict = {}
 	i = 0
 	for varname in varnames:
-	    #recordDict[varname] = vartypes[i]
 	    recordDict[varname] = Col("Int32", 1)
 	    i += 1
-            
 	# Append this entry to indicate the alignment!
 	recordDict['_v_align'] = "="
-        
 	# Now, create a table with this record object
 	table = Table(recordDict, "MetaRecord instance")
-
-	# Attach the table to object tree
+	# Attach the table to the object tree
 	self.root.table = table
+        # This works the same than above
+	#table = self.fileh.createTable(self.root, 'table',
+        #                               recordDict, "MetaRecord instance")
 	row = table.row
 	# Write 10 records
         for j in range(10):
@@ -217,17 +192,16 @@ class createTestCase(unittest.TestCase):
 
         # write data on disk
 	table.flush()
-	
+
 	# Read all the data as records 
 	for recout in table.iterrows():
             pass
 
         # Compare the last input row and last output
-        # They should be equal
+        # they should be equal
         assert row == recout
 	    
     def test05_maxFieldsExceeded(self):
-        
 	"Checking an excess (256) of the maximum number of fields in tables"
 
 	# The number of fields for a table
@@ -263,6 +237,89 @@ class createTestCase(unittest.TestCase):
         else:
             self.fail("expected an IndexError")
 	
+    def test06_setAttributes(self):
+        """Checking setting large string attributes (File methods)"""
+
+	attrlength = 2048
+	# Try to put a long string attribute on a group object
+	attr = self.fileh.setAttrNode(self.root.agroup,
+                                      "attr1", "p" * attrlength)
+        assert self.fileh.getAttrNode(self.root.agroup, 'attr1') == \
+               "p" * attrlength
+	
+	# Now, try with a Table object
+	attr = self.fileh.setAttrNode(self.root.atable,
+                                      "attr1", "a" * attrlength)
+        assert self.fileh.getAttrNode(self.root.atable, 'attr1') == \
+               "a" * attrlength
+	    
+	# Finally, try with an Array object
+	attr = self.fileh.setAttrNode(self.root.anarray,
+                                      "attr1", "n" * attrlength)
+        assert self.fileh.getAttrNode(self.root.anarray, 'attr1') == \
+               "n" * attrlength
+	    
+	    
+    def test07_setAttributes(self):
+        """Checking setting large string attributes (Node methods)"""
+
+	attrlength = 2048
+	# Try to put a long string attribute on a group object
+        self.root.agroup._f_setAttr('attr1', "p" * attrlength)
+        assert self.root.agroup._f_getAttr('attr1') == "p" * attrlength
+	
+	# Now, try with a Table object
+        self.root.atable.setAttr('attr1', "a" * attrlength)
+	assert self.root.atable.getAttr("attr1") == "a" * attrlength
+	    
+	# Finally, try with an Array object
+        self.root.anarray.setAttr('attr1', "n" * attrlength)
+	assert self.root.anarray.getAttr("attr1") == "n" * attrlength
+	    
+	    
+    def test08_setAttributes(self):
+        """Checking setting large string attributes (AttributeSet methods)"""
+
+	attrlength = 2048
+	# Try to put a long string attribute on a group object
+        self.group._v_attrs.attr1 = "p" * attrlength
+        assert self.group._v_attrs.attr1 == "p" * attrlength
+	
+	# Now, try with a Table object
+        self.table.attrs.attr1 = "a" * attrlength
+	assert self.table.attrs.attr1 == "a" * attrlength
+	    
+	# Finally, try with an Array object
+        self.array.attrs.attr1 = "n" * attrlength
+	assert self.array.attrs.attr1 == "n" * attrlength
+	    
+    def test09_listAttributes(self):
+        """Checking listing attributes """
+
+        # With a Group object
+        self.group._v_attrs.pq = "1"
+        self.group._v_attrs.qr = "2"
+        self.group._v_attrs.rs = "3"
+        if verbose:
+            print "Attribute list:", self.group._v_attrs._f_listAttrs()
+        assert self.group._v_attrs._f_listAttrs() == ["pq", "qr", "rs"]
+	
+	# Now, try with a Table object
+        self.table.attrs.a = "1"
+        self.table.attrs.b = "2"
+        self.table.attrs.c = "3"
+        if verbose:
+            print "Attribute list:", self.table.attrs._f_listAttrs()
+        assert self.table.attrs._f_listAttrs() == ["a", "b", "c"]
+	    
+	# Finally, try with an Array object
+        self.array.attrs.i = "1"
+        self.array.attrs.j = "2"
+        self.array.attrs.k = "3"
+        if verbose:
+            print "Attribute list:", self.array.attrs._f_listAttrs()
+        assert self.array.attrs._f_listAttrs() == ["i", "j", "k"]
+	    
         
 #----------------------------------------------------------------------
 

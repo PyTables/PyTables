@@ -42,6 +42,10 @@
    that in Group.py. But it is necessary to syncronize both values!. */
 #define MAX_CHILDS_IN_GROUP  4096
 
+/* Maximum attributes in a node */
+/* This number has to be syncronized with that on AttributeSet.py */ 
+#define MAX_ATTRS_IN_NODE  4096
+
 /* Custom group iteration callback data */
 typedef struct {
     char name[NAMELEN];     /* The name of the object */
@@ -66,5 +70,7 @@ PyObject *createNamesTuple(char *buffer[], int nelements);
 PyObject *createDimsTuple(int dimensions[], int nelements);
 
 PyObject *Giterate(hid_t loc_id, const char *name);
+
+PyObject *Aiterate(hid_t loc_id);
 
 H5T_class_t getHDF5ClassID(hid_t loc_id, const char *name);

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.46 2003/05/12 15:56:15 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.47 2003/06/02 14:24:18 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.46 $"
+__version__ = "$Revision: 1.47 $"
 
 
 import sys, os
@@ -446,6 +446,7 @@ cdef extern from "utils.h":
   object createNamesTuple(char *buffer[], int nelements)
   object createDimsTuple(int dimensions[], int nelements)
   object Giterate(hid_t loc_id, char *name)
+  object Aiterate(hid_t loc_id)
   H5T_class_t getHDF5ClassID(hid_t loc_id, char *name)
 
 # ZLIB library
@@ -584,7 +585,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.46 2003/05/12 15:56:15 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.47 2003/06/02 14:24:18 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -654,6 +655,129 @@ cdef class File:
         raise RuntimeError("Problems closing the file %s" % self.name )
 
 
+cdef class AttributeSet:
+  cdef hid_t   parent_id
+  cdef char    *name
+  cdef object  node
+
+  def _g_new(self, node):
+    self.node = node
+    # Initialize the C attributes of Node object
+    self.name =  PyString_AsString(node._v_hdf5name)
+    # The parent group id of the node
+    self.parent_id = node._v_parent._v_groupId
+    
+  def _g_listAttr(self):
+    cdef object attrlist
+    cdef hid_t loc_id
+
+    if isinstance(self.node, Group):
+      #print "self.node._v_groupId ==>", self.node._v_groupId
+      #print "self.node ==>", self.node._v_name
+      # Return a tuple with the attribute list
+      attrlist = Aiterate(self.node._v_groupId)
+    else:
+      # Get the dataset ID (the Leaf objects are always closed)
+      loc_id = H5Dopen(self.parent_id, self.name)
+      if loc_id < 0:
+        raise RuntimeError("Cannot open the dataset \"%s\"" % self.name)
+      attrlist = Aiterate(loc_id)
+      # Close this dataset
+      ret = H5Dclose(loc_id)
+      if ret < 0:
+        raise RuntimeError("Cannot close the dataset \"%s\"" % self.name)
+
+    return attrlist
+
+  def _g_setLeafAttrStr(self, char *dsetname, char *attrname, char *attrvalue):
+    cdef int ret
+      
+    ret = H5LTset_attribute_string(self.parent_id, dsetname,
+                                   attrname, attrvalue)
+    if ret < 0:
+      raise RuntimeError("Can't set attribute %s in leaf %s." % 
+                             (self.attrname, dsetname))
+
+  def _g_setGroupAttrStr(self, char *attrname, char *attrvalue):
+    cdef int ret
+      
+    ret = H5LTset_attribute_string(self.parent_id, self.name,
+                                   attrname, attrvalue)
+    if ret < 0:
+      raise RuntimeError("Can't set attribute %s in group %s." % 
+                             (self.attrname, self.name))
+
+  def _g_getLeafAttrStr(self, char *dsetname, char *attrname):
+    cdef object attrvalue
+    cdef hid_t loc_id
+
+    # Get the dataset ID
+    loc_id = H5Dopen(self.parent_id, dsetname)
+    if loc_id < 0:
+      raise RuntimeError("Cannot open the dataset %s" % dsetname)
+
+    attrvalue = self._g_getNodeAttrStr(self.parent_id, loc_id,
+                                       dsetname, attrname)
+    # Close this dataset
+    ret = H5Dclose(loc_id)
+    if ret < 0:
+      raise RuntimeError("Cannot close the dataset %s" % dsetname)
+
+    return attrvalue
+
+  def _g_getGroupAttrStr(self, char *attrname):
+
+    return self._g_getNodeAttrStr(self.parent_id, self.node._v_groupId,
+                                  self.name, attrname)
+
+  # Get attributes (only supports string attributes right now)
+  def _g_getNodeAttrStr(self, hid_t parent_id, hid_t loc_id,
+                        char *dsetname, char *attrname):
+    cdef hsize_t *dims, nelements
+    cdef H5T_class_t class_id
+    cdef size_t type_size
+    cdef char *attrvalue
+    cdef int rank
+    cdef int ret, i
+        
+    # Check if attribute exists
+    if H5LT_find_attribute(loc_id, attrname) <= 0:
+      # If the attribute does not exists, return None
+      # and do not even warn the user
+      return None
+
+    ret = H5LTget_attribute_ndims(parent_id, dsetname, attrname, &rank )
+    if ret < 0:
+      raise RuntimeError("Can't get ndims on attribute %s in node %s." %
+                             (attrname, dsetname))
+
+    # Allocate memory to collect the dimension of objects with dimensionality
+    if rank > 0:
+        dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
+
+    ret = H5LTget_attribute_info(parent_id, dsetname, attrname,
+                                 dims, &class_id, &type_size)
+    if ret < 0:
+        raise RuntimeError("Can't get info on attribute %s in node %s." %
+                               (attrname, dsetname))
+
+    if rank == 0:
+      attrvalue = <char *>malloc(type_size * sizeof(char))
+    else:
+      elements = dim[0]
+      for i from  0 < i < rank:
+        nelements = nelements * dim[i]
+      attrvalue = <char *>malloc(type_size * nelements * sizeof(char))
+
+    ret = H5LTget_attribute_string(parent_id, dsetname,
+                                    attrname, attrvalue)
+    if ret < 0:
+      raise RuntimeError("Attribute %s exists in node %s, but can't get it." \
+                         % (attrname, dsetname))
+                            
+    return attrvalue
+
+
 cdef class Group:
   cdef hid_t   group_id
   cdef hid_t   parent_id
@@ -693,39 +817,57 @@ cdef class Group:
     return Giterate(loc_id, name)
 
   def _g_getLeafAttrStr(self, char *dsetname, char *attrname):
+    cdef object attrvalue
+    cdef hid_t loc_id
+
+    # Get the dataset ID
+    loc_id = H5Dopen(self.group_id, dsetname)
+    if loc_id < 0:
+      raise RuntimeError("Cannot open the dataset %s" % dsetname)
+
+    attrvalue = self._g_getNodeAttrStr(self.group_id, loc_id,
+                                       dsetname, attrname)
+    # Close this dataset
+    ret = H5Dclose(loc_id)
+    if ret < 0:
+      raise RuntimeError("Cannot close the dataset %s" % dsetname)
+
+    return attrvalue
+
+  def _g_getGroupAttrStr(self, char *attrname):
+
+    return self._g_getNodeAttrStr(self.parent_id, self.group_id,
+                                  self.name, attrname)
+
+  # Get attributes (only supports string attributes right now)
+  def _g_getNodeAttrStr(self, hid_t parent_id, hid_t loc_id,
+                        char *dsetname, char *attrname):
     cdef hsize_t *dims, nelements
     cdef H5T_class_t class_id
     cdef size_t type_size
     cdef char *attrvalue
     cdef int rank
     cdef int ret, i
-
-    # Get the dataset
-    loc_id = H5Dopen(self.group_id, dsetname)
-    if loc_id < 0:
-      raise RuntimeError("Cannot open the dataset")
-
+        
     # Check if attribute exists
     if H5LT_find_attribute(loc_id, attrname) <= 0:
       # If the attribute does not exists, return None
       # and do not even warn the user
       return None
-#       raise LookupError("Attribute %s in leaf %s does not exist." %
-#                              (attrname, dsetname))
-      
-    ret = H5LTget_attribute_ndims(self.group_id, dsetname, attrname, &rank )
+
+    ret = H5LTget_attribute_ndims(parent_id, dsetname, attrname, &rank )
     if ret < 0:
-      raise RuntimeError("Can't get ndims on attribute %s in dset %s." %
+      raise RuntimeError("Can't get ndims on attribute %s in node %s." %
                              (attrname, dsetname))
 
     # Allocate memory to collect the dimension of objects with dimensionality
     if rank > 0:
         dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
 
-    ret = H5LTget_attribute_info(self.group_id, dsetname, attrname,
+    ret = H5LTget_attribute_info(parent_id, dsetname, attrname,
                                  dims, &class_id, &type_size)
     if ret < 0:
-        raise RuntimeError("Can't get info on attribute %s in dset %s." %
+        raise RuntimeError("Can't get info on attribute %s in node %s." %
                                (attrname, dsetname))
 
     if rank == 0:
@@ -736,76 +878,13 @@ cdef class Group:
         nelements = nelements * dim[i]
       attrvalue = <char *>malloc(type_size * nelements * sizeof(char))
 
-    ret = H5LTget_attribute_string(self.group_id, dsetname,
+    ret = H5LTget_attribute_string(parent_id, dsetname,
                                     attrname, attrvalue)
     if ret < 0:
-      raise RuntimeError("Attribute %s exists in dset %s, but can't get it." \
+      raise RuntimeError("Attribute %s exists in node %s, but can't get it." \
                          % (attrname, dsetname))
                             
-    # Close this dataset
-    ret = H5Dclose(loc_id)
-    if ret < 0:
-      raise RuntimeError("Cannot close the dataset")
-
     return attrvalue
-
-  # Get attributes (only supports string attributes right now)
-  def _g_getGroupAttrStr(self, char *attrname):
-    cdef hsize_t *dims, nelements
-    cdef H5T_class_t class_id
-    cdef size_t type_size
-    cdef char *attrvalue
-    cdef int rank
-    cdef int ret, i
-        
-    # Check if attribute exists
-    if H5LT_find_attribute(self.group_id, attrname) <= 0:
-      # If the attribute does not exists, return None
-      # and do not even warn the user
-      return None
-#       raise LookupError("Attribute %s in group %s does not exist." %
-#                              (attrname, self.name))
-
-
-    ret = H5LTget_attribute_ndims(self.parent_id, self.name, attrname, &rank )
-    if ret < 0:
-      raise RuntimeError("Can't get ndims on attribute %s in group %s." %
-                             (attrname, self.name))
-
-    # Allocate memory to collect the dimension of objects with dimensionality
-    if rank > 0:
-        dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
-
-    ret = H5LTget_attribute_info(self.parent_id, self.name, attrname,
-                                 dims, &class_id, &type_size)
-    if ret < 0:
-        raise RuntimeError("Can't get info on attribute %s in group %s." %
-                               (attrname, self.name))
-
-    if rank == 0:
-      attrvalue = <char *>malloc(type_size * sizeof(char))
-    else:
-      elements = dim[0]
-      for i from  0 < i < rank:
-        nelements = nelements * dim[i]
-      attrvalue = <char *>malloc(type_size * nelements * sizeof(char))
-
-    ret = H5LTget_attribute_string(self.parent_id, self.name,
-                                    attrname, attrvalue)
-    if ret < 0:
-      raise RuntimeError("Attribute %s exists in group %s, but can't get it." \
-                         % (attrname, self.name))
-                            
-    return attrvalue
-
-  def _g_setGroupAttrStr(self, char *attrname, char *attrvalue):
-    cdef int ret
-      
-    ret = H5LTset_attribute_string(self.parent_id, self.name,
-                                   attrname, attrvalue)
-    if ret < 0:
-      raise RuntimeError("Can't set attribute %s in group %s." % 
-                             (self.attrname, self.name))
 
   def _g_setLeafAttrStr(self, char *dsetname, char *attrname, char *attrvalue):
     cdef int ret
@@ -815,6 +894,15 @@ cdef class Group:
     if ret < 0:
       raise RuntimeError("Can't set attribute %s in leaf %s." % 
                              (self.attrname, dsetname))
+
+  def _g_setGroupAttrStr(self, char *attrname, char *attrvalue):
+    cdef int ret
+      
+    ret = H5LTset_attribute_string(self.parent_id, self.name,
+                                   attrname, attrvalue)
+    if ret < 0:
+      raise RuntimeError("Can't set attribute %s in group %s." % 
+                             (self.attrname, self.name))
 
   def _g_closeGroup(self):
     cdef int ret
@@ -872,7 +960,7 @@ cdef class Table:
   cdef hsize_t nfields
   cdef void    *rbuf
   cdef hsize_t totalrecords
-  cdef hid_t   group_id, loc_id
+  cdef hid_t   parent_id, loc_id
   cdef char    *name, *xtitle
   cdef char    *fmt
   cdef char    *field_names[MAX_FIELDS]
@@ -883,7 +971,7 @@ cdef class Table:
   def _g_new(self, where, name):
     self.name = strdup(name)
     # The parent group id for this object
-    self.group_id = where._v_groupId
+    self.parent_id = where._v_groupId
 
   def _createTable(self, title, complib):
     cdef int nvar, offset
@@ -930,7 +1018,7 @@ cdef class Table:
 
     self.xtitle=strdup(title)
     self.complib=strdup(complib)
-    ret = H5TBmake_table(self.xtitle, self.group_id, self.name,
+    ret = H5TBmake_table(self.xtitle, self.parent_id, self.name,
                          nvar, self.nrows, self.rowsize, self.field_names,
                          self.field_offset, fieldtypes, self._v_chunksize,
                          fill_data, self._v_compress, self.complib, data)
@@ -947,7 +1035,7 @@ cdef class Table:
       raise RuntimeError("Problems getting the pointer to the buffer")
     
     # Append the records:
-    ret = H5TBappend_records(self.group_id, self.name, nrecords,
+    ret = H5TBappend_records(self.parent_id, self.name, nrecords,
                    self.rowsize, self.field_offset, rbuf)
     if ret < 0:
       raise RuntimeError("Problems appending the records")
@@ -963,7 +1051,7 @@ cdef class Table:
       raise RuntimeError("Problems getting the pointer to the buffer.")
 
     # Readout to the buffer
-    if ( H5TBOopen_append(self.group_id, self.name, self.nfields,
+    if ( H5TBOopen_append(self.parent_id, self.name, self.nfields,
                           self.rowsize, self.field_offset) < 0 ):
       raise RuntimeError("Problems opening table for append.")
 
@@ -1002,14 +1090,14 @@ cdef class Table:
     cdef char    fmt[255]
 
     # Get info about the table dataset
-    ret = H5LTget_dataset_info(self.group_id, self.name,
+    ret = H5LTget_dataset_info(self.parent_id, self.name,
                                dims, &class_id, &rowsize)
     if ret < 0:
       raise RuntimeError("Problems getting table dataset info")
     self.rowsize = rowsize
 
     # First, know how many records (& fields) has the table
-    ret = H5TBget_table_info(self.group_id, self.name,
+    ret = H5TBget_table_info(self.parent_id, self.name,
                              &nfields, &nrecords)
     if ret < 0:
       raise RuntimeError("Problems getting table info")
@@ -1022,12 +1110,12 @@ cdef class Table:
       # Strings could not be larger than 255
       self.field_names[i] = <char *>malloc(MAX_CHARS * sizeof(char))  
 
-    ret = H5TBget_field_info(self.group_id, self.name,
+    ret = H5TBget_field_info(self.parent_id, self.name,
                              self.field_names, self.field_sizes,
                              self.field_offset, &rowsize)
     if ret < 0:
       raise RuntimeError("Problems getting field info")
-    ret = getfieldfmt(self.group_id, self.name, fmt)
+    ret = getfieldfmt(self.parent_id, self.name, fmt)
     if ret < 0:
       raise RuntimeError("Problems getting field format")
     self.fmt = fmt
@@ -1054,7 +1142,7 @@ cdef class Table:
     ret2 = PyObject_AsWriteBuffer(recarr._data, &self.rbuf, &buflen)
 
     # Readout to the buffer
-    ret = H5TBread_records(self.group_id, self.name,
+    ret = H5TBread_records(self.parent_id, self.name,
                            start, nrecords, self.rowsize,
                            self.field_offset, self.rbuf )
     if ret < 0:
@@ -1071,7 +1159,7 @@ cdef class Table:
 
     # Readout to the buffer
     if ( H5TBOopen_read(&self.dataset_id, &self.space_id, &self.mem_type_id,
-                        self.group_id, self.name, self.nfields,
+                        self.parent_id, self.name, self.nfields,
                         self.field_names, self.rowsize,
                         self.field_offset) < 0 ):
       raise RuntimeError("Problems opening table for read.")
@@ -1113,7 +1201,7 @@ cdef class Table:
     ret2 = PyObject_AsWriteBuffer(recarr._data, &rbuf, &buflen)    
 
     # Readout to the buffer
-    ret = H5TBread_fields_name(self.group_id, self.name, field_name,
+    ret = H5TBread_fields_name(self.parent_id, self.name, field_name,
                                start, nrecords, self.field_sizes[fieldpos],
                                self.field_offset, rbuf )
 
@@ -1136,7 +1224,7 @@ cdef class Table:
         fieldpos = i
         
     # Readout to the buffer
-    ret = H5TBread_fields_name(self.group_id, self.name, field_name,
+    ret = H5TBread_fields_name(self.parent_id, self.name, field_name,
                                start, nrecords, self.field_sizes[fieldpos],
                                self.field_offset, self.rbuf )
 
@@ -1280,9 +1368,9 @@ cdef class Row:
         # if not NA_updateDataPtr(self._fields[fieldName]):
         #  return None
         # This optimization sucks when using numarray 0.4!
-        # offset = self._row * self._strides
-        # return NA_getPythonScalar(self._fields[fieldName], offset)
-        return self._fields[fieldName][self._row]
+        offset = self._row * self._strides
+        return NA_getPythonScalar(self._fields[fieldName], offset)
+        # return self._fields[fieldName][self._row]
       elif (self._enumtypes[index] == CHARTYPE):
         # CharType columns can only be unidimensional charrays right now,
         # so the elements has to be strings, so a copy() is not applicable here
@@ -1366,7 +1454,7 @@ cdef class Row:
 
 cdef class Array:
   # Instance variables
-  cdef hid_t   group_id
+  cdef hid_t   parent_id
   cdef char    *name
   cdef int     rank
   cdef hsize_t *dims
@@ -1377,7 +1465,7 @@ cdef class Array:
     # Initialize the C attributes of Group object (Very important!)
     self.name = strdup(name)
     # The parent group id for this object
-    self.group_id = where._v_groupId
+    self.parent_id = where._v_groupId
 
   def _createArray(self, object arr, char *title,
                   char *flavor, char *obversion, int atomictype):
@@ -1458,7 +1546,7 @@ cdef class Array:
         self.dims[i] = array.shape[i]
 
     # Save the array
-    ret = H5ARRAYmake(self.group_id, self.name, title,
+    ret = H5ARRAYmake(self.parent_id, self.name, title,
                       flavor, obversion, atomictype, self.rank,
                       self.dims, type_id, rbuf)
     if ret < 0:
@@ -1476,12 +1564,12 @@ cdef class Array:
     cdef herr_t ret
 
     # Get the rank for this array object
-    ret = H5ARRAYget_ndims(self.group_id, self.name, &self.rank)
-    #ret = H5LTget_dataset_ndims(self.group_id, self.name, &self.rank)
+    ret = H5ARRAYget_ndims(self.parent_id, self.name, &self.rank)
+    #ret = H5LTget_dataset_ndims(self.parent_id, self.name, &self.rank)
     # Allocate space for the dimension axis info
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Get info on dimensions, class and type size
-    ret = H5ARRAYget_info(self.group_id, self.name, self.dims,
+    ret = H5ARRAYget_info(self.parent_id, self.name, self.dims,
                              &class_id, &sign, byteorder, &type_size)
 
     # Get the array type
@@ -1523,7 +1611,7 @@ cdef class Array:
     if ret2 < 0:
       raise RuntimeError("Problems getting the buffer area.")
 
-    ret = H5ARRAYread(self.group_id, self.name, rbuf)
+    ret = H5ARRAYread(self.parent_id, self.name, rbuf)
     if ret < 0:
       raise RuntimeError("Problems reading the array data.")
 
