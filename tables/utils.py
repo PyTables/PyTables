@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.26 2004/10/27 19:04:40 falted Exp $
+#       $Id: utils.py,v 1.27 2004/11/03 18:15:09 falted Exp $
 #
 ########################################################################
 
@@ -216,7 +216,8 @@ def convertIntoNA(arr, atom):
     if (isinstance(arr, numarray.NumArray) or
         isinstance(arr, strings.CharArray)):
         naarr = arr
-    elif (Numeric_imported and type(arr) == type(Numeric.array(1))):
+    elif (Numeric_imported and type(arr) == type(Numeric.array(1))
+          and not arr.typecode() == 'c'):
         if arr.iscontiguous():
             # This the fastest way to convert from Numeric to numarray
             # because no data copy is involved
@@ -231,7 +232,15 @@ def convertIntoNA(arr, atom):
             naarr = numarray.array(buffer(arr.copy()),
                                    type=arr.typecode(),
                                    shape=arr.shape)                    
-
+    elif (Numeric_imported and type(arr) == type(Numeric.array(1))
+          and arr.typecode() == 'c'):
+        # Special case for Numeric objects of type Char
+        try:
+            naarr = strings.array(arr.tolist(), itemsize=atom.itemsize)
+            # If still doesn't, issues an error
+        except:
+            raise TypeError, \
+"""The object '%s' can't be converted into a CharArray object of type '%s'. Sorry, but this object is not supported in this context.""" % (arr, atom)
     else:
         # Test if arr can be converted to a numarray object of the
         # correct type
