@@ -107,9 +107,13 @@ def createFile(filename, totalrows, complevel, recsize):
                 table.append(d)
         else: # Small record
             for i in xrange(totalrows):
-                d.var1 = str(i)
+                # __setattr__ is faster than setField!
+                #d.var1 = str(i)
+                #d.setField('var1', str(i))
                 d.var2 = i
+                #d.setField('var2', i)
                 d.var3 = 12.1e10
+                #d.setField('var3', 12.1e10)
                 table.append(d)
 		    
             #rowswritten += 1
@@ -173,9 +177,11 @@ def readFile(filename, recsize):
                 #        e.append(p.grid_j)
             else:
                 e = [ p.var3 for p in table.fetchall()
-                      if p.var2 == 2 ]
+                      if p.getField('var2') <= 2 ]
                 #e = [ p.var3 for p in table.fetchall()
-                #      if table.nrow == 2 ]
+                #      if p.nrow() == 20 ]
+                #e = [ p.var3 for p in table.fetchall()
+                #      if p.var2 == 2 ]
                 #for p in table.fetchall():
                 #      pass
             if verbose:

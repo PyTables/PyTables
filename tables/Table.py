@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.25 2003/02/24 12:06:00 falted Exp $
+#       $Id: Table.py,v 1.26 2003/02/24 15:57:49 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.25 $"
+__version__ = "$Revision: 1.26 $"
 
 from __future__ import generators
 import sys
@@ -55,12 +55,8 @@ revbyteorderDict={'little': '<',
 class Row:
     """Row Class
 
-    This class is similar to Record except for the fact that it is
-    created and associated with a recarray in their creation
-    time. When speed in traversing the recarray is required this
-    approach is more convenient than create a new Record object for
-    each row that is visited.
-
+    This class hosts accessors to a recarray row.
+    
     """
 
     def __init__(self, input):
@@ -85,7 +81,11 @@ class Row:
         # copy it if he wants to keep it.
         try:
             #value = self._fields[fieldName][self._row]
-            return self._fields[fieldName][self._row]
+            # If we use this line:
+            #return self._fields[fieldName][self._row]
+            # we get weird endless memory leaks.
+            # The next one works just perfect. But, why?
+            return self.__dict__["_fields"][fieldName][self.__dict__['_row']]
             #return -1
             #return self._array.field(fieldName)[self._row]
         except:
@@ -101,7 +101,8 @@ class Row:
     def __setattr__(self, fieldName, value):
         """ set the field data of the record"""
 
-        self._fields[fieldName][self._row] = value
+        #self._fields[fieldName][self._row] = value
+        self.__dict__["_fields"][fieldName][self.__dict__['_row']] = value
         #self._array.field(fieldName)[self._row] = value
 
     def __str__(self):
@@ -121,6 +122,11 @@ class Row:
             outlist.append(self._fields[name][self._row])
             #outlist.append(self._array.field(name)[self._row])
         return outlist
+
+    # Moved out of scope
+    def _f_del__(self):
+        print "Deleting Row object"
+        pass
 
 class Table(Leaf, hdf5Extension.Table):
     """Represent a table in the object tree.
@@ -285,7 +291,8 @@ class Table(Leaf, hdf5Extension.Table):
         self._v_byteorder = byteorderDict[self._v_fmt[0]]
         # Create the arrays for buffering
         self._v_buffer = self.newBuffer()
-        self.row = self._v_buffer._row
+        self.row = hdf5Extension.Row(self._v_buffer)
+        #self.row = Row(self._v_buffer)
                          
     def open(self):
         """Opens a table from disk and read the metadata on it.
@@ -328,7 +335,8 @@ class Table(Leaf, hdf5Extension.Table):
         self.colshapes = self.description._v_shapes
         # Create the arrays for buffering
         self._v_buffer = self.newBuffer(init=0)
-        self.row = self._v_buffer._row
+        #self.row = self._v_buffer._row
+        self.row = hdf5Extension.Row(self._v_buffer)
         
     def _calcBufferSize(self, expectedrows):
         """Calculate the buffer size and the HDF5 chunk size.
@@ -434,10 +442,14 @@ class Table(Leaf, hdf5Extension.Table):
 
         """
         self._v_recunsaved += 1
-        row.__dict__["_row"] = self._v_recunsaved
+        #row.__dict__["_row"] = self._v_recunsaved
+        #row.setRow(self._v_recunsaved)
+        row.incRow()
         if self._v_recunsaved  == self._v_maxTuples:
             self._saveBufferedRows()
-            row.__dict__["_row"] = 0
+            # Reset the recarray row counter
+            #row.__dict__["_row"] = 0
+            row.setRow(0)
 
     def fetchall(self):
         """Return an iterator yielding record instances built from rows
@@ -451,18 +463,21 @@ class Table(Leaf, hdf5Extension.Table):
         # Create a buffer for the readout
         nrowsinbuf = self._v_maxTuples
         buffer = self._v_buffer  # Get a recarray as buffer
-        row = buffer._row   # get the pointer to the Row object
-        rowdict = row.__dict__
+        row = self.row   # get the pointer to the Row object
+        #rowdict = row.__dict__
         #self.nrow = 0
         for i in xrange(0, self.nrows, nrowsinbuf):
             recout = self.read_records(i, nrowsinbuf, buffer)
             if self._v_byteorder <> sys.byteorder:
                 buffer.byteswap()
+            row.setNBuf(i)
+            row.setRow(-1)
             for j in xrange(recout):
-                rowdict["_row"] = j  
-                self.nrow = i + j  # This line is faster
+                #rowdict["_row"] = j
+                #self.nrow = i + j  # This line is faster
                 #self.nrow += 1
-                yield row
+                yield row()
+                #row.incRow()
         
     def getRows(self, start, stop, step = 1):
         # Create a recarray for the readout
@@ -551,8 +566,9 @@ class Table(Leaf, hdf5Extension.Table):
         # Delete the reference to Row in _v_buffer recarray!
         # This allows to delete both the Row and RecArray objects
         # because Row has back-references to RecArray
-        if hasattr(self,'_v_buffer') and hasattr(self._v_buffer, "_row"):
-            del self._v_buffer._row
+        # No longer needed as Row has been moved to Table module (here)
+        #if hasattr(self,'_v_buffer') and hasattr(self._v_buffer, "_row"):
+        #    del self._v_buffer._row
 
     # Moved out of scope
     def _f_del__(self):

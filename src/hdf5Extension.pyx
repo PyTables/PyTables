@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.24 2003/02/24 12:05:59 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.25 2003/02/24 15:57:46 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.24 $"
+__version__ = "$Revision: 1.25 $"
 
 
 import sys, os.path
@@ -471,7 +471,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.24 2003/02/24 12:05:59 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.25 2003/02/24 15:57:46 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -881,6 +881,110 @@ cdef class Table:
     cdef int ret
     #print "Destroying object Table in Extension"
     free(<void *>self.name)
+
+cdef class Row:
+  cdef object _fields, _array
+  cdef int _row, _nbuf, _nrow
+
+  """Row Class
+
+  This class hosts accessors to a recarray row.
+    
+  """
+
+  def __new__(self, input):
+
+    self._array = input
+    #self.__dict__["_fields"] = input._fields ## Not allowed in pyrex!
+    self._fields = input._fields
+    self._row = 0
+
+  def __call__(self):
+    """ return the row for this record object """
+
+    self._row = self._row + 1
+    self._nrow = self._nbuf + self._row
+    return self
+
+  def setNBuf(self, nbuf):
+    """ set the row for this record object """
+    self._nbuf = nbuf
+
+  def nrow(self):
+    """ set the row for this record object """
+    return self._nrow
+
+  def setRow(self, row):
+    """ set the row for this record object """
+    self._row = row
+
+  def incRow(self):
+    """ set the row for this record object """
+    self._row = self._row + 1
+
+  # This is twice as faster than __getattr__ because no lookup in local
+  # dictionary
+  def getField(self, fieldName):
+    try:
+      return self._fields[fieldName][self._row]
+    except:
+      (type, value, traceback) = sys.exc_info()
+      raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
+            (fieldName, "Error was: \"%s: %s\"" % (type,value))
+
+  def __getattr__(self, fieldName):
+    """ get the field data of the record"""
+
+    # In case that the value is an array, the user should be responsible to
+    # copy it if he wants to keep it.
+    try:
+      return self._fields[fieldName][self._row]
+    except:
+      (type, value, traceback) = sys.exc_info()
+      raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
+            (fieldName, "Error was: \"%s: %s\"" % (type,value))
+
+  def setField(self, fieldName, value):
+    try:
+      self._fields[fieldName][self._row] = value
+    except:
+      (type, value, traceback) = sys.exc_info()
+      raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
+            (fieldName, "Error was: \"%s: %s\"" % (type,value))
+
+  def __setattr__(self, fieldName, value):
+    """ set the field data of the record"""
+
+    try:
+      self._fields[fieldName][self._row] = value
+    except:
+      (type, value, traceback) = sys.exc_info()
+      raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
+            (fieldName, "Error was: \"%s: %s\"" % (type, value))
+
+  def __str__(self):
+    """ represent the record as an string """
+        
+    outlist = []
+    for name in self._array._names:
+      outlist.append(`self._fields[name][self._row]`)
+            #outlist.append(`self._array.field(name)[self._row]`)
+    return "(" + ", ".join(outlist) + ")"
+
+  def _all(self):
+    """ represent the record as a list """
+    
+    outlist = []
+    for name in self._fields:
+      outlist.append(self._fields[name][self._row])
+      #outlist.append(self._array.field(name)[self._row])
+    return outlist
+
+  # Moved out of scope
+  def _f_dealloc__(self):
+    print "Deleting Row object"
+    pass
+
 
 cdef class Array:
   # Instance variables

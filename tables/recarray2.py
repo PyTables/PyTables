@@ -299,10 +299,6 @@ class RecArray(mda.NDArray):
         # Build the column arrays
         self._fields = self._get_fields()
 
-        # Associate a record object for accessing values in each row
-        # in a efficient way (i.e. without creating a new object each time)
-        self._row = Row(self)
-
     def _parseFormats(self, formats):
         """ Parse the field formats """
 
@@ -438,8 +434,6 @@ class RecArray(mda.NDArray):
         #print "Strides2:", self._fields[fieldName]._strides[0],"numarray"
         if self._fields[fieldName]._strides[0] <> self._strides[0]:
             self._fields = self._get_fields()  # Refresh the cache
-            #self._row._array = self
-            #self._row = Row(self)  # Refreseh the Row instance
         return self._fields[fieldName]
 
     def info(self):
@@ -504,87 +498,6 @@ class RecArray(mda.NDArray):
     def _f_del__(self):
         print "Deleting RecArray2 object"
 
-import copy
-class Row(object):
-    """Row Class
-
-    This class is similar to Record except for the fact that it is
-    created and associated with a recarray in their creation
-    time. When speed in traversing the recarray is required this
-    approach is more convenient than create a new Record object for
-    each row that is visited.
-
-    """
-
-    def __init__(self, input):
-
-        self.__dict__["_array"] = input
-        self.__dict__["_fields"] = input._fields
-        self.__dict__["_row"] = 0
-
-    def __call__(self, row):
-        """ set the row for this record object """
-        
-        if row < self._array.shape[0]:
-            self.__dict__["_row"] = row
-            return self
-        else:
-            return None
-
-    def __getattr__(self, fieldName):
-        """ get the field data of the record"""
-
-        # In case that the value is an array, the user should be responsible to
-        # copy it if he wants to keep it.
-        try:
-            #value = self._fields[fieldName][self._row]
-            # The next line gives place to a nasty bug: memory  consumption
-            # grows without limit!
-            # Why the heck??
-            #return self._fields[fieldName][self._row]
-            return self.__dict__["_fields"][fieldName][self.__dict__['_row']]
-            #return -1
-            #return self._array.field(fieldName)[self._row]
-        except:
-            (type, value, traceback) = sys.exc_info()
-            raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
-                  (fieldName, "Error was: \"%s: %s\"" % (type,value))
-
-        if isinstance(value, num.NumArray):
-            return copy.deepcopy(value)
-        else:
-             return value
-
-    def __setattr__(self, fieldName, value):
-        """ set the field data of the record"""
-
-        # The next line commented out for the same reason than in __getattr_
-        #self._fields[fieldName][self._row] = value
-        self.__dict__["_fields"][fieldName][self.__dict__['_row']] = value
-        #self._array.field(fieldName)[self._row] = value
-
-    def __str__(self):
-        """ represent the record as an string """
-        
-        outlist = []
-        for name in self._array._names:
-            outlist.append(`self._fields[name][self._row]`)
-            #outlist.append(`self._array.field(name)[self._row]`)
-        return "(" + ", ".join(outlist) + ")"
-
-    def _all(self):
-        """ represent the record as a list """
-        
-        outlist = []
-        for name in self._fields:
-            outlist.append(self._fields[name][self._row])
-            #outlist.append(self._array.field(name)[self._row])
-        return outlist
-
-    # Moved out of scope
-    def _f_del__(self):
-        print "Deleting Row object"
-        pass
 
 class Record:
     """Record Class"""
