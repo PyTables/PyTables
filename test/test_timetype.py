@@ -247,7 +247,7 @@ class CompareTestCase(unittest.TestCase):
 		h5file = tables.openFile(
 			self.h5fname, 'w', title = "Test for comparing Time32 VL arrays")
 		vla = h5file.createVLArray('/', 'test', self.myTime32Atom)
-		vla.append(wtime)
+		vla.append(wtime.copy())  # To avoid modification on write.
 		h5file.close()
 
 		# Check the written data.
@@ -268,7 +268,7 @@ class CompareTestCase(unittest.TestCase):
 		h5file = tables.openFile(
 			self.h5fname, 'w', title = "Test for comparing Time64 VL arrays")
 		vla = h5file.createVLArray('/', 'test', self.myTime64Atom)
-		vla.append(wtime)
+		vla.append(wtime.copy())  # To avoid modification on write.
 		h5file.close()
 
 		# Check the written data.
@@ -400,7 +400,7 @@ class CompareTestCase(unittest.TestCase):
 			self.h5fname, 'w', title = "Test for comparing Time64 E arrays")
 		ea = h5file.createEArray(
 			'/', 'test', tables.Time64Atom(shape = (0, 2)))
-		ea.append((wtime,))
+		ea.append((wtime.copy(),))  # To avoid modification on write.
 		h5file.close()
 
 		# Check the written data.
