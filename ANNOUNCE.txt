@@ -68,6 +68,8 @@ Backward-incompatible changes:
   instead of an empty RecArray. Thanks to Ashley Walsh for noting
   this.
 
+- Table.iterrows() returns an empty iterator when no rows are selected.
+
 API additions:
 
 Bug fixes:
