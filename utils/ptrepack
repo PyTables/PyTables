@@ -6,8 +6,8 @@
 #       Created: February 10, 2004
 #       Author:  Francesc Alted - falted@openlc.org
 #
-#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/examples/Attic/ptrepack,v $
-#       $Id: ptrepack,v 1.2 2004/02/10 16:45:26 falted Exp $
+#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/utils/ptrepack,v $
+#       $Id: ptrepack,v 1.1 2004/02/13 08:56:21 falted Exp $
 #
 ########################################################################
 

@@ -6,9 +6,9 @@ manage very large amounts of data. PyTables is built on top of the
 HDF5 library and the numarray package. It features an object-oriented
 interface that, combined with natural naming and C-code generated from
 Pyrex sources, makes it a fast, yet extremely easy to use tool for
-interactively save and retrieve large amounts of data. Besides, it
-provides flexible indexed access on disk to anywhere in the data you
-want to go.
+interactively save and retrieve very large amounts of data. Besides,
+it provides flexible indexed access on disk to anywhere in the data
+you want to go.
  
 On this release you will find:
        - a memory leak was fixed
@@ -89,6 +89,10 @@ What's new
 	- A copy() method that supports slicing and change filtering
           capabilities has been added for all the Leaf objects. See
           User's Manual for more info.
+
+	  ** Explicar tambe els copyChilds, copyFile i família **
+
+	  ** Explicar les utilitats ptdump i ptrepack **
 
 
 What is a table?

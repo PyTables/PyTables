@@ -539,5 +539,6 @@ data.
                                 #runtime_library is not supported on Windows
                                 runtime_library_dirs = rlib_dirs,
                                 )],
-      cmdclass = cmdclass
+      cmdclass = cmdclass,
+      scripts = ['utils/ptdump', 'utils/ptrepack'],
 )

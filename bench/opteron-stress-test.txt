@@ -35,6 +35,29 @@ sys     112m17.100s
 -rw-r--r--    1 falted   users        2.7G 2004-02-04 02:25 /tmp/test-big-zlib-6
 .h5
 
-The maximum amount of RAM taken by the test should be less than 200 MB (148
-MB when the test was running for 812 minutes, which is the last time I've
+The maximum amount of RAM taken by the test should be less than 300 MB (241
+MB when the test was running for 5750 minutes, which is the last time I've
 check for it).
+
+
+Another test with the same machine:
+
+time python /tmp/stress-test3.py -l zlib -c 6 -g400 -t 300 -i 100000 /tmp/test-big-zlib-6-2.h5
+ls -lh /tmp/test-big-zlib-6-2.h5
+
+Compression level: 6
+Compression library: zlib
+Rows written: 12000000000  Row size: 512
+Time writing rows: 262930.901 s (real) 262619.72 s (cpu)  100%
+Write rows/sec:  45639
+Write KB/s : 22819
+Rows read: 12000000000  Row size: 512 Buf size: 49664
+Time reading rows: 143171.761 s (real) 141560.42 s (cpu)  99%
+Read rows/sec:  83815
+Read KB/s : 41907
+
+real    6768m34.076s
+user    6183m38.690s
+sys     552m51.150s
+-rw-r--r--    1 5350     users         11G 2004-02-09 00:57 /tmp/test-big-zlib-6
+-2.h5

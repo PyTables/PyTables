@@ -526,17 +526,17 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 <!-- 	vist <caption>Lluís Llach in the song "Petit País"</caption> -->
 <!--       </aphorism> -->
 
-      <aphorism>T'adones, company,<newline/>
-	no volen arguments,<newline/>
-	usen la força,<newline/>
-	t'adones, amic.<newline/>
-	T'adones, company,<newline/>
-	que hem de sortir al carrer<newline/>
-	junts, molts, com més millor,<newline/>
-	si no volem perdre-ho tot,<newline/>
-	t'adones, amic.<newline/>
-	<caption>Raimon in the song "T'adones, amic"</caption>
-      </aphorism>
+<!--       <aphorism>T'adones, company,<newline/> -->
+<!-- 	no volen arguments,<newline/> -->
+<!-- 	usen la força,<newline/> -->
+<!-- 	t'adones, amic.<newline/> -->
+<!-- 	T'adones, company,<newline/> -->
+<!-- 	que hem de sortir al carrer<newline/> -->
+<!-- 	junts, molts, com més millor,<newline/> -->
+<!-- 	si no volem perdre-ho tot,<newline/> -->
+<!-- 	t'adones, amic.<newline/> -->
+<!-- 	<caption>Raimon in the song "T'adones, amic"</caption> -->
+<!--       </aphorism> -->
 
 
 <!--       <aphorism>Make things as simple as possible, but not any -->
@@ -544,12 +544,14 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
       <p>The Python <verb>Distutils</verb> are used to build and
 	install <verb>PyTables</verb>, so it is fairly simple to get
-	the application up and running. Also, a binary distribution is
-	available for Windows (see <ref
-	refid="binaryInstallationDescr">section</ref>). In addition,
-	packages are starting to appear in different Linux
+	the application up and running. If you want to install the
+	package from sources go to the next section. But if you are
+	running Windows and want to install precompiled binaries jump
+	to <ref refid="binaryInstallationDescr">section</ref>). In
+	addition, packages are starting to appear in different Linux
 	distributions (like for instance <url
-	name="http://www.rocklinux.org/"><verb>RockLinux</verb></url> or <url
+	name="http://www.rocklinux.org/"><verb>RockLinux</verb></url>
+	or <url
 	name="http://www.debian.org/"><verb>Debian</verb></url>).
       </p>
 
@@ -775,7 +777,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		If a test fails, please enable verbose output (the
 		<verb>-v</verb> flag <visual markup="bf">and</visual>
 		<verb>verbose</verb> option), run the failing test
-		module again, and, very important, add your
+		module again, and, very important, get your
 		<verb>PyTables</verb> version information by running
 		the command:
 		<verbatim>
@@ -862,10 +864,11 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
       <section id="binaryInstallationDescr">
 	<heading>Binary installation (Windows)</heading>
 
-	<p>This section is only intended for installing precompiled
-	  binaries on Windows platforms. If you´re installing on Unix,
-	  or want to compile <verb>PyTables</verb> for Windows, jump
-	  to the <ref refid="sourceInstallationDescr">section</ref>.
+	<p>This section is intended for installing precompiled
+	  binaries on Windows platforms. You may also find it useful
+	  for instructions on how to install <em>binary
+	  prerequisites</em> even if you want to compile
+	  <verb>PyTables</verb> itself on Windows.
 	</p>
 
 	<subsection id="prerequisitesBinInst">
@@ -964,7 +967,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    test module is failing and execute:
           
 	    <verbatim>
-	      test_&lt;module>.py -v verbose
+	      python test_&lt;module>.py -v verbose
 	    </verbatim>
 	    
 	    and also:
@@ -973,8 +976,8 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	      python test_all.py --show-versions-only
 	    </verbatim>
 	    
-	    Mail the output to the developers so that we may work to
-	    improve the installation process.
+	    and mail the output to the developers so that the problem
+	    can be fixed in future releases.
 	  </p>
 
 	</subsection>
@@ -993,10 +996,10 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
     <chapter id="usage">
       <heading>Tutorials</heading>
 
-      <aphorism>Tout le malheur des hommes vient d'une seule chose,
-	qui est de ne savoir pas demeurer en repos, dans une chambre.
-	<caption>Blaise Pascal</caption>
-      </aphorism>
+<!--       <aphorism>Tout le malheur des hommes vient d'une seule chose, -->
+<!-- 	qui est de ne savoir pas demeurer en repos, dans une chambre. -->
+<!-- 	<caption>Blaise Pascal</caption> -->
+<!--       </aphorism> -->
 
       <p>This chapter consists of a series of simple yet comprehensive
 	tutorials that will enable you to understand
@@ -1125,22 +1128,21 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 ...
 >>>
 	  </verbatim>
-	  <p>This definition class is self-explanatory.  Basically, 
-	    you declare a class variable for each field you need. As its 
-	    value you assign a subclass instance of the appropriate
-	    <verb>Col</verb> class, according to the kind of column
-	    defined (the data type, the length, the shape, etc. See
-	    the <ref refid="ColClassDescr">section</ref> for a complete
-	    description of these subclasses. See also <ref
+	  <p>This definition class is self-explanatory.  Basically,
+	    you declare a class variable for each field you need.  As
+	    its value you assign an instance of the appropriate
+	    <verb>Col</verb> subclass, according to the kind of column
+	    defined (the data type, the length, the shape, etc).  See
+	    the <ref refid="ColClassDescr">section</ref> for a
+	    complete description of these subclasses. See also <ref
 	    refid="datatypesSupported">appendix</ref> for a list of
-	    data types supported in <verb>Col</verb> constructors.
+	    data types supported by the <verb>Col</verb> constructor.
 	  </p>
 	  <p>From now on, we can use <verb>Particle</verb> instances
 	    as a descriptor for our detector data table. We will see
-	    later on how to pass this object to the <verb>Table</verb>
-	    constructor. But first, we must create a file where all
-	    the actual data pushed into <verb>Table</verb> will be
-	    saved.
+	    later on how to pass this object to construct the table.
+	    But first, we must create a file where all the actual data
+	    pushed into our table will be saved.
 	  </p>
 
 	</subsection>
@@ -1175,11 +1177,10 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
 	  <p>Now, to better organize our data, we will create a group
 	    called <em>detector</em> that branches from the root node. We will
-	    save our particle data in this group.
+	    save our particle data table in this group.
 	  </p>
 	  <verbatim>
 >>> group = h5file.createGroup("/", 'detector', 'Detector information')
->>>
 	  </verbatim>
 
 	  <p>Here, we have taken the <verb>File</verb> instance
@@ -1198,7 +1199,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	<subsection>
 	  <heading>Creating a new table</heading>
 
-	  <p>Let's now create the <verb>Table</verb> (see <ref
+	  <p>Let's now create a <verb>Table</verb> (see <ref
 	    refid="TableClassDescr"></ref>) object as a branch off the 
 	    newly-created group. We do that by calling the
 	    <verb>createTable</verb> (see <ref
@@ -1207,7 +1208,6 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  </p>
 	  <verbatim>
 >>> table = h5file.createTable(group, 'readout', Particle, "Readout example")
->>>
 	  </verbatim>
 
 	  <p>We create the <verb>Table</verb> instance under <verb>group</verb>. 
@@ -1233,7 +1233,6 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:00:13 20
 /detector (Group) 'Detector information'
 /detector/readout (Table(0,)) 'Readout example'
 
->>>
 	  </verbatim>
 
 	  <p>As you can see, a dump of the object tree is displayed.
@@ -1260,7 +1259,6 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
     "pressure": Col('Float32', shape=1, itemsize=4, dflt=0.0) }
   byteorder := little
 
->>>
 	  </verbatim>
 
 	  <p>More detailed information is displayed about each object 
@@ -1273,29 +1271,28 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	    extensively.
 	  </p>
 
-	  <p>The time has come to fill this table with some values. First
-	    we will get a pointer to the <verb>Row</verb>
+	  <p>The time has come to fill this table with some
+	    values. First we will get a pointer to the
+	    <verb>Row</verb> (see <ref refid="RowClassDescr"></ref>)
 	    instance of this <verb>table</verb> instance:
 	  </p>
 	  <verbatim>
 >>> particle = table.row
->>>
 	  </verbatim>
 
 	  <p>The <verb>row</verb> attribute of <verb>table</verb>
-	    points to the <verb>Row</verb> (see <ref
-	    refid="RowClassDescr"></ref>) instance that will be used
+	    points to the <verb>Row</verb> instance that will be used
 	    to write data rows into the table. We write data simply by
-	    assigning The <verb>Row</verb> instance the values for each 
-	    row as if it were a dictionary (although it is actually an 
-	    <em>extension class</em>), using the column names as keys.
+	    assigning the <verb>Row</verb> instance the values for
+	    each row as if it were a dictionary (although it is
+	    actually an <em>extension class</em>), using the column
+	    names as keys.
 	  </p>
 
 	  <p>Below is an example of how to write rows:
 	  </p>
 
 	  <verbatim>
->>> particle = table.row
 >>> for i in xrange(10):
 ...     particle['name']  = 'Particle: %6d' % (i)
 ...     particle['TDCcount'] = i % 256
@@ -1325,7 +1322,6 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	  </p>
 	  <verbatim>
 >>> table.flush()
->>>
 	  </verbatim>
 
 	</subsection>
@@ -1342,7 +1338,6 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 ...              if x['TDCcount']>3 and 20&lt;=x['pressure']&lt;50 ]
 >>> pressure
 [25.0, 36.0, 49.0]
->>>
 	  </verbatim>
 
 	  <p>The first line creates a "shortcut"
@@ -1362,7 +1357,7 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	    exhausted. These rows are filtered using the expression
 	    <verb>x['TDCcount'] > 3 and x['pressure'] &lt;
 	    50</verb>. We select the value of the
-	    <verb>pressure</verb> column from filtered records to to
+	    <verb>pressure</verb> column from filtered records to
 	    create the final list and assign it to
 	    <verb>pressure</verb> variable.
 	  </p>
@@ -1379,7 +1374,6 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 >>> names=[ x['name'] for x in table if x['TDCcount']>3 and 20&lt;=x['pressure']&lt;50 ]
 >>> names
 ['Particle:      5', 'Particle:      6', 'Particle:      7']
->>>
 	  </verbatim>
 
 	  <p>Note how we have omitted the <verb>iterrows()</verb> call
@@ -1401,14 +1395,16 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	<subsection>
 	  <heading>Creating new array objects</heading>
 
-	  <p>In order to separate the selected data from the mass of detector
-		  data, we will create a new group
-		  <verb>columns</verb> branching off the root group:
+	  <p>In order to separate the selected data from the mass of
+	    detector data, we will create a new group
+	    <verb>columns</verb> branching off the root
+	    group. Afterwards, under this group, we will create two
+	    arrays that will contain the selected data. First, we
+	    create the group:
 	  </p>
 
 	  <verbatim>
 >>> gcolumns = h5file.createGroup(h5file.root, "columns", "Pressure and Name")
->>>
 	  </verbatim>
 
 	  <p>Note that this time we have specified the first parameter
@@ -1417,7 +1413,8 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	    path string ("/").
 	  </p>
 
-	  <p>Now, create one <verb>Array</verb> object:
+	  <p>Now, create the first of the two <verb>Array</verb>
+	    objects we've just mentioned:
 	  </p>
 
 	  <verbatim>
@@ -1428,7 +1425,6 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
   itemsize = 8
   flavor = 'NumArray'
   byteorder = 'little'
->>>
 	  </verbatim>
 
 	  <p>We already know the first two parameters of the
@@ -1443,9 +1439,9 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	    The fourth parameter is the <em>title</em>.
 	  </p>
 
-	  <p>Now, we will save another data set. It contains the list
-	    of strings we selected before:  we save this
-	    object as-is, with no further conversion.
+	  <p>Now, we will save the second array. It contains the list
+	    of strings we selected before: we save this object as-is,
+	    with no further conversion.
 	  </p>
 
 	  <verbatim>
@@ -1455,14 +1451,16 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
   itemsize = 16
   flavor = 'List'
   byteorder = 'little'
->>>
 	  </verbatim>
 
 	  <p>As you can see, <verb>createArray()</verb> accepts
 	    <em>names</em> (which is a regular Python list) as an
 	    <em>object</em> parameter. Actually, it accepts a variety
 	    of different regular objects (see <ref
-	    refid="createArrayDescr"></ref>) as parameters. We will
+	    refid="createArrayDescr"></ref>) as parameters. The
+	    <verb>flavor</verb> attribute (see the output above) saves
+	    the original kind of object that was saved. Based on this
+	    <em>flavor</em>, <verb>PyTables</verb> will be able to
 	    retrieve exactly the same object from disk later on.
 	  </p>
 	  <p>Note that in these examples, the <verb>createArray</verb>
@@ -1483,7 +1481,6 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:00:13 20
 /detector (Group) 'Detector information'
 /detector/readout (Table(10,)) 'Readout example'
 
->>>	  
 	  </verbatim>
 	</subsection>
 
@@ -1530,13 +1527,13 @@ $ h5ls -rd tutorial1.h5
         (9) {2304, 9, 43046721, 9, 1, 154618822656, "Particle:      9", 81}
 	  </verbatim>
 
-	  <p>Here's the outputs as displayed by the "dumpFile.py" 
+	  <p>Here's the outputs as displayed by the "ptdump" 
 	   <verb>PyTables</verb> utility (located in 
-	   <verb>examples/</verb> directory):
+	   <verb>utils/</verb> directory):
 	  </p>
 
 	  <verbatim>
-$ python dumpFile.py tutorial1.h5
+$ ptdump tutorial1.h5
 Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 2003'
 / (Group) 'Test file'
 /columns (Group) 'Pressure and Name'
@@ -1548,7 +1545,7 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	  </verbatim>
 
 	  <p>You can pass the <verb>-v</verb> or <verb>-d</verb>
-	    options to <verb>dumpFile.py</verb> if you want more
+	    options to <verb>ptdump</verb> if you want more
 	    verbosity. Try them out!
 	  </p>
 	</subsection>
@@ -1604,7 +1601,6 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 /detector (Group) 'Detector information'
 /detector/readout (Table(10,)) 'Readout example'
 
->>>
 	  </verbatim>
 
 	  <p>It looks like all of our objects are there. 
@@ -1623,7 +1619,6 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 /columns/name (Array(3,)) 'Name column selection'
 /columns/pressure (Array(3,)) 'Pressure column selection'
 /detector/readout (Table(10,)) 'Readout example'
->>>
 	  </verbatim>
 	  
 	  <p>We can use the <verb>walkGroups</verb> method (see <ref
@@ -1638,7 +1633,6 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 / (Group) 'Test file'
 /columns (Group) 'Pressure and Name'
 /detector (Group) 'Detector information'
->>>
 	  </verbatim>
 
 	  <p>Note that <verb>walkGroups()</verb> actually returns an
@@ -1678,7 +1672,6 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 ...
 /columns/name (Array(3,)) 'Name column selection'
 /columns/pressure (Array(3,)) 'Pressure column selection'
->>>
 	  </verbatim>
 
 	  <p>This is a nice shortcut when working interactively.</p>
@@ -1698,7 +1691,6 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 ...   print leaf
 ...
 /detector/readout (Table(10,)) 'Readout example'
->>> 
 	  </verbatim>
 
 	  <p>We have used a call to the
@@ -1737,7 +1729,6 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 >>> table.attrs.gath_date = "Wed, 06/12/2003 18:33"
 >>> table.attrs.temperature = 18.4
 >>> table.attrs.temp_scale = "Celsius"
->>>
 	  </verbatim>
 
 	  <p>Now, let's set a somewhat more complex attribute in the
@@ -1747,7 +1738,6 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	  <verbatim>
 >>> detector = h5file.root.detector
 >>> detector._v_attrs.stuff = [5, (2.3, 4.5), "Integer and tuple"]
->>>
 	  </verbatim>
 
 	  <p>Note how the AttributeSet instance is accessed with
@@ -1771,7 +1761,6 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 'Celsius'
 >>> detector._v_attrs.stuff
 [5, (2.2999999999999998, 4.5), 'Integer and tuple']
->>>
 	  </verbatim>
 
 	  <p>You can probably guess how to delete attributes:
@@ -1805,7 +1794,6 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
     VERSION := '2.0',
     tempScale := 'Celsius',
     temperature := 18.399999999999999]
->>>
 	  </verbatim>
 
 	  <p>You can get a list of only the user or system attributes
@@ -1819,7 +1807,6 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 ['CLASS', 'FIELD_0_NAME', 'FIELD_1_NAME', 'FIELD_2_NAME', 'FIELD_3_NAME',
  'FIELD_4_NAME', 'FIELD_5_NAME', 'FIELD_6_NAME', 'FIELD_7_NAME', 'NROWS',
  'TITLE', 'VERSION']
->>>
 	  </verbatim>
 
 	  <p>You can also rename attributes:
@@ -1829,7 +1816,6 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 >>> table.attrs._f_rename("temp_scale","tempScale")
 >>> print table.attrs._f_list()
 ['tempScale', 'temperature']
->>>
 	  </verbatim>
 
 	  <p>However, you can't set, delete or rename read-only
@@ -1843,7 +1829,6 @@ Traceback (most recent call last):
   File "/home/falted/PyTables/pytables-0.7/tables/AttributeSet.py", line 249, in _f_rename
     raise RuntimeError, \
 RuntimeError: Read-only attribute ('VERSION') cannot be renamed
->>>
 	  </verbatim>
 
 	  <p>After your terminating your session, you can use
@@ -1955,7 +1940,6 @@ grid_j := Int32, 1
 idnumber := Int64, 1
 name := CharType, 1
 pressure := Float32, 1
->>>
 	  </verbatim>
 
 	  <p>
@@ -2018,7 +2002,6 @@ Represent a table in the object tree.
         coltypes -- the type class for the table fields (dictionary)
         colshapes -- the shapes for the table fields (dictionary)
 
->>>
 	  </verbatim>
 
 	  <p>The <verb>help</verb> function is also a handy way 
@@ -2049,7 +2032,6 @@ Info on the object: /columns/pressure (Array(3,)) 'Pressure column selection'
   title: ==> Pressure column selection
 >>> print "  type: ==>", pressureObject.type
   type: ==> Float64
->>>
 	  </verbatim>
 
 	  <p>Observe that we have used the <verb>getNode()</verb>
@@ -2111,7 +2093,6 @@ Particle:      6 --> 36.0
 Particle:      7 --> 49.0
 >>> pressureObject.name
 'pressure'
->>> 
 	  </verbatim>
 
 	  <p>You can see that the <verb>read()</verb> method (see
@@ -2160,7 +2141,6 @@ Particle:      7 --> 49.0
 ...     particle.append()
 ...
 >>> table.flush()
->>>
 	  </verbatim>
 
 	  <p>It's the same method we used to fill a new
@@ -2226,7 +2206,6 @@ Particle:     14 |       196.0 |   1.476e+09 |     14 |     -4 |       14 |
 	  <verbatim>
 >>> table.removeRows(5,10)
 5
->>>
 	  </verbatim>
 
 	  <p><verb>removeRows(start, stop)</verb> (<ref
@@ -2536,11 +2515,11 @@ AttributeError: Error setting "ADCcount" attr.
     <chapter id="libraryReference">
       <heading>Library Reference</heading>
       
-      <aphorism>"Tenho pensamentos que, se pudesse revelá-los e
-	fazê-los viver, acrescentariam nova luminosidade às estrelas,
-	nova beleza ao mundo e maior amor ao coração dos homens."
-	<caption>Fernando Pessoa, in "O Eu Profundo"</caption>
-      </aphorism>
+<!--       <aphorism>"Tenho pensamentos que, se pudesse revelá-los e -->
+<!-- 	fazê-los viver, acrescentariam nova luminosidade às estrelas, -->
+<!-- 	nova beleza ao mundo e maior amor ao coração dos homens." -->
+<!-- 	<caption>Fernando Pessoa, in "O Eu Profundo"</caption> -->
+<!--       </aphorism> -->
 
       <p><verb>PyTables</verb> implements several classes to represent
 	the different nodes in the object tree. They are named
@@ -2764,6 +2743,14 @@ AttributeError: Error setting "ADCcount" attr.
 
 	    <term>mode</term> <item>Mode in which the filename was
 	      opened.</item>
+
+	    <!-- Added by F. Alted 2004-02-12 -->
+
+	    <term>root</term> <item>The <em>root</em> of the object
+	       tree hierarchy. It is a <verb>Group</verb> instance.
+	    </item>
+
+	    <!-- End of addition by F. Alted 2004-02-12 -->
 
 	    <term>rootUEP</term> <item>The UEP (User Entry Point)
 	      group in file (see <ref
@@ -5432,10 +5419,10 @@ Result Array:
     <chapter id="optimizationTips">
       <heading>Optimization tips</heading>
 
-      <aphorism>... durch planmässiges Tattonieren.  <caption>Johann
-	Karl Friedrich Gauss <newline/>[asked how he came upon his
-	theorems]</caption>
-      </aphorism>
+<!--       <aphorism>... durch planmässiges Tattonieren.  <caption>Johann -->
+<!-- 	Karl Friedrich Gauss <newline/>[asked how he came upon his -->
+<!-- 	theorems]</caption> -->
+<!--       </aphorism> -->
 
       <p>On this chapter, you will get deeper knowledge of
 	<verb>PyTables</verb> internals. <verb>PyTables</verb> has
