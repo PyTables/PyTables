@@ -1984,7 +1984,7 @@ pressure := Float32, 1
 	    <verb>nrows</verb>, <verb>colnames</verb>,
 	    <verb>coltypes</verb> and <verb>colshapes</verb>
 	    attributes (see <ref
-	    refid="FileInstanceVariablesDescr"></ref> for a complete
+	    refid="TableInstanceVariablesDescr"></ref> for a complete
 	    attribute list) of the <verb>Table</verb> object gives us quite
 	    a bit of information about the table data.
 	  </p>
@@ -2818,7 +2818,7 @@ KeyError: Error setting "ADCcount" field.
 	  object.</footnote>.
 	</p>
 
-	<subsection id="FileInstanceVariablesDescr">
+	<subsection>
 	  <heading><visual markup="tt">File</visual> instance
 	    variables</heading>
 	  <description>
@@ -4099,7 +4099,7 @@ Object Tree:
 	  and methods that <verb>Leaf</verb> already has.
 	</p>
 
-	<subsection>
+	<subsection id="TableInstanceVariablesDescr">
 	  <heading><visual markup="tt">Table</visual> instance
 	    variables</heading>
 	  <description>
