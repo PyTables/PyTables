@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.48 2003/08/08 15:23:52 falted Exp $
+#       $Id: Group.py,v 1.49 2003/08/14 17:54:49 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.48 $"
+__version__ = "$Revision: 1.49 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -495,6 +495,8 @@ I can't promise getting the correct object, but I will do my best!.""",
         del self.__dict__["_v_rootgroup"]
         del self.__dict__["_v_parent"]
         # Detach the AttributeSet instance
+        if self._v_name <> '/':
+            self._v_attrs._f_close()
         del self.__dict__["_v_attrs"]
 
     def _f_getAttr(self, attrname):

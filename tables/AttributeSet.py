@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.15 2003/08/08 15:23:52 falted Exp $
+#       $Id: AttributeSet.py,v 1.16 2003/08/14 17:54:49 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.15 $"
+__version__ = "$Revision: 1.16 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -267,6 +267,12 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         # Finally, remove the old attribute
         delattr(self, oldattrname)
+
+    def _f_close(self):
+
+        del self.__dict__["_v_attrnames"]
+        del self.__dict__["_v_attrnamessys"]
+        del self.__dict__["_v_attrnamesuser"]
 
     def __str__(self):
         """The string representation for this object."""

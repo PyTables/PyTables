@@ -2,11 +2,11 @@ Announcing PyTables 0.7
 -----------------------
 
 PyTables is a hierarchical database package designed to efficently
-manage very large amounts of data. PyTables is built on top of the
-HDF5 library and the numarray package and features an object-oriented
-interface that, combined with C-code generated from Pyrex sources,
-makes it a fast, yet extremely easy to use tool for interactively save
-and retrieve large amounts of data.
+manage very large amounts of data in Python. PyTables is built on top
+of the HDF5 library and the numarray package and features an
+object-oriented interface that, combined with C-code generated from
+Pyrex sources, makes it a fast, yet extremely easy to use tool for
+interactively save and retrieve large amounts of data.
  
 Release 0.7 is the third public beta release. The version 0.6 was
 internal and will never be released.
