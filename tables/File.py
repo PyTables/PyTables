@@ -4,6 +4,7 @@ import sys
 import hdf5Extension
 from Group import Group
 from Table import Table
+from Array import Array
 from IsRecord import IsRecord
 
 class File(hdf5Extension.File):
@@ -42,6 +43,8 @@ class File(hdf5Extension.File):
         newattr["_v_" + "parent"] = self
         newattr["_v_" + "name"] = "/"
         newattr["_v_" + "pathname"] = "/"
+	# Open the root group
+	rootgroup._f_openGroup(self._v_groupId, "/")
         if (self._v_mode == "r" or
             self._v_mode == "r+" or
             self._v_mode == "a"):
@@ -65,6 +68,18 @@ class File(hdf5Extension.File):
         
         object = Table(where, name, self.root)
         object.newTable(*args, **kwargs)
+        return object
+
+    def newArray(self, where, name, *args, **kwargs):
+        """Returns a new Array instance with name "name" in "where"
+	location.  "where" parameter can be a path string, or another group
+	instance.  Other optional parameters are: "title" which set a TITLE
+	attribute on the HDF5 table entity. "compress" is a boolean option
+	and specifies if data compression will be enabled or not (not
+	functional by the time being)."""
+        
+        object = Array(where, name, self.root)
+        object.create(*args, **kwargs)
         return object
 
     def newGroup(self, where, name):
@@ -98,10 +113,9 @@ class File(hdf5Extension.File):
                   "%s parameter should be a path to a Group or Group instance." % group
         
     def getTable(self, where):
-        """Returns the object node (group or leave) in "where"
-        location. "where" can be a path string or table instance.  If
-        where doesn't point to a Group, a ValueError error is
-        raised."""
+        """Returns a Table node in "where" location. "where" can be a path
+	string or Table instance.  If where doesn't point to a Table, a
+	ValueError error is raised."""
         
         table = self.root._f_getObject(where)
         if isinstance(table, Table):
@@ -109,6 +123,18 @@ class File(hdf5Extension.File):
         else:
             raise ValueError, \
                   "%s parameter should be a path to a Table or Table instance." % table
+        
+    def getArray(self, where):
+        """Returns an Array node in "where" location. "where" can be a path
+	string or Array instance.  If where doesn't point to an Array, a
+	ValueError error is raised."""
+        
+        array = self.root._f_getObject(where)
+        if isinstance(array, Array):
+            return array
+        else:
+            raise ValueError, \
+                  "%s parameter should be a path to an Array or Array instance." % table
         
     def listNodes(self, where):
         """Returns all the object nodes (groups or tables) hanging
@@ -163,7 +189,7 @@ class File(hdf5Extension.File):
         
         table = self.getTable(table)
         return table.appendRecord(record)
-
+ 
     def readRecords(self, table):
         """Generator thats return a Record instance from a "table"
         object each time it is called. "table" can be a path string or
@@ -171,7 +197,14 @@ class File(hdf5Extension.File):
         
         table = self.getTable(table)
         return table.readAsRecords()
+
+    def readArray(self, array):
+	"""Reads the "array" object from the HDF5 file and return it.
+	"array" can be a path string or Array instance."""
         
+        array = self.getArray(array)
+        return array.get()
+       
     def flushTable(self, table):
         """Flush the table object to disk. "table" can be a path
         string or table instance."""

@@ -1,5 +1,6 @@
 import hdf5Extension
 from Table import Table
+from Array import Array
 
 class Group(hdf5Extension.Group):
     """This is the python counterpart of a group in the HDF5
@@ -37,7 +38,10 @@ class Group(hdf5Extension.Group):
             # Call walkHDFile recursively over the group's tree
             objgroup._f_walkHDFile()
         for name in leaves:
-            objgroup = Table(self, name, self._v_rootgroup)
+	    if self._f_isTable(name):
+		objgroup = Table(self, name, self._v_rootgroup)
+	    elif self._f_isArray(name):
+		objgroup = Array(self, name, self._v_rootgroup)
             # Set some attributes to caracterize and open this object
             objgroup._f_putObjectInTree(create = 0)
         #print "Group name (end)==> ", self._v_name
@@ -69,7 +73,9 @@ class Group(hdf5Extension.Group):
                 raise LookupError, \
                       "\"%s\" pathname not found in HDF5 group tree." % \
                       (where)
-        elif isinstance(where, Group) or isinstance(where, Table):
+        elif (isinstance(where, Group) or 
+	      isinstance(where, Table) or
+	      isinstance(where, Array)):
             # This is the parent group object
             object = where
         else:

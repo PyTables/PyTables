@@ -117,6 +117,7 @@ details on the types and methods provided.""",
       ext_modules = [ Extension("tables.hdf5Extension",
                                 sources =   ["src/hdf5Extension.pyx",
                                              "src/calcoffset.c",
+                                             "src/arraytypes.c",
                                              "src/getfieldfmt.c",
                                              "src/utils.c" ],
                                 libraries = libnames
