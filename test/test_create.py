@@ -460,6 +460,47 @@ class createAttrTestCase(unittest.TestCase):
         assert self.root.agroup._v_attrs._f_list("all") == \
                ['CLASS', 'FILTERS', 'TITLE', 'VERSION', "rs"]
 
+    def test05b_removeAttributes(self):
+        """Checking removing attributes (using File.delAttrNode()) """
+
+        # With a Group object
+        self.group._v_attrs.pq = "1"
+        self.group._v_attrs.qr = "2"
+        self.group._v_attrs.rs = "3"
+        # delete an attribute
+        self.fileh.delAttrNode(self.group, "pq")
+        
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            
+        if verbose:
+            print "Attribute list:", self.root.agroup._v_attrs._f_list()
+        # Check the local attributes names
+        assert self.root.agroup._v_attrs._f_list() == ["qr", "rs"]
+        if verbose:
+            print "Attribute list in disk:", \
+                  self.root.agroup._v_attrs._f_list("all")
+        # Check the disk attribute names
+        assert self.root.agroup._v_attrs._f_list("all") == \
+               ['CLASS', 'FILTERS', 'TITLE', 'VERSION', "qr", "rs"]
+
+        # delete an attribute (File.delAttrNode method)
+        self.fileh.delAttrNode(self.root, "qr", "agroup")
+        if verbose:
+            print "Attribute list:", self.root.agroup._v_attrs._f_list()
+        # Check the local attributes names
+        assert self.root.agroup._v_attrs._f_list() == ["rs"]
+        if verbose:
+            print "Attribute list in disk:", \
+                  self.root.agroup._v_attrs._g_listAttr()
+        # Check the disk attribute names
+        assert self.root.agroup._v_attrs._f_list("all") == \
+               ['CLASS', 'FILTERS', 'TITLE', 'VERSION', "rs"]
+
     def test06_removeAttributes(self):
         """Checking removing system attributes """
 

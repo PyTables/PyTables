@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.81 2004/10/03 12:48:05 falted Exp $
+#       $Id: Group.py,v 1.82 2004/10/27 19:04:39 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.81 $"
+__version__ = "$Revision: 1.82 $"
 
 # Recommended values for maximum number of groups and maximum depth in tree
 # However, these limits are somewhat arbitraries and can be increased
@@ -89,6 +89,7 @@ class Group(hdf5Extension.Group, object):
         _f_remove(recursive=0)
         _f_getAttr(attrname)
         _f_setAttr(attrname, attrvalue)
+        _f_delAttr(attrname)
         _f_copyChildren(where, recursive=0, filters=None, copyuserattrs=1,
                         start=0, stop=None, step=1, overwrite=0)
         _f_close()
@@ -608,6 +609,11 @@ self._g_join(name), UserWarning)
         """Set an group attribute as a string"""
 
         setattr(self._v_attrs, attrname, attrvalue)
+
+    def _f_delAttr(self, attrname):
+        """Delete an group attribute as a string"""
+
+        delattr(self._v_attrs, attrname)
 
     def _f_rename(self, newname):
         """Rename a group"""

@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.90 2004/09/29 17:50:58 falted Exp $
+#       $Id: File.py,v 1.91 2004/10/27 19:04:15 falted Exp $
 #
 ########################################################################
 
@@ -34,7 +34,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.90 $"
+__version__ = "$Revision: 1.91 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 #format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -249,6 +249,7 @@ class File(hdf5Extension.File, object):
         renameNode(where, newname [, name])
         getAttrNode(self, where, attrname [, name])
         setAttrNode(self, where, attrname, attrname [, name])
+        delAttrNode(self, where, attrname [, name])
         walkGroups([where])
         walkNodes([where] [, classname])
         flush()
@@ -750,7 +751,6 @@ class File(hdf5Extension.File, object):
         
         """
 
-        # Get the node to be renamed
         object = self.getNode(where, name=name)
         if isinstance(object, Group):
             return object._f_getAttr(attrname)
@@ -769,13 +769,29 @@ class File(hdf5Extension.File, object):
         
         """
 
-        # Get the node to be renamed
         object = self.getNode(where, name=name)
         if isinstance(object, Group):
             object._f_setAttr(attrname, attrvalue)
         else:
             object.setAttr(attrname, attrvalue)
         
+    def delAttrNode(self, where, attrname, name = ""):
+        """Delete the attribute "attrname" of node "where"."name".
+
+        "where" can be a path string or Group instance. If "where"
+        doesn't exists or has not a child called "name", a LookupError
+        error is raised. If "name" is a null string (""), or not
+        supplied, this method assumes to find the object in "where".
+        "attrname" is the name of the attribute to delete.
+        
+        """
+
+        object = self.getNode(where, name=name)
+        if isinstance(object, Group):
+            return object._f_delAttr(attrname)
+        else:
+            return object.delAttr(attrname)
+            
     def copyAttrs(self, where, name="", dstNode=None):
         """Copy the attributes from node "where"."name" to "dstNode".
 

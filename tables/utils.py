@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.25 2004/08/12 20:52:45 falted Exp $
+#       $Id: utils.py,v 1.26 2004/10/27 19:04:40 falted Exp $
 #
 ########################################################################
 
@@ -13,7 +13,7 @@
 
 """
 
-import types
+import types, re
 # The second line is better for some installations
 #from tables.hdf5Extension import getIndices
 from hdf5Extension import getIndices
@@ -33,8 +33,18 @@ reservedprefixes = [
   '_v_',   # For instance variables
 ]
 
+pat = re.compile('[a-zA-Z_][a-zA-Z0-9_]*')
+
 def checkNameValidity(name):
-    
+    "Check the validity of a name to be put in the object tree"
+    global pat
+
+    # First, some checks for avoid execution of arbitrary (malign) code
+    t = re.search(pat, name)
+    if t.end() < len(name):
+        raise NameError, \
+"""Sorry, you must use a name compliant with '[a-zA-Z_][a-zA-Z0-9_]*' regexp"""
+
     # Check if name starts with a reserved prefix
     for prefix in reservedprefixes:
         if (name.startswith(prefix)):
@@ -46,7 +56,6 @@ def checkNameValidity(name):
     # and is not one of the Python reserved word!
     # We use the next trick: exec the assignment 'name = 1' and
     # if a SyntaxError raises, catch it and re-raise a personalized error.
-    
     testname = '_' + name + '_'
     try:
         exec(testname + ' = 1')  # Test for trailing and ending spaces

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.54 2004/10/05 19:22:21 falted Exp $
+#       $Id: Leaf.py,v 1.55 2004/10/27 19:04:40 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.54 $"
+__version__ = "$Revision: 1.55 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -131,10 +131,11 @@ class Leaf(object):
 
         close()
         flush()
-        getAttr(attrname)
         rename(newname)
         remove()
+        getAttr(attrname)
         setAttr(attrname, attrvalue)
+        delAttr(attrname)
 
     Instance variables:
 
@@ -416,6 +417,11 @@ class Leaf(object):
         """Set a leaf attribute as a string"""
 
         setattr(self.attrs, attrname, attrvalue)
+
+    def delAttr(self, attrname):
+        """Delete a leaf attribute as a string"""
+
+        delattr(self.attrs, attrname)
 
     def flush(self):
         """Save whatever remaining data in buffer"""

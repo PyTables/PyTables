@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.33 2004/08/10 07:48:51 falted Exp $
+#       $Id: AttributeSet.py,v 1.34 2004/10/27 19:04:15 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.33 $"
+__version__ = "$Revision: 1.34 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -258,6 +258,10 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # Delete the attribute from local lists
         self._v_attrnames.remove(name)
         self._v_attrnamesuser.remove(name)
+
+        # Delete the attribute from the local directory
+        # closes (#1049285)
+        del self.__dict__[name] 
 
     def _f_rename(self, oldattrname, newattrname):
         "Rename an attribute"
