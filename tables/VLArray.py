@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.5 2003/12/02 18:37:00 falted Exp $
+#       $Id: VLArray.py,v 1.6 2003/12/03 19:05:59 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.5 $"
+__version__ = "$Revision: 1.6 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -551,6 +551,29 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 
         return arr
 
+    def __getitem__(self, key):
+        """Returns a table row, table slice or table column.
+
+        It takes different actions depending on the type of the "key"
+        parameter:
+
+        If "key"is an integer, the corresponding table row is returned
+        as a RecArray.Record object. If "key" is a slice, the row
+        slice determined by key is returned as a RecArray object.
+        Finally, if "key" is a string, it is interpreted as a column
+        name in the table, and, if it exists, it is read and returned
+        as a NumArray or CharArray object (whatever is appropriate).
+
+"""
+
+        if isinstance(key, types.IntType):
+            return self.read(key, key+1, 1)[0]
+        elif isinstance(key, types.SliceType):
+            return self.read(key.start, key.stop, key.step)
+        else:
+            raise ValueError, "Non-valid index or slice: %s" % \
+                  key
+        
     # Accessor for the _readArray method in superclass
     def read(self, start=None, stop=None, step=None):
         """Read the array from disk and return it as numarray."""
@@ -575,29 +598,16 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             
         return outlistarr
 
-    def __getitem__(self, key):
-        """Returns a table row, table slice or table column.
+    def __repr__(self):
+        """This provides more metainfo in addition to standard __str__"""
 
-        It takes different actions depending on the type of the "key"
-        parameter:
-
-        If "key"is an integer, the corresponding table row is returned
-        as a RecArray.Record object. If "key" is a slice, the row
-        slice determined by key is returned as a RecArray object.
-        Finally, if "key" is a string, it is interpreted as a column
-        name in the table, and, if it exists, it is read and returned
-        as a NumArray or CharArray object (whatever is appropriate).
-
-"""
-
-        if isinstance(key, types.IntType):
-            return self.read(key, key+1, 1)[0]
-        elif isinstance(key, types.SliceType):
-            return self.read(key.start, key.stop, key.step)
-        else:
-            raise ValueError, "Non-valid index or slice: %s" % \
-                  key
-        
+        return """%s
+  atom = %r
+  shape = %s
+  nrows = %s
+  flavor = %r
+  byteorder = %r""" % (self, self.atom, self.shape, self.nrows,
+                       self.flavor, self.byteorder)
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
 

@@ -384,53 +384,62 @@ herr_t H5ARRAYread( hid_t loc_id,
  if ( (rank = H5Sget_simple_extent_ndims(space_id)) < 0 )
    goto out;
 
- /* Book some memory for the selections */
- dims = (hsize_t *)malloc(rank*sizeof(hsize_t));
- count = (hsize_t *)malloc(rank*sizeof(hsize_t));
- stride = (hsize_t *)malloc(rank*sizeof(hsize_t));
- offset = (hsize_t *)malloc(rank*sizeof(hsize_t));
+ if (rank) {  			/* Array case */
 
- /* Get dataset dimensionality */
- if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
-  goto out;
+   /* Book some memory for the selections */
+   dims = (hsize_t *)malloc(rank*sizeof(hsize_t));
+   count = (hsize_t *)malloc(rank*sizeof(hsize_t));
+   stride = (hsize_t *)malloc(rank*sizeof(hsize_t));
+   offset = (hsize_t *)malloc(rank*sizeof(hsize_t));
 
- if ( start + nrows > dims[_extdim] ) {
-   printf("Asking for a range of rows exceeding the available ones!.\n");
-   goto out;
+   /* Get dataset dimensionality */
+   if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
+     goto out;
+
+   if ( start + nrows > dims[_extdim] ) {
+     printf("Asking for a range of rows exceeding the available ones!.\n");
+     goto out;
+   }
+
+   /* Define a hyperslab in the dataset of the size of the records */
+   for (i=0; i<rank;i++) {
+     offset[i] = 0;
+     count[i] = dims[i];
+     stride[i] = 1;
+     /*    printf("dims[%d]: %d\n",i, (int)dims[i]); */
+   }
+   offset[_extdim] = start;
+   count[_extdim]  = nrows;
+   stride[_extdim] = step;
+   if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, stride, count, NULL) < 0 )
+     goto out;
+
+   /* Create a memory dataspace handle */
+   if ( (mem_space_id = H5Screate_simple( rank, count, NULL )) < 0 )
+     goto out;
+
+   /* Read */
+   if ( H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
+     goto out;
+
+   /* Release resources */
+   free(dims);
+   free(count);
+   free(stride);
+   free(offset);
+
+   /* Terminate access to the memory dataspace */
+   if ( H5Sclose( mem_space_id ) < 0 )
+     goto out;
+ }
+ else {  			/* Scalar case */
+
+   /* Read */
+   if (H5Dread(dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data) < 0)
+     goto out;
  }
 
- /* Define a hyperslab in the dataset of the size of the records */
- for (i=0; i<rank;i++) {
-   offset[i] = 0;
-   count[i] = dims[i];
-   stride[i] = 1;
-/*    printf("dims[%d]: %d\n",i, (int)dims[i]); */
- }
- offset[_extdim] = start;
- count[_extdim]  = nrows;
- stride[_extdim] = step;
- if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, stride, count, NULL) < 0 )
-  goto out;
-
- /* Create a memory dataspace handle */
- if ( (mem_space_id = H5Screate_simple( rank, count, NULL )) < 0 )
-  goto out;
-
- /* Read */
- if ( H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
-   goto out;
-
- /* Release resources */
- free(dims);
- free(count);
- free(stride);
- free(offset);
-
- /* Terminate access to the memory dataspace */
- if ( H5Sclose( mem_space_id ) < 0 )
-  goto out;
-
- /* Terminate access to the dataspace */
+   /* Terminate access to the dataspace */
  if ( H5Sclose( space_id ) < 0 )
   goto out;
 

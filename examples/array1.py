@@ -1,3 +1,4 @@
+import sys
 from numarray import *
 from numarray import strings
 from tables import *
@@ -22,11 +23,16 @@ hdfarray.append(strings.array(['c', 'b', 'c', 'd']))
 # Create other Array
 a = array([-1, 2, 4], Int16)
 # Save it on the HDF5 file
-hdfarray = fileh.createArray(root, 'array_1', a, "Signed byte array")
+hdfarray = fileh.createArray(root, 'array_1', a, "Signed short array")
+
+# Create a scalar Array
+a = array(4, Int16)
+# Save it on the HDF5 file
+hdfarray = fileh.createArray(root, 'array_s', a, "Scalar signed short array")
 
 # Create an empty array
 a = zeros((2,0,3),type=UInt16)
-hdfarray = fileh.createArray(root, 'array_e', a, "Unsigned byte array")
+hdfarray = fileh.createArray(root, 'array_e', a, "Unsigned short array")
 
 # Create an enlargeable array
 a = zeros((2,0,3),type=UInt8)
@@ -67,9 +73,24 @@ a = root.array_b.read(step=2)
 print "Int8 array, even rows (step = 2) -->",repr(a), a.shape
 
 print "Testing iterator:",
-for x in root.array_b.iterrows(start=2):
+for x in root.array_b.iterrows(step=2):
+    print "nrow-->", root.array_b.nrow
     print "Element-->",x
 
+arr = root.array_s
+for x in arr:
+    print "nrow-->", arr.nrow
+    print "Element-->", repr(x)
 
+#sys.exit()
+
+print "Testing getitem:"
+for i in range(root.array_b.nrows):
+    print "array_b["+str(i)+"]", "-->", root.array_b[i]
+print "array_c[1:2]", repr(root.array_c[1:2])
+print "array_c[1:3]", repr(root.array_c[1:3])
+print "array_b[:]", root.array_b[:]
+
+print repr(root.array_c)
 # Close the file
 fileh.close()

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.37 2003/12/02 18:37:00 falted Exp $
+#       $Id: Array.py,v 1.38 2003/12/03 19:05:59 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.37 $"
+__version__ = "$Revision: 1.38 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -80,11 +80,22 @@ class Array(Leaf, hdf5Extension.Array, object):
         byteorder -- the byteorder of the leaf
         
       Specific of Array:
-        type -- the type class for the array
-        flavor -- the object type of this object (Numarray, Numeric, List,
-                  Tuple, String, Int of Float)
-        extdim -- tells which dimension can be extended. -1 means that
-                  array is not enlargeable.
+      
+        type -- The type class for the array.
+
+        itemsize -- The size of the atomic items. Specially useful for
+            CharArrays.
+        
+        flavor -- The object type of this object (Numarray, Numeric, List,
+            Tuple, String, Int of Float).
+            
+        extdim -- Tells which dimension can be extended. -1 means that
+            array is not enlargeable.
+
+        nrows -- The value of the enlargeable dimension. If array is not
+            enlargeable, this is the value of the first dimension.
+            
+        nrow -- On iterators, this is the index of the current row.
 
     """
     
@@ -196,7 +207,10 @@ class Array(Leaf, hdf5Extension.Array, object):
         if self.extdim >= 0:
             self.nrows = naarr.shape[self.extdim]
         else:
-            self.nrows = naarr.shape[0]            
+            if naarr.shape:
+                self.nrows = naarr.shape[0]
+            else:
+                self.nrows = 1    # Scalar case
         self.itemsize = naarr.itemsize()
         self.type = self._createArray(naarr, self.new_title)
 
@@ -339,7 +353,10 @@ class Array(Leaf, hdf5Extension.Array, object):
                 self.nrows = self.shape[i]
         # Assign a value to nrows in case we are a non-enlargeable object
         if self.extdim < 0:
-            self.nrows = self.shape[0]
+            if self.shape:
+                self.nrows = self.shape[0]
+            else:
+                self.nrows = 1   # Scalar case
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
                    calcBufferSize(self.rowsize, self.nrows, self._v_compress)
@@ -381,6 +398,7 @@ class Array(Leaf, hdf5Extension.Array, object):
         self._startb = self._start
         self._row = -1   # Sentinel
         self._init = 1    # Sentinel
+        self.nrow = self._start - self._step    # row number
 
     def next(self):
         "next() method for __iter__() that is called on each iteration"
@@ -391,49 +409,50 @@ class Array(Leaf, hdf5Extension.Array, object):
             # Read a chunk of rows
             if self._row > self._v_maxTuples or self._row < 0:
                 self._stopb = self._startb+self._step*self._v_maxTuples
+                # Protection for reading more elements than needed
+                if self._stopb > self._stop:
+                    self._stopb = self._stop
                 self.listarr = self.read(self._startb, self._stopb, self._step)
-                # Swap the axes to easy the return of the elements in
-                # enlargeable dimension
-                self.listarr = numarray.swapaxes(self.listarr, self.extdim, 0)
+                # Swap the axes to easy the return of elements
+                if (self._stop - self._start) > self._step:
+                    # The case == step has been dealt in read() method
+                    self.listarr.swapaxes(self.extdim, 0)
+                else:
+                    self._nrowsread += self._step  # Stop condition
+                    return self.listarr
                 self._row = -1
                 self._startb = self._stopb
             self._row += 1
+            self.nrow += self._step
             self._nrowsread += self._step
             return self.listarr[self._row]
 
-    # Accessor for the _readArray method in superclass
-    def read(self, start=None, stop=None, step=None):
-        """Read the array from disk and return it as numarray."""
+    def __getitem__(self, key):
+        """Returns a table row, table slice or table column.
 
-        if self.extdim < 0:
-            extdim = 0
-        else:
-            extdim = self.extdim
-        nrows = self.shape[extdim]
-        (start, stop, step) = processRange(nrows, start, stop, step)
-        rowstoread = ((stop - start - 1) / step) + 1
-        shape = list(self.shape)
-        shape[extdim] = rowstoread
-        shape = tuple(shape)
-        if repr(self.type) == "CharType":
-            arr = strings.array(None, itemsize=self.itemsize,
-                                  shape=shape)
-        else:
-            arr = numarray.array(buffer=None,
-                                 type=self.type,
-                                 shape=shape)
-            # Set the same byteorder than on-disk
-            arr._byteorder = self.byteorder
-        # Protection against reading empty arrays
-        zerodim = 0
-        for i in range(len(shape)):
-            if shape[i] == 0:
-                zerodim = 1
+        It takes different actions depending on the type of the "key"
+        parameter:
 
-        if not zerodim:
-            # Arrays that have non-zero dimensionality
-            self._readArray(start, stop, step, arr._data)
+        If "key"is an integer, the corresponding table row is returned
+        as a RecArray.Record object. If "key" is a slice, the row
+        slice determined by key is returned as a RecArray object.
+        Finally, if "key" is a string, it is interpreted as a column
+        name in the table, and, if it exists, it is read and returned
+        as a NumArray or CharArray object (whatever is appropriate).
+
+"""
+
+        if isinstance(key, types.IntType):
+            return self.read(key, key+1, 1)
+        elif isinstance(key, types.SliceType):
+            return self.read(key.start, key.stop, key.step)
+        else:
+            raise ValueError, "Non-valid index or slice: %s" % \
+                  key
         
+    def _convToFlavor(self, arr):
+        "next() method for __iter__() that is called on each iteration"
+
         # Convert to Numeric, tuple or list if needed
         if self.flavor == "Numeric":
             if Numeric_imported:
@@ -468,17 +487,67 @@ class Array(Leaf, hdf5Extension.Array, object):
             arr = float(arr)
         elif self.flavor == "String":
             arr = arr.tostring()
-        
+
         return arr
+        
+    # Accessor for the _readArray method in superclass
+    def read(self, start=None, stop=None, step=None):
+        """Read the array from disk and return it as a "flavor" object."""
+
+        if self.extdim < 0:
+            extdim = 0
+        else:
+            extdim = self.extdim
+        if self.shape:
+            nrows = self.shape[extdim]
+        else:
+            nrows = 1
+        (start, stop, step) = processRange(nrows, start, stop, step)
+        rowstoread = ((stop - start - 1) / step) + 1
+        shape = list(self.shape)
+        if shape:
+            shape[extdim] = rowstoread
+            shape = tuple(shape)
+        if repr(self.type) == "CharType":
+            arr = strings.array(None, itemsize=self.itemsize,
+                                  shape=shape)
+        else:
+            arr = numarray.array(buffer=None,
+                                 type=self.type,
+                                 shape=shape)
+            # Set the same byteorder than on-disk
+            arr._byteorder = self.byteorder
+        # Protection against reading empty arrays
+        zerodim = 0
+        for i in range(len(shape)):
+            if shape[i] == 0:
+                zerodim = 1
+
+        if not zerodim:
+            # Arrays that have non-zero dimensionality
+            self._readArray(start, stop, step, arr._data)
+            
+        # If only one row is required and enlargeable arrays,
+        # swap the axes to eliminate one dimension
+        if ((stop - start) == step and
+            self.extdim >= 0 and len(self.shape) > 1): 
+                arr.swapaxes(self.extdim, 0)
+                arr = arr[0]
+            
+        if self.flavor <> "NumArray":
+            return self._convToFlavor(arr)
+        else:
+            return arr
         
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
 
         return """%s
   type = %r
+  shape = %s
   itemsize = %s
   nrows = %s
   extdim = %r
   flavor = %r
-  byteorder = %r""" % (self, self.type, self.itemsize, self.nrows,
-                       self.extdim, self.attrs.FLAVOR, self.byteorder)
+  byteorder = %r""" % (self, self.type, self.shape, self.itemsize, self.nrows,
+                       self.extdim, self.flavor, self.byteorder)

@@ -1881,17 +1881,15 @@ PyObject *H5LTget_attribute_string_sys( hid_t loc_id,
 
  /* Open the object */
  if ((obj_id = H5LT_open_id( loc_id, obj_name, statbuf.type )) < 0)
-  return NULL;
+   return NULL;
 
 /*  Check if attribute exists */
  /* This is commented out to make the attribute reading faster */
 /*  if (H5LT_find_attribute(obj_id, attr_name) <= 0)  */
-/*    /\* If the attribute does not exists, return None *\/ */
-/*    /\* and do not even warn the user *\/ */
-/*    return Py_None; */
-
  if ( ( attr_id = H5Aopen_name( obj_id, attr_name ) ) < 0 )
-  return Py_None;
+   /* If the attribute does not exists, return None */
+   /* and do not even warn the user */
+   return Py_None;
 
  if ( (attr_type = H5Aget_type( attr_id )) < 0 )
   goto out;

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.88 2003/12/02 18:37:00 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.89 2003/12/03 19:05:58 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.88 $"
+__version__ = "$Revision: 1.89 $"
 
 
 import sys, os
@@ -64,6 +64,7 @@ cdef extern from "stdlib.h":
   ctypedef int size_t
   void *malloc(size_t size)
   void free(void *ptr)
+  double atof(char *nptr)
 
 cdef extern from "time.h":
   ctypedef int time_t
@@ -813,7 +814,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.88 2003/12/02 18:37:00 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.89 2003/12/03 19:05:58 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -836,9 +837,6 @@ cdef class File:
     self.mode = mode
     if (strcmp(mode, "r") == 0 or strcmp(mode, "r+") == 0):
       if (os.path.isfile(name) and H5Fis_hdf5(name) > 0):
-      #if (os.path.isfile(name)):
-        # The file exists and is HDF5, that's ok
-        #print "File %s exists... That's ok!" % name
         if strcmp(mode, "r") == 0:
           self.file_id = H5Fopen(name, H5F_ACC_RDONLY, H5P_DEFAULT)
         elif strcmp(mode, "r+") == 0:
@@ -1006,7 +1004,6 @@ cdef class AttributeSet:
   def _g_getAttr(self, char *attrname):
     cdef object attrvalue
     cdef hid_t loc_id
-
     if isinstance(self.node, Group):
       attrvalue = self._g_getNodeAttr(self.parent_id, self.node._v_groupId,
                                       self.name, attrname)
@@ -1029,14 +1026,12 @@ cdef class AttributeSet:
 
   # Get a system attribute (they should be only strings)
   def _g_getSysAttr(self, char *attrname):
-
     ret = H5LTget_attribute_string_sys(self.parent_id, self.name,
                                        attrname)
     return ret
 
   # This funtion is useful to retrieve system attributes of Leafs
   def _g_getChildSysAttr(self, char *dsetname, char *attrname):
-
     ret = H5LTget_attribute_string_sys(self.node._v_groupId, dsetname,
                                        attrname)
     return ret
@@ -1044,7 +1039,6 @@ cdef class AttributeSet:
   def _g_getChildAttr(self, char *dsetname, char *attrname):
     cdef object attrvalue
     cdef hid_t loc_id
-
     # Get the dataset ID
     loc_id = H5Dopen(self.node._v_groupId, dsetname)
     if loc_id < 0:
@@ -2026,6 +2020,8 @@ cdef class Array:
     cdef herr_t ret
     cdef int extdim
     cdef char flavor[256]
+    cdef char version[8]
+    cdef double fversion
 
     # Get the rank for this array object
     ret = H5ARRAYget_ndims(self.parent_id, self.name, &self.rank)
@@ -2035,16 +2031,17 @@ cdef class Array:
     ret = H5ARRAYget_info(self.parent_id, self.name, self.dims,
                           &self.type_id, &class_id, byteorder)
 
-    ret = H5LTget_attribute_string(self.parent_id, self.name, "FLAVOR", flavor)
-    if ret < 0:
-      strcpy(flavor, "unknown")
+    strcpy(flavor, "unknown")  # Default value
+    extdim = -1                # default value
+    if self._v_file._isPTFile:
+      H5LTget_attribute_string(self.parent_id, self.name, "FLAVOR", flavor)
+      H5LTget_attribute_string(self.parent_id, self.name, "VERSION", version)
+      fversion = atof(version)
+      if fversion >= 2.:
+        # From Array 2.0 on, EXTDIM attribute exists
+        H5LTget_attribute_int(self.parent_id, self.name, "EXTDIM", &extdim)
     self.flavor = flavor
-    ret = H5LTget_attribute_int(self.parent_id, self.name, "EXTDIM", &extdim)
-    if ret < 0:
-      # The EXTDIM attribute does not seem to exist
-      self.extdim = -1
-    else:
-      self.extdim = extdim
+    self.extdim = extdim
     
     # Get the array type
     type_size = getArrayType(self.type_id, &self.enumtype)
