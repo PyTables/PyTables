@@ -7,7 +7,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/utils/ptdump,v $
-#       $Id: ptdump,v 1.7 2004/08/10 07:48:51 falted Exp $
+#       $Id: ptdump,v 1.8 2004/08/12 20:52:46 falted Exp $
 #
 ########################################################################
 
@@ -105,13 +105,13 @@ def dumpGroup(h5file):
 
 usage = \
 """usage: %s [-R start,stop,step] [-a] [-h] [-d] [-v] file[:nodepath]
-  -R select a range of rows in the form "start,stop,step"
-  -a show attributes in nodes (only useful when -v or -d are active)
-  -c show info of columns in tables (only useful when -v or -d are active)
-  -i show info of indexed in columns (only useful when -v or -d are active)
-  -d dump data information on leaves
-  -h print help on usage
-  -v dump more metainformation on nodes
+  -R RANGE -- Select a RANGE of rows in the form "start,stop,step"
+  -a -- Show attributes in nodes (only useful when -v or -d are active)
+  -c -- Show info of columns in tables (only useful when -v or -d are active)
+  -i -- Show info of indexed columns (only useful when -v or -d are active)
+  -d -- Dump data information on leaves
+  -h -- Print help on usage
+  -v -- Dump more metainformation on nodes
             \n""" \
 % os.path.basename(sys.argv[0])
 

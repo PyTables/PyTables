@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.24 2004/06/28 12:03:24 falted Exp $
+#       $Id: utils.py,v 1.25 2004/08/12 20:52:45 falted Exp $
 #
 ########################################################################
 
@@ -13,6 +13,7 @@
 
 """
 
+import types
 # The second line is better for some installations
 #from tables.hdf5Extension import getIndices
 from hdf5Extension import getIndices
@@ -174,17 +175,24 @@ def processRange(nrows, start=None, stop=None, step=1):
 
 # This function is appropiate for calls to read() methods
 def processRangeRead(nrows, start=None, stop=None, step=1):
+#     assert isinstance(start, types.IntType), "start must be an integer"
+#     assert isinstance(stop, types.IntType), "stop must be an integer"
+#     assert isinstance(step, types.IntType), "step must be an integer"
     if start is not None and stop is None:
         # Protection against start greater than available records
         # nrows == 0 is a special case for empty objects
-        if nrows > 0 and start >= nrows:
-            raise IndexError, \
+        if (isinstance(start, types.IntType) or
+            (isinstance(start, types.LongType))):
+            if nrows > 0 and start >= nrows:
+                raise IndexError, \
 "Start (%s) value is greater than number of rows (%s)." % (start, nrows)
-        step = 1
-        if start == -1:  # corner case
-            stop = nrows
+            step = 1
+            if start == -1:  # corner case
+                stop = nrows
+            else:
+                stop = start + 1
         else:
-            stop = start + 1
+            raise IndexError, "start must be an integer and you passed: %s which os of type %s" % (repr(start), type(start))
     #print "start, stop, step -->", start, stop, step
     # Finally, get the correct values
     start, stop, step = processRange(nrows, start, stop, step)

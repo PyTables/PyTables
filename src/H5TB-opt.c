@@ -453,3 +453,156 @@ out:
 
 }
 
+/*-------------------------------------------------------------------------
+ * Function: H5TBOwrite_records
+ *
+ * Purpose: Writes records
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: November 19, 2001
+ *
+ * Comments: Uses memory offsets
+ *
+ * Modifications: 
+ * -  Added a step parameter in order to support strided writing.
+ *    Francesc Alted, falted@pytables.org. 2004-08-12
+ *
+ *
+ *-------------------------------------------------------------------------
+ */
+
+
+herr_t H5TBOwrite_records( hid_t loc_id, 
+			   const char *dset_name,
+			   hsize_t start,
+			   hsize_t nrecords,
+			   hsize_t step,
+			   size_t type_size,
+			   const size_t *field_offset,
+			   const void *data )  
+{
+
+ hid_t    dataset_id;
+ hid_t    type_id=-1;    
+ hsize_t  count[1];    
+ hsize_t  stride[1];    
+ hssize_t offset[1];
+ hid_t    space_id;
+ hid_t    mem_space_id;
+ hsize_t  mem_size[1];
+ hsize_t  dims[1];
+ hid_t    mem_type_id=-1;
+ hsize_t  nrecords_orig;
+ hsize_t  nfields;
+ char     **field_names;
+ hid_t    member_type_id;
+ hsize_t  i;
+
+  /* Get the number of records and fields  */
+ if ( H5TBget_table_info ( loc_id, dset_name, &nfields, &nrecords_orig ) < 0 )
+  return -1;
+
+  /* Alocate space */
+ field_names = malloc( sizeof(char*) * (size_t)nfields );
+ for ( i = 0; i < nfields; i++) 
+ {
+  field_names[i] = malloc( sizeof(char) * HLTB_MAX_FIELD_LEN );
+ }
+
+ /* Get field info */
+ if ( H5TBget_field_info( loc_id, dset_name, field_names, NULL, NULL, NULL ) < 0 )
+  return -1;
+
+ /* Open the dataset. */
+ if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+  return -1;
+
+  /* Get the datatype */
+ if ( (type_id = H5Dget_type( dataset_id )) < 0 )
+  goto out;
+
+ /* Create the memory data type. */
+ if ((mem_type_id = H5Tcreate (H5T_COMPOUND, type_size )) < 0 )
+  return -1;
+
+ /* Insert fields on the memory data type. We use the types from disk */
+ for ( i = 0; i < nfields; i++) 
+ {
+
+  /* Get the member type */
+  if ( ( member_type_id = H5Tget_member_type( type_id,(int) i )) < 0 )
+   goto out;
+
+  if ( H5Tinsert(mem_type_id, field_names[i], field_offset[i], member_type_id ) < 0 )
+   goto out;
+
+  /* Close the member type */
+  if ( H5Tclose( member_type_id ) < 0 )
+   goto out;
+ }
+
+ /* Get the dataspace handle */
+ if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+  goto out;
+
+  /* Get records */
+ if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
+  goto out;
+
+ if ( start + nrecords > dims[0] )
+  goto out;
+  
+ /* Define a hyperslab in the dataset of the size of the records */
+ offset[0] = start;
+ stride[0] = step;
+ count[0] = nrecords;
+ if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, stride, count, NULL) < 0 )
+  goto out;
+
+ /* Create a memory dataspace handle */
+ mem_size[0] = count[0];
+ if ( (mem_space_id = H5Screate_simple( 1, mem_size, NULL )) < 0 )
+  goto out;
+
+ if ( H5Dwrite( dataset_id, mem_type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
+  goto out;
+
+ /* Terminate access to the memory dataspace */
+ if ( H5Sclose( mem_space_id ) < 0 )
+  goto out;
+
+ /* Terminate access to the dataspace */
+ if ( H5Sclose( space_id ) < 0 )
+  goto out;
+ 
+ /* Release the datatype. */
+ if ( H5Tclose( type_id ) < 0 )
+  goto out;
+
+ /* Release the datatype. */
+ if ( H5Tclose( mem_type_id ) < 0 )
+  return -1;
+
+ /* End access to the dataset */
+ if ( H5Dclose( dataset_id ) < 0 )
+  return -1;
+
+ /* Release resources. */
+ for ( i = 0; i < nfields; i++) 
+ {
+  free ( field_names[i] );
+ }
+ free ( field_names );
+ 
+return 0;
+
+out:
+ H5Dclose( dataset_id );
+ return -1;
+
+}
+
+

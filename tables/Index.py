@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.13 2004/08/10 07:48:51 falted Exp $
+#       $Id: Index.py,v 1.14 2004/08/12 20:52:45 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.13 $"
+__version__ = "$Revision: 1.14 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -417,6 +417,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         self.sorted._destroySortedSlice()
         #print "time reading indices:", time.time()-t1
         #print "ntotaliter-->", ntotaliter
+        assert tlen >= 0, "Post-condition failed. Please, report this to the authors."
         return tlen
 
 # This has been passed to Pyrex. However, with pyrex it has the same speed,
@@ -500,7 +501,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
 #         #selections = self.indices.arrAbs[:relCoords]
 #         return selections
 
-    def _getLookupRange(self, column):
+    def getLookupRange(self, column):
         #import time
         table = column.table
         # Get the coordenates for those values
@@ -568,8 +569,11 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
                 raise NotImplementedError, "'!=' or '<>' not supported yet"
                 notequal = 1
         elif len(ilimit) == 2:
-            op1, op2 = table.ops
             item1, item2 = ilimit
+            #print "item1, item2-->", item1, item2, type(item1), type(item2)
+            assert item1 <= item2, \
+"On 'val1 <{=} col <{=} val2' selections, val1 must be less or equal than val2"
+            op1, op2 = table.ops
             if op1 == 3 and op2 == 1:  # item1 < col < item2
                 item = (nextafter(item1, +1, ctype, itemsize),
                         nextafter(item2, -1, ctype, itemsize))

@@ -759,7 +759,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             indexedrows = table._indexedrows
             unsavedindexedrows = table._unsaved_indexedrows
         # Now, modify just one row:
-        table.modifyRows(3, [["asa",0,3,3.1]])
+        table.modifyRows(3, None, 1, [["asa",0,3,3.1]])
         if self.reopen:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -909,7 +909,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         "Checking copy Index feature in copyTable (values)"
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s._test10_copyIndex..." % self.__class__.__name__
+            print "Running %s.test10_copyIndex..." % self.__class__.__name__
         table = self.table
         # Don't force a sync in indexes
         #table._addRowsToIndex()
@@ -955,7 +955,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         "Checking copy Index feature in copyTable (dirty flags)"
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s._test11_copyIndex..." % self.__class__.__name__
+            print "Running %s.test11_copyIndex..." % self.__class__.__name__
         table = self.table
         # Force a sync in indexes
         table._addRowsToIndex()
@@ -1087,7 +1087,7 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(AI3TestCase))
     #theSuite.addTest(unittest.makeSuite(AI4aTestCase))
     #theSuite.addTest(unittest.makeSuite(AI4aTestCase))
-    theSuite.addTest(unittest.makeSuite(BasicReadTestCase))
+    #theSuite.addTest(unittest.makeSuite(BasicReadTestCase))
     #theSuite.addTest(unittest.makeSuite(OneHalfTestCase))
     #theSuite.addTest(unittest.makeSuite(UpperBoundTestCase))
     #theSuite.addTest(unittest.makeSuite(LowerBoundTestCase))

@@ -54,6 +54,7 @@ class SelectValuesTestCase(unittest.TestCase):
             # Change the buffersize by default
             table1._v_maxTuples = self.buffersize
         #table2._v_maxTuples = self.buffersize  # This is not necessary
+        count = 0
         for i in xrange(0, self.nrows, self.nrep):
             for j in range(self.nrep):
                 if self.random:
@@ -70,6 +71,7 @@ class SelectValuesTestCase(unittest.TestCase):
                 table2.row['var4'] = float(self.nrows - i - 1)
                 table1.row.append()
                 table2.row.append()
+                count += 1
         table1.flush()
         table2.flush()
         # Index all entries:
@@ -78,7 +80,7 @@ class SelectValuesTestCase(unittest.TestCase):
         indexrows = table1.cols.var3.createIndex(testmode=1)
         indexrows = table1.cols.var4.createIndex(testmode=1)
         if verbose:
-            print "Number of written rows:", self.nrows
+            print "Number of written rows:", table1.nrows
             print "Number of indexed rows:", indexrows
         
         if self.reopen:
@@ -603,7 +605,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test05a(self):
-        """Checking getWhereList & iterWhereList (int flavor)"""
+        """Checking getWhereList & iterWhereList (list, string flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -685,7 +687,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test05b(self):
-        """Checking getWhereList & iterWhereList (int flavor)"""
+        """Checking getWhereList & iterWhereList (tuple, string flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -1010,8 +1012,8 @@ class SelectValuesTestCase(unittest.TestCase):
         # order)
         results1.sort(); results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
+            print "Selection results (index):", results1
+            print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1026,8 +1028,8 @@ class SelectValuesTestCase(unittest.TestCase):
         # order)
         results1.sort(); results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
+            print "Selection results (index):", results1
+            print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1042,8 +1044,8 @@ class SelectValuesTestCase(unittest.TestCase):
         # order)
         results1.sort(); results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
+            print "Selection results (index):", results1
+            print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1060,8 +1062,8 @@ class SelectValuesTestCase(unittest.TestCase):
         # order)
         results1.sort(); results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
+            print "Selection results (index):", results1
+            print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1169,7 +1171,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do some selections and check the results
         t1col = table1.cols.var1
-#         print "t1col-->", t1col[:]
+        #print "t1col-->", t1col[:]
         # First selection
         results1 = [p['var1'] for p in table1.whereInRange(t1col<=sl,2,10)]
         results2 = [p["var1"] for p in table2(2, 10)
@@ -1188,7 +1190,7 @@ class SelectValuesTestCase(unittest.TestCase):
         results2 = [p["var1"] for p in table2(2,30,2)
                     if il<p["var1"]<sl]
         if verbose:
-            print "Limit:", sl
+            print "Limits:", il, sl            
             print "Selection results (in-kernel):", results1
             print "Should look like:", results2
             print "Length results:", len(results1)
@@ -1201,6 +1203,7 @@ class SelectValuesTestCase(unittest.TestCase):
         results2 = [p["var1"] for p in table2(2, -5)  # Negative indices
                     if (il > p["var1"] > sl)]
         if verbose:
+            print "Limits:", il, sl
             print "Limit:", sl
             print "Selection results (in-kernel):", results1
             print "Should look like:", results2
@@ -1209,12 +1212,27 @@ class SelectValuesTestCase(unittest.TestCase):
         assert len(results1) == len(results2)
         assert results1 == results2
 
+        # This selection to be commented out
+#         results1 = [p['var1'] for p in table1.whereInRange(t1col>=sl,2,-1,1)]
+#         results2 = [p["var1"] for p in table2(2, -1, 1)
+#                     if p["var1"] >= sl]
+#         if verbose:
+#             print "Limit:", sl
+#             print "Selection results (in-kernel):", results1
+#             print "Should look like:", results2
+#             print "Length results:", len(results1)
+#             print "Should be:", len(results2)
+#         assert len(results1) == len(results2)
+#         assert results1 == results2
+
         # Fourth selection
+        #print "t1col-->", t1col[:]
+        #results1 = [p['var1'] for p in table1.whereInRange(t1col>=sl,2,-1,3)]
         results1 = [p['var1'] for p in table1.whereInRange(t1col>=sl,2,-1,3)]
         results2 = [p["var1"] for p in table2(2, -1, 3)
                     if p["var1"] >= sl]
         if verbose:
-            print "Limit:", sl
+            print "Limits:", il, sl
             print "Selection results (in-kernel):", results1
             print "Should look like:", results2
             print "Length results:", len(results1)
@@ -1285,6 +1303,515 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
             print "Limit:", sl
             print "Selection results (in-kernel):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+    def test09c(self):
+        """Checking whereInRange with ranges, changing step (string flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test09c..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+
+        # Convert the limits to the appropriate type
+        il = str(self.il)
+        sl = str(self.sl)
+
+        # Do some selections and check the results
+        t1col = table1.cols.var1
+        #print "t1col-->", t1col[:]
+
+        # First selection
+        results1 = [p['var1'] for p in table1.whereInRange(t1col>=sl,2,-1,3)]
+        results2 = [p["var1"] for p in table2(2, -1, 3)
+                    if p["var1"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Second selection
+        results1 = [p['var1'] for p in table1.whereInRange(t1col>=sl,5,-1,10)]
+        results2 = [p["var1"] for p in table2(5, -1, 10)
+                    if p["var1"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Third selection
+        results1 = [p['var1'] for p in table1.whereInRange(t1col>=sl,5,-3,11)]
+        results2 = [p["var1"] for p in table2(5, -3, 11)
+                    if p["var1"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Fourth selection
+        results1 = [p['var1'] for p in table1.whereInRange(t1col>=sl,2,-1,300)]
+        results2 = [p["var1"] for p in table2(2, -1, 300)
+                    if p["var1"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+    def test09d(self):
+        """Checking whereInrange with ranges, changing step (int flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test09d..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+
+        # Convert the limits to the appropriate type
+        il = int(self.il)
+        sl = int(self.sl)
+
+        # Do some selections and check the results
+        t3col = table1.cols.var3
+        #print "t3col-->", t3col[:]
+
+        # First selection
+        results1 = [p['var3'] for p in table1.whereInRange(t3col>=sl,2,-1,3)]
+        results2 = [p["var3"] for p in table2(2, -1, 3)
+                    if p["var3"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Second selection
+        results1 = [p['var3'] for p in table1.whereInRange(t3col>=sl,5,-1,10)]
+        results2 = [p["var3"] for p in table2(5, -1, 10)
+                    if p["var3"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Third selection
+        results1 = [p['var3'] for p in table1.whereInRange(t3col>=sl,5,-3,11)]
+        results2 = [p["var3"] for p in table2(5, -3, 11)
+                    if p["var3"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Fourth selection
+        results1 = [p['var3'] for p in table1.whereInRange(t3col>=sl,2,-1,300)]
+        results2 = [p["var3"] for p in table2(2, -1, 300)
+                    if p["var3"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+    def test10a(self):
+        """Checking whereIndexed with ranges (string flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test10a..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+
+        # Convert the limits to the appropriate type
+        il = str(self.il)
+        sl = str(self.sl)
+
+        # Do some selections and check the results
+        t1col = table1.cols.var1
+        #print "t1col-->", t1col[:]
+        # First selection
+        #print "-->", table1.whereIndexed(t1col<=sl,2,10)
+        results1 = [p['var1'] for p in table1.whereIndexed(t1col<=sl,2,10)]
+        results2 = [p["var1"] for p in table2(2, 10)
+                    if p["var1"] <= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Selection to be deleted
+        results1 = [p['var1'] for p in table1.whereIndexed(il<=t1col<=sl,2,30,1)]
+        results2 = [p["var1"] for p in table2(2,30,1)
+                    if il<=p["var1"]<=sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Second selection
+        results1 = [p['var1'] for p in table1.whereIndexed(il<=t1col<=sl,2,30,2)]
+        results2 = [p["var1"] for p in table2(2,30,2)
+                    if il<=p["var1"]<=sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Third selection
+        results1 = [p['var1'] for p in table1.whereIndexed(il<t1col<sl,2,-5)]
+        results2 = [p["var1"] for p in table2(2, -5)  # Negative indices
+                    if (il < p["var1"] < sl)]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Fourth selection
+        results1 = [p['var1'] for p in table1.whereIndexed(t1col>=sl,1,-1,3)]
+        #print "results1-->", results1
+        results2 = [p["var1"] for p in table2(1, -1, 3)
+                    if p["var1"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+    def test10b(self):
+        """Checking whereIndexed with ranges (int flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test10b..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+
+        # Convert the limits to the appropriate type
+        il = int(self.il)
+        sl = int(self.sl)
+
+        # Do some selections and check the results
+        t3col = table1.cols.var3
+        # First selection
+        #print "-->", table1.whereIndexed(t3col<=sl,2,10)
+        results1 = [p['var3'] for p in table1.whereIndexed(t3col<=sl,2,10)]
+        results2 = [p["var3"] for p in table2(2, 10)
+                    if p["var3"] <= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Second selection
+        results1 = [p['var3'] for p in table1.whereIndexed(il<=t3col<=sl,2,30,2)]
+        results2 = [p["var3"] for p in table2(2,30,2)
+                    if il<=p["var3"]<=sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Third selection
+        results1 = [p['var3'] for p in table1.whereIndexed(il<t3col<sl,2,-5)]
+        results2 = [p["var3"] for p in table2(2, -5)  # Negative indices
+                    if (il < p["var3"] < sl)]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Fourth selection
+        #print "t3col-->", t3col[:]
+        results1 = [p['var3'] for p in table1.whereIndexed(t3col>=sl,1,-1,3)]
+        results2 = [p["var3"] for p in table2(1, -1, 3)
+                    if p["var3"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+    def test10c(self):
+        """Checking whereIndexed with ranges, changing step (string flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test10c..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+
+        # Convert the limits to the appropriate type
+        il = str(self.il)
+        sl = str(self.sl)
+
+        # Do some selections and check the results
+        t1col = table1.cols.var1
+        #print "t1col-->", t1col[:]
+
+        # First selection
+        results1 = [p['var1'] for p in table1.whereIndexed(t1col>=sl,2,-1,3)]
+        results2 = [p["var1"] for p in table2(2, -1, 3)
+                    if p["var1"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Second selection
+        results1 = [p['var1'] for p in table1.whereIndexed(t1col>=sl,5,-1,10)]
+        results2 = [p["var1"] for p in table2(5, -1, 10)
+                    if p["var1"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Third selection
+        results1 = [p['var1'] for p in table1.whereIndexed(t1col>=sl,5,-3,11)]
+        results2 = [p["var1"] for p in table2(5, -3, 11)
+                    if p["var1"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Fourth selection
+        results1 = [p['var1'] for p in table1.whereIndexed(t1col>=sl,2,-1,300)]
+        results2 = [p["var1"] for p in table2(2, -1, 300)
+                    if p["var1"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+    def test10d(self):
+        """Checking whereIndexed with ranges, changing step (int flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test10d..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+
+        # Convert the limits to the appropriate type
+        il = int(self.il)
+        sl = int(self.sl)
+
+        # Do some selections and check the results
+        t3col = table1.cols.var3
+        #print "t3col-->", t3col[:]
+
+        # First selection
+        results1 = [p['var3'] for p in table1.whereIndexed(t3col>=sl,2,-1,3)]
+        results2 = [p["var3"] for p in table2(2, -1, 3)
+                    if p["var3"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Second selection
+        results1 = [p['var3'] for p in table1.whereIndexed(t3col>=sl,5,-1,10)]
+        results2 = [p["var3"] for p in table2(5, -1, 10)
+                    if p["var3"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Third selection
+        results1 = [p['var3'] for p in table1.whereIndexed(t3col>=sl,5,-3,11)]
+        results2 = [p["var3"] for p in table2(5, -3, 11)
+                    if p["var3"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Fourth selection
+        results1 = [p['var3'] for p in table1.whereIndexed(t3col>=sl,2,-1,300)]
+        results2 = [p["var3"] for p in table2(2, -1, 300)
+                    if p["var3"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+            print "Selection results (indexed):", results1
             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
@@ -1401,6 +1928,12 @@ class SV8bTestCase(SV8aTestCase):
     minRowIndex = 1000
 
 class SV9aTestCase(SelectValuesTestCase):
+    # This test issues a warning like:
+    # """
+    # Warning: Encountered invalid numeric result(s)  in less_equal
+    # """
+    # from time to time in test08a. However this appears seldomly and
+    # I've been unable to reproduce it in a consistent manner.
     random = 1
     minRowIndex = 10
     ns, cs = calcChunksize(minRowIndex, testmode=1)
@@ -1427,7 +1960,7 @@ class SV10aTestCase(SelectValuesTestCase):
 class SV10bTestCase(SV10aTestCase):
     minRowIndex = 1000
 
-class SV11TestCase(SelectValuesTestCase):
+class SV11aTestCase(SelectValuesTestCase):
     # This checks a special case that failed. It was discovered in a
     # random test above (SV10a). It is explicitely put here as a way
     # to always check that specific case.
@@ -1441,6 +1974,94 @@ class SV11TestCase(SelectValuesTestCase):
     il = 0
     sl = ns
     
+class SV11bTestCase(SelectValuesTestCase):
+    # This checks a special case that failed. It was discovered in a
+    # random test above (SV10a). It is explicitely put here as a way
+    # to always check that specific case.
+    values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
+    minRowIndex = len(values)
+    buffersize = 2
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns
+    reopen = 0
+    nrep = ns
+    il = 0
+    sl = ns
+    
+class SV12aTestCase(SelectValuesTestCase):
+    # This checks a special case that failed. It was discovered in a
+    # random test above (SV10b). It is explicitely put here as a way
+    # to always check that specific case.
+    #values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
+    values = [4, 4, 1, 5, 2, 0, 1, 4, 3, 9]
+    minRowIndex = len(values)
+    buffersize = 1
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns
+    reopen = 0
+    nrep = ns
+    il = 0
+    sl = ns
+
+class SV12bTestCase(SelectValuesTestCase):
+    # This checks a special case that failed. It was discovered in a
+    # random test above (SV10b). It is explicitely put here as a way
+    # to always check that specific case.
+    #values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
+    values = [4, 4, 1, 5, 2, 0, 1, 4, 3, 9]
+    minRowIndex = len(values)
+    buffersize = 2
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns
+    reopen = 1
+    nrep = ns
+    il = 0
+    sl = ns
+
+class SV13aTestCase(SelectValuesTestCase):
+    values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
+    minRowIndex = len(values)
+    buffersize = 5
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns
+    reopen = 0
+    nrep = ns
+    il = 0
+    sl = ns
+
+class SV13bTestCase(SelectValuesTestCase):
+    values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
+    minRowIndex = len(values)
+    buffersize = 10
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns
+    reopen = 1
+    nrep = ns
+    il = 0
+    sl = ns
+
+class SV14aTestCase(SelectValuesTestCase):
+    values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
+    minRowIndex = len(values)
+    buffersize = 5
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns
+    reopen = 0
+    nrep = cs
+    il = -5
+    sl = 500
+
+class SV14bTestCase(SelectValuesTestCase):
+    values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
+    minRowIndex = len(values)
+    buffersize = 10
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns
+    reopen = 1
+    nrep = 9
+    il = 0
+    sl = ns-cs+1
+
 
 # -----------------------------
 
@@ -1450,8 +2071,11 @@ def suite():
     niter = 1
     #heavy = 1  # Uncomment this only for testing purposes!
 
+    #theSuite.addTest(unittest.makeSuite(SV14aTestCase))
     #theSuite.addTest(unittest.makeSuite(SV9aTestCase))
-    #theSuite.addTest(unittest.makeSuite(SV10aTestCase))
+#     for i in range(100):
+#         theSuite.addTest(unittest.makeSuite(SV9aTestCase))
+    #theSuite.addTest(unittest.makeSuite(SV11aTestCase))
     #theSuite.addTest(unittest.makeSuite(SV4aTestCase))
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(SV1aTestCase))
@@ -1460,9 +2084,14 @@ def suite():
         theSuite.addTest(unittest.makeSuite(SV4aTestCase))
         theSuite.addTest(unittest.makeSuite(SV7aTestCase))
         theSuite.addTest(unittest.makeSuite(SV8aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV9aTestCase))
         theSuite.addTest(unittest.makeSuite(SV10aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV11TestCase))
+        theSuite.addTest(unittest.makeSuite(SV11aTestCase))
+        theSuite.addTest(unittest.makeSuite(SV11bTestCase))
+        theSuite.addTest(unittest.makeSuite(SV12aTestCase))
+        theSuite.addTest(unittest.makeSuite(SV12bTestCase))
+        theSuite.addTest(unittest.makeSuite(SV13aTestCase))
+        theSuite.addTest(unittest.makeSuite(SV13bTestCase))
+        theSuite.addTest(unittest.makeSuite(SV14aTestCase))
     if heavy:
         theSuite.addTest(unittest.makeSuite(SV1bTestCase))
         theSuite.addTest(unittest.makeSuite(SV2bTestCase))
@@ -1474,9 +2103,19 @@ def suite():
         theSuite.addTest(unittest.makeSuite(SV8bTestCase))
         theSuite.addTest(unittest.makeSuite(SV9bTestCase))
         theSuite.addTest(unittest.makeSuite(SV10bTestCase))
+        theSuite.addTest(unittest.makeSuite(SV14bTestCase))
         # The next are too hard to be above
         theSuite.addTest(unittest.makeSuite(SV5aTestCase))
         theSuite.addTest(unittest.makeSuite(SV6aTestCase))
+        # These are move from light because they use random
+        # tests that seldomly issues a strange:
+        # """Warning: Encountered invalid numeric result(s)  in less_equal"""
+        # series of messages and I don't want to worry normal users
+        # about this (I don't think this is grave anyway)
+        # F. Alted 2004-08-12
+        theSuite.addTest(unittest.makeSuite(SV7aTestCase))
+        theSuite.addTest(unittest.makeSuite(SV9aTestCase))
+        theSuite.addTest(unittest.makeSuite(SV10aTestCase))
     
     return theSuite
 

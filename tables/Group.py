@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.78 2004/08/03 21:02:53 falted Exp $
+#       $Id: Group.py,v 1.79 2004/08/12 20:52:30 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.78 $"
+__version__ = "$Revision: 1.79 $"
 
 # Recommended values for maximum number of groups and maximum depth in tree
 # However, these limits are somewhat arbitraries and can be increased
@@ -459,7 +459,7 @@ self._g_join(name), UserWarning)
         elif (classname == 'Table' or
               classname == 'Array' or
               classname == 'EArray' or
-              classname == 'IndexArray' or
+              #classname == 'IndexArray' or
               classname == 'VLArray' or
               classname == 'UnImplemented'):
             listobjects = []

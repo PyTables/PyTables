@@ -8,9 +8,9 @@
     <author>Scott Prater</author>
 
     <subtitle><visual markup="sf">Hierarchical datasets in
-      Python</visual><newline/> Release 0.8.1</subtitle>
+      Python</visual><newline/> Release 0.9(beta) </subtitle>
 
-    <date>2004, July, 9th</date>
+    <date>2004, August, 12th</date>
     <year>2002, 2003, 2004</year>
 <!--     <graphics kind="bitmap" file="logo4-ombra"/> -->
     <graphics kind="bitmap" file="logo3-ombra"/>
@@ -425,6 +425,8 @@ class Particle(IsDescription):
 	  to create a HDF5 file:
 	</p>
 
+	<!-- IVB: Thus the sample values of the string array
+	do not look like keywords. -->
 	<verbatim>
 from tables import *
 
@@ -443,7 +445,8 @@ group1 = fileh.createGroup(root, "group1")
 group2 = fileh.createGroup(root, "group2")
 
 # Now, create an array in the root group
-array1 = fileh.createArray(root, "array1", ["string", "array"], "String array")
+array1 = fileh.createArray(root, "array1", 
+                           ["this is", "a string array"], "String array")
 # Create 2 new tables in group1 and group2
 table1 = fileh.createTable(group1, "table1", Particle)
 table2 = fileh.createTable("/group2", "table2", Particle)
@@ -503,7 +506,7 @@ fileh.close()
 	</p>
 
 	<figure id="objecttree">
-	  <graphics file="objecttree" scale="0.35" kind="vector">
+	  <graphics file="objecttree" scale="0.4" kind="vector">
 	  
 	  <!-- If you want to convert the eps to jpeg use the command:
 pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
@@ -553,14 +556,14 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	running Windows and want to install precompiled binaries jump
 	to <ref refid="binaryInstallationDescr">section</ref>). In
 	addition, packages are starting to appear in different Linux
-	distributions, like for instance <url
+	distributions, for instance <url
 	name="http://www.rocklinux.org/"><verb>RockLinux</verb></url>,
 	<url name="http://www.debian.org/"><verb>Debian</verb></url>,
 	<url
 	name="http://monkeyrpms.net/fedora/linux/monkeyrpms/1/i386/html/pytables.html"><verb>Fedora</verb></url>
 	or <url
 	name="http://www.gentoo.org/"><verb>Gentoo</verb></url>.
-	There also packages for other Unices too, like <url
+	There also packages for other Unices like <url
 	name="http://www.freshports.org/"><verb>FreeBSD</verb></url>
 	or <url
 	name="http://www.opendarwin.org/"><verb>MacOSX</verb></url>
@@ -867,9 +870,10 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
 	</subsection>
 
-	<p>That's it! You can skip to the next chapter to learn how to
-	  use PyTables <verb>PyTables</verb>. <!-- <newline
-	  vspace="4.0cm"/> -->
+	<!-- IVB: To avoid confusing the Win installation section
+	with the next chapter. -->
+	<p>That's it! Now you can skip to the next chapter to learn how to use
+	  <verb>PyTables</verb>. <!-- <newline vspace="4.0cm"/> -->
 	</p>
 
       </section>
@@ -1099,7 +1103,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  </p>
 	  <p>Our particle detector has a TDC (Time to Digital Converter)
 	    counter with a dynamic range of 8 bits and an ADC
-	    (Analogic to Digital Converter) with a range of 16
+	    (Analogical to Digital Converter) with a range of 16
 	    bits. For these values, we will define 2 fields in our
 	    record object called <verb>TDCcount</verb> and
 	    <verb>ADCcount</verb>. We also want to save the grid
@@ -1661,8 +1665,8 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 ...     for array in h5file.listNodes(group, classname = 'Array'):
 ...         print array
 ...
-/columns/name Array(4,) 'Name column selection'
-/columns/pressure Array(4,) 'Pressure column selection'
+/columns/name Array(3,) 'Name column selection'
+/columns/pressure Array(3,) 'Pressure column selection'
 	  </verbatim>
 
 	  <p><verb>listNodes()</verb> (see <ref
@@ -1846,9 +1850,10 @@ Traceback (most recent call last):
 RuntimeError: Read-only attribute ('VERSION') cannot be renamed
 	  </verbatim>
 
-	  <p>After your terminating your session, you can use
-	  <verb>h5ls</verb> to read the <verb>/detector/readout</verb> 
-	  attributes from the file written to disk:
+	  <p>If you would terminate your session now, you would be
+	  able to use the <verb>h5ls</verb> command to read the
+	  <verb>/detector/readout</verb> attributes from the file
+	  written to disk:
 	  </p>
 
 	  <verbatim>
@@ -2070,7 +2075,7 @@ Info on the object: /columns/pressure (Array(3,)) 'Pressure column selection'
 	    <verb>pressureObject</verb> object, you can verify that it is
 	    a "<visual markup="bf">Float64</visual>" array. 
 	    By looking at its <verb>shape</verb> attribute, you can
-	    deduce that the array on disk is unidimensional and has 4
+	    deduce that the array on disk is unidimensional and has 3
 	    elements. See <ref
 	    refid="ArrayClassInstanceVariables"></ref> or the internal
 	    string docs for the complete <verb>Array</verb> attribute
@@ -2373,7 +2378,7 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
         #event['xcoord'] = float(i**2)   # Correct spelling
         event['xcoor'] = float(i**2)     # Wrong spelling
         event['ADCcount'] = i * 2        # Correct type
-        #event['ADCcount'] = "s"          # Wrong type
+        #event['ADCcount'] = "sss"          # Wrong type
         ########### End of errors
         event['ycoord'] = float(i)**4
         # This injects the Record values
@@ -2496,7 +2501,7 @@ KeyError: Error setting "xcoor" field.
 $ python tutorial2.py
 Traceback (most recent call last):
   File "tutorial2.py", line 76, in ?
-    event['ADCcount'] = "s"          # Wrong type
+    event['ADCcount'] = "sss"          # Wrong type
   File "/home/falted/PyTables/pytables-0.8/src/hdf5Extension.pyx",
  line 1812, in hdf5Extension.Row.__setitem__
     raise KeyError, "Error setting \"%s\" field.\n %s" % \
@@ -3046,9 +3051,10 @@ KeyError: Error setting "ADCcount" field.
 		<verb>CharArrays</verb> string arrays). However, these
 		objects must be regular (i.e. they cannot be like, for
 		example, <verb>[[1,2],2]</verb>). Also, objects that
-		has some of its dimension equal to zero are not
-		supported (this will be solved when unlimited arrays
-		will be implemented).
+		have some of their dimensions equal to zero are not
+		supported (use an <verb>EArray</verb> object if you
+		want to create an array with one of its dimensions
+		equal to 0).
 	      </item>
 	    </description>
 	    <p>See <ref
@@ -3148,7 +3154,7 @@ KeyError: Error setting "ADCcount" field.
 
 		<term>where</term> <item>Can be a path string or
 		  <verb>Group</verb> instance. If <em>where</em>
-		  doesn't exists or has already a child called
+		  doesn't exist or has already a child called
 		  <em>name</em>, a <verb>ValueError</verb> error is
 		  raised.
 		</item>
@@ -3182,7 +3188,7 @@ KeyError: Error setting "ADCcount" field.
 
 		<term>where</term> <item>Can be a path string or
 		  <verb>Group</verb> instance. If <em>where</em>
-		  doesn't exists or has not a child called
+		  doesn't exist or has not a child called
 		  <em>name</em>, a <verb>ValueError</verb> error is
 		  raised.
 		</item>
@@ -3211,7 +3217,7 @@ KeyError: Error setting "ADCcount" field.
 
 		<term>where</term> <item>Can be a path string or
 		  <verb>Group</verb> instance. If <em>where</em>
-		  doesn't exists or has not a child called
+		  doesn't exist or has not a child called
 		  <em>name</em>, a <verb>ValueError</verb> error is
 		  raised.
 		</item>
@@ -3275,7 +3281,7 @@ KeyError: Error setting "ADCcount" field.
 
 		<term>where</term> <item>Can be a path string or
 		  <verb>Group</verb> instance.  If <em>where</em>
-		  doesn't exists or has not a child called
+		  doesn't exist or has not a child called
 		  <em>name</em>, a <verb>LookupError</verb> error is
 		  raised.</item>
 
@@ -3303,7 +3309,7 @@ KeyError: Error setting "ADCcount" field.
 
 		<term>where</term> <item>Can be a path string or
 		  <verb>Group</verb> instance.  If <em>where</em>
-		  doesn't exists or has not a child called
+		  doesn't exist or has not a child called
 		  <em>name</em>, a <verb>LookupError</verb> error is
 		  raised.</item>
 
@@ -3825,7 +3831,7 @@ KeyError: Error setting "ADCcount" field.
 	      <description>
 		<term>where</term> <item>Can be a path string or
 		  <verb>Group</verb> instance.  If <em>where</em>
-		  doesn't exists or has not a child called
+		  doesn't exist or has not a child called
 		  <em>name</em>, a <verb>LookupError</verb> error is
 		  raised.
 		</item>
@@ -4199,9 +4205,9 @@ fileh.close()
 	    so you won't be able to access its documentation
 	    interactively. Neither you won't be able to access its
 	    internal attributes (they are not directly accessible from
-	    Python), although that <em>accessors</em> (i.e. methods
-	    that return an internal attribute) have been defined for
-	    the most important variables.
+	    Python), although <em>accessors</em> (i.e. methods that
+	    return an internal attribute) have been defined for the most
+	    important variables.
 	  </p>
 
 	  <subsubsection>
@@ -4212,7 +4218,7 @@ fileh.close()
 
 	      <term id="appendRowDescr">append()</term> <item>Once you
 		have filled the proper fields for the current row,
-		calling this method actually commit these data to the
+		calling this method actually commits these data to the
 		disk (actually data are written to the output
 		buffer).</item>
 
@@ -4343,7 +4349,7 @@ Select table.cols['temperature'][:]--> [ 100.  121.  144.]
 	</p>
 
 	<p>Note that this object inherits all the public attributes
-	  and methods from <verb>Leaf</verb> already provides.
+	  and methods that <verb>Leaf</verb> already provides.
 	</p>
 
 	<subsection id="ArrayClassInstanceVariables">
@@ -4380,8 +4386,10 @@ Select table.cols['temperature'][:]--> [ 100.  121.  144.]
 	    methods</heading>
 
 	  <p>Note that, as this object has no internal I/O buffers, it
-	    is not necessary to flush() method inherited from
-	    <verb>Leaf</verb>.
+	    is not necessary to use the flush() method inherited from
+	    <verb>Leaf</verb> in order to save its internal state to
+	    disk. When a writing method call returns, all the data is
+	    already on disk.
 	  </p>
 
 	  <subsubsection>
@@ -4528,14 +4536,14 @@ Select table.cols['temperature'][:]--> [ 100.  121.  144.]
 	  datasets along any single dimension<footnote>In the future,
 	  multiple enlargeable dimensions might be implemented as
 	  well.</footnote> you select. Another important difference is
-	  that it also support compression.
+	  that it also supports compression.
 	 </p>
 
 	<p>So, in addition to the attributes and methods that
 	  <verb>EArray</verb> inherits from <verb>Array</verb>, it
-	  supports a few more that provides a way to enlarge the
+	  supports a few more that provide a way to enlarge the
 	  arrays on disk. Following are described the new variables
-	  and methods as well as some that already exists in
+	  and methods as well as some that already exist in
 	  <verb>Array</verb> but that differ somewhat on the meaning
 	  and/or functionality in the <verb>EArray</verb> context.
 	</p>
@@ -4544,7 +4552,7 @@ Select table.cols['temperature'][:]--> [ 100.  121.  144.]
 	  <heading><visual markup="tt">EArray</visual> instance
 	    variables</heading>
 	  <description>
-	    <term>atom</term> <item>The class instance choosed for the
+	    <term>atom</term> <item>The class instance chosen for the
 	      atom object (see <ref refid="AtomClassDescr">section</ref>).
 	    </item>
 	    <term>extdim</term> <item>The enlargeable dimension.
@@ -4564,11 +4572,11 @@ Select table.cols['temperature'][:]--> [ 100.  121.  144.]
 
 	    <p>Appends an <verb>object</verb> to the underlying
 	      dataset. Obviously, this object has to have the same
-	      type as the <verb>EArray</verb> instance, and if not, a
+	      type as the <verb>EArray</verb> instance; otherwise a
 	      <verb>TypeError</verb> is issued. In the same way, the
-	      dimensions of the <verb>object</verb> has to conform
+	      dimensions of the <verb>object</verb> have to conform to
 	      those of <verb>EArray</verb>, that is, all the
-	      dimensions has to be the same except, of course, that of
+	      dimensions have to be the same except, of course, that of
 	      the enlargeable dimension which can be of any length
 	      (even 0!).
 	    </p>
@@ -4632,7 +4640,7 @@ fileh.close()
 	  <heading><visual markup="tt">VLArray</visual> instance
 	    variables</heading>
 	  <description>
-	    <term>atom</term> <item>The class instance choosed for the
+	    <term>atom</term> <item>The class instance chosen for the
 	      atom object (see <ref refid="AtomClassDescr">section</ref>).
 	    </item>
 	    <term>nrow</term> <item>On iterators, this is the index of
@@ -5133,7 +5141,7 @@ fileh.close()
 	    different properties of the <em>base element</em> (also
 	    known as <em>atom</em>) of <verb>EArray</verb> and
 	    <verb>VLArray</verb> objects. The <verb>Atom</verb>
-	    instances have the property that its length is always the
+	    instances have the property that their length is always the
 	    same. However, you can grow objects along the extendable
 	    dimension in the case of <verb>EArray</verb> or put a
 	    variable number of them on a <verb>VLArray</verb>
@@ -5571,18 +5579,18 @@ Result Array:
       <section>
 	<heading>Taking advantage of Psyco</heading>
 
-	<p>Psyco (see <cite refid="psycoRef"></cite>)is a kind of
+	<p>Psyco (see <cite refid="psycoRef"></cite>) is a kind of
 	  specialized compiler for Python that typically accelerates
 	  Python applications with no change in source code. You can
 	  think of Psyco as a kind of just-in-time (JIT) compiler, a
-	  little bit like Java's, that emit machine code on the fly
+	  little bit like Java's, that emits machine code on the fly
 	  instead of interpreting your Python program step by
 	  step. The result is that your unmodified Python programs run
 	  faster.
 	</p>
 
 	<p>Psyco is very easy to install and use, so in most scenarios
-	  it is worth to have it a try. However, it only runs on Intel
+	  it is worth to give it a try. However, it only runs on Intel
 	  386 architectures, so if you are using other architectures,
 	  you are out of luck (at least until Psyco will support
 	  yours).
@@ -5620,7 +5628,7 @@ if __name__=="__main__":
 	</verbatim>
 
 	<p>That's all!. From now on, each time that you execute your
-	  python script, Psyco will deploy its sophisticated
+	  Python script, Psyco will deploy its sophisticated
 	  algorithms so as to accelerate your calculations.
 	</p>
 
@@ -5631,11 +5639,11 @@ if __name__=="__main__":
 	  figures you can get an idea if these improvements are of
 	  your interest or not. In general, if you are not going to
 	  use compression you will take advantage of Psyco if your
-	  tables are medium sized (1e+3 &lt; nrows &lt; 1e+6), and
-	  this advantage will disappear progressively when the number
-	  of rows grows well over one million. However if you use
-	  compression, you will probably see improvements even beyond
-	  this limit (see <ref
+	  tables are medium sized (from a thousand to a million rows),
+	  and this advantage will disappear progressively when the
+	  number of rows grows well over one million. However if you
+	  use compression, you will probably see improvements even
+	  beyond this limit (see <ref
 	  refid="compressionIssues">section</ref>). As always, there
 	  is no substitute for experimentation with your own dataset.
 	</p>
@@ -5673,15 +5681,15 @@ if __name__=="__main__":
 	<p>There is an usual scenario where users need to save
 	  duplicated data in some record fields, while the others
 	  have varying values. In a relational database approach
-	  such a redundant data can normally be moved to other
+	  such redundant data can normally be moved to other
 	  tables and a relationship between the rows on the separate
 	  tables can be created. But that takes analysis and
-	  implementation time, and made the underlying libraries
+	  implementation time, and makes the underlying libraries
 	  more complex and slower.
 	</p>
 
 	<p><verb>PyTables</verb> transparent compression allows the
-	  user to not worry about finding which is their optimum data
+	  users to not worry about finding which is their optimum data
 	  tables strategy, but rather use less, not directly related,
 	  tables with a larger number of columns while still not
 	  cluttering the database too much with duplicated data
@@ -5690,7 +5698,7 @@ if __name__=="__main__":
 	  have more fields available in a single table, and they can
 	  be referred in the same loop. This process may normally end
 	  in a simpler, yet powerful manner to process your data
-	  (although you should still be careful about what kind of
+	  (although you should still be careful about in which kind of
 	  scenarios compression use is convenient or not).
 	</p>
 
@@ -5698,10 +5706,10 @@ if __name__=="__main__":
 	    markup="bf">Zlib</visual> (see <cite
 	    refid="zlibRef"></cite>), and as HDF5 <em>requires</em>
 	  it, you can safely use it and expect that your HDF5 files
-	  can be read on any other platform that has HDF5 libraries
+	  will be readable on any other platform that has HDF5 libraries
 	  installed. Zlib provides good compression ratio, although
 	  somewhat slow, and reasonably fast decompression. Because
-	  of that, it is a good candidate to be used for compress
+	  of that, it is a good candidate to be used for compressing
 	  you data.
 	</p>
 
@@ -5714,7 +5722,7 @@ if __name__=="__main__":
 	  <cite refid="lzouclRef"></cite>). Following his author (and
 	  checked by the author of this manual), LZO offers pretty
 	  fast compression (although small compression ratio) and
-	  extremely fast decompression while UCL achieve an excellent
+	  extremely fast decompression while UCL achieves an excellent
 	  compression ratio (at the price of spending much more CPU
 	  time) while allowing very fast decompression (and <em>very
 	  close</em> to the LZO one). In fact, LZO and UCL are so fast
@@ -5733,8 +5741,8 @@ if __name__=="__main__":
 	  refid="ptrepackDescr">appendix</ref> where the
 	  <verb>ptrepack</verb> utility is described to find a way to
 	  free your files from LZO or UCL dependencies, so that you
-	  can use these compressors locally with the guaranty that you
-	  can replace them by ZLIB (or even remove compression
+	  can use these compressors locally with the warranty that you
+	  can replace them with ZLIB (or even remove compression
 	  completely) if you want to export the files to other HDF5
 	  tools afterwards.
 	</p>
@@ -5747,15 +5755,15 @@ if __name__=="__main__":
 	  guide because your mileage will probably vary. Have also a
 	  look at the graphs <ref
 	  refid="lzozlibuclWriteComparison"></ref> and <ref
-	  refid="lzozlibuclReadComparison"></ref> (these graphs has
+	  refid="lzozlibuclReadComparison"></ref> (these graphs have
 	  been obtained with tables with different row sizes and
-	  PyTables version than the previous example, so, do not try
-	  to directly compare the figures). They show how evolves the
-	  speed of writing/reading rows as the size (the row number)
+	  PyTables version than the previous example, so do not try
+	  to directly compare the figures). They show how the speed of
+	  writing/reading rows evolves as the size (the row number)
 	  of tables grows. Even though in these graphs the size of one
 	  single row is 56 bytes, you can most probably extrapolate
-	  this figures to other row sizes. If you are curious how well
-	  can perform compression together with Psyco, look at the
+	  this figures to other row sizes. If you are curious about how well
+	  compression can perform together with Psyco, look at the
 	  graphs <ref refid="psycolzozlibuclWriteComparison"></ref>
 	  and <ref refid="psycolzozlibuclReadComparison"></ref>. As
 	  you can see, the results are pretty interesting.
@@ -5779,7 +5787,7 @@ if __name__=="__main__":
 	    </tabbody>
 	  </tabular>
 	  <caption>Comparison between different compression
-	    libraries. The tests has been conducted on a Pentium 4 at 2
+	    libraries. The tests have been conducted on a Pentium 4 at 2
 	    GHz and a hard disk at 4200 RPM.</caption>
 	</table>
 
@@ -5824,7 +5832,7 @@ if __name__=="__main__":
 	  faster than Zlib when decompressing, and, besides, it
 	  achieves very good compression ratios (generally better than
 	  Zlib). Zlib represents a balance between them: it's somewhat
-	  slow compressing, the slowest during decompressing, but it
+	  slow compressing, the slowest during decompression, but it
 	  normally achieves fairly good compression ratios.
 	</p>
 
@@ -5868,10 +5876,10 @@ if __name__=="__main__":
 	<p>The <verb>HDF5</verb> library provides an interesting
 	  filter that can leverage the results of your favorite
 	  compressor. Its name is <em>shuffle</em>, and because it can
-	  greatly benefit compression and don't take many CPU
+	  greatly benefit compression and it doesn't take many CPU
 	  resources, it is active by <em>default</em> in
-	  <verb>PyTables</verb> whenever the compression is activated
-	  (independently of the compressor choosed). It is of course
+	  <verb>PyTables</verb> whenever compression is activated
+	  (independently of the chosen compressor). It is of course
 	  deactivated when compression is off (which is the default,
 	  as you already should know).
 	</p>
@@ -5910,7 +5918,7 @@ if __name__=="__main__":
 	  course, the data for doing this test is synthetic, and
 	  <em>shuffle</em> seems to do a great work with it, so in
 	  general, the results will vary in your case. However, due to
-	  the small drawbacks (read are slowed down by a small extent)
+	  the small drawbacks (reads are slowed down by a small extent)
 	  and its potential gains (faster writing, but specially much
 	  better compression level), I do believe that it is a good
 	  thing to have such a filter enabled by default in the battle
@@ -5936,7 +5944,8 @@ if __name__=="__main__":
 	    </tabbody>
 	  </tabular>
 	  <caption>Comparison between different compression
-	    libraries. The tests has been conducted on a Pentium 4 at 2
+	    libraries, with and without shuffling.
+	    The tests have been conducted on a Pentium 4 at 2
 	    GHz and a hard disk at 4200 RPM.</caption>
 	</table>
 
@@ -5960,11 +5969,11 @@ if __name__=="__main__":
 
 	<p>An in-memory B-tree is used to map chunk structures on
 	  disk. The more chunks that are allocated for a dataset the
-	  larger the B-tree. Large B-trees take memory and causes
+	  larger the B-tree. Large B-trees take memory and cause
 	  file storage overhead as well as more disk I/O and higher
 	  contention for the metadata cache. Consequently, it's
 	  important to balance between memory and I/O overhead
-	  (small B-trees) and time to access to data (big B-trees).
+	  (small B-trees) and time to access data (big B-trees).
 	</p>
 
 	<p><verb>PyTables</verb> can determine an optimum chunk size
@@ -6061,7 +6070,7 @@ if __name__=="__main__":
 	  is not automatically recovered on-the-flight. In addition,
 	  if you add many more rows to a table than specified in the
 	  <verb>expectedrows</verb> keyword in creation time this may
-	  affect performace as well as explained in <ref
+	  affect performace as well, as explained in <ref
 	  refid="expectedRowsOptim">section</ref>.
 	</p>
 
@@ -6080,10 +6089,10 @@ if __name__=="__main__":
 	  <verb>ptrepack</verb> for is changing the compression
 	  filters or compression levels on your existing data for
 	  different goals, like checking how this can affect both
-	  final size and I/O performance, or getting ride of the
+	  final size and I/O performance, or getting rid of the
 	  optional compressors like <verb>LZO</verb> or
 	  <verb>UCL</verb> in your existing files in case you want to
-	  use them with generic HDF5 tools that does not have support
+	  use them with generic HDF5 tools that do not have support
 	  for these filters.
 	</p>
 
@@ -6773,11 +6782,13 @@ $ ptdump -h
 
 	      <verbatim>
 usage: ptdump [-R start,stop,step] [-a] [-h] [-d] [-v] file[:nodepath]
-  -R select a range of rows in the form "start,stop,step"
-  -a show attributes in nodes (only useful when -v or -d are active as well)
-  -d dump data information onb leaves
-  -h prints help on usage
-  -v means dumping more metainformation on nodes
+  -R RANGE -- Select a RANGE of rows in the form "start,stop,step"
+  -a -- Show attributes in nodes (only useful when -v or -d are active)
+  -c -- Show info of columns in tables (only useful when -v or -d are active)
+  -i -- Show info of indexed columns (only useful when -v or -d are active)
+  -d -- Dump data information on leaves
+  -h -- Print help on usage
+  -v -- Dump more metainformation on nodes
 	      </verbatim>
 	    </p>
 
@@ -6933,28 +6944,29 @@ $ ptrepack -h
 	      to see the message usage:
 
 	      <verbatim>
-usage: ptrepack [-h] [-v] [-o] [-R range] [--non-recursive] 
- [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes]
- [--complevel=(0-9)] [-complib=lib] [--shuffle=(0|1)]
- [--fletcher32=(0|1)] [--keep-source-filters] 
- sourcefile:sourcegroup destfile:destgroup
+usage: ptrepack [-h] [-v] [-o] [-R start,stop,step] [--non-recursive]
+  [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes]
+  [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)]
+  [--fletcher32=(0|1)] [--keep-source-filters] 
+  sourcefile:sourcegroup destfile:destgroup
  -h -- Print usage message.
  -v -- Show more information.
  -o -- Overwite destination file.
- -R start,stop,step -- Select a slice in *all* leaves.
- --non-recursive -- Do not do a recursive copy. Default is do it.
+ -R RANGE -- Select a RANGE of rows (in the form "start,stop,step")
+     during the copy of *all* the leaves.
+ --non-recursive -- Do not do a recursive copy. Default is to do it.
  --dest-title=title -- Title for the new file (if not specified,
      the source is copied).
- --dont-copy-userattrs -- Do not copy the user attrs (default is do it)
+ --dont-copy-userattrs -- Do not copy the user attrs (default is to do it)
  --overwrite-nodes -- Overwrite destination nodes if they exist. Default is
-     not overwrite them.
- --complevel=(0-9) -- Sets a compression level (0 for no compression, which
+     to not overwrite them.
+ --complevel=(0-9) -- Set a compression level (0 for no compression, which
      is the default).
- --complib=lib -- Sets the compression library to be used during the copy.
+ --complib=lib -- Set the compression library to be used during the copy.
      lib can be set to "zlib", "lzo" or "ucl". Defaults to "zlib".
  --shuffle=(0|1) -- Activate or not the shuffling filter (default is active
      if complevel>0).
- --fletcher32=(0|1) -- Whether activate or not the fletcher32 filter (not
+ --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter (not
      active by default).
  --keep-source-filters -- Use the original filters in source files. The
      default is not doing that if any of --complevel, --complib, --shuffle
@@ -6968,9 +6980,9 @@ usage: ptrepack [-h] [-v] [-o] [-R range] [--non-recursive]
 	    </heading>
 
 	    <p>Imagine that we have ended the tutorial 1 (see the
-	      output of <verb>examples/tutorial1-1.py</verb>, and we
+	      output of <verb>examples/tutorial1-1.py</verb>), and we
 	      want to copy our reduced data (i.e. those datasets that
-	      hangs from the <verb>/column</verb> group to another
+	      hangs from the <verb>/column</verb> group) to another
 	      file. First, let's remember the content of the
 	      <verb>examples/tutorial1.h5</verb>:
 
@@ -7025,7 +7037,7 @@ Filename: 'reduced.h5' Title: '' , Last modif.: 'Fri Feb 20 15:39:15 2004' ,
 /columns/name (Array(3,)) 'Name column selection'
 /columns/pressure (Array(3,)) 'Pressure column selection'
 	      </verbatim>
-	      Ok. much better. But you want to get rid of the existing
+	      Ok. Much better. But you want to get rid of the existing
 	      nodes on the new file. You can achieve this by adding
 	      the -o flag:
 

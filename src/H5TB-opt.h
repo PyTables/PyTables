@@ -60,3 +60,12 @@ herr_t H5TBOclose_append(hid_t *dataset_id,
 			 hsize_t ntotal_records,
 			 const char *dset_name,
 			 hid_t parent_id);
+
+herr_t H5TBOwrite_records( hid_t loc_id, 
+			   const char *dset_name,
+			   hsize_t start,
+			   hsize_t nrecords,
+			   hsize_t step,
+			   size_t type_size,
+			   const size_t *field_offset,
+			   const void *data );

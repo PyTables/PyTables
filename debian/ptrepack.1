@@ -50,34 +50,35 @@ Show more information.
 .B \-o
 Overwite destination file.
 .TP
-.BI \-R\  start,stop,step
-Select a slice in \fIall\fR leaves.
+.BI \-R\ RANGE
+Select a RANGE of rows in the form \fIstart,stop,step\fR during the copy of
+\fIall\fR the leaves.
 .TP
 .BI \-\-non\-recursive
-Do not do a recursive copy. Default is do it.
+Do not do a recursive copy. Default is to do it.
 .TP
 .BI \-\-dest\-title=title
 Title for the new file (if not specified, the source is copied).
 .TP
 .BI \-\-dont\-copy\-userattrs
-Do not copy the user attrs (default is do it).
+Do not copy the user attrs (default is to do it).
 .TP
 .BI \-\-overwrite\-nodes
-Overwrite destination nodes if they exist. Default is not overwrite
+Overwrite destination nodes if they exist. Default is not to overwrite
 them.
 .TP
 .BI \-\-complevel=(0-9)
-Sets a compression level (0 for no compression, which is the default).
+Set a compression level (0 for no compression, which is the default).
 .TP
 .BI \-\-complib=lib
-Sets the compression library to be used during the copy. \fIlib\fR can
+Set the compression library to be used during the copy. \fIlib\fR can
 be set to "zlib", "lzo" or "ucl". Defaults to "zlib".
 .TP
 .BI \-\-shuffle=(0|1)
 Activate or not the shuffling filter (default is active if complevel>0).
 .TP
 .BI \-\-fletcher32=(0|1)
-Whether activate or not the fletcher32 filter (not active by default).
+Whether to activate or not the fletcher32 filter (not active by default).
 .TP
 .BI  \-\-keep\-source\-filters
 Use the original filters in source files. The default is not doing that

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.137 2004/08/10 07:48:51 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.138 2004/08/12 20:52:29 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.137 $"
+__version__ = "$Revision: 1.138 $"
 
 
 import sys, os
@@ -653,6 +653,11 @@ cdef extern from "H5TB.h":
                              size_t type_size, size_t *field_offset,
                              void *data )
                                         
+  herr_t H5TBOwrite_records ( hid_t loc_id,  char *dset_name,
+                              hsize_t start, hsize_t nrecords,
+                              hsize_t step, size_t type_size,
+                              size_t *field_offset, void *data )
+  
   herr_t H5TBwrite_fields_name( hid_t loc_id, char *dset_name,
                                 char *field_names, hsize_t start,
                                 hsize_t nrecords, size_t type_size,
@@ -921,7 +926,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.137 2004/08/10 07:48:51 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.138 2004/08/12 20:52:29 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1645,19 +1650,41 @@ cdef class Table:
 
     self._open = 0
 
-  def _modify_records(self, hsize_t start, object recarr):
+# The version below works for non-strided recarrays only
+#   def _modify_records(self, hsize_t start, object recarr):
+#     cdef int ret
+#     cdef void *rbuf
+#     cdef hsize_t nrecords
+
+#     # Get the pointer to the buffer data area
+#     buflen = NA_getBufferPtrAndSize(recarr._data, 1, &rbuf)
+
+#     # Modify the records:
+#     nrecords = len(recarr)
+#     ret = H5TBwrite_records(self.parent_id, self.name,
+#                             start, nrecords, self.rowsize,
+#                             self.field_offset, rbuf )
+#     if ret < 0:
+#       raise RuntimeError("Problems modifying the records.")
+
+  def _modify_records(self, hsize_t start, hsize_t stop,
+                       hsize_t step, object recarr):
     cdef int ret
     cdef void *rbuf
-    cdef hsize_t nrecords
+    cdef hsize_t nrecords, nrows
 
     # Get the pointer to the buffer data area
     buflen = NA_getBufferPtrAndSize(recarr._data, 1, &rbuf)
 
-    # Modify the records:
+    # Compute the number of records to modify
     nrecords = len(recarr)
-    ret = H5TBwrite_records(self.parent_id, self.name,
-                            start, nrecords, self.rowsize,
-                            self.field_offset, rbuf )
+    nrows = ((stop - start - 1) / step) + 1 
+    if nrecords > nrows:
+      nrecords = nrows
+    # Modify the records:
+    ret = H5TBOwrite_records(self.parent_id, self.name,
+                             start, nrecords, step, self.rowsize,
+                             self.field_offset, rbuf )
     if ret < 0:
       raise RuntimeError("Problems modifying the records.")
 
@@ -1897,7 +1924,8 @@ cdef class Row:
   #cdef readonly int _nrow # This is allowed from Pyrex 0.9 on
   # But defining it as long long makes it unaccessible from python!
   cdef long long _nrow
-  cdef long long start, stop, step, nextelement, nrowsinbuf, nrows, nrowsread
+  cdef long long start, stop, step, nextelement
+  cdef long long nrowsinbuf, nrows, nrowsread, stopindex
   cdef int bufcounter, counter, startb, stopb,  _all
   cdef int *_scalar, *_enumtypes, _r_initialized_buffer,_w_initialized_buffer
   cdef int indexChunk
@@ -1996,10 +2024,7 @@ cdef class Row:
       self.whereCond = 1
       self.colname = PyString_AsString(self._table.whereColname)
       # Is this column indexed and ready to use?
-      if (hasattr(self._table, "_dontuseindex") and
-          self._table._dontuseindex == 1):
-        dontuseindex = 1
-      if self._table.colindexed[self.colname] and not dontuseindex:
+      if self._table.colindexed[self.colname] and ncoords >= 0:
         self.indexed = 1
         self.index = self._table.cols[self.colname].index
         # create buffers for indices
@@ -2007,11 +2032,11 @@ cdef class Row:
         self.nrowsread = 0
         self.nextelement = 0
     if self.coords is not None:
-      self.stop = len(coords)
+      self.stopindex = len(coords)
       self.nrowsread = 0
       self.nextelement = 0
     elif self.indexed:
-      self.stop = ncoords
+      self.stopindex = ncoords
 
   def __next__(self):
     "next() method for __iter__() that is called on each iteration"
@@ -2019,8 +2044,8 @@ cdef class Row:
       #print "indexed"
       return self.__next__indexed()
     elif self.whereCond:
-      #print "whereCond"
-      return self.__next__whereCond()
+      #print "inKernel"
+      return self.__next__inKernel()
     else:
       #print "general"
       return self.__next__general()
@@ -2034,22 +2059,47 @@ cdef class Row:
     cdef object opValue, field
     cdef long long nextelement
 
-    while self.nextelement < self.stop:
+    while self.nextelement < self.stopindex:
       if self.nextelement >= self.nrowsread:
-        # Correction for avoiding reading past self.stop
-        if self.nrowsread+self.nrowsinbuf > self.stop:
-          stop = self.stop-self.nrowsread
+        # Correction for avoiding reading past self.stopindex
+        if self.nrowsread+self.nrowsinbuf > self.stopindex:
+          stop = self.stopindex-self.nrowsread
         else:
           stop = self.nrowsinbuf
         if self.coords is not None:
           self.bufcoords = self.coords[self.nrowsread:self.nrowsread+stop]
+          nrowsread = len(self.bufcoords)
         else:
           self.bufcoords = self.index.getCoords(self.nrowsread, stop)
+          nrowsread = len(self.bufcoords)
+          tmp = self.bufcoords
+          # If a step was specified, select first the strided elements
+          if len(tmp) > 0 and self.step > 1:
+            tmp2=(tmp-self.start) % self.step
+            tmp = tmp[tmp2.__eq__(0)]
+          # Now, select those indices in the range start, stop:
+          if len(tmp) > 0 and tmp[0] < self.start:
+            # Pyrex can't use the tmp>=number notation when tmp is a numarray
+            # object. Why?
+            #tmp = tmp[tmp>=self.start]
+            tmp = tmp[tmp.__ge__(self.start)]
+          if len(tmp) > 0 and tmp[-1] >= self.stop:
+            tmp = tmp[numarray.where(tmp.__lt__(self.stop))]
+          self.bufcoords = tmp
         self._row = -1
-        recout = self._table._read_elements(0, self.bufcoords)
-        if self._table.byteorder <> sys.byteorder:
-          self._recarray._byteswap()
-        self.nrowsread = self.nrowsread + recout
+        if len(self.bufcoords):
+          recout = self._table._read_elements(0, self.bufcoords)
+          if self._table.byteorder <> sys.byteorder:
+            self._recarray._byteswap()
+        else:
+          recout = 0
+        self.nrowsread = self.nrowsread + nrowsread
+        # Correction for elements that are eliminated by its
+        # [start:stop:step] range
+        self.nextelement = self.nextelement + nrowsread - recout
+        if recout == 0:
+          # no items where read, skipping
+          continue
       self._row = self._row + 1
       self._nrow = self.bufcoords[self._row]
       self.nextelement = self.nextelement + 1
@@ -2061,6 +2111,10 @@ cdef class Row:
       if self.coords is None:
         self.index.indices._destroyIndexSlice()  # Remove buffers in indices
         nextelement = self.index.nelemslice * self.index.nrows
+        # Correct this for step size > 1
+        correct = (nextelement - self.start) % self.step
+        if self.step > 1 and correct:
+          nextelement = nextelement + self.step - correct
       else:
         self.coords = None
         # All the elements has been read for this mode
@@ -2074,16 +2128,74 @@ cdef class Row:
         self.whereCond = 0
         raise StopIteration        # end of iteration
       else:
-        # Continue the iteration with the __next__whereCond() method
+        # Continue the iteration with the __next__inKernel() method
         self.start = nextelement
-        self.stop = self.nrows
-        self.step = 1
         self.startb = 0
         self.nrowsread = self.start
         self._nrow = self.start - self.step
-        return self.__next__whereCond()
+        return self.__next__inKernel()
 
-  cdef __next__whereCond(self):
+# This version of __next__indexed is fully operational, but it does not work
+# with start, stop, step ranges. 2004-08-11
+#   cdef __next__indexed_original(self):
+#     """The version of next() for indexed columns or with user coordinates"""
+#     cdef long offset
+#     cdef object indexValid1, indexValid2
+#     cdef int ncond, op, recout
+#     cdef long long stop
+#     cdef object opValue, field
+#     cdef long long nextelement
+
+#     while self.nextelement < self.stop:
+#       if self.nextelement >= self.nrowsread:
+#         # Correction for avoiding reading past self.stop
+#         if self.nrowsread+self.nrowsinbuf > self.stop:
+#           stop = self.stop-self.nrowsread
+#         else:
+#           stop = self.nrowsinbuf
+#         if self.coords is not None:
+#           self.bufcoords = self.coords[self.nrowsread:self.nrowsread+stop]
+#         else:
+#           self.bufcoords = self.index.getCoords(self.nrowsread, stop)
+#         self._row = -1
+#         recout = self._table._read_elements(0, self.bufcoords)
+#         if self._table.byteorder <> sys.byteorder:
+#           self._recarray._byteswap()
+#         self.nrowsread = self.nrowsread + recout
+#       self._row = self._row + 1
+#       self._nrow = self.bufcoords[self._row]
+#       self.nextelement = self.nextelement + 1
+#       # Return this row
+#       return self
+#     else:
+#       # Re-initialize the possible cuts in columns
+#       self.indexed = 0
+#       if self.coords is None:
+#         self.index.indices._destroyIndexSlice()  # Remove buffers in indices
+#         nextelement = self.index.nelemslice * self.index.nrows
+#       else:
+#         self.coords = None
+#         # All the elements has been read for this mode
+#         nextelement = self.nrows
+#       if nextelement >= self.nrows:
+#         self._table._close_read()  # Close the table
+#         self._table.ops = []
+#         self._table.opsValues = []
+#         self._table.whereColname = None
+#         self.index = 0
+#         self.whereCond = 0
+#         raise StopIteration        # end of iteration
+#       else:
+#         # Continue the iteration with the __next__inKernel() method
+#         self.start = nextelement
+#         self.stop = self.nrows
+#         self.step = 1
+#         self.startb = 0
+#         self.nrowsread = self.start
+#         self._nrow = self.start - self.step
+#         return self.__next__inKernel()
+
+  cdef __next__inKernel(self):
     """The version of next() in case of in-kernel conditions"""
     cdef long offset
     cdef object indexValid1, indexValid2
@@ -2102,7 +2214,7 @@ cdef class Row:
           self.stopb = self.nrowsinbuf
         self._row = self.startb - self.step
         # Read a chunk
-        recout = self._table._read_records(self.nrowsread,
+        recout = self._table._read_records(self.nextelement,
                                            self.nrowsinbuf)
         self.nrowsread = self.nrowsread + recout
         if self._table.byteorder <> sys.byteorder:
@@ -2143,18 +2255,21 @@ cdef class Row:
         # Is still there any interesting information in this buffer?
         if not numarray.sometrue(self.indexValid):
           # No, so take the next one
-          self.nextelement = self.nextelement + self.nrowsinbuf
-          # Correct this for step size > 1
-          if self.step > 1:
-            correct = self.step - (self.nextelement - self.start) % self.step
-            self.nextelement = self.nextelement + correct
+          if self.step >= self.nrowsinbuf:
+            self.nextelement = self.nextelement + self.step
+          else:
+            self.nextelement = self.nextelement + self.nrowsinbuf
+            # Correction for step size > 1
+            if self.step > 1:
+              correct = (self.nextelement - self.start) % self.step
+              self.nextelement = self.nextelement + self.step - correct
           continue
       
       self._row = self._row + self.step
       self._nrow = self.nextelement
       if self._row + self.step >= self.stopb:
         # Compute the start row for the next buffer
-        self.startb = (self._row + self.step) % self.nrowsinbuf
+        self.startb = 0
 
       self.nextelement = self._nrow + self.step
       # Return only if this value is interesting
@@ -2168,8 +2283,6 @@ cdef class Row:
       self._table.opsValues = []
       self._table.whereColname = None
       self.whereCond = 0
-      if hasattr(self._table, "_dontuseindex"):
-        del self._table._dontuseindex
       raise StopIteration        # end of iteration
 
   # This is the most general __next__ version, simple, but effective

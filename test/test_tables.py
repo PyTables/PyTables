@@ -1282,10 +1282,374 @@ class Rec(IsDescription):
     col2 = StringCol(3, pos=2)
     col3 = FloatCol(pos=3)
 
+class setItem(unittest.TestCase):
+
+    def test01(self):
+        "Checking modifying one table row with __setitem__"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01..." % self.__class__.__name__
+
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a new table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+        table._v_maxTuples = self.buffersize  # set buffer value
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        
+        # Modify just one existing rows
+        table[2] = [456,'db2',1.2]
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
+                          [456,'db2',1.2],[5,'de1',1.3]],
+                         formats="i4,a3,f8",
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            fileh.close()
+            fileh = openFile(file, "r")
+            table = fileh.root.recarray
+            table._v_maxTuples = self.buffersize  # set buffer value
+        r2 = table.read()
+        if verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+        fileh.close()
+        os.remove(file)
+
+    def test02(self):
+        "Modifying one row, with a step (__setitem__)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02..." % self.__class__.__name__
+
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a new table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+        table._v_maxTuples = self.buffersize  # set buffer value
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        
+        # Modify two existing rows
+        rows = records.array([[457,'db1',1.2],[6,'de2',1.3]],
+                             formats="i4,a3,f8")
+        table[1:3:2] = rows
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[457,'db1',1.2],
+                          [457,'db1',1.2],[5,'de1',1.3]],
+                         formats="i4,a3,f8",
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            fileh.close()
+            fileh = openFile(file, "r")
+            table = fileh.root.recarray
+            table._v_maxTuples = self.buffersize  # set buffer value
+        r2 = table.read()
+        if verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+        fileh.close()
+        os.remove(file)
+
+    def test03(self):
+        "Checking modifying several rows at once (__setitem__)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03..." % self.__class__.__name__
+
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a new table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+        table._v_maxTuples = self.buffersize  # set buffer value
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        
+        # Modify two existing rows
+        rows = records.array([[457,'db1',1.2],[5,'de1',1.3]],
+                             formats="i4,a3,f8")
+        #table.modifyRows(start=1, rows=rows)
+        table[1:3] = rows
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[457,'db1',1.2],
+                          [5,'de1',1.3],[5,'de1',1.3]],
+                         formats="i4,a3,f8",
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            fileh.close()
+            fileh = openFile(file, "r")
+            table = fileh.root.recarray
+            table._v_maxTuples = self.buffersize  # set buffer value
+        r2 = table.read()
+        if verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+        fileh.close()
+        os.remove(file)
+
+    def test04(self):
+        "Modifying several rows at once, with a step (__setitem__)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04..." % self.__class__.__name__
+
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a new table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+        table._v_maxTuples = self.buffersize  # set buffer value
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        
+        # Modify two existing rows
+        rows = records.array([[457,'db1',1.2],[6,'de2',1.3]],
+                             formats="i4,a3,f8")
+        #table.modifyRows(start=1, rows=rows)
+        table[1:4:2] = rows
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[457,'db1',1.2],
+                          [457,'db1',1.2],[6,'de2',1.3]],
+                         formats="i4,a3,f8",
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            fileh.close()
+            fileh = openFile(file, "r")
+            table = fileh.root.recarray
+            table._v_maxTuples = self.buffersize  # set buffer value
+        r2 = table.read()
+        if verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+        fileh.close()
+        os.remove(file)
+
+    def test05(self):
+        "Checking modifying one column (single element, __setitem__)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05..." % self.__class__.__name__
+
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a new table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+        table._v_maxTuples = self.buffersize  # set buffer value
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        
+        # Modify just one existing column
+        table.cols.col1[1] = -1
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[-1,'ded',1.3],
+                          [457,'db1',1.2],[5,'de1',1.3]],
+                         formats="i4,a3,f8",
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            fileh.close()
+            fileh = openFile(file, "r")
+            table = fileh.root.recarray
+            table._v_maxTuples = self.buffersize  # set buffer value
+        r2 = table.read()
+        if verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+        fileh.close()
+        os.remove(file)
+
+    def test06(self):
+        "Checking modifying one column (several elements, __setitem__)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test06..." % self.__class__.__name__
+
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a new table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+        table._v_maxTuples = self.buffersize  # set buffer value
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        
+        # Modify just one existing column
+        table.cols.col1[1:4] = [2,3,4]
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
+                          [3,'db1',1.2],[4,'de1',1.3]],
+                         formats="i4,a3,f8",
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            fileh.close()
+            fileh = openFile(file, "r")
+            table = fileh.root.recarray
+            table._v_maxTuples = self.buffersize  # set buffer value
+        r2 = table.read()
+        if verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+        fileh.close()
+        os.remove(file)
+
+    def test07(self):
+        "Modifying one column (several elements, __setitem__, step)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test07..." % self.__class__.__name__
+
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a new table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+        table._v_maxTuples = self.buffersize  # set buffer value
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        
+        # Modify just one existing column
+        table.cols.col1[1:4:2] = [2,3]
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
+                          [457,'db1',1.2],[3,'de1',1.3]],
+                         formats="i4,a3,f8",
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            fileh.close()
+            fileh = openFile(file, "r")
+            table = fileh.root.recarray
+            table._v_maxTuples = self.buffersize  # set buffer value
+        r2 = table.read()
+        if verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+        fileh.close()
+        os.remove(file)
+
+    def test08(self):
+        "Modifying one column (one element, __setitem__, step)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test08..." % self.__class__.__name__
+
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a new table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+        table._v_maxTuples = self.buffersize  # set buffer value
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        
+        # Modify just one existing column
+        table.cols.col1[1:4:3] = [2]
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
+                          [457,'db1',1.2],[5,'de1',1.3]],
+                         formats="i4,a3,f8",
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            fileh.close()
+            fileh = openFile(file, "r")
+            table = fileh.root.recarray
+            table._v_maxTuples = self.buffersize  # set buffer value
+        r2 = table.read()
+        if verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+        fileh.close()
+        os.remove(file)
+
+
+class setItem1(setItem):
+    reopen=0
+    buffersize = 1
+
+class setItem2(setItem):
+    reopen=1
+    buffersize = 2
+
+class setItem3(setItem):
+    reopen=1
+    buffersize = 1000
+
 class RecArrayIO(unittest.TestCase):
 
     def test00(self):
         "Checking saving a regular recarray"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00..." % self.__class__.__name__
+
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -1307,6 +1671,11 @@ class RecArrayIO(unittest.TestCase):
 
     def test01(self):
         "Checking saving a recarray with an offset in its buffer"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01..." % self.__class__.__name__
+
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -1333,6 +1702,11 @@ class RecArrayIO(unittest.TestCase):
 
     def test02(self):
         "Checking saving a large recarray with an offset in its buffer"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02..." % self.__class__.__name__
+
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -1359,6 +1733,11 @@ class RecArrayIO(unittest.TestCase):
 
     def test03(self):
         "Checking saving a strided recarray with an offset in its buffer"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03..." % self.__class__.__name__
+
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -1388,6 +1767,11 @@ class RecArrayIO(unittest.TestCase):
 
     def test04(self):
         "Checking appending several rows at once"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04..." % self.__class__.__name__
+
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -1425,6 +1809,11 @@ class RecArrayIO(unittest.TestCase):
 
     def test05(self):
         "Checking appending several rows at once (close file version)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05..." % self.__class__.__name__
+
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -1462,6 +1851,11 @@ class RecArrayIO(unittest.TestCase):
 
     def test06a(self):
         "Checking modifying one table row (list version)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test06a..." % self.__class__.__name__
+
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -1497,6 +1891,11 @@ class RecArrayIO(unittest.TestCase):
 
     def test06b(self):
         "Checking modifying one table row (recarray version)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test06b..." % self.__class__.__name__
+
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -1531,43 +1930,13 @@ class RecArrayIO(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-    def test06c(self):
-        "Checking modifying one table row (__setitem__ version)"
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
-
-        # Create a new table:
-        table = fileh.createTable(fileh.root, 'recarray', Rec)
-
-        # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
-        table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
-        
-        # Modify just one existing rows
-        table[2] = [456,'db2',1.2]
-        # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
-                          [456,'db2',1.2],[5,'de1',1.3]],
-                         formats="i4,a3,f8",
-                         names = "col1,col2,col3")
-        # Read the modified table
-        if self.reopen:
-            fileh.close()
-            fileh = openFile(file, "r")
-            table = fileh.root.recarray
-        r2 = table.read()
-        if verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
-
-        fileh.close()
-        os.remove(file)
-
     def test07a(self):
         "Checking modifying several rows at once (list version)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test07a..." % self.__class__.__name__
+
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -1603,6 +1972,11 @@ class RecArrayIO(unittest.TestCase):
 
     def test07b(self):
         "Checking modifying several rows at once (recarray version)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test07b..." % self.__class__.__name__
+
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -1638,46 +2012,13 @@ class RecArrayIO(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-    def test07c(self):
-        "Checking modifying several rows at once (__setitem__ version)"
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
-
-        # Create a new table:
-        table = fileh.createTable(fileh.root, 'recarray', Rec)
-
-        # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
-        table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
-        
-        # Modify two existing rows
-        rows = records.array([[457,'db1',1.2],[5,'de1',1.3]],
-                             formats="i4,a3,f8")
-        #table.modifyRows(start=1, rows=rows)
-        table[1:3] = rows
-        # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[457,'db1',1.2],
-                          [5,'de1',1.3],[5,'de1',1.3]],
-                         formats="i4,a3,f8",
-                         names = "col1,col2,col3")
-        # Read the modified table
-        if self.reopen:
-            fileh.close()
-            fileh = openFile(file, "r")
-            table = fileh.root.recarray
-        r2 = table.read()
-        if verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
-
-        fileh.close()
-        os.remove(file)
-
     def test08a(self):
         "Checking modifying one column (single column version)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test08a..." % self.__class__.__name__
+
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -1713,6 +2054,11 @@ class RecArrayIO(unittest.TestCase):
 
     def test08b(self):
         "Checking modifying one column (single column version, recarray)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test08b..." % self.__class__.__name__
+
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -1748,78 +2094,13 @@ class RecArrayIO(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-    def test08c(self):
-        "Checking modifying one column (single element, __setitem__)"
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
-
-        # Create a new table:
-        table = fileh.createTable(fileh.root, 'recarray', Rec)
-
-        # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
-        table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
-        
-        # Modify just one existing column
-        table.cols.col1[1] = -1
-        # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[-1,'ded',1.3],
-                          [457,'db1',1.2],[5,'de1',1.3]],
-                         formats="i4,a3,f8",
-                         names = "col1,col2,col3")
-        # Read the modified table
-        if self.reopen:
-            fileh.close()
-            fileh = openFile(file, "r")
-            table = fileh.root.recarray
-        r2 = table.read()
-        if verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
-
-        fileh.close()
-        os.remove(file)
-
-    def test08d(self):
-        "Checking modifying one column (several elements, __setitem__)"
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
-
-        # Create a new table:
-        table = fileh.createTable(fileh.root, 'recarray', Rec)
-
-        # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
-        table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
-        
-        # Modify just one existing column
-        table.cols.col1[1:4] = [2,3,4]
-        # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
-                          [3,'db1',1.2],[4,'de1',1.3]],
-                         formats="i4,a3,f8",
-                         names = "col1,col2,col3")
-        # Read the modified table
-        if self.reopen:
-            fileh.close()
-            fileh = openFile(file, "r")
-            table = fileh.root.recarray
-        r2 = table.read()
-        if verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
-
-        fileh.close()
-        os.remove(file)
-
     def test09a(self):
         "Checking modifying table columns (multiple column version)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test09a..." % self.__class__.__name__
+
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -1857,6 +2138,11 @@ class RecArrayIO(unittest.TestCase):
 
     def test09b(self):
         "Checking modifying table columns (multiple columns, recarray)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test09b..." % self.__class__.__name__
+
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -1875,6 +2161,92 @@ class RecArrayIO(unittest.TestCase):
         # Create the modified recarray
         r1=records.array([[456,'dbe',1.2],[2,'aaa',1.2],
                           [457,'bbb',.1],[5,'ccc',.3]],
+                         formats="i4,a3,f8",
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            fileh.close()
+            fileh = openFile(file, "r")
+            table = fileh.root.recarray
+        r2 = table.read()
+        if verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+        fileh.close()
+        os.remove(file)
+
+    def test09c(self):
+        "Checking modifying table columns (single column, step)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test09c..." % self.__class__.__name__
+
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a new table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        
+        # Modify a couple of columns
+        columns = records.array([["aaa",1.2],["bbb", .1]],
+                                formats="a3,f8")
+        table.modifyColumns(start=1, step=2, columns=columns,
+                            names=["col2", "col3"])
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[2,'aaa',1.2],
+                          [457,'db1',1.2],[5,'bbb',.1]],
+                         formats="i4,a3,f8",
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            fileh.close()
+            fileh = openFile(file, "r")
+            table = fileh.root.recarray
+        r2 = table.read()
+        if verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+        fileh.close()
+        os.remove(file)
+
+    def test09d(self):
+        "Checking modifying table columns (multiple columns, step)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test09d..." % self.__class__.__name__
+
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a new table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        
+        # Modify a couple of columns
+        columns = records.array([["aaa",1.3],["bbb", .1]],
+                                formats="a3,f8")
+        table.modifyColumns(start=0, step=2, columns=columns,
+                            names=["col2", "col3"])
+        # Create the modified recarray
+        r1=records.array([[456,'aaa',1.3],[2,'ded',1.3],
+                          [457,'bbb',.1],[5,'de1',1.3]],
                          formats="i4,a3,f8",
                          names = "col1,col2,col3")
         # Read the modified table
@@ -2744,6 +3116,8 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayIO1))
     #theSuite.addTest(unittest.makeSuite(RecArrayIO2))
+    #theSuite.addTest(unittest.makeSuite(setItem1))
+    #theSuite.addTest(unittest.makeSuite(setItem2))
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(OldRecordBasicWriteTestCase))
@@ -2764,6 +3138,9 @@ def suite():
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
         theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
         theSuite.addTest(unittest.makeSuite(getItemTestCase))
+        theSuite.addTest(unittest.makeSuite(setItem1))
+        theSuite.addTest(unittest.makeSuite(setItem2))
+        theSuite.addTest(unittest.makeSuite(setItem3))
         theSuite.addTest(unittest.makeSuite(RecArrayIO1))
         theSuite.addTest(unittest.makeSuite(RecArrayIO2))
         theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))

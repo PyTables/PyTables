@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.124 2004/08/10 07:48:51 falted Exp $
+#       $Id: Table.py,v 1.125 2004/08/12 20:52:45 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.124 $"
+__version__ = "$Revision: 1.125 $"
 
 from __future__ import generators
 import sys
@@ -393,23 +393,21 @@ class Table(Leaf, hdf5Extension.Table, object):
         condition=(0<table.cols.col1<0.3)
 
         If the column to which the condition is applied is indexed,
-        and you don't pass any range parametere (start, stop or step)
-        the index will be used so as to accelerate the search. Else,
-        the in-kernel iterator will be choosed instead.
+        the index will be used in order to accelerate the
+        search. Else, the in-kernel iterator will be choosed instead.
         
         """
 
         assert isinstance(condition, Column), \
 "Wrong condition parameter type. Only Column instances are suported."
 
-        if start == None and stop == None and step == None:
-            if condition.index and not condition.dirty:
-                # Call the indexed version method
-                return self.whereIndexed(condition)
+        if condition.index and not condition.dirty:
+            # Call the indexed version method
+            return self.whereIndexed(condition, start, stop, step)
         # Fall back to in-kernel selection method
         return self.whereInRange(condition, start, stop, step)
 
-    def whereIndexed(self, condition):
+    def whereIndexed(self, condition, start=None, stop=None, step=None):
         """Iterator that selects values fulfilling the 'condition' param.
         
         condition can be used to specify selections along a column in the
@@ -417,14 +415,22 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         condition=(0<table.cols.col1<0.3)
 
-        This method is only intended to be used for indexed columns
+        This method is only intended to be used for indexed columns.
         """
-        
+
+        assert isinstance(condition, Column), \
+"Wrong condition parameter type. Only Column instances are suported."
+        assert condition.index is not None, \
+               "This method is intended only for indexed columns"
+        assert condition.dirty == 0, \
+               "This method is intended only for indexed columns, but this column has a dirty index. Try re-indexing it in order to put the index in a sane state. "
+
         self.whereColname = condition.name   # Flag for Row.__iter__
         # Get the coordinates to lookup
-        ncoords = condition.index._getLookupRange(condition)
-        # Call the indexed version of Row iterator (coords=None, ncoords<>None)
-        return self.row(coords=None, ncoords=ncoords)
+        ncoords = condition.index.getLookupRange(condition)
+        # Call the indexed version of Row iterator (coords=None, ncoords>=0)
+        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        return self.row(start, stop, step, coords=None, ncoords=ncoords)
 
     def whereInRange(self, condition, start=None, stop=None, step=None):
         """Iterator that selects values fulfilling the 'condition' param.
@@ -434,10 +440,8 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         condition=(0<table.cols.col1<0.3)
 
-        This method differs from Table.where in that it accepts a
-        range of rows to do the search for values. However, it will
-        use the in-kernel search method, i.e. it won't take advantage
-        of a possible indexed column, while Table.where do.
+        This method will use the in-kernel search method, i.e. it
+        won't take advantage of a possible indexed column.
         
         """
 
@@ -447,11 +451,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.whereColname = condition.name   # Flag for Row.__iter__
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
         if start < stop:
-            # we don't want to use the indexed search method because
-            # it doesn't support index range searches
-            self._dontuseindex = 1
-            # call row with coords=None and ncoords=None (in-kernel selection)
-            return self.row(start, stop, step, coords=None, ncoords=0)
+            # call row with coords=None and ncoords=-1 (in-kernel selection)
+            return self.row(start, stop, step, coords=None, ncoords=-1)
         # Fall-back action is to return an empty RecArray
         return records.array(None,
                              formats=self.description._v_recarrfmt,
@@ -478,7 +479,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Take advantage of indexation, if present
         if condition.index is not None:
             # get the number of coords and set-up internal variables
-            ncoords = condition.index._getLookupRange(condition)
+            ncoords = condition.index.getLookupRange(condition)
             # create buffers for indices
             condition.index.indices._initIndexSlice(ncoords)
             # get the coordinates that passes the selection cuts
@@ -514,7 +515,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         assert hasattr(sequence, "__getitem__"), \
 "Wrong 'sequence' parameter type. Only sequences are suported."
         coords = numarray.array(sequence, type=numarray.Int64) 
-        return self.row(coords=coords, ncoords=0)
+        return self.row(coords=coords, ncoords=-1)
         
     def __call__(self, start=None, stop=None, step=None):
         """Iterate over all the rows or a range.
@@ -525,7 +526,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         """
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
         if start < stop:
-            return self.row(start, stop, step, coords=None, ncoords=0)
+            return self.row(start, stop, step, coords=None, ncoords=-1)
         # Fall-back action is to return an empty RecArray
         return records.array(None,
                              formats=self.description._v_recarrfmt,
@@ -769,7 +770,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         elif isinstance(key, types.StringType):
             return self.read(field=key)
         else:
-            raise ValueError, "Non-valid index or slice: %s" % key
+            raise ValueError, "Non-valid index or slice: %s" % str(key)
 
     def __setitem__(self, key, value):
         """Sets a table row or table slice.
@@ -791,19 +792,11 @@ class Table(Leaf, hdf5Extension.Table, object):
             if key < 0:
                 # To support negative values
                 key += self.nrows
-            return self.modifyRows(key, [value])
+            return self.modifyRows(key, key+1, 1, [value])
         elif isinstance(key, types.SliceType):
-            if key.step is not None:
-                raise IndexError, \
-            "A step parameter is not allowed when setting a table slice"
             (start, stop, step) = processRange(self.nrows,
                                                key.start, key.stop, key.step)
-            if len(value)>stop-start:
-                value = value[:stop-start]  # cut the unnecessary values
-            elif len(value) < stop-start:
-                raise ValueError, \
-             "The value has not enough elements to fill-in the specified range"
-            return self.modifyRows(start, value)
+            return self.modifyRows(start, stop, step, value)
         else:
             raise ValueError, "Non-valid index or slice: %s" % key
 
@@ -852,8 +845,8 @@ class Table(Leaf, hdf5Extension.Table, object):
             self._addRowsToIndex()
         return lenrows
 
-    def modifyRows(self, start=None, rows=None):
-        """Modify a series of rows starting at 'start'
+    def modifyRows(self, start=None, stop=None, step=1, rows=None):
+        """Modify a series of rows starting at 'start', with a "step"
 
         rows can be either a recarray or a structure that is able to
         be converted to a recarray compliant with the table format.
@@ -868,9 +861,25 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         """
 
-        assert start is not None, "You must provide a value for start param"
         if rows is None:      # Nothing to be done
             return
+        if start is None:
+            start = 0
+        assert start >= 0, "start must have a positive value"
+        assert step >= 1, "step must have a value greater or equal than 1"
+        if stop is None:
+            # compute the stop value. start + len(rows)*step does not work
+            stop = start + (len(rows)-1)*step + 1
+        
+        (start, stop, step) = processRange(self.nrows, start, stop, step)
+        if stop > self.nrows:
+            raise IndexError, \
+"This modification will exceed the length of the table. Giving up."
+        # Compute the number of rows to read. (stop-start)/step does not work
+        nrows = ((stop - start - 1) / step) + 1
+        if len(rows) < nrows:
+            raise ValueError, \
+           "The value has not enough elements to fill-in the specified range"
         # Try to convert the object into a recarray
         try:
             recarray = records.array(rows,
@@ -884,12 +893,14 @@ class Table(Leaf, hdf5Extension.Table, object):
         except:
             (type, value, traceback) = sys.exc_info()
             raise ValueError, \
-"rows parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), value)
+"rows parameter cannot be converted into a recarray object compliant with table format '%s'. The error was: <%s>" % (str(self.description._v_recarrfmt), value)
         lenrows = len(recarray)
         if start + lenrows > self.nrows:
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
-        self._modify_records(start, recarray)
+        #print "start, stop, step, recarray-->", start, stop, step, recarray
+        #self._modify_records(start, recarray)
+        self._modify_records(start, stop, step, recarray)
         # Redo the index if needed
         if self.indexed:
             # Mark all the indexes as dirty
@@ -902,7 +913,8 @@ class Table(Leaf, hdf5Extension.Table, object):
                 self._unsaved_indexedrows = self.nrows - self._indexedrows
         return lenrows
 
-    def modifyColumns(self, start=None, columns=None, names=None):
+    def modifyColumns(self, start=None, stop=None, step=1,
+                      columns=None, names=None):
         """Modify a series of columns starting at row 'start'
 
         columns can be either a recarray or a list of arrays (the
@@ -921,13 +933,15 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         """
 
-        assert start is not None, \
-               "You must provide a value for start parameter"
         assert (isinstance(names, types.ListType) or
                 isinstance(names, types.TupleType)), \
                "The columns parameter has to be a list of strings"
         if columns is None:      # Nothing to be done
             return 0
+        if start is None:
+            start = 0
+        assert start >= 0, "start must have a positive value"
+        assert step >= 1, "step must have a value greater or equal than 1"
         # Get the column formats to be modified:
         formats = []
         colnames = list(self.colnames)
@@ -959,20 +973,26 @@ class Table(Leaf, hdf5Extension.Table, object):
             raise ValueError, \
 "columns parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), value)
         #print "after conversion-->", recarray
-        lenrows = recarray.shape[0]
-        if start + lenrows > self.nrows:
+        if stop is None:
+            # compute the stop value. start + len(rows)*step does not work
+            stop = start + (len(recarray)-1)*step + 1
+        (start, stop, step) = processRange(self.nrows, start, stop, step)
+        if stop > self.nrows:
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
+        # Compute the number of rows to read. (stop-start)/step does not work
+        nrows = ((stop - start - 1) / step) + 1
+        if len(recarray) < nrows:
+            raise ValueError, \
+           "The value has not enough elements to fill-in the specified range"
         # Now, read the original values:
-        stop = start+lenrows
-        mod_recarr = self.read(start, stop)
+        mod_recarr = self.read(start, stop, step)
         mod_recarr._fields = mod_recarr._get_fields()  # Refresh the cache
         # Modify the appropriate columns in the original recarray
         for name in names:
-            #mod_recarr._fields[name][start:stop] = recarray._fields[name]
             mod_recarr._fields[name][:] = recarray._fields[name]
         # save this modified rows in table
-        self._modify_records(start, mod_recarr)
+        self._modify_records(start, stop, step, mod_recarr)
         # Redo the index if needed
         if self.indexed:
             # First, mark the modified indexes as dirty
@@ -984,7 +1004,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             if self.indexprops.reindex:
                 self._indexedrows = self.reIndex()
                 self._unsaved_indexedrows = self.nrows - self._indexedrows
-        return lenrows
+        return nrows
 
     def _addRowsToIndex(self):
         "Add remaining rows to non-dirty indexes"
@@ -1359,19 +1379,13 @@ class Column(object):
             if key < 0:
                 # To support negative values
                 key += self.table.nrows
-            return self.table.modifyColumns(key, [[value]], names=[self.name])
+            return self.table.modifyColumns(key, key+1, 1,
+                                            [[value]], names=[self.name])
         elif isinstance(key, types.SliceType):
-            if key.step is not None:
-                raise IndexError, \
-            "A step parameter is not allowed when setting a column slice"
             (start, stop, step) = processRange(self.table.nrows,
                                                key.start, key.stop, key.step)
-            if len(value) > stop-start:
-                value = value[:stop-start]  # cut the unnecessary values
-            elif len(value) < stop-start:
-                raise ValueError, \
-             "The value has not enough elements to fill-in the specified range"
-            return self.table.modifyColumns(start, [value], names=[self.name])
+            return self.table.modifyColumns(start, stop, step,
+                                            [value], names=[self.name])
         else:
             raise ValueError, "Non-valid index or slice: %s" % key
 
