@@ -20,8 +20,11 @@
 
    Added code for pytables 0.5 backward compatibility.
    F. Alted 2003/07/28
+
+   Added code for saving the uncompressed length buffer as well.
+   F. Alted 2003/07/29
 */
-#undef CHECKSUM  		       
+#define CHECKSUM  		       
 
 #undef DEBUG
 
@@ -40,6 +43,13 @@
    that seems more resistent to seg faults that nrv2e seems to be.
    This should be further analyzed. */
 /* With the nrv2d enabled by default this seems to work just fine */
+
+/* Another one (I'll never end!): I've decided to save the length
+   buffer info in the compressed buffer. With that nrv2e seems to work
+   well, so I'm reverting to use the nrv2e again!.
+   F. Alted 2003/07/29 */
+
+
 #define H5Z_UCL_SIZE_ADJUST(s) ((s)+((s)/8)+256) /* Correct value */
 
 int register_ucl(void) {
@@ -127,6 +137,19 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
   if (flags & H5Z_FLAG_REVERSE) {
     /* Input */
 
+    /* From version 2.0 and on we save a checksum in data, but before don't */
+#ifdef CHECKSUM
+    if (object_version >= 20) {
+      nbytes -= 4; 		/* Point to uncompressed buffer length */
+      memcpy(&nalloc, ((*buf)+nbytes), 4);
+      out_len = nalloc;
+      nbytes -= 4; 		/* Point to the checksum */
+#ifdef DEBUG
+      printf("Compressed bytes: %d. Uncompressed bytes: %d\n", nbytes, nalloc);
+#endif
+    }
+#endif
+
     /* Only allocate the bytes for the outbuf */
     if (max_len_buffer == 0) {
       if (NULL==(outbuf = (void *)malloc(nalloc)))
@@ -139,27 +162,29 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
       nalloc =  max_len_buffer;
     }
 
-    /* From version 2.0 and on we save a checksum in data, but before don't */
-#ifdef CHECKSUM
-    if (object_version >= 20) {
-      nbytes -= 4;
-    }
-#endif
-
     while(1) {
-      /* The assembler version of the decompression routine is 25%
-	 faster than the C version.  However, this is not automatically
-	 included on the UCL library (you have to add it by hand), so it
-	 is safer to call the C one. */
-
 #ifdef DEBUG
       printf("nbytes -->%d\n", nbytes);
       printf("nalloc -->%d\n", nalloc);
       printf("max_len_buffer -->%d\n", max_len_buffer);
 #endif /* DEBUG */
       if (object_version >= 20) {
-	status = ucl_nrv2d_decompress_safe_8(*buf, (ucl_uint)nbytes, outbuf,
-					     &out_len, NULL);
+
+	/* The assembler version of the decompression routine is 25%
+	   faster than the C version.  However, this is not
+	   automatically included on the UCL library (you have to add
+	   it by hand), so it is safer to call the C one. */
+
+	/* I've decided to save the length buffer info into the
+	   compressed buffer. With that nrv2e seems to work well, so
+	   I'm reverting to use the nrv2e again!.
+	   F. Alted 2003/07/29 */
+
+	/* We can use the non-safe version because we know the total
+	   length for uncompressed buffer. It's only a 5% faster,
+	   but... F. Alted 2003/07/29 */
+	status = ucl_nrv2e_decompress_8(*buf, (ucl_uint)nbytes, outbuf,
+					&out_len, NULL);
       }
       else {
 	status = ucl_nrv2e_decompress_safe_8(*buf, (ucl_uint)nbytes, outbuf,
@@ -179,7 +204,7 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
 	nalloc *= 2;
 	out_len = (ucl_uint) nalloc;
 	if (NULL==(outbuf = realloc(outbuf, nalloc))) {
-	  printf("memory allocation failed for ucl uncompression");
+	  fprintf(stderr, "Memory allocation failed for ucl uncompression!\n");
 	}
       }
       else {
@@ -226,12 +251,12 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
 
 #ifdef CHECKSUM
     if (object_version >= 20) {
-      z_dst_nbytes += 4;
+      z_dst_nbytes += 4+4; 	/* Checksum + buffer size */
     }
 #endif
 
     if (NULL==(z_dst=outbuf=(void *)ucl_malloc(z_dst_nbytes))) {
-	fprintf(stderr, "unable to allocate deflate destination buffer");
+	fprintf(stderr, "Unable to allocate deflate destination buffer!\n");
 	ret_value = 0; /* fail */
 	goto done;
     }
@@ -258,10 +283,14 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
        backward compatibility with the existing files writen with
        pytables 0.5.x.  F. Alted 2003/07/24
 
+       Another one (I'll never end!): I've decided to save the length buffer
+       info in the compressed buffer. With that nrv2e seems to work well, so
+       I'm reverting to use the nrv2e again!. F. Alted 2003/07/29
+
 */
     /* For compression, use nrv2e only if table VERSION is less than 2.0 */
     if (object_version >= 20)
-      status = ucl_nrv2d_99_compress(z_src, z_src_nbytes, z_dst, &z_dst_nbytes,
+      status = ucl_nrv2e_99_compress(z_src, z_src_nbytes, z_dst, &z_dst_nbytes,
 				     0, complevel, NULL, NULL);
     else
       status = ucl_nrv2e_99_compress(z_src, z_src_nbytes, z_dst, &z_dst_nbytes,
@@ -271,17 +300,22 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
     if (object_version >= 20) {
 #ifdef DEBUG
       printf("Checksum compressing ...");
+      printf("zdst_nbytes 2 --> %d", z_dst_nbytes);
 #endif
       /* Append checksum of *uncompressed* data at the end */
       checksum = ucl_adler32(ucl_adler32(0,NULL,0), *buf, nbytes);
       memcpy((char*)(z_dst)+z_dst_nbytes, &checksum, 4);
-      z_dst_nbytes += (ucl_uint)4;
-      nbytes += 4; 
+      memcpy((char*)(z_dst)+z_dst_nbytes+4, &nbytes, 4);
+      z_dst_nbytes += (ucl_uint)4+4;
+      nbytes += 4+4; 
     }
 #endif
 
+
     if (z_dst_nbytes >= nbytes) {
-/*       fprintf(stderr,"overflow"); */
+#ifdef DEBUG
+      printf("The compressed buffer takes more space than uncompressed!.\n");
+#endif
       ret_value = 0; /* Incompressible chunk */
       goto done;
     } else if (UCL_E_OK != status) {

@@ -22,6 +22,10 @@ void *wrkmem;
   
    Added code for pytables 0.5 backward compatibility.
    F. Alted 2003/07/28
+
+   Added code for saving the uncompressed length buffer as well.
+   F. Alted 2003/07/29
+
 */
 
 #define CHECKSUM
@@ -34,7 +38,7 @@ int register_lzo(void) {
 
   /* Init the LZO library */
   if (lzo_init()!=LZO_E_OK)
-    printf("Problems initializing LZO library\n");
+    fprintf(stderr, "Problems initializing LZO library\n");
 
   /* Feed the filter_class data structure */
   H5Z_class_t filter_class = {
@@ -100,42 +104,57 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
   /* For versions < 20, there were no parameters */
   if (cd_nelmts==1 ) {
     complevel = cd_values[0];	/* This do nothing right now */
-    printf("invalid deflate aggression level");
+    fprintf(stderr, "invalid deflate aggression level");
   }
   else if (cd_nelmts==2 ) {
     complevel = cd_values[0];	/* This do nothing right now */
     object_version = cd_values[1]; /* The table VERSION attribute */
   }
 
-#if DEBUG
+#ifdef DEBUG
   printf("object_version:%d\n", object_version);
 #endif
 
   if (flags & H5Z_FLAG_REVERSE) {
     /* Input */
 
+#ifdef CHECKSUM
+    if (object_version >= 20) {
+      nbytes -= 4; 		/* Point to uncompressed buffer length */
+      memcpy(&nalloc, ((*buf)+nbytes), 4);
+      out_len = nalloc;
+      nbytes -= 4; 		/* Point to the checksum */
+#ifdef DEBUG
+      printf("Compressed bytes: %d. Uncompressed bytes: %d\n", nbytes, nalloc);
+#endif
+    }
+#endif
+
     /* Only allocate the bytes for the outbuf */
     if (max_len_buffer == 0) {
       if (NULL==(outbuf = (void *)malloc(nalloc)))
-	printf("memory allocation failed for deflate uncompression");
+	fprintf(stderr, "Memory allocation failed for lzo uncompression.\n");
     }
     else {
       if (NULL==(outbuf = (void *)malloc(max_len_buffer)))
-	printf("memory allocation failed for deflate uncompression");
+	fprintf(stderr, "Memory allocation failed for lzo uncompression.\n");
       out_len = max_len_buffer;
       nalloc =  max_len_buffer;
     }
 
-#ifdef CHECKSUM
-    if (object_version >= 20) {
-      nbytes -= 4;
-    }
-#endif
     while(1) {
+
+#ifdef DEBUG
+      printf("nbytes -->%d\n", nbytes);
+      printf("nalloc -->%d\n", nalloc);
+      printf("max_len_buffer -->%d\n", max_len_buffer);
+#endif /* DEBUG */
+
       /* The assembler version isn't faster than the C version with 
 	 gcc 3.2.2, and it's unsafe */
+      /* The safe and unsafe versions have the same speed more or less */
       status = lzo1x_decompress_safe(*buf, (lzo_uint)nbytes, outbuf,
-				     &out_len, NULL);
+				       &out_len, NULL);
 
       if (status == LZO_E_OK) {
 #ifdef DEBUG
@@ -149,7 +168,7 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
 	nalloc *= 2;
 	out_len = (lzo_uint) nalloc;
 	if (NULL==(outbuf = realloc(outbuf, nalloc))) {
-	  printf("memory allocation failed for lzo uncompression");
+	  fprintf(stderr, "Memory allocation failed for lzo uncompression\n");
 	}
       }
       else {
@@ -167,7 +186,7 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
 #endif
       /* Compute the checksum */
       checksum=lzo_adler32(lzo_adler32(0,NULL,0), outbuf, out_len);
-
+  
       /* Compare */
       if (memcmp(&checksum, (char*)(*buf)+nbytes, 4)) {
 	ret_value = 0; /*fail*/
@@ -192,10 +211,16 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
     lzo_byte *z_src = (lzo_byte*)(*buf);
     lzo_byte *z_dst;         /*destination buffer            */
     lzo_uint z_src_nbytes = (lzo_uint)(nbytes);
-    lzo_uint z_dst_nbytes = (lzo_uint)(nbytes + (nbytes / 64) + 16 + 3 + 4);
+    lzo_uint z_dst_nbytes = (lzo_uint)(nbytes + (nbytes / 64) + 16 + 3);
+
+#ifdef CHECKSUM
+    if (object_version >= 20) {
+      z_dst_nbytes += 4+4; 	/* Checksum + buffer size */
+    }
+#endif
 
     if (NULL==(z_dst=outbuf=(void *)malloc(z_dst_nbytes))) {
-	fprintf(stderr, "unable to allocate deflate destination buffer");
+	fprintf(stderr, "Unable to allocate lzo destination buffer.\n");
 	ret_value = 0; /* fail */
 	goto done;
     }
@@ -204,20 +229,24 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
     status = lzo1x_1_compress (z_src, z_src_nbytes, z_dst, &z_dst_nbytes,
 			       wrkmem);
 #ifdef CHECKSUM
-    /* Append checksum of *uncompressed* data at the end */
     if (object_version >= 20) {
 #ifdef DEBUG
-      printf("Checksum compression...");
+      printf("Checksum compressing ...");
+      printf("zdst_nbytes 2 --> %d", z_dst_nbytes);
 #endif
+      /* Append checksum of *uncompressed* data at the end */
       checksum = lzo_adler32(lzo_adler32(0,NULL,0), *buf, nbytes);
       memcpy((char*)(z_dst)+z_dst_nbytes, &checksum, 4);
-      z_dst_nbytes += (lzo_uint)4;
-      nbytes += 4; 
+      memcpy((char*)(z_dst)+z_dst_nbytes+4, &nbytes, 4);
+      z_dst_nbytes += (lzo_uint)4+4;
+      nbytes += 4+4; 
     }
-#endif /* CHECKSUM */
+#endif
 
     if (z_dst_nbytes >= nbytes) {
-      /* fprintf(stderr,"overflow"); */
+#ifdef DEBUG
+      printf("The compressed buffer takes more space than uncompressed!.\n");
+#endif
       ret_value = 0; /* fail */
       goto done;
     } else if (LZO_E_OK != status) {
@@ -241,4 +270,3 @@ done:
 
   return ret_value;
 }
-

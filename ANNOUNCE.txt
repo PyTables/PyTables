@@ -4,11 +4,13 @@ Announcing PyTables 0.7
 This is the third public beta release. The version 0.6 was internal
 and will never be released.
 
-On this release you will find a new AttributeSet class, a 25% of I/O
-speed improvement over the previous public release (0.5.1), fully
-multidimensional table cells support, new column descriptors, row
-deletion in tables is finally here, and much more!. All of that while
-keeping backward compatibility with the previous beta versions.
+On this release you will find:
+       - new AttributeSet class 
+       - 25% I/O speed improvement 
+       - fully multidimensional table cells support
+       - new column descriptors
+       - row deletion in tables is finally here
+       - much more!
  
 More in detail:
 
@@ -17,17 +19,17 @@ What's new
 
 - A new AttributeSet class has been added. This will allow the
   addition and deletion of generic attributes (any scalar type plus
-  any Python object support by Pickle) as easy as this:
+  any Python object supported by Pickle) as easy as this:
 
   table.attrs.date = "2003/07/28 10:32"     # Attach a string to table
-  group._v_attrs.tempShift = 1.2     # Attach a float to group
-  array.attrs.detectorList = [1,2,3,4]     # Attach a list to array
+  group._v_attrs.tempShift = 1.2            # Attach a float to group
+  array.attrs.detectorList = [1,2,3,4]      # Attach a list to array
+  del array.attrs.detectorList        # Detach detectorList attr from array
 
-- PyTables has got fully multidimensional table cells support. This
+- PyTables now has fully multidimensional table cells support. This
   has been possible in part by the implementation of multidimensional
-  cells in numarray.records.RecArray object. Thanks to numarray crew,
-  and most specially to Jin-chung Hsu, for willingly accepting doing
-  that, and also for including some cache improvements in RecArray!.
+  cells in numarray.records.RecArray object. Thanks to numarray crew
+  for their hard work!.
 
 - New column descriptors added: IntCol, Int8Col, UInt8Col, Int16Col,
   UInt16Col, Int32Col, UInt32Col, Int64Col, UInt64Col, FloatCol,
@@ -40,13 +42,13 @@ What's new
   tables!. This was a long-time asked feature. There is still a
   limitation, though: you cannot delete rows in extremely large Tables
   (because it is needed to put the remaining rows after the stop
-  parameter in memory). The performance shouldn't be great
-  neither. These issues will hopefully be addressed in future
+  parameter in memory). Also, in this release, the performance is not 
+  optimized. These issues will hopefully be addressed in future
   releases.
 
 - Added iterators to File, Group and Table (they support now the
   __iter__() special method). They allow much better object usability,
-  specially in interactive mode. See documentation for examples of
+  especially in interactive mode. See documentation for examples of
   use.
 
 - Added a __getitem__() method to Table, that works more or less like
@@ -54,37 +56,32 @@ What's new
 
 - As a consequence of rewriting table iterators in C (with the help of
   Pyrex, of course) the table read performance has been improved
-  between a 20% and 30%. With that, data selections in PyTables are
+  between 20% and 30%. With that, data selections in PyTables are
   starting to beat powerful relational databases like SQLite, even for
-  the in-core case (!). I think there is still room for another 20% or
-  30% of improvement, so stay tuned.
+  the in-core case (!). I think there is still room for another 20% to
+  30% improvement, so stay tuned.
 
 - A checksum is now added automatically when using LZO and UCL
   compressors. The Adler32 algorithm has been chosen because of its
-  speed. With that, the compressing/decompressing speed has dropped a
+  speed. With that, the compressing/decompressing speed has dropped
   1% or 2%, which is hardly noticeable. I think this addition will
-  allow the suspicious user to be a bit more confident about these
+  allow the cautious user to be a bit more confident about these
   excellent compressors. Code has been added to still be able to read
   files created without this checksum (so you can be confident that
   you will be able to read your existing files compressed with LZO and
   UCL).
 
-- The compressor nrve has been deprecated when using UCL compression,
-  and now nrvd is used. I've been having problems with nrve with the
-  new HDF5 library, so I decided to switch to nrvd (which seems to
-  work well) until I learn more about the problem. Of course, code has
-  been added so as to be able to still read the files written with
-  previous PyTables versions.
+- Recursion has been removed from PyTables. Before, this made the
+  maximum depth tree to be less than the Python recursion limit (which
+  depends on implementation, but is around 900, at least in
+  Linux). Now, the limit has been set (somewhat arbitrarily) to be
+  2048. Thanks to John Nielsen for implementing the new iterative
+  method!.
 
-- PyTables has get rid of recursion. Before, this made the maximum
-  depth tree to be less than the Python recursion limit (which depends
-  on implementation, but is around 900, at least in Linux). Now, the
-  limit has been (somewhat arbitrarily) put to be 2048. Thanks to John
-  Nielsen for implementing the new iterative method!.
-
-- A new rootUEP parameter to openFile() has been added. You can define
-  now the root you want to start build the object tree from. Thanks to
-  John Nielsen for the suggestion and a first implementation of it.
+- A new rootUEP parameter to openFile() has been added. You can now
+  define the root from where you want to start build the object
+  tree. Thanks to John Nielsen for the suggestion and a first
+  implementation of it.
 
 - Some (non-serious) bugs were discovered and fixed.
 
@@ -122,7 +119,7 @@ applications, for example) in an efficient manner that reduces demand
 on CPU time and I/O resources.
 
 Quite a bit effort has been invested to make browsing the hierarchical
-data structure a pleasant experience. PyTables implements just two
+*data structure a pleasant experience. PyTables implements two
 (orthogonal) easy-to-use methods for browsing.
 
 What is HDF5?
@@ -186,9 +183,9 @@ from numarray import *
 from tables import *
 
 class Particle(IsDescription):
-    name        = StringCol(length=16)  # 16-character String
-    lati        = Int16Col()            # integer
-    longi       = IntCol()              # integer
+    name        = StringCol(length=16)    # 16-character String
+    lati        = Int16Col()              # integer
+    longi       = IntCol()                # integer
     pressure    = Float32Col(shape=(2,3)) # 2-D float array (single-precision)
     temperature = Float64Col(shape=(2,3)) # 2-D float array (double-precision)
 
