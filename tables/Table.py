@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.38 2003/03/13 11:18:54 falted Exp $
+#       $Id: Table.py,v 1.39 2003/03/14 11:38:55 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.38 $"
+__version__ = "$Revision: 1.39 $"
 
 from __future__ import generators
 import sys
@@ -765,16 +765,11 @@ class Table(Leaf, hdf5Extension.Table):
     def __repr__(self):
         """This provides column metainfo in addition to standard __str__"""
 
-#         header = str(self)
-#         byteorder = self.byteorder
-#         columns = ["Number of columns: %s\n  Column metainfo:" % \
-#                    len(self.colnames)]
-#         columns += ['%s := (%s, %s)' % (name,
-#                                        repr(self.coltypes[name]),
-#                                        self.colshapes[name])
-#                     for name in self.colnames]
-#         columns = "\n    ".join(columns)
+        rep = [ '%r: Col(\'%r\', %r)' %  \
+                (k, self.coltypes[k], self.colshapes[k])
+                for k in self.colnames ]
+        columns = '{\n    %s }' % (',\n    '.join(rep))
         
-        return "%s\n  Byteorder: %s\n  %r" % \
-               (str(self), self.byteorder, self.description)
-               #(header, byteorder, columns)
+        return "%s\n  description = %s\n  byteorder = %s" % \
+               (str(self), columns, self.byteorder)
+               

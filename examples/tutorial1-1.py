@@ -51,7 +51,6 @@ particle = table.row
 
 # Fill the table with 10 particles
 for i in xrange(10):
-    # First, assign the values to the Particle record
     particle['name']  = 'Particle: %6d' % (i)
     particle['TDCcount'] = i % 256    
     particle['ADCcount'] = (i * 256) % (1 << 16)
@@ -59,7 +58,7 @@ for i in xrange(10):
     particle['grid_j'] = 10 - i
     particle['pressure'] = float(i*i)
     particle['energy'] = float(particle['pressure'] ** 4)
-    particle['idnumber'] = i * (2 ** 34)  # This exceeds long integer range
+    particle['idnumber'] = i * (2 ** 34)
     # Insert a new particle record
     particle.append()
 
@@ -92,8 +91,7 @@ h5file.createArray(gcolumns, 'pressure', array(pressure),
                    "Pressure column selection")
 
 print "Creating another Numeric array called 'name' under '/columns' group"
-h5file.createArray('/columns', 'name', array(names),
-                   "Name column selection")
+h5file.createArray('/columns', 'name', names, "Name column selection")
 
 # Close the file
 h5file.close()

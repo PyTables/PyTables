@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.27 2003/03/13 11:18:54 falted Exp $
+#       $Id: Array.py,v 1.28 2003/03/14 11:38:55 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.27 $"
+__version__ = "$Revision: 1.28 $"
 import types, warnings, sys
 from Leaf import Leaf
 import hdf5Extension
@@ -73,18 +73,21 @@ class Array(Leaf, hdf5Extension.Array):
         
       Specific of Array:
         type -- the type class for the array
-        flavor -- the object type of this object (numarray, Numeric, list,
-                  tuple)
+        flavor -- the object type of this object (Numarray, Numeric, List,
+                  Tuple, String, Int of Float)
 
     """
     
-    def __init__(self, NumericObject = None, title = "", atomictype = 1):
+    def __init__(self, object = None, title = "", atomictype = 1):
         """Create the instance Array.
 
         Keyword arguments:
 
-        NumericObject -- Numeric array to be saved. If None, the
-            metadata for the array will be taken from disk.
+        object -- Regular object to be saved. It can be any of
+                  Numarray, Numeric, List, Tuple, String, Int of Float
+                  types, provided that they are regular (i.e. they are
+                  not like [[1,2],2]). If None, the metadata for the
+                  array will be taken from disk.
 
         "title" -- Sets a TITLE attribute on the HDF5 array entity.
         "atomictype" -- Whether an HDF5 atomic datatype or H5T_ARRAY
@@ -93,9 +96,9 @@ class Array(Leaf, hdf5Extension.Array):
         """
         # Check if we have to create a new object or read their contents
         # from disk
-        if NumericObject is not None:
+        if object is not None:
             self._v_new = 1
-            self.object = NumericObject
+            self.object = object
             self.title = title
             self.atomictype = atomictype
         else:
@@ -272,5 +275,5 @@ class Array(Leaf, hdf5Extension.Array):
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
 
-        return "%s\n  Typeclass: %s\n  Itemsize: %s\n  Byteorder: %s\n" % \
+        return "%s\n  type = %r\n  itemsize = %r\n  byteorder = %r" % \
                (self, repr(self.type), self.itemsize, self.byteorder)

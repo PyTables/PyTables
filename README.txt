@@ -41,13 +41,16 @@ PyTables make use of Pyrex, a convenient tool to access C libraries
 from Python using Python syntax. For these reasons, you will need to
 use Python 2.2 or higher to take advantage of PyTables.
 
+To compile PyTables 0.4 you will need a recent version of HDF5 (C
+flavor) library and numarray package.
+
 I've tested this PyTables version with HDF5 1.4.4, 1.4.5 versions and
-numarray 0.4 (also with the latest CVS version), but it should work
-well with all HDF5 1.4.x versions and a relatively new version of
-numarray (>= 0.4). Although you won't need Numeric Python in order to
-compile PyTables, it is supported; you only will need a reasonably
-recent version of it (>= 21.x). PyTables has been succesfully tested
-with Numeric 21.3, 22.0 and 23.0.
+numarray 0.4 (and also with the latest numarray CVS version, 0.4.4 as
+of this writing), but it should work well with all HDF5 1.4.x versions
+and a relatively new version of numarray (>= 0.4). Although you won't
+need Numeric Python in order to compile PyTables, it is supported; you
+only will need a reasonably recent version of it (>= 21.x). PyTables
+has been succesfully tested with Numeric 21.3, 22.0 and 23.0.
 
 I'm using Linux as the main development platform, but PyTables should
 be easy to compile/install on other UNIX machines. Nonetheless, caveat
@@ -57,10 +60,9 @@ In particular, I foresee problems on platforms that do not support the
 "long long int" type (needed to create files with sizes larger than 2
 GB).
 
-Thanks to Scott Prater, this package has also been successfully tested
-on a UltraSparc platform with Solaris 7. It also compiles and passes
-all the tests on a SGI Origin2000 with MIPS R12000 processors and
-running IRIX 6.5.
+This package has also been successfully tested on a UltraSparc
+platform with Solaris 7 and on a SGI Origin2000 with MIPS R12000
+processors running IRIX 6.5.
 
 Installation
 ------------

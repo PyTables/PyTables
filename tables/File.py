@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.25 2003/03/13 11:18:54 falted Exp $
+#       $Id: File.py,v 1.26 2003/03/14 11:38:55 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.25 $"
+__version__ = "$Revision: 1.26 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -337,6 +337,7 @@ class File(hdf5Extension.File):
                     compress = 3, expectedrows = 10000):
 
         """Create a new Table instance with name "name" in "where" location.
+        
         "where" parameter can be a path string, or another group
         instance.
 
@@ -353,7 +354,7 @@ class File(hdf5Extension.File):
             metadata is read from disk, else, it's taken from previous
             parameters.
 
-        title -- Sets a TITLE attribute on the HDF5 table entity.
+        title -- Sets a TITLE attribute on the table entity.
 
         compress -- Specifies a compress level for data. The allowed
             range is 0-9. A value of 0 disables compression. The
@@ -376,34 +377,49 @@ class File(hdf5Extension.File):
         return object
 
     
-    def createArray(self, where, name, arrayObject,
+    def createArray(self, where, name, object,
                     title = "", atomictype = 1):
         
-        """Create a new instance Array with name "name" in "where"
-        location.  "where" parameter can be a path string, or another
-        group instance. "arrayObject" is the array to be saved; it can
-        be numarray, Numeric or homogeneous tuple or list. "title"
-        sets a TITLE attribute on the HDF5 array entity. "atomictype"
-        is a boolean that specifies the underlying HDF5 type; if 1 an
-        atomic data type (i.e. it can't be decomposed in smaller
-        types) is used; if 0 an HDF5 array datatype is used. The
-        created object is returned."""
+        """Create a new instance Array with name "name" in "where" location.
+
+        Keyword arguments:
+
+        where -- The parent group where the new table will
+            hang. "where" parameter can be a path string (for
+            example "/Particles/TParticle1"), or Group
+            instance.
+
+        name -- The name of the new array.
+
+        object -- The (regular) object to be saved. It can be any of
+            Numarray, Numeric, List, Tuple, String, Int of Float
+            types, provided that they are regular (i.e. they are not
+            like [[1,2],2]).
+
+        title -- Sets a TITLE attribute on the array entity.
+
+        atomictype -- is a boolean that specifies the underlying HDF5
+            type; if 1 an atomic data type (i.e. it can't be
+            decomposed in smaller types) is used; if 0 an HDF5 array
+            datatype is used. The created object is returned."""
 
         group = self.getNode(where, classname = 'Group')
-        object = Array(arrayObject, title, atomictype)
-        setattr(group, name, object)
-        return object
+        Object = Array(object, title, atomictype)
+        setattr(group, name, Object)
+        return Object
 
 
     def getNode(self, where, name = "", classname = ""):
         
-        """Returns the object node "name" under "where" location. "where"
-        can be a path string or Group instance. If "where" doesn't exists or
-        has not a child called "name", a LookupError error is raised. If
-        "name" is a null string (""), or not supplied, this method assumes
-        to find the object in "where". If a "classname" parameter is
-        supplied, returns only an instance of this class name. Allowed names
-        in "classname" are: 'Group', 'Leaf', 'Table' and 'Array'."""
+        """Returns the object node "name" under "where" location.
+
+        "where" can be a path string or Group instance. If "where"
+        doesn't exists or has not a child called "name", a LookupError
+        error is raised. If "name" is a null string (""), or not
+        supplied, this method assumes to find the object in
+        "where". If a "classname" parameter is supplied, returns only
+        an instance of this class name. Allowed names in "classname"
+        are: 'Group', 'Leaf', 'Table' and 'Array'."""
 
         if isinstance(where, str):
             # This is a string pathname. Get the object ...
@@ -596,9 +612,10 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         """Returns a string representation of the object tree"""
         
         # Print all the nodes (Group and Leaf objects) on object tree
-        string = 'Filename: ' + self.filename + ' \\\\'
-        string += ' Title: ' + str(self.title) + ' \\\\'
-        string += ' Format version: ' + str(self._format_version) + '\n'
+        string = 'Filename: ' + self.filename + " " + repr(self.title) + '\n'
+        # string = 'Filename: ' + self.filename + ' \\\\'
+        # string += ' Title: ' + str(self.title) + ' \\\\'
+        # string += ' Format version: ' + str(self._format_version) + '\n'
         for group in self.walkGroups("/"):
             string += str(group) + '\n'
             for leaf in self.listNodes(group, 'Leaf'):
@@ -611,11 +628,9 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         """Returns a more complete representation of the object tree"""
         
         # Print all the nodes (Group and Leaf objects) on object tree
-        string = 'Filename: ' + self.filename + ' \\\\'
-        string += ' Title: ' + str(self.title) + ' \\\\'
-        string += ' Format version: ' + str(self._format_version) + '\n'
-        string += '  mode: ' + self.mode + '\n'
-        string += '  trMap: ' + str(self.trMap) + '\n'
+        string = 'Filename: ' + self.filename + " " + repr(self.title) + '\n'
+        string += '  mode = ' + repr(self.mode) + '\n'
+        string += '  trMap = ' + str(self.trMap) + '\n'
         for group in self.walkGroups("/"):
             string += str(group) + '\n'
             for leaf in self.listNodes(group, 'Leaf'):

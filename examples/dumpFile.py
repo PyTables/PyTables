@@ -6,15 +6,13 @@ if __name__=="__main__":
 
     usage = \
 """usage: %s [-v level] file
-  -v level means dumping detailed Table and Array attributes
-            1 - medium verbosity
-            2 - great verbosity
+  -v means dumping detailed Table and Array attributes
   -d means detailed information divided in Groups, Arrays and Tables
             \n""" \
     % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'v:d')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'vd')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -31,7 +29,7 @@ if __name__=="__main__":
     # Get the options
     for option in opts:
         if option[0] == '-v':
-            verbose = int(option[1])
+            verbose = 1
         if option[0] == '-d':
             detailed = 1
 
@@ -40,9 +38,7 @@ if __name__=="__main__":
 
     h5file = openFile(file, 'r')
     # Print all their content
-    print "Filename:", file
-    print "All objects:"
-    if verbose >= 1:
+    if verbose:
         print repr(h5file)
     else:
         print h5file
