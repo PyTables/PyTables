@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.114 2004/07/06 12:40:48 falted Exp $
+#       $Id: Table.py,v 1.115 2004/07/07 17:11:14 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.114 $"
+__version__ = "$Revision: 1.115 $"
 
 from __future__ import generators
 import sys
@@ -481,8 +481,18 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         coords = None
         ncoords = 0
-        if where and self.colindexed[self.whereColname]:
-            ncoords = self._getLookupRange()
+        if where and self.colindexed[self.whereColname]:            
+#             ncoords = self._getLookupRange()
+            if str(self.coltypes[self.whereColname]) == "Bool":
+                if len(self.ops) == 1 and self.ops[0] == 5: # __eq__
+                    item = (self.opsValues[0], self.opsValues[0])
+                    strCol = self.cols[self.whereColname]
+                    ncoords = strCol.index.search(item, 0)
+                else:
+                    raise NotImplementedError, \
+                          "Only equality is suported for boolean columns."
+            else:
+                ncoords = self._getLookupRange()
         if start < stop:
             if coords == None or ncoords > 0:
                 return self.row(start, stop, step, coords, ncoords=ncoords)

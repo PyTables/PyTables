@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.130 2004/07/06 09:11:35 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.131 2004/07/07 17:11:13 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.130 $"
+__version__ = "$Revision: 1.131 $"
 
 
 import sys, os
@@ -204,13 +204,13 @@ cdef extern from "numarray/numarray.h":
     cdef char   _contiguous   # test override flag */
 
   # The numarray initialization funtion
-  #void import_libnumarray()
-  void import_array()
+  void import_libnumarray()
+  #void import_array()
     
 # The Numeric API requires this function to be called before
 # using any Numeric facilities in an extension module.
-#import_libnumarray()
-import_array()
+import_libnumarray()
+#import_array()
 
 # CharArray type
 #CharType = recarray.CharType
@@ -911,7 +911,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.130 2004/07/06 09:11:35 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.131 2004/07/07 17:11:13 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -2737,9 +2737,10 @@ cdef class IndexArray(Array):
     return lo
 
   cdef _interSearch_left(self, int nrow, int chunksize, item, int lo, int hi):
-    cdef int niter, mid, start, result
+    cdef int niter, mid, start, result, beginning
     
     niter = 0
+    beginning = 0
     while lo < hi:
       mid = (lo+hi)/2
       start = (mid/chunksize)*chunksize
@@ -2750,6 +2751,7 @@ cdef class IndexArray(Array):
       if result == 0:
         if buffer[result] == item:
           lo = start
+          beginning = 1
           break
         # The item is at left
         hi = mid
@@ -2760,12 +2762,13 @@ cdef class IndexArray(Array):
         # Item has been found. Exit the loop and return
         lo = result+start
         break
-    return (lo, niter)
+    return (lo, beginning, niter)
 
   cdef _interSearch_right(self, int nrow, int chunksize, item, int lo, int hi):
-    cdef int niter, mid, start, result
+    cdef int niter, mid, start, result, ending
     
     niter = 0
+    ending = 0
     while lo < hi:
       mid = (lo+hi)/2
       start = (mid/chunksize)*chunksize
@@ -2778,6 +2781,7 @@ cdef class IndexArray(Array):
       elif result == chunksize:
         if buffer[result-1] == item:
           lo = start+chunksize
+          ending = 1
           break
         # The item is at the right
         lo = mid+1
@@ -2785,16 +2789,20 @@ cdef class IndexArray(Array):
         # Item has been found. Exit the loop and return
         lo = result+start
         break
-    return (lo, niter)
+    return (lo, ending, niter)
 
   def _searchBin(self, int nrow, object item):
     cdef int hi, lo, chunksize, niter, item1done, item2done
-    cdef int result1, result2
-    
-    hi = self.shape[1]   # Number of elements / chunk
+    cdef int result1, result2, tmpresult1, tmpresult2, nelemslice
+    cdef int beginning, ending, iter
+
+    nelemslice = self.shape[1]
+    hi = nelemslice   
     item1, item2 = item
     item1done = 0; item2done = 0
     chunksize = self._v_chunksize[1] # Number of elements/chunksize
+
+    # First, look at the beginning of the slice (that could save lots of time)
     buffer = self._readSortedSlice(nrow, 0, chunksize)
     #buffer = xrange(0, chunksize)  # test  # 0.02 over 0.5 seg
     # Look for items at the beginning of sorted slices
@@ -2803,43 +2811,81 @@ cdef class IndexArray(Array):
     if 0 <= result1 < chunksize:
       item1done = 1
     result2 = self._bisect_right(buffer, item2, chunksize)
+    #print "item1done, item2done-->", item1done, item2done
+    #print "result1, result2-->", result1, result2
     if 0 <= result2 < chunksize:
       item2done = 1
-    elif buffer[chunksize-1] == item2:
-      item2done = 1
+      # Commented out. The value can be repeated in the next chunk
+#     elif buffer[chunksize-1] == item2:
+#       item2done = 1
     if item1done and item2done:
-        return (result1, result2, niter)
-    # Look for items at the end of sorted slices
+      #print "done 1"
+      return (result1, result2, niter)
+    
+    # Then, look for items at the end of the sorted slice
     buffer = self._readSortedSlice(nrow, hi-chunksize, hi)
     #buffer = xrange(hi-chunksize, hi)  # test
     niter = 2
+    #print "item1done, item2done-->", item1done, item2done
     if not item1done:
-        result1 = self._bisect_left(buffer, item1, chunksize)
-        if 0 < result1 <= chunksize:
-            item1done = 1
-            result1 = hi - chunksize + result1
-        elif buffer[0] == item1:
-            item1done = 1
-            result1 = hi - chunksize
+      result1 = self._bisect_left(buffer, item1, chunksize)
+      if 0 < result1 <= chunksize:
+        item1done = 1
+        result1 = hi - chunksize + result1
+        # Commented out. The value can be repeated in the previous chunk
+#       elif buffer[0] == item1:
+#         item1done = 1
+#         result1 = hi - chunksize
+    #print "item1done, item2done-->", item1done, item2done
     if not item2done:
-        result2 = self._bisect_right(buffer, item2, chunksize)
-        if 0 < result2 <= chunksize:
-            item2done = 1
-            result2 = hi - chunksize + result2
+      result2 = self._bisect_right(buffer, item2, chunksize)
+      if 0 < result2 <= chunksize:
+        item2done = 1
+        result2 = hi - chunksize + result2
     if item1done and item2done:
-        return (result1, result2, niter)
-
-    lo = 0
-    # Intermediate look for item1
+      #print "done 2"
+      return (result1, result2, niter)
+    #print "item1done, item2done-->", item1done, item2done
+    
+    # Finally, do a lookup for item1 and item2 if they were not found
+    # Lookup in the middle of slice for item1
     if not item1done:
-        (result1, iter) = self._interSearch_left(nrow, chunksize,
-                                                 item1, lo, hi)
+      lo = 0
+      hi = nelemslice
+      beginning = 1
+      result1 = 1  # a number different from 0
+      while beginning and result1 != 0:
+        (result1, beginning, iter) = self._interSearch_left(nrow, chunksize,
+                                                            item1, lo, hi)
+        tmpresult1 = result1
         niter = niter + iter
-    # Intermediate look for item2
+        if result1 == hi:  # The item is completely at right
+          break
+        else:
+          hi = result1        # one chunk to the left
+          lo = hi - chunksize  
+          #print "lo, hi, beginning-->", lo, hi, beginning
+      result1 = tmpresult1
+    # Lookup in the middle of slice for item1
     if not item2done:
-        (result2, iter) = self._interSearch_right(nrow, chunksize,
-                                                  item2, lo, hi)
+      lo = 0
+      hi = nelemslice
+      ending = 1
+      result2 = 1  # a number different from 0
+      while ending and result2 != nelemslice:
+        (result2, ending, iter) = self._interSearch_right(nrow, chunksize,
+                                                          item2, lo, hi)
+        tmpresult2 = result2
         niter = niter + iter
+        if result2 == lo:  # The item is completely at left
+          break
+        else:
+          hi = result2 + chunksize      # one chunk to the right
+          lo = result2
+          #print "lo, hi, ending-->", lo, hi, ending
+      result2 = tmpresult2
+      niter = niter + iter
+    #print "done 3"
     return (result1, result2, niter)
 
 

@@ -11,6 +11,7 @@ class Small(IsDescription):
     var1 = StringCol(length=4, dflt="")
     var2 = IntCol(0)
     var3 = FloatCol(0)
+    var4 = BoolCol(0)
 
 # Define a user record to characterize some kind of particles
 class Medium(IsDescription):
@@ -38,10 +39,12 @@ def createFile(filename, nrows, filters, atom, recsize, index, verbose):
     table = fileh.createTable(fileh.root, 'table', klass[recsize], title,
                               None, nrows)
     for i in range(nrows):
-        table.row['var1'] = str(i)
+        #table.row['var1'] = str(i)
         #table.row['var2'] = random.randrange(nrows)
         table.row['var2'] = i
         table.row['var3'] = i
+        #table.row['var4'] = i % 2
+        table.row['var4'] = i > 2
         table.row.append()
     rowswritten += nrows
     table.flush()
@@ -52,6 +55,8 @@ def createFile(filename, nrows, filters, atom, recsize, index, verbose):
     if index:
         if atom == "string":
             indexrows = table.cols.var1.createIndex()
+        elif atom == "bool":
+            indexrows = table.cols.var4.createIndex()
         elif atom == "int":
             indexrows = table.cols.var2.createIndex()
         elif atom == "float":
@@ -73,6 +78,8 @@ def readFile(filename, atom, niter, verbose):
     print "reading", table
     if atom == "string":
         idxcol = table.cols.var1.index
+    elif atom == "bool":
+        idxcol = table.cols.var4.index
     elif atom == "int":
         idxcol = table.cols.var2.index
     else:
@@ -95,14 +102,19 @@ def readFile(filename, atom, niter, verbose):
                        for p in table(where=table.cols.var1 == "1111")]
 #                      for p in table(where="1000"<=table.cols.var1<="1010")]
             rowselected += len(results)
+    elif atom == "bool":
+        for i in xrange(niter):
+            results = [p["var2"] #p.nrow()
+                       for p in table(where=table.cols.var4==0)]
+            rowselected += len(results)
     elif atom == "int":
         for i in xrange(niter):
             #results = [table.row["var3"] for i in table(where=2+i<=table.cols.var2 < 10+i)]
 #             results = [table.row.nrow() for i in table(where=2<=table.cols.var2 < 10)]
             results = [p["var2"] #p.nrow()
 #                        for p in table(where=110*i<=table.cols.var2<110*(i+1))]
-                       for p in table(where=1000-30<table.cols.var2<1000+60)]
-#                       for p in table(where=table.cols.var2==3999)]
+#                       for p in table(where=1000-30<table.cols.var2<1000+60)]
+                       for p in table(where=table.cols.var2>=4000)]
             rowselected += len(results)
     elif atom == "float":
         for i in xrange(niter):

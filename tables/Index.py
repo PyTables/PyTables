@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.6 2004/07/06 12:40:48 falted Exp $
+#       $Id: Index.py,v 1.7 2004/07/07 17:11:14 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.6 $"
+__version__ = "$Revision: 1.7 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -225,9 +225,12 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
             (start, stop, niter) = self.sorted._searchBin(i, item)
             self.starts.append(start)
             self.lengths.append(stop - start)
-            ntotaliter += niter; tlen += stop - start
+            #print "start, stop-->", start, stop
+            ntotaliter += niter
+            tlen += stop - start
         self.sorted._destroySortedSlice()
         #print "time reading indices:", time.time()-t1
+        #print "ntotaliter-->", ntotaliter
         return tlen
 
 # This has been passed to Pyrex. However, with pyrex it has the same speed,
@@ -238,10 +241,12 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         len1 = 0; len2 = 0;
         stop = 0; relCoords = 0
         #print "startCoords, maxCoords-->", startCoords, maxCoords
+        #print "lengths-->", self.lengths
         for irow in xrange(self.sorted.nrows):
             leni = self.lengths[irow]; len2 += leni
             if (leni > 0 and len1 <= startCoords < len2):
                 startl = self.starts[irow] + (startCoords-len1)
+                #print "leni, maxCoords, startl, len1-->",leni, maxCoords, startl, len1
                 #if maxCoords >= leni - (startCoords-len1):
                 if (startl + leni) < maxCoords:
                     # Values fit on buffer

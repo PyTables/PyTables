@@ -141,8 +141,12 @@ PyObject *get_filter_names( hid_t loc_id,
    if ((nf = H5Pget_nfilters(dcpl))>0) {
      for (i=0; i<nf; i++) {
        cd_nelmts = 20;
+       /* 1.6.2 */
        filt_id = H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
 			       cd_values, sizeof(f_name), f_name);
+       /* 1.7.x */
+/*        filt_id = H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts, */
+/* 			       cd_values, sizeof(f_name), f_name, NULL); */
 /*        printf("f_name--> %s\n", f_name); */
 	/* This code has been added because a 
 	 bug in the H5Pget_filter call that
@@ -209,7 +213,7 @@ herr_t gitercb(hid_t loc_id, const char *name, void *data) {
      * Get type of the object and check it.
      */
     ret = H5Gget_objinfo(loc_id, name, FALSE, &statbuf);
-    CHECK(ret, FAIL, "H5Gget_objinfo");
+/*     CHECK(ret, FAIL, "H5Gget_objinfo"); */
 
     if (statbuf.type == H5G_GROUP) {
       PyList_Append(out_info[0], PyString_FromString(name));

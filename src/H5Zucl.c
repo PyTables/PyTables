@@ -69,6 +69,7 @@ int register_ucl(void) {
 
    int status;
   /* Feed the filter_class data structure */
+   /* 1.6.2 */
   H5Z_class_t filter_class = {
     (H5Z_filter_t)FILTER_UCL,	/* filter_id */
     "ucl", 			/* comment */
@@ -76,6 +77,16 @@ int register_ucl(void) {
     NULL,                       /* set_local_func */
     (H5Z_func_t)ucl_deflate     /* filter_func */
   };
+   /* 1.7.x */
+/*   H5Z_class_t filter_class = { */
+/*     H5Z_CLASS_T_VERS,           /\* H5Z_class_t version *\/ */
+/*     (H5Z_filter_t)FILTER_UCL,	/\* filter_id *\/ */
+/*     1, 1,                       /\* Encoding and decoding enabled *\/ */
+/*     "ucl",	 		/\* comment *\/ */
+/*     NULL,                       /\* can_apply_func *\/ */
+/*     NULL,                       /\* set_local_func *\/ */
+/*     (H5Z_func_t)ucl_deflate     /\* filter_func *\/ */
+/*   }; */
 
   /* Init the ucl library */
   if (ucl_init()!=UCL_E_OK)
