@@ -4,24 +4,26 @@
 <book>
   <frontmatter>
     <title><visual markup="tt">PyTables</visual> User's Guide</title>
-    <author>Francesc Alted</author>
+    <author>Francesc Altet</author>
     <author>Scott Prater</author>
+    <author>Ivan Vilata</author>
+    <author>Tom Hedley</author>
 
     <subtitle><visual markup="sf">Hierarchical datasets in
       Python</visual><newline/> Release 0.9 </subtitle>
 
-    <date>2004, October, 6th</date>
+    <date>2004, November, 6th</date>
     <year>2002, 2003, 2004</year>
     <graphics kind="bitmap" file="logo3-ombra"/>
 <!--     <graphics kind="bitmap" file="logo4-ombra"/> -->
 <!--     <graphics kind="vector" scale="0.3" file="enjoylogo-1"/> -->
 <!--     <graphics kind="bitmap" file="pytables-logo-menut"/> -->
 <!--     <city>Castelló de la Plana, Spain</city> -->
-    <typeset>Francesc Alted, Scott Prater, Ivan Vilata and Tom Hedley</typeset>
+    <typeset>Francesc Altet, Scott Prater, Ivan Vilata and Tom Hedley</typeset>
 
     <legalnotice>
 
-<!--	   Copyright (c) 2002, 2003, 2004 Francesc Alted -->
+<!--	   Copyright (c) 2002, 2003, 2004 Francesc Altet -->
 
       <p><visual markup="bf">Copyright Notice and Statement for
 	  <verb>PyTables</verb> Software Library and
@@ -6018,72 +6020,6 @@ fileh.close()
 	    </item>
 	  </description>
 
-<!-- 	  <p>See in this example how to use the different atom types: -->
-<!-- 	  </p> -->
-	  
-<!-- 	  <verbatim> -->
-<!-- # -*- coding: latin-1 -*- -->
-<!-- from numarray import * -->
-<!-- from tables import * -->
-
-<!-- # Open a new empty HDF5 file -->
-<!-- fileh = openFile("vlarray2.h5", mode = "w") -->
-<!-- # Get the root group -->
-<!-- root = fileh.root -->
-<!-- # Boolean arrays -->
-<!-- vlarray = fileh.createVLArray(root, 'vlarray1', BoolAtom(2), "Boolean atoms") -->
-<!-- vlarray.append([[1,0]]) -->
-<!-- vlarray.append([1,0], [3,0], [0, 20])  # This will be converted to booleans -->
-<!-- # Unicode variable length strings (with Unicode support) -->
-<!-- vlarray = fileh.createVLArray(root, 'vlarray2', VLStringAtom(), -->
-<!--                               "Variable Length String") -->
-<!-- vlarray.append(u"asd") -->
-<!-- vlarray.append(u"")   # The empty string -->
-<!-- vlarray.append(u"aaañá") -->
-<!-- # Create an VLArray made of objects -->
-<!-- vlarray = fileh.createVLArray(root, 'vlarray3', ObjectAtom(), -->
-<!--                               "pickled object") -->
-<!-- vlarray.append({"passwd": "abracadabra"}) # A dictionary -->
-<!-- vlarray.append()  # An empty row -->
-<!-- vlarray.append(["123", "456"], "3") # Different objects (tuple) on a single row -->
-<!-- # Close the file -->
-<!-- fileh.close() -->
-<!-- # Open the file for reading -->
-<!-- fileh = openFile("vlarray2.h5", mode = "r") -->
-<!-- for vlarray in fileh.listNodes(fileh.root, "VLArray"): -->
-<!--     print repr(vlarray) -->
-<!--     for i in range(vlarray.nrows): -->
-<!--         print "%s[%s] -\-> &lt;%s>" % (vlarray.name, i, vlarray[i]) -->
-<!-- 	  </verbatim> -->
-
-<!-- 	  <p>The output:</p> -->
-
-<!-- 	  <verbatim> -->
-<!-- /vlarray1 (VLArray(2,)) 'Boolean atoms' -->
-<!--   atom = Atom(type=Bool, shape=1, flavor='NumArray') -->
-<!--   nrows = 2 -->
-<!--   flavor = 'NumArray' -->
-<!--   byteorder = 'little' -->
-<!-- vlarray1[0] -\-> &lt;[1]> -->
-<!-- vlarray1[1] -\-> &lt;[1 0 1]> -->
-<!-- /vlarray2 (VLArray(3,)) 'Variable Length String' -->
-<!--   atom = VLString() -->
-<!--   nrows = 3 -->
-<!--   flavor = 'VLString' -->
-<!--   byteorder = 'little' -->
-<!-- vlarray2[0] -\-> &lt;asd> -->
-<!-- vlarray2[1] -\-> &lt;> -->
-<!-- vlarray2[2] -\-> &lt;aaañá> -->
-<!-- /vlarray3 (VLArray(3,)) 'pickled object' -->
-<!--   atom = Object() -->
-<!--   nrows = 3 -->
-<!--   flavor = 'Object' -->
-<!--   byteorder = 'little' -->
-<!-- vlarray3[0] -\-> &lt;{'passwd': 'abracadabra'}> -->
-<!-- vlarray3[1] -\-> &lt;None> -->
-<!-- vlarray3[2] -\-> &lt;(['123', '456'], '3')> -->
-<!-- 	  </verbatim> -->
-
 	  <p>See <verb>examples/vlarray1.py</verb> and
 	    <verb>examples/vlarray2.py</verb> for further examples on
 	    <verb>VLArray</verb>s, including object serialization and
@@ -6363,13 +6299,432 @@ Result Array:
       </section> <!-- Helper classes -->
     </chapter> <!-- Reference library -->
 
+    <chapter id="FileNode">
+      <heading>FileNode</heading>
+
+      <section>
+	<heading>What is <visual
+	markup="tt">FileNode</visual>?</heading>
+
+	<p><verb>FileNode</verb> is a module which enables you to
+	  create a <verb>PyTables</verb> database of nodes which can
+	  be used like regular opened files in Python.  In other
+	  words, you can store a file in a <verb>PyTables</verb>
+	  database, and read and write it as you would do with any
+	  other file in Python.  Used in conjunction with
+	  <verb>PyTables</verb> hierarchical database organisation,
+	  you can have your database turned into an open, extensible,
+	  efficient, high capacity, portable and metadata-rich
+	  filesystem for data exchange with other systems (including
+	  backup purposes).
+	</p>
+
+	<p>Between the main features of <verb>FileNode</verb>, one can
+	  list:</p>
+
+	<itemize>
+	  <item><em>Open:</em> Since it relies on
+	    <verb>PyTables</verb>, which in turn, sits over HDF5 (see
+	    <cite refid="HDFWhatIs"></cite>), a standard hierarchical
+	    data format from NCSA.</item>
+
+	  <item><em>Extensible:</em> You can define new types of
+	    nodes, and their instances will be safely preserved (as
+	    are normal groups, leafs and attributes) by
+	    <verb>PyTables</verb> applications having no knowledge of
+	    their types.  Moreover, the set of possible attributes for
+	    a node is not fixed, so you can define your own node
+	    attributes.
+	  </item>
+
+	  <item><em>Efficient:</em> Thanks to PyTables' proven
+	    extreme efficiency on handling huge amounts of data.
+	    FileNode can make use of PyTables' on-the-fly compression
+	    and decompression of data.</item>
+
+	  <item><em>High capacity:</em> Since PyTables and HDF5 are
+	    designed for massive data storage (they use 64-bit
+	    addressing even where the platform does not support it
+	    natively).</item>
+
+	  <item><em>Portable:</em> Since the HDF5 format has an
+	    architecture-neutral design, and the HDF5 libraries and
+	    PyTables are known to run under a variety of platforms.
+	    Besides that, a PyTables database fits into a single file,
+	    which poses no trouble for transportation.</item>
+
+	  <item><em>Metadata-rich:</em> Since PyTables can store
+	    arbitrary key-value pairs (even Python objects!) for every
+	    database node.  Metadata may include authorship, keywords,
+	    MIME types and encodings, ownership information, access
+	    control lists (ACL), decoding functions and anything you
+	    can imagine!</item>
+
+	</itemize>
+      </section>
+
+      <section>
+	<heading>Current limitations</heading>
+
+	<p><verb>FileNode</verb> is still a young piece of software,
+	  so it lacks some functionality.  This is a list of known
+	  current limitations:
+	</p>
+
+	<enumerate>
+	  <item>Node file names are constrained to
+	    <verb>PyTables</verb> node names (i.e. most valid Python
+	    identifiers).  For the moment, if you want arbitrary names
+	    you will have to use a translation map (see <ref
+	    refid="openFileDescr"></ref>) or the node title.  The same
+	    restriction applies to attribute names.
+	  </item>
+	  <item>Node files can only be opened for read-only or read
+	    and append mode.  This will be enhanced in the future.
+	  </item>
+	  <item>There is no universal newline support yet.  This is
+	    likely to be implemented in a near future.
+	  </item>
+	  <item>Sparse files (files with lots of zeros) are not
+	    treated specially; if you want them to take less space,
+	    you should be better off using compression.
+	  </item>
+	</enumerate>
+
+	<p>These limitations still make <verb>FileNode</verb> entirely
+	  adequate to work with most binary and text files.  Of
+	  course, suggestions and patches are welcome.
+	</p>
+
+      </section>
+
+      <section>
+	<heading>Finding a <visual markup="tt">FileNode</visual>
+	  node</heading>
+
+	<p><visual markup="tt">FileNode</visual> nodes can be
+	  recognised because they have a <verb>_type</verb> attribute
+	  with a <verb>'file'</verb> value.  It is recommended that
+	  you use the <verb>getAttrNode()</verb> method (see <ref
+	  refid="getAttrNodeDescr"></ref> of <verb>tables.File</verb>
+	  class to get the <verb>_type</verb> attribute independently
+	  of the nature (group or leaf) of the node, so you do not
+	  need to care about.
+	</p>
+      </section>
+
+      <section>
+	<heading>Using <visual markup="tt">FileNode</visual></heading>
+
+	<p>The <visual markup="tt">FileNode</visual> module is part of
+	  the <verb>nodes</verb> sub-package of <verb>PyTables</verb>.
+	  The recommended way to import the module is:
+	</p>
+	<verbatim>
+  >>> from tables.nodes import FileNode
+	</verbatim>
+
+	<p>However, <visual markup="tt">FileNode</visual> exports very
+	  few symbols, so you can import <verb>*</verb> for
+	  interactive usage.  In fact, you will most probably only use
+	  the <verb>NodeType</verb> constant and the
+	  <verb>newNode()</verb> and <verb>openNode()</verb> calls.
+	</p>
+	<p>The <verb>NodeType</verb> constant contains the value that
+	  the <verb>_type</verb> attribute of a node file is expected
+	  to contain (<verb>'file'</verb>, as we have seen).  Although
+	  this is not expected to change, you should use <visual
+	  markup="tt">FileNode.NodeType</visual> instead of the
+	  literal <verb>'file'</verb> when possible.
+	</p>
+	<p><verb>newNode()</verb> and <verb>openNode()</verb> are the
+	  equivalent to the Python <verb>file()</verb> call (alias
+	  <verb>open()</verb>) for ordinary files.  Their arguments
+	  differ from that of <verb>file()</verb>, but this is the
+	  only point where you will note the difference between
+	  working with a node file and working with an ordinary file.
+	</p>
+
+	<p>For this little tutorial, we will assume that we have a
+	  <verb>PyTables</verb> database opened for writing. Also, if
+	  you are somewhat lazy at typing sentences, the code that we
+	  are going to explain is included in the
+	  <verb>examples/filenodes1.py</verb> file.
+	</p>
+	<p>You can create a brand new file with these sentences:
+	</p>
+	<verbatim>
+  >>> import tables
+  >>> h5file = tables.openFile('fnode.h5', 'w')
+	</verbatim>
+
+	<subsection>
+	  <heading>Creating a new file node</heading>
+
+	  <p>Creation of a new file node is achieved with the
+	    <verb>newNode()</verb> call.  You must tell it in which
+	    <verb>PyTables</verb> file you want to create it, where in
+	    the <verb>PyTables</verb> hierarchy you want to create the
+	    node and which will be its name.  The
+	    <verb>PyTables</verb> file is the first argument to
+	    <verb>newNode()</verb>; it will be also called the
+	    <verb>'host PyTables file'</verb>.  The other two
+	    arguments must be given as keyword arguments
+	    <verb>where</verb> and <verb>name</verb>, respectively.
+	    As a result of the call, a brand new appendable and
+	    readable file node object is returned.
+	  </p>
+	  <p>So let us create a new node file in the previously opened
+	    <verb>h5file</verb> <verb>PyTables</verb> file, named
+	    <verb>'fnode_test'</verb> and placed right under the root
+	    of the database hierarchy.  This is that command:
+	  </p>
+	  <verbatim>
+  >>> fnode = FileNode.newNode(h5file, where='/', name='fnode_test')
+	  </verbatim>
+
+	  <p>That is basically all you need to create a file node.
+	    Simple, isn't it?  From that point on, you can use
+	    <verb>fnode</verb> as any opened Python file (i.e. you can
+	    write data, read data, lines of text and so on).
+	  </p>
+
+	  <p><verb>newNode()</verb> accepts some more keyword
+	    arguments.  You can give a title to your file with the
+	    <verb>title</verb> argument.  You can use
+	    <verb>PyTables</verb>' compression features with the
+	    <verb>filters</verb> argument.  If you know beforehand the
+	    size that your file will have, you can give its final file
+	    size in bytes to the <verb>expectedsize</verb> argument so
+	    that the <verb>PyTables</verb> library would be able to
+	    optimise the data access.
+	  </p>
+
+	  <p><verb>newNode()</verb> creates a <verb>PyTables</verb>
+	    node where it is told to.  To prove it, we will try to get
+	    the <verb>_type</verb> attribute from the newly created
+	    node.
+	  </p>
+	  <verbatim>
+  >>> print h5file.getAttrNode('/fnode_test', '_type')
+  file
+	  </verbatim>
+	</subsection>
+
+	<subsection>
+	  <heading>Using a file node</heading>
+
+	  <p>As stated above, you can use the new node file as any
+	    other opened file.  Let us try to write some text in and
+	    read it.
+	  </p>
+	  <verbatim>
+  >>> print >> fnode, "This is a test text line."
+  >>> print >> fnode, "And this is another one."
+  >>> print >> fnode
+  >>> fnode.write("Of course, file methods can also be used.")
+  >>> 
+  >>> fnode.seek(0)  # Go back to the beginning of file.
+  >>> 
+  >>> for line in fnode:
+  ...   print repr(line)
+  'This is a test text line.\n'
+  'And this is another one.\n'
+  '\n'
+  'Of course, file methods can also be used.'
+	  </verbatim>
+
+	  <p>This was run on a Unix system, so newlines are expressed
+	    as <verb>'\n'</verb>.  In fact, you can override the line
+	    separator for a file by setting its
+	    <verb>lineSeparator</verb> property to any string you
+	    want.
+	  </p>
+
+	  <p>While using a file node, you should take care of closing
+	    it <visual markup="bf">before</visual> you close the
+	    <verb>PyTables</verb> host file.  Because of the way
+	    <verb>PyTables</verb> works, your data it will not be at a
+	    risk, but every operation you execute after closing the
+	    host file will fail with a <verb>ValueError</verb>.  To
+	    close a file node, simply delete it or call its
+	    <verb>close()</verb> method.
+	  </p>
+	  <verbatim>
+  >>> fnode.close()
+  >>> print fnode.closed
+  True
+	  </verbatim>
+	</subsection>
+
+	<subsection>
+	  <heading>Opening an existing file node</heading>
+
+	  <p>If you have a file node that you created using
+	    <verb>newNode()</verb>, you can open it later by calling
+	    <verb>openNode()</verb>.  Its arguments are similar to
+	    that of <verb>file()</verb> or <verb>open()</verb>: the
+	    first argument is the <verb>PyTables</verb> node that you
+	    want to open (i.e. a node with a <verb>_type</verb>
+	    attribute having a <verb>'file'</verb> value), and the
+	    second argument is a mode string indicating how to open
+	    the file.  Contrary to <verb>file()</verb>,
+	    <verb>openNode()</verb> can not be used to create a new
+	    file node.
+	  </p>
+
+	  <p>File nodes can be opened in read-only mode
+	    (<verb>'r'</verb>) or in read-and-append mode
+	    (<verb>'a+'</verb>).  Reading from a file node is allowed
+	    in both modes, but appending is only allowed in the second
+	    one.  Just like Python files do, writing data to an
+	    appendable file places it after the file pointer if it is
+	    on or beyond the end of the file, or otherwise after the
+	    existing data.  Let us see an example:
+	  </p>
+	  <verbatim>
+  >>> node = h5file.root.fnode_test
+  >>> fnode = FileNode.openNode(node, 'a+')
+  >>> print repr(fnode.readline())
+  'This is a test text line.\n'
+  >>> print fnode.tell()
+  26
+  >>> print >> fnode, "This is a new line."
+  >>> print repr(fnode.readline())
+  ''
+	  </verbatim>
+
+	  <p>Of course, the data append process places the pointer at
+	    the end of the file, so the last <verb>readline()</verb>
+	    call hit <verb>EOF</verb>.  Let us seek to the beginning
+	    of the file to see the whole contents of our file.
+	  </p>
+	  <verbatim>
+  >>> fnode.seek(0)
+  >>> for line in fnode:
+  ...   print repr(line)
+  'This is a test text line.\n'
+  'And this is another one.\n'
+  '\n'
+  'Of course, file methods can also be used.This is a new line.\n'
+	  </verbatim>
+
+	  <p>As you can check, the last string we wrote was correctly
+	    appended at the end of the file, instead of overwriting
+	    the second line, where the file pointer was positioned by
+	    the time of the appending.
+	  </p>
+	</subsection>
+
+	<subsection>
+	  <heading>Adding metadata to a file node</heading>
+
+	  <p>You can associate arbitrary metadata to any open node
+	    file, regardless of its mode, as long as the host
+	    <verb>PyTables</verb> file is writable.  Of course, you
+	    could use the <verb>setAttrNode()</verb> method of
+	    <verb>tables.File</verb> to do it directly on the proper
+	    node, but <visual markup="tt">FileNode</visual> offers a
+	    much more comfortable way to do it.  <verb>FileNode</verb>
+	    objects have an <verb>attrs</verb> property which gives
+	    you direct access to their corresponding
+	    <verb>AttributeSet</verb> object.
+	  </p>
+
+	  <p>For instance, let us see how to associate MIME type
+	    metadata to our file node:
+	  </p>
+	  <verbatim>
+  >>> fnode.attrs.content_type = 'text/plain; charset=us-ascii'
+	  </verbatim>
+
+	  <p>As simple as A-B-C.  You can put nearly anything in an
+	    attribute, which opens the way to authorship, keywords,
+	    permissions and more.  Moreover, there is not a fixed list
+	    of attributes.  However, you should avoid names in all
+	    caps or starting with <verb>'_'</verb>, since
+	    <verb>PyTables</verb> and <visual
+	    markup="tt">FileNode</visual> may use them internally.
+	    Some valid examples:
+	  </p>
+
+	  <verbatim> 
+  >>> fnode.attrs.author = "Ivan Vilata i Balaguer"
+  >>> fnode.attrs.creation_date = '2004-10-20T13:25:25+0200'
+  >>> fnode.attrs.keywords_en = ["FileNode", "test", "metadata"]
+  >>> fnode.attrs.keywords_ca = ["FileNode", "prova", "metadades"]
+  >>> fnode.attrs.owner = 'ivan'
+  >>> fnode.attrs.acl = {'ivan': 'rw', '@users': 'r'}
+	  </verbatim>
+
+	  <p>You can check that these attributes get stored by running
+	    the <verb>ptdump</verb> command on the host
+	    <verb>PyTables</verb> file:
+	  </p>
+	  <verbatim>
+  $ ptdump -a fnode.h5:/fnode_test
+  /fnode_test (EArray(113, 1)) ''
+    /fnode_test.attrs (AttributeSet), 14 attributes:
+     [CLASS := 'EARRAY',
+      EXTDIM := 0,
+      FLAVOR := 'NumArray',
+      TITLE := '',
+      VERSION := '1.0',
+      _type := 'file',
+      _type_version := 1,
+      acl := {'ivan': 'rw', '@users': 'r'},
+      author := 'Ivan Vilata i Balaguer',
+      content_type := 'text/plain; charset=us-ascii',
+      creation_date := '2004-10-20T13:25:25+0200',
+      keywords_ca := ['FileNode', 'prova', 'metadades'],
+      keywords_en := ['FileNode', 'test', 'metadata'],
+      owner := 'ivan']
+	  </verbatim>
+
+	  <p>Please note that <visual markup="tt">FileNode</visual>
+	    makes no assumptions about the meaning of your metadata,
+	    so its handling is entirely left to your needs and
+	    imagination.
+	  </p>
+	</subsection>
+      </section>
+
+      <section>
+	<heading>Final notes</heading>
+
+	<p>You can use <verb>FileNodes</verb> and
+	  <verb>PyTables</verb> groups to mimic a filesystem with
+	  files and directories.  Since you can store nearly anything
+	  you want as file metadata, this enables you to use a
+	  <verb>PyTables</verb> file as a portable compressed backup,
+	  even between radically different platforms.  Take this with
+	  a grain of salt, since node files are restricted in their
+	  naming (only valid Python identifiers are valid); however,
+	  remember that you can use node titles and metadata to
+	  overcome this limitation.  Also, you may need to devise some
+	  strategy to represent special files such as devices, sockets
+	  and such (not necessarily using <visual
+	  markup="tt">FileNode</visual>).
+	</p>
+
+	<p>We are eager to hear your opinion about <visual
+	  markup="tt">FileNode</visual> and its potential uses.
+	  Suggestions to improve <visual markup="tt">FileNode</visual>
+	  and create other node types are also welcome.  Do not
+	  hesitate to contact us!
+	</p>
+
+      </section>
+
+    </chapter> <!-- FileNodes -->
+
     <chapter id="optimizationTips">
       <heading>Optimization tips</heading>
 
-<!--       <aphorism>... durch planmässiges Tattonieren.  <caption>Johann -->
-<!-- 	Karl Friedrich Gauss <newline/>[asked how he came upon his -->
-<!-- 	theorems]</caption> -->
-<!--       </aphorism> -->
+      <aphorism>... durch planmässiges Tattonieren.  <caption>Johann
+	Karl Friedrich Gauss <newline/>[asked how he came upon his
+	theorems]</caption>
+      </aphorism>
 
       <p>On this chapter, you will get deeper knowledge of
 	<verb>PyTables</verb> internals. <verb>PyTables</verb> has
