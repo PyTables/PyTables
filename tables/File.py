@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.16 2003/02/28 21:22:55 falted Exp $
+#       $Id: File.py,v 1.17 2003/03/07 08:20:58 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.16 $"
+__version__ = "$Revision: 1.17 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -610,7 +610,24 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
                 
         return string
 
-    def __del__(self):
+    def __repr__(self):
+        
+        """Returns a more complete representation of the object tree"""
+        
+        # Print all the nodes (Group and Leaf objects) on object tree
+        string = 'Filename: ' + self.filename + ' \\\\'
+        string += ' Title: \"' + str(self.title) + '\" \\\\'
+        string += ' Format version: ' + str(self.format_version) + '\n'
+        string += '  mode: ' + self.mode + '\n'
+        string += '  trTable: ' + str(self.trTable) + '\n'
+        for group in self.walkGroups("/"):
+            string += str(group) + '\n'
+            for leaf in self.listNodes(group, 'Leaf'):
+                string += repr(leaf) + '\n'
+                
+        return string
+
+    def _f_del__(self):
         """Delete some objects"""
         #print "Deleting File object"
         pass

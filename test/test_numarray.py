@@ -266,10 +266,10 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         if verbose:
             print '\n', '-=' * 30
             if isinstance(testArray, chararray.CharArray):
-                print "Running test for array with type '%s'" % \
+                print "\nRunning test for array with type '%s'" % \
                       testArray.__class__.__name__,
             else:
-                print "Running test for array with type '%s'" % \
+                print "\nRunning test for array with type '%s'" % \
                       testArray.type(),
 
 	# Create the array under root and name 'somearray'
@@ -323,8 +323,8 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 
         r=recarray.array('a'*200,'b,f,s',10)        
 	a = r.field("c3")
-        # Ensure that this array is non-contiguous
-        assert a.iscontiguous() == 0
+        # Ensure that this array is non-aligned
+        assert a.isaligned() == 0
         assert a._type == Int16
 	self.WriteRead(a)
 	return
@@ -334,13 +334,91 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 
         r=recarray.array('a'*200,'b,f,s',10)        
 	a = r.field("c2")
-        # Ensure that this array is non-contiguous
-        assert a.iscontiguous() == 0
+        # Ensure that this array is non-aligned
+        assert a.isaligned() == 0
         assert a._type == Float32
 	self.WriteRead(a)
 	return
     
-    def test10_complexSimple(self):
+    def test03_byte_offset(self):
+        "Checking an offsetted byte array"
+
+        r=numarray.arange(100, type=numarray.Int8, shape=(10,10))
+	a = r[2]
+        assert a._byteoffset > 0
+	self.WriteRead(a)
+	return
+    
+    def test04_short_offset(self):
+        "Checking an offsetted unsigned short int precision array"
+
+        r=numarray.arange(100, type=numarray.UInt32, shape=(10,10))
+	a = r[2]
+        assert a._byteoffset > 0
+	self.WriteRead(a)
+	return
+    
+    def test05_int_offset(self):
+        "Checking an offsetted integer array"
+
+        r=numarray.arange(100, type=numarray.Int32, shape=(10,10))
+	a = r[2]
+        assert a._byteoffset > 0
+	self.WriteRead(a)
+	return
+    
+    def test06_longlongint_offset(self):
+        "Checking an offsetted long long integer array"
+
+        r=numarray.arange(100, type=numarray.Int64, shape=(10,10))
+	a = r[2]
+        assert a._byteoffset > 0
+	self.WriteRead(a)
+	return
+    
+    def test07_float_offset(self):
+        "Checking an offsetted single precision array"
+
+        r=numarray.arange(100, type=numarray.Float32, shape=(10,10))
+	a = r[2]
+        assert a._byteoffset > 0
+	self.WriteRead(a)
+	return    
+
+    def test08_double_offset(self):
+        "Checking an offsetted double precision array"
+
+        r=numarray.arange(100, type=numarray.Float64, shape=(10,10))
+	a = r[2]
+        assert a._byteoffset > 0
+	self.WriteRead(a)
+	return    
+    
+    def test09_float_offset_unaligned(self):
+        "Checking an unaligned and offsetted single precision array"
+
+        r=recarray.array('a'*200,'b,3f,s',10)        
+	a = r.field("c2")[3]
+        # Ensure that this array is non-aligned
+        assert a.isaligned() == 0
+        assert a._byteoffset > 0
+        assert a.type() == numarray.Float32
+	self.WriteRead(a)
+	return
+    
+    def test10_double_offset_unaligned(self):
+        "Checking an unaligned and offsetted double precision array"
+
+        r=recarray.array('a'*400,'b,3d,s',10)        
+	a = r.field("c2")[3]
+        # Ensure that this array is non-aligned
+        assert a.isaligned() == 0
+        assert a._byteoffset > 0
+        assert a.type() == numarray.Float64
+	self.WriteRead(a)
+	return
+    
+    def test11_complexSimple(self):
         "Checking a complex floating point array (not supported)"
 	a = array( [1,2], Complex32)
         try:
@@ -353,7 +431,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         else:
             self.fail("expected an TypeError")
             
-    def test11_complexDouble(self):
+    def test12_complexDouble(self):
         "Checking a complex floating point array (not supported)"
 
 	a = array( [1,2], Complex64)
@@ -529,21 +607,23 @@ class GroupsArrayTestCase(unittest.TestCase):
 
 def suite():
     theSuite = unittest.TestSuite()
+    niter = 1
 
-    # The scalar case test should be refined in order to work
-    theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
-    theSuite.addTest(unittest.makeSuite(Basic0DTwoTestCase))
-    #theSuite.addTest(unittest.makeSuite(Basic1DZeroTestCase))
-    theSuite.addTest(unittest.makeSuite(Basic1DOneTestCase))
-    theSuite.addTest(unittest.makeSuite(Basic1DTwoTestCase))
-    theSuite.addTest(unittest.makeSuite(Basic1DThreeTestCase))
-    theSuite.addTest(unittest.makeSuite(Basic2DTestCase))
-    theSuite.addTest(unittest.makeSuite(Basic10DOneTestCase))
-    theSuite.addTest(unittest.makeSuite(Basic10DTwoTestCase))
-    # The 32 dimensions case is tested on GroupsArray
-    #theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
-    theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))
-    theSuite.addTest(unittest.makeSuite(UnalignedAndComplexTestCase))
+    for i in range(niter):
+        # The scalar case test should be refined in order to work
+        theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic0DTwoTestCase))
+        # theSuite.addTest(unittest.makeSuite(Basic1DZeroTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic1DOneTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic1DTwoTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic1DThreeTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic2DTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic10DOneTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic10DTwoTestCase))
+        # The 32 dimensions case is tested on GroupsArray
+        # theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
+        theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))
+        theSuite.addTest(unittest.makeSuite(UnalignedAndComplexTestCase))
 
     return theSuite
 

@@ -15,7 +15,7 @@ from distutils.dep_util import newer
 # Uncomment this if Pyrex installed and want to rebuild everything
 from Pyrex.Distutils import build_ext
 
-VERSION = "0.3"
+VERSION = "0.4"
 
 #----------------------------------------------------------------------
 

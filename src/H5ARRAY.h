@@ -22,7 +22,8 @@ herr_t H5ARRAYmake( hid_t loc_id,
 		    const int rank, 
 		    const hsize_t *dims,
 		    hid_t type_id,
-		    const void *data );
+		    const void *data,
+		    const int offset);
 
 herr_t H5ARRAYread( hid_t loc_id, 
 		    const char *dset_name,

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.9 2003/03/04 17:29:58 falted Exp $
+#       $Id: Leaf.py,v 1.10 2003/03/07 08:20:58 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.9 $"
+__version__ = "$Revision: 1.10 $"
 
 
 class Leaf:
@@ -84,6 +84,7 @@ class Leaf:
         del parent._c_objects[self._v_pathname]
         del parent._v_objleaves[self._v_name]
         del parent._v_objchilds[self._v_name]
+        del parent.__dict__[self._v_name]
 
         # Get the alternate name (if any)
         trTable = self._v_rootgroup._v_parent.trTable
@@ -100,6 +101,7 @@ class Leaf:
         # Update this instance attributes
         parent._v_objchilds[newname] = self
         parent._v_objleaves[newname] = self
+        parent.__dict__[newname] = self
         
     def getAttrStr(self, attrname):
         """Get a leaf attribute as a string"""
@@ -111,6 +113,7 @@ class Leaf:
         self.flush()
         parent = self._v_parent
         del parent._v_objleaves[self._v_name]
+        del parent.__dict__[self._v_name]
         del parent._v_objchilds[self._v_name]
         del parent._c_objleaves[self._v_pathname]
         del parent._c_objects[self._v_pathname]

@@ -311,7 +311,7 @@ h5file.moveNode(h5file.root.detector, "recarray2", "recarray3")
 # Delete a Leaf from the HDF5 tree
 h5file.removeNode(h5file.root.detector.recarray3)
 # Delete the detector group and its leaves recursively
-h5file.removeNode(h5file.root.detector, recursive=1)
+#h5file.removeNode(h5file.root.detector, recursive=1)
 # Create a Group and then remove it
 h5file.createGroup(h5file.root, "newgroup")
 h5file.removeNode(h5file.root, "newgroup")

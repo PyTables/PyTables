@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.18 2003/03/06 10:42:30 falted Exp $
+#       $Id: Group.py,v 1.19 2003/03/07 08:20:58 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.18 $"
+__version__ = "$Revision: 1.19 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -192,6 +192,8 @@ class Group(hdf5Extension.Group):
         newattr["_v_" + "pathname"] = self._f_join(value._v_name)
         # Update instance variable
         self._v_objchilds[value._v_name] = value
+        # New attribute (to allow tab-completion in interactive mode)
+        self.__dict__[value._v_name] = value
         # In the future this should be read from disk in case of an opening
         # To be done when general Attribute module available
         newattr["_v_class"] = value.__class__.__name__
@@ -204,7 +206,6 @@ class Group(hdf5Extension.Group):
         
         # Update the parent instance attributes
         parent._f_setproperties(name, self)
-        #self._f_new(parent, name)
         self._f_new(parent, self._v_hdf5name)
         parent._v_objgroups[self._v_name] = self
         # Update class variables
@@ -227,6 +228,7 @@ class Group(hdf5Extension.Group):
         # Delete references to the oldname
         del parent._v_objgroups[self._v_name]
         del parent._v_objchilds[self._v_name]
+        del parent.__dict__[self._v_name]
 
         # Get the alternate name (if any)
         trTable = self._v_rootgroup._v_parent.trTable
@@ -241,6 +243,7 @@ class Group(hdf5Extension.Group):
         # Update this instance attributes
         parent._v_objgroups[newname] = self
         parent._v_objchilds[newname] = self
+        parent.__dict__[newname] = self
 
         # Finally, change the old pathname in the object childs recursively
         oldpathname = self._v_pathname
@@ -424,6 +427,7 @@ class Group(hdf5Extension.Group):
         if self._v_hdf5name <> "/":
             del self._v_parent._v_objgroups[self._v_name]
             del self._v_parent._v_objchilds[self._v_name]
+            del self._v_parent.__dict__[self._v_name]
         del self._v_parent
         del self._v_rootgroup
         del self._c_objgroups[self._v_pathname]
