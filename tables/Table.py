@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.58 2003/07/19 09:28:42 falted Exp $
+#       $Id: Table.py,v 1.59 2003/07/21 16:51:28 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.58 $"
+__version__ = "$Revision: 1.59 $"
 
 from __future__ import generators
 import sys
@@ -480,7 +480,8 @@ class Table(Leaf, hdf5Extension.Table, object):
             #recout = nrowsinbuf
             if self.byteorder <> sys.byteorder:
                 #buffer.byteswap()
-                buffer.togglebyteorder()
+                #buffer.togglebyteorder()
+                buffer._byteswap()
             # Set the buffer counter (case for step=1)
             row._setBaseRow(i, 0)
             for j in xrange(recout):

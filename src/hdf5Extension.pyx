@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.63 2003/07/19 09:28:42 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.64 2003/07/21 16:51:23 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.63 $"
+__version__ = "$Revision: 1.64 $"
 
 
 import sys, os
@@ -720,7 +720,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.63 2003/07/19 09:28:42 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.64 2003/07/21 16:51:23 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1524,7 +1524,8 @@ cdef class Row:
                                                 self.nrowsinbuf)
         if self._table.byteorder <> sys.byteorder:
           #self._recarray.byteswap()
-          self._recarray.togglebyteorder()
+          self._recarray._byteswap()
+          #self._recarray.togglebyteorder()
 
         self.bufcounter = self.bufcounter + self.nrowsinbuf
         self._setBaseRow(self.nrow1, 0)

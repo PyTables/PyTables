@@ -80,12 +80,13 @@ class BasicTestCase(unittest.TestCase):
         row = record[0]
         buflist = []
         # Fill the recarray
-        for i in xrange(self.expectedrows):
+        #for i in xrange(self.expectedrows+1):
+        for i in xrange(self.expectedrows+1):
             tmplist = []
             # Both forms (list or chararray) works
-            #var1 = [['%04d' % (self.expectedrows - i)] * 2] * 2
-            var1 = strings.array([['%04d' % (self.expectedrows - i)] * 2] * 2,
-                                 itemsize = 4, shape=(2,2))
+            var1 = [['%04d' % (self.expectedrows - i)] * 2] * 2
+#             var1 = strings.array([['%04d' % (self.expectedrows - i)] * 2] * 2,
+#                                  itemsize = 4, shape=(2,2))
             tmplist.append(var1)
             var2 = ((i, 1), (1,1))           # *-*
             tmplist.append(var2)
@@ -293,6 +294,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Manually change the byteorder property for this table
         table.byteorder = {"little":"big","big":"little"}[table.byteorder]
+        #table.togglebyteorder()
 	
         # Read the records and select the ones with "var6" column less than 20
         result = [ rec['var2'] for rec in table.iterrows() if rec['var6'] < 20]
@@ -336,8 +338,8 @@ class RecArrayThreeWriteTestCase(BasicTestCase):
     expectedrows = 100
     recarrayinit = 1
     recordtemplate=records.array(formats="(2,2)a4,(2,2)i4,i2,2f8,4f4,i2,a1",
-                                  names='var1,var2,var3,var4,var5,var6,var7',
-                                  shape=1)
+                                 names='var1,var2,var3,var4,var5,var6,var7',
+                                 shape=1)
 
 class CompressLZOTablesTestCase(BasicTestCase):
     title = "CompressLZOTables"
@@ -782,7 +784,8 @@ class RecArrayIO(unittest.TestCase):
         intlist1 = [[456,23]*3]*2
         intlist2 = array([[2,2]*3]*2)
         arrlist1 = [['dbe']*2]*3
-        arrlist2 = strings.array([['de']*2]*3)
+        #arrlist2 = strings.array([['de']*2]*3)
+        arrlist2 = [['de']*2]*3
         floatlist1 = [[1.2,2.3]*3]*4
         floatlist2 = array([[4.5,2.4]*3]*4)
         b = [[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
@@ -808,7 +811,8 @@ class RecArrayIO(unittest.TestCase):
         intlist1 = [[456,23]*3]*2
         intlist2 = array([[2,2]*3]*2)
         arrlist1 = [['dbe']*2]*3
-        arrlist2 = strings.array([['de']*2]*3)
+        #arrlist2 = strings.array([['de']*2]*3)
+        arrlist2 = [['de']*2]*3
         floatlist1 = [[1.2,2.3]*3]*4
         floatlist2 = array([[4.5,2.4]*3]*4)
         b = [[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
@@ -838,7 +842,8 @@ class RecArrayIO(unittest.TestCase):
         intlist1 = [[[23,24,35]*6]*6]
         intlist2 = array([[[2,3,4]*6]*6])
         arrlist1 = [['dbe']*2]*3
-        arrlist2 = strings.array([['de']*2]*3)
+        #arrlist2 = strings.array([['de']*2]*3)
+        arrlist2 = [['de']*2]*3
         floatlist1 = [[1.2,2.3]*3]*4
         floatlist2 = array([[4.5,2.4]*3]*4)
         b=[[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
@@ -870,7 +875,8 @@ class RecArrayIO(unittest.TestCase):
         intlist1 = [[[23,24,35]*6]*6]
         intlist2 = array([[[2,3,4]*6]*6])
         arrlist1 = [['dbe']*2]*3
-        arrlist2 = strings.array([['de']*2]*3)
+        #arrlist2 = strings.array([['de']*2]*3)
+        arrlist2 = [['de']*2]*3
         floatlist1 = [[1.2,2.3]*3]*4
         floatlist2 = array([[4.5,2.4]*3]*4)
         b = [[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
@@ -954,6 +960,7 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
+    #theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(DefaultValues))

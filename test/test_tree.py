@@ -601,8 +601,8 @@ def suite():
 
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(TreeTestCase))
-        #theSuite.addTest(unittest.makeSuite(DeepTreeTestCase))
-        #theSuite.addTest(unittest.makeSuite(WideTreeTestCase))
+        theSuite.addTest(unittest.makeSuite(DeepTreeTestCase))
+        theSuite.addTest(unittest.makeSuite(WideTreeTestCase))
 
     return theSuite
 

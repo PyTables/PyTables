@@ -301,12 +301,11 @@ class BasicTestCase(unittest.TestCase):
         table.byteorder = {"little":"big","big":"little"}[table.byteorder]
 	
         # Read the records and select the ones with "var6" column less than 20
-        result2 = [ rec['var6'] for rec in table.iterrows() if rec['var6'] < 20]
         result = [ rec['var2'] for rec in table.iterrows() if rec['var6'] < 20]
         if verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last record in table ==>", rec
-            print "Selected records ==>", result2
+            print "Selected records ==>", result
             print "Total selected records in table ==>", len(result)
         nrows = self.expectedrows - 1
         assert (rec['var1'], rec['var6']) == ("0001", nrows)
@@ -1085,13 +1084,13 @@ class OldRecordDefaultValues(DefaultValues):
 
 def suite():
     theSuite = unittest.TestSuite()
-    niter = 0
+    niter = 1
 
     #theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
     #theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
     #theSuite.addTest(unittest.makeSuite(CompressUCLTablesTestCase))
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
-    theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
+    #theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
