@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.137 2004/12/09 11:34:55 falted Exp $
+#       $Id: Table.py,v 1.138 2004/12/09 12:24:43 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.137 $"
+__version__ = "$Revision: 1.138 $"
 
 from __future__ import generators
 import sys
@@ -542,11 +542,12 @@ class Table(Leaf, hdf5Extension.Table, object):
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
         if start < stop:
             return self.row(start, stop, step, coords=None, ncoords=-1)
-        # Fall-back action is to return an empty RecArray
-        return records.array(None,
-                             formats=self.description._v_recarrfmt,
-                             shape=(0,),
-                             names = self.colnames)
+        # Fall-back action is to return an empty iterator
+        return iter([])
+#         return records.array(None,
+#                              formats=self.description._v_recarrfmt,
+#                              shape=(0,),
+#                              names = self.colnames)
         
     def __iter__(self):
         """Iterate over all the rows."""

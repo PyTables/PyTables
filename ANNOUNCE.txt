@@ -45,6 +45,10 @@ Backward-incompatible changes:
 - Deleting a non-existing child now raises a LookupError, instead of
   doing nothing.
 
+- When start>=stop an empty iterator is returned by Table.iterrows
+  instead of an empty RecArray. Thanks to Ashley Walsh for noting
+  this.
+
 API additions:
 
 Bug fixes:
