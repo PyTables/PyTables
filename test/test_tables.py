@@ -18,23 +18,23 @@ class Record(IsDescription):
     class will take care the user won't add any new variables and
     that their type is correct.  """
     
-    var1 = Col("CharType", 4, "abcd")   # 4-character String
+    var1 = StringCol(itemsize=4, dflt="abcd")   # 4-character String
     var2 = Col("Int32", 1, 1)           # integer
     var3 = Col("Int16", 1, 2)           # short integer 
     var4 = Col("Float64", 1, 3.1)       # double (double-precision)
     var5 = Col("Float32", 1, 4.2)       # float  (single-precision)
     var6 = Col("Int16", 1, 5)           # short integer 
-    var7 = Col("CharType", 1, "e")      # 1-character String
+    var7 = StringCol(itemsize=1, dflt="e")      # 1-character String
 
 # From 0.3 on, you can dynamically define the tables with a dictionary
 RecordDescriptionDict = {
-    'var1': Col("CharType", 4),   # 4-character String
+    'var1': StringCol(itemsize=4),   # 4-character String
     'var2': Col("Int32", 1),      # integer
     'var3': Col("Int16", 1),      # short integer 
     'var4': Col("Float64", 2),    # double (double-precision)
     'var5': Col("Float32", 4),    # float  (single-precision)
     'var6': Col("Int16", 1),      # short integer
-    'var7': Col("CharType", 1),   # 1-character String
+    'var7': StringCol(itemsize=1),   # 1-character String
     }
 
 def allequal(a,b):
@@ -480,15 +480,15 @@ class DictWriteTestCase(BasicTestCase):
 class RecArrayOneWriteTestCase(BasicTestCase):
     title = "RecArrayOneWrite"
     record=records.array(formats="a4,i4,i2,2f8,f4,i2,a1",
-                          names='var1,var2,var3,var4,var5,var6,var7')
+                         names='var1,var2,var3,var4,var5,var6,var7')
 
 class RecArrayTwoWriteTestCase(BasicTestCase):
     title = "RecArrayTwoWrite"
     expectedrows = 100
     recarrayinit = 1
     recordtemplate=records.array(formats="a4,i4,i2,f8,f4,i2,a1",
-                                  names='var1,var2,var3,var4,var5,var6,var7',
-                                  shape=1)
+                                 names='var1,var2,var3,var4,var5,var6,var7',
+                                 shape=1)
 
 class RecArrayThreeWriteTestCase(BasicTestCase):
     title = "RecArrayThreeWrite"
@@ -995,6 +995,32 @@ class RecArrayIO(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
+    def test03(self):
+        "Checking saving a strided recarray with an offset in its buffer"
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a recarray
+        r=records.array('a'*200000,'f4,3i4,a5,i2',3000)
+
+        # Get an strided recarray
+        r2 = r[::2]
+
+        # Get an offsetted bytearray
+        r1 = r2[2000:]
+        assert r1._byteoffset > 0
+        
+        # Save it in a table:
+        fileh.createTable(fileh.root, 'recarray', r1)
+
+        # Read it again
+        r2 = fileh.root.recarray.read()
+
+        assert r1.tostring() == r2.tostring()
+        
+        fileh.close()
+        os.remove(file)
+
 
 #----------------------------------------------------------------------
 
@@ -1002,8 +1028,6 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
-    #theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
-    #theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
 
     for n in range(niter):

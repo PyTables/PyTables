@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.57 2003/07/09 17:43:20 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.58 2003/07/11 13:13:06 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.57 $"
+__version__ = "$Revision: 1.58 $"
 
 
 import sys, os
@@ -525,11 +525,8 @@ cdef extern from "H5TB-opt.h":
 # Funtion to compute the offset of a struct format
 cdef extern from "calcoffset.h":
   
-  int calcoffset(char *fmt, size_t *offsets)
-  
-#  int calctypes(char *fmt, hid_t *types, size_t *size_types)
-  int calctypes(char *fmt, int *nvar, hid_t *types,
-                size_t *sizes, size_t *offsets)
+  int calcoffset(char *fmt, int *nvar, hid_t *types,
+                 size_t *sizes, size_t *offsets)
 
 # Funtion to get info from fields in a table
 cdef extern from "getfieldfmt.h":
@@ -680,7 +677,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.57 2003/07/09 17:43:20 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.58 2003/07/11 13:13:06 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1181,18 +1178,10 @@ cdef class Table:
       # The next works thanks to Pyrex magic
       self.field_names[i] = name
       i = i + 1
-    # End old new
 
-    # Compute the offsets
-#     nvar = calcoffset(self.fmt, self.field_offset)
-#     if (nvar > MAX_FIELDS):
-#         raise IndexError("A maximum of %d fields on tables is allowed" % \
-#                          MAX_FIELDS)
-#     self.nfields = nvar
-
-    # Compute the field type sizes
-    self.rowsize = calctypes(self.fmt, &nvar, fieldtypes,
-                             self.field_sizes, self.field_offset)
+    # Compute the field type sizes, offsets, # fields, ...
+    self.rowsize = calcoffset(self.fmt, &nvar, fieldtypes,
+                              self.field_sizes, self.field_offset)
     if (nvar > MAX_FIELDS):
         raise IndexError("A maximum of %d fields on tables is allowed" % \
                          MAX_FIELDS)
@@ -1285,7 +1274,7 @@ cdef class Table:
     cdef hid_t   fieldtypes[MAX_FIELDS]
     #cdef size_t  field_sizes[MAX_FIELDS]
     #cdef char    **field_names
-    cdef char    fmt[255]
+    cdef char    fmt[2048]
 
     # Get info about the table dataset
     ret = H5LTget_dataset_info(self.parent_id, self.name,
@@ -1318,7 +1307,7 @@ cdef class Table:
       raise RuntimeError("Problems getting field format")
     self.fmt = fmt
     
-    # Create a python tuple with the fields names
+    # Create a python tuple with the field names
     names_tuple = []
     for i in range(nfields):
       names_tuple.append(self.field_names[i])
@@ -1551,7 +1540,7 @@ cdef class Row:
       self._fields[fieldName][self._unsavednrows] = value
     except:
       (type, value, traceback) = sys.exc_info()
-      raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
+      raise AttributeError, "Error setting \"%s\" attr.\n %s" % \
             (fieldName, "Error was: \"%s: %s\"" % (type,value))
 
   # This "optimization" sucks when using numarray 0.4 and 0.5!

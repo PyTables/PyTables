@@ -13,14 +13,16 @@ class Small(IsDescription):
     the user will not add any new variables and that its type is
     correct."""
     
-    var1 = Col("CharType", 4, "")
+    #var1 = Col("CharType", 4, "")
+    var1 = StringCol(4, dflt="")
     #var1 = Col("Float32", 1, 0.0)
     var2 = Col("Int32", 1, 0)
     var3 = Col("Float64", 1, 0)
 
 # Define a user record to characterize some kind of particles
 class Medium(IsDescription):
-    name        = Col('CharType', 16, "")  # 16-character String
+    #name        = Col('CharType', 16, "")  # 16-character String
+    name        = StringCol(16, dflt="")  # 16-character String
     float1      = Col("Float64", 2, NA.arange(2))
     #float1      = Col("Float64", 1, 2.3)
     #float2      = Col("Float64", 1, 2.3)
@@ -33,7 +35,8 @@ class Medium(IsDescription):
 
 # Define a user record to characterize some kind of particles
 class Big(IsDescription):
-    name        = Col('CharType', 16, "")  # 16-character String
+    #name        = Col('CharType', 16, "")  # 16-character String
+    name        = StringCol(16, dflt="")  # 16-character String
     float1      = Col("Float64", 32, NA.arange(32))
     float2      = Col("Float64", 32, 2.2)
     TDCcount    = Col("Int8", 1, 0)    # signed short integer

@@ -20,39 +20,40 @@ int format_element(hid_t type_id,
 		   int position,
 		   char *format) 
 {
-  hsize_t dims[1];
+  hsize_t dims[32];
+  int ndims, i;
   size_t super_type_size;
   hid_t super_type_id; 
   H5T_class_t super_class_id;
   H5T_sign_t super_sign;
-  char temp[255], arrfmt[256] = "";
+  char temp[2048], arrfmt[255] = "", *t;
   
   switch(class) {
   case H5T_INTEGER:                /* int (byte, short, long, long long) */
     switch (member_size) {
     case 1:                        /* byte */
       if ( sign )
-	strcat( format, "b" );     /* signed byte */
+	strcat( format, "i1," );     /* signed byte */
       else
-	strcat( format, "B" );     /* unsigned byte */
+	strcat( format, "u1," );     /* unsigned byte */
       break;
     case 2:                        /* short */
       if ( sign )
-	strcat( format, "h" );     /* signed short */
+	strcat( format, "i2," );     /* signed short */
       else
-	strcat( format, "H" );     /* unsigned short */
+	strcat( format, "u2," );     /* unsigned short */
       break;
     case 4:                        /* long */
       if ( sign )
-	strcat( format, "i" );     /* signed long */
+	strcat( format, "i4," );     /* signed long */
       else
-	strcat( format, "I" );     /* unsigned long */
+	strcat( format, "u4," );     /* unsigned long */
       break;
     case 8:                        /* long long */
       if ( sign )
-	strcat( format, "q" );     /* signed long long */
+	strcat( format, "i8," );     /* signed long long */
       else
-	strcat( format, "Q" );     /* unsigned long long */
+	strcat( format, "u8," );     /* unsigned long long */
       break;
     default:
       /* This should never happen */
@@ -62,10 +63,10 @@ int format_element(hid_t type_id,
   case H5T_FLOAT:                   /* float (single or double) */
     switch (member_size) {
     case 4:
-	strcat( format, "f" );      /* float */
+	strcat( format, "f4," );      /* float */
 	break;
     case 8:
-	strcat( format, "d" );      /* double */
+	strcat( format, "f8," );      /* double */
 	break;
     default:
       /* This should never happen */
@@ -73,13 +74,8 @@ int format_element(hid_t type_id,
     }
     break; /* case H5T_FLOAT */
   case H5T_STRING:                  /* char or string */
-    if ( member_size == 1 )
-      /*strcat( format, "c" );   */     /* char */
-      strcat( format, "s" );        /* always a CharArray */
-    else {
-      snprintf(temp, 255, "%ds", member_size);
-      strcat( format, temp );       /* string */
-    }
+    snprintf(temp, 255, "a%d,", member_size);  /* Always a CharArray */
+    strcat( format, temp );       /* string */
     break; /* case H5T_STRING */
   case H5T_ARRAY:    /* WARNING: this only works for undimensional arrays! */
     /* Get the array base component */
@@ -98,6 +94,8 @@ int format_element(hid_t type_id,
     super_type_size = H5Tget_size( super_type_id );
  
     /* Get dimensions */
+    if ( (ndims = H5Tget_array_ndims(type_id)) < 0 )
+      goto out;
     if ( H5Tget_array_dims(type_id, dims, NULL) < 0 )
       goto out;
 
@@ -110,9 +108,24 @@ int format_element(hid_t type_id,
     /* We have problems here. The next snprintf does not work,
      but a sprintf followed by a strcat does! and I do not know why...*/
     /* snprintf(temp, 255, "%d %s", dims[0], arrfmt);*/
-    sprintf(temp, "%d", (int)dims[0]);
+/*     sprintf(temp, "%d", (int)dims[0]); */
+/*     strcat(temp, arrfmt); */
+
+    t = temp;
+    if (ndims > 1) {
+      sprintf(t++, "(");
+      for(i=0;i<ndims;i++) {
+	t += sprintf(t, "%d,", dims[i]);
+      }
+      t--; 			/* Delete the trailing comma */
+      sprintf(t++, ")");
+    }
+    else {
+      sprintf(temp, "%d", (int)dims[0]);
+    }
     strcat(temp, arrfmt);
-    /* fprintf(stderr,"Array format ==> %s", temp); */
+
+/*     fprintf(stderr,"Array format ==> %s", temp); */
     strcat( format, temp );       /* string */
 
     break; /* case H5T_ARRAY */
@@ -133,8 +146,8 @@ int format_element(hid_t type_id,
 }
 
 herr_t getfieldfmt( hid_t loc_id, 
-		     const char *dset_name,
-		     char *fmt )
+		    const char *dset_name,
+		    char *fmt )
 {
 
   hid_t         dataset_id;
@@ -186,8 +199,8 @@ herr_t getfieldfmt( hid_t loc_id,
       case H5T_ORDER_NONE:
 	break; /* Do nothing */
       case H5T_ORDER_VAX:
-	/* Python Struct module don't support this. HDF5 do? */
-	fprintf(stderr, "Byte order %d don't supported. Sorry!\n", order);
+	/* numarray package don't support this. HDF5 do? */
+	fprintf(stderr, "Byte order %d not supported. Sorry!\n", order);
 	goto out;
       default:
 	/* This should never happen */
@@ -217,6 +230,11 @@ herr_t getfieldfmt( hid_t loc_id,
 	goto out;
 
     } /* i */
+
+  /* Remove the trailing ',' in format if it exists */
+  i = strlen(fmt);
+  if (fmt[i-1] == ',')
+    fmt[i-1] = '\0'; 		/* Strip out the last comma */
 
   /* Release the datatype. */
   if ( H5Tclose( type_id ) < 0 )

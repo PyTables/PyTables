@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.52 2003/07/09 17:43:20 falted Exp $
+#       $Id: Table.py,v 1.53 2003/07/11 13:13:06 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.52 $"
+__version__ = "$Revision: 1.53 $"
 
 from __future__ import generators
 import sys
@@ -44,7 +44,8 @@ import numarray.records as records
 #import recarray3 as recarray2
 import hdf5Extension
 from Leaf import Leaf
-from IsDescription import IsDescription, metaIsDescription, Col, fromstructfmt
+from IsDescription import IsDescription, metaIsDescription, Col, StringCol, \
+     fromstructfmt
 
 try:
     import Numeric
@@ -223,13 +224,13 @@ class Table(Leaf, hdf5Extension.Table, object):
         for i in range(len(self.colnames)):
             # Special case for strings (from numarray 0.6 on)
             if isinstance(recarr._fmt[i], records.Char):
-                fields[self.colnames[i]] = Col(recarr._fmt[i],
-                                               recarr._sizes[i],
-                                               pos=i)  # Position matters!
+                fields[self.colnames[i]] = StringCol(recarr._itemsizes[i],
+                                                     recarr._repeats[i],
+                                                     pos=i)  # Position matters
             else:
                 fields[self.colnames[i]] = Col(recarr._fmt[i],
                                                recarr._repeats[i],
-                                               pos=i)  # Position matters!
+                                               pos=i)  # Position matters
         # Set the byteorder
         self.byteorder = recarr._byteorder
         # Append this entry to indicate the alignment!
@@ -255,6 +256,10 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.coltypes = self.description.__types__
         # Extract the shapes for columns
         self.colshapes = self.description._v_shapes
+        self.colitemsizes = self.description._v_itemsizes
+        #print "coltypes (NEW) -->", self.coltypes
+        #print "colshapes (NEW) -->", self.colshapes
+        #print "colitemsizes (NEW) -->", self.colitemsizes
         # Compute the byte order
         self.byteorder = byteorderDict[self._v_fmt[0]]
         # Create the arrays for buffering
@@ -272,36 +277,49 @@ class Table(Leaf, hdf5Extension.Table, object):
         """
         # Get table info
         (self.nrows, self.colnames, self._v_fmt) = self._getTableInfo()
+        #print "self._v_fmt (open)-->", self._v_fmt
         # This one is probably not necessary to set it, but...
         self._v_compress = 0  # This means, we don't know if compression
-                              # is active or not. May be save this info
-                              # in a table attribute?
+                              # is active or not. Maybe it is worth to save
+                              # this info in a table attribute?
+
+        # Get the byteorder
+        byteorder = self._v_fmt[0]
+        # Remove the byteorder
+        self._v_fmt = self._v_fmt[1:]
+        self.byteorder = byteorderDict[byteorder]
+        # Create a recarray with no data
+        headerRA = records.array(None, formats=self._v_fmt)
+        rowsize = headerRA._itemsize
+        # Get the column types
+        coltypes = [str(f) for f in headerRA._fmt]
+        #print "coltypes (OLD) -->", coltypes
+        # Get the column shapes
+        colshapes = headerRA._repeats
+        #print "colshapes (OLD) -->", colshapes
+        #print "itemsizes (OLD) -->", headerRA._itemsizes
+        # Build a dictionary with the types as values and colnames as keys
+        fields = {}
+        for i in range(len(self.colnames)):
+            if coltypes[i] == "CharType":
+                itemsize = headerRA._itemsizes[i]
+                fields[self.colnames[i]] = StringCol(itemsize, colshapes[i],
+                                                     pos = i)
+            else:
+                fields[self.colnames[i]] = Col(coltypes[i], colshapes[i],
+                                               pos = i)
+        # Set the alignment!
+        fields['_v_align'] = byteorder
+        # Create an instance description to host the record fields
+        self.description = metaIsDescription("", (), fields)()
+        # Extract the coltypes, shapes and itemsizes
+        self.coltypes = self.description.__types__
+        self.colshapes = self.description._v_shapes
+        self.colitemsizes = self.description._v_itemsizes
         # Compute buffer size
         self._calcBufferSize(self.nrows)
         # Update the shape attribute
         self.shape = (self.nrows,)
-        # Get the variable types
-        lengthtypes = re.findall(r'(\d*\w)', self._v_fmt)
-        #print "self._v_fmt (open)-->", self._v_fmt
-        # Build a dictionary with the types as values and colnames as keys
-        fields = {}
-        for i in range(len(self.colnames)):
-            try:
-                length = int(lengthtypes[i][:-1])
-            except:
-                length = 1
-            vartype = fromstructfmt[lengthtypes[i][-1]]
-            fields[self.colnames[i]] = Col(vartype, length, pos = i)
-
-        # Append this entry to indicate the alignment!
-        fields['_v_align'] = self._v_fmt[0]
-        self.byteorder = byteorderDict[self._v_fmt[0]]
-        # Create an instance description to host the record fields
-        self.description = metaIsDescription("", (), fields)()
-        # Extract the coltypes
-        self.coltypes = self.description.__types__
-        # Extract the shapes for columns
-        self.colshapes = self.description._v_shapes
         # Create the arrays for buffering
         self._v_buffer = self._newBuffer(init=0)
         self.row = hdf5Extension.Row(self._v_buffer, self)
@@ -585,16 +603,12 @@ class Table(Leaf, hdf5Extension.Table, object):
         """Read a range of rows and return an in-memory object.
         """
         
-        for fieldTable in self.colnames:
-            if fieldTable == field:
-                typeField = self.coltypes[field]
-                lengthField = self.colshapes[field][0]
-                break
-        else:
+        if not field in self.colnames:
             raise LookupError, \
                   """The column name '%s' not found in table {%s}""" % \
                   (field, self)
-            
+
+        typeField = self.coltypes[field]
         (start, stop, step) = self._processRange(start, stop, step)
         # Return a rank-0 array if start > stop
         if start >= stop:
@@ -604,15 +618,28 @@ class Table(Leaf, hdf5Extension.Table, object):
                 return numarray.array(shape=(0,), type=typeField)
                 
         nrows = ((stop - start - 1) // step) + 1
-        # Create the resulting recarray
-        if isinstance(typeField, records.Char):
-            result = strings.array(shape=(nrows,), itemsize=lengthField)
-        else:
-            if lengthField > 1:
-                result = numarray.array(shape=(nrows, lengthField),
-                                        type=typeField)
+
+        # Compute the shape of the resulting column object
+        shape = self.colshapes[field]
+        itemsize = self.colitemsizes[field]
+        if type(shape) in [types.IntType, types.LongType]:
+            if shape == 1:
+                shape = (nrows,)
             else:
-                result = numarray.array(shape=(nrows, ), type=typeField)
+                shape = (nrows, shape)
+        else:
+            shape = [nrows]
+            shape.extend(shape)
+            shape = tuple(shape)
+
+        # Create the resulting recarray
+        #print "shape -->", shape
+        #print "itemsize -->", itemsize
+        if isinstance(typeField, records.Char):
+            result = strings.array(shape=shape, itemsize=itemsize)
+        else:
+            result = numarray.array(shape=shape, type=typeField)
+            
         # Setup a buffer for the readout
         nrowsinbuf = self._v_maxTuples   # Shortcut
         buffer = self._v_buffer  # Get a recarray as buffer
@@ -637,6 +664,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             # Assign the correct part to result
             # The bottleneck is in this assignment. Hope that the numarray
             # people might improve this in the short future
+            #print buffer._repeats
             result[startr:stopr] = buffer._fields[field][startb:stopb:step]
             # Compute some indexes for the next iteration
             startr = stopr

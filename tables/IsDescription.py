@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.10 2003/07/09 17:43:20 falted Exp $
+#       $Id: IsDescription.py,v 1.11 2003/07/11 13:13:06 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.10 $"
+__version__ = "$Revision: 1.11 $"
 
 
 import warnings
@@ -60,20 +60,21 @@ fromstructfmt = {'b':NA.Int8, 'B':NA.UInt8,
               }
 
 class Col:
-
-    def __init__(self, dtype="Float64", shape=(1,), dflt=None, pos = None):
+    """ Define a numerical column """
+    def __init__(self, dtype="Float64", shape=1, dflt=None, pos = None):
 
         self.pos = pos
 
-        if shape != None:
+        if shape != None and shape != 0 and shape != (0,):
             if type(shape) in [types.IntType, types.LongType]:
-                self.shape = (shape,)
+                self.shape = shape
             elif type(shape) in [types.ListType, types.TupleType]:
-                #if len(shape) > 1:
-                #    raise ValueError, \
-                #       "Multidimensional column elements are not yet supported"
                 self.shape = tuple(shape)
-            else: raise ValueError, "Illegal shape %s" % `shape`
+            else:
+                raise ValueError, "Illegal shape '%s'" % `shape`
+        else:
+            raise ValueError, \
+                  "None or zero-valued shapes are not supported '%s'" % `shape`
 
         self.dflt = dflt
 
@@ -81,14 +82,7 @@ class Col:
             self.type = NA.typeDict[dtype]
             #self.recarrtype = recarray2.revfmt[self.type]
             self.recarrtype = records.revfmt[self.type]
-        elif dtype == "CharType" or isinstance(dtype, records.Char):
-            self.type = records.CharType
-            self.itemsize = self.shape[-1]
-#             if len(self.shape) == 1:
-#                 self.shape = (1,)
-#             else:
-#                 self.shape = self.shape[:-1]
-            self.recarrtype = records.revfmt[self.type]
+            self.itemsize = self.type.bytes
         else:
             raise TypeError, "Illegal type: %s" % `dtype`
 
@@ -101,6 +95,7 @@ class Col:
     def __repr__(self):
         out = "\n  type: " + str(self.type) + \
               "\n  shape: " +  str(self.shape) + \
+              "\n  itemsize: " +  str(self.itemsize) + \
               "\n  position: " +  str(self.pos) + \
               "\n"
         return out
@@ -108,6 +103,28 @@ class Col:
     # Moved out of scope
     def _f_del__(self):
         print "Deleting Col object"
+
+
+class StringCol(Col):
+    """ Define a string column """
+    def __init__(self, itemsize=1, shape=1, dflt=None, pos = None):
+
+        self.pos = pos
+
+        if shape != None and shape != 0 and shape != (0,):
+            if type(shape) in [types.IntType, types.LongType]:
+                self.shape = shape
+            elif type(shape) in [types.ListType, types.TupleType]:
+                self.shape = tuple(shape)
+            else: raise ValueError, "Illegal shape %s" % `shape`
+
+        self.dflt = dflt
+
+        self.type = records.CharType
+        self.itemsize = itemsize
+        self.recarrtype = records.revfmt[self.type]
+
+        self.rectype = tostructfmt[self.type]
 
     
 class metaIsDescription(type):
@@ -202,8 +219,9 @@ class metaIsDescription(type):
         newdict = { '__slots__':[], '__types__':{}, '__dflts__':{},
                     '__init__':__init__, '__repr__':__repr__,
                     '__str__':__str__,
-                    '_v_fmt': "", "_v_shapes":{},
-                    '_v_recarrfmt': "", '_v_formats':[],
+                    '_v_fmt': "", '_v_recarrfmt': "",
+                    "_v_shapes":{}, "_v_itemsizes":{},
+                    '_v_formats':[],
                     }
         
 
@@ -282,17 +300,28 @@ class metaIsDescription(type):
 
                 # Special case for strings: "aN"
                 if object.recarrtype == "a":
-                    # Susbstituir el shape[0] per shape quan la
-                    # multimensinalitat estiga suportada...
-#                     newdict['_v_fmt'] += str(object.shape[0]) + object.rectype + str(object.itemsize)
-#                     recarrfmt.append(str(object.shape[0]) + object.recarrtype + str(object.itemsize))
-                    newdict['_v_fmt'] +=  str(object.shape) + object.rectype
-                    recarrfmt.append(object.recarrtype + str(object.itemsize))
+                    # This needs to be fixed when calcoffset will support
+                    # the recarray format, for ex: "(1,3)f4,3i4,(2,)a5,i2"
+                    if type(object.shape) in [types.IntType, types.LongType]:
+                        if object.shape == 1:
+                            shape = object.itemsize
+                        else:
+                            shape = (object.shape, object.itemsize)
+                    else:
+                        shape = list(object.shape)
+                        shape.append(object.itemsize)
+                        shape = tuple(shape)
+                        
+                    newdict['_v_fmt'] +=  str(shape) + object.rectype
+                    newdict['_v_shapes'][k] = object.shape
+                    newdict['_v_itemsizes'][k] = object.itemsize
+                    recarrfmt.append(str(object.shape) + \
+                                     object.recarrtype + str(object.itemsize))
                 else:
                     newdict['_v_fmt'] += str(object.shape) + object.rectype
-                    # Tenim un problema aci si posem shape i no shape[0]
-                    recarrfmt.append(str(object.shape[0]) + object.recarrtype)
-                newdict['_v_shapes'][k] = object.shape
+                    recarrfmt.append(str(object.shape) + object.recarrtype)
+                    newdict['_v_shapes'][k] = object.shape
+                    newdict['_v_itemsizes'][k] = object.itemsize
 
         # Set up the alignment
         #print "fmt -->", newdict['_v_fmt']

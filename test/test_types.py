@@ -14,7 +14,7 @@ class Record(IsDescription):
     class will take care the user won't add any new variables and
     that their type is correct.  """
     
-    var1 = Col("CharType", 4)   # 4-character String
+    var1 = StringCol(itemsize=4)   # 4-character String
     var2 = Col("Int32", 1)      # integer
     var3 = Col("Int16", 1)      # short integer. 
     var4 = Col("Float64", 1)    # double (double-precision)

@@ -8,6 +8,18 @@
 #include <ctype.h>
 #include "calcoffset.h"
 
+/* Define this as 1 if native alignment is needed, although this
+   doesn't seem to be necessary. Before pytables 0.6 this was
+   implicitely set to 1, but the fact is that both values will
+   work. Why?.  */
+
+#ifndef ALIGN
+#define ALIGN 0
+#endif
+
+/* The maximum number of dimensions */
+#define MAX_DIMS 32
+
 static const formatdef *whichtable(char **pfmt)
 {
 	const char *fmt = (*pfmt)++; /* May be backed out of later */
@@ -60,7 +72,7 @@ static hid_t conventry(int c, int rank, hsize_t *dims)
 {
    hid_t string_type;
    int native, i;
-   hsize_t shape[32];
+   hsize_t shape[MAX_DIMS];
 
    if (rank == 1 && dims[0] == 1 )
      native = 1;
@@ -196,12 +208,23 @@ static int align(int size, int c, const formatdef *e)
    return size;
 }
 
-int calctypes(char *fmt, int *nattrs, hid_t *types,
+/* Calculate the offsets of a format string.
+ * The format follows the directions for the package struct, plus
+ * extensions for multimensional elements. The notation for
+ * multimensional elements are in the form (####, ####, ...[,]).
+
+ * The number of fields are returned in the nattrs integer.
+ * The HDF5 types are computed and returned in the types array.
+ * The sizes of types are computed and returned in the size_types array.
+ * The offsets are computed and returned in the offsets array.
+ * calcoffset returns the row size. */
+
+int calcoffset(char *fmt, int *nattrs, hid_t *types,
 	      size_t *size_types, size_t *offsets)
 {
    const formatdef *f, *e;
    const char *s;
-   hsize_t shape[32];
+   hsize_t shape[MAX_DIMS];
    char c;
    int rank, ndim, i;
    int size, num, itemsize, x;
@@ -213,7 +236,9 @@ int calctypes(char *fmt, int *nattrs, hid_t *types,
    s = fmt;
    size = 0;
    *nattrs = 0;
-/*    *offsets++ = 0; */
+   if (!ALIGN)
+     *offsets++ = 0;
+
    while ((c = *s++) != '\0') {
       ndim = 0;
       if (isspace((int)c))
@@ -262,9 +287,6 @@ int calctypes(char *fmt, int *nattrs, hid_t *types,
 	      c = *s++;
 	      break;
 	    }
-	    if (c == ',') {
-	      continue;
-	    }
 	    if (c == ')') {
 	      c = *s++;
 	      break;
@@ -296,10 +318,15 @@ int calctypes(char *fmt, int *nattrs, hid_t *types,
       itemsize = H5Tget_size(hdf5type);
 
       /* Feed the return values */
-/*       size = itemsize; */
-      size = align(size, c, e);
+      if(ALIGN)
+	size = align(size, c, e);
+      else
+	size += itemsize;
+
       *offsets++ = size;
-      size += itemsize;
+      if (ALIGN)
+	size += itemsize;
+
       *size_types++ = itemsize;
       *nattrs += 1;
       *types++ = hdf5type;
@@ -315,7 +342,7 @@ int calctypes(char *fmt, int *nattrs, hid_t *types,
    }
 
 #ifdef PRINT
-   printf("The size computed in calctypes is %d\n", size);
+   printf("The size computed in calcoffset is %d\n", size);
 #endif /* PRINT */
 
    return size;
@@ -342,18 +369,17 @@ int main(int args, char *argv[])
    if (args == 3) 
       niter = atoi(argv[2]);
    for (i=0;i<niter;i++) {
-     /* nattrs = calcoffset(fmt, offsets); */
-     rowsize = calctypes(fmt, &nattrs, types, size_types, offsets);
+     rowsize = calcoffset(fmt, &nattrs, types, size_types, offsets);
    }
    
    if (nattrs < 0)
      return -1;
    else
-     printf("# attributes from calctypes: %d\nOffsets: ", nattrs);
+     printf("# attributes from calcoffset: %d\nOffsets: ", nattrs);
      for (i = 0; i < nattrs; i++)
        printf(" %d,", offsets[i]);
      printf("\n");
-     printf("Rowsize from calctype: %d\nType sizes: ", rowsize);
+     printf("Rowsize: %d\nType sizes: ", rowsize);
      for (i = 0; i < nattrs; i++)
        printf(" %d,", size_types[i]);
      printf("\n");
