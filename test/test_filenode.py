@@ -5,7 +5,7 @@
 #	Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/test/test_filenode.py,v $
-#	$Id: test_filenode.py,v 1.8 2004/11/18 19:21:23 ivilata Exp $
+#	$Id: test_filenode.py,v 1.9 2004/11/22 17:07:31 ivilata Exp $
 #
 ########################################################################
 
@@ -17,7 +17,7 @@ from tables.nodes import FileNode
 import warnings
 
 
-__revision__ = '$Id: test_filenode.py,v 1.8 2004/11/18 19:21:23 ivilata Exp $'
+__revision__ = '$Id: test_filenode.py,v 1.9 2004/11/22 17:07:31 ivilata Exp $'
 
 
 
@@ -853,6 +853,109 @@ class ClosedH5FileTestCase(unittest.TestCase):
 
 
 
+class OldVersionTestCaseMixin:
+	"""Mix-in class for old version compatibility test cases.
+
+	It provides some basic tests for file operations and attribute handling.
+	Sub-classes must provide the 'oldversion' attribute
+	and the 'oldh5fname' attribute.
+	"""
+
+	def setUp(self):
+		"""setUp() -> None
+
+		This method sets the following instance attributes:
+		  * 'h5fname', the name of the temporary HDF5 file
+		  * 'h5file', the writable, temporary HDF5 file with a '/test' node
+		  * 'fnode', the writable file node in '/test'
+		"""
+
+		self.h5fname = tempfile.mktemp(suffix = '.h5')
+
+		oldh5f = tables.openFile(self.oldh5fname)
+		oldh5f.copyFile(self.h5fname)
+		oldh5f.close()
+
+		self.h5file = tables.openFile(
+			self.h5fname, 'r+',
+			title = "Test for file node old version compatibility")
+		self.fnode = FileNode.openNode(self.h5file.root.test, 'a+')
+
+
+	def tearDown(self):
+		"""tearDown() -> None
+
+		Closes 'fnode' and 'h5file'; removes 'h5fname'.
+		"""
+
+		self.fnode.close()
+		self.fnode = None
+		self.h5file.close()
+		self.h5file = None
+		os.remove(self.h5fname)
+
+
+	def test00_Read(self):
+		"Reading an old version file node."
+
+		self.fnode.lineSeparator = '\n'
+
+		line = self.fnode.readline()
+		self.assertEqual(line, 'This is only\n')
+
+		line = self.fnode.readline()
+		self.assertEqual(line, 'a test file\n')
+
+		line = self.fnode.readline()
+		self.assertEqual(line, 'for FileNode version %d\n' % self.oldversion)
+
+		line = self.fnode.readline()
+		self.assertEqual(line, '')
+
+		self.fnode.seek(0)
+		line = self.fnode.readline()
+		self.assertEqual(line, 'This is only\n')
+
+
+	def test01_Write(self):
+		"Writing an old version file node."
+
+		self.fnode.lineSeparator = '\n'
+
+		self.fnode.write('foobar\n')
+		self.fnode.seek(-7, 2)
+		line = self.fnode.readline()
+		self.assertEqual(line, 'foobar\n')
+
+
+	def test02_Attributes(self):
+		"Accessing attributes in an old version file node."
+
+		self.fnode.attrs.userAttr = 'foobar'
+		self.assertEqual(
+			getattr(self.fnode.attrs, 'userAttr', None), 'foobar',
+			"User attribute was not correctly set.")
+
+		self.fnode.attrs.userAttr = 'bazquux'
+		self.assertEqual(
+			getattr(self.fnode.attrs, 'userAttr', None), 'bazquux',
+			"User attribute was not correctly changed.")
+
+		del self.fnode.attrs.userAttr
+		self.assertEqual(
+			getattr(self.fnode.attrs, 'userAttr', None), None,
+			"User attribute was not deleted.")
+
+
+
+class Version1TestCase(OldVersionTestCaseMixin, unittest.TestCase):
+	"Basic test for version 1 format compatibility."
+
+	oldversion = 1
+	oldh5fname = 'test_filenode_v1.h5'
+
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -873,6 +976,7 @@ def suite():
 	theSuite.addTest(unittest.makeSuite(LineSeparatorTestCase))
 	theSuite.addTest(unittest.makeSuite(AttrsTestCase))
 	theSuite.addTest(unittest.makeSuite(ClosedH5FileTestCase))
+	theSuite.addTest(unittest.makeSuite(Version1TestCase))
 
 	return theSuite
 
