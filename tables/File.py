@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.42 2003/07/17 11:46:24 falted Exp $
+#       $Id: File.py,v 1.43 2003/07/17 18:57:28 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.42 $"
+__version__ = "$Revision: 1.43 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -49,7 +49,7 @@ from Array import Array
 from AttributeSet import AttributeSet
 import numarray
 
-def openFile(filename, mode="r", title="", trMap={}):
+def openFile(filename, mode="r", title="", trMap={}, root=""):
 
     """Open an HDF5 file an returns a File object.
 
@@ -78,6 +78,11 @@ def openFile(filename, mode="r", title="", trMap={}):
              Python names, while the values are the HDF5 names. This
              is useful when you need to name HDF5 nodes with invalid
              or reserved words in Python.
+
+    root -- (Optional) A group in the HDF5 hierarchy which is taken as
+            the starting point to create the object tree. The group
+            has to be named after its HDF5 name and can be a path. If
+            it does not exist, a RuntimeError is issued.
 
     """
     
@@ -144,7 +149,7 @@ def openFile(filename, mode="r", title="", trMap={}):
         new = 1
             
     # Finally, create the File instance, and return it
-    return File(path, mode, title, new, trMap)
+    return File(path, mode, title, new, trMap, root)
 
 
 class File(hdf5Extension.File, object):
@@ -185,7 +190,7 @@ class File(hdf5Extension.File, object):
     """
 
     def __init__(self, filename, mode="r", title="",
-                 new=1, trMap={}):
+                 new=1, trMap={}, root=""):
         
         """Open an HDF5 file. The supported access modes are: "r" means
         read-only; no data can be modified. "w" means write; a new file is
@@ -208,7 +213,7 @@ class File(hdf5Extension.File, object):
         self.trMap = trMap
         
         # Get the root group from this file
-        self.root = self.__getRootGroup()
+        self.root = self.__getRootGroup(root)
 
         # Set the flag to indicate that the file has been opened
         self.isopen = 1
@@ -216,7 +221,7 @@ class File(hdf5Extension.File, object):
         return
 
     
-    def __getRootGroup(self):
+    def __getRootGroup(self, root=""):
         
         """Returns a Group instance which will act as the root group
         in the hierarchical tree. If file is opened in "r", "r+" or
@@ -230,6 +235,14 @@ class File(hdf5Extension.File, object):
         self._v_groupId = self._getFileId()
         self._v_depth = 0
 
+        if root in [None, "", "/"]:
+            root = "/"
+            hdf5name = "/"
+        else:
+            hdf5name = root   # trMap?
+
+        rootname = "/"
+
         # Global dictionaries for the file paths.
         # These are used to keep track of all the childs and group objects
         # in tree object. They are dictionaries that will use the pathnames
@@ -239,72 +252,75 @@ class File(hdf5Extension.File, object):
         self.leaves = {}
         self.objects = {}
 
-        root = Group(self._v_new)
+        rootGroup = Group(self._v_new)
         
         # Create new attributes for the root Group instance
-        newattr = root.__dict__
-        newattr["_v_rootgroup"] = root  # For compatibility with Group
+        newattr = rootGroup.__dict__
+        newattr["_v_rootgroup"] = rootGroup  # For compatibility with Group
         newattr["_v_groupId"] = self._v_groupId
         newattr["_v_parent"] = self
         newattr["_v_file"] = self
         newattr["_v_depth"] = 1
         newattr["_v_filename"] = self.filename  # Only root group has this
 
-        newattr["_v_name"] = "/"
-        newattr["_v_hdf5name"] = "/"  # For root, this is always "/"
-        newattr["_v_pathname"] = "/"
+        newattr["_v_name"] = rootname
+        newattr["_v_hdf5name"] = hdf5name
+        newattr["_v_pathname"] = rootname   # Can be hdf5name?
         
         # Update global path variables for Group
-        self.groups["/"] = root
-        self.objects["/"] = root
+        self.groups["/"] = rootGroup
+        self.objects["/"] = rootGroup
         
         # Open the root group. We do that always, be the file new or not
-        newattr["_v_groupId"] = root._g_openGroup(self._v_groupId, "/")
-        # Attach the AttributeSet attribute to the root group
-        newattr["_v_attrs"] = AttributeSet(root)
+        newattr["_v_groupId"] = rootGroup._g_openGroup(self._v_groupId, root)
 
+        # Attach the AttributeSet attribute to the rootGroup group
+        newattr["_v_attrs"] = AttributeSet(rootGroup)
+
+        attrsRoot =  rootGroup._v_attrs   # Shortcut
         if self._v_new:
             # Set the title
             newattr["_v_title"] = self.title
             
-            # Save the root attributes on disk
-            root._v_attrs._g_setAttrStr('TITLE',  self.title)
-            root._v_attrs._g_setAttrStr('CLASS', "GROUP")
-            root._v_attrs._g_setAttrStr('VERSION', "1.0")
+            # Save the rootGroup attributes on disk
+            attrsRoot._g_setAttrStr('TITLE',  self.title)
+            attrsRoot._g_setAttrStr('CLASS', "GROUP")
+            attrsRoot._g_setAttrStr('VERSION', "1.1") # Changed in v0.6
             
             # Finally, save the PyTables format version for this file
             self._format_version = format_version
-            root._v_attrs._g_setAttrStr('PYTABLES_FORMAT_VERSION',
-                                             format_version)
+            attrsRoot._g_setAttrStr('PYTABLES_FORMAT_VERSION', format_version)
             # Add these attributes to the dictionary
-            root._v_attrs._v_attrnames.extend(['TITLE','CLASS','VERSION',
-                                               'PYTABLES_FORMAT_VERSION'])
+            attrsRoot._v_attrnames.extend(['TITLE','CLASS','VERSION',
+                                           'PYTABLES_FORMAT_VERSION'])
             # Add these attributes to the dictionary
-            root._v_attrs._v_attrnames.extend(['TITLE','CLASS','VERSION',
-                                               'PYTABLES_FORMAT_VERSION'])
-            root._v_attrs._v_attrnamessys.extend(['TITLE','CLASS','VERSION',
-                                                  'PYTABLES_FORMAT_VERSION'])
+            attrsRoot._v_attrnames.extend(['TITLE','CLASS','VERSION',
+                                           'PYTABLES_FORMAT_VERSION'])
+            attrsRoot._v_attrnamessys.extend(['TITLE','CLASS',
+                                              'VERSION',
+                                              'PYTABLES_FORMAT_VERSION'])
             # Sort them
-            root._v_attrs._v_attrnames.sort()
-            root._v_attrs._v_attrnamessys.sort()
+            attrsRoot._v_attrnames.sort()
+            attrsRoot._v_attrnamessys.sort()
 
-
-        
         else:
             # Firstly, get the PyTables format version for this file
-            self._format_version = root._v_attrs.PYTABLES_FORMAT_VERSION
+            #self._format_version = attrsRoot.PYTABLES_FORMAT_VERSION
+            self._format_version = hdf5Extension.read_f_attr(self._v_groupId,
+                                                     'PYTABLES_FORMAT_VERSION')
             if self._format_version == None:
                 # PYTABLES_FORMAT_VERSION attribute is not present
                 self._format_version = "unknown"
                           
-            # Get the title for the root group
-            root.__dict__["_v_title"] = root._v_attrs.TITLE
-            self.title = root._v_title   # This is a standard File attribute
+            # Get the title for the rootGroup group
+            rootGroup.__dict__["_v_title"] = attrsRoot.TITLE
+            # Get the title for the file
+            self.title =  hdf5Extension.read_f_attr(self._v_groupId, 'TITLE')
                       
             # Get all the groups recursively
-            root._g_openFile()
+            rootGroup._g_openFile()
         
-        return root
+        return rootGroup
 
     
     def _createNode(self, classname, where, name, *args, **kwargs):

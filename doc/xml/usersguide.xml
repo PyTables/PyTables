@@ -3229,7 +3229,7 @@ if __name__=="__main__":
 	  <subsubsection>
 	    <heading id="walkGroupsDescr">walkGroups(where='/')</heading>
 
-	    <p><em>Method</em> that returns the list of Groups (not
+	    <p><em>Iterator</em> that returns the list of Groups (not
 	      Leaves) hanging from <em>where</em>. If <em>where</em>
 	      is not supplied, the root object is taken as origin. The
 	      returned Group list is in a top-bottom order, and
@@ -3406,8 +3406,8 @@ if __name__=="__main__":
 	      <verb>'Leaf'</verb>, <verb>'Table'</verb> and
 	      <verb>'Array'</verb>.</item>
 
-	    <term>_f_walkGroups()</term> <item>Method that returns the
-	      list of Groups (not Leaves) hanging from
+	    <term>_f_walkGroups()</term> <item>Iterator that returns
+	      the list of Groups (not Leaves) hanging from
 	      <em>self</em>. The returned Group list is in a
 	      top-bottom order, and alphanumerically sorted when they
 	      are at the same level. </item>

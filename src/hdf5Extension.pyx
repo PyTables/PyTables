@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.61 2003/07/16 20:17:56 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.62 2003/07/17 18:57:28 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.61 $"
+__version__ = "$Revision: 1.62 $"
 
 
 import sys, os
@@ -58,6 +58,9 @@ cdef extern from "stdlib.h":
   ctypedef int size_t
   void *malloc(size_t size)
   void free(void *ptr)
+
+cdef extern from "time.h":
+  ctypedef int time_t
 
 # Funtions for printng in C
 cdef extern from "stdio.h":
@@ -231,9 +234,19 @@ cdef extern from "hdf5.h":
   #int H5T_NATIVE_CHAR, H5T_NATIVE_INT, H5T_NATIVE_FLOAT, H5T_NATIVE_DOUBLE
 
   ctypedef int hid_t  # In H5Ipublic.h
+  ctypedef int hbool_t
   ctypedef int herr_t
   ctypedef int htri_t
   ctypedef long long hsize_t    # How to declare that in a compatible MSVC way?
+
+  cdef struct H5G_stat_t:
+    unsigned long fileno[2]
+    unsigned long objno[2]
+    unsigned nlink
+    int type
+    time_t mtime
+    size_t linklen
+  
   cdef enum H5T_class_t:
     H5T_NO_CLASS         = -1,  #error                                      */
     H5T_INTEGER          = 0,   #integer types                              */
@@ -297,7 +310,12 @@ cdef extern from *:
                   hid_t file_space_id, hid_t plist_id, void *buf)
 
   hid_t  H5Gcreate(hid_t loc_id, char *name, size_t size_hint )
-
+  
+  herr_t H5Gget_objinfo(hid_t loc_id,
+                        char *name,
+                        hbool_t follow_link,
+                        H5G_stat_t *statbuf )
+  
   hid_t  H5Gopen(hid_t loc_id, char *name )
 
   herr_t H5Gclose(hid_t group_id)
@@ -412,9 +430,11 @@ cdef extern from "H5LT.h":
   herr_t H5LTget_attribute_double( hid_t loc_id, 
                                    char *obj_name, 
                                    char *attr_name,
-                                   double *data ) 
+                                   double *data )
+  
+  herr_t H5LTfind_dataset(hid_t loc_id, char *name)
 
-  herr_t H5LT_find_attribute( hid_t loc_id, char *attr_name )
+  herr_t H5LT_find_attribute(hid_t loc_id, char *attr_name )
 
 
 # Functions from HDF5 ARRAY (this is not part of HDF5 HL; it's private)
@@ -634,32 +654,46 @@ def isPyTablesFile(char *filename):
 
   """
   
-  cdef hid_t root_id
-  cdef herr_t ret
-  cdef char attr_out[256]
+  cdef hid_t file_id
 
-  isptf = 0
+  isptf = -1
   if os.path.isfile(filename) and H5Fis_hdf5(filename) > 0:
     # The file exists and is HDF5, that's ok
     # Open it in read-only mode
     file_id = H5Fopen(filename, H5F_ACC_RDONLY, H5P_DEFAULT)
-    # Open the root group
-    root_id =  H5Gopen(file_id, "/")
-    # Check if attribute exists
-    if H5LT_find_attribute(root_id, 'PYTABLES_FORMAT_VERSION'):
-      # Read the format_version attribute
-      ret = H5LT_get_attribute_disk(root_id, 'PYTABLES_FORMAT_VERSION',
-                                    attr_out)
-      if ret >= 0:
-        isptf = attr_out
-      else:
-        isptf = ret
-    # Close root group
-    H5Gclose(root_id)
+    isptf = read_f_attr(file_id, 'PYTABLES_FORMAT_VERSION')
     # Close the file
     H5Fclose(file_id)
 
   return isptf
+
+def read_f_attr(hid_t file_id, char *attr_name):
+  """Return the PyTables file attributes.
+
+  When successful, returns the format version string, for TRUE, or 0
+  (zero), for FALSE. Otherwise returns a negative value.
+
+  To this function to work, it needs a closed file.
+
+  """
+
+  cdef hid_t root_id
+  cdef herr_t ret
+  cdef char attr_value[256]
+
+  # Check if attribute exists
+  # Open the root group
+  root_id =  H5Gopen(file_id, "/")
+  if H5LT_find_attribute(root_id, attr_name):
+    # Read the format_version attribute
+    ret = H5LT_get_attribute_disk(root_id, attr_name, attr_value)
+    if ret < 0:
+      strcpy(attr_value, "")
+
+  # Close root group
+  H5Gclose(root_id)
+      
+  return attr_value
 
 def getHDF5Version():
   """Get the underlying HDF5 library version"""
@@ -685,7 +719,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.61 2003/07/16 20:17:56 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.62 2003/07/17 18:57:28 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -701,7 +735,7 @@ cdef class File:
   cdef char    *name
 
   def __new__(self, char *name, char *mode, char *title,
-              int new, object trTable):
+              int new, object trTable, char *root):
     # Create a new file using default properties
     # Improve this to check if the file exists or not before
     self.name = name
@@ -1088,11 +1122,19 @@ cdef class Group:
   def _g_openGroup(self, hid_t loc_id, char *name):
     cdef hid_t ret
     
+    # Firstly check that name exists
+    # This doesn't seems to work when name is like /non_existent_path!
+#     if (H5Gget_objinfo(loc_id, name, 0, NULL) < 0):
+#       raise RuntimeError("Non-existent group: '%s'." % self.name)
+    # This does not work neither!
+#     if (H5LTfind_dataset(loc_id, name) <= 0):
+#       raise RuntimeError("Non-existent group: '%s'." % self.name)
+    
     # Open a existing group
     self.name = strdup(name)
     ret = H5Gopen(loc_id, self.name)
     if ret < 0:
-      raise RuntimeError("Can't open the group %s." % self.name)
+      raise RuntimeError("Can't open the group: '%s'." % self.name)
     self.group_id = ret
     self.parent_id = loc_id
     return self.group_id
@@ -1395,6 +1437,7 @@ cdef class Table:
     cdef int ret
     #print "Destroying object Table in Extension"
     free(<void *>self.name)
+
 
 cdef class Row:
   """Row Class

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.43 2003/07/17 11:46:24 falted Exp $
+#       $Id: Group.py,v 1.44 2003/07/17 18:57:28 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.43 $"
+__version__ = "$Revision: 1.44 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -144,24 +144,11 @@ class Group(hdf5Extension.Group, object):
         return self.__iter__(classname, recursive)
 
     # This iterative version of _g_openFile is due to John Nielsen
-    def _g_openFile(self, root = ""):
+    def _g_openFile(self):
         """Recusively reads an HDF5 file and generates a tree object.
         """
 
-        stack=[self]
-        # Check if a specific group is asked to be open as root
-        if root and root[0]=='/':
-            root=root.split('/')
-            #look for 2nd element
-            #'/'.split('/')=['',''] '/a'.split('/')=['', 'a']
-            if root[1]: 
-                objgroup=self
-                for name in root[1:]:
-                    new_objgroup = Group(new = 0)
-                    new_objgroup._g_putObjectInTree(name, objgroup)
-                    objgroup=new_objgroup
-                stack=[objgroup]
-                
+        stack=[self]                
         while stack:
             objgroup=stack.pop()
             pgroupId=objgroup._v_parent._v_groupId
@@ -489,7 +476,7 @@ I can't promise getting the correct object, but I will do my best!.""",
         """Close this HDF5 group"""
         self._g_closeGroup()
         # Delete the back references in Group
-        if self._v_hdf5name <> "/":
+        if self._v_name <> "/":
             del self._v_parent._v_groups[self._v_name]
             del self._v_parent._v_childs[self._v_name]
             del self._v_parent.__dict__[self._v_name]

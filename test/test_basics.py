@@ -13,7 +13,7 @@ class OpenFileTestCase(unittest.TestCase):
     def setUp(self):
         # Create an HDF5 file
         self.file = tempfile.mktemp(".h5")
-        fileh = openFile(self.file, mode = "w")
+        fileh = openFile(self.file, mode = "w", title="File title")
         root = fileh.root
         # Create an array
         fileh.createArray(root, 'array', [1,2],
@@ -200,7 +200,7 @@ class OpenFileTestCase(unittest.TestCase):
             self.fail("expected an LookupError")
         fileh.close()
         
-    def test04_openErrorFile(self):
+    def test04a_openErrorFile(self):
         """Checking opening a non-existing file for reading"""
 
         try:
@@ -209,6 +209,34 @@ class OpenFileTestCase(unittest.TestCase):
             if verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next IOError was catched!"
+                print value
+        else:
+            self.fail("expected an IOError")
+
+    def test04b_alternateRootFile(self):
+        """Checking alternate root access to the object tree"""
+        
+        # Open the existent HDF5 file
+        fileh = openFile(self.file, mode = "r", root="/agroup")
+        # Get the CLASS attribute of the arr object
+        if verbose:
+            print "\nFile tree dump:", fileh
+        title = fileh.root.anarray1.getAttr("TITLE")
+
+        assert title == "Array title 1"
+	fileh.close()
+
+    # This test works well, but HDF5 emits a series of messages that
+    # may lost the user. It is better to deactivate it.
+    def notest04c_alternateRootFile(self):
+        """Checking non-existent alternate root access to the object tree"""
+
+        try:
+            fileh = openFile(self.file, mode = "r", root="/nonexistent")
+        except RuntimeError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next RuntimeError was catched!"
                 print value
         else:
             self.fail("expected an IOError")
