@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.39 2004/12/24 18:16:01 falted Exp $
+#       $Id: AttributeSet.py,v 1.40 2004/12/29 21:25:46 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.39 $"
+__version__ = "$Revision: 1.40 $"
 
 import warnings, cPickle
 import hdf5Extension
@@ -49,10 +49,17 @@ SYS_ATTRS = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
              "FILTERS", "AUTOMATIC_INDEX", "REINDEX", "DIRTY"]
 # Prefixes of other system attributes
 SYS_ATTRS_PREFIXES = ["FIELD_"]
+# RO_ATTRS will be disabled and let the user modify them if they
+# want to. The user is still not allowed to remove or rename
+# system attributes. Francesc Altet 2004-12-19
 # Read-only attributes:
-RO_ATTRS = ["CLASS", "FLAVOR", "VERSION", "NROWS", "EXTDIM",
-            "PYTABLES_FORMAT_VERSION", "FILTERS"]
+# RO_ATTRS = ["CLASS", "FLAVOR", "VERSION", "NROWS", "EXTDIM",
+#             "PYTABLES_FORMAT_VERSION", "FILTERS"]
+#RO_ATTRS = []
 
+# The next attributes are not meant to be copied during a Node copy process
+SYS_ATTRS_NOTTOBECOPIED = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
+                           "PYTABLES_FORMAT_VERSION", "FILTERS", "ENCODING"]
 
 def issysattrname(name):
     "Check if a name is a system attribute or not"
@@ -120,12 +127,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         self.__dict__["_v_attrnamessys"] = []
         self.__dict__["_v_attrnamesuser"] = []
         for attr in self._v_attrnames:
-            # New attribute (to allow tab-completion in interactive mode)
-            # Beware! From 0.7.1 on, a lazy attribute reading is on.
-            # From 0.8 on, attrs is a property, so we can againg
             # put the attributes on the local dictionary to allow
             # tab-completion
-            #self.__dict__[attr] = self.__getattr__(attr)
             self.__getattr__(attr)
             if issysattrname(attr):
                 self._v_attrnamessys.append(attr)
@@ -142,20 +145,15 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         The parameter attrset the attribute set to be returned. An
         "user" value returns only the user attributes. This is the
-        default. "sys" returns only the system (read-only)
-        attributes. "readonly" returns the read-only system
-        attributes. Finally, "all" returns both the system and user
-        attributes.
+        default. "sys" returns only the system attributes. Finally,
+        "all" returns both the system and user attributes.
 
         """
-        
+
         if attrset == "user":
             return self._v_attrnamesuser
         elif attrset == "sys":
             return self._v_attrnamessys
-        elif attrset == "readonly":
-            return [ name for name in self._v_attrnamessys
-                     if name in RO_ATTRS]
         elif attrset == "all":
             return self._v_attrnames
 
@@ -191,9 +189,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         else:
             retval = value
 
-        # Beware! From 0.7.1 on, a lazy attribute reading is on.
-        #self.__dict__[name] = value
-        # This is no longuer a lazy attribute
+        # Put this value in local directory
         self.__dict__[name] = retval
         return retval
 
@@ -216,9 +212,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         checkNameValidity(name)
 
         # Check that the attribute is not a system one (read-only)
-        if name in RO_ATTRS:
-            raise AttributeError, \
-                  "Read-only attribute ('%s') cannot be overwritten" % (name)
+#         if name in RO_ATTRS:
+#             raise AttributeError, \
+#                   "Read-only attribute ('%s') cannot be overwritten" % (name)
             
         # Check if we have too much numbers of attributes
         if len(self._v_attrnames) == MAX_ATTRS_IN_NODE:
@@ -231,16 +227,22 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # (overwriting an existing one if needed)
         self._g_setAttr(name, value)
             
-        # New attribute. Introduce it into the local directory
+        # New attribute or value. Introduce it into the local
+        # directory
         self.__dict__[name] = value
 
         # Finally, add this attribute to the list if not present
         if not name in self._v_attrnames:
             self._v_attrnames.append(name)
-            self._v_attrnamesuser.append(name)
+            if issysattrname(name):
+                self._v_attrnamessys.append(name)
+            else:
+                self._v_attrnamesuser.append(name)
             # Sort the attributes
             self._v_attrnames.sort()
+            self._v_attrnamessys.sort()
             self._v_attrnamesuser.sort()
+
 
     def __delattr__(self, name):
         "Remove the attribute attrname from the attribute set"
@@ -252,16 +254,19 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
                   (name, self._v_node._v_name)
 
         # The system attributes are protected
-        if name in RO_ATTRS:
+        if name in self._v_attrnamessys:
             raise AttributeError, \
-                  "Read-only attribute ('%s') cannot be deleted" % (name)
+                  "System attribute ('%s') cannot be deleted" % (name)
 
         # Delete the attribute from disk
         self._g_remove(name)
 
         # Delete the attribute from local lists
         self._v_attrnames.remove(name)
-        self._v_attrnamesuser.remove(name)
+        if name in self._v_attrnamessys:
+            self._v_attrnamessys.remove(name)
+        else:
+            self._v_attrnamesuser.remove(name)
 
         # Delete the attribute from the local directory
         # closes (#1049285)
@@ -276,9 +281,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         
         # if oldattrname or newattrname are system attributes, raise an error
         for name in [oldattrname, newattrname]:
-            if name in RO_ATTRS:
+            if name in self._v_attrnamessys:
                 raise AttributeError, \
-            "Read-only attribute ('%s') cannot be renamed" % (name)
+            "System attribute ('%s') cannot be renamed" % (name)
 
         # First, fetch the value of the oldattrname
         attrvalue = getattr(self, oldattrname)
@@ -290,7 +295,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         delattr(self, oldattrname)
 
     def _f_copy(self, where):
-        "Copy the user attributes to 'where' object"
+        "Copy the system and user attributes to 'where' object"
         assert (isinstance(where, Group.Group) or
                 isinstance(where, Leaf.Leaf)), \
                 "The where has to be a Group or Leaf instance"
@@ -300,6 +305,11 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
             dstAttrs = where.attrs
         for attrname in self._v_attrnamesuser:
             setattr(dstAttrs, attrname, getattr(self, attrname))
+        # Copy the system attributes that we are allowed to
+        for attrname in self._v_attrnamessys:
+            #setattr(dstAttrs, attrname, getattr(self, attrname))
+            if attrname not in SYS_ATTRS_NOTTOBECOPIED:
+                setattr(dstAttrs, attrname, getattr(self, attrname))
 
     def _f_close(self):
         "Delete some back-references"

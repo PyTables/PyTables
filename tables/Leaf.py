@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.58 2004/12/24 18:16:02 falted Exp $
+#       $Id: Leaf.py,v 1.59 2004/12/29 21:25:46 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.58 $"
+__version__ = "$Revision: 1.59 $"
 
 import warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -345,7 +345,6 @@ class Leaf(object):
 
         # First, check if the copy() method has been defined for this object
         if not hasattr(self, "_g_copy"):
-            #raise NotImplementedError, \
             warnings.warn( \
                   "<%s> has not a copy() method. Not copying it." % str(self),
                   UserWarning)

@@ -55,6 +55,12 @@ Improvements:
   IntType. However, indexes in slices are still restricted to regular
   IntType.
 
+- The concept of READ_ONLY system attributes has disappeared. You can
+  change them now at your own risk!. However, you still cannot remove
+  or rename system attributes.
+
+- Table.iterrows() returns an empty iterator when no rows are selected.
+
 
 Backward-incompatible changes:
 
@@ -67,8 +73,6 @@ Backward-incompatible changes:
 - When start>=stop an empty iterator is returned by Table.iterrows
   instead of an empty RecArray. Thanks to Ashley Walsh for noting
   this.
-
-- Table.iterrows() returns an empty iterator when no rows are selected.
 
 API additions:
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.85 2004/12/24 18:16:01 falted Exp $
+#       $Id: Group.py,v 1.86 2004/12/29 21:25:46 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,9 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.85 $"
+__version__ = "$Revision: 1.86 $"
+
+obversion = "1.0"
 
 # Recommended values for maximum number of groups and maximum depth in tree
 # However, these limits are somewhat arbitraries and can be increased
@@ -305,34 +307,26 @@ self._g_join(name), UserWarning)
         else:
             self._g_open()
         # Attach the AttributeSet attribute
-        # This doesn't becomes a property because it takes more time!
+        # This doesn't become a property because it takes more time!
         self.__dict__["_v_attrs"] = AttributeSet(self)
         if self._v_new:
             # Set the title, class and version attribute
-            self._v_attrs._g_setAttrStr('TITLE',  self._v_new_title)
-            self._v_attrs._g_setAttrStr('CLASS', "GROUP")
-            self._v_attrs._g_setAttrStr('VERSION', "1.0")
+            self._v_attrs.TITLE = self._v_new_title
+            self._v_attrs.CLASS = "GROUP"
+            self._v_attrs.VERSION = obversion
             # Set the filters object
             if self._v_new_filters is None:
                 # If not filters has been passed in the constructor,
                 filters = self._v_parent._v_filters
             else:
                 filters = self._v_new_filters
-            filtersPickled = cPickle.dumps(filters, 0)
-            self._v_attrs._g_setAttrStr('FILTERS', filtersPickled)
-            # Add these attributes to the dictionary
-            attrlist = ['TITLE','CLASS','VERSION','FILTERS']
-            self._v_attrs._v_attrnames.extend(attrlist)
-            self._v_attrs._v_attrnamessys.extend(attrlist)
-            # Sort them
-            self._v_attrs._v_attrnames.sort()
-            self._v_attrs._v_attrnamessys.sort()
+            self._v_attrs.FILTERS = filters
         else:
             # We don't need to get attributes on disk. The most importants
             # are defined as properties
             pass
 
-    # Define attrs as a property.
+    # Define some attrs as a property.
     # In the case of groups, it is faster to not define the _v_attrs property
     # I don't know exactly why. This should be further investigated.
 #     def _get_attrs (self):

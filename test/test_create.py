@@ -408,11 +408,11 @@ class createAttrTestCase(unittest.TestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
             self.root = self.fileh.root
-            
+
         assert self.root.agroup._v_attrs._f_list("user") == \
                ["pq", "qr", "rs"]
         assert self.root.agroup._v_attrs._f_list("sys") == \
-               ['CLASS','FILTERS', 'TITLE','VERSION']
+               ['CLASS','FILTERS', 'TITLE', 'VERSION']
         assert self.root.agroup._v_attrs._f_list("all") == \
                ['CLASS','FILTERS', 'TITLE', 'VERSION', "pq", "qr", "rs"]
 
@@ -421,8 +421,8 @@ class createAttrTestCase(unittest.TestCase):
                ['CLASS', 'FIELD_0_NAME', 'FIELD_1_NAME', 'FIELD_2_NAME',
                 'FIELD_3_NAME', 'FIELD_4_NAME', 'NROWS', 'TITLE',
                 'VERSION']
-        assert self.root.atable.attrs._f_list("readonly") == \
-               ['CLASS', 'NROWS', 'VERSION']
+#         assert self.root.atable.attrs._f_list("readonly") == \
+#                ['CLASS', 'NROWS', 'VERSION']
         assert self.root.atable.attrs._f_list("all") == \
                ['CLASS', 'FIELD_0_NAME', 'FIELD_1_NAME', 'FIELD_2_NAME',
                 'FIELD_3_NAME', 'FIELD_4_NAME', 'NROWS', 'TITLE',
@@ -524,14 +524,15 @@ class createAttrTestCase(unittest.TestCase):
         try:
             if verbose:
                 print "System attrs:", self.group._v_attrs._v_attrnamessys
+                print "local dict:", self.group._v_attrs.__dict__
             del self.group._v_attrs.CLASS
         except AttributeError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next RuntimeError was catched!"
+                print "\nGreat!, the next AttributeError was catched!"
                 print value
         else:
-            self.fail("expected a RuntimeError")
+            self.fail("expected a AttributeError")
 
     def test07_renameAttributes(self):
         """Checking renaming attributes """
@@ -569,10 +570,10 @@ class createAttrTestCase(unittest.TestCase):
         except AttributeError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next RuntimeError was catched!"
+                print "\nGreat!, the next AttributeError was catched!"
                 print value
         else:
-            self.fail("expected a RuntimeError")
+            self.fail("expected a AttributeError")
 
     def test09_setIntAttributes(self):
         """Checking setting Int attributes"""
@@ -1588,6 +1589,8 @@ class CopyFileTestCase(unittest.TestCase):
             print "The copied node list -->", nodelist2
         assert srcgroup._v_nchildren == dstgroup._v_nchildren
         assert nodelist1 == nodelist2
+        #print "_v_attrnames-->", self.h5file2.root._v_attrs._v_attrnames
+        #print "--> <%s,%s>" % (self.h5file2.title, self.title)
         assert self.h5file2.title == self.title
 
         # Check that user attributes has not been copied
@@ -1777,10 +1780,12 @@ def suite():
     niter = 1
     #heavy = 1 # Uncomment this only for testing purposes!
     
+    #theSuite.addTest(unittest.makeSuite(createAttrNotCloseTestCase))
     #theSuite.addTest(unittest.makeSuite(FiltersCase1))
     #theSuite.addTest(unittest.makeSuite(createTestCase))
     #theSuite.addTest(unittest.makeSuite(CopyGroupCase1))
     #theSuite.addTest(unittest.makeSuite(CopyGroupCase2))
+    #theSuite.addTest(unittest.makeSuite(CopyFileCase1))
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(createTestCase))
         theSuite.addTest(unittest.makeSuite(createAttrNotCloseTestCase))

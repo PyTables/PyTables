@@ -4,7 +4,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.95 2004/12/29 20:12:49 ivilata Exp $
+#       $Id: File.py,v 1.96 2004/12/29 21:25:46 falted Exp $
 #
 ########################################################################
 
@@ -34,7 +34,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.95 $"
+__version__ = "$Revision: 1.96 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 #format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -326,10 +326,8 @@ class File(hdf5Extension.File, object):
 
         if rootUEP in [None, ""]:
             rootUEP = "/"
-
         # Save the User Entry Point in a variable class
         self.rootUEP=rootUEP
-
         rootname = "/"   # Always the name of the root group
 
         # Global dictionaries for the file paths.
@@ -340,10 +338,8 @@ class File(hdf5Extension.File, object):
         self.groups = {}
         self.leaves = {}
         self.objects = {}
-
-        rootGroup = Group(self._v_new)
-        
         # Create new attributes for the root Group instance
+        rootGroup = Group(self._v_new)        
         newattr = rootGroup.__dict__
         newattr["_v_rootgroup"] = rootGroup  # For compatibility with Group
         newattr["_v_objectID"] = self._v_objectID
@@ -351,7 +347,6 @@ class File(hdf5Extension.File, object):
         newattr["_v_file"] = self
         newattr["_v_depth"] = 1
         newattr["_v_filename"] = self.filename  # Only root group has this
-
         newattr["_v_name"] = rootname
         newattr["_v_hdf5name"] = rootUEP
         newattr["_v_pathname"] = rootname   # Can be rootUEP? I don't think so
@@ -359,49 +354,33 @@ class File(hdf5Extension.File, object):
         # Update global path variables for Group
         self.groups["/"] = rootGroup
         self.objects["/"] = rootGroup
-        
         # Open the root group. We do that always, be the file new or not
         rootGroup._g_new(self, rootUEP)
         newattr["_v_objectID"] = rootGroup._g_openGroup()
-
         # Attach the AttributeSet attribute to the rootGroup group
         newattr["_v_attrs"] = AttributeSet(rootGroup)
-
         attrsRoot =  rootGroup._v_attrs   # Shortcut
+
         if self._v_new:
             # Set the title
             newattr["_v_title"] = self.title
             # Set the filters instance
             newattr["_v_filters"] = self.filters
-            
             # Save the rootGroup attributes on disk
-            attrsRoot._g_setAttrStr('TITLE',  self.title)
-            attrsRoot._g_setAttrStr('CLASS', "GROUP")
-            attrsRoot._g_setAttrStr('VERSION', "1.0")
-            filtersPickled = cPickle.dumps(self.filters, 0)
-            attrsRoot._g_setAttrStr('FILTERS', filtersPickled)
-
+            attrsRoot.TITLE =  self.title
+            attrsRoot.CLASS = "GROUP"
+            attrsRoot.VERSION = "1.0"
+            attrsRoot.FILTERS = self.filters
             # Finally, save the PyTables format version for this file
             self.format_version = format_version
-            attrsRoot._g_setAttrStr('PYTABLES_FORMAT_VERSION', format_version)
-            attrlist = ['TITLE','CLASS','VERSION','FILTERS',
-                        'PYTABLES_FORMAT_VERSION']
-            # Add these attributes to the dictionary
-            attrsRoot._v_attrnames.extend(attrlist)
-            attrsRoot._v_attrnamessys.extend(attrlist)
-            # Sort them
-            attrsRoot._v_attrnames.sort()
-            attrsRoot._v_attrnamessys.sort()
-
+            attrsRoot.PYTABLES_FORMAT_VERSION = format_version
         else:
             # Firstly, get the PyTables format version for this file
             self.format_version = hdf5Extension.read_f_attr(self._v_objectID,
                                                      'PYTABLES_FORMAT_VERSION')
-            
             if not self.format_version or not self._isPTFile:
                 # PYTABLES_FORMAT_VERSION attribute is not present
-                self.format_version = "unknown"
-                          
+                self.format_version = "unknown"                          
             # Get the title for the rootGroup group
             if hasattr(attrsRoot, "TITLE"):
                 rootGroup.__dict__["_v_title"] = attrsRoot.TITLE
@@ -865,8 +844,8 @@ class File(hdf5Extension.File, object):
         # Copy all the hierarchy
         ngroups, nleaves, nbytes = \
                  self.root._f_copyChildren(dstFileh.root, recursive=1,
-                                         filters=filters,
-                                         copyuserattrs=copyuserattrs)
+                                           filters=filters,
+                                           copyuserattrs=copyuserattrs)
         # Finally, close the file
         dstFileh.close()
         return (ngroups, nleaves, nbytes)

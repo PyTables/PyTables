@@ -5598,20 +5598,19 @@ fileh.close()
 
 	  <description>
 	    <term id="copyAttrDescr">_f_copy(where)</term><item>Copy
-	      the user attributes to <em>where</em>
-	      object. <em>where</em> has to be a <verb>Group</verb> or
-	      <verb>Leaf</verb> instance.
+	      the user attributes (as well as <em>certain</em> system
+	      attributes) to <em>where</em> object. <em>where</em> has
+	      to be a <verb>Group</verb> or <verb>Leaf</verb>
+	      instance.
 	    </item>
 	    <term id="listAttrDescr">_f_list(attrset = "user")</term>
 	    <item>Return the list of attributes of the parent
 	    node. <em>attrset</em> selects the attribute set to be
 	    returned. An <verb>"user"</verb> value returns only the
 	    user attributes and this is the
-	    default. <verb>"sys"</verb> returns only the system (some
-	    of which are read-only)
-	    attributes. <verb>"readonly"</verb> returns the system
-	    read-only attributes. <verb>"all"</verb> returns both the
-	    system and user attributes.
+	    default. <verb>"sys"</verb> returns only the system
+	    attributes.  <verb>"all"</verb> returns both the system
+	    and user attributes.
 	    </item>
 
 	    <term id="renameAttrDescr">_f_rename(oldattrname,
