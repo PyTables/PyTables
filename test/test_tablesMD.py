@@ -7,19 +7,17 @@ import numarray
 from numarray import *
 #import recarray
 import numarray.records as records
+from numarray import strings
 from tables import *
 
 from test_all import verbose
 
 # Test Record class
 class Record(IsDescription):
-    """ A record has several columns. Represent the here as class
-    variables, whose values are their types. The IsDescription
-    class will take care the user won't add any new variables and
-    that their type is correct.  """
-    
-    var1 = StringCol(itemsize=4, dflt="abcd")   # 4-character String
-    var2 = Col("Int32", 1, 1)           # integer
+
+    # A (2,2) chararray of strings of 4 elements in size
+    var1 = StringCol(itemsize=4, shape=(2,2), dflt="abcd")   
+    var2 = Col("Int32", (2,2), ((1,1),(1,1)))    # integer
     var3 = Col("Int16", 1, 2)           # short integer 
     var4 = Col("Float64", 1, 3.1)       # double (double-precision)
     var5 = Col("Float32", 1, 4.2)       # float  (single-precision)
@@ -28,8 +26,8 @@ class Record(IsDescription):
 
 # From 0.3 on, you can dynamically define the tables with a dictionary
 RecordDescriptionDict = {
-    'var1': StringCol(itemsize=4),   # 4-character String
-    'var2': Col("Int32", 1),      # integer
+    'var1': StringCol(itemsize=4, shape=(2,2)),   # 4-character String
+    'var2': Col("Int32", (2,2)),      # integer
     'var3': Col("Int16", 1),      # short integer 
     'var4': Col("Float64", 2),    # double (double-precision)
     'var5': Col("Float32", 4),    # float  (single-precision)
@@ -56,7 +54,6 @@ def allequal(a,b):
         result = logical_and.reduce(result)
 
     return result
-
 
 class BasicTestCase(unittest.TestCase):
     #file  = "test.h5"
@@ -87,9 +84,12 @@ class BasicTestCase(unittest.TestCase):
         # Fill the recarray
         for i in xrange(self.expectedrows):
             tmplist = []
-            var1 = '%04d' % (self.expectedrows - i)
+            # Both forms (list or chararray) works
+            #var1 = [['%04d' % (self.expectedrows - i)] * 2] * 2
+            var1 = strings.array([['%04d' % (self.expectedrows - i)] * 2] * 2,
+                                 itemsize = 4, shape=(2,2))
             tmplist.append(var1)
-            var2 = i
+            var2 = ((i, 1), (1,1))           # *-*
             tmplist.append(var2)
             var3 = i % self.maxshort
             tmplist.append(var3)
@@ -103,7 +103,7 @@ class BasicTestCase(unittest.TestCase):
                 tmplist.append(float(i))
             # var6 will be like var3 but byteswaped
             tmplist.append(((var3>>8) & 0xff) + ((var3<<8) & 0xff00))
-            var7 = var1[-1]
+            var7 = var1[0][0][-1]
             tmplist.append(var7)
             buflist.append(tmplist)
 
@@ -132,8 +132,8 @@ class BasicTestCase(unittest.TestCase):
                 # Fill the table
                 for i in xrange(self.expectedrows):
                     row['var1'] = '%04d' % (self.expectedrows - i)
-                    row['var7'] = row['var1'][-1]
-                    row['var2'] = i 
+                    row['var7'] = row['var1'][0][0][-1]
+                    row['var2'] = ((i, 1), (1,1))  # *-* 
                     row['var3'] = i % self.maxshort
                     if isinstance(row['var4'], NumArray):
                         row['var4'] = [float(i), float(i*i)]
@@ -179,14 +179,15 @@ class BasicTestCase(unittest.TestCase):
         # Choose a small value for buffer size
         table._v_maxTuples = 3
         # Read the records and select those with "var2" file less than 20
-        result = [ rec['var2'] for rec in table.iterrows()
-                   if rec['var2'] < 20 ]
+        result = [ rec['var2'][0][0] for rec in table.iterrows()
+                   if rec['var2'][0][0] < 20 ]
         if verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last record in table ==>", rec
             print "Total selected records in table ==> ", len(result)
         nrows = self.expectedrows - 1
-        assert (rec['var1'], rec['var2'], rec['var7']) == ("0001", nrows,"1")
+        assert (rec['var1'][0][0], rec['var2'][0][0], rec['var7']) == \
+               ("0001",            nrows,             "1")
         if isinstance(rec['var5'], NumArray):
             assert allequal(rec['var5'], array((float(nrows),)*4))
         else:
@@ -209,7 +210,7 @@ class BasicTestCase(unittest.TestCase):
         table._v_maxTuples = 3
         # Read the records and select those with "var2" file less than 20
         result = [ rec['var5'] for rec in table.iterrows()
-                   if rec['var2'] < 20 ]
+                   if rec['var2'][0][0] < 20 ]
         if verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last record in table ==>", rec
@@ -247,8 +248,8 @@ class BasicTestCase(unittest.TestCase):
         # Append some rows
         for i in xrange(self.appendrows):
             row['var1'] = '%04d' % (self.appendrows - i)
-            row['var7'] = row['var1'][-1]
-            row['var2'] = i 
+            row['var7'] = row['var1'][0][0][-1]
+            row['var2'] = ((i, 1), (1,1))   # *-*
             row['var3'] = i % self.maxshort
             if isinstance(row['var4'], NumArray):
                 row['var4'] = [float(i), float(i*i)]
@@ -262,11 +263,12 @@ class BasicTestCase(unittest.TestCase):
 	    
 	# Flush the buffer for this table and read it
         table.flush()
-        result = [ row['var2'] for row in table.iterrows()
-                   if row['var2'] < 20 ]
+        result = [ row['var2'][0][0] for row in table.iterrows()
+                   if row['var2'][0][0] < 20 ]
 	
         nrows = self.appendrows - 1
-        assert (row['var1'], row['var2'], row['var7']) == ("0001", nrows, "1")
+        assert (row['var1'][0][0], row['var2'][0][0], row['var7']) == \
+               ("0001", nrows, "1")
         if isinstance(row['var5'], NumArray):
             assert allequal(row['var5'], array((float(nrows),)*4))
         else:
@@ -301,7 +303,7 @@ class BasicTestCase(unittest.TestCase):
             print "Last record in table ==>", rec
             print "Total selected records in table ==>", len(result)
         nrows = self.expectedrows - 1
-        assert (rec['var1'], rec['var6']) == ("0001", nrows)
+        assert (rec['var1'][0][0], rec['var6']) == ("0001", nrows)
         assert len(result) == 20
         
 class BasicWriteTestCase(BasicTestCase):
@@ -320,14 +322,14 @@ class DictWriteTestCase(BasicTestCase):
 
 class RecArrayOneWriteTestCase(BasicTestCase):
     title = "RecArrayOneWrite"
-    record=records.array(formats="a4,i4,i2,2f8,f4,i2,a1",
+    record=records.array(formats="(2,2)a4,(2,2)i4,i2,2f8,f4,i2,a1",
                          names='var1,var2,var3,var4,var5,var6,var7')
 
 class RecArrayTwoWriteTestCase(BasicTestCase):
     title = "RecArrayTwoWrite"
     expectedrows = 100
     recarrayinit = 1
-    recordtemplate=records.array(formats="a4,i4,i2,f8,f4,i2,a1",
+    recordtemplate=records.array(formats="(2,2)a4,(2,2)i4,i2,f8,f4,i2,a1",
                                  names='var1,var2,var3,var4,var5,var6,var7',
                                  shape=1)
 
@@ -335,7 +337,7 @@ class RecArrayThreeWriteTestCase(BasicTestCase):
     title = "RecArrayThreeWrite"
     expectedrows = 100
     recarrayinit = 1
-    recordtemplate=records.array(formats="a4,i4,i2,2f8,4f4,i2,a1",
+    recordtemplate=records.array(formats="(2,2)a4,(2,2)i4,i2,2f8,4f4,i2,a1",
                                   names='var1,var2,var3,var4,var5,var6,var7',
                                   shape=1)
 
@@ -407,7 +409,7 @@ class BasicRangeTestCase(unittest.TestCase):
             # Fill the table
             for i in xrange(self.expectedrows):
                 row['var1'] = '%04d' % (self.expectedrows - i)
-                row['var7'] = row['var1'][-1]
+                row['var7'] = row['var1'][0][0][-1]
                 row['var2'] = i 
                 row['var3'] = i % self.maxshort
                 if isinstance(row['var4'], NumArray):
@@ -451,18 +453,18 @@ class BasicRangeTestCase(unittest.TestCase):
             recarray = table.read(self.start, self.stop, self.step)
             result = []
             for nrec in range(len(recarray)):
-                if recarray.field('var2')[nrec] < self.nrows:
-                    result.append(recarray.field('var2')[nrec])
+                if recarray.field('var2')[nrec][0][0] < self.nrows:
+                    result.append(recarray.field('var2')[nrec][0][0])
         elif self.checkgetCol:
             column = table.read(self.start, self.stop, self.step, 'var2')
             result = []
             for nrec in range(len(column)):
-                if column[nrec] < self.nrows:
-                    result.append(column[nrec])
+                if column[nrec][0][0] < self.nrows:    #*-*
+                    result.append(column[nrec][0][0])  #*-*
         else:
-            result = [ rec['var2'] for rec in
+            result = [ rec['var2'][0][0] for rec in
                        table.iterrows(self.start, self.stop, self.step)
-                       if rec['var2'] < self.nrows ]
+                       if rec['var2'][0][0] < self.nrows ]
         
         if self.start < 0:
             startr = self.expectedrows + self.start
@@ -495,9 +497,10 @@ class BasicRangeTestCase(unittest.TestCase):
         assert result == range(startr, stopr, self.step)
         if startr < stopr and not (self.checkrecarray or self.checkgetCol):
             if self.nrows < self.expectedrows:
-                assert rec['var2'] == range(self.start, self.stop, self.step)[-1]
+                assert rec['var2'][0][0] == \
+                       range(self.start, self.stop, self.step)[-1]
             else:
-                assert rec['var2'] == range(startr, stopr, self.step)[-1]
+                assert rec['var2'][0][0] == range(startr, stopr, self.step)[-1]
 
         # Close the file
         self.fileh.close()
@@ -778,15 +781,23 @@ class RecArrayIO(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        r=records.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
+        intlist1 = [[456,23]*3]*2
+        intlist2 = array([[2,2]*3]*2)
+        arrlist1 = [['dbe']*2]*3
+        arrlist2 = strings.array([['de']*2]*3)
+        floatlist1 = [[1.2,2.3]*3]*4
+        floatlist2 = array([[4.5,2.4]*3]*4)
+        b = [[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
+        r=records.array(b, names='col1,col2,col3')
 
         # Save it in a table:
         fileh.createTable(fileh.root, 'recarray', r)
 
         # Read it again
         r2 = fileh.root.recarray.read()
-        assert r.tostring() == r2.tostring()
 
+        assert r.tostring() == r2.tostring()
+        
         fileh.close()
         os.remove(file)
 
@@ -796,7 +807,14 @@ class RecArrayIO(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        r=records.array([[456,'dbe',1.2],[2,'de',1.3]],names='col1,col2,col3')
+        intlist1 = [[456,23]*3]*2
+        intlist2 = array([[2,2]*3]*2)
+        arrlist1 = [['dbe']*2]*3
+        arrlist2 = strings.array([['de']*2]*3)
+        floatlist1 = [[1.2,2.3]*3]*4
+        floatlist2 = array([[4.5,2.4]*3]*4)
+        b = [[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
+        r=records.array(b, names='col1,col2,col3')
 
         # Get an offsetted bytearray
         r1 = r[1:]
@@ -819,10 +837,19 @@ class RecArrayIO(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        r=records.array('a'*200000,'f4,3i4,a5,i2',3000)
+        intlist1 = [[[23,24,35]*6]*6]
+        intlist2 = array([[[2,3,4]*6]*6])
+        arrlist1 = [['dbe']*2]*3
+        arrlist2 = strings.array([['de']*2]*3)
+        floatlist1 = [[1.2,2.3]*3]*4
+        floatlist2 = array([[4.5,2.4]*3]*4)
+        b=[[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
+        r=records.array(b*300, names='col1,col2,col3')
 
-        # Get an offsetted bytearray
-        r1 = r[2000:]
+        # Get an offsetted recarray
+        r1 = r[290:292]
+        if verbose:
+            print "\noffseted recarray --> ", r1
         assert r1._byteoffset > 0
         
         # Save it in a table:
@@ -842,15 +869,23 @@ class RecArrayIO(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        r=records.array('a'*200000,'f4,3i4,a5,i2',3000)
+        intlist1 = [[[23,24,35]*6]*6]
+        intlist2 = array([[[2,3,4]*6]*6])
+        arrlist1 = [['dbe']*2]*3
+        arrlist2 = strings.array([['de']*2]*3)
+        floatlist1 = [[1.2,2.3]*3]*4
+        floatlist2 = array([[4.5,2.4]*3]*4)
+        b = [[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
+        r=records.array(b*300, names='col1,col2,col3', shape=300)
 
         # Get an strided recarray
         r2 = r[::2]
 
         # Get an offsetted bytearray
-        r1 = r2[2000:]
+        r1 = r2[298:]
+        if verbose:
+            print "\noffseted and strided recarray --> ", r1
         assert r1._byteoffset > 0
-        
         # Save it in a table:
         fileh.createTable(fileh.root, 'recarray', r1)
 
@@ -863,54 +898,10 @@ class RecArrayIO(unittest.TestCase):
         os.remove(file)
 
 
-class LargeRowSize(unittest.TestCase):
-
-    def test00(self):
-        "Checking saving a Table with a moderately large rowsize"
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
-
-        # Create a recarray
-        r=records.array([[arange(100)]*2])
-
-        # Save it in a table:
-        fileh.createTable(fileh.root, 'largerow', r)
-
-        # Read it again
-        r2 = fileh.root.largerow.read()
-
-        assert r.tostring() == r2.tostring()
-        
-        fileh.close()
-        os.remove(file)
-
-    def test01(self):
-        "Checking saving a Table with an extremely large rowsize"
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
-
-        # Create a recarray
-        r=records.array([[arange(1000)]*4])
-
-        # Save it in a table:
-        try:
-            fileh.createTable(fileh.root, 'largerow', r)
-        except RuntimeError:
-            if verbose:
-                (type, value, traceback) = sys.exc_info()
-		print "\nGreat!, the next RuntimeError was catched!"
-                print value
-        else:
-            self.fail("expected a RuntimeError")
-            
-        fileh.close()
-        os.remove(file)
-
-
 class DefaultValues(unittest.TestCase):
 
     def test00(self):
-        "Checking saving a Table with default values"
+        "Checking saving a Table MD with default values"
         file = tempfile.mktemp(".h5")
         #file = "/tmp/test.h5"
         fileh = openFile(file, "w")
@@ -923,7 +914,7 @@ class DefaultValues(unittest.TestCase):
         # Fill the table with nrows records
         for i in xrange(nrows):
             if i == 3 or i == 4:
-                table.row['var2'] = 2 
+                table.row['var2'] = ((2,2),(2,2))  #*-* 
             # This injects the row values.
             table.row.append()
 
@@ -932,12 +923,13 @@ class DefaultValues(unittest.TestCase):
         table.flush()
 
         # Create a recarray with the same default values
-        r=records.array([["abcd", 1, 2, 3.1, 4.2, 5, "e"]]*nrows,
-                          formats='a4,i4,i2,f8,f4,i2,a1')
+        buffer = [[[["abcd"]*2]*2, ((1,1),(1,1)), 2, 3.1, 4.2, 5, "e"]]
+        r=records.array(buffer*nrows,
+                        formats='(2,2)a4,(2,2)i4,i2,f8,f4,i2,a1')  #*-*
         
         # Assign the value exceptions
-        r.field("c2")[3] = 2 
-        r.field("c2")[4] = 2
+        r.field("c2")[3] = ((2,2), (2,2))  #*-*
+        r.field("c2")[4] = ((2,2), (2,2))  #*-*
         
         # Read the table in another recarray
         r2 = table.read()
@@ -964,7 +956,10 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
-    #theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
+    #theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
+    #theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
+    #theSuite.addTest(unittest.makeSuite(DefaultValues))
+    #theSuite.addTest(unittest.makeSuite(RecArrayIO))
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
@@ -972,18 +967,16 @@ def suite():
         theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
-        #if isLibAvailable("lzo")[0]:
         theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
-        #if isLibAvailable("ucl")[0]:
 	theSuite.addTest(unittest.makeSuite(CompressUCLTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressZLIBTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressTwoTablesTestCase))
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
         theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
-        theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
+        # This one takes too much time for the MD case
+        #theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayIO))
-        theSuite.addTest(unittest.makeSuite(LargeRowSize))
         theSuite.addTest(unittest.makeSuite(DefaultValues))
             
     return theSuite

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.53 2003/07/11 13:13:06 falted Exp $
+#       $Id: Table.py,v 1.54 2003/07/11 18:53:21 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.53 $"
+__version__ = "$Revision: 1.54 $"
 
 from __future__ import generators
 import sys
@@ -628,9 +628,9 @@ class Table(Leaf, hdf5Extension.Table, object):
             else:
                 shape = (nrows, shape)
         else:
-            shape = [nrows]
-            shape.extend(shape)
-            shape = tuple(shape)
+            shape2 = [nrows]
+            shape2.extend(shape)
+            shape = tuple(shape2)
 
         # Create the resulting recarray
         #print "shape -->", shape

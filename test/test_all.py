@@ -30,6 +30,7 @@ def suite():
                     'test_numarray',
                     'test_lists',
                     'test_tables',
+                    'test_tablesMD',
 		    'test_tree',
 		    ]
 
@@ -42,14 +43,6 @@ def suite():
     except:
         print "Skipping Numeric test suite"
 
-    test_modules2 = [
-                    'test_create',
-                    'test_types',
-                    'test_numarray',
-                    'test_tables',
-		    'test_tree', 
-		    ]
-    
     alltests = unittest.TestSuite()
     for name in test_modules:
         module = __import__(name)
