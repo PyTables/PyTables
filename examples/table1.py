@@ -24,9 +24,8 @@ for i in xrange(10):
     particle.longi = 10 - i
     particle.pressure = float(i*i)
     particle.temperature = float(i**2)
-    # This injects the Record values. Both ways do that.
-    #fileh.appendAsRecord(table, particle)      
-    table.appendAsRecord(particle)      
+    # This injects the row values.
+    table.append(particle)      
 
 # We need to flush the buffers in table in order to get an
 # accurate number of records on it.

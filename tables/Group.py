@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.11 2003/02/06 21:09:12 falted Exp $
+#       $Id: Group.py,v 1.12 2003/02/13 17:45:40 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.11 $"
+__version__ = "$Revision: 1.12 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -174,15 +174,21 @@ class Group(hdf5Extension.Group):
         newattr["_v_" + "parent"] = self
         newattr["_v_" + "depth"] = self._v_depth + 1
         # Get the alternate name (if any)
-        trTable = self._v_rootgroup._v_parent._v_trTable
-        revtrTable = self._v_rootgroup._v_parent._v_revtrTable
+        trTable = self._v_rootgroup._v_parent.trTable
         if value._v_new:
             newattr["_v_name"] = name
             newattr["_v_hdf5name"] = trTable.get(name, name)
         else:
-            newattr["_v_name"] = revtrTable.get(name, name)
+            for (namepy, namedisk) in trTable.items():
+                if namedisk == name:
+                    newattr["_v_name"] = namepy
+                    break
+            else:
+                # namedisk is not in the translation table
+                newattr["_v_name"] = name
+            # This attribute is always the name in disk
             newattr["_v_hdf5name"] = name
-
+                
         newattr["_v_" + "pathname"] = self._f_join(value._v_name)
         # Update instance variable
         self._v_objchilds[value._v_name] = value

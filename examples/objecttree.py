@@ -31,7 +31,7 @@ for table in (table1, table2, table3, table4):
         rec.field1  = 'This is field1: %2d' % (i)
         rec.field2  = 'This is field2: %2d' % i 
         # This injects the Record values
-        table.appendAsRecord(rec)      
+        table.append(rec)      
 
     # Flush the table buffers
     table.flush()

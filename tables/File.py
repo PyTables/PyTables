@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.10 2003/02/03 10:13:08 falted Exp $
+#       $Id: File.py,v 1.11 2003/02/13 17:45:37 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.10 $"
+__version__ = "$Revision: 1.11 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -194,11 +194,7 @@ class File(hdf5Extension.File):
         # _v_new informs if this file is old or new
         self._v_new = new
         # Assign the trTable and build the reverse translation
-        self._v_trTable = trTable
-        revtrTable = {}
-        for (key, value) in trTable.items():
-            revtrTable[value] = key
-        self._v_revtrTable = revtrTable
+        self.trTable = trTable
         
         # Get the root group from this file
         self.root = self.__getRootGroup()

@@ -23,7 +23,6 @@ debug = '--debug' in sys.argv or '-g' in sys.argv
 
 lflags_arg = []
 
-
 if os.name == 'posix':
     # Allow setting the HDF5 dir and additional link flags either in
     # the environment or on the command line.
@@ -103,6 +102,9 @@ compile and run."""
         sys.exit(1)
     else:
         print "Found numarray %s package installed" % numarray.__version__
+
+    # Set the runtime library search path
+    rlib_dirs = [libdir]
                 
 elif os.name == 'nt':
 
@@ -148,7 +150,8 @@ details on the types and methods provided.""",
 					    "src/H5LT.c",
 					    "src/H5TB.c"],
 				library_dirs = [libdir],
-                                libraries = libnames
+                                libraries = libnames,
+                                runtime_library_dirs = rlib_dirs,
                                 )],
       # You may uncomment this line if pyrex installed
       #cmdclass = {'build_ext': build_ext}
