@@ -35,7 +35,6 @@ class BasicTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, "w")
         self.rootgroup = self.fileh.root
         self.populateFile()
-        # Close the file (eventually destroy the extended type)
         self.fileh.close()
 
     def populateFile(self):

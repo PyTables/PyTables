@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.80 2004/09/20 13:12:09 falted Exp $
+#       $Id: Group.py,v 1.81 2004/10/03 12:48:05 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.80 $"
+__version__ = "$Revision: 1.81 $"
 
 # Recommended values for maximum number of groups and maximum depth in tree
 # However, these limits are somewhat arbitraries and can be increased
@@ -564,7 +564,7 @@ self._g_join(name), UserWarning)
 """'%s' group is exceeding the recommended maximum number of children (%d).
  Be ready to see PyTables asking for *lots* of memory and possibly slow I/O.
 """ % (self._v_pathname, MAX_CHILDS_IN_GROUP), UserWarning)
-            
+
         # Put value object with name "name" in object tree
         if name not in self._v_children:
             value._g_putObjectInTree(name, self)

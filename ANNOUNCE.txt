@@ -1,127 +1,52 @@
 Announcing PyTables 0.9
 -------------------------
 
+PyTables is a hierarchical database package designed to efficiently
+manage very large amounts of data.
+
+It is built on top of the HDF5 library and the numarray package. It
+features an object-oriented interface that, combined with C extensions
+for the peformance-critical parts of the code (generated using Pyrex),
+makes it a fast, yet extremely easy to use tool for interactively save
+and retrieve very large amounts of data. One important feature of
+PyTables is that it optimizes memory and disk resources so that they
+take much less space (between a factor 3 to 5, and more if the data is
+compressible) than other solutions, like for example, relational or
+object oriented databases.
+
+On this release it is included a series of quite exciting new
+features, being the most important the indexing capabilities and the
+possibility to modify values in tables (yes, finally).
+
+New features:
+
+- Indexing
+
+- Modification of values
+
 Improvements:
 
 - New __len__(self) methods added in Arrays, Tables and Columns. This,
   in combination with __getitem__(self,key) allows to better emulate
   sequences.
 
+- Better capabilities to import generic HDF5 files. In particular,
+  Table objects (in the HDF5_HL naming schema) with "holes" in their
+  compound type definition are supported. That allows to read files
+  certain files produced by NASA (thanks to Stephen Walton to
+  reporting this).
+
 API changes:
 
 - The __call__ special method has been removed from objects File,
   Group, Table, Array, EArray and VLArray. Now, you should use
   walkNodes() in File and Group and iterrows in Table, Array, EArray
-  and VLArray to get the same functionality.
+  and VLArray to get the same functionality. This would provide better
+  compatibility with IPython as well.
 
 Bug fixes:
 
 - 
-
-Announcing PyTables 0.8.1
-------------------------
-
-PyTables is a hierarchical database package designed to efficiently
-manage very large amounts of data. PyTables is built on top of the
-HDF5 library and the numarray package. It features an object-oriented
-interface that, combined with natural naming and C-code generated from
-Pyrex sources, makes it a fast, yet extremely easy-to-use tool for
-interactively saving and retrieving different kinds of datasets. It
-also provides flexible indexed access on disk to anywhere in the data.
-
-The primary purpose of this release is to incorporate updates to
-related to the newly released numarray 1.0. I've taken the opportunity
-to backport some improvements added in PyTables 0.9 (in alpha stage)
-as well as to fix the known problems
-
-Improvements:
-
-- The logic for computing the buffer sizes has been revamped. As a
-  consequence, the performance of writing/reading tables with large
-  row sizes has improved by a factor of ten or more, now exceeding 70
-  MB/s (using compression). See
-  http://sf.net/mailarchive/forum.php?thread_id=4963045&forum_id=13760
-
-  for more info.
-
-- The maximum row size for tables has been raised to 512 KB
-  (before it was 8 KB, due to some internal limitations)
-
-- Documentation has been improved in minor details. As a result of a
-  fix in the underlying documentation system (tbook), chapters start
-  now at odd pages, instead of even. So those of you who want to print
-  to double side probably will have better luck now when aligning
-  pages ;).  Another one is that HTML documentation has improved its
-  look as well.
-
-Bug Fixes:
-
-- Indexing of Arrays with list or tuple flavors (#968131)
-  When retrieving single elements from an array with 'List' or
-  'Tuple' flavors, an error occurred. This has been
-  corrected and now you can retrieve fileh.root.array[2] without
-  problems for 'List' or 'Tuple' flavored (E, VL)Arrays.
-  
-- Iterators on Arrays with list or tuple flavors fail (#968132)
-  When using iterators with Array objects with 'List' or
-  'Tuple' flavors, an error occurred. This has been
-  corrected.
-
-- Last Index (-1) of Arrays doesn't work (#968149)
-  When accessing to the last element in an Array using the notation
-  -1, an empty list (or tuple or array) is returned instead of the
-  proper value. This happened in general with all negative
-  indices. Fixed.
-
-- Table.read(flavor="List") should return pure lists (#972534)
-  However, it used to return a pointer to numarray.records.Record
-  instances, as in:
-
-   >>> fileh.root.table.read(1,2,flavor="List") 
-    [<numarray.records.Record instance at 0x4128352c>] 
-   >>> fileh.root.table.read(1,3,flavor="List") 
-    [<numarray.records.Record instance at 0x4128396c>, 
-     <numarray.records.Record instance at 0x41283a8c>] 
- 
-  Now the next records are returned:
-
-   >>> fileh.root.table.read(1,2, flavor=List) 
-    [(' ', 1, 1.0)] 
-   >>> fileh.root.table.read(1,3, flavor=List) 
-    [(' ', 1, 1.0), 
-     (' ', 2, 2.0)] 
- 
-  In addition, when reading a single row of a table, a
-  numarray.records.Record pointer was returned:
- 
-  >>> fileh.root.table[1] 
-   <numarray.records.Record instance at 0x4128398c> 
- 
-  Now, it returns a tuple:
-
-  >>> fileh.root.table[1] 
-   (' ', 1, 1.0) 
- 
-  Which I think is more consistent, and more Pythonic.
-
-- Copy of leaves fails... (#973370)
-  Attempting to copy leaves (Table or Array with different flavors) on
-  top of themselves caused an internal error in PyTables. This has
-  been corrected by silently avoiding the copy and returning the
-  original Leaf as a result.
-
-Minor changes:
-
-- When assigning a value to a non-existing field in a table row, now a
-  KeyError is raised, instead of the AttributeError that was issued
-  before. I think this is more consistent with the type of error.
-
-- Tests have been improved so as to pass the whole suite when compiled
-  in 64 bit mode on a Linux/PowerPC machine (namely a dual-G5 Powermac
-  running a 64-bit, 2.6.4 Linux kernel and the preview YDL
-  distribution for G5, with 64-bit GCC toolchain). Thanks to Ciro
-  Cattuto for testing and reporting the modifications that were
-  needed.
 
 
 Where PyTables can be applied?
@@ -171,25 +96,14 @@ machines. This package has also passed all the tests on a UltraSparc
 platform with Solaris 7 and Solaris 8. It also compiles and passes all
 the tests on a SGI Origin2000 with MIPS R12000 processors, with the
 MIPSPro compiler and running IRIX 6.5. It also runs fine on Linux
-64-bit platforms, like an AMD Opteron running SuSe Linux Enterprise
-Server or PowerPC G5 with Linux 2.6.x in 64bit mode. It has also been
-tested in MacOSX platforms (10.2 but should also work on newer
-versions).
+64-bit platforms, like AMD Opteron running GNU/Linux 2.4.21 Server,
+Intel Itanium (IA64) running GNU/Linux 2.4.21 or PowerPC G5 with Linux
+2.6.x in 64bit mode. It has also been tested in MacOSX platforms (10.2
+but should also work on newer versions).
 
 Regarding Windows platforms, PyTables has been tested with Windows
 2000 and Windows XP (using the Microsoft Visual C compiler), but it
 should also work with other flavors as well.
-
-An example?
------------
-
-For online code examples, have a look at
-
-http://pytables.sourceforge.net/html/tut/tutorial1-1.html
-
-and, for newly introduced Variable Length Arrays:
-
-http://pytables.sourceforge.net/html/tut/vlarray2.html
 
 Web site
 --------

@@ -32,7 +32,6 @@ class TreeTestCase(unittest.TestCase):
         # Create an instance of HDF5 Table
         self.h5file = openFile(self.file, self.mode, self.title)
         self.populateFile()
-        # Close the file (eventually destroy the extended type)
         self.h5file.close()
             
     def populateFile(self):

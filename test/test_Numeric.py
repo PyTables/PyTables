@@ -73,7 +73,6 @@ class BasicTestCase(unittest.TestCase):
 
         assert allequal(a,b, "Numeric")
         
-        # Close the file (eventually destroy the extended type)
         self.fileh.close()
         # Then, delete the file
         os.remove(self.file)
@@ -190,7 +189,6 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         self.root = self.fileh.root
 
     def tearDown(self):
-        # Close the file (eventually destroy the extended type)
         self.fileh.close()
 
         # Then, delete the file

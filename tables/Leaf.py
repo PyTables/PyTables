@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.51 2004/08/21 17:10:04 falted Exp $
+#       $Id: Leaf.py,v 1.52 2004/10/03 12:48:05 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.51 $"
+__version__ = "$Revision: 1.52 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -167,6 +167,7 @@ class Leaf(hdf5Extension.Leaf, object):
             # Set the filters instance variable
             self.filters = self._g_setFilters(self._v_new_filters)
             self._create()
+                        
             # Write the Filters object to an attribute This will not
             # be necessary for now, as retrieving the filters using
             # hdf5Extension._getFilters is safer and faster. Also,

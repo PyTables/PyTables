@@ -20,6 +20,11 @@ Tom Hedley for providing a nice patch for supporting complex datatypes
 for Arrays, Errays and VLArrays. This was the root for the support of
 complex types in Tables as well.
 
+Shack Toms for providing a Python version of the nextafter and
+nextafterf math functions that despite the fact they are standard in
+C99 standard, they are not at the official places in Microsoft VC++
+6.x nor VC++ 7.x.
+
 The HDF5 team at NCSA for making such an excellent library for data
 persistence, and specially Pedro Vicente and Quincey Koziol, for
 quickly including my suggested patches to the HDF5_HL and solving the

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.21 2004/10/01 16:01:55 falted Exp $
+#       $Id: Index.py,v 1.22 2004/10/03 12:48:05 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.21 $"
+__version__ = "$Revision: 1.22 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -44,10 +44,6 @@ import time
 import math
 import struct # we use this to define testNaN
 
-maxFloat=float(2**1024 - 2**971)  # From the IEEE 754 standard
-maxFloatF=float(2**128 - 2**104)  # From the IEEE 754 standard
-Finf=float("inf")  # Infinite in the IEEE 754 standard
-
 # Python implementations of NextAfter and NextAfterF
 #
 # These implementations exist because the standard function
@@ -55,12 +51,16 @@ Finf=float("inf")  # Infinite in the IEEE 754 standard
 #
 # These implementations are based on the IEEE representation of
 # floats and doubles.
-
-# Thanks to Shack Toms for NextAfter and NextAfterF implementations in
-# Python. 2004-10-01
+# Author:  Shack Toms - shack@livedata.com
+#
+# Thanks to Shack Toms shack@livedata.com for NextAfter and NextAfterF
+# implementations in Python. 2004-10-01
 
 epsilon  = math.ldexp(1.0, -53) # smallest double such that 0.5+epsilon != 0.5
 epsilonF = math.ldexp(1.0, -24) # smallest float such that 0.5+epsilonF != 0.5
+
+maxFloat=float(2**1024 - 2**971)  # From the IEEE 754 standard
+maxFloatF=float(2**128 - 2**104)  # From the IEEE 754 standard
 
 minFloat  = math.ldexp(1.0, -1022) # min positive normalized double
 minFloatF = math.ldexp(1.0, -126)  # min positive normalized float
@@ -70,22 +70,34 @@ smallEpsilonF = math.ldexp(1.0, -149)  # smallest increment for floats < minFloa
 
 infinity = math.ldexp(1.0, 1023) * 2
 infinityF = math.ldexp(1.0, 128)
-testNaN = struct.unpack("d", '\x01\x00\x00\x00\x00\x00\xf0\x7f') # a NaN for testing
+#Finf=float("inf")  # Infinite in the IEEE 754 standard (not avail in Win)
 
+# A portable representation of NaN
+# if sys.byteorder == "little":
+#     testNaN = struct.unpack("d", '\x01\x00\x00\x00\x00\x00\xf0\x7f')[0]
+# elif sys.byteorder == "big":
+#     testNaN = struct.unpack("d", '\x7f\xf0\x00\x00\x00\x00\x00\x01')[0]
+# else:
+#     raise RuntimeError, "Byteorder '%s' not supported!" % sys.byteorder
+# This one seems better
+testNaN = infinity - infinity
+    
 # Utility functions
 def infType(type, itemsize, sign=0):
     """Return a superior limit for maximum representable data type"""
     if str(type) != "CharType":
         if sign:
-            return -Finf
+            return -infinity
         else:
-            return Finf
+            return infinity
     else:
         if sign:
             return "\x00"*itemsize
         else:
             return "\xff"*itemsize
 
+
+# This check does not work for Python 2.2.x or 2.3.x (!)
 def IsNaN(x):
     """a simple check for x is NaN, assumes x is float"""
     return x != x
@@ -94,8 +106,8 @@ def PyNextAfter(x, y):
     """returns the next float after x in the direction of y if possible, else returns x"""
     
     # if x or y is Nan, we don't do much
-    if IsNaN(x) or IsNaN(y):
-        return x
+#     if IsNaN(x) or IsNaN(y):
+#         return x
 
     # we can't progress if x == y
     if x == y:
@@ -128,8 +140,8 @@ def PyNextAfterF(x, y):
     """returns the next IEEE single after x in the direction of y if possible, else returns x"""
     
     # if x or y is Nan, we don't do much
-    if IsNaN(x) or IsNaN(y):
-        return x
+#     if IsNaN(x) or IsNaN(y):
+#         return x
 
     # we can't progress if x == y
     if x == y:
@@ -149,6 +161,8 @@ def PyNextAfterF(x, y):
             extra = x % smallEpsilonF
         elif x < 0.0:
             extra = x % -smallEpsilonF
+        else:
+            extra = 0.0
             
         if y > x:
             return x - extra + smallEpsilonF
@@ -215,24 +229,23 @@ def nextafter(x, direction, type, itemsize):
     if direction == 0:
         return x
 
-    if type in ["Int8", "UInt8","Int16", "UInt16",
-                "Int32", "UInt32","Int64", "UInt64"]:
+    if str(type) == "CharType":
+        return CharTypeNextAfter(x, direction, itemsize)
+    elif isinstance(numarray.typeDict[type], numarray.IntegralType):
         if direction < 0:
             return x-1
         else:
             return x+1
-    elif type == "Float32":
+    elif str(type) == "Float32":
         if direction < 0:
             return PyNextAfterF(x,x-1)
         else:
             return PyNextAfterF(x,x+1)
-    elif type == "Float64":
+    elif str(type) == "Float64":
         if direction < 0:
             return PyNextAfter(x,x-1)
         else:
             return PyNextAfter(x,x+1)
-    elif str(type) == "CharType":
-        return CharTypeNextAfter(x, direction, itemsize)
     else:
         raise TypeError, "Type %s is not supported" % type
 

@@ -6,9 +6,6 @@ from tables import *
 
 from test_all import verbose
 
-file = ""
-fileh = None
-
 def WriteRead(testTuple):
     if verbose:
         print '\n', '-=' * 30
@@ -16,28 +13,28 @@ def WriteRead(testTuple):
                   (type(testTuple))
 
     # Create an instance of HDF5 Table
-    global file
-    global fileh
     file = tempfile.mktemp(".h5")
     fileh = openFile(file, mode = "w")
     root = fileh.root
 
     # Create the array under root and name 'somearray'
     a = testTuple
-
-    fileh.createArray(root, 'somearray', a, "Some array")
-
+    try:
+        fileh.createArray(root, 'somearray', a, "Some array")
+    except ValueError:
+        fileh.close()
+        os.remove(file)
+        # re-raise ValueError exception
+        raise ValueError
     # Close the file
     fileh.close()
 
     # Re-open the file in read-only mode
     fileh = openFile(file, mode = "r")
-
     root = fileh.root
 
     # Read the saved array
     b = root.somearray.read()
-
     # Compare them. They should be equal.
     if not a == b and verbose:
         print "Write and read lists/tuples differ!"
@@ -52,7 +49,7 @@ def WriteRead(testTuple):
     fileh.close()
     # Then, delete the file
     os.remove(file)
-    return
+    return file
     
 class BasicTestCase(unittest.TestCase):
 
@@ -85,8 +82,6 @@ class Basic0DTwoTestCase(BasicTestCase):
 # This does not work anymore because I've splitted the chunked arrays to happen
 # mainly in EArray objects
 # class Basic1DZeroTestCase(BasicTestCase):
-#     # This test works from pytables 0.8 on, because chunked arrays are being
-#     # supported
 #     title = "Rank-1 case 0"
 #     numericalList = []
 #     charList = []
@@ -138,10 +133,6 @@ class ExceptionTestCase(unittest.TestCase):
         try:
             WriteRead(a)
         except ValueError:
-	    # Close the file (eventually destroy the extended type)
-	    #fileh.close()  # Not necessary
-	    # Then, delete the file
-	    os.remove(file)
             if verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next error was catched!"
@@ -152,19 +143,17 @@ class ExceptionTestCase(unittest.TestCase):
 
 	return
 
-    def _test01_types(self): # Activate this when a proper exception
-                             # would be raised
+    def test01_types(self): 
         "Non supported lists object (numerical types)"
         
         a = self.numericalList
         try:
             WriteRead(a)
-        #except ValueError:
         except ValueError:
-	    # Close the file (eventually destroy the extended type)
+	    # Close the file
 	    #fileh.close()
 	    # Then, delete the file
-	    os.remove(file)
+	    #os.remove(file)
             if verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next ValueError was catched!"
@@ -597,11 +586,12 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
+    #theSuite.addTest(unittest.makeSuite(Basic1DFourTestCase))
     for i in range(niter):
         # The scalar case test should be refined in order to work
         theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
         theSuite.addTest(unittest.makeSuite(Basic0DTwoTestCase))
-        # theSuite.addTest(unittest.makeSuite(Basic1DZeroTestCase))
+        #theSuite.addTest(unittest.makeSuite(Basic1DZeroTestCase))
         theSuite.addTest(unittest.makeSuite(Basic1DOneTestCase))
         theSuite.addTest(unittest.makeSuite(Basic1DTwoTestCase))
         theSuite.addTest(unittest.makeSuite(Basic1DThreeTestCase))

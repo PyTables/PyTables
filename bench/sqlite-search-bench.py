@@ -230,10 +230,10 @@ def readFile(dbfile, nrows, indexmode, bfile, riter):
     if randomvalues:
         # algorithm to choose a value separated from mean
 #         # If want to select fewer values, select this
-#         if table.nrows/2 > standarddeviation*3:
+#         if nrows/2 > standarddeviation*3:
 #             # Choose five standard deviations away from mean value
 #             dev = standarddeviation*5
-#             #dev = standarddeviation*math.log10(table.nrows/1000.)
+#             #dev = standarddeviation*math.log10(nrows/1000.)
 
         # This algorithm give place to too asymmetric result values
 #         if standarddeviation*10 < nrows/2:
@@ -242,11 +242,11 @@ def readFile(dbfile, nrows, indexmode, bfile, riter):
 #         else:
 #             dev = 100
         # Yet Another Algorithm
-        if table.nrows/2 > standarddeviation*10:
+        if nrows/2 > standarddeviation*10:
             dev = standarddeviation*4.
-        elif table.nrows/2 > standarddeviation:
+        elif nrows/2 > standarddeviation:
             dev = standarddeviation*2.
-        elif table.nrows/2 > standarddeviation/10.:
+        elif nrows/2 > standarddeviation/10.:
             dev = standarddeviation/10.
         else:
             dev = standarddeviation/100.

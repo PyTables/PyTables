@@ -34,7 +34,6 @@ class RangeTestCase(unittest.TestCase):
 	                                    Record, self.title)
 
     def tearDown(self):
-        # Close the file (eventually destroy the extended type)
         self.fileh.close()
 
         os.remove(self.file)

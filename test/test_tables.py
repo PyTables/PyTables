@@ -72,7 +72,6 @@ class BasicTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, self.mode)
         self.rootgroup = self.fileh.root
         self.populateFile()
-        # Close the file (eventually destroy the extended type)
         self.fileh.close()
 
     def initRecArray(self):
@@ -696,7 +695,6 @@ class BasicRangeTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, self.mode)
         self.rootgroup = self.fileh.root
         self.populateFile()
-        # Close the file (eventually destroy the extended type)
         self.fileh.close()
 
     def populateFile(self):
@@ -1124,7 +1122,6 @@ class getItemTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, self.mode)
         self.rootgroup = self.fileh.root
         self.populateFile()
-        # Close the file (eventually destroy the extended type)
         self.fileh.close()
 
     def populateFile(self):
