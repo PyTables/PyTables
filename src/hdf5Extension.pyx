@@ -6,7 +6,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.153 2004/12/17 10:27:14 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.154 2004/12/21 09:34:36 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.153 $"
+__version__ = "$Revision: 1.154 $"
 
 
 import sys, os
@@ -940,7 +940,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.153 2004/12/17 10:27:14 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.154 2004/12/21 09:34:36 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1589,7 +1589,7 @@ cdef class Table:
     # Set to a 512 KB limit (just because banana 640 KB limitation)
     if self.rowsize > 524288:
             raise RuntimeError, \
-    """Row size too large. Maximum size is 8192 bytes, and you are asking
+    """Row size too large. Maximum size is 512 Kbytes, and you are asking
     for a row size of %s bytes.""" % (self.rowsize)
 
     # test if there is data to be saved initially
