@@ -8,11 +8,32 @@ from numarray import typeDict
 
 from test_all import verbose
 
-class ArrayTestCase(unittest.TestCase):
+def allequal(a,b):
+    """Checks if two numarrays are equal"""
+
+    if a.shape <> b.shape:
+        return 0
+
+    # Scalar case
+    if len(a.shape) == 0:
+        if str(equal(a,b)) == '1':
+            return 1
+        else:
+            return 0
+
+    # Multidimensional case
+    result = (a == b)
+    for i in range(len(a.shape)):
+        result = logical_and.reduce(result)
+
+    return result
+
+class BasicTestCase(unittest.TestCase):
     """Basic test for all the supported typecodes present in Numeric.
     All of them are included on pytables.
     """
-    
+    endiancheck = 0
+
     def setUp(self):
         # Create an instance of HDF5 Table
         self.file = tempfile.mktemp(".h5")
@@ -34,7 +55,6 @@ class ArrayTestCase(unittest.TestCase):
 
 	# Create the array under root and name 'somearray'
 	a = testArray
-        #self.root.somearray = createArray(a, "Some array")
         self.fileh.createArray(self.root, 'somearray', a, "Some array")
 	
         # Close the file
@@ -48,21 +68,18 @@ class ArrayTestCase(unittest.TestCase):
 	b = self.root.somearray.read()
 	
 	# Compare them. They should be equal.
-	if a.tolist() <> b.tolist() and verbose:
+	if not allequal(a,b) and verbose:
 	    print "Write and read arrays differ!"
 	    print "Array written:", a
 	    print "Array written shape:", a.shape
 	    print "Array written itemsize:", a.itemsize()
-	    print "Array written typecode:", a.typecode()
+	    print "Array written type:", a.typecode()
 	    print "Array read:", b
 	    print "Array read shape:", b.shape
 	    print "Array read itemsize:", b.itemsize()
-	    print "Array read typecode:", b.typecode()
+	    print "Array read type:", b.typecode()
 
-        # Check the array equality in this way, not as in:
-        # assert a == b
-        # because the result is not what we want.
-        #print "shape a, b -->", a.shape, b.shape, self.root.somearray.shape
+        # Check strictly the array equality
         assert a.shape == b.shape
         assert a.shape == self.root.somearray.shape
         if a.typecode() == "i":
@@ -77,127 +94,243 @@ class ArrayTestCase(unittest.TestCase):
         else:
             assert a.typecode() == b.typecode()
             assert typeDict[a.typecode()] ==  self.root.somearray.typeclass
-	assert a.tolist() == b.tolist()
+
+        assert allequal(a,b)
+        
 	return
     
     def test00_char(self):
         "Checking a character array"
         
-	a = array(['1', '2', '4'],
-	          "c")
+	a = array(self.tupleChar)
 	self.WriteRead(a)
+	return
+
+    def test00b_char_nc(self):
+        "Checking a non-contiguous character array"
+        
+        if not self.checknoncontiguous:
+            return
+	a = array(self.tupleChar)
+        b = a[::2]
+        # Ensure that this chararray is non-contiguous
+        assert b.iscontiguous() == 0
+	self.WriteRead(b)
 	return
 
     def test01_unsignedByte(self):
         "Checking a unsigned byte array"
         
-	a = array([[[-1, -3, -8], [2, 3, 8],[3, 3, 8]],
-		   [[4, 3, 8], [5, 3, 8],[6, 3, 8]],
-		   [[7, 3, 8], [8, 3, 8],[9, 3, 8]],
-		   [[10, 3, 8], [11, 3, 8],[12, 3, 8]],
-		   ], "b")
+	a = array(self.tupleInt)
+        a = a.astype('b')
 	self.WriteRead(a)
 	return
     
     def test02_signedByte(self):
         "Checking a signed byte array"
         
-	a = array([[[-1, -3, -8], [2, 3, 8],[3, 3, 8]],
-		   [[4, 3, 8], [5, 3, 8],[6, 3, 8]],
-		   [[7, 3, 8], [8, 3, 8],[9, 3, 8]],
-		   [[10, 3, 8], [11, 3, 8],[12, 3, 8]],
-		   ], "1")
+	a = array(self.tupleInt)
+        a = a.astype('1')
 	self.WriteRead(a)
 	return
     
     def test03_signedShort(self):
         "Checking a signed short integer array"
                 
-	a = array([[[-1, -3, -8], [2, 3, 8],[3, 3, 8]],
-		   [[4, 3, 8], [5, 3, 8],[6, 3, 8]],
-		   [[7, 3, 8], [8, 3, 8],[9, 3, 8]],
-		   [[10, 3, 8], [11, 3, 8],[12, 3, 8]],
-		   ], "s")
+	a = array( self.tupleInt)
+        a = a.astype('s')
 	self.WriteRead(a)
 	return
-        
+    
 #     def test04_unsignedShort(self):
 #         "Checking an unsigned short integer array"
                 
-# 	a = array([[[-1, -3, -8], [2, 3, 8],[3, 3, 8]],
-# 		   [[4, 3, 8], [5, 3, 8],[6, 3, 8]],
-# 		   [[7, 3, 8], [8, 3, 8],[9, 3, 8]],
-# 		   [[10, 3, 8], [11, 3, 8],[12, 3, 8]],
-# 		   ], "w")
+# 	a = array( self.tupleInt)
+#       a = a.astype('w')
 # 	self.WriteRead(a)
 # 	return
         
     def test05_signedInt(self):
         "Checking a signed integer array"
 
-	a = array([[[-1, -3, -8], [2, 3, 8],[3, 3, 8]],
-		   [[4, 3, 8], [5, 3, 8],[6, 3, 8]],
-		   [[7, 3, 8], [8, 3, 8],[9, 3, 8]],
-		   [[10, 3, 8], [11, 3, 8],[12, 3, 8]],
-		   ], "i")
+	a = array( self.tupleInt)
+        a = a.astype('i')
 	self.WriteRead(a)
 	return
     
+    def test05b_signedInt_nc(self):
+        "Checking a non-contiguous signed integer array"
+        
+        if not self.checknoncontiguous:
+            return
+        a = array(self.tupleInt)
+        a = a.astype('i')
+        # This should not be tested for the scalar case
+        if len(a.shape) == 0:
+            return
+        b = a[::2]
+        # Ensure that this array is non-contiguous
+        assert b.iscontiguous() == 0
+	self.WriteRead(b)
+	return
+
 #     def test06_unsignedInt(self):
 #         "Checking an unsigned integer array"
 
-# 	a = array([[[-1, -3, -8], [2, 3, 8],[3, 3, 8]],
-# 		   [[4, 3, 8], [5, 3, 8],[6, 3, 8]],
-# 		   [[7, 3, 8], [8, 3, 8],[9, 3, 8]],
-# 		   [[10, 3, 8], [11, 3, 8],[12, 3, 8]],
-# 		   ], "u")
+# 	a = array( self.tupleInt)
+#       a = a.astype('u')
 # 	self.WriteRead(a)
 # 	return
     
     def test07_long(self):
         "Checking a signed long integer array"
 
-	a = array([[[-1, -3, -8], [2, 3, 8],[3, 3, 8]],
-		   [[4, 3, 8], [5, 3, 8],[6, 3, 8]],
-		   [[7, 3, 8], [8, 3, 8],[9, 3, 8]],
-		   [[10, 3, 8], [11, 3, 8],[12, 3, 8]],
-		   ], "l")
+	a = array( self.tupleInt)
+        a = a.astype('l')
 	self.WriteRead(a)
 	return
     
     def test08_float(self):
         "Checking a single precision floating point array"
 
-	a = array([[[1.0, 3.5, 8.4], [1.0, 3.5, 8.4],[1.0, 3.5, 8.4]],
-		   [[1.0, 3.5, 8.4], [1.0, 3.5, 8.4],[1.0, 3.5, 8.4]],
-		   [[1.0, 3.5, 8.4], [1.0, 3.5, 8.4],[1.0, 3.5, 8.4]],
-		   [[1.0, 3.5, 8.4], [1.0, 3.5, 8.4],[1.0, 3.5, 8.4]],
-		   [[1.0, 3.5, 8.4], [1.0, 3.5, 8.4],[1.0, 3.5, 8.4]],
-		   ], "f")
+	a = array( self.tupleInt)
+        a = a.astype('f')
 	self.WriteRead(a)
 	return
     
     def test09_double(self):
         "Checking a double precision floating point array"
 
-	a = array([[1.0, 3.5, 8.4],
-	           [2.3, 6.6, 4.1],
-		   [2.3, 6.6, 4.1],
-		   [2.3, 6.6, 4.1],
-		   [2.3, 6.6, 4.1],
-		   ], "d")
+	a = array( self.tupleInt)
+        a = a.astype('d')
 	self.WriteRead(a)
 	return
 
+    def test09b_double_nc(self):
+        "Checking a non-contiguous double precision array"
+
+        if not self.checknoncontiguous:
+            return
+	a = array(self.tupleInt)
+        a = a.astype('d')
+        # This should not be tested for the scalar case
+        if len(a.shape) == 0:
+            return
+        b = a[::2]
+        # Ensure that this array is non-contiguous
+        assert b.iscontiguous() == 0
+        self.WriteRead(b)
+	return
+
+class BasicScalarTestCase(BasicTestCase):
+    # Scalar case
+    tupleInt = 3
+    tupleChar = "3"
+    
+class Basic1DTestCase(BasicTestCase):
+    # 1D case
+    tupleInt = (3, 4, 5)
+    tupleChar = ("aaa", "bbb", "ccc")
+    checknoncontiguous = 0
+    
+class Basic2DTestCase(BasicTestCase):
+    # 2D case
+    tupleInt = reshape(array(arange((4)**2)), (4,)*2)
+    tupleChar = [["aa","dd"],["dd","ss"]]
+    checknoncontiguous = 0
+    
+class Basic10DTestCase(BasicTestCase):
+    # 10D case
+    tupleInt = reshape(array(arange((2)**10)), (2,)*10)
+    # Chararray seems to cause some problems with somewhat large dimensions
+    # Reverting to 2D case
+    #tupleChar = chararray.array("abc"*2**10, shape=(2,)*10, itemsize=3)
+    tupleChar = [["aa","dd"],["dd","ss"]]
+    checknoncontiguous = 0
+    
+class Basic32DTestCase(BasicTestCase):
+    # 32D case (maximum)
+    tupleInt = reshape(array((32,)), (1,)*32)
+    # Chararray seems to cause some problems with somewhat large dimensions
+    # Reverting to 2D case
+    #tupleChar = chararray.array("121", shape=(1,)*32, itemsize=3)
+    tupleChar = [["aa","dd"],["dd","ss"]]
+    
+
+class UnalignedAndComplexTestCase(unittest.TestCase):
+    """Basic test for all the supported typecodes present in Numeric.
+    All of them are included on pytables.
+    """
+    endiancheck = 0
+
+    def setUp(self):
+        # Create an instance of HDF5 Table
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w")
+        self.root = self.fileh.root
+
+    def tearDown(self):
+        # Close the file (eventually destroy the extended type)
+        self.fileh.close()
+
+        # Then, delete the file
+        os.remove(self.file)
+
+    def WriteRead(self, testArray):
+        if verbose:
+            print '\n', '-=' * 30
+	    print "Running test for array with typecode '%s'" % \
+	          testArray.typecode()
+
+	# Create the array under root and name 'somearray'
+	a = testArray
+        self.fileh.createArray(self.root, 'somearray', a, "Some array")
+	
+        # Close the file
+        self.fileh.close()
+	
+	# Re-open the file in read-only mode
+        self.fileh = openFile(self.file, mode = "r")
+        self.root = self.fileh.root
+	
+	# Read the saved array
+	b = self.root.somearray.read()
+	
+	# Compare them. They should be equal.
+	if not allequal(a,b) and verbose:
+	    print "Write and read arrays differ!"
+	    print "Array written:", a
+	    print "Array written shape:", a.shape
+	    print "Array written itemsize:", a.itemsize()
+	    print "Array written type:", a.typecode()
+	    print "Array read:", b
+	    print "Array read shape:", b.shape
+	    print "Array read itemsize:", b.itemsize()
+	    print "Array read type:", b.typecode()
+
+        # Check strictly the array equality
+        assert a.shape == b.shape
+        assert a.shape == self.root.somearray.shape
+        if a.typecode() == "i":
+            # Special expection. We have no way to distinguish between
+            # "l" and "i" typecode, and we can consider them the same
+            # to all practical effects
+            assert b.typecode() == "l"
+            assert self.root.somearray.typeclass == typeDict["l"]
+        elif a.typecode() == "c":
+            assert a.typecode() == b.typecode()
+            assert str(self.root.somearray.typeclass) == "CharType"
+        else:
+            assert a.typecode() == b.typecode()
+            assert typeDict[a.typecode()] ==  self.root.somearray.typeclass
+
+        assert allequal(a,b)
+
+        return
+    
     def test10_complexSimple(self):
         "Checking a complex floating point array (not supported)"
-
-	a = array([[1.0, 3.5],
-	           [2.3, 6.6],
-		   [2.3, 6.6],
-		   [2.3, 6.6],
-		   [2.3, 6.6],
-		   ], "F")
+	a = array([1,2], 'F')
         try:
             self.WriteRead(a)
         except TypeError:
@@ -211,12 +344,7 @@ class ArrayTestCase(unittest.TestCase):
     def test11_complexDouble(self):
         "Checking a complex floating point array (not supported)"
 
-	a = array([[1.0, 3.5],
-	           [2.3, 6.6],
-		   [2.3, 6.6],
-		   [2.3, 6.6],
-		   [2.3, 6.6],
-		   ], "D")
+	a = array([1,2], 'D')
         try:
             self.WriteRead(a)
         except TypeError:
@@ -226,8 +354,8 @@ class ArrayTestCase(unittest.TestCase):
                 print value
         else:
             self.fail("expected an TypeError")
-            
 
+    
 class GroupsArrayTestCase(unittest.TestCase):
     """This test class checks combinations of arrays with groups.
     It also uses arrays ranks which ranges until 10.
@@ -253,7 +381,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 	
 	# Set the type codes to test
 	#typecodes = ["c", 'b', '1', 's', 'w', 'i', 'u', 'l', 'f', 'd']
-	typecodes = ['c', 'b', '1', 's', 'i', 'l', 'f', 'd']
+	typecodes = ["c", 'b', '1', 's', 'i', 'l', 'f', 'd']
 	i = 1
 	for typecode in typecodes:
 	    # Create an array of typecode, with incrementally bigger ranges
@@ -289,7 +417,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 		print "  Shape: ==>", dset.shape, 
 		print "  typeclass ==> %s" % dset.typeclass
 		print "Array b read from file. Shape: ==>", b.shape,
-		print ". Typecode ==> %c" % b.typecode()
+		print ". Type ==> %s" % b.typecode()
 	    assert a.shape == b.shape
             if a.typecode() == "i":
                 # Special expection. We have no way to distinguish between
@@ -297,8 +425,9 @@ class GroupsArrayTestCase(unittest.TestCase):
                 # to all practical effects
                 assert b.typecode() == "l"
             else:
-                assert a.typecode() == b.typecode()            
-            assert a.tolist() == b.tolist()
+                assert a.typecode() == b.typecode()
+            assert allequal(a,b)
+
 	    # Iterate over the next group
 	    group = getattr(group, 'group' + str(i))
 
@@ -366,20 +495,8 @@ class GroupsArrayTestCase(unittest.TestCase):
 		print "  Shape: ==>", dset.shape, 
 		print "  typecode ==> %c" % dset.typecode
 		print "Array b read from file. Shape: ==>", b.shape,
-		print ". Typecode ==> %c" % b.typecode()
+		print ". Type ==> %c" % b.typecode()
                 
-            # ************** WARNING!!! *****************
-            # If we compare to arrays of dimensions bigger than 20
-            # we get a segmentation fault! It is most probably a bug
-            # located on Numeric package
-            # I've discovered that comparing shapes and using the
-            # tolist() conversion is the best to compare Numeric
-            # arrays!. At least, tolist() do not crash!.
-            # In addition, a == b is comparing the arrays element to
-            # element and in ranks are different, the smaller is
-            # promoted to the bigger rank. This is definitely not what
-            # we want to do!!
-            # ************** WARNING!!! *****************
             assert a.shape == b.shape
             if a.typecode() == "i":
                 # Special expection. We have no way to distinguish between
@@ -387,8 +504,19 @@ class GroupsArrayTestCase(unittest.TestCase):
                 # to all practical effects
                 assert b.typecode() == "l"
             else:
-                assert a.typecode() == b.typecode()            
+                assert a.typecode() == b.typecode()
+
+            # ************** WARNING!!! *****************
+            # If we compare to arrays of dimensions bigger than 20
+            # we get a segmentation fault! It is most probably a bug
+            # located on Numeric package.
+            # I've discovered that comparing shapes and using the
+            # tolist() conversion is the best to compare Numeric
+            # arrays!. At least, tolist() do not crash!.
+            # ************** WARNING!!! *****************
             assert a.tolist() == b.tolist()
+            #assert allequal(a,b)
+
             #print fileh
 	    # Iterate over the next group
 	    group = fileh.getNode(group, 'group' + str(rank))
@@ -401,11 +529,19 @@ class GroupsArrayTestCase(unittest.TestCase):
 	# Delete the file
         os.remove(file)
 	
+
 def suite():
     theSuite = unittest.TestSuite()
 
-    theSuite.addTest(unittest.makeSuite(ArrayTestCase))
+    # The scalar case test should be refined in order to work
+    #theSuite.addTest(unittest.makeSuite(BasicScalarTestCase))
+    theSuite.addTest(unittest.makeSuite(Basic1DTestCase))
+    theSuite.addTest(unittest.makeSuite(Basic2DTestCase))
+    theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
+    # The 32 dimensions case is tested on GroupsArray
+    #theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
     theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))
+    theSuite.addTest(unittest.makeSuite(UnalignedAndComplexTestCase))
 
     return theSuite
 

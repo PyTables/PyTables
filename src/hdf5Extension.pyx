@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.20 2003/02/14 20:56:05 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.21 2003/02/17 14:35:45 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.20 $"
+__version__ = "$Revision: 1.21 $"
 
 
 import sys, os.path
@@ -470,7 +470,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.20 2003/02/14 20:56:05 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.21 2003/02/17 14:35:45 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -890,17 +890,17 @@ cdef class Array:
       """ % repr(arr._type)
       # Convert the array object to a an object with a well-behaved buffer
       #array = <object>NA_InputArray(arr, self.enumtype, C_ARRAY)
-      # Do a copy of the array in case is not contiguous or not aligned
-      if not arr.iscontiguous() or not arr.isaligned():
+      # Do a copy of the array in case is not contiguous
+      # We can deal with the non-aligned and byteswapped cases
+      if not arr.iscontiguous():
         array = arr.copy()
+        # Change again the byteorder so as to keep the original one
+        # (copy() resets the byteorder to that of the host machine)
+        if arr._byteorder <> array._byteorder:
+          array.byteswap()
       else:
         array = arr
 
-      #print arr._byteorder, array._byteorder
-      if arr._byteorder <> array._byteorder:
-        # Change again the byteorder so as to keep the original one
-        # (copy() resets the byteorder to that of the host machine)
-        array.byteswap()
       itemsize = array.type().bytes
       # The next is a trick to avoid a warning in Pyrex
       strcache = array._byteorder
@@ -931,7 +931,7 @@ cdef class Array:
       raise RuntimeError("Problems getting the buffer area.")
 
     # Allocate space for the dimension axis info
-    self.rank = len(arr.shape)
+    self.rank = len(array.shape)
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Fill the dimension axis info with adequate info (and type!)
     for i from  0 <= i < self.rank:
