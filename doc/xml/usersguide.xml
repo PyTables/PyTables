@@ -371,15 +371,20 @@ class Particle(IsDescription):
 	    your platform supports the C long long integer, or, on 
 	    Windows, __int64).
 	  </item>
-	  <item><em>Ability to read generic HDF5 files:</em>
-	    <verb>PyTables</verb> can access objects in generic
-	    HDF5 files provided they contain any combination of
-	    groups, compound type datasets (that can be mapped to
-	    <verb>Table</verb> objects) or homogeneous datasets (that
-	    can be mapped to <verb>Array</verb> objects). However, as
-	    this kind of data is the type most commonly saved in HDF5
-	    format, <verb>PyTables</verb> probably can access most of
-	    the HDF5 files out there.
+	  <item><em>Ability to read/modify generic HDF5 files:</em>
+	    <verb>PyTables</verb> can access a wide range of objects
+	    in generic HDF5 files, like compound type datasets (that
+	    can be mapped to <verb>Table</verb> objects), homogeneous
+	    datasets (that can be mapped to <verb>Array</verb>
+	    objects) or variable length record datasets (that can be
+	    mapped to <verb>VLArray</verb> objects).  Besides, if a
+	    dataset is not supported, it will be mapped into a special
+	    <verb>UnImplemented</verb> class, that will let the user
+	    see that the data is there, although it would be
+	    unreachable (still, you will be able to access the
+	    attributes and some metadata in the dataset).  With that,
+	    <verb>PyTables</verb> probably can access and
+	    <em>modify</em> most of the HDF5 files out there.
 	  </item>
 	  <item><em>Data compression:</em> Supports data
 	    compression (using the <visual markup="tt">
@@ -403,7 +408,8 @@ class Particle(IsDescription):
 	    issues in mind.  In principle you can write a file on
 	    a big-endian machine (like a Sparc or MIPS) and read it on
 	    other little-endian machine (like an Intel or Alpha) without
-	    problems.
+	    problems. In addition, it has been tested successfully
+	    with 64 bit platforms (Intel-64, MIPS, UltraSparc).
 	  </item>
 
 	</itemize>
@@ -434,9 +440,9 @@ class Particle(IsDescription):
 	  instances (referred to as <em>leaves</em>) are containers
 	  for actual data and cannot contain further groups or
 	  leaves. The <verb>Table</verb>, <verb>Array</verb>,
-	  <verb>EArray</verb>and <verb>VLArray</verb> classes are
-	  descendents of <verb>Leaf</verb>, and inherit all its
-	  properties.
+	  <verb>EArray</verb>, <verb>VLArray</verb> and
+	  <verb>UnImplemented</verb> classes are descendents of
+	  <verb>Leaf</verb>, and inherit all its properties.
 	</p>
 
 	<p>Working with groups and leaves is similar in many ways to
@@ -2594,11 +2600,12 @@ AttributeError: Error setting "ADCcount" attr.
       <p><verb>PyTables</verb> implements several classes to represent
 	the different nodes in the object tree. They are named
 	<verb>File</verb>, <verb>Group</verb>, <verb>Leaf</verb>,
-	<verb>Table</verb>, <verb>Array</verb>, <verb>EArray</verb>
-	and <verb>VLArray</verb>. Another one allows the user to
-	complement the information on these different objects; its
-	name is <verb>AttributeSet</verb>. Finally, another important
-	class called <verb>IsDescription</verb> allows to build a
+	<verb>Table</verb>, <verb>Array</verb>, <verb>EArray</verb>,
+	<verb>VLArray</verb> and <verb>UnImplemented</verb>. Another
+	one allows the user to complement the information on these
+	different objects; its name is
+	<verb>AttributeSet</verb>. Finally, another important class
+	called <verb>IsDescription</verb> allows to build a
 	<verb>Table</verb> record description by declaring a subclass
 	of it. Many other classes are defined in
 	<verb>PyTables</verb>, but they can be regarded as helpers
@@ -2766,8 +2773,9 @@ AttributeError: Error setting "ADCcount" attr.
 	<p>Next, we will discuss the attributes and methods for File
 	  class<footnote>On the following, the term <verb>Leaf</verb>
 	  will whether refer to a <verb>Table</verb>,
-	  <verb>Array</verb>, <verb>EArray</verb> or
-	  <verb>VLArray</verb> node object.</footnote>.
+	  <verb>Array</verb>, <verb>EArray</verb>,
+	  <verb>VLArray</verb> or <verb>UnImplemented</verb>node
+	  object.</footnote>.
 	</p>
 
 	<subsection id="FileInstanceVariablesDescr">
@@ -3530,9 +3538,10 @@ AttributeError: Error setting "ADCcount" attr.
 	  can hang directly from a group object, but that is not a
 	  group itself and, thus, it cannot have descendents. Right
 	  now this set of end-nodes is composed by <verb>Table</verb>,
-	  <verb>Array</verb>, <verb>EArray</verb> and
-	  <verb>VLArray</verb> instances. In fact, all the previous
-	  classes inherits from the Leaf class.
+	  <verb>Array</verb>, <verb>EArray</verb>,
+	  <verb>VLArray</verb> and <verb>UnImplemented</verb> class
+	  instances. In fact, all the previous classes inherits from
+	  the Leaf class.
 	</p>
 
 	<p>The public variables and methods that class descendants
@@ -4392,6 +4401,36 @@ AttributeError: Error setting "ADCcount" attr.
 	  </subsubsection> <!-- VLArray __getitem__ -->
 	</subsection> <!-- VLArray special methods --> 
       </section> <!-- VLArray class -->
+
+      <section id="UnImplementedClassDescr">
+	<heading>The <visual markup="tt">UnImplemented</visual> class</heading>
+
+	<p>Instances of this class represents an unimplemented dataset
+	  in a generic HDF5 file. When reading such a file (i.e. one
+	  that has not been created with <verb>PyTables</verb>, but
+	  with some other HDF5 library based tool), chances are that
+	  the specific combination of <em>datatypes</em> and/or
+	  <em>dataspaces</em> in some dataset migth not be supported
+	  by <verb>PyTables</verb> yet. In such a case, this dataset
+	  will be mapped into the <verb>UnImplemented</verb> class and
+	  hence, the user will still be able to build the complete
+	  object tree of this generic HDF5 file, as well as enabling
+	  the access (both read and <em>write</em>) of the attributes
+	  of this dataset and some metadata. Of course, the user won't
+	  be able to read the actual data on it.
+	</p>
+
+	<p>This is an elegant way to allow users to work with generic
+	  HDF5 files despite the fact that some of its datasets would
+	  not be supported by <verb>PyTables</verb>. However, if you
+	  are really interested in having access to an unimplemented
+	  dataset, please, get in contact with the developer team.
+	</p>
+	<p>This class does not have any public instance variables,
+	  except those inherited from the <verb>Leaf</verb> class
+	  (<ref refid="LeafClassDescr">see</ref>).
+	</p>
+      </section> <!-- UnImplemented class -->
 
       <section id="AttributeSetClassDescr">
 	<heading>The <visual markup="tt">AttributeSet</visual>
