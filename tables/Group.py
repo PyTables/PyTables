@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.17 2003/03/04 17:29:58 falted Exp $
+#       $Id: Group.py,v 1.18 2003/03/06 10:42:30 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.17 $"
+__version__ = "$Revision: 1.18 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -429,9 +429,12 @@ class Group(hdf5Extension.Group):
         del self._c_objgroups[self._v_pathname]
         del self._c_objects[self._v_pathname]
 
-    # Ens hem quedat aci...
     def _f_move(self, object, newname):
         """Rename an HDF5 node"""
+
+        # Check for name validity
+        checkNameValidity(newname)
+        # Check if self has a child with the same name
         if newname in self._v_objchilds:
             raise RuntimeError, \
         """Another sibling (%s) already has the name '%s' """ % \

@@ -152,7 +152,7 @@ class OpenFileTestCase(unittest.TestCase):
         assert title == "Title example 2"
         fileh.close()
         
-    def test022_appendFile2(self):
+    def test02b_appendFile2(self):
         """Checking appending objects to an existing file ("a" version)"""
 
         # Append a new array to the existing file
@@ -423,6 +423,23 @@ class OpenFileTestCase(unittest.TestCase):
                 print value
         else:
             self.fail("expected an RuntimeError")
+        fileh.close()
+
+    def test08b_renameToNotValidName(self):
+        """Checking renaming a node to a non-valid name"""
+
+        # Open this file
+        fileh = openFile(self.file, mode = "r+")
+        # Try to get the previous object with the old name
+        try:
+            fileh.moveNode(fileh.root, 'anarray', 'array 2')        
+        except NameError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next NameError was catched!"
+                print value
+        else:
+            self.fail("expected an NameError")
         fileh.close()
 
     def test09_renameGroup(self):

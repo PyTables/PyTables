@@ -46,6 +46,8 @@ herr_t H5LT_close_id( hid_t obj_id,
  *-------------------------------------------------------------------------
  */
 
+
+
 /*-------------------------------------------------------------------------
  * Function: H5LTmake_dataset
  *
@@ -111,6 +113,378 @@ out:
 
 
 /*-------------------------------------------------------------------------
+ * Function: H5LTmake_dataset_char
+ *
+ * Purpose: Creates and writes a dataset of H5T_NATIVE_CHAR type
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: September 14, 2001
+ *
+ * Comments:
+ *
+ * Modifications:
+ *
+ *
+ *-------------------------------------------------------------------------
+ */
+
+
+herr_t H5LTmake_dataset_char( hid_t loc_id, 
+                              const char *dset_name, 
+                              int rank, 
+                              const hsize_t *dims,
+                              const char *data ) 
+{
+
+ hid_t   dataset_id, space_id;  
+ 
+ /* Create the data space for the dataset. */
+ if ( (space_id = H5Screate_simple( rank, dims, NULL )) < 0 )
+  return -1;
+
+ /* Create the dataset. */
+ if ( (dataset_id = H5Dcreate( loc_id, dset_name, H5T_NATIVE_CHAR, space_id, H5P_DEFAULT )) < 0 )
+  goto out;
+
+ /* Write the dataset only if there is data to write */
+
+ if ( data ) 
+ {
+  if ( H5Dwrite( dataset_id, H5T_NATIVE_CHAR, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
+   goto out;
+ }
+
+ /* End access to the dataset and release resources used by it. */
+ if ( H5Dclose( dataset_id ) < 0 )
+  return -1;
+
+ /* Terminate access to the data space. */ 
+ if ( H5Sclose( space_id ) < 0 )
+  return -1;
+
+ return 0;
+
+out:
+ H5Dclose( dataset_id );
+ H5Sclose( space_id );
+ return -1;
+}
+
+
+/*-------------------------------------------------------------------------
+ * Function: H5LTmake_dataset_short
+ *
+ * Purpose: Creates and writes a dataset of H5T_NATIVE_SHORT type
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: September 14, 2001
+ *
+ * Comments:
+ *
+ * Modifications:
+ *
+ *
+ *-------------------------------------------------------------------------
+ */
+
+
+herr_t H5LTmake_dataset_short( hid_t loc_id, 
+                               const char *dset_name, 
+                               int rank, 
+                               const hsize_t *dims,
+                               const short *data ) 
+{
+
+ hid_t   dataset_id, space_id;  
+ 
+ /* Create the data space for the dataset. */
+ if ( (space_id = H5Screate_simple( rank, dims, NULL )) < 0 )
+  return -1;
+
+ /* Create the dataset. */
+ if ( (dataset_id = H5Dcreate( loc_id, dset_name, H5T_NATIVE_SHORT, space_id, H5P_DEFAULT )) < 0 )
+  goto out;
+
+ /* Write the dataset only if there is data to write */
+
+ if ( data ) 
+ {
+  if ( H5Dwrite( dataset_id, H5T_NATIVE_SHORT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
+   goto out;
+ }
+
+ /* End access to the dataset and release resources used by it. */
+ if ( H5Dclose( dataset_id ) < 0 )
+  return -1;
+
+ /* Terminate access to the data space. */ 
+ if ( H5Sclose( space_id ) < 0 )
+  return -1;
+
+ return 0;
+
+out:
+ H5Dclose( dataset_id );
+ H5Sclose( space_id );
+ return -1;
+}
+
+/*-------------------------------------------------------------------------
+ * Function: H5LTmake_dataset_int
+ *
+ * Purpose: Creates and writes a dataset of H5T_NATIVE_INT type
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: September 14, 2001
+ *
+ * Comments:
+ *
+ * Modifications:
+ *
+ *
+ *-------------------------------------------------------------------------
+ */
+
+
+herr_t H5LTmake_dataset_int( hid_t loc_id, 
+                             const char *dset_name, 
+                             int rank, 
+                             const hsize_t *dims,
+                             const int *data ) 
+{
+
+ hid_t   dataset_id, space_id;  
+ 
+ /* Create the data space for the dataset. */
+ if ( (space_id = H5Screate_simple( rank, dims, NULL )) < 0 )
+  return -1;
+
+ /* Create the dataset. */
+ if ( (dataset_id = H5Dcreate( loc_id, dset_name, H5T_NATIVE_INT, space_id, H5P_DEFAULT )) < 0 )
+  goto out;
+
+ /* Write the dataset only if there is data to write */
+
+ if ( data ) 
+ {
+  if ( H5Dwrite( dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
+   goto out;
+ }
+
+ /* End access to the dataset and release resources used by it. */
+ if ( H5Dclose( dataset_id ) < 0 )
+  return -1;
+
+ /* Terminate access to the data space. */ 
+ if ( H5Sclose( space_id ) < 0 )
+  return -1;
+
+ return 0;
+
+out:
+ H5Dclose( dataset_id );
+ H5Sclose( space_id );
+ return -1;
+}
+
+
+
+/*-------------------------------------------------------------------------
+ * Function: H5LTmake_dataset_long
+ *
+ * Purpose: Creates and writes a dataset of H5T_NATIVE_LONG type
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: September 14, 2001
+ *
+ * Comments:
+ *
+ * Modifications:
+ *
+ *
+ *-------------------------------------------------------------------------
+ */
+
+
+herr_t H5LTmake_dataset_long( hid_t loc_id, 
+                              const char *dset_name, 
+                              int rank, 
+                              const hsize_t *dims,
+                              const long *data ) 
+{
+
+ hid_t   dataset_id, space_id;  
+ 
+ /* Create the data space for the dataset. */
+ if ( (space_id = H5Screate_simple( rank, dims, NULL )) < 0 )
+  return -1;
+
+ /* Create the dataset. */
+ if ( (dataset_id = H5Dcreate( loc_id, dset_name, H5T_NATIVE_LONG, space_id, H5P_DEFAULT )) < 0 )
+  goto out;
+
+ /* Write the dataset only if there is data to write */
+
+ if ( data ) 
+ {
+  if ( H5Dwrite( dataset_id, H5T_NATIVE_LONG, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
+   goto out;
+ }
+
+ /* End access to the dataset and release resources used by it. */
+ if ( H5Dclose( dataset_id ) < 0 )
+  return -1;
+
+ /* Terminate access to the data space. */ 
+ if ( H5Sclose( space_id ) < 0 )
+  return -1;
+
+ return 0;
+
+out:
+ H5Dclose( dataset_id );
+ H5Sclose( space_id );
+ return -1;
+}
+
+/*-------------------------------------------------------------------------
+ * Function: H5LTmake_dataset_float
+ *
+ * Purpose: Creates and writes a dataset of H5T_NATIVE_FLOAT type
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: September 14, 2001
+ *
+ * Comments:
+ *
+ * Modifications:
+ *
+ *
+ *-------------------------------------------------------------------------
+ */
+
+
+herr_t H5LTmake_dataset_float( hid_t loc_id, 
+                               const char *dset_name, 
+                               int rank, 
+                               const hsize_t *dims,
+                               const float *data ) 
+{
+
+ hid_t   dataset_id, space_id;  
+ 
+ /* Create the data space for the dataset. */
+ if ( (space_id = H5Screate_simple( rank, dims, NULL )) < 0 )
+  return -1;
+
+ /* Create the dataset. */
+ if ( (dataset_id = H5Dcreate( loc_id, dset_name, H5T_NATIVE_FLOAT, space_id, H5P_DEFAULT )) < 0 )
+  goto out;
+
+ /* Write the dataset only if there is data to write */
+
+ if ( data ) 
+ {
+  if ( H5Dwrite( dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
+   goto out;
+ }
+
+ /* End access to the dataset and release resources used by it. */
+ if ( H5Dclose( dataset_id ) < 0 )
+  return -1;
+
+ /* Terminate access to the data space. */ 
+ if ( H5Sclose( space_id ) < 0 )
+  return -1;
+
+ return 0;
+
+out:
+ H5Dclose( dataset_id );
+ H5Sclose( space_id );
+ return -1;
+}
+
+
+
+/*-------------------------------------------------------------------------
+ * Function: H5LTmake_dataset_double
+ *
+ * Purpose: Creates and writes a dataset of H5T_NATIVE_DOUBLE type
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: September 14, 2001
+ *
+ * Comments:
+ *
+ * Modifications:
+ *
+ *
+ *-------------------------------------------------------------------------
+ */
+
+
+herr_t H5LTmake_dataset_double( hid_t loc_id, 
+                                const char *dset_name, 
+                                int rank, 
+                                const hsize_t *dims,
+                                const double *data ) 
+{
+
+ hid_t   dataset_id, space_id;  
+ 
+ /* Create the data space for the dataset. */
+ if ( (space_id = H5Screate_simple( rank, dims, NULL )) < 0 )
+  return -1;
+
+ /* Create the dataset. */
+ if ( (dataset_id = H5Dcreate( loc_id, dset_name, H5T_NATIVE_DOUBLE, space_id, H5P_DEFAULT )) < 0 )
+  goto out;
+
+ /* Write the dataset only if there is data to write */
+
+ if ( data ) 
+ {
+  if ( H5Dwrite( dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
+   goto out;
+ }
+
+ /* End access to the dataset and release resources used by it. */
+ if ( H5Dclose( dataset_id ) < 0 )
+  return -1;
+
+ /* Terminate access to the data space. */ 
+ if ( H5Sclose( space_id ) < 0 )
+  return -1;
+
+ return 0;
+
+out:
+ H5Dclose( dataset_id );
+ H5Sclose( space_id );
+ return -1;
+}
+
+
+/*-------------------------------------------------------------------------
  * Function: H5LTread_dataset
  *
  * Purpose: Reads a dataset from disk.
@@ -151,6 +525,248 @@ out:
 
 }
   
+
+/*-------------------------------------------------------------------------
+ * Function: H5LTread_dataset_char
+ *
+ * Purpose: Reads a dataset from disk.
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: November 5, 2001
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t H5LTread_dataset_char( hid_t loc_id, 
+                              const char *dset_name,
+                              char *data )
+{
+ hid_t   dataset_id;  
+
+ /* Open the dataset. */
+ if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+  return -1;
+
+ /* Read */
+ if ( H5Dread( dataset_id, H5T_NATIVE_CHAR, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
+  goto out;
+
+ /* End access to the dataset and release resources used by it. */
+ if ( H5Dclose( dataset_id ) )
+  return -1;
+
+ return 0;
+
+out:
+ H5Dclose( dataset_id );
+ return -1;
+
+}
+
+/*-------------------------------------------------------------------------
+ * Function: H5LTread_dataset_short
+ *
+ * Purpose: Reads a dataset from disk.
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: November 5, 2001
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t H5LTread_dataset_short( hid_t loc_id, 
+                               const char *dset_name,
+                               short *data )
+{
+ hid_t   dataset_id;  
+
+ /* Open the dataset. */
+ if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+  return -1;
+
+ /* Read */
+ if ( H5Dread( dataset_id, H5T_NATIVE_SHORT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
+  goto out;
+
+ /* End access to the dataset and release resources used by it. */
+ if ( H5Dclose( dataset_id ) )
+  return -1;
+
+ return 0;
+
+out:
+ H5Dclose( dataset_id );
+ return -1;
+
+}
+
+/*-------------------------------------------------------------------------
+ * Function: H5LTread_dataset_int
+ *
+ * Purpose: Reads a dataset from disk.
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: November 5, 2001
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t H5LTread_dataset_int( hid_t loc_id, 
+                             const char *dset_name,
+                             int *data )
+{
+ hid_t   dataset_id;  
+
+ /* Open the dataset. */
+ if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+  return -1;
+
+ /* Read */
+ if ( H5Dread( dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
+  goto out;
+
+ /* End access to the dataset and release resources used by it. */
+ if ( H5Dclose( dataset_id ) )
+  return -1;
+
+ return 0;
+
+out:
+ H5Dclose( dataset_id );
+ return -1;
+
+}
+
+/*-------------------------------------------------------------------------
+ * Function: H5LTread_dataset_long
+ *
+ * Purpose: Reads a dataset from disk.
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: November 5, 2001
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t H5LTread_dataset_long( hid_t loc_id, 
+                              const char *dset_name,
+                              long *data )
+{
+ hid_t   dataset_id;  
+
+ /* Open the dataset. */
+ if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+  return -1;
+
+ /* Read */
+ if ( H5Dread( dataset_id, H5T_NATIVE_LONG, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
+  goto out;
+
+ /* End access to the dataset and release resources used by it. */
+ if ( H5Dclose( dataset_id ) )
+  return -1;
+
+ return 0;
+
+out:
+ H5Dclose( dataset_id );
+ return -1;
+
+}
+
+/*-------------------------------------------------------------------------
+ * Function: H5LTread_dataset_float
+ *
+ * Purpose: Reads a dataset from disk.
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: November 5, 2001
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t H5LTread_dataset_float( hid_t loc_id, 
+                               const char *dset_name,
+                               float *data )
+{
+ hid_t   dataset_id;  
+
+ /* Open the dataset. */
+ if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+  return -1;
+
+ /* Read */
+ if ( H5Dread( dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
+  goto out;
+
+ /* End access to the dataset and release resources used by it. */
+ if ( H5Dclose( dataset_id ) )
+  return -1;
+
+ return 0;
+
+out:
+ H5Dclose( dataset_id );
+ return -1;
+
+}
+
+
+/*-------------------------------------------------------------------------
+ * Function: H5LTread_dataset_double
+ *
+ * Purpose: Reads a dataset from disk.
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: November 5, 2001
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t H5LTread_dataset_double( hid_t loc_id, 
+                                const char *dset_name,
+                                double *data )
+{
+ hid_t   dataset_id;  
+
+ /* Open the dataset. */
+ if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+  return -1;
+
+ /* Read */
+ if ( H5Dread( dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
+  goto out;
+
+ /* End access to the dataset and release resources used by it. */
+ if ( H5Dclose( dataset_id ) )
+  return -1;
+
+ return 0;
+
+out:
+ H5Dclose( dataset_id );
+ return -1;
+
+}
+
 
 /*-------------------------------------------------------------------------
  * Function: H5LTget_dataset_ndims

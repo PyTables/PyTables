@@ -5,9 +5,6 @@ import copy
 import numarray as NA
 from tables import *
 
-# Verbosity level
-verbose = 0
-
 # This class is accessible only for the examples
 class Small(IsRecord):
     """ A record has several columns. They are represented here as
@@ -137,7 +134,7 @@ def createFile(filename, totalrows, complevel, recsize):
     
     return (rowswritten, table._v_rowsize)
 
-def readFile(filename, recsize):
+def readFile(filename, recsize, verbose):
     # Open the HDF5 file in read-only mode
 
     fileh = openFile(filename, mode = "r")
@@ -214,6 +211,28 @@ def readFile(filename, recsize):
 
     return (rowsread, table._v_rowsize)
 
+def readField(filename, field, rng, verbose):
+    fileh = openFile(filename, mode = "r")
+    rowsread = 0
+    for groupobj in fileh.walkGroups(fileh.root):
+        row = 0
+        for table in fileh.listNodes(groupobj, 'Table'):
+            if verbose:
+                print "Rows in", table._v_pathname, ":", table.nrows
+                print "Buffersize:", table._v_rowsize * table._v_maxTuples
+                print "MaxTuples:", table._v_maxTuples
+                print "(field, start, stop, step) ==>", (field, rng[0], rng[1], rng[2])
+
+            e = table.getColumn(field, rng[0], rng[1], rng[2])
+
+	    rowsread += table.nrows
+            if verbose:
+                print "Total selected rows ==> ", len(e)
+        
+    # Close the file (eventually destroy the extended type)
+    fileh.close()
+    return (rowsread, table._v_rowsize)
+
 if __name__=="__main__":
     import sys
     import getopt
@@ -225,16 +244,18 @@ if __name__=="__main__":
     
     import time
     
-    usage = """usage: %s [-v] [-r] [-w] [-s recsize] [-f] [-c level] [-i iterations] file
+    usage = """usage: %s [-v] [-R range] [-r] [-w] [-s recsize] [-f field] [-c level] [-i iterations] file
             -v verbose
+            -R select a range in the form "start,stop,step"
 	    -r only read test
 	    -w only write test
             -s use [big] record, [medium] or [small]
+            -f only read stated field name in tables
             -c sets a compression level (do not set it or 0 for no compression)
             -i sets the number of rows in each table\n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'vrws:c:i:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'vR:rwf:s:c:i:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -245,8 +266,10 @@ if __name__=="__main__":
         sys.exit(0)
 
     # default options
-    #verbose = 0
+    verbose = 0
+    rng = [0,0,1]  # All the range
     recsize = "medium"
+    fieldName = None
     testread = 1
     testwrite = 1
     complevel = 0
@@ -255,12 +278,15 @@ if __name__=="__main__":
     # Get the options
     for option in opts:
         if option[0] == '-v':
-            global verbose
             verbose = 1
+        elif option[0] == '-R':
+            rng = [int(i) for i in option[1].split(",")]
         elif option[0] == '-r':
             testwrite = 0
         elif option[0] == '-w':
             testread = 0
+        elif option[0] == '-f':
+            fieldName = option[1]
         elif option[0] == '-s':
             recsize = option[1]
             if recsize not in ["big", "medium", "small"]:
@@ -292,8 +318,13 @@ if __name__=="__main__":
 	t1 = time.clock()
         if psyco_imported:
             psyco.bind(readFile)
+            #psyco.bind(readField)
             pass
-	(rowsr, rowsz) = readFile(file, recsize)
+        if fieldName:
+            (rowsr, rowsz) = readField(file, fieldName, rng, verbose)
+            pass
+        else:
+            (rowsr, rowsz) = readFile(file, recsize, verbose)
 	t2 = time.clock()
 	treadrows = round(t2-t1, 3)
 	print "Rows read:", rowsr, " Row size:", rowsz

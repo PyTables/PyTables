@@ -326,6 +326,8 @@ class BasicRangeTestCase(unittest.TestCase):
     maxTuples = 3  # Choose a small value for the buffer size
     start = 1
     stop = nrows
+    checkrecarray = 0
+    checkgetColumn = 0
 
     def setUp(self):
         # Create an instance of an HDF5 Table
@@ -392,6 +394,12 @@ class BasicRangeTestCase(unittest.TestCase):
             for nrec in range(len(recarray)):
                 if recarray.field('var2')[nrec] < self.nrows:
                     result.append(recarray.field('var2')[nrec])
+        elif self.checkgetColumn:
+            column = table.getColumn('var2', self.start, self.stop, self.step)
+            result = []
+            for nrec in range(len(column)):
+                if column[nrec] < self.nrows:
+                    result.append(column[nrec])
         else:
             result = [ rec['var2'] for rec in
                        table.iterrows(self.start, self.stop, self.step)
@@ -415,6 +423,8 @@ class BasicRangeTestCase(unittest.TestCase):
             if self.start < self.stop:
                 if self.checkrecarray:
                     print "Last record *read* in recarray ==>", recarray[-1]
+                elif self.checkgetColumn:
+                    print "Last value *read* in getColumn ==>", column[-1]
                 else:
                     print "Last record *read* in table range ==>", rec
             print "Total number of selected records ==>", len(result)
@@ -424,7 +434,7 @@ class BasicRangeTestCase(unittest.TestCase):
             print "start, stop, step ==>", startr, stopr, self.step
 
         assert result == range(startr, stopr, self.step)
-        if startr < stopr and not self.checkrecarray:
+        if startr < stopr and not (self.checkrecarray or self.checkgetColumn):
             if self.nrows < self.expectedrows:
                 assert rec.var2 == range(self.start, self.stop, self.step)[-1]
             else:
@@ -629,11 +639,11 @@ class BasicRangeTestCase(unittest.TestCase):
         self.check_range()
 
     def test13_range(self):
-        """Checking ranges in table iterators (case11)"""
+        """Checking ranges in table iterators (case13)"""
 
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test11_range..." % self.__class__.__name__
+            print "Running %s.test13_range..." % self.__class__.__name__
 
         # Case where step < 0 
         self.step = -11
@@ -665,10 +675,38 @@ class BasicRangeTestCase(unittest.TestCase):
 
 
 class IterRangeTestCase(BasicRangeTestCase):
-    checkrecarray = 0
+    pass
 
 class RecArrayRangeTestCase(BasicRangeTestCase):
     checkrecarray = 1
+
+class getColumnRangeTestCase(BasicRangeTestCase):
+    checkgetColumn = 1
+
+    def test01_nonexistentField(self):
+        """Checking non-existing Field in getColumn method """
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_nonexistentField..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        self.fileh = openFile(self.file, "r")
+        self.root = self.fileh.root
+        table = self.fileh.getNode("/table0")
+
+        try:
+            column = table.getColumn('non-existent-column')
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+            pass
+        else:
+            print rec
+            self.fail("expected a LookupError")
+
 
 #----------------------------------------------------------------------
 
@@ -686,6 +724,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CompressTwoTablesTestCase))
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
+        theSuite.addTest(unittest.makeSuite(getColumnRangeTestCase))
         theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
 
     return theSuite

@@ -13,8 +13,8 @@ class Particle(IsRecord):
     grid_j      = Col("Int32", 1, 0)    # integer
     idnumber    = Col("Int64", 1, 0)    #signed long long 
     name        = Col('CharType', 16, "")  # 16-character String
-    #pressure    = Col("Float32", 2, 0)  # float  (single-precision)
-    pressure    = Col("Float32", 1, 0)  # float  (single-precision)
+    pressure    = Col("Float32", 2, 0)  # float  (single-precision)
+    #pressure    = Col("Float32", 1, 0)  # float  (single-precision)
     temperature = Col("Float64", 1, 0)  # double (double-precision)
 
 Particle2 = {
@@ -25,8 +25,8 @@ Particle2 = {
     "idnumber"    : Col("Int64", 1, 0),    #signed long long 
     "name"        : Col('CharType', 16, ""),  # 16-character String
     "__name"      : "Hola, pardal",  # To pass a special variable to IsRecord
-    #"pressure"    : Col("Float32", 2, 0),  # float  (single-precision)
-    "pressure"    : Col("Float32", 1, 0),  # float  (single-precision)
+    "pressure"    : Col("Float32", 2, 0),  # float  (single-precision)
+    #"pressure"    : Col("Float32", 1, 0),  # float  (single-precision)
     "temperature" : Col("Float64", 1, 0),  # double (double-precision)
 }
 
@@ -59,8 +59,8 @@ for i in xrange(10):
     particle.ADCcount = (i * 256) % (1 << 16)
     particle.grid_i = i 
     particle.grid_j = 10 - i
-    #particle.pressure = [float(i*i), float(i*2)]
-    particle.pressure = float(i*i)
+    particle.pressure = [float(i*i), float(i*2)]
+    #particle.pressure = float(i*i)
     particle.temperature = float(i**2)
     particle.idnumber = i * (2 ** 34)  # This exceeds integer range
     # This injects the Record values.
@@ -253,7 +253,8 @@ for i in xrange(10, 15):
     particle.ADCcount = (i * 256) % (1 << 16)
     particle.grid_i = i 
     particle.grid_j = 10 - i
-    particle.pressure = float(i*i)
+    #particle.pressure = float(i*i)
+    particle.pressure = [float(i*i), float(i*2)]
     particle.temperature = float(i**2)
     particle.idnumber = i * (2 ** 34)  # This exceeds integer range
     table.append(particle)
@@ -266,6 +267,12 @@ print "Columns name and pressure on expanded table:"
 for p in table.fetchall():
     print p.name, '-->', p.pressure
 print
+
+print table.getColumn("ADCcount")
+print table.getColumn("name", 0, 0, 1)
+print table.getColumn("pressure", 0, 0, 2)
+
+#sys.exit()
 
 # Several range selections
 print "Extended slice in selection: [0:7:6]"
@@ -285,7 +292,7 @@ print "  byteorder:", table._v_byteorder
 print "  coltypes:", table.coltypes
 print "  colnames:", table.colnames
 
-print table[:]
+#print table[:]
 print table.getRecArray()
 for p in table.fetchall():
     print p.c1, '-->', p.c2
@@ -310,10 +317,10 @@ h5file.createGroup(h5file.root, "newgroup")
 h5file.removeNode(h5file.root, "newgroup")
 # If we change the name of a group with childs, we have to recursively change
 # all the paths of the children!
-h5file.moveNode(h5file.root.columns, "TDC", "name")
 h5file.moveNode(h5file.root, "columns", "newcolumns")
 
 print h5file
+
 
 # Close this file
 h5file.close()

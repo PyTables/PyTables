@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.29 2003/03/04 17:29:57 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.30 2003/03/06 10:42:30 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.29 $"
+__version__ = "$Revision: 1.30 $"
 
 
 import sys, os.path
@@ -372,6 +372,11 @@ cdef extern from "H5TB.h":
                             hsize_t start, hsize_t nrecords, size_t type_size,
                             size_t *field_offset, void *data )
   
+  herr_t H5TBread_fields_name ( hid_t loc_id, char *table_name,
+                                char *field_names, hsize_t start,
+                                hsize_t nrecords, size_t type_size,
+                                size_t *field_offset, void *data )
+  
 # Declarations from PyTables local functions
 
 # Funtion to compute the offset of a struct format
@@ -485,7 +490,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.29 2003/03/04 17:29:57 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.30 2003/03/06 10:42:30 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -854,8 +859,8 @@ cdef class Table:
     cdef size_t  rowsize
     cdef size_t  field_offsets[MAX_FIELDS]
     cdef hid_t   fieldtypes[MAX_FIELDS]
-    cdef size_t  field_sizes[MAX_FIELDS]
-    cdef char    **field_names
+    #cdef size_t  field_sizes[MAX_FIELDS]
+    #cdef char    **field_names
     cdef char    fmt[255]
 
     # Get info about the table dataset
@@ -874,13 +879,13 @@ cdef class Table:
     self.totalrecords = nrecords
     
     # Allocate space for the variable names
-    field_names = <char **>malloc(nfields * sizeof(char *))
+    #self.field_names = <char **>malloc(nfields * sizeof(char *))
     for i from  0 <= i < nfields:
       # Strings could not be larger than 255
-      field_names[i] = <char *>malloc(MAX_CHARS * sizeof(char))  
+      self.field_names[i] = <char *>malloc(MAX_CHARS * sizeof(char))  
 
     ret = H5TBget_field_info(self.group_id, self.name,
-                             field_names, field_sizes,
+                             self.field_names, self.field_sizes,
                              self.field_offset, &rowsize)
     if ret < 0:
       raise RuntimeError("Problems getting field info")
@@ -892,7 +897,7 @@ cdef class Table:
     # Create a python tuple with the fields names
     names_tuple = []
     for i in range(nfields):
-      names_tuple.append(field_names[i])
+      names_tuple.append(self.field_names[i])
     names_tuple = tuple(names_tuple)
 
     # Return the buffer as a Python String
@@ -920,6 +925,33 @@ cdef class Table:
 
     return nrecords
 
+  def read_field_name(self, char *field_name, hsize_t start,
+                       hsize_t nrecords, object recarr):
+    cdef herr_t ret
+    cdef void *rbuf
+    cdef int buflen, ret2, i, fieldpos
+
+    # Correct the number of records to read, if needed
+    if (start + nrecords) > self.totalrecords:
+      nrecords = self.totalrecords - start
+
+    for i in range(self.nfields):
+      if strcmp(self.field_names[i], field_name) == 0:
+        fieldpos = i
+        
+    # Get the pointer to the buffer data area
+    ret2 = PyObject_AsWriteBuffer(recarr._data, &rbuf, &buflen)    
+
+    # Readout to the buffer
+    ret = H5TBread_fields_name(self.group_id, self.name, field_name,
+                               start, nrecords, self.field_sizes[fieldpos],
+                               self.field_offset, rbuf )
+
+    if ret < 0:
+      raise RuntimeError("Problems reading records.")
+
+    return nrecords
+
   def __dealloc__(self):
     cdef int ret
     #print "Destroying object Table in Extension"
@@ -928,7 +960,7 @@ cdef class Table:
 cdef class Row:
   cdef object _fields, _array, _table, _saveBufferedRows
   cdef int _row, _nbuf, _nrow, _unsavednrows, _maxTuples
-  cdef int step
+  cdef int start, stop, step, nextelement, nrowsinbuf
 
   """Row Class
 
@@ -946,6 +978,13 @@ cdef class Row:
     self._maxTuples = table._v_maxTuples
     self._saveBufferedRows = table._saveBufferedRows
 
+  def initLoop(self, start, stop, step, nrowsinbuf):
+    self.start = start
+    self.stop = stop
+    self.step = step
+    self.nextelement = start
+    self.nrowsinbuf = nrowsinbuf
+
   def __call__(self):
     """ return the row for this record object and update counters"""
     self._row = self._row + 1
@@ -959,11 +998,10 @@ cdef class Row:
     #print "Delivering row:", self._nrow, "// Buffer row:", self._row
     return self
 
-  def setBaseRow(self, start, startb, step):
+  def setBaseRow(self, start, startb):
     """ set the global row number and reset the local buffer row counter """
     self._nbuf = start
-    self._row = startb - step
-    self.step = step
+    self._row = startb - self.step
 
   def nrow(self):
     """ get the global row number for this table """

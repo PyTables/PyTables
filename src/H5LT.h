@@ -21,6 +21,7 @@
 #define PASSED()	{puts(" PASSED");fflush(stdout);}
 #define H5_FAILED()	{puts("*FAILED*");fflush(stdout);}
 #define SKIPPED()	{puts(" -SKIP-");fflush(stdout);}
+#define EXAMPLE(WHAT)	{printf("%-70s", "Example " WHAT); fflush(stdout);}
 
 
 #ifdef __cplusplus

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.29 2003/02/28 21:22:58 falted Exp $
+#       $Id: Table.py,v 1.30 2003/03/06 10:42:30 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.29 $"
+__version__ = "$Revision: 1.30 $"
 
 from __future__ import generators
 import sys
@@ -458,6 +458,7 @@ class Table(Leaf, hdf5Extension.Table):
         nrowsinbuf = self._v_maxTuples
         buffer = self._v_buffer  # Get a recarray as buffer
         row = self.row   # get the pointer to the Row object
+        row.initLoop(0, self.nrows, 1, nrowsinbuf)
         for i in xrange(0, self.nrows, nrowsinbuf):
             recout = self.read_records(i, nrowsinbuf, buffer)
             #recout = nrowsinbuf
@@ -465,7 +466,7 @@ class Table(Leaf, hdf5Extension.Table):
                 buffer.byteswap()
             # Set the buffer counter
             # Case for step=1
-            row.setBaseRow(i, 0, 1)
+            row.setBaseRow(i, 0)
             for j in xrange(recout):
                 yield row()
         
@@ -478,6 +479,7 @@ class Table(Leaf, hdf5Extension.Table):
         nrowsread = start
         startb = 0
         nextelement = start
+        row.initLoop(start, stop, step, nrowsinbuf)
         for i in xrange(start, stop, nrowsinbuf):
             # Skip this iteration if there is no interesting information
             if ((nextelement >= nrowsread + nrowsinbuf) or 
@@ -493,7 +495,7 @@ class Table(Leaf, hdf5Extension.Table):
             if self._v_byteorder <> sys.byteorder:
                 buffer.byteswap()
             # Set the buffer counter
-            row.setBaseRow(i, startb, step)
+            row.setBaseRow(i, startb)
             # Loop over the values for this buffer
             for j in xrange(startb, stopb, step):
                 yield row.getRow()
@@ -513,10 +515,13 @@ class Table(Leaf, hdf5Extension.Table):
                 start = 0
             elif start < 0:
                 start = self.nrows + start
+
             if stop is None:
                 stop = self.nrows
             elif stop <= 0 :
                 stop = self.nrows + stop
+            elif stop > self.nrows:
+                stop = self.nrows
 
             if step is None:
                 step = 1
@@ -535,12 +540,10 @@ class Table(Leaf, hdf5Extension.Table):
             return self.fetchrange(start, stop, step)
 
     def getRecArray(self, start=None, stop=None, step=None):
-        """Get a recarray from a table row range"""
+        """Get a recarray from a table in a row range"""
         (start, stop, step) = self._processRange(start, stop, step)
         # Create a recarray for the readout
-        if stop > self.nrows:
-            stop = self.nrows
-        if start > stop:
+        if start >= stop:
             return recarray.array(None, formats=self.description._v_recarrfmt,
                                   shape=(0,),
                                   names = self.colnames)
@@ -557,9 +560,6 @@ class Table(Leaf, hdf5Extension.Table):
         startr = 0
         startb = 0
         nextelement = start
-        # This an efficient, although somewhat complicated algorithm
-        # so as to get a selection of a table using an extended range
-        # May be is it possible to simplify it??
         for i in xrange(start, stop, nrowsinbuf):
             if ((nextelement >= nrowsread + nrowsinbuf) or
                 (startb >= stop - nrowsread)):
@@ -584,8 +584,160 @@ class Table(Leaf, hdf5Extension.Table):
         result._byteorder = self._v_byteorder
         return result
 
+    def getColumn(self, field=None, start=None, stop=None, step=None):
+        """Get a column from a table in a row range"""
+
+        nfield = 0
+        for fieldTable in self.description.__slots__:
+            if fieldTable == field:
+                typeField = self.description.__types__[field]
+                lengthField = self.description._v_shapes[nfield]
+                break
+            nfield += 1
+        else:
+            raise LookupError, \
+                  """The column name '%s' not found in table {%s}""" % \
+                  (field, self)
+            
+        (start, stop, step) = self._processRange(start, stop, step)
+        # Return a rank-0 array if start > stop
+        if start >= stop:
+            if isinstance(typeField, recarray.Char):
+                return chararray.array(shape=(0,), itemsize = 0)
+            else:
+                return numarray.array(shape=(0,), type=typeField)
+                
+        nrows = ((stop - start - 1) // step) + 1
+        # Create the resulting recarray
+        if isinstance(typeField, recarray.Char):
+            result = chararray.array(shape=(nrows,), itemsize=lengthField)
+        else:
+            if lengthField > 1:
+                result = numarray.array(shape=(nrows, lengthField),
+                                        type=typeField)
+            else:
+                result = numarray.array(shape=(nrows, ), type=typeField)
+        # Setup a buffer for the readout
+        nrowsinbuf = self._v_maxTuples   # Shortcut
+        buffer = self._v_buffer  # Get a recarray as buffer
+        nrowsread = start
+        startr = 0
+        startb = 0
+        nextelement = start
+        for i in xrange(start, stop, nrowsinbuf):
+            if ((nextelement >= nrowsread + nrowsinbuf) or
+                (startb >= stop - nrowsread)):
+                nrowsread += nrowsinbuf
+                continue
+            # Compute the end for this iteration
+            stopb = stop - nrowsread
+            if stopb > nrowsinbuf:
+                stopb = nrowsinbuf
+            stopr = startr + ((stopb-startb-1)//step) + 1
+            # Read a chunk
+            nrowsread += self.read_records(i, nrowsinbuf, buffer)
+            #nrowsread += nrowsinbuf
+            # Assign the correct part to result
+            # The bottleneck is in this assignment. Hope that the numarray
+            # people might improve this in the short future
+            result[startr:stopr] = buffer._fields[field][startb:stopb:step]
+            # Compute some indexes for the next iteration
+            startr = stopr
+            j = range(startb, stopb, step)[-1]
+            startb = (j+step) % nrowsinbuf
+            nextelement += step
+
+        # Set the byteorder properly
+        result._byteorder = self._v_byteorder
+        return result
+
+    # This version does not work well. Perhaps a bug in the
+    # H5TB_read_fields_name entry?
+    def getColumn2(self, field=None, start=None, stop=None, step=None):
+        """Get a column from a table in a row range"""
+
+        print "passant per getColumn"
+        nfield = 0
+        for fieldTable in self.description.__slots__:
+            if fieldTable == field:
+                typeField = self.description.__types__[field]
+                lengthField = self.description._v_shapes[nfield]
+                break
+            nfield += 1
+        else:
+            raise LookupError, \
+                  """The column name '%s' not found in table {%s}""" % \
+                  (field, self)
+            
+        (start, stop, step) = self._processRange(start, stop, step)
+        # Return a rank-0 array if start > stop
+        if start >= stop:
+            if isinstance(typeField, recarray.Char):
+                return chararray.array(shape=(0,), itemsize = 0)
+            else:
+                return numarray.array(shape=(0,), type=typeField)
+                
+        nrows = ((stop - start - 1) // step) + 1
+        # Create the resulting recarray
+        if isinstance(typeField, recarray.Char):
+            result = chararray.array(shape=(nrows,), itemsize=lengthField)
+        else:
+            if lengthField > 1:
+                result = numarray.array(shape=(nrows, lengthField),
+                                        type=typeField)
+            else:
+                result = numarray.array(shape=(nrows, ), type=typeField)
+        # Setup a buffer for the readout
+        nrowsinbuf = self._v_maxTuples   # Shortcut
+        #buffer = self._v_buffer  # Get a recarray as buffer
+        # Create the buffer array
+        typesize = lengthField
+        if isinstance(typeField, recarray.Char):
+            buffer = chararray.array(shape=(nrowsinbuf,), itemsize=lengthField)
+        else:
+            if lengthField > 1:
+                buffer = numarray.array(shape=(nrowsinbuf, lengthField),
+                                        type=typeField)
+            else:
+                buffer = numarray.array(shape=(nrowsinbuf, ), type=typeField)
+            typesize *= buffer._type.bytes
+        nrowsread = start
+        startr = 0
+        startb = 0
+        nextelement = start
+        print "passant per getColumn2"
+        for i in xrange(start, stop, nrowsinbuf):
+            if ((nextelement >= nrowsread + nrowsinbuf) or
+                (startb >= stop - nrowsread)):
+                nrowsread += nrowsinbuf
+                continue
+            # Compute the end for this iteration
+            stopb = stop - nrowsread
+            if stopb > nrowsinbuf:
+                stopb = nrowsinbuf
+            stopr = startr + ((stopb-startb-1)//step) + 1
+            # Read a chunk
+            #nrowsread += self.read_records(i, nrowsinbuf, buffer)
+            nrowsread += self.read_field_name(field, i, nrowsinbuf, buffer)
+            #nrowsread += nrowsinbuf
+            # Assign the correct part to result
+            # The bottleneck is in this assignment. Hope that the numarray
+            # people might improve this in the short future
+            #result[startr:stopr] = buffer._fields[field][startb:stopb:step]
+            print "passant per getColumn3", startb, stopb, step
+            result[startr:stopr] = buffer[startb:stopb:step]
+            # Compute some indexes for the next iteration
+            startr = stopr
+            j = range(startb, stopb, step)[-1]
+            startb = (j+step) % nrowsinbuf
+            nextelement += step
+
+        # Set the byteorder properly
+        result._byteorder = self._v_byteorder
+        return result
+
     # Moved out of scope
-    def __getitem__(self, slice):
+    def _f_getitem__(self, slice):
 
         if isinstance(slice, types.IntType):
             step = 1

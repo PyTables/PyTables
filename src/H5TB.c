@@ -3360,7 +3360,7 @@ herr_t H5TBdelete_field( hid_t loc_id,
     goto out;
 
    strcpy( attr_name, "FIELD_" );
-   sprintf( aux, "%d", i );
+   sprintf( aux, "%d", (int)i );
    strcat( attr_name, aux );
    sprintf( aux, "%s", "_FILL" );
    strcat( attr_name, aux );
@@ -3488,7 +3488,7 @@ herr_t H5TBAget_fill( hid_t loc_id,
  for ( i = 0; i < nfields; i++)
  {
   strcpy( attr_name, "FIELD_" );
-  sprintf( aux, "%d", i );
+  sprintf( aux, "%d", (int)i );
   strcat( attr_name, aux );
   sprintf( aux, "%s", "_FILL" );
   strcat( attr_name, aux );
@@ -3602,7 +3602,7 @@ herr_t H5TB_attach_attributes( const char *table_title,
   member_name = H5Tget_member_name( type_id, i );
 
   strcpy( attr_name, "FIELD_" );
-  sprintf( aux, "%d", i );
+  sprintf( aux, "%d", (int)i );
   strcat( attr_name, aux );
   sprintf( aux, "%s", "_NAME" );
   strcat( attr_name, aux );
