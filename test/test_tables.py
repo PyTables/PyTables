@@ -35,8 +35,8 @@ RecordDescriptionDict = {
 # Old fashion of defining tables (for testing backward compatibility)
 class OldRecord(IsDescription):
     var1 = Col("CharType", shape=4, dflt="abcd")   # 4-character String
-    var2 = Col("Int32", 1, 1)                # integer
-    var3 = Col("Int16", 1, 2)                # short integer
+    var2 = Col(Int32, 1, 1)                # integer
+    var3 = Col(Int16, 1, 2)                # short integer
     var4 = Col("Float64", 1, 3.1)            # double (double-precision)
     var5 = Col("Float32", 1, 4.2)            # float  (single-precision)
     var6 = Col("UInt16", 1, 5)                # unisgned short integer 

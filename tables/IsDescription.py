@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.14 2003/07/24 13:01:34 falted Exp $
+#       $Id: IsDescription.py,v 1.15 2003/07/25 19:34:17 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.14 $"
+__version__ = "$Revision: 1.15 $"
 
 
 import warnings
@@ -60,8 +60,8 @@ fromstructfmt = {'b':NA.Int8, 'B':NA.UInt8,
               }
 
 class Col:
-    """ Define a numerical column """
-    def __init__(self, dtype="Float64", shape=1, dflt=None, pos = None):
+    """ Define a column """
+    def __init__(self, dtype="Float64", shape=1, dflt=None, pos=None):
 
         self.pos = pos
 
@@ -124,7 +124,7 @@ class Col:
 class StringCol(Col):
     """ Define a string column """
     
-    def __init__(self, length=None, dflt=None, shape=1, pos = None):
+    def __init__(self, length=None, dflt=None, shape=1, pos=None):
 
         self.pos = pos
 

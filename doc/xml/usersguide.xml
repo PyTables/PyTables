@@ -2502,52 +2502,6 @@ AttributeError: Error accessing "ADCcount" attr.
 	  and any other value means that LZO is active.
 	</p>
 
-
-      </section>
-
-      <section id="expectedRowsOptim">
-	<heading>Informing <visual markup="tt">PyTables</visual>
-	  about expected number of rows in tables</heading>
-
-	<p>The underlying HDF5 library that is used by
-	  <verb>PyTables</verb> takes the data in bunches of a
-	  certain length, so-called <em>chunks</em>, to write them
-	  on disk as a whole, i.e. the HDF5 library treats chunks as
-	  atomic objects and disk I/O is always made in terms of
-	  complete chunks. This allows data filters to be defined by
-	  the application to perform tasks such as compression,
-	  encryption, checksumming, etc. on entire chunks.
-	</p>
-
-	<p>An in-memory B-tree is used to map chunk structures on
-	  disk. The more chunks that are allocated for a dataset the
-	  larger the B-tree. Large B-trees take memory and causes
-	  file storage overhead as well as more disk I/O and higher
-	  contention for the meta data cache. Consequently, it's
-	  important to balance between memory and I/O overhead
-	  (small B-trees) and time to access to data (big B-trees).
-	</p>
-
-	<p><verb>PyTables</verb> can determine an optimum chunk size
-	  to make B-trees adequate to your dataset size if you help
-	  it by providing an estimation of the number of rows for a
-	  table. This must be made in table creation time by passing
-	  this value in the <verb>expectedrows</verb> keyword of
-	  <verb>createTable</verb> method (see <ref
-	    refid="createTableDescr"></ref>).
-	</p>
-
-	<p>When your dataset size is bigger than 1 MB (take this
-	  figure only as a reference, not strictly), by providing
-	  this guess of the number of rows, you will be optimizing
-	  the access to your table data. When the dataset size is
-	  larger than, say 100MB, you are <visual
-	    markup="bf">strongly</visual> suggested to provide such a
-	  guess; failing to do that may cause your application doing
-	  very slow I/O operations and demanding huge amounts
-	  of memory. You have been warned!.
-	</p>
-
       </section>
 
       <section>
@@ -2626,20 +2580,63 @@ if __name__=="__main__":
 	</p>
 
 	<figure id="psycoWriteComparison">
-	  <graphics file="write-medium-psyco-lzo-comparison" scale="0.75" kind="vector">
-	  
+	  <graphics file="write-medium-psyco-lzo-comparison" scale="1.0" kind="vector">
 	  </graphics>
 	  <caption>Writing tables with/without Psyco and compression.
 	  </caption>
 	</figure>
 
 	<figure id="psycoReadComparison">
-	  <graphics file="read-medium-psyco-lzo-comparison" scale="0.75" kind="vector">
-	  
+	  <graphics file="read-medium-psyco-lzo-comparison" scale="1.0" kind="vector">
 	  </graphics>
 	  <caption>Reading tables with/without Psyco and compression.
 	  </caption>
 	</figure>
+
+      </section>
+
+      <section id="expectedRowsOptim">
+	<heading>Informing <visual markup="tt">PyTables</visual>
+	  about expected number of rows in tables</heading>
+
+	<p>The underlying HDF5 library that is used by
+	  <verb>PyTables</verb> takes the data in bunches of a
+	  certain length, so-called <em>chunks</em>, to write them
+	  on disk as a whole, i.e. the HDF5 library treats chunks as
+	  atomic objects and disk I/O is always made in terms of
+	  complete chunks. This allows data filters to be defined by
+	  the application to perform tasks such as compression,
+	  encryption, checksumming, etc. on entire chunks.
+	</p>
+
+	<p>An in-memory B-tree is used to map chunk structures on
+	  disk. The more chunks that are allocated for a dataset the
+	  larger the B-tree. Large B-trees take memory and causes
+	  file storage overhead as well as more disk I/O and higher
+	  contention for the meta data cache. Consequently, it's
+	  important to balance between memory and I/O overhead
+	  (small B-trees) and time to access to data (big B-trees).
+	</p>
+
+	<p><verb>PyTables</verb> can determine an optimum chunk size
+	  to make B-trees adequate to your dataset size if you help
+	  it by providing an estimation of the number of rows for a
+	  table. This must be made in table creation time by passing
+	  this value in the <verb>expectedrows</verb> keyword of
+	  <verb>createTable</verb> method (see <ref
+	    refid="createTableDescr"></ref>).
+	</p>
+
+	<p>When your dataset size is bigger than 1 MB (take this
+	  figure only as a reference, not strictly), by providing
+	  this guess of the number of rows, you will be optimizing
+	  the access to your table data. When the dataset size is
+	  larger than, say 100MB, you are <visual
+	    markup="bf">strongly</visual> suggested to provide such a
+	  guess; failing to do that may cause your application doing
+	  very slow I/O operations and demanding huge amounts
+	  of memory. You have been warned!.
+	</p>
 
       </section>
 
@@ -2683,8 +2680,9 @@ if __name__=="__main__":
 	<figure id="rootUEPfig1">
 	  <graphics file="rootUEP1" scale="0.6" kind="vector">
 	  </graphics>
-	  <caption>Complete tree in file "test.h5", and
-	    subtree of interest for the user.
+	  <caption>Complete tree in file <visual
+	    markup="tt">test.h5</visual>, and subtree of interest for
+	    the user.
 	  </caption>
 	</figure>
 
@@ -2692,14 +2690,14 @@ if __name__=="__main__":
 	  <graphics file="rootUEP2" scale="0.75" kind="vector">
 	  </graphics>
 	  <caption>Resulting object tree derived from the use of the
-	    rootUEP parameter.
+	    <visual markup="tt">rootUEP</visual> parameter.
 	  </caption>
 	</figure>
 	
-
       </section>
 
     </chapter>
+
     <chapter id="libraryReference">
       <heading>Library Reference</heading>
       
@@ -2875,18 +2873,23 @@ if __name__=="__main__":
       </section>
 
       <section id="ColClassDescr">
-	<heading>The <visual markup="tt">Col</visual> class</heading>
+	<heading>The <visual markup="tt">Col</visual> class and its descendants</heading>
 
 	<p>
-	  This class is used as a mean to declare the different
-	  properties of a column of a table. The only public method
-	  accessible is the constructor itself.
+	  The <verb>Col</verb> class is used as a mean to declare the
+	  different properties of a column of a table. In addition, a
+	  series of descendant classes are offered in order to make
+	  these column descriptions easier to the user. In general, it
+	  is recommended to use these descendants classes, as they are
+	  meaningful when found in the middle of the code.
+	</p>
+	<p>The only public method accessible in these classes is the
+	  constructor itself.
 	</p>
 
 	<description>
 
-	  <term>Col(dtype="Float64", shape=(1,), dflt=None, pos =
-	    None)
+	  <term>Col(dtype="Float64", shape=1, dflt=None, pos=None)
 	  </term>
 	  <item>Define properties for a <verb>Table</verb> column.
 
@@ -2895,26 +2898,110 @@ if __name__=="__main__":
 	      <term>dtype</term> <item>The data type for the column. See
 		the <ref refid="datatypesSupported">appendix</ref> for a
 		relation of data types supported in a <visual
-		  markup="tt">IsDescription</visual> class declaration.</item>
+		  markup="tt">IsDescription</visual> class
+		declaration. The type description is accepted both in
+		string format and as numarray data type.</item>
 
-	      <term>shape</term> <item>An integer (or, for
-		multidimensional cases, a tuple, although this is not yet
-		supported as for the version 0.4) that specifies the
-		number of <em>dtype</em> items for each element (or shape,
-		for multidimensional elements) of this column.</item>
+	      <term>shape</term> <item>An integer or a tuple, that
+		specifies the number of <em>dtype</em> items for each
+		element (or shape, for multidimensional elements) of
+		this column. For <verb>CharType</verb> columns, the
+		first dimension is used as the length of the character
+		strings. For this kind of objects, the use of
+		<verb>StringCol</verb> subclass is recommended.</item>
 
-	      <term>dflt</term> <item>The default value for elements of
-		this column. If the user does not supply a value for an
-		element while filling a table, this default value will be
-		written to disk. If <em>dflt</em> is not supplied, a
-		appropriate zero value (or <em>null</em> string) will be
-		chosen by default.</item>
+	      <term>dflt</term> <item>The default value for elements
+		of this column. If the user does not supply a value
+		for an element while filling a table, this default
+		value will be written to disk. If the user supplies an
+		scalar value for a multidimensional column, this value
+		is autmatically <em>broadcasted</em> to all the
+		elements in the column cell. If <em>dflt</em> is not
+		supplied, a appropriate zero value (or <em>null</em>
+		string) will be chosen by default.</item>
 
 	      <term>pos</term> <item>By default, columns are disposed in
 		memory following an alphanumerical order of the column
 		names. In some situations, however, it is convenient to
 		impose a user defined ordering. <em>pos</em> parameter
 		allows the user to force the wanted disposition.</item>
+
+	    </description>
+	  </item>
+
+	  <term>StringCol(length=None, dflt=None, shape=1, pos=None)
+	  </term>
+	  <item>Define a column to be of <verb>CharType</verb>
+	    type. The <verb>length</verb> parameter sets the length of
+	    the strings. The meaning of the other parameters are like
+	    in the <verb>Col</verb> class.
+	  </item>
+	  <term>IntCol(dflt=0, shape=1, itemsize=4, sign=1, pos=None)
+	  </term>
+	  <item>Define a column to be of <verb>IntXXType</verb> type,
+	    depending on the value of <verb>itemsize</verb>. The
+	    <verb>itemsize</verb> parameter sets the number of bytes
+	    of the integers in the column and the default is 4
+	    bytes. <verb>sign</verb> determines if the integers are
+	    signed or not. The meaning of the other parameters are
+	    like in the <verb>Col</verb> class.
+
+	    <p>This class has several descentants:
+	    </p>
+
+	    <description>
+	      <term>Int8Col(dflt=0, shape=1, pos=None)</term>
+	      <item>Define a column as an <verb>Int8</verb> type.</item>
+
+	      <term>UInt8Col(dflt=0, shape=1, pos=None)</term>
+	      <item>Define a column as an <verb>UInt8</verb>
+	      type.</item>
+
+	      <term>Int16Col(dflt=0, shape=1, pos=None)</term>
+	      <item>Define a column as an <verb>Int16</verb> type.</item>
+
+	      <term>UInt16Col(dflt=0, shape=1, pos=None)</term>
+	      <item>Define a column as an <verb>UInt16</verb>
+	      type.</item>
+
+	      <term>Int32Col(dflt=0, shape=1, pos=None)</term>
+	      <item>Define a column as an <verb>Int32</verb> type.</item>
+
+	      <term>UInt32Col(dflt=0, shape=1, pos=None)</term>
+	      <item>Define a column as an <verb>UInt32</verb>
+	      type.</item>
+
+	      <term>Int64Col(dflt=0, shape=1, pos=None)</term>
+	      <item>Define a column as an <verb>Int64</verb> type.</item>
+
+	      <term>UInt64Col(dflt=0, shape=1, pos=None)</term>
+	      <item>Define a column as an <verb>UInt64</verb>
+	      type.</item>
+
+	    </description>
+
+	  </item>
+
+	  <term>FloatCol(dflt=0, shape=1, itemsize=8, pos=None)
+	  </term>
+	  <item>Define a column to be of <verb>FloatXXType</verb>
+	    type, depending on the value of <verb>itemsize</verb>. The
+	    <verb>itemsize</verb> parameter sets the number of bytes
+	    of the floats in the column and the default is 8 bytes
+	    (double precision). The meaning of the other parameters
+	    are like in the <verb>Col</verb> class.
+
+	    <p>This class has two descentants:
+	    </p>
+
+	    <description>
+	      <term>Float32Col(dflt=0.0, shape=1, pos=None)</term>
+	      <item>Define a column as a <verb>Float32</verb>
+	      type.</item>
+
+	      <term>Float64Col(dflt=0.0, shape=1, pos=None)</term>
+	      <item>Define a column as a <verb>Float64</verb>
+	      type.</item>
 
 	    </description>
 	  </item>
@@ -3578,7 +3665,7 @@ if __name__=="__main__":
 	  <verb>Row</verb> interface.
 	</p>
 	<p>Please note that this object inherits all the public
-	  attributes and methods from <verb>Leaf</verb>.
+	  attributes and methods that <verb>Leaf</verb> has.
 	</p>
 
 	<subsection>
@@ -3590,7 +3677,8 @@ if __name__=="__main__":
 	      this table</item>
 
 	    <term>row</term> <item>The <verb>Row</verb> instance for
-	      this table.</item>
+	      this table (see <ref
+	      refid="RowClassDescr"></ref>).</item>
 
 	    <term>nrows</term>
 	    <item>The number of rows in this table.</item>
@@ -3617,14 +3705,10 @@ if __name__=="__main__":
 
 
 	    <p>Returns an iterator yielding Row instances built from
-	      rows in table. This method is actually a
-	      <em>generator</em>, i.e. it keeps track on the last
-	      record returned so that next time it is invoked it
-	      returns the next available row. If a range is supplied
-	      (i.e. some of the <em>start</em>, <em>stop</em> or
-	      <em>step</em> parameters are passed), only the
-	      appropriate rows are returned. Else, all the rows are
-	      returned.
+	      rows in table. If a range is supplied (i.e. some of the
+	      <em>start</em>, <em>stop</em> or <em>step</em>
+	      parameters are passed), only the appropriate rows are
+	      returned. Else, all the rows are returned.
 	    </p>
 	    <description>
 		<term>start</term> <item>Sets the starting row to
@@ -3649,9 +3733,8 @@ if __name__=="__main__":
 	    <heading id="readDescr">read(self, start=None, stop=None,
 	      step=None, field=None, flavor=None)</heading>
 
-	    <p>Returns
-	      the actual data in <verb>Table</verb>. If <em>field</em>
-	      is not supplied, it returns the data as a
+	    <p>Returns the actual data in <verb>Table</verb>. If
+	      <em>field</em> is not supplied, it returns the data as a
 	      <verb>RecArray</verb> object table.
 	    </p>
 	    <description>
@@ -3674,8 +3757,8 @@ if __name__=="__main__":
 		<term>field</term> <item>If specified, only the column
 		  <em>field</em> is returned as a
 		  <verb>NumArray</verb> object. If this is not
-		  supplied, all the fields are selected and a RecArray
-		  is returned.</item>
+		  supplied, all the fields are selected and a
+		  <verb>RecArray</verb> is returned.</item>
 
 		<term>flavor</term> <item>When a field in table is
 		  selected, passing a <em>flavor</em> parameter make
@@ -3714,11 +3797,62 @@ if __name__=="__main__":
 	  </subsubsection>
 
 	</subsection>
+	<subsection>
+	  <heading><visual markup="tt">Table</visual> special
+	      methods</heading>
+
+	  <p>Following are described the methods that automatically
+	    trigger actions when a <verb>Table</verb> instance is
+	    accessed in a special way (e.g.,
+	    <verb>table[1:14:3]</verb> will call table.__getitem__(1,
+	    14, 3)).
+	  </p>
+
+	  <subsubsection>
+	    <heading id="__callTableDescr">__call__(start=None,
+	    stop=None, step=None)</heading>
+
+	    <p>It returns the same iterator than
+	      <verb>Table.iterrows(start, stop, step)</verb>. It is,
+	      therefore, a shorter way to call it.</p>
+	  </subsubsection>
+	  <subsubsection>
+	    <heading id="__iterTableDescr">__iter__()</heading>
+
+	    <p>It returns the same iterator than
+	      <verb>Table.iterrows(0,0,1)</verb>. However, this does not
+	      accept parameters.</p>
+	  </subsubsection>
+
+	  <subsubsection>
+	    <heading id="__getitemTableDescr">__getitem__(key)</heading>
+
+	    <p>It takes different actions depending on the
+	      type of the <verb>key</verb> parameter:</p>
+
+	    <description>
+	      <term><visual markup="tt">key</visual> is an
+		<verb>Integer</verb></term> <item>The corresponding
+		table row is returned as a
+		<verb>RecArray.Record</verb> object.</item>
+
+	      <term><visual markup="tt">key</visual> is a
+		<verb>Slice</verb></term><item>The row slice
+		determined by <verb>key</verb> is returned as a
+		<verb>RecArray</verb> object.</item>
+
+	      <term><visual markup="tt">key</visual> is a
+		<verb>String</verb></term> <item>The <verb>key</verb>
+		is interpreted as a <em>column</em> of the table, and
+		it is read and returned as a NumArray or CharArray
+		object (whatever is appropriate).</item>
+	    </description>
+	  </subsubsection>
+	</subsection>
       </section>
 
       <section id="RowClassDescr">
-	<heading>The <visual markup="tt">Row</visual>
-	class</heading>
+	<heading>The <visual markup="tt">Row</visual> class</heading>
 
 	<p>This class is used to fetch and set values on the table
 	  fields. It works very much like a dictionary, where the keys
@@ -3919,14 +4053,19 @@ if __name__=="__main__":
       <chapter id="datatypesSupported">
 	<heading>Supported data types in tables</heading>
 
-	<p><verb>IsDescription</verb> subclasses supports a limited set
-	  of data types to define the table fields. This is roughly
-	  the same that the set supported by the <visual
+	<p><verb>IsDescription</verb> subclasses supports a limited
+	  set of data types to define the table fields. Such a set is
+	  roughly the same than the types supported by the <visual
 	  markup="tt">numarray</visual> package (see <cite
-	  refid="Numarray"></cite>) in Python, with the
-	  exception of the complex datatypes that are not supported
-	  yet. The supported set is listed on <ref
-	  refid="datatypesSupported">table</ref>.
+	  refid="Numarray"></cite>) in Python, with the exception of
+	  the complex datatypes that are not supported yet.
+	</p>
+	<p>This data types are settables thorugh the use of the
+	  <verb>Col</verb> class and its descendants (<ref
+	  refid="ColClassDescr">see</ref>). You may find useful the
+	  <ref refid="datatypesSupported">table</ref> as a quick
+	  reference to the complete set of supported data types in
+	  PyTables.
 	</p>
 
 	<table id="datatypesSupportedTable">
@@ -3936,29 +4075,26 @@ if __name__=="__main__":
 	      Python Counterpart</srow>
 	  </tabhead>
 	  <tabbody>
-	    <srow>'Int8' | 8-bit integer | signed char | 1 | Integer </srow>
-	    <srow>'UInt8' | 8-bit unsigned integer | unsigned char | 1 | Integer </srow>
-	    <srow>'Int16' | 16-bit integer | short | 2 | Integer </srow>
-	    <srow>'UInt16' | 16-bit unsigned integer | unsigned short | 2 | Integer </srow>
-	    <srow>'Int32' | integer | int | 4  | Integer </srow>
-	    <srow>'UInt32' | unsigned integer | unsigned int | 4 | Long </srow>
-	    <srow>'Int64' | long long integer | long long | 8 | Long </srow>
-	    <srow>'UInt64' | unsigned long long integer | unsigned long long | 8 | Long </srow>
-	    <srow>'Float32' | single-precision float | float | 4 | Float </srow>
-	    <srow>'Float64' | double-precision float | double | 8 | Float </srow>
-	    <srow>'CharType' | arbitrary length string | char[] | * | String </srow>
+	    <srow>Int8 | 8-bit integer | signed char | 1 | Integer </srow>
+	    <srow>UInt8 | 8-bit unsigned integer | unsigned char | 1 | Integer </srow>
+	    <srow>Int16 | 16-bit integer | short | 2 | Integer </srow>
+	    <srow>UInt16 | 16-bit unsigned integer | unsigned short | 2 | Integer </srow>
+	    <srow>Int32 | integer | int | 4  | Integer </srow>
+	    <srow>UInt32 | unsigned integer | unsigned int | 4 | Long </srow>
+	    <srow>Int64 | 64-bit integer | long long | 8 | Long </srow>
+	    <srow>UInt64 | unsigned 64-bit integer | unsigned long long | 8 | Long </srow>
+	    <srow>Float32 | single-precision float | float | 4 | Float </srow>
+	    <srow>Float64 | double-precision float | double | 8 | Float </srow>
+	    <srow>CharType | arbitrary length string | char[] | * | String </srow>
 	  </tabbody>
 	</tabular>
-	  <caption>Data types supported by <visual
-	      markup="tt">IsDescription</visual> subclasses.</caption>
+	  <caption>Data types supported by subclasses of <visual
+	      markup="tt">IsDescription</visual> definitions.</caption>
 	</table>
 
       </chapter>
     </appendix>
   </mainmatter>
-
-<!--   <latex -->
-<!--       code="\addto{\captionsenglish}{\renewcommand*{\refname}{References}}"/> -->
 
   <backmatter>
 
@@ -3967,90 +4103,6 @@ if __name__=="__main__":
 
     <references bibfile="usersguide"/>
 
-<!--     <references> -->
-<!--       <enumerate> -->
-
-<!-- 	<item id="HDF5WhatIs"><em>What is HDF5?.</em> Concise -->
-<!-- 	  description about HDF5 capabilities and its differences from -->
-<!-- 	  earlier versions (HDF4). <url -->
-<!-- 	  name="http://hdf.ncsa.uiuc.edu/whatishdf5.html"/> -->
-<!-- 	</item> -->
-
-<!-- 	<item id="HDF5Intr"><em>Introduction to HDF5.</em> -->
-<!-- 	  Introduction to the HDF5 data model and programming -->
-<!-- 	  model. <url -->
-<!-- 	  name="http://hdf.ncsa.uiuc.edu/HDF5/doc/H5.intro.html"/> -->
-<!-- 	</item> -->
-
-<!-- 	<item id="HDF5_HL"><em>HDF5: High Level APIs.</em> A set of -->
-<!-- 	  functions built on top of the basic HDF5 library. <url -->
-<!-- 	  name="http://hdf.ncsa.uiuc.edu/HDF5/hdf5_hl/doc/"/> -->
-<!-- 	</item> -->
-
-<!-- 	<item id="HDF5TableExamples"><em>The HDF5 table programming -->
-<!-- 	  model.</em> Examples on using HDF5 tables with the C -->
-<!-- 	  API. <url -->
-<!-- 	  name="http://hdf.ncsa.uiuc.edu/HDF5/hdf5_hl/doc/RM_hdf5tb_ex.html"/> -->
-<!-- 	</item> -->
-
-<!-- 	<item id="HL-HDF"><em>HL-HDF.</em> A High Level Interface to -->
-<!-- 	  the HDF5 File Format. <url -->
-<!-- 	  name="ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/contrib/hl-hdf5/README.html"/> -->
-<!-- 	</item> -->
-
-<!-- 	<item id="zlibRef"><em>zlib.</em>A Massively Spiffy Yet -->
-<!-- 	  Delicately Unobtrusive Compression Library.  -->
-<!-- 	  <url name="http://www.gzip.org/zlib/"/> -->
-<!-- 	</item> -->
-
-<!-- 	<item id="Objectify"><em>On the 'Pythonic' treatment of XML -->
-<!-- 	  documents as objects(II).</em> Article describing XML -->
-<!-- 	  Objectify, a Python module that allows working with XML -->
-<!-- 	  documents as Python objects. Some of the ideas presented -->
-<!-- 	  here are used in <visual markup="tt">PyTables</visual>. <url -->
-<!-- 	  name="http://www-106.ibm.com/developerworks/xml/library/xml-matters2/index.html"/> -->
-<!-- 	</item> -->
-
-<!-- 	<item id="GnosisUtils"><em>gnosis.xml.objectify.</em> This -->
-<!-- 	  module is part of the Gnosis utilities, and allows to create -->
-<!-- 	  a mapping between any XML element to "native" Python -->
-<!-- 	  objects. <url -->
-<!-- 	  name="http://gnosis.cx/download/Gnosis_Utils-current.tar.gz"/> -->
-<!-- 	</item> -->
-
-<!-- 	<item id="Pyrex"><em>Pyrex.</em> A Language for Writing Python -->
-<!-- 	  Extension Modules. <url -->
-<!-- 	  name="http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex"/> -->
-<!-- 	</item> -->
-
-<!-- 	<item id="NetCDF"><em>NetCDF (network Common Data Form).</em> -->
-<!-- 	  This is an interface for array-oriented data access and a -->
-<!-- 	  library that provides an implementation of the -->
-<!-- 	  interface. <url -->
-<!-- 	  name="http://www.unidata.ucar.edu/packages/netcdf/"/> -->
-<!-- 	</item> -->
-
-<!-- 	<item id="NetCDFSP"><em>NetCDF module on Scientific -->
-<!-- 	  Python.</em> ScientificPython is a collection of Python -->
-<!-- 	  modules that are useful for scientific computing. Its NetCDF -->
-<!-- 	  module is a powerful interface for NetCDF data format. <url -->
-<!-- 	  name="http://starship.python.net/~hinsen/ScientificPython/ScientificPythonManual/"/> -->
-<!-- 	</item> -->
-
-<!-- 	<item id="Numerical"><em>Numerical Python.</em> Package to -->
-<!-- 	  speed-up arithmetic operations on arrays of numbers. <url -->
-<!-- 	  name="http://www.pfdubois.com/numpy/"/> -->
-<!-- 	</item> -->
-
-<!-- 	<item id="Numarray"><em>Numarray.</em> Reimplementation of -->
-<!-- 	  Numeric which adds the ability to efficiently manipulate -->
-<!-- 	  large numeric arrays in ways similar to Matlab and -->
-<!-- 	  IDL. Among others, Numarray provides the record array -->
-<!-- 	  extension. <url name="http://stsdas.stsci.edu/numarray/"/> -->
-<!-- 	</item> -->
-
-<!--       </enumerate> -->
-<!--     </references> -->
   </backmatter>
 </book>
 

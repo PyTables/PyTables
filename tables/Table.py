@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.63 2003/07/25 14:31:57 falted Exp $
+#       $Id: Table.py,v 1.64 2003/07/25 19:34:17 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.63 $"
+__version__ = "$Revision: 1.64 $"
 
 from __future__ import generators
 import sys
@@ -881,7 +881,7 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         if isinstance(slice, types.IntType):
             start, stop, step = self._processRange(slice, slice+1, 1)
-            return self.read(start, stop, step)
+            return self.read(start, stop, step)[0]
         elif isinstance(slice, types.SliceType):
             start, stop, step = self._processRange(slice.start,
                                                    slice.stop,
