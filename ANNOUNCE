@@ -9,6 +9,7 @@ What's new
 - Programming API almost stable
 - Improved navegability across the object tree
 - Added more unit tests (there are almost 50)
+- Dropped HDF5_HL dependency (a tailored version is included in sources now)
 - License changed from LGPL to BSD
 
 What is
@@ -60,17 +61,17 @@ How fast is it?
 
 Despite to be an alpha version and that there is lot of room for
 improvements (it's still CPU bounded!), PyTables can read and write
-tables quite fast. In a AMD Athlon@900 it can read at 20000 records/s
-and write at 13000 records/s.
+tables quite fast. But, if you want some (very preliminary) figures
+(just to know orders of magnitude), in a AMD Athlon@900 it can
+currently read from 40000 up to 60000 records/s and write from 5000 up
+to 13000 records/s. Raw data speed in read mode ranges from 1 MB/s up
+to 2 MB/s, and it drops to the 200 KB/s - 600 KB/s range for writes.
 
-This figure compares quite well with the shelve module that comes with
-Python: PyTables can write records at the same speed than shelve, but
-retrieves information between 5 and 10 times faster (as dataset is
-getting bigger, so does the speed-up), and with much less memory
-consumption.
+Go to http://pytables.sf.net/bench.html for a somewhat more detailed
+description of this small (and synthetic) benchmark.
 
-But this is only the beginning (premature optimization is the root of
-all evils, you know ;-).
+Anyway, this is only the beginning (premature optimization is the root
+of all evils, you know ;-).
 
 Platforms
 ---------

@@ -17,7 +17,18 @@ class Record(IsRecord):
     var2 = 'i'
     var3 = 'd'
 
-def createFile(filename, totalrows, fast, complevel):
+# Define a user record to characterize some kind of particles
+class Particle(IsRecord):
+    name        = '16s'  # 16-character String
+    idnumber    = 'Q'    # unsigned long long (i.e. 64-bit integer)
+    TDCcount    = 'B'    # unsigned byte
+    ADCcount    = 'H'    # unsigned short integer
+    grid_i      = 'i'    # integer
+    grid_j      = 'i'    # integer
+    pressure    = 'f'    # float  (single-precision)
+    energy      = 'd'    # double (double-precision)
+
+def createFile(filename, totalrows, fast, complevel, bigrec):
 
     # Open a file in "w"rite mode
     fileh = openFile(filename, mode = "w")
@@ -29,22 +40,47 @@ def createFile(filename, totalrows, fast, complevel):
     group = fileh.root
     for j in range(3):
         # Create a table
-        table = fileh.createTable(group, 'tuple'+str(j), Record(), title,
-	                          complevel, totalrows)
+        if bigrec:
+            table = fileh.createTable(group, 'tuple'+str(j), Particle(), title,
+                                      complevel, totalrows)
+        else:
+            table = fileh.createTable(group, 'tuple'+str(j), Record(), title,
+                                      complevel, totalrows)
+            
         # Get the record object associated with the new table
         d = table.record 
         # Fill the table
         for i in xrange(totalrows):
             if fast:
-                table.appendAsValues(str(i), i * j, 12.1e10)
-                #table.appendAsTuple((str(i), i * j, 12.1e10))
+                if bigrec:
+                    table.appendAsValues((i * 256) % (1 << 16),
+                                         i % 256,
+                                         float((i*i) ** 4),
+                                         i,
+                                         10 - i,
+                                         i * (2 ** 34),
+                                         'Particle: %6d' % (i),
+                                         float(i * i),
+                                         )
+                else:
+                    table.appendAsValues(str(i), i * j, 12.1e10)
             else:
-                d.var1 = str(i)
-                d.var2 = i * j
-                d.var3 = 12.1e10
-                table.appendAsRecord(d)      # This injects the Record values
-                #table.appendAsRecord(d())     # The same, but slower
-                
+                if bigrec:
+                    d.name  = 'Particle: %6d' % (i)
+                    d.TDCcount = i % 256    
+                    d.ADCcount = (i * 256) % (1 << 16)
+                    d.grid_i = i 
+                    d.grid_j = 10 - i
+                    d.pressure = float(i*i)
+                    d.energy = float(d.pressure ** 4)
+                    d.idnumber = i * (2 ** 34) 
+                    table.appendAsRecord(d)
+                else:
+                    d.var1 = str(i)
+                    d.var2 = i * j
+                    d.var3 = 12.1e10
+                    table.appendAsRecord(d)
+
         # Create a new group
         group2 = fileh.createGroup(group, 'group'+str(j))
         # Iterate over this new group (group2)
@@ -53,7 +89,7 @@ def createFile(filename, totalrows, fast, complevel):
     # Close the file (eventually destroy the extended type)
     fileh.close()
 
-def readFile(filename, fast):
+def readFile(filename, fast, bigrec):
     # Open the HDF5 file in read-only mode
 
     fileh = openFile(filename, mode = "r")
@@ -65,59 +101,22 @@ def readFile(filename, fast):
                 print "Rows in", table._v_pathname, ":", table.nrows
 
             if fast:
-                # Example of tuple selection (fast version)
-                e = [ t[1] for t in table.readAsTuples() if t[1] < 20 ]
+                if bigrec:
+                    e = [ t[3] for t in table.readAsTuples() if t[3] < 20 ]
+                else:
+                    e = [ t[1] for t in table.readAsTuples() if t[1] < 20 ]
             else:
-                # Record method (slow, but convenient)
-                e = [ p.var2 for p in table.readAsRecords() if p.var2 < 20 ]
-                # print "Last record ==>", p
+                if bigrec:
+                    e = [ p.grid_i for p in table.readAsRecords() 
+                          if p.grid_i < 20 ]
+                else:
+                    e = [ p.var2 for p in table.readAsRecords()
+                          if p.var2 < 20 ]
+                if verbose:
+                    print "Last record read:", p
 
             if verbose:
                 print "Total selected records ==> ", len(e)
-        
-    # Close the file (eventually destroy the extended type)
-    fileh.close()
-
-def addRecords(filename, addedrows, fast):
-    """ Example for adding rows """
-
-    # Open the HDF5 file in append mode
-    fileh = openFile(filename, mode = "a")
-    for groupobj in fileh.walkGroups(fileh.root):
-        #print "Group pathname:", groupobj._v_pathname
-        for table in fileh.listNodes(groupobj, 'Table'):
-            #print "Table title for", table._v_pathname, ":", table.tableTitle
-            print "Rows in old", table._v_pathname, ":", table.nrows
-
-            # Get the record object associated with the new table
-            d = table.record 
-            #print "Record Format ==>", d._v_fmt
-            #print "Table Format ==>", table._v_fmt
-            # Fill the table
-            for i in xrange(addedrows):
-                if fast:
-                    table.appendAsTuple((str(i), i, 12.1e10))
-                    #table.appendAsValues(str(i), i, 12.1e10)
-                else:
-                    d.var1 = str(i)
-                    d.var2 = i
-                    d.var3 = 12.1e10
-                    table.appendAsRecord(d)      # This injects the Record values
-            # Flush buffers to disk (may be commented out, but it shouldn't)
-            table.flush()   
-
-            if fast:
-                # Example of tuple selection (fast version)
-                e = [ t[1] for t in table.readAsTuples() if t[1] < 20 ]
-                if verbose:
-                    print "Last tuple ==>", t
-            else:
-                # Record method (slow, but convenient)
-                e = [ p.var2 for p in table.readAsRecords() if p.var2 < 20 ]
-                if verbose:
-                    print "Last record ==>", p
-    
-            print "Total selected records in new table ==> ", len(e)
         
     # Close the file (eventually destroy the extended type)
     fileh.close()
@@ -128,14 +127,15 @@ if __name__=="__main__":
     import getopt
     import time
     
-    usage = """usage: %s [-f] [-c level] [-i iterations] file
+    usage = """usage: %s [-v] [-b] [-f] [-c level] [-i iterations] file
             -v verbose
+            -b use big record (Particle); else use small record (Record)
             -f means use fast methods (unsafer)
             -c sets a compression level (don't set it or 0 for no compression)
             -i sets the number of rows in each table\n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'vfc:i:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'vbfc:i:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -147,6 +147,7 @@ if __name__=="__main__":
 
     # default options
     #verbose = 0
+    bigrec = 0
     fast = 0
     complevel = 0
     iterations = 100
@@ -156,6 +157,8 @@ if __name__=="__main__":
         if option[0] == '-v':
             global verbose
             verbose = 1
+        elif option[0] == '-b':
+            bigrec = 1
         elif option[0] == '-f':
             fast = 1
         elif option[0] == '-c':
@@ -167,12 +170,12 @@ if __name__=="__main__":
     file = pargs[0]
 
     t1 = time.clock()
-    createFile(file, iterations, fast, complevel)
+    createFile(file, iterations, fast, complevel, bigrec)
     t2 = time.clock()
     tapprows = round(t2-t1, 3)
     
     t1 = time.clock()    
-    readFile(file, fast)
+    readFile(file, fast, bigrec)
     t2 = time.clock()
     treadrows = round(t2-t1, 3)
     
@@ -184,6 +187,6 @@ if __name__=="__main__":
         print "-*-"*8, " NORMAL mode ", "-*-"*8
     print "Compression level:", complevel
     print "Time appending rows:", tapprows
-    print "Write rows/sec: ", int(iterations / float(tapprows))
+    print "Write rows/sec: ", int(iterations * 3/ float(tapprows))
     print "Time reading rows:", treadrows
-    print "Read rows/sec: ", int(iterations / float(treadrows))
+    print "Read rows/sec: ", int(iterations * 3 / float(treadrows))
