@@ -1,0 +1,20 @@
+March 2003
+
+I would like to thank the people have contributed directly or
+indirectly to PyTables. 
+
+Scott Prater has revised some important documentation in order to make
+them readable in english and besides, has conducted the tests of
+PyTables on Solaris.
+
+Vicent Mas for conducting some benchmarks on PyTables, comparing it with
+cPickle performance on arrays.
+
+Henner Eisen and Berthold Höllmann from Germanischer Lloyd, for
+suggesting me to implement new capabilities, report on bugs, and
+supporting the PyTables project with contracts.
+
+Todd Miller and Perry Greenfield for promptly helping me to understand
+many of the intricacies of the numarray package.
+
+The HDF5 team at NCSA for doing a so excellent library for data persistence.

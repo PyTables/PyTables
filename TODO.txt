@@ -1,18 +1,15 @@
-TODO list (as of 11th, November 2002):
+TODO list (as of 18th, March 2003):
 
 - Add unlimited dimension arrays, a la ScientificPython.IO.NetCDF module.
 
+- Implement relations (like and object oriented database) between objects.
+
 - Add general attributes to tree node objects. Try to support general
-  Python objects as attributes.
+  Python objects as attributes (this is partially solved by the
+  addition of setAttrNode/getAttrNode methods and the use of cPickle).
 
-- Add the latest HDF5_HL libraries (no beta).
-
-- Check the RecordArray objects present on NumArray. Can this made the
-  conversion (Python types <-> C types) process more efficient?
-
-- API stability. Is good more than one way to do things? Reach a
-  consistent API by the beta version. Feedback appreciated.
-
+- Improve the performance (although no much room remains for doing
+  that).
 
 And as always...
 
