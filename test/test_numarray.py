@@ -3,6 +3,7 @@ import unittest
 import os
 import tempfile
 import warnings
+import types
 import numarray
 from numarray import *
 import numarray.strings as strings

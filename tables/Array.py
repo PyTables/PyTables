@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.68 2004/07/26 15:56:59 falted Exp $
+#       $Id: Array.py,v 1.69 2004/07/29 17:32:36 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.68 $"
+__version__ = "$Revision: 1.69 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -428,7 +428,11 @@ class Array(Leaf, hdf5Extension.Array, object):
 #             shape = [1]  
             
         if repr(self.type) == "CharType":
-            arr = strings.array(None, itemsize=self.itemsize, shape=shape)
+            # Workaround for numarray bug #997997
+            if shape <> []:
+                arr = strings.array(None, itemsize=self.itemsize, shape=shape)
+            else:
+                arr = strings.array([""], itemsize=self.itemsize, shape=shape)
         else:
             #arr = numarray.zeros(type=self.type, shape=shape)
             # This is slightly faster (~3%) than zeros()
@@ -450,11 +454,13 @@ class Array(Leaf, hdf5Extension.Array, object):
             return arr
 
         if self.flavor in ["NumArray", "CharArray"]:
-            # No conversion needed
-            return arr
+            if arr.shape == ():  # Scalar case
+                return arr[()] 
+            else:             # No conversion needed
+                return arr
         # Fixes #968131
         elif arr.shape == ():  # Scalar case
-            return arr[()]  # return the value. Yes, this is a weird syntax :(
+            return arr[()]  # return the value.
         # The next solution isn't appropriate as a scalar array is
         # meant as a way to return a Python value
 #         elif arr.shape == (1,):  # Scalar case

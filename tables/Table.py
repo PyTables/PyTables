@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.120 2004/07/29 17:01:22 falted Exp $
+#       $Id: Table.py,v 1.121 2004/07/29 17:32:36 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.120 $"
+__version__ = "$Revision: 1.121 $"
 
 from __future__ import generators
 import sys
@@ -806,7 +806,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
         # Save indexedrows
-        if self.automatic_index:
+        if self.indexed and self.automatic_index:
             # Update the number of unsaved indexed rows
             self._unsavedindexedrows += lenrows
             self.addRowsToIndex()
