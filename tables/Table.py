@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.68 2003/08/05 15:39:05 falted Exp $
+#       $Id: Table.py,v 1.69 2003/08/08 15:23:52 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.68 $"
+__version__ = "$Revision: 1.69 $"
 
 from __future__ import generators
 import sys
@@ -40,8 +40,6 @@ import warnings
 import numarray
 import numarray.strings as strings
 import numarray.records as records
-#import recarray2         # Private version of records for PyTables
-#import recarray3 as recarray2
 import hdf5Extension
 from Leaf import Leaf
 from IsDescription import IsDescription, Description, metaIsDescription, \
@@ -460,100 +458,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
 
-#     def _fetchall(self):
-#         """Iterate over all the rows
-
-#         This method is a generator, i.e. it keeps track on the last
-#         record returned so that next time it is invoked it returns the
-#         next available record.
-
-#         """
-
-#         # It is not possible to call the _open_read() method in the Row class.
-#         # If we do this, we get weird things when reading a table after a
-#         # Table.flush() without closing and re-opening it!.
-#         # The test_tree.TreeTestCase detects the problem! 
-#         # 2003/07/21
-#         self._open_read(self._v_buffer)  # Open the table for readin
-#         #return iter(self.row)
-#         return self.row()
-
-#     def _fetchall_orig(self):
-#         """Iterate over all the rows
-
-#         This method is a generator, i.e. it keeps track on the last
-#         record returned so that next time it is invoked it returns the
-#         next available record.
-
-#         """
-#         # Create a buffer for the readout
-#         nrowsinbuf = self._v_maxTuples
-#         buffer = self._v_buffer
-#         self._open_read(buffer)  # Open the table for reading
-#         row = self.row   # get the pointer to the Row object
-#         row._initLoop(0, self.nrows, 1)
-#         for i in xrange(0, self.nrows, nrowsinbuf):
-#             recout = self._read_records(i, nrowsinbuf)
-#             #recout = nrowsinbuf
-#             if self.byteorder <> sys.byteorder:
-#                 #buffer.byteswap()
-#                 #buffer.togglebyteorder()
-#                 buffer._byteswap()
-#             # Set the buffer counter (case for step=1)
-#             row._setBaseRow(i, 0)
-#             for j in xrange(recout):
-#                 #yield row()
-#                 yield row._getRow()
-
-#         self._close_read()  # Close the table
-
-#     # Making this a Pyrex iteratior remains as a task to be done
-#     def _fetchrange(self, start, stop, step):
-#         """Iterate over a range of rows"""
-
-#         #print "start, stop, step ----->", start, stop, step
-#         self._open_read(self._v_buffer)  # Open the table for readin
-#         return self.row(start, stop, step)
-
-#     # Making this a Pyrex iteratior remains as a task to be done
-#     def _fetchrange_orig(self, start, stop, step):
-#         """Iterate over a range of rows"""
-#         row = self.row   # get the pointer to the Row object
-#         nrowsinbuf = self._v_maxTuples   # Shortcut
-#         buffer = self._v_buffer  # Shortcut to the buffer
-#         self._open_read(buffer)  # Open the table for reading
-#         # Some start values for the main loop
-#         nrowsread = start
-#         startb = 0
-#         nextelement = start
-#         row._initLoop(start, stop, step)
-#         for i in xrange(start, stop, nrowsinbuf):
-#             # Skip this iteration if there is no interesting information
-#             if ((nextelement >= nrowsread + nrowsinbuf) or 
-#                 (startb >= stop - nrowsread)):
-#                 nrowsread += nrowsinbuf
-#                 continue
-#             # Compute the end for this iteration
-#             stopb = stop - nrowsread
-#             if stopb > nrowsinbuf:
-#                 stopb = nrowsinbuf
-#             # Read a chunk
-#             nrowsread += self._read_records(i, nrowsinbuf)
-#             if self.byteorder <> sys.byteorder:
-#                 #buffer.byteswap()
-#                 buffer.togglebyteorder()
-                                
-#             # Set the buffer counter
-#             row._setBaseRow(i, startb)
-#             # Loop over the values for this buffer
-#             for j in xrange(startb, stopb, step):
-#                 yield row._getRow()
-#             # Compute some indexes for the next iteration
-#             startb = (j+step) % nrowsinbuf
-#             nextelement += step
-
-#         self._close_read()  # Close the table
-
     def _processRange(self, start=None, stop=None, step=None):
         
         assert (type(start) in
@@ -930,12 +834,6 @@ class Table(Leaf, hdf5Extension.Table, object):
 
 #         return self._readCol(field=colname)
 
-    def flush(self):
-        """Flush the table buffers."""
-        #if self._v_recunsaved > 0:
-        if hasattr(self, 'row') and self.row._getUnsavedNRows() > 0:
-          self._saveBufferedRows()
-
     def removeRows(self, start=None, stop=None):
         """Remove a range of rows.
 
@@ -955,6 +853,14 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.nrows -= nrows    # discount the removed rows from the total
         return nrows
 
+    def flush(self):
+        """Flush the table buffers."""
+        #if self._v_recunsaved > 0:
+        if hasattr(self, 'row') and self.row._getUnsavedNRows() > 0:
+          self._saveBufferedRows()
+        # Close a possible opened table for append:
+        self._close_append()
+
     def close(self):
         """Flush the buffers and close this object on tree"""
         Leaf.close(self)
@@ -963,7 +869,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         if hasattr(self, "row"):
             del self.row
         self.description._close()
-        # This does not free the description class!
+        # Free the description class!
         del self.description
 
     def __repr__(self):

@@ -25,24 +25,6 @@ PyObject *createNamesTuple(char *buffer[], int nelements)
 
 /****************************************************************
 **
-**  createDimsTuple(): Create Python tuple for array dimensions.
-** 
-****************************************************************/
-PyObject *createDimsTuple(int dimensions[], int nelements)
-{
-  int i;
-  PyObject *t;
-
-  t = PyTuple_New(nelements);
-  for (i = 0; i < nelements; i++) { 
-    PyTuple_SetItem(t, i, PyInt_FromLong(dimensions[i]) );
-  }
-  return t;
-}
-
-
-/****************************************************************
-**
 **  gitercb(): Custom group iteration callback routine.
 ** 
 ****************************************************************/
@@ -128,6 +110,10 @@ PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name) {
   t = PyTuple_New(2);
   PyTuple_SetItem(t, 0, tdir );
   PyTuple_SetItem(t, 1, tdset);
+
+  /* Release resources */
+  for(i=0;i<j;i++) free(namesdir[i]);
+  for(i=0;i<k;i++) free(namesdset[i]);
   
   return t;
 }
@@ -153,6 +139,7 @@ static herr_t aitercb( hid_t loc_id, const char *name, void *op_data) {
 ****************************************************************/
 PyObject *Aiterate(hid_t loc_id) {
   unsigned int i = 0;
+  PyObject *tnames;
   int nattrs, j, ret;
   char op_data[NAMELEN];                  /* Info of objects in the group */
   char *names[MAX_ATTRS_IN_NODE];  /* Names of attrs in the node */
@@ -172,9 +159,12 @@ PyObject *Aiterate(hid_t loc_id) {
   }
   
 #ifdef DEBUG
-  printf("Total numer of attrs ==> %d\n", i);
+  printf("Total numer of attrs ==> %d\n", j);
 #endif
-  return createNamesTuple(names, i);
+  tnames = createNamesTuple(names, i);
+  /* Release resources */
+  for(i=0;i<j;i++) free(names[i]);
+  return tnames;
 }
 
 

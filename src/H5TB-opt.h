@@ -34,14 +34,19 @@ herr_t H5TBOclose_read( hid_t *dataset_id,
      F.Alted 2003/04/20  */
 
 
-herr_t H5TBOopen_append( hid_t loc_id, 
+herr_t H5TBOopen_append( hid_t *dataset_id,
+			 hid_t *mem_type_id,
+			 hid_t loc_id, 
 			 const char *dset_name,
 			 hsize_t nfields,
 			 size_t type_size,
 			 const size_t *field_offset );
 
-herr_t H5TBOappend_records( hsize_t nrecords,
+herr_t H5TBOappend_records( hid_t *dataset_id,
+			    hid_t *mem_type_id,
+			    hsize_t nrecords,
 			    hsize_t nrecords_orig,
 			    const void *data );
 
-herr_t H5TBOclose_append(void);
+herr_t H5TBOclose_append(hid_t *dataset_id,
+			 hid_t *mem_type_id);

@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.49 2003/08/05 15:39:04 falted Exp $
+#       $Id: File.py,v 1.50 2003/08/08 15:23:52 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.49 $"
+__version__ = "$Revision: 1.50 $"
 format_version = "1.1"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -277,8 +277,8 @@ class File(hdf5Extension.File, object):
         self.objects["/"] = rootGroup
         
         # Open the root group. We do that always, be the file new or not
-        newattr["_v_groupId"] = rootGroup._g_openGroup(self._v_groupId,
-                                                       rootUEP)
+        rootGroup._g_new(self, rootUEP)
+        newattr["_v_groupId"] = rootGroup._g_openGroup()
 
         # Attach the AttributeSet attribute to the rootGroup group
         newattr["_v_attrs"] = AttributeSet(rootGroup)

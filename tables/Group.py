@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.47 2003/08/05 15:39:04 falted Exp $
+#       $Id: Group.py,v 1.48 2003/08/08 15:23:52 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.47 $"
+__version__ = "$Revision: 1.48 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -254,7 +254,7 @@ I can't promise getting the correct object, but I will do my best!.""",
         if self._v_new:
             self._g_create()
         else:
-            self._g_open(parent, self._v_hdf5name)
+            self._g_open()
         # Attach the AttributeSet attribute
         self.__dict__["_v_attrs"] = AttributeSet(self)
         if self._v_new:
@@ -325,13 +325,12 @@ I can't promise getting the correct object, but I will do my best!.""",
                 parent._v_file.objects[newgpathname] = node
 
 
-    def _g_open(self, parent, name):
+    def _g_open(self):
         """Call the openGroup method in super class to open the existing
         group on disk. """
         
         # Call the superclass method to open the existing group
-        self.__dict__["_v_groupId"] = \
-                      self._g_openGroup(parent._v_groupId, name)
+        self.__dict__["_v_groupId"] = self._g_openGroup()
 
     def _g_create(self):
         """Call the createGroup method in super class to create the group on
@@ -486,19 +485,16 @@ I can't promise getting the correct object, but I will do my best!.""",
         self._g_closeGroup()
         # Delete the back references in Group
         if self._v_name <> "/":
-            del self._v_parent._v_groups[self._v_name]
-            del self._v_parent._v_childs[self._v_name]
+            del self._v_parent._v_groups[self._v_name]  # necessary (checked)
+            del self._v_parent._v_childs[self._v_name]  # necessary (checked)
             del self._v_parent.__dict__[self._v_name]
-        #if self._v_name <> "/":
-        del self._v_file.groups[self._v_pathname]
-        del self._v_file.objects[self._v_pathname]
-        del self.__dict__["_v_parent"]
+        del self._v_file.groups[self._v_pathname]  
+        del self._v_file.objects[self._v_pathname] 
         # Delete back references
         #del self._v_rootgroup    # This is incorrect!!
         del self.__dict__["_v_rootgroup"]
+        del self.__dict__["_v_parent"]
         # Detach the AttributeSet instance
-        #self._v_attrs._f_close()  # Not necessary
-        # Açò esborra correctament el _v_attrs!!
         del self.__dict__["_v_attrs"]
 
     def _f_getAttr(self, attrname):

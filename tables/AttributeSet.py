@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.14 2003/08/05 15:39:04 falted Exp $
+#       $Id: AttributeSet.py,v 1.15 2003/08/08 15:23:52 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.14 $"
+__version__ = "$Revision: 1.15 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -124,11 +124,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         self.__dict__["_v_attrnamesuser"] = []
         for attr in self._v_attrnames:
             # New attribute (to allow tab-completion in interactive mode)
-            # Beware! This imply that all the attributes are resident
-            # in-memory. However, as attributes should not be large
-            # this should be ok for most of the cases.
-            self.__dict__[attr] = self.__getattr__(attr)
-            #self.__dict__[attr] = None
+            # Beware! From 0.7.1 on, a lazy attribute reading is on.
+            #self.__dict__[attr] = self.__getattr__(attr)
             if issysattrname(attr):
                 self._v_attrnamessys.append(attr)
             else:
@@ -164,12 +161,6 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     def __getattr__(self, name):
         """Get the attribute named "name"."""
 
-        # Add the hasattr(self, "_v_attrnames") condition that is
-        # useful when deleting the object tree, and _v_attrnames is
-        # not available
-        #if not hasattr(self, "_v_attrnames"):
-        #    return None
-        
         # If attribute does not exists, return None
         if not name in self._v_attrnames:
             return None
@@ -180,7 +171,6 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # Check if value is pickled
         # Pickled values always seems to end with a "."
         if type(value) is types.StringType and value and value[-1] == ".":
-        #if 1:
             try:
                 retval = cPickle.loads(value)
             except:
@@ -188,6 +178,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         else:
             retval = value
 
+        # Beware! From 0.7.1 on, a lazy attribute reading is on.
+        self.__dict__[name] = value
         return retval
 
     def __setattr__(self, name, value):
@@ -225,10 +217,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         if not name in self._v_attrnames:
             self._v_attrnames.append(name)
             self._v_attrnamesuser.append(name)
-            # New attribute (to allow tab-completion in interactive mode)
-            # Beware! This imply that all the attributes are resident
-            # in-memory. However, as attributes should not be large
-            # this should be ok for most of the cases.
+            # New attribute
+            # Beware! From 0.7.1 on, a lazy attribute reading is on.
             self.__dict__[name] = value
 
         # Sort the attributes
@@ -277,25 +267,6 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         # Finally, remove the old attribute
         delattr(self, oldattrname)
-
-#     def _f_close(self):
-#         "Delete all the local variables in self to free memory"
-
-#         # The deletions here seems no longer needed
-        
-# #        self.__dict__.clear()
-# #         for attr in self._v_attrnames:
-# #             # New attribute (to allow tab-completion in interactive mode)
-# #             # Beware! This imply that all the attributes are resident
-# #             # in-memory. However, as attributes should not be large
-# #             # this should be ok for most of the cases.
-# #             del self.__dict__[attr]
-#         #del self.__dict__["_v_node"]
-#         #del self._v_node
-#         #del self._v_attrnames
-#         #del self._v_attrnamesuser
-#         #del self._v_attrnamessys
-#         return
 
     def __str__(self):
         """The string representation for this object."""

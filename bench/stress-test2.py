@@ -45,6 +45,7 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
                 row.append()
 		    
             rowswritten += nrows
+            table.flush()
 
         # Close the file
         fileh.close()

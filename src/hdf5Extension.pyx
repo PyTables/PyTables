@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.71 2003/08/05 15:39:04 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.72 2003/08/08 15:23:52 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.71 $"
+__version__ = "$Revision: 1.72 $"
 
 
 import sys, os
@@ -334,6 +334,8 @@ cdef extern from *:
           unsigned relnum )
 
   herr_t H5Adelete(hid_t loc_id, char *name )
+
+  herr_t H5Tclose(hid_t type_id)
      
 # Functions from HDF5 HL Lite
 cdef extern from "H5LT.h":
@@ -536,17 +538,22 @@ cdef extern from "H5TB-opt.h":
   # These are maintained here just in case I want to use them in the future.
   # F.Alted 2003/04/20 
 
-  herr_t H5TBOopen_append( hid_t loc_id, 
+  herr_t H5TBOopen_append( hid_t *dataset_id,
+                           hid_t *mem_type_id,
+                           hid_t loc_id, 
                            char *dset_name,
                            hsize_t nfields,
                            size_t type_size,
                            size_t *field_offset )
   
-  herr_t H5TBOappend_records( hsize_t nrecords,
+  herr_t H5TBOappend_records( hid_t *dataset_id,
+                              hid_t *mem_type_id,
+                              hsize_t nrecords,
                               hsize_t nrecords_orig,
                               void *data )
 
-  herr_t H5TBOclose_append( )
+  herr_t H5TBOclose_append(hid_t *dataset_id,
+                           hid_t *mem_type_id )
 
 # Declarations from PyTables local functions
 
@@ -564,7 +571,6 @@ cdef extern from "getfieldfmt.h":
 cdef extern from "utils.h":
   object _getTablesVersion()
   object createNamesTuple(char *buffer[], int nelements)
-  object createDimsTuple(int dimensions[], int nelements)
   object Giterate(hid_t parent_id, hid_t loc_id, char *name)
   object Aiterate(hid_t loc_id)
   H5T_class_t getHDF5ClassID(hid_t loc_id, char *name)
@@ -721,7 +727,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.71 2003/08/05 15:39:04 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.72 2003/08/08 15:23:52 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -826,19 +832,36 @@ cdef class AttributeSet:
 
   def _g_setAttr(self, char *name, object value):
     cdef int ret
+    cdef int valint
+    cdef double valdouble
 
+    ret = 0
     # Append this attribute on disk
     if isinstance(value, types.StringType):
-      self._g_setAttrStr(name, value)
+      #self._g_setAttrStr(name, value)
+      ret = H5LTset_attribute_string(self.parent_id, self.name, name, value)
     elif isinstance(value, types.IntType):
-      self._g_setAttrInt(name, value)
+      #self._g_setAttrInt(name, value)
+      valint = <int>value
+      ret = H5LTset_attribute_int(self.parent_id, self.name, name, &valint, 1)
     elif isinstance(value, types.FloatType):
       self._g_setAttrDouble(name, value)
+      # I'm having problems with that in the C generated code:
+      #   __pyx_v_valdouble = ((double )__pyx_v_value);
+      # src/hdf5Extension.c:1295: error: pointer value used where a floating point value was expected
+      # I don't know why!
+      #valdouble = <double>value
+      #ret = H5LTset_attribute_double(self.parent_id, self.name,
+      #                               name, &valdouble, 1)
     else:
       # Convert this object to a null-terminated string
       # (binary pickles are not supported at this moment)
       pickledvalue = cPickle.dumps(value, 0)
       self._g_setAttrStr(name, pickledvalue)
+
+    if ret < 0:
+      raise RuntimeError("Can't set attribute '%s' in node:\n %s." % 
+                         (name, self.node))
 
   def _g_setAttrStr(self, char *attrname, char *attrvalue):
     cdef int ret
@@ -938,7 +961,7 @@ cdef class AttributeSet:
 
     return attrvalue
 
-  # Get attributes (only supports string attributes right now)
+  # Get attributes
   def _g_getNodeAttr(self, hid_t parent_id, hid_t loc_id,
                         char *dsetname, char *attrname):
     cdef hsize_t *dims, nelements
@@ -985,8 +1008,11 @@ cdef class AttributeSet:
       print \
 """Info: Can't deal with multidimensional attribute '%s' in node '%s'.""" % \
 (attrname, dsetname)
+      free(<void *> dims)
       return None
-
+    elif rank > 0:
+      free(<void *> dims)
+      
     if class_id == H5T_INTEGER:
       if type_size == 1:
         ret = H5LTget_attribute_char(parent_id, dsetname,
@@ -1014,6 +1040,7 @@ cdef class AttributeSet:
       ret = H5LTget_attribute_string(parent_id, dsetname,
                                      attrname, attrvaluestr)
       retvalue = PyString_FromString(attrvaluestr)
+      free(<void *> attrvaluestr)   # To avoid memory leak!
     else:
       print \
 """Info: Type of attribute '%s' in node '%s' is not supported. Sorry about that!""" % (attrname, dsetname)
@@ -1025,53 +1052,6 @@ cdef class AttributeSet:
                          % (attrname, dsetname))
 
     return retvalue
-
-  # Get attributes (only supports string attributes right now)
-  def _g_getNodeAttrInt(self, hid_t parent_id, hid_t loc_id,
-                        char *dsetname, char *attrname):
-    cdef hsize_t *dims, nelements
-    cdef H5T_class_t class_id
-    cdef size_t type_size
-    cdef char *attrvalue
-    cdef int rank
-    cdef int ret, i
-        
-    # Check if attribute exists
-    if H5LT_find_attribute(loc_id, attrname) <= 0:
-      # If the attribute does not exists, return None
-      # and do not even warn the user
-      return None
-
-    ret = H5LTget_attribute_ndims(parent_id, dsetname, attrname, &rank )
-    if ret < 0:
-      raise RuntimeError("Can't get ndims on attribute %s in node %s." %
-                             (attrname, dsetname))
-
-    # Allocate memory to collect the dimension of objects with dimensionality
-    if rank > 0:
-        dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
-
-    ret = H5LTget_attribute_info(parent_id, dsetname, attrname,
-                                 dims, &class_id, &type_size)
-    if ret < 0:
-        raise RuntimeError("Can't get info on attribute %s in node %s." %
-                               (attrname, dsetname))
-
-    if rank == 0:
-      attrvalue = <char *>malloc(type_size * sizeof(char))
-    else:
-      elements = dim[0]
-      for i from  0 < i < rank:
-        nelements = nelements * dim[i]
-      attrvalue = <char *>malloc(type_size * nelements * sizeof(char))
-
-    ret = H5LTget_attribute_string(parent_id, dsetname,
-                                    attrname, attrvalue)
-    if ret < 0:
-      raise RuntimeError("Attribute %s exists in node %s, but can't get it." \
-                         % (attrname, dsetname))
-                            
-    return attrvalue
 
   def _g_remove(self, attrname):
     cdef int ret
@@ -1128,24 +1108,13 @@ cdef class Group:
     self.group_id = ret
     return self.group_id
 
-  def _g_openGroup(self, hid_t loc_id, char *name):
+  def _g_openGroup(self):
     cdef hid_t ret
     
-    # Firstly check that name exists
-    # This doesn't seems to work when name is like /non_existent_path!
-#     if (H5Gget_objinfo(loc_id, name, 0, NULL) < 0):
-#       raise RuntimeError("Non-existent group: '%s'." % self.name)
-    # This does not work neither!
-#     if (H5LTfind_dataset(loc_id, name) <= 0):
-#       raise RuntimeError("Non-existent group: '%s'." % self.name)
-    
-    # Open a existing group
-    self.name = strdup(name)
-    ret = H5Gopen(loc_id, self.name)
+    ret = H5Gopen(self.parent_id, self.name)
     if ret < 0:
       raise RuntimeError("Can't open the group: '%s'." % self.name)
     self.group_id = ret
-    self.parent_id = loc_id
     return self.group_id
 
   def _g_listGroup(self, hid_t parent_id, hid_t loc_id, char *name):
@@ -1155,7 +1124,6 @@ cdef class Group:
   def _g_closeGroup(self):
     cdef int ret
     
-    #print "Closing the HDF5 Group", self.name
     ret = H5Gclose(self.group_id)
     if ret < 0:
       raise RuntimeError("Problems closing the Group %s" % self.name )
@@ -1164,7 +1132,6 @@ cdef class Group:
   def _g_renameNode(self, char *oldname, char *newname):
     cdef int ret
 
-    #print "Renaming the HDF5 Node", oldname, "to", newname
     ret = H5Gmove(self.group_id, oldname, newname)
     if ret < 0:
       raise RuntimeError("Problems renaming the node %s" % oldname )
@@ -1174,7 +1141,6 @@ cdef class Group:
     cdef int ret
 
     # Delete this group
-    #print "Removing the HDF5 Group", self.name
     ret = H5Gunlink(self.parent_id, self.name)
     if ret < 0:
       raise RuntimeError("Problems deleting the Group %s" % self.name )
@@ -1184,7 +1150,6 @@ cdef class Group:
     cdef int ret
 
     # Delete the leaf child
-    #print "Removing the HDF5 Leaf", dsetname
     ret = H5Gunlink(self.group_id, dsetname)
     if ret < 0:
       raise RuntimeError("Problems deleting the Leaf %s" % dsetname )
@@ -1192,13 +1157,11 @@ cdef class Group:
 
   def __dealloc__(self):
     cdef int ret
-    
-    #print "Destroying object Group in Extension"
-    if self.group_id:
-      #print "Closing the HDF5 Group", self.name," because user didn't do that!."
-      ret = H5Gclose(self.group_id)
-      if ret < 0:
-        raise RuntimeError("Problems closing the Group %s" % self.name )
+    # print "Destroying object Group in Extension"
+    free(<void *>self.name)
+    if self.group_id <> 0:
+      print "Group open!"
+
 
 cdef class Table:
   # instance variables
@@ -1213,6 +1176,7 @@ cdef class Table:
   cdef char    *fmt
   cdef char    *field_names[MAX_FIELDS]
   cdef int     compress
+  cdef int     _open
   cdef char    *complib
   cdef hid_t   dataset_id, space_id, mem_type_id
 
@@ -1220,8 +1184,9 @@ cdef class Table:
     self.name = strdup(name)
     # The parent group id for this object
     self.parent_id = where._v_groupId
+    self._open = 0
 
-  def _createTable(self, title, complib):
+  def _createTable(self, char *title, char *complib):
     cdef int nvar, offset
     cdef int i, nrecords, ret, buflen
     cdef hid_t fieldtypes[MAX_FIELDS]
@@ -1242,8 +1207,11 @@ cdef class Table:
       if (len(name) >= MAX_CHARS):
         raise NameError("A maximum length of %d on column names is allowed" % \
                          (MAX_CHARS - 1))
-      # The next works thanks to Pyrex magic
-      self.field_names[i] = name
+      # Copy the column names to an internal buffer
+      #self.field_names[i] = <char *>malloc(MAX_CHARS * sizeof(char))  
+      #strcpy(self.field_names[i], name)
+      # This is equivalent
+      self.field_names[i] = strdup(name)
       i = i + 1
 
     # Compute the field type sizes, offsets, # fields, ...
@@ -1267,16 +1235,18 @@ cdef class Table:
     # The next is settable if we have default values
     fill_data = NULL
 
-    self.xtitle=strdup(title)
-    self.complib=strdup(complib)
-    ret = H5TBmake_table(self.xtitle, self.parent_id, self.name,
+    ret = H5TBmake_table(title, self.parent_id, self.name,
                          nvar, self.nrows, self.rowsize, self.field_names,
                          self.field_offset, fieldtypes, self._v_chunksize,
-                         fill_data, self._v_compress, self.complib, data)
+                         fill_data, self._v_compress, complib, data)
     if ret < 0:
       raise RuntimeError("Problems creating the table")
+
+    # Release resources to avoid memory leaks
+    for i from  0 <= i < nvar:
+      H5Tclose(fieldtypes[i])
     
-  def _append_records(self, object recarr, int nrecords):
+  def _append_records_orig(self, object recarr, int nrecords):
     cdef int ret, buflen
     cdef void *rbuf
 
@@ -1301,30 +1271,38 @@ cdef class Table:
     if ret < 0:
       raise RuntimeError("Problems getting the pointer to the buffer.")
 
-    # Readout to the buffer
-    if ( H5TBOopen_append(self.parent_id, self.name, self.nfields,
+    # Write the buffer
+    if ( H5TBOopen_append(&self.dataset_id, &self.mem_type_id,
+                          self.parent_id, self.name, self.nfields,
                           self.rowsize, self.field_offset) < 0 ):
       raise RuntimeError("Problems opening table for append.")
 
-  def _append_records2(self, object recarr, int nrecords):
+    self._open = 1
+
+  def _append_records(self, object recarr, int nrecords):
     cdef int ret,
     cdef void *rbuf
 
-    self._open_append(recarr)
+    if not self._open:
+      self._open_append(recarr)
     
     # Append the records:
-    ret = H5TBOappend_records(nrecords, self.totalrecords, self.rbuf)
+    ret = H5TBOappend_records(&self.dataset_id, &self.mem_type_id,
+                              nrecords, self.totalrecords, self.rbuf)
     if ret < 0:
       raise RuntimeError("Problems appending the records.")
 
     self.totalrecords = self.totalrecords + nrecords
-    self._close_append()
+    #self._close_append()
     
   def _close_append(self):
 
-    # Close the table for append
-    if ( H5TBOclose_append() < 0 ):
-      raise RuntimeError("Problems closing table for append.")
+    if self._open > 0:
+      # Close the table for append
+      if ( H5TBOclose_append(&self.dataset_id, &self.mem_type_id) < 0 ):
+        raise RuntimeError("Problems closing table for append.")
+
+    self._open = 0
     
   def _getTableInfo(self):
     "Get info from a table on disk. This method is standalone."
@@ -1444,12 +1422,13 @@ cdef class Table:
     if ( H5TBOclose_read(&self.dataset_id, &self.space_id,
                          &self.mem_type_id) < 0 ):
       raise RuntimeError("Problems closing table for read.")
-    
+
   def __dealloc__(self):
-    cdef int ret
     #print "Destroying object Table in Extension"
     free(<void *>self.name)
-
+    for i from  0 <= i < self.nfields:
+      # Strings could not be larger than 255
+      free(<void *>self.field_names[i])
 
 cdef class Row:
   """Row Class
@@ -1572,131 +1551,6 @@ cdef class Row:
 
       return self
 
-#   # This version of __next__ is more elegant, but it is a lot *slower*
-#   # because the functions called cannot be inlined!
-#   def __next__slow(self):
-
-#     self.nextelement = self._nrow + self.step
-#     if self.nextelement >= self.stop:
-#       self._table._close_read()  # Close the table
-#       raise StopIteration        # end of iteration
-#     else:
-#       if self._all:
-#         return self._next_all()
-#       else:
-#         return self._next_range()
-      
-#   def _next_all(self):
-#     "next() version for the start, stop, step = (0, table.nrows, 1) case"
-
-#     if self.nextelement >= self.nrowsread:
-#       # Initialize the buffer counter
-#       self._row = -1
-
-#       #self.recout = self._table._read_records(self.nextelement,
-#       self.recout = self._table._read_records(self.nrowsread,
-#                                               self.nrowsinbuf)
-#       if self._table.byteorder <> sys.byteorder:
-#         self._recarray._byteswap()
-
-#       self.nrowsread = self.nrowsread + self.recout
-
-#     self._row = self._row + 1
-#     self._nrow = self._nrow + 1
-#     return self
-
-#   def _next_range(self):
-#     "next() version for the general case"
-
-#     if self.nextelement >= self.nrowsread:
-#       # Skip until there is interesting information
-#       while self.nextelement >= self.nrowsread + self.nrowsinbuf:
-#         self.nrowsread = self.nrowsread + self.nrowsinbuf
-#         #self.startnewbuf = self.startnewbuf + self.nrowsinbuf
-#       # Compute the end for this iteration
-#       self.stopb = self.stop - self.nrowsread
-#       if self.stopb > self.nrowsinbuf:
-#         self.stopb = self.nrowsinbuf
-#       # Initialize the buffer counter
-#       self._row = self.startb - self.step
-
-#       # Read a chunk
-#       self.recout = self._table._read_records(self.nrowsread,
-#                                               self.nrowsinbuf)
-#       #self.startnewbuf = self.startnewbuf + self.nrowsinbuf
-#       self.nrowsread = self.nrowsread + self.recout
-#       if self._table.byteorder <> sys.byteorder:
-#         self._recarray._byteswap()
-
-#     self._row = self._row + self.step
-#     self._nrow = self.nextelement
-#     if self._row + self.step >= self.stopb:
-#       # Compute the start row for the next buffer
-#       self.startb = (self._row + self.step) % self.nrowsinbuf
-
-#     return self
-
-#   # This version of __next__ is like __next__slow, but it is inlined
-#   # However, its speed is similar that the general __next__ version
-#   def __next__inlined(self):
-#     "next() method for __iter__() that is called on each iteration"
-    
-#     self.nextelement = self._nrow + self.step
-#     if self.nextelement >= self.stop:
-#       self._table._close_read()  # Close the table
-#       raise StopIteration        # end of iteration
-#     else:
-#       if self.nextelement >= self.nrowsread:
-#         if self._all:
-#           # Initialize the buffer counter
-#           self._row = -1
-#         else:
-#           # Skip until there is interesting information
-#           while self.nextelement >= self.nrowsread + self.nrowsinbuf:
-#             self.nrowsread = self.nrowsread + self.nrowsinbuf
-#           # Compute the end for this iteration
-#           self.stopb = self.stop - self.nrowsread
-#           if self.stopb > self.nrowsinbuf:
-#             self.stopb = self.nrowsinbuf
-#           # Initialize the buffer counter
-#           self._row = self.startb - self.step
-#         # Read a new buffer
-#         self.recout = self._table._read_records(self.nrowsread,
-#                                                 self.nrowsinbuf)
-#         if self._table.byteorder <> sys.byteorder:
-#           self._recarray._byteswap()
-#         self.nrowsread = self.nrowsread + self.recout
-
-#       # Update counters
-#       self._row = self._row + self.step
-#       self._nrow = self.nextelement
-#       if not self._all and self._row + self.step >= self.stopb:
-#         # Compute the start row for the next buffer
-#         self.startb = (self._row + self.step) % self.nrowsinbuf
-
-#       return self
-      
-#   # Method that was called in older versions of _fetchall and _fetchrange
-#   def _getRow(self):
-#     """ return the row for this record object and update counters"""
-#     self._row = self._row + self.step
-#     self._nrow = self._nrowinbuf + self._row
-#     #print "Delivering row:", self._nrow, "// Buffer row:", self._row
-#     return self
-
-#   # Method that was called in alder versions of _fetchall and _fetchrange
-#   def __call__orig(self):
-#     """ return the row for this record object and update counters"""
-#     self._row = self._row + 1
-#     self._nrow = self._nrowinbuf + self._row
-#     return self
-
-#   # Method that was called in alder versions of _fetchall and _fetchrange
-#   def _setBaseRow(self, start, startb):
-#     """ set the global row number and reset the local buffer row counter """
-#     self._nrowinbuf = start
-#     self._row = startb - self.step
-
   def nrow(self):
     """ get the global row number for this table """
     return self._nrow
@@ -1718,7 +1572,7 @@ cdef class Row:
       
   # This is the Pyrex version of the append, but it is not faster than
   # the original, so disable it!.
-#   def _append_pyrex(self):
+#   def append_pyrex(self):
 #     """Append self object to the output buffer.
     
 #     """
@@ -1795,9 +1649,12 @@ cdef class Row:
         # This optimization sucks when using numarray 0.4!
         # And it works better with python 2.2 than python 2.3
         # I'll disable it until further study of it is done
-        #offset = self._row * self._strides
-        #return NA_getPythonScalar(<object>self._fields[fieldName], offset)
-        return self._fields[fieldName][self._row]
+        #
+        # I'm going to activate this optimization from 0.7.1 on
+        # 2003/08/08
+        offset = self._row * self._strides
+        return NA_getPythonScalar(<object>self._fields[fieldName], offset)
+        #return self._fields[fieldName][self._row]
       elif (self._enumtypes[index] == CHARTYPE and self._scalar[index]):
         # Case of a plain string in the cell
         # Call the universal indexing function
@@ -1822,32 +1679,6 @@ cdef class Row:
       raise AttributeError, "Error setting \"%s\" attr.\n %s" % \
             (fieldName, "Error was: \"%s: %s\"" % (type,value))
 
-  # This "optimization" sucks when using numarray 0.4 and 0.5!
-#   def __setitem__optim(self, object fieldName, object value):
-#     cdef int index
-#     cdef long offset
-
-#     try:
-
-#       # Get the column index. This is very fast!
-#       index = self._indexes[fieldName]
-
-#       if (self._enumtypes[index] <> CHARTYPE and self._scalar[index]):
-#         # This optimization sucks when using numarray 0.4 and 0.5!
-#         offset = self._unsavednrows * self._strides
-#         #print "self._row -->", self._row, fieldName, self._strides
-#         #print "self._fields[fieldName] -->", self._fields[fieldName]
-#         # if not NA_updateDataPtr(self._fields[fieldName]):
-#         #  return None
-#         NA_setFromPythonScalar(self._fields[fieldName], offset, value)
-#         #self._fields[fieldName][self._unsavednrows] = value
-#       else:
-#         self._fields[fieldName][self._unsavednrows] = value
-#     except:
-#       (type, value, traceback) = sys.exc_info()
-#       raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
-#             (fieldName, "Error was: \"%s: %s\"" % (type,value))
-
   def __str__(self):
     """ represent the record as an string """
         
@@ -1870,10 +1701,10 @@ cdef class Row:
       #outlist.append(self._recarray.field(name)[self._row])
     return outlist
 
-  # Moved out of scope
-  def _g_dealloc__(self):
-    print "Deleting Row object"
-    pass
+  def __dealloc__(self):
+    #print "Deleting Row object"
+    free(<void *>self._scalar)
+    free(<void *>self._enumtypes)
 
 
 cdef class Array:
@@ -1922,8 +1753,6 @@ cdef class Array:
         #  array._byteswap()
         # The next code is more efficient as it doesn't reverse the byteorder
         # twice (if byteorder is different than this of the machine).
-        #array = ndarray.NDArray.copy(arr)
-        # For numarray 0.6
         array = numarray.NDArray.copy(arr)
         array._byteorder = arr._byteorder
         array._type = arr._type
@@ -1977,6 +1806,8 @@ cdef class Array:
                       self.dims, type_id, rbuf)
     if ret < 0:
       raise RuntimeError("Problems saving the array.")
+
+    H5Tclose(type_id)    # To avoid memory leaks
 
     return self.type
     
@@ -2044,7 +1875,6 @@ cdef class Array:
     return 
 
   def __dealloc__(self):
-    cdef int ret
     #print "Destroying object Array in Extension"
     free(<void *>self.dims)
     free(<void *>self.name)

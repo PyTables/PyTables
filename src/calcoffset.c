@@ -69,6 +69,7 @@ static const formatdef *getentry(int c, const formatdef *f)
 static hid_t conventry(int c, int rank, hsize_t *dims)
 {
    hid_t string_type;
+   hid_t ret_type;
    int native, i;
    hsize_t shape[MAXDIM];
 
@@ -181,7 +182,10 @@ static hid_t conventry(int c, int rank, hsize_t *dims)
 	for(i=0; i<rank-1; i++) {
 	  shape[i] = dims[i];
 	}
-	return H5Tarray_create(string_type, rank-1, shape, NULL);
+	ret_type = H5Tarray_create(string_type, rank-1, shape, NULL);
+	/* Release resources */
+	H5Tclose(string_type);
+	return ret_type;
       }
     default:
 #ifdef DEBUG

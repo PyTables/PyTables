@@ -184,22 +184,7 @@ out:
 }
 
 /* From here on, similar funtions are provided for appending.
-   However, these are not polished nor finished. This is because I've
-   tracked down and fixed a memory leak on the H5TB.c correspondent
-   funtions, and, for appending, it is best to use the native HDF_HL
-   functions than this optimized ones.
-
-   For make them finished, it is necessary to put dataset_id and
-   mem_type_id as parameters (passed by reference) instead to be
-   external variables as are now.
-
-   These are maintained here just in case I want to use them in the future.
-   F.Alted 2003/04/20 */
-
-/* External variables */
-
-hid_t dataset_id;
-hid_t mem_type_id;
+ */
 
 /*-------------------------------------------------------------------------
  * Function: H5TBOopen_append
@@ -220,7 +205,9 @@ hid_t mem_type_id;
  *-------------------------------------------------------------------------
  */
 
-herr_t H5TBOopen_append( hid_t loc_id, 
+herr_t H5TBOopen_append( hid_t *dataset_id,
+			 hid_t *mem_type_id,
+			 hid_t loc_id, 
 			 const char *dset_name,
 			 hsize_t nfields,
 			 size_t type_size,
@@ -243,15 +230,15 @@ herr_t H5TBOopen_append( hid_t loc_id,
   return -1;
 
  /* Open the dataset. */
- if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+ if ( (*dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
   goto out;
 
   /* Get the datatype */
- if ( (type_id = H5Dget_type( dataset_id )) < 0 )
+ if ( (type_id = H5Dget_type( *dataset_id )) < 0 )
   goto out;
 
  /* Create the memory data type. */
- if ((mem_type_id = H5Tcreate (H5T_COMPOUND, type_size )) < 0 )
+ if ((*mem_type_id = H5Tcreate (H5T_COMPOUND, type_size )) < 0 )
   return -1;
 
  /* Insert fields on the memory data type */
@@ -262,11 +249,16 @@ herr_t H5TBOopen_append( hid_t loc_id,
   if ( ( member_type_id = H5Tget_member_type( type_id,(int) i )) < 0 )
    goto out;
 
-  if ( H5Tinsert(mem_type_id, field_names[i], field_offset[i], member_type_id ) < 0 )
+  if ( H5Tinsert(*mem_type_id, field_names[i], field_offset[i], member_type_id ) < 0 )
+   goto out;
+
+  /* Close the member type */
+  if ( H5Tclose( member_type_id ) < 0 )
    goto out;
 
  /* Release resources. */
   free ( field_names[i] );
+
  }
 
  /* Release resources. */
@@ -279,7 +271,7 @@ herr_t H5TBOopen_append( hid_t loc_id,
 return 0;
 
 out:
- H5Dclose( dataset_id );
+ H5Dclose( *dataset_id );
  return -1;
 
 }
@@ -306,7 +298,9 @@ out:
  */
 
 
-herr_t H5TBOappend_records( hsize_t nrecords,
+herr_t H5TBOappend_records( hid_t *dataset_id,
+			    hid_t *mem_type_id,
+			    hsize_t nrecords,
 			    hsize_t nrecords_orig,
 			    const void *data )  
 {
@@ -322,7 +316,7 @@ herr_t H5TBOappend_records( hsize_t nrecords,
  /* Extend the dataset */
  dims[0] = nrecords_orig;
  dims[0] += nrecords;
- if ( H5Dextend ( dataset_id, dims ) < 0 )
+ if ( H5Dextend ( *dataset_id, dims ) < 0 )
   goto out;
 
  /* Create a simple memory data space */
@@ -331,7 +325,7 @@ herr_t H5TBOappend_records( hsize_t nrecords,
   return -1;
 
  /* Get the file data space */
- if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+ if ( (space_id = H5Dget_space( *dataset_id )) < 0 )
   return -1;
 
  /* Get the dimensions */
@@ -344,7 +338,7 @@ herr_t H5TBOappend_records( hsize_t nrecords,
  if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
   goto out;
 
- if ( H5Dwrite( dataset_id, mem_type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
+ if ( H5Dwrite( *dataset_id, *mem_type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
   goto out;
 
  /* Terminate access to the dataspace */
@@ -357,7 +351,7 @@ herr_t H5TBOappend_records( hsize_t nrecords,
 return 0;
 
 out:
- H5Dclose( dataset_id );
+ H5Dclose( *dataset_id );
  return -1;
 
 }
@@ -381,21 +375,22 @@ out:
  *-------------------------------------------------------------------------
  */
 
-herr_t H5TBOclose_append(void)
+herr_t H5TBOclose_append(hid_t *dataset_id,
+			 hid_t *mem_type_id)
 {
 
   /* Release the datatype. */
- if ( H5Tclose( mem_type_id ) < 0 )
+ if ( H5Tclose( *mem_type_id ) < 0 )
   goto out;
 
  /* End access to the dataset */
- if ( H5Dclose( dataset_id ) < 0 )
+ if ( H5Dclose( *dataset_id ) < 0 )
   return -1;
 
 return 0;
 
 out:
- H5Dclose( dataset_id );
+ H5Dclose( *dataset_id );
  return -1;
 
 }

@@ -95,7 +95,7 @@ herr_t H5TBmake_table( const char *table_title,
  hsize_t dims_chunk[1];
  hsize_t maxdims[1] = { H5S_UNLIMITED };
  char    attr_name[255];
- char    *VERSION = "2.0";
+ char    *VERSION = "2.0";  /* The Table VERSION number */
  char    *member_name;
  hid_t   attr_id;
  char    aux[255];
@@ -105,8 +105,6 @@ herr_t H5TBmake_table( const char *table_title,
 
  dims[0]       = nrecords;
  dims_chunk[0] = chunk_size;
- /* The Table VERSION number */
-/*  strcpy("2.0", VERSION); */
 
  /* Create the memory data type. */
  if ((mem_type_id = H5Tcreate (H5T_COMPOUND, type_size )) < 0 )

@@ -92,6 +92,14 @@ herr_t H5ARRAYmake( hid_t loc_id,
  if ( H5Sclose( space_id ) < 0 )
   return -1;
 
+ /* Release the datatype in the case that it is not an atomic type */
+ if (!atomictype) {
+   if ( H5Tclose( datatype ) < 0 )
+     return -1;
+ }
+
+
+
 /*-------------------------------------------------------------------------
  * Set the conforming array attributes
  *-------------------------------------------------------------------------
@@ -158,6 +166,10 @@ herr_t H5ARRAYread( hid_t loc_id,
  if ( H5Dclose( dataset_id ) )
   return -1;
 
+ /* Release resources */
+ if ( H5Tclose(type_id))
+   return -1;
+
  return 0;
 
 out:
@@ -218,6 +230,11 @@ herr_t H5ARRAYget_ndims( hid_t loc_id,
     /* Get rank */
     if ( (*rank = H5Sget_simple_extent_ndims( space_id )) < 0 )
       goto out;
+
+    /* Terminate access to the dataspace */
+    if ( H5Sclose( space_id ) < 0 )
+      goto out;
+ 
   }
 
 
@@ -349,6 +366,11 @@ herr_t H5ARRAYget_info( hid_t loc_id,
     /* Get dimensions */
     if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
       goto out;
+
+    /* Terminate access to the dataspace */
+    if ( H5Sclose( space_id ) < 0 )
+      goto out;
+ 
   }
 
   /* Release the datatype. */

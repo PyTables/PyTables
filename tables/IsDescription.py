@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.17 2003/08/05 15:39:05 falted Exp $
+#       $Id: IsDescription.py,v 1.18 2003/08/08 15:23:52 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.17 $"
+__version__ = "$Revision: 1.18 $"
 
 
 import warnings
@@ -284,9 +284,8 @@ class Float64Col(FloatCol):
         
     
 class Description(object):
+    "Regular class to keep table description metadata"
 
-    # define as local functions the __init__ and __repr__ that we'll
-    # use in the new class
     def __init__(self, classdict):
 
         self.classdict = classdict
@@ -331,9 +330,9 @@ class Description(object):
                 if not isinstance(object, Col):
                     raise TypeError, \
 """Passing an incorrect value to a table column.
-
-  Please, make use of the Col() constructor to properly initialize
-  columns. Expected a Col instance and got: "%s"
+  Please, make use of the Col(), or descendant, constructor to
+  properly initialize columns. Expected a Col (or subclass) instance
+  and got: "%s"
 
 """ % object
                 newdict['__names__'].append(k)
@@ -381,7 +380,7 @@ class Description(object):
         return
 
     def __repr__(self):
-        """ Gives a Table representation ready to be passed to eval
+        """ Gives a Table column representation
         """
         rep = [ '\"%s\": %r' %  \
                 (k, self._v_ColObjects[k])
@@ -458,6 +457,8 @@ class Description(object):
 
 
 class metaIsDescription(type):
+    "Helper metaclass to return the class variables as a dictionary "
+    
     def __new__(cls, classname, bases, classdict):
         """ Return a new class with a "columns" attribute filled
         """
@@ -480,17 +481,10 @@ class IsDescription(object):
 
 
 if __name__=="__main__":
-    """Here is code to benchmark the differents methods to pack/unpack.
-
-    Use it to experiment new methods to accelerate the pack/unpack
-    process.
-    
-    """
+    """Test code"""
     
     class Test(IsDescription):
-        """A description that has several columns.
-
-        """
+        """A description that has several columns"""
         x = Col("Int32", 2, 0)
         y = FloatCol(1, shape=(2,3))
         z = UInt8Col(1)
