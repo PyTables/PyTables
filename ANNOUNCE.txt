@@ -1,3 +1,30 @@
+PyTables 0.5.1
+--------------
+
+This is a maintenance release of PyTables. Due to a problem with an
+optimization in PyTables 0.5, it does not work with numarray 0.4
+(although it works just fine with numarray 0.5). Because Todd Miller
+has already warned me that this optimization is not safe, I am
+*disabling* it in this release. The consequence is that the 20% of
+improvement during reading tables has almost evaporated to a rather
+small 4%, but that's life!.
+
+If you already have installed PyTables 0.5, I strongly suggest you to
+upgrade to 0.5.1, even if you are already using numarray 0.5. I will
+try to further investigate the problem, and, if a good solution is
+found, I will re-activate the optimization in a future release.
+
+Another new thing you can find in 0.5.1 is that the use of "UInt64"
+data types has been removed (it has been replaced by the "Int64" type)
+of the tutorial chapters in User's Manual because the Windows version
+does not support such a type (due to MSVC compiler limitations). Now,
+the tutorial section should run fine in all the supported platforms
+(even Windows).
+
+My apologies for being a sinner and trying to optimize too soon ;-)
+
+The original announcement follows.
+
 Announcing PyTables 0.5
 -----------------------
 
