@@ -8,7 +8,7 @@
  *        Francesc Altet 2004-12-27
  *
  *      $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/typeconv.c,v $
- *      $Id: typeconv.c,v 1.3 2004/12/27 22:18:37 falted Exp $
+ *      $Id: typeconv.c,v 1.4 2004/12/29 21:59:36 ivilata Exp $
  *
  ***********************************************************************/
 
@@ -17,6 +17,7 @@
  */
 
 #include "typeconv.h"
+#include <math.h>
 #include <assert.h>
 
 
@@ -43,22 +44,20 @@ void conv_float64_timeval32(void *base,
 
   fieldbase = (double *)(base + byteoffset);
   for (record = 0;  record < nrecords;  record++) {
-    if (sense == 0) {     /* The if here allows the compiler doing
-			     a better optimization job */
-      for (element = 0;  element < nelements;  element++) {
-	tv.i64 = ((long long)*fieldbase << 32) + 
-	         (int)((*fieldbase - (int)*fieldbase) * 1e+6);
+    for (element = 0;  element < nelements;  element++) {
+      if (sense == 0) {
+	/* Convert from float64 to timeval32. */
+	tv.i64 = (((long long)(*fieldbase) << 32)
+		  | (lround((*fieldbase - (int)(*fieldbase)) * 1e+6)
+		     & 0x0ffffffff));
 	*fieldbase = tv.f64;
-	fieldbase++;
-      }
-    }
-    else {
-      for (element = 0;  element < nelements;  element++) {
+      } else {
+	/* Convert from timeval32 to float64. */
 	tv.f64 = *fieldbase;
 	/* the next computation is 64 bit-platforms aware */
 	*fieldbase = 1e-6 * (int)tv.i64 + (tv.i64 >> 32);
-	fieldbase++;
       }
+      fieldbase++;
     }
     fieldbase += gapsize;
   }
