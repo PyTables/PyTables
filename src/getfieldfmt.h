@@ -7,6 +7,6 @@
 #include <string.h>
 
 
-/* Functions in Tgetfieldfmt.c we want accessible */
+/* Functions in Tgetfieldfmt.c we want to make accessible */
 herr_t getfieldfmt ( hid_t loc_id, const char *table_name, char *fmt );
   

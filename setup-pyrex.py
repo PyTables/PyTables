@@ -8,7 +8,7 @@ from distutils.dep_util import newer
 # Uncomment this if Pyrex installed and want to rebuild everything
 from Pyrex.Distutils import build_ext
 
-VERSION = "0.2"
+VERSION = "0.3"
 
 #----------------------------------------------------------------------
 
@@ -135,6 +135,7 @@ details on the objects and methods provided.""",
                                             "src/arraytypes.c",
                                             "src/getfieldfmt.c",
                                             "src/utils.c",
+					    "src/H5ARRAY.c",
 					    "src/H5LT.c",
 					    "src/H5TB.c"],
 				library_dirs = [libdir],

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.7 2003/01/29 16:52:09 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.8 2003/01/29 19:07:28 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.7 $"
+__version__ = "$Revision: 1.8 $"
 
 
 import os.path
@@ -264,49 +264,24 @@ cdef extern from *:
 # Functions from HDF5 HL Lite
 cdef extern from "H5LT.h":
 
-  herr_t H5LTmake_array( hid_t loc_id, char *dset_name, char *title,
-                         char *flavor, char *obversion,	int atomic,
-                         int rank, hsize_t *dims, hid_t type_id,
-                         void *data )
-
   herr_t H5LTmake_dataset( hid_t loc_id, char *dset_name, int rank,
                            hsize_t *dims, hid_t type_id, void *data )
   
   herr_t H5LTread_dataset( hid_t loc_id, char *dset_name,
                            hid_t type_id, void *data )
                            
-  herr_t H5LTread_array( hid_t loc_id, char *dset_name,
-                         void *data )
-
   herr_t H5LTget_dataset_ndims ( hid_t loc_id, char *dset_name, int *rank )
-  
-  herr_t H5LTget_array_ndims ( hid_t loc_id, char *dset_name, int *rank )
   
   herr_t H5LTget_dataset_info ( hid_t loc_id, char *dset_name,
                                 hsize_t *dims, H5T_class_t *class_id,
                                 size_t *type_size )
 
-  herr_t H5LTget_dataset_info_mod( hid_t loc_id, char *dset_name,
-                                   hsize_t *dims, H5T_class_t *class_id,
-                                   H5T_sign_t *sign, size_t *type_size )
-
-  herr_t H5LTget_array_info( hid_t loc_id, char *dset_name,
-                             hsize_t *dims, H5T_class_t *class_id,
-                             H5T_sign_t *sign, size_t *type_size )
-
   herr_t H5LT_get_attribute_disk(hid_t loc_id, char *attr_name, void *attr_out)
           
-#  herr_t H5LTget_attribute_ndims( hid_t loc_id, char *attr_name, int *rank )
   herr_t H5LTget_attribute_ndims( hid_t loc_id, 
                                   char *obj_name, 
                                   char *attr_name,
                                   int *rank )
-
-  
-#  herr_t H5LTget_attribute_info( hid_t loc_id, char *attr_name,
-#                                 hsize_t *dims, H5T_class_t *class_id,
-#                                 size_t *type_size )
-
   herr_t H5LTget_attribute_info( hid_t loc_id, char *obj_name, char *attr_name,
                                  hsize_t *dims, H5T_class_t *class_id,
                                  size_t *type_size )
@@ -315,8 +290,26 @@ cdef extern from "H5LT.h":
                                    char *attr_name, char *attr_data )
 
   herr_t H5LT_find_attribute( hid_t loc_id, char *attr_name )
+
+
+# Functions from HDF5 ARRAY (this is not part of HDF5 HL; it's private)
+cdef extern from "H5ARRAY.h":  
   
+  herr_t H5ARRAYmake( hid_t loc_id, char *dset_name, char *title,
+                      char *flavor, char *obversion,	int atomic,
+                      int rank, hsize_t *dims, hid_t type_id,
+                      void *data )
+
+  herr_t H5ARRAYread( hid_t loc_id, char *dset_name,
+                         void *data )
+
+  herr_t H5ARRAYget_ndims ( hid_t loc_id, char *dset_name, int *rank )
   
+  herr_t H5ARRAYget_info( hid_t loc_id, char *dset_name,
+                          hsize_t *dims, H5T_class_t *class_id,
+                          H5T_sign_t *sign, size_t *type_size )
+
+
 # Funtion to compute the HDF5 type from a numarray enum type
 cdef extern from "arraytypes.h":
     
@@ -458,7 +451,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.7 2003/01/29 16:52:09 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.8 2003/01/29 19:07:28 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -894,9 +887,9 @@ cdef class Array:
         self.dims[i] = array.shape[i]
                                
     # Save the array
-    ret = H5LTmake_array(self.group_id, self.name, title,
-                         flavor, obversion, atomic, self.rank,
-                         self.dims, type_id, rbuf)
+    ret = H5ARRAYmake(self.group_id, self.name, title,
+                      flavor, obversion, atomic, self.rank,
+                      self.dims, type_id, rbuf)
     if ret < 0:
       raise RuntimeError("Problems saving the array.")
 
@@ -911,12 +904,12 @@ cdef class Array:
     cdef herr_t ret
 
     # Get the rank for this array object
-    #ret = H5LTget_array_ndims(self.group_id, self.name, &self.rank)
-    ret = H5LTget_dataset_ndims(self.group_id, self.name, &self.rank)
+    ret = H5ARRAYget_ndims(self.group_id, self.name, &self.rank)
+    #ret = H5LTget_dataset_ndims(self.group_id, self.name, &self.rank)
     # Allocate space for the dimension axis info
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Get info on dimensions, class and type size
-    ret = H5LTget_array_info(self.group_id, self.name, self.dims,
+    ret = H5ARRAYget_info(self.group_id, self.name, self.dims,
                              &class_id, &sign, &type_size)
     
     ret = getArrayType(class_id, type_size,
@@ -957,7 +950,7 @@ cdef class Array:
     if ret2 < 0:
       raise RuntimeError("Problems getting the buffer area.")
 
-    ret = H5LTread_array(self.group_id, self.name, rbuf)
+    ret = H5ARRAYread(self.group_id, self.name, rbuf)
     if ret < 0:
       raise RuntimeError("Problems reading the array data.")
 

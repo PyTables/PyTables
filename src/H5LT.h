@@ -42,17 +42,6 @@ herr_t H5LTmake_dataset( hid_t loc_id,
                          hid_t type_id,
                          const void *buffer );
 
-herr_t H5LTmake_array( hid_t loc_id, 
-		       const char *dset_name,
-		       const char *title,  /* Added parameter */
-		       const char *flavor,  /* Added parameter */
-		       const char *obversion,  /* Added parameter */
-		       const int atomic,  /* Added parameter */
-		       int rank, 
-		       const hsize_t *dims,
-		       hid_t type_id,
-		       const void *data );
-
 herr_t H5LTmake_dataset_char( hid_t loc_id, 
                               const char *dset_name, 
                               int rank, 
