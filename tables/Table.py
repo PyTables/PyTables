@@ -1195,8 +1195,9 @@ class Table(Leaf, hdf5Extension.Table, object):
     def flush(self):
         """Flush the table buffers."""
         # Flush any unsaved row
-        if hasattr(self, 'row') and self.row._getUnsavedNRows() > 0:
-            self._saveBufferedRows()
+        if hasattr(self, 'row'):
+            if self.row._getUnsavedNRows() > 0:
+                self._saveBufferedRows()
             # Flush the data to disk
             Leaf.flush(self)
         if hasattr(self, "indexed") and self.indexed and self.indexprops.auto:
