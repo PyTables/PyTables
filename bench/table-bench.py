@@ -4,6 +4,7 @@ import copy
                 
 import numarray as NA
 from tables import *
+import random
 
 # This class is accessible only for the examples
 class Small(IsDescription):
@@ -108,9 +109,9 @@ def createFile(filename, totalrows, complevel, complib, recsize):
         else: # Small record
             for i in xrange(totalrows):
                 #d['var1'] = str(i)
-                d['var2'] = i
+                d['var2'] = random.randrange(totalrows)
                 #d['var3'] = 12.1e10
-                d['var3'] = i
+                d['var3'] = totalrows-i
                 d.append()  # This is a 10% faster than table.append()
 		    
         rowswritten += totalrows
@@ -210,6 +211,7 @@ def readField(filename, field, rng, verbose):
 
 	    rowsread += table.nrows
             if verbose:
+                print "Selected rows ==> ", e
                 print "Total selected rows ==> ", len(e)
         
     # Close the file (eventually destroy the extended type)

@@ -114,6 +114,7 @@ herr_t H5TBread_fields_name( hid_t loc_id,
                              const char *field_names,
                              hsize_t start,
                              hsize_t nrecords,
+                             hsize_t step,
                              size_t type_size,
                              const size_t *field_offset,
                              void *data );

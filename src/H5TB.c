@@ -1196,6 +1196,7 @@ herr_t H5TBread_fields_name( hid_t loc_id,
                              const char *field_names,
                              hsize_t start,
                              hsize_t nrecords,
+                             hsize_t step,
                              size_t type_size,
                              const size_t *field_offset,
                              void *data )  
@@ -1211,6 +1212,188 @@ herr_t H5TBread_fields_name( hid_t loc_id,
  hsize_t  mem_size[1];
  hid_t    mem_space_id;
  hssize_t offset[1];
+/*  hssize_t coords[5]; */
+ hssize_t *coords;
+ void     *buf;
+ hsize_t  *buf2;
+ int      num_elements;
+ hsize_t  stride[1];
+ hid_t    space_id;
+ hssize_t i;
+ hssize_t j = 0;
+ int      k,l;
+
+ /* Open the dataset. */
+ if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+  goto out;
+
+ /* Get the datatype */
+ if ( (type_id = H5Dget_type( dataset_id )) < 0 )
+  goto out;
+
+ /* Get the number of fields */
+ if ( ( nfields = H5Tget_nmembers( type_id )) < 0 )
+  goto out;
+ 
+ /* Create a read id */
+ if ( ( read_type_id = H5Tcreate( H5T_COMPOUND, type_size )) < 0 )
+  goto out;
+
+ /* Iterate tru the members */
+ for ( i = 0; i < nfields; i++)
+ {
+
+  /* Get the member name */
+  member_name = H5Tget_member_name( type_id, (int)i );
+
+  if ( H5TB_find_field( member_name, field_names ) > 0 )
+  {
+
+/*     printf("Member_name --> %s\n", member_name); */
+   /* Get the member type */
+   if ( ( member_type_id = H5Tget_member_type( type_id, (int) i )) < 0 )
+    goto out;
+
+   /* The field in the file is found by its name */
+   if ( field_offset )
+   {
+    if ( H5Tinsert( read_type_id, member_name, field_offset[j], member_type_id ) < 0 )
+     goto out;
+   }
+    else
+   {
+    if ( H5Tinsert( read_type_id, member_name, 0, member_type_id ) < 0 )
+     goto out;
+   }
+
+   /* Close the member type */
+   if ( H5Tclose( member_type_id ) < 0 )
+    goto out;
+
+   j++;
+  }
+
+  free( member_name );
+
+ }
+
+ /* Get the dataspace handle */
+ if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+  goto out;
+
+ if (step>1) {
+   /* Define a selection of points in the dataset */
+   num_elements = ((nrecords - 1) / step) + 1;
+/*    offset[0] = start; */
+   count[0]  = (hsize_t) num_elements;
+/*    stride[0] = step; */
+   coords = (hssize_t *)malloc(num_elements * sizeof(hssize_t));
+   /* Initialize the coords array */
+   k = 0;
+   for (i=start; i<start+nrecords; i += step) {
+     coords[k] = i;
+     k++;
+   }
+
+   if ( H5Sselect_elements( space_id, H5S_SELECT_SET, num_elements, (const hssize_t **)coords) < 0 )
+     goto out;
+   /* Release the memory */
+   free(coords);
+   /*  printf("Es valid:%d\n", H5Sselect_valid(space_id)); */
+
+   /*  printf("Numero de punts:%d\n", H5Sget_select_elem_npoints(space_id)); */
+   /*  buf2 = malloc(num_elements * sizeof(hsize_t)); */
+   /*  H5Sget_select_elem_pointlist(space_id, 0, num_elements, buf2); */
+   /*  for (k=0; k<num_elements; k++) */
+   /*    printf("buf[%d]: %d, ", (int)k, (int)*buf2++); */
+   /*  printf("\n"); */
+ }
+ else {
+   /* Define a hyperslab selection (faster for step = 1) */
+   offset[0] = start;
+   count[0]  = nrecords;
+   if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
+     goto out;
+ }
+ /* Create a memory dataspace handle */
+ mem_size[0] = count[0];
+ if ( (mem_space_id = H5Screate_simple( 1, mem_size, NULL )) < 0 )
+  goto out;
+
+ /* Read */
+ if ( H5Dread( dataset_id, read_type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
+  goto out;
+
+ /* Terminate access to the memory dataspace */
+ if ( H5Sclose( mem_space_id ) < 0 )
+   goto out;
+
+ /* Terminate access to the dataspace */
+ if ( H5Sclose( space_id ) < 0 )
+  goto out;
+ 
+ /* End access to the read id */
+ if ( H5Tclose( read_type_id ) )
+  goto out;
+
+ /* Release the datatype. */
+ if ( H5Tclose( type_id ) < 0 )
+  return -1;
+
+ /* End access to the dataset */
+ if ( H5Dclose( dataset_id ) < 0 )
+  return -1;
+  
+return 0;
+
+out:
+ H5Dclose( dataset_id );
+ return -1;
+
+}
+
+/*-------------------------------------------------------------------------
+ * Function: H5TBread_fields_name
+ *
+ * Purpose: Reads fields
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: November 19, 2001
+ *
+ * Comments:
+ *
+ * Modifications:
+ *
+ *
+ *-------------------------------------------------------------------------
+ */
+
+
+herr_t H5TBread_fields_name_orig( hid_t loc_id, 
+                             const char *dset_name,
+                             const char *field_names,
+                             hsize_t start,
+                             hsize_t nrecords,
+                             hsize_t step,
+                             size_t type_size,
+                             const size_t *field_offset,
+                             void *data )  
+{
+
+ hid_t    dataset_id;
+ hid_t    type_id;    
+ hid_t    read_type_id;
+ hid_t    member_type_id;
+ char     *member_name;
+ hssize_t nfields;
+ hsize_t  count[1];    
+ hsize_t  mem_size[1];
+ hid_t    mem_space_id;
+ hssize_t offset[1];
+ hsize_t  stride[1];
  hid_t    space_id;
  hssize_t i;
  hssize_t j = 0;
@@ -1275,8 +1458,10 @@ herr_t H5TBread_fields_name( hid_t loc_id,
 
  /* Define a hyperslab in the dataset */
  offset[0] = start;
- count[0]  = nrecords;
- if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
+ count[0]  = ((nrecords - 1) / step) + 1;
+ stride[0] = step;
+ printf("start, stop, step: %d, %d, %d\n", (int)offset[0], (int)count[0], (int)stride[0]);
+ if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, stride, count, NULL) < 0 )
   goto out;
 
  /* Create a memory dataspace handle */

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.26 2003/09/17 15:13:42 falted Exp $
+#       $Id: Leaf.py,v 1.27 2003/10/14 19:01:49 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.26 $"
+__version__ = "$Revision: 1.27 $"
 
 import types
 from utils import checkNameValidity
@@ -138,8 +138,8 @@ class Leaf:
     def remove(self):
         "Remove a leaf"
         parent = self._v_parent
-        self.close()
         parent._g_deleteLeaf(self._v_name)
+        self.close()
 
     def rename(self, newname):
         """Rename a leaf"""

@@ -1,12 +1,10 @@
-#!/usr/bin/env python2.2
-
+#!/usr/bin/env python
 
 from tables import *
 import numarray as NA
 import struct, sys
 import shelve
 import psyco
-
 
 # This class is accessible only for the examples
 class Small(IsDescription):

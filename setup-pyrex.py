@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.2
+#!/usr/bin/env python
 #----------------------------------------------------------------------
 # Setup script for the tables package
 
@@ -377,18 +377,26 @@ else:
         open('src/version.h', 'w').write('#define PYTABLES_VERSION "%s"\n' % VERSION)
 
 # Generate a proper extension file for Windows
-if exists('src/hdf5Extension.c'):
-    if newer('src/hdf5Extension.c', 'src/hdf5Extension-win.c'):
-        filein=open("src/hdf5Extension.c","r")
-        fileout=open("src/hdf5Extension-win.c","w")
-        for line in filein:
-            line=line.replace("long long", "LL_TYPE")
-            line=line.replace("staticforward char *__pyx_f[];",
-                              "staticforward char *__pyx_f[1];")
-            fileout.write(line)
+# As of Pyrex 0.9 on, this is no longer necessary
+# if exists('src/hdf5Extension.c'):
+#     if newer('src/hdf5Extension.c', 'src/hdf5Extension-win.c'):
+#         filein=open("src/hdf5Extension.c","r")
+#         fileout=open("src/hdf5Extension-win.c","w")
+#         for line in filein:
+#             line=line.replace("long long", "LL_TYPE")
+#             line=line.replace("staticforward char *__pyx_f[];",
+#                               "staticforward char *__pyx_f[1];")
+#             fileout.write(line)
 
-        filein.close()
-        fileout.close()
+#         filein.close()
+#         fileout.close()
+
+# Set the appropriate flavor hdf5Extension.c source file:
+# if pyrex:
+#     hdf5Extension = "src/hdf5Extension.pyx"
+# else:
+#     hdf5Extension = "src/hdf5Extension.c" # Not distinction between Windows and
+#                                           # UNIX version from pyrex 0.9 on
 
 setup(name = 'tables',
       version = VERSION,

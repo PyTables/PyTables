@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.21 2003/09/22 12:05:16 falted Exp $
+#       $Id: IsDescription.py,v 1.22 2003/10/14 19:01:49 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.21 $"
+__version__ = "$Revision: 1.22 $"
 
 
 import warnings
@@ -107,11 +107,20 @@ class Col:
         self.rectype = tostructfmt[self.type]
 
     def __repr__(self):
-        #out = self.__class__.__name__ + "('" + str(self.type) + "'" + \
-        out = "Col('" + str(self.type) + "'" + \
-              ", shape=" +  str(self.shape) + \
-              ", itemsize=" +  str(self.itemsize) + \
+        if self.type == "CharType" or isinstance(self.type, records.Char):
+            if self.shape == 1:
+                shape = [self.itemsize]
+            else:
+                shape = list(self.shape)
+                shape.append(self.itemsize)
+            shape = tuple(shape)
+        else:
+            shape = self.shape
+
+        out = "Col(dtype='" +  str(self.type) + "'" + \
+              ", shape=" +  str(shape) + \
               ", dflt=" + str(self.dflt) + \
+              ", pos=" + str(self.pos) + \
               ")"
         return out
 

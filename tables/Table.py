@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.76 2003/09/22 12:05:16 falted Exp $
+#       $Id: Table.py,v 1.77 2003/10/14 19:01:49 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.76 $"
+__version__ = "$Revision: 1.77 $"
 
 from __future__ import generators
 import sys
@@ -430,10 +430,10 @@ class Table(Leaf, hdf5Extension.Table, object):
         # A new correction for avoid too many calls to HDF5 I/O calls
         # But this does not apport advantages rather the contrary,
         # the memory comsumption grows, and performance is worse.
+        #buffersize = 100    # For testing purposes
         #if expectedrows//self._v_maxTuples > 50:
         #    buffersize *= 4
         #    self._v_maxTuples = buffersize // rowsize
-        buffersize = 100    # For testing purposes
         self._v_chunksize = chunksize
 
     def _saveBufferedRows(self):
@@ -593,7 +593,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             else:
                 return numarray.array(shape=(0,), type=typeField)
                 
-        nrows = ((stop - start - 1) // step) + 1
+        nrows = ((stop - start - 1) // step) + 1  # stop-start//step??
         # Compute the shape of the resulting column object
         if field:
             shape = self.colshapes[field]
@@ -622,28 +622,33 @@ class Table(Leaf, hdf5Extension.Table, object):
                                    names = self.colnames)
 
         # Call the routine to fill-up the resulting array
-        if step == 1 and not field and 0:
+        if step == 1 and not field and 1:
             # This optimization works three times faster than
-            # the row._fillCol method (up to 160 MB/s in a pentium IV @ 2GHz)
+            # the row._fillCol method (up to 170 MB/s in a pentium IV @ 2GHz)
             self._open_read(result)
             #print "Start, stop -->", start, stop
             self._read_records(start, stop-start)
             self._close_read()  # Close the table
-        elif step == 1 and field and 0:
+        #elif step == 1 and field and 1:
+        elif field and 1:
             # This optimization in Pyrex works, but the call to row._fillCol
             # is almost always faster (!!), so disable it.
-            print "Start, stop, field -->", start, stop, field
+            # Update: for step>50, this seems to work always faster than
+            # row._fillCol
+            # The H5Sselect_elements is faster than H5Sselect_hyperslab
+            # for all values of the stride
+            #print "Start, stop, field -->", start, stop, field
             # Both versions seems to work well!
             # Column name version
-            #self._read_field_name(result, start, stop, field)
+            self._read_field_name(result, start, stop, step, field)
             # Column index version
-            field_index = -1
-            for i in range(len(self.colnames)):
-                if self.colnames[i] == field:
-                    field_index = i
-                    break
-            print "col index:", field_index
-            self._read_field_index(result, start, stop, field_index)
+#             field_index = -1
+#             for i in range(len(self.colnames)):
+#                 if self.colnames[i] == field:
+#                     field_index = i
+#                     break
+#             print "col index:", field_index
+#             self._read_field_index(result, start, stop, field_index)
         else:
             self.row._fillCol(result, start, stop, step, field)
         # Set the byteorder properly
@@ -705,6 +710,54 @@ class Table(Leaf, hdf5Extension.Table, object):
         nrows = self._remove_row(start, nrows)
         self.nrows -= nrows    # discount the removed rows from the total
         return nrows
+
+    def copy(self, dstname, orderby=None, complevel=0, complib="zlib"):
+        """Copy this table to other location, optionally ordered by column
+        """
+
+        # Create a new table with the same information as self
+        dstDescr = {}
+        for name in self.colnames:
+            dstDescr[name] = eval(str(self.description._v_ColObjects[name]))
+        
+        object = Table(dstDescr, self.title, complevel, complib, self.nrows)
+        setattr(self._v_parent, dstname, object)
+
+        if orderby:
+            if (self.nrows > 1000*1000*10):
+                warnings.warn( \
+"""You are asking for sorting a very huge Table (more than 10 million rows!).
+  You should be sure that your system has *lots* of RAM to support this!.""")
+            # Get the column to be ordered by
+            if (orderby in self.colnames and
+                self.coltypes[orderby] in numarray.typeDict): # Excludes Char
+                coords=numarray.argsort(self.read(field=orderby))
+            else:
+                raise RuntimeError, """
+You are asking ordering by a non-existing field (%s) or not a supported type!.
+  Aborting operation.""" % orderby
+                
+
+        # Now, fill the new table with values from the old one
+        self._v_buffer = self._newBuffer(init=0)
+        self._open_read(self._v_buffer)  # Open the table for reading
+        for crow in range(0, self.nrows, self._v_maxTuples):
+            #print "crow-->", crow
+            if orderby:
+                self._read_elements(crow, self._v_maxTuples, coords)
+            else:
+                self._read_records(crow, self._v_maxTuples)
+            #print "first row of buffer -->", self._v_buffer[0]
+            object._append_records(self._v_buffer, self._v_maxTuples)
+        self._close_read()  # Close the source table
+        object._close_append()  # Close the destination table
+
+        # Update the number of saved rows in this buffer
+        object.nrows = self.nrows
+        # Reset the buffer unsaved counter and the buffer read row counter
+        object.row._setUnsavedNRows(0)
+        # Set the shape attribute (the self.nrows may be less than the maximum)
+        object.shape = self.shape
 
     def flush(self):
         """Flush the table buffers."""

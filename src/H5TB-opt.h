@@ -25,6 +25,13 @@ herr_t H5TBOread_records( hid_t *dataset_id, hid_t *space_id,
 			  hid_t *mem_type_id, hsize_t start,
 			  hsize_t nrecords, void *data );
 
+herr_t H5TBOread_elements( hid_t *dataset_id,
+			   hid_t *space_id,
+			   hid_t *mem_type_id,
+			   size_t nrecords,
+			   void *coords,
+			   void *data );
+
 herr_t H5TBOclose_read( hid_t *dataset_id,
 			hid_t *space_id,
 			hid_t *mem_type_id );
