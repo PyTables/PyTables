@@ -338,7 +338,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         else:
             attrname = "attrs"
         # The attrribute names
-        attrnumber = len(self._v_attrnames)
+        attrnumber = len([ n for n in self._v_attrnames if not issysattrname(n) ])
         return "%s.%s (%s), %s attributes" % (pathname, attrname, classname, 
                                               attrnumber)
 
@@ -346,9 +346,10 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         """A detailed string representation for this object."""
 
         # print additional info only if there are attributes to show
-        if len(self._v_attrnames):
+        attrnames = [ n for n in self._v_attrnames if not issysattrname(n) ]
+        if len(attrnames):
             rep = [ '%s := %r' %  (attr, getattr(self, attr) )
-                    for attr in self._v_attrnames ]
+                    for attr in attrnames ]
             attrlist = '[%s]' % (',\n    '.join(rep))
         
             return "%s:\n   %s" % \
