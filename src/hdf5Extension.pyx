@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.143 2004/09/28 17:17:49 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.144 2004/10/01 16:01:51 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.143 $"
+__version__ = "$Revision: 1.144 $"
 
 
 import sys, os
@@ -69,9 +69,13 @@ cdef extern from "stdlib.h":
 cdef extern from "time.h":
   ctypedef int time_t
 
-cdef extern from "math.h":
-  double nextafter(double x, double y)
-  float nextafterf(float x, float y)
+# The next has been substituted by equivalents in Python, so that this
+# functions could be accessible in Windows systems
+# Thanks to Shack Toms for this!
+# F. Alted 2004-10-01
+# cdef extern from "math.h":
+#   double nextafter(double x, double y)
+#   float nextafterf(float x, float y)
 
 # Funtions for printing in C
 cdef extern from "stdio.h":
@@ -809,11 +813,11 @@ ucl_version = register_ucl()
 
 # utility funtions (these can be directly invoked from Python)
 
-def PyNextAfter(double x, double y):
-  return nextafter(x, y)
+# def PyNextAfter(double x, double y):
+#   return nextafter(x, y)
 
-def PyNextAfterF(float x, float y):
-  return nextafterf(x, y)
+# def PyNextAfterF(float x, float y):
+#   return nextafterf(x, y)
 
 def getIndices(object s, int length):
   cdef int start, stop, step, slicelength
@@ -933,7 +937,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.143 2004/09/28 17:17:49 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.144 2004/10/01 16:01:51 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -2457,8 +2461,6 @@ cdef class Row:
       (type, value, traceback) = sys.exc_info()
       raise KeyError, "Error accessing \"%s\" field.\n %s" % \
 	    (fieldName, "Error was: \"%s: %s\"" % (type,value))
-#       raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
-#             (fieldName, "Error was: \"%s: %s\"" % (type,value))
 
   # This is slightly faster (around 3%) than __setattr__
   def __setitem__(self, object fieldName, object value):
@@ -2473,8 +2475,6 @@ cdef class Row:
       (type, value, traceback) = sys.exc_info()
       raise KeyError, "Error setting \"%s\" field.\n %s" % \
            (fieldName, "Error was: \"%s: %s\"" % (type,value))
-#       raise AttributeError, "Error setting \"%s\" attr.\n %s" % \
-#              (fieldName, "Error was: \"%s: %s\"" % (type,value))
 
   # Delete the I/O buffers
   def _cleanup(self):

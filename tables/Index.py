@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.20 2004/09/28 17:17:50 falted Exp $
+#       $Id: Index.py,v 1.21 2004/10/01 16:01:55 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.20 $"
+__version__ = "$Revision: 1.21 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -38,13 +38,39 @@ from VLArray import Atom
 from Leaf import Filters
 from AttributeSet import AttributeSet
 import hdf5Extension
-from hdf5Extension import PyNextAfter, PyNextAfterF
+#from hdf5Extension import PyNextAfter, PyNextAfterF
 import numarray
 import time
+import math
+import struct # we use this to define testNaN
 
 maxFloat=float(2**1024 - 2**971)  # From the IEEE 754 standard
 maxFloatF=float(2**128 - 2**104)  # From the IEEE 754 standard
 Finf=float("inf")  # Infinite in the IEEE 754 standard
+
+# Python implementations of NextAfter and NextAfterF
+#
+# These implementations exist because the standard function
+# nextafterf is not available on Microsoft platforms.
+#
+# These implementations are based on the IEEE representation of
+# floats and doubles.
+
+# Thanks to Shack Toms for NextAfter and NextAfterF implementations in
+# Python. 2004-10-01
+
+epsilon  = math.ldexp(1.0, -53) # smallest double such that 0.5+epsilon != 0.5
+epsilonF = math.ldexp(1.0, -24) # smallest float such that 0.5+epsilonF != 0.5
+
+minFloat  = math.ldexp(1.0, -1022) # min positive normalized double
+minFloatF = math.ldexp(1.0, -126)  # min positive normalized float
+
+smallEpsilon  = math.ldexp(1.0, -1074) # smallest increment for doubles < minFloat
+smallEpsilonF = math.ldexp(1.0, -149)  # smallest increment for floats < minFloatF
+
+infinity = math.ldexp(1.0, 1023) * 2
+infinityF = math.ldexp(1.0, 128)
+testNaN = struct.unpack("d", '\x01\x00\x00\x00\x00\x00\xf0\x7f') # a NaN for testing
 
 # Utility functions
 def infType(type, itemsize, sign=0):
@@ -59,6 +85,95 @@ def infType(type, itemsize, sign=0):
             return "\x00"*itemsize
         else:
             return "\xff"*itemsize
+
+def IsNaN(x):
+    """a simple check for x is NaN, assumes x is float"""
+    return x != x
+
+def PyNextAfter(x, y):
+    """returns the next float after x in the direction of y if possible, else returns x"""
+    
+    # if x or y is Nan, we don't do much
+    if IsNaN(x) or IsNaN(y):
+        return x
+
+    # we can't progress if x == y
+    if x == y:
+        return x
+
+    # similarly if x is infinity
+    if x >= infinity or x <= -infinity:
+        return x
+
+    # return small numbers for x very close to 0.0
+    if -minFloat < x < minFloat:
+        if y > x:
+            return x + smallEpsilon
+        else:
+            return x - smallEpsilon  # we know x != y
+
+    # it looks like we have a normalized number
+    # break x down into a mantissa and exponent
+    m, e = math.frexp(x)
+
+    # all the special cases have been handled        
+    if y > x:
+        m += epsilon
+    else:
+        m -= epsilon
+
+    return math.ldexp(m, e)
+
+def PyNextAfterF(x, y):
+    """returns the next IEEE single after x in the direction of y if possible, else returns x"""
+    
+    # if x or y is Nan, we don't do much
+    if IsNaN(x) or IsNaN(y):
+        return x
+
+    # we can't progress if x == y
+    if x == y:
+        return x
+
+    # similarly if x is infinity
+    if x >= infinityF:
+        return infinityF
+    elif x <= -infinityF:
+        return -infinityF
+
+    # return small numbers for x very close to 0.0
+    if -minFloatF < x < minFloatF:
+        # since Python uses double internally, we
+        # may have some extra precision to toss
+        if x > 0.0:
+            extra = x % smallEpsilonF
+        elif x < 0.0:
+            extra = x % -smallEpsilonF
+            
+        if y > x:
+            return x - extra + smallEpsilonF
+        else:
+            return x - extra - smallEpsilonF  # we know x != y
+
+    # it looks like we have a normalized number
+    # break x down into a mantissa and exponent
+    m, e = math.frexp(x)
+
+    # since Python uses double internally, we
+    # may have some extra precision to toss
+    if m > 0.0:
+        extra = m % epsilonF
+    else:  # we have already handled m == 0.0 case
+        extra = m % -epsilonF
+
+    # all the special cases have been handled
+    if y > x:
+        m += epsilonF - extra
+    else:
+        m -= epsilonF - extra
+
+    return math.ldexp(m, e)
+
 
 def CharTypeNextAfter(x, direction, itemsize):
     "Return the next representable neighbor of x in the appropriate direction."
