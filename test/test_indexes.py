@@ -7,6 +7,7 @@ import tempfile
 import warnings
 
 from tables import *
+from tables.Index import Index
 from test_all import verbose, allequal
 
 # The minimum number of rows that can be indexed
@@ -251,6 +252,243 @@ class WarningTestCase(unittest.TestCase):
         self.fileh.close()
         os.remove(self.file)
         
+class Small2(IsDescription):
+    _v_automatic_index__ = 0  # Not the default
+    #_v_reindex__ = 1  # The default
+    var1 = StringCol(length=4, dflt="", indexed=1)
+    var2 = BoolCol(0, indexed=1)
+    var3 = IntCol(0, indexed=1)
+    var4 = FloatCol(0, indexed=0)
+
+class Small3(IsDescription):
+    #_v_automatic_index__ = 1  # The default
+    _v_reindex__ = 0  # Not the default
+    var1 = StringCol(length=4, dflt="", indexed=1)
+    var2 = BoolCol(0, indexed=1)
+    var3 = IntCol(0, indexed=1)
+    var4 = FloatCol(0, indexed=0)
+
+class AutomaticIndexingTestCase(unittest.TestCase):
+    nrows = 10
+    reopen = 1
+    klass = Small2
+    
+    def setUp(self):
+        # Create an instance of an HDF5 Table
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "w")
+        # Create an table
+        title = "This is the IndexArray title"
+        rowswritten = 0
+        root = self.fileh.root
+        self.table = self.fileh.createTable(root, 'table', self.klass, title,
+                                            None, self.nrows)
+        for i in range(self.nrows):
+            # Fill rows with defaults
+            self.table.row.append()
+        self.table.flush()
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            self.table = self.fileh.root.table
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        
+    def test01_checkattrs(self):
+        "Checking indexing attributes (part1)"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_checkattrs..." % self.__class__.__name__
+
+        table = self.table
+        if self.klass is Small:
+            assert table.indexed == 0
+        else:
+            assert table.indexed == 1
+        # Check that the var1, var2 and var3 (and only these) has been indexed
+        if self.klass is Small:
+            assert table.colindexed["var1"] == 0
+            assert table.cols.var1.indexed == 0
+            assert table.colindexed["var2"] == 0
+            assert table.cols.var2.indexed == 0
+            assert table.colindexed["var3"] == 0
+            assert table.cols.var3.indexed == 0
+            assert table.colindexed["var4"] == 0
+            assert table.cols.var4.indexed == 0
+        else:
+            assert table.colindexed["var1"] == 1
+            assert table.cols.var1.indexed == 1
+            assert table.colindexed["var2"] == 1
+            assert table.cols.var2.indexed == 1
+            assert table.colindexed["var3"] == 1
+            assert table.cols.var3.indexed == 1
+            assert table.colindexed["var4"] == 0
+            assert table.cols.var4.indexed == 0
+                    
+    def test02_checkattrs(self):
+        "Checking indexing attributes (part2)"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_checkattrs..." % self.__class__.__name__
+
+        table = self.table
+        # Check the policy parameters
+        if verbose:
+            print "automatic_index:", table.automatic_index
+            print "reindex:", table.reindex
+        # Check non-default values for index saving policy
+        if self.klass is Small:
+            assert not hasattr(table, "automatic_index")
+            assert not hasattr(table, "reindex")
+        elif self.klass is Small2:
+            assert table.automatic_index == 0
+            assert table.reindex == 1
+        elif self.klass is Small3:
+            assert table.automatic_index == 1
+            assert table.reindex == 0
+            
+        # Check Index() objects exists and are properly placed
+        if self.klass is Small:
+            assert table.cols.var1.index == None
+            assert table.cols.var2.index == None
+            assert table.cols.var3.index == None
+            assert table.cols.var4.index == None
+        else:
+            assert isinstance(table.cols.var1.index, Index)
+            assert isinstance(table.cols.var2.index, Index)
+            assert isinstance(table.cols.var3.index, Index)
+            assert table.cols.var4.index == None
+        
+    def test03_checkcounters(self):
+        "Checking indexing counters"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_checkcounters..." % self.__class__.__name__
+        table = self.table
+        # Check the counters for indexes
+        if verbose:
+            print "indexedrows:", table._indexedrows
+            print "unsavedindexedrows:", table._unsavedindexedrows
+            index = table.cols.var1.index
+            indexedrows = index.nrows * index.nelemslice
+            print "computed indexed rows:", indexedrows
+        if self.klass is not Small:
+            index = table.cols.var1.index
+            indexedrows = index.nrows * index.nelemslice
+            assert table._indexedrows == indexedrows
+            assert table._unsavedindexedrows == self.nrows - indexedrows
+
+    def test04_checknoauto(self):
+        "Checking indexing counters (non-automatic mode)"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04_checknoauto..." % self.__class__.__name__
+        table = self.table
+        # Force a sync in indexes
+        table.addRowsToIndex()
+        # Check the counters for indexes
+        if verbose:
+            print "indexedrows:", table._indexedrows
+            print "unsavedindexedrows:", table._unsavedindexedrows
+            index = table.cols.var1.index
+            indexedrows = index.nrows * index.nelemslice
+            print "computed indexed rows:", indexedrows
+
+        # No unindexated rows should remain
+        index = table.cols.var1.index
+        if self.klass is Small:
+            assert index is None
+        else:
+            indexedrows = index.nrows * index.nelemslice
+            assert table._indexedrows == indexedrows
+            assert table._unsavedindexedrows == self.nrows - indexedrows
+
+    def test05_checknoreindex(self):
+        "Checking indexing counters (non-reindex mode)"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05_checknoreindex..." % self.__class__.__name__
+        table = self.table
+        # Force a sync in indexes
+        table.addRowsToIndex()
+        # No unidexated rows should remain here
+        if self.klass is not Small:
+            indexedrows = table._indexedrows
+            unsavedindexedrows = table._unsavedindexedrows
+        # Now, remove some rows:
+        table.removeRows(3,5)
+        # Check the counters for indexes
+        if verbose:
+            print "indexedrows:", table._indexedrows
+            print "unsavedindexedrows:", table._unsavedindexedrows
+            index = table.cols.var1.index
+            indexedrows = index.nrows * index.nelemslice
+            print "computed indexed rows:", indexedrows
+
+        # Check the counters
+        assert table.nrows == self.nrows - 2
+        if self.klass is Small3:
+            # The unsaved indexed rows counter should be unchanged
+            assert table._indexedrows == indexedrows
+            assert table._unsavedindexedrows == unsavedindexedrows
+        elif self.klass is Small2:
+            index = table.cols.var1.index
+            indexedrows = index.nrows * index.nelemslice
+            assert table._indexedrows == indexedrows
+            assert table._unsavedindexedrows == self.nrows - indexedrows - 2
+
+class AI1TestCase(AutomaticIndexingTestCase):
+    nrows = 10
+    reopen = 0
+    klass = Small2
+    
+class AI2TestCase(AutomaticIndexingTestCase):
+    nrows = 10
+    reopen = 1
+    klass = Small2
+    
+class AI3TestCase(AutomaticIndexingTestCase):
+    nrows = 10
+    reopen = 1
+    klass = Small3
+    
+class AI4TestCase(AutomaticIndexingTestCase):
+    nrows = 10
+    reopen = 0
+    klass = Small3
+    
+class AI5TestCase(AutomaticIndexingTestCase):
+    nrows = 1000
+    reopen = 0
+    klass = Small2
+    
+class AI6TestCase(AutomaticIndexingTestCase):
+    nrows = 1000
+    reopen = 1
+    klass = Small2
+
+class AI7TestCase(AutomaticIndexingTestCase):
+    nrows = 1000
+    reopen = 0
+    klass = Small3
+    
+class AI8TestCase(AutomaticIndexingTestCase):
+    nrows = 1000
+    reopen = 1
+    klass = Small3
+    
+class AI9TestCase(AutomaticIndexingTestCase):
+    nrows = 1000
+    reopen = 0
+    klass = Small
+    
+class AI10TestCase(AutomaticIndexingTestCase):
+    nrows = 10
+    reopen = 1
+    klass = Small
+    
 
 #----------------------------------------------------------------------
 
@@ -271,6 +509,16 @@ def suite():
         theSuite.addTest(unittest.makeSuite(UpperBoundTestCase))
         theSuite.addTest(unittest.makeSuite(LowerBoundTestCase))
         theSuite.addTest(unittest.makeSuite(WarningTestCase))
+        theSuite.addTest(unittest.makeSuite(AI1TestCase))
+        theSuite.addTest(unittest.makeSuite(AI2TestCase))
+        theSuite.addTest(unittest.makeSuite(AI3TestCase))
+        theSuite.addTest(unittest.makeSuite(AI4TestCase))
+        theSuite.addTest(unittest.makeSuite(AI5TestCase))
+        theSuite.addTest(unittest.makeSuite(AI6TestCase))
+        theSuite.addTest(unittest.makeSuite(AI7TestCase))
+        theSuite.addTest(unittest.makeSuite(AI8TestCase))
+        theSuite.addTest(unittest.makeSuite(AI9TestCase))
+        theSuite.addTest(unittest.makeSuite(AI10TestCase))
     
     return theSuite
 

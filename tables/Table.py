@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.119 2004/07/29 09:59:22 falted Exp $
+#       $Id: Table.py,v 1.120 2004/07/29 17:01:22 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.119 $"
+__version__ = "$Revision: 1.120 $"
 
 from __future__ import generators
 import sys
@@ -158,8 +158,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         nrows -- the number of rows in this table
         rowsize -- the size, in bytes, of each row
         indexed -- whether or not some column in Table is indexed
-        automatic_indexing -- whether a Table should be reindexed after
-            an append operation
+        automatic_index -- whether a Table should be reindexed after an
+            append operation
         reindex -- whether the table fields are to be re-indexed
             after an invalidating index operation (like removeRows)
         cols -- accessor to the columns using a natural name schema
@@ -328,20 +328,20 @@ class Table(Leaf, hdf5Extension.Table, object):
         if self.indexed:
             # Check whether we want automatic indexing after an append or not
             # The default is yes
-            if hasattr(self.description, "__no_automatic_indexing__"):
-                self.automatic_index = 0
+            if hasattr(self.description, "_v_automatic_index__"):
+                self.automatic_index = self.description._v_automatic_index__
             else:
                 self.automatic_index = 1
             # Save this flag as an attribute
-            self.attrs.setAttr("AUTOMATIC_INDEXING", self.automatic_indexing)
+            self.attrs.AUTOMATIC_INDEX = self.automatic_index
             # Check whether we want reindex after an invalidating index
             # operation. The default is yes
-            if hasattr(self.description, "__no_reindex__"):
-                self.reindex = 0
+            if hasattr(self.description, "_v_reindex__"):
+                self.reindex = self.description._v_reindex__
             else:
                 self.reindex = 1
             # Save this flag as an attribute
-            self.attrs.setAttr("REINDEX", self.reindex)
+            self.attrs.REINDEX = self.reindex
             self._indexedrows = 0
             self._unsavedindexedrows = 0
 
@@ -403,16 +403,16 @@ class Table(Leaf, hdf5Extension.Table, object):
             iname = "_i_"+self.name+"_"+colname
             if iname in self._v_parent._v_indices:
                 self.colindexed[colname] = 1
-                Index = getattr(self.cols, colname).index
+                indexobj = getattr(self.cols, colname).index
                 self.indexed = 1
             else:
                 self.colindexed[colname] = 0
         # Get the automatic_indexing attribute
         if self.indexed:
-            self.automatic_indexing = self.attrs.AUTOMATIC_INDEXING
+            self.automatic_index = self.attrs.AUTOMATIC_INDEX
             self.reindex = self.attrs.REINDEX
-            self._indexedrows = Index.nrows * Index.nelemslice
-            self._unsavedindexedrows = 0
+            self._indexedrows = indexobj.nrows * indexobj.nelemslice
+            self._unsavedindexedrows = self.nrows - self._indexedrows
 
     def _saveBufferedRows(self):
         """Save buffered table rows"""
@@ -430,7 +430,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.row._setUnsavedNRows(0)
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
-        if self.indexed and self.automatic_indexing:
+        if self.indexed and self.automatic_index:
             start = self._indexedrows
             nrows = self._unsavedindexedrows
             for (colname, colindexed) in self.colindexed.iteritems():
@@ -713,7 +713,6 @@ class Table(Leaf, hdf5Extension.Table, object):
             # the row._fillCol method (up to 170 MB/s on a pentium IV @ 2GHz)
             self._open_read(result)
             if isinstance(coords, numarray.NumArray):
-                #print "coords2-->", coords
                 if len(coords) > 0:
                     self._read_elements(0, coords)
             else:
@@ -807,9 +806,17 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
         # Save indexedrows
-        if self.indexed and self.automatic_indexing:
+        if self.automatic_index:
             # Update the number of unsaved indexed rows
             self._unsavedindexedrows += lenrows
+            self.addRowsToIndex()
+        return
+
+    def addRowsToIndex(self):
+        "Add remaining rows to index"
+        # Save indexedrows
+        if self.indexed:
+            # Update the number of unsaved indexed rows
             start = self._indexedrows
             nrows = self._unsavedindexedrows
             for (colname, colindexed) in self.colindexed.iteritems():
@@ -1148,6 +1155,8 @@ class Column(object):
                            "Index for "+self.table.name+":"+self.name,
                            filters=filters,
                            expectedrows=self.table._v_expectedrows)
+        self.indexed = 1
+        self.table.colindexed[self.name] = 1
         # Feed the index with values
         nelemslice = self.index.sorted.nelemslice
         if self.table.nrows < self.index.sorted.nelemslice:
@@ -1156,7 +1165,6 @@ class Column(object):
                 warnings.warn( \
 "Not enough rows for indexing. You need at least %s rows and you provided %s." % (self.index.sorted.nelemslice, self.table.nrows))
             return 0
-        self.table.colindexed[self.name] = 1
         return self.addRowsToIndex(0, self.table.nrows)
 
     def addRowsToIndex(self, start, nrows):

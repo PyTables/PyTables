@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.31 2004/07/29 09:59:22 falted Exp $
+#       $Id: IsDescription.py,v 1.32 2004/07/29 17:01:21 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.31 $"
+__version__ = "$Revision: 1.32 $"
 
 
 import warnings
@@ -126,6 +126,7 @@ class Col:
               ", shape=" +  str(shape) + \
               ", dflt=" + str(self.dflt) + \
               ", pos=" + str(self.pos) + \
+              ", indexed=" + str(self.indexed) + \
               ")"
         return out
 
@@ -529,7 +530,9 @@ class metaIsDescription(type):
         newdict = {"columns":{},
                    }
         for k in classdict.keys():
-            if not (k.startswith('__') or k.startswith('_v_')):
+            #if not (k.startswith('__') or k.startswith('_v_')):
+            # We let pass _v_ variables to configure class behaviour
+            if not (k.startswith('__')):
                 newdict["columns"][k] = classdict[k]
 
         # Return a new class with the "columns" attribute filled
