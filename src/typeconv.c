@@ -40,7 +40,7 @@ void conv_float64_timeval32(void *base,
   assert(nelements > 0);
 
   /* Byte distance from end of field to beginning of next field. */
-  gapsize = bytestride/sizeof(double) - nelements;
+  gapsize = bytestride - nelements * sizeof(double);
 
   fieldbase = (double *)(base + byteoffset);
   for (record = 0;  record < nrecords;  record++) {
@@ -59,7 +59,9 @@ void conv_float64_timeval32(void *base,
       }
       fieldbase++;
     }
-    fieldbase += gapsize;
+    fieldbase = (double *)((void *)(fieldbase) + gapsize);
+    /* XXX: Need to check if this works on platforms which require
+       64-bit data to be aligned.  ivb(2005-01-07) */
   }
 
   assert(fieldbase == (base + byteoffset + bytestride * nrecords));

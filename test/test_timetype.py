@@ -13,7 +13,7 @@
 
 import unittest, tempfile, os
 import tables, numarray
-from test_all import verbose, allequal, heavy, cleanup
+from test_all import verbose, allequal, cleanup
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 
@@ -285,7 +285,7 @@ class CompareTestCase(unittest.TestCase):
 
 		# Create test Table with data.
 		h5file = tables.openFile(
-			self.h5fname, 'w', title = "Test for comparing 64-bit times")
+			self.h5fname, 'w', title = "Test for comparing Time tables")
 		tbl = h5file.createTable('/', 'test', self.MyTimeRow)
 		row = tbl.row
 		row['t32col'] = int(wtime)
@@ -307,17 +307,20 @@ class CompareTestCase(unittest.TestCase):
 			numarray.alltrue(comp),
 			"Stored and retrieved values do not match.")
 
+
 	def test02b_CompareTable(self):
-		"Comparing written time data with read data in a Table (several vals)."
+		"Comparing several written and read data values in a Table."
+
+		# Size of the test.
+		##nrows = tbl._v_maxTuples + 1034  # add some more rows than buffer
+		nrows = 10  # only for home checks... The value above should check
+		            # better the I/O with multiple buffers
 
 		# Create test Table with data.
 		h5file = tables.openFile(
-			self.h5fname, 'w', title = "Test for comparing 64-bit times")
+			self.h5fname, 'w', title = "Test for comparing Time tables")
 		tbl = h5file.createTable('/', 'test', self.MyTimeRow)
 		row = tbl.row
-		#nrows = tbl._v_maxTuples + 1034  # add some more rows than buffer
-		nrows = 10  # only for home checks... The value above should check
-		            # better the I/O with multiple buffers
 		for i in xrange(nrows):
 			row['t32col'] = i
 			row['t64col'] = (i+0.012, i+0.012)
@@ -326,11 +329,11 @@ class CompareTestCase(unittest.TestCase):
 
 		# Check the written data.
 		h5file = tables.openFile(self.h5fname)
-		tbl = h5file.root.test
 		recarr = h5file.root.test.read()
 		h5file.close()
 
-		orig_val = numarray.arange(nrows,type=numarray.Int32)
+		# Time32 column.
+		orig_val = numarray.arange(nrows, type = numarray.Int32)
 		if verbose:
 			print "Original values:", orig_val
 			print "Saved values:", recarr.field('t32col')[:]
@@ -339,8 +342,9 @@ class CompareTestCase(unittest.TestCase):
 			numarray.alltrue(recarr.field('t32col')[:] == orig_val),
 			"Stored and retrieved values do not match.")
 
-		orig_val = numarray.arange(0,nrows,0.5, type=numarray.Int32,
-								   shape=(nrows,2)) + 0.012
+		# Time64 column.
+		orig_val = numarray.arange(0, nrows, 0.5, type = numarray.Int32,
+		                           shape = (nrows, 2)) + 0.012
 		if verbose:
 			print "Original values:", orig_val
 			print "Saved values:", recarr.field('t64col')[:]
@@ -371,6 +375,89 @@ class CompareTestCase(unittest.TestCase):
 
 
 
+class UnalignedTestCase(unittest.TestCase):
+	"Tests writing and reading unaligned time values in a table."
+
+	# The description used in the test Table.
+	# Time fields are unaligned because of 'i8col'.
+	class MyTimeRow(tables.IsDescription):
+		i8col  = tables.Int8Col(pos = 0)
+		t32col = tables.Time32Col(pos = 1)
+		t64col = tables.Time64Col(shape = (2,), pos = 2)
+
+
+	def setUp(self):
+		"""setUp() -> None
+
+		This method sets the following instance attributes:
+		  * 'h5fname', the name of the temporary HDF5 file
+		"""
+
+		self.h5fname = tempfile.mktemp(suffix = '.h5')
+
+
+	def tearDown(self):
+		"""tearDown() -> None
+
+		Removes 'h5fname'.
+		"""
+
+		os.remove(self.h5fname)
+
+
+	def test00_CompareTable(self):
+		"Comparing written unaligned time data with read data in a Table."
+
+		# Size of the test.
+		nrows = 10
+
+		# Create test Table with data.
+		h5file = tables.openFile(
+			self.h5fname, 'w', title = "Test for comparing Time tables")
+		tbl = h5file.createTable('/', 'test', self.MyTimeRow)
+		row = tbl.row
+		for i in xrange(nrows):
+			row['i8col']  = i
+			row['t32col'] = i
+			row['t64col'] = (i+0.012, i+0.012)
+			row.append()
+		h5file.close()
+
+		# Check the written data.
+		h5file = tables.openFile(self.h5fname)
+		recarr = h5file.root.test.read()
+		h5file.close()
+
+		# Int8 column.
+		orig_val = numarray.arange(nrows, type = numarray.Int8)
+		if verbose:
+			print "Original values:", orig_val
+			print "Saved values:", recarr.field('i8col')[:]
+		self.assert_(
+			numarray.alltrue(recarr.field('i8col')[:] == orig_val),
+			"Stored and retrieved values do not match.")
+
+		# Time32 column.
+		orig_val = numarray.arange(nrows, type = numarray.Int32)
+		if verbose:
+			print "Original values:", orig_val
+			print "Saved values:", recarr.field('t32col')[:]
+		self.assert_(
+			numarray.alltrue(recarr.field('t32col')[:] == orig_val),
+			"Stored and retrieved values do not match.")
+
+		# Time64 column.
+		orig_val = numarray.arange(0, nrows, 0.5, type = numarray.Int32,
+		                           shape = (nrows, 2)) + 0.012
+		if verbose:
+			print "Original values:", orig_val
+			print "Saved values:", recarr.field('t64col')[:]
+		self.assert_(
+            allequal(recarr.field('t64col')[:], orig_val, numarray.Float64),
+			"Stored and retrieved values do not match.")
+
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -384,9 +471,10 @@ def suite():
 	theSuite.addTest(unittest.makeSuite(LeafCreationTestCase))
 	theSuite.addTest(unittest.makeSuite(OpenTestCase))
 	theSuite.addTest(unittest.makeSuite(CompareTestCase))
+	theSuite.addTest(unittest.makeSuite(UnalignedTestCase))
+
 # More tests are needed so as to checking atributes, compression, exceptions,
 # etc... Francesc Altet 2005-01-06
-
 
 	return theSuite
 
