@@ -9,7 +9,7 @@ import numarray.records as records
 from tables import *
 from tables.hdf5Extension import getIndices
 
-from test_all import verbose, allequal
+from test_all import verbose, allequal, heavy
 
 # Test Record class
 class Record(IsDescription):
@@ -604,9 +604,8 @@ class BigTablesTestCase(BasicTestCase):
     # 10000 rows takes much more time than we can afford for tests
     # reducing to 1000 would be more than enough
     # F. Alted 2004-01-19
-#     expectedrows = 10000
-#     appendrows = 1000
-    expectedrows = 1000
+    # Will be executed only in heavy mode
+    expectedrows = 10000
     appendrows = 100
 
 class BasicRangeTestCase(unittest.TestCase):
@@ -2176,12 +2175,13 @@ class DefaultValues(unittest.TestCase):
         # This generates too much output. Activate only when
         # self._v_maxTuples is very small (<10)
         if verbose and 1:
-            print "Table values:"
-            for row in table.iterrows():
+            print "First 10 table values:"
+            for row in table.iterrows(0, 10):
                 print row
-            print r2
-            print "Record values:"
-            print r
+            print "The first 10 read recarray values:"
+            print r2[:10]
+            print "Records should look like:"
+            print r[:10]
 
         assert r.tostring() == r2.tostring()
         
@@ -2281,31 +2281,9 @@ class Length2TestCase(LengthTestCase):
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
+    #heavy = 1  # uncomment this only for testing purposes
 
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
-    #theSuite.addTest(unittest.makeSuite(getItemTestCase))
-    #theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
-    #theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
-    #theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
-    #theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
-    #theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
-    #theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
-    #theSuite.addTest(unittest.makeSuite(CompressUCLTablesTestCase))
-    #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
-    #theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
-    #theSuite.addTest(unittest.makeSuite(DefaultValues))
-    #theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
-    #theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
-    #theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
-    #theSuite.addTest(unittest.makeSuite(LargeRowSize)) 
-    #theSuite.addTest(unittest.makeSuite(DefaultValues))
-    #theSuite.addTest(unittest.makeSuite(OldRecordDefaultValues))
-    #theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
-    #theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
-    #theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
-    #theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
-    #theSuite.addTest(unittest.makeSuite(Fletcher32TablesTestCase))
-    #theSuite.addTest(unittest.makeSuite(AllFiltersTablesTestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayIO))
 
     for n in range(niter):
@@ -2328,7 +2306,6 @@ def suite():
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
         theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
         theSuite.addTest(unittest.makeSuite(getItemTestCase))
-        theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayIO))
         theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
         theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
@@ -2349,6 +2326,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(OldRecordDefaultValues))
         theSuite.addTest(unittest.makeSuite(Length1TestCase))
         theSuite.addTest(unittest.makeSuite(Length2TestCase))
+    if heavy:
+        theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
             
     return theSuite
 

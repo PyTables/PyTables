@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IndexArray.py,v $
-#       $Id: IndexArray.py,v 1.5 2004/08/03 21:02:53 falted Exp $
+#       $Id: IndexArray.py,v 1.6 2004/08/06 16:34:36 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.5 $"
+__version__ = "$Revision: 1.6 $"
 # default version for IndexARRAY objects
 obversion = "1.0"    # initial version
 
@@ -49,8 +49,6 @@ def calcChunksize(expectedrows, testmode=0):
     be further optimized doing more experiments.
 
     """
-
-    #print "testmode-->", testmode
 
     expKrows = expectedrows / 1000000.  # Multiples of one million
 

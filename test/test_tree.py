@@ -8,7 +8,9 @@ from tables import *
 # Next imports are only necessary for this test suite
 from tables import Group, Leaf, Table, Array
 
-from test_all import verbose
+from test_all import verbose, heavy
+
+#heavy = 1  # Uncomment this only for test purposes!
 
 # Test Record class
 class Record(IsDescription):
@@ -403,16 +405,16 @@ class DeepTreeTestCase(unittest.TestCase):
     
     """
     def test00_deepTree(self):
-        
-        """Checking creation of large depth (512) object tree
-        Variable 'maxdepth' controls this check.
-        """
+        "Checking creation of large depth object tree Variable"
         
         # Here we put a more conservative limit to deal with more platforms
         # With maxdepth = 512 this test would take less than 20 MB
         # of main memory to run, which is quite reasonable nowadays.
         # With maxdepth = 1024 this test will take over 40 MB.
-        maxdepth = 512  # This should be safe for most machines
+        if heavy:
+            maxdepth = 1024  # Only for big machines!
+        else:
+            maxdepth = 256  # This should be safe for most machines
         
         if verbose:
             print '\n', '-=' * 30
@@ -487,7 +489,10 @@ class WideTreeTestCase(unittest.TestCase):
         """
 
         import time
-        maxchildren = 1024
+        if heavy:
+            maxchildren = 4096
+        else:
+            maxchildren = 256            
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_wideTree..." % \
@@ -548,7 +553,12 @@ class WideTreeTestCase(unittest.TestCase):
         """
 
         import time
-        maxchildren = 1024
+        if heavy:
+            # for big platforms!
+            maxchildren = 4096
+        else:
+            # for standard platforms
+            maxchildren = 256
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_wideTree..." % \
@@ -599,6 +609,7 @@ def suite():
     theSuite = unittest.TestSuite()
     # This counter is useful when detecting memory leaks
     niter = 1
+    #heavy=1  # see at the beginning
 
     #theSuite.addTest(unittest.makeSuite(DeepTreeTestCase))
     

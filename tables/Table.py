@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.122 2004/08/03 21:02:53 falted Exp $
+#       $Id: Table.py,v 1.123 2004/08/06 16:34:36 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.122 $"
+__version__ = "$Revision: 1.123 $"
 
 from __future__ import generators
 import sys
@@ -46,7 +46,7 @@ import hdf5Extension
 from utils import calcBufferSize, processRange, processRangeRead
 import Group
 from Leaf import Leaf, Filters
-from Index import Index
+from Index import Index, IndexProps
 from IsDescription import IsDescription, Description, metaIsDescription, \
      Col, StringCol, fromstructfmt
 from VLArray import Atom, StringAtom
@@ -85,9 +85,12 @@ class Table(Leaf, hdf5Extension.Table, object):
         iterrows(start, stop, step)
         read([start] [, stop] [, step] [, field [, flavor]])
         removeRows(start, stop)
+        where(condition)
+        whereInRange(condition [, start] [, stop] [, step])
+        getWhereList(condition [, flavor])
+        iterWhereList(sequence)
         reIndex()
         reIndexDirty()
-        where(condition)
 
     Instance variables:
 
@@ -96,10 +99,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         nrows -- the number of rows in this table
         rowsize -- the size, in bytes, of each row
         indexed -- whether or not some column in Table is indexed
-        automatic_index -- whether a Table should be reindexed after an
-            append operation
-        reindex -- whether the table fields are to be re-indexed
-            after an invalidating index operation (like removeRows)
+        indexprops -- The properties of an indexed Table. Exists only
+            if the Table is indexed
         cols -- accessor to the columns using a natural name schema
         colnames -- the field names for the table (list)
         coltypes -- the type class for the table fields (dictionary)
@@ -260,27 +261,21 @@ class Table(Leaf, hdf5Extension.Table, object):
                 self.indexed = 1
             else:
                 self.colindexed[colname] = 0
-        # Create a cols accessor
-        self.cols = Cols(self)
         if self.indexed:
             # Check whether we want automatic indexing after an append or not
             # The default is yes
-            if hasattr(self.description, "_v_automatic_index__"):
-                self.automatic_index = self.description._v_automatic_index__
+            if hasattr(self.description, "_v_indexprops"):
+                self.indexprops = self.description._v_indexprops
             else:
-                self.automatic_index = 1
-            # Save this flag as an attribute
-            self.attrs.AUTOMATIC_INDEX = self.automatic_index
-            # Check whether we want reindex after an invalidating index
-            # operation. The default is yes
-            if hasattr(self.description, "_v_reindex__"):
-                self.reindex = self.description._v_reindex__
-            else:
-                self.reindex = 1
-            # Save this flag as an attribute
-            self.attrs.REINDEX = self.reindex
+                # if user has not defined properties, assign the default
+                self.indexprops = IndexProps()
+            # Save AUTOMATIC_INDEX and REINDEX flags as attributes
+            self.attrs.AUTOMATIC_INDEX = self.indexprops.auto
+            self.attrs.REINDEX = self.indexprops.reindex
             self._indexedrows = 0
-            self._unsavedindexedrows = 0
+            self._unsaved_indexedrows = 0
+        # Create a cols accessor
+        self.cols = Cols(self)
 
     def _open(self):
         """Opens a table from disk and read the metadata on it.
@@ -346,10 +341,11 @@ class Table(Leaf, hdf5Extension.Table, object):
                 self.colindexed[colname] = 0
         # Get the automatic_indexing attribute
         if self.indexed:
-            self.automatic_index = self.attrs.AUTOMATIC_INDEX
-            self.reindex = self.attrs.REINDEX
-            self._indexedrows = indexobj.nrows * indexobj.nelemslice
-            self._unsavedindexedrows = self.nrows - self._indexedrows
+            automatic_index = self.attrs.AUTOMATIC_INDEX
+            reindex = self.attrs.REINDEX
+            self.indexprops=IndexProps(auto=automatic_index, reindex=reindex)
+            self._indexedrows = indexobj.nelements
+            self._unsaved_indexedrows = self.nrows - self._indexedrows
 
     def _saveBufferedRows(self):
         """Save buffered table rows"""
@@ -367,62 +363,132 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.row._setUnsavedNRows(0)
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
-        if self.indexed and self.automatic_index:
+        if self.indexed and self.indexprops.auto:
             start = self._indexedrows
-            nrows = self._unsavedindexedrows
+            nrows = self._unsaved_indexedrows
             for (colname, colindexed) in self.colindexed.iteritems():
                 if colindexed:
                     indexcol = getattr(self.cols, colname)
                     rowsadded = indexcol.addRowsToIndex(start, nrows)
-            self._unsavedindexedrows -= rowsadded
+            self._unsaved_indexedrows -= rowsadded
             self._indexedrows += rowsadded
         return
 
-    def where(self, where=None):
-        """Iterator that selects values fulfilling the where condition
+    def where(self, condition=None):
+        """Iterator that selects values fulfilling the 'condition' param.
         
-        where can be used to specify selections along a column in the
+        condition can be used to specify selections along a column in the
         form:
 
-        where=(0<table.cols.col1<0.3)
+        condition=(0<table.cols.col1<0.3)
+
+        If the column to which the condition is applied is indexed,
+        the index will be used so as to accelerate the search.
+        
         """
 
-        assert isinstance(where, Column), \
-"Wrong where parameter type. Only Column instances are suported."
+        assert isinstance(condition, Column), \
+"Wrong condition parameter type. Only Column instances are suported."
 
-        self.whereColname = where.name   # Flag for Row.__iter__
-        if where.indexed and not where.dirty:
+        self.whereColname = condition.name   # Flag for Row.__iter__
+        if condition.indexed and not condition.dirty:
             # Get the coordinates to lookup
-            ncoords = where.index._getLookupRange(where)
+            ncoords = condition.index._getLookupRange(condition)
             return self.row(coords=None, ncoords=ncoords)
         # Fall back to in-kernel selection method
-        return self.row(coords=None, ncoords=0)
+        (start, stop, step) = processRangeRead(self.nrows, None, None, None)
+        return self.row(start, stop, step, coords=None, ncoords=0)
 
-    def getRowCoords(self, where=None, flavor="NumArray"):
-        """Get the row coordinates that fulfill the 'where' condition"""
+    def whereInRange(self, condition, start=None, stop=None, step=None):
+        """Iterator that selects values fulfilling the 'condition' param.
+        
+        'condition' can be used to specify selections along a column
+        in the form:
 
-        assert isinstance(where, Column), \
-"Wrong where parameter type. Only Column instances are suported."
+        condition=(0<table.cols.col1<0.3)
+
+        This method differs from Table.where in that it accepts a
+        range of rows to do the search for values. However, it will
+        use the in-kernel search method, i.e. it won't take advantage
+        of a possible indexed column, while Table.where do.
+        
+        """
+
+        assert isinstance(condition, Column), \
+"Wrong condition parameter type. Only Column instances are suported."
+
+        self.whereColname = condition.name   # Flag for Row.__iter__
+        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        if start < stop:
+            # we don't want to use the indexed search method because
+            # it doesn't support index range searches
+            self._dontuseindex = 1
+            #self.colindexed[condition.name] = 0
+            # call row with coords=None and ncoords=0
+            # (in-kernel selection method)
+            return self.row(start, stop, step, coords=None, ncoords=0)
+        # Fall-back action is to return an empty RecArray
+        return records.array(None,
+                             formats=self.description._v_recarrfmt,
+                             shape=(0,),
+                             names = self.colnames)
+        
+    def getWhereList(self, condition=None, flavor="List"):
+        """Get the row coordinates that fulfill the 'condition' param
+
+        'condition' can be used to specify selections along a column
+        in the form:
+
+        condition=(0<table.cols.col1<0.3)
+
+        'flavor' is the desired type of the returned list. It can take
+        the 'List', 'Tuple' or 'NumArray' values.
+
+        """
+
+        assert isinstance(condition, Column), \
+"Wrong condition parameter type. Only Column instances are suported."
         assert flavor in ["NumArray", "List", "Tuple"], \
-"Wrong where parameter type. Only Column instances are suported."
-        ncoords = where.index._getLookupRange(where)
-        # create buffers for indices
-        where.index.indices._initIndexSlice(ncoords)
-        coords = where.index.getCoords(0, ncoords)
-        # Remove buffers for indices
-        where.index.indices._destroyIndexSlice()
+"Wrong condition parameter type. Only Column instances are suported."
+        # Take advantage of indexation, if present
+        if condition.indexed == 1:
+            # get the number of coords and set-up internal variables
+            ncoords = condition.index._getLookupRange(condition)
+            # create buffers for indices
+            condition.index.indices._initIndexSlice(ncoords)
+            # get the coordinates that passes the selection cuts
+            coords = condition.index.getCoords(0, ncoords)
+            # Remove buffers for indices
+            condition.index.indices._destroyIndexSlice()
+            # get the remaining rows from the table
+            start = condition.index.nelements
+            remainCoords = [p.nrow() for p in \
+                            self.whereInRange(condition, start, self.nrows, 1)]
+            nremain = len(remainCoords)
+            # append the new values to the existing ones
+            coords.resize(ncoords+nremain)
+            coords[ncoords:] = remainCoords
+        else:
+            coords = [p.nrow() for p in self.where(condition)]
+            coords = numarray.array(coords, type=numarray.Int64)
+        # re-initialize internal selection values
+        self.ops = []
+        self.opsValues = []
+        self.whereColname = None
+        # do some conversion (if needed)
         if flavor == "List":
             coords = coords.tolist()
         elif flavor == "Tuple":
             coords = tuple(coords.tolist())
         return coords
 
-    def iterCoordsOfRows(self, coords=None):
+    def iterWhereList(self, sequence=None):
         """Iterate over a list of row coordinates."""
         
-        assert hasattr(coords, "__getitem__"), \
-"Wrong coords parameter type. Only sequences are suported."
-        return self.row(start, stop, step, coords=coords, ncoords=0)
+        assert hasattr(sequence, "__getitem__"), \
+"Wrong 'sequence' parameter type. Only sequences are suported."
+        coords = numarray.array(sequence, type=numarray.Int64) 
+        return self.row(coords=coords, ncoords=0)
         
     def __call__(self, start=None, stop=None, step=None):
         """Iterate over all the rows or a range.
@@ -707,24 +773,23 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
         # Save indexedrows
-        if self.indexed and self.automatic_index:
+        if self.indexed and self.indexprops.auto:
             # Update the number of unsaved indexed rows
-            self._unsavedindexedrows += lenrows
+            self._unsaved_indexedrows += lenrows
             self.addRowsToIndex()
         return
 
     def addRowsToIndex(self):
         "Add remaining rows to index"
-        # Save indexedrows
         if self.indexed:
             # Update the number of unsaved indexed rows
             start = self._indexedrows
-            nrows = self._unsavedindexedrows
+            nrows = self._unsaved_indexedrows
             for (colname, colindexed) in self.colindexed.iteritems():
                 if colindexed:
                     indexcol = getattr(self.cols, colname)
                     rowsadded = indexcol.addRowsToIndex(start, nrows)
-            self._unsavedindexedrows -= rowsadded
+            self._unsaved_indexedrows -= rowsadded
             self._indexedrows += rowsadded
         return
 
@@ -743,9 +808,9 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.nrows -= nrows    # discount the removed rows from the total
         # removeRows is a invalidating index operation
         if self.indexed:
-            if self.reindex:
+            if self.indexprops.reindex:
                 self._indexedrows = self.reIndex()
-                self._unsavedindexedrows = self.nrows - self._indexedrows
+                self._unsaved_indexedrows = self.nrows - self._indexedrows
             else:
                 # Mark all the indexes as dirty
                 for (colname, colindexed) in self.colindexed.iteritems():
@@ -858,6 +923,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.description._close()
         # Free the description class!
         del self.description
+        if hasattr(self, "indexprops"):
+            del self.indexprops
 
         # After the objects are disconnected, destroy the
         # object dictionary using the brute force ;-)
@@ -1083,8 +1150,9 @@ class Column(object):
                         shape=self.table.colshapes[self.name])
         # Compose the name
         name = "_i_"+self.table.name+"_"+self.name
-        if not filters:
-            filters = self.table.filters
+        # The filters for indexes are not inherited anymore. 2004-08-04
+        if filters is None and hasattr(self.table, "indexprops"):
+            filters = self.table.indexprops.filters
         # Create the index itself
         self.index = Index(atom, self, name,
                            "Index for "+self.table.name+":"+self.name,

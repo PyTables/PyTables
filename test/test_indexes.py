@@ -2,11 +2,13 @@ import unittest
 import os
 import tempfile
 import warnings
+import sys
 
 from tables import *
 from tables.Index import Index
 from tables.IndexArray import calcChunksize
-from test_all import verbose, allequal, niterHeavy
+from test_all import verbose, allequal, heavy
+import numarray
 
 # The minimum number of rows that can be indexed
 # Remember to change that if the number is changed in
@@ -137,7 +139,7 @@ class BasicTestCase(unittest.TestCase):
         assert len(results) == 8
 
     def test04_readIndex(self):
-        """Checking reading an Index (int flavor)"""
+        """Checking reading an Index (float flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -157,6 +159,110 @@ class BasicTestCase(unittest.TestCase):
         if verbose:
             print "Selected values:", results
         assert len(results) == 10
+
+    def test05_getWhereList(self):
+        """Checking reading an Index with getWhereList (string flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05_getWhereList..." % self.__class__.__name__
+
+        # Open the HDF5 file in read-only mode
+        self.fileh = openFile(self.file, mode = "r")
+        table = self.fileh.root.table
+        idxcol = table.cols.var4.index
+        if verbose:
+            print "Max rows in buf:", table._v_maxTuples
+            print "Number of elements per slice:", idxcol.nelemslice
+            print "Chunk size:", idxcol.sorted.chunksize
+
+        # Do a selection
+        rowList1 = table.getWhereList(table.cols.var1 < "10", "List")
+        #rowList2 = [p.nrow() for p in table.where(table.cols.var1 < "10")]
+        rowList2 = [p.nrow() for p in table if p['var1'] < "10"]
+        if verbose:
+            print "Selected values:", rowList1
+            print "Should look like:", rowList2
+        assert len(rowList1) == len(rowList2)
+        assert rowList1 == rowList2
+
+    def test06_getWhereList(self):
+        """Checking reading an Index with getWhereList (bool flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test06_getWhereList..." % self.__class__.__name__
+
+        # Open the HDF5 file in read-only mode
+        self.fileh = openFile(self.file, mode = "r")
+        table = self.fileh.root.table
+        idxcol = table.cols.var4.index
+        if verbose:
+            print "Max rows in buf:", table._v_maxTuples
+            print "Number of elements per slice:", idxcol.nelemslice
+            print "Chunk size:", idxcol.sorted.chunksize
+
+        # Do a selection
+        rowList1 = table.getWhereList(table.cols.var2 == 0, "NumArray")
+        #rowList2 = [p.nrow() for p in table.where(table.cols.var2 == 0)]
+        rowList2 = [p.nrow() for p in table if p['var2'] == 0]
+        # Convert to a numarray object
+        rowList2 = numarray.array(rowList2, numarray.Int64)
+        if verbose:
+            print "Selected values:", rowList1
+            print "Should look like:", rowList2
+        assert len(rowList1) == len(rowList2)
+        assert allequal(rowList1, rowList2)
+
+    def test07_getWhereList(self):
+        """Checking reading an Index with getWhereList (int flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test07_getWhereList..." % self.__class__.__name__
+
+        # Open the HDF5 file in read-only mode
+        self.fileh = openFile(self.file, mode = "r")
+        table = self.fileh.root.table
+        idxcol = table.cols.var4.index
+        if verbose:
+            print "Max rows in buf:", table._v_maxTuples
+            print "Number of elements per slice:", idxcol.nelemslice
+            print "Chunk size:", idxcol.sorted.chunksize
+
+        # Do a selection
+        rowList1 = table.getWhereList(table.cols.var3 < 15, "Tuple")
+        rowList2 = tuple([p.nrow() for p in table if p["var3"] < 15])
+        if verbose:
+            print "Selected values:", rowList1
+            print "Should look like:", rowList2
+        assert len(rowList1) == len(rowList2)
+        assert rowList1 == rowList2
+
+    def test08_getWhereList(self):
+        """Checking reading an Index with getWhereList (float flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test08_getWhereList..." % self.__class__.__name__
+
+        # Open the HDF5 file in read-only mode
+        self.fileh = openFile(self.file, mode = "r")
+        table = self.fileh.root.table
+        idxcol = table.cols.var4.index
+        if verbose:
+            print "Max rows in buf:", table._v_maxTuples
+            print "Number of elements per slice:", idxcol.nelemslice
+            print "Chunk size:", idxcol.sorted.chunksize
+
+        # Do a selection
+        rowList1 = table.getWhereList(table.cols.var4 < 10, "List")
+        rowList2 = [p.nrow() for p in table if p['var4'] < 10]
+        if verbose:
+            print "Selected values:", rowList1
+            print "Should look like:", rowList2
+        assert len(rowList1) == len(rowList2)
+        assert rowList1 == rowList2
 
 
 class BasicReadTestCase(BasicTestCase):
@@ -263,16 +369,22 @@ class WarningTestCase(unittest.TestCase):
         os.remove(self.file)
         
 class Small2(IsDescription):
-    _v_automatic_index__ = 0  # Not the default
-    #_v_reindex__ = 1  # The default
+    _v_indexprops = IndexProps(auto=0)
     var1 = StringCol(length=4, dflt="", indexed=1)
     var2 = BoolCol(0, indexed=1)
     var3 = IntCol(0, indexed=1)
     var4 = FloatCol(0, indexed=0)
 
 class Small3(IsDescription):
-    #_v_automatic_index__ = 1  # The default
-    _v_reindex__ = 0  # Not the default
+    _v_indexprops = IndexProps(reindex=0)
+    var1 = StringCol(length=4, dflt="", indexed=1)
+    var2 = BoolCol(0, indexed=1)
+    var3 = IntCol(0, indexed=1)
+    var4 = FloatCol(0, indexed=0)
+
+class Small4(IsDescription):
+    _v_indexprops = IndexProps(filters=Filters(complevel=6, complib="zlib",
+                                               shuffle=0, fletcher32=1))
     var1 = StringCol(length=4, dflt="", indexed=1)
     var2 = BoolCol(0, indexed=1)
     var3 = IntCol(0, indexed=1)
@@ -317,7 +429,6 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             assert table.indexed == 0
         else:
             assert table.indexed == 1
-        # Check that the var1, var2 and var3 (and only these) has been indexed
         if self.klass is Small:
             assert table.colindexed["var1"] == 0
             assert table.cols.var1.indexed == 0
@@ -328,6 +439,8 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             assert table.colindexed["var4"] == 0
             assert table.cols.var4.indexed == 0
         else:
+            # Check that the var1, var2 and var3 (and only these)
+            # has been indexed
             assert table.colindexed["var1"] == 1
             assert table.cols.var1.indexed == 1
             assert table.colindexed["var2"] == 1
@@ -346,18 +459,31 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         table = self.table
         # Check the policy parameters
         if verbose:
-            print "automatic_index:", table.automatic_index
-            print "reindex:", table.reindex
+            if table.indexed:
+                print "indexprops:", table.indexprops
+            else:
+                print "Table is not indexed"
         # Check non-default values for index saving policy
         if self.klass is Small:
-            assert not hasattr(table, "automatic_index")
-            assert not hasattr(table, "reindex")
+            assert not hasattr(table, "indexprops")
         elif self.klass is Small2:
-            assert table.automatic_index == 0
-            assert table.reindex == 1
+            assert table.indexprops.auto == 0
+            assert table.indexprops.reindex == 1
+            filters = Filters(complevel=1, complib="zlib",
+                              shuffle=1, fletcher32=0)
+            assert str(table.indexprops.filters) == str(filters)
         elif self.klass is Small3:
-            assert table.automatic_index == 1
-            assert table.reindex == 0
+            assert table.indexprops.auto == 1
+            assert table.indexprops.reindex == 0
+            filters = Filters(complevel=1, complib="zlib",
+                              shuffle=1, fletcher32=0)
+            assert str(table.indexprops.filters) == str(filters)            
+        elif self.klass is Small4:
+            assert table.indexprops.auto == 1
+            assert table.indexprops.reindex == 1
+            filters = Filters(complevel=6, complib="zlib",
+                              shuffle=0, fletcher32=1)
+            assert str(table.indexprops.filters) == str(filters)
             
         # Check Index() objects exists and are properly placed
         if self.klass is Small:
@@ -379,16 +505,21 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         table = self.table
         # Check the counters for indexes
         if verbose:
-            print "indexedrows:", table._indexedrows
-            print "unsavedindexedrows:", table._unsavedindexedrows
-            index = table.cols.var1.index
-            indexedrows = index.nrows * index.nelemslice
-            print "computed indexed rows:", indexedrows
+            if table.indexed:
+                print "indexedrows:", table._indexedrows
+                print "unsavedindexedrows:", table._unsaved_indexedrows
+                index = table.cols.var1.index
+                indexedrows = index.nrows * index.nelemslice
+                print "computed indexed rows:", indexedrows
+            else:
+                print "Table is not indexed"
         if self.klass is not Small:
             index = table.cols.var1.index
             indexedrows = index.nrows * index.nelemslice
             assert table._indexedrows == indexedrows
-            assert table._unsavedindexedrows == self.nrows - indexedrows
+            indexedrows = index.nelements
+            assert table._indexedrows == indexedrows
+            assert table._unsaved_indexedrows == self.nrows - indexedrows
 
     def test04_noauto(self):
         "Checking indexing counters (non-automatic mode)"
@@ -400,11 +531,14 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         table.addRowsToIndex()
         # Check the counters for indexes
         if verbose:
-            print "indexedrows:", table._indexedrows
-            print "unsavedindexedrows:", table._unsavedindexedrows
-            index = table.cols.var1.index
-            indexedrows = index.nrows * index.nelemslice
-            print "computed indexed rows:", indexedrows
+            if table.indexed:
+                print "indexedrows:", table._indexedrows
+                print "unsavedindexedrows:", table._unsaved_indexedrows
+                index = table.cols.var1.index
+                indexedrows = index.nrows * index.nelemslice
+                print "computed indexed rows:", indexedrows
+            else:
+                print "Table is not indexed"
 
         # No unindexated rows should remain
         index = table.cols.var1.index
@@ -413,7 +547,32 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         else:
             indexedrows = index.nrows * index.nelemslice
             assert table._indexedrows == indexedrows
-            assert table._unsavedindexedrows == self.nrows - indexedrows
+            indexedrows = index.nelements
+            assert table._indexedrows == indexedrows
+            assert table._unsaved_indexedrows == self.nrows - indexedrows
+
+        # Check non-default values for index saving policy
+        if self.klass is Small:
+            assert not hasattr(table, "indexprops")
+        elif self.klass is Small2:
+            assert table.indexprops.auto == 0
+            assert table.indexprops.reindex == 1
+            filters = Filters(complevel=1, complib="zlib",
+                              shuffle=1, fletcher32=0)
+            assert str(table.indexprops.filters) == str(filters)
+        elif self.klass is Small3:
+            assert table.indexprops.auto == 1
+            assert table.indexprops.reindex == 0
+            filters = Filters(complevel=1, complib="zlib",
+                              shuffle=1, fletcher32=0)
+            assert str(table.indexprops.filters) == str(filters)            
+        elif self.klass is Small4:
+            assert table.indexprops.auto == 1
+            assert table.indexprops.reindex == 1
+            filters = Filters(complevel=6, complib="zlib",
+                              shuffle=0, fletcher32=1)
+            assert str(table.indexprops.filters) == str(filters)
+            
 
     def test05_noreindex(self):
         "Checking indexing counters (non-reindex mode)"
@@ -426,28 +585,56 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # No unidexated rows should remain here
         if self.klass is not Small:
             indexedrows = table._indexedrows
-            unsavedindexedrows = table._unsavedindexedrows
+            unsavedindexedrows = table._unsaved_indexedrows
         # Now, remove some rows:
         table.removeRows(3,5)
         # Check the counters for indexes
         if verbose:
-            print "indexedrows:", table._indexedrows
-            print "unsavedindexedrows:", table._unsavedindexedrows
-            index = table.cols.var1.index
-            indexedrows = index.nrows * index.nelemslice
-            print "computed indexed rows:", indexedrows
+            if table.indexed:
+                print "indexedrows:", table._indexedrows
+                print "unsavedindexedrows:", table._unsaved_indexedrows
+                index = table.cols.var1.index
+                indexedrows = index.nelements
+                print "computed indexed rows:", indexedrows
+            else:
+                print "Table is not indexed"
 
         # Check the counters
         assert table.nrows == self.nrows - 2
         if self.klass is Small3:
             # The unsaved indexed rows counter should be unchanged
             assert table._indexedrows == indexedrows
-            assert table._unsavedindexedrows == unsavedindexedrows
+            assert table._unsaved_indexedrows == unsavedindexedrows
         elif self.klass is Small2:
             index = table.cols.var1.index
             indexedrows = index.nrows * index.nelemslice
             assert table._indexedrows == indexedrows
-            assert table._unsavedindexedrows == self.nrows - indexedrows - 2
+            indexedrows = index.nelements
+            assert table._indexedrows == indexedrows
+            assert table._unsaved_indexedrows == self.nrows - indexedrows - 2
+
+        # Check non-default values for index saving policy
+        if self.klass is Small:
+            assert not hasattr(table, "indexprops")
+        elif self.klass is Small2:
+            assert table.indexprops.auto == 0
+            assert table.indexprops.reindex == 1
+            filters = Filters(complevel=1, complib="zlib",
+                              shuffle=1, fletcher32=0)
+            assert str(table.indexprops.filters) == str(filters)
+        elif self.klass is Small3:
+            assert table.indexprops.auto == 1
+            assert table.indexprops.reindex == 0
+            filters = Filters(complevel=1, complib="zlib",
+                              shuffle=1, fletcher32=0)
+            assert str(table.indexprops.filters) == str(filters)            
+        elif self.klass is Small4:
+            assert table.indexprops.auto == 1
+            assert table.indexprops.reindex == 1
+            filters = Filters(complevel=6, complib="zlib",
+                              shuffle=0, fletcher32=1)
+            assert str(table.indexprops.filters) == str(filters)
+            
 
     def test06_dirty(self):
         "Checking dirty flags (removeRows action)"
@@ -466,11 +653,33 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                       (colname, table.cols[colname].dirty)
         # Check the flags
         for colname in table.colnames:
-            if (table.cols[colname].indexed and not table.reindex):
+            if (table.cols[colname].indexed and not table.indexprops.reindex):
                 assert table.cols[colname].dirty == 1
             else:
                 assert table.cols[colname].dirty == 0
 
+        # Check non-default values for index saving policy
+        if self.klass is Small:
+            assert not hasattr(table, "indexprops")
+        elif self.klass is Small2:
+            assert table.indexprops.auto == 0
+            assert table.indexprops.reindex == 1
+            filters = Filters(complevel=1, complib="zlib",
+                              shuffle=1, fletcher32=0)
+            assert str(table.indexprops.filters) == str(filters)
+        elif self.klass is Small3:
+            assert table.indexprops.auto == 1
+            assert table.indexprops.reindex == 0
+            filters = Filters(complevel=1, complib="zlib",
+                              shuffle=1, fletcher32=0)
+            assert str(table.indexprops.filters) == str(filters)            
+        elif self.klass is Small4:
+            assert table.indexprops.auto == 1
+            assert table.indexprops.reindex == 1
+            filters = Filters(complevel=6, complib="zlib",
+                              shuffle=0, fletcher32=1)
+            assert str(table.indexprops.filters) == str(filters)
+            
 minRowIndex = 10000
 class AI1TestCase(AutomaticIndexingTestCase):
     nrows = 10002
@@ -526,22 +735,31 @@ class AI10TestCase(AutomaticIndexingTestCase):
     nrows = 10002
     reopen = 1
     klass = Small
+
+class AI11TestCase(AutomaticIndexingTestCase):
+    nrows = 10002
+    reopen = 0
+    klass = Small4
+
+class AI12TestCase(AutomaticIndexingTestCase):
+    nrows = 10002
+    reopen = 0
+    klass = Small4
     
 
 #----------------------------------------------------------------------
 
 def suite():
     theSuite = unittest.TestSuite()
-    niterLight = 1
-    #niterHeavy = 1  # Uncomment this only if you have a big machine!
+    niter = 1
+    #heavy = 1  # Uncomment this only for testing purposes!
 
+    #theSuite.addTest(unittest.makeSuite(BasicReadTestCase))
     #theSuite.addTest(unittest.makeSuite(OneHalfTestCase))
     #theSuite.addTest(unittest.makeSuite(UpperBoundTestCase))
     #theSuite.addTest(unittest.makeSuite(LowerBoundTestCase))
-    #theSuite.addTest(unittest.makeSuite(BasicReadTestCase))
-    #theSuite.addTest(unittest.makeSuite(AI6TestCase))
-    #theSuite.addTest(unittest.makeSuite(AI7TestCase))
-    for n in range(niterLight):
+            
+    for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicReadTestCase))
         theSuite.addTest(unittest.makeSuite(ZlibReadTestCase))
         theSuite.addTest(unittest.makeSuite(LZOReadTestCase))
@@ -557,14 +775,17 @@ def suite():
         theSuite.addTest(unittest.makeSuite(AI2TestCase))
         theSuite.addTest(unittest.makeSuite(AI3TestCase))
         theSuite.addTest(unittest.makeSuite(AI4TestCase))
-    
-    for n in range(niterHeavy):
-        theSuite.addTest(unittest.makeSuite(AI5TestCase))
-        theSuite.addTest(unittest.makeSuite(AI6TestCase))
-        theSuite.addTest(unittest.makeSuite(AI7TestCase))
-        theSuite.addTest(unittest.makeSuite(AI8TestCase))
         theSuite.addTest(unittest.makeSuite(AI9TestCase))
         theSuite.addTest(unittest.makeSuite(AI10TestCase))
+    
+        if heavy:
+            # These are too heavy for normal testing
+            theSuite.addTest(unittest.makeSuite(AI5TestCase))
+            theSuite.addTest(unittest.makeSuite(AI6TestCase))
+            theSuite.addTest(unittest.makeSuite(AI7TestCase))
+            theSuite.addTest(unittest.makeSuite(AI8TestCase))
+            theSuite.addTest(unittest.makeSuite(AI11TestCase))
+            theSuite.addTest(unittest.makeSuite(AI12TestCase))
         
     return theSuite
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.31 2004/07/29 09:59:22 falted Exp $
+#       $Id: AttributeSet.py,v 1.32 2004/08/06 16:34:35 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.31 $"
+__version__ = "$Revision: 1.32 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -46,7 +46,7 @@ MAX_ATTRS_IN_NODE = 4096
 # System attributes
 SYS_ATTRS = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
              "FLAVOR", "ENCODING", "PYTABLES_FORMAT_VERSION",
-             "FILTERS", "AUTOMATIC_INDEX"]
+             "FILTERS", "AUTOMATIC_INDEX", "REINDEX"]
 # Prefixes of other system attributes
 SYS_ATTRS_PREFIXES = ["FIELD_"]
 # Read-only attributes:

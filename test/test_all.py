@@ -9,7 +9,7 @@ from numarray import *
 from numarray import strings
 
 verbose = 0
-niterHeavy = 0  # Default is not doing heavy testing of indexation
+heavy = 0  # Default is not doing heavy testing
 if 'verbose' in sys.argv:
     verbose = 1
     sys.argv.remove('verbose')
@@ -18,12 +18,17 @@ if 'silent' in sys.argv:  # take care of old flag, just in case
     verbose = 0
     sys.argv.remove('silent')
 
+if '--heavy' in sys.argv:
+    heavy = 1
+    sys.argv.remove('--heavy')
+
 
 # This little hack is for when this module is run as main and all the
 # other modules import it so they will still be able to get the right
-# verbose setting.  It's confusing but it works.
+# verbose and heavy settings.  It's confusing but it works.
 import test_all
 test_all.verbose = verbose
+test_all.heavy = heavy
 
 def allequal(a,b, flavor="numarray"):
     """Checks if two numarrays are equal"""
@@ -156,23 +161,25 @@ if __name__ == '__main__':
     print '-=' * 38
 
     # Handle --show-versions-only
-    only_versions = 0
+    only_versions = 0    
     args = sys.argv[:]
     for arg in args:
         if arg == '--show-versions-only':
             only_versions = 1
             sys.argv.remove(arg)
-        if arg == '--heavy-indexes':
-            niterHeavy = 1
-            sys.argv.remove(arg)
 
     if not only_versions:
-        if not niterHeavy:
+        if heavy:
             print \
-"""I shall perform only a light subset of the indexation test suite.
-If you have a powerful system and lots of CPU to waste, try passing
-the --heavy-indexes flag to this (%s) script. """ % sys.argv[0]
-            print '-=' * 38
+"""Performing the complete test suite!"""
+        else:
+            print \
+"""Performing only a light (yet comprehensive) subset of the complete
+test suite.  If you have a big system and lots of CPU to waste, try
+passing the --heavy flag to this script. The complete suite will take
+more than 7 minutes to complete on a relatively modern CPU
+(Pentium4@2GHz) and around 80 MB of memory."""
+        print '-=' * 38
 
         unittest.main( defaultTest='suite' )
 

@@ -16,7 +16,7 @@ from tables import *
 # important objects to test
 from tables import File, Group, Leaf, Table, Array
 
-from test_all import verbose
+from test_all import verbose, heavy
 
 class Record(IsDescription):
     var1 = StringCol(length=4)     # 4-character String
@@ -1716,7 +1716,8 @@ class CopyFileCase10(unittest.TestCase):
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
-
+    #heavy = 1 # Uncomment this only for testing purposes!
+    
     #theSuite.addTest(unittest.makeSuite(createTestCase))
     #theSuite.addTest(unittest.makeSuite(CopyGroupCase1))
     #theSuite.addTest(unittest.makeSuite(CopyGroupCase2))
@@ -1726,30 +1727,30 @@ def suite():
         theSuite.addTest(unittest.makeSuite(createAttrCloseTestCase))
         theSuite.addTest(unittest.makeSuite(FiltersCase1))
         theSuite.addTest(unittest.makeSuite(FiltersCase2))
+        theSuite.addTest(unittest.makeSuite(CopyGroupCase1))
+        theSuite.addTest(unittest.makeSuite(CopyGroupCase2))
+        theSuite.addTest(unittest.makeSuite(CopyFileCase1))
+        theSuite.addTest(unittest.makeSuite(CopyFileCase2))
+    if heavy:
         theSuite.addTest(unittest.makeSuite(FiltersCase3))
         theSuite.addTest(unittest.makeSuite(FiltersCase4))
         theSuite.addTest(unittest.makeSuite(FiltersCase5))
         theSuite.addTest(unittest.makeSuite(FiltersCase6))
         theSuite.addTest(unittest.makeSuite(FiltersCase7))
         theSuite.addTest(unittest.makeSuite(FiltersCase8))
-        theSuite.addTest(unittest.makeSuite(CopyGroupCase1))
-        theSuite.addTest(unittest.makeSuite(CopyGroupCase2))
+        theSuite.addTest(unittest.makeSuite(CopyFileCase3))
+        theSuite.addTest(unittest.makeSuite(CopyFileCase4))
+        theSuite.addTest(unittest.makeSuite(CopyFileCase5))
+        theSuite.addTest(unittest.makeSuite(CopyFileCase6))
+        theSuite.addTest(unittest.makeSuite(CopyFileCase7))
+        theSuite.addTest(unittest.makeSuite(CopyFileCase8))
+        theSuite.addTest(unittest.makeSuite(CopyFileCase10))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase3))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase4))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase5))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase6))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase7))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase8))
-        theSuite.addTest(unittest.makeSuite(CopyFileCase1))
-        theSuite.addTest(unittest.makeSuite(CopyFileCase2))
-        theSuite.addTest(unittest.makeSuite(CopyFileCase3))
-        theSuite.addTest(unittest.makeSuite(CopyFileCase4))
-        # These take too much time and does not apport nothing really new
-#         theSuite.addTest(unittest.makeSuite(CopyFileCase5))
-#         theSuite.addTest(unittest.makeSuite(CopyFileCase6))
-#         theSuite.addTest(unittest.makeSuite(CopyFileCase7))
-#         theSuite.addTest(unittest.makeSuite(CopyFileCase8))
-        theSuite.addTest(unittest.makeSuite(CopyFileCase10))
 
     return theSuite
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/__init__.py,v $
-#       $Id: __init__.py,v 1.24 2004/02/25 16:09:00 falted Exp $
+#       $Id: __init__.py,v 1.25 2004/08/06 16:34:36 falted Exp $
 #
 ########################################################################
 
@@ -42,6 +42,7 @@ ExtVersion  = getExtVersion()
 from File import File, openFile, copyFile
 from Group import Group
 from Leaf import Leaf, Filters
+from Index import IndexProps
 from Table import Table
 from Array import Array
 from EArray import EArray
@@ -56,6 +57,7 @@ __all__ = ["isHDF5", "isPyTablesFile", "whichLibVersion", "copyFile",
            "openFile",
            "Group", "Leaf", "Table", "Array", "EArray", "VLArray",
            "UnImplemented", "IsDescription", "Description", "Filters",
+           "IndexProps",
            "Col", "BoolCol", "StringCol",
            "IntCol", "Int8Col", "UInt8Col", "Int16Col", "UInt16Col",
            "Int32Col", "UInt32Col", "Int64Col", "UInt64Col",

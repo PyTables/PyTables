@@ -2,11 +2,12 @@ import unittest
 import os
 import tempfile
 import warnings
+import random
 
 from tables import *
-from tables.Index import Index
+#from tables.Index import Index
 from tables.IndexArray import calcChunksize
-from test_all import verbose, allequal, niterHeavy
+from test_all import verbose, allequal, heavy
 
 # The minimum number of rows that can be indexed
 # Remember to change that if the number is changed in
@@ -25,6 +26,8 @@ class SelectValuesTestCase(unittest.TestCase):
     shuffle = 1
     fletcher32 = 0
     buffersize = 0
+    random = 0
+    values = None
 
     def setUp(self):
         # Create an instance of an HDF5 Table
@@ -51,9 +54,12 @@ class SelectValuesTestCase(unittest.TestCase):
             # Change the buffersize by default
             table1._v_maxTuples = self.buffersize
         #table2._v_maxTuples = self.buffersize  # This is not necessary
-        for i in range(0, self.nrows, self.nrep):
+        for i in xrange(0, self.nrows, self.nrep):
             for j in range(self.nrep):
-                #print i,
+                if self.random:
+                    i = random.randrange(self.nrows)
+                elif self.values is not None:
+                    i = self.values[i]
                 table1.row['var1'] = str(i)
                 table2.row['var1'] = str(i)
                 table1.row['var2'] = i % 2
@@ -300,6 +306,9 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p["var3"] for p in table1.where(il <= t1col <= sl)]
         results2 = [p["var3"] for p in table2
                     if il <= p["var3"] <= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -312,6 +321,9 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p["var3"] for p in table1.where(il <= t1col < sl)]
         results2 = [p["var3"] for p in table2
                     if il <= p["var3"] < sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -324,6 +336,9 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p["var3"] for p in table1.where(il < t1col <= sl)]
         results2 = [p["var3"] for p in table2
                     if il < p["var3"] <= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -336,6 +351,9 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p["var3"] for p in table1.where(il < t1col < sl)]
         results2 = [p["var3"] for p in table2
                     if il < p["var3"] < sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -365,10 +383,13 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p["var3"] for p in table1.where(t1col < sl)]
         results2 = [p["var3"] for p in table2
                     if p["var3"] < sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
         if verbose:
             print "Limit:", sl
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
+            print "Selection results (index):", results1
+            print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -378,6 +399,9 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p["var3"] for p in table1.where(t1col <= sl)]
         results2 = [p["var3"] for p in table2
                     if p["var3"] <= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -391,6 +415,9 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p["var3"] for p in table1.where(t1col > sl)]
         results2 = [p["var3"] for p in table2
                     if p["var3"] > sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -404,6 +431,9 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p["var3"] for p in table1.where(t1col >= sl)]
         results2 = [p["var3"] for p in table2
                     if p["var3"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -572,6 +602,695 @@ class SelectValuesTestCase(unittest.TestCase):
         assert len(results1) == len(results2)
         assert results1 == results2
 
+    def test05a(self):
+        """Checking getWhereList & iterWhereList (int flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05a..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+
+        # Convert the limits to the appropriate type
+        il = str(self.il)
+        sl = str(self.sl)
+
+        # Do some selections and check the results
+        t1col = table1.cols.var1
+        # First selection
+        rowList1 = table1.getWhereList(il <= t1col <= sl, "List")
+        results1 = [p['var1'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var1"] for p in table2
+                    if il <= p["var1"] <= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1.sort() == results2.sort()
+
+        # Second selection
+        rowList1 = table1.getWhereList(il <= t1col < sl, "List")
+        results1 = [p['var1'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var1"] for p in table2
+                    if il <= p["var1"] < sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Third selection
+        rowList1 = table1.getWhereList(il < t1col <= sl, "List")
+        results1 = [p['var1'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var1"] for p in table2
+                    if il < p["var1"] <= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        assert results1 == results2
+        
+        # Fourth selection
+        rowList1 = table1.getWhereList(il < t1col < sl, "List")
+        results1 = [p['var1'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var1"] for p in table2
+                    if il < p["var1"] < sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+    def test05b(self):
+        """Checking getWhereList & iterWhereList (int flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05b..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+
+        # Convert the limits to the appropriate type
+        il = str(self.il)
+        sl = str(self.sl)
+
+        # Do some selections and check the results
+        t1col = table1.cols.var1
+
+        # First selection
+        rowList1 = table1.getWhereList(t1col < sl, "Tuple")
+        results1 = [p['var1'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var1"] for p in table2
+                    if p["var1"] < sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Second selection
+        rowList1 = table1.getWhereList(t1col <= sl, "NumArray")
+        results1 = [p['var1'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var1"] for p in table2
+                    if p["var1"] <= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Third selection
+        rowList1 = table1.getWhereList(t1col > sl, "NumArray")
+        results1 = [p['var1'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var1"] for p in table2
+                    if p["var1"] > sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Fourth selection
+        rowList1 = table1.getWhereList(t1col >= sl, "NumArray")
+        results1 = [p['var1'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var1"] for p in table2
+                    if p["var1"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+    def test06a(self):
+        """Checking getWhereList & iterWhereList (bool flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test06a..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+        
+        # Do some selections and check the results
+        t1var2 = table1.cols.var2
+        rowList1 = table1.getWhereList(t1var2 == 1, "Tuple")
+        results1 = [p['var2'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var2"] for p in table2
+                    if p["var2"] == 1]
+        if verbose:
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+    def test06b(self):
+        """Checking getWhereList & iterWhereList (bool flavor)"""        
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test06b..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+
+        # Do some selections and check the results
+        t1var2 = table1.cols.var2
+        rowList1 = table1.getWhereList(t1var2 == 0, "List")
+        results1 = [p['var2'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var2"] for p in table2
+                    if p["var2"] == 0]
+        if verbose:
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+    def test07a(self):
+        """Checking getWhereList & iterWhereList (int flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test07a..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+
+        # Convert the limits to the appropriate type
+        il = int(self.il)
+        sl = int(self.sl)
+
+        # Do some selections and check the results
+        t1col = table1.cols.var3
+        # First selection
+        rowList1 = table1.getWhereList(il <= t1col <= sl, "List")
+        results1 = [p['var3'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var3"] for p in table2
+                    if il <= p["var3"] <= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1.sort() == results2.sort()
+
+        # Second selection
+        rowList1 = table1.getWhereList(il <= t1col < sl, "List")
+        results1 = [p['var3'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var3"] for p in table2
+                    if il <= p["var3"] < sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Third selection
+        rowList1 = table1.getWhereList(il < t1col <= sl, "List")
+        results1 = [p['var3'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var3"] for p in table2
+                    if il < p["var3"] <= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        assert results1 == results2
+        
+        # Fourth selection
+        rowList1 = table1.getWhereList(il < t1col < sl, "List")
+        results1 = [p['var3'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var3"] for p in table2
+                    if il < p["var3"] < sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+    def test07b(self):
+        """Checking getWhereList & iterWhereList (int flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test07b..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+
+        # Convert the limits to the appropriate type
+        il = int(self.il)
+        sl = int(self.sl)
+
+        # Do some selections and check the results
+        t1col = table1.cols.var3
+
+        # First selection
+        rowList1 = table1.getWhereList(t1col < sl, "Tuple")
+        results1 = [p['var3'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var3"] for p in table2
+                    if p["var3"] < sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Second selection
+        rowList1 = table1.getWhereList(t1col <= sl, "NumArray")
+        results1 = [p['var3'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var3"] for p in table2
+                    if p["var3"] <= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Third selection
+        rowList1 = table1.getWhereList(t1col > sl, "NumArray")
+        results1 = [p['var3'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var3"] for p in table2
+                    if p["var3"] > sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Fourth selection
+        rowList1 = table1.getWhereList(t1col >= sl, "NumArray")
+        results1 = [p['var3'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var3"] for p in table2
+                    if p["var3"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+    def test08a(self):
+        """Checking getWhereList & iterWhereList (float flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test08a..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+
+        # Convert the limits to the appropriate type
+        il = float(self.il)
+        sl = float(self.sl)
+
+        # Do some selections and check the results
+        t1col = table1.cols.var4
+        # First selection
+        #results1 = [p["var4"] for p in table1.where(il <= t1col <= sl)]
+        rowList1 = table1.getWhereList(il <= t1col <= sl, "List")
+        results1 = [p['var4'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var4"] for p in table2
+                    if il <= p["var4"] <= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1.sort() == results2.sort()
+
+        # Second selection
+        rowList1 = table1.getWhereList(il <= t1col < sl, "List")
+        results1 = [p['var4'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var4"] for p in table2
+                    if il <= p["var4"] < sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Third selection
+        rowList1 = table1.getWhereList(il < t1col <= sl, "List")
+        results1 = [p['var4'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var4"] for p in table2
+                    if il < p["var4"] <= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        assert results1 == results2
+        
+        # Fourth selection
+        rowList1 = table1.getWhereList(il < t1col < sl, "List")
+        results1 = [p['var4'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var4"] for p in table2
+                    if il < p["var4"] < sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+    def test08b(self):
+        """Checking getWhereList & iterWhereList (float flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test08b..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+
+        # Convert the limits to the appropriate type
+        il = float(self.il)
+        sl = float(self.sl)
+
+        # Do some selections and check the results
+        t1col = table1.cols.var4
+
+        # First selection
+        rowList1 = table1.getWhereList(t1col < sl, "NumArray")
+        results1 = [p['var4'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var4"] for p in table2
+                    if p["var4"] < sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Second selection
+        rowList1 = table1.getWhereList(t1col <= sl, "NumArray")
+        results1 = [p['var4'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var4"] for p in table2
+                    if p["var4"] <= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Third selection
+        rowList1 = table1.getWhereList(t1col > sl, "NumArray")
+        results1 = [p['var4'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var4"] for p in table2
+                    if p["var4"] > sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Fourth selection
+        rowList1 = table1.getWhereList(t1col >= sl, "NumArray")
+        results1 = [p['var4'] for p in table1.iterWhereList(rowList1)]
+        results2 = [p["var4"] for p in table2
+                    if p["var4"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+
+    def test09a(self):
+        """Checking whereInRange (string flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test09a..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+
+        # Convert the limits to the appropriate type
+        il = str(self.il)
+        sl = str(self.sl)
+
+        # Do some selections and check the results
+        t1col = table1.cols.var1
+#         print "t1col-->", t1col[:]
+        # First selection
+        results1 = [p['var1'] for p in table1.whereInRange(t1col<=sl,2,10)]
+        results2 = [p["var1"] for p in table2(2, 10)
+                    if p["var1"] <= sl]
+        if verbose:
+            print "Limit:", sl
+            print "Selection results (in-kernel):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Second selection
+        results1 = [p['var1'] for p in table1.whereInRange(il<t1col<sl,2,30,2)]
+        results2 = [p["var1"] for p in table2(2,30,2)
+                    if il<p["var1"]<sl]
+        if verbose:
+            print "Limit:", sl
+            print "Selection results (in-kernel):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Third selection
+        results1 = [p['var1'] for p in table1.whereInRange(il>t1col>sl,2,-5)]
+        results2 = [p["var1"] for p in table2(2, -5)  # Negative indices
+                    if (il > p["var1"] > sl)]
+        if verbose:
+            print "Limit:", sl
+            print "Selection results (in-kernel):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Fourth selection
+        results1 = [p['var1'] for p in table1.whereInRange(t1col>=sl,2,-1,3)]
+        results2 = [p["var1"] for p in table2(2, -1, 3)
+                    if p["var1"] >= sl]
+        if verbose:
+            print "Limit:", sl
+            print "Selection results (in-kernel):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+    def test09b(self):
+        """Checking whereInRange (float flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test09b..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+
+        # Convert the limits to the appropriate type
+        il = float(self.il)
+        sl = float(self.sl)
+
+        # Do some selections and check the results
+        t1col = table1.cols.var4
+
+        # First selection
+        results1 = [p['var4'] for p in table1.whereInRange(t1col < sl, 2, 5)]
+        results2 = [p["var4"] for p in table2(2, 5)
+                    if p["var4"] < sl]
+        if verbose:
+            print "Limit:", sl
+            print "Selection results (in-kernel):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Second selection
+        results1 = [p['var4'] for p in table1.whereInRange(il < t1col<=sl, 2, -1, 2)]
+        results2 = [p["var4"] for p in table2(2,-1,2)
+                    if il < p["var4"] <= sl]
+        if verbose:
+            print "Limit:", sl
+            print "Selection results (in-kernel):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Third selection
+        results1 = [p['var4'] for p in table1.whereInRange(il<=t1col<=sl, 2, -5)]
+        results2 = [p["var4"] for p in table2(2, -5)  # Negative indices
+                    if il <= p["var4"] <= sl]
+        if verbose:
+            print "Limit:", sl
+            print "Selection results (in-kernel):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Fourth selection
+        results1 = [p['var4'] for p in table1.whereInRange(t1col>=sl, 0, -1, 3)]
+        results2 = [p["var4"] for p in table2(0, -1, 3)
+                    if p["var4"] >= sl]
+        if verbose:
+            print "Limit:", sl
+            print "Selection results (in-kernel):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
 
 class SV1aTestCase(SelectValuesTestCase):
     minRowIndex = 10
@@ -635,8 +1354,6 @@ class SV5aTestCase(SelectValuesTestCase):
     ns, cs = calcChunksize(minRowIndex, testmode=1)
     nrows = ns*5
     reopen = 0
-    #print "minRowIndex, ns, cs-->", minRowIndex, ns, cs
-    #nrep = (ns+1)
     nrep = 1
     il = 0
     sl = nrows
@@ -657,7 +1374,8 @@ class SV6bTestCase(SV6aTestCase):
     minRowIndex = 1000
 
 class SV7aTestCase(SelectValuesTestCase):
-    minRowIndex = 1000
+    random = 1
+    minRowIndex = 10
     ns, cs = calcChunksize(minRowIndex, testmode=1)
     nrows = ns*5+1
     reopen = 0
@@ -669,6 +1387,7 @@ class SV7bTestCase(SV7aTestCase):
     minRowIndex = 1000
 
 class SV8aTestCase(SelectValuesTestCase):
+    random = 0
     minRowIndex = 10
     ns, cs = calcChunksize(minRowIndex, testmode=1)
     nrows = ns*5+1
@@ -677,26 +1396,74 @@ class SV8aTestCase(SelectValuesTestCase):
     il = 10
     sl = nrows-10
 
-class SV8bTestCase(SV7aTestCase):
+class SV8bTestCase(SV8aTestCase):
+    random = 0
     minRowIndex = 1000
+
+class SV9aTestCase(SelectValuesTestCase):
+    random = 1
+    minRowIndex = 10
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns*5+1
+    reopen = 0
+    nrep = cs-1
+    il = 10
+    sl = nrows-10
+
+class SV9bTestCase(SV9aTestCase):
+    minRowIndex = 1000
+
+class SV10aTestCase(SelectValuesTestCase):
+    random = 1
+    minRowIndex = 10
+    buffersize = 1
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns
+    reopen = 0
+    nrep = ns
+    il = 0
+    sl = ns
+
+class SV10bTestCase(SV10aTestCase):
+    minRowIndex = 1000
+
+class SV11TestCase(SelectValuesTestCase):
+    # This checks a special case that failed. It was discovered in a
+    # random test above (SV10a). It is explicitely put here as a way
+    # to always check that specific case.
+    values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
+    minRowIndex = len(values)
+    buffersize = 1
+    ns, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ns
+    reopen = 0
+    nrep = ns
+    il = 0
+    sl = ns
+    
 
 # -----------------------------
 
 def suite():
-    import sys
     theSuite = unittest.TestSuite()
     # Default is to run light benchmarks
-    niterLight = 1
-    niterHeavy = 1  # Uncomment this only if you are on a big machine!
+    niter = 1
+    #heavy = 1  # Uncomment this only for testing purposes!
 
-    #theSuite.addTest(unittest.makeSuite(SV4TestCase))
-    for n in range(niterLight):
+    #theSuite.addTest(unittest.makeSuite(SV9aTestCase))
+    #theSuite.addTest(unittest.makeSuite(SV10aTestCase))
+    #theSuite.addTest(unittest.makeSuite(SV4aTestCase))
+    for n in range(niter):
         theSuite.addTest(unittest.makeSuite(SV1aTestCase))
         theSuite.addTest(unittest.makeSuite(SV2aTestCase))
         theSuite.addTest(unittest.makeSuite(SV3aTestCase))
         theSuite.addTest(unittest.makeSuite(SV4aTestCase))
-    
-    for n in range(niterHeavy):
+        theSuite.addTest(unittest.makeSuite(SV7aTestCase))
+        theSuite.addTest(unittest.makeSuite(SV8aTestCase))
+        theSuite.addTest(unittest.makeSuite(SV9aTestCase))
+        theSuite.addTest(unittest.makeSuite(SV10aTestCase))
+        theSuite.addTest(unittest.makeSuite(SV11TestCase))
+    if heavy:
         theSuite.addTest(unittest.makeSuite(SV1bTestCase))
         theSuite.addTest(unittest.makeSuite(SV2bTestCase))
         theSuite.addTest(unittest.makeSuite(SV3bTestCase))
@@ -705,11 +1472,11 @@ def suite():
         theSuite.addTest(unittest.makeSuite(SV6bTestCase))
         theSuite.addTest(unittest.makeSuite(SV7bTestCase))
         theSuite.addTest(unittest.makeSuite(SV8bTestCase))
+        theSuite.addTest(unittest.makeSuite(SV9bTestCase))
+        theSuite.addTest(unittest.makeSuite(SV10bTestCase))
         # The next are too hard to be above
         theSuite.addTest(unittest.makeSuite(SV5aTestCase))
         theSuite.addTest(unittest.makeSuite(SV6aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV7aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV8aTestCase))
     
     return theSuite
 

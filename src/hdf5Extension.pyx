@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.135 2004/08/03 21:02:52 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.136 2004/08/06 16:34:34 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.135 $"
+__version__ = "$Revision: 1.136 $"
 
 
 import sys, os
@@ -911,7 +911,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.135 2004/08/03 21:02:52 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.136 2004/08/06 16:34:34 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1831,8 +1831,11 @@ cdef class Row:
   cdef object _table   # To allow compilation under MIPSPro C in SGI machines
   #cdef Table _table   # To allow access C methods in Table
   cdef object _fields, _recarray, _saveBufferedRows, _indexes
-  cdef int _row, _nrowinbuf, _unsavednrows, _strides
-  cdef readonly int _nrow # This is allowed from Pyrex 0.9 on
+  cdef long long _row, _nrowinbuf, _unsavednrows
+  cdef int _strides
+  #cdef readonly int _nrow # This is allowed from Pyrex 0.9 on
+  # But defining it as long long makes it unaccessible from python!
+  cdef long long _nrow
   cdef long long start, stop, step, nextelement, nrowsinbuf, nrows, nrowsread
   cdef int bufcounter, counter, startb, stopb,  _all
   cdef int *_scalar, *_enumtypes, _r_initialized_buffer,_w_initialized_buffer
@@ -1924,22 +1927,25 @@ cdef class Row:
     self.nrowsread = start
     self._nrow = start - self.step
     self._table._open_read(self._recarray)  # Open the table for reading
-
     self.whereCond = 0
     self.indexed = 0
     # Do we have in-kernel selections?
-    if hasattr(self._table, "whereColname"):
+    if (hasattr(self._table, "whereColname") and
+        self._table.whereColname is not None):
       self.whereCond = 1
       self.colname = PyString_AsString(self._table.whereColname)
-      # Is this column indexed?
-      if self._table.colindexed[self.colname]:
+      # Is this column indexed and ready to use?
+      if (hasattr(self._table, "_dontuseindex") and
+          self._table._dontuseindex == 1):
+        dontuseindex = 1
+      if self._table.colindexed[self.colname] and not dontuseindex:
         self.indexed = 1
         self.index = self._table.cols[self.colname].index
         # create buffers for indices
         self.index.indices._initIndexSlice(self.nrowsinbuf)
         self.nrowsread = 0
         self.nextelement = 0
-    if self.coords:
+    if self.coords is not None:
       self.stop = len(coords)
       self.nrowsread = 0
       self.nextelement = 0
@@ -1948,11 +1954,14 @@ cdef class Row:
 
   def __next__(self):
     "next() method for __iter__() that is called on each iteration"
-    if self.indexed or self.coords:
+    if self.indexed or self.coords is not None:
+      #print "indexed"
       return self.__next__indexed()
     elif self.whereCond:
+      #print "whereCond"
       return self.__next__whereCond()
     else:
+      #print "general"
       return self.__next__general()
 
   cdef __next__indexed(self):
@@ -1962,6 +1971,7 @@ cdef class Row:
     cdef int ncond, op, recout
     cdef long long stop
     cdef object opValue, field
+    cdef long long nextelement
 
     while self.nextelement < self.stop:
       if self.nextelement >= self.nrowsread:
@@ -1970,7 +1980,7 @@ cdef class Row:
           stop = self.stop-self.nrowsread
         else:
           stop = self.nrowsinbuf
-        if self.coords:
+        if self.coords is not None:
           self.bufcoords = self.coords[self.nrowsread:self.nrowsread+stop]
         else:
           self.bufcoords = self.index.getCoords(self.nrowsread, stop)
@@ -1987,9 +1997,13 @@ cdef class Row:
     else:
       # Re-initialize the possible cuts in columns
       self.indexed = 0
-      self.coords = None
-      self.index.indices._destroyIndexSlice()  # Remove buffers in indices
-      nextelement = self.index.nelemslice * self.index.nrows
+      if self.coords is None:
+        self.index.indices._destroyIndexSlice()  # Remove buffers in indices
+        nextelement = self.index.nelemslice * self.index.nrows
+      else:
+        self.coords = None
+        # All the elements has been read for this mode
+        nextelement = self.nrows
       if nextelement >= self.nrows:
         self._table._close_read()  # Close the table
         self._table.ops = []
@@ -2012,7 +2026,7 @@ cdef class Row:
     """The version of next() in case of in-kernel conditions"""
     cdef long offset
     cdef object indexValid1, indexValid2
-    cdef int ncond, op, recout
+    cdef int ncond, op, recout, correct
     cdef object opValue, field
 
     self.nextelement = self._nrow + self.step
@@ -2034,7 +2048,7 @@ cdef class Row:
           self._recarray._byteswap()
         # The next assignment should be faster, but does not work!
         #self._recarray._byteorder = self._table.byteorder
-        self.indexChunk = -1
+        self.indexChunk = -self.step
         # Iterate over the conditions
         ncond = 0
         for op in self._table.ops:
@@ -2044,12 +2058,10 @@ cdef class Row:
           #field = self._fields[self.colname].copy()
           if op == 1:
             indexValid1 = self._fields[self.colname].__lt__(opValue)
-            #indexValid1 = field.__lt__(opValue)
           elif op == 2:
             indexValid1 = self._fields[self.colname].__le__(opValue)
           elif op == 3:
             indexValid1 = self._fields[self.colname].__gt__(opValue)
-            #indexValid1 = field.__gt__(opValue)
           elif op == 4:
             indexValid1 = self._fields[self.colname].__ge__(opValue)
           elif op == 5:
@@ -2071,6 +2083,10 @@ cdef class Row:
         if not numarray.sometrue(self.indexValid):
           # No, so take the next one
           self.nextelement = self.nextelement + self.nrowsinbuf
+          # Correct this for step size > 1
+          if self.step > 1:
+            correct = self.step - (self.nextelement - self.start) % self.step
+            self.nextelement = self.nextelement + correct
           continue
       
       self._row = self._row + self.step
@@ -2081,7 +2097,7 @@ cdef class Row:
 
       self.nextelement = self._nrow + self.step
       # Return only if this value is interesting
-      self.indexChunk = self.indexChunk + 1
+      self.indexChunk = self.indexChunk + self.step
       if self.indexValid[self.indexChunk]:
         return self
     else:
@@ -2091,6 +2107,8 @@ cdef class Row:
       self._table.opsValues = []
       self._table.whereColname = None
       self.whereCond = 0
+      if hasattr(self._table, "_dontuseindex"):
+        del self._table._dontuseindex
       raise StopIteration        # end of iteration
 
   # This is the most general __next__ version, simple, but effective
@@ -2190,7 +2208,7 @@ cdef class Row:
     self._row = self._row + 1 # update the current buffer read counter
     self._unsavednrows = self._unsavednrows + 1
     if self._table.indexed:
-      self._table._unsavedindexedrows = self._table._unsavedindexedrows + 1
+      self._table._unsaved_indexedrows = self._table._unsaved_indexedrows + 1
     # When the buffer is full, flush it
     if self._unsavednrows == self.nrowsinbuf:
       # Save the records on disk

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.49 2004/07/15 18:09:25 falted Exp $
+#       $Id: Leaf.py,v 1.50 2004/08/06 16:34:36 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.49 $"
+__version__ = "$Revision: 1.50 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -92,6 +92,8 @@ class Filters(object):
             self.complib = "zlib"   # Should always exists
 
     def __repr__(self):
+        """The string reprsentation choosed for this object.
+        """
         filters = "Filters("
         if self.complevel:
             filters += "complevel=%s" % (self.complevel)
@@ -106,8 +108,7 @@ class Filters(object):
         return filters
     
     def __str__(self):
-        """The string reprsentation choosed for this object is its pathname
-        in the HDF5 object tree.
+        """The string reprsentation choosed for this object.
         """
         
         return repr(self)
@@ -162,12 +163,12 @@ class Leaf(hdf5Extension.Leaf, object):
             # Set the filters instance variable
             self.filters = self._g_setFilters(self._v_new_filters)
             self._create()
-            # Write the Filters object to an attribute
-            # This will not be necessary for now, as retrieving
-            # the filters using hdf5Extension._getFilters is safer and
-            # faster. Also, cPickling the filters attribute is
-            # very slow (it is as much as twice slower than the normal
-            # overhead for creating a Table, for example).
+            # Write the Filters object to an attribute This will not
+            # be necessary for now, as retrieving the filters using
+            # hdf5Extension._getFilters is safer and faster. Also,
+            # cPickling the filters attribute is very slow (it is as
+            # much as twice slower than the normal overhead for
+            # creating a Table, for example).
             #self.attrs._g_setAttr("FILTERS", self.filters)
         else:
             self.filters = self._g_getFilters()

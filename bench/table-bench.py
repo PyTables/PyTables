@@ -166,9 +166,9 @@ def readFile(filename, recsize, verbose):
 #                       if p['grid_j'] == 20 and p['grid_i'] < 20 ]
 #                 e = [ p['grid_i'] for p in table
 #                       if p['grid_i'] <= 2 ]
-#                e = [ p['grid_i'] for p in table(step=1, where=("grid_i<=20"))]
+#                e = [ p['grid_i'] for p in table.where("grid_i<=20")]
                 e = [ p['grid_i'] for p in
-                      table(where=(table.cols.grid_i<20))]
+                      table.where(table.cols.grid_i<20)]
 #                 e = [ p['grid_i'] for p in table.iterrows() 
 #                       if p.nrow() == 20 ]
 #                 e = [ table.delrow(p.nrow()) for p in table.iterrows() 
@@ -182,30 +182,30 @@ def readFile(filename, recsize, verbose):
             else:  # small record case
 #                 e = [ p['var3'] for p in table.iterrows()
 #                       if p['var2'] < 20 and p['var3'] < 20 ]
-#                e = [ p['var3'] for p in table(where="var3 <= 20")
+#                e = [ p['var3'] for p in table.where("var3 <= 20")
 #                      if p['var2'] < 20 ]
-#               e = [ p['var3'] for p in table(where="var3 <= 20")]
+#               e = [ p['var3'] for p in table.where("var3 <= 20")]
 # Cuts 1) and 2) issues the same results but 2) is about 10 times faster
 # ######## Cut 1)
 #                e = [ p.nrow() for p in
-#                      table(where=table.cols.var2 > 5)
+#                      table.where(table.cols.var2 > 5)
 #                      if p["var2"] < 10]
 # ######## Cut 2)
 #                 e = [ p.nrow() for p in
-#                       table(where=table.cols.var2 < 10)
+#                       table.where(table.cols.var2 < 10)
 #                       if p["var2"] > 5]
 #                e = [ (p._nrow,p["var3"]) for p in
 #                e = [ p["var3"] for p in
-#                      table(where=table.cols.var3 < 10)]
-#                      table(1,10,1,where=table.cols.var3 < 10)]
+#                      table.where(table.cols.var3 < 10)]
+#                      table.where(table.cols.var3 < 10)]
 #                      table if p["var3"] <= 10]
-#               e = [ p['var3'] for p in table(where="var3 <= 20")]
+#               e = [ p['var3'] for p in table.where("var3 <= 20")]
 #                e = [ p['var3'] for p in
-#                      table(where=table.cols.var1 == "10")]  # More
+#                      table.where(table.cols.var1 == "10")]  # More
                      # than ten times faster than the next one
 #                e = [ p['var3'] for p in table
 #                      if p['var1'] == "10"]
-#                 e = [ p['var3'] for p in table(where=table.cols.var2 <=20)
+#                 e = [ p['var3'] for p in table.where(table.cols.var2 <=20)
                  e = [ p['var3'] for p in table
                        if p['var2'] <= 20 ]
                 #e = [ p['var3'] for p in table.iterrows(0,21) ]

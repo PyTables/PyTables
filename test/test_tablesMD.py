@@ -5,17 +5,38 @@ import tempfile
 
 import numarray
 from numarray import *
-#import recarray
 import numarray.records as records
 from numarray import strings
 from tables import *
 from tables.hdf5Extension import getIndices
 
-from test_all import verbose#, allequal
+from test_all import verbose, heavy, allequal
 # If we use the test_all.allequal function, a segmentation violation appears
 # but only when the test runs *alone* and *without* verbose parameters!
 # However, if we use the allequal in this module, everything seems to work well
 # this should be further investigated!. F. Alted 2004/01/01
+
+# Update: That seems to work well now. Perhaps a bug in numarray that
+# has been solved? F. Alted 2004/08/06
+
+# def allequal(a,b):
+#     """Checks if two numarrays are equal"""
+
+#     if a.shape <> b.shape:
+#         return 0
+
+#     # Rank-0 case
+#     if len(a.shape) == 0:
+#         if str(equal(a,b)) == '1':
+#             return 1
+#         else:
+#             return 0
+#     # Multidimensional case
+#     result = (a == b)
+#     for i in range(len(a.shape)):
+#         result = logical_and.reduce(result)
+
+#     return result
 
 # Test Record class
 class Record(IsDescription):
@@ -37,25 +58,6 @@ RecordDescriptionDict = {
     'var6': Int16Col(),                           # unsigned short integer 
     'var7': StringCol(length=1),                  # 1-character String
     }
-
-def allequal(a,b):
-    """Checks if two numarrays are equal"""
-
-    if a.shape <> b.shape:
-        return 0
-
-    # Rank-0 case
-    if len(a.shape) == 0:
-        if str(equal(a,b)) == '1':
-            return 1
-        else:
-            return 0
-    # Multidimensional case
-    result = (a == b)
-    for i in range(len(a.shape)):
-        result = logical_and.reduce(result)
-
-    return result
 
 class BasicTestCase(unittest.TestCase):
     #file  = "test.h5"
@@ -994,6 +996,7 @@ class DefaultValues(unittest.TestCase):
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
+    #heavy = 1  # Uncomment this only for testing purposes
 
     #theSuite.addTest(unittest.makeSuite(CompressUCLTablesTestCase))
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
@@ -1017,9 +1020,10 @@ def suite():
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
         theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
-        theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
-        theSuite.addTest(unittest.makeSuite(RecArrayIO))
         theSuite.addTest(unittest.makeSuite(DefaultValues))
+        theSuite.addTest(unittest.makeSuite(RecArrayIO))
+    if heavy:
+        theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
             
     return theSuite
 

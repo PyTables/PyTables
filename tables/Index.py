@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.11 2004/08/03 21:02:53 falted Exp $
+#       $Id: Index.py,v 1.12 2004/08/06 16:34:36 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.11 $"
+__version__ = "$Revision: 1.12 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -35,6 +35,7 @@ import cPickle
 import types, warnings, sys
 from IndexArray import IndexArray
 from VLArray import Atom
+from Leaf import Filters
 from AttributeSet import AttributeSet
 import hdf5Extension
 from hdf5Extension import PyNextAfter, PyNextAfterF
@@ -62,6 +63,7 @@ def infType(type, itemsize, sign=0):
 def CharTypeNextAfter(x, direction, itemsize):
     "Return the next representable neighbor of x in the appropriate direction."
     # Pad the string with \x00 chars until itemsize completion
+    #print "original string-->", x
     padsize = itemsize - len(x)
     if padsize > 0:
         x += "\x00"*padsize
@@ -90,11 +92,12 @@ def CharTypeNextAfter(x, direction, itemsize):
                 xlist[i] = "\xff"
             i += 1
     xlist.reverse()
+    #print "new string-->", "".join(xlist)
     return "".join(xlist)
         
 
 def nextafter(x, direction, type, itemsize):
-    "Return the next representable neighbor of x in the apprppriate direction."
+    "Return the next representable neighbor of x in the appropriate direction."
 
     if direction == 0:
         return x
@@ -121,6 +124,65 @@ def nextafter(x, direction, type, itemsize):
         raise TypeError, "Type %s is not supported" % type
 
 
+class IndexProps(object):
+    """Container for index properties
+
+    Instance variables:
+
+        auto -- whether an existing index should be reindexed after a
+            Table append operation
+        reindex -- whether the table fields are to be re-indexed
+            after an invalidating index operation (like Table.removeRows)
+        filters -- the filter properties for the Table indexes
+
+    """
+
+    def __init__(self, auto=1, reindex=1, filters=None):
+        """Create a new IndexProps instance
+
+        Parameters:
+        
+        auto -- whether an existing index should be reindexed after a
+            Table append operation. Defaults is reindexing.
+        reindex -- whether the table fields are to be re-indexed
+            after an invalidating index operation (like Table.removeRows).
+            Default is reindexing.
+        filters -- the filter properties. Default are ZLIB(1) and shuffle
+
+
+            """
+        if auto is None:
+            auto = 1  # Default
+        if reindex is None:
+            reindex = 1  # Default
+        assert auto in [0, 1], "'auto' can only take values 0 or 1"
+        assert reindex in [0, 1], "'reindex' can only take values 0 or 1"
+        self.auto = auto
+        self.reindex = reindex
+        if filters is None:
+            self.filters = Filters(complevel=1, complib="zlib",
+                                   shuffle=1, fletcher32=0)
+        elif isinstance(filters, Filters):
+            self.filters = filters
+        else:
+            raise ValueError, \
+"If you pass a filters parameter, it should be a Filters instance."
+
+    def __repr__(self):
+        """The string reprsentation choosed for this object
+        """
+        descr = self.__class__.__name__
+        descr += "(auto=%s" % (self.auto)
+        descr += ", reindex=%s" % (self.reindex)
+        descr += ", filters=%s" % (self.filters)
+        return descr+")"
+    
+    def __str__(self):
+        """The string reprsentation choosed for this object
+        """
+        
+        return repr(self)
+
 class Index(hdf5Extension.Group, hdf5Extension.Index, object):
     """Represent the index (sorted and reverse index) dataset in HDF5 file.
 
@@ -142,6 +204,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
             CharArrays.
         flavor -- The flavor of this object.
         nrows -- The number of slices in index.
+        nelements -- The total number of elements in the index.
         nelemslice -- The number of elements per slice.
         chunksize -- The HDF5 chunksize for each slice.
         filters -- The Filters instance for this object.
@@ -168,7 +231,9 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
 
         filters -- An instance of the Filters class that provides
             information about the desired I/O filters to be applied
-            during the life of this object.
+            during the life of this object. If not specified, the ZLIB
+            & shuffle will be activated by default (i.e., they are not
+            inherited from the parent, that is, the Table).
 
         expectedrows -- Represents an user estimate about the number
             of row slices that will be added to the growable dimension
@@ -202,7 +267,11 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         # Set the filters object
         if object._v_new_filters is None:
             # If not filters has been passed in the constructor,
-            filters = object._v_parent._v_filters
+            # set a sensible default, using zlib compression and shuffling
+            filters = Filters(complevel = 1, complib = "zlib",
+                              shuffle = 1, fletcher32 = 0)
+            # Now, the filters are not inheritated. 2004-08-04
+            #filters = object._v_parent._v_filters
         else:
             filters = object._v_new_filters
         filtersPickled = cPickle.dumps(filters, 0)
@@ -259,6 +328,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         object._v_file = self._v_parent._v_file  
         self.nrows = object.nrows
         self.nelemslice = object.nelemslice
+        self.nelements = self.nrows * self.nelemslice
         self._addAttrs(object, "IndexArray")
         self.indices = object
             
@@ -268,7 +338,6 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         self._v_objectID = self._g_openIndex()
         # Get the title, filters attributes for this index
         self.title = self._g_getAttr("TITLE")
-        self.filters = cPickle.loads(self._g_getAttr("FILTERS"))
         # Open the IndexArray for sorted values
         object = IndexArray()
         object._v_parent = self
@@ -291,8 +360,11 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         object._g_new(self, object._v_hdf5name)
         object.filters = object._g_getFilters()
         object._open()
+        # these attrs should be the same for both sorted and indexed 
         self.nrows = object.nrows
         self.nelemslice = object.nelemslice
+        self.nelements = self.nrows * self.nelemslice
+        self.filters = object.filters
         self.indices = object
 
     def append(self, arr):
@@ -308,12 +380,14 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
             self.indices.append(numarray.argsort(arr))
         # Update nrows after a successful append
         self.nrows = self.sorted.nrows
+        self.nelements = self.nrows * self.nelemslice
         
     def search(self, item, notequal):
         """Do a binary search in this index for an item"""
         #t1=time.time()
         ntotaliter = 0; tlen = 0
         self.starts = []; self.lengths = []
+        #self.irow = 0; self.len1 = 0; self.len2 = 0;  # useful for getCoords()
         self.sorted._initSortedSlice(self.chunksize)
         # Do the lookup for values fullfilling the conditions
         for i in xrange(self.sorted.nrows):
@@ -331,9 +405,14 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
 # This has been passed to Pyrex. However, with pyrex it has the same speed,
 # so, it's better to stay here
     def getCoords(self, startCoords, maxCoords):
-        """Get the coordinates of indices satisfiying the cuts"""
-        len1 = 0; len2 = 0;
-        relCoords = 0
+        """Get the coordinates of indices satisfiying the cuts.
+
+        You must call the Index.search() method before in order to get
+        good sense results.
+
+        """
+        #t1=time.time()
+        len1 = 0; len2 = 0; relCoords = 0
         # Correction against asking too many elements
         nindexedrows = self.nelemslice*self.nrows
         if startCoords + maxCoords > nindexedrows:
@@ -348,86 +427,60 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
                 if stopl > self.starts[irow] + self.lengths[irow]:
                     stopl = self.starts[irow] + self.lengths[irow]
                 self.indices._g_readIndex(irow, startl, stopl, relCoords)
-                relCoords += stopl - startl
-                break
+                incr = stopl - startl
+                relCoords += incr; startCoords += incr; maxCoords -= incr
+                if maxCoords == 0:
+                    break
             len1 += leni
 
         # I don't know if sorting the coordinates is better or not actually
         # Some careful tests must be carried out in order to do that
         selections = numarray.sort(self.indices.arrAbs[:relCoords])
+        #print "time getting coords:", time.time()-t1
         #selections = self.indices.arrAbs[:relCoords]
         return selections
 
-# This tried to be a version of getCoords that would merge several
-# selected ranges in different rows in one single selection return array
-# However, I didn't managed to make it work well.
+# This tries to be a version of getCoords that keeps track of visited rows
+# in order to not re-visit them again. However, I didn't managed to make it
+# work well. However, the improvement in speed should be not important
+# in the majority of cases.
 # Beware, the logic behind doing this is not trivial at all. You have been
 # warned!. 2004-08-03
-
-#     def getCoords_orig_modif(self, startCoords, maxCoords):
+#     def getCoords_notwork(self, startCoords, maxCoords):
 #         """Get the coordinates of indices satisfiying the cuts"""
-#         #t1=time.time()
-#         len1 = 0; len2 = 0;
-#         stop = 0; relCoords = 0
+#         relCoords = 0
 #         # Correction against asking too many elements
 #         nindexedrows = self.nelemslice*self.nrows
-#         #print "nindexedrows-->", nindexedrows
 #         if startCoords + maxCoords > nindexedrows:
 #             maxCoords = nindexedrows - startCoords
-#         print "startCoords, maxCoords-->(1)", startCoords, maxCoords
-#         #print "lengths-->", self.lengths
-#         irow=self.irow
-#         #for irow in xrange(self.sorted.nrows):
-#         while irow < self.sorted.nrows:
-#             leni = self.lengths[irow]; len2 += leni
-#             print "len1, leni, len2-->", len1, leni, len2
-#             print "startCoords, maxCoords-->(loop)", startCoords, maxCoords
-#             newrow = 1
-#             if (leni > 0 and len1 <= startCoords < len2):
-#                 startl = self.starts[irow] + (startCoords-len1)
-#                 print "maxCoords, startl, leni-->", maxCoords, startl, leni
-#                 #if maxCoords >= leni - (startCoords-len1):
-#                 if (startl + leni) < maxCoords:
-#                     # Values do fit on buffer
-#                     stopl = startl + leni
-#                     maxCoords -= leni - (startCoords-len1)
-#                     startCoords += leni - (startCoords-len1)
-#                     #startCoords = len1 + leni
-#                     newrow=0  # Don't increment the row number in next iter
-#                 elif (startl + leni) > len2:
-#                     # Values fit on buffer, but we run out this section
-#                     stopl = len2
-#                     lenj = stopl - startl
-#                     maxCoords -= lenj
-#                     startCoords = len1 + lenj
-#                     #startCoords += lenj - (startCoords-len1)
-#                     newrow=0  # Don't increment the row number in next iter
-#                 else:
-#                     # Read maxCoords as maximum
-#                     stopl = startl + maxCoords
-#                     # Stop after this iteration
-#                     stop = 1
-# ####                # Correction if stopl exceeds the limits
-#                 if stopl > self.nelemslice:
-#                     stopl = self.nelemslice
-#                     newrow=0  # Don't increment the row number in next iter
-#                 print "irow, startl, stopl-->", irow, startl, stopl, stop
+#         #for irow in xrange(self.irow, self.sorted.nrows):
+#         while self.irow < self.sorted.nrows:
+#             irow = self.irow
+#             leni = self.lengths[irow]; self.len2 += leni
+#             if (leni > 0 and self.len1 <= startCoords < self.len2):
+#                 startl = self.starts[irow] + (startCoords-self.len1)
+#                 # Read maxCoords as maximum
+#                 stopl = startl + maxCoords
+#                 # Correction if stopl exceeds the limits
+#                 rowStop = self.starts[irow] + self.lengths[irow]
+#                 if stopl >= rowStop:
+#                     stopl = rowStop
+#                     #self.irow += 1
 #                 self.indices._g_readIndex(irow, startl, stopl, relCoords)
-#                 print "arrAbs-->", self.indices.arrAbs
-#                 relCoords += stopl - startl
-#                 if stop:
+#                 incr = stopl - startl
+#                 relCoords += incr
+#                 maxCoords -= incr
+#                 startCoords += incr
+#                 self.len1 += incr
+#                 if maxCoords == 0:
 #                     break
-#                 len1 += stopl-startl
-#             else:
-#                 len1 += leni
-#             if newrow: self.irow += 1
+#             #self.len1 += leni
+#             self.irow += 1
 
 #         # I don't know if sorting the coordinates is better or not actually
 #         # Some careful tests must be carried out in order to do that
 #         selections = numarray.sort(self.indices.arrAbs[:relCoords])
 #         #selections = self.indices.arrAbs[:relCoords]
-#         print "selections-->", selections
-#         #print "time doing revIndexing:", time.time()-t1
 #         return selections
 
     def _getLookupRange(self, column):
@@ -438,7 +491,35 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         ctype = column.type
         itemsize = table.colitemsizes[column.name]
         notequal = 0
-        # Boolean types are a special case
+        # Check that limits are compatible with type
+        for limit in ilimit:
+            # Check for strings
+            if str(ctype) == "CharType":
+                assert type(limit) == types.StringType, \
+"Bounds (or range limits) for strings columns can only be strings."
+            # Check for booleans
+            elif isinstance(numarray.typeDict[str(ctype)],
+                          numarray.BooleanType):
+                assert (type(limit) == types.IntType or
+                        type(limit) == types.BooleanType), \
+"Bounds (or range limits) for bool columns can only be ints or booleans."
+            # Check for ints
+            elif isinstance(numarray.typeDict[str(ctype)],
+                          numarray.IntegralType):
+                assert (type(limit) == types.IntType or
+                        type(limit) == types.FloatType), \
+"Bounds (or range limits) for integer columns can only be ints or floats."
+            # Check for floats
+            elif isinstance(numarray.typeDict[str(ctype)],
+                          numarray.FloatingType):
+                assert (type(limit) == types.IntType or
+                        type(limit) == types.FloatType), \
+"Bounds (or range limits) for float columns can only be ints or floats."
+            else:
+                raise ValueError, \
+"Bounds (or range limits) can only be strings, bools, ints or floats."
+            
+        # Boolean types are a special case for searching
         if str(ctype) == "Bool":
             if len(table.ops) == 1 and table.ops[0] == 5: # __eq__
                 item = (ilimit[0], ilimit[0])
