@@ -69,19 +69,27 @@ def readFile(filename, atom, niter, verbose):
     fileh = openFile(filename, mode = "r")
     table = fileh.root.table
     print "reading", table
+    if atom == "int":
+        idxcol = table.cols.var2.index
+    else:
+        idxcol = table.cols.var3.index
     if verbose:
         print "Max rows in buf:", table._v_maxTuples
         print "Rows in", table._v_pathname, ":", table.nrows
         print "Buffersize:", table.rowsize * table._v_maxTuples
         print "MaxTuples:", table._v_maxTuples
+        print "Chunk size:", idxcol.sorted.chunksize
+        print "Number of elements per slice:", idxcol.nelemslice
+        print "Slice number in", table._v_pathname, ":", idxcol.nrows
 
     rowselected = 0
     if atom == "int":
         for i in xrange(niter):
             #results = [table.row["var3"] for i in table(where=2+i<=table.cols.var2 < 10+i)]
 #             results = [table.row.nrow() for i in table(where=2<=table.cols.var2 < 10)]
-            results = [p["var3"]
+            results = [p["var2"] #p.nrow()
                        for p in table(where=100*i<=table.cols.var2<100*(i+1))]
+#                       for p in table(where=100<=table.cols.var2<110)]
             rowselected += len(results)
     elif atom == "float":
         for i in xrange(niter):

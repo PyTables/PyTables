@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.128 2004/06/28 12:03:23 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.129 2004/06/29 08:49:40 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.128 $"
+__version__ = "$Revision: 1.129 $"
 
 
 import sys, os
@@ -909,7 +909,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.128 2004/06/28 12:03:23 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.129 2004/06/29 08:49:40 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1926,10 +1926,8 @@ cdef class Row:
         # create buffers for indices
         if ncoords > self.nrowsinbuf:
           self.index.indices._initIndexSlice(self.nrowsinbuf)
-          #self.index._newBuffer(self.nrowsinbuf)
         else:
           self.index.indices._initIndexSlice(ncoords)
-          #self.index._newBuffer(ncoords)
         self.coords = coords
         if self.coords:
           self.stop = len(coords)
@@ -1960,30 +1958,40 @@ cdef class Row:
           self.bufcoords = self.coords[self.nrowsread:self.nrowsread+self.nrowsinbuf]
         else:
           self.bufcoords = self.index.getCoords(self.nrowsread, self.nrowsinbuf)
-        self.indexChunk = -1
+        self._row = -1
         recout = self._table._read_elements(0, self.bufcoords)
         if self._table.byteorder <> sys.byteorder:
           self._recarray._byteswap()
         self.nrowsread = self.nrowsread + recout
 
-      self.indexChunk = self.indexChunk + 1
-      self._nrow = self.bufcoords[self.indexChunk]
-      self._row = self.indexChunk
+      self._row = self._row + 1
+      self._nrow = self.bufcoords[self._row]
       self.nextelement = self.nextelement + 1
       # Return this row
       return self
     else:
-      self._table._close_read()  # Close the table
       # Re-initialize the possible cuts in columns
-      self._table.ops = []
-      self._table.opsValues = []
-      self._table.whereColname = None
-      self.whereCond = 0
       self.indexed = 0
       self.coords = None
-      #self.index._delBuffer()  # Remove buffers
-      self.index.indices._destroyIndexSlice()  # Remove buffers in indices
-      raise StopIteration        # end of iteration
+      #self.index.indices._destroyIndexSlice()  # Remove buffers in indices
+      nextelement = self.index.nelemslice * self.index.nrows
+      if nextelement >= self.nrows:
+        self._table._close_read()  # Close the table
+        self._table.ops = []
+        self._table.opsValues = []
+        self._table.whereColname = None
+        self.index = 0
+        self.whereCond = 0
+        raise StopIteration        # end of iteration
+      else:
+        # Continue the iteration with the __next__whereCond() method
+        self.start = nextelement
+        self.stop = self.nrows
+        self.step = 1
+        self.startb = 0
+        self.nrowsread = self.start
+        self._nrow = self.start - self.step
+        return self.__next__whereCond()
 
   cdef __next__whereCond(self):
     """The version of next() in case of in-kernel conditions"""
@@ -2587,6 +2595,7 @@ cdef class Array:
 
 
 cdef class IndexArray(Array):
+  """Homogeneous dataset for keeping sorted and index values"""
 
   def _initIndexSlice(self, maxCoords):
     "Initialize the structures for doing a binary search"
@@ -2607,23 +2616,22 @@ cdef class IndexArray(Array):
                    long offsetl):
     cdef herr_t ret
     cdef long buflen
+    #cdef void *vrbufR, *vrbufA
     cdef int *rbufR
     cdef long long *rbufA
     cdef long long offset
     cdef int j, len
 
     # Correct the start of the buffer with offsetl
-    self.vrbufR = <void *>(<char *>self.vrbufR + offsetl)
-    self.vrbufA = <void *>(<char *>self.vrbufA + offsetl)
+    rbufR = <int *>self.vrbufR + offsetl
+    rbufA = <long long *>self.vrbufA + offsetl
     # Do the physical read
     ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id, self.type_id,
-                                 irow, start, stop, self.vrbufR)
+                                 irow, start, stop, rbufR)
     if ret < 0:
       raise RuntimeError("Problems reading the array data.")
 
     # Now, compute the absolute coords for table rows by adding the offset
-    rbufR = <int *>self.vrbufR
-    rbufA = <long long *>self.vrbufA
     len = stop-start
     offset = irow*self.nelemslice
     for j from 0 <= j < len: 
@@ -2640,52 +2648,6 @@ cdef class IndexArray(Array):
     del self.arrRel
     del self.arrAbs
 
-  # The next represents a try to implement getCoords for != operator
-  # but it turns out to be too difficult, well, at least to me :(
-  # 2004-06-22
-#   def _g_readIndex_notequal(self, int i, int ns, int notequal,
-#                             startl, stopl, stepl, bufferR, bufferA):
-#     cdef herr_t ret
-#     cdef long ndims, buflen, len
-#     cdef void *startlb, *stoplb, *steplb, *vrbufR, *vrbufA
-#     cdef int *rbufR
-#     cdef long long *rbufA
-#     cdef long long offset
-#     cdef long offsetl
-#     cdef int j
-
-#     # Get the pointer to the buffer data area of startl, stopl and stepl arrays
-#     ndims = NA_getBufferPtrAndSize(startl._data, 1, &startlb)
-#     ndims = NA_getBufferPtrAndSize(stopl._data, 1, &stoplb)
-#     ndims = NA_getBufferPtrAndSize(stepl._data, 1, &steplb)
-#     # Get the pointer to the buffer data area
-#     buflen = NA_getBufferPtrAndSize(bufferR._data, 1, &vrbufR)
-#     buflen = NA_getBufferPtrAndSize(bufferA._data, 1, &vrbufA)
-#     # Correct the start of the buffer with the _byteoffset
-#     offsetl = bufferR._byteoffset
-#     vrbufR = <void *>(<char *>vrbufR + offsetl)
-#     offsetl = bufferA._byteoffset
-#     vrbufA = <void *>(<char *>vrbufA + offsetl)
-#     # Do the physical read
-#     ret = H5ARRAYreadIndex(self.parent_id, self.name, notequal,
-#                            <hsize_t *>startlb, <hsize_t *>stoplb,
-#                            <hsize_t *>steplb, vrbufR)
-#     if ret < 0:
-#       raise RuntimeError("Problems reading the array data.")
-
-#     # Now, compute the absolute coords for table rows by adding the offset
-#     rbufR = <int *>vrbufR
-#     rbufA = <long long *>vrbufA
-#     offset = i*ns
-#     # Number of elements that have been read
-#     len = stopl[1]-startl[1]
-#     if notequal:
-#       len = ns - len
-#     for j from  0 <= j < len: 
-#       rbufA[j] = rbufR[j] + offset
-      
-#     return 
-
   def _initSortedSlice(self, int bufsize):
     "Initialize the structures for doing a binary search"
     cdef long ndims, buflen
@@ -2696,7 +2658,6 @@ cdef class IndexArray(Array):
     # Set the same byteorder than on-disk
     self.bufferl._byteorder = self.byteorder
 
-    # Get the pointer to the buffer data area of startl, stopl and stepl arrays
     # Get the pointer to the buffer data area
     buflen = NA_getBufferPtrAndSize(self.bufferl._data, 1, &self.rbuflb)
 
@@ -2704,9 +2665,6 @@ cdef class IndexArray(Array):
     if (H5ARRAYOopen_readSlice(&self.dataset_id, &self.space_id,
                                &self.type_id, self.parent_id, self.name) < 0):
       raise RuntimeError("Problems opening the sorted array data.")
-
-    # Setup the stride elements
-    #self.stride[0] = 1; self.stride[1] = 1
 
   def _readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):
     "Read the sorted part of an index"
@@ -2760,7 +2718,6 @@ cdef class IndexArray(Array):
         mid = (lo+hi)/2
         start = (mid/chunksize)*chunksize
         buffer = self._readSortedSlice(nrow, start, start+chunksize)
-        #buffer = self._readSortedSlice(nrow, start)
         #buffer = xrange(start,start+chunksize) # test
         niter = niter + 1
         result = self._bisect_left(buffer, item, chunksize)
@@ -2807,7 +2764,7 @@ cdef class IndexArray(Array):
         result1 = self._bisect_left(buffer, item1, chunksize)
         if 0 < result1 < chunksize:
             item1done = 1
-            result1 = hi - chunksize + result1 ## ??
+            result1 = hi - chunksize + result1
         elif result1 == chunksize:
             item1done = 1
             result1 = hi
@@ -2815,7 +2772,7 @@ cdef class IndexArray(Array):
         result2 = self._bisect_left(buffer, item2, chunksize)
         if 0 < result2 < chunksize:
             item2done = 1
-            result2 = hi - chunksize + result2  ## ??
+            result2 = hi - chunksize + result2
         elif result2 == chunksize:
             item2done = 1
             result2 = hi
@@ -2833,11 +2790,65 @@ cdef class IndexArray(Array):
         niter = niter + iter
     return (result1, result2, niter)
 
+
 cdef class Index:
+  """Container for sorted and indices datasets"""
   # Instance variables
 
   # Methods
   pass
+#   def search(self, item, notequal):
+#     """Do a binary search in this index for an item"""
+#     cdef long ntotaliter, tlen, bufsize, i, start, stop, niter
+    
+#     #t1=time.time()
+#     ntotaliter = 0; tlen = 0
+#     self.starts = []; self.lengths = []
+#     bufsize = self.sorted._v_chunksize[1] # number of elements/chunksize
+#     self.nelemslice = self.sorted.nelemslice   # number of columns/slice
+#     self.sorted._initSortedSlice(bufsize)
+#     # Do the lookup for values fullfilling the conditions
+#     #for i in xrange(self.sorted.nrows):
+#     for i from 0 <= i < self.sorted.nrows:
+#       (start, stop, niter) = self.sorted._searchBin(i, item)
+#       self.starts.append(start)
+#       self.lengths.append(stop - start)
+#       ntotaliter = ntotaliter + niter
+#       tlen = tlen + (stop - start)
+#     self.sorted._destroySortedSlice()
+#     #print "time reading indices:", time.time()-t1
+#     return tlen
+
+#   def getCoords(self, long long startCoords, long maxCoords):
+#     """Get the coordinates of indices satisfiying the cuts"""
+#     cdef long len1, len2, leni, stop, relCoords, irow, startl, stopl
+    
+#     #t1=time.time()
+#     len1 = 0; len2 = 0;
+#     stop = 0; relCoords = 0
+#     for irow from  0 <= irow < self.sorted.nrows: 
+#       leni = self.lengths[irow]; len2 = len2 + leni
+#       if (leni > 0 and len1 <= startCoords < len2):
+#         startl = self.starts[irow] + (startCoords-len1)
+#         if maxCoords >= leni - (startCoords-len1):
+#           # Values fit on buffer
+#           stopl = startl + leni
+#         else:
+#           # Stop after this iteration
+#           stopl = startl + maxCoords
+#           stop = 1
+#         self.indices._g_readIndex(irow, startl, stopl, relCoords)
+#         relCoords = relCoords + stopl - startl
+#         if stop:
+#           break
+#         maxCoords = maxCoords - (leni - (startCoords-len1))
+#         startCoords = startCoords + (leni - (startCoords-len1))
+#       len1 = len1 + leni
+                
+#     selections = numarray.sort(self.indices.arrAbs[:relCoords])
+#     #selections = self.indices.arrAbs[:relCoords]
+#     #print "time doing revIndexing:", time.time()-t1
+#     return selections
 
 cdef class VLArray:
   # Instance variables
