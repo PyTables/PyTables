@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.91 2003/12/06 10:23:31 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.92 2003/12/09 20:35:32 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.91 $"
+__version__ = "$Revision: 1.92 $"
 
 
 import sys, os
@@ -477,7 +477,7 @@ cdef extern from "H5ARRAY.h":
   herr_t H5ARRAYmake( hid_t loc_id, char *dset_name, char *title,
                       char *flavor, char *obversion,
                       int rank, hsize_t *dims, int extdim,
-                      hid_t type_id, hsize_t chunk_size, void  *fill_data,
+                      hid_t type_id, hsize_t max_tuples, void *fill_data,
                       int compress, char  *complib, int shuffle,
                       void *data)
 
@@ -814,7 +814,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.91 2003/12/06 10:23:31 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.92 2003/12/09 20:35:32 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1970,7 +1970,7 @@ cdef class Array:
     version = PyString_AsString(self._v_version)
     ret = H5ARRAYmake(self.parent_id, self.name, title,
                       flavor, version, self.rank, self.dims, self.extdim,
-                      self.type_id, self._v_chunksize, rbuf,
+                      self.type_id, self._v_maxTuples, rbuf,
                       self._v_compress, complib, self._v_shuffle,
                       rbuf)
     if ret < 0:
@@ -1988,21 +1988,20 @@ cdef class Array:
     cdef object shape
 
     # Allocate space for the dimension axis info
-    print "---1---"
     rank = len(naarr.shape)
     dims_arr = <hsize_t *>malloc(rank * sizeof(hsize_t))
     # Fill the dimension axis info with adequate info (and type!)
     for i from  0 <= i < rank:
         dims_arr[i] = naarr.shape[i]
-    print "---2---"        
+
     # Get the pointer to the buffer data area
     if PyObject_AsReadBuffer(naarr._data, &rbuf, &buflen) < 0:
       raise RuntimeError("Problems getting the buffer area.")
-    print "---3---"
+
     # Append the records:
     ret = H5ARRAYappend_records(self.parent_id, self.name, self.rank,
                                 self.dims, dims_arr, self.extdim, rbuf)
-    print "---4---"
+
     free(dims_arr)
     if ret < 0:
       raise RuntimeError("Problems appending the records.")

@@ -14,7 +14,7 @@ void *wrkmem;
 
 #endif
 
-#undef DEBUG
+/* #undef DEBUG */
 
 /* Activate the checksum. It is safer and takes only a 1% more of
    space and a 2% more of CPU (but sometimes is faster than without
@@ -215,42 +215,38 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
 
 #ifdef CHECKSUM
     if (object_version >= 20) {
-      z_dst_nbytes += 4+4; 	/* Checksum + buffer size */
+      z_dst_nbytes += 4+4;      /* Checksum + buffer size */
     }
 #endif
 
     if (NULL==(z_dst=outbuf=(void *)malloc(z_dst_nbytes))) {
-	fprintf(stderr, "Unable to allocate lzo destination buffer.\n");
-	ret_value = 0; /* fail */
-	goto done;
+      fprintf(stderr, "Unable to allocate lzo destination buffer.\n");
+      ret_value = 0; /* fail */
+      printf("Hola 1\n");
+      goto done;
     }
 
     /* Compress this buffer */
     status = lzo1x_1_compress (z_src, z_src_nbytes, z_dst, &z_dst_nbytes,
 			       wrkmem);
+
 #ifdef CHECKSUM
     if (object_version >= 20) {
 #ifdef DEBUG
       printf("Checksum compressing ...");
-      printf("zdst_nbytes 2 --> %d", z_dst_nbytes);
+      printf("src_nbytes: %d, dst_nbytes: %d\n", z_src_nbytes, z_dst_nbytes);
 #endif
       /* Append checksum of *uncompressed* data at the end */
       checksum = lzo_adler32(lzo_adler32(0,NULL,0), *buf, nbytes);
       memcpy((char*)(z_dst)+z_dst_nbytes, &checksum, 4);
       memcpy((char*)(z_dst)+z_dst_nbytes+4, &nbytes, 4);
       z_dst_nbytes += (lzo_uint)4+4;
-      nbytes += 4+4; 
+      nbytes += 4+4;
     }
 #endif
 
-    if (z_dst_nbytes >= nbytes) {
-#ifdef DEBUG
-      printf("The compressed buffer takes more space than uncompressed!.\n");
-#endif
-      ret_value = 0; /* fail */
-      goto done;
-    } else if (LZO_E_OK != status) {
-      /* fprintf(stderr,"lzo error"); */
+    if (LZO_E_OK != status) {
+      fprintf(stderr,"lzo library error in compression\n");
       ret_value = 0; /* fail */
       goto done;
     } else {

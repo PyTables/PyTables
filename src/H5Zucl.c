@@ -46,7 +46,11 @@
 /* With the nrv2d enabled by default this seems to work just fine */
 /* #define H5Z_UCL_SIZE_ADJUST(s) ((s)+((s)/8)+256) /\* Correct value *\/ */
 /* Added this for a bit more of safety! */
-#define H5Z_UCL_SIZE_ADJUST(s) (ceil((double)((s)*1.001))+((s)/8)+256+12)
+/* #define H5Z_UCL_SIZE_ADJUST(s) (ceil((double)((s)*1.001))+((s)/8)+256+12) */
+/* After returning always the compressed buffer, and even with the
+   current value, UCL nrv2e seems to work just fine. Great!. 2003/12/09
+ */
+#define H5Z_UCL_SIZE_ADJUST(s) ((s)+((s)/8)+256) /* Correct value */
 
 int register_ucl(void) {
 
@@ -162,7 +166,7 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
       printf("nalloc -->%d\n", nalloc);
       printf("max_len_buffer -->%d\n", max_len_buffer);
 #endif /* DEBUG */
-      if (object_version >= 20) {
+      if (object_version >= 20 && object_version < 21) {
 	status = ucl_nrv2d_decompress_safe_8(*buf, (ucl_uint)nbytes, outbuf,
 					     &out_len, NULL);
       }
@@ -252,20 +256,27 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
        
        The nrv2b and nrv2d seems to give no problems. I'm adopting the
        nrv2d which is slightly better (more compression) than
-       nrv2b. The best is, though, the nrv2e.
-
-       F. Alted 2003/07/22 
+       nrv2b. The best is, though, the nrv2e. F. Alted 2003/07/22 
        
-       New note: I've discovered that adding some more space to the
+       Note: I've discovered that adding some more space to the
        nrv2e compressor, it seems to work fine. I'm pretty sure that
        this does not solve the problem, it just makes the seg faults
        harder to appear. I'm adopting this strategy in order to keep
        backward compatibility with the existing files writen with
        pytables 0.5.x.  F. Alted 2003/07/24
 
-*/
-    /* For compression, use nrv2e only if table VERSION is less than 2.0 */
-    if (object_version >= 20)
+       Note: Finally, I think I've found what was causing problems
+       with nrv2e.  It seems that after forcing returning the
+       compressed buffer, no matter if it is compressible or not, the
+       crashes due to the UCL compressor has disappeared. I upgraded
+       both the Table and Array version to 2.1 in order to get back to
+       use nrv2e, that gives a little better compression ratio.
+       F. Alted 2003/12/09
+
+    */
+
+    /* For compression, use nrv2d only if object VERSION is 2.0 */
+    if (object_version >= 20 && object_version < 21)
       status = ucl_nrv2d_99_compress(z_src, z_src_nbytes, z_dst, &z_dst_nbytes,
 				     0, complevel, NULL, NULL);
     else
@@ -285,11 +296,7 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
     }
 #endif
 
-    if (z_dst_nbytes >= nbytes) {
-/*       fprintf(stderr,"overflow"); */
-      ret_value = 0; /* Incompressible chunk */
-      goto done;
-    } else if (UCL_E_OK != status) {
+    if (UCL_E_OK != status) {
       /* This should never happen! */
       fprintf(stderr,"ucl error!. This should not happen!.\n");
       ret_value = 0; /* fail */

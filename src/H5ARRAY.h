@@ -22,11 +22,11 @@ herr_t H5ARRAYmake( hid_t loc_id,
 		    const hsize_t *dims,
 		    int   extdim,
 		    hid_t type_id,
-		    hsize_t chunk_size,	/* New */
-		    void  *fill_data,	/* New */
-		    int   compress,	/* New */
-		    char  *complib,	/* New */
-		    int   shuffle,	/* New */
+		    hsize_t max_tuples,
+		    void  *fill_data,
+		    int   compress,
+		    char  *complib,
+		    int   shuffle,
 		    const void *data);
 
 herr_t H5ARRAYappend_records( hid_t loc_id, 

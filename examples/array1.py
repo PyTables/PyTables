@@ -9,10 +9,10 @@ fileh = openFile("array1.h5", mode = "w")
 root = fileh.root
 
 # Create an array
-a = strings.array(['1', '2', '4'])
+a = strings.array(None, itemsize=1, shape=(0,))  # That needs numarray 0.8
 # Save it on the HDF5 file
 hdfarray = fileh.createArray(root, 'array_c', a, "Character array")
-hdfarray.append(strings.array(['c', 'b', 'c']))
+hdfarray.append(strings.array(['a', 'b', 'c']))
 # The next is legal:
 hdfarray.append(strings.array(['c', 'b', 'c', 'd']))
 # but these are not:

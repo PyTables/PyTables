@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.7 2003/12/02 18:37:01 falted Exp $
+#       $Id: utils.py,v 1.8 2003/12/09 20:35:33 falted Exp $
 #
 ########################################################################
 
@@ -167,8 +167,6 @@ def calcBufferSize(rowsize, expectedrows, compress):
     # Max Tuples to fill the buffer
     maxTuples = buffersize // rowsize
     # Safeguard against row sizes being extremely large
-    # I think this is not necessary because of the protection against
-    # too large row sizes, but just in case.
     if maxTuples == 0:
         maxTuples = 1
     # A new correction for avoid too many calls to HDF5 I/O calls

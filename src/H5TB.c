@@ -29,6 +29,7 @@
 
 #define MAX(X,Y)	((X)>(Y)?(X):(Y))
 
+char    *VERSION = "2.1";  /* The Table VERSION number */
 
 /*-------------------------------------------------------------------------
  * 
@@ -95,7 +96,6 @@ herr_t H5TBmake_table( const char *table_title,
  hsize_t dims_chunk[1];
  hsize_t maxdims[1] = { H5S_UNLIMITED };
  char    attr_name[255];
- char    *VERSION = "2.0";  /* The Table VERSION number */
  char    *member_name;
  hid_t   attr_id;
  char    aux[255];
@@ -3911,7 +3911,7 @@ herr_t H5TB_attach_attributes( const char *table_title,
   goto out;
 
  /* Attach the VERSION attribute */
- if ( H5LTset_attribute_string( loc_id, dset_name, "VERSION", "2.0" ) < 0 )
+ if ( H5LTset_attribute_string( loc_id, dset_name, "VERSION", VERSION ) < 0 )
   goto out;
   
  /* Attach the TITLE attribute */

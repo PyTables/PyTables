@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.40 2003/12/06 10:23:31 falted Exp $
+#       $Id: Array.py,v 1.41 2003/12/09 20:35:33 falted Exp $
 #
 ########################################################################
 
@@ -27,11 +27,11 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.40 $"
+__version__ = "$Revision: 1.41 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
-obversion = "2.0"    # support of enlargeable arrays
+obversion = "2.1"    # support of enlargeable arrays
 
 
 import types, warnings, sys
@@ -321,11 +321,8 @@ class Array(Leaf, hdf5Extension.Array, object):
         assert self.extdim >= 0, \
                "Sorry, the Array '%s' is not enlargeable." % (self._v_pathname)
         # Convert the object into a numarray object
-        print "+++1+++"
         naarr, self.flavor = self._convertIntoNA(object)
-        print "+++2+++"
         naarr = self._checkTypeShape(naarr)
-        print "+++3+++"
         self._append(naarr)
 
     def _open(self):
@@ -348,6 +345,7 @@ class Array(Leaf, hdf5Extension.Array, object):
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
                    calcBufferSize(self.rowsize, self.nrows, self._v_compress)
+        #print "maxTuples-->", self._v_maxTuples
 
     def iterrows(self, start=None, stop=None, step=None):
         """Iterator over all the rows or a range"""
@@ -402,10 +400,12 @@ class Array(Leaf, hdf5Extension.Array, object):
                     self._stopb = self._stop
                 self.listarr = self.read(self._startb, self._stopb, self._step)
                 # Swap the axes to easy the return of elements
-                if (self._stop - self._start) > self._step:
+                #print "start, stop, step:", self._startb, self._stopb, self._step
+                if (self._stopb - self._startb) > self._step:
                     # The case == step has been dealt in read() method
                     self.listarr.swapaxes(self.extdim, 0)
                 else:
+                    self.nrow += self._step   # Update self.nrow
                     self._nrowsread += self._step  # Stop condition
                     return self.listarr
                 self._row = -1
@@ -413,7 +413,7 @@ class Array(Leaf, hdf5Extension.Array, object):
             self._row += 1
             self.nrow += self._step
             self._nrowsread += self._step
-            print self._row,
+            #print self._row,
             return self.listarr[self._row]
 
     def __getitem__(self, key):
