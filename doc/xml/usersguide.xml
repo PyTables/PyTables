@@ -6781,7 +6781,7 @@ Result Array:
 	    abstract class</heading>
 
 	  <p>This is the ancestor of <verb>ROFileNode</verb> and
-	    <verb>RWFileNode</verb> (see below). Instances of these
+	    <verb>RAFileNode</verb> (see below). Instances of these
 	    classes are returned when <verb>newNode()</verb> or
 	    <verb>openNode()</verb> are called. It represents a new
 	    file node associated with a <verb>PyTables</verb> node,
@@ -6890,7 +6890,7 @@ Result Array:
 	</subsection>
 
 	<subsection>
-	  <heading>The <visual markup="tt">RWFileNode</visual>
+	  <heading>The <visual markup="tt">RAFileNode</visual>
 	    class</heading>
 
 	  <p>Instances of this class are returned when either
