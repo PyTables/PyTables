@@ -448,6 +448,168 @@ class SelectValuesTestCase(unittest.TestCase):
         assert len(results1) == len(results2)
         assert results1 == results2
 
+    def test03c(self):
+        """Checking selecting values from an Index (long flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03c..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+
+        # Convert the limits to the appropriate type
+        il = long(self.il)
+        sl = long(self.sl)
+
+        # Do some selections and check the results
+        t1col = table1.cols.var3
+
+        # First selection
+        results1 = [p["var3"] for p in table1.where(t1col < sl)]
+        results2 = [p["var3"] for p in table2
+                    if p["var3"] < sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+            print "Selection results (index):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Second selection
+        results1 = [p["var3"] for p in table1.where(t1col <= sl)]
+        results2 = [p["var3"] for p in table2
+                    if p["var3"] <= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Third selection
+        results1 = [p["var3"] for p in table1.where(t1col > sl)]
+        results2 = [p["var3"] for p in table2
+                    if p["var3"] > sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Fourth selection
+        results1 = [p["var3"] for p in table1.where(t1col >= sl)]
+        results2 = [p["var3"] for p in table2
+                    if p["var3"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+    def test03d(self):
+        """Checking selecting values from an Index (long and int flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03d..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+
+        # Convert the limits to the appropriate type
+        il = int(self.il)
+        sl = long(self.sl)
+
+        # Do some selections and check the results
+        t1col = table1.cols.var3
+
+        # First selection
+        results1 = [p["var3"] for p in table1.where(t1col < sl)]
+        results2 = [p["var3"] for p in table2
+                    if p["var3"] < sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+            print "Selection results (index):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Second selection
+        results1 = [p["var3"] for p in table1.where(t1col <= sl)]
+        results2 = [p["var3"] for p in table2
+                    if p["var3"] <= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Third selection
+        results1 = [p["var3"] for p in table1.where(t1col > sl)]
+        results2 = [p["var3"] for p in table2
+                    if p["var3"] > sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Fourth selection
+        results1 = [p["var3"] for p in table1.where(t1col >= sl)]
+        results2 = [p["var3"] for p in table2
+                    if p["var3"] >= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limit:", sl
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
     def test04a(self):
         """Checking selecting values from an Index (float flavor)"""
 

@@ -51,6 +51,10 @@ Improvements:
   not forbidding) you in such a case. Of course, you have to use the
   getattr() function so as to access such a non-valid natural names.
 
+- The indexes of Tables and *Arrays can be of LongType apart of
+  IntType. However, indexes in slices are still restricted to regular
+  IntType.
+
 
 Backward-incompatible changes:
 

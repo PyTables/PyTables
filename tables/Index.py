@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.27 2004/12/09 13:02:00 falted Exp $
+#       $Id: Index.py,v 1.28 2004/12/17 10:27:15 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.27 $"
+__version__ = "$Revision: 1.28 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -656,18 +656,21 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
             elif isinstance(numarray.typeDict[str(ctype)],
                           numarray.BooleanType):
                 assert (type(limit) == types.IntType or
+                        type(limit) == types.LongType or
                         type(limit) == types.BooleanType), \
 "Bounds (or range limits) for bool columns can only be ints or booleans."
             # Check for ints
             elif isinstance(numarray.typeDict[str(ctype)],
                           numarray.IntegralType):
                 assert (type(limit) == types.IntType or
+                        type(limit) == types.LongType or
                         type(limit) == types.FloatType), \
 "Bounds (or range limits) for integer columns can only be ints or floats."
             # Check for floats
             elif isinstance(numarray.typeDict[str(ctype)],
                           numarray.FloatingType):
                 assert (type(limit) == types.IntType or
+                        type(limit) == types.LongType or
                         type(limit) == types.FloatType), \
 "Bounds (or range limits) for float columns can only be ints or floats."
             else:

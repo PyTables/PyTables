@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.82 2004/12/15 17:57:45 falted Exp $
+#       $Id: Array.py,v 1.83 2004/12/17 10:27:15 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.82 $"
+__version__ = "$Revision: 1.83 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -367,7 +367,7 @@ class Array(Leaf, hdf5Extension.Array, object):
                     stopl[dim] = self.shape[diml]
                     stepl[dim] = 1
                     dim += 1
-            elif isinstance(key, types.IntType):
+            elif type(key) in [types.IntType, types.LongType]:
                 # Index out of range protection
                 if key >= self.shape[dim]:
                     raise IndexError, "Index out of range"
@@ -447,7 +447,11 @@ class Array(Leaf, hdf5Extension.Array, object):
             elif dim >= maxlen:
                 raise IndexError, "Too many indices for object '%s'" % \
                       self._v_pathname
-            elif isinstance(key, types.IntType):
+            # The next sentence makes several tests in test_numarray to fail
+            # I don't know why. 2004-12-17
+            #elif type(key) in [types.IntType, types.LongType]:
+            elif (isinstance(key, types.IntType) or
+                  isinstance(key, types.LongType)):
                 # Index out of range protection
                 if key >= self.shape[dim]:
                     raise IndexError, "Index out of range"

@@ -6,7 +6,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.152 2004/12/15 17:57:44 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.153 2004/12/17 10:27:14 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.152 $"
+__version__ = "$Revision: 1.153 $"
 
 
 import sys, os
@@ -127,10 +127,6 @@ cdef extern from "Python.h":
   int PyObject_CheckReadBuffer(object)
   int PyObject_AsReadBuffer(object, void **rbuf, int *len)
   int PyObject_AsWriteBuffer(object, void **rbuf, int *len)
-
-  # To get the indices of a slice in python 2.2
-  int PySlice_GetIndices(object r, int length,
-                         int *start, int *stop, int *step)
 
 # Structs and functions from numarray
 cdef extern from "numarray/numarray.h":
@@ -791,8 +787,9 @@ cdef extern from "utils.h":
   object H5UIget_info( hid_t loc_id, char *name, char *byteorder)
 
   # To access to the slice.indices function in 2.2
-  int GetIndicesEx(object s, int length,
-                   int *start, int *stop, int *step, int *slicelength)
+  int GetIndicesEx(object s, hsize_t length,
+                   int *start, int *stop, int *step,
+                   int *slicelength)
 
   object get_attribute_string_sys( hid_t loc_id, char *obj_name,
                                    char *attr_name)
@@ -825,7 +822,7 @@ ucl_version = register_ucl()
 # def PyNextAfterF(float x, float y):
 #   return nextafterf(x, y)
 
-def getIndices(object s, int length):
+def getIndices(object s, hsize_t length):
   cdef int start, stop, step, slicelength
 
   if GetIndicesEx(s, length, &start, &stop, &step, &slicelength) < 0:
@@ -943,7 +940,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.152 2004/12/15 17:57:44 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.153 2004/12/17 10:27:14 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""

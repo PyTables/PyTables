@@ -427,8 +427,9 @@ out:
 
 /* F. Altet 2004-01-19 */
 
-int GetIndicesEx(PyObject *s, int length,
-		 int *start, int *stop, int *step, int *slicelength)
+int GetIndicesEx(PyObject *s, hsize_t length,
+		 int *start, int *stop, int *step, 
+		 int *slicelength)
 {
 	/* this is harder to get right than you might think */
 
@@ -677,7 +678,7 @@ herr_t _close_id( hid_t obj_id,
    which is the first member. */
 static H5T_order_t get_complex_order(hid_t type_id) {
   hid_t class_id, base_type_id;
-  hid_t real_type;
+  hid_t real_type = 0;
   H5T_order_t result = 0;
 
   class_id = H5Tget_class(type_id);

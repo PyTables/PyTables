@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.139 2004/12/09 13:02:00 falted Exp $
+#       $Id: Table.py,v 1.140 2004/12/17 10:27:15 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.139 $"
+__version__ = "$Revision: 1.140 $"
 
 from __future__ import generators
 import sys
@@ -758,7 +758,7 @@ class Table(Leaf, hdf5Extension.Table, object):
 
 """
 
-        if isinstance(key, types.IntType):
+        if type(key) in [types.IntType, types.LongType]:
             # Index out of range protection
             if key >= self.nrows:
                 raise IndexError, "Index out of range"
@@ -793,7 +793,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         """
         assert self._v_file.mode <> "r", "Attempt to write over a file opened in read-only mode"
 
-        if isinstance(key, types.IntType):
+        if type(key) in [types.IntType, types.LongType]:
             # Index out of range protection
             if key >= self.nrows:
                 raise IndexError, "Index out of range"
@@ -1353,8 +1353,8 @@ class Column(object):
         CharArray object (whatever is appropriate).
 
         """
-        
-        if isinstance(key, types.IntType):
+
+        if type(key) in [types.IntType, types.LongType]:
             # Index out of range protection
             if key >= self.table.nrows:
                 raise IndexError, "Index out of range"
@@ -1386,7 +1386,7 @@ class Column(object):
         """
         assert self.table._v_file.mode <> "r", "Attempt to write over a file opened in read-only mode"
 
-        if isinstance(key, types.IntType):
+        if type(key) in [types.IntType, types.LongType]:
             # Index out of range protection
             if key >= self.table.nrows:
                 raise IndexError, "Index out of range"

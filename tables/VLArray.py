@@ -8,7 +8,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.38 2004/12/09 13:02:01 falted Exp $
+#       $Id: VLArray.py,v 1.39 2004/12/17 10:27:16 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.38 $"
+__version__ = "$Revision: 1.39 $"
 
 # default version for VLARRAY objects
 #obversion = "1.0"    # initial version
@@ -577,7 +577,8 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 
         """
 
-        if isinstance(key, types.IntType):
+        if (isinstance(key, types.IntType) or
+            isinstance(key, types.LongType)):
             if key >= self.nrows:
                 raise IndexError, "Index out of range"
             if key < 0:
@@ -624,7 +625,8 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             raise IndexError, "You cannot specify more than two dimensions"
         nrow, rng = keys
         # Process the first index
-        if not isinstance(nrow, types.IntType):
+        if not (isinstance(nrow, types.IntType) or
+                isinstance(nrow, types.LongType)):
             raise IndexError, "The first dimension only can be an integer"
         if nrow >= self.nrows:
             raise IndexError, "First index out of range"
@@ -632,7 +634,8 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             # To support negative values
             nrow += self.nrows
         # Process the second index
-        if isinstance(rng, types.IntType):
+        if (isinstance(rng, types.IntType) or
+            isinstance(rng, types.LongType)):
             start = rng; stop = start+1; step = 1
         elif isinstance(rng, types.SliceType):
             start, stop, step = rng.start, rng.stop, rng.step

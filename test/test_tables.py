@@ -1177,7 +1177,7 @@ class getItemTestCase(unittest.TestCase):
     #----------------------------------------
 
     def test01a_singleItem(self):
-        """Checking __getitem__ method with single parameter """
+        """Checking __getitem__ method with single parameter (int) """
 
         if verbose:
             print '\n', '-=' * 30
@@ -1196,7 +1196,7 @@ class getItemTestCase(unittest.TestCase):
         assert result[1] == self.expectedrows - 1
 
     def test01b_singleItem(self):
-        """Checking __getitem__ method with single parameter (negative)"""
+        """Checking __getitem__ method with single parameter (neg. int)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -1213,6 +1213,44 @@ class getItemTestCase(unittest.TestCase):
         result = table[-self.expectedrows]
         #assert result.field("var2") == 0
         assert result[1] == 0
+
+    def test01c_singleItem(self):
+        """Checking __getitem__ method with single parameter (long)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01c_singleItem..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        table = self.fileh.root.table0
+        result = table[2L]
+        #assert result.field("var2") == 2
+        assert result[1L] == 2
+        result = table[25L]
+        #assert result.field("var2") == 25
+        assert result[1L] == 25
+        result = table[self.expectedrows-1]
+        #assert result.field("var2") == self.expectedrows - 1
+        assert result[1L] == self.expectedrows - 1
+
+    def test01d_singleItem(self):
+        """Checking __getitem__ method with single parameter (neg. long)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01d_singleItem..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        table = self.fileh.root.table0
+        result = table[-5L]
+        #assert result.field("var2") == self.expectedrows - 5
+        assert result[1L] == self.expectedrows - 5
+        result = table[-1L]
+        #assert result.field("var2") == self.expectedrows - 1
+        assert result[1L] == self.expectedrows - 1
+        result = table[-self.expectedrows]
+        #assert result.field("var2") == 0
+        assert result[1L] == 0
 
     def test02_twoItems(self):
         """Checking __getitem__ method with start, stop parameters """
@@ -1378,6 +1416,45 @@ class setItem(unittest.TestCase):
         
         # Modify just one existing row
         table[2] = [456,'db2',1.2]
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
+                          [456,'db2',1.2],[5,'de1',1.3]],
+                         formats="i4,a3,f8",
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table._v_maxTuples = self.buffersize  # set buffer value
+        r2 = table.read()
+        if verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+        
+    def test01b(self):
+        "Checking modifying one table row with __setitem__ (long index)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01b..." % self.__class__.__name__
+
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "w")
+
+        # Create a new table:
+        table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
+        table._v_maxTuples = self.buffersize  # set buffer value
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        
+        # Modify just one existing row
+        table[2L] = [456,'db2',1.2]
         # Create the modified recarray
         r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
                           [456,'db2',1.2],[5,'de1',1.3]],
