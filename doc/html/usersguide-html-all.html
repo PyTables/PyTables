@@ -3,7 +3,7 @@
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" lang="en"><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2003-03-17T21:02:40+01:00"><meta name="Date" content="2003-03-17T21:02:40+01:00"><meta name="DC.Rights" content="(c) 2003 Francesc Alted"><meta name="Copyright" content="(c) 2003 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Release 0.4.5"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2003-05-07T21:08:48+02:00"><meta name="Date" content="2003-05-07T21:08:48+02:00"><meta name="DC.Rights" content="(c) 2003 Francesc Alted"><meta name="Copyright" content="(c) 2003 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -121,9 +121,7 @@
     pre { text-indent: 0pt }
     span.i-see { font-style: italic; }
 </style></head><body bgcolor="#FFFFFF"><div class="document">
-  <div class="header"><div class="authorlist"><span>Francesc&nbsp;Alted</span></div><p></p><font size="7" face="Sans-Serif"><b><div class="title"><tt>PyTables</tt> User's Guide</div></b></font><p></p><div class="legal">All rights reserved.<br>&copy;&nbsp;2003 Francesc&nbsp;Alted<br><br><br>
-
-
+  <div class="header"><div class="authorlist"><span>Francesc&nbsp;Alted</span></div><p></p><font size="7" face="Sans-Serif"><b><div class="title"><tt>PyTables</tt> User's Guide</div></b></font><p></p><div class="subtitle">Release 0.4.5</div><div class="legal">All rights reserved.<br>&copy;&nbsp;2003 Francesc&nbsp;Alted<br><br><br>
 
 
     </div></div><hr><div class="toc" id="tb:table-of-contents"><h1 class="toc">Table of Contents</h1><table class="toc" cellspacing="0pt" cellpadding="0pt"><tr><td class="number1"><div class="toplevel-toc">1</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="#chapter1">Introduction</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">1.1</td><td colspan="2"><a href="#section1.1">Main Features</a></td></tr><tr><td>&nbsp;</td><td class="number2">1.2</td><td colspan="2"><a href="#section1.2">The Object Tree</a></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">2</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="#chapter2">Installation</a></div></b></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">3</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="#chapter3">Usage</a></div></b></td></tr><tr><td>&nbsp;</td><td class="number2">3.1</td><td colspan="2"><a href="#section3.1">Getting started</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">3.1.1</td><td><a href="#subsection3.1.1">Importing <tt>tables</tt>
@@ -142,21 +140,23 @@
 	    variables</a></td></tr><tr><td colspan="2">&nbsp;</td><td class="number3">4.9.2</td><td><a href="#subsection4.9.2"><tt>Array</tt>
 	    methods</a></td></tr><tr><td>&nbsp;</td></tr><tr><td class="number1"><div class="toplevel-toc">A</div></td><td colspan="3"><b><div class="toplevel-toc"><a href="#chapterA">Supported data types in tables</a></div></b></td></tr></table></div>
 
+  
+
   <div>
       <h1 id="chapter1"><a name="chapter1"></a>Chapter&nbsp;1: Introduction</h1>
 
       <div class="aphorism">La sabidur&iacute;a no vale la pena si no es posible servirse
 	de ella para inventar una nueva manera de preparar los
 	garbanzos.<div class="aphorism-origin">&#8212;Un sabio catal&aacute;n<br> in "Cien a&ntilde;os de
-	soledad"<br> Gabriel Garc&iacute;a
-	M&aacute;rquez</div>
+	soledad"<br> Gabriel Garc&iacute;a M&aacute;rquez</div>
       </div>
 
       <p class="first">The goal of <tt class="verb">PyTables</tt> is to enable the end user
 	to manipulate easily scientific data <b>tables</b> and array objects objects in a
 	hierarchical structure. The foundation of the underlying
 	hierarchical data organization is the excellent
-	<tt class="verb">HDF5</tt> library (<a href="http://hdf.ncsa.uiuc.edu/HDF5"><tt>http://hdf.ncsa.uiuc.edu/HDF5</tt></a>). Right now,
+	<tt class="verb">HDF5</tt> library
+	(see <a href="#HDFWhatIs"><strong>??</strong></a>). Right now,
 	<tt class="verb">PyTables</tt> provides limited support of all the HDF5
 	functions, but I hope to add the more interesting ones (for
 	<tt class="verb">PyTables</tt> needs) in the near future.
@@ -235,8 +235,8 @@ class Particle(IsDescription):
 	    memory.
 	  </li>
 	  <li><em>Support of arrays:</em> <tt class="verb">Numeric</tt> (see
-	    <a href="#Numeric">Ascher <em>et&nbsp;al.</em> ()</a>) or <tt class="verb">numarray</tt>
-	    (see <a href="#Numarray">Greenfield <em>et&nbsp;al.</em> ()</a>) arrays are a very
+	    <a href="#Numeric"><strong>??</strong></a>) or <tt class="verb">numarray</tt>
+	    (see <a href="#Numarray"><strong>??</strong></a>) arrays are a very
 	    useful complement of tables to keep homogeneous table
 	    slices (like selections of table columns).
 	  </li>
@@ -275,7 +275,7 @@ class Particle(IsDescription):
 	    HDF5 files out there.
 	  </li>
 	  <li><em>Data compression:</em> It supports data
-	    compression (through the use of the <tt><b>zlib</b></tt>
+	    compression (through the use of the <tt><b>Zlib</b></tt>
 	    library) out of the box. This become important when you
 	    have repetitive data patterns and don't want to loose your
 	    time searching for an optimized way to save them (i.e. it
@@ -337,7 +337,7 @@ class Particle(IsDescription):
 	<p>The support for <em>natural naming</em> is a key aspect of
 	  <tt class="verb">PyTables</tt> and means that the names of instance
 	  variables of the node objects are the same as the names of
-	  the element's children. This is very
+	  the element's children<a href="#footnote1" name="footnoteback1"><sup>1)</sup></a>. This is very
 	  <em>Pythonic</em> and comfortable in many cases, as you can
 	  check in the tutorial <a href="#readingAndSelectingUsage">section&nbsp;3.1.6</a>.
 	</p>
@@ -421,8 +421,8 @@ fileh.close()
 	</p>
 
 	<div class="figure" id="objecttree-h5"><a name="objecttree-h5"></a>
-	  <a target="_blank" href="objecttree-h5.jpg"><img class="graphics" width="510" height="288" alt="An HDF5 example with 2 subgroups, 2 tables ... (Click for original bitmap)" src="objecttree-h5-web.jpg"></a>
-	  <div class="caption" style="width: 510px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;1.1:</span> An HDF5 example with 2 subgroups, 2 tables and 1
+	  <a target="_blank" href="objecttree-h5.jpg"><img class="graphics" alt="An HDF5 example with 2 subgroups, 2 tables ... (Click for original bitmap)" src="objecttree-h5-web.jpg"></a>
+	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;1.1:</span> An HDF5 example with 2 subgroups, 2 tables and 1
 	    array.</div></div>
 	</div>
 
@@ -431,14 +431,14 @@ fileh.close()
 	  <tt class="verb">objecttree.h5</tt> file (in fact, such an object is
 	  always created when reading any supported generic HDF5
 	  file). If you are going to become a <tt>PyTables</tt> user, take your time to
-	  understand it<a href="#footnote1" name="footnoteback1"><sup>1)</sup></a>. That will
+	  understand it<a href="#footnote2" name="footnoteback2"><sup>2)</sup></a>. That will
 	  also make you more proactive by avoiding programming
 	  mistakes.
 	</p>
 
 	<div class="figure" id="objecttree"><a name="objecttree"></a>
-	  <img class="graphics" width="523" height="579" alt="An object tree example in PyTables.&#xA;	  " src="objecttree-web.png">
-	  <div class="caption" style="width: 523px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;1.2:</span> An object tree example in <tt>PyTables</tt>.
+	  <img class="graphics" alt="An object tree example in PyTables.&#xA;	  " src="objecttree-web.png">
+	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;1.2:</span> An object tree example in <tt>PyTables</tt>.
 	  </div></div>
 	</div>
 
@@ -452,8 +452,8 @@ fileh.close()
       </p>
 
       <p>Extensions in <tt>PyTables</tt> has been
-	made using Pyrex (see <a href="#Pyrex">Ewing ()</a>) and
-	C language. You can rebuild everything from scratch if you got
+	made using Pyrex (see <a href="#Pyrex"><strong>??</strong></a>) and C
+	language. You can rebuild everything from scratch if you got
 	Pyrex installed, but this is not necessary, as the Pyrex
 	compiled source is included in the distribution. In order to
 	do that, merely replace <tt>setup.py</tt>
@@ -462,13 +462,15 @@ fileh.close()
 
       <p>To compile <tt class="verb">PyTables</tt> you will need a recent
 	version of <tt class="verb">HDF5</tt> (C flavor) library and
-	<tt class="verb">numarray</tt> (see <a href="#Numarray">Greenfield <em>et&nbsp;al.</em> ()</a>) package. Although you won't need
-	<tt class="verb">Numerical Python</tt> (see <a href="#Numeric">Ascher <em>et&nbsp;al.</em> ()</a>) in order to compile PyTables, it is
-	supported; you only will need a reasonably recent version of
-	it (&gt;= 21.x). PyTables has been succesfully tested with
-	Numeric 21.3, 22.0 and 23.0. If you have <tt class="verb">Numeric</tt>
-	installed, the test driver module will detect it and will run
-	the tests for <tt class="verb">Numeric</tt> automatically.
+	<tt class="verb">numarray</tt> (see <a href="#Numarray"><strong>??</strong></a>)
+	package. Although you won't need <tt class="verb">Numerical Python</tt>
+	(see <a href="#Numeric"><strong>??</strong></a>) in order to compile
+	PyTables, it is supported; you only will need a reasonably
+	recent version of it (&gt;= 21.x). PyTables has been successfully
+	tested with Numeric 21.3, 22.0 and 23.0. If you have
+	<tt class="verb">Numeric</tt> installed, the test driver module will
+	detect it and will run the tests for <tt class="verb">Numeric</tt>
+	automatically.
       </p>
 
       <p>The Python Distutils are used to build and install
@@ -569,8 +571,8 @@ fileh.close()
 	    <tt class="verb">-v verbose</tt>), and send back the output to
 	    developers.
 	  </p>
-	  <p>If you run into problems because Python can't load hdf5
-	    shared libraries, try to set the
+	  <p>If you run into problems because Python can't load the
+	    HDF5 shared libraries, try to set the
 	    <tt class="verb">LD_LIBRARY_PATH</tt> environment variable to point
 	    to the directory where the libraries are.
 	  </p>
@@ -1494,7 +1496,7 @@ Particle:      7 --&gt; 49.0
 	  <p>That works exactly in the same way than filling a new
 	    table. <tt class="verb">PyTables</tt> knows that this table is on
 	    disk, and when you add new records, they are appended to
-	    the end of the table<a href="#footnote2" name="footnoteback2"><sup>2)</sup></a>.
+	    the end of the table<a href="#footnote3" name="footnoteback3"><sup>3)</sup></a>.
 	  </p>
 	  <p>
 	    If you look carefully at the code you will see that we
@@ -1538,8 +1540,8 @@ Particle:     14 |       196.0 |   1.476e+09 |     14 |     -4 |       14 |
 	  </p>
 
 	  <div class="figure" id="tutorial-h5"><a name="tutorial-h5"></a>
-	    <a target="_blank" href="tutorial-h5.jpg"><img class="graphics" width="619" height="312" alt="The data file after appending some rows.&#xA;	 ... (Click for original bitmap)" src="tutorial-h5-web.jpg"></a>
-	    <div class="caption" style="width: 619px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.1:</span> The data file after appending some rows.
+	    <a target="_blank" href="tutorial-h5.jpg"><img class="graphics" alt="The data file after appending some rows.&#xA;	 ... (Click for original bitmap)" src="tutorial-h5-web.jpg"></a>
+	    <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.1:</span> The data file after appending some rows.
 	    </div></div>
 	  </div>
 
@@ -1763,8 +1765,8 @@ AttributeError: Error accessing "ADCcount" attr.
 	  </p>
 
 	  <div class="figure" id="tutorial2"><a name="tutorial2"></a>
-	    <a target="_blank" href="tutorial2-h5.jpg"><img class="graphics" width="592" height="389" alt="Table hierarchy for second example. (Click for original bitmap)" src="tutorial2-h5-web.jpg"></a>
-	    <div class="caption" style="width: 592px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.2:</span> Table hierarchy for second example.</div></div>
+	    <a target="_blank" href="tutorial2-h5.jpg"><img class="graphics" alt="Table hierarchy for second example. (Click for original bitmap)" src="tutorial2-h5-web.jpg"></a>
+	    <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.2:</span> Table hierarchy for second example.</div></div>
 	  </div>
 
 	  <p>Feel free to visit the rest of examples in directory
@@ -1790,7 +1792,7 @@ AttributeError: Error accessing "ADCcount" attr.
 	  already tuned to handle that perfectly.
 	</p>
 
-	<div>
+	<div id="compressionIssues"><a name="compressionIssues"></a>
 	  <h3><span class="headlinenumber" id="subsection3.4.1"><a name="subsection3.4.1"></a>3.4.1 </span>Compression issues</h3>
 
 	  <p class="first">One of the beauties of <tt class="verb">PyTables</tt> is that it
@@ -1802,6 +1804,7 @@ AttributeError: Error accessing "ADCcount" attr.
 	    are willing to check if compression can help reducing your
 	    dataset, keep reading.
 	  </p>
+
 	  <p>There is an usual scenario where users need to save
 	    duplicated data in some record fields, while the others
 	    have varying values. In a relational database approach
@@ -1813,39 +1816,122 @@ AttributeError: Error accessing "ADCcount" attr.
 	  </p>
 
 	  <p><tt class="verb">PyTables</tt> transparent compression allows the
-	     user to not worry about finding which is their optimum
-	     data tables strategy, but rather use less, not directly
-	     related, tables with a larger number of columns while
-	     still not cluttering the database too much with
-	     duplicated data (compression is responsible to avoid
-	     that). As a side effect, data selections can be made more
-	     easily because you have more fields available in a single
-	     table, and they can be referred in the same loop. This
-	     process may normally end in a simple, yet powerful manner
-	     to process your data (although you should still be
-	     careful about what kind of scenarios compression is
-	     convenient or not).
+	    user to not worry about finding which is their optimum
+	    data tables strategy, but rather use less, not directly
+	    related, tables with a larger number of columns while
+	    still not cluttering the database too much with duplicated
+	    data (compression is responsible to avoid that). As a side
+	    effect, data selections can be made more easily because
+	    you have more fields available in a single table, and they
+	    can be referred in the same loop. This process may
+	    normally end in a simple, yet powerful manner to process
+	    your data (although you should still be careful about what
+	    kind of scenarios compression is convenient or not).
 	  </p>
 
-	  <p>The compression library used is the <b>zlib</b> (see <a href="#zlibRef">Gailly and Adler ()</a>), and the compression level that I
-	    recommend to use for <tt class="verb">Table</tt> objects is 1. This
-	    is the lowest level of compression, but if you take the
-	    approach suggested above, normally the redundant data is
-	    to be found in the same row, so the redundant data
-	    locality is very high and such a small level of
-	    compression should be enough to compress well the possible
-	    redundancy on your compound tables, saving CPU cycles for
-	    doing other things.
+	  <p>The compression library used by default is the <b>Zlib</b> (see <a href="#zlibRef"><strong>??</strong></a>), and as HDF5 <em>requires</em>
+	    it, you can safely use it and expect that your HDF5 files
+	    can be read on any other platform that has HDF5 libraries
+	    installed. Zlib provides good compression ratio, although
+	    somewhat slow, and reasonably fast decompression. Because
+	    of that, it is a good candidate to be used for compress
+	    you data.
 	  </p>
 
-	  <p>Nonetheless, in some situations you may want to check how
-	    compression level affects your application. You can
-	    control it by setting the <tt class="verb">compress</tt> keyword in
-	    the <tt class="verb">createTable</tt> method (see <a href="#createTableDescr"><strong>??</strong></a>). A value of 0 will
-	    completely disable compression, 1 is the less CPU time
-	    demanding level, while 9 is the maximum level and most CPU
-	    intensive.
+	  <p>However, in many situations (i.e. write <em>once</em>,
+	    read <em>multiple</em>), it is critical to have <em>very
+	    good</em> decompression speed (at expense of whether less
+	    compression or more CPU wasted on compression, as we will
+	    see soon). This is why support for two new compressors has
+	    been added to PyTables: LZO and UCL (see <a href="#lzouclRef"><strong>??</strong></a>). Following his author (and
+	    checked by the author of this manual), LZO offers pretty
+	    fast compression (although small compression ratio) and
+	    extremly fast decompression while UCL achieve an excellent
+	    compression ratio (at the price of spending much more CPU
+	    time) while allowing very fast decompression (and <em>very
+	    close</em> to the LZO one). In fact, LZO and UCL are so
+	    fast when decompressing that, in general (that depends on
+	    your data, of course), writing and reading a compressed
+	    table is actually faster (and sometimes <b>much faster</b>) than if it is
+	    uncompressed. This fact is very important, specially if
+	    you have to deal with very large amounts of data.
 	  </p>
+
+	  <p>Be aware that the LZO and UCL support in PyTables is not
+	    standard on HDF5, so if you are going to use your PyTables
+	    files in other contexts different from PyTables you will
+	    not be able to read them. You have been warned.
+	  </p>
+
+	  <p>In order to give you a raw idea of what ratios would be
+	    achieved, and what resources would be consumed, look at
+	    the <a href="#comprTblComparison">table&nbsp;3.1</a>. This
+	    table has been obtained from synthetic data, so take this
+	    just as a guide as your mileage will probably
+	    vary.
+	  </p>
+	  <p>
+	    However, you can expect that, in general, LZO would be the
+	    fastest both compressing and uncompressing, but the one
+	    that achieves the worse compression ratio (but that may be
+	    just ok for many situations). UCL is the slowest when
+	    compressing, but is faster than Zlib when decompressing,
+	    and, besides, it achieves very good compression
+	    ratios. Zlib represents a balance between them: it's
+	    somewhat slow compressing, the slowest during
+	    decompressing, but it normally achieves fairly good
+	    compression ratios.
+	  </p>
+
+	  <p>So, if your ultimate goal is reading fast as possible,
+	    choose LZO. If you want to reduce as much as possible your
+	    data, while retaining good read speed, choose UCL. If you
+	    don't mind too much about the above parameters and/or
+	    portability is important for you, Zlib is your best bet.
+	  </p>
+
+	  <div class="table" id="comprTblComparison"><a name="comprTblComparison"></a>
+	    <table class="tabular" cellspacing="0" cellpadding="5" frame="hsides" rules="groups"><caption><span class="captionlabel">Table&nbsp;3.1:</span> Comparison between different compression
+	      libaries. The tests has been conducted on a Pentium 4 at 2
+	      GHz and a hard disk at 4200 RPM.</caption><col align="left"><col align="right"><col align="right"><col align="right"><col align="right"><col align="right">
+	      <thead><tr><td colspan="6" class="thickline"></td></tr>
+		<tr><th align="left">Compr. Lib</th><th align="right">File size (MB)</th><th align="right">Time writing (s)</th><th align="right">Time reading (s)</th><th align="right">Speed writing (Krow/s)</th><th align="right">Speed reading (Krow/s)</th></tr>
+	      <tr><td colspan="6" class="thinline"></td></tr></thead>
+	      <tbody>
+		<tr><td align="left">NO COMPR</td><td align="right">244.0</td><td align="right">24.4</td><td align="right">16.00</td><td align="right">18.0</td><td align="right">27.8</td></tr>
+		<tr><td align="left">Zlib (lvl 1)</td><td align="right">8.5</td><td align="right">17.0</td><td align="right">3.11</td><td align="right">26.5</td><td align="right">144.4</td></tr>
+		<tr><td align="left">Zlib (lvl 6)</td><td align="right">7.1</td><td align="right">20.1</td><td align="right">3.10</td><td align="right">22.4</td><td align="right">144.9</td></tr>
+		<tr><td align="left">Zlib (lvl 9)</td><td align="right">7.2</td><td align="right">42.5</td><td align="right">3.10</td><td align="right">10.6</td><td align="right">145.1</td></tr>
+		<tr><td align="left">LZO (lvl 1)</td><td align="right">9.7</td><td align="right">14.6</td><td align="right">1.95</td><td align="right">30.6</td><td align="right">230.5</td></tr>
+		<tr><td align="left">UCL (lvl 1)</td><td align="right">6.9</td><td align="right">38.3</td><td align="right">2.58</td><td align="right">11.7</td><td align="right">185.4</td></tr>
+	      <tr><td colspan="6" class="thickline"></td></tr></tbody>
+	    </table>
+	    
+	  </div>
+
+	  <p>The compression level that I recommend to use for all
+	    compression libraries is 1. This is the lowest level of
+	    compression, but if you take the approach suggested above,
+	    normally the redundant data is to be found in the same
+	    row, so the redundant data locality is very high and such
+	    a small level of compression should be enough to achieve a
+	    good compression ratio on your data tables, saving CPU
+	    cycles for doing other things. Nonetheless, in some
+	    situations you may want to check how compression level
+	    affects your application.
+	  </p>
+
+	  <p> You can select the compression library and level by
+	    setting the <tt class="verb">complib</tt> and <tt class="verb">compress</tt>
+	    keywords in the <tt class="verb">createTable</tt> method (see <a href="#createTableDescr"><strong>??</strong></a>). A compression level of 0
+	    will completely disable compression (the default), 1 is
+	    the less CPU time demanding level, while 9 is the maximum
+	    level and most CPU intensive. Take into account that LZO
+	    is not accepting right now a compression level, so, when
+	    using LZO, 0 means that compression is not active, and any
+	    other value means that LZO is active.
+	  </p>
+
 
 	</div>
 
@@ -1959,6 +2045,9 @@ AttributeError: Error accessing "ADCcount" attr.
 		  not mandatory.
 		</dd>
 
+		<dt>isopen</dt> <dd>It has the value 1 if the
+		  underlying file is still open. 0 otherwise.</dd>
+
 		<dt>mode</dt> <dd>The mode to open the file. It
 		  can be one of the following:
 
@@ -2054,7 +2143,7 @@ AttributeError: Error accessing "ADCcount" attr.
 	<p class="first">
 	  This class is used as a mean to declare the different
 	  properties of a column of a table. The only public method
-	  accesible is the constructor itself.
+	  accessible is the constructor itself.
 	</p>
 
 	<dl>
@@ -2109,7 +2198,7 @@ AttributeError: Error accessing "ADCcount" attr.
 	</p>
 
 	<p>Next, we will discuss the attributes and methods for File
-	  class<a href="#footnote3" name="footnoteback3"><sup>3)</sup></a>.
+	  class<a href="#footnote4" name="footnoteback4"><sup>4)</sup></a>.
 	</p>
 
 	<div id="FileInstanceVariablesDescr"><a name="FileInstanceVariablesDescr"></a>
@@ -2178,7 +2267,7 @@ AttributeError: Error accessing "ADCcount" attr.
 
 	  <div>
 	    <h4 id="createTableDescr"><a name="createTableDescr"></a>createTable(where, name,
-	      description, title='', compress=0,
+	      description, title='', compress=0, complib = 'zlib',
 	      expectedrows=10000)</h4>
 
 	    <p class="first">Create a new <tt class="verb">Table</tt> instance with name
@@ -2186,54 +2275,59 @@ AttributeError: Error accessing "ADCcount" attr.
 	    </p>
 
 	    <dl>
-		<dt>where</dt> <dd>The parent group where the
-		  new table will hang. <em>where</em> parameter can be
-		  a path string (for example
-		  <tt class="verb">"/Particles/TParticle1"</tt>), or Group
-		  instance. </dd>
+	      <dt>where</dt> <dd>The parent group where the
+		new table will hang. <em>where</em> parameter can be
+		a path string (for example
+		<tt class="verb">"/Particles/TParticle1"</tt>), or Group
+		instance. </dd>
 
-		<dt>name</dt>
-		<dd>The name of the new table.</dd>
+	      <dt>name</dt>
+	      <dd>The name of the new table.</dd>
 
-		<dt>description</dt> <dd>An instance of a
-		  user-defined class (derived from the
-		  <tt class="verb">IsDescription</tt> class) where table fields
-		  are defined. However, in certain situations, it is
-		  more handy to allow this description to be supplied
-		  as a dictionary (for example, when you do not know
-		  beforehand which structure will have your table). In
-		  such a cases, you can pass the description as a
-		  dictionary as well. See <a href="#secondExample">section&nbsp;3.3</a> for an example
-		  of use. Finally, a <tt class="verb">RecArray</tt> object from
-		  the <tt class="verb">numarray</tt> package is also accepted,
-		  and all the information about columns and other
-		  metadata is used as a basis to create the
-		  <tt class="verb">Table</tt> object. Moreover, if the
-		  <tt class="verb">RecArray</tt> has actual data this is also
-		  injected on the newly created <tt class="verb">Table</tt>
-		  object.
-		</dd>
+	      <dt>description</dt> <dd>An instance of a
+		user-defined class (derived from the
+		<tt class="verb">IsDescription</tt> class) where table fields
+		are defined. However, in certain situations, it is
+		more handy to allow this description to be supplied
+		as a dictionary (for example, when you do not know
+		beforehand which structure will have your table). In
+		such a cases, you can pass the description as a
+		dictionary as well. See <a href="#secondExample">section&nbsp;3.3</a> for an example
+		of use. Finally, a <tt class="verb">RecArray</tt> object from
+		the <tt class="verb">numarray</tt> package is also accepted,
+		and all the information about columns and other
+		metadata is used as a basis to create the
+		<tt class="verb">Table</tt> object. Moreover, if the
+		<tt class="verb">RecArray</tt> has actual data this is also
+		injected on the newly created <tt class="verb">Table</tt>
+		object.
+	      </dd>
 
-		<dt>title</dt> <dd>A description for this object.
-		</dd>
+	      <dt>title</dt> <dd>A description for this object.
+	      </dd>
 
-		<dt>compress</dt> <dd>Specifies a compress level
-		  for data. The allowed range is 0-9. A value of 0
-		  disables compression. The default is that
-		  compression is disabled, that balances between
-		  compression effort and CPU consumption.
-		</dd>
-
-		<dt>expectedrows</dt> <dd>An user estimate of
-		  the number of records that will be on table. If not
-		  provided, the default value is appropriate for tables
-		  until 1 MB in size (more or less, depending on the
-		  record size). If you plan to save bigger tables you
-		  should provide a guess; this will optimize the HDF5
-		  B-Tree creation and management process time and
-		  memory used. See <a href="#expectedRowsOptim">section&nbsp;3.4.2</a> for a
-		  detailed justification of that issue.
-		</dd>
+	      <dt>compress</dt> <dd>Specifies a compress level
+		for data. The allowed range is 0-9. A value of 0
+		disables compression. The default is that
+		compression is disabled, that balances between
+		compression effort and CPU consumption.
+	      </dd>
+	      <dt>complib</dt> <dd> Specifies the compression
+		library to be used. Right now, <tt class="verb">"zlib"</tt>
+		(default), <tt class="verb">"lzo"</tt> and <tt class="verb">"ucl"</tt>
+		values are supported. See <a href="#compressionIssues">section&nbsp;3.4.1</a> for some advice
+		on which library is better suited to your needs.
+	      </dd>
+	      <dt>expectedrows</dt> <dd>An user estimate of the
+		number of records that will be on table. If not
+		provided, the default value is appropriate for tables
+		until 1 MB in size (more or less, depending on the
+		record size). If you plan to save bigger tables you
+		should provide a guess; this will optimize the HDF5
+		B-Tree creation and management process time and memory
+		used. See <a href="#expectedRowsOptim">section&nbsp;3.4.2</a>
+		for a detailed justification of that issue.
+	      </dd>
 
 	    </dl>
 	  </div>
@@ -2265,10 +2359,10 @@ AttributeError: Error accessing "ADCcount" attr.
 		  <tt class="verb">NumArray</tt> arrays (including
 		  <tt class="verb">CharArrays</tt> string arrays). However,
 		  these objects must be regular (i.e. they cannot be
-		  like, for example, [[1,2],2]). Also, objects that
-		  has some of its dimension equal to zero are not
-		  supported (this will be solved when unlimited arrays
-		  will be implemented).
+		  like, for example, <tt class="verb">[[1,2],2]</tt>). Also,
+		  objects that has some of its dimension equal to zero
+		  are not supported (this will be solved when
+		  unlimited arrays will be implemented).
 		</dd>
 
 		<dt>title</dt> <dd>A description for this
@@ -2363,7 +2457,7 @@ AttributeError: Error accessing "ADCcount" attr.
 
 		<dt>attrvalue</dt> <dd>The value of the
 		  attribute to set. Only strings attributes are
-		  supported natively rigth now. However, you can
+		  supported natively right now. However, you can
 		  always use <tt class="verb">(c)Pickle</tt> so as to serialize
 		  any object you want save therein.
 		</dd>
@@ -2873,7 +2967,7 @@ AttributeError: Error accessing "ADCcount" attr.
 	<p><b>Caveat:</b> All
 	  <tt class="verb">Numeric</tt> and <tt class="verb">numarray</tt> typecodes are
 	  supported except those that corresponds to complex data
-	  types<a href="#footnote4" name="footnoteback4"><sup>4)</sup></a>. See <tt class="verb">numarray</tt> manual (<a href="#Numarray">Greenfield <em>et&nbsp;al.</em> </a>) to know more about the
+	  types<a href="#footnote5" name="footnoteback5"><sup>5)</sup></a>. See <tt class="verb">numarray</tt> manual (<a href="#Numarray"></a>) to know more about the
 	  supported data types, or see <a href="#datatypesSupported">appendix&nbsp;A</a>.
 	</p>
 
@@ -2930,7 +3024,7 @@ AttributeError: Error accessing "ADCcount" attr.
 
 	<p class="first"><tt class="verb">IsDescription</tt> subclasses supports a limited set
 	  of data types to define the table fields. This is roughly
-	  the same that the set supported by the <tt>numarray</tt> package (see <a href="#Numarray">Greenfield <em>et&nbsp;al.</em> ()</a>) in Python, with the
+	  the same that the set supported by the <tt>numarray</tt> package (see <a href="#Numarray"><strong>??</strong></a>) in Python, with the
 	  exception of the complex datatypes that are not supported
 	  yet. The supported set is listed on <a href="#datatypesSupported">table&nbsp;A</a>.
 	</p>
@@ -2969,24 +3063,7 @@ AttributeError: Error accessing "ADCcount" attr.
 
 
     <div class="bib"><h1>References</h1><div style="text-align: left">
-<p class="bibitem" id="Numeric"><a name="Numeric"></a><span style="font-variant: small-caps">Ascher</span>, David, Paul&nbsp;F. <span style="font-variant: small-caps">Dubois</span>, Konrad <span style="font-variant: small-caps">Hinsen</span>,
-  Jim <span style="font-variant: small-caps">Hugunin</span>, and Travis <span style="font-variant: small-caps">Oliphant</span>, : <em>Numerical
-  Python</em>.
-Package to speed-up arithmetic operations on arrays of numbers.<br><a href="http://www.pfdubois.com/numpy/">http://www.pfdubois.com/numpy/</a></p><p class="bibitem" id="NetCDF"><a name="NetCDF"></a><span style="font-variant: small-caps">Davis</span>, Glenn, Russ <span style="font-variant: small-caps">Rew</span>, Steve <span style="font-variant: small-caps">Emmerson</span>, John
-  <span style="font-variant: small-caps">Caron</span>, and Harvey <span style="font-variant: small-caps">Davies</span>, : <em>Netcdf Network Common Data
-  Form</em>.
-An interface for array-oriented data access and a library that provides an
-  implementation of the interface.<br><a href="http://www.unidata.ucar.edu/packages/netcdf/">http://www.unidata.ucar.edu/packages/netcdf/</a></p><p class="bibitem" id="Pyrex"><a name="Pyrex"></a><span style="font-variant: small-caps">Ewing</span>, Greg, : <em>Pyrex. A Language for Writing Python Extension
-  Modules</em>.<br><a href="http://www.cosc.canterbury.ac.nz/%C2%A0greg/python/Pyrex">http://www.cosc.canterbury.ac.nz/&nbsp;greg/python/Pyrex</a></p><p class="bibitem" id="zlibRef"><a name="zlibRef"></a><span style="font-variant: small-caps">Gailly</span>, JeanLoup and Mark <span style="font-variant: small-caps">Adler</span>, : <em>zlib. A Massively
-  Spiffy Yet Delicately Unobtrusive Compression Library</em>.
-A standard library for compression purposes.<br><a href="http://www.gzip.org/zlib/">http://www.gzip.org/zlib/</a></p><p class="bibitem" id="Numarray"><a name="Numarray"></a><span style="font-variant: small-caps">Greenfield</span>, Perry, Todd <span style="font-variant: small-caps">Miller</span>, Richard&nbsp;L.
-  <span style="font-variant: small-caps">White</span>, and J.&nbsp;C. <span style="font-variant: small-caps">Hsu.</span>, : <em>Numarray</em>.
-Reimplementation of Numeric which adds the ability to efficiently manipulate
-  large numeric arrays in ways similar to Matlab and IDL. Among others,
-  Numarray provides the record array extension.<br><a href="http://stsdas.stsci.edu/numarray/">http://stsdas.stsci.edu/numarray/</a></p><p class="bibitem" id="NetCDFSP"><a name="NetCDFSP"></a><span style="font-variant: small-caps">Hinsen</span>, Konrad, : <em>NetCDF module on Scientific Python</em>.
-ScientificPython is a collection of Python modules that are useful for
-  scientific computing. Its NetCDF module is a powerful interface for NetCDF
-  data format.<br><a href="http://starship.python.net/%C2%A0hinsen/ScientificPython">http://starship.python.net/&nbsp;hinsen/ScientificPython</a></p>
+
 </div></div>
 
 
@@ -3074,15 +3151,17 @@ ScientificPython is a collection of Python modules that are useful for
 
 
   
-<hr align="left" noshade="true" style="text-align: left; width: 20%; color: black"><div class="footnote"><a name="footnote1" href="#footnoteback1"><sup>1)</sup></a>&nbsp;Bear in mind, however, that this
+<hr align="left" noshade="true" style="text-align: left; width: 20%; color: black"><div class="footnote"><a name="footnote1" href="#footnoteback1"><sup>1)</sup></a>&nbsp;I have got this simple but
+	  powerful idea from the excellent <tt>Objectify</tt> module by David Mertz (see
+	  <a href="#Objectify"><strong>??</strong></a>)</div><div class="footnote"><a name="footnote2" href="#footnoteback2"><sup>2)</sup></a>&nbsp;Bear in mind, however, that this
 	  diagram is <b>not</b> a standard UML
-	  class diagram; it is rather meant to show the connexions
+	  class diagram; it is rather meant to show the connections
 	  between the <tt class="verb">PyTables</tt> objects and some of its
-	  most important attributes and methods.</div><div class="footnote"><a name="footnote2" href="#footnoteback2"><sup>2)</sup></a>&nbsp;Note that you can only
+	  most important attributes and methods.</div><div class="footnote"><a name="footnote3" href="#footnoteback3"><sup>3)</sup></a>&nbsp;Note that you can only
 	    append values to tables, not array objects. However, I
 	    plan to support unlimited dimension of arrays shortly, in
-	    the tradition of the NetCDF module (see <a href="#NetCDF">Davis <em>et&nbsp;al.</em> ()</a>) of the Scientific Python package
-	    (<a href="#NetCDFSP">Hinsen </a>).</div><div class="footnote"><a name="footnote3" href="#footnoteback3"><sup>3)</sup></a>&nbsp;On the following, the term <tt class="verb">Leaf</tt>
+	    the tradition of the NetCDF module (see <a href="#NetCDF"><strong>??</strong></a>) of the Scientific Python package
+	    (<a href="#NetCDFSP"></a>).</div><div class="footnote"><a name="footnote4" href="#footnoteback4"><sup>4)</sup></a>&nbsp;On the following, the term <tt class="verb">Leaf</tt>
 	  will refer to a <tt class="verb">Table</tt> or <tt class="verb">Array</tt>
-	  node object.</div><div class="footnote"><a name="footnote4" href="#footnoteback4"><sup>4)</sup></a>&nbsp;However, these might be included in the
+	  node object.</div><div class="footnote"><a name="footnote5" href="#footnoteback5"><sup>5)</sup></a>&nbsp;However, these might be included in the
 	  future</div></div></body></html>
