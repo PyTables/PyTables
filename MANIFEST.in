@@ -1,0 +1,14 @@
+include *.txt
+include MANIFEST.in
+include setup.py
+include setup.cfg
+
+recursive-include pytables *.py
+recursive-include doc *.html *.pdf *.css *.gif *.jpg *.txt
+recursive-include patches *.txt *.patch
+recursive-include src *.pyx *.c *.h
+recursive-include test *.py
+
+prune old
+prune test/h5files
+

@@ -1,0 +1,336 @@
+/* Routine to compute the offsets of a packed struct (package struct in Python)
+ * F.Alted
+ * 2002/08/28 */
+
+#include <stddef.h>
+#include <stdlib.h>
+#include <limits.h>
+#include <ctype.h>
+#include "calcoffset.h"
+
+static const formatdef *
+whichtable(pfmt)
+	const char **pfmt;
+{
+	const char *fmt = (*pfmt)++; /* May be backed out of later */
+	switch (*fmt) {
+	case '<':
+		return lilendian_table;
+	case '>':
+	case '!': /* Network byte order is big-endian */
+		return bigendian_table;
+	case '=': { /* Host byte order -- different from native in aligment! */
+		int n = 1;
+		char *p = (char *) &n;
+		if (*p == 1)
+			return lilendian_table;
+		else
+			return bigendian_table;
+	}
+	default:
+		--*pfmt; /* Back out of pointer increment */
+		/* Fall through */
+	case '@':
+		return native_table;
+	}
+}
+
+
+/* Get the table entry for a format code */
+
+static const formatdef *
+getentry(c, f)
+	int c;
+	const formatdef *f;
+{
+	for (; f->format != '\0'; f++) {
+		if (f->format == c) {
+			return f;
+		}
+	}
+#ifdef DEBUG
+        printf("Error: bad char <%c> in struct format\n", c);
+#endif DEBUG
+	return NULL;
+}
+
+
+/* Get the correct HDF5 type for a format code.
+ * I can't manage to do the mapping by a table because
+ * the HDF5 types are not constant values and are
+ * defined by executing a function. 
+ * So we do that in a switch case. */
+
+static hid_t
+conventry(c, sizestr)
+    int c;
+    int sizestr;
+{
+   hid_t string_type;
+   
+   switch(c) {
+    case 'c':
+      return H5T_NATIVE_CHAR;
+    case 'b':
+      return H5T_NATIVE_SCHAR;
+    case 'B':
+      return H5T_NATIVE_UCHAR;
+    case 'h':
+      return H5T_NATIVE_SHORT;
+    case 'H':
+      return H5T_NATIVE_USHORT;
+    case 'i':
+      return H5T_NATIVE_INT;
+    case 'I':
+      return H5T_NATIVE_UINT;
+    case 'l':
+      return H5T_NATIVE_LONG;
+    case 'L':
+      return H5T_NATIVE_ULONG;
+    case 'q':
+      return H5T_NATIVE_LLONG;
+    case 'Q':
+      return H5T_NATIVE_ULLONG;
+    case 'f':
+      return H5T_NATIVE_FLOAT;
+    case 'd':
+      return H5T_NATIVE_DOUBLE;
+    case 's':
+      string_type = H5Tcopy(H5T_C_S1);
+      H5Tset_size(string_type, sizestr);
+      return string_type;
+    default:
+#ifdef DEBUG
+      printf("Error: bad char <%c> in struct format\n", c);
+#endif DEBUG
+      return -1;
+   }
+}
+
+
+/* Align a size according to a format code */
+
+static int
+align(size, c, e)
+    int size;
+    int c;
+    const formatdef *e;
+{
+   /* This check is redundant! */
+   /*if (e->format == c) { */
+   if (e->alignment) {
+      size = ((size + e->alignment - 1)
+	      / e->alignment)
+	      * e->alignment;
+   }
+/* } */
+   return size;
+}
+
+
+/* Calculate the offsets of a format string.
+ * The format follows strictly the directions for the package struct
+ * and is contained as input in fmt.
+ * The offsets are computed and returned in the offsets array.
+ * calcoffset returns as return value the number of variables in the fmt
+ * string */
+
+/* This routine don't have error checking at all
+ * If you want this, call struct.calcsize first */
+
+int
+calcoffset(fmt, offsets)
+    const char *fmt;
+    size_t *offsets;
+{
+   const formatdef *f, *e;
+   const char *s;
+   char c;
+   size_t offset;
+   int nattrib, size,  num, itemsize, x, j;
+
+   f = whichtable(&fmt);
+   s = fmt;
+   size = 0;
+   nattrib = 0;
+   while ((c = *s++) != '\0') {
+      if (isspace((int)c))
+	continue;
+      if ('0' <= c && c <= '9') {
+	 num = c - '0';
+	 while ('0' <= (c = *s++) && c <= '9') {
+	    x = num*10 + (c - '0');
+#ifdef DEBUG
+	    if (x/10 != num) {
+	       printf("overflow in item count\n");
+	       return -1;
+	    }
+#endif DEBUG
+	    num = x;
+	 }
+	 if (c == '\0')
+	   break;
+      }
+      else
+	num = 1;
+      
+      e = getentry(c, f);
+      if (e == NULL)
+	return -1;
+      itemsize = e->size;
+      size = align(size, c, e);
+      if (num >= 1 && c != 'x') {
+	 offset = size;
+	 *offsets++ = offset;
+	 /* The case for a number before string is special */
+	 if (c != 's') {
+	    for (j=0; j < num - 1; j++) {
+	       offset += itemsize;
+	       *offsets++ = offset;
+	    }
+	    nattrib += num;
+	 }
+	 else {
+	    /* In case of string, increment nattrib only by one */
+	    nattrib++;
+	 }
+	 
+      }
+      x = num * itemsize;
+      size += x;
+#ifdef DEBUG
+      if (x/itemsize != num || size < 0) {
+	 printf("total struct size too long\n");
+	 return -1;
+      }
+#endif DEBUG
+   }
+
+#ifdef PRINT
+   printf("The size computed in calcoffset is %d\n", size);
+#endif PRINT
+
+   return nattrib;
+}
+
+
+int
+calctypes(fmt, types, size_types)
+    const char *fmt;
+    hid_t *types;
+    size_t *size_types;
+{
+   const formatdef *f, *e;
+   const char *s;
+   char c;
+   int nattrib, size,  num, itemsize, x, j;
+   hid_t hdf5type;
+
+   f = whichtable(&fmt);
+   s = fmt;
+   size = 0;
+   nattrib = 0;
+   while ((c = *s++) != '\0') {
+      if (isspace((int)c))
+	continue;
+      if ('0' <= c && c <= '9') {
+	 num = c - '0';
+	 while ('0' <= (c = *s++) && c <= '9') {
+	    x = num*10 + (c - '0');
+#ifdef DEBUG
+	    if (x/10 != num) {
+	       printf("overflow in item count\n");
+	       return -1;
+	    }
+#endif DEBUG
+	    num = x;
+	 }
+	 if (c == '\0')
+	   break;
+      }
+      else
+	num = 1;
+      
+      e = getentry(c, f);
+      if (e == NULL)
+	return -1;
+      itemsize = e->size;
+      size = align(size, c, e);
+      if (num >= 1 && c != 'x') {
+	 hdf5type = conventry(c, num);
+	 if (hdf5type == -1)
+	   return -1;
+	 *types++ = hdf5type;
+	 /* The case for a number before string is special */
+	 if (c != 's') {
+	    *size_types++ = itemsize;
+	    for (j=0; j < num - 1; j++) {
+	       *types++ = hdf5type;
+	       *size_types++ = itemsize;
+	    }
+	    nattrib += num;
+	 }
+	 else { /* Case of string */
+	    /* Increment nattrib only by one */
+	    nattrib++;
+	    /* Set the type size equal to the string length */
+	    *size_types++ = num;
+	 }
+      }
+      
+      x = num * itemsize;
+      size += x;
+#ifdef DEBUG
+      if (x/itemsize != num || size < 0) {
+	 printf("total struct size too long\n");
+	 return -1;
+      }
+#endif DEBUG
+   }
+
+#ifdef PRINT
+   printf("The size computed in calctypes is %d\n", size);
+#endif PRINT
+
+/*    return nattrib; */
+   return size;
+}
+
+#ifdef MAIN
+int main(int args, char *argv[])
+{
+   char  format[256] = "hch";
+   char  *fmt;
+   int   rowsize, nattrib, nattrib2;
+   size_t offsets[256], size_types[256];
+   hid_t types[256];
+   int   i, niter;
+   const formatdef *f;
+     
+   printf("args # --> %d\n", args);
+   printf("arg 0 --> %s\n", argv[0]);
+   printf("arg 1 --> %s\n", argv[1]);
+
+   fmt = argv[1];
+   printf("The format is %s\n", fmt);
+   niter = 1;
+   if (args == 3) 
+     niter = atoi(argv[2]);
+   for (i=0;i<niter;i++) {
+     nattrib = calcoffset(fmt, offsets);
+     rowsize = calctypes(fmt, types, size_types);
+   }
+   
+   if (nattrib < 0)
+     return -1;
+   else
+     printf("# attributes from calcoffset: %d\nOffsets: ", nattrib);
+     for (i = 0; i < nattrib; i++)
+       printf(" %d,", offsets[i]);
+     printf("\n");
+     printf("Rowsize from calctype: %d\nType sizes: ", rowsize);
+     for (i = 0; i < nattrib; i++)
+       printf(" %d,", size_types[i]);
+     printf("\n");
+}
+#endif MAIN
