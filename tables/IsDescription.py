@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.37 2004/12/17 17:43:19 ivilata Exp $
+#       $Id: IsDescription.py,v 1.38 2004/12/17 21:53:52 ivilata Exp $
 #
 ########################################################################
 
@@ -24,7 +24,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.37 $"
+__version__ = "$Revision: 1.38 $"
 
 
 import warnings
@@ -69,10 +69,14 @@ class Col:
                "None or zero-valued shapes are not supported '%s'" % `shape`
 
         if type(shape) in [types.IntType, types.LongType]:
-            # To prevent confusions between 2 and (2,): the meaning is the same
-            if shape == 1:
+            if shape < 1:
+                raise ValueError(
+                    "Shape value must be greater than 0: %s" % (shape,))
+            elif shape == 1:
                 self.shape = shape
             else:
+                # To prevent confusions between 2 and (2,):
+                # the meaning is the same
                 self.shape = (shape,)
         elif type(shape) in [types.ListType, types.TupleType]:
             # HDF5 does not support ranks greater than 32
@@ -150,10 +154,14 @@ class BoolCol(Col):
                "None or zero-valued shapes are not supported '%s'" % `shape`
 
         if type(shape) in [types.IntType, types.LongType]:
-            # To prevent confusions between 2 and (2,): the meaning is the same
-            if shape == 1:
+            if shape < 1:
+                raise ValueError(
+                    "Shape value must be greater than 0: %s" % (shape,))
+            elif shape == 1:
                 self.shape = shape
             else:
+                # To prevent confusions between 2 and (2,):
+                # the meaning is the same
                 self.shape = (shape,)
         elif type(shape) in [types.ListType, types.TupleType]:
             self.shape = tuple(shape)
@@ -191,10 +199,14 @@ class StringCol(Col):
   can be infered from."""
         
         if type(shape) in [types.IntType, types.LongType]:
-            # To prevent confusions between 2 and (2,): the meaning is the same
-            if shape == 1:
+            if shape < 1:
+                raise ValueError(
+                    "Shape value must be greater than 0: %s" % (shape,))
+            elif shape == 1:
                 self.shape = shape
             else:
+                # To prevent confusions between 2 and (2,):
+                # the meaning is the same
                 self.shape = (shape,)
         elif type(shape) in [types.ListType, types.TupleType]:
             self.shape = tuple(shape)
@@ -223,10 +235,14 @@ class IntCol(Col):
                "Integer itemsizes different from 1,2,4 or 8 are not supported"
         
         if type(shape) in [types.IntType, types.LongType]:
-            # To prevent confusions between 2 and (2,): the meaning is the same
-            if shape == 1:
+            if shape < 1:
+                raise ValueError(
+                    "Shape value must be greater than 0: %s" % (shape,))
+            elif shape == 1:
                 self.shape = shape
             else:
+                # To prevent confusions between 2 and (2,):
+                # the meaning is the same
                 self.shape = (shape,)
         elif type(shape) in [types.ListType, types.TupleType]:
             self.shape = tuple(shape)
@@ -322,10 +338,14 @@ class FloatCol(Col):
                "Float itemsizes different from 4 and 8 are not supported"
         
         if type(shape) in [types.IntType, types.LongType]:
-            # To prevent confusions between 2 and (2,): the meaning is the same
-            if shape == 1:
+            if shape < 1:
+                raise ValueError(
+                    "Shape value must be greater than 0: %s" % (shape,))
+            elif shape == 1:
                 self.shape = shape
             else:
+                # To prevent confusions between 2 and (2,):
+                # the meaning is the same
                 self.shape = (shape,)
         elif type(shape) in [types.ListType, types.TupleType]:
             self.shape = tuple(shape)
@@ -367,10 +387,14 @@ class ComplexCol(Col):
                "Copmplex itemsizes different from 8 and 16 are not supported"
         
         if type(shape) in [types.IntType, types.LongType]:
-            # To prevent confusions between 2 and (2,): the meaning is the same
-            if shape == 1:
+            if shape < 1:
+                raise ValueError(
+                    "Shape value must be greater than 0: %s" % (shape,))
+            elif shape == 1:
                 self.shape = shape
             else:
+                # To prevent confusions between 2 and (2,):
+                # the meaning is the same
                 self.shape = (shape,)
         elif type(shape) in [types.ListType, types.TupleType]:
             self.shape = tuple(shape)
