@@ -9,6 +9,7 @@ import tempfile
 from numarray import *
 from numarray import strings
 from tables import *
+import Numeric
 
 try:
     import Numeric
@@ -18,9 +19,19 @@ except:
 
 from test_all import verbose
 
-def allequal(a,b):
+def allequal(a,b, flavor):
     """Checks if two numarrays are equal"""
 
+    if flavor == "Numeric":
+        # Convert the parameters to numarray objects
+        try:
+            a = array(buffer(a), type=typeDict[a.typecode()], shape=a.shape)
+        except:
+            a = array(a)
+        try:
+            b = array(buffer(b), type=typeDict[b.typecode()], shape=b.shape)
+        except:
+            b = array(b)
     if not hasattr(b, "shape"):
         return a == b
 
@@ -63,6 +74,7 @@ def allequal(a,b):
 
 class BasicTestCase(unittest.TestCase):
     # Default values
+    flavor = "numarray"
     type = Int32
     shape = (2,0)
     start = 0
@@ -87,17 +99,21 @@ class BasicTestCase(unittest.TestCase):
         
     def populateFile(self):
         group = self.rootgroup
-        if str(self.type) == "CharType":
-            object = strings.array(None, itemsize=self.length,
-                                   shape=self.shape)
+        if self.flavor == "numarray":
+            if str(self.type) == "CharType":
+                object = strings.array(None, itemsize=self.length,
+                                       shape=self.shape)
+            else:
+                object = zeros(type=self.type, shape=self.shape)
         else:
-            object = zeros(type=self.type, shape=self.shape)
+                object = Numeric.zeros(typecode=typecode[self.type],
+                                       shape=self.shape)
         title = self.__class__.__name__
-        earray = self.fileh.createArray(group, 'earray1', object, title,
-                                        compress = self.compress,
-                                        complib = self.complib,
-                                        shuffle = self.shuffle,
-                                        expectedrows = 1)
+        earray = self.fileh.createEArray(group, 'earray1', object, title,
+                                         compress = self.compress,
+                                         complib = self.complib,
+                                         shuffle = self.shuffle,
+                                         expectedrows = 1)
 
         # Fill it with rows
         self.rowshape = list(earray.shape)
@@ -108,19 +124,31 @@ class BasicTestCase(unittest.TestCase):
         self.extdim = earray.extdim
         self.objsize *= self.chunksize
         self.rowshape[earray.extdim] = self.chunksize
-        if str(self.type) == "CharType":
-            object = strings.array("a"*self.objsize, shape=self.rowshape,
-                                   itemsize=earray.itemsize)
-        else:
-            object = arange(self.objsize, shape=self.rowshape,
-                            type=earray.type)
+        if self.flavor == "numarray":
+            if str(self.type) == "CharType":
+                object = strings.array("a"*self.objsize, shape=self.rowshape,
+                                       itemsize=earray.itemsize)
+            else:
+                object = arange(self.objsize, shape=self.rowshape,
+                                type=earray.type)
+        else:  # Numeric flavor
+            object = Numeric.arange(self.objsize,
+                                    typecode=typecode[earray.type])
+            object = Numeric.reshape(object, self.rowshape)
         if verbose:
-            print "Object to append -->", object.info()
+            if self.flavor == "numarray":
+                print "Object to append -->", object.info()
+            else:
+                print "Object to append -->", repr(object)
         for i in range(self.nappends):
             if str(self.type) == "CharType":
                 earray.append(object)
-            else:
+            elif self.flavor == "numarray":
                 earray.append(object*i)
+            else:
+                object = object * i
+                # For Numeric arrays, we still have to undo the type upgrade
+                earray.append(object.astype(typecode[earray.type]))
 
     def tearDown(self):
         self.fileh.close()
@@ -128,13 +156,13 @@ class BasicTestCase(unittest.TestCase):
         
     #----------------------------------------
 
-    def test01_iterArray(self):
+    def test01_iterEArray(self):
         """Checking enlargeable array iterator"""
 
         rootgroup = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test01_iterArray..." % self.__class__.__name__
+            print "Running %s.test01_iterEArray..." % self.__class__.__name__
 
         # Create an instance of an HDF5 Table
         self.fileh = openFile(self.file, "r")
@@ -143,27 +171,36 @@ class BasicTestCase(unittest.TestCase):
         # Choose a small value for buffer size
         earray._v_maxTuples = 3
         if verbose:
-            print "Array descr:", repr(earray)
+            print "EArray descr:", repr(earray)
             print "shape of read array ==>", earray.shape
         # Build the array to do comparisons
-        if str(self.type) == "CharType":
-            object_ = strings.array("a"*self.objsize, shape=self.rowshape,
-                                   itemsize=earray.itemsize)
+        if self.flavor == "numarray":
+            if str(self.type) == "CharType":
+                object_ = strings.array("a"*self.objsize, shape=self.rowshape,
+                                        itemsize=earray.itemsize)
+            else:
+                object_ = arange(self.objsize, shape=self.rowshape,
+                                 type=earray.type)
+            object_.swapaxes(earray.extdim, 0)
         else:
-            object_ = arange(self.objsize, shape=self.rowshape,
-                             type=earray.type)
-        object_.swapaxes(earray.extdim, 0)
+            object_ = Numeric.arange(self.objsize,
+                                     typecode=typecode[earray.type])
+            object_ = Numeric.reshape(object_, self.rowshape)
+            object_ = Numeric.swapaxes(object_, earray.extdim, 0)
+            
         # Read all the array
         for row in earray:
-            chunk = (earray.nrow % self.chunksize)
+            chunk = int(earray.nrow % self.chunksize)
             if chunk == 0:
                 if str(self.type) == "CharType":
                     object__ = object_
                 else:
                     object__ = object_ * (earray.nrow / self.chunksize)
+                    if self.flavor == "Numeric":
+                        object__ = object__.astype(typecode[earray.type])
             object = object__[chunk]
             # The next adds much more verbosity
-            if verbose and 0:
+            if verbose and 1:
                 print "number of row ==>", earray.nrow
                 if hasattr(object, "shape"):
                     print "shape should look as:", object.shape
@@ -171,20 +208,20 @@ class BasicTestCase(unittest.TestCase):
                 print "Should look like ==>", repr(object)
 
             assert self.nappends*self.chunksize == earray.nrows
-            assert allequal(row, object)
+            assert allequal(row, object, self.flavor)
             if hasattr(row, "shape"):
                 assert len(row.shape) == len(self.shape) - 1
             else:
                 # Scalar case
                 assert len(self.shape) == 1
 
-    def test02_sssArray(self):
+    def test02_sssEArray(self):
         """Checking enlargeable array iterator with (start, stop, step)"""
 
         rootgroup = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test02_sssArray..." % self.__class__.__name__
+            print "Running %s.test02_sssEArray..." % self.__class__.__name__
 
         # Create an instance of an HDF5 Table
         self.fileh = openFile(self.file, "r")
@@ -193,24 +230,33 @@ class BasicTestCase(unittest.TestCase):
         # Choose a small value for buffer size
         earray._v_maxTuples = 3
         if verbose:
-            print "Array descr:", repr(earray)
+            print "EArray descr:", repr(earray)
             print "shape of read array ==>", earray.shape
         # Build the array to do comparisons
-        if str(self.type) == "CharType":
-            object_ = strings.array("a"*self.objsize, shape=self.rowshape,
-                                   itemsize=earray.itemsize)
+        if self.flavor == "numarray":
+            if str(self.type) == "CharType":
+                object_ = strings.array("a"*self.objsize, shape=self.rowshape,
+                                        itemsize=earray.itemsize)
+            else:
+                object_ = arange(self.objsize, shape=self.rowshape,
+                                 type=earray.type)
+            object_.swapaxes(earray.extdim, 0)
         else:
-            object_ = arange(self.objsize, shape=self.rowshape,
-                             type=earray.type)
-        object_.swapaxes(earray.extdim, 0)
+            object_ = Numeric.arange(self.objsize,
+                                     typecode=typecode[earray.type])
+            object_ = Numeric.reshape(object_, self.rowshape)
+            object_ = Numeric.swapaxes(object_, earray.extdim, 0)
+            
         # Read all the array
         for row in earray(start=self.start, stop=self.stop, step=self.step):
-            chunk = (earray.nrow % self.chunksize)
-            if (chunk - self.start) == 0:
+            chunk = int(earray.nrow % self.chunksize)
+            if (chunk - earray._start) == 0:
                 if str(self.type) == "CharType":
                     object__ = object_
                 else:
                     object__ = object_ * (earray.nrow / self.chunksize)
+                    if self.flavor == "Numeric":
+                        object__ = object__.astype(typecode[earray.type])
             object = object__[chunk]
             # The next adds much more verbosity
             if verbose and 0:
@@ -221,20 +267,20 @@ class BasicTestCase(unittest.TestCase):
                 print "Should look like ==>", repr(object)
 
             assert self.nappends*self.chunksize == earray.nrows
-            assert allequal(row, object)
+            assert allequal(row, object, self.flavor)
             if hasattr(row, "shape"):
                 assert len(row.shape) == len(self.shape) - 1
             else:
                 # Scalar case
                 assert len(self.shape) == 1
 
-    def test03_readArray(self):
+    def test03_readEArray(self):
         """Checking read() of enlargeable arrays"""
 
         rootgroup = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test03_readArray..." % self.__class__.__name__
+            print "Running %s.test03_readEArray..." % self.__class__.__name__
             
         # Create an instance of an HDF5 Table
         self.fileh = openFile(self.file, "r")
@@ -243,31 +289,46 @@ class BasicTestCase(unittest.TestCase):
         # Choose a small value for buffer size
         earray._v_maxTuples = 3
         if verbose:
-            print "Array descr:", repr(earray)
+            print "EArray descr:", repr(earray)
             print "shape of read array ==>", earray.shape
 
         # Build the array to do comparisons
-        if str(self.type) == "CharType":
-            object_ = strings.array("a"*self.objsize, shape=self.rowshape,
-                                   itemsize=earray.itemsize)
+        if self.flavor == "numarray":
+            if str(self.type) == "CharType":
+                object_ = strings.array("a"*self.objsize, shape=self.rowshape,
+                                        itemsize=earray.itemsize)
+            else:
+                object_ = arange(self.objsize, shape=self.rowshape,
+                                 type=earray.type)
+            object_.swapaxes(earray.extdim, 0)
         else:
-            object_ = arange(self.objsize, shape=self.rowshape,
-                             type=earray.type)
-        object_.swapaxes(earray.extdim, 0)
+            object_ = Numeric.arange(self.objsize,
+                                     typecode=typecode[earray.type])
+            object_ = Numeric.reshape(object_, self.rowshape)
+            object_ = Numeric.swapaxes(object_, earray.extdim, 0)
+            
         rowshape = self.rowshape
         rowshape[self.extdim] *= self.nappends
-        if str(self.type) == "CharType":
-            object__ = strings.array(None, shape=rowshape,
-                                     itemsize=earray.itemsize)
+        if self.flavor == "numarray":
+            if str(self.type) == "CharType":
+                object__ = strings.array(None, shape=rowshape,
+                                         itemsize=earray.itemsize)
+            else:
+                object__ = array(None, shape = rowshape, type=self.type)
+            object__.swapaxes(0, self.extdim)
         else:
-            object__ = array(None, shape = rowshape, type=self.type)
-        object__.swapaxes(0, self.extdim)
+            object__ = Numeric.zeros(self.rowshape, typecode[earray.type])
+            object__ = Numeric.swapaxes(object__, earray.extdim, 0)
+
         for i in range(self.nappends):
             j = i * self.chunksize
             if str(self.type) == "CharType":
                 object__[j:j+self.chunksize] = object_
             else:
-                object__[j:j+self.chunksize] = object_ * i
+                if self.flavor == "numarray":
+                    object__[j:j+self.chunksize] = object_ * i
+                else:
+                    object__[j:j+self.chunksize] = (object_ * i).astype(typecode[earray.type])
         stop = self.stop
         if self.nappends:
             # Protection against number of elements less than existing
@@ -278,15 +339,24 @@ class BasicTestCase(unittest.TestCase):
             # actually do a measure of its length
             object = object__[self.start:stop:self.step].copy()
             # Swap the axes again to have normal ordering
-            object.swapaxes(0, self.extdim)
+            if self.flavor == "numarray":
+                object.swapaxes(0, self.extdim)
+            else:
+                object = Numeric.swapaxes(object, 0, self.extdim)
         else:
-            object = array(None, shape = self.shape, type=self.type)
+            if self.flavor == "numarray":
+                object = array(None, shape = self.shape, type=self.type)
+            else:
+                object = Numeric.zeros(self.shape, typecode[self.type])
 
         # Read all the array
         try:
             row = earray.read(self.start,self.stop,self.step)
         except IndexError:
-            row = array(None, shape = self.shape, type=self.type)
+            if self.flavor == "numarray":
+                row = array(None, shape = self.shape, type=self.type)
+            else:
+                row = Numeric.zeros(self.shape, typecode[self.type])
 
         if verbose:
             if hasattr(object, "shape"):
@@ -295,20 +365,20 @@ class BasicTestCase(unittest.TestCase):
             print "Should look like ==>", repr(object)
 
         assert self.nappends*self.chunksize == earray.nrows
-        assert allequal(row, object)
+        assert allequal(row, object, self.flavor)
         if hasattr(row, "shape"):
             assert len(row.shape) == len(self.shape)
         else:
             # Scalar case
             assert len(self.shape) == 1
 
-    def test04_getitemArray(self):
+    def test04_getitemEArray(self):
         """Checking enlargeable array __getitem__ special method"""
 
         rootgroup = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test04_getitemArray..." % self.__class__.__name__
+            print "Running %s.test04_getitemEArray..." % self.__class__.__name__
             
         # Create an instance of an HDF5 Table
         self.fileh = openFile(self.file, "r")
@@ -317,31 +387,46 @@ class BasicTestCase(unittest.TestCase):
         # Choose a small value for buffer size
         earray._v_maxTuples = 3
         if verbose:
-            print "Array descr:", repr(earray)
+            print "EArray descr:", repr(earray)
             print "shape of read array ==>", earray.shape
 
         # Build the array to do comparisons
-        if str(self.type) == "CharType":
-            object_ = strings.array("a"*self.objsize, shape=self.rowshape,
-                                   itemsize=earray.itemsize)
+        if self.flavor == "numarray":
+            if str(self.type) == "CharType":
+                object_ = strings.array("a"*self.objsize, shape=self.rowshape,
+                                        itemsize=earray.itemsize)
+            else:
+                object_ = arange(self.objsize, shape=self.rowshape,
+                                 type=earray.type)
+            object_.swapaxes(earray.extdim, 0)
         else:
-            object_ = arange(self.objsize, shape=self.rowshape,
-                             type=earray.type)
-        object_.swapaxes(earray.extdim, 0)
+            object_ = Numeric.arange(self.objsize,
+                                     typecode=typecode[earray.type])
+            object_ = Numeric.reshape(object_, self.rowshape)
+            object_ = Numeric.swapaxes(object_, earray.extdim, 0)
+            
         rowshape = self.rowshape
         rowshape[self.extdim] *= self.nappends
-        if str(self.type) == "CharType":
-            object__ = strings.array(None, shape=rowshape,
-                                     itemsize=earray.itemsize)
+        if self.flavor == "numarray":
+            if str(self.type) == "CharType":
+                object__ = strings.array(None, shape=rowshape,
+                                         itemsize=earray.itemsize)
+            else:
+                object__ = array(None, shape = rowshape, type=self.type)
+            object__.swapaxes(0, self.extdim)
         else:
-            object__ = array(None, shape = rowshape, type=self.type)
-        object__.swapaxes(0, self.extdim)
+            object__ = Numeric.zeros(self.rowshape, typecode[earray.type])
+            object__ = Numeric.swapaxes(object__, earray.extdim, 0)
+
         for i in range(self.nappends):
             j = i * self.chunksize
             if str(self.type) == "CharType":
                 object__[j:j+self.chunksize] = object_
             else:
-                object__[j:j+self.chunksize] = object_ * i
+                if self.flavor == "numarray":
+                    object__[j:j+self.chunksize] = object_ * i
+                else:
+                    object__[j:j+self.chunksize] = (object_ * i).astype(typecode[earray.type])
         stop = self.stop
         if self.nappends:
             # Protection against number of elements less than existing
@@ -352,13 +437,22 @@ class BasicTestCase(unittest.TestCase):
             # actually do a measure of its length
             object = object__[self.start:stop:self.step].copy()
             # Swap the axes again to have normal ordering
-            object.swapaxes(0, self.extdim)
+            if self.flavor == "numarray":
+                object.swapaxes(0, self.extdim)
+            else:
+                object = Numeric.swapaxes(object, 0, self.extdim)
         else:
-            object = array(None, shape = self.shape, type=self.type)
+            if self.flavor == "numarray":
+                object = array(None, shape = self.shape, type=self.type)
+            else:
+                object = Numeric.zeros(self.shape, typecode[self.type])
 
         if (len(range(self.start, stop, self.step)) == 1 and
             self.extdim > 0):
-            object.swapaxes(self.extdim, 0)
+            if self.flavor == "numarray":
+                object.swapaxes(self.extdim, 0)
+            else:
+                object = Numeric.swapaxes(object, self.extdim, 0)
             object = object[0]
             correction = 1
         else:
@@ -368,7 +462,10 @@ class BasicTestCase(unittest.TestCase):
         try:
             row = earray[self.start:self.stop:self.step]
         except IndexError:
-            row = array(None, shape = self.shape, type=self.type)
+            if self.flavor == "numarray":
+                row = array(None, shape = self.shape, type=self.type)
+            else:
+                row = Numeric.zeros(self.shape, typecode[self.type])
 
         if verbose:
             if hasattr(object, "shape"):
@@ -377,7 +474,7 @@ class BasicTestCase(unittest.TestCase):
             print "Should look like ==>", repr(object) #, row.info()
 
         assert self.nappends*self.chunksize == earray.nrows
-        assert allequal(row, object)
+        assert allequal(row, object, self.flavor)
         if hasattr(row, "shape"):
             assert len(row.shape) == len(self.shape) - correction
         else:
@@ -392,7 +489,7 @@ class BasicWriteTestCase(BasicTestCase):
     nappends = 10
     step = 1
 
-class EmptyArrayTestCase(BasicTestCase):
+class EmptyEArrayTestCase(BasicTestCase):
     type = Int32
     shape = (2, 0)
     chunksize = 5
@@ -521,6 +618,45 @@ class CharTypeComprTestCase(BasicTestCase):
     stop = 100
     step = 20
 
+class Numeric1TestCase(BasicTestCase):
+    #flavor = "Numeric"
+    type = "Int32"
+    shape = (2,0)
+    compr = 1
+    shuffle = 1
+    chunksize = 50
+    nappends = 20
+    start = -1
+    stop = 100
+    step = 20
+
+class Numeric2TestCase(BasicTestCase):
+    flavor = "Numeric"
+    type = "Float32"
+    shape = (0,)
+    compr = 1
+    shuffle = 1
+    chunksize = 2
+    nappends = 1
+    start = -1
+    stop = 100
+    step = 20
+
+class NumericComprTestCase(BasicTestCase):
+    flavor = "Numeric"
+    type = "Float64"
+    compress = 1
+    shuffle = 1
+    shape = (0,)
+    compr = 1
+    shuffle = 1
+    chunksize = 2
+    nappends = 1
+    start = 51
+    stop = 100
+    step = 7
+
+# It remains a test of Numeric char types, but the code is getting too messy
 
 #----------------------------------------------------------------------
 
@@ -530,7 +666,7 @@ def suite():
     niter = 1
 
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
-    #theSuite.addTest(unittest.makeSuite(EmptyArrayTestCase))
+    #theSuite.addTest(unittest.makeSuite(EmptyEArrayTestCase))
     #theSuite.addTest(unittest.makeSuite(MD3WriteTestCase))
     #theSuite.addTest(unittest.makeSuite(MD5WriteTestCase))
     #theSuite.addTest(unittest.makeSuite(MD10WriteTestCase))
@@ -544,10 +680,13 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(CharTypeTestCase))
     #theSuite.addTest(unittest.makeSuite(CharType2TestCase))
     #theSuite.addTest(unittest.makeSuite(CharTypeComprTestCase))
+    #theSuite.addTest(unittest.makeSuite(Numeric1TestCase))
+    #theSuite.addTest(unittest.makeSuite(Numeric2TestCase))
+    #theSuite.addTest(unittest.makeSuite(NumericComprTestCase))
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
-        theSuite.addTest(unittest.makeSuite(EmptyArrayTestCase))
+        theSuite.addTest(unittest.makeSuite(EmptyEArrayTestCase))
         theSuite.addTest(unittest.makeSuite(MD3WriteTestCase))
         theSuite.addTest(unittest.makeSuite(MD5WriteTestCase))
         theSuite.addTest(unittest.makeSuite(MD10WriteTestCase))
@@ -561,6 +700,9 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CharTypeTestCase))    
         theSuite.addTest(unittest.makeSuite(CharType2TestCase))    
         theSuite.addTest(unittest.makeSuite(CharTypeComprTestCase))
+        theSuite.addTest(unittest.makeSuite(Numeric1TestCase))
+        theSuite.addTest(unittest.makeSuite(Numeric2TestCase))
+        theSuite.addTest(unittest.makeSuite(NumericComprTestCase))
 
     return theSuite
 

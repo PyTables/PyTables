@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.58 2003/12/06 10:23:31 falted Exp $
+#       $Id: File.py,v 1.59 2003/12/16 11:09:50 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.58 $"
+__version__ = "$Revision: 1.59 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays
@@ -52,6 +52,7 @@ from Group import Group
 from Leaf import Leaf
 from Table import Table
 from Array import Array
+from EArray import EArray
 from VLArray import VLArray
 from AttributeSet import AttributeSet
 import numarray
@@ -351,9 +352,13 @@ class File(hdf5Extension.File, object):
             object = Table(*args, **kwargs)
         elif classname == "Array":
             object = Array(*args, **kwargs)
+        elif classname == "EArray":
+            object = EArray(*args, **kwargs)
+        elif classname == "VLArray":
+            object = VLArray(*args, **kwargs)
         else:
             raise ValueError,\
-            """Parameter 1 can only take 'Group', 'Table' or 'Array' values."""
+            """Parameter 1 can only take 'Group', 'Table', 'Array', EArray or VLArray values."""
 
         group = self.getNode(where, classname = 'Group')
         # Put the object on the tree
@@ -423,9 +428,7 @@ class File(hdf5Extension.File, object):
         return object
 
     
-    def createArray(self, where, name, object, title = "",
-                    compress = 0, complib = "zlib", shuffle = 0,
-                    expectedrows = 1000):
+    def createArray(self, where, name, object, title = ""):
         
         """Create a new instance Array with name "name" in "where" location.
 
@@ -441,33 +444,62 @@ class File(hdf5Extension.File, object):
         object -- The (regular) object to be saved. It can be any of
             NumArray, CharArray, Numeric, List, Tuple, String, Int of
             Float types, provided that they are regular (i.e. they are
-            not like [[1,2],2]). One of its dimensions can be 0, and
-            that will mean that the resulting Array object can be
-            extended along this dimension. Multiple enlargeable
-            dimensions are not supported right now.
+            not like [[1,2],2]).
+
+        title -- Sets a TITLE attribute on the array entity.
+
+            """
+            
+        group = self.getNode(where, classname = 'Group')
+        Object = Array(object, title)
+        setattr(group, name, Object)
+        return Object
+
+
+    def createEArray(self, where, name, object, title = "",
+                    compress = 0, complib = "zlib", shuffle = 0,
+                    expectedrows = 1000):
+        
+        """Create a new instance EArray with name "name" in "where" location.
+
+        Keyword arguments:
+
+        where -- The parent group where the new table will
+            hang. "where" parameter can be a path string (for
+            example "/Particles/TParticle1"), or Group
+            instance.
+
+        name -- The name of the new array.
+
+        object -- An object describing the kind of objects that you
+            can append to the EArray. It can be an instance of any of
+            NumArray, CharArray or Numeric classes and one of its
+            dimensions must be 0. The dimension being 0 means that the
+            resulting EArray object can be extended along it. Multiple
+            enlargeable dimensions are not supported right now.
 
         title -- Sets a TITLE attribute on the array entity.
 
         compress -- Specifies a compress level for data. The allowed
             range is 0-9. A value of 0 disables compression and this
-            is the default. A value greater than 0 implies enlargeable
-            Arrays (see above).
+            is the default.
 
         complib -- Specifies the compression library to be used. Right
             now, "zlib", "lzo" and "ucl" values are supported.
 
         shuffle -- Whether or not to use the shuffle filter in the
             HDF5 library. This is normally used to improve the
-            compression ratio.
+            compression ratio. A value of 0 disables shuffling and it
+            is the default.
 
         expectedrows -- In the case of enlargeable arrays this
-            represents an user estimate about the number of rows
-            elements that will be added to the Array object. If not
-            provided, the default value is 1000 rows. If you plan
-            to create both much smaller or much bigger Arrays try
-            providing a guess; this will optimize the HDF5 B-Tree
-            creation and management process time and the amount of
-            memory used.
+            represents an user estimate about the number of row
+            elements that will be added to the growable dimension in
+            the EArray object. If not provided, the default value is
+            1000 rows. If you plan to create both much smaller or much
+            bigger EArrays try providing a guess; this will optimize
+            the HDF5 B-Tree creation and management process time and
+            the amount of memory used.
 
             """
 
@@ -475,8 +507,8 @@ class File(hdf5Extension.File, object):
         if shuffle and not compress:
             # Shuffling and not compressing makes not sense
             shuffle = 0
-        Object = Array(object, title,
-                       compress, complib, shuffle, expectedrows)
+        Object = EArray(object, title,
+                        compress, complib, shuffle, expectedrows)
         setattr(group, name, Object)
         return Object
 
@@ -503,15 +535,15 @@ class File(hdf5Extension.File, object):
 
         compress -- Specifies a compress level for data. The allowed
             range is 0-9. A value of 0 disables compression and this
-            is the default. A value greater than 0 implies enlargeable
-            Arrays (see above).
+            is the default.
 
         complib -- Specifies the compression library to be used. Right
             now, "zlib", "lzo" and "ucl" values are supported.
 
         shuffle -- Whether or not to use the shuffle filter in the
             HDF5 library. This is normally used to improve the
-            compression ratio.
+            compression ratio. A value of 0 disables shuffling and it
+            is the default.
 
         expectedsizeinMB -- An user estimate about the size (in MB) in
             the final VLArray object. If not provided, the default

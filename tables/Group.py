@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.53 2003/11/19 18:07:46 falted Exp $
+#       $Id: Group.py,v 1.54 2003/12/16 11:09:50 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.53 $"
+__version__ = "$Revision: 1.54 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -46,6 +46,7 @@ import warnings, types
 import hdf5Extension
 from Table import Table
 from Array import Array
+from EArray import EArray
 from VLArray import VLArray
 from AttributeSet import AttributeSet
 from utils import checkNameValidity
@@ -182,9 +183,6 @@ class Group(hdf5Extension.Group, object):
             class_ = self._v_attrs._g_getChildSysAttr(name, "CLASS")
         else:
             class_ = self._v_attrs._g_getChildAttr(name, "CLASS")
-        if class_:
-            # Convert "ARRAY" or "TABLE" to "Array" or "Table"
-            class_ = class_.capitalize()
         if class_ is None:
             # No CLASS attribute, try a guess
             warnings.warn( \
@@ -196,11 +194,13 @@ I can't promise getting the correct object, but I will do my best!.""",
                 raise RuntimeError, \
                 """Dataset object \'%s\' in file is unsupported!.""" % \
                       name
-        if class_ == "Table":
+        if class_ == "TABLE":
             return Table()
-        elif class_ == "Array":
+        elif class_ == "ARRAY":
             return Array()
-        elif class_ == "Vlarray":  # Acabar d'implementar aco...
+        elif class_ == "EARRAY":
+            return EArray()
+        elif class_ == "VLARRAY":
             return VLArray()
         else:
             raise RuntimeError, \

@@ -132,12 +132,14 @@ class Basic0DTwoTestCase(BasicTestCase):
     numericalList = 33.34
     charList = "33"*500
     
-class Basic1DZeroTestCase(BasicTestCase):
-    # This test works from pytables 0.8 on, because chunked arrays are being
-    # supported
-    title = "Rank-1 case 0"
-    numericalList = []
-    charList = []
+# This does not work anymore because I've splitted the chunked arrays to happen
+# mainly in EArray objects
+# class Basic1DZeroTestCase(BasicTestCase):
+#     # This test works from pytables 0.8 on, because chunked arrays are being
+#     # supported
+#     title = "Rank-1 case 0"
+#     numericalList = []
+#     charList = []
 
 class Basic1DOneTestCase(BasicTestCase):
     # 1D case
@@ -186,7 +188,7 @@ def suite():
     # The scalar case test should be refined in order to work
     theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
     theSuite.addTest(unittest.makeSuite(Basic0DTwoTestCase))
-    theSuite.addTest(unittest.makeSuite(Basic1DZeroTestCase))
+    #theSuite.addTest(unittest.makeSuite(Basic1DZeroTestCase))
     theSuite.addTest(unittest.makeSuite(Basic1DOneTestCase))
     theSuite.addTest(unittest.makeSuite(Basic1DTwoTestCase))
     theSuite.addTest(unittest.makeSuite(Basic1DThreeTestCase))

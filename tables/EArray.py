@@ -1,21 +1,21 @@
 ########################################################################
 #
 #       License: BSD
-#       Created: October 10, 2002
+#       Created: December 15, 2003
 #       Author:  Francesc Alted - falted@openlc.org
 #
-#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.44 2003/12/16 11:09:50 falted Exp $
+#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
+#       $Id: EArray.py,v 1.1 2003/12/16 11:09:50 falted Exp $
 #
 ########################################################################
 
-"""Here is defined the Array class.
+"""Here is defined the EArray class.
 
-See Array class docstring for more info.
+See EArray class docstring for more info.
 
 Classes:
 
-    Array
+    EArray
 
 Functions:
 
@@ -27,12 +27,9 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.44 $"
-
-# default version for ARRAY objects
-#obversion = "1.0"    # initial version
-obversion = "2.0"    # Added an optional EXTDIM attribute
-
+__version__ = "$Revision: 1.1 $"
+# default version for EARRAY objects
+obversion = "1.0"    # initial version
 
 import types, warnings, sys
 from Leaf import Leaf
@@ -48,11 +45,11 @@ try:
 except:
     Numeric_imported = 0
 
-class Array(Leaf, hdf5Extension.Array, object):
+class EArray(Leaf, hdf5Extension.Array, object):
     """Represent an homogeneous dataset in HDF5 file.
 
-    It enables to create new datasets on-disk from Numeric, numarray,
-    lists, tuples, strings or scalars, or open existing ones.
+    It enables to create new datasets on-disk from Numeric and
+    numarray packages, or open existing ones.
 
     All Numeric and numarray typecodes are supported except for complex
     datatypes.
@@ -67,7 +64,8 @@ class Array(Leaf, hdf5Extension.Array, object):
         remove()
         setAttr(attrname, attrvalue)
         
-      Specific of Array:
+      Specific of EArray:
+        append(object)
         read(start, stop, step)
         iterrows(start, stop, step)
 
@@ -80,7 +78,7 @@ class Array(Leaf, hdf5Extension.Array, object):
         shape -- the leaf shape
         byteorder -- the byteorder of the leaf
         
-      Specific of Array:
+      Specific of EArray:
       
         type -- The type class for the array.
 
@@ -90,30 +88,56 @@ class Array(Leaf, hdf5Extension.Array, object):
         flavor -- The object type of this object (Numarray, Numeric, List,
             Tuple, String, Int of Float).
             
-        nrows -- The value of the first dimension of Array.
+        nrows -- The value of the enlargeable dimension.
             
-        nrow -- On iterators, this is the index of the current row.
+        nrow -- On iterators, this is the index of the row currently
+            dealed with.
 
     """
     
-    def __init__(self, object = None, title = ""):
-        """Create the instance Array.
+    def __init__(self, object = None, title = "",
+                 compress = 0, complib = "zlib",
+                 shuffle = 0, expectednrows = 1000):
+        """Create EArray instance.
 
         Keyword arguments:
 
-        object -- The (regular) object to be saved. It can be any of
-            NumArray, CharArray, Numeric, List, Tuple, String, Int of
-            Float types, provided that they are regular (i.e. they are
-            not like [[1,2],2]).
+        object -- An object describing the kind of objects that you
+            can append to the EArray. It can be an instance of any of
+            NumArray, CharArray or Numeric classes and one of its
+            dimensions must be 0. The dimension being 0 means that the
+            resulting EArray object can be extended along it. Multiple
+            enlargeable dimensions are not supported right now.
 
-        title -- Sets a TITLE attribute on the HDF5 array entity.
+        title -- Sets a TITLE attribute on the array entity.
+
+        compress -- Specifies a compress level for data. The allowed
+            range is 0-9. A value of 0 disables compression and this
+            is the default.
+
+        complib -- Specifies the compression library to be used. Right
+            now, "zlib", "lzo" and "ucl" values are supported.
+
+        shuffle -- Whether or not to use the shuffle filter in the
+            HDF5 library. This is normally used to improve the
+            compression ratio. A value of 0 disables shuffling and it
+            is the default.
+
+        expectedrows -- In the case of enlargeable arrays this
+            represents an user estimate about the number of row
+            elements that will be added to the growable dimension in
+            the EArray object. If not provided, the default value is
+            1000 rows. If you plan to create both much smaller or much
+            bigger EArrays try providing a guess; this will optimize
+            the HDF5 B-Tree creation and management process time and
+            the amount of memory used.
 
         """
         self.new_title = title
-        self._v_compress = 0  # An Array can not be compressed
-        self._v_complib = "zlib"  # Some default value
-        self._v_shuffle = 0   # Values of an Array cannot be shuffled
-        self.extdim = -1   # An Array object is not enlargeable
+        self._v_compress = compress
+        self._v_complib = complib
+        self._v_shuffle = shuffle
+        self._v_expectednrows = expectednrows
         # Check if we have to create a new object or read their contents
         # from disk
         if object is not None:
@@ -128,14 +152,24 @@ class Array(Leaf, hdf5Extension.Array, object):
 
         self._v_version = obversion
         naarr, self.flavor = self._convertIntoNA(self.object)
-        if naarr.shape:
-            self._v_expectednrows = naarr.shape[0]
-        else:
-            self._v_expectednrows = 1  # Scalar case
+
         if (isinstance(naarr, strings.CharArray)):
             self.byteorder = "non-relevant" 
         else:
             self.byteorder  = naarr._byteorder
+
+        # Check for null dimensions
+        zerodims = numarray.sum(numarray.array(naarr.shape) == 0)
+        if zerodims > 0:
+            if zerodims == 1:
+                extdim = list(naarr.shape).index(0)
+                self.extdim = extdim
+            else:
+                raise NotImplementedError, \
+                      "Multiple enlargeable (0-)dimensions are not supported."
+        else:
+            raise ValueError, \
+                  "When creating EArrays, you need to set one of the dimensions of object to zero."
 
         # Compute some values for buffering and I/O parameters
         # Compute the rowsize for each element
@@ -143,19 +177,13 @@ class Array(Leaf, hdf5Extension.Array, object):
         for i in naarr.shape:
             if i>0:
                 self.rowsize *= i
-            else:
-                raise ValueError, "An Array object cannot be empty."
-
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
-                            calcBufferSize(self.rowsize, self._v_expectednrows,
-                                           self._v_compress)
+           calcBufferSize(self.rowsize, self._v_expectednrows,
+                          self._v_compress)
 
         self.shape = naarr.shape
-        if naarr.shape:
-            self.nrows = naarr.shape[0]
-        else:
-            self.nrows = 1    # Scalar case
+        self.nrows = naarr.shape[self.extdim]
         self.itemsize = naarr.itemsize()
         self.type = self._createArray(naarr, self.new_title)
 
@@ -189,9 +217,15 @@ class Array(Leaf, hdf5Extension.Array, object):
                 if arr.iscontiguous():
                     # This the fastest way to convert from Numeric to numarray
                     # because no data copy is involved
-                    naarr = numarray.array(buffer(arr),
-                                           type=arr.typecode(),
-                                           shape=arr.shape)
+                    # We have to use this weird thing because numarray does
+                    # not support a clean conversion of zero-sized arrays
+                    try:
+                        naarr = numarray.array(buffer(arr),
+                                               type=arr.typecode(),
+                                               shape=arr.shape)
+                    except:
+                        # Case of empty arrays
+                        naarr = numarray.array(arr)
                 else:
                     # Here we absolutely need a copy in order
                     # to obtain a buffer.
@@ -204,59 +238,70 @@ class Array(Leaf, hdf5Extension.Array, object):
         elif (isinstance(arr, strings.CharArray)):
             flavor = "CharArray"
             naarr = arr
-        elif (isinstance(arr, types.TupleType) or
-              isinstance(arr, types.ListType)):
-            # Test if can convert to numarray object
-            try:
-                naarr = numarray.array(arr)
-            # If not, test with a chararray
-            except TypeError:
-                try:
-                    naarr = strings.array(arr)
-                # If still doesn't, issues an error
-                except:
-                    raise ValueError, \
-"""The object '%s' can't be converted to a numerical or character array.
-  Sorry, but this object is not supported.""" % (arr)
-            if isinstance(arr, types.TupleType):
-                flavor = "Tuple"
-            else:
-                flavor = "List"
-        elif isinstance(arr, types.IntType):
-            naarr = numarray.array(arr)
-            flavor = "Int"
-        elif isinstance(arr, types.FloatType):
-            naarr = numarray.array(arr)
-
-            flavor = "Float"
-        elif isinstance(arr, types.StringType):
-            naarr = strings.array(arr)
-            flavor = "String"
         else:
             raise ValueError, \
-"""The object '%s' is not in the list of supported objects (NumArray, CharArray, Numeric, homogeneous list or homogeneous tuple, int, float or str). Sorry, but this object is not supported.""" % (arr)
+"""The object '%s' is not in the list of supported objects (NumArray, CharArray, Numeric). Sorry, but this object is not supported.""" % (arr)
 
         # We always want a contiguous buffer
         # (no matter if has an offset or not; that will be corrected later)
+        # (I think this should be not necessary)
         if (not naarr.iscontiguous()):
             # Do a copy of the array in case is not contiguous
             naarr = numarray.NDArray.copy(naarr)
 
         return naarr, flavor
 
+    def _checkTypeShape(self, naarr):
+        " Test that naarr parameter is shape and type compliant"
+        # Check the type
+        if not hasattr(naarr, "type"):  # To deal with string objects
+            datatype = records.CharType
+            # Made an additional check for strings
+            if naarr.itemsize() <> self.itemsize:
+                raise TypeError, \
+"""The object '%r' has not a base string size of '%s'.""" % \
+(naarr, self.itemsize)
+        else:
+            datatype = naarr.type()
+        #print "datatype, self.type:", datatype, self.type
+        if str(datatype) <> str(self.type):
+            raise TypeError, \
+"""The object '%r' is not composed of elements of type '%s'.""" % \
+(naarr, self.type)
+
+        # The arrays conforms self expandibility?
+        assert len(self.shape) == len(naarr.shape), \
+"""Sorry, the ranks of the EArray '%r' and object to be appended differ
+  (%d <> %d).""" % (self._v_pathname, len(self.shape), len(naarr.shape))
+        for i in range(len(self.shape)):
+            if i <> self.extdim:
+                assert self.shape[i] == naarr.shape[i], \
+"""Sorry, shapes of EArray '%r' and object differ in dimension %d (non-enlargeable)""" % (self._v_pathname, i) 
+        # Ok. all conditions are met. Return the numarray object
+        return naarr
+            
+    def append(self, object):
+        """Append the object to this (enlargeable) object"""
+
+        # Convert the object into a numarray object
+        naarr, self.flavor = self._convertIntoNA(object)
+        naarr = self._checkTypeShape(naarr)
+        self._append(naarr)
+
     def _open(self):
         """Get the metadata info for an array in file."""
         (self.type, self.shape, self.itemsize, self.byteorder) = \
                         self._openArray()
+        # Post-condition
+        assert self.extdim >= 0, "extdim < 0: this should never happen!"
         # Compute the rowsize for each element
         self.rowsize = self.itemsize
         for i in range(len(self.shape)):
-            self.rowsize *= self.shape[i]
-        # Assign a value to nrows in case we are a non-enlargeable object
-        if self.shape:
-            self.nrows = self.shape[0]
-        else:
-            self.nrows = 1   # Scalar case
+            if i <> self.extdim:
+                self.rowsize *= self.shape[i]
+            else:
+                self.nrows = self.shape[i]
+
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
                    calcBufferSize(self.rowsize, self.nrows, self._v_compress)
@@ -270,8 +315,8 @@ class Array(Leaf, hdf5Extension.Array, object):
         """Iterate over all the rows or a range.
         
         It returns the same iterator than
-        Table.iterrows(start, stop, step).
-        It is, therefore, a shorter way to call it.
+        EArray.iterrows(start, stop, step).
+        It is, therefore, a shorter way of calling iterrows.
         """
 
         try:
@@ -310,6 +355,7 @@ class Array(Leaf, hdf5Extension.Array, object):
             del self._init
             raise StopIteration        # end of iteration
         else:
+            #print "start, stop, step:", self._start, self._stop, self._step
             # Read a chunk of rows
             if self._row+1 >= self._v_maxTuples or self._row < 0:
                 self._stopb = self._startb+self._step*self._v_maxTuples
@@ -319,30 +365,31 @@ class Array(Leaf, hdf5Extension.Array, object):
                 self.listarr = self.read(self._startb, self._stopb, self._step)
                 # Swap the axes to easy the return of elements
                 if self.extdim > 0:
-                    self.listarr.swapaxes(self.extdim, 0)
+                    if self.flavor == "Numeric":
+                        if Numeric_imported:
+                            self.listarr = Numeric.swapaxes(self.listarr, self.extdim, 0)
+                        else:
+                            # Warn the user
+                            warnings.warn( \
+"""The object on-disk has Numeric flavor, but Numeric is not installed locally. Returning a numarray object instead!.""")
+                            # Default to numarray
+                            self.listarr = swapaxes(self.listarr, self.extdim, 0)
+                    else:
+                        self.listarr.swapaxes(self.extdim, 0)
                 self._row = -1
                 self._startb = self._stopb
             self._row += 1
             self.nrow += self._step
             self._nrowsread += self._step
-            if self.listarr.shape:
-                return self.listarr[self._row]
-            else:
-                # Scalar case
-                return self.listarr
+            return self.listarr[self._row]
 
     def __getitem__(self, key):
         """Returns a table row, table slice or table column.
 
         It takes different actions depending on the type of the "key"
-        parameter:
-
-        If "key"is an integer, the corresponding table row is returned
-        as a RecArray.Record object. If "key" is a slice, the row
-        slice determined by key is returned as a RecArray object.
-        Finally, if "key" is a string, it is interpreted as a column
-        name in the table, and, if it exists, it is read and returned
-        as a NumArray or CharArray object (whatever is appropriate).
+        parameter: If "key"is an integer, the corresponding row is
+        returned. If "key" is a slice, the row slice determined by key
+        is returned.
 
 """
 
@@ -388,16 +435,6 @@ class Array(Leaf, hdf5Extension.Array, object):
                 # Warn the user
                 warnings.warn( \
 """The object on-disk has Numeric flavor, but Numeric is not installed locally. Returning a numarray object instead!.""")
-        elif self.flavor == "Tuple":
-            arr = tuple(arr.tolist())
-        elif self.flavor == "List":
-            arr = arr.tolist()
-        elif self.flavor == "Int":
-            arr = int(arr)
-        elif self.flavor == "Float":
-            arr = float(arr)
-        elif self.flavor == "String":
-            arr = arr.tostring()
 
         return arr
         
@@ -405,16 +442,11 @@ class Array(Leaf, hdf5Extension.Array, object):
     def read(self, start=None, stop=None, step=None):
         """Read the array from disk and return it as a "flavor" object."""
 
-        if self.extdim < 0:
-            extdim = 0
-        else:
-            extdim = self.extdim
-
         (start, stop, step) = processRange(self.nrows, start, stop, step)
         rowstoread = ((stop - start - 1) / step) + 1
         shape = list(self.shape)
         if shape:
-            shape[extdim] = rowstoread
+            shape[self.extdim] = rowstoread
             shape = tuple(shape)
         if repr(self.type) == "CharType":
             arr = strings.array(None, itemsize=self.itemsize,
@@ -448,6 +480,7 @@ class Array(Leaf, hdf5Extension.Array, object):
   shape = %s
   itemsize = %s
   nrows = %s
+  extdim = %r
   flavor = %r
-  byteorder = %r""" % (self, self.type, self.shape, self.itemsize,
-                       self.nrows, self.flavor, self.byteorder)
+  byteorder = %r""" % (self, self.type, self.shape, self.itemsize, self.nrows,
+                       self.extdim, self.flavor, self.byteorder)
