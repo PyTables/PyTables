@@ -5,7 +5,7 @@
 #	Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/nodes/FileNode.py,v $
-#	$Id: FileNode.py,v 1.2 2004/10/29 10:05:03 falted Exp $
+#	$Id: FileNode.py,v 1.3 2004/11/17 15:04:31 ivilata Exp $
 #
 ########################################################################
 
@@ -30,7 +30,7 @@ import tables
 
 
 
-__revision__ = '$Id: FileNode.py,v 1.2 2004/10/29 10:05:03 falted Exp $'
+__revision__ = '$Id: FileNode.py,v 1.3 2004/11/17 15:04:31 ivilata Exp $'
 
 NodeType         = 'file'
 NodeTypeVersions = [1]
@@ -246,14 +246,7 @@ class FileNode(object):
 		# has already been closed.
 		if not self.closed:
 			if getattr(self.node, '_v_file', None) is None:
-				# This will silently ignored until a better solution
-				# for catching the UserWarning in tests would be found.
-				# The problem here is to have a method to catch
-				# a couple of errors in the same sentence, and I don't
-				# know how to do that with unittest
-				# F. Alted 2004-10-29
-				# warnings.warn("host PyTables file is already closed!")
-				pass
+				warnings.warn("host PyTables file is already closed!")
 			else:
 				self.flush()
 

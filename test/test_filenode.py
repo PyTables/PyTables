@@ -5,21 +5,19 @@
 #	Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/test/test_filenode.py,v $
-#	$Id: test_filenode.py,v 1.4 2004/11/16 22:42:06 ivilata Exp $
+#	$Id: test_filenode.py,v 1.5 2004/11/17 15:04:35 ivilata Exp $
 #
 ########################################################################
 
 "Unit test for the FileNode module."
 
-import unittest, tempfile, os, sys
+import unittest, tempfile, os
 import tables
 from tables.nodes import FileNode
 import warnings
 
-from test_all import verbose
 
-
-__revision__ = '$Id: test_filenode.py,v 1.4 2004/11/16 22:42:06 ivilata Exp $'
+__revision__ = '$Id: test_filenode.py,v 1.5 2004/11/17 15:04:35 ivilata Exp $'
 
 
 
@@ -726,7 +724,13 @@ class ClosedH5FileTestCase(unittest.TestCase):
 		Closes 'fnode'; removes 'h5fname'.
 		"""
 
+		# ivilata:  We know that a UserWarning will be raised
+		#   because the PyTables file has already been closed.
+		#   However, we don't want it to pollute the test output.
+		warnings.filterwarnings('ignore', category = UserWarning)
 		self.fnode.close()
+		warnings.filterwarnings('default', category = UserWarning)
+
 		self.fnode = None
 		self.h5file = None
 		os.remove(self.h5fname)
@@ -736,21 +740,6 @@ class ClosedH5FileTestCase(unittest.TestCase):
 		"Writing to a file node in a closed PyTables file."
 
 		self.assertRaises(ValueError, self.fnode.write, 'data')
-		# Uncomment this if there is a need to catch a UserWarning
-		# in the future
-# 		warnings.filterwarnings("error", category=UserWarning)
-# 		try:
-# 			self.fnode.write('data')
-# 			# self.fnode.write('data')
-# 		except UserWarning:
-# 			if verbose:
-# 				(type, value, traceback) = sys.exc_info()
-# 				print "\nGreat!, the next UserWarning was catched!"
-# 				print value
-# 		else:
-# 			self.fail("expected an UserWarning")
-# 		# Reset the warning
-# 		warnings.filterwarnings("default", category=UserWarning)
 
 
 	def test01_Attrs(self):
@@ -763,17 +752,28 @@ class ClosedH5FileTestCase(unittest.TestCase):
 #----------------------------------------------------------------------
 
 def suite():
+	"""suite() -> test suite
+
+	Returns a test suite consisting of all the test cases in the module.
+	"""
+
 	theSuite = unittest.TestSuite()
 
+	theSuite.addTest(unittest.makeSuite(NewFileTestCase))
+	theSuite.addTest(unittest.makeSuite(WriteFileTestCase))
+	theSuite.addTest(unittest.makeSuite(OpenFileTestCase))
+	theSuite.addTest(unittest.makeSuite(ReadFileTestCase))
+	theSuite.addTest(unittest.makeSuite(MonoReadlineTestCase))
+	theSuite.addTest(unittest.makeSuite(MultiReadlineTestCase))
+	theSuite.addTest(unittest.makeSuite(LineSeparatorTestCase))
+	theSuite.addTest(unittest.makeSuite(AttrsTestCase))
 	theSuite.addTest(unittest.makeSuite(ClosedH5FileTestCase))
 
 	return theSuite
 
- 
-if __name__ == '__main__':
-	unittest.main()
-	#unittest.main( defaultTest='suite' )
 
+if __name__ == '__main__':
+	unittest.main(defaultTest = 'suite')
 
 
 
