@@ -5,7 +5,7 @@
 #	Author:  Ivan Vilata i Balaguer - reverse:com.carabos@ivilata
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/test/test_timetype.py,v $
-#	$Id: test_timetype.py,v 1.3 2004/12/27 22:18:42 falted Exp $
+#	$Id$
 #
 ########################################################################
 
@@ -13,9 +13,12 @@
 
 import unittest, tempfile, os
 import tables, numarray
+from test_all import verbose, allequal, heavy, cleanup
+# To delete the internal attributes automagically
+unittest.TestCase.tearDown = cleanup
 
 
-__revision__ = '$Id: test_timetype.py,v 1.3 2004/12/27 22:18:42 falted Exp $'
+__revision__ = '$Id$'
 
 
 
@@ -304,6 +307,48 @@ class CompareTestCase(unittest.TestCase):
 			numarray.alltrue(comp),
 			"Stored and retrieved values do not match.")
 
+	def test02b_CompareTable(self):
+		"Comparing written time data with read data in a Table (several vals)."
+
+		# Create test Table with data.
+		h5file = tables.openFile(
+			self.h5fname, 'w', title = "Test for comparing 64-bit times")
+		tbl = h5file.createTable('/', 'test', self.MyTimeRow)
+		row = tbl.row
+		#nrows = tbl._v_maxTuples + 1034  # add some more rows than buffer
+		nrows = 10  # only for home checks... The value above should check
+		            # better the I/O with multiple buffers
+		for i in xrange(nrows):
+			row['t32col'] = i
+			row['t64col'] = (i+0.012, i+0.012)
+			row.append()
+		h5file.close()
+
+		# Check the written data.
+		h5file = tables.openFile(self.h5fname)
+		tbl = h5file.root.test
+		recarr = h5file.root.test.read()
+		h5file.close()
+
+		orig_val = numarray.arange(nrows,type=numarray.Int32)
+		if verbose:
+			print "Original values:", orig_val
+			print "Saved values:", recarr.field('t32col')[:]
+
+		self.assert_(
+			numarray.alltrue(recarr.field('t32col')[:] == orig_val),
+			"Stored and retrieved values do not match.")
+
+		orig_val = numarray.arange(0,nrows,0.5, type=numarray.Int32,
+								   shape=(nrows,2)) + 0.012
+		if verbose:
+			print "Original values:", orig_val
+			print "Saved values:", recarr.field('t64col')[:]
+
+		self.assert_(
+            allequal(recarr.field('t64col')[:], orig_val, numarray.Float64),
+			"Stored and retrieved values do not match.")
+
 
 	def test03_Compare64EArray(self):
 		"Comparing written 64-bit time data with read data in an EArray."
@@ -339,6 +384,9 @@ def suite():
 	theSuite.addTest(unittest.makeSuite(LeafCreationTestCase))
 	theSuite.addTest(unittest.makeSuite(OpenTestCase))
 	theSuite.addTest(unittest.makeSuite(CompareTestCase))
+# More tests are needed so as to checking atributes, compression, exceptions,
+# etc... Francesc Altet 2005-01-06
+
 
 	return theSuite
 

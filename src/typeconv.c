@@ -7,8 +7,8 @@
  *        Function inlining and some castings for 64-bit adressing
  *        Francesc Altet 2004-12-27
  *
- *      $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/typeconv.c,v $
- *      $Id: typeconv.c,v 1.4 2004/12/29 21:59:36 ivilata Exp $
+ *      $Source: /cvsroot/pytables/pytables/src/typeconv.c,v $
+ *      $Id$
  *
  ***********************************************************************/
 
@@ -26,7 +26,7 @@ void conv_float64_timeval32(void *base,
 			    unsigned long bytestride,
 			    long long nrecords,
 			    unsigned long nelements,
-			    int sense)
+			    const int sense)
 {
   long long      record;
   unsigned long  element, gapsize;
@@ -40,7 +40,7 @@ void conv_float64_timeval32(void *base,
   assert(nelements > 0);
 
   /* Byte distance from end of field to beginning of next field. */
-  gapsize = bytestride - nelements * sizeof(double);
+  gapsize = bytestride/sizeof(double) - nelements;
 
   fieldbase = (double *)(base + byteoffset);
   for (record = 0;  record < nrecords;  record++) {
