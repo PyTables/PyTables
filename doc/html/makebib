@@ -1,0 +1,7 @@
+# This is a generated file. Do not edit it.
+# If you call this as a batch file, it creates
+# the bibliography for the HTML output.
+
+bibtex usersguide-html-bib
+bibfix < usersguide-html-bib.bbl > usersguide-html-bib.xml
+rm -f usersguide-html-bib.bbl

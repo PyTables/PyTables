@@ -1,0 +1,14 @@
+# This is a generated file. Do not edit it.
+# If you call this as a batch file, it copies all
+# files of the HTML version in one sub-directory.
+
+mkdir -p public-usersguide-html
+
+cp -f usersguide-html.xhtml public-usersguide-html
+cp -f objecttree-h5-web.jpg public-usersguide-html
+cp -f objecttree-h5.jpg public-usersguide-html
+cp -f objecttree-web.png public-usersguide-html
+cp -f tutorial-h5-web.jpg public-usersguide-html
+cp -f tutorial-h5.jpg public-usersguide-html
+cp -f tutorial2-h5-web.jpg public-usersguide-html
+cp -f tutorial2-h5.jpg public-usersguide-html

@@ -3,7 +3,7 @@
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2"><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2002-11-15T14:07:42Z"><meta name="Date" content="2002-11-15T14:07:42Z"><meta name="DC.Rights" content="(c) 2002 Francesc Alted"><meta name="Copyright" content="(c) 2002 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2002-11-15T18:10:02Z"><meta name="Date" content="2002-11-15T18:10:02Z"><meta name="DC.Rights" content="(c) 2002 Francesc Alted"><meta name="Copyright" content="(c) 2002 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -135,7 +135,7 @@
 	see <a href="usersguide-html6.html#Numerical">Ascher <em>et&nbsp;al.</em> ()</a>) objects in a hierarchical
 	structure. The foundation of the underlying hierarchical data
 	organization is the excellent <tt class="verb">HDF5</tt> library (see
-	<a href="usersguide-html6.html#HDF5WhatIs">NCSA (<em>c</em>)</a> and <a href="usersguide-html6.html#HDF5Intr">NCSA (<em>b</em>)</a>). Right now, <tt class="verb">PyTables</tt> provides
+	<a href="usersguide-html6.html#HDFWhatIs">NCSA (<em>c</em>)</a> and <a href="usersguide-html6.html#HDFIntr">NCSA (<em>b</em>)</a>). Right now, <tt class="verb">PyTables</tt> provides
 	limited support of all the HDF5 functions, but I hope to add
 	the more interesting ones (for <tt class="verb">PyTables</tt> needs) in
 	the near future. Nonetheless, this package is not intended to
@@ -221,6 +221,13 @@ class Particle(IsRecord):
 	    it to disk but you can do that incrementally, even between
 	    different Python sessions.
 	  </li>
+	  
+	  <li><em>Appendable tables:</em> It supports adding records
+	    to already created tables. This can be done without copying the
+	    dataset or redefining its structure, even between different
+	    Python sessions.
+	  </li>
+			    
 	  <li><em>Automatically check for correct field name, data
 	    type and data range:</em> That reduces programmer mistakes
 	    and if <tt>PyTables</tt> does not
@@ -241,10 +248,11 @@ class Particle(IsRecord):
 	    saves you data organization analysis time). This feature
 	    is also inherited from HDF5.
 	  </li>
-	  <li><em>Big-Endian/Low-Endian safety:</em> <tt>PyTables</tt> has been carefully coded (as
-	    HDF5 itself) with little-endian/big-endian byte orderings
-	    issues in mind . So, in principle, you can write a file in
-	    a big-endian machine and read it in other little-endian
+	  <li><em>Architecture-independent:</em> <tt>PyTables</tt> has been carefully coded (as
+	    HDF5 itself) with little-endian/big-endian byte orderings issues
+	    in mind. So, in principle, you can write a file in a big-endian
+	    machine (like a Sparc or MIPS) and read it in other
+	    little-endian (like Intel or Alpha)
 	    without problems<a href="#footnote1" name="footnoteback1"><sup>1)</sup></a>.</li>
 	</ul>
 
@@ -346,7 +354,11 @@ class Particle(IsRecord):
 	</p>
 
 	<div class="figure" id="objecttree-h5"><a name="objecttree-h5"></a>
-	  <a target="_blank" href="objecttree-h5.png"><img class="graphics" alt="An HDF5 example with 2 subgroups and 3 tabl... (Click for original bitmap)" src="objecttree-h5-web.png"></a>
+	
+	  <a target="_blank" href="objecttree-h5.png"><img class="graphics"
+	  alt="An HDF5 example with 2 subgroups and
+	  3 tables (Click for original bitmap)" src="objecttree-h5-web.png"></a>
+	  
 	  <div class="caption" style="width: 800px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;1.1:</span> An HDF5 example with 2 subgroups and 3 tables.</div></div>
 	</div>
 
@@ -361,8 +373,8 @@ class Particle(IsRecord):
 
 	<div class="figure" id="objecttree"><a name="objecttree"></a>
 	  
-	  <img class="graphics" alt="An object tree example in PyTables.&#xA;	  " src="objecttree-web.png">
-	  <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;1.2:</span> An object tree example in <tt>PyTables</tt>.
+	  <img class="graphics" width="658" height="806" alt="An object tree example in PyTables.&#xA;	  " src="objecttree-web.png">
+	  <div class="caption" style="width: 658px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;1.2:</span> An object tree example in <tt>PyTables</tt>.
 	  </div></div>
 	</div>
 

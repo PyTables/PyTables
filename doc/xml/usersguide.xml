@@ -5,7 +5,7 @@
   <frontmatter>
     <title><visual markup="tt">PyTables</visual> User's Guide</title>
     <author>Francesc Alted</author>
-    <date>November, 13th</date>
+    <date>November, 18th</date>
     <year>2002</year>
     <legalnotice>
 
@@ -274,11 +274,10 @@ class Particle(IsRecord):
 	    data structure. Access to the file objects is achieved by
 	    walking throughout this object tree, and manipulating it.
 	  </item>
-	  <item><em>Incremental I/O:</em> It supports adding records
-	    to already created tables. So you won't need to book large
-	    amounts of memory to fill the entire table and then save
-	    it to disk but you can do that incrementally, even between
-	    different Python sessions.
+	  <item><em>Appendable tables:</em> It supports adding records
+	    to already created tables. This can be done without
+	    copying the dataset or redefining its structure, even
+	    between different Python sessions.
 	  </item>
 	  <item><em>Automatically check for correct field name, data
 	    type and data range:</em> That reduces programmer mistakes
@@ -301,16 +300,20 @@ class Particle(IsRecord):
 	    saves you data organization analysis time). This feature
 	    is also inherited from HDF5.
 	  </item>
-	  <item><em>Big-Endian/Low-Endian safety:</em> <visual
+
+	  <item><em>Architecture-independent:</em> <visual
 	    markup="tt">PyTables</visual> has been carefully coded (as
 	    HDF5 itself) with little-endian/big-endian byte orderings
 	    issues in mind . So, in principle, you can write a file in
-	    a big-endian machine and read it in other little-endian
-	    without problems<footnote>I do actually tested that
-	    between a Sparc machine (big-endian) and an Intel machine
+	    a big-endian machine (like a Sparc or MIPS) and read it in
+	    other little-endian (like Intel or Alpha) without
+	    problems<footnote>I do actually tested that between a
+	    Sparc machine (big-endian) and an Intel machine
 	    (little-endian) and it works only for tables but not for
 	    arrays!. This flaw will hopefully be addressed in next
-	    release.</footnote>.</item>
+	    release.</footnote>.
+	  </item>
+
 	</itemize>
 
 	<p>It should noted that <visual markup="tt">PyTables</visual>
@@ -418,7 +421,7 @@ class Particle(IsRecord):
 	</p>
 
 	<figure id="objecttree-h5">
-	  <graphics file="objecttree-h5" scale="0.5" kind="bitmap">
+	  <graphics file="objecttree-h5" scale="0.6" kind="bitmap">
 	  </graphics>
 	  <caption>An HDF5 example with 2 subgroups and 3 tables.</caption>
 	</figure>
@@ -438,7 +441,7 @@ class Particle(IsRecord):
 
 	<figure id="objecttree">
 	  <!-- Now, this works! -->
-	  <graphics file="objecttree" scale="0.4" kind="vector">
+	  <graphics file="objecttree" scale="0.35" kind="vector">
 	  
 	  <!-- If you want to convert the eps to jpeg use command:
 pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
@@ -1405,7 +1408,7 @@ Total numbers of entries after appending new rows: 15
 	  </p>
 
 	  <figure id="tutorial-h5">
-	    <graphics file="tutorial-h5" scale="0.5" kind="bitmap">
+	    <graphics file="tutorial-h5" scale="0.55" kind="bitmap">
 	    </graphics>
 	    <caption>The data file after appending some rows.
 	    </caption>

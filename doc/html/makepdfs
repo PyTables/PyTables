@@ -1,0 +1,17 @@
+# This is a generated file. Do not edit it.
+# If you call this as a batch file, it converts all
+# non-jpeg image files into pdf files for pdflatex.
+
+cat usersguide-html-image-gallery-raw.tex | tbrplent > usersguide-html-image-gallery.tex
+
+
+echo
+echo "---- processing image 1/1 (\"objecttree\") ----"
+# 
+if test ! $1 || test $1 == "objecttree"; then
+latex -interaction=batchmode \
+    "\batchmode\def\PictureNumber{2}\input usersguide-html-image-gallery"
+dvips -P tbook -O 0pt,0pt -q* -R -o objecttree-for-conv.ps usersguide-html-image-gallery
+ps2pdf objecttree-for-conv.ps objecttree.pdf
+rm -f objecttree-for-conv.ps
+echo -n; else echo "**** skipped"; fi
