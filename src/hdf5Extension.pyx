@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.104 2004/01/09 17:30:59 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.105 2004/01/10 09:12:46 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.104 $"
+__version__ = "$Revision: 1.105 $"
 
 
 import sys, os
@@ -787,7 +787,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.104 2004/01/09 17:30:59 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.105 2004/01/10 09:12:46 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1296,14 +1296,6 @@ cdef class Table:
     cdef hid_t   field_types[MAX_FIELDS]
     cdef void    *fill_data, *data
     cdef hsize_t nrecords
-    cdef hsize_t nrows
-    cdef hsize_t chunk_size
-    cdef size_t  *field_offset
-    cdef int     complevel
-    #cdef char    *complib
-    cdef char    **field_names
-    cdef size_t  rowsize
-    cdef int     shuffle
 
     # This check has to be done before assigning too much columns in 
     # self.field_names C array
@@ -1316,17 +1308,11 @@ cdef class Table:
       
     # Assign the field_names pointers to the Tuple colnames strings
     i = 0
-    field_names = <char **>malloc( sizeof(char*) * MAX_FIELDS )
     for name in self.colnames:
       if (len(name) >= MAX_CHARS):
         raise NameError("A maximum length of %d on column names is allowed" % \
                          (MAX_CHARS - 1))
       # Copy the column names to an internal buffer
-      #self.field_names[i] = <char *>malloc(MAX_CHARS * sizeof(char))  
-      #strcpy(self.field_names[i], name)
-      field_names[i] = <char *>malloc(MAX_CHARS * sizeof(char))  
-      strcpy(field_names[i], name)
-      # This is equivalent
       self.field_names[i] = strdup(name)
       i = i + 1
 
@@ -1362,26 +1348,11 @@ cdef class Table:
     # The next is settable if we have default values
     fill_data = NULL
     nrecords = <hsize_t>PyInt_AsLong(nvar)
-    #nrows = <hsize_t>PyInt_AsLong(self.nrows)
-    #rowsize = <size_t>PyInt_AsLong(self.rowsize)
-    #field_names = <char **>self.field_names
-    chunk_size = <hsize_t>PyInt_AsLong(self._v_chunksize)
-    #field_offset = <size_t *>self.field_offset
-    #complevel = <int>PyInt_AsLong(self.complevel)
-    #complib = <char *>self.complib
-    #complib = PyString_AsString(self.complib)
-    #shuffle = <int>PyInt_AsLong(self.shuffle)
-
     oid = H5TBmake_table(title, self.parent_id, self.name,
-                         nrecords, self.nrows, self.rowsize, field_names,
-                         self.field_offset, field_types, chunk_size,
+                         nrecords, self.nrows, self.rowsize, self.field_names,
+                         self.field_offset, field_types, self._v_chunksize,
                          fill_data, self.complevel, complib,
                          self.shuffle, data)
-#     oid = H5TBmake_table(title, self.parent_id, self.name,
-#                          nvar, self.nrows, self.rowsize, self.field_names,
-#                          self.field_offset, fieldtypes, self._v_chunksize,
-#                          fill_data, self.complevel, complib,
-#                          self.shuffle, data)
     if oid < 0:
       raise RuntimeError("Problems creating the table")
     self.objectID = oid
@@ -1389,8 +1360,8 @@ cdef class Table:
     # Release resources to avoid memory leaks
     for i from  0 <= i < nvar:
       H5Tclose(field_types[i])
-      free(<void *>field_names[i])
-    free(<void *>field_names)
+      #free(<void *>field_names[i])
+    #free(<void *>field_names)
     
   def _open_append(self, object recarr):
     cdef int buflen, ret
