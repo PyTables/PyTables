@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.6 2003/01/29 10:22:14 falted Exp $
+#       $Id: File.py,v 1.7 2003/01/29 16:52:09 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.6 $"
+__version__ = "$Revision: 1.7 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -359,16 +359,20 @@ future). Giving up.""" % \
         return object
 
     
-    def createArray(self, where, name, NumericObject, title = ""):
+    def createArray(self, where, name, NumericObject,
+                    title = "", atomic = 1):
         
         """Create a new instance Array with name "name" in "where"
         location.  "where" parameter can be a path string, or another
         group instance. "NumericObject" is the Numeric array to be
         saved. "title" sets a TITLE attribute on the HDF5 array
-        entity. The created object is returned."""
+        entity. "atomic" is a boolean that specifies the underlying
+        HDF5 type; if 1 and atomic (i.e. it can't be decomposed in
+        smaller types) is used; if 0 an HDF5 array datatype is
+        used. The created object is returned."""
 
         group = self.getNode(where, classname = 'Group')
-        object = Array(NumericObject, title)
+        object = Array(NumericObject, title, atomic)
         setattr(group, name, object)
         return object
 

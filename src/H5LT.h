@@ -47,6 +47,7 @@ herr_t H5LTmake_array( hid_t loc_id,
 		       const char *title,  /* Added parameter */
 		       const char *flavor,  /* Added parameter */
 		       const char *obversion,  /* Added parameter */
+		       const int atomic,  /* Added parameter */
 		       int rank, 
 		       const hsize_t *dims,
 		       hid_t type_id,

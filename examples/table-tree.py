@@ -22,7 +22,6 @@ Particle2 = {
     "grid_i"      : defineType("Int32", 1, 0),    # integer
     "grid_j"      : defineType("Int32", 1, 0),    # integer
     "idnumber"    : defineType("Int64", 1, 0),    #signed long long 
-    " "    : defineType("Int64", 1, 0),    #signed long long 
     "name"        : defineType('CharType', 16, ""),  # 16-character String
     #"pressure"    : defineType("Float32", 2, 0),  # float  (single-precision)
     "pressure"    : defineType("Float32", 1, 0),  # float  (single-precision)
@@ -75,7 +74,8 @@ print
 gcolumns = h5file.createGroup("/", "columns")
 print "columns ==>", gcolumns
 # Create a Numeric array with this info under '/columns'
-h5file.createArray(gcolumns, 'pressure', Numeric.array(pressure), "Pressure column")
+h5file.createArray(gcolumns, 'pressure', Numeric.array(pressure),
+                   "Pressure column", atomic=0)
 print "gcolumns.pressure typecode ==> ", gcolumns.pressure.typecode
 
 # Do the same with TDCcount

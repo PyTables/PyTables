@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.6 2003/01/29 10:22:14 falted Exp $
+#       $Id: Array.py,v 1.7 2003/01/29 16:52:09 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.6 $"
+__version__ = "$Revision: 1.7 $"
 
 import types
 from Leaf import Leaf
@@ -61,7 +61,7 @@ class Array(Leaf, hdf5Extension.Array):
 
     """
     
-    def __init__(self, NumericObject = None, title = ""):
+    def __init__(self, NumericObject = None, title = "", atomic = 1):
         """Create the instance Array.
 
         Keyword arguments:
@@ -70,6 +70,7 @@ class Array(Leaf, hdf5Extension.Array):
             metadata for the array will be taken from disk.
 
         "title" -- Sets a TITLE attribute on the HDF5 array entity.
+        "atomic" -- If an HDF5 datatype is to used.
 
         """
         # Check if we have to create a new object or read their contents
@@ -78,6 +79,7 @@ class Array(Leaf, hdf5Extension.Array):
             self._v_new = 1
             self.object = NumericObject
             self.title = title
+            self.atomic = atomic
         else:
             self._v_new = 0
             
@@ -133,7 +135,7 @@ class Array(Leaf, hdf5Extension.Array):
 
         print "Array to saved:", naarr
         self.typecode = self.createArray(naarr, self.title,
-                                         flavor, obversion)
+                                         flavor, obversion, self.atomic)
         # Get some important attributes
         self.shape = naarr.shape
 
@@ -161,6 +163,7 @@ class Array(Leaf, hdf5Extension.Array):
         self.readArray(arr._data)
         
         # Convert to Numeric, tuple or list if needed
+        print "read arr -->", arr
         if self.flavor == "NUMERIC":
             # This works for both numeric and chararrays
             # arr=Numeric.array(arr, typecode=arr.typecode())

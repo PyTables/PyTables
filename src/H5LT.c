@@ -72,6 +72,7 @@ herr_t H5LTmake_array( hid_t loc_id,
 		       const char *title,  /* Added parameter */
 		       const char *flavor,  /* Added parameter */
 		       const char *obversion,  /* Added parameter */
+		       const int atomic,  /* Added parameter */
 		       int rank, 
 		       const hsize_t *dims,
 		       hid_t type_id,
@@ -83,15 +84,23 @@ herr_t H5LTmake_array( hid_t loc_id,
 	
  
  /* Create the data space for the dataset. */
- /* if ( (space_id = H5Screate_simple( rank, dims, NULL )) < 0 ) */
- if ( (space_id = H5Screate_simple( 1, dataset_dims, NULL )) < 0 )
-  return -1;
-   
- /*
-  * Define array datatype for the data in the file.
-  */
- datatype = H5Tarray_create(type_id, rank, dims, NULL);
-   
+ if (atomic) {
+   if ( (space_id = H5Screate_simple( rank, dims, NULL )) < 0 )
+     return -1;
+   /*
+    * Define array datatype for the data in the file.
+    */
+   datatype = type_id;
+ }
+ else { 
+   if ( (space_id = H5Screate_simple( 1, dataset_dims, NULL )) < 0)
+     return -1;
+   /*
+    * Define array datatype for the data in the file.
+    */
+   datatype = H5Tarray_create(type_id, rank, dims, NULL); 
+ }   
+
    
  /* Create the dataset. */
  if ((dataset_id = H5Dcreate(loc_id, dset_name, datatype,
@@ -115,7 +124,7 @@ herr_t H5LTmake_array( hid_t loc_id,
   return -1;
 
 /*-------------------------------------------------------------------------
- * Set the conforming table attributes
+ * Set the conforming array attributes
  *-------------------------------------------------------------------------
  */
     
@@ -365,20 +374,39 @@ herr_t H5LTget_array_ndims( hid_t loc_id,
 			    const char *dset_name,
 			    int *rank )
 {
- hid_t       dataset_id;  
- hid_t       type_id; 
+  hid_t       dataset_id;  
+  hid_t       type_id; 
+  hid_t       space_id; 
+  H5T_class_t class_arr_id;
 
- /* Open the dataset. */
- if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
-  return -1;
+  /* Open the dataset. */
+  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+    return -1;
 
- /* Get the datatype handle */
- if ( (type_id = H5Dget_type( dataset_id )) < 0 )
-  goto out;
+  /* Get the datatype handle */
+  if ( (type_id = H5Dget_type( dataset_id )) < 0 )
+    goto out;
 
- /* Get rank */
- if ( (*rank = H5Tget_array_ndims( type_id )) < 0 )
-  goto out;
+  /* Get the class. */
+  class_arr_id = H5Tget_class( type_id );
+
+  /* Check if this is an array class object*/ 
+  if ( class_arr_id == H5T_ARRAY ) {
+
+    /* Get rank */
+    if ( (*rank = H5Tget_array_ndims( type_id )) < 0 )
+      goto out;
+  }
+  else {
+    /* Get the dataspace handle */
+    if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+      goto out;
+
+    /* Get rank */
+    if ( (*rank = H5Sget_simple_extent_ndims( space_id )) < 0 )
+      goto out;
+  }
+
 
  /* Terminate access to the datatype */
  if ( H5Tclose( type_id ) < 0 )
@@ -487,16 +515,16 @@ herr_t H5LTget_dataset_info_mod( hid_t loc_id,
  type_id = H5Dget_type( dataset_id );
 
  /* Get the class. */
-    *class_id = H5Tget_class( type_id );
+ *class_id = H5Tget_class( type_id );
 
  /* Get the sign in case the class is an integer. */
-   if ( (*class_id == H5T_INTEGER) ) /* Only class integer can be signed */
-     *sign = H5Tget_sign( type_id );
-   else 
-     *sign = -1;
+ if ( (*class_id == H5T_INTEGER) ) /* Only class integer can be signed */
+   *sign = H5Tget_sign( type_id );
+ else 
+   *sign = -1;
    
  /* Get the size. */
-    *type_size = H5Tget_size( type_id );
+ *type_size = H5Tget_size( type_id );
    
 
   /* Get the dataspace handle */
@@ -533,7 +561,7 @@ out:
  * the array type.
  * I should request to NCSA to add this feature. */
 
-herr_t H5LTget_array_info( hid_t loc_id, 
+herr_t H5LTget_array_info0( hid_t loc_id, 
 			   const char *dset_name,
 			   hsize_t *dims,
 			   H5T_class_t *class_id,
@@ -555,12 +583,7 @@ herr_t H5LTget_array_info( hid_t loc_id,
 
  /* Get the class. */
  class_arr_id = H5Tget_class( type_id );
-   
- if ( class_arr_id != H5T_ARRAY ) {
-    fprintf(stderr, "Error: getting info on a non-array object!.");
-    goto out;
- }
-
+  
  /* Get the array base component */
  super_id = H5Tget_super( type_id );
  
@@ -596,6 +619,102 @@ out:
  return -1;
 
 }
+
+/* Modified version of H5LTget_dataset_info present on HDF_HL
+ * I had to add the capability to get the sign of
+ * the array type.
+ * I should request to NCSA to add this feature. */
+/* Addition: Now, this routine can deal with both array and
+   atomic datatypes. 2003-01-29 */
+
+herr_t H5LTget_array_info( hid_t loc_id, 
+			   const char *dset_name,
+			   hsize_t *dims,
+			   H5T_class_t *class_id,
+			   H5T_sign_t *sign, /* Added this parameter */
+			   size_t *type_size )
+{
+  hid_t       dataset_id;  
+  hid_t       type_id;
+  hid_t       space_id; 
+  H5T_class_t class_arr_id;
+  hid_t       super_type_id; 
+
+  /* Open the dataset. */
+  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+    return -1;
+
+  /* Get an identifier for the datatype. */
+  type_id = H5Dget_type( dataset_id );
+
+  /* Get the class. */
+  class_arr_id = H5Tget_class( type_id );
+
+  /* Check if this is an array class object*/ 
+  if ( class_arr_id == H5T_ARRAY ) {
+
+    /* Get the array base component */
+    super_type_id = H5Tget_super( type_id );
+ 
+    /* Get the class of base component. */
+    *class_id = H5Tget_class( super_type_id );
+
+    /* Get the sign in case the class is an integer. */
+    if ( (*class_id == H5T_INTEGER) ) /* Only class integer can be signed */
+      *sign = H5Tget_sign( type_id );
+    else 
+      *sign = -1;
+   
+    /* Get the size. */
+    *type_size = H5Tget_size( super_type_id );
+ 
+    /* Get dimensions */
+    if ( H5Tget_array_dims(type_id, dims, NULL) < 0 )
+      goto out;
+
+    /* Release the super datatype. */
+    if ( H5Tclose( super_type_id ) )
+      return -1;
+  }
+  else {
+    *class_id = class_arr_id;
+    /* Get the sign in case the class is an integer. */
+    if ( (*class_id == H5T_INTEGER) ) /* Only class integer can be signed */
+      *sign = H5Tget_sign( type_id );
+    else 
+      *sign = -1;
+   
+    /* Get the size. */
+    *type_size = H5Tget_size( type_id );
+   
+    
+    /* Get the dataspace handle */
+    if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+      goto out;
+
+    /* Get dimensions */
+    if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
+      goto out;
+  }
+
+  /* Release the datatype. */
+  if ( H5Tclose( type_id ) )
+    return -1;
+
+  /* End access to the dataset */
+  if ( H5Dclose( dataset_id ) )
+    return -1;
+
+  return 0;
+
+out:
+ H5Tclose( type_id );
+ H5Dclose( dataset_id );
+ return -1;
+
+}
+
+
 
 /*-------------------------------------------------------------------------
  * Function: find_dataset

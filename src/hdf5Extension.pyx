@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.6 2003/01/29 10:22:14 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.7 2003/01/29 16:52:09 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.6 $"
+__version__ = "$Revision: 1.7 $"
 
 
 import os.path
@@ -265,7 +265,7 @@ cdef extern from *:
 cdef extern from "H5LT.h":
 
   herr_t H5LTmake_array( hid_t loc_id, char *dset_name, char *title,
-                         char *flavor, char *obversion,
+                         char *flavor, char *obversion,	int atomic,
                          int rank, hsize_t *dims, hid_t type_id,
                          void *data )
 
@@ -458,7 +458,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.6 2003/01/29 10:22:14 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.7 2003/01/29 16:52:09 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -849,7 +849,7 @@ cdef class Array:
     self.group_id = where._v_groupId
 
   def createArray(self, object arr, char *title,
-                  char *flavor, char *obversion):
+                  char *flavor, char *obversion, int atomic):
     cdef int i
     cdef herr_t ret
     cdef hid_t type_id
@@ -895,7 +895,7 @@ cdef class Array:
                                
     # Save the array
     ret = H5LTmake_array(self.group_id, self.name, title,
-                         flavor, obversion, self.rank,
+                         flavor, obversion, atomic, self.rank,
                          self.dims, type_id, rbuf)
     if ret < 0:
       raise RuntimeError("Problems saving the array.")
@@ -911,7 +911,8 @@ cdef class Array:
     cdef herr_t ret
 
     # Get the rank for this array object
-    ret = H5LTget_array_ndims(self.group_id, self.name, &self.rank)
+    #ret = H5LTget_array_ndims(self.group_id, self.name, &self.rank)
+    ret = H5LTget_dataset_ndims(self.group_id, self.name, &self.rank)
     # Allocate space for the dimension axis info
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Get info on dimensions, class and type size
@@ -921,7 +922,7 @@ cdef class Array:
     ret = getArrayType(class_id, type_size,
                        sign, &self.enumtype)
     if ret < 0:
-      raise TypeError, "HDF5 class %d not supported. Sorry!"
+      raise TypeError, "HDF5 class %d not supported. Sorry!" % class_id
 
     # We had problems when creating Tuples directly with Pyrex!.
     # A bug report has been sent to Greg and here is his answer:

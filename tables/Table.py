@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.8 2003/01/29 10:22:14 falted Exp $
+#       $Id: Table.py,v 1.9 2003/01/29 16:52:09 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.8 $"
+__version__ = "$Revision: 1.9 $"
 
 from __future__ import generators
 import sys
@@ -127,7 +127,6 @@ class Table(Leaf, hdf5Extension.Table):
 
     def newBuffer(self, init=1):
         # Create the recarray buffer
-        print "Recarrfmt ==>", self.record._v_recarrfmt
         recarr = recarray.array(None, formats=self.record._v_recarrfmt,
                                 shape=(self._v_maxTuples,),
                                 names = self.varnames)
@@ -143,7 +142,6 @@ class Table(Leaf, hdf5Extension.Table):
         # Compute some important parameters for createTable
         self.varnames = tuple(self.record.__slots__)
         self._v_fmt = self.record._v_fmt
-        print "_v_fmt", self._v_fmt
         self._calcBufferSize(self._v_expectedrows)
         # Create the table on disk
         self.createTable(self.varnames, self._v_fmt, self.title,
