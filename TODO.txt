@@ -1,4 +1,6 @@
-TODO list (as of 25th, August 2004):
+TODO list (as of 5th, October 2004):
+
+- Modification of values in Array, EArray and VLArray objects.
 
 - Add a new type of table that allows variable length records and
   fully multidimensional slice selections.
@@ -6,21 +8,18 @@ TODO list (as of 25th, August 2004):
 - Implement relations (like and object oriented database) between
   objects.
 
-- Right now, each Table has its own buffer which can take a lot of
+- Right now, each Table has its own buffer which can eat a lot of
   memory (between 5 KB and 60 KB per Table) if you have many
   Tables. It would be nice to implement lazy creation of the buffer,
   and a destruction when it is no longer needed.
 
-- Improve the performance (although no much room remains for doing
-  that).
+- Improve the performance.
 
-- Add tutorials about EArray and VLArray objects
+- Add tutorials about EArray and VLArray objects.
 
-- Remove the __call__ implementations in File, Group, Table, etc... to
-  easy the working with IPython
+- Add tutorials about indexation.
 
 And as always...
 
-- Add more tests (there's always space for bugs in untested situations)
-
+- Add more tests (there's always space for bugs in untested situations).
 

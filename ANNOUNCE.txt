@@ -15,9 +15,12 @@ compressible) than other solutions, like for example, relational or
 object oriented databases.
 
 On this release it is included a series of quite exciting new
-features, being the most important the in-kernel selections, indexing
-capabilities, support for complex datatypes and the possibility to
-modify values in tables (yes, finally). More in depth:
+features, being the most important the in-kernel selections,
+indexing capabilities, support for complex datatypes and the
+possibility to modify values in tables (yes, finally :).
+
+Changes more in depth
+---------------------
 
 New features:
 
@@ -76,6 +79,7 @@ Bug fixes:
 
 - SF #988547: Wrong file type assumption in File.__new__. Reported in
   2004-07-10 by ivilata
+  
 
 Where PyTables can be applied?
 ------------------------------

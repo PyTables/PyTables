@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.53 2004/10/05 12:30:31 falted Exp $
+#       $Id: Leaf.py,v 1.54 2004/10/05 19:22:21 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.53 $"
+__version__ = "$Revision: 1.54 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -117,7 +117,7 @@ class Filters(object):
         
         return repr(self)
 
-class Leaf(hdf5Extension.Leaf, object):
+class Leaf(object):
     """A class to place common functionality of all Leaf objects.
 
     A Leaf object is all the nodes that can hang directly from a
@@ -420,7 +420,7 @@ class Leaf(hdf5Extension.Leaf, object):
     def flush(self):
         """Save whatever remaining data in buffer"""
         # Call the H5Fflush with this Leaf
-        self._flush(self._v_parent, self._v_hdf5name)
+	hdf5Extension.flush_leaf(self._v_parent, self._v_hdf5name)
 
     def close(self, flush=1):
         """Flush the buffers and close this object on tree"""

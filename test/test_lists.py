@@ -6,6 +6,12 @@ from tables import *
 
 from test_all import verbose
 
+# Check if we are using python 2.2
+if sys.version_info[0] == 2 and sys.version_info[1] == 2:
+    python22 = 1
+else:
+    python22 = 0
+
 def WriteRead(testTuple):
     if verbose:
         print '\n', '-=' * 30
@@ -260,18 +266,21 @@ class GetItemTestCase(unittest.TestCase):
 
     def test04_range(self):
         "Range element access, strided (character types)"
-        
+        global python22
+
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.charListME
         arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
 
-        # Get and compare an element
-        if verbose:
-            print "Original elements:", a[1:4:2]
-            print "Read elements:", arr[1:4:2]
-        assert a[1:4:2] == arr[1:4:2]
+        # Extended slicing not supported in Python 2.2
+        if not python22:
+            # Get and compare an element
+            if verbose:
+                print "Original elements:", a[1:4:2]
+                print "Read elements:", arr[1:4:2]
+            assert a[1:4:2] == arr[1:4:2]
         
         # Close the file
         fileh.close()
@@ -281,19 +290,22 @@ class GetItemTestCase(unittest.TestCase):
 
     def test05_range(self):
         "Range element access (numerical types)"
-        
+        global python22
+
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
         arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
 
-        # Get and compare an element
-        if verbose:
-            print "Original elements:", a[1:4:2]
-            print "Read elements:", arr[1:4:2]
-        assert a[1:4:2] == arr[1:4:2]
-        
+        # Extended slicing not supported in Python 2.2
+        if not python22:
+            # Get and compare an element
+            if verbose:
+                print "Original elements:", a[1:4:2]
+                print "Read elements:", arr[1:4:2]
+            assert a[1:4:2] == arr[1:4:2]
+                
         # Close the file
         fileh.close()
         # Then, delete the file

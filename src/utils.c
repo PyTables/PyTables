@@ -1,5 +1,6 @@
 #include <stdarg.h>
 #include "utils.h"
+/* #include <string.h> */
 #include "version.h"
 #include "H5Zlzo.h"  		       /* Import FILTER_LZO */
 #include "H5Zucl.h"  		       /* Import FILTER_UCL */
@@ -50,12 +51,20 @@ PyObject *getHDF5VersionInfo(void) {
   char     strver[16];
   PyObject *t;
 
-  H5get_libversion(&majnum, &minnum, &relnum);
+/*  H5get_libversion(&majnum, &minnum, &relnum); */
+  majnum = H5_VERS_MAJOR;
+  minnum = H5_VERS_MINOR;
+  relnum = H5_VERS_RELEASE;
   /* Get a binary number */
   binver = majnum << 16 | minnum << 8 | relnum;
   /* A string number */
-  snprintf(strver, 16, "%d.%d.%d-%s", majnum, minnum, relnum,
-	   H5_VERS_SUBRELEASE);
+  if (strcmp(H5_VERS_SUBRELEASE, "")) {
+    snprintf(strver, 16, "%d.%d.%d-%s", majnum, minnum, relnum,
+	     H5_VERS_SUBRELEASE);
+  }
+  else {
+    snprintf(strver, 16, "%d.%d.%d", majnum, minnum, relnum);
+  }
 
   t = PyTuple_New(2);
   PyTuple_SetItem(t, 0, PyInt_FromLong(binver));

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.145 2004/10/05 12:30:30 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.146 2004/10/05 19:22:20 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.145 $"
+__version__ = "$Revision: 1.146 $"
 
 
 import sys, os
@@ -937,7 +937,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.145 2004/10/05 12:30:30 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.146 2004/10/05 19:22:20 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -973,6 +973,20 @@ def read_f_attr(hid_t file_id, char *attr_name):
   H5Gclose(root_id)
       
   return attr_value
+
+def flush_leaf(where, name):
+  "Flush the buffers of a Leaf"
+  cdef hid_t   parent_id, dataset_id
+  cdef char    *dataset_name
+
+  # Get the object ID. Do this until a standard objectID is implemented
+  parent_id = where._v_objectID
+  # Open the dataset
+  dataset_name = strdup(name)
+  dataset_id = H5Dopen( parent_id, dataset_name )
+  # Flush the leaf
+  H5Fflush(dataset_id, H5F_SCOPE_GLOBAL)
+  H5Dclose( dataset_id )
 
 # Utility function
 def _getFilters(parent_id, name):
@@ -1511,22 +1525,6 @@ cdef class Group:
     if self.group_id <> 0 and 0:
       print "Group open: ", self.name
     free(<void *>self.name)
-
-
-cdef class Leaf:
-
-  def _flush(self, where, name):
-    cdef hid_t   parent_id, dataset_id
-    cdef char    *dataset_name
-
-    # Get the object ID. Do this until a standard objectID is implemented
-    parent_id = where._v_objectID
-    # Open the dataset
-    dataset_name = strdup(name)
-    dataset_id = H5Dopen( parent_id, dataset_name )
-    # Flush the leaf
-    H5Fflush(dataset_id, H5F_SCOPE_GLOBAL)
-    H5Dclose( dataset_id )
 
 
 cdef class Table:

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.23 2004/10/05 12:30:31 falted Exp $
+#       $Id: Index.py,v 1.24 2004/10/05 19:22:21 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.23 $"
+__version__ = "$Revision: 1.24 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -734,10 +734,10 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
 
         if hdf5Extension.whichLibVersion("hdf5")[1] == "1.6.3":
             warnings.warn( \
-"""You are using HDF5 libs v. 1.6.3 that has a bug that causes a seg
+"""\nYou are using HDF5 libs v. 1.6.3 that has a bug that causes a seg
 fault when deleting a chunked dataset. If you are getting a seg fault
 immediately after this message, please, get a patched version of HDF5
-or revert to HDF5 1.6.2.""", UserWarning)
+1.6.3 or revert to HDF5 1.6.2.""", UserWarning)
 
         # Delete the associated IndexArrays
         #self.sorted._close()

@@ -49,7 +49,7 @@ inc_dirs = []
 # Some useful functions
 def check_lib_unix(where, libname, headername, compulsory):
     "Check if the libraries and headers are to be found on a Unix system"
-    global LIBS, lib_dirs, inc_dirs
+    global LIBS, lib_dirs, inc_dirs, def_macros
 
     incdir = libdir = None
     if where:
@@ -94,7 +94,9 @@ where they can be found.""" % (libname, libname,
     else:
         if not incdir or not libdir:
             print "Optional %s libraries or include files not found. Disabling support for them." % (libname,)
-
+        else:
+            # Necessary to include code for optional libs
+            def_macros.append(("HAVE_"+libname.upper()+"_LIB", 1))
 
     if (not '-l'+libname in LIBS):
         libnames.append(libname)
