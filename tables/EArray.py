@@ -2,10 +2,10 @@
 #
 #       License: BSD
 #       Created: December 15, 2003
-#       Author:  Francesc Alted - falted@openlc.org
+#       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.16 2004/02/16 14:14:31 falted Exp $
+#       $Id: EArray.py,v 1.17 2004/02/25 16:08:59 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.16 $"
+__version__ = "$Revision: 1.17 $"
 # default version for EARRAY objects
 obversion = "1.0"    # initial version
 

@@ -444,6 +444,7 @@ Disabling support for them."""
         if dirstub and dirheader:
             lib_dirs.append(dirstub)
             inc_dirs.append(dirheader)        
+            inc_dirs.append(dirheader+"\ucl")        
             libnames.append('libucl')
             def_macros.append(("HAVE_UCL_LIB", 1))
         else:
@@ -513,9 +514,9 @@ data.
 """,
       
       author = 'Francesc Alted',
-      author_email = 'falted@openlc.org',
+      author_email = 'falted@pytables.org',
       maintainer = 'Francesc Alted',
-      maintainer_email = 'falted@openlc.org',
+      maintainer_email = 'falted@pytables.org',
       url = 'http://pytables.sf.net/',
       packages = ['tables'],
       ext_modules = [ Extension("tables.hdf5Extension",

@@ -2,10 +2,10 @@
 #
 #       License: BSD
 #       Created: September 4, 2002
-#       Author:  Francesc Alted - falted@openlc.org
+#       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.71 2004/02/18 13:45:58 falted Exp $
+#       $Id: Group.py,v 1.72 2004/02/25 16:08:59 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.71 $"
+__version__ = "$Revision: 1.72 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the

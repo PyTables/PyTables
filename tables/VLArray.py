@@ -2,10 +2,10 @@
 #
 #       License: BSD
 #       Created: November 12, 2003
-#       Author:  Francesc Alted - falted@openlc.org
+#       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.25 2004/02/16 14:14:32 falted Exp $
+#       $Id: VLArray.py,v 1.26 2004/02/25 16:08:59 falted Exp $
 #
 ########################################################################
 
@@ -30,7 +30,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.25 $"
+__version__ = "$Revision: 1.26 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version

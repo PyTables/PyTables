@@ -1963,7 +1963,6 @@ herr_t H5TBdelete_record( hid_t loc_id,
  /* This check added for the case that there are no records to be read */
  /* F. Alted  2003/07/16 */
  if (read_nrecords > 0) {
-
    nrowsread = 0;
 
    while (nrowsread < read_nrecords) {
@@ -2030,17 +2029,20 @@ herr_t H5TBdelete_record( hid_t loc_id,
      if ( H5Tclose( type_id ) < 0 )
        goto out;
 
+     /* End access to the dataset */
+     if ( H5Dclose( dataset_id ) < 0 )
+      return -1;
+  
      /* Update the counters */
      read_start += read_nbuf;
      write_start += read_nbuf;
      nrowsread += read_nbuf;
    } /* while (nrowsread < read_nrecords) */
  } /*  if (nread_nrecords > 0) */
- else {
-   /* Open the dataset. */
-   if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
-     return -1;
- } 
+
+ /* Open the dataset */
+ if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+  return -1;
 
 
 /*-------------------------------------------------------------------------

@@ -4,10 +4,10 @@
 #
 #       License: BSD
 #       Created: February 10, 2004
-#       Author:  Francesc Alted - falted@openlc.org
+#       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/utils/ptrepack,v $
-#       $Id: ptrepack,v 1.4 2004/02/20 15:24:32 falted Exp $
+#       $Id: ptrepack,v 1.5 2004/02/25 16:09:00 falted Exp $
 #
 ########################################################################
 

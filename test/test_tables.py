@@ -311,7 +311,7 @@ class BasicTestCase(unittest.TestCase):
         assert len(result) == 20
 
     def test04_delete(self):
-        """Checking if a single row can be deleted"""
+        """Checking whether a single row can be deleted"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -348,7 +348,7 @@ class BasicTestCase(unittest.TestCase):
         assert result[:-1] == result2
 
     def test04b_delete(self):
-        """Checking if a range of rows can be deleted"""
+        """Checking whether a range of rows can be deleted"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -385,7 +385,7 @@ class BasicTestCase(unittest.TestCase):
         assert result[:10] == result2
 
     def test04c_delete(self):
-        """Checking if removing a bad range of rows is detected"""
+        """Checking whether removing a bad range of rows is detected"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -417,7 +417,7 @@ class BasicTestCase(unittest.TestCase):
         assert result[:10] == result2
 
     def test04d_delete(self):
-        """Checking if removing rows several times at once is working"""
+        """Checking whether removing rows several times at once is working"""
 
         if verbose:
             print '\n', '-=' * 30

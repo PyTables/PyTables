@@ -2,10 +2,10 @@
 #
 #       License: BSD
 #       Created: October 10, 2002
-#       Author:  Francesc Alted - falted@openlc.org
+#       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.61 2004/02/16 14:14:31 falted Exp $
+#       $Id: Array.py,v 1.62 2004/02/25 16:08:59 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.61 $"
+__version__ = "$Revision: 1.62 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version

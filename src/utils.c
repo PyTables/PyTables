@@ -80,7 +80,7 @@ PyObject *createNamesList(char *buffer[], int nelements)
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@openlc.org
+ * Programmer: Francesc Alted, falted@pytables.org
  *
  * Date: December 19, 2003
  *
@@ -119,7 +119,6 @@ PyObject *get_filter_names( hid_t loc_id,
  dcpl = H5Dget_create_plist(dset);
  /* Collect information about filters on chunked storage */
  if (H5D_CHUNKED==H5Pget_layout(dcpl)) {
-   /*      ndims = H5Pget_chunk(dcpl, 64, chsize/\*out*\/); */
    filters = PyDict_New();
     nf = H5Pget_nfilters(dcpl);
    if ((nf = H5Pget_nfilters(dcpl))>0) {

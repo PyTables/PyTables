@@ -384,7 +384,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@openlc.org
+ * Programmer: Francesc Alted, falted@pytables.org
  *
  * Date: November 19, 2003
  *

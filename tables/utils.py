@@ -2,10 +2,10 @@
 #
 #       License: BSD
 #       Created: March 4, 2003
-#       Author:  Francesc Alted - falted@openlc.org
+#       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.19 2004/02/02 20:53:39 falted Exp $
+#       $Id: utils.py,v 1.20 2004/02/25 16:09:00 falted Exp $
 #
 ########################################################################
 

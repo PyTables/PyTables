@@ -72,7 +72,7 @@ What's new
 
 	  The new UnImplemented class together with the support for
           new datatypes will enable PyTables to greatly enlarge the
-          range of native HDF5 that can be read/modified.
+          range of native HDF5 files that can be read/modified.
 
 	- Boolean support has been added for all the Leaf objects.
 
@@ -112,15 +112,16 @@ What's new
           filtering capabilities has been added for all the Leaf
           objects. See User's Manual for more info.
 
-	- A _f_copyChilds() has been added to Group class, so that you
-          can replicate sub-hierarchies very easily, even to other
-          files. Similarly, File has received a new .copyFile()
-          method to copy complete hierarchies.
+	- A couple of new methods, namely copyFile() and copyChilds(),
+          has been added to File class, so that you can replicate
+          complete hierarchies or sub-hierarchies very easily, even to
+          other files. You can change the filters during the copy
+          process as well.
 
 	- Two new utilities has been added: ptdump and
           ptrepack. ptdump allows the user to have a look at the
-          contents of PyTables files (both data and
-          metadata). ptrepack is a powerful utility that lets you to
+          contents of PyTables files (both metadata and actual
+          data). ptrepack is a powerful utility that lets you to
           selectively copy (parts of) hierarchies to specific
           locations in other files. It can be also useful as an
           importer for generic HDF5 files.
@@ -131,8 +132,8 @@ What's new
           consistent with the range() function in python and the
           __getitem__() special method in numarray.
 
-	- The limitation on the table size for Table.removeRows() to
-          work has been removed. Now, you can delete rows on tables no
+	- The limitation on table size for Table.removeRows() to work
+          has been removed. Now, you can delete rows on tables no
           matter how large are they.
 
 	- The "numarray" value has been added to the flavor parameter
@@ -149,6 +150,11 @@ What's new
           PyTables has been fully described. So, you can build
           "native" PyTables files using any other generic HDF5
           software by just mimicking their format.
+
+	- Many tests units has been added not only to check new
+          functionality but also to put more stringent checks on
+          existing functionality. There are more than 800 different
+          tests now (and the number is increasing :).
 
 	- As always, some bugs has been solved (specially when
           deleting and/or overwriting attributes).

@@ -2,10 +2,10 @@
 #
 #       License: BSD
 #       Created: January 14, 2004
-#       Author:  Francesc Alted - falted@openlc.org
+#       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/UnImplemented.py,v $
-#       $Id: UnImplemented.py,v 1.3 2004/02/06 08:04:37 falted Exp $
+#       $Id: UnImplemented.py,v 1.4 2004/02/25 16:08:59 falted Exp $
 #
 ########################################################################
 
@@ -24,7 +24,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.3 $"
+__version__ = "$Revision: 1.4 $"
 
 from Leaf import Leaf
 import hdf5Extension

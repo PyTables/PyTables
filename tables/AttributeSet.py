@@ -2,10 +2,10 @@
 #
 #       License: BSD
 #       Created: May 26, 2003
-#       Author:  Francesc Alted - falted@openlc.org
+#       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.27 2004/02/16 14:14:31 falted Exp $
+#       $Id: AttributeSet.py,v 1.28 2004/02/25 16:08:59 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.27 $"
+__version__ = "$Revision: 1.28 $"
 
 import warnings, types, cPickle
 import hdf5Extension

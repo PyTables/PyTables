@@ -10,7 +10,7 @@
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@openlc.org
+ * Programmer: Francesc Alted, falted@pytables.org
  *
  * Date: April 19, 2003
  *
@@ -88,7 +88,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@openlc.org
+ * Programmer: Francesc Alted, falted@pytables.org
  *
  * Date: April 19, 2003
  *
@@ -183,7 +183,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@openlc.org
+ * Programmer: Francesc Alted, falted@pytables.org
  *
  * Date: April 19, 2003
  *
@@ -230,7 +230,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@openlc.org
+ * Programmer: Francesc Alted, falted@pytables.org
  *
  * Date: April 20, 2003
  *
@@ -322,7 +322,7 @@ out:
  * Return: Success: 0, Failure: -1
  *
  * Programmers: 
- *  Francesc Alted, falted@openlc.org
+ *  Francesc Alted, falted@pytables.org
  *
  * Date: April 20, 2003
  *
@@ -400,7 +400,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@openlc.org
+ * Programmer: Francesc Alted, falted@pytables.org
  *
  * Date: April 20, 2003
  *

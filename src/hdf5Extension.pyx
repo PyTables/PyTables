@@ -3,10 +3,10 @@
 #
 #       License: BSD
 #       Created: September 21, 2002
-#       Author:  Francesc Alted - falted@openlc.org
+#       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.120 2004/02/19 19:33:48 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.121 2004/02/25 16:08:58 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.120 $"
+__version__ = "$Revision: 1.121 $"
 
 
 import sys, os
@@ -837,7 +837,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.120 2004/02/19 19:33:48 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.121 2004/02/25 16:08:58 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""

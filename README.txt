@@ -1,7 +1,7 @@
 README.txt
 PyTables 0.8
 http://pytables.sf.net/
-Feb 22, 2004
+Feb 28, 2004
 --------------------------------------
 
 PyTables is a hierarchical database package designed to efficently
@@ -98,8 +98,8 @@ including a section on binary installation for Windows users, is
 available in Chapter 2 of the User's Manual (doc/usersguide.pdf or
 http://pytables.sourceforge.net/html-doc/usersguide.html).
 
-1. First, make sure that you have HDF5 and numarray installed (I'm
-   using HDF5 1.6.2 and numarray 0.8 currently). If don't, you can
+1. First, make sure that you have HDF5 and numarray installed (you
+   will need at least HDF5 1.6.2 and numarray 0.8). If don't, you can
    find them at http://hdf.ncsa.uiuc.edu/HDF5 and
    http://sourceforge.net/projects/numpy/. Compile/install them.
 

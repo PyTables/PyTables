@@ -2,10 +2,10 @@
 #
 #       License:        BSD
 #       Created:        September 21, 2002
-#       Author:  Francesc Alted - falted@openlc.org
+#       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.29 2004/02/02 20:53:39 falted Exp $
+#       $Id: IsDescription.py,v 1.30 2004/02/25 16:08:59 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.29 $"
+__version__ = "$Revision: 1.30 $"
 
 
 import warnings

@@ -350,7 +350,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@openlc.org
+ * Programmer: Francesc Alted, falted@pytables.org
  *
  * Date: October 22, 2002
  *
@@ -486,7 +486,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@openlc.org
+ * Programmer: Francesc Alted, falted@pytables.org
  *
  * Date: December 16, 2003
  *

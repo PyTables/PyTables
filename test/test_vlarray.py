@@ -1974,7 +1974,12 @@ class CloseCopyTestCase(CopyTestCase):
 class OpenCopyTestCase(CopyTestCase):
     close = 0
 
-
+import sys
+if sys.version_info[0] == 2 and sys.version_info[0] == 2:
+    python2_2 = 1
+else:
+    python2_2 = 0
+    
 class CopyIndexTestCase(unittest.TestCase):
 
     def test01_index(self):
@@ -2005,12 +2010,19 @@ class CopyIndexTestCase(unittest.TestCase):
             array1 = fileh.root.array1
 
         # Copy to another array
+        if python2_2:
+            self.step = 1
+            if self.stop == None:
+                self.stop = array1.nrows
         array2, size = array1.copy("/", 'array2',
-                             start=self.start,
-                             stop=self.stop,
-                             step=self.step)
+                                   start=self.start,
+                                   stop=self.stop,
+                                   step=self.step)
             
-        r2 = r[self.start:self.stop:self.step]
+        if python2_2:
+            r2 = r[self.start:self.stop]
+        else:
+            r2 = r[self.start:self.stop:self.step]
         if verbose:
             print "r2-->", r2
             print "array2-->", array2[:]
@@ -2055,17 +2067,24 @@ class CopyIndexTestCase(unittest.TestCase):
             array1 = fileh.root.array1
 
         # Copy to another array
+        if python2_2:
+            self.step = 1
+            if self.stop == None:
+                self.stop = array1.nrows
         array2, size = array1.copy("/", 'array2',
-                             start=self.start,
-                             stop=self.stop,
-                             step=self.step)
+                                   start=self.start,
+                                   stop=self.stop,
+                                   step=self.step)
         # Close and reopen the file
         fileh.close()
         fileh = openFile(file, mode = "r")
         array1 = fileh.root.array1
         array2 = fileh.root.array2
 
-        r2 = r[self.start:self.stop:self.step]
+        if python2_2:
+            r2 = r[self.start:self.stop]
+        else:
+            r2 = r[self.start:self.stop:self.step]
         if verbose:
             print "r2-->", r2
             print "array2-->", array2[:]
@@ -2093,7 +2112,7 @@ class CopyIndex2TestCase(CopyIndexTestCase):
     start = 0
     stop = -1
     step = 1
-	
+
 class CopyIndex3TestCase(CopyIndexTestCase):
     close = 0
     start = 1

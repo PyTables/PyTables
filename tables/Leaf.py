@@ -2,10 +2,10 @@
 #
 #       License: BSD
 #       Created: October 14, 2002
-#       Author:  Francesc Alted - falted@openlc.org
+#       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.45 2004/02/19 19:33:49 falted Exp $
+#       $Id: Leaf.py,v 1.46 2004/02/25 16:08:59 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.45 $"
+__version__ = "$Revision: 1.46 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead

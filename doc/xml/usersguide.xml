@@ -2581,13 +2581,9 @@ AttributeError: Error setting "ADCcount" attr.
 
 	  <description>
 
-	    <!-- Modified by F. Alted 2004-2-18 -->
-
 	    <term>copyFile(srcFilename=None, dstFilename=None, title=None,
 	      filters=None, copyuserattrs=1, overwrite=0)
 	    </term>
-
-	    <!-- End modif by F. Alted 2004-2-06 -->
 
 	    <item>Copy a closed <verb>PyTables</verb> (or generic
 	      <verb>HDF5</verb>) file specified by
@@ -2621,8 +2617,6 @@ AttributeError: Error setting "ADCcount" attr.
 		  default is not overwriting.
 		</item>
 
-	      <!-- End of modif by F. Alted 2004-02-06 -->
-
 	      </description>
 
 	    </item>
@@ -2642,13 +2636,9 @@ AttributeError: Error setting "ADCcount" attr.
 	      closed file.
 	    </item>
 
-	    <!-- Modif by F. Alted 2004-2-06 -->
-
 	    <term>openFile(filename, mode='r', title='', trMap={},
 	      rootUEP="/", filters=None)
 	    </term>
-
-	    <!-- End modif by F. Alted 2004-2-06 -->
 
 	    <item>Open a <verb>PyTables</verb> (or generic
 	    <verb>HDF5</verb>) file and returns a <verb>File</verb>
@@ -2711,8 +2701,6 @@ AttributeError: Error setting "ADCcount" attr.
 		  only a <visual markup="bf">subtree</visual> of it.
 		</item>
 
-		<!-- Modif. by F. Alted 2004-02-06 -->
-		
 		<term>filters</term><item>An instance of the
 		  <verb>Filters</verb> class (see section<ref
 		  refid="FiltersClassDescr"></ref>) that provides
@@ -2728,8 +2716,6 @@ AttributeError: Error setting "ADCcount" attr.
 		  happening by specifying other filters on the child
 		  groups or leaves).
 		</item>
-
-	      <!-- End of modif by F. Alted 2004-02-06 -->
 
 	      </description>
 
@@ -2790,13 +2776,9 @@ AttributeError: Error setting "ADCcount" attr.
 	    <term>mode</term> <item>Mode in which the filename was
 	      opened.</item>
 
-	    <!-- Added by F. Alted 2004-02-12 -->
-
 	    <term>root</term> <item>The <em>root</em> of the object
 	       tree hierarchy. It is a <verb>Group</verb> instance.
 	    </item>
-
-	    <!-- End of addition by F. Alted 2004-02-12 -->
 
 	    <term>rootUEP</term> <item>The UEP (User Entry Point)
 	      group in file (see <ref
@@ -2961,8 +2943,6 @@ AttributeError: Error setting "ADCcount" attr.
 	      <term>title</term> <item>A description for this
 		group.</item>
 
-	      <!-- Modif. by F. Alted 2004-02-06 -->
-
 	      <term>filters</term><item>An instance of the
 		<verb>Filters</verb> class (see section<ref
 		refid="FiltersClassDescr"></ref>) that provides
@@ -2973,8 +2953,6 @@ AttributeError: Error setting "ADCcount" attr.
 		properties for its child groups, they will inherit
 		these ones.
 	      </item>
-
-	      <!-- End of modif by F. Alted 2004-02-06 -->
 
 	    </description>
 
@@ -3065,18 +3043,15 @@ AttributeError: Error setting "ADCcount" attr.
 	  </subsubsection>
 
 	  <subsubsection>
-	    <!-- Changed by F. ALted 2004-1-30 -->
 	    <heading id="createEArrayDescr">createEArray(where, name,
 	      atom, title='', filters=None, expectedrows=1000)
 	    </heading>
-	    <!-- End of change by F. ALted 2004-1-30 -->
 
 	    <p>Create a new <verb>EArray</verb> instance with name
 	      <em>name</em> in <em>where</em> location.
 	    </p>
 
 	    <description>
-	    <!-- Changed by F. ALted 2004-1-30 -->
 
 	      <term>atom</term> <item>An <verb>Atom</verb> instance
 		representing the <em>shape</em>, <em>type</em> and
@@ -3088,18 +3063,6 @@ AttributeError: Error setting "ADCcount" attr.
 		dimensions are not supported right now.  See <ref
 		refid="AtomClassDescr">section</ref> for the supported
 		set of <verb>Atom</verb> class descendants.
-
-
-<!-- 		An object describing the kind -->
-<!--                 of objects that you can append to the -->
-<!--                 <verb>EArray</verb> object. It can be an instance of -->
-<!--                 any of <verb>NumArray</verb>, <verb>CharArray</verb> -->
-<!--                 or <verb>Numeric</verb> classes and one of its -->
-<!--                 dimensions <visual markup="bf">must</visual> be 0. The -->
-<!--                 dimension being 0 means that the resulting EArray -->
-<!--                 object can be extended along it. Multiple enlargeable -->
-<!--                 dimensions are not supported right now. -->
-	    <!-- end of change by F. ALted 2004-1-30 -->
               </item>
 	      <term>expectedrows</term> <item>In the case of
                 enlargeable arrays this represents an user estimate
@@ -3168,9 +3131,7 @@ AttributeError: Error setting "ADCcount" attr.
 
 		<term>where</term> <item>Can be a path string or
 		  <verb>Group</verb> instance. If <em>where</em>
-		<!-- Modif by F. Alted 2004-2-04 -->
 		  doesn't exists or has already a child called
-		<!-- End of modif by F. Alted 2004-2-04 -->
 		  <em>name</em>, a <verb>ValueError</verb> error is
 		  raised.
 		</item>
@@ -3761,21 +3722,13 @@ AttributeError: Error setting "ADCcount" attr.
 	  the <verb>Leaf</verb> class.
 	</p>
 
-	  <!-- Modificat per F. Alted -->
-
-	  <!-- End of modificat per F. Alted -->
-
 	<subsection>
 	  <heading><visual markup="tt">Leaf</visual> instance
 	    variables</heading>
 
-	  <!-- Modificat per F. Alted -->
-
 	  <p>The public variables and methods that class descendants
 	    inherits from <verb>Leaf</verb> are listed below.
 	  </p>
-
-	  <!-- End of modificat per F. Alted -->
 
 	  <description>
 
@@ -3809,8 +3762,6 @@ AttributeError: Error setting "ADCcount" attr.
 
 	  </description>
 
-	    <!-- Modif by F. Alted -->
-
 	  <p>Besides, the next instance variables are also defined and
 	    have similar meaning as its counterparts in the
 	    <verb>Group</verb> class:
@@ -3836,8 +3787,6 @@ AttributeError: Error setting "ADCcount" attr.
 	    <term>_v_depth</term> <item>The depth level in tree for
 	      this leaf.</item>
 
-	    <!-- end modif F. Alted -->
-
 	  </description>
 	</subsection>
 
@@ -3846,14 +3795,10 @@ AttributeError: Error setting "ADCcount" attr.
 
 	  <subsubsection>
 
-	    <!-- Modif F. Alted 2004-2-10 -->
-
 	    <heading id="copyLeafDescr">copy(where, name, title=None,
 	      filters=None, copyuserattrs=1, start=0, stop=None,
 	      step=1, overwrite=0)
 	    </heading>
-
-	    <!-- end of Modif F. Alted 2004-2-10 -->
 
 	    <p>Copy this leaf into another location. It returns a
 	      tuple <verb>(object, nbytes)</verb> where
@@ -3959,7 +3904,6 @@ AttributeError: Error setting "ADCcount" attr.
 	  <heading><visual markup="tt">Table</visual> instance
 	    variables</heading>
 	  <description>
-	    <!-- Modif by F. Alted 2004-02-06 -->
 	    <term>description</term> <item>The metaobject describing
 	      this table.
 	    </item>
@@ -3971,7 +3915,6 @@ AttributeError: Error setting "ADCcount" attr.
 	    <term>rowsize</term> <item>The size, in bytes, of each
 	      row.
 	    </item>
-	    <!-- End modif by F. Alted 2004-02-06 -->
 
 	    <term>cols</term> <item>A <verb>Cols</verb> (see <ref
 		refid="ColsClassDescr">section</ref>) instance that
@@ -4582,15 +4525,9 @@ Select table.cols['temperature'][:]--> [ 100.  121.  144.]
 	  <heading><visual markup="tt">EArray</visual> instance
 	    variables</heading>
 	  <description>
-
-	    <!-- Modif by F. Alted 2004-1-30 -->
-
 	    <term>atom</term> <item>The class instance choosed for the
 	      atom object (see <ref refid="AtomClassDescr">section</ref>).
 	    </item>
-
-	    <!-- end modif by F. Alted 2004-1-30 -->
-
 	    <term>extdim</term> <item>The enlargeable dimension.
 	    </item>
 	    <term>nrows</term> <item>The length of the enlargeable
@@ -4609,13 +4546,7 @@ Select table.cols['temperature'][:]--> [ 100.  121.  144.]
 	    <p>Appends an <verb>object</verb> to the underlying
 	      dataset. Obviously, this object has to have the same
 	      type as the <verb>EArray</verb> instance, and if not, a
-
-	    <!-- Modif by F. Alted 2004-1-30 -->
-
 	      <verb>TypeError</verb> is issued. In the same way, the
-
-	    <!-- end modif by F. Alted 2004-1-30 -->
-
 	      dimensions of the <verb>object</verb> has to conform
 	      those of <verb>EArray</verb>, that is, all the
 	      dimensions has to be the same except, of course, that of
@@ -4625,7 +4556,6 @@ Select table.cols['temperature'][:]--> [ 100.  121.  144.]
 	    <p>Example of use (code available in
 	      <verb>examples/earray1.py</verb>):
 	    </p>
-	    <!-- Changed by F. ALted 2004-1-30 -->
 	    <verbatim>
 import tables
 from numarray import strings
@@ -4643,7 +4573,6 @@ for s in array_c:
 # Close the file
 fileh.close()
 	    </verbatim>
-	    <!-- End of change by F. ALted 2004-1-30 -->
 
 	    <p>and the output is:
 	    </p>
@@ -5072,10 +5001,7 @@ fileh.close()
 		  specifies the number of <em>dtype</em> items for
 		  each element (or shape, for multidimensional
 		  elements) of this column. For <verb>CharType</verb>
-		  <!-- Modified by F. Alted 2004-1-30 -->
-<!-- 		  columns, the first dimension is used as the length -->
 		  columns, the last dimension is used as the length
-		  <!-- End modif by F. Alted 2004-1-30 -->
 		  of the character strings. However, for this kind of
 		  objects, the use of <verb>StringCol</verb> subclass
 		  is strongly recommended.</item>
@@ -5182,9 +5108,8 @@ fileh.close()
 
 	<subsection id="AtomClassDescr">
 	  <heading>The <visual markup="tt">Atom</visual> class and its
-	    descendants.</heading>
-	  <!-- Modified by F. Alted 2004-1-30 -->
-
+	    descendants.
+	  </heading>
 	  <p>The <verb>Atom</verb> class is meant to declare the
 	    different properties of the <em>base element</em> (also
 	    known as <em>atom</em>) of <verb>EArray</verb> and
@@ -5196,16 +5121,6 @@ fileh.close()
 	    row. Moreover, the atoms are not restricted to scalar
 	    values, and they can be fully multidimensional objects.
 	  </p>
-<!-- 	  <p>The <verb>Atom</verb> class is meant to declare the -->
-<!-- 	    different properties of the <em>base element</em> (also -->
-<!-- 	    known as <em>atom</em>) of a <verb>VLArray</verb> row. The -->
-<!-- 	    <verb>Atom</verb> instances have the property that its -->
-<!-- 	    length is always the same, but you can put a variable -->
-<!-- 	    number of them on the same row. Moreover, the atoms are -->
-<!-- 	    not restricted to scalar values, and they can be fully -->
-<!-- 	    multidimensional objects. -->
-<!-- 	  </p> -->
-	  <!-- end of modif by F. Alted 2004-1-30 -->
 	  <p>A series of descendant classes are offered in order to
 	    make the use of these element descriptions easier. In
 	    general, it is recommended to use these descendant
@@ -5223,11 +5138,8 @@ fileh.close()
 	  <description>
 	    <term>Atom(dtype="Float64", shape=1, flavor="NumArray")
 	    </term>
-	    <!-- Modif by F. Alted 2004-1-30 -->
 	    <item>Define properties for the base elements of
 	      <verb>EArray</verb> and <verb>VLArray</verb> objects.
-	    <!-- end of modif by F. Alted 2004-1-30 -->
-
 	      <description>
 		<term>dtype</term> <item>The data type for the base
 		  element. See the <ref
@@ -5237,8 +5149,6 @@ fileh.close()
 		  numarray data type.
 		</item>
 
-		<!-- Modification by F. Alted 2004-1-30 -->
-		
 		<term>shape</term> <item>In a <verb>EArray</verb>
 		  context, it is a <visual markup="bf">tuple</visual>
 		  specifing the shape of the object, and one (and only
@@ -5258,8 +5168,6 @@ fileh.close()
 		  recommended.
 		</item>
 
-		<!-- End of modif by F. Alted 2004-1-30 --> 
-		
 		<term>flavor</term>
 		  <item>The object representation for this atom. It
 		  can be any of <em>"CharArray"</em> or
@@ -5360,8 +5268,6 @@ fileh.close()
 	    </item>
 	  </description>
 
-	  <!-- Modified by F. Alted 2004-1-30 -->
-
 	  <p>Now, there come two special classes,
 	    <verb>ObjectAtom</verb> and <verb>VLString</verb>, that
 	    actually do not descend from <verb>Atom</verb>, but which
@@ -5377,7 +5283,6 @@ fileh.close()
 	    <verb>VLArray</verb> objects, not <verb>EArray</verb>
 	    objects.
 	  </p>
-	  <!-- end of modif by F. Alted 2004-1-30 -->
 
 	  <description>
 	    <term>ObjectAtom()</term> <item>This class is meant to fit
@@ -5583,7 +5488,6 @@ fileh.close()
 	    
 	    <p>Of course, you can also create an instance and then
 	      assign the ones you want to change. For example:
-	    <!-- Changed by F. ALted 2004-1-30 -->
 	      <verbatim>
 import numarray as na
 from tables import *
@@ -5605,7 +5509,6 @@ print repr(arr)
 
 fileh.close()
 	      </verbatim>
-	    <!-- End of change by F. ALted 2004-1-30 -->
 	      This enforces the use of the <verb>LZO</verb> library, a
 	      compression level of 1 and a fletcher32 checksum filter
 	      as well. See the output of this example:
@@ -6617,12 +6520,7 @@ if __name__=="__main__":
 		  it will be converted to the indicated flavor. It can
 		  take the same values as the <verb>Array</verb>
 		  object (see <ref refid="ArrayFormatDescr"></ref>),
-
-	    <!-- Modif by F. Alted 2004-1-30 -->
-
 		  except <verb>"Int"</verb> and <verb>"Float"</verb>.
-
-	    <!-- Modif by F. Alted 2004-1-30 -->
 
 		</item>
 		<term>TITLE</term> <item>A string where the user can
