@@ -348,15 +348,11 @@ class DeepTreeTestCase(unittest.TestCase):
         Variable 'maxdepth' controls this check.
         """
         
-        # maximum level of recursivity (deepest group level) achieved in
-        # Linux: 900
         # Here we put a more conservative limit to deal with more platforms
-        # With maxdepth = 256 this test would take less than 20 MB
+        # With maxdepth = 512 this test would take less than 20 MB
         # of main memory to run, which is quite reasonable nowadays.
-        # But with the new memory housekeeping introduced in PyTables
-        # 0.3 that provokes a memory endless grow-up.
-        # 64 is a better number so as to not expose these problems
-        maxdepth = 256  # This is safe with the actual object housekeeping
+        # With maxdepth = 1024 this test will take over 40 MB.
+        maxdepth = 512  # This should be safe for most machines
         
         if verbose:
             print '\n', '-=' * 30
@@ -546,9 +542,7 @@ def suite():
 
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(TreeTestCase))
-    for i in range(niter):
         theSuite.addTest(unittest.makeSuite(DeepTreeTestCase))
-    for i in range(niter):        
         theSuite.addTest(unittest.makeSuite(WideTreeTestCase))
 
     return theSuite

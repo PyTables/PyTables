@@ -6,7 +6,7 @@ import sys, os, string
 
 if not (sys.version_info[0] >= 2 and sys.version_info[1] >= 2):
     print "################################################################"
-    print "You need Python 2.2 or greather to install PyTables!. Exiting..."
+    print "You need Python 2.2 or greater to install PyTables!. Exiting..."
     print "################################################################"
     sys.exit(1)
 
@@ -159,7 +159,7 @@ compile and run."""
             print "Found numarray %s package installed" % numarray.__version__
         else:
             print "###########################################################"
-            print "You need numarray 0.6 or greather!. Exiting..."
+            print "You need numarray 0.6 or greater!. Exiting..."
             print "###########################################################"
             sys.exit(1)
 
@@ -347,7 +347,7 @@ compile and run."""
             print "Found numarray %s package installed" % numarray.__version__
         else:
             print "###########################################################"
-            print "You need numarray 0.6 or greather!. Exiting..."
+            print "You need numarray 0.6 or greater!. Exiting..."
             print "###########################################################"
             sys.exit(1)
             

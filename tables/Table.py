@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.50 2003/06/19 11:14:35 falted Exp $
+#       $Id: Table.py,v 1.51 2003/07/04 17:06:07 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.50 $"
+__version__ = "$Revision: 1.51 $"
 
 from __future__ import generators
 import sys
@@ -41,6 +41,7 @@ import numarray
 import numarray.strings as strings
 import numarray.records as records
 #import recarray2         # Private version of records for PyTables
+#import recarray3 as recarray2
 import hdf5Extension
 from Leaf import Leaf
 from IsDescription import IsDescription, metaIsDescription, Col, fromstructfmt

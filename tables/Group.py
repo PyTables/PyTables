@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.38 2003/06/19 11:14:35 falted Exp $
+#       $Id: Group.py,v 1.39 2003/07/04 17:06:07 falted Exp $
 #
 ########################################################################
 
@@ -33,9 +33,9 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.38 $"
+__version__ = "$Revision: 1.39 $"
 
-MAX_DEPTH_IN_TREE = 512
+MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
 # MAX_CHILDS_IN_GROUP constant in util.h!
 MAX_CHILDS_IN_GROUP = 4096
@@ -113,49 +113,52 @@ class Group(hdf5Extension.Group, object):
         self.__dict__["_v_leaves"] = {}
         self.__dict__["_v_childs"] = {}
 
+    # This iterative version of _g_openFile is due to John at bwc.state.oh.us
     def _g_openFile(self):
         """Recusively reads an HDF5 file and generates a tree object.
-
-        This tree is the python replica of the file hierarchy.
-
         """
-        pgroupId =  self._v_parent._v_groupId
-        (groups, leaves) = self._g_listGroup(pgroupId, self._v_hdf5name)
-        for name in groups:
-            objgroup = Group(new = 0)
-            # Insert this group as a child of mine
-            objgroup._g_putObjectInTree(name, self)
-            # Call openFile recursively over the group's tree
-            objgroup._g_openFile()
-        for name in leaves:
-            class_ = self._v_attrs._g_getChildAttr(name, "CLASS")
-            if class_:
-                class_ = class_.capitalize()
-            if class_ is None:
-                # No CLASS attribute, try a guess
-                warnings.warn( \
-"""No CLASS attribute found. Trying to guess what's here.
-  I can't promise getting the correct object, but I will do my best!.""",
-                UserWarning)
-                class_ = hdf5Extension.whichClass(self._v_groupId, name)
-                if class_:
-                    class_ = class_.capitalize()
-                if class_ == "Unsupported":
-                    raise RuntimeError, \
-                    """Dataset object \'%s\' in file is unsupported!.""" % \
-                          name
-            if class_ == "Table":
-                objgroup = Table()
-            elif class_ == "Array":
-                objgroup = Array()
-            else:
-                raise RuntimeError, \
-                      """Dataset object in file is unknown!
-                      class ID: %s""" % class_
-            # Set some attributes to caracterize and open this object
-            objgroup._g_putObjectInTree(name, self)
-            #setattr(self, name, objgroup)
+
+        stack=[self]
+        while stack:
+            objgroup=stack.pop()
+            pgroupId=objgroup._v_parent._v_groupId
+            (groups, leaves)=self._g_listGroup(pgroupId, objgroup._v_hdf5name)
+            for name in groups:
+                new_objgroup = Group(new = 0)
+                new_objgroup._g_putObjectInTree(name, objgroup)
+                stack.append(new_objgroup)
+            for name in leaves:
+                objleaf=objgroup._g_getLeaf(name)
+                objleaf._g_putObjectInTree(name, objgroup)
+
+    def _g_getLeaf(self,name):
+        """Returns a proper Leaf class depending on the object to be opened.
+        """
         
+        class_ = self._v_attrs._g_getChildAttr(name, "CLASS")
+        if class_:
+            # Convert "ARRAY" or "TABLE" to "Array" or "Table"
+            class_ = class_.capitalize()
+        if class_ is None:
+            # No CLASS attribute, try a guess
+            warnings.warn( \
+"""No CLASS attribute found. Trying to guess what's here.
+I can't promise getting the correct object, but I will do my best!.""",
+            UserWarning)
+            class_ = hdf5Extension.whichClass(self._v_groupId, name)
+            if class_ == "UNSUPPORTED":
+                raise RuntimeError, \
+                """Dataset object \'%s\' in file is unsupported!.""" % \
+                      name
+        if class_ == "Table":
+            return Table()
+        elif class_ == "Array":
+            return Array()
+        else:
+            raise RuntimeError, \
+                  """Dataset object in file is unknown!
+                  class ID: %s""" % class_
+
     def _g_join(self, name):
         """Helper method to correctly concatenate a name child object
         with the pathname of this group."""
@@ -337,7 +340,7 @@ class Group(hdf5Extension.Group, object):
             raise ValueError, \
 """"classname" can only take 'Group', 'Leaf', 'Table' or 'Array' values"""
 
-    def _f_walkGroups(self):
+    def _f_walkGroups_orig(self):
         """Recursively obtains Groups (not Leaves) hanging from self.
 
         The groups are returned from top to bottom, and
@@ -355,6 +358,29 @@ class Group(hdf5Extension.Group, object):
         for groupname in groupnames:
             for x in self._v_groups[groupname]._f_walkGroups():
                 yield x
+
+    def _f_walkGroups(self):
+        """Returns the list of Groups (not Leaves) hanging from self.
+
+        The group list returned is ordered from top to bottom, and
+        alphanumerically sorted when in the same level.
+
+        """
+        
+        stack = [self]
+        groups = [self]
+        # Iterate over the descendants
+        while stack:
+            objgroup=stack.pop()
+            groupnames = objgroup._v_groups.keys()
+            # Sort the groups before delivering. This uses the groups names
+            # for groups in tree (in order to sort() can classify them).
+            groupnames.sort()
+            for groupname in groupnames:
+                groups.append(objgroup._v_groups[groupname])
+                stack.append(objgroup._v_groups[groupname])
+                
+        return groups
 
     def __delattr__(self, name):
         """Remove *recursively* all the objects hanging from name child."""

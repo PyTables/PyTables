@@ -1532,17 +1532,12 @@ Filename: tutorial1.h5 'Test file'
 	  </verbatim>
 
 	  <p><verb>listNodes()</verb> (see <ref
-	    refid="listNodesDescr"></ref>) lists all the nodes hanging
-	    from a <em>group</em>, and if <em>classname</em>
-	    keyword is specified, the method will filter all instances
-	    which are not descendants of it. We have specified it so
-	    as to return only the <verb>Array</verb> instances.
-	  </p>
-	  <p>
-	    <visual markup="bf">Caveat emptor</visual>:
-	    <verb>listNodes</verb> (conversely to
-	    <verb>walkGroups</verb>) returns an actual list, not an
-	    iterator!.
+	    refid="listNodesDescr"></ref>) returns a list containing
+	    all the nodes hanging from a specific <em>Group</em>, and
+	    if <em>classname</em> keyword is specified, the method
+	    will filter all instances which are not descendants of
+	    it. We have specified it to return only the
+	    <verb>Array</verb> instances.
 	  </p>
 
 	  <p>As a final example, we will list all the
@@ -3222,10 +3217,10 @@ if __name__=="__main__":
 	  <subsubsection>
 	    <heading id="walkGroupsDescr">walkGroups(where='/')</heading>
 
-	    <p><em>Iterator</em> that recursively obtains groups (not
-	      leaves) hanging from <em>where</em>. If <em>where</em>
+	    <p><em>Method</em> that returns the list of Groups (not
+	      Leaves) hanging from <em>where</em>. If <em>where</em>
 	      is not supplied, the root object is taken as origin. The
-	      groups are returned from in a top to bottom order, and
+	      returned Group list is in a top-bottom order, and
 	      alphanumerically sorted when they are at the same level.
 	    </p>
 	    <description>
@@ -3399,12 +3394,11 @@ if __name__=="__main__":
 	      <verb>'Leaf'</verb>, <verb>'Table'</verb> and
 	      <verb>'Array'</verb>.</item>
 
-	    <term>_f_walkGroups()</term> <item><em>Iterator</em> that
-	      recursively obtains Groups (not Leaves) hanging from
-	      self. The groups are returned from top to bottom, and
-	      are alphanumerically sorted when they are at the same
-	      level.
-	    </item>
+	    <term>_f_walkGroups()</term> <item>Method that returns the
+	      list of Groups (not Leaves) hanging from
+	      <em>self</em>. The returned Group list is in a
+	      top-bottom order, and alphanumerically sorted when they
+	      are at the same level. </item>
 
 	    <term>_f_close()</term> <item>Close this group, making it
 	      and its children unaccessible in the object tree.</item>

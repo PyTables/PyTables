@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.8 2003/06/19 11:14:35 falted Exp $
+#       $Id: IsDescription.py,v 1.9 2003/07/04 17:06:07 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.8 $"
+__version__ = "$Revision: 1.9 $"
 
 
 import warnings
@@ -210,14 +210,14 @@ class metaIsDescription(type):
                 (key2.startswith('__') or key2.startswith('_v_'))):
                 return 0
             # A variable that starts with a special prefix
-            # is always greather than a normal variable
+            # is always greater than a normal variable
             elif (key1.startswith('__') or key1.startswith('_v_')):
                 return 1
             elif (key2.startswith('__') or key2.startswith('_v_')):
                 return -1
             pos1 = classdict[key1].pos
             pos2 = classdict[key2].pos
-            # pos = None is always greather than a number
+            # pos = None is always greater than a number
             if pos1 == None:
                 return 1
             if pos2 == None:

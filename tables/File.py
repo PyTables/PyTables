@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.38 2003/06/11 10:48:45 falted Exp $
+#       $Id: File.py,v 1.39 2003/07/04 17:06:07 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.38 $"
+__version__ = "$Revision: 1.39 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -637,31 +637,28 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         """Returns a string representation of the object tree"""
         
         # Print all the nodes (Group and Leaf objects) on object tree
-        string = 'Filename: ' + self.filename + " " + repr(self.title) + '\n'
-        # string = 'Filename: ' + self.filename + ' \\\\'
-        # string += ' Title: ' + str(self.title) + ' \\\\'
-        # string += ' Format version: ' + str(self._format_version) + '\n'
+        astring = 'Filename: ' + self.filename + " " + repr(self.title) + '\n'
         for group in self.walkGroups("/"):
-            string += str(group) + '\n'
+            astring += str(group) + '\n'
             for leaf in self.listNodes(group, 'Leaf'):
-                string += str(leaf) + '\n'
+                astring += str(leaf) + '\n'
                 
-        return string
+        return astring
 
     def __repr__(self):
         
         """Returns a more complete representation of the object tree"""
         
         # Print all the nodes (Group and Leaf objects) on object tree
-        string = 'Filename: ' + self.filename + " " + repr(self.title) + '\n'
-        string += '  mode = ' + repr(self.mode) + '\n'
-        string += '  trMap = ' + str(self.trMap) + '\n'
+        astring = 'Filename: ' + self.filename + " " + repr(self.title) + '\n'
+        astring += '  mode = ' + repr(self.mode) + '\n'
+        astring += '  trMap = ' + str(self.trMap) + '\n'
         for group in self.walkGroups("/"):
-            string += str(group) + '\n'
+            astring += str(group) + '\n'
             for leaf in self.listNodes(group, 'Leaf'):
-                string += repr(leaf) + '\n'
+                astring += repr(leaf) + '\n'
                 
-        return string
+        return astring
 
     def _g_del__(self):
         """Delete some objects"""
