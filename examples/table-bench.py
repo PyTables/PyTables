@@ -2,6 +2,8 @@
 
 from tables import *
 
+# Verbosity level
+verbose = 0
 
 # This class is accessible only for the examples
 class Record(IsRecord):
@@ -15,8 +17,8 @@ class Record(IsRecord):
     var2 = 'i'
     var3 = 'd'
 
-def createFile(filename, totalrows, fast):
-    
+def createFile(filename, totalrows, fast, complevel):
+
     # Open a file in "w"rite mode
     fileh = openFile(filename, mode = "w")
 
@@ -28,7 +30,7 @@ def createFile(filename, totalrows, fast):
     for j in range(3):
         # Create a table
         table = fileh.createTable(group, 'tuple'+str(j), Record(), title,
-	                          compress = 0, expectedrows = totalrows)
+	                          complevel, totalrows)
         # Get the record object associated with the new table
         d = table.record 
         # Fill the table
@@ -53,12 +55,14 @@ def createFile(filename, totalrows, fast):
 
 def readFile(filename, fast):
     # Open the HDF5 file in read-only mode
+
     fileh = openFile(filename, mode = "r")
     for groupobj in fileh.walkGroups(fileh.root):
         #print "Group pathname:", groupobj._v_pathname
         for table in fileh.listNodes(groupobj, 'Table'):
             #print "Table title for", table._v_pathname, ":", table.tableTitle
-            print "Rows in", table._v_pathname, ":", table.nrows
+            if verbose:
+                print "Rows in", table._v_pathname, ":", table.nrows
 
             if fast:
                 # Example of tuple selection (fast version)
@@ -67,14 +71,16 @@ def readFile(filename, fast):
                 # Record method (slow, but convenient)
                 e = [ p.var2 for p in table.readAsRecords() if p.var2 < 20 ]
                 # print "Last record ==>", p
-    
-            print "Total selected records ==> ", len(e)
+
+            if verbose:
+                print "Total selected records ==> ", len(e)
         
     # Close the file (eventually destroy the extended type)
     fileh.close()
 
 def addRecords(filename, addedrows, fast):
     """ Example for adding rows """
+
     # Open the HDF5 file in append mode
     fileh = openFile(filename, mode = "a")
     for groupobj in fileh.walkGroups(fileh.root):
@@ -99,15 +105,17 @@ def addRecords(filename, addedrows, fast):
                     table.appendAsRecord(d)      # This injects the Record values
             # Flush buffers to disk (may be commented out, but it shouldn't)
             table.flush()   
-                            
+
             if fast:
                 # Example of tuple selection (fast version)
                 e = [ t[1] for t in table.readAsTuples() if t[1] < 20 ]
-                print "Last tuple ==>", t
+                if verbose:
+                    print "Last tuple ==>", t
             else:
                 # Record method (slow, but convenient)
                 e = [ p.var2 for p in table.readAsRecords() if p.var2 < 20 ]
-                print "Last record ==>", p
+                if verbose:
+                    print "Last record ==>", p
     
             print "Total selected records in new table ==> ", len(e)
         
@@ -118,13 +126,16 @@ def addRecords(filename, addedrows, fast):
 if __name__=="__main__":
     import sys
     import getopt
-
-    usage = """usage: %s [-f] [-i iterations] file
+    import time
+    
+    usage = """usage: %s [-f] [-c level] [-i iterations] file
+            -v verbose
             -f means use fast methods (unsafer)
+            -c sets a compression level (don't set it or 0 for no compression)
             -i sets the number of rows in each table\n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'fi:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'vfc:i:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -135,19 +146,44 @@ if __name__=="__main__":
         sys.exit(0)
 
     # default options
+    #verbose = 0
     fast = 0
+    complevel = 0
     iterations = 100
 
     # Get the options
     for option in opts:
-        if option[0] == '-f':
+        if option[0] == '-v':
+            global verbose
+            verbose = 1
+        elif option[0] == '-f':
             fast = 1
-        if option[0] == '-i':
+        elif option[0] == '-c':
+            complevel = int(option[1])
+        elif option[0] == '-i':
             iterations = int(option[1])
 
     # Catch the hdf5 file passed as the last argument
     file = pargs[0]
 
-    createFile(file, iterations, fast)
+    t1 = time.clock()
+    createFile(file, iterations, fast, complevel)
+    t2 = time.clock()
+    tapprows = round(t2-t1, 3)
+    
+    t1 = time.clock()    
     readFile(file, fast)
+    t2 = time.clock()
+    treadrows = round(t2-t1, 3)
+    
     #addRecords(file, iterations * 2, fast)
+
+    if fast:
+        print "-*-"*8, " FAST mode ", "-*-"*8
+    else:
+        print "-*-"*8, " NORMAL mode ", "-*-"*8
+    print "Compression level:", complevel
+    print "Time appending rows:", tapprows
+    print "Write rows/sec: ", int(iterations / float(tapprows))
+    print "Time reading rows:", treadrows
+    print "Read rows/sec: ", int(iterations / float(treadrows))

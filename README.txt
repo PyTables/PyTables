@@ -1,7 +1,7 @@
 README.txt
 PyTables v0.2 (This is second alpha version)
 http://pytables.sf.net/
-November 11, 2002
+November 18, 2002
 --------------------------------------
 
 ################## Note ###############
@@ -15,8 +15,8 @@ November 11, 2002
 
 The goal of PyTables is to enable the end user to manipulate easily
 scientific data tables and Numerical Python objects (new in 0.2!)  in
-a hierarchical structure. The foundation of the underlying hierachical
-data organization is the excellent HDF5 library
+a persistent hierarchical structure. The foundation of the underlying
+hierachical data organization is the excellent HDF5 library
 (http://hdf.ncsa.uiuc.edu/HDF5). Right now, PyTables provides limited
 support of all the HDF5 functions, but I hope to add the more
 interesting ones (for PyTables needs) in the near future.
@@ -61,6 +61,9 @@ appreciate input on how it compiles and installs on other platforms.
 In particular, I foresee problems on platforms that do not support the
 "long long int" type (needed to create files with sizes larger than 2
 GB).
+
+Thanks to Scott Prater, this package has also been successfully tested on a
+UltraSparc platform with Solaris 7.
 
 Installation
 ------------

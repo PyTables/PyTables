@@ -115,6 +115,7 @@ def addRecords(filename, addedrows, fast):
 if __name__=="__main__":
     import sys
     import getopt
+    import time
 
     usage = """usage: %s [-f] [-i iterations] file
             -f means use fast methods (unsafer)
@@ -145,6 +146,24 @@ if __name__=="__main__":
     # Catch the hdf5 file passed as the last argument
     file = pargs[0]
 
+    t1 = time.clock()
     createFile(file, iterations, fast)
+    t2 = time.clock()
+    tapprows = round(t2-t1, 3)
+    
+    t1 = time.clock()
     readFile(file, fast)
+    t2 = time.clock()
+    treadrows = round(t2-t1, 3)
+    
     #addRecords(file, iterations * 2, fast)
+
+    if fast:
+        print "-*-"*8, " FAST mode ", "-*-"*8
+    else:
+        print "-*-"*8, " NORMAL mode ", "-*-"*8
+
+    print "Time appending rows:", tapprows
+    print "Write rows/sec: ", int(iterations / float(tapprows))
+    print "Time reading rows:", treadrows
+    print "Read rows/sec: ", int(iterations / float(treadrows))
