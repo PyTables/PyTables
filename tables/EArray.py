@@ -308,7 +308,8 @@ class EArray(Array, hdf5Extension.Array, object):
         shape = tuple(shape)
         # Create the atom instance
         self.atom = Atom(dtype=self.stype, shape=shape,
-                         flavor=self.attrs.FLAVOR)
+                         flavor=self.flavor)
+                         #flavor=self.attrs.FLAVOR)
         # Compute the rowsize for each element
         self.rowsize = self.atom.atomsize()
         # nrows in this instance

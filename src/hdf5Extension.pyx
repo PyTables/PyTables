@@ -591,8 +591,8 @@ cdef extern from "H5ARRAY.h":
 
   herr_t H5ARRAYget_ndims( hid_t loc_id, char *dset_name, int *rank )
 
-  hid_t H5ARRAYget_info( hid_t loc_id, char *dset_name,
-                         hsize_t *dims, hid_t *super_type_id,
+  hid_t H5ARRAYget_info( hid_t loc_id, char *dset_name, hsize_t *dims,
+                         hsize_t *maxdims, hid_t *super_type_id,
                          H5T_class_t *super_class_id, char *byteorder)
 
 # Functions for optimized operations for ARRAY
@@ -1332,8 +1332,8 @@ cdef class AttributeSet:
                              (attrname, dsetname))
 
     if rank > 1:
-      print \
-"""Info: Can't deal with multidimensional attribute '%s' in node '%s'. Sorry about that!""" % (attrname, dsetname)
+      warnings.warn( \
+"""Can't deal with multidimensional attribute '%s' in node '%s'. Sorry about that!""" % (attrname, dsetname), UserWarning)
       return None
     
     # Allocate memory to collect the dimension of objects with dimensionality
@@ -1347,9 +1347,8 @@ cdef class AttributeSet:
                                (attrname, dsetname))
 
     if rank > 0 and dims[0] > 1:
-      print \
-"""Info: Can't deal with multidimensional attribute '%s' in node '%s'.""" % \
-(attrname, dsetname)
+      warnings.warn( \
+"""Can't deal with multidimensional attribute '%s' in node '%s'. Sorry about that!""" % (attrname, dsetname), UserWarning)
       free(<void *> dims)
       return None
     elif rank > 0:
@@ -1388,8 +1387,8 @@ cdef class AttributeSet:
       retvalue = PyString_FromString(attrvaluestr)
       free(<void *> attrvaluestr)   # To avoid memory leak!
     else:
-      print \
-"""Info: Type of attribute '%s' in node '%s' is not supported. Sorry about that!""" % (attrname, dsetname)
+      warnings.warn( \
+"""Type of attribute '%s' in node '%s' is not supported. Sorry about that!""" % (attrname, dsetname), UserWarning)
       return None
 
     # Check the return value of H5LTget_attribute_* call
@@ -2628,6 +2627,7 @@ cdef class Array:
   cdef char    *name
   cdef int     rank
   cdef hsize_t *dims
+  cdef hsize_t *maxdims
   cdef hsize_t *dims_chunk
   cdef int     enumtype
   cdef hsize_t stride[2]
@@ -2770,34 +2770,37 @@ cdef class Array:
     cdef herr_t ret
     cdef int extdim
     cdef char flavor[256]
-    cdef char version[8]
-    cdef double fversion
 
     # Get the rank for this array object
     ret = H5ARRAYget_ndims(self.parent_id, self.name, &self.rank)
     # Allocate space for the dimension axis info
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
+    self.maxdims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Get info on dimensions, class and type size
-    oid = H5ARRAYget_info(self.parent_id, self.name, self.dims,
+    oid = H5ARRAYget_info(self.parent_id, self.name, self.dims, self.maxdims,
                           &self.type_id, &class_id, byteorder)
     self.objectID = oid
-    strcpy(flavor, "unknown")  # Default value
+    strcpy(flavor, "NumArray")  # Default value
+    self.extdim = -1  # default is non-chunked Array
     if self._v_file._isPTFile:
       H5LTget_attribute_string(self.parent_id, self.name, "FLAVOR", flavor)
-      H5LTget_attribute_string(self.parent_id, self.name, "VERSION", version)
-      fversion = atof(version)
-      if (self.__class__.__name__ == "EArray" or 
-          self.__class__.__name__ == "IndexArray"):
+      if (hasattr(self.attrs,"EXTDIM")):
         # For EArray, EXTDIM attribute exists
         H5LTget_attribute_int(self.parent_id, self.name, "EXTDIM", &extdim)
         self.extdim = extdim
-        # Allocate space for the dimension chunking info
-        self.dims_chunk = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
-        if ( (H5ARRAYget_chunksize(self.parent_id, self.name,
-                                   self.rank, self.dims_chunk)) < 0):
-          raise RuntimeError, "Problems getting the chunksizes!"
+    else:
+      # Case of a non-pytables possible native chunked dataset
+      for i in range(self.rank):
+        if self.maxdims[i] == -1:
+          self.extdim = i
+          break
     self.flavor = flavor  # Gives class visibility to flavor
-
+    if self.extdim >= 0:
+      # Allocate space for the dimension chunking info
+      self.dims_chunk = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
+      if ( (H5ARRAYget_chunksize(self.parent_id, self.name,
+                                 self.rank, self.dims_chunk)) < 0):
+        raise RuntimeError, "Problems getting the chunksizes!"
     # Get the array type
     type_size = getArrayType(self.type_id, &self.enumtype)
     if type_size < 0:
@@ -2999,6 +3002,8 @@ cdef class Array:
     #print "Destroying object Array in Extension"
     free(<void *>self.dims)
     free(<void *>self.name)
+    if self.maxdims:
+      free(<void *>self.maxdims)
     if self.dims_chunk:
       free(self.dims_chunk)
 

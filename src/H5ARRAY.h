@@ -87,6 +87,7 @@ herr_t H5ARRAYget_chunksize( hid_t loc_id,
 hid_t H5ARRAYget_info( hid_t loc_id, 
 		       const char *dset_name,
 		       hsize_t *dims,
+		       hsize_t *maxdims,
 		       hid_t *super_type_id,
 		       H5T_class_t *super_class_id,
 		       char *byteorder);

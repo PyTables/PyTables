@@ -1043,6 +1043,7 @@ out:
 hid_t H5ARRAYget_info( hid_t loc_id, 
 		       const char *dset_name,
 		       hsize_t *dims,
+		       hsize_t *maxdims,
 		       hid_t *super_type_id,
 		       H5T_class_t *super_class_id,
 		       char *byteorder)
@@ -1090,7 +1091,7 @@ hid_t H5ARRAYget_info( hid_t loc_id,
       goto out;
 
     /* Get dimensions */
-    if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
+    if ( H5Sget_simple_extent_dims( space_id, dims, maxdims) < 0 )
       goto out;
 
     /* Terminate access to the dataspace */

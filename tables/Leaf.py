@@ -192,7 +192,10 @@ class Leaf(object):
 
     # Define title as a property
     def _get_title (self):
-        return self.attrs.TITLE
+        if hasattr(self.attrs, "TITLE"):
+            return self.attrs.TITLE
+        else:
+            return ""
     
     def _set_title (self, title):
         self.attrs.TITLE = title
@@ -468,7 +471,7 @@ class Leaf(object):
         # Get this class name
         classname = self.__class__.__name__
         # The title
-        title = self.attrs.TITLE
+        title = self.title
         # The filters
         filters = ""
         if self.filters.fletcher32:
