@@ -10,7 +10,7 @@
     <subtitle><visual markup="sf">Hierarchical datasets in
       Python</visual><newline/> Release 0.8</subtitle>
 
-    <date>2004, March, 1st</date>
+    <date>2004, March, 9th</date>
     <year>2002, 2003, 2004</year>
 <!--     <graphics kind="bitmap" file="logo4-ombra"/> -->
     <graphics kind="bitmap" file="logo3-ombra"/>
@@ -1357,11 +1357,12 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	    they are provided by the <verb>table.iterrows()</verb>
 	    iterator (see <ref refid="iterrowsTableDescr"></ref>). The
 	    iterator returns values until all the data in table is
-	    exhausted. These rows are filtered using the expression
-	    <verb>x['TDCcount'] > 3 and x['pressure'] &lt;
-	    50</verb>. We select the value of the
-	    <verb>pressure</verb> column from filtered records to
-	    create the final list and assign it to
+	    exhausted. These rows are filtered using the expression:
+	    <verbatim>
+	      x['TDCcount'] > 3 and x['pressure'] &lt;50
+	    </verbatim>
+	    We select the value of the <verb>pressure</verb> column from
+	    filtered records to create the final list and assign it to
 	    <verb>pressure</verb> variable.
 	  </p>
 
@@ -1829,7 +1830,8 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 >>> table.attrs._f_rename("VERSION", "version")
 Traceback (most recent call last):
   File "&gt;stdin>", line 1, in ?
-  File "/home/falted/PyTables/pytables-0.7/tables/AttributeSet.py", line 249, in _f_rename
+  File "/home/falted/PyTables/pytables-0.7/tables/AttributeSet.py", 
+  line 249, in _f_rename
     raise RuntimeError, \
 RuntimeError: Read-only attribute ('VERSION') cannot be renamed
 	  </verbatim>
@@ -2392,9 +2394,11 @@ $ python tutorial2.py
 Traceback (most recent call last):
   File "tutorial2.py", line 53, in ?
     particle['pressure'] = array(i*arange(2*3), shape=(2,4))  # Incorrect
-  File "/usr/local/lib/python2.2/site-packages/numarray/numarraycore.py", line 281, in array
-    a.setshape(shape)
-  File "/usr/local/lib/python2.2/site-packages/numarray/generic.py", line 530, in setshape
+  File  "/usr/local/lib/python2.2/site-packages/numarray/numarraycore.py",
+ line 281, in array
+  a.setshape(shape)
+  File "/usr/local/lib/python2.2/site-packages/numarray/generic.py", 
+ line 530, in setshape
     raise ValueError("New shape is not consistent with the old shape")
 ValueError: New shape is not consistent with the old shape
 	</verbatim>

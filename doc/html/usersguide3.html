@@ -2,7 +2,7 @@
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xmlns:pref="http://www.w3.org/2002/Math/preference" id="usage"><a name="usage"></a><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.8"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Date" content="2004-03-01T16:09:10+01:00"><meta name="Date" content="2004-03-01T16:09:10+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.8"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Date" content="2004-03-09T09:19:02+01:00"><meta name="Date" content="2004-03-09T09:19:02+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -487,18 +487,19 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	    later on.
 	  </p>
 
-	  <p>You will recognize the last two lines as a Python list
+	  <div class="p">You will recognize the last two lines as a Python list
 	    comprehension. It loops over the rows in <em>table</em> as
 	    they are provided by the <tt class="verb">table.iterrows()</tt>
 	    iterator (see <a href="#iterrowsTableDescr"><strong>??</strong></a>). The
 	    iterator returns values until all the data in table is
-	    exhausted. These rows are filtered using the expression
-	    <tt class="verb">x['TDCcount'] &gt; 3 and x['pressure'] &lt;
-	    50</tt>. We select the value of the
-	    <tt class="verb">pressure</tt> column from filtered records to
-	    create the final list and assign it to
+	    exhausted. These rows are filtered using the expression:
+	    <pre>
+	      x['TDCcount'] &gt; 3 and x['pressure'] &lt;50
+	    </pre>
+	    We select the value of the <tt class="verb">pressure</tt> column from
+	    filtered records to create the final list and assign it to
 	    <tt class="verb">pressure</tt> variable.
-	  </p>
+	  </div>
 
 	  <p>We could have used a normal <tt class="verb">for</tt> loop
 	    to accomplish the same purpose, but I find comprehension 
@@ -957,7 +958,8 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 &gt;&gt;&gt; table.attrs._f_rename("VERSION", "version")
 Traceback (most recent call last):
   File "&gt;stdin&gt;", line 1, in ?
-  File "/home/falted/PyTables/pytables-0.7/tables/AttributeSet.py", line 249, in _f_rename
+  File "/home/falted/PyTables/pytables-0.7/tables/AttributeSet.py", 
+  line 249, in _f_rename
     raise RuntimeError, \
 RuntimeError: Read-only attribute ('VERSION') cannot be renamed
 	  </pre>
@@ -1507,9 +1509,11 @@ $ python tutorial2.py
 Traceback (most recent call last):
   File "tutorial2.py", line 53, in ?
     particle['pressure'] = array(i*arange(2*3), shape=(2,4))  # Incorrect
-  File "/usr/local/lib/python2.2/site-packages/numarray/numarraycore.py", line 281, in array
-    a.setshape(shape)
-  File "/usr/local/lib/python2.2/site-packages/numarray/generic.py", line 530, in setshape
+  File  "/usr/local/lib/python2.2/site-packages/numarray/numarraycore.py",
+ line 281, in array
+  a.setshape(shape)
+  File "/usr/local/lib/python2.2/site-packages/numarray/generic.py", 
+ line 530, in setshape
     raise ValueError("New shape is not consistent with the old shape")
 ValueError: New shape is not consistent with the old shape
 	</pre>
