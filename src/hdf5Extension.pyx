@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.27 2003/02/28 13:39:25 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.28 2003/02/28 21:22:51 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.27 $"
+__version__ = "$Revision: 1.28 $"
 
 
 import sys, os.path
@@ -230,6 +230,12 @@ cdef extern from "hdf5.h":
     H5T_SGN_NONE         = 0,   #this is an unsigned type                   */
     H5T_SGN_2            = 1,   #two's complement                           */
     H5T_NSGN             = 2    #this must be last!                         */
+
+  cdef enum H5G_link_t:
+    H5G_LINK_ERROR      = -1,
+    H5G_LINK_HARD       = 0,
+    H5G_LINK_SOFT       = 1
+
                 
 # Functions from HDF5
 cdef extern from *:
@@ -254,6 +260,13 @@ cdef extern from *:
   hid_t  H5Gopen(hid_t loc_id, char *name )
 
   herr_t H5Gclose(hid_t group_id)
+
+  herr_t H5Glink (hid_t file_id, H5G_link_t link_type,
+                  char *current_name, char *new_name)
+  
+  herr_t H5Gunlink (hid_t file_id, char *name)
+
+  herr_t H5Gmove(hid_t loc_id, char *src, char *dst)
 
   herr_t H5get_libversion(unsigned *majnum, unsigned *minnum,
                           unsigned *relnum )
@@ -472,7 +485,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.27 2003/02/28 13:39:25 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.28 2003/02/28 21:22:51 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -694,6 +707,37 @@ cdef class Group:
     if ret < 0:
       raise RuntimeError("Problems closing the Group %s" % self.name )
     self.group_id = 0  # indicate that this group is closed
+
+  def _f_moveNode(self, char *oldname, char *newname):
+    cdef int ret
+
+    print "Renaming the HDF5 Node", oldname, "to", newname
+    ret = H5Gmove(self.group_id, oldname, newname)
+    if ret < 0:
+      raise RuntimeError("Problems renaming the Node %s" % dsetname )
+    self.name = strdup(newname)
+    return ret
+
+  def _f_deleteGroup(self):
+    cdef int ret
+
+    # First, close this group
+    #self._f_closeGroup()
+    # Delete the group
+    #print "Removing the HDF5 Group", self.name
+    ret = H5Gunlink(self.parent_id, self.name)
+    if ret < 0:
+      raise RuntimeError("Problems deleting the Group %s" % dsetname )
+    return ret
+
+  def _f_deleteLeaf(self, char *dsetname):
+    cdef int ret
+
+    #print "Removing the HDF5 Leaf", dsetname
+    ret = H5Gunlink(self.group_id, dsetname)
+    if ret < 0:
+      raise RuntimeError("Problems deleting the Leaf %s" % dsetname )
+    return ret
 
   def __dealloc__(self):
     cdef int ret

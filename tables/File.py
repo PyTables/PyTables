@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.15 2003/02/24 12:06:00 falted Exp $
+#       $Id: File.py,v 1.16 2003/02/28 21:22:55 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.15 $"
+__version__ = "$Revision: 1.16 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -201,6 +201,10 @@ class File(hdf5Extension.File):
         
         # Get the root group from this file
         self.root = self.__getRootGroup()
+
+        # Set the flag to indicate that the file has been opened
+        self.closed = 0
+
         return
 
     
@@ -451,14 +455,85 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
             if isinstance(object, classobj):
                 return object
             else:
-                raise ValueError, \
-"""A %s() instance cannot be found at ("%s", "%s").
-Instead, a %s() object has been found there.""" % \
-(classname, where, name, object.__class__.__name__)
-        
+                warnings.warn( \
+"""\n  A %s() instance cannot be found at "%s".
+  Instead, a %s() object has been found there.""" % \
+(classname, object._v_pathname, object.__class__.__name__), UserWarning)
+                return -1
         return object
 
     
+    def moveNode(self, where, name = "", newname = ""):
+        """Rename the object node "name" under "where" location.
+
+        "where" can be a path string or Group instance. If "where"
+        doesn't exists or has not a child called "name", a ValueError
+        error is raised. If "name" is a null string (""), or not
+        supplied, this method assumes to find the object in "where".
+        
+        """
+
+        # Get the node to be renamed
+        object = self.getNode(where, name=name)
+        ret = object._v_parent._f_move(object, newname)
+        return ret
+        
+    def removeNode(self, where, name = "", classname = "", recursive = 0):
+        """Removes the object node "name" under "where" location.
+
+        "where" can be a path string or Group instance. If "where"
+        doesn't exists or has not a child called "name", a ValueError
+        error is raised. If "name" is a null string (""), or not
+        supplied, this method assumes to find the object in
+        "where". If a "classname" parameter is supplied, the node is
+        deleted only if belongs to this class name. Allowed names in
+        "classname" are: 'Group', 'Leaf', 'Table' and 'Array'.  If
+        "recursive" is zero or not supplied, the object will be
+        removed only if it has not children. If "recursive" is true,
+        the object and all its descendents will be completely removed.
+
+        """
+
+        # Get the node to be removed
+        object = self.getNode(where, name=name, classname=classname)
+        
+        # Remove the node
+        if isinstance(object, Group):
+            if object._v_objchilds <> {}:
+                if recursive:
+                    # First close all the childs hanging from this group
+                    for group in self.walkGroups(object):
+                        for leaf in self.listNodes(group, classname = 'Leaf'):
+                            # Delete the back references in Leaf
+                            leaf.close()
+                        # Close this group
+                        group._f_close()
+                    # Finally, remove this group
+                    object._f_remove()
+                    returncode = 0
+                else:
+                    warnings.warn( \
+"""\n  The group '%s' has childs, but the 'recursive' flag is not on.
+  Activate it if you really want to recursively delete this group.""" % \
+(object._v_pathname), UserWarning)
+                    returncode = -1
+            else:
+                # This group has no childs, so we can delete it
+                # without problems
+                object._f_close()
+                object._f_remove()
+                returncode = 0
+        elif isinstance(object, Leaf):
+            parent = object._v_parent
+            object.close()
+            parent._f_removeLeaf(object)
+            returncode = 0
+        else:
+            raise RuntimeError, \
+"""This should never happen. Please, report this as a possible bug."""
+
+        return returncode
+
     def listNodes(self, where, classname = ""):
         
         """Returns a list with all the object nodes (Group or Leaf) hanging
@@ -469,15 +544,22 @@ Instead, a %s() object has been found there.""" % \
         "classname" are 'Group' and 'Leaf'."""
 
         group = self.getNode(where, classname = 'Group')
-        return group._f_listNodes(classname)
+        if group <> -1:
+            return group._f_listNodes(classname)
+        else:
+            return []
     
 
     def walkGroups(self, where = "/"):
         
-        """Recursively obtains Groups (not Leaves) hanging from "where". If
-        "where" is not supplied, the root object is taken as origin. The
-        groups are returned from top to bottom, and alphanumerically sorted
-        when in the same level."""
+        """Recursively obtains Groups (not Leaves) hanging from "where".
+
+        If "where" is not supplied, the root object is taken as
+        origin. The groups are returned from top to bottom, and
+        alphanumerically sorted when in the same level. The list of
+        groups returned includes "where" (or the root object) as well.
+
+        """
         
         group = self.getNode(where, classname = 'Group')
         return group._f_walkGroups()
@@ -500,32 +582,18 @@ Instead, a %s() object has been found there.""" % \
             for leaf in self.listNodes(group, classname = 'Leaf'):
                 leaf.close()
                 pass
-            group.close()
+            group._f_close()
 
         self.closeFile()
         # Delete the Group class variables
         self.root._f_cleanup()
-        
-        # Do some housekeeping
-        # It's very important to delete the back references in the object
-        # tree so as to allow the effective deletion of the object tree
-        # However, we have right now problems when deleting the tree
-        # under certain situations (look at test_all.py)
-        # So that code will remian commented out until the problem be
-        # located and fixed
-        # 22/02/2003
-        for group in self.walkGroups(self.root):
-            for leaf in self.listNodes(group, classname = 'Leaf'):
-                # Delete the back references
-                del leaf._v_parent
-                del leaf._v_rootgroup
-            # Delete the back references to the parent group and root group
-            del group._v_parent
-            del group._v_rootgroup
-            
+                    
         # Delete the root object (this should recursively delete the
         # object tree)
         del self.root
+
+        # Set the flag to indicate that the file is closed
+        self.closed = 1
 
     def __str__(self):
         

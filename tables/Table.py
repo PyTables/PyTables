@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.28 2003/02/28 13:39:25 falted Exp $
+#       $Id: Table.py,v 1.29 2003/02/28 21:22:58 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.28 $"
+__version__ = "$Revision: 1.29 $"
 
 from __future__ import generators
 import sys
@@ -615,16 +615,6 @@ class Table(Leaf, hdf5Extension.Table):
         #if self._v_recunsaved > 0:
         if hasattr(self, 'row') and self.row.getUnsavedNRows() > 0:
           self._saveBufferedRows()
-
-    def close(self):
-        """Flush the table buffers and close the HDF5 dataset."""
-        self.flush()
-        # Delete the reference to Row in _v_buffer recarray!
-        # This allows to delete both the Row and RecArray objects
-        # because Row has back-references to RecArray
-        # No longer needed as Row has been moved to Table module (here)
-        #if hasattr(self,'_v_buffer') and hasattr(self._v_buffer, "_row"):
-        #    del self._v_buffer._row
 
     # Moved out of scope
     def _f_del__(self):

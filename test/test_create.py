@@ -49,8 +49,6 @@ class createTestCase(unittest.TestCase):
 	# Create a group object
 	self.group = self.fileh.createGroup(self.root, 'agroup',
                                             "Group title")
-	#self.group = createGroup("Group title")
-	
 
     def tearDown(self):
 

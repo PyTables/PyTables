@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.15 2003/02/24 12:06:00 falted Exp $
+#       $Id: Group.py,v 1.16 2003/02/28 21:22:56 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.15 $"
+__version__ = "$Revision: 1.16 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -364,9 +364,41 @@ class Group(hdf5Extension.Group):
         self._c_objleaves.clear()
         self._c_objects.clear()
 
-    def close(self):
+    def _f_close(self):
         """Close this HDF5 group"""
         self._f_closeGroup()
+        # Delete the back references in Group
+        if self._v_hdf5name <> "/":
+            del self._v_parent._v_objgroups[self._v_name]
+            del self._v_parent._v_objchilds[self._v_name]
+        del self._v_parent
+        del self._v_rootgroup
+        del self._c_objgroups[self._v_pathname]
+        del self._c_objects[self._v_pathname]
+
+    # Ens hem quedat aci...
+    def _f_move(self, object, newname):
+        """Rename an HDF5 node"""
+        oldname = object._v_name
+        print self.__dict__
+        del self._v_objgroups[oldname]
+        del self._v_objchilds[oldname]
+        self._v_objgroups[newname] = object
+        self._v_objchilds[newname] = object
+        del self._c_objgroups[object._v_pathname]
+        del self._c_objects[object._v_pathname]
+        newpathname = self._f_join(self._v_pathname, newname)
+        self._v_objgroups[newpathname] = object
+        self._v_objchilds[newpathname] = object
+        return self._f_moveNode(oldname, newname)
+        
+    def _f_remove(self):
+        """Remove this HDF5 group"""
+        self._f_deleteGroup()
+        
+    def _f_removeLeaf(self, object):
+        """Remove an HDF5 Leaf that is child of this group"""
+        self._f_deleteLeaf(object._v_name)
         
     # Moved out of scope
     def _f_del__(self):

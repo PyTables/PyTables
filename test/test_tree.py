@@ -1,4 +1,5 @@
 import sys
+import warnings
 import unittest
 import os
 import tempfile
@@ -119,11 +120,15 @@ class TreeTestCase(unittest.TestCase):
                     '/table0']
         nodenames = []
         groupobjects = []
+        warnings.filterwarnings("error", category=UserWarning)
         for node in nodelist:
             try:
                 object = self.h5file.getNode(node, classname = 'Group')
-            except:
-                pass
+            except UserWarning:
+                if verbose:
+                    (type, value, traceback) = sys.exc_info()
+                    print "\nGreat!, the next UserWarning was catched!"
+                    print value
             else:
                 nodenames.append(object._v_pathname)
                 groupobjects.append(object)
@@ -135,6 +140,8 @@ class TreeTestCase(unittest.TestCase):
         if verbose:
             print "getGroup(groupname, classname='Group') test passed"
 
+        # Reset the warning
+        warnings.filterwarnings("default", category=UserWarning)
 
         nodenames = ['var1', 'var4']
         nodearrays = []
@@ -187,6 +194,8 @@ class TreeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02_listNodes..." % self.__class__.__name__
 
+        # Made the warnings to raise an error
+        warnings.filterwarnings("error", category=UserWarning)
         self.h5file = openFile(self.file, "r")
         nodelist = ['/', '/group0', '/group0/table1', '/group0/group1/group2',
                     '/var1']
@@ -233,8 +242,11 @@ class TreeTestCase(unittest.TestCase):
         for node in objects:
             try:
                 objectlist = self.h5file.listNodes(node, 'Leaf')
-            except:
-                pass
+            except UserWarning:
+                if verbose:
+                    (type, value, traceback) = sys.exc_info()
+                    print "\nGreat!, the next UserWarning was catched!"
+                    print value
             else:
                 for object in objectlist:
                     nodenames.append(object._v_pathname)
@@ -252,8 +264,11 @@ class TreeTestCase(unittest.TestCase):
         for node in objects:
             try:
                 objectlist = self.h5file.listNodes(node, 'Table')
-            except:
-                pass
+            except UserWarning:
+                if verbose:
+                    (type, value, traceback) = sys.exc_info()
+                    print "\nGreat!, the next UserWarning was catched!"
+                    print value
             else:
                 for object in objectlist:
                     nodenames.append(object._v_pathname)
@@ -265,6 +280,8 @@ class TreeTestCase(unittest.TestCase):
         if verbose:
             print "listNodes(groupobject, classname = 'Table') test passed"
 
+        # Reset the warning
+        warnings.filterwarnings("default", category=UserWarning)
             
     def test03_TraverseTree(self):
 

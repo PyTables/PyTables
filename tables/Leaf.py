@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.7 2003/02/22 10:46:14 falted Exp $
+#       $Id: Leaf.py,v 1.8 2003/02/28 21:22:57 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.7 $"
+__version__ = "$Revision: 1.8 $"
 
 
 class Leaf:
@@ -77,6 +77,17 @@ class Leaf:
         
         return self._v_parent._f_getLeafAttrStr(self._v_hdf5name, attrname)
             
+    def close(self):
+        """Flush the Leaf buffers and close this object on file."""
+        self.flush()
+        parent = self._v_parent
+        del parent._v_objleaves[self._v_name]
+        del parent._v_objchilds[self._v_name]
+        del parent._c_objleaves[self._v_pathname]
+        del parent._c_objects[self._v_pathname]
+        del self._v_parent
+        del self._v_rootgroup
+
     def __str__(self):
         """The string reprsentation choosed for this object is its pathname
         in the HDF5 object tree.

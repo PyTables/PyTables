@@ -268,30 +268,13 @@ for p in table.fetchall():
 print
 
 # Several range selections
-print "Extended slice in selection: [1:20:3]"
-print table.getRecArray(0,20,3)
-print "Extended slice in selection: [1:7:3]"
-print table.getRecArray(1,7,3)
-print "Extended slice in selection: [1:7:4]"
-print table[1:7:4]
-print table.getRecArray(1,7,4)
-print "Extended slice in selection: [1:7:5]"
-print table[1:7:5]
-print table.getRecArray(1,7,5)
-print "Extended slice in selection: [1:7:6]"
-print table[1:7:6]
-print table.getRecArray(1,7,6)
 print "Extended slice in selection: [0:7:6]"
-print table[0:7:6]
 print table.getRecArray(0,7,6)
 print "Single record in selection: [1]"
-print table[1]
 print table.getRecArray(1)
 print "Last record in selection: [-1]"
-print table[-1]
 print table.getRecArray(-1)
 print "Two records before the last in selection: [-3:-1]"
-print table[-3:-1]
 print table.getRecArray(-3, -1)
 
 # Print a recarray in table form
@@ -311,5 +294,17 @@ print
 result = [ rec.c1 for rec in table.fetchall() if rec.nrow() < 2 ]
 print result
 
+# Test the File.moveNode() method
+h5file.moveNode(h5file.root.detector, "recarray2", "recarray3")
+# Test the File.removeNode() method
+# Delete a Leaf from the HDF5 tree
+h5file.removeNode(h5file.root.detector.recarray3)
+# Delete the detector group and its leaves recursively
+h5file.removeNode(h5file.root.detector, recursive=1)
+# Create a Group and then remove it
+h5file.createGroup(h5file.root, "newgroup")
+h5file.removeNode(h5file.root, "newgroup")
+
 # Close this file
 h5file.close()
+#del h5file, table, array, group, leaf, nameObject

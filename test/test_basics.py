@@ -14,8 +14,26 @@ class OpenFileTestCase(unittest.TestCase):
         # Create an HDF5 file
         self.file = tempfile.mktemp(".h5")
         fileh = openFile(self.file, mode = "w")
-        fileh.createArray(fileh.root, 'array', [1,2],
+        root = fileh.root
+        # Create an array
+        fileh.createArray(root, 'array', [1,2],
                           title = "Title example")
+
+	# Create another array object
+	array = fileh.createArray(root, 'anarray',
+                                  [1], "Array title")
+	# Create a group object
+	group = fileh.createGroup(root, 'agroup',
+                                  "Group title")
+	# Create a couple of objects there
+	array1 = fileh.createArray(group, 'anarray1',
+                                   [2], "Array title 1")
+	array2 = fileh.createArray(group, 'anarray2',
+                                   [2], "Array title 2")
+	# Create a lonely group
+	group = fileh.createGroup(root, 'agroup2',
+                                  "Group title 2")
+                                            
         fileh.close()
         
     def tearDown(self):
@@ -129,7 +147,8 @@ class OpenFileTestCase(unittest.TestCase):
         title = fileh.root._f_getLeafAttrStr("array2", "TITLE")
 
         assert title == "Title example 2"
-
+        fileh.close()
+        
     def test022_appendFile2(self):
         """Checking appending objects to an existing file ("a" version)"""
 
@@ -145,7 +164,8 @@ class OpenFileTestCase(unittest.TestCase):
         title = fileh.root._f_getLeafAttrStr("array2", "TITLE")
 
         assert title == "Title example 2"
-
+        fileh.close()
+        
     # Begin to raise errors...
         
     def test03_appendErrorFile(self):
@@ -172,7 +192,8 @@ class OpenFileTestCase(unittest.TestCase):
                 print value
         else:
             self.fail("expected an AttributeError")
-
+        fileh.close()
+        
     def test04_openErrorFile(self):
         """Checking opening a non-existing file for reading"""
 
@@ -186,22 +207,85 @@ class OpenFileTestCase(unittest.TestCase):
         else:
             self.fail("expected an IOError")
 
-#     # This check no longer applies because we allow any file extension
-#     def test05_openErrorFile(self):
-#         """Checking opening a non HDF5 file extension"""
+    def test05_removeGroupRecursively(self):
+        """Checking removing a group recursively"""
 
-#         warnings.filterwarnings("error", category=UserWarning)
-#         try:
-#             fileh = openFile("nonexistent", mode = "r")
-#         except UserWarning:
-#             if verbose:
-#                 (type, value, traceback) = sys.exc_info()
-#                 print "\nGreat!, the next UserWarning was catched!"
-#                 print value
-#         else:
-#             self.fail("expected an UserWarning")
-#         # Reset the warning
-#         warnings.filterwarnings("default", category=UserWarning)
+        # Delete a group with leafs
+        fileh = openFile(self.file, mode = "r+")
+        
+        warnings.filterwarnings("error", category=UserWarning)
+        try:
+            fileh.removeNode(fileh.root, 'agroup')
+        except UserWarning:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next UserWarning was catched!"
+                print value
+        else:
+            self.fail("expected an UserWarning")
+        # Reset the warning
+        warnings.filterwarnings("default", category=UserWarning)
+
+        # This should work now
+        fileh.removeNode(fileh.root, 'agroup', recursive=1)
+
+        fileh.close()
+
+        # Open this file in read-only mode
+        fileh = openFile(self.file, mode = "r")
+        # Try to get the removed object
+        try:
+            object = fileh.root.agroup
+        except AttributeError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next AttributeError was catched!"
+                print value
+        else:
+            self.fail("expected an AttributeError")
+        fileh.close()
+
+    def test06_removeGroup(self):
+        """Checking removing a lonely group from an existing file"""
+
+        fileh = openFile(self.file, mode = "r+")
+        fileh.removeNode(fileh.root, 'agroup2')
+        fileh.close()
+
+        # Open this file in read-only mode
+        fileh = openFile(self.file, mode = "r")
+        # Try to get the removed object
+        try:
+            object = fileh.root.agroup2
+        except AttributeError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next AttributeError was catched!"
+                print value
+        else:
+            self.fail("expected an AttributeError")
+        fileh.close()
+
+    def test06_removeLeaf(self):
+        """Checking removing Leaves from an existing file"""
+
+        fileh = openFile(self.file, mode = "r+")
+        fileh.removeNode(fileh.root, 'anarray')
+        fileh.close()
+
+        # Open this file in read-only mode
+        fileh = openFile(self.file, mode = "r")
+        # Try to get the removed object
+        try:
+            object = fileh.root.anarray
+        except AttributeError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next AttributeError was catched!"
+                print value
+        else:
+            self.fail("expected an AttributeError")
+        fileh.close()
 
 class CheckFileTestCase(unittest.TestCase):
     
