@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.10 2003/01/31 12:41:46 falted Exp $
+#       $Id: Array.py,v 1.11 2003/02/06 13:03:14 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.10 $"
+__version__ = "$Revision: 1.11 $"
 
 import types, warnings, sys
 from Leaf import Leaf
@@ -138,7 +138,7 @@ class Array(Leaf, hdf5Extension.Array):
   chararray,homogeneous list or homogeneous tuple).
   Sorry, but this object is not supported.""" % (arr)
 
-        print "Array to saved:", naarr
+        #print "Array to saved:", naarr
         self.typecode = self.createArray(naarr, self.title,
                                          flavor, obversion, self.atomic)
         # Get some important attributes

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.15 2003/02/05 18:15:23 falted Exp $
+#       $Id: Table.py,v 1.16 2003/02/06 13:03:14 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.15 $"
+__version__ = "$Revision: 1.16 $"
 
 from __future__ import generators
 import sys
@@ -174,7 +174,9 @@ class Table(Leaf, hdf5Extension.Table):
         self.varnames = recarr._names
         fields = {}
         for i in range(len(self.varnames)):
-            fields[self.varnames[i]] = DType(recarr._fmt[i], recarr._repeats[i])
+            fields[self.varnames[i]] = DType(recarr._fmt[i],
+                                             recarr._repeats[i],
+                                             pos=i)  # Position matters!
         # Set the byteorder
         self._v_byteorder = recarr._byteorder
         # Append this entry to indicate the alignment!
@@ -234,7 +236,7 @@ class Table(Leaf, hdf5Extension.Table):
             except:
                 length = 1
             vartype = fromstructfmt[lengthtypes[i][-1]]
-            fields[self.varnames[i]] = DType(vartype, length)
+            fields[self.varnames[i]] = DType(vartype, length, pos = i)
 
         # Append this entry to indicate the alignment!
         fields['_v_align'] = self._v_fmt[0]

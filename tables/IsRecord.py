@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Attic/IsRecord.py,v $
-#       $Id: IsRecord.py,v 1.7 2003/02/03 20:24:19 falted Exp $
+#       $Id: IsRecord.py,v 1.8 2003/02/06 13:03:14 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.7 $"
+__version__ = "$Revision: 1.8 $"
 
 
 import warnings
@@ -60,7 +60,9 @@ fromstructfmt = {'b':NA.Int8, 'B':NA.UInt8,
 
 class DType:
 
-    def __init__(self, dtype="Float64", length=1, dflt=None):
+    def __init__(self, dtype="Float64", length=1, dflt=None, pos = None):
+
+        self.pos = pos
 
         if length != None:
             if type(length) in [types.IntType, types.LongType]:
@@ -79,6 +81,17 @@ class DType:
             raise TypeError, "Illegal type: %s" % `dtype`
 
         self.rectype = tostructfmt[self.type]
+
+    def __str__(self):
+        out = "type: " + str(self.type) + "length: " + str(self.length)
+        return out
+
+    def __repr__(self):
+        out = "\n  type: " + str(self.type) + \
+              "\n  length: " +  str(self.length) + \
+              "\n  position: " +  str(self.pos) + \
+              "\n"
+        return out
 
     
 class metaIsRecord(type):
@@ -182,11 +195,32 @@ print p
                     '_v_fmt': "",
                     '_v_recarrfmt': "", '_v_formats':[],
                     }
-
-        keys = classdict.keys()
-        keys.sort() # Sort the keys to establish an order
         
-        ##newdict['_v_fmt'] = "=" # Force the "standard" alignment (no align)
+
+        def cmpkeys(key1, key2):
+            """Helps .sort() to respect pos field in type definition"""
+            # Do not try to order variables that starts with special
+            # prefixes
+            if (key1.startswith('__') or key1.startswith('_v_') or
+                key2.startswith('__') or key2.startswith('_v_')):
+                return 0
+            pos1 = classdict[key1].pos
+            pos2 = classdict[key2].pos
+            # pos = None is always greather than a number
+            if pos1 == None:
+                return 1
+            if pos2 == None:
+                return -1
+            if pos1 < pos2:
+                return -1
+            if pos1 == pos2:
+                return 0
+            if pos1 > pos2:
+                return 1
+            
+        keys = classdict.keys()
+        keys.sort(cmpkeys) # Sort the keys to establish an order
+        
         recarrfmt = []
         for k in keys:
             if (k.startswith('__') or k.startswith('_v_')):
