@@ -115,7 +115,7 @@ details on the types and methods provided.""",
 
       packages = ['tables'],
       ext_modules = [ Extension("tables.hdf5Extension",
-                                sources =   ["src/hdf5Extension.c",
+                                sources =   ["src/hdf5Extension.pyx",
                                              "src/calcoffset.c",
                                              "src/getfieldfmt.c",
                                              "src/utils.c" ],
