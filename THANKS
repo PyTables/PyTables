@@ -1,4 +1,4 @@
-September 2004
+November 2004
 
 I would like to thank the people have contributed directly or
 indirectly to PyTables. 
@@ -7,7 +7,8 @@ Scott Prater for editing the user's manual in order to make it more
 readable in english, as well as conducting the tests of PyTables on
 Solaris.
 
-Ivan Vilata for many user's manual corrections and additions.
+Ivan Vilata for many user's manual corrections and additions and for
+providing the FileNode module.
 
 Alan McIntyre for porting PyTables to Windows.
 
@@ -24,6 +25,9 @@ Shack Toms for providing a Python version of the nextafter and
 nextafterf math functions that despite the fact they are standard in
 C99 standard, they are not at the official places in Microsoft VC++
 6.x nor VC++ 7.x.
+
+Jeff Whitaker for providing the initial version of the NetCDF to HDF5
+(nctoh5) utility.
 
 The HDF5 team at NCSA for making such an excellent library for data
 persistence, and specially Pedro Vicente and Quincey Koziol, for

@@ -1,102 +1,121 @@
-What's new in PyTables 0.8.1
+What's new in PyTables 0.9
 ----------------------------
 
-The primary purpose of this release is to incorporate updates to
-related to the newly released numarray 1.0. I've taken the opportunity
-to backport some improvements added in PyTables 0.9 (in alpha stage)
-as well as to fix the known problems
+On this release you will find a series of quite
+exciting new features, being the most important the indexing
+capabilities, in-kernel selections, support for complex datatypes and
+the possibility to modify values in both tables *and* arrays (yeah,
+finally :).
+
+New features:
+-------------
+
+- Indexing of columns in tables. That allow to make data selections on
+  tables up to 500 times faster than standard selections (for
+  ex. doing a selection along an indexed column of 100 milion of rows
+  takes less than 1 second on a modern CPU). Perhaps the most
+  interesting thing about the indexing algorithm implemented by
+  PyTables is that the time taken to index grows *lineraly* with the
+  length of the data, so, making the indexation process to be
+  *scalable* (quite differently to many relational databases). This
+  means that it can index, in a relatively quick way, arbitrarily
+  large table columns (for ex. indexing a column of 100 milion of rows
+  takes just 100 seconds, i.e. at a rate of 1 Mrow/sec). See more
+  detailed info about that in
+  http://pytables.sourceforge.net/doc/SciPy04.pdf.
+
+- In-kernel selections. This feature allow to make data selections on
+  tables up to 5 times faster than standard selections (i.e. pre-0.9
+  selections), without a need to create an index. As a hint of how
+  fast these selections can be, they are up to 10 times faster than a
+  traditional relational database. Again, see
+  http://pytables.sourceforge.net/doc/SciPy04.pdf for some experiments
+  on that matter.
+
+- Support of complex datatypes for all the data objects (i.e. Table,
+  Array, EArray and VLArray). With that, the complete set of datatypes
+  of Numeric and numarray packages are supported. Thanks to Tom Hedley
+  for providing the patches for Array, EArray and VLArray objects, as
+  well as updating the User's Manual and adding unit tests for the new
+  functionality.
+
+- Modification of values. You can modifiy Table, Array, EArray and
+  VLArray values. See Table.modifyRows, Table.modifyColumns() and the
+  newly introduced __setitem__() method for Table, Array, EArray and
+  VLArray entities in the Library Reference of User's Manual.
+
+- A new sub-package called "nodes" is there. On it, there will be
+  included different modules to make more easy working with different
+  entities (like images, files, ...). The first module that has been
+  added to this sub-package is "FileNode", whose mission is to enable
+  the creation of a database of nodes which can be used like regular
+  opened files in Python.  In other words, you can store a set of
+  files in a PyTables database, and read and write it as you would do
+  with any other file in Python. Thanks to Ivan Vilata i Balaguer for
+  contributing this.
 
 Improvements:
+-------------
 
-- The logic for computing the buffer sizes has been revamped. As a
-  consequence, the performance of writing/reading tables with large
-  row sizes has improved by a factor of ten or more, now exceeding 70
-  MB/s (using compression). See
-  http://sf.net/mailarchive/forum.php?thread_id=4963045&forum_id=13760
+- New __len__(self) methods added in Arrays, Tables and Columns. This,
+  in combination with __getitem__(self,key) allows to better emulate
+  sequences.
 
-  for more info.
+- Better capabilities to import generic HDF5 files. In particular,
+  Table objects (in the HDF5_HL naming schema) with "holes" in their
+  compound type definition are supported. That allows to read certain
+  files produced by NASA (thanks to Stephen Walton for reporting this).
 
-- The maximum row size for tables has been raised to 512 KB
-  (before it was 8 KB, due to some internal limitations)
+- Much improved test units. More than 2000 different tests has been
+  implemented which accounts for more than 13000 loc (this represents
+  twice of the PyTables library code itself (!)).
 
-- Documentation has been improved in minor details. As a result of a
-  fix in the underlying documentation system (tbook), chapters start
-  now at odd pages, instead of even. So those of you who want to print
-  to double side probably will have better luck now when aligning
-  pages ;).  Another one is that HTML documentation has improved its
-  look as well.
+Backward-incompatible API changes:
+----------------------------------
 
-Bug Fixes:
+- The __call__ special method has been removed from objects File,
+  Group, Table, Array, EArray and VLArray. Now, you should use
+  walkNodes() in File and Group and iterrows in Table, Array, EArray
+  and VLArray to get the same functionality. This would provide better
+  compatibility with IPython as well.
 
-- Indexing of Arrays with list or tuple flavors (#968131)
-  When retrieving single elements from an array with 'List' or
-  'Tuple' flavors, an error occurred. This has been
-  corrected and now you can retrieve fileh.root.array[2] without
-  problems for 'List' or 'Tuple' flavored (E, VL)Arrays.
-  
-- Iterators on Arrays with list or tuple flavors fail (#968132)
-  When using iterators with Array objects with 'List' or
-  'Tuple' flavors, an error occurred. This has been
-  corrected.
+'nctoh5', a new importing utility:
 
-- Last Index (-1) of Arrays doesn't work (#968149)
-  When accessing to the last element in an Array using the notation
-  -1, an empty list (or tuple or array) is returned instead of the
-  proper value. This happened in general with all negative
-  indices. Fixed.
+- Jeff Whitaker has contributed a script to easily convert NetCDF
+  files into HDF5 files using Scientific Python and PyTables. It has
+  been included and documented as a new utility.
 
-- Table.read(flavor="List") should return pure lists (#972534)
-  However, it used to return a pointer to numarray.records.Record
-  instances, as in:
+Bug fixes:
+----------
 
-   >>> fileh.root.table.read(1,2,flavor="List") 
-    [<numarray.records.Record instance at 0x4128352c>] 
-   >>> fileh.root.table.read(1,3,flavor="List") 
-    [<numarray.records.Record instance at 0x4128396c>, 
-     <numarray.records.Record instance at 0x41283a8c>] 
+- A call to File.flush() now invoke a call to H5Fflush() so to
+  effectively flushing all the file contents to disk. Thanks to Shack
+  Toms for reporting this and providing a patch.
+
+- SF #1054683: Security hole in utils.checkNameValidity(). Reported in
+  2004-10-26 by ivilata
+
+- SF #1049297: Suggestion: new method File.delAttrNode(). Reported in 
+  2004-10-18 by ivilata
+
+- SF #1049285: Leak in AttributeSet.__delattr__(). Reported in
+  2004-10-18 by ivilata
  
-  Now the next records are returned:
+- SF #1014298: Wrong method call in examples/tutorial1-2.py. Reported
+  in 2004-08-23 by ivilata
 
-   >>> fileh.root.table.read(1,2, flavor=List) 
-    [(' ', 1, 1.0)] 
-   >>> fileh.root.table.read(1,3, flavor=List) 
-    [(' ', 1, 1.0), 
-     (' ', 2, 2.0)] 
- 
-  In addition, when reading a single row of a table, a
-  numarray.records.Record pointer was returned:
- 
-  >>> fileh.root.table[1] 
-   <numarray.records.Record instance at 0x4128398c> 
- 
-  Now, it returns a tuple:
+- SF #1013202: Cryptic error appending to EArray on RO file. Reported
+  in 2004-08-21 by ivilata
 
-  >>> fileh.root.table[1] 
-   (' ', 1, 1.0) 
- 
-  Which I think is more consistent, and more Pythonic.
+- SF #991715: Table.read(field="var1", flavor="List") fails. Reported
+  in 2004-07-15 by falted
 
-- Copy of leaves fails... (#973370)
-  Attempting to copy leaves (Table or Array with different flavors) on
-  top of themselves caused an internal error in PyTables. This has
-  been corrected by silently avoiding the copy and returning the
-  original Leaf as a result.
+- SF #988547: Wrong file type assumption in File.__new__. Reported in
+  2004-07-10 by ivilata
 
-Minor changes:
-
-- When assigning a value to a non-existing field in a table row, now a
-  KeyError is raised, instead of the AttributeError that was issued
-  before. I think this is more consistent with the type of error.
-
-- Tests have been improved so as to pass the whole suite when compiled
-  in 64 bit mode on a Linux/PowerPC machine (namely a dual-G5 Powermac
-  running a 64-bit, 2.6.4 Linux kernel and the preview YDL
-  distribution for G5, with 64-bit GCC toolchain). Thanks to Ciro
-  Cattuto for testing and reporting the modifications that were
-  needed.
 
 Enjoy!,
 
--- Francesc Alted
+-- Francesc Altet
 falted@pytables.org
 

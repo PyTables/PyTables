@@ -1027,6 +1027,14 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 <!-- 	<caption>Blaise Pascal</caption> -->
 <!--       </aphorism> -->
 
+      <aphorism>Serás la clau que obre tots els panys, <newline/>
+	seràs la llum, la llum il.limitada, <newline/> seràs confí on
+	l'aurora comença, <newline/>seràs forment, escala il.luminada!
+	<newline/><caption>M'aclame a tu <newline/>Lyrics: Vicent
+	Andrés i Estellés <newline/>Music: Ovidi Montllor</caption>
+      </aphorism>
+
+
       <p>This chapter consists of a series of simple yet comprehensive
 	tutorials that will enable you to understand
 	<verb>PyTables</verb>' main features. If you would like more

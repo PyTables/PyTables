@@ -1,7 +1,7 @@
 README.txt
 PyTables 0.9
 http://pytables.sf.net/
-Oct 6, 2004
+Nov 6, 2004
 --------------------------------------
 
 PyTables is a hierarchical database package designed to efficiently
@@ -150,5 +150,5 @@ http://pytables.sourceforge.net/html-doc/usersguide.html).
 That's it!  Good luck, and let me know of any bugs, suggestions, gripes,
 kudos, etc. you may have.
 
--- Francesc Alted
+-- Francesc Altet
 falted@pytables.org

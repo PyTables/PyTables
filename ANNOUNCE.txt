@@ -1,24 +1,34 @@
 Announcing PyTables 0.9
 -----------------------
 
-PyTables is a hierarchical database package designed to efficiently
-manage very large amounts of data.
-
-It is built on top of the HDF5 library and the numarray package. It
-features an object-oriented interface that, combined with C extensions
-for the peformance-critical parts of the code (generated using Pyrex),
-makes it a fast, yet extremely easy to use tool for interactively save
-and retrieve very large amounts of data. One important feature of
-PyTables is that it optimizes memory and disk resources so that they
-take much less space (between a factor 3 to 5, and more if the data is
-compressible) than other solutions. Other important thing is that data
-can be retrieved very quickly, almost independently of its data size.
-
-On this release it is included a series of quite exciting new
-features, being the most important the indexing capabilities,
-in-kernel selections, support for complex datatypes and the
-possibility to modify values in both tables *and* arrays (yeah,
+I'm very proud to announce the latest and most powerful flavor of
+PyTables ever. On this release you will find a series of quite
+exciting new features, being the most important the indexing
+capabilities, in-kernel selections, support for complex datatypes and
+the possibility to modify values in both tables *and* arrays (yeah,
 finally :).
+
+What is
+-------
+
+PyTables is a hierarchical database package designed to efficiently
+manage extremely large amounts of data (supports full 64-bit file
+addressing). It features an object-oriented interface that, combined
+with C extensions for the peformance-critical parts of the code, makes
+it a very easy to use tool for high performance data saving and
+retrieving.
+
+It is built on top of the HDF5 library and the numarray package, and
+provides containers for both heterogeneous data (Tables) and
+homogeneous data (Array, EArray). It also sports a container for
+keeping lists of objects of variable length on a very efficient way
+(VLArray). A flexible support of filters allows you to compress your
+data on-the-flight by using different compressors and compression
+enablers.
+
+Moreover, its powerful browsing and searching capabilities allow you
+to do data selections over tables exceeding gigabytes of data in just
+tenths of second.
 
 Changes more in depth
 ---------------------
@@ -79,6 +89,10 @@ Improvements:
   Table objects (in the HDF5_HL naming schema) with "holes" in their
   compound type definition are supported. That allows to read certain
   files produced by NASA (thanks to Stephen Walton for reporting this).
+
+- Much improved test units. More than 2000 different tests has been
+  implemented which accounts for more than 13000 loc (this represents
+  twice of the PyTables library code itself (!)).
 
 Backward-incompatible API changes:
 
@@ -184,6 +198,10 @@ Web site
 Go to the PyTables web site for more details:
 
 http://pytables.sourceforge.net/
+
+To know more about the company behind the PyTables development, see:
+
+http://www.carabos.com/
 
 Share your experience
 ---------------------

@@ -16,7 +16,7 @@ if not (sys.version_info[0] >= 2 and sys.version_info[1] >= 2):
 # to disable this, because anybody can get into trouble if they use
 # Pyrex 0.9 to generate the new hdf5Extension.c
 # I definitely think it is safer to let this protection here.
-# F. Alted 2004-2-2
+# F. Altet 2004-2-2
 if (sys.version_info[0] == 2 and sys.version_info[1] == 2 and
     sys.version_info[2] < 3):
     print "#################################################################"
@@ -417,9 +417,9 @@ data.
 
 """,
       
-      author = 'Francesc Alted',
+      author = 'Francesc Altet',
       author_email = 'falted@pytables.org',
-      maintainer = 'Francesc Alted',
+      maintainer = 'Francesc Altet',
       maintainer_email = 'falted@pytables.org',
       url = 'http://www.pytables.org/',
       license = 'http://www.opensource.org/licenses/bsd-license.php',
