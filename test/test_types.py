@@ -30,7 +30,7 @@ class TypesTestCase(unittest.TestCase):
             #print "Filename ==>", file
 
         # Create an instance of HDF5 Table
-        fileh = File(filename = file, mode = "w")
+        fileh = File(name = file, mode = "w")
         group = fileh.getRootGroup()
         # Create a table
         table = fileh.newTable(group, 'table', Record(),
@@ -51,7 +51,7 @@ class RangeTestCase(unittest.TestCase):
 
     def setUp(self):
         # Create an instance of HDF5 Table
-        self.fileh = File(filename = self.file, mode = "w")
+        self.fileh = File(name = self.file, mode = "w")
         self.rootgroup = self.fileh.getRootGroup()
         group = self.rootgroup
         # Create a table

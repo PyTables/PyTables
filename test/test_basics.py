@@ -30,7 +30,7 @@ class CheckFileTestCase(unittest.TestCase):
             #print "Filename ==>", file
 
         # Create an instance of HDF5 Table
-        fileh = File(filename = file, mode = "w")
+        fileh = File(name = file, mode = "w")
         group = fileh.getRootGroup()
         # Create a table
         table = fileh.newTable(group, 'table', Record(),
@@ -52,7 +52,7 @@ class BasicTestCase(unittest.TestCase):
 
     def setUp(self):
         # Create an instance of HDF5 Table
-        self.fileh = File(filename = self.file, mode = self.mode)
+        self.fileh = File(name = self.file, mode = self.mode)
         self.rootgroup = self.fileh.getRootGroup()
         self.populateFile()
 
@@ -159,7 +159,7 @@ class BasicTestCase(unittest.TestCase):
         # First close the open file
         self.fileh.close()
         # Now, open it, but in "append" mode
-        self.fileh = File(filename = self.file, mode = "a")
+        self.fileh = File(name = self.file, mode = "a")
         self.rootgroup = self.fileh.getRootGroup()
         if verbose:
             print '\n', '-=' * 30
