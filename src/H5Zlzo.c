@@ -124,6 +124,7 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
   if (flags & H5Z_FLAG_REVERSE) {
     /* Input */
 
+    printf("Decompressing chunk with LZO\n");
 #ifdef CHECKSUM
     if ((object_type == Table && object_version >= 20) ||
 	object_type != Table) {
@@ -132,7 +133,6 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
       out_len = nalloc;
       nbytes -= 4; 		/* Point to the checksum */
 #ifdef DEBUG
-      printf("Decompressing chunk with LZO\n");
       printf("Compressed bytes: %d. Uncompressed bytes: %d\n", nbytes, nalloc);
 #endif
     }
