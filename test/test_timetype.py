@@ -5,7 +5,7 @@
 #	Author:  Ivan Vilata i Balaguer - reverse:com.carabos@ivilata
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/test/test_timetype.py,v $
-#	$Id: test_timetype.py,v 1.2 2004/12/26 15:53:35 ivilata Exp $
+#	$Id: test_timetype.py,v 1.3 2004/12/27 22:18:42 falted Exp $
 #
 ########################################################################
 
@@ -15,7 +15,7 @@ import unittest, tempfile, os
 import tables, numarray
 
 
-__revision__ = '$Id: test_timetype.py,v 1.2 2004/12/26 15:53:35 ivilata Exp $'
+__revision__ = '$Id: test_timetype.py,v 1.3 2004/12/27 22:18:42 falted Exp $'
 
 
 
@@ -310,7 +310,7 @@ class CompareTestCase(unittest.TestCase):
 
 		wtime = 1234567890.123456
 
-		# Create test VLArray with data.
+		# Create test EArray with data.
 		h5file = tables.openFile(
 			self.h5fname, 'w', title = "Test for comparing 64-bit times")
 		vla = h5file.createEArray('/', 'test', tables.Time64Atom(shape=(0,)))

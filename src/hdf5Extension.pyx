@@ -6,7 +6,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.155 2004/12/26 15:53:33 ivilata Exp $
+#       $Id: hdf5Extension.pyx,v 1.156 2004/12/27 22:18:35 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.155 $"
+__version__ = "$Revision: 1.156 $"
 
 
 import sys, os
@@ -835,7 +835,7 @@ cdef extern from "typeconv.h":
   void conv_float64_timeval32(void *base,
                               unsigned long byteoffset,
                               unsigned long bytestride,
-                              unsigned long nrecords,
+                              long long nrecords,
                               unsigned long nelements,
                               int sense)
 
@@ -967,7 +967,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.155 2004/12/26 15:53:33 ivilata Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.156 2004/12/27 22:18:35 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1024,7 +1024,7 @@ def _getFilters(parent_id, name):
   return get_filter_names(parent_id, name)
 
 # This is used by several <Leaf>._convertTypes() methods.
-def _convertTime64(object naarr, int nrecords, int sense):
+def _convertTime64(object naarr, hsize_t nrecords, int sense):
   """Converts a NumArray of Time64 elements between Numarray and HDF5 formats.
 
   Numarray to HDF5 conversion is performed when 'sense' is 0.
@@ -1691,7 +1691,7 @@ cdef class Table:
   # A version of Table._saveBufferRows in Pyrex is available in 0.7.2,
   # but as it is not faster than the Python version, I removed it
 
-  def _convertTypes(self, object recarr, int nrecords, int sense):
+  def _convertTypes(self, object recarr, hsize_t nrecords, int sense):
     """Converts Time64 columns in 'recarr' between Numarray and HDF5 formats.
 
     Numarray to HDF5 conversion is performed when 'sense' is 0.

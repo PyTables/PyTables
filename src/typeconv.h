@@ -5,7 +5,7 @@
  *      Author:  Ivan Vilata i Balaguer - reverse:com.carabos@ivilata
  *
  *      $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/typeconv.h,v $
- *      $Id: typeconv.h,v 1.2 2004/12/26 15:53:33 ivilata Exp $
+ *      $Id: typeconv.h,v 1.3 2004/12/27 22:18:37 falted Exp $
  *
  ***********************************************************************/
 
@@ -28,7 +28,7 @@
 void conv_float64_timeval32(void *base,
 			    unsigned long byteoffset,
 			    unsigned long bytestride,
-			    unsigned long nrecords,
+			    long long nrecords,
 			    unsigned long nelements,
 			    int sense);
 
