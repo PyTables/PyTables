@@ -46,6 +46,12 @@ Improvements:
 - Now, one can modify rank-0 (scalar) EArrays. Thanks to Norbert Nemec
   for providing a patch for this.
 
+- You are allowed from this version on to add non-valid natural naming
+  names as node or attribute names. A warning is issued to warn (but
+  not forbidding) you in such a case. Of course, you have to use the
+  getattr() function so as to access such a non-valid natural names.
+
+
 Backward-incompatible changes:
 
 - Now, the deletion and getting of a non-existing attribute raises an

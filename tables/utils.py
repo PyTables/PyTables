@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.30 2004/12/14 17:40:36 falted Exp $
+#       $Id: utils.py,v 1.31 2004/12/17 08:42:09 falted Exp $
 #
 ########################################################################
 
@@ -14,10 +14,12 @@
 """
 
 import types, re
+import warnings
 #from warnings import Warning
 # The second line is better for some installations
 #from tables.hdf5Extension import getIndices
 from hdf5Extension import getIndices
+from PTExceptions import NaturalNameWarning
 import numarray
 from numarray import strings
 try:
@@ -36,9 +38,6 @@ reservedprefixes = [
 ]
 
 pat = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
-
-class NameWarning(Warning):
-    pass
 
 def checkNameValidity(name):
     "Check the validity of a name to be put in the object tree"
@@ -67,7 +66,7 @@ def checkNameValidity(name):
         exec(name + '= 1')  # Test for name validity
     except SyntaxError:
         
-        warnings.warn("""\'%s\' is not a valid python identifier and cannot be used in this context. Check for special symbols ($, %%, @, ...), spaces or reserved words.""" % (name), NameWarning)
+        warnings.warn("""\'%s\' is not a valid python identifier and cannot be used for natural naming purposes. Be sure to access it later on by using getattr().""" % (name), NaturalNameWarning)
         
 #         raise NameError, \
 #  """\'%s\' is not a valid python identifier and cannot be used in this context.

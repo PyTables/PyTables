@@ -589,25 +589,28 @@ class OpenFileTestCase(unittest.TestCase):
             self.fail("expected an RuntimeError")
         fileh.close()
 
-    def test08b_renameToNotValidName(self):
-        """Checking renaming a node to a non-valid name"""
+    def test08b_renameToNotValidNaturalName(self):
+        """Checking renaming a node to a non-valid natural name"""
 
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test08b_renameToNotValidName..." % self.__class__.__name__
+            print "Running %s.test08b_renameToNotValidNaturalName..." % self.__class__.__name__
 
         # Open this file
         fileh = openFile(self.file, mode = "r+")
+        warnings.filterwarnings("error", category=NaturalNameWarning)
         # Try to get the previous object with the old name
         try:
             fileh.renameNode(fileh.root.anarray, 'array 2')        
-        except NameError:
+        except NaturalNameWarning:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NameError was catched!"
+                print "\nGreat!, the next NaturalNameWarning was catched!"
                 print value
         else:
-            self.fail("expected an NameError")
+            self.fail("expected an NaturalNameWarning")
+        # Reset the warning
+        warnings.filterwarnings("default", category=NaturalNameWarning)
         fileh.close()
 
     def test09_renameGroup(self):

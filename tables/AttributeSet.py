@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.37 2004/12/14 17:40:36 falted Exp $
+#       $Id: AttributeSet.py,v 1.38 2004/12/17 08:42:09 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.37 $"
+__version__ = "$Revision: 1.38 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -165,7 +165,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # If attribute does not exist, raise AttributeError
         if not name in self._v_attrnames:
             raise AttributeError, \
-		"Attribute '%s' does not exist in node:\n'%s'" % (name, str(self._v_node))
+                  "Attribute '%s' does not exist in node: '%s'" % \
+                  (name, self._v_node._v_pathname)
 
         # Read the attribute from disk
         # This is commented out temporarily until I decide whether it is

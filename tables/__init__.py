@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/__init__.py,v $
-#       $Id: __init__.py,v 1.29 2004/12/09 13:02:01 falted Exp $
+#       $Id: __init__.py,v 1.30 2004/12/17 08:42:09 falted Exp $
 #
 ########################################################################
 
@@ -48,6 +48,7 @@ from Array import Array
 from EArray import EArray
 from VLArray import *
 from UnImplemented import UnImplemented
+from PTExceptions import *
                     
 from IsDescription import *
 #del BaseCol #should not be imported
@@ -72,5 +73,6 @@ __all__ = ["isHDF5", "isPyTablesFile", "whichLibVersion", "copyFile",
            "Int32Atom", "UInt32Atom", "Int64Atom", "UInt64Atom",
            "FloatAtom", "Float32Atom", "Float64Atom",
            "ComplexAtom", "Complex32Atom", "Complex64Atom",
-#            "nodes",
+#          Exceptions and warnings
+           "NaturalNameWarning",
            ]

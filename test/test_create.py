@@ -11,6 +11,7 @@ import unittest
 import os
 import re
 import tempfile
+import warnings
 
 from tables import *
 # important objects to test
@@ -86,40 +87,43 @@ class createTestCase(unittest.TestCase):
 
 	# Now, try to attach an array to the object tree with
 	# a not allowed Python variable name
+        warnings.filterwarnings("error", category=NaturalNameWarning)
         try:
             self.array = self.fileh.createArray(self.root, ' array',
                                                 [1], "Array title")
-        except NameError:
+        except NaturalNameWarning:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NameError was catched!"
+                print "\nGreat!, the next NaturalNameWarning was catched!"
                 print value
         else:
-            self.fail("expected a NameError")
+            self.fail("expected a NaturalNameWarning")
 	    
 	# another name error
         try:
             self.array = self.fileh.createArray(self.root, '$array',
                                                 [1], "Array title")
-        except NameError:
+        except NaturalNameWarning:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NameError was catched!"
+                print "\nGreat!, the next NaturalNameWarning was catched!"
                 print value
         else:
-            self.fail("expected a NameError")
+            self.fail("expected a NaturalNameWarning")
 
 	# Finally, test a reserved word
         try:
             self.array = self.fileh.createArray(self.root, 'for',
                                                 [1], "Array title")
-        except NameError:
+        except NaturalNameWarning:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NameError was catched!"
+                print "\nGreat!, the next NaturalNameWarning was catched!"
                 print value
         else:
-            self.fail("expected a NameError")
+            self.fail("expected a NaturalNameWarning")
+        # Reset the warning
+        warnings.filterwarnings("default", category=NaturalNameWarning)
 
     def test03a_titleAttr(self):
         """Checking the self.title attr in nodes"""
@@ -239,6 +243,8 @@ class createTestCase(unittest.TestCase):
                 print value
         else:
             self.fail("expected an IndexError")
+        # Reset the warning
+        warnings.filterwarnings("default", category=NaturalNameWarning)
 
     def test06_maxColumnNameLengthExceeded(self):
 	"Checking an excess (256) of the maximum length in column names"
