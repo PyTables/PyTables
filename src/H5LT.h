@@ -16,7 +16,6 @@
 #define _H5LT_H
 
 #include <hdf5.h>
-#include "Python.h"
 
 #define TESTING(WHAT)	{printf("%-70s", "Testing " WHAT); fflush(stdout);}
 #define PASSED()	{puts(" PASSED");fflush(stdout);}
@@ -155,37 +154,61 @@ herr_t H5LTset_attribute_string( hid_t loc_id,
 herr_t H5LTset_attribute_char( hid_t loc_id, 
                                const char *obj_name, 
                                const char *attr_name,
-                               char *buffer,
+                               const char *buffer,
+                               size_t size );
+
+herr_t H5LTset_attribute_uchar( hid_t loc_id, 
+                               const char *obj_name, 
+                               const char *attr_name,
+                               const unsigned char *buffer,
                                size_t size );
 
 herr_t H5LTset_attribute_short( hid_t loc_id, 
                               const char *obj_name, 
                               const char *attr_name,
-                              short *buffer,
+                              const short *buffer,
+                              size_t size );
+
+herr_t H5LTset_attribute_ushort( hid_t loc_id, 
+                              const char *obj_name, 
+                              const char *attr_name,
+                              const unsigned short *buffer,
                               size_t size );
 
 herr_t H5LTset_attribute_int( hid_t loc_id, 
                               const char *obj_name, 
                               const char *attr_name,
-                              int *buffer,
+                              const int *buffer,
+                              size_t size );
+
+herr_t H5LTset_attribute_uint( hid_t loc_id, 
+                              const char *obj_name, 
+                              const char *attr_name,
+                              const unsigned int *buffer,
                               size_t size );
 
 herr_t H5LTset_attribute_long( hid_t loc_id, 
                                const char *obj_name, 
                                const char *attr_name,
-                               long *buffer,
+                               const long *buffer,
+                               size_t size );
+
+herr_t H5LTset_attribute_ulong( hid_t loc_id, 
+                               const char *obj_name, 
+                               const char *attr_name,
+                               const unsigned long *buffer,
                                size_t size );
 
 herr_t H5LTset_attribute_float( hid_t loc_id, 
                                 const char *obj_name, 
                                 const char *attr_name,
-                                float *buffer,
+                                const float *buffer,
                                 size_t size );
 
 herr_t H5LTset_attribute_double( hid_t loc_id, 
                                  const char *obj_name, 
                                  const char *attr_name,
-                                 double *buffer,
+                                 const double *buffer,
                                  size_t size );
 
 /*-------------------------------------------------------------------------
@@ -206,29 +229,45 @@ herr_t H5LTget_attribute_string( hid_t loc_id,
                                  const char *attr_name,
                                  char *data );
 
-PyObject *H5LTget_attribute_string_sys( hid_t loc_id, 
-					const char *obj_name, 
-					const char *attr_name);
-
 herr_t H5LTget_attribute_char( hid_t loc_id, 
                                const char *obj_name, 
                                const char *attr_name,
                                char *data );
+
+herr_t H5LTget_attribute_uchar( hid_t loc_id, 
+                               const char *obj_name, 
+                               const char *attr_name,
+                               unsigned char *data );
 
 herr_t H5LTget_attribute_short( hid_t loc_id, 
                                 const char *obj_name, 
                                 const char *attr_name,
                                 short *data );
 
+herr_t H5LTget_attribute_ushort( hid_t loc_id, 
+                                const char *obj_name, 
+                                const char *attr_name,
+                                unsigned short *data );
+
 herr_t H5LTget_attribute_int( hid_t loc_id, 
                               const char *obj_name, 
                               const char *attr_name,
                               int *data );
 
+herr_t H5LTget_attribute_uint( hid_t loc_id, 
+                              const char *obj_name, 
+                              const char *attr_name,
+                              unsigned int *data );
+
 herr_t H5LTget_attribute_long( hid_t loc_id, 
                                const char *obj_name, 
                                const char *attr_name,
                                long *data );
+
+herr_t H5LTget_attribute_ulong( hid_t loc_id, 
+                               const char *obj_name, 
+                               const char *attr_name,
+                               unsigned long *data );
 
 herr_t H5LTget_attribute_float( hid_t loc_id, 
                                 const char *obj_name, 
@@ -309,6 +348,13 @@ herr_t H5LT_get_attribute_disk( hid_t obj_id,
 
 herr_t H5LT_find_attribute( hid_t loc_id, const char *name ); 
 
+
+herr_t H5LT_set_attribute_numerical( hid_t loc_id, 
+                                     const char *obj_name, 
+                                     const char *attr_name,
+                                     size_t size,
+                                     hid_t type_id,
+                                     const void *data );
 
 
 

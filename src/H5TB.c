@@ -91,9 +91,6 @@ herr_t H5TBmake_table( const char *table_title,
  hid_t   dataset_id;
  hid_t   space_id;  
  hid_t   mem_type_id;  
- hid_t   file_type_id;  
- size_t  file_type_size;
- size_t  file_type_off;
  hid_t   plist_id;
  hsize_t dims[1];
  hsize_t dims_chunk[1];
@@ -105,7 +102,7 @@ herr_t H5TBmake_table( const char *table_title,
  hsize_t i;
  unsigned char *tmp_buf;
  unsigned int cd_values[3];
- int     nrows;
+ hsize_t  nrows;
 
  dims[0]       = nrecords;
  dims_chunk[0] = chunk_size;
@@ -115,23 +112,10 @@ herr_t H5TBmake_table( const char *table_title,
   return -1;
 
  /* Insert fields. */
- for ( i = 0, file_type_size=0; i < nfields; i++) 
+ for ( i = 0; i < nfields; i++) 
  {
   if ( H5Tinsert(mem_type_id, field_names[i], field_offset[i], field_types[i] ) < 0 )
    return -1;
-  file_type_size+=H5Tget_size(field_types[i]);
- }
-
- /* Create the file data type. */
- if ((file_type_id = H5Tcreate (H5T_COMPOUND, file_type_size )) < 0 )
-  return -1;
-
- /* Insert fields. */
- for ( i = 0, file_type_off=0; i < nfields; i++) 
- {
-  if ( H5Tinsert(file_type_id, field_names[i], file_type_off, field_types[i] ) < 0 )
-   return -1;
-  file_type_off+=H5Tget_size(field_types[i]);
  }
 
  /* Create a simple data space with unlimited size */
@@ -193,7 +177,7 @@ herr_t H5TBmake_table( const char *table_title,
  }
   
  /* Create the dataset. */
- if ( (dataset_id = H5Dcreate( loc_id, dset_name, file_type_id, space_id, plist_id )) < 0 )
+ if ( (dataset_id = H5Dcreate( loc_id, dset_name, mem_type_id, space_id, plist_id )) < 0 )
   goto out;
 
  /* Only write if there is something to write */
@@ -236,18 +220,18 @@ herr_t H5TBmake_table( const char *table_title,
   goto out;
 
  /* Attach the NROWS attribute */
- nrows = (int)nrecords;
+ nrows = nrecords;
  /* Set the attribute */
- if ( H5LTset_attribute_int( loc_id, dset_name, "NROWS", &nrows, 1 ) < 0 )
+ if (H5LT_set_attribute_numerical(loc_id,dset_name,"NROWS",1, 
+				  H5T_NATIVE_LLONG,&nrows)<0)
    return -1;
-
 
  /* Attach the FIELD_ name attribute */
  for ( i = 0; i < nfields; i++)
  {
 
   /* Get the member name */
-  member_name = H5Tget_member_name( mem_type_id,(int) i );
+  member_name = H5Tget_member_name( mem_type_id,(unsigned) i );
 
   strcpy( attr_name, "FIELD_" );
   sprintf( aux, "%d", (int)i );
@@ -280,7 +264,7 @@ herr_t H5TBmake_table( const char *table_title,
   {
 
    /* Get the member name */
-   member_name = H5Tget_member_name( mem_type_id, (int) i );
+   member_name = H5Tget_member_name( mem_type_id, (unsigned) i );
 
    strcpy( attr_name, "FIELD_" );
    sprintf( aux, "%d", (int)i );
@@ -310,14 +294,17 @@ herr_t H5TBmake_table( const char *table_title,
  /* Release the datatypes. */
  if ( H5Tclose( mem_type_id ) < 0 )
   return -1;
- if ( H5Tclose( file_type_id ) < 0 )
-  return -1;
- 
+
  return dataset_id;
 
+/* error zone, gracefully close */
 out:
- H5Dclose( dataset_id );
- H5Sclose( space_id );
+ H5E_BEGIN_TRY {
+  H5Dclose(dataset_id);
+  H5Sclose(space_id);
+  H5Pclose(plist_id);
+  H5Tclose(mem_type_id);
+ } H5E_END_TRY;
  return -1;
 
 }
@@ -363,12 +350,12 @@ herr_t H5TBappend_records( hid_t loc_id,
 {
 
  hid_t    dataset_id;
- hid_t    type_id;    
- hid_t    mem_type_id;
+ hid_t    type_id=-1;    
+ hid_t    mem_type_id=-1;
  hsize_t  count[1];    
  hssize_t offset[1];
- hid_t    space_id;
- hid_t    mem_space_id;
+ hid_t    space_id=-1;
+ hid_t    mem_space_id=-1;
  int      rank;
  hsize_t  dims[1];
  hsize_t  mem_dims[1];
@@ -518,14 +505,14 @@ herr_t H5TBwrite_records( hid_t loc_id,
 {
 
  hid_t    dataset_id;
- hid_t    type_id;    
+ hid_t    type_id=-1;    
  hsize_t  count[1];    
  hssize_t offset[1];
  hid_t    space_id;
  hid_t    mem_space_id;
  hsize_t  mem_size[1];
  hsize_t  dims[1];
- hid_t    mem_type_id;
+ hid_t    mem_type_id=-1;
  hsize_t  nrecords_orig;
  hsize_t  nfields;
  char     **field_names;
@@ -667,9 +654,9 @@ herr_t H5TBwrite_fields_name( hid_t loc_id,
 {
 
  hid_t    dataset_id;
- hid_t    type_id;    
+ hid_t    type_id=-1;    
  hid_t    write_type_id;
- hid_t    member_type_id;
+ hid_t    member_type_id=-1;
  hsize_t  count[1];    
  hssize_t offset[1];
  hid_t    space_id;
@@ -707,7 +694,7 @@ herr_t H5TBwrite_fields_name( hid_t loc_id,
  {
 
   /* Get the member name */
-  member_name = H5Tget_member_name( type_id, (int)i );
+  member_name = H5Tget_member_name( type_id, (unsigned)i );
 
   if ( H5TB_find_field( member_name, field_names ) > 0 )
   {
@@ -813,9 +800,9 @@ herr_t H5TBwrite_fields_index( hid_t loc_id,
 {
 
  hid_t    dataset_id;
- hid_t    type_id;    
- hid_t    write_type_id;
- hid_t    member_type_id;
+ hid_t    type_id=-1;    
+ hid_t    write_type_id=-1;
+ hid_t    member_type_id=-1;
  hsize_t  count[1];    
  hssize_t offset[1];
  hid_t    space_id;
@@ -854,7 +841,7 @@ herr_t H5TBwrite_fields_index( hid_t loc_id,
   j = field_index[i];
     
   /* Get the member name */
-  member_name = H5Tget_member_name( type_id, (int) j );
+  member_name = H5Tget_member_name( type_id, (unsigned) j );
 
   /* Get the member type */
   if ( ( member_type_id = H5Tget_member_type( type_id, (int) j )) < 0 )
@@ -961,7 +948,7 @@ herr_t H5TBread_table( hid_t loc_id,
 {
 
  hid_t    dataset_id;
- hid_t    type_id; 
+ hid_t    type_id=-1; 
  hid_t    space_id;
  hsize_t  nfields;
  hsize_t  nrecords;
@@ -1071,8 +1058,8 @@ herr_t H5TBread_records( hid_t loc_id,
 {
 
  hid_t    dataset_id;
- hid_t    type_id;    
- hid_t    mem_type_id;
+ hid_t    type_id=-1;    
+ hid_t    mem_type_id=-1;
  hsize_t  count[1];    
  hssize_t offset[1];
  hid_t    space_id;
@@ -1221,7 +1208,7 @@ herr_t H5TBread_fields_name( hid_t loc_id,
 {
 
  hid_t    dataset_id;
- hid_t    type_id;    
+ hid_t    type_id=-1;    
  hid_t    read_type_id;
  hid_t    member_type_id;
  char     *member_name;
@@ -1262,7 +1249,7 @@ herr_t H5TBread_fields_name( hid_t loc_id,
  {
 
   /* Get the member name */
-  member_name = H5Tget_member_name( type_id, (int)i );
+  member_name = H5Tget_member_name( type_id, (unsigned)i );
 
   if ( H5TB_find_field( member_name, field_names ) > 0 )
   {
@@ -1437,7 +1424,7 @@ herr_t H5TBread_fields_name_orig( hid_t loc_id,
  {
 
   /* Get the member name */
-  member_name = H5Tget_member_name( type_id, (int)i );
+  member_name = H5Tget_member_name( type_id, (unsigned)i );
 
   if ( H5TB_find_field( member_name, field_names ) > 0 )
   {
@@ -1584,7 +1571,7 @@ herr_t H5TBread_fields_index( hid_t loc_id,
   j = field_index[i];
     
   /* Get the member name */
-  member_name = H5Tget_member_name( type_id, (int) j );
+  member_name = H5Tget_member_name( type_id, (unsigned) j );
 
   /* Get the member type */
   if ( ( member_type_id = H5Tget_member_type( type_id, (int) j )) < 0 )
@@ -1703,7 +1690,7 @@ herr_t H5TBget_table_info ( hid_t loc_id,
  int        num_members;
  hsize_t    dims[1];
  int        has_attr;
- int        n[1];
+ hsize_t    n[1];
  
  /* Open the dataset. */
  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
@@ -1731,8 +1718,8 @@ herr_t H5TBget_table_info ( hid_t loc_id,
  if ( has_attr == 1 )
  {
   /* Get the attribute */
-  if ( H5LTget_attribute_int( loc_id, dset_name, "NROWS", n ) < 0 )
-   goto out;
+  if ( H5LTget_attribute(loc_id,dset_name,"NROWS",H5T_NATIVE_LLONG,n)<0)
+   return -1;
 
   *nrecords = *n;
  }
@@ -1832,7 +1819,7 @@ herr_t H5TBget_field_info( hid_t loc_id,
  {
 
   /* Get the member name */
-  member_name = H5Tget_member_name( type_id, (int)i );
+  member_name = H5Tget_member_name( type_id, (unsigned)i );
 
   if ( field_names )
    strcpy( field_names[i], member_name );
@@ -1928,7 +1915,7 @@ herr_t H5TBdelete_record( hid_t loc_id,
  unsigned char *tmp_buf;
  size_t   src_size;
  size_t   *src_offset;
- int      nrows;
+ hsize_t  nrows;
  hsize_t  dims[1];
 
  /* Shut the compiler up */
@@ -2066,10 +2053,11 @@ herr_t H5TBdelete_record( hid_t loc_id,
  *-------------------------------------------------------------------------
  */
 
- nrows = (int)ntotal_records - (int)nrecords;
+ nrows = ntotal_records - nrecords;
  /* Set the attribute */
- if ( H5LTset_attribute_int( loc_id, dset_name, "NROWS", &nrows, 1 ) < 0 )
-  return -1;
+ if (H5LT_set_attribute_numerical(loc_id,dset_name,"NROWS",1, 
+				  H5T_NATIVE_LLONG,&nrows)<0)
+   return -1;
  
  return 0;
 
@@ -2972,7 +2960,7 @@ herr_t H5TBinsert_field( hid_t loc_id,
   }
  
   /* Get the member name */
-  member_name = H5Tget_member_name( type_id1, (int)idx );
+  member_name = H5Tget_member_name( type_id1, (unsigned)idx );
 
   /* Get the member type */
   if ( ( member_type_id = H5Tget_member_type( type_id1,(int)idx )) < 0 )
@@ -3389,7 +3377,7 @@ herr_t H5TBdelete_field( hid_t loc_id,
  {
  
   /* Get the member name */
-  member_name = H5Tget_member_name( type_id1,(int) i );
+  member_name = H5Tget_member_name( type_id1,(unsigned) i );
 
   /* We want to find the field to delete */
   if ( H5TB_find_field( member_name, field_name ) > 0 )
@@ -3449,7 +3437,7 @@ herr_t H5TBdelete_field( hid_t loc_id,
  {
  
   /* Get the member name */
-  member_name = H5Tget_member_name( type_id1, (int) i );
+  member_name = H5Tget_member_name( type_id1, (unsigned) i );
 
   /* We want to skip the field to delete */
   if ( H5TB_find_field( member_name, field_name ) > 0 )
@@ -3532,7 +3520,7 @@ herr_t H5TBdelete_field( hid_t loc_id,
  {
  
   /* Get the member name */
-  member_name = H5Tget_member_name( type_id1,(int) i );
+  member_name = H5Tget_member_name( type_id1,(unsigned) i );
 
   /* Skip the field to delete */
   if ( H5TB_find_field( member_name, field_name ) > 0 )
@@ -3955,7 +3943,7 @@ herr_t H5TB_attach_attributes( const char *table_title,
  {
 
   /* Get the member name */
-  member_name = H5Tget_member_name( type_id, (int)i );
+  member_name = H5Tget_member_name( type_id, (unsigned)i );
 
   strcpy( attr_name, "FIELD_" );
   sprintf( aux, "%d", (int)i );

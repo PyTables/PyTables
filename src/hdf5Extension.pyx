@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.121 2004/02/25 16:08:58 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.122 2004/04/20 19:27:17 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.121 $"
+__version__ = "$Revision: 1.122 $"
 
 
 import sys, os
@@ -460,9 +460,6 @@ cdef extern from "H5LT.h":
   herr_t H5LTget_attribute_string( hid_t loc_id, char *obj_name,
                                    char *attr_name, char *attr_data )
 
-  object H5LTget_attribute_string_sys( hid_t loc_id, char *obj_name,
-                                       char *attr_name)
-
   herr_t H5LTget_attribute_char( hid_t loc_id, 
                                  char *obj_name, 
                                  char *attr_name,
@@ -694,9 +691,14 @@ cdef extern from "utils.h":
   object Aiterate(hid_t loc_id)
   H5T_class_t getHDF5ClassID(hid_t loc_id, char *name, H5D_layout_t *layout)
   object H5UIget_info( hid_t loc_id, char *name, char *byteorder)
+
   # To access to the slice.indices function in 2.2
   int GetIndicesEx(object s, int length,
                    int *start, int *stop, int *step, int *slicelength)
+
+  object get_attribute_string_sys( hid_t loc_id, char *obj_name,
+                                   char *attr_name)
+
 
 # LZO library
 cdef int lzo_version
@@ -837,7 +839,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.121 2004/02/25 16:08:58 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.122 2004/04/20 19:27:17 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1086,14 +1088,12 @@ cdef class AttributeSet:
 
   # Get a system attribute (they should be only strings)
   def _g_getSysAttr(self, char *attrname):
-    ret = H5LTget_attribute_string_sys(self.parent_id, self.name,
-                                       attrname)
+    ret = get_attribute_string_sys(self.parent_id, self.name, attrname)
     return ret
 
   # This funtion is useful to retrieve system attributes of Leafs
   def _g_getChildSysAttr(self, char *dsetname, char *attrname):
-    ret = H5LTget_attribute_string_sys(self.node._v_objectID, dsetname,
-                                       attrname)
+    ret = get_attribute_string_sys(self.node._v_objectID, dsetname, attrname)
     return ret
 
   def _g_getChildAttr(self, char *dsetname, char *attrname):

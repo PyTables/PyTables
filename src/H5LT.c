@@ -16,6 +16,7 @@
 #include <stdlib.h>
 
 
+
 /*-------------------------------------------------------------------------
  * 
  * Private functions
@@ -23,13 +24,6 @@
  *-------------------------------------------------------------------------
  */
 
-
-herr_t H5LT_set_attribute_numerical( hid_t loc_id, 
-                                     const char *obj_name, 
-                                     const char *attr_name,
-                                     size_t size,
-                                     hid_t type_id,
-                                     void *data );
 
 herr_t H5LT_open_id( hid_t loc_id, 
                      const char *obj_name, 
@@ -1048,7 +1042,9 @@ herr_t H5LTset_attribute_string( hid_t loc_id,
  if ( H5Sclose( attr_space_id ) < 0 )
   goto out;
 
-   H5Tclose(attr_type);  	       /* Afegit! */
+ if ( H5Tclose(attr_type) < 0 )
+  goto out;
+
  /* Close the object */
  if ( H5LT_close_id( obj_id, statbuf.type ) < 0 )
   return -1;
@@ -1087,7 +1083,7 @@ herr_t H5LT_set_attribute_numerical( hid_t loc_id,
                                      const char *attr_name,
                                      size_t size,
                                      hid_t type_id,
-                                     void *data ) 
+                                     const void *data ) 
 {
 
  hid_t      obj_id, space_id, attr_id;  
@@ -1261,12 +1257,42 @@ herr_t H5LT_close_id( hid_t obj_id,
 herr_t H5LTset_attribute_char( hid_t loc_id, 
                                const char *obj_name, 
                                const char *attr_name,
-                               char *data,
+                               const char *data,
                                size_t size ) 
 {
  
  if ( H5LT_set_attribute_numerical( loc_id, obj_name, attr_name, size, 
       H5T_NATIVE_CHAR, data ) < 0 )
+  return -1;
+
+ return 0;
+}
+
+/*-------------------------------------------------------------------------
+ * Function: H5LTset_attribute_uchar
+ *
+ * Purpose: Create and write an attribute.
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: March 8, 2004
+ *
+ * Comments:
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t H5LTset_attribute_uchar( hid_t loc_id, 
+                                const char *obj_name, 
+                                const char *attr_name,
+                                const unsigned char *data,
+                                size_t size ) 
+{
+ 
+ if ( H5LT_set_attribute_numerical( loc_id, obj_name, attr_name, size, 
+      H5T_NATIVE_UCHAR, data ) < 0 )
   return -1;
 
  return 0;
@@ -1292,12 +1318,43 @@ herr_t H5LTset_attribute_char( hid_t loc_id,
 herr_t H5LTset_attribute_short( hid_t loc_id, 
                                 const char *obj_name, 
                                 const char *attr_name,
-                                short *data,
+                                const short *data,
                                 size_t size ) 
 {
  
  if ( H5LT_set_attribute_numerical( loc_id, obj_name, attr_name, size, 
       H5T_NATIVE_SHORT, data ) < 0 )
+  return -1;
+
+ return 0;
+
+}
+
+/*-------------------------------------------------------------------------
+ * Function: H5LTset_attribute_ushort
+ *
+ * Purpose: Create and write an attribute.
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: March 8, 2004
+ *
+ * Comments:
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t H5LTset_attribute_ushort( hid_t loc_id, 
+                                const char *obj_name, 
+                                const char *attr_name,
+                                const unsigned short *data,
+                                size_t size ) 
+{
+ 
+ if ( H5LT_set_attribute_numerical( loc_id, obj_name, attr_name, size, 
+      H5T_NATIVE_USHORT, data ) < 0 )
   return -1;
 
  return 0;
@@ -1323,7 +1380,7 @@ herr_t H5LTset_attribute_short( hid_t loc_id,
 herr_t H5LTset_attribute_int( hid_t loc_id, 
                               const char *obj_name, 
                               const char *attr_name,
-                              int *data,
+                              const int *data,
                               size_t size ) 
 {
  
@@ -1334,6 +1391,38 @@ herr_t H5LTset_attribute_int( hid_t loc_id,
  return 0;
 
 }
+
+/*-------------------------------------------------------------------------
+ * Function: H5LTset_attribute_uint
+ *
+ * Purpose: Create and write an attribute.
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: March 8, 2004
+ *
+ * Comments:
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t H5LTset_attribute_uint( hid_t loc_id, 
+                              const char *obj_name, 
+                              const char *attr_name,
+                              const unsigned int *data,
+                              size_t size ) 
+{
+ 
+ if ( H5LT_set_attribute_numerical( loc_id, obj_name, attr_name, size, 
+      H5T_NATIVE_UINT, data ) < 0 )
+  return -1;
+
+ return 0;
+
+}
+
 
 /*-------------------------------------------------------------------------
  * Function: H5LTset_attribute_long
@@ -1354,12 +1443,43 @@ herr_t H5LTset_attribute_int( hid_t loc_id,
 herr_t H5LTset_attribute_long( hid_t loc_id, 
                                const char *obj_name, 
                                const char *attr_name,
-                               long *data,
+                               const long *data,
                                size_t size ) 
 {
  
  if ( H5LT_set_attribute_numerical( loc_id, obj_name, attr_name, size, 
       H5T_NATIVE_LONG, data ) < 0 )
+  return -1;
+
+ return 0;
+
+}
+
+/*-------------------------------------------------------------------------
+ * Function: H5LTset_attribute_ulong
+ *
+ * Purpose: Create and write an attribute.
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: March 8, 2004
+ *
+ * Comments:
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t H5LTset_attribute_ulong( hid_t loc_id, 
+                               const char *obj_name, 
+                               const char *attr_name,
+                               const unsigned long *data,
+                               size_t size ) 
+{
+ 
+ if ( H5LT_set_attribute_numerical( loc_id, obj_name, attr_name, size, 
+      H5T_NATIVE_ULONG, data ) < 0 )
   return -1;
 
  return 0;
@@ -1387,7 +1507,7 @@ herr_t H5LTset_attribute_long( hid_t loc_id,
 herr_t H5LTset_attribute_float( hid_t loc_id, 
                                 const char *obj_name, 
                                 const char *attr_name,
-                                float *data,
+                                const float *data,
                                 size_t size )
 {
 
@@ -1419,7 +1539,7 @@ herr_t H5LTset_attribute_float( hid_t loc_id,
 herr_t H5LTset_attribute_double( hid_t loc_id, 
                                  const char *obj_name, 
                                  const char *attr_name,
-                                 double *data,
+                                 const double *data,
                                  size_t size ) 
 {
  
@@ -1860,73 +1980,6 @@ herr_t H5LTget_attribute_string( hid_t loc_id,
 
 }
 
-
-PyObject *H5LTget_attribute_string_sys( hid_t loc_id,
-					const char *obj_name,
-					const char *attr_name)
-{
-
- /* identifiers */
- hid_t      obj_id;
- hid_t      attr_id;
- hid_t      attr_type;
- size_t     attr_size;
- PyObject   *attr_value;
- char       *data;
- H5G_stat_t statbuf;
-
- /* Get the type of object */
- if (H5Gget_objinfo(loc_id, obj_name, 1, &statbuf)<0)
-  return NULL;
-
- /* Open the object */
- if ((obj_id = H5LT_open_id( loc_id, obj_name, statbuf.type )) < 0)
-   return NULL;
-
-/*  Check if attribute exists */
- /* This is commented out to make the attribute reading faster */
-/*  if (H5LT_find_attribute(obj_id, attr_name) <= 0)  */
- if ( ( attr_id = H5Aopen_name( obj_id, attr_name ) ) < 0 )
-   /* If the attribute does not exists, return None */
-   /* and do not even warn the user */
-   return Py_None;
-
- if ( (attr_type = H5Aget_type( attr_id )) < 0 )
-  goto out;
-
- /* Get the size. */
- attr_size = H5Tget_size( attr_type );
-
-/*  printf("name: %s. size: %d\n", attr_name, attr_size); */
- /* Allocate memory for the input buffer */
- data = (char *)malloc(attr_size);
-
- if ( H5Aread( attr_id, attr_type, data ) < 0 )
-  goto out;
-
- attr_value = PyString_FromString(data);
- free(data);
-
- if ( H5Tclose( attr_type )  < 0 )
-  goto out;
-
- if ( H5Aclose( attr_id ) < 0 )
-  return Py_None;
-
- /* Close the object */
- if ( H5LT_close_id( obj_id, statbuf.type ) < 0 )
-  return Py_None;
-
- return attr_value;
-
-out:
- H5Aclose( attr_id );
- H5Aclose( attr_type );
- return Py_None;
-
-}
-
-
 /*-------------------------------------------------------------------------
  * Function: H5LTget_attribute_char
  *
@@ -1944,8 +1997,6 @@ out:
  *
  *-------------------------------------------------------------------------
  */
-
-
 herr_t H5LTget_attribute_char( hid_t loc_id, 
                                 const char *obj_name, 
                                 const char *attr_name,
@@ -1976,6 +2027,54 @@ herr_t H5LTget_attribute_char( hid_t loc_id,
 
 }
 
+/*-------------------------------------------------------------------------
+ * Function: H5LTget_attribute_uchar
+ *
+ * Purpose: Reads an attribute named attr_name
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: March 8, 2004
+ *
+ * Comments:
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t H5LTget_attribute_uchar( hid_t loc_id, 
+                                const char *obj_name, 
+                                const char *attr_name,
+                                unsigned char *data ) 
+{
+
+ /* identifiers */
+ hid_t      obj_id;
+ H5G_stat_t statbuf;
+
+ /* Get the type of object */
+ if (H5Gget_objinfo(loc_id, obj_name, 1, &statbuf)<0)
+  return -1;
+ 
+ /* Open the object */
+ if ((obj_id = H5LT_open_id( loc_id, obj_name, statbuf.type )) < 0)
+  return -1;
+
+ /* Get the attribute */
+ if ( H5LT_get_attribute_mem( obj_id, attr_name, H5T_NATIVE_UCHAR, data ) < 0 )
+  return -1;
+
+ /* Close the object */
+ if ( H5LT_close_id( obj_id, statbuf.type ) < 0 )
+  return -1;
+
+ return 0;
+
+}
+
+
 
 /*-------------------------------------------------------------------------
  * Function: H5LTget_attribute_short
@@ -1994,8 +2093,6 @@ herr_t H5LTget_attribute_char( hid_t loc_id,
  *
  *-------------------------------------------------------------------------
  */
-
-
 herr_t H5LTget_attribute_short( hid_t loc_id, 
                                 const char *obj_name, 
                                 const char *attr_name,
@@ -2026,6 +2123,54 @@ herr_t H5LTget_attribute_short( hid_t loc_id,
 
 }
 
+/*-------------------------------------------------------------------------
+ * Function: H5LTget_attribute_ushort
+ *
+ * Purpose: Reads an attribute named attr_name
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: March 8, 2004
+ *
+ * Comments:
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t H5LTget_attribute_ushort( hid_t loc_id, 
+                                const char *obj_name, 
+                                const char *attr_name,
+                                unsigned short *data ) 
+{
+
+ /* identifiers */
+ hid_t      obj_id;
+ H5G_stat_t statbuf;
+
+ /* Get the type of object */
+ if (H5Gget_objinfo(loc_id, obj_name, 1, &statbuf)<0)
+  return -1;
+ 
+ /* Open the object */
+ if ((obj_id = H5LT_open_id( loc_id, obj_name, statbuf.type )) < 0)
+  return -1;
+
+ /* Get the attribute */
+ if ( H5LT_get_attribute_mem( obj_id, attr_name, H5T_NATIVE_USHORT, data ) < 0 )
+  return -1;
+
+ /* Close the object */
+ if ( H5LT_close_id( obj_id, statbuf.type ) < 0 )
+  return -1;
+
+ return 0;
+
+}
+
+
 
 /*-------------------------------------------------------------------------
  * Function: H5LTget_attribute_int
@@ -2044,8 +2189,6 @@ herr_t H5LTget_attribute_short( hid_t loc_id,
  *
  *-------------------------------------------------------------------------
  */
-
-
 herr_t H5LTget_attribute_int( hid_t loc_id, 
                               const char *obj_name, 
                               const char *attr_name,
@@ -2076,6 +2219,54 @@ herr_t H5LTget_attribute_int( hid_t loc_id,
 
 }
 
+/*-------------------------------------------------------------------------
+ * Function: H5LTget_attribute_uint
+ *
+ * Purpose: Reads an attribute named attr_name
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: March 8, 2004
+ *
+ * Comments:
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t H5LTget_attribute_uint( hid_t loc_id, 
+                              const char *obj_name, 
+                              const char *attr_name,
+                              unsigned int *data ) 
+{
+
+ /* identifiers */
+ hid_t      obj_id;
+ H5G_stat_t statbuf;
+
+ /* Get the type of object */
+ if (H5Gget_objinfo(loc_id, obj_name, 1, &statbuf)<0)
+  return -1;
+ 
+ /* Open the object */
+ if ((obj_id = H5LT_open_id( loc_id, obj_name, statbuf.type )) < 0)
+  return -1;
+
+ /* Get the attribute */
+ if ( H5LT_get_attribute_mem( obj_id, attr_name, H5T_NATIVE_UINT, data ) < 0 )
+  return -1;
+
+ /* Close the object */
+ if ( H5LT_close_id( obj_id, statbuf.type ) < 0 )
+  return -1;
+
+ return 0;
+
+}
+
+
 
 /*-------------------------------------------------------------------------
  * Function: H5LTget_attribute_long
@@ -2094,8 +2285,6 @@ herr_t H5LTget_attribute_int( hid_t loc_id,
  *
  *-------------------------------------------------------------------------
  */
-
-
 herr_t H5LTget_attribute_long( hid_t loc_id, 
                               const char *obj_name, 
                               const char *attr_name,
@@ -2116,6 +2305,53 @@ herr_t H5LTget_attribute_long( hid_t loc_id,
 
  /* Get the attribute */
  if ( H5LT_get_attribute_mem( obj_id, attr_name, H5T_NATIVE_LONG, data ) < 0 )
+  return -1;
+
+ /* Close the object */
+ if ( H5LT_close_id( obj_id, statbuf.type ) < 0 )
+  return -1;
+
+ return 0;
+
+}
+
+/*-------------------------------------------------------------------------
+ * Function: H5LTget_attribute_ulong
+ *
+ * Purpose: Reads an attribute named attr_name
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: March 8, 2004
+ *
+ * Comments:
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t H5LTget_attribute_ulong( hid_t loc_id, 
+                              const char *obj_name, 
+                              const char *attr_name,
+                              unsigned long *data ) 
+{
+
+ /* identifiers */
+ hid_t      obj_id;
+ H5G_stat_t statbuf;
+
+ /* Get the type of object */
+ if (H5Gget_objinfo(loc_id, obj_name, 1, &statbuf)<0)
+  return -1;
+ 
+ /* Open the object */
+ if ((obj_id = H5LT_open_id( loc_id, obj_name, statbuf.type )) < 0)
+  return -1;
+
+ /* Get the attribute */
+ if ( H5LT_get_attribute_mem( obj_id, attr_name, H5T_NATIVE_ULONG, data ) < 0 )
   return -1;
 
  /* Close the object */
@@ -2228,7 +2464,7 @@ herr_t H5LTget_attribute_double( hid_t loc_id,
 
 
 /*-------------------------------------------------------------------------
- * Function: H5LT_get_attribute_mem
+ * Function: H5LTget_attribute
  *
  * Purpose: Reads an attribute named attr_name with the memory type mem_type_id
  *

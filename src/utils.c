@@ -4,6 +4,23 @@
 #include "H5Zlzo.h"  		       /* Import FILTER_LZO */
 #include "H5Zucl.h"  		       /* Import FILTER_UCL */
 
+/*-------------------------------------------------------------------------
+ * 
+ * Private functions
+ * These are a replica of those in H5LT.c, but get_attribute_string_sys
+ * needs them, so it is better to copy them here.
+ * F. Alted 2004-04-20
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t _open_id( hid_t loc_id, 
+		 const char *obj_name, 
+		 int obj_type );
+
+herr_t _close_id( hid_t obj_id,
+		  int obj_type );
+
 PyObject *_getTablesVersion() {
   return PyString_FromString(PYTABLES_VERSION);
 }
@@ -452,4 +469,183 @@ int GetIndicesEx(PyObject *s, int length,
 
 	return 0;
 }
+
+/*-------------------------------------------------------------------------
+ * Function: get_attribute_string_sys
+ *
+ * Purpose: Reads a attribute specific of PyTables in a fast way
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Francesc Alted, falted@pytables.org
+ *
+ * Date: September 19, 2003
+ *
+ * Comments:
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+
+
+PyObject *get_attribute_string_sys( hid_t loc_id,
+				    const char *obj_name,
+				    const char *attr_name)
+{
+
+ /* identifiers */
+ hid_t      obj_id;
+ hid_t      attr_id;
+ hid_t      attr_type;
+ size_t     attr_size;
+ PyObject   *attr_value;
+ char       *data;
+ H5G_stat_t statbuf;
+
+ /* Get the type of object */
+ if (H5Gget_objinfo(loc_id, obj_name, 1, &statbuf)<0)
+  return NULL;
+
+ /* Open the object */
+ if ((obj_id = _open_id( loc_id, obj_name, statbuf.type )) < 0)
+   return NULL;
+
+/*  Check if attribute exists */
+ /* This is commented out to make the attribute reading faster */
+/*  if (H5LT_find_attribute(obj_id, attr_name) <= 0)  */
+ if ( ( attr_id = H5Aopen_name( obj_id, attr_name ) ) < 0 )
+   /* If the attribute does not exists, return None */
+   /* and do not even warn the user */
+   return Py_None;
+
+ if ( (attr_type = H5Aget_type( attr_id )) < 0 )
+  goto out;
+
+ /* Get the size. */
+ attr_size = H5Tget_size( attr_type );
+
+/*  printf("name: %s. size: %d\n", attr_name, attr_size); */
+ /* Allocate memory for the input buffer */
+ data = (char *)malloc(attr_size);
+
+ if ( H5Aread( attr_id, attr_type, data ) < 0 )
+  goto out;
+
+ attr_value = PyString_FromString(data);
+ free(data);
+
+ if ( H5Tclose( attr_type )  < 0 )
+  goto out;
+
+ if ( H5Aclose( attr_id ) < 0 )
+  return Py_None;
+
+ /* Close the object */
+ if ( _close_id( obj_id, statbuf.type ) < 0 )
+  return Py_None;
+
+ return attr_value;
+
+out:
+ H5Aclose( attr_id );
+ H5Aclose( attr_type );
+ return Py_None;
+
+}
+
+/*-------------------------------------------------------------------------
+ * Function: _open_id
+ *
+ * Purpose: Private function used by get_attribute_string_sys
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: September 19, 2002
+ *
+ * Comments:
+ *
+ *-------------------------------------------------------------------------
+ */
+
+
+
+herr_t _open_id( hid_t loc_id, 
+		 const char *obj_name, 
+		 int obj_type /*basic object type*/ ) 
+{
+
+ hid_t   obj_id = -1;  
+ 
+ switch ( obj_type )
+ {
+  case H5G_DATASET:
+    
+   /* Open the dataset. */
+   if ( (obj_id = H5Dopen( loc_id, obj_name )) < 0 )
+    return -1;
+   break;
+
+  case H5G_GROUP:
+
+   /* Open the group. */
+   if ( (obj_id = H5Gopen( loc_id, obj_name )) < 0 )
+    return -1;
+   break;
+
+  default:
+   return -1; 
+ }
+
+ return obj_id; 
+
+}
+
+
+/*-------------------------------------------------------------------------
+ * Function: _close_id
+ *
+ * Purpose: Private function used by get_attribute_string_sys
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: September 19, 2002
+ *
+ * Comments:
+ *
+ *-------------------------------------------------------------------------
+ */
+
+
+
+herr_t _close_id( hid_t obj_id,
+		  int obj_type /*basic object type*/ ) 
+{
+
+ switch ( obj_type )
+ {
+  case H5G_DATASET:
+   /* Close the dataset. */
+   if ( H5Dclose( obj_id ) < 0 )
+    return -1; 
+   break;
+
+  case H5G_GROUP:
+  /* Close the group. */
+   if ( H5Gclose( obj_id ) < 0 )
+    return -1; 
+   break;
+
+  default:
+   return -1; 
+ }
+
+ return 0; 
+
+}
+
 

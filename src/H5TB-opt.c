@@ -388,7 +388,12 @@ herr_t H5TBOappend_records( hid_t *dataset_id,
 return 0;
 
 out:
- H5Dclose( *dataset_id );
+ H5E_BEGIN_TRY {
+  H5Dclose(*dataset_id);
+  H5Tclose(*mem_type_id);
+  H5Sclose(mem_space_id);
+  H5Sclose(space_id);
+ } H5E_END_TRY;
  return -1;
 
 }
@@ -418,7 +423,7 @@ herr_t H5TBOclose_append(hid_t *dataset_id,
 			 const char *dset_name,
 			 hid_t parent_id)
 {
- int nrows;
+ hsize_t nrows;
   
   /* Release the datatype. */
  if ( H5Tclose( *mem_type_id ) < 0 )
@@ -439,9 +444,11 @@ herr_t H5TBOclose_append(hid_t *dataset_id,
    compatibility with HDF5_HL.  I should report this to
    Pedro. F. Alted 2004-01-19  */
 
- nrows = (int)ntotal_records;
+ nrows = ntotal_records;
  /* Set the attribute */
- if ( H5LTset_attribute_int(parent_id, dset_name, "NROWS", &nrows, 1 ) < 0 )
+ if (H5LT_set_attribute_numerical(parent_id,dset_name,"NROWS",1, 
+      H5T_NATIVE_LLONG,&nrows)<0)
+/*  if ( H5LTset_attribute_int(parent_id, dset_name, "NROWS", &nrows, 1 ) < 0 ) */
    return -1;
 
 return 0;

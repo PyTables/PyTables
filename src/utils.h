@@ -91,3 +91,7 @@ PyObject *H5UIget_info( hid_t loc_id,
 
 int GetIndicesEx(PyObject *s, int length,
 		 int *start, int *stop, int *step, int *slicelength);
+
+PyObject *get_attribute_string_sys( hid_t loc_id,
+				    const char *obj_name,
+				    const char *attr_name);
