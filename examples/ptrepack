@@ -1,0 +1,290 @@
+#!/usr/bin/env python
+#  Ei!, emacs, this is -*-Python-*- mode
+########################################################################
+#
+#       License: BSD
+#       Created: February 10, 2004
+#       Author:  Francesc Alted - falted@openlc.org
+#
+#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/examples/Attic/ptrepack,v $
+#       $Id: ptrepack,v 1.1 2004/02/10 16:36:52 falted Exp $
+#
+########################################################################
+
+"""This utility lets you repack your data files in a flexible way.
+
+Pass the flag -h to this for help on usage.
+
+"""
+
+import tables
+
+import sys, os, time
+import getopt, atexit
+try:
+    import psyco
+    psyco_imported = 1
+except:
+    psyco_imported = 0
+
+def newdstGroup(dstfileh, dstgroup, title, filters):
+    group = dstfileh.root
+    # Now, create the new group. This works even if dstgroup == '/'
+    for nodeName in dstgroup.split('/'):
+        if nodeName == '':
+            continue
+        if not hasattr(group, nodeName):
+            # It does not exist. Create it
+            group2 = dstfileh.createGroup(group, nodeName,
+                                          title=title,
+                                          filters=filters)
+        group = group2
+    return group
+
+def copyChilds(srcfile, dstfile, srcgroup, dstgroup, title,
+               recursive, filters, copyuserattrs, overwrite, overwrtnodes,
+               start, stop, step):
+    "Copy the childs from source group to destination group"
+    # Open the source file with srcgroup as rootUEP
+    # First, check that the source group do exist:
+    srcfileh = tables.openFile(srcfile, "r")
+    try:
+        srcGroup = srcfileh.getNode(srcgroup)
+    except:
+        # Problems
+        (type, value, traceback) = sys.exc_info()
+        print "Problems getting the '%s' source group in file '%s':" % \
+              (srcgroup, srcfile)
+        raise RuntimeError, "The error was: %s" % value
+    # Ok. we know that srcgroup do exist in srcfile
+    srcfileh.close()
+    srcfileh = tables.openFile(srcfile, "r", rootUEP=srcgroup)
+    #  Assign the root to srcGroup
+    srcGroup = srcfileh.root
+    
+    # Check whether the destination group exists or not
+    if os.path.isfile(dstfile) and not overwrite:
+        dstfileh = tables.openFile(dstfile, "a")
+        try:
+            dstGroup = dstfileh.getNode(dstgroup)
+        except:
+            # The dstgroup does not seem to exist. Try creating it.
+            dstGroup = newdstGroup(dstfileh, dstgroup, title, filters)
+            # Close destionation and reopen with a rootUEP
+            dstfileh.close()
+            dstfileh = tables.openFile(dstfile, "a", rootUEP=dstgroup)
+            # If try succeeds, assign dstGroup to this root
+            dstGroup = dstfileh.root
+        else:
+            # Ok. we know that dstgroup do exist in dstfile
+            dstfileh.close()
+            dstfileh = tables.openFile(dstfile, "a", rootUEP=dstgroup)
+            #  Assign the root to srcGroup
+            dstGroup = dstfileh.root
+    else:
+        # The destination file does not exist or will be overwritten.
+        dstfileh = tables.openFile(dstfile, "w", title=title, filters=filters)
+        dstGroup = newdstGroup(dstfileh, dstgroup, title="", filters=filters)
+
+    # Finally, copy srcGroup to dstGroup
+    try:
+        ng, nl = srcGroup._f_copyChilds(dstGroup, recursive=recursive,
+                                        filters=filters,
+                                        copyuserattrs=copyuserattrs,
+                                        overwrite = overwrtnodes,
+                                        start=start, stop=stop, step=step)
+    except:
+        (type, value, traceback) = sys.exc_info()
+        print "Problems doing the copy from '%s:%s' to '%s:%s'" % \
+              (srcfile, srcgroup, dstfile, dstgroup)
+        print "The error was --> %s: %s" % (type, value)
+        print "The destination file looks like:\n", dstfileh
+        # Close all the open files:
+        srcfileh.close()
+        dstfileh.close()
+        raise RuntimeError, "Please, check that the node names are not duplicated in destination, and if so, add the --overwrite-nodes flag if desired. In particular, pay attention that rootUEP does not loose you."
+        
+    # Close all the open files:
+    srcfileh.close()
+    dstfileh.close()
+    return (ng, nl)
+    
+
+# Main program starts here
+
+usage = """usage: %s [-h] [-v] [-o] [-p] [-R range] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [-complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] sourcefile:sourcegroup destfile:destgroup
+ -h -- Help on usage.
+ -v -- Show more information.
+ -o -- Overwite destination file.
+ -p -- Use "psyco" if available.
+ -R start,stop,step -- Select a slice in *all* leaves.
+ --non-recursive -- Do not do a recursive copy. Default is do it.
+ --dest-title=title -- Title for the new file (if not specified,
+     the source is copied).
+ --dont-copy-userattrs -- Do not copy the user attrs (default is do it)
+ --overwrite-nodes -- Overwrite destination nodes if they exist. Default is
+     not overwrite them.
+ --complevel=(0-9) -- Sets a compression level (0 for no compression, which
+     is the default).
+ --complib=lib -- Sets the compression library to be used during the copy.
+     lib can be set to "zlib", "lzo" or "ucl". Defaults to "zlib".
+ --shuffle=(0|1) -- Activate or not the shuffling filter (default is active
+     if complevel>0).
+ --fletcher32=(0|1) -- Whether activate or not the fletcher32 filter (not
+     active by default).
+ --keep-source-filters -- Use the original filters in source files. The
+     default is not doing that if any of --complevel, --complib, --shuffle
+     or --fletcher32 option is specified.
+\n""" % sys.argv[0]
+            
+try:
+    opts, pargs = getopt.getopt(sys.argv[1:], 'hvopR:',
+                                ['non-recursive',
+                                 'dest-title=',
+                                 'dont-copy-userattrs',
+                                 'overwrite-nodes',
+                                 'complevel=',
+                                 'complib=',
+                                 'shuffle=',
+                                 'fletcher32=',
+                                 'keep-source-filters'
+                                 ])
+except:
+    (type, value, traceback) = sys.exc_info()
+    print "Error parsing the options. The error was:", value
+    sys.stderr.write(usage)
+    sys.exit(0)
+
+#atexit.register(closeFiles, srcfile, dstfile)
+# if we pass too much parameters, abort
+if len(pargs) <> 2:
+    print "You need to pass both source and destination!."
+    sys.stderr.write(usage)
+    sys.exit(0)
+
+# default options
+verbose = 0
+overwrite = 0
+usepsyco = 0
+keepfilters = 0
+complevel = None
+complib = None
+shuffle = None
+fletcher32 = None
+title = ""
+copyuserattrs = 1
+rng = None
+recursive = 1
+overwrtnodes = 0
+
+# Get the options
+for option in opts:
+    if option[0] == '-h':
+        sys.stderr.write(usage)
+        sys.exit(0)
+    elif option[0] == '-v':
+        verbose = 1
+    elif option[0] == '-o':
+        overwrite = 1
+    elif option[0] == '-p':
+        usepsyco = 1
+    elif option[0] == '-R':
+        try:
+            rng = eval("slice("+option[1]+")")
+        except:
+            print "Error when getting the range parameter."
+            (type, value, traceback) = sys.exc_info()
+            print "  The error was:", value
+            sys.stderr.write(usage)
+            sys.exit(0)
+    elif option[0] == '--dest-title':
+        title = option[1]
+    elif option[0] == '--dont-copy-userattrs':
+        copyuserattrs = 0
+    elif option[0] == '--non-recursive':
+        recursive = 0
+    elif option[0] == '--overwrite-nodes':
+        overwrtnodes = 1
+    elif option[0] == '--keep-source-filters':
+        keepfilters = 1
+    elif option[0] == '--complevel':
+        complevel = int(option[1])
+    elif option[0] == '--complib':
+        complib = option[1]
+    elif option[0] == '--shuffle':
+        shuffle = int(option[1])
+    elif option[0] == '--fletcher32':
+        fletcher32 = int(option[1])
+    else:
+        print option[0], ": Unrecognized option"
+        sys.stderr.write(usage)
+        sys.exit(0)
+        
+# Catch the files passed as the last arguments
+src = pargs[0].split(':')
+dst = pargs[1].split(':')
+if len(src) == 1:
+    srcfile, srcgroup = src[0], "/"
+else:
+    srcfile, srcgroup = src
+if len(dst) == 1:
+    dstfile, dstgroup = dst[0], "/"
+else:
+    dstfile, dstgroup = dst
+        
+# Build the Filters instance
+if ((complevel, complib, shuffle, fletcher32) == (None,)*4 or keepfilters):
+    filters = None
+else:
+    if complevel is None: complevel = 0
+    if complevel > 0 and shuffle is None:
+        shuffle = 1
+    else:
+        shuffle = 0
+    if complib is None: complib = "zlib"
+    if fletcher32 is None: fletcher32 = 0
+    filters = tables.Filters(complevel=complevel, complib=complib,
+                             shuffle=shuffle, fletcher32=fletcher32)
+
+# The start, stop and step params:
+start, stop, step = 0, None, 1  # Defaults
+if rng:
+    start, stop, step = rng.start, rng.stop, rng.step
+
+# Activate Psyco, if needed
+if psyco_imported and usepsyco:
+    psyco.bind(copyFile)
+# Some timing
+t1 = time.time()
+cpu1 = time.clock()
+# Copy the file
+if verbose: 
+    print "+=+"*20
+    print "Recursive copy:", recursive
+    print "Applying filters:", filters
+    print "Starting copying %s:%s to %s:%s" % (srcfile, srcgroup,
+                                               dstfile, dstgroup)
+    print "+=+"*20
+    
+ngroups, nleafs = copyChilds(srcfile, dstfile, srcgroup, dstgroup,
+                             title=title, recursive=recursive, 
+                             filters=filters, copyuserattrs=copyuserattrs,
+                             overwrite=overwrite, overwrtnodes=overwrtnodes,
+                             start=start, stop=stop, step=step)
+t2 = time.time()
+cpu2 = time.clock()
+tcopy = round(t2-t1, 3)
+cpucopy = round(cpu2-cpu1, 3)
+tpercent = int(round(cpucopy/tcopy, 2)*100)
+sizedst = os.stat(dstfile)[6]  # The size of the destination file
+if verbose:
+    print "Groups copied:", ngroups, " Leaves copied:", nleafs
+    if copyuserattrs:
+        print "User attrs copied"
+    else:
+        print "User attrs not copied"
+    print "Time copying: %s s (real) %s s (cpu)  %s%%" % \
+          (tcopy, cpucopy, tpercent)
+    print "Copied nodes/sec: ", round((ngroups+nleafs) / float(tcopy),1)
+    print "Copied KB/s :", int(sizedst / (tcopy * 1024))
+

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.41 2004/02/09 18:54:11 falted Exp $
+#       $Id: Leaf.py,v 1.42 2004/02/10 16:36:52 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.41 $"
+__version__ = "$Revision: 1.42 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -56,7 +56,8 @@ class Filters:
             is the default.
 
         complib -- Specifies the compression library to be used. Right
-            now, "zlib", "lzo" and "ucl" values are supported.
+            now, "zlib", "lzo" and "ucl" values are supported. If None,
+            then "zlib" is choosed.
 
         shuffle -- Whether or not to use the shuffle filter in the
             HDF5 library. This is normally used to improve the
@@ -72,6 +73,8 @@ class Filters:
             the default.
 
             """
+        if complib is None:
+            complib = "zlib"
         if complib not in ["zlib","lzo","ucl"]:
             raise ValueError, "Wrong \'complib\' parameter value: '%s'. It only can take the values: 'zlib', 'lzo' and 'ucl'." %  (str(complib))
         if shuffle and not complevel:
@@ -305,21 +308,21 @@ class Leaf:
 #         # return the new object
 #         return fileh.getNode(parent, origname)
 
-    def copy(self, where, name, start=0, stop=None, step=1,
-             title=None, filters=None, copyuserattrs=1):
+    def copy(self, where, name, title=None, filters=None, copyuserattrs=1,
+             start=0, stop=None, step=1):
         """Copy this leaf to other location
 
         where -- the group where the leaf will be copied.
         name -- the name of the new leaf.
-        start -- the row to start copying.
-        stop -- the row to cease copying. None means last row.
-        step -- the increment of the row number during the copy
         title -- the new title for destination. If None, the original
             title is kept.
         filters -- An instance of the Filters class. A None value means
             that the source properties are copied as is.
         copyuserattrs -- Whether copy the user attributes of the source leaf
             to the destination or not. The default is copy them.
+        start -- the row to start copying.
+        stop -- the row to cease copying. None means last row.
+        step -- the increment of the row number during the copy
 
         """
 

@@ -947,6 +947,13 @@ class CopyTestCase(unittest.TestCase):
         array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
         array1.append(array([[456, 2],[3, 457]], type=Int16))
 
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            
         # Copy it to another location
         array2 = array1.copy('/', 'array2')
 
@@ -998,6 +1005,13 @@ class CopyTestCase(unittest.TestCase):
         array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
         array1.append(array([[456, 2],[3, 457]], type=Int16))
 
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            
         # Copy to another location
         group1 = fileh.createGroup("/", "group1")
         array2 = array1.copy(group1, 'array2')
@@ -1053,6 +1067,13 @@ class CopyTestCase(unittest.TestCase):
         array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
         array1.append(array([[456, 2],[3, 457]], type=Int16))
 
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            
         # Copy to another location
         array2 = array1.copy('/', 'array2')
 
@@ -1097,6 +1118,13 @@ class CopyTestCase(unittest.TestCase):
         array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
         array1.append(((456, 2),(3, 457)))
 
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            
         # Copy to another location
         array2 = array1.copy('/', 'array2')
 
@@ -1143,6 +1171,13 @@ class CopyTestCase(unittest.TestCase):
         array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
         array1.append([[456, 2],[3, 457]])
 
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            
         # Copy to another location
         array2 = array1.copy('/', 'array2')
 
@@ -1189,6 +1224,13 @@ class CopyTestCase(unittest.TestCase):
         array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
         array1.append([["456", "2"],["3", "457"]])
 
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            
         # Copy to another location
         array2 = array1.copy('/', 'array2')
 
@@ -1236,6 +1278,13 @@ class CopyTestCase(unittest.TestCase):
         array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
         array1.append(strings.array([["456", "2"],["3", "457"]], itemsize=4))
 
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            
         # Copy to another location
         array2 = array1.copy('/', 'array2')
 
@@ -1285,6 +1334,14 @@ class CopyTestCase(unittest.TestCase):
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            
         # Copy it to another Array
         array2 = array1.copy('/', 'array2', title="title array2")
 
@@ -1323,6 +1380,14 @@ class CopyTestCase(unittest.TestCase):
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            
         # Copy it to another Array
         array2 = array1.copy('/', 'array2', copyuserattrs=1)
 
@@ -1364,6 +1429,14 @@ class CopyTestCase(unittest.TestCase):
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            
         # Copy it to another Array
         array2 = array1.copy('/', 'array2', copyuserattrs=0)
 
@@ -1417,6 +1490,13 @@ class CopyIndexTestCase(unittest.TestCase):
         # Select a different buffer size:
         array1._v_maxTuples = self.maxTuples
         
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            
         # Copy to another array
         array2 = array1.copy("/", 'array2',
                              start=self.start,
@@ -1461,6 +1541,14 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Select a different buffer size:
         array1._v_maxTuples = self.maxTuples
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            
         # Copy to another array
         array2 = array1.copy("/", 'array2',
                              start=self.start,

@@ -1601,6 +1601,13 @@ class CopyTestCase(unittest.TestCase):
         array1.append()  # an empty row
         array1.append([[3, 457],[2,4]])
 
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            array1 = fileh.root.array1
+
         # Copy it to another location
         array2 = array1.copy('/', 'array2')
 
@@ -1628,6 +1635,8 @@ class CopyTestCase(unittest.TestCase):
         assert array1.atom.flavor == array2.atom.flavor
         assert array1.atom.type == array2.atom.type
         assert array1.atom.itemsize == array2.atom.itemsize
+        assert repr(array1.atom) == repr(array1.atom)
+
         assert array1.title == array2.title
 
         # Close the file
@@ -1651,6 +1660,13 @@ class CopyTestCase(unittest.TestCase):
         array1.append([[2,3]])
         array1.append()  # an empty row
         array1.append([[3, 457],[2,4]])
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            array1 = fileh.root.array1
 
         # Copy to another location
         group1 = fileh.createGroup("/", "group1")
@@ -1680,6 +1696,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.atom.flavor == array2.atom.flavor
         assert array1.atom.type == array2.atom.type
         assert array1.atom.itemsize == array2.atom.itemsize
+        assert repr(array1.atom) == repr(array1.atom)
         assert array1.title == array2.title
 
         # Close the file
@@ -1708,6 +1725,13 @@ class CopyTestCase(unittest.TestCase):
         array1.append()  # an empty row
         array1.append([[3, 457],[2,4]])
             
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            array1 = fileh.root.array1
+
         # Copy to another location
         array2 = array1.copy('/', 'array2')
 
@@ -1729,6 +1753,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.atom.flavor == array2.atom.flavor  # Very important here
         assert array1.atom.type == array2.atom.type
         assert array1.atom.itemsize == array2.atom.itemsize
+        assert repr(array1.atom) == repr(array1.atom)
         assert array1.title == array2.title
 
         # Close the file
@@ -1754,6 +1779,13 @@ class CopyTestCase(unittest.TestCase):
         array1.append()  # an empty row
         array1.append(((3, 457),(2,4)))
             
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            array1 = fileh.root.array1
+
         # Copy to another location
         array2 = array1.copy('/', 'array2')
 
@@ -1775,6 +1807,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.atom.flavor == array2.atom.flavor  # Very important here
         assert array1.atom.type == array2.atom.type
         assert array1.atom.itemsize == array2.atom.itemsize
+        assert repr(array1.atom) == repr(array1.atom)
         assert array1.title == array2.title
 
         # Close the file
@@ -1802,6 +1835,13 @@ class CopyTestCase(unittest.TestCase):
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            array1 = fileh.root.array1
 
         # Copy it to another Array
         array2 = array1.copy('/', 'array2', title="title array2")
@@ -1844,6 +1884,14 @@ class CopyTestCase(unittest.TestCase):
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            array1 = fileh.root.array1
+
         # Copy it to another Array
         array2 = array1.copy('/', 'array2', copyuserattrs=1)
 
@@ -1888,6 +1936,14 @@ class CopyTestCase(unittest.TestCase):
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            array1 = fileh.root.array1
+
         # Copy it to another Array
         array2 = array1.copy('/', 'array2', copyuserattrs=0)
 
@@ -1941,6 +1997,13 @@ class CopyIndexTestCase(unittest.TestCase):
             r.append([[row, row+1]])
             array1.append([row, row+1])
         
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            array1 = fileh.root.array1
+
         # Copy to another array
         array2 = array1.copy("/", 'array2',
                              start=self.start,
@@ -1984,6 +2047,12 @@ class CopyIndexTestCase(unittest.TestCase):
             r.append(([row, row+1],))
             array1.append([row, row+1])
         
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            array1 = fileh.root.array1
 
         # Copy to another array
         array2 = array1.copy("/", 'array2',
@@ -2014,61 +2083,73 @@ class CopyIndexTestCase(unittest.TestCase):
         os.remove(file)
 
 class CopyIndex1TestCase(CopyIndexTestCase):
+    close = 0
     start = 0
     stop = 7
     step = 1
 
 class CopyIndex2TestCase(CopyIndexTestCase):
+    close = 1
     start = 0
     stop = -1
     step = 1
 	
 class CopyIndex3TestCase(CopyIndexTestCase):
+    close = 0
     start = 1
     stop = 7
     step = 1
 
 class CopyIndex4TestCase(CopyIndexTestCase):
+    close = 1
     start = 0
     stop = 6
     step = 1
 
 class CopyIndex5TestCase(CopyIndexTestCase):
+    close = 0
     start = 3
     stop = 7
     step = 1
 
 class CopyIndex6TestCase(CopyIndexTestCase):
+    close = 1
     start = 3
     stop = 6
     step = 2
 
 class CopyIndex7TestCase(CopyIndexTestCase):
+    close = 0
     start = 0
     stop = 7
     step = 10
 
 class CopyIndex8TestCase(CopyIndexTestCase):
+    close = 1
     start = 6
     stop = -1  # Negative values means starting from the end
     step = 1
 
 class CopyIndex9TestCase(CopyIndexTestCase):
+    close = 0
     start = 3
     stop = 4
     step = 1
 
 class CopyIndex10TestCase(CopyIndexTestCase):
+    close = 1
     start = 3
     stop = 4
     step = 2
 
 class CopyIndex11TestCase(CopyIndexTestCase):
+    close = 0
     start = -3
     stop = -1
     step = 2
 
 class CopyIndex12TestCase(CopyIndexTestCase):
+    close = 1
     start = -1   # Should point to the last element
     stop = None  # None should mean the last element (including it)
     step = 1

@@ -1,4 +1,22 @@
-#!/usr/bin/env python2.3
+#!/usr/bin/env python
+#  Ei!, emacs, this is -*-Python-*- mode
+########################################################################
+#
+#       License: BSD
+#       Created: February 10, 2004
+#       Author:  Francesc Alted - falted@openlc.org
+#
+#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/examples/Attic/ptdump,v $
+#       $Id: ptdump,v 1.1 2004/02/10 16:36:52 falted Exp $
+#
+########################################################################
+
+"""This utility lets you look into the data and metada of your data files.
+
+Pass the flag -h to this for help on usage.
+
+"""
+
 
 from tables import *
 
@@ -7,14 +25,15 @@ if __name__=="__main__":
     import getopt
 
     usage = \
-"""usage: %s [-v] [-d] file
-  -v means dumping Table and Array attributes
+"""usage: %s [-h] [-d] [-v] file
   -d means detailed information divided in Groups, Arrays and Tables
+  -h prints help on usage
+  -v means dumping Table and Array attributes
             \n""" \
     % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'vd')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'hdv')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -30,10 +49,17 @@ if __name__=="__main__":
 
     # Get the options
     for option in opts:
-        if option[0] == '-v':
+        if option[0] == '-h':
+            sys.stderr.write(usage)
+            sys.exit(0)
+        elif option[0] == '-v':
             verbose = 1
-        if option[0] == '-d':
+        elif option[0] == '-d':
             detailed = 1
+        else:
+            print option[0], ": Unrecognized option"
+            sys.stderr.write(usage)
+            sys.exit(0)
 
     # Catch the hdf5 file passed as the last argument
     file = pargs[0]

@@ -4,16 +4,17 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.76 2004/02/09 18:54:11 falted Exp $
+#       $Id: File.py,v 1.77 2004/02/10 16:36:52 falted Exp $
 #
 ########################################################################
 
-"""Open PyTables files and create the object tree (if needed).
+"""Create PyTables files and the object tree.
 
-This module support HDF5 files, on top of which PyTables files are
-created, read or extended. If a file exists, an object tree mirroring
-their hierarchical structure is created in memory. File class offer
-methods to traverse the tree, as well as to create new nodes.
+This module support importing generic HDF5 files, on top of which
+PyTables files are created, read or extended. If a file exists, an
+object tree mirroring their hierarchical structure is created in
+memory. File class offer methods to traverse the tree, as well as to
+create new nodes.
 
 Classes:
 
@@ -33,7 +34,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.76 $"
+__version__ = "$Revision: 1.77 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -808,6 +809,7 @@ class File(hdf5Extension.File, object):
             raise IOError, "The file '%s' already exists and will not be overwritten. Assert the overwrite parameter if you want overwrite it." % (dstFilename)
 
         if title == None: title = self.title
+        if title == None: title = ""  # If still None, then set to empty string
         if filters == None: filters = self.filters
         dstFileh = openFile(dstFilename, mode="w", title=title)
         # Copy the user attributes of the root group
@@ -937,16 +939,15 @@ class File(hdf5Extension.File, object):
         
         # Print all the nodes (Group and Leaf objects) on object tree
         date = time.asctime(time.localtime(os.stat(self.filename)[8]))
-#         astring = "Filename: " + repr(self.filename) + \
-#                   " Title: " + repr(self.title) + \
-#                   " Last modif.: " + repr(date) + \
-#                   '\n'
         astring = "Filename: " + repr(self.filename) + ' '
         if self.title <> "unknown":
             astring += "Title: '"+self.title+"'" + ' '
-        astring += "Last modif.: " + repr(date) + ' '
+        astring += ", Last modif.: " + repr(date) + ' '
+        astring += ', rootUEP=' + repr(self.rootUEP)
+        astring += ', filters=' + repr(self.filters)
+
         if self.format_version <> "unknown":
-            astring += " Format version: " + self.format_version + '\n'
+            astring += ", Format version: " + self.format_version + '\n'
 
         for group in self.walkGroups("/"):
             astring += str(group) + '\n'

@@ -3645,9 +3645,15 @@ AttributeError: Error setting "ADCcount" attr.
 	  <heading><visual markup="tt">Leaf</visual> methods</heading>
 
 	  <subsubsection>
-	    <heading id="copyLeafDescr">copy(where, name, start=0,
-             stop=None, step=1, title=None, filters=None,
-             copyuserattrs=1)</heading>
+
+	    <!-- Modif F. Alted 2004-2-10 -->
+
+	    <heading id="copyLeafDescr">copy(where, name, title=None,
+             filters=None, copyuserattrs=1, start=0, stop=None,
+             step=1)
+	    </heading>
+
+	    <!-- end of Modif F. Alted 2004-2-10 -->
 
 	    <p>Copy this leaf into another location. The meaning of
 	      the parameters is explained below:

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.68 2004/02/09 18:54:11 falted Exp $
+#       $Id: Group.py,v 1.69 2004/02/10 16:36:52 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.68 $"
+__version__ = "$Revision: 1.69 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -211,7 +211,7 @@ class Group(hdf5Extension.Group, object):
             class_ = hdf5Extension.whichClass(self._v_objectID, name)
             if class_ == "UNSUPPORTED":
                 warnings.warn( \
-"Leaf object '%s' in file is unsupported. Will become UnImplemented type." % \
+"Leaf object '%s' in file is unsupported and will become <UnImplemented> type." % \
 self._g_join(name), UserWarning)
                 return None
         if class_ == "TABLE":
@@ -224,7 +224,7 @@ self._g_join(name), UserWarning)
             return VLArray()
         else:
             warnings.warn( \
-"Class ID '%s' for Leaf %s is unknown. Will become UnImplemented type." % \
+"Class ID '%s' for Leaf %s is unknown and will become <UnImplemented> type." % \
 (class_, self._g_join(name)), UserWarning)
             return None
 
@@ -591,7 +591,7 @@ self._g_join(name), UserWarning)
         setattr(self._v_attrs, attrname, attrvalue)
 
     def _f_rename(self, newname):
-        """Rename an HDF5 group"""
+        """Rename a group"""
 
         # Check for name validity
         checkNameValidity(newname)
@@ -606,7 +606,7 @@ self._g_join(name), UserWarning)
         self._v_parent._g_renameNode(oldname, newname)
         
     def _f_remove(self, recursive=0):
-        """Remove this HDF5 group"""
+        """Remove this group"""
         
         if self._v_childs <> {}:
             if recursive:
@@ -630,8 +630,8 @@ self._g_join(name), UserWarning)
             self._f_close()
             self._g_deleteGroup()
 
-    def _f_copyChilds(self, where, recursive=0, filters=None,
-                      copyuserattrs=1):
+    def _f_copyChilds(self, where, recursive=0, filters=None, copyuserattrs=1,
+                      overwrite = 0, start=0, stop=None, step=1):
         "(Recursively) Copy a group into another location"
 
         # Get the base names of the source
@@ -666,33 +666,63 @@ self._g_join(name), UserWarning)
                     lenDstName = len(dstName)+1  # To include the trailing '/'
                     endGName = group._v_pathname[lenSrcBasePath:-lenDstName]
                     parentDstPath = dstBaseGroup._g_join(endGName)
-                    dstGroup = dstFile.createGroup(parentDstPath, dstName,
-                                                   title=group._v_title,
+                    title = group._v_title
+                    if title is None: title = ""
+                    # Check whether we have to delete the group before copying
+                    parentDstGroup = dstFile.getNode(parentDstPath)
+                    if hasattr(parentDstGroup, dstName) and overwrite:
+                        dstGroup = getattr(parentDstGroup, dstName)
+                        dstGroup._f_remove(recursive=1)
+                    dstGroup = dstFile.createGroup(parentDstGroup, dstName,
+                                                   title=title,
                                                    filters=filters)
                     if copyuserattrs:
                         group._v_attrs._f_copy(dstGroup)
                         depth = group._v_depth
                     ngroups += 1
                 for leaf in group._f_listNodes('Leaf'):
-                    leaf.copy(dstGroup, leaf.name, title=leaf.title,
+                    title = leaf.title
+                    if title is None: title = ""
+                    # Check whether we have to delete the leaf before copying
+                    if hasattr(dstGroup, leaf.name) and overwrite:
+                        dstLeaf = getattr(dstGroup,leaf.name)
+                        dstLeaf.remove()
+                    leaf.copy(dstGroup, leaf.name, title=title,
                               filters=filters,
-                              copyuserattrs=copyuserattrs)
+                              copyuserattrs=copyuserattrs,
+                              start=start,
+                              stop=stop,
+                              step=step)
                     nleafs +=1
         else:
             # Non recursive copy
             # First, copy groups
             for group in self._f_listNodes('Group'):
+                title = group._v_title
+                if title is None: title = ""
+                if hasattr(dstBaseGroup, group._v_name) and overwrite:
+                    dstGroup = getattr(dstBaseGroup, group._v_name)
+                    dstGroup._f_remove(recursive=1)
                 dstGroup = dstFile.createGroup(dstBaseGroup, group._v_name,
-                                               title=group._v_title,
+                                               title=title,
                                                filters=filters)
                 if copyuserattrs:
                     group._v_attrs._f_copy(dstGroup)
                 ngroups +=1
             # Then, leafs
             for leaf in self._f_listNodes('Leaf'):
-                leaf.copy(dstBaseGroup, leaf.name, title=leaf.title,
+                title = leaf.title
+                if title is None: title = ""
+                # Check whether we have to delete the leaf before copying
+                if hasattr(dstBaseGroup, leaf.name) and overwrite:
+                    dstLeaf = getattr(dstBaseGroup, leaf.name)
+                    dstLeaf.remove()
+                leaf.copy(dstBaseGroup, leaf.name, title=title,
                           filters=filters,
-                          copyuserattrs=copyuserattrs)
+                          copyuserattrs=copyuserattrs,
+                          start=start,
+                          stop=stop,
+                          step=step)
                 nleafs +=1
         # return the number of objects copied
         return (ngroups, nleafs)

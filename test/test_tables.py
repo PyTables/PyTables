@@ -1218,6 +1218,13 @@ class CopyTestCase(unittest.TestCase):
         # Save it in a table:
         table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
 
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            table1 = fileh.root.table1
+            
         # Copy to another table
         table2 = table1.copy('/', 'table2')
 
@@ -1225,7 +1232,7 @@ class CopyTestCase(unittest.TestCase):
             if verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = openFile(file, mode = "a")
             table1 = fileh.root.table1
             table2 = fileh.root.table2
 
@@ -1253,6 +1260,8 @@ class CopyTestCase(unittest.TestCase):
         assert table1.colnames == table2.colnames
         assert table1.coltypes == table2.coltypes
         assert table1.colshapes == table2.colshapes
+        assert repr(table1.description) == repr(table2.description)
+        
         # This could be not the same when re-opening the file
         #assert table1.description._v_ColObjects == table2.description._v_ColObjects
         # Leaf attributes
@@ -1282,6 +1291,13 @@ class CopyTestCase(unittest.TestCase):
         # Save it in a table:
         table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
 
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            table1 = fileh.root.table1
+            
         # Copy to another table in another group
         group1 = fileh.createGroup("/", "group1")
         table2 = table1.copy(group1, 'table2')
@@ -1314,6 +1330,8 @@ class CopyTestCase(unittest.TestCase):
         assert table1.colnames == table2.colnames
         assert table1.coltypes == table2.coltypes
         assert table1.colshapes == table2.colshapes
+        assert repr(table1.description) == repr(table2.description)
+
         # Leaf attributes
         assert table1.title == table2.title
         assert table1.filters.complevel == table2.filters.complevel
@@ -1346,6 +1364,13 @@ class CopyTestCase(unittest.TestCase):
         # Save it in a table:
         table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
         
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            table1 = fileh.root.table1
+            
         # Copy to another table in another group and other title
         group1 = fileh.createGroup("/", "group1")
         table1._v_maxTuples = 2  # small value of buffer
@@ -1376,6 +1401,8 @@ class CopyTestCase(unittest.TestCase):
         assert table1.colnames == table2.colnames
         assert table1.coltypes == table2.coltypes
         assert table1.colshapes == table2.colshapes
+        assert repr(table1.description) == repr(table2.description)
+                
         # Leaf attributes
         assert "title table2" == table2.title
         assert table1.filters.complevel == table2.filters.complevel
@@ -1403,6 +1430,13 @@ class CopyTestCase(unittest.TestCase):
         # Save it in a table:
         table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
 
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            table1 = fileh.root.table1
+            
         # Copy to another table in another group
         group1 = fileh.createGroup("/", "group1")
         table2 = table1.copy(group1, 'table2',
@@ -1436,6 +1470,8 @@ class CopyTestCase(unittest.TestCase):
         assert table1.colnames == table2.colnames
         assert table1.coltypes == table2.coltypes
         assert table1.colshapes == table2.colshapes
+        assert repr(table1.description) == repr(table2.description)
+
         # Leaf attributes
         assert table1.title == table2.title
         assert 6 == table2.filters.complevel
@@ -1465,6 +1501,14 @@ class CopyTestCase(unittest.TestCase):
         # Add some user attributes
         table1.attrs.attr1 = "attr1"
         table1.attrs.attr2 = 2
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            table1 = fileh.root.table1
+            
         # Copy to another table in another group
         group1 = fileh.createGroup("/", "group1")
         table2 = table1.copy(group1, 'table2',
@@ -1497,6 +1541,8 @@ class CopyTestCase(unittest.TestCase):
         assert table1.colnames == table2.colnames
         assert table1.coltypes == table2.coltypes
         assert table1.colshapes == table2.colshapes
+        assert repr(table1.description) == repr(table2.description)
+
         # Leaf attributes
         assert table1.title == table2.title
         assert 6 == table2.filters.complevel
@@ -1529,6 +1575,14 @@ class CopyTestCase(unittest.TestCase):
         # Add some user attributes
         table1.attrs.attr1 = "attr1"
         table1.attrs.attr2 = 2
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            table1 = fileh.root.table1
+            
         # Copy to another table in another group
         group1 = fileh.createGroup("/", "group1")
         table2 = table1.copy(group1, 'table2',
@@ -1561,6 +1615,8 @@ class CopyTestCase(unittest.TestCase):
         assert table1.colnames == table2.colnames
         assert table1.coltypes == table2.coltypes
         assert table1.colshapes == table2.colshapes
+        assert repr(table1.description) == repr(table2.description)
+
         # Leaf attributes
         assert table1.title == table2.title
         assert 6 == table2.filters.complevel
@@ -1602,6 +1658,13 @@ class CopyIndexTestCase(unittest.TestCase):
         # Save it in a table:
         table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
         
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            table1 = fileh.root.table1
+            
         # Copy to another table
         table1._v_maxTuples = self.maxTuples
         table2 = table1.copy("/", 'table2',
@@ -1651,6 +1714,13 @@ class CopyIndexTestCase(unittest.TestCase):
         # Save it in a table:
         table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
         
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            table1 = fileh.root.table1
+            
         # Copy to another table
         table1._v_maxTuples = self.maxTuples
         table2 = table1.copy("/", 'table2',
@@ -1688,72 +1758,84 @@ class CopyIndexTestCase(unittest.TestCase):
 
 class CopyIndex1TestCase(CopyIndexTestCase):
     maxTuples = 2
+    close = 1
     start = 0
     stop = 7
     step = 1
 
 class CopyIndex2TestCase(CopyIndexTestCase):
     maxTuples = 2
+    close = 0
     start = 0
     stop = -1
     step = 1
 
 class CopyIndex3TestCase(CopyIndexTestCase):
     maxTuples = 3
+    close = 1
     start = 1
     stop = 7
     step = 1
 
 class CopyIndex4TestCase(CopyIndexTestCase):
     maxTuples = 4
+    close = 0
     start = 0
     stop = 6
     step = 1
 
 class CopyIndex5TestCase(CopyIndexTestCase):
     maxTuples = 2
+    close = 1
     start = 3
     stop = 7
     step = 1
 
 class CopyIndex6TestCase(CopyIndexTestCase):
     maxTuples = 2
+    close = 0
     start = 3
     stop = 6
     step = 2
 
 class CopyIndex7TestCase(CopyIndexTestCase):
     maxTuples = 2
+    close = 1
     start = 0
     stop = 7
     step = 10
 
 class CopyIndex8TestCase(CopyIndexTestCase):
     maxTuples = 2
+    close = 0
     start = 6
     stop = 3
     step = 1
 
 class CopyIndex9TestCase(CopyIndexTestCase):
     maxTuples = 2
+    close = 1
     start = 3
     stop = 4
     step = 1
 
 class CopyIndex10TestCase(CopyIndexTestCase):
     maxTuples = 1
+    close = 0
     start = 3
     stop = 4
     step = 2
 
 class CopyIndex11TestCase(CopyIndexTestCase):
     maxTuples = 2
+    close = 1
     start = -3
     stop = -1
     step = 2
 
 class CopyIndex12TestCase(CopyIndexTestCase):
     maxTuples = 3
+    close = 0
     start = -1   # Should point to the last element
     stop = None  # None should mean the last element (including it)
     step = 1
@@ -1865,6 +1947,7 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
+    #theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
