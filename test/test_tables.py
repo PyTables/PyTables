@@ -20,6 +20,7 @@ class Record(IsDescription):
     var5 = Float32Col(4.2)                      # float  (single-precision)
     var6 = UInt16Col(5)                         # unsigned short integer 
     var7 = StringCol(length=1, dflt="e")        # 1-character String
+    var8 = BoolCol(1)                           # boolean
 
 # From 0.3 on, you can dynamically define the tables with a dictionary
 RecordDescriptionDict = {
@@ -30,6 +31,7 @@ RecordDescriptionDict = {
     'var5': Float32Col(4.2),                    # float  (single-precision)
     'var6': UInt16Col(5),                       # unsigned short integer 
     'var7': StringCol(1, "e"),                  # 1-character String
+    'var8': BoolCol(1),                         # boolean
     }
 
 # Old fashion of defining tables (for testing backward compatibility)
@@ -41,6 +43,7 @@ class OldRecord(IsDescription):
     var5 = Col("Float32", 1, 4.2)            # float  (single-precision)
     var6 = Col("UInt16", 1, 5)                # unisgned short integer 
     var7 = Col("CharType", shape=1, dflt="e")      # 1-character String
+    var8 = Col("Bool", shape=1, dflt=1)      # boolean
 
 def allequal(a,b):
     """Checks if two numarrays are equal"""
@@ -110,6 +113,10 @@ class BasicTestCase(unittest.TestCase):
             tmplist.append(((var3>>8) & 0xff) + ((var3<<8) & 0xff00))
             var7 = var1[-1]
             tmplist.append(var7)
+            if isinstance(row.field('var8'), NumArray):
+                tmplist.append([0, 10])  # should be equivalent to [0,1]
+            else:
+                tmplist.append(10) # should be equivalent to 1
             buflist.append(tmplist)
 
         self.record=records.array(buflist, formats=record._formats,
@@ -144,6 +151,10 @@ class BasicTestCase(unittest.TestCase):
                         row['var4'] = [float(i), float(i*i)]
                     else:
                         row['var4'] = float(i)
+                    if isinstance(row['var8'], NumArray):
+                        row['var8'] = [0, 1]
+                    else:
+                        row['var8'] = 1
                     if isinstance(row['var5'], NumArray):
                         row['var5'] = array((float(i),)*4)
                     else:
@@ -261,6 +272,10 @@ class BasicTestCase(unittest.TestCase):
                 row['var4'] = [float(i), float(i*i)]
             else:
                 row['var4'] = float(i)
+            if isinstance(row['var8'], NumArray):
+                row['var8'] = [0, 1]
+            else:
+                row['var8'] = 1
             if isinstance(row['var5'], NumArray):
                 row['var5'] = array((float(i),)*4)
             else:
@@ -446,6 +461,10 @@ class BasicTestCase(unittest.TestCase):
                 row['var4'] = [float(i), float(i*i)]
             else:
                 row['var4'] = float(i)
+            if isinstance(row['var8'], NumArray):
+                row['var8'] = [0, 1]
+            else:
+                row['var8'] = 1
             if isinstance(row['var5'], NumArray):
                 row['var5'] = array((float(i),)*4)
             else:
@@ -490,23 +509,23 @@ class DictWriteTestCase(BasicTestCase):
 
 class RecArrayOneWriteTestCase(BasicTestCase):
     title = "RecArrayOneWrite"
-    record=records.array(formats="a4,i4,i2,2f8,f4,i2,a1",
-                         names='var1,var2,var3,var4,var5,var6,var7')
+    record=records.array(formats="a4,i4,i2,2f8,f4,i2,a1,b1",
+                         names='var1,var2,var3,var4,var5,var6,var7,var8')
 
 class RecArrayTwoWriteTestCase(BasicTestCase):
     title = "RecArrayTwoWrite"
     expectedrows = 100
     recarrayinit = 1
-    recordtemplate=records.array(formats="a4,i4,i2,f8,f4,i2,a1",
-                                 names='var1,var2,var3,var4,var5,var6,var7',
+    recordtemplate=records.array(formats="a4,i4,i2,f8,f4,i2,a1,b1",
+                                 names='var1,var2,var3,var4,var5,var6,var7,var8',
                                  shape=1)
 
 class RecArrayThreeWriteTestCase(BasicTestCase):
     title = "RecArrayThreeWrite"
     expectedrows = 100
     recarrayinit = 1
-    recordtemplate=records.array(formats="a4,i4,i2,2f8,4f4,i2,a1",
-                                  names='var1,var2,var3,var4,var5,var6,var7',
+    recordtemplate=records.array(formats="a4,i4,i2,2f8,4f4,i2,a1,b1",
+                                  names='var1,var2,var3,var4,var5,var6,var7,var8',
                                   shape=1)
 
 class CompressLZOTablesTestCase(BasicTestCase):
@@ -534,8 +553,6 @@ class BigTablesTestCase(BasicTestCase):
     title = "BigTables"
     expectedrows = 10000
     appendrows = 1000
-    #expectedrows = 100
-    #appendrows = 10
 
 
 class BasicRangeTestCase(unittest.TestCase):
@@ -1106,8 +1123,8 @@ class DefaultValues(unittest.TestCase):
         table.flush()
 
         # Create a recarray with the same default values
-        r=records.array([["abcd", 1, 2, 3.1, 4.2, 5, "e"]]*nrows,
-                          formats='a4,i4,i2,f8,f4,i2,a1')
+        r=records.array([["abcd", 1, 2, 3.1, 4.2, 5, "e", 1]]*nrows,
+                          formats='a4,i4,i2,f8,f4,i2,a1,b1')
         
         # Assign the value exceptions
         r.field("c2")[3] = 2 
@@ -1119,7 +1136,7 @@ class DefaultValues(unittest.TestCase):
 
         # This generates too much output. Activate only when
         # self._v_maxTuples is very small (<10)
-        if verbose and 0:
+        if verbose and 1:
             print "Table values:"
             for row in table.iterrows():
                 print row
@@ -1143,6 +1160,9 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
+    #theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
+    #theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
+    #theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
     #theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
     #theSuite.addTest(unittest.makeSuite(CompressUCLTablesTestCase))
@@ -1152,7 +1172,9 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
     #theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
-    #theSuite.addTest(unittest.makeSuite(LargeRowSize))
+    #theSuite.addTest(unittest.makeSuite(LargeRowSize)) 
+    #theSuite.addTest(unittest.makeSuite(DefaultValues))
+    #theSuite.addTest(unittest.makeSuite(OldRecordDefaultValues))
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))

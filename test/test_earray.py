@@ -9,7 +9,6 @@ import tempfile
 from numarray import *
 from numarray import strings
 from tables import *
-import Numeric
 
 try:
     import Numeric
@@ -200,7 +199,7 @@ class BasicTestCase(unittest.TestCase):
                         object__ = object__.astype(typecode[earray.type])
             object = object__[chunk]
             # The next adds much more verbosity
-            if verbose and 1:
+            if verbose and 0:
                 print "number of row ==>", earray.nrow
                 if hasattr(object, "shape"):
                     print "shape should look as:", object.shape
@@ -700,9 +699,10 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CharTypeTestCase))    
         theSuite.addTest(unittest.makeSuite(CharType2TestCase))    
         theSuite.addTest(unittest.makeSuite(CharTypeComprTestCase))
-        theSuite.addTest(unittest.makeSuite(Numeric1TestCase))
-        theSuite.addTest(unittest.makeSuite(Numeric2TestCase))
-        theSuite.addTest(unittest.makeSuite(NumericComprTestCase))
+        if numeric:
+            theSuite.addTest(unittest.makeSuite(Numeric1TestCase))
+            theSuite.addTest(unittest.makeSuite(Numeric2TestCase))
+            theSuite.addTest(unittest.makeSuite(NumericComprTestCase))
 
     return theSuite
 

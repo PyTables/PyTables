@@ -6,7 +6,6 @@ import unittest
 import os
 import tempfile
 
-#import numarray
 from numarray import *
 import numarray.strings as strings
 from tables import *
@@ -45,6 +44,7 @@ class C:
 class BasicTestCase(unittest.TestCase):
     compress = 0
     complib = "zlib"
+    flavor = "NumArray"
 
     def setUp(self):
 
@@ -58,7 +58,8 @@ class BasicTestCase(unittest.TestCase):
 
     def populateFile(self):
         group = self.rootgroup
-        vlarray = self.fileh.createVLArray(group, 'vlarray1', Int32Atom(),
+        vlarray = self.fileh.createVLArray(group, 'vlarray1',
+                                           Int32Atom(flavor=self.flavor),
                                            "ragged array if ints",
                                            compress = self.compress,
                                            complib = self.complib,
@@ -66,7 +67,12 @@ class BasicTestCase(unittest.TestCase):
 
         # Fill it with 4 rows
         vlarray.append(1, 2)
-        vlarray.append(array([3, 4, 5]))
+        if self.flavor == "NumArray":
+            vlarray.append(array([3, 4, 5]))
+        elif self.flavor == "Numeric":
+            vlarray.append(Numeric.array([3, 4, 5]))
+        elif self.flavor == "Tuple":
+            vlarray.append((3, 4, 5))
         vlarray.append([6, 7, 8, 9])
         vlarray.append(10, 11, 12, 13, 14)
 
@@ -93,12 +99,19 @@ class BasicTestCase(unittest.TestCase):
         # Read the first row:
         row = vlarray.read(0)
         if verbose:
+            print "Flavor:", vlarray.flavor
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row
             
         nrows = 4
         assert nrows == vlarray.nrows
-        assert allequal(row, array([1, 2]))
+        if self.flavor == "NumArray":
+            assert allequal(row, array([1, 2]))
+        elif self.flavor == "Numeric":
+            assert type(row) == type(Numeric.array([1, 2]))
+            assert allequal(row, Numeric.array([1, 2]))
+        elif self.flavor == "Tuple":
+            assert row == (1, 2)
         assert len(row) == 2
 
     def test02_emptyVLArray(self):
@@ -121,21 +134,24 @@ class BasicTestCase(unittest.TestCase):
         # The result should be the empty list
         assert row == []
 
-class BasicWriteTestCase(BasicTestCase):
-    title = "BasicWrite"
+class BasicNumArrayTestCase(BasicTestCase):
+    flavor = "NumArray"
+
+class BasicNumericTestCase(BasicTestCase):
+    flavor = "Numeric"
+
+class BasicTupleTestCase(BasicTestCase):
+    flavor = "Tuple"
 
 class ZlibComprTestCase(BasicTestCase):
-    title = "ZlibCompr"
     compress = 1
     complib = "zlib"
 
 class LZOComprTestCase(BasicTestCase):
-    title = "LZOCompr"
     compress = 1
     complib = "lzo"
 
 class UCLComprTestCase(BasicTestCase):
-    title = "UCLCompr"
     compress = 1
     complib = "ucl"
 
@@ -970,20 +986,26 @@ def suite():
     global numeric
     niter = 1
 
-#     theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
-#     theSuite.addTest(unittest.makeSuite(ZlibComprTestCase))
-#     theSuite.addTest(unittest.makeSuite(LZOComprTestCase))
-#     theSuite.addTest(unittest.makeSuite(UCLComprTestCase))
-#     theSuite.addTest(unittest.makeSuite(TypesNumArrayTestCase))
-#     theSuite.addTest(unittest.makeSuite(MDTypesNumArrayTestCase))
-#     theSuite.addTest(unittest.makeSuite(TupleFlavorTestCase))
-#     theSuite.addTest(unittest.makeSuite(ListFlavorTestCase))
-#     if numeric:
-#         theSuite.addTest(unittest.makeSuite(NumericFlavorTestCase))
-#    theSuite.addTest(unittest.makeSuite(RangeTestCase))
+    # theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
+    #if numeric:
+    #    theSuite.addTest(unittest.makeSuite(BasicNumericTestCase))
+    #theSuite.addTest(unittest.makeSuite(BasicTupleTestCase))
+    #theSuite.addTest(unittest.makeSuite(ZlibComprTestCase))
+    #theSuite.addTest(unittest.makeSuite(LZOComprTestCase))
+    #theSuite.addTest(unittest.makeSuite(UCLComprTestCase))
+    #theSuite.addTest(unittest.makeSuite(TypesNumArrayTestCase))
+    #theSuite.addTest(unittest.makeSuite(MDTypesNumArrayTestCase))
+    #theSuite.addTest(unittest.makeSuite(TupleFlavorTestCase))
+    #theSuite.addTest(unittest.makeSuite(ListFlavorTestCase))
+    #if numeric:
+    #    theSuite.addTest(unittest.makeSuite(NumericFlavorTestCase))
+    #theSuite.addTest(unittest.makeSuite(RangeTestCase))
     
     for n in range(niter):
-        theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
+        theSuite.addTest(unittest.makeSuite(BasicNumArrayTestCase))
+        if numeric:
+            theSuite.addTest(unittest.makeSuite(BasicNumericTestCase))
+        theSuite.addTest(unittest.makeSuite(BasicTupleTestCase))
         theSuite.addTest(unittest.makeSuite(ZlibComprTestCase))
         theSuite.addTest(unittest.makeSuite(LZOComprTestCase))
         theSuite.addTest(unittest.makeSuite(UCLComprTestCase))

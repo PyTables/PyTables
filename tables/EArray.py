@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.1 2003/12/16 11:09:50 falted Exp $
+#       $Id: EArray.py,v 1.2 2003/12/16 12:59:03 falted Exp $
 #
 ########################################################################
 
@@ -27,12 +27,12 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.1 $"
+__version__ = "$Revision: 1.2 $"
 # default version for EARRAY objects
 obversion = "1.0"    # initial version
 
 import types, warnings, sys
-from Leaf import Leaf
+from Array import Array
 from utils import calcBufferSize, processRange
 import hdf5Extension
 import numarray
@@ -45,7 +45,7 @@ try:
 except:
     Numeric_imported = 0
 
-class EArray(Leaf, hdf5Extension.Array, object):
+class EArray(Array, hdf5Extension.Array, object):
     """Represent an homogeneous dataset in HDF5 file.
 
     It enables to create new datasets on-disk from Numeric and
@@ -56,37 +56,42 @@ class EArray(Leaf, hdf5Extension.Array, object):
 
     Methods:
 
-      Common to all leaves:
+      Common to all Leaf's:
         close()
         flush()
         getAttr(attrname)
         rename(newname)
         remove()
         setAttr(attrname, attrvalue)
-        
-      Specific of EArray:
-        append(object)
+
+      Common to all Array's:
         read(start, stop, step)
         iterrows(start, stop, step)
 
+      Specific of EArray:
+        append(object)
+        
     Instance variables:
 
-      Common to all leaves:
+      Common to all Leaf's:
         name -- the leaf node name
         hdf5name -- the HDF5 leaf node name
         title -- the leaf title
         shape -- the leaf shape
         byteorder -- the byteorder of the leaf
-        
-      Specific of EArray:
-      
+
+      Common to all Array's:
+
         type -- The type class for the array.
 
         itemsize -- The size of the atomic items. Specially useful for
             CharArrays.
         
-        flavor -- The object type of this object (Numarray, Numeric, List,
-            Tuple, String, Int of Float).
+        flavor -- The flavor of this object.
+
+      Specific of EArray:
+      
+        extdim -- The enlargeable dimension.
             
         nrows -- The value of the enlargeable dimension.
             
@@ -306,172 +311,6 @@ class EArray(Leaf, hdf5Extension.Array, object):
         (self._v_maxTuples, self._v_chunksize) = \
                    calcBufferSize(self.rowsize, self.nrows, self._v_compress)
 
-    def iterrows(self, start=None, stop=None, step=None):
-        """Iterator over all the rows or a range"""
-
-        return self.__call__(start, stop, step)
-
-    def __call__(self, start=None, stop=None, step=None):
-        """Iterate over all the rows or a range.
-        
-        It returns the same iterator than
-        EArray.iterrows(start, stop, step).
-        It is, therefore, a shorter way of calling iterrows.
-        """
-
-        try:
-            (self._start, self._stop, self._step) = \
-                          processRange(self.nrows, start, stop, step)
-        except IndexError:
-            # If problems with indexes, silently return the null tuple
-            return ()
-        self._initLoop()
-        return self
-        
-    def __iter__(self):
-        """Iterate over all the rows."""
-
-        if not hasattr(self, "_init"):
-            # If the iterator is called directly, assign default variables
-            self._start = 0
-            self._stop = self.nrows
-            self._step = 1
-            # and initialize the loop
-            self._initLoop()
-        return self
-
-    def _initLoop(self):
-        "Initialization for the __iter__ iterator"
-
-        self._nrowsread = self._start
-        self._startb = self._start
-        self._row = -1   # Sentinel
-        self._init = 1    # Sentinel
-        self.nrow = self._start - self._step    # row number
-
-    def next(self):
-        "next() method for __iter__() that is called on each iteration"
-        if self._nrowsread >= self._stop:
-            del self._init
-            raise StopIteration        # end of iteration
-        else:
-            #print "start, stop, step:", self._start, self._stop, self._step
-            # Read a chunk of rows
-            if self._row+1 >= self._v_maxTuples or self._row < 0:
-                self._stopb = self._startb+self._step*self._v_maxTuples
-                # Protection for reading more elements than needed
-                if self._stopb > self._stop:
-                    self._stopb = self._stop
-                self.listarr = self.read(self._startb, self._stopb, self._step)
-                # Swap the axes to easy the return of elements
-                if self.extdim > 0:
-                    if self.flavor == "Numeric":
-                        if Numeric_imported:
-                            self.listarr = Numeric.swapaxes(self.listarr, self.extdim, 0)
-                        else:
-                            # Warn the user
-                            warnings.warn( \
-"""The object on-disk has Numeric flavor, but Numeric is not installed locally. Returning a numarray object instead!.""")
-                            # Default to numarray
-                            self.listarr = swapaxes(self.listarr, self.extdim, 0)
-                    else:
-                        self.listarr.swapaxes(self.extdim, 0)
-                self._row = -1
-                self._startb = self._stopb
-            self._row += 1
-            self.nrow += self._step
-            self._nrowsread += self._step
-            return self.listarr[self._row]
-
-    def __getitem__(self, key):
-        """Returns a table row, table slice or table column.
-
-        It takes different actions depending on the type of the "key"
-        parameter: If "key"is an integer, the corresponding row is
-        returned. If "key" is a slice, the row slice determined by key
-        is returned.
-
-"""
-
-        if isinstance(key, types.IntType):
-            (start, stop, step) = (key, key+1, 1)
-            ret = self.read(start, stop, step)
-        elif isinstance(key, types.SliceType):
-            (start, stop, step) = processRange(self.nrows, key.start, key.stop, key.step)
-            ret = self.read(start, stop, step)
-        else:
-            raise ValueError, "Non-valid index or slice: %s" % \
-                  key
-
-        if len(range(start, stop, step)) == 1 and self.extdim > 0:
-            ret.swapaxes(self.extdim, 0)
-            return ret[0]
-        else:
-            return ret
-        
-    def _convToFlavor(self, arr):
-        "Convert the numarray parameter to the correct flavor"
-
-        # Convert to Numeric, tuple or list if needed
-        if self.flavor == "Numeric":
-            if Numeric_imported:
-                # This works for both numeric and chararrays
-                # arr=Numeric.array(arr, typecode=arr.typecode())
-                # The next is 10 times faster (for tolist(),
-                # we should check for tostring()!)
-                if repr(self.type) == "CharType":
-                    arrstr = arr.tostring()
-                    arr=Numeric.reshape(Numeric.array(arrstr), arr.shape)
-                else:
-                    # tolist() method creates a list with a sane byteorder
-                    if arr.shape <> ():
-                        arr=Numeric.array(arr.tolist(), typecode=arr.typecode())
-                    else:
-                        # This works for rank-0 arrays
-                        # (but is slower for big arrays)
-                        arr=Numeric.array(arr, typecode=arr.typecode())
-                        
-            else:
-                # Warn the user
-                warnings.warn( \
-"""The object on-disk has Numeric flavor, but Numeric is not installed locally. Returning a numarray object instead!.""")
-
-        return arr
-        
-    # Accessor for the _readArray method in superclass
-    def read(self, start=None, stop=None, step=None):
-        """Read the array from disk and return it as a "flavor" object."""
-
-        (start, stop, step) = processRange(self.nrows, start, stop, step)
-        rowstoread = ((stop - start - 1) / step) + 1
-        shape = list(self.shape)
-        if shape:
-            shape[self.extdim] = rowstoread
-            shape = tuple(shape)
-        if repr(self.type) == "CharType":
-            arr = strings.array(None, itemsize=self.itemsize,
-                                  shape=shape)
-        else:
-            arr = numarray.array(buffer=None,
-                                 type=self.type,
-                                 shape=shape)
-            # Set the same byteorder than on-disk
-            arr._byteorder = self.byteorder
-        # Protection against reading empty arrays
-        zerodim = 0
-        for i in range(len(shape)):
-            if shape[i] == 0:
-                zerodim = 1
-
-        if not zerodim:
-            # Arrays that have non-zero dimensionality
-            self._readArray(start, stop, step, arr._data)
-            
-        if self.flavor <> "NumArray":
-            return self._convToFlavor(arr)
-        else:
-            return arr
-        
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
 

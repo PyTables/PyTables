@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.23 2003/11/19 18:07:46 falted Exp $
+#       $Id: IsDescription.py,v 1.24 2003/12/16 12:59:03 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.23 $"
+__version__ = "$Revision: 1.24 $"
 
 
 import warnings
@@ -35,10 +35,7 @@ import types
 import sys
 
 import numarray as NA
-#import recarray
 import numarray.records as records
-#import recarray2
-
 from utils import checkNameValidity
 
 # Map between the numarray types and struct datatypes

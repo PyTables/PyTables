@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.44 2003/12/16 11:09:50 falted Exp $
+#       $Id: Array.py,v 1.45 2003/12/16 12:59:03 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.44 $"
+__version__ = "$Revision: 1.45 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -310,6 +310,7 @@ class Array(Leaf, hdf5Extension.Array, object):
             del self._init
             raise StopIteration        # end of iteration
         else:
+            #print "start, stop, step:", self._start, self._stop, self._step
             # Read a chunk of rows
             if self._row+1 >= self._v_maxTuples or self._row < 0:
                 self._stopb = self._startb+self._step*self._v_maxTuples
@@ -319,17 +320,25 @@ class Array(Leaf, hdf5Extension.Array, object):
                 self.listarr = self.read(self._startb, self._stopb, self._step)
                 # Swap the axes to easy the return of elements
                 if self.extdim > 0:
-                    self.listarr.swapaxes(self.extdim, 0)
+                    if self.flavor == "Numeric":
+                        if Numeric_imported:
+                            self.listarr = Numeric.swapaxes(self.listarr,
+                                                            self.extdim, 0)
+                        else:
+                            # Warn the user
+                            warnings.warn( \
+"""The object on-disk has Numeric flavor, but Numeric is not installed locally. Returning a numarray object instead!.""")
+                            # Default to numarray
+                            self.listarr = swapaxes(self.listarr,
+                                                    self.extdim, 0)
+                    else:
+                        self.listarr.swapaxes(self.extdim, 0)
                 self._row = -1
                 self._startb = self._stopb
             self._row += 1
             self.nrow += self._step
             self._nrowsread += self._step
-            if self.listarr.shape:
-                return self.listarr[self._row]
-            else:
-                # Scalar case
-                return self.listarr
+            return self.listarr[self._row]
 
     def __getitem__(self, key):
         """Returns a table row, table slice or table column.
