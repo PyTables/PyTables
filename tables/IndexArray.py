@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IndexArray.py,v $
-#       $Id: IndexArray.py,v 1.10 2004/09/24 11:58:13 falted Exp $
+#       $Id: IndexArray.py,v 1.11 2004/12/09 11:34:55 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.10 $"
+__version__ = "$Revision: 1.11 $"
 # default version for IndexARRAY objects
 obversion = "1.0"    # initial version
 
@@ -339,7 +339,7 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
         del self.type
         del self.atom
         del self.filters
-        #self.__dict__.clear()
+        self.__dict__.clear()
 
     def __str__(self):
         "A compact representation of this class"

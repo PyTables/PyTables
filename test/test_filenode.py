@@ -5,7 +5,7 @@
 #	Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/test/test_filenode.py,v $
-#	$Id: test_filenode.py,v 1.9 2004/11/22 17:07:31 ivilata Exp $
+#	$Id: test_filenode.py,v 1.10 2004/12/09 11:34:56 falted Exp $
 #
 ########################################################################
 
@@ -17,7 +17,7 @@ from tables.nodes import FileNode
 import warnings
 
 
-__revision__ = '$Id: test_filenode.py,v 1.9 2004/11/22 17:07:31 ivilata Exp $'
+__revision__ = '$Id: test_filenode.py,v 1.10 2004/12/09 11:34:56 falted Exp $'
 
 
 
@@ -764,7 +764,7 @@ class AttrsTestCase(unittest.TestCase):
 		"Setting a system attribute on a file node."
 
 		self.assertRaises(
-			RuntimeError, setattr, self.fnode.attrs, 'CLASS', 'foobar')
+			AttributeError, setattr, self.fnode.attrs, 'CLASS', 'foobar')
 
 
 	def test02_SetGetDelUserAttr(self):

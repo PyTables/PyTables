@@ -2,7 +2,7 @@
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.9"><meta name="DC.Creator" content="Francesc Altet"><meta name="Author" content="Francesc Altet"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Creator" content="Ivan Vilata"><meta name="Author" content="Ivan Vilata"><meta name="DC.Creator" content="Tom Hedley"><meta name="Author" content="Tom Hedley"><meta name="DC.Date" content="2004-11-05T16:54:26+01:00"><meta name="Date" content="2004-11-05T16:54:26+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.9.1"><meta name="DC.Creator" content="Francesc Altet"><meta name="Author" content="Francesc Altet"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Creator" content="Ivan Vilata"><meta name="Author" content="Ivan Vilata"><meta name="DC.Creator" content="Tom Hedley"><meta name="Author" content="Tom Hedley"><meta name="DC.Date" content="2004-12-02T12:15:05+01:00"><meta name="Date" content="2004-12-02T12:15:05+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -1371,15 +1371,15 @@ $
 	  </p>
 
 	  <div class="figure" id="tutorial1-tableview"><a name="tutorial1-tableview"></a>
-	    <a href="tutorial1-tableview.jpg"><img class="graphics" width="592" height="474" alt="The final version of the data file for tuto... (Click for original bitmap)" src="tutorial1-tableview-web.jpg"></a>
-	    <div class="caption" style="width: 592px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.1:</span> The final version of the data file for tutorial 1,
+	    <a href="tutorial1-tableview.jpg"><img class="graphics" alt="The final version of the data file for tuto... (Click for original bitmap)" src="tutorial1-tableview-web.jpg"></a>
+	    <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.1:</span> The final version of the data file for tutorial 1,
 	    with a view of the data objects.
 	    </div></div>
 	  </div>
 
 	  <div class="figure" id="tutorial1-general"><a name="tutorial1-general"></a>
-	    <a href="tutorial1-general.jpg"><img class="graphics" width="281" height="341" alt="General properties of the /detector/readout... (Click for original bitmap)" src="tutorial1-general-web.jpg"></a>
-	    <div class="caption" style="width: 281px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.2:</span> General properties of the <tt>/detector/readout</tt> table.
+	    <a href="tutorial1-general.jpg"><img class="graphics" alt="General properties of the /detector/readout... (Click for original bitmap)" src="tutorial1-general-web.jpg"></a>
+	    <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.2:</span> General properties of the <tt>/detector/readout</tt> table.
 	    </div></div>
 	  </div>
 
@@ -1566,7 +1566,7 @@ $ python tutorial2.py
 Traceback (most recent call last):
   File "tutorial2.py", line 74, in ?
     event['xcoor'] = float(i**2)     # Wrong spelling
-  File "/home/falted/PyTables/pytables-0.8/src/hdf5Extension.pyx",
+  File "src/hdf5Extension.pyx",
  line 1812, in hdf5Extension.Row.__setitem__
     raise KeyError, "Error setting \"%s\" field.\n %s" % \
 KeyError: Error setting "xcoor" field.
@@ -1614,7 +1614,7 @@ $ python tutorial2.py
 Traceback (most recent call last):
   File "tutorial2.py", line 76, in ?
     event['ADCcount'] = "sss"          # Wrong type
-  File "/home/falted/PyTables/pytables-0.8/src/hdf5Extension.pyx",
+  File "src/hdf5Extension.pyx",
  line 1812, in hdf5Extension.Row.__setitem__
     raise KeyError, "Error setting \"%s\" field.\n %s" % \
 KeyError: Error setting "ADCcount" field.
@@ -1628,8 +1628,8 @@ KeyError: Error setting "ADCcount" field.
 	  </p>
 
 	  <div class="figure" id="tutorial2"><a name="tutorial2"></a>
-	    <a href="tutorial2-tableview.jpg"><img class="graphics" width="592" height="474" alt="Table hierarchy for tutorial 2. (Click for original bitmap)" src="tutorial2-tableview-web.jpg"></a>
-	    <div class="caption" style="width: 592px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.3:</span> Table hierarchy for tutorial 2.</div></div>
+	    <a href="tutorial2-tableview.jpg"><img class="graphics" alt="Table hierarchy for tutorial 2. (Click for original bitmap)" src="tutorial2-tableview-web.jpg"></a>
+	    <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.3:</span> Table hierarchy for tutorial 2.</div></div>
 	  </div>
 
 	  <p>Feel free to examine the rest of examples in directory

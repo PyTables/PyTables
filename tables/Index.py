@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.25 2004/10/27 16:55:13 falted Exp $
+#       $Id: Index.py,v 1.26 2004/12/09 11:34:55 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.25 $"
+__version__ = "$Revision: 1.26 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -528,7 +528,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
             # be to find a funtion in numarray that returns both
             # sorted and argsorted all in one call
             s=numarray.argsort(arr)
-            # Caveat: this is conversion necessary for portability on
+            # Caveat: this conversion is necessary for portability on
             # 64-bit systems because indexes are 64-bit long on these
             # platforms
             self.indices.append(numarray.array(s, type="Int32"))
@@ -538,7 +538,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         self.nelements = self.nrows * self.nelemslice
         self.shape = (self.nrows, self.nelemslice)
         
-    def search(self, item, notequal):
+    def search(self, item):
         """Do a binary search in this index for an item"""
         #t1=time.time()
         ntotaliter = 0; tlen = 0
@@ -555,10 +555,10 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         self.sorted._destroySortedSlice()
         #print "time reading indices:", time.time()-t1
         #print "ntotaliter:", ntotaliter
-        assert tlen >= 0, "Post-condition failed. Please, report this to the authors."
+        assert tlen >= 0, "Index.search(): Post-condition failed. Please, report this to the authors."
         return tlen
 
-# This has been passed to Pyrex. However, with pyrex it has the same speed,
+# This has been ported to Pyrex. However, with pyrex it has the same speed,
 # so, it's better to stay here
     def getCoords(self, startCoords, maxCoords):
         """Get the coordinates of indices satisfiying the cuts.
@@ -646,7 +646,6 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         ilimit = table.opsValues
         ctype = column.type
         itemsize = table.colitemsizes[column.name]
-        notequal = 0
         # Check that limits are compatible with type
         for limit in ilimit:
             # Check for strings
@@ -679,7 +678,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         if str(ctype) == "Bool":
             if len(table.ops) == 1 and table.ops[0] == 5: # __eq__
                 item = (ilimit[0], ilimit[0])
-                ncoords = self.search(item, notequal=0)
+                ncoords = self.search(item)
                 return ncoords
             else:
                 raise NotImplementedError, \
@@ -705,7 +704,6 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
             elif op == 6: # __ne__
                 # I need to cope with this
                 raise NotImplementedError, "'!=' or '<>' not supported yet"
-                notequal = 1
         elif len(ilimit) == 2:
             item1, item2 = ilimit
             assert item1 <= item2, \
@@ -725,7 +723,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
 "Combination of operators not supported. Use val1 <{=} col <{=} val2"
                       
         #t1=time.time()
-        ncoords = self.search(item, notequal)
+        ncoords = self.search(item)
         #print "time reading indices:", time.time()-t1
         return ncoords
 

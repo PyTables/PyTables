@@ -6,7 +6,10 @@ import warnings
 
 from tables import *
 
-from test_all import verbose
+from test_all import verbose, cleanup
+# To delete the internal attributes automagically
+unittest.TestCase.tearDown = cleanup
+
 
 class OpenFileTestCase(unittest.TestCase):
 
@@ -42,6 +45,7 @@ class OpenFileTestCase(unittest.TestCase):
     def tearDown(self):
         # Remove the temporary file
         os.remove(self.file)
+        cleanup(self)
 
     def test00_newFile(self):
         """Checking creation of a new file"""

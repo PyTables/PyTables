@@ -4,7 +4,9 @@ import os
 import tempfile
 from tables import *
 
-from test_all import verbose
+from test_all import verbose, cleanup
+# To delete the internal attributes automagically
+unittest.TestCase.tearDown = cleanup
 
 # Check if we are using python 2.2
 if sys.version_info[0] == 2 and sys.version_info[1] == 2:

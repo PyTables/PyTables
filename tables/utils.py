@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.27 2004/11/03 18:15:09 falted Exp $
+#       $Id: utils.py,v 1.28 2004/12/09 11:34:56 falted Exp $
 #
 ########################################################################
 
@@ -33,15 +33,15 @@ reservedprefixes = [
   '_v_',   # For instance variables
 ]
 
-pat = re.compile('[a-zA-Z_][a-zA-Z0-9_]*')
+pat = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
 
 def checkNameValidity(name):
     "Check the validity of a name to be put in the object tree"
     global pat
 
     # First, some checks for avoid execution of arbitrary (malign) code
-    t = re.search(pat, name)
-    if t.end() < len(name):
+    # Suggested by I. Vilata
+    if not pat.match(name):
         raise NameError, \
 """Sorry, you must use a name compliant with '[a-zA-Z_][a-zA-Z0-9_]*' regexp"""
 

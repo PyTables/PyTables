@@ -1,7 +1,7 @@
 README.txt
-PyTables 0.9
+PyTables 0.9.1
 http://pytables.sf.net/
-Nov 6, 2004
+Nov 26, 2004
 --------------------------------------
 
 PyTables is a hierarchical database package designed to efficiently
@@ -69,11 +69,11 @@ compression libraries support you will also need recent versions of
 them. These two compression libraries are, however, optional.
 
 I've tested this PyTables version with HDF5 1.6.2 and 1.6.3-patch
-versions and numarray 1.0 and 1.1, and you *need* to use these
-versions or higher to make use of PyTables. Albeit you won't need
-Numeric Python in order to compile PyTables, it is supported; you only
-will need a reasonably recent version of it (>= 21.x). PyTables has
-been succesfully tested against Numeric 21.3, 22.0, 23.0 and 23.1.
+versions and numarray 1.1, and you *need* to use these versions, or
+higher, to make use of PyTables. Albeit you won't need Numeric Python
+in order to compile PyTables, it is supported; you only will need a
+reasonably recent version of it (>= 21.x). PyTables has been
+succesfully tested against Numeric 21.3, 22.0, 23.0 and 23.1.
 
 I'm using Linux on top of Intel as the main development platform, but
 PyTables should be easy to compile/install on other UNIX machines.

@@ -8,7 +8,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.36 2004/10/30 13:17:59 falted Exp $
+#       $Id: VLArray.py,v 1.37 2004/12/09 11:34:56 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.36 $"
+__version__ = "$Revision: 1.37 $"
 
 # default version for VLARRAY objects
 #obversion = "1.0"    # initial version
@@ -292,6 +292,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         __iter__()
         iterrows(start, stop, step)
         __getitem__(slice)
+        __setitem__(slice, value)
 
     Instance variables:
 
@@ -582,12 +583,9 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             if key < 0:
                 # To support negative values
                 key += self.nrows
-            (start, stop, step) = processRange(self.nrows, key, key+1, 1)
-            return self.read(start, stop, step, slice_specified=0)
+            return self.read(key)[0]
         elif isinstance(key, types.SliceType):
-            (start, stop, step) = processRange(self.nrows,
-                                               key.start, key.stop, key.step)
-            return self.read(start, stop, step, slice_specified=1)
+            return self.read(key.start, key.stop, key.step)
         else:
             raise IndexError, "Non-valid index or slice: %s" % \
                   key
@@ -689,28 +687,20 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             self._modify(nrow, naarr, nobjects)
 
     # Accessor for the _readArray method in superclass
-    def read(self, start=None, stop=None, step=1, slice_specified=0):
+    def read(self, start=None, stop=None, step=1):
         """Read the array from disk and return it as a self.flavor object."""
 
         start, stop, step = processRangeRead(self.nrows, start, stop, step)
-
         if start == stop:
             listarr = []
         else:
             listarr = self._readArray(start, stop, step)
-
         if self.flavor <> "NumArray":
             # Convert the list to the right flavor
             outlistarr = [self._convToFlavor(arr) for arr in listarr ]
         else:
             # NumArray flavor does not need additional conversion
             outlistarr = listarr
-
-        # Check for unitary length lists or tuples
-        #if len(outlistarr) == 1 and not stop_specified:
-        if len(outlistarr) == 1 and not slice_specified:
-            outlistarr = outlistarr[0]
-            
         return outlistarr
 
     def _g_copy(self, group, name, start, stop, step, title, filters):

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.79 2004/10/30 13:17:59 falted Exp $
+#       $Id: Array.py,v 1.80 2004/12/09 11:34:55 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.79 $"
+__version__ = "$Revision: 1.80 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -343,9 +343,10 @@ class Array(Leaf, hdf5Extension.Array, object):
 
         """
 
-        if self.shape == ():
-            # Scalar case
-            raise IndexError, "You cannot read scalar Arrays through indexing. Try using the read() method better."
+#	The following restriction is unnecessary: it should work fine for keys == () ...
+#        if self.shape == ():
+#            # Scalar case
+#            raise IndexError, "You cannot read scalar Arrays through indexing. Try using the read() method better."
 
         maxlen = len(self.shape)
         shape = (maxlen,)
@@ -665,7 +666,10 @@ class Array(Leaf, hdf5Extension.Array, object):
         "Private part of Leaf.copy() for each kind of leaf"
         # Get the slice of the array
         # (non-buffered version)
-        arr = self[start:stop:step]
+	if self.shape:
+            arr = self[start:stop:step]
+	else:
+	    arr = self[()]
         # Build the new Array object
         object = Array(arr, title=title)
         setattr(group, name, object)

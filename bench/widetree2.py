@@ -16,17 +16,16 @@ class Test(IsDescription):
     #string = StringCol(length=500, pos = 4)
 
 class WideTreeTestCase(unittest.TestCase):
-
     def test00_Leafs(self):
 
         import time
         # Open a new empty HDF5 file
-        filename = "test_widetree.h5"
-        ngroups = 10
-        ntables = 300
-        nrows = 10
-        complevel = 0
-        complib = "lzo"
+	filename = "test_widetree.h5"
+	ngroups = 10
+	ntables = 300
+	nrows = 10
+	complevel = 0
+	complib = "lzo"
 
         print "Writing..."
         # Open a file in "w"rite mode

@@ -12,9 +12,10 @@ http://starship.python.net/~hinsen/ScientificPython
 
 """
 import Scientific.IO.NetCDF as NetCDF
-import tables, sys, os.path, getopt, time
+import tables, sys, os.path, getopt, time, math
+import Numeric as N
 
-def nctoh5(ncfilename, h5filename, filters, overwritefile):
+def nctoh5(ncfilename, h5filename, filters, overwritefile, unpackshort, quantize):
     # open netCDF file
     ncfile = NetCDF.NetCDFFile(ncfilename, mode = "r")
     # open h5 file
@@ -26,6 +27,27 @@ def nctoh5(ncfilename, h5filename, filters, overwritefile):
     nobjects = 0; nbytes = 0  # Initialize counters
     for varname in ncfile.variables.keys():
         var = ncfile.variables[varname]
+        if var.typecode() == 's' and hasattr(var,'scale_factor') and hasattr(var,'add_offset'):
+            ispackedshort = 1   
+        else:
+            if unpackshort:
+                print varname, 'has no scale_factor and add_offset attributes, or data is not short integers - not unpacking'
+            ispackedshort = 0
+        if quantize and hasattr(var,'least_significant_digit'):
+            precision = math.pow(10,-var.least_significant_digit[0])
+            exp = math.log(precision,10)
+            if exp < 0:
+                exp = int(math.floor(exp))
+            else:
+                exp = int(math.ceil(exp))
+            bits = math.ceil(math.log(math.pow(10,-exp),2))
+            scale = math.pow(2,bits)
+            quantizedata = 1
+            print varname, ' quantizing with ',bits,' bits of precision'
+        else:
+            if quantize:
+                print varname,' has no least_signficant_digit attribute, not quantizing'
+            quantizedata = 0
         vardims = list(var.dimensions)
         vardimsizes = [ncfile.dimensions[vardim] for vardim in vardims]
         # Check if any dimension is enlargeable
@@ -45,13 +67,16 @@ def nctoh5(ncfilename, h5filename, filters, overwritefile):
             # Make 0 the enlargeable dimension
             extdim = 0
         vardimsizes[extdim] = 0
-        dtype=var.typecode()
+        if unpackshort and ispackedshort:
+            dtype = 'f'
+        else:
+            dtype=var.typecode()
         if dtype == 'c':
             # Special case for Numeric character objects
             # (on which base Scientific Python works)
             atom = tables.StringAtom(shape=tuple(vardimsizes), length=1) 
         else:
-            atom = tables.Atom(dtype=var.typecode(), shape=tuple(vardimsizes))
+            atom = tables.Atom(dtype=dtype, shape=tuple(vardimsizes))
         vardata = h5file.createEArray(h5file.root, varname,
                                       atom, title, filters=filters,
                                       expectedrows=vardimsizes[extdim])
@@ -70,7 +95,13 @@ def nctoh5(ncfilename, h5filename, filters, overwritefile):
                 stop2 = stop
             # Set the proper slice in the extensible dimension
             slices[extdim] = slice(start2, stop2, step)
-            vardata.append(var[tuple(slices)])
+            if unpackshort and ispackedshort:
+                data = (var.scale_factor*var[tuple(slices)] + var.add_offset).astype('f')
+            else:
+                data = var[tuple(slices)]
+            if quantizedata:
+                data = (N.around(scale*data)/scale).astype(dtype)
+            vardata.append(data)
         # Increment the counters
         nobjects += 1
         nbytes += reduce(lambda x,y:x*y, vardata.shape) * vardata.itemsize
@@ -81,11 +112,11 @@ def nctoh5(ncfilename, h5filename, filters, overwritefile):
     # set global (file) attributes.
     for key,val in ncfile.__dict__.iteritems():
         setattr(h5file.root._v_attrs,key,val)
-    # Close the file
-    h5file.close()
+    # Close the files.
+    h5file.close(); ncfile.close()
     return (nobjects, nbytes)
 
-usage = """usage: %s [-h] [-v] [-o] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] netcdffilename hdf5filename
+usage = """usage: %s [-h] [-v] [-o] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--unpackshort=(0|1)] [--quantize=(0|1)] netcdffilename hdf5filename
  -h -- Print usage message.
  -v -- Show more information.
  -o -- Overwite destination file.
@@ -97,6 +128,13 @@ usage = """usage: %s [-h] [-v] [-o] [--complevel=(0-9)] [--complib=lib] [--shuff
      if complevel>0).
  --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter (not
      active by default).
+ --unpackshort=(0|1) -- Unpack short integer variables to float variables
+     using scale_factor and add_offset netCDF variable attributes 
+     (not active by default).
+ --quantize=(0|1) -- Quantize data to improve compression using 
+     least_significant_digit netCDF variable attribute (not active by default).
+     See http://www.cdc.noaa.gov/cdc/conventions/cdc_netcdf_standard.shtml
+     for further explanation of what this attribute means.
 \n""" % os.path.basename(sys.argv[0])
 
 try:
@@ -105,6 +143,8 @@ try:
                                  'complib=',
                                  'shuffle=',
                                  'fletcher32=',
+                                 'unpackshort=',
+                                 'quantize='
                                  ])
 except:
     (type, value, traceback) = sys.exc_info()
@@ -119,6 +159,8 @@ complevel = None
 complib = None
 shuffle = None
 fletcher32 = None
+unpackshort = 0
+quantize = 0
 
 # Get the options
 for option in opts:
@@ -137,6 +179,10 @@ for option in opts:
         shuffle = int(option[1])
     elif option[0] == '--fletcher32':
         fletcher32 = int(option[1])
+    elif option[0] == '--unpackshort':
+        unpackshort = int(option[1])
+    elif option[0] == '--quantize':
+        quantize = int(option[1])
     else:
         print option[0], ": Unrecognized option"
         sys.stderr.write(usage)
@@ -152,7 +198,6 @@ if len(pargs) <> 2:
 ncfilename = pargs[0]
 h5filename = pargs[1]
 
-        
 # Build the Filters instance
 if (complevel, complib, shuffle, fletcher32) == (None,)*4:
     filters = None
@@ -178,7 +223,8 @@ if verbose:
     print "+=+"*20
 
 # Do the conversion
-(nobjects, nbytes) = nctoh5(ncfilename, h5filename, filters, overwritefile)
+(nobjects, nbytes) = nctoh5(ncfilename, h5filename, filters, overwritefile, 
+                            unpackshort, quantize)
 
 # Gather some statistics
 t2 = time.time()

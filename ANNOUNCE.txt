@@ -1,138 +1,64 @@
-Announcing PyTables 0.9
------------------------
+Announcing PyTables 1.0
+-------------------------
 
-I'm very proud to announce the latest and most powerful version of
-PyTables ever. In this release you will find a series of quite
-exciting new features, the most important being new indexing
-capabilities, in-kernel selections, support for complex datatypes and
-the possibility to modify values in both tables *and* arrays 
-(yeah, finally :).
+Bla, bla
 
 What it is
 ----------
 
-PyTables is a hierarchical database package designed to efficiently
-manage extremely large amounts of data (with support for full 64-bit
-file addressing). It features an object-oriented interface that,
-combined with C extensions for the peformance-critical parts of the
-code, makes it a very easy-to-use tool for high performance data
+PyTables is a solid hierarchical database package designed to
+efficiently manage extremely large amounts of data (with support for
+full 64-bit file addressing). It features an object-oriented interface
+that, combined with C extensions for the performance-critical parts of
+the code, makes it a very easy-to-use tool for high performance data
 storage and retrieval.
 
 It is built on top of the HDF5 library and the numarray package, and
 provides containers for both heterogeneous data (Tables) and
-homogeneous data (Array, EArray). It also sports a container for
-keeping lists of objects of variable length in a very efficient way
-(VLArray). Its powerful support of filters allows you to compress your
-data on-the-fly by using different compressors and compression
-enablers.
+homogeneous data (Array, EArray) as well as containers for keeping
+lists of objects of variable length (like Unicode strings or general
+Python objects) in a very efficient way (VLArray). It also sports a
+series of filters allowing you to compress your data on-the-fly by
+using different compressors and compression enablers.
 
-Moreover, its powerful browsing and searching capabilities allow you
-to perform data selections over tables exceeding gigabytes of data in
-just tenths of second.
-
+But perhaps the more interesting features are its powerful browsing
+and searching capabilities that allow you to perform data selections
+over heterogeneous datasets exceeding gigabytes of data in just tenths
+of second. Besides, all the PyTables I/O is buffered, implemented in C
+and carefully tuned so that you can reach much better performance with
+PyTables than with your own home-grown wrappings to the HDF5 library.
 
 Changes more in depth
 ---------------------
 
-New features:
-
-- Indexing of columns in tables. This allows you to make data
-  selections on tables up to 500 times faster than standard selections
-  (for example, a selection on an indexed column of 100 milion of rows
-  takes less than 1 second on a modern CPU). Perhaps the most
-  interesting thing about the indexing algorithm implemented by
-  PyTables is that the time taken to index grows *linearly* with the
-  length of the data, making the indexing process *scalable* (unlike
-  many relational databases). This means that it can index, in a
-  relatively quick way, arbitrarily large table columns (for example,
-  indexing a column of 100 milion of rows takes just 100 seconds,
-  i.e. a rate of 1 Mrow/sec). See more detailed info at
-  http://pytables.sourceforge.net/doc/SciPy04.pdf.
-
-- In-kernel selections. This feature allows you to select data in
-  tables up to 5 times faster than standard selections (i.e. pre-0.9
-  selections) without the need to create an index. As a hint to how
-  fast these selections can be, they are up to 10 times faster than a
-  traditional relational database. Again, for some benchmarking tests
-  see: http://pytables.sourceforge.net/doc/SciPy04.pdf
- 
-
-- Support of complex datatypes for all the data objects (i.e. Table,
-  Array, EArray and VLArray). The complete set of datatypes of Numeric
-  and numarray packages are now supported. Thanks to Tom Hedley for
-  providing the patches for Array, EArray and VLArray objects, as well
-  as updating the User's Manual and adding unit tests for the new
-  functionality.
-
-- Modification of values. You can modify Table, Array, EArray and
-  VLArray values. See Table.modifyRows, Table.modifyColumns() and the
-  newly introduced __setitem__() method for Table, Array, EArray and
-  VLArray entities in the Library Reference of the User's Manual.
-
-- A new sub-package called "nodes" is here. In it will be included
-  different modules to make it easier to work with different entities
-  (such as images, files, ...). The first module that has been added
-  to this sub-package is "FileNode", whch permits the creation of a
-  database of nodes that can be used like regular opened files in
-  Python.  In other words, you can store a set of files in a PyTables
-  database, and read and write to it as you would with any other file
-  in Python. Thanks to Ivan Vilata i Balaguer for contributing this.
-
 Improvements:
 
-- New __len__(self) methods added in Arrays, Tables and Columns. This,
-  in combination with __getitem__(self,key) better emulates sequences.
+- The opening and copying of files with large number of objects has
+  been made faster by correcting a typo in Table._open. Thanks to
+  Ashley Walsh for sending a patch for this.
 
-- More support for importing generic HDF5 files. In particular, Table
-  objects (in the HDF5_HL naming schema) with "holes" in their
-  compound type definition are supported, present in certain files
-  produced by NASA (thanks to Stephen Walton for reporting this).
+Backward-incompatible changes:
 
-- Much improved test units. More than 2000 different tests have been
-  implemented, accounting for more than 13000 loc (this represents
-  twice the PyTables library code itself (!)).
+- Now, the deletion and getting of a non-existing attribute raises an
+  AttributeError, instead of a RuntimeError.
 
-Backward-incompatible API changes:
+- Deleting a non-existing child now raises a LookupError, instead of
+  doing nothing.
 
-- The __call__ special method has been removed from objects File,
-  Group, Table, Array, EArray and VLArray. Now, you should use
-  walkNodes() in File and Group and iterrows in Table, Array, EArray
-  and VLArray to get the same functionality. This would provide better
-  compatibility with IPython as well.
-
-'nctoh5', a new importing utility:
-
-- Jeff Whitaker has contributed a script to easily convert NetCDF
-  files into HDF5 files using Scientific Python and PyTables. It has
-  been included and documented as a new utility.
+API additions:
 
 Bug fixes:
 
-- A call to File.flush() now invokes a call to H5Fflush(), effectively
-  flushing all the file contents to disk. Thanks to Shack Toms for
-  reporting this and providing a patch.
 
-- SF #1054683: Security hole in utils.checkNameValidity(). Reported in
-  2004-10-26 by ivilata
+Important note for Python 2.4 and Windows users
+-----------------------------------------------
 
-- SF #1049297: Suggestion: new method File.delAttrNode(). Reported in 
-  2004-10-18 by ivilata
+If you are willing to use PyTables with Python 2.4 in Windows
+platforms, you will need to get the HDF5 library compiled for MSVC
+7.1, aka .NET (and possible LZO and UCL as well, if you want support
+for LZO and UCL at all). It can be found at:
+ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current/bin/windows/5-163-winxp-net2003.zip
 
-- SF #1049285: Leak in AttributeSet.__delattr__(). Reported in
-  2004-10-18 by ivilata
- 
-- SF #1014298: Wrong method call in examples/tutorial1-2.py. Reported
-  in 2004-08-23 by ivilata
-
-- SF #1013202: Cryptic error appending to EArray on RO file. Reported
-  in 2004-08-21 by ivilata
-
-- SF #991715: Table.read(field="var1", flavor="List") fails. Reported
-  in 2004-07-15 by falted
-
-- SF #988547: Wrong file type assumption in File.__new__. Reported in
-  2004-07-10 by ivilata
-  
 
 Where can PyTables be applied?
 ------------------------------
@@ -208,9 +134,6 @@ Share your experience
 Let me know of any bugs, suggestions, gripes, kudos, etc. you may
 have.
 
-Bon profit!
+Enjoy data!
 
 -- Francesc Altet
-
-
-

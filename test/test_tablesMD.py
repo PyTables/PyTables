@@ -10,33 +10,9 @@ from numarray import strings
 from tables import *
 from tables.hdf5Extension import getIndices
 
-from test_all import verbose, heavy, allequal
-# If we use the test_all.allequal function, a segmentation violation appears
-# but only when the test runs *alone* and *without* verbose parameters!
-# However, if we use the allequal in this module, everything seems to work well
-# this should be further investigated!. F. Alted 2004/01/01
-
-# Update: That seems to work well now. Perhaps a bug in numarray that
-# has been solved? F. Alted 2004/08/06
-
-# def allequal(a,b):
-#     """Checks if two numarrays are equal"""
-
-#     if a.shape <> b.shape:
-#         return 0
-
-#     # Rank-0 case
-#     if len(a.shape) == 0:
-#         if str(equal(a,b)) == '1':
-#             return 1
-#         else:
-#             return 0
-#     # Multidimensional case
-#     result = (a == b)
-#     for i in range(len(a.shape)):
-#         result = logical_and.reduce(result)
-
-#     return result
+from test_all import verbose, heavy, allequal, cleanup
+# To delete the internal attributes automagically
+unittest.TestCase.tearDown = cleanup
 
 # Test Record class
 class Record(IsDescription):
@@ -166,6 +142,7 @@ class BasicTestCase(unittest.TestCase):
         self.fileh.close()
         #del self.fileh, self.rootgroup
         os.remove(self.file)
+        cleanup(self)
         
     #----------------------------------------
 
@@ -467,6 +444,7 @@ class BasicRangeTestCase(unittest.TestCase):
             self.fileh.close()
         #del self.fileh, self.rootgroup
         os.remove(self.file)
+        cleanup(self)
         
     #----------------------------------------
 

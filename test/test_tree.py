@@ -8,9 +8,9 @@ from tables import *
 # Next imports are only necessary for this test suite
 from tables import Group, Leaf, Table, Array
 
-from test_all import verbose, heavy
-
-#heavy = 1  # Uncomment this only for test purposes!
+from test_all import verbose, heavy, cleanup
+# To delete the internal attributes automagically
+unittest.TestCase.tearDown = cleanup
 
 # Test Record class
 class Record(IsDescription):
@@ -75,6 +75,7 @@ class TreeTestCase(unittest.TestCase):
             self.h5file.close()
 
         os.remove(self.file)
+        cleanup(self)
 
     #----------------------------------------
 
@@ -470,6 +471,7 @@ class DeepTreeTestCase(unittest.TestCase):
         
         # Then, delete the file
         os.remove(file)
+
         
 class WideTreeTestCase(unittest.TestCase):
     """Checks for maximum number of children for a Group.
@@ -539,7 +541,8 @@ class WideTreeTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
-        
+
+
     def test01_wideTree(self):
         """Checking creation of large number of groups (1024) per group 
         
@@ -601,6 +604,7 @@ class WideTreeTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
+
         
 #----------------------------------------------------------------------
 
@@ -608,10 +612,9 @@ def suite():
     theSuite = unittest.TestSuite()
     # This counter is useful when detecting memory leaks
     niter = 1
-    #heavy=1  # see at the beginning
+    #heavy=1 
 
     #theSuite.addTest(unittest.makeSuite(DeepTreeTestCase))
-    
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(TreeTestCase))
         theSuite.addTest(unittest.makeSuite(DeepTreeTestCase))

@@ -107,7 +107,7 @@ dvips -P tbook -O 0pt,0pt -q -R -o tutorial1-general-for-conv.ps usersguide-imag
 gs -dTextAlphaBits=4 -dGraphicsAlphaBits=4 \
      -r100 -q -dNOPAUSE -dBATCH -sOutputFile=tutorial1-general-web.pnm -sDEVICE=pnm tutorial1-general-for-conv.ps
 ppmtojpeg tutorial1-general-web.pnm --comment="(c) 2002, 2003, 2004 Francesc Altet" \
-    --progressive --grayscale > tutorial1-general-web.jpg
+    --progressive  > tutorial1-general-web.jpg
 cat tutorial1-general-web.pnm | pnmfile --allimages > tutorial1-general-image-size.txt
 rm -f tutorial1-general-web.pnm
 rm -f tutorial1-general-for-conv.ps ;

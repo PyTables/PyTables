@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH NCTOH5 1 "November 05, 2004"
+.TH NCTOH5 1 "November 11, 2004"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -26,6 +26,8 @@ nctoh5 \- Convert a NetCDF file into a PyTables (HDF5 format) file
 .RB \-\-complib=lib
 .RB \-\-shuffle=(0|1)
 .RB \-\-fletcher32=(0|1)
+.RB \-\-unpackshort=(0|1)
+.RB \-\-quantize=(0|1)
 .RB netcdffilename
 .RB hdf5filename
 .br
@@ -55,6 +57,20 @@ Activate or not the shuffling filter (default is active if complevel>0).
 .TP
 .BI \-\-fletcher32=(0|1)
 Whether activate or not the fletcher32 filter (not active by default).
+.TP
+.BI \-\-unpackshort=(0|1)
+Unpack short integer variables to float variables using scale_factor
+and add_offset netCDF variable attributes (not active by default).
+.TP
+.BI \-\-quantize=(0|1)
+Quantize data to improve compression using least_significant_digit
+netCDF variable attribute (not active by default).  See
+.br
+.nh
+http://www.cdc.noaa.gov/cdc/conventions/cdc_netcdf_standard.shtml 
+.br
+.hy
+for further explanation of what this attribute means.
 
 .br
 

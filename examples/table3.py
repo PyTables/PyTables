@@ -1,0 +1,35 @@
+# This is an example on how to use complex columns
+from tables import *
+class Particle(IsDescription):
+    name        = StringCol(16, pos=1)   # 16-character String
+    lati        = ComplexCol(pos=2)        # Complex-64
+    longi       = Complex32Col(pos=3)       
+    vector      = Complex32Col(shape=(2,), pos=4)    
+    matrix2D    = Complex64Col(shape=(2,2), pos=5)     
+
+# Open a file in "w"rite mode
+fileh = openFile("table3.h5", mode = "w")
+table = fileh.createTable(fileh.root, 'table', Particle, "A table")
+# Append several rows in only one call
+table.append([("Particle:     10", 10j, 0, (10*9+1j,1), [[10**2j,11*3]]*2),
+              ("Particle:     11", 11j, -1, (11*10+2j,2), [[11**2j,10*3]]*2),
+              ("Particle:     12", 12j, -2, (12*11+3j,3), [[12**2j,9*3]]*2),
+              ("Particle:     13", 13j, -3, (13*11+4j,4), [[13**2j,8*3]]*2),
+              ("Particle:     14", 14j, -4, (14*11+5j,5), [[14**2j,7*3]]*2)])
+
+print "str(Cols)-->", table.cols
+print "repr(Cols)-->", repr(table.cols)
+print "Column handlers:"
+for name in table.colnames:
+    print table.cols[name]
+
+print "Select table.cols.name[1]-->", table.cols.name[1]
+print "Select table.cols.name[1:2]-->", table.cols.name[1:2]
+print "Select table.cols.name[:]-->", table.cols.name[:]
+print "Select table.cols['name'][:]-->", table.cols['name'][:]
+print "Select table.cols.lati[1]-->", table.cols.lati[1]
+print "Select table.cols.lati[1:2]-->", table.cols.lati[1:2]
+print "Select table.cols.vector[:]-->", table.cols.vector[:]
+print "Select table.cols['matrix2D'][:]-->", table.cols.matrix2D[:]
+
+fileh.close()

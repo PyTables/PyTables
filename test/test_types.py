@@ -5,7 +5,9 @@ import tempfile
 
 from tables import *
 
-from test_all import verbose
+from test_all import verbose, cleanup
+# To delete the internal attributes automagically
+unittest.TestCase.tearDown = cleanup
 
 # Test Record class
 class Record(IsDescription):
@@ -35,8 +37,8 @@ class RangeTestCase(unittest.TestCase):
 
     def tearDown(self):
         self.fileh.close()
-
         os.remove(self.file)
+        cleanup(self)
 
     #----------------------------------------
 

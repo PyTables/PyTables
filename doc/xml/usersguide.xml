@@ -10,9 +10,9 @@
     <author>Tom Hedley</author>
 
     <subtitle><visual markup="sf">Hierarchical datasets in
-      Python</visual><newline/> Release 0.9 </subtitle>
+      Python</visual><newline/> Release 0.9.1 </subtitle>
 
-    <date>2004, November, 6th</date>
+    <date>2004, December, 2nd</date>
     <year>2002, 2003, 2004</year>
     <graphics kind="bitmap" file="logo3-ombra"/>
 <!--     <graphics kind="bitmap" file="logo4-ombra"/> -->
@@ -1863,8 +1863,8 @@ Traceback (most recent call last):
   File "&gt;stdin>", line 1, in ?
   File "/home/falted/PyTables/pytables-0.7/tables/AttributeSet.py", 
   line 249, in _f_rename
-    raise RuntimeError, \
-RuntimeError: Read-only attribute ('VERSION') cannot be renamed
+    raise AttributeError, \
+AttributeError: Read-only attribute ('VERSION') cannot be renamed
 	  </verbatim>
 
 	  <p>If you would terminate your session now, you would be
@@ -2473,7 +2473,7 @@ $ python tutorial2.py
 Traceback (most recent call last):
   File "tutorial2.py", line 74, in ?
     event['xcoor'] = float(i**2)     # Wrong spelling
-  File "/home/falted/PyTables/pytables-0.8/src/hdf5Extension.pyx",
+  File "src/hdf5Extension.pyx",
  line 1812, in hdf5Extension.Row.__setitem__
     raise KeyError, "Error setting \"%s\" field.\n %s" % \
 KeyError: Error setting "xcoor" field.
@@ -2521,7 +2521,7 @@ $ python tutorial2.py
 Traceback (most recent call last):
   File "tutorial2.py", line 76, in ?
     event['ADCcount'] = "sss"          # Wrong type
-  File "/home/falted/PyTables/pytables-0.8/src/hdf5Extension.pyx",
+  File "src/hdf5Extension.pyx",
  line 1812, in hdf5Extension.Row.__setitem__
     raise KeyError, "Error setting \"%s\" field.\n %s" % \
 KeyError: Error setting "ADCcount" field.
@@ -2555,6 +2555,10 @@ KeyError: Error setting "ADCcount" field.
     <!-- SGP:  Ended here -->
     <chapter id="libraryReference">
       <heading>Library Reference</heading>
+
+      <!-- FA: In case Scott finish the correction for 0.9.1 release,
+      I've added the File.copyAttrs method description as well as
+      corrected the isPyTablesFile() function. -->
       
 <!--       <aphorism>"Tenho pensamentos que, se pudesse revelá-los e -->
 <!-- 	fazê-los viver, acrescentariam nova luminosidade às estrelas, -->
@@ -2673,6 +2677,8 @@ KeyError: Error setting "ADCcount" field.
 	    </p>
 	  </subsubsection>
 
+	  <!-- isPyTablesFile modificada F. Altet 2004-11-18 -->
+
 	  <subsubsection id="isPyTablesFileDescr">
 	    <heading>isPyTablesFile(filename)</heading>
 
@@ -2684,6 +2690,8 @@ KeyError: Error setting "ADCcount" field.
 	    </p>
 
 	  </subsubsection>
+
+	  <!-- Final modificacio isPyTablesFile F. Altet 2004-11-18 -->
 
 	  <subsubsection id="openFileDescr">
 	    <heading>openFile(filename, mode='r', title='', trMap={},
@@ -2867,110 +2875,6 @@ KeyError: Error setting "ADCcount" field.
 
 	<subsection>
 	  <heading><visual markup="tt">File</visual> methods</heading>
-
-	  <subsubsection id="FilecopyChildrenDescr">
-
-	    <heading>copyChildren(whereSrc, whereDst, recursive=0,
-                   filters=None, copyuserattrs=1, start=0, stop=None,
-                   step=1, overwrite = 0)
-	    </heading>
-
-	    <p>Copy (recursively) the children of a group into another
-	      location. Returns a tuple in the form <verb>(ngroups,
-	      nleaves, nbytes)</verb> specifiying the number of
-	      groups, leaves and bytes copied.
-	    </p>
-
-	    <description>
-	      <term>whereSrc</term> <item>The parent group where the
-		children to be copied are hanging on. This parameter
-		can be a path string (for example
-		<verb>"/level1/group5"</verb>), or another
-		<verb>Group</verb> instance.
-	      </item>
-
-	      <term>whereDst</term> <item>The parent group where the
-		source children will be copied to. This group must exist
-		or a <verb>LookupError</verb> will be issued. This
-		parameter can be a path string (for example
-		<verb>"/level1/group6"</verb>), or another
-		<verb>Group</verb> instance.
-	      </item>
-
-	      <term>recursive</term> <item>Specifies whether the copy
-		should recurse into subgroups or not. The default is
-		not recurse.
-	      </item>
-	      
-	      <term>filters</term> <item>Whether or not override the
-		original filter properties present in source nodes.
-		This parameter must be an instance of the
-		<verb>Filters</verb> class (see section<ref
-		refid="FiltersClassDescr"></ref>). The default is to
-		copy the filter attributes from source children.
-	      </item>
-
-	      <term>copyuserattrs</term> <item>You can prevent the
-		user attributes from being copied by setting this
-		parameter to 0. The default is to copy them.
-	      </item>
-
-	      <term>start, stop, step</term><item>Specifies the range
-		of rows in child leaves to be copied; the default is
-		to copy all the rows.
-	      </item>
-
-	      <term>overwrite</term><item>Whether the possible
-		existing children hanging from <verb>whereDst</verb>
-		and having the same names than <verb>whereSrc</verb>
-		children should overwrite the destination nodes or
-		not.
-	      </item>
-	    </description>
-	  </subsubsection> <!-- copyChildren -->
-
-	  <subsubsection id="FilecopyFileDescr">
-	    <heading>copyFile(dstFilename=None, title=None,
-                 filters=None, copyuserattrs=1, overwrite=0)
-	    </heading>
-
-	    <p>Copy the contents of this file to <em>dstFilename</em>.
-	      If the filename already exists it won't be overwritten
-	      unless <em>overwrite</em> is set to true (see later).
-	      Returns a tuple in the form <verb>(ngroups, nleaves,
-	      nbytes)</verb> specifiying the number of groups, leaves
-	      and bytes copied.
-	    </p>
-
-	    <description>
-	      <term>title</term> <item>The title for the new file. If
-		not specified, the source file title will be copied.
-	      </item>
-
-	      <term>filters</term> <item>Whether or not override the
-		original filter properties present in source nodes.
-		This parameter must be an instance of the
-		<verb>Filters</verb> class (see section<ref
-		refid="FiltersClassDescr"></ref>). The default is to
-		copy the filter attributes from source children.
-	      </item>
-
-	      <term>copyuserattrs</term> <item>You can prevent the
-		user attributes from being copied by setting this
-		parameter to 0. The default is to copy them.
-	      </item>
-
-	      <term>copyuserattrs</term> <item>You can prevent the
-		user attributes from being copied by setting this
-		parameter to 0. The default is to copy them.
-	      </item>
-
-	      <term>overwrite</term><item>Whether overwrite or not the
-		possibly existing <em>dstFilename</em> file. The
-		default is not overwrite it.
-	      </item>
-	    </description>
-	  </subsubsection> <!-- copyFile -->
 
 	  <subsubsection id="createGroupDescr">
 	    <heading>createGroup(where, name, title='', filters=None)
@@ -3301,6 +3205,38 @@ KeyError: Error setting "ADCcount" field.
 	    </description>
 	  </subsubsection>
 
+	  <!-- copyAttrs modificada F. Altet 2004-11-18 -->
+
+	  <subsubsection id="FilecopyAttrsDescr">
+
+	    <heading>copyAttrs(where, name="", dstNode=None)
+	    </heading>
+
+	    <p>Copy the attributes from node <em>where.name</em> to
+	      <em>dstNode</em>.
+	    </p>
+
+	    <description>
+
+	      <term>where</term> <item>Can be a path string or
+		<verb>Group</verb> instance. If <em>where</em> doesn't
+		exist or has not a child called <em>name</em>, a
+		<verb>KeyError</verb> error is raised.
+	      </item>
+
+	      <term>name</term> <item>If <em>name</em> is a null
+		string (<verb>""</verb>), or not supplied, this method
+		assumes to find the object in <em>where</em>.
+	      </item>
+	      <term>dstNode</term> <item>This is the destination node
+		where the attributes will be copied. It can be either
+		a path string or a <verb>Node</verb> object.
+	      </item>
+	    </description>
+	  </subsubsection> <!-- copyAttrs -->
+
+	  <!-- Final modificacio copyAttrs F. Altet 2004-11-18 -->
+
 	  <subsubsection id="listNodesDescr">
 	    <heading>listNodes(where,
 	      classname='')</heading>
@@ -3426,7 +3362,111 @@ KeyError: Error setting "ADCcount" field.
 	          print node
 	    </verbatim>
 
-	  </subsubsection>
+	  </subsubsection> <!-- walkNodes -->
+
+	  <subsubsection id="FilecopyChildrenDescr">
+
+	    <heading>copyChildren(whereSrc, whereDst, recursive=0,
+                   filters=None, copyuserattrs=1, start=0, stop=None,
+                   step=1, overwrite = 0)
+	    </heading>
+
+	    <p>Copy (recursively) the children of a group into another
+	      location. Returns a tuple in the form <verb>(ngroups,
+	      nleaves, nbytes)</verb> specifiying the number of
+	      groups, leaves and bytes copied.
+	    </p>
+
+	    <description>
+	      <term>whereSrc</term> <item>The parent group where the
+		children to be copied are hanging on. This parameter
+		can be a path string (for example
+		<verb>"/level1/group5"</verb>), or another
+		<verb>Group</verb> instance.
+	      </item>
+
+	      <term>whereDst</term> <item>The parent group where the
+		source children will be copied to. This group must exist
+		or a <verb>LookupError</verb> will be issued. This
+		parameter can be a path string (for example
+		<verb>"/level1/group6"</verb>), or another
+		<verb>Group</verb> instance.
+	      </item>
+
+	      <term>recursive</term> <item>Specifies whether the copy
+		should recurse into subgroups or not. The default is
+		not recurse.
+	      </item>
+	      
+	      <term>filters</term> <item>Whether or not override the
+		original filter properties present in source nodes.
+		This parameter must be an instance of the
+		<verb>Filters</verb> class (see section<ref
+		refid="FiltersClassDescr"></ref>). The default is to
+		copy the filter attributes from source children.
+	      </item>
+
+	      <term>copyuserattrs</term> <item>You can prevent the
+		user attributes from being copied by setting this
+		parameter to 0. The default is to copy them.
+	      </item>
+
+	      <term>start, stop, step</term><item>Specifies the range
+		of rows in child leaves to be copied; the default is
+		to copy all the rows.
+	      </item>
+
+	      <term>overwrite</term><item>Whether the possible
+		existing children hanging from <verb>whereDst</verb>
+		and having the same names than <verb>whereSrc</verb>
+		children should overwrite the destination nodes or
+		not.
+	      </item>
+	    </description>
+	  </subsubsection> <!-- copyChildren -->
+
+	  <subsubsection id="FilecopyFileDescr">
+	    <heading>copyFile(dstFilename=None, title=None,
+                 filters=None, copyuserattrs=1, overwrite=0)
+	    </heading>
+
+	    <p>Copy the contents of this file to <em>dstFilename</em>.
+	      If the filename already exists it won't be overwritten
+	      unless <em>overwrite</em> is set to true (see later).
+	      Returns a tuple in the form <verb>(ngroups, nleaves,
+	      nbytes)</verb> specifiying the number of groups, leaves
+	      and bytes copied.
+	    </p>
+
+	    <description>
+	      <term>title</term> <item>The title for the new file. If
+		not specified, the source file title will be copied.
+	      </item>
+
+	      <term>filters</term> <item>Whether or not override the
+		original filter properties present in source nodes.
+		This parameter must be an instance of the
+		<verb>Filters</verb> class (see section<ref
+		refid="FiltersClassDescr"></ref>). The default is to
+		copy the filter attributes from source children.
+	      </item>
+
+	      <term>copyuserattrs</term> <item>You can prevent the
+		user attributes from being copied by setting this
+		parameter to 0. The default is to copy them.
+	      </item>
+
+	      <term>copyuserattrs</term> <item>You can prevent the
+		user attributes from being copied by setting this
+		parameter to 0. The default is to copy them.
+	      </item>
+
+	      <term>overwrite</term><item>Whether overwrite or not the
+		possibly existing <em>dstFilename</em> file. The
+		default is not overwrite it.
+	      </item>
+	    </description>
+	  </subsubsection> <!-- copyFile -->
 
 	  <subsubsection>
 	    <heading>flush()</heading>
@@ -4174,16 +4214,31 @@ fileh.close()
 
 	  </subsubsection>
 
-	  <subsubsection id="itersequenceDescr">
-	    <heading>itersequence(sequence=None)</heading>
+	  <!-- Itersequence modificada F. Altet 2004-11-18 -->
 
-	    <p>Iterate over a <em>sequence</em> of row
-	      coordinates. <em>sequence</em> can be any object that
-	      supports the <verb>__getitem__</verb> special method,
-	      like lists, tuples, Numeric/numarray objects, etc.
+	  <subsubsection id="itersequenceDescr">
+	    <heading>itersequence(sequence=None, sort=1)</heading>
+
+	    <p>Iterate over a <em>sequence</em> of row coordinates.
 	    </p>
 
+	    <description>
+	      <term>sequence</term> <item>Can be any object that
+		supports the <verb>__getitem__</verb> special method,
+		like lists, tuples, Numeric/numarray objects, etc.
+	      </item>
+	      <term>sort</term> <item>If true, means that
+		<em>sequence</em> will be sorted out so that the I/O
+		process would get better performance. If your sequence
+		is already sorted or you don't want to sort it, put
+		this parameter to 0. The default is to sort the
+		<em>sequence</em>.
+	      </item>
+	    </description>
+
 	  </subsubsection>
+
+	  <!-- Final modificacio Itersequence F. Altet 2004-11-18 -->
 
 	  <subsubsection id="readTableDescr">
 	    <heading>read(start=None, stop=None,
@@ -4610,7 +4665,7 @@ fileh.close()
 	    interactively. Neither you won't be able to access its
 	    internal attributes (they are not directly accessible from
 	    Python), although <em>accessors</em> (i.e. methods that
-	    return an internal attribute) have been defined for the most
+	    return an internal attribute) have been defined for some
 	    important variables.
 	  </p>
 
@@ -4630,6 +4685,10 @@ fileh.close()
 		current row number in the table. It is useful to know
 		which row is being dealt with in the middle of a
 		loop.</item>
+
+	      <term>getTable()</term> <item>Accessor that returns the
+		associated <verb>Table</verb> object.</item>
+
 	    </description>
 	  </subsubsection>
 	</subsection> <!-- Row -->
@@ -8225,8 +8284,9 @@ $ nctoh5 -h
 	      to see the message usage:
 
 	      <verbatim>
-usage: nctoh5 [-h] [-v] [-o] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)]
- [--fletcher32=(0|1)] netcdffilename hdf5filename
+usage: nctoh5 [-h] [-v] [-o] [--complevel=(0-9)] [--complib=lib]
+ [--shuffle=(0|1)] [--fletcher32=(0|1)] [--unpackshort=(0|1)] 
+ [--quantize=(0|1)] netcdffilename hdf5filename
  -h -- Print usage message.
  -v -- Show more information.
  -o -- Overwite destination file.
@@ -8238,12 +8298,20 @@ usage: nctoh5 [-h] [-v] [-o] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1
      if complevel>0).
  --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter (not
      active by default).
+ --unpackshort=(0|1) -- unpack short integer variables to float variables
+     using scale_factor and add_offset netCDF variable attributes
+     (not active by default).
+ --quantize=(0|1) -- quantize data to improve compression using
+     least_significant_digit netCDF variable attribute (not active by default).
+     See http://www.cdc.noaa.gov/cdc/conventions/cdc_netcdf_standard.shtml
+     for further explanation of what this attribute means.
+
 	      </verbatim>
 
 	      If you have followed the small tutorial on the
 	      <verb>ptrepack</verb> utility (see <ref
 	      refid="ptrepackDescr"></ref>), you should easily realize
-	      what the different flags would mean.
+	      what most of the different flags would mean.
 
 	    </p>
 	  </subsection>

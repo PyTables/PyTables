@@ -7,7 +7,10 @@ import sys
 from tables import *
 from tables.Index import Index
 from tables.IndexArray import calcChunksize
-from test_all import verbose, allequal, heavy
+from test_all import verbose, allequal, heavy, cleanup
+# To delete the internal attributes automagically
+unittest.TestCase.tearDown = cleanup
+
 import numarray
 
 # The minimum number of rows that can be indexed
@@ -70,6 +73,7 @@ class BasicTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
+        cleanup(self)
         
     #----------------------------------------
 
@@ -491,6 +495,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
+        cleanup(self)
         
     def test01_attrs(self):
         "Checking indexing attributes (part1)"

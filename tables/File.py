@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.91 2004/10/27 19:04:15 falted Exp $
+#       $Id: File.py,v 1.92 2004/12/09 11:34:55 falted Exp $
 #
 ########################################################################
 
@@ -34,7 +34,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.91 $"
+__version__ = "$Revision: 1.92 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 #format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -250,6 +250,12 @@ class File(hdf5Extension.File, object):
         getAttrNode(self, where, attrname [, name])
         setAttrNode(self, where, attrname, attrname [, name])
         delAttrNode(self, where, attrname [, name])
+        copyAttrs(self, where, name, dstNode)
+        copyChildren(self, whereSrc, whereDst [, recursive] [, filters]
+                     [, copyuserattrs] [, start] [, stop ] [, step]
+                     [, overwrite])
+        copyFile(self, dstFilename [, title]
+                 [, filters] [, copyuserattrs] [, overwrite])
         walkGroups([where])
         walkNodes([where] [, classname])
         flush()
@@ -405,15 +411,18 @@ class File(hdf5Extension.File, object):
                 self.format_version = "unknown"
                           
             # Get the title for the rootGroup group
-            rootGroup.__dict__["_v_title"] = attrsRoot.TITLE
+            if hasattr(attrsRoot, "TITLE"):
+                rootGroup.__dict__["_v_title"] = attrsRoot.TITLE
+            else:
+                rootGroup.__dict__["_v_title"] = ""
             # Get the title for the file
             #self.title = hdf5Extension.read_f_attr(self._v_objectID, 'TITLE')
             self.title = rootGroup._v_title
             # Get the filters for the file
-            filters = attrsRoot.FILTERS
-            if filters is None:
-                filters = Filters()
-            self.filters = filters
+            if hasattr(attrsRoot, "FILTERS"):
+                self.filters = attrsRoot.FILTERS
+            else:
+                self.filters = Filters()
                       
             # Get all the groups recursively
             rootGroup._g_openFile()
@@ -796,10 +805,10 @@ class File(hdf5Extension.File, object):
         """Copy the attributes from node "where"."name" to "dstNode".
 
         "where" can be a path string or Group instance. If "where"
-        doesn't exists or has not a child called "name", a LookupError
+        doesn't exist or has not a child called "name", a LookupError
         error is raised. If "name" is a null string (""), or not
         supplied, this method assumes to find the object in "where".
-        "dstNode" is the destination and can be whether a path string
+        "dstNode" is the destination and can be either a path string
         or a Node object.
         
         """
@@ -947,8 +956,7 @@ class File(hdf5Extension.File, object):
         # Flush the cache to disk
         self._flushFile(0)  # 0 means local scope, 1 global (virtual) scope
                 
-    def close(self):
-        
+    def close(self):        
         """Close all the objects in HDF5 file and close the file."""
 
         # If the file is already closed, return immediately
@@ -962,26 +970,15 @@ class File(hdf5Extension.File, object):
                 leaf.close()
             group._f_close()
             
-        # Delete the root object (this should recursively delete the
-        # object tree)
-        #         del self.root    # not necessary
-
-        # Pass Mr proper
-#         for group in listgroups:
-#             group.__dict__.clear()
-#             group._v_children.clear()
-#         self.groups.clear()
-
         # Close the file
         self._closeFile()
                     
-        # Set the flag to indicate that the file is closed
-        self.isopen = 0
-
         # After the objects are disconnected, destroy the
         # object dictionary using the brute force ;-)
         # This should help to the garbage collector
-        #self.__dict__.clear()
+        self.__dict__.clear()
+        # Set the flag to indicate that the file is closed
+        self.isopen = 0
 
         return
 

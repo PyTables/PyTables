@@ -6,7 +6,9 @@ from Numeric import *
 from tables import *
 from numarray import typeDict
 
-from test_all import verbose, allequal
+from test_all import verbose, allequal, cleanup
+# To delete the internal attributes automagically
+unittest.TestCase.tearDown = cleanup
 
 class BasicTestCase(unittest.TestCase):
     """Basic test for all the supported typecodes present in Numeric.
@@ -193,6 +195,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 
         # Then, delete the file
         os.remove(self.file)
+        cleanup(self)
 
     def WriteRead(self, testArray):
         if verbose:

@@ -15,7 +15,9 @@ except:
     numeric = 0
 from tables import *
 
-from test_all import verbose, allequal
+from test_all import verbose, allequal, cleanup
+# To delete the internal attributes automagically
+unittest.TestCase.tearDown = cleanup
 
 warnings.resetwarnings()
 
@@ -229,6 +231,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 
         # Then, delete the file
         os.remove(self.file)
+        cleanup(self)
 
     def WriteRead(self, testArray):
         if verbose:
@@ -799,8 +802,8 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
             
         # Assert user attributes
-        array2.attrs.attr1 == None
-        array2.attrs.attr2 == None
+        hasattr(array2.attrs, "attr1") == 0
+        hasattr(array2.attrs, "attr2") == 0
 
         # Close the file
         fileh.close()

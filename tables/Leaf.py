@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.55 2004/10/27 19:04:40 falted Exp $
+#       $Id: Leaf.py,v 1.56 2004/12/09 11:34:55 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.55 $"
+__version__ = "$Revision: 1.56 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -450,6 +450,7 @@ class Leaf(object):
         if hasattr(self, "attrs"): 
             self.attrs._f_close()
             del self.attrs
+            del self.filters
 
         # After the objects are disconnected, destroy the
         # object dictionary using the brute force ;-)

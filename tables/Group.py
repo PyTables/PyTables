@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.82 2004/10/27 19:04:39 falted Exp $
+#       $Id: Group.py,v 1.83 2004/12/09 11:34:55 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.82 $"
+__version__ = "$Revision: 1.83 $"
 
 # Recommended values for maximum number of groups and maximum depth in tree
 # However, these limits are somewhat arbitraries and can be increased
@@ -341,7 +341,10 @@ self._g_join(name), UserWarning)
 
     # Define _v_title as a property
     def _f_get_title (self):
-        return self._v_attrs.TITLE
+        if hasattr(self._v_attrs, "TITLE"):
+            return self._v_attrs.TITLE
+        else:
+            return ""
     
     def _f_set_title (self, title):
         self._v_attrs.TITLE = title
@@ -517,6 +520,9 @@ self._g_join(name), UserWarning)
             return self._v_groups[name]._f_remove(1)
         elif name in self._v_leaves:
             return self._v_leaves[name].remove()
+        else:
+            raise LookupError, "'%s' group has not a \"%s\" child!" % \
+                                  (self._v_pathname, name)
 
     def __getattr__(self, name):
         """Get the object named "name" hanging from me."""
@@ -599,6 +605,9 @@ self._g_join(name), UserWarning)
         # Detach the AttributeSet instance
         self._v_attrs._f_close()
         del self.__dict__["_v_attrs"]
+        # Delete the filters instance
+        if self.__dict__.has_key("_v_filters"):
+            del self.__dict__["_v_filters"]
 
     def _f_getAttr(self, attrname):
         """Get a group attribute as a string"""

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.136 2004/10/27 16:55:14 falted Exp $
+#       $Id: Table.py,v 1.137 2004/12/09 11:34:55 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.136 $"
+__version__ = "$Revision: 1.137 $"
 
 from __future__ import generators
 import sys
@@ -325,9 +325,9 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Set the alignment!
         fields['_v_align'] = byteorder
         if self._v_file._isPTFile:
-            # Checking of validity names for fields is not necessary
+            # Checking validity names for fields is not necessary
             # when opening a PyTables file
-            fields['__check_validity'] = 0
+            fields['__check_validity__'] = 0
         # Create an instance description to host the record fields
         self.description = Description(fields)
         
@@ -357,8 +357,14 @@ class Table(Leaf, hdf5Extension.Table, object):
             else:
                 self.colindexed[colname] = 0
         if self.indexed:
-            automatic_index = self.attrs.AUTOMATIC_INDEX
-            reindex = self.attrs.REINDEX
+            if hasattr(self.attrs, "AUTOMATIC_INDEX"):
+                automatic_index = self.attrs.AUTOMATIC_INDEX
+            else:
+                automatic_index = None
+            if hasattr(self.attrs, "REINDEX"):
+                reindex = self.attrs.REINDEX
+            else:
+                reindex = None
             self.indexprops=IndexProps(auto=automatic_index, reindex=reindex,
                                        filters=indexobj.filters)
             self._indexedrows = indexobj.nelements
@@ -509,12 +515,22 @@ class Table(Leaf, hdf5Extension.Table, object):
             coords = tuple(coords.tolist())
         return coords
 
-    def itersequence(self, sequence=None):
-        """Iterate over a list of row coordinates."""
+    def itersequence(self, sequence=None, sort=1):
+        """Iterate over a list of row coordinates.
+
+        sort means that sequence will be sorted so that I/O would
+        perform better. If your sequence is already sorted or you
+        don't want to sort it, put this parameter to 0. The default is
+        to sort the sequence.
+        """
         
         assert hasattr(sequence, "__getitem__"), \
 "Wrong 'sequence' parameter type. Only sequences are suported."
-        coords = numarray.array(sequence, type=numarray.Int64) 
+        coords = numarray.array(sequence, type=numarray.Int64)
+        # That would allow the retrieving on a sequential order
+        # so, given better speed in the general situation
+        if sort:
+            coords.sort()
         return self.row(coords=coords, ncoords=-1)
         
     def iterrows(self, start=None, stop=None, step=None):
@@ -803,7 +819,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         be converted to an object compliant with table description.
 
         """
-        #print "self-->", self
         assert self._v_file.mode <> "r", "Attempt to write over a file opened in read-only mode"
 
         if rows is None:
@@ -832,10 +847,11 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
         # Save indexedrows
-        if self.indexed and self.indexprops.auto:
+        if self.indexed:
             # Update the number of unsaved indexed rows
             self._unsaved_indexedrows += lenrows
-            self.flushRowsToIndex()
+            if self.indexprops.auto:
+                self.flushRowsToIndex()
         return lenrows
 
     def modifyRows(self, start=None, stop=None, step=1, rows=None):
@@ -1092,10 +1108,11 @@ class Table(Leaf, hdf5Extension.Table, object):
         "Private part of Leaf.copy() for each kind of leaf"
         # Build the new Table object
         description = self.description._v_ColObjects
+        # Checking validity names for fields in destination is not necessary
+        description['__check_validity__'] = 0
         # Add a possible IndexProps property to that
         if hasattr(self, "indexprops"):
             description["_v_indexprops"] = self.indexprops
-        #object = Table(self.description._v_ColObjects, title=title,
         object = Table(description, title=title,
                        filters=filters,
                        expectedrows=self.nrows)
@@ -1225,7 +1242,7 @@ class Cols(object):
         self._v_table == None
         self._v_colnames = None
         # Delete all the columns references
-        #self.__dict__.clear()
+        self.__dict__.clear()
 
     def __str__(self):
         """The string representation for this object."""
@@ -1536,6 +1553,10 @@ class Column(object):
         # delete some back references
         self.table = None
         self.type = None
+        # After the objects are disconnected, destroy the
+        # object dictionary using the brute force ;-)
+        # This should help to the garbage collector
+        self.__dict__.clear()        
 
     def __str__(self):
         """The string representation for this object."""

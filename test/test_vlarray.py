@@ -16,7 +16,9 @@ try:
 except:
     numeric = 0
 
-from test_all import verbose, allequal
+from test_all import verbose, allequal, cleanup
+# To delete the internal attributes automagically
+unittest.TestCase.tearDown = cleanup
 
 class C:
     c = (3,4.5) 
@@ -66,6 +68,7 @@ class BasicTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
+        cleanup(self)
         
     #----------------------------------------
 
@@ -84,8 +87,8 @@ class BasicTestCase(unittest.TestCase):
         # Choose a small value for buffer size
         vlarray._v_maxTuples = 3
         # Read the first row:
-        row = vlarray.read(0)
-        row2 = vlarray.read(2)
+        row = vlarray.read(0)[0]
+        row2 = vlarray.read(2)[0]
         if verbose:
             print "Flavor:", vlarray.flavor
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -174,6 +177,7 @@ class TypesTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
+        cleanup(self)
         
     #----------------------------------------
 
@@ -768,6 +772,7 @@ class MDTypesTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
+        cleanup(self)
         
     #----------------------------------------
 
@@ -1081,6 +1086,7 @@ class AppendShapeTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
+        cleanup(self)
         
     #----------------------------------------
 
@@ -1183,7 +1189,7 @@ class AppendShapeTestCase(unittest.TestCase):
             vlarray = self.fileh.root.vlarray
 
         # Read the only row in vlarray
-        row = vlarray.read(0)
+        row = vlarray.read(0)[0]
         if verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -1216,7 +1222,7 @@ class AppendShapeTestCase(unittest.TestCase):
             vlarray = self.fileh.root.vlarray
 
         # Read the only row in vlarray
-        row = vlarray.read(0)
+        row = vlarray.read(0)[0]
         if verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -1249,7 +1255,7 @@ class AppendShapeTestCase(unittest.TestCase):
             vlarray = self.fileh.root.vlarray
 
         # Read the only row in vlarray
-        row = vlarray.read(0)
+        row = vlarray.read(0)[0]
         if verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -1280,6 +1286,7 @@ class FlavorTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
+        cleanup(self)
         
     #----------------------------------------
 
@@ -1613,7 +1620,7 @@ class ListFlavorTestCase(FlavorTestCase):
 class NumericFlavorTestCase(FlavorTestCase):
     flavor = "Numeric"
 
-class GetRangeTestCase(unittest.TestCase):
+class ReadRangeTestCase(unittest.TestCase):
     nrows = 100
     mode  = "w" 
     compress = 0
@@ -1643,6 +1650,7 @@ class GetRangeTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
+        cleanup(self)
         
     #------------------------------------------------------------------
 
@@ -1657,9 +1665,9 @@ class GetRangeTestCase(unittest.TestCase):
         
         # Read some rows:
         row = []
-        row.append(vlarray.read(0))
-        row.append(vlarray.read(10))
-        row.append(vlarray.read(99))
+        row.append(vlarray.read(0)[0])
+        row.append(vlarray.read(10)[0])
+        row.append(vlarray.read(99)[0])
         if verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
@@ -1716,13 +1724,14 @@ class GetRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(stop=99))
         if verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "First row in vlarray ==>", row[0]
             print "Second row in vlarray ==>", row[1]
 
         assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 0
+        assert len(row[0]) == 1
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0], arange(0, type=Int32))
+        assert allequal(row[0][0], arange(0, type=Int32))
         for x in range(10):
             assert allequal(row[1][x], arange(x, type=Int32))
         for x in range(99):
@@ -1897,7 +1906,305 @@ class GetRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
 
         try:
-            row = vlarray.read(1000)
+            row = vlarray.read(1000)[0]
+            print "row-->", row
+        except IndexError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+		print "\nGreat!, the next IndexError was catched!"
+                print value
+	    self.fileh.close()
+        else:
+            (type, value, traceback) = sys.exc_info()
+            self.fail("expected a IndexError and got:\n%s" % value)
+
+class GetItemRangeTestCase(unittest.TestCase):
+    nrows = 100
+    mode  = "w" 
+    compress = 0
+    complib = "zlib"  # Default compression library
+
+    def setUp(self):
+        # Create an instance of an HDF5 Table
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, self.mode)
+        self.rootgroup = self.fileh.root
+        self.populateFile()
+        self.fileh.close()
+
+    def populateFile(self):
+        group = self.rootgroup
+        filters = Filters(complevel = self.compress,
+                          complib = self.complib)
+        vlarray = self.fileh.createVLArray(group, 'vlarray', Int32Atom(),
+                                           "ragged array if ints",
+                                           filters = filters,
+                                           expectedsizeinMB = 1)
+
+        # Fill it with 100 rows with variable length
+        for i in range(self.nrows):
+            vlarray.append(range(i))
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        cleanup(self)
+        
+    #------------------------------------------------------------------
+
+    def test01_start(self):
+        "Checking reads with only a start value"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_start..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.root.vlarray
+        
+        # Read some rows:
+        row = []
+        row.append(vlarray[0])
+        row.append(vlarray[10])
+        row.append(vlarray[99])
+        if verbose:
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "Second row in vlarray ==>", row[1]
+
+        assert vlarray.nrows == self.nrows
+        assert len(row[0]) == 0
+        assert len(row[1]) == 10
+        assert len(row[2]) == 99
+        assert allequal(row[0], arange(0, type=Int32))
+        assert allequal(row[1], arange(10, type=Int32))
+        assert allequal(row[2], arange(99, type=Int32))
+
+    def test01b_start(self):
+        "Checking reads with only a start value in a slice"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01b_start..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.root.vlarray
+        
+        # Read some rows:
+        row = []
+        row.append(vlarray[0])
+        row.append(vlarray[10])
+        row.append(vlarray[99])
+        if verbose:
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "Second row in vlarray ==>", row[1]
+
+        assert vlarray.nrows == self.nrows
+        assert len(row[0]) == 0
+        assert len(row[1]) == 10
+        assert len(row[2]) == 99
+        assert allequal(row[0], arange(0, type=Int32))
+        assert allequal(row[1], arange(10, type=Int32))
+        assert allequal(row[2], arange(99, type=Int32))
+
+    def test02_stop(self):
+        "Checking reads with only a stop value"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_stop..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.root.vlarray
+        # Choose a small value for buffer size
+        vlarray._nrowsinbuf = 3
+        
+        # Read some rows:
+        row = []
+        row.append(vlarray[:1])
+        row.append(vlarray[:10])
+        row.append(vlarray[:99])
+        if verbose:
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "First row in vlarray ==>", row[0]
+            print "Second row in vlarray ==>", row[1]
+
+        assert vlarray.nrows == self.nrows
+        assert len(row[0]) == 1
+        assert len(row[1]) == 10
+        assert len(row[2]) == 99
+        assert allequal(row[0][0], arange(0, type=Int32))
+        for x in range(10):
+            assert allequal(row[1][x], arange(x, type=Int32))
+        for x in range(99):
+            assert allequal(row[2][x], arange(x, type=Int32))
+
+    def test02b_stop(self):
+        "Checking reads with only a stop value in a slice"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02b_stop..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.root.vlarray
+        # Choose a small value for buffer size
+        vlarray._nrowsinbuf = 3
+        
+        # Read some rows:
+        row = []
+        row.append(vlarray[:1])
+        row.append(vlarray[:10])
+        row.append(vlarray[:99])
+        if verbose:
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "Second row in vlarray ==>", row[1]
+
+        assert vlarray.nrows == self.nrows
+        assert len(row[0]) == 1
+        assert len(row[1]) == 10
+        assert len(row[2]) == 99
+        for x in range(1):
+            assert allequal(row[0][x], arange(0, type=Int32))
+        for x in range(10):
+            assert allequal(row[1][x], arange(x, type=Int32))
+        for x in range(99):
+            assert allequal(row[2][x], arange(x, type=Int32))
+
+
+    def test03_startstop(self):
+        "Checking reads with a start and stop values"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_startstop..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.root.vlarray
+        # Choose a small value for buffer size
+        vlarray._nrowsinbuf = 3
+        
+        # Read some rows:
+        row = []
+        row.append(vlarray[0:10])
+        row.append(vlarray[5:15])
+        row.append(vlarray[0:100])  # read all the array
+        if verbose:
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "Second row in vlarray ==>", row[1]
+
+        assert vlarray.nrows == self.nrows
+        assert len(row[0]) == 10
+        assert len(row[1]) == 10
+        assert len(row[2]) == 100
+        for x in range(0,10):
+            assert allequal(row[0][x], arange(x, type=Int32))
+        for x in range(5,15):
+            assert allequal(row[1][x-5], arange(x, type=Int32))
+        for x in range(0,100):
+            assert allequal(row[2][x], arange(x, type=Int32))
+
+    def test03b_startstop(self):
+        "Checking reads with a start and stop values in slices"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03b_startstop..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.root.vlarray
+        # Choose a small value for buffer size
+        vlarray._nrowsinbuf = 3
+        
+        # Read some rows:
+        row = []
+        row.append(vlarray[0:10])
+        row.append(vlarray[5:15])
+        row.append(vlarray[:])  # read all the array
+        if verbose:
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "Second row in vlarray ==>", row[1]
+
+        assert vlarray.nrows == self.nrows
+        assert len(row[0]) == 10
+        assert len(row[1]) == 10
+        assert len(row[2]) == 100
+        for x in range(0,10):
+            assert allequal(row[0][x], arange(x, type=Int32))
+        for x in range(5,15):
+            assert allequal(row[1][x-5], arange(x, type=Int32))
+        for x in range(0,100):
+            assert allequal(row[2][x], arange(x, type=Int32))
+
+    def test04_startstopstep(self):
+        "Checking reads with a start, stop & step values"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04_startstopstep..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.root.vlarray
+        # Choose a small value for buffer size
+        vlarray._nrowsinbuf = 3
+        
+        # Read some rows:
+        row = []
+        row.append(vlarray[0:10:2])
+        row.append(vlarray[5:15:3])
+        row.append(vlarray[0:100:20])
+        if verbose:
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "Second row in vlarray ==>", row[1]
+
+        assert vlarray.nrows == self.nrows
+        assert len(row[0]) == 5
+        assert len(row[1]) == 4
+        assert len(row[2]) == 5
+        for x in range(0,10,2):
+            assert allequal(row[0][x/2], arange(x, type=Int32))
+        for x in range(5,15,3):
+            assert allequal(row[1][(x-5)/3], arange(x, type=Int32))
+        for x in range(0,100,20):
+            assert allequal(row[2][x/20], arange(x, type=Int32))
+
+    def test04b_slices(self):
+        "Checking reads with start, stop & step values in slices"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04_slices..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.root.vlarray
+        # Choose a small value for buffer size
+        vlarray._nrowsinbuf = 3
+        
+        # Read some rows:
+        row = []
+        row.append(vlarray[0:10:2])
+        row.append(vlarray[5:15:3])
+        row.append(vlarray[0:100:20]) 
+        if verbose:
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "Second row in vlarray ==>", row[1]
+
+        assert vlarray.nrows == self.nrows
+        assert len(row[0]) == 5
+        assert len(row[1]) == 4
+        assert len(row[2]) == 5
+        for x in range(0,10,2):
+            assert allequal(row[0][x/2], arange(x, type=Int32))
+        for x in range(5,15,3):
+            assert allequal(row[1][(x-5)/3], arange(x, type=Int32))
+        for x in range(0,100,20):
+            assert allequal(row[2][x/20], arange(x, type=Int32))
+
+    def test05_out_of_range(self):
+        "Checking out of range reads"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05_out_of_range..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.root.vlarray
+        
+        if verbose:
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+
+        try:
+            row = vlarray[1000]
             print "row-->", row
         except IndexError:
             if verbose:
@@ -1939,6 +2246,7 @@ class SetRangeTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
+        cleanup(self)
         
     #------------------------------------------------------------------
 
@@ -1958,9 +2266,9 @@ class SetRangeTestCase(unittest.TestCase):
         
         # Read some rows:
         row = []
-        row.append(vlarray.read(0))
-        row.append(vlarray.read(10))
-        row.append(vlarray.read(99))
+        row.append(vlarray.read(0)[0])
+        row.append(vlarray.read(10)[0])
+        row.append(vlarray.read(99)[0])
         if verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
@@ -1990,9 +2298,9 @@ class SetRangeTestCase(unittest.TestCase):
         
         # Read some rows:
         row = []
-        row.append(vlarray.read(0))
-        row.append(vlarray.read(10))
-        row.append(vlarray.read(99))
+        row.append(vlarray.read(0)[0])
+        row.append(vlarray.read(10)[0])
+        row.append(vlarray.read(99)[0])
         if verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
@@ -2023,9 +2331,9 @@ class SetRangeTestCase(unittest.TestCase):
         
         # Read some rows:
         row = []
-        row.append(vlarray.read(0))
-        row.append(vlarray.read(10))
-        row.append(vlarray.read(99))
+        row.append(vlarray.read(0)[0])
+        row.append(vlarray.read(10)[0])
+        row.append(vlarray.read(99)[0])
         if verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
@@ -2056,9 +2364,9 @@ class SetRangeTestCase(unittest.TestCase):
         
         # Read some rows:
         row = []
-        row.append(vlarray.read(0))
-        row.append(vlarray.read(10))
-        row.append(vlarray.read(99))
+        row.append(vlarray.read(0)[0])
+        row.append(vlarray.read(10)[0])
+        row.append(vlarray.read(99)[0])
         if verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
@@ -2089,9 +2397,9 @@ class SetRangeTestCase(unittest.TestCase):
         
         # Read some rows:
         row = []
-        row.append(vlarray.read(0))
-        row.append(vlarray.read(10))
-        row.append(vlarray.read(99))
+        row.append(vlarray.read(0)[0])
+        row.append(vlarray.read(10)[0])
+        row.append(vlarray.read(99)[0])
         if verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
@@ -2122,9 +2430,9 @@ class SetRangeTestCase(unittest.TestCase):
         
         # Read some rows:
         row = []
-        row.append(vlarray.read(0))
-        row.append(vlarray.read(10))
-        row.append(vlarray.read(99))
+        row.append(vlarray.read(0)[0])
+        row.append(vlarray.read(10)[0])
+        row.append(vlarray.read(99)[0])
         if verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
@@ -2806,7 +3114,8 @@ def suite():
         if numeric:
             theSuite.addTest(unittest.makeSuite(NumericFlavorTestCase))
         theSuite.addTest(unittest.makeSuite(NumArrayFlavorTestCase))
-        theSuite.addTest(unittest.makeSuite(GetRangeTestCase))
+        theSuite.addTest(unittest.makeSuite(ReadRangeTestCase))
+        theSuite.addTest(unittest.makeSuite(GetItemRangeTestCase))
         theSuite.addTest(unittest.makeSuite(SetRangeTestCase))
         theSuite.addTest(unittest.makeSuite(ShuffleComprTestCase))
         theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))

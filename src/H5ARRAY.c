@@ -21,11 +21,11 @@
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: F. Alted. October 21, 2002
+ * Programmer: F. Altet. October 21, 2002
  *
  * Date: March 19, 2001
  *
- * Comments: Modified by F. Alted. November 07, 2003
+ * Comments: Modified by F. Altet. November 07, 2003
  *
  * Modifications: This is the same routine as H5LTmake_dataset, but I've 
  *                added a TITLE attribute for array, as well as 
@@ -231,7 +231,7 @@ out:
  * Return: Success: 0, Failure: -1
  *
  * Programmers: 
- *  Francesc Alted
+ *  Francesc Altet
  *
  * Date: October 30, 2003
  *
@@ -338,7 +338,7 @@ out:
  * Return: Success: 0, Failure: -1
  *
  * Programmers: 
- *  Francesc Alted
+ *  Francesc Altet
  *
  * Date: October 26, 2004
  *
@@ -411,6 +411,96 @@ out:
 
 }
 
+
+/*-------------------------------------------------------------------------
+ * Function: H5ARRAYtruncate
+ *
+ * Purpose: Truncate the EArray to at most size rows
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmers: 
+ *  Francesc Altet
+ *
+ * Date: November 19, 2004
+ *
+ * Comments:
+ *
+ * Modifications: 
+ *
+ *
+ *-------------------------------------------------------------------------
+ */
+
+
+herr_t H5ARRAYtruncate( hid_t loc_id, 
+			const char *dset_name,
+			const int extdim,
+			const hsize_t size)
+{
+ hid_t    dataset_id;
+ hid_t    space_id;
+ hsize_t  *dims = NULL;
+ int      rank;
+
+/*  printf("size (1): %d\n", size); */
+ /* Open the dataset. */
+ if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+  goto out;
+
+  /* Get the dataspace handle */
+ if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+  goto out;
+ 
+ /* Get the rank */
+ if ( (rank = H5Sget_simple_extent_ndims(space_id)) < 0 )
+   goto out;
+
+ if (rank) {  			/* Array case */
+   /* Book some memory for the selections */
+   dims = (hsize_t *)malloc(rank*sizeof(hsize_t));
+
+   /* Get dataset dimensionality */
+   if ( H5Sget_simple_extent_dims(space_id, dims, NULL) < 0 )
+     goto out;
+
+   if ( size >= dims[extdim] ) {
+     printf("Asking for truncate to more rows that the available ones!.\n");
+     goto out;
+   }
+
+   /* Truncate the EArray */
+   dims[extdim] = size;
+   if ( H5Dset_extent( dataset_id, dims ) < 0 )
+/*    if ( H5Dextend( dataset_id, dims ) < 0 ) */
+     goto out;
+
+   /* Release resources */
+   free(dims);
+ }
+ else {
+     printf("An scalar Array cannot be truncated!.\n");
+     goto out;
+ }
+
+ /* Free resources */
+ if ( H5Sclose( space_id ) < 0 )
+   return -1;
+
+ /* End access to the dataset */
+ if ( H5Dclose( dataset_id ) < 0 )
+  return -1;
+
+ return 0;
+
+out:
+ H5Dclose( dataset_id );
+ if (dims) free(dims);
+ return -1;
+
+}  
+
+
 /*-------------------------------------------------------------------------
  * Function: H5ARRAYread
  *
@@ -418,7 +508,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@pytables.org
+ * Programmer: Francesc Altet, falted@pytables.org
  *
  * Date: October 22, 2002
  *
@@ -554,7 +644,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@pytables.org
+ * Programmer: Francesc Altet, falted@pytables.org
  *
  * Date: December 16, 2003
  *
@@ -679,7 +769,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, falted@pytables.org
+ * Programmer: Francesc Altet, falted@pytables.org
  *
  * Date: June 21, 2004
  *
@@ -822,14 +912,14 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted
+ * Programmer: Francesc Altet
  *
  * Date: October 22, 2002
  *
  *-------------------------------------------------------------------------
  */
 /* Addition: Now, this routine can deal with both array and
-   atomic datatypes. F. Alted  2003-01-29 */
+   atomic datatypes. F. Altet  2003-01-29 */
 
 herr_t H5ARRAYget_ndims( hid_t loc_id, 
 			 const char *dset_name,
@@ -897,7 +987,7 @@ out:
  *
  * Return: Success: chunksize, Failure: -1
  *
- * Programmer: Francesc Alted
+ * Programmer: Francesc Altet
  *
  * Date: May 20, 2004
  *

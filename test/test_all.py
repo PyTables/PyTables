@@ -30,6 +30,13 @@ import test_all
 test_all.verbose = verbose
 test_all.heavy = heavy
 
+def cleanup(klass):
+    klass.__dict__.clear()
+#    print "Class attributes deleted"
+#     for key in klass.__dict__.keys():
+#         klass.__dict__[key] = None
+    pass
+
 def allequal(a,b, flavor="numarray"):
     """Checks if two numarrays are equal"""
 

@@ -9,7 +9,9 @@ import numarray.records as records
 from tables import *
 from tables.hdf5Extension import getIndices
 
-from test_all import verbose, allequal, heavy
+from test_all import verbose, allequal, heavy, cleanup
+# To delete the internal attributes automagically
+unittest.TestCase.tearDown = cleanup
 
 # Test Record class
 class Record(IsDescription):
@@ -181,6 +183,7 @@ class BasicTestCase(unittest.TestCase):
         self.fileh.close()
         #del self.fileh, self.rootgroup
         os.remove(self.file)
+        cleanup(self)
         
     #----------------------------------------
 
@@ -526,7 +529,7 @@ class BasicTestCase(unittest.TestCase):
         table.flush()
         
         # Delete 5 rows more
-        table.removeRows(5, 10)        
+        table.removeRows(5, 10)
 
         # Re-read the records
         result2 = [ r['var2'] for r in table if r['var2'] < 20 ]
@@ -741,6 +744,7 @@ class BasicRangeTestCase(unittest.TestCase):
         if self.fileh.isopen:
             self.fileh.close()
         os.remove(self.file)
+        cleanup(self)
         
     #----------------------------------------
 
@@ -1168,6 +1172,7 @@ class getItemTestCase(unittest.TestCase):
         if self.fileh.isopen:
             self.fileh.close()
         os.remove(self.file)
+        cleanup(self)
         
     #----------------------------------------
 
@@ -1346,6 +1351,12 @@ class Rec(IsDescription):
 
 class setItem(unittest.TestCase):
 
+    def tearDown(self):
+        self.fileh.close()
+        #del self.fileh, self.rootgroup
+        os.remove(self.file)
+        cleanup(self)
+
     def test01(self):
         "Checking modifying one table row with __setitem__"
 
@@ -1353,11 +1364,11 @@ class setItem(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01..." % self.__class__.__name__
 
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "w")
 
         # Create a new table:
-        table = fileh.createTable(fileh.root, 'recarray', Rec)
+        table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
         table._v_maxTuples = self.buffersize  # set buffer value
 
         # append new rows
@@ -1374,9 +1385,9 @@ class setItem(unittest.TestCase):
                          names = "col1,col2,col3")
         # Read the modified table
         if self.reopen:
-            fileh.close()
-            fileh = openFile(file, "r")
-            table = fileh.root.recarray
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
             table._v_maxTuples = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
@@ -1384,10 +1395,7 @@ class setItem(unittest.TestCase):
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
         assert table.nrows == 4
-
-        fileh.close()
-        os.remove(file)
-
+        
     def test02(self):
         "Modifying one row, with a step (__setitem__)"
 
@@ -1395,11 +1403,11 @@ class setItem(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02..." % self.__class__.__name__
 
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "w")
 
         # Create a new table:
-        table = fileh.createTable(fileh.root, 'recarray', Rec)
+        table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
         table._v_maxTuples = self.buffersize  # set buffer value
 
         # append new rows
@@ -1418,9 +1426,9 @@ class setItem(unittest.TestCase):
                          names = "col1,col2,col3")
         # Read the modified table
         if self.reopen:
-            fileh.close()
-            fileh = openFile(file, "r")
-            table = fileh.root.recarray
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
             table._v_maxTuples = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
@@ -1428,10 +1436,7 @@ class setItem(unittest.TestCase):
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
         assert table.nrows == 4
-
-        fileh.close()
-        os.remove(file)
-
+        
     def test03(self):
         "Checking modifying several rows at once (__setitem__)"
 
@@ -1439,11 +1444,11 @@ class setItem(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test03..." % self.__class__.__name__
 
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "w")
 
         # Create a new table:
-        table = fileh.createTable(fileh.root, 'recarray', Rec)
+        table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
         table._v_maxTuples = self.buffersize  # set buffer value
 
         # append new rows
@@ -1463,9 +1468,9 @@ class setItem(unittest.TestCase):
                          names = "col1,col2,col3")
         # Read the modified table
         if self.reopen:
-            fileh.close()
-            fileh = openFile(file, "r")
-            table = fileh.root.recarray
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
             table._v_maxTuples = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
@@ -1473,10 +1478,7 @@ class setItem(unittest.TestCase):
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
         assert table.nrows == 4
-
-        fileh.close()
-        os.remove(file)
-
+        
     def test04(self):
         "Modifying several rows at once, with a step (__setitem__)"
 
@@ -1484,11 +1486,11 @@ class setItem(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test04..." % self.__class__.__name__
 
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "w")
 
         # Create a new table:
-        table = fileh.createTable(fileh.root, 'recarray', Rec)
+        table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
         table._v_maxTuples = self.buffersize  # set buffer value
 
         # append new rows
@@ -1508,9 +1510,9 @@ class setItem(unittest.TestCase):
                          names = "col1,col2,col3")
         # Read the modified table
         if self.reopen:
-            fileh.close()
-            fileh = openFile(file, "r")
-            table = fileh.root.recarray
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
             table._v_maxTuples = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
@@ -1518,10 +1520,7 @@ class setItem(unittest.TestCase):
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
         assert table.nrows == 4
-
-        fileh.close()
-        os.remove(file)
-
+        
     def test05(self):
         "Checking modifying one column (single element, __setitem__)"
 
@@ -1529,11 +1528,11 @@ class setItem(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test05..." % self.__class__.__name__
 
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "w")
 
         # Create a new table:
-        table = fileh.createTable(fileh.root, 'recarray', Rec)
+        table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
         table._v_maxTuples = self.buffersize  # set buffer value
 
         # append new rows
@@ -1550,9 +1549,9 @@ class setItem(unittest.TestCase):
                          names = "col1,col2,col3")
         # Read the modified table
         if self.reopen:
-            fileh.close()
-            fileh = openFile(file, "r")
-            table = fileh.root.recarray
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
             table._v_maxTuples = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
@@ -1560,10 +1559,7 @@ class setItem(unittest.TestCase):
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
         assert table.nrows == 4
-
-        fileh.close()
-        os.remove(file)
-
+        
     def test06(self):
         "Checking modifying one column (several elements, __setitem__)"
 
@@ -1571,11 +1567,11 @@ class setItem(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test06..." % self.__class__.__name__
 
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "w")
 
         # Create a new table:
-        table = fileh.createTable(fileh.root, 'recarray', Rec)
+        table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
         table._v_maxTuples = self.buffersize  # set buffer value
 
         # append new rows
@@ -1592,9 +1588,9 @@ class setItem(unittest.TestCase):
                          names = "col1,col2,col3")
         # Read the modified table
         if self.reopen:
-            fileh.close()
-            fileh = openFile(file, "r")
-            table = fileh.root.recarray
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
             table._v_maxTuples = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
@@ -1602,10 +1598,7 @@ class setItem(unittest.TestCase):
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
         assert table.nrows == 4
-
-        fileh.close()
-        os.remove(file)
-
+        
     def test07(self):
         "Modifying one column (several elements, __setitem__, step)"
 
@@ -1613,11 +1606,11 @@ class setItem(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test07..." % self.__class__.__name__
 
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "w")
 
         # Create a new table:
-        table = fileh.createTable(fileh.root, 'recarray', Rec)
+        table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
         table._v_maxTuples = self.buffersize  # set buffer value
 
         # append new rows
@@ -1634,9 +1627,9 @@ class setItem(unittest.TestCase):
                          names = "col1,col2,col3")
         # Read the modified table
         if self.reopen:
-            fileh.close()
-            fileh = openFile(file, "r")
-            table = fileh.root.recarray
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
             table._v_maxTuples = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
@@ -1645,9 +1638,6 @@ class setItem(unittest.TestCase):
         assert r1.tostring() == r2.tostring()
         assert table.nrows == 4
 
-        fileh.close()
-        os.remove(file)
-
     def test08(self):
         "Modifying one column (one element, __setitem__, step)"
 
@@ -1655,11 +1645,11 @@ class setItem(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test08..." % self.__class__.__name__
 
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "w")
 
         # Create a new table:
-        table = fileh.createTable(fileh.root, 'recarray', Rec)
+        table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
         table._v_maxTuples = self.buffersize  # set buffer value
 
         # append new rows
@@ -1676,9 +1666,9 @@ class setItem(unittest.TestCase):
                          names = "col1,col2,col3")
         # Read the modified table
         if self.reopen:
-            fileh.close()
-            fileh = openFile(file, "r")
-            table = fileh.root.recarray
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
             table._v_maxTuples = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
@@ -1687,9 +1677,6 @@ class setItem(unittest.TestCase):
         assert r1.tostring() == r2.tostring()
         assert table.nrows == 4
 
-        fileh.close()
-        os.remove(file)
-
     def test09(self):
         "Modifying beyond the table extend (__setitem__, step)"
 
@@ -1697,11 +1684,11 @@ class setItem(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test09..." % self.__class__.__name__
 
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "w")
 
         # Create a new table:
-        table = fileh.createTable(fileh.root, 'recarray', Rec)
+        table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
         table._v_maxTuples = self.buffersize  # set buffer value
 
         # append new rows
@@ -1721,9 +1708,9 @@ class setItem(unittest.TestCase):
 
         # Read the modified table
         if self.reopen:
-            fileh.close()
-            fileh = openFile(file, "r")
-            table = fileh.root.recarray
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
             table._v_maxTuples = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
@@ -1731,10 +1718,6 @@ class setItem(unittest.TestCase):
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
         assert table.nrows == 4
-
-        fileh.close()
-        os.remove(file)
-
 
 class setItem1(setItem):
     reopen=0
@@ -2847,8 +2830,10 @@ class CopyTestCase(unittest.TestCase):
         assert 1 == table2.filters.shuffle
         assert table1.filters.fletcher32 == table2.filters.fletcher32
         # User attributes
-        table2.attrs.attr1 == None
-        table2.attrs.attr2 == None
+#         table2.attrs.attr1 == None
+#         table2.attrs.attr2 == None
+        hasattr(table2.attrs, "attr1") == 0
+        hasattr(table2.attrs, "attr2") == 0
 
         # Close the file
         fileh.close()
@@ -3163,7 +3148,6 @@ class DefaultValues(unittest.TestCase):
             print r[:10]
 
         assert r.tostring() == r2.tostring()
-        
         fileh.close()
         os.remove(file)
 
@@ -3208,6 +3192,7 @@ class LengthTestCase(unittest.TestCase):
         if self.fileh.isopen:
             self.fileh.close()
         os.remove(self.file)
+        cleanup(self)
         
     #----------------------------------------
 

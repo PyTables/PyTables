@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.148 2004/10/28 11:09:55 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.149 2004/12/09 11:34:55 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.148 $"
+__version__ = "$Revision: 1.149 $"
 
 
 import sys, os
@@ -567,6 +567,9 @@ cdef extern from "H5ARRAY.h":
                                int rank, hsize_t *start, hsize_t *step,
                                hsize_t *count, void *data )
 
+  herr_t H5ARRAYtruncate( hid_t loc_id, char *dset_name,
+                          int extdim, hsize_t size)
+  
   herr_t H5ARRAYread( hid_t loc_id, char *dset_name,
                       hsize_t start,  hsize_t nrows, hsize_t step,
                       int extdim, void *data )
@@ -647,7 +650,8 @@ cdef extern from "arraytypes.h":
 # I define this constant, but I should not, because it should be defined in
 # the HDF5 library, but having problems importing it
 cdef enum:
-  MAX_FIELDS = 255
+  MAX_FIELDS = 256
+  #MAX_FIELDS = 1024
 
 # Maximum size for strings
 cdef enum:
@@ -945,7 +949,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.148 2004/10/28 11:09:55 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.149 2004/12/09 11:34:55 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1539,13 +1543,13 @@ cdef class Table:
   # instance variables
   cdef size_t  field_offset[MAX_FIELDS]
   cdef size_t  field_sizes[MAX_FIELDS]
+  cdef char    *field_names[MAX_FIELDS]
   cdef hsize_t nfields
   cdef void    *rbuf, *mmrbuf
   cdef hsize_t totalrecords
   cdef hid_t   parent_id, loc_id
   cdef char    *name, *xtitle
   cdef char    *fmt
-  cdef char    *field_names[MAX_FIELDS]
   cdef int     _open
   cdef char    *complib
   cdef hid_t   dataset_id, space_id, mem_type_id
@@ -1590,12 +1594,8 @@ cdef class Table:
                               self.field_sizes, self.field_offset)
     self.nfields = nvar
 
-    # Protection against row sizes too large (HDF5 refuse to work
-    # with row sizes larger than 10 KB or so).
-    # This limitation was consequence of my buffer size computation that was
-    # quite bad. Now, I think it is safe to release this limitation for most
-    # uses
-    # I'll revert to a 512 KB limit (just because banana 640 KB limitation)
+    # Protection against too large row sizes
+    # Set to a 512 KB limit (just because banana 640 KB limitation)
     if self.rowsize > 524288:
             raise RuntimeError, \
     """Row size too large. Maximum size is 8192 bytes, and you are asking
@@ -1650,7 +1650,7 @@ cdef class Table:
     self.objectID = self.dataset_id
 
   # A version of Table._saveBufferRows in Pyrex is available in 0.7.2,
-  # but it is not faster than the Python version, so I removed it
+  # but as it is not faster than the Python version, so I removed it
   
   def _append_records(self, object recarr, int nrecords):
     cdef int ret
@@ -2379,8 +2379,12 @@ cdef class Row:
     return
 
   def nrow(self):
-    """ get the global row number for this table """
+    """Get the global row number for this table"""
     return self._nrow
+
+  def getTable(self):
+    """Get the associated Table object"""
+    return self._table
 
   def append(self):
     """Append self object to the output buffer.
@@ -2781,6 +2785,26 @@ cdef class Array:
     if ret < 0:
       raise RuntimeError("Problems modifying the elements")
 
+  def _truncateArray(self, hsize_t size):
+    cdef hsize_t extdim
+    cdef hsize_t ret
+
+    extdim = self.extdim
+    if size >= self.shape[extdim]:
+      return self.shape[extdim]
+
+    ret = H5ARRAYtruncate(self.parent_id, self.name, extdim, size)
+    if ret < 0:
+      raise RuntimeError("Problems truncating the EArray node.")
+
+    # Update the new dimensionality
+    shape = list(self.shape)
+    shape[self.extdim] = size
+    self.shape = tuple(shape)
+    self.nrows = size
+
+    return
+  
   def _readArray(self, hsize_t start, hsize_t stop, hsize_t step,
                  object buf):
     cdef herr_t ret
@@ -3402,13 +3426,20 @@ cdef class VLArray:
         shape = (vllen, self._atomicshape)
       else:
         # Case of scalars (self._atomicshape == 1)
-        shape = (vllen,)
+        shape = (vllen,)        
       # Create an array to keep this info
+      # It seems that an array made from a buffer cannot be
+      # pickled. We do a copy of the buffer so that the objects would
+      # be able to get pickled without problems.
+      # However this give problems (!) Return to the initial point :-/
+      # F. Altet 2004-11-16
       if str(self._atomictype) == "CharType":
         naarr = strings.array(rbuf, itemsize=self._basesize, shape=shape)
       else:
         naarr = numarray.array(rbuf, type=self._atomictype, shape=shape)
       datalist.append(naarr)
+#       free(rdata[i].p)  # Get rid of the buffer data because we already
+#                         # copied it
 
     # Release resources
     free(rdata)

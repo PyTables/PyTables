@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.34 2004/10/27 19:04:15 falted Exp $
+#       $Id: AttributeSet.py,v 1.35 2004/12/09 11:34:55 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.34 $"
+__version__ = "$Revision: 1.35 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -161,9 +161,10 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     def __getattr__(self, name):
         """Get the attribute named "name"."""
 
-        # If attribute does not exist, return None
+        # If attribute does not exist, raise AttributeError
         if not name in self._v_attrnames:
-            return None
+            raise AttributeError, \
+		"Attribute '%s' does not exist in node:\n'%s'" % (name, str(self._v_node))
 
         # Read the attribute from disk
         # This is commented out temporarily until I decide whether it is
@@ -202,7 +203,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         A NameError is also raised when the "name" starts by a
         reserved prefix. A SyntaxError is raised if "name" is not a
-        valid Python identifier. A RuntimeError is raised if a
+        valid Python identifier. An AttributeError is raised if a
         read-only attribute is to be overwritten or if
         MAX_ATTRS_IN_NODE is going to be exceeded.
 
@@ -213,7 +214,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         # Check that the attribute is not a system one (read-only)
         if name in RO_ATTRS:
-            raise RuntimeError, \
+            raise AttributeError, \
                   "Read-only attribute ('%s') cannot be overwritten" % (name)
             
         # Check if we have too much numbers of attributes
@@ -243,13 +244,13 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         # Check if attribute exists
         if name not in self._v_attrnames:
-            raise RuntimeError, \
+            raise AttributeError, \
                   "Attribute ('%s') does not exist in node '%s'" % \
                   (name, self._v_node._v_name)
 
         # The system attributes are protected
         if name in RO_ATTRS:
-            raise RuntimeError, \
+            raise AttributeError, \
                   "Read-only attribute ('%s') cannot be deleted" % (name)
 
         # Delete the attribute from disk
@@ -273,7 +274,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # if oldattrname or newattrname are system attributes, raise an error
         for name in [oldattrname, newattrname]:
             if name in RO_ATTRS:
-                raise RuntimeError, \
+                raise AttributeError, \
             "Read-only attribute ('%s') cannot be renamed" % (name)
 
         # First, fetch the value of the oldattrname

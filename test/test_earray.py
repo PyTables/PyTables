@@ -16,7 +16,9 @@ try:
 except:
     numeric = 0
 
-from test_all import verbose, allequal
+from test_all import verbose, allequal, cleanup
+# To delete the internal attributes automagically
+unittest.TestCase.tearDown = cleanup
 
 class BasicTestCase(unittest.TestCase):
     # Default values
@@ -107,6 +109,7 @@ class BasicTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
+        cleanup(self)
         
     #----------------------------------------
 
@@ -947,6 +950,7 @@ class OffsetStrideTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
+        cleanup(self)
         
     #----------------------------------------
 
@@ -1114,7 +1118,7 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
             
         # Check that all the elements are equal
-        allequal(array1.read(), array2.read())
+        assert allequal(array1.read(), array2.read())
 
         # Assert other properties in array
         assert array1.nrows == array2.nrows
@@ -1173,7 +1177,7 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
             
         # Check that all the elements are equal
-        allequal(array1.read(), array2.read())
+        assert allequal(array1.read(), array2.read())
 
         # Assert other properties in array
         assert array1.nrows == array2.nrows
@@ -1442,7 +1446,7 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Check that all elements are equal
-        allequal(array1.read(), array2.read())
+        assert allequal(array1.read(), array2.read())
         # Assert other properties in array
         assert array1.nrows == array2.nrows
         assert array1.shape == array2.shape
@@ -1594,8 +1598,8 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
             
         # Assert user attributes
-        array2.attrs.attr1 == None
-        array2.attrs.attr2 == None
+        hasattr(array2.attrs, "attr1") == 0
+        hasattr(array2.attrs, "attr2") == 0
 
         # Close the file
         fileh.close()
@@ -1644,7 +1648,7 @@ class CopyIndexTestCase(unittest.TestCase):
             
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
-        allequal(r2, array2.read())
+        assert allequal(r2, array2.read())
 
         # Assert the number of rows in array
         if verbose:
@@ -1695,7 +1699,7 @@ class CopyIndexTestCase(unittest.TestCase):
             
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
-        allequal(r2, array2.read())
+        assert allequal(r2, array2.read())
 
         # Assert the number of rows in array
         if verbose:
@@ -1774,6 +1778,162 @@ class CopyIndex12TestCase(CopyIndexTestCase):
     stop = None  # None should mean the last element (including it)
     step = 1
 
+class TruncateTestCase(unittest.TestCase):
+
+    def _test00_truncate(self):
+        """Checking EArray.truncate() method (truncating to 0 rows)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00_truncate..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an EArray
+        arr = Atom(shape=(0, 2), dtype=Int16)
+        array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
+        # Append two rows
+        array1.append(array([[456, 2],[3, 457]], type=Int16))
+
+        if self.close:
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            array1 = fileh.root.array1
+            
+        # Truncate to 0 elements
+        array1.truncate(0)
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+
+        if verbose:
+            print "array1-->", array1.read()
+
+        assert allequal(array1[:], array([], type=Int16, shape=(0,2)))
+
+    def test01_truncate(self):
+        """Checking EArray.truncate() method (truncating to 1 rows)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_truncate..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an EArray
+        arr = Atom(shape=(0, 2), dtype=Int16)
+        array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
+        # Append two rows
+        array1.append(array([[456, 2],[3, 457]], type=Int16))
+
+        if self.close:
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            array1 = fileh.root.array1
+            
+        # Truncate to 1 element
+        array1.truncate(1)
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+
+        if verbose:
+            print "array1-->", array1.read()
+
+        assert allequal(array1.read(), array([[456, 2]], type=Int16))
+
+    def test02_truncate(self):
+        """Checking EArray.truncate() method (truncating to >= earray.nrows)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_truncate..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an EArray
+        arr = Atom(shape=(0, 2), dtype=Int16)
+        array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
+        # Append two rows
+        array1.append(array([[456, 2],[3, 457]], type=Int16))
+
+        if self.close:
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            array1 = fileh.root.array1
+            
+        # Truncate to 2 elements
+        array1.truncate(2)
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+
+        if verbose:
+            print "array1-->", array1.read()
+
+        assert allequal(array1.read(), array([[456, 2],[3, 457]], type=Int16))
+
+    def test03_truncate(self):
+        """Checking EArray.truncate() method (truncating to > earray.nrows)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_truncate..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an EArray
+        arr = Atom(shape=(0, 2), dtype=Int16)
+        array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
+        # Append two rows
+        array1.append(array([[456, 2],[3, 457]], type=Int16))
+
+        if self.close:
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            array1 = fileh.root.array1
+            
+        # Truncate to 3 element
+        array1.truncate(3)
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+
+        if verbose:
+            print "array1-->", array1.read()
+
+        assert allequal(array1.read(), array([[456, 2],[3, 457]], type=Int16))
+
+
+class TruncateOpenTestCase(TruncateTestCase):
+    close = 0
+
+class TruncateCloseTestCase(TruncateTestCase):
+    close = 1
 
 
 #----------------------------------------------------------------------
@@ -1784,6 +1944,8 @@ def suite():
     niter = 1
 
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
+#     theSuite.addTest(unittest.makeSuite(TruncateOpenTestCase))
+#     theSuite.addTest(unittest.makeSuite(TruncateCloseTestCase))
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(BasicWrite2TestCase))
@@ -1837,9 +1999,18 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyIndex10TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex11TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex12TestCase))
+        theSuite.addTest(unittest.makeSuite(TruncateOpenTestCase))
+        theSuite.addTest(unittest.makeSuite(TruncateCloseTestCase))
 
     return theSuite
 
 
 if __name__ == '__main__':
     unittest.main( defaultTest='suite' )
+
+## Local Variables:
+## mode: python
+## py-indent-offset: 4
+## tab-width: 4
+## End:
+

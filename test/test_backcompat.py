@@ -9,7 +9,9 @@ import unittest
 # import numarray.records as records
 from tables import *
 
-from test_all import verbose
+from test_all import verbose, cleanup
+# To delete the internal attributes automagically
+unittest.TestCase.tearDown = cleanup
 
 # Check read Tables from pytables version 0.5 (ucl-nrv2e), and 0.7 (ucl-nvr2d)
 class BackCompatTestCase(unittest.TestCase):

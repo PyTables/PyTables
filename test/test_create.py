@@ -16,7 +16,9 @@ from tables import *
 # important objects to test
 from tables import File, Group, Leaf, Table, Array
 
-from test_all import verbose, heavy
+from test_all import verbose, heavy, cleanup
+# To delete the internal attributes automagically
+unittest.TestCase.tearDown = cleanup
 
 class Record(IsDescription):
     var1 = StringCol(length=4)     # 4-character String
@@ -54,6 +56,7 @@ class createTestCase(unittest.TestCase):
 
         self.fileh.close()
         os.remove(self.file)
+        cleanup(self)
 
     #----------------------------------------
 
@@ -154,10 +157,10 @@ class createTestCase(unittest.TestCase):
 	assert arr.getAttr("TITLE") == "t" * titlelength
 
     def test04_maxFields(self):
-	"Checking the maximum number of fields (255) in tables"
+	"Checking the maximum number of fields (256) in tables"
 
 	# The number of fields for a table
-	varnumber = 255
+	varnumber = 256
 
 	varnames = []
 	for i in range(varnumber):
@@ -199,10 +202,10 @@ class createTestCase(unittest.TestCase):
         assert listrows == listout
 
     def test05_maxFieldsExceeded(self):
-	"Checking an excess (256) of the maximum number of fields in tables"
+	"Checking an excess (257) of the maximum number of fields in tables"
 
 	# The number of fields for a table
-	varnumber = 256
+	varnumber = 257
 
 	varnames = []
 	for i in range(varnumber):
@@ -220,12 +223,15 @@ class createTestCase(unittest.TestCase):
 	recordDict['_v_align'] = "="
         
 	# Now, create a table with this record object
-	table = Table(recordDict, "MetaRecord instance")
+        # This way of creating node objects has been deprecated
+	#table = Table(recordDict, "MetaRecord instance")
 
 	# Attach the table to object tree
         # Here, IndexError should be raised!
         try:
-            self.root.table = table
+            #self.root.table = table
+            table = self.fileh.createTable(self.root, 'table',
+                                           recordDict, "MetaRecord instance")
         except IndexError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -243,12 +249,15 @@ class createTestCase(unittest.TestCase):
 	recordDict["b"*256] = IntCol(1) # Should trigger a NameError
         
 	# Now, create a table with this record object
+        # This way of creating node objects has been deprecated
 	table = Table(recordDict, "MetaRecord instance")
 
 	# Attach the table to object tree
         # Here, IndexError should be raised!
         try:
-            self.root.table = table
+            # self.root.table = table
+            table = self.fileh.createTable(self.root, 'table',
+                                           recordDict, "MetaRecord instance")
         except NameError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -284,6 +293,7 @@ class createAttrTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
+        cleanup(self)
 
 #---------------------------------------
 
@@ -509,7 +519,7 @@ class createAttrTestCase(unittest.TestCase):
             if verbose:
                 print "System attrs:", self.group._v_attrs._v_attrnamessys
             del self.group._v_attrs.CLASS
-        except RuntimeError:
+        except AttributeError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next RuntimeError was catched!"
@@ -550,7 +560,7 @@ class createAttrTestCase(unittest.TestCase):
         # rename a system attribute
         try:
             self.group._v_attrs._f_rename("CLASS", "op")
-        except RuntimeError:
+        except AttributeError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next RuntimeError was catched!"
@@ -812,6 +822,7 @@ class FiltersTreeTestCase(unittest.TestCase):
             self.h5file.close()
 
         os.remove(self.file)
+        cleanup(self)
 
     #----------------------------------------
 
@@ -1122,6 +1133,7 @@ class CopyGroupTestCase(unittest.TestCase):
 
         os.remove(self.file)
         os.remove(self.file2)
+        cleanup(self)
 
     #----------------------------------------
 
@@ -1461,6 +1473,7 @@ class CopyFileTestCase(unittest.TestCase):
 
         os.remove(self.file)
         os.remove(self.file2)
+        cleanup(self)
 
     #----------------------------------------
 

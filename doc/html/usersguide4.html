@@ -2,7 +2,7 @@
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.9"><meta name="DC.Creator" content="Francesc Altet"><meta name="Author" content="Francesc Altet"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Creator" content="Ivan Vilata"><meta name="Author" content="Ivan Vilata"><meta name="DC.Creator" content="Tom Hedley"><meta name="Author" content="Tom Hedley"><meta name="DC.Date" content="2004-11-05T16:54:26+01:00"><meta name="Date" content="2004-11-05T16:54:26+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide Hierarchical datasets in Python Release 0.9.1"><meta name="DC.Creator" content="Francesc Altet"><meta name="Author" content="Francesc Altet"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Creator" content="Ivan Vilata"><meta name="Author" content="Ivan Vilata"><meta name="DC.Creator" content="Tom Hedley"><meta name="Author" content="Tom Hedley"><meta name="DC.Date" content="2004-12-02T12:15:05+01:00"><meta name="Date" content="2004-12-02T12:15:05+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc Altet"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -148,6 +148,8 @@ div.title-article { font-size: x-large }
 div.partheadline { font-size: x-large }
 </style></head><body><div class="speedbar-top"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide3.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide5.html">next</a></td></tr><tr><td colspan="3">&nbsp;</td></tr></tbody></table><hr class="speedbar"></div><div class="document"><div id="libraryReference"><a name="libraryReference"></a>
       <h1 id="chapter4"><a name="chapter4"></a>Chapter&nbsp;4: Library Reference</h1>
+
+      
       
 
 
@@ -266,6 +268,8 @@ div.partheadline { font-size: x-large }
 	    </p>
 	  </div>
 
+	  
+
 	  <div id="isPyTablesFileDescr"><a name="isPyTablesFileDescr"></a>
 	    <h4 id="subsubsection4.1.2.3">isPyTablesFile(filename)</h4>
 
@@ -277,6 +281,8 @@ div.partheadline { font-size: x-large }
 	    </p>
 
 	  </div>
+
+	  
 
 	  <div id="openFileDescr"><a name="openFileDescr"></a>
 	    <h4 id="subsubsection4.1.2.4">openFile(filename, mode='r', title='', trMap={},
@@ -453,9 +459,486 @@ div.partheadline { font-size: x-large }
 	<div>
 	  <h3 id="subsection4.2.2"><span class="headlinenumber"><a name="subsection4.2.2"></a>4.2.2 </span><tt>File</tt> methods</h3>
 
+	  <div id="createGroupDescr"><a name="createGroupDescr"></a>
+	    <h4 id="subsubsection4.2.2.1">createGroup(where, name, title='', filters=None)
+	    </h4>
+
+	    <p class="first">Create a new Group instance with name <em>name</em> in
+	      <em>where</em> location.
+	    </p>
+
+	    <dl>
+	      <dt>where</dt> <dd>The parent group where the new
+		group will hang from. <em>where</em> parameter can be
+		a path string (for example
+		<tt class="verb">"/level1/group5"</tt>), or another Group
+		instance. </dd>
+
+	      <dt>name</dt>
+	      <dd>The name of the new group.</dd>
+	      
+	      <dt>title</dt> <dd>A description for this
+		group.</dd>
+
+	      <dt>filters</dt><dd>An instance of the
+		<tt class="verb">Filters</tt> class (see section<a href="#FiltersClassDescr">4.13.1</a>) that provides
+		information about the desired I/O filters applicable
+		to the leaves that hangs directly from this new group
+		(unless other filters properties are specified for
+		these leaves). Besides, if you do not specify filter
+		properties for its child groups, they will inherit
+		these ones.
+	      </dd>
+
+	    </dl>
+
+	  </div>
+
+	  <div id="createTableDescr"><a name="createTableDescr"></a>
+	    <h4 id="subsubsection4.2.2.2">createTable(where, name,
+	      description, title='', filters=None,
+	      expectedrows=10000)
+	    </h4>
+	    <p class="first">Create a new <tt class="verb">Table</tt> instance with name
+	      <em>name</em> in <em>where</em> location.
+	    </p>
+	    <dl>
+	      <dt>where</dt> <dd>The parent group where the new
+		table will hang from. <em>where</em> parameter can be
+		a path string (for example
+		<tt class="verb">"/level1/leaf5"</tt>), or Group instance.
+               </dd>
+	      <dt>name</dt> <dd>The name of the new table.
+              </dd>
+	      <dt>description</dt> <dd>An instance of a
+		user-defined class (derived from the
+		<tt class="verb">IsDescription</tt> class) where table fields
+		are defined. However, in certain situations, it is
+		more handy to allow this description to be supplied as
+		a dictionary (for example, when you do not know
+		beforehand which structure will have your table). In
+		such a cases, you can pass the description as a
+		dictionary as well. See <a href="usersguide3.html#secondExample">section&nbsp;3.3</a> for an example of
+		use. Finally, a <tt class="verb">RecArray</tt> object from the
+		<tt class="verb">numarray</tt> package is also accepted, and
+		all the information about columns and other metadata
+		is used as a basis to create the <tt class="verb">Table</tt>
+		object. Moreover, if the <tt class="verb">RecArray</tt> has
+		actual data this is also injected on the newly created
+		<tt class="verb">Table</tt> object.
+	      </dd>
+	      <dt>title</dt> <dd>A description for this object.
+	      </dd>
+	      <dt>filters</dt> <dd>An instance of the
+		<tt class="verb">Filters</tt> class (see <a href="#FiltersClassDescr">section&nbsp;4.13.1</a>) that provides
+		information about the desired I/O filters to be
+		applied during the life of this object.
+	      </dd>
+	      <dt>expectedrows</dt> <dd>An user estimate of the
+		number of records that will be on table. If not
+		provided, the default value is appropriate for tables
+		until 10 MB in size (more or less). If you plan to
+		save bigger tables you should provide a guess; this
+		will optimize the HDF5 B-Tree creation and management
+		process time and memory used. See <a href="usersguide6.html#expectedRowsOptim">section&nbsp;6.1</a> for a
+		discussion on that issue.
+	      </dd>
+	    </dl>
+	  </div>
+
+	  <div id="createArrayDescr"><a name="createArrayDescr"></a>
+	    <h4 id="subsubsection4.2.2.3">createArray(where, name,
+	      object, title='')</h4>
+
+	    <p class="first">Create a new <tt class="verb">Array</tt> instance with name
+	      <em>name</em> in <em>where</em> location.
+	    </p>
+	    <dl>
+	      <dt>object</dt> <dd>The regular array to be
+		saved. Currently accepted values are: lists, tuples,
+		scalars (int and float), strings and
+		(multidimensional) <tt class="verb">Numeric</tt> and
+		<tt class="verb">NumArray</tt> arrays (including
+		<tt class="verb">CharArrays</tt> string arrays). However, these
+		objects must be regular (i.e. they cannot be like, for
+		example, <tt class="verb">[[1,2],2]</tt>). Also, objects that
+		have some of their dimensions equal to zero are not
+		supported (use an <tt class="verb">EArray</tt> object if you
+		want to create an array with one of its dimensions
+		equal to 0).
+	      </dd>
+	    </dl>
+	    <p>See <a href="#createTableDescr"><tt class="verb">createTable</tt>
+	      description&nbsp;4.2.2</a> for more information on the
+	      <em>where</em>, <em>name</em> and <em>title</em>,
+	      parameters.
+	    </p>
+	  </div>
+
+	  <div id="createEArrayDescr"><a name="createEArrayDescr"></a>
+	    <h4 id="subsubsection4.2.2.4">createEArray(where, name,
+	      atom, title='', filters=None, expectedrows=1000)
+	    </h4>
+
+	    <p class="first">Create a new <tt class="verb">EArray</tt> instance with name
+	      <em>name</em> in <em>where</em> location.
+	    </p>
+
+	    <dl>
+
+	      <dt>atom</dt> <dd>An <tt class="verb">Atom</tt> instance
+		representing the <em>shape</em>, <em>type</em> and
+		<em>flavor</em> of the atomic objects to be saved.
+		One (and only one) of the shape dimensions <b>must</b> be 0. The dimension being 0
+		means that the resulting <tt class="verb">EArray</tt> object
+		can be extended along it. Multiple enlargeable
+		dimensions are not supported right now.  See <a href="#AtomClassDescr">section&nbsp;4.12.3</a> for the supported
+		set of <tt class="verb">Atom</tt> class descendants.
+              </dd>
+	      <dt>expectedrows</dt> <dd>In the case of
+                enlargeable arrays this represents an user estimate
+                about the number of row elements that will be added to
+                the growable dimension in the EArray object. If not
+                provided, the default value is 1000 rows. If you plan
+                to create both much smaller or much bigger EArrays try
+                providing a guess; this will optimize the HDF5 B-Tree
+                creation and management process time and the amount of
+                memory used.
+	      </dd>
+	    </dl>
+	    <p>See <a href="#createTableDescr"><tt class="verb">createTable</tt>
+	      description&nbsp;4.2.2</a> for more information on the
+	      <em>where</em>, <em>name</em>, <em>title</em>,
+	      and <em>filters</em> parameters.
+	    </p>
+	  </div>
+
+	  <div id="createVLArrayDescr"><a name="createVLArrayDescr"></a>
+	    <h4 id="subsubsection4.2.2.5">createVLArray(where,
+	      name, atom=None, title='', filters=None,
+	      expectedsizeinMB=1.0)
+	    </h4>
+
+	    <p class="first">Create a new <tt class="verb">VLArray</tt> instance with name
+	      <em>name</em> in <em>where</em> location. See the <a href="#VLArrayClassDescr">section&nbsp;4.9</a> for a
+	      description of the <tt class="verb">VLArray</tt> class.
+	    </p>
+
+	    <dl>
+	      <dt>atom</dt> <dd>An <tt class="verb">Atom</tt> instance
+                representing the shape, type and flavor of the atomic
+                object to be saved. See <a href="#AtomClassDescr">section&nbsp;4.12.3</a> for the supported set
+                of <tt class="verb">Atom</tt> class descendants.
+              </dd>
+              <dt>expectedsizeinMB</dt> <dd>An user estimate
+                about the size (in MB) in the final
+                <tt class="verb">VLArray</tt> object. If not provided, the
+                default value is 1 MB.  If you plan to create both
+                much smaller or much bigger VLA's try providing a
+                guess; this will optimize the HDF5 B-Tree creation and
+                management process time and the amount of memory used.
+              </dd>
+	    </dl>
+	    <p>See <a href="#createTableDescr"><tt class="verb">createTable</tt>
+	      description&nbsp;4.2.2</a> for more information on the
+	      <em>where</em>, <em>name</em>, <em>title</em>, and
+	      <em>filters</em> parameters.
+	    </p>
+	  </div>
+
+	  <div id="getNodeDescr"><a name="getNodeDescr"></a>
+	    <h4 id="subsubsection4.2.2.6">getNode(where, name='',
+	      classname='')</h4>
+
+	    <p class="first">Returns the object node <em>name</em> under
+	      <em>where</em> location.
+	    </p>
+
+	      <dl>
+
+		<dt>where</dt> <dd>Can be a path string or
+		  <tt class="verb">Group</tt> instance. If <em>where</em>
+		  doesn't exist or has already a child called
+		  <em>name</em>, a <tt class="verb">ValueError</tt> error is
+		  raised.
+		</dd>
+
+		<dt>name</dt> <dd>The object name desired. If
+		  <em>name</em> is a null string (''), or not
+		  supplied, this method assumes to find the object in
+		  <em>where</em>.
+		</dd>
+
+		<dt>classname</dt> <dd>If supplied, returns only
+		  an instance of this class name. Possible values are:
+		  <tt class="verb">'Group'</tt>, <tt class="verb">'Leaf'</tt>,
+		  <tt class="verb">'Table'</tt>, <tt class="verb">'Array'</tt>,
+		  <tt class="verb">'EArray'</tt>, <tt class="verb">'VLArray'</tt> and
+		  <tt class="verb">'UnImplemented'</tt>. Note that these values
+		  are strings.
+		</dd>
+
+	      </dl>
+	  </div>
+
+	  <div id="getAttrNodeDescr"><a name="getAttrNodeDescr"></a>
+	    <h4 id="subsubsection4.2.2.7">getAttrNode(where,
+	      attrname, name='' )</h4>
+
+	    <p class="first">Returns the attribute <em>attrname</em> under
+	      <em>where.name</em> location.
+	    </p>
+	    <dl>
+
+		<dt>where</dt> <dd>Can be a path string or
+		  <tt class="verb">Group</tt> instance. If <em>where</em>
+		  doesn't exist or has not a child called
+		  <em>name</em>, a <tt class="verb">ValueError</tt> error is
+		  raised.
+		</dd>
+
+		<dt>attrname</dt> <dd>The name of the attribute
+		  to get.
+		</dd>
+
+		<dt>name</dt> <dd>The node name desired. If
+		  <em>name</em> is a null string (''), or not
+		  supplied, this method assumes to find the object in
+		  <em>where</em>.
+		</dd>
+
+	    </dl>
+	  </div>
+
+	  <div id="setAttrNodeDescr"><a name="setAttrNodeDescr"></a>
+	    <h4 id="subsubsection4.2.2.8">setAttrNode(where,
+	      attrname, attrvalue, name='')</h4>
+
+	    <p class="first">Sets the attribute <em>attrname</em> with value
+	      <em>attrvalue</em> under <em>where.name</em> location.
+	    </p>
+	    <dl>
+
+		<dt>where</dt> <dd>Can be a path string or
+		  <tt class="verb">Group</tt> instance. If <em>where</em>
+		  doesn't exist or has not a child called
+		  <em>name</em>, a <tt class="verb">ValueError</tt> error is
+		  raised.
+		</dd>
+
+		<dt>attrname</dt> <dd>The name of the attribute
+		  to set on disk.
+		</dd>
+
+		<dt>attrvalue</dt> <dd>The value of the
+		  attribute to set. Any scalar (string, ints or
+		  floats) attribute is supported natively. However,
+		  <tt class="verb">(c)Pickle</tt> is automatically used so as
+		  to serialize other kind of objects (like lists,
+		  tuples, dicts, small Numeric/numarray objects, ...)
+		  that you might want to save.
+		</dd>
+
+		<dt>name</dt> <dd>The node name desired. If
+		  <em>name</em> is a null string (''), or not
+		  supplied, this method assumes to find the object in
+		  <em>where</em>.
+		</dd>
+
+	    </dl>
+	  </div>
+
+	  <div id="delAttrNodeDescr"><a name="delAttrNodeDescr"></a>
+	    <h4 id="subsubsection4.2.2.9">delAttrNode(where, attrname, name = "")
+	    </h4>
+
+	    <p class="first">Delete the attribute <em>attrname</em> in
+	      <em>where.name</em> location.
+	    </p>
+	    <dl>
+
+		<dt>where</dt> <dd>Can be a path string or
+		  <tt class="verb">Group</tt> instance. If <em>where</em>
+		  doesn't exist or has not a child called
+		  <em>name</em>, a <tt class="verb">ValueError</tt> error is
+		  raised.
+		</dd>
+
+		<dt>attrname</dt> <dd>The name of the attribute
+		  to delete on disk.
+		</dd>
+
+		<dt>name</dt> <dd>The node name desired. If
+		  <em>name</em> is a null string (''), or not
+		  supplied, this method assumes to find the object in
+		  <em>where</em>.
+		</dd>
+
+	    </dl>
+	  </div>
+
+	  
+
+	  <div id="FilecopyAttrsDescr"><a name="FilecopyAttrsDescr"></a>
+
+	    <h4 id="subsubsection4.2.2.10">copyAttrs(where, name="", dstNode=None)
+	    </h4>
+
+	    <p class="first">Copy the attributes from node <em>where.name</em> to
+	      <em>dstNode</em>.
+	    </p>
+
+	    <dl>
+
+	      <dt>where</dt> <dd>Can be a path string or
+		<tt class="verb">Group</tt> instance. If <em>where</em> doesn't
+		exist or has not a child called <em>name</em>, a
+		<tt class="verb">LookupError</tt> error is raised.
+	      </dd>
+
+	      <dt>name</dt> <dd>If <em>name</em> is a null
+		string (<tt class="verb">""</tt>), or not supplied, this method
+		assumes to find the object in <em>where</em>.
+	      </dd>
+	      <dt>dstNode</dt> <dd>This is the destination node
+		where the attributes will be copied. It can be either
+		a path string or a <tt class="verb">Node</tt> object.
+	      </dd>
+	    </dl>
+	  </div> 
+
+	  
+
+	  <div id="listNodesDescr"><a name="listNodesDescr"></a>
+	    <h4 id="subsubsection4.2.2.11">listNodes(where,
+	      classname='')</h4>
+
+	    <p class="first">Returns a list with all the object nodes (Group or
+	      Leaf) hanging from <em>where</em>. The list is
+	      alpha-numerically sorted by node name.
+	    </p>
+	    <dl>
+
+		<dt>where</dt> <dd>The parent group. Can be a
+		  path string or <tt class="verb">Group</tt> instance.
+		</dd>
+
+		<dt>classname</dt> <dd>If a <em>classname</em>
+		  parameter is supplied, the iterator will return only
+		  instances of this class (or subclasses of it). The
+		  only supported classes in <em>classname</em> are
+		  <tt class="verb">'Group'</tt>, <tt class="verb">'Leaf'</tt>,
+		  <tt class="verb">'Table'</tt>, <tt class="verb">'Array'</tt>,
+		  <tt class="verb">'EArray'</tt>, <tt class="verb">'VLArray'</tt> and
+		  <tt class="verb">'UnImplemented'</tt>. Note that these values
+		  are strings.
+		</dd>
+
+	    </dl>
+	  </div>
+
+	  <div id="removeNodeDescr"><a name="removeNodeDescr"></a>
+	    <h4 id="subsubsection4.2.2.12">removeNode(where, name = "",
+	      recursive=0)</h4>
+
+	    <p class="first">Removes the object node
+	      <em>name</em> under <em>where</em> location.
+	    </p>
+	    <dl>
+
+		<dt>where</dt> <dd>Can be a path string or
+		  <tt class="verb">Group</tt> instance.  If <em>where</em>
+		  doesn't exist or has not a child called
+		  <em>name</em>, a <tt class="verb">LookupError</tt> error is
+		  raised.</dd>
+
+		<dt>name</dt> <dd>The name of the node to be
+		  removed. If not provided, the <em>where</em> node is
+		  changed.</dd>
+
+		<dt>recursive</dt> <dd>If not supplied, the
+		  object will be removed only if it has no
+		  children. If supplied with a true value, the object
+		  and all its descendants will be completely
+		  removed.</dd>
+
+	    </dl>
+	  </div>
+
+	  <div id="renameNodeDescr"><a name="renameNodeDescr"></a>
+	    <h4 id="subsubsection4.2.2.13">renameNode(where, newname,
+	      name)</h4>
+
+	    <p class="first">Rename the object node <em>name</em> under
+	      <em>where</em> location.
+	    </p>
+	    <dl>
+
+		<dt>where</dt> <dd>Can be a path string or
+		  <tt class="verb">Group</tt> instance.  If <em>where</em>
+		  doesn't exist or has not a child called
+		  <em>name</em>, a <tt class="verb">LookupError</tt> error is
+		  raised.</dd>
+
+		<dt>newname</dt> <dd>Is the new name to be
+		  assigned to the node.</dd>
+
+		<dt>name</dt> <dd>The name of the node to be
+		  changed. If not provided, the <em>where</em> node is
+		  changed.</dd>
+
+	    </dl>
+	  </div>
+
+	  <div id="walkGroupsDescr"><a name="walkGroupsDescr"></a>
+	    <h4 id="subsubsection4.2.2.14">walkGroups(where='/')</h4>
+
+	    <p class="first"><em>Iterator</em> that returns the list of Groups (not
+	      Leaves) hanging from <em>where</em>. If <em>where</em>
+	      is not supplied, the root object is taken as origin. The
+	      returned Group list is in a top-bottom order, and
+	      alpha-numerically sorted when they are at the same level.
+	    </p>
+	    <dl>
+
+		<dt>where</dt> <dd>The origin group. Can be a
+		  path string or <tt class="verb">Group</tt> instance.
+		</dd>
+
+	    </dl>
+	  </div>
+
+	  <div id="walkNodesFileDescr"><a name="walkNodesFileDescr"></a>
+	    <h4 id="subsubsection4.2.2.15">walkNodes(where="/", classname="")</h4>
+
+	    <p class="first">Recursively iterate over the nodes in the
+	      <tt class="verb">File</tt> instance. It takes two parameters:</p>
+
+	    <dl>
+
+	      <dt>where</dt> <dd>If supplied, the iteration
+	      starts from this group.</dd>
+
+	      <dt>classname</dt> <dd><em>(String)</em> If
+	      supplied, only instances of this class are
+	      returned.</dd>
+
+	    </dl>
+
+	    <p>Example of use:</p>
+
+	    <pre>
+	      # Recursively print all the nodes hanging from '/detector'
+	      print "Nodes hanging from group '/detector':"
+	      for node in h5file.walkNodes("/detector"):
+	          print node
+	    </pre>
+
+	  </div> 
+
 	  <div id="FilecopyChildrenDescr"><a name="FilecopyChildrenDescr"></a>
 
-	    <h4 id="subsubsection4.2.2.1">copyChildren(whereSrc, whereDst, recursive=0,
+	    <h4 id="subsubsection4.2.2.16">copyChildren(whereSrc, whereDst, recursive=0,
                    filters=None, copyuserattrs=1, start=0, stop=None,
                    step=1, overwrite = 0)
 	    </h4>
@@ -514,7 +997,7 @@ div.partheadline { font-size: x-large }
 	  </div> 
 
 	  <div id="FilecopyFileDescr"><a name="FilecopyFileDescr"></a>
-	    <h4 id="subsubsection4.2.2.2">copyFile(dstFilename=None, title=None,
+	    <h4 id="subsubsection4.2.2.17">copyFile(dstFilename=None, title=None,
                  filters=None, copyuserattrs=1, overwrite=0)
 	    </h4>
 
@@ -555,460 +1038,15 @@ div.partheadline { font-size: x-large }
 	    </dl>
 	  </div> 
 
-	  <div id="createGroupDescr"><a name="createGroupDescr"></a>
-	    <h4 id="subsubsection4.2.2.3">createGroup(where, name, title='', filters=None)
-	    </h4>
-
-	    <p class="first">Create a new Group instance with name <em>name</em> in
-	      <em>where</em> location.
-	    </p>
-
-	    <dl>
-	      <dt>where</dt> <dd>The parent group where the new
-		group will hang from. <em>where</em> parameter can be
-		a path string (for example
-		<tt class="verb">"/level1/group5"</tt>), or another Group
-		instance. </dd>
-
-	      <dt>name</dt>
-	      <dd>The name of the new group.</dd>
-	      
-	      <dt>title</dt> <dd>A description for this
-		group.</dd>
-
-	      <dt>filters</dt><dd>An instance of the
-		<tt class="verb">Filters</tt> class (see section<a href="#FiltersClassDescr">4.13.1</a>) that provides
-		information about the desired I/O filters applicable
-		to the leaves that hangs directly from this new group
-		(unless other filters properties are specified for
-		these leaves). Besides, if you do not specify filter
-		properties for its child groups, they will inherit
-		these ones.
-	      </dd>
-
-	    </dl>
-
-	  </div>
-
-	  <div id="createTableDescr"><a name="createTableDescr"></a>
-	    <h4 id="subsubsection4.2.2.4">createTable(where, name,
-	      description, title='', filters=None,
-	      expectedrows=10000)
-	    </h4>
-	    <p class="first">Create a new <tt class="verb">Table</tt> instance with name
-	      <em>name</em> in <em>where</em> location.
-	    </p>
-	    <dl>
-	      <dt>where</dt> <dd>The parent group where the new
-		table will hang from. <em>where</em> parameter can be
-		a path string (for example
-		<tt class="verb">"/level1/leaf5"</tt>), or Group instance.
-               </dd>
-	      <dt>name</dt> <dd>The name of the new table.
-              </dd>
-	      <dt>description</dt> <dd>An instance of a
-		user-defined class (derived from the
-		<tt class="verb">IsDescription</tt> class) where table fields
-		are defined. However, in certain situations, it is
-		more handy to allow this description to be supplied as
-		a dictionary (for example, when you do not know
-		beforehand which structure will have your table). In
-		such a cases, you can pass the description as a
-		dictionary as well. See <a href="usersguide3.html#secondExample">section&nbsp;3.3</a> for an example of
-		use. Finally, a <tt class="verb">RecArray</tt> object from the
-		<tt class="verb">numarray</tt> package is also accepted, and
-		all the information about columns and other metadata
-		is used as a basis to create the <tt class="verb">Table</tt>
-		object. Moreover, if the <tt class="verb">RecArray</tt> has
-		actual data this is also injected on the newly created
-		<tt class="verb">Table</tt> object.
-	      </dd>
-	      <dt>title</dt> <dd>A description for this object.
-	      </dd>
-	      <dt>filters</dt> <dd>An instance of the
-		<tt class="verb">Filters</tt> class (see <a href="#FiltersClassDescr">section&nbsp;4.13.1</a>) that provides
-		information about the desired I/O filters to be
-		applied during the life of this object.
-	      </dd>
-	      <dt>expectedrows</dt> <dd>An user estimate of the
-		number of records that will be on table. If not
-		provided, the default value is appropriate for tables
-		until 10 MB in size (more or less). If you plan to
-		save bigger tables you should provide a guess; this
-		will optimize the HDF5 B-Tree creation and management
-		process time and memory used. See <a href="usersguide6.html#expectedRowsOptim">section&nbsp;6.1</a> for a
-		discussion on that issue.
-	      </dd>
-	    </dl>
-	  </div>
-
-	  <div id="createArrayDescr"><a name="createArrayDescr"></a>
-	    <h4 id="subsubsection4.2.2.5">createArray(where, name,
-	      object, title='')</h4>
-
-	    <p class="first">Create a new <tt class="verb">Array</tt> instance with name
-	      <em>name</em> in <em>where</em> location.
-	    </p>
-	    <dl>
-	      <dt>object</dt> <dd>The regular array to be
-		saved. Currently accepted values are: lists, tuples,
-		scalars (int and float), strings and
-		(multidimensional) <tt class="verb">Numeric</tt> and
-		<tt class="verb">NumArray</tt> arrays (including
-		<tt class="verb">CharArrays</tt> string arrays). However, these
-		objects must be regular (i.e. they cannot be like, for
-		example, <tt class="verb">[[1,2],2]</tt>). Also, objects that
-		have some of their dimensions equal to zero are not
-		supported (use an <tt class="verb">EArray</tt> object if you
-		want to create an array with one of its dimensions
-		equal to 0).
-	      </dd>
-	    </dl>
-	    <p>See <a href="#createTableDescr"><tt class="verb">createTable</tt>
-	      description&nbsp;4.2.2</a> for more information on the
-	      <em>where</em>, <em>name</em> and <em>title</em>,
-	      parameters.
-	    </p>
-	  </div>
-
-	  <div id="createEArrayDescr"><a name="createEArrayDescr"></a>
-	    <h4 id="subsubsection4.2.2.6">createEArray(where, name,
-	      atom, title='', filters=None, expectedrows=1000)
-	    </h4>
-
-	    <p class="first">Create a new <tt class="verb">EArray</tt> instance with name
-	      <em>name</em> in <em>where</em> location.
-	    </p>
-
-	    <dl>
-
-	      <dt>atom</dt> <dd>An <tt class="verb">Atom</tt> instance
-		representing the <em>shape</em>, <em>type</em> and
-		<em>flavor</em> of the atomic objects to be saved.
-		One (and only one) of the shape dimensions <b>must</b> be 0. The dimension being 0
-		means that the resulting <tt class="verb">EArray</tt> object
-		can be extended along it. Multiple enlargeable
-		dimensions are not supported right now.  See <a href="#AtomClassDescr">section&nbsp;4.12.3</a> for the supported
-		set of <tt class="verb">Atom</tt> class descendants.
-              </dd>
-	      <dt>expectedrows</dt> <dd>In the case of
-                enlargeable arrays this represents an user estimate
-                about the number of row elements that will be added to
-                the growable dimension in the EArray object. If not
-                provided, the default value is 1000 rows. If you plan
-                to create both much smaller or much bigger EArrays try
-                providing a guess; this will optimize the HDF5 B-Tree
-                creation and management process time and the amount of
-                memory used.
-	      </dd>
-	    </dl>
-	    <p>See <a href="#createTableDescr"><tt class="verb">createTable</tt>
-	      description&nbsp;4.2.2</a> for more information on the
-	      <em>where</em>, <em>name</em>, <em>title</em>,
-	      and <em>filters</em> parameters.
-	    </p>
-	  </div>
-
-	  <div id="createVLArrayDescr"><a name="createVLArrayDescr"></a>
-	    <h4 id="subsubsection4.2.2.7">createVLArray(where,
-	      name, atom=None, title='', filters=None,
-	      expectedsizeinMB=1.0)
-	    </h4>
-
-	    <p class="first">Create a new <tt class="verb">VLArray</tt> instance with name
-	      <em>name</em> in <em>where</em> location. See the <a href="#VLArrayClassDescr">section&nbsp;4.9</a> for a
-	      description of the <tt class="verb">VLArray</tt> class.
-	    </p>
-
-	    <dl>
-	      <dt>atom</dt> <dd>An <tt class="verb">Atom</tt> instance
-                representing the shape, type and flavor of the atomic
-                object to be saved. See <a href="#AtomClassDescr">section&nbsp;4.12.3</a> for the supported set
-                of <tt class="verb">Atom</tt> class descendants.
-              </dd>
-              <dt>expectedsizeinMB</dt> <dd>An user estimate
-                about the size (in MB) in the final
-                <tt class="verb">VLArray</tt> object. If not provided, the
-                default value is 1 MB.  If you plan to create both
-                much smaller or much bigger VLA's try providing a
-                guess; this will optimize the HDF5 B-Tree creation and
-                management process time and the amount of memory used.
-              </dd>
-	    </dl>
-	    <p>See <a href="#createTableDescr"><tt class="verb">createTable</tt>
-	      description&nbsp;4.2.2</a> for more information on the
-	      <em>where</em>, <em>name</em>, <em>title</em>, and
-	      <em>filters</em> parameters.
-	    </p>
-	  </div>
-
-	  <div id="getNodeDescr"><a name="getNodeDescr"></a>
-	    <h4 id="subsubsection4.2.2.8">getNode(where, name='',
-	      classname='')</h4>
-
-	    <p class="first">Returns the object node <em>name</em> under
-	      <em>where</em> location.
-	    </p>
-
-	      <dl>
-
-		<dt>where</dt> <dd>Can be a path string or
-		  <tt class="verb">Group</tt> instance. If <em>where</em>
-		  doesn't exist or has already a child called
-		  <em>name</em>, a <tt class="verb">ValueError</tt> error is
-		  raised.
-		</dd>
-
-		<dt>name</dt> <dd>The object name desired. If
-		  <em>name</em> is a null string (''), or not
-		  supplied, this method assumes to find the object in
-		  <em>where</em>.
-		</dd>
-
-		<dt>classname</dt> <dd>If supplied, returns only
-		  an instance of this class name. Possible values are:
-		  <tt class="verb">'Group'</tt>, <tt class="verb">'Leaf'</tt>,
-		  <tt class="verb">'Table'</tt>, <tt class="verb">'Array'</tt>,
-		  <tt class="verb">'EArray'</tt>, <tt class="verb">'VLArray'</tt> and
-		  <tt class="verb">'UnImplemented'</tt>. Note that these values
-		  are strings.
-		</dd>
-
-	      </dl>
-	  </div>
-
-	  <div id="getAttrNodeDescr"><a name="getAttrNodeDescr"></a>
-	    <h4 id="subsubsection4.2.2.9">getAttrNode(where,
-	      attrname, name='' )</h4>
-
-	    <p class="first">Returns the attribute <em>attrname</em> under
-	      <em>where.name</em> location.
-	    </p>
-	    <dl>
-
-		<dt>where</dt> <dd>Can be a path string or
-		  <tt class="verb">Group</tt> instance. If <em>where</em>
-		  doesn't exist or has not a child called
-		  <em>name</em>, a <tt class="verb">ValueError</tt> error is
-		  raised.
-		</dd>
-
-		<dt>attrname</dt> <dd>The name of the attribute
-		  to get.
-		</dd>
-
-		<dt>name</dt> <dd>The node name desired. If
-		  <em>name</em> is a null string (''), or not
-		  supplied, this method assumes to find the object in
-		  <em>where</em>.
-		</dd>
-
-	    </dl>
-	  </div>
-
-	  <div id="setAttrNodeDescr"><a name="setAttrNodeDescr"></a>
-	    <h4 id="subsubsection4.2.2.10">setAttrNode(where,
-	      attrname, attrvalue, name='')</h4>
-
-	    <p class="first">Sets the attribute <em>attrname</em> with value
-	      <em>attrvalue</em> under <em>where.name</em> location.
-	    </p>
-	    <dl>
-
-		<dt>where</dt> <dd>Can be a path string or
-		  <tt class="verb">Group</tt> instance. If <em>where</em>
-		  doesn't exist or has not a child called
-		  <em>name</em>, a <tt class="verb">ValueError</tt> error is
-		  raised.
-		</dd>
-
-		<dt>attrname</dt> <dd>The name of the attribute
-		  to set on disk.
-		</dd>
-
-		<dt>attrvalue</dt> <dd>The value of the
-		  attribute to set. Any scalar (string, ints or
-		  floats) attribute is supported natively. However,
-		  <tt class="verb">(c)Pickle</tt> is automatically used so as
-		  to serialize other kind of objects (like lists,
-		  tuples, dicts, small Numeric/numarray objects, ...)
-		  that you might want to save.
-		</dd>
-
-		<dt>name</dt> <dd>The node name desired. If
-		  <em>name</em> is a null string (''), or not
-		  supplied, this method assumes to find the object in
-		  <em>where</em>.
-		</dd>
-
-	    </dl>
-	  </div>
-
-	  <div id="delAttrNodeDescr"><a name="delAttrNodeDescr"></a>
-	    <h4 id="subsubsection4.2.2.11">delAttrNode(where, attrname, name = "")
-	    </h4>
-
-	    <p class="first">Delete the attribute <em>attrname</em> in
-	      <em>where.name</em> location.
-	    </p>
-	    <dl>
-
-		<dt>where</dt> <dd>Can be a path string or
-		  <tt class="verb">Group</tt> instance. If <em>where</em>
-		  doesn't exist or has not a child called
-		  <em>name</em>, a <tt class="verb">ValueError</tt> error is
-		  raised.
-		</dd>
-
-		<dt>attrname</dt> <dd>The name of the attribute
-		  to delete on disk.
-		</dd>
-
-		<dt>name</dt> <dd>The node name desired. If
-		  <em>name</em> is a null string (''), or not
-		  supplied, this method assumes to find the object in
-		  <em>where</em>.
-		</dd>
-
-	    </dl>
-	  </div>
-
-	  <div id="listNodesDescr"><a name="listNodesDescr"></a>
-	    <h4 id="subsubsection4.2.2.12">listNodes(where,
-	      classname='')</h4>
-
-	    <p class="first">Returns a list with all the object nodes (Group or
-	      Leaf) hanging from <em>where</em>. The list is
-	      alpha-numerically sorted by node name.
-	    </p>
-	    <dl>
-
-		<dt>where</dt> <dd>The parent group. Can be a
-		  path string or <tt class="verb">Group</tt> instance.
-		</dd>
-
-		<dt>classname</dt> <dd>If a <em>classname</em>
-		  parameter is supplied, the iterator will return only
-		  instances of this class (or subclasses of it). The
-		  only supported classes in <em>classname</em> are
-		  <tt class="verb">'Group'</tt>, <tt class="verb">'Leaf'</tt>,
-		  <tt class="verb">'Table'</tt>, <tt class="verb">'Array'</tt>,
-		  <tt class="verb">'EArray'</tt>, <tt class="verb">'VLArray'</tt> and
-		  <tt class="verb">'UnImplemented'</tt>. Note that these values
-		  are strings.
-		</dd>
-
-	    </dl>
-	  </div>
-
-	  <div id="removeNodeDescr"><a name="removeNodeDescr"></a>
-	    <h4 id="subsubsection4.2.2.13">removeNode(where, name = "",
-	      recursive=0)</h4>
-
-	    <p class="first">Removes the object node
-	      <em>name</em> under <em>where</em> location.
-	    </p>
-	    <dl>
-
-		<dt>where</dt> <dd>Can be a path string or
-		  <tt class="verb">Group</tt> instance.  If <em>where</em>
-		  doesn't exist or has not a child called
-		  <em>name</em>, a <tt class="verb">LookupError</tt> error is
-		  raised.</dd>
-
-		<dt>name</dt> <dd>The name of the node to be
-		  removed. If not provided, the <em>where</em> node is
-		  changed.</dd>
-
-		<dt>recursive</dt> <dd>If not supplied, the
-		  object will be removed only if it has no
-		  children. If supplied with a true value, the object
-		  and all its descendants will be completely
-		  removed.</dd>
-
-	    </dl>
-	  </div>
-
-	  <div id="renameNodeDescr"><a name="renameNodeDescr"></a>
-	    <h4 id="subsubsection4.2.2.14">renameNode(where, newname,
-	      name)</h4>
-
-	    <p class="first">Rename the object node <em>name</em> under
-	      <em>where</em> location.
-	    </p>
-	    <dl>
-
-		<dt>where</dt> <dd>Can be a path string or
-		  <tt class="verb">Group</tt> instance.  If <em>where</em>
-		  doesn't exist or has not a child called
-		  <em>name</em>, a <tt class="verb">LookupError</tt> error is
-		  raised.</dd>
-
-		<dt>newname</dt> <dd>Is the new name to be
-		  assigned to the node.</dd>
-
-		<dt>name</dt> <dd>The name of the node to be
-		  changed. If not provided, the <em>where</em> node is
-		  changed.</dd>
-
-	    </dl>
-	  </div>
-
-	  <div id="walkGroupsDescr"><a name="walkGroupsDescr"></a>
-	    <h4 id="subsubsection4.2.2.15">walkGroups(where='/')</h4>
-
-	    <p class="first"><em>Iterator</em> that returns the list of Groups (not
-	      Leaves) hanging from <em>where</em>. If <em>where</em>
-	      is not supplied, the root object is taken as origin. The
-	      returned Group list is in a top-bottom order, and
-	      alpha-numerically sorted when they are at the same level.
-	    </p>
-	    <dl>
-
-		<dt>where</dt> <dd>The origin group. Can be a
-		  path string or <tt class="verb">Group</tt> instance.
-		</dd>
-
-	    </dl>
-	  </div>
-
-	  <div id="walkNodesFileDescr"><a name="walkNodesFileDescr"></a>
-	    <h4 id="subsubsection4.2.2.16">walkNodes(where="/", classname="")</h4>
-
-	    <p class="first">Recursively iterate over the nodes in the
-	      <tt class="verb">File</tt> instance. It takes two parameters:</p>
-
-	    <dl>
-
-	      <dt>where</dt> <dd>If supplied, the iteration
-	      starts from this group.</dd>
-
-	      <dt>classname</dt> <dd><em>(String)</em> If
-	      supplied, only instances of this class are
-	      returned.</dd>
-
-	    </dl>
-
-	    <p>Example of use:</p>
-
-	    <pre>
-	      # Recursively print all the nodes hanging from '/detector'
-	      print "Nodes hanging from group '/detector':"
-	      for node in h5file.walkNodes("/detector"):
-	          print node
-	    </pre>
-
-	  </div>
-
 	  <div>
-	    <h4 id="subsubsection4.2.2.17">flush()</h4>
+	    <h4 id="subsubsection4.2.2.18">flush()</h4>
 
 	    <p class="first">Flush all the leaves in the object tree.
 	    </p>
 	  </div>
 
 	  <div>
-	    <h4 id="subsubsection4.2.2.18">close()</h4>
+	    <h4 id="subsubsection4.2.2.19">close()</h4>
 
 	    <p class="first">Flush all the leaves in object tree and close the file.
 	    </p>
@@ -1731,16 +1769,31 @@ fileh.close()
 
 	  </div>
 
-	  <div id="itersequenceDescr"><a name="itersequenceDescr"></a>
-	    <h4 id="subsubsection4.5.2.3">itersequence(sequence=None)</h4>
+	  
 
-	    <p class="first">Iterate over a <em>sequence</em> of row
-	      coordinates. <em>sequence</em> can be any object that
-	      supports the <tt class="verb">__getitem__</tt> special method,
-	      like lists, tuples, Numeric/numarray objects, etc.
+	  <div id="itersequenceDescr"><a name="itersequenceDescr"></a>
+	    <h4 id="subsubsection4.5.2.3">itersequence(sequence=None, sort=1)</h4>
+
+	    <p class="first">Iterate over a <em>sequence</em> of row coordinates.
 	    </p>
 
+	    <dl>
+	      <dt>sequence</dt> <dd>Can be any object that
+		supports the <tt class="verb">__getitem__</tt> special method,
+		like lists, tuples, Numeric/numarray objects, etc.
+	      </dd>
+	      <dt>sort</dt> <dd>If true, means that
+		<em>sequence</em> will be sorted out so that the I/O
+		process would get better performance. If your sequence
+		is already sorted or you don't want to sort it, put
+		this parameter to 0. The default is to sort the
+		<em>sequence</em>.
+	      </dd>
+	    </dl>
+
 	  </div>
+
+	  
 
 	  <div id="readTableDescr"><a name="readTableDescr"></a>
 	    <h4 id="subsubsection4.5.2.4">read(start=None, stop=None,
@@ -2159,7 +2212,7 @@ fileh.close()
 	    interactively. Neither you won't be able to access its
 	    internal attributes (they are not directly accessible from
 	    Python), although <em>accessors</em> (i.e. methods that
-	    return an internal attribute) have been defined for the most
+	    return an internal attribute) have been defined for some
 	    important variables.
 	  </p>
 
@@ -2179,6 +2232,10 @@ fileh.close()
 		current row number in the table. It is useful to know
 		which row is being dealt with in the middle of a
 		loop.</dd>
+
+	      <dt>getTable()</dt> <dd>Accessor that returns the
+		associated <tt class="verb">Table</tt> object.</dd>
+
 	    </dl>
 	  </div>
 	</div> 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.21 2004/10/05 12:30:31 falted Exp $
+#       $Id: EArray.py,v 1.22 2004/12/09 11:34:55 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.21 $"
+__version__ = "$Revision: 1.22 $"
 # default version for EARRAY objects
 #obversion = "1.0"    # initial version
 obversion = "1.1"    # support for complex datatypes
@@ -122,10 +122,92 @@ class EArray(Array, hdf5Extension.Array, object):
         else:
             self._v_new = 0
             
+    def _calcBufferSize(self, atom, extdim, expectedrows, compress):
+        """Calculate the buffer size and the HDF5 chunk size.
+
+        The logic to do that is based purely in experiments playing
+        with different buffer sizes, chunksize and compression
+        flag. It is obvious that using big buffers optimize the I/O
+        speed. This might (should) be further optimized doing more
+        experiments.
+
+        """
+
+        rowsize = atom.atomsize()
+        
+        # Increasing the bufmultfactor would enable a good compression
+        # ratio (up to an extend), but it would affect to reading
+        # performance. Be careful when touching this
+        # F. Altet 2004-11-10
+        #bufmultfactor = int(1000 * 5) # Conservative value
+        bufmultfactor = int(1000 * 10) # Medium value
+        #bufmultfactor = int(1000 * 20)  # Agressive value
+        #bufmultfactor = int(1000 * 50) # Very Aggresive value
+        
+        rowsizeinfile = rowsize
+        expectedfsizeinKb = (expectedrows * rowsizeinfile) / 1024
+
+        if expectedfsizeinKb <= 100:
+            # Values for files less than 100 KB of size
+            buffersize = 5 * bufmultfactor
+        elif (expectedfsizeinKb > 100 and
+            expectedfsizeinKb <= 1000):
+            # Values for files less than 1 MB of size
+            buffersize = 10 * bufmultfactor
+        elif (expectedfsizeinKb > 1000 and
+              expectedfsizeinKb <= 20 * 1000):
+            # Values for sizes between 1 MB and 20 MB
+            buffersize = 20  * bufmultfactor
+        elif (expectedfsizeinKb > 20 * 1000 and
+              expectedfsizeinKb <= 200 * 1000):
+            # Values for sizes between 20 MB and 200 MB
+            buffersize = 40 * bufmultfactor
+        elif (expectedfsizeinKb > 200 * 1000 and
+              expectedfsizeinKb <= 2000 * 1000):
+            # Values for sizes between 200 MB and 2 GB
+            buffersize = 50 * bufmultfactor
+        else:  # Greater than 2 GB
+            buffersize = 60 * bufmultfactor
+
+        # Max Tuples to fill the buffer
+        maxTuples = buffersize // rowsize
+        chunksizes = list(atom.shape)
+        # Check if at least 1 tuple fits in buffer
+        if maxTuples >= 1:
+            # Yes. So the chunk sizes for the non-extendeable dims will be
+            # unchanged
+            chunksizes[extdim] = maxTuples
+        else:
+            # No. reduce other dimensions until we get a proper chunksizes
+            # shape
+            chunksizes[extdim] = 1  # Only one row in extendeable dimension
+            for j in range(len(chunksizes)):
+                newrowsize = atom.itemsize
+                for i in chunksizes[j+1:]:
+                    newrowsize *= i
+                maxTuples = buffersize // newrowsize
+                if maxTuples >= 1:
+                    break
+                chunksizes[j] = 1
+            # Compute the chunksizes correctly for this j index
+            chunksize = maxTuples
+            if j < len(chunksizes):
+                # Only modify chunksizes[j] if needed
+                if chunksize < chunksizes[j]:
+                    chunksizes[j] = chunksize
+            else:
+                chunksizes[-1] = 1 # very large itemsizes!
+        # Compute the correct maxTuples number
+        newrowsize = atom.itemsize
+        for i in chunksizes:
+            newrowsize *= i
+        maxTuples = buffersize // newrowsize
+        return (buffersize, maxTuples, chunksizes)
+
     def _create(self):
         """Save a fresh array (i.e., not present on HDF5 file)."""
         global obversion
-
+        
         assert isinstance(self.atom, Atom), "The object passed to the IndexArray constructor must be a descendent of the Atom class."
         assert isinstance(self.atom.shape, types.TupleType), "The Atom shape has to be a tuple for IndexArrays, and you passed a '%s' object." % (self.atom.shape)
         # Version, type, shape, flavor, byteorder
@@ -158,6 +240,7 @@ class EArray(Array, hdf5Extension.Array, object):
         (self._v_buffersize, self._v_maxTuples, self._v_chunksize) = \
            self._calcBufferSize(self.atom, self.extdim, self._v_expectedrows,
                                 self.filters.complevel)
+        #print "chunksizes-->", self._v_chunksize
         self.nrows = 0   # No rows initially
         self.itemsize = self.atom.itemsize
         self._createEArray("EARRAY", self._v_new_title)
@@ -200,87 +283,12 @@ class EArray(Array, hdf5Extension.Array, object):
         naarr = self._checkTypeShape(naarr)
         self._append(naarr)
 
-    def _calcBufferSize(self, atom, extdim, expectedrows, compress):
-        """Calculate the buffer size and the HDF5 chunk size.
+    def truncate(self, size):
+        "Truncate the extendable dimension to at most size rows"
 
-        The logic to do that is based purely in experiments playing
-        with different buffer sizes, chunksize and compression
-        flag. It is obvious that using big buffers optimize the I/O
-        speed when dealing with tables. This might (should) be further
-        optimized doing more experiments.
-
-        """
-
-        rowsize = atom.atomsize()
-        #bufmultfactor = int(1000 * 1.0)  # Optimum for Sorted objects
-        # An 1.0 factor makes the lookup in sorted arrays to
-        # decompress less, but, in exchange, the indexed dataset is
-        # almost 5 times larger than with a 10.0 factor.
-        # However, as the indexed arrays can be quite uncompressible
-        # the size of the compressed sorted list is negligible when compared
-        # against it.
-        # The improvement in time (overall) is reduced (~5%)
-        #bufmultfactor = int(1000 * 10.0) # Optimum for Index objects
-        #bufmultfactor = int(1000 * 2) # Is a good choice too,
-        # specially for very large tables and large available memory
-        #bufmultfactor = int(1000 * 1) # Optimum for sorted object
-        bufmultfactor = int(1000 * 1) # Optimum for sorted object
-        
-        rowsizeinfile = rowsize
-        expectedfsizeinKb = (expectedrows * rowsizeinfile) / 1024
-
-        if expectedfsizeinKb <= 100:
-            # Values for files less than 100 KB of size
-            buffersize = 5 * bufmultfactor
-        elif (expectedfsizeinKb > 100 and
-            expectedfsizeinKb <= 1000):
-            # Values for files less than 1 MB of size
-            buffersize = 20 * bufmultfactor
-        elif (expectedfsizeinKb > 1000 and
-              expectedfsizeinKb <= 20 * 1000):
-            # Values for sizes between 1 MB and 20 MB
-            buffersize = 40  * bufmultfactor
-        elif (expectedfsizeinKb > 20 * 1000 and
-              expectedfsizeinKb <= 200 * 1000):
-            # Values for sizes between 20 MB and 200 MB
-            buffersize = 50 * bufmultfactor
-        else:  # Greater than 200 MB
-            buffersize = 60 * bufmultfactor
-
-        # Max Tuples to fill the buffer
-        maxTuples = buffersize // rowsize
-        chunksizes = list(atom.shape)
-        # Check if at least 10 tuples fits in buffer
-        if maxTuples > 10:
-            # Yes. So the chunk sizes for the non-extendeable dims will be
-            # unchanged
-            chunksizes[extdim] = maxTuples // 10
-        else:
-            # No. reduce other dimensions until we get a proper chunksizes
-            # shape
-            chunksizes[extdim] = 1  # Only one row in extendeable dimension
-            for j in range(len(chunksizes)):
-                newrowsize = atom.itemsize
-                for i in chunksizes[j+1:]:
-                    newrowsize *= i
-                maxTuples = buffersize // newrowsize
-                if maxTuples > 10:
-                    break
-                chunksizes[j] = 1
-            # Compute the chunksizes correctly for this j index
-            chunksize = maxTuples // 10
-            if j < len(chunksizes):
-                # Only modify chunksizes[j] if needed
-                if chunksize < chunksizes[j]:
-                    chunksizes[j] = chunksize
-            else:
-                chunksizes[-1] = 1 # very large itemsizes!
-        # Compute the correct maxTuples number
-        newrowsize = atom.itemsize
-        for i in chunksizes:
-            newrowsize *= i
-        maxTuples = buffersize // newrowsize
-        return (buffersize, maxTuples, chunksizes)
+        #assert size >= 0, "Size should be 0 or a positive value"
+        assert size > 0, "Size should be an integer greater than 0"
+        self._truncateArray(size)
 
     def _open(self):
         """Get the metadata info for an array in file."""
@@ -304,7 +312,7 @@ class EArray(Array, hdf5Extension.Array, object):
         # nrows in this instance
         self.nrows = self.shape[self.extdim]
         # Compute the optimal maxTuples
-        (self._v_buffersize, self._v_maxTuples, theoChunksize) = \
+        (self._v_buffersize, self._v_maxTuples, computedChunksize) = \
            self._calcBufferSize(self.atom, self.extdim, self.nrows,
                                 self.filters.complevel)
         chunksize = self.atom.itemsize

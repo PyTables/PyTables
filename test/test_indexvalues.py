@@ -7,7 +7,9 @@ import random
 from tables import *
 #from tables.Index import Index
 from tables.IndexArray import calcChunksize
-from test_all import verbose, allequal, heavy
+from test_all import verbose, allequal, heavy, cleanup
+# To delete the internal attributes automagically
+unittest.TestCase.tearDown = cleanup
 
 # The minimum number of rows that can be indexed
 # Remember to change that if the number is changed in
@@ -92,6 +94,7 @@ class SelectValuesTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
+        cleanup(self)
         
     #----------------------------------------
 
