@@ -112,8 +112,9 @@ if os.name == 'posix':
             def_macros = [('DEBUG', 1)]
             sys.argv.remove(arg)
 
+    libnames = LIBS
     if LFLAGS or LIBS:
-        lflags_arg = LFLAGS + LIBS
+        lflags_arg = LFLAGS
 
     # If we were not told where it is, go looking for it.
     hdf5incdir = hdf5libdir = None
@@ -155,9 +156,7 @@ where they can be found."""
     if not hdf5libdir:
         lib_dirs = [os.path.join(HDF5_DIR, 'lib')]
     if (not '-lhdf5' in LIBS):
-        libnames = ['hdf5']
-    else:
-        libnames = []
+        libnames.append('hdf5')
 
     # Check for numarray
     try:
@@ -277,7 +276,6 @@ elif os.name == 'nt':
     # Init variables
     lib_dirs = []  # All the libraries has to be on the PATH
     inc_dirs = []
-    libnames = []
     # Set the runtime library search path
     rlib_dirs = []  # Windows doesn't support that, but it does not complain
                     # with an empty list
@@ -312,8 +310,9 @@ elif os.name == 'nt':
             LFLAGS = string.split(string.split(arg, '=')[1])
             sys.argv.remove(arg)
 
+    libnames = LIBS
     if LFLAGS or LIBS:
-        lflags_arg = LFLAGS + LIBS
+        lflags_arg = LFLAGS
 
     # HDF5 library (mandatory)
     (dirstub, dirheader) = (None, None)
@@ -441,6 +440,7 @@ data.
                                            "src/H5TB-opt.c"],
                                 library_dirs = lib_dirs,
                                 libraries = libnames,
+                                extra_link_args = lflags_arg,
                                 #runtime_library is not supported on Windows
                                 runtime_library_dirs = rlib_dirs,
                                 )],
