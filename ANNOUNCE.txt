@@ -40,7 +40,7 @@ Improvements:
 - All potentially long I/O operations has been bracketed by
   BEGIN_ALLOW_THREADS and END_ALLOW_THREADS in order to release the
   GIL during this I/O operations. This will allow better performance
-  on multiprocessor machines. Thanks to Adrew Straw for suggesting
+  on multiprocessor machines. Thanks to Andrew Straw for suggesting
   this.
 
 Backward-incompatible changes:

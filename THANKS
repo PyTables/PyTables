@@ -1,4 +1,4 @@
-November 2004
+December 2004
 
 I would like to thank the people have contributed directly or
 indirectly to PyTables. 
@@ -30,6 +30,11 @@ Jeff Whitaker for providing the initial version of the NetCDF to HDF5
 (nctoh5) utility.
 
 Norbert Nemec for providing some interesting patches.
+
+Andrew Straw for suggesting to bracket the most intensive parts of
+PyTables with BEGIN_ALLOW_THREADS and END_ALLOW_THREADS. That will
+allow much better performance of PyTables apps in mutiprocessors
+platforms.
 
 The HDF5 team at NCSA for making such an excellent library for data
 persistence, and specially Pedro Vicente and Quincey Koziol, for
