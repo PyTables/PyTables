@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.12 2003/12/16 20:54:19 falted Exp $
+#       $Id: utils.py,v 1.13 2003/12/18 10:13:11 falted Exp $
 #
 ########################################################################
 
@@ -108,7 +108,9 @@ def calcBufferSize(rowsize, expectedrows, compress):
     # We choose the smaller one
     # In addition, with the new iterator in the Row class, this seems to
     # be the best choice in terms of performance!
-    bufmultfactor = int(1000 * 1.0)
+    #bufmultfactor = int(1000 * 1.0) # Original value
+    bufmultfactor = int(1000 * 1.0)  # *** Increase the chunksize here ***
+    #bufmultfactor = int(1000 * 10.0)  # *** This makes the test to run fine
     rowsizeinfile = rowsize
     expectedfsizeinKb = (expectedrows * rowsizeinfile) / 1024
 
@@ -179,6 +181,15 @@ def calcBufferSize(rowsize, expectedrows, compress):
     return (maxTuples, chunksize)
         
 def processRange(nrows, start=None, stop=None, step=None):
+    #print "start, stop, step(1), nrows-->", (start, stop, step, nrows)
+    (start, stop, step) = slice(start, stop, step).indices(nrows)
+    # Some protection for empty ranges
+    if start > stop:
+        start = stop
+    #print "start, stop, step(2)-->", (start, stop, step)
+    return (start, stop, step)
+
+def processRangeRead(nrows, start=None, stop=None, step=None):
 
     assert (type(start) in
             [types.NoneType, types.IntType, types.LongType]), \

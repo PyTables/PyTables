@@ -115,7 +115,7 @@ class BasicTestCase(unittest.TestCase):
         elif self.flavor == "Numeric":
             assert type(row) == type(Numeric.array([1, 2]))
             assert allequal(row, Numeric.array([1, 2]))
-            assert  allequal(row2, Numeric.array([]))
+            assert allequal(row2, Numeric.array([]))
         elif self.flavor == "Tuple":
             assert row == (1, 2)
             assert row2 == ()
@@ -993,7 +993,7 @@ def suite():
     global numeric
     niter = 1
 
-    # theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
+    #theSuite.addTest(unittest.makeSuite(BasicNumArrayTestCase))
     #if numeric:
     #    theSuite.addTest(unittest.makeSuite(BasicNumericTestCase))
     #theSuite.addTest(unittest.makeSuite(BasicTupleTestCase))

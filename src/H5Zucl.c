@@ -173,6 +173,7 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
 	 is more portable to call the C one. */
 
 #ifdef DEBUG
+      printf("Decompressing chunk with UCL\n");
       printf("nbytes -->%d\n", nbytes);
       printf("nalloc -->%d\n", nalloc);
       printf("max_len_buffer -->%d\n", max_len_buffer);

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.83 2003/12/16 20:54:19 falted Exp $
+#       $Id: Table.py,v 1.84 2003/12/18 10:13:11 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.83 $"
+__version__ = "$Revision: 1.84 $"
 
 from __future__ import generators
 import sys
@@ -41,7 +41,7 @@ import numarray
 import numarray.strings as strings
 import numarray.records as records
 import hdf5Extension
-from utils import calcBufferSize, processRange
+from utils import calcBufferSize, processRange, processRangeRead
 from Leaf import Leaf
 from IsDescription import IsDescription, Description, metaIsDescription, \
      Col, StringCol, fromstructfmt
@@ -372,7 +372,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             if op2 == "<=": stopcond += 1
             istart, istop = numarray.searchsorted(column, (startcond, stopcond))
             print "istart, istop, start, stop -->", istart, istop, start, stop
-            (start, stop, step) = processRange(self.nrows, start, stop, step)
+            (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
 
             if istart > start:
                 print "Seleccio escomenca %d pos mes amunt!" % (istart - start)
@@ -381,7 +381,7 @@ class Table(Leaf, hdf5Extension.Table, object):
                 print "Seleccio acava %d pos mes avall!" % (stop - istop)
                 stop = istop
 
-        (start, stop, step) = processRange(self.nrows, start, stop, step)
+        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
 
         return self.row(start, stop, step)
         
@@ -409,7 +409,7 @@ class Table(Leaf, hdf5Extension.Table, object):
                   """The column name '%s' not found in table {%s}""" % \
                   (field, self)
         
-        (start, stop, step) = processRange(self.nrows, start, stop, step)
+        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
         
         if flavor == None:
             #return self._read(start, stop, step, field)
@@ -602,7 +602,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Check for correct values of start and stop
         if stop > self.nrows:
             stop = self.nrows
-        (start, stop, step) = processRange(self.nrows, start, stop, 1)
+        (start, stop, step) = processRangeRead(self.nrows, start, stop, 1)
         nrows = stop - start
         nrows = self._remove_row(start, nrows)
         self.nrows -= nrows    # discount the removed rows from the total

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.8 2003/12/06 10:23:31 falted Exp $
+#       $Id: VLArray.py,v 1.9 2003/12/18 10:13:11 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.8 $"
+__version__ = "$Revision: 1.9 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -41,7 +41,7 @@ from Leaf import Leaf
 #from utils import calcBufferSize
 import hdf5Extension
 from IsDescription import Col, BoolCol, StringCol, IntCol, FloatCol
-from utils import processRange, convertIntoNA
+from utils import processRange, processRangeRead, convertIntoNA
 
 try:
     import Numeric
@@ -462,7 +462,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         """
 
         (self._start, self._stop, self._step) = \
-                     processRange(self.nrows, start, stop, step)
+                     processRangeRead(self.nrows, start, stop, step)
         self._initLoop()
         return self
         
@@ -582,7 +582,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
     def read(self, start=None, stop=None, step=None):
         """Read the array from disk and return it as numarray."""
 
-        (start, stop, step) = processRange(self.nrows, start, stop, step)
+        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
 
         if start == stop:
             listarr = []

@@ -132,6 +132,7 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
       out_len = nalloc;
       nbytes -= 4; 		/* Point to the checksum */
 #ifdef DEBUG
+      printf("Decompressing chunk with LZO\n");
       printf("Compressed bytes: %d. Uncompressed bytes: %d\n", nbytes, nalloc);
 #endif
     }

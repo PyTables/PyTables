@@ -26,7 +26,7 @@ VERSION = "0.8b"
 
 #----------------------------------------------------------------------
 
-debug = '--debug' in sys.argv or '-g' in sys.argv
+debug = '--debug' in sys.argv
 
 lflags_arg = []
 
@@ -89,7 +89,7 @@ if os.name == 'posix':
     LIBS = os.environ.get('LIBS', [])
 
     # ...then the command line.
-    # Handle --hdf5=[PATH] --lzo=[PATH] --ucl=[PATH] --libs=[LIBS] and --lflags=[FLAGS]
+    # Handle --hdf5=[PATH] --lzo=[PATH] --ucl=[PATH] --libs=[LIBS] and --lflags=[FLAGS] --debug
     args = sys.argv[:]
     for arg in args:
         if string.find(arg, '--hdf5=') == 0:
@@ -106,6 +106,10 @@ if os.name == 'posix':
             sys.argv.remove(arg)
         elif string.find(arg, '--lflags=') == 0:
             LFLAGS = string.split(string.split(arg, '=')[1])
+            sys.argv.remove(arg)
+        elif string.find(arg, '--debug') == 0:
+            # For debugging (mainly compression filters)
+            def_macros = [('DEBUG', 1)]
             sys.argv.remove(arg)
 
     if LFLAGS or LIBS:

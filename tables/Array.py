@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.46 2003/12/16 20:54:19 falted Exp $
+#       $Id: Array.py,v 1.47 2003/12/18 10:13:11 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.46 $"
+__version__ = "$Revision: 1.47 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -36,7 +36,7 @@ obversion = "2.0"    # Added an optional EXTDIM attribute
 
 import types, warnings, sys
 from Leaf import Leaf
-from utils import calcBufferSize, processRange, processRange2
+from utils import calcBufferSize, processRange, processRangeRead
 import hdf5Extension
 import numarray
 import numarray.strings as strings
@@ -260,6 +260,7 @@ class Array(Leaf, hdf5Extension.Array, object):
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
                    calcBufferSize(self.rowsize, self.nrows, self._v_compress)
+        #print "maxtuples-->", self._v_maxTuples, self._v_chunksize
 
     def iterrows(self, start=None, stop=None, step=None):
         """Iterator over all the rows or a range"""
@@ -276,7 +277,7 @@ class Array(Leaf, hdf5Extension.Array, object):
 
         try:
             (self._start, self._stop, self._step) = \
-                          processRange(self.nrows, start, stop, step)
+                          processRangeRead(self.nrows, start, stop, step)
         except IndexError:
             # If problems with indexes, silently return the null tuple
             return ()
@@ -371,7 +372,7 @@ class Array(Leaf, hdf5Extension.Array, object):
             return ret
         
     def __getitem__(self, keys):
-        """Returns a table row, table slice or table column.
+        """Returns an Array row or slice.
 
         It takes different actions depending on the type of the "key"
         parameter:
@@ -380,6 +381,8 @@ class Array(Leaf, hdf5Extension.Array, object):
         "key" is a slice, the row slice determined by key is returned.
 
 """
+
+        #print "maxtuples (2)-->", self._v_maxTuples, self._v_chunksize
 
         if self.shape == ():
             # Scalar case
@@ -416,7 +419,10 @@ class Array(Leaf, hdf5Extension.Array, object):
                 stopl[dim] = self.shape[diml]
                 stepl[dim] = 1
                 dim += 1
-                
+
+#         print "startl-->", startl
+#         print "stopl-->", stopl
+#         print "stepl-->", stepl
         return self._readSlice(startl, stopl, stepl)
 
     # Accessor for the _readArray method in superclass
@@ -506,19 +512,16 @@ class Array(Leaf, hdf5Extension.Array, object):
         else:
             extdim = self.extdim
 
-        (start, stop, step) = processRange(self.nrows, start, stop, step)
+        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
         rowstoread = ((stop - start - 1) / step) + 1
         shape = list(self.shape)
         if shape:
             shape[extdim] = rowstoread
             shape = tuple(shape)
         if repr(self.type) == "CharType":
-            arr = strings.array(None, itemsize=self.itemsize,
-                                  shape=shape)
+            arr = strings.array(None, itemsize=self.itemsize, shape=shape)
         else:
-            arr = numarray.array(buffer=None,
-                                 type=self.type,
-                                 shape=shape)
+            arr = numarray.array(buffer=None, type=self.type, shape=shape)
             # Set the same byteorder than on-disk
             arr._byteorder = self.byteorder
         # Protection against reading empty arrays

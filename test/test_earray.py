@@ -21,6 +21,12 @@ from test_all import verbose
 def allequal(a,b, flavor):
     """Checks if two numarrays are equal"""
 
+#     print "a-->", repr(a)
+#     print "b-->", repr(b)
+    if not hasattr(b, "shape"):
+        # Scalar case
+        return a == b
+
     if flavor == "Numeric":
         # Convert the parameters to numarray objects
         try:
@@ -31,15 +37,15 @@ def allequal(a,b, flavor):
             b = array(buffer(b), type=typeDict[b.typecode()], shape=b.shape)
         except:
             b = array(b)
-    if not hasattr(b, "shape"):
-        return a == b
 
     if a.shape <> b.shape:
         if verbose:
-            print "Shape is not equal"
+            print "Shape is not equal:", a.shape, "<>", b.shape
         return 0
 
     if hasattr(b, "type") and a.type() <> b.type():
+        if verbose:
+            print "Type is not equal:", a.type(), "<>", b.type()
         return 0
 
     # Rank-0 case
@@ -48,7 +54,7 @@ def allequal(a,b, flavor):
             return 1
         else:
             if verbose:
-                print "Shape is not equal"
+                print "Shape is not equal:", a.shape, "<>", b.shape
             return 0
 
     # Null arrays
@@ -65,9 +71,10 @@ def allequal(a,b, flavor):
     # Multidimensional case
     result = (a == b)
     for i in range(len(a.shape)):
+        #print "nonzero(a <> b)", nonzero(a<>b)
         result = logical_and.reduce(result)
     if not result and verbose:
-        print "The elements are not equal"
+        print "Some of the elements in arrays are not equal"
         
     return result
 
@@ -332,7 +339,8 @@ class BasicTestCase(unittest.TestCase):
         if self.nappends:
             # Protection against number of elements less than existing
             if rowshape[self.extdim] < self.stop or self.stop == 0:
-                # self.stop == 0 means last row
+                # self.stop == 0 means last row only in read()
+                # and not in [::] slicing notation
                 stop = rowshape[self.extdim]
             # do a copy() in order to ensure that len(object._data)
             # actually do a measure of its length
@@ -378,89 +386,73 @@ class BasicTestCase(unittest.TestCase):
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_getitemEArray..." % self.__class__.__name__
+
+        if not hasattr(self, "slices"):
+            # If there is not a slices attribute, create it
+            self.slices = (slice(self.start, self.stop, self.step),)
             
         # Create an instance of an HDF5 Table
         self.fileh = openFile(self.file, "r")
         earray = self.fileh.getNode("/earray1")
 
         # Choose a small value for buffer size
-        earray._v_maxTuples = 3
+        #earray._v_maxTuples = 3   # this does not really changes the chunksize
         if verbose:
             print "EArray descr:", repr(earray)
             print "shape of read array ==>", earray.shape
 
         # Build the array to do comparisons
-        if self.flavor == "numarray":
-            if str(self.type) == "CharType":
-                object_ = strings.array("a"*self.objsize, shape=self.rowshape,
-                                        itemsize=earray.itemsize)
-            else:
-                object_ = arange(self.objsize, shape=self.rowshape,
-                                 type=earray.type)
-            object_.swapaxes(earray.extdim, 0)
+        if str(self.type) == "CharType":
+            object_ = strings.array("a"*self.objsize, shape=self.rowshape,
+                                    itemsize=earray.itemsize)
         else:
-            object_ = Numeric.arange(self.objsize,
-                                     typecode=typecode[earray.type])
-            object_ = Numeric.reshape(object_, self.rowshape)
-            object_ = Numeric.swapaxes(object_, earray.extdim, 0)
+            object_ = arange(self.objsize, shape=self.rowshape,
+                             type=earray.type)
+        object_.swapaxes(earray.extdim, 0)
             
         rowshape = self.rowshape
         rowshape[self.extdim] *= self.nappends
-        if self.flavor == "numarray":
-            if str(self.type) == "CharType":
-                object__ = strings.array(None, shape=rowshape,
-                                         itemsize=earray.itemsize)
-            else:
-                object__ = array(None, shape = rowshape, type=self.type)
-            object__.swapaxes(0, self.extdim)
+        if str(self.type) == "CharType":
+            object__ = strings.array(None, shape=rowshape,
+                                     itemsize=earray.itemsize)
         else:
-            object__ = Numeric.zeros(self.rowshape, typecode[earray.type])
-            object__ = Numeric.swapaxes(object__, earray.extdim, 0)
+            object__ = array(None, shape = rowshape, type=self.type)
+        object__.swapaxes(0, self.extdim)
 
         for i in range(self.nappends):
             j = i * self.chunksize
             if str(self.type) == "CharType":
                 object__[j:j+self.chunksize] = object_
             else:
-                if self.flavor == "numarray":
-                    object__[j:j+self.chunksize] = object_ * i
-                else:
-                    object__[j:j+self.chunksize] = (object_ * i).astype(typecode[earray.type])
+                object__[j:j+self.chunksize] = object_ * i
+
         stop = self.stop
         if self.nappends:
-            # Protection against number of elements less than existing
-            if rowshape[self.extdim] < self.stop or self.stop == 0:
-                # self.stop == 0 means last row
-                stop = rowshape[self.extdim]
+            # Swap the axes again to have normal ordering
+            object__.swapaxes(0, self.extdim)
             # do a copy() in order to ensure that len(object._data)
             # actually do a measure of its length
-            object = object__[self.start:stop:self.step].copy()
-            # Swap the axes again to have normal ordering
-            if self.flavor == "numarray":
-                object.swapaxes(0, self.extdim)
-            else:
-                object = Numeric.swapaxes(object, 0, self.extdim)
+            #print "object__ -->", repr(object__)
+            object = object__.__getitem__(self.slices).copy()
         else:
-            if self.flavor == "numarray":
-                object = array(None, shape = self.shape, type=self.type)
-            else:
-                object = Numeric.zeros(self.shape, typecode[self.type])
+            object = array(None, shape = self.shape, type=self.type)
 
-        if (len(range(self.start, stop, self.step)) == 1 and
-            self.extdim > 0):
-            if self.flavor == "numarray":
-                object.swapaxes(self.extdim, 0)
-            else:
-                object = Numeric.swapaxes(object, self.extdim, 0)
+        if self.flavor == "Numeric":
+            # Convert the object to Numeric
+            object = Numeric.array(object, typecode=typecode[self.type])
+
+        if len(object) == 1:
             object = object[0]
             correction = 1
         else:
             correction = 0
                 
         # Read all the array
+        row = earray.__getitem__(self.slices)
         try:
-            row = earray[self.start:self.stop:self.step]
+            row = earray.__getitem__(self.slices)
         except IndexError:
+            print "IndexError!"
             if self.flavor == "numarray":
                 row = array(None, shape = self.shape, type=self.type)
             else:
@@ -468,6 +460,7 @@ class BasicTestCase(unittest.TestCase):
 
         if verbose:
             if hasattr(object, "shape"):
+                print "Shape read:", row.shape
                 print "shape should look as:", object.shape
             print "Object read ==>", repr(row) #, row.info()
             print "Should look like ==>", repr(object) #, row.info()
@@ -495,6 +488,41 @@ class EmptyEArrayTestCase(BasicTestCase):
     nappends = 0
     start = 0
     step = 1
+
+class SlicesEArrayTestCase(BasicTestCase):
+    compress = 1
+    complib = "lzo"
+    type = Int32
+    shape = (2, 0)
+    chunksize = 5
+    nappends = 2
+    slices = (slice(1,2,1), slice(1,3,1))
+
+class Slices2EArrayTestCase(BasicTestCase):
+    compress = 1
+    complib = "lzo"
+    type = Int32
+    shape = (2, 0, 4)
+    chunksize = 5
+    nappends = 20
+    slices = (slice(1,2,1), slice(None, None, None), slice(1,4,2))
+
+class Slices3EArrayTestCase(BasicTestCase):
+    compress = 1      # To show the chunks id DEBUG is on
+    complib = "lzo"
+    type = Int32
+    shape = (2, 3, 4, 0)
+    chunksize = 5
+    nappends = 20
+    slices = (slice(1, 2, 1), slice(0, None, None), slice(1,4,2))  # Don't work
+    #slices = (slice(None, None, None), slice(0, None, None), slice(1,4,1)) # W
+    #slices = (slice(None, None, None), slice(None, None, None), slice(1,4,2)) # N
+    #slices = (slice(1,2,1), slice(None, None, None), slice(1,4,2)) # N
+    # Disable the failing test temporarily with a working test case
+    slices = (slice(1,2,1), slice(1, 4, None), slice(1,4,2)) # Y
+    #slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,1)) # Y
+    slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2)) # N
+    #slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2), slice(0,100,1)) # N
 
 class MD3WriteTestCase(BasicTestCase):
     type = Int32
@@ -610,7 +638,7 @@ class CharTypeComprTestCase(BasicTestCase):
     length = 20
     shape = (20,0,10)
     compr = 1
-    #shuffle = 1  # this should not do nothing on chars
+    #shuffle = 1  # this shouldn't do nothing on chars
     chunksize = 50
     nappends = 10
     start = -1
@@ -666,6 +694,9 @@ def suite():
 
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(EmptyEArrayTestCase))
+    #theSuite.addTest(unittest.makeSuite(SlicesEArrayTestCase))
+    #theSuite.addTest(unittest.makeSuite(Slices2EArrayTestCase))
+    #theSuite.addTest(unittest.makeSuite(Slices3EArrayTestCase))
     #theSuite.addTest(unittest.makeSuite(MD3WriteTestCase))
     #theSuite.addTest(unittest.makeSuite(MD5WriteTestCase))
     #theSuite.addTest(unittest.makeSuite(MD10WriteTestCase))
@@ -686,6 +717,9 @@ def suite():
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(EmptyEArrayTestCase))
+        theSuite.addTest(unittest.makeSuite(SlicesEArrayTestCase))
+        theSuite.addTest(unittest.makeSuite(Slices2EArrayTestCase))
+        theSuite.addTest(unittest.makeSuite(Slices3EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(MD3WriteTestCase))
         theSuite.addTest(unittest.makeSuite(MD5WriteTestCase))
         theSuite.addTest(unittest.makeSuite(MD10WriteTestCase))
