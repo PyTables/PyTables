@@ -54,14 +54,16 @@ fi
 # Normal test
 #nrowslist="1 2 5 10 20 50 100 200 500 1000 2000 5000 10000 20000"
 #nrowslistworst="1 2 5 10 20 50 100 200 500 1000 2000 5000 10000 20000"
-nrowslist="100 200 500 1000 2000 5000 10000 20000"
-nrowslistworst=""
+nrowslist="1 2 5 10 20 50 100 200 500 1000"
+nrowslistworst="1 2 5 10 20 50 100 200 500 1000"
+#nrowslist="1 2 5 10"
+#nrowslistworst="1 2 5 10"
 
 # The next can be regarded as parameters
 shuffle=1
 
-#for libcomp in none zlib lzo; do
-for libcomp in none lzo; do
+for libcomp in none zlib lzo; do
+#for libcomp in none lzo; do
     if [ "$libcomp" = "none" ]; then
 	complevel=0
     else
@@ -81,8 +83,8 @@ for libcomp in none lzo; do
 	echo "copying ${bn}.h5 to ${bn}-bck.h5"
 	cp -f ${bn}.h5 ${bn}-bck.h5
     fi
-    #for worst in "" -t; do
-    for worst in ""; do
+    for worst in "" -t; do
+    #for worst in ""; do
         # Write data files
 	if [ "$worst" = "-t" ]; then
 	    echo
@@ -110,9 +112,9 @@ for libcomp in none lzo; do
 	    done
 	done
         # Finally, after the final search, delete the source (if desired)
-	for nrows in $nrowslist; do
-	    rm -f data.nobackup/bench-${libcomp}-${nrows}k.h5
-	done
+# 	for nrows in $nrowslist; do
+# 	    rm -f data.nobackup/bench-${libcomp}-${nrows}k.h5
+# 	done
     done
     echo "New data available on: $bfile"
 done

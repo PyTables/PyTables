@@ -276,12 +276,24 @@ def readFile(filename, atom, riter, indexmode, verbose):
 #             # Choose five standard deviations away from mean value
 #             dev = standarddeviation*5
 #             #dev = standarddeviation*math.log10(table.nrows/1000.)
+
+        # This algorithm give place to too asymmetric result values
+#         if table.nrows/2 > standarddeviation*10:
+#             # Choose five standard deviations away from mean value
+#             dev = standarddeviation*4
+#             #dev = standarddeviation*math.log10(table.nrows/1000.)
+#         else:
+#             dev = 100
+        # Yet Another Algorithm
         if table.nrows/2 > standarddeviation*10:
-            # Choose five standard deviations away from mean value
-            dev = standarddeviation*4
-            #dev = standarddeviation*math.log10(table.nrows/1000.)
+            dev = standarddeviation*4.
+        elif table.nrows/2 > standarddeviation:
+            dev = standarddeviation*2.
+        elif table.nrows/2 > standarddeviation/10.:
+            dev = standarddeviation/10.
         else:
-            dev = 100
+            dev = standarddeviation/100.
+
         valmax = int(round((table.nrows/2.)-dev))
         # split the selection range in regular chunks
         if riter > valmax*2:
@@ -311,6 +323,7 @@ def readFile(filename, atom, riter, indexmode, verbose):
         #randlist.sort();print "randlist-->", randlist
     else:
         chunksize = 3
+    #print "riter-->", riter
     for i in xrange(riter):
         #randlist.sort();print "randlist-->", randlist
         if randomvalues:
@@ -435,13 +448,13 @@ def benchSearch(file, riter, indexmode, bfile, heavy, psyco, verbose):
                 readFile(file, atom, riter, indexmode, verbose)
         table.row["nrows"] = rowsr
         table.row["rowsel"] = rowsel
-        treadrows = round(time1, 4)
+        treadrows = round(time1, 6)
         table.row["time1"] = time1
-        treadrows2 = round(time2, 4)
+        treadrows2 = round(time2, 6)
         table.row["time2"] = time2
-        cpureadrows = round(tcpu1, 4)
+        cpureadrows = round(tcpu1, 6)
         table.row["tcpu1"] = tcpu1
-        cpureadrows2 = round(tcpu2, 4)
+        cpureadrows2 = round(tcpu2, 6)
         table.row["tcpu2"] = tcpu2
         table.row["psyco"] = psyco
         tpercent = int(round(cpureadrows/treadrows, 2)*100)
@@ -452,22 +465,22 @@ def benchSearch(file, riter, indexmode, bfile, heavy, psyco, verbose):
         tMrows = rowsr / (1000*1000.)
         sKrows = rowsel / 1000.
         if atom == "string": # just to print once
-            print "Rows read:", rowsr, "Mread:", round(tMrows, 4), "Mrows"
-        print "Rows selected:", rowsel, "Ksel:", round(sKrows,4), "Krows"
+            print "Rows read:", rowsr, "Mread:", round(tMrows, 6), "Mrows"
+        print "Rows selected:", rowsel, "Ksel:", round(sKrows,6), "Krows"
         print "Time selecting (1st time): %s s (real) %s s (cpu)  %s%%" % \
               (treadrows, cpureadrows, tpercent)
         if riter > 1:
             print "Time selecting (cached): %s s (real) %s s (cpu)  %s%%" % \
                   (treadrows2, cpureadrows2, tpercent2)
-        #rowsec1 = round(rowsr / float(treadrows), 4)/10**6
+        #rowsec1 = round(rowsr / float(treadrows), 6)/10**6
         rowsec1 = rowsr / treadrows
         table.row["rowsec1"] = rowsec1
         print "Read Mrows/sec: ",
-        print round(rowsec1 / 10.**6, 4), "(first time)",
+        print round(rowsec1 / 10.**6, 6), "(first time)",
         if riter > 1:
             rowsec2 = rowsr / treadrows2
             table.row["rowsec2"] = rowsec2
-            print round(rowsec2 / 10.**6, 4), "(cache time)"
+            print round(rowsec2 / 10.**6, 6), "(cache time)"
         else:
             print
         # Append the info to the table
@@ -502,7 +515,7 @@ if __name__=="__main__":
             -x don't make indexes
             -b bench filename
             -t worsT searching case
-            -h heavy benchmark (operations with strings)
+            -h heavy benchmark (operations without strings)
             -m index mode for reading ("indexed" | "inkernel" | "standard")
             -k number of iterations for reading\n""" % sys.argv[0]
 

@@ -234,11 +234,23 @@ def readFile(dbfile, nrows, indexmode, bfile, riter):
 #             # Choose five standard deviations away from mean value
 #             dev = standarddeviation*5
 #             #dev = standarddeviation*math.log10(table.nrows/1000.)
-        if standarddeviation*10 < nrows/2:
-            # Choose four standard deviations away from mean value
-            dev = standarddeviation*4
+
+        # This algorithm give place to too asymmetric result values
+#         if standarddeviation*10 < nrows/2:
+#             # Choose four standard deviations away from mean value
+#             dev = standarddeviation*4
+#         else:
+#             dev = 100
+        # Yet Another Algorithm
+        if table.nrows/2 > standarddeviation*10:
+            dev = standarddeviation*4.
+        elif table.nrows/2 > standarddeviation:
+            dev = standarddeviation*2.
+        elif table.nrows/2 > standarddeviation/10.:
+            dev = standarddeviation/10.
         else:
-            dev = 100
+            dev = standarddeviation/100.
+
         valmax = int(round((nrows/2.)-dev))
         # split the selection range in regular chunks
         if riter > valmax*2:
