@@ -2,7 +2,7 @@
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xmlns:pref="http://www.w3.org/2002/Math/preference" id="usage"><a name="usage"></a><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide A hierarchical database for Python Release 0.7"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2003-07-30T23:10:45+02:00"><meta name="Date" content="2003-07-30T23:10:45+02:00"><meta name="DC.Rights" content="(c) 2002, 2003 Francesc Alted"><meta name="Copyright" content="(c) 2002, 2003 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide A hierarchical database for Python Release 0.7.1"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2003-08-08T20:38:50+02:00"><meta name="Date" content="2003-08-08T20:38:50+02:00"><meta name="DC.Rights" content="(c) 2002, 2003 Francesc Alted"><meta name="Copyright" content="(c) 2002, 2003 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -153,7 +153,7 @@ div.partheadline { font-size: x-large }
 	<tt class="verb">PyTables</tt> provide. If during the trip you want
 	more information on some specific instance variable, global
 	function or method, look at the doc strings or go to the
-	library reference in <a href="usersguide5.html#libraryReference">chapter&nbsp;5</a>. However, if you are
+	library reference in <a href="usersguide4.html#libraryReference">chapter&nbsp;4</a>. However, if you are
 	reading this in PDF or HTML formats, there should be an
 	hyperlink to its reference near each newly introduced
 	entity.
@@ -280,7 +280,7 @@ div.partheadline { font-size: x-large }
 	    variable for each field you need, and as its value we
 	    assign a subclass instance of the <tt class="verb">Col</tt> class,
 	    that describes the kind of column (the data type, the
-	    length, the shape, ...). See <a href="usersguide5.html#ColClassDescr">section&nbsp;5.3</a> for a complete
+	    length, the shape, ...). See <a href="usersguide4.html#ColClassDescr">section&nbsp;4.3</a> for a complete
 	    description of these subclasses. See also <a href="usersguide6.html#datatypesSupported">appendix&nbsp;A</a> for a list of
 	    data types supported in <tt class="verb">Col</tt> constructors.
 	  </p>
@@ -311,7 +311,7 @@ div.partheadline { font-size: x-large }
 	    "<tt class="verb">w</tt>"rite mode and with an descriptive title
 	    string ("<tt class="verb">Test file</tt>"). This function tries to
 	    open the file, and if successful, returns a
-	    <tt class="verb">File</tt> (<a href="usersguide5.html#FileClassDescr">see&nbsp;5.4</a>)
+	    <tt class="verb">File</tt> (<a href="usersguide4.html#FileClassDescr">see&nbsp;4.4</a>)
 	    instance which hosts the root of the object tree on its
 	    <tt class="verb">root</tt> attribute.
 	  </p>
@@ -331,11 +331,11 @@ div.partheadline { font-size: x-large }
 
 	  <p>Here, we have taken the <tt class="verb">File</tt> instance
 	    <tt class="verb">h5file</tt> and invoked its
-	    <tt class="verb">createGroup</tt> method (<a href="usersguide5.html#createGroupDescr">see&nbsp;5.4.2</a>), telling that we want
+	    <tt class="verb">createGroup</tt> method (<a href="usersguide4.html#createGroupDescr">see&nbsp;4.4.2</a>), telling that we want
 	    to create a new group called <em>detector</em> hanging
 	    from "<em>/</em>", which is other way to refer to the
 	    <tt class="verb">h5file.root</tt> object we mentioned before. This
-	    will create a new <tt class="verb">Group</tt> (see<a href="usersguide5.html#GroupClassDescr">5.5</a>) instance that will be
+	    will create a new <tt class="verb">Group</tt> (see<a href="usersguide4.html#GroupClassDescr">4.5</a>) instance that will be
 	    assigned to the <tt class="verb">group</tt> variable.
 	  </p>
 
@@ -343,7 +343,7 @@ div.partheadline { font-size: x-large }
 	<div>
 	  <h3 id="subsection3.1.5"><span class="headlinenumber"><a name="subsection3.1.5"></a>3.1.5 </span>Creating a new table</h3>
 
-	  <p class="first">Let's now create the <tt class="verb">Table</tt> (see <a href="usersguide5.html#TableClassDescr">5.7</a>) object hanging from the new
+	  <p class="first">Let's now create the <tt class="verb">Table</tt> (see <a href="usersguide4.html#TableClassDescr">4.7</a>) object hanging from the new
 	    created group. We do that by calling the
 	    <tt class="verb">createTable</tt> (see <a href="#createTableDescr"><strong>??</strong></a>) method from the
 	    <tt class="verb">h5file</tt> object:
@@ -434,7 +434,7 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	  </pre>
 
 	  <p>The <tt class="verb">row</tt> attribute of <tt class="verb">table</tt>
-	    points to the <tt class="verb">Row</tt> (see <a href="usersguide5.html#RowClassDescr">5.8</a>) instance that will be used
+	    points to the <tt class="verb">Row</tt> (see <a href="usersguide4.html#RowClassDescr">4.8</a>) instance that will be used
 	    to input data rows into the table. We achieve this by just
 	    assigning it the values for each row as if it was a
 	    dictionary (although it is actually an <em>extension
@@ -462,7 +462,7 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	  
 	  <p>This code should be easy to understand. The lines inside
 	    the loop just assign values to the different columns in
-	    the <tt class="verb">particle</tt> Row instance (<a href="usersguide5.html#RowClassDescr">see&nbsp;5.8</a>) and then a call to its
+	    the <tt class="verb">particle</tt> Row instance (<a href="usersguide4.html#RowClassDescr">see&nbsp;4.8</a>) and then a call to its
 	    <tt class="verb">append()</tt> method is made to put this
 	    information in the <tt class="verb">table</tt> I/O buffer.
 	  </p>
@@ -531,14 +531,15 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 &gt;&gt;&gt;
 	  </pre>
 
-	  <p>Note how we have omitted the iterrows() call in the list
-	    comprehension. This is because and __iter__() special
-	    function is implemented in the Table class, so that it
+	  <p>Note how we have omitted the <tt class="verb">iterrows()</tt> call
+	    in the list comprehension. This is because the
+	    <tt class="verb">Table</tt> class has an implementation of the
+	    special method called <tt class="verb">__iter__()</tt>, so that it
 	    implements the iterator protocol over all the rows in the
-	    table. In fact, iterrows() internally calls this special
-	    __iter__() method. This way to access all the rows in a
-	    table turns out to be very convenient, specially for
-	    interactive use.
+	    table. In fact, <tt class="verb">iterrows()</tt> internally calls
+	    this special <tt class="verb">__iter__()</tt> method. This way to
+	    access all the rows in a table turns out to be very
+	    convenient, specially for interactive use.
 	  </p>
 
 	  <p>Ok. that's enough for selections. Next section will show
@@ -833,7 +834,7 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 
 	  <p>As a final example, we will list all the
 	    <tt class="verb">Leaf</tt>, i.e. <tt class="verb">Table</tt> and
-	    <tt class="verb">Array</tt> instances (see <a href="usersguide5.html#LeafClassDescr">5.6</a> for detailed information on
+	    <tt class="verb">Array</tt> instances (see <a href="usersguide4.html#LeafClassDescr">4.6</a> for detailed information on
 	    <tt class="verb">Leaf</tt> class), in <tt class="verb">/detector</tt>
 	    group. Check that only one instance of <tt class="verb">Table</tt>
 	    class (i.e. <tt class="verb">readout</tt>) will be selected in this
@@ -866,7 +867,7 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 
 	  <p class="first">PyTables provides an easy and concise way to complement
 	    the meaning of your node objects on the tree by using the
-	    <tt class="verb">AttributeSet</tt> class (see <a href="usersguide5.html#AttributeSetClassDescr">section&nbsp;5.10</a>). You can
+	    <tt class="verb">AttributeSet</tt> class (see <a href="usersguide4.html#AttributeSetClassDescr">section&nbsp;4.10</a>). You can
 	    access to this object through the standard attribute
 	    <tt class="verb">attrs</tt> in <tt class="verb">Leaf</tt> nodes and
 	    <tt class="verb">_v_attrs</tt> in <tt class="verb">Group</tt> nodes.
@@ -900,7 +901,7 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	    <tt class="verb">_v_attrs</tt> because detector is a
 	    <tt class="verb">Group</tt> node. In general, you can save any
 	    standard Python data structure as an attribute node, but
-	    see <a href="usersguide5.html#AttributeSetClassDescr">section&nbsp;5.10</a> for
+	    see <a href="usersguide4.html#AttributeSetClassDescr">section&nbsp;4.10</a> for
 	    a more detailed explanation of how this are serialized on
 	    disk.
 	  </p>
@@ -930,7 +931,8 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	  <p>If you want to have a look at the current attribute set
 	  of <tt class="verb">/detector/table</tt>, you can print its
 	  representation (try also hitting the <tt class="verb">TAB</tt> key
-	  twice if you are on a Python console):
+	  twice if you are on a Unix Python console with the
+	  <tt class="verb">rlcompleter</tt> module active):
 	  </p>
 
 	  <pre>
@@ -1107,7 +1109,7 @@ pressure := Float32, 1
 	    Here, the <tt class="verb">name</tt>, <tt class="verb">title</tt>,
 	    <tt class="verb">nrows</tt>, <tt class="verb">colnames</tt>,
 	    <tt class="verb">coltypes</tt> and <tt class="verb">colshapes</tt>
-	    attributes (see <a href="usersguide5.html#FileInstanceVariablesDescr">5.4.1</a> for a complete
+	    attributes (see <a href="usersguide4.html#FileInstanceVariablesDescr">4.4.1</a> for a complete
 	    attribute list) of <tt class="verb">Table</tt> object give us quite
 	    a lot of information about actual table data.
 	  </p>
@@ -1217,7 +1219,7 @@ Info on the object: /columns/pressure (Array(3,)) 'Pressure column selection'
 	    a "<b>Float64</b>" array, and that
 	    by looking at their <tt class="verb">shape</tt> attribute, it can
 	    deduced that the array on disk is unidimensional and has 4
-	    elements. See <a href="usersguide5.html#ArrayClassInstanceVariables">5.9.1</a> or the internal
+	    elements. See <a href="usersguide4.html#ArrayClassInstanceVariables">4.9.1</a> or the internal
 	    string docs for the complete <tt class="verb">Array</tt> attribute
 	    list.
 	  </p>
@@ -1650,8 +1652,8 @@ AttributeError: Error setting "ADCcount" attr.
 	  </p>
 
 	  <div class="figure" id="tutorial2"><a name="tutorial2"></a>
-	    <a target="_blank" href="tutorial2-tableview.jpg"><img class="graphics" alt="Table hierarchy for second example. (Click for original bitmap)" src="tutorial2-tableview-web.jpg"></a>
-	    <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.3:</span> Table hierarchy for second example.</div></div>
+	    <a target="_blank" href="tutorial2-tableview.jpg"><img class="graphics" alt="Table hierarchy for tutorial 2. (Click for original bitmap)" src="tutorial2-tableview-web.jpg"></a>
+	    <div class="caption" style="width: 200px"><div class="caption-text"><span class="captionlabel">Figure&nbsp;3.3:</span> Table hierarchy for tutorial 2.</div></div>
 	  </div>
 
 	  <p>Feel free to visit the rest of examples in directory

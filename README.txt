@@ -1,7 +1,7 @@
 README.txt
 PyTables 0.7 (third beta version)
 http://pytables.sf.net/
-Jul 29, 2003
+Aug 09, 2003
 --------------------------------------
 
 The goal of PyTables is to enable the end user to manipulate easily
@@ -67,37 +67,6 @@ UltraSparc platform with Solaris 7 and Solaris 8, a SGI Origin2000
 with MIPS R12000 processors running IRIX 6.5, and Microsoft Windows
 (yes, a Windows version is available from 0.5 on).
 
-Binary installation (Windows)
------------------------------
-
-This section is only intended for Windows platforms. If you have Unix,
-or want to compile PyTables for Windows, jump to the next section.
-
-First, make sure that you have HDF5 1.6.x and numarray 0.6 or higher
-installed (I'm using HDF5 1.6.0 and numarray 0.6 currently). If
-don't, you can find them at http://hdf.ncsa.uiuc.edu/HDF5 and
-http://sourceforge.net/projects/numpy/. Download the binary packages
-and install them. For the HDF5 it should be enough by manually copying
-the hdf5dll.dll file to a directory in your PATH environment variable.
-
-Download the tables-<version>.win32-py<version>.exe file and execute
-it.
-
-You can (you should) test your installation by unpacking the source
-tarball. Go to the test/ directory, set the PYTHONPATH environment
-variable to ".." (set PYTHONPATH=..) and execute the "test_all.py"
-script. If all the tests passes (maybe with a couple of warnings,
-related with the possibly missing LZO and UCL libs, but that's ok for
-the binary version) you already have a working, well tested, copy of
-PyTables installed!. If don't, please, execute the "test_all.py -v" and
-return the output to me.
-
-If you want support for LZO and UCL libraries (see
-http://pytables.sourceforge.net/html-doc/usersguide-html3.html#subsection3.4.1
-for hints about what they are useful for), fetch
-tables-<version>-LU.win32-py<version>.exe instead, and remember to
-install the LZO and UCL DLL libraries (see next section).
-
 
 Installation from sources
 -------------------------
@@ -118,21 +87,6 @@ but other compilers should work as well.
 
    Optionally, consider to install the excellent LZO and UCL
    compression libraries from http://www.oberhumer.com/opensource/.
-
-<Windows> 
-   If you are using Windows, and don't want to compile the libraries
-   by hand, there are available binary packages for them. You can
-   fetch the HDF5 and numarray binaries from their homes.
-
-   Besides, you can (should) fetch the LZO and UCL binaries from:
-   http://gnuwin32.sourceforge.net/. Normally, you will only need to
-   fetch and install the <package>-<version>-bin.zip file, although in
-   some cases the headers are in <package>-<version>-lib.zip file.
-
-   Note that you need to copy manually the hdf5dll.dll (and lzo.dll or
-   ucl.dll if you want them) to a directory in the PATH, so that the
-   installation works.
-</Windows>
 
 <Unix>
    setup.py will detect HDF5, LZO or UCL libraries and include files
@@ -169,6 +123,19 @@ but other compilers should work as well.
 </Unix>
 
 <Windows>
+   If you are using Windows, and don't want to compile the libraries
+   by hand, there are available binary packages for them. You can
+   fetch the HDF5 and numarray binaries from their homes.
+
+   Besides, you can (should) fetch the LZO and UCL binaries from:
+   http://gnuwin32.sourceforge.net/. Normally, you will only need to
+   fetch and install the <package>-<version>-bin.zip file, although in
+   some cases the headers are in <package>-<version>-lib.zip file.
+
+   Note that you need to copy manually the hdf5dll.dll (and lzo.dll or
+   ucl.dll if you want them) to a directory in the PATH, so that the
+   installation works.
+
    setup.py will need that you inform it about where the library stubs
    (.lib) are installed as well as the header files (.h). To tell
    setup.py where the stubs and headers are, set the next environment
@@ -195,7 +162,6 @@ but other compilers should work as well.
 
             --hdf5=c:\stuff\5-160-winVS\c\release --lzo=c:\stuff\lzo-1.08
             --ucl=c:\stuff\ucl-1.01
-
 </Windows>
 
 2. From the main PyTables distribution directory run this command,
@@ -241,17 +207,54 @@ but other compilers should work as well.
    point to the directory where the libraries are.
 </Unix>
 
-<Windows>
-   put the DLL libraries (hdf5dll.dll and, optionally, lzo.dll and
-   ucl.dll) on a directory listed on your PATH environment variable.
-   The setup.py should already warned you about that.
-</Windows>
+<Windows> 
+   put the DLL libraries (hdf5dll.dll, zlibdll.dll, szlib.dll and,
+   optionally, lzo.dll and ucl.dll) on a directory listed on your PATH
+   environment variable.  The setup.py should already warned you about
+   that.
+  </Windows>
 
 4. To install the entire PyTables Python package, change back to the
    root distribution directory and run this command as the root user
    (remember to add any extra flags needed):
 
         python setup.py install
+
+
+Binary installation (Windows)
+-----------------------------
+
+This section is only intended for Windows platforms. If you have Unix,
+or want to compile PyTables for Windows, jump to the next section.
+
+First, make sure that you have HDF5 1.6.x and numarray 0.6 or higher
+installed (I'm using HDF5 1.6.0 and numarray 0.6 currently). If don't,
+you can find them at http://hdf.ncsa.uiuc.edu/HDF5 and
+http://sourceforge.net/projects/numpy/. Download the binary packages
+and install them. For the HDF5 it should be enough by manually copying
+the hdf5dll.dll and szipdll.dll files to a directory in your PATH
+environment variable (for example C:\WINDOWS\SYSTEM). Also, you should
+know that HDF5 needs the zlib compression library to work, so you will
+have to download and install it as well; a pre-compiled version is
+avalilable at ftp://ftp.ncsa.uiuc.edu/HDF/gzip/windows/.
+
+Download the tables-<version>.win32-py<version>.exe file and execute
+it.
+
+You can (you should) test your installation by unpacking the source
+tarball. Go to the test/ directory and execute the "test_all.py"
+script. If all the tests passes (maybe with a couple of warnings,
+related with the possibly missing LZO and UCL libs, but that's ok for
+the binary version) you already have a working, well tested, copy of
+PyTables installed!. If don't, please, execute the "test_all.py -v" and
+return the output to me.
+
+If you want support for LZO and UCL libraries (see
+http://pytables.sourceforge.net/html-doc/html/usersguide5.html#section5.2
+for hints about what they are useful for), fetch the
+tables-<version>-LU.win32-py<version>.exe self-installer instead, and
+remember to install the LZO and UCL DLL libraries (see next section).
+
 
 That's it!  Good luck, and let me know of any bugs, suggestions, gripes,
 kudos, etc. you may have.

@@ -415,6 +415,62 @@ class BasicTestCase(unittest.TestCase):
         assert len(result) == len(result2) + 10
         assert result[:10] == result2
 
+    def test04d_delete(self):
+        """Checking if removing several times at once is working"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04d_delete..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        self.fileh = openFile(self.file, "a")
+        table = self.fileh.getNode("/table0")
+
+        # Read the records and select the ones with "var2" column less than 20
+        result = [ r['var2'] for r in table if r['var2'] < 20]
+        
+        nrows = table.nrows
+
+        # Delete some rows
+        table.removeRows(10, 15)
+
+        # Append some rows
+        row = table.row
+        for i in xrange(10, 15):
+            row['var1'] = '%04d' % (self.appendrows - i)
+            # This line gives problems on Windows. Why?
+            #row['var7'] = row['var1'][-1]
+            row['var2'] = i 
+            row['var3'] = i % self.maxshort
+            if isinstance(row['var4'], NumArray):
+                row['var4'] = [float(i), float(i*i)]
+            else:
+                row['var4'] = float(i)
+            if isinstance(row['var5'], NumArray):
+                row['var5'] = array((float(i),)*4)
+            else:
+                row['var5'] = float(i)
+            row.append()
+	# Flush the buffer for this table
+        table.flush()
+        
+        # Delete 5 rows more
+        table.removeRows(5, 10)        
+
+        # Re-read the records
+        result2 = [ r['var2'] for r in table if r['var2'] < 20 ]
+
+        if verbose:
+            print "Nrows in", table._v_pathname, ":", table.nrows
+            print "Last selected value ==>", result2[-1]
+            print "Total selected records in table ==>", len(result2)
+
+        assert table.nrows == nrows - 5
+        # Check that the new list is smaller than the original one
+        assert len(result) == len(result2) + 5
+        # The last values has to be equal
+        assert result[10:15] == result2[10:15]
+
 class BasicWriteTestCase(BasicTestCase):
     title = "BasicWrite"
 

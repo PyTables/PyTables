@@ -2,7 +2,7 @@
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xmlns:pref="http://www.w3.org/2002/Math/preference"><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide A hierarchical database for Python Release 0.7"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2003-07-30T23:10:45+02:00"><meta name="Date" content="2003-07-30T23:10:45+02:00"><meta name="DC.Rights" content="(c) 2002, 2003 Francesc Alted"><meta name="Copyright" content="(c) 2002, 2003 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide A hierarchical database for Python Release 0.7.1"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2003-08-08T20:38:50+02:00"><meta name="Date" content="2003-08-08T20:38:50+02:00"><meta name="DC.Rights" content="(c) 2002, 2003 Francesc Alted"><meta name="Copyright" content="(c) 2002, 2003 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -209,13 +209,12 @@ div.partheadline { font-size: x-large }
 	      and <tt class="verb">numarray 0.6</tt> or higher installed (I'm
 	      using <tt class="verb">HDF5 1.6.0</tt> and <tt class="verb">numarray
 	      0.6</tt> currently). If don't, you can find them at
-	      <br>
-	      <tt class="verb">http://hdf.ncsa.uiuc.edu/HDF5</tt> and
-	      <tt class="verb">http://www.pfdubois.com/numpy</tt>. Compile/install
+	      <br> <a href="http://hdf.ncsa.uiuc.edu/HDF5"><tt class="verb">http://hdf.ncsa.uiuc.edu/HDF5</tt></a>
+	      and <a href="http://www.pfdubois.com/numpy"><tt class="verb">http://www.pfdubois.com/numpy</tt></a>. Compile/install
 	      them.
 	    </p>
 	    <p>Optionally, consider to install the excellent LZO and
-	      UCL compression libraries (see <a href="#lzouclRef"></a> and section <a href="usersguide4.html#compressionIssues">4.2</a>).
+	      UCL compression libraries (see <a href="#lzouclRef"></a> and section <a href="usersguide5.html#compressionIssues">5.2</a>).
 	    </p>
 	    <dl>
 	      <dt>Unix</dt>
@@ -300,9 +299,8 @@ div.partheadline { font-size: x-large }
 		  6.0). You have been warned!.
 		</p>
 
-		<p>Besides, you may want to fetch the LZO and UCL
-		  binaries from:
-		  <tt class="verb">http://gnuwin32.sourceforge.net/</tt>. Normally,
+		<p>Besides, you may want to fetch the <tt class="verb">LZO</tt>
+		  and <tt class="verb">UCL</tt> binaries from:<br> <a href="http://gnuwin32.sourceforge.net/"><tt class="verb">http://gnuwin32.sourceforge.net/</tt></a>. Normally,
 		  you will only need to fetch and install the
 		  <tt class="verb">&lt;package&gt;-&lt;version&gt;-bin.zip</tt> file,
 		  although in some cases the headers are in
@@ -456,55 +454,76 @@ div.partheadline { font-size: x-large }
 	  have Unix, or want to compile PyTables for Windows, jump to
 	  the <a href="#sourceInstallationDescr">section&nbsp;2.1</a>.
 	</p>
-	<p>First, make sure that you have HDF5 1.6.x or higher and
-	  numarray 0.6 or higher installed (I'm using HDF5 1.6.0 and
-	  numarray 0.6 currently). If don't, you can find them at
-	  <tt class="verb">http://hdf.ncsa.uiuc.edu/HDF5</tt> and
-	  <tt class="verb">http://sourceforge.net/projects/numpy/</tt>. Download
-	  the binary packages and install them. For the HDF5 it should
-	  be enough to manually copying the <tt class="verb">hdf5dll.dll</tt>
-	  <b>and</b> <tt class="verb">szipdll.dll</tt>
-	  files to a directory in your <tt class="verb">PATH</tt> environment
-	  variable (for example <tt class="verb">C:\WINDOWS\SYSTEM</tt>).
-	</p>
 
-	<p><b>Caveat:</b>When downloading the
-	  binary file for HDF5 libraries, select one compiled with the
-	  MSVC 6.0, like for example, the file
-	  <tt class="verb">5-160-win2k.zip</tt>, no matter if you are using
-	  Win2k or WinXP. The file <tt class="verb">5-160-winxp-net.zip</tt>was
-	  compiled with the MSVC 7.0 (aka "<tt class="verb">.NET</tt>") and
-	  does <b>not</b> work well with the
-	  PyTables binary (which has been generated with MSVC
-	  6.0). You have been warned!.
-	</p>
-	<p>Download the
-	  <tt class="verb">tables-&lt;version&gt;.win32-py&lt;version&gt;.exe</tt>
-	  file and execute it. You are done!.
-	</p>
-	<p>You can (<em>you should</em>) test your installation by
-	  unpacking the source tarball. Go to the <tt class="verb">test/</tt>
-	  directory, add the directory "<tt class="verb">..</tt>" to the
-	  <tt class="verb">PYTHONPATH</tt>environment variable, e.g.:
-	</p>
+	<div id="basicBinInst"><a name="basicBinInst"></a>
+	  <h3 id="subsection2.2.1"><span class="headlinenumber"><a name="subsection2.2.1"></a>2.2.1 </span>Basic installation (i.e. with no <tt>LZO</tt> and <tt>UCL</tt> compression libraries support)
+	  </h3>
 
-	<pre>
-	  set PYTHONPATH=..
-	</pre>
+	  <p class="first">First, make sure that you have HDF5 1.6.x or higher and
+	    numarray 0.6 or higher installed (I'm using HDF5 1.6.0 and
+	    numarray 0.6 currently). If don't, you can find them at <a href="http://hdf.ncsa.uiuc.edu/HDF5"><tt class="verb">http://hdf.ncsa.uiuc.edu/HDF5</tt></a>
+	    and <a href="http://sourceforge.net/projects/numpy/"><tt class="verb">http://sourceforge.net/projects/numpy/</tt></a>. Download
+	    the binary packages and install them. For the HDF5 it should
+	    be enough to manually copying the <tt class="verb">hdf5dll.dll</tt>
+	    <b>and</b> <tt class="verb">szipdll.dll</tt>
+	    files to a directory in your <tt class="verb">PATH</tt> environment
+	    variable (for example <tt class="verb">C:\WINDOWS\SYSTEM</tt>). Also,
+	    you should know that HDF5 <b>needs</b>
+	    the <b><tt>zlib</tt></b> compression library to
+	    work, so you will have to download and install it as well; a
+	    pre-compiled version is avalilable at <a href="ftp://ftp.ncsa.uiuc.edu/HDF/gzip/windows/"><tt class="verb">ftp://ftp.ncsa.uiuc.edu/HDF/gzip/windows/</tt></a>.
+	  </p>
 
-	<p>and execute the <tt class="verb">test_all.py</tt> script. If all the
-	  tests passes (maybe with a couple of warnings, related with
-	  the possibly missing LZO and UCL libs, but that's ok for the
-	  binary version) you already have a working, well tested,
-	  copy of PyTables installed!. If don't, please, execute the
-	  <tt class="verb">test_all.py -v</tt> and return the output to me.
-	</p>
-	<p>If you want support for LZO and UCL libraries (see <a href="usersguide4.html#compressionIssues">section&nbsp;4.2</a> for hints about what
-	  they are useful for), fetch
-	  <tt class="verb">tables-&lt;version&gt;-LU.win32-py&lt;version&gt;.exe</tt>
-	  instead, and remember to install the LZO and UCL DLL
-	  libraries.
-	</p>
+	  <p><b>Caveat:</b>When downloading the
+	    binary file for HDF5 libraries, select one compiled with the
+	    MSVC 6.0, like for example, the file
+	    <tt class="verb">5-160-win2k.zip</tt>, no matter if you are using
+	    Win2k or WinXP. The file <tt class="verb">5-160-winxp-net.zip</tt>
+	    was compiled with the MSVC 7.0 (aka "<tt class="verb">.NET</tt>") and
+	    does <b>not</b> work well with the
+	    PyTables binary (which has been generated with MSVC
+	    6.0). You have been warned!.
+	  </p>
+	  <p>Download the
+	    <tt class="verb">tables-&lt;version&gt;.win32-py&lt;version&gt;.exe</tt>
+	    file and execute it. You are done!.
+	  </p>
+	  <p>You can (<em>you should</em>) test your installation by
+	    unpacking the source tarball, changing to the
+	    <tt class="verb">test/</tt> subdirectory and execute the
+	    <tt class="verb">test_all.py</tt> script. If all the tests passes
+	    (maybe with a couple of warnings, related with the possible
+	    unavailability of LZO and UCL libs, but that's ok for the
+	    binary version) you already have a working, well tested,
+	    copy of PyTables installed!. If don't, please, execute the
+	    <tt class="verb">test_all.py -v verbose</tt> and return the output to
+	    me.
+	  </p>
+	</div>
+
+	<div>
+	  <h3 id="subsection2.2.2"><span class="headlinenumber"><a name="subsection2.2.2"></a>2.2.2 </span>Advanced installation (i.e. with support for
+	      <tt>LZO</tt> and <tt>UCL</tt> compression libraries)
+	  </h3>
+
+	  <p class="first">If you want support for LZO and UCL libraries (see <a href="usersguide5.html#compressionIssues">section&nbsp;5.2</a> for hints about
+	    what they are useful for), install the <tt class="verb">LZO</tt>
+	    and <tt class="verb">UCL</tt> DLL libraries by fetching the
+	    binaries from:<a href="http://gnuwin32.sourceforge.net/"><tt class="verb">http://gnuwin32.sourceforge.net/</tt></a>. Normally,
+	    you will only need to fetch and install the
+	    <tt class="verb">&lt;package&gt;-&lt;version&gt;-bin.zip</tt> file.
+	  </p>
+
+	  <p>Finally, follow the same steps than in <a href="#basicBinInst">section&nbsp;2.2.1</a>, but fetch and
+	    install the<br>
+	    <tt class="verb">tables-&lt;version&gt;-LU.win32-py&lt;version&gt;.exe</tt>
+	    self-installer in place of<br>
+	    <tt class="verb">tables-&lt;version&gt;.win32-py&lt;version&gt;.exe</tt>.
+	  </p>
+
+	</div>
+
+	<div style="margin-bottom: 0.25cm"></div><p></p>
 
 	<p>That's it!. Now, proceed with the next chapter to see how to
 	  use <tt class="verb">PyTables</tt>.

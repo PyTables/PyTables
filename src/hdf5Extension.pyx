@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.72 2003/08/08 15:23:52 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.73 2003/08/08 20:50:00 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.72 $"
+__version__ = "$Revision: 1.73 $"
 
 
 import sys, os
@@ -553,7 +553,10 @@ cdef extern from "H5TB-opt.h":
                               void *data )
 
   herr_t H5TBOclose_append(hid_t *dataset_id,
-                           hid_t *mem_type_id )
+                           hid_t *mem_type_id,
+                           int ntotal_records,
+                           char *dset_name,
+                           hid_t parent_id)
 
 # Declarations from PyTables local functions
 
@@ -727,7 +730,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.72 2003/08/08 15:23:52 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.73 2003/08/08 20:50:00 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1293,13 +1296,14 @@ cdef class Table:
       raise RuntimeError("Problems appending the records.")
 
     self.totalrecords = self.totalrecords + nrecords
-    #self._close_append()
     
   def _close_append(self):
 
     if self._open > 0:
       # Close the table for append
-      if ( H5TBOclose_append(&self.dataset_id, &self.mem_type_id) < 0 ):
+      if ( H5TBOclose_append(&self.dataset_id, &self.mem_type_id,
+                             self.totalrecords, self.name,
+                             self.parent_id) < 0 ):
         raise RuntimeError("Problems closing table for append.")
 
     self._open = 0
@@ -1382,6 +1386,12 @@ cdef class Table:
 
     return nrecords
 
+  def _close_read(self):
+
+    if ( H5TBOclose_read(&self.dataset_id, &self.space_id,
+                         &self.mem_type_id) < 0 ):
+      raise RuntimeError("Problems closing table for read.")
+
   def _read_field_name(self, char *field_name, hsize_t start,
                        hsize_t nrecords):
     cdef herr_t ret
@@ -1416,12 +1426,6 @@ cdef class Table:
       self.totalrecords = self.totalrecords - nrecords
       # Return the number of records removed
       return nrecords
-
-  def _close_read(self):
-
-    if ( H5TBOclose_read(&self.dataset_id, &self.space_id,
-                         &self.mem_type_id) < 0 ):
-      raise RuntimeError("Problems closing table for read.")
 
   def __dealloc__(self):
     #print "Destroying object Table in Extension"
@@ -1529,6 +1533,8 @@ cdef class Row:
     else:
       if self.nextelement >= self.nrowsread:
         # Skip until there is interesting information
+#         while ((self.nextelement >= self.nrowsread + self.nrowsinbuf) or
+#                (self.startb >= self.stop - self.nrowsread)):
         while self.nextelement >= self.nrowsread + self.nrowsinbuf:
           self.nrowsread = self.nrowsread + self.nrowsinbuf
         # Compute the end for this iteration

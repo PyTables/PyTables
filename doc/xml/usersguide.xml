@@ -9,7 +9,7 @@
     <subtitle><visual markup="sf">A hierarchical database for
       Python</visual><newline/> Release 0.7.1</subtitle>
 
-    <date>2003, July, 31th</date>
+    <date>2003, August, 08th</date>
     <year>2002, 2003</year>
 <!--     <city>Castelló de la Plana, Spain</city> -->
     <typeset>Francesc Alted</typeset>
@@ -941,9 +941,9 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
 	  <p>Finally, follow the same steps than in <ref
 	    refid="basicBinInst">section</ref>, but fetch and
-	    install<newline/>
+	    install the<newline/>
 	    <verb>tables-&lt;version>-LU.win32-py&lt;version>.exe</verb>
-	    in place of<newline/>
+	    self-installer in place of<newline/>
 	    <verb>tables-&lt;version>.win32-py&lt;version>.exe</verb>.
 	  </p>
 
@@ -2521,423 +2521,13 @@ AttributeError: Error setting "ADCcount" attr.
       </section>
     </chapter>
 
-    <chapter id="optimizationTips">
-      <heading>Optimization tips</heading>
-
+    <chapter id="libraryReference">
+      <heading>Library Reference</heading>
+      
       <aphorism>"Tenho pensamentos que, se pudesse revelá-los e
 	fazê-los viver, acrescentariam nova luminosidade às estrelas,
 	nova beleza ao mundo e maior amor ao coração dos homens."
 	<caption>Fernando Pessoa, in "O Eu Profundo"</caption>
-      </aphorism>
-
-      <p>On this chapter, you will get deeper knowledge of
-	<verb>PyTables</verb> internals. <verb>PyTables</verb> has
-	several places where the user can improve the performance of
-	his application. If you are planning to deal with really large
-	data, you should read carefully this section in order to learn
-	how to get an important boost for your code. But if your
-	dataset is small or medium size (say, up to 1 MB), you should
-	not worry about that as the default parameters in
-	<verb>PyTables</verb> are already tuned to handle that
-	perfectly.
-      </p>
-
-      <section>
-	<heading>Taking advantage of Psyco</heading>
-
-	<p>Psyco (see <cite refid="psycoRef"></cite>)is a kind of
-	  specialized compiler for Python that typically accelerates
-	  Python applications with no change in source code. You can
-	  think of Psyco as a kind of just-in-time (JIT) compiler, a
-	  little bit like Java's, that emit machine code on the fly
-	  instead of interpreting your Python program step by
-	  step. The result is that your unmodified Python programs run
-	  faster.
-	</p>
-
-	<p>Psyco is very easy to install and use, so in most scenarios
-	  it is worth to have it a try. However, it only runs on Intel
-	  386 architectures, so if you are using other architectures,
-	  you are out of luck (at least until Psyco will support
-	  yours).
-	</p>
-
-	<p>As an example, imagine that you have a small script that
-	  reads and selects data over a series of datasets, like this:
-	</p>
-
-	<verbatim>
-def readFile(filename):
-    "Select data from all the tables in filename"
-
-    fileh = openFile(filename, mode = "r")
-    result = []
-    for table in fileh("/", 'Table'):
-        result = [ p['var3'] for p in table if p['var2'] &lt;= 20 ]
-
-    fileh.close()
-    return e
-
-if __name__=="__main__":
-    print readFile("myfile.h5")
-	</verbatim>
-
-	<p>In order to accelerate this piece of code, you can rewrite
-	  your main program to look like:
-	</p>
-
-	<verbatim>
-if __name__=="__main__":
-    import pysco
-    psyco.bind(readFile)
-    print readFile("myfile.h5")
-	</verbatim>
-
-	<p>That's all!. From now on, each time that you execute your
-	  python script, Psyco will deploy its sophisticated
-	  algorithms so as to accelerate your calculations.
-	</p>
-
-	<p>You can see in the graphs <ref
-	  refid="psycoWriteComparison"></ref> and <ref
-	  refid="psycoReadComparison"></ref> how much I/O speed
-	  improvement you can get by using Psyco. By looking at this
-	  figures you can get an idea if these improvements are of
-	  your interest or not. In general, if you are not going to
-	  use compression you will take advantage of Psyco if your
-	  tables are medium sized (1e+3 &lt; nrows &lt; 1e+6), and
-	  this advantage will disappear progressively when the number
-	  of rows grows well over one million. However if you use
-	  compression, you will probably see improvements even beyond
-	  this limit (see <ref
-	  refid="compressionIssues">section</ref>). As always, there
-	  is no substitute for experimentation with your own dataset.
-	</p>
-
-	<figure id="psycoWriteComparison">
-	  <graphics file="write-medium-psyco-nopsyco-comparison" scale="0.75" kind="vector">
-	  </graphics>
-	  <caption>Writing tables with/without Psyco.
-	  </caption>
-	</figure>
-
-	<figure id="psycoReadComparison">
-	  <graphics file="read-medium-psyco-nopsyco-comparison" scale="0.75" kind="vector">
-	  </graphics>
-	  <caption>Reading tables with/without Psyco.
-	  </caption>
-	</figure>
-
-      </section>
-
-      <section id="compressionIssues">
-	<heading>Compression issues</heading>
-
-	<p>One of the beauties of <verb>PyTables</verb> is that it
-	  supports compression on tables (but not on arrays!, that may
-	  come later), although it is disabled by default. Compression
-	  of big amounts of data might be a bit controversial feature,
-	  because compression has a legend of being a very big CPU
-	  time resources consumer. However, if you are willing to
-	  check if compression can help not only reducing your dataset
-	  file size but <visual markup="bf">also</visual> improving
-	  your I/O efficiency, keep reading.
-	</p>
-
-	<p>There is an usual scenario where users need to save
-	  duplicated data in some record fields, while the others
-	  have varying values. In a relational database approach
-	  such a redundant data can normally be moved to other
-	  tables and a relationship between the rows on the separate
-	  tables can be created. But that takes analysis and
-	  implementation time, and made the underlying libraries
-	  more complex and slower.
-	</p>
-
-	<p><verb>PyTables</verb> transparent compression allows the
-	  user to not worry about finding which is their optimum data
-	  tables strategy, but rather use less, not directly related,
-	  tables with a larger number of columns while still not
-	  cluttering the database too much with duplicated data
-	  (compression is responsible to avoid that). As a side
-	  effect, data selections can be made more easily because you
-	  have more fields available in a single table, and they can
-	  be referred in the same loop. This process may normally end
-	  in a simpler, yet powerful manner to process your data
-	  (although you should still be careful about what kind of
-	  scenarios compression use is convenient or not).
-	</p>
-
-	<p>The compression library used by default is the <visual
-	    markup="bf">Zlib</visual> (see <cite
-	    refid="zlibRef"></cite>), and as HDF5 <em>requires</em>
-	  it, you can safely use it and expect that your HDF5 files
-	  can be read on any other platform that has HDF5 libraries
-	  installed. Zlib provides good compression ratio, although
-	  somewhat slow, and reasonably fast decompression. Because
-	  of that, it is a good candidate to be used for compress
-	  you data.
-	</p>
-
-	<p>However, in many situations (i.e. write <em>once</em>, read
-	  <em>multiple</em>), it is critical to have <em>very
-	  good</em> decompression speed (at expense of whether less
-	  compression or more CPU wasted on compression, as we will
-	  see soon). This is why support for two additional
-	  compressors has been added to PyTables: LZO and UCL (see
-	  <cite refid="lzouclRef"></cite>). Following his author (and
-	  checked by the author of this manual), LZO offers pretty
-	  fast compression (although small compression ratio) and
-	  extremely fast decompression while UCL achieve an excellent
-	  compression ratio (at the price of spending much more CPU
-	  time) while allowing very fast decompression (and <em>very
-	  close</em> to the LZO one). In fact, LZO and UCL are so fast
-	  when decompressing that, in general (that depends on your
-	  data, of course), writing and reading a compressed table is
-	  actually faster (and sometimes <visual markup="bf">much
-	  faster</visual>) than if it is uncompressed. This fact is
-	  very important, specially if you have to deal with very
-	  large amounts of data.
-	</p>
-
-	<p>Be aware that the LZO and UCL support in PyTables is not
-	  standard on HDF5, so if you are going to use your PyTables
-	  files in other contexts different from PyTables you will
-	  not be able to read them.
-	</p>
-
-	<p>In order to give you a raw idea of what ratios would be
-	  achieved, and what resources would be consumed, look at the
-	  <ref refid="comprTblComparison">table</ref>. This table has
-	  been obtained from synthetic data and with a somewhat
-	  outdated PyTables version (0.5), so take this just as a
-	  guide because your mileage will probably vary. Have also a
-	  look at the graphs <ref
-	  refid="lzozlibuclWriteComparison"></ref> and <ref
-	  refid="lzozlibuclReadComparison"></ref> (these graphs has
-	  been obtained with tables with different row sizes and
-	  PyTables version than the previous example, so, do not try
-	  to directly compare the figures). They show how evolves the
-	  speed of writing/reading rows as the size (the row number)
-	  of tables grows. Even though in these graphs the size of one
-	  single row is 56 bytes, you can most probably extrapolate
-	  this figures to other row sizes. If you are curious how well
-	  can perform compression together with Psyco, look at the
-	  graphs <ref refid="psycolzozlibuclWriteComparison"></ref>
-	  and <ref refid="psycolzozlibuclReadComparison"></ref>. As
-	  you can see, the results are pretty interesting.
-	</p>
-
-	<table id="comprTblComparison">
-	  <!-- 	    <tabular preamble="lrrrrr"> -->
-	  <tabular preamble="lccccc">
-	    <tabhead>
-	      <srow>Compr. Lib | File size (MB) | Time writing (s) |
-		Time reading (s) | Speed writing (Krow/s) | 
-		Speed reading (Krow/s) </srow>
-	    </tabhead>
-	    <tabbody>
-	      <srow>NO COMPR     | 244.0 | 24.4 | 16.0  | 18.0 |  27.8</srow>
-	      <srow>Zlib (lvl 1) |   8.5 | 17.0 |  3.11 | 26.5 | 144.4</srow>
-	      <srow>Zlib (lvl 6) |   7.1 | 20.1 |  3.10 | 22.4 | 144.9</srow>
-	      <srow>Zlib (lvl 9) |   7.2 | 42.5 |  3.10 | 10.6 | 145.1</srow>
-	      <srow>LZO (lvl 1)  |   9.7 | 14.6 |  1.95 | 30.6 | 230.5</srow>
-	      <srow>UCL (lvl 1)  |   6.9 | 38.3 |  2.58 | 11.7 | 185.4</srow>
-	    </tabbody>
-	  </tabular>
-	  <caption>Comparison between different compression
-	    libraries. The tests has been conducted on a Pentium 4 at 2
-	    GHz and a hard disk at 4200 RPM.</caption>
-	</table>
-
-	<figure id="lzozlibuclWriteComparison">
-	  <graphics file="write-medium-lzo-zlib-ucl-comparison" scale="0.75" kind="vector">
-	  
-	  </graphics>
-	  <caption>Writing tables with several compressors.
-	  </caption>
-	</figure>
-
-	<figure id="lzozlibuclReadComparison">
-	  <graphics file="read-medium-lzo-zlib-ucl-comparison" scale="0.75" kind="vector">
-	  
-	  </graphics>
-	  <caption>Reading tables with several compressors.
-	  </caption>
-	</figure>
-
-	<figure id="psycolzozlibuclWriteComparison">
-	  <graphics file="write-medium-psyco-lzo-zlib-ucl-comparison" scale="0.75" kind="vector">
-	  
-	  </graphics>
-	  <caption>Writing tables with several compressors and Psyco.
-	  </caption>
-	</figure>
-
-	<figure id="psycolzozlibuclReadComparison">
-	  <graphics file="read-medium-psyco-lzo-zlib-ucl-comparison" scale="0.75" kind="vector">
-	  
-	  </graphics>
-	  <caption>Reading tables with several compressors and Psyco.
-	  </caption>
-	</figure>
-
-	<p>
-	  By looking at graphs, you can expect that, generally
-	  speaking, LZO would be the fastest both compressing and
-	  uncompressing, but the one that achieves the worse
-	  compression ratio (although that may be just ok for many
-	  situations). UCL is the slowest when compressing, but is
-	  faster than Zlib when decompressing, and, besides, it
-	  achieves very good compression ratios (generally better than
-	  Zlib). Zlib represents a balance between them: it's somewhat
-	  slow compressing, the slowest during decompressing, but it
-	  normally achieves fairly good compression ratios.
-	</p>
-
-	<p>So, if your ultimate goal is reading as fast as possible,
-	  choose LZO. If you want to reduce as much as possible your
-	  data, while retaining good read speed, choose UCL. If you
-	  don't mind too much about the above parameters and/or
-	  portability is important for you, Zlib is your best bet.
-	</p>
-
-	<p>The compression level that I recommend to use for all
-	  compression libraries is 1. This is the lowest level of
-	  compression, but if you take the approach suggested above,
-	  normally the redundant data is to be found in the same
-	  row, so the redundant data locality is very high and such
-	  a small level of compression should be enough to achieve a
-	  good compression ratio on your data tables, saving CPU
-	  cycles for doing other things. Nonetheless, in some
-	  situations you may want to check how compression level
-	  affects your application.
-	</p>
-
-	<p> You can select the compression library and level by
-	  setting the <verb>complib</verb> and <verb>compress</verb>
-	  keywords in the <verb>createTable</verb> method (see <ref
-	    refid="createTableDescr"></ref>). A compression level of 0
-	  will completely disable compression (the default), 1 is
-	  the less CPU time demanding level, while 9 is the maximum
-	  level and most CPU intensive. Finally, have in mind that
-	  LZO is not accepting a compression level right now, so,
-	  when using LZO, 0 means that compression is not active,
-	  and any other value means that LZO is active.
-	</p>
-
-      </section>
-
-      <section id="expectedRowsOptim">
-	<heading>Informing <visual markup="tt">PyTables</visual>
-	  about expected number of rows in tables</heading>
-
-	<p>The underlying HDF5 library that is used by
-	  <verb>PyTables</verb> takes the data in bunches of a
-	  certain length, so-called <em>chunks</em>, to write them
-	  on disk as a whole, i.e. the HDF5 library treats chunks as
-	  atomic objects and disk I/O is always made in terms of
-	  complete chunks. This allows data filters to be defined by
-	  the application to perform tasks such as compression,
-	  encryption, checksumming, etc. on entire chunks.
-	</p>
-
-	<p>An in-memory B-tree is used to map chunk structures on
-	  disk. The more chunks that are allocated for a dataset the
-	  larger the B-tree. Large B-trees take memory and causes
-	  file storage overhead as well as more disk I/O and higher
-	  contention for the metadata cache. Consequently, it's
-	  important to balance between memory and I/O overhead
-	  (small B-trees) and time to access to data (big B-trees).
-	</p>
-
-	<p><verb>PyTables</verb> can determine an optimum chunk size
-	  to make B-trees adequate to your dataset size if you help
-	  it by providing an estimation of the number of rows for a
-	  table. This must be made in table creation time by passing
-	  this value in the <verb>expectedrows</verb> keyword of
-	  <verb>createTable</verb> method (see <ref
-	    refid="createTableDescr"></ref>).
-	</p>
-
-	<p>When your table size is bigger than 1 MB (take this figure
-	  only as a reference, not strictly), by providing this guess
-	  of the number of rows you will be optimizing the access to
-	  your data. When the table size is larger than, say 100MB,
-	  you are <visual markup="bf">strongly</visual> suggested to
-	  provide such a guess; failing to do that may cause your
-	  application doing very slow I/O operations and demanding
-	  <visual markup="bf">huge</visual> amounts of memory. You
-	  have been warned!.
-	</p>
-
-      </section>
-
-      <section>
-	<heading>Selecting an User Entry Point (UEP) in your
-	  tree</heading>
-
-	<p>If you have a <visual markup="bf">huge</visual> tree in
-	  your data file with many nodes on it, creating the object
-	  tree would take long time. Many times, however, you are
-	  interested only in access to a part of the complete tree, so
-	  you won't strictly need PyTables to build the entire object
-	  tree in-memory, but only the <em>interesting</em> part.
-	</p>
-
-	<p>This is where the <verb>rootUEP</verb> parameter of
-	  <verb>openFile()</verb> function (see <ref
-	  refid="openFileDescr"></ref>) can be helpful. Imagine that
-	  you have a file called <verb>"test.h5"</verb> with the
-	  associated tree that you can see in figure <ref
-	  refid="rootUEPfig1"></ref>, and you are interested only in
-	  the section marked in red.  You can avoid the build of all
-	  the object tree by saying to <verb>openFile</verb> that your
-	  root will be the <verb>/Group2/Group3</verb> group. That is:
-	</p>
-	<verbatim>
-	  fileh = openFile("test.h5", rootUEP="/Group2/Group3")
-	</verbatim>
-
-	<p>As a result, the actual object tree built will be like the
-	  one that can be seen in <ref
-	  refid="rootUEPfig2">figure</ref>.
-	</p>
-
-	<p>Of course this has been a simple example and the use
-	  of the <verb>rootUEP</verb> parameter was not very
-	  necessary. But when you have <em>thousands</em> of nodes on
-	  a tree, you will certainly appreciate the
-	  <verb>rootUEP</verb> parameter.
-	</p>
-
-	<figure id="rootUEPfig1">
-	  <graphics file="rootUEP1" scale="0.6" kind="vector">
-	  </graphics>
-	  <caption>Complete tree in file <visual
-	    markup="tt">test.h5</visual>, and subtree of interest for
-	    the user.
-	  </caption>
-	</figure>
-
-	<figure id="rootUEPfig2">
-	  <graphics file="rootUEP2" scale="0.75" kind="vector">
-	  </graphics>
-	  <caption>Resulting object tree derived from the use of the
-	    <visual markup="tt">rootUEP</visual> parameter.
-	  </caption>
-	</figure>
-	
-      </section>
-
-    </chapter>
-
-    <chapter id="libraryReference">
-      <heading>Library Reference</heading>
-      
-      <aphorism>... durch planmässiges Tattonieren.  <caption>Johann
-	Karl Friedrich Gauss <newline/>[asked how he came upon his
-	theorems]</caption>
       </aphorism>
 
       <p><verb>PyTables</verb> implements several classes to represent
@@ -4071,14 +3661,16 @@ if __name__=="__main__":
 	    </p>
 	    <description>
 		<term>start</term> <item>Sets the starting row to
-		  return data. It accepts negative values meaning that
-		  the count starts from the end.</item>
+		  return data. A value of 0 means the first row. It
+		  accepts negative values meaning that the count
+		  starts from the end.</item>
 
 		<term>stop</term> <item>Sets the last row to be
-		  returned to stop - 1, i.e. the end point is omitted
-		  (in the Python <verb>range</verb> tradition). It
-		  accepts, likewise start, negative values. A special
-		  value of 0 means the last row.
+		  returned to <em>stop - 1</em>, i.e. the end point is
+		  omitted (in the Python <verb>range</verb>
+		  tradition). It accepts, likewise <em>start</em>,
+		  negative values. A special value of 0 means the last
+		  row.
 		</item>
 
 		<term>step</term> <item>When step is given, it
@@ -4099,14 +3691,16 @@ if __name__=="__main__":
 	    <description>
 
 		<term>start</term> <item>Sets the starting row to
-		  return data. It accepts negative values meaning that
-		  the count starts from the end.</item>
+		  return data. A value of 0 means the first row. It
+		  accepts negative values meaning that the count
+		  starts from the end.</item>
 
 		<term>stop</term> <item>Sets the last row to be
-		  returned to stop - 1, i.e. the end point is omitted
-		  (in the Python <verb>range</verb> tradition). It
-		  accepts, likewise start, negative values. A special
-		  value of 0 means the last row.
+		  returned to <em>stop - 1</em>, i.e. the end point is
+		  omitted (in the Python <verb>range</verb>
+		  tradition). It accepts, likewise <em>start</em>,
+		  negative values. A special value of 0 means the last
+		  row.
 		</item>
 
 		<term>step</term> <item>When step is given, it
@@ -4148,13 +3742,15 @@ if __name__=="__main__":
 	    <description>
 		<term>start</term> <item>Sets the starting row to
 		  be removed. It accepts negative values meaning that
-		  the count starts from the end.</item>
+		  the count starts from the end. A value of 0 means
+		  the first row.</item>
 
 		<term>stop</term> <item>Sets the last row to be
 		  removed to <em>stop</em> - 1, i.e. the end point is
 		  omitted (in the Python <verb>range</verb>
-		  tradition). It accepts, likewise start, negative
-		  values. A special value of 0 means the last row.
+		  tradition). It accepts, likewise <em>start</em>,
+		  negative values. A special value of 0 means the last
+		  row.
 		</item>
 
 	      </description>
@@ -4460,6 +4056,416 @@ if __name__=="__main__":
 	</subsection>
 
       </section>
+    </chapter>
+
+    <chapter id="optimizationTips">
+      <heading>Optimization tips</heading>
+
+      <aphorism>... durch planmässiges Tattonieren.  <caption>Johann
+	Karl Friedrich Gauss <newline/>[asked how he came upon his
+	theorems]</caption>
+      </aphorism>
+
+      <p>On this chapter, you will get deeper knowledge of
+	<verb>PyTables</verb> internals. <verb>PyTables</verb> has
+	several places where the user can improve the performance of
+	his application. If you are planning to deal with really large
+	data, you should read carefully this section in order to learn
+	how to get an important boost for your code. But if your
+	dataset is small or medium size (say, up to 1 MB), you should
+	not worry about that as the default parameters in
+	<verb>PyTables</verb> are already tuned to handle that
+	perfectly.
+      </p>
+
+      <section>
+	<heading>Taking advantage of Psyco</heading>
+
+	<p>Psyco (see <cite refid="psycoRef"></cite>)is a kind of
+	  specialized compiler for Python that typically accelerates
+	  Python applications with no change in source code. You can
+	  think of Psyco as a kind of just-in-time (JIT) compiler, a
+	  little bit like Java's, that emit machine code on the fly
+	  instead of interpreting your Python program step by
+	  step. The result is that your unmodified Python programs run
+	  faster.
+	</p>
+
+	<p>Psyco is very easy to install and use, so in most scenarios
+	  it is worth to have it a try. However, it only runs on Intel
+	  386 architectures, so if you are using other architectures,
+	  you are out of luck (at least until Psyco will support
+	  yours).
+	</p>
+
+	<p>As an example, imagine that you have a small script that
+	  reads and selects data over a series of datasets, like this:
+	</p>
+
+	<verbatim>
+def readFile(filename):
+    "Select data from all the tables in filename"
+
+    fileh = openFile(filename, mode = "r")
+    result = []
+    for table in fileh("/", 'Table'):
+        result = [ p['var3'] for p in table if p['var2'] &lt;= 20 ]
+
+    fileh.close()
+    return e
+
+if __name__=="__main__":
+    print readFile("myfile.h5")
+	</verbatim>
+
+	<p>In order to accelerate this piece of code, you can rewrite
+	  your main program to look like:
+	</p>
+
+	<verbatim>
+if __name__=="__main__":
+    import pysco
+    psyco.bind(readFile)
+    print readFile("myfile.h5")
+	</verbatim>
+
+	<p>That's all!. From now on, each time that you execute your
+	  python script, Psyco will deploy its sophisticated
+	  algorithms so as to accelerate your calculations.
+	</p>
+
+	<p>You can see in the graphs <ref
+	  refid="psycoWriteComparison"></ref> and <ref
+	  refid="psycoReadComparison"></ref> how much I/O speed
+	  improvement you can get by using Psyco. By looking at this
+	  figures you can get an idea if these improvements are of
+	  your interest or not. In general, if you are not going to
+	  use compression you will take advantage of Psyco if your
+	  tables are medium sized (1e+3 &lt; nrows &lt; 1e+6), and
+	  this advantage will disappear progressively when the number
+	  of rows grows well over one million. However if you use
+	  compression, you will probably see improvements even beyond
+	  this limit (see <ref
+	  refid="compressionIssues">section</ref>). As always, there
+	  is no substitute for experimentation with your own dataset.
+	</p>
+
+	<figure id="psycoWriteComparison">
+	  <graphics file="write-medium-psyco-nopsyco-comparison" scale="0.75" kind="vector">
+	  </graphics>
+	  <caption>Writing tables with/without Psyco.
+	  </caption>
+	</figure>
+
+	<figure id="psycoReadComparison">
+	  <graphics file="read-medium-psyco-nopsyco-comparison" scale="0.75" kind="vector">
+	  </graphics>
+	  <caption>Reading tables with/without Psyco.
+	  </caption>
+	</figure>
+
+      </section>
+
+      <section id="compressionIssues">
+	<heading>Compression issues</heading>
+
+	<p>One of the beauties of <verb>PyTables</verb> is that it
+	  supports compression on tables (but not on arrays!, that may
+	  come later), although it is disabled by default. Compression
+	  of big amounts of data might be a bit controversial feature,
+	  because compression has a legend of being a very big CPU
+	  time resources consumer. However, if you are willing to
+	  check if compression can help not only reducing your dataset
+	  file size but <visual markup="bf">also</visual> improving
+	  your I/O efficiency, keep reading.
+	</p>
+
+	<p>There is an usual scenario where users need to save
+	  duplicated data in some record fields, while the others
+	  have varying values. In a relational database approach
+	  such a redundant data can normally be moved to other
+	  tables and a relationship between the rows on the separate
+	  tables can be created. But that takes analysis and
+	  implementation time, and made the underlying libraries
+	  more complex and slower.
+	</p>
+
+	<p><verb>PyTables</verb> transparent compression allows the
+	  user to not worry about finding which is their optimum data
+	  tables strategy, but rather use less, not directly related,
+	  tables with a larger number of columns while still not
+	  cluttering the database too much with duplicated data
+	  (compression is responsible to avoid that). As a side
+	  effect, data selections can be made more easily because you
+	  have more fields available in a single table, and they can
+	  be referred in the same loop. This process may normally end
+	  in a simpler, yet powerful manner to process your data
+	  (although you should still be careful about what kind of
+	  scenarios compression use is convenient or not).
+	</p>
+
+	<p>The compression library used by default is the <visual
+	    markup="bf">Zlib</visual> (see <cite
+	    refid="zlibRef"></cite>), and as HDF5 <em>requires</em>
+	  it, you can safely use it and expect that your HDF5 files
+	  can be read on any other platform that has HDF5 libraries
+	  installed. Zlib provides good compression ratio, although
+	  somewhat slow, and reasonably fast decompression. Because
+	  of that, it is a good candidate to be used for compress
+	  you data.
+	</p>
+
+	<p>However, in many situations (i.e. write <em>once</em>, read
+	  <em>multiple</em>), it is critical to have <em>very
+	  good</em> decompression speed (at expense of whether less
+	  compression or more CPU wasted on compression, as we will
+	  see soon). This is why support for two additional
+	  compressors has been added to PyTables: LZO and UCL (see
+	  <cite refid="lzouclRef"></cite>). Following his author (and
+	  checked by the author of this manual), LZO offers pretty
+	  fast compression (although small compression ratio) and
+	  extremely fast decompression while UCL achieve an excellent
+	  compression ratio (at the price of spending much more CPU
+	  time) while allowing very fast decompression (and <em>very
+	  close</em> to the LZO one). In fact, LZO and UCL are so fast
+	  when decompressing that, in general (that depends on your
+	  data, of course), writing and reading a compressed table is
+	  actually faster (and sometimes <visual markup="bf">much
+	  faster</visual>) than if it is uncompressed. This fact is
+	  very important, specially if you have to deal with very
+	  large amounts of data.
+	</p>
+
+	<p>Be aware that the LZO and UCL support in PyTables is not
+	  standard on HDF5, so if you are going to use your PyTables
+	  files in other contexts different from PyTables you will
+	  not be able to read them.
+	</p>
+
+	<p>In order to give you a raw idea of what ratios would be
+	  achieved, and what resources would be consumed, look at the
+	  <ref refid="comprTblComparison">table</ref>. This table has
+	  been obtained from synthetic data and with a somewhat
+	  outdated PyTables version (0.5), so take this just as a
+	  guide because your mileage will probably vary. Have also a
+	  look at the graphs <ref
+	  refid="lzozlibuclWriteComparison"></ref> and <ref
+	  refid="lzozlibuclReadComparison"></ref> (these graphs has
+	  been obtained with tables with different row sizes and
+	  PyTables version than the previous example, so, do not try
+	  to directly compare the figures). They show how evolves the
+	  speed of writing/reading rows as the size (the row number)
+	  of tables grows. Even though in these graphs the size of one
+	  single row is 56 bytes, you can most probably extrapolate
+	  this figures to other row sizes. If you are curious how well
+	  can perform compression together with Psyco, look at the
+	  graphs <ref refid="psycolzozlibuclWriteComparison"></ref>
+	  and <ref refid="psycolzozlibuclReadComparison"></ref>. As
+	  you can see, the results are pretty interesting.
+	</p>
+
+	<table id="comprTblComparison">
+	  <!-- 	    <tabular preamble="lrrrrr"> -->
+	  <tabular preamble="lccccc">
+	    <tabhead>
+	      <srow>Compr. Lib | File size (MB) | Time writing (s) |
+		Time reading (s) | Speed writing (Krow/s) | 
+		Speed reading (Krow/s) </srow>
+	    </tabhead>
+	    <tabbody>
+	      <srow>NO COMPR     | 244.0 | 24.4 | 16.0  | 18.0 |  27.8</srow>
+	      <srow>Zlib (lvl 1) |   8.5 | 17.0 |  3.11 | 26.5 | 144.4</srow>
+	      <srow>Zlib (lvl 6) |   7.1 | 20.1 |  3.10 | 22.4 | 144.9</srow>
+	      <srow>Zlib (lvl 9) |   7.2 | 42.5 |  3.10 | 10.6 | 145.1</srow>
+	      <srow>LZO (lvl 1)  |   9.7 | 14.6 |  1.95 | 30.6 | 230.5</srow>
+	      <srow>UCL (lvl 1)  |   6.9 | 38.3 |  2.58 | 11.7 | 185.4</srow>
+	    </tabbody>
+	  </tabular>
+	  <caption>Comparison between different compression
+	    libraries. The tests has been conducted on a Pentium 4 at 2
+	    GHz and a hard disk at 4200 RPM.</caption>
+	</table>
+
+	<figure id="lzozlibuclWriteComparison">
+	  <graphics file="write-medium-lzo-zlib-ucl-comparison" scale="0.75" kind="vector">
+	  
+	  </graphics>
+	  <caption>Writing tables with several compressors.
+	  </caption>
+	</figure>
+
+	<figure id="lzozlibuclReadComparison">
+	  <graphics file="read-medium-lzo-zlib-ucl-comparison" scale="0.75" kind="vector">
+	  
+	  </graphics>
+	  <caption>Reading tables with several compressors.
+	  </caption>
+	</figure>
+
+	<figure id="psycolzozlibuclWriteComparison">
+	  <graphics file="write-medium-psyco-lzo-zlib-ucl-comparison" scale="0.75" kind="vector">
+	  
+	  </graphics>
+	  <caption>Writing tables with several compressors and Psyco.
+	  </caption>
+	</figure>
+
+	<figure id="psycolzozlibuclReadComparison">
+	  <graphics file="read-medium-psyco-lzo-zlib-ucl-comparison" scale="0.75" kind="vector">
+	  
+	  </graphics>
+	  <caption>Reading tables with several compressors and Psyco.
+	  </caption>
+	</figure>
+
+	<p>
+	  By looking at graphs, you can expect that, generally
+	  speaking, LZO would be the fastest both compressing and
+	  uncompressing, but the one that achieves the worse
+	  compression ratio (although that may be just ok for many
+	  situations). UCL is the slowest when compressing, but is
+	  faster than Zlib when decompressing, and, besides, it
+	  achieves very good compression ratios (generally better than
+	  Zlib). Zlib represents a balance between them: it's somewhat
+	  slow compressing, the slowest during decompressing, but it
+	  normally achieves fairly good compression ratios.
+	</p>
+
+	<p>So, if your ultimate goal is reading as fast as possible,
+	  choose LZO. If you want to reduce as much as possible your
+	  data, while retaining good read speed, choose UCL. If you
+	  don't mind too much about the above parameters and/or
+	  portability is important for you, Zlib is your best bet.
+	</p>
+
+	<p>The compression level that I recommend to use for all
+	  compression libraries is 1. This is the lowest level of
+	  compression, but if you take the approach suggested above,
+	  normally the redundant data is to be found in the same
+	  row, so the redundant data locality is very high and such
+	  a small level of compression should be enough to achieve a
+	  good compression ratio on your data tables, saving CPU
+	  cycles for doing other things. Nonetheless, in some
+	  situations you may want to check how compression level
+	  affects your application.
+	</p>
+
+	<p> You can select the compression library and level by
+	  setting the <verb>complib</verb> and <verb>compress</verb>
+	  keywords in the <verb>createTable</verb> method (see <ref
+	    refid="createTableDescr"></ref>). A compression level of 0
+	  will completely disable compression (the default), 1 is
+	  the less CPU time demanding level, while 9 is the maximum
+	  level and most CPU intensive. Finally, have in mind that
+	  LZO is not accepting a compression level right now, so,
+	  when using LZO, 0 means that compression is not active,
+	  and any other value means that LZO is active.
+	</p>
+
+      </section>
+
+      <section id="expectedRowsOptim">
+	<heading>Informing <visual markup="tt">PyTables</visual>
+	  about expected number of rows in tables</heading>
+
+	<p>The underlying HDF5 library that is used by
+	  <verb>PyTables</verb> takes the data in bunches of a
+	  certain length, so-called <em>chunks</em>, to write them
+	  on disk as a whole, i.e. the HDF5 library treats chunks as
+	  atomic objects and disk I/O is always made in terms of
+	  complete chunks. This allows data filters to be defined by
+	  the application to perform tasks such as compression,
+	  encryption, checksumming, etc. on entire chunks.
+	</p>
+
+	<p>An in-memory B-tree is used to map chunk structures on
+	  disk. The more chunks that are allocated for a dataset the
+	  larger the B-tree. Large B-trees take memory and causes
+	  file storage overhead as well as more disk I/O and higher
+	  contention for the metadata cache. Consequently, it's
+	  important to balance between memory and I/O overhead
+	  (small B-trees) and time to access to data (big B-trees).
+	</p>
+
+	<p><verb>PyTables</verb> can determine an optimum chunk size
+	  to make B-trees adequate to your dataset size if you help
+	  it by providing an estimation of the number of rows for a
+	  table. This must be made in table creation time by passing
+	  this value in the <verb>expectedrows</verb> keyword of
+	  <verb>createTable</verb> method (see <ref
+	    refid="createTableDescr"></ref>).
+	</p>
+
+	<p>When your table size is bigger than 1 MB (take this figure
+	  only as a reference, not strictly), by providing this guess
+	  of the number of rows you will be optimizing the access to
+	  your data. When the table size is larger than, say 100MB,
+	  you are <visual markup="bf">strongly</visual> suggested to
+	  provide such a guess; failing to do that may cause your
+	  application doing very slow I/O operations and demanding
+	  <visual markup="bf">huge</visual> amounts of memory. You
+	  have been warned!.
+	</p>
+
+      </section>
+
+      <section>
+	<heading>Selecting an User Entry Point (UEP) in your
+	  tree</heading>
+
+	<p>If you have a <visual markup="bf">huge</visual> tree in
+	  your data file with many nodes on it, creating the object
+	  tree would take long time. Many times, however, you are
+	  interested only in access to a part of the complete tree, so
+	  you won't strictly need PyTables to build the entire object
+	  tree in-memory, but only the <em>interesting</em> part.
+	</p>
+
+	<p>This is where the <verb>rootUEP</verb> parameter of
+	  <verb>openFile()</verb> function (see <ref
+	  refid="openFileDescr"></ref>) can be helpful. Imagine that
+	  you have a file called <verb>"test.h5"</verb> with the
+	  associated tree that you can see in figure <ref
+	  refid="rootUEPfig1"></ref>, and you are interested only in
+	  the section marked in red.  You can avoid the build of all
+	  the object tree by saying to <verb>openFile</verb> that your
+	  root will be the <verb>/Group2/Group3</verb> group. That is:
+	</p>
+	<verbatim>
+	  fileh = openFile("test.h5", rootUEP="/Group2/Group3")
+	</verbatim>
+
+	<p>As a result, the actual object tree built will be like the
+	  one that can be seen in <ref
+	  refid="rootUEPfig2">figure</ref>.
+	</p>
+
+	<p>Of course this has been a simple example and the use
+	  of the <verb>rootUEP</verb> parameter was not very
+	  necessary. But when you have <em>thousands</em> of nodes on
+	  a tree, you will certainly appreciate the
+	  <verb>rootUEP</verb> parameter.
+	</p>
+
+	<figure id="rootUEPfig1">
+	  <graphics file="rootUEP1" scale="0.6" kind="vector">
+	  </graphics>
+	  <caption>Complete tree in file <visual
+	    markup="tt">test.h5</visual>, and subtree of interest for
+	    the user.
+	  </caption>
+	</figure>
+
+	<figure id="rootUEPfig2">
+	  <graphics file="rootUEP2" scale="0.75" kind="vector">
+	  </graphics>
+	  <caption>Resulting object tree derived from the use of the
+	    <visual markup="tt">rootUEP</visual> parameter.
+	  </caption>
+	</figure>
+	
+      </section>
+
     </chapter>
 
     <appendix>

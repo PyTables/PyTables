@@ -376,9 +376,13 @@ out:
  */
 
 herr_t H5TBOclose_append(hid_t *dataset_id,
-			 hid_t *mem_type_id)
+			 hid_t *mem_type_id,
+			 int ntotal_records,
+			 const char *dset_name,
+			 hid_t parent_id)
 {
-
+ int nrows;
+  
   /* Release the datatype. */
  if ( H5Tclose( *mem_type_id ) < 0 )
   goto out;
@@ -386,6 +390,16 @@ herr_t H5TBOclose_append(hid_t *dataset_id,
  /* End access to the dataset */
  if ( H5Dclose( *dataset_id ) < 0 )
   return -1;
+
+/*-------------------------------------------------------------------------
+ * Store the new dimension as an attribute
+ *-------------------------------------------------------------------------
+ */
+
+ nrows = (int)ntotal_records;
+ /* Set the attribute */
+ if ( H5LTset_attribute_int(parent_id, dset_name, "NROWS", &nrows, 1 ) < 0 )
+   return -1;
 
 return 0;
 

@@ -204,9 +204,7 @@ print
 print	'-**-**-**-**- remove records from a table -**-**-**-**-**-'
 
 # Delete some rows on the Table (yes, rows can be removed!)
-print "Table nrows (before removing rows): ", table.nrows
 table.removeRows(5,10)
-print "Table nrows (after removing rows): ", table.nrows
 
 # Print some table columns, for comparison with array data
 print "Some columns in final table:"

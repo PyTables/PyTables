@@ -1733,8 +1733,8 @@ herr_t H5TBdelete_record( hid_t loc_id,
      return -1;
 
    /* Read the records after the deleted one(s) */
-   if ( H5TBread_records( loc_id, dset_name, read_start, read_nrecords, src_size, 
-			  src_offset, tmp_buf ) < 0 )
+   if ( H5TBread_records( loc_id, dset_name, read_start, read_nrecords,
+			  src_size, src_offset, tmp_buf ) < 0 )
      return -1;
 
 
@@ -1781,6 +1781,10 @@ herr_t H5TBdelete_record( hid_t loc_id,
    if ( H5Tclose( type_id ) < 0 )
      goto out;
 
+   /* Release the reading buffer */
+   if (read_nrecords > 0) {
+     free( tmp_buf );
+ }
  } /*  if (nread_nrecords > 0) */
  else {
    /* Open the dataset. */
@@ -1794,7 +1798,7 @@ herr_t H5TBdelete_record( hid_t loc_id,
  *-------------------------------------------------------------------------
  */
 #if defined (SHRINK)
- dims[0] = ntotal_records - nrecords;
+ dims[0] = (int)ntotal_records - (int)nrecords;
  if ( H5Dset_extent( dataset_id, dims ) < 0 )
   goto out;
 #endif
@@ -1803,10 +1807,6 @@ herr_t H5TBdelete_record( hid_t loc_id,
  if ( H5Dclose( dataset_id ) < 0 )
   return -1;
   
- /* F. Alted 2003/07/16 */
- if (read_nrecords > 0) {
-   free( tmp_buf );
- }
  free( src_offset );
 
 /*-------------------------------------------------------------------------
@@ -1818,7 +1818,6 @@ herr_t H5TBdelete_record( hid_t loc_id,
  /* Set the attribute */
  if ( H5LTset_attribute_int( loc_id, dset_name, "NROWS", &nrows, 1 ) < 0 )
   return -1;
-
  
  return 0;
 

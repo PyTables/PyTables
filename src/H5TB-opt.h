@@ -49,4 +49,7 @@ herr_t H5TBOappend_records( hid_t *dataset_id,
 			    const void *data );
 
 herr_t H5TBOclose_append(hid_t *dataset_id,
-			 hid_t *mem_type_id);
+			 hid_t *mem_type_id,
+			 int ntotal_records,
+			 const char *dset_name,
+			 hid_t parent_id);
