@@ -17,7 +17,7 @@ from Pyrex.Distutils import build_ext
 # And also put pyrex = 1
 pyrex = 1
 
-VERSION = "0.4.5"
+VERSION = "0.5"
 
 #----------------------------------------------------------------------
 

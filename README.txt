@@ -1,5 +1,5 @@
 README.txt
-PyTables 0.4.5 (second beta version)
+PyTables 0.5 (second beta version)
 http://pytables.sf.net/
 May 7, 2003
 --------------------------------------
@@ -41,12 +41,11 @@ use of Pyrex, a convenient tool to access C libraries from Python
 using Python syntax. For these reasons, you will need to use Python
 2.2 or higher to take advantage of PyTables.
 
-To compile PyTables 0.4.5 you will need, at least, a recent version
-of HDF5 (C flavor) library, the Zlib compression library and the
-numarray package. Besides, if you want to take advantage of the LZO
-and UCL compression libraries support you will also need recent
-versions of them. These two compression libraries are, however,
-optional.
+To compile PyTables you will need, at least, a recent version of HDF5
+(C flavor) library, the Zlib compression library and the numarray
+package. Besides, if you want to take advantage of the LZO and UCL
+compression libraries support you will also need recent versions of
+them. These two compression libraries are, however, optional.
 
 I've tested this PyTables version with HDF5 1.4.4, 1.4.5 versions and
 numarray 0.4 and 0.5, but it should work well with all HDF5 1.4.x
@@ -67,17 +66,13 @@ create files with sizes larger than 2 GB).
 This package has also been successfully compiled and tested on a
 UltraSparc platform with Solaris 7 and Solaris 8, a SGI Origin2000
 with MIPS R12000 processors running IRIX 6.5, and Windows XP (yes, a
-Windows version is available from 0.4.5 on).
+Windows version is available from 0.5 on).
 
 Binary installation (Windows)
 -----------------------------
 
 This section is only intended for Windows platforms. If you have Unix,
-or want to compile PyTables for Windows, skip this section.  With this
-procedure you won't be able to use the LZO and UCL libraries (although
-you still will have ZLIB support), but hey!, simplicity comes at a
-cost. If you want such a support, consider to install PyTables from
-sources.
+or want to compile PyTables for Windows, jump to the next section.
 
 First, make sure that you have HDF5 1.4.x and numarray installed (I'm
 using HDF5 1.4.5 and numarray 0.5 currently). If don't, you can find
@@ -87,15 +82,21 @@ and install them. For the HDF5 it should be enough by manually copying
 the hdf5dll.dll file to a directory in your PATH environment variable.
 
 Download the tables-<version>.win32-py<version>.exe file and execute
-it. That's all. 
+it.
 
-You can (should) test your installation by unpacking the source
+You can (you should) test your installation by unpacking the source
 tarball. Go to the test/ directory and execute the "test_all.py"
 script. If all the tests passes (maybe with a couple of warnings,
-related with the missing LZO and UCL libs, but that's ok for the
-binary version) you already have a working, well tested, copy of
+related with the possibly missing LZO and UCL libs, but that's ok for
+the binary version) you already have a working, well tested, copy of
 PyTables installed!. If not, please, execute the "test_all.py -v" and
 return the output to me.
+
+If you want support for LZO and UCL libraries (see
+http://pytables.sourceforge.net/html-doc/usersguide-html3.html#subsection3.4.1
+for hints about what they are useful for), fetch
+tables-<version>-LU.win32-py<version>.exe instead, and remember to
+install the LZO and UCL DLL libraries (see next section).
 
 
 Installation from sources
@@ -172,14 +173,14 @@ but other compilers should work as well.
    setup.py where the stubs and headers are, set the next environment
    variables:
 
-   HDF5_DIR --> Points to the HDF5 main directory (where the
-                include/ and dll/ directories hangs).
+   HDF5_DIR --> Points to the HDF5 main directory (where the include/
+                and dll/ directories hangs). Mandatory.
 		    
-   LZO_DIR -->  Points to the LZO include directory (where the
-                include/ and lib/ directories hangs). Optional.
+   LZO_DIR -->  Points to the LZO main directory (where the include/
+                and lib/ directories hangs). Optional.
 
-   UCL_DIR -->  Points to the UCL include directory (where the
-                include/ and lib/ directories hangs). Optional.
+   UCL_DIR -->  Points to the UCL main directory (where the include/
+                and lib/ directories hangs). Optional.
 
    For example:
 
@@ -187,7 +188,7 @@ but other compilers should work as well.
             set LZO_DIR=c:\stuff\lzo-1.07
             set UCL_DIR=c:\stuff\ucl-1.01
 
-   Or you can pass this info to setup.py with the command line by
+   Or you can pass this info to setup.py within the command line by
    specifying the directory containing the include and lib directory.
    For example:
 
@@ -231,8 +232,8 @@ but other compilers should work as well.
    test module with all verbosity enabled (flags -v verbose), and send
    back the output to me.
 
-   If you run into problems because Python can't load the HDF5, or
-   others, shared libraries:
+   If you run into problems because Python can't load the HDF5, or any
+   other shared library:
 
 <Unix>
    try to set the LD_LIBRARY_PATH environment variable to

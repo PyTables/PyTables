@@ -1,10 +1,11 @@
-Announcing PyTables 0.4.5
--------------------------
+Announcing PyTables 0.5
+-----------------------
 
 This is the second public beta release. On this release you will find
-a 20% of improvement over the last public release, some bugs has been
-fixed and support for a couple of compression (LZO and UCL) libraries
-has been added. And... a Windows version is finally available!.
+a 20% of I/O speed improvement over the last public release, some bugs
+has been fixed and support for a couple of compression (LZO and UCL)
+libraries has been added. And... a long expected Windows version is
+finally available!.
 
 
 What's new
@@ -16,9 +17,11 @@ What's new
   just fine. It even works well with Python 2.3b1.
 
 - As a consequence of some twiking the write/read performance has been
-  improved by a 20% overall (numarray 0.5 performance improvements
-  also helped here). Now, the reading speed is reaching its
-  theoretical maximum (at least when using Python).
+  improved by a 20% overall, and when column elements are made of
+  unidimensional arrays, up to a factor 6 of speed-up is achieved
+  (recent improvements in numarray 0.5 performance also helped
+  here). With that, the reading speed is reaching its theoretical
+  maximum (at least when using the current data access schema).
 
 - Support for two new compression libraries: LZO and UCL
   (http://www.oberhumer.com/opensource/). These libraries are made by
@@ -130,23 +133,26 @@ Solaris 8. It also compiles and passes all the tests on a SGI
 Origin2000 with MIPS R12000 processors and running IRIX 6.5.
 
 With Windows, I've only tested (all the tests passes) PyTables with
-XP, but it should work just fine with other flavors.
+XP, but it should also work with other flavors.
 
 An example?
 -----------
 
-At the bottom of this message there is some code that shows basic
-capabilities of PyTables. You may also look at
-http://pytables.sourceforge.net/tut/tutorial1-1.html and 
+For online code examples, have a look at
+
+http://pytables.sourceforge.net/tut/tutorial1-1.html
+
+and 
+
 http://pytables.sourceforge.net/tut/tutorial1-2.html
-for online code.
+
 
 Web site
 --------
 
 Go to the PyTables web site for more details:
 
-http://pytables.sf.net/
+http://pytables.sourceforge.net/
 
 Share your experience
 ---------------------
@@ -159,54 +165,3 @@ Have fun!
 -- Francesc Alted
 falted@openlc.org
 
-
-*-*-*-**-*-*-**-*-*-**-*-*- Small code example  *-*-*-**-*-*-**-*-*-**-*-*-*
-from tables import *
-
-class Particle(IsDescription):
-    identity = Col("CharType", 22, " ", pos = 0)  # character String
-    idnumber = Col("Int16", 1, pos = 1)  # short integer
-    speed = Col("Float32", 1, pos = 1)  # single-precision
-
-# Open a file in "w"rite mode
-fileh = openFile("objecttree.h5", mode = "w")
-# Get the HDF5 root group
-root = fileh.root
-
-# Create the groups:
-group1 = fileh.createGroup(root, "group1")
-group2 = fileh.createGroup(root, "group2")
-
-# Now, create a table in "group0" group
-array1 = fileh.createArray(root, "array1", ["string", "array"], "String array")
-# Create 2 new tables in group1
-table1 = fileh.createTable(group1, "table1", Particle)
-table2 = fileh.createTable("/group2", "table2", Particle)
-# Create the last table in group2
-array2 = fileh.createArray("/group1", "array2", [1,2,3,4])
-
-# Now, fill the tables:
-for table in (table1, table2):
-    # Get the record object associated with the table:
-    row = table.row
-    # Fill the table with 10 records
-    for i in xrange(10):
-        # First, assign the values to the Particle record
-        row['identity']  = 'This is particle: %2d' % (i)
-        row['idnumber'] = i
-        row['speed']  = i * 2.
-        # This injects the Record values
-        row.append()
-
-    # Flush the table buffers
-    table.flush()
-
-# Select actual data from table.
-# on entries where TDCcount field is greater than 3 and pressure less than 50
-out = [ x['identity'] for x in table.iterrows()
-        if x['idnumber'] > 3 and 4 < x['speed'] < 10 ]
-
-print out
-
-# Finally, close the file (this also will flush all the remaining buffers!)
-fileh.close()

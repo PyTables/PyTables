@@ -5,11 +5,10 @@
   <frontmatter>
     <title><visual markup="tt">PyTables</visual> User's Guide</title>
     <author>Francesc Alted</author>
-    <subtitle>Release 0.4.5</subtitle>
+    <subtitle>Release 0.5</subtitle>
     <date>May, 07th</date>
     <year>2003</year>
     <legalnotice>
-
 
     </legalnotice>
   </frontmatter>
@@ -143,6 +142,11 @@ class Particle(IsDescription):
 	    with a large number of records, i.e. that don't fit in
 	    memory.
 	  </item>
+	  <item><em>Appendable tables:</em> It supports adding records
+	    to already created tables. This can be done without
+	    copying the dataset or redefining its structure, even
+	    between different Python sessions.
+	  </item>
 	  <item><em>Support of arrays:</em> <verb>Numeric</verb> (see
 	    <cite refid="Numeric"></cite>) or <verb>numarray</verb>
 	    (see <cite refid="Numarray"></cite>) arrays are a very
@@ -155,11 +159,6 @@ class Particle(IsDescription):
 	    tree</em> in memory that replicates the underlying file
 	    data structure. Access to the file objects is achieved by
 	    walking throughout this object tree, and manipulating it.
-	  </item>
-	  <item><em>Appendable tables:</em> It supports adding records
-	    to already created tables. This can be done without
-	    copying the dataset or redefining its structure, even
-	    between different Python sessions.
 	  </item>
 	  <item><em>Automatically check for correct field name, and
 	    data type:</em> That reduces programmer mistakes and if
@@ -185,13 +184,21 @@ class Particle(IsDescription):
 	  </item>
 	  <item><em>Data compression:</em> It supports data
 	    compression (through the use of the <visual
-	    markup="tt"><visual markup="bf">Zlib</visual></visual>
-	    library) out of the box. This become important when you
+	    markup="tt"><visual markup="bf">Zlib</visual></visual>,
+	    <visual markup="tt"><visual
+	    markup="bf">LZO</visual></visual> and <visual
+	    markup="tt"><visual markup="bf">UCL</visual></visual>
+	    libraries) out of the box. This become important when you
 	    have repetitive data patterns and don't want to loose your
 	    time searching for an optimized way to save them (i.e. it
 	    saves you data organization analysis time).
 	  </item>
-
+	  <item><em>High performance I/O:</em> On modern systems, and
+	    for large amounts of data, tables and array objects can be
+	    read and written at a speed only limited by the
+	    performance of the underlying I/O subsystem. Moreover, if
+	    your data is compressible, even faster than that!.
+	  </item>
 	  <item><em>Architecture-independent:</em> <visual
 	    markup="tt">PyTables</visual> has been carefully coded (as
 	    HDF5 itself) with little-endian/big-endian byte orderings
@@ -379,154 +386,325 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
     <chapter>
       <heading>Installation</heading>
+      
+<!--       <aphorism>Make things as simple as possible, but not any -->
+<!-- 	simpler.  <caption>Einstein</caption> </aphorism> -->
 
-      <p>These are instructions for Unix/Linux system. If you are using
-	Windows, and you get the library to work, please tell me about.
+      <p>The Python <verb>Distutils</verb> are used to build and
+	install <verb>PyTables</verb>, so it is fairly simple to get
+	things ready to go.
       </p>
 
-      <p>Extensions in <visual markup="tt">PyTables</visual> has been
-	made using Pyrex (see <cite refid="Pyrex"></cite>) and C
-	language. You can rebuild everything from scratch if you got
-	Pyrex installed, but this is not necessary, as the Pyrex
-	compiled source is included in the distribution. In order to
-	do that, merely replace <visual markup="tt">setup.py</visual>
-	script in these instructions by <visual
-	markup="tt">setup-pyrex.py</visual>.
-      </p>
+      <section>
+	<heading>Binary installation (Windows)</heading>
 
-      <p>To compile <verb>PyTables</verb> you will need a recent
-	version of <verb>HDF5</verb> (C flavor) library and
-	<verb>numarray</verb> (see <cite refid="Numarray"></cite>)
-	package. Although you won't need <verb>Numerical Python</verb>
-	(see <cite refid="Numeric"></cite>) in order to compile
-	PyTables, it is supported; you only will need a reasonably
-	recent version of it (>= 21.x). PyTables has been successfully
-	tested with Numeric 21.3, 22.0 and 23.0. If you have
-	<verb>Numeric</verb> installed, the test driver module will
-	detect it and will run the tests for <verb>Numeric</verb>
-	automatically.
-      </p>
+	<p>This section is only intended for Windows platforms. If you
+	  have Unix, or want to compile PyTables for Windows, jump to
+	  the next section.
+	</p>
+	<p>First, make sure that you have HDF5 1.4.x and numarray
+	  installed (I'm using HDF5 1.4.5 and numarray 0.5
+	  currently). If don't, you can find them at
+	  <verb>http://hdf.ncsa.uiuc.edu/HDF5</verb> and <newline/>
+	  <verb>http://sourceforge.net/projects/numpy/</verb>. Download
+	  the binary packages and install them. For the HDF5 it should
+	  be enough by manually copying the <verb>hdf5dll.dll</verb>
+	  file to a directory in your <verb>PATH</verb> environment
+	  variable.
+	</p>
+	<p>Download the
+	  <verb>tables-&lt;version>.win32-py&lt;version>.exe</verb>
+	  file and execute it.
+	</p>
+	<p>You can (<em>you should</em>) test your installation by
+	  unpacking the source tarball. Go to the <verb>test/</verb>
+	  directory and execute the <verb>test_all.py</verb>
+	  script. If all the tests passes (maybe with a couple of
+	  warnings, related with the possibly missing LZO and UCL
+	  libs, but that's ok for the binary version) you already have
+	  a working, well tested, copy of PyTables installed!. If not,
+	  please, execute the <verb>test_all.py -v</verb> and return
+	  the output to me.
+	</p>
+	<p>If you want support for LZO and UCL libraries (see <ref
+	  refid="compressionIssues">section</ref> for hints about what
+	  they are useful for), fetch
+	  <verb>tables-&lt;version>-LU.win32-py&lt;version>.exe</verb>
+	  instead, and remember to install the LZO and UCL DLL
+	  libraries (see next section).
+	</p>
 
-      <p>The Python Distutils are used to build and install
-	<verb>PyTables</verb>, so it is fairly simple to get things
-	ready to go.
-      </p>
+	<p>That's it!. Now, proceed with the next chapter to see how to
+	  use <verb>PyTables</verb>.
+	</p>
 
-      <enumerate>
+      </section>
 
-	<item>
-	  <p>First, make sure that you have <verb>HDF5 1.4.x</verb>
-	    and <verb>numarray</verb> installed (I'm using <verb>HDF5
-	    1.4.5</verb> and <verb>numarray 0.4</verb> currently). If
-	    don't, you can find them at
-	    <verb>http://hdf.ncsa.uiuc.edu/HDF5</verb> and
-	    <verb>http://www.pfdubois.com/numpy</verb>. Compile/install
-	    them.
-	  </p>
-	  
-	  <p><verb>setup.py</verb> will detect <verb>HDF5</verb>
-	    libraries and include files under <verb>/usr</verb> or
-	    <verb>/usr/local</verb>; this will catch installations
-	    from RPMs, DEBs and most hand installations under Unix. If
-	    <verb>setup.py</verb> can't find your <verb>libhdf5</verb>
-	    or if you have several versions installed and want to
-	    select one of them, then you can give it a hint either in
-	    the environment (using the <verb>HDF5_DIR</verb>
-	    environment variable) or on the command line by specifying
-	    the directory containing the include and lib directory.
-	    For example:
-	  </p>
-	  <verbatim>
-	    --hdf5=/stuff/hdf5-1.4.4
-	  </verbatim>
+      <section>
+	<heading>Installation from sources</heading>
 
-	  <p>If your <verb>HDF5</verb> library was built as shared
-	    library, and if this shared library is not in the runtime
-	    load path, then you can specify the additional linker
-	    flags needed to find the shared library on the command
-	    line as well. For example:
-	  </p>
-	  <verbatim>
-	    --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.4.4/lib"
-	  </verbatim>
-	  <p>or perhaps just
-	  </p>
-	  <verbatim>
-	    --lflags="-R /stuff/hdf5-1.4.4/lib"
-	  </verbatim>
+	<p>
+	  These instructions are both for Unix/Linux and Windows
+	  systems. If you are using Windows, it is assumed that you
+	  are using a recent version of <verb>MS Visual C++</verb> (>=
+	  6.0) compiler. A <verb>GCC</verb> compiler is asumed for
+	  Unix, but other compilers should work as well.
+	</p>
 
-	  <p>Check your compiler and linker documentation for correct
-	    syntax.
-	  </p>
+	<p>Extensions in <visual markup="tt">PyTables</visual> has been
+	  made using Pyrex (see <cite refid="Pyrex"></cite>) and C
+	  language. You can rebuild everything from scratch if you got
+	  Pyrex installed, but this is not necessary, as the Pyrex
+	  compiled source is included in the distribution. In order to
+	  do that, merely replace <visual markup="tt">setup.py</visual>
+	  script in these instructions by <visual
+	    markup="tt">setup-pyrex.py</visual>.
+	</p>
 
-	  <p>It is also possible to specify linking against different
-	    libraries with the <verb>--libs</verb> switch:
-	  </p>
-	  <verbatim>
-	    --libs="-lhdf5-1.4.6"
-	    --libs="-lhdf5-1.4.6 -lnsl"
-	  </verbatim>
-	</item>
-	<item>
-	  <p>From the main <verb>PyTables</verb> distribution
-	    directory run this command, (plus any extra flags needed
-	    as discussed above):
-	  </p>
-	  <verbatim>
-	    python setup.py build_ext --inplace
-	  </verbatim>
-	  <p>depending on the compiler flags used when compiling your
-	    Python executable, there may appear lots of warnings. Don't
-	    worry, almost all of them are caused by variables declared
-	    but never used. That's normal in Pyrex extensions.
-	  </p>
-	</item>
-	<item>
-	  <p>To run the test suite change into the test directory and run this
-	    command, (assuming your shell is <verb>sh</verb> or compatible):
-	  </p>
-	  <verbatim>
-	    PYTHONPATH=..
-	    export PYTHONPATH
-	    python test_all.py
-	  </verbatim>
-	  <p>If you would like to see some verbose output from the
-	    tests simply add the flag <verb>-v</verb> and/or the word
-	    <verb>verbose</verb> to the command line. You can also
-	    run just the tests in a particular test module. For
-	    example:
-	  </p>
-	  <verbatim>
-	    python test_types.py -v
-	  </verbatim>
+	<p>To compile <verb>PyTables</verb> you will need a recent
+	  version of <verb>HDF5</verb> (C flavor) library and
+	  <verb>numarray</verb> (see <cite refid="Numarray"></cite>)
+	  package. Although you won't need <verb>Numerical Python</verb>
+	  (see <cite refid="Numeric"></cite>) in order to compile
+	  PyTables, it is supported; you only will need a reasonably
+	  recent version of it (>= 21.x). PyTables has been successfully
+	  tested with Numeric 21.3, 22.0 and 23.0. If you have
+	  <verb>Numeric</verb> installed, the test driver module will
+	  detect it and will run the tests for <verb>Numeric</verb>
+	  automatically.
+	</p>
 
-	  <p>If there is some test that do not pass, please, run the
-	    failing test module with all verbosity enabled (flags
-	    <verb>-v verbose</verb>), and send back the output to
-	    developers.
-	  </p>
-	  <p>If you run into problems because Python can't load the
-	    HDF5 shared libraries, try to set the
-	    <verb>LD_LIBRARY_PATH</verb> environment variable to point
-	    to the directory where the libraries are.
-	  </p>
-	</item>
-	<item>
-	  <p>To install the entire <visual
-	    markup="tt">PyTables</visual> Python package, change back
-	    to the root distribution directory and run this command as
-	    the root user (remember to add any extra flags needed):
-	  </p>
-	  <verbatim>
-	    python setup.py install
-	  </verbatim>
+	<enumerate>
 
-	</item>
-      </enumerate>
+	  <item>
+	    <p>First, make sure that you have <verb>HDF5 1.4.x</verb>
+	      and <verb>numarray</verb> installed (I'm using
+	      <verb>HDF5 1.4.5</verb> and <verb>numarray 0.5</verb>
+	      currently). If don't, you can find them at
+	      <verb>http://hdf.ncsa.uiuc.edu/HDF5</verb> and
+	      <verb>http://www.pfdubois.com/numpy</verb>. Compile/install
+	      them.
+	    </p>
+	    <p>Optionally, consider to install the excellent LZO and
+	      UCL compression libraries (see <cite
+	      refid="lzouclRef"></cite> and section <ref
+	      refid="compressionIssues"></ref>).
+	    </p>
+	    <description>
+	      <term>Windows</term>
+	      <item>
+		<p>If you are using Windows, and don't want to
+		  compile the libraries by hand, there are available
+		  binary packages for them. You can fetch the HDF5 and
+		  numarray binaries from their homes.
+		</p>
 
-      <p>That's it!. Now, proceed with the next section to see how to
-	use <verb>PyTables</verb>.
-      </p>
+		<p>Besides, you can (should) fetch the LZO and UCL
+		  binaries from:
+		  <verb>http://gnuwin32.sourceforge.net/</verb>. Normally,
+		  you will only need to fetch and install the
+		  <verb>&lt;package>-&lt;version>-bin.zip</verb> file,
+		  although in some cases the headers are in
+		  <verb>&lt;package>-&lt;version>-lib.zip</verb> file.
+		</p>
+		<p>Note that you need to copy manually the
+		  <verb>hdf5dll.dll</verb> (and <verb>lzo.dll</verb>
+		  or <verb>ucl.dll</verb> if you want them) to a
+		  directory in the <verb>PATH</verb>, so that they can
+		  be find by PyTables extensions.</p>
+	      </item>
+
+	      <term>Unix</term>
+	      <item>
+
+		<p><verb>setup.py</verb> will detect
+		  <verb>HDF5</verb>, <verb>LZO</verb> or
+		  <verb>UCL</verb> libraries and include files under
+		  <verb>/usr</verb> or <verb>/usr/local</verb>; this
+		  will catch installations from RPMs, DEBs and most
+		  hand installations under Unix. If
+		  <verb>setup.py</verb> can't find your
+		  <verb>libhdf5</verb> (or any other library you may
+		  wish) or if you have several versions installed and
+		  want to select one of them, then you can give it a
+		  hint either in the environment (using the
+		  <verb>HDF5_DIR</verb> environment variable or
+		  <verb>LZO_DIR</verb> and <verb>UCL_DIR</verb> for
+		  the optional libraries) or on the command line by
+		  specifying the directory containing the include and
+		  lib directory. For example:
+		</p>
+
+		<verbatim>
+		  --hdf5=/stuff/hdf5-1.4.5
+		  --ucl=/stuff/ucl-1.0.1
+		</verbatim>
+
+		<p>If your <verb>HDF5</verb> library was built as
+		  shared library, and if this shared library is not in
+		  the runtime load path, then you can specify the
+		  additional linker flags needed to find the shared
+		  library on the command line as well. For example:
+		</p>
+		<verbatim>
+		  --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.4.5/lib"
+		</verbatim>
+		<p>or perhaps just
+		</p>
+		<verbatim>
+		  --lflags="-R /stuff/hdf5-1.4.5/lib"
+		</verbatim>
+
+		<p>Check your compiler and linker documentation for correct
+		  syntax.
+		</p>
+
+		<p>It is also possible to specify linking against different
+		  libraries with the <verb>--libs</verb> switch:
+		</p>
+		<verbatim>
+		  --libs="-lhdf5-1.4.6"
+		  --libs="-lhdf5-1.4.6 -lnsl"
+		</verbatim>
+	      </item>
+	      <term>Windows</term>
+	      <item>
+
+		<p><verb>setup.py</verb> will need that you inform it
+		  about where the library <em>stubs</em>
+		  (<verb>.lib</verb>) are installed as well as the
+		  <em>header</em> files (<verb>.h</verb>). To tell
+		  setup.py<verb></verb> where the stubs and headers
+		  are, set the next environment variables:
+		</p>
+
+		<description>
+		  <term>HDF5_DIR</term><item>Points to the HDF5 main
+		    directory (where the include/ and dll/ directories
+		    hangs). <em>Mandatory</em>.</item>
+		    
+		  <term>LZO_DIR</term> <item>Points to the LZO main
+		    directory (where the include/ and lib/ directories
+		    hangs). <em>Optional</em>.</item>
+
+		  <term>UCL_DIR</term> <item>Points to the UCL main
+		    directory (where the include/ and lib/ directories
+		    hangs). <em>Optional</em>.</item>
+
+		</description> 
+
+		<p>For example:
+		</p>
+		<verbatim>
+		  set HDF5_DIR=c:\stuff\5-145-winVS\c\release
+		  set LZO_DIR=c:\stuff\lzo-1.07
+		  set UCL_DIR=c:\stuff\ucl-1.01
+		</verbatim>
+
+		<p>Or you can pass this info to <verb>setup.py</verb>
+		  within the command line by specifying the directory
+		  containing the include and lib directory. For
+		  example:
+		</p>
+
+		<verbatim>
+		  --hdf5=c:\stuff\5-146-winVS\c\release --lzo=c:\stuff\lzo-1.07
+		  --ucl=c:\stuff\ucl-1.01
+		</verbatim>	
+	      </item>
+
+	    </description>
+
+	  </item>
+
+	  <item>
+ 	    <p>From the main <verb>PyTables</verb> distribution
+	      directory run this command, (plus any extra flags needed
+	      as discussed above):
+	    </p>
+	    <verbatim>
+	      python setup.py build_ext --inplace
+	    </verbatim>
+	    <p>depending on the compiler flags used when compiling your
+	      Python executable, there may appear lots of warnings. Don't
+	      worry, almost all of them are caused by variables declared
+	      but never used. That's normal in Pyrex extensions.
+	    </p>
+	  </item>
+	  <item>
+	    <p>To run the test suite change into the test directory
+	      and run this command:
+	    </p>
+	    <description>
+	      <term>Unix</term> <item>In the shell <verb>sh</verb> and
+	      its variants:
+		<verbatim>
+		  PYTHONPATH=..  
+		  export PYTHONPATH
+		  python test_all.py
+		</verbatim>
+	      </item>
+	      <term>Windows</term>
+	      <item>Open a DOS terminal and write:
+		<verbatim>
+		  set PYTHONPATH=..  
+		  python test_all.py
+		</verbatim>
+	      </item>
+	    </description>
+
+	    <p>If you would like to see some verbose output from the
+	      tests simply add the flag <verb>-v</verb> and/or the word
+	      <verb>verbose</verb> to the command line. You can also
+	      run just the tests in a particular test module. For
+	      example:
+	    </p>
+	    <verbatim>
+	      python test_types.py -v
+	    </verbatim>
+
+	    <p>If there is some test that do not pass, please, run the
+	      failing test module with all verbosity enabled (flags
+	      <verb>-v verbose</verb>), and send back the output to
+	      developers.
+	    </p>
+
+	    <p> If you run into problems because Python can't load the
+	      HDF5, or any other shared library:
+	    </p>
+	    <description>
+	      <term>Unix</term>
+	      <item>
+		Try to set the LD_LIBRARY_PATH environment variable to
+		point to the directory where the libraries are.
+	      </item>
+	      <term>Windows</term> <item>Put the DLL libraries
+	      (<verb>hdf5dll.dll</verb> and, optionally,
+	      <verb>lzo.dll</verb> and <verb>ucl.dll</verb>) on a
+	      directory listed on your <verb>PATH</verb> environment
+	      variable.  The <verb>setup.py</verb> should already
+	      warned you about that.
+	      </item>
+	    </description>
+	  </item>
+	  <item>
+	    <p>To install the entire <visual
+		markup="tt">PyTables</visual> Python package, change back
+	      to the root distribution directory and run this command as
+	      the root user (remember to add any extra flags needed):
+	    </p>
+	    <verbatim>
+	      python setup.py install
+	    </verbatim>
+
+	  </item>
+	</enumerate>
+
+	<p>That's it!. Now, proceed with the next chapter to see how to
+	  use <verb>PyTables</verb>.
+	</p>
+
+      </section>
 
     </chapter>
 
@@ -1900,10 +2078,10 @@ AttributeError: Error accessing "ADCcount" attr.
 	    refid="createTableDescr"></ref>). A compression level of 0
 	    will completely disable compression (the default), 1 is
 	    the less CPU time demanding level, while 9 is the maximum
-	    level and most CPU intensive. Take into account that LZO
-	    is not accepting right now a compression level, so, when
-	    using LZO, 0 means that compression is not active, and any
-	    other value means that LZO is active.
+	    level and most CPU intensive. Finally, have in mind that
+	    LZO is not accepting a compression level right now, so,
+	    when using LZO, 0 means that compression is not active,
+	    and any other value means that LZO is active.
 	  </p>
 
 
@@ -2022,9 +2200,6 @@ AttributeError: Error accessing "ADCcount" attr.
 		  <verb>".hdf5"</verb> extensions, although this is
 		  not mandatory.
 		</item>
-
-		<term>isopen</term> <item>It has the value 1 if the
-		  underlying file is still open. 0 otherwise.</item>
 
 		<term>mode</term> <item>The mode to open the file. It
 		  can be one of the following:
@@ -2189,6 +2364,9 @@ AttributeError: Error accessing "ADCcount" attr.
 	  <description>
 
 	    <term>filename</term> <item>Filename opened.</item>
+
+	    <term>isopen</term> <item>It has the value 1 if the
+	      underlying file is open. 0 otherwise.</item>
 
 	    <term>mode</term> <item>Mode in which the filename was
 	      opened.</item>
