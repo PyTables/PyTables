@@ -48,11 +48,11 @@ class BasicTestCase(unittest.TestCase):
         # Fill it with 5 rows
         vlarray.append(1, 2)
         if self.flavor == "NumArray":
-            vlarray.append(array([3, 4, 5]))
-            vlarray.append(array([]))    # Empty entry
+            vlarray.append(array([3, 4, 5], type=Int32))
+            vlarray.append(array([], type=Int32))    # Empty entry
         elif self.flavor == "Numeric":
-            vlarray.append(Numeric.array([3, 4, 5]))
-            vlarray.append(Numeric.array([]))     # Empty entry
+            vlarray.append(Numeric.array([3, 4, 5], typecode='i'))
+            vlarray.append(Numeric.array([], typecode='i'))     # Empty entry
         elif self.flavor == "Tuple":
             vlarray.append((3, 4, 5))
             vlarray.append(())         # Empty entry
@@ -90,8 +90,8 @@ class BasicTestCase(unittest.TestCase):
         nrows = 5
         assert nrows == vlarray.nrows
         if self.flavor == "NumArray":
-            assert allequal(row, array([1, 2]))
-            assert allequal(row2, array([]))
+            assert allequal(row, array([1, 2], type=Int32))
+            assert allequal(row2, array([], type=Int32))
         elif self.flavor == "Numeric":
             assert type(row) == type(Numeric.array([1, 2]))
             assert allequal(row, Numeric.array([1, 2]), self.flavor)
@@ -997,9 +997,9 @@ class RangeTestCase(unittest.TestCase):
         assert len(row[0]) == 0
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0], arange(0))
-        assert allequal(row[1], arange(10))
-        assert allequal(row[2], arange(99))
+        assert allequal(row[0], arange(0, type=Int32))
+        assert allequal(row[1], arange(10, type=Int32))
+        assert allequal(row[2], arange(99, type=Int32))
 
     def test01b_start(self):
         "Checking reads with only a start value in a slice"
@@ -1023,9 +1023,9 @@ class RangeTestCase(unittest.TestCase):
         assert len(row[0]) == 0
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0], arange(0))
-        assert allequal(row[1], arange(10))
-        assert allequal(row[2], arange(99))
+        assert allequal(row[0], arange(0, type=Int32))
+        assert allequal(row[1], arange(10, type=Int32))
+        assert allequal(row[2], arange(99, type=Int32))
 
     def test02_stop(self):
         "Checking reads with only a stop value"
@@ -1051,11 +1051,11 @@ class RangeTestCase(unittest.TestCase):
         assert len(row[0]) == 0
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0], arange(0))
+        assert allequal(row[0], arange(0, type=Int32))
         for x in range(10):
-            assert allequal(row[1][x], arange(x))
+            assert allequal(row[1][x], arange(x, type=Int32))
         for x in range(99):
-            assert allequal(row[2][x], arange(x))
+            assert allequal(row[2][x], arange(x, type=Int32))
 
     def test02b_stop(self):
         "Checking reads with only a stop value in a slice"
@@ -1081,11 +1081,11 @@ class RangeTestCase(unittest.TestCase):
         assert len(row[0]) == 0
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0], arange(0))
+        assert allequal(row[0], arange(0, type=Int32))
         for x in range(10):
-            assert allequal(row[1][x], arange(x))
+            assert allequal(row[1][x], arange(x, type=Int32))
         for x in range(99):
-            assert allequal(row[2][x], arange(x))
+            assert allequal(row[2][x], arange(x, type=Int32))
 
 
     def test03_startstop(self):
@@ -1113,11 +1113,11 @@ class RangeTestCase(unittest.TestCase):
         assert len(row[1]) == 10
         assert len(row[2]) == 100
         for x in range(0,10):
-            assert allequal(row[0][x], arange(x))
+            assert allequal(row[0][x], arange(x, type=Int32))
         for x in range(5,15):
-            assert allequal(row[1][x-5], arange(x))
+            assert allequal(row[1][x-5], arange(x, type=Int32))
         for x in range(0,100):
-            assert allequal(row[2][x], arange(x))
+            assert allequal(row[2][x], arange(x, type=Int32))
 
     def test03b_startstop(self):
         "Checking reads with a start and stop values in slices"
@@ -1144,11 +1144,11 @@ class RangeTestCase(unittest.TestCase):
         assert len(row[1]) == 10
         assert len(row[2]) == 100
         for x in range(0,10):
-            assert allequal(row[0][x], arange(x))
+            assert allequal(row[0][x], arange(x, type=Int32))
         for x in range(5,15):
-            assert allequal(row[1][x-5], arange(x))
+            assert allequal(row[1][x-5], arange(x, type=Int32))
         for x in range(0,100):
-            assert allequal(row[2][x], arange(x))
+            assert allequal(row[2][x], arange(x, type=Int32))
 
     def test04_startstopstep(self):
         "Checking reads with a start, stop & step values"
@@ -1175,11 +1175,11 @@ class RangeTestCase(unittest.TestCase):
         assert len(row[1]) == 4
         assert len(row[2]) == 5
         for x in range(0,10,2):
-            assert allequal(row[0][x/2], arange(x))
+            assert allequal(row[0][x/2], arange(x, type=Int32))
         for x in range(5,15,3):
-            assert allequal(row[1][(x-5)/3], arange(x))
+            assert allequal(row[1][(x-5)/3], arange(x, type=Int32))
         for x in range(0,100,20):
-            assert allequal(row[2][x/20], arange(x))
+            assert allequal(row[2][x/20], arange(x, type=Int32))
 
     def test04b_slices(self):
         "Checking reads with start, stop & step values in slices"
@@ -1206,11 +1206,11 @@ class RangeTestCase(unittest.TestCase):
         assert len(row[1]) == 4
         assert len(row[2]) == 5
         for x in range(0,10,2):
-            assert allequal(row[0][x/2], arange(x))
+            assert allequal(row[0][x/2], arange(x, type=Int32))
         for x in range(5,15,3):
-            assert allequal(row[1][(x-5)/3], arange(x))
+            assert allequal(row[1][(x-5)/3], arange(x, type=Int32))
         for x in range(0,100,20):
-            assert allequal(row[2][x/20], arange(x))
+            assert allequal(row[2][x/20], arange(x, type=Int32))
 
     def test05_out_of_range(self):
         "Checking out of range reads"

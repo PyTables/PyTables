@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.102 2004/01/01 21:01:46 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.103 2004/01/08 20:28:54 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.102 $"
+__version__ = "$Revision: 1.103 $"
 
 
 import sys, os
@@ -56,12 +56,13 @@ cdef extern from "type-longlong.h":
 
 # C funtions and variable declaration from its headers
 
-#from c_libs cimport size_t, malloc, free
-#cimport c_libs
-
 # Type size_t is defined in stdlib.h
 cdef extern from "stdlib.h":
-  ctypedef int size_t
+  #ctypedef int size_t
+  # The correct correspondence between size_t and a basic type is *long*
+  # instead of int, because they are the same size even for 64-bit platforms
+  # F. Alted 2003-01-08
+  ctypedef long size_t
   void *malloc(size_t size)
   void free(void *ptr)
   double atof(char *nptr)
@@ -97,6 +98,8 @@ cdef extern from "Python.h":
   
   # To access integers
   object PyInt_FromLong(long)
+  long PyInt_AsLong(object)
+
 
   # To access double
   object PyFloat_FromDouble(double)
@@ -548,8 +551,8 @@ cdef extern from "H5TB.h":
 
   hid_t H5TBmake_table( char *table_title, hid_t loc_id, 
                         char *dset_name, hsize_t nfields,
-                        hsize_t nrecords, size_t type_size,
-                        char *field_names[], size_t *field_offset,
+                        hsize_t nrecords, size_t rowsize,
+                        char **field_names, size_t *field_offset,
                         hid_t *field_types, hsize_t chunk_size,
                         void *fill_data, int compress, char *complib,
                         int shuffle, void *data )
@@ -644,7 +647,7 @@ cdef extern from "H5TB-opt.h":
 cdef extern from "calcoffset.h":
   
   int calcoffset(char *fmt, int *nvar, hid_t *types,
-                 size_t *sizes, size_t *offsets)
+                 size_t *field_sizes, size_t *field_offsets)
 
 # Funtion to get info from fields in a table
 cdef extern from "getfieldfmt.h":
@@ -784,7 +787,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.102 2004/01/01 21:01:46 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.103 2004/01/08 20:28:54 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -934,7 +937,7 @@ cdef class AttributeSet:
       ret = H5LTset_attribute_string(self.parent_id, self.name, name, value)
     elif isinstance(value, types.IntType):
       #self._g_setAttrInt(name, value)
-      valint = <int>value
+      valint = <int>PyInt_AsLong(value)
       ret = H5LTset_attribute_int(self.parent_id, self.name, name, &valint, 1)
     elif isinstance(value, types.FloatType):
       self._g_setAttrDouble(name, value)
@@ -1287,11 +1290,20 @@ cdef class Table:
     self._open = 0
 
   def _createTable(self, char *title, char *complib):
-    cdef int nvar, offset
-    cdef int i, nrecords, ret, buflen
-    cdef hid_t oid
-    cdef hid_t fieldtypes[MAX_FIELDS]
-    cdef void *fill_data, *data
+    cdef int     nvar, offset
+    cdef int     i, ret, buflen
+    cdef hid_t   oid
+    cdef hid_t   field_types[MAX_FIELDS]
+    cdef void    *fill_data, *data
+    cdef hsize_t nrecords
+    cdef hsize_t nrows
+    cdef hsize_t chunk_size
+    cdef size_t  *field_offset
+    cdef int     complevel
+    #cdef char    *complib
+    cdef char    **field_names
+    cdef size_t  rowsize
+    cdef int     shuffle
 
     # This check has to be done before assigning too much columns in 
     # self.field_names C array
@@ -1304,6 +1316,7 @@ cdef class Table:
       
     # Assign the field_names pointers to the Tuple colnames strings
     i = 0
+    field_names = <char **>malloc( sizeof(char*) * MAX_FIELDS )
     for name in self.colnames:
       if (len(name) >= MAX_CHARS):
         raise NameError("A maximum length of %d on column names is allowed" % \
@@ -1311,12 +1324,14 @@ cdef class Table:
       # Copy the column names to an internal buffer
       #self.field_names[i] = <char *>malloc(MAX_CHARS * sizeof(char))  
       #strcpy(self.field_names[i], name)
+      field_names[i] = <char *>malloc(MAX_CHARS * sizeof(char))  
+      strcpy(field_names[i], name)
       # This is equivalent
       self.field_names[i] = strdup(name)
       i = i + 1
 
     # Compute the field type sizes, offsets, # fields, ...
-    self.rowsize = calcoffset(self.fmt, &nvar, fieldtypes,
+    self.rowsize = calcoffset(self.fmt, &nvar, field_types,
                               self.field_sizes, self.field_offset)
     self.nfields = nvar
 
@@ -1346,19 +1361,36 @@ cdef class Table:
 
     # The next is settable if we have default values
     fill_data = NULL
+    nrecords = <hsize_t>PyInt_AsLong(nvar)
+    nrows = <hsize_t>PyInt_AsLong(self.nrows)
+    rowsize = <size_t>PyInt_AsLong(self.rowsize)
+    #field_names = <char **>self.field_names
+    chunk_size = <hsize_t>PyInt_AsLong(self._v_chunksize)
+    field_offset = <size_t *>self.field_offset
+    complevel = <int>PyInt_AsLong(self.complevel)
+    #complib = <char *>self.complib
+    #complib = PyString_AsString(self.complib)
+    shuffle = <int>PyInt_AsLong(self.shuffle)
 
     oid = H5TBmake_table(title, self.parent_id, self.name,
-                         nvar, self.nrows, self.rowsize, self.field_names,
-                         self.field_offset, fieldtypes, self._v_chunksize,
-                         fill_data, self.complevel, complib,
-                         self.shuffle, data)
+                         nrecords, nrows, rowsize, field_names,
+                         field_offset, field_types, chunk_size,
+                         fill_data, complevel, complib,
+                         shuffle, data)
+#     oid = H5TBmake_table(title, self.parent_id, self.name,
+#                          nvar, self.nrows, self.rowsize, self.field_names,
+#                          self.field_offset, fieldtypes, self._v_chunksize,
+#                          fill_data, self.complevel, complib,
+#                          self.shuffle, data)
     if oid < 0:
       raise RuntimeError("Problems creating the table")
     self.objectID = oid
 
     # Release resources to avoid memory leaks
     for i from  0 <= i < nvar:
-      H5Tclose(fieldtypes[i])
+      H5Tclose(field_types[i])
+      free(<void *>field_names[i])
+    free(<void *>field_names)
     
   def _open_append(self, object recarr):
     cdef int buflen, ret
