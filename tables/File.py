@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.75 2004/02/09 13:24:31 falted Exp $
+#       $Id: File.py,v 1.76 2004/02/09 18:54:11 falted Exp $
 #
 ########################################################################
 
@@ -21,6 +21,8 @@ Classes:
 
 Functions:
 
+    copyFile(srcFilename, dstFilename [, title] [, filters]
+             [, copyuserattrs] [, overwrite])
     openFile(name [, mode = "r"] [, title] [, trMap])
 
 Misc variables:
@@ -31,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.75 $"
+__version__ = "$Revision: 1.76 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -73,6 +75,37 @@ def _checkFilters(filters, compress=None, complib=None):
         raise ValueError, \
               "filter parameter has to be None or a Filter instance and the passed type is: '%s'" % type(filters)
     return fprops
+
+
+def copyFile(srcFilename = None, dstFilename=None, title=None,
+             filters=None, copyuserattrs=1, overwrite=0):
+    """Copy srcFilename to dstFilename
+
+    The srcFilename should exist and dstFilename should not. If
+    dsFilename exists and overwrite is true, it is overwritten. title
+    lets you put another title to the destination file. copyuserattrs
+    specifies whether the user attrs in origin nodes should be copied
+    or not; the default is copy them. Finally, specifiying a filters
+    parameter overwrite the original filter properties in srcFilename.
+
+    It returns the number of copied groups and leafs in the form
+    (ngroups, nleafs).
+
+    """
+
+    # Open the src file
+    srcFileh = openFile(srcFilename, mode="r")
+
+    # Copy it to the destination
+    ngroups, nleafs = srcFileh.copyFile(dstFilename, title=title,
+                                        filters=filters,
+                                        copyuserattrs=copyuserattrs,
+                                        overwrite=overwrite)
+
+    # Close the source file
+    srcFileh.close()
+    return ngroups, nleafs
+
 
 def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
              filters=None):

@@ -976,6 +976,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.type == array2.type
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
+        assert str(array1.atom) == str(array2.atom)
 
         # Close the file
         fileh.close()
@@ -1027,6 +1028,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.type == array2.type
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
+        assert str(array1.atom) == str(array2.atom)
 
         # Close the file
         fileh.close()
@@ -1074,6 +1076,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.type == array2.type
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
+        assert str(array1.atom) == str(array2.atom)
 
         # Close the file
         fileh.close()
@@ -1119,6 +1122,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.type == array2.type
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
+        assert str(array1.atom) == str(array2.atom)
 
         # Close the file
         fileh.close()
@@ -1164,6 +1168,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.type == array2.type
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
+        assert str(array1.atom) == str(array2.atom)
 
         # Close the file
         fileh.close()
@@ -1201,6 +1206,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Check that all elements are equal
         assert array1.read() == array2.read()
+        
         # Assert other properties in array
         assert array1.nrows == array2.nrows
         assert array1.shape == array2.shape
@@ -1209,6 +1215,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.type == array2.type
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
+        assert str(array1.atom) == str(array2.atom)
 
         # Close the file
         fileh.close()
@@ -1254,6 +1261,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.type == array2.type
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
+        assert str(array1.atom) == str(array2.atom)
 
         # Close the file
         fileh.close()

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.40 2004/02/09 13:24:31 falted Exp $
+#       $Id: Leaf.py,v 1.41 2004/02/09 18:54:11 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.40 $"
+__version__ = "$Revision: 1.41 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -325,8 +325,11 @@ class Leaf:
 
         # First, check if the copy() method has been defined for this object
         if not hasattr(self, "_g_copy"):
-            raise NotImplementedError, \
-                  "<%s> has not a copy() method" % str(self)
+            #raise NotImplementedError, \
+            warnings.warn( \
+                  "<%s> has not a copy() method. Not copying it." % str(self),
+                  UserWarning)
+            return None
 
         # Get the parent group of destination
         group = self._v_file.getNode(where, classname = "Group")

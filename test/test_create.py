@@ -1382,7 +1382,8 @@ class CopyFileTestCase(unittest.TestCase):
 
                 # Create a couple of EArrays as well
                 ea1 = self.h5file.createEArray(group2, 'earray1',
-                                               StringAtom(shape=(0,), length=4),
+                                               StringAtom(shape=(0,),
+                                                          length=4),
                                                "col 1")
                 ea2 = self.h5file.createEArray(group2, 'earray2',
                                                Int16Atom(shape=(0,)), "col 3")
@@ -1429,8 +1430,51 @@ class CopyFileTestCase(unittest.TestCase):
                              overwrite = 1,
                              copyuserattrs = 0,
                              filters = None)
+
+        # Close the original file, if needed
+        if self.close:
+            self.h5file.close()
+            # re-open it
+            self.h5file = openFile(self.file, "r")
+        
         # ...and open the destination file
         self.h5file2 = openFile(self.file2, "r")
+
+        # Check that the copy has been done correctly
+        srcgroup = self.h5file.root
+        dstgroup = self.h5file2.root
+        nodelist1 = srcgroup._v_childs.keys()
+        nodelist2 = dstgroup._v_childs.keys()
+        # Sort the lists
+        nodelist1.sort(); nodelist2.sort()
+        if verbose:
+            print "The origin node list -->", nodelist1
+            print "The copied node list -->", nodelist2
+        assert srcgroup._v_nchilds == dstgroup._v_nchilds
+        assert nodelist1 == nodelist2
+        assert self.h5file2.title == self.title
+
+    def test00b_firstclass(self):
+        "Checking copy of a File (first-class function)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00b_firstclass..." % self.__class__.__name__
+
+        #print "Original file-->", str(self.h5file)
+
+        # Close the temporary file
+        self.h5file.close()
+        
+        # Copy the file to the destination
+        copyFile(self.file, self.file2, title=self.title,
+                 copyuserattrs = 0, filters = None, overwrite = 1)
+        
+        # ...and open the source and destination file
+        self.h5file = openFile(self.file, "r")
+        self.h5file2 = openFile(self.file2, "r")
+
+        #print "Destination file-->", str(self.h5file2)
 
         # Check that the copy has been done correctly
         srcgroup = self.h5file.root
@@ -1458,6 +1502,13 @@ class CopyFileTestCase(unittest.TestCase):
         self.h5file.copyFile(self.file2, title=self.title,
                              copyuserattrs = 0,
                              filters = self.filters)
+
+        # Close the original file, if needed
+        if self.close:
+            self.h5file.close()
+            # re-open it
+            self.h5file = openFile(self.file, "r")
+        
         # ...and open the destination file
         self.h5file2 = openFile(self.file2, "r")
 
@@ -1530,6 +1581,13 @@ class CopyFileTestCase(unittest.TestCase):
         self.h5file.copyFile(self.file2, title=self.title,
                              copyuserattrs = 1,
                              filters = self.filters)
+
+        # Close the original file, if needed
+        if self.close:
+            self.h5file.close()
+            # re-open it
+            self.h5file = openFile(self.file, "r")
+        
         # ...and open the destination file
         self.h5file2 = openFile(self.file2, "r")
 
@@ -1575,18 +1633,46 @@ class CopyFileTestCase(unittest.TestCase):
                 print "The attrs contents has been copied correctly"
 
 class CopyFileCase1(CopyFileTestCase):
+    close = 0
     title = "A new title"
     filters = None
 
 class CopyFileCase2(CopyFileTestCase):
+    close = 1
+    title = "A new title"
+    filters = None
+
+class CopyFileCase3(CopyFileTestCase):
+    close = 0
     title = "A new title"
     filters = Filters(complevel=1)
 
-class CopyFileCase3(CopyFileTestCase):
+class CopyFileCase4(CopyFileTestCase):
+    close = 1
+    title = "A new title"
+    filters = Filters(complevel=1)
+
+class CopyFileCase5(CopyFileTestCase):
+    close = 0
     title = "A new title"
     filters = Filters(fletcher32=1)
 
-class CopyFileCase4(unittest.TestCase):
+class CopyFileCase6(CopyFileTestCase):
+    close = 1
+    title = "A new title"
+    filters = Filters(fletcher32=1)
+
+class CopyFileCase7(CopyFileTestCase):
+    close = 0
+    title = "A new title"
+    filters = Filters(complevel=1, complib="lzo")
+
+class CopyFileCase8(CopyFileTestCase):
+    close = 1
+    title = "A new title"
+    filters = Filters(complevel=1, complib="lzo")
+
+class CopyFileCase10(unittest.TestCase):
 
     def test01_notoverwrite(self):
         "Checking copy of a File (checking not overwriting)"
@@ -1619,6 +1705,7 @@ class CopyFileCase4(unittest.TestCase):
         os.remove(file)
         os.remove(file2)
 	
+	
 #----------------------------------------------------------------------
 
 def suite():
@@ -1649,6 +1736,12 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyFileCase2))
         theSuite.addTest(unittest.makeSuite(CopyFileCase3))
         theSuite.addTest(unittest.makeSuite(CopyFileCase4))
+        # These take too much time and does not apport nothing really new
+#         theSuite.addTest(unittest.makeSuite(CopyFileCase5))
+#         theSuite.addTest(unittest.makeSuite(CopyFileCase6))
+#         theSuite.addTest(unittest.makeSuite(CopyFileCase7))
+#         theSuite.addTest(unittest.makeSuite(CopyFileCase8))
+        theSuite.addTest(unittest.makeSuite(CopyFileCase10))
 
     return theSuite
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.14 2004/02/09 13:24:31 falted Exp $
+#       $Id: EArray.py,v 1.15 2004/02/09 18:54:11 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.14 $"
+__version__ = "$Revision: 1.15 $"
 # default version for EARRAY objects
 obversion = "1.0"    # initial version
 
@@ -204,8 +204,15 @@ class EArray(Array, hdf5Extension.Array, object):
                         self._openArray()
         # Post-condition
         assert self.extdim >= 0, "extdim < 0: this should never happen!"
+        # Compute the real shape for atom:
+        shape = list(self.shape)
+        shape[self.extdim] = 0
+        if self.type == "CharType" or isinstance(self.type, records.Char):
+            # Add the length of the array at the end of the shape for atom
+            shape.append(self.itemsize)
+        shape = tuple(shape)
         # Create the atom instance
-        self.atom = Atom(dtype=self.type, shape=self.shape,
+        self.atom = Atom(dtype=self.type, shape=shape,
                          flavor=self.attrs.FLAVOR)
         # Compute the rowsize for each element
         self.rowsize = self.atom.atomsize()

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.67 2004/02/07 17:44:46 falted Exp $
+#       $Id: Group.py,v 1.68 2004/02/09 18:54:11 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.67 $"
+__version__ = "$Revision: 1.68 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -666,10 +666,6 @@ self._g_join(name), UserWarning)
                     lenDstName = len(dstName)+1  # To include the trailing '/'
                     endGName = group._v_pathname[lenSrcBasePath:-lenDstName]
                     parentDstPath = dstBaseGroup._g_join(endGName)
-#                     print "src-->", group._v_pathname
-#                     print "parentDstName-->", parentDstPath
-#                     print "endGname-->", endGName
-#                     print "dstName-->", dstName
                     dstGroup = dstFile.createGroup(parentDstPath, dstName,
                                                    title=group._v_title,
                                                    filters=filters)

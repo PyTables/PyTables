@@ -46,6 +46,10 @@ class OpenFileTestCase(unittest.TestCase):
     def test00_newFile(self):
         """Checking creation of a new file"""
 
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00_newFile..." % self.__class__.__name__
+
         # Create an HDF5 file
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, mode = "w")
@@ -63,6 +67,10 @@ class OpenFileTestCase(unittest.TestCase):
     def test01_openFile(self):
         """Checking opening of an existing file"""
 
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_openFile..." % self.__class__.__name__
+
         # Open the old HDF5 file
         fileh = openFile(self.file, mode = "r")
         # Get the CLASS attribute of the arr object
@@ -73,6 +81,10 @@ class OpenFileTestCase(unittest.TestCase):
     
     def test01b_trMap(self):
         """Checking the translation table capability for reading"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01b_trMap..." % self.__class__.__name__
 
         # Open the old HDF5 file
         trMap = {"pythonarray": "array"}
@@ -99,6 +111,10 @@ class OpenFileTestCase(unittest.TestCase):
 	
     def test01c_trMap(self):
         """Checking the translation table capability for writing"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_trMap..." % self.__class__.__name__
 
         # Create an HDF5 file
         file = tempfile.mktemp(".h5")
@@ -142,6 +158,10 @@ class OpenFileTestCase(unittest.TestCase):
     def test02_appendFile(self):
         """Checking appending objects to an existing file"""
 
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_appendFile..." % self.__class__.__name__
+
         # Append a new array to the existing file
         fileh = openFile(self.file, mode = "r+")
         fileh.createArray(fileh.root, 'array2', [3,4],
@@ -158,6 +178,10 @@ class OpenFileTestCase(unittest.TestCase):
         
     def test02b_appendFile2(self):
         """Checking appending objects to an existing file ("a" version)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_appendFile2..." % self.__class__.__name__
 
         # Append a new array to the existing file
         fileh = openFile(self.file, mode = "a")
@@ -177,6 +201,10 @@ class OpenFileTestCase(unittest.TestCase):
         
     def test03_appendErrorFile(self):
         """Checking appending objects to an existing file in "w" mode"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_appendErrorFile..." % self.__class__.__name__
 
         # Append a new array to the existing file but in write mode
         # so, the existing file should be deleted!
@@ -203,6 +231,10 @@ class OpenFileTestCase(unittest.TestCase):
     def test04a_openErrorFile(self):
         """Checking opening a non-existing file for reading"""
 
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04a_openErrorFile..." % self.__class__.__name__
+
         try:
             fileh = openFile("nonexistent.h5", mode = "r")
         except IOError:
@@ -216,6 +248,10 @@ class OpenFileTestCase(unittest.TestCase):
     def test04b_alternateRootFile(self):
         """Checking alternate root access to the object tree"""
         
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04b_alternateRootFile..." % self.__class__.__name__
+
         # Open the existent HDF5 file
         fileh = openFile(self.file, mode = "r", rootUEP="/agroup")
         # Get the CLASS attribute of the arr object
@@ -231,6 +267,10 @@ class OpenFileTestCase(unittest.TestCase):
     def notest04c_alternateRootFile(self):
         """Checking non-existent alternate root access to the object tree"""
 
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04c_alternateRootFile..." % self.__class__.__name__
+
         try:
             fileh = openFile(self.file, mode = "r", rootUEP="/nonexistent")
         except RuntimeError:
@@ -243,6 +283,10 @@ class OpenFileTestCase(unittest.TestCase):
 
     def test05a_removeGroupRecursively(self):
         """Checking removing a group recursively"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05a_removeGroupRecursively..." % self.__class__.__name__
 
         # Delete a group with leafs
         fileh = openFile(self.file, mode = "r+")
@@ -291,6 +335,9 @@ class OpenFileTestCase(unittest.TestCase):
 
     def test05b_removeGroupRecursively(self):
         """Checking removing a group recursively and access to it immediately"""
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05b_removeGroupRecursively..." % self.__class__.__name__
 
         # Delete a group with leafs
         fileh = openFile(self.file, mode = "r+")
@@ -336,6 +383,10 @@ class OpenFileTestCase(unittest.TestCase):
     def test05c_removeGroupRecursively(self):
         """Checking removing a group recursively (__delattr__ version)"""
 
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05c_removeGroupRecursively..." % self.__class__.__name__
+
         # Delete a group with leafs
         fileh = openFile(self.file, mode = "r+")
         
@@ -367,6 +418,10 @@ class OpenFileTestCase(unittest.TestCase):
     def test06a_removeGroup(self):
         """Checking removing a lonely group from an existing file"""
 
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test06a_removeLeaf..." % self.__class__.__name__
+
         fileh = openFile(self.file, mode = "r+")
         fileh.removeNode(fileh.root, 'agroup2')
         fileh.close()
@@ -387,6 +442,10 @@ class OpenFileTestCase(unittest.TestCase):
 
     def test06b_removeLeaf(self):
         """Checking removing Leaves from an existing file"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test06b_removeLeaf..." % self.__class__.__name__
 
         fileh = openFile(self.file, mode = "r+")
         fileh.removeNode(fileh.root, 'anarray')
@@ -409,6 +468,10 @@ class OpenFileTestCase(unittest.TestCase):
     def test06c_removeLeaf(self):
         """Checking removing Leaves and access it immediately"""
 
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test06c_removeLeaf..." % self.__class__.__name__
+
         fileh = openFile(self.file, mode = "r+")
         fileh.removeNode(fileh.root, 'anarray')
         
@@ -427,6 +490,11 @@ class OpenFileTestCase(unittest.TestCase):
     def test06d_removeLeaf(self):
         """Checking removing a non-existent node"""
 
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test06d_removeLeaf..." % self.__class__.__name__
+
         fileh = openFile(self.file, mode = "r+")
         
         # Try to get the removed object
@@ -443,6 +511,10 @@ class OpenFileTestCase(unittest.TestCase):
 
     def test07_renameLeaf(self):
         """Checking renaming a leave and access it after a close/open"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test07_renameLeaf..." % self.__class__.__name__
 
         fileh = openFile(self.file, mode = "r+")
         fileh.renameNode(fileh.root.anarray, 'anarray2')
@@ -469,6 +541,10 @@ class OpenFileTestCase(unittest.TestCase):
     def test07b_renameLeaf(self):
         """Checking renaming Leaves and accesing them immediately"""
 
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test07b_renameLeaf..." % self.__class__.__name__
+
         fileh = openFile(self.file, mode = "r+")
         fileh.renameNode(fileh.root.anarray, 'anarray2')
 
@@ -491,6 +567,10 @@ class OpenFileTestCase(unittest.TestCase):
     def test08_renameToExistingLeaf(self):
         """Checking renaming a node to an existing name"""
 
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test08_renameToExistingLeaf..." % self.__class__.__name__
+
         # Open this file
         fileh = openFile(self.file, mode = "r+")
         # Try to get the previous object with the old name
@@ -508,6 +588,10 @@ class OpenFileTestCase(unittest.TestCase):
     def test08b_renameToNotValidName(self):
         """Checking renaming a node to a non-valid name"""
 
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test08b_renameToNotValidName..." % self.__class__.__name__
+
         # Open this file
         fileh = openFile(self.file, mode = "r+")
         # Try to get the previous object with the old name
@@ -524,6 +608,10 @@ class OpenFileTestCase(unittest.TestCase):
 
     def test09_renameGroup(self):
         """Checking renaming a Group and access it after a close/open"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test09_renameGroup..." % self.__class__.__name__
 
         fileh = openFile(self.file, mode = "r+")
         fileh.renameNode(fileh.root.agroup, 'agroup3')
@@ -565,6 +653,10 @@ class OpenFileTestCase(unittest.TestCase):
     def test09b_renameGroup(self):
         """Checking renaming a Group and access it immediately"""
 
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test09b_renameGroup..." % self.__class__.__name__
+
         fileh = openFile(self.file, mode = "r+")
         fileh.renameNode(fileh.root.agroup, 'agroup3')
 
@@ -601,9 +693,12 @@ class OpenFileTestCase(unittest.TestCase):
 
 class CheckFileTestCase(unittest.TestCase):
     
-    def test00_isHDF5File(self):
+    def test00_isHDF5(self):
         """Checking isHDF5 function (TRUE case)"""
         
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00_isHDF5..." % self.__class__.__name__
         # Create a PyTables file (and by so, an HDF5 file)
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, mode = "w")
@@ -623,6 +718,9 @@ class CheckFileTestCase(unittest.TestCase):
     def test01_isHDF5File(self):
         """Checking isHDF5 function (FALSE case)"""
 
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_isHDF5..." % self.__class__.__name__
         # Create a regular (text) file
         file = tempfile.mktemp(".h5")
         fileh = open(file, "w")
@@ -640,6 +738,9 @@ class CheckFileTestCase(unittest.TestCase):
     def test02_isPyTablesFile(self):
         """Checking isPyTablesFile function (TRUE case)"""
 
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_isPyTablesFile..." % self.__class__.__name__
         # Create a PyTables file
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, mode = "w")
@@ -664,6 +765,10 @@ class CheckFileTestCase(unittest.TestCase):
     def test03_isPyTablesFile(self):
         """Checking isPyTablesFile function (FALSE case)"""
 
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_isPyTablesFile..." % self.__class__.__name__
+            
         # Create a regular (text) file
         file = tempfile.mktemp(".h5")
         fileh = open(file, "w")
@@ -680,6 +785,10 @@ class CheckFileTestCase(unittest.TestCase):
 
     def test04_openGenericHDF5File(self):
         """Checking opening of a generic HDF5 file"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04_openGenericHDF5File..." % self.__class__.__name__
 
         warnings.filterwarnings("error", category=UserWarning)
         # Open an existing generic HDF5 file
@@ -729,6 +838,10 @@ class CheckFileTestCase(unittest.TestCase):
     def test05_copyUnimplemented(self):
         """Checking that an UnImplemented object cannot be copied"""
 
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05_copyUnimplemented..." % self.__class__.__name__
+
         # Open an existing generic HDF5 file
         # We don't need to wrap this in a try clause because
         # it has already been tried and the warning will not happen again
@@ -743,15 +856,24 @@ class CheckFileTestCase(unittest.TestCase):
         # Check that it cannot be copied to another file
         file2 = tempfile.mktemp(".h5")
         fileh2 = openFile(file2, mode = "w")
+        # Force the userwarning to issue an error
+        warnings.filterwarnings("error", category=UserWarning)
         try:
             ui.copy(fileh2.root, "newui")
-        except NotImplementedError:
+        except UserWarning:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NotImplementedError was catched:"
+                print "\nGreat!, the next UserWarning was catched:"
                 print value
         else:
             self.fail("expected an UserWarning")
+
+        # Reset the warnings
+        # Be careful with that, because this enables all the warnings
+        # on the rest of the tests!
+        #warnings.resetwarnings()
+        # better use:
+        warnings.filterwarnings("default", category=UserWarning)
 
         # Delete the new (empty) file
         fileh2.close()

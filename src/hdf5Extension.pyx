@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.116 2004/02/06 19:23:47 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.117 2004/02/09 18:54:10 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.116 $"
+__version__ = "$Revision: 1.117 $"
 
 
 import sys, os
@@ -836,7 +836,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.116 2004/02/06 19:23:47 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.117 2004/02/09 18:54:10 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -2176,7 +2176,8 @@ cdef class Array:
     # So, I've decided to create the shape tuple using Python constructs
     shape = []
     for i from 0 <= i < self.rank:
-      shape.append(self.dims[i])
+      # The <int> cast avoids returning a Long integer
+      shape.append(<int>self.dims[i])
     shape = tuple(shape)
 
     return (toclass[self.enumtype], shape, type_size, byteorder)
@@ -2376,15 +2377,17 @@ cdef class VLArray:
     if self.rank:
       shape = []
       for i from 0 <= i < self.rank:
-        shape.append(self.dims[i])
-        self._atomicsize = self._atomicsize * self.dims[i]
+        # The <int> cast avoids returning a Long integer
+        shape.append(<int>self.dims[i])
+        self._atomicsize = self._atomicsize * <int>self.dims[i]
       shape = tuple(shape)
     else:
       # rank zero means a scalar
       shape = 1
 
     self._atomicshape = shape
-    return nrecords[0]
+    # The <int> cast avoids returning a Long integer
+    return <int>nrecords[0]
 
   def _readArray(self, hsize_t start, hsize_t stop, hsize_t step):
     cdef herr_t ret
