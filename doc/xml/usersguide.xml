@@ -2403,11 +2403,14 @@ AttributeError: Error accessing "ADCcount" attr.
 	  guide because your mileage will probably vary. Have also a
 	  look at the graphs <ref
 	  refid="lzozlibuclWriteComparison"></ref> and <ref
-	  refid="lzozlibuclReadComparison"></ref>. They show how
-	  evolves the speed of writing/reading rows as the size (the
-	  row number) of tables grows. Even though in these examples
-	  the size of one single row is 16 bytes, you can most
-	  probably extrapolate this figures to larger row sizes.
+	  refid="lzozlibuclReadComparison"></ref> (these graphs has
+	  been obtained with tables with different row sizes than the
+	  previous example, so, do not try to compare the
+	  figures). They show how evolves the speed of writing/reading
+	  rows as the size (the row number) of tables grows. Even
+	  though in these graphs the size of one single row is 56
+	  bytes, you can most probably extrapolate this figures to
+	  other row sizes.
 	</p>
 
 	<table id="comprTblComparison">
@@ -2433,7 +2436,7 @@ AttributeError: Error accessing "ADCcount" attr.
 	</table>
 
 	<figure id="lzozlibuclWriteComparison">
-	  <graphics file="write-small-lzo-zlib-ucl-comparison" scale="0.75" kind="vector">
+	  <graphics file="write-medium-lzo-zlib-ucl-comparison" scale="0.75" kind="vector">
 	  
 	  </graphics>
 	  <caption>Writing tables with several compressors.
@@ -2441,7 +2444,7 @@ AttributeError: Error accessing "ADCcount" attr.
 	</figure>
 
 	<figure id="lzozlibuclReadComparison">
-	  <graphics file="read-small-lzo-zlib-ucl-comparison" scale="0.75" kind="vector">
+	  <graphics file="read-medium-lzo-zlib-ucl-comparison" scale="0.75" kind="vector">
 	  
 	  </graphics>
 	  <caption>Reading tables with several compressors.
@@ -2610,12 +2613,12 @@ if __name__=="__main__":
 	  this advantage will disappear progressively when the number
 	  of rows grows well over one million. However if you use
 	  compression, you will probably see improvements even beyond
-	  this. As always there is no replacement for experimentation
+	  this. As always, there is no replacement for experimentation
 	  with your own dataset.
 	</p>
 
 	<figure id="psycoWriteComparison">
-	  <graphics file="write-small-psyco-lzo-comparison" scale="0.75" kind="vector">
+	  <graphics file="write-medium-psyco-lzo-comparison" scale="0.75" kind="vector">
 	  
 	  </graphics>
 	  <caption>Writing tables with/without Psyco and compression.
@@ -2623,7 +2626,7 @@ if __name__=="__main__":
 	</figure>
 
 	<figure id="psycoReadComparison">
-	  <graphics file="read-small-psyco-lzo-comparison" scale="0.75" kind="vector">
+	  <graphics file="read-medium-psyco-lzo-comparison" scale="0.75" kind="vector">
 	  
 	  </graphics>
 	  <caption>Reading tables with/without Psyco and compression.

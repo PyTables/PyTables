@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.49 2003/06/11 10:48:46 falted Exp $
+#       $Id: Table.py,v 1.50 2003/06/19 11:14:35 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.49 $"
+__version__ = "$Revision: 1.50 $"
 
 from __future__ import generators
 import sys
@@ -40,7 +40,7 @@ import warnings
 import numarray
 import numarray.strings as strings
 import numarray.records as records
-import recarray2         # Private version of records for PyTables
+#import recarray2         # Private version of records for PyTables
 import hdf5Extension
 from Leaf import Leaf
 from IsDescription import IsDescription, metaIsDescription, Col, fromstructfmt
@@ -185,9 +185,10 @@ class Table(Leaf, hdf5Extension.Table, object):
     def _newBuffer(self, init=1):
         """Create a new recarray buffer for I/O purposes"""
 
-        recarr = recarray2.array(None, formats=self.description._v_recarrfmt,
-                                 shape=(self._v_maxTuples,),
-                                 names = self.colnames)
+        #recarr = recarray2.array(None, formats=self.description._v_recarrfmt,
+        recarr = records.array(None, formats=self.description._v_recarrfmt,
+                               shape=(self._v_maxTuples,),
+                               names = self.colnames)
         # Initialize the recarray with the defaults in description
         if init:
             for field in self.description.__slots__:
@@ -217,9 +218,15 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.colnames = recarr._names
         fields = {}
         for i in range(len(self.colnames)):
-            fields[self.colnames[i]] = Col(recarr._fmt[i],
-                                           recarr._repeats[i],
-                                           pos=i)  # Position matters!
+            # Special case for strings (from numarray 0.6 on)
+            if isinstance(recarr._fmt[i], records.Char):
+                fields[self.colnames[i]] = Col(recarr._fmt[i],
+                                               recarr._sizes[i],
+                                               pos=i)  # Position matters!
+            else:
+                fields[self.colnames[i]] = Col(recarr._fmt[i],
+                                               recarr._repeats[i],
+                                               pos=i)  # Position matters!
         # Set the byteorder
         self.byteorder = recarr._byteorder
         # Append this entry to indicate the alignment!
@@ -235,6 +242,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Compute some important parameters for createTable
         self.colnames = tuple(self.description.__slots__)
         self._v_fmt = self.description._v_fmt
+        #print "self._v_fmt (create)-->", self._v_fmt
         self._calcBufferSize(self._v_expectedrows)
         # Create the table on disk
         self._createTable(self.title, self._v_complib)
@@ -271,6 +279,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.shape = (self.nrows,)
         # Get the variable types
         lengthtypes = re.findall(r'(\d*\w)', self._v_fmt)
+        #print "self._v_fmt (open)-->", self._v_fmt
         # Build a dictionary with the types as values and colnames as keys
         fields = {}
         for i in range(len(self.colnames)):

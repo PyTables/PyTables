@@ -13,8 +13,8 @@ class Small(IsDescription):
     the user will not add any new variables and that its type is
     correct."""
     
-    #var1 = Col("CharType", 4, "")
-    var1 = Col("Float64", 4, 0.0)
+    var1 = Col("CharType", 4, "")
+    #var1 = Col("Float64", 4, 0.0)
     var2 = Col("Int32", 1, 0)
     var3 = Col("Float64", 1, 0)
 
@@ -306,7 +306,7 @@ if __name__=="__main__":
     lrtpercent = []
     lrrowssec = []
     lrkbs = []
-    print "%7s" % "nrows",
+    print "%9s" % "nrows",
     print "%6s"*5 % ("wtime", "wcpu", "wpcnt", "wkrs", "wkbs"),
     print "%6s"*5 % ("rtime", "rcpu", "rpcnt", "rkrs", "rkbs")
 
@@ -340,7 +340,7 @@ if __name__=="__main__":
             lwtpercent.append(tpercent)
             lwrowssec.append(int(rowsw / float(tapprows*1000)))
             lwkbs.append(int(rowsw * rowsz / (tapprows * 1024)))
-            print "%7s" % lwnrows[-1],
+            print "%9s" % lwnrows[-1],
             print "%6s"*5 % (lwtrows[-1], lwcpurows[-1], lwtpercent[-1], lwrowssec[-1], lwkbs[-1]),
             
         if testread:

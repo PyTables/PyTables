@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.54 2003/06/11 10:48:39 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.55 2003/06/19 11:14:35 falted Exp $
 #
 ########################################################################
 
@@ -36,13 +36,14 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.54 $"
+__version__ = "$Revision: 1.55 $"
 
 
 import sys, os
 import types, cPickle
 import numarray
-import recarray2 as recarray
+#import recarray2 as recarray
+import numarray.records
 
 # For defining the long long type
 cdef extern from "type-longlong.h":
@@ -179,7 +180,8 @@ cdef extern from "numarray/numarray.h":
 import_array()
 
 # CharArray type
-CharType = recarray.CharType
+#CharType = recarray.CharType
+CharType = numarray.records.CharType
 
 # Conversion tables from/to classes to the numarray enum types
 toenum = {numarray.Int8:tInt8,       numarray.UInt8:tUInt8,
@@ -672,7 +674,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.54 2003/06/11 10:48:39 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.55 2003/06/19 11:14:35 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1451,10 +1453,8 @@ cdef class Row:
     return self._nrow
 
   def append(self):
-    """Append the "row" object to the output buffer.
+    """Append self object to the output buffer.
     
-    "row" has to be a recarray2.Row object 
-
     """
     self._row = self._row + 1 # update the current buffer read counter
     self._unsavednrows = self._unsavednrows + 1

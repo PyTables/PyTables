@@ -83,7 +83,7 @@ class DefaultValues(unittest.TestCase):
 
         # Create a recarray with the same default values
         r=records.array([["abcd", 1, 2, 3.1, 4.2, 5, "e"]]*nrows,
-                          formats='4a,i4,i2,f8,f4,i2,1a')
+                          formats='a4,i4,i2,f8,f4,i2,a1')
         
         # Assign the value exceptions
         r.field("c2")[3] = 2 
@@ -200,7 +200,7 @@ class RecArrayIO(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        r=records.array('a'*200000,'r,3i,5a,s',3000)
+        r=records.array('a'*200000,'f4,3i,5a,s',3000)
 
         # Get an offsetted bytearray
         r1 = r[2000:]
@@ -479,14 +479,14 @@ class DictWriteTestCase(BasicTestCase):
 
 class RecArrayOneWriteTestCase(BasicTestCase):
     title = "RecArrayOneWrite"
-    record=records.array(formats="4a,i4,i2,2f8,f4,i2,1a",
+    record=records.array(formats="a4,i4,i2,2f8,f4,i2,a1",
                           names='var1,var2,var3,var4,var5,var6,var7')
 
 class RecArrayTwoWriteTestCase(BasicTestCase):
     title = "RecArrayTwoWrite"
     expectedrows = 100
     recarrayinit = 1
-    recordtemplate=records.array(formats="4a,i4,i2,f8,f4,i2,1a",
+    recordtemplate=records.array(formats="a4,i4,i2,f8,f4,i2,a1",
                                   names='var1,var2,var3,var4,var5,var6,var7',
                                   shape=1)
 
@@ -494,7 +494,7 @@ class RecArrayThreeWriteTestCase(BasicTestCase):
     title = "RecArrayThreeWrite"
     expectedrows = 100
     recarrayinit = 1
-    recordtemplate=records.array(formats="4a,i4,i2,2f8,4f4,i2,1a",
+    recordtemplate=records.array(formats="a4,i4,i2,2f8,4f4,i2,a1",
                                   names='var1,var2,var3,var4,var5,var6,var7',
                                   shape=1)
 
@@ -978,7 +978,7 @@ class RecArrayIO(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        r=records.array('a'*200000,'r,3i,5a,s',3000)
+        r=records.array('a'*200000,'f4,3i4,a5,i2',3000)
 
         # Get an offsetted bytearray
         r1 = r[2000:]
@@ -1001,7 +1001,10 @@ class RecArrayIO(unittest.TestCase):
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
-    
+
+    #theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
+    #theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
+
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(DictWriteTestCase))

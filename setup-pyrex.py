@@ -75,19 +75,23 @@ if os.name == 'posix':
     # the environment or on the command line.
     # First check the environment...
     HDF5_DIR = os.environ.get('HDF5_DIR', '')
-    COMPR_DIR = os.environ.get('COMPR_DIR', '')
+    LZO_DIR = os.environ.get('LZO_DIR', '')
+    UCL_DIR = os.environ.get('UCL_DIR', '')
     LFLAGS = os.environ.get('LFLAGS', [])
     LIBS = os.environ.get('LIBS', [])
 
     # ...then the command line.
-    # Handle --hdf5=[PATH] --comprdir=[PATH] --libs=[LIBS] and --lflags=[FLAGS]
+    # Handle --hdf5=[PATH] --lzo=[PATH] --ucl=[PATH] --libs=[LIBS] and --lflags=[FLAGS]
     args = sys.argv[:]
     for arg in args:
         if string.find(arg, '--hdf5=') == 0:
             HDF5_DIR = string.split(arg, '=')[1]
             sys.argv.remove(arg)
-        if string.find(arg, '--comprdir=') == 0:
-            COMPR_DIR = string.split(arg, '=')[1]
+        if string.find(arg, '--lzo=') == 0:
+            LZO_DIR = string.split(arg, '=')[1]
+            sys.argv.remove(arg)
+        if string.find(arg, '--ucl=') == 0:
+            UCL_DIR = string.split(arg, '=')[1]
             sys.argv.remove(arg)
         elif string.find(arg, '--libs=') == 0:
             LIBS = string.split(string.split(arg, '=')[1])
@@ -163,11 +167,11 @@ compile and run."""
             print "###########################################################"
             sys.exit(1)
 
-            
+
     # Look for optional compression libraries (LZO and UCL)
     # figure out from the base setting where the lib and .h are
-    if COMPR_DIR:
-        lookup_directories = (COMPR_DIR, '/usr/', '/usr/local/')
+    if LZO_DIR:
+        lookup_directories = (LZO_DIR, '/usr/', '/usr/local/')
     else:
         lookup_directories = ('/usr/', '/usr/local/')
         
@@ -199,6 +203,13 @@ compile and run."""
         print """Optional LZO libraries or include files not found. Disabling \
 support for them."""
 
+    # Look for optional compression libraries (LZO and UCL)
+    # figure out from the base setting where the lib and .h are
+    if UCL_DIR:
+        lookup_directories = (UCL_DIR, '/usr/', '/usr/local/')
+    else:
+        lookup_directories = ('/usr/', '/usr/local/')
+        
     for instdir in lookup_directories:
         for ext in ('.a', '.so'):
             libucl = os.path.join(instdir, "lib/libucl"+ext)
@@ -342,7 +353,6 @@ compile and run."""
         
         sys.exit(1)
     else:
-        print "Found numarray %s package installed" % numarray.__version__
         if numarray.__version__ >= "0.6":
             print "Found numarray %s package installed" % numarray.__version__
         else:
@@ -350,7 +360,6 @@ compile and run."""
             print "You need numarray 0.6 or greather!. Exiting..."
             print "###########################################################"
             sys.exit(1)
-            
 
     # Set the appropriate flavor hdf5Extension.c source file:
     if pyrex:

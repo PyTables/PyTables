@@ -12,9 +12,10 @@ suggesting me to implement new capabilities, report on bugs, and
 supporting the PyTables project with contracts.
 
 Todd Miller and Perry Greenfield for promptly helping me to understand
-many of the intricacies of the numarray package.
+many of the intricacies of the numarray package. And also to Jin-chung
+Hsu for discussions on recarray module (now numarray.records module).
 
 Alan McIntyre for porting PyTables to Windows.
 
-The HDF5 team at NCSA for doing such an excellent library for data
-persistence. 
+The HDF5 team at NCSA for making such an excellent library for data
+persistence.

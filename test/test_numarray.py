@@ -327,7 +327,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test01_signedShort_unaligned(self):
         "Checking an unaligned signed short integer array"
 
-        r=records.array('a'*200,'b,f,s',10)        
+        r=records.array('a'*200,'i1,f4,i2',10)        
 	a = r.field("c3")
         # Ensure that this array is non-aligned
         assert a.isaligned() == 0
@@ -338,7 +338,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test02_float_unaligned(self):
         "Checking an unaligned single precision array"
 
-        r=records.array('a'*200,'b,f,s',10)        
+        r=records.array('a'*200,'i1,f4,i2',10)        
 	a = r.field("c2")
         # Ensure that this array is non-aligned
         assert a.isaligned() == 0
@@ -403,7 +403,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test09_float_offset_unaligned(self):
         "Checking an unaligned and offsetted single precision array"
 
-        r=records.array('a'*200,'b,3f,s',10)        
+        r=records.array('a'*200,'i1,3f4,i2',10)        
 	a = r.field("c2")[3]
         # Ensure that this array is non-aligned
         assert a.isaligned() == 0
@@ -415,7 +415,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test10_double_offset_unaligned(self):
         "Checking an unaligned and offsetted double precision array"
 
-        r=records.array('a'*400,'b,3d,s',10)        
+        r=records.array('a'*400,'i1,3f8,i2',10)        
 	a = r.field("c2")[3]
         # Ensure that this array is non-aligned
         assert a.isaligned() == 0

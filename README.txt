@@ -1,7 +1,7 @@
 README.txt
-PyTables 0.5 (second beta version)
+PyTables 0.6 (third beta version)
 http://pytables.sf.net/
-May 7, 2003
+Jun 17, 2003
 --------------------------------------
 
 The goal of PyTables is to enable the end user to manipulate easily
@@ -65,8 +65,8 @@ create files with sizes larger than 2 GB).
 
 This package has also been successfully compiled and tested on a
 UltraSparc platform with Solaris 7 and Solaris 8, a SGI Origin2000
-with MIPS R12000 processors running IRIX 6.5, and Windows XP (yes, a
-Windows version is available from 0.5 on).
+with MIPS R12000 processors running IRIX 6.5, and Microsoft Windows
+(yes, a Windows version is available from 0.5 on).
 
 Binary installation (Windows)
 -----------------------------
@@ -74,9 +74,9 @@ Binary installation (Windows)
 This section is only intended for Windows platforms. If you have Unix,
 or want to compile PyTables for Windows, jump to the next section.
 
-First, make sure that you have HDF5 1.4.x and numarray installed (I'm
-using HDF5 1.4.5 and numarray 0.5 currently). If don't, you can find
-them at http://hdf.ncsa.uiuc.edu/HDF5 and
+First, make sure that you have HDF5 1.4.x and numarray 0.6 or higher
+installed (I'm using HDF5 1.4.5-post2 and numarray 0.6 currently). If
+don't, you can find them at http://hdf.ncsa.uiuc.edu/HDF5 and
 http://sourceforge.net/projects/numpy/. Download the binary packages
 and install them. For the HDF5 it should be enough by manually copying
 the hdf5dll.dll file to a directory in your PATH environment variable.
@@ -110,9 +110,10 @@ are using Windows, it is assumed that you are using a recent version
 of MS Visual C++ (>= 6.0) compiler. A GCC compiler is asumed for Unix,
 but other compilers should work as well.
 
-1. First, make sure that you have HDF5 1.4.x and numarray installed
-   (I'm using HDF5 1.4.5 and numarray 0.5 currently). If don't, you
-   can find them at http://hdf.ncsa.uiuc.edu/HDF5 and
+1. First, make sure that you have HDF5 1.4.x and numarray 0.6 or
+   higher installed (I'm using HDF5 1.4.5-post2 and numarray 0.6
+   currently). If don't, you can find them at
+   http://hdf.ncsa.uiuc.edu/HDF5 and
    http://sourceforge.net/projects/numpy/. Compile/install them.
 
    Optionally, consider to install the excellent LZO and UCL
@@ -163,8 +164,8 @@ but other compilers should work as well.
    It is also possible to link against different libraries
    with the --libs switch:
 
-           --libs="-lhdf5-1.4.6"
-           --libs="-lhdf5-1.4.6 -lnsl"
+           --libs="-lhdf5-1.6"
+           --libs="-lhdf5-1.6 -lnsl"
 </Unix>
 
 <Windows>
@@ -192,7 +193,7 @@ but other compilers should work as well.
    specifying the directory containing the include and lib directory.
    For example:
 
-            --hdf5=c:\stuff\5-146-winVS\c\release --lzo=c:\stuff\lzo-1.07
+            --hdf5=c:\stuff\5-16-winVS\c\release --lzo=c:\stuff\lzo-1.08
             --ucl=c:\stuff\ucl-1.01
 
 </Windows>

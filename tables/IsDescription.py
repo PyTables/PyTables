@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.7 2003/06/11 10:48:45 falted Exp $
+#       $Id: IsDescription.py,v 1.8 2003/06/19 11:14:35 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.7 $"
+__version__ = "$Revision: 1.8 $"
 
 
 import warnings
@@ -37,7 +37,7 @@ import sys
 import numarray as NA
 #import recarray
 import numarray.records as records
-import recarray2
+#import recarray2
 
 from utils import checkNameValidity
 
@@ -79,7 +79,8 @@ class Col:
 
         if dtype in NA.typeDict:
             self.type = NA.typeDict[dtype]
-            self.recarrtype = recarray2.revfmt[self.type]
+            #self.recarrtype = recarray2.revfmt[self.type]
+            self.recarrtype = records.revfmt[self.type]
         elif dtype == "CharType" or isinstance(dtype, records.Char):
             self.type = records.CharType
             self.recarrtype = records.revfmt[self.type]
@@ -269,16 +270,17 @@ class metaIsDescription(type):
 """ % object
                 newdict['__slots__'].append(k)
                 newdict['__types__'][k] = object.type
-                #print "Passant per dflt. Key -->", k
                 if hasattr(object, 'dflt') and not object.dflt is None:
-                    #print "Passant per dflt2. Object -->", object.dflt
                     newdict['__dflts__'][k] = object.dflt
                 else:
-                    #print "Passant per testtype. Object -->", testtype(object)
                     newdict['__dflts__'][k] = testtype(object)
 
                 newdict['_v_fmt'] += str(object.shape[0]) + object.rectype
-                recarrfmt.append(str(object.shape[0]) + object.recarrtype)
+                # Special case for strings: "aN"
+                if object.recarrtype == "a":
+                    recarrfmt.append(object.recarrtype + str(object.shape[0]))
+                else:
+                    recarrfmt.append(str(object.shape[0]) + object.recarrtype)
                 newdict['_v_shapes'][k] = object.shape
 
         # Set up the alignment 
