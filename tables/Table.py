@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.54 2003/07/11 18:53:21 falted Exp $
+#       $Id: Table.py,v 1.55 2003/07/12 12:12:39 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.54 $"
+__version__ = "$Revision: 1.55 $"
 
 from __future__ import generators
 import sys
@@ -187,9 +187,6 @@ class Table(Leaf, hdf5Extension.Table, object):
     def _newBuffer(self, init=1):
         """Create a new recarray buffer for I/O purposes"""
 
-        #print "description -->", self.description
-        #print "recarrfmt -->", self.description._v_recarrfmt
-        #print "maxtuples -->", self._v_maxTuples
         recarr = records.array(None, formats=self.description._v_recarrfmt,
                                shape=(self._v_maxTuples,),
                                names = self.colnames)
@@ -257,9 +254,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Extract the shapes for columns
         self.colshapes = self.description._v_shapes
         self.colitemsizes = self.description._v_itemsizes
-        #print "coltypes (NEW) -->", self.coltypes
-        #print "colshapes (NEW) -->", self.colshapes
-        #print "colitemsizes (NEW) -->", self.colitemsizes
         # Compute the byte order
         self.byteorder = byteorderDict[self._v_fmt[0]]
         # Create the arrays for buffering
@@ -293,11 +287,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         rowsize = headerRA._itemsize
         # Get the column types
         coltypes = [str(f) for f in headerRA._fmt]
-        #print "coltypes (OLD) -->", coltypes
         # Get the column shapes
         colshapes = headerRA._repeats
-        #print "colshapes (OLD) -->", colshapes
-        #print "itemsizes (OLD) -->", headerRA._itemsizes
         # Build a dictionary with the types as values and colnames as keys
         fields = {}
         for i in range(len(self.colnames)):
@@ -351,13 +342,13 @@ class Table(Leaf, hdf5Extension.Table, object):
         for a row size of %s bytes.""" % (rowsize)
             
         self.rowsize = rowsize
-        bufmultfactor = 1000 * 10
+        # A bigger buffer makes the writing faster and reading slower (!)
+        #bufmultfactor = 1000 * 10
+        # A smaller buffer also makes the tests to not take too much memory
+        # We choose the smaller one
+        bufmultfactor = 1000 * 1
         # Counter for the binary tuples
         self._v_recunsaved = 0
-#         if fmt[0] not in "@=<>!":
-#             rowsizeinfile = struct.calcsize("=" + fmt)
-#         else:
-#             rowsizeinfile = rowsize
         rowsizeinfile = rowsize
         #print "Creating the table in file ==> ", self.file
         #print "Row size ==> ", rowsize
@@ -633,8 +624,6 @@ class Table(Leaf, hdf5Extension.Table, object):
             shape = tuple(shape2)
 
         # Create the resulting recarray
-        #print "shape -->", shape
-        #print "itemsize -->", itemsize
         if isinstance(typeField, records.Char):
             result = strings.array(shape=shape, itemsize=itemsize)
         else:
@@ -660,11 +649,9 @@ class Table(Leaf, hdf5Extension.Table, object):
             stopr = startr + ((stopb-startb-1)//step) + 1
             # Read a chunk
             nrowsread += self._read_records(i, nrowsinbuf)
-            #nrowsread += nrowsinbuf
             # Assign the correct part to result
             # The bottleneck is in this assignment. Hope that the numarray
             # people might improve this in the short future
-            #print buffer._repeats
             result[startr:stopr] = buffer._fields[field][startb:stopb:step]
             # Compute some indexes for the next iteration
             startr = stopr

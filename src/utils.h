@@ -46,6 +46,10 @@
 /* This number has to be syncronized with that on AttributeSet.py */ 
 #define MAX_ATTRS_IN_NODE  4096
 
+/* Maximum dimensions in an array */
+/* This number has been taken from numarray/numarray.h */ 
+#define MAXDIM  40
+
 /* Custom group iteration callback data */
 typedef struct {
     char name[NAMELEN];     /* The name of the object */

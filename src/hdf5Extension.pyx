@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.58 2003/07/11 13:13:06 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.59 2003/07/12 12:12:38 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.58 $"
+__version__ = "$Revision: 1.59 $"
 
 
 import sys, os
@@ -217,7 +217,9 @@ cdef extern from "numarray/libnumarray.h":
   object NA_Empty(int nd, int *d, NumarrayType type)
   object NA_updateDataPtr(object)
   object NA_getPythonScalar(object, long)
-  object NA_setFromPythonScalar  (object, int, object)
+  object NA_setFromPythonScalar(object, int, object)
+  #object NA_getPythonScalar(PyArrayObject, long)
+  #object NA_setFromPythonScalar(PyArrayObject, int, PyArrayObject)
 
   object PyArray_ContiguousFromObject(object op, int type,
                                       int min_dim, int max_dim)
@@ -677,7 +679,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.58 2003/07/11 13:13:06 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.59 2003/07/12 12:12:38 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1494,7 +1496,8 @@ cdef class Row:
   # This method is twice as faster than __getattr__ because there is
   # not a lookup in the local dictionary
   def __getitem__(self, fieldName):
-    cdef int index, offset
+    cdef int index
+    cdef long offset
 
     # Optimization follows for the case that the field dimension is
     # == 1, i.e. columns elements are scalars, and the column is not
@@ -1514,7 +1517,7 @@ cdef class Row:
         #  return None
         # This optimization sucks when using numarray 0.4!
         offset = self._row * self._strides
-        return NA_getPythonScalar(self._fields[fieldName], offset)
+        return NA_getPythonScalar(<object>self._fields[fieldName], offset)
         # return self._fields[fieldName][self._row]
       elif (self._enumtypes[index] == CHARTYPE):
         # CharType columns can only be unidimensional charrays right now,
@@ -1535,7 +1538,7 @@ cdef class Row:
             (fieldName, "Error was: \"%s: %s\"" % (type,value))
 
   # This is slightly faster (around 3%) than __setattr__
-  def __setitem__(self, fieldName, value):
+  def __setitem__(self, object fieldName, object value):
     try:
       self._fields[fieldName][self._unsavednrows] = value
     except:
@@ -1544,29 +1547,30 @@ cdef class Row:
             (fieldName, "Error was: \"%s: %s\"" % (type,value))
 
   # This "optimization" sucks when using numarray 0.4 and 0.5!
-  def __setitem__optim(self, fieldName, value):
-    cdef int index, offset
+#   def __setitem__optim(self, object fieldName, object value):
+#     cdef int index
+#     cdef long offset
 
-    try:
+#     try:
 
-      # Get the column index. This is very fast!
-      index = self._indexes[fieldName]
+#       # Get the column index. This is very fast!
+#       index = self._indexes[fieldName]
 
-      if (self._enumtypes[index] <> CHARTYPE and self._scalar[index]):
-        # This optimization sucks when using numarray 0.4 and 0.5!
-        offset = self._unsavednrows * self._strides
-        #print "self._row -->", self._row, fieldName, self._strides
-        #print "self._fields[fieldName] -->", self._fields[fieldName]
-        # if not NA_updateDataPtr(self._fields[fieldName]):
-        #  return None
-        NA_setFromPythonScalar(self._fields[fieldName], offset, value)
-        #self._fields[fieldName][self._unsavednrows] = value
-      else:
-        self._fields[fieldName][self._unsavednrows] = value
-    except:
-      (type, value, traceback) = sys.exc_info()
-      raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
-            (fieldName, "Error was: \"%s: %s\"" % (type,value))
+#       if (self._enumtypes[index] <> CHARTYPE and self._scalar[index]):
+#         # This optimization sucks when using numarray 0.4 and 0.5!
+#         offset = self._unsavednrows * self._strides
+#         #print "self._row -->", self._row, fieldName, self._strides
+#         #print "self._fields[fieldName] -->", self._fields[fieldName]
+#         # if not NA_updateDataPtr(self._fields[fieldName]):
+#         #  return None
+#         NA_setFromPythonScalar(self._fields[fieldName], offset, value)
+#         #self._fields[fieldName][self._unsavednrows] = value
+#       else:
+#         self._fields[fieldName][self._unsavednrows] = value
+#     except:
+#       (type, value, traceback) = sys.exc_info()
+#       raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
+#             (fieldName, "Error was: \"%s: %s\"" % (type,value))
 
   def __str__(self):
     """ represent the record as an string """

@@ -1,10 +1,12 @@
 #include "getfieldfmt.h"
+#include "utils.h"  /* To access the MAXDIM value */
 #include <stdio.h>
 
 #ifdef _MSC_VER
         /*
-        ** Compiling with Microsoft Visual C++; include TCHAR.H and use _snprintf
-        ** instead of snprintf, because Microsoft's stdio.h doesn't define snprintf.
+        ** Compiling with Microsoft Visual C++; include TCHAR.H and
+        ** use _snprintf instead of snprintf, because Microsoft's stdio.h
+	** doesn't define snprintf.
         */
         #include <TCHAR.H>
         #define snprintf _snprintf
@@ -20,7 +22,7 @@ int format_element(hid_t type_id,
 		   int position,
 		   char *format) 
 {
-  hsize_t dims[32];
+  hsize_t dims[MAXDIM];
   int ndims, i;
   size_t super_type_size;
   hid_t super_type_id; 
@@ -77,7 +79,7 @@ int format_element(hid_t type_id,
     snprintf(temp, 255, "a%d,", member_size);  /* Always a CharArray */
     strcat( format, temp );       /* string */
     break; /* case H5T_STRING */
-  case H5T_ARRAY:    /* WARNING: this only works for undimensional arrays! */
+  case H5T_ARRAY:
     /* Get the array base component */
     super_type_id = H5Tget_super( type_id );
  
@@ -105,17 +107,11 @@ int format_element(hid_t type_id,
 	 goto out; 
     
     /* Return this format as well as the array size */
-    /* We have problems here. The next snprintf does not work,
-     but a sprintf followed by a strcat does! and I do not know why...*/
-    /* snprintf(temp, 255, "%d %s", dims[0], arrfmt);*/
-/*     sprintf(temp, "%d", (int)dims[0]); */
-/*     strcat(temp, arrfmt); */
-
     t = temp;
     if (ndims > 1) {
       sprintf(t++, "(");
       for(i=0;i<ndims;i++) {
-	t += sprintf(t, "%d,", dims[i]);
+	t += sprintf(t, "%d,", (int)dims[i]);
       }
       t--; 			/* Delete the trailing comma */
       sprintf(t++, ")");
@@ -125,7 +121,6 @@ int format_element(hid_t type_id,
     }
     strcat(temp, arrfmt);
 
-/*     fprintf(stderr,"Array format ==> %s", temp); */
     strcat( format, temp );       /* string */
 
     break; /* case H5T_ARRAY */
@@ -177,8 +172,8 @@ herr_t getfieldfmt( hid_t loc_id,
   if ( ( size = H5Tget_size( type_id )) < 0 )
     goto out;
 
-  /* Start always the format string with '=' to mean that the data always
-     is returned in standard size and alignment */
+  /* Start always the format string with '=' to indicate that the data is
+     always returned in standard size and alignment */
   strcpy(fmt, "=");
   order = H5T_ORDER_NONE;  /* Initialize the byte order to NONE */
   /* Iterate thru the members */
@@ -214,7 +209,6 @@ herr_t getfieldfmt( hid_t loc_id,
 
       if ( ( class = H5Tget_class(member_type_id )) < 0)
 	goto out;
-      /* printf("Class ID --> %d", class); */
 
       if ( (class == H5T_INTEGER) ) /* Only class integer can be signed */
 	sign = H5Tget_sign(member_type_id);

@@ -3,6 +3,7 @@
 # Setup script for the tables package
 
 import sys, os, string
+from os.path import exists
 
 if not (sys.version_info[0] >= 2 and sys.version_info[1] >= 2):
     print "################################################################"
@@ -376,14 +377,15 @@ else:
         open('src/version.h', 'w').write('#define PYTABLES_VERSION "%s"\n' % VERSION)
 
 # Generate a proper extension file for Windows
-if newer('src/hdf5Extension.c', 'src/hdf5Extension-win.c'):
-    filein=open("src/hdf5Extension.c","r")
-    fileout=open("src/hdf5Extension-win.c","w")
-    for line in filein:
-        fileout.write(line.replace("long long", "LL_TYPE"))
+if exists('src/hdf5Extension.c'):
+    if newer('src/hdf5Extension.c', 'src/hdf5Extension-win.c'):
+        filein=open("src/hdf5Extension.c","r")
+        fileout=open("src/hdf5Extension-win.c","w")
+        for line in filein:
+            fileout.write(line.replace("long long", "LL_TYPE"))
 
-    filein.close()
-    fileout.close()
+        filein.close()
+        fileout.close()
 
 setup(name = 'tables',
       version = VERSION,

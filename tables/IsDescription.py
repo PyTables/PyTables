@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.11 2003/07/11 13:13:06 falted Exp $
+#       $Id: IsDescription.py,v 1.12 2003/07/12 12:12:38 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.11 $"
+__version__ = "$Revision: 1.12 $"
 
 
 import warnings
@@ -65,16 +65,18 @@ class Col:
 
         self.pos = pos
 
-        if shape != None and shape != 0 and shape != (0,):
-            if type(shape) in [types.IntType, types.LongType]:
-                self.shape = shape
-            elif type(shape) in [types.ListType, types.TupleType]:
-                self.shape = tuple(shape)
-            else:
-                raise ValueError, "Illegal shape '%s'" % `shape`
+        assert shape != None and shape != 0 and shape != (0,), \
+               "None or zero-valued shapes are not supported '%s'" % `shape`
+
+        if type(shape) in [types.IntType, types.LongType]:
+            self.shape = shape
+        elif type(shape) in [types.ListType, types.TupleType]:
+            # HDF5 does not support ranks greater than 32
+            assert len(shape) <= 32, \
+               "Shapes with rank > 32 are not supported '%s'" % `shape`
+            self.shape = tuple(shape)
         else:
-            raise ValueError, \
-                  "None or zero-valued shapes are not supported '%s'" % `shape`
+            raise ValueError, "Illegal shape object: '%s'" % `shape`
 
         self.dflt = dflt
 

@@ -7,6 +7,7 @@
 #include <limits.h>
 #include <ctype.h>
 #include "calcoffset.h"
+#include "utils.h"  /* To access the MAXDIM value */
 
 /* Define this as 1 if native alignment is needed, although this
    doesn't seem to be necessary. Before pytables 0.6 this was
@@ -16,9 +17,6 @@
 #ifndef ALIGN
 #define ALIGN 0
 #endif
-
-/* The maximum number of dimensions */
-#define MAX_DIMS 32
 
 static const formatdef *whichtable(char **pfmt)
 {
@@ -72,7 +70,7 @@ static hid_t conventry(int c, int rank, hsize_t *dims)
 {
    hid_t string_type;
    int native, i;
-   hsize_t shape[MAX_DIMS];
+   hsize_t shape[MAXDIM];
 
    if (rank == 1 && dims[0] == 1 )
      native = 1;
@@ -175,7 +173,6 @@ static hid_t conventry(int c, int rank, hsize_t *dims)
     case 's':
       string_type = H5Tcopy(H5T_C_S1);
       H5Tset_size(string_type, dims[rank-1]);
-/*       printf("dims[0] --> %d\n ", dims[rank-1]); */
       if (rank == 1) {
 	return string_type;
       }
@@ -183,7 +180,6 @@ static hid_t conventry(int c, int rank, hsize_t *dims)
 	/* Build a shape array with rank-1 elements */
 	for(i=0; i<rank-1; i++) {
 	  shape[i] = dims[i];
-/* 	  printf("shape --> %d\n ", shape[i]); */
 	}
 	return H5Tarray_create(string_type, rank-1, shape, NULL);
       }
@@ -224,9 +220,9 @@ int calcoffset(char *fmt, int *nattrs, hid_t *types,
 {
    const formatdef *f, *e;
    const char *s;
-   hsize_t shape[MAX_DIMS];
+   hsize_t shape[MAXDIM];
    char c;
-   int rank, ndim, i;
+   int ndim;
    int size, num, itemsize, x;
    hid_t hdf5type;
    char byteorder;
