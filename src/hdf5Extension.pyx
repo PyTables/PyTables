@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.140 2004/09/17 11:51:48 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.141 2004/09/22 17:13:03 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.140 $"
+__version__ = "$Revision: 1.141 $"
 
 
 import sys, os
@@ -207,8 +207,8 @@ cdef extern from "numarray/numarray.h":
   void import_libnumarray()
   #void import_array()
     
-# The Numeric API requires this function to be called before
-# using any Numeric facilities in an extension module.
+# The numarray API requires this function to be called before
+# using any numarray facilities in an extension module.
 import_libnumarray()
 #import_array()
 
@@ -933,7 +933,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.140 2004/09/17 11:51:48 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.141 2004/09/22 17:13:03 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1522,9 +1522,6 @@ cdef class Leaf:
     H5Dclose( dataset_id )
 
 
-#     print "self.objectID -->", str(self), self.objectID
-#     H5Fflush(self.objectID, H5F_SCOPE_GLOBAL) 
-
 cdef class Table:
   # instance variables
   cdef size_t  field_offset[MAX_FIELDS]
@@ -1666,23 +1663,6 @@ cdef class Table:
         raise RuntimeError("Problems closing table for append.")
 
     self._open = 0
-
-# The version below works for non-strided recarrays only
-#   def _modify_records(self, hsize_t start, object recarr):
-#     cdef int ret
-#     cdef void *rbuf
-#     cdef hsize_t nrecords
-
-#     # Get the pointer to the buffer data area
-#     buflen = NA_getBufferPtrAndSize(recarr._data, 1, &rbuf)
-
-#     # Modify the records:
-#     nrecords = len(recarr)
-#     ret = H5TBwrite_records(self.parent_id, self.name,
-#                             start, nrecords, self.rowsize,
-#                             self.field_offset, rbuf )
-#     if ret < 0:
-#       raise RuntimeError("Problems modifying the records.")
 
   def _modify_records(self, hsize_t start, hsize_t stop,
                        hsize_t step, object recarr):
@@ -2904,7 +2884,6 @@ cdef class IndexArray(Array):
   def _readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):
     "Read the sorted part of an index"
 
-    #printf("rbuflb-->%x\n", self.rbuflb)
     ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id, self.type_id2,
                                  irow, start, stop, self.rbuflb)
     if ret < 0:

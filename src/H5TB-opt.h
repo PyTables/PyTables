@@ -19,7 +19,7 @@ herr_t H5TBOopen_read( hid_t *dataset_id,
 		       hsize_t nfields,
 		       char **field_names,
 		       size_t type_size,
-		       const size_t *field_offset );
+		       size_t *field_offset );
 
 herr_t H5TBOread_records( hid_t *dataset_id, hid_t *space_id,
 			  hid_t *mem_type_id, hsize_t start,

@@ -217,10 +217,8 @@ herr_t getfieldfmt( hid_t loc_id,
   hid_t         type_id;    
   hid_t         member_type_id;
   int           i;
-/*   int           has_attr; */
-/*   int           n[1]; */
   size_t        itemsize;
-  size_t        offset = 0;
+  size_t        offset=0;
   H5T_class_t   class;
   H5T_sign_t    sign;
   H5T_order_t   order;
@@ -241,8 +239,50 @@ herr_t getfieldfmt( hid_t loc_id,
     goto out;
 
   /* Get the type size */
-  if ( ( *rowsize = H5Tget_size( type_id )) < 0 )
-    goto out;
+/*   if ( ( *rowsize = H5Tget_size( type_id )) < 0 ) */
+/*     goto out; */
+  /* The size of type will be determined by the sum of the sizes of
+     the components. This is to manage situations where there are
+     "gaps" in the definition of original compound types (mainly Table
+     objects created by other software than PyTables. For example, in:
+
+    Type:      struct {
+                   "instrumentModeId" +16   32-bit big-endian integer
+                   "julianTimetag"    +0    IEEE 64-bit big-endian float
+                   "version"          +12   32-bit big-endian integer
+                   "minWavelength"    +24   IEEE 64-bit big-endian float
+                   "maxWavelength"    +32   IEEE 64-bit big-endian float
+                   "irradiance"       +40   IEEE 64-bit big-endian float
+                   "irradianceUncertainty" +48   IEEE 64-bit big-endian float
+                   "quality"          +56   IEEE 64-bit big-endian float
+               } 64 bytes
+
+     there are a couple of "holes" between "julianTimetag" and
+     "version" fields and betweend "instrumentModeId" and "minWavelength"
+
+     By creating a new compound type without "holes", it can be
+     directly mapped to a numarray.records.RecArray object. For
+     example, this routine will create the following record structure:
+
+    Type:      struct {
+                   "instrumentModeId" +0    32-bit big-endian integer
+                   "julianTimetag"    +4    IEEE 64-bit big-endian float
+                   "version"          +12   32-bit big-endian integer
+                   "minWavelength"    +16   IEEE 64-bit big-endian float
+                   "maxWavelength"    +24   IEEE 64-bit big-endian float
+                   "irradiance"       +32   IEEE 64-bit big-endian float
+                   "irradianceUncertainty" +40   IEEE 64-bit big-endian float
+                   "quality"          +48   IEEE 64-bit big-endian float
+               } 56 bytes
+
+     which has a much better behaviour for RecArray use purposes.
+
+     Thanks to Stephen Walton for reporting this example.
+
+     F. Alted 2004-09-22
+
+ */
+  *rowsize = 0;
 
   /* Get records */
   /* Get the dataspace handle */
@@ -256,38 +296,6 @@ herr_t getfieldfmt( hid_t loc_id,
     goto out;
     
   *nrecords = dims[0];
-
-  /* This version of getting the nrecords works, but it's slower,
-     because NROWS is not widely implemented yet, and, in addition,
-     perhaps reading an atribute maybe slower than calling
-     H5Sget_simple_extent_dims.
-     2003/09/17 */
-
-/*   /\* Try to find the attribute "NROWS" *\/ */
-/*   has_attr = H5LT_find_attribute( dataset_id, "NROWS" ); */
-
-/*   /\* It exists, get it *\/ */
-/*   if ( has_attr == 1 ) { */
-/*     /\* Get the attribute *\/ */
-/*     if ( H5LTget_attribute_int( loc_id, dset_name, "NROWS", n ) < 0 ) */
-/*       goto out; */
-
-/*     *nrecords = *n; */
-
-/*   } */
-/*   else { */
-/*     /\* Get the dataspace handle *\/ */
-/*     if ( (space_id = H5Dget_space( dataset_id )) < 0 ) */
-/*       goto out; */
-/*     /\* Get the number of records *\/ */
-/*     if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 ) */
-/*       goto out; */
-/*     /\* Terminate access to the dataspace *\/ */
-/*     if ( H5Sclose( space_id ) < 0 ) */
-/*       goto out; */
-    
-/*     *nrecords = dims[0]; */
-/*   } */
 
   /* Start always the format string with '=' to indicate that the data is
      always returned in standard size and alignment */
@@ -329,8 +337,10 @@ herr_t getfieldfmt( hid_t loc_id,
       if ( ( itemsize = H5Tget_size( member_type_id )) < 0 )
 	goto out;
       field_sizes[i] = itemsize;
+      *rowsize += itemsize;
 
       /* The offset of this element */
+/*       field_offset[i] = H5Tget_member_offset(type_id, i); */
       field_offset[i] = offset;
       offset += itemsize;
 

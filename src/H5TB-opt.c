@@ -30,7 +30,7 @@ herr_t H5TBOopen_read( hid_t *dataset_id,
 		       hsize_t nfields,
 		       char **field_names,
 		       size_t type_size,
-		       const size_t *field_offset)
+		       size_t *field_offset)
 {
  hid_t    type_id;    
  hid_t    member_type_id;
@@ -48,7 +48,8 @@ herr_t H5TBOopen_read( hid_t *dataset_id,
  if ((*mem_type_id = H5Tcreate (H5T_COMPOUND, type_size )) < 0 )
   return -1;
 
- /* Insert fields on the memory data type. We use the types from disk */
+ /* Insert fields on the memory data type. We use the same types as in
+    disk */
  for ( i = 0; i < nfields; i++) 
  {
 
@@ -531,7 +532,6 @@ herr_t H5TBOwrite_records( hid_t loc_id,
  /* Insert fields on the memory data type. We use the types from disk */
  for ( i = 0; i < nfields; i++) 
  {
-
   /* Get the member type */
   if ( ( member_type_id = H5Tget_member_type( type_id,(int) i )) < 0 )
    goto out;

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.18 2004/06/18 12:31:08 falted Exp $
+#       $Id: EArray.py,v 1.19 2004/09/22 17:13:04 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.18 $"
+__version__ = "$Revision: 1.19 $"
 # default version for EARRAY objects
 obversion = "1.0"    # initial version
 
@@ -121,6 +121,83 @@ class EArray(Array, hdf5Extension.Array, object):
         else:
             self._v_new = 0
             
+    def _create(self):
+        """Save a fresh array (i.e., not present on HDF5 file)."""
+        global obversion
+
+        assert isinstance(self.atom, Atom), "The object passed to the IndexArray constructor must be a descendent of the Atom class."
+        assert isinstance(self.atom.shape, types.TupleType), "The Atom shape has to be a tuple for IndexArrays, and you passed a '%s' object." % (self.atom.shape)
+        # Version, type, shape, flavor, byteorder
+        self._v_version = obversion
+        self.type = self.atom.type
+        self.shape = self.atom.shape
+        self.flavor = self.atom.flavor        
+        if self.type == "CharType" or isinstance(self.type, records.Char):
+            self.byteorder = "non-relevant"
+        else:
+            # Only support for creating objects in system byteorder
+            self.byteorder  = sys.byteorder
+        
+        # extdim computation
+        zerodims = numarray.sum(numarray.array(self.shape) == 0)
+        if zerodims > 0:
+            if zerodims == 1:
+                self.extdim = list(self.shape).index(0)
+            else:
+                raise NotImplementedError, \
+                      "Multiple enlargeable (0-)dimensions are not supported."
+        else:
+            raise ValueError, \
+                  "When creating EArrays, you need to set one of the dimensions of the Atom instance to zero."
+
+        # Compute some values for buffering and I/O parameters
+        # Compute the rowsize for each element
+        self.rowsize = self.atom.atomsize()
+        # Compute the optimal chunksize
+        (self._v_buffersize, self._v_maxTuples, self._v_chunksize) = \
+           self._calcBufferSize(self.atom, self.extdim, self._v_expectedrows,
+                                self.filters.complevel)
+        self.nrows = 0   # No rows initially
+        self.itemsize = self.atom.itemsize
+        self._createEArray("EARRAY", self._v_new_title)
+
+    def _checkTypeShape(self, naarr):
+        "Test that naarr parameter is shape and type compliant"
+        # Check the type
+        if not hasattr(naarr, "type"):  # To deal with string objects
+            datatype = records.CharType
+            # Made an additional check for strings
+            if naarr.itemsize() <> self.itemsize:
+                raise TypeError, \
+"""The object '%r' has not a base string size of '%s'.""" % \
+(naarr, self.itemsize)
+        else:
+            datatype = naarr.type()
+        #print "datatype, self.type:", datatype, self.type
+        if str(datatype) <> str(self.type):
+            raise TypeError, \
+"""The object '%r' is not composed of elements of type '%s'.""" % \
+(naarr, self.type)
+
+        # The arrays conforms self expandibility?
+        assert len(self.shape) == len(naarr.shape), \
+"Sorry, the ranks of the EArray %r (%d) and object to be appended (%d) differ." % (self._v_pathname, len(self.shape), len(naarr.shape))
+        for i in range(len(self.shape)):
+            if i <> self.extdim:
+                assert self.shape[i] == naarr.shape[i], \
+"Sorry, shapes of EArray '%r' and object differ in non-enlargeable dimension (%d) " % (self._v_pathname, i) 
+        # Ok. all conditions are met. Return the numarray object
+        return naarr
+            
+    def append(self, object):
+        """Append the object to this (enlargeable) object"""
+
+        # Convert the object into a numarray object
+        naarr = convertIntoNA(object, self.atom)
+        # Check if it is correct type and shape
+        naarr = self._checkTypeShape(naarr)
+        self._append(naarr)
+
     def _calcBufferSize(self, atom, extdim, expectedrows, compress):
         """Calculate the buffer size and the HDF5 chunk size.
 
@@ -201,87 +278,7 @@ class EArray(Array, hdf5Extension.Array, object):
         for i in chunksizes:
             newrowsize *= i
         maxTuples = buffersize // newrowsize
-
-        #print "bufsize, maxTuples, chunksizes -->", (buffersize, maxTuples, chunksizes)
-#         sys.exit(0)
         return (buffersize, maxTuples, chunksizes)
-
-    def _create(self):
-        """Save a fresh array (i.e., not present on HDF5 file)."""
-        global obversion
-
-        assert isinstance(self.atom, Atom), "The object passed to the IndexArray constructor must be a descendent of the Atom class."
-        assert isinstance(self.atom.shape, types.TupleType), "The Atom shape has to be a tuple for IndexArrays, and you passed a '%s' object." % (self.atom.shape)
-        # Version, type, shape, flavor, byteorder
-        self._v_version = obversion
-        self.type = self.atom.type
-        self.shape = self.atom.shape
-        self.flavor = self.atom.flavor        
-        if self.type == "CharType" or isinstance(self.type, records.Char):
-            self.byteorder = "non-relevant"
-        else:
-            # Only support for creating objects in system byteorder
-            self.byteorder  = sys.byteorder
-        
-        # extdim computation
-        zerodims = numarray.sum(numarray.array(self.shape) == 0)
-        if zerodims > 0:
-            if zerodims == 1:
-                self.extdim = list(self.shape).index(0)
-            else:
-                raise NotImplementedError, \
-                      "Multiple enlargeable (0-)dimensions are not supported."
-        else:
-            raise ValueError, \
-                  "When creating EArrays, you need to set one of the dimensions of the Atom instance to zero."
-
-        # Compute some values for buffering and I/O parameters
-        # Compute the rowsize for each element
-        self.rowsize = self.atom.atomsize()
-        # Compute the optimal chunksize
-        (self._v_buffersize, self._v_maxTuples, self._v_chunksize) = \
-           self._calcBufferSize(self.atom, self.extdim, self._v_expectedrows,
-                                self.filters.complevel)
-        self.nrows = 0   # No rows initially
-        self.itemsize = self.atom.itemsize
-        self._createEArray("EARRAY", self._v_new_title)
-
-    def _checkTypeShape(self, naarr):
-        "Test that naarr parameter is shape and type compliant"
-        # Check the type
-        if not hasattr(naarr, "type"):  # To deal with string objects
-            datatype = records.CharType
-            # Made an additional check for strings
-            if naarr.itemsize() <> self.itemsize:
-                raise TypeError, \
-"""The object '%r' has not a base string size of '%s'.""" % \
-(naarr, self.itemsize)
-        else:
-            datatype = naarr.type()
-        #print "datatype, self.type:", datatype, self.type
-        if str(datatype) <> str(self.type):
-            raise TypeError, \
-"""The object '%r' is not composed of elements of type '%s'.""" % \
-(naarr, self.type)
-
-        # The arrays conforms self expandibility?
-        assert len(self.shape) == len(naarr.shape), \
-"Sorry, the ranks of the EArray %r (%d) and object to be appended (%d) differ." % (self._v_pathname, len(self.shape), len(naarr.shape))
-        for i in range(len(self.shape)):
-            if i <> self.extdim:
-                assert self.shape[i] == naarr.shape[i], \
-"Sorry, shapes of EArray '%r' and object differ in non-enlargeable dimension (%d) " % (self._v_pathname, i) 
-        # Ok. all conditions are met. Return the numarray object
-        return naarr
-            
-    def append(self, object):
-        """Append the object to this (enlargeable) object"""
-
-        # Convert the object into a numarray object
-        naarr = convertIntoNA(object, self.atom)
-        # Check if it is correct type and shape
-        naarr = self._checkTypeShape(naarr)
-        self._append(naarr)
 
     def _open(self):
         """Get the metadata info for an array in file."""

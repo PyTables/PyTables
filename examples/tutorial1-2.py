@@ -60,7 +60,7 @@ for leaf in h5file.listNodes("/detector", 'Leaf'):
 
 # Other way using iterators and natural naming
 print "Leafs in group '/detector' (II):"
-for leaf in h5file.root.detector('Leaf'):
+for leaf in h5file.root.detector._f_walkNodes('Leaf'):
     print leaf
 
 

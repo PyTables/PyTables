@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.86 2004/09/20 13:12:09 falted Exp $
+#       $Id: File.py,v 1.87 2004/09/22 17:13:04 falted Exp $
 #
 ########################################################################
 
@@ -34,7 +34,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.86 $"
+__version__ = "$Revision: 1.87 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -187,9 +187,8 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
             
             elif not hdf5Extension.isPyTablesFile(path):
                 warnings.warn( \
-"""'%s' does exist, is an HDF5 file, but has not a PyTables format.
-  Trying to guess what's here from HDF5 metadata. I can't promise you getting
-  the correct objects, but I will do my best!."""  % path, UserWarning)
+"""'%s' does exist, is an HDF5 file, but has not a PyTables format. Trying to guess what's there using HDF5 metadata. I can't promise you getting the correct objects, but I will do my best!."""  % path, UserWarning)
+  
                 isPTFile = 0
                     
     elif (mode == "w"):

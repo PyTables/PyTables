@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.129 2004/09/20 13:12:10 falted Exp $
+#       $Id: Table.py,v 1.130 2004/09/22 17:13:04 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.129 $"
+__version__ = "$Revision: 1.130 $"
 
 from __future__ import generators
 import sys
@@ -888,8 +888,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         if start + lenrows > self.nrows:
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
-        #print "start, stop, step, recarray-->", start, stop, step, recarray
-        #self._modify_records(start, recarray)
         self._modify_records(start, stop, step, recarray)
         # Redo the index if needed
         if self.indexed:
@@ -943,7 +941,6 @@ class Table(Leaf, hdf5Extension.Table, object):
                 raise KeyError, \
                       "Column '%s' does not exists on table"
         # Try to convert the object columns into a recarray
-        #print "before conversion-->", columns
         try:
             if isinstance(columns, records.RecArray):
                 recarray = records.array(columns, formats=formats,
@@ -962,7 +959,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             (type, value, traceback) = sys.exc_info()
             raise ValueError, \
 "columns parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), value)
-        #print "after conversion-->", recarray
+
         if stop is None:
             # compute the stop value. start + len(rows)*step does not work
             stop = start + (len(recarray)-1)*step + 1

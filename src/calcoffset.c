@@ -9,10 +9,10 @@
 #include "utils.h"
 
 /* For the sake of code simplicity I've stripped out all the alignment
-   stuff, as it seems not necessary for HDF5. If it is needed, you can
-   find the complete code version in CVS with tag 1.7.
-   F. Alted 2004-09-16 */
-
+   stuff. It not necessary because the offset for each element on
+   Table struct is computed prior to read the data. If, for any
+   reason, it is needed again, you can find the complete code version
+   in CVS with tag 1.7.  F. Alted 2004-09-16 */
 
 /* Get the correct HDF5 type for a format code.
  * I can't manage to do the mapping with a table because
