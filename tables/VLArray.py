@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.13 2003/12/27 22:54:34 falted Exp $
+#       $Id: VLArray.py,v 1.14 2003/12/28 23:23:25 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.13 $"
+__version__ = "$Revision: 1.14 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -349,7 +349,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         if str(datatype) <> str(self.atom.type):
             raise TypeError, \
 """The object '%s' is not composed of elements of type '%s'.""" % \
-(arr, self.atom.type)
+(naarr, self.atom.type)
 
         if len(naarr):
             if hasattr(naarr, "shape") and naarr.shape == self.atom.shape:
@@ -373,7 +373,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         return naarr
             
     def append(self, *objects):
-        """Append the object to this enlargeable object"""
+        """Append the objects to this enlargeable object"""
 
         # To make append([1,0,1]) equivalent to append(1,0,1)
         if len(objects) == 1:

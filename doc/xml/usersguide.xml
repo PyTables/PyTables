@@ -1038,19 +1038,20 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	<caption>Blaise Pascal</caption>
       </aphorism>
 
-      <p>This chapter consists of a series of simple yet comprehensive 
-	tutorials that will enable you to understand <verb>PyTables</verb>' 
-	main features. If you would like more information about some 
-	particular instance variable, global function, or method, look at 
-	the doc strings or go to the library reference in <ref
-	refid="libraryReference">chapter</ref>. If you are
-        reading this in PDF or HTML formats, follow the corresponding 
-        hyperlink near each newly introduced entity.
+      <p>This chapter consists of a series of simple yet comprehensive
+	tutorials that will enable you to understand
+	<verb>PyTables</verb>' main features. If you would like more
+	information about some particular instance variable, global
+	function, or method, look at the doc strings or go to the
+	library reference in <ref
+	refid="libraryReference">chapter</ref>. If you are reading
+	this in PDF or HTML formats, follow the corresponding
+	hyperlink near each newly introduced entity.
       </p>
 
       <p>Please note that throughout this document the terms
 	<em>column</em> and <em>field</em> will be used
-	interchangeably, as will the terms <em>row</em> and 
+	interchangeably, as will the terms <em>row</em> and
 	<em>record</em>.
       </p>
 
@@ -1399,12 +1400,13 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	  <p>You will recognize the last two lines as a Python list
 	    comprehension. It loops over the rows in <em>table</em> as
 	    they are provided by the <verb>table.iterrows()</verb>
-	    iterator (see <ref refid="iterrowsTableDescr"></ref>). The iterator
-	    returns values until all the data in table is exhausted. These
-	    rows are filtered using the expression <verb>x['TDCcount']
-	    > 3 and x['pressure'] &lt; 50</verb>. We select the value of
-	    the <verb>pressure</verb> column from filtered records to
-	    to create the final list and assign it to
+	    iterator (see <ref refid="iterrowsTableDescr"></ref>). The
+	    iterator returns values until all the data in table is
+	    exhausted. These rows are filtered using the expression
+	    <verb>x['TDCcount'] > 3 and x['pressure'] &lt;
+	    50</verb>. We select the value of the
+	    <verb>pressure</verb> column from filtered records to to
+	    create the final list and assign it to
 	    <verb>pressure</verb> variable.
 	  </p>
 
@@ -3027,7 +3029,7 @@ AttributeError: Error setting "ADCcount" attr.
                </item>
 	      <term>name</term> <item>The name of the new table.
               </item>
-	      <term>vlarray</term> <item>A VLAtom object representing
+	      <term>vlatom</term> <item>A VLAtom object representing
                 the shape, type and flavor of the atomic object to be
                 saved.
               </item>
@@ -3652,9 +3654,8 @@ AttributeError: Error setting "ADCcount" attr.
 	<heading>The <visual markup="tt">Table</visual> class</heading>
 
 	<p>Instances of this class represents table objects in the
-	  object tree. It provides methods to create new tables or
-	  open existing ones, as well as methods to read/write data
-	  and metadata from/to table objects in the file.
+	  object tree. It provides methods to read/write data and
+	  from/to table objects in the file.
 	</p>
 	<p>Data can be read from or written to tables by accessing to
 	  an special object that hangs from <verb>Table</verb>. This
@@ -3663,8 +3664,8 @@ AttributeError: Error setting "ADCcount" attr.
 	  sections <ref refid="usage">chapter</ref> on how to use the
 	  <verb>Row</verb> interface.
 	</p>
-	<p>Please note that this object inherits all the public
-	  attributes and methods that <verb>Leaf</verb> already has.
+	<p>Note that this object inherits all the public attributes
+	  and methods that <verb>Leaf</verb> already has.
 	</p>
 
 	<subsection>
@@ -3734,45 +3735,33 @@ AttributeError: Error setting "ADCcount" attr.
 	  </subsubsection>
 
 	  <subsubsection>
-	    <heading id="readDescr">read(self, start=None, stop=None,
+	    <heading id="readTableDescr">read(start=None, stop=None,
 	      step=None, field=None, flavor=None)</heading>
 
 	    <p>Returns the actual data in <verb>Table</verb>. If
 	      <em>field</em> is not supplied, it returns the data as a
 	      <verb>RecArray</verb> object table.
 	    </p>
+
+	    <p>The exact meaning of the <em>start</em>, <em>stop</em>
+	      and <em>step</em> parameters are the same as in the
+	      previously described <verb>Table.iterrows()</verb>
+	      method (see <ref refid="iterrowsTableDescr"></ref>).
+	    </p>
+
 	    <description>
-
-		<term>start</term> <item>Sets the starting row to
-		  return data. A value of 0 means the first row. It
-		  accepts negative values meaning that the count
-		  starts from the end.</item>
-
-		<term>stop</term> <item>Sets the last row to be
-		  returned to <em>stop - 1</em>, i.e. the end point is
-		  omitted (in the Python <verb>range</verb>
-		  tradition). It accepts, likewise <em>start</em>,
-		  negative values. A special value of 0 means the last
-		  row.
-		</item>
-
-		<term>step</term> <item>When step is given, it
-		  specifies the increment. Negative values are not
-		  allowed right now.</item>
-
-		<term>field</term> <item>If specified, only the column
-		  <em>field</em> is returned as a
-		  <verb>NumArray</verb> object. If this is not
-		  supplied, all the fields are selected and a
-		  <verb>RecArray</verb> is returned.</item>
-
-		<term>flavor</term> <item>When a field in table is
-		  selected, passing a <em>flavor</em> parameter make
-		  an additional conversion to happen in the default
-		  <verb>NumArray</verb> object. <em>flavor</em> must
-		  have any of the next values: <verb>Numeric</verb>,
-		  <verb>Tuple</verb> or <verb>List</verb>. </item>
-
+	      <term>field</term> <item>If specified, only the column
+		<em>field</em> is returned as a <verb>NumArray</verb>
+		object. If this is not supplied, all the fields are
+		selected and a <verb>RecArray</verb> is returned.
+	      </item>
+	      <term>flavor</term> <item>When a field in table is
+		selected, passing a <em>flavor</em> parameter make an
+		additional conversion to happen in the default
+		<verb>NumArray</verb> object. <em>flavor</em> must
+		have any of the next values: <verb>Numeric</verb>,
+		<verb>Tuple</verb> or <verb>List</verb>.
+	      </item>
 	    </description>
 	  </subsubsection>
 
@@ -3855,14 +3844,14 @@ AttributeError: Error setting "ADCcount" attr.
 
 	    <verbatim>
 	      result = [ row['var2'] for row in table 
-                                      if row['var1'] &lt;= 20 ]
+                                     if row['var1'] &lt;= 20 ]
 	    </verbatim>
 
 	    <p>Which is equivalent to:</p>
 
 	    <verbatim>
 	      result = [ row['var2'] for row in table.iterrows() 
-                          	      if row['var1'] &lt;= 20 ]
+                                     if row['var1'] &lt;= 20 ]
 	    </verbatim>
 
 	  </subsubsection>
@@ -3952,14 +3941,12 @@ AttributeError: Error setting "ADCcount" attr.
 	<heading>The <visual markup="tt">Array</visual>
 	class</heading>
 
-	<p>Represents an array on file. It provides methods to create
-	  new arrays or open existing ones, as well as methods to
-	  write/read data and metadata to/from array objects in the
-	  file. It inherits from <verb>Leaf</verb> (see <ref
-	  refid="LeafClassDescr"></ref>). This class does not allow to
-	  enlarge the datasets on disk; see <ref
-	  refid="EArrayClassDescr"></ref> if you want enlargeable
-	  dataset support.
+	<p>Represents an array on file. It provides methods to
+	  write/read data to/from array objects in the file. This
+	  class does not allow to enlarge the datasets on disk; see
+	  the <verb>EArray</verb> descendant in <ref
+	  refid="EArrayClassDescr">section</ref> if you want
+	  enlargeable dataset support and/or compression features.
 	</p>
 
 	<p><visual markup="bf">Caveat:</visual> All
@@ -3972,9 +3959,8 @@ AttributeError: Error setting "ADCcount" attr.
 	  refid="datatypesSupported">appendix</ref>.
 	</p>
 
-	<p>Please note that this object inherits all the public
-	  attributes and methods from <verb>Leaf</verb> already
-	  provides.
+	<p>Note that this object inherits all the public attributes
+	  and methods from <verb>Leaf</verb> already provides.
 	</p>
 
 	<subsection id="ArrayClassInstanceVariables">
@@ -3987,7 +3973,7 @@ AttributeError: Error setting "ADCcount" attr.
 	      <em>"List"</em>, <em>"Tuple"</em>, <em>"String"</em>,
 	      <em>"Int"</em> or <em>"Float"</em> values.
 	    </item>
-	    <term>nrows</term> <item>The value of the first dimension
+	    <term>nrows</term> <item>The length of the first dimension
 	      of Array.
 	    </item>
 	    <term>nrow</term> <item>On iterators, this is the index of
@@ -4020,69 +4006,45 @@ AttributeError: Error setting "ADCcount" attr.
 	      stop=None, step=None)</heading>
 
 	    <p>Returns an iterator yielding NumArray instances built
-	      from rows in array. If a range is supplied (i.e. some of
-	      the <em>start</em>, <em>stop</em> or <em>step</em>
-	      parameters are passed), only the appropriate rows are
-	      returned. Else, all the rows are returned. See also the
-	      <verb>__call__()</verb> and <verb>__iter__()</verb>
-	      special methods in <ref
+	      from rows in array. The return rows are taken from the
+	      first dimension in case of an <verb>Array</verb>
+	      instance and the enlargeable dimension in case of an
+	      <verb>EArray</verb> instance. If a range is supplied
+	      (i.e. some of the <em>start</em>, <em>stop</em> or
+	      <em>step</em> parameters are passed), only the
+	      appropriate rows are returned. Else, all the rows are
+	      returned. See also the <verb>__call__()</verb> and
+	      <verb>__iter__()</verb> special methods in <ref
 	      refid="ArraySpecialMethods">section</ref> for shorter
 	      ways to call this iterator.
 	    </p>
 
-	    <description>
-	      <term>start</term> <item>Sets the starting row to return
-		data. A value of 0 means the first row. It accepts
-		negative values meaning that the count starts from the
-		end. The default is the first row (0).
-	      </item>
-	      <term>stop</term> <item>Sets the last row to be returned
-		to <em>stop - 1</em>, i.e. the end point is omitted
-		(in the Python <verb>range</verb> tradition). It
-		accepts, likewise <em>start</em>, negative values. A
-		special value of 0 means the last row. The default is
-		the last row (0).
-	      </item>
-	      <term>step</term> <item>When step is given, it
-		specifies the increment. Negative values are not
-		allowed right now. The default is 1.
-	      </item>
-	    </description>
+	    <p>The exact meaning of the <em>start</em>, <em>stop</em>
+	      and <em>step</em> parameters are the same as in the
+	      previously described <verb>Table.iterrows()</verb>
+	      method (see <ref refid="iterrowsTableDescr"></ref>).
+	    </p>
+
 	  </subsubsection>
 
 	  <subsubsection id="readArrayDescr">
-	    <heading>read(start, stop, step)</heading>
+	    <heading>read(start=None, stop=None, step=None)</heading>
 
 	    <p>Read the array from disk and return it as a
-	      <verb>NumArray</verb> (default) object, or if possible,
+	      <verb>NumArray</verb> (default) object, or an object
 	      with the same original <em>flavor</em> that it was
-	      saved. The supported flavors are: <verb>NumArray</verb>,
-	      <verb>CharArray</verb>, <verb>Numeric</verb>,
-	      <verb>List</verb>, <verb>Tuple</verb>,
-	      <verb>String</verb>, <verb>Int</verb> or
-	      <verb>Float</verb>. It accepts start, stop and step
-	      parameters to select rows (the first dimension of the
-	      array) for reading.
+	      saved. It accepts start, stop and step parameters to
+	      select rows (the first dimension in the case of an
+	      <verb>Array</verb> instance and the enlargeable
+	      dimension in case of an <verb>EArray</verb>) for
+	      reading.
+	    </p>
+	    <p>The exact meaning of the <em>start</em>, <em>stop</em>
+	      and <em>step</em> parameters are the same as in the
+	      previously described <verb>Table.iterrows()</verb>
+	      method (see <ref refid="iterrowsTableDescr"></ref>).
 	    </p>
 
-	    <description>
-	      <term>start</term> <item>Sets the starting row to return
-		data. A value of 0 means the first row. It accepts
-		negative values meaning that the count starts from the
-		end. The default is the first row (0).
-	      </item>
-	      <term>stop</term> <item>Sets the last row to be
-		returned to <em>stop - 1</em>, i.e. the end point is
-		omitted (in the Python <verb>range</verb>
-		tradition). It accepts, likewise <em>start</em>,
-		negative values. A special value of 0 means the last
-		row. The default is the last row (0).
-	      </item>
-	      <term>step</term> <item>When step is given, it
-		specifies the increment. Negative values are not
-		allowed right now. The default is 1.
-	      </item>
-	    </description>
 	  </subsubsection> <!-- read() -->
 	</subsection> <!-- Array methods -->
 
@@ -4109,15 +4071,13 @@ AttributeError: Error setting "ADCcount" attr.
 	    <p>Example of use:</p>
 
 	    <verbatim>
-	      result = array([row for row in arrayInstance(step=4)
-                                  if row[1] > 20. ], type=arrayInstance.type)
+	      result = [ row for row in arrayInstance(step=4) ]
 	    </verbatim>
 
 	    <p>Which is equivalent to:</p>
 
 	    <verbatim>
-	      result = array([row for row in arrayInstance.iterrows(step=4)
-                                  if row[1] > 20. ], type=arrayInstance.type)
+	      result = [ row for row in arrayInstance.iterrows(step=4) ]
 	    </verbatim>
 
 	  </subsubsection>
@@ -4131,15 +4091,14 @@ AttributeError: Error setting "ADCcount" attr.
 	    <p>Example of use:</p>
 
 	    <verbatim>
-	      result = [ row[2] for row in array
-                                if row[1] &lt;= 20 ]
+	      result = [ row[2] for row in array ]
+
 	    </verbatim>
 
 	    <p>Which is equivalent to:</p>
 
 	    <verbatim>
-	      result = [ row[2] for row in array.iterrows(0, 0, 1) 
-                          	    if row[1] &lt;= 20 ]
+	      result = [ row[2] for row in array.iterrows(0, 0, 1) ]
 	    </verbatim>
 
 	  </subsubsection>
@@ -4147,13 +4106,14 @@ AttributeError: Error setting "ADCcount" attr.
 	  <subsubsection>
 	    <heading id="__getitemArrayDescr">__getitem__(keys)</heading>
 
-	    <p>It returns a <verb>NumArray</verb> (default) object, or
-	      if possible, with the same original <em>flavor</em> that
-	      it was saved, with the slice stated in the
+	    <p>It returns a <verb>NumArray</verb> (default) object (or
+	      an object with the same original <em>flavor</em> that it
+	      was saved), with the slice stated in the
 	      <verb>keys</verb> parameter. The set of allowed values
 	      and types that can take the elements in
 	      <verb>keys</verb> is the same as extended slicing in
-	      python (or <verb>numarray</verb>) allows.
+	      python (or <verb>numarray</verb>) allows (the
+	      <verb>Ellipsis</verb> token included).
 	    </p>
 
 	    <p>Example of use:</p>
@@ -4168,6 +4128,321 @@ AttributeError: Error setting "ADCcount" attr.
 	  </subsubsection> <!-- __getitem__() -->
 	</subsection> <!-- Special methods -->
       </section> <!-- Array class -->
+
+      <section id="EArrayClassDescr">
+	<heading>The <visual markup="tt">EArray</visual> class</heading>
+
+	<p>This is a child of the <verb>Array</verb> class (see <ref
+	  refid="ArrayClassDescr"></ref>) and as such,
+	  <verb>EArray</verb> represents an array on the file. The
+	  difference is that <verb>EArray</verb> allows to enlarge
+	  datasets along any single dimension<footnote>In the future,
+	  multiple enlargeable dimensions might be implemented as
+	  well.</footnote> you select. Another important difference is
+	  that it also support compression.
+	 </p>
+
+	<p>So, in addition to the attributes and methods that
+	  <verb>EArray</verb> inherits from <verb>Array</verb>, it
+	  supports a few more that provides a way to enlarge the
+	  arrays on disk. Following are described the new variables
+	  and methods as well as some that already exists in
+	  <verb>Array</verb> but that differ somewhat on the meaning
+	  and/or functionality in the <verb>EArray</verb> context.
+	</p>
+
+	<subsection id="EArrayClassInstanceVariables">
+	  <heading><visual markup="tt">EArray</visual> instance
+	    variables</heading>
+	  <description>
+	    <term>extdim</term> <item>The enlargeable dimension.
+	    </item>
+	    <term>nrows</term> <item>The length of the enlargeable
+	      dimension.
+	    </item>
+	  </description>
+	</subsection>
+
+	<subsection id="EArrayMethodsDescr">
+	  <heading><visual markup="tt">EArray</visual>
+	    methods</heading>
+
+	  <subsubsection id="EArrayAppendDescr">
+	    <heading>append(object)</heading>
+
+	    <p>Appends an <verb>object</verb> to the underlying
+	      dataset. Obviously, this object has to have the same
+	      type as the <verb>EArray</verb> instance, and if not, a
+	      type conversion is forced. In the same way, the
+	      dimensions of the <verb>object</verb> has to conform
+	      those of <verb>EArray</verb>, that is, all the
+	      dimensions has to be the same except, of course, that of
+	      the enlargeable dimension which can be of any length
+	      (even 0!). Example of use:
+	    </p>
+
+	    <verbatim>
+	      import tables
+	      from numarray import strings
+
+	      fileh = tables.openFile("earray.h5", mode = "w")
+	      a = strings.array(None, itemsize=8, shape=(0,))
+	      # Use 'a' as the object type for the enlargeable array
+	      array_c = fileh.createEArray(fileh.root, 'array_c', a, "Chars")
+	      # Append a couple of CharArrays
+	      array_c.append(strings.array(['a'*2, 'b'*4], itemsize=8))
+	      array_c.append(strings.array(['a'*6, 'b'*8, 'c'*10], itemsize=8))
+
+	      # Read the string EArray we have created on disk
+	      for s in array_c:
+	          print "array_c[%s] => %s" % (array_c.nrow, s)
+	      # Close the file
+	      fileh.close()
+	    </verbatim>
+
+	    <p>and the ouput is:
+	    </p>
+
+	    <verbatim>
+	      array_c[0] => aa
+	      array_c[1] => bbbb
+	      array_c[2] => aaaaaa
+	      array_c[3] => bbbbbbbb
+	      array_c[4] => cccccccc
+	    </verbatim>
+
+	  </subsubsection> <!-- EArray.append -->
+	</subsection> <!-- EArray methods -->
+      </section> <!-- EArray class -->
+
+      <section id="VLArrayClassDescr">
+	<heading>The <visual markup="tt">VLArray</visual> class</heading>
+
+	<p>Instances of this class represents array objects in the
+	  object tree with the property that their rows can have a
+	  <visual markup="bf">variable</visual> number of
+	  (homogeneous) elements (called <em>atomic</em>
+	  objects). Variable length arrays (or <em>VLA's</em> for
+	  short), similarly to <verb>Table</verb> instances, can have
+	  only one dimension, and likewise <verb>Table</verb>, the
+	  compound elements (the <em>atoms</em>) of the rows of
+	  <verb>VLArrays</verb> can be fully multimensional objects.
+	</p>
+	<p><verb>VLArray</verb> provides methods to read/write data
+	  from/to vaiable length array objects residents on disk.
+	  Also, note that this object inherits all the public
+	  attributes and methods that <verb>Leaf</verb> already has.
+	</p>
+
+	<subsection>
+	  <heading><visual markup="tt">VLArray</visual> instance
+	    variables</heading>
+	  <description>
+	    <term>atom</term> <item>The class instance choosed for the
+	      atomic object (see <ref
+		refid="VLAtomDescr">section</ref>).
+	    </item>
+	    <term>nrow</term> <item>On iterators, this is the index of
+	      the row currently dealed with.
+	    </item>
+	    <term>nrows</term> <item>The total number of rows.
+	    </item>
+	  </description>
+	</subsection>
+
+	<subsection>
+	  <heading><visual markup="tt">VLArray</visual> methods</heading>
+
+	  <subsubsection>
+	    <heading
+	      id="appendVLArrayDescr">append(object1, object2, ...)</heading>
+
+	    <p>Append the <verb>objects</verb> passed as parameters to
+	      a single row in the <verb>VLArray</verb> instance. The
+	      type of the objects has to be compliant with the
+	      <verb>VLArray.atom</verb> instance type.
+	    </p>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      import tables
+	      from Numeric import *   # or, from numarray import *
+
+	      # Create a VLArray:
+	      fileh = tables.openFile("vlarray1.h5", mode = "w")
+	      vlarray = fileh.createVLArray(fileh.root, 'vlarray1',
+	      tables.Int32Atom(flavor="Numeric"),
+	                       "ragged array of ints", compress = 1)
+	      # Append some (variable length) rows
+	      # All these different parameter specification are accepted:
+	      vlarray.append(array([5, 6]))
+	      vlarray.append(array([5, 6, 7], typecode='i'))
+	      vlarray.append([5, 6, 9, 8])
+	      vlarray.append(5, 6, 9, 10, 12)
+	      print "Created VLArray:", repr(vlarray)
+
+	      # Now, read it through an iterator
+	      for x in vlarray:
+	          print vlarray.name+"["+str(vlarray.nrow)+"]-->", x
+
+	      # Close the file
+	      fileh.close()
+	    </verbatim>
+
+	    <p>And the output for this looks like:</p>
+
+	    <verbatim>
+	      Created VLArray: /vlarray1 (VLArray(4,), zlib(1), shuffled) 'ragged array of ints'
+	        atom = Atom(type=Int32, shape=1, flavor='Numeric')
+	        nrows = 4
+	        flavor = 'Numeric'
+	        byteorder = 'little'
+	      vlarray1[0]--> [5 6]
+	      vlarray1[1]--> [5 6 7]
+	      vlarray1[2]--> [5 6 9 8]
+	      vlarray1[3]--> [ 5  6  9 10 12]
+	    </verbatim>
+
+	  </subsubsection> <!-- VLArray.append() -->
+
+	  <subsubsection>
+	    <heading id="iterrowsVLArrayDescr">iterrows(start=None,
+	      stop=None, step=None)</heading>
+
+	    <p>Returns an iterator yielding one row per iteration. If
+	      a range is supplied (i.e. some of the <em>start</em>,
+	      <em>stop</em> or <em>step</em> parameters are passed),
+	      only the appropriate rows are returned. Else, all the
+	      rows are returned. See also the <verb>__call__()</verb>
+	      and <verb>__iter__()</verb> special methods in <ref
+	      refid="VLArraySpecialMethods">section</ref> for shorter
+	      ways to call this iterator.
+	    </p>
+	    <p>The exact meaning of the <em>start</em>, <em>stop</em>
+	      and <em>step</em> parameters are the same as in the
+	      previously described <verb>Table.iterrows()</verb>
+	      method (see <ref refid="iterrowsTableDescr"></ref>).
+	    </p>
+
+	  </subsubsection> <!-- VLArray.iterrows -->
+
+	  <subsubsection>
+	    <heading id="readVLArrayDescr">read(start=None, stop=None,
+	      step=None)</heading>
+
+	    <p>Returns the actual data in <verb>VLArray</verb>. As the
+	      lengths of the different rows are variable, the returned
+	      value is a python list, with as many entries as
+	      specified rows in the range parameters. The exact
+	      meaning of the <em>start</em>, <em>stop</em> and
+	      <em>step</em> parameters are the same as in the
+	      <verb>Table.read()</verb> method (see <ref
+	      refid="readTableDescr"></ref>).
+	    </p>
+	    <p>The exact meaning of the <em>start</em>, <em>stop</em>
+	      and <em>step</em> parameters are the same as in the
+	      previously described <verb>Table.iterrows()</verb>
+	      method (see <ref refid="iterrowsTableDescr"></ref>).
+	    </p>
+
+	  </subsubsection>
+
+	</subsection> <!-- VLArray methods -->
+
+	<subsection id="VLArraySpecialMethods">
+	  <heading><visual markup="tt">VLArray</visual> special
+	      methods</heading>
+
+	  <p>Following are described the methods that automatically
+	    trigger actions when a <verb>VLArray</verb> instance is
+	    accessed in a special way (e.g., <verb>vlarray[2:5]</verb>
+	    will be equivalent to a call to
+	    <verb>vlarray.__getitem__(slice(2,5,None)</verb>).
+	  </p>
+
+	  <subsubsection>
+	    <heading id="__callVLArrayDescr">__call__(start=None,
+	      stop=None, step=None)</heading>
+
+	    <p>It returns the same iterator than
+	      <verb>VLArray.iterrows(start, stop, step)</verb>. It is,
+	      therefore, a shorter way to call it.</p>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      for row in vlarray(step=4):
+	          print vlarray.name+"["+str(vlarray.nrow)+"]-->", row
+	    </verbatim>
+
+	    <p>Which is equivalent to:</p>
+
+	    <verbatim>
+	      for row in vlarray.iterrows(step=4):
+	          print vlarray.name+"["+str(vlarray.nrow)+"]-->", row
+	    </verbatim>
+
+	  </subsubsection>
+	  <subsubsection>
+	    <heading id="__iterVLArrayDescr">__iter__()</heading>
+
+	    <p>It returns the same iterator than
+	      <verb>VLArray.iterrows(0,0,1)</verb>. However, this does
+	      not accept parameters.</p>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      result = [ row for row in vlarray ]
+	    </verbatim>
+
+	    <p>Which is equivalent to:</p>
+
+	    <verbatim>
+	      result = [ row for row in vlarray.iterrows() ]
+	      # or...
+	      result = vlarray.read()
+	    </verbatim>
+
+	  </subsubsection>
+
+	  <subsubsection>
+	    <heading id="__getitemVLArrayDescr">__getitem__(key)</heading>
+
+	    <p>It takes different actions depending on the
+	      type of the <verb>key</verb> parameter:</p>
+
+	    <description>
+	      <term><visual markup="tt">key</visual> is an
+		<verb>Integer</verb></term> <item>The corresponding
+		row is returned as an object of type
+		<verb>vlarray.atom.type</verb>.
+	      </item>
+	      <term><visual markup="tt">key</visual> is a
+		<verb>Slice</verb></term><item>The row slice
+		determined by <verb>key</verb> is returned as a list
+		of objects of type <verb>array.atom.type</verb>.
+	      </item>
+	    </description>
+
+	    <p>Example of use:</p>
+
+	    <verbatim>
+	      list1 = vlarray[4]
+	      list2 = vlarray[4:1000:2]
+	    </verbatim>
+
+	    <p>Which is equivalent to:</p>
+
+	    <verbatim>
+	      list1 = vlarray.read(start=4)[0]
+	      list2 = vlarray.read(start=4, stop=1000, step=2)
+	    </verbatim>
+
+	  </subsubsection> <!-- VLArray __getitem__ -->
+	</subsection> <!-- VLArray special methods --> 
+      </section> <!-- VLArray class -->
 
       <section id="AttributeSetClassDescr">
 	<heading>The <visual markup="tt">AttributeSet</visual>
@@ -4243,23 +4518,23 @@ AttributeError: Error setting "ADCcount" attr.
 	    </term><item>Return the list of attributes of the parent
 	      node.
 
-		<description>
-		  <term>attrset</term> <item>Selects the attribute set
-		    to be returned. An <verb>"user"</verb> value
-		    returns only the user attributes. This is the
-		    default. <verb>"sys"</verb> returns only the
-		    system (some of which are read-only)
-		    attributes. <verb>"readonly"</verb> returns the
-		    system read-only attributes. <verb>"all"</verb>
-		    returns both the system and user
-		    attributes.</item>
-		</description>
-	      </item>
+	      <description>
+		<term>attrset</term> <item>Selects the attribute set
+		  to be returned. An <verb>"user"</verb> value returns
+		  only the user attributes. This is the
+		  default. <verb>"sys"</verb> returns only the system
+		  (some of which are read-only)
+		  attributes. <verb>"readonly"</verb> returns the
+		  system read-only attributes. <verb>"all"</verb>
+		  returns both the system and user attributes.
+		</item>
+	      </description>
+	    </item>
 
 	    <term id="renameAttrDescr">_f_rename(oldattrname,
 	      newattrname)</term><item>Rename an attribute.</item>
 	  </description>
-
+	  
 	</subsection>
 
       </section> <!-- AttributeSet class -->
@@ -4277,18 +4552,18 @@ AttributeError: Error setting "ADCcount" attr.
 	    instantiation phase, and new methods for instances are
 	    defined based on the values of the class attributes.
 	  </p>
-	  <p>It is designed to be used as an easy, yet meaningful way to
-	    describe the properties of <verb>Table</verb> objects
+	  <p>It is designed to be used as an easy, yet meaningful way
+	    to describe the properties of <verb>Table</verb> objects
 	    through the use of classes that inherit properties from
 	    it. In order to define such a special class, you have to
 	    declare it as descendant of <em>IsDescription</em>, with
-	    many attributes as columns you want in your table. The name
-	    of these attributes will become the name of the columns,
-	    while its values are the properties of the columns that are
-	    obtained through the use of the <verb>Col</verb> class
-	    constructor. See the <ref
-	      refid="ColClassDescr">section</ref> for instructions on how
-	    define the properties of the table columns.
+	    many attributes as columns you want in your table. The
+	    name of these attributes will become the name of the
+	    columns, while its values are the properties of the
+	    columns that are obtained through the use of the
+	    <verb>Col</verb> class constructor. See the <ref
+	    refid="ColClassDescr">section</ref> for instructions on
+	    how define the properties of the table columns.
 	  </p>
 	  <p>Then, you can pass an instance of this object to the
 	    <verb>Table</verb> constructor, where all the information it
