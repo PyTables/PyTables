@@ -1,7 +1,7 @@
 Announcing PyTables Pro 1.0
 ---------------------------
 
-Bla, bla
+Blurb, blurb, blurb...
 
 What it is
 ----------
@@ -33,14 +33,86 @@ Changes more in depth
 
 Improvements:
 
+- New Undo/Redo feature (i.e. integrated support for undoing and/or
+  redoing actions). This functionality lets you to put marks in
+  specific places of your data operations, so that you can make your
+  HDF5 file to pop back (undo) to a specific mark (for example for
+  inspecting how your data looked at that point). You can also go
+  forward to a more recent marker (redo). You can even do jumps to the
+  marker you want using just one instruction as we will see shortly
+
+- The opening and copying of files with large number of objects has
+  been made faster by correcting a typo in Table._open. Thanks to
+  Ashley Walsh for sending a patch for this.
+
+- All potentially long I/O operations has been bracketed by
+  BEGIN_ALLOW_THREADS and END_ALLOW_THREADS in order to release the
+  GIL during this I/O operations. This will allow better performance
+  on multiprocessor machines. Thanks to Andrew Straw for suggesting
+  this.
+
+- Now, one can modify rank-0 (scalar) EArrays. Thanks to Norbert Nemec
+  for providing a patch for this.
+
+- You are allowed from this version on to add non-valid natural naming
+  names as node or attribute names. A warning is issued to warn (but
+  not forbidding) you in such a case. Of course, you have to use the
+  getattr() function so as to access such a non-valid natural names.
+
+- The indexes of Tables and *Arrays can be of LongType besides of
+  IntType. However, indexes in slices are still restricted to regular
+  IntType.
+
+- The concept of READ_ONLY system attributes has disappeared. You can
+  change them now at your own risk!. However, you still cannot remove
+  or rename system attributes.
+
+- Table.iterrows() returns an empty iterator when no rows are selected.
+
 
 Backward-incompatible changes:
 
+- Running an action on the wrong type of node now (i.e. using
+  File.listNodes() on a leaf) raises a TypeError instead of a
+  NodeError.
 
-API additions:
+- Now, the deletion and getting of a non-existing attribute raises an
+  AttributeError, instead of a RuntimeError.
+
+- Deleting a non-existing child now raises a NoSuchNodeError, instead
+  of doing nothing.
+
+- Removing a non-empty child group using 'del group.child' fails with
+  a NodeError instead of recursively removing it. This is because of
+  the potential damage it may cause when used inadvertently. If a
+  recursive behavior is needed, use the _f_remove() method of the
+  child node.
+
+- When start>=stop an empty iterator is returned by Table.iterrows
+  instead of an empty RecArray. Thanks to Ashley Walsh for noting
+  this.
+
+- Copy operations (Group._f_copyChildren, File.copyChildren,
+  File.copyNode...) do no longer return a tuple with the new node and
+  statistics. Instead, they only return the new node, and stats are
+  collected via an optional keyword argument.
+
+- Swapped last two arguments of File.copyAttrs to match the other
+  methods.
+
+- The default values for 'name' and 'classname' arguments in
+  File.getNode() are now None, although the empty string is still
+  allowed for backwards compatibility.  File hierarchy manipulation
+  and attribute handling operations using those arguments have changed
+  to reflect this.
 
 
 Bug fixes:
+
+- Added partial native HDF5 chunked dataset support. They can read
+  now, and even extended, but only along the first extendeable
+  dimension. This limitation maybe removed when multiple extendeable
+  dimensions would be supported in PyTables.
 
 
 Important note for Python 2.4 and Windows users
@@ -66,7 +138,7 @@ data monitoring systems (for example, traffic measurements of IP
 packets on routers), very large XML files, or for creating a
 centralized repository for system logs, to name only a few possible
 uses.
- 
+
 What is a table?
 ----------------
 

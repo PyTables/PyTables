@@ -30,6 +30,26 @@ Misc variables:
 
 """
 
+import sys
+import warnings
+import cPickle
+
+import numarray
+import numarray.records as records
+
+try:
+    import Numeric
+    Numeric_imported = True
+except ImportError:
+    Numeric_imported = False
+
+import tables.hdf5Extension as hdf5Extension
+from tables.utils import processRangeRead, convertIntoNA
+from tables.Atom import Atom, ObjectAtom, VLStringAtom, StringAtom
+from tables.Leaf import Leaf
+
+
+
 __version__ = "$Revision: 1.42 $"
 
 # default version for VLARRAY objects
@@ -37,22 +57,6 @@ __version__ = "$Revision: 1.42 $"
 #obversion = "1.0"    # add support for complex datatypes
 obversion = "1.1"    # This adds support for time datatypes.
 
-import types, warnings, sys
-import cPickle
-import numarray
-import numarray.strings as strings
-import numarray.records as records
-from Leaf import Leaf
-import hdf5Extension
-from Atom import Atom, ObjectAtom, VLStringAtom, StringAtom
-from utils import processRange, processRangeRead, convertIntoNA
-
-
-try:
-    import Numeric
-    Numeric_imported = 1
-except:
-    Numeric_imported = 0
 
 
 def calcChunkSize(expectedsizeinMB, complevel):
@@ -82,7 +86,7 @@ def calcChunkSize(expectedsizeinMB, complevel):
     return chunksize
 
 
-class VLArray(Leaf, hdf5Extension.VLArray, object):
+class VLArray(hdf5Extension.VLArray, Leaf):
     """Represent a variable length (ragged) array in HDF5 file.
 
     It enables to create new datasets on-disk from Numeric, numarray,
@@ -111,7 +115,18 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         nrows -- The total number of rows
 
     """
-    
+
+    # Class identifier.
+    _c_classId = 'VLARRAY'
+
+
+    # <undo-redo support>
+    _c_canUndoCreate = True  # Can creation/copying be undone and redone?
+    _c_canUndoRemove = True  # Can removal be undone and redone?
+    _c_canUndoMove   = True  # Can movement/renaming be undone and redone?
+    # </undo-redo support>
+
+
     def __init__(self, atom=None, title = "",
                  filters = None, expectedsizeinMB = 1.0):
         """Create the instance Array.
@@ -149,6 +164,9 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 
     def _create(self):
         """Create a variable length array (ragged array)."""
+
+        # All this will eventually end up in the node constructor.
+
         global obversion
 
         self._v_version = obversion
@@ -242,13 +260,16 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 """The object "%s" is not of type String or Unicode.""" % (str(object))
             try:
                 object = object.encode('utf-8')
-            except:
+            except UnicodeError:
                 (typerr, value, traceback) = sys.exc_info()
                 raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, value)
             object = numarray.array(object, type=numarray.UInt8)
 
         if len(objects) > 0:
-            naarr = convertIntoNA(object, self.atom)
+            # The object needs to be copied to make the operation safe
+            # to in-place conversion.
+            copy = self._atomicstype in ['Time64']
+            naarr = convertIntoNA(object, self.atom, copy)
             nobjects = self._checkShape(naarr)
         else:
             nobjects = 0
@@ -263,6 +284,9 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 
     def _open(self):
         """Get the metadata info for an array in file."""
+
+        # All this will eventually end up in the node constructor.
+
         self.nrows = self._openArray()
         self.shape = (self.nrows,)
         # First, check the special cases VLString and Object types
@@ -372,7 +396,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             # The next should also do the job
 #             try:
 #                 arr = cPickle.loads(arr.tostring())
-#             except:
+#             except cPicke.UnpicklingError:
 #                 arr = []
 
         return arr
@@ -395,7 +419,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
                 # To support negative values
                 key += self.nrows
             return self.read(key)[0]
-        elif isinstance(key, types.SliceType):
+        elif isinstance(key, slice):
             return self.read(key.start, key.stop, key.step)
         else:
             raise IndexError, "Non-valid index or slice: %s" % \
@@ -445,7 +469,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         # Process the second index
         if type(rng) in (int,long):
             start = rng; stop = start+1; step = 1
-        elif isinstance(rng, types.SliceType):
+        elif isinstance(rng, slice):
             start, stop, step = rng.start, rng.stop, rng.step
         elif rng is None:
             start, stop, step = None, None, None
@@ -466,7 +490,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 """The object "%s" is not of type String or Unicode.""" % (str(object))
             try:
                 object = object.encode('utf-8')
-            except:
+            except UnicodeError:
                 (typerr, value, traceback) = sys.exc_info()
                 raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, value)
             object = numarray.array(object, type=numarray.UInt8)
@@ -487,7 +511,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         # Assign the value to it
         try:
             naarr[slice(start, stop, step)] = value
-        except:
+        except:  #XXX
             (typerr, value2, traceback) = sys.exc_info()
             raise ValueError, \
 "Value parameter:\n'%r'\ncannot be converted into an array object compliant vlarray[%s] row: \n'%r'\nThe error was: <%s>" % \
@@ -513,13 +537,12 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
             outlistarr = listarr
         return outlistarr
 
-    def _g_copy(self, group, name, start, stop, step, title, filters):
+    def _g_copyWithStats(self, group, name, start, stop, step, title, filters):
         "Private part of Leaf.copy() for each kind of leaf"
         # Build the new VLArray object
-        object = VLArray(self.atom, title=title,
-                         filters=filters,
-                         expectedsizeinMB=self._v_expectedsizeinMB)
-        setattr(group, name, object)
+        object = self._v_file.createVLArray(
+            group, name, self.atom, title=title, filters=filters,
+            expectedsizeinMB=self._v_expectedsizeinMB, _log = False)
         # Now, fill the new vlarray with values from the old one
         # This is not buffered because we cannot forsee the length
         # of each record. So, the safest would be a copy row by row.

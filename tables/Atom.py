@@ -30,15 +30,15 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.2 $"
-
-
-import types
 import numarray
 import numarray.records as records
-#import IsDescription # to access BaseCol without polluting public namespace
-from IsDescription import \
+
+from tables.IsDescription import \
      Col, BoolCol, StringCol, IntCol, FloatCol, ComplexCol, TimeCol
+
+
+
+__version__ = "$Revision: 1.2 $"
 
 
 
@@ -120,7 +120,7 @@ class Atom(Col):
     def atomsize(self):
         " Compute the size of the atom type "
         atomicsize = self.itemsize
-        if isinstance(self.shape, types.TupleType):
+        if isinstance(self.shape, tuple):
             for i in self.shape:
                 if i > 0:  # To deal with EArray Atoms
                     atomicsize *= i

@@ -16,6 +16,8 @@
 #ifndef __TYPECONV_H__
 #define __TYPECONV_H__ 1
 
+#include "Python.h"
+
 /* Meaning for common arguments:
  *   * base: pointer to data
  *   * byteoffset: offset of first field/element into the data
@@ -28,7 +30,7 @@
 void conv_float64_timeval32(void *base,
 			    unsigned long byteoffset,
 			    unsigned long bytestride,
-			    long long nrecords,
+			    PY_LONG_LONG nrecords,
 			    unsigned long nelements,
 			    int sense);
 

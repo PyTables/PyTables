@@ -4,7 +4,7 @@
 #       Created: June 08, 2004
 #       Author:  Francesc Altet - faltet@carabos.com
 #
-#       $Source: /cvsroot/pytables/pytables/tables/Index.py,v $
+#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
 #       $Id$
 #
 ########################################################################
@@ -27,28 +27,31 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.28 $"
+import warnings
+import math
+import cPickle
+import bisect
+
+import numarray
+from numarray import strings
+
+import tables.hdf5Extension as hdf5Extension
+from tables.AttributeSet import AttributeSet
+from tables.Atom import Atom, StringAtom
+from tables.Leaf import Filters
+from tables.Array import Array
+from tables.EArray import EArray
+from tables.IndexArray import IndexArray
+
+
+
+__version__ = "$Revision: 1.29 $"
+
 # default version for INDEX objects
 #obversion = "1.0"    # initial version
 obversion = "1.1"    # optimization for very large columns and small selection
                      # groups
 
-import cPickle
-import warnings, sys
-from IndexArray import IndexArray
-from VLArray import Atom, StringAtom
-from Array import Array
-from EArray import EArray
-from Leaf import Filters
-from AttributeSet import AttributeSet
-import hdf5Extension
-#from hdf5Extension import PyNextAfter, PyNextAfterF
-import numarray
-from numarray import strings
-from time import time
-import math
-import struct # we use this to define testNaN
-import bisect
 
 # Python implementations of NextAfter and NextAfterF
 #
@@ -65,8 +68,8 @@ import bisect
 epsilon  = math.ldexp(1.0, -53) # smallest double such that 0.5+epsilon != 0.5
 epsilonF = math.ldexp(1.0, -24) # smallest float such that 0.5+epsilonF != 0.5
 
-maxFloat=float(2**1024 - 2**971)  # From the IEEE 754 standard
-maxFloatF=float(2**128 - 2**104)  # From the IEEE 754 standard
+maxFloat = float(2**1024 - 2**971)  # From the IEEE 754 standard
+maxFloatF = float(2**128 - 2**104)  # From the IEEE 754 standard
 
 minFloat  = math.ldexp(1.0, -1022) # min positive normalized double
 minFloatF = math.ldexp(1.0, -126)  # min positive normalized float
@@ -76,7 +79,7 @@ smallEpsilonF = math.ldexp(1.0, -149)  # smallest increment for floats < minFloa
 
 infinity = math.ldexp(1.0, 1023) * 2
 infinityF = math.ldexp(1.0, 128)
-#Finf=float("inf")  # Infinite in the IEEE 754 standard (not avail in Win)
+#Finf = float("inf")  # Infinite in the IEEE 754 standard (not avail in Win)
 
 # A portable representation of NaN
 # if sys.byteorder == "little":
@@ -312,7 +315,7 @@ class IndexProps(object):
         """
         return repr(self)
 
-class Index(hdf5Extension.Group, hdf5Extension.Index, object):
+class Index(hdf5Extension.Index, hdf5Extension.Group):
     """Represent the index (sorted and reverse index) dataset in HDF5 file.
 
     It enables to create indexes of Columns of Table objects.
@@ -432,6 +435,9 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
 
     def _create(self):
         """Save a fresh array (i.e., not present on HDF5 file)."""
+
+        # All this will eventually end up in the node constructor.
+
         global obversion
 
         assert isinstance(self.atom, Atom), "The object passed to the IndexArray constructor must be a descendent of the Atom class."
@@ -450,7 +456,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         object = IndexArray(self, self.atom, "Sorted Values",
                             self.filters, self._v_expectedrows,
                             self.testmode)
-        object.name = object._v_name = object._v_hdf5name = "sortedArray"
+        object._v_name = object._v_hdf5name = "sortedArray"
         object._g_new(self, object.name)
         object.filters = self.filters
         object._create()
@@ -467,7 +473,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         object = IndexArray(self, Atom("Int32", shape=1), "Reverse Indices",
                             self.filters, self._v_expectedrows,
                             self.testmode)
-        object.name = object._v_name = object._v_hdf5name = "revIndexArray"
+        object._v_name = object._v_hdf5name = "revIndexArray"
         object._g_new(self, object.name)
         object.filters = self.filters
         object._create()
@@ -554,6 +560,9 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
 
     def _open(self):
         """Get the metadata info for an array in file."""
+
+        # All this will eventually end up in the node constructor.
+
         self._g_new(self._v_parent, self.name)
         self._v_objectID = self._g_openIndex()
         self.__dict__["_v_attrs"] = AttributeSet(self)
@@ -564,7 +573,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         object = IndexArray(parent=self)
         object._v_parent = self
         object._v_file = self._v_parent._v_file
-        object.name = object._v_name = object._v_hdf5name = "sortedArray"
+        object._v_name = object._v_hdf5name = "sortedArray"
         object._g_new(self, object._v_hdf5name)
         object.filters = object._g_getFilters()
         object._open()
@@ -578,7 +587,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         object = IndexArray(parent=self)
         object._v_parent = self
         object._v_file = self._v_parent._v_file
-        object.name = object._v_name = object._v_hdf5name = "revIndexArray"
+        object._v_name = object._v_hdf5name = "revIndexArray"
         object._g_new(self, object._v_hdf5name)
         object.filters = object._g_getFilters()
         object._open()
@@ -991,37 +1000,45 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
     def getLookupRange(self, column):
         #import time
         table = column.table
-        # Get the coordenates for those values
+        # Get the coordinates for those values
         ilimit = table.opsValues
         ctype = column.type
+        sctype = str(ctype)
         itemsize = table.colitemsizes[column.name]
+
         # Check that limits are compatible with type
         for limit in ilimit:
             # Check for strings
-            if str(ctype) == "CharType":
-                assert type(limit) == str, \
-"Bounds (or range limits) for strings columns can only be strings."
+            if sctype == "CharType":
+                if type(limit) is not str:
+                    raise TypeError("""\
+Bounds (or range limits) for string columns can only be strings.""")
+                else:
+                    continue
+
+            nactype = numarray.typeDict[sctype]
+
             # Check for booleans
-            elif isinstance(numarray.typeDict[str(ctype)],
-                          numarray.BooleanType):
-                assert type(limit) in (int,long,bool), \
-"Bounds (or range limits) for bool columns can only be ints or booleans."
+            if isinstance(nactype, numarray.BooleanType):
+                if type(limit) not in (int, long, bool):
+                    raise TypeError("""\
+Bounds (or range limits) for bool columns can only be ints or booleans.""")
             # Check for ints
-            elif isinstance(numarray.typeDict[str(ctype)],
-                          numarray.IntegralType):
-                assert (type(limit) in (int,long,float)), \
-"Bounds (or range limits) for integer columns can only be ints or floats."
+            elif isinstance(nactype, numarray.IntegralType):
+                if type(limit) not in (int, long, float):
+                    raise TypeError("""\
+Bounds (or range limits) for integer columns can only be ints or floats.""")
             # Check for floats
-            elif isinstance(numarray.typeDict[str(ctype)],
-                          numarray.FloatingType):
-                assert (type(limit) in (int,long,float)), \
-"Bounds (or range limits) for float columns can only be ints or floats."
+            elif isinstance(nactype, numarray.FloatingType):
+                if type(limit) not in (int, long, float):
+                    raise TypeError("""\
+Bounds (or range limits) for float columns can only be ints or floats.""")
             else:
-                raise ValueError, \
-"Bounds (or range limits) can only be strings, bools, ints or floats."
+                raise TypeError("""
+Bounds (or range limits) can only be strings, bools, ints or floats.""")
 
         # Boolean types are a special case for searching
-        if str(ctype) == "Bool":
+        if sctype == "Bool":
             if len(table.ops) == 1 and table.ops[0] == 5: # __eq__
                 item = (ilimit[0], ilimit[0])
                 ncoords = self.search(item)
@@ -1077,11 +1094,11 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
         """Remove this Index object"""
 
         if hdf5Extension.whichLibVersion("hdf5")[1] == "1.6.3":
-            warnings.warn( \
-"""\nYou are using HDF5 version 1.6.3. It turns out that this precise
+            warnings.warn("""\
+You are using HDF5 version 1.6.3. It turns out that this precise
 version has a bug that causes a seg fault when deleting a chunked
 dataset. If you are getting such a seg fault immediately after this
-message, please, get a patched version of HDF5 1.6.3.""", UserWarning)
+message, please, get a patched version of HDF5 1.6.3.""")
 
         # Delete the associated IndexArrays
         #self.sorted._close()

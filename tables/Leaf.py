@@ -4,7 +4,7 @@
 #       Created: October 14, 2002
 #       Author:  Francesc Altet - faltet@carabos.com
 #
-#       $Source: /cvsroot/pytables/pytables/tables/Leaf.py,v $
+#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
 #       $Id$
 #
 ########################################################################
@@ -28,13 +28,17 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.57 $"
-
 import warnings
-from utils import checkNameValidity, processRangeRead
-from AttributeSet import AttributeSet
-import Group
-import hdf5Extension
+
+import tables.hdf5Extension as hdf5Extension
+from tables.utils import processRangeRead
+from tables.Node import Node
+
+
+
+__version__ = "$Revision: 1.59 $"
+
+
 
 class Filters(object):
     """Container for filter properties
@@ -117,7 +121,7 @@ class Filters(object):
         
         return repr(self)
 
-class Leaf(object):
+class Leaf(Node):
     """A class to place common functionality of all Leaf objects.
 
     A Leaf object is all the nodes that can hang directly from a
@@ -127,47 +131,94 @@ class Leaf(object):
     Leaf objects (like Table or Array) will inherit the next methods
     and variables using the mix-in technique.
 
-    Methods:
+    Instance variables (in addition to those in `Node`):
 
-        close()
-        flush()
-        rename(newname)
-        remove()
-        getAttr(attrname)
-        setAttr(attrname, attrvalue)
-        delAttr(attrname)
+    shape
+        The shape of data in the leaf.
+    byteorder
+        The byte ordering of data in the leaf.
+    filters
+        Filter properties for this leaf --see `Filters`.
 
-    Instance variables:
+    name
+        The name of this node in its parent group (a string).  An
+        alias for `Node._v_name`.
+    hdf5name
+        The name of this node in the hosting HDF5 file (a string).  An
+        alias for `Node._v_hdf5name`.
+    objectID
+        The identifier of this node in the hosting HDF5 file.  An
+        alias for `Node._v_objectID`.
+    attrs
+        The associated `AttributeSet` instance.  An alias for
+        `Node._v_attrs`.
+    title
+        A description for this node.  An alias for `Node._v_title`.
 
-        name -- the leaf node name
-        hdf5name -- the HDF5 leaf node name
-        objectID -- the HDF5 object ID of the Leaf node
-        title -- the leaf title (actually a property)
-        shape -- the leaf shape
-        byteorder -- the byteorder of the leaf
-        filters -- information for active filters
-        attrs -- The associated AttributeSet instance
-        _v_parent -- the parent Group instance
-        _v_rootgroup -- always point to the root group object
-        _v_file -- the associated File object
-        _v_depth -- the depth level in tree for this leaf
+    Public methods (in addition to those in `Node`):
 
+    flush()
+        Flush pending data to disk.
+    _f_close([flush])
+        Close this node in the tree.
+    close([flush])
+        Close this node in the tree.
+    remove()
+        Remove this node from the hierarchy.
+    rename(newname)
+        Rename this node in place.
+    move([newparent][, newname][, overwrite])
+        Move or rename this node.
+    copy([newparent][, newname][, overwrite][, **kwags])
+        Copy this node and return the new one.
+
+    getAttr(name)
+        Get a PyTables attribute from this node.
+    setAttr(name, value)
+        Set a PyTables attribute for this node.
+    delAttr(name)
+        Delete a PyTables attribute from this node.
     """
 
-    
-    def _g_putObjectInTree(self, name, parent):
-        """Given a new Leaf object (fresh or in a HDF5 file), set
-        links and attributes to include it in the object tree."""
-        
-        # New attributes for the this Leaf instance
-        parent._g_setproperties(name, self)
-        self.name = self._v_name     # This is a standard attribute for Leaves
-        # Call the new method in Leaf superclass 
-        self._g_new(parent, self._v_hdf5name)
-        # Update this instance attributes
-        parent._v_leaves[self._v_name] = self
+    # <properties>
+
+    # These are a little hard to override, but so are properties.
+
+    # 'attrs' is an alias of '_v_attrs'.
+    attrs = Node._v_attrs
+    # 'title' is an alias of '_v_title'.
+    title = Node._v_title
+
+
+    # The following are read-only aliases of their Node counterparts.
+
+    def _g_getname(self):
+        return self._v_name
+    name = property(
+        _g_getname, None, None,
+        "The name of this node in its parent group (a string).")
+
+    def _g_gethdf5name(self):
+        return self._v_hdf5name
+    hdf5name = property(
+        _g_gethdf5name, None, None,
+        "The name of this node in its parent group (a string).")
+
+    def _g_getobjectid(self):
+        return self._v_objectID
+    objectID = property(
+        _g_getobjectid, None, None,
+        "The identifier of this node in the hosting HDF5 file.")
+
+    # </properties>
+
+
+    def _g_putUnder(self, parent, name):
+        # All this will eventually end up in the node constructor.
+
+        super(Leaf, self)._g_putUnder(parent, name)
+
         # Update class variables
-        parent._v_file.leaves[self._v_pathname] = self
         if self._v_new:
             # Set the filters instance variable
             self.filters = self._g_setFilters(self._v_new_filters)
@@ -179,29 +230,11 @@ class Leaf(object):
             # cPickling the filters attribute is very slow (it is as
             # much as twice slower than the normal overhead for
             # creating a Table, for example).
-            #self.attrs._g_setAttr("FILTERS", self.filters)
+            #self._v_attrs._g_setAttr("FILTERS", self.filters)
         else:
             self.filters = self._g_getFilters()
             self._open()
 
-    # Define attrs as a property. This saves us 0.7s/3.8s
-    def _get_attrs (self):
-        return AttributeSet(self)
-    # attrs can't be set or deleted by the user
-    attrs = property(_get_attrs, None, None, "Attrs of this object")
-
-    # Define title as a property
-    def _get_title (self):
-        if hasattr(self.attrs, "TITLE"):
-            return self.attrs.TITLE
-        else:
-            return ""
-    
-    def _set_title (self, title):
-        self.attrs.TITLE = title
-    # Define a property.  The 'delete this attribute'
-    # method is defined as None, so the attribute can't be deleted.
-    title = property(_get_title, _set_title, None, "Title of this object")
 
     def _g_setFilters(self, filters):
         if filters is None:
@@ -218,7 +251,7 @@ class Leaf(object):
         # Reading the FILTERS attribute is far more slower
         # than using _getFilters, although I don't know exactly why.
         # This is possibly because it forces the creation of the AttributeSet
-#         filters = self.attrs.FILTERS
+#         filters = self._v_attrs.FILTERS
 #         if filters is not None:
 #             return filters
         #Besides, using _g_getSysAttr is not an option because if the
@@ -227,7 +260,7 @@ class Leaf(object):
 #         if filters <> None:
 #             try:
 #                 filters = cPickle.loads(filters)
-#             except:
+#             except cPickle.UnpicklingError:
 #                 filters = None
 #             return filters
         
@@ -257,207 +290,190 @@ class Leaf(object):
                 elif name.startswith("fletcher32"):
                     filters.fletcher32 = 1
         return filters
-        
-    def _g_renameObject(self, newname):
-        """Rename this leaf in the object tree as well as in the HDF5 file."""
 
-        parent = self._v_parent
-        newattr = self.__dict__
 
-        # Delete references to the oldname
-        del parent._v_file.leaves[self._v_pathname]
-        del parent._v_file.objects[self._v_pathname]
-        del parent._v_leaves[self._v_name]
-        del parent._v_children[self._v_name]
-        del parent.__dict__[self._v_name]
+    def _g_copy(self, newParent, newName, recursive, **kwargs):
+        # Compute default arguments.
+        start = kwargs.get('start', 0)
+        stop = kwargs.get('stop', self.nrows)
+        step = kwargs.get('step', 1)
+        title = kwargs.get('title', self._v_title)
+        filters = kwargs.get('filters', self.filters)
+        stats = kwargs.get('stats', None)
 
-        # Get the alternate name (if any)
-        trMap = self._v_rootgroup._v_parent.trMap
-        
-        # New attributes for the this Leaf instance
-        newattr["_v_name"] = newname
-        newattr["_v_hdf5name"] = trMap.get(newname, newname)
-        newattr["_v_pathname"] = parent._g_join(newname)
-        
-        # Update class variables
-        parent._v_file.objects[self._v_pathname] = self
-        parent._v_file.leaves[self._v_pathname] = self
+        # Fix arguments with explicit None values for backwards compatibility.
+        if stop is None:  stop = self.nrows
+        if title is None:  title = self._v_title
+        if filters is None:  filters = self.filters
 
-        # Standard attribute for Leaves
-        self.name = newname
-        self.hdf5name = trMap.get(newname, newname)
-        
-        # Call the _g_new method in Leaf superclass 
-        self._g_new(parent, self._v_hdf5name)
-        
-        # Update this instance attributes
-        parent._v_children[newname] = self
-        parent._v_leaves[newname] = self
-        parent.__dict__[newname] = self
-
-    # This removeRows do not work because it relies on creating a new leaf
-    # node, so that the pointers to the original leaf have erroneous
-    # information. 
-#     def removeRows(self, start=None, stop=None):
-#         """Remove a range of rows.
-
-#         If only "start" is supplied, this row is to be deleted.
-#         If "start" and "stop" parameters are supplied, a row
-#         range is selected to be removed.
-
-#         """
-
-#         # Get the parent group and original name of the leaf
-#         fileh = self._v_file
-#         parent = self._v_parent
-#         origname = self._v_name
-#         tmpname = "_tmp_" + self._v_name
-        
-#         # Copy from row 0 up to start
-#         object = self.copy(parent, tmpname, start=0, stop=start, step=1)
-#         # And now, from stop to the end
-#         self._g_copyRows(object, start=stop, stop=self.nrows, step=1)
-
-#         # Now, remove the original leaf
-#         fileh.removeNode(parent, origname)
-
-#         # Finally, rename the destination to origin
-#         fileh.renameNode(parent, origname, tmpname)
-        
-#         # return the new object
-#         return fileh.getNode(parent, origname)
-
-    def copy(self, where, name, title=None, filters=None, copyuserattrs=1,
-             start=0, stop=None, step=1, overwrite=0):
-        """Copy this leaf to other location
-
-        where -- the group where the leaf will be copied.
-        name -- the name of the new leaf.
-        title -- the new title for destination. If None, the original
-            title is kept.
-        filters -- An instance of the Filters class. A None value means
-            that the source properties are copied as is.
-        copyuserattrs -- Whether copy the user attributes of the source leaf
-            to the destination or not. The default is copy them.
-        start -- the row to start copying.
-        stop -- the row to cease copying. None means last row.
-        step -- the increment of the row number during the copy
-        overwrite -- whether the destination should be overwritten or not.
-
-        """
-
-        # First, check if the copy() method has been defined for this object
-        if not hasattr(self, "_g_copy"):
-            warnings.warn( \
-                  "<%s> has not a copy() method. Not copying it." % str(self),
-                  UserWarning)
-            return None
-
-        # Get the parent group of destination
-        group = self._v_file.getNode(where, classname = "Group")
-        # Check that the name does not exist under this group
-        if group._v_children.has_key(name):
-            if overwrite:
-                if group == self._v_parent and name == self.name:
-		    # Trying to overwrite itself!. Silently give up...
-		    # This fixes bug #973370
-		    return (self, 0)  # 0 bytes copied
-		# Delete the destination object
-                dstNode = getattr(group, name)
-                if dstNode.__class__.__name__ == "Group":
-                    dstNode._f_remove(recursive=1)
-                else:
-                    dstNode.remove()
-            else:
-                raise ValueError, \
-"The destination (%s) already exists. Assert the overwrite parameter if you really want to overwrite it." % (getattr(group, name))
-
-        # Get the correct indices (all the Leafs have nrows attribute)
-        if stop == None:
-            stop = self.nrows
+        # Compute the correct indices.
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
-        if title == None: title = self.title
-        if filters == None: filters = self.filters
 
-        # Call the part of copy() that depends on the kind of the leaf
-        (object, nbytes) = self._g_copy(group, name,
-                                        start, stop, step, title, filters)
+        # Create a copy of the object.
+        (newNode, bytes) = self._g_copyWithStats(
+            newParent, newName, start, stop, step, title, filters)
 
-        # Finally, copy the user attributes, if needed
-        if copyuserattrs:
-            self.attrs._f_copy(object)
-        
-        return (object, nbytes)
+        # Copy user attributes if needed.
+        if kwargs.get('copyuserattrs', True):
+            self._v_attrs._g_copy(newNode._v_attrs)
 
-    def remove(self):
-        "Remove a leaf"
+        # Update statistics if needed.
+        if stats is not None:
+            stats['leaves'] += 1
+            stats['bytes'] += bytes
+
+        return newNode
+
+
+    def _g_remove(self, recursive=False):
         parent = self._v_parent
         parent._g_deleteLeaf(self._v_name)
         self.close(flush=0)
 
+
+    def remove(self):
+        """
+        Remove this node from the hierarchy.
+
+        This method has the behavior described in `Node._f_remove()`.
+        Please note that there is no ``recursive`` flag since leaves
+        do not have child nodes.
+        """
+        self._f_remove(False)
+
+
     def rename(self, newname):
-        """Rename a leaf"""
+        """
+        Rename this node in place.
 
-        # Check for name validity
-        checkNameValidity(newname)
-        # Check if self has a child with the same name
-        if newname in self._v_parent._v_children:
-            raise RuntimeError, \
-        """Another sibling (%s) already has the name '%s' """ % \
-                   (self._v_parent._v_children[newname], newname)
-        # Rename all the appearances of oldname in the object tree
-        oldname = self._v_name
-        self._g_renameObject(newname)
-        self._v_parent._g_renameNode(oldname, newname)
-        
-    def getAttr(self, attrname):
-        """Get a leaf attribute as a string"""
+        This method has the behavior described in `Node._f_rename()`.
+        """
+        self._f_rename(newname)
 
-        return getattr(self.attrs, attrname, None)
-        
-    def setAttr(self, attrname, attrvalue):
-        """Set a leaf attribute as a string"""
 
-        setattr(self.attrs, attrname, attrvalue)
+    def move(self, newparent=None, newname=None, overwrite=False):
+        """
+        Move or rename this node.
 
-    def delAttr(self, attrname):
-        """Delete a leaf attribute as a string"""
+        This method has the behavior described in `Node._f_move()`.
+        """
+        self._f_move(newparent, newname, overwrite)
 
-        delattr(self.attrs, attrname)
+
+    def copy(self, newparent=None, newname=None, overwrite=False, **kwargs):
+        """
+        Copy this node and return the new one.
+
+        This method has the behavior described in `Node._f_copy()`.
+        Please note that there is no ``recursive`` flag since leaves
+        do not have child nodes.  In addition, this method recognises
+        the following keyword arguments:
+
+        `title`
+            The new title for the destination.  If omitted or
+            ``None``, the original title is used.
+        `filters`
+            Specifying this parameter overrides the original filter
+            properties in the source node.  If specified, it must be
+            an instance of the `Filters` class.  The default is to
+            copy the filter properties from the source node.
+        `copyuserattrs`
+            You can prevent the user attributes from being copied by
+            setting this parameter to ``False``.  The default is to
+            copy them.
+        `start`, `stop`, `step`
+            Specify the range of rows in child leaves to be copied;
+            the default is to copy all the rows.
+        `stats`
+            This argument may be used to collect statistics on the
+            copy process.  When used, it should be a dictionary whith
+            keys ``'groups'``, ``'leaves'`` and ``'bytes'`` having a
+            numeric value.  Their values will be incremented to
+            reflect the number of groups, leaves and bytes,
+            respectively, that have been copied during the operation.
+        """
+        return self._f_copy(newparent, newname, overwrite, **kwargs)
+
+
+    # <attribute handling>
+
+    def getAttr(self, name):
+        """
+        Get a PyTables attribute from this node.
+
+        This method has the behavior described in `Node._f_getAttr()`.
+        """
+        return self._f_getAttr(name)
+
+
+    def setAttr(self, name, value):
+        """
+        Set a PyTables attribute for this node.
+
+        This method has the behavior described in `Node._f_setAttr()`.
+        """
+        self._f_setAttr(name, value)
+
+
+    def delAttr(self, name):
+        """
+        Delete a PyTables attribute from this node.
+
+        This method has the behavior described in `Node._f_delAttr()`.
+        """
+        self._f_delAttr(name)
+
+    # </attribute handling>
+
 
     def flush(self):
-        """Save whatever remaining data in buffer"""
+        """
+        Flush pending data to disk.
+
+        Saves whatever remaining buffered data to disk.
+        """
         # Call the H5Fflush with this Leaf
 	hdf5Extension.flush_leaf(self._v_parent, self._v_hdf5name)
 
-    def close(self, flush=1):
-        """Flush the buffers and close this object on tree"""
+
+    def _f_close(self, flush=True):
+        """
+        Close this node in the tree.
+
+        This method has the behavior described in `Node._f_close()`.
+        Besides that, the optional argument `flush` tells whether to
+        flush pending data to disk or not before closing.
+        """
+
         if flush:
             self.flush()
-        parent = self._v_parent
-        del parent._v_leaves[self._v_name]
-        del parent.__dict__[self._v_name]
-        del parent._v_children[self._v_name]
-        parent.__dict__["_v_nchildren"] -= 1
-        del parent._v_file.leaves[self._v_pathname]
-        del parent._v_file.objects[self._v_pathname]
-        del self._v_parent
-        del self._v_rootgroup
-        del self._v_file
-        # Detach the AttributeSet instance
-        # This has to called in this manner
-        #del self.__dict__["attrs"]
-        # The next also work!
-        # In some situations, this maybe undefined
-        if hasattr(self, "attrs"): 
-            self.attrs._f_close()
-            del self.attrs
-            del self.filters
+
+        self._v_parent._g_unrefNode(self._v_name)
+        self._g_delLocation()
+
+        del self.filters
+
+        # Close and remove AttributeSet only if it has already been placed
+        # in the object's dictionary.
+        mydict = self.__dict__
+        if '_v_attrs' in mydict:
+            self._v_attrs._f_close()
+            del mydict['_v_attrs']
 
         # After the objects are disconnected, destroy the
         # object dictionary using the brute force ;-)
         # This should help to the garbage collector
         #self.__dict__.clear()
+
+
+    def close(self, flush=True):
+        """
+        Close this node in the tree.
+
+        This method is completely equivalent to ``_f_close()``.
+        """
+        self._f_close(flush)
+
 
     def __len__(self):
         "Useful for dealing with Leaf objects as sequences"
@@ -471,7 +487,7 @@ class Leaf(object):
         # Get this class name
         classname = self.__class__.__name__
         # The title
-        title = self.title
+        title = self._v_title
         # The filters
         filters = ""
         if self.filters.fletcher32:

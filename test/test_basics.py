@@ -28,9 +28,11 @@ class OpenFileTestCase(unittest.TestCase):
 	# Create a group object
 	group = fileh.createGroup(root, 'agroup',
                                   "Group title")
+        group._v_attrs.testattr = 42
 	# Create a couple of objects there
 	array1 = fileh.createArray(group, 'anarray1',
-                                   [2], "Array title 1")
+                                   [1,2,3,4,5,6,7], "Array title 1")
+        array1.attrs.testattr = 42
 	array2 = fileh.createArray(group, 'anarray2',
                                    [2], "Array title 2")
 	# Create a lonely group in first level
@@ -39,9 +41,13 @@ class OpenFileTestCase(unittest.TestCase):
         # Create a new group in the second level
 	group3 = fileh.createGroup(group, 'agroup3',
                                    "Group title 3")
-                                            
+
+        # Create an array in the root with the same name as one in 'agroup'
+        fileh.createArray(root, 'anarray1', [1,2],
+                          title = "Title example")
+
         fileh.close()
-        
+
     def tearDown(self):
         # Remove the temporary file
         os.remove(self.file)
@@ -294,19 +300,16 @@ class OpenFileTestCase(unittest.TestCase):
 
         # Delete a group with leafs
         fileh = openFile(self.file, mode = "r+")
-        
-        warnings.filterwarnings("error", category=UserWarning)
+
         try:
             fileh.removeNode(fileh.root.agroup)
-        except UserWarning:
+        except NodeError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next UserWarning was catched!"
+                print "\nGreat!, the next NodeError was catched!"
                 print value
         else:
-            self.fail("expected an UserWarning")
-        # Reset the warning
-        warnings.filterwarnings("default", category=UserWarning)
+            self.fail("expected a NodeError")
 
         # This should work now
         fileh.removeNode(fileh.root, 'agroup', recursive=1)
@@ -345,19 +348,16 @@ class OpenFileTestCase(unittest.TestCase):
 
         # Delete a group with leafs
         fileh = openFile(self.file, mode = "r+")
-        
-        warnings.filterwarnings("error", category=UserWarning)
+
         try:
             fileh.removeNode(fileh.root, 'agroup')
-        except UserWarning:
+        except NodeError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next UserWarning was catched!"
+                print "\nGreat!, the next NodeError was catched!"
                 print value
         else:
-            self.fail("expected an UserWarning")
-        # Reset the warning
-        warnings.filterwarnings("default", category=UserWarning)
+            self.fail("expected a NodeError")
 
         # This should work now
         fileh.removeNode(fileh.root, 'agroup', recursive=1)
@@ -391,25 +391,36 @@ class OpenFileTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test05c_removeGroupRecursively..." % self.__class__.__name__
 
-        # Delete a group with leafs
         fileh = openFile(self.file, mode = "r+")
-        
-        # Delete a group recursively
-        del fileh.root.agroup
 
-        # Try to get the removed object
         try:
-            object = fileh.root.agroup
-        except LookupError:
+            del fileh.root.agroup
+        except NodeError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
+                print "\nGreat!, the next NodeError was catched!"
                 print value
         else:
-            self.fail("expected an LookupError")
-        # Try to get a child of the removed object
+            self.fail("expected a NodeError")
+
+        fileh.close()
+
+    def test06a_removeGroup(self):
+        """Checking removing a lonely group from an existing file"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test06a_removeGroup..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+        fileh.removeNode(fileh.root, 'agroup2')
+        fileh.close()
+
+        # Open this file in read-only mode
+        fileh = openFile(self.file, mode = "r")
+        # Try to get the removed object
         try:
-            object = fileh.getNode("/agroup/agroup3")
+            object = fileh.root.agroup2
         except LookupError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -419,15 +430,15 @@ class OpenFileTestCase(unittest.TestCase):
             self.fail("expected an LookupError")
         fileh.close()
 
-    def test06a_removeGroup(self):
-        """Checking removing a lonely group from an existing file"""
+    def test06a2_removeGroup(self):
+        """Checking removing a lonely group from an existing file (__delattr__ version)"""
 
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test06a_removeLeaf..." % self.__class__.__name__
+            print "Running %s.test06a2_removeGroup..." % self.__class__.__name__
 
         fileh = openFile(self.file, mode = "r+")
-        fileh.removeNode(fileh.root, 'agroup2')
+        del fileh.root.agroup2
         fileh.close()
 
         # Open this file in read-only mode
@@ -530,6 +541,7 @@ class OpenFileTestCase(unittest.TestCase):
         array_ = fileh.root.anarray2
         assert array_.name == "anarray2"
         assert array_._v_pathname == "/anarray2"
+        assert array_._v_depth == 1
         # Try to get the previous object with the old name
         try:
             object = fileh.root.anarray
@@ -556,6 +568,7 @@ class OpenFileTestCase(unittest.TestCase):
         array_ = fileh.root.anarray2
         assert array_.name == "anarray2"
         assert array_._v_pathname == "/anarray2"
+        assert array_._v_depth == 1
         # Try to get the previous object with the old name
         try:
             object = fileh.root.anarray
@@ -595,14 +608,14 @@ class OpenFileTestCase(unittest.TestCase):
         fileh = openFile(self.file, mode = "r+")
         # Try to get the previous object with the old name
         try:
-            fileh.renameNode(fileh.root.anarray, 'array')        
-        except RuntimeError:
+            fileh.renameNode(fileh.root.anarray, 'array')
+        except NodeError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next RuntimeError was catched!"
+                print "\nGreat!, the next NodeError was catched!"
                 print value
         else:
-            self.fail("expected an RuntimeError")
+            self.fail("expected an NodeError")
         fileh.close()
 
     def test08b_renameToNotValidNaturalName(self):
@@ -731,11 +744,557 @@ class OpenFileTestCase(unittest.TestCase):
         assert group._v_attrs.TITLE == "Hello"
         fileh.close()
 
+    def test10_moveLeaf(self):
+        """Checking moving a leave and access it after a close/open"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test10_moveLeaf..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+        newgroup = fileh.createGroup("/", "newgroup")
+        fileh.moveNode(fileh.root.anarray, newgroup, 'anarray2')
+        fileh.close()
+
+        # Open this file in read-only mode
+        fileh = openFile(self.file, mode = "r")
+        # Ensure that the new name exists
+        array_ = fileh.root.newgroup.anarray2
+        assert array_.name == "anarray2"
+        assert array_._v_pathname == "/newgroup/anarray2"
+        assert array_._v_depth == 2
+        # Try to get the previous object with the old name
+        try:
+            object = fileh.root.anarray
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
+        fileh.close()
+
+    def test10b_moveLeaf(self):
+        """Checking moving a leave and access it without a close/open"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test10b_moveLeaf..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+        newgroup = fileh.createGroup("/", "newgroup")
+        fileh.moveNode(fileh.root.anarray, newgroup, 'anarray2')
+
+        # Ensure that the new name exists
+        array_ = fileh.root.newgroup.anarray2
+        assert array_.name == "anarray2"
+        assert array_._v_pathname == "/newgroup/anarray2"
+        assert array_._v_depth == 2
+        # Try to get the previous object with the old name
+        try:
+            object = fileh.root.anarray
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
+        fileh.close()
+
+    def test10c_moveLeaf(self):
+        """Checking moving Leaves and modify attributes after that"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test10c_moveLeaf..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+        newgroup = fileh.createGroup("/", "newgroup")
+        fileh.moveNode(fileh.root.anarray, newgroup, 'anarray2')
+        fileh.root.newgroup.anarray2.attrs.TITLE = "hello"
+        # Ensure that the new attribute has been written correctly
+        array_ = fileh.root.newgroup.anarray2
+        assert array_.title == "hello"
+        assert array_.attrs.TITLE == "hello"
+        fileh.close()
+
+    def test10d_moveToExistingLeaf(self):
+        """Checking moving a leaf to an existing name"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test10d_moveToExistingLeaf..." % self.__class__.__name__
+
+        # Open this file
+        fileh = openFile(self.file, mode = "r+")
+        # Try to get the previous object with the old name
+        try:
+            fileh.moveNode(fileh.root.anarray, fileh.root, 'array')
+        except NodeError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next NodeError was catched!"
+                print value
+        else:
+            self.fail("expected an NodeError")
+        fileh.close()
+
+    def test10e_moveToExistingLeafOverwrite(self):
+        """Checking moving a leaf to an existing name, overwriting it"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test10e_moveToExistingLeafOverwrite..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+
+        srcNode = fileh.root.anarray
+        fileh.moveNode(srcNode, fileh.root, 'array', overwrite = True)
+        dstNode = fileh.root.array
+
+        self.assert_(srcNode is dstNode)
+        fileh.close()
+
+    def test11_moveGroup(self):
+        """Checking moving a Group and access it after a close/open"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test11_moveGroup..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+        newgroup = fileh.createGroup(fileh.root, 'newgroup')
+        fileh.moveNode(fileh.root.agroup, newgroup, 'agroup3')
+        fileh.close()
+
+        # Open this file in read-only mode
+        fileh = openFile(self.file, mode = "r")
+        # Ensure that the new name exists
+        group = fileh.root.newgroup.agroup3
+        assert group._v_name == "agroup3"
+        assert group._v_pathname == "/newgroup/agroup3"
+        assert group._v_depth == 2
+        # The children of this group must also be accessible through the
+        # new name path
+        group2 = fileh.getNode("/newgroup/agroup3/agroup3")
+        assert group2._v_name == "agroup3"
+        assert group2._v_pathname == "/newgroup/agroup3/agroup3"
+        assert group2._v_depth == 3
+        # Try to get the previous object with the old name
+        try:
+            object = fileh.root.agroup
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
+        # Try to get a child with the old pathname
+        try:
+            object = fileh.getNode("/agroup/agroup3")
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
+        fileh.close()
+
+    def test11b_moveGroup(self):
+        """Checking moving a Group and access it immediately"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test11_moveGroup..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+        newgroup = fileh.createGroup(fileh.root, 'newgroup')
+        fileh.moveNode(fileh.root.agroup, newgroup, 'agroup3')
+        # Ensure that the new name exists
+        group = fileh.root.newgroup.agroup3
+        assert group._v_name == "agroup3"
+        assert group._v_pathname == "/newgroup/agroup3"
+        assert group._v_depth == 2
+        # The children of this group must also be accessible through the
+        # new name path
+        group2 = fileh.getNode("/newgroup/agroup3/agroup3")
+        assert group2._v_name == "agroup3"
+        assert group2._v_pathname == "/newgroup/agroup3/agroup3"
+        assert group2._v_depth == 3
+        # Try to get the previous object with the old name
+        try:
+            object = fileh.root.agroup
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
+        # Try to get a child with the old pathname
+        try:
+            object = fileh.getNode("/agroup/agroup3")
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched!"
+                print value
+        else:
+            self.fail("expected an LookupError")
+        fileh.close()
+
+    def test11c_moveGroup(self):
+        """Checking moving a Group and modify attributes afterwards"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test11c_moveGroup..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+        newgroup = fileh.createGroup(fileh.root, 'newgroup')
+        fileh.moveNode(fileh.root.agroup, newgroup, 'agroup3')
+
+        # Ensure that we can modify attributes in the new group
+        group = fileh.root.newgroup.agroup3
+        group._v_attrs.TITLE = "Hello"
+        group._v_attrs.hola = "Hello"
+        assert group._v_title == "Hello"
+        assert group._v_attrs.TITLE == "Hello"
+        assert group._v_attrs.hola == "Hello"
+        fileh.close()
+
+    def test11d_moveToExistingGroup(self):
+        """Checking moving a group to an existing name"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test11d_moveToExistingGroup..." % self.__class__.__name__
+
+        # Open this file
+        fileh = openFile(self.file, mode = "r+")
+        # Try to get the previous object with the old name
+        try:
+            fileh.moveNode(fileh.root.agroup, fileh.root, 'agroup2')
+        except NodeError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next NodeError was catched!"
+                print value
+        else:
+            self.fail("expected an NodeError")
+        fileh.close()
+
+    def test11e_moveToExistingGroupOverwrite(self):
+        """Checking moving a group to an existing name, overwriting it"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test11e_moveToExistingGroupOverwrite..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+
+        # agroup2 -> agroup
+        srcNode = fileh.root.agroup2
+        fileh.moveNode(srcNode, fileh.root, 'agroup', overwrite = True)
+        dstNode = fileh.root.agroup
+
+        self.assert_(srcNode is dstNode)
+        fileh.close()
+
+    def test12a_moveNodeOverItself(self):
+        """Checking moving a node over itself"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test12_moveNodeOverItself..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+
+        # array -> array
+        srcNode = fileh.root.array
+        fileh.moveNode(srcNode, fileh.root, 'array')
+        dstNode = fileh.root.array
+
+        self.assert_(srcNode is dstNode)
+        fileh.close()
+
+    def test12b_moveGroupIntoItself(self):
+        """Checking moving a group into itself"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test12c_moveGroupIntoItself1..." % self.__class__.__name__
+
+        # Open this file
+        fileh = openFile(self.file, mode = "r+")
+        try:
+            # agroup2 -> agroup2/
+            fileh.moveNode(fileh.root.agroup2, fileh.root.agroup2)
+        except NodeError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next NodeError was catched!"
+                print value
+        else:
+            self.fail("expected an NodeError")
+        fileh.close()
+
+    def test13a_copyLeaf(self):
+        "Copying a leaf."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test13a_copyLeaf..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+
+        # array => agroup2/
+        newNode = fileh.copyNode(fileh.root.array, fileh.root.agroup2)
+        dstNode = fileh.root.agroup2.array
+
+        self.assert_(newNode is dstNode)
+        fileh.close()
+
+    def test13b_copyGroup(self):
+        "Copying a group."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test13b_copyGroup..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+
+        # agroup2 => agroup/
+        newNode = fileh.copyNode(fileh.root.agroup2, fileh.root.agroup)
+        dstNode = fileh.root.agroup.agroup2
+
+        self.assert_(newNode is dstNode)
+        fileh.close()
+
+    def test13c_copyGroupSelf(self):
+        "Copying a group into itself."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test13c_copyGroupSelf..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+
+        # agroup2 => agroup2/
+        newNode = fileh.copyNode(fileh.root.agroup2, fileh.root.agroup2)
+        dstNode = fileh.root.agroup2.agroup2
+
+        self.assert_(newNode is dstNode)
+        fileh.close()
+
+    def test13d_copyGroupRecursive(self):
+        "Recursively copying a group."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test13d_copyGroupRecursive..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+
+        # agroup => agroup2/
+        newNode = fileh.copyNode(
+            fileh.root.agroup, fileh.root.agroup2, recursive = True)
+        dstNode = fileh.root.agroup2.agroup
+
+        self.assert_(newNode is dstNode)
+        dstChild1 = dstNode.anarray1
+        dstChild2 = dstNode.anarray2
+        dstChild3 = dstNode.agroup3
+        fileh.close()
+
+    def test14a_copyNodeExisting(self):
+        "Copying over an existing node."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test14a_copyNodeExisting..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+        try:
+            # agroup2 => agroup
+            fileh.copyNode(fileh.root.agroup2, newname = 'agroup')
+        except NodeError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next NodeError was catched!"
+                print value
+        else:
+            self.fail("expected an NodeError")
+        fileh.close()
+
+    def test14b_copyNodeExistingOverwrite(self):
+        "Copying over an existing node, overwriting it."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test14b_copyNodeExistingOverwrite..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+
+        # agroup2 => agroup
+        newNode = fileh.copyNode(fileh.root.agroup2, newname = 'agroup',
+                                 overwrite = True)
+        dstNode = fileh.root.agroup
+
+        self.assert_(newNode is dstNode)
+        fileh.close()
+
+    def test14c_copyNodeExistingSelf(self):
+        "Copying over self."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test14c_copyNodeExistingSelf..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+        try:
+            # agroup => agroup
+            fileh.copyNode(fileh.root.agroup, newname = 'agroup')
+        except NodeError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next NodeError was catched!"
+                print value
+        else:
+            self.fail("expected an NodeError")
+        fileh.close()
+
+    def test14d_copyNodeExistingOverwriteSelf(self):
+        "Copying over self, trying to overwrite."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test14d_copyNodeExistingOverwriteSelf..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+        try:
+            # agroup => agroup
+            fileh.copyNode(
+                fileh.root.agroup, newname = 'agroup', overwrite = True)
+        except NodeError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next NodeError was catched!"
+                print value
+        else:
+            self.fail("expected an NodeError")
+        fileh.close()
+
+    def test14e_copyGroupSelfRecursive(self):
+        "Recursively copying a group into itself."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test14e_copyGroupSelfRecursive..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+        try:
+            # agroup => agroup/
+            fileh.copyNode(
+                fileh.root.agroup, fileh.root.agroup, recursive = True)
+        except NodeError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next NodeError was catched!"
+                print value
+        else:
+            self.fail("expected an NodeError")
+        fileh.close()
+
+    def test15a_oneStepMove(self):
+        "Moving and renaming a node in a single action."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test15a_oneStepMove..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+
+        # anarray1 -> agroup/array
+        srcNode = fileh.root.anarray1
+        fileh.moveNode(srcNode, fileh.root.agroup, 'array')
+        dstNode = fileh.root.agroup.array
+
+        self.assert_(srcNode is dstNode)
+        fileh.close()
+
+    def test15b_oneStepCopy(self):
+        "Copying and renaming a node in a single action."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test15b_oneStepMove..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+
+        # anarray1 => agroup/array
+        newNode = fileh.copyNode(
+            fileh.root.anarray1, fileh.root.agroup, 'array')
+        dstNode = fileh.root.agroup.array
+
+        self.assert_(newNode is dstNode)
+        fileh.close()
+
+    def test16a_fullCopy(self):
+        "Copying full data and user attributes."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test16a_fullCopy..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+
+        # agroup => groupcopy
+        srcNode = fileh.root.agroup
+        newNode = fileh.copyNode(
+            srcNode, newname = 'groupcopy', recursive = True)
+        dstNode = fileh.root.groupcopy
+
+        self.assert_(newNode is dstNode)
+        self.assertEqual(srcNode._v_attrs.testattr, dstNode._v_attrs.testattr)
+        self.assertEqual(
+            srcNode.anarray1.attrs.testattr, dstNode.anarray1.attrs.testattr)
+        self.assertEqual(srcNode.anarray1.read(), dstNode.anarray1.read())
+        fileh.close()
+
+    def test16b_partialCopy(self):
+        "Copying partial data and no user attributes."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test16b_partialCopy..." % self.__class__.__name__
+
+        fileh = openFile(self.file, mode = "r+")
+
+        # agroup => groupcopy
+        srcNode = fileh.root.agroup
+        newNode = fileh.copyNode(
+            srcNode, newname = 'groupcopy',
+            recursive = True, copyuserattrs = False,
+            start = 0, stop = 5, step = 2)
+        dstNode = fileh.root.groupcopy
+
+        self.assert_(newNode is dstNode)
+        self.assert_(not hasattr(dstNode._v_attrs, 'testattr'))
+        self.assert_(not hasattr(dstNode.anarray1.attrs, 'testattr'))
+        self.assertEqual(srcNode.anarray1.read()[0:5:2], dstNode.anarray1.read())
+        fileh.close()
+
+
 class CheckFileTestCase(unittest.TestCase):
-    
+
     def test00_isHDF5(self):
         """Checking isHDF5 function (TRUE case)"""
-        
+
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_isHDF5..." % self.__class__.__name__

@@ -24,24 +24,25 @@ Functions:
 Misc variables:
 
     __version__
-    
-    MAX_ATTRS_IN_NODE -- Maximum allowed number of attributes in a node
+
     SYS_ATTR -- List with attributes considered as read-only
     SYS_ATTR_PREFIXES -- List with prefixes for system attributes
 
 """
 
+import warnings
+import cPickle
+
+import tables.hdf5Extension as hdf5Extension
+from tables.constants import MAX_NODE_ATTRS
+from tables.registry import classNameDict
+from tables.exceptions import PerformanceWarning
+from tables.utils import checkNameValidity
+from tables.undoredo import attrToShadow
+
+
+
 __version__ = "$Revision: 1.41 $"
-
-import warnings, cPickle
-import hdf5Extension
-import Group
-import Leaf
-from utils import checkNameValidity
-
-# Note: the next constant has to be syncronized with the
-# MAX_ATTRS_IN_NODE constant in util.h
-MAX_ATTRS_IN_NODE = 4096
 
 # System attributes
 SYS_ATTRS = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
@@ -105,10 +106,11 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     Methods:
     
         _f_list(attrset)
-        __getattr__(attrname)
-        __setattr__(attrname, attrvalue)
-        __delattr__(attrname)
-        _f_remove(attrname)
+        __getattr__(name)
+        __setattr__(name, value)
+        __delattr__(name)
+        __contains__(name)
+        _f_remove(name)
         _f_rename(oldattrname, newattrname)
         _f_close()
         
@@ -122,12 +124,15 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         node -- The parent node
         
         """
+
+        mydict = self.__dict__
+
         self._g_new(node)
-        self.__dict__["_v_node"] = node
-        self.__dict__["_v_attrnames"] = self._g_listAttr()
+        mydict["_v_node"] = node
+        mydict["_v_attrnames"] = self._g_listAttr()
         # Split the attribute list in system and user lists
-        self.__dict__["_v_attrnamessys"] = []
-        self.__dict__["_v_attrnamesuser"] = []
+        mydict["_v_attrnamessys"] = []
+        mydict["_v_attrnamesuser"] = []
         for attr in self._v_attrnames:
             # put the attributes on the local dictionary to allow
             # tab-completion
@@ -143,21 +148,22 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         self._v_attrnamesuser.sort()
 
     def _f_list(self, attrset="user"):
-        """Return the list of attributes of the parent node
+        """_f_list(attrset = 'user') -> list.  List of attribute names.
 
-        The parameter attrset the attribute set to be returned. An
-        "user" value returns only the user attributes. This is the
-        default. "sys" returns only the system attributes. Finally,
-        "all" returns both the system and user attributes.
+        Return a list of attribute names of the parent node.
 
+        The parameter 'attrset' selects the attribute set to be used.
+        A 'user' value returns only the user attributes. This is the default.
+        A 'sys' value returns only the system attributes.
+        Finally, 'all' returns both the system and user attributes.
         """
 
         if attrset == "user":
-            return self._v_attrnamesuser
+            return self._v_attrnamesuser[:]
         elif attrset == "sys":
-            return self._v_attrnamessys
+            return self._v_attrnamessys[:]
         elif attrset == "all":
-            return self._v_attrnames
+            return self._v_attrnames[:]
 
     def __getattr__(self, name):
         """Get the attribute named "name"."""
@@ -168,25 +174,28 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
                   "Attribute '%s' does not exist in node: '%s'" % \
                   (name, self._v_node._v_pathname)
 
-        # Read the attribute from disk
-        # This is commented out temporarily until I decide whether it is
-        # interesting or not having system attributes distinct from strings
-        # as for example NROWS for Tables and EXTDIM for EArrays
-#         if name in self._v_attrnamessys:
-#             # _g_getSysAttr works only for string attributes
-#             # with length less than 256 bytes
-#             # (all read-only atributes *must* follow these rules!)
-#             value = self._g_getSysAttr(name)   # Takes only 0.6s/2.9s
-#         else:
-#             value = self._g_getAttr(name)   # Takes 1.3s/3.7s
-        value = self._g_getAttr(name)   # Takes 1.3s/3.7s
+        # Read the attribute from disk This is an optimization to read
+        # quickly system attributes that are _string_ values, but it
+        # takes care of other types as well as for example NROWS for
+        # Tables and EXTDIM for EArrays
+        if issysattrname(name) and name not in ["NROWS", "EXTDIM",
+                                                "AUTOMATIC_INDEX",
+                                                "REINDEX", "DIRTY",
+                                                "NODE_TYPE_VERSION"]:
+           # _g_getSysAttr works only for string attributes
+           # with length less than 256 bytes
+           value = self._g_getSysAttr(name)   # Takes only 0.6s/2.9s
+        else:
+           value = self._g_getAttr(name)   # Takes 1.3s/3.7s
+        # This the general way to read attributes (takes more time)
+        #value = self._g_getAttr(name)   # Takes 1.3s/3.7s
 
         # Check whether the value is pickled
         # Pickled values always seems to end with a "."
         if type(value) is str and value and value[-1] == ".":
             try:
                 retval = cPickle.loads(value)
-            except:
+            except cPickle.UnpicklingError:
                 retval = value
         else:
             retval = value
@@ -195,70 +204,101 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         self.__dict__[name] = retval
         return retval
 
-    def __setattr__(self, name, value):
-        """Set new attribute to node.
 
-        name -- The name of the new attribute
-        value -- The new attribute value
-
-        A ValueError is raised when the "name" starts by a reserved
-        prefix or contains a '/'. A NaturalNameWarning is given if
-        "name" is not a valid Python identifier. An AttributeError is
-        raised if a read-only attribute is to be overwritten. A
-        UserWarning is issued when MAX_ATTRS_IN_NODE is going to be
-        exceeded.
-
+    def _g__setattr(self, name, value):
         """
+        Set a PyTables attribute.
 
-        # Check for name validity
-        checkNameValidity(name)
+        Sets a (maybe new) PyTables attribute with the specified `name`
+        and `value`.  If the attribute already exists, it is simply
+        replaced.
 
-        # Check that the attribute is not a system one (read-only)
-#         if name in RO_ATTRS:
-#             raise AttributeError, \
-#                   "Read-only attribute ('%s') cannot be overwritten" % (name)
-            
-        # Check if we have too much numbers of attributes
-        if len(self._v_attrnames) == MAX_ATTRS_IN_NODE:
-            warnings.warn( \
-"""'%s' node is exceeding the recommended maximum number of attrs (%d).
- Be ready to see PyTables asking for *lots* of memory and possibly slow I/O.
-""" % (self.node._v_pathname, MAX_ATTRS_IN_NODE), UserWarning)
+        It does not log the change.
+        """
 
         # Save this attribute to disk
         # (overwriting an existing one if needed)
         self._g_setAttr(name, value)
-            
+
         # New attribute or value. Introduce it into the local
         # directory
         self.__dict__[name] = value
 
         # Finally, add this attribute to the list if not present
-        if not name in self._v_attrnames:
-            self._v_attrnames.append(name)
+        attrnames = self._v_attrnames
+        if not name in attrnames:
+            attrnames.append(name)
+            attrnames.sort()
             if issysattrname(name):
-                self._v_attrnamessys.append(name)
+                attrnamessys = self._v_attrnamessys
+                attrnamessys.append(name)
+                attrnamessys.sort()
             else:
-                self._v_attrnamesuser.append(name)
-            # Sort the attributes
-            self._v_attrnames.sort()
-            self._v_attrnamessys.sort()
-            self._v_attrnamesuser.sort()
+                attrnamesuser = self._v_attrnamesuser
+                attrnamesuser.append(name)
+                attrnamesuser.sort()
 
 
-    def __delattr__(self, name):
-        "Remove the attribute attrname from the attribute set"
+    def __setattr__(self, name, value):
+        """
+        Set a PyTables attribute.
 
-        # Check if attribute exists
-        if name not in self._v_attrnames:
-            raise AttributeError, \
-                  "Attribute ('%s') does not exist in node '%s'" % \
-                  (name, self._v_node._v_name)
+        Sets a (maybe new) PyTables attribute with the specified `name`
+        and `value`.  If the attribute already exists, it is simply
+        replaced.
 
-        # The system attributes are protected
-        if name in self._v_attrnamessys:
-            raise AttributeError, \
-                  "System attribute ('%s') cannot be deleted" % (name)
+        A ``ValueError`` is raised when the name starts with a reserved
+        prefix or contains a ``/``.  A `NaturalNameWarning` is issued if
+        the name is not a valid Python identifier.  A
+        `PerformanceWarning` is issued when the recommended maximum
+        number of attributes in a node is going to be exceeded.
+        """
+
+        node = self._v_node
+        nodeFile = node._v_file
+        nodePathname = node._v_pathname
+        attrnames = self._v_attrnames
+
+        # Check for name validity
+        checkNameValidity(name)
+
+        # Check that the attribute is not a system one (read-only)
+        ##if name in RO_ATTRS:
+        ##    raise AttributeError, \
+        ##          "Read-only attribute ('%s') cannot be overwritten" % (name)
+
+        # Check if there are too many attributes.
+        if len(attrnames) >= MAX_NODE_ATTRS:
+            warnings.warn("""\
+node ``%s`` is exceeding the recommended maximum number of attributes (%d);\
+be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
+                          % (node._v_pathname, MAX_NODE_ATTRS),
+                          PerformanceWarning)
+
+        undoEnabled = nodeFile.isUndoEnabled()
+        if undoEnabled and (name in attrnames):
+            # Remove the existing attribute.
+            # __delattr__ can not be used for deleting system attributes.
+            # Log *before* moving to use the right shadow name.
+            nodeFile._log('DELATTR', nodePathname, name)
+            attrToShadow(nodeFile, nodePathname, name)
+
+        # Set the attribute.
+        self._g__setattr(name, value)
+
+        # Log the change.
+        if undoEnabled:
+            nodeFile._log('ADDATTR', nodePathname, name)
+
+
+    def _g__delattr(self, name):
+        """
+        Delete a PyTables attribute.
+
+        Deletes the specified existing PyTables attribute.
+
+        It does not log the change.
+        """
 
         # Delete the attribute from disk
         self._g_remove(name)
@@ -272,7 +312,51 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         # Delete the attribute from the local directory
         # closes (#1049285)
-        del self.__dict__[name] 
+        del self.__dict__[name]
+
+
+    def __delattr__(self, name):
+        """
+        Delete a PyTables attribute.
+
+        Deletes the specified existing PyTables attribute from the
+        attribute set.  If a nonexistent or system attribute is
+        specified, an ``AttributeError`` is raised.
+        """
+
+        node = self._v_node
+        nodeFile = node._v_file
+
+        # Check if attribute exists
+        if name not in self._v_attrnames:
+            raise AttributeError(
+                "Attribute ('%s') does not exist in node '%s'"
+                % (name, node._v_name))
+
+        # The system attributes are protected
+        if name in self._v_attrnamessys:
+            raise AttributeError, \
+                  "System attribute ('%s') cannot be deleted" % (name)
+
+        # Remove the PyTables attribute or move it to shadow.
+        if nodeFile.isUndoEnabled():
+            nodePathname = node._v_pathname
+            # Log *before* moving to use the right shadow name.
+            nodeFile._log('DELATTR', nodePathname, name)
+            attrToShadow(nodeFile, nodePathname, name)
+        else:
+            self._g__delattr(name)
+
+
+    def __contains__(self, name):
+        """
+        Is there a PyTables attribute with that `name`?
+
+        Returns ``True`` if the attribute set has an attribute with the
+        given name, ``False`` otherwise.
+        """
+        return name in self._v_attrnames
+
 
     def _f_rename(self, oldattrname, newattrname):
         "Rename an attribute"
@@ -296,22 +380,48 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # Finally, remove the old attribute
         delattr(self, oldattrname)
 
-    def _f_copy(self, where):
-        "Copy the system and user attributes to 'where' object"
-        assert (isinstance(where, Group.Group) or
-                isinstance(where, Leaf.Leaf)), \
-                "The where has to be a Group or Leaf instance"
-        if isinstance(where, Group.Group):
-            dstAttrs = where._v_attrs
-        else:
-            dstAttrs = where.attrs
+
+    def _g_copy(self, newSet, setAttr = None):
+        """
+        Copy set attributes.
+
+        Copies all user and allowed system PyTables attributes to the
+        given attribute set, replacing the existing ones.
+
+        You can specify a *bound* method of the destination set that
+        will be used to set its attributes.  Else, its `_g__setattr`
+        method will be used.
+
+        Changes are logged depending on the chosen setting method.  The
+        default setting method does not log anything.
+        """
+
+        if setAttr is None:
+            setAttr = newSet._g__setattr
+
         for attrname in self._v_attrnamesuser:
-            setattr(dstAttrs, attrname, getattr(self, attrname))
-        # Copy the system attributes that we are allowed to
+            setAttr(attrname, getattr(self, attrname))
+        # Copy the system attributes that we are allowed to.
         for attrname in self._v_attrnamessys:
-            #setattr(dstAttrs, attrname, getattr(self, attrname))
             if attrname not in SYS_ATTRS_NOTTOBECOPIED:
-                setattr(dstAttrs, attrname, getattr(self, attrname))
+                setAttr(attrname, getattr(self, attrname))
+
+
+    def _f_copy(self, where):
+        """
+        Copy set attributes.
+
+        Copies all user and allowed system PyTables attributes to the
+        given PyTables node, replacing the existing ones.
+        """
+
+        # AttributeSet must be defined in order to define a Node.
+        # However, we need to know Node here.
+        # Using classNameDict avoids a circular import.
+        if not isinstance(where, classNameDict['Node']):
+            raise TypeError("destination object is not a node: %r" % (where,))
+        self._g_copy(where._v_attrs, where._v_attrs.__setattr__)
+
 
     def _f_close(self):
         "Delete some back-references"
@@ -326,21 +436,14 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     def __str__(self):
         """The string representation for this object."""
         # Get the associated filename
-        filename = self._v_node._v_rootgroup._v_filename
+        filename = self._v_node._v_file.filename
         # The pathname
         pathname = self._v_node._v_pathname
         # Get this class name
         classname = self.__class__.__name__
-        # Get the parent class name
-        pclassname = self._v_node.__class__.__name__
-        if pclassname == "Group":
-            attrname = "_v_attrs"
-        else:
-            attrname = "attrs"
         # The attrribute names
         attrnumber = len([ n for n in self._v_attrnames if not issysattrname(n) ])
-        return "%s.%s (%s), %s attributes" % (pathname, attrname, classname, 
-                                              attrnumber)
+        return "%s._v_attrs (%s), %s attributes" % (pathname, classname, attrnumber)
 
     def __repr__(self):
         """A detailed string representation for this object."""
@@ -356,4 +459,12 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
                    (str(self), attrlist)
         else:
             return str(self)
-               
+
+
+
+## Local Variables:
+## mode: python
+## py-indent-offset: 4
+## tab-width: 4
+## fill-column: 72
+## End:

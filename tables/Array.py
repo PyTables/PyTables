@@ -16,6 +16,7 @@ See Array class docstring for more info.
 Classes:
 
     Array
+    ImageArray
 
 Functions:
 
@@ -27,7 +28,25 @@ Misc variables:
 
 """
 
+import types, warnings, sys
+
+import numarray
+import numarray.strings as strings
+
+try:
+    import Numeric
+    Numeric_imported = True
+except ImportError:
+    Numeric_imported = False
+
+import tables.hdf5Extension as hdf5Extension
+from tables.utils import calcBufferSize, processRange, processRangeRead
+from tables.Leaf import Leaf, Filters
+
+
+
 __version__ = "$Revision: 1.85 $"
+
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -36,21 +55,8 @@ __version__ = "$Revision: 1.85 $"
 obversion = "2.2"    # This adds support for time datatypes.
 
 
-import types, warnings, sys
-from Leaf import Leaf, Filters
-from utils import calcBufferSize, processRange, processRangeRead
-import hdf5Extension
-import numarray
-import numarray.strings as strings
-import numarray.records as records
 
-try:
-    import Numeric
-    Numeric_imported = 1
-except:
-    Numeric_imported = 0
-
-class Array(Leaf, hdf5Extension.Array, object):
+class Array(hdf5Extension.Array, Leaf):
     """Represent an homogeneous dataset in HDF5 file.
 
     It enables to create new datasets on-disk from Numeric, numarray,
@@ -75,7 +81,18 @@ class Array(Leaf, hdf5Extension.Array, object):
         nrow -- On iterators, this is the index of the current row.
 
     """
-    
+
+    # Class identifier.
+    _c_classId = 'ARRAY'
+
+
+    # <undo-redo support>
+    _c_canUndoCreate = True  # Can creation/copying be undone and redone?
+    _c_canUndoRemove = True  # Can removal be undone and redone?
+    _c_canUndoMove   = True  # Can movement/renaming be undone and redone?
+    # </undo-redo support>
+
+
     def __init__(self, object = None, title = ""):
         """Create the instance Array.
 
@@ -105,10 +122,12 @@ class Array(Leaf, hdf5Extension.Array, object):
         """Save a fresh array (i.e., not present on HDF5 file)."""
         global obversion
 
+        # All this will eventually end up in the node constructor.
+
         self._v_version = obversion
         try:
             naarr, self.flavor = self._convertIntoNA(self.object)
-        except:
+        except:  #XXX
             # Problems converting data. Close this node.
             #print "Problems converting input object:", str(self.object)
             self.close(flush=0)
@@ -146,7 +165,7 @@ class Array(Leaf, hdf5Extension.Array, object):
         self.itemsize = naarr.itemsize()
         try:
             self.type, self.stype = self._createArray(naarr, self._v_new_title)
-        except:
+        except:  #XXX
             # Problems creating the Array on disk. Close this node
             self.close(flush=0)
             (typerr, value, traceback) = sys.exc_info()
@@ -208,7 +227,7 @@ class Array(Leaf, hdf5Extension.Array, object):
                 try:
                     naarr = strings.array(arr)
                 # If still doesn't, issues an error
-                except:
+                except:  #XXX
                     raise TypeError, \
 """The object '%s' can't be converted into a numerical or character array.
 Sorry, but this object is not supported.""" % (arr)
@@ -241,7 +260,9 @@ Sorry, but this object is not supported.""" % (arr)
         """Get the metadata info for an array in file."""
         (self.type, self.stype, self.shape, self.itemsize, self.byteorder,
          self._v_chunksize) = self._openArray()
-        
+
+        # All this will eventually end up in the node constructor.
+
         # Compute the rowsize for each element
         self.rowsize = self.itemsize
         for i in xrange(len(self.shape)):
@@ -254,7 +275,6 @@ Sorry, but this object is not supported.""" % (arr)
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
                             calcBufferSize(self.rowsize, self.nrows)
-            
 
     def iterrows(self, start=None, stop=None, step=None):
         """Iterate over all the rows or a range.
@@ -369,7 +389,7 @@ Sorry, but this object is not supported.""" % (arr)
                 start, stop, step = processRange(self.shape[dim],
                                                  key, key+1, 1)
                 stop_None[dim] = 1
-            elif isinstance(key, types.SliceType):
+            elif isinstance(key, slice):
                 start, stop, step = processRange(self.shape[dim],
                                                  key.start, key.stop, key.step)
             else:
@@ -440,7 +460,7 @@ Sorry, but this object is not supported.""" % (arr)
         # Assign the value to it
         try:
             narr[...] = value
-        except:
+        except:  #XXX
             (typerr, value2, traceback) = sys.exc_info()
             raise ValueError, \
 """value parameter '%s' cannot be converted into an array object compliant with earray:
@@ -525,11 +545,11 @@ The error was: <%s>""" % (value, self, value2)
                     # tolist() method creates a list with a sane byteorder
                     if arr.shape <> ():
                         #arr=Numeric.array(arr.tolist(), typecode=arr.typecode())
-			# The next is 10 to 100 times faster. 2005-02-09
-			shape = arr.shape
-			arr=Numeric.fromstring(arr._data,
-			                       typecode=arr.typecode())
-			arr.shape = shape
+                        # The next is 10 to 100 times faster. 2005-02-09
+                        shape = arr.shape
+                        arr=Numeric.fromstring(arr._data,
+                                               typecode=arr.typecode())
+                        arr.shape = shape
                     else:
                         # This works for rank-0 arrays
                         # (but is slower for big arrays)
@@ -585,7 +605,7 @@ The error was: <%s>""" % (value, self, value2)
         if 0 not in shape:
             # Arrays that have non-zero dimensionality
             self._readArray(start, stop, step, arr)
-            
+
         if self.flavor in ["NumArray", "CharArray"]:
             # No conversion needed
             return arr
@@ -594,8 +614,8 @@ The error was: <%s>""" % (value, self, value2)
             return arr[()]  # return the value. Yes, this is a weird syntax :(
         else:
             return self._convToFlavor(arr)
-        
-    def _g_copy(self, group, name, start, stop, step, title, filters):
+
+    def _g_copyWithStats(self, group, name, start, stop, step, title, filters):
         "Private part of Leaf.copy() for each kind of leaf"
         # Get the slice of the array
         # (non-buffered version)
@@ -604,8 +624,8 @@ The error was: <%s>""" % (value, self, value2)
 	else:
 	    arr = self[()]
         # Build the new Array object
-        object = Array(arr, title=title)
-        setattr(group, name, object)
+        object = self._v_file.createArray(
+            group, name, arr, title=title, _log = False)
         nbytes = self.itemsize
         for i in self.shape:
             nbytes*=i
@@ -624,3 +644,18 @@ The error was: <%s>""" % (value, self, value2)
   flavor = %r
   byteorder = %r""" % (self, self.type, self.stype, self.shape, self.itemsize,
                        self.nrows, self.flavor, self.byteorder)
+
+
+
+class ImageArray(Array):
+
+    """
+    Array containing an image.
+
+    This class has no additional behaviour or functionality compared
+    to that of an ordinary array.  It simply enables the user to open
+    an ``IMAGE`` HDF5 node as a normal `Array` node in PyTables.
+    """
+
+    # Class identifier.
+    _c_classId = 'IMAGE'

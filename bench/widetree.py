@@ -36,8 +36,8 @@ class WideTreeTestCase(unittest.TestCase):
                   self.__class__.__name__
             print "Maximum number of childs tested :", maxchilds
         # Open a new empty HDF5 file
-        file = tempfile.mktemp(".h5")
-        #file = "test_widetree.h5"
+        #file = tempfile.mktemp(".h5")
+        file = "test_widetree.h5"
 
         fileh = openFile(file, mode = "w")
         if verbose:
@@ -65,7 +65,7 @@ class WideTreeTestCase(unittest.TestCase):
         # Close the file
         fileh.close()
         # Then, delete the file
-        os.remove(file)
+        #os.remove(file)
         
     def test01_wideTree(self):
         """Checking creation of large number of groups (1024) per group 

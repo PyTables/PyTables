@@ -5,8 +5,11 @@ Run all test cases.
 import sys
 import os
 import unittest
+
 from numarray import *
 from numarray import strings
+
+
 
 verbose = 0
 heavy = 0  # Default is not doing heavy testing
@@ -121,9 +124,10 @@ def suite():
                     'test_earray',
 		    'test_tree',
 		    'test_timetype',
+                    'test_do_undo',
                     # Sub-packages
                     'test_filenode',
-		    ]
+	    ]
 
     # Add test_Numeric only if Numeric is installed
     try:
@@ -144,8 +148,8 @@ def suite():
 
 
 if __name__ == '__main__':
-    import tables
     import numarray
+    import tables
 
     print '-=' * 38
     print "PyTables version:  %s" % tables.__version__

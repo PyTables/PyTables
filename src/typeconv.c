@@ -21,19 +21,39 @@
 #include <assert.h>
 
 
+#if (!defined _ISOC99_SOURCE && !defined __USE_ISOC99)
+long int lround(double x)
+{
+  double trunx;
+
+  if (x > 0.0) {
+    trunx = floor(x);
+    if (x - trunx >= 0.5)
+      trunx += 1;
+  } else {
+    trunx = ceil(x);
+    if (trunx - x >= 0.5)
+      trunx -= 1;
+  }
+
+  return (long int)(trunx);
+}
+#endif  /* !_ISOC99_SOURCE && !__USE_ISOC99 */
+
+
 void conv_float64_timeval32(void *base,
 			    unsigned long byteoffset,
 			    unsigned long bytestride,
-			    long long nrecords,
+			    PY_LONG_LONG nrecords,
 			    unsigned long nelements,
 			    const int sense)
 {
-  long long      record;
+  PY_LONG_LONG  record;
   unsigned long  element, gapsize;
-  double         *fieldbase;
+  double  *fieldbase;
   union {
-    long long i64;
-    double    f64;
+    PY_LONG_LONG  i64;
+    double  f64;
   } tv;
 
   assert(bytestride > 0);
@@ -42,12 +62,17 @@ void conv_float64_timeval32(void *base,
   /* Byte distance from end of field to beginning of next field. */
   gapsize = bytestride - nelements * sizeof(double);
 
+#ifdef _MSC_VER
+  /* Work around Visual C++ strange pointer arithmetic... */
+  fieldbase = (double *)((unsigned char *)(base) + byteoffset);
+#else
   fieldbase = (double *)(base + byteoffset);
+#endif
   for (record = 0;  record < nrecords;  record++) {
     for (element = 0;  element < nelements;  element++) {
       if (sense == 0) {
 	/* Convert from float64 to timeval32. */
-	tv.i64 = (((long long)(*fieldbase) << 32)
+	tv.i64 = (((PY_LONG_LONG)(*fieldbase) << 32)
 		  | (lround((*fieldbase - (int)(*fieldbase)) * 1e+6)
 		     & 0x0ffffffff));
 	*fieldbase = tv.f64;
@@ -59,7 +84,12 @@ void conv_float64_timeval32(void *base,
       }
       fieldbase++;
     }
+#ifdef _MSC_VER
+    /* Work around Visual C++ strange pointer arithmetic... */
+    fieldbase = (double *)((unsigned char *)(fieldbase) + gapsize);
+#else
     fieldbase = (double *)((void *)(fieldbase) + gapsize);
+#endif
     /* XXX: Need to check if this works on platforms which require
        64-bit data to be aligned.  ivb(2005-01-07) */
   }

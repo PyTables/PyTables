@@ -29,33 +29,29 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.140 $"
-
-from __future__ import generators
 import sys
-import struct
-import types
-import re
-import copy
-import string
 import warnings
+
 import numarray
 import numarray.strings as strings
 import numarray.records as records
-import hdf5Extension
-from utils import calcBufferSize, processRange, processRangeRead
-import Group
-from Leaf import Leaf, Filters
-from Index import Index, IndexProps
-from IsDescription import \
-     IsDescription, Description, metaIsDescription, Col, StringCol
-from VLArray import Atom, StringAtom
 
 try:
     import Numeric
-    Numeric_imported = 1
-except:
-    Numeric_imported = 0
+    Numeric_imported = True
+except ImportError:
+    Numeric_imported = False
+
+import tables.hdf5Extension as hdf5Extension
+from tables.utils import calcBufferSize, processRange, processRangeRead
+from tables.Leaf import Leaf
+from tables.Index import Index, IndexProps
+from IsDescription import IsDescription, Description, Col, StringCol
+from VLArray import Atom, StringAtom
+
+
+
+__version__ = "$Revision: 1.140 $"
 
 
 # Map Numarray record codes to Numarray types.
@@ -73,7 +69,7 @@ byteorderDict={"=": sys.byteorder,
 revbyteorderDict={'little': '<',
                   'big': '>'}
 
-class Table(Leaf, hdf5Extension.Table, object):
+class Table(hdf5Extension.Table, Leaf):
     """Represent a table in the object tree.
 
     It provides methods to create new tables or open existing ones, as
@@ -122,6 +118,10 @@ class Table(Leaf, hdf5Extension.Table, object):
             if the Table is indexed
 
     """
+
+    # Class identifier.
+    _c_classId = 'TABLE'
+
 
     def __init__(self, description = None, title = "",
                  filters = None, expectedrows = 10000):
@@ -261,6 +261,8 @@ class Table(Leaf, hdf5Extension.Table, object):
     def _create(self):
         """Create a new table on disk."""
 
+        # All this will eventually end up in the node constructor.
+
         # Compute some important parameters for createTable
         self.colnames = tuple(self.description.__names__)
         self._v_fmt = self.description._v_fmt
@@ -298,8 +300,9 @@ class Table(Leaf, hdf5Extension.Table, object):
             self._indexedrows = 0
             self._unsaved_indexedrows = 0
             # Save AUTOMATIC_INDEX and REINDEX flags as attributes
-            self.attrs.AUTOMATIC_INDEX = self.indexprops.auto
-            self.attrs.REINDEX = self.indexprops.reindex
+            setAttr = self._v_attrs._g__setattr
+            setAttr('AUTOMATIC_INDEX', self.indexprops.auto)
+            setAttr('REINDEX', self.indexprops.reindex)
         # Create a cols accessor
         self.cols = Cols(self)
 
@@ -310,6 +313,9 @@ class Table(Leaf, hdf5Extension.Table, object):
         the actual data.
 
         """
+
+        # All this will eventually end up in the node constructor.
+
         # Get table info
         (self.nrows, self.colnames, self.rowsize, itemsizes, colshapes,
          colstypes, self._v_fmt) = self._getTableInfo()
@@ -385,18 +391,15 @@ class Table(Leaf, hdf5Extension.Table, object):
             else:
                 self.colindexed[colname] = 0
         if self.indexed:
-            if hasattr(self.attrs, "AUTOMATIC_INDEX"):
-                automatic_index = self.attrs.AUTOMATIC_INDEX
-            else:
-                automatic_index = None
-            if hasattr(self.attrs, "REINDEX"):
-                reindex = self.attrs.REINDEX
-            else:
-                reindex = None
-            self.indexprops=IndexProps(auto=automatic_index, reindex=reindex,
-                                       filters=indexobj.filters)
+            autoindex = getattr(self.attrs, 'AUTOMATIC_INDEX', None)
+            reindex = getattr(self.attrs, 'REINDEX', None)
+            indexobj = getattr(self.cols, indexcname).index
+
+            self.indexprops = IndexProps(auto=autoindex, reindex=reindex,
+                                         filters=indexobj.filters)
             self._indexedrows = indexobj.nelements
             self._unsaved_indexedrows = self.nrows - self._indexedrows
+
 
     def where(self, condition=None, start=None, stop=None, step=None):
         """Iterator that selects values fulfilling the 'condition' param.
@@ -412,8 +415,9 @@ class Table(Leaf, hdf5Extension.Table, object):
         
         """
 
-        assert isinstance(condition, Column), \
-"Wrong condition parameter type. Only Column instances are suported."
+        if not isinstance(condition, Column):
+            raise TypeError("""\
+Wrong 'condition' parameter type. Only Column instances are suported.""")
 
         if condition.index and not condition.dirty:
             # Call the indexed version method
@@ -432,12 +436,15 @@ class Table(Leaf, hdf5Extension.Table, object):
         This method is only intended to be used for indexed columns.
         """
 
-        assert isinstance(condition, Column), \
-"Wrong condition parameter type. Only Column instances are suported."
-        assert condition.index is not None, \
-               "This method is intended only for indexed columns"
-        assert condition.dirty == 0, \
-               "This method is intended only for indexed columns, but this column has a dirty index. Try re-indexing it in order to put the index in a sane state. "
+        if not isinstance(condition, Column):
+            raise TypeError("""\
+Wrong 'condition' parameter type. Only Column instances are suported.""")
+        if condition.index is None:
+            raise ValueError("""\
+This method is intended only for indexed columns.""")
+        if condition.dirty:
+            raise ValueError("""\
+This method is intended only for indexed columns, but this column has a dirty index. Try re-indexing it in order to put the index in a sane state.""")
 
         self.whereColname = condition.name   # Flag for Row.__iter__
         # Get the coordinates to lookup
@@ -495,6 +502,46 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.whereColname = None
         return recarr
 
+    def readIndexed(self, condition):
+        """Returns a RecArray fulfilling the 'condition' param.
+        
+        condition can be used to specify selections along a column in the
+        form:
+
+        condition=(0<table.cols.col1<0.3)
+
+        This method is only intended to be used for indexed columns.
+        """
+
+        assert isinstance(condition, Column), \
+"Wrong condition parameter type. Only Column instances are suported."
+        assert condition.index is not None, \
+               "This method is intended only for indexed columns"
+        assert condition.dirty == 0, \
+               "This method is intended only for indexed columns, but this column has a dirty index. Try re-indexing it in order to put the index in a sane state. "
+
+        self.whereColname = condition.name   # Flag for Row.__iter__
+        # Get the coordinates to lookup
+        nrecords = condition.index.getLookupRange(condition)
+        recarr = records.array(None,
+                               formats=self.description._v_recarrfmt,
+                               shape=(nrecords,),
+                               names = self.colnames)
+        if nrecords > 0:
+            # Read the contents of a selection in a recarray
+            condition.index.indices._initIndexSlice(nrecords)
+            coords = condition.index.getCoords(0, nrecords)
+            recout = self._read_elements_ra(recarr, coords)
+            if self.byteorder <> sys.byteorder:
+                recarr._byteswap()
+            condition.index.indices._destroyIndexSlice()
+        # Delete indexation caches
+        self.ops = []
+        self.opsValues = []
+        self.opsColnames = []
+        self.whereColname = None
+        return recarr
+
     def whereInRange(self, condition, start=None, stop=None, step=None):
         """Iterator that selects values fulfilling the 'condition' param.
         
@@ -508,8 +555,9 @@ class Table(Leaf, hdf5Extension.Table, object):
         
         """
 
-        assert isinstance(condition, Column), \
-"Wrong condition parameter type. Only Column instances are suported."
+        if not isinstance(condition, Column):
+            raise TypeError("""\
+Wrong 'condition' parameter type. Only Column instances are suported.""")
 
         self.whereColname = condition.name   # Flag for Row.__iter__
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
@@ -532,10 +580,15 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         """
 
-        assert isinstance(condition, Column), \
-"Wrong condition parameter type. Only Column instances are suported."
-        assert flavor in ["NumArray", "List", "Tuple"], \
-"Wrong condition parameter type. Only Column instances are suported."
+        if not isinstance(condition, Column):
+            raise TypeError("""\
+Wrong 'condition' parameter type. Only Column instances are suported.""")
+
+        supportedFlavors = ['NumArray', 'List', 'Tuple']
+        if flavor not in supportedFlavors:
+            raise ValueError("""\
+Specified 'flavor' value is not one of %s.""" % (supportedFlavors,))
+
         # Take advantage of indexation, if present
         if condition.index is not None:
             # get the number of coords and set-up internal variables
@@ -577,9 +630,11 @@ class Table(Leaf, hdf5Extension.Table, object):
         don't want to sort it, put this parameter to 0. The default is
         to sort the sequence.
         """
-        
-        assert hasattr(sequence, "__getitem__"), \
-"Wrong 'sequence' parameter type. Only sequences are suported."
+
+        if not hasattr(sequence, '__getitem__'):
+            raise TypeError("""\
+Wrong 'sequence' parameter type. Only sequences are suported.""")
+
         coords = numarray.array(sequence, type=numarray.Int64)
         # That would allow the retrieving on a sequential order
         # so, given better speed in the general situation
@@ -660,13 +715,13 @@ class Table(Leaf, hdf5Extension.Table, object):
                             # Typecode boolean does not exist on Numeric
                             typecode = "1"
                         else:
-                            typecode = arr.typecode()                        
+                            typecode = arr.typecode()
                         # tolist() method creates a list with a sane byteorder
                         if arr.shape <> ():
                             shape = arr.shape
-			    arr=Numeric.fromstring(arr._data,
-			                           typecode=arr.typecode())
-			    arr.shape = shape
+                            arr=Numeric.fromstring(arr._data,
+                                                   typecode=arr.typecode())
+                            arr.shape = shape
                         else:
                             # This works for rank-0 arrays
                             # (but is slower for big arrays)
@@ -822,7 +877,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             # For the scalar case, convert the Record and return it as a tuple
             # Fixes bug #972534
             return self.tolist(self._read(start, stop, step, None, None)[0])
-        elif isinstance(key, types.SliceType):
+        elif isinstance(key, slice):
             (start, stop, step) = processRange(self.nrows,
                                                key.start, key.stop, key.step)
             return self._read(start, stop, step, None, None)
@@ -843,7 +898,10 @@ class Table(Leaf, hdf5Extension.Table, object):
         rows).
 
         """
-        assert self._v_file.mode <> "r", "Attempt to write over a file opened in read-only mode"
+
+        if self._v_file.mode == 'r':
+            raise IOError("""\
+Attempt to write over a file opened in read-only mode.""")
 
         if type(key) in (int,long):
             # Index out of range protection
@@ -853,7 +911,7 @@ class Table(Leaf, hdf5Extension.Table, object):
                 # To support negative values
                 key += self.nrows
             return self.modifyRows(key, key+1, 1, [value])
-        elif isinstance(key, types.SliceType):
+        elif isinstance(key, slice):
             (start, stop, step) = processRange(self.nrows,
                                                key.start, key.stop, key.step)
             return self.modifyRows(start, stop, step, value)
@@ -872,16 +930,21 @@ class Table(Leaf, hdf5Extension.Table, object):
         be converted to an object compliant with table description.
 
         """
-        assert self._v_file.mode <> "r", "Attempt to write over a file opened in read-only mode"
+
+        if self._v_file.mode == 'r':
+            raise IOError("""\
+Attempt to write over a file opened in read-only mode.""")
 
         if rows is None:
             return 0
         # Try to convert the object into a recarray
         try:
+            # This always makes a copy of the original,
+            # so the resulting object is safe to in-place conversion.
             recarray = records.array(rows,
                                      formats=self.description._v_recarrfmt,
                                      names=self.colnames)
-        except:
+        except:  #XXX
             (typerr, value, traceback) = sys.exc_info()
             raise ValueError, \
 "rows parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), value)
@@ -904,6 +967,8 @@ class Table(Leaf, hdf5Extension.Table, object):
     def _saveBufferedRows(self):
         """Save buffered table rows"""
         # Save the records on disk
+        # Data is copied below to the buffer,
+        # so the operation is safe to in-place conversion.
         self._append_records(self._v_buffer, self.row._getUnsavedNRows())
         # Get a fresh copy of the default values
         # This copy seems to make the writing with compression a 5%
@@ -941,8 +1006,11 @@ class Table(Leaf, hdf5Extension.Table, object):
             return
         if start is None:
             start = 0
-        assert start >= 0, "start must have a positive value"
-        assert step >= 1, "step must have a value greater or equal than 1"
+
+        if start < 0:
+            raise ValueError("'start' must have a positive value.")
+        if step < 1:
+            raise ValueError("'step' must have a value greater or equal than 1.")
         if stop is None:
             # compute the stop value. start + len(rows)*step does not work
             stop = start + (len(rows)-1)*step + 1
@@ -958,6 +1026,8 @@ class Table(Leaf, hdf5Extension.Table, object):
            "The value has not enough elements to fill-in the specified range"
         # Try to convert the object into a recarray
         try:
+            # This always makes a copy of the original,
+            # so the resulting object is safe to in-place conversion.
             recarray = records.array(rows,
                                      formats=self.description._v_recarrfmt,
                                      names=self.colnames)
@@ -966,7 +1036,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             # Change it manually and report this
             # 2004-08-08
             recarray._names = self.colnames
-        except:
+        except:  #XXX
             (typerr, value, traceback) = sys.exc_info()
             raise ValueError, \
 "rows parameter cannot be converted into a recarray object compliant with table format '%s'. The error was: <%s>" % (str(self.description._v_recarrfmt), value)
@@ -1008,14 +1078,19 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         """
 
-        assert (type(names) in(list,tuple)), \
-               "The columns parameter has to be a list of strings"
+        if type(names) not in (list, tuple):
+            raise TypeError("""\
+The 'names' parameter must be a list of strings.""")
+
         if columns is None:      # Nothing to be done
             return 0
         if start is None:
             start = 0
-        assert start >= 0, "start must have a positive value"
-        assert step >= 1, "step must have a value greater or equal than 1"
+
+        if start < 0:
+            raise ValueError("'start' must have a positive value.")
+        if step < 1:
+            raise ValueError("'step' must have a value greater or equal than 1.")
         # Get the column formats to be modified:
         formats = []
         colnames = list(self.colnames)
@@ -1029,6 +1104,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Try to convert the object columns into a recarray
         try:
             if isinstance(columns, records.RecArray):
+                # This always makes a copy of the original,
+                # so the resulting object is safe to in-place conversion.
                 recarray = records.array(columns, formats=formats,
                                          names=names)
                 # records.array does not seem to change the names
@@ -1039,9 +1116,11 @@ class Table(Leaf, hdf5Extension.Table, object):
                 # I don't know why I should do that here
                 recarray._fields = recarray._get_fields()  # Refresh the cache
             else:
+                # This always makes a copy of the original,
+                # so the resulting object is safe to in-place conversion.
                 recarray = records.fromarrays(columns, formats=formats,
                                               names=names)
-        except:
+        except:  #XXX
             (typerr, value, traceback) = sys.exc_info()
             raise ValueError, \
 "columns parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), value)
@@ -1125,8 +1204,9 @@ class Table(Leaf, hdf5Extension.Table, object):
 
     def removeIndex(self, index=None):
         "Remove the index associated with the specified column"
-        assert isinstance(index, Index), \
-"Wrong index parameter type. Only Index instances are accepted."
+        if not isinstance(index, Index):
+            raise TypeError("""\
+Wrong 'index' parameter type. Only Index instances are accepted.""")
         index.column.removeIndex()
 
     def reIndex(self):
@@ -1159,8 +1239,10 @@ class Table(Leaf, hdf5Extension.Table, object):
                 stop2 = stop
             #object.append(self[start2:stop2:step])
             # Optimized version (it saves some conversions)
-            nrows = ((stop2 - start2 - 1) // step) + 1    
+            nrows = ((stop2 - start2 - 1) // step) + 1
             self.row._fillCol(recarray, start2, stop2, step, None)
+            # The recarray is created anew,
+            # so the operation is safe to in-place conversion.
             object._append_records(recarray, nrows)
             nrowsdest += nrows
         object._close_append()
@@ -1171,7 +1253,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         return
 
     # This is an optimized version of copy
-    def _g_copy(self, group, name, start, stop, step, title, filters):
+    def _g_copyWithStats(self, group, name, start, stop, step, title, filters):
         "Private part of Leaf.copy() for each kind of leaf"
         # Build the new Table object
         description = self.description._v_ColObjects
@@ -1180,10 +1262,9 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Add a possible IndexProps property to that
         if hasattr(self, "indexprops"):
             description["_v_indexprops"] = self.indexprops
-        object = Table(description, title=title,
-                       filters=filters,
-                       expectedrows=self.nrows)
-        setattr(group, name, object)
+        object = self._v_file.createTable(
+            group, name, description, title=title, filters=filters,
+            expectedrows=self.nrows, _log = False)
         # Now, fill the new table with values from the old one
         self._g_copyRows(object, start, stop, step)
         nbytes=self.nrows*self.rowsize
@@ -1201,7 +1282,7 @@ class Table(Leaf, hdf5Extension.Table, object):
             if self.row._getUnsavedNRows() > 0:
                 self._saveBufferedRows()
             # Flush the data to disk
-            Leaf.flush(self)
+            super(Table, self).flush()
         if hasattr(self, "indexed") and self.indexed and self.indexprops.auto:
             # Flush any unindexed row
             rowsadded = self.flushRowsToIndex(lastrow=1)
@@ -1219,10 +1300,9 @@ class Table(Leaf, hdf5Extension.Table, object):
             self.row._cleanup()
             pass
 
-    def close(self, flush=1):
-        """Flush the buffers and close this object on tree"""
+    def _f_close(self, flush = True):
         # Close the Table
-        Leaf.close(self, flush=flush)
+        super(Table, self)._f_close(flush)
         if hasattr(self, "cols"):
             self.cols._f_close()
             self.cols = None
@@ -1344,7 +1424,6 @@ class Cols(object):
             out += "  %s (%s%s, %s)" % (name, classname, shape, tcol) + "\n"
         return out
 
-               
 class Column(object):
     """This is an accessor for the actual data in a table column
 
@@ -1357,7 +1436,6 @@ class Column(object):
         dirty -- whether the index is dirty or not (property)
 
     Methods:
-    
         __getitem__(key)
         __setitem__(key, value)
         createIndex()
@@ -1365,7 +1443,6 @@ class Column(object):
         reIndexDirty()
         removeIndex()
         closeIndex()
-        
     """
 
     def __init__(self, table, name):
@@ -1373,7 +1450,6 @@ class Column(object):
 
         table -- The parent table instance
         name -- The name of the column that is associated with this object
-        
         """
         self.table = table
         self.name = name
@@ -1441,7 +1517,7 @@ class Column(object):
                 key += self.table.nrows
             (start, stop, step) = processRange(self.table.nrows, key, key+1, 1)
             return self.table._read(start, stop, step, self.name, None)[0]
-        elif isinstance(key, types.SliceType):
+        elif isinstance(key, slice):
             (start, stop, step) = processRange(self.table.nrows, key.start,
                                                key.stop, key.step)
             return self.table._read(start, stop, step, self.name, None)
@@ -1462,7 +1538,10 @@ class Column(object):
         NumArray/CharArray or list of elements).
 
         """
-        assert self.table._v_file.mode <> "r", "Attempt to write over a file opened in read-only mode"
+
+        if self.table._v_file.mode == 'r':
+            raise IOError("""\
+Attempt to write over a file opened in read-only mode.""")
 
         if type(key) in (int,long):
             # Index out of range protection
@@ -1473,7 +1552,7 @@ class Column(object):
                 key += self.table.nrows
             return self.table.modifyColumns(key, key+1, 1,
                                             [[value]], names=[self.name])
-        elif isinstance(key, types.SliceType):
+        elif isinstance(key, slice):
             (start, stop, step) = processRange(self.table.nrows,
                                                key.start, key.stop, key.step)
             return self.table.modifyColumns(start, stop, step,
@@ -1539,8 +1618,8 @@ class Column(object):
 
     def createIndex(self, warn=1, testmode=0):
         """Create an index for this column"""
-        assert self.table.colshapes[self.name] == 1, \
-               "Only scalar columns can be indexed."
+        if self.table.colshapes[self.name] != 1:
+            raise ValueError("Only scalar columns can be indexed.")
         # Create the atom
         atomtype = self.table.coltypes[self.name]
         if str(atomtype) == "CharType":

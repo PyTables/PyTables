@@ -567,7 +567,7 @@ class CopyTestCase(unittest.TestCase):
         array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
 
         # Copy to another Array
-        array2, size = array1.copy('/', 'array2')
+        array2 = array1.copy('/', 'array2')
 
         if self.close:
             if verbose:
@@ -615,7 +615,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Copy to another Array
         group1 = fileh.createGroup("/", "group1")
-        array2, size = array1.copy(group1, 'array2')
+        array2 = array1.copy(group1, 'array2')
 
         if self.close:
             if verbose:
@@ -667,7 +667,7 @@ class CopyTestCase(unittest.TestCase):
         array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
 
         # Copy to another Array
-        array2, size = array1.copy('/', 'array2')
+        array2 = array1.copy('/', 'array2')
 
         if self.close:
             if verbose:
@@ -710,7 +710,7 @@ class CopyTestCase(unittest.TestCase):
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
         # Copy it to another Array
-        array2, size = array1.copy('/', 'array2', title="title array2")
+        array2 = array1.copy('/', 'array2', title="title array2")
 
         if self.close:
             if verbose:
@@ -747,7 +747,7 @@ class CopyTestCase(unittest.TestCase):
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
         # Copy it to another Array
-        array2, size = array1.copy('/', 'array2', copyuserattrs=1)
+        array2 = array1.copy('/', 'array2', copyuserattrs=1)
 
         if self.close:
             if verbose:
@@ -787,7 +787,7 @@ class CopyTestCase(unittest.TestCase):
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
         # Copy it to another Array
-        array2, size = array1.copy('/', 'array2', copyuserattrs=0)
+        array2 = array1.copy('/', 'array2', copyuserattrs=0)
 
         if self.close:
             if verbose:
@@ -834,7 +834,7 @@ class CopyIndexTestCase(unittest.TestCase):
         array1 = fileh.createArray(fileh.root, 'array1', r, "title array1")
         
         # Copy to another array
-        array2, size = array1.copy("/", 'array2',
+        array2 = array1.copy("/", 'array2',
                              start=self.start,
                              stop=self.stop,
                              step=self.step)
@@ -875,7 +875,7 @@ class CopyIndexTestCase(unittest.TestCase):
         array1 = fileh.createArray(fileh.root, 'array1', r, "title array1")
         
         # Copy to another array
-        array2, size = array1.copy("/", 'array2',
+        array2 = array1.copy("/", 'array2',
                              start=self.start,
                              stop=self.stop,
                              step=self.step)

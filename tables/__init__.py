@@ -30,52 +30,62 @@ Misc variables:
 """
 
 # Necessary imports to get versions stored on the Pyrex extension
-from hdf5Extension import getHDF5Version, \
-                          getPyTablesVersion, \
-                          getExtVersion
+from tables.hdf5Extension import\
+     getPyTablesVersion, getExtVersion, getHDF5Version
 
 __version__ = getPyTablesVersion()
-HDF5Version = getHDF5Version()
 ExtVersion  = getExtVersion()
+HDF5Version = getHDF5Version()
+
+
+from tables.hdf5Extension import isHDF5, isPyTablesFile, whichLibVersion
+
+from tables.Atom import *
+from tables.IsDescription import *
 
 # Import the user classes from the proper modules
-from File import File, openFile, copyFile
-from Group import Group
-from Leaf import Leaf, Filters
-from Index import IndexProps
-from Table import Table
-from VLTable import VLTable
-from Array import Array
-from EArray import EArray
-from VLArray import *
-from UnImplemented import UnImplemented
-from exceptions import *
-                    
-from IsDescription import *
-from Atom import *
-from hdf5Extension import isHDF5, isPyTablesFile, whichLibVersion
+from tables.exceptions import *
+from tables.File import File, openFile, copyFile
+from tables.Node import Node
+from tables.Group import Group
+from tables.Leaf import Leaf, Filters
+from tables.Index import IndexProps
+from tables.Table import Table
+from tables.VLTable import VLTable
+from tables.Array import Array
+from tables.EArray import EArray
+from tables.VLArray import VLArray
+from tables.UnImplemented import UnImplemented
 
 # Import sub-packages
-#import nodes
+##import nodes
+
 
 # List here only the objects we want to be publicly available
-__all__ = ["isHDF5", "isPyTablesFile", "whichLibVersion", "copyFile",
-           "openFile",
-           "Group", "Leaf", "Table", "VLTable", "Array", "EArray", "VLArray",
-           "UnImplemented", "IsDescription", "Description", "Filters",
-           "IndexProps",
-           "Col", "BoolCol", "StringCol",
-           "IntCol", "Int8Col", "UInt8Col", "Int16Col", "UInt16Col",
-           "Int32Col", "UInt32Col", "Int64Col", "UInt64Col",
-           "FloatCol", "Float32Col", "Float64Col",
-           "ComplexCol", "Complex32Col", "Complex64Col",
-           "TimeCol", "Time32Col", "Time64Col",
-           "Atom", "ObjectAtom", "VLStringAtom", "StringAtom", "BoolAtom",
-           "IntAtom", "Int8Atom", "UInt8Atom", "Int16Atom", "UInt16Atom",
-           "Int32Atom", "UInt32Atom", "Int64Atom", "UInt64Atom",
-           "FloatAtom", "Float32Atom", "Float64Atom",
-           "ComplexAtom", "Complex32Atom", "Complex64Atom",
-           "TimeAtom", "Time32Atom", "Time64Atom",
-#          Exceptions and warnings
-           "NaturalNameWarning", "NodeError"
-           ]
+__all__ = [
+    # Exceptions and warnings:
+    'NaturalNameWarning', 'NodeError', 'NoSuchNodeError',
+    'UndoRedoError', 'UndoRedoWarning',
+    'PerformanceWarning',
+    # Functions:
+    'isHDF5', 'isPyTablesFile', 'whichLibVersion', 'copyFile', 'openFile',
+    # Helper classes:
+    'IsDescription', 'Description', 'Filters', 'IndexProps',
+    # Atom types:
+    'Atom', 'ObjectAtom', 'VLStringAtom', 'StringAtom', 'BoolAtom',
+    'IntAtom', 'Int8Atom', 'UInt8Atom', 'Int16Atom', 'UInt16Atom',
+    'Int32Atom', 'UInt32Atom', 'Int64Atom', 'UInt64Atom',
+    'FloatAtom', 'Float32Atom', 'Float64Atom',
+    'ComplexAtom', 'Complex32Atom', 'Complex64Atom',
+    'TimeAtom', 'Time32Atom', 'Time64Atom',
+    # Column types:
+    'Col', 'BoolCol', 'StringCol',
+    'IntCol', 'Int8Col', 'UInt8Col', 'Int16Col', 'UInt16Col',
+    'Int32Col', 'UInt32Col', 'Int64Col', 'UInt64Col',
+    'FloatCol', 'Float32Col', 'Float64Col',
+    'ComplexCol', 'Complex32Col', 'Complex64Col',
+    'TimeCol', 'Time32Col', 'Time64Col',
+    # Node classes:
+    'Node', 'Group', 'Leaf', 'Table', 'VLTable', 'Array', 'EArray', 'VLArray',
+    'UnImplemented',
+    ]

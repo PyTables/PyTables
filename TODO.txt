@@ -1,6 +1,12 @@
-TODO list (as of 12th, January 2005):
+TODO list (as of 25th, January 2005):
 
 - Add the capability to search in multiple (eventually indexed) columns.
+
+- Add a new class (say RowMod) that would be returned by
+  Table.iterrows() and would allow to do things like this:
+
+for row in mytable.iterrows():
+    row['x'] = row['x'] + 0.5
 
 - Add a new type of table that allows variable length records and
   fully multidimensional slice selections.

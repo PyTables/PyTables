@@ -11,9 +11,18 @@ This requires Scientific from
 http://starship.python.net/~hinsen/ScientificPython
 
 """
+
+import sys
+import os.path
+import getopt
+import time
+import math
+
 import Scientific.IO.NetCDF as NetCDF
-import tables, sys, os.path, getopt, time, math
-import Numeric as N
+import Numeric
+import tables
+
+
 
 def nctoh5(ncfilename, h5filename, filters, overwritefile, unpackshort, quantize):
     # open netCDF file
@@ -100,7 +109,7 @@ def nctoh5(ncfilename, h5filename, filters, overwritefile, unpackshort, quantize
             else:
                 data = var[tuple(slices)]
             if quantizedata:
-                data = (N.around(scale*data)/scale).astype(dtype)
+                data = (Numeric.around(scale*data)/scale).astype(dtype)
             vardata.append(data)
         # Increment the counters
         nobjects += 1

@@ -4,7 +4,7 @@
 #       Created: June 02, 2004
 #       Author:  Francesc Altet - faltet@carabos.com
 #
-#       $Source: /cvsroot/pytables/pytables/tables/IndexArray.py,v $
+#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IndexArray.py,v $
 #       $Id$
 #
 ########################################################################
@@ -27,19 +27,27 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.12 $"
-# default version for IndexARRAY objects
-obversion = "1.0"    # initial version
+import warnings
+import sys
 
-import warnings, sys
-from EArray import EArray
-from VLArray import Atom, StringAtom
-import hdf5Extension
 import numarray
 import numarray.strings as strings
 import numarray.records as records
 from bisect import bisect_left, bisect_right
 from time import time
+
+import tables.hdf5Extension as hdf5Extension
+from tables.Atom import Atom, StringAtom
+from tables.EArray import EArray
+
+
+
+__version__ = "$Revision: 1.14 $"
+
+# default version for IndexARRAY objects
+obversion = "1.0"    # initial version
+
+
 
 def calcChunksize(expectedrows, testmode=0):
     """Calculate the HDF5 chunk size for index and sorted arrays.
@@ -213,7 +221,7 @@ def calcChunksize_orig(expectedrows, testmode=0):
     #print "nelemslice, chunksize:", (nelemslice, chunksize)
     return (nelemslice, chunksize)
 
-class IndexArray(EArray, hdf5Extension.IndexArray, object):
+class IndexArray(hdf5Extension.IndexArray, EArray):
     """Represent the index (sorted or reverse index) dataset in HDF5 file.
 
     All Numeric and numarray typecodes are supported except for complex
@@ -291,6 +299,9 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
             
     def _create(self):
         """Save a fresh array (i.e., not present on HDF5 file)."""
+
+        # All this will eventually end up in the node constructor.
+
         global obversion
 
         assert isinstance(self.atom, Atom), "The object passed to the IndexArray constructor must be a descendent of the Atom class."
@@ -335,6 +346,9 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
 
     def _open(self):
         """Get the metadata info for an array in file."""
+
+        # All this will eventually end up in the node constructor.
+
         (self.type, self.stype, self.shape, self.itemsize,
          self.byteorder, chunksizes) = self._openArray()
         self.chunksize = chunksizes[1]  # Get the second dim

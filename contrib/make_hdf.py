@@ -2,7 +2,7 @@
 
 from __future__ import generators
 
-import tables,types,cPickle,copy,time
+import tables,cPickle,copy,time
 #################################################################################
 
 def is_scalar(item):
@@ -32,8 +32,8 @@ def make_col(row_type,row_name,row_item,str_len):
         row_type[row_name]=tables.Col("CharType", set_len)
     else:
         type_matrix={
-            types.IntType:tables.Col("Int32", 1),
-            types.FloatType:tables.Col("Float32", 4), #Col("Int16", 1)
+            int:tables.Col("Int32", 1),
+            float:tables.Col("Float32", 4), #Col("Int16", 1)
             }
         row_type[row_name]=type_matrix[type(row_item)]    
 def make_row(data):

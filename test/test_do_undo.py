@@ -1,0 +1,2198 @@
+import sys
+import unittest
+import os
+import tempfile
+import warnings
+
+from tables import *
+
+from test_all import verbose, cleanup, heavy
+# To delete the internal attributes automagically
+unittest.TestCase.tearDown = cleanup
+
+
+class BasicTestCase(unittest.TestCase):
+
+    """Test for basic Undo/Redo operations."""
+
+    _reopen = False
+    """Whether to reopen the file at certain points."""
+
+    def _doReopen(self):
+        if self._reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode='r+')
+
+
+    def setUp(self):
+        # Create an HDF5 file
+        #self.file = "/tmp/test.h5"
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w", title="File title")
+        fileh = self.fileh
+        root = fileh.root
+        # Create an array
+        fileh.createArray(root, 'array', [1,2],
+                          title = "Title example")
+
+        # Create another array object
+        array = fileh.createArray(root, 'anarray',
+                                  [1], "Array title")
+        # Create a group object
+        group = fileh.createGroup(root, 'agroup',
+                                  "Group title")
+        # Create a couple of objects there
+        array1 = fileh.createArray(group, 'anarray1',
+                                   [2], "Array title 1")
+        array2 = fileh.createArray(group, 'anarray2',
+                                   [2], "Array title 2")
+        # Create a lonely group in first level
+        group2 = fileh.createGroup(root, 'agroup2',
+                                  "Group title 2")
+        # Create a new group in the second level
+        group3 = fileh.createGroup(group, 'agroup3',
+                                   "Group title 3")
+
+
+    def tearDown(self):
+        # Remove the temporary file
+        self.fileh.close()
+        os.remove(self.file)
+        cleanup(self)
+
+    def test00_simple(self):
+        """Checking simple do/undo"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00_simple..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray', [3,4], "Another array")
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that otherarray does not exist in the object tree
+        assert "/otherarray" not in self.fileh.objects
+        assert self.fileh._curaction == 0
+        assert self.fileh._curmark == 0
+        # Redo the operation
+        self._doReopen()
+        self.fileh.redo()
+        if verbose:
+            print "Object tree after redo:", self.fileh
+        # Check that otherarray has come back to life in a sane state
+        assert "/otherarray" in self.fileh.objects
+        assert self.fileh.root.otherarray.read() == [3,4]
+        assert self.fileh.root.otherarray.title == "Another array"
+        assert self.fileh._curaction == 1
+        assert self.fileh._curmark == 0
+
+    def test01_twice(self):
+        """Checking do/undo (twice operations intertwined)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_twice..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray', [3,4], "Another array")
+        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        # Now undo the past operations
+        self._doReopen()
+        self.fileh.undo()
+        assert "/otherarray" not in self.fileh.objects
+        assert "/otherarray2" not in self.fileh.objects
+        assert self.fileh._curaction == 0
+        assert self.fileh._curmark == 0
+        # Redo the operation
+        self.fileh.redo()
+        # Check that otherarray has come back to life in a sane state
+        assert "/otherarray" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert self.fileh.root.otherarray.read() == [3,4]
+        assert self.fileh.root.otherarray2.read() == [4,5]
+        assert self.fileh.root.otherarray.title == "Another array"
+        assert self.fileh.root.otherarray2.title == "Another array 2"
+        assert self.fileh._curaction == 2
+        assert self.fileh._curmark == 0
+
+    def test02_twice2(self):
+        """Checking twice ops and two marks"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_twice2..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray', [3,4], "Another array")
+        # Put a mark
+        self._doReopen()
+        self.fileh.mark()
+        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        assert self.fileh._curaction == 3
+        assert self.fileh._curmark == 1
+        # Unwind just one mark
+        self.fileh.undo()
+        assert "/otherarray" in self.fileh.objects
+        assert "/otherarray2" not in self.fileh.objects
+        assert self.fileh._curaction == 2
+        assert self.fileh._curmark == 1
+        # Unwind another mark
+        self.fileh.undo()
+        assert self.fileh._curaction == 0
+        assert self.fileh._curmark == 0
+        assert "/otherarray" not in self.fileh.objects
+        assert "/otherarray2" not in self.fileh.objects
+        # Redo until the next mark
+        self.fileh.redo()
+        assert "/otherarray" in self.fileh.objects
+        assert "/otherarray2" not in self.fileh.objects
+        self._doReopen()
+        assert self.fileh._curaction == 2
+        assert self.fileh._curmark == 1
+        # Redo until the end
+        self.fileh.redo()
+        assert "/otherarray" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert self.fileh.root.otherarray.read() == [3,4]
+        assert self.fileh.root.otherarray2.read() == [4,5]
+        assert self.fileh.root.otherarray.title == "Another array"
+        assert self.fileh.root.otherarray2.title == "Another array 2"
+        assert self.fileh._curaction == 3
+        assert self.fileh._curmark == 1
+
+    def test03_6times3marks(self):
+        """Checking with six ops and three marks"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_6times3marks..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        # Put a mark
+        self.fileh.mark()
+        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+        # Put a mark
+        self._doReopen()
+        self.fileh.mark()
+        self.fileh.createArray('/', 'otherarray5', [7,8], "Another array 5")
+        self.fileh.createArray('/', 'otherarray6', [8,9], "Another array 6")
+        # Unwind just one mark
+        self.fileh.undo()
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" in self.fileh.objects
+        assert "/otherarray4" in self.fileh.objects
+        assert "/otherarray5" not in self.fileh.objects
+        assert "/otherarray6" not in self.fileh.objects
+        # Unwind another mark
+        self.fileh.undo()
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" not in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+        assert "/otherarray5" not in self.fileh.objects
+        assert "/otherarray6" not in self.fileh.objects
+        # Unwind all marks
+        self.fileh.undo()
+        assert "/otherarray1" not in self.fileh.objects
+        assert "/otherarray2" not in self.fileh.objects
+        assert "/otherarray3" not in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+        assert "/otherarray5" not in self.fileh.objects
+        assert "/otherarray6" not in self.fileh.objects
+        # Redo until the next mark
+        self._doReopen()
+        self.fileh.redo()
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" not in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+        assert "/otherarray5" not in self.fileh.objects
+        assert "/otherarray6" not in self.fileh.objects
+        # Redo until the next mark
+        self.fileh.redo()
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" in self.fileh.objects
+        assert "/otherarray4" in self.fileh.objects
+        assert "/otherarray5" not in self.fileh.objects
+        assert "/otherarray6" not in self.fileh.objects
+        # Redo until the end
+        self.fileh.redo()
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" in self.fileh.objects
+        assert "/otherarray4" in self.fileh.objects
+        assert "/otherarray5" in self.fileh.objects
+        assert "/otherarray6" in self.fileh.objects
+        assert self.fileh.root.otherarray1.read() == [3,4]
+        assert self.fileh.root.otherarray2.read() == [4,5]
+        assert self.fileh.root.otherarray3.read() == [5,6]
+        assert self.fileh.root.otherarray4.read() == [6,7]
+        assert self.fileh.root.otherarray5.read() == [7,8]
+        assert self.fileh.root.otherarray6.read() == [8,9]
+        assert self.fileh.root.otherarray1.title == "Another array 1"
+        assert self.fileh.root.otherarray2.title == "Another array 2"
+        assert self.fileh.root.otherarray3.title == "Another array 3"
+        assert self.fileh.root.otherarray4.title == "Another array 4"
+        assert self.fileh.root.otherarray5.title == "Another array 5"
+        assert self.fileh.root.otherarray6.title == "Another array 6"
+
+    def test04_6times3marksro(self):
+        """Checking with six operations, three marks and do/undo in random order"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04_6times3marksro..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        # Put a mark
+        self.fileh.mark()
+        self._doReopen()
+        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+        # Unwind the previous mark
+        self.fileh.undo()
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" not in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+        # Put a mark in the middle of stack
+        if verbose:
+            print "All nodes:", self.fileh._allNodes
+        self.fileh.mark()
+        self._doReopen()
+        self.fileh.createArray('/', 'otherarray5', [7,8], "Another array 5")
+        self.fileh.createArray('/', 'otherarray6', [8,9], "Another array 6")
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" not in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+        assert "/otherarray5" in self.fileh.objects
+        assert "/otherarray6" in self.fileh.objects
+        # Unwind previous mark
+        self.fileh.undo()
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" not in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+        assert "/otherarray5" not in self.fileh.objects
+        assert "/otherarray6" not in self.fileh.objects
+        # Redo until the last mark
+        self.fileh.redo()
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" not in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+        assert "/otherarray5" in self.fileh.objects
+        assert "/otherarray6" in self.fileh.objects
+        # Redo until the next mark (non-existent, so no action)
+        self._doReopen()
+        self.fileh.redo()
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" not in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+        assert "/otherarray5" in self.fileh.objects
+        assert "/otherarray6" in self.fileh.objects
+        assert self.fileh.root.otherarray1.read() == [3,4]
+        assert self.fileh.root.otherarray2.read() == [4,5]
+        assert self.fileh.root.otherarray5.read() == [7,8]
+        assert self.fileh.root.otherarray6.read() == [8,9]
+        assert self.fileh.root.otherarray1.title == "Another array 1"
+        assert self.fileh.root.otherarray2.title == "Another array 2"
+        assert self.fileh.root.otherarray5.title == "Another array 5"
+        assert self.fileh.root.otherarray6.title == "Another array 6"
+
+    def test05_destructive(self):
+        """Checking with a destructive action during undo"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05_destructive..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        # Put a mark
+        self.fileh.mark()
+        self._doReopen()
+        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        # Now undo the past operation
+        self.fileh.undo()
+        # Do the destructive operation
+        self._doReopen()
+        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        # Check objects
+        assert "/otherarray1" in self.fileh.objects
+        assert self.fileh.root.otherarray1.read() == [3,4]
+        assert self.fileh.root.otherarray1.title == "Another array 1"
+        assert "/otherarray2" not in self.fileh.objects
+        assert "/otherarray3" in self.fileh.objects
+        assert self.fileh.root.otherarray3.read() == [5,6]
+        assert self.fileh.root.otherarray3.title == "Another array 3"
+
+    def test05b_destructive(self):
+        """Checking with a destructive action during undo (II)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05b_destructive..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        # Put a mark
+        self._doReopen()
+        self.fileh.mark()
+        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        # Now undo the past operation
+        self.fileh.undo()
+        # Do the destructive operation
+        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        # Put a mark
+        self._doReopen()
+        self.fileh.mark()
+        self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+        assert "/otherarray4" in self.fileh.objects
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check objects
+        assert "/otherarray1" in self.fileh.objects
+        assert self.fileh.root.otherarray1.read() == [3,4]
+        assert self.fileh.root.otherarray1.title == "Another array 1"
+        assert "/otherarray2" not in self.fileh.objects
+        assert "/otherarray3" in self.fileh.objects
+        assert self.fileh.root.otherarray3.read() == [5,6]
+        assert self.fileh.root.otherarray3.title == "Another array 3"
+        assert "/otherarray4" not in self.fileh.objects
+
+    def test05c_destructive(self):
+        """Checking with a destructive action during undo (III)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05c_destructive..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        # Put a mark
+        self.fileh.mark()
+        self._doReopen()
+        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        # Now undo the past operation
+        self.fileh.undo()
+        # Do the destructive operation
+        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        # Put a mark
+        self.fileh.mark()
+        self._doReopen()
+        self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+        assert "/otherarray4" in self.fileh.objects
+        # Now unwind twice
+        self.fileh.undo()
+        self._doReopen()
+        self.fileh.undo()
+        # Check objects
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" not in self.fileh.objects
+        assert "/otherarray3" not in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+
+    def test05d_destructive(self):
+        """Checking with a destructive action during undo (IV)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05d_destructive..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        # Put a mark
+        self._doReopen()
+        self.fileh.mark()
+        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        # Now undo the past operation
+        self.fileh.undo()
+        # Do the destructive operation
+        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        # Put a mark
+        self.fileh.mark()
+        self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+        assert "/otherarray4" in self.fileh.objects
+        # Now, go to the first mark
+        self._doReopen()
+        self.fileh.undo(0)
+        # Check objects
+        assert "/otherarray1" not in self.fileh.objects
+        assert "/otherarray2" not in self.fileh.objects
+        assert "/otherarray3" not in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+
+    def test05e_destructive(self):
+        """Checking with a destructive action during undo (V)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05e_destructive..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        # Put a mark
+        self.fileh.mark()
+        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        # Now undo the past operation
+        self.fileh.undo()
+        self._doReopen()
+        # Do the destructive operation
+        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        # Now, unwind the actions
+        self.fileh.undo(0)
+        self._doReopen()
+        # Check objects
+        assert "/otherarray1" not in self.fileh.objects
+        assert "/otherarray2" not in self.fileh.objects
+        assert "/otherarray3" not in self.fileh.objects
+
+    def test05f_destructive(self):
+        "Checking with a destructive creation of existing node during undo"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05f_destructive..." % self.__class__.__name__
+
+        self.fileh.enableUndo()
+        self.fileh.createArray('/', 'newarray', [1])
+        self.fileh.undo()
+        self._doReopen()
+        self.assert_('/newarray' not in self.fileh)
+        newarr = self.fileh.createArray('/', 'newarray', [1])
+        self.fileh.undo()
+        self.assert_('/newarray' not in self.fileh)
+        self._doReopen()
+        self.fileh.redo()
+        self.assert_('/newarray' in self.fileh)
+        if not self._reopen:
+            self.assert_(self.fileh.root.newarray is newarr)
+
+    def test06_totalunwind(self):
+        """Checking do/undo (total unwind)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test06_totalunwind..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray', [3,4], "Another array")
+        self.fileh.mark()
+        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        # Now undo the past operations
+        self._doReopen()
+        self.fileh.undo(0)
+        assert "/otherarray" not in self.fileh.objects
+        assert "/otherarray2" not in self.fileh.objects
+
+    def test07_totalrewind(self):
+        """Checking do/undo (total rewind)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test07_totalunwind..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray', [3,4], "Another array")
+        self.fileh.mark()
+        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        # Now undo the past operations
+        self.fileh.undo(0)
+        # Redo all the operations
+        self._doReopen()
+        self.fileh.redo(-1)
+        # Check that objects has come back to life in a sane state
+        assert "/otherarray" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert self.fileh.root.otherarray.read() == [3,4]
+        assert self.fileh.root.otherarray2.read() == [4,5]
+        assert self.fileh.root.otherarray.title == "Another array"
+        assert self.fileh.root.otherarray2.title == "Another array 2"
+
+
+    def test08_marknames(self):
+        """Checking mark names"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test08_marknames..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        self.fileh.mark("first")
+        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.mark("second")
+        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        self.fileh.mark("third")
+        self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+        # Now go to mark "first"
+        self.fileh.undo("first")
+        self._doReopen()
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" not in self.fileh.objects
+        assert "/otherarray3" not in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+        # Go to mark "third"
+        self.fileh.redo("third")
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+        # Now go to mark "second"
+        self.fileh.undo("second")
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" not in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+        # Go to the end
+        self._doReopen()
+        self.fileh.redo(-1)
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" in self.fileh.objects
+        assert "/otherarray4" in self.fileh.objects
+        # Check that objects has come back to life in a sane state
+        assert self.fileh.root.otherarray1.read() == [3,4]
+        assert self.fileh.root.otherarray2.read() == [4,5]
+        assert self.fileh.root.otherarray3.read() == [5,6]
+        assert self.fileh.root.otherarray4.read() == [6,7]
+
+    def test08_initialmark(self):
+        """Checking initial mark"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test08_initialmark..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+	initmid = self.fileh.getCurrentMark()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray', [3,4], "Another array")
+        self.fileh.mark()
+        self._doReopen()
+        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        # Now undo the past operations
+        self.fileh.undo(initmid)
+        assert "/otherarray" not in self.fileh.objects
+        assert "/otherarray2" not in self.fileh.objects
+        # Redo all the operations
+        self.fileh.redo(-1)
+        self._doReopen()
+        # Check that objects has come back to life in a sane state
+        assert "/otherarray" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert self.fileh.root.otherarray.read() == [3,4]
+        assert self.fileh.root.otherarray2.read() == [4,5]
+        assert self.fileh.root.otherarray.title == "Another array"
+        assert self.fileh.root.otherarray2.title == "Another array 2"
+
+
+    def test09_marknames(self):
+        """Checking mark names (wrong direction)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test09_marknames..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        self.fileh.mark("first")
+        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.mark("second")
+        self._doReopen()
+        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        self.fileh.mark("third")
+        self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+        # Now go to mark "first"
+        self.fileh.undo("first")
+        # Try to undo up to mark "third"
+        try:
+            self.fileh.undo("third")
+        except UndoRedoError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next UndoRedoError was catched!"
+                print value
+        else:
+            self.fail("expected an UndoRedoError")
+        # Now go to mark "third"
+        self.fileh.redo("third")
+        self._doReopen()
+        # Try to redo up to mark "second"
+        try:
+            self.fileh.redo("second")
+        except UndoRedoError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next UndoRedoError was catched!"
+                print value
+        else:
+            self.fail("expected an UndoRedoError")
+        # Final checks
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+
+    def test10_goto(self):
+        """Checking mark names (goto)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test10_goto..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        self._doReopen()
+        self.fileh.mark("first")
+        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.mark("second")
+        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        self._doReopen()
+        self.fileh.mark("third")
+        self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+        # Now go to mark "first"
+        self.fileh.goto("first")
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" not in self.fileh.objects
+        assert "/otherarray3" not in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+        # Go to mark "third"
+        self.fileh.goto("third")
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+        # Now go to mark "second"
+        self._doReopen()
+        self.fileh.goto("second")
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" not in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+        # Go to the end
+        self.fileh.goto(-1)
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" in self.fileh.objects
+        assert "/otherarray4" in self.fileh.objects
+        # Check that objects has come back to life in a sane state
+        assert "/otherarray2" in self.fileh.objects
+        assert self.fileh.root.otherarray1.read() == [3,4]
+        assert self.fileh.root.otherarray2.read() == [4,5]
+        assert self.fileh.root.otherarray3.read() == [5,6]
+        assert self.fileh.root.otherarray4.read() == [6,7]
+
+    def test10_gotoint(self):
+        """Checking mark sequential ids (goto)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test10_gotoint..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        self.fileh.mark("first")
+        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.mark("second")
+        self._doReopen()
+        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        self.fileh.mark("third")
+        self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+        # Now go to mark "first"
+        self.fileh.goto(1)
+        self._doReopen()
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" not in self.fileh.objects
+        assert "/otherarray3" not in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+        # Go to beginning
+        self.fileh.goto(0)
+        assert "/otherarray1" not in self.fileh.objects
+        assert "/otherarray2" not in self.fileh.objects
+        assert "/otherarray3" not in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+        # Go to mark "third"
+        self._doReopen()
+        self.fileh.goto(3)
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+        # Now go to mark "second"
+        self.fileh.goto(2)
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" not in self.fileh.objects
+        assert "/otherarray4" not in self.fileh.objects
+        # Go to the end
+        self._doReopen()
+        self.fileh.goto(-1)
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" in self.fileh.objects
+        assert "/otherarray4" in self.fileh.objects
+        # Check that objects has come back to life in a sane state
+        assert "/otherarray2" in self.fileh.objects
+        assert self.fileh.root.otherarray1.read() == [3,4]
+        assert self.fileh.root.otherarray2.read() == [4,5]
+        assert self.fileh.root.otherarray3.read() == [5,6]
+        assert self.fileh.root.otherarray4.read() == [6,7]
+
+    def test11_contiguous(self):
+        "Creating contiguous marks"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test11_contiguous..." % self.__class__.__name__
+
+        self.fileh.enableUndo()
+        m1 = self.fileh.mark()
+        m2 = self.fileh.mark()
+        self.assertNotEqual(m1, m2)
+        self._doReopen()
+        self.fileh.undo(m1)
+        self.assertEqual(self.fileh.getCurrentMark(), m1)
+        self.fileh.redo(m2)
+        self.assertEqual(self.fileh.getCurrentMark(), m2)
+        self.fileh.goto(m1)
+        self.assertEqual(self.fileh.getCurrentMark(), m1)
+        self.fileh.goto(m2)
+        self.assertEqual(self.fileh.getCurrentMark(), m2)
+        self.fileh.goto(-1)
+        self._doReopen()
+        self.assertEqual(self.fileh.getCurrentMark(), m2)
+        self.fileh.goto(0)
+        self.assertEqual(self.fileh.getCurrentMark(), 0)
+
+    def test12_keepMark(self):
+        "Ensuring the mark is kept after an UNDO operation"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test12_keepMark..." % self.__class__.__name__
+
+        self.fileh.enableUndo()
+        arr1 = self.fileh.createArray('/', 'newarray1', [1])
+
+        mid = self.fileh.mark()
+        self._doReopen()
+        self.fileh.undo()
+        # We should have moved to the initial mark.
+        self.assertEqual(self.fileh.getCurrentMark(), 0)
+        # So /newarray1 should not be there.
+        self.assert_('/newarray1' not in self.fileh)
+
+    def test13_severalEnableDisable(self):
+        "Checking that successive enable/disable Undo works"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test13_severalEnableDisable..." % self.__class__.__name__
+
+        self.fileh.enableUndo()
+        arr1 = self.fileh.createArray('/', 'newarray1', [1])
+        self.fileh.undo()
+        self._doReopen()
+        # We should have moved to 'mid' mark, not the initial mark.
+        self.assertEqual(self.fileh.getCurrentMark(), 0)
+        # So /newarray1 should still be there.
+        self.assert_('/newarray1' not in self.fileh)
+        # Close this do/undo session
+        self.fileh.disableUndo()
+        # Do something
+        arr2 = self.fileh.createArray('/', 'newarray2', [1])
+        # Enable again do/undo
+        self.fileh.enableUndo()
+        arr3 = self.fileh.createArray('/', 'newarray3', [1])
+        mid = self.fileh.mark()
+        arr4 = self.fileh.createArray('/', 'newarray4', [1])
+        self.fileh.undo()
+        # We should have moved to 'mid' mark, not the initial mark.
+        self.assertEqual(self.fileh.getCurrentMark(), mid)
+        # So /newarray2 and /newarray3 should still be there.
+        self.assert_('/newarray1' not in self.fileh)
+        self.assert_('/newarray2' in self.fileh)
+        self.assert_('/newarray3' in self.fileh)
+        self.assert_('/newarray4' not in self.fileh)
+        # Close this do/undo session
+        self._doReopen()
+        self.fileh.disableUndo()
+        # Enable again do/undo
+        self.fileh.enableUndo()
+        arr3 = self.fileh.createArray('/', 'newarray1', [1])
+        arr4 = self.fileh.createArray('/', 'newarray4', [1])
+        # So /newarray2 and /newarray3 should still be there.
+        self.assert_('/newarray1' in self.fileh)
+        self.assert_('/newarray2' in self.fileh)
+        self.assert_('/newarray3' in self.fileh)
+        self.assert_('/newarray4' in self.fileh)
+        self.fileh.undo()
+        self._doReopen()
+        self.assert_('/newarray1' not in self.fileh)
+        self.assert_('/newarray2' in self.fileh)
+        self.assert_('/newarray3' in self.fileh)
+        self.assert_('/newarray4' not in self.fileh)
+        # Close this do/undo session
+        self.fileh.disableUndo()
+
+
+class PersistenceTestCase(BasicTestCase):
+
+    """Test for basic Undo/Redo operations with persistence."""
+
+    _reopen = True
+
+
+class createArrayTestCase(unittest.TestCase):
+    "Test for createArray operations"
+
+    def setUp(self):
+        # Create an HDF5 file
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w", title="File title")
+        fileh = self.fileh
+        root = fileh.root
+        # Create an array
+        fileh.createArray(root, 'array', [1,2],
+                          title = "Title example")
+
+        # Create another array object
+        array = fileh.createArray(root, 'anarray',
+                                  [1], "Array title")
+        # Create a group object
+        group = fileh.createGroup(root, 'agroup',
+                                  "Group title")
+        # Create a couple of objects there
+        array1 = fileh.createArray(group, 'anarray1',
+                                   [2], "Array title 1")
+        array2 = fileh.createArray(group, 'anarray2',
+                                   [2], "Array title 2")
+        # Create a lonely group in first level
+        group2 = fileh.createGroup(root, 'agroup2',
+                                   "Group title 2")
+        # Create a new group in the second level
+        group3 = fileh.createGroup(group, 'agroup3',
+                                   "Group title 3")
+
+
+    def tearDown(self):
+        # Remove the temporary file
+        self.fileh.close()
+        os.remove(self.file)
+        cleanup(self)
+
+
+    def test00(self):
+        """Checking one action"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray1', [1,2], "Another array 1")
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that otherarray does not exist in the object tree
+        assert "/otherarray1" not in self.fileh.objects
+        # Redo the operation
+        self.fileh.redo()
+        # Check that otherarray has come back to life in a sane state
+        assert "/otherarray1" in self.fileh.objects
+        assert self.fileh.root.otherarray1.title == "Another array 1"
+        assert self.fileh.root.otherarray1.read() == [1,2]
+
+
+    def test01(self):
+        """Checking two actions"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray1', [1,2], "Another array 1")
+        self.fileh.createArray('/', 'otherarray2', [2,3], "Another array 2")
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that otherarray does not exist in the object tree
+        assert "/otherarray1" not in self.fileh.objects
+        assert "/otherarray2" not in self.fileh.objects
+        # Redo the operation
+        self.fileh.redo()
+        # Check that otherarray has come back to life in a sane state
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert self.fileh.root.otherarray1.title == "Another array 1"
+        assert self.fileh.root.otherarray2.title == "Another array 2"
+        assert self.fileh.root.otherarray1.read() == [1,2]
+        assert self.fileh.root.otherarray2.read() == [2,3]
+
+
+    def test02(self):
+        """Checking three actions"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray1', [1,2], "Another array 1")
+        self.fileh.createArray('/', 'otherarray2', [2,3], "Another array 2")
+        self.fileh.createArray('/', 'otherarray3', [3,4], "Another array 3")
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that otherarray does not exist in the object tree
+        assert "/otherarray1" not in self.fileh.objects
+        assert "/otherarray2" not in self.fileh.objects
+        assert "/otherarray3" not in self.fileh.objects
+        # Redo the operation
+        self.fileh.redo()
+        # Check that otherarray has come back to life in a sane state
+        assert "/otherarray1" in self.fileh.objects
+        assert "/otherarray2" in self.fileh.objects
+        assert "/otherarray3" in self.fileh.objects
+        assert self.fileh.root.otherarray1.title == "Another array 1"
+        assert self.fileh.root.otherarray2.title == "Another array 2"
+        assert self.fileh.root.otherarray3.title == "Another array 3"
+        assert self.fileh.root.otherarray1.read() == [1,2]
+        assert self.fileh.root.otherarray2.read() == [2,3]
+        assert self.fileh.root.otherarray3.read() == [3,4]
+
+    def test03(self):
+        """Checking three actions in different depth levels"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.createArray('/', 'otherarray1', [1,2], "Another array 1")
+        self.fileh.createArray('/agroup', 'otherarray2', [2,3], "Another array 2")
+        self.fileh.createArray('/agroup/agroup3', 'otherarray3', [3,4], "Another array 3")
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that otherarray does not exist in the object tree
+        assert "/otherarray1" not in self.fileh.objects
+        assert "/agroup/otherarray2" not in self.fileh.objects
+        assert "/agroup/agroup3/otherarray3" not in self.fileh.objects
+        # Redo the operation
+        self.fileh.redo()
+        # Check that otherarray has come back to life in a sane state
+        assert "/otherarray1" in self.fileh.objects
+        assert "/agroup/otherarray2" in self.fileh.objects
+        assert "/agroup/agroup3/otherarray3" in self.fileh.objects
+        assert self.fileh.root.otherarray1.title == "Another array 1"
+        assert self.fileh.root.agroup.otherarray2.title == "Another array 2"
+        assert self.fileh.root.agroup.agroup3.otherarray3.title == "Another array 3"
+        assert self.fileh.root.otherarray1.read() == [1,2]
+        assert self.fileh.root.agroup.otherarray2.read() == [2,3]
+        assert self.fileh.root.agroup.agroup3.otherarray3.read() == [3,4]
+
+
+class createGroupTestCase(unittest.TestCase):
+    "Test for createGroup operations"
+
+    def setUp(self):
+        # Create an HDF5 file
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w", title="File title")
+        fileh = self.fileh
+        root = fileh.root
+        # Create an array
+        fileh.createArray(root, 'array', [1,2],
+                          title = "Title example")
+
+        # Create another array object
+        array = fileh.createArray(root, 'anarray',
+                                  [1], "Array title")
+        # Create a group object
+        group = fileh.createGroup(root, 'agroup',
+                                  "Group title")
+        # Create a couple of objects there
+        array1 = fileh.createArray(group, 'anarray1',
+                                   [2], "Array title 1")
+        array2 = fileh.createArray(group, 'anarray2',
+                                   [2], "Array title 2")
+        # Create a lonely group in first level
+        group2 = fileh.createGroup(root, 'agroup2',
+                                   "Group title 2")
+        # Create a new group in the second level
+        group3 = fileh.createGroup(group, 'agroup3',
+                                   "Group title 3")
+
+
+    def tearDown(self):
+        # Remove the temporary file
+        self.fileh.close()
+        os.remove(self.file)
+        cleanup(self)
+
+
+    def test00(self):
+        """Checking one action"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new group
+        self.fileh.createGroup('/', 'othergroup1', "Another group 1")
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that othergroup1 does not exist in the object tree
+        assert "/othergroup1" not in self.fileh.objects
+        # Redo the operation
+        self.fileh.redo()
+        # Check that othergroup1 has come back to life in a sane state
+        assert "/othergroup1" in self.fileh.objects
+        assert self.fileh.root.othergroup1._v_title == "Another group 1"
+
+
+    def test01(self):
+        """Checking two actions"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new group
+        self.fileh.createGroup('/', 'othergroup1', "Another group 1")
+        self.fileh.createGroup('/', 'othergroup2', "Another group 2")
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that othergroup does not exist in the object tree
+        assert "/othergroup1" not in self.fileh.objects
+        assert "/othergroup2" not in self.fileh.objects
+        # Redo the operation
+        self.fileh.redo()
+        # Check that othergroup* has come back to life in a sane state
+        assert "/othergroup1" in self.fileh.objects
+        assert "/othergroup2" in self.fileh.objects
+        assert self.fileh.root.othergroup1._v_title == "Another group 1"
+        assert self.fileh.root.othergroup2._v_title == "Another group 2"
+
+
+    def test02(self):
+        """Checking three actions"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new group
+        self.fileh.createGroup('/', 'othergroup1', "Another group 1")
+        self.fileh.createGroup('/', 'othergroup2', "Another group 2")
+        self.fileh.createGroup('/', 'othergroup3', "Another group 3")
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that othergroup* does not exist in the object tree
+        assert "/othergroup1" not in self.fileh.objects
+        assert "/othergroup2" not in self.fileh.objects
+        assert "/othergroup3" not in self.fileh.objects
+        # Redo the operation
+        self.fileh.redo()
+        # Check that othergroup* has come back to life in a sane state
+        assert "/othergroup1" in self.fileh.objects
+        assert "/othergroup2" in self.fileh.objects
+        assert "/othergroup3" in self.fileh.objects
+        assert self.fileh.root.othergroup1._v_title == "Another group 1"
+        assert self.fileh.root.othergroup2._v_title == "Another group 2"
+        assert self.fileh.root.othergroup3._v_title == "Another group 3"
+
+
+    def test03(self):
+        """Checking three actions in different depth levels"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new group
+        self.fileh.createGroup('/', 'othergroup1', "Another group 1")
+        self.fileh.createGroup('/othergroup1', 'othergroup2', "Another group 2")
+        self.fileh.createGroup('/othergroup1/othergroup2', 'othergroup3', "Another group 3")
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that othergroup* does not exist in the object tree
+        assert "/othergroup1" not in self.fileh.objects
+        assert "/othergroup1/othergroup2" not in self.fileh.objects
+        assert "/othergroup1/othergroup2/othergroup3" not in self.fileh.objects
+        # Redo the operation
+        self.fileh.redo()
+        # Check that othergroup* has come back to life in a sane state
+        assert "/othergroup1" in self.fileh.objects
+        assert "/othergroup1/othergroup2" in self.fileh.objects
+        assert "/othergroup1/othergroup2/othergroup3" in self.fileh.objects
+        assert self.fileh.root.othergroup1._v_title == "Another group 1"
+        assert self.fileh.root.othergroup1.othergroup2._v_title == "Another group 2"
+        assert self.fileh.root.othergroup1.othergroup2.othergroup3._v_title == "Another group 3"
+
+
+
+class renameNodeTestCase(unittest.TestCase):
+    "Test for renameNode operations"
+
+    def setUp(self):
+        # Create an HDF5 file
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w", title="File title")
+        fileh = self.fileh
+        root = fileh.root
+        # Create an array
+        fileh.createArray(root, 'array', [1,2],
+                          title = "Title example")
+
+        # Create another array object
+        array = fileh.createArray(root, 'anarray',
+                                  [1], "Array title")
+        # Create a group object
+        group = fileh.createGroup(root, 'agroup',
+                                  "Group title")
+        # Create a couple of objects there
+        array1 = fileh.createArray(group, 'anarray1',
+                                   [2], "Array title 1")
+        array2 = fileh.createArray(group, 'anarray2',
+                                   [2], "Array title 2")
+        # Create a lonely group in first level
+        group2 = fileh.createGroup(root, 'agroup2',
+                                   "Group title 2")
+        # Create a new group in the second level
+        group3 = fileh.createGroup(group, 'agroup3',
+                                   "Group title 3")
+
+
+    def tearDown(self):
+        # Remove the temporary file
+        self.fileh.close()
+        os.remove(self.file)
+        cleanup(self)
+
+
+    def test00(self):
+        """Checking renameNode (over Groups without children)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.renameNode('/agroup2', 'agroup3')
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that it does not exist in the object tree
+        assert "/agroup2" in self.fileh.objects
+        assert "/agroup3" not in self.fileh.objects
+        assert self.fileh.root.agroup2._v_title == "Group title 2"
+        # Redo the operation
+        self.fileh.redo()
+        # Check that otherarray has come back to life in a sane state
+        assert "/agroup2" not in self.fileh.objects
+        assert "/agroup3" in self.fileh.objects
+        assert self.fileh.root.agroup3._v_title == "Group title 2"
+
+    def test01(self):
+        """Checking renameNode (over Groups with children)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.renameNode('/agroup', 'agroup3')
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that it does not exist in the object tree
+        assert "/agroup" in self.fileh.objects
+        assert "/agroup3" not in self.fileh.objects
+        # Check that children are reachable
+        assert "/agroup/anarray1" in self.fileh.objects
+        assert "/agroup/anarray2" in self.fileh.objects
+        assert "/agroup/agroup3" in self.fileh.objects
+        assert self.fileh.root.agroup._v_title == "Group title"
+        # Redo the operation
+        self.fileh.redo()
+        # Check that otherarray has come back to life in a sane state
+        assert "/agroup" not in self.fileh.objects
+        assert "/agroup3" in self.fileh.objects
+        assert self.fileh.root.agroup3._v_title == "Group title"
+        # Check that children are reachable
+        assert "/agroup3/anarray1" in self.fileh.objects
+        assert "/agroup3/anarray2" in self.fileh.objects
+        assert "/agroup3/agroup3" in self.fileh.objects
+
+    def test01b(self):
+        """Checking renameNode (over Groups with children 2)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01b..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.renameNode('/agroup', 'agroup3')
+        self.fileh.renameNode('/agroup3', 'agroup4')
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that it does not exist in the object tree
+        assert "/agroup" in self.fileh.objects
+        assert "/agroup4" not in self.fileh.objects
+        # Check that children are reachable
+        assert "/agroup/anarray1" in self.fileh.objects
+        assert "/agroup/anarray2" in self.fileh.objects
+        assert "/agroup/agroup3" in self.fileh.objects
+        assert self.fileh.root.agroup._v_title == "Group title"
+        # Redo the operation
+        self.fileh.redo()
+        # Check that otherarray has come back to life in a sane state
+        assert "/agroup" not in self.fileh.objects
+        assert "/agroup4" in self.fileh.objects
+        assert self.fileh.root.agroup4._v_title == "Group title"
+        # Check that children are reachable
+        assert "/agroup4/anarray1" in self.fileh.objects
+        assert "/agroup4/anarray2" in self.fileh.objects
+        assert "/agroup4/agroup3" in self.fileh.objects
+
+    def test02(self):
+        """Checking renameNode (over Leaves)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.renameNode('/anarray', 'anarray2')
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that otherarray does not exist in the object tree
+        assert "/anarray" in self.fileh.objects
+        assert "/anarray2" not in self.fileh.objects
+        assert self.fileh.root.anarray.title == "Array title"
+        # Redo the operation
+        self.fileh.redo()
+        # Check that otherarray has come back to life in a sane state
+        assert "/anarray" not in self.fileh.objects
+        assert "/anarray2" in self.fileh.objects
+        assert self.fileh.root.anarray2.title == "Array title"
+
+
+class moveNodeTestCase(unittest.TestCase):
+    "Tests for moveNode operations"
+
+    def setUp(self):
+        # Create an HDF5 file
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w", title="File title")
+        fileh = self.fileh
+        root = fileh.root
+        # Create an array
+        fileh.createArray(root, 'array', [1,2],
+                          title = "Title example")
+
+        # Create another array object
+        array = fileh.createArray(root, 'anarray',
+                                  [1], "Array title")
+        # Create a group object
+        group = fileh.createGroup(root, 'agroup',
+                                  "Group title")
+        # Create a couple of objects there
+        array1 = fileh.createArray(group, 'anarray1',
+                                   [2], "Array title 1")
+        array2 = fileh.createArray(group, 'anarray2',
+                                   [2], "Array title 2")
+        # Create a lonely group in first level
+        group2 = fileh.createGroup(root, 'agroup2',
+                                   "Group title 2")
+        # Create a new group in the second level
+        group3 = fileh.createGroup(group, 'agroup3',
+                                   "Group title 3")
+
+
+    def tearDown(self):
+        # Remove the temporary file
+        self.fileh.close()
+        os.remove(self.file)
+        cleanup(self)
+
+
+    def test00(self):
+        """Checking moveNode (over Leaf)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.moveNode('/anarray', '/agroup/agroup3')
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that it does not exist in the object tree
+        assert "/anarray" in self.fileh.objects
+        assert "/agroup/agroup3/anarray" not in self.fileh.objects
+        assert self.fileh.root.anarray.title == "Array title"
+        # Redo the operation
+        self.fileh.redo()
+        # Check that otherarray has come back to life in a sane state
+        assert "/anarray" not in self.fileh.objects
+        assert "/agroup/agroup3/anarray" in self.fileh.objects
+        assert self.fileh.root.agroup.agroup3.anarray.title == "Array title"
+
+    def test01(self):
+        """Checking moveNode (over Groups with children)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.moveNode('/agroup', '/agroup2', 'agroup3')
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that it does not exist in the object tree
+        assert "/agroup" in self.fileh.objects
+        assert "/agroup2/agroup3" not in self.fileh.objects
+        # Check that children are reachable
+        assert "/agroup/anarray1" in self.fileh.objects
+        assert "/agroup/anarray2" in self.fileh.objects
+        assert "/agroup/agroup3" in self.fileh.objects
+        assert self.fileh.root.agroup._v_title == "Group title"
+        # Redo the operation
+        self.fileh.redo()
+        # Check that otherarray has come back to life in a sane state
+        assert "/agroup" not in self.fileh.objects
+        assert "/agroup2/agroup3" in self.fileh.objects
+        assert self.fileh.root.agroup2.agroup3._v_title == "Group title"
+        # Check that children are reachable
+        assert "/agroup2/agroup3/anarray1" in self.fileh.objects
+        assert "/agroup2/agroup3/anarray2" in self.fileh.objects
+        assert "/agroup2/agroup3/agroup3" in self.fileh.objects
+
+    def test01b(self):
+        """Checking moveNode (over Groups with children 2)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01b..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.moveNode('/agroup', '/', 'agroup3')
+        self.fileh.moveNode('/agroup3', '/agroup2', 'agroup4')
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that it does not exist in the object tree
+        assert "/agroup" in self.fileh.objects
+        assert "/agroup2/agroup4" not in self.fileh.objects
+        # Check that children are reachable
+        assert "/agroup/anarray1" in self.fileh.objects
+        assert "/agroup/anarray2" in self.fileh.objects
+        assert "/agroup/agroup3" in self.fileh.objects
+        assert self.fileh.root.agroup._v_title == "Group title"
+        # Redo the operation
+        self.fileh.redo()
+        # Check that otherarray has come back to life in a sane state
+        assert "/agroup" not in self.fileh.objects
+        assert "/agroup2/agroup4" in self.fileh.objects
+        assert self.fileh.root.agroup2.agroup4._v_title == "Group title"
+        # Check that children are reachable
+        assert "/agroup2/agroup4/anarray1" in self.fileh.objects
+        assert "/agroup2/agroup4/anarray2" in self.fileh.objects
+        assert "/agroup2/agroup4/agroup3" in self.fileh.objects
+
+    def test02(self):
+        """Checking moveNode (over Leaves)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Create a new array
+        self.fileh.moveNode('/anarray', '/agroup2', 'anarray2')
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that otherarray does not exist in the object tree
+        assert "/anarray" in self.fileh.objects
+        assert "/agroup2/anarray2" not in self.fileh.objects
+        assert self.fileh.root.anarray.title == "Array title"
+        # Redo the operation
+        self.fileh.redo()
+        # Check that otherarray has come back to life in a sane state
+        assert "/anarray" not in self.fileh.objects
+        assert "/agroup2/anarray2" in self.fileh.objects
+        assert self.fileh.root.agroup2.anarray2.title == "Array title"
+
+
+class removeNodeTestCase(unittest.TestCase):
+    "Test for removeNode operations"
+
+    def setUp(self):
+        # Create an HDF5 file
+        #self.file = "/tmp/test.h5"
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w", title="File title")
+        fileh = self.fileh
+        root = fileh.root
+        # Create an array
+        fileh.createArray(root, 'array', [1,2],
+                          title = "Title example")
+
+        # Create another array object
+        array = fileh.createArray(root, 'anarray',
+                                  [1], "Array title")
+        # Create a group object
+        group = fileh.createGroup(root, 'agroup',
+                                  "Group title")
+        # Create a couple of objects there
+        array1 = fileh.createArray(group, 'anarray1',
+                                   [2], "Array title 1")
+        array2 = fileh.createArray(group, 'anarray2',
+                                   [2], "Array title 2")
+        # Create a lonely group in first level
+        group2 = fileh.createGroup(root, 'agroup2',
+                                   "Group title 2")
+        # Create a new group in the second level
+        group3 = fileh.createGroup(group, 'agroup3',
+                                   "Group title 3")
+
+
+    def tearDown(self):
+        # Remove the temporary file
+        self.fileh.close()
+        os.remove(self.file)
+        cleanup(self)
+
+
+    def test00(self):
+        """Checking removeNode (over Leaf)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Delete an existing array
+        self.fileh.removeNode('/anarray')
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that it does exist in the object tree
+        assert "/anarray" in self.fileh.objects
+        assert self.fileh.root.anarray.title == "Array title"
+        # Redo the operation
+        self.fileh.redo()
+        # Check that array has gone again
+        assert "/anarray" not in self.fileh.objects
+
+    def test00b(self):
+        """Checking removeNode (over several Leaves)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00b..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Delete a couple of arrays
+        self.fileh.removeNode('/anarray')
+        self.fileh.removeNode('/agroup/anarray2')
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that arrays has come into life
+        assert "/anarray" in self.fileh.objects
+        assert "/agroup/anarray2" in self.fileh.objects
+        assert self.fileh.root.anarray.title == "Array title"
+        assert self.fileh.root.agroup.anarray2.title == "Array title 2"
+        # Redo the operation
+        self.fileh.redo()
+        # Check that arrays has disappeared again
+        assert "/anarray" not in self.fileh.objects
+        assert "/agroup/anarray2" not in self.fileh.objects
+
+    def test01(self):
+        """Checking removeNode (over Groups with children)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Delete a group recursively
+        self.fileh.removeNode('/agroup', recursive=1)
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that parent and children has come into life in a sane state
+        assert "/agroup" in self.fileh.objects
+        assert "/agroup/anarray1" in self.fileh.objects
+        assert "/agroup/anarray2" in self.fileh.objects
+        assert "/agroup/agroup3" in self.fileh.objects
+        assert self.fileh.root.agroup._v_title == "Group title"
+        # Redo the operation
+        self.fileh.redo()
+        # Check that parent and children are not reachable
+        assert "/agroup" not in self.fileh.objects
+        assert "/agroup/anarray1" not in self.fileh.objects
+        assert "/agroup/anarray2" not in self.fileh.objects
+        assert "/agroup/agroup3" not in self.fileh.objects
+
+    def test01b(self):
+        """Checking removeNode (over Groups with children 2)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01b..." % self.__class__.__name__
+
+        # open the do/undo
+        self.fileh.enableUndo()
+        # Remove a couple of groups
+        self.fileh.removeNode('/agroup', recursive=1)
+        self.fileh.removeNode('/agroup2')
+        # Now undo the past operation
+        self.fileh.undo()
+        # Check that they does exist in the object tree
+        assert "/agroup" in self.fileh.objects
+        assert "/agroup2" in self.fileh.objects
+        # Check that children are reachable
+        assert "/agroup/anarray1" in self.fileh.objects
+        assert "/agroup/anarray2" in self.fileh.objects
+        assert "/agroup/agroup3" in self.fileh.objects
+        assert self.fileh.root.agroup._v_title == "Group title"
+        # Redo the operation
+        self.fileh.redo()
+        # Check that groups does not exist again
+        assert "/agroup" not in self.fileh.objects
+        assert "/agroup2" not in self.fileh.objects
+        # Check that children are not reachable
+        assert "/agroup/anarray1" not in self.fileh.objects
+        assert "/agroup/anarray2" not in self.fileh.objects
+        assert "/agroup/agroup3" not in self.fileh.objects
+
+
+
+class copyNodeTestCase(unittest.TestCase):
+    "Tests for copyNode and copyChildren operations"
+
+    def setUp(self):
+        # Create an HDF5 file
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w", title="File title")
+        fileh = self.fileh
+        root = fileh.root
+        # Create an array
+        fileh.createArray(root, 'array', [1,2],
+                          title = "Title example")
+
+        # Create another array object
+        array = fileh.createArray(root, 'anarray',
+                                  [1], "Array title")
+        # Create a group object
+        group = fileh.createGroup(root, 'agroup',
+                                  "Group title")
+        # Create a couple of objects there
+        array1 = fileh.createArray(group, 'anarray1',
+                                   [2], "Array title 1")
+        array2 = fileh.createArray(group, 'anarray2',
+                                   [2], "Array title 2")
+        # Create a lonely group in first level
+        group2 = fileh.createGroup(root, 'agroup2',
+                                   "Group title 2")
+        # Create a new group in the second level
+        group3 = fileh.createGroup(group, 'agroup3',
+                                   "Group title 3")
+
+
+    def tearDown(self):
+        # Remove the temporary file
+        self.fileh.close()
+        os.remove(self.file)
+        cleanup(self)
+
+
+    def test00_copyLeaf(self):
+        "Copying a leaf."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00_copyLeaf..." % self.__class__.__name__
+
+        # Enable undo/redo.
+        self.fileh.enableUndo()
+        # /anarray => /agroup/agroup3/
+        newNode = self.fileh.copyNode('/anarray', '/agroup/agroup3')
+
+        # Undo the copy.
+        self.fileh.undo()
+        # Check that the copied node does not exist in the object tree.
+        self.assert_('/agroup/agroup3/anarray' not in self.fileh.objects)
+
+        # Redo the copy.
+        self.fileh.redo()
+        # Check that the copied node exists again in the object tree.
+        self.assert_('/agroup/agroup3/anarray' in self.fileh.objects)
+        self.assert_(self.fileh.root.agroup.agroup3.anarray is newNode)
+
+
+    def test01_copyGroup(self):
+        "Copying a group (recursively)."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_copyGroup..." % self.__class__.__name__
+
+        # Enable undo/redo.
+        self.fileh.enableUndo()
+        # /agroup => /acopy
+        newNode = self.fileh.copyNode(
+            '/agroup', newname = 'acopy', recursive = True)
+
+        # Undo the copy.
+        self.fileh.undo()
+        # Check that the copied node does not exist in the object tree.
+        self.assert_('/acopy' not in self.fileh.objects)
+        self.assert_('/acopy/anarray1' not in self.fileh.objects)
+        self.assert_('/acopy/anarray2' not in self.fileh.objects)
+        self.assert_('/acopy/agroup3' not in self.fileh.objects)
+
+        # Redo the copy.
+        self.fileh.redo()
+        # Check that the copied node exists again in the object tree.
+        self.assert_('/acopy' in self.fileh.objects)
+        self.assert_('/acopy/anarray1' in self.fileh.objects)
+        self.assert_('/acopy/anarray2' in self.fileh.objects)
+        self.assert_('/acopy/agroup3' in self.fileh.objects)
+        self.assert_(self.fileh.root.acopy is newNode)
+
+
+    def test02_copyLeafOverwrite(self):
+        "Copying a leaf, overwriting destination."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_copyLeafOverwrite..." % self.__class__.__name__
+
+        # Enable undo/redo.
+        self.fileh.enableUndo()
+        # /anarray => /agroup/agroup
+        oldNode = self.fileh.root.agroup
+        newNode = self.fileh.copyNode(
+            '/anarray', newname = 'agroup', overwrite = True)
+
+        # Undo the copy.
+        self.fileh.undo()
+        # Check that the copied node does not exist in the object tree.
+        # Check that the overwritten node exists again in the object tree.
+        self.assert_(self.fileh.root.agroup is oldNode)
+
+        # Redo the copy.
+        self.fileh.redo()
+        # Check that the copied node exists again in the object tree.
+        # Check that the overwritten node does not exist in the object tree.
+        self.assert_(self.fileh.root.agroup is newNode)
+
+
+    def test03_copyChildren(self):
+        "Copying the children of a group."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_copyChildren..." % self.__class__.__name__
+
+        # Enable undo/redo.
+        self.fileh.enableUndo()
+        # /agroup/* => /agroup/
+        self.fileh.copyChildren('/agroup', '/agroup2', recursive = True)
+
+        # Undo the copy.
+        self.fileh.undo()
+        # Check that the copied nodes do not exist in the object tree.
+        self.assert_('/agroup2/anarray1' not in self.fileh.objects)
+        self.assert_('/agroup2/anarray2' not in self.fileh.objects)
+        self.assert_('/agroup2/agroup3' not in self.fileh.objects)
+
+        # Redo the copy.
+        self.fileh.redo()
+        # Check that the copied nodes exist again in the object tree.
+        self.assert_('/agroup2/anarray1' in self.fileh.objects)
+        self.assert_('/agroup2/anarray2' in self.fileh.objects)
+        self.assert_('/agroup2/agroup3' in self.fileh.objects)
+
+
+class ComplexTestCase(unittest.TestCase):
+    "Tests for a mix of all operations"
+
+    def setUp(self):
+        # Create an HDF5 file
+        #self.file = "/tmp/test.h5"
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w", title="File title")
+        fileh = self.fileh
+        root = fileh.root
+        # Create an array
+        fileh.createArray(root, 'array', [1,2],
+                          title = "Title example")
+
+        # Create another array object
+        array = fileh.createArray(root, 'anarray',
+                                  [1], "Array title")
+        # Create a group object
+        group = fileh.createGroup(root, 'agroup',
+                                  "Group title")
+        # Create a couple of objects there
+        array1 = fileh.createArray(group, 'anarray1',
+                                   [2], "Array title 1")
+        array2 = fileh.createArray(group, 'anarray2',
+                                   [2], "Array title 2")
+        # Create a lonely group in first level
+        group2 = fileh.createGroup(root, 'agroup2',
+                                   "Group title 2")
+        # Create a new group in the second level
+        group3 = fileh.createGroup(group, 'agroup3',
+                                   "Group title 3")
+
+
+    def tearDown(self):
+        # Remove the temporary file
+        self.fileh.close()
+        os.remove(self.file)
+        cleanup(self)
+
+
+    def test00(self):
+        """Mix of createArray, createGroup, renameNone, moveNode, removeNode,
+           copyNode and copyChildren."""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00..." % self.__class__.__name__
+
+        # Enable undo/redo.
+        self.fileh.enableUndo()
+        # Create an array
+        self.fileh.createArray(self.fileh.root, 'anarray3',
+                               [1], "Array title 3")
+        # Create a group
+        array2 = self.fileh.createGroup(self.fileh.root, 'agroup3',
+                                        "Group title 3")
+        # /anarray => /agroup/agroup3/
+        newNode = self.fileh.copyNode('/anarray3', '/agroup/agroup3')
+        newNode = self.fileh.copyChildren('/agroup', '/agroup3', recursive=1)
+        # rename anarray
+        array4 = self.fileh.renameNode('/anarray', 'anarray4')
+        # Move anarray
+        newNode = self.fileh.copyNode('/anarray3', '/agroup')
+        # Remove anarray4
+        self.fileh.removeNode('/anarray4')
+        # Undo the actions
+        self.fileh.undo()
+        self.assert_('/anarray4' not in self.fileh.objects)
+        self.assert_('/anarray3' not in self.fileh.objects)
+        self.assert_('/agroup/agroup3/anarray3' not in self.fileh.objects)
+        self.assert_('/agroup3' not in self.fileh.objects)
+        self.assert_('/anarray4' not in self.fileh.objects)
+        self.assert_('/anarray' in self.fileh.objects)
+
+        # Redo the actions
+        self.fileh.redo()
+        # Check that the copied node exists again in the object tree.
+        self.assert_('/agroup/agroup3/anarray3' in self.fileh.objects)
+        self.assert_('/agroup/anarray3' in self.fileh.objects)
+        self.assert_('/agroup3/agroup3/anarray3' in self.fileh.objects)
+        self.assert_('/agroup3/anarray3' not in self.fileh.objects)
+        self.assert_(self.fileh.root.agroup.anarray3 is newNode)
+        self.assert_('/anarray' not in self.fileh.objects)
+        self.assert_('/anarray4' not in self.fileh.objects)
+
+    def test01(self):
+        "Test with multiple generations (Leaf case)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01..." % self.__class__.__name__
+
+        # Enable undo/redo.
+        self.fileh.enableUndo()
+        # remove /anarray
+        self.fileh.removeNode('/anarray')
+        # Create an array in the same place
+        self.fileh.createArray(self.fileh.root, 'anarray',
+                                        [2], "Array title 2")
+        # remove the array
+        self.fileh.removeNode('/anarray')
+        # Create an array
+        array2 = self.fileh.createArray(self.fileh.root, 'anarray',
+                                        [3], "Array title 3")
+        # remove the array
+        self.fileh.removeNode('/anarray')
+        # Create an array
+        array2 = self.fileh.createArray(self.fileh.root, 'anarray',
+                                        [4], "Array title 4")
+        # Undo the actions
+        self.fileh.undo()
+        # Check that /anarray is in the state before enabling do/undo
+        assert self.fileh.root.anarray.title == "Array title"
+        assert self.fileh.root.anarray[:] == [1]
+        # Redo the actions
+        self.fileh.redo()
+        assert self.fileh.root.anarray.title == "Array title 4"
+        assert self.fileh.root.anarray[:] == [4]
+
+    def test02(self):
+        "Test with multiple generations (Group case)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02..." % self.__class__.__name__
+
+        # Enable undo/redo.
+        self.fileh.enableUndo()
+        # remove /agroup
+        self.fileh.removeNode('/agroup2')
+        # Create a group in the same place
+        self.fileh.createGroup(self.fileh.root, 'agroup2', "Group title 22")
+        # remove the group
+        self.fileh.removeNode('/agroup2')
+        # Create a group
+        self.fileh.createGroup(self.fileh.root, 'agroup2', "Group title 3")
+        # remove the group
+        self.fileh.removeNode('/agroup2')
+        # Create a group
+        self.fileh.createGroup(self.fileh.root, 'agroup2', "Group title 4")
+        # Create a child group
+        self.fileh.createGroup(self.fileh.root.agroup2, 'agroup5',
+                               "Group title 5")
+        # Undo the actions
+        self.fileh.undo()
+        # Check that /agroup is in the state before enabling do/undo
+        assert self.fileh.root.agroup2 in self.fileh.objects.values()
+        assert self.fileh.root.agroup2._v_title == "Group title 2"
+        assert '/agroup2' in self.fileh.objects
+        # Redo the actions
+        self.fileh.redo()
+        assert self.fileh.root.agroup2 in self.fileh.objects.values()
+        assert self.fileh.root.agroup2._v_title == "Group title 4"
+        assert self.fileh.root.agroup2.agroup5 in self.fileh.objects.values()
+        assert self.fileh.root.agroup2.agroup5._v_title == "Group title 5"
+
+    def test03(self):
+        "Test with multiple generations (Group case, recursive remove)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03..." % self.__class__.__name__
+
+        # Enable undo/redo.
+        self.fileh.enableUndo()
+        # remove /agroup
+        self.fileh.removeNode('/agroup', recursive=1)
+        # Create a group in the same place
+        self.fileh.createGroup(self.fileh.root, 'agroup', "Group title 2")
+        # remove the group
+        self.fileh.removeNode('/agroup')
+        # Create a group
+        self.fileh.createGroup(self.fileh.root, 'agroup', "Group title 3")
+        # remove the group
+        self.fileh.removeNode('/agroup')
+        # Create a group
+        self.fileh.createGroup(self.fileh.root, 'agroup', "Group title 4")
+        # Create a child group
+        self.fileh.createGroup(self.fileh.root.agroup, 'agroup5',
+                               "Group title 5")
+        # Undo the actions
+        self.fileh.undo()
+        # Check that /agroup is in the state before enabling do/undo
+        assert self.fileh.root.agroup in self.fileh.objects.values()
+        assert '/agroup' in self.fileh.objects
+        assert self.fileh.root.agroup._v_title == "Group title"
+        assert self.fileh.root.agroup.anarray1 in self.fileh.objects.values()
+        assert '/agroup/anarray1' in self.fileh.objects
+        assert self.fileh.root.agroup.anarray2 in self.fileh.objects.values()
+        assert '/agroup/anarray2' in self.fileh.objects
+        assert self.fileh.root.agroup.agroup3 in self.fileh.objects.values()
+        assert '/agroup/agroup3' in self.fileh.objects
+        assert '/agroup/agroup5' not in self.fileh.objects
+        # Redo the actions
+        self.fileh.redo()
+        assert self.fileh.root.agroup in self.fileh.objects.values()
+        assert '/agroup' in self.fileh.objects
+        assert self.fileh.root.agroup._v_title == "Group title 4"
+        assert self.fileh.root.agroup.agroup5 in self.fileh.objects.values()
+        assert '/agroup/agroup5' in self.fileh.objects
+        assert self.fileh.root.agroup.agroup5._v_title == "Group title 5"
+
+    def test03b(self):
+        "Test with multiple generations (Group case, recursive remove, case 2)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03b..." % self.__class__.__name__
+
+        # Enable undo/redo.
+        self.fileh.enableUndo()
+        # Create a new group with a child
+        self.fileh.createGroup(self.fileh.root, 'agroup3', "Group title 3")
+        self.fileh.createGroup(self.fileh.root.agroup3, 'agroup4',
+                               "Group title 4")
+        # remove /agroup3
+        self.fileh.removeNode('/agroup3', recursive=1)
+        # Create a group in the same place
+        self.fileh.createGroup(self.fileh.root, 'agroup3', "Group title 4")
+        # Undo the actions
+        self.fileh.undo()
+        # Check that /agroup is in the state before enabling do/undo
+        assert '/agroup3' not in self.fileh.objects
+        # Redo the actions
+        self.fileh.redo()
+        assert self.fileh.root.agroup3 in self.fileh.objects.values()
+        assert self.fileh.root.agroup3._v_title == "Group title 4"
+        assert '/agroup3' in self.fileh.objects
+        assert '/agroup/agroup4' not in self.fileh.objects
+
+
+
+class AttributesTestCase(unittest.TestCase):
+    "Tests for operation on attributes"
+
+    def setUp(self):
+        # Create an HDF5 file
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(
+            self.file, mode = "w", title = "Attribute operations")
+
+        # Create an array.
+        array = self.fileh.createArray('/', 'array', [1,2])
+
+        # Set some attributes on it.
+        attrs = array.attrs
+        attrs.attr_1 = 10
+        attrs.attr_2 = 20
+        attrs.attr_3 = 30
+
+
+    def tearDown(self):
+        # Remove the temporary file
+        self.fileh.close()
+        os.remove(self.file)
+        cleanup(self)
+
+
+    def test00_setAttr(self):
+        "Setting a nonexistent attribute."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00_setAttr..." % self.__class__.__name__
+
+        attrs = self.fileh.root.array.attrs
+
+        self.fileh.enableUndo()
+        setattr(attrs, 'attr_0', 0)
+        self.assert_('attr_0' in attrs)
+        self.assertEqual(attrs.attr_0, 0)
+        self.fileh.undo()
+        self.assert_('attr_0' not in attrs)
+        self.fileh.redo()
+        self.assert_('attr_0' in attrs)
+        self.assertEqual(attrs.attr_0, 0)
+
+
+    def test01_setAttrExisting(self):
+        "Setting an existing attribute."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_setAttrExisting..." % self.__class__.__name__
+
+        attrs = self.fileh.root.array.attrs
+
+        self.fileh.enableUndo()
+        setattr(attrs, 'attr_1', 11)
+        self.assert_('attr_1' in attrs)
+        self.assertEqual(attrs.attr_1, 11)
+        self.fileh.undo()
+        self.assert_('attr_1' in attrs)
+        self.assertEqual(attrs.attr_1, 10)
+        self.fileh.redo()
+        self.assert_('attr_1' in attrs)
+        self.assertEqual(attrs.attr_1, 11)
+
+
+    def test02_delAttr(self):
+        "Removing an attribute."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_delAttr..." % self.__class__.__name__
+
+        attrs = self.fileh.root.array.attrs
+
+        self.fileh.enableUndo()
+        delattr(attrs, 'attr_1')
+        self.assert_('attr_1' not in attrs)
+        self.fileh.undo()
+        self.assert_('attr_1' in attrs)
+        self.assertEqual(attrs.attr_1, 10)
+        self.fileh.redo()
+        self.assert_('attr_1' not in attrs)
+
+
+    def test03_copyAttrs(self):
+        "Copying an attribute set."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_copyAttrs..." % self.__class__.__name__
+
+        rattrs = self.fileh.root._v_attrs
+        rattrs.attr_0 = 0
+        rattrs.attr_1 = 100
+
+        attrs = self.fileh.root.array.attrs
+
+        self.fileh.enableUndo()
+        attrs._f_copy(self.fileh.root)
+        self.assertEqual(rattrs.attr_0, 0)
+        self.assertEqual(rattrs.attr_1, 10)
+        self.assertEqual(rattrs.attr_2, 20)
+        self.assertEqual(rattrs.attr_3, 30)
+        self.fileh.undo()
+        self.assertEqual(rattrs.attr_0, 0)
+        self.assertEqual(rattrs.attr_1, 100)
+        self.assert_('attr_2' not in rattrs)
+        self.assert_('attr_3' not in rattrs)
+        self.fileh.redo()
+        self.assertEqual(rattrs.attr_0, 0)
+        self.assertEqual(rattrs.attr_1, 10)
+        self.assertEqual(rattrs.attr_2, 20)
+        self.assertEqual(rattrs.attr_3, 30)
+
+
+    def test04_replaceNode(self):
+        "Replacing a node with a rewritten attribute."
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04_replaceNode..." % self.__class__.__name__
+
+        attrs = self.fileh.root.array.attrs
+
+        self.fileh.enableUndo()
+        attrs.attr_1 = 11
+        self.fileh.removeNode('/array')
+        arr = self.fileh.createArray('/', 'array', [1])
+        arr.attrs.attr_1 = 12
+        self.fileh.undo()
+        self.assert_('attr_1' in self.fileh.root.array.attrs)
+        self.assertEqual(self.fileh.root.array.attrs.attr_1, 10)
+        self.fileh.redo()
+        self.assert_('attr_1' in self.fileh.root.array.attrs)
+        self.assertEqual(self.fileh.root.array.attrs.attr_1, 12)
+
+
+def suite():
+    theSuite = unittest.TestSuite()
+    niter = 1
+    #heavy = 1  # uncomment this only for testing purposes
+
+    #theSuite.addTest(unittest.makeSuite(BasicTestCase))
+    #theSuite.addTest(unittest.makeSuite(PersistenceTestCase))
+    #theSuite.addTest(unittest.makeSuite(removeNodeTestCase))
+    #theSuite.addTest(unittest.makeSuite(ComplexTestCase))
+    for n in range(niter):
+        theSuite.addTest(unittest.makeSuite(BasicTestCase))
+        theSuite.addTest(unittest.makeSuite(PersistenceTestCase))
+        theSuite.addTest(unittest.makeSuite(createArrayTestCase))
+        theSuite.addTest(unittest.makeSuite(createGroupTestCase))
+        theSuite.addTest(unittest.makeSuite(renameNodeTestCase))
+        theSuite.addTest(unittest.makeSuite(moveNodeTestCase))
+        theSuite.addTest(unittest.makeSuite(removeNodeTestCase))
+        theSuite.addTest(unittest.makeSuite(copyNodeTestCase))
+        theSuite.addTest(unittest.makeSuite(AttributesTestCase))
+        theSuite.addTest(unittest.makeSuite(ComplexTestCase))
+
+    if heavy:
+        pass
+
+    return theSuite
+
+
+if __name__ == '__main__':
+    unittest.main( defaultTest='suite' )
+
+## Local Variables:
+## mode: python
+## End:

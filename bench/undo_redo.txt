@@ -1,0 +1,103 @@
+Benchmarks on PyTables Undo/Redo
+================================
+
+This is a small report for the performance of the Undo/Redo feature in
+PyTables.
+
+A small script (see undo_redo.py) has been made in order to check
+different scenarios for Undo/Redo, like creating single nodes, copying
+children from one group to another, and creating attributes.
+
+Undo/Redo is independent of object size
+---------------------------------------
+
+Firstly, one thing to be noted is that the Undo/Redo feature is
+independent of the object size that is being treated. For example, the
+times for 10 objects (flag -n) each one with 10 elements (flag -s) is:
+
+$ time python2.4 undo_redo.py -n 10 -i 2 -s 10 data.nobackup/undo_redo.h5
+Time for Undo, Redo (createNode): 0.213686943054 s,  0.0727670192719 s
+Time for Undo, Redo (createNode): 0.271666049957 s,  0.0740389823914 s
+Time for Undo, Redo (copyChildren): 0.296227931976 s,  0.161941051483 s
+Time for Undo, Redo (copyChildren): 0.363519906998 s,  0.162662982941 s
+Time for Undo, Redo (setAttr): 0.208750009537 s,  0.0732419490814 s
+Time for Undo, Redo (setAttr): 0.27628993988 s,  0.0736088752747 s
+
+real    0m5.557s
+user    0m4.354s
+sys     0m0.729s
+
+Note how all tests take more or less the same amount of time. This is
+because a move operation is used as a central tool to implement the
+Undo/Redo feature. Such a move operation has a constant cost,
+independently of the size of the objects. For example, using objects
+with 1000 elements, we can see that this does not affect the Undo/Redo
+speed:
+
+$ time python2.4 undo_redo.py -n 10 -i 2 -s 1000 data.nobackup/undo_redo.h5
+Time for Undo, Redo (createNode): 0.213760137558 s,  0.0717759132385 s
+Time for Undo, Redo (createNode): 0.276151895523 s,  0.0724079608917 s
+Time for Undo, Redo (copyChildren): 0.308417797089 s,  0.168260812759 s
+Time for Undo, Redo (copyChildren): 0.382102966309 s,  0.168042898178 s
+Time for Undo, Redo (setAttr): 0.209735155106 s,  0.0740969181061 s
+Time for Undo, Redo (setAttr): 0.279798984528 s,  0.0770981311798 s
+
+real    0m5.835s
+user    0m4.585s
+sys     0m0.736s
+
+
+Undo/Redo times grow linearly with the number of objects implied
+----------------------------------------------------------------
+
+Secondly, the time for doing/undoing is obviously proportional
+(linearly) to the number of objects that are implied in that process
+(set by -n):
+
+$ time python2.4 undo_redo.py -n 100 -i 2 -s 10 data.nobackup/undo_redo.h5
+Time for Undo, Redo (createNode): 2.27267885208 s,  0.779091119766 s
+Time for Undo, Redo (createNode): 2.31264209747 s,  0.766252040863 s
+Time for Undo, Redo (copyChildren): 3.01871585846 s,  1.63346219063 s
+Time for Undo, Redo (copyChildren): 3.07704997063 s,  1.62615203857 s
+Time for Undo, Redo (setAttr): 2.18017196655 s,  0.809293985367 s
+Time for Undo, Redo (setAttr): 2.23039293289 s,  0.809432029724 s
+
+real    0m48.395s
+user    0m40.385s
+sys     0m6.914s
+
+
+A note on actual performance and place for improvement
+------------------------------------------------------
+
+Finally, note how the Undo/Redo capability of PyTables is pretty
+fast. The next benchmark makes 1000 undo and 1000 redos for
+createArray:
+
+$ time python2.4 undo_redo.py -n 1000 -i 2 -t createNode -s 1000 data.nobackup/undo_redo.h5
+Time for Undo, Redo (createNode): 22.7840828896 s,  7.9872610569 s
+Time for Undo, Redo (createNode): 22.2799329758 s,  7.95833396912 s
+
+real    1m32.307s
+user    1m16.598s
+sys     0m15.105s
+
+i.e. an undo takes 23 milliseconds while a redo takes 8 milliseconds
+approximately.
+
+The fact that undo operations take 3 times more than redo is probably
+due to how the action log is implemented. The action log has been
+implemented as a Table object, and PyTables has been optimized to read
+rows of tables in *forward* direction (the one needed for redo
+operations). However, when looking in *backward* direction (needed for
+undo operations), the internal cache of PyTables is counterproductive
+and makes look-ups quite slow (compared with forward access).
+Nevertheless, the code for Undo/Redo has been optimized quite a bit to
+smooth this kind of access as much as possible, but with a relative
+success. A more definitive optimization should involve getting much
+better performance for reading tables in backward direction. That
+would be a major task, and can be eventually addressed in the future.
+
+
+Francesc Altet
+2005-03-10

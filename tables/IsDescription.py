@@ -24,17 +24,18 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.41 $"
-
-
 import warnings
 import struct
 import sys
 
 import numarray as NA
 import numarray.records as records
-from utils import checkNameValidity
 
+from tables.utils import checkNameValidity
+
+
+
+__version__ = "$Revision: 1.41 $"
 
 
 # Map between the Numarray types and struct datatypes.
@@ -710,7 +711,6 @@ class Description(object):
             # No .pos was set
             # fall back to alphanumerical order
             keys.sort()
-            
         recarrfmt = []
         if "__check_validity__" in keys:
             check_validity = classdict["__check_validity__"]

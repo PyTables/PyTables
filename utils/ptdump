@@ -17,11 +17,13 @@ Pass the flag -h to this for help on usage.
 
 """
 
+import sys
+import os.path
+import getopt
+
 from tables import *
 
-import os.path
-import sys
-import getopt
+
 
 def dumpLeaf(leaf):
     global verbose

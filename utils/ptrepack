@@ -17,10 +17,14 @@ Pass the flag -h to this for help on usage.
 
 """
 
-import sys, os, time
+import sys
 import os.path
+import time
 import getopt
+
 import tables
+
+
 
 def newdstGroup(dstfileh, dstgroup, title, filters):
     group = dstfileh.root
@@ -40,7 +44,7 @@ def newdstGroup(dstfileh, dstgroup, title, filters):
     return group
 
 def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
-             filters, copyuserattrs, overwritefile, overwrtnodes,
+             filters, copyuserattrs, overwritefile, overwrtnodes, stats,
              start, stop, step):
     # Open the source file
     srcfileh = tables.openFile(srcfile, "r")
@@ -94,11 +98,10 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
 #                                      overwrite = overwrtnodes,
 #                                      start=start, stop=stop, step=step)
     try:
-        (dstNode, tbytes) = srcNode.copy(dstGroup, dstleaf,
-                                         filters=filters,
-                                         copyuserattrs=copyuserattrs,
-                                         overwrite = overwrtnodes,
-                                         start=start, stop=stop, step=step)
+        dstNode = srcNode.copy(
+            dstGroup, dstleaf, filters = filters,
+            copyuserattrs = copyuserattrs, overwrite = overwrtnodes,
+            stats = stats, start = start, stop = stop, step = step)
     except:
         (type, value, traceback) = sys.exc_info()
         print "Problems doing the copy from '%s:%s' to '%s:%s'" % \
@@ -113,11 +116,10 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
     # Close all the open files:
     srcfileh.close()
     dstfileh.close()
-    return (0, 1, tbytes)  # 0 groups and 1 leaf copied
     
 def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
                  recursive, filters, copyuserattrs, overwritefile,
-                 overwrtnodes, start, stop, step):
+                 overwrtnodes, stats, start, stop, step):
     "Copy the children from source group to destination group"
     # Open the source file with srcgroup as rootUEP
     srcfileh = tables.openFile(srcfile, "r", rootUEP=srcgroup)
@@ -153,11 +155,10 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
 
     # Finally, copy srcGroup to dstGroup
     try:
-        ng,nl,tb = srcGroup._f_copyChildren(dstGroup, recursive=recursive,
-                                            filters=filters,
-                                            copyuserattrs=copyuserattrs,
-                                            overwrite = overwrtnodes,
-                                            start=start, stop=stop, step=step)
+        srcGroup._f_copyChildren(
+            dstGroup, recursive = recursive, filters = filters,
+            copyuserattrs = copyuserattrs, overwrite = overwrtnodes,
+            stats = stats, start = start, stop = stop, step = step)
     except:
         (type, value, traceback) = sys.exc_info()
         print "Problems doing the copy from '%s:%s' to '%s:%s'" % \
@@ -172,7 +173,6 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
     # Close all the open files:
     srcfileh.close()
     dstfileh.close()
-    return (ng, nl, tb)
     
 
 # Main program starts here
@@ -340,28 +340,35 @@ srcnodeobject = h5srcfile.getNode(srcnode)
 objectclass = srcnodeobject.__class__.__name__
 # Close the file again
 h5srcfile.close()
+
+stats = {'groups': 0, 'leaves': 0, 'bytes': 0}
 if objectclass == "Group":
-    ngroups, nleafs, nbytescopied = \
-             copyChildren(srcfile, dstfile, srcnode, dstnode,
-                        title=title, recursive=recursive, 
-                        filters=filters, copyuserattrs=copyuserattrs,
-                        overwritefile=overwritefile, overwrtnodes=overwrtnodes,
-                        start=start, stop=stop, step=step)
+    copyChildren(
+        srcfile, dstfile, srcnode, dstnode,
+        title = title, recursive = recursive, filters = filters,
+        copyuserattrs = copyuserattrs, overwritefile = overwritefile,
+        overwrtnodes = overwrtnodes, stats = stats,
+        start = start, stop = stop, step = step)
 else:
     # If not a Group, it should be a Leaf
-    ngroups, nleafs, nbytescopied = \
-             copyLeaf(srcfile, dstfile, srcnode, dstnode,
-                      title=title,
-                      filters=filters, copyuserattrs=copyuserattrs,
-                      overwritefile=overwritefile, overwrtnodes=overwrtnodes,
-                      start=start, stop=stop, step=step)
+    copyLeaf(
+        srcfile, dstfile, srcnode, dstnode,
+        title = title, filters = filters, copyuserattrs = copyuserattrs,
+        overwritefile = overwritefile, overwrtnodes = overwrtnodes,
+        stats = stats, start = start, stop = stop, step = step)
+
 # Gather some statistics
 t2 = time.time()
 cpu2 = time.clock()
 tcopy = round(t2-t1, 3)
 cpucopy = round(cpu2-cpu1, 3)
 tpercent = int(round(cpucopy/tcopy, 2)*100)
+
 if verbose:
+    ngroups = stats['groups']
+    nleafs = stats['nleaves']
+    nbytescopied = stats['nbytes']
+
     print "Groups copied:", ngroups, " Leaves copied:", nleafs
     if copyuserattrs:
         print "User attrs copied"

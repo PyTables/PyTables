@@ -15,63 +15,79 @@
 
 import re
 import warnings
-#from warnings import Warning
-# The second line is better for some installations
-#from tables.hdf5Extension import getIndices
-from hdf5Extension import getIndices
-from exceptions import NaturalNameWarning
+import keyword
+
 import numarray
 from numarray import strings
+
 try:
     import Numeric
-    Numeric_imported = 1
-except:
-    Numeric_imported = 0
+    Numeric_imported = True
+except ImportError:
+    Numeric_imported = False
 
-# Reserved prefixes for special attributes in Group and other classes
-reservedprefixes = [
-  '_c_',   # For class variables
-  '_f_',   # For class public functions
-  '_g_',   # For class private functions
-  '_v_',   # For instance variables
-  '_i_',   # For indexed Columns
-]
+from tables.hdf5Extension import getIndices
+from tables.exceptions import NaturalNameWarning
 
-pat = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
+
+
+# Python identifier regular expression.
+pythonIdRE = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
+# PyTables reserved identifier regular expression.
+#   c: class variables
+#   f: class public methods
+#   g: class private methods
+#   v: instance variables
+#   i: indexed columns
+reservedIdRE = re.compile('^_[cfgvi]_')
+
 
 def checkNameValidity(name):
-    "Check the validity of a name to be put in the object tree"
-    global pat
+    """
+    Check the validity of the `name` of an object.
 
-    # First, some checks for avoid execution of arbitrary (malign) code
-    # Suggested by I. Vilata
-#     if not pat.match(name):
-#         raise NameError, \
-# """Sorry, you must use a name compliant with '[a-zA-Z_][a-zA-Z0-9_]*' regexp"""
+    If the name is not valid, a ``ValueError`` is raised.  If it is
+    valid but it can not be used with natural naming, a
+    `NaturalNameWarning` is issued.
+    """
 
-    # Check if name starts with a reserved prefix
-    for prefix in reservedprefixes:
-        if name.startswith(prefix):
-            raise ValueError, """Sorry, the name "%s" contains one of the reserved prefixes: %s, and cannot be used in this context""" % (name, reservedprefixes)
+    warnInfo = """\
+you will not be able to use natural naming to acces this object \
+(using ``getattr()`` will still work)"""
 
-    if name.find('/') <> -1:
-        raise ValueError, """Sorry, the name "%s" contains a '/' which is forbidden in hdf5-identifiers""" % (name)
-                
-    # Check if new  node name have the appropriate set of characters
-    # and is not one of the Python reserved word!
-    # We use the next trick: exec the assignment 'name = 1' and
-    # if a SyntaxError raises, catch it and re-raise a personalized error.
-    testname = '_' + name + '_'
-    try:
-        exec(testname + ' = 1')  # Test for trailing and ending spaces
-        exec(name + '= 1')  # Test for name validity
-    except SyntaxError:
-        warnings.warn(""""%s" is not a valid python identifier, so the associated element cannot be accessed by natural naming. Check for special symbols ($, %%, @, ...), spaces or reserved words, or be sure to access it later on by using getattr().""" % (name), NaturalNameWarning)
-        
-#         raise NameError, \
-#  """\'%s\' is not a valid python identifier and cannot be used in this context.
-#   Check for special symbols ($, %%, @, ...), spaces or reserved words.""" % \
-#   (name)
+    if not isinstance(name, basestring):  # Python >= 2.3
+        raise TypeError("object name is not a string: %r" % (name,))
+
+    # Check whether `name` is a valid HDF5 name.
+    # http://hdf.ncsa.uiuc.edu/HDF5/doc/UG/03_Model.html#Structure
+    if name == '':
+        raise ValueError("the empty string is not allowed as an object name")
+    if name == '.':
+        raise ValueError("``.`` is not allowed as an object name")
+    if '/' in name:
+        raise ValueError(
+            "the ``/`` character is not allowed in object names: %r" % (name,))
+
+    # Check whether `name` is a valid Python identifier.
+    if not pythonIdRE.match(name):
+        warnings.warn("""\
+object name is not a valid Python identifier: %r; \
+it does not match the pattern ``%s``; %s"""
+                      % (name, pythonIdRE.pattern, warnInfo),
+                      NaturalNameWarning)
+        return
+
+    # However, Python identifiers and keywords have the same form.
+    if keyword.iskeyword(name):
+        warnings.warn("object name is a Python keyword: %r; %s"
+                      % (name, warnInfo), NaturalNameWarning)
+        return
+
+    # Still, names starting with reserved prefixes are not allowed.
+    if reservedIdRE.match(name):
+        raise ValueError("""\
+object name starts with a reserved prefix: %r; \
+it matches the pattern ``%s``""" % (name, reservedIdRE.pattern))
 
 
 def _calcBufferSize(rowsize, expectedrows):
@@ -207,48 +223,54 @@ def processRangeRead(nrows, start=None, stop=None, step=1):
     return (start, stop, step)
 
 # This is used in VLArray and EArray to produce a numarray object
-# of type atom from a generic python type 
-def convertIntoNA(arr, atom):
+# of type atom from a generic python type.  If stated as true,
+# it is assured that it will return a copy of the object and never
+# the same object or a new one sharing the same memory.
+def convertIntoNA(arr, atom, copy = False):
     "Convert a generic object into a numarray object"
     # Check for Numeric objects
     if (isinstance(arr, numarray.NumArray) or
         isinstance(arr, strings.CharArray)):
-        naarr = arr
+        if not copy:
+            naarr = arr
+        else:
+            naarr = arr.copy()
     elif (Numeric_imported and type(arr) == type(Numeric.array(1))
           and not arr.typecode() == 'c'):
-        if arr.iscontiguous():
-            # This the fastest way to convert from Numeric to numarray
-            # because no data copy is involved
-            naarr = numarray.array(buffer(arr),
-                                   type=arr.typecode(),
-                                   shape=arr.shape)
-        else:
+        if copy or not arr.iscontiguous():
             # Here we absolutely need a copy in order
             # to obtain a buffer.
             # Perhaps this can be avoided or optimized by using
             # the tolist() method, but this should be tested.
-            naarr = numarray.array(buffer(arr.copy()),
-                                   type=arr.typecode(),
-                                   shape=arr.shape)                    
+            carr = arr.copy()
+        else:
+            # This the fastest way to convert from Numeric to numarray
+            # because no data copy is involved
+            carr = arr
+        naarr = numarray.array(buffer(carr),
+                               type=arr.typecode(),
+                               shape=arr.shape)
     elif (Numeric_imported and type(arr) == type(Numeric.array(1))
           and arr.typecode() == 'c'):
         # Special case for Numeric objects of type Char
         try:
             naarr = strings.array(arr.tolist(), itemsize=atom.itemsize)
             # If still doesn't, issues an error
-        except:
+        except:  #XXX
             raise TypeError, """The object '%s' can't be converted into a CharArray object of type '%s'. Sorry, but this object is not supported in this context.""" % (arr, atom)
     else:
         # Test if arr can be converted to a numarray object of the
         # correct type
         try:
-            naarr = numarray.array(arr, type=atom.type)
+            # 2005-02-04: The 'copy' argument appears in __doc__
+            # but not in documentation.
+            naarr = numarray.array(arr, type=atom.type, copy=copy)
         # If not, test with a chararray
         except TypeError:
             try:
                 naarr = strings.array(arr, itemsize=atom.itemsize)
             # If still doesn't, issues an error
-            except:
+            except:  #XXX
                 raise TypeError, """The object '%s' can't be converted into a numarray object of type '%s'. Sorry, but this object is not supported in this context.""" % (arr, atom)
 
     # Convert to the atom type, if necessary
@@ -264,6 +286,36 @@ def convertIntoNA(arr, atom):
     return naarr
 
 
+def joinPath(parentPath, name):
+    """joinPath(parentPath, name) -> path.  Joins a canonical path with a name.
+
+    Joins the given canonical path with the given child node name.
+    """
+
+    if parentPath == '/':
+        pstr = '%s%s'
+    else:
+        pstr = '%s/%s'
+    return pstr % (parentPath, name)
+
+
+def splitPath(path):
+    """splitPath(path) -> (parentPath, name).  Splits a canonical path.
+
+    Splits the given canonical path into a parent path (without the trailing
+    slash) and a node name.
+    """
+
+    lastSlash = path.rfind('/')
+    ppath = path[:lastSlash]
+    name = path[lastSlash+1:]
+
+    if ppath == '':
+        ppath = '/'
+
+    return (ppath, name)
+
+
 
 if __name__=="__main__":
     import sys
@@ -275,7 +327,7 @@ if __name__=="__main__":
     % sys.argv[0]
     try:
         opts, pargs = getopt.getopt(sys.argv[1:], 'v')
-    except:
+    except getopt.GetoptError:
         sys.stderr.write(usage)
         sys.exit(0)
     # if we pass too much parameters, abort
@@ -293,3 +345,12 @@ if __name__=="__main__":
     name = pargs[0]
     checkNameValidity(name)
     print "Correct name: '%s'" % name
+
+
+
+## Local Variables:
+## mode: python
+## py-indent-offset: 4
+## tab-width: 4
+## fill-column: 72
+## End:

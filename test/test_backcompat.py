@@ -1,4 +1,5 @@
 #import sys
+import warnings
 import unittest
 #import os
 #import tempfile
@@ -26,7 +27,10 @@ class BackCompatTestCase(unittest.TestCase):
             print "Running %s.test01_readTable..." % self.__class__.__name__
 
         # Create an instance of an HDF5 Table
+        warnings.filterwarnings("ignore", category=UserWarning)
         self.fileh = openFile(self.file, "r")
+        warnings.filterwarnings("default", category=UserWarning)
+
         table = self.fileh.getNode("/tuple0")
 
         # Read the 100 records

@@ -27,28 +27,28 @@ Misc variables:
 
 """
 
+import sys
+
+import numarray
+import numarray.records as records
+
+from tables.utils import convertIntoNA, processRangeRead
+from tables.Atom import Atom
+from tables.Array import Array
+
+
+
 __version__ = "$Revision: 1.25 $"
+
+
 # default version for EARRAY objects
 #obversion = "1.0"    # initial version
 #obversion = "1.1"    # support for complex datatypes
 obversion = "1.2"    # This adds support for time datatypes.
 
-import warnings, sys
-from Array import Array
-from VLArray import Atom
-from utils import convertIntoNA, processRangeRead
-import hdf5Extension
-import numarray
-import numarray.strings as strings
-import numarray.records as records
 
-try:
-    import Numeric
-    Numeric_imported = 1
-except:
-    Numeric_imported = 0
 
-class EArray(Array, hdf5Extension.Array, object):
+class EArray(Array):
     """Represent an homogeneous dataset in HDF5 file.
 
     It enables to create new datasets on-disk from Numeric and
@@ -84,7 +84,18 @@ class EArray(Array, hdf5Extension.Array, object):
             
 
     """
-    
+
+    # Class identifier.
+    _c_classId = 'EARRAY'
+
+
+    # <undo-redo support>
+    _c_canUndoCreate = True  # Can creation/copying be undone and redone?
+    _c_canUndoRemove = True  # Can removal be undone and redone?
+    _c_canUndoMove   = True  # Can movement/renaming be undone and redone?
+    # </undo-redo support>
+
+
     def __init__(self, atom = None, title = "",
                  filters = None, expectedrows = 1000):
         """Create EArray instance.
@@ -207,6 +218,9 @@ class EArray(Array, hdf5Extension.Array, object):
 
     def _create(self):
         """Save a fresh array (i.e., not present on HDF5 file)."""
+
+        # All this will eventually end up in the node constructor.
+
         global obversion
         
         assert isinstance(self.atom, Atom), "The object passed to the IndexArray constructor must be a descendent of the Atom class."
@@ -279,8 +293,11 @@ class EArray(Array, hdf5Extension.Array, object):
         """Append the object to this (enlargeable) object"""
         assert self._v_file.mode <> "r", "Attempt to write over a file opened in read-only mode"
 
+        # The object needs to be copied to make the operation safe
+        # to in-place conversion.
+        copy = self.stype in ['Time64']
         # Convert the object into a numarray object
-        naarr = convertIntoNA(object, self.atom)
+        naarr = convertIntoNA(object, self.atom, copy)
         # Check if it is correct type and shape
         naarr = self._checkTypeShape(naarr)
         self._append(naarr)
@@ -294,6 +311,9 @@ class EArray(Array, hdf5Extension.Array, object):
 
     def _open(self):
         """Get the metadata info for an array in file."""
+
+        # All this will eventually end up in the node constructor.
+
         (self.type, self.stype, self.shape, self.itemsize, self.byteorder,
          self._v_chunksize) = self._openArray()
         #print "chunksizes-->", self._v_chunksize
@@ -324,14 +344,12 @@ class EArray(Array, hdf5Extension.Array, object):
         self._v_maxTuples = self._v_buffersize // chunksize
         #print "maxTuples-->", self._v_maxTuples
 
-    def _g_copy(self, group, name, start, stop, step, title, filters):
+    def _g_copyWithStats(self, group, name, start, stop, step, title, filters):
         "Private part of Leaf.copy() for each kind of leaf"
         # Build the new EArray object
-        object = EArray(atom=self.atom,
-                        title=title,
-                        filters=filters,
-                        expectedrows=self.nrows)
-        setattr(group, name, object)
+        object = self._v_file.createEArray(
+            group, name, atom=self.atom, title=title, filters=filters,
+            expectedrows=self.nrows, _log = False)
         # Now, fill the new earray with values from source
         nrowsinbuf = self._v_maxTuples
         # The slices parameter for self.__getitem__

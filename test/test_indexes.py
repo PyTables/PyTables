@@ -625,8 +625,6 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         if self.klass is Small:
             assert index is None
         else:
-            indexedrows = index.nelements
-            assert table._indexedrows == indexedrows
             assert table._indexedrows == table.nrows
             assert table._unsaved_indexedrows == self.nrows - indexedrows
 
@@ -644,7 +642,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             assert table.indexprops.reindex == 0
             filters = Filters(complevel=1, complib="zlib",
                               shuffle=1, fletcher32=0)
-            assert str(table.indexprops.filters) == str(filters)            
+            assert str(table.indexprops.filters) == str(filters)
         elif self.klass is ChangeFilters:
             assert table.indexprops.auto == 1
             assert table.indexprops.reindex == 1
@@ -847,8 +845,6 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             assert table._unsaved_indexedrows == unsavedindexedrows
         elif self.klass is NoAuto:
             index = table.cols.var1.index
-            indexedrows = index.nelements
-            assert table._indexedrows == indexedrows
             assert table._unsaved_indexedrows == self.nrows - indexedrows
 
         # Check the dirty flag for indexes
@@ -881,7 +877,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Now, remove some rows to make columns dirty
         #table.removeRows(3,5)
         # Copy a Table to another location
-        table2, size = table.copy("/", 'table2')
+        table2 = table.copy("/", 'table2')
         if self.reopen:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -938,7 +934,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Now, remove some rows to make columns dirty
         #table.removeRows(3,5)
         # Copy a Table to another location
-        table2, size = table.copy("/", 'table2')
+        table2 = table.copy("/", 'table2')
         if self.reopen:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -986,7 +982,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         table.modifyColumns(1, columns=[["asa","asb"],[1.,2.]],
                             names=["var1", "var4"])
         # Copy a Table to another location
-        table2, size = table.copy("/", 'table2')
+        table2 = table.copy("/", 'table2')
         if self.reopen:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")

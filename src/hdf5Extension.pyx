@@ -36,24 +36,27 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.156 $"
-
-
-import sys, os
+import sys
+import os
 import warnings
-import types, cPickle
+import cPickle
+
 import numarray
-from numarray import records
-from numarray import strings
-from numarray import memmap
-from utils import calcBufferSize
-from VLTable import VLTable
+from numarray import records, strings
 
 try:
   import zlib
-  zlib_imported = 1
-except:
-  zlib_imported = 0
+  zlib_imported = True
+except ImportError:
+  zlib_imported = False
+
+from tables.registry import classNameDict
+from tables.utils import calcBufferSize
+
+
+
+__version__ = "$Revision: 1.156 $"
+
 
 # C funtions and variable declaration from its headers
 
@@ -894,9 +897,8 @@ def whichClass( hid_t loc_id, char *name):
   class_id = getHDF5ClassID(loc_id, name, &layout)
   # Check if this a dataset of supported classtype for ARRAY
   if class_id == H5T_ARRAY:
-    warnings.warn( \
- """Dataset object '%s' contains unsupported H5T_ARRAY datatypes.""" % (name),
- UserWarning)
+    warnings.warn("""\
+Dataset object '%s' contains unsupported H5T_ARRAY datatypes.""" % (name,))
   #if ((class_id == H5T_ARRAY)   or
   if  ((class_id == H5T_INTEGER)  or
        (class_id == H5T_FLOAT)    or
@@ -1144,7 +1146,8 @@ cdef class AttributeSet:
     cdef object attrlist
     cdef hid_t loc_id
 
-    if isinstance(self.node, Group) or isinstance(self.node, VLTable):
+    if (isinstance(self.node, classNameDict['Group'])
+        or isinstance(self.node, classNameDict['VLTable'])):
       # Return a tuple with the attribute list
       attrlist = Aiterate(self.node._v_objectID)
     else:
@@ -1153,7 +1156,7 @@ cdef class AttributeSet:
       # Keep the object ID in the objectID attribute in the parent dataset
       # The existing datsets are always opened here, so this would
       # be enough to get the objectID for existing datasets
-      self.node.objectID = loc_id 
+      self.node._v_objectID = loc_id 
       if loc_id < 0:
         raise RuntimeError("Cannot open the dataset '%s'" % self.name)
       attrlist = Aiterate(loc_id)
@@ -1171,14 +1174,14 @@ cdef class AttributeSet:
 
     ret = 0
     # Append this attribute on disk
-    if isinstance(value, types.StringType):
+    if isinstance(value, str):
       #self._g_setAttrStr(name, value)
       ret = H5LTset_attribute_string(self.parent_id, self.name, name, value)
-    elif isinstance(value, types.IntType):
+    elif isinstance(value, int):
       #self._g_setAttrInt(name, value)
       valint = <int>PyInt_AsLong(value)
       ret = H5LTset_attribute_int(self.parent_id, self.name, name, &valint, 1)
-    elif isinstance(value, types.FloatType):
+    elif isinstance(value, float):
       self._g_setAttrDouble(name, value)
       # I'm having problems with that in the C generated code:
       #   __pyx_v_valdouble = ((double )__pyx_v_value);
@@ -1194,7 +1197,7 @@ cdef class AttributeSet:
       self._g_setAttrStr(name, pickledvalue)
 
     if ret < 0:
-      raise RuntimeError("Can't set attribute '%s' in node:\n %s." % 
+      raise RuntimeError("Can't set attribute '%s' in node:\n %s." %
                          (name, self.node))
 
   def _g_setAttrStr(self, char *attrname, char *attrvalue):
@@ -1203,7 +1206,7 @@ cdef class AttributeSet:
     ret = H5LTset_attribute_string(self.parent_id, self.name,
                                    attrname, attrvalue)
     if ret < 0:
-      raise RuntimeError("Can't set attribute '%s' in node:\n %s." % 
+      raise RuntimeError("Can't set attribute '%s' in node:\n %s." %
                          (attrname, self.node))
 
   def _g_setAttrChar(self, char *attrname, char attrvalue):
@@ -1254,7 +1257,8 @@ cdef class AttributeSet:
   def _g_getAttr(self, char *attrname):
     cdef object attrvalue
     cdef hid_t loc_id
-    if isinstance(self.node, Group) or isinstance(self.node, VLTable):
+    if (isinstance(self.node,  classNameDict['Group'])
+        or isinstance(self.node, classNameDict['VLTable'])):
       attrvalue = self._g_getNodeAttr(self.parent_id, self.node._v_objectID,
                                       self.name, attrname)
     else:
@@ -1332,8 +1336,9 @@ cdef class AttributeSet:
                              (attrname, dsetname))
 
     if rank > 1:
-      warnings.warn( \
-"""Can't deal with multidimensional attribute '%s' in node '%s'. Sorry about that!""" % (attrname, dsetname), UserWarning)
+      warnings.warn("""\
+Can't deal with multidimensional attribute '%s' in node '%s'. Sorry about that!"""
+                    % (attrname, dsetname))
       return None
     
     # Allocate memory to collect the dimension of objects with dimensionality
@@ -1347,8 +1352,9 @@ cdef class AttributeSet:
                                (attrname, dsetname))
 
     if rank > 0 and dims[0] > 1:
-      warnings.warn( \
-"""Can't deal with multidimensional attribute '%s' in node '%s'. Sorry about that!""" % (attrname, dsetname), UserWarning)
+      warnings.warn("""\
+Can't deal with multidimensional attribute '%s' in node '%s'. Sorry about that!"""
+                    % (attrname, dsetname))
       free(<void *> dims)
       return None
     elif rank > 0:
@@ -1387,8 +1393,9 @@ cdef class AttributeSet:
       retvalue = PyString_FromString(attrvaluestr)
       free(<void *> attrvaluestr)   # To avoid memory leak!
     else:
-      warnings.warn( \
-"""Type of attribute '%s' in node '%s' is not supported. Sorry about that!""" % (attrname, dsetname), UserWarning)
+      warnings.warn("""\
+Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
+                    % (attrname, dsetname))
       return None
 
     # Check the return value of H5LTget_attribute_* call
@@ -1402,7 +1409,8 @@ cdef class AttributeSet:
     cdef int ret
     cdef hid_t loc_id
     
-    if isinstance(self.node, Group) or isinstance(self.node, VLTable):
+    if (isinstance(self.node, classNameDict['Group'])
+        or isinstance(self.node, classNameDict['VLTable'])):
       ret = H5Adelete(self.node._v_objectID, attrname ) 
       if ret < 0:
         raise RuntimeError("Attribute '%s' exists in node '%s', but cannot be deleted." \
@@ -1527,7 +1535,7 @@ cdef class Group:
 
   def _g_closeGroup(self):
     cdef int ret
-    
+
     ret = H5Gclose(self.group_id)
     if ret < 0:
       raise RuntimeError("Problems closing the Group %s" % self.name )
@@ -1539,6 +1547,15 @@ cdef class Group:
     ret = H5Gmove(self.group_id, oldname, newname)
     if ret < 0:
       raise RuntimeError("Problems renaming the node %s" % oldname )
+    return ret
+
+  def _g_moveNode(self, char *oldname, char *newname):
+    cdef int ret
+
+    ret = H5Gmove(self.group_id, oldname, newname)
+    if ret < 0:
+      raise RuntimeError("Problems moving the node %s to %s" %
+                         (oldname, newname) )
     return ret
 
   def _g_deleteGroup(self):
@@ -1668,7 +1685,7 @@ for a row size of %s bytes.""" % (self.rowsize)
                          data)
     if oid < 0:
       raise RuntimeError("Problems creating the table")
-    self.objectID = oid  
+    self._v_objectID = oid  
 
     # Release resources to avoid memory leaks
     for i from  0 <= i < nvar:
@@ -1687,7 +1704,7 @@ for a row size of %s bytes.""" % (self.rowsize)
       raise RuntimeError("Problems opening table for append.")
 
     self._open = 1
-    self.objectID = self.dataset_id
+    self._v_objectID = self.dataset_id
 
   # A version of Table._saveBufferRows in Pyrex is available in 0.7.2,
   # but as it is not faster than the Python version, I removed it
@@ -2596,10 +2613,10 @@ cdef class Row:
     # Flag that tells that the buffer has been uninitialized
     self._r_initialized_buffer = 0
     self._w_initialized_buffer = 0
-    
+
   def __str__(self):
     """ represent the record as an string """
-        
+
     outlist = []
     # Special case where Row has not been initialized yet
     if self._recarray == None:
@@ -2699,7 +2716,7 @@ cdef class Array:
                       rbuf)
     if oid < 0:
       raise RuntimeError("Problems creating the EArray.")
-    self.objectID = oid
+    self._v_objectID = oid
     H5Tclose(self.type_id)    # Release resources
 
     return (type, stype)
@@ -2754,7 +2771,7 @@ cdef class Array:
                       rbuf)
     if oid < 0:
       raise RuntimeError("Problems creating the EArray.")
-    self.objectID = oid
+    self._v_objectID = oid
     # Release resources
     H5Tclose(self.type_id)
     return
@@ -2779,12 +2796,12 @@ cdef class Array:
     # Get info on dimensions, class and type size
     oid = H5ARRAYget_info(self.parent_id, self.name, self.dims, self.maxdims,
                           &self.type_id, &class_id, byteorder)
-    self.objectID = oid
+    self._v_objectID = oid
     strcpy(flavor, "NumArray")  # Default value
     self.extdim = -1  # default is non-chunked Array
     if self._v_file._isPTFile:
       H5LTget_attribute_string(self.parent_id, self.name, "FLAVOR", flavor)
-      if (hasattr(self.attrs,"EXTDIM")):
+      if (hasattr(self._v_attrs,"EXTDIM")):
         # For EArray, EXTDIM attribute exists
         H5LTget_attribute_int(self.parent_id, self.name, "EXTDIM", &extdim)
         self.extdim = extdim
@@ -3375,7 +3392,7 @@ cdef class VLArray:
     % self.type
 
     # Allocate space for the dimension axis info
-    if isinstance(self.atom.shape, types.IntType):
+    if isinstance(self.atom.shape, int):
       self.rank = 1
       self.scalar = 1
     else:
@@ -3385,7 +3402,7 @@ cdef class VLArray:
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Fill the dimension axis info with adequate info
     for i from  0 <= i < self.rank:
-      if isinstance(self.atom.shape, types.IntType):
+      if isinstance(self.atom.shape, int):
         self.dims[i] = self.atom.shape
       else:
         self.dims[i] = self.atom.shape[i]
@@ -3405,7 +3422,7 @@ cdef class VLArray:
                         rbuf)
     if oid < 0:
       raise RuntimeError("Problems creating the VLArray.")
-    self.objectID = oid
+    self._v_objectID = oid
     self.nrecords = 0  # Initialize the number of records saved
     
   def _openArray(self):
@@ -3427,7 +3444,7 @@ cdef class VLArray:
     # Get info on dimensions, class and type size
     oid = H5VLARRAYget_info(self.parent_id, self.name, nrecords,
                             self.dims, &self.type_id, byteorder)
-    self.objectID = oid
+    self._v_objectID = oid
     ret = H5LTget_attribute_string(self.parent_id, self.name, "FLAVOR", flavor)
     if ret < 0:
       strcpy(flavor, "unknown")
@@ -3560,7 +3577,7 @@ cdef class VLArray:
         # Case where there is info with zero lentgh
         rbuf = None
       # Compute the shape for the read array
-      if (isinstance(self._atomicshape, types.TupleType)):
+      if (isinstance(self._atomicshape, tuple)):
         shape = list(self._atomicshape)
         shape.insert(0, vllen)  # put the length at the beginning of the shape
       elif self._atomicshape > 1:

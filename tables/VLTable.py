@@ -69,7 +69,7 @@ byteorderDict={"=": sys.byteorder,
 revbyteorderDict={'little': '<',
                   'big': '>'}
 
-class VLTable(VLTableExt.VLTable, Leaf, object):
+class VLTable(VLTableExt.VLTable, Leaf):
     """Represent a vltable in the object tree.
 
     It provides methods to create new vltables or open existing ones,
@@ -117,6 +117,10 @@ class VLTable(VLTableExt.VLTable, Leaf, object):
             if the Table is indexed
 
     """
+
+    # Class identifier.
+    _c_classId = 'VLTABLE'
+
 
 #     def _g_new(self, where, name):
 #         Group.Group._g_new(where, name)

@@ -247,10 +247,10 @@ class TreeTestCase(unittest.TestCase):
         for node in objects:
             try:
                 objectlist = self.h5file.listNodes(node, 'Leaf')
-            except LookupError:
+            except TypeError:
                 if verbose:
                     (type, value, traceback) = sys.exc_info()
-                    print "\nGreat!, the next LookupError was catched!"
+                    print "\nGreat!, the next TypeError was catched!"
                     print value
             else:
                 for object in objectlist:
@@ -269,10 +269,10 @@ class TreeTestCase(unittest.TestCase):
         for node in objects:
             try:
                 objectlist = self.h5file.listNodes(node, 'Table')
-            except LookupError:
+            except TypeError:
                 if verbose:
                     (type, value, traceback) = sys.exc_info()
-                    print "\nGreat!, the next LookupError was catched!"
+                    print "\nGreat!, the next TypeError was catched!"
                     print value
             else:
                 for object in objectlist:

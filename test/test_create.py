@@ -53,6 +53,13 @@ class createTestCase(unittest.TestCase):
 	self.group = self.fileh.createGroup(self.root, 'agroup',
                                             "Group title")
 
+	# Create a hidden group object
+	self.fileh.createGroup(self.root, '_p_hidden')
+	# Create a visible group object
+	self.fileh.createGroup(self.root, 'visible')
+	# Create a visible array object
+	self.fileh.createGroup(self.root.visible, '_p_nothidden')
+
     def tearDown(self):
 
         self.fileh.close()
@@ -271,6 +278,49 @@ class createTestCase(unittest.TestCase):
                 print value
         else:
             self.fail("expected an NameError")
+
+    def test07a_hiddenNodesCreate(self):
+        "Creating an existing hidden node."
+        try:
+            self.fileh.createArray(self.root, '_p_hidden', [1])
+        except NodeError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next NodeError was catched!"
+                print value
+        else:
+            self.fail("expected a NodeError")
+
+    def test07b_hiddenNodesAccess(self):
+        "Accessing hidden nodes."
+
+        # This should be hidden (it hangs from the root group).
+        hnode = self.fileh.root._p_hidden
+        for node in self.fileh.root._f_listNodes():
+            if node is hnode:
+                self.fail("root._f_listNodes() returned a hidden node")
+        for node in self.fileh.root._f_walkGroups():
+            if node is hnode:
+                self.fail("root._f_walkGroups() returned a hidden node")
+        self.assertRaises(NodeError, self.fileh.getNode, '/_p_hidden')
+
+    def test07c_notHiddenAccess(self):
+        "Accessing not hidden nodes."
+
+        # This should *not* be hidden (it does not hang from the root group).
+        nhnode = self.fileh.root.visible._p_nothidden
+        for node in self.fileh.root.visible._f_listNodes():
+            if node is nhnode:
+                break
+        else:
+            self.fail("visible._f_listNodes() hid a visible node")
+        for node in self.fileh.root._f_walkGroups():
+            if node is nhnode:
+                break
+        else:
+            self.fail("visible._f_walkGroups() hid a visible node")
+        vnode = self.fileh.getNode('/visible/_p_nothidden')
+        self.assert_(nhnode is vnode)
 
 
 class createAttrTestCase(unittest.TestCase):
