@@ -2,7 +2,7 @@
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xmlns:pref="http://www.w3.org/2002/Math/preference" id="datatypesSupported"><a name="datatypesSupported"></a><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide A hierarchical database for Python Release 0.7"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2003-07-29T17:46:14+02:00"><meta name="Date" content="2003-07-29T17:46:14+02:00"><meta name="DC.Rights" content="(c) 2002, 2003 Francesc Alted"><meta name="Copyright" content="(c) 2002, 2003 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide A hierarchical database for Python Release 0.7"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2003-07-29T19:25:32+02:00"><meta name="Date" content="2003-07-29T19:25:32+02:00"><meta name="DC.Rights" content="(c) 2002, 2003 Francesc Alted"><meta name="Copyright" content="(c) 2002, 2003 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -125,7 +125,21 @@
     dd { text-indent: 0pt }
     pre { text-indent: 0pt }
     span.i-see { font-style: italic; }
-</style></head><body bgcolor="#FFFFFF"><div class="speedbar-top"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide5.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide7.html">next</a></td></tr><tr><td class="header" colspan="3">Appendix</td></tr></tbody></table><hr class="speedbar"></div><div class="document"><div id="datatypesSupported"><a name="datatypesSupported"></a>
+
+h1 { color: red }
+h2 { color: olive }
+h3 { color: navy }
+h4 { color: maroon }
+body { background-image: url("tile.jpg");
+         background-color: white;
+         color: black;
+	 font-size: 13pt; }
+hr.footnoterule { color: white }
+div.title { font-size: x-large; color: maroon }
+div.subtitle { font-size: x-large; color: olive }
+div.title-article { font-size: x-large }
+div.partheadline { font-size: x-large }
+</style></head><body><div class="speedbar-top"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide5.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide7.html">next</a></td></tr><tr><td class="header" colspan="3">Appendix</td></tr></tbody></table><hr class="speedbar"></div><div class="document"><div id="datatypesSupported"><a name="datatypesSupported"></a>
 	<h1 id="chapterA"><a name="chapterA"></a>Appendix&nbsp;A: Supported data types in tables</h1>
 
 	<p class="first"><tt class="verb">IsDescription</tt> subclasses supports a limited
@@ -133,8 +147,8 @@
 	  roughly the same than the types supported by the <tt>numarray</tt> package (see <a href="#Numarray"></a>) in Python, with the exception of
 	  the complex datatypes that are not supported yet.
 	</p>
-	<p>This data types are settables thorugh the use of the
-	  <tt class="verb">Col</tt> class and its descendants (<a href="usersguide5.html#ColClassDescr">see&nbsp;5.3</a>). You may find useful the
+	<p>These data types in table columns can be set through the
+	  use of the <tt class="verb">Col</tt> class and its descendants (<a href="usersguide5.html#ColClassDescr">see&nbsp;5.3</a>). You may find useful the
 	  <a href="#datatypesSupported">table&nbsp;A</a> as a quick
 	  reference to the complete set of supported data types in
 	  PyTables.

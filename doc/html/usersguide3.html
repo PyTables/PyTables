@@ -2,7 +2,7 @@
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xmlns:pref="http://www.w3.org/2002/Math/preference" id="usage"><a name="usage"></a><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide A hierarchical database for Python Release 0.7"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2003-07-29T17:46:14+02:00"><meta name="Date" content="2003-07-29T17:46:14+02:00"><meta name="DC.Rights" content="(c) 2002, 2003 Francesc Alted"><meta name="Copyright" content="(c) 2002, 2003 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide A hierarchical database for Python Release 0.7"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2003-07-29T19:25:32+02:00"><meta name="Date" content="2003-07-29T19:25:32+02:00"><meta name="DC.Rights" content="(c) 2002, 2003 Francesc Alted"><meta name="Copyright" content="(c) 2002, 2003 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -125,7 +125,21 @@
     dd { text-indent: 0pt }
     pre { text-indent: 0pt }
     span.i-see { font-style: italic; }
-</style></head><body bgcolor="#FFFFFF"><div class="speedbar-top"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide2.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide4.html">next</a></td></tr><tr><td colspan="3">&nbsp;</td></tr></tbody></table><hr class="speedbar"></div><div class="document"><div id="usage"><a name="usage"></a>
+
+h1 { color: red }
+h2 { color: olive }
+h3 { color: navy }
+h4 { color: maroon }
+body { background-image: url("tile.jpg");
+         background-color: white;
+         color: black;
+	 font-size: 13pt; }
+hr.footnoterule { color: white }
+div.title { font-size: x-large; color: maroon }
+div.subtitle { font-size: x-large; color: olive }
+div.title-article { font-size: x-large }
+div.partheadline { font-size: x-large }
+</style></head><body><div class="speedbar-top"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide2.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide4.html">next</a></td></tr><tr><td colspan="3">&nbsp;</td></tr></tbody></table><hr class="speedbar"></div><div class="document"><div id="usage"><a name="usage"></a>
       <h1 id="chapter3"><a name="chapter3"></a>Chapter&nbsp;3: Some tutorials</h1>
 
       <div class="aphorism">Tout le malheur des hommes vient d'une seule chose,
@@ -406,7 +420,7 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	    <em>readout</em> table description information. In
 	    general, you can obtain lot of information on the objects
 	    and its children by just printing them. That introspection
-	    capability is very meningful, so I recommend you to use it
+	    capability is very meaningful, so I recommend you to use it
 	    extensively.
 	  </p>
 
@@ -517,7 +531,7 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 &gt;&gt;&gt;
 	  </pre>
 
-	  <p>Note how we have ommited the iterrows() call in the list
+	  <p>Note how we have omitted the iterrows() call in the list
 	    comprehension. This is because and __iter__() special
 	    function is implemented in the Table class, so that it
 	    implements the iterator protocol over all the rows in the
@@ -695,7 +709,7 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	  and more</h2>
 
 	<p class="first">In this section, we will learn how to browse the tree while
-	  retrieving metainformation about the actual data, and will
+	  retrieving meta-information about the actual data, and will
 	  finish by appending some rows to the existing table to show
 	  how table objects can be enlarged.
 	</p>
@@ -723,7 +737,7 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	    information to the file.
 	  </p>
 	  <p><tt class="verb">PyTables</tt>, following the Python tradition,
-	    offers powerful instropection capabilities, i.e. you can
+	    offers powerful introspection capabilities, i.e. you can
 	    easily ask information about any component of the object
 	    tree as well as traverse the tree searching for something.
 	  </p>

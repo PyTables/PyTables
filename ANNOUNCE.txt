@@ -61,15 +61,15 @@ What's new
   the in-core case (!). I think there is still room for another 20% to
   30% improvement, so stay tuned.
 
-- A checksum is now added automatically when using LZO and UCL
-  compressors. The Adler32 algorithm has been chosen because of its
-  speed. With that, the compressing/decompressing speed has dropped
-  1% or 2%, which is hardly noticeable. I think this addition will
-  allow the cautious user to be a bit more confident about these
-  excellent compressors. Code has been added to still be able to read
-  files created without this checksum (so you can be confident that
-  you will be able to read your existing files compressed with LZO and
-  UCL).
+- A checksum is now added automatically when using LZO (not with UCL
+  where I'm having some difficulties implementing that
+  capability). The Adler32 algorithm has been chosen because of its
+  speed. With that, the compressing/decompressing speed has dropped 1%
+  or 2%, which is hardly noticeable. I think this addition will allow
+  the cautious user to be a bit more confident about this excellent
+  compressor. Code has been added to still be able to read files
+  created without this checksum (so you can be confident that you will
+  be able to read your existing files compressed with LZO and UCL).
 
 - Recursion has been removed from PyTables. Before, this made the
   maximum depth tree to be less than the Python recursion limit (which

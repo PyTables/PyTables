@@ -387,86 +387,37 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 <!-- 	vist <caption>Lluís Llach in the song "Petit País"</caption> -->
 <!--       </aphorism> -->
 
-<!--       <aphorism>T'adones, company,<newline/> -->
-<!-- 	no volen arguments,<newline/> -->
-<!-- 	usen la força,<newline/> -->
-<!-- 	t'adones, amic.<newline/> -->
-<!-- 	T'adones, company,<newline/> -->
-<!-- 	que hem de sortir al carrer<newline/> -->
-<!-- 	junts, molts, com més millor,<newline/> -->
-<!-- 	si no volem perdre-ho tot,<newline/> -->
-<!-- 	t'adones, amic.<newline/> -->
-<!-- 	<caption>Raimon in the song "T'adones, amic"</caption> -->
-<!--       </aphorism> -->
+      <aphorism>T'adones, company,<newline/>
+	no volen arguments,<newline/>
+	usen la força,<newline/>
+	t'adones, amic.<newline/>
+	T'adones, company,<newline/>
+	que hem de sortir al carrer<newline/>
+	junts, molts, com més millor,<newline/>
+	si no volem perdre-ho tot,<newline/>
+	t'adones, amic.<newline/>
+	<caption>Raimon in the song "T'adones, amic"</caption>
+      </aphorism>
 
-      <aphorism>Make things as simple as possible, but not any
-	simpler.  <caption>Albert Einstein</caption> </aphorism>
+
+<!--       <aphorism>Make things as simple as possible, but not any -->
+<!-- 	simpler.  <caption>Albert Einstein</caption> </aphorism> -->
 
       <p>The Python <verb>Distutils</verb> are used to build and
 	install <verb>PyTables</verb>, so it is fairly simple to get
-	things ready to go.
+	things ready to go. Also, a binary distribution is available
+	for Windows (see <ref
+	refid="binaryInstallationDescr">section</ref>).
       </p>
 
-      <section>
-	<heading>Binary installation (Windows)</heading>
-
-	<p>This section is only intended for Windows platforms. If you
-	  have Unix, or want to compile PyTables for Windows, jump to
-	  the next section.
-	</p>
-	<p>First, make sure that you have HDF5 1.6.x or higher and
-	  numarray 0.6 or higher installed (I'm using HDF5 1.6.0
-	  and numarray 0.6 currently). If don't, you can find them at
-	  <verb>http://hdf.ncsa.uiuc.edu/HDF5</verb> and
-	  <verb>http://sourceforge.net/projects/numpy/</verb>. Download
-	  the binary packages and install them. For the HDF5 it should
-	  be enough by manually copying the <verb>hdf5dll.dll</verb>
-	  file to a directory in your <verb>PATH</verb> environment
-	  variable.
-	</p>
-	<p>Download the
-	  <verb>tables-&lt;version>.win32-py&lt;version>.exe</verb>
-	  file and execute it. You are done!.
-	</p>
-	<p>You can (<em>you should</em>) test your installation by
-	  unpacking the source tarball. Go to the <verb>test/</verb>
-	  directory, add the directory "<verb>..</verb>" to the
-	  <verb>PYTHONPATH</verb>environment variable, e.g.:
-	</p>
-
-	<verbatim>
-	  set PYTHONPATH=..
-	</verbatim>
-
-	<p>and execute the <verb>test_all.py</verb> script. If all the
-	  tests passes (maybe with a couple of warnings, related with
-	  the possibly missing LZO and UCL libs, but that's ok for the
-	  binary version) you already have a working, well tested,
-	  copy of PyTables installed!. If don't, please, execute the
-	  <verb>test_all.py -v</verb> and return the output to me.
-	</p>
-	<p>If you want support for LZO and UCL libraries (see <ref
-	  refid="compressionIssues">section</ref> for hints about what
-	  they are useful for), fetch
-	  <verb>tables-&lt;version>-LU.win32-py&lt;version>.exe</verb>
-	  instead, and remember to install the LZO and UCL DLL
-	  libraries (see next section).
-	</p>
-
-	<p>That's it!. Now, proceed with the next chapter to see how to
-	  use <verb>PyTables</verb>.
-	</p>
-
-      </section>
-
-      <section>
+      <section id="sourceInstallationDescr">
 	<heading>Installation from sources</heading>
 
 	<p>
 	  These instructions are both for Unix/Linux and Windows
 	  systems. If you are using Windows, it is assumed that you
 	  are using a recent version of <verb>MS Visual C++</verb> (>=
-	  6.0) compiler. A <verb>GCC</verb> compiler is asumed for
+	  6.0) compiler. A <verb>GCC</verb> compiler is assumed for
 	  Unix, but other compilers should work as well.
 	</p>
 
@@ -725,6 +676,59 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	</p>
 
       </section>
+
+      <section id="binaryInstallationDescr">
+	<heading>Binary installation (Windows)</heading>
+
+	<p>This section is only intended for Windows platforms. If you
+	  have Unix, or want to compile PyTables for Windows, jump to
+	  the <ref refid="sourceInstallationDescr">section</ref>.
+	</p>
+	<p>First, make sure that you have HDF5 1.6.x or higher and
+	  numarray 0.6 or higher installed (I'm using HDF5 1.6.0
+	  and numarray 0.6 currently). If don't, you can find them at
+	  <verb>http://hdf.ncsa.uiuc.edu/HDF5</verb> and
+	  <verb>http://sourceforge.net/projects/numpy/</verb>. Download
+	  the binary packages and install them. For the HDF5 it should
+	  be enough by manually copying the <verb>hdf5dll.dll</verb>
+	  file to a directory in your <verb>PATH</verb> environment
+	  variable.
+	</p>
+	<p>Download the
+	  <verb>tables-&lt;version>.win32-py&lt;version>.exe</verb>
+	  file and execute it. You are done!.
+	</p>
+	<p>You can (<em>you should</em>) test your installation by
+	  unpacking the source tarball. Go to the <verb>test/</verb>
+	  directory, add the directory "<verb>..</verb>" to the
+	  <verb>PYTHONPATH</verb>environment variable, e.g.:
+	</p>
+
+	<verbatim>
+	  set PYTHONPATH=..
+	</verbatim>
+
+	<p>and execute the <verb>test_all.py</verb> script. If all the
+	  tests passes (maybe with a couple of warnings, related with
+	  the possibly missing LZO and UCL libs, but that's ok for the
+	  binary version) you already have a working, well tested,
+	  copy of PyTables installed!. If don't, please, execute the
+	  <verb>test_all.py -v</verb> and return the output to me.
+	</p>
+	<p>If you want support for LZO and UCL libraries (see <ref
+	  refid="compressionIssues">section</ref> for hints about what
+	  they are useful for), fetch
+	  <verb>tables-&lt;version>-LU.win32-py&lt;version>.exe</verb>
+	  instead, and remember to install the LZO and UCL DLL
+	  libraries (see next section).
+	</p>
+
+	<p>That's it!. Now, proceed with the next chapter to see how to
+	  use <verb>PyTables</verb>.
+	</p>
+
+      </section>
+
 
     </chapter>
 
@@ -1019,7 +1023,7 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	    <em>readout</em> table description information. In
 	    general, you can obtain lot of information on the objects
 	    and its children by just printing them. That introspection
-	    capability is very meningful, so I recommend you to use it
+	    capability is very meaningful, so I recommend you to use it
 	    extensively.
 	  </p>
 
@@ -1133,7 +1137,7 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 >>>
 	  </verbatim>
 
-	  <p>Note how we have ommited the iterrows() call in the list
+	  <p>Note how we have omitted the iterrows() call in the list
 	    comprehension. This is because and __iter__() special
 	    function is implemented in the Table class, so that it
 	    implements the iterator protocol over all the rows in the
@@ -1313,7 +1317,7 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	  and more</heading>
 
 	<p>In this section, we will learn how to browse the tree while
-	  retrieving metainformation about the actual data, and will
+	  retrieving meta-information about the actual data, and will
 	  finish by appending some rows to the existing table to show
 	  how table objects can be enlarged.
 	</p>
@@ -1341,7 +1345,7 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 	    information to the file.
 	  </p>
 	  <p><verb>PyTables</verb>, following the Python tradition,
-	    offers powerful instropection capabilities, i.e. you can
+	    offers powerful introspection capabilities, i.e. you can
 	    easily ask information about any component of the object
 	    tree as well as traverse the tree searching for something.
 	  </p>
@@ -2407,7 +2411,7 @@ if __name__=="__main__":
 	  time resources consumer. However, if you are willing to
 	  check if compression can help not only reducing your dataset
 	  file size but <visual markup="bf">also</visual> improving
-	  your I/O efficency, keep reading.
+	  your I/O efficiency, keep reading.
 	</p>
 
 	<p>There is an usual scenario where users need to save
@@ -2454,7 +2458,7 @@ if __name__=="__main__":
 	  <cite refid="lzouclRef"></cite>). Following his author (and
 	  checked by the author of this manual), LZO offers pretty
 	  fast compression (although small compression ratio) and
-	  extremly fast decompression while UCL achieve an excellent
+	  extremely fast decompression while UCL achieve an excellent
 	  compression ratio (at the price of spending much more CPU
 	  time) while allowing very fast decompression (and <em>very
 	  close</em> to the LZO one). In fact, LZO and UCL are so fast
@@ -2512,7 +2516,7 @@ if __name__=="__main__":
 	    </tabbody>
 	  </tabular>
 	  <caption>Comparison between different compression
-	    libaries. The tests has been conducted on a Pentium 4 at 2
+	    libraries. The tests has been conducted on a Pentium 4 at 2
 	    GHz and a hard disk at 4200 RPM.</caption>
 	</table>
 
@@ -2854,7 +2858,7 @@ if __name__=="__main__":
 	  describe the properties of <verb>Table</verb> objects
 	  through the use of classes that inherit properties from
 	  it. In order to define such an special class, you have to
-	  declare it as descendent from <em>IsDescription</em>, with
+	  declare it as descendant of <em>IsDescription</em>, with
 	  many attributes as columns you want in your table. The name
 	  of these attributes will become the name of the columns,
 	  while its values are the properties of the columns that are
@@ -2895,10 +2899,11 @@ if __name__=="__main__":
 
 	    <description>
 
-	      <term>dtype</term> <item>The data type for the column. See
-		the <ref refid="datatypesSupported">appendix</ref> for a
+	      <term>dtype</term> <item>The data type for the
+		column. See the <ref
+		refid="datatypesSupported">appendix</ref> for a
 		relation of data types supported in a <visual
-		  markup="tt">IsDescription</visual> class
+		markup="tt">IsDescription</visual> class
 		declaration. The type description is accepted both in
 		string format and as numarray data type.</item>
 
@@ -2915,7 +2920,7 @@ if __name__=="__main__":
 		for an element while filling a table, this default
 		value will be written to disk. If the user supplies an
 		scalar value for a multidimensional column, this value
-		is autmatically <em>broadcasted</em> to all the
+		is automatically <em>broadcasted</em> to all the
 		elements in the column cell. If <em>dflt</em> is not
 		supplied, a appropriate zero value (or <em>null</em>
 		string) will be chosen by default.</item>
@@ -2946,7 +2951,7 @@ if __name__=="__main__":
 	    signed or not. The meaning of the other parameters are
 	    like in the <verb>Col</verb> class.
 
-	    <p>This class has several descentants:
+	    <p>This class has several descendants:
 	    </p>
 
 	    <description>
@@ -2991,7 +2996,7 @@ if __name__=="__main__":
 	    (double precision). The meaning of the other parameters
 	    are like in the <verb>Col</verb> class.
 
-	    <p>This class has two descentants:
+	    <p>This class has two descendants:
 	    </p>
 
 	    <description>
@@ -3352,7 +3357,7 @@ if __name__=="__main__":
 		<term>recursive</term> <item>If not supplied, the
 		  object will be removed only if it has no
 		  children. If supplied with a true value, the object
-		  and all its descendents will be completely
+		  and all its descendants will be completely
 		  removed.</item>
 
 	    </description>
@@ -3432,7 +3437,7 @@ if __name__=="__main__":
 	    <heading id="__callFileDescr">__call__(where="/",
 	      classname="")</heading>
 
-	    <p>Recursively iterate over the childs in the
+	    <p>Recursively iterate over the children in the
 	      <verb>File</verb> instance. It takes two parameters:</p>
 
 	    <description>
@@ -3460,7 +3465,7 @@ if __name__=="__main__":
 	  <subsubsection>
 	    <heading id="__iterFileDescr">__iter__()</heading>
 
-	    <p>Iterate over the childs on the <verb>File</verb>
+	    <p>Iterate over the children on the <verb>File</verb>
 	      instance. However, this does not accept parameters. This
 	      iterator <em>is recursive</em>.</p>
 
@@ -4074,12 +4079,12 @@ if __name__=="__main__":
 	</p>
 
 	<p><visual markup="bf">Caveat:</visual> All
-	  <verb>Numeric</verb> and <verb>numarray</verb> typecodes are
-	  supported except those that corresponds to complex data
+	  <verb>Numeric</verb> and <verb>numarray</verb> data types
+	  are supported except those that corresponds to complex data
 	  types<footnote>However, these might be included in the
 	  future</footnote>. See <verb>numarray</verb> manual (<cite
-	  refid="Numarray"></cite>) to know more about the
-	  supported data types, or see <ref
+	  refid="Numarray"></cite>) to know more about the supported
+	  data types, or see <ref
 	  refid="datatypesSupported">appendix</ref>.
 	</p>
 
@@ -4150,11 +4155,11 @@ if __name__=="__main__":
            <em>normal</em> attribute class.
         </p>
 
-	<p><visual markup="bf">Caveat:</visual> All Python datatypes
+	<p><visual markup="bf">Caveat:</visual> All Python data types
 	  are supported. The scalar ones (i.e. String, Int and Float)
 	  are mapped directly to the HDF5 counterparts, so you can
 	  correctly visualize them with any HDF5 tool. However, the
-	  rest of the datatypes and more general objects are
+	  rest of the data types and more general objects are
 	  serialized using <verb>cPickle</verb>, so you will be able
 	  to correctly retrieve them only from a Python-aware HDF5
 	  library. Hopefully, the list of supported native attributes
@@ -4238,8 +4243,8 @@ if __name__=="__main__":
 	  refid="Numarray"></cite>) in Python, with the exception of
 	  the complex datatypes that are not supported yet.
 	</p>
-	<p>This data types are settables thorugh the use of the
-	  <verb>Col</verb> class and its descendants (<ref
+	<p>These data types in table columns can be set through the
+	  use of the <verb>Col</verb> class and its descendants (<ref
 	  refid="ColClassDescr">see</ref>). You may find useful the
 	  <ref refid="datatypesSupported">table</ref> as a quick
 	  reference to the complete set of supported data types in
@@ -4274,14 +4279,6 @@ if __name__=="__main__":
     </appendix>
   </mainmatter>
 
-  <backmatter>
-
-    <!-- latex code="\renewcommand{\refname}{References}"/> -->
-
-
-<!--     <references bibfile="usersguide"/> -->
-
-  </backmatter>
 </book>
 
 <!-- Keep this comment at the end of the file
