@@ -93,16 +93,16 @@ herr_t H5ARRAYmake( hid_t loc_id,
  */
     
  /* Attach the CLASS attribute */
-/*  if ( H5LTset_attribute_string( loc_id, dset_name, "CLASS", "ARRAY" ) < 0 ) */
-/*   goto out; */
+ if ( H5LTset_attribute_string( loc_id, dset_name, "CLASS", "ARRAY" ) < 0 )
+  goto out;
    
-/*  /\* Attach the CLASS attribute *\/ */
-/*  if ( H5LTset_attribute_string( loc_id, dset_name, "FLAVOR", flavor ) < 0 ) */
-/*   goto out; */
+ /* Attach the CLASS attribute */
+ if ( H5LTset_attribute_string( loc_id, dset_name, "FLAVOR", flavor ) < 0 )
+  goto out;
    
-/*  /\* Attach the VERSION attribute *\/ */
-/*  if ( H5LTset_attribute_string( loc_id, dset_name, "VERSION", obversion ) < 0 ) */
-/*   goto out; */
+ /* Attach the VERSION attribute */
+ if ( H5LTset_attribute_string( loc_id, dset_name, "VERSION", obversion ) < 0 )
+  goto out;
      
  /* Attach the TITLE attribute */
  if ( H5LTset_attribute_string( loc_id, dset_name, "TITLE", title ) < 0 )

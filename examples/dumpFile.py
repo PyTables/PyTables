@@ -73,6 +73,8 @@ if __name__=="__main__":
                 print "  title ==>", array_.title
                 print "  shape ==>", array_.shape
                 print "  typecode ==>", array_.typecode
+                print "  byteorder ==>", array_.byteorder
+                #print "  content:\n", array_.read()
     
     # Close the file
     h5file.close()

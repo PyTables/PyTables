@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.10 2003/01/30 19:04:40 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.11 2003/01/31 11:11:50 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.10 $"
+__version__ = "$Revision: 1.11 $"
 
 
 import sys, os.path
@@ -465,7 +465,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.10 2003/01/30 19:04:40 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.11 2003/01/31 11:11:50 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -579,7 +579,10 @@ cdef class Group:
     cdef int rank
     cdef int ret, i
         
-    #ret = H5LTget_attribute_ndims(self.group_id, attrname, &rank )
+    # Check if attribute exists
+    if H5LT_find_attribute(self.group_id, attrname) <= 0:
+        return None
+
     ret = H5LTget_attribute_ndims(self.parent_id, self.name, attrname, &rank )
     if ret < 0:
       raise RuntimeError("Can't get ndims on attribute %s in group %s." % 

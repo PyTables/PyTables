@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.8 2003/01/30 19:04:43 falted Exp $
+#       $Id: File.py,v 1.9 2003/01/31 11:11:52 falted Exp $
 #
 ########################################################################
 
@@ -31,12 +31,13 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.8 $"
+__version__ = "$Revision: 1.9 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
 import sys
 import types
+import warnings
 import os.path
 from fnmatch import fnmatch
 
@@ -80,11 +81,17 @@ def openFile(filename, mode = "r", title = ""):
     path = os.path.expandvars(path)
     
     # Only allows extension .h5, .hdf or .hdf5 for HDF5 files
-    assert (fnmatch(path, "*.h5") or
+#     assert (fnmatch(path, "*.h5") or
+#             fnmatch(path, "*.hdf") or
+#             fnmatch(path, "*.hdf5")), \
+# """arg 1 must have one of the next file extensions:
+#   '.h5', '.hdf' or '.hdf5'"""
+    if not (fnmatch(path, "*.h5") or
             fnmatch(path, "*.hdf") or
-            fnmatch(path, "*.hdf5")), \
-"""arg 1 must have one of the next file extensions:
-  '.h5', '.hdf' or '.hdf5'"""
+            fnmatch(path, "*.hdf5")):
+        warnings.warn( \
+"""filename '%s'should have one of the next file extensions
+  '.h5', '.hdf' or '.hdf5'. Continuing anyway.""" % path, UserWarning)
 
     # Only accept modes 'w', 'r', 'r+' or 'a'
     assert mode in ['w', 'r', 'r+', 'a'], \
@@ -101,9 +108,11 @@ def openFile(filename, mode = "r", title = ""):
         """'%s' does exist but it is not an HDF5 file""" % path
             
             elif not hdf5Extension.isPyTablesFile(path):
-                raise IOError, \
-        """'%s' does exist, is an HDF5 file, but has not a PyTables format""" \
-        % path
+                warnings.warn( \
+"""'%s' does exist, is an HDF5 file, but has not a PyTables format.
+  Trying to guess what's here from HDF5 metadata. I can't promise you getting
+  the correct objects, but I will do my best!."""  % path, UserWarning)
+                    
     elif (mode == "w"):
         # For 'w' check that if path exists, and if true, delete it!
         if os.path.isfile(path):
@@ -116,9 +125,10 @@ def openFile(filename, mode = "r", title = ""):
         """'%s' does exist but it is not an HDF5 file""" % path
             
             elif not hdf5Extension.isPyTablesFile(path):
-                raise IOError, \
-        """'%s' does exist, is an HDF5 file, but has not a PyTables format""" \
-        % path
+                warnings.warn( \
+"""'%s' does exist, is an HDF5 file, but has not a PyTables format.
+  Trying to guess what's here from HDF5 metadata. I can't promise you getting
+  the correct object, but I will do my best!."""  % path, UserWarning)
     else:
         raise IOError, \
         """arg 2 can only take the new values: "r", "r+", "w" and "a" """
@@ -251,16 +261,16 @@ Sorry, you can only read PyTables \
 future). Giving up.""" % \
                       (self.filename)
                           
-            # Check if we can read this format
-            if self.format_version <> format_version:
-                if self.format_version not in compatible_formats:
-                    supported_versions = compatible_formats
-                    supported_versions.append(format_version)
-                    raise IOError, \
-"""'%s' file format version ('%s') is not supported.
-  Supported versions in this release are: %s.
-  Giving up""" % \
-(self.filename, self.format_version, supported_versions)
+#             # Check if we can read this format
+#             if self.format_version <> format_version:
+#                 if self.format_version not in compatible_formats:
+#                     supported_versions = compatible_formats
+#                     supported_versions.append(format_version)
+#                     raise IOError, \
+# """'%s' file format version ('%s') is not supported.
+#   Supported versions in this release are: %s.
+#   Giving up""" % \
+# (self.filename, self.format_version, supported_versions)
                           
             # Get the title, class and version attributes
             # (only for root)
@@ -493,8 +503,8 @@ Instead, a %s() object has been found there.""" % \
         
         # Print all the nodes (Group and Leaf objects) on object tree
         string = 'Filename: ' + self.filename + ' \\\\'
-        string += ' Title: \"' + self.title + '\" \\\\'
-        string += ' Format version: ' + self.format_version + '\n'
+        string += ' Title: \"' + str(self.title) + '\" \\\\'
+        string += ' Format version: ' + str(self.format_version) + '\n'
         for group in self.walkGroups("/"):
             string += str(group) + '\n'
             for leaf in self.listNodes(group, 'Leaf'):

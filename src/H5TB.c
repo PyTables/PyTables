@@ -180,17 +180,17 @@ herr_t H5TBmake_table( const char *table_title,
  *-------------------------------------------------------------------------
  */
  
-/*  /\* Attach the CLASS attribute *\/ */
-/*  if ( H5LTset_attribute_string( loc_id, dset_name, "CLASS", "TABLE" ) < 0 ) */
-/*   goto out; */
+ /* Attach the CLASS attribute */
+ if ( H5LTset_attribute_string( loc_id, dset_name, "CLASS", "TABLE" ) < 0 )
+  goto out;
 
-/*  /\* Attach the VERSION attribute *\/ */
-/*  if ( H5LTset_attribute_string( loc_id, dset_name, "VERSION", "1.0" ) < 0 ) */
-/*   goto out; */
+ /* Attach the VERSION attribute */
+ if ( H5LTset_attribute_string( loc_id, dset_name, "VERSION", "1.0" ) < 0 )
+  goto out;
   
-/*  /\* Attach the TITLE attribute *\/ */
-/*  if ( H5LTset_attribute_string( loc_id, dset_name, "TITLE", table_title ) < 0 ) */
-/*   goto out; */
+ /* Attach the TITLE attribute */
+ if ( H5LTset_attribute_string( loc_id, dset_name, "TITLE", table_title ) < 0 )
+  goto out;
 
  /* Attach the FIELD_ name attribute */
  for ( i = 0; i < nfields; i++)
