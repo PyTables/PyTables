@@ -318,7 +318,8 @@ Sorry, but this object is not supported.""" % (arr)
                             self.listarr = swapaxes(self.listarr,
                                                     self.extdim, 0)
                     else:
-                        self.listarr.swapaxes(self.extdim, 0)
+                        self.listarr = numarray.swapaxes(self.listarr,
+			                                 self.extdim, 0)
                 self._row = -1
                 self._startb = self._stopb
             self._row += 1
