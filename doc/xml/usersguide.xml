@@ -221,12 +221,11 @@
 
       <p>In order to emulate records (that will be mapped to C structs
 	in HDF5) in Python <verb>PyTables</verb> implements a special
-	<em>metaclass</em> object with the capability to detect errors
-	in assignments to non-existing fields as well as data type
-	incompabilities.  <verb>PyTables</verb> also provides a
-	powerful interface to mine data in table. Records in tables
-	are also known, in the <verb>HDF5</verb> naming scheme, as
-	<em>compound</em> data types.
+	<em>metaclass</em> object in order to easily define all its
+	fields and other properties.  <verb>PyTables</verb> also
+	provides a powerful interface to mine data in table. Records
+	in tables are also known, in the <verb>HDF5</verb> naming
+	scheme, as <em>compound</em> data types.
       </p>
 
       <p>For example, you can define arbitrary tables in Python
@@ -235,8 +234,8 @@
       </p>
 
 <verbatim>
-class Particle(IsColDescr):
-    name      = Col('CharType', 16)  # 16-character String
+class Particle(IsDescription):
+    name      = Col("CharType", 16)  # 16-character String
     idnumber  = Col("UInt64", 1)     # Unsigned long long 
     ADCcount  = Col("UInt16", 1)     # Unsigned short integer
     TDCcount  = Col("UInt8", 1)      # unsigned byte
@@ -246,14 +245,13 @@ class Particle(IsColDescr):
     energy    = Col("Float64", 1)    # double (double-precision)
 </verbatim>
 
-      <p>then, you should have to pass this class to the table
-	constructor, fill its rows with your values, and save
-	(arbitrary large) collections of them in a file for persistent
-	storage. After that, this data can be retrieved and
-	post-processed quite easily with <visual
-	markup="tt">PyTables</visual> or even with another
-	<verb>HDF5</verb> application (in C, Fortran, Java or
-	whatever language that has an interface to HDF5).
+      <p>then, you have to pass this class to the table constructor,
+	fill its rows with your values, and save (arbitrary large)
+	collections of them in a file for persistent storage. After
+	that, this data can be retrieved and post-processed quite
+	easily with <visual markup="tt">PyTables</visual> or even with
+	another <verb>HDF5</verb> application (in C, Fortran, Java or
+	whatever language that provides an interface to HDF5).
       </p>
 
       <p>Next section describes the most interesting capabilities of
@@ -298,13 +296,14 @@ class Particle(IsColDescr):
 	    this capability.
 	  </item>
 	  <item><em>Can read generic HDF5 files:</em>
-	    <verb>PyTables</verb> provides limited support to import
-	    generic HDF5 files provided they contain any combination
-	    compound type datasets (that will be mapped to tables) or
-	    homogeneous datasets (that will be mapped to
-	    arrays). However, as these kind of data is the most common
-	    to be saved HDF5 format, probably <verb>PyTables</verb>
-	    can read more than the 99% of the HDF5 files out there.
+	    <verb>PyTables</verb> can access to objects in generic
+	    HDF5 files provided they contain any combination of
+	    groups, compound type datasets (that will be mapped to
+	    <verb>Table</verb> objects) or homogeneous datasets (that
+	    will be mapped to <verb>Array</verb> objects). However, as
+	    these kind of data is the most common to be saved HDF5
+	    format, <verb>PyTables</verb> can probably most of the
+	    HDF5 files out there.
 	  </item>
 	  <item><em>Data compression:</em> It supports data
 	    compression (through the use of the <visual
@@ -356,11 +355,10 @@ class Particle(IsColDescr):
 	  <verb>Leaf</verb>. <verb>Group</verb> instances (that we
 	  will be calling <em>groups</em> from now on) are a grouping
 	  structure containing instances of zero or more groups or
-	  leaves, together with supporting metadata. <verb>Leaf</verb>
-	  instances (that will be called <em>leaves</em>) are
-	  containers for actual data and cannot contain any other
-	  instances<footnote>Except <verb>Attribute</verb> instances
-	  in the short future</footnote>. The <verb>Table</verb> and
+	  leaves, together with supplementary metadata.
+	  <verb>Leaf</verb> instances (that will be called
+	  <em>leaves</em>) are containers for actual data and cannot
+	  contain further groups or leaves. The <verb>Table</verb> and
 	  <verb>Array</verb> classes are descendants of
 	  <verb>Leaf</verb>, and inherits all its properties.
 	</p>
@@ -392,24 +390,24 @@ class Particle(IsColDescr):
 	  is loaded in the object tree, but only the <em>metadata</em>
 	  (i.e. special data that describes the structure of the
 	  actual data). The actual data is not read until you ask for
-	  it (by calling a method in a particular node). By making use
+	  it (by calling a method on a particular node). By making use
 	  of the object tree (the metadata) you can get information on
-	  the objects on disk such as table names, title, name fields,
-	  data types in fields, number of records, or, in the case of
-	  arrays, shapes, typecode, and so on. You can also traverse
-	  the tree in order to search for something and when you find
-	  the data you are interested in you can read it and process
-	  it. In some sense, you can think of <verb>PyTables</verb> as
-	  a tool that provide the same introspection capabilities of
-	  Python objects, but applied to the persistent storage of
-	  large amounts of data.
+	  the objects on disk such as table names, title, name
+	  columns, data types in columns, the number of rows, or, in
+	  the case of arrays, the shape, the typecode, and so on. You
+	  can also traverse the tree in order to search for something
+	  and when you find the data you are interested in you can
+	  read it and process it. In some sense, you can think of
+	  <verb>PyTables</verb> as a tool that provide the same
+	  introspection capabilities of Python objects, but applied to
+	  the persistent storage of large amounts of data.
 	</p>
 	<p>To better understand the dynamic nature of this object tree
 	  entity, imagine that we have made a script (in fact, this
 	  script actually exists and you can find it in
 	  <verb>examples/objecttree.py</verb>; check it out!) that
-	  creates a simple <verb>PyTables</verb> file, with the
-	  structure that appears in <ref
+	  creates a simple HDF5 file, called <verb>objecttree.h5</verb>,
+	  with the structure that appears in <ref
 	  refid="objecttree-h5">figure</ref>. During creation time,
 	  metadata in the object tree is updated in memory while the
 	  actual data is being saved on disk and when you close the
@@ -427,20 +425,21 @@ class Particle(IsColDescr):
 	</figure>
 
 	<p>In <ref refid="objecttree">figure</ref> you can see an
-	  example of the object tree created by reading a
-	  <verb>PyTables</verb> file (in fact, this file is the same
-	  as that of the <ref refid="objecttree-h5">figure</ref>). If
-	  you are going to become a <visual
+	  example of the object tree created by reading the above
+	  <verb>objecttree.h5</verb> file (in fact, such an object is
+	  always created when reading any supported generic HDF5
+	  file). If you are going to become a <visual
 	  markup="tt">PyTables</visual> user, take your time to
 	  understand it<footnote>Bear in mind, however, that this
 	  diagram is <visual markup="bf">not</visual> a standard UML
-	  class diagram; I've used an UML tool to draw it, that's
-	  all.</footnote>. That will also make you more proactive by
-	  avoiding programming mistakes.
+	  class diagram; it is rather meant to show the connexions
+	  between the <verb>PyTables</verb> objects and some of its
+	  most important attributes and methods.</footnote>. That will
+	  also make you more proactive by avoiding programming
+	  mistakes.
 	</p>
 
 	<figure id="objecttree">
-	  <!-- Now, this works! -->
 	  <graphics file="objecttree" scale="0.35" kind="vector">
 	  
 	  <!-- If you want to convert the eps to jpeg use command:
@@ -682,7 +681,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  <p>that will export in your caller application namespace the
 	    next objects: <verb>openFile</verb>, <verb>isHDF5</verb>,
 	    <verb>isPyTablesFile</verb> and
-	    <verb>IsColDescr</verb>. These are a rather small number
+	    <verb>IsDescription</verb>. These are a rather small number
 	    of objects, and for convenience, we will use this last way
 	    to access them.
 	  </p>
@@ -735,8 +734,8 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  </p>
 
 	  <verbatim>
->>> class Particle(IsColDescr):
-...     name      = Col('CharType', 16)  # 16-character String
+>>> class Particle(IsDescription):
+...     name      = Col("CharType", 16)  # 16-character String
 ...     idnumber  = Col("UInt64", 1)     # Unsigned long long
 ...     ADCcount  = Col("UInt16", 1)     # Unsigned short integer
 ...     TDCcount  = Col("UInt8", 1)      # unsigned byte
@@ -829,19 +828,19 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    <verb>h5file</verb> object:
 	  </p>
 	  <verbatim>
->>> table = h5file.createTable(group, 'readout', Particle(), "Readout example")
+>>> table = h5file.createTable(group, 'readout', Particle, "Readout example")
 >>>
 	  </verbatim>
 
 	  <p>You can see how we asked to create the <verb>Table</verb>
 	    instance hanging from <verb>group</verb>, with name
-	    <em>'readout'</em>. We have passed an instance of
-	    <verb>Particle</verb>, the class that we have declared
-	    before, as the <em>description</em> parameter and finally
-	    we have used "<em>Readout example</em>" as a
-	    <verb>Table</verb> title. With all this information, a new
-	    <verb>Table</verb> instance is created and assigned to
-	    <em>table</em> variable.
+	    <em>'readout'</em>. We have passed <verb>Particle</verb>,
+	    the class that we have declared before, as the
+	    <em>description</em> parameter and finally we have used
+	    "<em>Readout example</em>" as a <verb>Table</verb>
+	    title. With all this information, a new <verb>Table</verb>
+	    instance is created and assigned to <em>table</em>
+	    variable.
 	  </p>
 
 	  <p>If you are getting curious how the object tree looks like
@@ -1044,7 +1043,7 @@ Filename: tutorial1.h5 'Test file'
 /columns/pressure Array(4,) 'Pressure column selection'
   type = 'Float64'
   itemsize = 8
-  flavor = "Numeric"
+  flavor = 'Numeric'
   byteorder = 'little'
 	  </verbatim>
 
@@ -1072,7 +1071,7 @@ Filename: tutorial1.h5 'Test file'
 /columns/name Array(4,) 'Name column selection'
   type = 'CharType'
   itemsize = 16
-  flavor = "List"
+  flavor = 'List'
   byteorder = 'little'
 >>>
 	  </verbatim>
@@ -1414,7 +1413,7 @@ Represent a table in the object tree.
 Info on the object: /columns/pressure Array(4,) 'Pressure column selection'
   type = 'Float64'
   itemsize = 8
-  flavor = "Numeric"
+  flavor = 'Numeric'
   byteorder = 'little'
 >>> print "  shape: ==>", pressureObject.shape
   shape: ==> (4,)
@@ -1441,7 +1440,7 @@ Info on the object: /columns/pressure Array(4,) 'Pressure column selection'
 	    capabilities present on most Python shell. You will see
 	    that browsing the object tree in that way is a very
 	    pleasant experience (well, as far as this activity can be
-	    qualified as <em>pleasant</em>).
+	    qualified in that way).
 	  </p>
 	  <p>If you look at the <verb>typecode</verb> attribute of the
 	    <verb>pressureObject</verb>, you can certify that this is
@@ -1626,28 +1625,45 @@ $
 	  <verb>/Events/TEvent3</verb> and select some values from it
 	  using a comprehension list.
 	</p>
-	<p>Look at the next script. It seems to do all of that, but a
-	  couple of small bugs will be shown up. Note that this
-	  <verb>Particle</verb> class is not directly related with the
-	  one defined in last example; this one is simpler.
+	<p>Look at the next script (you can find it in
+	  <verb>examples/tutorial2.py</verb>). It seems to do all of
+	  that, but a couple of small bugs will be shown up. Note that
+	  this <verb>Particle</verb> class is not directly related
+	  with the one defined in last example; this one is
+	  simpler. And we will introduce a new manner to describe a
+	  <verb>Table</verb> as a dictionary, as you can see in the
+	  <verb>Event</verb> description. See section <ref
+	  refid="createTableDescr"></ref> about the different kinds of
+	  descriptor objects that can be passed to the
+	  <verb>createTable()</verb> method.
 	</p>
 
 	<verbatim>
+"""This program shows the different protections that PyTables offer to
+the user in order to insure a correct data injection in tables.
+
+Example to be used in the second tutorial in the User's Guide.
+
+"""
+
 from tables import *
 
-class Particle(IsColDescr):
-    name      = Col('CharType', 16)  # 16-character String
+# Describe a particle record
+class Particle(IsDescription):
+    name      = Col("CharType", 16)  # 16-character String
     lati      = Col("Int32", 1)      # integer
     longi     = Col("Int32", 1)      # integer
     pressure  = Col("Float32", 1)    # float  (single-precision)
     temperature = Col("Float64", 1)    # double (double-precision)
 
-class Event(IsColDescr):
-    name      = Col('CharType', 16)    # 16-character String
-    TDCcount  = Col("UInt8", 1)        # unsigned byte
-    ADCcount  = Col("UInt16", 1)       # Unsigned short integer
-    xcoord    = Col("Float32", 1)      # integer
-    ycoord    = Col("Float32", 1)      # integer
+# Another way to describe the columns of a table
+Event = {
+    "name"    : Col("CharType", 16),    # 16-character String
+    "TDCcount": Col("UInt8", 1),        # unsigned byte
+    "ADCcount": Col("UInt16", 1),       # Unsigned short integer
+    "xcoord"  : Col("Float32", 1),      # integer
+    "ycoord"  : Col("Float32", 1),      # integer
+    }
 
 # Open a file in "w"rite mode
 fileh = openFile("tutorial2.h5", mode = "w")
@@ -1663,7 +1679,7 @@ gparticles = root.Particles
 # Create 3 new tables
 for tablename in ("TParticle1", "TParticle2", "TParticle3"):
     # Create a table
-    table = fileh.createTable("/Particles", tablename, Particle(),
+    table = fileh.createTable("/Particles", tablename, Particle,
                            "Particles: "+tablename)
     # Get the record object associated with the table:
     particle = table.row
@@ -1684,7 +1700,7 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
 # Now, go for Events:
 for tablename in ("TEvent1", "TEvent2", "TEvent3"):
     # Create a table in Events group
-    table = fileh.createTable(root.Events, tablename, Event(),
+    table = fileh.createTable(root.Events, tablename, Event,
                            "Events: "+tablename)
     # Get the record object associated with the table:
     event = table.row
@@ -1692,9 +1708,16 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
     for i in xrange(257):
         # First, assign the values to the Event record
         event['name']  = 'Event: %6d' % (i)
-        event['TDCcount'] = i % (1&lt;&lt;8)  
-        event['xcoor'] = float(i**2)     
-        event['ADCcount'] = i * 2
+        # Range checks no longer works on 0.4. Hope that
+        # next version of numarray can support that!
+        #event['TDCcount'] = i            # Wrong range.
+        event['TDCcount'] = i % (1&lt;&lt;8)   # Correct range
+        ########### Detectable errors start here. Play with them!
+        #event['xcoord'] = float(i**2)   # Correct spelling
+        event['xcoor'] = float(i**2)     # Wrong spelling. This works on 0.3
+        event['ADCcount'] = i * 2        # Correct type
+        #event['ADCcount'] = "s"          # Wrong type
+        ########### End of errors
         event['ycoord'] = float(i)**4
         # This injects the Record values
         event.append()
@@ -1725,7 +1748,8 @@ fileh.close()
 Traceback (most recent call last):
   File "tutorial2-bad.py", line 69, in ?
     event['xcoor'] = float(i**2)     # Wrong spelling
-  File "/home/falted/PyTables/pytables-0.4/src/hdf5Extension.pyx", line 1078, in __setitem__
+  File "/home/falted/PyTables/pytables-0.4/src/hdf5Extension.pyx",
+  line 1078, in __setitem__
     raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
 AttributeError: Error accessing "xcoor" attr.
  Error was: "exceptions.KeyError: xcoor"
@@ -1771,7 +1795,8 @@ AttributeError: Error accessing "xcoor" attr.
 Traceback (most recent call last):
   File "tutorial2-bad.py", line 68, in ?
     event['ADCcount'] = "s"      # Wrong type
-  File "/home/falted/PyTables/pytables-0.4/src/hdf5Extension.pyx", line 1078, in __setitem__
+  File "/home/falted/PyTables/pytables-0.4/src/hdf5Extension.pyx",
+  line 1078, in __setitem__
     raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
 AttributeError: Error accessing "ADCcount" attr.
  Error was: "exceptions.TypeError: NA_setFromPythonScalar: bad value type."
@@ -1781,10 +1806,7 @@ AttributeError: Error accessing "ADCcount" attr.
 	  </p>
 
 	  <p>You can admire the structure we have created with this
-	    (corrected) script in <ref
-	    refid="tutorial2">figure</ref>. As before, you will find
-	    this example in source file <verb>tutorial2.py</verb> that
-	    is located in the directory <verb>examples</verb>.
+	    (corrected) script in <ref refid="tutorial2">figure</ref>.
 	  </p>
 
 	  <figure id="tutorial2">
@@ -1934,7 +1956,7 @@ AttributeError: Error accessing "ADCcount" attr.
 	<verb>Table</verb> and <verb>Array</verb>. Another one is
 	responsible to build record objects from a subclass user
 	declaration, and performs field and type checks; its name is
-	<verb>IsColDescr</verb>. An important function, called
+	<verb>IsDescription</verb>. An important function, called
 	<verb>openFile</verb> is responsible to create, open or append
 	to files. In addition, a few utility functions are defined to
 	guess if an user supplied file is a <verb>PyTables</verb> or
@@ -2051,8 +2073,8 @@ AttributeError: Error accessing "ADCcount" attr.
 	</subsection>
       </section>
 
-      <section id="IsColDescrClassDescr">
-	<heading>The <visual markup="tt">IsColDescr</visual> class</heading>
+      <section id="IsDescriptionClassDescr">
+	<heading>The <visual markup="tt">IsDescription</visual> class</heading>
 
 	<p>This class is in fact a so-called <em>metaclass</em>
 	  object. There is nothing special on this fact, except that
@@ -2061,14 +2083,15 @@ AttributeError: Error accessing "ADCcount" attr.
 	  defined based on the values of the class attributes.
 	</p>
 	<p>It is designed to be used as an easy, yet meaningful way to
-	  define columns in <verb>Table</verb> objects through the use
-	  of classes that inherit properties from it. In order to
-	  define such an special class, you have to declare it as
-	  descendent from <em>IsColDescr</em>, with many attributes as
-	  columns you want in your table. The name of these attributes
-	  will become the name of the columns, while its values are
-	  the properties of the columns that are obtained through the
-	  use of the <verb>Col</verb> class constructor. See the <ref
+	  describe the properties of <verb>Table</verb> objects
+	  through the use of classes that inherit properties from
+	  it. In order to define such an special class, you have to
+	  declare it as descendent from <em>IsDescription</em>, with
+	  many attributes as columns you want in your table. The name
+	  of these attributes will become the name of the columns,
+	  while its values are the properties of the columns that are
+	  obtained through the use of the <verb>Col</verb> class
+	  constructor. See the <ref
 	  refid="ColClassDescr">section</ref> for instructions on how
 	  define the properties of the table columns.
 	</p>
@@ -2102,7 +2125,7 @@ AttributeError: Error accessing "ADCcount" attr.
 	      <term>dtype</term> <item>The data type for the column. See
 		the <ref refid="datatypesSupported">appendix</ref> for a
 		relation of data types supported in a <visual
-		  markup="tt">IsColDescr</visual> class declaration.</item>
+		  markup="tt">IsDescription</visual> class declaration.</item>
 
 	      <term>shape</term> <item>An integer (or, for
 		multidimensional cases, a tuple, although this is not yet
@@ -2212,7 +2235,7 @@ AttributeError: Error accessing "ADCcount" attr.
 	    </item>
 
 	    <term id="createTableDescr">createTable(where, name,
-	      ColDescr, title='', compress=0,
+	      description, title='', compress=0,
 	      expectedrows=10000)</term> <item>Create a new
 	      <verb>Table</verb> instance with name <em>name</em> in
 	      <em>where</em> location.
@@ -2228,16 +2251,17 @@ AttributeError: Error accessing "ADCcount" attr.
 		<term>name</term>
 		<item>The name of the new table.</item>
 
-		<term>ColDescr</term> <item>An instance of a
+		<term>description</term> <item>An instance of a
 		  user-defined class (derived from the
-		  <verb>IsColDescr</verb> class) where table fields
+		  <verb>IsDescription</verb> class) where table fields
 		  are defined. However, in certain situations, it is
 		  more handy to allow this description to be supplied
 		  as a dictionary (for example, when you do not know
 		  beforehand which structure will have your table). In
 		  such a cases, you can pass the description as a
-		  dictionary as well. See section ?? for an example of
-		  use. Finally, a <verb>RecArray</verb> object from
+		  dictionary as well. See <ref
+		  refid="secondExample">section</ref> for an example
+		  of use. Finally, a <verb>RecArray</verb> object from
 		  the <verb>numarray</verb> package is also accepted,
 		  and all the information about columns and other
 		  metadata is used as a basis to create the
@@ -2721,8 +2745,9 @@ AttributeError: Error accessing "ADCcount" attr.
 	<p>Data can be read from or written to tables by accessing to
 	  an special object that hangs from <verb>Table</verb>. This
 	  object is an instance of the <verb>Row</verb> class (see
-	  <ref refid="RowClassDescr"></ref>). See
-	  example ?? on how to use the <verb>Row</verb> interface.
+	  <ref refid="RowClassDescr"></ref>). See the tutorial
+	  sections <ref refid="usage">chapter</ref> on how to use the
+	  <verb>Row</verb> interface.
 	</p>
 	<p>Please note that this object inherits all the public
 	  attributes and methods from <verb>Leaf</verb>.
@@ -2941,7 +2966,7 @@ AttributeError: Error accessing "ADCcount" attr.
       <chapter id="datatypesSupported">
 	<heading>Supported data types in tables</heading>
 
-	<p><verb>IsColDescr</verb> descendants supports a limited set
+	<p><verb>IsDescription</verb> descendants supports a limited set
 	  of data types to define the table fields. This is roughly
 	  the same that the set supported by the <visual
 	  markup="tt">numarray</visual> package (see <ref
@@ -2972,7 +2997,7 @@ AttributeError: Error accessing "ADCcount" attr.
 	  </tabbody>
 	</tabular>
 	  <caption>Data types supported by <visual
-	      markup="tt">IsColDescr</visual> descendants.</caption>
+	      markup="tt">IsDescription</visual> descendants.</caption>
 	</table>
 
       </chapter>

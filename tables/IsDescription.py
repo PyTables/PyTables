@@ -4,19 +4,19 @@
 #       Created:        September 21, 2002
 #       Author:  Francesc Alted - falted@openlc.org
 #
-#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Attic/IsColDescr.py,v $
-#       $Id: IsColDescr.py,v 1.3 2003/03/13 11:18:54 falted Exp $
+#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
+#       $Id: IsDescription.py,v 1.1 2003/03/16 14:07:48 falted Exp $
 #
 ########################################################################
 
 """Classes and metaclasses for defining user data columns for Table objects.
 
-See the metaIsColDescr for a deep explanation on how exactly this works.
+See the metaIsDescription for a deep explanation on how exactly this works.
 
 Classes:
 
-    metaIsColDescr
-    IsColDescr
+    metaIsDescription
+    IsDescription
 
 Functions:
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.3 $"
+__version__ = "$Revision: 1.1 $"
 
 
 import warnings
@@ -103,17 +103,17 @@ class Col:
         print "Deleting Col object"
 
     
-class metaIsColDescr(type):
+class metaIsDescription(type):
     """
     
     metaclass for Table "Col"umn "Descr"iption: implicitly defines
     __slots__, __init__ __repr__ and some others from variables bound
     in class scope.
 
-    An instance of metaIsColDescr (a class whose metaclass is
-    metaIsColDescr) defines only class-scope variables (and
+    An instance of metaIsDescription (a class whose metaclass is
+    metaIsDescription) defines only class-scope variables (and
     possibly special methods, but NOT __init__ and __repr__!).
-    metaIsColDescr removes those variables from class scope,
+    metaIsDescription removes those variables from class scope,
     snuggles them instead as items in a class-scope dict named
     __dflts__, and puts in the class a __slots__ listing those
     variables' names, an __init__ that takes as optional keyword
@@ -132,15 +132,15 @@ class metaIsColDescr(type):
 
     Usage:
 
-class ColDescr(IsColDescr):
+class Description(IsDescription):
     x = 'l'
     y = 'd'
     color = '3s'
 
-q = ColDescr()
+q = Description()
 print q
 
-p = ColDescr(x=4, y=3.4, color = "pwpwp")
+p = Description(x=4, y=3.4, color = "pwpwp")
 print p
 
     """
@@ -173,7 +173,7 @@ print p
 #                 rep = [ '%s = Col(\"%r\", %r)' %  \
 #                         (k, self.__types__[k], self._v_shapes[k])
 #                         for k in self.__slots__ ]
-#                 return '%s(IsColDescr):\n   %s)' % (classname, '\n   '.join(rep))
+#                 return '%s(IsDescription):\n   %s)' % (classname, '\n   '.join(rep))
 #             else:
             rep = [ '\"%s\": Col(\"%r\", %r)' %  \
                     (k, self.__types__[k], self._v_shapes[k])
@@ -190,7 +190,7 @@ print p
 
         # Moved out of scope
         def _f_del__(self):
-            print "Deleting IsColDescr object"
+            print "Deleting IsDescription object"
             pass
 
         def testtype(object):
@@ -215,7 +215,7 @@ print p
         
         # Build the newdict that we'll use as dict for the new class.
         # Warning!. You have to list here all attributes and methods
-        # you want see exported to the new ColDescr class.
+        # you want see exported to the new Description class.
         
         newdict = { '__slots__':[], '__types__':{}, '__dflts__':{},
                     '__init__':__init__, '__repr__':__repr__,
@@ -307,11 +307,11 @@ print p
         return type.__new__(cls, classname, bases, newdict)
 
 
-class IsColDescr(object):
-    """ For convenience: inheriting from IsColDescr can be used to get
+class IsDescription(object):
+    """ For convenience: inheriting from IsDescription can be used to get
         the new metaclass (same as defining __metaclass__ yourself).
     """
-    __metaclass__ = metaIsColDescr
+    __metaclass__ = metaIsDescription
 
 
 if __name__=="__main__":
@@ -322,11 +322,11 @@ if __name__=="__main__":
     
     """
     
-    class ColDescr(IsColDescr):
+    class Description(IsDescription):
         """A description that has several columns.
 
         Represent the here as class variables, whose values are their
-        types. The metaIsColDescr class will take care the user
+        types. The metaIsDescription class will take care the user
         won't add any new variables and that their type is correct.
 
         """
@@ -337,7 +337,7 @@ if __name__=="__main__":
         color = Col("CharType", 2, " ")
 
     # example cases of class Point
-    rec = ColDescr()  # Default values
+    rec = Description()  # Default values
     print "rec value ==>", rec
     print "Slots ==>", rec.__slots__
     print "Format for this table ==>", rec._v_fmt

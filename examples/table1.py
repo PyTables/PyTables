@@ -1,6 +1,6 @@
 from tables import *
 
-class Particle(IsColDescr):
+class Particle(IsDescription):
     name        = Col("CharType", 16)  # 16-character String
     lati        = Col("Int32", 1)    # integer
     longi       = Col("Int32", 1)    # integer
@@ -13,7 +13,7 @@ fileh = openFile("table1.h5", mode = "w")
 group = fileh.createGroup(fileh.root, "newgroup")
 
 # Create a new table in newgroup group
-table = fileh.createTable(group, 'table', Particle(), "Title example")
+table = fileh.createTable(group, 'table', Particle, "Title example")
 particle = table.row
 
 # Fill the table with 10 particles

@@ -6,7 +6,7 @@ import chararray
 import recarray
 from tables import *
 
-class Particle(IsColDescr):
+class Particle(IsDescription):
     ADCcount    = Col("Int16", 1, 0)    # signed short integer
     TDCcount    = Col("UInt8", 1, 0)    # unsigned byte
     grid_i      = Col("Int32", 1, 0)    # integer
@@ -24,7 +24,6 @@ Particle2 = {
     "grid_j"      : Col("Int32", 1, 0),    # integer
     "idnumber"    : Col("Int64", 1, 0),    #signed long long 
     "name"        : Col('CharType', 16, ""),  # 16-character String
-    "__name"      : "Hola, pardal",  # To pass a special variable to IsColDescr
     "pressure"    : Col("Float32", 2, 0),  # float  (single-precision)
     #"pressure"    : Col("Float32", 1, 0),  # float  (single-precision)
     "temperature" : Col("Float64", 1, 0),  # double (double-precision)
@@ -45,8 +44,8 @@ h5file = openFile(filename, mode = "w", trMap=trMap)
 group = h5file.createGroup("/", 'detector')
 
 # Create one table on it
-#table = h5file.createTable(group, 'table', Particle(), "Title example")
-table = h5file.createTable(group, 'table', Particle2, "Title example")
+table = h5file.createTable(group, 'table', Particle, "Title example")
+#table = h5file.createTable(group, 'table', Particle2, "Title example")
 
 # Create a shortcut to the table record object
 #particle = table.record

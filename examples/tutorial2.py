@@ -7,19 +7,22 @@ Example to be used in the second tutorial in the User's Guide.
 
 from tables import *
 
-class Particle(IsColDescr):
+# Describe a particle record
+class Particle(IsDescription):
     name      = Col('CharType', 16)  # 16-character String
     lati      = Col("Int32", 1)      # integer
     longi     = Col("Int32", 1)      # integer
     pressure  = Col("Float32", 1)    # float  (single-precision)
     temperature = Col("Float64", 1)    # double (double-precision)
 
-class Event(IsColDescr):
-    name      = Col('CharType', 16)    # 16-character String
-    TDCcount  = Col("UInt8", 1)        # unsigned byte
-    ADCcount  = Col("UInt16", 1)       # Unsigned short integer
-    xcoord    = Col("Float32", 1)      # integer
-    ycoord    = Col("Float32", 1)      # integer
+# Another way to describe the columns of a table
+Event = {
+    "name"    : Col('CharType', 16),    # 16-character String
+    "TDCcount": Col("UInt8", 1),        # unsigned byte
+    "ADCcount": Col("UInt16", 1),       # Unsigned short integer
+    "xcoord"  : Col("Float32", 1),      # integer
+    "ycoord"  : Col("Float32", 1),      # integer
+    }
 
 # Open a file in "w"rite mode
 fileh = openFile("tutorial2.h5", mode = "w")
@@ -35,7 +38,7 @@ gparticles = root.Particles
 # Create 3 new tables
 for tablename in ("TParticle1", "TParticle2", "TParticle3"):
     # Create a table
-    table = fileh.createTable("/Particles", tablename, Particle(),
+    table = fileh.createTable("/Particles", tablename, Particle,
                            "Particles: "+tablename)
     # Get the record object associated with the table:
     particle = table.row
@@ -56,7 +59,7 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
 # Now, go for Events:
 for tablename in ("TEvent1", "TEvent2", "TEvent3"):
     # Create a table in Events group
-    table = fileh.createTable(root.Events, tablename, Event(),
+    table = fileh.createTable(root.Events, tablename, Event,
                            "Events: "+tablename)
     # Get the record object associated with the table:
     event = table.row

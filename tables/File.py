@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.28 2003/03/15 12:02:42 falted Exp $
+#       $Id: File.py,v 1.29 2003/03/16 14:07:48 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.28 $"
+__version__ = "$Revision: 1.29 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -156,7 +156,7 @@ class File(hdf5Extension.File):
     Methods:
 
         createGroup(where, name[, title])
-        createTable(where, name, ColDescr [, title]
+        createTable(where, name, description [, title]
                     [, compress] [, expectedrows])
         createArray(where, name, arrayObject, [, title])
         getNode(where [, name] [,classname])
@@ -336,7 +336,7 @@ class File(hdf5Extension.File):
         return object
 
 
-    def createTable(self, where, name, ColDescr, title = "",
+    def createTable(self, where, name, description, title = "",
                     compress = 3, expectedrows = 10000):
 
         """Create a new Table instance with name "name" in "where" location.
@@ -353,9 +353,10 @@ class File(hdf5Extension.File):
 
         name -- The name of the new table.
 
-        ColDescr -- The IsColDescr instance. If None, the table
-            metadata is read from disk, else, it's taken from previous
-            parameters.
+        description -- A IsDescription subclass or a dictionary where
+            the keys are the field names, and the values the type
+            definitions. And it can be also a RecArray object (from
+            recarray module).
 
         title -- Sets a TITLE attribute on the table entity.
 
@@ -375,7 +376,7 @@ class File(hdf5Extension.File):
         """
     
         group = self.getNode(where, classname = 'Group')
-        object = Table(ColDescr, title, compress, expectedrows)
+        object = Table(description, title, compress, expectedrows)
         setattr(group, name, object)
         return object
 

@@ -1,8 +1,9 @@
 from tables import *
 
-class Record(IsColDescr):
-    field1        = Col("CharType", 22, " ")  # 22-character String
-    field2        = Col("CharType", 22, " ")  # 20-character String
+class Particle(IsDescription):
+    identity = Col("CharType", 16, " ", pos = 0)  # character String
+    idnumber = Col("Int16", 1, pos = 1)  # short integer
+    speed = Col("Float32", 1, pos = 1)  # single-precision
 
 # Open a file in "w"rite mode
 fileh = openFile("objecttree.h5", mode = "w")
@@ -10,28 +11,29 @@ fileh = openFile("objecttree.h5", mode = "w")
 root = fileh.root
 
 # Create the groups:
-group1 = fileh.createGroup(root, "subgroup1")
-group2 = fileh.createGroup(root, "subgroup2")
+group1 = fileh.createGroup(root, "group1")
+group2 = fileh.createGroup(root, "group2")
 
-# Now, create a table in "subgroup0" group
-table1 = fileh.createTable(root, "table0", Record())
-# Create 2 new tables in subgroup1
-table2 = fileh.createTable(group1, "table1", Record())
-table3 = fileh.createTable("/subgroup1", "table2", Record())
-# Create the last table in subgroup2
-table4 = fileh.createTable("/subgroup2", "table3", Record())
+# Now, create a table in "group0" group
+array1 = fileh.createArray(root, "array1", ["string", "array"], "String array")
+# Create 2 new tables in group1
+table1 = fileh.createTable(group1, "table1", Particle)
+table2 = fileh.createTable("/group2", "table2", Particle)
+# Create the last table in group2
+array2 = fileh.createArray("/group1", "array2", [1,2,3,4])
 
 # Now, fill the tables:
-for table in (table1, table2, table3, table4):
+for table in (table1, table2):
     # Get the record object associated with the table:
-    rec = table.row
+    row = table.row
     # Fill the table with 10 records
     for i in xrange(10):
         # First, assign the values to the Particle record
-        rec['field1']  = 'This is field1: %2d' % (i)
-        rec['field2']  = 'This is field2: %2d' % i 
+        row['identity']  = 'This is particle: %2d' % (i)
+        row['idnumber'] = i
+        row['speed']  = i * 2.
         # This injects the Record values
-        rec.append()
+        row.append()
 
     # Flush the table buffers
     table.flush()

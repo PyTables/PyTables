@@ -11,7 +11,7 @@ from tables import Group, Leaf, Table, Array
 from test_all import verbose
 
 # Test Record class
-class Record(IsColDescr):
+class Record(IsDescription):
     var1 = Col("CharType", 4)   # 4-character String
     var2 = Col("Int32", 1)      # integer
     var3 = Col("Int16", 1)      # short integer. 
@@ -38,7 +38,7 @@ class TreeTestCase(unittest.TestCase):
         maxint   = 2147483647   # (2 ** 31 - 1)
         for j in range(3):
             # Create a table
-            table = self.h5file.createTable(group, 'table'+str(j), Record(),
+            table = self.h5file.createTable(group, 'table'+str(j), Record,
                                         title = self.title,
                                         compress = self.compress,
                                         expectedrows = self.expectedrows)

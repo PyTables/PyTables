@@ -10,9 +10,9 @@ from tables import *
 from test_all import verbose
 
 # Test Record class
-class Record(IsColDescr):
+class Record(IsDescription):
     """ A record has several columns. Represent the here as class
-    variables, whose values are their types. The IsColDescr
+    variables, whose values are their types. The IsDescription
     class will take care the user won't add any new variables and
     that their type is correct.  """
     
@@ -131,7 +131,7 @@ class BasicTestCase(unittest.TestCase):
     expectedrows = 100
     appendrows = 20
     compress = 0
-    record = Record()
+    record = Record
     recarrayinit = 0
     maxshort = 1 << 15
 
@@ -385,7 +385,7 @@ class BasicRangeTestCase(unittest.TestCase):
     file  = "test.h5"
     mode  = "w" 
     title = "This is the table title"
-    record = Record()
+    record = Record
     maxshort = 1 << 15
     expectedrows = 100
     compress = 0

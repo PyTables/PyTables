@@ -14,7 +14,7 @@ from tables import *
 	#'-**-**-**-**-**-**- user record definition  -**-**-**-**-**-**-**-'
 
 # Define a user record to characterize some kind of particles
-class Particle(IsColDescr):
+class Particle(IsDescription):
     name      = Col('CharType', 16)  # 16-character String
     idnumber  = Col("UInt64", 1)     # Unsigned long long 
     ADCcount  = Col("UInt16", 1)     # Unsigned short integer
@@ -43,7 +43,7 @@ group = h5file.createGroup("/", 'detector', 'Detector information')
 print "Group '/detector' created"
 
 # Create one table on it
-table = h5file.createTable(group, 'readout', Particle(), "Readout example")
+table = h5file.createTable(group, 'readout', Particle, "Readout example")
 print "Table '/detector/readout' created"
 
 # Get a shortcut to the record object in table

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.41 2003/03/15 12:02:43 falted Exp $
+#       $Id: Table.py,v 1.42 2003/03/16 14:07:48 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.41 $"
+__version__ = "$Revision: 1.42 $"
 
 from __future__ import generators
 import sys
@@ -42,7 +42,7 @@ import recarray
 import recarray2         # Private version of recarray for PyTables
 import hdf5Extension
 from Leaf import Leaf
-from IsColDescr import IsColDescr, metaIsColDescr, Col, fromstructfmt
+from IsDescription import IsDescription, metaIsDescription, Col, fromstructfmt
 
 try:
     import Numeric
@@ -111,11 +111,11 @@ class Table(Leaf, hdf5Extension.Table):
 
         Keyword arguments:
 
-        description -- The IsColDescr instance. If None, the table metadata
-            is read from disk, else, it's taken from previous
-            parameters. It can be a dictionary where the keys are the
-            field names, and the values the type definitions. And it
-            can be also a RecArray object (from recarray module).
+        description -- A IsDescription subclass or a dictionary where
+            the keys are the field names, and the values the type
+            definitions. And it can be also a RecArray object (from
+            recarray module). If None, the table metadata is read from
+            disk, else, it's taken from previous parameters.
 
         title -- Sets a TITLE attribute on the HDF5 table entity.
 
@@ -139,11 +139,11 @@ class Table(Leaf, hdf5Extension.Table):
         self._v_expectedrows = expectedrows
         # Initialize the number of rows to a default
         self.nrows = 0
-        
+
         # Initialize this object in case is a new Table
         if isinstance(description, types.DictType):
             # Dictionary case
-            self.description = metaIsColDescr("", (), description)()
+            self.description = metaIsDescription("", (), description)()
             # Flag that tells if this table is new or has to be read from disk
             self._v_new = 1
         elif isinstance(description, recarray.RecArray):
@@ -156,13 +156,18 @@ class Table(Leaf, hdf5Extension.Table):
             #    self._v_expectedrows = self.nrows
             # Flag that tells if this table is new or has to be read from disk
             self._v_new = 1
-        elif description:
-            # IsColDescr subclass case
-            self.description = description
+        elif (type(description) == type(IsDescription) and
+              issubclass(description, IsDescription)):
+            # IsDescription subclass case
+            self.description = description()
             # Flag that tells if this table is new or has to be read from disk
             self._v_new = 1
-        else:
+        elif description is None:
             self._v_new = 0
+        else:
+            raise ValueError, \
+"""description parameter is not one of the supported types:
+  IsDescription subclass, dictionary or RecArray."""
 
     def _newBuffer(self, init=0):
         """Create a new recarray buffer for I/O purposes"""
@@ -210,7 +215,7 @@ class Table(Leaf, hdf5Extension.Table):
         # Append this entry to indicate the alignment!
         fields['_v_align'] = revbyteorderDict[recarr._byteorder]
         # Create an instance description to host the record fields
-        self.description = metaIsColDescr("", (), fields)()
+        self.description = metaIsDescription("", (), fields)()
         # The rest of the info is automatically added when self.create()
         # is called
 
@@ -270,7 +275,7 @@ class Table(Leaf, hdf5Extension.Table):
         fields['_v_align'] = self._v_fmt[0]
         self.byteorder = byteorderDict[self._v_fmt[0]]
         # Create an instance description to host the record fields
-        self.description = metaIsColDescr("", (), fields)()
+        self.description = metaIsDescription("", (), fields)()
         # Extract the coltypes
         self.coltypes = self.description.__types__
         # Extract the shapes for columns

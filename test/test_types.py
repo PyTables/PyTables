@@ -8,9 +8,9 @@ from tables import *
 from test_all import verbose
 
 # Test Record class
-class Record(IsColDescr):
+class Record(IsDescription):
     """ A record has several columns. Represent the here as class
-    variables, whose values are their types. The IsColDescr
+    variables, whose values are their types. The IsDescription
     class will take care the user won't add any new variables and
     that their type is correct.  """
     
@@ -36,7 +36,7 @@ class RangeTestCase(unittest.TestCase):
 
         # Create a table
         self.table = self.fileh.createTable(self.rootgroup, 'table',
-	                                    Record(), self.title)
+	                                    Record, self.title)
 
     def tearDown(self):
         # Close the file (eventually destroy the extended type)
