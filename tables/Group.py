@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.8 2003/01/30 19:04:43 falted Exp $
+#       $Id: Group.py,v 1.9 2003/01/31 12:41:46 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.8 $"
+__version__ = "$Revision: 1.9 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -136,7 +136,7 @@ class Group(hdf5Extension.Group):
             # Call openFile recursively over the group's tree
             objgroup._f_openFile()
         for name in leaves:
-            class_ = self._f_getDsetAttr(name, "CLASS")
+            class_ = self._f_getLeafAttrStr(name, "CLASS")
             if class_ is None:
                 # No CLASS attribute, try a guess
                 warnings.warn("No CLASS attribute found. Trying to guess what's here. I can't promise you getting the correct object, but I will do my best!.")

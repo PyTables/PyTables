@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.10 2003/01/30 16:21:18 falted Exp $
+#       $Id: Table.py,v 1.11 2003/01/31 12:41:46 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.10 $"
+__version__ = "$Revision: 1.11 $"
 
 from __future__ import generators
 import sys
@@ -85,7 +85,7 @@ class Table(Leaf, hdf5Extension.Table):
     """
 
     def __init__(self, RecordObject = None, title = "",
-                 compress = 3, expectedrows = 10000):
+                 compress = 0, expectedrows = 10000):
         """Create an instance Table.
 
         Keyword arguments:
@@ -99,8 +99,7 @@ class Table(Leaf, hdf5Extension.Table):
 
         compress -- Specifies a compress level for data. The allowed
             range is 0-9. A value of 0 disables compression. The
-            default is compression level 3, that balances between
-            compression effort and CPU consumption.
+            default is 0 (no compression).
 
         expectedrows -- An user estimate about the number of rows
             that will be on table. If not provided, the default value
@@ -169,14 +168,9 @@ class Table(Leaf, hdf5Extension.Table):
         actual data.
 
         """
-        # Open the table
-        self.openTable()
-        #print "Opening table ==> (%s)" % self._v_pathname
+        # Get table info
         (self.nrows, self.varnames, self._v_fmt) = self.getTableInfo()
-        # print "Format for this existing table ==>", self._v_fmt
-        # We still have to code how to get this attributes
-        self.title = self._v_parent._f_getDsetAttr(self._v_name, "TITLE")
-        #print "Table Title ==>", self.title
+        self.title = self.getAttrStr("TITLE")
         # This one is probably not necessary to set it, but...
         self._v_compress = 0  # This means, we don't know if compression
                               # is active or not. May be save this info
@@ -450,5 +444,4 @@ class Table(Leaf, hdf5Extension.Table):
     def close(self):
         """Flush the table buffers and close the HDF5 dataset."""
         self.flush()
-        self.closeTable()
 

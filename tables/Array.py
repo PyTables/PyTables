@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.9 2003/01/30 19:04:43 falted Exp $
+#       $Id: Array.py,v 1.10 2003/01/31 12:41:46 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.9 $"
+__version__ = "$Revision: 1.10 $"
 
 import types, warnings, sys
 from Leaf import Leaf
@@ -149,9 +149,9 @@ class Array(Leaf, hdf5Extension.Array):
         (self.typecode, self.shape, self.typesize, self.byteorder) = \
                         self.openArray()
 
-        self.title = self._v_parent._f_getDsetAttr(self._v_name, "TITLE")
+        self.title = self.getAttrStr("TITLE")
         # NUMERIC, NUMARRAY, TUPLE, LIST or other flavor 
-        self.flavor = self._v_parent._f_getDsetAttr(self._v_name, "FLAVOR3")
+        self.flavor = self.getAttrStr("FLAVOR")
         
     # Accessor for the readArray method in superclass
     def read(self):

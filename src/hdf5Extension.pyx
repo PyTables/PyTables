@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.11 2003/01/31 11:11:50 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.12 2003/01/31 12:41:40 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.11 $"
+__version__ = "$Revision: 1.12 $"
 
 
 import sys, os.path
@@ -465,7 +465,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.11 2003/01/31 11:11:50 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.12 2003/01/31 12:41:40 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -570,50 +570,47 @@ cdef class Group:
     # Return a tuple with the objects groups and objects dsets
     return Giterate(loc_id, name)
 
+  def _f_getLeafAttrStr(self, char *dsetname, char *attrname):
+    cdef hid_t local_id
+    cdef int ret
+    cdef char attrvalue[MAX_CHARS]
+
+    # Get the dataset
+    loc_id = H5Dopen(self.group_id, dsetname)
+    if loc_id < 0:
+      raise RuntimeError("Cannot open the dataset")
+
+    # Check if attribute exists
+    if H5LT_find_attribute(loc_id, attrname) <= 0:
+        return None
+      
+    # Get the table TITLE attribute
+    ret = H5LT_get_attribute_disk(loc_id, attrname, attrvalue)
+    if ret < 0:
+      raise RuntimeError("Attribute '%s' exists, but can't get it" % attrname)
+
+    # Close this dataset
+    ret = H5Dclose(loc_id)
+    if ret < 0:
+      raise RuntimeError("Cannot close the dataset")
+
+    return attrvalue
+
   # Get attributes (only supports string attributes right now)
   def _f_getGroupAttrStr(self, char *attrname):
-    cdef hsize_t *dims, nelements
-    cdef H5T_class_t class_id 
-    cdef size_t type_size
-    cdef char *attrvalue
-    cdef int rank
-    cdef int ret, i
+    cdef int ret
+    cdef char attrvalue[MAX_CHARS]
         
     # Check if attribute exists
     if H5LT_find_attribute(self.group_id, attrname) <= 0:
         return None
 
-    ret = H5LTget_attribute_ndims(self.parent_id, self.name, attrname, &rank )
-    if ret < 0:
-      raise RuntimeError("Can't get ndims on attribute %s in group %s." % 
-                             (attrname, self.name))
-    #print "Attribute rank -->", rank
-
-    # Allocate memory to collect the dimension of objects with dimensionality
-    if rank > 0:
-        dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
-    
-    #ret = H5LTget_attribute_info(self.group_id, attrname,
-    ret = H5LTget_attribute_info(self.parent_id, self.name, attrname,
-                                 dims, &class_id, &type_size)
-    if ret < 0:
-        raise RuntimeError("Can't get info on attribute %s in group %s." % 
-                               (self.attrname, self.name))
-        
-    if rank == 0:
-      attrvalue = <char *>malloc(type_size * sizeof(char))
-    else:
-      elements = dim[0]
-      for i from  0 < i < rank:
-        nelements = nelements * dim[i]
-      attrvalue = <char *>malloc(type_size * nelements * sizeof(char))
-    
     ret = H5LT_get_attribute_disk(self.group_id, attrname, attrvalue)
     if ret < 0:
-      raise RuntimeError("Can't get attribute %s in group %s." % 
-                             (attrname, self.name))
+      raise RuntimeError("Attribute %s exists in group %s, but can't get it." \
+                         % (attrname, self.name))
                             
-    return PyString_FromString(attrvalue)
+    return attrvalue
 
   def _f_setGroupAttrStr(self, char *attrname, char *attrvalue):
     cdef int ret
@@ -624,37 +621,6 @@ cdef class Group:
       raise RuntimeError("Can't set attribute %s in group %s." % 
                              (self.attrname, self.name))
 
-  def _f_getDsetAttr(self, char *dsetname, char *attrname):
-    cdef int ret
-    cdef char attrvalue[MAX_CHARS]
-    cdef object oattrvalue
-
-    # Get the dataset
-    loc_id = H5Dopen(self.group_id, dsetname)
-    if loc_id < 0:
-      raise RuntimeError("Cannot open the dataset")
-
-    # Check if attribute exists
-    if H5LT_find_attribute(loc_id, attrname):
-      # Get the table TITLE attribute
-      ret = H5LT_get_attribute_disk(loc_id, attrname, attrvalue)
-      if ret < 0:
-        raise RuntimeError("Cannot get '%s' attribute on dataset" % attrname)
-      else:
-        oattrvalue = PyString_FromString(attrvalue)
-    else:
-      oattrvalue = None
-      #raise RuntimeError("Cannot get '%s' attribute on dataset" % attrname)
-
-    # Close this dataset
-    ret = H5Dclose(loc_id)
-    if ret < 0:
-      raise RuntimeError("Cannot close the dataset")
-
-    # These two works in the same way!
-    #return PyString_FromString(attrvalue)
-    return oattrvalue
-
 cdef class Table:
   # instance variables
   cdef size_t  dst_size
@@ -663,33 +629,16 @@ cdef class Table:
   cdef hsize_t nfields
   cdef hsize_t totalrecords
   cdef hid_t   group_id, loc_id
-  cdef char    *tablename, title[MAX_CHARS]
+  cdef char    *name, title[MAX_CHARS]
   cdef char    *fmt
   cdef char    *field_names[MAX_FIELDS]
   cdef int     compress
 
   def _f_new(self, where, name):
-    self.tablename = strdup(name)
+    self.name = strdup(name)
     # The parent group id for this object
     self.group_id = where._v_groupId
 
-  def openTable(self):
-    """ Open the table, and read the table TITLE attribute."""
-    cdef int ret
-    
-    # We need to do that just to obtain the loc_id for this dataset, and
-    # H5LT doesn't provide a call to get it. Why?
-    self.loc_id = H5Dopen(self.group_id, self.tablename)
-    if self.loc_id < 0:
-      raise RuntimeError("Problems opening the table")
-  
-  def closeTable(self):
-    cdef herr_t  ret
-
-    ret = H5Dclose(self.loc_id)
-    if ret < 0:
-      raise RuntimeError("Problems closing the table")
-  
   def createTable(self, PyTupleObject varnames, char *fmt,
                   char *title, int compress, hsize_t chunksize):
     cdef int     nvar
@@ -731,7 +680,7 @@ cdef class Table:
     nrecords = 0     # Don't save any records now
     fill_data = NULL
     data = NULL
-    ret = H5TBmake_table(self.title, self.group_id, self.tablename,
+    ret = H5TBmake_table(self.title, self.group_id, self.name,
                          nvar, nrecords, rowsize, self.field_names,
                          self.field_offset, fieldtypes, chunksize,
                          fill_data, self.compress, data)
@@ -741,15 +690,12 @@ cdef class Table:
     # Initialize the total number of records for this table
     self.totalrecords = 0
     
-    # We need to assign loc_id a value to close the table afterwards
-    self.openTable()  
-
   def append_records0(self, PyStringObject records, int nrecords):
     cdef int ret
 
     #print "About to save %d records..." % nrecords
     # Append the records:
-    ret = H5TBappend_records(self.group_id, self.tablename, nrecords,
+    ret = H5TBappend_records(self.group_id, self.name, nrecords,
                    self.dst_size, self.field_offset, <void *>records.ob_sval)
     if ret < 0:
       raise RuntimeError("Problems appending the records")
@@ -768,7 +714,7 @@ cdef class Table:
       raise RuntimeError("Problems getting the pointer to the buffer")
     
     # Append the records:
-    ret = H5TBappend_records(self.group_id, self.tablename, nrecords,
+    ret = H5TBappend_records(self.group_id, self.name, nrecords,
                    self.dst_size, self.field_offset, rbuf)
     if ret < 0:
       raise RuntimeError("Problems appending the records")
@@ -790,14 +736,14 @@ cdef class Table:
     cdef char    fmt[255]
 
     # Get info about the table dataset
-    ret = H5LTget_dataset_info(self.group_id, self.tablename,
+    ret = H5LTget_dataset_info(self.group_id, self.name,
                                dims, &class_id, &rowsize)
     if ret < 0:
       raise RuntimeError("Problems getting table dataset info")
     self.dst_size = rowsize
 
     # First, know how many records (& fields) has the table
-    ret = H5TBget_table_info(self.group_id, self.tablename,
+    ret = H5TBget_table_info(self.group_id, self.name,
                              &nfields, &nrecords)
     if ret < 0:
       raise RuntimeError("Problems getting table info")
@@ -810,19 +756,21 @@ cdef class Table:
       # Strings could not be larger than 255
       field_names[i] = <char *>malloc(MAX_CHARS * sizeof(char))  
 
-    ret = H5TBget_field_info(self.group_id, self.tablename,
+    ret = H5TBget_field_info(self.group_id, self.name,
                              field_names, field_sizes,
                              self.field_offset, &rowsize)
     if ret < 0:
       raise RuntimeError("Problems getting field info")
-    ret = getfieldfmt(self.group_id, self.tablename, fmt)
+    ret = getfieldfmt(self.group_id, self.name, fmt)
     if ret < 0:
       raise RuntimeError("Problems getting field format")
-    #print "Calculated format ==> ", fmt
     self.fmt = fmt
     
     # Create a python tuple with the fields names
-    names_tuple = createNamesTuple(field_names, nfields)
+    names_tuple = []
+    for i in range(nfields):
+      names_tuple.append(field_names[i])
+    names_tuple = tuple(names_tuple)
 
     # Return the buffer as a Python String
     return (nrecords, names_tuple, fmt)
@@ -841,7 +789,7 @@ cdef class Table:
     ret2 = PyObject_AsWriteBuffer(recarr._data, &rbuf, &buflen)    
 
     # Readout to the buffer
-    ret = H5TBread_records(self.group_id, self.tablename,
+    ret = H5TBread_records(self.group_id, self.name,
                            start, nrecords, self.dst_size,
                            self.field_offset, rbuf )
     if ret < 0:
