@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/__init__.py,v $
-#       $Id: __init__.py,v 1.3 2002/11/10 13:31:50 falted Exp $
+#       $Id: __init__.py,v 1.4 2003/01/29 10:22:14 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ from hdf5Extension import getHDF5Version, \
 
 __version__ = getPyTablesVersion()
 HDF5Version = getHDF5Version()
-ExtVersion = getExtVersion()
+ExtVersion  = getExtVersion()
 
 # Import the user classes from the proper modules
 from File import File, openFile
@@ -44,8 +44,12 @@ from Group import Group
 from Leaf import Leaf
 from Table import Table
 from Array import Array
-from IsRecord import IsRecord, metaIsRecord
+#from IsRecord import IsRecord, metaIsRecord, defineType
+from IsRecord import IsRecord, defineType
 from hdf5Extension import isHDF5, isPyTablesFile
 
+import recarray2
+
 # List here only the objects we want to be publicly available
-__all__ = [ "openFile", "isHDF5", "isPyTablesFile", "IsRecord" ]
+__all__ = [ "openFile", "isHDF5", "isPyTablesFile", "IsRecord", "recarray2",
+            "defineType" ]

@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.5 2002/11/10 13:31:50 falted Exp $
+#       $Id: File.py,v 1.6 2003/01/29 10:22:14 falted Exp $
 #
 ########################################################################
 
@@ -31,11 +31,12 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.5 $"
+__version__ = "$Revision: 1.6 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
 import sys
+import types
 import os.path
 from fnmatch import fnmatch
 
@@ -44,7 +45,7 @@ from Group import Group
 from Leaf import Leaf
 from Table import Table
 from Array import Array
-
+import numarray
 
 def openFile(filename, mode = "r", title = ""):
 
@@ -365,27 +366,31 @@ future). Giving up.""" % \
         group instance. "NumericObject" is the Numeric array to be
         saved. "title" sets a TITLE attribute on the HDF5 array
         entity. The created object is returned."""
-        
-        import Numeric
 
-        if type(NumericObject) == type(Numeric.array(1)):
+        group = self.getNode(where, classname = 'Group')
+        object = Array(NumericObject, title)
+        setattr(group, name, object)
+        return object
+
+
+    def createArray0(self, where, name, NumericObject, title = ""):
         
-            if len(NumericObject.shape) == 0:
-                raise ValueError, \
+        """Create a new instance Array with name "name" in "where"
+        location.  "where" parameter can be a path string, or another
+        group instance. "NumericObject" is the Numeric array to be
+        saved. "title" sets a TITLE attribute on the HDF5 array
+        entity. The created object is returned."""
+
+        if len(NumericObject.shape) == 0:
+            raise ValueError, \
 """Numeric array '%s' has a rank equal to 0, so is like an scalar.
   Sorry, but this is not supported right now.""" % (NumericObject)
   
-            #elif len(NumericObject.shape) > 20:
-            elif len(NumericObject.shape) > 32:
-                raise ValueError, \
+        elif len(NumericObject.shape) > 32:
+            raise ValueError, \
 """Numeric array (param 3) has a rank greater than 32.
   Sorry, but this is not supported right now."""
-  
-        else:
-            raise ValueError, \
-"""object '%s' is not a Numeric Array, and it is not supported in Array class""" % \
-(NumericObject)
-
+        
         group = self.getNode(where, classname = 'Group')
         object = Array(NumericObject, title)
         setattr(group, name, object)

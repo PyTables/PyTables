@@ -1,0 +1,95 @@
+This is for Debian woody!
+
+Below are some benchmarking figures obtained while reading and writing
+to a file with three tables, each table containing 10000 records. For
+reference, the same tests have been repeated using the shelve module
+that comes with Python. The tests were conducted on a platform with a
+2 GHz AMD Athlon chip, an IDE disk at 4600 rpm, and 256 MB of RAM.
+
+Version 0.2
+
+            |  medium size records      |   small size records
+            |     (47 Bytes)            |     (16 Bytes)
+            +---------------------------+------------------------------
+            |      rows/s      filesize |     rows/s       filesize
+            |  write    read            | write     read
+------------+---------------------------+------------------------------
+ no compress|                           |                         
+     record | 24400    39000   1184 KB  | 32600     52600   506 KB
+      tupla | 17100    81100   1184 KB  | 66666    107142   506 KB
+------------+---------------------------+------------------------------
+  compress  |                           |                         
+     record | 22200    37500    494 KB  | 31900     51700    94 KB
+      tupla | 16100    75000    494 KB  | 63900    107142    94 KB
+------------+---------------------------+------------------------------
+   Shelve   |                       KB  |                       KB
+
+New version (15-Jan-2003)
+
+
+                               PyTables pre-0.3
+
+Rec length  |      rows/s     |       KB/s      | rows  | filesz | memory |
+            |  write    read  |  write    read  |       |   (MB) |   (MB) |
+------------+-----------------+-----------------+-------+--------+--------+
+     16 B   | 31000   166600  |    480    2600  |  3.e4 |    0.49|    6.5 |
+------------+-----------------+-----------------+-------+--------+--------+
+     56 B   | 17300   136000  |    942    7460  |  3.e4 |    1.7 |    7.2 |
+------------+-----------------+-----------------+-------+--------+--------+
+     56 B*  |  1560   136000  |     85    7560  |  3.e4 |    1.7 |    7.2 |
+------------+-----------------+-----------------+-------+--------+--------+
+     64 B*  |  1540   130000  |     96    8152  |  3.e4 |    1.9 |    7.2 |
+------------+-----------------+-----------------+-------+--------+--------+
+    550 B*  |   879    81100  |    472   43500  |  3.e4 |   19   |    7.2 |
+------------+-----------------+-----------------+-------+--------+--------+
+    550 B** | 12000   103000  |   6440   55400  |  3.e5 |   168  |    7.2 |
+------------+-----------------+-----------------+-------+--------+--------+
+    550 B** | 15500    81100  |   8350   43500  |  3.e4 |   19   |    7.2 |
+------------+-----------------+-----------------+-------+--------+--------+
+    550 B**c|   909     1100  |    490    1081  |  3.e4 |    0.76|    8.5 |
+------------+-----------------+-----------------+-------+--------+--------+
+    550 B***|  3600    81100  |   1950   43500  |  3.e4 |   19   |    7.2 |
+------------+-----------------+-----------------+-------+--------+--------+
+
+* These are figures obtained with a numarray as part of the record 
+** The numarray record fields are not set in each iteration
+*** Some numarray elements of a record field are changed on each iteration
+**c Like ** but with compression (level 1)
+
+			         Shelve
+				 
+Rec length  |      rows/s     |       KB/s      | rows  | filesz | memory |
+            |  write    read  |  write    read  |       |   (MB) |   (MB) |
+------------+-----------------+-----------------+-------+--------+--------+
+     16 B   | 68200    17000  |   1070     266  |  3.e4 |    0.94|    7.2 |
+------------+-----------------+-----------------+-------+--------+--------+
+     56 B   | 25000    14400  |   1367     784  |  3.e4 |    2.5 |   10.6 |
+------------+-----------------+-----------------+-------+--------+--------+
+     56 B*  |  2980     2710  |    162     148  |  3.e4 |    7.3 |   33   |
+------------+-----------------+-----------------+-------+--------+--------+
+     64 B*  |  2900     2700  |    182     168  |  3.e4 |    7.5 |   33   |
+------------+-----------------+-----------------+-------+--------+--------+
+    550 B*  |  1090     1310  |    590     710  |  3.e4 |   58   |  122   |
+------------+-----------------+-----------------+-------+--------+--------+
+    550 B** | 16000    14900  |   2400    1200  |  3.e4 |    2.4 |   10.6 |
+------------+-----------------+-----------------+-------+--------+--------+
+    550 B***| 28000    11900  |   2400    1100  |  3.e4 |    2.5 |   10.6 |
+------------+-----------------+-----------------+-------+--------+--------+
+				 
+* These are figures obtained with a numarray as part of the record 
+** The nuamrray records are not set in each iteration
+*** Some numarray elements of a record field are changed on each iteration
+
+These figures compares quite well with the shelve module that comes
+with Python: PyTables can write records at roughly the same speed as
+shelve, but retrieves information between 5 and 6 times faster (as the
+dataset grows, so does speed rate increase), and with much less memory
+consumption. In addition, the resultant PyTables file sizes are half
+the size of shelve files when compression is off and from 5 to 10
+times smaller if using compression (keep in mind that the sample data
+used in the tests is synthetic).
+
+It is also worth noting that raw data speed for PyTables in read mode
+ranges from 1 MB/s up to 2 MB/s, and drops to the 200 KB/s - 600 KB/s
+range for writes.
+

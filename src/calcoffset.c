@@ -62,42 +62,113 @@ getentry(c, f)
  * So we do that in a switch case. */
 
 static hid_t
-conventry(c, sizestr)
+conventry(c, numel)
     int c;
-    int sizestr;
+    int numel;
 {
    hid_t string_type;
+   int rank;
+   hsize_t dims[1];
+
    
+   rank = 1;
+   dims[0] = numel;
    switch(c) {
     case 'c':
-      return H5T_NATIVE_CHAR;
+      if (numel == 1) {
+	return H5T_NATIVE_CHAR;
+      } 
+      else {
+	 return H5Tarray_create(H5T_NATIVE_CHAR, 1, dims, NULL);
+      }
     case 'b':
-      return H5T_NATIVE_SCHAR;
+      if (numel == 1) {
+	return H5T_NATIVE_SCHAR;
+      } 
+      else {
+	 return H5Tarray_create(H5T_NATIVE_SCHAR, 1, dims, NULL);
+      }
     case 'B':
-      return H5T_NATIVE_UCHAR;
+      if (numel == 1) {
+	return H5T_NATIVE_UCHAR;
+      } 
+      else {
+	 return H5Tarray_create(H5T_NATIVE_UCHAR, 1, dims, NULL);
+      }
     case 'h':
-      return H5T_NATIVE_SHORT;
+      if (numel == 1) {
+	return H5T_NATIVE_SHORT;
+      } 
+      else {
+	 return H5Tarray_create(H5T_NATIVE_SHORT, 1, dims, NULL);
+      }
     case 'H':
-      return H5T_NATIVE_USHORT;
+      if (numel == 1) {
+	return H5T_NATIVE_USHORT;
+      } 
+      else {
+	 return H5Tarray_create(H5T_NATIVE_USHORT, 1, dims, NULL);
+      }
     case 'i':
-      return H5T_NATIVE_INT;
+      if (numel == 1) {
+	return H5T_NATIVE_INT;
+      } 
+      else {
+	 return H5Tarray_create(H5T_NATIVE_INT, 1, dims, NULL);
+      }
     case 'I':
-      return H5T_NATIVE_UINT;
+      if (numel == 1) {
+	return H5T_NATIVE_UINT;
+      } 
+      else {
+	 return H5Tarray_create(H5T_NATIVE_UINT, 1, dims, NULL);
+      }
     case 'l':
-      return H5T_NATIVE_LONG;
+      if (numel == 1) {
+	return H5T_NATIVE_LONG;
+      } 
+      else {
+	 return H5Tarray_create(H5T_NATIVE_LONG, 1, dims, NULL);
+      }
     case 'L':
-      return H5T_NATIVE_ULONG;
+      if (numel == 1) {
+	return H5T_NATIVE_ULONG;
+      } 
+      else {
+	 return H5Tarray_create(H5T_NATIVE_ULONG, 1, dims, NULL);
+      }
     case 'q':
+      if (numel == 1) {
+	return H5T_NATIVE_LLONG;
+      } 
+      else {
+	 return H5Tarray_create(H5T_NATIVE_LLONG, 1, dims, NULL);
+      }
       return H5T_NATIVE_LLONG;
     case 'Q':
-      return H5T_NATIVE_ULLONG;
+      if (numel == 1) {
+	return H5T_NATIVE_ULLONG;
+      } 
+      else {
+	 return H5Tarray_create(H5T_NATIVE_ULLONG, 1, dims, NULL);
+      }
     case 'f':
-      return H5T_NATIVE_FLOAT;
+      if (numel == 1) {
+	return H5T_NATIVE_FLOAT;
+      } 
+      else {
+	 return H5Tarray_create(H5T_NATIVE_FLOAT, 1, dims, NULL);
+      }
     case 'd':
-      return H5T_NATIVE_DOUBLE;
+      if (numel == 1) {
+	return H5T_NATIVE_DOUBLE;
+      } 
+      else {
+	 return H5Tarray_create(H5T_NATIVE_DOUBLE, 1, dims, NULL);
+      }
     case 's':
       string_type = H5Tcopy(H5T_C_S1);
-      H5Tset_size(string_type, sizestr);
+      H5Tset_size(string_type, numel);
       return string_type;
     default:
 #ifdef DEBUG
@@ -132,8 +203,7 @@ align(size, c, e)
  * The format follows strictly the directions for the package struct
  * and is contained as input in fmt.
  * The offsets are computed and returned in the offsets array.
- * calcoffset returns as return value the number of variables in the fmt
- * string */
+ * calcoffset returns the number of variables in the fmt string */
 
 /* This routine don't have error checking at all
  * If you want this, call struct.calcsize first */
@@ -183,13 +253,16 @@ calcoffset(fmt, offsets)
 	 offset = size;
 	 *offsets++ = offset;
 	 /* The case for a number before string is special */
-	 if (c != 's') {
+	 /*	 if (c != 's') {
 	    for (j=0; j < num - 1; j++) {
 	       offset += itemsize;
 	       *offsets++ = offset;
 	    }
 	    nattrib += num;
-	 }
+	    } */
+	 if (c != 's') {
+	    nattrib ++;
+	 } 
 	 else {
 	    /* In case of string, increment nattrib only by one */
 	    nattrib++;
@@ -262,14 +335,18 @@ calctypes(fmt, types, size_types)
 	   return -1;
 	 *types++ = hdf5type;
 	 /* The case for a number before string is special */
-	 if (c != 's') {
+	 /*	 if (c != 's') {
 	    *size_types++ = itemsize;
 	    for (j=0; j < num - 1; j++) {
 	       *types++ = hdf5type;
 	       *size_types++ = itemsize;
 	    }
-	    nattrib += num;
-	 }
+	    nattrib += num; 
+	    } */
+	 if (c != 's') {
+	    nattrib ++; 
+	    *size_types++ = num*itemsize;
+	    } 
 	 else { /* Case of string */
 	    /* Increment nattrib only by one */
 	    nattrib++;

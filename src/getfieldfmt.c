@@ -82,9 +82,8 @@ herr_t getfieldfmt( hid_t loc_id,
       else
 	sign = -1;
 
-
       /* Get the member format */
-      if ( format_element(class, member_size, sign, i, fmt) < 0)
+      if ( format_element(member_type_id, class, member_size, sign, i, fmt) < 0)
 	 goto out; 
       
       /* Close the member type */
@@ -112,14 +111,19 @@ herr_t getfieldfmt( hid_t loc_id,
 
 /* Routine to map the atomic type to a Python struct format 
  * This follows the standard size and alignment */
-/* Falta que la rutina detecte si les dades son big-endian o little endian */
-int format_element(H5T_class_t class, 
-		     size_t member_size,
-		     H5T_sign_t sign,
-		     int position,
-		     char *format) 
+int format_element(hid_t type_id,
+		   H5T_class_t class, 
+		   size_t member_size,
+		   H5T_sign_t sign,
+		   int position,
+		   char *format) 
 {
-  char temp[255];
+  hsize_t dims[1];
+  size_t super_type_size;
+  hid_t super_type_id; 
+  H5T_class_t super_class_id;
+  H5T_sign_t super_sign;
+  char temp[255], arrfmt[256] = "";
   
   switch(class) {
   case H5T_INTEGER:                /* int (byte, short, long, long long) */
@@ -168,15 +172,52 @@ int format_element(H5T_class_t class,
     break; /* case H5T_FLOAT */
   case H5T_STRING:                  /* char or string */
     if ( member_size == 1 )
-      strcat( format, "c" );        /* char */
+      /*strcat( format, "c" );   */     /* char */
+      strcat( format, "s" );        /* always a CharArray */
     else {
       snprintf(temp, 255, "%ds", member_size);
       strcat( format, temp );       /* string */
     }
     break; /* case H5T_STRING */
+  case H5T_ARRAY:    /* WARNING: this only works for undimensional arrays! */
+    /* Get the array base component */
+    super_type_id = H5Tget_super( type_id );
+ 
+    /* Get the class of base component. */
+    super_class_id = H5Tget_class( super_type_id );
+
+    /* Get the sign in case the class is an integer. */
+    if ( (super_class_id == H5T_INTEGER) ) /* Only integer can be signed */
+      super_sign = H5Tget_sign( super_type_id );
+    else 
+      super_sign = -1;
+   
+    /* Get the size. */
+    super_type_size = H5Tget_size( super_type_id );
+ 
+    /* Get dimensions */
+    if ( H5Tget_array_dims(type_id, dims, NULL) < 0 )
+      goto out;
+
+    /* Find the super member format */
+    if ( format_element(super_type_id, super_class_id, super_type_size,
+			super_sign, position, arrfmt) < 0)
+	 goto out; 
+    
+    /* Return this format as well as the array size */
+    /* We have problems here. The next snprintf does not work,
+     but a sprintf followed by a strcat does! and I do not know why...*/
+    /* snprintf(temp, 255, "%d %s", dims[0], arrfmt);*/
+    sprintf(temp, "%d", dims[0]);
+    strcat(temp, arrfmt);
+    /* fprintf(stderr,"Array format ==> %s", temp); */
+    strcat( format, temp );       /* string */
+
+    break; /* case H5T_ARRAY */
+    
   default: /* Any other class type */
     /* This should never happen for table (compound type) members */
-    fprintf(stderr, "Member number %d: class %d don't supported. Sorry!\n",
+    fprintf(stderr, "Member number %d: class %d not supported. Sorry!\n",
 	    position, class);
     goto out;
   }

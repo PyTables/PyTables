@@ -44,11 +44,50 @@ herr_t H5LTmake_dataset( hid_t loc_id,
 
 herr_t H5LTmake_array( hid_t loc_id, 
 		       const char *dset_name,
-		       const char *title,
+		       const char *title,  /* Added parameter */
+		       const char *flavor,  /* Added parameter */
+		       const char *obversion,  /* Added parameter */
 		       int rank, 
 		       const hsize_t *dims,
 		       hid_t type_id,
-		       const void *buffer ); 
+		       const void *data );
+
+herr_t H5LTmake_dataset_char( hid_t loc_id, 
+                              const char *dset_name, 
+                              int rank, 
+                              const hsize_t *dims,
+                              const char *buffer );
+
+herr_t H5LTmake_dataset_short( hid_t loc_id, 
+                               const char *dset_name, 
+                               int rank, 
+                               const hsize_t *dims,
+                               const short *buffer );
+
+herr_t H5LTmake_dataset_int( hid_t loc_id, 
+                             const char *dset_name, 
+                             int rank, 
+                             const hsize_t *dims,
+                             const int *buffer );
+
+herr_t H5LTmake_dataset_long( hid_t loc_id, 
+                              const char *dset_name, 
+                              int rank, 
+                              const hsize_t *dims,
+                              const long *buffer );
+
+herr_t H5LTmake_dataset_float( hid_t loc_id, 
+                               const char *dset_name, 
+                               int rank, 
+                               const hsize_t *dims,
+                               const float *buffer );
+
+herr_t H5LTmake_dataset_double( hid_t loc_id, 
+                                const char *dset_name, 
+                                int rank, 
+                                const hsize_t *dims,
+                                const double *buffer );
+
 
 /*-------------------------------------------------------------------------
  *
@@ -62,9 +101,29 @@ herr_t H5LTread_dataset( hid_t loc_id,
                          hid_t type_id,
                          void *buffer );
 
-herr_t H5LTread_array( hid_t loc_id, 
-		       const char *dset_name,
-		       void *buffer );
+herr_t H5LTread_dataset_char( hid_t loc_id, 
+                              const char *dset_name,
+                              char *buffer );
+
+herr_t H5LTread_dataset_short( hid_t loc_id, 
+                               const char *dset_name,
+                               short *buffer );
+
+herr_t H5LTread_dataset_int( hid_t loc_id, 
+                             const char *dset_name,
+                             int *buffer );
+
+herr_t H5LTread_dataset_long( hid_t loc_id, 
+                              const char *dset_name,
+                              long *buffer );
+
+herr_t H5LTread_dataset_float( hid_t loc_id, 
+                               const char *dset_name,
+                               float *buffer );
+
+herr_t H5LTread_dataset_double( hid_t loc_id, 
+                                const char *dset_name,
+                                double *buffer );
 
 /*-------------------------------------------------------------------------
  *
@@ -78,28 +137,12 @@ herr_t H5LTget_dataset_ndims( hid_t loc_id,
                              const char *dset_name,
                              int *rank );
 
-herr_t H5LTget_array_ndims ( hid_t loc_id,
-			     const char *dset_name,
-			     int *rank );
-  
 herr_t H5LTget_dataset_info( hid_t loc_id, 
                              const char *dset_name,
                              hsize_t *dims,
-                             H5T_class_t *class_id,
+                             H5T_class_t *type_class,
                              size_t *type_size );
 
-herr_t H5LTget_dataset_info_mod( hid_t loc_id, 
-				 const char *dset_name,
-				 hsize_t *dims,
-				 H5T_class_t *class_id,
-				 H5T_sign_t *sign, /* Added this parameter */
-				 size_t *type_size );
-
-herr_t H5LTget_array_info( hid_t loc_id, const char *dset_name,
-                           hsize_t *dims, H5T_class_t *class_id,
-			   H5T_sign_t *sign, size_t *type_size );
-
-     
 herr_t H5LTfind_dataset( hid_t loc_id, const char *name ); 
 
 
@@ -136,10 +179,10 @@ herr_t H5LTset_attribute_int( hid_t loc_id,
                               size_t size );
 
 herr_t H5LTset_attribute_long( hid_t loc_id, 
-                             const char *obj_name, 
-                             const char *attr_name,
-                             long *buffer,
-                             size_t size );
+                               const char *obj_name, 
+                               const char *attr_name,
+                               long *buffer,
+                               size_t size );
 
 herr_t H5LTset_attribute_float( hid_t loc_id, 
                                 const char *obj_name, 
@@ -148,10 +191,10 @@ herr_t H5LTset_attribute_float( hid_t loc_id,
                                 size_t size );
 
 herr_t H5LTset_attribute_double( hid_t loc_id, 
-                               const char *obj_name, 
-                               const char *attr_name,
-                               double *buffer,
-                               size_t size );
+                                 const char *obj_name, 
+                                 const char *attr_name,
+                                 double *buffer,
+                                 size_t size );
 
 /*-------------------------------------------------------------------------
  *
@@ -160,10 +203,46 @@ herr_t H5LTset_attribute_double( hid_t loc_id,
  *-------------------------------------------------------------------------
  */
 
-
 herr_t H5LTget_attribute( hid_t loc_id, 
+                          const char *obj_name, 
                           const char *attr_name,
-                          void *attr_out );
+                          hid_t mem_type_id,
+                          void *data );
+
+herr_t H5LTget_attribute_string( hid_t loc_id, 
+                                 const char *obj_name, 
+                                 const char *attr_name,
+                                 char *data );
+
+herr_t H5LTget_attribute_char( hid_t loc_id, 
+                               const char *obj_name, 
+                               const char *attr_name,
+                               char *data );
+
+herr_t H5LTget_attribute_short( hid_t loc_id, 
+                                const char *obj_name, 
+                                const char *attr_name,
+                                short *data );
+
+herr_t H5LTget_attribute_int( hid_t loc_id, 
+                              const char *obj_name, 
+                              const char *attr_name,
+                              int *data );
+
+herr_t H5LTget_attribute_long( hid_t loc_id, 
+                               const char *obj_name, 
+                               const char *attr_name,
+                               long *data );
+
+herr_t H5LTget_attribute_float( hid_t loc_id, 
+                                const char *obj_name, 
+                                const char *attr_name,
+                                float *data );
+
+herr_t H5LTget_attribute_double( hid_t loc_id, 
+                                 const char *obj_name, 
+                                 const char *attr_name,
+                                 double *data );
 
 
 /*-------------------------------------------------------------------------
@@ -173,17 +252,21 @@ herr_t H5LTget_attribute( hid_t loc_id,
  *-------------------------------------------------------------------------
  */
 
-herr_t H5LTfind_attribute( hid_t loc_id, const char *name ); 
 
 herr_t H5LTget_attribute_ndims( hid_t loc_id, 
+                                const char *obj_name, 
                                 const char *attr_name,
                                 int *rank );
 
 herr_t H5LTget_attribute_info( hid_t loc_id, 
+                               const char *obj_name, 
                                const char *attr_name,
                                hsize_t *dims,
-                               H5T_class_t *class_id,
+                               H5T_class_t *type_class,
                                size_t *type_size );
+
+
+
 
 
 /*-------------------------------------------------------------------------
@@ -208,6 +291,31 @@ herr_t H5LTrepack( hsize_t nfields,
                    const size_t *dst_sizes,
                    unsigned char *src_buf, 
                    unsigned char *dst_buf );
+
+
+
+/*-------------------------------------------------------------------------
+ * 
+ * Private functions
+ * 
+ *-------------------------------------------------------------------------
+ */
+
+
+herr_t H5LT_get_attribute_mem( hid_t obj_id, 
+                           const char *attr_name,
+                           hid_t mem_type_id,
+                           void *data );
+
+herr_t H5LT_get_attribute_disk( hid_t obj_id, 
+                           const char *attr_name,
+                           void *data );
+
+herr_t H5LT_find_attribute( hid_t loc_id, const char *name ); 
+
+
+
+
 
 #ifdef __cplusplus
 }

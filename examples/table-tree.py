@@ -1,18 +1,33 @@
 import sys
 
-from Numeric import *
+import Numeric
+from numarray import *
+import chararray
 from tables import *
 
-# Define a user record to caracterize some kind of particles
 class Particle(IsRecord):
-    name        = '16s'  # 16-character String
-    TDCcount    = 'B'    # unsigned byte
-    ADCcont     = 'H'    # unsigned short integer
-    grid_i      = 'i'    # integer
-    grid_j      = 'i'    # integer
-    pressure    = 'f'    # float  (single-precision)
-    temperature = 'd'    # double (double-precision)
-    idnumber    = 'Q'    # unsigned long long (i.e. 64-bit integer)
+    ADCcount    = defineType("Int16", 1, 0)    # signed short integer
+    TDCcount    = defineType("UInt8", 1, 0)    # unsigned byte
+    grid_i      = defineType("Int32", 1, 0)    # integer
+    grid_j      = defineType("Int32", 1, 0)    # integer
+    idnumber    = defineType("Int64", 1, 0)    #signed long long 
+    name        = defineType('CharType', 16, "")  # 16-character String
+    #pressure    = defineType("Float32", 2, 0)  # float  (single-precision)
+    pressure    = defineType("Float32", 1, 0)  # float  (single-precision)
+    temperature = defineType("Float64", 1, 0)  # double (double-precision)
+
+Particle2 = {
+    "ADCcount"    : defineType("Int16", 1, 0),    # signed short integer
+    "TDCcount"    : defineType("UInt8", 1, 0),    # unsigned byte
+    "grid_i"      : defineType("Int32", 1, 0),    # integer
+    "grid_j"      : defineType("Int32", 1, 0),    # integer
+    "idnumber"    : defineType("Int64", 1, 0),    #signed long long 
+    " "    : defineType("Int64", 1, 0),    #signed long long 
+    "name"        : defineType('CharType', 16, ""),  # 16-character String
+    #"pressure"    : defineType("Float32", 2, 0),  # float  (single-precision)
+    "pressure"    : defineType("Float32", 1, 0),  # float  (single-precision)
+    "temperature" : defineType("Float64", 1, 0),  # double (double-precision)
+}
 
 # The name of our HDF5 filename
 filename = "table-tree.h5"
@@ -24,19 +39,22 @@ h5file = openFile(filename, mode = "w")
 group = h5file.createGroup("/", 'detector')
 
 # Create one table on it
-table = h5file.createTable(group, 'table', Particle(), "Title example")
+#table = h5file.createTable(group, 'table', Particle(), "Title example")
+table = h5file.createTable(group, 'table', Particle2, "Title example")
 
 # Create a shortcut to the table record object
-particle = table.record
+#particle = table.record
+particle = table.row
 
 # Fill the table with 10 particles
 for i in xrange(10):
     # First, assign the values to the Particle record
     particle.name  = 'Particle: %6d' % (i)
     particle.TDCcount = i % 256    
-    particle.ADCcont = (i * 256) % (1 << 16)
+    particle.ADCcount = (i * 256) % (1 << 16)
     particle.grid_i = i 
     particle.grid_j = 10 - i
+    #particle.pressure = [float(i*i), float(i*2)]
     particle.pressure = float(i*i)
     particle.temperature = float(i**2)
     particle.idnumber = i * (2 ** 34)  # This exceeds integer range
@@ -49,23 +67,42 @@ table.flush()
 # Get actual data from table. We are interested in column pressure.
 pressure = [ p.pressure for p in table.readAsRecords() ]
 print "Last record ==>", p
-print "Column pressure ==>", pressure
+print "Column pressure ==>", array(pressure)
 print "Total records in table ==> ", len(pressure)
 print
 
 # Create a new group to hold new arrays
 gcolumns = h5file.createGroup("/", "columns")
-
+print "columns ==>", gcolumns
 # Create a Numeric array with this info under '/columns'
-h5file.createArray(gcolumns, 'pressure', array(pressure), "Pressure column")
+h5file.createArray(gcolumns, 'pressure', Numeric.array(pressure), "Pressure column")
+print "gcolumns.pressure typecode ==> ", gcolumns.pressure.typecode
+
+# Do the same with TDCcount
+TDC = [ p.TDCcount for p in table.readAsRecords() ]
+print "TDC ==>", TDC
+print "TDC shape ==>", array(TDC).shape
+h5file.createArray('/columns', 'TDC', array(TDC), "TDCcount column")
 
 # Do the same with name column
 names = [ p.name for p in table.readAsRecords() ]
-h5file.createArray('/columns', 'name', array(names), "Name column")
+#names = chararray.array(names)
+#names = Numeric.array(names)
+names = names
+print "names ==>", names
+h5file.createArray('/columns', 'name', names, "Name column")
+# This works even with homogeneous tuples or lists (!)
+print "gcolumns.name shape ==>", gcolumns.name.shape 
+print "gcolumns.name typecode ==> ", gcolumns.name.typecode
+
+print "Table dump:"
+for p in table.readAsRecords():
+    print p
 
 # Close the file
 h5file.close()
 
+#sys.exit()
 
 # Reopen it in append mode
 h5file = openFile(filename, "a")
@@ -147,11 +184,14 @@ pressureObject = h5file.getNode("/columns", "pressure")
 print "Info on the object:", pressureObject
 print "  shape: ==>", pressureObject.shape
 print "  title: ==>", pressureObject.title
-print "  typecode ==> %c" % pressureObject.typecode
-print
+print "  typecode ==> ", pressureObject.typecode
 
 # Read the pressure actual data
+#pressureArray = Numeric.array(pressureObject.read().tolist())
 pressureArray = pressureObject.read()
+print "  data type ==>", type(pressureArray)
+print "  data ==>", pressureArray
+print
 
 # Get the object in "/columns/names"
 nameObject = h5file.root.columns.name
@@ -160,11 +200,13 @@ nameObject = h5file.root.columns.name
 print "Info on the object:", nameObject
 print "  shape: ==>", nameObject.shape
 print "  title: ==>", nameObject.title
-print "  typecode ==> %c" % nameObject.typecode
+#print "  typecode ==> %c" % nameObject.typecode
 
 
 # Read the 'name' actual data
 nameArray = nameObject.read()
+print "  data type ==>", type(nameArray)
+print "  data ==>", nameArray
 
 # Print the data for both arrays
 print "Data on arrays name and pressure:"
@@ -181,12 +223,13 @@ table = h5file.root.detector.table
 # you have to get this object first, and use it to feed
 # the table with new records. This is because this record object has
 # the table correct alignment and big/little-endian attributes.
-particle = table.record
+#particle = table.record
+particle = table.row
 # Append 5 new particles to table (yes, tables can be enlarged!)
 for i in xrange(10, 15):
     particle.name  = 'Particle: %6d' % (i)
     particle.TDCcount = i % 256    
-    particle.ADCcont = (i * 256) % (1 << 16)
+    particle.ADCcount = (i * 256) % (1 << 16)
     particle.grid_i = i 
     particle.grid_j = 10 - i
     particle.pressure = float(i*i)

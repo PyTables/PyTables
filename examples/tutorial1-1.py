@@ -1,8 +1,7 @@
-"""Small but quite comprehensive example showing the PyTables mode of use.
+"""Small but quite comprehensive example showing the use of PyTables.
 
-As a result of execution, a 'tutorial1.h5' file is created. You can
-look at it with whatever HDF5 generic utility, like h5ls, h5dump or
-h5view.
+The program creates an output file, 'tutorial1.h5'.  You can view it
+with any HDF5 generic utility.
 
 """
 

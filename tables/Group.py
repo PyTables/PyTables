@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.6 2002/11/10 20:21:30 falted Exp $
+#       $Id: Group.py,v 1.7 2003/01/29 10:22:14 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.6 $"
+__version__ = "$Revision: 1.7 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -136,9 +136,9 @@ class Group(hdf5Extension.Group):
             objgroup._f_openFile()
         for name in leaves:
             class_ = self._f_getDsetAttr(name, "CLASS")
-            if class_ == "Table":
+            if class_ == "TABLE":
                 objgroup = Table()
-            elif class_ == "Array":
+            elif class_ == "ARRAY":
                 objgroup = Array()
             else:
                 raise RuntimeError, \

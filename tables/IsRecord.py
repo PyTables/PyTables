@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Attic/IsRecord.py,v $
-#       $Id: IsRecord.py,v 1.4 2002/11/10 13:31:50 falted Exp $
+#       $Id: IsRecord.py,v 1.5 2003/01/29 10:22:14 falted Exp $
 #
 ########################################################################
 
@@ -26,13 +26,56 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.4 $"
+__version__ = "$Revision: 1.5 $"
 
 
 import warnings
 import struct
+import types
 import sys
 
+import numarray as NA
+import recarray2 as recarray
+
+# Map between the numarray types and struct datatypes
+tostructfmt = {NA.Int8:'b', NA.UInt8:'B',
+               NA.Int16:'h', NA.UInt16:'H',
+               NA.Int32:'i', NA.UInt32:'I',
+               NA.Int64:'q', NA.UInt64:'Q',
+               NA.Float32:'f', NA.Float64:'d',
+               recarray.CharType:'s', 
+               }
+
+# translation table from the Struct data types to numarray types
+fromstructfmt = {'b':NA.Int8, 'B':NA.UInt8,
+                 'h':NA.Int16, 'H':NA.UInt16,
+                 'i':NA.Int32, 'I':NA.UInt32,
+                 'q':NA.Int64, 'Q':NA.UInt64,
+                 'f':NA.Float32, 'd':NA.Float64,
+                 's':recarray.CharType,
+              }
+
+class defineType:
+
+    def __init__(self, dtype="Float64", length=1, dflt=None):
+
+        if length != None:
+            if type(length) in [types.IntType, types.LongType]:
+                self.length = length
+            else: raise ValueError, "Illegal length %s" % `length`
+
+        self.dflt = dflt
+
+        if dtype in NA.typeDict:
+            self.type = NA.typeDict[dtype]
+        elif dtype == "CharType" or isinstance(dtype, recarray.Char):
+            self.type = recarray.CharType
+        else:
+            raise TypeError, "Illegal type %s" % `dtype`
+
+        self.rectype = tostructfmt[self.type]
+        self.recarrtype = recarray.revfmt[self.type]
+    
 class metaIsRecord(type):
     """
     metaclass for "Record": implicitly defines __slots__, __init__
@@ -84,21 +127,13 @@ print p
                 values, then override those explicitly passed in kw.
             """
             # Initialize this values
+            #print "dflts ==>", self.__dflts__
             for k in self.__dflts__: setattr(self, k, self.__dflts__[k])
 
             # Initialize the values passed as keyword parameters
             for k in kw:
                 setattr(self, k, kw[k])
 
-            # Convert this to a struct
-            values = [ getattr(self, k) for k in self.__slots__ ]
-            #print "About to convert values ==>", values
-            #print "with format ==>", self._v_fmt
-            #buffer = struct.pack(self._v_fmt, *values)
-                
-            #print "And the result is ==>", buffer
-            
-        
 	def __repr__(self):
             """ Gives a record representation ready to be passed to eval
             """
@@ -112,139 +147,12 @@ print p
             rep = [ '  %s=%r' % (k, getattr(self, k)) for k in self.__slots__ ]
             return '%s(\n%s)' % (classname, ', \n'.join(rep))
 
-        def __call__(self, *args, **kw):
-            """ Method to pack by default. We choose _f_pack."""
-            if args and not kw:
-                return struct.pack(self._v_fmt, *args)
-            elif kw and not args:
-                return self._f_pack(**kw)
-            elif not args and not kw:
-                return self._f_pack()
-            else:
-                raise RuntimeError, \
-                  "Mix of variable-length args and keyword is not supported!"
-                
-        def _f_raiseValueError(self):
-            """Helper function to indicate an error in struct.pack and
-            provide detailed information on the record object.
-            """
-            (type, value, traceback) = sys.exc_info()
-            record = []
-            for k in self.__slots__:
-                record.append((k, self.__types__[k], (getattr(self, k))))
-            raise ValueError, \
-             "Error packing record object: \n %s\n Error was: %s" % \
-             (record, value)           
-            
-        def _f_pack(self, **kw):
-            """A method to pack values.
-
-            Notes:
-            
-            - Some keyword parameters allowed
-            - Record updated
-            - 3.79 s for 100.000 records  (all keywords set)
-            - 2.98 s for 100.000 records  (no keywords set)
-            
-            This is the most flexible method, and if called with no
-            keywords is reasonably fast.
-            
-            """
-            # Initialize the values passed as keyword parameters
-            for k in kw:
-                setattr(self, k, kw[k])
-            # Convert this to a struct
-            values = [ getattr(self, k) for k in self.__slots__ ]
-            try:
-                buffer = struct.pack(self._v_fmt, *values)
-            except struct.error:
-                self._f_raiseValueError()
-
-            return buffer
-
-        def _f_pack2(self):
-            """Method to pack values (2)
-
-            Notes:
-            
-            - No parameters allowed
-            - Record updated
-            - 2.74 s for 100.000 records (with slots)
-            - 2.83 s for 100.000 records (without slots)
-            
-            """
-            # Convert slot elements to a struct
-            values = [ getattr(self, k) for k in self.__slots__ ]
-            try:
-                buffer = struct.pack(self._v_fmt, *values)
-            except struct.error:
-                self._f_raiseValueError()
-                
-            return buffer
-
-        def _f_packFast(self, **kw):
-            """ Method to pack 3
-
-            Notes:
-            
-            - All slots should be specified as keyworks
-            - Record not updated!
-            - 2.39 s for 100.000 rec when saveFast(var1 = var1,var2 = var2,...)
-            - 2.22 s for 100.000 rec when saveFast(var1 = 12.3,var2="1", ...)
-            
-            """
-            # Initialize the values passed as keyword parameters
-            values = [ kw[k] for k in self.__slots__ ] # Get the ordered values
-            return struct.pack(self._v_fmt, *values)
-
-        def _f_packFastest(self, *values):
-            """ Method to pack 4
-            - Positional (alphanumeric order) params. All should be specified
-            - Record not updated!
-            - 0.99 s for 100.000 rec when saveFastest(var1, var2, ...)
-            - 0.88 s for 100.000 rec when saveFastest(12.3, "1", ...)
-            This is the fastest method to pack values, but we must be very
-            careful on the order we put the Record elements!.
-            """
-            return struct.pack(self._v_fmt, *values)
-
-        def _f_unpack(self, buffer):
-            """ Method to unpack and set attributes.
-
-            Notes:
-            
-            - Record updated
-            - 3.43 s for 100.000 records
-            
-            """
-            # Maybe we can get this faster if we found a way to setting
-            # the slots without calling setattr
-            # Anyway, this might be solved when numarray will get integrated
-            # to do the I/O.
-            tupla = struct.unpack(self._v_fmt, buffer)
-            i = 0
-            for k in self.__slots__:
-                setattr(self, k, tupla[i])
-                i += 1
-
-        def _f_unpack2(self, buffer):
-            """ Another method to unpack.
-
-            Notes:
-            
-            - Record updated
-            - 3.72 s for 100.000 records
-            
-            """
-            i = 0
-            for value in struct.unpack(self._v_fmt, buffer):
-                setattr(self, self.__slots__[i], value)
-                i += 1
-
-        def testtype(datatype):
+        def testtype(object):
             """Test if datatype is valid and returns a default value for
             each one.
             """
+            #datatype = tostructfmt[object.type]
+            datatype = object.rectype
             if datatype in ('b', 'B', 'h', 'H', 'i', 'I', 'l', 'L', 'q', 'Q'):
                 dfltvalue = int(0)
             elif datatype in ('f', 'd'):
@@ -265,15 +173,16 @@ print p
         
         newdict = { '__slots__':[], '__types__':{}, '__dflts__':{},
                     '__init__':__init__, '__repr__':__repr__,
-		    '__str__':__str__,
-                    '__call__':__call__, '_v_fmt': "",
-                    '_f_raiseValueError':_f_raiseValueError, 
-                    '_f_pack':_f_pack, '_f_pack2':_f_pack2,
-                    '_f_packFast':_f_packFast, '_f_packFastest':_f_packFastest,
-                    '_f_unpack':_f_unpack, '_f_unpack2':_f_unpack2,}
+                    '__str__':__str__, '_v_record':None,
+                    '_v_fmt': "",
+                    '_v_recarrfmt': "", '_v_formats':[],
+                    }
 
         keys = classdict.keys()
         keys.sort() # Sort the keys to establish an order
+        
+        newdict['_v_fmt'] = "=" # Force the "standard" alignment (no align)
+        recarrfmt = []
         for k in keys:
             if (k.startswith('__') or k.startswith('_v_') 
                 or k.startswith('_f_')):
@@ -287,27 +196,20 @@ print p
                 # class variables, store name in __slots__ and name and
                 # value as an item in __dflts__
                 newdict['__slots__'].append(k)
-                datatype = classdict[k]
-                dfltvalue = testtype(datatype)
-                newdict['__types__'][k] = datatype
-                newdict['__dflts__'][k] = dfltvalue
-                newdict['_v_fmt'] += datatype
+                object = classdict[k]
+                newdict['__types__'][k] = object.type
+                if object.dflt:
+                    newdict['__dflts__'][k] = object.dflt
+                else:
+                    newdict['__dflts__'][k] = testtype(object)
 
-        # Set up the alignment (if exists)
-        if newdict.has_key('_v_align'):
-            newdict['_v_fmt'] = newdict['_v_align'] + newdict['_v_fmt']
-        # Execute this only when the real instance is created
-        # (not the parent class)
-        if newdict.has_key('_v_fmt'):
-            fmt = newdict['_v_fmt']
-            #print "Format for this table ==>", newdict['_v_fmt']
-            # Check for validity of this format string
-            try:
-                struct.calcsize(fmt)
-            except struct.error:
-                raise TypeError, "This type format (%s) is not supported!." % \
-                      fmt
+                newdict['_v_fmt'] += str(object.length) + object.rectype
+                recarrfmt.append(str(object.length) + object.recarrtype)
+                # Formats in numarray notation
+                newdict['_v_formats'].append(object.type)
 
+        # Strip the last comma from _v_recarrfmt
+        newdict['_v_recarrfmt'] = ','.join(recarrfmt)
         # finally delegate the rest of the work to type.__new__
         return type.__new__(cls, classname, bases, newdict)
 
@@ -335,66 +237,15 @@ if __name__=="__main__":
         add any new variables and that their type is correct.
 
         """
-        x = 'l'
-        y = 'd'
-        color = '3s'
+        #color = '3s'
+        x = defineType("Int32", 2, 0)
+        y = defineType("Float64", 1, 1)
+        z = defineType("UInt8", 1, 1)
+        color = defineType("CharType", 2, " ")
 
-    # example uses of class Point
-    q = Record()  # Default values
-    print q
-
-    rec = Record(x=4, y=3.4, color = "pwpwp")
-    print rec
-    for i in range(0*100000):
-        # Some keyword parameters allowed (all set)
-        # 3.79 s for 100.000 records (with slots) (3.45 with -O)
-        rec._f_pack(color = "pwpwp", y = 23.5, x = 5)
-                                      
-    for i in range(0*100000):
-        # Some keyword parameters allowed (none set)
-        # 2.98 s for 100.000 records 
-        rec.x = 5
-        rec.y = 23.4
-        rec.color = "pwpwp"
-        rec._f_pack()
-                                      
-    for i in xrange(100000):
-        # No parameters allowed
-        # 2.74 s for 100.000 records (with slots)
-        # 2.83 s for 100.000 records (without slots)
-        rec.x = 5
-        rec.y = 23.4
-        rec.color = "pwpwp"
-        rec._f_pack2()
-
-    for i in range(0*100000):
-        # All slots should be specified  (p not modified)
-        # 2.39 s for 100.000 rec
-        x = 5
-        y = 23.4
-        color = "pwpwp"
-        rec._f_packFast(color = color, x = x, y = y)
-        
-    for i in range(0*100000):
-        # All slots should be specified (II) (p not modified)
-        # 2.22 s for 100.000 rec
-        rec._f_packFast(color = "pwpwp", x = 5, y = 24.5)
-
-    for i in range(0*100000):
-        # Positional (alphanumeric order) params (p not modified)
-        # 0.99 s for 100.000 rec (fastest)
-        x = 5
-        y = 23.4
-        color = "pwpwp"
-        rec._f_packFastest(color, x, y)     
-
-    for i in range(0*100000):
-        # Positional (alphanumeric order) params (II) (p not modified)
-        # 0.88 s for 100.000 rec (fastest)
-        rec._f_packFastest("pwpwp", 5, 23.5)     
-                                 
+    # example cases of class Point
+    rec = Record()  # Default values
     print "rec value ==>", rec
-    print "packed struct ==> (%s)" % rec._f_pack()
-    
     print "Slots ==>", rec.__slots__
     print "Format for this table ==>", rec._v_fmt
+    print "recarray Format for this table ==>", rec._v_recarrfmt

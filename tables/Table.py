@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.7 2002/11/13 20:35:35 falted Exp $
+#       $Id: Table.py,v 1.8 2003/01/29 10:22:14 falted Exp $
 #
 ########################################################################
 
@@ -27,17 +27,20 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.7 $"
+__version__ = "$Revision: 1.8 $"
 
 from __future__ import generators
+import sys
 import struct
 import types
 import re
 import string
+from numarray import *
+import chararray
+import recarray2 as recarray
 import hdf5Extension
 from Leaf import Leaf
-from IsRecord import IsRecord, metaIsRecord
-
+from IsRecord import IsRecord, metaIsRecord, defineType, fromstructfmt
 
 class Table(Leaf, hdf5Extension.Table):
     """Represent a table in the object tree.
@@ -69,7 +72,8 @@ class Table(Leaf, hdf5Extension.Table):
 
         name -- the node name
         title -- the title for this node  # This can be moved to Leaf
-        record -- the record object for this table
+        record -- the record object for this table (can be a dictionary)
+        row -- A pointer to the current row object
         nrows -- the number of rows in this table
         varnames -- the field names for the table
         vartypes -- the typecodes for the table fields
@@ -84,7 +88,8 @@ class Table(Leaf, hdf5Extension.Table):
 
         RecordObject -- The IsRecord instance. If None, the table
             metadata is read from disk, else, it's taken from previous
-            parameters.
+            parameters. It can be a dictionary where the keys are the
+            field names, and the values the type definitions.
 
         title -- Sets a TITLE attribute on the HDF5 table entity.
 
@@ -103,7 +108,14 @@ class Table(Leaf, hdf5Extension.Table):
 
         """
         # Initialize this object in case is a new Table
-        if RecordObject:
+        if isinstance(RecordObject, types.DictType):
+            self.record = metaIsRecord("", (), RecordObject)()
+            self.title = title
+            self._v_compress = compress
+            self._v_expectedrows = expectedrows
+            # Flag that tells if this table is new or has to be read from disk
+            self._v_new = 1
+        elif RecordObject:
             self.record = RecordObject   # Record points to the RecordObject
             self.title = title
             self._v_compress = compress
@@ -113,22 +125,38 @@ class Table(Leaf, hdf5Extension.Table):
         else:
             self._v_new = 0
 
+    def newBuffer(self, init=1):
+        # Create the recarray buffer
+        print "Recarrfmt ==>", self.record._v_recarrfmt
+        recarr = recarray.array(None, formats=self.record._v_recarrfmt,
+                                shape=(self._v_maxTuples,),
+                                names = self.varnames)
+        # Initialize the recarray with the defaults in record
+        if init:
+            for field in self.record.__slots__:
+                recarr._fields[field][:] = self.record.__dflts__[field]
+        return recarr
+
     def create(self):
         """Create a new table on disk."""
         
         # Compute some important parameters for createTable
         self.varnames = tuple(self.record.__slots__)
         self._v_fmt = self.record._v_fmt
+        print "_v_fmt", self._v_fmt
         self._calcBufferSize(self._v_expectedrows)
         # Create the table on disk
         self.createTable(self.varnames, self._v_fmt, self.title,
-                         self._v_compress, self._v_rowsize, self._v_chunksize)
+                         self._v_compress, self._v_chunksize)
         # Initialize the number of rows
         self.nrows = 0
         # Initialize the shape attribute
         self.shape = (len(self.varnames), self.nrows)
         # Get the variable types
         self.vartypes = re.findall(r'(\d*\w)', self._v_fmt)
+        # Create the arrays for buffering
+        self._v_buffer = self.newBuffer()
+        self.row = self._v_buffer._row
                          
     def open(self):
         """Opens a table from disk and read the metadata on it.
@@ -143,7 +171,7 @@ class Table(Leaf, hdf5Extension.Table):
         (self.nrows, self.varnames, self._v_fmt) = self.getTableInfo()
         # print "Format for this existing table ==>", self._v_fmt
         # We still have to code how to get this attributes
-        self.title = self.getTitle()
+        self.title = self._v_parent._f_getDsetAttr(self._v_name, "TITLE")
         #print "Table Title ==>", self.title
         # This one is probably not necessary to set it, but...
         self._v_compress = 0  # This means, we don't know if compression
@@ -159,13 +187,24 @@ class Table(Leaf, hdf5Extension.Table):
         recordDict = {}
         i = 0
         for varname in self.varnames:
-            recordDict[varname] = self.vartypes[i]
+            try:
+                #print "self.vartypes -->", self.vartypes
+                length = int(self.vartypes[i][:-1])
+            except:
+                length = 1
+            vartype = fromstructfmt[self.vartypes[i][-1]]
+            #recordDict[varname] = self.vartypes[i]
+            recordDict[varname] = defineType(vartype, length)
             i += 1
         # Append this entry to indicate the alignment!
-        recordDict['_v_align'] = self._v_fmt[0]
+        # Not needed anymore because the alignment is now always "="
+        #recordDict['_v_align'] = self._v_fmt[0]
         # Create an instance record to host the record fields
         RecordObject = metaIsRecord("", (), recordDict)()
         self.record = RecordObject   # This points to the RecordObject
+        # Create the arrays for buffering
+        self._v_buffer = self.newBuffer(init=0)
+        self.row = self._v_buffer._row
         
     def _calcBufferSize(self, expectedrows):
         """Calculate the buffer size and the HDF5 chunk size.
@@ -180,6 +219,7 @@ class Table(Leaf, hdf5Extension.Table):
         fmt = self._v_fmt
         compress = self._v_compress
         rowsize = struct.calcsize(fmt)
+        #rowsize = self.record._v_record.itemsize()
         self._v_rowsize = rowsize
         self.spacebuffer = " " * rowsize
         # List to collect binary tuples
@@ -251,40 +291,37 @@ class Table(Leaf, hdf5Extension.Table):
             chunksize *= 2
         # Max Tuples to fill the buffer
         self._v_maxTuples = buffersize / rowsize
+        #print "Buffersize, MaxTuples ==>", buffersize, self._v_maxTuples
         self._v_chunksize = chunksize
 
     def _saveBufferedRows(self):
         """Save buffered table rows."""
-        #print "Flusing nrows ==> ", self._v_recunsaved
-        self.append_records("".join(self._v_packedtuples), self._v_recunsaved)
+        # The next two lines are very similar in performance!
+        #self.append_records0(str(recarr._data), self._v_recunsaved)
+        self.append_records(self._v_buffer, self._v_recunsaved)
         self.nrows += self._v_recunsaved
         # Reset the buffer and the tuple counter
         self._v_packedtuples = []
         self._v_recunsaved = 0
-        # Set the shape attribute
+        # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (len(self.varnames), self.nrows)
         
-    def appendAsRecord(self, RecordObject):
-        """Append the "RecordObject" to the output buffer.
+    def appendAsRecord(self, record):
+        """Append the "record" to the output buffer.
+        Versió per a llista de arrays...
+        Aquesta versio treu 28600 rows/sec
 
-        "RecordObject" has to be a IsRecord descendant instance.
+        "record" has to be a IsRecord descendant instance.
 
         """
-        # We should add a test unit case to test that this try works
-        # well
-        # Test if RecordObject is really a descendant of IsRecord
-        if hasattr(RecordObject, "_f_pack"):
-            # We pack with _f_pack2 because we don't need to pass parameters
-            # and is a bit faster that _f_pack
-            self._v_packedtuples.append(RecordObject._f_pack2())
-        else:
-            raise ValueError, \
-                  "arg 1 with type %s, is not a IsRecord descendant." % \
-                  type(RecordObject)
-
         self._v_recunsaved += 1
+        #record(self._v_recunsaved) 
+        record.__dict__["_row"] = self._v_recunsaved
         if self._v_recunsaved  == self._v_maxTuples:
             self._saveBufferedRows()
+            #record(self._v_recunsaved) 
+            record.__dict__["_row"] = 0
+            #record.__dict__["_row"][0] = 0
 
     def appendAsTuple(self, tupleValues):
         """Append the "tupleValues" tuple to the table output buffer.
@@ -331,16 +368,50 @@ class Table(Leaf, hdf5Extension.Table):
         """
         # Create a buffer for the readout
         nrowsinbuf = self._v_maxTuples
-        rowsz = self._v_rowsize
-        buffer = " " * rowsz * self._v_maxTuples
-        vars = self.record   # get the pointer to the Record object
-        # Iterate over the table
+        #buffer = self.newBuffer(init=0)  # Get a recarray as buffer
+        buffer = self._v_buffer  # Get a recarray as buffer
+        vars = buffer._row   # get the pointer to the Record object
+        varsdict = vars.__dict__
+        row = vars.__dict__["_row"]
         for i in xrange(0, self.nrows, nrowsinbuf):
             recout = self.read_records(i, nrowsinbuf, buffer)
             for j in xrange(recout):
-                vars._f_unpack(buffer[j*rowsz:(j+1)*rowsz])
+                varsdict["_row"] = j  # Up to 186000 lines/s
                 yield vars
-                #print "tupla %d ==> %s" % (i + j, tupla)
+        
+    def readAsRecords_old(self):
+        """Return an iterator yielding record instances built from rows
+
+        This method is a generator, i.e. it keeps track on the last
+        record returned so that next time it is invoked it returns the
+        next available record. It is slower than readAsTuples but in
+        exchange, it returns full-fledged instance records.
+
+        """
+        # Create a buffer for the readout
+        nrowsinbuf = self._v_maxTuples
+        buffer = self.newBuffer(init=0)  # Get a recarray as buffer
+        vars = buffer._row   # get the pointer to the Record object
+        varsdict = vars.__dict__
+        s = vars.__dict__.__setitem__
+        for i in xrange(0, self.nrows, nrowsinbuf):
+            # Creating a new buffer here force to load all the
+            # table in-memory! Don't do that!
+            #buffer = self.newBuffer(init=0)  # Get a recarray as buffer
+            #vars = buffer._row   # get the pointer to the Record object
+            #varsdict = vars.__dict__
+            recout = self.read_records(i, nrowsinbuf, buffer)
+            #varsdict["_row"] = 0
+            for j in xrange(recout):
+                # It is faster to assign the "_row" attribute directly
+                #vars(j)   # this get 50000 lines/s 
+                #vars.__dict__["_row"] = j  # Up to 170000 lines/s
+                varsdict["_row"] = j  # Up to 186000 lines/s
+                #s("_row", j)  # Up to 170000 lines/s
+                # This method maintains the performance (in lines/s figures)
+                # when the rowsize grows (i.e it scales very well!)
+                yield vars
+                #varsdict["_row"] += 1  # Up to 174000 lines/s
         
     def readAsTuples(self):
         """Returns an iterator yielding tuples built from rows
@@ -354,13 +425,14 @@ class Table(Leaf, hdf5Extension.Table):
         """
         # Create a buffer for the readout
         nrowsinbuf = self._v_maxTuples
+        buffer = self.newBuffer()  # Get a recarray as buffer
         rowsz = self._v_rowsize
-        buffer = " " * rowsz * self._v_maxTuples
-        # Iterate over the table
+        membuf = buffer(buffer._data) # This point to the beginning of raw data
+        vars = []
         for i in xrange(0, self.nrows, nrowsinbuf):
             recout = self.read_records(i, nrowsinbuf, buffer)
             for j in xrange(recout):
-                tupla = struct.unpack(self._v_fmt, buffer[j*rowsz:(j+1)*rowsz])
+                tupla = struct.unpack(self._v_fmt, membuf[j*rowsz:(j+1)*rowsz])
                 yield tupla
                 
     def flush(self):

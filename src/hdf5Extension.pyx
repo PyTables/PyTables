@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.5 2002/11/12 13:52:05 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.6 2003/01/29 10:22:14 falted Exp $
 #
 ########################################################################
 
@@ -36,10 +36,13 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.5 $"
+__version__ = "$Revision: 1.6 $"
 
 
 import os.path
+import numarray as num
+import chararray
+import recarray2 as recarray
 
 # C funtions and variable declaration from its headers
 
@@ -88,32 +91,115 @@ cdef extern from "Python.h":
   ctypedef class PyTupleObject [type PyTuple_Type]:
     cdef object ob_item
     cdef int    ob_size
-    
-# Some declarations for Numeric objects and functions
-cdef extern from "Numeric/arrayobject.h":
+
+  # To access to Memory (Buffer) objects presents in numarray
+  object PyBuffer_FromMemory(void *ptr, int size)
+  object PyBuffer_New(int size)
+  int PyObject_AsReadBuffer(object, void **rbuf, int *len)
+  int PyObject_AsWriteBuffer(object, void **rbuf, int *len)
+
+# Structs and functions from numarray
+cdef extern from "numarray/numarray.h":
+
+  ctypedef enum NumRequirements:
+    NUM_CONTIGUOUS
+    NUM_NOTSWAPPED
+    NUM_ALIGNED
+    NUM_WRITABLE
+    NUM_C_ARRAY
+    NUM_UNCONVERTED
+
+  ctypedef enum NumarrayByteOrder:
+    NUM_LITTLE_ENDIAN
+    NUM_BIG_ENDIAN
+
+  cdef enum:
+    UNCONVERTED
+    C_ARRAY
+
+  ctypedef enum NumarrayType:
+    tAny
+    tBool	
+    tInt8
+    tUInt8
+    tInt16
+    tUInt16
+    tInt32
+    tUInt32
+    tInt64
+    tUInt64
+    tFloat32
+    tFloat64
+    tComplex32
+    tComplex64
+    tObject
+    tDefault
+    tLong
   
-    struct PyArray_Descr:
-        int type_num, elsize
-        char type
+# Declaration for the PyArrayObject
+  
+  struct PyArray_Descr:
+     int type_num, elsize
+     char type
         
-    ctypedef class PyArrayObject [type PyArray_Type]:
-        cdef char *data
-        cdef int nd
-        cdef int *dimensions, *strides
-        cdef object base
-        cdef PyArray_Descr *descr
-        cdef int flags
-    
-    void import_array()
+  ctypedef class PyArrayObject [type PyArray_Type]:
+    # Compatibility with Numeric
+    cdef char *data
+    cdef int nd
+    cdef int *dimensions, *strides
+    cdef object base
+    cdef PyArray_Descr *descr
+    cdef int flags
+    # New attributes for numarray objects
+    cdef object _data         # object must meet buffer API */
+    cdef object _shadows      # ill-behaved original array. */
+    cdef int    nstrides      # elements in strides array */
+    cdef long   byteoffset    # offset into buffer where array data begins */
+    cdef long   bytestride    # basic seperation of elements in bytes */
+    cdef long   itemsize      # length of 1 element in bytes */
+    cdef char   byteorder     # NUM_BIG_ENDIAN, NUM_LITTLE_ENDIAN */
+    cdef char   _aligned      # test override flag */
+    cdef char   _contiguous   # test override flag */
+
+  # The Numeric initialization funtion
+  void import_array()
     
 # The Numeric API requires this function to be called before
 # using any Numeric facilities in an extension module.
 import_array()
 
-# Functions from Numeric
-cdef extern from *:
-  object PyArray_FromDims(int nd, int *d, int type)
+# CharArray type
+CharType = recarray.CharType
 
+# Conversion tables from/to classes to the numarray enum types
+toenum = {num.Int8:tInt8,       num.UInt8:tUInt8,
+          num.Int16:tInt16,     num.UInt16:tUInt16,
+          num.Int32:tInt32,     num.UInt32:tUInt32,
+          num.Float32:tFloat32, num.Float64:tFloat64,
+          CharType:97   # ascii(97) --> 'a' # Special case (to be corrected)
+          }
+
+toclass = {tInt8:num.Int8,       tUInt8:num.UInt8,
+           tInt16:num.Int16,     tUInt16:num.UInt16,
+           tInt32:num.Int32,     tUInt32:num.UInt32,
+           tFloat32:num.Float32, tFloat64:num.Float64,
+           97:CharType   # ascii(97) --> 'a' # Special case (to be corrected)
+          }
+
+# Functions from numarray API
+cdef extern from "numarray/libnumarray.h":
+  PyArrayObject NA_InputArray (object, NumarrayType, int)
+  PyArrayObject NA_OutputArray (object, NumarrayType, int)
+  PyArrayObject NA_IoArray (object, NumarrayType, int)
+  PyArrayObject PyArray_FromDims(int nd, int *d, int type)
+  PyArrayObject NA_Empty(int nd, int *d, NumarrayType type)
+  object PyArray_ContiguousFromObject(object op, int type,
+                                      int min_dim, int max_dim)
+# Functions from numeric API
+#cdef extern from "Numeric/arrayobject.h":
+#  PyArrayObject PyArray_FromDims(int nd, int *d, int type)
+  
+# Functions from HDF5
 cdef extern from "hdf5.h":
   int H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, H5F_ACC_EXCL
   int H5F_ACC_DEBUG, H5F_ACC_CREAT
@@ -123,7 +209,7 @@ cdef extern from "hdf5.h":
   ctypedef int hid_t  # In H5Ipublic.h
   ctypedef int herr_t
   ctypedef int htri_t
-  ctypedef long long hsize_t
+  ctypedef long long hsize_t    # How to declare that in a compatible MSVC way?
   cdef enum H5T_class_t:
     H5T_NO_CLASS         = -1,  #error                                      */
     H5T_INTEGER          = 0,   #integer types                              */
@@ -179,17 +265,18 @@ cdef extern from *:
 cdef extern from "H5LT.h":
 
   herr_t H5LTmake_array( hid_t loc_id, char *dset_name, char *title,
+                         char *flavor, char *obversion,
                          int rank, hsize_t *dims, hid_t type_id,
-                         void *buffer )
+                         void *data )
 
   herr_t H5LTmake_dataset( hid_t loc_id, char *dset_name, int rank,
-                           hsize_t *dims, hid_t type_id, void *buffer )
+                           hsize_t *dims, hid_t type_id, void *data )
   
   herr_t H5LTread_dataset( hid_t loc_id, char *dset_name,
-                           hid_t type_id, void *buffer )
+                           hid_t type_id, void *data )
                            
   herr_t H5LTread_array( hid_t loc_id, char *dset_name,
-                         void *buffer )
+                         void *data )
 
   herr_t H5LTget_dataset_ndims ( hid_t loc_id, char *dset_name, int *rank )
   
@@ -207,27 +294,35 @@ cdef extern from "H5LT.h":
                              hsize_t *dims, H5T_class_t *class_id,
                              H5T_sign_t *sign, size_t *type_size )
 
-  herr_t H5LTget_attribute( hid_t loc_id, char *attr_name, void *attr_out )
+  herr_t H5LT_get_attribute_disk(hid_t loc_id, char *attr_name, void *attr_out)
           
-  herr_t H5LTget_attribute_ndims( hid_t loc_id, char *attr_name, int *rank )
+#  herr_t H5LTget_attribute_ndims( hid_t loc_id, char *attr_name, int *rank )
+  herr_t H5LTget_attribute_ndims( hid_t loc_id, 
+                                  char *obj_name, 
+                                  char *attr_name,
+                                  int *rank )
+
   
-  herr_t H5LTget_attribute_info( hid_t loc_id, char *attr_name,
+#  herr_t H5LTget_attribute_info( hid_t loc_id, char *attr_name,
+#                                 hsize_t *dims, H5T_class_t *class_id,
+#                                 size_t *type_size )
+
+  herr_t H5LTget_attribute_info( hid_t loc_id, char *obj_name, char *attr_name,
                                  hsize_t *dims, H5T_class_t *class_id,
                                  size_t *type_size )
 
   herr_t H5LTset_attribute_string( hid_t loc_id, char *obj_name,
                                    char *attr_name, char *attr_data )
 
-  herr_t H5LTfind_attribute( hid_t loc_id, char *attr_name )
+  herr_t H5LT_find_attribute( hid_t loc_id, char *attr_name )
   
   
-# Funtion to compute the HDF5 type from a Numarray typecode
+# Funtion to compute the HDF5 type from a numarray enum type
 cdef extern from "arraytypes.h":
     
-  hid_t convArrayType(char fmt)
-  
+  hid_t convArrayType(int fmt, size_t size)
   int getArrayType(H5T_class_t class_id, size_t type_size,
-                   H5T_sign_t sign, char *format)
+                   H5T_sign_t sign, int *format)
                    
 # I define this constant, but I should not, because it should be defined in
 # the HDF5 library, but having problems importing it
@@ -323,9 +418,10 @@ def isPyTablesFile(char *filename):
     # Open the root group
     root_id =  H5Gopen(file_id, "/")
     # Check if attribute exists
-    if H5LTfind_attribute(root_id, 'PYTABLES_FORMAT_VERSION'):
+    if H5LT_find_attribute(root_id, 'PYTABLES_FORMAT_VERSION'):
       # Read the format_version attribute
-      ret = H5LTget_attribute(root_id, 'PYTABLES_FORMAT_VERSION', attr_out)
+      ret = H5LT_get_attribute_disk(root_id, 'PYTABLES_FORMAT_VERSION',
+                                    attr_out)
       if ret >= 0:
         isptf = attr_out
       else:
@@ -362,7 +458,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.5 2002/11/12 13:52:05 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.6 2003/01/29 10:22:14 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -476,7 +572,8 @@ cdef class Group:
     cdef int rank
     cdef int ret, i
         
-    ret = H5LTget_attribute_ndims(self.group_id, attrname, &rank )
+    #ret = H5LTget_attribute_ndims(self.group_id, attrname, &rank )
+    ret = H5LTget_attribute_ndims(self.parent_id, self.name, attrname, &rank )
     if ret < 0:
       raise RuntimeError("Can't get ndims on attribute %s in group %s." % 
                              (attrname, self.name))
@@ -486,7 +583,8 @@ cdef class Group:
     if rank > 0:
         dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
     
-    ret = H5LTget_attribute_info(self.group_id, attrname,
+    #ret = H5LTget_attribute_info(self.group_id, attrname,
+    ret = H5LTget_attribute_info(self.parent_id, self.name, attrname,
                                  dims, &class_id, &type_size)
     if ret < 0:
         raise RuntimeError("Can't get info on attribute %s in group %s." % 
@@ -500,7 +598,7 @@ cdef class Group:
         nelements = nelements * dim[i]
       attrvalue = <char *>malloc(type_size * nelements * sizeof(char))
     
-    ret = H5LTget_attribute(self.group_id, attrname, attrvalue)
+    ret = H5LT_get_attribute_disk(self.group_id, attrname, attrvalue)
     if ret < 0:
       raise RuntimeError("Can't get attribute %s in group %s." % 
                              (attrname, self.name))
@@ -526,9 +624,9 @@ cdef class Group:
       raise RuntimeError("Cannot open the dataset")
 
     # Check if attribute exists
-    if H5LTfind_attribute(loc_id, attrname):
+    if H5LT_find_attribute(loc_id, attrname):
       # Get the table TITLE attribute
-      ret = H5LTget_attribute(loc_id, attrname, attrvalue)
+      ret = H5LT_get_attribute_disk(loc_id, attrname, attrvalue)
       if ret < 0:
         raise RuntimeError("Cannot get '%s' attribute on dataset" % attrname)
     else:
@@ -569,11 +667,6 @@ cdef class Table:
     if self.loc_id < 0:
       raise RuntimeError("Problems opening the table")
   
-    # Get the table TITLE attribute
-    ret = H5LTget_attribute(self.loc_id, "TITLE", self.title)
-    if ret < 0:
-      raise RuntimeError("Problems getting table TITLE attribute")
-  
   def closeTable(self):
     cdef herr_t  ret
 
@@ -581,10 +674,8 @@ cdef class Table:
     if ret < 0:
       raise RuntimeError("Problems closing the table")
   
-  # Function reachable from Python
   def createTable(self, PyTupleObject varnames, char *fmt,
-                  char *title, int compress,
-                  int rowsize, hsize_t chunksize):
+                  char *title, int compress, hsize_t chunksize):
     cdef int     nvar
     cdef int     i, nrecords, ret
     cdef hid_t   fieldtypes[MAX_FIELDS]
@@ -592,9 +683,8 @@ cdef class Table:
 
     self.fmt = fmt
     self.compress = compress
-    strncpy(self.title, title, MAX_CHARS)
-    # End properly this string
-    self.title[MAX_CHARS-1] = '\0'
+    # Save the title as a class variable
+    snprintf(self.title, MAX_CHARS, "%s", title)
   
     # Get the number of fields
     self.nfields = varnames.ob_size
@@ -638,20 +728,7 @@ cdef class Table:
     # We need to assign loc_id a value to close the table afterwards
     self.openTable()  
 
-  def append_record(self, PyStringObject record):
-    cdef int ret, len
-    cdef char *str
-
-    str = record.ob_sval
-    len = record.ob_size
-    # Append a record:
-    ret = H5TBappend_records(self.group_id, self.tablename, 1, self.dst_size,
-                             self.field_offset, <void *>str)  
-    if ret < 0:
-      raise RuntimeError("Problems appending the record")
-    self.totalrecords = self.totalrecords + 1
-
-  def append_records(self, PyStringObject records, int nrecords):
+  def append_records0(self, PyStringObject records, int nrecords):
     cdef int ret
 
     #print "About to save %d records..." % nrecords
@@ -663,9 +740,24 @@ cdef class Table:
     #print "After saving %d records..." % nrecords
     self.totalrecords = self.totalrecords + nrecords
 
-  def getTitle(self):
-    "Get the attribute TITLE from table. The maximum TITLE size is MAX_CHARS."
-    return PyString_FromString(self.title)
+  # append_records0 and append_records perfom similar speed (!)
+  def append_records(self, object recarr, int nrecords):
+    cdef int ret, buflen
+    cdef void *rbuf
+
+    #print "About to save %d records..." % nrecords
+    # Get the pointer to the buffer data area
+    ret = PyObject_AsWriteBuffer(recarr._data, &rbuf, &buflen)    
+    if ret < 0:
+      raise RuntimeError("Problems getting the pointer to the buffer")
+    
+    # Append the records:
+    ret = H5TBappend_records(self.group_id, self.tablename, nrecords,
+                   self.dst_size, self.field_offset, rbuf)
+    if ret < 0:
+      raise RuntimeError("Problems appending the records")
+    #print "After saving %d records..." % nrecords
+    self.totalrecords = self.totalrecords + nrecords
 
   def getTableInfo(self):
     "Get info from a table on disk. This method is standalone."
@@ -720,17 +812,22 @@ cdef class Table:
     return (nrecords, names_tuple, fmt)
 
   def read_records(self, hsize_t start, hsize_t nrecords,
-                   PyStringObject buffer):
-    cdef herr_t   ret
+                   object recarr):
+    cdef herr_t ret
+    cdef void *rbuf
+    cdef int buflen, ret2
 
     # Correct the number of records to read, if needed
     if (start + nrecords) > self.totalrecords:
       nrecords = self.totalrecords - start
 
+    # Get the pointer to the buffer data area
+    ret2 = PyObject_AsWriteBuffer(recarr._data, &rbuf, &buflen)    
+
     # Readout to the buffer
     ret = H5TBread_records(self.group_id, self.tablename,
                            start, nrecords, self.dst_size,
-                           self.field_offset, <void *>buffer.ob_sval )
+                           self.field_offset, rbuf )
     if ret < 0:
       raise RuntimeError("Problems reading records.")
 
@@ -739,16 +836,11 @@ cdef class Table:
 cdef class Array:
   # Instance variables
   cdef hid_t   group_id
-  cdef char    *name, title[MAX_CHARS]
-  cdef char    fmt
-  cdef hsize_t *dims
-  cdef hid_t   type_id
-  cdef int     *dimensions
-  cdef H5T_class_t class_id
-  cdef H5T_sign_t sign
-  cdef size_t  type_size
-  cdef char    typecode
+  cdef char    *name
   cdef int     rank
+  cdef hsize_t *dims
+  cdef object  type
+  cdef int     enumtype
 
   def _f_new(self, where, name):
     # Initialize the C attributes of Group object (Very important!)
@@ -756,46 +848,67 @@ cdef class Array:
     # The parent group id for this object
     self.group_id = where._v_groupId
 
-  def createArray(self, PyArrayObject array, char *title):
+  def createArray(self, object arr, char *title,
+                  char *flavor, char *obversion):
     cdef int i
     cdef herr_t ret
+    cdef hid_t type_id
+    cdef void *rbuf
+    cdef int buflen, ret2
+    cdef object array
+    cdef int itemsize
+    cdef char *tmp
 
-    # Save the title as a class variable
-    strncpy(self.title, title, MAX_CHARS)
-    # End properly this string
-    self.title[MAX_CHARS-1] = '\0'
-
-    # Get some important parameters
-    self.rank = array.nd
-    self.typecode = array.descr.type
-
-    # Get the HDF5 type_id for this typecode
-    self.type_id = convArrayType(self.typecode)
-    if self.type_id < 0:
+    if isinstance(arr, num.NumArray):
+      self.type = arr._type
+      self.enumtype = toenum[arr._type]
+      # Convert the array object to a an object with a well-behaved buffer
+      array = <object>NA_InputArray(arr, self.enumtype, C_ARRAY)
+      itemsize = array.type().bytes
+    elif isinstance(arr, chararray.CharArray):
+      self.type = CharType
+      self.enumtype = 'a'
+      # Get a contiguous chararray object (well-behaved buffer)
+      array = arr.contiguous()
+      itemsize = array._itemsize
+      
+    type_id = convArrayType(self.enumtype, itemsize)
+    if type_id < 0:
       raise TypeError, \
-        """typecode '%c' is not supported right now. Sorry about that.""" \
-    % self.typecode
+        """type '%s' is not supported right now. Sorry about that.""" \
+    % self.type
+
+    # Get the pointer to the buffer data area
+    ret2 = PyObject_AsReadBuffer(array._data, &rbuf, &buflen)
+    # PyObject_AsWriteBuffer cannot be used when buffers come from
+    # Numeric objects. Using the Read version only leads to a
+    # warning in compilation time
+    if ret2 < 0:
+      raise RuntimeError("Problems getting the buffer area.")
 
     # Allocate space for the dimension axis info
-    self.dims = <hsize_t *>malloc(array.nd * sizeof(hsize_t))
-    self.dimensions = <int *>malloc(array.nd * sizeof(int))
+    self.rank = len(arr.shape)
+    self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Fill the dimension axis info with adequate info (and type!)
-    for i from  0 <= i < array.nd:
-        self.dims[i] = array.dimensions[i]
-        self.dimensions[i] = array.dimensions[i]
+    for i from  0 <= i < self.rank:
+        self.dims[i] = array.shape[i]
                                
     # Save the array
-    ret = H5LTmake_array(self.group_id, self.name, self.title, array.nd,
-                         self.dims, self.type_id, array.data)
+    ret = H5LTmake_array(self.group_id, self.name, title,
+                         flavor, obversion, self.rank,
+                         self.dims, type_id, rbuf)
     if ret < 0:
       raise RuntimeError("Problems saving the array.")
 
+    return self.type
+    
   def openArray(self):
-    cdef hid_t loc_id
     cdef object shape
+    cdef size_t type_size
+    cdef H5T_class_t class_id
+    cdef H5T_sign_t sign
     cdef int i
     cdef herr_t ret
-    cdef char typecodestr[2]
 
     # Get the rank for this array object
     ret = H5LTget_array_ndims(self.group_id, self.name, &self.rank)
@@ -803,13 +916,12 @@ cdef class Array:
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Get info on dimensions, class and type size
     ret = H5LTget_array_info(self.group_id, self.name, self.dims,
-                             &self.class_id, &self.sign, &self.type_size)
+                             &class_id, &sign, &type_size)
     
-    # Copy the dimensions in a integer array
-    # but first, book memory for the dimensions array
-    self.dimensions = <int *>malloc(self.rank * sizeof(int))
-    for i from  0 <= i < self.rank:
-      self.dimensions[i] = <int>self.dims[i]
+    ret = getArrayType(class_id, type_size,
+                       sign, &self.enumtype)
+    if ret < 0:
+      raise TypeError, "HDF5 class %d not supported. Sorry!"
 
     # We had problems when creating Tuples directly with Pyrex!.
     # A bug report has been sent to Greg and here is his answer:
@@ -826,60 +938,27 @@ cdef class Array:
     behaviour.
 
     """
-    # So, finally I've decided to code the shape tuple creation in C
-    shape = createDimsTuple(self.dimensions, self.rank)
-    
-    # Allocate space for the dimension axis info
-    self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
-    
-    # Get info on dimensions, class and type size
-    ret = H5LTget_array_info(self.group_id, self.name, self.dims,
-                             &self.class_id, &self.sign, &self.type_size)
-    ret = getArrayType(self.class_id, self.type_size,
-                       self.sign, &self.typecode)
-    # Get the type_id from the array typecode
-    self.type_id = convArrayType(self.typecode)
-    
-    # Put the title in the self.title attribute
-    self.getArrayTitle()
+    # So, I've decided to create the shape tuple using Python constructs
+    shape = []
+    for i in range(self.rank):
+      shape.append(self.dims[i])
+    shape = tuple(shape)
 
-    # Construct a typecode array from typecode character
-    typecodestr[0] = self.typecode
-    typecodestr[1] = '\0'
-    
-    # When returning the shape, the problems seems to appear
-    return (PyString_FromString(typecodestr), shape)
+    return (toclass[self.enumtype], shape, type_size)
   
-  def getArrayTitle(self):
-    "Get the attribute TITLE. The maximum TITLE size is MAX_CHARS."
-
-    # First open the data set
-    loc_id = H5Dopen(self.group_id, self.name)
-    if loc_id < 0:
-      raise RuntimeError("Problems opening the array.")
-    # Get the TITLE attribute
-    ret = H5LTget_attribute(loc_id, "TITLE", &self.title)
-    if ret < 0:
-      raise RuntimeError("Problems getting array TITLE attribute.")
-
-    # Close the dataset
-    ret = H5Dclose(loc_id)
-    if ret < 0:
-      raise RuntimeError("Problems closing the array.")
-
-    return PyString_FromString(self.title)
-
-  def readArray(self):
+  def readArray(self, object buf):
     cdef herr_t ret
-    cdef PyArrayObject array
+    cdef void *rbuf
+    cdef int buflen, ret2
 
-    # Create the array to fill it up later
-    array = PyArray_FromDims(self.rank, self.dimensions, self.typecode)
-    
-    ret = H5LTread_array(self.group_id, self.name, <void *>array.data)
+    # Get the pointer to the buffer data area
+    ret2 = PyObject_AsWriteBuffer(buf, &rbuf, &buflen)
+    if ret2 < 0:
+      raise RuntimeError("Problems getting the buffer area.")
+
+    ret = H5LTread_array(self.group_id, self.name, rbuf)
     if ret < 0:
       raise RuntimeError("Problems reading the array data.")
 
-    # Return the new Numeric array
-    return array
+    return 
 
