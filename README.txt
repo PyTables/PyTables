@@ -39,7 +39,8 @@ CPU and I/O requeriments) way.
 
 To emulate records (C structs in HDF5) in Python I've implemented a
 special metaclass with the capability to detect errors in field
-assignments as well as range overflows. More in documentation.
+assignments as well as range overflows. More in documentation (see doc
+directory).
 
 I'm using Linux as the main development platform, and that should be
 easy the compile/install in other UNIX machines, but I recognize that
@@ -54,6 +55,12 @@ Installation
 
 This are instructions for Unix/Linux system. If you are using Windows,
 and get the library working, please, tell me about.
+
+Extensions in PyTables has been made using Pyrex and C. You can
+rebuild everything from scratch if you got Pyrex installed, but this
+is not necessary, as the Pyrex compiled source is included in the
+distribution. But if you want to do that, merely replace setup.py
+script in these instructions by setup-pyrex.py.
 
 The Python Distutils are used to build and install tables, so it is
 fairly simple to get things ready to go.

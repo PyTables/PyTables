@@ -1,28 +1,34 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!DOCTYPE article PUBLIC "-//Torsten Bronger//DTD tbook 1.3//EN"
+<!DOCTYPE book PUBLIC "-//Torsten Bronger//DTD tbook 1.3//EN"
                       "/usr/local/share/xml/tbook/tbook.dtd">
-<article>
-  <title>PyTables User's Guide</title>
-  <author>Francesc Alted</author>
-  <date>October 2002</date>
-  <year>2002</year>
-  <abstract>
-    <p>PyTables is a Python package which allows dealing with HDF5
-      tables. Such a table is defined as a collection of records whose
-      values are stored in fixed-length fields. PyTables is intended
-      to be easy-to-use, and tries to be a high-performance interface
-      to HDF5. To achieve this, the newest improvements introduced in
-      Python 2.2 (like generators or slots and metaclasses in
-      new-brand classes) has been used. Pyrex creation extension tool
-      has been chosen to access the HDF5 library.
+<book>
+  <frontmatter>
+    <title><visual markup="tt">PyTables</visual> User's Guide</title>
+    <author>Francesc Alted</author>
+    <date>October, 8th</date>
+    <year>2002</year>
+  </frontmatter>
+  <!-- <abstract> <p><visual markup="tt">PyTables</visual> is a Python
+  package which allows dealing with HDF5 tables. Such a table is
+  defined as a collection of records whose values are stored in
+  fixed-length fields. <visual markup="tt">PyTables</visual> is
+  intended to be easy-to-use, and tries to be a high-performance
+  interface to HDF5. To achieve this, the newest improvements
+  introduced in Python 2.2 (like generators or slots and metaclasses
+  in new-brand classes) has been used. Pyrex creation extension tool
+  has been chosen to access the HDF5 library.
     </p>
-  </abstract>
-    <section>
+  </abstract> -->
+
+  <mainmatter>
+    <chapter>
       <heading>Introduction</heading>
 
-      <p>PyTables is a Python package which allows dealing with HDF5
-	tables. In this document, the term <em>table</em> means
-	exactly the same than in HDF5 sense:
+      <p><visual markup="tt">PyTables</visual> is a Python package
+	that allows dealing with HDF5 (see <ref
+	refid="HDF5WhatIs">reference</ref>) tables. In this document,
+	the term <em>table</em> means exactly the same than in HDF5
+	sense (see <ref refid="HDF5_HL">reference</ref>):
       </p>
       <quote>
 	"A table is defined as a collection of records whose values
@@ -33,7 +39,8 @@
       <p>Records in tables are also known, in the HDF5 naming scheme,
 	as <em>compound</em> data types.
       </p>
-      <p>So, you can define arbitrary records in Python, like in:
+      <p>So, you can define arbitrary records in Python, like for
+	example:
       </p>
 <verbatim>
 class Particle(IsRecord):
@@ -46,8 +53,8 @@ class Particle(IsRecord):
 </verbatim>
       <p>fill it with your values, and save (large) collections of
       them in a file. Then, this data can be retrieved and
-      post-processed quite easily with PyTables or another HDF5
-      application.</p>
+      post-processed quite easily with <visual
+      markup="tt">PyTables</visual> or another HDF5 application.</p>
 
       <p>You probably noted that the terms "fixed-length" and strict
 	"data types" present in the table definition seems to be
@@ -55,133 +62,181 @@ class Particle(IsRecord):
 	supporting them is fundamental when we want to save *lots* of
 	data (mainly for scientific applications, but not only that),
 	if we want to do that in a efficient (both in terms of CPU and
-	I/O requirements) way. PyTables allows that.
+	I/O requirements) way. <visual markup="tt">PyTables</visual>
+	allows that.
       </p>
 
-      <subsection>
+      <section>
 	<heading>Features</heading>
-	<p>PyTables has the next features:</p>
+	<p><visual markup="tt">PyTables</visual> has the next features:</p>
 
 	<itemize>
 	  <item><em>Support of HDF5 table entities:</em> Allows working
-	    with large number of records which don't fit in memory.
+	    with large number of records that don't fit in memory.
 	  </item>
 	  <item><em>Supports a hierarchical data model:</em> So, you
-	    can structure very clearly all your data. This is also very
-	    important when dealing with XML data.
+	    can structure very clearly all your data. This is also
+	    very important when dealing with XML data. Pytables builds
+	    up an object tree in memory that replicates the HDF5
+	    structure. That way, the access to the HDF5 objects is
+	    made by walking throughout the <visual
+	    markup="tt">PyTables</visual> object tree, and
+	    manipulating them.
+	  </item>
+	  <item><em>Incremental I/O:</em> It supports adding records
+	    to already created tables. So you won't need to book large
+	    amounts of memory to fill the entire table and then save
+	    it to disk but you can do that incrementally, even between
+	    different Python sessions.
 	  </item>
 	  <item><em>Allows field name, data type and range
-	    checking:</em> So you can be confident that if PyTables
-	    doesn't report an error, you can be confident that your
-	    data is probably ok.
+	    checking:</em> So you can be confident that if <visual
+	    markup="tt">PyTables</visual> doesn't report an error, you
+	    can be confident that your data is probably ok.
 	  </item>
 	  <item><em>Support of files bigger than 2 GB:</em> This is
 	    because HDF5 already can do that (if your platform supports
 	    the C long long integer,  or, on Windows, __int64).
 	  </item>
-	  <item><em>Big-Endian/Low-Endian safety:</em> PyTables has
-	    been coded (as HDF5 is) to care with
-	    little-endian/big-endian byte orderings. So, in principle,
-	    you can write a file in a big-endian machine and read it
-	    in other little-endian without problems<footnote>Well, I
-	    didn't actually test that in real world, but if you do,
-	    please, tell me</footnote>.</item>
+	  <item><em>Data compression:</em> It supports data
+	    compression (trough the use of the zlib library) out of
+	    the box. This become important when you have repetitive
+	    data patterns and don't have time for searching an
+	    optimized way to save them.
+	  </item>
+	  <item><em>Big-Endian/Low-Endian safety:</em> <visual
+	    markup="tt">PyTables</visual> has been coded (as HDF5 is)
+	    to care with little-endian/big-endian byte orderings. So,
+	    in principle, you can write a file in a big-endian machine
+	    and read it in other little-endian without
+	    problems<footnote>Well, I didn't actually test that in
+	    real world, but if you do, please, tell
+	    me.</footnote>.</item>
 	</itemize>
 
-	<p>It's important to stress that PyTables doesn't support
-	  every functionality present on HDF5, so you would be able to
-	  create HDF5 files with PyTables, and read them with other
-	  HDF5 generic tools (like h4dump), but you can't hope
-	  PyTables can read every HDF5 file created with tools
-	  different than PyTables, as it supports only table objects
-	  (but I hope to extend the support to other objects too, like
-	  NumArray entities).
+	<p>It's important to stress that <visual
+	  markup="tt">PyTables</visual> doesn't support every
+	  functionality present on HDF5, so you would be able to
+	  create HDF5 files with <visual
+	  markup="tt">PyTables</visual>, and read them with other HDF5
+	  generic tools (like <visual markup="tt">h5dump</visual>),
+	  but you can't hope <visual markup="tt">PyTables</visual> can
+	  read every HDF5 file created with tools different than
+	  <visual markup="tt">PyTables</visual>, as it supports only
+	  table objects. However, I'm pondering to extend the support
+	  to other objects too, like NumArray (see <ref
+	  refid="Numarray">reference</ref>) entities.
 	</p>
-	<p>In the same sense, it should noted that PyTables do not
-	  pretends to be merely a wrapper of HDF5_HL library (don't
-	  confuse with HL-HDF5, the Swedish Meteorological and
-	  Hydrological Institute effort to provide another high Level
-	  interface to HDF5), but to provide a flexible tool to deal
-	  with HDF5 files. This is achieved by taking advantage of the
-	  powerful object orientation and introspection capabilities
-	  offered by Python.
+	<p>In the same sense, it should noted that <visual
+	  markup="tt">PyTables</visual> do not pretends to be merely a
+	  wrapper of HDF5_HL library (don't confuse with HL-HDF5, the
+	  Swedish Meteorological and Hydrological Institute effort to
+	  provide another high Level interface to HDF5; see <ref
+	  refid="HL-HDF">reference</ref>), but to provide a flexible
+	  tool to deal with HDF5 files. This is achieved by taking
+	  advantage of the powerful object orientation and
+	  introspection capabilities offered by Python.
 	</p>
-      </subsection>
+      </section>
 
-      <subsection>
+      <section>
 	<heading>The object tree</heading>
 
-      <p>PyTables take advantage of the HDF5 hierarchical model to
-	allow tables to be managed in a tree-like structure. It
-	achieves that by creating an object tree imitating the HDF5
-	structure on disk. That way, the access to the HDF5 objects is
-	made by walking throughout the PyTables object tree, and
-	manipulating them. You should note that not all the data
-	present on the HDF5 file is loaded in PyTables tree, but only
-	the <em>metadata</em> (i.e. the data which describes the
-	structure of the real data). The actual access to the real
-	data is provided through the methods of those objects.
-      </p>
-      <p>For example, imagine we have made a script (in fact, this
-	script exists; its name is <verb>objecttree.py</verb> and you
-	can find it in the <verb>examples/</verb> directory) which has
-	created a simple HDF5 file, with the structure that appears in
-	<ref refid="objecttree-h5">figure</ref> (we have used the java
-	program <verb>hdfview</verb> to obtain this image. If you
-	re-open again this file (in read only mode, for example), the
-	object tree with the HDF5 metadata will be constructed from
-	this hierarchy.
-      </p>
+	<p><visual markup="tt">PyTables</visual> take advantage of the
+	  HDF5 hierarchical model to allow tables to be managed in a
+	  tree-like structure. It achieves that by creating an object
+	  tree imitating the HDF5 structure on disk. That way, the
+	  access to the HDF5 objects is made by walking throughout the
+	  <visual markup="tt">PyTables</visual> object tree, and
+	  manipulating them. I've got this powerful idea from the
+	  excellent <visual markup="tt">Objectify</visual> module by
+	  David Mertz (see references <ref refid="Objectify"></ref>
+	  and <ref refid="GnosisUtils"></ref>).
+	</p>
+	<p> You should note that not all the data present on the HDF5
+	  file is loaded in <visual markup="tt">PyTables</visual>
+	  tree, but only the <em>metadata</em> (i.e. data that
+	  actually describes the structure of the real data). The
+	  actual access to the real data is provided through the
+	  methods of those objects.
+	</p>
+	<p>For example, imagine we have made a script (in fact, this
+	  script exists; its name is <verb>objecttree.py</verb> and
+	  you can find it in the <verb>examples/</verb> directory)
+	  that has created a simple HDF5 file, with the structure that
+	  appears in <ref refid="objecttree-h5">figure</ref> (we have
+	  used the java program <verb>hdfview</verb> to obtain this
+	  image). If you re-open again this file (in read only mode,
+	  for example), the object tree with the HDF5 metadata will be
+	  constructed from this hierarchy.
+	</p>
 
-      <figure id="objecttree-h5">
-	<graphics file="objecttree-h5" scale="0.5" kind="bitmap">
-	</graphics>
-	<caption>An HDF5 example with 2 subgroups and 3 tables.</caption>
-      </figure>
+	<figure id="objecttree-h5">
+	  <graphics file="objecttree-h5" scale="0.6" kind="bitmap">
+	  </graphics>
+	  <caption>An HDF5 example with 2 subgroups and 3 tables.</caption>
+	</figure>
 
-      <p>In <ref refid="objecttree">figure</ref> you can see an
-	example of the object tree created by reading an HDF5 file
-	(previously written with PyTables). It's important that you get
-	familiar with this diagram to better understand how to work
-	with PyTables. If you are going to be a PyTables user, take
-	your time to study and understand it (bear in mind, however,
-	that this diagram is not a standard UML class diagram; I've
-	used a UML tool to draw it, that's all).
+	<p>In <ref refid="objecttree">figure</ref> you can see an
+	  example of the object tree created by reading an HDF5 file
+	  (previously written with <visual
+	  markup="tt">PyTables</visual>). It's important that you get
+	  familiar with this diagram to better understand how to work
+	  with <visual markup="tt">PyTables</visual>. If you are going
+	  to be a <visual markup="tt">PyTables</visual> user, take
+	  your time to study and understand it (bear in mind, however,
+	  that this diagram is not a standard UML class diagram; I've
+	  used a UML tool to draw it, that's all).
 	</p>
 
 	<figure id="objecttree">
-	  <!--<graphics file="objecttree" scale="0.125" kind="vector">
-	  -->
+	  <!-- Now, this works! -->
+	  <graphics file="objecttree" scale="0.4" kind="vector">
+	  
 	  <!-- We have a processing error here. We solved this by
 	  converting the eps to jpeg with command:
 pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  and then, applying a new conversion to jpg with
 	  convert objecttree.png objecttree.jpg
 	  -->
-	  <graphics file="objecttree" scale="0.5" kind="bitmap">
+	  <!-- <graphics file="objecttree" scale="0.5" kind="bitmap"> -->
 	  </graphics>
-	  <caption>An object tree example in PyTables.</caption>
+	  <caption>An object tree example in <visual
+	      markup="tt">PyTables</visual>.
+	  </caption>
 	</figure>
       
-      <p>It's important to bear all this in mind while you are working
-	with PyTables, because it will easy your work and will make
-	you more proactive by avoiding programming mistakes.
+	<p>It's important to bear all this in mind while you are
+	  working with <visual markup="tt">PyTables</visual>, because
+	  it will easy your work and will make you more proactive by
+	  avoiding programming mistakes.
+	</p>
+
+      </section>
+
+    </chapter>
+
+    <chapter>
+      <heading>Installation</heading>
+
+      <p>This are instructions for Unix/Linux system. If you are using
+	Windows, and get the library working, please, tell me about.
       </p>
 
-    </subsection>
+      <p>Extensions in <visual markup="tt">PyTables</visual> has been
+	made using Pyrex (see <ref refid="Pyrex">reference</ref>) and
+	C. You can rebuild everything from scratch if you got Pyrex
+	installed, but this is not necessary, as the Pyrex compiled
+	source is included in the distribution. But if you want to do
+	that, merely replace <visual markup="tt">setup.py</visual>
+	script in these instructions by <visual
+	markup="tt">setup-pyrex.py</visual>.
+      </p>
 
-  </section>
+      <p>The Python Distutils are used to build and install tables, so it is
+	fairly simple to get things ready to go.
+      </p>
 
-  <section>
-    <heading>Installation</heading>
-
-    <p>This are instructions for Unix/Linux system. If you are using
-      Windows, and get the library working, please, tell me about.
-    </p>
-
-    <p>The Python Distutils are used to build and install tables, so it is
-      fairly simple to get things ready to go.
-    </p>
     <enumerate>
 
       <item>
@@ -205,7 +260,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  lib directory.  For example:
 	</p>
 	<verbatim>
-           --hdf5=/stuff/hdf5-1.4.4
+        --hdf5=/stuff/hdf5-1.4.4
 	</verbatim>
 	<p>The libraries can installed anywhere on the filesystem,
 	  but remember to always place them together. For example, if
@@ -221,12 +276,12 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  command line as well. For example:
 	</p>
 	<verbatim>
-           --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.4.4/lib"
+        --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.4.4/lib"
 	</verbatim>
 	<p>or perhaps just
 	</p>
 	<verbatim>
-           --lflags="-R /stuff/hdf5-1.4.4/lib"
+        --lflags="-R /stuff/hdf5-1.4.4/lib"
 	</verbatim>
 
 	<p>Check your compiler and linker documentation to be sure.
@@ -236,8 +291,8 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  libraries with the --libs switch:
 	</p>
 	<verbatim>
-           --libs="-lhdf5-1.4.6 -lhdf5_hl-beta2"
-           --libs="-lhdf5-1.4.6 -lhdf5_hl-beta2 -lnsl"
+        --libs="-lhdf5-1.4.6 -lhdf5_hl-beta2"
+        --libs="-lhdf5-1.4.6 -lhdf5_hl-beta2 -lnsl"
 	</verbatim>
       </item>
       <item>
@@ -271,7 +326,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	</verbatim>
       </item>
       <item>
-	<p>To install the entire PyTables Python package, change back
+	<p>To install the entire <visual markup="tt">PyTables</visual> Python package, change back
 	  to the root distribution directory and run this command as
 	  the root user:
 	</p>
@@ -283,27 +338,29 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
       examples.
     </p>
 
-  </section>
+  </chapter>
 
-  <section>
+  <chapter>
       <heading>Usage</heading>
 
-      <subsection>
-	<heading id="firstexample">A first example</heading>
-      <p>Let's start by showing a simple example. For simplicity and direct
-	comparison, I'll choose the same that is exposed in an HDF5_HL example
-	(http://hdf.ncsa.uiuc.edu/HDF5/hdf5_hl/doc/RM_hdf5tb_ex.html).
-      </p>
-      <p>So, we want to create a table whose records are particle
-	properties. Each particle (record) has a name, a position
-	(specified by latitude and longitude), pressure and
-	temperature.
-      </p>
-      <p>We start by define this record in PyTables by declaring a
-	subclass of <verb>IsRecord</verb>. But first, the necessary
-	imports:
-      </p>
-      <verbatim>
+      <section id="firstexample">
+	<heading>A first example</heading> 
+
+	<p>Let's start by showing a simple example. For simplicity and
+	  direct comparison, I'll choose the same that is exposed in
+	  an HDF5_HL example (see <ref
+	  refid="HDF5TableExamples">reference</ref>).
+	</p>
+	<p>So, we want to create a table whose records are particle
+	  properties. Each particle (record) has a name, a position
+	  (specified by latitude and longitude), pressure and
+	  temperature.
+	</p>
+	<p>We start by define this record in <visual
+	  markup="tt">PyTables</visual> by declaring a subclass of
+	  <verb>IsRecord</verb>. But first, the necessary imports:
+	</p>
+	<verbatim>
 from tables import File, IsRecord
 
 class Particle(IsRecord):
@@ -312,15 +369,16 @@ class Particle(IsRecord):
     longi       = 'i'    # integer
     pressure    = 'f'    # float  (single-precision)
     temperature = 'd'    # double (double-precision)
-</verbatim>
-      <p>As you see, we define the Particle class as a subclass of
-	IsRecord which is a metaclass, but this is not important
-	now. The name of each Particle attribute will be the name of
-	the record field and its value will become its data type. '16s'
-	typecode means a 16-character string, 'i' an integer, 'd' a
-	double, and so on. For a complete list of data types supported
-	see <ref refid="datatypesSupported">table</ref>.
-      </p>
+	</verbatim>
+	<p>As you see, we define the Particle class as a subclass of
+	  IsRecord (which is actually a <em>metaclass</em>, but this
+	  is not important now). The name of each Particle attribute
+	  will be the name of the record field and its value will
+	  become its data type. '16s' typecode means a 16-character
+	  string, 'i' an integer, 'd' a double, and so on. For a
+	  complete list of data types supported see <ref
+	  refid="datatypesSupported">table</ref>.
+	</p>
       <p>Now, we open an HDF5 file in write mode:
       </p>
       <verbatim>
@@ -406,14 +464,14 @@ fileh.close()
       </p>
 
       <figure id="example1">
-	<graphics file="example1" scale="0.5" kind="bitmap">
+	<graphics file="example1" scale="0.6" kind="bitmap">
 	</graphics>
 	<caption>A simple table in HDF5.</caption>
       </figure>
-      </subsection>
+      </section>
 
-      <subsection>
-	<heading id="secondExample">A somewhat more complex exercise</heading>
+      <section id="secondExample">
+	<heading>A somewhat more complex exercise</heading>
 
       <p>Now, time for a more sophisticated example. Here, we will
 	create a couple of directories (groups, in HDF5 jargon)
@@ -423,7 +481,7 @@ fileh.close()
 	put instances of <verb>Particle</verb> records and in
 	<verb>Events</verb>, instances of <verb>Event</verb>. After
 	that, we will feed the tables with 257 (you will see soon why
-	I choose such a "esoteric" number) entries each. Finally, we
+	I choose such an "esoteric" number) entries each. Finally, we
 	will read the recently created table
 	<verb>/Events/TEvent3</verb> and select some values from it
 	using a comprehension list.
@@ -514,10 +572,10 @@ print "Total selected records ==> ", len(e)
 fileh.close()
       </verbatim>
 
-      <p>Throughout the comments, you can see that PyTables let's you
+      <p>Throughout the comments, you can see that <visual markup="tt">PyTables</visual> let's you
       do things in, generally, more than one way. I don't know if
       that's good or not, but I'm afraid it is not. This is in part
-      due to the fact that PyTables is in first stages of development,
+      due to the fact that <visual markup="tt">PyTables</visual> is in first stages of development,
       and probably as the API matures, there will be less choices.</p>
 
       <p>If you have read the code carefully it looks pretty good, but
@@ -557,13 +615,13 @@ ValueError: Error packing record object:
       <p>This other error is saying that one of the records is having
 	trouble to be converted to the data types stated in the Event
 	class definition. By looking carefully to the record object
-	which is responsible of the problem, we see that we are trying
-	to assign a value of 256 to the 'TDCcount' field which has a
-	'B' (C unsigned char) typecode and the allowed range for it is
+	causing the problem, we see that we are trying to assign a
+	value of 256 to the 'TDCcount' field which has a 'B' (C
+	unsigned char) typecode and the allowed range for it is
 	<verb>0&lt;=TDCcount&lt;=255</verb>. This is a very powerful
 	capability to automatically check for ranges: the message
-	error is explicit enough to figure out what is happening. Here
-	you can solve the problem by promoting the
+	error is explicit enough to figure out what is happening. In
+	this case you can solve the problem by promoting the
 	<verb>TDCcount</verb> to 'H' which is a unsigned 16-bit
 	integer, or avoid the mistake you probably made in assigning a
 	value greater than 255 to a 'B' typecode.
@@ -585,7 +643,7 @@ ValueError: Error packing record object:
       refid="example2">figure</ref>.</p>
 
       <figure id="example2">
-	<graphics file="example2" scale="0.5" kind="bitmap">
+	<graphics file="example2" scale="0.6" kind="bitmap">
 	</graphics>
 	<caption>Tables structured in a hierarchical order.</caption>
       </figure>
@@ -593,28 +651,28 @@ ValueError: Error packing record object:
       <p>Feel free to visit the rest of examples in directory
         <verb>examples</verb>, and try to understand them. I've tried
         to make the cases as orthogonal as possible to give you an idea
-        of the <verb>PyTables</verb> capabilities and its way of
+        of the <verb><visual markup="tt">PyTables</visual></verb> capabilities and its way of
         dealing with HDF5 objects.</p>
 
-      </subsection>
-    </section>
+      </section>
+    </chapter>
 
-    <section>
+    <chapter>
       <heading>Library Reference</heading>
 
       <p>This package implements an important class to deal with HDF5
-	files, called <verb>File</verb>, one class to help defining
-	records, with field, type and range checks, which is called
-	IsRecord. There exists other important classes called
+	files, called <verb>File</verb> and another one to help
+	defining records, with field, type and range checks, which is
+	called IsRecord. There exists other important classes called
 	<verb>Group</verb> and <verb>Table</verb> which do their work
 	silently behind the scenes. The user has to be aware of its
 	existence, but generally speaking, they won't need to call
 	their methods explicitly.
       </p>
-      <subsection id="FileClass">
+      <section id="FileClass">
 	<heading>The <em>File</em> class.</heading>
 
-	<p>The <verb>File</verb> class hosts the most part of PyTables
+	<p>The <verb>File</verb> class hosts the most part of <visual markup="tt">PyTables</visual>
           user interface. It is in charge of create, open, flush and
           close the HDF5 files. In addition it provides accessors to
           functionality present in <verb>Group</verb> and
@@ -641,7 +699,7 @@ ValueError: Error packing record object:
 
 	<description>
 	  <term>getRootGroup():</term> <item>Returns a
-	    <verb>Group</verb> instance which will act as the root
+	    <verb>Group</verb> instance that will act as the root
 	    group in the hierarchical tree. If file is opened in "r",
 	    "r+" or "a" mode, and the file already exists, this method
 	    dynamically builds a python object tree emulating the
@@ -655,7 +713,7 @@ ValueError: Error packing record object:
 	    <verb>Table</verb> instance with name <em>name</em> in
 	    <em>where</em> location.  <em>where</em> parameter can be
 	    a path string, or another group instance.  Other optional
-	    parameters are: <em>tableTitle</em> which set a
+	    parameters are: <em>tableTitle</em> sets a
 	    <verb>TITLE</verb> attribute on the HDF5 table entity.
 	    <em>compress</em> is a boolean option and specifies if
 	    data compression will be enabled or
@@ -664,7 +722,7 @@ ValueError: Error packing record object:
 	    used to set important internal parameters, as buffer size
 	    or HDF5 chunk size. If not provided, the default value is
 	    appropriate to tables until 100 KB in size. If you plan to
-	    save bigger tables by providing a guess to PyTables will
+	    save bigger tables by providing a guess to <visual markup="tt">PyTables</visual> will
 	    optimize the HDF5 B-Tree creation and management process
 	    time and memory used.</item>
 	</description>
@@ -762,9 +820,9 @@ ValueError: Error packing record object:
 	    file and close the file.</item>
 	</description>
 
-      </subsection>
+      </section>
 
-      <subsection id="IsRecordClass">
+      <section id="IsRecordClass">
 	<heading>The <em>IsRecord</em> class.</heading>
 
 	<p>This class is in fact a so-called <em>metaclass</em>
@@ -779,7 +837,7 @@ ValueError: Error packing record object:
 	  markup="tt">"_v_"</visual> or <visual
 	  markup="tt">"_f_"</visual>, so please, don't use attributes
 	  names starting with these prefixes). If you try to do an
-	  assignment to a non-declared attribute, PyTables will raise
+	  assignment to a non-declared attribute, <visual markup="tt">PyTables</visual> will raise
 	  an error.</p>
 
 	<p>To use such a particular class, you have to declare a
@@ -791,13 +849,24 @@ ValueError: Error packing record object:
 	  very flexible record object with safe features like
 	  automatic name field, data type and range checks (see the
 	  <ref refid="secondExample">section</ref> for an example on
-	  how it works).</p>
+	  how it works).
+	</p>
+	<p>See the <ref refid="datatypesSupported">appendix</ref> for
+	  a relation of data types supported in a <visual
+	  markup="tt">IsRecord</visual> class declaration.
+	</p>
 
-        <p>The supported data types are the same which are supported
-	  by the array module in Python, with some additions, which
-	  will be briefly discussed shortly. The typecodes for the
-	  supported data types are listed on <ref
-	  refid="datatypesSupported">table</ref>.
+      </section>
+    </chapter>
+
+    <appendix>
+      <chapter id="datatypesSupported">
+	<heading><visual markup="tt">PyTables</visual> Supported Data Types</heading>
+        <p>The supported data types are the same that are supported by
+	  the <visual markup="tt">array</visual> module in Python,
+	  with some additions, which will be briefly discussed
+	  shortly. The typecodes for the supported data types are
+	  listed on <ref refid="datatypesSupported">table</ref>.
 	</p>
 
 	<table id="datatypesSupported">
@@ -823,7 +892,7 @@ ValueError: Error packing record object:
 	    <srow>'s' | arbitrary lenght string | char[] | * | String </srow>
 	  </tabbody>
 	</tabular>
-	  <caption>Data types supported by PyTables</caption>
+	  <caption>Data types supported by <visual markup="tt">PyTables</visual></caption>
 	</table>
 
 	<p>The additions to the array module typecodes are the <visual
@@ -841,13 +910,93 @@ ValueError: Error packing record object:
 	<p>Also note that when the <visual markup="tt">'I'</visual>
 	  and <visual markup="tt">'L'</visual> codetypes are used in
 	  records, Python uses internally <visual
-	  markup="tt">Long</visual> integers to represent them, which
-	  can (or can not, depending on what you are trying to do) be
+	  markup="tt">Long</visual> integers to represent them, that
+	  can (or cannot, depending on what you are trying to do) be
 	  a source of inefficiency in your code.</p>
-    </subsection>
-  </section>
-  <!-- This tag is mandatory. Why? -->
-  <references>
-  </references>
-</article>
+      </chapter>
+    </appendix>
+  </mainmatter>
+
+  <backmatter>
+    <references>
+      <enumerate>
+
+	<item id="HDF5WhatIs"><em>What is HDF5?.</em> Concise
+	  description about HDF5 capabilities and its differences from
+	  earlier versions (HDF4). <url
+	  name="http://hdf.ncsa.uiuc.edu/whatishdf5.html"/>
+	</item>
+
+	<item id="HDF5Intr"><em>Introduction to HDF5.</em>
+	  Introduction to the HDF5 data model and programming
+	  model. <url
+	  name="http://hdf.ncsa.uiuc.edu/HDF5/doc/H5.intro.html"/>
+	</item>
+
+	<item id="HDF5_HL"><em>HDF5: High Level APIs.</em> A set of
+	  functions built on top of the basic HDF5 library. <url
+	  name="http://hdf.ncsa.uiuc.edu/HDF5/hdf5_hl/doc/"/>
+	</item>
+
+	<item id="HDF5TableExamples"><em>The HDF5 table programming
+	  model.</em> Examples on using HDF5 tables with the C
+	  API. <url
+	  name="http://hdf.ncsa.uiuc.edu/HDF5/hdf5_hl/doc/RM_hdf5tb_ex.html"/>
+	</item>
+
+	<item id="HL-HDF"><em>HL-HDF.</em> A High Level Interface to
+	  the HDF5 File Format. <url
+	  name="ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/contrib/hl-hdf5/README.html"/>
+	</item>
+
+	<item id="Objectify"><em>On the 'Pythonic' treatment of XML
+	  documents as objects(II).</em> Article describing XML
+	  Objectify, a Python module that allows working with XML
+	  documents as Python objects. Some of the ideas presented
+	  here are used in <visual markup="tt">PyTables</visual>. <url
+	  name="http://www-106.ibm.com/developerworks/xml/library/xml-matters2/index.html"/>
+	</item>
+
+	<item id="GnosisUtils"><em>gnosis.xml.objectify.</em> This
+	  module is part of the Gnosis utilities, and allows to create
+	  a mapping between any XML element to "native" Python
+	  objects. <url
+	  name="http://gnosis.cx/download/Gnosis_Utils-current.tar.gz"/>
+	</item>
+
+	<item id="Pyrex"><em>Pyrex.</em> A Language for Writing Python
+	  Extension Modules. <url
+	  name="http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex"/>
+	</item>
+
+	<item id="NetCDF"><em>NetCDF (network Common Data Form).</em>
+	  This is an interface for array-oriented data access and a
+	  library that provides an implementation of the
+	  interface. <url
+	  name="http://www.unidata.ucar.edu/packages/netcdf/"/>
+	</item>
+
+	<item id="NetCDFSP"><em>NetCDF module on Scientific
+	  Python.</em> ScientificPython is a collection of Python
+	  modules that are useful for scientific computing. Its NetCDF
+	  module is a powerful interface for NetCDF data format. <url
+	  name="http://starship.python.net/~hinsen/ScientificPython/ScientificPythonManual/Scientific_24.html"/>
+	</item>
+
+	<item id="Numerical"><em>Numerical Python.</em> Package to
+	  speed-up arithmetic operations on arrays of numbers. <url
+	  name="http://www.pfdubois.com/numpy/"/>
+	</item>
+
+	<item id="Numarray"><em>Numarray.</em> Reimplementation of
+	  Numeric which adds the ability to efficiently manipulate
+	  large numeric arrays in ways similar to Matlab and
+	  IDL. Among others, Numarray provides the record array
+	  extension. <url name="http://stsdas.stsci.edu/numarray/"/>
+	</item>
+
+      </enumerate>
+    </references>
+  </backmatter>
+</book>
 
