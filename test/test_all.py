@@ -101,6 +101,7 @@ def suite():
                     'test_numarray',
                     'test_lists',
                     'test_tables',
+                    'test_indexes',
                     'test_tablesMD',
                     'test_vlarray',
                     'test_earray',
