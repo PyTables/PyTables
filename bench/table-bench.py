@@ -60,18 +60,21 @@ def createFile(filename, totalrows, complevel, complib,
         # Create a table
         if recsize == "big":
             table = fileh.createTable(group, 'tuple'+str(j), Big, title,
-                                      complevel, complib, shuffle, fletcher32,
+                                      Filters(complevel, complib,
+                                              shuffle, fletcher32),
                                       totalrows)
             arr = NA.array(NA.arange(32), type=NA.Float64)
             arr2 = NA.array(NA.arange(32), type=NA.Float64)
         elif recsize == "medium":
             table = fileh.createTable(group, 'tuple'+str(j), Medium, title,
-                                      complevel, complib, shuffle, fletcher32,
+                                      Filters(complevel, complib,
+                                              shuffle, fletcher32),
                                       totalrows)
             arr = NA.array(NA.arange(2), type=NA.Float64)
         elif recsize == "small":
             table = fileh.createTable(group, 'tuple'+str(j), Small, title,
-                                      complevel, complib, shuffle, fletcher32,
+                                      Filters(complevel, complib,
+                                              shuffle, fletcher32),
                                       totalrows)
         else:
             raise RuntimeError, "This should never happen"

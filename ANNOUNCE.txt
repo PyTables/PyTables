@@ -78,6 +78,18 @@ What's new
           new datatypes will enable PyTables to greatly enlarge the
           range of native HDF5 that can be read/modified.
 
+	- The attributes (.attr instance variable) are properties now,
+          and the access to their values is no longer lazy, i.e. you
+          will be able to see both system or user attributes from the
+          command line using the tab-completion capability of your
+          python console (if enabled).
+
+	- Boolean support has been added for all the Leaf objects.
+
+	- A copy() method that supports slicing and change filtering
+          capabilities has been added for all the Leaf objects. See
+          User's Manual for more info.
+
 
 What is a table?
 ----------------

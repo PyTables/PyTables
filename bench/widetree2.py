@@ -22,8 +22,8 @@ class WideTreeTestCase(unittest.TestCase):
         import time
         # Open a new empty HDF5 file
         filename = "test_widetree.h5"
-        ngroups = 4
-        ntables = 4
+        ngroups = 10
+        ntables = 300
         nrows = 10
         complevel = 0
         complib = "lzo"

@@ -96,23 +96,23 @@ if os.name == 'posix':
     # the environment or on the command line.
     # First check the environment...
     HDF5_DIR = os.environ.get('HDF5_DIR', '')
-    ZLIB_DIR = os.environ.get('ZLIB_DIR', '')
+    # We want top get rid of zlib dependency here
+    #ZLIB_DIR = os.environ.get('ZLIB_DIR', '')
     LZO_DIR = os.environ.get('LZO_DIR', '')
     UCL_DIR = os.environ.get('UCL_DIR', '')
     LFLAGS = os.environ.get('LFLAGS', [])
     LIBS = os.environ.get('LIBS', [])
 
     # ...then the command line.
-    # Handle --hdf5=[PATH] --zlib=[PATH] --lzo=[PATH] --ucl=[PATH]
-    # --lflags=[FLAGS] and debug
+    # Handle --hdf5=[PATH] --lzo=[PATH] --ucl=[PATH] --lflags=[FLAGS] and debug
     args = sys.argv[:]
     for arg in args:
         if string.find(arg, '--hdf5=') == 0:
             HDF5_DIR = string.split(arg, '=')[1]
             sys.argv.remove(arg)
-        if string.find(arg, '--zlib=') == 0:
-            ZLIB_DIR = string.split(arg, '=')[1]
-            sys.argv.remove(arg)
+#         if string.find(arg, '--zlib=') == 0:
+#             ZLIB_DIR = string.split(arg, '=')[1]
+#             sys.argv.remove(arg)
         if string.find(arg, '--lzo=') == 0:
             LZO_DIR = string.split(arg, '=')[1]
             sys.argv.remove(arg)
@@ -182,51 +182,51 @@ where they can be found."""
     if (not '-lhdf5' in LIBS):
         libnames.append('hdf5')
 
-    # Look for mandatory compression libraries (ZLIB)
-    # figure out from the base setting where the lib and .h are
-    if ZLIB_DIR:
-        lookup_directories = (ZLIB_DIR, '/usr/', '/usr/local/')
-    else:
-        lookup_directories = ('/usr/', '/usr/local/')
+#     # Look for mandatory compression libraries (ZLIB)
+#     # figure out from the base setting where the lib and .h are
+#     if ZLIB_DIR:
+#         lookup_directories = (ZLIB_DIR, '/usr/', '/usr/local/')
+#     else:
+#         lookup_directories = ('/usr/', '/usr/local/')
         
-    for instdir in lookup_directories:
-        for ext in ('.a', '.so', '.dylib'):
-            libzlib = os.path.join(instdir, "lib/libz"+ext)
-            if os.path.isfile(libzlib):
-                ZLIB_DIR = instdir
-                zliblibdir = os.path.join(instdir, "lib")
-                print "Found ZLIB libraries at " + zliblibdir
-                if (zliblibdir not in lib_dirs and
-                    instdir not in ['/usr/', '/usr/local/']):
-                    lib_dirs.append(zliblibdir)
-                break
-            else:
-                zliblibdir = None
+#     for instdir in lookup_directories:
+#         for ext in ('.a', '.so', '.dylib'):
+#             libzlib = os.path.join(instdir, "lib/libz"+ext)
+#             if os.path.isfile(libzlib):
+#                 ZLIB_DIR = instdir
+#                 zliblibdir = os.path.join(instdir, "lib")
+#                 print "Found ZLIB libraries at " + zliblibdir
+#                 if (zliblibdir not in lib_dirs and
+#                     instdir not in ['/usr/', '/usr/local/']):
+#                     lib_dirs.append(zliblibdir)
+#                 break
+#             else:
+#                 zliblibdir = None
 
-        headerzlib = os.path.join(instdir, "include/zlib.h")
-        if os.path.isfile(headerzlib):
-            zlibincdir = os.path.join(instdir, "include")
-            print "Found ZLIB header files at " + zlibincdir
-            if (zlibincdir not in inc_dirs and
-                instdir not in ['/usr/', '/usr/local/']):
-                inc_dirs.append(zlibincdir)
-            if zliblibdir and (not '-lz' in LIBS):
-                libnames.append('z')
-                def_macros.append(("HAVE_ZLIB_LIB", 1))
-            break
-        else:
-            zlibincdir = None
+#         headerzlib = os.path.join(instdir, "include/zlib.h")
+#         if os.path.isfile(headerzlib):
+#             zlibincdir = os.path.join(instdir, "include")
+#             print "Found ZLIB header files at " + zlibincdir
+#             if (zlibincdir not in inc_dirs and
+#                 instdir not in ['/usr/', '/usr/local/']):
+#                 inc_dirs.append(zlibincdir)
+#             if zliblibdir and (not '-lz' in LIBS):
+#                 libnames.append('z')
+#                 def_macros.append(("HAVE_ZLIB_LIB", 1))
+#             break
+#         else:
+#             zlibincdir = None
 
-    if not ZLIB_DIR and (not zliblibdir or not zlibincdir):
-        print """\
-Can't find a local Zlib installation.
-Please, read carefully the README and if your
-Zlib library is not in a standard place
-set the ZLIB_DIR environment variable or
-use the flag --zlib to give a hint of
-where they can be found."""
+#     if not ZLIB_DIR and (not zliblibdir or not zlibincdir):
+#         print """\
+# Can't find a local Zlib installation.
+# Please, read carefully the README and if your
+# Zlib library is not in a standard place
+# set the ZLIB_DIR environment variable or
+# use the flag --zlib to give a hint of
+# where they can be found."""
         
-        sys.exit(1)
+#         sys.exit(1)
 
     # Look for optional compression libraries (LZO and UCL)
     # figure out from the base setting where the lib and .h are
@@ -339,23 +339,24 @@ elif os.name == 'nt':
     # the environment or on the command line.
     # First check the environment...
     HDF5_DIR = os.environ.get('HDF5_DIR', '')
-    ZLIB_DIR = os.environ.get('ZLIB_DIR', '')
+    # We want to get rid of the zlib dependency
+    #ZLIB_DIR = os.environ.get('ZLIB_DIR', '')
     LZO_DIR = os.environ.get('LZO_DIR', '')
     UCL_DIR = os.environ.get('UCL_DIR', '')
     LFLAGS = os.environ.get('LFLAGS', [])
     LIBS = os.environ.get('LIBS', [])
 
     # ...then the command line.
-    # Handle --hdf5=[PATH] --zlib=[PATH] --lzo=[PATH] --ucl=[PATH]
-    # --lflags=[FLAGS] and --debug
+    # Handle --hdf5=[PATH] --lzo=[PATH] --ucl=[PATH] --lflags=[FLAGS] and
+    # --debug
     args = sys.argv[:]
     for arg in args:
         if string.find(arg, '--hdf5=') == 0:
             HDF5_DIR = string.split(arg, '=')[1]
             sys.argv.remove(arg)
-        if string.find(arg, '--zlib=') == 0:
-            ZLIB_DIR = string.split(arg, '=')[1]
-            sys.argv.remove(arg)
+#         if string.find(arg, '--zlib=') == 0:
+#             ZLIB_DIR = string.split(arg, '=')[1]
+#             sys.argv.remove(arg)
         if string.find(arg, '--lzo=') == 0:
             LZO_DIR = string.split(arg, '=')[1]
             sys.argv.remove(arg)
@@ -397,29 +398,29 @@ elif os.name == 'nt':
 
         sys.exit(1)
 
-    # ZLIB library (mandatory)
-    dirstub, dirheader = None, None
-    if ZLIB_DIR:
-        (dirstub, dirheader) = check_lib("ZLIB", ZLIB_DIR, "zlib.dll",
-                                         #"lib", "zdll.lib",  # Stubs (1.2.1)
-                                         "lib", "zlib.lib",  # Stubs
-                                         "include", "zlib.h") # Headers
-    if dirstub and dirheader:
-        lib_dirs.append(dirstub)
-        inc_dirs.append(dirheader)
-        #libnames.append('zdll') # (1.2.1)
-        libnames.append('zlib')
-        def_macros.append(("HAVE_ZLIB_LIB", 1))
-    else:
-        print "Unable to locate all the required ZLIB files"
-        print """
- Please, read carefully the README and make sure
- that you have correctly specified the
- ZLIB_DIR environment variable or use the flag
- --zlib to give a hint of where the stubs and 
- headers can be found."""
+#     # ZLIB library (mandatory)
+#     dirstub, dirheader = None, None
+#     if ZLIB_DIR:
+#         (dirstub, dirheader) = check_lib("ZLIB", ZLIB_DIR, "zlib.dll",
+#                                          #"lib", "zdll.lib",  # Stubs (1.2.1)
+#                                          "lib", "zlib.lib",  # Stubs
+#                                          "include", "zlib.h") # Headers
+#     if dirstub and dirheader:
+#         lib_dirs.append(dirstub)
+#         inc_dirs.append(dirheader)
+#         #libnames.append('zdll') # (1.2.1)
+#         libnames.append('zlib')
+#         def_macros.append(("HAVE_ZLIB_LIB", 1))
+#     else:
+#         print "Unable to locate all the required ZLIB files"
+#         print """
+#  Please, read carefully the README and make sure
+#  that you have correctly specified the
+#  ZLIB_DIR environment variable or use the flag
+#  --zlib to give a hint of where the stubs and 
+#  headers can be found."""
 
-        sys.exit(1)
+#         sys.exit(1)
 
     # LZO library (optional)
     if LZO_DIR:
