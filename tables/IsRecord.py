@@ -82,9 +82,8 @@ print p
             elif not args and not kw:
                 return self._f_pack()
             else:
-                raise RuntimeError, "Mix of variable-length args and keyword are not supported!"
+                raise RuntimeError, "Mix of variable-length args and keyword is not supported!"
                 
-
         def _f_pack(self, **kw):
             """ Method to pack
             - Some keyword parameters allowed
@@ -123,10 +122,13 @@ print p
             return buffer
 
         def _f_raiseValueError(self):
+            """Helper function to indicate an error in struct.pack and
+            provide detailed information on the record object."""
+            
             (type, value, traceback) = sys.exc_info()
             record = []
             for k in self.__slots__:
-                record.append((getattr(self, k), self.__types__[k]))
+                record.append((k, self.__types__[k], (getattr(self, k))))
             raise ValueError, \
              "Error packing record object: \n %s\n Error was: %s" % \
              (record, value)           

@@ -7,10 +7,17 @@ import hdf5Extension
 from IsRecord import IsRecord, metaIsRecord
 
 class Table(hdf5Extension.Table):
+    """Responsible to create tables (both new or already existing in
+    HDF5 file) and provide the methods to deal with them."""
 
     def __init__(self, where, name, rootgroup):
+        """Create the instance Table hanging from "where" and name
+        "name". "where" can be a pathname string or a Group
+        instance. "rootgroup" is the root object; it is necessary in
+        case "where" is a pathname string."""
+        
         # Initialize the superclass
-        self._v_name = name
+        self._v_name = name   # We need that to follow Group naming scheme
         if type(where) == type(str()):
             # This is the parent group pathname. Get the object ...
             objgroup = rootgroup._f_getObjectFromPath(where)
@@ -31,11 +38,22 @@ class Table(hdf5Extension.Table):
                   (type(where))
 
     def getRecord(self):
-        """ Return the recordObject object """
+        """Accessor to return the recordObject object."""
         return self.record
 
-    def newTable(self, recordObject, tableTitle,
+    def newTable(self, recordObject, tableTitle = "",
                  compress = 1, expectedrows = 10000):
+        """Responsible to create a fresh table (not present on HDF5
+        file). "recordObject" is the IsRecord instance, "tableTitle"
+        sets a TITLE attribute on the HDF5 table entity.  "compress"
+        is a boolean option and specifies if data compression will be
+        enabled or not. "expectedrows" is an user estimate about the
+        number of records that will be on table.  If not provided, the
+        default value is appropiate to tables until 1 MB in size. If
+        you plan to save bigger tables by providing a guess to
+        PyTables will optimize the HDF5 B-Tree creation and management
+        process time and memory used.  """
+        
         self.varnames = tuple(recordObject.__slots__)
         self._v_fmt = recordObject._v_fmt
         self.record = recordObject   # Record points to the recordObject
@@ -53,6 +71,9 @@ class Table(hdf5Extension.Table):
         self._f_putObjectInTree(create = 1)
 
     def _f_putObjectInTree(self, create):
+        """Given a new table (fresh or read from HDF5 file), set links
+        and attributes to include it in python object tree."""
+        
         pgroup = self._v_parent
         # Update this instance attributes
         pgroup._v_leaves.append(self._v_name)
@@ -96,6 +117,13 @@ class Table(hdf5Extension.Table):
             self.record = recordObject   # This points to the recordObject
         
     def calcBufferSize(self, expectedrows, compress):
+        """Based on the expected rows in a table and if we are using
+        compression or not, calculate the buffer size and the and the
+        HDF5 chunk size. The logic here is based purely in experiments
+        playing with different buffer sizes, chunksize and compression
+        flag. It is obvious that using big buffers optimize the I/O speed
+        when dealing with tables. May be this can be further optimized."""
+        
         fmt = self._v_fmt
         rowsize = struct.calcsize(fmt)
         self._v_rowsize = rowsize
@@ -175,7 +203,8 @@ class Table(hdf5Extension.Table):
         #print "MaxTuples ==> ", self._v_maxTuples
 
     def saveBufferedRecords(self):
-        "Save buffered table records"
+        """Save buffered table records."""
+        
         #print "Flusing nrecords ==> ", self._v_recunsaved
         self.append_records("".join(self._v_packedtuples), self._v_recunsaved)
         self.nrecords += self._v_recunsaved
@@ -183,10 +212,11 @@ class Table(hdf5Extension.Table):
         self._v_packedtuples = []
         self._v_recunsaved = 0
         
-    #def commitBuffered(self, recordObject):
     def appendValues(self, *values):
-        """ Append the (alphanumerically ordered) values parameters in the
-        output buffer as if they are a record."""
+        """ Append the (alphanumerically ordered) values parameters to
+        the output buffer as if they were a record. This is faster
+        (and unsafer) than appendRecord method."""
+        
         # By using list of strings rather than increasing each time a
         # monolithic string buffer, we obtain a performance improvement
         # between 20% and 25% in time. In exchange, we consume slightly more
@@ -199,7 +229,8 @@ class Table(hdf5Extension.Table):
             self.saveBufferedRecords()
 
     def appendRecord(self, recordObject):
-        """ Append the record object in the output buffer."""
+        """ Append the record object to the output buffer."""
+        
         # I don't know how to check that record is IsRecord instance in
         # the case we create the object programatically.
         # Anyway, hasattr() should do the job!
@@ -216,13 +247,14 @@ class Table(hdf5Extension.Table):
                   "commit parameter is neither a string or IsRecord instance."
         self._v_recunsaved += 1
         if self._v_recunsaved  == self._v_maxTuples:
-          self.saveBufferedRecords()
+            self.saveBufferedRecords()
 
     def readAsTuples(self):
-        """  Generator to return a tuple with a table record in each cycle.
-        This method is twice faster than readAsRecords, but it yields
-        the records as tables, instead of full-object records.
+        """Generator to return a tuple with a table tuple in each
+        cycle. This method is twice faster than readAsRecords, but it
+        yields the records as tuples, instead of full-object records.
         """
+        
         # Create a buffer for the readout
         nrecordsinbuf = self._v_maxTuples
         rowsz = self._v_rowsize
@@ -236,10 +268,10 @@ class Table(hdf5Extension.Table):
                 yield tupla
         
     def readAsRecords(self):
-        """  Generator to return a IsRecord instance with a table record
-        in each cycle. This method is slower than readAsTuples, but in
-        exchange, it return full-fledged instance records.
-        """
+        """Generator to return a IsRecord instance with a table
+        record in each cycle. This method is slower than readAsTuples,
+        but in exchange, it return full-fledged instance records."""
+        
         # Create a buffer for the readout
         nrecordsinbuf = self._v_maxTuples
         rowsz = self._v_rowsize
@@ -254,14 +286,17 @@ class Table(hdf5Extension.Table):
                 #print "tupla %d ==> %s" % (i + j, tupla)
         
     def flush(self):
-        "Save whatever remaining records in buffer"
+        """Save whatever remaining records in buffer."""
+        
         if self._v_recunsaved > 0:
           #print "Flushing the table ==>", self._v_pathname
           self.saveBufferedRecords()
 
     def close(self):
-        """ Close the table. """
-        print "Flushing the HDF5 table ...."
+        """Flush the table buffers and close the HDF5 dataset
+        object."""
+        
+        #print "Flushing the HDF5 table ...."
         self.flush()
         self.closeTable()
         
