@@ -7,7 +7,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/examples/Attic/ptrepack,v $
-#       $Id: ptrepack,v 1.1 2004/02/10 16:36:52 falted Exp $
+#       $Id: ptrepack,v 1.2 2004/02/10 16:45:26 falted Exp $
 #
 ########################################################################
 
@@ -17,15 +17,9 @@ Pass the flag -h to this for help on usage.
 
 """
 
-import tables
-
 import sys, os, time
-import getopt, atexit
-try:
-    import psyco
-    psyco_imported = 1
-except:
-    psyco_imported = 0
+import getopt
+import tables
 
 def newdstGroup(dstfileh, dstgroup, title, filters):
     group = dstfileh.root
@@ -112,11 +106,10 @@ def copyChilds(srcfile, dstfile, srcgroup, dstgroup, title,
 
 # Main program starts here
 
-usage = """usage: %s [-h] [-v] [-o] [-p] [-R range] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [-complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] sourcefile:sourcegroup destfile:destgroup
- -h -- Help on usage.
+usage = """usage: %s [-h] [-v] [-o] [-R range] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [-complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] sourcefile:sourcegroup destfile:destgroup
+ -h -- Print usage message.
  -v -- Show more information.
  -o -- Overwite destination file.
- -p -- Use "psyco" if available.
  -R start,stop,step -- Select a slice in *all* leaves.
  --non-recursive -- Do not do a recursive copy. Default is do it.
  --dest-title=title -- Title for the new file (if not specified,
@@ -136,6 +129,9 @@ usage = """usage: %s [-h] [-v] [-o] [-p] [-R range] [--non-recursive] [--dest-ti
      default is not doing that if any of --complevel, --complib, --shuffle
      or --fletcher32 option is specified.
 \n""" % sys.argv[0]
+
+# Obsolete options
+# -p -- Use "psyco" if available.
             
 try:
     opts, pargs = getopt.getopt(sys.argv[1:], 'hvopR:',
@@ -155,7 +151,6 @@ except:
     sys.stderr.write(usage)
     sys.exit(0)
 
-#atexit.register(closeFiles, srcfile, dstfile)
 # if we pass too much parameters, abort
 if len(pargs) <> 2:
     print "You need to pass both source and destination!."
@@ -165,7 +160,6 @@ if len(pargs) <> 2:
 # default options
 verbose = 0
 overwrite = 0
-usepsyco = 0
 keepfilters = 0
 complevel = None
 complib = None
@@ -186,8 +180,6 @@ for option in opts:
         verbose = 1
     elif option[0] == '-o':
         overwrite = 1
-    elif option[0] == '-p':
-        usepsyco = 1
     elif option[0] == '-R':
         try:
             rng = eval("slice("+option[1]+")")
@@ -251,9 +243,6 @@ start, stop, step = 0, None, 1  # Defaults
 if rng:
     start, stop, step = rng.start, rng.stop, rng.step
 
-# Activate Psyco, if needed
-if psyco_imported and usepsyco:
-    psyco.bind(copyFile)
 # Some timing
 t1 = time.time()
 cpu1 = time.clock()
