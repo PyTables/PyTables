@@ -1,99 +1,100 @@
 Announcing PyTables 0.9
 -----------------------
 
-I'm very proud to announce the latest and most powerful flavor of
-PyTables ever. On this release you will find a series of quite
-exciting new features, being the most important the indexing
-capabilities, in-kernel selections, support for complex datatypes and
-the possibility to modify values in both tables *and* arrays (yeah,
-finally :).
+I'm very proud to announce the latest and most powerful version of
+PyTables ever. In this release you will find a series of quite
+exciting new features, the most important being new indexing
+capabilities, in-kernel selections, support for complex datatypes
+and the possibility to modify values in both tables *and* arrays
+(yeah, finally :).
 
-What is
+What it is
 -------
 
 PyTables is a hierarchical database package designed to efficiently
-manage extremely large amounts of data (supports full 64-bit file
+manage extremely large amounts of data (with support for full 64-bit file
 addressing). It features an object-oriented interface that, combined
 with C extensions for the peformance-critical parts of the code, makes
-it a very easy to use tool for high performance data saving and
-retrieving.
+it a very easy-to-use tool for high performance data storage and
+retrieval.
 
 It is built on top of the HDF5 library and the numarray package, and
 provides containers for both heterogeneous data (Tables) and
 homogeneous data (Array, EArray). It also sports a container for
-keeping lists of objects of variable length on a very efficient way
-(VLArray). A flexible support of filters allows you to compress your
-data on-the-flight by using different compressors and compression
+keeping lists of objects of variable length in a very efficient way
+(VLArray). Its powerful support of filters allows you to compress your
+data on-the-fly by using different compressors and compression
 enablers.
 
 Moreover, its powerful browsing and searching capabilities allow you
-to do data selections over tables exceeding gigabytes of data in just
+to perform data selections over tables exceeding gigabytes of data in just
 tenths of second.
+
 
 Changes more in depth
 ---------------------
 
 New features:
 
-- Indexing of columns in tables. That allow to make data selections on
+- Indexing of columns in tables. This allows you to make data selections on
   tables up to 500 times faster than standard selections (for
-  ex. doing a selection along an indexed column of 100 milion of rows
-  takes less than 1 second on a modern CPU). 
-
-  Perhaps the most interesting thing about the indexing algorithm
-  implemented by PyTables is that the time taken to index grows
-  *lineraly* with the length of the data, so, making the indexation
-  process to be *scalable* (quite differently to many relational
-  databases). This means that it can index, in a relatively quick way,
-  arbitrarily large table columns (for ex. indexing a column of 100
-  milion of rows takes just 100 seconds, i.e. at a rate of 1
-  Mrow/sec). See more detailed info about that in
+  example, a selection on an indexed column of 100 milion of rows
+  takes less than 1 second on a modern CPU). Perhaps the most
+  interesting thing about the indexing algorithm implemented by
+  PyTables is that the time taken to index grows *linearly* with the
+  length of the data, making the indexing process 
+  *scalable* (unlike many relational databases). This
+  means that it can index, in a relatively quick way, arbitrarily
+  large table columns (for example, indexing a column of 100 milion of rows
+  takes just 100 seconds, i.e. a rate of 1 Mrow/sec). See more
+  detailed info at
   http://pytables.sourceforge.net/doc/SciPy04.pdf.
 
-- In-kernel selections. This feature allow to make data selections on
+- In-kernel selections. This feature allows you to select data in
   tables up to 5 times faster than standard selections (i.e. pre-0.9
-  selections), without a need to create an index. As a hint of how
+  selections) without the need to create an index. As a hint to how
   fast these selections can be, they are up to 10 times faster than a
-  traditional relational database. Again, see
-  http://pytables.sourceforge.net/doc/SciPy04.pdf for some experiments
-  on that matter.
+  traditional relational database. Again, for some benchmarking tests 
+  see:
+  http://pytables.sourceforge.net/doc/SciPy04.pdf
+ 
 
 - Support of complex datatypes for all the data objects (i.e. Table,
-  Array, EArray and VLArray). With that, the complete set of datatypes
-  of Numeric and numarray packages are supported. Thanks to Tom Hedley
+  Array, EArray and VLArray). The complete set of datatypes
+  of Numeric and numarray packages are now supported. Thanks to Tom Hedley
   for providing the patches for Array, EArray and VLArray objects, as
   well as updating the User's Manual and adding unit tests for the new
   functionality.
 
-- Modification of values. You can modifiy Table, Array, EArray and
+- Modification of values. You can modify Table, Array, EArray and
   VLArray values. See Table.modifyRows, Table.modifyColumns() and the
   newly introduced __setitem__() method for Table, Array, EArray and
-  VLArray entities in the Library Reference of User's Manual.
+  VLArray entities in the Library Reference of the User's Manual.
 
-- A new sub-package called "nodes" is there. On it, there will be
-  included different modules to make more easy working with different
-  entities (like images, files, ...). The first module that has been
-  added to this sub-package is "FileNode", whose mission is to enable
-  the creation of a database of nodes which can be used like regular
+- A new sub-package called "nodes" is here. In it will be 
+  included different modules to make it easier to work with different
+  entities (such as images, files, ...). The first module that has been
+  added to this sub-package is "FileNode", whch permits 
+  the creation of a database of nodes that can be used like regular
   opened files in Python.  In other words, you can store a set of
-  files in a PyTables database, and read and write it as you would do
+  files in a PyTables database, and read and write to it as you would
   with any other file in Python. Thanks to Ivan Vilata i Balaguer for
   contributing this.
 
 Improvements:
 
 - New __len__(self) methods added in Arrays, Tables and Columns. This,
-  in combination with __getitem__(self,key) allows to better emulate
+  in combination with __getitem__(self,key) better emulates
   sequences.
 
-- Better capabilities to import generic HDF5 files. In particular,
+- More support for importing generic HDF5 files. In particular,
   Table objects (in the HDF5_HL naming schema) with "holes" in their
-  compound type definition are supported. That allows to read certain
+  compound type definition are supported, present in certain
   files produced by NASA (thanks to Stephen Walton for reporting this).
 
-- Much improved test units. More than 2000 different tests has been
-  implemented which accounts for more than 13000 loc (this represents
-  twice of the PyTables library code itself (!)).
+- Much improved test units. More than 2000 different tests have been
+  implemented, accounting for more than 13000 loc (this represents
+  twice the PyTables library code itself (!)).
 
 Backward-incompatible API changes:
 
@@ -111,7 +112,7 @@ Backward-incompatible API changes:
 
 Bug fixes:
 
-- A call to File.flush() now invoke a call to H5Fflush() so to
+- A call to File.flush() now invokes a call to H5Fflush(),
   effectively flushing all the file contents to disk. Thanks to Shack
   Toms for reporting this and providing a patch.
 
@@ -137,7 +138,7 @@ Bug fixes:
   2004-07-10 by ivilata
   
 
-Where PyTables can be applied?
+Where can PyTables be applied?
 ------------------------------
 
 PyTables is not designed to work as a relational database competitor,
@@ -213,4 +214,6 @@ have.
 Bon profit!
 
 -- Francesc Altet
+
+
 
