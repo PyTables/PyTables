@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.91 2004/01/02 19:32:45 falted Exp $
+#       $Id: Table.py,v 1.92 2004/01/12 21:15:38 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.91 $"
+__version__ = "$Revision: 1.92 $"
 
 from __future__ import generators
 import sys
@@ -93,7 +93,7 @@ class Table(Leaf, hdf5Extension.Table, object):
 
     def __init__(self, description = None, title = "",
                  compress = 0, complib="zlib", shuffle=0,
-                 expectedrows = 10000):
+                 fletcher32=0, expectedrows = 10000):
         """Create an instance Table.
 
         Keyword arguments:
@@ -115,8 +115,16 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         shuffle -- Whether or not to use the shuffle filter in the
             HDF5 library. This is normally used to improve the
-            compression ratio. A value of 0 disables shuffling and it
-            is the default.
+            compression ratio. A value of 0 disables shuffling and 1
+            makes it active. The default value depends on whether
+            compression is enabled or not; if compression is enabled,
+            shuffling defaults to be active, else shuffling is
+            disabled.
+
+        fletcher32 -- Whether or not to use the fletcher32 filter in
+            the HDF5 library. This is used to add a checksum on each
+            data chunk. A value of 0 disables the checksum and it is
+            the default.
 
         expectedrows -- An user estimate about the number of rows
             that will be on table. If not provided, the default value
@@ -166,7 +174,7 @@ class Table(Leaf, hdf5Extension.Table, object):
   IsDescription subclass, dictionary or RecArray."""
 
         if self._v_new:
-            self._g_setComprAttr(compress, complib, shuffle)
+            self._g_setComprAttr(compress, complib, shuffle, fletcher32)
 
     def _newBuffer(self, init=1):
         """Create a new recarray buffer for I/O purposes"""
@@ -285,7 +293,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.colshapes = self.description._v_shapes
         self.colitemsizes = self.description._v_itemsizes
         # Get info about existing filters
-        self.complevel, self.complib, self.shuffle = self._g_getFilters()
+        self.complevel, self.complib, self.shuffle, self.fletcher32 = \
+                        self._g_getFilters()
         # Compute buffer size
         (self._v_maxTuples, self._v_chunksize) = \
               calcBufferSize(self.rowsize, self.nrows, self.complevel)

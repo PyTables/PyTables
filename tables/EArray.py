@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.6 2004/01/01 21:01:46 falted Exp $
+#       $Id: EArray.py,v 1.7 2004/01/12 21:15:38 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.6 $"
+__version__ = "$Revision: 1.7 $"
 # default version for EARRAY objects
 obversion = "1.0"    # initial version
 
@@ -84,7 +84,7 @@ class EArray(Array, hdf5Extension.Array, object):
     
     def __init__(self, object = None, title = "",
                  compress = 0, complib = "zlib",
-                 shuffle = 0, expectednrows = 1000):
+                 shuffle = 1, fletcher32 = 0, expectednrows = 1000):
         """Create EArray instance.
 
         Keyword arguments:
@@ -110,6 +110,11 @@ class EArray(Array, hdf5Extension.Array, object):
             compression ratio. A value of 0 disables shuffling and it
             is the default.
 
+        fletcher32 -- Whether or not to use the fletcher32 filter in
+            the HDF5 library. This is used to add a checksum on each
+            data chunk. A value of 0 disables the checksum and it is
+            the default.
+
         expectedrows -- In the case of enlargeable arrays this
             represents an user estimate about the number of row
             elements that will be added to the growable dimension in
@@ -127,7 +132,7 @@ class EArray(Array, hdf5Extension.Array, object):
         if object is not None:
             self._v_new = 1
             self.object = object
-            self._g_setComprAttr(compress, complib, shuffle)
+            self._g_setComprAttr(compress, complib, shuffle, fletcher32)
         else:
             self._v_new = 0
             
@@ -191,12 +196,11 @@ class EArray(Array, hdf5Extension.Array, object):
 
         # The arrays conforms self expandibility?
         assert len(self.shape) == len(naarr.shape), \
-"""Sorry, the ranks of the EArray '%r' and object to be appended differ
-  (%d <> %d).""" % (self._v_pathname, len(self.shape), len(naarr.shape))
+"Sorry, the ranks of the EArray %r (%d) and object to be appended differ (%d)." % (self._v_pathname, len(self.shape), len(naarr.shape))
         for i in range(len(self.shape)):
             if i <> self.extdim:
                 assert self.shape[i] == naarr.shape[i], \
-"""Sorry, shapes of EArray '%r' and object differ in dimension %d (non-enlargeable)""" % (self._v_pathname, i) 
+"Sorry, shapes of EArray '%r' and object differ in non-enlargeable dimension (%d) " % (self._v_pathname, i) 
         # Ok. all conditions are met. Return the numarray object
         return naarr
             
@@ -222,7 +226,8 @@ class EArray(Array, hdf5Extension.Array, object):
             else:
                 self.nrows = self.shape[i]
         # Get info about existing filters
-        self.complevel, self.complib, self.shuffle = self._g_getFilters()
+        self.complevel, self.complib, self.shuffle, self.fletcher32 = \
+                        self._g_getFilters()
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
                   calcBufferSize(self.rowsize, self.nrows, self.complevel)

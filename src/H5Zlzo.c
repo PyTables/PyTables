@@ -29,7 +29,11 @@ void *wrkmem;
 
 */
 
-#define CHECKSUM
+/* Ok. from pytables 0.8 on I decided to let the user select the
+   fletcher32 checksum provided in HDF5 1.6 or higher. So, even though
+   the CHECKSUM support here seems pretty stable it will be disabled.
+   F. Alted 2004/01/02 */
+#undef CHECKSUM  		       
 
 int register_lzo(void) {
 

@@ -24,6 +24,8 @@ class C:
 class BasicTestCase(unittest.TestCase):
     compress = 0
     complib = "zlib"
+    shuffle = 1
+    fletcher32 = 0
     flavor = "NumArray"
 
     def setUp(self):
@@ -43,6 +45,8 @@ class BasicTestCase(unittest.TestCase):
                                            "ragged array if ints",
                                            compress = self.compress,
                                            complib = self.complib,
+                                           shuffle = self.shuffle,
+                                           fletcher32 = self.fletcher32,
                                            expectedsizeinMB = 1)
 
         # Fill it with 5 rows
@@ -101,25 +105,6 @@ class BasicTestCase(unittest.TestCase):
             assert row2 == ()
         assert len(row) == 2
 
-    def test02_emptyVLArray(self):
-        """Checking creation of empty VL arrays"""
-
-        rootgroup = self.rootgroup
-        if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_emptyVLArray..." % self.__class__.__name__
-
-        # Create an instance of an HDF5 Table
-        self.fileh = openFile(self.file, "w")
-        vlarray = self.fileh.createVLArray(self.fileh.root, 'vlarray2',
-                                           Int32Atom(flavor=self.flavor),
-                                           "ragged array if ints",
-                                           compress = self.compress,
-                                           complib = self.complib)
-        # Try to read info from there:
-        row = vlarray.read()
-        # The result should be the empty list
-        assert row == []
 
 class BasicNumArrayTestCase(BasicTestCase):
     flavor = "NumArray"
@@ -141,6 +126,18 @@ class LZOComprTestCase(BasicTestCase):
 class UCLComprTestCase(BasicTestCase):
     compress = 1
     complib = "ucl"
+
+class ShuffleComprTestCase(BasicTestCase):
+    compress = 1
+    shuffle = 1
+
+class Fletcher32TestCase(BasicTestCase):
+    fletcher32 = 1
+
+class AllFiltersTestCase(BasicTestCase):
+    compress = 1
+    shuffle = 1
+    fletcher32 = 1
 
 class TypesTestCase(unittest.TestCase):
     mode  = "w" 
@@ -493,6 +490,73 @@ class MDTypesTestCase(unittest.TestCase):
         assert len(row[1]) == 4
 
 
+    def test01c_StringAtom(self):
+        """Checking vlarray with MD numarray string atoms (with offset)"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01c_StringAtom..." % self.__class__.__name__
+
+        # Create an string atom
+        vlarray = self.fileh.createVLArray(root, 'stringAtom',
+                                           StringAtom(length=3, shape=(2,),
+                                                      flavor="String"),
+                                           "Ragged array of strings")
+        a=strings.array([["a","b"],["123", "45"],["45", "123"]], itemsize=3)
+        vlarray.append(a[1:])
+        a=strings.array([["s", "a"],["ab", "f"],
+                         ["s", "abc"],["abc", "f"],
+                         ["s", "ab"],["ab", "f"]])
+        vlarray.append(a[2:])
+
+        # Read all the rows:
+        row = vlarray.read()
+        if verbose:
+            print "Object read:", row
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "Second row in vlarray ==>", row[1]
+            
+        assert vlarray.nrows == 2
+        assert row[0] == [["123", "45"],["45", "123"]]
+        assert row[1] == [["s", "abc"],["abc", "f"],
+                          ["s", "ab"],["ab", "f"]]
+        assert len(row[0]) == 2
+        assert len(row[1]) == 4
+
+    def test01d_StringAtom(self):
+        """Checking vlarray with MD numarray string atoms (with stride)"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01d_StringAtom..." % self.__class__.__name__
+
+        # Create an string atom
+        vlarray = self.fileh.createVLArray(root, 'stringAtom',
+                                           StringAtom(length=3, shape=(2,),
+                                                      flavor="String"),
+                                           "Ragged array of strings")
+        a=strings.array([["a","b"],["123", "45"],["45", "123"]], itemsize=3)
+        vlarray.append(a[1::2])
+        a=strings.array([["s", "a"],["ab", "f"],
+                         ["s", "abc"],["abc", "f"],
+                         ["s", "ab"],["ab", "f"]])
+        vlarray.append(a[::3])
+
+        # Read all the rows:
+        row = vlarray.read()
+        if verbose:
+            print "Object read:", row
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "Second row in vlarray ==>", row[1]
+            
+        assert vlarray.nrows == 2
+        assert row[0] == [["123", "45"]]
+        assert row[1] == [["s", "a"],["abc", "f"]]
+        assert len(row[0]) == 1
+        assert len(row[1]) == 2
+
     def test02_BoolAtom(self):
         """Checking vlarray with MD boolean atoms"""
 
@@ -520,6 +584,66 @@ class MDTypesTestCase(unittest.TestCase):
         assert allequal(row[1], array([[1,0,0]], type=Bool))
         assert len(row[0]) == 3
         assert len(row[1]) == 1
+
+    def test02b_BoolAtom(self):
+        """Checking vlarray with MD boolean atoms (with offset)"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02b_BoolAtom..." % self.__class__.__name__
+
+        # Create an string atom
+        vlarray = self.fileh.createVLArray(root, 'BoolAtom',
+                                           BoolAtom(shape = (3,)),
+                                           "Ragged array of Booleans")
+        a=array([(0,0,0), (1,0,3), (1,1,1), (0,0,0)], type=Bool)
+        vlarray.append(a[1:])  # Create an offset
+        a=array([(1,1,1), (-1,0,0)], type=Bool)
+        vlarray.append(a[1:])  # Create an offset
+
+        # Read all the rows:
+        row = vlarray.read()
+        if verbose:
+            print "Object read:", row
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "Second row in vlarray ==>", row[1]
+            
+        assert vlarray.nrows == 2
+        assert allequal(row[0], array([[1,0,1],[1,1,1],[0,0,0]], type=Bool))
+        assert allequal(row[1], array([[1,0,0]], type=Bool))
+        assert len(row[0]) == 3
+        assert len(row[1]) == 1
+
+    def test02c_BoolAtom(self):
+        """Checking vlarray with MD boolean atoms (with strides)"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02c_BoolAtom..." % self.__class__.__name__
+
+        # Create an string atom
+        vlarray = self.fileh.createVLArray(root, 'BoolAtom',
+                                           BoolAtom(shape = (3,)),
+                                           "Ragged array of Booleans")
+        a=array([(0,0,0), (1,0,3), (1,1,1), (0,0,0)], type=Bool)
+        vlarray.append(a[1::2])  # Create an strided array
+        a=array([(1,1,1), (-1,0,0), (0,0,0)], type=Bool)
+        vlarray.append(a[::2])  # Create an strided array
+
+        # Read all the rows:
+        row = vlarray.read()
+        if verbose:
+            print "Object read:", row
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "Second row in vlarray ==>", row[1]
+            
+        assert vlarray.nrows == 2
+        assert allequal(row[0], array([[1,0,1],[0,0,0]], type=Bool))
+        assert allequal(row[1], array([[1,1,1],[0,0,0]], type=Bool))
+        assert len(row[0]) == 2
+        assert len(row[1]) == 2
 
     def test03_IntAtom(self):
         """Checking vlarray with MD integer atoms"""
@@ -627,7 +751,8 @@ class FlavorTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, "vlarray",
-                                           IntAtom(itemsize=4))
+                                           IntAtom(itemsize=4,
+                                                   flavor=self.flavor))
         self.fileh.close()
         self.fileh = openFile(self.file, "r")
         # Read all the rows (it should be empty):
@@ -651,7 +776,8 @@ class FlavorTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, "vlarray",
-                                           IntAtom(itemsize=4))
+                                           IntAtom(itemsize=4,
+                                                   flavor=self.flavor))
         # Read all the rows (it should be empty):
         row = vlarray.read()
         if verbose:
@@ -1276,7 +1402,10 @@ def suite():
             theSuite.addTest(unittest.makeSuite(NumericFlavorTestCase))
         theSuite.addTest(unittest.makeSuite(NumArrayFlavorTestCase))
         theSuite.addTest(unittest.makeSuite(RangeTestCase))
-            
+        theSuite.addTest(unittest.makeSuite(ShuffleComprTestCase))
+        theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))
+        theSuite.addTest(unittest.makeSuite(AllFiltersTestCase))
+
     return theSuite
 
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.30 2003/12/27 22:54:34 falted Exp $
+#       $Id: Leaf.py,v 1.31 2004/01/12 21:15:38 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.30 $"
+__version__ = "$Revision: 1.31 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize
@@ -64,6 +64,7 @@ class Leaf:
         complevel -- the compression level (0 means no compression)
         complib -- the compression filter used (in case of compressed dataset)
         shuffle -- whether the shuffle filter is active or not
+        fletcher32 -- whether the fletcher32 filter is active or not
         attrs -- The associated AttributeSet instance
 
     """
@@ -104,13 +105,14 @@ class Leaf:
     title = property(get_title, set_title, None,
                      "Title of this object")
 
-    def _g_setComprAttr(self, complevel, complib, shuffle):
+    def _g_setComprAttr(self, complevel, complib, shuffle, fletcher32):
         if shuffle and not complevel:
             # Shuffling and not compressing makes not sense
             shuffle = 0
         self.complevel = complevel
         self.complib = complib
         self.shuffle = shuffle
+        self.fletcher32 = fletcher32
         if complevel:
             if hdf5Extension.whichLibVersion(complib)[0]:
                 self.complib = complib
@@ -124,6 +126,7 @@ class Leaf:
         complib = "zlib"
         complevel = 0
         shuffle = 0
+        fletcher32 = 0
         filters = hdf5Extension._getFilters(self._v_parent._v_objectID,
                                             self._v_hdf5name)
         #print "Filters on %s: %s" % (self.name, filters)
@@ -140,7 +143,9 @@ class Leaf:
                     complevel = filters[name][0]
                 elif name.startswith("shuffle"):
                     shuffle = 1
-        return (complevel, complib, shuffle)
+                elif name.startswith("fletcher32"):
+                    fletcher32 = 1
+        return (complevel, complib, shuffle, fletcher32)
         
     def _g_renameObject(self, newname):
         """Rename this leaf in the object tree as well as in the HDF5 file."""
@@ -257,7 +262,9 @@ class Leaf:
         if self.complevel:
             filters += ", %s(%s)" % (self.complib, self.complevel)
             if self.shuffle:
-                filters += ", shuffled"
+                filters += ", shuffle"
+            if self.fletcher32:
+                filters += ", fletcher32"
 #         return "%s (%s%s%s) (ID: %s) %r" % \
 #                (pathname, classname, shape, filters, self.objectID, title)
         return "%s (%s%s%s) %r" % \

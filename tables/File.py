@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.63 2004/01/01 21:01:46 falted Exp $
+#       $Id: File.py,v 1.64 2004/01/12 21:15:38 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.63 $"
+__version__ = "$Revision: 1.64 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -175,8 +175,15 @@ class File(hdf5Extension.File, object):
 
         createGroup(where, name[, title])
         createTable(where, name, description [, title]
-                    [, compress] [, expectedrows])
+                    [, compress] [, complib] [, shuffle]
+                    [, fletcher32] [, expectedrows])
         createArray(where, name, arrayObject, [, title])
+        createEArray(where, name, object [, title]
+                     [, compress] [, complib] [, shuffle]
+                     [, fletcher32] [, expectedrows])
+        createVLArray(where, name, atom [, title]
+                      [, compress] [, complib] [, shuffle]
+                      [, fletcher32] [, expectedrows])
         getNode(where [, name] [,classname])
         listNodes(where [, classname])
         removeNode(where [, name] [, recursive])
@@ -383,7 +390,7 @@ class File(hdf5Extension.File, object):
 
     def createTable(self, where, name, description, title = "",
                     compress = 0, complib = "zlib", shuffle = 1,
-                    expectedrows = 10000):
+                    fletcher32 = 0, expectedrows = 10000):
 
         """Create a new Table instance with name "name" in "where" location.
         
@@ -420,6 +427,11 @@ class File(hdf5Extension.File, object):
             shuffling defaults to be active, else shuffling is
             disabled.
 
+        fletcher32 -- Whether or not to use the fletcher32 filter in
+            the HDF5 library. This is used to add a checksum on each
+            data chunk. A value of 0 disables the checksum and it is
+            the default.
+
         expectedrows -- An user estimate about the number of rows that
             will be on table. If not provided, the default value is
             10000. If you plan to save bigger tables try providing a
@@ -433,7 +445,7 @@ class File(hdf5Extension.File, object):
             raise ValueError, "Wrong \'complib\' parameter value: '%s'" % \
                   (str(complib))
         object = Table(description, title, compress, complib, shuffle,
-                       expectedrows)
+                       fletcher32, expectedrows)
         setattr(group, name, object)
         return object
 
@@ -467,7 +479,7 @@ class File(hdf5Extension.File, object):
 
     def createEArray(self, where, name, object, title = "",
                     compress = 0, complib = "zlib", shuffle = 1,
-                    expectedrows = 1000):
+                    fletcher32 = 0, expectedrows = 1000):
         
         """Create a new instance EArray with name "name" in "where" location.
 
@@ -503,6 +515,11 @@ class File(hdf5Extension.File, object):
             shuffling defaults to be active, else shuffling is
             disabled.
 
+        fletcher32 -- Whether or not to use the fletcher32 filter in
+            the HDF5 library. This is used to add a checksum on each
+            data chunk. A value of 0 disables the checksum and it is
+            the default.
+
         expectedrows -- In the case of enlargeable arrays this
             represents an user estimate about the number of row
             elements that will be added to the growable dimension in
@@ -516,14 +533,14 @@ class File(hdf5Extension.File, object):
 
         group = self.getNode(where, classname = 'Group')
         Object = EArray(object, title,
-                        compress, complib, shuffle, expectedrows)
+                        compress, complib, shuffle, fletcher32, expectedrows)
         setattr(group, name, Object)
         return Object
 
 
     def createVLArray(self, where, name, atom = None, title = "",
                       compress = 0, complib = "zlib", shuffle = 1,
-                      expectedsizeinMB = 1.0):
+                      fletcher32 = 0, expectedsizeinMB = 1.0):
         
         """Create a new instance VLArray with name "name" in "where" location.
 
@@ -555,6 +572,11 @@ class File(hdf5Extension.File, object):
             shuffling defaults to be active, else shuffling is
             disabled.
 
+        fletcher32 -- Whether or not to use the fletcher32 filter in
+            the HDF5 library. This is used to add a checksum on each
+            data chunk. A value of 0 disables the checksum and it is
+            the default.
+
         expectedsizeinMB -- An user estimate about the size (in MB) in
             the final VLArray object. If not provided, the default
             value is 1 MB.  If you plan to create both much smaller or
@@ -569,7 +591,7 @@ class File(hdf5Extension.File, object):
                 raise ValueError, \
                       "please, expecify an atom argument."
         Object = VLArray(atom, title, compress, complib, shuffle,
-                         expectedsizeinMB)
+                         fletcher32, expectedsizeinMB)
         setattr(group, name, Object)
         return Object
 

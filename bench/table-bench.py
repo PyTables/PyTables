@@ -44,7 +44,8 @@ class Big(IsDescription):
     pressure    = Col("Float32", 1, 0)    # float  (single-precision)
     energy      = Col("Float64", 1, 0)    # double (double-precision)
 
-def createFile(filename, totalrows, complevel, complib, shuffle, recsize):
+def createFile(filename, totalrows, complevel, complib,
+               shuffle, fletcher32, recsize):
 
     # Open a file in "w"rite mode
     fileh = openFile(filename, mode = "w")
@@ -59,16 +60,19 @@ def createFile(filename, totalrows, complevel, complib, shuffle, recsize):
         # Create a table
         if recsize == "big":
             table = fileh.createTable(group, 'tuple'+str(j), Big, title,
-                                      complevel, complib, shuffle, totalrows)
+                                      complevel, complib, shuffle, fletcher32,
+                                      totalrows)
             arr = NA.array(NA.arange(32), type=NA.Float64)
             arr2 = NA.array(NA.arange(32), type=NA.Float64)
         elif recsize == "medium":
             table = fileh.createTable(group, 'tuple'+str(j), Medium, title,
-                                      complevel, complib, shuffle, totalrows)
+                                      complevel, complib, shuffle, fletcher32,
+                                      totalrows)
             arr = NA.array(NA.arange(2), type=NA.Float64)
         elif recsize == "small":
             table = fileh.createTable(group, 'tuple'+str(j), Small, title,
-                                      complevel, complib, shuffle, totalrows)
+                                      complevel, complib, shuffle, fletcher32,
+                                      totalrows)
         else:
             raise RuntimeError, "This should never happen"
 
@@ -231,7 +235,7 @@ if __name__=="__main__":
     
     import time
     
-    usage = """usage: %s [-v] [-p] [-R range] [-r] [-w] [-s recsize] [-f field] [-c level] [-l complib] [-i iterations] file
+    usage = """usage: %s [-v] [-p] [-R range] [-r] [-w] [-s recsize] [-f field] [-c level] [-l complib] [-i iterations] [-S] [-F] file
             -v verbose
 	    -p use "psyco" if available
             -R select a range in a field in the form "start,stop,step"
@@ -241,11 +245,12 @@ if __name__=="__main__":
             -f only read stated field name in tables
             -c sets a compression level (do not set it or 0 for no compression)
             -S activate shuffling filter
+            -F activate fletcher32 filter
             -l sets the compression library to be used ("zlib", "lzo", "ucl")
             -i sets the number of rows in each table\n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'vpSR:rwf:s:c:l:i:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'vpSFR:rwf:s:c:l:i:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -265,6 +270,7 @@ if __name__=="__main__":
     usepsyco = 0
     complevel = 0
     shuffle = 0
+    fletcher32 = 0
     complib = "zlib"
     iterations = 100
 
@@ -276,6 +282,8 @@ if __name__=="__main__":
             usepsyco = 1
         if option[0] == '-S':
             shuffle = 1
+        if option[0] == '-F':
+            fletcher32 = 1
         elif option[0] == '-R':
             rng = [int(i) for i in option[1].split(",")]
         elif option[0] == '-r':
@@ -310,7 +318,7 @@ if __name__=="__main__":
         if psyco_imported and usepsyco:
             psyco.bind(createFile)
 	(rowsw, rowsz) = createFile(file, iterations, complevel, complib,
-                                    shuffle, recsize)
+                                    shuffle, fletcher32, recsize)
 	t2 = time.time()
         cpu2 = time.clock()
 	tapprows = round(t2-t1, 3)

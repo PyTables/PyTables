@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.106 2004/01/12 10:07:58 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.107 2004/01/12 21:15:37 falted Exp $
 #
 ########################################################################
 
@@ -36,14 +36,13 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.106 $"
+__version__ = "$Revision: 1.107 $"
 
 
 import sys, os
 import warnings
 import types, cPickle
 import numarray
-#import recarray2 as recarray
 from numarray import records
 from numarray import strings
 from numarray import memmap
@@ -63,7 +62,7 @@ cdef extern from "stdlib.h":
   # The correct correspondence between size_t and a basic type is *long*
   # instead of int, because they are the same size even for 64-bit platforms
   # F. Alted 2003-01-08
-  ctypedef int size_t
+  ctypedef long size_t
   void *malloc(size_t size)
   void free(void *ptr)
   double atof(char *nptr)
@@ -170,28 +169,32 @@ cdef extern from "numarray/numarray.h":
 # This does not work with pyrex 0.8 and better anymore. It's worth
 # analyzing what's going on.
   
-#   struct PyArray_Descr:
-#      int type_num, elsize
-#      char type
-        
-#   ctypedef class numarray.numarraycore.NumArray [object PyArrayObject]:
-#     # Compatibility with Numeric
-#     cdef char *data
-#     cdef int nd
-#     cdef int *dimensions, *strides
-#     cdef object base
-#     cdef PyArray_Descr *descr
-#     cdef int flags
-#     # New attributes for numarray objects
-#     cdef object _data         # object must meet buffer API */
-#     cdef object _shadows      # ill-behaved original array. */
-#     cdef int    nstrides      # elements in strides array */
-#     cdef long   byteoffset    # offset into buffer where array data begins */
-#     cdef long   bytestride    # basic seperation of elements in bytes */
-#     cdef long   itemsize      # length of 1 element in bytes */
-#     cdef char   byteorder     # NUM_BIG_ENDIAN, NUM_LITTLE_ENDIAN */
-#     cdef char   _aligned      # test override flag */
-#     cdef char   _contiguous   # test override flag */
+  struct PyArray_Descr:
+     int type_num, elsize
+     char type
+
+  #ctypedef class numarray.numarraycore.NumArray [object PyArrayObject]:
+  # This does not work because NumArray is actually a python class
+  # derived from the c extension class _numarray.
+  # Thanks to Simon Burton for pointing out this. 2003-01-12
+  ctypedef class numarray._numarray._numarray [object PyArrayObject]:
+    # Compatibility with Numeric
+    cdef char *data
+    cdef int nd
+    cdef int *dimensions, *strides
+    cdef object base
+    cdef PyArray_Descr *descr
+    cdef int flags
+    # New attributes for numarray objects
+    cdef object _data         # object must meet buffer API */
+    cdef object _shadows      # ill-behaved original array. */
+    cdef int    nstrides      # elements in strides array */
+    cdef long   byteoffset    # offset into buffer where array data begins */
+    cdef long   bytestride    # basic seperation of elements in bytes */
+    cdef long   itemsize      # length of 1 element in bytes */
+    cdef char   byteorder     # NUM_BIG_ENDIAN, NUM_LITTLE_ENDIAN */
+    cdef char   _aligned      # test override flag */
+    cdef char   _contiguous   # test override flag */
 
   # The numarray initialization funtion
   void import_array()
@@ -235,10 +238,14 @@ cdef extern from "numarray/libnumarray.h":
   object PyArray_FromDims(int nd, int *d, int type)
   object NA_Empty(int nd, int *d, NumarrayType type)
   object NA_updateDataPtr(object)
-  object NA_getPythonScalar(object, long)
-  object NA_setFromPythonScalar(object, int, object)
-  #object NA_getPythonScalar(PyArrayObject, long)
-  #object NA_setFromPythonScalar(PyArrayObject, int, PyArrayObject)
+  #object NA_getPythonScalar(object, long)
+  #object NA_setFromPythonScalar(object, int, object)
+  object NA_getPythonScalar(_numarray, long)
+  object NA_setFromPythonScalar(_numarray, int, _numarray)
+  int getWriteBufferDataPtr(object, void**)
+  int getReadBufferDataPtr(object, void**)
+  long NA_getBufferPtrAndSize(object, int, void**)
+  int isBufferWriteable(object)
 
   object PyArray_ContiguousFromObject(object op, int type,
                                       int min_dim, int max_dim)
@@ -563,7 +570,7 @@ cdef extern from "H5TB.h":
                         char **field_names, size_t *field_offset,
                         hid_t *field_types, hsize_t chunk_size,
                         void *fill_data, int compress, char *complib,
-                        int shuffle, void *data )
+                        int shuffle, int fletcher32, void *data )
                          
   herr_t H5TBappend_records ( hid_t loc_id, char *dset_name,
                               hsize_t nrecords, size_t type_size, 
@@ -806,7 +813,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.106 2004/01/12 10:07:58 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.107 2004/01/12 21:15:37 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1310,7 +1317,8 @@ cdef class Table:
 
   def _createTable(self, char *title, char *complib):
     cdef int     nvar, offset
-    cdef int     i, ret, buflen
+    cdef int     i, ret
+    cdef long    buflen
     cdef hid_t   oid
     cdef hid_t   field_types[MAX_FIELDS]
     cdef void    *fill_data, *data
@@ -1354,9 +1362,7 @@ cdef class Table:
     # test if there is data to be saved initially
     if hasattr(self, "_v_recarray"):
       self.totalrecords = self.nrows
-      ret = PyObject_AsWriteBuffer(self._v_recarray._data, &data, &buflen)
-      if ret < 0:
-        raise RuntimeError("Problems getting the pointer to the buffer")
+      buflen = NA_getBufferPtrAndSize(self._v_recarray._data, 1, &data)
       # Correct the offset in the buffer
       offset = self._v_recarray._byteoffset
       data = <void *>(<char *>data + offset)
@@ -1371,7 +1377,7 @@ cdef class Table:
                          nrecords, self.nrows, self.rowsize, self.field_names,
                          self.field_offset, field_types, self._v_chunksize,
                          fill_data, self.complevel, complib,
-                         self.shuffle, data)
+                         self.shuffle, self.fletcher32, data)
     if oid < 0:
       raise RuntimeError("Problems creating the table")
     self.objectID = oid
@@ -1381,12 +1387,10 @@ cdef class Table:
       H5Tclose(field_types[i])
     
   def _open_append(self, object recarr):
-    cdef int buflen, ret
+    cdef long buflen
 
     # Get the pointer to the buffer data area
-    ret = PyObject_AsWriteBuffer(recarr._data, &self.rbuf, &buflen)
-    if ret < 0:
-      raise RuntimeError("Problems getting the pointer to the buffer.")
+    buflen = NA_getBufferPtrAndSize(recarr._data, 1, &self.rbuf)
 
     # Open the table for appending
     if ( H5TBOopen_append(&self.dataset_id, &self.mem_type_id,
@@ -1437,13 +1441,14 @@ cdef class Table:
 
   def _getTableInfo(self):
     "Get info from a table on disk. This method is standalone."
-    cdef int     i, ret, buflen
+    cdef int     i, ret
     cdef hsize_t nrecords, nfields
     cdef hsize_t dims[1] # Tables are one-dimensional
     cdef H5T_class_t class_id
     cdef object  names, type_sizes, types
     cdef size_t  rowsize
     cdef char    fmt[2048]
+    cdef long    buflen
     
     shapes = []
     type_sizes = []
@@ -1471,12 +1476,11 @@ cdef class Table:
     return (nrecords, names, rowsize, type_sizes, shapes, types, fmt)
 
   def _open_read(self, object recarr):
-    cdef int buflen
+    cdef long buflen
     cdef object recarr2
 
     # Get the pointer to the buffer data area
-    if ( PyObject_AsWriteBuffer(recarr._data, &self.rbuf, &buflen) < 0 ):
-      raise RuntimeError("Problems getting the pointer to the buffer")
+    buflen = NA_getBufferPtrAndSize(recarr._data, 1, &self.rbuf)
 
     # Readout to the buffer
     if ( H5TBOopen_read(&self.dataset_id, &self.space_id, &self.mem_type_id,
@@ -1505,13 +1509,13 @@ cdef class Table:
 
   def _read_field_name(self, object arr, hsize_t start, hsize_t stop,
                        hsize_t step, char *field_name):
-    cdef int buflen, i, fieldpos
+    cdef int i, fieldpos
     cdef void *rbuf
     cdef hsize_t nrecords
+    cdef long buflen
 
     # Get the pointer to the buffer data area
-    if ( PyObject_AsWriteBuffer(arr._data, &rbuf, &buflen) < 0 ):
-      raise RuntimeError("Problems getting the pointer to the buffer")
+    buflen = NA_getBufferPtrAndSize(arr._data, 1, &rbuf)
 
     # Correct the number of records to read, if needed
     if stop > self.totalrecords:
@@ -1533,9 +1537,10 @@ cdef class Table:
 
   def _read_field_index(self, object arr, hsize_t start, hsize_t stop,
                         int index):
-    cdef int buflen, index_list[1]
+    cdef int index_list[1]
     cdef void *rbuf
     cdef hsize_t nrecords
+    cdef long buflen
 
     # Correct the number of records to read, if needed
     if stop > self.totalrecords:
@@ -1544,8 +1549,7 @@ cdef class Table:
       nrecords = stop - start
 
     # Get the pointer to the buffer data area
-    if ( PyObject_AsWriteBuffer(arr._data, &rbuf, &buflen) < 0 ):
-      raise RuntimeError("Problems getting the pointer to the buffer")
+    buflen = NA_getBufferPtrAndSize(arr._data, 1, &rbuf)
 
     index_list[0] = index
     # Read the column
@@ -1570,15 +1574,14 @@ cdef class Table:
     return nrecords
 
   def _read_elements_orig(self, size_t start, hsize_t nrecords, object elements):
-    cdef int buflen
+    cdef long buflen
     cdef void *coords
 
     # Get the chunk of the coords that correspond to a buffer
     coords_array = numarray.array(elements[start:start+nrecords],
                                   type=numarray.Int64)
     # Get the pointer to the buffer data area
-    if ( PyObject_AsWriteBuffer(coords_array._data, &coords, &buflen) < 0 ):
-      raise RuntimeError("Problems getting the pointer to the buffer")
+    buflen = NA_getBufferPtrAndSize(coords_array._data, 1, &coords)
     
     if ( H5TBOread_elements(&self.dataset_id, &self.space_id,
                             &self.mem_type_id, nrecords,
@@ -1588,15 +1591,15 @@ cdef class Table:
     return nrecords
 
   def _read_elements(self, size_t start, hsize_t nrecords, object elements):
-    cdef int buflen, i, *coordi, coordint
+    cdef int i, *coordi, coordint
     cdef size_t rsize, csize
     cdef void *coords
     cdef void *dst, *src
+    cdef long buflen
 
     # Get the chunk of the coords that correspond to a buffer
     #coords_array = numarray.array(elements[start:start+nrecords])
-    if ( PyObject_AsWriteBuffer(elements._data, &coords, &buflen) < 0 ):
-      raise RuntimeError("Problems getting the pointer to the buffer")
+    buflen = NA_getBufferPtrAndSize(elements._data, 1, &coords)
     rsize = self.rowsize
     csize = sizeof(long)  # Change if the elements array is not Int32
     coords = coords + start * csize
@@ -1870,7 +1873,7 @@ cdef class Row:
         # I'm going to activate this optimization from 0.7.1 on
         # 2003/08/08
         offset = self._row * self._strides
-        return NA_getPythonScalar(<object>self._fields[fieldName], offset)
+        return NA_getPythonScalar(self._fields[fieldName], offset)
         #return self._fields[fieldName][self._row]
       elif (self._enumtypes[index] == CHARTYPE and self._scalar[index]):
         # Case of a plain string in the cell
@@ -1950,11 +1953,12 @@ cdef class Array:
     cdef herr_t ret
     cdef hid_t oid
     cdef void *rbuf
-    cdef int buflen, ret2
+    cdef long buflen
     cdef int itemsize, offset
     cdef char *byteorder
     cdef char *flavor, *complib, *version
     cdef int extdim
+    #cdef _numarray na
 
     if isinstance(naarr, strings.CharArray):
       self.type = CharType
@@ -1977,8 +1981,12 @@ cdef class Array:
     % self.type
 
     # Get the pointer to the buffer data area
-    if PyObject_AsReadBuffer(naarr._data, &rbuf, &buflen) < 0:
-      raise RuntimeError("Problems getting the buffer area.")
+    # the second parameter means the if the buffer is read-only or not
+    buflen = NA_getBufferPtrAndSize(naarr._data, 1, &rbuf)
+    # The next does not work well, because _numarray does not seems to be
+    # the parent of CharArray objects, and this is needed
+#     na = <_numarray>naarr
+#     rbuf = <void *>na.data
     # Correct the start of the buffer with the _byteoffset
     offset = naarr._byteoffset
     rbuf = <void *>(<char *>rbuf + offset)
@@ -2017,7 +2025,7 @@ cdef class Array:
     cdef int ret, rank
     cdef hsize_t *dims_arr
     cdef void *rbuf
-    cdef int buflen
+    cdef long buflen, offset
     cdef object shape
 
     # Allocate space for the dimension axis info
@@ -2028,8 +2036,10 @@ cdef class Array:
         dims_arr[i] = naarr.shape[i]
 
     # Get the pointer to the buffer data area
-    if PyObject_AsReadBuffer(naarr._data, &rbuf, &buflen) < 0:
-      raise RuntimeError("Problems getting the buffer area.")
+    buflen = NA_getBufferPtrAndSize(naarr._data, 1, &rbuf)
+    # Correct the start of the buffer with the _byteoffset
+    offset = naarr._byteoffset
+    rbuf = <void *>(<char *>rbuf + offset)
 
     # Append the records:
     ret = H5ARRAYappend_records(self.parent_id, self.name, self.rank,
@@ -2111,14 +2121,12 @@ cdef class Array:
                  object buf):
     cdef herr_t ret
     cdef void *rbuf
-    cdef int buflen, ret2
+    cdef long buflen
     cdef hsize_t nrows
     cdef int extdim
 
     # Get the pointer to the buffer data area
-    ret2 = PyObject_AsWriteBuffer(buf, &rbuf, &buflen)
-    if ret2 < 0:
-      raise RuntimeError("Problems getting the buffer area.")
+    buflen = NA_getBufferPtrAndSize(buf, 1, &rbuf)
 
     # Number of rows to read
     nrows = ((stop - start - 1) / step) + 1  # (stop-start)/step  do not work
@@ -2138,17 +2146,15 @@ cdef class Array:
     cdef herr_t ret
     cdef void *rbuf
     cdef void *start, *stop, *step
-    cdef int buflen, ret2, ndims
+    cdef long ndims, buflen
 
     # Get the pointer to the buffer data area of startl, stopl and stepl arrays
-    PyObject_AsWriteBuffer(startl._data, &start, &ndims)
-    PyObject_AsWriteBuffer(stopl._data, &stop, &ndims)
-    PyObject_AsWriteBuffer(stepl._data, &step, &ndims)
+    ndims = NA_getBufferPtrAndSize(startl._data, 1, &start)
+    ndims = NA_getBufferPtrAndSize(stopl._data, 1, &stop)
+    ndims = NA_getBufferPtrAndSize(stepl._data, 1, &step)
 
     # Get the pointer to the buffer data area
-    ret2 = PyObject_AsWriteBuffer(buf, &rbuf, &buflen)
-    if ret2 < 0:
-      raise RuntimeError("Problems getting the buffer area.")
+    buflen = NA_getBufferPtrAndSize(buf, 1, &rbuf)
 
     ret = H5ARRAYreadSlice(self.parent_id, self.name,
                            <hsize_t *>start, <hsize_t *>stop,
@@ -2248,12 +2254,14 @@ cdef class VLArray:
   def _append(self, object naarr, int nobjects):
     cdef int ret
     cdef void *rbuf
-    cdef int buflen
+    cdef long buflen, offset
 
     # Get the pointer to the buffer data area
     if nobjects:
-      if PyObject_AsReadBuffer(naarr._data, &rbuf, &buflen) < 0:
-        raise RuntimeError("Problems getting the buffer area.")
+      buflen = NA_getBufferPtrAndSize(naarr._data, 1, &rbuf)
+      # Correct the start of the buffer with the _byteoffset
+      offset = naarr._byteoffset
+      rbuf = <void *>(<char *>rbuf + offset)
     else:
       rbuf = NULL
 
@@ -2261,7 +2269,6 @@ cdef class VLArray:
     ret = H5VLARRAYappend_records(self.parent_id, self.name,
                                   nobjects, self.nrecords,
                                   rbuf)
-      
     if ret < 0:
       raise RuntimeError("Problems appending the records.")
 

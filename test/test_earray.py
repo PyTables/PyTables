@@ -32,6 +32,7 @@ class BasicTestCase(unittest.TestCase):
     compress = 0
     complib = "zlib"  # Default compression library
     shuffle = 0
+    fletcher32 = 0
     reopen = 1  # Tells whether the file has to be reopened on each test or not
 
     def setUp(self):
@@ -61,6 +62,7 @@ class BasicTestCase(unittest.TestCase):
                                          compress = self.compress,
                                          complib = self.complib,
                                          shuffle = self.shuffle,
+                                         fletcher32 = self.fletcher32,
                                          expectedrows = 1)
 
         # Fill it with rows
@@ -203,21 +205,16 @@ class BasicTestCase(unittest.TestCase):
             
         # Read all the array
         for row in earray(start=self.start, stop=self.stop, step=self.step):
-            #print "nrow-->", earray.nrow
             if self.chunksize == 1:
-                chunk = earray._start
                 index = 0
             else:
-                chunk = int(earray.nrow % self.chunksize)
-                index = chunk
-            #print "chunk, start -->", chunk, earray._start, self.chunksize
-            if (chunk - earray._start) == 0:
-                if str(self.type) == "CharType":
-                    object__ = object_
-                else:
-                    object__ = object_ * (earray.nrow / self.chunksize)
-                    if self.flavor == "Numeric":
-                        object__ = object__.astype(typecode[earray.type])
+                index = int(earray.nrow % self.chunksize)
+            if str(self.type) == "CharType":
+                object__ = object_
+            else:
+                object__ = object_ * (earray.nrow / self.chunksize)
+                if self.flavor == "Numeric":
+                    object__ = object__.astype(typecode[earray.type])
             object = object__[index]
             # The next adds much more verbosity
             if verbose and 0:
@@ -399,7 +396,6 @@ class BasicTestCase(unittest.TestCase):
             object__.swapaxes(0, self.extdim)
             # do a copy() in order to ensure that len(object._data)
             # actually do a measure of its length
-            #print "object__ -->", repr(object__)
             object = object__.__getitem__(self.slices).copy()
         else:
             object = array(None, shape = self.shape, type=self.type)
@@ -628,7 +624,7 @@ class ZlibShuffleTestCase(BasicTestCase):
     step = 10
 
 class LZOComprTestCase(BasicTestCase):
-    compress = 1
+    compress = 1  # sss
     complib = "lzo"
     chunksize = 10
     nappends = 100
@@ -664,6 +660,31 @@ class UCLShuffleTestCase(BasicTestCase):
     start = 3
     stop = 10
     step = 6
+
+class Fletcher32TestCase(BasicTestCase):
+    compress = 0
+    fletcher32 = 1
+    chunksize = 50
+    nappends = 20
+    start = 4
+    stop = 20
+    step = 7
+
+class AllFiltersTestCase(BasicTestCase):
+    compress = 1
+    shuffle = 1
+    fletcher32 = 1
+    complib = "ucl"
+    chunksize = 20  # sss
+    nappends = 50
+    start = 2
+    stop = 99 
+    step = 6
+#     chunksize = 3
+#     nappends = 2
+#     start = 1
+#     stop = 10
+#     step = 2
 
 class FloatTypeTestCase(BasicTestCase):
     type = Float64
@@ -745,6 +766,147 @@ class NumericComprTestCase(BasicTestCase):
 
 # It remains a test of Numeric char types, but the code is getting too messy
 
+class OffsetStrideTestCase(unittest.TestCase):
+    mode  = "w" 
+    compress = 0
+    complib = "zlib"  # Default compression library
+
+    def setUp(self):
+
+        # Create an instance of an HDF5 Table
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, self.mode)
+        self.rootgroup = self.fileh.root
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        
+    #----------------------------------------
+
+    def test01a_String(self):
+        """Checking earray with offseted numarray strings appends"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01a_StringAtom..." % self.__class__.__name__
+
+        # Create an string atom
+        earray = self.fileh.createEArray(root, 'strings',
+                                         strings.array(None, itemsize=3,
+                                                       shape=(0,2,2)),
+                                         "Array of strings")
+        a=strings.array([[["a","b"],["123", "45"],["45", "123"]]], itemsize=3)
+        earray.append(a[:,1:])
+        a=strings.array([[["s", "a"],["ab", "f"],["s", "abc"],["abc", "f"]]])
+        earray.append(a[:,2:])
+
+        # Read all the rows:
+        row = earray.read()
+        if verbose:
+            print "Object read:", row
+            print "Nrows in", earray._v_pathname, ":", earray.nrows
+            print "Second row in earray ==>", row[1].tolist()
+            
+        assert earray.nrows == 2
+        assert row[0].tolist() == [["123", "45"],["45", "123"]]
+        assert row[1].tolist() == [["s", "abc"],["abc", "f"]]
+        assert len(row[0]) == 2
+        assert len(row[1]) == 2
+
+    def test01b_String(self):
+        """Checking earray with strided numarray strings appends"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01b_StringAtom..." % self.__class__.__name__
+
+        # Create an string atom
+        earray = self.fileh.createEArray(root, 'strings',
+                                         strings.array(None, itemsize=3,
+                                                       shape=(0,2,2)),
+                                         "Array of strings")
+        a=strings.array([[["a","b"],["123", "45"],["45", "123"]]], itemsize=3)
+        earray.append(a[:,::2])
+        a=strings.array([[["s", "a"],["ab", "f"],["s", "abc"],["abc", "f"]]])
+        earray.append(a[:,::2])
+
+        # Read all the rows:
+        row = earray.read()
+        if verbose:
+            print "Object read:", row
+            print "Nrows in", earray._v_pathname, ":", earray.nrows
+            print "Second row in earray ==>", row[1].tolist()
+            
+        assert earray.nrows == 2
+        assert row[0].tolist() == [["a","b"],["45", "123"]]
+        assert row[1].tolist() == [["s", "a"],["s", "abc"]]
+        assert len(row[0]) == 2
+        assert len(row[1]) == 2
+
+    def test02a_int(self):
+        """Checking earray with offseted numarray ints appends"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02a_int..." % self.__class__.__name__
+
+        # Create an string atom
+        earray = self.fileh.createEArray(root, 'EAtom',
+                                         array(None, shape = (0,3),
+                                               type=Int32),
+                                         "array of ints")
+        a=array([(0,0,0), (1,0,3), (1,1,1), (0,0,0)], type=Int32)
+        earray.append(a[2:])  # Create an offset
+        a=array([(1,1,1), (-1,0,0)], type=Int32)
+        earray.append(a[1:])  # Create an offset
+
+        # Read all the rows:
+        row = earray.read()
+        if verbose:
+            print "Object read:", row
+            print "Nrows in", earray._v_pathname, ":", earray.nrows
+            print "Third row in vlarray ==>", row[2]
+            
+        assert earray.nrows == 3
+        assert allequal(row[0], array([1,1,1], type=Int32))
+        assert allequal(row[1], array([0,0,0], type=Int32))
+        assert allequal(row[2], array([-1,0,0], type=Int32))
+
+    def test02b_int(self):
+        """Checking earray with strided numarray ints appends"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02b_int..." % self.__class__.__name__
+
+        # Create an string atom
+        earray = self.fileh.createEArray(root, 'EAtom',
+                                         array(None, shape = (0,3),
+                                               type=Int32),
+                                         "array of ints")
+        a=array([(0,0,0), (1,0,3), (1,1,1), (3,3,3)], type=Int32)
+        earray.append(a[::3])  # Create an offset
+        a=array([(1,1,1), (-1,0,0)], type=Int32)
+        earray.append(a[::2])  # Create an offset
+
+        # Read all the rows:
+        row = earray.read()
+        if verbose:
+            print "Object read:", row
+            print "Nrows in", earray._v_pathname, ":", earray.nrows
+            print "Third row in vlarray ==>", row[2]
+            
+        assert earray.nrows == 3
+        assert allequal(row[0], array([0,0,0], type=Int32))
+        assert allequal(row[1], array([3,3,3], type=Int32))
+        assert allequal(row[2], array([1,1,1], type=Int32))
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -784,6 +946,8 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(Numeric1TestCase))
     #theSuite.addTest(unittest.makeSuite(Numeric2TestCase))
     #theSuite.addTest(unittest.makeSuite(NumericComprTestCase))
+    #theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))
+    #theSuite.addTest(unittest.makeSuite(AllFiltersTestCase))
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
@@ -819,6 +983,9 @@ def suite():
             theSuite.addTest(unittest.makeSuite(Numeric1TestCase))
             theSuite.addTest(unittest.makeSuite(Numeric2TestCase))
             theSuite.addTest(unittest.makeSuite(NumericComprTestCase))
+        theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))
+        theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))
+        theSuite.addTest(unittest.makeSuite(AllFiltersTestCase))
 
     return theSuite
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.15 2004/01/01 21:01:46 falted Exp $
+#       $Id: VLArray.py,v 1.16 2004/01/12 21:15:38 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.15 $"
+__version__ = "$Revision: 1.16 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -275,7 +275,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
     
     def __init__(self, atom=None, title = "",
                  compress = 0, complib = "zlib", shuffle = 1,
-                 expectedsizeinMB = 1.0):
+                 fletcher32 = 0, expectedsizeinMB = 1.0):
         """Create the instance Array.
 
         Keyword arguments:
@@ -296,6 +296,11 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         shuffle -- Whether or not to use the shuffle filter in HDF5. This
             is normally used to improve the compression ratio.
 
+        fletcher32 -- Whether or not to use the fletcher32 filter in
+            the HDF5 library. This is used to add a checksum on each
+            data chunk. A value of 0 disables the checksum and it is
+            the default.
+            
         expectedsizeinMB -- An user estimate about the size (in MB) in
             the final VLArray object. If not provided, the default
             value is 1 MB.  If you plan to create both much smaller or
@@ -312,7 +317,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         if atom is not None:
             self.atom = atom
             self._v_new = 1
-            self._g_setComprAttr(compress, complib, shuffle)
+            self._g_setComprAttr(compress, complib, shuffle, fletcher32)
         else:
             self._v_new = 0
 
@@ -497,7 +502,8 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
                 self.atom = Atom(self._atomictype, self._atomicshape,
                                  self.flavor)
         # Get info about existing filters
-        self.complevel, self.complib, self.shuffle = self._g_getFilters()
+        self.complevel, self.complib, self.shuffle, self.fletcher32 = \
+                        self._g_getFilters()
 
     def iterrows(self, start=None, stop=None, step=None):
         """Iterator over all the rows or a range"""

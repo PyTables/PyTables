@@ -27,10 +27,11 @@
 
 */
 
-/* Ok. from pytables 0.8 on I decided to let the CHECKSUM on as it
-   seems pretty stable
-   F. Alted 2004/01/02 */
-#define CHECKSUM  		       
+/* Ok. from pytables 0.8 on I decided to let the user select the
+   fletcher32 checksum provided in HDF5 1.6 or higher. So, even though
+   the CHECKSUM support here seems pretty stable it will be disabled.
+   F. Alted 2004/01/12 */
+#undef CHECKSUM  		       
 
 /* Adding more memory to the nrve seems to make it more resistant to
  seg faults. But I don't fully understand were is exactly the problem,
