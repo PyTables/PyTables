@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.14 2003/02/22 10:46:14 falted Exp $
+#       $Id: File.py,v 1.15 2003/02/24 12:06:00 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.14 $"
+__version__ = "$Revision: 1.15 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -378,20 +378,20 @@ future). Giving up.""" % \
 
     
     def createArray(self, where, name, arrayObject,
-                    title = "", atomic = 1):
+                    title = "", atomictype = 1):
         
         """Create a new instance Array with name "name" in "where"
         location.  "where" parameter can be a path string, or another
         group instance. "arrayObject" is the array to be saved; it can
         be numarray, Numeric or homogeneous tuple or list. "title"
-        sets a TITLE attribute on the HDF5 array entity. "atomic" is a
-        boolean that specifies the underlying HDF5 type; if 1 and
-        atomic (i.e. it can't be decomposed in smaller types) is used;
-        if 0 an HDF5 array datatype is used. The created object is
-        returned."""
+        sets a TITLE attribute on the HDF5 array entity. "atomictype"
+        is a boolean that specifies the underlying HDF5 type; if 1 an
+        atomic data type (i.e. it can't be decomposed in smaller
+        types) is used; if 0 an HDF5 array datatype is used. The
+        created object is returned."""
 
         group = self.getNode(where, classname = 'Group')
-        object = Array(arrayObject, title, atomic)
+        object = Array(arrayObject, title, atomictype)
         setattr(group, name, object)
         return object
 
@@ -499,6 +499,7 @@ Instead, a %s() object has been found there.""" % \
         for group in self.walkGroups(self.root):
             for leaf in self.listNodes(group, classname = 'Leaf'):
                 leaf.close()
+                pass
             group.close()
 
         self.closeFile()
@@ -513,18 +514,18 @@ Instead, a %s() object has been found there.""" % \
         # So that code will remian commented out until the problem be
         # located and fixed
         # 22/02/2003
-#         for group in self.walkGroups(self.root):
-#             for leaf in self.listNodes(group, classname = 'Leaf'):
-#                 # Delete the back references
-#                 del leaf._v_parent
-#                 del leaf._v_rootgroup
-#             # Delete the back references to the parent group and root group
-#             del group._v_parent
-#             del group._v_rootgroup
+        for group in self.walkGroups(self.root):
+            for leaf in self.listNodes(group, classname = 'Leaf'):
+                # Delete the back references
+                del leaf._v_parent
+                del leaf._v_rootgroup
+            # Delete the back references to the parent group and root group
+            del group._v_parent
+            del group._v_rootgroup
             
-#         # Delete the root object (this should recursively delete the
-#         # object tree)
-#         del self.root
+        # Delete the root object (this should recursively delete the
+        # object tree)
+        del self.root
 
     def __str__(self):
         

@@ -36,7 +36,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
 		    const char *title,  /* Added parameter */
 		    const char *flavor,  /* Added parameter */
 		    const char *obversion,  /* Added parameter */
-		    const int atomic,  /* Added parameter */
+		    const int atomictype,  /* Added parameter */
 		    const int rank, 
 		    const hsize_t *dims,
 		    hid_t type_id,
@@ -48,7 +48,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
 	
  
  /* Create the data space for the dataset. */
- if (atomic) {
+ if (atomictype) {
    if ( (space_id = H5Screate_simple( rank, dims, NULL )) < 0 )
      return -1;
    /*

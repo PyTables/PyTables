@@ -32,10 +32,10 @@ class RangeTestCase(unittest.TestCase):
     def setUp(self):
         # Create an instance of HDF5 Table
         self.fileh = openFile(self.file, mode = "w")
-        group = self.rootgroup = self.fileh.root
+        self.rootgroup = self.fileh.root
 
         # Create a table
-        self.table = self.fileh.createTable(group, 'table',
+        self.table = self.fileh.createTable(self.rootgroup, 'table',
 	                                    Record(), self.title)
 
     def tearDown(self):
@@ -96,7 +96,8 @@ class RangeTestCase(unittest.TestCase):
 def suite():
     theSuite = unittest.TestSuite()
 
-    theSuite.addTest(unittest.makeSuite(RangeTestCase))
+    for i in range(1):
+        theSuite.addTest(unittest.makeSuite(RangeTestCase))
 
     return theSuite
 

@@ -41,18 +41,6 @@ def suite():
     except:
         print "Skipping Numeric test suite"
 
-    # This a unique configuration that makes the tests start taking
-    # memory and never ending...
-    # I don't know if this could be a Python bug or what, but such
-    # a configuration is very strange.
-    # I've tried with the different versions fo Python (2.2.1 and 2.2.2)
-    # with HDF5 1.4.4. and 1.4.5, with numarray 0.4 and 0.4.4
-    # but the bug always appear.
-    # When the maxchilds and maxdepth variables in test_create are under
-    # a conservative values (<=128 and <=32), everything goes well).
-    # Perhaps this is a problem with the garbage collector in Python??
-    # Well, I don't know!
-    # See also comments in File.close() method
     test_modules2 = [
                     'test_create',
                     'test_types',

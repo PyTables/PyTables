@@ -81,7 +81,7 @@ gcolumns = h5file.createGroup("/", "columns")
 print "columns ==>", gcolumns, pressure
 # Create a Numeric array with this info under '/columns'
 h5file.createArray(gcolumns, 'pressure', Numeric.array(pressure),
-                   "Pressure column", atomic=0)
+                   "Pressure column", atomictype=0)
 print "gcolumns.pressure typeclass ==> ", gcolumns.pressure.typeclass
 
 # Do the same with TDCcount
@@ -296,6 +296,12 @@ print "  coltypes:", table.coltypes
 print "  colnames:", table.colnames
 
 print table[:]
+for p in table.fetchall():
+    print p.c1, '-->', p.c2
+print
+
+result = [ rec.c1 for rec in table.fetchall() if table.nrow < 2 ]
+print result
 
 # Close this file
 h5file.close()

@@ -42,7 +42,7 @@ print "new columns group ==>", gcolumns
 
 # Create a Numeric array with this info under '/columns'
 h5file.createArray(gcolumns, 'pressure', pressure,
-                   "Pressure column", atomic=0)
+                   "Pressure column", atomictype=0)
 print "gcolumns.pressure type ==> ", gcolumns.pressure.typeclass
 
 # Create another array

@@ -39,6 +39,7 @@ class BasicTestCase(unittest.TestCase):
     All of them are included on pytables.
     """
     endiancheck = 0
+    atomictype = 0
     
     def WriteRead(self, testArray):
         if verbose:
@@ -62,7 +63,8 @@ class BasicTestCase(unittest.TestCase):
             a._byteswap()
             a.togglebyteorder()
 
-        self.fileh.createArray(self.root, 'somearray', a, "Some array")
+        self.fileh.createArray(self.root, 'somearray', a,
+                               "Some array", atomictype=self.atomictype)
 	
         # Close the file
         self.fileh.close()
@@ -163,6 +165,7 @@ class Basic0DOneTestCase(BasicTestCase):
     tupleInt = 3
     tupleChar = "3"
     endiancheck = 1
+    atomictype = 1 # Rank-0 is only supported by atomictype=1
     
 class Basic0DTwoTestCase(BasicTestCase):
     # Scalar case
@@ -170,6 +173,7 @@ class Basic0DTwoTestCase(BasicTestCase):
     tupleInt = 33
     tupleChar = "33"
     endiancheck = 1
+    atomictype = 1 # Rank-0 is only supported by atomictype=1
     
 class Basic1DZeroTestCase(BasicTestCase):
     # This test doesn't work at all, and that's normal
@@ -178,6 +182,7 @@ class Basic1DZeroTestCase(BasicTestCase):
     tupleInt = ()
     tupleChar = ()
     endiancheck = 0
+    atomictype = 0
 
 class Basic1DOneTestCase(BasicTestCase):
     "Method doc"
@@ -186,6 +191,7 @@ class Basic1DOneTestCase(BasicTestCase):
     tupleInt = (3,)
     tupleChar = ("a",)
     endiancheck = 1
+    atomictype = 0
     
 class Basic1DTwoTestCase(BasicTestCase):
     # 1D case
@@ -200,6 +206,7 @@ class Basic1DThreeTestCase(BasicTestCase):
     tupleInt = (3, 4, 5)
     tupleChar = ("aaa", "bbb",)
     endiancheck = 1
+    atomictype = 0
     
 class Basic2DTestCase(BasicTestCase):
     # 2D case
@@ -207,14 +214,25 @@ class Basic2DTestCase(BasicTestCase):
     tupleInt = array(arange((4)**2), shape=(4,)*2) 
     tupleChar = chararray.array("abc"*3**2, shape=(3,)*2, itemsize=3)
     endiancheck = 1
+    atomictype = 0
     
-class Basic10DTestCase(BasicTestCase):
+class Basic10DOneTestCase(BasicTestCase):
     # 10D case
     title = "Rank-10 case 1"
     tupleInt = array(arange((2)**10), shape=(2,)*10)
     # Dimensions greather than 6 in chararray gives some warnings
     #tupleChar = chararray.array("abc"*2**8, shape=(2,)*8, itemsize=3)
     tupleChar = chararray.array("abc"*2**6, shape=(2,)*6, itemsize=3)
+    atomictype=0
+    
+class Basic10DTwoTestCase(BasicTestCase):
+    # 10D case
+    title = "Rank-10 case 2"
+    tupleInt = array(arange((2)**10), shape=(2,)*10)
+    # Dimensions greather than 6 in chararray gives some warnings
+    #tupleChar = chararray.array("abc"*2**8, shape=(2,)*8, itemsize=3)
+    tupleChar = chararray.array("abc"*2**6, shape=(2,)*6, itemsize=3)
+    atomictype = 1
     
 class Basic32DTestCase(BasicTestCase):
     # 32D case (maximum)
@@ -255,7 +273,8 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         if self.endiancheck and not (isinstance(a, chararray.CharArray)):
             a.byteswap()
 
-        self.fileh.createArray(self.root, 'somearray', a, "Some array")
+        self.fileh.createArray(self.root, 'somearray',
+                               a, "Some array")
 	
         # Close the file
         self.fileh.close()
@@ -514,7 +533,8 @@ def suite():
     theSuite.addTest(unittest.makeSuite(Basic1DTwoTestCase))
     theSuite.addTest(unittest.makeSuite(Basic1DThreeTestCase))
     theSuite.addTest(unittest.makeSuite(Basic2DTestCase))
-    theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
+    theSuite.addTest(unittest.makeSuite(Basic10DOneTestCase))
+    theSuite.addTest(unittest.makeSuite(Basic10DTwoTestCase))
     # The 32 dimensions case is tested on GroupsArray
     #theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
     theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))

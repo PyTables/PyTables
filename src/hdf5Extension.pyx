@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.23 2003/02/20 19:21:01 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.24 2003/02/24 12:05:59 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.23 $"
+__version__ = "$Revision: 1.24 $"
 
 
 import sys, os.path
@@ -298,7 +298,7 @@ cdef extern from "H5LT.h":
 cdef extern from "H5ARRAY.h":  
   
   herr_t H5ARRAYmake( hid_t loc_id, char *dset_name, char *title,
-                      char *flavor, char *obversion,	int atomic,
+                      char *flavor, char *obversion, int atomictype,
                       int rank, hsize_t *dims, hid_t type_id,
                       void *data )
 
@@ -471,7 +471,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.23 2003/02/20 19:21:01 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.24 2003/02/24 12:05:59 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -750,11 +750,14 @@ cdef class Table:
     
     # test if there is data to be saved initially
     if hasattr(self, "_v_recarray"):
+      self.totalrecords = self.nrows
       ret = PyObject_AsWriteBuffer(self._v_recarray._data, &data, &buflen)
       if ret < 0:
         raise RuntimeError("Problems getting the pointer to the buffer")
     else:
+      self.totalrecords = 0
       data = NULL
+
     # The next is settable if we have default values
     fill_data = NULL
 
@@ -766,8 +769,6 @@ cdef class Table:
     if ret < 0:
       raise RuntimeError("Problems creating the table")
     
-    # Initialize the total number of records for this table
-    self.totalrecords = 0
     
   def append_records0(self, PyStringObject records, int nrecords):
     cdef int ret
@@ -897,7 +898,7 @@ cdef class Array:
     self.group_id = where._v_groupId
 
   def createArray(self, object arr, char *title,
-                  char *flavor, char *obversion, int atomic):
+                  char *flavor, char *obversion, int atomictype):
     cdef int i
     cdef herr_t ret
     cdef hid_t type_id
@@ -966,7 +967,7 @@ cdef class Array:
 
     # Save the array
     ret = H5ARRAYmake(self.group_id, self.name, title,
-                      flavor, obversion, atomic, self.rank,
+                      flavor, obversion, atomictype, self.rank,
                       self.dims, type_id, rbuf)
     if ret < 0:
       raise RuntimeError("Problems saving the array.")

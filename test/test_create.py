@@ -84,7 +84,7 @@ class createTestCase(unittest.TestCase):
 	
     def test02_syntaxname(self):
         """Checking syntax in object tree names"""
-	
+
 	# Now, try to attach an array to the object tree with
 	# a not allowed Python variable name
         try:
@@ -236,7 +236,8 @@ class createTestCase(unittest.TestCase):
 def suite():
     theSuite = unittest.TestSuite()
 
-    theSuite.addTest(unittest.makeSuite(createTestCase))
+    for i in range(1):
+        theSuite.addTest(unittest.makeSuite(createTestCase))
 
     return theSuite
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.19 2003/02/22 10:46:14 falted Exp $
+#       $Id: Array.py,v 1.20 2003/02/24 12:06:00 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.19 $"
+__version__ = "$Revision: 1.20 $"
 import types, warnings, sys
 from Leaf import Leaf
 import hdf5Extension
@@ -65,7 +65,7 @@ class Array(Leaf, hdf5Extension.Array):
 
     """
     
-    def __init__(self, NumericObject = None, title = "", atomic = 1):
+    def __init__(self, NumericObject = None, title = "", atomictype = 1):
         """Create the instance Array.
 
         Keyword arguments:
@@ -74,7 +74,8 @@ class Array(Leaf, hdf5Extension.Array):
             metadata for the array will be taken from disk.
 
         "title" -- Sets a TITLE attribute on the HDF5 array entity.
-        "atomic" -- If an HDF5 datatype is to used.
+        "atomictype" -- Whether an HDF5 atomic datatype or H5T_ARRAY
+                        is to be used.
 
         """
         # Check if we have to create a new object or read their contents
@@ -83,7 +84,7 @@ class Array(Leaf, hdf5Extension.Array):
             self._v_new = 1
             self.object = NumericObject
             self.title = title
-            self.atomic = atomic
+            self.atomictype = atomictype
         else:
             self._v_new = 0
             
@@ -178,7 +179,7 @@ class Array(Leaf, hdf5Extension.Array):
             
             
         self.typeclass = self.createArray(naarr, self.title,
-                                     flavor, obversion, self.atomic)
+                                     flavor, obversion, self.atomictype)
         # Get some important attributes
         self.shape = naarr.shape
         self.itemsize = naarr._itemsize
@@ -256,8 +257,8 @@ class Array(Leaf, hdf5Extension.Array):
         """Flush the array buffers and close this object on file."""
         self.flush()
         # Delete the reference to the array object
-        if hasattr(self, "object"):
-            del self.object
+        #if hasattr(self, "object"):
+        #    del self.object
 
     # Moved out of scope
     def _f_del__(self):

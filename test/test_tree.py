@@ -29,11 +29,10 @@ class TreeTestCase(unittest.TestCase):
     def setUp(self):
         # Create an instance of HDF5 Table
         self.h5file = openFile(self.file, self.mode, self.title)
-        self.rootgroup = self.h5file.root
         self.populateFile()
 
     def populateFile(self):
-        group = self.rootgroup
+        group = self.h5file.root
         maxshort = 1 << 15
         maxint   = 2147483647   # (2 ** 31 - 1)
         for j in range(3):
@@ -66,6 +65,8 @@ class TreeTestCase(unittest.TestCase):
             group2 = self.h5file.createGroup(group, 'group'+str(j))
             # Iterate over this new group (group2)
             group = group2
+        # Close the file (eventually destroy the extended type)
+        self.h5file.close()
             
     
     def tearDown(self):
@@ -73,8 +74,6 @@ class TreeTestCase(unittest.TestCase):
         self.h5file.close()
 
         os.remove(self.file)
-        del self.rootgroup
-        del self.h5file
 
     #----------------------------------------
 
@@ -83,6 +82,7 @@ class TreeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test00_getNode..." % self.__class__.__name__
 
+        self.h5file = openFile(self.file, "r")
         nodelist = ['/', '/table0', '/group0/var1', '/group0/group1/var4']
         nodenames = []
         for node in nodelist:
@@ -162,6 +162,7 @@ class TreeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01_getNodeClass..." % self.__class__.__name__
 
+        self.h5file = openFile(self.file, "r")
         # This tree ways of getNode usage should return a table instance
         table = self.h5file.getNode("/group0/table1")
         assert isinstance(table, Table)
@@ -186,6 +187,7 @@ class TreeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02_listNodes..." % self.__class__.__name__
 
+        self.h5file = openFile(self.file, "r")
         nodelist = ['/', '/group0', '/group0/table1', '/group0/group1/group2',
                     '/var1']
         nodenames = []
@@ -270,6 +272,7 @@ class TreeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test03_TraverseTree..." % self.__class__.__name__
 
+        self.h5file = openFile(self.file, "r")
         groups = []
         tables = []
         arrays = []
@@ -334,7 +337,7 @@ class DeepTreeTestCase(unittest.TestCase):
         # But with the new memory housekeeping introduced in PyTables
         # 0.3 that provokes a memory endless grow-up.
         # 64 is a better number so as to not expose these problems
-        maxdepth = 512  # This is safe with the actual object housekeeping
+        maxdepth = 256  # This is safe with the actual object housekeeping
         
         if verbose:
             print '\n', '-=' * 30
@@ -363,7 +366,6 @@ class DeepTreeTestCase(unittest.TestCase):
             pathname = group._v_pathname
         # Close the file
         fileh.close()
-        del group, fileh
         
         # Open the previous HDF5 file in read-only mode
         fileh = openFile(file, mode = "r")
@@ -392,7 +394,6 @@ class DeepTreeTestCase(unittest.TestCase):
         
         # Then, delete the file
         os.remove(file)
-        del group, fileh, a, b
         
 class WideTreeTestCase(unittest.TestCase):
     """Checks for maximum number of childs for a Group.
@@ -403,7 +404,7 @@ class WideTreeTestCase(unittest.TestCase):
         """Checking creation of large number of childs (1024) per group 
         
         Variable 'maxchilds' controls this check. PyTables support
-        until 4096 childs per group, but this would take too much
+        up to 4096 childs per group, but this would take too much
         memory (up to 64 MB) for testing purposes (may be we can add a
         test for big platforms). A 1024 childs run takes up to 30 MB.
         A 512 childs test takes around 25 MB.
@@ -412,7 +413,7 @@ class WideTreeTestCase(unittest.TestCase):
         # But with the new memory housekeeping introduced in PyTables
         # 0.3 that provokes a memory endless grow-up.
         # 128 is a better number so as to not expose these problems
-        maxchilds = 1024
+        maxchilds = 512
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_wideTree..." % \
@@ -458,7 +459,6 @@ class WideTreeTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
-        #del a, b, fileh
         
 #----------------------------------------------------------------------
 
@@ -467,7 +467,7 @@ def suite():
     # This counter is useful when detecting memory leaks
     niter = 1
 
-    for i in range(niter):        
+    for i in range(niter):
         theSuite.addTest(unittest.makeSuite(TreeTestCase))
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(DeepTreeTestCase))

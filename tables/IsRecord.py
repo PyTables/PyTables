@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Attic/IsRecord.py,v $
-#       $Id: IsRecord.py,v 1.9 2003/02/06 21:09:12 falted Exp $
+#       $Id: IsRecord.py,v 1.10 2003/02/24 12:06:00 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.9 $"
+__version__ = "$Revision: 1.10 $"
 
 
 import warnings
@@ -92,6 +92,10 @@ class Col:
               "\n  position: " +  str(self.pos) + \
               "\n"
         return out
+
+    # Moved out of scope
+    def _f_del__(self):
+        print "Deleting Col object"
 
     
 class metaIsRecord(type):
@@ -164,6 +168,11 @@ print p
             """
             rep = [ '  %s=%r' % (k, getattr(self, k)) for k in self.__slots__ ]
             return '%s(\n%s)' % (classname, ', \n'.join(rep))
+
+        # Moved out of scope
+        def _f_del__(self):
+            print "Deleting IsRecord object"
+            pass
 
         def testtype(object):
             """Test if datatype is valid and returns a default value for
@@ -259,7 +268,7 @@ print p
 """ % object
                 newdict['__slots__'].append(k)
                 newdict['__types__'][k] = object.type
-                if object.dflt:
+                if hasattr(object, 'dflt'):
                     newdict['__dflts__'][k] = object.dflt
                 else:
                     newdict['__dflts__'][k] = testtype(object)

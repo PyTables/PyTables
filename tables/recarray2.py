@@ -500,8 +500,12 @@ class RecArray(mda.NDArray):
     def reshape(*value):
         print "Cannot reshape record array."
 
+    # Moved out of scope
+    def _f_del__(self):
+        print "Deleting RecArray2 object"
+
 import copy
-class Row:
+class Row(object):
     """Row Class
 
     This class is similar to Record except for the fact that it is
@@ -534,7 +538,11 @@ class Row:
         # copy it if he wants to keep it.
         try:
             #value = self._fields[fieldName][self._row]
-            return self._fields[fieldName][self._row]
+            # The next line gives place to a nasty bug: memory  consumption
+            # grows without limit!
+            # Why the heck??
+            #return self._fields[fieldName][self._row]
+            return self.__dict__["_fields"][fieldName][self.__dict__['_row']]
             #return -1
             #return self._array.field(fieldName)[self._row]
         except:
@@ -550,7 +558,9 @@ class Row:
     def __setattr__(self, fieldName, value):
         """ set the field data of the record"""
 
-        self._fields[fieldName][self._row] = value
+        # The next line commented out for the same reason than in __getattr_
+        #self._fields[fieldName][self._row] = value
+        self.__dict__["_fields"][fieldName][self.__dict__['_row']] = value
         #self._array.field(fieldName)[self._row] = value
 
     def __str__(self):
@@ -570,6 +580,11 @@ class Row:
             outlist.append(self._fields[name][self._row])
             #outlist.append(self._array.field(name)[self._row])
         return outlist
+
+    # Moved out of scope
+    def _f_del__(self):
+        print "Deleting Row object"
+        pass
 
 class Record:
     """Record Class"""

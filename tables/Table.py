@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.24 2003/02/22 10:46:14 falted Exp $
+#       $Id: Table.py,v 1.25 2003/02/24 12:06:00 falted Exp $
 #
 ########################################################################
 
@@ -27,13 +27,14 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.24 $"
+__version__ = "$Revision: 1.25 $"
 
 from __future__ import generators
 import sys
 import struct
 import types
 import re
+import copy
 import string
 from numarray import *
 import chararray
@@ -50,6 +51,76 @@ byteorderDict={"=": sys.byteorder,
 
 revbyteorderDict={'little': '<',
                   'big': '>'}
+
+class Row:
+    """Row Class
+
+    This class is similar to Record except for the fact that it is
+    created and associated with a recarray in their creation
+    time. When speed in traversing the recarray is required this
+    approach is more convenient than create a new Record object for
+    each row that is visited.
+
+    """
+
+    def __init__(self, input):
+
+        self.__dict__["_array"] = input
+        self.__dict__["_fields"] = input._fields
+        self.__dict__["_row"] = 0
+
+    def __call__(self, row):
+        """ set the row for this record object """
+        
+        if row < self._array.shape[0]:
+            self.__dict__["_row"] = row
+            return self
+        else:
+            return None
+
+    def __getattr__(self, fieldName):
+        """ get the field data of the record"""
+
+        # In case that the value is an array, the user should be responsible to
+        # copy it if he wants to keep it.
+        try:
+            #value = self._fields[fieldName][self._row]
+            return self._fields[fieldName][self._row]
+            #return -1
+            #return self._array.field(fieldName)[self._row]
+        except:
+            (type, value, traceback) = sys.exc_info()
+            raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
+                  (fieldName, "Error was: \"%s: %s\"" % (type,value))
+
+        if isinstance(value, num.NumArray):
+            return copy.deepcopy(value)
+        else:
+             return value
+
+    def __setattr__(self, fieldName, value):
+        """ set the field data of the record"""
+
+        self._fields[fieldName][self._row] = value
+        #self._array.field(fieldName)[self._row] = value
+
+    def __str__(self):
+        """ represent the record as an string """
+        
+        outlist = []
+        for name in self._array._names:
+            outlist.append(`self._fields[name][self._row]`)
+            #outlist.append(`self._array.field(name)[self._row]`)
+        return "(" + ", ".join(outlist) + ")"
+
+    def _all(self):
+        """ represent the record as a list """
+        
+        outlist = []
+        for name in self._fields:
+            outlist.append(self._fields[name][self._row])
+            #outlist.append(self._array.field(name)[self._row])
+        return outlist
 
 class Table(Leaf, hdf5Extension.Table):
     """Represent a table in the object tree.
@@ -131,8 +202,10 @@ class Table(Leaf, hdf5Extension.Table):
             # RecArray object case
             self.newRecArray(description)
             # Provide a better guess for the expected number of rows
-            if self._v_expectedrows == expectedrows:
-                self._v_expectedrows = self.nrows
+            # But beware with the small recarray lengths!
+            # Commented out until a better approach is found
+            #if self._v_expectedrows == expectedrows:
+            #    self._v_expectedrows = self.nrows
             # Flag that tells if this table is new or has to be read from disk
             self._v_new = 1
         elif description:
@@ -143,10 +216,9 @@ class Table(Leaf, hdf5Extension.Table):
         else:
             self._v_new = 0
 
-    def newBuffer(self, init=1):
+    def newBuffer(self, init=0):
         """Create a new recarray buffer for I/O purposes"""
-        
-        # Create the recarray buffer
+
         recarr = recarray2.array(None, formats=self.description._v_recarrfmt,
                                 shape=(self._v_maxTuples,),
                                 names = self.colnames)
@@ -154,6 +226,10 @@ class Table(Leaf, hdf5Extension.Table):
         if init:
             for field in self.description.__slots__:
                 recarr._fields[field][:] = self.description.__dflts__[field]
+        #self.arrlist = []
+        #for col in self.varnames:
+        #    self.arrlist.append(self.arrdict[col])
+
         return recarr
 
     def newRecArray(self, recarr):
@@ -161,6 +237,7 @@ class Table(Leaf, hdf5Extension.Table):
 
         This method is aware of byteswapped and non-contiguous recarrays
         """
+
         # Check if recarray is discontigous:
         if not recarr.iscontiguous():
             # Make a copy to ensure that it is contiguous
@@ -168,7 +245,12 @@ class Table(Leaf, hdf5Extension.Table):
             # HDF5 does not support strided buffers, but just offsets
             # between fields
             recarr = recarr.copy()
-        self._v_recarray = recarr
+        # Initialize the number of rows
+        self.nrows = len(recarr)
+        # If self._v_recarray exists, and has data, it would be marked as
+        # the initial buffer
+        if self.nrows > 0:
+            self._v_recarray = recarr
         self.colnames = recarr._names
         fields = {}
         for i in range(len(self.colnames)):
@@ -181,14 +263,12 @@ class Table(Leaf, hdf5Extension.Table):
         fields['_v_align'] = revbyteorderDict[recarr._byteorder]
         # Create an instance description to host the record fields
         self.description = metaIsRecord("", (), fields)()
-        # Initialize the number of rows
-        self.nrows = len(recarr)
         # The rest of the info is automatically added when self.create()
         # is called
 
     def create(self):
         """Create a new table on disk."""
-        
+
         # Compute some important parameters for createTable
         self.colnames = tuple(self.description.__slots__)
         self._v_fmt = self.description._v_fmt
@@ -468,12 +548,11 @@ class Table(Leaf, hdf5Extension.Table):
     def close(self):
         """Flush the table buffers and close the HDF5 dataset."""
         self.flush()
-        # Delete some unnecessary objects
-        del self.description
-        if hasattr(self, "_v_buffer"):
-            del self.row
-            del self._v_buffer
-        #print self.__dict__
+        # Delete the reference to Row in _v_buffer recarray!
+        # This allows to delete both the Row and RecArray objects
+        # because Row has back-references to RecArray
+        if hasattr(self,'_v_buffer') and hasattr(self._v_buffer, "_row"):
+            del self._v_buffer._row
 
     # Moved out of scope
     def _f_del__(self):
