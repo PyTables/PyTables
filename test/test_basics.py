@@ -4,9 +4,7 @@ import os
 import tempfile
 import warnings
 
-from Numeric import *
 from tables import *
-
 
 from test_all import verbose
 
@@ -16,7 +14,7 @@ class OpenFileTestCase(unittest.TestCase):
         # Create an HDF5 file
         self.file = tempfile.mktemp(".h5")
         fileh = openFile(self.file, mode = "w")
-        fileh.createArray(fileh.root, 'array', array([1,2]),
+        fileh.createArray(fileh.root, 'array', [1,2],
                           title = "Title example")
         fileh.close()
         
@@ -30,7 +28,7 @@ class OpenFileTestCase(unittest.TestCase):
         # Create an HDF5 file
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, mode = "w")
-        arr = fileh.createArray(fileh.root, 'array', array([1,2]),
+        arr = fileh.createArray(fileh.root, 'array', [1,2],
                                 title = "Title example")
         # Get the CLASS attribute of the arr object
         class_ = fileh.root._f_getLeafAttrStr("array", "CLASS")
@@ -54,7 +52,7 @@ class OpenFileTestCase(unittest.TestCase):
 
         # Append a new array to the existing file
         fileh = openFile(self.file, mode = "r+")
-        fileh.createArray(fileh.root, 'array2', array([3,4]),
+        fileh.createArray(fileh.root, 'array2', [3,4],
                           title = "Title example 2")
         fileh.close()
 
@@ -70,7 +68,7 @@ class OpenFileTestCase(unittest.TestCase):
 
         # Append a new array to the existing file
         fileh = openFile(self.file, mode = "a")
-        fileh.createArray(fileh.root, 'array2', array([3,4]),
+        fileh.createArray(fileh.root, 'array2', [3,4],
                           title = "Title example 2")
         fileh.close()
 
@@ -89,7 +87,7 @@ class OpenFileTestCase(unittest.TestCase):
         # Append a new array to the existing file but in write mode
         # so, the existing file should be deleted!
         fileh = openFile(self.file, mode = "w")
-        fileh.createArray(fileh.root, 'array2', array([3,4]),
+        fileh.createArray(fileh.root, 'array2', [3,4],
                           title = "Title example 2")
         fileh.close()
 
@@ -152,7 +150,7 @@ class CheckFileTestCase(unittest.TestCase):
         # Create a PyTables file (and by so, an HDF5 file)
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, mode = "w")
-        arr = fileh.createArray(fileh.root, 'array', array([1,2]),
+        arr = fileh.createArray(fileh.root, 'array', [1,2],
                                     title = "Title example")
         # For this method to run, it needs a closed file
         fileh.close()
@@ -187,7 +185,7 @@ class CheckFileTestCase(unittest.TestCase):
         # Create a PyTables file
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, mode = "w")
-        arr = fileh.createArray(fileh.root, 'array', array([1,2]),
+        arr = fileh.createArray(fileh.root, 'array', [1,2],
                                     title = "Title example")
         # For this method to run, it needs a closed file
         fileh.close()

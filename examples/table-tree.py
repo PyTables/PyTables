@@ -64,13 +64,13 @@ for i in xrange(10):
     particle.temperature = float(i**2)
     particle.idnumber = i * (2 ** 34)  # This exceeds integer range
     # This injects the Record values.
-    table.appendAsRecord(particle)      
+    table.append(particle)      
 
 # Flush the buffers for table
 table.flush()
 
 # Get actual data from table. We are interested in column pressure.
-pressure = [ p.pressure for p in table.readAsRecords() ]
+pressure = [ p.pressure for p in table.fetchall() ]
 print "Last record ==>", p
 print "Column pressure ==>", array(pressure)
 print "Total records in table ==> ", len(pressure)
@@ -78,20 +78,20 @@ print
 
 # Create a new group to hold new arrays
 gcolumns = h5file.createGroup("/", "columns")
-print "columns ==>", gcolumns
+print "columns ==>", gcolumns, pressure
 # Create a Numeric array with this info under '/columns'
 h5file.createArray(gcolumns, 'pressure', Numeric.array(pressure),
                    "Pressure column", atomic=0)
 print "gcolumns.pressure typeclass ==> ", gcolumns.pressure.typeclass
 
 # Do the same with TDCcount
-TDC = [ p.TDCcount for p in table.readAsRecords() ]
+TDC = [ p.TDCcount for p in table.fetchall() ]
 print "TDC ==>", TDC
 print "TDC shape ==>", array(TDC).shape
 h5file.createArray('/columns', 'TDC', array(TDC), "TDCcount column")
 
 # Do the same with name column
-names = [ p.name for p in table.readAsRecords() ]
+names = [ p.name for p in table.fetchall() ]
 #names = chararray.array(names)
 #names = Numeric.array(names)
 names = names
@@ -102,7 +102,7 @@ print "gcolumns.name shape ==>", gcolumns.name.shape
 print "gcolumns.name typeclass ==> ", gcolumns.name.typeclass
 
 print "Table dump:"
-for p in table.readAsRecords():
+for p in table.fetchall():
     print p
 
 # Save a recarray object under detector
@@ -114,6 +114,7 @@ r2._byteorder = {"little":"big","big":"little"}[r2._byteorder]
 recarrt = h5file.createTable("/detector", 'recarray2', r2,
                              "Non-contiguous recarray")
 print recarrt
+print
 
 # Close the file
 h5file.close()
@@ -255,17 +256,14 @@ for i in xrange(10, 15):
     particle.pressure = float(i*i)
     particle.temperature = float(i**2)
     particle.idnumber = i * (2 ** 34)  # This exceeds integer range
-    table.appendAsRecord(particle)
-    # Faster way
-    #table.appendAsValues((i * 256) % (1 << 16), i % 256, i, 10 - i, i * (2 **34), 
-    #                     str("Particle: %6d" % i), float(i*i), float(i**2))
+    table.append(particle)
 
 # Flush this table
 table.flush()
 
 print "Columns name and pressure on expanded table:"
 # Print some table columns, for comparison with array data
-for p in table.readAsRecords():
+for p in table.fetchall():
     print p.name, '-->', p.pressure
 print
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.20 2003/02/07 13:30:20 falted Exp $
+#       $Id: Table.py,v 1.21 2003/02/13 14:17:27 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.20 $"
+__version__ = "$Revision: 1.21 $"
 
 from __future__ import generators
 import sys
@@ -69,11 +69,8 @@ class Table(Leaf, hdf5Extension.Table):
 
     Methods:
 
-        appendAsRecord(RecordObject)
-        appendAsTuple(tupleValues)
-        appendAsValues(*values)
-        readAsRecords()
-        readAsTuples()
+        append(RecordObject)
+        fetchall()
         flush()  # This can be moved to Leaf
         close()  # This can be moved to Leaf
 
@@ -81,7 +78,7 @@ class Table(Leaf, hdf5Extension.Table):
 
         name -- the node name
         title -- the title for this node  # This can be moved to Leaf
-        metarecord -- the metaobject for this table (can be a dictionary)
+        description -- the metaobject for this table (can be a dictionary)
         record -- A pointer to the current record object
         nrows -- the number of rows in this table
         colnames -- the field names for the table
@@ -89,13 +86,13 @@ class Table(Leaf, hdf5Extension.Table):
 
     """
 
-    def __init__(self, metarecord = None, title = "",
+    def __init__(self, description = None, title = "",
                  compress = 0, expectedrows = 10000):
         """Create an instance Table.
 
         Keyword arguments:
 
-        metarecord -- The IsRecord instance. If None, the table metadata
+        description -- The IsRecord instance. If None, the table metadata
             is read from disk, else, it's taken from previous
             parameters. It can be a dictionary where the keys are the
             field names, and the values the type definitions. And it
@@ -125,22 +122,22 @@ class Table(Leaf, hdf5Extension.Table):
         self.nrows = 0
         
         # Initialize this object in case is a new Table
-        if isinstance(metarecord, types.DictType):
+        if isinstance(description, types.DictType):
             # Dictionary case
-            self.metarecord = metaIsRecord("", (), metarecord)()
+            self.description = metaIsRecord("", (), description)()
             # Flag that tells if this table is new or has to be read from disk
             self._v_new = 1
-        elif isinstance(metarecord, recarray.RecArray):
+        elif isinstance(description, recarray.RecArray):
             # RecArray object case
-            self.newRecArray(metarecord)
+            self.newRecArray(description)
             # Provide a better guess for the expected number of rows
             if self._v_expectedrows == expectedrows:
                 self._v_expectedrows = self.nrows
             # Flag that tells if this table is new or has to be read from disk
             self._v_new = 1
-        elif metarecord:
+        elif description:
             # IsRecord subclass case
-            self.metarecord = metarecord
+            self.description = description
             # Flag that tells if this table is new or has to be read from disk
             self._v_new = 1
         else:
@@ -150,13 +147,13 @@ class Table(Leaf, hdf5Extension.Table):
         """Create a new recarray buffer for I/O purposes"""
         
         # Create the recarray buffer
-        recarr = recarray2.array(None, formats=self.metarecord._v_recarrfmt,
+        recarr = recarray2.array(None, formats=self.description._v_recarrfmt,
                                 shape=(self._v_maxTuples,),
                                 names = self.colnames)
-        # Initialize the recarray with the defaults in metarecord
+        # Initialize the recarray with the defaults in description
         if init:
-            for field in self.metarecord.__slots__:
-                recarr._fields[field][:] = self.metarecord.__dflts__[field]
+            for field in self.description.__slots__:
+                recarr._fields[field][:] = self.description.__dflts__[field]
         return recarr
 
     def newRecArray(self, recarr):
@@ -182,8 +179,8 @@ class Table(Leaf, hdf5Extension.Table):
         self._v_byteorder = recarr._byteorder
         # Append this entry to indicate the alignment!
         fields['_v_align'] = revbyteorderDict[recarr._byteorder]
-        # Create an instance metarecord to host the record fields
-        self.metarecord = metaIsRecord("", (), fields)()
+        # Create an instance description to host the record fields
+        self.description = metaIsRecord("", (), fields)()
         # Initialize the number of rows
         self.nrows = len(recarr)
         # The rest of the info is automatically added when self.create()
@@ -193,17 +190,17 @@ class Table(Leaf, hdf5Extension.Table):
         """Create a new table on disk."""
         
         # Compute some important parameters for createTable
-        self.colnames = tuple(self.metarecord.__slots__)
-        self._v_fmt = self.metarecord._v_fmt
+        self.colnames = tuple(self.description.__slots__)
+        self._v_fmt = self.description._v_fmt
         self._calcBufferSize(self._v_expectedrows)
         # Create the table on disk
         self.createTable(self.title)
         # Initialize the shape attribute
         self.shape = (self.nrows,)
         # Get the column types
-        self.coltypes = self.metarecord._v_formats
+        self.coltypes = self.description._v_formats
         # Extract the shapes for columns
-        self.colshapes = self.metarecord._v_shapes
+        self.colshapes = self.description._v_shapes
         # Compute the byte order
         self._v_byteorder = byteorderDict[self._v_fmt[0]]
         # Create the arrays for buffering
@@ -213,7 +210,7 @@ class Table(Leaf, hdf5Extension.Table):
     def open(self):
         """Opens a table from disk and read the metadata on it.
 
-        Creates an user metarecord on the flight to easy the access to
+        Creates an user description on the flight to easy the access to
         the actual data.
 
         """
@@ -243,12 +240,12 @@ class Table(Leaf, hdf5Extension.Table):
         # Append this entry to indicate the alignment!
         fields['_v_align'] = self._v_fmt[0]
         self._v_byteorder = byteorderDict[self._v_fmt[0]]
-        # Create an instance metarecord to host the record fields
-        self.metarecord = metaIsRecord("", (), fields)()
+        # Create an instance description to host the record fields
+        self.description = metaIsRecord("", (), fields)()
         # Extract the coltypes
-        self.coltypes = self.metarecord._v_formats
+        self.coltypes = self.description._v_formats
         # Extract the shapes for columns
-        self.colshapes = self.metarecord._v_shapes
+        self.colshapes = self.description._v_shapes
         # Create the arrays for buffering
         self._v_buffer = self.newBuffer(init=0)
         self.row = self._v_buffer._row
@@ -266,7 +263,7 @@ class Table(Leaf, hdf5Extension.Table):
         fmt = self._v_fmt
         compress = self._v_compress
         rowsize = struct.calcsize(fmt)
-        #rowsize = self.metarecord._v_record.itemsize()
+        #rowsize = self.description._v_record.itemsize()
         self._v_rowsize = rowsize
         self.spacebuffer = " " * rowsize
         # List to collect binary tuples
@@ -353,56 +350,19 @@ class Table(Leaf, hdf5Extension.Table):
         # Set the shape attribute (the self.nrows may be less than the maximum)
         self.shape = (self.nrows,)
         
-    def appendAsRecord(self, record):
-        """Append the "record" to the output buffer.
-        Versió per a llista de arrays...
-        Aquesta versio treu 28600 rows/sec
+    def append(self, row):
+        """Append the "row" object to the output buffer.
 
-        "record" has to be a recarray2.Row object 
+        "row" has to be a recarray2.Row object 
 
         """
         self._v_recunsaved += 1
-        record.__dict__["_row"] = self._v_recunsaved
+        row.__dict__["_row"] = self._v_recunsaved
         if self._v_recunsaved  == self._v_maxTuples:
             self._saveBufferedRows()
-            record.__dict__["_row"] = 0
+            row.__dict__["_row"] = 0
 
-
-    def appendAsTuple(self, tupleValues):
-        """Append the "tupleValues" tuple to the table output buffer.
-        
-        "tupleValues" is a tuple that has values for all the user
-        record fields. The user has to provide them in the order
-        determined by alphanumerically sorting the record name
-        fields. This method is faster (and unsafer, because requires
-        user to introduce the values in correct order!) than
-        appendAsRecord method.
-
-        """
-        self._v_packedtuples.append(struct.pack(self._v_fmt, *tupleValues))
-        #self._v_packedtuples.append(self.spacebuffer) # for speed test only
-        self._v_recunsaved += 1
-        if self._v_recunsaved  == self._v_maxTuples:
-            self._saveBufferedRows()
-
-    def appendAsValues(self, *values):
-        """ Append the "values" parameters to the table output buffer.
-        
-        "values" is a serie of parameters that provides values for all
-        the user record fields. The user has to provide them in the
-        order determined by alphanumerically sorting the record
-        fields. This method is faster (and unsafer, because requires
-        user to introduce the values in correct order) than
-        appendAsRecord method.
-
-        """
-        self._v_packedtuples.append(struct.pack(self._v_fmt, *values))
-        #self._v_packedtuples.append(self.spacebuffer) # for speed test only
-        self._v_recunsaved += 1
-        if self._v_recunsaved  == self._v_maxTuples:
-            self._saveBufferedRows()
-
-    def readAsRecords(self):
+    def fetchall(self):
         """Return an iterator yielding record instances built from rows
 
         This method is a generator, i.e. it keeps track on the last
@@ -429,16 +389,14 @@ class Table(Leaf, hdf5Extension.Table):
         # Create a recarray for the readout
         if stop > self.nrows:
             stop = self.nrows
-        #print " start, stop, step:", start, stop, step
-        #nrows = len(range(start, stop, step)) # a calcular!
-        nrows = len(range(start, stop, step)) # a calcular!
+        nrows = ((stop - start - 1) // step) + 1
         # Create the resulting recarray
-        result = recarray.array(None, formats=self.metarecord._v_recarrfmt,
+        result = recarray.array(None, formats=self.description._v_recarrfmt,
                                 shape=(nrows,),
                                 names = self.colnames)
         # Setup a buffer for the readout
-        #nrowsinbuf = self._v_maxTuples   # Shortcut
-        nrowsinbuf = 3   # Small value is useful when debugging
+        nrowsinbuf = self._v_maxTuples   # Shortcut
+        #nrowsinbuf = 3   # Small value is useful when debugging
         buffer = self._v_buffer  # Get a recarray as buffer
         nrowsread = start
         startr = 0
@@ -455,7 +413,7 @@ class Table(Leaf, hdf5Extension.Table):
             stopb = stop - nrowsread
             if stopb > nrowsinbuf:
                 stopb = nrowsinbuf
-            stopr = startr + len(range(startb,stopb,step))
+            stopr = startr + ((stopb-startb-1)//step) + 1
             if stopr > nrows:
                 break
             #print "startb, stopb, startr, stopr",\
@@ -476,8 +434,6 @@ class Table(Leaf, hdf5Extension.Table):
         # Explicitely delete the last reference to buffer
         del buffer
         result._byteorder = self._v_byteorder
-        #if result._byteorder <> sys.byteorder:
-        #    result.byteswap()
         return result
     
     def __getitem__(self, slice):
@@ -505,28 +461,6 @@ class Table(Leaf, hdf5Extension.Table):
                 step = 1
         return self.getRows(start, stop, step)
 
-    def readAsTuples(self):
-        """Returns an iterator yielding tuples built from rows
-        
-        This method is a generator, i.e. it keeps track on the last
-        record returned so that next time it is invoked it returns the
-        next available record. This method is twice as faster than
-        readAsRecords, but it yields the rows as (alphanumerically
-        orderd) tuples, instead of full-fledged instance records.
-
-        """
-        # Create a buffer for the readout
-        nrowsinbuf = self._v_maxTuples
-        buffer = self.newBuffer()  # Get a recarray as buffer
-        rowsz = self._v_rowsize
-        membuf = buffer(buffer._data) # This point to the beginning of raw data
-        vars = []
-        for i in xrange(0, self.nrows, nrowsinbuf):
-            recout = self.read_records(i, nrowsinbuf, buffer)
-            for j in xrange(recout):
-                tupla = struct.unpack(self._v_fmt, membuf[j*rowsz:(j+1)*rowsz])
-                yield tupla
-                
     def flush(self):
         """Flush the table buffers."""
         if self._v_recunsaved > 0:

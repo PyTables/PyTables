@@ -14,38 +14,37 @@ class Small(IsRecord):
     the user will not add any new variables and that its type is
     correct."""
     
-    #var1 = '4s'
-    var1 = defineType("CharType", 2, "")
-    var2 = defineType("Int32", 1, 0)
-    var3 = defineType("Float64", 1, 0)
+    var1 = Col("CharType", 16, "")
+    var2 = Col("Int32", 1, 0)
+    var3 = Col("Float64", 1, 0)
 
 # Define a user record to characterize some kind of particles
 class Medium(IsRecord):
-    name        = defineType('CharType', 16, "")  # 16-character String
-    float1      = defineType("Float64", 2, NA.arange(2))
-    #float1      = defineType("Float64", 1, 2.3)
-    #float2      = defineType("Float64", 1, 2.3)
+    name        = Col('CharType', 16, "")  # 16-character String
+    float1      = Col("Float64", 2, NA.arange(2))
+    #float1      = Col("Float64", 1, 2.3)
+    #float2      = Col("Float64", 1, 2.3)
     #idnumber    = 'q'    # signed long long (i.e. 64-bit integer)
     #TDCcount    = 'B'    # unsigned byte
-    #zADCcount    = defineType("Int16", 1, 0)    # signed short integer
-    ADCcount    = defineType("Int32", 1, 0)    # signed short integer
-    grid_i      = defineType("Int32", 1, 0)    # integer
-    grid_j      = defineType("Int32", 1, 0)    # integer
-    pressure    = defineType("Float32", 1, 0)    # float  (single-precision)
-    energy      = defineType("Float64", 1, 0)    # double (double-precision)
+    #zADCcount    = Col("Int16", 1, 0)    # signed short integer
+    ADCcount    = Col("Int32", 1, 0)    # signed short integer
+    grid_i      = Col("Int32", 1, 0)    # integer
+    grid_j      = Col("Int32", 1, 0)    # integer
+    pressure    = Col("Float32", 1, 0)    # float  (single-precision)
+    energy      = Col("Float64", 1, 0)    # double (double-precision)
 
 # Define a user record to characterize some kind of particles
 class Big(IsRecord):
-    name        = defineType('CharType', 16, "")  # 16-character String
-    float1      = defineType("Float64", 32, NA.arange(32))
-    float2      = defineType("Float64", 32, 2.2)
-    TDCcount    = defineType("Int8", 1, 0)    # signed short integer
-    #ADCcount    = defineType("Int32", 1, 0)
-    #ADCcount    = defineType("Int16", 1, 0)    # signed short integer
-    grid_i      = defineType("Int32", 1, 0)    # integer
-    grid_j      = defineType("Int32", 1, 0)    # integer
-    pressure    = defineType("Float32", 1, 0)    # float  (single-precision)
-    energy      = defineType("Float64", 1, 0)    # double (double-precision)
+    name        = Col('CharType', 16, "")  # 16-character String
+    float1      = Col("Float64", 32, NA.arange(32))
+    float2      = Col("Float64", 32, 2.2)
+    TDCcount    = Col("Int8", 1, 0)    # signed short integer
+    #ADCcount    = Col("Int32", 1, 0)
+    #ADCcount    = Col("Int16", 1, 0)    # signed short integer
+    grid_i      = Col("Int32", 1, 0)    # integer
+    grid_j      = Col("Int32", 1, 0)    # integer
+    pressure    = Col("Float32", 1, 0)    # float  (single-precision)
+    energy      = Col("Float64", 1, 0)    # double (double-precision)
 
 def createFile(filename, totalrows, complevel, recsize):
 
@@ -105,13 +104,13 @@ def createFile(filename, totalrows, complevel, recsize):
                 #d.energy = float(d.pressure ** 4)
                 d.energy = d.pressure
                 #d.idnumber = i * (2 ** 34) 
-                table.appendAsRecord(d)
+                table.append(d)
         else: # Small record
             for i in xrange(totalrows):
                 d.var1 = str(i)
                 d.var2 = i
                 d.var3 = 12.1e10
-                table.appendAsRecord(d)
+                table.append(d)
 		    
             #rowswritten += 1
         rowswritten += totalrows
@@ -155,27 +154,29 @@ def readFile(filename, recsize):
                 # For the moment we work under the assumption that the user is
                 # responsible to do it (case 2).
                 import copy
-                e = [ p._row for p in table.readAsRecords()
+                e = [ p._row for p in table.fetchall()
                       if p._row < 2 ]
-                #e = [ copy.deepcopy(p.float1) for p in table.readAsRecords()
+                #e = [ copy.deepcopy(p.float1) for p in table.fetchall()
                 #      if p.grid_i < 2 ]
                 # Next line can be used in case 1. If used in case 2 you will
                 # get corrupted data!.
-                #e = [ p.float1 for p in table.readAsRecords() 
+                #e = [ p.float1 for p in table.fetchall() 
                 #      if p.grid_i < 2 ]
-                #e = [ str(p) for p in table.readAsRecords() ]
+                #e = [ str(p) for p in table.fetchall() ]
                 #      if p.grid_i < 2 ]
-                #e = [ p.grid_j for p in table.readAsRecords() 
+                #e = [ p.grid_j for p in table.fetchall() 
                 #      if p.grid_i < 20 ]
                 # The version with a for loop is only 1% better than
                 # comprenhension list
                 #e = []
-                #for p in table.readAsRecords(): 
+                #for p in table.fetchall(): 
                 #    if p.grid_i < 20:
                 #        e.append(p.grid_j)
             else:
-                e = [ p.var2 for p in table.readAsRecords()
+                e = [ p.var3 for p in table.fetchall()
                       if p.var2 < 20 ]
+                #for p in table.fetchall():
+                #      pass
             if verbose:
                 #print "Last record read:", p
                 print "resulting selection list ==>", e

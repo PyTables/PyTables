@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.18 2003/02/07 13:30:19 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.19 2003/02/13 14:17:26 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.18 $"
+__version__ = "$Revision: 1.19 $"
 
 
 import sys, os.path
@@ -175,6 +175,7 @@ CharType = recarray.CharType
 toenum = {num.Int8:tInt8,       num.UInt8:tUInt8,
           num.Int16:tInt16,     num.UInt16:tUInt16,
           num.Int32:tInt32,     num.UInt32:tUInt32,
+          num.Int64:tInt64,     num.UInt64:tUInt64,
           num.Float32:tFloat32, num.Float64:tFloat64,
           CharType:97   # ascii(97) --> 'a' # Special case (to be corrected)
           }
@@ -182,6 +183,7 @@ toenum = {num.Int8:tInt8,       num.UInt8:tUInt8,
 toclass = {tInt8:num.Int8,       tUInt8:num.UInt8,
            tInt16:num.Int16,     tUInt16:num.UInt16,
            tInt32:num.Int32,     tUInt32:num.UInt32,
+           tInt64:num.Int64,     tUInt64:num.UInt64,
            tFloat32:num.Float32, tFloat64:num.Float64,
            97:CharType   # ascii(97) --> 'a' # Special case (to be corrected)
           }
@@ -468,7 +470,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.18 2003/02/07 13:30:19 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.19 2003/02/13 14:17:26 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -923,7 +925,7 @@ cdef class Array:
     # Fill the dimension axis info with adequate info (and type!)
     for i from  0 <= i < self.rank:
         self.dims[i] = array.shape[i]
-                               
+
     # Save the array
     ret = H5ARRAYmake(self.group_id, self.name, title,
                       flavor, obversion, atomic, self.rank,
@@ -938,7 +940,7 @@ cdef class Array:
     cdef size_t type_size
     cdef H5T_class_t class_id
     cdef H5T_sign_t sign
-    cdef char byteorder[10]  # "little" fits easily here
+    cdef char byteorder[16]  # "non-relevant" fits easily here
     cdef int i
     cdef herr_t ret
 

@@ -50,19 +50,12 @@ class BasicTestCase(unittest.TestCase):
 	    
             # Fill the table
             for i in xrange(self.expectedrows):
-                if self.fast:
-                    table.appendAsValues('%04d' % (self.expectedrows - i),
-                                         i,
-                                         i % maxshort,
-                                         float(i),
-                                         float(i),)
-                else:
-                    d.var1 = '%04d' % (self.expectedrows - i)
-                    d.var2 = i 
-                    d.var3 = i % maxshort
-                    d.var4 = float(i)
-                    d.var5 = float(i)
-                    table.appendAsRecord(d)
+                d.var1 = '%04d' % (self.expectedrows - i)
+                d.var2 = i 
+                d.var3 = i % maxshort
+                d.var4 = float(i)
+                d.var5 = float(i)
+                table.append(d)
 		
             # Flush the buffer for this table
             table.flush()
@@ -90,7 +83,7 @@ class BasicTestCase(unittest.TestCase):
         table = self.fileh.getNode("/table0")
 	
         # Read the records and select the ones with "var2" file less than 20
-        result = [ rec.var2 for rec in table.readAsRecords() if rec.var2 < 20 ]
+        result = [ rec.var2 for rec in table.fetchall() if rec.var2 < 20 ]
         if verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last record in table ==>", rec
@@ -122,23 +115,16 @@ class BasicTestCase(unittest.TestCase):
             print "Record Size ==>", table._v_rowsize
         # Append some records
         for i in xrange(self.appendrows):
-            if self.fast:
-                table.appendAsValues('%04d' % (self.appendrows - i),
-                                     i,
-                                     i % maxshort,
-                                     float(i),
-                                     float(i),)
-            else:
-                rec.var1 = '%04d' % (self.appendrows - i)
-                rec.var2 = i 
-                rec.var3 = i % maxshort
-                rec.var4 = float(i)
-                rec.var5 = float(i)
-                table.appendAsRecord(rec)
+            rec.var1 = '%04d' % (self.appendrows - i)
+            rec.var2 = i 
+            rec.var3 = i % maxshort
+            rec.var4 = float(i)
+            rec.var5 = float(i)
+            table.append(rec)
 	    
 	# Flush the buffer for this table and read it
         table.flush()
-        result = [ rec.var2 for rec in table.readAsRecords() if rec.var2 < 20 ]
+        result = [ rec.var2 for rec in table.fetchall() if rec.var2 < 20 ]
 	
         nrows = self.appendrows - 1
         assert (rec.var1, rec.var2, rec.var5) == ("0001", nrows, float(nrows))
@@ -151,17 +137,8 @@ class CompressTablesTestCase(BasicTestCase):
     compress = 1
 
 class BigTablesTestCase(BasicTestCase):
-    #expectedrows = 10000
-    #appendrows = 1000
     expectedrows = 10000
     appendrows = 1000
-
-class BigFastTablesTestCase(BasicTestCase):
-    #expectedrows = 10000
-    #appendrows = 1000
-    expectedrows = 1000
-    appendrows = 100
-    fast = 1
 
 
 #----------------------------------------------------------------------
@@ -172,7 +149,6 @@ def suite():
     theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
     theSuite.addTest(unittest.makeSuite(CompressTablesTestCase))
     theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
-    #theSuite.addTest(unittest.makeSuite(BigFastTablesTestCase))
 
     return theSuite
 

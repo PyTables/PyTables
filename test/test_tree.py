@@ -3,7 +3,6 @@ import unittest
 import os
 import tempfile
 
-from Numeric import *
 from tables import *
 # Next imports are only necessary for this test suite
 from tables import Group, Leaf, Table, Array
@@ -52,17 +51,16 @@ class TreeTestCase(unittest.TestCase):
                 d.var3 = i % maxshort
                 d.var4 = float(i)
                 d.var5 = float(i)
-                table.appendAsRecord(d)      # This injects the Record values
-                # table.appendRecord(d())     # The same, but slower
+                table.append(d)      # This injects the Record values
             # Flush the buffer for this table
             table.flush()
             
             # Create a couple of arrays in each group
-            var1List = [ x.var1 for x in table.readAsRecords() ]
-            var4List = [ x.var4 for x in table.readAsRecords() ]
-            
-            self.h5file.createArray(group, 'var1', array(var1List), "1")
-            self.h5file.createArray(group, 'var4', array(var4List), "4")
+            var1List = [ x.var1 for x in table.fetchall() ]
+            var4List = [ x.var4 for x in table.fetchall() ]
+
+            self.h5file.createArray(group, 'var1', var1List, "1")
+            self.h5file.createArray(group, 'var4', var4List, "4")
             
             # Create a new group (descendant of group)
             group2 = self.h5file.createGroup(group, 'group'+str(j))
@@ -353,7 +351,7 @@ class DeepTreeTestCase(unittest.TestCase):
             # Save it on the HDF5 file
             if verbose:
                 print "%3d," % (depth),
-            a = ones((1,2), 'i')
+            a = [1, 1]
             fileh.createArray(group, 'array', a, "depth: %d" % depth)
             group = fileh.createGroup(group, 'group' + str(depth))
         # Close the file
@@ -369,7 +367,7 @@ class DeepTreeTestCase(unittest.TestCase):
             if verbose:
                 print "%3d," % (depth),
             # Create an array for later comparison
-            a = ones((1,2), 'i')
+            a = [1, 1]
             # Get the actual array
             b = group.array.read()
             # Arrays a and b must be equal
@@ -415,7 +413,7 @@ class WideTreeTestCase(unittest.TestCase):
         for child in range(maxchilds):
             if verbose:
                 print "%3d," % (child),
-            a = ones((1,2), 'i')
+            a = [1, 1]
             fileh.createArray(fileh.root, 'array' + str(child),
                               a, "child: %d" % child)
         if verbose:
@@ -433,7 +431,7 @@ class WideTreeTestCase(unittest.TestCase):
             if verbose:
                 print "%3d," % (child),
             # Create an array for later comparison
-            a = ones((1,2), 'i')
+            a = [1, 1]
             # Get the actual array
             array_ = getattr(fileh.root, 'array' + str(child))
             b = array_.read()

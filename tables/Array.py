@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.13 2003/02/07 13:02:00 falted Exp $
+#       $Id: Array.py,v 1.14 2003/02/13 14:17:27 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.13 $"
+__version__ = "$Revision: 1.14 $"
 import types, warnings, sys
 from Leaf import Leaf
 import hdf5Extension
@@ -121,6 +121,10 @@ class Array(Leaf, hdf5Extension.Array):
                                        type=arr.typecode(),
                                        shape=arr.shape)
 
+        elif (isinstance(arr, chararray.CharArray)):
+            flavor = "CHARARRAY"
+            naarr = arr
+            self.byteorder = "non-relevant" 
         elif (isinstance(arr, types.TupleType) or
               isinstance(arr, types.ListType)):
             # Test if can convert to numarray object
@@ -145,7 +149,6 @@ class Array(Leaf, hdf5Extension.Array):
   chararray,homogeneous list or homogeneous tuple).
   Sorry, but this object is not supported.""" % (arr)
 
-        #print "Array to saved:", naarr
         self.typeclass = self.createArray(naarr, self.title,
                                      flavor, obversion, self.atomic)
         # Get some important attributes

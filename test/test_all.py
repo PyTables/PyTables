@@ -28,10 +28,18 @@ def suite():
                     'test_create',
                     'test_tables',
                     'test_types',
-                    'test_array',
 		    'test_tree',
+                    'test_numarray',
 		    ]
 
+    # Add test_Numeric only if Numeric is installed
+    try:
+        import Numeric
+        print "Adding the Numeric test suite"
+        test_modules.append("test_Numeric")
+    except:
+        print "Skipping Numeric test suite"
+        
     alltests = unittest.TestSuite()
     for name in test_modules:
         module = __import__(name)

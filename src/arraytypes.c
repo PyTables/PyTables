@@ -112,6 +112,12 @@ int getArrayType(H5T_class_t class_id,
       else
 	*fmt = tUInt32;                /* unsigned long */
       break;
+    case 8:                        /* long long */
+      if ( sign )
+	*fmt = tInt64;                /* signed long long */
+      else
+	*fmt = tUInt64;                /* unsigned long long */
+      break;
     default:
       /* This should never happen */
       goto out;

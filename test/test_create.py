@@ -12,7 +12,6 @@ import os
 import re
 import tempfile
 
-from Numeric import *
 from tables import *
 # important objects to test
 from tables import File, Group, Leaf, Table, Array
@@ -44,12 +43,9 @@ class createTestCase(unittest.TestCase):
 	# Create a table object
 	self.table = self.fileh.createTable(self.root, 'atable',
                                             Record(), "Table title")
-	
 	# Create an array object
 	self.array = self.fileh.createArray(self.root, 'anarray',
-                                            array([1]), "Array title")
-	#self.array = createArray(array([1]), "Array title")
-	
+                                            [1], "Array title")
 	# Create a group object
 	self.group = self.fileh.createGroup(self.root, 'agroup',
                                             "Group title")
@@ -75,7 +71,7 @@ class createTestCase(unittest.TestCase):
 
         try:
             self.array = self.fileh.createArray(self.root, 'anarray',
-                                                array([1]), "Array title")
+                                                [1], "Array title")
         except NameError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -91,7 +87,7 @@ class createTestCase(unittest.TestCase):
 	# a not allowed Python variable name
         try:
             self.array = self.fileh.createArray(self.root, ' array',
-                                                array([1]), "Array title")
+                                                [1], "Array title")
         except NameError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -103,7 +99,7 @@ class createTestCase(unittest.TestCase):
 	# another name error
         try:
             self.array = self.fileh.createArray(self.root, '$array',
-                                                array([1]), "Array title")
+                                                [1], "Array title")
         except NameError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -115,7 +111,7 @@ class createTestCase(unittest.TestCase):
 	# Finally, test a reserved word
         try:
             self.array = self.fileh.createArray(self.root, 'for',
-                                                array([1]), "Array title")
+                                                [1], "Array title")
         except NameError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -144,7 +140,7 @@ class createTestCase(unittest.TestCase):
 	# Finally, try with an Array object
 	# This supports titles until 255 characters. The rest is lost.
         arr = self.fileh.createArray(self.root, 'arr',
-                                     array([1]), "t" * titlelength)
+                                     [1], "t" * titlelength)
 	# getTitle can retrieve only the first 255 charactes
 	assert arr.title == "t" * titlelength
 	    
@@ -182,13 +178,13 @@ class createTestCase(unittest.TestCase):
                 setattr(row, varname, i*j)
                 i += 1
 	    
-            table.appendAsRecord(row)
+            table.append(row)
 
         # write data on disk
 	table.flush()
 	
 	# Read all the data as records 
-	for recout in table.readAsRecords():
+	for recout in table.fetchall():
             pass
 
         # Compare the last input row and last output
