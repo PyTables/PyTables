@@ -300,7 +300,7 @@ herr_t H5TBmake_table( const char *table_title,
  if ( H5Tclose( file_type_id ) < 0 )
   return -1;
  
-return 0;
+ return dataset_id;
 
 out:
  H5Dclose( dataset_id );

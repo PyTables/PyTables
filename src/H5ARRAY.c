@@ -210,7 +210,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
  if (dims_chunk)
    free(dims_chunk);
 
- return 0;
+ return dataset_id;
 
 out:
  H5Dclose( dataset_id );

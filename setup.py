@@ -158,27 +158,6 @@ where they can be found."""
     if (not '-lhdf5' in LIBS):
         libnames.append('hdf5')
 
-    # Check for numarray
-    try:
-        import numarray
-    except:
-        print """\
-Can't find a local numarray Python installation.
-Please, read carefully the README and remember
-that PyTables needs the numarray package to
-compile and run."""
-        
-        sys.exit(1)
-    else:
-        if numarray.__version__ >= "0.6":
-            print "Found numarray %s package installed" % numarray.__version__
-        else:
-            print "###########################################################"
-            print "You need numarray 0.6 or greater!. Exiting..."
-            print "###########################################################"
-            sys.exit(1)
-
-
     # Look for optional compression libraries (LZO and UCL)
     # figure out from the base setting where the lib and .h are
     if LZO_DIR:
@@ -363,37 +342,35 @@ Disabling support for them."""
             print """Optional UCL libraries or include files not found. \
 Disabling support for them."""
         
-    # Finally, check for numarray
-    try:
-        import numarray
-    except:
-        print """\
+# Finally, check for numarray
+try:
+    import numarray
+except:
+    print """\
 Can't find a local numarray Python installation.
 Please, read carefully the README and remember
 that PyTables needs the numarray package to
 compile and run."""
         
+    sys.exit(1)
+else:
+    if numarray.__version__ >= "0.8":
+        print "Found numarray %s package installed" % numarray.__version__
+    else:
+        print "###########################################################"
+        print "You need numarray 0.8 or greater!. Exiting..."
+        print "###########################################################"
         sys.exit(1)
-    else:
-        if numarray.__version__ >= "0.6":
-            print "Found numarray %s package installed" % numarray.__version__
-        else:
-            print "###########################################################"
-            print "You need numarray 0.6 or greater!. Exiting..."
-            print "###########################################################"
-            sys.exit(1)
 
-    # Set the appropriate flavor hdf5Extension.c source file:
-    if pyrex:
-        hdf5Extension = "src/hdf5Extension.pyx"
-    else:
-        hdf5Extension = "src/hdf5Extension.c"
         
-# Update the version.h file if this file is newer
+# Update the version.h file if this file is newer... and
+# Set the appropriate flavor hdf5Extension.c source file:
 if pyrex:
+    hdf5Extension = "src/hdf5Extension.pyx"
     if newer('setup.py', 'src/version.h'):
         open('src/version.h', 'w').write('#define PYTABLES_VERSION "%s"\n' % VERSION)
 else:
+    hdf5Extension = "src/hdf5Extension.c"
     if newer('setup.py', 'src/version.h'):
         open('src/version.h', 'w').write('#define PYTABLES_VERSION "%s"\n' % VERSION)
 

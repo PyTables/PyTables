@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.86 2003/12/19 17:44:19 falted Exp $
+#       $Id: Table.py,v 1.87 2003/12/20 12:59:55 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.86 $"
+__version__ = "$Revision: 1.87 $"
 
 from __future__ import generators
 import sys
@@ -75,29 +75,12 @@ class Table(Leaf, hdf5Extension.Table, object):
     
     Methods:
     
-      Common to all leaves:
-        close()
-        flush()
-        getAttr(attrname)
-        rename(newname)
-        remove()
-        setAttr(attrname, attrvalue)
-        
-      Specific of Table:
         iterrows()
         read([start] [, stop] [, step] [, field [, flavor]])
         removeRows(start, stop)
 
     Instance variables:
-    
-      Common to all leaves:
-        name -- the leaf node name
-        hdf5name -- the HDF5 leaf node name
-        title -- the leaf title
-        shape -- the leaf shape
-        byteorder -- the byteorder of the leaf
-        
-      Specific of Table:
+
         description -- the metaobject describing this table
         row -- a reference to the Row object associated with this table
         nrows -- the number of rows in this table
@@ -147,8 +130,11 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         # Common variables
         self.new_title = title
-        self._v_compress = compress
-        self._v_shuffle = shuffle
+        if shuffle and not compress:
+            # Shuffling and not compressing makes not sense
+            shuffle = 0
+        self.compress = compress
+        self.shuffle = shuffle
         self._v_expectedrows = expectedrows
         # Initialize the number of rows to a default
         self.nrows = 0
@@ -184,13 +170,13 @@ class Table(Leaf, hdf5Extension.Table, object):
 """description parameter is not one of the supported types:
   IsDescription subclass, dictionary or RecArray."""
 
-	if self._v_new:
+        self.complib = complib
+	if self._v_new and compress:
 	    if hdf5Extension.isLibAvailable(complib)[0]:
-		self._v_complib = complib
+		self.complib = complib
 	    else:
 		warnings.warn( \
-"""You are asking for the %s compression library, but it is not available. Defaulting to zlib instead!.""" %(complib))
-                self._v_complib = "zlib"   # Should always exists
+"%s compression library is not available. Using zlib instead!." %(complib))
 
     def _newBuffer(self, init=1):
         """Create a new recarray buffer for I/O purposes"""
@@ -257,7 +243,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.colnames = tuple(self.description.__names__)
         self._v_fmt = self.description._v_fmt
         # Create the table on disk
-        self._createTable(self.new_title, self._v_complib)
+        self._createTable(self.new_title, self.complib)
         # Initialize the shape attribute
         self.shape = (self.nrows,)
         # Get the column types
@@ -279,15 +265,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Get table info
         (self.nrows, self.colnames, self.rowsize, itemsizes, colshapes,
          coltypes, self._v_fmt) = self._getTableInfo()
-#         print "colnames:", self.colnames
-#         print "colshapes:", colshapes
-#         print "itemsizes:", itemsizes
-#         print "coltypes:", coltypes
-        # This one is probably not necessary to set it, but...
-        self._v_compress = 0  # This means, we don't know if compression
-                              # is active or not. Maybe it is worth to save
-                              # this info on a table attribute?
-
         # Get the byteorder
         byteorder = self._v_fmt[0]
         # Remove the byteorder
@@ -306,7 +283,6 @@ class Table(Leaf, hdf5Extension.Table, object):
                 fields[self.colnames[i]] = Col(dtype = coltypes[i],
                                                shape = colshapes[i],
                                                pos = i)
-        #fields = self._buildDescription(itemsizes, colshapes, coltypes)
         # Set the alignment!
         fields['_v_align'] = byteorder
         if self._v_file._isPTFile:
@@ -322,7 +298,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.colitemsizes = self.description._v_itemsizes
         # Compute buffer size
         (self._v_maxTuples, self._v_chunksize) = \
-              calcBufferSize(self.rowsize, self.nrows, self._v_compress)
+              calcBufferSize(self.rowsize, self.nrows, self.compress)
         # Update the shape attribute
         self.shape = (self.nrows,)
         # Associate a Row object to table
@@ -614,7 +590,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.nrows -= nrows    # discount the removed rows from the total
         return nrows
 
-    def copy(self, dstname, orderby=None, complevel=0, complib="zlib"):
+    def copy(self, dstname, orderby=None,
+             complevel=0, complib="zlib", shuffle=1):
         """Copy this table to other location, optionally ordered by column
         """
         from time import time, clock
@@ -625,7 +602,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         for name in self.colnames:
             dstDescr[name] = eval(str(self.description._v_ColObjects[name]))
         
-        object = Table(dstDescr, self.title, complevel, complib, self.nrows)
+        object = Table(dstDescr, self.title,
+                       complevel, complib, shuffle, self.nrows)
         setattr(self._v_parent, dstname, object)
 
         if orderby:
@@ -651,7 +629,6 @@ You are asking ordering by a non-existing field (%s) or not a supported type!.
             if crow+nrecords > self.nrows:
                 nrecords = self.nrows - crow
             if orderby:
-                #self._read_elements_orig(crow, nrecords, coords)
                 self._read_elements(crow, nrecords, coords)
             else:
                 self._read_records(crow, nrecords)

@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.60 2003/12/19 13:17:32 falted Exp $
+#       $Id: File.py,v 1.61 2003/12/20 12:59:55 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.60 $"
+__version__ = "$Revision: 1.61 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays
@@ -246,7 +246,7 @@ class File(hdf5Extension.File, object):
         global format_version
         global compatible_formats
         
-        self._v_groupId = self._getFileId()
+        self._v_objectID = self._getFileId()
         self._v_depth = 0
 
         if rootUEP in [None, ""]:
@@ -271,7 +271,7 @@ class File(hdf5Extension.File, object):
         # Create new attributes for the root Group instance
         newattr = rootGroup.__dict__
         newattr["_v_rootgroup"] = rootGroup  # For compatibility with Group
-        newattr["_v_groupId"] = self._v_groupId
+        newattr["_v_objectID"] = self._v_objectID
         newattr["_v_parent"] = self
         newattr["_v_file"] = self
         newattr["_v_depth"] = 1
@@ -287,7 +287,7 @@ class File(hdf5Extension.File, object):
         
         # Open the root group. We do that always, be the file new or not
         rootGroup._g_new(self, rootUEP)
-        newattr["_v_groupId"] = rootGroup._g_openGroup()
+        newattr["_v_objectID"] = rootGroup._g_openGroup()
 
         # Attach the AttributeSet attribute to the rootGroup group
         newattr["_v_attrs"] = AttributeSet(rootGroup)
@@ -320,7 +320,7 @@ class File(hdf5Extension.File, object):
 
         else:
             # Firstly, get the PyTables format version for this file
-            self._format_version = hdf5Extension.read_f_attr(self._v_groupId,
+            self._format_version = hdf5Extension.read_f_attr(self._v_objectID,
                                                      'PYTABLES_FORMAT_VERSION')
             
             if not self._format_version or not self._isPTFile:
@@ -330,7 +330,7 @@ class File(hdf5Extension.File, object):
             # Get the title for the rootGroup group
             rootGroup.__dict__["_v_title"] = attrsRoot.TITLE
             # Get the title for the file
-            self.title =  hdf5Extension.read_f_attr(self._v_groupId, 'TITLE')
+            self.title =  hdf5Extension.read_f_attr(self._v_objectID, 'TITLE')
                       
             # Get all the groups recursively
             rootGroup._g_openFile()
@@ -381,7 +381,7 @@ class File(hdf5Extension.File, object):
 
 
     def createTable(self, where, name, description, title = "",
-                    compress = 0, complib = "zlib", shuffle = 0,
+                    compress = 0, complib = "zlib", shuffle = 1,
                     expectedrows = 10000):
 
         """Create a new Table instance with name "name" in "where" location.
@@ -429,9 +429,6 @@ class File(hdf5Extension.File, object):
         if complib not in ["zlib","lzo","ucl"]:
             raise ValueError, "Wrong \'complib\' parameter value: '%s'" % \
                   (str(complib))
-        if shuffle and not compress:
-            # Shuffling and not compressing makes not sense
-            shuffle = 0
         object = Table(description, title, compress, complib, shuffle,
                        expectedrows)
         setattr(group, name, object)
@@ -467,7 +464,7 @@ class File(hdf5Extension.File, object):
 
 
     def createEArray(self, where, name, object, title = "",
-                    compress = 0, complib = "zlib", shuffle = 0,
+                    compress = 0, complib = "zlib", shuffle = 1,
                     expectedrows = 1000):
         
         """Create a new instance EArray with name "name" in "where" location.
@@ -514,9 +511,6 @@ class File(hdf5Extension.File, object):
             """
 
         group = self.getNode(where, classname = 'Group')
-        if shuffle and not compress:
-            # Shuffling and not compressing makes not sense
-            shuffle = 0
         Object = EArray(object, title,
                         compress, complib, shuffle, expectedrows)
         setattr(group, name, Object)
@@ -568,9 +562,6 @@ class File(hdf5Extension.File, object):
         if vlatom == None:
                 raise ValueError, \
                       "vlatom argument should be not 'None'."
-        if shuffle and not compress:
-            # Shuffling and not compressing makes not sense
-            shuffle = 0
         Object = VLArray(vlatom, title, compress, complib, shuffle,
                          expectedsizeinMB)
         setattr(group, name, Object)

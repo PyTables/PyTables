@@ -3,8 +3,10 @@ from numarray import *
 from numarray import strings
 from tables import *
 
+
 # Open a new empty HDF5 file
-fileh = openFile("array1.h5", mode = "w")
+filename = "earray1.h5"
+fileh = openFile(filename, mode = "w")
 # Get the root group
 root = fileh.root
 
@@ -40,7 +42,7 @@ hdfarray.append(array([[1,2,3],[3,2,1],[2,4,6],[6,4,2]],
 fileh.close()
 
 # Open the file for reading
-fileh = openFile("array1.h5", mode = "r")
+fileh = openFile(filename, mode = "r")
 # Get the root group
 root = fileh.root
 

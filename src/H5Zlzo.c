@@ -39,7 +39,7 @@ int register_lzo(void) {
   /* Feed the filter_class data structure */
   H5Z_class_t filter_class = {
     (H5Z_filter_t)FILTER_LZO,	/* filter_id */
-    "lzo deflate", 		/* comment */
+    "lzo",	 		/* comment */
     NULL,                       /* can_apply_func */
     NULL,                       /* set_local_func */
     (H5Z_func_t)lzo_deflate     /* filter_func */

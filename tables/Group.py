@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.54 2003/12/16 11:09:50 falted Exp $
+#       $Id: Group.py,v 1.55 2003/12/20 12:59:55 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.54 $"
+__version__ = "$Revision: 1.55 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -90,6 +90,7 @@ class Group(hdf5Extension.Group, object):
         _v_title -- TITLE attribute of this group
         _v_name -- The name of this group in python namespace
         _v_hdf5name -- The name of this group in HDF5 file namespace
+        _v_objectID -- The HDF5 object ID of the group
         _v_pathname -- A string representation of the group location
             in tree
         _v_parent -- The parent Group instance
@@ -161,8 +162,8 @@ class Group(hdf5Extension.Group, object):
         stack=[self]                
         while stack:
             objgroup=stack.pop()
-            pgroupId=objgroup._v_parent._v_groupId
-            locId=objgroup._v_groupId
+            pgroupId=objgroup._v_parent._v_objectID
+            locId=objgroup._v_objectID
             (groups, leaves)=self._g_listGroup(pgroupId, locId,
                                                objgroup._v_hdf5name)
             for name in groups:
@@ -189,7 +190,7 @@ class Group(hdf5Extension.Group, object):
 """No CLASS attribute found. Trying to guess what's here.
 I can't promise getting the correct object, but I will do my best!.""",
             UserWarning)
-            class_ = hdf5Extension.whichClass(self._v_groupId, name)
+            class_ = hdf5Extension.whichClass(self._v_objectID, name)
             if class_ == "UNSUPPORTED":
                 raise RuntimeError, \
                 """Dataset object \'%s\' in file is unsupported!.""" % \
@@ -352,14 +353,14 @@ I can't promise getting the correct object, but I will do my best!.""",
         group on disk. """
         
         # Call the superclass method to open the existing group
-        self.__dict__["_v_groupId"] = self._g_openGroup()
+        self.__dict__["_v_objectID"] = self._g_openGroup()
 
     def _g_create(self):
         """Call the createGroup method in super class to create the group on
         disk. Also set attributes for this group. """
 
         # Call the superclass method to create a new group
-        self.__dict__["_v_groupId"] = \
+        self.__dict__["_v_objectID"] = \
                      self._g_createGroup()
 
     def _f_listNodes(self, classname = ""):

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.27 2003/10/14 19:01:49 falted Exp $
+#       $Id: Leaf.py,v 1.28 2003/12/20 12:59:55 falted Exp $
 #
 ########################################################################
 
@@ -27,11 +27,12 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.27 $"
+__version__ = "$Revision: 1.28 $"
 
 import types
 from utils import checkNameValidity
 from AttributeSet import AttributeSet
+from hdf5Extension import _getFilters
 
 class Leaf:
     """A class to place common functionality of all Leaf objects.
@@ -56,8 +57,12 @@ class Leaf:
 
         name -- the leaf node name
         hdf5name -- the HDF5 leaf node name
+        objectID -- the HDF5 object ID of the Leaf node
         title -- the leaf title
         shape -- the leaf shape
+        compress -- the compression level (0 means no compression)
+        complib -- the compression filter
+        shuffle -- whether the shuffle filter is active or not
         byteorder -- the byteorder of the leaf
         attrs -- The associated AttributeSet instance
 
@@ -85,6 +90,8 @@ class Leaf:
         self.attrs = AttributeSet(self)  # 1.6s/3.7s del temps
         # Once the AttributeSet instance has been created, get the title
         #self.title = self.attrs.TITLE   # 0.35s/2.7s del temps
+        # Get the compression filters and levels
+        self.compress, self.complib, self.shuffle = self._g_getFilters()
 
     # Define title as a property
     def get_title (self):
@@ -98,6 +105,28 @@ class Leaf:
     title = property(get_title, set_title, None,
                      "Title of this object")
 
+    def _g_getFilters(self):
+        # Default values
+        complib = "zlib"
+        complevel = 0
+        shuffle = 0
+        filters = _getFilters(self._v_parent._v_objectID, self._v_hdf5name)
+        #print "Filters on %s: %s" % (self.name, filters)
+        if filters:
+            for name in filters:
+                if name.startswith("lzo"):
+                    complib = "lzo"
+                    complevel = filters[name][0]
+                elif name.startswith("ucl"):
+                    complib = "ucl"
+                    complevel = filters[name][0]
+                elif name.startswith("deflate"):
+                    complib = "zlib"
+                    complevel = filters[name][0]
+                elif name.startswith("shuffle"):
+                    shuffle = 1
+        return (complevel, complib, shuffle)
+        
     def _g_renameObject(self, newname):
         """Rename this leaf in the object tree as well as in the HDF5 file."""
 
@@ -209,6 +238,13 @@ class Leaf:
         shape = str(self.shape)
         # The title
         title = self.attrs.TITLE
-        return "%s (%s%s) %r" % \
-               (pathname, classname, shape, title)
+        filters = ""
+        if self.compress:
+            filters += ", %s(%s)" % (self.complib, self.compress)
+            if self.shuffle:
+                filters += ", shuffled"
+#         return "%s (%s%s%s) (ID: %s) %r" % \
+#                (pathname, classname, shape, filters, self.objectID, title)
+        return "%s (%s%s%s) %r" % \
+               (pathname, classname, shape, filters, title)
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.3 2003/12/19 17:44:19 falted Exp $
+#       $Id: EArray.py,v 1.4 2003/12/20 12:59:55 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.3 $"
+__version__ = "$Revision: 1.4 $"
 # default version for EARRAY objects
 obversion = "1.0"    # initial version
 
@@ -56,14 +56,6 @@ class EArray(Array, hdf5Extension.Array, object):
 
     Methods:
 
-      Common to all Leaf's:
-        close()
-        flush()
-        getAttr(attrname)
-        rename(newname)
-        remove()
-        setAttr(attrname, attrvalue)
-
       Common to all Array's:
         read(start, stop, step)
         iterrows(start, stop, step)
@@ -73,30 +65,20 @@ class EArray(Array, hdf5Extension.Array, object):
         
     Instance variables:
 
-      Common to all Leaf's:
-        name -- the leaf node name
-        hdf5name -- the HDF5 leaf node name
-        title -- the leaf title
-        shape -- the leaf shape
-        byteorder -- the byteorder of the leaf
-
       Common to all Array's:
 
         type -- The type class for the array.
-
         itemsize -- The size of the atomic items. Specially useful for
             CharArrays.
-        
         flavor -- The flavor of this object.
+        nrow -- On iterators, this is the index of the row currently
+            dealed with.
 
       Specific of EArray:
       
         extdim -- The enlargeable dimension.
-            
         nrows -- The value of the enlargeable dimension.
             
-        nrow -- On iterators, this is the index of the row currently
-            dealed with.
 
     """
     
@@ -139,21 +121,25 @@ class EArray(Array, hdf5Extension.Array, object):
 
         """
         self.new_title = title
-        self._v_compress = compress
-        self._v_complib = complib
-        self._v_shuffle = shuffle
+        if shuffle and not compress:
+            # Shuffling and not compressing makes not sense
+            shuffle = 0
+        self.compress = compress
+        self.complib = complib
+        self.shuffle = shuffle
         self._v_expectednrows = expectednrows
         # Check if we have to create a new object or read their contents
         # from disk
         if object is not None:
             self._v_new = 1
             self.object = object
-            if hdf5Extension.isLibAvailable(complib)[0]:
-		self._v_complib = complib
-	    else:
-		warnings.warn( \
-"""You are asking for the %s compression library, but it is not available. Defaulting to zlib instead!.""" %(complib))
-                self._v_complib = "zlib"   # Should always exists
+            if compress:
+                if hdf5Extension.isLibAvailable(complib)[0]:
+                    self.complib = complib
+                else:
+                    warnings.warn( \
+"%s compression library is not available. Using zlib instead!." %(complib))
+                self.complib = "zlib"   # Should always exists
 
         else:
             self._v_new = 0
@@ -191,8 +177,7 @@ class EArray(Array, hdf5Extension.Array, object):
                 self.rowsize *= i
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
-           calcBufferSize(self.rowsize, self._v_expectednrows,
-                          self._v_compress)
+           calcBufferSize(self.rowsize, self._v_expectednrows, self.compress)
 
         self.shape = naarr.shape
         self.nrows = naarr.shape[self.extdim]
@@ -316,7 +301,7 @@ class EArray(Array, hdf5Extension.Array, object):
 
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
-                   calcBufferSize(self.rowsize, self.nrows, self._v_compress)
+                   calcBufferSize(self.rowsize, self.nrows, self.compress)
 
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""

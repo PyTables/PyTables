@@ -71,6 +71,8 @@ PyObject *_getTablesVersion(void);
 
 PyObject *createNamesTuple(char *buffer[], int nelements);
 
+PyObject *get_filter_names( hid_t loc_id, const char *dset_name);
+
 PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name);
 
 PyObject *Aiterate(hid_t loc_id);

@@ -35,6 +35,92 @@ PyObject *createNamesList(char *buffer[], int nelements)
   return t;
 }
 
+/*-------------------------------------------------------------------------
+ * Function: get_filter_names
+ *
+ * Purpose: Get the filter names for the chunks in a dataset
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Francesc Alted, falted@openlc.org
+ *
+ * Date: December 19, 2003
+ *
+ * Comments: 
+ *
+ * Modifications: 
+ *
+ *
+ *-------------------------------------------------------------------------
+ */
+
+PyObject *get_filter_names( hid_t loc_id, 
+			    const char *dset_name)
+{
+ hid_t    dset;
+ hid_t    dcpl;           /* dataset creation property list */
+/*  hsize_t  chsize[64];     /\* chunk size in elements *\/ */
+ int      i, j;
+ int      nf;             /* number of filters */
+ unsigned filt_flags;     /* filter flags */
+ H5Z_filter_t filt_id;       /* filter identification number */
+ size_t   cd_nelmts;      /* filter client number of values */
+ size_t   cd_num;         /* filter client data counter */
+ unsigned cd_values[20];  /* filter client data values */
+ char     f_name[256];    /* filter name */
+ PyObject *filters;
+ PyObject *filter_values;
+
+ /* Open the dataset. */
+ if ( (dset = H5Dopen( loc_id, dset_name )) < 0 ) {
+   Py_INCREF(Py_None); 
+   filters = Py_None;  	/* Not chunked, so return None */
+ }
+
+ /* Get the properties container */
+ dcpl = H5Dget_create_plist(dset);
+
+ filters = PyDict_New();
+ /* Collect information about filters on chunked storage */
+ if (H5D_CHUNKED==H5Pget_layout(dcpl)) {
+   /*      ndims = H5Pget_chunk(dcpl, 64, chsize/\*out*\/); */
+   if ((nf = H5Pget_nfilters(dcpl))>0) {
+/*      filter_names = PyTuple_New(nf); */
+     for (i=0; i<nf; i++) {
+       cd_nelmts = 20;
+       filt_id = H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
+			       cd_values, sizeof(f_name), f_name);
+       f_name[sizeof(f_name)-1] = '\0';
+       filter_values = PyTuple_New(cd_nelmts);
+       for (j=0;j<cd_nelmts;j++) {
+	 PyTuple_SetItem(filter_values, j, PyInt_FromLong(cd_values[j]));
+       }
+/*        PyTuple_SetItem(filter_names, i, PyString_FromString(f_name)); */
+       PyMapping_SetItemString (filters, f_name, filter_values);
+     }
+   }
+   else {
+     filters = PyDict_New(); /* Return an empty dictionary */
+   }
+ }
+ else {
+   /* http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52309 */
+   Py_INCREF(Py_None);
+   filters = Py_None;  	/* Not chunked, so return None */
+ }
+ 
+ H5Pclose(dcpl);
+ H5Dclose(dset);
+
+return filters;
+
+out:
+ H5Dclose(dset);
+ Py_INCREF(Py_None);
+ return Py_None;  	/* Not chunked, so return None */
+
+}
+
 /****************************************************************
 **
 **  gitercb(): Custom group iteration callback routine.

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.10 2003/12/19 17:44:19 falted Exp $
+#       $Id: VLArray.py,v 1.11 2003/12/20 12:59:55 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.10 $"
+__version__ = "$Revision: 1.11 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -38,7 +38,6 @@ import numarray
 import numarray.strings as strings
 import numarray.records as records
 from Leaf import Leaf
-#from utils import calcBufferSize
 import hdf5Extension
 from IsDescription import Col, BoolCol, StringCol, IntCol, FloatCol
 from utils import processRange, processRangeRead, convertIntoNA
@@ -252,30 +251,17 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 
     Methods:
 
-      Common to all leaves:
-        close()
-        flush()
-        getAttr(attrname)
-        rename(newname)
-        remove()
-        setAttr(attrname, attrvalue)
-        
-      Specific of VLArray:
         append(*objects)
         read(start, stop, step)
         iterrows(start, stop, step)
 
     Instance variables:
 
-      Common to all leaves:
-        name -- the leaf node name
-        hdf5name -- the HDF5 leaf node name
-        title -- the leaf title
-        shape -- the leaf shape
-        byteorder -- the byteorder of the leaf
-        
-      Specific of VLArray:
         atom -- the class instance choosed for the atomic object
+        nrow -- On iterators, this is the index of the row currently
+            dealed with.
+        nrows -- The total number of rows
+            
 
     """
     
@@ -314,9 +300,9 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         if shuffle and not compress:
             # Shuffling and not compressing makes not sense
             shuffle = 0
-        self._v_compress = compress
-        self._v_complib = complib
-        self._v_shuffle = shuffle
+        self.compress = compress
+        self.complib = complib
+        self.shuffle = shuffle
         self._v_expectedsizeinMB = expectedsizeinMB
         self._v_maxTuples = 100    # Maybe enough for most applications
         # Check if we have to create a new object or read their contents
@@ -324,12 +310,13 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         if atom is not None:
             self.atom = atom
             self._v_new = 1
-            if hdf5Extension.isLibAvailable(complib)[0]:
-		self._v_complib = complib
-	    else:
-		warnings.warn( \
-"""You are asking for the %s compression library, but it is not available. Defaulting to zlib instead!.""" %(complib))
-                self._v_complib = "zlib"   # Should always exists
+            if compress:
+                if hdf5Extension.isLibAvailable(complib)[0]:
+                    self.complib = complib
+                else:
+                    warnings.warn( \
+"%s compression library is not available. Using zlib instead!." %(complib))
+                self.complib = "zlib"   # Should always exists
         else:
             self._v_new = 0
 
@@ -353,7 +340,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         
         # Compute the optimal chunksize
         self._v_chunksize = calcChunkSize(self._v_expectedsizeinMB,
-                                          self._v_compress)
+                                          self.compress)
         self.nrows = 0     # No rows in creation time
         self.shape = (0,)
         self._createArray(self.new_title)

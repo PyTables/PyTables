@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.96 2003/12/19 17:44:18 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.97 2003/12/20 12:59:55 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.96 $"
+__version__ = "$Revision: 1.97 $"
 
 
 import sys, os
@@ -507,11 +507,11 @@ cdef extern from "H5ARRAY.h":
 # Functions for VLEN Arrays
 cdef extern from "H5VLARRAY.h":
   
-  herr_t H5VLARRAYmake( hid_t loc_id, char *dset_name, char *title,
-                        char *flavor, char *obversion, int rank, int scalar,
-                        hsize_t *dims, hid_t type_id, hsize_t chunk_size,
-                        void *fill_data, int compress, char *complib,
-                        int shuffle, void *data)
+  hid_t H5VLARRAYmake( hid_t loc_id, char *dset_name, char *title,
+                       char *flavor, char *obversion, int rank, int scalar,
+                       hsize_t *dims, hid_t type_id, hsize_t chunk_size,
+                       void *fill_data, int compress, char *complib,
+                       int shuffle, void *data)
   
   herr_t H5VLARRAYappend_records( hid_t loc_id, char *dset_name,
                                   int nobjects, hsize_t nrecords,
@@ -546,13 +546,13 @@ cdef enum:
 
 cdef extern from "H5TB.h":
 
-  herr_t H5TBmake_table( char *table_title, hid_t loc_id, 
-                         char *dset_name, hsize_t nfields,
-                         hsize_t nrecords, size_t type_size,
-                         char *field_names[], size_t *field_offset,
-                         hid_t *field_types, hsize_t chunk_size,
-                         void *fill_data, int compress, char *complib,
-                         int shuffle, void *data )
+  hid_t H5TBmake_table( char *table_title, hid_t loc_id, 
+                        char *dset_name, hsize_t nfields,
+                        hsize_t nrecords, size_t type_size,
+                        char *field_names[], size_t *field_offset,
+                        hid_t *field_types, hsize_t chunk_size,
+                        void *fill_data, int compress, char *complib,
+                        int shuffle, void *data )
                          
   herr_t H5TBappend_records ( hid_t loc_id, char *dset_name,
                               hsize_t nrecords, size_t type_size, 
@@ -659,6 +659,7 @@ cdef extern from "getfieldfmt.h":
 cdef extern from "utils.h":
   object _getTablesVersion()
   object createNamesTuple(char *buffer[], int nelements)
+  object get_filter_names( hid_t loc_id, char *dset_name)
   object Giterate(hid_t parent_id, hid_t loc_id, char *name)
   object Aiterate(hid_t loc_id)
   H5T_class_t getHDF5ClassID(hid_t loc_id, char *name)
@@ -820,13 +821,18 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.96 2003/12/19 17:44:18 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.97 2003/12/20 12:59:55 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
   
   #return PYTABLES_VERSION
   return _getTablesVersion()
+
+# Utility function
+def _getFilters(parent_id, name):
+  "Get a dictionary with the filter names and cd_values"
+  return get_filter_names(parent_id, name)
 
 # Type extensions declarations (these are subclassed by PyTables
 # Python classes)
@@ -898,7 +904,7 @@ cdef class AttributeSet:
     # Initialize the C attributes of Node object
     self.name =  PyString_AsString(node._v_hdf5name)
     # The parent group id of the node
-    self.parent_id = node._v_parent._v_groupId
+    self.parent_id = node._v_parent._v_objectID
     
   def _g_listAttr(self):
     cdef object attrlist
@@ -906,10 +912,14 @@ cdef class AttributeSet:
 
     if isinstance(self.node, Group):
       # Return a tuple with the attribute list
-      attrlist = Aiterate(self.node._v_groupId)
+      attrlist = Aiterate(self.node._v_objectID)
     else:
       # Get the dataset ID (the Leaf objects are always closed)
       loc_id = H5Dopen(self.parent_id, self.name)
+      # Keep the object ID in the objectID attribute in the parent dataset
+      # The existing datsets are always opened here, so this would
+      # be enough to get the objectID for existing datasets
+      self.node.objectID = loc_id 
       if loc_id < 0:
         raise RuntimeError("Cannot open the dataset '%s'" % self.name)
       attrlist = Aiterate(loc_id)
@@ -1011,7 +1021,7 @@ cdef class AttributeSet:
     cdef object attrvalue
     cdef hid_t loc_id
     if isinstance(self.node, Group):
-      attrvalue = self._g_getNodeAttr(self.parent_id, self.node._v_groupId,
+      attrvalue = self._g_getNodeAttr(self.parent_id, self.node._v_objectID,
                                       self.name, attrname)
     else:
       # Get the dataset ID
@@ -1038,7 +1048,7 @@ cdef class AttributeSet:
 
   # This funtion is useful to retrieve system attributes of Leafs
   def _g_getChildSysAttr(self, char *dsetname, char *attrname):
-    ret = H5LTget_attribute_string_sys(self.node._v_groupId, dsetname,
+    ret = H5LTget_attribute_string_sys(self.node._v_objectID, dsetname,
                                        attrname)
     return ret
 
@@ -1046,12 +1056,12 @@ cdef class AttributeSet:
     cdef object attrvalue
     cdef hid_t loc_id
     # Get the dataset ID
-    loc_id = H5Dopen(self.node._v_groupId, dsetname)
+    loc_id = H5Dopen(self.node._v_objectID, dsetname)
     if loc_id < 0:
       raise RuntimeError("Cannot open the child '%s' of node '%s'" % \
                          (dsetname, self.name))
 
-    attrvalue = self._g_getNodeAttr(self.node._v_groupId, loc_id,
+    attrvalue = self._g_getNodeAttr(self.node._v_objectID, loc_id,
                                     dsetname, attrname)
     # Close this dataset
     ret = H5Dclose(loc_id)
@@ -1157,7 +1167,7 @@ cdef class AttributeSet:
     cdef hid_t loc_id
     
     if isinstance(self.node, Group):
-      ret = H5Adelete(self.node._v_groupId, attrname ) 
+      ret = H5Adelete(self.node._v_objectID, attrname ) 
       if ret < 0:
         raise RuntimeError("Attribute '%s' exists in node '%s', but cannot be deleted." \
                          % (attrname, dsetname))
@@ -1195,7 +1205,7 @@ cdef class Group:
     # Initialize the C attributes of Group object
     self.name = strdup(name)
     # The parent group id for this object
-    self.parent_id = where._v_groupId
+    self.parent_id = where._v_objectID
     
   def _g_createGroup(self):
     cdef hid_t ret
@@ -1282,12 +1292,13 @@ cdef class Table:
   def _g_new(self, where, name):
     self.name = strdup(name)
     # The parent group id for this object
-    self.parent_id = where._v_groupId
+    self.parent_id = where._v_objectID
     self._open = 0
 
   def _createTable(self, char *title, char *complib):
     cdef int nvar, offset
     cdef int i, nrecords, ret, buflen
+    cdef hid_t oid
     cdef hid_t fieldtypes[MAX_FIELDS]
     cdef void *fill_data, *data
 
@@ -1327,7 +1338,7 @@ cdef class Table:
 
     # Compute some values for buffering and I/O parameters
     (self._v_maxTuples, self._v_chunksize) = \
-      calcBufferSize(self.rowsize, self._v_expectedrows, self._v_compress)
+      calcBufferSize(self.rowsize, self._v_expectedrows, self.compress)
     
     # test if there is data to be saved initially
     if hasattr(self, "_v_recarray"):
@@ -1345,13 +1356,14 @@ cdef class Table:
     # The next is settable if we have default values
     fill_data = NULL
 
-    ret = H5TBmake_table(title, self.parent_id, self.name,
+    oid = H5TBmake_table(title, self.parent_id, self.name,
                          nvar, self.nrows, self.rowsize, self.field_names,
                          self.field_offset, fieldtypes, self._v_chunksize,
-                         fill_data, self._v_compress, complib,
-                         self._v_shuffle, data)
-    if ret < 0:
+                         fill_data, self.compress, complib,
+                         self.shuffle, data)
+    if oid < 0:
       raise RuntimeError("Problems creating the table")
+    self.objectID = oid
 
     # Release resources to avoid memory leaks
     for i from  0 <= i < nvar:
@@ -1377,7 +1389,7 @@ cdef class Table:
     self._open = 1
 
   # A version of Table._saveBufferRows in Pyrex is available in 0.7.2,
-  # but it is not faster than the Python version, so disable it
+  # but it is not faster than the Python version, so remove it
   
   def _append_records(self, object recarr, int nrecords):
     cdef int ret,
@@ -1411,10 +1423,10 @@ cdef class Table:
       #self.mmfilew.close()
       
     self._open = 0
-    
+
   def _getTableInfo(self):
     "Get info from a table on disk. This method is standalone."
-    cdef int     i, ret
+    cdef int     i, ret, buflen
     cdef hsize_t nrecords, nfields
     cdef hsize_t dims[1] # Tables are one-dimensional
     cdef H5T_class_t class_id
@@ -1923,11 +1935,12 @@ cdef class Array:
     # Initialize the C attributes of Group object (Very important!)
     self.name = strdup(name)
     # The parent group id for this object
-    self.parent_id = where._v_groupId
+    self.parent_id = where._v_objectID
 
   def _createArray(self, object naarr, char *title):
     cdef int i
     cdef herr_t ret
+    cdef hid_t oid
     cdef void *rbuf
     cdef int buflen, ret2
     cdef int itemsize, offset
@@ -1974,20 +1987,20 @@ cdef class Array:
 
     # Save the array
     flavor = PyString_AsString(self.flavor)
-    complib = PyString_AsString(self._v_complib)
+    complib = PyString_AsString(self.complib)
     version = PyString_AsString(self._v_version)
     if hasattr(self, "extdim"):
       extdim = self.extdim
     else:
       extdim = -1
-    ret = H5ARRAYmake(self.parent_id, self.name, title,
+    oid = H5ARRAYmake(self.parent_id, self.name, title,
                       flavor, version, self.rank, self.dims, self.extdim,
                       self.type_id, self._v_maxTuples, rbuf,
-                      self._v_compress, complib, self._v_shuffle,
+                      self.compress, complib, self.shuffle,
                       rbuf)
-    if ret < 0:
-      raise RuntimeError("Problems saving the array.")
-
+    if oid < 0:
+      raise RuntimeError("Problems creating the (E)Array.")
+    self.objectID = oid
     H5Tclose(self.type_id)    # Release resources
 
     return self.type
@@ -2055,7 +2068,7 @@ cdef class Array:
         H5LTget_attribute_int(self.parent_id, self.name, "EXTDIM", &extdim)
         self.extdim = extdim
     self.flavor = flavor  # Gives class visibility to flavor
-    
+
     # Get the array type
     type_size = getArrayType(self.type_id, &self.enumtype)
     if type_size < 0:
@@ -2146,6 +2159,7 @@ cdef class Array:
 cdef class VLArray:
   # Instance variables
   cdef hid_t   parent_id
+  cdef hid_t   oid
   cdef char    *name
   cdef int     rank
   cdef hsize_t *dims
@@ -2160,7 +2174,7 @@ cdef class VLArray:
     # Initialize the C attributes of Group object (Very important!)
     self.name = strdup(name)
     # The parent group id for this object
-    self.parent_id = where._v_groupId
+    self.parent_id = where._v_objectID
 
   def _createArray(self, char *title):
     cdef int i
@@ -2208,18 +2222,18 @@ cdef class VLArray:
 
     # Manually convert some string values that can't be done automatically
     flavor = PyString_AsString(self.atom.flavor)
-    complib = PyString_AsString(self._v_complib)
+    complib = PyString_AsString(self.complib)
     version = PyString_AsString(self._v_version)
     # Create the vlarray
-    ret = H5VLARRAYmake(self.parent_id, self.name, title,
+    oid = H5VLARRAYmake(self.parent_id, self.name, title,
                         flavor, version, self.rank, self.scalar,
                         self.dims, self.type_id, self._v_chunksize, rbuf,
-                        self._v_compress, complib, self._v_shuffle,
+                        self.compress, complib, self.shuffle,
                         rbuf)
-    if ret < 0:
-      raise RuntimeError("Problems saving the array.")
-    else:
-      self.nrecords = 0  # Initialize the number of records saved
+    if oid < 0:
+      raise RuntimeError("Problems creating the VLArray.")
+    self.objectID = oid
+    self.nrecords = 0  # Initialize the number of records saved
 
     return self.type
     

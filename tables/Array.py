@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.49 2003/12/19 17:44:18 falted Exp $
+#       $Id: Array.py,v 1.50 2003/12/20 12:59:55 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.49 $"
+__version__ = "$Revision: 1.50 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -59,39 +59,17 @@ class Array(Leaf, hdf5Extension.Array, object):
 
     Methods:
 
-      Common to all leaves:
-        close()
-        flush()
-        getAttr(attrname)
-        rename(newname)
-        remove()
-        setAttr(attrname, attrvalue)
-        
-      Specific of Array:
         read(start, stop, step)
         iterrows(start, stop, step)
 
     Instance variables:
 
-      Common to all leaves:
-        name -- the leaf node name
-        hdf5name -- the HDF5 leaf node name
-        title -- the leaf title
-        shape -- the leaf shape
-        byteorder -- the byteorder of the leaf
-        
-      Specific of Array:
-      
         type -- The type class for the array.
-
         itemsize -- The size of the atomic items. Specially useful for
             CharArrays.
-        
         flavor -- The object type of this object (Numarray, Numeric, List,
             Tuple, String, Int of Float).
-            
         nrows -- The value of the first dimension of Array.
-            
         nrow -- On iterators, this is the index of the current row.
 
     """
@@ -110,9 +88,9 @@ class Array(Leaf, hdf5Extension.Array, object):
 
         """
         self.new_title = title
-        self._v_compress = 0  # An Array can not be compressed
-        self._v_complib = "zlib"  # Some default value
-        self._v_shuffle = 0   # Values of an Array cannot be shuffled
+        self.compress = 0  # An Array can not be compressed
+        self.complib = "zlib"  # Some default value
+        self.shuffle = 0   # Values of an Array cannot be shuffled
         self.extdim = -1   # An Array object is not enlargeable
         # Check if we have to create a new object or read their contents
         # from disk
@@ -149,7 +127,7 @@ class Array(Leaf, hdf5Extension.Array, object):
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
                             calcBufferSize(self.rowsize, self._v_expectednrows,
-                                           self._v_compress)
+                                           self.compress)
 
         self.shape = naarr.shape
         if naarr.shape:
@@ -259,7 +237,7 @@ class Array(Leaf, hdf5Extension.Array, object):
             self.nrows = 1   # Scalar case
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
-                   calcBufferSize(self.rowsize, self.nrows, self._v_compress)
+                   calcBufferSize(self.rowsize, self.nrows, self.compress)
 
     def iterrows(self, start=None, stop=None, step=None):
         """Iterator over all the rows or a range"""

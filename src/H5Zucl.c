@@ -61,7 +61,7 @@ int register_ucl(void) {
   /* Feed the filter_class data structure */
   H5Z_class_t filter_class = {
     (H5Z_filter_t)FILTER_UCL,	/* filter_id */
-    "ucl deflate", 		/* comment */
+    "ucl", 			/* comment */
     NULL,                       /* can_apply_func */
     NULL,                       /* set_local_func */
     (H5Z_func_t)ucl_deflate     /* filter_func */
