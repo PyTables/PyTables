@@ -1,7 +1,6 @@
 PyTables for Debian
 -------------------
 
-- The user's manual is in python-tables-doc package.
+- The user's manual and the examples are in python-tables-doc package.
 
- -- Francesc Alted <falted@openlc.org>, Sat, 27 September 2003 12:51:28 +0100
- 
+ -- Francesc Alted <falted@pytables.org>, Thu, 25 Mar 2004 13:19:15 +0100

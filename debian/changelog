@@ -1,5 +1,20 @@
+pytables (0.8-1) unstable; urgency=low
+
+   * New upstream release. It has now full 64-bit support (Closes:#221734).
+
+ -- Francesc Alted <falted@pytables.org>  Thu, 25 Mar 2004 13:19:15 +0100
+ 
+pytables (0.7.2-2) unstable; urgency=low
+
+   * Package has been rebuilt in order to use the new libhdf5-1.6.1-0
+     instead of the previous libhdf5-1.6.0-0. See #202260 and #221699
+     bug reports for more information (Closes: #221734).
+
+ -- Francesc Alted <falted@openlc.org>  Wed, 20 Nov 2003 12:00:51 +0100
+ 
 pytables (0.7.2-1) unstable; urgency=low
 
-  * First debian release.
+  * First debian release (Closes: #213707)
+  * Sponsored by Daniel Bungert <drb@debian.org>
 
- -- Francesc Alted <falted@openlc.org>  Mon, 29 Sep 2003 13:48:21 +0200
+ -- Francesc Alted <falted@openlc.org>  Wed, 08 Oct 2003 13:48:21 +0200

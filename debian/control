@@ -1,64 +1,108 @@
 Source: pytables
-Section: libs
+Section: python
 Priority: optional
 Maintainer: Francesc Alted <falted@openlc.org>
-Build-Depends: debhelper (>= 4.1.60), libz-dev, liblzo-dev, libucl-dev, libhdf5-serial-dev, python2.2-dev, python2.3-dev, python2.2-numarray (>= 0.7), python2.3-numarray (>= 0.7)
-Standards-Version: 3.5.10
+Build-Depends: debhelper (>= 4.2.4), zlib1g-dev, liblzo-dev, libucl-dev, libhdf5-serial-dev, python2.2-dev, python2.3-dev, python2.2-numarray (>= 0.8), python2.3-numarray (>= 0.8)
+Standards-Version: 3.6.1
 
 Package: python-tables
+Section: python
 Architecture: all
 Depends: python (>= 2.3), python (<< 2.4), python2.3-tables (= ${Source-Version})
-Suggests: python-tables-doc
-Description: PyTables - A hierarchical database for Python
- PyTables is a hierarchical database package
- designed to efficently manage very large amounts
- of data. PyTables is built on top of the HDF5
- library and the numarray package and features an
- object-oriented interface that, combined with
- C-code generated from Pyrex sources, makes of it a
- fast, yet extremely easy to use tool for
- interactively save and retrieve large amounts of
- data.
+Suggests: python-tables-doc, python-numeric
+Description: A hierarchical database for Python based on HDF5
+ PyTables is a hierarchical database package designed to efficently
+ manage very large amounts of data. PyTables is built on top of the
+ HDF5 library and the numarray package. It features an object-oriented
+ interface that, combined with natural naming and C-code generated
+ from Pyrex sources, makes it a fast, yet extremely easy to use tool
+ for interactively save and retrieve large amounts of data.
  .
- This Debian package is an empty dummy package that always depends on
- a package built for Debian's default Python version.
+ This differs from PyHL interface to HDF5 in that PyTables has a
+ completely object-oriented interface, rather that the more
+ function-oriented approach of PyHL. In addition, PyTables has these
+ other distinctive features:
+ .
+  - Compound types (records) can be used entirely from Python (i.e. it
+    is not necessary to use C for taking advantage of them).
+  - The tables are both enlargeable and compressible.
+  - I/O is buffered, so you can get very fast I/O, specially with
+    tables.
+  - Very easy to select data through the use of iterators over the
+    rows in tables. Extended slicing is supported as well.
+  - It supports both Numeric and numarray objects.
+ .
+ This Debian package is a mostly empty package that always depends on
+ a package built for Debian's default Python version. Note, however,
+ that the unit tests for pytables are here.
+ .
+  Homepage: http://pytables.sourceforge.net
 
 Package: python2.2-tables
-Section: libs
+Section: python
 Architecture: any
 Depends: python2.2-numarray (>= 0.7), python2.2, ${shlibs:Depends}
-Description: PyTables - A hierarchical database for Python
- PyTables is a hierarchical database package
- designed to efficently manage very large amounts
- of data. PyTables is built on top of the HDF5
- library and the numarray package and features an
- object-oriented interface that, combined with
- C-code generated from Pyrex sources, makes of it a
- fast, yet extremely easy to use tool for
- interactively save and retrieve large amounts of
- data.
+Description: A hierarchical database for Python based on HDF5
+ PyTables is a hierarchical database package designed to efficently
+ manage very large amounts of data. PyTables is built on top of the
+ HDF5 library and the numarray package. It features an object-oriented
+ interface that, combined with natural naming and C-code generated
+ from Pyrex sources, makes it a fast, yet extremely easy to use tool
+ for interactively save and retrieve large amounts of data.
+ .
+ This differs from PyHL interface to HDF5 in that PyTables has a
+ completely object-oriented interface, rather that the more
+ function-oriented approach of PyHL. In addition, PyTables has these
+ other distinctive features:
+ .
+  - Compound types (records) can be used entirely from Python (i.e. it
+    is not necessary to use C for taking advantage of them).
+  - The tables are both enlargeable and compressible.
+  - I/O is buffered, so you can get very fast I/O, specially with
+    tables.
+  - Very easy to select data through the use of iterators over the
+    rows in tables. Extended slicing is supported as well.
+  - It supports both Numeric and numarray objects.
  .
  This Debian package is built for Python 2.2.
+ .
+  Homepage: http://pytables.sourceforge.net
   
 Package: python2.3-tables
-Section: libs
+Section: python
 Architecture: any
-Depends: python2.2-numarray (>= 0.7), python2.2, ${shlibs:Depends}
-Description: PyTables - A hierarchical database for Python
- PyTables is a hierarchical database package
- designed to efficently manage very large amounts
- of data. PyTables is built on top of the HDF5
- library and the numarray package and features an
- object-oriented interface that, combined with
- C-code generated from Pyrex sources, makes of it a
- fast, yet extremely easy to use tool for
- interactively save and retrieve large amounts of
- data.
+Depends: python2.3-numarray (>= 0.7), python2.3, ${shlibs:Depends}
+Description: A hierarchical database for Python based on HDF5
+ PyTables is a hierarchical database package designed to efficently
+ manage very large amounts of data. PyTables is built on top of the
+ HDF5 library and the numarray package. It features an object-oriented
+ interface that, combined with natural naming and C-code generated
+ from Pyrex sources, makes it a fast, yet extremely easy to use tool
+ for interactively save and retrieve large amounts of data.
+ .
+ This differs from PyHL interface to HDF5 in that PyTables has a
+ completely object-oriented interface, rather that the more
+ function-oriented approach of PyHL. In addition, PyTables has these
+ other distinctive features:
+ .
+  - Compound types (records) can be used entirely from Python (i.e. it
+    is not necessary to use C for taking advantage of them).
+  - The tables are both enlargeable and compressible.
+  - I/O is buffered, so you can get very fast I/O, specially with
+    tables.
+  - Very easy to select data through the use of iterators over the
+    rows in tables. Extended slicing is supported as well.
+  - It supports both Numeric and numarray objects.
  .
  This Debian package is built for Python 2.3.
+ .
+  Homepage: http://pytables.sourceforge.net
   
 Package: python-tables-doc
+Section: doc
 Architecture: all
 Suggests: pdf-viewer
-Description: PyTables - A hierarchical database for Python - documentation
+Description: A hierarchical database for Python based on HDF5 - documentation
  This package includes the manual in PDF and HTML formats.
+ .
+  Homepage: http://pytables.sourceforge.net
