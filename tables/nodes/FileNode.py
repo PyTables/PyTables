@@ -2,10 +2,10 @@
 #
 #	License: BSD
 #	Created: October 2, 2004
-#	Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
+#	Author:  Ivan Vilata i Balaguer - reverse:com.carabos@ivilata
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/nodes/FileNode.py,v $
-#	$Id: FileNode.py,v 1.6 2004/11/22 21:47:27 ivilata Exp $
+#	$Id: FileNode.py,v 1.7 2004/12/19 12:33:46 ivilata Exp $
 #
 ########################################################################
 
@@ -30,7 +30,7 @@ import tables
 
 
 
-__revision__ = '$Id: FileNode.py,v 1.6 2004/11/22 21:47:27 ivilata Exp $'
+__revision__ = '$Id: FileNode.py,v 1.7 2004/12/19 12:33:46 ivilata Exp $'
 
 NodeType         = 'file'
 NodeTypeVersions = [1, 2]
