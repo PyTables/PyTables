@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.116 2004/07/15 18:09:25 falted Exp $
+#       $Id: Table.py,v 1.117 2004/07/27 12:18:06 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.116 $"
+__version__ = "$Revision: 1.117 $"
 
 from __future__ import generators
 import sys
@@ -455,7 +455,6 @@ class Table(Leaf, hdf5Extension.Table, object):
                 raise SyntaxError, \
 "Combination of operators not supported. Use val1 <{=} col <{=} val2"
                       
-        #print "item-->", item
         #t1=time.time()
         ncoords = self.cols[colname].index.search(item, notequal)
         #print "time reading indices:", time.time()-t1
@@ -1110,7 +1109,9 @@ class Column(object):
         # Feed the index with values
         nelemslice = self.index.sorted.nelemslice
         if self.table.nrows < self.index.sorted.nelemslice:
-            print "Debug: Not enough info for indexing"
+            # print "Debug: Not enough info for indexing"
+            warnings.warn( \
+"""Not enough rows for indexing. You need at least %s rows and you provided %s.""" % (self.index.sorted.nelemslice, self.table.nrows))
             return 0
         indexedrows = 0
         for i in xrange(0,self.table.nrows-nelemslice+1,nelemslice):

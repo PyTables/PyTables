@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IndexArray.py,v $
-#       $Id: IndexArray.py,v 1.3 2004/07/06 09:11:36 falted Exp $
+#       $Id: IndexArray.py,v 1.4 2004/07/27 12:18:06 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.3 $"
+__version__ = "$Revision: 1.4 $"
 # default version for IndexARRAY objects
 obversion = "1.0"    # initial version
 
@@ -117,7 +117,10 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
         """
 
         expKrows = self._v_expectedrows / 1000000.  # Multiples of one million
-        if expKrows < 0.1: # expected rows < 100 thousand
+        if expKrows < 0.01: # expected rows < 10 thousand
+            nelemslice = 1000  # > 1/100th
+            chunksize = 1000
+        elif expKrows < 0.1: # expected rows < 100 thousand
             nelemslice = 10000  # > 1/10th
             chunksize = 1000
             #chunksize = 2000  # Experimental
@@ -151,7 +154,7 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
 
         #chunksize *= 5  # Best value
         #chunksize = nelemslice // 150
-        print "nelemslice, chunksize -->", (nelemslice, chunksize)
+        #print "nelemslice, chunksize -->", (nelemslice, chunksize)
         return (nelemslice, chunksize)
 
     def _create(self):

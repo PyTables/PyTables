@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.7 2004/07/07 17:11:14 falted Exp $
+#       $Id: Index.py,v 1.8 2004/07/27 12:18:05 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.7 $"
+__version__ = "$Revision: 1.8 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -202,7 +202,7 @@ class Index(hdf5Extension.Group, hdf5Extension.Index, object):
 
         # Save the sorted array
         if str(self.sorted.type) == "CharType":
-            print "arr-->", arr
+            #print "arr-->", arr
             self.indices.append(arr.argsort())
             arr.sort()
             self.sorted.append(arr)
