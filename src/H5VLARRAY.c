@@ -145,12 +145,19 @@ herr_t H5VLARRAYmake( hid_t loc_id,
 
  hvl_t   vldata;
  hid_t   dataset_id, space_id, datatype, tid1;
- hsize_t dataset_dims[1] = {1};	/* Only one array initially */
+ hsize_t dataset_dims[1];
  hsize_t maxdims[1] = { H5S_UNLIMITED };
  hsize_t dims_chunk[1];
  hid_t   plist_id;
  unsigned int cd_values[2];
  int     i;
+
+ if (data)
+   /* if data, one row will be filled initially */
+   dataset_dims[0] = 1;
+ else
+   /* no data, so no rows on dataset initally */
+   dataset_dims[0] = 0;
 
  dims_chunk[0] = chunk_size;
 
@@ -233,6 +240,10 @@ herr_t H5VLARRAYmake( hid_t loc_id,
  /* Release the datatype in the case that it is not an atomic type */
  if ( H5Tclose( datatype ) < 0 )
    return -1;
+
+ /* End access to the property list */
+ if ( H5Pclose( plist_id ) < 0 )
+   goto out;
 
 /*-------------------------------------------------------------------------
  * Set the conforming array attributes
@@ -588,6 +599,8 @@ herr_t H5VLARRAYget_info( hid_t   loc_id,
   /* Get number of records (it should be rank-1) */
   if ( H5Sget_simple_extent_dims( space_id, nrecords, NULL) < 0 )
     goto out;
+
+/*   printf("nrecords --> %d\n", *nrecords); */
 
   /* Terminate access to the dataspace */
   if ( H5Sclose( space_id ) < 0 )

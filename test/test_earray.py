@@ -16,67 +16,7 @@ try:
 except:
     numeric = 0
 
-from test_all import verbose
-
-def allequal(a,b, flavor):
-    """Checks if two numarrays are equal"""
-
-#     print "a-->", repr(a)
-#     print "b-->", repr(b)
-    if not hasattr(b, "shape"):
-        # Scalar case
-        return a == b
-
-    if flavor == "Numeric":
-        # Convert the parameters to numarray objects
-        try:
-            a = array(buffer(a), type=typeDict[a.typecode()], shape=a.shape)
-        except:
-            a = array(a)
-        try:
-            b = array(buffer(b), type=typeDict[b.typecode()], shape=b.shape)
-        except:
-            b = array(b)
-
-    if a.shape <> b.shape:
-        if verbose:
-            print "Shape is not equal:", a.shape, "<>", b.shape
-        return 0
-
-    if hasattr(b, "type") and a.type() <> b.type():
-        if verbose:
-            print "Type is not equal:", a.type(), "<>", b.type()
-        return 0
-
-    # Rank-0 case
-    if len(a.shape) == 0:
-        if str(equal(a,b)) == '1':
-            return 1
-        else:
-            if verbose:
-                print "Shape is not equal:", a.shape, "<>", b.shape
-            return 0
-
-    # Null arrays
-    if len(a._data) == 0:  # len(a) is not correct for generic shapes
-        if len(b._data) == 0:
-            return 1
-        else:
-            if verbose:
-                print "length is not equal"
-                print "len(a._data) ==>", len(a._data)
-                print "len(b._data) ==>", len(b._data)
-            return 0
-
-    # Multidimensional case
-    result = (a == b)
-    for i in range(len(a.shape)):
-        #print "nonzero(a <> b)", nonzero(a<>b)
-        result = logical_and.reduce(result)
-    if not result and verbose:
-        print "Some of the elements in arrays are not equal"
-        
-    return result
+from test_all import verbose, allequal
 
 class BasicTestCase(unittest.TestCase):
     # Default values
@@ -92,6 +32,7 @@ class BasicTestCase(unittest.TestCase):
     compress = 0
     complib = "zlib"  # Default compression library
     shuffle = 0
+    reopen = 1  # Tells whether the file has to be reopened on each test or not
 
     def setUp(self):
 
@@ -100,8 +41,9 @@ class BasicTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, "w")
         self.rootgroup = self.fileh.root
         self.populateFile()
-        # Close the file (eventually destroy the extended type)
-        self.fileh.close()
+        if self.reopen:
+            # Close the file
+            self.fileh.close()
         
     def populateFile(self):
         group = self.rootgroup
@@ -171,7 +113,8 @@ class BasicTestCase(unittest.TestCase):
             print "Running %s.test01_iterEArray..." % self.__class__.__name__
 
         # Create an instance of an HDF5 Table
-        self.fileh = openFile(self.file, "r")
+        if self.reopen:
+            self.fileh = openFile(self.file, "r")
         earray = self.fileh.getNode("/earray1")
 
         # Choose a small value for buffer size
@@ -179,6 +122,8 @@ class BasicTestCase(unittest.TestCase):
         if verbose:
             print "EArray descr:", repr(earray)
             print "shape of read array ==>", earray.shape
+            print "reopening?:", self.reopen
+            
         # Build the array to do comparisons
         if self.flavor == "numarray":
             if str(self.type) == "CharType":
@@ -230,7 +175,8 @@ class BasicTestCase(unittest.TestCase):
             print "Running %s.test02_sssEArray..." % self.__class__.__name__
 
         # Create an instance of an HDF5 Table
-        self.fileh = openFile(self.file, "r")
+        if self.reopen:
+            self.fileh = openFile(self.file, "r")
         earray = self.fileh.getNode("/earray1")
 
         # Choose a small value for buffer size
@@ -238,6 +184,8 @@ class BasicTestCase(unittest.TestCase):
         if verbose:
             print "EArray descr:", repr(earray)
             print "shape of read array ==>", earray.shape
+            print "reopening?:", self.reopen
+            
         # Build the array to do comparisons
         if self.flavor == "numarray":
             if str(self.type) == "CharType":
@@ -289,7 +237,8 @@ class BasicTestCase(unittest.TestCase):
             print "Running %s.test03_readEArray..." % self.__class__.__name__
             
         # Create an instance of an HDF5 Table
-        self.fileh = openFile(self.file, "r")
+        if self.reopen:
+            self.fileh = openFile(self.file, "r")
         earray = self.fileh.getNode("/earray1")
 
         # Choose a small value for buffer size
@@ -297,7 +246,8 @@ class BasicTestCase(unittest.TestCase):
         if verbose:
             print "EArray descr:", repr(earray)
             print "shape of read array ==>", earray.shape
-
+            print "reopening?:", self.reopen
+            
         # Build the array to do comparisons
         if self.flavor == "numarray":
             if str(self.type) == "CharType":
@@ -337,8 +287,16 @@ class BasicTestCase(unittest.TestCase):
                     object__[j:j+self.chunksize] = (object_ * i).astype(typecode[earray.type])
         stop = self.stop
         if self.nappends:
+            # stop == None means read only the element designed by start
+            # (in read() contexts)
+            if self.stop == None:
+                if self.start == -1:  # corner case
+                    stop = earray.nrows
+                else:
+                    stop = self.start + 1
             # Protection against number of elements less than existing
-            if rowshape[self.extdim] < self.stop or self.stop == 0:
+            #if rowshape[self.extdim] < self.stop or self.stop == 0:
+            if rowshape[self.extdim] < stop:
                 # self.stop == 0 means last row only in read()
                 # and not in [::] slicing notation
                 stop = rowshape[self.extdim]
@@ -370,7 +328,7 @@ class BasicTestCase(unittest.TestCase):
                 print "shape should look as:", object.shape
             print "Object read ==>", repr(row)
             print "Should look like ==>", repr(object)
-
+            
         assert self.nappends*self.chunksize == earray.nrows
         assert allequal(row, object, self.flavor)
         if hasattr(row, "shape"):
@@ -392,7 +350,8 @@ class BasicTestCase(unittest.TestCase):
             self.slices = (slice(self.start, self.stop, self.step),)
             
         # Create an instance of an HDF5 Table
-        self.fileh = openFile(self.file, "r")
+        if self.reopen:
+            self.fileh = openFile(self.file, "r")
         earray = self.fileh.getNode("/earray1")
 
         # Choose a small value for buffer size
@@ -400,6 +359,7 @@ class BasicTestCase(unittest.TestCase):
         if verbose:
             print "EArray descr:", repr(earray)
             print "shape of read array ==>", earray.shape
+            print "reopening?:", self.reopen
 
         # Build the array to do comparisons
         if str(self.type) == "CharType":
@@ -474,13 +434,32 @@ class BasicWriteTestCase(BasicTestCase):
     nappends = 10
     step = 1
 
+class BasicWrite2TestCase(BasicTestCase):
+    type = Int32
+    shape = (0,)
+    chunksize = 5
+    nappends = 10
+    step = 1
+    reopen = 0  # This case does not reopen files
+    
 class EmptyEArrayTestCase(BasicTestCase):
     type = Int32
     shape = (2, 0)
     chunksize = 5
     nappends = 0
     start = 0
+    stop = 10
     step = 1
+
+class EmptyEArray2TestCase(BasicTestCase):
+    type = Int32
+    shape = (2, 0)
+    chunksize = 5
+    nappends = 0
+    start = 0
+    stop = 10
+    step = 1
+    reopen = 0  # This case does not reopen files
 
 class SlicesEArrayTestCase(BasicTestCase):
     compress = 1
@@ -596,7 +575,8 @@ class ZlibComprTestCase(BasicTestCase):
     compress = 1
     complib = "zlib"
     start = 3
-    stop = 0   # means last row
+    #stop = 0   # means last row
+    stop = None   # means last row from 0.8 on
     step = 10
 
 class ZlibShuffleTestCase(BasicTestCase):
@@ -734,7 +714,9 @@ def suite():
     niter = 1
 
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
+    #theSuite.addTest(unittest.makeSuite(BasicWrite2TestCase))
     #theSuite.addTest(unittest.makeSuite(EmptyEArrayTestCase))
+    #theSuite.addTest(unittest.makeSuite(EmptyEArray2TestCase))
     #theSuite.addTest(unittest.makeSuite(SlicesEArrayTestCase))
     #theSuite.addTest(unittest.makeSuite(EllipsisEArrayTestCase))
     #theSuite.addTest(unittest.makeSuite(Slices2EArrayTestCase))
@@ -763,7 +745,9 @@ def suite():
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
+        theSuite.addTest(unittest.makeSuite(BasicWrite2TestCase))
         theSuite.addTest(unittest.makeSuite(EmptyEArrayTestCase))
+        theSuite.addTest(unittest.makeSuite(EmptyEArray2TestCase))
         theSuite.addTest(unittest.makeSuite(SlicesEArrayTestCase))
         theSuite.addTest(unittest.makeSuite(EllipsisEArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Slices2EArrayTestCase))

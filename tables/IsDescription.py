@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.24 2003/12/16 12:59:03 falted Exp $
+#       $Id: IsDescription.py,v 1.25 2004/01/01 21:01:46 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.24 $"
+__version__ = "$Revision: 1.25 $"
 
 
 import warnings
@@ -129,7 +129,7 @@ class Col:
 class BoolCol(Col):
     """ Define a string column """
     
-    def __init__(self, dflt=None, shape=1, pos=None):
+    def __init__(self, dflt=0, shape=1, pos=None):
 
         self.pos = pos
 

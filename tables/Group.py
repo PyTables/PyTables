@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.56 2003/12/27 22:54:34 falted Exp $
+#       $Id: Group.py,v 1.57 2004/01/01 21:01:46 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.56 $"
+__version__ = "$Revision: 1.57 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -389,19 +389,19 @@ class Group(hdf5Extension.Group, object):
             names.sort()
             return [ self._v_leaves[name] for name in names ]
         elif (classname == 'Table' or
-              classname == 'Array'):
+              classname == 'Array' or
+              classname == 'EArray' or
+              classname == 'VLArray'):
             listobjects = []
             # Process alphanumerically sorted 'Leaf' objects
             for leaf in self._f_listNodes('Leaf'):
-                # We can't trust that the class has a CLASS attribute
-                #if leaf.attrs.CLASS.capitalize() == classname:
                 if leaf.__class__.__name__ == classname:
                     listobjects.append(leaf)
             # Returns all the 'classname' objects alphanumerically sorted
             return listobjects
         else:
             raise ValueError, \
-""""classname" can only take 'Group', 'Leaf', 'Table' or 'Array' values"""
+""""classname" can only take 'Group', 'Leaf', 'Table', 'Array', 'EArray' or 'VLArray' values"""
 
     def _f_walkGroups(self):
         """Iterate over the Groups (not Leaves) hanging from self.
@@ -505,7 +505,6 @@ class Group(hdf5Extension.Group, object):
 
     def _f_close(self):
         """Close this HDF5 group"""
-        #print "Closing group -->", self._v_name
         self._g_closeGroup()
         # Delete the back references in Group
         if self._v_name <> "/":

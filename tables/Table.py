@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.89 2003/12/27 22:54:34 falted Exp $
+#       $Id: Table.py,v 1.90 2004/01/01 21:01:46 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.89 $"
+__version__ = "$Revision: 1.90 $"
 
 from __future__ import generators
 import sys
@@ -356,8 +356,13 @@ class Table(Leaf, hdf5Extension.Table, object):
                 stop = istop
 
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
-
-        return self.row(start, stop, step)
+        if start < stop:
+            return self.row(start, stop, step)
+        else:
+            return records.array(None,
+                                 formats=self.description._v_recarrfmt,
+                                 shape=(0,),
+                                 names = self.colnames)
         
     def __iter__(self):
         """Iterate over all the rows."""
@@ -365,7 +370,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         return self.__call__()
 
     def read(self, start=None, stop=None, step=None,
-             field=None, flavor=None, coords = None):
+             field=None, flavor="numarray", coords = None):
         """Read a range of rows and return an in-memory object.
 
         If "start", "stop", or "step" parameters are supplied, a row
@@ -374,7 +379,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         all the fields are selected and a RecArray is returned.  If
         both "field" and "flavor" are provided, an additional
         conversion to an object of this flavor is made. "flavor" must
-        have any of the next values: "Numeric", "Tuple" or "List".
+        have any of the next values: "numarray", "Numeric", "Tuple" or
+        "List".
 
         """
         
@@ -384,8 +390,10 @@ class Table(Leaf, hdf5Extension.Table, object):
                   (field, self)
         
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
-        
+
         if flavor == None:
+            flavor = "numarray"
+        if flavor == "numarray":
             #return self._read(start, stop, step, field)
             return self._read(start, stop, step, field, coords)
         else:
@@ -532,33 +540,16 @@ class Table(Leaf, hdf5Extension.Table, object):
 """
 
         if isinstance(key, types.IntType):
-            return self.read(key, key+1, 1)[0]
+            (start, stop, step) = processRange(self.nrows, key, key+1, 1)
+            return self._read(start, stop, step, None, None)[0]
         elif isinstance(key, types.SliceType):
-            if key.stop == None:
-                stop = self.nrows
-            else:
-                stop = key.stop
-            # In slices, a stop of None means the last index, not the
-            # next to start.
-            #return self.read(key.start, key.stop, key.step)
-            return self.read(key.start, stop, key.step)
+            (start, stop, step) = processRange(self.nrows,
+                                               key.start, key.stop, key.step)
+            return self._read(start, stop, step, None, None)
         elif isinstance(key, types.StringType):
             return self.read(field=key)
         else:
-            raise ValueError, "Non-valid index or slice: %s" % \
-                  key
-
-    # This addition has to be thought more carefully because of two things
-    # 1.- The colnames has to be valid python identifiers, and that
-    #     restriction has still to be added.
-    # 2.- The access to local variables in Table is slowed down, because
-    #     __getattr__ is always called
-    # 3.- The most important, a colname cannot be the same of a standard
-    #     Table attribute, because, if so, this attribute can't be reached.
-#     def __getattr__(self, colname):
-#         """Get the table column object named "colname"."""
-
-#         return self._readCol(field=colname)
+            raise ValueError, "Non-valid index or slice: %s" % key
 
     def removeRows(self, start=None, stop=None):
         """Remove a range of rows.

@@ -10,7 +10,11 @@ import numarray.records as records
 from numarray import strings
 from tables import *
 
-from test_all import verbose
+from test_all import verbose#, allequal
+# If we use the test_all.allequal function, a segmentation violation appears
+# but only when the test runs *alone* and *without* verbose parameters!
+# However, if we use the allequal in this module, everything seems to work well
+# this should be further investigated!. F. Alted 2004/01/01
 
 # Test Record class
 class Record(IsDescription):
@@ -189,7 +193,7 @@ class BasicTestCase(unittest.TestCase):
         assert (rec['var1'][0][0], rec['var2'][0][0], rec['var7']) == \
                ("0001",            nrows,             "1")
         if isinstance(rec['var5'], NumArray):
-            assert allequal(rec['var5'], array((float(nrows),)*4))
+            assert allequal(rec['var5'], array((float(nrows),)*4, Float32))
         else:
             assert rec['var5'] == float(nrows)
         assert len(result) == 20
@@ -217,12 +221,12 @@ class BasicTestCase(unittest.TestCase):
             print "Total selected records in table ==> ", len(result)
         nrows = table.row.nrow()
         if isinstance(rec['var5'], NumArray):
-            assert allequal(result[0], array((float(0),)*4))
-            assert allequal(result[1], array((float(1),)*4))
-            assert allequal(result[2], array((float(2),)*4))
-            assert allequal(result[3], array((float(3),)*4))
-            assert allequal(result[10], array((float(10),)*4))
-            assert allequal(rec['var5'], array((float(nrows),)*4))
+            assert allequal(result[0], array((float(0),)*4, Float32))
+            assert allequal(result[1], array((float(1),)*4, Float32))
+            assert allequal(result[2], array((float(2),)*4, Float32))
+            assert allequal(result[3], array((float(3),)*4, Float32))
+            assert allequal(result[10], array((float(10),)*4, Float32))
+            assert allequal(rec['var5'], array((float(nrows),)*4, Float32))
         else:
             assert rec['var5'] == float(nrows)
         assert len(result) == 20
@@ -291,7 +295,7 @@ class BasicTestCase(unittest.TestCase):
         assert (row['var1'][0][0], row['var2'][0][0], row['var7']) == \
                ("0001", nrows, "1")
         if isinstance(row['var5'], NumArray):
-            assert allequal(row['var5'], array((float(nrows),)*4))
+            assert allequal(row['var5'], array((float(nrows),)*4, Float32))
         else:
             assert row['var5'] == float(nrows)
         if self.appendrows <= 20:
@@ -471,6 +475,8 @@ class BasicRangeTestCase(unittest.TestCase):
         table = self.fileh.getNode("/table0")
 
         table._v_maxTuples = self.maxTuples
+        resrange = slice(self.start, self.stop, self.step).indices(table.nrows)
+        reslength = len(range(*resrange))
         if self.checkrecarray:
             recarray = table.read(self.start, self.stop, self.step)
             result = []
@@ -492,8 +498,10 @@ class BasicRangeTestCase(unittest.TestCase):
             startr = self.expectedrows + self.start
         else:
             startr = self.start
-            
-        if self.stop <= 0:
+
+        if self.stop == None:
+            stopr = startr + 1                
+        elif self.stop < 0:
             stopr = self.expectedrows + self.stop
         else:
             stopr = self.stop
@@ -503,7 +511,7 @@ class BasicRangeTestCase(unittest.TestCase):
             
         if verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
-            if self.start < self.stop:
+            if reslength:
                 if self.checkrecarray:
                     print "Last record *read* in recarray ==>", recarray[-1]
                 elif self.checkgetCol:
@@ -662,11 +670,11 @@ class BasicRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test09_range..." % self.__class__.__name__
 
-        # Case where stop = 0
+        # Case where stop = None
         self.nrows = 100
         self.maxTuples = 3  # Choose a small value for the buffer size
         self.start = 1
-        self.stop = 0
+        self.stop = None
         self.step = 1
 
         self.check_range()
@@ -982,6 +990,7 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
+    #theSuite.addTest(unittest.makeSuite(CompressUCLTablesTestCase))
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
@@ -996,7 +1005,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
         theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
-	theSuite.addTest(unittest.makeSuite(CompressUCLTablesTestCase))
+        theSuite.addTest(unittest.makeSuite(CompressUCLTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressZLIBTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressTwoTablesTestCase))
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))

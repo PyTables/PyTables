@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.101 2003/12/29 00:03:51 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.102 2004/01/01 21:01:46 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.101 $"
+__version__ = "$Revision: 1.102 $"
 
 
 import sys, os
@@ -784,7 +784,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.101 2003/12/29 00:03:51 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.102 2004/01/01 21:01:46 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1503,7 +1503,6 @@ cdef class Table:
     for i in range(self.nfields):
       if strcmp(self.field_names[i], field_name) == 0:
         fieldpos = i
-    #print "field position & size -->", fieldpos, self.field_sizes[fieldpos]
     # Read the column
     if ( H5TBread_fields_name(self.parent_id, self.name, field_name,
                               start, nrecords, step,
@@ -2228,25 +2227,25 @@ cdef class VLArray:
     
   def _append(self, object naarr, int nobjects):
     cdef int ret
-    #cdef int nobjects
     cdef void *rbuf
     cdef int buflen
 
-    # Get the number of objects (last dimension)
-    #nobjects = naarr.shape[0]
-    
     # Get the pointer to the buffer data area
-    if PyObject_AsReadBuffer(naarr._data, &rbuf, &buflen) < 0:
-      raise RuntimeError("Problems getting the buffer area.")
+    if nobjects:
+      if PyObject_AsReadBuffer(naarr._data, &rbuf, &buflen) < 0:
+        raise RuntimeError("Problems getting the buffer area.")
+    else:
+      rbuf = NULL
 
     # Append the records:
     ret = H5VLARRAYappend_records(self.parent_id, self.name,
                                   nobjects, self.nrecords,
                                   rbuf)
+      
     if ret < 0:
       raise RuntimeError("Problems appending the records.")
-    else:
-      self.nrecords = self.nrecords + 1
+
+    self.nrecords = self.nrecords + 1
 
     return self.nrecords
 
@@ -2327,7 +2326,7 @@ cdef class VLArray:
           raise RuntimeError("Problems creating python buffer for read data.")
       else:
         # Case where there is info with zero lentgh
-        rbuf = []
+        rbuf = None
       # Compute the shape for the read array
       if (isinstance(self._atomicshape, types.TupleType)):
         shape = list(self._atomicshape)
@@ -2350,7 +2349,7 @@ cdef class VLArray:
     return datalist
 
   def __dealloc__(self):
-    #print "Destroying object Array in Extension"
+    #print "Destroying object VLArray in Extension"
     H5Tclose(self.type_id)    # To avoid memory leaks
     if self.dims:
       free(<void *>self.dims)

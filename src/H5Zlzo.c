@@ -94,7 +94,7 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
   static unsigned int max_len_buffer = 0;
   int complevel = 1;
   int object_version = 10;    	/* Default version 1.0 */
-  int object_type;
+  int object_type = Table;      /* Default object type */
 #ifdef CHECKSUM
   lzo_uint32 checksum;
 #endif
@@ -103,7 +103,6 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
   /* For Table versions < 20, there were no parameters */
   if (cd_nelmts==1 ) {
     complevel = cd_values[0];	/* This do nothing right now */
-    fprintf(stderr, "invalid deflate aggression level");
   }
   else if (cd_nelmts==2 ) {
     complevel = cd_values[0];	/* This do nothing right now */

@@ -16,27 +16,7 @@ try:
 except:
     numeric = 0
 
-from test_all import verbose
-
-def allequal(a,b):
-    """Checks if two numarrays are equal"""
-
-    if a.shape <> b.shape:
-        return 0
-
-    # Rank-0 case
-    if len(a.shape) == 0:
-        if str(equal(a,b)) == '1':
-            return 1
-        else:
-            return 0
-
-    # Multidimensional case
-    result = (a == b)
-    for i in range(len(a.shape)):
-        result = logical_and.reduce(result)
-
-    return result
+from test_all import verbose, allequal
 
 class C:
     c = (3,4.5) 
@@ -114,8 +94,8 @@ class BasicTestCase(unittest.TestCase):
             assert allequal(row2, array([]))
         elif self.flavor == "Numeric":
             assert type(row) == type(Numeric.array([1, 2]))
-            assert allequal(row, Numeric.array([1, 2]))
-            assert allequal(row2, Numeric.array([]))
+            assert allequal(row, Numeric.array([1, 2]), self.flavor)
+            assert allequal(row2, Numeric.array([]), self.flavor)
         elif self.flavor == "Tuple":
             assert row == (1, 2)
             assert row2 == ()
@@ -314,7 +294,7 @@ class TypesTestCase(unittest.TestCase):
                   "Int32": Int32,
                   "UInt32": UInt32,
                   "Int64": Int64,
-                  "UInt64": UInt64,
+                  #"UInt64": UInt64,  # Unavailable in some platforms
                   }
         root = self.rootgroup
         if verbose:
@@ -551,7 +531,7 @@ class MDTypesTestCase(unittest.TestCase):
                   "Int32": Int32,
                   "UInt32": UInt32,
                   "Int64": Int64,
-                  "UInt64": UInt64,
+                  #"UInt64": UInt64,
                   }
         root = self.rootgroup
         if verbose:
@@ -575,9 +555,9 @@ class MDTypesTestCase(unittest.TestCase):
                 print "Second row in vlarray ==>", repr(row[1])
 
             assert vlarray.nrows == 2
-            assert allequal(row[0], array([ones((2,3), ttypes[atype]),
-                                          zeros((2,3), ttypes[atype])]))
-            assert allequal(row[1], array([ones((2,3), ttypes[atype])*100]))
+            assert allequal(row[0], array([ones((2,3)),
+                                          zeros((2,3))], ttypes[atype]))
+            assert allequal(row[1], array([ones((2,3))*100], ttypes[atype]))
             assert len(row[0]) == 2
             assert len(row[1]) == 1
 
@@ -609,9 +589,9 @@ class MDTypesTestCase(unittest.TestCase):
                 print "Second row in vlarray ==>", row[1]
 
             assert vlarray.nrows == 2
-            assert allequal(row[0], array([ones((5,2,6), ttypes[atype])*1.3,
-                                          zeros((5,2,6), ttypes[atype])]))
-            assert allequal(row[1], array([ones((5,2,6), ttypes[atype])*2.e4]))
+            assert allequal(row[0], array([ones((5,2,6))*1.3,
+                                          zeros((5,2,6))], ttypes[atype]))
+            assert allequal(row[1], array([ones((5,2,6))*2.e4], ttypes[atype]))
             assert len(row[0]) == 2
             assert len(row[1]) == 1
 
@@ -637,6 +617,51 @@ class FlavorTestCase(unittest.TestCase):
         
     #----------------------------------------
 
+    def test01a_EmptyVLArray(self):
+        """Checking empty vlarrays with different flavors (closing the file)"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_EmptyVLArray..." % self.__class__.__name__
+
+        # Create an string atom
+        vlarray = self.fileh.createVLArray(root, "vlarray",
+                                           IntAtom(itemsize=4))
+        self.fileh.close()
+        self.fileh = openFile(self.file, "r")
+        # Read all the rows (it should be empty):
+        vlarray = self.fileh.root.vlarray
+        row = vlarray.read()
+        if verbose:
+            print "Testing flavor:", self.flavor
+            print "Object read:", row, repr(row)
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+        # Check that the object read is effectively empty
+        assert vlarray.nrows == 0
+        assert row == []
+
+    def test01b_EmptyVLArray(self):
+        """Checking empty vlarrays with different flavors (no closing file)"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_EmptyVLArray..." % self.__class__.__name__
+
+        # Create an string atom
+        vlarray = self.fileh.createVLArray(root, "vlarray",
+                                           IntAtom(itemsize=4))
+        # Read all the rows (it should be empty):
+        row = vlarray.read()
+        if verbose:
+            print "Testing flavor:", self.flavor
+            print "Object read:", row
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+        # Check that the object read is effectively empty
+        assert vlarray.nrows == 0
+        assert row == []
+
     def test02_BooleanAtom(self):
         """Checking vlarray with different flavors (boolean versions)"""
 
@@ -649,6 +674,7 @@ class FlavorTestCase(unittest.TestCase):
         vlarray = self.fileh.createVLArray(root, "Bool",
                                            BoolAtom(flavor=self.flavor))
         vlarray.append(1,2,3)
+        vlarray.append()   # Empty row
         vlarray.append(100,0)
 
         # Read all the rows:
@@ -659,20 +685,40 @@ class FlavorTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 2
+        assert vlarray.nrows == 3
         assert len(row[0]) == 3
-        assert len(row[1]) == 2
+        assert len(row[1]) == 0
+        assert len(row[2]) == 2
         if self.flavor == "Tuple":
             arr1 = (1,1,1)
-            arr2 = (1,0)                    
+            arr2 = ()
+            arr3 = (1,0)                    
         elif self.flavor == "List":
             arr1 = [1,1,1]
-            arr2 = [1,0]
+            arr2 = []
+            arr3 = [1,0]
         elif self.flavor == "Numeric":
             arr1 = Numeric.array([1,1,1], typecode="1")
-            arr2 = Numeric.array([1,0], typecode="1")
-        assert row[0] == arr1
-        assert row[1] == arr2
+            arr2 = Numeric.array([], typecode="1")
+            arr3 = Numeric.array([1,0], typecode="1")
+        else:  # Default (NumArray)
+            arr1 = array([1,1,1], type=Bool)
+            arr2 = array([], type=Bool)
+            arr3 = array([1,0], type=Bool)
+
+        if self.flavor == "Numeric":
+            allequal(row[0], arr1, "Numeric")
+            allequal(row[1], arr2, "Numeric")
+            allequal(row[2], arr3, "Numeric")
+        elif self.flavor == "NumArray":
+            allequal(row[0], arr1)
+            allequal(row[1], arr2)
+            allequal(row[1], arr2)
+        else:
+            # Tuple or List flavors
+            assert row[0] == arr1
+            assert row[1] == arr2
+            assert row[2] == arr3
 
     def test03_IntAtom(self):
         """Checking vlarray with different flavors (integer versions)"""
@@ -682,9 +728,12 @@ class FlavorTestCase(unittest.TestCase):
                   "Int16": Int16,
                   "UInt16": UInt16,
                   "Int32": Int32,
-                  #"UInt32": UInt32,   # Not checked
-                  #"Int64": Int64,     # Not checked
-                  #"UInt64": UInt64,   # Not checked
+                  # Not checked because of Numeric <-> numarray
+                  # conversion problems
+                  #"UInt32": UInt32,
+                  #"Int64": Int64,
+                  # Not checked because some platforms does not support it
+                  #"UInt64": UInt64,
                   }
         root = self.rootgroup
         if verbose:
@@ -697,6 +746,7 @@ class FlavorTestCase(unittest.TestCase):
                                                Atom(ttypes[atype],
                                                     flavor=self.flavor))
             vlarray.append(1,2,3)
+            vlarray.append()
             vlarray.append(100,0)
 
             # Read all the rows:
@@ -707,20 +757,115 @@ class FlavorTestCase(unittest.TestCase):
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "First row in vlarray ==>", row[0]
 
-            assert vlarray.nrows == 2
+            assert vlarray.nrows == 3
             assert len(row[0]) == 3
-            assert len(row[1]) == 2
+            assert len(row[1]) == 0
+            assert len(row[2]) == 2
             if self.flavor == "Tuple":
                 arr1 = (1,2,3)
-                arr2 = (100,0)                    
+                arr2 = ()
+                arr3 = (100,0)                    
             elif self.flavor == "List":
                 arr1 = [1,2,3]
-                arr2 = [100,0]
+                arr2 = []
+                arr3 = [100,0]
             elif self.flavor == "Numeric":
                 arr1 = Numeric.array([1,2,3], typecode=typecode[ttypes[atype]])
-                arr2 = Numeric.array([100,0], typecode=typecode[ttypes[atype]])
-            assert row[0] == arr1
-            assert row[1] == arr2
+                arr2 = Numeric.array([], typecode=typecode[ttypes[atype]])
+                arr3 = Numeric.array([100,0], typecode=typecode[ttypes[atype]])
+            else:  # Default (NumArray)
+                arr1 = array([1,2,3], type=ttypes[atype])
+                arr2 = array([], type=ttypes[atype])
+                arr3 = array([100, 0], type=ttypes[atype])
+
+            if self.flavor == "Numeric":
+                allequal(row[0], arr1, "Numeric")
+                allequal(row[1], arr2, "Numeric")
+                allequal(row[2], arr3, "Numeric")
+            elif self.flavor == "NumArray":
+                allequal(row[0], arr1)
+                allequal(row[1], arr2)
+                allequal(row[2], arr3)
+            else:
+                # Tuple or List flavors
+                assert row[0] == arr1
+                assert row[1] == arr2
+                assert row[2] == arr3
+
+    def test03b_IntAtom(self):
+        """Checking vlarray flavors (integer versions and closed file)"""
+
+        ttypes = {"Int8": Int8,
+                  "UInt8": UInt8,
+                  "Int16": Int16,
+                  "UInt16": UInt16,
+                  "Int32": Int32,
+                  # Not checked because of Numeric <-> numarray
+                  # conversion problems
+                  #"UInt32": UInt32,
+                  #"Int64": Int64,
+                  # Not checked because some platforms does not support it
+                  #"UInt64": UInt64,
+                  }
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_IntAtom..." % self.__class__.__name__
+
+        # Create an string atom
+        for atype in ttypes.iterkeys():
+            vlarray = self.fileh.createVLArray(root, atype,
+                                               Atom(ttypes[atype],
+                                                    flavor=self.flavor))
+            vlarray.append(1,2,3)
+            vlarray.append()
+            vlarray.append(100,0)
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")  # open in "a"ppend mode
+            root = self.fileh.root  # Very important!
+            vlarray = self.fileh.getNode(root, str(atype))
+            # Read all the rows:
+            row = vlarray.read()
+            if verbose:
+                print "Testing flavor:", self.flavor
+                print "Object read:", row
+                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+                print "First row in vlarray ==>", row[0]
+
+            assert vlarray.nrows == 3
+            assert len(row[0]) == 3
+            assert len(row[1]) == 0
+            assert len(row[2]) == 2
+            if self.flavor == "Tuple":
+                arr1 = (1,2,3)
+                arr2 = ()
+                arr3 = (100,0)                    
+            elif self.flavor == "List":
+                arr1 = [1,2,3]
+                arr2 = []
+                arr3 = [100,0]
+            elif self.flavor == "Numeric":
+                arr1 = Numeric.array([1,2,3], typecode=typecode[ttypes[atype]])
+                arr2 = Numeric.array([], typecode=typecode[ttypes[atype]])
+                arr3 = Numeric.array([100,0], typecode=typecode[ttypes[atype]])
+            else:  # Default (NumArray)
+                arr1 = array([1,2,3], type=ttypes[atype])
+                arr2 = array([], type=ttypes[atype])
+                arr3 = array([100, 0], type=ttypes[atype])
+
+            if self.flavor == "Numeric":
+                allequal(row[0], arr1, "Numeric")
+                allequal(row[1], arr2, "Numeric")
+                allequal(row[2], arr3, "Numeric")
+            elif self.flavor == "NumArray":
+                allequal(row[0], arr1)
+                allequal(row[1], arr2)
+                allequal(row[2], arr3)
+            else:
+                # Tuple or List flavors
+                assert row[0] == arr1
+                assert row[1] == arr2
+                assert row[2] == arr3
 
     def test04_FloatAtom(self):
         """Checking vlarray with different flavors (floating point versions)"""
@@ -740,6 +885,7 @@ class FlavorTestCase(unittest.TestCase):
                                                Atom(ttypes[atype],
                                                     flavor=self.flavor))
             vlarray.append(1.3,2.2,3.3)
+            vlarray.append()
             vlarray.append(-1.3e34,1.e-32)
 
             # Read all the rows:
@@ -750,24 +896,43 @@ class FlavorTestCase(unittest.TestCase):
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "First row in vlarray ==>", row[0]
 
-            assert vlarray.nrows == 2
+            assert vlarray.nrows == 3
             assert len(row[0]) == 3
-            assert len(row[1]) == 2
+            assert len(row[1]) == 0
+            assert len(row[2]) == 2
             if self.flavor == "Tuple":
                 arr1 = tuple(array([1.3,2.2,3.3], typecode[ttypes[atype]]))
-                arr2 = tuple(array([-1.3e34,1.e-32], typecode[ttypes[atype]]))
+                arr2 = tuple(array([], typecode[ttypes[atype]]))
+                arr3 = tuple(array([-1.3e34,1.e-32], typecode[ttypes[atype]]))
             elif self.flavor == "List":
                 arr1 = list(array([1.3,2.2,3.3], typecode[ttypes[atype]]))
-                arr2 = list(array([-1.3e34,1.e-32], typecode[ttypes[atype]]))
+                arr2 = list(array([], typecode[ttypes[atype]]))
+                arr3 = list(array([-1.3e34,1.e-32], typecode[ttypes[atype]]))
             elif self.flavor == "Numeric":
                 arr1 = Numeric.array([1.3,2.2,3.3], typecode[ttypes[atype]])
-                arr2 = Numeric.array([-1.3e34,1.e-32], typecode[ttypes[atype]])
+                arr2 = Numeric.array([], typecode[ttypes[atype]])
+                arr3 = Numeric.array([-1.3e34,1.e-32], typecode[ttypes[atype]])
+            else:   # Default (NumArray)
+                arr1 = array([1.3,2.2,3.3], type=ttypes[atype])
+                arr2 = array([], type=ttypes[atype])
+                arr3 = array([-1.3e34,1.e-32], type=ttypes[atype])
+                
             if self.flavor == "Numeric":
-                Numeric.alltrue(Numeric.equal(row[0],arr1))
-                Numeric.alltrue(Numeric.equal(row[1],arr2))
+                allequal(row[0], arr1, "Numeric")
+                allequal(row[1], arr2, "Numeric")
+                allequal(row[2], arr3, "Numeric")
+            elif self.flavor == "NumArray":
+                allequal(row[0], arr1)
+                allequal(row[1], arr2)
+                allequal(row[2], arr3)
             else:
+                # Tuple or List flavors
                 assert row[0] == arr1
                 assert row[1] == arr2
+                assert row[2] == arr3
+
+class NumArrayFlavorTestCase(FlavorTestCase):
+    flavor = "NumArray"
 
 class TupleFlavorTestCase(FlavorTestCase):
     flavor = "Tuple"
@@ -777,7 +942,6 @@ class ListFlavorTestCase(FlavorTestCase):
 
 class NumericFlavorTestCase(FlavorTestCase):
     flavor = "Numeric"
-
 
 class RangeTestCase(unittest.TestCase):
     nrows = 100
@@ -837,6 +1001,32 @@ class RangeTestCase(unittest.TestCase):
         assert allequal(row[1], arange(10))
         assert allequal(row[2], arange(99))
 
+    def test01b_start(self):
+        "Checking reads with only a start value in a slice"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01b_start..." % self.__class__.__name__
+
+        fileh = openFile(self.file, "r")
+        vlarray = fileh.root.vlarray
+        
+        # Read some rows:
+        row = []
+        row.append(vlarray[0])
+        row.append(vlarray[10])
+        row.append(vlarray[99])
+        if verbose:
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "Second row in vlarray ==>", row[1]
+
+        assert vlarray.nrows == self.nrows
+        assert len(row[0]) == 0
+        assert len(row[1]) == 10
+        assert len(row[2]) == 99
+        assert allequal(row[0], arange(0))
+        assert allequal(row[1], arange(10))
+        assert allequal(row[2], arange(99))
+
     def test02_stop(self):
         "Checking reads with only a stop value"
         if verbose:
@@ -853,6 +1043,36 @@ class RangeTestCase(unittest.TestCase):
         row.append(vlarray.read(stop=1))
         row.append(vlarray.read(stop=10))
         row.append(vlarray.read(stop=99))
+        if verbose:
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "Second row in vlarray ==>", row[1]
+
+        assert vlarray.nrows == self.nrows
+        assert len(row[0]) == 0
+        assert len(row[1]) == 10
+        assert len(row[2]) == 99
+        assert allequal(row[0], arange(0))
+        for x in range(10):
+            assert allequal(row[1][x], arange(x))
+        for x in range(99):
+            assert allequal(row[2][x], arange(x))
+
+    def test02b_stop(self):
+        "Checking reads with only a stop value in a slice"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02b_stop..." % self.__class__.__name__
+
+        fileh = openFile(self.file, "r")
+        vlarray = fileh.root.vlarray
+        # Choose a small value for buffer size
+        vlarray._nrowsinbuf = 3
+        
+        # Read some rows:
+        row = []
+        row.append(vlarray[:1])
+        row.append(vlarray[:10])
+        row.append(vlarray[:99])
         if verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
@@ -884,6 +1104,37 @@ class RangeTestCase(unittest.TestCase):
         row.append(vlarray.read(0,10))
         row.append(vlarray.read(5,15))
         row.append(vlarray.read(0,100))  # read all the array
+        if verbose:
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "Second row in vlarray ==>", row[1]
+
+        assert vlarray.nrows == self.nrows
+        assert len(row[0]) == 10
+        assert len(row[1]) == 10
+        assert len(row[2]) == 100
+        for x in range(0,10):
+            assert allequal(row[0][x], arange(x))
+        for x in range(5,15):
+            assert allequal(row[1][x-5], arange(x))
+        for x in range(0,100):
+            assert allequal(row[2][x], arange(x))
+
+    def test03b_startstop(self):
+        "Checking reads with a start and stop values in slices"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03b_startstop..." % self.__class__.__name__
+
+        fileh = openFile(self.file, "r")
+        vlarray = fileh.root.vlarray
+        # Choose a small value for buffer size
+        vlarray._nrowsinbuf = 3
+        
+        # Read some rows:
+        row = []
+        row.append(vlarray[0:10])
+        row.append(vlarray[5:15])
+        row.append(vlarray[:])  # read all the array
         if verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
@@ -931,7 +1182,7 @@ class RangeTestCase(unittest.TestCase):
             assert allequal(row[2][x/20], arange(x))
 
     def test04b_slices(self):
-        "Checking reads with slices"
+        "Checking reads with start, stop & step values in slices"
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_slices..." % self.__class__.__name__
@@ -975,6 +1226,7 @@ class RangeTestCase(unittest.TestCase):
 
         try:
             row = vlarray.read(1000)
+            print "row-->", row
         except IndexError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -1004,9 +1256,9 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(MDTypesNumArrayTestCase))
     #theSuite.addTest(unittest.makeSuite(TupleFlavorTestCase))
     #theSuite.addTest(unittest.makeSuite(ListFlavorTestCase))
-    #if numeric:
-    #    theSuite.addTest(unittest.makeSuite(NumericFlavorTestCase))
+    #theSuite.addTest(unittest.makeSuite(NumericFlavorTestCase))
     #theSuite.addTest(unittest.makeSuite(RangeTestCase))
+    #theSuite.addTest(unittest.makeSuite(NumArrayFlavorTestCase))
     
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicNumArrayTestCase))
@@ -1022,6 +1274,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(ListFlavorTestCase))
         if numeric:
             theSuite.addTest(unittest.makeSuite(NumericFlavorTestCase))
+        theSuite.addTest(unittest.makeSuite(NumArrayFlavorTestCase))
         theSuite.addTest(unittest.makeSuite(RangeTestCase))
             
     return theSuite

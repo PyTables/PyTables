@@ -5,22 +5,13 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.14 2003/12/27 22:54:34 falted Exp $
+#       $Id: utils.py,v 1.15 2004/01/01 21:01:46 falted Exp $
 #
 ########################################################################
 
 """Utility functions
 
 """
-
-import types
-import numarray
-from numarray import strings
-try:
-    import Numeric
-    Numeric_imported = 1
-except:
-    Numeric_imported = 0
 
 # Reserved prefixes for special attributes in Group and other classes
 reservedprefixes = [
@@ -54,42 +45,6 @@ def checkNameValidity(name):
 """\'%s\' is not a valid python identifier and cannot be used in this context.
   Check for special symbols ($, %%, @, ...), spaces or reserved words.""" % \
   (name)
-
-if __name__=="__main__":
-    import sys
-    import getopt
-
-    usage = \
-"""usage: %s [-v] name
-  -v means ...\n""" \
-    % sys.argv[0]
-    
-    try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'v')
-    except:
-        sys.stderr.write(usage)
-        sys.exit(0)
-
-    # if we pass too much parameters, abort
-    if len(pargs) <> 1:
-        sys.stderr.write(usage)
-        sys.exit(0)
-    name = sys.argv[1]
-
-    # default options
-    verbose = 0
-
-    # Get the options
-    for option in opts:
-        if option[0] == '-v':
-            verbose = 1
-
-    # Catch the name to be validated
-    name = pargs[0]
-    
-    checkNameValidity(name)
-
-    print "Correct name: '%s'" % name
 
 def calcBufferSize(rowsize, expectedrows, compress):
     """Calculate the buffer size and the HDF5 chunk size.
@@ -153,11 +108,11 @@ def calcBufferSize(rowsize, expectedrows, compress):
         # These values gives an increment of memory of 50 MB for a table
         # size of 2.2 GB. I think this increment should be attributed to
         # the BTree which is created to save the table data.
-        # If we increment this values more than that, the HDF5 takes
+        # If we increment these values more than that, the HDF5 takes
         # considerably more CPU. If you don't want to spend 50 MB
         # (or more, depending on the final table size) to
         # the BTree, and want to save files bigger than 2 GB,
-        # try to increment this values, but be ready for a quite big
+        # try to increment these values, but be ready for a quite big
         # overhead needed to traverse the BTree.
         buffersize = 60 * bufmultfactor
         chunksize = 16384
@@ -178,192 +133,64 @@ def calcBufferSize(rowsize, expectedrows, compress):
     # A new correction for avoid too many calls to HDF5 I/O calls
     # But this does not bring advantages rather the contrary,
     # the memory comsumption grows, and performance becomes worse.
-    #buffersize = 100    # For testing purposes
     #if expectedrows//maxTuples > 50:
     #    buffersize *= 4
     #    maxTuples = buffersize // rowsize
     return (maxTuples, chunksize)
-        
+
+# This function is appropriate for calls to __getitem__ methods
 def processRange(nrows, start=None, stop=None, step=None):
-    #print "start, stop, step(1), nrows-->", (start, stop, step, nrows)
+    if step and step < 0:
+        raise ValueError, "slice step canot be negative"
     (start, stop, step) = slice(start, stop, step).indices(nrows)
-    # Some protection for empty ranges
+    # Some protection against empty ranges
     if start > stop:
         start = stop
     #print "start, stop, step(2)-->", (start, stop, step)
     return (start, stop, step)
 
-def processRangeRead(nrows, start=None, stop=None, step=None):
-
-    assert (type(start) in
-            [types.NoneType, types.IntType, types.LongType]), \
-        "Non valid start parameter: %s" % start
-
-    assert (type(stop) in
-            [types.NoneType, types.IntType, types.LongType]), \
-        "Non valid stop parameter: %s" % stop
-
-    assert (type(step) in
-            [types.NoneType, types.IntType, types.LongType]), \
-        "Non valid step parameter: %s" % step
-
-    if (not (start is None)) and ((stop is None) and (step is None)):
+# This function is appropiate for calls to read() methods
+def processRangeRead(nrows, start=None, stop=None, step=1):
+    if start is not None and stop is None:
         step = 1
-        if start < 0:
-            start = nrows + start
-        elif start >= nrows:
-            raise IndexError, "start value (%s) is greater or equal than available rows: (%s)" % (start, nrows)
-        stop = start + 1
-    else:
-        if start is None:
-            start = 0
-                
-        elif start < 0:
-            start = nrows + start
-        elif start >= nrows:
-            start = nrows
-
-        if stop is None:
+        if start == -1:  # corner case
             stop = nrows
-        elif stop <= 0 :
-            stop = nrows + stop
-        elif stop > nrows:
-#             raise IndexError, "stop value (%s) is greater than available rows: (%s)" % (stop, nrows)
-            stop = nrows
-
-        if step is None:
-            step = 1
-        elif step <= 0:
-            raise ValueError, \
-                  "Zero or negative step values are not allowed!"
-
-    if start > stop:
-        stop = start
-        
-    # Protection against start greater than available records
-    # nrows == 0 is a special case for empty objects
-    if nrows > 0 and start >= nrows:
-        raise IndexError, \
-"Start (%s) value is greater than number of rows (%s)." % \
-(start, nrows)
-
-    return (start, stop, step)
-    
-
-def processRange2(nrows, start=None, stop=None, step=None):
-
-    assert (type(start) in
-            [types.NoneType, types.IntType, types.LongType]), \
-        "Non valid start parameter: %s" % start
-
-    assert (type(stop) in
-            [types.NoneType, types.IntType, types.LongType]), \
-        "Non valid stop parameter: %s" % stop
-
-    assert (type(step) in
-            [types.NoneType, types.IntType, types.LongType]), \
-        "Non valid step parameter: %s" % step
-
-    if (not (start is None)) and ((stop is None) and (step is None)):
-        step = 1
-        if start < 0:
-            start = nrows + start
-        elif start >= nrows:
-            raise IndexError, "start value (%s) is greater or equal than available rows: (%s)" % (start, nrows)
-        stop = nrows
-    else:
-        if start is None:
-            start = 0
-                
-        elif start < 0:
-            start = nrows + start
-        elif start >= nrows:
-            start = nrows
-
-        if stop is None:
-            stop = nrows
-        elif stop <= 0 :
-            stop = nrows + stop
-        elif stop > nrows:
-#             raise IndexError, "stop value (%s) is greater than available rows: (%s)" % (stop, nrows)
-            stop = nrows
-
-        if step is None:
-            step = 1
-        elif step <= 0:
-            raise ValueError, \
-                  "Zero or negative step values are not allowed!"
-
-    if start > stop:
-        stop = start
-        
-    # Protection against start greater than available records
-    # nrows == 0 is a special case for empty objects
-    if nrows > 0 and start >= nrows:
-        raise IndexError, \
-"Start (%s) value is greater than number of rows (%s)." % \
-(start, nrows)
-
-    return (start, stop, step)
-    
-
-def convertIntoNA(arr, atomtype):
-    "Convert a generic object into a numarray object"
-    # Check for Numeric objects
-    if (isinstance(arr, numarray.NumArray) or
-        isinstance(arr, strings.CharArray)):
-        naarr = arr
-    elif (Numeric_imported and type(arr) == type(Numeric.array(1))):
-        if arr.typecode() == "c":
-            # To emulate as close as possible Numeric character arrays,
-            # itemsize for chararrays will be always 1
-            if arr.iscontiguous():
-                # This the fastest way to convert from Numeric to numarray
-                # because no data copy is involved
-                naarr = strings.array(buffer(arr),
-                                      itemsize=1,
-                                      shape=arr.shape)
-            else:
-                # Here we absolutely need a copy so as to obtain a buffer.
-                # Perhaps this can be avoided or optimized by using
-                # the tolist() method, but this should be tested.
-                naarr = strings.array(buffer(arr.copy()),
-                                      itemsize=1,
-                                      shape=arr.shape)
         else:
-            if arr.iscontiguous():
-                # This the fastest way to convert from Numeric to numarray
-                # because no data copy is involved
-                naarr = numarray.array(buffer(arr),
-                                       type=arr.typecode(),
-                                       shape=arr.shape)
-            else:
-                # Here we absolutely need a copy in order
-                # to obtain a buffer.
-                # Perhaps this can be avoided or optimized by using
-                # the tolist() method, but this should be tested.
-                naarr = numarray.array(buffer(arr.copy()),
-                                       type=arr.typecode(),
-                                       shape=arr.shape)                    
+            stop = start + 1
+    start, stop, step = processRange(nrows, start, stop, step)
+    # Protection against start greater than available records
+    # nrows == 0 is a special case for empty objects
+    if nrows > 0 and start >= nrows:
+        raise IndexError, \
+"Start (%s) value is greater than number of rows (%s)." % (start, nrows)
 
-    else:
-        # Test if arr can be converted to a numarray object of the
-        # correct type
-        try:
-            naarr = numarray.array(arr, type=atomtype)
-        # If not, test with a chararray
-        except TypeError:
-            try:
-                naarr = strings.array(arr)
-            # If still doesn't, issues an error
-            except:
-                raise TypeError, \
-"""The object '%s' can't be converted into a numarray object of type '%s'. Sorry, but this object is not supported in this context.""" % (arr, atomtype)
+    return (start, stop, step)
+    
+if __name__=="__main__":
+    import sys
+    import getopt
 
-    # We always want a contiguous buffer
-    # (no matter if has an offset or not; that will be corrected later)
-    if (not naarr.iscontiguous()):
-        # Do a copy of the array in case is not contiguous
-        naarr = numarray.NDArray.copy(naarr)
-
-    return naarr
+    usage = \
+"""usage: %s [-v] name
+  -v means ...\n""" \
+    % sys.argv[0]
+    try:
+        opts, pargs = getopt.getopt(sys.argv[1:], 'v')
+    except:
+        sys.stderr.write(usage)
+        sys.exit(0)
+    # if we pass too much parameters, abort
+    if len(pargs) <> 1:
+        sys.stderr.write(usage)
+        sys.exit(0)
+    name = sys.argv[1]
+    # default options
+    verbose = 0
+    # Get the options
+    for option in opts:
+        if option[0] == '-v':
+            verbose = 1
+    # Catch the name to be validated
+    name = pargs[0]
+    checkNameValidity(name)
+    print "Correct name: '%s'" % name

@@ -56,10 +56,12 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(Table2_0UCL))
     #theSuite.addTest(unittest.makeSuite(Table2_1UCL))
 
+    ucl_avail = whichLibVersion("ucl")[0]
     for n in range(niter):
-        theSuite.addTest(unittest.makeSuite(Table1_0UCL))
-        theSuite.addTest(unittest.makeSuite(Table2_0UCL))
-        theSuite.addTest(unittest.makeSuite(Table2_1UCL))
+        if ucl_avail:
+            theSuite.addTest(unittest.makeSuite(Table1_0UCL))
+            theSuite.addTest(unittest.makeSuite(Table2_0UCL))
+            theSuite.addTest(unittest.makeSuite(Table2_1UCL))
             
     return theSuite
 

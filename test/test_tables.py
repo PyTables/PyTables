@@ -9,7 +9,7 @@ from numarray import *
 import numarray.records as records
 from tables import *
 
-from test_all import verbose
+from test_all import verbose, allequal
 
 # Test Record class
 class Record(IsDescription):
@@ -44,27 +44,6 @@ class OldRecord(IsDescription):
     var6 = Col("UInt16", 1, 5)                # unisgned short integer 
     var7 = Col("CharType", shape=1, dflt="e")      # 1-character String
     var8 = Col("Bool", shape=1, dflt=1)      # boolean
-
-def allequal(a,b):
-    """Checks if two numarrays are equal"""
-
-    if a.shape <> b.shape:
-        return 0
-
-    # Rank-0 case
-    if len(a.shape) == 0:
-        if str(equal(a,b)) == '1':
-            return 1
-        else:
-            return 0
-
-    # Multidimensional case
-    result = (a == b)
-    for i in range(len(a.shape)):
-        result = logical_and.reduce(result)
-
-    return result
-
 
 class BasicTestCase(unittest.TestCase):
     #file  = "test.h5"
@@ -206,7 +185,7 @@ class BasicTestCase(unittest.TestCase):
         nrows = self.expectedrows - 1
         assert (rec['var1'], rec['var2'], rec['var7']) == ("0001", nrows,"1")
         if isinstance(rec['var5'], NumArray):
-            assert allequal(rec['var5'], array((float(nrows),)*4))
+            assert allequal(rec['var5'], array((float(nrows),)*4, Float32))
         else:
             assert rec['var5'] == float(nrows)
         assert len(result) == 20
@@ -236,12 +215,12 @@ class BasicTestCase(unittest.TestCase):
             print "Total selected records in table ==> ", len(result)
         nrows = table.row.nrow()
         if isinstance(rec['var5'], NumArray):
-            assert allequal(result[0], array((float(0),)*4))
-            assert allequal(result[1], array((float(1),)*4))
-            assert allequal(result[2], array((float(2),)*4))
-            assert allequal(result[3], array((float(3),)*4))
-            assert allequal(result[10], array((float(10),)*4))
-            assert allequal(rec['var5'], array((float(nrows),)*4))
+            assert allequal(result[0], array((float(0),)*4, Float32))
+            assert allequal(result[1], array((float(1),)*4, Float32))
+            assert allequal(result[2], array((float(2),)*4, Float32))
+            assert allequal(result[3], array((float(3),)*4, Float32))
+            assert allequal(result[10], array((float(10),)*4, Float32))
+            assert allequal(rec['var5'], array((float(nrows),)*4, Float32))
         else:
             assert rec['var5'] == float(nrows)
         assert len(result) == 20
@@ -292,7 +271,7 @@ class BasicTestCase(unittest.TestCase):
         nrows = self.appendrows - 1
         assert (row['var1'], row['var2'], row['var7']) == ("0001", nrows, "1")
         if isinstance(row['var5'], NumArray):
-            assert allequal(row['var5'], array((float(nrows),)*4))
+            assert allequal(row['var5'], array((float(nrows),)*4, Float32))
         else:
             assert row['var5'] == float(nrows)
         if self.appendrows <= 20:
@@ -656,9 +635,10 @@ class BasicRangeTestCase(unittest.TestCase):
         table = self.fileh.getNode("/table0")
 
         table._v_maxTuples = self.maxTuples
+        resrange = slice(self.start, self.stop, self.step).indices(table.nrows)
+        reslength = len(range(*resrange))
         if self.checkrecarray:
-            #recarray = table.read(self.start, self.stop, self.step)
-            recarray = table[self.start:self.stop:self.step]
+            recarray = table.read(self.start, self.stop, self.step)
             result = []
             for nrec in range(len(recarray)):
                 if recarray.field('var2')[nrec] < self.nrows:
@@ -678,8 +658,10 @@ class BasicRangeTestCase(unittest.TestCase):
             startr = self.expectedrows + self.start
         else:
             startr = self.start
-            
-        if self.stop <= 0:
+
+        if self.stop == None:
+            stopr = startr+1                
+        elif self.stop < 0:
             stopr = self.expectedrows + self.stop
         else:
             stopr = self.stop
@@ -689,7 +671,7 @@ class BasicRangeTestCase(unittest.TestCase):
             
         if verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
-            if self.start < self.stop:
+            if reslength:
                 if self.checkrecarray:
                     print "Last record *read* in recarray ==>", recarray[-1]
                 elif self.checkgetCol:
@@ -848,11 +830,11 @@ class BasicRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test09_range..." % self.__class__.__name__
 
-        # Case where stop = 0
+        # Case where stop = None (last row)
         self.nrows = 100
         self.maxTuples = 3  # Choose a small value for the buffer size
         self.start = 1
-        self.stop = 0
+        self.stop = None
         self.step = 1
 
         self.check_range()
@@ -864,13 +846,32 @@ class BasicRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test10_range..." % self.__class__.__name__
 
+        # Case where start < 0 and stop = None (last row)
+        self.nrows = self.expectedrows
+        self.maxTuples = 5  # Choose a small value for the buffer size
+        self.start = -6
+        self.startr = self.expectedrows + self.start
+        self.stop = 0
+        self.stop = None
+        self.stopr = self.expectedrows
+        self.step = 2
+
+        self.check_range()
+
+    def test10a_range(self):
+        """Checking ranges in table iterators (case10a)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test10a_range..." % self.__class__.__name__
+
         # Case where start < 0 and stop = 0
         self.nrows = self.expectedrows
         self.maxTuples = 5  # Choose a small value for the buffer size
         self.start = -6
         self.startr = self.expectedrows + self.start
         self.stop = 0
-        self.stopr = self.expectedrows + self.stop
+        self.stopr = self.expectedrows
         self.step = 2
 
         self.check_range()

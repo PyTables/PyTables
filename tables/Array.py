@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.52 2003/12/27 22:54:34 falted Exp $
+#       $Id: Array.py,v 1.53 2004/01/01 21:01:46 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.52 $"
+__version__ = "$Revision: 1.53 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -67,8 +67,8 @@ class Array(Leaf, hdf5Extension.Array, object):
         type -- The type class for the array.
         itemsize -- The size of the atomic items. Specially useful for
             CharArray objects.
-        flavor -- The object type of this object (Numarray, Numeric, List,
-            Tuple, String, Int of Float).
+        flavor -- The object type of this object ("NumArray", "CharArray",
+            "Numeric", "List", "Tuple", "String", "Int" or "Float").
         nrows -- The value of the first dimension of Array.
         nrow -- On iterators, this is the index of the current row.
 
@@ -140,11 +140,14 @@ class Array(Leaf, hdf5Extension.Array, object):
     def _convertIntoNA(self, object):
         "Convert a generic object into a numarray object"
         arr = object
-        # Check for Numeric objects
         if isinstance(arr, numarray.NumArray):
             flavor = "NumArray"
             naarr = arr
-            byteorder = arr._byteorder
+            self.byteorder  = naarr._byteorder
+        elif isinstance(arr, strings.CharArray):
+            flavor = "CharArray"
+            naarr = arr
+            self.byteorder = "non-relevant" 
         elif (Numeric_imported and type(arr) == type(Numeric.array(1))):
             flavor = "Numeric"
             if arr.typecode() == "c":
@@ -179,9 +182,6 @@ class Array(Leaf, hdf5Extension.Array, object):
                                            type=arr.typecode(),
                                            shape=arr.shape)                    
 
-        elif (isinstance(arr, strings.CharArray)):
-            flavor = "CharArray"
-            naarr = arr
         elif (isinstance(arr, types.TupleType) or
               isinstance(arr, types.ListType)):
             # Test if can convert to numarray object
@@ -205,7 +205,6 @@ class Array(Leaf, hdf5Extension.Array, object):
             flavor = "Int"
         elif isinstance(arr, types.FloatType):
             naarr = numarray.array(arr)
-
             flavor = "Float"
         elif isinstance(arr, types.StringType):
             naarr = strings.array(arr)
@@ -359,16 +358,12 @@ class Array(Leaf, hdf5Extension.Array, object):
                     stepl[dim] = 1
                     dim += 1
             elif isinstance(key, types.IntType):
-                (start, stop, step) = processRange(self.shape[dim],
-                                                   key, key+1, 1)
+                start, stop, step = processRange(self.shape[dim],
+                                                 key, key+1, 1)
                 stop_None[dim] = 1
             elif isinstance(key, types.SliceType):
-                if key.stop == None:
-                    stop = self.shape[dim]
-                else:
-                    stop = key.stop
-                (start, stop, step) = processRange(self.shape[dim],
-                                                   key.start, stop, key.step)
+                start, stop, step = processRange(self.shape[dim],
+                                                 key.start, key.stop, key.step)
             else:
                 raise ValueError, "Non-valid index or slice: %s" % \
                       key
@@ -466,7 +461,7 @@ class Array(Leaf, hdf5Extension.Array, object):
         
     # Accessor for the _readArray method in superclass
     def read(self, start=None, stop=None, step=None):
-        """Read the array from disk and return it as a "self.flavor" object."""
+        """Read the array from disk and return it as a self.flavor object."""
 
         if self.extdim < 0:
             extdim = 0
@@ -495,10 +490,10 @@ class Array(Leaf, hdf5Extension.Array, object):
             # Arrays that have non-zero dimensionality
             self._readArray(start, stop, step, arr._data)
             
-        if self.flavor <> "NumArray":
-            return self._convToFlavor(arr)
+        if self.flavor in ["NumArray", "CharArray"]:
+            return arr  # No further conversions needed
         else:
-            return arr
+            return self._convToFlavor(arr)
         
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""

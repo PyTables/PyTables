@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.5 2003/12/21 19:35:45 falted Exp $
+#       $Id: EArray.py,v 1.6 2004/01/01 21:01:46 falted Exp $
 #
 ########################################################################
 
@@ -27,13 +27,13 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.5 $"
+__version__ = "$Revision: 1.6 $"
 # default version for EARRAY objects
 obversion = "1.0"    # initial version
 
 import types, warnings, sys
 from Array import Array
-from utils import calcBufferSize, processRange
+from utils import calcBufferSize
 import hdf5Extension
 import numarray
 import numarray.strings as strings
@@ -171,72 +171,8 @@ class EArray(Array, hdf5Extension.Array, object):
         self.itemsize = naarr.itemsize()
         self.type = self._createArray(naarr, self.new_title)
 
-    def _convertIntoNA(self, object):
-        "Convert a generic object into a numarray object"
-        arr = object
-        # Check for Numeric objects
-        if isinstance(arr, numarray.NumArray):
-            flavor = "NumArray"
-            naarr = arr
-            byteorder = arr._byteorder
-        elif (Numeric_imported and type(arr) == type(Numeric.array(1))):
-            flavor = "Numeric"
-            if arr.typecode() == "c":
-                # To emulate as close as possible Numeric character arrays,
-                # itemsize for chararrays will be always 1
-                if arr.iscontiguous():
-                    # This the fastest way to convert from Numeric to numarray
-                    # because no data copy is involved
-                    naarr = strings.array(buffer(arr),
-                                          itemsize=1,
-                                          shape=arr.shape)
-                else:
-                    # Here we absolutely need a copy so as to obtain a buffer.
-                    # Perhaps this can be avoided or optimized by using
-                    # the tolist() method, but this should be tested.
-                    naarr = strings.array(buffer(arr.copy()),
-                                          itemsize=1,
-                                          shape=arr.shape)
-            else:
-                if arr.iscontiguous():
-                    # This the fastest way to convert from Numeric to numarray
-                    # because no data copy is involved
-                    # We have to use this weird thing because numarray does
-                    # not support a clean conversion of zero-sized arrays
-                    try:
-                        naarr = numarray.array(buffer(arr),
-                                               type=arr.typecode(),
-                                               shape=arr.shape)
-                    except:
-                        # Case of empty arrays
-                        naarr = numarray.array(arr)
-                else:
-                    # Here we absolutely need a copy in order
-                    # to obtain a buffer.
-                    # Perhaps this can be avoided or optimized by using
-                    # the tolist() method, but this should be tested.
-                    naarr = numarray.array(buffer(arr.copy()),
-                                           type=arr.typecode(),
-                                           shape=arr.shape)                    
-
-        elif (isinstance(arr, strings.CharArray)):
-            flavor = "CharArray"
-            naarr = arr
-        else:
-            raise ValueError, \
-"""The object '%s' is not in the list of supported objects (NumArray, CharArray, Numeric). Sorry, but this object is not supported.""" % (arr)
-
-        # We always want a contiguous buffer
-        # (no matter if has an offset or not; that will be corrected later)
-        # (I think this should be not necessary)
-        if (not naarr.iscontiguous()):
-            # Do a copy of the array in case is not contiguous
-            naarr = numarray.NDArray.copy(naarr)
-
-        return naarr, flavor
-
     def _checkTypeShape(self, naarr):
-        " Test that naarr parameter is shape and type compliant"
+        "Test that naarr parameter is shape and type compliant"
         # Check the type
         if not hasattr(naarr, "type"):  # To deal with string objects
             datatype = records.CharType

@@ -10,6 +10,6 @@ array_c.append(strings.array(['a'*6, 'b'*8, 'c'*10], itemsize=8))
 
 # Read the string EArray we have created on disk
 for s in array_c:
-    print "array_c[%s] => %s" % (array_c.nrow, s)
+    print "array_c[%s] => '%s'" % (array_c.nrow, s)
 # Close the file
 fileh.close()

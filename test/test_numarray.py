@@ -9,33 +9,11 @@ import numarray.strings as strings
 import numarray.records as records
 from tables import *
 
-from test_all import verbose
+from test_all import verbose, allequal
 
 # If the next line is uncommented, the logical_and.reduce in loop issues an
 # OverflowWarning in the case of type Int8 (and only in that case).
 #warnings.resetwarnings()
-
-def allequal(a,b):
-    """Checks if two numarrays are equal"""
-
-#     print "a-->", repr(a)
-#     print "b-->", repr(b)
-    if a.shape <> b.shape:
-        return 0
-
-    # Rank-0 case
-    if len(a.shape) == 0:
-        if str(equal(a,b)) == '1':
-            return 1
-        else:
-            return 0
-
-    # Multidimensional case
-    result = (a == b)
-    for i in range(len(a.shape)):
-        result = numarray.logical_and.reduce(result)
-
-    return result
 
 class BasicTestCase(unittest.TestCase):
     """Basic test for all the supported typecodes present in numarray.

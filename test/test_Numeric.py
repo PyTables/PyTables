@@ -6,27 +6,7 @@ from Numeric import *
 from tables import *
 from numarray import typeDict
 
-from test_all import verbose
-
-def allequal(a,b):
-    """Checks if two numarrays are equal"""
-
-    if a.shape <> b.shape:
-        return 0
-
-    # Rank-0 case
-    if len(a.shape) == 0:
-        if str(equal(a,b)) == '1':
-            return 1
-        else:
-            return 0
-
-    # Multidimensional case
-    result = (a == b)
-    for i in range(len(a.shape)):
-        result = logical_and.reduce(result)
-
-    return result
+from test_all import verbose, allequal
 
 class BasicTestCase(unittest.TestCase):
     """Basic test for all the supported typecodes present in Numeric.
@@ -60,7 +40,7 @@ class BasicTestCase(unittest.TestCase):
 	b = self.root.somearray.read()
 	
 	# Compare them. They should be equal.
-	if not allequal(a,b) and verbose:
+	if not allequal(a,b, "Numeric") and verbose:
 	    print "Write and read arrays differ!"
 	    print "Array written:", a
 	    print "Array written shape:", a.shape
@@ -87,7 +67,7 @@ class BasicTestCase(unittest.TestCase):
             assert a.typecode() == b.typecode()
             assert typeDict[a.typecode()] ==  self.root.somearray.type
 
-        assert allequal(a,b)
+        assert allequal(a,b, "Numeric")
         
         # Close the file (eventually destroy the extended type)
         self.fileh.close()
@@ -233,7 +213,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 	b = self.root.somearray.read()
 	
 	# Compare them. They should be equal.
-	if not allequal(a,b) and verbose:
+	if not allequal(a,b, "Numeric") and verbose:
 	    print "Write and read arrays differ!"
 	    print "Array written:", a
 	    print "Array written shape:", a.shape
@@ -260,7 +240,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
             assert a.typecode() == b.typecode()
             assert typeDict[a.typecode()] ==  self.root.somearray.type
 
-        assert allequal(a,b)
+        assert allequal(a,b, "Numeric")
 
         return
     
@@ -350,7 +330,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 	    dset = getattr(group, 'array_' + typecodes[i-1])
 	    # Get the actual array
 	    b = dset.read()
-	    if not allequal(a,b) and verbose:
+	    if not allequal(a,b, "Numeric") and verbose:
 		print "Array a original. Shape: ==>", a.shape
 		print "Array a original. Data: ==>", a
 		print "Info from dataset:", dset._v_pathname
@@ -367,7 +347,7 @@ class GroupsArrayTestCase(unittest.TestCase):
                 assert b.typecode() == "l"
             else:
                 assert a.typecode() == b.typecode()
-            assert allequal(a,b)
+            assert allequal(a,b, "Numeric")
 
 	    # Iterate over the next group
 	    group = getattr(group, 'group' + str(i))
@@ -457,10 +437,8 @@ class GroupsArrayTestCase(unittest.TestCase):
             # arrays!. At least, tolist() do not crash!.
             # ************** WARNING!!! *****************
             assert a.tolist() == b.tolist()
-            #assert allequal(a,b)
 
-            #print fileh
-	    # Iterate over the next group
+            # Iterate over the next group
 	    group = fileh.getNode(group, 'group' + str(rank))
 
         if verbose:
@@ -474,19 +452,22 @@ class GroupsArrayTestCase(unittest.TestCase):
 
 def suite():
     theSuite = unittest.TestSuite()
+    niter = 1
 
-    # The scalar case test should be refined in order to work
-    theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
-    theSuite.addTest(unittest.makeSuite(Basic0DTwoTestCase))
-    theSuite.addTest(unittest.makeSuite(Basic1DOneTestCase))
-    theSuite.addTest(unittest.makeSuite(Basic1DTwoTestCase))
-    theSuite.addTest(unittest.makeSuite(Basic1DThreeTestCase))
-    theSuite.addTest(unittest.makeSuite(Basic2DTestCase))
-    theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
-    # The 32 dimensions case is tested on GroupsArray
-    #theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
-    theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))
-    theSuite.addTest(unittest.makeSuite(UnalignedAndComplexTestCase))
+    #theSuite.addTest(unittest.makeSuite(Basic1DTwoTestCase))
+    for i in range(niter):
+        # The scalar case test should be refined in order to work
+        theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic0DTwoTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic1DOneTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic1DTwoTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic1DThreeTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic2DTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
+        # The 32 dimensions case is tested on GroupsArray
+        #theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
+        theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))
+        theSuite.addTest(unittest.makeSuite(UnalignedAndComplexTestCase))
 
     return theSuite
 

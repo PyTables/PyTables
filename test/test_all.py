@@ -5,6 +5,8 @@ Run all test cases.
 import sys
 import os
 import unittest
+from numarray import *
+from numarray import strings
 
 verbose = 0
 if 'verbose' in sys.argv:
@@ -21,6 +23,74 @@ if 'silent' in sys.argv:  # take care of old flag, just in case
 # verbose setting.  It's confusing but it works.
 import test_all
 test_all.verbose = verbose
+
+def allequal(a,b, flavor="numarray"):
+    """Checks if two numarrays are equal"""
+
+#     print "a-->", repr(a)
+#     print "b-->", repr(b)
+    if not hasattr(b, "shape"):
+        # Scalar case
+        return a == b
+
+    if flavor == "Numeric":
+        # Convert the parameters to numarray objects
+        try:
+            a = array(buffer(a), type=typeDict[a.typecode()], shape=a.shape)
+        except:
+            try:
+                a = strings.array(a.tolist(), itemsize=1, shape=a.shape)
+            except:
+                # Fallback case
+                a = array(a)
+        try:
+            b = array(buffer(b), type=typeDict[b.typecode()], shape=b.shape)
+        except:
+            try:
+                b = strings.array(b.tolist(), itemsize=1, shape=b.shape)
+            except:
+                # Fallback case
+                b = array(b)
+
+    if a.shape <> b.shape:
+        if verbose:
+            print "Shape is not equal:", a.shape, "<>", b.shape
+        return 0
+
+    if hasattr(b, "type") and a.type() <> b.type():
+        if verbose:
+            print "Type is not equal:", a.type(), "<>", b.type()
+        return 0
+
+    # Rank-0 case
+    if len(a.shape) == 0:
+        if str(equal(a,b)) == '1':
+            return 1
+        else:
+            if verbose:
+                print "Shape is not equal:", a.shape, "<>", b.shape
+            return 0
+
+    # Null arrays
+    if len(a._data) == 0:  # len(a) is not correct for generic shapes
+        if len(b._data) == 0:
+            return 1
+        else:
+            if verbose:
+                print "length is not equal"
+                print "len(a._data) ==>", len(a._data)
+                print "len(b._data) ==>", len(b._data)
+            return 0
+
+    # Multidimensional case
+    result = (a == b)
+    for i in range(len(a.shape)):
+        #print "nonzero(a <> b)", nonzero(a<>b)
+        result = logical_and.reduce(result)
+    if not result and verbose:
+        print "Some of the elements in arrays are not equal"
+        
+    return result
 
 
 def suite():

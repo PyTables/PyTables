@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.62 2003/12/27 22:54:34 falted Exp $
+#       $Id: File.py,v 1.63 2004/01/01 21:01:46 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.62 $"
+__version__ = "$Revision: 1.63 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -521,7 +521,7 @@ class File(hdf5Extension.File, object):
         return Object
 
 
-    def createVLArray(self, where, name, vlatom = None, title = "",
+    def createVLArray(self, where, name, atom = None, title = "",
                       compress = 0, complib = "zlib", shuffle = 1,
                       expectedsizeinMB = 1.0):
         
@@ -537,8 +537,8 @@ class File(hdf5Extension.File, object):
 
         title -- Sets a TITLE attribute on the array entity.
 
-        vlatom -- A VLAtom object representing the shape, type
-            and flavor of the atomic object to be saved.
+        atom -- A Atom object representing the shape, type and flavor
+            of the atomic object to be saved.
 
         compress -- Specifies a compress level for data. The allowed
             range is 0-9. A value of 0 disables compression and this
@@ -565,10 +565,10 @@ class File(hdf5Extension.File, object):
             """
 
         group = self.getNode(where, classname = 'Group')
-        if vlatom == None:
+        if atom == None:
                 raise ValueError, \
-                      "vlatom argument should be not 'None'."
-        Object = VLArray(vlatom, title, compress, complib, shuffle,
+                      "please, expecify an atom argument."
+        Object = VLArray(atom, title, compress, complib, shuffle,
                          expectedsizeinMB)
         setattr(group, name, Object)
         return Object

@@ -52,10 +52,9 @@ herr_t H5ARRAYmake( hid_t loc_id,
 {
 
  hid_t   dataset_id, space_id, datatype;  
- hsize_t dataset_dims[1] = {1};	/* Only one array initially */
  hsize_t *maxdims = NULL;
  hsize_t *dims_chunk = NULL;
- hid_t   plist_id;
+ hid_t   plist_id = 0;
  unsigned int cd_values[3];
  int     chunked = 0;
  int     i;
@@ -145,7 +144,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
      }
    }
 
-   /* Create the dataset. */
+   /* Create the (chunked) dataset */
    if ((dataset_id = H5Dcreate(loc_id, dset_name, datatype,
 			       space_id, plist_id )) < 0 )
      goto out;
@@ -173,6 +172,10 @@ herr_t H5ARRAYmake( hid_t loc_id,
  if ( H5Sclose( space_id ) < 0 )
   return -1;
 
+ /* End access to the property list */
+ if (plist_id)
+   if ( H5Pclose( plist_id ) < 0 )
+     goto out;
 
 /*-------------------------------------------------------------------------
  * Set the conforming array attributes

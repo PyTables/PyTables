@@ -114,7 +114,7 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
   void *outbuf;
   int complevel = 1;
   int object_version = 10;    	/* Default version 1.0 */
-  int object_type;
+  int object_type = Table;	/* Default type */
   /* max_len_buffer will keep the likely output buffer size
      after processing the first chunk */
   static unsigned int max_len_buffer = 0;
@@ -134,7 +134,6 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
   else if (cd_nelmts==2 ) {
     complevel = cd_values[0];
     object_version = cd_values[1]; /* The table VERSION attribute */
-    object_type = Table;    /* for two values the chunk can only be a Table */
   }
   else if (cd_nelmts==3 ) {
     complevel = cd_values[0];
@@ -314,10 +313,9 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
       nbytes += 4; 
     }
 #endif
-
-/*     printf("z_dst_nbytes: %d, nbytes: %d.\n", z_dst_nbytes, nbytes); */
     if (z_dst_nbytes >= nbytes) {
 #ifdef DEBUG
+      printf("z_dst_nbytes: %d, nbytes: %d.\n", z_dst_nbytes, nbytes);
       printf("The compressed buffer takes more space than uncompressed!.\n");
 #endif
       ret_value = 0; /* fail */

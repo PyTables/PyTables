@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.14 2003/12/28 23:23:25 falted Exp $
+#       $Id: VLArray.py,v 1.15 2004/01/01 21:01:46 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.14 $"
+__version__ = "$Revision: 1.15 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -40,7 +40,7 @@ import numarray.records as records
 from Leaf import Leaf
 import hdf5Extension
 from IsDescription import Col, BoolCol, StringCol, IntCol, FloatCol
-from utils import processRange, processRangeRead, convertIntoNA
+from utils import processRange, processRangeRead
 
 try:
     import Numeric
@@ -48,15 +48,23 @@ try:
 except:
     Numeric_imported = 0
 
-def checkflavor(flavor):
-    if flavor in ["NumArray", "CharArray", "Numeric", "Tuple", "List",
-                  "String", "Object"]:
-        return flavor
+def checkflavor(flavor, dtype):
+    
+    #if dtype == "CharType" or isinstance(dtype, records.Char):
+    if str(dtype) == "CharType":
+        if flavor in ["CharArray", "String"]:
+            return flavor
+        else:
+            raise ValueError, \
+"""flavor of type '%s' must be one of the "CharArray" or "String" values, and you tried to set it to "%s".
+"""  % (dtype, flavor)
     else:
-        raise ValueError, \
-"""flavor must be one of the "NumArray", "CharArray", "Numeric", "Tuple",
- "List", "String" or "Object" values, and you try to set it to "%s".
-"""  % (flavor)
+        if flavor in ["NumArray", "Numeric", "Tuple", "List"]:
+            return flavor
+        else:
+            raise ValueError, \
+"""flavor of type '%s' must be one of the "NumArray", "Numeric", "Tuple" or "List" values, and you tried to set it to "%s".
+"""  % (dtype, flavor)
 
 # Class to support variable length strings as components of VLArray
 # It supports UNICODE strings as well.
@@ -95,7 +103,7 @@ class Atom(Col):
 
     def __init__(self, dtype="Float64", shape=1, flavor="NumArray"):
         Col.__init__(self, dtype, shape)
-        self.flavor = checkflavor(flavor)
+        self.flavor = checkflavor(flavor, self.type)
 
     def __repr__(self):
         if self.type == "CharType" or isinstance(self.type, records.Char):
@@ -129,85 +137,85 @@ class StringAtom(Atom, StringCol):
     """ Define an atom of type String """
     def __init__(self, shape=1, length=None, flavor="CharArray"):
         StringCol.__init__(self, length=length, shape=shape)
-        self.flavor = checkflavor(flavor)
+        self.flavor = checkflavor(flavor, self.type)
         
 class BoolAtom(Atom, BoolCol):
     """ Define an atom of type Bool """
     def __init__(self, shape=1, flavor="NumArray"):
         BoolCol.__init__(self, shape=shape)
-        self.flavor = checkflavor(flavor)
+        self.flavor = checkflavor(flavor, self.type)
 
 class IntAtom(Atom, IntCol):
     """ Define an atom of type Integer """
     def __init__(self, shape=1, itemsize=4, sign=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=itemsize, sign=sign)
-        self.flavor = checkflavor(flavor)
+        self.flavor = checkflavor(flavor, self.type)
 
 class Int8Atom(Atom, IntCol):
     """ Define an atom of type Int8 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=1, sign=1)
-        self.flavor = checkflavor(flavor)
+        self.flavor = checkflavor(flavor, self.type)
 
 class UInt8Atom(Atom, IntCol):
     """ Define an atom of type UInt8 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=1, sign=0)
-        self.flavor = checkflavor(flavor)
+        self.flavor = checkflavor(flavor, self.type)
 
 class Int16Atom(Atom, IntCol):
     """ Define an atom of type Int16 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=2, sign=1)
-        self.flavor = checkflavor(flavor)
+        self.flavor = checkflavor(flavor, self.type)
 
 class UInt16Atom(Atom, IntCol):
     """ Define an atom of type UInt16 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=2, sign=0)
-        self.flavor = checkflavor(flavor)
+        self.flavor = checkflavor(flavor, self.type)
 
 class Int32Atom(Atom, IntCol):
     """ Define an atom of type Int32 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=4, sign=1)
-        self.flavor = checkflavor(flavor)
+        self.flavor = checkflavor(flavor, self.type)
 
 class UInt32Atom(IntCol, Atom):
     """ Define an atom of type UInt32 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=4, sign=0)
-        self.flavor = checkflavor(flavor)
+        self.flavor = checkflavor(flavor, self.type)
 
 class Int64Atom(Atom, IntCol):
     """ Define an atom of type Int64 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=8, sign=1)
-        self.flavor = checkflavor(flavor)
+        self.flavor = checkflavor(flavor, self.type)
 
 class UInt64Atom(Atom, IntCol):
     """ Define an atom of type UInt64 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=8, sign=0)
-        self.flavor = checkflavor(flavor)
+        self.flavor = checkflavor(flavor, self.type)
 
 class FloatAtom(Atom, FloatCol):
     """ Define an atom of type Float """
     def __init__(self, shape=1, itemsize=8, flavor="NumArray"):
         FloatCol.__init__(self, shape=shape, itemsize=itemsize)
-        self.flavor = checkflavor(flavor)
+        self.flavor = checkflavor(flavor, self.type)
 
 class Float32Atom(Atom, FloatCol):
     """ Define an atom of type Float32 """
     def __init__(self, shape=1, flavor="NumArray"):
         FloatCol.__init__(self, shape=shape, itemsize=4)
-        self.flavor = checkflavor(flavor)
+        self.flavor = checkflavor(flavor, self.type)
 
 class Float64Atom(Atom, FloatCol):
     """ Define an atom of type Float64 """
     def __init__(self, shape=1, flavor="NumArray"):
         FloatCol.__init__(self, shape=shape, itemsize=8)
-        self.flavor = checkflavor(flavor)
+        self.flavor = checkflavor(flavor, self.type)
 
         
 def calcChunkSize(expectedsizeinMB, complevel):
@@ -340,10 +348,10 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         if not hasattr(naarr, "type"):  # To deal with string objects
             datatype = records.CharType
             # Made an additional check for strings
-            if self.atom.itemsize <> naarr.itemsize():
-                raise TypeError, \
-"""The object '%s' has not a base string size of '%s'.""" % \
-(naarr, self.atom.itemsize)
+#             if self.atom.itemsize <> naarr.itemsize():
+#                 raise TypeError, \
+# """The object '%s' has not a base string size of '%s'.""" % \
+# (naarr, self.atom.itemsize)
         else:
             datatype = naarr.type()
         if str(datatype) <> str(self.atom.type):
@@ -363,20 +371,73 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
                 else:
                     shape = naarr[0].shape
                 self._nobjects = len(naarr)
-                if shape <> self.atom.shape:
+                if (type(self.atom.shape) in [types.IntType, types.LongType] and
+                    type(shape) is types.TupleType):
+                    # To allow that a shape of 2 == (2,)
+                    atom_shape = (self.atom.shape,)
+                else:
+                    atom_shape = self.atom.shape
+                if shape <> atom_shape:
                     raise TypeError, \
 """The object '%s' is composed of elements with shape '%s', not '%s'.""" % \
-    (naarr, shape, self.atom.shape)
+    (naarr, shape, atom_shape)
         else:
             self._nobjects = 0
         # Ok. all conditions are meet. Return the numarray object
         return naarr
             
+    def convertIntoNA(self, arr, atomtype):
+        "Convert a generic object into a numarray object"
+        # Check for Numeric objects
+        if (isinstance(arr, numarray.NumArray) or
+            isinstance(arr, strings.CharArray)):
+            naarr = arr
+        elif (Numeric_imported and type(arr) == type(Numeric.array(1))):
+            if arr.iscontiguous():
+                # This the fastest way to convert from Numeric to numarray
+                # because no data copy is involved
+                naarr = numarray.array(buffer(arr),
+                                       type=arr.typecode(),
+                                       shape=arr.shape)
+            else:
+                # Here we absolutely need a copy in order
+                # to obtain a buffer.
+                # Perhaps this can be avoided or optimized by using
+                # the tolist() method, but this should be tested.
+                naarr = numarray.array(buffer(arr.copy()),
+                                       type=arr.typecode(),
+                                       shape=arr.shape)                    
+
+        else:
+            # Test if arr can be converted to a numarray object of the
+            # correct type
+            try:
+                naarr = numarray.array(arr, type=atomtype)
+            # If not, test with a chararray
+            except TypeError:
+                try:
+                    naarr = strings.array(arr)
+                # If still doesn't, issues an error
+                except:
+                    raise TypeError, \
+    """The object '%s' can't be converted into a numarray object of type '%s'. Sorry, but this object is not supported in this context.""" % (arr, atomtype)
+
+        # We always want a contiguous buffer
+        # (no matter if has an offset or not; that will be corrected later)
+        if not naarr.iscontiguous():
+            # Do a copy of the array in case is not contiguous
+            naarr = numarray.NDArray.copy(naarr)
+
+        return naarr
+
+
     def append(self, *objects):
         """Append the objects to this enlargeable object"""
 
         # To make append([1,0,1]) equivalent to append(1,0,1)
-        if len(objects) == 1:
+        if len(objects) == 0:
+            object = None
+        elif len(objects) == 1:
             # Correction for only one parameter passed
             object = objects[0]
         else:
@@ -403,9 +464,13 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
                 (type, value, traceback) = sys.exc_info()
                 raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, value)
             object = numarray.array(object, type=numarray.UInt8)
-            
-        naarr = convertIntoNA(object, self.atom.type)
-        self._checkTypeShape(naarr)
+
+        if len(objects) > 0:
+            naarr = self.convertIntoNA(object, self.atom.type)
+            self._checkTypeShape(naarr)
+        else:
+            self._nobjects = 0
+            naarr = None
         if self._append(naarr, self._nobjects) > 0:
             self.nrows += 1
             self.shape = (self.nrows,)
@@ -418,8 +483,11 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         """Get the metadata info for an array in file."""
         self.nrows = self._openArray()
         self.shape = (self.nrows,)
+        # First, check the special cases VLString and Object types
         if self.flavor == "VLString":
             self.atom = VLStringAtom()
+        elif self.flavor == "Object":
+            self.atom = ObjectAtom()
         else:
             if str(self._atomictype) == "CharType":
                 self.atom = StringAtom(shape=self._atomicshape,
@@ -493,26 +561,18 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         # Convert to Numeric, tuple or list if needed
         if self.flavor == "Numeric":
             if Numeric_imported:
-                # This works for both numeric and chararrays
-                # arr=Numeric.array(arr, typecode=arr.typecode())
-                # The next is 10 times faster (for tolist(),
-                # we should check for tostring()!)
-                if str(self._atomictype) == "CharType":
-                    arrstr = arr.tostring()
-                    arr=Numeric.reshape(Numeric.array(arrstr), arr.shape)
+                if str(arr.type()) == "Bool":
+                    # Typecode boolean does not exist on Numeric
+                    typecode = "1"
                 else:
-                    if str(arr.type()) == "Bool":
-                        # Typecode boolean does not exist on Numeric
-                        typecode = "1"
-                    else:
-                        typecode = arr.typecode()                        
-                    # tolist() method creates a list with a sane byteorder
-                    if arr.shape <> ():
-                        arr=Numeric.array(arr.tolist(), typecode)
-                    else:
-                        # This works for rank-0 arrays
-                        # (but is slower for big arrays)
-                        arr=Numeric.array(arr, typecode)
+                    typecode = arr.typecode()                        
+                # tolist() method creates a list with a sane byteorder
+                if arr.shape <> ():
+                    arr=Numeric.array(arr.tolist(), typecode)
+                else:
+                    # This works for rank-0 arrays
+                    # (but is slower for big arrays)
+                    arr=Numeric.array(arr, typecode)
 
             else:
                 # Warn the user
@@ -528,13 +588,18 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         elif self.flavor == "VLString":
             arr = arr.tostring().decode('utf-8')
         elif self.flavor == "Object":
-            arr = cPickle.loads(arr.tostring())
-
-        # Check for unitary length lists or tuples
-        # it is better to disable it, as it is more consistent to return
-        # unitary values as an additional dimension than removing it
-#         if len(arr) == 1:
-#             arr = arr[0]
+            # We have to check for an empty array because of a
+            # possible bug in HDF5 that claims that a dataset
+            # has one record when in fact, it is empty
+            if len(arr) == 0:
+                arr = []
+            else:
+                arr = cPickle.loads(arr.tostring())
+            # The next should also do the job
+#             try:
+#                 arr = cPickle.loads(arr.tostring())
+#             except:
+#                 arr = []
 
         return arr
 
@@ -544,28 +609,27 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         It takes different actions depending on the type of the "key"
         parameter:
 
-        If "key"is an integer, the corresponding table row is returned
-        as a RecArray.Record object. If "key" is a slice, the row
-        slice determined by key is returned as a RecArray object.
-        Finally, if "key" is a string, it is interpreted as a column
-        name in the table, and, if it exists, it is read and returned
-        as a NumArray or CharArray object (whatever is appropriate).
+        If "key"is an integer, the corresponding row is returned. If
+        "key" is a slice, the row slice determined by key is returned.
 
 """
 
         if isinstance(key, types.IntType):
-            return self.read(key, key+1, 1)[0]
+            (start, stop, step) = processRange(self.nrows, key, key+1, 1)
+            return self.read(start, stop, step)
         elif isinstance(key, types.SliceType):
-            return self.read(key.start, key.stop, key.step)
+            (start, stop, step) = processRange(self.nrows,
+                                               key.start, key.stop, key.step)
+            return self.read(start, stop, step)
         else:
             raise ValueError, "Non-valid index or slice: %s" % \
                   key
         
     # Accessor for the _readArray method in superclass
     def read(self, start=None, stop=None, step=None):
-        """Read the array from disk and return it as numarray."""
+        """Read the array from disk and return it as a self.flavor object."""
 
-        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        start, stop, step = processRangeRead(self.nrows, start, stop, step)
 
         if start == stop:
             listarr = []
