@@ -21,7 +21,7 @@ int format_element(hid_t type_id,
 		   H5T_sign_t sign,
 		   int position,
 		   PyObject *shapes,
-		   PyObject *sizes,
+		   PyObject *type_sizes,
 		   PyObject *types,
 		   char *format) 
 {
@@ -37,12 +37,9 @@ int format_element(hid_t type_id,
   if (shapes){
     /* Default value for shape */
     PyList_Append(shapes, PyInt_FromLong(1));
-    PyList_Append(sizes, PyInt_FromLong(member_size));
+    PyList_Append(type_sizes, PyInt_FromLong(member_size));
   }
-  else {
-    /* For Array types */
-    PyList_SetItem(sizes, position, PyInt_FromLong(member_size));
-  }
+
   switch(class) {
   case H5T_INTEGER:                /* int (byte, short, long, long long) */
     switch (member_size) {
@@ -135,9 +132,13 @@ int format_element(hid_t type_id,
 
     /* Find the super member format */
     if ( format_element(super_type_id, super_class_id, super_type_size,
-			super_sign, position, NULL, sizes, types, arrfmt) < 0)
+			super_sign, position, NULL, type_sizes, types, 
+			arrfmt) < 0)
 	 goto out; 
-    
+
+    /* Overwrite in the super_member type size place */
+    PyList_SetItem(type_sizes, position, PyInt_FromLong(super_type_size));
+
     /* Return this format as well as the array size */
     t = temp;
     if (ndims > 1) {
@@ -156,6 +157,7 @@ int format_element(hid_t type_id,
     }
     /* Modify the shape for this element */
     PyList_SetItem(shapes, position, tuple_temp);
+
     /* Add the format to the shape */
     strcat(temp, arrfmt);
     strcat( format, temp );       /* array */
@@ -179,8 +181,14 @@ int format_element(hid_t type_id,
 
 herr_t getfieldfmt( hid_t loc_id, 
 		    const char *dset_name,
+		    char *field_names[],
+		    size_t *field_sizes,
+		    size_t *field_offset,
+		    size_t *rowsize,
+		    hsize_t *nrecords,
+		    hsize_t *nfields,
 		    PyObject *shapes,
-		    PyObject *sizes,
+		    PyObject *type_sizes,
 		    PyObject *types,
 		    char *fmt )
 {
@@ -188,13 +196,17 @@ herr_t getfieldfmt( hid_t loc_id,
   hid_t         dataset_id;
   hid_t         type_id;    
   hid_t         member_type_id;
-  size_t        size;
-  size_t        member_size;
   int           i;
-  int           nfields;
+  int           has_attr;
+  int           n[1];
+  size_t        itemsize;
+  size_t        offset = 0;
   H5T_class_t   class;
   H5T_sign_t    sign;
   H5T_order_t   order;
+  hid_t         space_id;
+  hsize_t       dims[1];
+
 
   /* Open the dataset. */
   if ( ( dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
@@ -205,20 +217,69 @@ herr_t getfieldfmt( hid_t loc_id,
     goto out;
   
   /* Get the number of members */
-  if ( ( nfields = H5Tget_nmembers( type_id )) < 0 )
+  if ( ( *nfields = H5Tget_nmembers( type_id )) < 0 )
     goto out;
 
   /* Get the type size */
-  if ( ( size = H5Tget_size( type_id )) < 0 )
+  if ( ( *rowsize = H5Tget_size( type_id )) < 0 )
     goto out;
+
+  /* Get records */
+  /* Get the dataspace handle */
+  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+    goto out;
+  /* Get the number of records */
+  if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
+    goto out;
+  /* Terminate access to the dataspace */
+  if ( H5Sclose( space_id ) < 0 )
+    goto out;
+    
+  *nrecords = dims[0];
+
+  /* This version of getting the nrecords works, but it's slower,
+     because NROWS is not widely implemented yet, and, in addition,
+     perhaps reading an atribute maybe slower than calling
+     H5Sget_simple_extent_dims.
+     2003/09/17 */
+
+/*   /\* Try to find the attribute "NROWS" *\/ */
+/*   has_attr = H5LT_find_attribute( dataset_id, "NROWS" ); */
+
+/*   /\* It exists, get it *\/ */
+/*   if ( has_attr == 1 ) { */
+/*     /\* Get the attribute *\/ */
+/*     if ( H5LTget_attribute_int( loc_id, dset_name, "NROWS", n ) < 0 ) */
+/*       goto out; */
+
+/*     *nrecords = *n; */
+
+/*   } */
+/*   else { */
+/*     /\* Get the dataspace handle *\/ */
+/*     if ( (space_id = H5Dget_space( dataset_id )) < 0 ) */
+/*       goto out; */
+/*     /\* Get the number of records *\/ */
+/*     if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 ) */
+/*       goto out; */
+/*     /\* Terminate access to the dataspace *\/ */
+/*     if ( H5Sclose( space_id ) < 0 ) */
+/*       goto out; */
+    
+/*     *nrecords = dims[0]; */
+/*   } */
 
   /* Start always the format string with '=' to indicate that the data is
      always returned in standard size and alignment */
   strcpy(fmt, "=");
+
   order = H5T_ORDER_NONE;  /* Initialize the byte order to NONE */
   /* Iterate thru the members */
-  for ( i = 0; i < nfields; i++)
+  for ( i = 0; i < *nfields; i++)
     {
+
+      /* Get the member name */
+      field_names[i] = H5Tget_member_name( type_id, (int)i );
 
       /* Get the member type */
       if ( ( member_type_id = H5Tget_member_type( type_id, i )) < 0 )
@@ -244,8 +305,13 @@ herr_t getfieldfmt( hid_t loc_id,
       }
 
       /* Get the member size */
-      if ( ( member_size = H5Tget_size( member_type_id )) < 0 )
+      if ( ( itemsize = H5Tget_size( member_type_id )) < 0 )
 	goto out;
+      field_sizes[i] = itemsize;
+
+      /* The offset of this element */
+      field_offset[i] = offset;
+      offset += itemsize;
 
       if ( ( class = H5Tget_class(member_type_id )) < 0)
 	goto out;
@@ -256,8 +322,8 @@ herr_t getfieldfmt( hid_t loc_id,
 	sign = -1;
 
       /* Get the member format */
-      if ( format_element(member_type_id, class, member_size, sign, i,
-			  shapes, sizes, types, fmt) < 0)
+      if ( format_element(member_type_id, class, itemsize, sign, i,
+			  shapes, type_sizes, types, fmt) < 0)
 	 goto out; 
       
       /* Close the member type */

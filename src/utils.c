@@ -41,14 +41,9 @@ PyObject *createNamesList(char *buffer[], int nelements)
 ** 
 ****************************************************************/
 herr_t gitercb(hid_t loc_id, const char *name, void *data) {
-    iter_info *out_info=(iter_info *)data;
-    herr_t     ret;            /* Generic return value         */
-    H5G_stat_t statbuf;
-
-    strcpy(out_info->name, name);
-#ifdef DEBUG
-    printf("object name=%s\n",name);
-#endif
+  PyObject **out_info=(PyObject **)data;
+  herr_t     ret;            /* Generic return value         */
+  H5G_stat_t statbuf;
 
     /*
      * Get type of the object and check it.
@@ -56,14 +51,15 @@ herr_t gitercb(hid_t loc_id, const char *name, void *data) {
     ret = H5Gget_objinfo(loc_id, name, FALSE, &statbuf);
     CHECK(ret, FAIL, "H5Gget_objinfo");
 
-    out_info->type = statbuf.type;
-#ifdef DEBUG
-    printf("statbuf.type=%d\n",statbuf.type);
-#endif
+    if (statbuf.type == H5G_GROUP) {
+      PyList_Append(out_info[0], PyString_FromString(name));
+    }
+    else if (statbuf.type == H5G_DATASET) {
+      PyList_Append(out_info[1], PyString_FromString(name));
+    }
     
-    return(1);     /* Exit after this object is visited */
-    /* return(0); */  /* Loop until no more objects remain in directory */
-} /* gitercb() */
+    return(0);  /* Loop until no more objects remain in directory */
+}
 
 /****************************************************************
 **
@@ -71,62 +67,21 @@ herr_t gitercb(hid_t loc_id, const char *name, void *data) {
 ** 
 ****************************************************************/
 PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name) {
-  int i, j, k, cg, ret;
-  hsize_t num_obj;
+  int i=0, ret;
   PyObject  *t, *tdir, *tdset;
-  iter_info info;                   /* Info of objects in the group */
-  char      *namesdir[MAX_CHILDS_IN_GROUP];  /* Names of dirs in the group */
-  char      *namesdset[MAX_CHILDS_IN_GROUP]; /* Names of dsets in the group */
+  PyObject *info[2];
 
-  memset(&info, 0, sizeof info);
-  i = 0; j = 0; k = 0;
-  /* Get the number of objects in loc_id */
-  if ( H5Gget_num_objs(loc_id, &num_obj) < 0) {
-    fprintf(stderr, "Problems getting the number of childs in group.\n");
-    return NULL;
-  }
-#ifdef DEBUG
-  printf("number of objects in group %s --> %d\n", name, (int)num_obj);
-#endif
-  if (num_obj > MAX_CHILDS_IN_GROUP) {
-    fprintf(stderr, "Maximum number of childs in a group exceeded!.");
-    fprintf(stderr, " Fetching only a maximum of: %d\n", MAX_CHILDS_IN_GROUP);
-    num_obj = MAX_CHILDS_IN_GROUP;
-  }
+  info[0] = tdir = PyList_New(0);
+  info[1] = tdset = PyList_New(0);
+
   /* Iterate over all the childs behind loc_id (parent_id+loc_id) */
-  for(cg=0;cg<num_obj;cg++) {
-    ret = H5Giterate(parent_id, name, &i, gitercb, &info);
-#ifdef DEBUG
-    printf("object -> %d, ", i);
-    printf("Object type ==> %d\n", info.type);
-#endif
-    if (info.type == H5G_GROUP) {
-      namesdir[j++] = strdup(info.name);
-#ifdef DEBUG
-      printf("Dir name ==> %s\n", info.name);
-#endif
-    }
-    else if (info.type == H5G_DATASET) {
-      namesdset[k++] = strdup(info.name);
-#ifdef DEBUG
-      printf("Dataset name ==> %s\n", info.name);
-#endif
-    }
-  }
-  
-#ifdef DEBUG
-  printf("Total numer of objects ==> %d\n", num_obj);
-#endif
-  tdir  = createNamesTuple(namesdir, j);
-  tdset = createNamesTuple(namesdset, k);
+  ret = H5Giterate(parent_id, name, &i, gitercb, info);
+
+  /* Create the tuple with the list of Groups and Datasets */
   t = PyTuple_New(2);
   PyTuple_SetItem(t, 0, tdir );
   PyTuple_SetItem(t, 1, tdset);
 
-  /* Release resources */
-  for(i=0;i<j;i++) free(namesdir[i]);
-  for(i=0;i<k;i++) free(namesdset[i]);
-  
   return t;
 }
 

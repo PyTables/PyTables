@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.77 2003/09/16 19:49:18 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.78 2003/09/17 15:13:42 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.77 $"
+__version__ = "$Revision: 1.78 $"
 
 
 import sys, os
@@ -577,14 +577,12 @@ cdef extern from "calcoffset.h":
 
 # Funtion to get info from fields in a table
 cdef extern from "getfieldfmt.h":
-  #herr_t getfieldfmt(hid_t loc_id, char *table_name, char *fmt)
-  herr_t getfieldfmt( hid_t loc_id, 
-                      char *dset_name,
-                      object shapes,
-                      object sizes,
-                      object types,
-                      char *fmt )
-
+  herr_t getfieldfmt ( hid_t loc_id, char *table_name,
+                       char *field_names[], size_t *field_sizes,
+                       size_t *field_offset, size_t *rowsize,
+                       hsize_t *nrecords, hsize_t *nfields,
+                       object shapes, object type_sizes,
+                       object types, char *fmt )
 
 # Helper routines
 cdef extern from "utils.h":
@@ -749,7 +747,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.77 2003/09/16 19:49:18 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.78 2003/09/17 15:13:42 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -765,7 +763,7 @@ cdef class File:
   cdef char    *name
 
   def __new__(self, char *name, char *mode, char *title,
-              int new, object trTable, char *root):
+              int new, object trTable, char *root, int isPTFile):
     # Create a new file using default properties
     # Improve this to check if the file exists or not before
     self.name = name
@@ -1364,49 +1362,34 @@ cdef class Table:
     cdef hsize_t nrecords, nfields
     cdef hsize_t dims[1] # Tables are one-dimensional
     cdef H5T_class_t class_id
-    cdef object  read_buffer, names
+    cdef object  names, type_sizes, types
     cdef size_t  rowsize
     cdef char    fmt[2048]
-
-    # First, know how many records (& fields) has the table
-    ret = H5TBget_table_info(self.parent_id, self.name,
-                             &nfields, &nrecords)
-    if ret < 0:
-      raise RuntimeError("Problems getting table info")
-    self.nfields = nfields
-    self.totalrecords = nrecords
-    
-    # Allocate space for the variable names
-    for i from  0 <= i < nfields:
-      # Strings could not be larger than 255
-      self.field_names[i] = <char *>malloc(MAX_CHARS * sizeof(char))  
-
-    ret = H5TBget_field_info(self.parent_id, self.name,
-                             self.field_names, self.field_sizes,
-                             self.field_offset, &rowsize)
-    if ret < 0:
-      raise RuntimeError("Problems getting field info")
-    self.rowsize = rowsize
     
     shapes = []
+    type_sizes = []
     types = []
-    sizes = []
-    ret = getfieldfmt(self.parent_id, self.name, shapes, sizes, types, fmt)
+    ret = getfieldfmt(self.parent_id, self.name, self.field_names,
+                      self.field_sizes, self.field_offset,
+                      &rowsize, &nrecords, &nfields,
+                      shapes, type_sizes, types, fmt)
     if ret < 0:
       raise RuntimeError("Problems getting field format")
+
+    # Assign the values to class variables
     self.fmt = fmt
+    self.nfields = nfields
+    self.totalrecords = nrecords
+    self.rowsize = rowsize
     
     # Create a python tuple with the field names
     names = []
-    #sizes = []
     for i in range(nfields):
       names.append(self.field_names[i])
-      #sizes.append(self.field_sizes[i])
     names = tuple(names)
-    #sizes = tuple(sizes)
 
     # Return the buffer as a Python String
-    return (nrecords, names, rowsize, sizes, shapes, types, fmt)
+    return (nrecords, names, rowsize, type_sizes, shapes, types, fmt)
 
   def _open_read(self, object recarr):
     cdef int buflen
@@ -1422,29 +1405,6 @@ cdef class Table:
                         self.field_offset) < 0 ):
       raise RuntimeError("Problems opening table for read.")
 
-  def _read_field_name_orig(self, char *field_name, hsize_t start,
-                       hsize_t nrecords):
-    cdef herr_t ret
-    cdef int i, fieldpos
-
-    # Correct the number of records to read, if needed
-    if (start + nrecords) > self.totalrecords:
-      nrecords = self.totalrecords - start
-
-    for i in range(self.nfields):
-      if strcmp(self.field_names[i], field_name) == 0:
-        fieldpos = i
-        
-    # Readout to the buffer
-    ret = H5TBread_fields_name(self.parent_id, self.name, field_name,
-                               start, nrecords, self.field_sizes[fieldpos],
-                               self.field_offset, self.rbuf )
-
-    if ret < 0:
-      raise RuntimeError("Problems reading records.")
-
-    return nrecords
- 
   def _read_field_name(self, object arr, hsize_t start, hsize_t stop,
                        char *field_name):
     cdef int buflen, i, fieldpos
@@ -1462,10 +1422,7 @@ cdef class Table:
       nrecords = stop - start
       
     # Search the field position
-    #print "Field sizes for fmt:", self._v_fmt,
     for i in range(self.nfields):
-      #print "offset:", self.field_offset[i],
-      #print "size:", self.field_sizes[i],
       if strcmp(self.field_names[i], field_name) == 0:
         fieldpos = i
     #print "field position & size -->", fieldpos, self.field_sizes[fieldpos]
@@ -1473,7 +1430,6 @@ cdef class Table:
     if ( H5TBread_fields_name(self.parent_id, self.name, field_name,
                               start, nrecords, self.field_sizes[fieldpos],
                               NULL, rbuf) < 0):
-                              #self.field_offset, rbuf) < 0):
       raise RuntimeError("Problems reading table column.")
     
     return nrecords

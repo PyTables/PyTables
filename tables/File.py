@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.52 2003/09/16 19:49:18 falted Exp $
+#       $Id: File.py,v 1.53 2003/09/17 15:13:42 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.52 $"
+__version__ = "$Revision: 1.53 $"
 format_version = "1.1"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -89,7 +89,8 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/"):
             issued.
 
     """
-    
+
+    isPTFile = 1  # Assume a PyTables file by default
     # Expand the form '~user'
     path = os.path.expanduser(filename)
     # Expand the environment variables
@@ -123,6 +124,7 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/"):
 """'%s' does exist, is an HDF5 file, but has not a PyTables format.
   Trying to guess what's here from HDF5 metadata. I can't promise you getting
   the correct objects, but I will do my best!."""  % path, UserWarning)
+                isPTFile = 0
                     
     elif (mode == "w"):
         # For 'w' check that if path exists, and if true, delete it!
@@ -140,6 +142,7 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/"):
 """'%s' does exist, is an HDF5 file, but has not a PyTables format.
   Trying to guess what's here from HDF5 metadata. I can't promise you getting
   the correct object, but I will do my best!."""  % path, UserWarning)
+                isPTFile = 0
     else:
         raise IOError, \
         """arg 2 can only take the new values: "r", "r+", "w" and "a" """
@@ -153,7 +156,7 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/"):
         new = 1
             
     # Finally, create the File instance, and return it
-    return File(path, mode, title, new, trMap, rootUEP)
+    return File(path, mode, title, new, trMap, rootUEP, isPTFile)
 
 
 class File(hdf5Extension.File, object):
@@ -195,7 +198,7 @@ class File(hdf5Extension.File, object):
     """
 
     def __init__(self, filename, mode="r", title="",
-                 new=1, trMap={}, rootUEP="/"):
+                 new=1, trMap={}, rootUEP="/", isPTFile=1):
         
         """Open an HDF5 file. The supported access modes are: "r" means
         read-only; no data can be modified. "w" means write; a new file is
@@ -211,6 +214,7 @@ class File(hdf5Extension.File, object):
         
         self.mode = mode
         self.title = title
+        self._isPTFile = isPTFile
         
         # _v_new informs if this file is old or new
         self._v_new = new
@@ -311,10 +315,10 @@ class File(hdf5Extension.File, object):
 
         else:
             # Firstly, get the PyTables format version for this file
-            #self._format_version = attrsRoot.PYTABLES_FORMAT_VERSION
             self._format_version = hdf5Extension.read_f_attr(self._v_groupId,
                                                      'PYTABLES_FORMAT_VERSION')
-            if not self._format_version:
+            
+            if not self._format_version or not self._isPTFile:
                 # PYTABLES_FORMAT_VERSION attribute is not present
                 self._format_version = "unknown"
                           
@@ -719,22 +723,22 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
                 
         return astring
 
-#     def __repr__(self):
-#         """Returns a more complete representation of the object tree"""
+    def __repr__(self):
+        """Returns a more complete representation of the object tree"""
         
-#         # Print all the nodes (Group and Leaf objects) on object tree
-#         astring = 'File(filename=' + repr(self.filename) + \
-#                   ', title=' + repr(self.title) + \
-#                   ', mode=' + repr(self.mode) + \
-#                   ', trMap=' + repr(self.trMap) + \
-#                   ', rootUEP=' + repr(self.rootUEP) + \
-#                   ')\n'
-#         for group in self.walkGroups("/"):
-#             astring += str(group) + '\n'
-#             for leaf in self.listNodes(group, 'Leaf'):
-#                 astring += repr(leaf) + '\n'
+        # Print all the nodes (Group and Leaf objects) on object tree
+        astring = 'File(filename=' + repr(self.filename) + \
+                  ', title=' + repr(self.title) + \
+                  ', mode=' + repr(self.mode) + \
+                  ', trMap=' + repr(self.trMap) + \
+                  ', rootUEP=' + repr(self.rootUEP) + \
+                  ')\n'
+        for group in self.walkGroups("/"):
+            astring += str(group) + '\n'
+            for leaf in self.listNodes(group, 'Leaf'):
+                astring += repr(leaf) + '\n'
                 
-#         return astring
+        return astring
 
     def _g_del__(self):
         """Delete some objects"""

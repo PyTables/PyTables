@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.74 2003/09/16 19:49:18 falted Exp $
+#       $Id: Table.py,v 1.75 2003/09/17 15:13:42 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.74 $"
+__version__ = "$Revision: 1.75 $"
 
 from __future__ import generators
 import sys
@@ -239,7 +239,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Append this entry to indicate the alignment!
         fields['_v_align'] = revbyteorderDict[recarr._byteorder]
         # Create an instance description to host the record fields
-        #self.description = metaIsDescription("", (), fields)()
         self.description = Description(fields)
         # The rest of the info is automatically added when self.create()
         # is called
@@ -248,13 +247,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         """Create a new table on disk."""
 
         # Compute some important parameters for createTable
-        #self.colnames = tuple(self.description.__slots__)
         self.colnames = tuple(self.description.__names__)
         self._v_fmt = self.description._v_fmt
-        #print self._v_fmt
-        #self.rowsize = struct.calcsize(self._v_fmt)
-        #print "self._v_fmt (create)-->", self._v_fmt
-        #self._calcBufferSize(self._v_expectedrows)
         # Create the table on disk
         self._createTable(self.new_title, self._v_complib)
         # Initialize the shape attribute
@@ -266,27 +260,22 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.colitemsizes = self.description._v_itemsizes
         # Compute the byte order
         self.byteorder = byteorderDict[self._v_fmt[0]]
-        # Create the arrays for buffering
-        #self._v_buffer = self._newBuffer(init=1)
-        # A copy of the original initialised recarray (useful when writing)
-        #self._v_buffercpy = self._newBuffer(init=1)
-        #self.row = hdf5Extension.Row(self._v_buffer, self)
         self.row = hdf5Extension.Row(self)
 
-    def _buildDescription(self, itemsizes, colshapes, coltypes):
+#     def _buildDescription(self, itemsizes, colshapes, coltypes):
 
-        fields = {}
-        for i in range(len(self.colnames)):
-            if coltypes[i] == "CharType":
-                itemsize = itemsizes[i]
-                fields[self.colnames[i]] = StringCol(length = itemsize,
-                                                     shape = colshapes[i],
-                                                     pos = i)
-            else:
-                fields[self.colnames[i]] = Col(dtype = coltypes[i],
-                                               shape = colshapes[i],
-                                               pos = i)
-        return fields
+#         fields = {}
+#         for i in range(len(self.colnames)):
+#             if coltypes[i] == "CharType":
+#                 itemsize = itemsizes[i]
+#                 fields[self.colnames[i]] = StringCol(length = itemsize,
+#                                                      shape = colshapes[i],
+#                                                      pos = i)
+#             else:
+#                 fields[self.colnames[i]] = Col(dtype = coltypes[i],
+#                                                shape = colshapes[i],
+#                                                pos = i)
+#         return fields
                          
     def _open(self):
         """Opens a table from disk and read the metadata on it.
@@ -314,26 +303,25 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.byteorder = byteorderDict[byteorder]
         coltypes = [str(records.numfmt[type]) for type in coltypes]
         # Build a dictionary with the types as values and colnames as keys
-#         fields = {}
-#         for i in range(len(self.colnames)):
-#             if coltypes[i] == "CharType":
-#                 itemsize = itemsizes[i]
-#                 fields[self.colnames[i]] = StringCol(length = itemsize,
-#                                                      shape = colshapes[i],
-#                                                      pos = i)
-#             else:
-#                 fields[self.colnames[i]] = Col(dtype = coltypes[i],
-#                                                shape = colshapes[i],
-#                                                pos = i)
-        fields = self._buildDescription(itemsizes, colshapes, coltypes)
+        fields = {}
+        for i in range(len(self.colnames)):
+            if coltypes[i] == "CharType":
+                itemsize = itemsizes[i]
+                fields[self.colnames[i]] = StringCol(length = itemsize,
+                                                     shape = colshapes[i],
+                                                     pos = i)
+            else:
+                fields[self.colnames[i]] = Col(dtype = coltypes[i],
+                                               shape = colshapes[i],
+                                               pos = i)
+        #fields = self._buildDescription(itemsizes, colshapes, coltypes)
         # Set the alignment!
         fields['_v_align'] = byteorder
-        if self._v_file._format_version <> "unknown":
+        if self._v_file._isPTFile:
             # Checking of validity names for fields is not necessary
+            # when opening a PyTables file
             fields['__check_validity'] = 0
         # Create an instance description to host the record fields
-        # The next line makes memory leaks to appear!
-        #self.description = metaIsDescription("", (), fields)()
         self.description = Description(fields)
         
         # Extract the coltypes, shapes and itemsizes
@@ -378,13 +366,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Counter for the binary tuples
         self._v_recunsaved = 0
         rowsizeinfile = rowsize
-        #print "Creating the table in file ==> ", self.file
-        #print "Row size ==> ", rowsize
-        #print "Row size in file ==> ", rowsizeinfile
         expectedfsizeinKb = (expectedrows * rowsizeinfile) / 1024
-        #print "Expected data rows ==> ", expectedrows
-        #print "Expected data set (no compress) ==> ", expectedfsizeinKb, "KB"
-
+        
         # Some code to compute appropiate values for chunksize & buffersize
         # chunksize:  The chunksize for the HDF5 library
         # buffersize: The Table internal buffer size
@@ -402,7 +385,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         # performance and the memory size consumed. This is based on numerical
         # experiments on a Intel (Athlon 900MHz) arquitecture and, as always,
         # your mileage may vary.
-        
         if expectedfsizeinKb <= 100:
             # Values for files less than 100 KB of size
             buffersize = 5 * bufmultfactor
@@ -437,7 +419,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Correction for compression.
         if compress:
             chunksize = 1024   # This seems optimal for compression
-            pass
 
         # Max Tuples to fill the buffer
         self._v_maxTuples = buffersize // rowsize

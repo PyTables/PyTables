@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.51 2003/09/15 19:22:48 falted Exp $
+#       $Id: Group.py,v 1.52 2003/09/17 15:13:42 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.51 $"
+__version__ = "$Revision: 1.52 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -96,6 +96,7 @@ class Group(hdf5Extension.Group, object):
         _v_groups -- Dictionary with object groups
         _v_leaves -- Dictionaly with object leaves
         _v_childs -- Dictionary with object childs (groups or leaves)
+        _v_nchilds -- Number of childs (groups or leaves) of this object 
         _v_attrs -- The associated AttributeSet instance
 
     """
@@ -112,6 +113,7 @@ class Group(hdf5Extension.Group, object):
         self.__dict__["_v_groups"] = {}
         self.__dict__["_v_leaves"] = {}
         self.__dict__["_v_childs"] = {}
+        self.__dict__["_v_nchilds"] = 0
         return
     
     def __iter__(self, classname=None, recursive=0):
@@ -159,7 +161,6 @@ class Group(hdf5Extension.Group, object):
             objgroup=stack.pop()
             pgroupId=objgroup._v_parent._v_groupId
             locId=objgroup._v_groupId
-            #print "Group name, gId -->", objgroup._v_name, pgroupId
             (groups, leaves)=self._g_listGroup(pgroupId, locId,
                                                objgroup._v_hdf5name)
             for name in groups:
@@ -174,14 +175,12 @@ class Group(hdf5Extension.Group, object):
         """Returns a proper Leaf class depending on the object to be opened.
         """
 
-        if self._v_file._format_version == "unknown":
-            class_ = self._v_attrs._g_getChildAttr(name, "CLASS")
-        else:
+        if self._v_file._isPTFile:
             # We can call this only if we are certain than file has
             # the attribute CLASS
             class_ = self._v_attrs._g_getChildSysAttr(name, "CLASS")
-        #print "class_ -->", class_
-        #class_ = self._v_attrs._g_getChildAttr(name, "CLASS")
+        else:
+            class_ = self._v_attrs._g_getChildAttr(name, "CLASS")
         if class_:
             # Convert "ARRAY" or "TABLE" to "Array" or "Table"
             class_ = class_.capitalize()
@@ -244,6 +243,7 @@ I can't promise getting the correct object, but I will do my best!.""",
         newattr["_v_" + "pathname"] = self._g_join(value._v_name)
         # Update instance variable
         self._v_childs[value._v_name] = value
+        self.__dict__["_v_nchilds"] += 1
         # New attribute (to allow tab-completion in interactive mode)
         self.__dict__[value._v_name] = value
         # Update class variables
@@ -494,28 +494,33 @@ I can't promise getting the correct object, but I will do my best!.""",
         """
 
         # Check for name validity
-        if self._v_new:
-            checkNameValidity(name) # Cosumeix 1s/5s del temps
+        if self._v_new or not self._v_file._isPTFile:
+            # Check names only for new objects or objects coming from
+            # non-pytables files
+            checkNameValidity(name)
         
         # Check if we are too much deeper in tree
-        if self._v_depth > MAX_DEPTH_IN_TREE:
-            raise RuntimeError, \
-               "the object tree has exceeded the maximum depth (%d)" % \
-               (MAX_DEPTH_IN_TREE) 
+        if self._v_depth == MAX_DEPTH_IN_TREE:
+            warnings.warn( \
+"""The object tree is exceeding the recommended maximum depth (%d).
+ Be ready to see PyTables asking for *lots* of memory and possibly slow I/O.
+""" % (self._v_pathname, MAX_DEPTH_IN_TREE), UserWarning)
 
         # Check if we have too much number of childs
-        if len(self._v_childs.values()) < MAX_CHILDS_IN_GROUP:
-            # Put value object with name name in object tree
-            if name not in self._v_childs:
-                value._g_putObjectInTree(name, self)
-            else:
-                raise NameError, \
-                      "\"%s\" group already has a child named %s" % \
-                      (self._v_pathname, name)
+        #print "Group %s has %d nchilds" % (self._v_name, self._v_nchilds)
+        if self._v_nchilds == MAX_CHILDS_IN_GROUP:
+            warnings.warn( \
+"""'%s' group is exceeding the recommended maximum number of childs (%d).
+ Be ready to see PyTables asking for *lots* of memory and possibly slow I/O.
+""" % (self._v_pathname, MAX_CHILDS_IN_GROUP), UserWarning)
+            
+        # Put value object with name "name" in object tree
+        if name not in self._v_childs:
+            value._g_putObjectInTree(name, self)
         else:
-            raise RuntimeError, \
-               "'%s' group has exceeded the maximum number of childs (%d)" % \
-               (self._v_pathname, MAX_CHILDS_IN_GROUP) 
+            raise NameError, \
+                  "\"%s\" group already has a child named %s" % \
+                  (self._v_pathname, name)
 
     def _f_close(self):
         """Close this HDF5 group"""
@@ -525,6 +530,7 @@ I can't promise getting the correct object, but I will do my best!.""",
         if self._v_name <> "/":
             del self._v_parent._v_groups[self._v_name]  # necessary (checked)
             del self._v_parent._v_childs[self._v_name]  # necessary (checked)
+            self._v_parent.__dict__["_v_nchilds"] -= 1 
             del self._v_parent.__dict__[self._v_name]
         del self._v_file.groups[self._v_pathname]  
         del self._v_file.objects[self._v_pathname]
@@ -589,26 +595,26 @@ I can't promise getting the correct object, but I will do my best!.""",
             self._f_close()
             self._g_deleteGroup()
 
-#     def __str__(self):
-#         """The string representation for this object."""
-#         # Get the associated filename
-#         filename = self._v_rootgroup._v_filename
-#         # The pathname
-#         pathname = self._v_pathname
-#         # Get this class name
-#         classname = self.__class__.__name__
-#         # The title
-#         title = self._v_title
-#         return "%s (%s) %r" % (pathname, classname, title)
+    def __str__(self):
+        """The string representation for this object."""
+        # Get the associated filename
+        filename = self._v_rootgroup._v_filename
+        # The pathname
+        pathname = self._v_pathname
+        # Get this class name
+        classname = self.__class__.__name__
+        # The title
+        title = self._v_title
+        return "%s (%s) %r" % (pathname, classname, title)
 
-#     def __repr__(self):
-#         """A detailed string representation for this object."""
+    def __repr__(self):
+        """A detailed string representation for this object."""
         
-#         rep = [ '%r (%s)' %  \
-#                 (childname, child.__class__.__name__) 
-#                 for (childname, child) in self._v_childs.items() ]
-#         childlist = '[%s]' % (', '.join(rep))
+        rep = [ '%r (%s)' %  \
+                (childname, child.__class__.__name__) 
+                for (childname, child) in self._v_childs.items() ]
+        childlist = '[%s]' % (', '.join(rep))
         
-#         return "%s\n  childs := %s" % \
-#                (str(self), childlist)
+        return "%s\n  childs := %s" % \
+               (str(self), childlist)
                

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.25 2003/09/15 19:22:48 falted Exp $
+#       $Id: Leaf.py,v 1.26 2003/09/17 15:13:42 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.25 $"
+__version__ = "$Revision: 1.26 $"
 
 import types
 from utils import checkNameValidity
@@ -177,6 +177,7 @@ class Leaf:
         del parent._v_leaves[self._v_name]
         del parent.__dict__[self._v_name]
         del parent._v_childs[self._v_name]
+        parent.__dict__["_v_nchilds"] -= 1
         del parent._v_file.leaves[self._v_pathname]
         del parent._v_file.objects[self._v_pathname]
         del self._v_parent
