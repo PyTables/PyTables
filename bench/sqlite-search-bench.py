@@ -18,7 +18,6 @@ random.seed(19)
 random_array.seed(19, 20)
 
 # defaults
-heavy = 0
 psycon = 0
 worst = 0
 
@@ -72,17 +71,22 @@ def createNewBenchFile(bfile, verbose):
                 bf.createTable(group, atom, Search, atom+" bench")
     bf.close()
     
-def createFile(dbfile, nrows, indexmode, bfile):
+def createFile(filename, nrows, filters, indexmode, heavy, noise, bfile,
+               verbose):
 
-#     if os.path.exists(dbfile):
-#         print "removing:", dbfile
-#         os.remove(dbfile)
+    # Initialize some variables
+    t1      = 0.; t2      = 0.
+    tcpu1   = 0.; tcpu2   = 0.
+    rowsecf = 0.; rowseci = 0.
+    size1   = 0.; size2   = 0.
+
+
     if indexmode == "standard":
         print "Creating a new database:", dbfile
         instd=os.popen("/usr/local/bin/sqlite "+dbfile, "w")
         CREATESTD="""
-CREATE TABLE small (	
--- Name		Type	        -- Example 
+CREATE TABLE small (
+-- Name		Type	        -- Example
 ---------------------------------------
 recnum	INTEGER PRIMARY KEY,  -- 345
 var1		char(4),	-- Abronia villosa
@@ -91,8 +95,8 @@ var3            FLOAT        --  12.32
 );
 """
         CREATEIDX="""
-CREATE TABLE small (	
--- Name		Type	        -- Example 
+CREATE TABLE small (
+-- Name		Type	        -- Example
 ---------------------------------------
 recnum	INTEGER PRIMARY KEY,  -- 345
 var1		char(4),	-- Abronia villosa
@@ -117,22 +121,21 @@ CREATE INDEX ivar3 ON small(var3);
         cpu1 = time.clock()
         # This way of filling is to copy the PyTables benchmark
         nrowsbuf = 1000
-        #mean = nrows / 2.; stddev = nrows/100.
-        # with a fixed stddev, the compression rate does not change
-        mean = nrows / 2.; stddev = float(standarddeviation)
+        minimum = 0
+        maximum = nrows
         for i in xrange(0, nrows, nrowsbuf):
             if i+nrowsbuf > nrows:
                 j = nrows
             else:
                 j = i+nrowsbuf
-            var1 = strings.array(None, shape=[j-i], itemsize=4)
             if randomvalues:
-                var3 = random_array.normal(mean, stddev, shape=[j-i])
-                var2 = numarray.array(var3, type=numarray.Int32)
+                var3 = random_array.uniform(minimum, maximum, shape=[j-i])
             else:
-                var2 = numarray.arange(i, j, type=numarray.Int32)
-                # var3 = numarray.arange(i, j, type=numarray.Float64)
-                var3 = numarray.arange(nrows-i, nrows-j, -1, type=numarray.Float64)
+                var3 = numarray.arange(i, j, type=numarray.Float64)
+                if noise:
+                    var3 += random_array.uniform(-3, 3, shape=[j-i])
+            var2 = numarray.array(var3, type=numarray.Int32)
+            var1 = strings.array(None, shape=[j-i], itemsize=4)
             if not heavy:
                 for n in xrange(j-i):
                     var1[n] = str("%.4s" % var2[n])
@@ -147,11 +150,7 @@ CREATE INDEX ivar3 ON small(var3);
         print "******** Results for writing nrows = %s" % (nrows), "*********"
         print "Insert time:", t1, ", KRows/s:", round((nrows/10.**3)/t1, 3),
         print ", File size:", round(size1/(1024.*1024.), 3), "MB"
-    else:
-        t1 = 0.
-        tcpu1 = 0.
-        rowsecf = 0.
-        size1 = 0.
+
     # Indexem
     if indexmode == "indexed":
         time1 = time.time()
@@ -169,11 +168,6 @@ CREATE INDEX ivar3 ON small(var3);
         print "Index time:", t2, ", IKRows/s:", round((nrows/10.**3)/t2, 3),
         size2 = os.stat(dbfile)[6] - size1
         print ", Final size with index:", round(size2/(1024.*1024),3), "MB"
-    else:
-        t2 = 0.
-        tcpu2 = 0.
-        rowseci = 0.
-        size2 = 0.
 
     conn.close()
 
@@ -200,7 +194,7 @@ CREATE INDEX ivar3 ON small(var3);
 
     return
 
-def readFile(dbfile, nrows, indexmode, bfile, riter):
+def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
     # Connect to the database.
     conn = sqlite.connect(db=dbfile, mode=755)
     # Obtain a cursor
@@ -226,63 +220,23 @@ def readFile(dbfile, nrows, indexmode, bfile, riter):
     rowselected = 0
     t2 = 0.
     tcpu2 = 0.
-    # Some previous computations for the case of random values
-    if randomvalues:
-        # algorithm to choose a value separated from mean
-#         # If want to select fewer values, select this
-#         if nrows/2 > standarddeviation*3:
-#             # Choose five standard deviations away from mean value
-#             dev = standarddeviation*5
-#             #dev = standarddeviation*math.log10(nrows/1000.)
-
-        # This algorithm give place to too asymmetric result values
-#         if standarddeviation*10 < nrows/2:
-#             # Choose four standard deviations away from mean value
-#             dev = standarddeviation*4
-#         else:
-#             dev = 100
-        # Yet Another Algorithm
-        if nrows/2 > standarddeviation*10:
-            dev = standarddeviation*4.
-        elif nrows/2 > standarddeviation:
-            dev = standarddeviation*2.
-        elif nrows/2 > standarddeviation/10.:
-            dev = standarddeviation/10.
-        else:
-            dev = standarddeviation/100.
-
-        valmax = int(round((nrows/2.)-dev))
-        # split the selection range in regular chunks
-        if riter > valmax*2:
-            riter = valmax*2
-        chunksize = (valmax*2/riter)*10 
-        # Get a list of integers for the intervals
-        randlist = range(0, valmax, chunksize)
-        randlist.extend(range(nrows-valmax, nrows, chunksize))
-        # expand the list ten times so as to use the cache
-        randlist = randlist*10
-        # shuffle the list
-        random.shuffle(randlist)
-        # reset the value of chunksize
-        chunksize = chunksize/10
-        #print "chunksize-->", chunksize
-        #randlist.sort();print "randlist-->", randlist
-    else:
-        chunksize = 3
+    print "Select mode:", indexmode
+    # Initialize the random generator always with the same integer
+    # in order to have reproductible results on each read iteration
+    random.seed(19)
+    random_array.seed(19, 20)
     if heavy:
         searchmodelist = ["int", "float"]
     else:
         searchmodelist = ["string", "int", "float"]
+        
     # Execute queries
     for atom in searchmodelist:
         time2 = 0
         cpu2 = 0
         rowsel = 0
         for i in xrange(riter):
-            if randomvalues:
-                rnd = randlist[i]
-            else:
-                rnd = random.randrange(nrows)
+            rnd = random.randrange(nrows)
             time1 = time.time()
             cpu1 = time.clock()
             if atom == "string":
@@ -290,10 +244,10 @@ def readFile(dbfile, nrows, indexmode, bfile, riter):
                 cursor.execute(SQL1, str(rnd)[-4:])
             elif atom == "int":
                 #cursor.execute(SQL2 % (rnd, rnd+3))
-                cursor.execute(SQL2 % (rnd, rnd+chunksize))
+                cursor.execute(SQL2 % (rnd, rnd+dselect))
             elif atom == "float":
                 #cursor.execute(SQL3 % (float(rnd), float(rnd+3)))
-                cursor.execute(SQL3 % (float(rnd), float(rnd+chunksize)))
+                cursor.execute(SQL3 % (float(rnd), float(rnd+dselect)))
             else:
                 raise ValueError, "atom must take a value in ['string','int','float']"
             if i == 0:
@@ -361,7 +315,7 @@ if __name__=="__main__":
     
     import time
 
-    usage = """usage: %s [-v] [-p] [-R] [-h] [-t] [-r] [-w] [-n nrows] [-b file] [-k riter] [-m indexmode] datafile
+    usage = """usage: %s [-v] [-p] [-R] [-h] [-t] [-r] [-w] [-n nrows] [-b file] [-k riter] [-m indexmode] [-N range] datafile
             -v verbose
 	    -p use "psyco" if available
             -R use Random values for filling
@@ -371,10 +325,12 @@ if __name__=="__main__":
 	    -w only write test
             -n the number of rows (in krows)
             -b bench filename
+            -N introduce (uniform) noise within range into the values
+            -d the interval for look values (int, float) at. Default is 3.
             -k number of iterations for reading\n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'vpRhtrwn:b:k:m:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'vpRhtrwn:b:k:m:N:d:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -385,7 +341,10 @@ if __name__=="__main__":
         sys.exit(0)
 
     # default options
+    dselect = 3.
+    noise = 0.
     verbose = 0
+    heavy = 0
     testread = 1
     testwrite = 1
     usepsyco = 0
@@ -413,21 +372,22 @@ if __name__=="__main__":
             testread = 0
         elif option[0] == '-b':
             bfile = option[1]
+        elif option[0] == '-N':
+            noise = float(option[1])
         elif option[0] == '-m':
             indexmode = option[1]
             if indexmode not in supported_imodes:
                 raise ValueError, "Indexmode should be any of '%s' and you passed '%s'" % (supported_imodes, indexmode)
         elif option[0] == '-n':
             nrows = int(float(option[1])*1000)
+        elif option[0] == '-d':
+            dselect = float(option[1])
         elif option[0] == '-k':
             riter = int(option[1])
-            
+
     # remaining parameters
     dbfile=pargs[0]
 
-    if worst:
-        nrows -= 1  # the worst case
-            
     # Create the benchfile (if needed)
     if not os.path.exists(bfile):
         createNewBenchFile(bfile, verbose)
@@ -436,10 +396,11 @@ if __name__=="__main__":
         if psyco_imported and usepsyco:
             psyco.bind(createFile)
             psycon = 1
-        createFile(dbfile, nrows, indexmode, bfile)
+        createFile(dbfile, nrows, None, indexmode, heavy, noise, bfile,
+                   verbose)
 
     if testread:
         if psyco_imported and usepsyco:
             psyco.bind(readFile)
             psycon = 1
-        readFile(dbfile, nrows, indexmode, bfile, riter)
+        readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter)
