@@ -1100,9 +1100,10 @@ hid_t H5ARRAYget_info( hid_t loc_id,
   }
 
   /* Get the byteorder */
-  /* Only class integer and float can be byteordered */
-  if ( (*super_class_id == H5T_INTEGER) || (*super_class_id == H5T_FLOAT)
-       || (*super_class_id == H5T_BITFIELD) || (*super_class_id == H5T_COMPOUND)) {
+  /* Only integer, float and time classes can be byteordered */
+  if ((*super_class_id == H5T_INTEGER) || (*super_class_id == H5T_FLOAT)
+      || (*super_class_id == H5T_BITFIELD) || (*super_class_id == H5T_COMPOUND)
+      || (*super_class_id == H5T_TIME)) {
     order = get_order( *super_type_id );
     if (order == H5T_ORDER_LE) 
       strcpy(byteorder, "little");

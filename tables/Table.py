@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.141 2004/12/24 18:16:02 falted Exp $
+#       $Id: Table.py,v 1.142 2004/12/26 15:53:34 ivilata Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.141 $"
+__version__ = "$Revision: 1.142 $"
 
 from __future__ import generators
 import sys
@@ -47,8 +47,8 @@ from utils import calcBufferSize, processRange, processRangeRead
 import Group
 from Leaf import Leaf, Filters
 from Index import Index, IndexProps
-from IsDescription import IsDescription, Description, metaIsDescription, \
-     Col, StringCol, fromstructfmt
+from IsDescription import \
+     IsDescription, Description, metaIsDescription, Col, StringCol
 from VLArray import Atom, StringAtom
 
 try:
@@ -56,6 +56,13 @@ try:
     Numeric_imported = 1
 except:
     Numeric_imported = 0
+
+
+# Map Numarray record codes to Numarray types.
+# This is extended with additional dataypes used by PyTables.
+codeToNAType = records.numfmt.copy()
+codeToNAType['t4'] = 'Time32'  # 32 bit integer time value
+codeToNAType['t8'] = 'Time64'  # 64 bit real time value
 
 
 byteorderDict={"=": sys.byteorder,
@@ -107,6 +114,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         cols -- accessor to the columns using a natural name schema
         colnames -- the field names for the table (list)
         coltypes -- the type class for the table fields (dictionary)
+        colstypes -- the string type for the table fields (dictionary)
         colshapes -- the shapes for the table fields (dictionary)
         colindexed -- whether the table fields are indexed (dictionary)
         indexed -- whether or not some field in Table is indexed
@@ -239,6 +247,17 @@ class Table(Leaf, hdf5Extension.Table, object):
         # The rest of the info is automatically added when self.create()
         # is called
 
+    def _getTime64ColNames(self):
+        """Returns a list containing 'Time64' column names."""
+
+        # This should be generalised into some infrastructure to support
+        # other kinds of columns to be converted.
+        # ivilata(2004-12-21)
+
+        return [
+            cname for cname in self.colnames
+            if self.colstypes[cname] == 'Time64']
+
     def _create(self):
         """Create a new table on disk."""
 
@@ -249,13 +268,16 @@ class Table(Leaf, hdf5Extension.Table, object):
         self._createTable(self._v_new_title, self.filters.complib)
         # Initialize the shape attribute
         self.shape = (self.nrows,)
-        # Get the column types
+        # Get the column types and string types
         self.coltypes = self.description.__types__
+        self.colstypes = self.description.__stypes__
         # Extract the shapes for columns
         self.colshapes = self.description._v_shapes
         self.colitemsizes = self.description._v_itemsizes
         # Compute the byte order
         self.byteorder = byteorderDict[self._v_fmt[0]]
+        # Find Time64 column names. (This should be generalised.)
+        self._time64colnames = self._getTime64ColNames()
         # Create the Row object helper
         self.row = hdf5Extension.Row(self)
         # Get if a column is indexed or not in creation time
@@ -293,7 +315,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         """
         # Get table info
         (self.nrows, self.colnames, self.rowsize, itemsizes, colshapes,
-         coltypes, self._v_fmt) = self._getTableInfo()
+         colstypes, self._v_fmt) = self._getTableInfo()
         # Get the byteorder
         byteorder = self._v_fmt[0]
         # Remove the byteorder
@@ -301,7 +323,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         # The expectedrows would be the actual number
         self._v_expectedrows = self.nrows
         self.byteorder = byteorderDict[byteorder]
-        coltypes = [str(records.numfmt[type]) for type in coltypes]
+        colstypes = [str(codeToNAType[type]) for type in colstypes]
         # Build a dictionary with the types as values and colnames as keys
         fields = {}
         for i in xrange(len(self.colnames)):
@@ -311,14 +333,14 @@ class Table(Leaf, hdf5Extension.Table, object):
                 indexed = 1
             else:
                 indexed = 0
-            if coltypes[i] == "CharType":
+            if colstypes[i] == "CharType":
                 itemsize = itemsizes[i]
                 fields[self.colnames[i]] = StringCol(length = itemsize,
                                                      shape = colshapes[i],
                                                      pos = i,
                                                      indexed = indexed)
             else:
-                fields[self.colnames[i]] = Col(dtype = coltypes[i],
+                fields[self.colnames[i]] = Col(dtype = colstypes[i],
                                                shape = colshapes[i],
                                                pos = i,
                                                indexed = indexed)
@@ -331,10 +353,13 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Create an instance description to host the record fields
         self.description = Description(fields)
         
-        # Extract the coltypes, shapes and itemsizes
+        # Extract the coltypes, colstypes, shapes and itemsizes
         self.coltypes = self.description.__types__
+        self.colstypes = self.description.__stypes__
         self.colshapes = self.description._v_shapes
         self.colitemsizes = self.description._v_itemsizes
+        # Find Time64 column names. (This should be generalised.)
+        self._time64colnames = self._getTime64ColNames()
         # Compute buffer size
         (self._v_maxTuples, self._v_chunksize) = \
               calcBufferSize(self.rowsize, self.nrows,
@@ -715,9 +740,9 @@ class Table(Leaf, hdf5Extension.Table, object):
             self._open_read(result)
             if isinstance(coords, numarray.NumArray):
                 if len(coords) > 0:
-                    self._read_elements(0, coords)
+                    self._read_elements(result, 0, coords)
             else:
-                self._read_records(start, stop-start)
+                self._read_records(result, start, stop-start)
             self._close_read()  # Close the table
         elif field and 1:
             # This optimization works in Pyrex, but the call to row._fillCol

@@ -722,9 +722,10 @@ hid_t H5VLARRAYget_info( hid_t   loc_id,
   }
 
   /* Get the byteorder */
-  /* Only class integer and float can be byteordered */
+  /* Only integer, float and time classes can be byteordered */
   if ((base_class_id == H5T_INTEGER) || (base_class_id == H5T_FLOAT)
-      || (base_class_id == H5T_BITFIELD) || (base_class_id == H5T_COMPOUND)) {
+      || (base_class_id == H5T_BITFIELD) || (base_class_id == H5T_COMPOUND)
+      || (base_class_id == H5T_TIME)) {
     order = get_order( *base_type_id );
     if (order == H5T_ORDER_LE) 
       strcpy(base_byteorder, "little");

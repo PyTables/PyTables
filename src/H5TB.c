@@ -26,8 +26,9 @@
 
 #define MAX(X,Y)	((X)>(Y)?(X):(Y))
 
-char    *VERSION = "2.2";  /* The Table VERSION number */
+char    *VERSION = "2.2.1";  /* The Table VERSION number */
 /* 2.2: Added support for complex types. Introduced in version 0.9. */
+/* 2.2.1: Added suport for time types. */
 
 /*-------------------------------------------------------------------------
  * 

@@ -390,9 +390,9 @@ PyObject *H5UIget_info( hid_t loc_id,
     goto out;
  
   /* Get the byteorder */
-  /* Only class integer and float can be byteordered */
-  if ( (class_id == H5T_INTEGER) || (class_id == H5T_FLOAT)
-       || (class_id == H5T_BITFIELD) ) {
+  /* Only integer, float and time classes can be byteordered */
+  if ((class_id == H5T_INTEGER) || (class_id == H5T_FLOAT)
+      || (class_id == H5T_BITFIELD) || (class_id == H5T_TIME)) {
     order = H5Tget_order( type_id );
     if (order == H5T_ORDER_LE) 
       strcpy(byteorder, "little");

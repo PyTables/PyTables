@@ -128,6 +128,21 @@ int format_element(hid_t type_id,
     PyList_Append(types, PyString_FromString("a"));
     strcat( format, temp );       /* string */
     break; /* case H5T_STRING */
+  case H5T_TIME:                    /* time (integer or double) */
+    switch (member_size) {
+    case 4:
+	strcat( format, "t4," );    /* integer */
+	PyList_Append(types, PyString_FromString("t4"));
+	break;
+    case 8:
+	strcat( format, "t8," );    /* double */
+	PyList_Append(types, PyString_FromString("t8"));
+	break;
+    default:
+      /* This should never happen */
+      goto out;
+    }
+    break; /* case H5T_TIME */
   case H5T_ARRAY:
     /* Get the array base component */
     super_type_id = H5Tget_super( type_id );

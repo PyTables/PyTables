@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.24 2004/12/24 18:16:01 falted Exp $
+#       $Id: EArray.py,v 1.25 2004/12/26 15:53:33 ivilata Exp $
 #
 ########################################################################
 
@@ -27,10 +27,11 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.24 $"
+__version__ = "$Revision: 1.25 $"
 # default version for EARRAY objects
 #obversion = "1.0"    # initial version
-obversion = "1.1"    # support for complex datatypes
+#obversion = "1.1"    # support for complex datatypes
+obversion = "1.2"    # This adds support for time datatypes.
 
 import warnings, sys
 from Array import Array
@@ -213,6 +214,7 @@ class EArray(Array, hdf5Extension.Array, object):
         # Version, type, shape, flavor, byteorder
         self._v_version = obversion
         self.type = self.atom.type
+        self.stype = self.atom.stype
         self.shape = self.atom.shape
         self.flavor = self.atom.flavor        
         if self.type == "CharType" or isinstance(self.type, records.Char):
@@ -292,7 +294,7 @@ class EArray(Array, hdf5Extension.Array, object):
 
     def _open(self):
         """Get the metadata info for an array in file."""
-        (self.type, self.shape, self.itemsize, self.byteorder,
+        (self.type, self.stype, self.shape, self.itemsize, self.byteorder,
          self._v_chunksize) = self._openArray()
         #print "chunksizes-->", self._v_chunksize
         # Post-condition
@@ -305,7 +307,7 @@ class EArray(Array, hdf5Extension.Array, object):
             shape.append(self.itemsize)
         shape = tuple(shape)
         # Create the atom instance
-        self.atom = Atom(dtype=self.type, shape=shape,
+        self.atom = Atom(dtype=self.stype, shape=shape,
                          flavor=self.attrs.FLAVOR)
         # Compute the rowsize for each element
         self.rowsize = self.atom.atomsize()
@@ -358,11 +360,9 @@ class EArray(Array, hdf5Extension.Array, object):
         """This provides more metainfo in addition to standard __str__"""
 
         return """%s
-  type = %r
-  shape = %s
-  itemsize = %s
+  atom = %r
   nrows = %s
   extdim = %r
   flavor = %r
-  byteorder = %r""" % (self, self.type, self.shape, self.itemsize, self.nrows,
-                       self.extdim, self.flavor, self.byteorder)
+  byteorder = %r""" % (self, self.atom, self.nrows, self.extdim, self.flavor,
+                       self.byteorder)

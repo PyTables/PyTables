@@ -28,6 +28,13 @@ hid_t
       H5Tset_size(type_id, size);
       
       return type_id;
+    /* The next two maps are for time datatypes. */
+    case 't':
+      type_id = H5Tcopy(H5T_UNIX_D32BE);
+      break;
+    case 'T':
+      type_id = H5Tcopy(H5T_UNIX_D64BE);
+      break;
     case tBool:
       /* The solution below choose a 8 bits bitfield and set a
 	 precision of 1. It seems as if H5T_STD_B8LE and H5T_STD_B8BE
@@ -182,6 +189,19 @@ size_t getArrayType(hid_t type_id,
     /* I map this to "a" until a enum NumarrayType is assigned to it! */
       *fmt = (int)'a';                   /* chararray */
     break; /* case H5T_STRING */
+  case H5T_TIME:                    /* time (integer or double) */
+    switch (type_size) {
+    case 4:
+	*fmt = (int)'t';            /* integer */
+	break;
+    case 8:
+	*fmt = (int)'T';            /* double */
+	break;
+    default:
+      /* This should never happen */
+      goto out;
+    }
+    break; /* case H5T_TIME */
   default: /* Any other class type */
     /* This should never happen with Numeric arrays */
     fprintf(stderr, "class %d not supported. Sorry!\n", class_id);

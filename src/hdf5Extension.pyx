@@ -6,7 +6,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.154 2004/12/21 09:34:36 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.155 2004/12/26 15:53:33 ivilata Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.154 $"
+__version__ = "$Revision: 1.155 $"
 
 
 import sys, os
@@ -211,29 +211,44 @@ import_libnumarray()
 CharType = records.CharType
 
 # Conversion tables from/to classes to the numarray enum types
-toenum = {numarray.Bool:tBool,   # Boolean type added
-          numarray.Int8:tInt8,       numarray.UInt8:tUInt8,
-          numarray.Int16:tInt16,     numarray.UInt16:tUInt16,
-          numarray.Int32:tInt32,     numarray.UInt32:tUInt32,
-          numarray.Int64:tInt64,     numarray.UInt64:tUInt64,
-          numarray.Float32:tFloat32, numarray.Float64:tFloat64,
-          numarray.Complex32:tComplex32, numarray.Complex64:tComplex64,
-          CharType:97   # ascii(97) --> 'a' # Special case (to be corrected)
-          }
+naTypeToNAEnum = {
+  numarray.Bool: tBool,   # Boolean type added
+  numarray.Int8: tInt8,    numarray.UInt8: tUInt8,
+  numarray.Int16: tInt16,  numarray.UInt16: tUInt16,
+  numarray.Int32: tInt32,  numarray.UInt32: tUInt32,
+  numarray.Int64: tInt64,  numarray.UInt64: tUInt64,
+  numarray.Float32: tFloat32,  numarray.Float64: tFloat64,
+  numarray.Complex32: tComplex32,  numarray.Complex64: tComplex64,
+  # Special cases:
+  CharType: ord('a')}  # For strings.
 
-toclass = {tBool:numarray.Bool,  # Boolean type added
-           tInt8:numarray.Int8,       tUInt8:numarray.UInt8,
-           tInt16:numarray.Int16,     tUInt16:numarray.UInt16,
-           tInt32:numarray.Int32,     tUInt32:numarray.UInt32,
-           tInt64:numarray.Int64,     tUInt64:numarray.UInt64,
-           tFloat32:numarray.Float32, tFloat64:numarray.Float64,
-           tComplex32:numarray.Complex32, tComplex64:numarray.Complex64,
-           97:CharType   # ascii(97) --> 'a' # Special case (to be corrected)
-          }
+naEnumToNAType = {
+  tBool: numarray.Bool,  # Boolean type added
+  tInt8: numarray.Int8,    tUInt8: numarray.UInt8,
+  tInt16: numarray.Int16,  tUInt16: numarray.UInt16,
+  tInt32: numarray.Int32,  tUInt32: numarray.UInt32,
+  tInt64: numarray.Int64,  tUInt64: numarray.UInt64,
+  tFloat32: numarray.Float32,  tFloat64: numarray.Float64,
+  tComplex32: numarray.Complex32,  tComplex64: numarray.Complex64,
+  # Special cases:
+  ord('a'): CharType,  # For strings.
+  ord('t'): numarray.Int32,  ord('T'): numarray.Float64}  # For times.
+
+naEnumToNAString = {
+  tBool:'Bool',  # Boolean type added
+  tInt8:'Int8',    tUInt8:'UInt8',
+  tInt16:'Int16',  tUInt16:'UInt16',
+  tInt32:'Int32',  tUInt32:'UInt32',
+  tInt64:'Int64',  tUInt64:'UInt64',
+  tFloat32:'Float32',  tFloat64:'Float64',
+  tComplex32:'Complex32',  tComplex64:'Complex64',
+  # Special cases:
+  ord('a'):'CharType',  # For strings.
+  ord('t'):'Time32',  ord('T'):'Time64'}  # For times.
 
 # Define the CharType code as a constant
 cdef enum:
-  CHARTYPE = 97
+  CHARTYPE = 97  # 97 == ord('a')
 
 # Functions from numarray API
 cdef extern from "numarray/libnumarray.h":
@@ -814,6 +829,17 @@ cdef extern from "H5Zucl.h":
 # Initialize & register ucl
 ucl_version = register_ucl()
 
+
+# Type conversion routines
+cdef extern from "typeconv.h":
+  void conv_float64_timeval32(void *base,
+                              unsigned long byteoffset,
+                              unsigned long bytestride,
+                              unsigned long nrecords,
+                              unsigned long nelements,
+                              int sense)
+
+
 # utility funtions (these can be directly invoked from Python)
 
 # def PyNextAfter(double x, double y):
@@ -873,6 +899,7 @@ def whichClass( hid_t loc_id, char *name):
   if  ((class_id == H5T_INTEGER)  or
        (class_id == H5T_FLOAT)    or
        (class_id == H5T_BITFIELD) or
+       (class_id == H5T_TIME)     or
        (class_id == H5T_STRING)):
     if layout == H5D_CHUNKED:
       return "EARRAY"
@@ -940,7 +967,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.154 2004/12/21 09:34:36 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.155 2004/12/26 15:53:33 ivilata Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -995,6 +1022,27 @@ def flush_leaf(where, name):
 def _getFilters(parent_id, name):
   "Get a dictionary with the filter names and cd_values"
   return get_filter_names(parent_id, name)
+
+# This is used by several <Leaf>._convertTypes() methods.
+def _convertTime64(object naarr, int nrecords, int sense):
+  """Converts a NumArray of Time64 elements between Numarray and HDF5 formats.
+
+  Numarray to HDF5 conversion is performed when 'sense' is 0.
+  Otherwise, HDF5 to Numarray conversion is performed.
+  """
+
+  cdef void *t64buf
+  cdef long buflen, byteoffset, bytestride, nelements
+
+  byteoffset = naarr._byteoffset
+  bytestride = naarr._strides[0]  # supports multi-dimensional RecArray
+  nelements = naarr.size() / len(naarr)
+  buflen = NA_getBufferPtrAndSize(naarr._data, 1, &t64buf)
+
+  conv_float64_timeval32(
+    t64buf, byteoffset, bytestride, nrecords, nelements, sense)
+
+
 
 # Type extensions declarations (these are subclassed by PyTables
 # Python classes)
@@ -1642,12 +1690,26 @@ cdef class Table:
 
   # A version of Table._saveBufferRows in Pyrex is available in 0.7.2,
   # but as it is not faster than the Python version, I removed it
-  
+
+  def _convertTypes(self, object recarr, int nrecords, int sense):
+    """Converts Time64 columns in 'recarr' between Numarray and HDF5 formats.
+
+    Numarray to HDF5 conversion is performed when 'sense' is 0.
+    Otherwise, HDF5 to Numarray conversion is performed.
+    """
+
+    # This should be generalised to support other type conversions.
+    for t64cname in self._time64colnames:
+      _convertTime64(recarr.field(t64cname), nrecords, sense)
+
   def _append_records(self, object recarr, int nrecords):
     cdef int ret
 
     if not self._open:
       self._open_append(recarr)
+
+    # Convert some Numarray types to HDF5 before storing.
+    self._convertTypes(recarr, nrecords, 0)
 
     # release GIL (allow other threads to use the Python interpreter)
     Py_BEGIN_ALLOW_THREADS
@@ -1687,6 +1749,10 @@ cdef class Table:
     nrows = ((stop - start - 1) / step) + 1 
     if nrecords > nrows:
       nrecords = nrows
+
+    # Convert some Numarray types to HDF5 before storing.
+    self._convertTypes(recarr, nrecords, 0)
+
     # Modify the records:
     rowsize = self.rowsize
     Py_BEGIN_ALLOW_THREADS
@@ -1846,9 +1912,7 @@ cdef class Table:
     
     return nrecords
 
-  def _read_records(self, hsize_t start, hsize_t nrecords):
-    cdef int ret
-
+  def _read_records(self, object recarr, hsize_t start, hsize_t nrecords):
     # Correct the number of records to read, if needed
     if (start + nrecords) > self.totalrecords:
       nrecords = self.totalrecords - start
@@ -1862,10 +1926,12 @@ cdef class Table:
     if ret < 0:
       raise RuntimeError("Problems reading records.")
 
+    # Convert some HDF5 types to Numarray after reading.
+    self._convertTypes(recarr, nrecords, 1)
 
     return nrecords
 
-  def _read_elements(self, size_t shift, object elements):
+  def _read_elements(self, object recarr, size_t shift, object elements):
     cdef long buflen
     cdef hsize_t nrecords
     cdef void *coords
@@ -1884,6 +1950,9 @@ cdef class Table:
     Py_END_ALLOW_THREADS
     if ret < 0:
       raise RuntimeError("Problems reading records.")
+
+    # Convert some HDF5 types to Numarray after reading.
+    self._convertTypes(recarr, nrecords, 1)
 
     return nrecords
 
@@ -2006,7 +2075,7 @@ cdef class Row:
         self._scalar[i] = 1
       else:
         self._scalar[i] = 0
-      self._enumtypes[i] = toenum[buff._fmt[i]]
+      self._enumtypes[i] = naTypeToNAEnum[buff._fmt[i]]
       i = i + 1
 
   def _initLoop(self, int start, int stop, int step,
@@ -2095,7 +2164,8 @@ cdef class Row:
           self.bufcoords = tmp
         self._row = -1
         if len(self.bufcoords):
-          recout = self._table._read_elements(0, self.bufcoords)
+          recout = self._table._read_elements(
+            self._recarray, 0, self.bufcoords)
           if self._table.byteorder <> sys.byteorder:
             self._recarray._byteswap()
         else:
@@ -2165,7 +2235,8 @@ cdef class Row:
 #         else:
 #           self.bufcoords = self.index.getCoords(self.nrowsread, stop)
 #         self._row = -1
-#         recout = self._table._read_elements(0, self.bufcoords)
+#         recout = self._table._read_elements(
+#           self._recarray, 0, self.bufcoords)
 #         if self._table.byteorder <> sys.byteorder:
 #           self._recarray._byteswap()
 #         self.nrowsread = self.nrowsread + recout
@@ -2221,8 +2292,8 @@ cdef class Row:
           self.stopb = self.nrowsinbuf
         self._row = self.startb - self.step
         # Read a chunk
-        recout = self._table._read_records(self.nextelement,
-                                           self.nrowsinbuf)
+        recout = self._table._read_records(
+          self._recarray, self.nextelement, self.nrowsinbuf)
         self.nrowsread = self.nrowsread + recout
         if self._table.byteorder <> sys.byteorder:
           self._recarray._byteswap()
@@ -2312,8 +2383,8 @@ cdef class Row:
           self.stopb = self.nrowsinbuf
         self._row = self.startb - self.step
         # Read a chunk
-        recout = self._table._read_records(self.nrowsread,
-                                           self.nrowsinbuf)
+        recout = self._table._read_records(
+          self._recarray, self.nrowsread, self.nrowsinbuf)
         self.nrowsread = self.nrowsread + recout
         if self._table.byteorder <> sys.byteorder:
           self._recarray._byteswap()
@@ -2361,7 +2432,8 @@ cdef class Row:
         istopb = inrowsinbuf
       stopr = startr + ((istopb - istartb - 1) / istep) + 1
       # Read a chunk
-      inrowsread = inrowsread + self._table._read_records(i, inrowsinbuf)
+      inrowsread = (
+        inrowsread + self._table._read_records(self._recarray, i, inrowsinbuf))
       # Assign the correct part to result
       # The bottleneck is in this assignment. Hope that the numarray
       # people might improve this in the short future
@@ -2547,15 +2619,19 @@ cdef class Array:
 
     if isinstance(naarr, strings.CharArray):
       type = CharType
-      self.enumtype = toenum[CharType]
+      self.enumtype = naTypeToNAEnum[CharType]
     else:
       type = naarr._type
       try:
-        self.enumtype = toenum[naarr._type]
+        self.enumtype = naTypeToNAEnum[naarr._type]
       except KeyError:
         raise TypeError, \
       """Type class '%s' not supported rigth now. Sorry about that.
       """ % repr(naarr._type)
+
+    # String types different from Numarray types are still not allowed
+    # in regular Arrays.
+    stype = str(type)
 
     itemsize = naarr._itemsize
     byteorder = PyString_AsString(self.byteorder)
@@ -2594,7 +2670,7 @@ cdef class Array:
     self.objectID = oid
     H5Tclose(self.type_id)    # Release resources
 
-    return type
+    return (type, stype)
     
   def _createEArray(self, char *klass, char *title):
     cdef int i
@@ -2605,7 +2681,13 @@ cdef class Array:
     cdef char *flavor, *complib, *version
 
     try:
-      self.enumtype = toenum[self.type]
+      # Since Time columns have no Numarray type of their own,
+      # a special case is made for them.
+      rectype = self.atom.rectype
+      if rectype in ('t', 'T'):
+        self.enumtype = ord(rectype)
+      else:
+        self.enumtype = naTypeToNAEnum[self.type]
     except KeyError:
       raise TypeError, \
             """Type class '%s' not supported rigth now. Sorry about that.
@@ -2718,8 +2800,20 @@ cdef class Array:
     shape = tuple(shape)
     chunksizes = tuple(chunksizes)
 
-    return (toclass[self.enumtype], shape, type_size, byteorder, chunksizes)
-  
+    return (naEnumToNAType[self.enumtype], naEnumToNAString[self.enumtype],
+            shape, type_size, byteorder, chunksizes)
+
+  def _convertTypes(self, object naarr, int sense):
+    """Converts Time64 elements in 'naarr' between Numarray and HDF5 formats.
+
+    Numarray to HDF5 conversion is performed when 'sense' is 0.
+    Otherwise, HDF5 to Numarray conversion is performed.
+    """
+
+    # This should be generalised to support other type conversions.
+    if self.stype == 'Time64':
+      _convertTime64(naarr, len(naarr), sense)
+
   def _append(self, object naarr):
     cdef int ret
     cdef hsize_t *dims_arr
@@ -2744,6 +2838,9 @@ cdef class Array:
     offset = naarr._byteoffset
     rbuf = <void *>(<char *>rbuf + offset)
 
+    # Convert some Numarray types to HDF5 before storing.
+    self._convertTypes(naarr, 0)
+
     # Append the records:
     extdim = self.extdim
     Py_BEGIN_ALLOW_THREADS
@@ -2761,22 +2858,25 @@ cdef class Array:
     self.nrows = self.dims[self.extdim]
     
   def _modify(self, object startl, object stepl, object countl,
-              object narr):
+              object naarr):
     cdef int ret
     cdef void *rbuf, *temp
     cdef hsize_t *start, *step, *count
     cdef long buflen, offset
 
     # Get the pointer to the buffer data area
-    buflen = NA_getBufferPtrAndSize(narr._data, 1, &rbuf)
+    buflen = NA_getBufferPtrAndSize(naarr._data, 1, &rbuf)
     # Correct the start of the buffer with the _byteoffset
-    offset = narr._byteoffset
+    offset = naarr._byteoffset
     rbuf = <void *>(<char *>rbuf + offset)
 
     # Get the start, step and count values
     buflen = NA_getBufferPtrAndSize(startl._data, 1, <void **>&start)
     buflen = NA_getBufferPtrAndSize(stepl._data, 1, <void **>&step)
     buflen = NA_getBufferPtrAndSize(countl._data, 1, <void **>&count)
+
+    # Convert some Numarray types to HDF5 before storing.
+    self._convertTypes(naarr, 0)
 
     # Modify the elements:
     Py_BEGIN_ALLOW_THREADS
@@ -2807,7 +2907,7 @@ cdef class Array:
     return
   
   def _readArray(self, hsize_t start, hsize_t stop, hsize_t step,
-                 object buf):
+                 object naarr):
     cdef herr_t ret
     cdef void *rbuf
     cdef long buflen
@@ -2815,7 +2915,7 @@ cdef class Array:
     cdef int extdim
 
     # Get the pointer to the buffer data area
-    buflen = NA_getBufferPtrAndSize(buf, 1, &rbuf)
+    buflen = NA_getBufferPtrAndSize(naarr._data, 1, &rbuf)
 
     # Number of rows to read
     nrows = ((stop - start - 1) / step) + 1  # (stop-start)/step  do not work
@@ -2829,6 +2929,9 @@ cdef class Array:
     Py_END_ALLOW_THREADS
     if ret < 0:
       raise RuntimeError("Problems reading the array data.")
+
+    # Convert some HDF5 types to Numarray after reading.
+    self._convertTypes(naarr, 1)
 
     return 
 
@@ -2853,6 +2956,9 @@ cdef class Array:
                            <hsize_t *>steplb, rbuflb)
     if ret < 0:
       raise RuntimeError("Problems reading the array data.")
+
+    # Convert some HDF5 types to Numarray after reading.
+    self._convertTypes(bufferl, 1)
 
     return 
 
@@ -3249,8 +3355,15 @@ cdef class VLArray:
     cdef char *flavor, *complib, *version
 
     self.type = self.atom.type
+    self.stype = self.atom.stype
     try:
-      self.enumtype = toenum[self.type]
+      # Since Time columns have no Numarray type of their own,
+      # a special case is made for them.
+      rectype = self.atom.rectype
+      if rectype in ('t', 'T'):
+        self.enumtype = ord(rectype)
+      else:
+        self.enumtype = naTypeToNAEnum[self.type]
     except KeyError:
       raise TypeError, \
             """Type class '%s' not supported rigth now. Sorry about that.
@@ -3297,8 +3410,6 @@ cdef class VLArray:
       raise RuntimeError("Problems creating the VLArray.")
     self.objectID = oid
     self.nrecords = 0  # Initialize the number of records saved
-
-    return self.type
     
   def _openArray(self):
     cdef object shape
@@ -3334,7 +3445,8 @@ cdef class VLArray:
       raise TypeError, "The HDF5 class of object does not seem VLEN. Sorry!"
 
     # Get the type of the atomic type
-    self._atomictype = toclass[self.enumtype]
+    self._atomictype = naEnumToNAType[self.enumtype]
+    self._atomicstype = naEnumToNAString[self.enumtype]
     # Get the size and shape of the atomic type
     self._atomicsize = self._basesize
     if self.rank:
@@ -3352,6 +3464,17 @@ cdef class VLArray:
     # The <int> cast avoids returning a Long integer
     return <int>nrecords[0]
 
+  def _convertTypes(self, object naarr, int nobjects, int sense):
+    """Converts Time64 elements in 'naarr' between Numarray and HDF5 formats.
+
+    Numarray to HDF5 conversion is performed when 'sense' is 0.
+    Otherwise, HDF5 to Numarray conversion is performed.
+    """
+
+    # This should be generalised to support other type conversions.
+    if self._atomicstype == 'Time64':
+      _convertTime64(naarr, nobjects, sense)
+
   def _append(self, object naarr, int nobjects):
     cdef int ret
     cdef void *rbuf
@@ -3365,6 +3488,9 @@ cdef class VLArray:
       rbuf = <void *>(<char *>rbuf + offset)
     else:
       rbuf = NULL
+
+    # Convert some Numarray types to HDF5 before storing.
+    self._convertTypes(naarr, nobjects, 0)
 
     # Append the records:
     Py_BEGIN_ALLOW_THREADS
@@ -3389,6 +3515,9 @@ cdef class VLArray:
     # Correct the start of the buffer with the _byteoffset
     offset = naarr._byteoffset
     rbuf = <void *>(<char *>rbuf + offset)
+
+    # Convert some Numarray types to HDF5 before storing.
+    self._convertTypes(naarr, nobjects, 0)
 
     # Append the records:
     Py_BEGIN_ALLOW_THREADS
@@ -3450,6 +3579,10 @@ cdef class VLArray:
         naarr = strings.array(rbuf, itemsize=self._basesize, shape=shape)
       else:
         naarr = numarray.array(rbuf, type=self._atomictype, shape=shape)
+
+      # Convert some HDF5 types to Numarray after reading.
+      self._convertTypes(naarr, vllen, 1)
+
       datalist.append(naarr)
 
     # Release resources

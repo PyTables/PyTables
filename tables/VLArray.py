@@ -8,23 +8,20 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.41 2004/12/24 18:16:02 falted Exp $
+#       $Id: VLArray.py,v 1.42 2004/12/26 15:53:34 ivilata Exp $
 #
 ########################################################################
 
-"""Here is defined the VLArray class and declarative classes for its components
+"""Here is defined the VLArray class
 
-See VLArray class docstring and *Atom docstrings for more info.
+See VLArray class docstring for more info.
 
 Classes:
 
-    Atom, ObjectAtom, VLStringAtom, StringAtom, BoolAtom,
-    IntAtom, Int8Atom, UInt8Atom, Int16Atom, UInt16Atom,
     VLArray
 
 Functions:
 
-   checkflavor
 
 Misc variables:
 
@@ -33,11 +30,12 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.41 $"
+__version__ = "$Revision: 1.42 $"
 
 # default version for VLARRAY objects
 #obversion = "1.0"    # initial version
-obversion = "1.0"    # add support for complex datatypes
+#obversion = "1.0"    # add support for complex datatypes
+obversion = "1.1"    # This adds support for time datatypes.
 
 import types, warnings, sys
 import cPickle
@@ -46,9 +44,9 @@ import numarray.strings as strings
 import numarray.records as records
 from Leaf import Leaf
 import hdf5Extension
-#import IsDescription # to access BaseCol without polluting public namespace
-from IsDescription import Col, BoolCol, StringCol, IntCol, FloatCol, ComplexCol
+from Atom import Atom, ObjectAtom, VLStringAtom, StringAtom
 from utils import processRange, processRangeRead, convertIntoNA
+
 
 try:
     import Numeric
@@ -56,196 +54,7 @@ try:
 except:
     Numeric_imported = 0
 
-def checkflavor(flavor, dtype):
-    
-    #if dtype == "CharType" or isinstance(dtype, records.Char):
-    if str(dtype) == "CharType":
-        if flavor in ["CharArray", "String"]:
-            return flavor
-        else:
-            raise ValueError, \
-"""flavor of type '%s' must be one of the "CharArray" or "String" values, and you tried to set it to "%s".
-"""  % (dtype, flavor)
-    else:
-        if flavor in ["NumArray", "Numeric", "Tuple", "List"]:
-            return flavor
-        else:
-            raise ValueError, \
-"""flavor of type '%s' must be one of the "NumArray", "Numeric", "Tuple" or "List" values, and you tried to set it to "%s".
-"""  % (dtype, flavor)
 
-# Class to support variable length strings as components of VLArray
-# It supports UNICODE strings as well.
-class VLStringAtom(IntCol):
-    """ Define an atom of type Variable Length String """
-    def __init__(self):
-        # This special strings will be represented by unsigned bytes
-        IntCol.__init__(self, itemsize=1, shape=1, sign=0)
-        self.flavor = "VLString"
-
-    def __repr__(self):
-        return "VLString()"
-
-    def atomsize(self):
-        " Compute the item size of the VLStringAtom "
-        # Always return 1 because strings are saved in UTF-8 format
-        return 1
-
-class ObjectAtom(IntCol):
-    """ Define an atom of type Object """
-    def __init__(self):
-        IntCol.__init__(self, shape=1, itemsize=1, sign=0)
-        self.flavor = "Object"
-
-    def __repr__(self):
-        return "Object()"
-
-    def atomsize(self):
-        " Compute the item size of the Object "
-        # Always return 1 because strings are saved in UInt8 format
-        return 1
-
-
-#class Atom(IsDescription.BaseCol):
-class Atom(Col):
-    """ Define an Atomic object to be used in VLArray objects """
-
-    def __init__(self, dtype="Float64", shape=1, flavor="NumArray"):
-        Col.__init__(self, dtype, shape)
-        self.flavor = checkflavor(flavor, self.type)
-
-    def __repr__(self):
-        if self.type == "CharType" or isinstance(self.type, records.Char):
-            if self.shape == 1:
-                shape = [self.itemsize]
-            else:
-                shape = list(self.shape)
-                shape.append(self.itemsize)
-            shape = tuple(shape)
-        else:
-            shape = self.shape
-
-        out = "Atom(type=" +  str(self.type) + \
-              ", shape=" +  str(shape) + \
-              ", flavor=" + "'" + str(self.flavor) + "'" + \
-              ")"
-        return out
-
-    def atomsize(self):
-        " Compute the size of the atom type "
-        atomicsize = self.itemsize
-        if isinstance(self.shape, tuple):
-            for i in self.shape:
-                if i > 0:  # To deal with EArray Atoms
-                    atomicsize *= i
-        else:
-            atomicsize *= self.shape
-        return atomicsize
-
-    
-class StringAtom(StringCol, Atom):
-    """ Define an atom of type String """
-    def __init__(self, shape=1, length=None, flavor="CharArray"):
-        StringCol.__init__(self, length=length, shape=shape)
-        self.flavor = checkflavor(flavor, self.type)
-        
-class BoolAtom(BoolCol, Atom):
-    """ Define an atom of type Bool """
-    def __init__(self, shape=1, flavor="NumArray"):
-        BoolCol.__init__(self, shape=shape)
-        self.flavor = checkflavor(flavor, self.type)
-
-class IntAtom(IntCol, Atom):
-    """ Define an atom of type Integer """
-    def __init__(self, shape=1, itemsize=4, sign=1, flavor="NumArray"):
-        IntCol.__init__(self, shape=shape, itemsize=itemsize, sign=sign)
-        self.flavor = checkflavor(flavor, self.type)
-
-class Int8Atom(IntCol, Atom):
-    """ Define an atom of type Int8 """
-    def __init__(self, shape=1, flavor="NumArray"):
-        IntCol.__init__(self, shape=shape, itemsize=1, sign=1)
-        self.flavor = checkflavor(flavor, self.type)
-
-class UInt8Atom(IntCol, Atom):
-    """ Define an atom of type UInt8 """
-    def __init__(self, shape=1, flavor="NumArray"):
-        IntCol.__init__(self, shape=shape, itemsize=1, sign=0)
-        self.flavor = checkflavor(flavor, self.type)
-
-class Int16Atom(IntCol, Atom):
-    """ Define an atom of type Int16 """
-    def __init__(self, shape=1, flavor="NumArray"):
-        IntCol.__init__(self, shape=shape, itemsize=2, sign=1)
-        self.flavor = checkflavor(flavor, self.type)
-
-class UInt16Atom(IntCol, Atom):
-    """ Define an atom of type UInt16 """
-    def __init__(self, shape=1, flavor="NumArray"):
-        IntCol.__init__(self, shape=shape, itemsize=2, sign=0)
-        self.flavor = checkflavor(flavor, self.type)
-
-class Int32Atom(IntCol, Atom):
-    """ Define an atom of type Int32 """
-    def __init__(self, shape=1, flavor="NumArray"):
-        IntCol.__init__(self, shape=shape, itemsize=4, sign=1)
-        self.flavor = checkflavor(flavor, self.type)
-
-class UInt32Atom(IntCol, Atom):
-    """ Define an atom of type UInt32 """
-    def __init__(self, shape=1, flavor="NumArray"):
-        IntCol.__init__(self, shape=shape, itemsize=4, sign=0)
-        self.flavor = checkflavor(flavor, self.type)
-
-class Int64Atom(IntCol, Atom):
-    """ Define an atom of type Int64 """
-    def __init__(self, shape=1, flavor="NumArray"):
-        IntCol.__init__(self, shape=shape, itemsize=8, sign=1)
-        self.flavor = checkflavor(flavor, self.type)
-
-class UInt64Atom(IntCol, Atom):
-    """ Define an atom of type UInt64 """
-    def __init__(self, shape=1, flavor="NumArray"):
-        IntCol.__init__(self, shape=shape, itemsize=8, sign=0)
-        self.flavor = checkflavor(flavor, self.type)
-
-class FloatAtom(FloatCol, Atom):
-    """ Define an atom of type Float """
-    def __init__(self, shape=1, itemsize=8, flavor="NumArray"):
-        FloatCol.__init__(self, shape=shape, itemsize=itemsize)
-        self.flavor = checkflavor(flavor, self.type)
-
-class Float32Atom(FloatCol, Atom):
-    """ Define an atom of type Float32 """
-    def __init__(self, shape=1, flavor="NumArray"):
-        FloatCol.__init__(self, shape=shape, itemsize=4)
-        self.flavor = checkflavor(flavor, self.type)
-
-class Float64Atom(FloatCol, Atom):
-    """ Define an atom of type Float64 """
-    def __init__(self, shape=1, flavor="NumArray"):
-        FloatCol.__init__(self, shape=shape, itemsize=8)
-        self.flavor = checkflavor(flavor, self.type)
-
-class ComplexAtom(ComplexCol, Atom):
-    """ Define an atom of type Complex """
-    def __init__(self, shape=1, itemsize=16, flavor="NumArray"):
-        ComplexCol.__init__(self, shape=shape, itemsize=itemsize)
-        self.flavor = checkflavor(flavor, self.type)
-
-class Complex32Atom(ComplexCol, Atom):
-    """ Define an atom of type Complex32 """
-    def __init__(self, shape=1, flavor="NumArray"):
-        ComplexCol.__init__(self, shape=shape, itemsize=8)
-        self.flavor = checkflavor(flavor, self.type)
-
-class Complex64Atom(ComplexCol, Atom):
-    """ Define an atom of type Complex64 """
-    def __init__(self, shape=1, flavor="NumArray"):
-        ComplexCol.__init__(self, shape=shape, itemsize=16)
-        self.flavor = checkflavor(flavor, self.type)
-
-        
 def calcChunkSize(expectedsizeinMB, complevel):
     """Computes the optimum value for the chunksize"""
     if expectedsizeinMB <= 100:
@@ -356,6 +165,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
                   "When creating VLArrays, none of the dimensions of the Atom instance can be zero."
 
         self._atomictype = self.atom.type
+        self._atomicstype = self.atom.stype
         self._atomicshape = self.atom.shape
         self._atomicsize = self.atom.atomsize()
         self._basesize = self.atom.itemsize
@@ -461,12 +271,12 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         elif self.flavor == "Object":
             self.atom = ObjectAtom()
         else:
-            if str(self._atomictype) == "CharType":
+            if str(self._atomicstype) == 'CharType':
                 self.atom = StringAtom(shape=self._atomicshape,
                                        length=self._basesize,
                                        flavor=self.flavor)
             else:
-                self.atom = Atom(self._atomictype, self._atomicshape,
+                self.atom = Atom(self._atomicstype, self._atomicshape,
                                  self.flavor)
 
     def iterrows(self, start=None, stop=None, step=None):

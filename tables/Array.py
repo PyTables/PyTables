@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.84 2004/12/24 18:16:01 falted Exp $
+#       $Id: Array.py,v 1.85 2004/12/26 15:53:33 ivilata Exp $
 #
 ########################################################################
 
@@ -27,12 +27,13 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.84 $"
+__version__ = "$Revision: 1.85 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
 #obversion = "2.0"    # Added an optional EXTDIM attribute
-obversion = "2.1"    # Added support for complex datatypes
+#obversion = "2.1"    # Added support for complex datatypes
+obversion = "2.2"    # This adds support for time datatypes.
 
 
 import types, warnings, sys
@@ -145,7 +146,7 @@ class Array(Leaf, hdf5Extension.Array, object):
             self.nrows = 1    # Scalar case
         self.itemsize = naarr.itemsize()
         try:
-            self.type = self._createArray(naarr, self._v_new_title)
+            self.type, self.stype = self._createArray(naarr, self._v_new_title)
         except:
             # Problems creating the Array on disk. Close this node
             self.close(flush=0)
@@ -239,7 +240,7 @@ Sorry, but this object is not supported.""" % (arr)
 
     def _open(self):
         """Get the metadata info for an array in file."""
-        (self.type, self.shape, self.itemsize, self.byteorder,
+        (self.type, self.stype, self.shape, self.itemsize, self.byteorder,
          self._v_chunksize) = self._openArray()
         
         # Compute the rowsize for each element
@@ -589,7 +590,7 @@ The error was: <%s>""" % (value, self, value2)
 
         if not zerodim:
             # Arrays that have non-zero dimensionality
-            self._readArray(start, stop, step, arr._data)
+            self._readArray(start, stop, step, arr)
             
         if self.flavor in ["NumArray", "CharArray"]:
             # No conversion needed
@@ -622,9 +623,10 @@ The error was: <%s>""" % (value, self, value2)
 
         return """%s
   type = %r
+  stype = %r
   shape = %s
   itemsize = %s
   nrows = %s
   flavor = %r
-  byteorder = %r""" % (self, self.type, self.shape, self.itemsize,
+  byteorder = %r""" % (self, self.type, self.stype, self.shape, self.itemsize,
                        self.nrows, self.flavor, self.byteorder)

@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/__init__.py,v $
-#       $Id: __init__.py,v 1.32 2004/12/24 18:16:02 falted Exp $
+#       $Id: __init__.py,v 1.33 2004/12/26 15:53:35 ivilata Exp $
 #
 ########################################################################
 
@@ -51,6 +51,7 @@ from UnImplemented import UnImplemented
 from exceptions import *
                     
 from IsDescription import *
+from Atom import *
 from hdf5Extension import isHDF5, isPyTablesFile, whichLibVersion
 
 # Import sub-packages
@@ -67,11 +68,13 @@ __all__ = ["isHDF5", "isPyTablesFile", "whichLibVersion", "copyFile",
            "Int32Col", "UInt32Col", "Int64Col", "UInt64Col",
            "FloatCol", "Float32Col", "Float64Col",
            "ComplexCol", "Complex32Col", "Complex64Col",
+           "TimeCol", "Time32Col", "Time64Col",
            "Atom", "ObjectAtom", "VLStringAtom", "StringAtom", "BoolAtom",
            "IntAtom", "Int8Atom", "UInt8Atom", "Int16Atom", "UInt16Atom",
            "Int32Atom", "UInt32Atom", "Int64Atom", "UInt64Atom",
            "FloatAtom", "Float32Atom", "Float64Atom",
            "ComplexAtom", "Complex32Atom", "Complex64Atom",
+           "TimeAtom", "Time32Atom", "Time64Atom",
 #          Exceptions and warnings
            "NaturalNameWarning", "NodeError"
            ]

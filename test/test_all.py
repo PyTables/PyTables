@@ -119,6 +119,7 @@ def suite():
                     'test_vlarray',
                     'test_earray',
 		    'test_tree',
+		    'test_timetype',
                     # Sub-packages
                     'test_filenode',
 		    ]

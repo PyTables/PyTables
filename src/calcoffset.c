@@ -167,6 +167,20 @@ static hid_t conventry(int c, int rank, hsize_t *dims, char *byteorder)
 	H5Tclose(string_type);
 	return ret_type;
       }
+    case 't':
+      if (atomic == 1) {
+	return H5T_UNIX_D32BE;
+      }
+      else {
+	 return H5Tarray_create(H5T_UNIX_D32BE, rank, dims, NULL);
+      }
+    case 'T':
+      if (atomic == 1) {
+	return H5T_UNIX_D64BE;
+      }
+      else {
+	 return H5Tarray_create(H5T_UNIX_D64BE, rank, dims, NULL);
+      }
     default:
 #ifdef DEBUG
       printf("Error: bad char <%c> in struct format\n", c);

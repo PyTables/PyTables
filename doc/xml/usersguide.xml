@@ -4126,6 +4126,9 @@ Object Tree:
 	    <term>coltypes</term> <item>The data types for the table
 	      fields (dictionary).
 	    </item>
+	    <term>colstypes</term> <item>The data string-types for the
+	      table fields (dictionary).
+	    </item>
 	    <term>colshapes</term> <item>The shapes for the table
 	      fields (dictionary).
 	    </item>
@@ -5692,8 +5695,8 @@ fileh.close()
 		  column. All types listed in <ref
 		  refid="datatypesSupported"> appendix</ref> are valid
 		  data types for columns.  The type description is
-		  accepted both in string format and as a numarray
-		  data type.</item>
+		  accepted both in string-type format and as a
+		  numarray data type.</item>
 
 		<term>shape</term> <item>An integer or a tuple, that
 		  specifies the number of <em>dtype</em> items for
@@ -5836,7 +5839,36 @@ fileh.close()
 
 	      <p><verb>ComplexCol</verb> columns and its descendants
 		do not support indexation.</p>
+	    </item>
 
+	    <term>TimeCol(dflt=0, shape=1, itemsize=8, pos=None,
+	      indexed=0)
+	    </term>
+	    <item>Define a column to be of type <em>Time</em>.
+	      Two kinds of time columns are supported depending on
+	      the value of <verb>itemsize</verb>:
+	      4-byte signed integer and 8-byte double precision floating point
+	      columns (the default ones).
+	      The meaning of the other parameters
+	      are the same as those in the <verb>Col</verb> class.
+
+	      <p>Time columns have a special encoding in the HFD5 file.
+	      See <ref refid="datatypesSupported"> appendix</ref>
+	      for more information on those types.
+	      </p>
+
+	      <p>This class has two descendants:
+	      </p>
+
+	      <description>
+		<term>Time32Col(dflt=0, shape=1, pos=None,
+		  indexed=0)</term> <item>Define a column of type
+		  <verb>Time32</verb>.</item>
+
+		<term>Time64Col(dflt=0.0, shape=1, pos=None,
+		  indexed=0)</term> <item>Define a column of type
+		  <verb>Time64</verb>.</item>
+	      </description>
 	    </item>
 
 	  </description>
@@ -5881,8 +5913,8 @@ fileh.close()
 		  element. See the <ref
 		  refid="datatypesSupported">appendix</ref> for a
 		  relation of data types supported. The type
-		  description is accepted both in string format and as
-		  numarray data type.
+		  description is accepted both in string-type format
+		  and as a numarray data type.
 		</item>
 
 		<term>shape</term> <item>In a <verb>EArray</verb>
@@ -6023,6 +6055,33 @@ fileh.close()
 		<term>Complex64Atom(shape=1, flavor="NumArray")</term>
 		<item>Define an atom of type <verb>Complex64</verb>.</item>
 
+	      </description>
+	    </item>
+
+	    <term>TimeAtom(shape=1, itemsize=8, flavor="NumArray")
+	    </term>
+	    <item>Define an atom to be of type <em>Time</em>.
+	      Two kinds of time atoms are supported depending on
+	      the value of <verb>itemsize</verb>:
+	      4-byte signed integer and 8-byte double precision floating point
+	      atoms (the default ones).
+	      The meaning of the other parameters
+	      are the same as those in the <verb>Atom</verb> class.
+
+	      <p>Time atoms have a special encoding in the HFD5 file.
+	      See <ref refid="datatypesSupported"> appendix</ref>
+	      for more information on those types.
+	      </p>
+
+	      <p>This class has two descendants:
+	      </p>
+
+	      <description>
+		<term>Time32Atom(shape=1, flavor="NumArray")</term>
+		<item>Define an atom of type <verb>Time32</verb>.</item>
+
+		<term>Time64Atom(shape=1, flavor="NumArray")</term>
+		<item>Define an atom of type <verb>Time64</verb>.</item>
 	      </description>
 	    </item>
 	  </description>
@@ -7794,6 +7853,30 @@ if __name__=="__main__":
 	  set through the use of the <verb>Atom</verb> class and its
 	  descendants (<ref refid="AtomClassDescr">see</ref>).
 	</p>
+	<p>In addition to those data types, PyTables' Table, VLArray and EArray classes
+	  do support some <em>aliasing</em> data types for their columns and atoms.
+	  Each one of these aliasing types corresponds to
+	  one <visual markup="tt">numarray</visual> type,
+	  but they also have special meanings for PyTables.
+	  They can be seen as the ordinary types they are associated with,
+	  plus some additional meaning.
+	  Since they do not exist as <visual markup="tt">numarray</visual> types,
+	  they can only be specified to PyTables using strings.
+	</p>
+	<p>Currently, the only supported aliasing data type is <em>Time</em>.
+	  Two kinds of time values can be handled:
+	  4-byte signed integer and 8-byte double precision floating point.
+	  Both of them reflect the number of seconds since the Unix Epoch,
+	  i.e. Jan 1 00:00:00 UTC 1970.
+	  Their types correspond to <visual markup="tt">numarray</visual>'s
+	  Int32 and Float64, respectively.
+	  Time values are stored in the HDF5 file
+	  using the <visual markup="tt">H5T_TIME</visual> class.
+	  Integer times are stored as is,
+	  while floating point times are splitted into
+	  two signed integer values representing seconds and microseconds
+	  (beware: smaller decimals will be lost!).
+	</p>
 	<p>A quick reference to the complete set of data types supported by
 	  PyTables is given in <ref refid="datatypesSupported">table</ref>.
 	</p>
@@ -7819,6 +7902,8 @@ if __name__=="__main__":
 	    <srow>Complex32 | single-precision complex | struct {float r, i;} | 8 | Complex </srow>
 	    <srow>Complex64 | double-precision complex | struct {double r, i;} | 16 | Complex </srow>
 	    <srow>CharType | arbitrary length string | char[] | * | String </srow>
+	    <srow>'Time32' | integer time | POSIX's time_t | 4 | Integer </srow>
+	    <srow>'Time64' | floating point time | POSIX's struct timeval | 8 | Float </srow>
 	  </tabbody>
 	</tabular>
 	  <caption>Data types supported for array elements and
@@ -8570,6 +8655,23 @@ usage: nctoh5 [-h] [-v] [-o] [--complevel=(0-9)] [--complib=lib]
 		    </item>
 		  </description>
 		</item>
+		<term>H5T_TIME</term> <item>This includes the next
+		  datatypes:
+		  <description>
+		    <term>H5T_UNIX_D32BE</term>
+		    <item>This represents a POSIX <em>time_t</em> C type
+		      and it is effectively used to represent
+		      a <verb>'Time32'</verb> aliasing type,
+		      which corresponds to an <verb>Int32</verb> type.
+		    </item>
+		    <term>H5T_UNIX_D64BE</term>
+		    <item>This represents a POSIX <em>struct timeval</em> C type
+		      and it is effectively used to represent
+		      a <verb>'Time64'</verb> aliasing type,
+		      which corresponds to a <verb>Float64</verb> type.
+		    </item>
+		  </description>
+		</item>
 		<term>H5T_STRING</term> <item>The datatype used to
 		  describe strings in PyTables is H5T_C_S1 (i.e. a
 		  <em>string</em> C type) followed with a call to the
@@ -8701,8 +8803,11 @@ usage: nctoh5 [-h] [-v] [-o] [--complevel=(0-9)] [--complib=lib]
 		datatype representing a complex number.  The atomic
 		datatypes can currently be one of the next HDF5
 		datatype <em>classes</em>: H5T_BITFIELD, H5T_INTEGER,
-		H5T_FLOAT and H5T_STRING. See the <verb>Table</verb>
-		format description in <ref
+		H5T_FLOAT and H5T_STRING.
+		The H5T_TIME class is also supported
+		for reading existing <verb>Array</verb> objects,
+		but not for creating them.
+		See the <verb>Table</verb> format description in <ref
 		refid="TableFormatDescr">section</ref> for more info
 		about these types.
 	      </p>
@@ -8779,7 +8884,7 @@ usage: nctoh5 [-h] [-v] [-o] [--complevel=(0-9)] [--complib=lib]
 		have the same datatypes as for the elements in the
 		Array format.  They can be one of the HDF5
 		<em>atomic</em> datatype <em>classes</em>:
-		H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT or H5T_STRING,
+		H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT, H5T_TIME or H5T_STRING,
 		see the <verb>Table</verb> format description in <ref
 		refid="TableFormatDescr">section</ref> for more info
 		about these types.  They can also be a H5T_COMPOUND
@@ -8906,6 +9011,7 @@ usage: nctoh5 [-h] [-v] [-o] [--complevel=(0-9)] [--complib=lib]
 		<item>H5T_BITFIELD</item>
 		<item>H5T_INTEGER</item>
 		<item>H5T_FLOAT</item>
+		<item>H5T_TIME</item>
 		<item>H5T_STRING</item>
 		<item>H5T_ARRAY</item>
 	      </itemize>

@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.40 2004/12/24 18:16:01 falted Exp $
+#       $Id: IsDescription.py,v 1.41 2004/12/26 15:53:34 ivilata Exp $
 #
 ########################################################################
 
@@ -24,7 +24,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.40 $"
+__version__ = "$Revision: 1.41 $"
 
 
 import warnings
@@ -35,38 +35,29 @@ import numarray as NA
 import numarray.records as records
 from utils import checkNameValidity
 
-# Map between the numarray types and struct datatypes
-tostructfmt = {NA.Int8:'b', NA.UInt8:'B',
-               NA.Int16:'h', NA.UInt16:'H',
-               NA.Int32:'i', NA.UInt32:'I',
-               NA.Int64:'q', NA.UInt64:'Q',
-               NA.Float32:'f', NA.Float64:'d',
-               NA.Complex32:'F', NA.Complex64:'D', # Added top support complex
-               NA.Bool:'c', records.CharType:'s', 
-               }
 
-# translation table from the Struct data types to numarray types
-fromstructfmt = {'b':NA.Int8, 'B':NA.UInt8,
-                 'h':NA.Int16, 'H':NA.UInt16,
-                 'i':NA.Int32, 'I':NA.UInt32,
-                 'q':NA.Int64, 'Q':NA.UInt64,
-                 'f':NA.Float32, 'd':NA.Float64,
-                 'F':NA.Complex32, 'D':NA.Complex64,# Added top support complex
-                 'c':NA.Bool, 's':records.CharType,
-                 }
 
-class Col:
-    """ Define a general column that supports all numarray data types"""
-    def __init__(self, dtype="Float64", shape=1, dflt=None, pos=None,
-                 indexed=0):
+# Map between the Numarray types and struct datatypes.
+naTypeToStruct = {
+    NA.Int8:'b',  NA.UInt8:'B',  NA.Int16:'h', NA.UInt16:'H',
+    NA.Int32:'i', NA.UInt32:'I', NA.Int64:'q', NA.UInt64:'Q',
+    NA.Float32:'f', NA.Float64:'d',
+    NA.Complex32:'F', NA.Complex64:'D',  # added to support complex
+    NA.Bool:'c', records.CharType:'s'}
 
-        self.pos = pos
-        self.indexed = indexed
 
-        assert shape != None and shape != 0, \
-               "None or zero-valued shapes are not supported '%s'" % `shape`
 
-        if type(shape) in (int,long):
+class ShapeMixin:
+    "Mix-in class for standard shape handling."
+
+    def _setShape(self, shape):
+        "Sets the 'shape' and 'itemsize' attributes. Uses 'self.type'."
+
+        if type(shape) not in (int, long, tuple, list):
+            raise ValueError("Illegal shape object: %s" % (shape,))
+
+        # Turn shape into 1 or a properly-formed tuple
+        if type(shape) in (int, long):
             if shape < 1:
                 raise ValueError(
                     "Shape value must be greater than 0: %s" % (shape,))
@@ -76,27 +67,83 @@ class Col:
                 # To prevent confusions between 2 and (2,):
                 # the meaning is the same
                 self.shape = (shape,)
-        elif type(shape) in (list,tuple):
-            # HDF5 does not support ranks greater than 32
-            assert len(shape) <= 32, \
-               "Shapes with rank > 32 are not supported '%s'" % `shape`
-            self.shape = tuple(shape)
         else:
-            raise TypeError, "Illegal shape object: '%s'" % `shape`
+            assert type(shape) in (tuple, list)
+            # HDF5 does not support ranks greater than 32
+            if len(shape) > 32:
+                raise ValueError(
+                    "Shapes with rank > 32 are not supported: %s" % (shape,))
+            self.shape = tuple(shape)
 
+        # Set itemsize
+        self.itemsize = self.type.bytes
+
+
+
+class Col(ShapeMixin, object):
+    "Defines a general column that supports all numarray data types."
+
+    # This class should become abstract somewhere in the future,
+    # with no methods beyond __init__() or __repr__().
+    # An auxiliary function returning an object of the adequate class
+    # should be used instead.
+    # So, the following _set*() methods should be removed in the future.
+    # ivilata(2004-12-17)
+
+    def _setPosition(self, pos):
+        "Sets the 'pos' attribute."
+        self.pos = pos
+
+    def _setType(self, type_):
+        "Sets the 'type', 'recarrtype', 'stype' and 'rectype' attributes."
+        if type_ in NA.typeDict:
+            self.type = NA.typeDict[type_]
+            self.stype = str(self.type)
+        elif type_ == 'Time32':
+            self.type = NA.Int32  # special case for times
+            self.stype = type_
+        elif type_ == 'Time64':
+            self.type = NA.Float64  # special case for times
+            self.stype = type_
+        elif type_ == 'CharType' or isinstance(type_, records.Char):
+            self.type = records.CharType  # special case for strings
+            self.stype = str(self.type)
+        else:
+            raise TypeError, "Illegal type: %s" % (type_,)
+
+        self.recarrtype = records.revfmt[self.type]
+
+        # Since Time columns have no Numarray type of their own,
+        # a special case is made for them.
+        if type_ == 'Time32':
+            self.rectype = 't'  # special code for times
+        elif type_ in ('Time', 'Time64'):
+            self.rectype = 'T'  # special code for times
+        else:
+            self.rectype = naTypeToStruct[self.type]
+
+    def _setDefault(self, dflt):
+        "Sets the 'dflt' attribute."
         self.dflt = dflt
 
-        if dtype in NA.typeDict:
-            self.type = NA.typeDict[dtype]
-            self.recarrtype = records.revfmt[self.type]
-            self.itemsize = self.type.bytes
-            if self.indexed and (dtype == NA.Complex32 or
-                                 dtype == NA.Complex64):
-                raise TypeError, "'%s' do not support indexation" % repr(dtype)
-        elif dtype == "CharType" or isinstance(dtype, records.Char):
-            # Special case for Strings
-            self.type = records.CharType
-            if type(shape) in (int,long):
+    def _setIndex(self, indexed):
+        "Sets the 'indexed' attribute."
+        if indexed and self.type in (NA.Complex32, NA.Complex64):
+            raise TypeError("%r do not support indexation" % (self.type,))
+        self.indexed = indexed
+
+    def _setShape(self, shape):
+        super(Col, self)._setShape(shape)
+
+        # Override itemsize; strings still need some tampering with the shape
+        #
+        # This exposes NumPy BUG#1087158, since the comparison is True
+        # for self.type = Float64, Int32, Complex64...
+        # ivilata(2004-12-17)
+        #
+        ##if self.type == records.CharType:
+        if self.type is records.CharType:
+            if type(shape) in (int, long):
                 self.shape = 1
                 self.itemsize = shape
             else:
@@ -110,15 +157,27 @@ class Col:
                     self.shape = (shape[0],)
                 else:
                     self.shape = tuple(shape)
-                    
-            self.recarrtype = records.revfmt[self.type]
-        else:
-            raise TypeError, "Illegal type: %s" % `dtype`
 
-        self.rectype = tostructfmt[self.type]
+    def __init__(self, dtype = 'Float64', shape = 1, dflt = None, pos = None,
+                 indexed = 0):
+        """Calls _set*() in this precise order,
+        setting the indicated attributes:
+
+        1. _setType(dtype)    -> type, recarrtype, stype, rectype
+        2. _setDefault(dflt)  -> dflt
+        3. _setShape(shape)   -> shape, itemsize
+        4. _setIndex(indexed) -> indexed
+        5. _setPosition(pos)  -> pos
+        """
+
+        self._setType(dtype)
+        self._setDefault(dflt)
+        self._setShape(shape)
+        self._setIndex(indexed)
+        self._setPosition(pos)
 
     def __repr__(self):
-        if self.type == "CharType" or isinstance(self.type, records.Char):
+        if self.type == 'CharType' or isinstance(self.type, records.Char):
             if self.shape == 1:
                 shape = [self.itemsize]
             else:
@@ -128,292 +187,502 @@ class Col:
         else:
             shape = self.shape
 
-        out = "Col(dtype='" +  str(self.type) + "'" + \
-              ", shape=" +  str(shape) + \
-              ", dflt=" + str(self.dflt) + \
-              ", pos=" + str(self.pos) + \
-              ", indexed=" + str(self.indexed) + \
-              ")"
-        return out
+        return "Col(dtype=%r, shape=%s, dflt=%s, pos=%s, indexed=%s)" % (
+            self.stype, shape, self.dflt, self.pos, self.indexed)
+
+
 
 class BoolCol(Col):
-    """ Define a boolean column """
-    
-    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
+    "Defines a boolean column."
 
-        self.pos = pos
+    def _setType(self, type_):
+        self.type       = NA.Bool
+        self.stype      = str(self.type)
+        self.recarrtype = records.revfmt[self.type]
+        self.rectype    = naTypeToStruct[self.type]
+
+    def _setIndex(self, indexed):
         self.indexed = indexed
 
-        assert shape != None and shape != 0, \
-               "None or zero-valued shapes are not supported '%s'" % `shape`
+    def _setShape(self, shape):
+        super(Col, self)._setShape(shape)
 
-        if type(shape) in (int,long):
-            if shape < 1:
-                raise ValueError(
-                    "Shape value must be greater than 0: %s" % (shape,))
-            elif shape == 1:
-                self.shape = shape
-            else:
-                # To prevent confusions between 2 and (2,):
-                # the meaning is the same
-                self.shape = (shape,)
-        elif type(shape) in (list,tuple):
-            self.shape = tuple(shape)
-        else: raise ValueError, "Illegal shape %s" % `shape`
+    def __init__(self, dflt = False, shape = 1, pos = None, indexed = 0):
+        Col.__init__(
+            self, dtype = 'Bool',
+            dflt = dflt, shape = shape, pos = pos, indexed = indexed)
 
-        self.dflt = dflt
+    def __repr__(self):
+        return "BoolCol(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
+            self.dflt, self.shape, self.pos, self.indexed)
 
-        self.type = NA.typeDict["Bool"]
-        self.itemsize = 1
-        self.recarrtype = records.revfmt[self.type]
-        self.rectype = tostructfmt[self.type]
 
-    
+
 class StringCol(Col):
-    """ Define a string column """
-    
-    def __init__(self, length=None, dflt=None, shape=1, pos=None,
-                 indexed=0):
+    "Defines a string column."
 
-        self.pos = pos
-        self.indexed = indexed
-
-        assert isinstance(dflt, str) or dflt == None, \
-               "Invalid default value: '%s'" % dflt
-        
-        assert shape != None and shape != 0, \
-               "None or zero-valued shapes are not supported: '%s'" % `shape`
-
-        # Deduce the length from the default value if it is not specified!
-        if length == None and dflt:
-            length = len(dflt)
-        if not length:
-            raise RuntimeError, \
-"""You must specify at least a length or a default value where this length
-  can be infered from."""
-        
-        if type(shape) in (int,long):
-            if shape < 1:
-                raise ValueError(
-                    "Shape value must be greater than 0: %s" % (shape,))
-            elif shape == 1:
-                self.shape = shape
-            else:
-                # To prevent confusions between 2 and (2,):
-                # the meaning is the same
-                self.shape = (shape,)
-        elif type(shape) in (list,tuple):
-            self.shape = tuple(shape)
-        else: raise ValueError, "Illegal shape %s" % `shape`
-
-        self.dflt = dflt
-
-        self.type = records.CharType
-        self.itemsize = length
+    def _setType(self, type_):
+        self.type       = records.CharType
+        self.stype      = str(self.type)
         self.recarrtype = records.revfmt[self.type]
-        self.rectype = tostructfmt[self.type]
+        self.rectype    = naTypeToStruct[self.type]
 
-    
-class IntCol(Col):
-    """ Define an integer column """
-    def __init__(self, dflt=0, shape=1, itemsize=4, sign=1, pos=None,
-                 indexed=0):
-
-        self.pos = pos
-        self.indexed = indexed
-
-        assert shape != None and shape != 0, \
-               "None or zero-valued shapes are not supported '%s':" % `shape`
-
-        assert itemsize in [1, 2, 4, 8], \
-               "Integer itemsizes different from 1,2,4 or 8 are not supported"
-        
-        if type(shape) in (int,long):
-            if shape < 1:
-                raise ValueError(
-                    "Shape value must be greater than 0: %s" % (shape,))
-            elif shape == 1:
-                self.shape = shape
-            else:
-                # To prevent confusions between 2 and (2,):
-                # the meaning is the same
-                self.shape = (shape,)
-        elif type(shape) in (list,tuple):
-            self.shape = tuple(shape)
-        else: raise ValueError, "Illegal shape %s" % `shape`
-
+    def _setDefault(self, dflt):
+        if dflt != None and not isinstance(dflt, str):
+            raise ValueError("Invalid default value: %s" % (dflt,))
         self.dflt = dflt
 
-        self.itemsize = itemsize
+    def _setIndex(self, indexed):
+        self.indexed = indexed
+
+    def _setShape(self, shape):
+        super(Col, self)._setShape(shape)
+
+        # Set itemsize; forced to None to get it from the 'length' argument
+        self.itemsize = None
+
+    def __init__(self, length = None, dflt = None, shape = 1, pos = None,
+                 indexed = 0):
+        Col.__init__(
+            self, dtype = 'CharType',
+            dflt = dflt, shape = shape, pos = pos, indexed = indexed)
+
+        # Some more work needed for constructor call idiosincracies:
+        # 'itemsize' is deduced from the default value if not specified.
+        if length == None and dflt:
+            length = len(dflt)  # 'dflt' has already been checked
+
+        if not length:
+            raise RuntimeError("""\
+You must specify at least a length or a default value
+  where this length can be inferred from.""")
+
+        self.itemsize = length
+
+    def __repr__(self):
+        return ("StringCol(length=%s, dflt=%r, shape=%s, pos=%s, indexed=%s)"
+                % (self.itemsize, self.dflt, self.shape, self.pos,
+                   self.indexed))
+
+
+
+class IntCol(Col):
+    "Defines an integer column."
+
+    def _setType(self, itemsize, sign):
+        if itemsize not in (1, 2, 4, 8):
+            raise ValueError("""\
+Integer itemsizes different from 1, 2, 4 or 8 are not supported""")
+
         if itemsize == 1:
             if sign:
-                self.type = NA.typeDict["Int8"]
+                self.type = NA.Int8
             else:
-                self.type = NA.typeDict["UInt8"]
+                self.type = NA.UInt8
         elif itemsize == 2:
             if sign:
-                self.type = NA.typeDict["Int16"]
+                self.type = NA.Int16
             else:
-                self.type = NA.typeDict["UInt16"]
+                self.type = NA.UInt16
         elif itemsize == 4:
             if sign:
-                self.type = NA.typeDict["Int32"]
+                self.type = NA.Int32
             else:
-                self.type = NA.typeDict["UInt32"]
+                self.type = NA.UInt32
         elif itemsize == 8:
             if sign:
-                self.type = NA.typeDict["Int64"]
+                self.type = NA.Int64
             else:
-                self.type = NA.typeDict["UInt64"]
-                
+                self.type = NA.UInt64
+
+        self.stype = str(self.type)
         self.recarrtype = records.revfmt[self.type]
-        self.rectype = tostructfmt[self.type]
+        self.rectype = naTypeToStruct[self.type]
 
-class Int8Col(IntCol):
-    "Description class for a signed integer of 8 bits "
-    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
-        IntCol.__init__(self, dflt, itemsize=1, shape=shape, sign=1,
-                        pos=pos, indexed=indexed)
-        
-class UInt8Col(IntCol):
-    "Description class for an unsigned integer of 8 bits "
-    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
-        IntCol.__init__(self, dflt , itemsize=1, shape=shape, sign=0,
-                        pos=pos, indexed=indexed)
-        
-class Int16Col(IntCol):
-    "Description class for a signed integer of 16 bits "
-    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
-        IntCol.__init__(self, dflt , itemsize=2, shape=shape, sign=1,
-                        pos=pos, indexed=indexed)
-        
-class UInt16Col(IntCol):
-    "Description class for an unsigned integer of 16 bits "
-    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
-        IntCol.__init__(self, dflt , itemsize=2, shape=shape, sign=0,
-                        pos=pos, indexed=indexed)
-        
-class Int32Col(IntCol):
-    "Description class for a signed integer of 32 bits "
-    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
-        IntCol.__init__(self, dflt , itemsize=4, shape=shape, sign=1,
-                        pos=pos, indexed=indexed)
-        
-class UInt32Col(IntCol):
-    "Description class for an unsigned integer of 32 bits "
-    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
-        IntCol.__init__(self, dflt , itemsize=4, shape=shape, sign=0,
-                        pos=pos, indexed=indexed)
-        
-class Int64Col(IntCol):
-    "Description class for a signed integer of 64 bits "
-    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
-        IntCol.__init__(self, dflt , itemsize=8, shape=shape, sign=1,
-                        pos=pos, indexed=indexed)
-        
-class UInt64Col(IntCol):
-    "Description class for an unsigned integer of 64 bits "
-    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
-        IntCol.__init__(self, dflt , itemsize=8, shape=shape, sign=0,
-                        pos=pos, indexed=indexed)
-        
-class FloatCol(Col):
-    """ Define a float column """
-    def __init__(self, dflt=0.0, shape=1, itemsize=8, pos=None,
-                 indexed=0):
-
-        self.pos = pos
+    def _setIndex(self, indexed):
         self.indexed = indexed
 
-        assert shape != None and shape != 0, \
-               "None or zero-valued shapes are not supported '%s'" % `shape`
+    def _setShape(self, shape):
+        super(Col, self)._setShape(shape)
 
-        assert itemsize in [4,8], \
-               "Float itemsizes different from 4 and 8 are not supported"
-        
-        if type(shape) in (int,long):
-            if shape < 1:
-                raise ValueError(
-                    "Shape value must be greater than 0: %s" % (shape,))
-            elif shape == 1:
-                self.shape = shape
-            else:
-                # To prevent confusions between 2 and (2,):
-                # the meaning is the same
-                self.shape = (shape,)
-        elif type(shape) in (list,tuple):
-            self.shape = tuple(shape)
-        else: raise ValueError, "Illegal shape %s" % `shape`
+    def __init__(self, dflt = 0, shape = 1, itemsize = 4, sign = 1,
+                 pos = None, indexed=0):
+        """Calls _set*() in this precise order,
+        setting the indicated attributes:
 
-        self.dflt = dflt
+        1. _setType(itemsize, sign) -> type, recarrtype, stype, rectype
+        2. _setDefault(dflt)        -> dflt
+        3. _setShape(shape)         -> shape, itemsize
+        4. _setIndex(indexed)       -> indexed
+        5. _setPosition(pos)        -> pos
+        """
 
-        self.itemsize = itemsize
-        if itemsize == 4:
-            self.type = NA.typeDict["Float32"]
-        elif itemsize == 8:
-            self.type = NA.typeDict["Float64"]
-                
+        # This method is overridden to build item type from size and sign
+        self._setType(itemsize, sign)
+        self._setDefault(dflt)
+        self._setShape(shape)
+        self._setIndex(indexed)
+        self._setPosition(pos)
+
+    def __repr__(self):
+        if NA.array(0, self.type) - NA.array(1, self.type) < 0:
+            sign = 1
+        else:
+            sign = 0
+
+        return """\
+IntCol(dflt=%s, shape=%s, itemsize=%s, sign=%s, pos=%s, indexed=%s)""" % (
+            self.dflt, self.shape, self.itemsize, sign, self.pos, self.indexed)
+
+class Int8Col(IntCol):
+    "Description class for a signed integer of 8 bits."
+    def _setType(self, itemsize, sign):
+        self.type = NA.Int8
+        self.stype = str(self.type)
         self.recarrtype = records.revfmt[self.type]
-        self.rectype = tostructfmt[self.type]
+        self.rectype = naTypeToStruct[self.type]
+    def __init__(self, dflt = 0, shape = 1, pos = None, indexed = 0):
+        IntCol.__init__(self, dflt, itemsize = 1, shape = shape, sign = 1,
+                        pos = pos, indexed = indexed)
+    def __repr__(self):
+        return "Int8Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
+            self.dflt, self.shape, self.pos, self.indexed)
+
+class UInt8Col(IntCol):
+    "Description class for an unsigned integer of 8 bits."
+    def _setType(self, itemsize, sign):
+        self.type = NA.UInt8
+        self.stype = str(self.type)
+        self.recarrtype = records.revfmt[self.type]
+        self.rectype = naTypeToStruct[self.type]
+    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
+        IntCol.__init__(self, dflt , itemsize = 1, shape = shape, sign = 0,
+                        pos = pos, indexed = indexed)
+    def __repr__(self):
+        return "UInt8Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
+            self.dflt, self.shape, self.pos, self.indexed)
+
+class Int16Col(IntCol):
+    "Description class for a signed integer of 16 bits."
+    def _setType(self, itemsize, sign):
+        self.type = NA.Int16
+        self.stype = str(self.type)
+        self.recarrtype = records.revfmt[self.type]
+        self.rectype = naTypeToStruct[self.type]
+    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
+        IntCol.__init__(self, dflt , itemsize = 2, shape = shape, sign = 1,
+                        pos = pos, indexed = indexed)
+    def __repr__(self):
+        return "Int16Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
+            self.dflt, self.shape, self.pos, self.indexed)
+
+class UInt16Col(IntCol):
+    "Description class for an unsigned integer of 16 bits."
+    def _setType(self, itemsize, sign):
+        self.type = NA.UInt16
+        self.stype = str(self.type)
+        self.recarrtype = records.revfmt[self.type]
+        self.rectype = naTypeToStruct[self.type]
+    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
+        IntCol.__init__(self, dflt , itemsize = 2, shape = shape, sign = 0,
+                        pos = pos, indexed = indexed)
+    def __repr__(self):
+        return "UInt16Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
+            self.dflt, self.shape, self.pos, self.indexed)
+
+class Int32Col(IntCol):
+    "Description class for a signed integer of 32 bits."
+    def _setType(self, itemsize, sign):
+        self.type = NA.Int32
+        self.stype = str(self.type)
+        self.recarrtype = records.revfmt[self.type]
+        self.rectype = naTypeToStruct[self.type]
+    def __init__(self, dflt = 0, shape = 1, pos = None, indexed = 0):
+        IntCol.__init__(self, dflt , itemsize=4, shape=shape, sign=1,
+                        pos = pos, indexed = indexed)
+    def __repr__(self):
+        return "Int32Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
+            self.dflt, self.shape, self.pos, self.indexed)
+
+class UInt32Col(IntCol):
+    "Description class for an unsigned integer of 32 bits."
+    def _setType(self, itemsize, sign):
+        self.type = NA.UInt32
+        self.stype = str(self.type)
+        self.recarrtype = records.revfmt[self.type]
+        self.rectype = naTypeToStruct[self.type]
+    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
+        IntCol.__init__(self, dflt , itemsize = 4, shape = shape, sign = 0,
+                        pos = pos, indexed = indexed)
+    def __repr__(self):
+        return "UInt32Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
+            self.dflt, self.shape, self.pos, self.indexed)
+
+class Int64Col(IntCol):
+    "Description class for a signed integer of 64 bits."
+    def _setType(self, itemsize, sign):
+        self.type = NA.Int64
+        self.stype = str(self.type)
+        self.recarrtype = records.revfmt[self.type]
+        self.rectype = naTypeToStruct[self.type]
+    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
+        IntCol.__init__(self, dflt , itemsize = 8, shape = shape, sign = 1,
+                        pos = pos, indexed = indexed)
+    def __repr__(self):
+        return "Int64Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
+            self.dflt, self.shape, self.pos, self.indexed)
+
+class UInt64Col(IntCol):
+    "Description class for an unsigned integer of 64 bits."
+    def _setType(self, itemsize, sign):
+        self.type = NA.UInt64
+        self.stype = str(self.type)
+        self.recarrtype = records.revfmt[self.type]
+        self.rectype = naTypeToStruct[self.type]
+    def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
+        IntCol.__init__(self, dflt , itemsize = 8, shape = shape, sign = 0,
+                        pos = pos, indexed = indexed)
+    def __repr__(self):
+        return "UInt64Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
+            self.dflt, self.shape, self.pos, self.indexed)
+
+
+
+class FloatCol(Col):
+    "Defines a float column."
+
+    def _setType(self, itemsize):
+        if itemsize not in (4, 8):
+            raise ValueError("""\
+Float itemsizes different from 4 or 8 are not supported""")
+
+        if itemsize == 4:
+            self.type = NA.Float32
+        elif itemsize == 8:
+            self.type = NA.Float64
+
+        self.stype = str(self.type)
+        self.recarrtype = records.revfmt[self.type]
+        self.rectype = naTypeToStruct[self.type]
+
+    def _setIndex(self, indexed):
+        self.indexed = indexed
+
+    def _setShape(self, shape):
+        super(Col, self)._setShape(shape)
+
+    def __init__(self, dflt = 0.0, shape = 1, itemsize = 8, pos = None,
+                 indexed = 0):
+        """Calls _set*() in this precise order,
+        setting the indicated attributes:
+
+        1. _setType(itemsize) -> type, recarrtype, stype, rectype
+        2. _setDefault(dflt)  -> dflt
+        3. _setShape(shape)   -> shape, itemsize
+        4. _setIndex(indexed) -> indexed
+        5. _setPosition(pos)  -> pos
+        """
+
+        # This method is overridden to build item type from size
+        self._setType(itemsize)
+        self._setDefault(dflt)
+        self._setShape(shape)
+        self._setIndex(indexed)
+        self._setPosition(pos)
+
+    def __repr__(self):
+        return """\
+FloatCol(dflt=%s, shape=%s, itemsize=%s, pos=%s, indexed=%s)""" % (
+            self.dflt, self.shape, self.itemsize, self.pos, self.indexed)
 
 class Float32Col(FloatCol):
-    "Description class for a floating point of 32 bits "
-    def __init__(self, dflt=0.0, shape=1, pos=None, indexed=0):
-        FloatCol.__init__(self, dflt , shape=shape, itemsize=4,
-                          pos=pos, indexed=indexed)
-        
-class Float64Col(FloatCol):
-    "Description class for a floating point of 64 bits "
-    def __init__(self, dflt=0.0, shape=1, pos=None, indexed=0):
-        FloatCol.__init__(self, dflt , shape=shape, itemsize=8,
-                          pos=pos, indexed=indexed)
-        
-class ComplexCol(Col):
-    """ Define a complex column """
-    def __init__(self, dflt=(0.0+0.0j), shape=1, itemsize=16, pos=None):
-
-        self.pos = pos
-        self.indexed = 0  # This attribuet is needed
-        assert shape != None and shape != 0, \
-               "None or zero-valued shapes are not supported '%s'" % `shape`
-
-        assert itemsize in [8, 16], \
-               "Copmplex itemsizes different from 8 and 16 are not supported"
-        
-        if type(shape) in (int,long):
-            if shape < 1:
-                raise ValueError(
-                    "Shape value must be greater than 0: %s" % (shape,))
-            elif shape == 1:
-                self.shape = shape
-            else:
-                # To prevent confusions between 2 and (2,):
-                # the meaning is the same
-                self.shape = (shape,)
-        elif type(shape) in (list,tuple):
-            self.shape = tuple(shape)
-        else: raise ValueError, "Illegal shape %s" % `shape`
-
-        self.dflt = dflt
-
-        self.itemsize = itemsize
-        if itemsize == 8:
-            self.type = NA.typeDict["Complex32"]
-        elif itemsize == 16:
-            self.type = NA.typeDict["Complex64"]
-                
+    "Description class for a floating point of 32 bits."
+    def _setType(self, itemsize):
+        self.type = NA.Float32
+        self.stype = str(self.type)
         self.recarrtype = records.revfmt[self.type]
-        self.rectype = tostructfmt[self.type]
+        self.rectype = naTypeToStruct[self.type]
+    def __init__(self, dflt = 0.0, shape = 1, pos = None, indexed = 0):
+        FloatCol.__init__(self, dflt , shape = shape, itemsize = 4,
+                          pos = pos, indexed = indexed)
+    def __repr__(self):
+        return "Float32Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
+            self.dflt, self.shape, self.pos, self.indexed)
+
+class Float64Col(FloatCol):
+    "Description class for a floating point of 64 bits."
+    def _setType(self, itemsize):
+        self.type = NA.Float64
+        self.stype = str(self.type)
+        self.recarrtype = records.revfmt[self.type]
+        self.rectype = naTypeToStruct[self.type]
+    def __init__(self, dflt = 0.0, shape = 1, pos = None, indexed = 0):
+        FloatCol.__init__(self, dflt , shape = shape, itemsize = 8,
+                          pos = pos, indexed = indexed)
+    def __repr__(self):
+        return "Float64Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
+            self.dflt, self.shape, self.pos, self.indexed)
+
+
+
+class ComplexCol(Col):
+    "Defines a complex column."
+
+    def _setType(self, itemsize):
+        if itemsize not in (8, 16):
+            raise ValueError("""\
+Complex itemsizes different from 8 or 16 are not supported""")
+
+        if itemsize == 8:
+            self.type = NA.Complex32
+        elif itemsize == 16:
+            self.type = NA.Complex64
+
+        self.stype = str(self.type)
+        self.recarrtype = records.revfmt[self.type]
+        self.rectype = naTypeToStruct[self.type]
+
+    def _setShape(self, shape):
+        super(Col, self)._setShape(shape)
+
+    def __init__(self, dflt = (0.0+0.0j), shape = 1, itemsize = 16, pos = None):
+        """Calls _set*() in this precise order,
+        setting the indicated attributes:
+
+        1. _setType(itemsize) -> type, recarrtype, stype, rectype
+        2. _setDefault(dflt)  -> dflt
+        3. _setShape(shape)   -> shape, itemsize
+        4. _setPosition(pos)  -> pos
+        5.                    -> indexed
+        """
+
+        # This method is overridden to build item type from size
+        self._setType(itemsize)
+        self._setDefault(dflt)
+        self._setShape(shape)
+        self._setPosition(pos)
+        self.indexed = 0
+
+    def __repr__(self):
+        return "ComplexCol(dflt=%s, shape=%s, itemsize=%s, pos=%s)" % (
+            self.dflt, self.shape, self.itemsize, self.pos)
 
 class Complex32Col(ComplexCol):
-    "Description class for a complex of simple precision "
-    def __init__(self, dflt=(0.0+0.0j), shape=1, pos=None):
-        ComplexCol.__init__(self, dflt, shape=shape, itemsize=8, pos=pos)
-        
+    "Description class for a complex of simple precision."
+    def _setType(self, itemsize):
+        self.type = NA.Complex32
+        self.stype = str(self.type)
+        self.recarrtype = records.revfmt[self.type]
+        self.rectype = naTypeToStruct[self.type]
+    def __init__(self, dflt = (0.0+0.0j), shape = 1, pos = None):
+        ComplexCol.__init__(self, dflt, shape = shape, itemsize = 8, pos = pos)
+    def __repr__(self):
+        return "Complex32Col(dflt=%s, shape=%s, pos=%s)" % (
+            self.dflt, self.shape, self.pos)
+
 class Complex64Col(ComplexCol):
-    "Description class for a complex of double precision "
-    def __init__(self, dflt=(0.0+0.0j), shape=1, pos=None):
-        ComplexCol.__init__(self, dflt , shape=shape, itemsize=16, pos=pos)
+    "Description class for a complex of double precision."
+    def _setType(self, itemsize):
+        self.type = NA.Complex64
+        self.stype = str(self.type)
+        self.recarrtype = records.revfmt[self.type]
+        self.rectype = naTypeToStruct[self.type]
+    def __init__(self, dflt = (0.0+0.0j), shape = 1, pos = None):
+        ComplexCol.__init__(self, dflt , shape = shape, itemsize = 16, pos = pos)
+    def __repr__(self):
+        return "Complex64Col(dflt=%s, shape=%s, pos=%s)" % (
+            self.dflt, self.shape, self.pos)
+
+
+
+class TimeCol(Col):
+    "Defines a time column."
+
+    # There are two distinct supported kinds of date:
+    # the first is a 32 bit integer value (Time32Col)
+    # and the second a 64 bit floating point value (Time64Col).
+    # Both of them reflect the number of seconds since the Epoch.
+    # This column has the property of being stored
+    # using the HDF5 time datatypes.
+    # ivb(2004-12-14)
+
+
+    def _setType(self, itemsize):
+        if itemsize not in (4, 8):
+            raise ValueError("""\
+Time itemsizes different from 4 or 8 are not supported""")
+
+        # Since Time columns have no Numarray type of their own,
+        # a special case is made for them.
+        if itemsize == 4:
+            self.type = NA.Int32
+            self.stype = 'Time32'
+            self.rectype = 't'  # special code for times
+        elif itemsize == 8:
+            self.type = NA.Float64
+            self.stype = 'Time64'
+            self.rectype = 'T'  # special code for times
+
+        self.recarrtype = records.revfmt[self.type]
+
+    def _setIndex(self, indexed):
+        self.indexed = indexed
+
+    def _setShape(self, shape):
+        super(Col, self)._setShape(shape)
+
+    def __init__(self, dflt = 0, shape = 1, itemsize = 8, pos = None,
+                 indexed = 0):
+        """Calls _set*() in this precise order,
+        setting the indicated attributes:
+
+        1. _setType(itemsize) -> type, recarrtype, stype, rectype
+        2. _setDefault(dflt)  -> dflt
+        3. _setShape(shape)   -> shape, itemsize
+        4. _setIndex(indexed) -> indexed
+        5. _setPosition(pos)  -> pos
+        """
+
+        # This method is overridden to build item type from size
+        self._setType(itemsize)
+        self._setDefault(dflt)
+        self._setShape(shape)
+        self._setIndex(indexed)
+        self._setPosition(pos)
+
+    def __repr__(self):
+        return """\
+TimeCol(dflt=%s, shape=%s, itemsize=%s, pos=%s, indexed=%s)""" % (
+            self.dflt, self.shape, self.itemsize, self.pos, self.indexed)
+
+class Time32Col(TimeCol):
+    "Description class for an integer time of 32 bits."
+    def _setType(self, itemsize):
+        self.type = NA.Int32
+        self.stype = 'Time32'
+        self.recarrtype = records.revfmt[self.type]
+        self.rectype = 't'  # special code for times
+    def __init__(self, dflt = 0, shape = 1, pos = None, indexed = 0):
+        TimeCol.__init__(self, dflt , shape = shape, itemsize = 4,
+                         pos = pos, indexed = indexed)
+    def __repr__(self):
+        return "Time32Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
+            self.dflt, self.shape, self.pos, self.indexed)
+
+class Time64Col(TimeCol):
+    "Description class for a floating point time of 64 bits."
+    def _setType(self, itemsize):
+        self.type = NA.Float64
+        self.stype = 'Time64'
+        self.recarrtype = records.revfmt[self.type]
+        self.rectype = 'T'  # special code for times
+    def __init__(self, dflt = 0.0, shape = 1, pos = None, indexed = 0):
+        TimeCol.__init__(self, dflt , shape = shape, itemsize = 8,
+                         pos = pos, indexed = indexed)
+    def __repr__(self):
+        return "Time64Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
+            self.dflt, self.shape, self.pos, self.indexed)
+
 
 
 class Description(object):
@@ -426,6 +695,7 @@ class Description(object):
         newdict = self.__dict__
         newdict["__names__"] = []
         newdict["__types__"] = {}
+        newdict["__stypes__"] = {}
         newdict["__dflts__"] = {}
         newdict["_v_ColObjects"] = {}
         newdict["_v_shapes"] = {}
@@ -472,6 +742,7 @@ class Description(object):
                 newdict['__names__'].append(k)
                 newdict['_v_ColObjects'][k] = object
                 newdict['__types__'][k] = object.type
+                newdict['__stypes__'][k] = object.stype
                 if hasattr(object, 'dflt') and not object.dflt is None:
                     newdict['__dflts__'][k] = object.dflt
                 else:
@@ -532,6 +803,7 @@ class Description(object):
         self._v_itemsizes.clear()
         self._v_shapes.clear()
         self.__dflts__.clear()
+        self.__stypes__.clear()
         self.__types__.clear()
         self.__dict__.clear()
         return
@@ -550,6 +822,10 @@ class Description(object):
         elif datatype in ('c',):
 #             dfltvalue = str(" ")
             dfltvalue = int(0)
+        elif datatype in ('t',):  # integer time value
+            dfltvalue = int(0)
+        elif datatype in ('T',):  # floating point time value
+            dfltvalue = float(0)
         # Add more code to check for validity on string type!
         elif datatype.find("s") != -1:
             dfltvalue = str("")
