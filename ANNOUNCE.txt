@@ -4,19 +4,19 @@ Announcing PyTables 0.9
 I'm very proud to announce the latest and most powerful version of
 PyTables ever. In this release you will find a series of quite
 exciting new features, the most important being new indexing
-capabilities, in-kernel selections, support for complex datatypes
-and the possibility to modify values in both tables *and* arrays
+capabilities, in-kernel selections, support for complex datatypes and
+the possibility to modify values in both tables *and* arrays 
 (yeah, finally :).
 
 What it is
--------
+----------
 
 PyTables is a hierarchical database package designed to efficiently
-manage extremely large amounts of data (with support for full 64-bit file
-addressing). It features an object-oriented interface that, combined
-with C extensions for the peformance-critical parts of the code, makes
-it a very easy-to-use tool for high performance data storage and
-retrieval.
+manage extremely large amounts of data (with support for full 64-bit
+file addressing). It features an object-oriented interface that,
+combined with C extensions for the peformance-critical parts of the
+code, makes it a very easy-to-use tool for high performance data
+storage and retrieval.
 
 It is built on top of the HDF5 library and the numarray package, and
 provides containers for both heterogeneous data (Tables) and
@@ -27,8 +27,8 @@ data on-the-fly by using different compressors and compression
 enablers.
 
 Moreover, its powerful browsing and searching capabilities allow you
-to perform data selections over tables exceeding gigabytes of data in just
-tenths of second.
+to perform data selections over tables exceeding gigabytes of data in
+just tenths of second.
 
 
 Changes more in depth
@@ -36,34 +36,32 @@ Changes more in depth
 
 New features:
 
-- Indexing of columns in tables. This allows you to make data selections on
-  tables up to 500 times faster than standard selections (for
-  example, a selection on an indexed column of 100 milion of rows
+- Indexing of columns in tables. This allows you to make data
+  selections on tables up to 500 times faster than standard selections
+  (for example, a selection on an indexed column of 100 milion of rows
   takes less than 1 second on a modern CPU). Perhaps the most
   interesting thing about the indexing algorithm implemented by
   PyTables is that the time taken to index grows *linearly* with the
-  length of the data, making the indexing process 
-  *scalable* (unlike many relational databases). This
-  means that it can index, in a relatively quick way, arbitrarily
-  large table columns (for example, indexing a column of 100 milion of rows
-  takes just 100 seconds, i.e. a rate of 1 Mrow/sec). See more
-  detailed info at
+  length of the data, making the indexing process *scalable* (unlike
+  many relational databases). This means that it can index, in a
+  relatively quick way, arbitrarily large table columns (for example,
+  indexing a column of 100 milion of rows takes just 100 seconds,
+  i.e. a rate of 1 Mrow/sec). See more detailed info at
   http://pytables.sourceforge.net/doc/SciPy04.pdf.
 
 - In-kernel selections. This feature allows you to select data in
   tables up to 5 times faster than standard selections (i.e. pre-0.9
   selections) without the need to create an index. As a hint to how
   fast these selections can be, they are up to 10 times faster than a
-  traditional relational database. Again, for some benchmarking tests 
-  see:
-  http://pytables.sourceforge.net/doc/SciPy04.pdf
+  traditional relational database. Again, for some benchmarking tests
+  see: http://pytables.sourceforge.net/doc/SciPy04.pdf
  
 
 - Support of complex datatypes for all the data objects (i.e. Table,
-  Array, EArray and VLArray). The complete set of datatypes
-  of Numeric and numarray packages are now supported. Thanks to Tom Hedley
-  for providing the patches for Array, EArray and VLArray objects, as
-  well as updating the User's Manual and adding unit tests for the new
+  Array, EArray and VLArray). The complete set of datatypes of Numeric
+  and numarray packages are now supported. Thanks to Tom Hedley for
+  providing the patches for Array, EArray and VLArray objects, as well
+  as updating the User's Manual and adding unit tests for the new
   functionality.
 
 - Modification of values. You can modify Table, Array, EArray and
@@ -71,26 +69,24 @@ New features:
   newly introduced __setitem__() method for Table, Array, EArray and
   VLArray entities in the Library Reference of the User's Manual.
 
-- A new sub-package called "nodes" is here. In it will be 
-  included different modules to make it easier to work with different
-  entities (such as images, files, ...). The first module that has been
-  added to this sub-package is "FileNode", whch permits 
-  the creation of a database of nodes that can be used like regular
-  opened files in Python.  In other words, you can store a set of
-  files in a PyTables database, and read and write to it as you would
-  with any other file in Python. Thanks to Ivan Vilata i Balaguer for
-  contributing this.
+- A new sub-package called "nodes" is here. In it will be included
+  different modules to make it easier to work with different entities
+  (such as images, files, ...). The first module that has been added
+  to this sub-package is "FileNode", whch permits the creation of a
+  database of nodes that can be used like regular opened files in
+  Python.  In other words, you can store a set of files in a PyTables
+  database, and read and write to it as you would with any other file
+  in Python. Thanks to Ivan Vilata i Balaguer for contributing this.
 
 Improvements:
 
 - New __len__(self) methods added in Arrays, Tables and Columns. This,
-  in combination with __getitem__(self,key) better emulates
-  sequences.
+  in combination with __getitem__(self,key) better emulates sequences.
 
-- More support for importing generic HDF5 files. In particular,
-  Table objects (in the HDF5_HL naming schema) with "holes" in their
-  compound type definition are supported, present in certain
-  files produced by NASA (thanks to Stephen Walton for reporting this).
+- More support for importing generic HDF5 files. In particular, Table
+  objects (in the HDF5_HL naming schema) with "holes" in their
+  compound type definition are supported, present in certain files
+  produced by NASA (thanks to Stephen Walton for reporting this).
 
 - Much improved test units. More than 2000 different tests have been
   implemented, accounting for more than 13000 loc (this represents
@@ -112,9 +108,9 @@ Backward-incompatible API changes:
 
 Bug fixes:
 
-- A call to File.flush() now invokes a call to H5Fflush(),
-  effectively flushing all the file contents to disk. Thanks to Shack
-  Toms for reporting this and providing a patch.
+- A call to File.flush() now invokes a call to H5Fflush(), effectively
+  flushing all the file contents to disk. Thanks to Shack Toms for
+  reporting this and providing a patch.
 
 - SF #1054683: Security hole in utils.checkNameValidity(). Reported in
   2004-10-26 by ivilata
@@ -144,12 +140,13 @@ Where can PyTables be applied?
 PyTables is not designed to work as a relational database competitor,
 but rather as a teammate. If you want to work with large datasets of
 multidimensional data (for example, for multidimensional analysis), or
-just provide a categorized structure for some portions of your cluttered
-RDBS, then give PyTables a try. It works well for storing data from data
-acquisition systems (DAS), simulation software, network data monitoring
-systems (for example, traffic measurements of IP packets on routers),
-very large XML files, or for creating a centralized repository for system 
-logs, to name only a few possible uses.
+just provide a categorized structure for some portions of your
+cluttered RDBS, then give PyTables a try. It works well for storing
+data from data acquisition systems (DAS), simulation software, network
+data monitoring systems (for example, traffic measurements of IP
+packets on routers), very large XML files, or for creating a
+centralized repository for system logs, to name only a few possible
+uses.
  
 What is a table?
 ----------------
