@@ -16,9 +16,10 @@ class Record(IsRecord):
     
     var1 = Col("CharType", 4)   # 4-character String
     var2 = Col("Int32", 1)      # integer
-    var3 = Col("Int16", 1)      # short integer. 
+    var3 = Col("Int16", 1)      # short integer 
     var4 = Col("Float64", 1)    # double (double-precision)
     var5 = Col("Float32", 1)    # float  (single-precision)
+    var6 = Col("Int16", 1)      # short integer 
 
 class BasicTestCase(unittest.TestCase):
     file  = "test.h5"
@@ -55,6 +56,8 @@ class BasicTestCase(unittest.TestCase):
                 d.var3 = i % maxshort
                 d.var4 = float(i)
                 d.var5 = float(i)
+                # bar6 will be like var2 but byteswaped
+                d.var6 = ((d.var3 >> 8) & 0xff) + ((d.var3 << 8) & 0xff00)
                 table.append(d)
 		
             # Flush the buffer for this table
@@ -72,8 +75,8 @@ class BasicTestCase(unittest.TestCase):
 
     #----------------------------------------
 
-    # """Checking table read and cuts"""
     def test01_readTable(self):
+        """Checking table read and cuts"""
 
         rootgroup = self.rootgroup
         if verbose:
@@ -92,8 +95,8 @@ class BasicTestCase(unittest.TestCase):
         assert (rec.var1, rec.var2, rec.var5) == ("0001", nrows, float(nrows))
         assert len(result) == 20
         
-    # """Checking whether appending record rows works or not"""
     def test02_AppendRows(self):
+        """Checking whether appending record rows works or not"""
 
         # First close the open file
         self.fileh.close()
@@ -129,6 +132,30 @@ class BasicTestCase(unittest.TestCase):
         nrows = self.appendrows - 1
         assert (rec.var1, rec.var2, rec.var5) == ("0001", nrows, float(nrows))
         assert len(result) == 40 # because we appended new records
+
+    # CAVEAT: The next test only works for tables with rows < 2**15
+    def test03_endianess(self):
+        """Checking if table is endianess aware"""
+
+        rootgroup = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_endianess..." % self.__class__.__name__
+
+        table = self.fileh.getNode("/table0")
+
+        # Manually change the byteorder property for this table
+        table._v_byteorder = {"little":"big","big":"little"}[table._v_byteorder]
+	
+        # Read the records and select the ones with "var6" column less than 20
+        result = [ rec.var2 for rec in table.fetchall() if rec.var6 < 20]
+        if verbose:
+            print "Nrows in", table._v_pathname, ":", table.nrows
+            print "Last record in table ==>", rec
+            print "Total selected records in table ==>", len(result)
+        nrows = self.expectedrows - 1
+        assert (rec.var1, rec.var6) == ("0001", nrows)
+        assert len(result) == 20
         
 class BasicWriteTestCase(BasicTestCase):
     pass

@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.11 2003/02/13 17:45:37 falted Exp $
+#       $Id: File.py,v 1.12 2003/02/14 15:29:49 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.11 $"
+__version__ = "$Revision: 1.12 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -86,12 +86,15 @@ def openFile(filename, mode="r", title="", trTable={}):
 #             fnmatch(path, "*.hdf5")), \
 # """arg 1 must have one of the next file extensions:
 #   '.h5', '.hdf' or '.hdf5'"""
-    if not (fnmatch(path, "*.h5") or
-            fnmatch(path, "*.hdf") or
-            fnmatch(path, "*.hdf5")):
-        warnings.warn( \
-"""filename '%s'should have one of the next file extensions
-  '.h5', '.hdf' or '.hdf5'. Continuing anyway.""" % path, UserWarning)
+
+# The file extension warning commmented out by people at GL suggestion
+
+#     if not (fnmatch(path, "*.h5") or
+#             fnmatch(path, "*.hdf") or
+#             fnmatch(path, "*.hdf5")):
+#         warnings.warn( \
+# """filename '%s'should have one of the next file extensions
+#   '.h5', '.hdf' or '.hdf5'. Continuing anyway.""" % path, UserWarning)
 
     # Only accept modes 'w', 'r', 'r+' or 'a'
     assert mode in ['w', 'r', 'r+', 'a'], \
