@@ -132,11 +132,9 @@ class Basic0DTwoTestCase(BasicTestCase):
     numericalList = 33.34
     charList = "33"*500
     
-class Basic1DZeroTestCase(ExceptionTestCase):
-    # This test doesn't work at all, and that's because the Array class
-    # uses non-chunked datasets. Maybe when chunked datasets would be
-    # supported, we would be able to save empty lists and arrays.
-    # 1D case
+class Basic1DZeroTestCase(BasicTestCase):
+    # This test works from pytables 0.8 on, because chunked arrays are being
+    # supported
     title = "Rank-1 case 0"
     numericalList = []
     charList = []

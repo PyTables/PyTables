@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.82 2003/10/31 18:51:43 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.83 2003/11/04 13:41:53 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.82 $"
+__version__ = "$Revision: 1.83 $"
 
 
 import sys, os
@@ -195,7 +195,8 @@ import_array()
 CharType = records.CharType
 
 # Conversion tables from/to classes to the numarray enum types
-toenum = {numarray.Int8:tInt8,       numarray.UInt8:tUInt8,
+toenum = {numarray.Bool:tBool,   # Boolean type added
+          numarray.Int8:tInt8,       numarray.UInt8:tUInt8,
           numarray.Int16:tInt16,     numarray.UInt16:tUInt16,
           numarray.Int32:tInt32,     numarray.UInt32:tUInt32,
           numarray.Int64:tInt64,     numarray.UInt64:tUInt64,
@@ -203,7 +204,8 @@ toenum = {numarray.Int8:tInt8,       numarray.UInt8:tUInt8,
           CharType:97   # ascii(97) --> 'a' # Special case (to be corrected)
           }
 
-toclass = {tInt8:numarray.Int8,       tUInt8:numarray.UInt8,
+toclass = {tBool:numarray.Bool,  # Boolean type added
+           tInt8:numarray.Int8,       tUInt8:numarray.UInt8,
            tInt16:numarray.Int16,     tUInt16:numarray.UInt16,
            tInt32:numarray.Int32,     tUInt32:numarray.UInt32,
            tInt64:numarray.Int64,     tUInt64:numarray.UInt64,
@@ -468,15 +470,14 @@ cdef extern from "H5ARRAY.h":
   herr_t H5ARRAYget_info( hid_t loc_id, char *dset_name,
                           hsize_t *dims, H5T_class_t *class_id,
                           H5T_sign_t *sign, char *byteorder,
-                          size_t *type_size )
-
+                          size_t *type_size, size_t *type_precision)
 
 # Funtion to compute the HDF5 type from a numarray enum type
 cdef extern from "arraytypes.h":
     
   hid_t convArrayType(int fmt, size_t size, char *byteorder)
   int getArrayType(H5T_class_t class_id, size_t type_size,
-                   H5T_sign_t sign, int *format)
+                   size_t type_precision, H5T_sign_t sign, int *format)
                    
 # I define this constant, but I should not, because it should be defined in
 # the HDF5 library, but having problems importing it
@@ -761,7 +762,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.82 2003/10/31 18:51:43 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.83 2003/11/04 13:41:53 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1205,7 +1206,7 @@ cdef class Group:
   def __dealloc__(self):
     cdef int ret
     # print "Destroying object Group in Extension"
-    if self.group_id <> 0:
+    if self.group_id <> 0 and 0:
       print "Group open: ", self.name
     free(<void *>self.name)
 
@@ -1872,61 +1873,30 @@ cdef class Array:
     # The parent group id for this object
     self.parent_id = where._v_groupId
 
-  def _createArray(self, object arr, char *title,
-                   char *flavor, char *obversion, int atomictype,
-                   int enlargeable, int compress, char *complib,
-                   int shuffle, int expectedobjects):
+  def _createArray(self, object naarr, char *title):
     cdef int i
     cdef herr_t ret
     cdef void *rbuf
     cdef int buflen, ret2
-    cdef object array, strcache
     cdef int itemsize, offset
-    cdef char *tmp, *byteorder
+    cdef char *byteorder
+    cdef char *flavor, *complib, *version
     cdef hid_t type_id
 
-    if isinstance(arr, numarray.NumArray):
-      self.type = arr._type
+    if isinstance(naarr, numarray.strings.CharArray):
+      self.type = CharType
+      self.enumtype = toenum[CharType]
+    else:
+      self.type = naarr._type
       try:
-        self.enumtype = toenum[arr._type]
+        self.enumtype = toenum[naarr._type]
       except KeyError:
         raise TypeError, \
       """Type class '%s' not supported rigth now. Sorry about that.
-      """ % repr(arr._type)
-      # Convert the array object to a an object with a well-behaved buffer
-      #array = <object>NA_InputArray(arr, self.enumtype, C_ARRAY)
-      # Do a copy of the array in case is not contiguous
-      # We can deal with the non-aligned and byteswapped cases
-      if not arr.iscontiguous():
-        #array = arr.copy()
-        # Change again the byteorder so as to keep the original one
-        # (copy() resets the byteorder to that of the host machine)
-        #if arr._byteorder <> array._byteorder:
-        #  array._byteswap()
-        # The next code is more efficient as it doesn't reverse the byteorder
-        # twice (if byteorder is different than this of the machine).
-        array = numarray.NDArray.copy(arr)
-        array._byteorder = arr._byteorder
-        array._type = arr._type
-      else:
-        array = arr
+      """ % repr(naarr._type)
 
-      itemsize = array.type().bytes
-      # The next is a trick to avoid a warning in Pyrex
-      strcache = arr._byteorder
-      byteorder = strcache
-    elif isinstance(arr, numarray.strings.CharArray):
-      self.type = CharType
-      #self.enumtype = 'a'
-      self.enumtype = toenum[CharType]
-      # Get a contiguous chararray object (well-behaved buffer)
-      array = arr.contiguous()
-      itemsize = array._itemsize
-      # In CharArrays byteorder does not matter, but we need one
-      # to pass it as convArrayType parameter
-      strcache = sys.byteorder
-      byteorder = strcache
-      
+    itemsize = naarr._itemsize
+    byteorder = PyString_AsString(self.byteorder)
     type_id = convArrayType(self.enumtype, itemsize, byteorder)
     if type_id < 0:
       raise TypeError, \
@@ -1934,32 +1904,31 @@ cdef class Array:
     % self.type
 
     # Get the pointer to the buffer data area
-    # PyObject_AsWriteBuffer cannot be used when buffers come from
-    # Numeric objects. Using the Read version only leads to a
-    # warning in compilation time.
-    ret2 = PyObject_AsReadBuffer(array._data, &rbuf, &buflen)
+    if PyObject_AsReadBuffer(naarr._data, &rbuf, &buflen) < 0:
+      raise RuntimeError("Problems getting the buffer area.")
     # Correct the start of the buffer with the _byteoffset
-    offset = array._byteoffset
+    offset = naarr._byteoffset
     rbuf = <void *>(<char *>rbuf + offset)
 
-    if ret2 < 0:
-      raise RuntimeError("Problems getting the buffer area.")
-
     # Allocate space for the dimension axis info
-    self.rank = len(array.shape)
+    self.rank = len(naarr.shape)
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Fill the dimension axis info with adequate info (and type!)
     for i from  0 <= i < self.rank:
-        self.dims[i] = array.shape[i]
+        self.dims[i] = naarr.shape[i]
         if self.dims[i] == 0:
           # When a dimension is zero, we have no available data
           rbuf = NULL
 
     # Save the array
+    flavor = PyString_AsString(self.flavor)
+    complib = PyString_AsString(self._v_complib)
+    version = PyString_AsString(self._v_version)
     ret = H5ARRAYmake(self.parent_id, self.name, title,
-                      flavor, obversion, atomictype, self.rank,
+                      flavor, version, self._v_atomictype, self.rank,
                       self.dims, type_id, self._v_chunksize, rbuf,
-                      compress, complib, shuffle, rbuf)
+                      self._v_compress, complib, self._v_shuffle,
+                      rbuf)
     if ret < 0:
       raise RuntimeError("Problems saving the array.")
 
@@ -1969,7 +1938,7 @@ cdef class Array:
     
   def _openArray(self):
     cdef object shape
-    cdef size_t type_size
+    cdef size_t type_size, type_precision
     cdef H5T_class_t class_id
     cdef H5T_sign_t sign
     cdef char byteorder[16]  # "non-relevant" fits easily here
@@ -1983,10 +1952,11 @@ cdef class Array:
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Get info on dimensions, class and type size
     ret = H5ARRAYget_info(self.parent_id, self.name, self.dims,
-                             &class_id, &sign, byteorder, &type_size)
+                          &class_id, &sign, byteorder,
+                          &type_size, &type_precision)
 
     # Get the array type
-    ret = getArrayType(class_id, type_size,
+    ret = getArrayType(class_id, type_size, type_precision,
                        sign, &self.enumtype)
     if ret < 0:
       raise TypeError, "HDF5 class %d not supported. Sorry!" % class_id
@@ -2028,16 +1998,11 @@ cdef class Array:
     # Fill the dimension axis info with adequate info (and type!)
     for i from  0 <= i < rank:
         dims_arr[i] = naarr.shape[i]
-
+        
     # Get the pointer to the buffer data area
-    ret2 = PyObject_AsWriteBuffer(naarr._data, &rbuf, &buflen)
-    if ret2 < 0:
+    if PyObject_AsWriteBuffer(naarr._data, &rbuf, &buflen) < 0:
       raise RuntimeError("Problems getting the buffer area.")
 
-#     print "self.dims-->", 
-#     for i from  0 <= i < rank:
-#         print self.dims[i],
-#     print
     # Append the records:
     ret = H5ARRAYappend_records(self.parent_id, self.name, self.rank,
                                 self.dims, dims_arr, rbuf)

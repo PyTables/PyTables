@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.54 2003/10/31 18:51:43 falted Exp $
+#       $Id: File.py,v 1.55 2003/11/04 13:41:53 falted Exp $
 #
 ########################################################################
 
@@ -31,9 +31,12 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.54 $"
-format_version = "1.1"                     # File format version we write
-compatible_formats = []                    # Old format versions we can read
+__version__ = "$Revision: 1.55 $"
+#format_version = "1.0" # Initial format
+#format_version = "1.1" # Changes in ucl compression
+format_version = "1.2"  # Support for enlargeable arrays
+compatible_formats = [] # Old format versions we can read
+                        # Empty means that we support all the old formats
 
 from __future__ import generators
 
@@ -480,10 +483,6 @@ class File(hdf5Extension.File, object):
         if compress and not enlargeable:
             # compression is supported only with enlargeable arrays
             enlargeable = 1
-          # These are not incompatibles anymore
-#         if atomictype and enlargeable:
-#             # atomic type is not supported with enlargeable arrays
-#             atomictype = 0
         if shuffle and not compress:
             # Shuffling and not compressing makes not sense
             shuffle = 0

@@ -39,7 +39,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
 		    const char *dset_name,
 		    const char *title,
 		    const char *flavor,
-		    const char *obversion,
+		    const char *obversion,    /* The Array VERSION number */
 		    int atomictype,
 		    const int rank, 
 		    const hsize_t *dims,
@@ -58,7 +58,6 @@ herr_t H5ARRAYmake( hid_t loc_id,
  hid_t   plist_id;
  hsize_t *dims_chunk;
  unsigned int cd_values[2];
- char    *VERSION = "2.0";  /* The Array VERSION number */
  int     enlargeable = 0;
  int     i, fixedmatsize, extdim;
 
@@ -158,14 +157,14 @@ herr_t H5ARRAYmake( hid_t loc_id,
      /* The LZO compressor does accept parameters */
      else if (strcmp(complib, "lzo") == 0) {
        cd_values[0] = compress;
-       cd_values[1] = (int)(atof(VERSION) * 10);
+       cd_values[1] = (int)(atof(obversion) * 10);
        if ( H5Pset_filter( plist_id, FILTER_LZO, 0, 2, cd_values) < 0 )
 	 return -1;
      }
      /* The UCL compress does accept parameters */
      else if (strcmp(complib, "ucl") == 0) {
        cd_values[0] = compress;
-       cd_values[1] = (int)(atof(VERSION) * 10);
+       cd_values[1] = (int)(atof(obversion) * 10);
        if ( H5Pset_filter( plist_id, FILTER_UCL, 0, 2, cd_values) < 0 )
 	 return -1;
      }
@@ -225,7 +224,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
   goto out;
    
  /* Attach the VERSION attribute */
- if ( H5LTset_attribute_string( loc_id, dset_name, "VERSION", VERSION ) < 0 )
+ if ( H5LTset_attribute_string( loc_id, dset_name, "VERSION", obversion ) < 0 )
   goto out;
      
  /* Attach the TITLE attribute */
@@ -495,7 +494,8 @@ herr_t H5ARRAYget_info( hid_t loc_id,
 			H5T_class_t *class_id,
 			H5T_sign_t *sign, 
 			char *byteorder,
-			size_t *type_size )
+			size_t *type_size,
+			size_t *type_precision )
 {
   hid_t       dataset_id;  
   hid_t       type_id;
@@ -567,6 +567,9 @@ herr_t H5ARRAYget_info( hid_t loc_id,
    
     /* Get the size. */
     *type_size = H5Tget_size( type_id );
+   
+    /* Get the precision */
+    *type_precision = H5Tget_precision( type_id );
    
     /* Get the byteorder */
     /* Only class integer and float can be byteordered */

@@ -15,6 +15,7 @@ hid_t convArrayType(int fmt, size_t size, char *byteorder);
 
 int getArrayType(H5T_class_t class_id,
 		 size_t type_size,
+		 size_t type_precision,
 		 H5T_sign_t sign,
 		 int *fmt);
 

@@ -50,7 +50,8 @@ herr_t H5ARRAYget_info( hid_t loc_id,
 			H5T_class_t *class_id,
 			H5T_sign_t *sign,
 			char *byteorder,
-			size_t *type_size );
+			size_t *type_size,
+			size_t *type_precision );
 
 #ifdef __cplusplus
 }

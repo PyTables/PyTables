@@ -32,7 +32,16 @@ hid_t
       
       return type_id;
     case tBool:
-      type_id = H5Tcopy(H5T_NATIVE_HBOOL);
+/*       type_id = H5Tcopy(H5T_NATIVE_HBOOL); */ 
+      /* The above NATIVE_BOOL takes 32 bits! */
+      /* The solution below choose a UCHAR and set a precision of 1
+	 in order to distinguish a boolean from a unsigned int8 */
+      type_id = H5Tcopy(H5T_NATIVE_UCHAR);
+      H5Tset_precision(type_id, 1);
+      /* These calls does not reduce the starage needs,
+	 so I'm going to comment them */
+/*       H5Tset_offset(type_id, 0); */
+/*       H5Tset_pad(type_id, H5T_PAD_ZERO, H5T_PAD_ZERO);  */
       break;
     case tInt8:
       type_id = H5Tcopy(H5T_NATIVE_SCHAR);
@@ -71,7 +80,6 @@ hid_t
       return -1;
    }
 
-   /* printf("Byteorder to save: %s\n", byteorder); */
    /* Set the byteorder datatype */
    if (strcmp(byteorder, "little") == 0) 
      H5Tset_order(type_id, H5T_ORDER_LE);
@@ -89,17 +97,21 @@ hid_t
  */
 int getArrayType(H5T_class_t class_id,
 		 size_t type_size,
+		 size_t type_precision,
 		 H5T_sign_t sign,
 		 int *fmt) 
 {
   switch(class_id) {
-  case H5T_INTEGER:                /* int (byte, short, long, long long) */
+  case H5T_INTEGER:           /* int (bool, byte, short, long, long long) */
     switch (type_size) {
     case 1:                        /* byte */
       if ( sign )
 	*fmt = tInt8;                /* signed byte */
       else
-	*fmt = tUInt8;                /* unsigned byte */
+	if (type_precision == 1)
+	  *fmt = tBool;              /* boolean */
+	else
+	  *fmt = tUInt8;             /* unsigned byte */
       break;
     case 2:                        /* short */
       if ( sign )

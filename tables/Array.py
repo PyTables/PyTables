@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.34 2003/10/31 18:51:43 falted Exp $
+#       $Id: Array.py,v 1.35 2003/11/04 13:41:53 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,13 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.34 $"
+__version__ = "$Revision: 1.35 $"
+
+# default version for ARRAY objects
+#obversion = "1.0"    # initial version
+obversion = "2.0"    # support of enlargeable arrays
+
+
 import types, warnings, sys
 from Leaf import Leaf
 from utils import calcBufferSize
@@ -127,7 +133,7 @@ class Array(Leaf, hdf5Extension.Array, object):
 
         """
         self.new_title = title
-        self._atomictype = atomictype
+        self._v_atomictype = atomictype
         self.enlargeable = enlargeable
         self._v_compress = compress
         self._v_complib = complib
@@ -140,20 +146,15 @@ class Array(Leaf, hdf5Extension.Array, object):
             self.object = object
         else:
             self._v_new = 0
-            
-    def _create(self):
-        """Save a fresh array (i.e., not present on HDF5 file)."""
-        # Call the _createArray superclass method to create the table
-        # on disk
 
-        obversion = "1.0"    # default version for ARRAY objects
-        arr = self.object
-        self.byteorder = sys.byteorder  # Default byteorder
+    def _convertIntoNA(self, object):
+        "Convert a generic object into a numarray object"
+        arr = object
         # Check for Numeric objects
         if isinstance(arr, numarray.NumArray):
             flavor = "NumArray"
             naarr = arr
-            self.byteorder = arr._byteorder
+            byteorder = arr._byteorder
         elif (Numeric_imported and type(arr) == type(Numeric.array(1))):
             flavor = "Numeric"
             if arr.typecode() == "c":
@@ -191,7 +192,6 @@ class Array(Leaf, hdf5Extension.Array, object):
         elif (isinstance(arr, strings.CharArray)):
             flavor = "CharArray"
             naarr = arr
-            self.byteorder = "non-relevant" 
         elif (isinstance(arr, types.TupleType) or
               isinstance(arr, types.ListType)):
             # Test if can convert to numarray object
@@ -226,41 +226,54 @@ class Array(Leaf, hdf5Extension.Array, object):
   chararray,homogeneous list or homogeneous tuple, int, float or str).
   Sorry, but this object is not supported.""" % (arr)
 
-        # This check should be refined
-        if naarr.shape == (0,):
-            raise ValueError, \
-"""The object '%s' has a zero sized dimension.
-  Sorry, but this object is not supported.""" % (arr)
+        # We always want a contiguous buffer
+        # (no matter if has an offset or not; that will be corrected later)
+        if (not naarr.iscontiguous()):
+            # Do a copy of the array in case is not contiguous
+            naarr = numarray.NDArray.copy(naarr)
+
+        return (naarr, flavor)
+            
+    def _create(self):
+        """Save a fresh array (i.e., not present on HDF5 file)."""
+        global obversion
+
+        self._v_version = obversion
+        naarr, flavor = self._convertIntoNA(self.object)
 
         if (isinstance(naarr, strings.CharArray)):
-            self.rowsize = len(naarr)
-        elif len(naarr.shape):
-            self.rowsize = len(naarr) * naarr._type.bytes
+            self.byteorder = "non-relevant" 
         else:
-            # Case of scalar arrays (shape = ())
-            self.rowsize = None
-        #print "Array:", self.new_title, "is Enlargeable?:", self.enlargeable
+            self.byteorder  = naarr._byteorder
+
+        # Check for null dimensions
+        zerodims = numarray.sum(numarray.array(naarr.shape) == 0)
+        if zerodims > 0:
+            if zerodims == 1:
+                # If there is some zero dimension, set the Array as
+                # enlargeable
+                self.enlargeable = 1
+            else:
+                raise NotImplementedError, "Multiple zero-dimension on arrays is not supported"
+
         # Compute some values for buffering and I/O parameters
         if self.enlargeable:
-            if naarr.shape <> (0,):
-                (self._v_maxTuples, self._v_chunksize) = \
-                                    calcBufferSize(self.rowsize,
-                                                   self._v_expectedobjects,
-                                                   self._v_compress)
-            else:
-                (self._v_maxTuples, self._v_chunksize) = (1,1024)
+            # Compute the rowsize for each element
+            self.rowsize = naarr._type.bytes
+            for i in naarr.shape:
+                if i>0:
+                    self.rowsize *= i
+            # Compute the optimal chunksize
+            (self._v_maxTuples, self._v_chunksize) = \
+               calcBufferSize(self.rowsize, self._v_expectedobjects,
+                              self._v_compress)
         else:
             (self._v_maxTuples, self._v_chunksize) = (1,0)
 
-        self.type = self._createArray(naarr, self.new_title,
-                                      flavor, obversion, self._atomictype,
-                                      self.enlargeable, self._v_compress,
-                                      self._v_complib, self._v_shuffle,
-                                      self._v_expectedobjects)
-        # Get some important attributes
         self.shape = naarr.shape
         self.itemsize = naarr._itemsize
         self.flavor = flavor
+        self.type = self._createArray(naarr, self.new_title)
 
     def _open(self):
         """Get the metadata info for an array in file."""
@@ -270,30 +283,36 @@ class Array(Leaf, hdf5Extension.Array, object):
     def append(self, object):
         """Append the object to this enlargeable object"""
 
+        # Convert the object to a numarray object
+        naarr, flavor = self._convertIntoNA(object)
+        # If you don't want to mix different flavors, uncomment this
+#         if flavor <> self.flavor:
+#             raise RuntimeError, \
+# """You are trying to append an object with flavor '%s' to an Array object with flavor '%s'. Please, try to supply objects with the same flavor.""" % \
+#             (flavor, self.flavor)
+        
         # Add conversion procedures as well as checks for
         # conforming objects to be added
         # First, self is extensible?
         extdim = self.attrs.EXTDIM
-        assert extdim <> None, "Sorry, the Array %s seems not enlargeable." % \
+        assert extdim <> None, "Sorry, the Array %s is not enlargeable." % \
                (self.pathname)
         # Next, the arrays conforms self expandibility?
-        assert len(self.shape) == len(object.shape), \
+        assert len(self.shape) == len(naarr.shape), \
 """Sorry, the ranks of the Array '%s' and object to be appended differ
-  (%d <> %d).""" % (self._v_pathname, len(self.shape), len(object.shape))
+  (%d <> %d).""" % (self._v_pathname, len(self.shape), len(naarr.shape))
         for i in range(len(self.shape)):
             if i <> extdim:
-                assert self.shape[i] == object.shape[i], \
+                assert self.shape[i] == naarr.shape[i], \
 """Sorry, shapes of Array '%s' and object differ in dimension %d (non-enlargeable)""" % (self._v_pathname, i) 
         
-        self._append(object)
+        self._append(naarr)
 
     # Accessor for the _readArray method in superclass
     def read(self):
         """Read the array from disk and return it as numarray."""
 
         if repr(self.type) == "CharType":
-            #print "self.shape ==>", self.shape
-            #print "self.shape 2 ==>", self.itemsize
             arr = strings.array(None, itemsize=self.itemsize,
                                   shape=self.shape)
         else:
