@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.95 2003/12/19 13:17:32 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.96 2003/12/19 17:44:18 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.95 $"
+__version__ = "$Revision: 1.96 $"
 
 
 import sys, os
@@ -820,7 +820,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.95 2003/12/19 13:17:32 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.96 2003/12/19 17:44:18 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -2054,7 +2054,7 @@ cdef class Array:
         # For EArray, EXTDIM attribute exists
         H5LTget_attribute_int(self.parent_id, self.name, "EXTDIM", &extdim)
         self.extdim = extdim
-    self.flavor = flavor
+    self.flavor = flavor  # Gives class visibility to flavor
     
     # Get the array type
     type_size = getArrayType(self.type_id, &self.enumtype)

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.2 2003/12/16 12:59:03 falted Exp $
+#       $Id: EArray.py,v 1.3 2003/12/19 17:44:19 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.2 $"
+__version__ = "$Revision: 1.3 $"
 # default version for EARRAY objects
 obversion = "1.0"    # initial version
 
@@ -148,6 +148,13 @@ class EArray(Array, hdf5Extension.Array, object):
         if object is not None:
             self._v_new = 1
             self.object = object
+            if hdf5Extension.isLibAvailable(complib)[0]:
+		self._v_complib = complib
+	    else:
+		warnings.warn( \
+"""You are asking for the %s compression library, but it is not available. Defaulting to zlib instead!.""" %(complib))
+                self._v_complib = "zlib"   # Should always exists
+
         else:
             self._v_new = 0
 

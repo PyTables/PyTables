@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.85 2003/12/19 13:17:32 falted Exp $
+#       $Id: Table.py,v 1.86 2003/12/19 17:44:19 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.85 $"
+__version__ = "$Revision: 1.86 $"
 
 from __future__ import generators
 import sys
@@ -189,8 +189,7 @@ class Table(Leaf, hdf5Extension.Table, object):
 		self._v_complib = complib
 	    else:
 		warnings.warn( \
-"""You are asking for the %s compression library, but it is not available.
-  Defaulting to zlib instead!.""" %(complib))
+"""You are asking for the %s compression library, but it is not available. Defaulting to zlib instead!.""" %(complib))
                 self._v_complib = "zlib"   # Should always exists
 
     def _newBuffer(self, init=1):

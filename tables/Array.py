@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.48 2003/12/18 13:03:18 falted Exp $
+#       $Id: Array.py,v 1.49 2003/12/19 17:44:18 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.48 $"
+__version__ = "$Revision: 1.49 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -260,7 +260,6 @@ class Array(Leaf, hdf5Extension.Array, object):
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
                    calcBufferSize(self.rowsize, self.nrows, self._v_compress)
-        #print "maxtuples-->", self._v_maxTuples, self._v_chunksize
 
     def iterrows(self, start=None, stop=None, step=None):
         """Iterator over all the rows or a range"""
@@ -344,32 +343,32 @@ class Array(Leaf, hdf5Extension.Array, object):
             else:
                 return self.listarr    # Scalar case
 
-    def __getitem__orig(self, key):
-        """Returns a table row, table slice or table column.
+#     def __getitem__orig(self, key):
+#         """Returns a table row, table slice or table column.
 
-        It takes different actions depending on the type of the "key"
-        parameter:
+#         It takes different actions depending on the type of the "key"
+#         parameter:
 
-        If "key"is an integer, the corresponding row is returned. If
-        "key" is a slice, the row slice determined by key is returned.
+#         If "key"is an integer, the corresponding row is returned. If
+#         "key" is a slice, the row slice determined by key is returned.
 
-"""
+# """
 
-        if isinstance(key, types.IntType):
-            (start, stop, step) = (key, key+1, 1)
-            ret = self.read(start, stop, step)
-        elif isinstance(key, types.SliceType):
-            (start, stop, step) = processRange(self.nrows, key.start, key.stop, key.step)
-            ret = self.read(start, stop, step)
-        else:
-            raise ValueError, "Non-valid index or slice: %s" % \
-                  key
+#         if isinstance(key, types.IntType):
+#             (start, stop, step) = (key, key+1, 1)
+#             ret = self.read(start, stop, step)
+#         elif isinstance(key, types.SliceType):
+#             (start, stop, step) = processRange(self.nrows, key.start, key.stop, key.step)
+#             ret = self.read(start, stop, step)
+#         else:
+#             raise ValueError, "Non-valid index or slice: %s" % \
+#                   key
 
-        if len(range(start, stop, step)) == 1 and self.extdim > 0:
-            ret.swapaxes(self.extdim, 0)
-            return ret[0]
-        else:
-            return ret
+#         if len(range(start, stop, step)) == 1 and self.extdim > 0:
+#             ret.swapaxes(self.extdim, 0)
+#             return ret[0]
+#         else:
+#             return ret
         
     def __getitem__(self, keys):
         """Returns an Array row or slice.

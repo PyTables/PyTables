@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.9 2003/12/18 10:13:11 falted Exp $
+#       $Id: VLArray.py,v 1.10 2003/12/19 17:44:19 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.9 $"
+__version__ = "$Revision: 1.10 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -324,6 +324,12 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         if atom is not None:
             self.atom = atom
             self._v_new = 1
+            if hdf5Extension.isLibAvailable(complib)[0]:
+		self._v_complib = complib
+	    else:
+		warnings.warn( \
+"""You are asking for the %s compression library, but it is not available. Defaulting to zlib instead!.""" %(complib))
+                self._v_complib = "zlib"   # Should always exists
         else:
             self._v_new = 0
 
