@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.36 2004/12/09 13:01:59 falted Exp $
+#       $Id: AttributeSet.py,v 1.37 2004/12/14 17:40:36 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.36 $"
+__version__ = "$Revision: 1.37 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -52,6 +52,7 @@ SYS_ATTRS_PREFIXES = ["FIELD_"]
 # Read-only attributes:
 RO_ATTRS = ["CLASS", "FLAVOR", "VERSION", "NROWS", "EXTDIM",
             "PYTABLES_FORMAT_VERSION", "FILTERS"]
+
 
 def issysattrname(name):
     "Check if a name is a system attribute or not"

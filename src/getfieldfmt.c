@@ -315,7 +315,6 @@ herr_t getfieldfmt( hid_t loc_id,
       if ( ( member_type_id = H5Tget_member_type( type_id, i )) < 0 )
 	goto out;
   
-/*       switch (order = H5Tget_order(member_type_id)) { */
       switch (order = get_order(member_type_id)) {
       case H5T_ORDER_LE:
 	fmt[0] = '<';

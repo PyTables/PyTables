@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.29 2004/12/09 13:02:01 falted Exp $
+#       $Id: utils.py,v 1.30 2004/12/14 17:40:36 falted Exp $
 #
 ########################################################################
 
@@ -14,6 +14,7 @@
 """
 
 import types, re
+#from warnings import Warning
 # The second line is better for some installations
 #from tables.hdf5Extension import getIndices
 from hdf5Extension import getIndices
@@ -31,9 +32,13 @@ reservedprefixes = [
   '_f_',   # For class public functions
   '_g_',   # For class private functions
   '_v_',   # For instance variables
+  '_i_',   # For indexed Columns
 ]
 
 pat = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
+
+class NameWarning(Warning):
+    pass
 
 def checkNameValidity(name):
     "Check the validity of a name to be put in the object tree"
@@ -41,9 +46,9 @@ def checkNameValidity(name):
 
     # First, some checks for avoid execution of arbitrary (malign) code
     # Suggested by I. Vilata
-    if not pat.match(name):
-        raise NameError, \
-"""Sorry, you must use a name compliant with '[a-zA-Z_][a-zA-Z0-9_]*' regexp"""
+#     if not pat.match(name):
+#         raise NameError, \
+# """Sorry, you must use a name compliant with '[a-zA-Z_][a-zA-Z0-9_]*' regexp"""
 
     # Check if name starts with a reserved prefix
     for prefix in reservedprefixes:
@@ -61,10 +66,13 @@ def checkNameValidity(name):
         exec(testname + ' = 1')  # Test for trailing and ending spaces
         exec(name + '= 1')  # Test for name validity
     except SyntaxError:
-        raise NameError, \
-"""\'%s\' is not a valid python identifier and cannot be used in this context.
-  Check for special symbols ($, %%, @, ...), spaces or reserved words.""" % \
-  (name)
+        
+        warnings.warn("""\'%s\' is not a valid python identifier and cannot be used in this context. Check for special symbols ($, %%, @, ...), spaces or reserved words.""" % (name), NameWarning)
+        
+#         raise NameError, \
+#  """\'%s\' is not a valid python identifier and cannot be used in this context.
+#   Check for special symbols ($, %%, @, ...), spaces or reserved words.""" % \
+#   (name)
 
 
 def _calcBufferSize(rowsize, expectedrows):

@@ -2928,15 +2928,14 @@ KeyError: Error setting "ADCcount" field.
                </item>
 	      <term>name</term> <item>The name of the new table.
               </item>
-	      <term>description</term> <item>An instance of a
-		user-defined class (derived from the
-		<verb>IsDescription</verb> class) where table fields
-		are defined. However, in certain situations, it is
-		more handy to allow this description to be supplied as
-		a dictionary (for example, when you do not know
-		beforehand which structure will have your table). In
-		such a cases, you can pass the description as a
-		dictionary as well. See <ref
+	      <term>description</term> <item>A user-defined class,
+		derived from the <verb>IsDescription</verb> class,
+		where table fields are specified. However, in certain
+		situations, it is more handy to allow this description
+		to be supplied as a dictionary (for example, when you
+		do not know beforehand which structure will have your
+		table). In such a cases, you can pass the description
+		as a dictionary as well. See <ref
 		refid="secondExample">section</ref> for an example of
 		use. Finally, a <verb>RecArray</verb> object from the
 		<verb>numarray</verb> package is also accepted, and
