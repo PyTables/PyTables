@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.67 2004/01/16 14:00:27 falted Exp $
+#       $Id: File.py,v 1.68 2004/01/20 20:00:55 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.67 $"
+__version__ = "$Revision: 1.68 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -314,9 +314,6 @@ class File(hdf5Extension.File, object):
             # Finally, save the PyTables format version for this file
             self.format_version = format_version
             attrsRoot._g_setAttrStr('PYTABLES_FORMAT_VERSION', format_version)
-            # Add these attributes to the dictionary
-            attrsRoot._v_attrnames.extend(['TITLE','CLASS','VERSION',
-                                           'PYTABLES_FORMAT_VERSION'])
             # Add these attributes to the dictionary
             attrsRoot._v_attrnames.extend(['TITLE','CLASS','VERSION',
                                            'PYTABLES_FORMAT_VERSION'])
