@@ -1049,6 +1049,10 @@ herr_t H5LTset_attribute_string( hid_t loc_id,
  if ( H5Sclose( attr_space_id ) < 0 )
   goto out;
 
+ /* Close the attribute type */
+ /* This was added by Francesc Alted to avoid a memory leak */
+ /* 01/09/2003 */
+ H5Tclose(attr_type);
  /* Close the object */
  if ( H5LT_close_id( obj_id, statbuf.type ) < 0 )
   return -1;

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.16 2003/08/14 17:54:49 falted Exp $
+#       $Id: AttributeSet.py,v 1.17 2003/09/08 10:15:30 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.16 $"
+__version__ = "$Revision: 1.17 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -269,10 +269,14 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         delattr(self, oldattrname)
 
     def _f_close(self):
+        "Delete some back-references"
+        del self.__dict__["_v_node"]
+        # After the objects are disconnected, destroy the
+        # object dictionary using the brute force ;-)
+        # This should help to the garbage collector
+        #self.__dict__.clear()
 
-        del self.__dict__["_v_attrnames"]
-        del self.__dict__["_v_attrnamessys"]
-        del self.__dict__["_v_attrnamesuser"]
+        pass
 
     def __str__(self):
         """The string representation for this object."""

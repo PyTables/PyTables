@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.50 2003/08/08 15:23:52 falted Exp $
+#       $Id: File.py,v 1.51 2003/09/08 10:15:30 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.50 $"
+__version__ = "$Revision: 1.51 $"
 format_version = "1.1"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -671,7 +671,9 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         # If the file is already closed, return immediately
         if not self.isopen:
             return
-        
+
+        # Get a list of groups on tree
+        listgroups = self.root._f_getListTree()
         for group in self.walkGroups(self.root):
             for leaf in self.listNodes(group, classname = 'Leaf'):
                 leaf.close()
@@ -680,13 +682,24 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
             
         # Delete the root object (this should recursively delete the
         # object tree)
-        del self.root
+        #         del self.root    # not necessary
+
+        # Pass Mr proper
+#         for group in listgroups:
+#             group.__dict__.clear()
+#             group._v_childs.clear()
+#         self.groups.clear()
 
         # Close the file
         self._closeFile()
                     
         # Set the flag to indicate that the file is closed
         self.isopen = 0
+
+        # After the objects are disconnected, destroy the
+        # object dictionary using the brute force ;-)
+        # This should help to the garbage collector
+        #self.__dict__.clear()
 
         return
 
@@ -706,22 +719,22 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
                 
         return astring
 
-    def __repr__(self):
-        """Returns a more complete representation of the object tree"""
+#     def __repr__(self):
+#         """Returns a more complete representation of the object tree"""
         
-        # Print all the nodes (Group and Leaf objects) on object tree
-        astring = 'File(filename=' + repr(self.filename) + \
-                  ', title=' + repr(self.title) + \
-                  ', mode=' + repr(self.mode) + \
-                  ', trMap=' + repr(self.trMap) + \
-                  ', rootUEP=' + repr(self.rootUEP) + \
-                  ')\n'
-        for group in self.walkGroups("/"):
-            astring += str(group) + '\n'
-            for leaf in self.listNodes(group, 'Leaf'):
-                astring += repr(leaf) + '\n'
+#         # Print all the nodes (Group and Leaf objects) on object tree
+#         astring = 'File(filename=' + repr(self.filename) + \
+#                   ', title=' + repr(self.title) + \
+#                   ', mode=' + repr(self.mode) + \
+#                   ', trMap=' + repr(self.trMap) + \
+#                   ', rootUEP=' + repr(self.rootUEP) + \
+#                   ')\n'
+#         for group in self.walkGroups("/"):
+#             astring += str(group) + '\n'
+#             for leaf in self.listNodes(group, 'Leaf'):
+#                 astring += repr(leaf) + '\n'
                 
-        return astring
+#         return astring
 
     def _g_del__(self):
         """Delete some objects"""

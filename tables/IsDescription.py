@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.18 2003/08/08 15:23:52 falted Exp $
+#       $Id: IsDescription.py,v 1.19 2003/09/08 10:15:30 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.18 $"
+__version__ = "$Revision: 1.19 $"
 
 
 import warnings
@@ -116,10 +116,10 @@ class Col:
               ")"
         return out
 
-    # Moved out of scope
-    def _f_del__(self):
-        print "Deleting Col object"
-
+    # Just a test
+    def __close(self):
+        self.__dict__.clear()
+        
 
 class StringCol(Col):
     """ Define a string column """
@@ -398,15 +398,17 @@ class Description(object):
     def _close(self):
         #del self.__slots__
         #print self._v_ColObjects
+#         for object in self._v_ColObjects.values():
+#             object._close()
         self._v_ColObjects.clear()
-        #del self.__dict__["_v_ColObjects"]
+        del self.__dict__["_v_ColObjects"]
         self._v_itemsizes.clear()
         self._v_shapes.clear()
-        #self.__dflts__.clear()
+        self.__dflts__.clear()
         #del self.__slots__["_v_ColObjects"]
         #self._v_formats = None
         self.__types__.clear()
-        #self.__dict__.clear()
+        self.__dict__.clear()
         return
 
     def testtype(self, object):

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.49 2003/08/14 17:54:49 falted Exp $
+#       $Id: Group.py,v 1.50 2003/09/08 10:15:30 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.49 $"
+__version__ = "$Revision: 1.50 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -424,6 +424,24 @@ I can't promise getting the correct object, but I will do my best!.""",
                 stack.append(objgroup._v_groups[groupname])
                 yield objgroup._v_groups[groupname]
                 
+    def _f_getListTree(self):
+        """Return a list with Groups (not Leaves) hanging from self.
+
+        The groups are returned ordered from top to bottom.
+
+        """
+        
+        stack = [self]
+        stack2 = [self]
+        # Iterate over the descendants
+        while stack:
+            objgroup=stack.pop()
+            groupnames = objgroup._v_groups.keys()
+            for groupname in groupnames:
+                stack.append(objgroup._v_groups[groupname])
+                stack2.append(objgroup._v_groups[groupname])
+        return stack2
+    
     def __delattr__(self, name):
         """Remove *recursively* all the objects hanging from name child."""
 
@@ -489,14 +507,16 @@ I can't promise getting the correct object, but I will do my best!.""",
             del self._v_parent._v_childs[self._v_name]  # necessary (checked)
             del self._v_parent.__dict__[self._v_name]
         del self._v_file.groups[self._v_pathname]  
-        del self._v_file.objects[self._v_pathname] 
+        del self._v_file.objects[self._v_pathname]
+        ##################################
+        #self._v_childs.clear()
+        ##################################
         # Delete back references
         #del self._v_rootgroup    # This is incorrect!!
         del self.__dict__["_v_rootgroup"]
         del self.__dict__["_v_parent"]
         # Detach the AttributeSet instance
-        if self._v_name <> '/':
-            self._v_attrs._f_close()
+        self._v_attrs._f_close()
         del self.__dict__["_v_attrs"]
 
     def _f_getAttr(self, attrname):
@@ -549,26 +569,26 @@ I can't promise getting the correct object, but I will do my best!.""",
             self._f_close()
             self._g_deleteGroup()
 
-    def __str__(self):
-        """The string representation for this object."""
-        # Get the associated filename
-        filename = self._v_rootgroup._v_filename
-        # The pathname
-        pathname = self._v_pathname
-        # Get this class name
-        classname = self.__class__.__name__
-        # The title
-        title = self._v_title
-        return "%s (%s) %r" % (pathname, classname, title)
+#     def __str__(self):
+#         """The string representation for this object."""
+#         # Get the associated filename
+#         filename = self._v_rootgroup._v_filename
+#         # The pathname
+#         pathname = self._v_pathname
+#         # Get this class name
+#         classname = self.__class__.__name__
+#         # The title
+#         title = self._v_title
+#         return "%s (%s) %r" % (pathname, classname, title)
 
-    def __repr__(self):
-        """A detailed string representation for this object."""
+#     def __repr__(self):
+#         """A detailed string representation for this object."""
         
-        rep = [ '%r (%s)' %  \
-                (childname, child.__class__.__name__) 
-                for (childname, child) in self._v_childs.items() ]
-        childlist = '[%s]' % (', '.join(rep))
+#         rep = [ '%r (%s)' %  \
+#                 (childname, child.__class__.__name__) 
+#                 for (childname, child) in self._v_childs.items() ]
+#         childlist = '[%s]' % (', '.join(rep))
         
-        return "%s\n  childs := %s" % \
-               (str(self), childlist)
+#         return "%s\n  childs := %s" % \
+#                (str(self), childlist)
                

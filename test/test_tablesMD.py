@@ -907,7 +907,7 @@ class RecArrayIO(unittest.TestCase):
         r2 = r[::2]
 
         # Get an offsetted bytearray
-        r1 = r2[298:]
+        r1 = r2[148:]
         if verbose:
             print "\noffseted and strided recarray --> ", r1
         assert r1._byteoffset > 0

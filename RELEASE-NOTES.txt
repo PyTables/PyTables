@@ -23,13 +23,11 @@ been addressed:
 Apart of these fixes, a new lazy reading algorithm for attributes has
 been activated by default. With that, the opening of objects with
 large hierarchies has been improved by 60% (you can obtain another
-additional 10% if using python 2.3 instead of python 2.2).  The
-documentation has been updated as well, specially a more detailed
-instructions on the compression (zlib) libraries installation.
+additional 10% if using python 2.3 instead of python 2.2).
 
-Also, a stress test has been conducted in order to see if PyTables can
-*really* work not only with large data tables, but also with large
-object trees. In it, it has been generated and checked a file with
-more than 1 TB of size and more than 100 thousand tables on it!. See
-http://pytables.sourceforge.net/doc/stress-test.html for details.
+Let me know of any bugs, suggestions, gripes, kudos, etc. you may
+have.
+
+-- Francesc Alted
+falted@openlc.org
 

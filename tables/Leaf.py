@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.23 2003/08/05 15:39:05 falted Exp $
+#       $Id: Leaf.py,v 1.24 2003/09/08 10:15:30 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.23 $"
+__version__ = "$Revision: 1.24 $"
 
 import types
 from utils import checkNameValidity
@@ -176,8 +176,13 @@ class Leaf:
         # The next also work!
         # In some situations, this maybe undefined
         if hasattr(self, "attrs"): 
-            #self.attrs._f_close()
+            self.attrs._f_close()
             del self.attrs
+
+        # After the objects are disconnected, destroy the
+        # object dictionary using the brute force ;-)
+        # This should help to the garbage collector
+        #self.__dict__.clear()
 
     def __str__(self):
         """The string reprsentation choosed for this object is its pathname
