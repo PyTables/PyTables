@@ -14,8 +14,8 @@ November 18, 2002
 #######################################
 
 The goal of PyTables is to enable the end user to manipulate easily
-scientific data tables and Numerical Python objects (new in 0.2!)  in
-a persistent hierarchical structure. The foundation of the underlying
+scientific data tables and Numerical Python objects (new in 0.2!) in a
+persistent, hierarchical structure. The foundation of the underlying
 hierachical data organization is the excellent HDF5 library
 (http://hdf.ncsa.uiuc.edu/HDF5). Right now, PyTables provides limited
 support of all the HDF5 functions, but I hope to add the more

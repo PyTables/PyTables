@@ -12,8 +12,8 @@ What's new
 - Dropped HDF5_HL dependency (a tailored version is included in sources now)
 - License changed from LGPL to BSD
 
-What is
--------
+What it is
+----------
 
 The goal of PyTables is to enable the end user to manipulate easily
 scientific data tables and Numerical Python objects (new in 0.2!)  in
@@ -59,10 +59,10 @@ HDF5 files according to your needs.
 How fast is it?
 ---------------
 
-Despite to be an alpha version and that there is lot of room for
-improvements (it's still CPU bounded!), PyTables can read and write
-tables quite fast. But, if you want some (very preliminary) figures
-(just to know orders of magnitude), in a AMD Athlon@900 it can
+Although it is still in the alpha stages of development, and there
+still is quite a bit of room for improvement, PyTables can read and
+write tables quite fast. But, if you want some (very preliminary)
+figures (just to know orders of magnitude), on a AMD Athlon@900 it can
 currently read from 40000 up to 60000 records/s and write from 5000 up
 to 13000 records/s. Raw data speed in read mode ranges from 1 MB/s up
 to 2 MB/s, and it drops to the 200 KB/s - 600 KB/s range for writes.
@@ -71,7 +71,7 @@ Go to http://pytables.sf.net/bench.html for a somewhat more detailed
 description of this small (and synthetic) benchmark.
 
 Anyway, this is only the beginning (premature optimization is the root
-of all evils, you know ;-).
+of all evil, you know ;-).
 
 Platforms
 ---------
@@ -102,10 +102,9 @@ http://pytables.sf.net/
 Final note
 ----------
 
-This is second alpha release, and probably last alpha, so it is
-still time if you want to suggest some API addition/change or
-addition/change of any useful missing capability. Let me know of any
-bugs, suggestions, gripes, kudos, etc. you may have.
+This is the second alpha release, probably last alpha. There is still
+if you want to suggest some API or useful capability addition or. Let
+me know of any bugs, suggestions, gripes, kudos, etc. you may have.
 
 -- Francesc Alted
 falted@openlc.org
