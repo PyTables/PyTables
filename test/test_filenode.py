@@ -5,7 +5,7 @@
 #	Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/test/test_filenode.py,v $
-#	$Id: test_filenode.py,v 1.3 2004/11/05 15:35:26 falted Exp $
+#	$Id: test_filenode.py,v 1.4 2004/11/16 22:42:06 ivilata Exp $
 #
 ########################################################################
 
@@ -19,7 +19,7 @@ import warnings
 from test_all import verbose
 
 
-__revision__ = '$Id: test_filenode.py,v 1.3 2004/11/05 15:35:26 falted Exp $'
+__revision__ = '$Id: test_filenode.py,v 1.4 2004/11/16 22:42:06 ivilata Exp $'
 
 
 
@@ -279,10 +279,9 @@ class OpenFileTestCase(unittest.TestCase):
 		"Opening a node with no type attributes."
 
 		node = self.h5file.getNode('/test')
-		# 2004-10-02: This method doesn't exist! (BUG #1049297)
 		self.h5file.delAttrNode('/test', '_type')
-		#   So the value is changed to get the same result.
-		#self.h5file.setAttrNode('/test', '_type', 'foobar')
+		# Another way to get the same result is changing the value.
+		##self.h5file.setAttrNode('/test', '_type', 'foobar')
 		self.assertRaises(ValueError, FileNode.openNode, node)
 
 
@@ -684,14 +683,12 @@ class AttrsTestCase(unittest.TestCase):
 			"User attribute was not correctly changed.")
 
 		del self.fnode.attrs.userAttr
-		# 2004-10-14: This unearths BUG #1049285 in PyTables'
-		#   attribute removal.
-		##self.assertEqual(
-		##	getattr(self.fnode.attrs, 'userAttr', None), None,
-		##	"User attribute was not deleted.")
-		#   So we look at the list of user attributes.
-		if 'userAttr' in self.fnode.attrs._f_list():
-			self.fail("User attribute was not deleted.")
+		self.assertEqual(
+			getattr(self.fnode.attrs, 'userAttr', None), None,
+			"User attribute was not deleted.")
+		# Another way is looking up the attribute in the attribute list.
+		##if 'userAttr' in self.fnode.attrs._f_list():
+		##	self.fail("User attribute was not deleted.")
 
 
 	def test03_AttrsOnClosedFile(self):
