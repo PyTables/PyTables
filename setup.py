@@ -13,10 +13,14 @@ if not (sys.version_info[0] >= 2 and sys.version_info[1] >= 2):
 
 from distutils.core     import setup, Extension
 from distutils.dep_util import newer
-# Uncomment this if Pyrex installed and want to rebuild everything
-#from Pyrex.Distutils import build_ext
-# And also put pyrex = 1
-pyrex = 0
+# Check if Pyrex is installed or not
+try:
+    from Pyrex.Distutils import build_ext
+    pyrex = 1
+    cmdclass = {'build_ext': build_ext}
+except:
+    pyrex = 0
+    cmdclass = {}
 
 VERSION = "0.8a"
 
@@ -68,6 +72,8 @@ def check_lib(libname, maindir, dll_lib,
     # Return the dirs for stub libs and headers (if found)
     return (fdirstub, fdirheader)
 
+#-----------------------------------------------------------------
+
 if os.name == 'posix':
     # Define macros for UNIX platform
     def_macros = [('NDEBUG', 1)]
@@ -82,7 +88,7 @@ if os.name == 'posix':
     LIBS = os.environ.get('LIBS', [])
 
     # ...then the command line.
-    # Handle --hdf5=[PATH] --comprdir=[PATH] --libs=[LIBS] and --lflags=[FLAGS]
+    # Handle --hdf5=[PATH] --lzo=[PATH] --ucl=[PATH] --libs=[LIBS] and --lflags=[FLAGS]
     args = sys.argv[:]
     for arg in args:
         if string.find(arg, '--hdf5=') == 0:
@@ -183,7 +189,8 @@ compile and run."""
                 LZO_DIR = instdir
                 lzolibdir = os.path.join(instdir, "lib")
                 print "Found LZO libraries at " + lzolibdir
-                lib_dirs.append(lzolibdir)
+                if lzolibdir not in lib_dirs:
+                    lib_dirs.append(lzolibdir)
                 break
             else:
                 lzolibdir = None
@@ -192,7 +199,8 @@ compile and run."""
         if os.path.isfile(headerlzo):
             lzoincdir = os.path.join(instdir, "include")
             print "Found LZO header files at " + lzoincdir
-            inc_dirs.append(os.path.join(instdir, "include"))
+            if lzoincdir not in inc_dirs:
+                inc_dirs.append(lzoincdir)
             if lzolibdir and (not '-llzo' in LIBS):
                 libnames.append('lzo')
                 def_macros.append(("HAVE_LZO_LIB", 1))
@@ -218,32 +226,35 @@ support for them."""
                 UCL_DIR = instdir
                 ucllibdir = os.path.join(instdir, "lib")
                 print "Found UCL libraries at " + ucllibdir
-                lib_dirs.append(ucllibdir)
+                if ucllibdir not in lib_dirs:
+                    lib_dirs.append(ucllibdir)
                 break
             else:
                 ucllibdir = None
 
-        headerucl = os.path.join(instdir, "include/ucl/ucl.h")
-        if os.path.isfile(headerucl):
+        uclincdir = None
+        if os.path.isfile(os.path.join(instdir, "include/ucl/ucl.h")):
+            uclincdir = os.path.join(instdir, "include/ucl")
+        elif os.path.isfile(os.path.join(instdir, "include/ucl.h")):
             uclincdir = os.path.join(instdir, "include")
+        if uclincdir:
             print "Found UCL header files at " + uclincdir
-            inc_dirs.append(os.path.join(instdir, "include"))
+            if uclincdir not in inc_dirs:
+                inc_dirs.append(uclincdir)
             if ucllibdir and (not '-lucl' in LIBS):
                 libnames.append('ucl')
                 def_macros.append(("HAVE_UCL_LIB", 1))
             break
-        else:
-            uclincdir = None
 
     if not ucllibdir or not uclincdir:
         print """Optional UCL libraries or include files not found. Disabling \
 support for them."""
 
     # Set the runtime library search path
-    rlib_dirs = lib_dirs
-    # The use of rlib_dirs is avoided, because debian lintian says that
-    # this is not a good practice, although I does not further investigated
-    # that. 2003/09/30
+    # The use of rlib_dirs should be avoided, because debian lintian says that
+    # this is not a good practice, although I should further investigate this.
+    # 2003/09/30
+    #rlib_dirs = lib_dirs
     rlib_dirs = []
         
     # Set the appropriate flavor hdf5Extension.c source file:
@@ -251,6 +262,8 @@ support for them."""
         hdf5Extension = "src/hdf5Extension.pyx"
     else:
         hdf5Extension = "src/hdf5Extension.c"
+        
+#-----------------------------------------------------
    
 elif os.name == 'nt':
     # Define macros for Windows platform
@@ -370,9 +383,9 @@ compile and run."""
     if pyrex:
         hdf5Extension = "src/hdf5Extension.pyx"
     else:
-        hdf5Extension = "src/hdf5Extension-win.c"
+        hdf5Extension = "src/hdf5Extension.c"
         
-# Update the version .h file if this file is newer
+# Update the version.h file if this file is newer
 if pyrex:
     if newer('setup-pyrex.py', 'src/version.h'):
         open('src/version.h', 'w').write('#define PYTABLES_VERSION "%s"\n' % VERSION)
@@ -380,29 +393,13 @@ else:
     if newer('setup.py', 'src/version.h'):
         open('src/version.h', 'w').write('#define PYTABLES_VERSION "%s"\n' % VERSION)
 
-# Generate a proper extension file for Windows
-# As of Pyrex 0.9 on, this is no longer necessary
-# if exists('src/hdf5Extension.c'):
-# if exists('src/hdf5Extension.c'):
-#     if newer('src/hdf5Extension.c', 'src/hdf5Extension-win.c'):
-#         filein=open("src/hdf5Extension.c","r")
-#         fileout=open("src/hdf5Extension-win.c","w")
-#         for line in filein:
-#             line=line.replace("long long", "LL_TYPE")
-#             line=line.replace("staticforward char *__pyx_f[];",
-#                               "staticforward char *__pyx_f[1];")
-#             fileout.write(line)
-
-#         filein.close()
-#         fileout.close()
-
-hdf5Extension = "src/hdf5Extension.c"  # Not distinction between Windows and
-                                       # UNIX version from pyrex 0.9 on
+#--------------------------------------------------------------------
 
 setup(name = 'tables',
       version = VERSION,
       description = 'A hierarchical database for Python',
       long_description = """\
+
 PyTables is a hierarchical database package
 designed to efficently manage very large amounts
 of data. PyTables is built on top of the HDF5
@@ -412,10 +409,10 @@ C-code generated from Pyrex sources, makes of it a
 fast, yet extremely easy to use tool for
 interactively save and retrieve large amounts of
 data.
+
 """,
       
       author = 'Francesc Alted',
-      #author_email = 'pytables-users@lists.sourceforge.net',
       author_email = 'falted@openlc.org',
       maintainer = 'Francesc Alted',
       maintainer_email = 'falted@openlc.org',
@@ -433,6 +430,7 @@ data.
                                            "src/H5Zlzo.c",
                                            "src/H5Zucl.c",
                                            "src/H5ARRAY.c",
+                                           "src/H5VLARRAY.c",
                                            "src/H5LT.c",
                                            "src/H5TB.c",
                                            "src/H5TB-opt.c"],
@@ -442,6 +440,5 @@ data.
                                 runtime_library_dirs = rlib_dirs,
                                 )],
       # You may uncomment this line if pyrex installed
-      #cmdclass = {'build_ext': build_ext}
+      cmdclass = cmdclass
 )
-

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.6 2003/12/03 19:05:59 falted Exp $
+#       $Id: VLArray.py,v 1.7 2003/12/04 12:08:01 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.6 $"
+__version__ = "$Revision: 1.7 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -261,7 +261,9 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         setAttr(attrname, attrvalue)
         
       Specific of VLArray:
-        read()
+        append(*objects)
+        read(start, stop, step)
+        iterrows(start, stop, step)
 
     Instance variables:
 
@@ -350,6 +352,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         self.shape = (0,)
         self._createArray(self.new_title)
 
+    
     def _checkTypeShape(self, naarr):
         # Test that this object is shape and type compliant
         # Check for type
@@ -401,7 +404,6 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 """The append method only accepts one parameter for 'VLString' data type."""
             else:
                 object = objects
-        #print "Objects to append-->", object
         # Prepare the object to convert it into a numarray object
         if self.atom.flavor == "Object":
             # Special case for a generic object
@@ -483,6 +485,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         self._startb = self._start
         self._row = -1   # Sentinel
         self._init = 1    # Sentinel
+        self.nrow = self._start - self._step    # row number
 
     def next(self):
         "next() method for __iter__() that is called on each iteration"
@@ -497,6 +500,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
                 self._row = -1
                 self._startb = self._stopb
             self._row += 1
+            self.nrow += self._step
             self._nrowsread += self._step
             return self.listarr[self._row]
 
@@ -603,13 +607,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 
         return """%s
   atom = %r
-  shape = %s
   nrows = %s
   flavor = %r
-  byteorder = %r""" % (self, self.atom, self.shape, self.nrows,
+  byteorder = %r""" % (self, self.atom, self.nrows,
                        self.flavor, self.byteorder)
-    def __repr__(self):
-        """This provides more metainfo in addition to standard __str__"""
-
-        return "%s\n  atom = %r\n  shape = %r\n  byteorder = %r" % \
-               (self, self.atom, self.shape, self.byteorder)

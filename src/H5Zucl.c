@@ -8,7 +8,7 @@
 #include "math.h"  		/* For ceil() */
 
 #ifdef HAVE_UCL_LIB
-#   include "ucl/ucl.h"
+#   include "ucl.h"
 #endif
 
 /* CHECKSUM symbol adds some safety to the code, but does not seems

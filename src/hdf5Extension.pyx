@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.89 2003/12/03 19:05:58 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.90 2003/12/04 12:08:01 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.89 $"
+__version__ = "$Revision: 1.90 $"
 
 
 import sys, os
@@ -814,7 +814,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.89 2003/12/03 19:05:58 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.90 2003/12/04 12:08:01 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1995,7 +1995,7 @@ cdef class Array:
         dims_arr[i] = naarr.shape[i]
         
     # Get the pointer to the buffer data area
-    if PyObject_AsWriteBuffer(naarr._data, &rbuf, &buflen) < 0:
+    if PyObject_AsReadBuffer(naarr._data, &rbuf, &buflen) < 0:
       raise RuntimeError("Problems getting the buffer area.")
 
     # Append the records:
@@ -2190,7 +2190,7 @@ cdef class VLArray:
     #nobjects = naarr.shape[0]
     
     # Get the pointer to the buffer data area
-    if PyObject_AsWriteBuffer(naarr._data, &rbuf, &buflen) < 0:
+    if PyObject_AsReadBuffer(naarr._data, &rbuf, &buflen) < 0:
       raise RuntimeError("Problems getting the buffer area.")
 
     # Append the records:

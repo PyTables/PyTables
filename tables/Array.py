@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.38 2003/12/03 19:05:59 falted Exp $
+#       $Id: Array.py,v 1.39 2003/12/04 12:08:01 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.38 $"
+__version__ = "$Revision: 1.39 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -68,7 +68,9 @@ class Array(Leaf, hdf5Extension.Array, object):
         setAttr(attrname, attrvalue)
         
       Specific of Array:
-        read()
+        append(object)
+        read(start, stop, step)
+        iterrows(start, stop, step)
 
     Instance variables:
 

@@ -434,7 +434,7 @@ herr_t H5ARRAYread( hid_t loc_id,
  }
  else {  			/* Scalar case */
 
-   /* Read */
+   /* Read all the dataset */
    if (H5Dread(dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data) < 0)
      goto out;
  }
