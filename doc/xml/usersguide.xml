@@ -10,7 +10,7 @@
     <subtitle><visual markup="sf">Hierarchical datasets in
       Python</visual><newline/> Release 0.9 </subtitle>
 
-    <date>2004, September, 17th</date>
+    <date>2004, September, 30th</date>
     <year>2002, 2003, 2004</year>
     <graphics kind="bitmap" file="logo3-ombra"/>
 <!--     <graphics kind="bitmap" file="logo4-ombra"/> -->
@@ -6228,93 +6228,143 @@ Result Array:
 	perfectly.
       </p>
 
-      <section>
-	<heading>Taking advantage of Psyco</heading>
+      <section id="expectedRowsOptim">
+	<heading>Informing <visual markup="tt">PyTables</visual>
+	  about expected number of rows in tables</heading>
 
-	<p>Psyco (see <cite refid="psycoRef"></cite>) is a kind of
-	  specialized compiler for Python that typically accelerates
-	  Python applications with no change in source code. You can
-	  think of Psyco as a kind of just-in-time (JIT) compiler, a
-	  little bit like Java's, that emits machine code on the fly
-	  instead of interpreting your Python program step by
-	  step. The result is that your unmodified Python programs run
-	  faster.
+	<p>The underlying HDF5 library that is used by
+	  <verb>PyTables</verb> takes the data in bunches of a
+	  certain length, so-called <em>chunks</em>, to write them
+	  on disk as a whole, i.e. the HDF5 library treats chunks as
+	  atomic objects and disk I/O is always made in terms of
+	  complete chunks. This allows data filters to be defined by
+	  the application to perform tasks such as compression,
+	  encryption, checksumming, etc. on entire chunks.
 	</p>
 
-	<p>Psyco is very easy to install and use, so in most scenarios
-	  it is worth to give it a try. However, it only runs on Intel
-	  386 architectures, so if you are using other architectures,
-	  you are out of luck (at least until Psyco will support
-	  yours).
+	<p>An in-memory B-tree is used to map chunk structures on
+	  disk. The more chunks that are allocated for a dataset the
+	  larger the B-tree. Large B-trees take memory and cause
+	  file storage overhead as well as more disk I/O and higher
+	  contention for the metadata cache. Consequently, it's
+	  important to balance between memory and I/O overhead
+	  (small B-trees) and time to access data (big B-trees).
 	</p>
 
-	<p>As an example, imagine that you have a small script that
-	  reads and selects data over a series of datasets, like this:
+	<p><verb>PyTables</verb> can determine an optimum chunk size
+	  to make B-trees adequate to your dataset size if you help
+	  it by providing an estimation of the number of rows for a
+	  table. This must be made in table creation time by passing
+	  this value in the <verb>expectedrows</verb> keyword of
+	  <verb>createTable</verb> method (see <ref
+	    refid="createTableDescr"></ref>).
 	</p>
 
-	<verbatim>
-def readFile(filename):
-    "Select data from all the tables in filename"
-
-    fileh = openFile(filename, mode = "r")
-    result = []
-    for table in fileh("/", 'Table'):
-        result = [ p['var3'] for p in table if p['var2'] &lt;= 20 ]
-
-    fileh.close()
-    return e
-
-if __name__=="__main__":
-    print readFile("myfile.h5")
-	</verbatim>
-
-	<p>In order to accelerate this piece of code, you can rewrite
-	  your main program to look like:
+	<p>When your table size is bigger than 10 MB (take this figure
+	  only as a reference, not strictly), by providing this guess
+	  of the number of rows you will be optimizing the access to
+	  your data. When the table size is larger than, say 100MB,
+	  you are <visual markup="bf">strongly</visual> suggested to
+	  provide such a guess; failing to do that may cause your
+	  application doing very slow I/O operations and demanding
+	  <visual markup="bf">huge</visual> amounts of memory. You
+	  have been warned!.
 	</p>
 
-	<verbatim>
-if __name__=="__main__":
-    import pysco
-    psyco.bind(readFile)
-    print readFile("myfile.h5")
-	</verbatim>
+      </section> <!-- Optimal rows -->
 
-	<p>That's all!. From now on, each time that you execute your
-	  Python script, Psyco will deploy its sophisticated
-	  algorithms so as to accelerate your calculations.
+      <section id="searchOptim">
+	<heading>Accelerating your searches</heading>
+
+	<p>If you are going to use a lot of searches like the next one:
+
+	  <verbatim>
+row = table.row
+result = [ row['var2'] for row in table if row['var1'] &lt;= 20 ]
+	  </verbatim>
+
+	  (for future reference, we will call this the
+	  <em>standard</em> selection mode) and want to improve the
+	  time taken by it, keep reading.
 	</p>
 
-	<p>You can see in the graphs <ref
-	  refid="psycoWriteComparison"></ref> and <ref
-	  refid="psycoReadComparison"></ref> how much I/O speed
-	  improvement you can get by using Psyco. By looking at this
-	  figures you can get an idea if these improvements are of
-	  your interest or not. In general, if you are not going to
-	  use compression you will take advantage of Psyco if your
-	  tables are medium sized (from a thousand to a million rows),
-	  and this advantage will disappear progressively when the
-	  number of rows grows well over one million. However if you
-	  use compression, you will probably see improvements even
-	  beyond this limit (see <ref
-	  refid="compressionIssues">section</ref>). As always, there
-	  is no substitute for experimentation with your own dataset.
-	</p>
 
-	<figure id="psycoWriteComparison">
-	  <graphics file="write-medium-psyco-nopsyco-comparison" scale="0.75" kind="vector">
-	  </graphics>
-	  <caption>Writing tables with/without Psyco.
-	  </caption>
-	</figure>
+	<subsection id="inkernelSearch">
+	  <heading>In-kernel searches</heading>
 
-	<figure id="psycoReadComparison">
-	  <graphics file="read-medium-psyco-nopsyco-comparison" scale="0.75" kind="vector">
-	  </graphics>
-	  <caption>Reading tables with/without Psyco.
-	  </caption>
-	</figure>
+	  <p><verb>PyTables</verb> provides a way to accelerate data
+	    selections when they are simple, i.e. only a column is
+	    implied in the selection process, through the use of the
+	    <verb>where</verb> iterator (see <ref
+	    refid="whereTableDescr"></ref>). We will call this mode of
+	    selecting data as <em>in-kernel</em>. Let's see an example
+	    of <em>in-kernel</em> selection based on the
+	    <em>standard</em> selection mentioned above:
 
-      </section> 
+	    <verbatim>
+row = table
+result = [ row['var2'] for row in table.where(table.cols.var1 &lt;= 20)]
+	    </verbatim>
+
+	    This simple change of mode selection can account for an
+	    improvement in search times up to a factor of 5 (see the
+	    <ref refid="searchTimes">figure</ref>).
+	  </p>
+
+	  <figure id="searchTimes">
+	    <graphics file="searchTimes" scale="0.75" kind="vector">
+	    </graphics>
+	    <caption>Times for different selection modes.
+	    </caption>
+	  </figure>
+
+	  <p>So, where is the trick?. It's easy. In the
+	    <em>standard</em> selection mode the data for column
+	    <verb>var1</verb> has to be carried up to Python space so
+	    as to evaluate the condition and decide if the
+	    <verb>var2</verb> value should be added to the
+	    <verb>result</verb> list. On the contrary, in the
+	    <em>in-kernel</em> mode, the <em>condition</em> is passed
+	    to the <verb>PyTables</verb> kernel, written in C (hence
+	    the name), and evaluated there at C speed (with some help
+	    of the <verb>numarray</verb> package), so that the only
+	    values that were brought to the Python space where the
+	    references for <verb>rows</verb> that fulfilled the
+	    condition.
+	  </p>
+
+	  <p>You should note, however, that currently the
+	    <verb>where</verb> method only accepts conditions over a
+	    single column<footnote>Although this may change in the
+	    future</footnote>. Fortunately, you can mix the
+	    <em>inkernel</em> and <em>standard</em> selection modes
+	    for evaluating arbitrarily complex conditions over several
+	    columns at once. Look at this example:
+
+	    <verbatim>
+row = table
+result = [ row['var2'] for row in table.where(table.cols.var3 == "foo")]
+                       if row['var1'] &lt;= 20 ]
+	    </verbatim>
+
+	    here, we have used a <em>inkernel</em> selection to filter
+	    the rows whose <verb>var3</verb> field is equal to string
+	    <verb>"foo"</verb>. Then, we apply a <em>standard</em>
+	    selection to complete the query.
+	  </p>
+
+	  <p>Of course, when you mix the <em>inkernel</em> and
+	    <em>standard</em> selection modes you should pass the most
+	    restrictive condition to the <em>inkernel</em> part,
+	    i.e. to the <verb>where</verb> iterator. In situations
+	    where it is not clear which is the most restrictive
+	    condition, you might want to experiment a bit in order to
+	    find the best combination.
+	  </p>
+
+	</subsection>
+
+      </section> <!-- search optimization -->
 
       <section id="compressionIssues">
 	<heading>Compression issues</heading>
@@ -6604,54 +6654,95 @@ if __name__=="__main__":
 	    GHz and a hard disk at 4200 RPM.</caption>
 	</table>
 
-
-
       </section> <!-- Shuffle -->
 
-      <section id="expectedRowsOptim">
-	<heading>Informing <visual markup="tt">PyTables</visual>
-	  about expected number of rows in tables</heading>
+      <section>
+	<heading>Taking advantage of Psyco</heading>
 
-	<p>The underlying HDF5 library that is used by
-	  <verb>PyTables</verb> takes the data in bunches of a
-	  certain length, so-called <em>chunks</em>, to write them
-	  on disk as a whole, i.e. the HDF5 library treats chunks as
-	  atomic objects and disk I/O is always made in terms of
-	  complete chunks. This allows data filters to be defined by
-	  the application to perform tasks such as compression,
-	  encryption, checksumming, etc. on entire chunks.
+	<p>Psyco (see <cite refid="psycoRef"></cite>) is a kind of
+	  specialized compiler for Python that typically accelerates
+	  Python applications with no change in source code. You can
+	  think of Psyco as a kind of just-in-time (JIT) compiler, a
+	  little bit like Java's, that emits machine code on the fly
+	  instead of interpreting your Python program step by
+	  step. The result is that your unmodified Python programs run
+	  faster.
 	</p>
 
-	<p>An in-memory B-tree is used to map chunk structures on
-	  disk. The more chunks that are allocated for a dataset the
-	  larger the B-tree. Large B-trees take memory and cause
-	  file storage overhead as well as more disk I/O and higher
-	  contention for the metadata cache. Consequently, it's
-	  important to balance between memory and I/O overhead
-	  (small B-trees) and time to access data (big B-trees).
+	<p>Psyco is very easy to install and use, so in most scenarios
+	  it is worth to give it a try. However, it only runs on Intel
+	  386 architectures, so if you are using other architectures,
+	  you are out of luck (at least until Psyco will support
+	  yours).
 	</p>
 
-	<p><verb>PyTables</verb> can determine an optimum chunk size
-	  to make B-trees adequate to your dataset size if you help
-	  it by providing an estimation of the number of rows for a
-	  table. This must be made in table creation time by passing
-	  this value in the <verb>expectedrows</verb> keyword of
-	  <verb>createTable</verb> method (see <ref
-	    refid="createTableDescr"></ref>).
+	<p>As an example, imagine that you have a small script that
+	  reads and selects data over a series of datasets, like this:
 	</p>
 
-	<p>When your table size is bigger than 10 MB (take this figure
-	  only as a reference, not strictly), by providing this guess
-	  of the number of rows you will be optimizing the access to
-	  your data. When the table size is larger than, say 100MB,
-	  you are <visual markup="bf">strongly</visual> suggested to
-	  provide such a guess; failing to do that may cause your
-	  application doing very slow I/O operations and demanding
-	  <visual markup="bf">huge</visual> amounts of memory. You
-	  have been warned!.
+	<verbatim>
+def readFile(filename):
+    "Select data from all the tables in filename"
+
+    fileh = openFile(filename, mode = "r")
+    result = []
+    for table in fileh("/", 'Table'):
+        result = [ p['var3'] for p in table if p['var2'] &lt;= 20 ]
+
+    fileh.close()
+    return e
+
+if __name__=="__main__":
+    print readFile("myfile.h5")
+	</verbatim>
+
+	<p>In order to accelerate this piece of code, you can rewrite
+	  your main program to look like:
 	</p>
 
-      </section>
+	<verbatim>
+if __name__=="__main__":
+    import pysco
+    psyco.bind(readFile)
+    print readFile("myfile.h5")
+	</verbatim>
+
+	<p>That's all!. From now on, each time that you execute your
+	  Python script, Psyco will deploy its sophisticated
+	  algorithms so as to accelerate your calculations.
+	</p>
+
+	<p>You can see in the graphs <ref
+	  refid="psycoWriteComparison"></ref> and <ref
+	  refid="psycoReadComparison"></ref> how much I/O speed
+	  improvement you can get by using Psyco. By looking at this
+	  figures you can get an idea if these improvements are of
+	  your interest or not. In general, if you are not going to
+	  use compression you will take advantage of Psyco if your
+	  tables are medium sized (from a thousand to a million rows),
+	  and this advantage will disappear progressively when the
+	  number of rows grows well over one million. However if you
+	  use compression, you will probably see improvements even
+	  beyond this limit (see <ref
+	  refid="compressionIssues">section</ref>). As always, there
+	  is no substitute for experimentation with your own dataset.
+	</p>
+
+	<figure id="psycoWriteComparison">
+	  <graphics file="write-medium-psyco-nopsyco-comparison" scale="0.75" kind="vector">
+	  </graphics>
+	  <caption>Writing tables with/without Psyco.
+	  </caption>
+	</figure>
+
+	<figure id="psycoReadComparison">
+	  <graphics file="read-medium-psyco-nopsyco-comparison" scale="0.75" kind="vector">
+	  </graphics>
+	  <caption>Reading tables with/without Psyco.
+	  </caption>
+	</figure>
+
+      </section> <!-- Psyco -->
 
       <section>
 	<heading>Selecting an User Entry Point (UEP) in your

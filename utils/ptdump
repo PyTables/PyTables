@@ -7,7 +7,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/utils/ptdump,v $
-#       $Id: ptdump,v 1.8 2004/08/12 20:52:46 falted Exp $
+#       $Id: ptdump,v 1.9 2004/09/29 17:50:59 falted Exp $
 #
 ########################################################################
 
@@ -92,7 +92,7 @@ def dumpGroup(h5file):
         return
 
     # Print detailed info on nodes
-    for group in h5file(classname="Group"):
+    for group in h5file.walkGroups():
         if verbose:
             print repr(group)
         else:

@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.89 2004/09/27 18:10:45 falted Exp $
+#       $Id: File.py,v 1.90 2004/09/29 17:50:58 falted Exp $
 #
 ########################################################################
 
@@ -34,11 +34,13 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.89 $"
+__version__ = "$Revision: 1.90 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
-format_version = "1.2"  # Support for enlargeable arrays and VLA's
+#format_version = "1.2"  # Support for enlargeable arrays and VLA's
                         # 1.2 was introduced in pytables 0.8
+format_version = "1.3"  # Support for indexes in Tables
+                        # 1.3 was introduced in pytables 0.9
 compatible_formats = [] # Old format versions we can read
                         # Empty means that we support all the old formats
 
