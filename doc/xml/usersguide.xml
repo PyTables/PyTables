@@ -7849,7 +7849,7 @@ if __name__=="__main__":
 	  refid="Numeric"></cite>) in Python.  The data types for
 	  table fields can be set via the constructor for the
 	  <verb>Col</verb> class and its descendants (<ref
-	  refid="ColClassDescr">see</ref> while array elements can be
+	  refid="ColClassDescr">see</ref>) while array elements can be
 	  set through the use of the <verb>Atom</verb> class and its
 	  descendants (<ref refid="AtomClassDescr">see</ref>).
 	</p>
