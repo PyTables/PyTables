@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.28 2003/12/20 12:59:55 falted Exp $
+#       $Id: Leaf.py,v 1.29 2003/12/21 19:35:45 falted Exp $
 #
 ########################################################################
 
@@ -27,12 +27,12 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.28 $"
+__version__ = "$Revision: 1.29 $"
 
-import types
-from utils import checkNameValidity
+import types, warnings
+from utils import checkNameValidity, calcBufferSize
 from AttributeSet import AttributeSet
-from hdf5Extension import _getFilters
+import hdf5Extension
 
 class Leaf:
     """A class to place common functionality of all Leaf objects.
@@ -60,7 +60,7 @@ class Leaf:
         objectID -- the HDF5 object ID of the Leaf node
         title -- the leaf title
         shape -- the leaf shape
-        compress -- the compression level (0 means no compression)
+        complevel -- the compression level (0 means no compression)
         complib -- the compression filter
         shuffle -- whether the shuffle filter is active or not
         byteorder -- the byteorder of the leaf
@@ -91,7 +91,6 @@ class Leaf:
         # Once the AttributeSet instance has been created, get the title
         #self.title = self.attrs.TITLE   # 0.35s/2.7s del temps
         # Get the compression filters and levels
-        self.compress, self.complib, self.shuffle = self._g_getFilters()
 
     # Define title as a property
     def get_title (self):
@@ -105,12 +104,28 @@ class Leaf:
     title = property(get_title, set_title, None,
                      "Title of this object")
 
+    def _g_setComprAttr(self, complevel, complib, shuffle):
+        if shuffle and not complevel:
+            # Shuffling and not compressing makes not sense
+            shuffle = 0
+        self.complevel = complevel
+        self.complib = complib
+        self.shuffle = shuffle
+        if complevel:
+            if hdf5Extension.isLibAvailable(complib)[0]:
+                self.complib = complib
+            else:
+                warnings.warn( \
+"%s compression library is not available. Using zlib instead!." %(complib))
+                self.complib = "zlib"   # Should always exists
+
     def _g_getFilters(self):
         # Default values
         complib = "zlib"
         complevel = 0
         shuffle = 0
-        filters = _getFilters(self._v_parent._v_objectID, self._v_hdf5name)
+        filters = hdf5Extension._getFilters(self._v_parent._v_objectID,
+                                            self._v_hdf5name)
         #print "Filters on %s: %s" % (self.name, filters)
         if filters:
             for name in filters:
@@ -239,8 +254,8 @@ class Leaf:
         # The title
         title = self.attrs.TITLE
         filters = ""
-        if self.compress:
-            filters += ", %s(%s)" % (self.complib, self.compress)
+        if self.complevel:
+            filters += ", %s(%s)" % (self.complib, self.complevel)
             if self.shuffle:
                 filters += ", shuffled"
 #         return "%s (%s%s%s) (ID: %s) %r" % \

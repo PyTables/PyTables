@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.11 2003/12/20 12:59:55 falted Exp $
+#       $Id: VLArray.py,v 1.12 2003/12/21 19:35:45 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.11 $"
+__version__ = "$Revision: 1.12 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -210,7 +210,7 @@ class Float64Atom(Atom, FloatCol):
         self.flavor = checkflavor(flavor)
 
         
-def calcChunkSize(expectedsizeinMB, compress):
+def calcChunkSize(expectedsizeinMB, complevel):
     """Computes the optimum value for the chunksize"""
     if expectedsizeinMB <= 100:
         # Values for files less than 100 KB of size
@@ -231,7 +231,7 @@ def calcChunkSize(expectedsizeinMB, compress):
         chunksize = 16384
 
     # Correction for compression.
-    if compress:
+    if complevel:
         chunksize = 1024   # This seems optimal for compression
 
     return chunksize
@@ -297,12 +297,6 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 
         """
         self.new_title = title
-        if shuffle and not compress:
-            # Shuffling and not compressing makes not sense
-            shuffle = 0
-        self.compress = compress
-        self.complib = complib
-        self.shuffle = shuffle
         self._v_expectedsizeinMB = expectedsizeinMB
         self._v_maxTuples = 100    # Maybe enough for most applications
         # Check if we have to create a new object or read their contents
@@ -310,13 +304,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         if atom is not None:
             self.atom = atom
             self._v_new = 1
-            if compress:
-                if hdf5Extension.isLibAvailable(complib)[0]:
-                    self.complib = complib
-                else:
-                    warnings.warn( \
-"%s compression library is not available. Using zlib instead!." %(complib))
-                self.complib = "zlib"   # Should always exists
+            self._g_setComprAttr(compress, complib, shuffle)
         else:
             self._v_new = 0
 
@@ -340,7 +328,7 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         
         # Compute the optimal chunksize
         self._v_chunksize = calcChunkSize(self._v_expectedsizeinMB,
-                                          self.compress)
+                                          self.complevel)
         self.nrows = 0     # No rows in creation time
         self.shape = (0,)
         self._createArray(self.new_title)

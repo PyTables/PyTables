@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.50 2003/12/20 12:59:55 falted Exp $
+#       $Id: Array.py,v 1.51 2003/12/21 19:35:45 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.50 $"
+__version__ = "$Revision: 1.51 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -88,7 +88,7 @@ class Array(Leaf, hdf5Extension.Array, object):
 
         """
         self.new_title = title
-        self.compress = 0  # An Array can not be compressed
+        self.complevel = 0  # An Array can not be compressed
         self.complib = "zlib"  # Some default value
         self.shuffle = 0   # Values of an Array cannot be shuffled
         self.extdim = -1   # An Array object is not enlargeable
@@ -127,7 +127,7 @@ class Array(Leaf, hdf5Extension.Array, object):
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
                             calcBufferSize(self.rowsize, self._v_expectednrows,
-                                           self.compress)
+                                           self.complevel)
 
         self.shape = naarr.shape
         if naarr.shape:
@@ -237,7 +237,7 @@ class Array(Leaf, hdf5Extension.Array, object):
             self.nrows = 1   # Scalar case
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
-                   calcBufferSize(self.rowsize, self.nrows, self.compress)
+                   calcBufferSize(self.rowsize, self.nrows, self.complevel)
 
     def iterrows(self, start=None, stop=None, step=None):
         """Iterator over all the rows or a range"""

@@ -26,6 +26,7 @@ test_all.verbose = verbose
 def suite():
     test_modules = ['test_basics',
                     'test_create',
+                    'test_backcompat',
                     'test_types',
                     'test_numarray',
                     'test_lists',

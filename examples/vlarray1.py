@@ -5,7 +5,9 @@ from Numeric import *   # or, from numarray import *
 fileh = tables.openFile("vlarray1.h5", mode = "w")
 root = fileh.root
 vlarray = fileh.createVLArray(root, 'vlarray1', tables.Int32Atom(),
-                              "ragged array of ints")
+                              "ragged array of ints",
+                              compress = 1,
+                              complib = "ucl")
 vlarray.append(array([5, 6]))
 vlarray.append(array([5, 6, 7]))
 vlarray.append([5, 6, 9, 8])

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.87 2003/12/20 12:59:55 falted Exp $
+#       $Id: Table.py,v 1.88 2003/12/21 19:35:45 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.87 $"
+__version__ = "$Revision: 1.88 $"
 
 from __future__ import generators
 import sys
@@ -130,11 +130,6 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         # Common variables
         self.new_title = title
-        if shuffle and not compress:
-            # Shuffling and not compressing makes not sense
-            shuffle = 0
-        self.compress = compress
-        self.shuffle = shuffle
         self._v_expectedrows = expectedrows
         # Initialize the number of rows to a default
         self.nrows = 0
@@ -170,13 +165,8 @@ class Table(Leaf, hdf5Extension.Table, object):
 """description parameter is not one of the supported types:
   IsDescription subclass, dictionary or RecArray."""
 
-        self.complib = complib
-	if self._v_new and compress:
-	    if hdf5Extension.isLibAvailable(complib)[0]:
-		self.complib = complib
-	    else:
-		warnings.warn( \
-"%s compression library is not available. Using zlib instead!." %(complib))
+        if self._v_new:
+            self._g_setComprAttr(compress, complib, shuffle)
 
     def _newBuffer(self, init=1):
         """Create a new recarray buffer for I/O purposes"""
@@ -296,9 +286,11 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.coltypes = self.description.__types__
         self.colshapes = self.description._v_shapes
         self.colitemsizes = self.description._v_itemsizes
+        # Get info about existing filters
+        self.complevel, self.complib, self.shuffle = self._g_getFilters()
         # Compute buffer size
         (self._v_maxTuples, self._v_chunksize) = \
-              calcBufferSize(self.rowsize, self.nrows, self.compress)
+              calcBufferSize(self.rowsize, self.nrows, self.complevel)
         # Update the shape attribute
         self.shape = (self.nrows,)
         # Associate a Row object to table

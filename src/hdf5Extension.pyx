@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.97 2003/12/20 12:59:55 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.98 2003/12/21 19:34:04 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.97 $"
+__version__ = "$Revision: 1.98 $"
 
 
 import sys, os
@@ -478,7 +478,7 @@ cdef extern from "H5ARRAY.h":
                       char *flavor, char *obversion,
                       int rank, hsize_t *dims, int extdim,
                       hid_t type_id, hsize_t max_tuples, void *fill_data,
-                      int compress, char  *complib, int shuffle,
+                      int complevel, char  *complib, int shuffle,
                       void *data)
 
   herr_t H5ARRAYappend_records( hid_t loc_id, char *dset_name,
@@ -510,7 +510,7 @@ cdef extern from "H5VLARRAY.h":
   hid_t H5VLARRAYmake( hid_t loc_id, char *dset_name, char *title,
                        char *flavor, char *obversion, int rank, int scalar,
                        hsize_t *dims, hid_t type_id, hsize_t chunk_size,
-                       void *fill_data, int compress, char *complib,
+                       void *fill_data, int complevel, char *complib,
                        int shuffle, void *data)
   
   herr_t H5VLARRAYappend_records( hid_t loc_id, char *dset_name,
@@ -821,7 +821,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.97 2003/12/20 12:59:55 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.98 2003/12/21 19:34:04 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1283,7 +1283,6 @@ cdef class Table:
   cdef char    *name, *xtitle
   cdef char    *fmt
   cdef char    *field_names[MAX_FIELDS]
-  cdef int     compress
   cdef int     _open
   cdef char    *complib
   cdef hid_t   dataset_id, space_id, mem_type_id
@@ -1338,7 +1337,7 @@ cdef class Table:
 
     # Compute some values for buffering and I/O parameters
     (self._v_maxTuples, self._v_chunksize) = \
-      calcBufferSize(self.rowsize, self._v_expectedrows, self.compress)
+      calcBufferSize(self.rowsize, self._v_expectedrows, self.complevel)
     
     # test if there is data to be saved initially
     if hasattr(self, "_v_recarray"):
@@ -1359,7 +1358,7 @@ cdef class Table:
     oid = H5TBmake_table(title, self.parent_id, self.name,
                          nvar, self.nrows, self.rowsize, self.field_names,
                          self.field_offset, fieldtypes, self._v_chunksize,
-                         fill_data, self.compress, complib,
+                         fill_data, self.complevel, complib,
                          self.shuffle, data)
     if oid < 0:
       raise RuntimeError("Problems creating the table")
@@ -1847,10 +1846,8 @@ cdef class Row:
     # elements a 20%
 
     try:
-
       # Get the column index. This is very fast!
       index = self._indexes[fieldName]
-
       if (self._enumtypes[index] <> CHARTYPE and self._scalar[index]):
         #return 40   # Just for tests purposes
         # if not NA_updateDataPtr(self._fields[fieldName]):
@@ -1996,7 +1993,7 @@ cdef class Array:
     oid = H5ARRAYmake(self.parent_id, self.name, title,
                       flavor, version, self.rank, self.dims, self.extdim,
                       self.type_id, self._v_maxTuples, rbuf,
-                      self.compress, complib, self.shuffle,
+                      self.complevel, complib, self.shuffle,
                       rbuf)
     if oid < 0:
       raise RuntimeError("Problems creating the (E)Array.")
@@ -2228,7 +2225,7 @@ cdef class VLArray:
     oid = H5VLARRAYmake(self.parent_id, self.name, title,
                         flavor, version, self.rank, self.scalar,
                         self.dims, self.type_id, self._v_chunksize, rbuf,
-                        self.compress, complib, self.shuffle,
+                        self.complevel, complib, self.shuffle,
                         rbuf)
     if oid < 0:
       raise RuntimeError("Problems creating the VLArray.")

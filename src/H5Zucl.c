@@ -51,6 +51,11 @@
 /* After returning always the compressed buffer, and even with the
    current value, UCL nrv2e seems to work just fine. Great!. 2003/12/09
  */
+/* I've returned to the old situation where, if the buffer is not
+   compressible, the compressor fails. However, I've added the flag
+   H5Z_FLAG_OPTIONAL to the pproperty list when creating chunks. So,
+   this should not pose more problems anymore. 2003/12/21  */
+
 #define H5Z_UCL_SIZE_ADJUST(s) ((s)+((s)/8)+256) /* Correct value */
 
 int register_ucl(void) {
@@ -129,6 +134,7 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
   else if (cd_nelmts==2 ) {
     complevel = cd_values[0];
     object_version = cd_values[1]; /* The table VERSION attribute */
+    object_type = Table;    /* for two values the chunk can only be a Table */
   }
   else if (cd_nelmts==3 ) {
     complevel = cd_values[0];
@@ -309,7 +315,14 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
     }
 #endif
 
-    if (UCL_E_OK != status) {
+/*     printf("z_dst_nbytes: %d, nbytes: %d.\n", z_dst_nbytes, nbytes); */
+    if (z_dst_nbytes >= nbytes) {
+#ifdef DEBUG
+      printf("The compressed buffer takes more space than uncompressed!.\n");
+#endif
+      ret_value = 0; /* fail */
+      goto done;
+    } else if (UCL_E_OK != status) {
       /* This should never happen! */
       fprintf(stderr,"ucl error!. This should not happen!.\n");
       ret_value = 0; /* fail */

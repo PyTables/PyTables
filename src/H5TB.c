@@ -163,7 +163,7 @@ herr_t H5TBmake_table( const char *table_title,
  {
    cd_values[0] = compress;
    cd_values[1] = (int)(atof(VERSION) * 10);
-   cd_values[3] = Table;
+   cd_values[2] = Table;
    /* The default compressor in HDF5 (zlib) */
    if (strcmp(complib, "zlib") == 0) {
      if ( H5Pset_deflate( plist_id, compress) < 0 )
@@ -171,12 +171,12 @@ herr_t H5TBmake_table( const char *table_title,
    }
    /* The LZO compressor does accept parameters */
    else if (strcmp(complib, "lzo") == 0) {
-     if ( H5Pset_filter( plist_id, FILTER_LZO, 0, 3, cd_values) < 0 )
+     if ( H5Pset_filter( plist_id, FILTER_LZO, H5Z_FLAG_OPTIONAL, 3, cd_values) < 0 )
        return -1;
    }
    /* The UCL compress does accept parameters */
    else if (strcmp(complib, "ucl") == 0) {
-     if ( H5Pset_filter( plist_id, FILTER_UCL, 0, 3, cd_values) < 0 )
+     if ( H5Pset_filter( plist_id, FILTER_UCL, H5Z_FLAG_OPTIONAL, 3, cd_values) < 0 )
        return -1;
    }
    else {

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.4 2003/12/20 12:59:55 falted Exp $
+#       $Id: EArray.py,v 1.5 2003/12/21 19:35:45 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.4 $"
+__version__ = "$Revision: 1.5 $"
 # default version for EARRAY objects
 obversion = "1.0"    # initial version
 
@@ -121,29 +121,16 @@ class EArray(Array, hdf5Extension.Array, object):
 
         """
         self.new_title = title
-        if shuffle and not compress:
-            # Shuffling and not compressing makes not sense
-            shuffle = 0
-        self.compress = compress
-        self.complib = complib
-        self.shuffle = shuffle
         self._v_expectednrows = expectednrows
         # Check if we have to create a new object or read their contents
         # from disk
         if object is not None:
             self._v_new = 1
             self.object = object
-            if compress:
-                if hdf5Extension.isLibAvailable(complib)[0]:
-                    self.complib = complib
-                else:
-                    warnings.warn( \
-"%s compression library is not available. Using zlib instead!." %(complib))
-                self.complib = "zlib"   # Should always exists
-
+            self._g_setComprAttr(compress, complib, shuffle)
         else:
             self._v_new = 0
-
+            
     def _create(self):
         """Save a fresh array (i.e., not present on HDF5 file)."""
         global obversion
@@ -177,7 +164,7 @@ class EArray(Array, hdf5Extension.Array, object):
                 self.rowsize *= i
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
-           calcBufferSize(self.rowsize, self._v_expectednrows, self.compress)
+           calcBufferSize(self.rowsize, self._v_expectednrows, self.complevel)
 
         self.shape = naarr.shape
         self.nrows = naarr.shape[self.extdim]
@@ -298,10 +285,11 @@ class EArray(Array, hdf5Extension.Array, object):
                 self.rowsize *= self.shape[i]
             else:
                 self.nrows = self.shape[i]
-
+        # Get info about existing filters
+        self.complevel, self.complib, self.shuffle = self._g_getFilters()
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
-                   calcBufferSize(self.rowsize, self.nrows, self.compress)
+                  calcBufferSize(self.rowsize, self.nrows, self.complevel)
 
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""

@@ -256,7 +256,13 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
     }
 #endif
 
-    if (LZO_E_OK != status) {
+    if (z_dst_nbytes >= nbytes) {
+#ifdef DEBUG
+      printf("The compressed buffer takes more space than uncompressed!.\n");
+#endif
+      ret_value = 0; /* fail */
+      goto done;
+    } else if (LZO_E_OK != status) {
       fprintf(stderr,"lzo library error in compression\n");
       ret_value = 0; /* fail */
       goto done;

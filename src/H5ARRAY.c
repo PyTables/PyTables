@@ -119,9 +119,9 @@ herr_t H5ARRAYmake( hid_t loc_id,
      cd_values[0] = compress;
      cd_values[1] = (int)(atof(obversion) * 10);
      if (extdim <0) 
-       cd_values[3] = Array;
+       cd_values[2] = Array;
      else
-       cd_values[3] = EArray;
+       cd_values[2] = EArray;
 
      /* The default compressor in HDF5 (zlib) */
      if (strcmp(complib, "zlib") == 0) {
@@ -130,12 +130,12 @@ herr_t H5ARRAYmake( hid_t loc_id,
      }
      /* The LZO compressor does accept parameters */
      else if (strcmp(complib, "lzo") == 0) {
-       if ( H5Pset_filter( plist_id, FILTER_LZO, 0, 3, cd_values) < 0 )
+       if ( H5Pset_filter( plist_id, FILTER_LZO, H5Z_FLAG_OPTIONAL, 3, cd_values) < 0 )
 	 return -1;
      }
      /* The UCL compress does accept parameters */
      else if (strcmp(complib, "ucl") == 0) {
-       if ( H5Pset_filter( plist_id, FILTER_UCL, 0, 3, cd_values) < 0 )
+       if ( H5Pset_filter( plist_id, FILTER_UCL, H5Z_FLAG_OPTIONAL, 3, cd_values) < 0 )
 	 return -1;
      }
      else {
