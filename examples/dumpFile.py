@@ -82,6 +82,17 @@ if __name__=="__main__":
         for group in h5file.walkGroups(h5file.root):
             for array_ in h5file.listNodes(group, 'Array'):
                 print "Info on the object:", repr(array_)
+
+        print
+        print "EArrays:"
+        for group in h5file.walkGroups(h5file.root):
+            for array_ in h5file.listNodes(group, 'EArray'):
+                print "Info on the object:", repr(array_)
+        print
+        print "VLArrays:"
+        for group in h5file.walkGroups(h5file.root):
+            for array_ in h5file.listNodes(group, 'VLArray'):
+                print "Info on the object:", repr(array_)
     
     # Close the file
     h5file.close()

@@ -81,4 +81,6 @@ PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name);
 
 PyObject *Aiterate(hid_t loc_id);
 
-H5T_class_t getHDF5ClassID(hid_t loc_id, const char *name);
+H5T_class_t getHDF5ClassID(hid_t loc_id,
+			   const char *name,
+			   H5D_layout_t *layout);

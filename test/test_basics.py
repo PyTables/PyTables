@@ -614,7 +614,7 @@ class CheckFileTestCase(unittest.TestCase):
 	
         # When file has an HDF5 format, always returns 1
         if verbose:
-            print "\nisHDF5(%s) --> %d" % (file, isHDF5(file))
+            print "\nisHDF5(%s) ==> %d" % (file, isHDF5(file))
         assert isHDF5(file) == 1
 	
         # Then, delete the file
@@ -688,11 +688,11 @@ class CheckFileTestCase(unittest.TestCase):
         except UserWarning:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next UserWarning was catched!"
+                print "\nGreat!, the next UserWarning was catched:"
                 print value
             # Ignore the warning and actually open the file
             warnings.filterwarnings("ignore", category=UserWarning)
-            fileh = openFile("ex-noattr.h5", mode = "r")            
+            fileh = openFile("ex-noattr.h5", mode = "r")
         else:
             self.fail("expected an UserWarning")
             
@@ -712,7 +712,18 @@ class CheckFileTestCase(unittest.TestCase):
         # An Array
         array_ = fileh.getNode(columns, "TDC", classname="Array")
         assert array_._v_name == "TDC"
-        
+
+        # An unsupported Array
+        try:
+            array_ = fileh.getNode(columns, "pressure", classname="Array")
+        except LookupError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next LookupError was catched:"
+                print value
+        else:
+            self.fail("expected an LookupError")
+
         # A Table
         table = fileh.getNode("/detector", "table", classname="Table")
         assert table._v_name == "table"

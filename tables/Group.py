@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.58 2004/01/02 19:32:45 falted Exp $
+#       $Id: Group.py,v 1.59 2004/01/12 10:07:58 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.58 $"
+__version__ = "$Revision: 1.59 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -172,7 +172,9 @@ class Group(hdf5Extension.Group, object):
                 stack.append(new_objgroup)
             for name in leaves:
                 objleaf=objgroup._g_getLeaf(name)
-                objleaf._g_putObjectInTree(name, objgroup)
+                if objleaf <> None:
+                    # Only supported objects will be loaded in the object tree
+                    objleaf._g_putObjectInTree(name, objgroup)
 
     def _g_getLeaf(self,name):
         """Returns a proper Leaf class depending on the object to be opened.
@@ -186,15 +188,12 @@ class Group(hdf5Extension.Group, object):
             class_ = self._v_attrs._g_getChildAttr(name, "CLASS")
         if class_ is None:
             # No CLASS attribute, try a guess
-#             warnings.warn( \
-# """No CLASS attribute found. Trying to guess what's here.
-# I can't promise getting the correct object, but I will do my best!.""",
-#             UserWarning)
             class_ = hdf5Extension.whichClass(self._v_objectID, name)
             if class_ == "UNSUPPORTED":
-                raise RuntimeError, \
-                """Dataset object \'%s\' in file is unsupported!.""" % \
-                      name
+                warnings.warn( \
+"Leaf object '%s' in file is unsupported. This object will be unreachable." % \
+self._g_join(name), UserWarning)
+                return None
         if class_ == "TABLE":
             return Table()
         elif class_ == "ARRAY":
@@ -204,9 +203,9 @@ class Group(hdf5Extension.Group, object):
         elif class_ == "VLARRAY":
             return VLArray()
         else:
-            raise RuntimeError, \
-                  """Dataset object in file is unknown!
-                  class ID: %s""" % class_
+            warnings.warn( \
+"Class ID '%s' for Leaf %s is unknown. This object will be unreachable." % \
+(class_, self._g_join(name)), UserWarning)
 
     def _g_join(self, name):
         """Helper method to correctly concatenate a name child object

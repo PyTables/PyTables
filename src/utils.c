@@ -244,10 +244,13 @@ PyObject *Aiterate(hid_t loc_id) {
 **  getHDF5ClassID(): Returns class ID for loc_id.name. -1 if error.
 ** 
 ****************************************************************/
-H5T_class_t getHDF5ClassID(hid_t loc_id, const char *name) {
-   hid_t       dataset_id;  
-   hid_t       type_id;
-   H5T_class_t class_id;
+H5T_class_t getHDF5ClassID(hid_t loc_id,
+			   const char *name,
+			   H5D_layout_t *layout) {
+   hid_t        dataset_id;  
+   hid_t        type_id;
+   H5T_class_t  class_id;
+   hid_t        plist;
      
    /* Open the dataset. */
    if ( (dataset_id = H5Dopen( loc_id, name )) < 0 )
@@ -262,6 +265,11 @@ H5T_class_t getHDF5ClassID(hid_t loc_id, const char *name) {
    /* Release the datatype. */
    if ( H5Tclose( type_id ) )
      return -1;
+
+   /* Get the layout of the datatype */
+   plist = H5Dget_create_plist(dataset_id);
+   *layout = H5Pget_layout(plist);
+   H5Pclose(plist);
    
    /* End access to the dataset */
    if ( H5Dclose( dataset_id ) )

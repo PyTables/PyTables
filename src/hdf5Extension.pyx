@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.105 2004/01/10 09:12:46 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.106 2004/01/12 10:07:58 falted Exp $
 #
 ########################################################################
 
@@ -36,10 +36,11 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.105 $"
+__version__ = "$Revision: 1.106 $"
 
 
 import sys, os
+import warnings
 import types, cPickle
 import numarray
 #import recarray2 as recarray
@@ -62,7 +63,7 @@ cdef extern from "stdlib.h":
   # The correct correspondence between size_t and a basic type is *long*
   # instead of int, because they are the same size even for 64-bit platforms
   # F. Alted 2003-01-08
-  ctypedef long size_t
+  ctypedef int size_t
   void *malloc(size_t size)
   void free(void *ptr)
   double atof(char *nptr)
@@ -253,6 +254,13 @@ cdef extern from "hdf5.h":
   ctypedef int herr_t
   ctypedef int htri_t
   ctypedef long long hsize_t    # How to declare that in a compatible MSVC way?
+
+  ctypedef enum H5D_layout_t:
+    H5D_LAYOUT_ERROR    = -1,
+    H5D_COMPACT         = 0,    #raw data is very small                     */
+    H5D_CONTIGUOUS      = 1,    #the default                                */
+    H5D_CHUNKED         = 2,    #slow and fancy                             */
+    H5D_NLAYOUTS        = 3     #this one must be last!                     */
 
   ctypedef struct hvl_t:
     size_t len                 # Length of VL data (in base type units) */
@@ -667,7 +675,9 @@ cdef extern from "utils.h":
   object get_filter_names( hid_t loc_id, char *dset_name)
   object Giterate(hid_t parent_id, hid_t loc_id, char *name)
   object Aiterate(hid_t loc_id)
-  H5T_class_t getHDF5ClassID(hid_t loc_id, char *name)
+  H5T_class_t getHDF5ClassID(hid_t loc_id,
+                             char *name,
+                             H5D_layout_t *layout)
 
 # LZO library
 cdef int lzo_version
@@ -716,15 +726,24 @@ def whichLibVersion(char *name):
     return (0, None, None)
     
 def whichClass( hid_t loc_id, char *name):
-  cdef H5T_class_t class_id
+  cdef H5T_class_t  class_id
+  cdef H5D_layout_t layout
 
-  class_id = getHDF5ClassID(loc_id, name)
+  class_id = getHDF5ClassID(loc_id, name, &layout)
   # Check if this a dataset of supported classtype for ARRAY
-  if ((class_id == H5T_ARRAY)   or
-      (class_id == H5T_INTEGER) or
-      (class_id == H5T_FLOAT)   or
-      (class_id == H5T_STRING)):
-    return "ARRAY"
+  if class_id == H5T_ARRAY:
+    warnings.warn( \
+ """Dataset object '%s' contains unsupported H5T_ARRAY datatypes.""" % (name),
+ UserWarning)
+  #if ((class_id == H5T_ARRAY)   or
+  if  ((class_id == H5T_INTEGER)  or
+       (class_id == H5T_FLOAT)    or
+       (class_id == H5T_BITFIELD) or
+       (class_id == H5T_STRING)):
+    if layout == H5D_CHUNKED:
+      return "EARRAY"
+    else:
+      return "ARRAY"
   elif class_id == H5T_VLEN:
     return "VLARRAY"
   elif class_id == H5T_COMPOUND:
@@ -787,7 +806,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.105 2004/01/10 09:12:46 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.106 2004/01/12 10:07:58 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1360,8 +1379,6 @@ cdef class Table:
     # Release resources to avoid memory leaks
     for i from  0 <= i < nvar:
       H5Tclose(field_types[i])
-      #free(<void *>field_names[i])
-    #free(<void *>field_names)
     
   def _open_append(self, object recarr):
     cdef int buflen, ret

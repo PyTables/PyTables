@@ -32,6 +32,27 @@ What's new
 
 	- The UCL compressor has a checksum activated by default now
 
+	- More native datatypes (H5T_VLEN and H5T_BITFIELD) are
+          supported now when accessing native HDF5 files. So, the
+          complete set of supported HDF5 dataypes are: H5T_INTEGER,
+          H5T_FLOAT, H5T_BITFIELD, H5T_STRING, H5T_VLEN and
+          H5T_COMPOUND (with any of the previous listed datatypes,
+          plus H5T_ARRAY).  As you can see, H5T_ARRAY datatypes has
+          been deprecated as atomic types in (E)Array objects for
+          now. The reason is that selections inside atomic types does
+          not work. If anyone is interested, H5T_ARRAY type migth be
+          implemented in Arrays in the future.
+
+	  Moreover, if a dataset contains unsupported datatypes, it
+          will be ignored and not added to the object tree, so that
+          you can continue to work with other possible supported
+          objects. This behaviour has changed from previous versions,
+          where a RuntimeError was issued in case of an unsupported
+          object.
+
+	  These improvements will enable PyTables to greatly enlarge
+          the range of native HDF5 that can be read/modified.
+
         - Fixed a nasty memory leak located on the C libraries (it was
           happening during HDF5 attribute writes). After that, the
           memory consumption when using large object trees has dropped
