@@ -305,7 +305,7 @@ if __name__=="__main__":
         cpu1 = time.clock()
         if psyco_imported:
             psyco.bind(readFile)
-            #psyco.bind(readField)
+            psyco.bind(readField)
             pass
         if fieldName:
             (rowsr, rowsz) = readField(file, fieldName, rng, verbose)

@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.27 2003/03/14 19:37:25 falted Exp $
+#       $Id: File.py,v 1.28 2003/03/15 12:02:42 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.27 $"
+__version__ = "$Revision: 1.28 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -176,6 +176,9 @@ class File(hdf5Extension.File):
         title -- the title of the root group in file
         root -- the root group in file
         trMap -- the mapping between python and HDF5 domain names
+        objects -- Dictionary with all objects (groups or leaves) on tree.
+        groups -- Dictionary with all object groups on tree.
+        leaves -- Dictionary with all object leaves on tree.
 
     """
 
@@ -230,9 +233,9 @@ class File(hdf5Extension.File):
         # in tree object. They are dictionaries that will use the pathnames
         # as keys and the actual objects as values.
         # That way we can find objects in the object tree easily and quickly.
-        self._c_objgroups = {}
-        self._c_objleaves = {}
-        self._c_objects = {}
+        self.groups = {}
+        self.leaves = {}
+        self.objects = {}
 
         root = Group(self._v_new)
         
@@ -250,8 +253,8 @@ class File(hdf5Extension.File):
         newattr["_v_pathname"] = "/"
         
         # Update global path variables for Group
-        self._c_objgroups["/"] = root
-        self._c_objects["/"] = root
+        self.groups["/"] = root
+        self.objects["/"] = root
         
         # Open the root group. We do that always, be the file new or not
         root._g_openGroup(self._v_groupId, "/")
@@ -431,8 +434,8 @@ class File(hdf5Extension.File):
             else:
                 strObject = where
             # Get the object pointed by strObject path
-            if strObject in self._c_objects:
-                object = self._c_objects[strObject]
+            if strObject in self.objects:
+                object = self.objects[strObject]
             else:
                 # We didn't find the pathname in the object tree.
                 # This should be signaled as an error!.

@@ -189,16 +189,22 @@
 
       <p>The goal of <verb>PyTables</verb> is to enable the end user
 	to manipulate easily scientific data <visual
-	markup="bf">tables</visual> and <em>Numerical Python</em>
-	objects in a hierarchical structure. The foundation of the
-	underlying hierarchical data organization is the excellent
+	markup="bf">tables</visual> and array objects objects in a
+	hierarchical structure. The foundation of the underlying
+	hierarchical data organization is the excellent
 	<verb>HDF5</verb> library
 	(<verb>http://hdf.ncsa.uiuc.edu/HDF5</verb>). Right now,
 	<verb>PyTables</verb> provides limited support of all the HDF5
 	functions, but I hope to add the more interesting ones (for
-	<verb>PyTables</verb> needs) in the near future. Nonetheless,
-	this package is not intended to serve as a complete wrapper
-	for the entire HDF5 API.
+	<verb>PyTables</verb> needs) in the near future.
+      </p>
+      <p>
+	Nonetheless, this package is not intended to serve as a
+	complete wrapper for the entire HDF5 API, but to provide a
+	flexible, <em>very Pythonic</em> tool to deal with (arbitrary)
+	large amounts of data (typically bigger than available memory)
+	in tables and arrays organized in a hierarchical, persistent
+	disk storage.
       </p>
 
       <p>A table is defined as a collection of records whose values
@@ -218,35 +224,36 @@
 	<em>metaclass</em> object with the capability to detect errors
 	in assignments to non-existing fields as well as data type
 	incompabilities.  <verb>PyTables</verb> also provides a
-	powerful interface to process table data. Records in tables
+	powerful interface to mine data in table. Records in tables
 	are also known, in the <verb>HDF5</verb> naming scheme, as
 	<em>compound</em> data types.
       </p>
 
-      <p>For example, you can define arbitrary records in Python
+      <p>For example, you can define arbitrary tables in Python
 	simply by declaring a class with the name field and types
 	information, like in:
       </p>
 
 <verbatim>
 class Particle(IsColDescr):
-    name        = '16s'  # 16-character String
-    idnumber    = 'Q'    # unsigned long long (i.e. 64-bit integer)
-    TDCcount    = 'B'    # unsigned byte
-    ADCcount    = 'H'    # unsigned short integer
-    grid_i      = 'i'    # integer
-    grid_j      = 'i'    # integer
-    pressure    = 'f'    # float  (single-precision)
-    energy      = 'd'    # double (double-precision)
-
+    name      = Col('CharType', 16)  # 16-character String
+    idnumber  = Col("UInt64", 1)     # Unsigned long long 
+    ADCcount  = Col("UInt16", 1)     # Unsigned short integer
+    TDCcount  = Col("UInt8", 1)      # unsigned byte
+    grid_i    = Col("Int32", 1)      # integer
+    grid_j    = Col("Int32", 1)      # integer
+    pressure  = Col("Float32", 1)    # float  (single-precision)
+    energy    = Col("Float64", 1)    # double (double-precision)
 </verbatim>
 
-      <p>then, you will normally instantiate that class, fill the
-	instance with your values, and save (arbitrary large)
-	collections of them in a file for persistent storage. After
-	that, this data can be retrieved and post-processed quite
-	easily with <visual markup="tt">PyTables</visual> or even with
-	another <verb>HDF5</verb> application.
+      <p>then, you should have to pass this class to the table
+	constructor, fill its rows with your values, and save
+	(arbitrary large) collections of them in a file for persistent
+	storage. After that, this data can be retrieved and
+	post-processed quite easily with <visual
+	markup="tt">PyTables</visual> or even with another
+	<verb>HDF5</verb> application (in C, Fortran, Java or
+	whatever language that has an interface to HDF5).
       </p>
 
       <p>Next section describes the most interesting capabilities of
@@ -261,11 +268,10 @@ class Particle(IsColDescr):
 	    with a large number of records, i.e. that don't fit in
 	    memory.
 	  </item>
-	  <item><em>Support of <visual markup="tt">Numerical
-		Python</visual> arrays:</em> <verb>Numeric</verb>
-		arrays are a very useful complement of tables to keep
-		homogeneous table slices (like selections of table
-		columns).
+	  <item><em>Support of arrays:</em> <verb>Numeric</verb> or
+		<verb>numarray</verb> arrays are a very useful
+		complement of tables to keep homogeneous table slices
+		(like selections of table columns).
 	  </item>
 	  <item><em>Supports a hierarchical data model:</em> That way,
 	    you can structure very clearly all your
@@ -291,14 +297,22 @@ class Particle(IsColDescr):
 	    __int64), and <verb>PyTables</verb> automatically inherits
 	    this capability.
 	  </item>
+	  <item><em>Can read generic HDF5 files:</em>
+	    <verb>PyTables</verb> provides limited support to import
+	    generic HDF5 files provided they contain any combination
+	    compound type datasets (that will be mapped to tables) or
+	    homogeneous datasets (that will be mapped to
+	    arrays). However, as these kind of data is the most common
+	    to be saved HDF5 format, probably <verb>PyTables</verb>
+	    can read more than the 99% of the HDF5 files out there.
+	  </item>
 	  <item><em>Data compression:</em> It supports data
 	    compression (through the use of the <visual
 	    markup="tt"><visual markup="bf">zlib</visual></visual>
 	    library) out of the box. This become important when you
 	    have repetitive data patterns and don't want to loose your
 	    time searching for an optimized way to save them (i.e. it
-	    saves you data organization analysis time). This feature
-	    is also inherited from HDF5.
+	    saves you data organization analysis time).
 	  </item>
 
 	  <item><em>Architecture-independent:</em> <visual
@@ -307,32 +321,18 @@ class Particle(IsColDescr):
 	    issues in mind . So, in principle, you can write a file in
 	    a big-endian machine (like a Sparc or MIPS) and read it in
 	    other little-endian (like Intel or Alpha) without
-	    problems<footnote>I do actually tested that between a
-	    Sparc machine (big-endian) and an Intel machine
-	    (little-endian) and it works only for tables but not for
-	    arrays!. This flaw will hopefully be addressed in next
-	    release.</footnote>.
+	    problems.
 	  </item>
 
 	</itemize>
 
-	<p>It should noted that <visual markup="tt">PyTables</visual>
-	  is not intended to merely be a high level wrapper of
-	  selected HDF5 functionality (for this, have a look at
-	  HL-HDF5, the Swedish Meteorological and Hydrological
-	  Institute effort to provide another Python interface to
-	  HDF5; see <ref refid="HL-HDF">reference</ref>), but to
-	  provide a flexible, <em>very Pythonic</em> tool to deal with
-	  (arbitrary) large amounts of data (typically bigger than
-	  available memory) in tables and arrays organized in a
-	  hierarchical, persistent disk storage.
-	</p>
 	<p>
 	  <verb>PyTables</verb> take advantage of the powerful object
 	  orientation and introspection capabilities offered by Python
 	  to bring all those exposed features to the user in a
 	  friendly manner.
 	</p>
+
       </section>
 
       <section id="NaturalTreeSection">
@@ -1591,8 +1591,9 @@ Particle:     14 |       196.0 |   1.476e+09 |     14 |     -4 |       14 |
 	  </figure>
 
 
-	  <p>We are near the end of this first tutorial. Ei!, do not
-	    forget to close the file after you finish all the work:
+	  <p>We are near the end of this first tutorial. But, ei!, do
+	    not forget to close the file after you finish all the
+	    work:
 	  </p>
 
 	  <verbatim>
@@ -2068,8 +2069,8 @@ AttributeError: Error accessing "ADCcount" attr.
 	  will become the name of the columns, while its values are
 	  the properties of the columns that are obtained through the
 	  use of the <verb>Col</verb> class constructor. See the <ref
-	  refid="ColDescr">section</ref> for instructions on how define
-	  the properties of the table columns.
+	  refid="ColClassDescr">section</ref> for instructions on how
+	  define the properties of the table columns.
 	</p>
 	<p>Then, you can pass an instance of this object to the
 	  <verb>Table</verb> constructor, where all the information it
@@ -2132,7 +2133,7 @@ AttributeError: Error accessing "ADCcount" attr.
 	<heading>The <visual markup="tt">File</visual> class</heading>
 
 	<p>This class is returned when a <verb>PyTables</verb> file is
-	  opened with the <verb>openFile</verb> function. It has
+	  opened with the <verb>openFile()</verb> function. It has
 	  methods to create, open, flush and close
 	  <verb>PyTables</verb> files. Also, <verb>File</verb> class
 	  offer methods to traverse the object tree, as well as to
@@ -2164,18 +2165,20 @@ AttributeError: Error accessing "ADCcount" attr.
 	      the entry point to the object tree.</item>
 
 	    <term>trMap</term> <item>This is a dictionary that maps
-	      node names between python and HDF5 domain names. You can
-	      even change its contents <em>after</em> a file is opened
-	      and the new map will take effect on any new object added
+	      node names between python and HDF5 domain names. Its
+	      initial values are set from the <em>trMap</em> parameter
+	      passed to the <verb>openFile()</verb> function. You can
+	      change its contents <em>after</em> a file is opened and
+	      the new map will take effect over any new object added
 	      to the tree.</item>
 
-	    <term>_c_objects</term> <item>Dictionary with all objects
+	    <term>objects</term> <item>Dictionary with all objects
 	      (groups or leaves) on tree.</item>
 
-	    <term>_c_objgroups</term> <item>Dictionary with all object
+	    <term>groups</term> <item>Dictionary with all object
 	      groups on tree.</item>
 
-	    <term>_c_objleaves</term> <item>Dictionary with all object
+	    <term>leaves</term> <item>Dictionary with all object
 	      leaves on tree.</item>
 
 	  </description>
@@ -2568,13 +2571,13 @@ AttributeError: Error accessing "ADCcount" attr.
 	    <term>_v_file</term>
 	    <item>Pointer to the associated File object.</item>
 
-	    <term>_v_objchilds</term> <item>Dictionary with all nodes
+	    <term>_v_childs</term> <item>Dictionary with all nodes
 	      (groups or leaves) hanging from this instance.</item>
 
-	    <term>_v_objgroups</term> <item>Dictionary with all node
+	    <term>_v_groups</term> <item>Dictionary with all node
 	      groups hanging from this instance.</item>
 
-	    <term>_v_objleaves</term> <item>Dictionary with all node
+	    <term>_v_leaves</term> <item>Dictionary with all node
 	      leaves hanging from this instance.</item>
 
 	  </description>

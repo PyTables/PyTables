@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.27 2003/03/14 19:37:26 falted Exp $
+#       $Id: Group.py,v 1.28 2003/03/15 12:02:42 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.27 $"
+__version__ = "$Revision: 1.28 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -89,9 +89,9 @@ class Group(hdf5Extension.Group):
         _v_parent -- The parent Group instance
         _v_file -- The associated File object
         _v_rootgroup - Always point to the root group object
-        _v_objgroups -- Dictionary with object groups
-        _v_objleaves -- Dictionaly with object leaves
-        _v_objchilds -- Dictionary with object childs (groups or leaves)
+        _v_groups -- Dictionary with object groups
+        _v_leaves -- Dictionaly with object leaves
+        _v_childs -- Dictionary with object childs (groups or leaves)
 
     """
 
@@ -104,9 +104,9 @@ class Group(hdf5Extension.Group):
         """
         self.__dict__["_v_new"] = new
         self.__dict__["_v_title"] = title
-        self.__dict__["_v_objgroups"] = {}
-        self.__dict__["_v_objleaves"] = {}
-        self.__dict__["_v_objchilds"] = {}
+        self.__dict__["_v_groups"] = {}
+        self.__dict__["_v_leaves"] = {}
+        self.__dict__["_v_childs"] = {}
 
     def _g_openFile(self):
         """Recusively reads an HDF5 file and generates a tree object.
@@ -186,7 +186,7 @@ class Group(hdf5Extension.Group):
                 
         newattr["_v_" + "pathname"] = self._g_join(value._v_name)
         # Update instance variable
-        self._v_objchilds[value._v_name] = value
+        self._v_childs[value._v_name] = value
         # New attribute (to allow tab-completion in interactive mode)
         self.__dict__[value._v_name] = value
         # In the future this should be read from disk in case of an opening
@@ -194,7 +194,7 @@ class Group(hdf5Extension.Group):
         newattr["_v_class"] = value.__class__.__name__
         newattr["_v_version"] = "1.0"
         # Update class variables
-        self._v_file._c_objects[value._v_pathname] = value
+        self._v_file.objects[value._v_pathname] = value
 
     def _g_putObjectInTree(self, name, parent):
         """Set attributes for a new or existing Group instance."""
@@ -202,9 +202,9 @@ class Group(hdf5Extension.Group):
         # Update the parent instance attributes
         parent._g_setproperties(name, self)
         self._g_new(parent, self._v_hdf5name)
-        parent._v_objgroups[self._v_name] = self
+        parent._v_groups[self._v_name] = self
         # Update class variables
-        self._v_file._c_objgroups[self._v_pathname] = self
+        self._v_file.groups[self._v_pathname] = self
         if self._v_new:
             self._g_create()
         else:
@@ -221,8 +221,8 @@ class Group(hdf5Extension.Group):
         # Falta que açò s'invoque recursivament per a refrescar les
         # _v_pathnames en l'arbre.
         # Delete references to the oldname
-        del parent._v_objgroups[self._v_name]
-        del parent._v_objchilds[self._v_name]
+        del parent._v_groups[self._v_name]
+        del parent._v_childs[self._v_name]
         del parent.__dict__[self._v_name]
 
         # Get the alternate name (if any)
@@ -231,13 +231,13 @@ class Group(hdf5Extension.Group):
         newattr["_v_name"] = newname
         newattr["_v_hdf5name"] = trMap.get(newname, newname)
         # Update class variables
-        parent._v_file._c_objgroups[self._v_pathname] = self
-        parent._v_file._c_objects[self._v_pathname] = self
+        parent._v_file.groups[self._v_pathname] = self
+        parent._v_file.objects[self._v_pathname] = self
         # Call the _g_new method in Group superclass 
         self._g_new(parent, self._v_hdf5name)
         # Update this instance attributes
-        parent._v_objgroups[newname] = self
-        parent._v_objchilds[newname] = self
+        parent._v_groups[newname] = self
+        parent._v_childs[newname] = self
         parent.__dict__[newname] = self
 
         # Finally, change the old pathname in the object childs recursively
@@ -248,21 +248,21 @@ class Group(hdf5Extension.Group):
             newgpathname = oldgpathname.replace(oldpathname, newpathname, 1)
             group.__dict__["_v_pathname"] = newgpathname
             # Update class variables
-            del parent._v_file._c_objgroups[oldgpathname]
-            del parent._v_file._c_objects[oldgpathname]
+            del parent._v_file.groups[oldgpathname]
+            del parent._v_file.objects[oldgpathname]
             parent = group._v_parent
-            parent._v_file._c_objgroups[newgpathname] = group
-            parent._v_file._c_objects[newgpathname] = group
+            parent._v_file.groups[newgpathname] = group
+            parent._v_file.objects[newgpathname] = group
             for node in group._f_listNodes("Leaf"):
                 oldgpathname = node._v_pathname
                 newgpathname = oldgpathname.replace(oldpathname, newpathname, 1)
                 node.__dict__["_v_pathname"] = newgpathname
                 # Update class variables
-                del parent._v_file._c_objleaves[oldgpathname]
-                del parent._v_file._c_objects[oldgpathname]
+                del parent._v_file.leaves[oldgpathname]
+                del parent._v_file.objects[oldgpathname]
                 parent = node._v_parent
-                parent._v_file._c_objleaves[newgpathname] = node
-                parent._v_file._c_objects[newgpathname] = node
+                parent._v_file.leaves[newgpathname] = node
+                parent._v_file.objects[newgpathname] = node
 
 
     def _g_open(self, parent, name):
@@ -304,19 +304,19 @@ class Group(hdf5Extension.Group):
         """
         if not classname:
             # Returns all the childs alphanumerically sorted
-            names = self._v_objchilds.keys()
+            names = self._v_childs.keys()
             names.sort()
-            return [ self._v_objchilds[name] for name in names ]
+            return [ self._v_childs[name] for name in names ]
         elif classname == 'Group':
             # Returns all the groups alphanumerically sorted
-            names = self._v_objgroups.keys()
+            names = self._v_groups.keys()
             names.sort()
-            return [ self._v_objgroups[name] for name in names ]
+            return [ self._v_groups[name] for name in names ]
         elif classname == 'Leaf':
             # Returns all the leaves alphanumerically sorted
-            names = self._v_objleaves.keys()
+            names = self._v_leaves.keys()
             names.sort()
-            return [ self._v_objleaves[name] for name in names ]
+            return [ self._v_leaves[name] for name in names ]
         elif (classname == 'Table' or
               classname == 'Array'):
             listobjects = []
@@ -340,20 +340,20 @@ class Group(hdf5Extension.Group):
         # Returns this group
         yield self
         # Iterate over the descendants
-        #for group in self._v_objgroups.itervalues():
+        #for group in self._v_groups.itervalues():
         # Sort the groups before delivering. This uses the groups names
         # for groups in tree (in order to sort() can classify them).
-        groupnames = self._v_objgroups.keys()
+        groupnames = self._v_groups.keys()
         groupnames.sort()
         for groupname in groupnames:
-            for x in self._v_objgroups[groupname]._f_walkGroups():
+            for x in self._v_groups[groupname]._f_walkGroups():
                 yield x
 
 #     def __delattr__(self, name):
 #         """In the future, this should delete objects both in memory
 #         and in the file."""
         
-#         if name in self._v_objchilds:
+#         if name in self._v_childs:
 #             #print "Add code to delete", name, "attribute"
 #             pass
 #             #self._v_leaves.remove(name)
@@ -365,10 +365,10 @@ class Group(hdf5Extension.Group):
         """Get the object named "name" hanging from me."""
         
         #print "Getting the", name, "attribute in Group", self
-        if name in self._v_objgroups:
-            return self._v_objgroups[name]
-        elif name in self._v_objleaves:
-            return self._v_objleaves[name]
+        if name in self._v_groups:
+            return self._v_groups[name]
+        elif name in self._v_leaves:
+            return self._v_leaves[name]
         else:
             raise LookupError, "'%s' group has not a \"%s\" child!" % \
                                   (self._v_pathname, name)
@@ -396,9 +396,9 @@ class Group(hdf5Extension.Group):
                (MAX_DEPTH_IN_TREE) 
 
         # Check if we have too much number of childs
-        if len(self._v_objchilds.values()) < MAX_CHILDS_IN_GROUP:
+        if len(self._v_childs.values()) < MAX_CHILDS_IN_GROUP:
             # Put value object with name name in object tree
-            if name not in self._v_objchilds:
+            if name not in self._v_childs:
                 value._g_putObjectInTree(name, self)
             else:
                 raise NameError, \
@@ -414,11 +414,11 @@ class Group(hdf5Extension.Group):
         self._g_closeGroup()
         # Delete the back references in Group
         if self._v_hdf5name <> "/":
-            del self._v_parent._v_objgroups[self._v_name]
-            del self._v_parent._v_objchilds[self._v_name]
+            del self._v_parent._v_groups[self._v_name]
+            del self._v_parent._v_childs[self._v_name]
             del self._v_parent.__dict__[self._v_name]
-        del self._v_file._c_objgroups[self._v_pathname]
-        del self._v_file._c_objects[self._v_pathname]
+        del self._v_file.groups[self._v_pathname]
+        del self._v_file.objects[self._v_pathname]
         del self._v_parent
         del self._v_rootgroup
         del self._v_file
@@ -450,10 +450,10 @@ class Group(hdf5Extension.Group):
         # Check for name validity
         checkNameValidity(newname)
         # Check if self has a child with the same name
-        if newname in self._v_parent._v_objchilds:
+        if newname in self._v_parent._v_childs:
             raise RuntimeError, \
         """Another sibling (%s) already has the name '%s' """ % \
-                   (self._v_parent._v_objchilds[newname], newname)
+                   (self._v_parent._v_childs[newname], newname)
         # Rename all the appearances of oldname in the object tree
         oldname = self._v_name
         self._g_renameObject(newname)
@@ -462,7 +462,7 @@ class Group(hdf5Extension.Group):
     def _f_remove(self, recursive=0):
         """Remove this HDF5 group"""
         
-        if self._v_objchilds <> {}:
+        if self._v_childs <> {}:
             if recursive:
                 # First close all the childs hanging from this group
                 for group in self._f_walkGroups():
@@ -506,7 +506,7 @@ class Group(hdf5Extension.Group):
         
         rep = [ '%r (%s)' %  \
                 (childname, child._v_class) 
-                for (childname, child) in self._v_objchilds.items() ]
+                for (childname, child) in self._v_childs.items() ]
         childlist = '[%s]' % (', '.join(rep))
         
         return "%s\n  childs := %s" % \

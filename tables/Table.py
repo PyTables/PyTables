@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.40 2003/03/14 19:37:27 falted Exp $
+#       $Id: Table.py,v 1.41 2003/03/15 12:02:43 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.40 $"
+__version__ = "$Revision: 1.41 $"
 
 from __future__ import generators
 import sys
@@ -364,6 +364,12 @@ class Table(Leaf, hdf5Extension.Table):
             pass
         # Max Tuples to fill the buffer
         self._v_maxTuples = buffersize // rowsize
+        # A new correction for avoid too many calls to HDF5 I/O calls
+        # But this does not apport advantages rather the contrary,
+        # the memory comsumption grows, and performance is worse.
+        #if expectedrows//self._v_maxTuples > 50:
+        #    buffersize *= 4
+        #    self._v_maxTuples = buffersize // rowsize
         #print "Buffersize, MaxTuples ==>", buffersize, self._v_maxTuples
         self._v_chunksize = chunksize
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.16 2003/03/14 11:38:55 falted Exp $
+#       $Id: Leaf.py,v 1.17 2003/03/15 12:02:43 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.16 $"
+__version__ = "$Revision: 1.17 $"
 
 import types
 from utils import checkNameValidity
@@ -72,9 +72,9 @@ class Leaf:
         # Call the new method in Leaf superclass 
         self._g_new(parent, self._v_hdf5name)
         # Update this instance attributes
-        parent._v_objleaves[self._v_name] = self
+        parent._v_leaves[self._v_name] = self
         # Update class variables
-        parent._v_file._c_objleaves[self._v_pathname] = self
+        parent._v_file.leaves[self._v_pathname] = self
         # This variable seems unnecessary
         #self._v_groupId = parent._v_groupId
         if self._v_new:
@@ -89,10 +89,10 @@ class Leaf:
         newattr = self.__dict__
 
         # Delete references to the oldname
-        del parent._v_file._c_objleaves[self._v_pathname]
-        del parent._v_file._c_objects[self._v_pathname]
-        del parent._v_objleaves[self._v_name]
-        del parent._v_objchilds[self._v_name]
+        del parent._v_file.leaves[self._v_pathname]
+        del parent._v_file.objects[self._v_pathname]
+        del parent._v_leaves[self._v_name]
+        del parent._v_childs[self._v_name]
         del parent.__dict__[self._v_name]
 
         # Get the alternate name (if any)
@@ -104,8 +104,8 @@ class Leaf:
         newattr["_v_pathname"] = parent._g_join(newname)
         
         # Update class variables
-        parent._v_file._c_objects[self._v_pathname] = self
-        parent._v_file._c_objleaves[self._v_pathname] = self
+        parent._v_file.objects[self._v_pathname] = self
+        parent._v_file.leaves[self._v_pathname] = self
 
         # Standard attribute for Leaves
         self.name = newname
@@ -115,8 +115,8 @@ class Leaf:
         self._g_new(parent, self._v_hdf5name)
         
         # Update this instance attributes
-        parent._v_objchilds[newname] = self
-        parent._v_objleaves[newname] = self
+        parent._v_childs[newname] = self
+        parent._v_leaves[newname] = self
         parent.__dict__[newname] = self
         
     def remove(self):
@@ -131,10 +131,10 @@ class Leaf:
         # Check for name validity
         checkNameValidity(newname)
         # Check if self has a child with the same name
-        if newname in self._v_parent._v_objchilds:
+        if newname in self._v_parent._v_childs:
             raise RuntimeError, \
         """Another sibling (%s) already has the name '%s' """ % \
-                   (self._v_parent._v_objchilds[newname], newname)
+                   (self._v_parent._v_childs[newname], newname)
         # Rename all the appearances of oldname in the object tree
         oldname = self._v_name
         self._g_renameObject(newname)
@@ -166,11 +166,11 @@ class Leaf:
         """Flush the buffers and close this object on tree"""
         self.flush()
         parent = self._v_parent
-        del parent._v_objleaves[self._v_name]
+        del parent._v_leaves[self._v_name]
         del parent.__dict__[self._v_name]
-        del parent._v_objchilds[self._v_name]
-        del parent._v_file._c_objleaves[self._v_pathname]
-        del parent._v_file._c_objects[self._v_pathname]
+        del parent._v_childs[self._v_name]
+        del parent._v_file.leaves[self._v_pathname]
+        del parent._v_file.objects[self._v_pathname]
         del self._v_parent
         del self._v_rootgroup
         del self._v_file
