@@ -115,7 +115,7 @@ def createFile(filename, totalrows, filters, recsize):
             for i in xrange(totalrows):
                 #d['var1'] = str(random.randrange(1000000))
                 #d['var3'] = random.randrange(10000000)
-                #d['var1'] = str(i)
+                d['var1'] = str(i)
                 d['var2'] = random.randrange(totalrows)
                 #d['var3'] = 12.1e10
                 d['var3'] = totalrows-i
@@ -174,8 +174,17 @@ def readFile(filename, recsize, verbose):
             else:  # small record case
 #                 e = [ p['var3'] for p in table.iterrows()
 #                       if p['var2'] < 20 and p['var3'] < 20 ]
-               e = [ p['var3'] for p in table(where="var3 <= 20")
-                     if p['var2'] < 20 ]
+#                e = [ p['var3'] for p in table(where="var3 <= 20")
+#                      if p['var2'] < 20 ]
+#               e = [ p['var3'] for p in table(where="var3 <= 20")]
+               e = [ p['var3'] for p in
+                     table(where=table.cols.var2 < 10)]
+#               e = [ p['var3'] for p in table(where="var3 <= 20")]
+#                e = [ p['var3'] for p in
+#                      table(where=table.cols.var1 == "10")]  # More
+                     # than ten times faster than the next one
+#                e = [ p['var3'] for p in table
+#                      if p['var1'] == "10"]
 #                 e = [ p['var3'] for p in table.iterrows()
 #                       if p['var2'] <= 20 ]
                 #e = [ p['var3'] for p in table.iterrows(0,21) ]

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.124 2004/05/06 17:34:35 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.125 2004/05/12 17:09:17 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.124 $"
+__version__ = "$Revision: 1.125 $"
 
 
 import sys, os
@@ -853,7 +853,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.124 2004/05/06 17:34:35 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.125 2004/05/12 17:09:17 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1830,11 +1830,6 @@ cdef class Row:
     self.whereCond = 0
     if hasattr(self._table, "whereColname"):
       self.whereCond = 1
-      # Get values for the where condition
-      self.startcond = self._table.startcond
-      self.stopcond = self._table.stopcond
-      self.op1 = self._table.op1
-      self.op2 = self._table.op2
       self.colname = PyString_AsString(self._table.whereColname)
 
   # This is the general version for __next__, and the more compact and fastest
@@ -1842,6 +1837,9 @@ cdef class Row:
     "next() method for __iter__() that is called on each iteration"
     cdef long offset
     cdef object indexValid1, indexValid2
+    cdef int ncond, op
+    #cdef float opValue
+    cdef object opValue
 
     self.nextelement = self._nrow + self.step
     while self.nextelement < self.stop:
@@ -1863,20 +1861,33 @@ cdef class Row:
         self.indexChunk = -1
         # Do we have a select condition?
         if self.whereCond:
-          if self.op1 == 1:
-            indexValid1 = self._fields[self.colname].__gt__(self.startcond)
-          elif self.op1 == 2:
-            indexValid1 = self._fields[self.colname].__ge__(self.startcond)
-          if self.op2 == 1:
-            indexValid2 = self._fields[self.colname].__lt__(self.stopcond)
-          elif self.op2 == 2:
-            indexValid2 = self._fields[self.colname].__le__(self.stopcond)
-          if self.op1 and self.op2:
-            self.indexValid = indexValid1.__and__(indexValid2)
-          elif self.op1:
-            self.indexValid = indexValid1
-          elif self.op2:
-            self.indexValid = indexValid2
+          # Iterate over the conditions
+          ncond = 0
+          for op in self._table.ops:
+            opValue = self._table.opsValues[ncond]
+            if op == 1:
+              indexValid1 = self._fields[self.colname].__lt__(opValue)
+            elif op == 2:
+              indexValid1 = self._fields[self.colname].__le__(opValue)
+            elif op == 3:
+              indexValid1 = self._fields[self.colname].__gt__(opValue)
+            elif op == 4:
+              indexValid1 = self._fields[self.colname].__ge__(opValue)
+            elif op == 5:
+              indexValid1 = self._fields[self.colname].__eq__(opValue)
+            elif op == 6:
+              indexValid1 = self._fields[self.colname].__ne__(opValue)
+            # Consolidate the valid indexes
+            if ncond == 0:
+              self.indexValid = indexValid1
+            else:
+              self.indexValid = self.indexValid.__and__(indexValid1)
+            ncond = ncond + 1
+              
+            # Is still there any interesting information in this buffer?
+#             if not numarray.sometrue(self.indexValid):
+#               # No, so exit this loop
+#               break
 
           # Is still there any interesting information in this buffer?
           if not numarray.sometrue(self.indexValid):
@@ -1900,6 +1911,10 @@ cdef class Row:
         return self
     else:
       self._table._close_read()  # Close the table
+      # Re-initialize the possible cuts in columns
+      self._table.ops = []
+      self._table.opsValues = []
+      self._table.whereColumn = None
       raise StopIteration        # end of iteration
 
 
