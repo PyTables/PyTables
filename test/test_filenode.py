@@ -5,7 +5,7 @@
 #	Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/test/test_filenode.py,v $
-#	$Id: test_filenode.py,v 1.6 2004/11/18 10:18:30 ivilata Exp $
+#	$Id: test_filenode.py,v 1.7 2004/11/18 19:10:30 ivilata Exp $
 #
 ########################################################################
 
@@ -17,7 +17,7 @@ from tables.nodes import FileNode
 import warnings
 
 
-__revision__ = '$Id: test_filenode.py,v 1.6 2004/11/18 10:18:30 ivilata Exp $'
+__revision__ = '$Id: test_filenode.py,v 1.7 2004/11/18 19:10:30 ivilata Exp $'
 
 
 
@@ -85,6 +85,110 @@ FileNode.newNode() failed to accept 'expectedsize' argument.")
 		self.assertRaises(
 			TypeError, FileNode.newNode,
 			self.h5file, where = '/', name = 'test', expectedrows = 100000)
+
+
+
+class ClosedFileTestCase(unittest.TestCase):
+	"Tests calling several methods on a closed file."
+
+	def setUp(self):
+		"""setUp() -> None
+
+		This method sets the following instance attributes:
+		  * 'h5fname', the name of the temporary HDF5 file
+		  * 'h5file', the writable, temporary HDF5 file with a '/test' node
+		  * 'fnode', the closed file node in '/test'
+		"""
+
+		self.h5fname = tempfile.mktemp(suffix = '.h5')
+		self.h5file = tables.openFile(
+			self.h5fname, 'w', title = "Test for handling a closed file node")
+		self.fnode = FileNode.newNode(self.h5file, where = '/', name = 'test')
+		self.fnode.close()
+
+
+	def tearDown(self):
+		"""tearDown() -> None
+
+		Closes 'h5file'; removes 'h5fname'.
+		"""
+
+		self.fnode = None
+		self.h5file.close()
+		self.h5file = None
+		os.remove(self.h5fname)
+
+
+	# All these tests mey seem odd, but Python (2.3) files
+	# do test whether the file is not closed regardless of their mode.
+
+	def test00_Close(self):
+		"Closing a closed file."
+
+		try:
+			self.fnode.close()
+		except:
+			self.fail("Closing a closed file produced an error.")
+
+
+	def test01_Flush(self):
+		"Flushing a closed file."
+
+		self.assertRaises(ValueError, self.fnode.flush)
+
+
+	def test02_Next(self):
+		"Getting the next line of a closed file."
+
+		self.assertRaises(ValueError, self.fnode.next)
+
+
+	def test03_Read(self):
+		"Reading a closed file."
+
+		self.assertRaises(ValueError, self.fnode.read)
+
+
+	def test04_Readline(self):
+		"Reading a line from a closed file."
+
+		self.assertRaises(ValueError, self.fnode.readline)
+
+
+	def test05_Readlines(self):
+		"Reading lines from a closed file."
+
+		self.assertRaises(ValueError, self.fnode.readlines)
+
+
+	def test06_Seek(self):
+		"Seeking a closed file."
+
+		self.assertRaises(ValueError, self.fnode.seek, 0)
+
+
+	def test07_Tell(self):
+		"Getting the pointer position in a closed file."
+
+		self.assertRaises(ValueError, self.fnode.tell)
+
+
+	def test08_Truncate(self):
+		"Truncating a closed file."
+
+		self.assertRaises(ValueError, self.fnode.truncate)
+
+
+	def test09_Write(self):
+		"Writing a closed file."
+
+		self.assertRaises(ValueError, self.fnode.write, 'foo')
+
+
+	def test10_Writelines(self):
+		"Writing lines to a closed file."
+
+		self.assertRaises(ValueError, self.fnode.writelines, ['foo\n'])
 
 
 
@@ -760,6 +864,7 @@ def suite():
 	theSuite = unittest.TestSuite()
 
 	theSuite.addTest(unittest.makeSuite(NewFileTestCase))
+	theSuite.addTest(unittest.makeSuite(ClosedFileTestCase))
 	theSuite.addTest(unittest.makeSuite(WriteFileTestCase))
 	theSuite.addTest(unittest.makeSuite(OpenFileTestCase))
 	theSuite.addTest(unittest.makeSuite(ReadFileTestCase))

@@ -5,7 +5,7 @@
 #	Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/nodes/FileNode.py,v $
-#	$Id: FileNode.py,v 1.3 2004/11/17 15:04:31 ivilata Exp $
+#	$Id: FileNode.py,v 1.4 2004/11/18 19:10:40 ivilata Exp $
 #
 ########################################################################
 
@@ -30,7 +30,7 @@ import tables
 
 
 
-__revision__ = '$Id: FileNode.py,v 1.3 2004/11/17 15:04:31 ivilata Exp $'
+__revision__ = '$Id: FileNode.py,v 1.4 2004/11/18 19:10:40 ivilata Exp $'
 
 NodeType         = 'file'
 NodeTypeVersions = [1]
@@ -618,6 +618,8 @@ class RWFileNode(FileNode):
 		since data can not be rewritten nor deleted.
 		See file.truncate.__doc__ for more information.
 		"""
+
+		self._checkNotClosed()
 
 		if size is None:
 			size = self.offset
