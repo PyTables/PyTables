@@ -6530,11 +6530,11 @@ Result Array:
 	  node</heading>
 
 	<p><visual markup="tt">FileNode</visual> nodes can be
-	  recognised because they have a <verb>_type</verb> attribute
+	  recognised because they have a <verb>NODE_TYPE</verb> system attribute
 	  with a <verb>'file'</verb> value.  It is recommended that
 	  you use the <verb>getAttrNode()</verb> method (see <ref
 	  refid="getAttrNodeDescr"></ref>) of <verb>tables.File</verb>
-	  class to get the <verb>_type</verb> attribute independently
+	  class to get the <verb>NODE_TYPE</verb> attribute independently
 	  of the nature (group or leaf) of the node, so you do not
 	  need to care about.
 	</p>
@@ -6558,7 +6558,7 @@ Result Array:
 	  <verb>newNode()</verb> and <verb>openNode()</verb> calls.
 	</p>
 	<p>The <verb>NodeType</verb> constant contains the value that
-	  the <verb>_type</verb> attribute of a node file is expected
+	  the <verb>NODE_TYPE</verb> system attribute of a node file is expected
 	  to contain (<verb>'file'</verb>, as we have seen).  Although
 	  this is not expected to change, you should use <visual
 	  markup="tt">FileNode.NodeType</visual> instead of the
@@ -6629,11 +6629,11 @@ Result Array:
 
 	  <p><verb>newNode()</verb> creates a <verb>PyTables</verb>
 	    node where it is told to.  To prove it, we will try to get
-	    the <verb>_type</verb> attribute from the newly created
+	    the <verb>NODE_TYPE</verb> attribute from the newly created
 	    node.
 	  </p>
 	  <verbatim>
-  >>> print h5file.getAttrNode('/fnode_test', '_type')
+  >>> print h5file.getAttrNode('/fnode_test', 'NODE_TYPE')
   file
 	  </verbatim>
 	</subsection>
@@ -6692,7 +6692,7 @@ Result Array:
 	    <verb>openNode()</verb>.  Its arguments are similar to
 	    that of <verb>file()</verb> or <verb>open()</verb>: the
 	    first argument is the <verb>PyTables</verb> node that you
-	    want to open (i.e. a node with a <verb>_type</verb>
+	    want to open (i.e. a node with a <verb>NODE_TYPE</verb>
 	    attribute having a <verb>'file'</verb> value), and the
 	    second argument is a mode string indicating how to open
 	    the file.  Contrary to <verb>file()</verb>,
@@ -6790,15 +6790,15 @@ Result Array:
 	  </p>
 	  <verbatim>
   $ ptdump -a fnode.h5:/fnode_test
-  /fnode_test (EArray(113, 1)) ''
+  /fnode_test (EArray(113,)) ''
     /fnode_test.attrs (AttributeSet), 14 attributes:
      [CLASS := 'EARRAY',
       EXTDIM := 0,
       FLAVOR := 'NumArray',
+      NODE_TYPE := 'file',
+      NODE_TYPE_VERSION := 2,
       TITLE := '',
-      VERSION := '1.0',
-      _type := 'file',
-      _type_version := 1,
+      VERSION := '1.2',
       acl := {'ivan': 'rw', '@users': 'r'},
       author := 'Ivan Vilata i Balaguer',
       content_type := 'text/plain; charset=us-ascii',
@@ -6851,11 +6851,11 @@ Result Array:
 	  <heading>Global constants</heading>
 
 	  <description>
-	    <term>NodeType</term> <item>Value for <verb>_type</verb>
-	      node attribute.</item>
+	    <term>NodeType</term> <item>Value for <verb>NODE_TYPE</verb>
+	      node system attribute.</item>
 
 	    <term>NodeTypeVersions</term> <item>Supported values for
-	      <verb>_type_version</verb> node attribute.</item>
+	      <verb>NODE_TYPE_VERSION</verb> node system attribute.</item>
 	  </description>
 
 	</subsection>

@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.40 2004/12/29 21:25:46 falted Exp $
+#       $Id: AttributeSet.py,v 1.41 2004/12/30 09:17:37 ivilata Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.40 $"
+__version__ = "$Revision: 1.41 $"
 
 import warnings, cPickle
 import hdf5Extension
@@ -46,7 +46,8 @@ MAX_ATTRS_IN_NODE = 4096
 # System attributes
 SYS_ATTRS = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
              "FLAVOR", "ENCODING", "PYTABLES_FORMAT_VERSION",
-             "FILTERS", "AUTOMATIC_INDEX", "REINDEX", "DIRTY"]
+             "FILTERS", "AUTOMATIC_INDEX", "REINDEX", "DIRTY",
+             "NODE_TYPE", "NODE_TYPE_VERSION"]
 # Prefixes of other system attributes
 SYS_ATTRS_PREFIXES = ["FIELD_"]
 # RO_ATTRS will be disabled and let the user modify them if they
@@ -54,7 +55,8 @@ SYS_ATTRS_PREFIXES = ["FIELD_"]
 # system attributes. Francesc Altet 2004-12-19
 # Read-only attributes:
 # RO_ATTRS = ["CLASS", "FLAVOR", "VERSION", "NROWS", "EXTDIM",
-#             "PYTABLES_FORMAT_VERSION", "FILTERS"]
+#             "PYTABLES_FORMAT_VERSION", "FILTERS",
+#             "NODE_TYPE", "NODE_TYPE_VERSION"]
 #RO_ATTRS = []
 
 # The next attributes are not meant to be copied during a Node copy process

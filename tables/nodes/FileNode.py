@@ -5,7 +5,7 @@
 #	Author:  Ivan Vilata i Balaguer - reverse:com.carabos@ivilata
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/nodes/FileNode.py,v $
-#	$Id: FileNode.py,v 1.8 2004/12/29 22:51:08 ivilata Exp $
+#	$Id: FileNode.py,v 1.9 2004/12/30 09:17:38 ivilata Exp $
 #
 ########################################################################
 
@@ -21,8 +21,9 @@ opened with mode 'a+') only allows appending data to a file node.
 
 
 Constants:
-	NodeType         -- Value for '_type' node attribute.
-	NodeTypeVersions -- Supported values for '_type_version' node attribute.
+	NodeType         -- Value for 'NODE_TYPE' node system attribute.
+	NodeTypeVersions -- Supported values for 'NODE_TYPE_VERSION'
+	                    node system attribute.
 """
 
 import os, warnings, numarray
@@ -30,7 +31,7 @@ import tables
 
 
 
-__revision__ = '$Id: FileNode.py,v 1.8 2004/12/29 22:51:08 ivilata Exp $'
+__revision__ = '$Id: FileNode.py,v 1.9 2004/12/30 09:17:38 ivilata Exp $'
 
 NodeType         = 'file'
 NodeTypeVersions = [1, 2]
@@ -585,26 +586,30 @@ class FileNode(object):
 	def _setAttributes(self, node):
 		"""_setAttributes(node) -> None.  Adds file node-specific attributes.
 
-		Adds the attributes '_type' and '_type_version' to the specified
-		PyTables node (leaf).
+		Sets the system attributes 'NODE_TYPE' and 'NODE_TYPE_VERSION'
+		in the specified PyTables node (leaf).
 		"""
 
 		attrs = node.attrs
-		attrs._type         = NodeType
-		attrs._type_version = NodeTypeVersions[-1]
+		# System attributes are now writable.  ivb(2004-12-30)
+		##attrs._g_setAttr('NODE_TYPE', NodeType)
+		##attrs._g_setAttr('NODE_TYPE_VERSION', NodeTypeVersions[-1])
+		attrs.NODE_TYPE         = NodeType
+		attrs.NODE_TYPE_VERSION = NodeTypeVersions[-1]
 
 
 	def _checkAttributes(self, node):
 		"""_checkAttributes(node) -> None.  Checks file node-specific attributes.
 
-		Checks for the presence and validity of the attributes '_type'
-		and '_type_version' in the specified PyTables node (leaf).
+		Checks for the presence and validity
+		of the system attributes 'NODE_TYPE' and 'NODE_TYPE_VERSION'
+		in the specified PyTables node (leaf).
 		ValueError is raised if an attribute is missing or incorrect.
 		"""
 
 		attrs = node.attrs
-		ltype    = getattr(attrs, '_type', None)
-		ltypever = getattr(attrs, '_type_version', None)
+		ltype    = getattr(attrs, 'NODE_TYPE', None)
+		ltypever = getattr(attrs, 'NODE_TYPE_VERSION', None)
 
 		if ltype != NodeType:
 			raise ValueError("invalid type of node object: %s" % (ltype,))
@@ -717,7 +722,7 @@ class ROFileNode(ReadableMixin, NotWritableMixin, FileNode):
 		self.node = node
 		self.mode = 'r'
 		self.offset = 0L
-		self._version = node.attrs._type_version
+		self._version = node.attrs.NODE_TYPE_VERSION
 
 
 	def __del__(self):
@@ -762,7 +767,7 @@ class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
 		if node is not None:
 			# Open an existing node and get its version.
 			self._checkAttributes(node)
-			self._version = node.attrs._type_version
+			self._version = node.attrs.NODE_TYPE_VERSION
 		elif h5file is not None:
 			# Check for allowed keyword arguments,
 			# to avoid unwanted arguments falling through to array constructor.

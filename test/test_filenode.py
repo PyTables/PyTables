@@ -5,7 +5,7 @@
 #	Author:  Ivan Vilata i Balaguer - reverse:com.carabos@ivilata
 #
 #	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/test/test_filenode.py,v $
-#	$Id: test_filenode.py,v 1.11 2004/12/19 12:33:47 ivilata Exp $
+#	$Id: test_filenode.py,v 1.12 2004/12/30 09:17:38 ivilata Exp $
 #
 ########################################################################
 
@@ -17,7 +17,7 @@ from tables.nodes import FileNode
 import warnings
 
 
-__revision__ = '$Id: test_filenode.py,v 1.11 2004/12/19 12:33:47 ivilata Exp $'
+__revision__ = '$Id: test_filenode.py,v 1.12 2004/12/30 09:17:38 ivilata Exp $'
 
 
 
@@ -377,14 +377,16 @@ class OpenFileTestCase(unittest.TestCase):
 			IOError, FileNode.openNode, self.h5file.getNode('/test'), 'w')
 
 
-	def test03_OpenFileNoAttrs(self):
-		"Opening a node with no type attributes."
-
-		node = self.h5file.getNode('/test')
-		self.h5file.delAttrNode('/test', '_type')
-		# Another way to get the same result is changing the value.
-		##self.h5file.setAttrNode('/test', '_type', 'foobar')
-		self.assertRaises(ValueError, FileNode.openNode, node)
+	# This no longer works since type and type version attributes
+	# are now system attributes.  ivb(2004-12-29)
+	##def test03_OpenFileNoAttrs(self):
+	##	"Opening a node with no type attributes."
+	##
+	##	node = self.h5file.getNode('/test')
+	##	self.h5file.delAttrNode('/test', '_type')
+	##	# Another way to get the same result is changing the value.
+	##	##self.h5file.setAttrNode('/test', '_type', 'foobar')
+	##	self.assertRaises(ValueError, FileNode.openNode, node)
 
 
 
@@ -752,19 +754,51 @@ class AttrsTestCase(unittest.TestCase):
 		os.remove(self.h5fname)
 
 
-	def test00_GetTypeAttr(self):
-		"Getting the type attribute of a file node."
+	# This no longer works since type and type version attributes
+	# are now system attributes.  ivb(2004-12-29)
+	##def test00_GetTypeAttr(self):
+	##	"Getting the type attribute of a file node."
+	##
+	##	self.assertEqual(
+	##		getattr(self.fnode.attrs, '_type', None), FileNode.NodeType,
+	##		"File node has no '_type' attribute.")
 
+
+	def test00_MangleTypeAttrs(self):
+		"Mangling the type attributes on a file node."
+
+		nodeType = getattr(self.fnode.attrs, 'NODE_TYPE', None)
 		self.assertEqual(
-			getattr(self.fnode.attrs, '_type', None), FileNode.NodeType,
-			"File node has no '_type' attribute.")
+			nodeType, FileNode.NodeType,
+			"File node does not have a valid 'NODE_TYPE' attribute.")
 
+		nodeTypeVersion = getattr(self.fnode.attrs, 'NODE_TYPE_VERSION', None)
+		self.assert_(
+			nodeTypeVersion in FileNode.NodeTypeVersions,
+			"File node does not have a valid 'NODE_TYPE_VERSION' attribute.")
 
-	def test01_SetSystemAttr(self):
-		"Setting a system attribute on a file node."
+		# System attributes are now writable.  ivb(2004-12-30)
+		##self.assertRaises(
+		##	AttributeError,
+		##	setattr, self.fnode.attrs, 'NODE_TYPE', 'foobar')
+		##self.assertRaises(
+		##	AttributeError,
+		##	setattr, self.fnode.attrs, 'NODE_TYPE_VERSION', 'foobar')
 
 		self.assertRaises(
-			AttributeError, setattr, self.fnode.attrs, 'CLASS', 'foobar')
+			AttributeError,
+			delattr, self.fnode.attrs, 'NODE_TYPE')
+		self.assertRaises(
+			AttributeError,
+			delattr, self.fnode.attrs, 'NODE_TYPE_VERSION')
+
+
+	# System attributes are now writable.  ivb(2004-12-30)
+	##def test01_SetSystemAttr(self):
+	##	"Setting a system attribute on a file node."
+	##
+	##	self.assertRaises(
+	##		AttributeError, setattr, self.fnode.attrs, 'CLASS', 'foobar')
 
 
 	def test02_SetGetDelUserAttr(self):
