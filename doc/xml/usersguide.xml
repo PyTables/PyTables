@@ -253,7 +253,7 @@ class Particle(IsRecord):
 	<verb>PyTables</verb>.</p>
 
       <section>
-	<heading>Features</heading> <p><visual
+	<heading>Main Features</heading> <p><visual
 	markup="tt">PyTables</visual> has the next capabilities:</p>
 
 	<itemize>
@@ -311,20 +311,22 @@ class Particle(IsRecord):
 	    me.</footnote>.</item>
 	</itemize>
 
-	<p>Finally, it should noted that <visual
-	  markup="tt">PyTables</visual> is not intended to merely be a
-	  high level wrapper of selected HDF5 functionality (for this,
-	  have a look at HL-HDF5, the Swedish Meteorological and
-	  Hydrological Institute effort to provide another python
-	  interface to HDF5; see <ref refid="HL-HDF">reference</ref>),
-	  but to provide a flexible, <em>very Pythonic</em> tool to
-	  deal with (very) large amounts of data (i.e., typically
-	  bigger than available memory) in tables (heterogeneous data
-	  types) and arrays (homogeneous data types) organized in a
-	  hierarchical, persistent disk storage. <verb>PyTables</verb>
-	  take advantage of the powerful object orientation and
-	  introspection capabilities offered by Python to bring all
-	  this power to the user in a friendly manner.
+	<p>It should noted that <visual markup="tt">PyTables</visual>
+	  is not intended to merely be a high level wrapper of
+	  selected HDF5 functionality (for this, have a look at
+	  HL-HDF5, the Swedish Meteorological and Hydrological
+	  Institute effort to provide another Python interface to
+	  HDF5; see <ref refid="HL-HDF">reference</ref>), but to
+	  provide a flexible, <em>very Pythonic</em> tool to deal with
+	  (arbitrary) large amounts of data (typically bigger than
+	  available memory) in tables and arrays organized in a
+	  hierarchical, persistent disk storage.
+	</p>
+	<p>
+	  <verb>PyTables</verb> take advantage of the powerful object
+	  orientation and introspection capabilities offered by Python
+	  to bring all those exposed features to the user in a
+	  friendly manner.
 	</p>
       </section>
 
@@ -335,9 +337,8 @@ class Particle(IsRecord):
 	  allows <verb>PyTables</verb> to manage tables and arrays in
 	  a tree-like structure. In order to achieve this, an
 	  <em>object tree</em> entity is <em>dynamically</em> created
-	  by <verb>PyTables</verb> imitating the HDF5 structure on
-	  disk. That way, the access to the HDF5 objects is made by
-	  walking throughout the <visual markup="tt">PyTables</visual>
+	  imitating the HDF5 structure on disk. That way, the access
+	  to the HDF5 objects is made by walking throughout this
 	  object tree, and, by looking at their <em>metadata</em>
 	  nodes, you can get a nice picture of what kind data is kept
 	  there.
@@ -356,26 +357,24 @@ class Particle(IsRecord):
 	  instances<footnote>Except <verb>Attribute</verb> instances
 	  in the short future</footnote>. The <verb>Table</verb> and
 	  <verb>Array</verb> classes are descendants of
-	  <verb>Leaf</verb>, and inherits all its properties. See <ref
-	  refid="LeafClassDescr">section</ref> for a more detailed
-	  <verb>Leaf</verb> class description.
+	  <verb>Leaf</verb>, and inherits all its properties.
 	</p>
 
 	<p>Working with groups and leaves is similar in many ways to
 	  working with directories and files, respectively, in a Unix
 	  filesystem. As with Unix directories and files, objects in
 	  the object tree are often described by giving their full (or
-	  absolute) path names. This full path can be specified either
-	  as string (like in <verb>'/subgroup2/table3'</verb>) or as a
-	  complete object path written in the Pythonic fashion known
-	  as <em>natural name</em> schema (like in
-	  <verb>file.root.subgroup2.table3</verb>).
+	  absolute) path names. In <verb>PyTables</verb> this full
+	  path can be specified either as string (like in
+	  <verb>'/subgroup2/table3'</verb>) or as a complete object
+	  path written in a certain way known as <em>natural name</em>
+	  schema (like in <verb>file.root.subgroup2.table3</verb>).
 	</p>
 
 	<p>The support for <em>natural naming</em> is a key aspect of
 	  <verb>PyTables</verb> and means that the names of instance
 	  variables of the node objects are the same as the names of
-	  the element's children<footnote>I've taken this simple but
+	  the element's children<footnote>I have got this simple but
 	  powerful idea from the excellent <visual
 	  markup="tt">Objectify</visual> module by David Mertz (see
 	  references <ref refid="Objectify"></ref> and <ref
@@ -385,21 +384,20 @@ class Particle(IsRecord):
 	  refid="readingAndSelectingUsage">section</ref>.
 	</p>
 	<p>You should also note that not all the data present on file
-	  is loaded in <visual markup="tt">PyTables</visual> tree, but
-	  only the <em>metadata</em> (i.e. special data that describes
-	  the structure of the actual data). The actual data is not
-	  read until you ask for it (by calling a method in a
-	  particular node). By making use of the object tree (the
-	  metadata) you can get information on the objects on disk
-	  such as table names, title, name fields, data types in
-	  fields, number of records, or, in the case of arrays,
-	  shapes, typecode, and so on. You can also traverse the tree
-	  in order to search for something and when you find the data
-	  you are interested in you can read it and process it. In
-	  some sense, you can think of <verb>PyTables</verb> as a tool
-	  that provide the same introspection capabilities of Python
-	  objects, but applied to the persistent storage of large
-	  amounts of data.
+	  is loaded in the object tree, but only the <em>metadata</em>
+	  (i.e. special data that describes the structure of the
+	  actual data). The actual data is not read until you ask for
+	  it (by calling a method in a particular node). By making use
+	  of the object tree (the metadata) you can get information on
+	  the objects on disk such as table names, title, name fields,
+	  data types in fields, number of records, or, in the case of
+	  arrays, shapes, typecode, and so on. You can also traverse
+	  the tree in order to search for something and when you find
+	  the data you are interested in you can read it and process
+	  it. In some sense, you can think of <verb>PyTables</verb> as
+	  a tool that provide the same introspection capabilities of
+	  Python objects, but applied to the persistent storage of
+	  large amounts of data.
 	</p>
 	<p>To better understand the dynamic nature of this object tree
 	  entity, imagine that we have made a script (in fact, this
@@ -407,32 +405,32 @@ class Particle(IsRecord):
 	  <verb>examples/objecttree.py</verb>; check it out!) that
 	  creates a simple <verb>PyTables</verb> file, with the
 	  structure that appears in <ref
-	  refid="objecttree-h5">figure</ref> (we have used the
-	  <verb>hdfview</verb> utility to obtain this image). During
-	  creation time, metadata in the object tree is updated in
-	  memory while the actual data is being saved on disk and when
-	  you close the file the object tree becomes unavailable. If
-	  you re-open again this file (in read only mode, for
-	  example), the object tree with will be re-constructed in
-	  memory from the metadata existent on disk, and you can work
-	  with it exactly in the same way than during the original
-	  creation process.
+	  refid="objecttree-h5">figure</ref>. During creation time,
+	  metadata in the object tree is updated in memory while the
+	  actual data is being saved on disk and when you close the
+	  file the object tree becomes unavailable. But, when you will
+	  open again this file the object tree with will be
+	  re-constructed in memory from the metadata existent on disk,
+	  so that you can work with it exactly in the same way than
+	  during the original creation process.
 	</p>
 
 	<figure id="objecttree-h5">
-	  <graphics file="objecttree-h5" scale="0.6" kind="bitmap">
+	  <graphics file="objecttree-h5" scale="0.5" kind="bitmap">
 	  </graphics>
 	  <caption>An HDF5 example with 2 subgroups and 3 tables.</caption>
 	</figure>
 
 	<p>In <ref refid="objecttree">figure</ref> you can see an
 	  example of the object tree created by reading a
-	  <verb>PyTables</verb> file. If you are going to be a <visual
+	  <verb>PyTables</verb> file (in fact, this file is the same
+	  as that of the <ref refid="objecttree-h5">figure</ref>). If
+	  you are going to become a <visual
 	  markup="tt">PyTables</visual> user, take your time to
 	  understand it<footnote>Bear in mind, however, that this
 	  diagram is <visual markup="bf">not</visual> a standard UML
 	  class diagram; I've used an UML tool to draw it, that's
-	  all)</footnote>. That will also make you more proactive by
+	  all.</footnote>. That will also make you more proactive by
 	  avoiding programming mistakes.
 	</p>
 
@@ -578,7 +576,10 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    to the root distribution directory and run this command as
 	    the root user (remember to add any extra flags needed):
 	  </p>
-	  python setup.py install
+	  <verbatim>
+	    python setup.py install
+	  </verbatim>
+
 	</item>
       </enumerate>
 
@@ -591,16 +592,18 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
     <chapter id="usage">
       <heading>Usage</heading>
 
-      <p>This chapter starts with a series of simple, yet
+      <p>This chapter begins with a series of simple, yet
 	comprehensive sections written in a tutorial style that will
 	let you understand the main features that
 	<verb>PyTables</verb> provide. If during the trip you want
 	more information on some specific instance variable, global
 	function or method, go to the library reference in <ref
-	refid="libraryReference">chapter</ref>. You can get deeper
-	knowledge of <verb>PyTables</verb> internals by reading the
-	last section (<ref refid="optimizationTips"></ref>) in this
-	chapter.
+	refid="libraryReference">chapter</ref>. However, if you are
+	reading this in PDF or HTML formats, there should be an
+	hyperlink to its reference near each new introduced
+	entity. Finally, you can get deeper knowledge of
+	<verb>PyTables</verb> internals by reading the last section
+	(<ref refid="optimizationTips"></ref>) in this chapter.
       </p>
 
       <section>
@@ -731,7 +734,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    that works.</footnote>.
 	  </p>
 
-	  <p>In order to do something useful with this record, we need
+	  <p>In order to do something useful with this record we need
 	    to attach it to a <verb>Table</verb> object. But first, we
 	    must create a file where all the actual data pushed into
 	    <verb>Table</verb> will be saved.
@@ -756,7 +759,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    new file called "<verb>tutorial1.h5</verb>" in
 	    "<verb>w</verb>"rite mode and with an informative title
 	    string ("<verb>Test file</verb>"). This function tries to
-	    open this file, and if successful, returns a
+	    open the file, and if successful, returns a
 	    <verb>File</verb> (see <ref refid="FileClassDescr"></ref>)
 	    instance which hosts the root of the object tree on its
 	    <verb>root</verb> attribute.
@@ -771,17 +774,18 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    use this group to save our particle data there.
 	  </p>
 	  <verbatim>
-group = h5file.createGroup("/", 'detector', 'Detector information')
+>>> group = h5file.createGroup("/", 'detector', 'Detector information')
+>>>
 	  </verbatim>
 
-	  <p>Here, we have take the <verb>File</verb> instance
+	  <p>Here, we have taken the <verb>File</verb> instance
 	    <verb>h5file</verb> and invoked its
-	    <verb>createGroup</verb> method (see <ref
+	    <verb>createGroup</verb> method (see<ref
 	    refid="createGroupDescr"></ref>), telling that we want to
 	    create a new group called <em>detector</em> hanging from
 	    "<em>/</em>", which is other way to refer to the
 	    <verb>h5file.root</verb> object we mentioned before. This
-	    will create a new <verb>Group</verb> (see <ref
+	    will create a new <verb>Group</verb> (see<ref
 	    refid="GroupClassDescr"></ref>) instance that will be
 	    assigned to the <verb>group</verb> variable.
 	  </p>
@@ -799,6 +803,7 @@ group = h5file.createGroup("/", 'detector', 'Detector information')
 	  </p>
 	  <verbatim>
 >>> table = h5file.createTable(group, 'readout', Particle(), "Readout example")
+>>>
 	  </verbatim>
 
 	  <p>You can see how we asked to create the <verb>Table</verb>
@@ -817,6 +822,7 @@ group = h5file.createGroup("/", 'detector', 'Detector information')
 	  </p>
 	  <verbatim>
 >>> particle = table.record
+>>>
 	  </verbatim>
 
 	  <p>The <verb>record</verb> attribute of <verb>table</verb>
@@ -864,11 +870,12 @@ group = h5file.createGroup("/", 'detector', 'Detector information')
 	  </p>
 	  <verbatim>
 >>> table.flush()
+>>>
 	  </verbatim>
 
 	</subsection>
 
-	<subsection>
+	<subsection id="readingAndSelectingUsage">
 	  <heading>Reading (and selecting) data in table</heading>
 
 	  <p>Ok. We have now our data on disk but to this data be
@@ -880,6 +887,7 @@ group = h5file.createGroup("/", 'detector', 'Detector information')
 >>> table = h5file.root.detector.readout
 >>> pressure = [ x.pressure for x in table.readAsRecords()
 ...                  if x.TDCcount > 3 and x.pressure &lt; 50 ]
+>>>
 	  </verbatim>
 
 	  <p>The first line is only to declare a convenient shortcut
@@ -892,15 +900,14 @@ group = h5file.createGroup("/", 'detector', 'Detector information')
 	  </p>
 
 	  <p>The last two lines are a Python comprehensive list. It
-	    loops on records returned by
+	    loops on records returned by <newline/>
 	    <verb>table.readAsRecords()</verb> (see <ref
 	    refid="readAsRecordsDescr"></ref>) iterator that returns
 	    values until table data is exhausted. This records are
-	    filtered using the <em>cut</em> expression
-	    <verb>x.TDCcount > 3 and x.pressure &lt; 50</verb>, and
-	    the <verb>pressure</verb> field for satisfying records is
-	    selected to form the final list that is assigned to
-	    <verb>pressure</verb> variable.
+	    filtered using the expression <verb>x.TDCcount > 3 and
+	    x.pressure &lt; 50</verb>, and the <verb>pressure</verb>
+	    field for satisfying records is selected to form the final
+	    list that is assigned to <verb>pressure</verb> variable.
 	  </p>
 
 	  <p>We could have used a normal <verb>for</verb> loop to do
@@ -914,6 +921,7 @@ group = h5file.createGroup("/", 'detector', 'Detector information')
 	  <verbatim>
 >>> names = [ x.name for x in table.readAsRecords()
 ...               if x.TDCcount > 3 and x.pressure &lt; 50 ]
+>>>
 	  </verbatim>
 
 	  <p>Ok. that's enough for selections. Next section will show
@@ -932,6 +940,7 @@ group = h5file.createGroup("/", 'detector', 'Detector information')
 
 	  <verbatim>
 >>> gcolumns = h5file.createGroup(h5file.root, "columns", "Pressure and Name")
+>>>
 	  </verbatim>
 
 	  <p>Note that this time we have specified the first parameter
@@ -949,6 +958,7 @@ group = h5file.createGroup("/", 'detector', 'Detector information')
 >>> h5file.createArray('/columns', 'name', array(names), 
 ...                    "Name column selection")
 &lt;tables.Array.Array object at 0x814c3dc>
+>>>
 	  </verbatim>
 
 	  <p>We already know the first two parameters of the
@@ -980,20 +990,22 @@ group = h5file.createGroup("/", 'detector', 'Detector information')
 	<subsection>
 	  <heading>Closing the file and looking at its content</heading>
 
-	  <p>To finish this small tutorial, we use the
+	  <p>To finish this first tutorial, we use the
 	    <verb>close</verb> method of the h5file <verb>File</verb>
-	    instance to close the file:
+	    instance to close the file before exiting Python:
 	  </p>
 	  <verbatim>
 >>> h5file.close()
+>>> ^D
 	  </verbatim>
 
 	  <p>With all that, you have created your first
-	    <verb>PyTables</verb> file with a table inside it. That
-	    was easy, admit it. Now, you can have a look at it with
-	    some generic HDF5 tool, like h5dump or h5ls. Here is the
-	    result of passing to h5ls the <verb>tutorial1.h5</verb>
-	    file:
+	    <verb>PyTables</verb> file with a table and two
+	    arrays. That was easy, admit it. Now, you can have a look
+	    at it with some generic HDF5 tool, like
+	    <verb>h5dump</verb> or <verb>h5ls</verb>. Here is the
+	    result of passing to <verb>h5ls</verb> the
+	    <verb>tutorial1.h5</verb> file:
 	  </p>
 	  <verbatim>
 $ h5ls -rd tutorial1.h5 
@@ -1041,14 +1053,14 @@ Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
 	  </verbatim>
 
 	  <p>You can pass the <verb>-v</verb> option to
-	    <verb>dumpFile.py</verb> if you want more verbosity.
+	    <verb>dumpFile.py</verb> if you want more verbosity. Try it!.
 	  </p>
 	</subsection>
       </section>
 
       <section>
 	<heading>Browsing the <visual markup="it">object tree</visual>
-	  and beyond</heading>
+	  and more</heading>
 
 	<p>In this section, we will learn how to browse the tree while
 	  retrieving metainformation about the actual data, and will
@@ -1114,13 +1126,14 @@ Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
 / (Group) "Test file"
 /columns (Group) "Pressure and Name"
 /detector (Group) "Detector information"
+>>>
 	  </verbatim>
 
 	  <p>Note that <verb>walkGroups</verb> actually returns an
-	    iterator, not a list of objects. And combining it with the
-	    <verb>listNodes</verb> method, we can do very powerful
-	    things. Let's see an example listing all the arrays in the
-	    tree:
+	    <em>iterator</em>, not a list of objects. And combining it
+	    with the <verb>listNodes</verb> method, we can do very
+	    powerful things. Let's see an example listing all the
+	    arrays in the tree:
 	  </p>
 
 	  <verbatim>
@@ -1130,6 +1143,7 @@ Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
 ... 
 /columns/name Array(4, 16) "Name column selection"
 /columns/pressure Array(4,) "Pressure column selection"
+>>>
 	  </verbatim>
 
 	  <p><verb>listNodes</verb> (see <ref
@@ -1165,7 +1179,7 @@ Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
 
 	  <p>Of course you can do more sophisticated node selections
 	    using this two powerful functions, but first, we need to
-	    learn a bit about important instance variable of
+	    learn a bit about some important instance variables of
 	    <verb>PyTables</verb> objects.
 	  </p>
 
@@ -1181,10 +1195,8 @@ Filename: tutorial1.h5 \\ Title: "Test file" \\ Format version: 1.0
 	  </p>
 
 	  <verbatim>
->>># Get a pointer to '/detector/readout' data
-... table = h5file.root.detector.readout
->>> # Get metadata from table
-... print "Object:", table
+>>> table = h5file.root.detector.readout
+>>> print "Object:", table
 Object: /detector/readout Table(8, 10) "Readout example"
 >>> print "Table name:", table.name
 Table name: readout
@@ -1205,7 +1217,7 @@ Table variable names (sorted alphanumerically) with their type:
    idnumber := Q
    name := 16s
    pressure := f
-
+>>>
 	  </verbatim>
 
 	  <p>
@@ -1234,11 +1246,8 @@ Table variable names (sorted alphanumerically) with their type:
 	  </p>
 
 	  <verbatim>
->>> # Get the object in "/columns pressure"
-... pressureObject = h5file.getNode("/columns", "pressure")
->>> 
->>> # Get some metadata on this object
-... print "Info on the object:", pressureObject
+>>> pressureObject = h5file.getNode("/columns", "pressure")
+>>> print "Info on the object:", pressureObject
 Info on the object: /columns/pressure Array(4,) "Pressure column selection"
 >>> print "  shape: ==>", pressureObject.shape
   shape: ==> (4,)
@@ -1246,6 +1255,7 @@ Info on the object: /columns/pressure Array(4,) "Pressure column selection"
   title: ==> Pressure column selection
 >>> print "  typecode ==>", pressureObject.typecode
   typecode ==> d
+>>>
 	  </verbatim>
 
 	  <p>If you look at the <verb>typecode</verb> attribute of the
@@ -1269,19 +1279,13 @@ Info on the object: /columns/pressure Array(4,) "Pressure column selection"
 	    object:</p>
 
 	  <verbatim>
->>> # Read the 'pressure' actual data
-... pressureArray = pressureObject.read()
->>> 
->>> # Read the 'name' Array actual data
-... nameArray = h5file.root.columns.name.read()
->>> 
->>> # Check the kind of object we have created (they should be Numeric arrays)
-... print "pressureArray is object of type:", type(pressureArray)
+>>> pressureArray = pressureObject.read()
+>>> nameArray = h5file.root.columns.name.read()
+>>> print "pressureArray is object of type:", type(pressureArray)
 pressureArray is object of type: &lt;type 'array'>
 >>> print "nameArray is object of type:", type(nameArray)
 nameArray is object of type: &lt;type 'array'>
->>> # Print the data for both arrays
-... print "Data on arrays nameArray and pressureArray:"
+>>> print "Data on arrays nameArray and pressureArray:"
 Data on arrays nameArray and pressureArray:
 >>> for i in range(pressureObject.shape[0]):
 ...     print "".join(nameArray[i]), "-->", pressureArray[i]
@@ -1291,7 +1295,6 @@ Particle:      5 --> 25.0
 Particle:      6 --> 36.0
 Particle:      7 --> 49.0
 >>> 
-
 	  </verbatim>
 
 	  <p>You can verify that <verb>read</verb> method (see <ref
@@ -1319,14 +1322,9 @@ Particle:      7 --> 49.0
 	  </p>
 
 	  <verbatim>
->>> # Create a shortcut to table object
-... table = h5file.root.detector.readout
->>> 
->>> # Get the object record from table
-... particle = table.record
->>> 
->>> # Append 5 new particles to table (yes, tables can be enlarged!)
-... for i in xrange(10, 15):
+>>> table = h5file.root.detector.readout
+>>> particle = table.record
+>>> for i in xrange(10, 15):
 ...     particle.name  = 'Particle: %6d' % (i)
 ...     particle.TDCcount = i % 256
 ...     particle.ADCcount = (i * 256) % (1 &lt;&lt; 16)
@@ -1337,8 +1335,8 @@ Particle:      7 --> 49.0
 ...     particle.idnumber = i * (2 ** 34)  # This exceeds long integer range
 ...     table.appendAsRecord(particle)
 ... 
->>> # Flush this table
-... table.flush()
+>>> table.flush()
+>>>
 	  </verbatim>
 
 	  <p>That works exactly in the same way than filling a new
@@ -1397,7 +1395,7 @@ Particle:     14 |       196.0 |   1.476e+09 |     14 |     -4 |       14 |
 
 >>> print "Total numbers of entries after appending new rows:", table.nrows
 Total numbers of entries after appending new rows: 15
-
+>>>
 	  </verbatim>
 
 	  <p>In <ref refid="tutorial-h5">figure</ref> you can see a
@@ -1405,7 +1403,7 @@ Total numbers of entries after appending new rows: 15
 	  </p>
 
 	  <figure id="tutorial-h5">
-	    <graphics file="tutorial-h5" scale="0.6" kind="bitmap">
+	    <graphics file="tutorial-h5" scale="0.5" kind="bitmap">
 	    </graphics>
 	    <caption>The data file after appending some rows.
 	    </caption>
@@ -1428,7 +1426,8 @@ $
       </section>
 
       <section id="secondExample">
-	<heading>Checking tables</heading>
+	<heading><visual markup="tt">PyTables</visual> automatic
+	  sanity checks</heading>
 
 	<p>Now, time for a more real life example (i.e. with errors in
 	  code). Here, we will create a couple of directories (groups,
@@ -1530,7 +1529,7 @@ print "Last record ==>", p
 print "Selected values ==>", e
 print "Total selected records ==> ", len(e)
 
-# Finally, close the file (this also will flush all the remaining buffers!)
+# Finally, close the file
 fileh.close()
 	</verbatim>
 
@@ -1576,15 +1575,17 @@ AttributeError: 'Event' object has no attribute 'xcoor'
 Traceback (most recent call last):
   File "tutorial2.py", line 69, in ?
     table.appendAsRecord(event)      
-  File "/usr/lib/python2.2/site-packages/tables/Table.py", line 210, in appendAsRecord
+  File "/usr/lib/python2.2/site-packages/tables/Table.py", line 210, in
+appendAsRecord
     self._v_packedtuples.append(recordObject._f_pack2())
-  File "/usr/lib/python2.2/site-packages/tables/IsRecord.py", line 121, in _f_pack2
+  File "/usr/lib/python2.2/site-packages/tables/IsRecord.py", line 121, in 
+_f_pack2
     self._f_raiseValueError()
   File "/usr/lib/python2.2/site-packages/tables/IsRecord.py", line 130, in 
 _f_raiseValueError
     raise ValueError, \
 ValueError: Error packing record object: 
- [('ADCcount', 'H', 256), ('TDCcount', 'B', 256), ('name', '16s', 'Event:    256'),
+ [('ADCcount', 'H', 256), ('TDCcount', 'B', 256), ('name', '16s', 'Event: 256'),
  ('xcoord', 'f', 65536.0), ('ycoord', 'f', 4294967296.0)]
  Error was: ubyte format requires 0&lt;=number&lt;=255
 	</verbatim>
@@ -1683,7 +1684,7 @@ ValueError: Error packing record object:
 	</subsection>
       </section>
 
-      <section id='optimizationTips'>
+      <section id="optimizationTips">
 	<heading>Optimization tips</heading>
 
 	<p><verb>PyTables</verb> has several places where the user can
@@ -1881,7 +1882,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 
     </chapter>
 
-    <chapter id='libraryReference'>
+    <chapter id="libraryReference">
       <heading>Library Reference</heading>
       
       <p><verb>PyTables</verb> implements several classes to represent
@@ -1892,9 +1893,9 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	declaration, and performs field, type and range checks; its
 	name is <verb>IsRecord</verb>. An important function, called
 	<verb>openFile</verb> is responsible to create, open or append
-	to <verb>PyTables</verb> files. In addition, a few utility
-	functions are defined to guess if an user supplied file is a
-	<verb>PyTables</verb> or HDF5 file. These are called
+	to files. In addition, a few utility functions are defined to
+	guess if an user supplied file is a <verb>PyTables</verb> or
+	<verb>HDF5</verb> file. These are called
 	<verb>isPyTablesFile</verb> and <verb>isHDF5</verb>. Finally,
 	several first-level variables are also available to the user
 	that informs about <verb>PyTables</verb> version, file format
@@ -1933,7 +1934,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	<subsection>
 	  <heading>Global functions</heading>
 
-	  <description id='openFileDescr'>
+	  <description id="openFileDescr">
 	    <term>openFile(filename, mode='r', title='')</term>
 	    <item>Open a <verb>PyTables</verb> file and returns a File
 	    object.
@@ -2081,7 +2082,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 
 	  <description>
 
-	    <term id='createGroupDescr'>createGroup(where, name,
+	    <term id="createGroupDescr">createGroup(where, name,
 	      title='') </term> <item>Create a new Group instance with
 	      name <em>name</em> in <em>where</em> location.
 
@@ -2102,7 +2103,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	      </description>
 	    </item>
 
-	    <term id='createTableDescr'>createTable(where, name,
+	    <term id="createTableDescr">createTable(where, name,
 	      RecordObject, title='', compress=3,
 	      expectedrows=10000)</term> <item>Create a new
 	      <verb>Table</verb> instance with name <em>name</em> in
@@ -2150,7 +2151,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	      </description>
 	    </item>
 
-	    <term id='createArrayDescr'>createArray(where, name,
+	    <term id="createArrayDescr">createArray(where, name,
 	      NumericObject, title='')</term> <item>Create a new
 	      <verb>Array</verb> instance with name <em>name</em> in
 	      <em>where</em> location.
@@ -2179,7 +2180,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	      </description>
 	    </item>
 
-	    <term id='getNodeDescr'>getNode(where, name='',
+	    <term id="getNodeDescr">getNode(where, name='',
 	      classname='')</term> <item>Returns the object node
 	      <em>name</em> under <em>where</em> location
 
@@ -2209,7 +2210,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	      </description>
 	    </item>
 
-	    <term id='listNodesDescr'>listNodes(where,
+	    <term id="listNodesDescr">listNodes(where,
 	      classname='')</term> <item>Returns a list with all the
 	      object nodes (Group or Leaf) hanging from
 	      <em>where</em>. The list is alphanumerically sorted by
@@ -2233,7 +2234,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	      </description>
 	    </item>
 
-	    <term id='walkGroupsDescr'>walkGroups(where='/')</term>
+	    <term id="walkGroupsDescr">walkGroups(where='/')</term>
 	      <item><em>Iterator</em> that recursively obtains groups
 	      (not leaves) hanging from <em>where</em>. If
 	      <em>where</em> is not supplied, the root object is taken
@@ -2457,7 +2458,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	  <description>
 
 	    <term
-	      id='appendAsRecordDescr'>appendAsRecord(RecordObject)</term>
+	      id="appendAsRecordDescr">appendAsRecord(RecordObject)</term>
 	      <item>Append the <verb>RecordObject</verb> to the output
 	      buffer of the table instance.
 
@@ -2474,7 +2475,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	    </item>
 
 	    <term
-	      id='appendAsTupleDescr'>appendAsTuple(tupleValues)</term>
+	      id="appendAsTupleDescr">appendAsTuple(tupleValues)</term>
 	      <item>Append the <em>tupleValues</em> tuple to the
 	      output buffer of the table instance. This method is
 	      faster (but also unsafer, because requires user to
@@ -2493,7 +2494,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	    </item>
 
 	    <term
-	      id='appendAsValuesDescr'>appendAsValues(*values)</term>
+	      id="appendAsValuesDescr">appendAsValues(*values)</term>
 	      <item> Append the <em>values</em> parameters to the
 	      table output buffer. This method is faster (and unsafer,
 	      because requires user to introduce the values in correct
@@ -2511,7 +2512,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	      </description>
 	    </item>
 
-	    <term id='readAsRecordsDescr'>readAsRecords()</term>
+	    <term id="readAsRecordsDescr">readAsRecords()</term>
 	      <item>Returns an iterator yielding record instances
 	      built from rows in table. This method is a
 	      <em>generator</em>, i.e. it keeps track on the last
@@ -2520,7 +2521,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	      <verb>readAsTuples</verb> but in exchange, it returns
 	      full-fledged instance records.</item>
 
-	    <term id='readAsTuplesDescr'>readAsTuples()</term>
+	    <term id="readAsTuplesDescr">readAsTuples()</term>
 	      <item>Returns an iterator yielding tuples built from
 	      rows in table. This method is a <em>generator</em>,
 	      i.e. it keeps track on the last record returned so that
@@ -2554,9 +2555,9 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 	  "<verb>F</verb>" and "<verb>D</verb>" which corresponds to
 	  complex data types<footnote>However, these might be included
 	  in short future</footnote>. See <ref
-	  refid="Numerical">reference</ref> to know more about
-	  <verb>Numeric</verb> intrinsics, and in particular about
-	  supported data types.
+	  refid="Numerical">reference</ref> to know more about the
+	  <verb>Numerical Python</verb> package, and in particular
+	  about supported data types.
 	</p>
 
 	<subsection id="ArrayClassInstanceVariables">
@@ -2591,7 +2592,7 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
 
 	  <description>
 
-	    <term id='readArrayDescr'>read()</term> <item>Read the
+	    <term id="readArrayDescr">read()</term> <item>Read the
 	      array from disk and return it as a Numeric object. Note
 	      that while this method is not called, the actual array
 	      data is resident on disk.</item>
@@ -2671,7 +2672,14 @@ table.appendAsValues(ADCcountValue, TDCcountValue, energyValue)
     </appendix>
   </mainmatter>
 
+  <latex
+      code="\addto{\captionsenglish}{\renewcommand*{\refname}{References}}"/>
+
   <backmatter>
+
+    <!-- latex code="\renewcommand{\refname}{References}"/> -->
+
+
     <references>
       <enumerate>
 
