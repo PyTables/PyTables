@@ -3,6 +3,7 @@ Run all test cases.
 """
 
 import sys
+import os
 import unittest
 
 verbose = 0
@@ -47,7 +48,11 @@ if __name__ == '__main__':
     print "Extension version: %s" % tables.ExtVersion
     print "HDF5 version:      %s" % tables.HDF5Version
     print "Numeric version:   %s" % Numeric.__version__
-    print 'python version:    %s' % sys.version
+    print 'Python version:    %s' % sys.version
+    if os.name == 'posix':
+        (sysname, nodename, release, version, machine) = os.uname()
+        print 'Platform:          %s-%s' % (sys.platform, machine)
+    print 'Byte-ordering:     %s' % sys.byteorder
     print '-=' * 38
 
     unittest.main( defaultTest='suite' )
