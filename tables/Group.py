@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.61 2004/01/14 13:37:47 falted Exp $
+#       $Id: Group.py,v 1.62 2004/01/16 14:00:27 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.61 $"
+__version__ = "$Revision: 1.62 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -126,9 +126,6 @@ class Group(hdf5Extension.Group, object):
         return self._f_iterGroup(classname, recursive)
 
     def _f_iterGroup(self, classname=None, recursive=0):
-
-#         assert classname in [None, "", "Group", "Leaf", "Table", "Array"], \
-#                "Incorrect specification of 'classname'"
 
         if not recursive:
             # Non-recursive algorithm

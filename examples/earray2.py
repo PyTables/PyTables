@@ -4,7 +4,7 @@ from numarray import strings
 from tables import *
 
 # Open a new empty HDF5 file
-filename = "earray1.h5"
+filename = "earray2.h5"
 fileh = openFile(filename, mode = "w")
 # Get the root group
 root = fileh.root

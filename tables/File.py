@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.66 2004/01/14 13:37:47 falted Exp $
+#       $Id: File.py,v 1.67 2004/01/16 14:00:27 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.66 $"
+__version__ = "$Revision: 1.67 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -607,8 +607,8 @@ class File(hdf5Extension.File, object):
         supplied, this method assumes to find the object in
         "where". If a "classname" parameter is supplied, returns only
         an instance of this class name. Allowed names in "classname"
-        are: 'Group', 'Leaf', 'Table', 'Array', 'EArray", 'VLArray'
-        and 'UnImplemented."""
+        are: 'Group', 'Leaf', 'Table', 'Array', 'EArray', 'VLArray'
+        and 'UnImplemented'."""
 
         # To find out the caller
         #print repr(sys._getframe(1).f_code.co_name)
@@ -746,7 +746,8 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         node name.  "where" can be a path string or Group instance. If
         a "classname" parameter is supplied, only instances of this
         class (or subclasses of it) are returned. The only supported
-        classes in "classname" are 'Group' and 'Leaf'."""
+        classes in "classname" are 'Group', 'Leaf', 'Table', 'Array',
+        'EArray', 'VLArray' and 'UnImplemented'."""
 
         group = self.getNode(where, classname = 'Group')
         if group <> -1:
@@ -761,11 +762,6 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
 
     def _iterTree(self, where="/", classname=""):
         """Iterate over the nodes in the object tree."""
-        
-#         assert classname in [None, "", "Group", "Leaf", "Table",
-#                              "Array", "EArray", "VLArray",
-#                              "UnImplemented"], \
-#                              "Incorrect specification of 'classname'"
         
         if classname == "Group":
             for group in self.walkGroups(where):
