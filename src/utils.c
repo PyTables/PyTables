@@ -76,44 +76,52 @@ herr_t gitercb(hid_t loc_id, const char *name, void *data) {
 **  Giterate(): Group iteration routine.
 ** 
 ****************************************************************/
-PyObject *Giterate(hid_t loc_id, const char *name) {
-  int i, j, k, totalobjects;
+PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name) {
+  int i, j, k, cg, ret;
+  hsize_t num_obj;
   PyObject  *t, *tdir, *tdset;
   iter_info info;                   /* Info of objects in the group */
   char      *namesdir[MAX_CHILDS_IN_GROUP];  /* Names of dirs in the group */
   char      *namesdset[MAX_CHILDS_IN_GROUP]; /* Names of dsets in the group */
 
   memset(&info, 0, sizeof info);
-
   i = 0; j = 0; k = 0;
-  while (H5Giterate(loc_id, name, &i, gitercb, &info) > 0) {
-    /* Check if we are surpassing our buffer capacities */
-    if (i < MAX_CHILDS_IN_GROUP) {
+  /* Get the number of objects in loc_id */
+  if ( H5Gget_num_objs(loc_id, &num_obj) < 0) {
+    fprintf(stderr, "Problems getting the number of childs in group.\n");
+    return NULL;
+  }
 #ifdef DEBUG
-      printf("Object type ==> %d\n", info.type);
+  printf("number of objects in group %s --> %d\n", name, (int)num_obj);
 #endif
-      if (info.type == H5G_GROUP) {
-	namesdir[j++] = strdup(info.name);
+  if (num_obj > MAX_CHILDS_IN_GROUP) {
+    fprintf(stderr, "Maximum number of childs in a group exceeded!.");
+    fprintf(stderr, " Fetching only a maximum of: %d\n", MAX_CHILDS_IN_GROUP);
+    num_obj = MAX_CHILDS_IN_GROUP;
+  }
+  /* Iterate over all the childs behind loc_id (parent_id+loc_id) */
+  for(cg=0;cg<num_obj;cg++) {
+    ret = H5Giterate(parent_id, name, &i, gitercb, &info);
 #ifdef DEBUG
-	printf("Dir name ==> %s\n", info.name);
+    printf("object -> %d, ", i);
+    printf("Object type ==> %d\n", info.type);
 #endif
-      }
-      else if (info.type == H5G_DATASET) {
-	namesdset[k++] = strdup(info.name);
+    if (info.type == H5G_GROUP) {
+      namesdir[j++] = strdup(info.name);
 #ifdef DEBUG
-	printf("Dataset name ==> %s\n", info.name);
+      printf("Dir name ==> %s\n", info.name);
 #endif
-      }
     }
-    else {
-      fprintf(stderr, "Maximum number of childs exceeded!");
-      break;
+    else if (info.type == H5G_DATASET) {
+      namesdset[k++] = strdup(info.name);
+#ifdef DEBUG
+      printf("Dataset name ==> %s\n", info.name);
+#endif
     }
   }
   
-  totalobjects = i;
 #ifdef DEBUG
-  printf("Total numer of objects ==> %d\n", totalobjects);
+  printf("Total numer of objects ==> %d\n", num_obj);
 #endif
   tdir  = createNamesTuple(namesdir, j);
   tdset = createNamesTuple(namesdset, k);
@@ -129,14 +137,11 @@ PyObject *Giterate(hid_t loc_id, const char *name) {
 **  aitercb(): Custom attribute iteration callback routine.
 ** 
 ****************************************************************/
-static herr_t aitercb( hid_t loc_id, const char *name, void *data) {
-  iter_info *out_info=(iter_info *)data; 
+static herr_t aitercb( hid_t loc_id, const char *name, void *op_data) {
+  char *attr_name = (char*)op_data;
 
-  /* Shut the compiler up */
-  loc_id=loc_id;
-  
   /* Return the name of the attribute on op_data */
-  strcpy(out_info->name, name);
+  strcpy(attr_name, name);
   return(1);     /* Exit after this object is visited */
 } 
 
@@ -147,23 +152,23 @@ static herr_t aitercb( hid_t loc_id, const char *name, void *data) {
 ** 
 ****************************************************************/
 PyObject *Aiterate(hid_t loc_id) {
-  int i = 0;
-  iter_info info;                  /* Info of objects in the group */
+  unsigned int i = 0;
+  int nattrs, j, ret;
+  char op_data[NAMELEN];                  /* Info of objects in the group */
   char *names[MAX_ATTRS_IN_NODE];  /* Names of attrs in the node */
 
-  memset(&info, 0, sizeof info);
-  while (H5Aiterate(loc_id, &i, aitercb, &info) > 0) {
-    /* Check if we are surpassing our buffer capacities */
-    if (i < MAX_ATTRS_IN_NODE) {
+  nattrs = H5Aget_num_attrs(loc_id);
+  if (nattrs > MAX_ATTRS_IN_NODE) {
+    fprintf(stderr, "Maximum number of attributes in a node exceeded!.");
+    fprintf(stderr, " Fetching only a maximum of: %d\n", MAX_ATTRS_IN_NODE);
+    nattrs = MAX_ATTRS_IN_NODE;
+  }
+  for(j=0;j<nattrs;j++) {
+    ret = H5Aiterate(loc_id, &i, (H5A_operator_t)aitercb, (void *)op_data);
+    names[j] = strdup(op_data);
 #ifdef DEBUG
-      printf("Attr name ==> %s. Attr number ==> %d\n", info.name, i);
+    printf("Attr name ==> %s. Attr number ==> %d\n", names[j], j);
 #endif
-      names[i-1] = strdup(info.name);
-    }
-    else {
-      fprintf(stderr, "Maximum number of attributes in a node exceeded!");
-      break;
-    }
   }
   
 #ifdef DEBUG

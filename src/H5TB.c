@@ -10,7 +10,6 @@
  *                                                                          *
  ****************************************************************************/
 
-
 #include "H5TB.h"
 #include "H5Zlzo.h"
 #include "H5Zucl.h"
@@ -18,8 +17,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if 0
+#define SHRINK
+#endif
 
+#if 0
+#define H5_TB_DEBUG
+#endif
 
+#define MAX(X,Y)	((X)>(Y)?(X):(Y))
 
 
 /*-------------------------------------------------------------------------
@@ -29,12 +35,9 @@
  *-------------------------------------------------------------------------
  */
 
-
 int H5TB_find_field( const char *field, const char *field_list );
 herr_t H5TB_attach_attributes( const char *table_title, hid_t loc_id, const char *dset_name,
                                hsize_t nfields, hid_t type_id );
-
-
 
 /*-------------------------------------------------------------------------
  *
@@ -69,10 +72,7 @@ herr_t H5TBmake_table( const char *table_title,
                        hsize_t nfields,
                        hsize_t nrecords,
                        size_t type_size,
-		       /* This has been changed to remove a Pyrex/gcc
-			  warning */
-                       /* const char *field_names[], */
-                       char *field_names[],
+                       const char *field_names[],
                        const size_t *field_offset,
                        const hid_t *field_types,
                        hsize_t chunk_size,
@@ -172,6 +172,7 @@ herr_t H5TBmake_table( const char *table_title,
      /* Compression library not supported */
      return -1;
    }
+
  }
   
  /* Create the dataset. */
@@ -210,7 +211,7 @@ herr_t H5TBmake_table( const char *table_title,
   goto out;
 
  /* Attach the VERSION attribute */
- if ( H5LTset_attribute_string( loc_id, dset_name, "VERSION", "1.0" ) < 0 )
+ if ( H5LTset_attribute_string( loc_id, dset_name, "VERSION", "2.0" ) < 0 )
   goto out;
   
  /* Attach the TITLE attribute */
@@ -391,13 +392,9 @@ herr_t H5TBappend_records( hid_t loc_id,
   if ( H5Tinsert(mem_type_id, field_names[i], field_offset[i], member_type_id ) < 0 )
    goto out;
 
-  /* Close the member datatype. */
-  /* This solves a relatively large memory leak, specially when this function
-     is invoked a lot.
-     F. Alted. 2003/04/20 */
+  /* Close the member type */
   if ( H5Tclose( member_type_id ) < 0 )
-     goto out; 
-
+   goto out;
  }
 
 
@@ -549,13 +546,9 @@ herr_t H5TBwrite_records( hid_t loc_id,
   if ( H5Tinsert(mem_type_id, field_names[i], field_offset[i], member_type_id ) < 0 )
    goto out;
 
-  /* Close the member datatype. */
-  /* This solves a relatively large memory leak, specially when this function
-     is invoked a lot.
-     F. Alted. 2003/04/20 */
+  /* Close the member type */
   if ( H5Tclose( member_type_id ) < 0 )
-     goto out; 
-
+   goto out;
  }
 
  /* Get the dataspace handle */
@@ -943,14 +936,16 @@ herr_t H5TBread_table( hid_t loc_id,
                        void *dst_buf )  
 {
 
- hid_t   dataset_id;
- hid_t   type_id; 
- hsize_t nfields;
- hsize_t nrecords;
- size_t  src_size;
- size_t  *src_offset;
- size_t  *src_sizes;
+ hid_t    dataset_id;
+ hid_t    type_id; 
+ hid_t    space_id;
+ hsize_t  nfields;
+ hsize_t  nrecords;
+ size_t   src_size;
+ size_t   *src_offset;
+ size_t   *src_sizes;
  unsigned char *src_buf;
+ hsize_t  dims[1];
 
  /* Get the number of records and fields  */
  if ( H5TBget_table_info ( loc_id, dset_name, &nfields, &nrecords ) < 0 )
@@ -958,30 +953,44 @@ herr_t H5TBread_table( hid_t loc_id,
 
  src_sizes  = (size_t *)malloc((size_t)nfields * sizeof(size_t));
  src_offset = (size_t *)malloc((size_t)nfields * sizeof(size_t));
+ if (src_sizes == NULL || src_offset == NULL)
+  return -1;
  
  /* Get field info */
  if ( H5TBget_field_info( loc_id, dset_name, NULL, src_sizes, src_offset, &src_size ) < 0 )
-  return -1;
- 
- src_buf = (unsigned char *)calloc((size_t) nrecords, src_size );
-
- if (src_sizes == NULL || src_offset == NULL || src_buf == NULL )
   return -1;
 
  /* Open the dataset. */
  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
   return -1;
 
+ /* Get the dataspace handle */
+ if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+  goto out;
+  
+ /* Get dimensions */
+ if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
+  goto out;
+
  /* Get the datatype */
  if ( (type_id = H5Dget_type( dataset_id )) < 0 )
   goto out;
 
+ src_buf = (unsigned char *)calloc((size_t) MAX(dims[0],nrecords), src_size );
+ if (src_buf == NULL)
+  goto out;
+ 
+ /* Read */
  if ( H5Dread( dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, src_buf ) < 0 )
   goto out;
 
  /* Release the datatype. */
  if ( H5Tclose( type_id ) < 0 )
   goto out;
+
+ /* Terminate access to the dataspace */
+  if ( H5Sclose( space_id ) < 0 )
+   goto out;
 
  /* End access to the dataset */
  if ( H5Dclose( dataset_id ) < 0 )
@@ -1090,13 +1099,9 @@ herr_t H5TBread_records( hid_t loc_id,
   if ( H5Tinsert(mem_type_id, field_names[i], field_offset[i], member_type_id ) < 0 )
    goto out;
 
-  /* Close the member datatype. */
-  /* This solves a relatively large memory leak, specially when this function
-     is invoked a lot.
-     F. Alted. 2003/04/20 */
+  /* Close the member type */
   if ( H5Tclose( member_type_id ) < 0 )
-     goto out; 
-
+   goto out;
  }
 
   /* Get the dataspace handle */
@@ -1132,11 +1137,11 @@ herr_t H5TBread_records( hid_t loc_id,
  if ( H5Sclose( space_id ) < 0 )
   goto out;
  
- /* Release the datatype. */
+ /* Release the datatype */
  if ( H5Tclose( type_id ) < 0 )
   return -1;
 
-  /* Release the datatype. */
+  /* Release the memory type */
  if ( H5Tclose( mem_type_id ) < 0 )
   return -1;
 
@@ -1444,7 +1449,9 @@ out:
  *
  * Comments:
  *
- * Modifications:
+ * Modifications: May 08, 2003
+	*  In version 2.0 of Table, the number of records is stored as an 
+	*  attribute "NROWS"
  *
  *
  *-------------------------------------------------------------------------
@@ -1455,11 +1462,13 @@ herr_t H5TBget_table_info ( hid_t loc_id,
                             hsize_t *nfields,
                             hsize_t *nrecords )
 {
- hid_t         type_id;    
- hid_t         space_id;
- hid_t         dataset_id;
- int           num_members;
- hsize_t       dims[1];
+ hid_t      type_id;    
+ hid_t      space_id;
+ hid_t      dataset_id;
+ int        num_members;
+ hsize_t    dims[1];
+ int        has_attr;
+ int        n[1];
  
  /* Open the dataset. */
  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
@@ -1475,19 +1484,40 @@ herr_t H5TBget_table_info ( hid_t loc_id,
 
  *nfields = num_members;
 
- /* Get the dataspace handle */
- if ( (space_id = H5Dget_space( dataset_id )) < 0 )
-  goto out;
+/*-------------------------------------------------------------------------
+ * Get number of records
+ *-------------------------------------------------------------------------
+ */
 
- /* Get records */
- if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
-  goto out;
+ /* Try to find the attribute "NROWS" */
+ has_attr = H5LT_find_attribute( dataset_id, "NROWS" );
 
- *nrecords = dims[0];
+ /* It exists, get it */
+ if ( has_attr == 1 )
+ {
+  /* Get the attribute */
+  if ( H5LTget_attribute_int( loc_id, dset_name, "NROWS", n ) < 0 )
+   goto out;
 
- /* Terminate access to the dataspace */
- if ( H5Sclose( space_id ) < 0 )
-  goto out;
+  *nrecords = *n;
+ }
+ else
+ {
+    /* Get the dataspace handle */
+  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+   goto out;
+  
+  /* Get records */
+  if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
+   goto out;
+
+  /* Terminate access to the dataspace */
+  if ( H5Sclose( space_id ) < 0 )
+   goto out;
+  
+  *nrecords = dims[0];
+ }
+
 
  /* Release the datatype. */
  if ( H5Tclose( type_id ) < 0 )
@@ -1539,9 +1569,9 @@ herr_t H5TBget_field_info( hid_t loc_id,
  hssize_t      nfields;
  char          *member_name;
  hid_t         member_type_id;
- hssize_t      member_size;
- hssize_t       member_offset;
- hssize_t      size;
+ size_t        member_size;
+ size_t        member_offset;
+ size_t        size;
  hssize_t      i;
 
  /* Open the dataset. */
@@ -1553,8 +1583,7 @@ herr_t H5TBget_field_info( hid_t loc_id,
   goto out;
 
  /* Get the type size */
- if ( ( size = H5Tget_size( type_id )) < 0 )
-  goto out;
+ size = H5Tget_size( type_id );
 
  if ( type_size )
   *type_size = size;
@@ -1578,15 +1607,13 @@ herr_t H5TBget_field_info( hid_t loc_id,
    goto out;
 
   /* Get the member size */
-  if ( ( member_size = H5Tget_size( member_type_id )) < 0 )
-   goto out;
+  member_size = H5Tget_size( member_type_id );
 
   if ( field_sizes )
    field_sizes[i] = member_size;
 
   /* Get the member offset */
-  if ( ( member_offset = H5Tget_member_offset( type_id,(int) i )) < 0 )
-   goto out;
+  member_offset = H5Tget_member_offset( type_id,(int) i );
 
   if ( field_offsets )
    field_offsets[i] = member_offset;
@@ -1623,10 +1650,6 @@ out:
  *-------------------------------------------------------------------------
  */
 
-
-
-#if defined (VERSION_1_5)
-
 /*-------------------------------------------------------------------------
  * Function: H5TBdelete_record
  *
@@ -1638,16 +1661,11 @@ out:
  *
  * Date: November 26, 2001
  *
- * Comments: This function uses a new HDF5 API function, H5Dset_extent, only 
- *  available on release 1.5 of HDF5
- *
- * Modifications: 
+ * Modifications: April 29, 2003
  *
  *
  *-------------------------------------------------------------------------
  */
-
-
 
 herr_t H5TBdelete_record( hid_t loc_id, 
                           const char *dset_name,
@@ -1666,11 +1684,10 @@ herr_t H5TBdelete_record( hid_t loc_id,
  hid_t    space_id;
  hid_t    mem_space_id;
  hsize_t  mem_size[1];
- hsize_t  dims[1];
  unsigned char *tmp_buf;
  size_t   src_size;
  size_t   *src_offset;
-	int      nrows;
+ int      nrows;
 
   
 /*-------------------------------------------------------------------------
@@ -1695,7 +1712,25 @@ herr_t H5TBdelete_record( hid_t loc_id,
  * Read the records after the deleted one(s)
  *-------------------------------------------------------------------------
  */
-  
+
+ read_start = start + nrecords;
+ read_nrecords = ntotal_records - read_start;
+ tmp_buf = (unsigned char *)calloc((size_t) read_nrecords, src_size );
+
+ if ( tmp_buf == NULL )
+  return -1;
+
+ /* Read the records after the deleted one(s) */
+ if ( H5TBread_records( loc_id, dset_name, read_start, read_nrecords, src_size, 
+		    src_offset, tmp_buf ) < 0 )
+  return -1;
+
+
+/*-------------------------------------------------------------------------
+ * Write the records in another position
+ *-------------------------------------------------------------------------
+ */
+
  /* Open the dataset. */
  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
   return -1;
@@ -1704,29 +1739,13 @@ herr_t H5TBdelete_record( hid_t loc_id,
  if ( (type_id = H5Dget_type( dataset_id )) < 0 )
   goto out;
 
- read_nrecords = ntotal_records - start - nrecords;
- tmp_buf = (unsigned char *)calloc((size_t) read_nrecords, src_size );
-
- if ( tmp_buf == NULL )
-  goto out;
-
- /* Read the records after the deleted one(s) */
- read_start = start + nrecords;
- if ( H5TBread_records( loc_id, dset_name, read_start, read_nrecords, src_size, src_offset, tmp_buf ) < 0 )
-  goto out;
-
-/*-------------------------------------------------------------------------
- * Write the records in another position
- *-------------------------------------------------------------------------
- */
-
  /* Get the dataspace handle */
  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
   goto out;
 
  /* Define a hyperslab in the dataset of the size of the records */
  offset[0] = start;
- count[0]  = nrecords;
+ count[0]  = read_nrecords;
  if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
   goto out;
 
@@ -1755,11 +1774,12 @@ herr_t H5TBdelete_record( hid_t loc_id,
  * Change the table dimension
  *-------------------------------------------------------------------------
  */
-
+#if defined (SHRINK)
+ hsize_t  dims[1];
  dims[0] = ntotal_records - nrecords;
-
  if ( H5Dset_extent( dataset_id, dims ) < 0 )
   goto out;
+#endif
 
  /* End access to the dataset */
  if ( H5Dclose( dataset_id ) < 0 )
@@ -1773,7 +1793,7 @@ herr_t H5TBdelete_record( hid_t loc_id,
  *-------------------------------------------------------------------------
  */
 
-	nrows = ntotal_records - nrecords;
+ nrows = (int)ntotal_records - (int)nrecords;
  /* Set the attribute */
  if ( H5LTset_attribute_int( loc_id, dset_name, "NROWS", &nrows, 1 ) < 0 )
   return -1;
@@ -1786,7 +1806,6 @@ out:
  return -1;
 }
 
-#endif
 
 
 
@@ -1881,17 +1900,10 @@ herr_t H5TBinsert_record( hid_t loc_id,
   if ( H5Tinsert(mem_type_id, field_names[i], field_offset[i], member_type_id ) < 0 )
    goto out;
 
-  /* Close the member datatype. */
-  /* This solves a relatively large memory leak, specially when this function
-     is invoked a lot.
-     F. Alted. 2003/04/20 */
+  /* Close the member type */
   if ( H5Tclose( member_type_id ) < 0 )
-     goto out; 
-
+   goto out;
  }
-
-
-
 
  read_nrecords = ntotal_records - start;
  tmp_buf = (unsigned char *)calloc((size_t) read_nrecords, type_size );
@@ -1905,13 +1917,11 @@ herr_t H5TBinsert_record( hid_t loc_id,
 
  if ( H5Dextend ( dataset_id, dims ) < 0 )
   goto out;
-
   
 /*-------------------------------------------------------------------------
  * Write the inserted records
  *-------------------------------------------------------------------------
  */
-
 
  /* Create a simple memory data space */
  mem_dims[0]=nrecords;
@@ -2205,7 +2215,7 @@ herr_t H5TBcombine_tables( hid_t loc_id1,
  hsize_t  i;
  size_t   src_size;
  size_t   *src_offset;
-
+ int      has_fill=0;
 
 /*-------------------------------------------------------------------------
  * First we get information about type size and offsets on disk
@@ -2300,55 +2310,56 @@ herr_t H5TBcombine_tables( hid_t loc_id1,
  tmp_fill_buf = (unsigned char *)malloc((size_t) type_size );
 
  /* Get the fill value attributes */
- if ( (H5TBAget_fill( loc_id1, dset_name1, dataset_id1, tmp_fill_buf )) < 0 )
-  goto out;
+ has_fill=H5TBAget_fill( loc_id1, dset_name1, dataset_id1, tmp_fill_buf );
 
 /*-------------------------------------------------------------------------
  * Attach the fill attributes from previous table
  *-------------------------------------------------------------------------
  */
-
- if (( space_id = H5Screate(H5S_SCALAR)) < 0 )
-  goto out;
-
- for ( i = 0; i < nfields; i++)
+ if ( has_fill == 1 )
+ {
+  
+  if (( space_id = H5Screate(H5S_SCALAR)) < 0 )
+   goto out;
+  
+  for ( i = 0; i < nfields; i++)
   {
-
-    /* Get the member type */
+   
+   /* Get the member type */
    if ( ( member_type_id = H5Tget_member_type( type_id3, (int) i )) < 0 )
     goto out;
-
+   
    /* Get the member offset */
    if ( ( member_offset = H5Tget_member_offset( type_id3, (int) i )) < 0 )
     goto out;
-
+   
    strcpy( attr_name, "FIELD_" );
    sprintf( aux, "%d", (int) i );
    strcat( attr_name, aux );
    sprintf( aux, "%s", "_FILL" );
    strcat( attr_name, aux );
-
+   
    if ( (attr_id = H5Acreate( dataset_id3, attr_name, member_type_id, space_id, H5P_DEFAULT )) < 0 )
     goto out;
-    
+   
    if ( H5Awrite( attr_id, member_type_id, tmp_fill_buf+member_offset ) < 0 )
     goto out;
-    
+   
    if ( H5Aclose( attr_id ) < 0 )
     goto out;
 
-  /* Close the member datatype. */
-  /* This solves a relatively large memory leak, specially when this function
-     is invoked a lot.
-     F. Alted. 2003/04/20 */
-  if ( H5Tclose( member_type_id ) < 0 )
-     goto out; 
-
+   /* Close the member type */
+   /* This was not included in HDF5_HL 1.2. Why not?
+      F. Alted. 2003/07/14 */
+   if ( H5Tclose( member_type_id ) < 0 )
+    goto out; 
+   
   }
-
+  
   /* Close data space. */ 
   if ( H5Sclose( space_id ) < 0 )
    goto out;
+ }
  
 /*-------------------------------------------------------------------------
  * Read data from 1st table
@@ -2571,8 +2582,8 @@ herr_t H5TBinsert_field( hid_t loc_id,
  hid_t    mem_space_id2;
 
  hid_t    member_type_id;
- hssize_t member_size;
- hssize_t new_member_size = 0;
+ size_t   member_size;
+ size_t   new_member_size = 0;
  char     *member_name;
  hssize_t total_size;
  hsize_t  nfields;
@@ -2587,7 +2598,8 @@ herr_t H5TBinsert_field( hid_t loc_id,
  hid_t    write_type_id;
  hid_t    PRESERVE;
  size_t   curr_offset;
- int      inserted, idx;
+ int      inserted;
+ hsize_t  idx;
  char     table_title[255];
  hssize_t member_offset;
  char     attr_name[255];
@@ -2597,8 +2609,9 @@ herr_t H5TBinsert_field( hid_t loc_id,
  unsigned char *tmp_fill_buf;
  hsize_t  i;
 
-
-
+ /* Get the number of records and fields  */
+ if ( H5TBget_table_info ( loc_id, dset_name,  &nfields, &nrecords ) < 0 )
+  return -1;
  
 /*-------------------------------------------------------------------------
  * Get information about the old data type
@@ -2620,20 +2633,14 @@ herr_t H5TBinsert_field( hid_t loc_id,
  /* Get the size of the datatype */
  if ( ( total_size = H5Tget_size( type_id1 )) < 0 )
   goto out;
- 
- /* Get the number of fields */
- nfields = H5Tget_nmembers( type_id1 );
   
  /* Get the dataspace handle */
  if ( (space_id1 = H5Dget_space( dataset_id1 )) < 0 )
   goto out;
 
- /* Get records */
+ /* Get dimension */
  if ( H5Sget_simple_extent_dims( space_id1, dims, NULL) < 0 )
   goto out;
-
- nrecords = dims[0];
-
 
 /*-------------------------------------------------------------------------
  * Get attributes
@@ -2657,11 +2664,10 @@ herr_t H5TBinsert_field( hid_t loc_id,
  */
 
  /* Get the new member size */
- if ( ( member_size = H5Tget_size( field_type )) < 0 )
-  goto out;
+ member_size = H5Tget_size( field_type );
 
  /* Create the data type. */
- if (( type_id2 = H5Tcreate (H5T_COMPOUND, (size_t) (total_size + member_size) )) < 0 )
+ if (( type_id2 = H5Tcreate (H5T_COMPOUND,(size_t)(total_size + member_size) )) < 0 )
   goto out;
 
  curr_offset = 0;
@@ -2679,8 +2685,7 @@ herr_t H5TBinsert_field( hid_t loc_id,
   {
 
    /* Get the new member size */
-   if ( ( new_member_size = H5Tget_size( field_type )) < 0 )
-    goto out;
+   new_member_size = H5Tget_size( field_type );
 
    /* Insert the new field type */
    if ( H5Tinsert( type_id2, field_name, curr_offset, field_type ) < 0 )
@@ -2695,15 +2700,14 @@ herr_t H5TBinsert_field( hid_t loc_id,
   }
  
   /* Get the member name */
-  member_name = H5Tget_member_name( type_id1, idx );
+  member_name = H5Tget_member_name( type_id1, (int)idx );
 
   /* Get the member type */
-  if ( ( member_type_id = H5Tget_member_type( type_id1, idx )) < 0 )
+  if ( ( member_type_id = H5Tget_member_type( type_id1,(int)idx )) < 0 )
    goto out;
 
   /* Get the member size */
-  if ( ( member_size = H5Tget_size( member_type_id )) < 0 )
-   goto out;
+  member_size = H5Tget_size( member_type_id );
  
   /* Insert it into the new type */
   if ( H5Tinsert( type_id2, member_name, curr_offset, member_type_id ) < 0 )
@@ -2729,7 +2733,7 @@ herr_t H5TBinsert_field( hid_t loc_id,
  if ( ( rank_chunk = H5Pget_chunk( plist_id1, 1, dims_chunk )) < 0 )
   goto out;
 
- /* Create a new simple data space with unlimited size, using the number of records */
+ /* Create a new simple data space with unlimited size, using the dimension */
  if ( ( space_id2 = H5Screate_simple( 1, dims, maxdims )) < 0 )
   return -1;
 
@@ -2941,12 +2945,9 @@ herr_t H5TBinsert_field( hid_t loc_id,
    if ( H5Aclose( attr_id ) < 0 )
     goto out;
 
-  /* Close the member datatype. */
-  /* This solves a relatively large memory leak, specially when this function
-     is invoked a lot.
-     F. Alted. 2003/04/20 */
-  if ( H5Tclose( member_type_id ) < 0 )
-     goto out; 
+   /* Close the member type */
+   if ( H5Tclose( member_type_id ) < 0 )
+    goto out;
 
   }
 
@@ -2977,13 +2978,12 @@ herr_t H5TBinsert_field( hid_t loc_id,
    if ( H5Aclose( attr_id ) < 0 )
     goto out;
 
-  /* Close the member datatype. */
-  /* This solves a relatively large memory leak, specially when this function
-     is invoked a lot.
-     F. Alted. 2003/04/20 */
-  if ( H5Tclose( member_type_id ) < 0 )
-     goto out; 
-  
+   /* Close the member type */
+   /* This was not included in HDF5_HL 1.2. Why not?
+      F. Alted. 2003/07/14 */
+   if ( H5Tclose( member_type_id ) < 0 )
+    goto out; 
+   
  }
   
   /* Close data space. */ 
@@ -3050,10 +3050,10 @@ herr_t H5TBdelete_field( hid_t loc_id,
  hid_t    plist_id2;
 
  hid_t    member_type_id;
- hssize_t member_size;
+ size_t   member_size;
  char     *member_name;
- hssize_t type_size1;
- hssize_t type_size2;
+ size_t   type_size1;
+ size_t   type_size2;
  hsize_t  nfields;
  hsize_t  nrecords;
  int      rank_chunk;
@@ -3062,7 +3062,7 @@ herr_t H5TBdelete_field( hid_t loc_id,
  hsize_t  maxdims[1] = { H5S_UNLIMITED };
  hid_t    PRESERVE;
  size_t   curr_offset;
- hssize_t delete_member_size = 0;
+ size_t   delete_member_size = 0;
  hid_t    read_type_id;
  hid_t    write_type_id;
  unsigned char *tmp_buf;
@@ -3073,7 +3073,11 @@ herr_t H5TBdelete_field( hid_t loc_id,
  size_t   member_offset;
  hid_t    attr_id;
  hsize_t  i;
-
+ int      has_fill=0;
+  
+ /* Get the number of records and fields  */
+ if ( H5TBget_table_info ( loc_id, dset_name,  &nfields, &nrecords ) < 0 )
+  return -1;
  
 /*-------------------------------------------------------------------------
  * Get information about the old data type
@@ -3093,22 +3097,15 @@ herr_t H5TBdelete_field( hid_t loc_id,
   goto out;
 
  /* Get the size of the datatype */
- if ( ( type_size1 = H5Tget_size( type_id1 )) < 0 )
-  goto out;
+ type_size1 = H5Tget_size( type_id1 );
  
- /* Get the number of fields */
- nfields = H5Tget_nmembers( type_id1 );
-
  /* Get the dataspace handle */
  if ( (space_id1 = H5Dget_space( dataset_id1 )) < 0 )
   goto out;
 
- /* Get records */
+ /* Get dimension */
  if ( H5Sget_simple_extent_dims( space_id1, dims, NULL) < 0 )
   goto out;
-
- nrecords = dims[0];
-
 
 /*-------------------------------------------------------------------------
  * Create a new data type; first we find the size of the datatype to delete
@@ -3130,8 +3127,7 @@ herr_t H5TBdelete_field( hid_t loc_id,
     goto out;
 
    /* Get the member size */
-   if ( ( delete_member_size = H5Tget_size( member_type_id )) < 0 )
-    goto out;
+   delete_member_size = H5Tget_size( member_type_id );
    
    /* Close the member type */
    if ( H5Tclose( member_type_id ) < 0 )
@@ -3195,8 +3191,7 @@ herr_t H5TBdelete_field( hid_t loc_id,
    goto out;
 
   /* Get the member size */
-  if ( ( member_size = H5Tget_size( member_type_id )) < 0 )
-   goto out;
+  member_size = H5Tget_size( member_type_id );
  
   /* Insert it into the new type */
   if ( H5Tinsert( type_id2, member_name, curr_offset, member_type_id ) < 0 )
@@ -3214,9 +3209,15 @@ herr_t H5TBdelete_field( hid_t loc_id,
   sprintf( aux, "%s", "_FILL" );
   strcat( attr_name, aux );
 
-  /* Get the _FILL attribute */
-  if ( H5LT_get_attribute_disk( dataset_id1, attr_name, tmp_fill_buf+curr_offset ) < 0 )
-   goto out;
+  /* Check if we have the _FILL attribute */
+  has_fill = H5LT_find_attribute( dataset_id1, attr_name );
+
+  /* Get it */
+  if ( has_fill == 1 )
+  {
+   if ( H5LT_get_attribute_disk( dataset_id1, attr_name, tmp_fill_buf+curr_offset ) < 0 )
+    goto out;
+  }
 
   curr_offset += member_size;
 
@@ -3238,7 +3239,7 @@ herr_t H5TBdelete_field( hid_t loc_id,
  if ( ( rank_chunk = H5Pget_chunk( plist_id1, 1, dims_chunk )) < 0 )
   goto out;
 
- /* Create a new simple data space with unlimited size, using the number of records */
+ /* Create a new simple data space with unlimited size, using the dimension */
  if ( ( space_id2 = H5Screate_simple( 1, dims, maxdims )) < 0 )
   return -1;
 
@@ -3250,8 +3251,6 @@ herr_t H5TBdelete_field( hid_t loc_id,
  /* Create the dataset. */
  if ( ( dataset_id2 = H5Dcreate( loc_id, "new", type_id2, space_id2, plist_id2 )) < 0 )
   goto out;
-
-
 
 /*-------------------------------------------------------------------------
  * We have to read field by field of the old dataset and save it into the new one
@@ -3275,8 +3274,7 @@ herr_t H5TBdelete_field( hid_t loc_id,
    goto out;
 
   /* Get the member size */
-  if ( ( member_size = H5Tget_size( member_type_id )) < 0 )
-   goto out;
+  member_size = H5Tget_size( member_type_id );
 
   /* Create a read id */
   if ( ( read_type_id = H5Tcreate( H5T_COMPOUND, member_size )) < 0 )
@@ -3331,8 +3329,6 @@ herr_t H5TBdelete_field( hid_t loc_id,
   free ( tmp_buf ); 
 
  } /* i */
-
-
 
 /*-------------------------------------------------------------------------
  * Release resources from 1st table
@@ -3392,8 +3388,6 @@ herr_t H5TBdelete_field( hid_t loc_id,
 
  if ( H5Gmove( loc_id, "new", dset_name ) < 0 ) 
   return -1;
-
-
  
 /*-------------------------------------------------------------------------
  * Attach the conforming table attributes
@@ -3416,53 +3410,53 @@ herr_t H5TBdelete_field( hid_t loc_id,
  if ( H5TB_attach_attributes( table_title, loc_id, dset_name, nfields, type_id1 ) < 0 )
   return -1;
 
-
 /*-------------------------------------------------------------------------
  * Attach the fill attributes from previous table
  *-------------------------------------------------------------------------
  */
 
+ if ( has_fill == 1 )
+ {
+  
   if (( space_id1 = H5Screate(H5S_SCALAR)) < 0 )
    goto out;
-
+  
   for ( i = 0; i < nfields; i++)
   {
-
-    /* Get the member type */
-   if ( ( member_type_id = H5Tget_member_type( type_id1, i )) < 0 )
+   
+   /* Get the member type */
+   if ( ( member_type_id = H5Tget_member_type( type_id1, (int)i )) < 0 )
     goto out;
-
+   
    /* Get the member offset */
-   if ( ( member_offset = H5Tget_member_offset( type_id1, i )) < 0 )
-    goto out;
-
+   member_offset = H5Tget_member_offset( type_id1, (int)i );
+   
    strcpy( attr_name, "FIELD_" );
    sprintf( aux, "%d", (int)i );
    strcat( attr_name, aux );
    sprintf( aux, "%s", "_FILL" );
    strcat( attr_name, aux );
-
+   
    if ( (attr_id = H5Acreate( dataset_id1, attr_name, member_type_id, space_id1, H5P_DEFAULT )) < 0 )
     goto out;
-    
+   
    if ( H5Awrite( attr_id, member_type_id, tmp_fill_buf+member_offset ) < 0 )
     goto out;
-    
+   
    if ( H5Aclose( attr_id ) < 0 )
     goto out;
-
-  /* Close the member datatype. */
-  /* This solves a relatively large memory leak, specially when this function
-     is invoked a lot.
-     F. Alted. 2003/04/20 */
-  if ( H5Tclose( member_type_id ) < 0 )
-     goto out; 
-
+   
+   /* Close the member type */
+   if ( H5Tclose( member_type_id ) < 0 )
+    goto out;
+   
   }
   
   /* Close data space. */ 
- if ( H5Sclose( space_id1 ) < 0 )
-  goto out;
+  if ( H5Sclose( space_id1 ) < 0 )
+   goto out;
+  
+ } /*has_fill*/
 
  /* Release the datatype. */
  if ( H5Tclose( type_id1 ) < 0 )
@@ -3510,7 +3504,6 @@ out:
  *-------------------------------------------------------------------------
  */
 
-
 herr_t H5TBAget_title( hid_t loc_id, 
                        char *table_title ) 
 {
@@ -3533,7 +3526,7 @@ herr_t H5TBAget_title( hid_t loc_id,
  *
  * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
  *
- * Date: January 30, 2001
+ * Date: January 30, 2002
  *
  * Comments: 
  *
@@ -3553,8 +3546,9 @@ herr_t H5TBAget_fill( hid_t loc_id,
  hsize_t nrecords;
  char    attr_name[255];
  char    aux[255];
- int     i;
+ hsize_t i;
  size_t  *src_offset;
+ int     has_fill=0;
 
  /* Get the number of records and fields  */
  if ( H5TBget_table_info ( loc_id, dset_name, &nfields, &nrecords ) < 0 )
@@ -3577,15 +3571,21 @@ herr_t H5TBAget_fill( hid_t loc_id,
   sprintf( aux, "%s", "_FILL" );
   strcat( attr_name, aux );
 
-  /* Get the _FILL attribute */
-  if ( H5LT_get_attribute_disk( dset_id, attr_name, dst_buf+src_offset[i] ) < 0 )
-   goto out;
+  /* Check if we have the _FILL attribute */
+  has_fill = H5LT_find_attribute( dset_id, attr_name );
+
+  /* Get it */
+  if ( has_fill == 1 )
+  {
+   if ( H5LT_get_attribute_disk( dset_id, attr_name, dst_buf+src_offset[i] ) < 0 )
+    goto out;
+  }
 
  }
 
  free( src_offset );
 
- return 0;
+ return has_fill;
 
 out:
  free( src_offset );
@@ -3664,14 +3664,14 @@ herr_t H5TB_attach_attributes( const char *table_title,
  char    attr_name[255];
  char    *member_name;
  char    aux[255];
- int     i;
+ hsize_t i;
  
  /* Attach the CLASS attribute */
  if ( H5LTset_attribute_string( loc_id, dset_name, "CLASS", "TABLE" ) < 0 )
   goto out;
 
  /* Attach the VERSION attribute */
- if ( H5LTset_attribute_string( loc_id, dset_name, "VERSION", "1.0" ) < 0 )
+ if ( H5LTset_attribute_string( loc_id, dset_name, "VERSION", "2.0" ) < 0 )
   goto out;
   
  /* Attach the TITLE attribute */
@@ -3683,7 +3683,7 @@ herr_t H5TB_attach_attributes( const char *table_title,
  {
 
   /* Get the member name */
-  member_name = H5Tget_member_name( type_id, i );
+  member_name = H5Tget_member_name( type_id, (int)i );
 
   strcpy( attr_name, "FIELD_" );
   sprintf( aux, "%d", (int)i );

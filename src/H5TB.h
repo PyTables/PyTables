@@ -17,12 +17,6 @@
 
 #include "H5LT.h"
 
-/* For linking with version 1.5 of HDF5 library */
-#if 0
-#define VERSION_1_5
-#endif
-
-
 
 #define HLTB_MAX_FIELD_LEN 255
 
@@ -44,8 +38,7 @@ herr_t H5TBmake_table( const char *table_title,
                        hsize_t nfields,
                        hsize_t nrecords,
                        size_t type_size,
-                       /* const char *field_names[], */
-                       char *field_names[],
+                       const char *field_names[],
                        const size_t *field_offset,
                        const hid_t *field_types,
                        hsize_t chunk_size,

@@ -59,13 +59,13 @@ herr_t H5TBOopen_read( hid_t *dataset_id,
   if ( H5Tinsert(*mem_type_id, field_names[i], field_offset[i], member_type_id ) < 0 )
    goto out;
 
-  /* Release the datatype. */
+  /* Release the datatype */
   if ( H5Tclose( member_type_id ) < 0 )
    goto out; 
 
  }
 
- /* Release the datatype. */
+ /* Release the type */
  if ( H5Tclose( type_id ) < 0 )
   return -1;
 

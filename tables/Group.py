@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.41 2003/07/09 17:43:20 falted Exp $
+#       $Id: Group.py,v 1.42 2003/07/14 19:15:01 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.41 $"
+__version__ = "$Revision: 1.42 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -135,7 +135,10 @@ class Group(hdf5Extension.Group, object):
         while stack:
             objgroup=stack.pop()
             pgroupId=objgroup._v_parent._v_groupId
-            (groups, leaves)=self._g_listGroup(pgroupId, objgroup._v_hdf5name)
+            locId=objgroup._v_groupId
+            #print "Group name, gId -->", objgroup._v_name, pgroupId
+            (groups, leaves)=self._g_listGroup(pgroupId, locId,
+                                               objgroup._v_hdf5name)
             for name in groups:
                 new_objgroup = Group(new = 0)
                 new_objgroup._g_putObjectInTree(name, objgroup)

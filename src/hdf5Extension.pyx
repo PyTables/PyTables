@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.59 2003/07/12 12:12:38 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.60 2003/07/14 19:14:59 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.59 $"
+__version__ = "$Revision: 1.60 $"
 
 
 import sys, os
@@ -539,7 +539,7 @@ cdef extern from "utils.h":
   object _getTablesVersion()
   object createNamesTuple(char *buffer[], int nelements)
   object createDimsTuple(int dimensions[], int nelements)
-  object Giterate(hid_t loc_id, char *name)
+  object Giterate(hid_t parent_id, hid_t loc_id, char *name)
   object Aiterate(hid_t loc_id)
   H5T_class_t getHDF5ClassID(hid_t loc_id, char *name)
 
@@ -679,7 +679,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.59 2003/07/12 12:12:38 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.60 2003/07/14 19:14:59 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1088,13 +1088,12 @@ cdef class Group:
     if ret < 0:
       raise RuntimeError("Can't open the group %s." % self.name)
     self.group_id = ret
-    #ret = H5Gclose(self.group_id)
     self.parent_id = loc_id
     return self.group_id
 
-  def _g_listGroup(self, hid_t loc_id, char *name):
+  def _g_listGroup(self, hid_t parent_id, hid_t loc_id, char *name):
     # Return a tuple with the objects groups and objects dsets
-    return Giterate(loc_id, name)
+    return Giterate(parent_id, loc_id, name)
 
   def _g_closeGroup(self):
     cdef int ret

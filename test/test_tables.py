@@ -965,6 +965,8 @@ def suite():
     niter = 1
 
     #theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
+    #theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
+    #theSuite.addTest(unittest.makeSuite(CompressUCLTablesTestCase))
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
@@ -972,9 +974,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
-        #if isLibAvailable("lzo")[0]:
         theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
-        #if isLibAvailable("ucl")[0]:
 	theSuite.addTest(unittest.makeSuite(CompressUCLTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressZLIBTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressTwoTablesTestCase))

@@ -16,7 +16,12 @@ void *wrkmem;
 
 #undef DEBUG
 
-#undef CHECKSUM
+/* Activate the checksum. It is safer and takes only a 1% more of
+   space and a 2% more of CPU (but sometimes is faster than without
+   checksum, which is almost negligible.
+*/
+
+#define CHECKSUM
 
 int register_lzo(void) {
 
@@ -28,8 +33,17 @@ int register_lzo(void) {
   if (lzo_init()!=LZO_E_OK)
     printf("Problems initializing LZO library\n");
 
+  /* Feed the filter_class data structure */
+  H5Z_class_t filter_class = {
+    (H5Z_filter_t)FILTER_LZO,	/* filter_id */
+    "lzo deflate", 		/* comment */
+    NULL,                       /* can_apply_func */
+    NULL,                       /* set_local_func */
+    (H5Z_func_t)lzo_deflate     /* filter_func */
+  };
+
   /* Register the lzo compressor */
-  status = H5Zregister(FILTER_LZO, "lzo deflate", lzo_deflate);
+  status = H5Zregister(&filter_class);
   
   /* Book a buffer for the compression */
   wrkmem = (void *)malloc(LZO1X_1_MEM_COMPRESS);
@@ -57,7 +71,6 @@ PyObject *getLZOVersionInfo(void) {
 }
 
 
-
 size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
 		    const unsigned cd_values[], size_t nbytes,
 		    size_t *buf_size, void **buf)
@@ -68,6 +81,9 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
   int status;
   size_t  nalloc = *buf_size;
   lzo_uint out_len = (lzo_uint) nalloc;
+  /* max_len_buffer will keep the likely output buffer size
+     after processing the first chunk */
+  static unsigned int max_len_buffer = 0;
 #ifdef CHECKSUM
   lzo_uint32 checksum;
 #endif
@@ -75,28 +91,33 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
   if (flags & H5Z_FLAG_REVERSE) {
     /* Input */
 
-    if (NULL==(outbuf = (void *)malloc(nalloc))) {
-      printf("memory allocation failed for deflate uncompression");
+    /* Only allocate the bytes for the outbuf */
+    if (max_len_buffer == 0) {
+      if (NULL==(outbuf = (void *)malloc(nalloc)))
+	printf("memory allocation failed for deflate uncompression");
     }
+    else {
+      if (NULL==(outbuf = (void *)malloc(max_len_buffer)))
+	printf("memory allocation failed for deflate uncompression");
+      out_len = max_len_buffer;
+      nalloc =  max_len_buffer;
+    }
+
 #ifdef CHECKSUM
     nbytes -=4;
 #endif
     while(1) {
-      /* The assembler version isn't faster than the C version with gcc 3.2.2 */
-      /*       status = _lzo1x_decompress_asm_fast_safe(*buf,(lzo_uint)nbytes,outbuf,&out_len,NULL); */
-      /* lzo1x_decompress seems to be safe to use in this context, but I'll use the _safe
-	 version anyway because it's only sligthly slower (1% or 2 %) */
-      /*       status = lzo1x_decompress(*buf,(lzo_uint)nbytes,outbuf,&out_len,NULL); */
-#if defined __i386__ && 0  /* Change this to 1 if you want the assembler version */
-      status = _lzo1x_decompress_asm_fast(*buf,(lzo_uint)nbytes,outbuf,&out_len,NULL);
-#else
-      status = lzo1x_decompress_safe(*buf,(lzo_uint)nbytes,outbuf,&out_len,NULL);
-#endif
+      /* The assembler version isn't faster than the C version with 
+	 gcc 3.2.2, and it's unsafe */
+	status = lzo1x_decompress_safe(*buf, (lzo_uint)nbytes, outbuf,
+				       &out_len, NULL);
+
       if (status == LZO_E_OK) {
 #ifdef DEBUG
 	printf("decompressed %lu bytes back into %lu bytes\n",
 	       (long) nbytes, (long) out_len);
 #endif
+	max_len_buffer = out_len;
 	break; /* done */
       }
       else if (status == LZO_E_OUTPUT_OVERRUN) {
@@ -184,6 +205,7 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
 done:
   if(outbuf)
     free(outbuf);
+
   return ret_value;
 }
 
