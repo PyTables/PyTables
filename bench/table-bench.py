@@ -108,6 +108,8 @@ def createFile(filename, totalrows, complevel, complib, shuffle, recsize):
                 d.append()
         else: # Small record
             for i in xrange(totalrows):
+                #d['var1'] = str(random.randrange(1000000))
+                #d['var3'] = random.randrange(10000000)
                 #d['var1'] = str(i)
                 d['var2'] = random.randrange(totalrows)
                 #d['var3'] = 12.1e10

@@ -363,16 +363,14 @@ else:
         sys.exit(1)
 
         
-# Update the version.h file if this file is newer... and
-# Set the appropriate flavor hdf5Extension.c source file:
+# Update the version.h file if this file is newer
 if pyrex:
     hdf5Extension = "src/hdf5Extension.pyx"
-    if newer('setup.py', 'src/version.h'):
-        open('src/version.h', 'w').write('#define PYTABLES_VERSION "%s"\n' % VERSION)
 else:
     hdf5Extension = "src/hdf5Extension.c"
-    if newer('setup.py', 'src/version.h'):
-        open('src/version.h', 'w').write('#define PYTABLES_VERSION "%s"\n' % VERSION)
+# Set the appropriate flavor hdf5Extension.c source file:
+if newer('setup.py', 'src/version.h'):
+    open('src/version.h', 'w').write('#define PYTABLES_VERSION "%s"\n' % VERSION)
 
 #--------------------------------------------------------------------
 
