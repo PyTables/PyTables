@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.40 2003/05/06 20:21:20 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.41 2003/05/07 09:40:22 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.40 $"
+__version__ = "$Revision: 1.41 $"
 
 
 import sys, os
@@ -582,7 +582,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.40 2003/05/06 20:21:20 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.41 2003/05/07 09:40:22 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1152,9 +1152,8 @@ cdef class Row:
   """Row Class
 
   This class hosts accessors to a recarray row. The fields on a
-  recarray can be accessed both as attributes (__getattr__/__setattr_)
-  or as items (__getitem__/__setitem__). However accessing fields as items
-  is recommended because it is faster.
+  recarray can be accessed both as items (__getitem__/__setitem__),
+  i.e. following the "map" protocol.
     
   """
 
@@ -1262,22 +1261,36 @@ cdef class Row:
     # == 1, i.e. columns elements are scalars, and the column is not
     # of CharType. This code accelerates the access to column
     # elements a 20%
-    
-    # Get the column index. This is very fast!
-    index = self._indexes[fieldName]
-    
-    if (self._enumtypes[index] <> CHARTYPE and self._dimensions[index] == 1):
-      offset = self._row * self._strides
-      # return 40   # Just for tests purposes
-      return NA_getPythonScalar(self._fields[fieldName], offset)
-    else:
-      # Call the universal indexing function
-      try:
+
+    try:
+
+      # Get the column index. This is very fast!
+      index = self._indexes[fieldName]
+
+      if (self._enumtypes[index] <> CHARTYPE and self._dimensions[index] == 1):
+        offset = self._row * self._strides
+        # return 40   # Just for tests purposes
+        return NA_getPythonScalar(self._fields[fieldName], offset)
+      elif (self._enumtypes[index] == CHARTYPE):
+        # CharType columns can only be unidimensional charrays right now,
+        # so the elements has to be strings, so a copy() is not applicable here
+        # But this should be addressed when multidimensional recarrays
+        # were supported
+        # Call the universal indexing function
         return self._fields[fieldName][self._row]
-      except:
-        (type, value, traceback) = sys.exc_info()
-        raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
-              (fieldName, "Error was: \"%s: %s\"" % (type,value))
+      else:  # Case when dimensions > 1 and not CharType
+        # Call the universal indexing function
+        # Make a copy of the (multi) dimensional array
+        # so that the user does not have to do that!
+        arr = self._fields[fieldName][self._row]
+        array = ndarray.NDArray.copy(arr)
+        array._byteorder = arr._byteorder
+        array._type = arr._type
+        return array
+    except:
+      (type, value, traceback) = sys.exc_info()
+      raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
+            (fieldName, "Error was: \"%s: %s\"" % (type,value))
 
   # This is slightly faster (around 3%) than __setattr__
   def __setitem__(self, fieldName, value):

@@ -24,7 +24,7 @@ class Record(IsDescription):
     var6 = Col("Int16", 1)      # short integer 
     var7 = Col("CharType", 1)   # 1-character String
 
-# In 0.3, you can dynamically define the tables with a dictionary
+# From 0.3, you can dynamically define the tables with a dictionary
 RecordDescriptionDict = {
     'var1': Col("CharType", 4),   # 4-character String
     'var2': Col("Int32", 1),      # integer
@@ -34,10 +34,6 @@ RecordDescriptionDict = {
     'var6': Col("Int16", 1),      # short integer
     'var7': Col("CharType", 1),   # 1-character String
     }
-
-# And even as an idle (or non-idle) recarray object!
-RecArrayDescription=recarray.array(formats="4a,i4,i2,2f8,f4,i2,1a",
-                                   names='var1,var2,var3,var4,var5,var6,var7')
 
 def allequal(a,b):
     """Checks if two numarrays are equal"""
@@ -243,7 +239,9 @@ class BasicTestCase(unittest.TestCase):
         # Create an instance of an HDF5 Table
         self.fileh = openFile(self.file, "r")
         table = self.fileh.getNode("/table0")
-	
+
+        # Choose a small value for buffer size
+        table._v_maxTuples = 3
         # Read the records and select those with "var2" file less than 20
         result = [ rec['var2'] for rec in table.iterrows()
                    if rec['var2'] < 20 ]
@@ -256,9 +254,43 @@ class BasicTestCase(unittest.TestCase):
         if isinstance(rec['var5'], NumArray):
             assert allequal(rec['var5'], array((float(nrows),)*4))
         else:
+            print "-->",rec['var5']
             assert rec['var5'] == float(nrows)
         assert len(result) == 20
-        #del table
+        
+    def test01b_readTable(self):
+        """Checking table read and cuts (unidimensional columns case)"""
+
+        rootgroup = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01b_readTable..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        self.fileh = openFile(self.file, "r")
+        table = self.fileh.getNode("/table0")
+
+        # Choose a small value for buffer size
+        table._v_maxTuples = 3
+        # Read the records and select those with "var2" file less than 20
+        result = [ rec['var5'] for rec in table.iterrows()
+                   if rec['var2'] < 20 ]
+        if verbose:
+            print "Nrows in", table._v_pathname, ":", table.nrows
+            print "Last record in table ==>", rec
+            print "Total selected records in table ==> ", len(result)
+        nrows = table.row.nrow()
+        if isinstance(rec['var5'], NumArray):
+            assert allequal(result[0], array((float(0),)*4))
+            assert allequal(result[1], array((float(1),)*4))
+            assert allequal(result[2], array((float(2),)*4))
+            assert allequal(result[3], array((float(3),)*4))
+            assert allequal(result[10], array((float(10),)*4))
+            assert allequal(rec['var5'], array((float(nrows),)*4))
+        else:
+            print "-->",rec['var5']
+            assert rec['var5'] == float(nrows)
+        assert len(result) == 20
         
     def test02_AppendRows(self):
         """Checking whether appending record rows works or not"""
@@ -353,7 +385,6 @@ class DictWriteTestCase(BasicTestCase):
     step = 3
 
 class RecArrayOneWriteTestCase(BasicTestCase):
-    #record = RecArrayDescription
     title = "RecArrayOneWrite"
     record=recarray.array(formats="4a,i4,i2,2f8,f4,i2,1a",
                           names='var1,var2,var3,var4,var5,var6,var7')
@@ -876,8 +907,9 @@ class RecArrayIO(unittest.TestCase):
 
 def suite():
     theSuite = unittest.TestSuite()
-    niter = 1
-
+    niter = 0
+    theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
+    #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(DictWriteTestCase))
