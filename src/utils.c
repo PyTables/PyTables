@@ -127,9 +127,11 @@ PyObject *get_filter_names( hid_t loc_id,
        cd_nelmts = 20;
        filt_id = H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
 			       cd_values, sizeof(f_name), f_name);
+/*        printf("f_name--> %s\n", f_name); */
 	/* This code has been added because a 
 	 bug in the H5Pget_filter call that
 	 returns a null string when DEFLATE filter is active */
+       /* The problem seems to have been solved in 1.6.2 though */
 	switch (filt_id) {
 	 case H5Z_FILTER_DEFLATE:
 	   strcpy(f_name, "deflate");

@@ -5806,8 +5806,15 @@ if __name__=="__main__":
 
 	<p>Be aware that the LZO and UCL support in PyTables is not
 	  standard on HDF5, so if you are going to use your PyTables
-	  files in other contexts different from PyTables you will
-	  not be able to read them.
+	  files in other contexts different from PyTables you will not
+	  be able to read them. Still, see the <ref
+	  refid="ptrepackDescr">appendix</ref> where the
+	  <verb>ptrepack</verb> utility is described to find a way to
+	  free your files from LZO or UCL dependencies, so that you
+	  can use these compressors locally with the guaranty that you
+	  can replace them by ZLIB (or even remove compression
+	  completely) if you want to export the files to other HDF5
+	  tools afterwards.
 	</p>
 
 	<p>In order to give you a raw idea of what ratios would be
@@ -5933,8 +5940,8 @@ if __name__=="__main__":
       </section>
 
       <section>
-	<heading>Shuffling (or how to make the compression even more
-	effective)</heading>
+	<heading>Shuffling (or how to make the compression process
+	  more effective)</heading>
 
 	<p>The <verb>HDF5</verb> library provides an interesting
 	  filter that can leverage the results of your favorite
@@ -5963,7 +5970,7 @@ if __name__=="__main__":
 	  ratio.
 	</quote>
 
-	<p>In table <ref refid="comprShuffleComparison"></ref> you can
+	<p>In <ref refid="comprShuffleComparison">table</ref> you can
 	  see a benchmark that shows how the <em>shuffle</em> filter
 	  can help to the different libraries to compress data in
 	  three table datasets. Generally speaking, <em>shuffle</em>
@@ -6115,6 +6122,49 @@ if __name__=="__main__":
 	  </caption>
 	</figure>
 	
+      </section>
+
+      <section>
+	<heading>Compacting your <visual markup="tt">PyTables</visual>
+	  files
+	</heading>
+
+	<p>Let's suppose that you have a file on which you have made a
+	  lot of row deletions on one or more tables, or deleted many
+	  leaves or even entire subtrees. These operations migth leave
+	  <em>holes</em> (i.e. space that is not used anymore) in your
+	  files, that may potentially affect not only the size of the
+	  files but, more importantly, the performance of I/O. This is
+	  because when you delete a lot of rows on a table, the space
+	  is not automatically recovered on-the-flight. In addition,
+	  if you add many more rows to a table than specified in the
+	  <verb>expectedrows</verb> keyword in creation time this may
+	  affect performace as well as explained in <ref
+	  refid="expectedRowsOptim">section</ref>.
+	</p>
+
+	<p>In order to cope with these issues, you should be aware
+	  that a handy <verb>PyTables</verb> utility called
+	  <verb>ptrepack</verb> can be very useful, not only to
+	  compact your already existing <em>leaky</em> files, but also
+	  to adjust some internal parameters (both in memory and in
+	  file) in order to create adequate buffer sizes and chunk
+	  sizes for optimum I/O speed. Please, check the <ref
+	  refid="ptrepackDescr">appendix</ref> for a brief tutorial on
+	  its use.
+	</p>
+
+	<p>Another thing that you might want to use
+	  <verb>ptrepack</verb> for is changing the compression
+	  filters or compression levels on your existing data for
+	  different goals, like checking how this can affect both
+	  final size and I/O performance, or getting ride of the
+	  optional compressors like <verb>LZO</verb> or
+	  <verb>UCL</verb> in your existing files in case you want to
+	  use them with generic HDF5 tools that does not have support
+	  for these filters.
+	</p>
+
       </section>
 
     </chapter>
@@ -6816,7 +6866,9 @@ usage: ptdump [-R start,stop,step] [-a] [-h] [-d] [-v] file[:nodepath]
 
 	  </subsection>
 	  <subsection>
-	    <heading>Examples of use</heading>
+	    <heading>A small tutorial on <visual
+		markup="tt">ptdump</visual>
+	    </heading>
 
 	    <p>Let's suppose that we want to know only the
 	      <em>structure</em> of a file. In order to do that, just
@@ -6994,7 +7046,9 @@ usage: ptrepack [-h] [-v] [-o] [-R range] [--non-recursive]
 	    </p>
 	  </subsection>
 	  <subsection>
-	    <heading>Examples of use</heading>
+	    <heading>A small tutorial on <visual
+		markup="tt">ptrepack</visual>
+	    </heading>
 
 	    <p>Imagine that we have ended the tutorial 1 (see the
 	      output of <verb>examples/tutorial1-1.py</verb>, and we
