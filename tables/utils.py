@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.22 2004/06/18 12:31:24 falted Exp $
+#       $Id: utils.py,v 1.23 2004/06/23 09:37:02 falted Exp $
 #
 ########################################################################
 
@@ -133,6 +133,7 @@ def calcBufferSize(rowsize, expectedrows, compress):
 
     buffersize = _calcBufferSize(rowsize, expectedrows)
 
+# This correction is generally bad
 #     # Correction for compression.
 #     if compress:
 #         # 1024 bytes seems optimal for compression and besides,

@@ -587,6 +587,152 @@ out:
 }
   
 
+/*   The next represents a try to implement getCoords for != operator */
+/*   but it turned out to be too difficult, well, at least to me :( */
+/*   2004-06-22 */
+/*-------------------------------------------------------------------------
+ * Function: H5ARRAYreadIndex
+ *
+ * Purpose: Reads a slice of array from disk for indexing purposes.
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Francesc Alted, falted@pytables.org
+ *
+ * Date: June 21, 2004
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t H5ARRAYreadIndex( hid_t loc_id, 
+			 const char *dset_name,
+			 int notequal,
+			 hsize_t *start,
+			 hsize_t *stop,
+			 hsize_t *step,
+			 void *data )
+{
+ hid_t    dataset_id;  
+ hid_t    space_id;
+ hid_t    mem_space_id;
+ hid_t    type_id;
+ hsize_t  *dims = NULL;
+ hsize_t  *count = NULL;
+ hsize_t  *count2 = NULL;
+ hsize_t  *offset2 = NULL;
+ hsize_t  *stride = (hsize_t *)step;
+ hssize_t *offset = (hssize_t *)start;
+ int      rank;
+ int      i;
+
+ /* Open the dataset. */
+ if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
+  return -1;
+ 
+ /* Get the datatype */
+ if ( (type_id = H5Dget_type(dataset_id)) < 0 )
+     return -1;
+ 
+  /* Get the dataspace handle */
+ if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+  goto out;
+ 
+ /* Get the rank */
+ if ( (rank = H5Sget_simple_extent_ndims(space_id)) < 0 )
+   goto out;
+
+ if (rank) {  			/* Array case */
+
+   /* Book some memory for the selections */
+   dims = (hsize_t *)malloc(rank*sizeof(hsize_t));
+   count = (hsize_t *)malloc(rank*sizeof(hsize_t));
+   count2 = (hsize_t *)malloc(rank*sizeof(hsize_t));
+   offset2 = (hsize_t *)malloc(rank*sizeof(hsize_t));
+
+   /* Get dataset dimensionality */
+   if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
+     goto out;
+
+   for(i=0;i<rank;i++) {
+     count[i] = ((stop[i] - start[i] - 1) / step[i]) + 1;
+/*      printf("dims[%d]: %d\n", i, (int)dims[i]); */
+/*      printf("start[%d]: %d\n", i, (int)start[i]); */
+/*      printf("stop[%d]: %d\n", i, (int)stop[i]); */
+/*      printf("offset[%d]: %d\n", i, (int)offset[i]); */
+/*      printf("count[%d]: %d\n", i, (int)count[i]); */
+/*      printf("stride[%d]: %d\n", i, (int)stride[i]); */
+     if ( stop[i] > dims[i] ) {
+       printf("Asking for a range of rows exceeding the available ones!.\n");
+       goto out;
+     }
+   }
+
+   /* Define a hyperslab in the dataset of the size of the records */
+   if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, stride, count, NULL) < 0 )
+     goto out;
+
+   /* If we want the complementary, do a NOTA against all the row */
+   if (notequal) {
+     offset2[0] = offset[0]; count2[0] = count[0];
+     offset2[1] = 0; count2[1] = dims[1]; /* All the row */
+     count[0] = 1; count[1] = dims[1] - count[1]; /* For memory dataspace */
+     printf("dims[%d]: %d\n", i, (int)dims[i]);
+     printf("offset2[%d]: %d\n", i, (int)offset2[i]);
+     printf("count2[%d]: %d\n", i, (int)count2[i]);
+     printf("count[%d]: %d\n", i, (int)count[i]);
+     if ( H5Sselect_hyperslab( space_id, H5S_SELECT_NOTA, offset2, stride, count2, NULL) < 0 )
+       goto out;
+   }
+
+   /* Create a memory dataspace handle */
+   if ( (mem_space_id = H5Screate_simple( rank, count, NULL )) < 0 )
+     goto out;
+
+   /* Read */
+   if ( H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
+     goto out;
+
+   /* Release resources */
+   free(dims);
+   free(count);
+   free(offset2);
+   free(count2);
+
+   /* Terminate access to the memory dataspace */
+   if ( H5Sclose( mem_space_id ) < 0 )
+     goto out;
+ }
+ else {  			/* Scalar case */
+
+   /* Read all the dataset */
+   if (H5Dread(dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data) < 0)
+     goto out;
+ }
+
+   /* Terminate access to the dataspace */
+ if ( H5Sclose( space_id ) < 0 )
+  goto out;
+
+ /* End access to the dataset and release resources used by it. */
+ if ( H5Dclose( dataset_id ) )
+  return -1;
+
+ /* Close the vlen type */
+ if ( H5Tclose(type_id))
+   return -1;
+
+ return 0;
+
+out:
+ H5Dclose( dataset_id );
+ if (dims) free(dims);
+ if (count) free(count);
+ return -1;
+
+}
+  
+
+
 /*-------------------------------------------------------------------------
  * Function: H5ARRAYget_ndims
  *

@@ -75,30 +75,33 @@ def readFile(filename, atom, niter, verbose):
         print "Buffersize:", table.rowsize * table._v_maxTuples
         print "MaxTuples:", table._v_maxTuples
 
+    rowselected = 0
     for i in xrange(niter):
         if atom == "int":
             #results = [table.row["var3"] for i in table(where=2+i<=table.cols.var2 < 10+i)]
 #             results = [table.row.nrow() for i in table(where=2<=table.cols.var2 < 10)]
             results = [p.nrow()
-                       for p in table(where=6-i<=table.cols.var2<6+i)]
+                       for p in table(where=100*i<=table.cols.var2<100*(i+1))]
         elif atom == "float":
 #         results = [(table.row.nrow(), table.row["var3"])
 #                    for i in table(where=3<=table.cols.var3 < 5.)]
 #             results = [(p.nrow(), p["var3"])
 #                        for p in table(where=1000.-i<=table.cols.var3<1000.+i)]
-            results = [(p.nrow(), p["var3"]) 
-                       for p in table(where=table.cols.var3>=100000-i)]
+            results = [p["var3"] # (p.nrow(), p["var3"]) 
+                       for p in table(where=100*i<=table.cols.var3<100*(i+1))]
+#                        for p in table
+#                        if 100*i<=p["var3"]<100*(i+1)]
 #             results = [ (p.nrow(), p["var3"]) for p in table
 #                         if (1000.-i <= p["var3"] < 1000.+i) ]
         else:
             raise ValueError, "Unsuported atom value"
+        rowselected += len(results)
     if verbose and 1:
         print "Values that fullfill the conditions:"
         print results
 
     rowsread = table.nrows * niter
     rowsize = table.rowsize 
-    rowselected = len(results) * niter
         
     # Close the file (eventually destroy the extended type)
     fileh.close()

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Index.py,v $
-#       $Id: Index.py,v 1.1 2004/06/18 12:31:08 falted Exp $
+#       $Id: Index.py,v 1.2 2004/06/23 09:37:02 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.1 $"
+__version__ = "$Revision: 1.2 $"
 # default version for INDEX objects
 obversion = "1.0"    # initial version
 
@@ -40,7 +40,7 @@ import hdf5Extension
 import numarray
 import time
 
-class Index(hdf5Extension.Group, object):
+class Index(hdf5Extension.Group, hdf5Extension.Index, object):
     """Represent the index (sorted and reverse index) dataset in HDF5 file.
 
     It enables to create indexes of Columns of Table objects.
@@ -218,87 +218,103 @@ class Index(hdf5Extension.Group, object):
     def search(self, item, notequal=0):
         """Do a binary search in this index for an item"""
         t1=time.time()
-        ntotaliter = 0  # for counting the number of reads on each
-        tlen = 0
-        self.lengths = []
-        self.starts = []; self.stops = [];
+        ntotaliter = 0; tlen = 0
+        self.notequal = notequal
+        self.starts = []; self.lengths = []
         bufsize = self.sorted._v_chunksize[1] # number of elements/chunksize
         self.nelemslice = self.sorted.nelemslice   # number of columns/slice
         self.sorted._initSortedSlice(bufsize)
         # Do the lookup for values fullfilling the conditions
         for i in xrange(self.sorted.nrows):
             (start, stop, niter) = self.sorted._searchBin(i, item)
-            #print "selected values-->", self.sorted[i][start:stop]
-            self.starts.append(start); self.stops.append(stop);
-            tlen += stop - start
+            self.starts.append(start)
             self.lengths.append(stop - start)
-            ntotaliter += niter
+            ntotaliter += niter; tlen += stop - start
         self.sorted._destroySortedSlice()
         #print "time reading indices:", time.time()-t1
-        self.exception = -1
-        # There is a lot to be done for != operator yet 
-        if tlen > 0 and notequal:
-            cont = 1
-            for i in xrange(self.sorted.nrows+1):
-                print "lengths[%s]-->%s" % (i, self.lengths[i])
-                if self.lengths[i] <> 0:
-                    if cont:
-                        self.starts.insert(i+1, self.stops[i])
-                        self.stops[i] = self.starts[i]
-                        self.starts[i] = 0
-                        self.stops.insert(i+1, self.nelemslice)
-                        self.lengths[i] = self.stops[i]-self.starts[i]
-                        self.lengths.insert(i+1, self.stops[i+1]-self.starts[i+1])
-                        cont = 0 # skip the index that was added
-                        self.exception = i+1
-                else:
-                    self.starts[i] = 0
-                    self.stops[i] = self.nelemslice
-                    self.lengths[i] = self.nelemslice
-                    cont = 1
-                print "(2)lengths[%s]-->%s" % (i, self.lengths[i])
-                print "(2)starts[%s]-->%s" % (i, self.starts[i])
-                print "(2)stops[%s]-->%s" % (i, self.stops[i])
-            tlen = self.nelemslice*self.sorted.nrows-tlen
-            print "tlen-->", tlen
-            print "starts, stops, lengths-->", self.starts, self.stops, self.lengths
-        return tlen
+        if notequal:
+            return self.sorted.nrows*self.nelemslice - tlen
+        else:
+            return tlen
 
     def getCoords(self, startCoords, maxCoords):
         """Get the coordinates of indices satisfiying the cuts"""
-        t1=time.time()
-        len1 = 0; len2 = self.lengths[0];
-        stop = 0; relCoords = 0; lastvalidentry = -1;
-        #print "(Entrant) startCoords, maxCoords -->", startCoords, maxCoords
-        #for i in xrange(len(self.starts)):
+        # t1=time.time()
+        len1 = 0; len2 = 0;
+        stop = 0; relCoords = 0; lastvalidentry = 0;
         for i in xrange(self.sorted.nrows):
-            #print "len1, len2-->", len1, len2
-            if (self.lengths[i] > 0 and len1 <= startCoords < len2):
+            leni = self.lengths[i]; len2 += leni
+            #print "leni, len1, len2-->", leni, len1, len2
+            #print "startCoords, maxCoords-->", startCoords, maxCoords 
+            if (leni > 0 and len1 <= startCoords < len2):
                 self.startl[0] = i; self.stopl[0] = i+1;
                 self.startl[1] = self.starts[i] + (startCoords-len1)
-                #print "maxCoords, lengths, len-->", maxCoords, self.lengths[i], len1
-                if maxCoords >= self.lengths[i] - (startCoords-len1):
+                if maxCoords >= leni - (startCoords-len1):
                     # Values fit on buffer
-                    self.stopl[1] = self.stops[i]
+                    self.stopl[1] = self.startl[1] + leni
                 else:
                     # Stop after this iteration
-                    self.stopl[1] = self.startl[1]+maxCoords
+                    self.stopl[1] = self.startl[1] + maxCoords
                     stop = 1
-                #print "startl, stopl -->", self.startl, self.stopl
+                lastvalidentry = self.stopl[1]
+                #print "startl, stopl-->", self.startl, self.stopl
                 self.indices._g_readIndex(i, self.nelemslice,
-                                          self.stopl[1]-self.startl[1],
                                           self.startl, self.stopl, self.stepl,
                                           self.arrRel[relCoords:],
                                           self.arrAbs[relCoords:])
-                lastvalidentry = relCoords+(self.stopl[1]-self.startl[1])
                 if stop:
                     break
-                maxCoords -= self.lengths[i] - (startCoords-len1)
-                startCoords += self.lengths[i] - (startCoords-len1)
-                relCoords += self.stopl[1]-self.startl[1]
-            len1 += self.lengths[i]
-            if i < self.sorted.nrows-1:
-                len2 += self.lengths[i+1]
+                maxCoords -= leni - (startCoords-len1)
+                startCoords += leni - (startCoords-len1)
+                relCoords += leni
+            len1 += leni
+                
+        selections = numarray.sort(self.arrAbs[:lastvalidentry])
+        #print "selections-->", selections
+        #print "lastvalidentry-->", lastvalidentry
+
+        # print "time doing revIndexing:", time.time()-t1
+        return selections
+
+    # The next represents a try to implement getCoords for != operator
+    # but it turned out to be too difficult, well, at least to me :(
+    # 2004-06-22
+    def getCoords_notequal(self, startCoords, maxCoords):
+        """Get the coordinates of indices satisfiying the cuts"""
+        t1=time.time()
+        len1 = 0; len2 = 0;
+        stop = 0; relCoords = 0; lastvalidentry = -1;
+        #print "(Entrant) startCoords, maxCoords -->", startCoords, maxCoords
+        for i in xrange(self.sorted.nrows):
+            leni = self.lengths[i]
+            if self.notequal:
+                notleni = self.nelemslice - leni
+            else:
+                notleni = leni
+            len2 += notleni
+            if (notleni > 0 and len1 <= startCoords < len2):
+                self.startl[0] = i; self.stopl[0] = i+1;
+                self.startl[1] = self.starts[i] + (startCoords-len1)
+                #print "maxCoords, lengths, len1-->", maxCoords, leni, len1
+                if maxCoords >= notleni - (startCoords-len1):
+                    # Values fit on buffer
+                    lentostop = leni
+                else:
+                    # Stop after this iteration
+                    lentostop = maxCoords
+                    stop = 1
+                self.stopl[1] = self.startl[1]+lentostop
+                #print "startl, stopl -->", self.startl, self.stopl
+                self.indices._g_readIndex(i, self.nelemslice, self.notequal,
+                                          self.startl, self.stopl, self.stepl,
+                                          self.arrRel[relCoords:],
+                                          self.arrAbs[relCoords:])
+                if stop:
+                    break
+                maxCoords -= notleni - (startCoords-len1)
+                startCoords += notleni - (startCoords-len1)
+                relCoords += notleni
+            len1 += notleni
                 
         #print "time doing revIndexing:", time.time()-t1
         selections = numarray.sort(self.arrAbs[:lastvalidentry])

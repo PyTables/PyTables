@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.126 2004/06/18 12:31:06 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.127 2004/06/23 09:37:02 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.126 $"
+__version__ = "$Revision: 1.127 $"
 
 
 import sys, os
@@ -558,6 +558,10 @@ cdef extern from "H5ARRAY.h":
                            hsize_t *start, hsize_t *stop,
                            hsize_t *step, void *data )
 
+  herr_t H5ARRAYreadIndex( hid_t loc_id, char *dset_name, int notequal,
+                           hsize_t *start, hsize_t *stop, hsize_t *step,
+                           void *data )
+
   herr_t H5ARRAYget_ndims( hid_t loc_id, char *dset_name, int *rank )
 
   hid_t H5ARRAYget_info( hid_t loc_id, char *dset_name,
@@ -909,7 +913,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.126 2004/06/18 12:31:06 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.127 2004/06/23 09:37:02 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1543,10 +1547,13 @@ cdef class Table:
 
     # Protection against row sizes too large (HDF5 refuse to work
     # with row sizes larger than 10 KB or so).
-    if self.rowsize > 8192:
-        raise RuntimeError, \
-    """Row size too large. Maximum size is 8192 bytes, and you are asking
-    for a row size of %s bytes.""" % (self.rowsize)
+    # This limitation was consequence of my buffer size computation that was
+    # quite bad. Now, I think it is safe to release this limitation for most
+    # uses
+#     if self.rowsize > 8192:
+#         raise RuntimeError, \
+#     """Row size too large. Maximum size is 8192 bytes, and you are asking
+#     for a row size of %s bytes.""" % (self.rowsize)
 
     # test if there is data to be saved initially
     if hasattr(self, "_v_recarray"):
@@ -2580,7 +2587,7 @@ cdef class Array:
 
     return 
 
-  def _g_readIndex(self, int i, int ns, int len,
+  def _g_readIndex(self, int i, int ns,
                    startl, stopl, stepl, bufferR, bufferA):
     cdef herr_t ret
     cdef long ndims, buflen
@@ -2589,7 +2596,7 @@ cdef class Array:
     cdef long long *rbufA
     cdef long long offset
     cdef long offsetl
-    cdef int j
+    cdef int j, len
 
     # Get the pointer to the buffer data area of startl, stopl and stepl arrays
     ndims = NA_getBufferPtrAndSize(startl._data, 1, &startlb)
@@ -2613,7 +2620,54 @@ cdef class Array:
     # Now, compute the absolute coords for table rows by adding the offset
     rbufR = <int *>vrbufR
     rbufA = <long long *>vrbufA
+    len = stopl[1]-startl[1]
     offset = i*ns
+    for j from 0 <= j < len: 
+      rbufA[j] = rbufR[j] + offset
+      
+    return 
+
+  # The next represents a try to implement getCoords for != operator
+  # but it turns out to be too difficult, well, at least to me :(
+  # 2004-06-22
+  def _g_readIndex_notequal(self, int i, int ns, int notequal,
+                            startl, stopl, stepl, bufferR, bufferA):
+    cdef herr_t ret
+    cdef long ndims, buflen, len
+    cdef void *startlb, *stoplb, *steplb, *vrbufR, *vrbufA
+    cdef int *rbufR
+    cdef long long *rbufA
+    cdef long long offset
+    cdef long offsetl
+    cdef int j
+
+    # Get the pointer to the buffer data area of startl, stopl and stepl arrays
+    ndims = NA_getBufferPtrAndSize(startl._data, 1, &startlb)
+    ndims = NA_getBufferPtrAndSize(stopl._data, 1, &stoplb)
+    ndims = NA_getBufferPtrAndSize(stepl._data, 1, &steplb)
+    # Get the pointer to the buffer data area
+    buflen = NA_getBufferPtrAndSize(bufferR._data, 1, &vrbufR)
+    buflen = NA_getBufferPtrAndSize(bufferA._data, 1, &vrbufA)
+    # Correct the start of the buffer with the _byteoffset
+    offsetl = bufferR._byteoffset
+    vrbufR = <void *>(<char *>vrbufR + offsetl)
+    offsetl = bufferA._byteoffset
+    vrbufA = <void *>(<char *>vrbufA + offsetl)
+    # Do the physical read
+    ret = H5ARRAYreadIndex(self.parent_id, self.name, notequal,
+                           <hsize_t *>startlb, <hsize_t *>stoplb,
+                           <hsize_t *>steplb, vrbufR)
+    if ret < 0:
+      raise RuntimeError("Problems reading the array data.")
+
+    # Now, compute the absolute coords for table rows by adding the offset
+    rbufR = <int *>vrbufR
+    rbufA = <long long *>vrbufA
+    offset = i*ns
+    # Number of elements that have been read
+    len = stopl[1]-startl[1]
+    if notequal:
+      len = ns - len
     for j from  0 <= j < len: 
       rbufA[j] = rbufR[j] + offset
       
@@ -2644,21 +2698,21 @@ cdef class Array:
     self.count[0] = 1; self.count[1] = bufsize # Always read bufsize elements
     self.stride[0] = 1; self.stride[1] = 1
 
-  def _readSortedSlice_orig(self, hsize_t irow, hsize_t start, hsize_t stop):
-    "Read the sorted part of an index"
+#   def _readSortedSlice_orig(self, hsize_t irow, hsize_t start, hsize_t stop):
+#     "Read the sorted part of an index"
 
-    ret = H5ARRAYOread_readSlice(self.dataset_id,
-                                 self.space_id,
-                                 self.type_id,
-                                 self.mem_space_id,
-                                 irow,
-                                 start,
-                                 stop,
-                                 self.rbuflb)
-    if ret < 0:
-      raise RuntimeError("Problems reading the array data.")
+#     ret = H5ARRAYOread_readSlice(self.dataset_id,
+#                                  self.space_id,
+#                                  self.type_id,
+#                                  self.mem_space_id,
+#                                  irow,
+#                                  start,
+#                                  stop,
+#                                  self.rbuflb)
+#     if ret < 0:
+#       raise RuntimeError("Problems reading the array data.")
 
-    return self.bufferl
+#     return self.bufferl
 
   # This does optimization not really bring better performance, but
   # as H5ARRAYOread_readSlice is really simple, I think this way of reading
@@ -2822,6 +2876,100 @@ cdef class Array:
     if self.dims_chunk:
       free(self.dims_chunk)
 
+cdef class Index:
+  # Instance variables
+
+  # Methods
+  pass
+  # The  getCoords method is a try to get better performance of their
+  # python counterpart, but the speeds are almost equal!
+  # So, let's continue to use the python one, as it's easier to maintain!
+#   def getCoords(self, long long startCoords, int maxCoords):
+#     """Get the coordinates of indices satisfiying the cuts"""
+#     cdef long long len1, len2, leni, lastvalidentry
+#     cdef int i, stop, relCoords
+    
+#     # t1=time.time()
+#     len1 = 0; len2 = 0;
+#     stop = 0; relCoords = 0; lastvalidentry = 0;
+#     # for i in xrange(self.sorted.nrows):
+#     for i from 0 <= i < self.sorted.nrows:
+#       leni = self.lengths[i]; len2 = len2 + leni
+#       #print "leni, len1, len2-->", leni, len1, len2
+#       #print "startCoords, maxCoords-->", startCoords, maxCoords 
+#       if (leni > 0 and len1 <= startCoords < len2):
+#         self.startl[0] = i; self.stopl[0] = i+1;
+#         self.startl[1] = self.starts[i] + (startCoords-len1)
+#         if maxCoords >= leni - (startCoords-len1):
+#           # Values fit on buffer
+#           self.stopl[1] = self.startl[1] + leni
+#         else:
+#           # Stop after this iteration
+#           self.stopl[1] = self.startl[1] + maxCoords
+#           stop = 1
+#         lastvalidentry = self.stopl[1]
+#         #print "startl, stopl-->", self.startl, self.stopl
+#         self._readIndex(i, self.nelemslice,
+#                         self.startl, self.stopl, self.stepl,
+#                         self.arrRel[relCoords:],
+#                         self.arrAbs[relCoords:])
+#         if stop:
+#           break
+#         maxCoords = maxCoords - (leni - (startCoords-len1))
+#         startCoords = startCoords + (leni - (startCoords-len1))
+#         relCoords = relCoords + leni
+#       len1 = len1 + leni
+                
+#     selections = numarray.sort(self.arrAbs[:lastvalidentry])
+#     #print "selections-->", selections
+#     #print "lastvalidentry-->", lastvalidentry
+#     # print "time doing revIndexing:", time.time()-t1
+#     return selections
+
+#   def _readIndex(self, int i, int ns,
+#                     startl, stopl, stepl, bufferR, bufferA):
+#     cdef herr_t ret
+#     cdef long ndims, buflen
+#     cdef void *startlb, *stoplb, *steplb, *vrbufR, *vrbufA
+#     cdef int *rbufR
+#     cdef long long *rbufA
+#     cdef long long offset
+#     cdef long offsetl
+#     cdef int j, len
+#     cdef char *name
+#     cdef hid_t parent_id
+
+
+#     # Get the pointer to the buffer data area of startl, stopl and stepl arrays
+#     ndims = NA_getBufferPtrAndSize(startl._data, 1, &startlb)
+#     ndims = NA_getBufferPtrAndSize(stopl._data, 1, &stoplb)
+#     ndims = NA_getBufferPtrAndSize(stepl._data, 1, &steplb)
+#     # Get the pointer to the buffer data area
+#     buflen = NA_getBufferPtrAndSize(bufferR._data, 1, &vrbufR)
+#     buflen = NA_getBufferPtrAndSize(bufferA._data, 1, &vrbufA)
+#     # Correct the start of the buffer with the _byteoffset
+#     offsetl = bufferR._byteoffset
+#     vrbufR = <void *>(<char *>vrbufR + offsetl)
+#     offsetl = bufferA._byteoffset
+#     vrbufA = <void *>(<char *>vrbufA + offsetl)
+#     # Do the physical read
+#     name = PyString_AsString(self.indices.name)
+#     parent_id = self.indices._v_parent._v_objectID
+#     ret = H5ARRAYreadSlice(parent_id, name,
+#                            <hsize_t *>startlb, <hsize_t *>stoplb,
+#                            <hsize_t *>steplb, vrbufR)
+#     if ret < 0:
+#       raise RuntimeError("Problems reading the array data.")
+
+#     # Now, compute the absolute coords for table rows by adding the offset
+#     rbufR = <int *>vrbufR
+#     rbufA = <long long *>vrbufA
+#     len = stopl[1]-startl[1]
+#     offset = i*ns
+#     for j from 0 <= j < len: 
+#       rbufA[j] = rbufR[j] + offset
+      
+#     return 
 
 cdef class VLArray:
   # Instance variables

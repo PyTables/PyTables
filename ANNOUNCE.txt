@@ -19,6 +19,11 @@ Solved issues:
 - Accessing to an out of range index raises now an IndexError instead
   of returning and empty object.
 
+- The limitation on row sizes larger than 8192 bytes has been
+  completely removed. That has been possible to the refinement of the
+  process of computation of the buffer size for Table objects. Now, it
+  should work fine for most of row sizes (at least, I hope so!).
+
 Announcing PyTables 0.8
 -----------------------
 
