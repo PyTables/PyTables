@@ -5,6 +5,7 @@
   <frontmatter>
     <title><visual markup="tt">PyTables</visual> User's Guide</title>
     <author>Francesc Alted</author>
+    <subtitle>Release 0.4</subtitle>
     <date>March, 18th</date>
     <year>2003</year>
     <legalnotice>
@@ -271,10 +272,11 @@ class Particle(IsDescription):
 	    with a large number of records, i.e. that don't fit in
 	    memory.
 	  </item>
-	  <item><em>Support of arrays:</em> <verb>Numeric</verb> or
-		<verb>numarray</verb> arrays are a very useful
-		complement of tables to keep homogeneous table slices
-		(like selections of table columns).
+	  <item><em>Support of arrays:</em> <verb>Numeric</verb> (see
+	    <cite refid="Numeric"></cite>) or <verb>numarray</verb>
+	    (see <cite refid="Numarray"></cite>) arrays are a very
+	    useful complement of tables to keep homogeneous table
+	    slices (like selections of table columns).
 	  </item>
 	  <item><em>Supports a hierarchical data model:</em> That way,
 	    you can structure very clearly all your
@@ -375,11 +377,7 @@ class Particle(IsDescription):
 	<p>The support for <em>natural naming</em> is a key aspect of
 	  <verb>PyTables</verb> and means that the names of instance
 	  variables of the node objects are the same as the names of
-	  the element's children<footnote>I have got this simple but
-	  powerful idea from the excellent <visual
-	  markup="tt">Objectify</visual> module by David Mertz (see
-	  references <ref refid="Objectify"></ref> and <ref
-	  refid="GnosisUtils"></ref>)</footnote>. This is very
+	  the element's children. This is very
 	  <em>Pythonic</em> and comfortable in many cases, as you can
 	  check in the tutorial <ref
 	  refid="readingAndSelectingUsage">section</ref>.
@@ -513,8 +511,8 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
       </p>
 
       <p>Extensions in <visual markup="tt">PyTables</visual> has been
-	made using Pyrex (see <ref refid="Pyrex">reference</ref>) and
-	C language. You can rebuild everything from scratch if you got
+	made using Pyrex (see <cite refid="Pyrex"></cite>) and C
+	language. You can rebuild everything from scratch if you got
 	Pyrex installed, but this is not necessary, as the Pyrex
 	compiled source is included in the distribution. In order to
 	do that, merely replace <visual markup="tt">setup.py</visual>
@@ -524,14 +522,15 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
       <p>To compile <verb>PyTables</verb> you will need a recent
 	version of <verb>HDF5</verb> (C flavor) library and
-	<verb>numarray</verb> (see reference <ref
-	refid="Numarray"></ref>) package. Although you won't need
-	<verb>Numerical Python</verb> in order to compile PyTables, it
-	is supported; you only will need a reasonably recent version
-	of it (>= 21.x). PyTables has been succesfully tested with
-	Numeric 21.3, 22.0 and 23.0. If you have <verb>Numeric</verb>
-	installed, the test driver module will detect it and will run
-	the tests for <verb>Numeric</verb> automatically.
+	<verb>numarray</verb> (see <cite refid="Numarray"></cite>)
+	package. Although you won't need <verb>Numerical Python</verb>
+	(see <cite refid="Numeric"></cite>) in order to compile
+	PyTables, it is supported; you only will need a reasonably
+	recent version of it (>= 21.x). PyTables has been succesfully
+	tested with Numeric 21.3, 22.0 and 23.0. If you have
+	<verb>Numeric</verb> installed, the test driver module will
+	detect it and will run the tests for <verb>Numeric</verb>
+	automatically.
       </p>
 
       <p>The Python Distutils are used to build and install
@@ -1584,8 +1583,10 @@ Particle:      7 --> 49.0
 	    disk, and when you add new records, they are appended to
 	    the end of the table<footnote>Note that you can only
 	    append values to tables, not array objects. However, I
-	    plan to support unlimited dimension arrays shortly. Keep
-	    tuned.</footnote>.
+	    plan to support unlimited dimension of arrays shortly, in
+	    the tradition of the NetCDF module (see <cite
+	    refid="NetCDF"></cite>) of the Scientific Python package
+	    (<cite refid="NetCDFSP"></cite>).</footnote>.
 	  </p>
 	  <p>
 	    If you look carefully at the code you will see that we
@@ -1922,8 +1923,8 @@ AttributeError: Error accessing "ADCcount" attr.
 	  </p>
 
 	  <p>The compression library used is the <visual
-	    markup="bf">zlib</visual> (see reference <ref
-	    refid="zlibRef"></ref>), and the compression level that I
+	    markup="bf">zlib</visual> (see <cite
+	    refid="zlibRef"></cite>), and the compression level that I
 	    recommend to use for <verb>Table</verb> objects is 1. This
 	    is the lowest level of compression, but if you take the
 	    approach suggested above, normally the redundant data is
@@ -2042,7 +2043,7 @@ AttributeError: Error accessing "ADCcount" attr.
 	  
 	</subsection>
 
-	<subsection>
+	<subsection id="GlobalFunctDescr">
 	  <heading>Global functions</heading>
 
 	  <description id="openFileDescr">
@@ -2257,37 +2258,40 @@ AttributeError: Error accessing "ADCcount" attr.
 	<subsection>
 	  <heading><visual markup="tt">File</visual> methods</heading>
 
-	  <description>
+	  <subsubsection id="createGroupDescr">
+	    <heading>createGroup(where, name, title='')</heading>
 
-	    <term id="createGroupDescr">createGroup(where, name,
-	      title='') </term> <item>Create a new Group instance
-	      with name <em>name</em> in <em>where</em> location.
+	    <p>Create a new Group instance with name <em>name</em> in
+	      <em>where</em> location.
+	    </p>
 
-	      <description>
+	    <description>
+	      <term>where</term> <item>The parent group where the new
+		group will hang. <em>where</em> parameter can be a path
+		string (for example
+		<verb>"/Particles/TParticle1"</verb>), or another Group
+		instance. </item>
 
-		<term>where</term> <item>The parent group where the new
-		  group will hang. <em>where</em> parameter can be a
-		  path string (for example
-		  <verb>"/Particles/TParticle1"</verb>), or another
-		  Group instance. </item>
-
-		<term>name</term>
-		<item>The name of the new group.</item>
-
-		<term>title</term> <item>A description for this
+	      <term>name</term>
+	      <item>The name of the new group.</item>
+	      
+	      <term>title</term> <item>A description for this
 		group.</item>
 
-	      </description>
-	    </item>
+	    </description>
 
-	    <term id="createTableDescr">createTable(where, name,
+	  </subsubsection>
+
+	  <subsubsection>
+	    <heading id="createTableDescr">createTable(where, name,
 	      description, title='', compress=0,
-	      expectedrows=10000)</term> <item>Create a new
-	      <verb>Table</verb> instance with name <em>name</em> in
-	      <em>where</em> location.
+	      expectedrows=10000)</heading>
 
-	      <description>
+	    <p>Create a new <verb>Table</verb> instance with name
+	      <em>name</em> in <em>where</em> location.
+	    </p>
 
+	    <description>
 		<term>where</term> <item>The parent group where the
 		  new table will hang. <em>where</em> parameter can be
 		  a path string (for example
@@ -2339,15 +2343,17 @@ AttributeError: Error accessing "ADCcount" attr.
 		  detailed justification of that issue.
 		</item>
 
-	      </description>
-	    </item>
+	    </description>
+	  </subsubsection>
 
-	    <term id="createArrayDescr">createArray(where, name,
-	      ArrayObject, title='')</term> <item>Create a new
-	      <verb>Array</verb> instance with name <em>name</em> in
-	      <em>where</em> location.
+	  <subsubsection>
+	    <heading id="createArrayDescr">createArray(where, name,
+	      object, title='')</heading>
 
-	      <description>
+	    <p>Create a new <verb>Array</verb> instance with name
+	      <em>name</em> in <em>where</em> location.
+	    </p>
+	    <description>
 
 		<term>where</term> <item>The parent group where the
 		  new array will hang. <em>where</em> parameter can be
@@ -2360,7 +2366,7 @@ AttributeError: Error accessing "ADCcount" attr.
 		  array.
 		</item>
 
-		<term>ArrayObject</term> <item>The regular array to be
+		<term>object</term> <item>The regular array to be
 		  saved. Currently accepted values are: lists, tuples,
 		  scalars (int and float), strings and
 		  (multidimensional) <verb>Numeric</verb> and
@@ -2378,11 +2384,15 @@ AttributeError: Error accessing "ADCcount" attr.
 		</item>
 
 	      </description>
-	    </item>
+	  </subsubsection>
 
-	    <term id="getNodeDescr">getNode(where, name='',
-	      classname='')</term> <item>Returns the object node
-	      <em>name</em> under <em>where</em> location
+	  <subsubsection>
+	    <heading id="getNodeDescr">getNode(where, name='',
+	      classname='')</heading>
+
+	    <p>Returns the object node <em>name</em> under
+	      <em>where</em> location.
+	    </p>
 
 	      <description>
 
@@ -2408,13 +2418,16 @@ AttributeError: Error accessing "ADCcount" attr.
 		</item>
 
 	      </description>
-	    </item>
+	  </subsubsection>
 
-	    <term id="getAttrNodeDescr">getAttrNode(where, attrname,
-	      name='' )</term> <item>Returns the attribute
-	      <em>attrname</em> under <em>where.name</em> location.
+	  <subsubsection>
+	    <heading id="getAttrNodeDescr">getAttrNode(where,
+	      attrname, name='' )</heading>
 
-	      <description>
+	    <p>Returns the attribute <em>attrname</em> under
+	      <em>where.name</em> location.
+	    </p>
+	    <description>
 
 		<term>where</term> <item>Can be a path string or
 		  <verb>Group</verb> instance. If <em>where</em>
@@ -2433,15 +2446,17 @@ AttributeError: Error accessing "ADCcount" attr.
 		  <em>where</em>.
 		</item>
 
-	      </description>
-	    </item>
+	    </description>
+	  </subsubsection>
 
-	    <term id="setAttrNodeDescr">setAttrNode(where, attrname,
-	      attrvalue, name='')</term> <item>Sets the attribute
-	      <em>attrname</em> with value <em>attrvalue</em> under
-	      <em>where.name</em> location.
+	  <subsubsection>
+	    <heading id="setAttrNodeDescr">setAttrNode(where,
+	      attrname, attrvalue, name='')</heading>
 
-	      <description>
+	    <p>Sets the attribute <em>attrname</em> with value
+	      <em>attrvalue</em> under <em>where.name</em> location.
+	    </p>
+	    <description>
 
 		<term>where</term> <item>Can be a path string or
 		  <verb>Group</verb> instance. If <em>where</em>
@@ -2467,16 +2482,18 @@ AttributeError: Error accessing "ADCcount" attr.
 		  <em>where</em>.
 		</item>
 
-	      </description>
-	    </item>
+	    </description>
+	  </subsubsection>
 
-	    <term id="listNodesDescr">listNodes(where,
-	      classname='')</term> <item>Returns a list with all the
-	      object nodes (Group or Leaf) hanging from
-	      <em>where</em>. The list is alphanumerically sorted by
-	      node name.
+	  <subsubsection>
+	    <heading id="listNodesDescr">listNodes(where,
+	      classname='')</heading>
 
-	      <description>
+	    <p>Returns a list with all the object nodes (Group or
+	      Leaf) hanging from <em>where</em>. The list is
+	      alphanumerically sorted by node name.
+	    </p>
+	    <description>
 
 		<term>where</term> <item>The parent group. Can be a
 		  path string or <verb>Group</verb> instance.
@@ -2491,14 +2508,17 @@ AttributeError: Error accessing "ADCcount" attr.
 		  that these values are strings.
 		</item>
 
-	      </description>
-	    </item>
+	    </description>
+	  </subsubsection>
 
-	    <term id="removeNodeDescr">removeNode(where, name = "",
-	      recursive=0)</term> <item>Removes the object node
+	  <subsubsection>
+	    <heading id="removeNodeDescr">removeNode(where, name = "",
+	      recursive=0)</heading>
+
+	    <p>Removes the object node
 	      <em>name</em> under <em>where</em> location.
-
-	      <description>
+	    </p>
+	    <description>
 
 		<term>where</term> <item>Can be a path string or
 		  <verb>Group</verb> instance.  If <em>where</em>
@@ -2516,14 +2536,17 @@ AttributeError: Error accessing "ADCcount" attr.
 		  and all its descendents will be completely
 		  removed.</item>
 
-	      </description>
-	    </item>
+	    </description>
+	  </subsubsection>
 
-	    <term id="renameNodeDescr">renameNode(where, newname,
-	      name) </term> <item>Rename the object node
-	      <em>name</em> under <em>where</em> location.
+	  <subsubsection>
+	    <heading id="renameNodeDescr">renameNode(where, newname,
+	      name)</heading>
 
-	      <description>
+	    <p>Rename the object node <em>name</em> under
+	      <em>where</em> location.
+	    </p>
+	    <description>
 
 		<term>where</term> <item>Can be a path string or
 		  <verb>Group</verb> instance.  If <em>where</em>
@@ -2538,35 +2561,40 @@ AttributeError: Error accessing "ADCcount" attr.
 		  changed. If not provided, the <em>where</em> node is
 		  changed.</item>
 
-	      </description>
-	    </item>
+	    </description>
+	  </subsubsection>
 
-	    <term id="walkGroupsDescr">walkGroups(where='/')</term>
-	      <item><em>Iterator</em> that recursively obtains groups
-	      (not leaves) hanging from <em>where</em>. If
-	      <em>where</em> is not supplied, the root object is taken
-	      as origin. The groups are returned from in a top to
-	      bottom order, and alphanumerically sorted when they are
-	      at the same level.
+	  <subsubsection>
+	    <heading id="walkGroupsDescr">walkGroups(where='/')</heading>
 
-	      <description>
+	    <p><em>Iterator</em> that recursively obtains groups (not
+	      leaves) hanging from <em>where</em>. If <em>where</em>
+	      is not supplied, the root object is taken as origin. The
+	      groups are returned from in a top to bottom order, and
+	      alphanumerically sorted when they are at the same level.
+	    </p>
+	    <description>
 
 		<term>where</term> <item>The origin group. Can be a
 		  path string or <verb>Group</verb> instance.
 		</item>
 
-	      </description>
-	    </item>
+	    </description>
+	  </subsubsection>
 
-	    <term>flush()</term> <item>Flush all the leaves in the
-	      object tree.
-	    </item>
+	  <subsubsection>
+	    <heading>flush()</heading>
 
-	    <term>close()</term> <item>Flush all the leaves in object
-	      tree and close the file.
-	    </item>
+	    <p>Flush all the leaves in the object tree.
+	    </p>
+	  </subsubsection>
 
-	  </description>
+	  <subsubsection>
+	    <heading>close()</heading>
+
+	    <p>Flush all the leaves in object tree and close the file.
+	    </p>
+	  </subsubsection>
 
 	</subsection>
       </section>
@@ -2752,8 +2780,7 @@ AttributeError: Error accessing "ADCcount" attr.
 	</subsection>
 
 	<subsection>
-	  <heading><visual markup="tt">Leaf</visual> instance
-	    variables</heading>
+	  <heading><visual markup="tt">Leaf</visual> methods</heading>
 	  <description>
 
 	    <term>rename(newname)</term>
@@ -2829,20 +2856,22 @@ AttributeError: Error accessing "ADCcount" attr.
 	<subsection>
 	  <heading><visual markup="tt">Table</visual> methods</heading>
 
-	  <description>
+	  <subsubsection>
+	    <heading id="iterrowsDescr">iterrows(start=None,
+	      stop=None, step=None)</heading>
 
-	    <term id="iterrowsDescr">iterrows(start=None, stop=None,
-	      step=None)</term> <item>Returns an iterator yielding Row
-	      instances built from rows in table. This method is
-	      actually a <em>generator</em>, i.e. it keeps track on
-	      the last record returned so that next time it is invoked
-	      it returns the next available row. If a range is
-	      supplied (i.e. some of the <em>start</em>, <em>stop</em>
-	      or <em>step</em> parameters are passed), only the
+
+	    <p>Returns an iterator yielding Row instances built from
+	      rows in table. This method is actually a
+	      <em>generator</em>, i.e. it keeps track on the last
+	      record returned so that next time it is invoked it
+	      returns the next available row. If a range is supplied
+	      (i.e. some of the <em>start</em>, <em>stop</em> or
+	      <em>step</em> parameters are passed), only the
 	      appropriate rows are returned. Else, all the rows are
 	      returned.
-
-	      <description>
+	    </p>
+	    <description>
 		<term>start</term> <item>Sets the starting row to
 		  return data. It accepts negative values meaning that
 		  the count starts from the end.</item>
@@ -2859,16 +2888,18 @@ AttributeError: Error accessing "ADCcount" attr.
 		  allowed right now.</item>
 
 	      </description>
+	  </subsubsection>
 
-	    </item>
+	  <subsubsection>
+	    <heading id="readDescr">read(self, start=None, stop=None,
+	      step=None, field=None, flavor=None)</heading>
 
-	    <term id="readDescr">read(self, start=None, stop=None,
-	      step=None, field=None, flavor=None)</term> <item>Returns
+	    <p>Returns
 	      the actual data in <verb>Table</verb>. If <em>field</em>
 	      is not supplied, it returns the data as a
 	      <verb>RecArray</verb> object table.
-
-	      <description>
+	    </p>
+	    <description>
 
 		<term>start</term> <item>Sets the starting row to
 		  return data. It accepts negative values meaning that
@@ -2898,9 +2929,8 @@ AttributeError: Error accessing "ADCcount" attr.
 		  have any of the next values: <verb>Numeric</verb>,
 		  <verb>Tuple</verb> or <verb>List</verb>. </item>
 
-	      </description>
-	    </item>
-	  </description>
+	    </description>
+	  </subsubsection>
 	</subsection>
       </section>
 
@@ -2953,8 +2983,8 @@ AttributeError: Error accessing "ADCcount" attr.
 	  <verb>Numeric</verb> and <verb>numarray</verb> typecodes are
 	  supported except those that corresponds to complex data
 	  types<footnote>However, these might be included in the
-	  future</footnote>. See <verb>numarray</verb> manual (<ref
-	  refid="Numarray">reference</ref>) to know more about the
+	  future</footnote>. See <verb>numarray</verb> manual (<cite
+	  refid="Numarray"></cite>) to know more about the
 	  supported data types, or see <ref
 	  refid="datatypesSupported">appendix</ref>.
 	</p>
@@ -3015,8 +3045,8 @@ AttributeError: Error accessing "ADCcount" attr.
 	<p><verb>IsDescription</verb> subclasses supports a limited set
 	  of data types to define the table fields. This is roughly
 	  the same that the set supported by the <visual
-	  markup="tt">numarray</visual> package (see <ref
-	  refid="Numarray">reference</ref>) in Python, with the
+	  markup="tt">numarray</visual> package (see <cite
+	  refid="Numarray"></cite>) in Python, with the
 	  exception of the complex datatypes that are not supported
 	  yet. The supported set is listed on <ref
 	  refid="datatypesSupported">table</ref>.
@@ -3050,98 +3080,100 @@ AttributeError: Error accessing "ADCcount" attr.
     </appendix>
   </mainmatter>
 
-  <latex
-      code="\addto{\captionsenglish}{\renewcommand*{\refname}{References}}"/>
+<!--   <latex -->
+<!--       code="\addto{\captionsenglish}{\renewcommand*{\refname}{References}}"/> -->
 
   <backmatter>
 
     <!-- latex code="\renewcommand{\refname}{References}"/> -->
 
 
-    <references>
-      <enumerate>
+    <references bibfile="usersguide"/>
 
-	<item id="HDF5WhatIs"><em>What is HDF5?.</em> Concise
-	  description about HDF5 capabilities and its differences from
-	  earlier versions (HDF4). <url
-	  name="http://hdf.ncsa.uiuc.edu/whatishdf5.html"/>
-	</item>
+<!--     <references> -->
+<!--       <enumerate> -->
 
-	<item id="HDF5Intr"><em>Introduction to HDF5.</em>
-	  Introduction to the HDF5 data model and programming
-	  model. <url
-	  name="http://hdf.ncsa.uiuc.edu/HDF5/doc/H5.intro.html"/>
-	</item>
+<!-- 	<item id="HDF5WhatIs"><em>What is HDF5?.</em> Concise -->
+<!-- 	  description about HDF5 capabilities and its differences from -->
+<!-- 	  earlier versions (HDF4). <url -->
+<!-- 	  name="http://hdf.ncsa.uiuc.edu/whatishdf5.html"/> -->
+<!-- 	</item> -->
 
-	<item id="HDF5_HL"><em>HDF5: High Level APIs.</em> A set of
-	  functions built on top of the basic HDF5 library. <url
-	  name="http://hdf.ncsa.uiuc.edu/HDF5/hdf5_hl/doc/"/>
-	</item>
+<!-- 	<item id="HDF5Intr"><em>Introduction to HDF5.</em> -->
+<!-- 	  Introduction to the HDF5 data model and programming -->
+<!-- 	  model. <url -->
+<!-- 	  name="http://hdf.ncsa.uiuc.edu/HDF5/doc/H5.intro.html"/> -->
+<!-- 	</item> -->
 
-	<item id="HDF5TableExamples"><em>The HDF5 table programming
-	  model.</em> Examples on using HDF5 tables with the C
-	  API. <url
-	  name="http://hdf.ncsa.uiuc.edu/HDF5/hdf5_hl/doc/RM_hdf5tb_ex.html"/>
-	</item>
+<!-- 	<item id="HDF5_HL"><em>HDF5: High Level APIs.</em> A set of -->
+<!-- 	  functions built on top of the basic HDF5 library. <url -->
+<!-- 	  name="http://hdf.ncsa.uiuc.edu/HDF5/hdf5_hl/doc/"/> -->
+<!-- 	</item> -->
 
-	<item id="HL-HDF"><em>HL-HDF.</em> A High Level Interface to
-	  the HDF5 File Format. <url
-	  name="ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/contrib/hl-hdf5/README.html"/>
-	</item>
+<!-- 	<item id="HDF5TableExamples"><em>The HDF5 table programming -->
+<!-- 	  model.</em> Examples on using HDF5 tables with the C -->
+<!-- 	  API. <url -->
+<!-- 	  name="http://hdf.ncsa.uiuc.edu/HDF5/hdf5_hl/doc/RM_hdf5tb_ex.html"/> -->
+<!-- 	</item> -->
 
-	<item id="zlibRef"><em>zlib.</em>A Massively Spiffy Yet
-	  Delicately Unobtrusive Compression Library. 
-	  <url name="http://www.gzip.org/zlib/"/>
-	</item>
+<!-- 	<item id="HL-HDF"><em>HL-HDF.</em> A High Level Interface to -->
+<!-- 	  the HDF5 File Format. <url -->
+<!-- 	  name="ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/contrib/hl-hdf5/README.html"/> -->
+<!-- 	</item> -->
 
-	<item id="Objectify"><em>On the 'Pythonic' treatment of XML
-	  documents as objects(II).</em> Article describing XML
-	  Objectify, a Python module that allows working with XML
-	  documents as Python objects. Some of the ideas presented
-	  here are used in <visual markup="tt">PyTables</visual>. <url
-	  name="http://www-106.ibm.com/developerworks/xml/library/xml-matters2/index.html"/>
-	</item>
+<!-- 	<item id="zlibRef"><em>zlib.</em>A Massively Spiffy Yet -->
+<!-- 	  Delicately Unobtrusive Compression Library.  -->
+<!-- 	  <url name="http://www.gzip.org/zlib/"/> -->
+<!-- 	</item> -->
 
-	<item id="GnosisUtils"><em>gnosis.xml.objectify.</em> This
-	  module is part of the Gnosis utilities, and allows to create
-	  a mapping between any XML element to "native" Python
-	  objects. <url
-	  name="http://gnosis.cx/download/Gnosis_Utils-current.tar.gz"/>
-	</item>
+<!-- 	<item id="Objectify"><em>On the 'Pythonic' treatment of XML -->
+<!-- 	  documents as objects(II).</em> Article describing XML -->
+<!-- 	  Objectify, a Python module that allows working with XML -->
+<!-- 	  documents as Python objects. Some of the ideas presented -->
+<!-- 	  here are used in <visual markup="tt">PyTables</visual>. <url -->
+<!-- 	  name="http://www-106.ibm.com/developerworks/xml/library/xml-matters2/index.html"/> -->
+<!-- 	</item> -->
 
-	<item id="Pyrex"><em>Pyrex.</em> A Language for Writing Python
-	  Extension Modules. <url
-	  name="http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex"/>
-	</item>
+<!-- 	<item id="GnosisUtils"><em>gnosis.xml.objectify.</em> This -->
+<!-- 	  module is part of the Gnosis utilities, and allows to create -->
+<!-- 	  a mapping between any XML element to "native" Python -->
+<!-- 	  objects. <url -->
+<!-- 	  name="http://gnosis.cx/download/Gnosis_Utils-current.tar.gz"/> -->
+<!-- 	</item> -->
 
-	<item id="NetCDF"><em>NetCDF (network Common Data Form).</em>
-	  This is an interface for array-oriented data access and a
-	  library that provides an implementation of the
-	  interface. <url
-	  name="http://www.unidata.ucar.edu/packages/netcdf/"/>
-	</item>
+<!-- 	<item id="Pyrex"><em>Pyrex.</em> A Language for Writing Python -->
+<!-- 	  Extension Modules. <url -->
+<!-- 	  name="http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex"/> -->
+<!-- 	</item> -->
 
-	<item id="NetCDFSP"><em>NetCDF module on Scientific
-	  Python.</em> ScientificPython is a collection of Python
-	  modules that are useful for scientific computing. Its NetCDF
-	  module is a powerful interface for NetCDF data format. <url
-	  name="http://starship.python.net/~hinsen/ScientificPython/ScientificPythonManual/"/>
-	</item>
+<!-- 	<item id="NetCDF"><em>NetCDF (network Common Data Form).</em> -->
+<!-- 	  This is an interface for array-oriented data access and a -->
+<!-- 	  library that provides an implementation of the -->
+<!-- 	  interface. <url -->
+<!-- 	  name="http://www.unidata.ucar.edu/packages/netcdf/"/> -->
+<!-- 	</item> -->
 
-	<item id="Numerical"><em>Numerical Python.</em> Package to
-	  speed-up arithmetic operations on arrays of numbers. <url
-	  name="http://www.pfdubois.com/numpy/"/>
-	</item>
+<!-- 	<item id="NetCDFSP"><em>NetCDF module on Scientific -->
+<!-- 	  Python.</em> ScientificPython is a collection of Python -->
+<!-- 	  modules that are useful for scientific computing. Its NetCDF -->
+<!-- 	  module is a powerful interface for NetCDF data format. <url -->
+<!-- 	  name="http://starship.python.net/~hinsen/ScientificPython/ScientificPythonManual/"/> -->
+<!-- 	</item> -->
 
-	<item id="Numarray"><em>Numarray.</em> Reimplementation of
-	  Numeric which adds the ability to efficiently manipulate
-	  large numeric arrays in ways similar to Matlab and
-	  IDL. Among others, Numarray provides the record array
-	  extension. <url name="http://stsdas.stsci.edu/numarray/"/>
-	</item>
+<!-- 	<item id="Numerical"><em>Numerical Python.</em> Package to -->
+<!-- 	  speed-up arithmetic operations on arrays of numbers. <url -->
+<!-- 	  name="http://www.pfdubois.com/numpy/"/> -->
+<!-- 	</item> -->
 
-      </enumerate>
-    </references>
+<!-- 	<item id="Numarray"><em>Numarray.</em> Reimplementation of -->
+<!-- 	  Numeric which adds the ability to efficiently manipulate -->
+<!-- 	  large numeric arrays in ways similar to Matlab and -->
+<!-- 	  IDL. Among others, Numarray provides the record array -->
+<!-- 	  extension. <url name="http://stsdas.stsci.edu/numarray/"/> -->
+<!-- 	</item> -->
+
+<!--       </enumerate> -->
+<!--     </references> -->
   </backmatter>
 </book>
 

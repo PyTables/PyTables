@@ -32,8 +32,8 @@
 	markup="bf">tables</visual> and array objects objects in a
 	hierarchical structure. The foundation of the underlying
 	hierarchical data organization is the excellent
-	<verb>HDF5</verb> library
-	(<verb>http://hdf.ncsa.uiuc.edu/HDF5</verb>). Right now,
+	<verb>HDF5</verb> library (<url
+	name="http://hdf.ncsa.uiuc.edu/HDF5"/>). Right now,
 	<verb>PyTables</verb> provides limited support of all the HDF5
 	functions, but I hope to add the more interesting ones (for
 	<verb>PyTables</verb> needs) in the near future.
@@ -2098,7 +2098,7 @@ AttributeError: Error accessing "ADCcount" attr.
 	  <heading><visual markup="tt">File</visual> methods</heading>
 
 	  <subsubsection id="createGroupDescr">
-	    <heading>createGroup(where[, name [, title='']])</heading>
+	    <heading>createGroup(where, name, title='')</heading>
 
 	    <p>Create a new Group instance with name <em>name</em> in
 	      <em>where</em> location.
@@ -2187,7 +2187,7 @@ AttributeError: Error accessing "ADCcount" attr.
 
 	  <subsubsection>
 	    <heading id="createArrayDescr">createArray(where, name,
-	      ArrayObject, title='')</heading>
+	      object, title='')</heading>
 
 	    <p>Create a new <verb>Array</verb> instance with name
 	      <em>name</em> in <em>where</em> location.
@@ -2205,7 +2205,7 @@ AttributeError: Error accessing "ADCcount" attr.
 		  array.
 		</item>
 
-		<term>ArrayObject</term> <item>The regular array to be
+		<term>object</term> <item>The regular array to be
 		  saved. Currently accepted values are: lists, tuples,
 		  scalars (int and float), strings and
 		  (multidimensional) <verb>Numeric</verb> and
