@@ -8,7 +8,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.39 2004/12/17 10:27:16 falted Exp $
+#       $Id: VLArray.py,v 1.40 2004/12/18 10:51:51 ivilata Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.39 $"
+__version__ = "$Revision: 1.40 $"
 
 # default version for VLARRAY objects
 #obversion = "1.0"    # initial version
@@ -143,49 +143,49 @@ class Atom(Col):
         return atomicsize
 
     
-class StringAtom(Atom, StringCol):
+class StringAtom(StringCol, Atom):
     """ Define an atom of type String """
     def __init__(self, shape=1, length=None, flavor="CharArray"):
         StringCol.__init__(self, length=length, shape=shape)
         self.flavor = checkflavor(flavor, self.type)
         
-class BoolAtom(Atom, BoolCol):
+class BoolAtom(BoolCol, Atom):
     """ Define an atom of type Bool """
     def __init__(self, shape=1, flavor="NumArray"):
         BoolCol.__init__(self, shape=shape)
         self.flavor = checkflavor(flavor, self.type)
 
-class IntAtom(Atom, IntCol):
+class IntAtom(IntCol, Atom):
     """ Define an atom of type Integer """
     def __init__(self, shape=1, itemsize=4, sign=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=itemsize, sign=sign)
         self.flavor = checkflavor(flavor, self.type)
 
-class Int8Atom(Atom, IntCol):
+class Int8Atom(IntCol, Atom):
     """ Define an atom of type Int8 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=1, sign=1)
         self.flavor = checkflavor(flavor, self.type)
 
-class UInt8Atom(Atom, IntCol):
+class UInt8Atom(IntCol, Atom):
     """ Define an atom of type UInt8 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=1, sign=0)
         self.flavor = checkflavor(flavor, self.type)
 
-class Int16Atom(Atom, IntCol):
+class Int16Atom(IntCol, Atom):
     """ Define an atom of type Int16 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=2, sign=1)
         self.flavor = checkflavor(flavor, self.type)
 
-class UInt16Atom(Atom, IntCol):
+class UInt16Atom(IntCol, Atom):
     """ Define an atom of type UInt16 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=2, sign=0)
         self.flavor = checkflavor(flavor, self.type)
 
-class Int32Atom(Atom, IntCol):
+class Int32Atom(IntCol, Atom):
     """ Define an atom of type Int32 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=4, sign=1)
@@ -197,49 +197,49 @@ class UInt32Atom(IntCol, Atom):
         IntCol.__init__(self, shape=shape, itemsize=4, sign=0)
         self.flavor = checkflavor(flavor, self.type)
 
-class Int64Atom(Atom, IntCol):
+class Int64Atom(IntCol, Atom):
     """ Define an atom of type Int64 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=8, sign=1)
         self.flavor = checkflavor(flavor, self.type)
 
-class UInt64Atom(Atom, IntCol):
+class UInt64Atom(IntCol, Atom):
     """ Define an atom of type UInt64 """
     def __init__(self, shape=1, flavor="NumArray"):
         IntCol.__init__(self, shape=shape, itemsize=8, sign=0)
         self.flavor = checkflavor(flavor, self.type)
 
-class FloatAtom(Atom, FloatCol):
+class FloatAtom(FloatCol, Atom):
     """ Define an atom of type Float """
     def __init__(self, shape=1, itemsize=8, flavor="NumArray"):
         FloatCol.__init__(self, shape=shape, itemsize=itemsize)
         self.flavor = checkflavor(flavor, self.type)
 
-class Float32Atom(Atom, FloatCol):
+class Float32Atom(FloatCol, Atom):
     """ Define an atom of type Float32 """
     def __init__(self, shape=1, flavor="NumArray"):
         FloatCol.__init__(self, shape=shape, itemsize=4)
         self.flavor = checkflavor(flavor, self.type)
 
-class Float64Atom(Atom, FloatCol):
+class Float64Atom(FloatCol, Atom):
     """ Define an atom of type Float64 """
     def __init__(self, shape=1, flavor="NumArray"):
         FloatCol.__init__(self, shape=shape, itemsize=8)
         self.flavor = checkflavor(flavor, self.type)
 
-class ComplexAtom(Atom, ComplexCol):
+class ComplexAtom(ComplexCol, Atom):
     """ Define an atom of type Complex """
     def __init__(self, shape=1, itemsize=16, flavor="NumArray"):
         ComplexCol.__init__(self, shape=shape, itemsize=itemsize)
         self.flavor = checkflavor(flavor, self.type)
 
-class Complex32Atom(Atom, ComplexCol):
+class Complex32Atom(ComplexCol, Atom):
     """ Define an atom of type Complex32 """
     def __init__(self, shape=1, flavor="NumArray"):
         ComplexCol.__init__(self, shape=shape, itemsize=8)
         self.flavor = checkflavor(flavor, self.type)
 
-class Complex64Atom(Atom, ComplexCol):
+class Complex64Atom(ComplexCol, Atom):
     """ Define an atom of type Complex64 """
     def __init__(self, shape=1, flavor="NumArray"):
         ComplexCol.__init__(self, shape=shape, itemsize=16)
