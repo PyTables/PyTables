@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.45 2003/07/26 18:42:54 falted Exp $
+#       $Id: Group.py,v 1.46 2003/07/31 21:00:49 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.45 $"
+__version__ = "$Revision: 1.46 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -371,7 +371,9 @@ I can't promise getting the correct object, but I will do my best!.""",
             listobjects = []
             # Process alphanumerically sorted 'Leaf' objects
             for leaf in self._f_listNodes('Leaf'):
-                if leaf.attrs.CLASS.capitalize() == classname:
+                # We can't trust that the class has a CLASS attribute
+                #if leaf.attrs.CLASS.capitalize() == classname:
+                if leaf.__class__.__name__ == classname:
                     listobjects.append(leaf)
             # Returns all the 'classname' objects alphanumerically sorted
             return listobjects

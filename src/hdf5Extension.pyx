@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.69 2003/07/30 18:26:00 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.70 2003/07/31 21:00:49 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.69 $"
+__version__ = "$Revision: 1.70 $"
 
 
 import sys, os
@@ -685,6 +685,7 @@ def read_f_attr(hid_t file_id, char *attr_name):
   # Check if attribute exists
   # Open the root group
   root_id =  H5Gopen(file_id, "/")
+  strcpy(attr_value, "")  # Default value
   if H5LT_find_attribute(root_id, attr_name):
     # Read the format_version attribute
     ret = H5LT_get_attribute_disk(root_id, attr_name, attr_value)
@@ -720,7 +721,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.69 2003/07/30 18:26:00 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.70 2003/07/31 21:00:49 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
