@@ -41,6 +41,10 @@ int format_element(hid_t type_id,
   }
 
   switch(class) {
+  case H5T_BITFIELD:
+    strcat( format, "b1," );     /* boolean */
+    PyList_Append(types, PyString_FromString("b1"));
+    break;
   case H5T_INTEGER:                /* int (byte, short, long, long long) */
     switch (member_size) {
     case 1:                        /* byte */

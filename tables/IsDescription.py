@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.22 2003/10/14 19:01:49 falted Exp $
+#       $Id: IsDescription.py,v 1.23 2003/11/19 18:07:46 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.22 $"
+__version__ = "$Revision: 1.23 $"
 
 
 import warnings
@@ -47,7 +47,7 @@ tostructfmt = {NA.Int8:'b', NA.UInt8:'B',
                NA.Int32:'i', NA.UInt32:'I',
                NA.Int64:'q', NA.UInt64:'Q',
                NA.Float32:'f', NA.Float64:'d',
-               records.CharType:'s', 
+               NA.Bool:'c', records.CharType:'s', 
                }
 
 # translation table from the Struct data types to numarray types
@@ -56,7 +56,7 @@ fromstructfmt = {'b':NA.Int8, 'B':NA.UInt8,
                  'i':NA.Int32, 'I':NA.UInt32,
                  'q':NA.Int64, 'Q':NA.UInt64,
                  'f':NA.Float32, 'd':NA.Float64,
-                 's':records.CharType,
+                 'c':NA.Bool, 's':records.CharType,
               }
 
 class Col:
@@ -129,6 +129,30 @@ class Col:
         self.__dict__.clear()
         
 
+class BoolCol(Col):
+    """ Define a string column """
+    
+    def __init__(self, dflt=None, shape=1, pos=None):
+
+        self.pos = pos
+
+        assert shape != None and shape != 0 and shape != (0,), \
+               "None or zero-valued shapes are not supported '%s'" % `shape`
+
+        if type(shape) in [types.IntType, types.LongType]:
+            self.shape = shape
+        elif type(shape) in [types.ListType, types.TupleType]:
+            self.shape = tuple(shape)
+        else: raise ValueError, "Illegal shape %s" % `shape`
+
+        self.dflt = dflt
+
+        self.type = NA.typeDict["Bool"]
+        self.itemsize = 1
+        self.recarrtype = records.revfmt[self.type]
+        self.rectype = tostructfmt[self.type]
+
+    
 class StringCol(Col):
     """ Define a string column """
     
@@ -188,24 +212,24 @@ class IntCol(Col):
         self.itemsize = itemsize
         if itemsize == 1:
             if sign:
-                self.type = "Int8"
+                self.type = NA.typeDict["Int8"]
             else:
-                self.type = "UInt8"
+                self.type = NA.typeDict["UInt8"]
         elif itemsize == 2:
             if sign:
-                self.type = "Int16"
+                self.type = NA.typeDict["Int16"]
             else:
-                self.type = "UInt16"
+                self.type = NA.typeDict["UInt16"]
         elif itemsize == 4:
             if sign:
-                self.type = "Int32"
+                self.type = NA.typeDict["Int32"]
             else:
-                self.type = "UInt32"
+                self.type = NA.typeDict["UInt32"]
         elif itemsize == 8:
             if sign:
-                self.type = "Int64"
+                self.type = NA.typeDict["Int64"]
             else:
-                self.type = "UInt64"
+                self.type = NA.typeDict["UInt64"]
                 
         self.recarrtype = records.revfmt[self.type]
         self.rectype = tostructfmt[self.type]
@@ -273,9 +297,9 @@ class FloatCol(Col):
 
         self.itemsize = itemsize
         if itemsize == 4:
-            self.type = "Float32"
+            self.type = NA.typeDict["Float32"]
         elif itemsize == 8:
-            self.type = "Float64"
+            self.type = NA.typeDict["Float64"]
                 
         self.recarrtype = records.revfmt[self.type]
         self.rectype = tostructfmt[self.type]
@@ -436,7 +460,8 @@ class Description(object):
         elif datatype in ('f', 'd'):
             dfltvalue = float(0)
         elif datatype in ('c',):
-            dfltvalue = str(" ")
+#             dfltvalue = str(" ")
+            dfltvalue = int(0)
         # Add more code to check for validity on string type!
         elif datatype.find("s") != -1:
             dfltvalue = str("")

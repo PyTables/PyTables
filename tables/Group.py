@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.52 2003/09/17 15:13:42 falted Exp $
+#       $Id: Group.py,v 1.53 2003/11/19 18:07:46 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.52 $"
+__version__ = "$Revision: 1.53 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -46,6 +46,7 @@ import warnings, types
 import hdf5Extension
 from Table import Table
 from Array import Array
+from VLArray import VLArray
 from AttributeSet import AttributeSet
 from utils import checkNameValidity
 
@@ -199,6 +200,8 @@ I can't promise getting the correct object, but I will do my best!.""",
             return Table()
         elif class_ == "Array":
             return Array()
+        elif class_ == "Vlarray":  # Acabar d'implementar aco...
+            return VLArray()
         else:
             raise RuntimeError, \
                   """Dataset object in file is unknown!

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.3 2003/10/31 18:51:43 falted Exp $
+#       $Id: utils.py,v 1.4 2003/11/19 18:07:46 falted Exp $
 #
 ########################################################################
 
@@ -92,13 +92,6 @@ def calcBufferSize(rowsize, expectedrows, compress):
     optimized doing more experiments.
 
     """
-
-    # Protection against row sizes too large (HDF5 refuse to work
-    # with row sizes larger than 10 KB or so).
-    if rowsize > 8192:
-        raise RuntimeError, \
-    """Row size too large. Maximum size is 8192 bytes, and you are asking
-    for a row size of %s bytes.""" % (rowsize)
 
     # A bigger buffer makes the writing faster and reading slower (!)
     #bufmultfactor = 1000 * 10

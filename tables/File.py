@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.55 2003/11/04 13:41:53 falted Exp $
+#       $Id: File.py,v 1.56 2003/11/19 18:07:46 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.55 $"
+__version__ = "$Revision: 1.56 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays
@@ -52,6 +52,7 @@ from Group import Group
 from Leaf import Leaf
 from Table import Table
 from Array import Array
+from VLArray import VLArray
 from AttributeSet import AttributeSet
 import numarray
 
@@ -488,6 +489,57 @@ class File(hdf5Extension.File, object):
             shuffle = 0
         Object = Array(object, title, atomictype, enlargeable,
                        compress, complib, shuffle, expectedobjects)
+        setattr(group, name, Object)
+        return Object
+
+
+    def createVLArray(self, where, name, vlatom = None, title = "",
+                      compress = 0, complib = "zlib", shuffle = 0,
+                      expectedsizeinMB = 1.0):
+        
+        """Create a new instance VLArray with name "name" in "where" location.
+
+        Keyword arguments:
+
+        where -- The parent group where the new table will
+            hang. "where" parameter can be a path string (for
+            example "/Particles/TParticle1"), or Group
+            instance.
+
+        name -- The name of the new array.
+
+        title -- Sets a TITLE attribute on the array entity.
+
+        vlatom -- A VLAtom object representing the shape, type
+            and flavor of the atomic object to be saved.
+
+        compress -- Specifies a compress level for data. The allowed
+            range is 0-9. A value of 0 disables compression and this
+            is the default. A value greater than 0 implies enlargeable
+            Arrays (see above).
+
+        complib -- Specifies the compression library to be used. Right
+            now, "zlib", "lzo" and "ucl" values are supported.
+
+        shuffle -- Whether or not to use the shuffle filter in the
+            HDF5 library. This is normally used to improve the
+            compression ratio.
+
+        expectedsizeinMB -- An user estimate about the size (in MB) in
+            the final VLArray object. If not provided, the default
+            value is 1 MB.  If you plan to create both much smaller or
+            much bigger Arrays try providing a guess; this will
+            optimize the HDF5 B-Tree creation and management process
+            time and the amount of memory used.
+
+            """
+
+        group = self.getNode(where, classname = 'Group')
+        if vlatom == None:
+                raise ValueError, \
+                      "vlatom argument should be not 'None'."
+        Object = VLArray(vlatom, title, compress, complib, shuffle,
+                         expectedsizeinMB)
         setattr(group, name, Object)
         return Object
 

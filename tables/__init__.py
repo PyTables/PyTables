@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/__init__.py,v $
-#       $Id: __init__.py,v 1.15 2003/08/05 15:39:05 falted Exp $
+#       $Id: __init__.py,v 1.16 2003/11/19 18:07:46 falted Exp $
 #
 ########################################################################
 
@@ -44,6 +44,8 @@ from Group import Group
 from Leaf import Leaf
 from Table import Table
 from Array import Array
+from VLArray import *
+                    
 #from IsDescription import IsDescription, Col, StringCol, IntCol, FloatCol
 from IsDescription import *
 from hdf5Extension import isHDF5, isPyTablesFile, isLibAvailable
@@ -53,7 +55,11 @@ from hdf5Extension import isHDF5, isPyTablesFile, isLibAvailable
 # List here only the objects we want to be publicly available
 __all__ = ["isHDF5", "isPyTablesFile", "isLibAvailable",
            "openFile", "IsDescription", "Description",
-           "Col", "StringCol",
+           "Col", "BoolCol", "StringCol",
            "IntCol", "Int8Col", "UInt8Col", "Int16Col", "UInt16Col",
            "Int32Col", "UInt32Col", "Int64Col", "UInt64Col",
-           "FloatCol", "Float32Col", "Float64Col" ]
+           "FloatCol", "Float32Col", "Float64Col",
+           "Atom", "BoolAtom", "StringAtom", "ObjectAtom", "VLString",
+           "IntAtom", "Int8Atom", "UInt8Atom", "Int16Atom", "UInt16Atom",
+           "Int32Atom", "UInt32Atom", "Int64Atom", "UInt64Atom",
+           "FloatAtom", "Float32Atom", "Float64Atom"]

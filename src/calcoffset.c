@@ -70,80 +70,85 @@ static hid_t conventry(int c, int rank, hsize_t *dims)
 {
    hid_t string_type;
    hid_t ret_type;
-   int native, i;
+   int atomic, i;
    hsize_t shape[MAXDIM];
 
    if (rank == 1 && dims[0] == 1 )
-     native = 1;
+     atomic = 1;
    else
-     native = 0;
+     atomic = 0;
 
    switch(c) {
     case 'c':
-      if (native == 1) {
-	return H5T_NATIVE_CHAR;
+      if (atomic == 1) {
+	/* 'c' is used to represent a boolean value instead of
+	   character, which was unused (we have 's' for strings).
+	*/
+	ret_type = H5Tcopy(H5T_NATIVE_B8);
+	H5Tset_precision(ret_type, 1);
+	return ret_type;
       } 
       else {
-	 return H5Tarray_create(H5T_NATIVE_CHAR, rank, dims, NULL);
+	 return H5Tarray_create(H5T_NATIVE_B8, rank, dims, NULL);
       }
     case 'b':
-      if (native == 1) {
+      if (atomic == 1) {
 	return H5T_NATIVE_SCHAR;
       } 
       else {
 	 return H5Tarray_create(H5T_NATIVE_SCHAR, rank, dims, NULL);
       }
     case 'B':
-      if (native == 1) {
+      if (atomic == 1) {
 	return H5T_NATIVE_UCHAR;
       } 
       else {
 	 return H5Tarray_create(H5T_NATIVE_UCHAR, rank, dims, NULL);
       }
     case 'h':
-      if (native == 1) {
+      if (atomic == 1) {
 	return H5T_NATIVE_SHORT;
       } 
       else {
 	 return H5Tarray_create(H5T_NATIVE_SHORT, rank, dims, NULL);
       }
     case 'H':
-      if (native == 1) {
+      if (atomic == 1) {
 	return H5T_NATIVE_USHORT;
       } 
       else {
 	 return H5Tarray_create(H5T_NATIVE_USHORT, rank, dims, NULL);
       }
     case 'i':
-      if (native == 1) {
+      if (atomic == 1) {
 	return H5T_NATIVE_INT;
       } 
       else {
 	 return H5Tarray_create(H5T_NATIVE_INT, rank, dims, NULL);
       }
     case 'I':
-      if (native == 1) {
+      if (atomic == 1) {
 	return H5T_NATIVE_UINT;
       } 
       else {
 	 return H5Tarray_create(H5T_NATIVE_UINT, rank, dims, NULL);
       }
     case 'l':
-      if (native == 1) {
+      if (atomic == 1) {
 	return H5T_NATIVE_LONG;
       } 
       else {
 	 return H5Tarray_create(H5T_NATIVE_LONG, rank, dims, NULL);
       }
     case 'L':
-      if (native == 1) {
+      if (atomic == 1) {
 	return H5T_NATIVE_ULONG;
       } 
       else {
 	 return H5Tarray_create(H5T_NATIVE_ULONG, rank, dims, NULL);
       }
     case 'q':
-      if (native == 1) {
+      if (atomic == 1) {
 	return H5T_NATIVE_LLONG;
       } 
       else {
@@ -151,21 +156,21 @@ static hid_t conventry(int c, int rank, hsize_t *dims)
       }
       return H5T_NATIVE_LLONG;
     case 'Q':
-      if (native == 1) {
+      if (atomic == 1) {
 	return H5T_NATIVE_ULLONG;
       } 
       else {
 	 return H5Tarray_create(H5T_NATIVE_ULLONG, rank, dims, NULL);
       }
     case 'f':
-      if (native == 1) {
+      if (atomic == 1) {
 	return H5T_NATIVE_FLOAT;
       } 
       else {
 	 return H5Tarray_create(H5T_NATIVE_FLOAT, rank, dims, NULL);
       }
     case 'd':
-      if (native == 1) {
+      if (atomic == 1) {
 	return H5T_NATIVE_DOUBLE;
       } 
       else {

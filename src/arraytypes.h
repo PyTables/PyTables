@@ -19,3 +19,6 @@ int getArrayType(H5T_class_t class_id,
 		 H5T_sign_t sign,
 		 int *fmt);
 
+int getArrayType_new(hid_t type_id,
+		     int *fmt);
+

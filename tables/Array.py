@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.35 2003/11/04 13:41:53 falted Exp $
+#       $Id: Array.py,v 1.36 2003/11/19 18:07:46 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.35 $"
+__version__ = "$Revision: 1.36 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -222,9 +222,9 @@ class Array(Leaf, hdf5Extension.Array, object):
             flavor = "String"
         else:
             raise ValueError, \
-"""The object '%s' is not in the list of supported objects (numarray,
-  chararray,homogeneous list or homogeneous tuple, int, float or str).
-  Sorry, but this object is not supported.""" % (arr)
+"""The object '%s' is not in the list of supported objects (NumArray,
+ CharArray, Numeric, homogeneous list or homogeneous tuple, int, float or str).
+ Sorry, but this object is not supported.""" % (arr)
 
         # We always want a contiguous buffer
         # (no matter if has an offset or not; that will be corrected later)
@@ -372,12 +372,6 @@ class Array(Leaf, hdf5Extension.Array, object):
         
         return arr
         
-    # Moved out of scope
-    def _g_del__(self):
-        """Delete some objects"""
-        print "Deleting Array object"
-        pass
-
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
 

@@ -24,24 +24,22 @@ hid_t
        * represent a char.
        */
       type_id = H5Tcopy(H5T_C_S1);
-      /* I use set_strpad instead of set_size as per section 3.6 
-       * (Character and String Datatype Issues) of the HDF5 User's Manual,
-       * although they both seems to work well for character types */
       H5Tset_size(type_id, size);
-      /* H5Tset_strpad(s1, H5T_STR_NULLPAD); */
       
       return type_id;
     case tBool:
-/*       type_id = H5Tcopy(H5T_NATIVE_HBOOL); */ 
-      /* The above NATIVE_BOOL takes 32 bits! */
-      /* The solution below choose a UCHAR and set a precision of 1
-	 in order to distinguish a boolean from a unsigned int8 */
-      type_id = H5Tcopy(H5T_NATIVE_UCHAR);
+      /* The solution below choose a 8 bits bitfield and set a
+	 precision of 1. It seems as if H5T_STD_B8LE and H5T_STD_B8BE
+	 both return a type little endian (at least on Intel platforms).
+	 Anyway, for 8-bit type that should not matter.
+	 */
+      type_id = H5Tcopy(H5T_NATIVE_B8);
       H5Tset_precision(type_id, 1);
-      /* These calls does not reduce the starage needs,
-	 so I'm going to comment them */
+      /* These calls does not reduce the storage needs,
+	 so it would be better to comment them? */
+      /* Definitely yes, they did not give more information to the type */
 /*       H5Tset_offset(type_id, 0); */
-/*       H5Tset_pad(type_id, H5T_PAD_ZERO, H5T_PAD_ZERO);  */
+/*       H5Tset_pad(type_id, H5T_PAD_ZERO, H5T_PAD_ZERO); */
       break;
     case tInt8:
       type_id = H5Tcopy(H5T_NATIVE_SCHAR);
@@ -102,16 +100,101 @@ int getArrayType(H5T_class_t class_id,
 		 int *fmt) 
 {
   switch(class_id) {
+  case H5T_BITFIELD:
+    *fmt = tBool;              /* boolean */
+    break;
   case H5T_INTEGER:           /* int (bool, byte, short, long, long long) */
     switch (type_size) {
     case 1:                        /* byte */
       if ( sign )
 	*fmt = tInt8;                /* signed byte */
       else
-	if (type_precision == 1)
-	  *fmt = tBool;              /* boolean */
-	else
-	  *fmt = tUInt8;             /* unsigned byte */
+	*fmt = tUInt8;             /* unsigned byte */
+      break;
+    case 2:                        /* short */
+      if ( sign )
+	 *fmt =tInt16;                /* signed short */
+      else
+	*fmt = tUInt16;                /* unsigned short */
+      break;
+    case 4:                        /* long */
+      if ( sign )
+	*fmt = tInt32;                /* signed long */
+      else
+	*fmt = tUInt32;                /* unsigned long */
+      break;
+    case 8:                        /* long long */
+      if ( sign )
+	*fmt = tInt64;                /* signed long long */
+      else
+	*fmt = tUInt64;                /* unsigned long long */
+      break;
+    default:
+      /* This should never happen */
+      goto out;
+    }
+    break; /* case H5T_INTEGER */
+  case H5T_FLOAT:                   /* float (single or double) */
+    switch (type_size) {
+    case 4:
+	*fmt = tFloat32;                 /* float */
+	break;
+    case 8:
+	*fmt = tFloat64;                 /* double */
+	break;
+    default:
+      /* This should never happen */
+      goto out;
+    }
+    break; /* case H5T_FLOAT */
+  case H5T_STRING:                  /* char or string */
+    /* I map this to "a" until a enum NumarrayType is assigned to it! */
+      *fmt = (int)'a';                   /* chararray */
+    break; /* case H5T_STRING */
+  default: /* Any other class type */
+    /* This should never happen with Numeric arrays */
+    fprintf(stderr, "class %d not supported. Sorry!\n", class_id);
+    goto out;
+  }
+
+  return 0;
+
+ out:
+  /* If we reach this line, there should be an error */
+  return -1;
+  
+}
+
+/* Routine to map the atomic type to a Numeric typecode 
+ */
+int getArrayType_new(hid_t type_id,
+		     int *fmt) 
+{
+  H5T_class_t class_id;
+  size_t type_size;
+  size_t type_precision;
+  H5T_sign_t sign;
+
+  /* Get the necessary info from the type */
+  class_id = H5Tget_class( type_id );
+  type_size = H5Tget_size( type_id );
+  type_precision = H5Tget_precision( type_id );
+  if ( (class_id == H5T_INTEGER) ) /* Only class integer can be signed */
+    sign = H5Tget_sign( type_id );
+  else 
+    sign = -1;		/* Means no sign */
+
+  switch(class_id) {
+  case H5T_BITFIELD:
+    *fmt = tBool;              /* boolean */
+    break;
+  case H5T_INTEGER:           /* int (bool, byte, short, long, long long) */
+    switch (type_size) {
+    case 1:                        /* byte */
+      if ( sign )
+	*fmt = tInt8;                /* signed byte */
+      else
+	*fmt = tUInt8;             /* unsigned byte */
       break;
     case 2:                        /* short */
       if ( sign )

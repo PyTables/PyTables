@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.83 2003/11/04 13:41:53 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.84 2003/11/19 18:07:46 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.83 $"
+__version__ = "$Revision: 1.84 $"
 
 
 import sys, os
@@ -55,6 +55,9 @@ cdef extern from "type-longlong.h":
 
 # C funtions and variable declaration from its headers
 
+#from c_libs cimport size_t, malloc, free
+cimport c_libs
+
 # Type size_t is defined in stdlib.h
 cdef extern from "stdlib.h":
   ctypedef int size_t
@@ -64,7 +67,7 @@ cdef extern from "stdlib.h":
 cdef extern from "time.h":
   ctypedef int time_t
 
-# Funtions for printng in C
+# Funtions for printing in C
 cdef extern from "stdio.h":
   int sprintf(char *str,  char *format, ...)
   int snprintf(char *str, size_t size, char *format, ...)
@@ -450,7 +453,7 @@ cdef extern from "H5LT.h":
 
 # Functions from HDF5 ARRAY (this is not part of HDF5 HL; it's private)
 cdef extern from "H5ARRAY.h":  
-  
+
   herr_t H5ARRAYmake( hid_t loc_id, char *dset_name, char *title,
                       char *flavor, char *obversion, int atomictype,
                       int rank, hsize_t *dims, hid_t type_id,
@@ -461,16 +464,39 @@ cdef extern from "H5ARRAY.h":
   herr_t H5ARRAYappend_records( hid_t loc_id, char *dset_name,
                                 int rank, hsize_t *dims_orig,
                                 hsize_t *dims_new, void *data )
-  
+
   herr_t H5ARRAYread( hid_t loc_id, char *dset_name,
                          void *data )
 
-  herr_t H5ARRAYget_ndims ( hid_t loc_id, char *dset_name, int *rank )
-  
+  herr_t H5ARRAYget_ndims( hid_t loc_id, char *dset_name, int *rank )
+
   herr_t H5ARRAYget_info( hid_t loc_id, char *dset_name,
                           hsize_t *dims, H5T_class_t *class_id,
                           H5T_sign_t *sign, char *byteorder,
                           size_t *type_size, size_t *type_precision)
+
+# Functions for VLEN Arrays
+cdef extern from "H5VLARRAY.h":
+  
+  herr_t H5VLARRAYmake( hid_t loc_id, char *dset_name, char *title,
+                        char *flavor, char *obversion, int rank, int scalar,
+                        hsize_t *dims, hid_t type_id, hsize_t chunk_size,
+                        void *fill_data, int compress, char *complib,
+                        int shuffle, void *data)
+  
+  herr_t H5VLARRAYappend_records( hid_t loc_id, char *dset_name,
+                                  int nobjects, hsize_t nrecords,
+                                  void *data )  
+
+  herr_t H5VLARRAYread( hid_t loc_id, char *dset_name,
+                        void *data )
+
+  herr_t H5VLARRAYget_ndims( hid_t loc_id, char *dset_name, int *rank )
+
+  herr_t H5VLARRAYget_info( hid_t   loc_id, char *dset_name,
+                            hsize_t *nrecords, hsize_t *base_dims,
+                            hid_t *base_type_id, char  *base_byteorder)
+
 
 # Funtion to compute the HDF5 type from a numarray enum type
 cdef extern from "arraytypes.h":
@@ -478,6 +504,8 @@ cdef extern from "arraytypes.h":
   hid_t convArrayType(int fmt, size_t size, char *byteorder)
   int getArrayType(H5T_class_t class_id, size_t type_size,
                    size_t type_precision, H5T_sign_t sign, int *format)
+  int getArrayType_new(hid_t type_id, int *fmt) 
+
                    
 # I define this constant, but I should not, because it should be defined in
 # the HDF5 library, but having problems importing it
@@ -762,7 +790,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.83 2003/11/04 13:41:53 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.84 2003/11/19 18:07:46 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1266,7 +1294,14 @@ cdef class Table:
     self.rowsize = calcoffset(self.fmt, &nvar, fieldtypes,
                               self.field_sizes, self.field_offset)
     self.nfields = nvar
-    
+
+    # Protection against row sizes too large (HDF5 refuse to work
+    # with row sizes larger than 10 KB or so).
+    if self.rowsize > 8192:
+        raise RuntimeError, \
+    """Row size too large. Maximum size is 8192 bytes, and you are asking
+    for a row size of %s bytes.""" % (self.rowsize)
+
     # Compute some values for buffering and I/O parameters
     (self._v_maxTuples, self._v_chunksize) = \
       calcBufferSize(self.rowsize, self._v_expectedrows, self._v_compress)
@@ -1865,7 +1900,6 @@ cdef class Array:
   cdef hsize_t *dims
   cdef object  type
   cdef int     enumtype
-  cdef hid_t   type_id
 
   def _g_new(self, where, name):
     # Initialize the C attributes of Group object (Very important!)
@@ -1881,7 +1915,7 @@ cdef class Array:
     cdef int itemsize, offset
     cdef char *byteorder
     cdef char *flavor, *complib, *version
-    cdef hid_t type_id
+    cdef hid_t   type_id
 
     if isinstance(naarr, numarray.strings.CharArray):
       self.type = CharType
@@ -1924,6 +1958,7 @@ cdef class Array:
     flavor = PyString_AsString(self.flavor)
     complib = PyString_AsString(self._v_complib)
     version = PyString_AsString(self._v_version)
+    
     ret = H5ARRAYmake(self.parent_id, self.name, title,
                       flavor, version, self._v_atomictype, self.rank,
                       self.dims, type_id, self._v_chunksize, rbuf,
@@ -1932,8 +1967,7 @@ cdef class Array:
     if ret < 0:
       raise RuntimeError("Problems saving the array.")
 
-    H5Tclose(type_id)    # To avoid memory leaks
-
+    H5Tclose(type_id)    # Release resources
     return self.type
     
   def _openArray(self):
@@ -1947,7 +1981,6 @@ cdef class Array:
 
     # Get the rank for this array object
     ret = H5ARRAYget_ndims(self.parent_id, self.name, &self.rank)
-    #ret = H5LTget_dataset_ndims(self.parent_id, self.name, &self.rank)
     # Allocate space for the dimension axis info
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Get info on dimensions, class and type size
@@ -2027,6 +2060,161 @@ cdef class Array:
 
   def __dealloc__(self):
     #print "Destroying object Array in Extension"
-    self._table = None
     free(<void *>self.dims)
+    free(<void *>self.name)
+
+
+cdef class VLArray:
+  # Instance variables
+  cdef hid_t   parent_id
+  cdef char    *name
+  cdef int     rank
+  cdef hsize_t *dims
+  cdef object  type
+  cdef int     enumtype
+  cdef hid_t   type_id
+  cdef hsize_t nrecords
+  cdef int     nelements
+  cdef int     scalar
+
+  def _g_new(self, where, name):
+    # Initialize the C attributes of Group object (Very important!)
+    self.name = strdup(name)
+    # The parent group id for this object
+    self.parent_id = where._v_groupId
+
+  def _createArray(self, char *title):
+    cdef int i
+    cdef herr_t ret
+    cdef void *rbuf
+    cdef int buflen, ret2
+    cdef int offset
+    cdef char *byteorder
+    cdef char *flavor, *complib, *version, *encoding
+
+    self.type = self.atom.type
+    try:
+      self.enumtype = toenum[self.type]
+    except KeyError:
+      raise TypeError, \
+            """Type class '%s' not supported rigth now. Sorry about that.
+            """ % repr(self.type)
+
+    byteorder = PyString_AsString(self.byteorder)
+    self.type_id = convArrayType(self.enumtype, self.atom.itemsize, byteorder)
+    if self.type_id < 0:
+      raise TypeError, \
+        """type '%s' is not supported right now. Sorry about that.""" \
+    % self.type
+
+    # Allocate space for the dimension axis info
+    if isinstance(self.atom.shape, types.IntType):
+      self.rank = 1
+      self.scalar = 1
+    else:
+      self.rank = len(self.atom.shape)
+      self.scalar = 0
+      
+    self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
+    self.nelements = 1
+    # Fill the dimension axis info with adequate info
+    for i from  0 <= i < self.rank:
+      if isinstance(self.atom.shape, types.IntType):
+        self.dims[i] = self.atom.shape
+      else:
+        self.dims[i] = self.atom.shape[i]
+      self.nelements = self.nelements * self.dims[i]
+
+    rbuf = NULL;  # We don't have data to save initially
+
+    # Manually convert some string values that can't be done automatically
+    flavor = PyString_AsString(self.atom.flavor)
+    complib = PyString_AsString(self._v_complib)
+    version = PyString_AsString(self._v_version)
+    # Create the vlarray
+    ret = H5VLARRAYmake(self.parent_id, self.name, title,
+                        flavor, version, self.rank, self.scalar,
+                        self.dims, self.type_id, self._v_chunksize, rbuf,
+                        self._v_compress, complib, self._v_shuffle,
+                        rbuf)
+    if ret < 0:
+      raise RuntimeError("Problems saving the array.")
+    else:
+      self.nrecords = 0  # Initialize the number of records saved
+
+    # Append the encoding attribute, if it exists
+#     if hasattr(self.atom, "encoding"):
+#       encoding = PyString_AsString(self.atom.encoding)
+#       print "atomicencoding-->", encoding
+#       ret = H5LTset_attribute_string(self.parent_id, self.name,
+#                                      "ENCODING", encoding)
+#       if ret < 0:
+#         raise RuntimeError("Can't set attribute '%s' in node:\n %s." % 
+#                            (attrname, self.node))
+
+    return self.type
+    
+  def _append(self, object naarr):
+    cdef int ret
+    cdef int nobjects
+    cdef void *rbuf
+    cdef int buflen
+
+    # Get the number of objects (last dimension)
+    nobjects = naarr.shape[0]
+    
+    # Get the pointer to the buffer data area
+    if PyObject_AsWriteBuffer(naarr._data, &rbuf, &buflen) < 0:
+      raise RuntimeError("Problems getting the buffer area.")
+
+    # Append the records:
+    ret = H5VLARRAYappend_records(self.parent_id, self.name,
+                                  nobjects, self.nrecords,
+                                  rbuf)
+    if ret < 0:
+      raise RuntimeError("Problems appending the records.")
+    else:
+      self.nrecords = self.nrecords + 1
+
+  def _openArray(self):
+    cdef object shape
+    cdef char byteorder[16]  # "non-relevant" fits easily here
+    cdef int i
+    cdef herr_t ret
+    cdef hsize_t nrecords[1]
+
+    # Get the rank for this array object
+    ret = H5VLARRAYget_ndims(self.parent_id, self.name, &self.rank)
+    # Allocate space for the dimension axis info
+    if self.rank:
+      self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
+    else:
+      self.dims = NULL;
+    # Get info on dimensions, class and type size
+    ret = H5VLARRAYget_info(self.parent_id, self.name, nrecords,
+                            self.dims, &self.type_id, byteorder)
+
+    # Get the array type
+
+    ret = getArrayType_new(self.type_id, &self.enumtype)
+    if ret < 0:
+      raise TypeError, "HDF5 class %d not supported. Sorry!" % class_id
+
+    # Create the shape tuple using Python constructs
+    if self.rank:
+      shape = []
+      for i from 0 <= i < self.rank:
+        shape.append(self.dims[i])
+      shape = tuple(shape)
+    else:
+      # rank zero means an scalar
+      shape = 1
+
+    return (toclass[self.enumtype], nrecords[0], shape, byteorder)
+  
+  def __dealloc__(self):
+    #print "Destroying object Array in Extension"
+    H5Tclose(self.type_id)    # To avoid memory leaks
+    if self.dims:
+      free(<void *>self.dims)
     free(<void *>self.name)
