@@ -203,7 +203,14 @@ class BasicTestCase(unittest.TestCase):
             
         # Read all the array
         for row in earray(start=self.start, stop=self.stop, step=self.step):
-            chunk = int(earray.nrow % self.chunksize)
+            #print "nrow-->", earray.nrow
+            if self.chunksize == 1:
+                chunk = earray._start
+                index = 0
+            else:
+                chunk = int(earray.nrow % self.chunksize)
+                index = chunk
+            #print "chunk, start -->", chunk, earray._start, self.chunksize
             if (chunk - earray._start) == 0:
                 if str(self.type) == "CharType":
                     object__ = object_
@@ -211,7 +218,7 @@ class BasicTestCase(unittest.TestCase):
                     object__ = object_ * (earray.nrow / self.chunksize)
                     if self.flavor == "Numeric":
                         object__ = object__.astype(typecode[earray.type])
-            object = object__[chunk]
+            object = object__[index]
             # The next adds much more verbosity
             if verbose and 0:
                 print "number of row ==>", earray.nrow
@@ -511,38 +518,43 @@ class Slices3EArrayTestCase(BasicTestCase):
     slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2)) # N
     #slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2), slice(0,100,1)) # N
 
+class Slices4EArrayTestCase(BasicTestCase):
+    type = Int32
+    shape = (2, 3, 4, 0, 5, 6)
+    chunksize = 5
+    nappends = 20
+    slices = (slice(1, 2, 1), slice(0, None, None), slice(1,4,2),
+              slice(0,4,2), slice(3,5,2), slice(2,7,1))
+
 class Ellipsis3EArrayTestCase(BasicTestCase):
     type = Int32
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 20
-    slices = (Ellipsis, slice(0, 4, None), slice(1,4,2)) # Y
-    slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2), Ellipsis) # N
-    #slices = (slice(1,2,1), Ellipsis, slice(1,4,2)) # Y
-    #slices = (slice(1,2,1), slice(0, 4, None), Ellipsis, 4) # N
-    #slices = (slice(1,2,1), slice(0, 4, None), Ellipsis, 2) # N
+    slices = (Ellipsis, slice(0, 4, None), slice(1,4,2))
+    slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2), Ellipsis) 
 
 class Ellipsis4EArrayTestCase(BasicTestCase):
     type = Int32
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 20
-    slices = (Ellipsis, slice(0, 4, None), slice(1,4,2)) # Y
-    slices = (slice(1,2,1), Ellipsis, slice(1,4,2)) # Y
+    slices = (Ellipsis, slice(0, 4, None), slice(1,4,2))
+    slices = (slice(1,2,1), Ellipsis, slice(1,4,2))
 
 class Ellipsis5EArrayTestCase(BasicTestCase):
     type = Int32
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 20
-    slices = (slice(1,2,1), slice(0, 4, None), Ellipsis) # Y
+    slices = (slice(1,2,1), slice(0, 4, None), Ellipsis)
 
 class Ellipsis6EArrayTestCase(BasicTestCase):
     type = Int32
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 2
-    slices = (slice(1,2,1), slice(0, 4, None), 2, Ellipsis) # Y
+    slices = (slice(1,2,1), slice(0, 4, None), 2, Ellipsis)
 
 class MD3WriteTestCase(BasicTestCase):
     type = Int32
@@ -561,6 +573,33 @@ class MD5WriteTestCase(BasicTestCase):
     start = 1
     stop = 10
     step = 10
+
+class MD6WriteTestCase(BasicTestCase):
+    type = Int32
+    shape = (2, 3, 3, 0, 5, 6)
+    chunksize = 1
+    nappends = 10
+    start = 1
+    stop = 10
+    step = 3
+
+class MD6WriteTestCase__(BasicTestCase):
+    type = Int32
+    shape = (2, 0)
+    chunksize = 1
+    nappends = 3
+    start = 1
+    stop = 3
+    step = 1
+
+class MD7WriteTestCase(BasicTestCase):
+    type = Int32
+    shape = (2, 3, 3, 4, 5, 0, 3)
+    chunksize = 10
+    nappends = 1
+    start = 1
+    stop = 10
+    step = 2
 
 class MD10WriteTestCase(BasicTestCase):
     type = Int32
@@ -722,12 +761,15 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(Slices2EArrayTestCase))
     #theSuite.addTest(unittest.makeSuite(Ellipsis2EArrayTestCase))
     #theSuite.addTest(unittest.makeSuite(Slices3EArrayTestCase))
+    #theSuite.addTest(unittest.makeSuite(Slices4EArrayTestCase))
     #theSuite.addTest(unittest.makeSuite(Ellipsis3EArrayTestCase))
     #theSuite.addTest(unittest.makeSuite(Ellipsis4EArrayTestCase))
     #theSuite.addTest(unittest.makeSuite(Ellipsis5EArrayTestCase))
     #theSuite.addTest(unittest.makeSuite(Ellipsis6EArrayTestCase))
     #theSuite.addTest(unittest.makeSuite(MD3WriteTestCase))
     #theSuite.addTest(unittest.makeSuite(MD5WriteTestCase))
+    #theSuite.addTest(unittest.makeSuite(MD6WriteTestCase))
+    #theSuite.addTest(unittest.makeSuite(MD7WriteTestCase))
     #theSuite.addTest(unittest.makeSuite(MD10WriteTestCase))
     #theSuite.addTest(unittest.makeSuite(ZlibComprTestCase))
     #theSuite.addTest(unittest.makeSuite(ZlibShuffleTestCase))
@@ -753,12 +795,15 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Slices2EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Ellipsis2EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Slices3EArrayTestCase))
+        theSuite.addTest(unittest.makeSuite(Slices4EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Ellipsis3EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Ellipsis4EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Ellipsis5EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Ellipsis6EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(MD3WriteTestCase))
         theSuite.addTest(unittest.makeSuite(MD5WriteTestCase))
+        theSuite.addTest(unittest.makeSuite(MD6WriteTestCase))
+        theSuite.addTest(unittest.makeSuite(MD7WriteTestCase))
         theSuite.addTest(unittest.makeSuite(MD10WriteTestCase))
         theSuite.addTest(unittest.makeSuite(ZlibComprTestCase))
         theSuite.addTest(unittest.makeSuite(ZlibShuffleTestCase))

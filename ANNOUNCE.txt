@@ -30,7 +30,7 @@ What's new
 	- The Table.read() has added the "numarray" value to the
           flavor parameter for completeness.
 
-
+	- The UCL compressor has a checksum activated by default now
 
         - Fixed a nasty memory leak located on the C libraries (it was
           happening during HDF5 attribute writes). After that, the

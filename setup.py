@@ -189,7 +189,7 @@ where they can be found."""
             if zlibincdir not in inc_dirs:
                 inc_dirs.append(zlibincdir)
             if zliblibdir and (not '-lz' in LIBS):
-                libnames.append('zlib')
+                libnames.append('z')
                 def_macros.append(("HAVE_ZLIB_LIB", 1))
             break
         else:
@@ -311,18 +311,22 @@ elif os.name == 'nt':
     # the environment or on the command line.
     # First check the environment...
     HDF5_DIR = os.environ.get('HDF5_DIR', '')
+    ZLIB_DIR = os.environ.get('ZLIB_DIR', '')
     LZO_DIR = os.environ.get('LZO_DIR', '')
     UCL_DIR = os.environ.get('UCL_DIR', '')
     LFLAGS = os.environ.get('LFLAGS', [])
     LIBS = os.environ.get('LIBS', [])
 
     # ...then the command line.
-    # Handle --hdf5=[PATH] --lzo=[PATH] --ucl=[PATH]
+    # Handle --hdf5=[PATH] --zlib=[PATH] --lzo=[PATH] --ucl=[PATH]
     # and --libs=[LIBS] and --lflags=[FLAGS]
     args = sys.argv[:]
     for arg in args:
         if string.find(arg, '--hdf5=') == 0:
             HDF5_DIR = string.split(arg, '=')[1]
+            sys.argv.remove(arg)
+        if string.find(arg, '--zlib=') == 0:
+            ZLIB_DIR = string.split(arg, '=')[1]
             sys.argv.remove(arg)
         if string.find(arg, '--lzo=') == 0:
             LZO_DIR = string.split(arg, '=')[1]
@@ -358,6 +362,27 @@ elif os.name == 'nt':
  that you have correctly specified the
  HDF5_DIR environment variable or use the flag
  --hdf5 to give a hint of where they can
+ be found."""
+
+        sys.exit(1)
+
+    # ZLIB library (mandatory)
+    if ZLIB_DIR:
+        (dirstub, dirheader) = check_lib("ZLIB", ZLIB_DIR, "zlibdll.dll",
+                                         "lib", "libz.lib",  # Stubs
+                                         "include", "zlib.h") # Headers
+        if dirstub and dirheader:
+            lib_dirs.append(dirstub)
+            inc_dirs.append(dirheader)
+            libnames.append('libzlib')
+            def_macros.append(("HAVE_ZLIB_LIB", 1))
+        else:
+            print "Unable to locate all the required ZLIB files"
+            print """
+ Please, read carefully the README and make sure
+ that you have correctly specified the
+ ZLIB_DIR environment variable or use the flag
+ --zlib to give a hint of where they can
  be found."""
 
         sys.exit(1)

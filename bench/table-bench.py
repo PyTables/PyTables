@@ -138,7 +138,7 @@ def readFile(filename, recsize, verbose):
         row = 0
         for table in fileh.listNodes(groupobj, 'Table'):
             rowsize = table.rowsize
-            #print "Table title for", table._v_pathname, ":", table.tableTitle
+            print "reading", table
             if verbose:
                 print "Max rows in buf:", table._v_maxTuples
                 print "Rows in", table._v_pathname, ":", table.nrows
@@ -299,12 +299,12 @@ if __name__=="__main__":
     # Catch the hdf5 file passed as the last argument
     file = pargs[0]
 
-    print "Compression level:", complevel
-    if complevel > 0:
-        print "Compression library:", complib
-        if shuffle:
-            print "Suffling..."
     if testwrite:
+        print "Compression level:", complevel
+        if complevel > 0:
+            print "Compression library:", complib
+            if shuffle:
+                print "Suffling..."
 	t1 = time.time()
 	cpu1 = time.clock()
         if psyco_imported and usepsyco:

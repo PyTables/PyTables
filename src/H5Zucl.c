@@ -26,9 +26,11 @@
    test_all.py script. De-activate it until more investigations is done.
 
 */
-#undef CHECKSUM  		       
 
-#undef DEBUG
+/* Ok. from pytables 0.8 on I decided to let the CHECKSUM on as it
+   seems pretty stable
+   F. Alted 2004/01/02 */
+#define CHECKSUM  		       
 
 /* Adding more memory to the nrve seems to make it more resistant to
  seg faults. But I don't fully understand were is exactly the problem,
@@ -162,12 +164,15 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
       nalloc =  max_len_buffer;
     }
 
-    /* From version 2.0 of Table on, we save a checksum in data,
+    /* From version 2.1 of Table on, we save a checksum in data,
        but before don't */
 #ifdef CHECKSUM
-    if ((object_type == Table && object_version >= 20) ||
+    if ((object_type == Table && object_version >= 21) ||
 	object_type != Table) {
       nbytes -= 4;
+#ifdef DEBUG
+      printf("Checksum uncompressing...");
+#endif
     }
 #endif
 
@@ -215,11 +220,8 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
     }
  
 #ifdef CHECKSUM
-    if ((object_type == Table && object_version >= 20) ||
+    if ((object_type == Table && object_version >= 21) ||
 	object_type != Table) {
-#ifdef DEBUG
-      printf("Checksum uncompressing...");
-#endif
       /* Compute the checksum */
       checksum=ucl_adler32(ucl_adler32(0,NULL,0), outbuf, out_len);
   
@@ -250,7 +252,7 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
     ucl_uint z_dst_nbytes = (ucl_uint)H5Z_UCL_SIZE_ADJUST(nbytes);
 
 #ifdef CHECKSUM
-    if ((object_type == Table && object_version >= 20) ||
+    if ((object_type == Table && object_version >= 21) ||
 	object_type != Table) {
       z_dst_nbytes += 4;
     }
@@ -301,7 +303,7 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
 				     0, complevel, NULL, NULL);
 
 #ifdef CHECKSUM
-    if ((object_type == Table && object_version >= 20) ||
+    if ((object_type == Table && object_version >= 21) ||
 	object_type != Table) {
 #ifdef DEBUG
       printf("Checksum compressing ...");
@@ -313,9 +315,11 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
       nbytes += 4; 
     }
 #endif
-    if (z_dst_nbytes >= nbytes) {
 #ifdef DEBUG
       printf("z_dst_nbytes: %d, nbytes: %d.\n", z_dst_nbytes, nbytes);
+#endif
+    if (z_dst_nbytes >= nbytes) {
+#ifdef DEBUG
       printf("The compressed buffer takes more space than uncompressed!.\n");
 #endif
       ret_value = 0; /* fail */

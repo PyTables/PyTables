@@ -73,7 +73,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
        maxdims[i] = H5S_UNLIMITED;
        dims_chunk[i] = max_tuples;
        /* If set to 1, makes the chunk incompressible. */
-       /* dims_chunk[i] = 1; */
+/*        dims_chunk[i] = 1; */
      }
      else {
        maxdims[i] = dims[i];
