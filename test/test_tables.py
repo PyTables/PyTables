@@ -1004,6 +1004,7 @@ def suite():
 
     #theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
+    #theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))

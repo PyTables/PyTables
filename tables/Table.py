@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.51 2003/07/04 17:06:07 falted Exp $
+#       $Id: Table.py,v 1.52 2003/07/09 17:43:20 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.51 $"
+__version__ = "$Revision: 1.52 $"
 
 from __future__ import generators
 import sys
@@ -186,7 +186,9 @@ class Table(Leaf, hdf5Extension.Table, object):
     def _newBuffer(self, init=1):
         """Create a new recarray buffer for I/O purposes"""
 
-        #recarr = recarray2.array(None, formats=self.description._v_recarrfmt,
+        #print "description -->", self.description
+        #print "recarrfmt -->", self.description._v_recarrfmt
+        #print "maxtuples -->", self._v_maxTuples
         recarr = records.array(None, formats=self.description._v_recarrfmt,
                                shape=(self._v_maxTuples,),
                                names = self.colnames)
@@ -316,7 +318,13 @@ class Table(Leaf, hdf5Extension.Table, object):
         """
         fmt = self._v_fmt
         compress = self._v_compress
-        rowsize = struct.calcsize(fmt)
+        # Create a helper RecArray with no data
+        if hasattr(self, "description"):
+            headerRA = records.array(None, formats=self.description._v_recarrfmt)
+            rowsize = headerRA._itemsize
+        else:
+            rowsize = struct.calcsize(fmt)
+
         # Protection against row sizes too large (HDF5 refuse to work
         # with row sizes larger than 10 KB or so).
         if rowsize > 8192:
@@ -328,10 +336,11 @@ class Table(Leaf, hdf5Extension.Table, object):
         bufmultfactor = 1000 * 10
         # Counter for the binary tuples
         self._v_recunsaved = 0
-        if fmt[0] not in "@=<>!":
-            rowsizeinfile = struct.calcsize("=" + fmt)
-        else:
-            rowsizeinfile = rowsize
+#         if fmt[0] not in "@=<>!":
+#             rowsizeinfile = struct.calcsize("=" + fmt)
+#         else:
+#             rowsizeinfile = rowsize
+        rowsizeinfile = rowsize
         #print "Creating the table in file ==> ", self.file
         #print "Row size ==> ", rowsize
         #print "Row size in file ==> ", rowsizeinfile

@@ -1,4 +1,4 @@
-May 2003
+July 2003
 
 I would like to thank the people have contributed directly or
 indirectly to PyTables. 
@@ -16,6 +16,11 @@ many of the intricacies of the numarray package. And also to Jin-chung
 Hsu for discussions on recarray module (now numarray.records module).
 
 Alan McIntyre for porting PyTables to Windows.
+
+John Nielsen for suggesting improvements and delivering code for
+completely avoid the recursion algorithms and allowing pytables to
+bypass the ~1000 levels of deepness that Python recursion limit
+imposed.
 
 The HDF5 team at NCSA for making such an excellent library for data
 persistence.

@@ -113,5 +113,6 @@ static formatdef lilendian_table[] = {
 /* Functions in calcoffset.c we want accessible */
 int calcoffset(char *fmt, size_t *offsets);
 
-int calctypes(char *fmt, hid_t *types, size_t *size_types);
+int calctypes(char *fmt, int *nattrs, hid_t *types,
+	      size_t *size_types, size_t *offsets);
 

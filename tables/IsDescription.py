@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.9 2003/07/04 17:06:07 falted Exp $
+#       $Id: IsDescription.py,v 1.10 2003/07/09 17:43:20 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.9 $"
+__version__ = "$Revision: 1.10 $"
 
 
 import warnings
@@ -69,10 +69,10 @@ class Col:
             if type(shape) in [types.IntType, types.LongType]:
                 self.shape = (shape,)
             elif type(shape) in [types.ListType, types.TupleType]:
-                if len(shape) > 1:
-                    raise ValueError, \
-                       "Multidimensional column elements are not yet supported"
-                self.shape = list(shape)
+                #if len(shape) > 1:
+                #    raise ValueError, \
+                #       "Multidimensional column elements are not yet supported"
+                self.shape = tuple(shape)
             else: raise ValueError, "Illegal shape %s" % `shape`
 
         self.dflt = dflt
@@ -83,6 +83,11 @@ class Col:
             self.recarrtype = records.revfmt[self.type]
         elif dtype == "CharType" or isinstance(dtype, records.Char):
             self.type = records.CharType
+            self.itemsize = self.shape[-1]
+#             if len(self.shape) == 1:
+#                 self.shape = (1,)
+#             else:
+#                 self.shape = self.shape[:-1]
             self.recarrtype = records.revfmt[self.type]
         else:
             raise TypeError, "Illegal type: %s" % `dtype`
@@ -275,15 +280,22 @@ class metaIsDescription(type):
                 else:
                     newdict['__dflts__'][k] = testtype(object)
 
-                newdict['_v_fmt'] += str(object.shape[0]) + object.rectype
                 # Special case for strings: "aN"
                 if object.recarrtype == "a":
-                    recarrfmt.append(object.recarrtype + str(object.shape[0]))
+                    # Susbstituir el shape[0] per shape quan la
+                    # multimensinalitat estiga suportada...
+#                     newdict['_v_fmt'] += str(object.shape[0]) + object.rectype + str(object.itemsize)
+#                     recarrfmt.append(str(object.shape[0]) + object.recarrtype + str(object.itemsize))
+                    newdict['_v_fmt'] +=  str(object.shape) + object.rectype
+                    recarrfmt.append(object.recarrtype + str(object.itemsize))
                 else:
+                    newdict['_v_fmt'] += str(object.shape) + object.rectype
+                    # Tenim un problema aci si posem shape i no shape[0]
                     recarrfmt.append(str(object.shape[0]) + object.recarrtype)
                 newdict['_v_shapes'][k] = object.shape
 
-        # Set up the alignment 
+        # Set up the alignment
+        #print "fmt -->", newdict['_v_fmt']
         if newdict.has_key('_v_align'):
             newdict['_v_fmt'] = newdict['_v_align'] + newdict['_v_fmt']
         else:

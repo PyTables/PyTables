@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.10 2003/06/13 18:03:58 falted Exp $
+#       $Id: AttributeSet.py,v 1.11 2003/07/09 17:43:20 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.10 $"
+__version__ = "$Revision: 1.11 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -127,6 +127,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
             # in-memory. However, as attributes should not be large
             # this should be ok for most of the cases.
             self.__dict__[attr] = self.__getattr__(attr)
+            #self.__dict__[attr] = None
             if issysattrname(attr):
                 self._v_attrnamessys.append(attr)
             else:
@@ -169,10 +170,15 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # Read the attribute from disk
         value = self._g_getAttr(name)
 
-        # Check if value is pickled 
-        try:
-            retval = cPickle.loads(value)
-        except:
+        # Check if value is pickled
+        # Pickled values always seems to end with a "."
+        if type(value) is types.StringType and value and value[-1] == ".":
+        #if 1:
+            try:
+                retval = cPickle.loads(value)
+            except:
+                retval = value
+        else:
             retval = value
 
         return retval

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.56 2003/07/04 19:04:03 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.57 2003/07/09 17:43:20 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.56 $"
+__version__ = "$Revision: 1.57 $"
 
 
 import sys, os
@@ -95,6 +95,8 @@ cdef extern from "Python.h":
   char *PyString_AsString(object string)
   object PyString_FromString(char *)
 
+# To access to str and tuple structures. This does not work with Pyrex 0.8
+# This is not necessary, though
 #  ctypedef class __builtin__.str [object PyStringObject]:
 #    cdef char *ob_sval
 #    cdef int  ob_size
@@ -525,7 +527,9 @@ cdef extern from "calcoffset.h":
   
   int calcoffset(char *fmt, size_t *offsets)
   
-  int calctypes(char *fmt, hid_t *types, size_t *size_types)
+#  int calctypes(char *fmt, hid_t *types, size_t *size_types)
+  int calctypes(char *fmt, int *nvar, hid_t *types,
+                size_t *sizes, size_t *offsets)
 
 # Funtion to get info from fields in a table
 cdef extern from "getfieldfmt.h":
@@ -676,7 +680,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.56 2003/07/04 19:04:03 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.57 2003/07/09 17:43:20 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1180,14 +1184,19 @@ cdef class Table:
     # End old new
 
     # Compute the offsets
-    nvar = calcoffset(self.fmt, self.field_offset)
+#     nvar = calcoffset(self.fmt, self.field_offset)
+#     if (nvar > MAX_FIELDS):
+#         raise IndexError("A maximum of %d fields on tables is allowed" % \
+#                          MAX_FIELDS)
+#     self.nfields = nvar
+
+    # Compute the field type sizes
+    self.rowsize = calctypes(self.fmt, &nvar, fieldtypes,
+                             self.field_sizes, self.field_offset)
     if (nvar > MAX_FIELDS):
         raise IndexError("A maximum of %d fields on tables is allowed" % \
                          MAX_FIELDS)
     self.nfields = nvar
-
-    # Compute the field type sizes
-    self.rowsize = calctypes(self.fmt, fieldtypes, self.field_sizes)
     
     # test if there is data to be saved initially
     if hasattr(self, "_v_recarray"):
@@ -1394,7 +1403,7 @@ cdef class Row:
   cdef object _fields, _recarray, _table, _saveBufferedRows, _indexes
   cdef int _row, _nrowinbuf, _nrow, _unsavednrows, _maxTuples, _strides, _opt
   cdef int start, stop, step, nextelement, nrowsinbuf
-  cdef int *_dimensions, *_enumtypes
+  cdef int *_scalar, *_enumtypes
 
   def __new__(self, input, table):
     cdef int nfields, i
@@ -1413,11 +1422,14 @@ cdef class Row:
     # and other tables
     i = 0
     self._indexes = {}
-    self._dimensions = <int *>malloc(nfields * sizeof(int))
+    self._scalar = <int *>malloc(nfields * sizeof(int))
     self._enumtypes = <int *>malloc(nfields * sizeof(int))
     for field in input._names:
       self._indexes[field] = i
-      self._dimensions[i] = input._repeats[i]
+      if input._repeats[i] == 1 or input._repeats[i] == (1,):
+        self._scalar[i] = 1
+      else:
+        self._scalar[i] = 0
       self._enumtypes[i] = toenum[input._fmt[i]]
       i = i + 1
     self._maxTuples = table._v_maxTuples
@@ -1505,7 +1517,7 @@ cdef class Row:
       # Get the column index. This is very fast!
       index = self._indexes[fieldName]
 
-      if (self._enumtypes[index] <> CHARTYPE and self._dimensions[index] == 1):
+      if (self._enumtypes[index] <> CHARTYPE and self._scalar[index]):
         # return 40   # Just for tests purposes
          #print "self._row -->", self._row, fieldName, self._strides
         #print "self._fields[fieldName] -->", self._fields[fieldName]
@@ -1551,7 +1563,7 @@ cdef class Row:
       # Get the column index. This is very fast!
       index = self._indexes[fieldName]
 
-      if (self._enumtypes[index] <> CHARTYPE and self._dimensions[index] == 1):
+      if (self._enumtypes[index] <> CHARTYPE and self._scalar[index]):
         # This optimization sucks when using numarray 0.4 and 0.5!
         offset = self._unsavednrows * self._strides
         #print "self._row -->", self._row, fieldName, self._strides

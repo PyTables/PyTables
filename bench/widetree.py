@@ -1,3 +1,5 @@
+import hotshot, hotshot.stats
+
 import sys
 import warnings
 import unittest
@@ -27,7 +29,7 @@ class WideTreeTestCase(unittest.TestCase):
         """
 
         import time
-        maxchilds = 3000
+        maxchilds = 1000
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_wideTree..." % \
@@ -77,7 +79,7 @@ class WideTreeTestCase(unittest.TestCase):
         """
 
         import time
-        maxchilds = 3000
+        maxchilds = 1000
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_wideTree..." % \
@@ -120,4 +122,11 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main( defaultTest='suite' )
+    prof = hotshot.Profile("widetree.prof")
+    benchtime, stones = prof.runcall(unittest.main(defaultTest='suite'))
+    prof.close()
+    stats = hotshot.stats.load("widetree.prof")
+    stats.strip_dirs()
+    stats.sort_stats('time', 'calls')
+    stats.print_stats(20)
+    

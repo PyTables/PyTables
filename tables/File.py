@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.40 2003/07/04 17:27:51 falted Exp $
+#       $Id: File.py,v 1.41 2003/07/09 17:43:20 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.40 $"
+__version__ = "$Revision: 1.41 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -440,6 +440,8 @@ class File(hdf5Extension.File, object):
         an instance of this class name. Allowed names in "classname"
         are: 'Group', 'Leaf', 'Table' and 'Array'."""
 
+        # To find out the caller
+        #print repr(sys._getframe(1).f_code.co_name)
         if isinstance(where, str):
             # This is a string pathname. Get the object ...
             if name:

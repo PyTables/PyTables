@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.40 2003/07/04 17:27:51 falted Exp $
+#       $Id: Group.py,v 1.41 2003/07/09 17:43:20 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.40 $"
+__version__ = "$Revision: 1.41 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -113,12 +113,25 @@ class Group(hdf5Extension.Group, object):
         self.__dict__["_v_leaves"] = {}
         self.__dict__["_v_childs"] = {}
 
-    # This iterative version of _g_openFile is due to John at bwc.state.oh.us
-    def _g_openFile(self):
+    # This iterative version of _g_openFile is due to John Nielsen
+    def _g_openFile(self, root = ""):
         """Recusively reads an HDF5 file and generates a tree object.
         """
 
         stack=[self]
+        # Check if a specific group is asked to be open as root
+        if root and root[0]=='/':
+            root=root.split('/')
+            #look for 2nd element
+            #'/'.split('/')=['',''] '/a'.split('/')=['', 'a']
+            if root[1]: 
+                objgroup=self
+                for name in root[1:]:
+                    new_objgroup = Group(new = 0)
+                    new_objgroup._g_putObjectInTree(name, objgroup)
+                    objgroup=new_objgroup
+                stack=[objgroup]
+                
         while stack:
             objgroup=stack.pop()
             pgroupId=objgroup._v_parent._v_groupId
