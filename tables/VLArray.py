@@ -1,3 +1,6 @@
+# Eh! python!, We are going to include isolatin characters here
+# -*- coding: latin-1 -*-
+
 ########################################################################
 #
 #       License: BSD
@@ -5,7 +8,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.34 2004/10/28 11:09:56 falted Exp $
+#       $Id: VLArray.py,v 1.35 2004/10/28 16:42:39 falted Exp $
 #
 ########################################################################
 
@@ -30,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.34 $"
+__version__ = "$Revision: 1.35 $"
 
 # default version for VLARRAY objects
 #obversion = "1.0"    # initial version
@@ -602,6 +605,19 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 
         It returns the number of fields updated in the affected row.
 
+        Note: When updating VLStrings (codification UTF-8) or Objects,
+        there is a problem: we can only update values with *exactly*
+        the same bytes than in the original row. With UTF-8 encoding
+        this is problematic because, for instance, 'c' takes 1 byte,
+        but 'ç' takes at least two (!). Perhaps another codification
+        does not have this problem, I don't know. With objects, the
+        same happens, because cPickle applied on an instance (for
+        example) does not guarantee to return the same number of bytes
+        than over other instance, even of the same class than the
+        former. This effectively limits the number of objects than can
+        be updated in VLArrays, most specially VLStrings and Objects
+        as has been said before.
+
         """
 
         assert not self._v_file.mode == "r", "Attempt to write over a file opened in read-only mode"
@@ -629,33 +645,34 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
         else:
             raise IndexError, "Non-valid second index or slice: %s" % rng
         
-#         object = value
-#         # Prepare the object to convert it into a numarray object
-#         if self.atom.flavor == "Object":
-#             # Special case for a generic object
-#             # (to be pickled and saved as an array of unsigned bytes)
-#             object = numarray.array(cPickle.dumps(object), type=numarray.UInt8)
-#         elif self.atom.flavor == "VLString":
-#             # Special case for a generic object
-#             # (to be pickled and saved as an array of unsigned bytes)
-#             if not (isinstance(object, types.StringType) or
-#                     isinstance(object, types.UnicodeType)):
-#                 raise TypeError, \
-# """The object "%s" is not of type String or Unicode.""" % (str(object))
-#             try:
-#                 object = object.encode('utf-8')
-#             except:
-#                 (type, value, traceback) = sys.exc_info()
-#                 raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, value)
-#             object = numarray.array(object, type=numarray.UInt8)
+        object = value
+        # Prepare the object to convert it into a numarray object
+        if self.atom.flavor == "Object":
+            # Special case for a generic object
+            # (to be pickled and saved as an array of unsigned bytes)
+            object = numarray.array(cPickle.dumps(object), type=numarray.UInt8)
+        elif self.atom.flavor == "VLString":
+            # Special case for a generic object
+            # (to be pickled and saved as an array of unsigned bytes)
+            if not (isinstance(object, types.StringType) or
+                    isinstance(object, types.UnicodeType)):
+                raise TypeError, \
+"""The object "%s" is not of type String or Unicode.""" % (str(object))
+            try:
+                object = object.encode('utf-8')
+            except:
+                (type, value, traceback) = sys.exc_info()
+                raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, value)
+            object = numarray.array(object, type=numarray.UInt8)
 
-#         value = convertIntoNA(object, self.atom)
-        #nobjects = self._checkShape(value)
+        value = convertIntoNA(object, self.atom)
+        nobjects = self._checkShape(value)
 
-        nobjects = len(value)
+        #nobjects = len(value)
 
         # Get the previous value
-        naarr = self.read(nrow, nrow+1, 1, slice_specified=0)
+        #naarr = self.read(nrow, nrow+1, 1, slice_specified=0)
+        naarr = self._readArray(nrow, nrow+1, 1)[0]
         nobjects = len(naarr)
         if len(value) > nobjects:
             raise ValueError, \

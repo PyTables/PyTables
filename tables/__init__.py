@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/__init__.py,v $
-#       $Id: __init__.py,v 1.27 2004/09/17 11:51:49 falted Exp $
+#       $Id: __init__.py,v 1.28 2004/10/28 16:42:40 falted Exp $
 #
 ########################################################################
 
@@ -53,6 +53,9 @@ from IsDescription import *
 #del BaseCol #should not be imported
 from hdf5Extension import isHDF5, isPyTablesFile, whichLibVersion
 
+# Import sub-packages
+#import nodes
+
 # List here only the objects we want to be publicly available
 __all__ = ["isHDF5", "isPyTablesFile", "whichLibVersion", "copyFile",
            "openFile",
@@ -69,4 +72,5 @@ __all__ = ["isHDF5", "isPyTablesFile", "whichLibVersion", "copyFile",
            "Int32Atom", "UInt32Atom", "Int64Atom", "UInt64Atom",
            "FloatAtom", "Float32Atom", "Float64Atom",
            "ComplexAtom", "Complex32Atom", "Complex64Atom",
+#            "nodes",
            ]

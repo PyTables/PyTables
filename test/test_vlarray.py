@@ -235,6 +235,72 @@ class TypesTestCase(unittest.TestCase):
         assert len(row[0]) == 3
         assert len(row[1]) == 2
 
+    def test01c_StringAtom(self):
+        """Checking updating vlarray with numarray string atoms"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01c_StringAtom..." % self.__class__.__name__
+
+        # Create an string atom
+        vlarray = self.fileh.createVLArray(root, 'stringAtom',
+                                           StringAtom(length=3),
+                                           "Ragged array of strings")
+        vlarray.append(["123", "456", "3"])
+        vlarray.append(["456", "3"])
+
+        # Modify the rows
+        vlarray[0] = ["124", "454", "4"]
+        vlarray[1] = strings.array(["454", "4"])  # This should work as well
+
+        # Read all the rows:
+        row = vlarray.read()
+        if verbose:
+            print "Object read:", row
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "First row in vlarray ==>", row[0]
+            
+        assert vlarray.nrows == 2
+        assert allequal(row[0], strings.array(["124", "454", "4"]))
+        assert allequal(row[1], strings.array(["454", "4"]))
+        assert len(row[0]) == 3
+        assert len(row[1]) == 2
+
+    def test01d_StringAtom(self):
+        """Checking updating vlarray with string atoms (String flavor)"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01d_StringAtom..." % self.__class__.__name__
+
+        # Create an string atom
+        vlarray = self.fileh.createVLArray(root, 'stringAtom2',
+                                           StringAtom(length=3,
+                                                      flavor="String"),
+                                           "Ragged array of strings")
+        vlarray.append(["123", "456", "3"])
+        vlarray.append(["456", "3"])
+
+        # Modify the rows
+        vlarray[0] = ["124", "454", "4"]
+        vlarray[1] = ["454", "4"]
+
+        # Read all the rows:
+        row = vlarray.read()
+        if verbose:
+            print "Testing String flavor"
+            print "Object read:", row
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "First row in vlarray ==>", row[0]
+            
+        assert vlarray.nrows == 2
+        assert row[0] == ["124", "454", "4"]
+        assert row[1] == ["454", "4"]
+        assert len(row[0]) == 3
+        assert len(row[1]) == 2
+
     # Strings Atoms with UString (unicode strings) flavor can't be safely
     # implemented because the strings can be cut in the middle of a utf-8
     # codification and that can lead to errors like:
@@ -301,6 +367,38 @@ class TypesTestCase(unittest.TestCase):
         assert len(row[0]) == 3
         assert len(row[1]) == 2
 
+    def test02b_BoolAtom(self):
+        """Checking setting vlarray with boolean atoms"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02b_BoolAtom..." % self.__class__.__name__
+
+        # Create an string atom
+        vlarray = self.fileh.createVLArray(root, 'BoolAtom',
+                                           BoolAtom(),
+                                           "Ragged array of Booleans")
+        vlarray.append(1,0,3)
+        vlarray.append(-1,0)
+
+        # Modify the rows
+        vlarray[0] = (0,1,3)
+        vlarray[1] = (0,-1)
+
+        # Read all the rows:
+        row = vlarray.read()
+        if verbose:
+            print "Object read:", row
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "First row in vlarray ==>", row[0]
+            
+        assert vlarray.nrows == 2
+        assert allequal(row[0], array([0,1,1], type=Bool))
+        assert allequal(row[1], array([0,1], type=Bool))
+        assert len(row[0]) == 3
+        assert len(row[1]) == 2
+
     def test03_IntAtom(self):
         """Checking vlarray with integer atoms"""
 
@@ -339,6 +437,48 @@ class TypesTestCase(unittest.TestCase):
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
+    def test03b_IntAtom(self):
+        """Checking updating vlarray with integer atoms"""
+
+        ttypes = {"Int8": Int8,
+                  "UInt8": UInt8,
+                  "Int16": Int16,
+                  "UInt16": UInt16,
+                  "Int32": Int32,
+                  "UInt32": UInt32,
+                  "Int64": Int64,
+                  #"UInt64": UInt64,  # Unavailable in some platforms
+                  }
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_IntAtom..." % self.__class__.__name__
+
+        # Create an string atom
+        for atype in ttypes.iterkeys():
+            vlarray = self.fileh.createVLArray(root, atype,
+                                               Atom(ttypes[atype]))
+            vlarray.append(1,2,3)
+            vlarray.append(-1,0)
+
+            # Modify rows
+            vlarray[0] = (3,2,1)
+            vlarray[1] = (0,-1)
+
+            # Read all the rows:
+            row = vlarray.read()
+            if verbose:
+                print "Testing type:", atype
+                print "Object read:", row
+                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+                print "First row in vlarray ==>", row[0]
+
+            assert vlarray.nrows == 2
+            assert allequal(row[0], array([3,2,1], type=ttypes[atype]))
+            assert allequal(row[1], array([0,-1], type=ttypes[atype]))
+            assert len(row[0]) == 3
+            assert len(row[1]) == 2
+
     def test04_FloatAtom(self):
         """Checking vlarray with floating point atoms"""
 
@@ -368,6 +508,42 @@ class TypesTestCase(unittest.TestCase):
             assert vlarray.nrows == 2
             assert allequal(row[0], array([1.3,2.2,3.3], ttypes[atype]))
             assert allequal(row[1], array([-1.3e34,1.e-32], ttypes[atype]))
+            assert len(row[0]) == 3
+            assert len(row[1]) == 2
+
+    def test04a_FloatAtom(self):
+        """Checking updating vlarray with floating point atoms"""
+
+        ttypes = {"Float32": Float32,
+                  "Float64": Float64,
+                  }
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04_FloatAtom..." % self.__class__.__name__
+
+        # Create an string atom
+        for atype in ttypes.iterkeys():
+            vlarray = self.fileh.createVLArray(root, atype,
+                                               Atom(ttypes[atype]))
+            vlarray.append(1.3,2.2,3.3)
+            vlarray.append(-1.3e34,1.e-32)
+
+            # Modifiy some rows
+            vlarray[0] = (4.3,2.2,4.3)
+            vlarray[1] = (-1.1e34,1.3e-32)
+
+            # Read all the rows:
+            row = vlarray.read()
+            if verbose:
+                print "Testing type:", atype
+                print "Object read:", row
+                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+                print "First row in vlarray ==>", row[0]
+
+            assert vlarray.nrows == 2
+            assert allequal(row[0], array([4.3,2.2,4.3], ttypes[atype]))
+            assert allequal(row[1], array([-1.1e34,1.3e-32], ttypes[atype]))
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
@@ -405,6 +581,44 @@ class TypesTestCase(unittest.TestCase):
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
+    def test04c_ComplexAtom(self):
+        """Checking modifying vlarray with numerical complex atoms"""
+
+        ttypes = {"Complex32": Complex32,
+                  "Complex64": Complex64,
+                  }
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04c_ComplexAtom..." % self.__class__.__name__
+
+        # Create an string atom
+        for atype in ttypes.iterkeys():
+            vlarray = self.fileh.createVLArray(root, atype,
+                                               Atom(ttypes[atype]))
+            vlarray.append((1.3+0j),(0+2.2j),(3.3+3.3j))
+            vlarray.append((0-1.3e34j),(1.e-32+0j))
+
+            # Modify the rows
+            vlarray[0] = ((1.4+0j),(0+4.2j),(3.3+4.3j))
+            vlarray[1] = ((4-1.3e34j),(1.e-32+4j))
+
+            # Read all the rows:
+            row = vlarray.read()
+            if verbose:
+                print "Testing type:", atype
+                print "Object read:", row
+                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+                print "First row in vlarray ==>", row[0]
+
+            assert vlarray.nrows == 2
+            assert allequal(row[0], array([(1.4+0j),(0+4.2j),(3.3+4.3j)],
+                                          ttypes[atype]))
+            assert allequal(row[1], array([(4-1.3e34j),(1.e-32+4j)],
+                                          ttypes[atype]))
+            assert len(row[0]) == 3
+            assert len(row[1]) == 2
+
     def test05_VLStringAtom(self):
         """Checking vlarray with variable length strings"""
 
@@ -428,6 +642,42 @@ class TypesTestCase(unittest.TestCase):
         assert vlarray.nrows == 2
         assert row[0] == u"asd"
         assert row[1] == u"aaañá"
+        assert len(row[0]) == 3
+        assert len(row[1]) == 5
+
+    def test05b_VLStringAtom(self):
+        """Checking updating vlarray with variable length strings"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05b_VLStringAtom..." % self.__class__.__name__
+
+        # Create an string atom
+        vlarray = self.fileh.createVLArray(root, "VLStringAtom", VLStringAtom())
+        vlarray.append(u"asd")
+        vlarray.append(u"aaañá")
+
+        # Modify values
+        # We have the problem here that we can only update values with
+        # *exactly* the same bytes than in the original row. With
+        # UTF-8 encoding this is problematic because 'c' takes 1 byte,
+        # but 'ç' takes at least two (!). Perhaps another codification
+        # does not have this problem, I don't know.
+        vlarray[0] = u"as4"
+        vlarray[1] = u"aaañç"
+
+        # Read all the rows:
+        row = vlarray.read()
+        if verbose:
+            print "Object read:", row
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "First row in vlarray ==>", `row[0]`
+            print "Second row in vlarray ==>", `row[1]`
+
+        assert vlarray.nrows == 2
+        assert row[0] == u"as4"
+        assert row[1] == u"aaañç"
         assert len(row[0]) == 3
         assert len(row[1]) == 5
 
@@ -457,6 +707,45 @@ class TypesTestCase(unittest.TestCase):
         obj = list1.pop()
         assert list1 == [3,4]
         assert obj.c == C().c
+        assert len(row[0]) == 3
+        assert len(row[1]) == 3
+
+
+    def test06b_Object(self):
+        """Checking updating vlarray with object atoms """
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test06_Object..." % self.__class__.__name__
+
+        # Create an string atom
+        vlarray = self.fileh.createVLArray(root, "Object", ObjectAtom())
+        vlarray.append([1,2,3], "aaa", u"aaaççç")
+        # When updating an object, this seems to change the number
+        # of bytes that cPickle.dumps generates
+        #vlarray.append(3,4, C())
+        vlarray.append(3,4, [24])
+
+        # Modify the rows
+        vlarray[0] = ([1,2,4], "aa4", u"aaaçç4")
+        #vlarray[1] = (3,4, C())
+        vlarray[1] = (4,4, [24])
+
+        # Read all the rows:
+        row = vlarray.read()
+        if verbose:
+            print "Object read:", row
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "First row in vlarray ==>", row[0]
+
+        assert vlarray.nrows == 2
+        assert row[0] == ([1,2,4], "aa4", u"aaaçç4")
+        list1 = list(row[1])
+        obj = list1.pop()
+        assert list1 == [4,4]
+        #assert obj.c == C().c
+        assert obj == [24]
         assert len(row[0]) == 3
         assert len(row[1]) == 3
 
@@ -2500,25 +2789,6 @@ def suite():
     global numeric
     niter = 1
 
-    #theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
-    #theSuite.addTest(unittest.makeSuite(OpenAppendShapeTestCase))
-    #theSuite.addTest(unittest.makeSuite(CloseAppendShapeTestCase))
-    #theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
-    #theSuite.addTest(unittest.makeSuite(BasicNumArrayTestCase))
-    #if numeric:
-    #    theSuite.addTest(unittest.makeSuite(BasicNumericTestCase))
-    #theSuite.addTest(unittest.makeSuite(BasicTupleTestCase))
-    #theSuite.addTest(unittest.makeSuite(ZlibComprTestCase))
-    #theSuite.addTest(unittest.makeSuite(LZOComprTestCase))
-    #theSuite.addTest(unittest.makeSuite(UCLComprTestCase))
-    #theSuite.addTest(unittest.makeSuite(TypesNumArrayTestCase))
-    #theSuite.addTest(unittest.makeSuite(MDTypesNumArrayTestCase))
-    #theSuite.addTest(unittest.makeSuite(TupleFlavorTestCase))
-    #theSuite.addTest(unittest.makeSuite(ListFlavorTestCase))
-    #theSuite.addTest(unittest.makeSuite(NumericFlavorTestCase))
-    #theSuite.addTest(unittest.makeSuite(SetRangeTestCase))
-    #theSuite.addTest(unittest.makeSuite(NumArrayFlavorTestCase))
-    
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicNumArrayTestCase))
         if numeric:

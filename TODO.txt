@@ -1,6 +1,4 @@
-TODO list (as of 5th, October 2004):
-
-- Modification of values in Array, EArray and VLArray objects.
+TODO list (as of 28th, October 2004):
 
 - Add a new type of table that allows variable length records and
   fully multidimensional slice selections.
