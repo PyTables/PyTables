@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-
+###### WARNING #######
+### This script is obsoleted ###
+### If you get it working again, please, drop me a line
+### F. Alted 2004-01-27
 from tables import *
 import numarray as NA
 import struct, sys
@@ -14,7 +17,7 @@ import psyco
 
 
 # This class is accessible only for the examples
-class Small(IsColDescr):
+class Small(IsDescription):
     """ A record has several columns. They are represented here as
     class attributes, whose names are the column names and their
     values will become their types. The IsColDescr class will take care
@@ -26,7 +29,7 @@ class Small(IsColDescr):
     var3 = Col("Float64", 1, 0)
 
 # Define a user record to characterize some kind of particles
-class Medium(IsColDescr):
+class Medium(IsDescription):
     name        = Col('CharType', 16, "", pos=0)  # 16-character String
     #float1      = Col("Float64", 2, 2.3)
     float1      = Col("Float64", 1, 1.3, pos = 1)
@@ -38,7 +41,7 @@ class Medium(IsColDescr):
     energy      = Col("Float64", 1, 0, pos = 7)    # double (double-precision)
 
 # Define a user record to characterize some kind of particles
-class Big(IsColDescr):
+class Big(IsDescription):
     name        = Col('CharType', 16, "")  # 16-character String
     #float1      = Col("Float64", 32, NA.arange(32))
     #float2      = Col("Float64", 32, NA.arange(32))
@@ -55,11 +58,11 @@ def createFile(filename, totalrows, recsize, verbose):
     # Open a 'n'ew file
     dd = db.DB()
     if recsize == "big":
-        isrec = Big()
+        isrec = Description(Big)
     elif recsize == "medium":
         isrec = Medium()
     else:
-        isrec = Small()
+        isrec = Description(Small)
     #dd.set_re_len(struct.calcsize(isrec._v_fmt))  # fixed length records
     dd.open(filename, db.DB_RECNO, db.DB_CREATE | db.DB_TRUNCATE)
 

@@ -49,7 +49,7 @@ class WideTreeTestCase(unittest.TestCase):
                 # Create a table
                 table = fileh.createTable(group, 'table%04d'% j, Test,
                                           'Table%04d'%j,
-                                          complevel, complib, nrows)
+                                          Filters(complevel, complib), nrows)
                 # Get the row object associated with the new table
                 row = table.row
                 # Fill the table

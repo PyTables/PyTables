@@ -36,6 +36,27 @@ What's new
 	- The standard fletcher32 checksum filter present in HDF5 is
           supported.
 
+	- As the supported number of filters is getting large (and
+          that may be further increased in the future), a Filters()
+          class has been added to deal more easily with the filter
+          information. A consequence of that is a slightly backward
+          incompatible change in the createTable() function, in the
+          sense that "compress" and "complib" are deprecated now and
+          you should use the "filters" parameter. However, you will be
+          able to continue using the old parameters (only a
+          Deprecation warning will be issued) for a couple of
+          versions, but you should migrate to the new version as soon
+          as possible. In general, you can easily migrate old code
+          by substituting code like:
+
+                table = fileh.createTable(group, 'table', Test, '',
+                                          complevel, complib, nrows)
+	  by
+
+                table = fileh.createTable(group, 'table', Test, '',
+                                          Filters(complevel, complib), nrows)
+
+
 	- HDF5 H5T_VLEN native datatypes are supported now when
           accessing native HDF5 files.  However, H5T_ARRAY datatypes
           has been deprecated as atomic types in (E)Array objects for

@@ -2852,13 +2852,12 @@ AttributeError: Error setting "ADCcount" attr.
 
 	  <subsubsection>
 	    <heading id="createTableDescr">createTable(where, name,
-	      description, title='', compress=0, complib='zlib',
-	      shuffle=1, fletcher32=0, expectedrows=10000)</heading>
-
+	      description, title='', filters=None,
+	      expectedrows=10000)
+	    </heading>
 	    <p>Create a new <verb>Table</verb> instance with name
 	      <em>name</em> in <em>where</em> location.
 	    </p>
-
 	    <description>
 	      <term>where</term> <item>The parent group where the new
 		table will hang from. <em>where</em> parameter can be
@@ -2887,33 +2886,11 @@ AttributeError: Error setting "ADCcount" attr.
 	      </item>
 	      <term>title</term> <item>A description for this object.
 	      </item>
-	      <term>compress</term> <item>Specifies a compress level
-		for data. The allowed range is 0-9. A value of 0
-		disables compression. The default is that
-		compression is disabled, that balances between
-		compression effort and CPU consumption.
-	      </item>
-	      <term>complib</term> <item> Specifies the compression
-		library to be used. Right now, <verb>"zlib"</verb>
-		(default), <verb>"lzo"</verb> and <verb>"ucl"</verb>
-		values are supported. See <ref
-		refid="compressionIssues">section</ref> for some advice
-		on which library is better suited to your needs.
-	      </item>
-              <term>shuffle</term><item>Whether or not to use the
-                <em>shuffle</em> filter present in the
-                <verb>HDF5</verb> library. This is normally used to
-                improve the compression ratio (at the cost of
-                consuming a little bit more CPU time). A value of 0
-                disables shuffling and 1 makes it active. The default
-                value depends on whether compression is enabled or
-                not; if compression is enabled, shuffling defaults to
-                be active, else shuffling is disabled.
-              </item>
-	      <term>fletcher32</term> <item>Whether or not to use the
-		<em>fletcher32</em> filter in the HDF5 library. This
-		is used to add a checksum on each data chunk. A value
-		of 0 disables the checksum and it is the default.
+	      <term>filters</term> <item>An instance of the
+		<verb>Filters</verb> class (see <ref
+		refid="FiltersClassDescr">section</ref>) that provides
+		information about the desired I/O filters to be
+		applied during the life of this object.
 	      </item>
 	      <term>expectedrows</term> <item>An user estimate of the
 		number of records that will be on table. If not
@@ -2960,8 +2937,8 @@ AttributeError: Error setting "ADCcount" attr.
 
 	  <subsubsection>
 	    <heading id="createEArrayDescr">createEArray(where, name,
-	      object, title='', compress=0, complib='zlib',
-	      shuffle=1, fletcher32=0, expectedrows=1000)</heading>
+	      object, title='', filters=None, expectedrows=1000)
+	    </heading>
 
 	    <p>Create a new <verb>EArray</verb> instance with name
 	      <em>name</em> in <em>where</em> location.
@@ -2993,15 +2970,15 @@ AttributeError: Error setting "ADCcount" attr.
 	      refid="createTableDescr"><verb>createTable</verb>
 	      description</ref> for more information on the
 	      <em>where</em>, <em>name</em>, <em>title</em>,
-	      <em>compress</em>, <em>complib</em>, <em>shuffle</em>
-	      and <em>fletcher32</em> parameters.
+	      and <em>filters</em> parameters.
 	    </p>
 	  </subsubsection>
 
 	  <subsubsection>
 	    <heading id="createVLArrayDescr">createVLArray(where,
-	      name, atom=None, title='', compress=0, complib = 'zlib',
-	      shuffle=1, fletcher32=0, expectedsizeinMB=1.0)</heading>
+	      name, atom=None, title='', filters=None,
+	      expectedsizeinMB=1.0)
+	    </heading>
 
 	    <p>Create a new <verb>VLArray</verb> instance with name
 	      <em>name</em> in <em>where</em> location. See the <ref
@@ -3028,9 +3005,8 @@ AttributeError: Error setting "ADCcount" attr.
 	    <p>See <ref
 	      refid="createTableDescr"><verb>createTable</verb>
 	      description</ref> for more information on the
-	      <em>where</em>, <em>name</em>, <em>title</em>,
-	      <em>compress</em>, <em>complib</em>, <em>shuffle</em>
-	      and <em>fletcher32</em> parameters.
+	      <em>where</em>, <em>name</em>, <em>title</em>, and
+	      <em>filters</em> parameters.
 	    </p>
 	  </subsubsection>
 
@@ -3577,17 +3553,10 @@ AttributeError: Error setting "ADCcount" attr.
 	    <term>byteorder</term> <item>The byteorder of
 	      the associated data of the Leaf.
 	    </item>
-	    <term>complevel</term> <item>The compression level (0
-	      means no compression).
-	    </item>
-	    <term>complib</term> <item>The compression filter used (in
-	    case of a compressed dataset).
-	    </item>
-	    <term>shuffle</term> <item>Whether the <em>shuffle</em>
-	      filter is active or not.
-	    </item>
-	    <term>fletcher32</term> <item>Whether the
-	      <em>fletcher32</em> filter is active or not.
+	    <term>filters</term> <item>Container for filter
+	      properties.  See <ref
+	      refid="FiltersClassDescr">section</ref> for more
+	      information on this object.
 	    </item>
 	    <term>attrs</term><item>The associated
 	      <verb>AttributeSet</verb> instance (see <ref
@@ -3601,9 +3570,9 @@ AttributeError: Error setting "ADCcount" attr.
 	  <heading><visual markup="tt">Leaf</visual> methods</heading>
 
 	  <subsubsection>
-	    <heading id="copyLeafDescr">copy(where, name,
-	      copyuserattrs=1, title=None, props=None,
-	      slice=None)</heading>
+	    <heading id="copyLeafDescr">copy(where, name, start=0,
+             stop=None, step=1, title=None, filters=None,
+             copyuserattrs=1)</heading>
 
 	    <p>Copy this leaf into another location. The meaning of
 	      the parameters is explained below:
@@ -3617,25 +3586,32 @@ AttributeError: Error setting "ADCcount" attr.
 		<term>name</term> <item>The name of the destination
 		  node.
 		</item>
+		<term>title</term><item>The new title for
+		  destination. If None, the original title is copied.
+		</item>
+		<term>filters</term><item>An instance of the
+		  <verb>Filters</verb> (see <ref
+		  refid="FiltersClassDescr">section</ref>) class. A
+		  None value means that the source properties are
+		  copied <em>as is</em>.
+		</item>
 		<term>copyuserattrs</term><item>Whether copy the user
 		  attributes of the source leaf to the destination or
 		  not. The default is copying them.
 		</item>
-		<term>title</term><item>The new title for
-		  destination. If None, the original title is copied.
-		</item>
-		<term>props</term><item>An instance of the
-		  <verb>LeafProps</verb> (see <ref
-		  refid="LeafPropsClassDescr">section</ref>) class. A
-		  None value means that the source properties are
-		  copied <em>as is</em>.
-		</item>
-		<term>slice</term><item>A Python <verb>slice</verb>
-		  instance that selects the range of the rows in the
-		  source leaf to be copied to destination. If None,
-		  all the rows are copied.
-		</item>
 	      </description>
+	    </p>
+
+	    <p>The meaning of the <em>start</em>, <em>stop</em> and
+	      <em>step</em> parameters is the same as in the
+	      <verb>range()</verb> python function, except that
+	      negative values of <verb>step</verb> are not
+	      allowed. Moreover, if only <verb>start</verb> is
+	      specified, then <verb>stop</verb> will be set to
+	      <verb>start+1</verb>. If you do not especify neither
+	      <em>start</em> nor <em>stop</em>, then <visual
+	      markup="bf">all the rows</visual> in the object are
+	      selected.
 	    </p>
 	  </subsubsection>
 
@@ -3684,7 +3660,14 @@ AttributeError: Error setting "ADCcount" attr.
 	  object is an instance of the <verb>Row</verb> class (see
 	  <ref refid="RowClassDescr"></ref>). See the tutorial
 	  sections <ref refid="usage">chapter</ref> on how to use the
-	  <verb>Row</verb> interface.
+	  <verb>Row</verb> interface. The columns of the tables can
+	  also be easily accessed (and more specifically, they can be
+	  read but not written) by making use of the
+	  <verb>Column</verb> class, through the use of an
+	  <em>extension</em> of the natural naming schema applied
+	  inside the tables. See the <ref
+	  refid="ColumnClassDescr">section</ref> for some examples of
+	  use of this capability.
 	</p>
 	<p>Note that this object inherits all the public attributes
 	  and methods that <verb>Leaf</verb> already has.
@@ -3701,29 +3684,31 @@ AttributeError: Error setting "ADCcount" attr.
 	    <term>row</term> <item>The <verb>Row</verb> instance for
 	      this table (see <ref
 	      refid="RowClassDescr"></ref>).</item>
-
-	    <term>nrows</term>
-	    <item>The number of rows in this table.</item>
-
-	    <term>colnames</term>
-	    <item>The field names for the table (list).</item>
-
-	    <term>coltypes</term>
-	    <item>The data types for the table fields (dictionary).</item>
-
-	    <term>colshapes</term>
-	    <item>The shapes for the table fields (dictionary).</item>
-
+	    <term>nrows</term> <item>The number of rows in this table.
+	    </item>
+	    <term>cols</term> <item>A <verb>Cols</verb> (see <ref
+		refid="ColsClassDescr">section</ref>) instance that
+		serves as accessor to <verb>Column</verb> (see <ref
+		refid="ColumnClassDescr">section</ref>) objects.
+	    </item>
+	    <term>colnames</term> <item>The field names for the table
+	      (list).
+	    </item>
+	    <term>coltypes</term> <item>The data types for the table
+	      fields (dictionary).
+	    </item>
+	    <term>colshapes</term> <item>The shapes for the table
+	      fields (dictionary).
+	    </item>
 	  </description>
-
 	</subsection>
 
 	<subsection>
-	  <heading><visual markup="tt">Table</visual> methods</heading>
-
+	  <heading><visual markup="tt">Table</visual> methods
+	  </heading>
 	  <subsubsection>
-	    <heading id="appendTableDescr">append(rows=None)</heading>
-
+	    <heading id="appendTableDescr">append(rows=None)
+	    </heading>
 	    <p>Append a series of rows to this <verb>Table</verb>
 	      instance. <em>rows</em> is an object that can keep the
 	      rows to be append in several formats, like a
@@ -3747,7 +3732,7 @@ class Particle(IsDescription):
     temperature = FloatCol(pos=5)      # double (double-precision)
 
 fileh = openFile("test4.h5", mode = "w")
-table = fileh.createTable(fileh.root, 'table', Particle, "A table",1)
+table = fileh.createTable(fileh.root, 'table', Particle, "A table")
 # Append several rows in only one call
 table.append([("Particle:     10", 10, 0, 10*10, 10**2),
               ("Particle:     11", 11, -1, 11*11, 11**2),
@@ -3994,6 +3979,101 @@ fileh.close()
 	  </subsubsection>
 	</subsection> <!-- Row -->
 
+	<subsection id="ColsClassDescr">
+	  <heading>The <visual markup="tt">Cols</visual> class</heading>
+
+	  <p>This class is used as an <em>accessor</em> to the table
+	    columns following the natural name convention, so that you
+	    can access the different columns because there exist one
+	    attribute with the name of the columns for each associated
+	    <verb>Column</verb> instances. Besides, and like the
+	    <verb>Row</verb> class, it works similar to a dictionary,
+	    where the keys are the column names of the associated
+	    table and the values are <verb>Column</verb>
+	    instances. See <ref refid="ColumnClassDescr">section</ref>
+	    for examples of use.
+	  </p>
+	</subsection> <!-- Cols -->
+
+	<subsection id="ColumnClassDescr">
+	  <heading>The <visual markup="tt">Column</visual> class</heading>
+
+	  <p>Each instance of this class is associated with one column
+	    of every table. These instances are used to fetch (but not
+	    set) actual data from the table columns. The access
+	    interface is like a regular list, and you can select
+	    individual values or slices.
+	  </p>
+
+	  <subsubsection>
+	    <heading><visual markup="tt">Column</visual> instance
+	      variables
+	    </heading>
+	    <description>
+	      <term>table</term> <item>The parent <verb>Table</verb>
+		instance.
+	      </item>
+	      <term>name</term> <item>The name of the associated
+		column.
+	      </item>
+	    </description>
+	  </subsubsection>
+	  <subsubsection>
+	    <heading><visual markup="tt">Column</visual>
+	      methods</heading>
+
+	    <description>
+	      <term>__getitem__(key)</term> <item>Returns a column
+		element or slice. It takes different actions depending
+		on the type of the <em>key</em> parameter:
+
+		If <em>key</em> is an integer, the corresponding
+		element in the column is returned as a scalar object
+		or as a <verb>NumArray</verb>/<verb>CharArray</verb>
+		object, depending on its shape. If <em>key</em> is a
+		slice, the row range determined by this slice is
+		returned as a <verb>NumArray</verb> or
+		<verb>CharArray</verb> object (whichever is
+		appropriate).
+	      </item>
+	    </description>
+
+	    <p>Example of use:
+	      <verbatim>
+print "Column handlers:"
+for name in table.colnames:
+    print table.cols[name]
+print
+print "Some selections:"
+print "Select table.cols.name[1]-->", table.cols.name[1]
+print "Select table.cols.name[1:2]-->", table.cols.name[1:2]
+print "Select table.cols.lati[1:3]-->", table.cols.lati[1:3]
+print "Select table.cols.pressure[:]-->", table.cols.pressure[:]
+print "Select table.cols['temperature'][:]-->", table.cols['temperature'][:]
+fileh.close()
+	      </verbatim>
+	      and the output of this for a certain arbitrary table is:
+	      <verbatim>
+Column handlers:
+/table.cols.name (Column(1,), CharType)
+/table.cols.lati (Column(2,), Int32)
+/table.cols.longi (Column(1,), Int32)
+/table.cols.pressure (Column(1,), Float32)
+/table.cols.temperature (Column(1,), Float64)
+
+Some selections:
+Select table.cols.name[1]--> Particle:     11
+Select table.cols.name[1:2]--> ['Particle:     11']
+Select table.cols.lati[1:3]--> [[11 12]
+ [12 13]]
+Select table.cols.pressure[:]--> [  90.  110.  132.]
+Select table.cols['temperature'][:]--> [ 100.  121.  144.]
+	      </verbatim>
+	      See the <verb>examples/table2.py</verb> for a more
+	      complete example.
+	    </p>
+	  </subsubsection> <!-- Column methods -->
+	</subsection> <!-- Column -->
       </section> <!-- Table -->
 
       <section id="ArrayClassDescr">
@@ -4619,7 +4699,13 @@ fileh.close()
       </section> <!-- AttributeSet class -->
 
       <section id="declarativeClasses">
-	<heading>Declarative classes</heading>
+	<heading>Declarative classes
+	</heading>
+	<p>In this section a series of classes that are meant to
+	  <em>declare</em> datatypes that are required for primary
+	  <verb>PyTables</verb> (like <verb>Table</verb> or
+	  <verb>VLArray</verb> ) objects are described.
+	</p>
 
 	<subsection id="IsDescriptionClassDescr">
 	  <heading>The <visual markup="tt">IsDescription</visual>
@@ -4942,7 +5028,6 @@ fileh.close()
 	    </item>
 	  </description>
 
-	  <!-- Modified by F. Alted 2003-01-16 -->
 	  <p>Now, there come two special classes,
 	    <verb>ObjectAtom</verb> and <verb>VLString</verb>, that
 	    actually do not descend from <verb>Atom</verb>, but which
@@ -5000,80 +5085,77 @@ fileh.close()
 	    </item>
 	  </description>
 
-	  <!-- End of modif F. Alted 2003-01-16 -->
-
-	  <p>See in this example how to use the different atom types:
-	  </p>
+<!-- 	  <p>See in this example how to use the different atom types: -->
+<!-- 	  </p> -->
 	  
-	  <verbatim>
-# -*- coding: latin-1 -*-
-from numarray import *
-from tables import *
+<!-- 	  <verbatim> -->
+<!-- # -*- coding: latin-1 -*- -->
+<!-- from numarray import * -->
+<!-- from tables import * -->
 
-# Open a new empty HDF5 file
-fileh = openFile("vlarray2.h5", mode = "w")
-# Get the root group
-root = fileh.root
-# Boolean arrays
-vlarray = fileh.createVLArray(root, 'vlarray1', BoolAtom(2), "Boolean atoms")
-vlarray.append([[1,0]])
-vlarray.append([1,0], [3,0], [0, 20])  # This will be converted to booleans
-# Unicode variable length strings (with Unicode support)
-vlarray = fileh.createVLArray(root, 'vlarray2', VLStringAtom(),
-                              "Variable Length String")
-vlarray.append(u"asd")
-vlarray.append(u"")   # The empty string
-vlarray.append(u"aaañá")
-# Create an VLArray made of objects
-vlarray = fileh.createVLArray(root, 'vlarray3', ObjectAtom(),
-                              "pickled object")
-vlarray.append({"passwd": "abracadabra"}) # A dictionary
-vlarray.append()  # An empty row
-vlarray.append(["123", "456"], "3") # Different objects (tuple) on a single row
-# Close the file
-fileh.close()
-# Open the file for reading
-fileh = openFile("vlarray2.h5", mode = "r")
-for vlarray in fileh.listNodes(fileh.root, "VLArray"):
-    print repr(vlarray)
-    for i in range(vlarray.nrows):
-        print "%s[%s] --> &lt;%s>" % (vlarray.name, i, vlarray[i])
-	  </verbatim>
+<!-- # Open a new empty HDF5 file -->
+<!-- fileh = openFile("vlarray2.h5", mode = "w") -->
+<!-- # Get the root group -->
+<!-- root = fileh.root -->
+<!-- # Boolean arrays -->
+<!-- vlarray = fileh.createVLArray(root, 'vlarray1', BoolAtom(2), "Boolean atoms") -->
+<!-- vlarray.append([[1,0]]) -->
+<!-- vlarray.append([1,0], [3,0], [0, 20])  # This will be converted to booleans -->
+<!-- # Unicode variable length strings (with Unicode support) -->
+<!-- vlarray = fileh.createVLArray(root, 'vlarray2', VLStringAtom(), -->
+<!--                               "Variable Length String") -->
+<!-- vlarray.append(u"asd") -->
+<!-- vlarray.append(u"")   # The empty string -->
+<!-- vlarray.append(u"aaañá") -->
+<!-- # Create an VLArray made of objects -->
+<!-- vlarray = fileh.createVLArray(root, 'vlarray3', ObjectAtom(), -->
+<!--                               "pickled object") -->
+<!-- vlarray.append({"passwd": "abracadabra"}) # A dictionary -->
+<!-- vlarray.append()  # An empty row -->
+<!-- vlarray.append(["123", "456"], "3") # Different objects (tuple) on a single row -->
+<!-- # Close the file -->
+<!-- fileh.close() -->
+<!-- # Open the file for reading -->
+<!-- fileh = openFile("vlarray2.h5", mode = "r") -->
+<!-- for vlarray in fileh.listNodes(fileh.root, "VLArray"): -->
+<!--     print repr(vlarray) -->
+<!--     for i in range(vlarray.nrows): -->
+<!--         print "%s[%s] -\-> &lt;%s>" % (vlarray.name, i, vlarray[i]) -->
+<!-- 	  </verbatim> -->
 
-	  <p>The output:</p>
+<!-- 	  <p>The output:</p> -->
 
-	  <verbatim>
-/vlarray1 (VLArray(2,)) 'Boolean atoms'
-  atom = Atom(type=Bool, shape=1, flavor='NumArray')
-  nrows = 2
-  flavor = 'NumArray'
-  byteorder = 'little'
-vlarray1[0] --> &lt;[1]>
-vlarray1[1] --> &lt;[1 0 1]>
-/vlarray2 (VLArray(3,)) 'Variable Length String'
-  atom = VLString()
-  nrows = 3
-  flavor = 'VLString'
-  byteorder = 'little'
-vlarray2[0] --> &lt;asd>
-vlarray2[1] --> &lt;>
-vlarray2[2] --> &lt;aaañá>
-/vlarray3 (VLArray(3,)) 'pickled object'
-  atom = Object()
-  nrows = 3
-  flavor = 'Object'
-  byteorder = 'little'
-vlarray3[0] --> &lt;{'passwd': 'abracadabra'}>
-vlarray3[1] --> &lt;None>
-vlarray3[2] --> &lt;(['123', '456'], '3')>
-	  </verbatim>
+<!-- 	  <verbatim> -->
+<!-- /vlarray1 (VLArray(2,)) 'Boolean atoms' -->
+<!--   atom = Atom(type=Bool, shape=1, flavor='NumArray') -->
+<!--   nrows = 2 -->
+<!--   flavor = 'NumArray' -->
+<!--   byteorder = 'little' -->
+<!-- vlarray1[0] -\-> &lt;[1]> -->
+<!-- vlarray1[1] -\-> &lt;[1 0 1]> -->
+<!-- /vlarray2 (VLArray(3,)) 'Variable Length String' -->
+<!--   atom = VLString() -->
+<!--   nrows = 3 -->
+<!--   flavor = 'VLString' -->
+<!--   byteorder = 'little' -->
+<!-- vlarray2[0] -\-> &lt;asd> -->
+<!-- vlarray2[1] -\-> &lt;> -->
+<!-- vlarray2[2] -\-> &lt;aaañá> -->
+<!-- /vlarray3 (VLArray(3,)) 'pickled object' -->
+<!--   atom = Object() -->
+<!--   nrows = 3 -->
+<!--   flavor = 'Object' -->
+<!--   byteorder = 'little' -->
+<!-- vlarray3[0] -\-> &lt;{'passwd': 'abracadabra'}> -->
+<!-- vlarray3[1] -\-> &lt;None> -->
+<!-- vlarray3[2] -\-> &lt;(['123', '456'], '3')> -->
+<!-- 	  </verbatim> -->
 
-	  <!-- Modified by F. Alted 2003-01-16 -->
-	  <p>See <verb>examples/vlarray2.py</verb> for further
-	    examples on <verb>VLArray</verb>s, including object
-	    serialization and Unicode string management.
+	  <p>See <verb>examples/vlarray1.py</verb> and
+	    <verb>examples/vlarray2.py</verb> for further examples on
+	    <verb>VLArray</verb>s, including object serialization and
+	    Unicode string management.
 	  </p>
-	  <!-- End of modif F. Alted 2003-01-16 -->
 
 	</subsection> <!-- Atom and its descendants -->
       </section> <!-- Declarative classes -->
@@ -5085,19 +5167,50 @@ vlarray3[2] --> &lt;(['123', '456'], '3')>
 	  other section and that mainly serves for ancillary
 	  purposes.</p>
 
-	<subsection id="LeafPropsClassDescr">
-	  <heading><visual markup="tt">LeafProps(complevel=0,
-	      complib="zlib", shuffle=1, fletcher32=0)</visual>
+	<subsection id="FiltersClassDescr">
+	  <heading>The <visual markup="tt">Filters</visual> class
 	  </heading>
 
-	  <p>This class is meant to easy the association of the
-	    different properties to the different enlargeable leafs
-	    (i.e. <verb>Table</verb>, <verb>EArray</verb> and
-	    <verb>VLArray</verb>). The parameters that can be passed
-	    to the constructor are described next:
+	  <p>This class is meant to serve as a container that keeps
+	    information about the filter properties associated wit the
+	    enlargeable leafs, that is <verb>Table</verb>,
+	    <verb>EArray</verb> and <verb>VLArray</verb>.
+	  </p>
+
+	  <p>The public variables of <verb>Filters</verb> are listed
+	    below:
 	  </p>
 
 	  <description>
+	    <term>complevel</term> <item>The compression level (0
+	      means no compression).
+	    </item>
+	    <term>complib</term> <item>The compression filter used (in
+	      case of compressed dataset).
+	    </item>
+	    <term>shuffle</term> <item>Whether the shuffle filter is
+	      active or not.
+	    </item>
+	    <term>fletcher32</term> <item>Whether the fletcher32
+	      filter is active or not.
+	    </item>
+	  </description>
+
+	  <p>There are no <verb>Filters</verb> public methods with the
+	    exception of the constructor itself that is described
+	    next.
+	  </p>
+
+	  <subsubsection id="FiltersInitDescr">
+	    <heading><visual markup="tt">Filters(complevel=0,
+		complib="zlib", shuffle=1, fletcher32=0)</visual>
+	    </heading>
+
+	    <p>The parameters that can be passed to the
+	      <verb>Filters</verb> class constructor are:
+	    </p>
+
+	    <description>
 	      <term>complevel</term> <item>Specifies a compress level
 		for data. The allowed range is 0-9. A value of 0
 		disables compression. The default is that compression
@@ -5108,39 +5221,66 @@ vlarray3[2] --> &lt;(['123', '456'], '3')>
 		library to be used. Right now, <verb>"zlib"</verb>
 		(default), <verb>"lzo"</verb> and <verb>"ucl"</verb>
 		values are supported. See <ref
-		refid="compressionIssues">section</ref> for some advice
+		  refid="compressionIssues">section</ref> for some advice
 		on which library is better suited to your needs.
 	      </item>
-              <term>shuffle</term><item>Whether or not to use the
-                <em>shuffle</em> filter present in the
-                <verb>HDF5</verb> library. This is normally used to
-                improve the compression ratio (at the cost of
-                consuming a little bit more CPU time). A value of 0
-                disables shuffling and 1 makes it active. The default
-                value depends on whether compression is enabled or
-                not; if compression is enabled, shuffling defaults to
-                be active, else shuffling is disabled.
-              </item>
+	      <term>shuffle</term><item>Whether or not to use the
+		<em>shuffle</em> filter present in the
+		<verb>HDF5</verb> library. This is normally used to
+		improve the compression ratio (at the cost of
+		consuming a little bit more CPU time). A value of 0
+		disables shuffling and 1 makes it active. The default
+		value depends on whether compression is enabled or
+		not; if compression is enabled, shuffling defaults to
+		be active, else shuffling is disabled.
+	      </item>
 	      <term>fletcher32</term> <item>Whether or not to use the
 		<em>fletcher32</em> filter in the HDF5 library. This
 		is used to add a checksum on each data chunk. A value
 		of 0 disables the checksum and it is the default.
 	      </item>
-	  </description>
-	  
-	  <p>Of course, you can also create an instance with default
-	    values, and then assign the ones you want to change. For
-	    example:
-	    <verbatim>
-props = LeafProps()
-props.complevel = 1
-	    </verbatim>
-	    Then, you can use this <em>props</em> instance to enforce
-	    a level compression of 1 on any call that supports a
-	    <verb>LeafProps</verb> instance parameter.
-	  </p>
+	    </description>
+	    
+	    <p>Of course, you can also create an instance and then
+	      assign the ones you want to change. For example:
+	      <verbatim>
+import numarray as na
+from tables import *
 
-	</subsection> <!-- LeafProps class -->
+fileh = openFile("test5.h5", mode = "w")
+form = na.zeros(type=na.Float32, shape=(0,2))
+filters = Filters(complevel=1, complib = "lzo")
+filters.fletcher32 = 1
+arr = fileh.createEArray(fileh.root, 'earray', form, "A growable array",
+                         filters = filters)
+# Append several rows in only one call
+arr.append(na.array([[1., 2.],
+                     [2., 3.],
+                     [3., 4.]], type=na.Float32))
+
+# Print information on that enlargeable array
+print "Result Array:"
+print repr(arr)
+
+fileh.close()
+	      </verbatim>
+	      This enforces the use of the <verb>LZO</verb> library, a
+	      compression level of 1 and a fletcher32 checksum filter
+	      as well. See the output of this example:
+	      <verbatim>
+Result Array:
+/earray (EArray(3L, 2), fletcher32, shuffle, lzo(1)) 'A growable array'
+  type = Float32
+  shape = (3L, 2)
+  itemsize = 4
+  nrows = 3
+  extdim = 0
+  flavor = 'NumArray'
+  byteorder = 'little'
+	      </verbatim>
+	    </p>
+	  </subsubsection> <!-- Filters constructor method -->
+	</subsection> <!-- Filters class -->
       </section> <!-- Helper classes -->
     </chapter>
 
@@ -5438,14 +5578,14 @@ if __name__=="__main__":
 
 	<p> You can select the compression library and level by
 	  setting the <verb>complib</verb> and <verb>compress</verb>
-	  keywords in the <verb>createTable</verb> method (see <ref
-	    refid="createTableDescr"></ref>). A compression level of 0
-	  will completely disable compression (the default), 1 is
-	  the less CPU time demanding level, while 9 is the maximum
-	  level and most CPU intensive. Finally, have in mind that
-	  LZO is not accepting a compression level right now, so,
-	  when using LZO, 0 means that compression is not active,
-	  and any other value means that LZO is active.
+	  keywords in the <verb>Filters</verb> class (see <ref
+	  refid="FiltersClassDescr"></ref>). A compression level of 0
+	  will completely disable compression (the default), 1 is the
+	  less CPU time demanding level, while 9 is the maximum level
+	  and most CPU intensive. Finally, have in mind that LZO is
+	  not accepting a compression level right now, so, when using
+	  LZO, 0 means that compression is not active, and any other
+	  value means that LZO is active.
 	</p>
 
       </section>
