@@ -7,6 +7,9 @@ from tables import *
 
 from test_all import verbose
 
+file = ""
+fileh = None
+
 def WriteRead(testTuple):
     if verbose:
         print '\n', '-=' * 30
@@ -14,6 +17,8 @@ def WriteRead(testTuple):
                   (type(testTuple))
 
     # Create an instance of HDF5 Table
+    global file
+    global fileh
     file = tempfile.mktemp(".h5")
     fileh = openFile(file, mode = "w")
     root = fileh.root
@@ -40,15 +45,14 @@ def WriteRead(testTuple):
         print "Object written:", a
         print "Object read:", b
 
+
     # Check strictly the array equality
     assert a == b
 
     # Close the file (eventually destroy the extended type)
     fileh.close()
-
     # Then, delete the file
     os.remove(file)
-
     return
     
 class BasicTestCase(unittest.TestCase):
@@ -72,10 +76,17 @@ class ExceptionTestCase(unittest.TestCase):
     def test00_char(self):
         "Non suppported lists objects (character objects)"
 
+	global file
+	global fileh
+	
         a = self.charList
         try:
             WriteRead(a)
         except ValueError:
+	    # Close the file (eventually destroy the extended type)
+	    fileh.close()
+	    # Then, delete the file
+	    os.remove(file)
             if verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next ValueError was catched!"
@@ -89,10 +100,17 @@ class ExceptionTestCase(unittest.TestCase):
     def test01_types(self):
         "Non supported lists object (numerical types)"
         
+	global file
+	global fileh
+	
         a = self.numericalList
         try:
             WriteRead(a)
         except ValueError:
+	    # Close the file (eventually destroy the extended type)
+	    fileh.close()
+	    # Then, delete the file
+	    os.remove(file)
             if verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next ValueError was catched!"

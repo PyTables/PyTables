@@ -1,7 +1,7 @@
 README.txt
 PyTables 0.4 (This is first beta version)
 http://pytables.sf.net/
-March 07, 2003
+March 18, 2003
 --------------------------------------
 
 The goal of PyTables is to enable the end user to manipulate easily
@@ -61,8 +61,8 @@ In particular, I foresee problems on platforms that do not support the
 GB).
 
 This package has also been successfully tested on a UltraSparc
-platform with Solaris 7 and on a SGI Origin2000 with MIPS R12000
-processors running IRIX 6.5.
+platform with Solaris 7 and Solaris 8, and on a SGI Origin2000 with
+MIPS R12000 processors running IRIX 6.5.
 
 Installation
 ------------
@@ -131,6 +131,15 @@ fairly simple to get things ready to go.
    For example:
 
         python test_types.py -v
+
+   If there is some test that do not pass, please, run the failing
+   test module with all verbosity enabled (flags -v verbose), and send
+   back the output to me.
+
+   If you run into problems because Python can't load the HDF5 shared
+   libraries, try to set the LD_LIBRARY_PATH environment variable to
+   point to the directory where the libraries are.
+
 
 4. To install the entire PyTables Python package, change back to the
    root distribution directory and run this command as the root user

@@ -4,13 +4,22 @@ Announcing PyTables 0.4
 What's new
 -----------
 
-- First beta release (programming API is stable)
+- First beta release (programming API will be stable)
+
 - numarray objects (NumArray, CharArray and RecArray) supported
-- Performance has been improved by a factor of 10 (see "How Fast Is It?")
+
+- As a consequence of a large internal code redesign (numarray is at
+  the core of PyTables now), performance has been improved by a factor
+  of 10 (see "How Fast Is It?" section)
+
 - It consumes far less memory than previous version
+
 - Support for reading generic HDF5 files added (!)
+
 - Some bugs and memory leaks existing in 0.2 solved
+
 - Updated documentation
+
 - Added more unit tests (more than 200 now!)
 
 What it is
@@ -64,7 +73,7 @@ When compared with SQLite, one of the fastest (free) relational
 databases available, PyTables achieves between a 60% and 80% the speed
 of SQLite during selects of dataset sizes that fit in the
 O.S. filesystem memory cache, but when those sizes does not fit on the
-cache (i.e. when dealing whith large amounts of data), PyTables beats
+cache (i.e. when dealing with large amounts of data), PyTables beats
 SQLite by a factor of 2 or even more (depending on the kind of record
 selected), and its performance in this case is only limited by the I/O
 speed of the disk subsystem.
@@ -77,9 +86,9 @@ Platforms
 
 I'm using Linux as the main development platform, but PyTables should
 be easy to compile/install on other UNIX machines. This package has
-also passed all the tests on a UltraSparc platform with Solaris 7. It
-also compiles and passes all the tests on a SGI Origin2000 with MIPS
-R12000 processors and running IRIX 6.5.
+also passed all the tests on a UltraSparc platform with Solaris 7 and
+Solaris 8. It also compiles and passes all the tests on a SGI
+Origin2000 with MIPS R12000 processors and running IRIX 6.5.
 
 If you are using Windows and you get the library to work, please let
 me know.
@@ -87,9 +96,8 @@ me know.
 An example?
 -----------
 
-At the bottom of this message there is some code (less that 100 lines
-and only less than half being real code) that shows basic capabilities
-of PyTables.
+At the bottom of this message there is some code that shows basic
+capabilities of PyTables.
 
 Web site
 --------
@@ -101,111 +109,67 @@ http://pytables.sf.net/
 Final note
 ----------
 
-This is the second alpha release, probably last alpha. There is still
-if you want to suggest some API or useful capability addition or. Let
-me know of any bugs, suggestions, gripes, kudos, etc. you may have.
+This is the first public beta release. From now on, the API will
+remain mostly stable, so you can start using PyTables now with the
+guarantee that you code will (well, mostly ;-) also work in the
+future. The large amount of unit tests included in PyTables will also
+ensure the backward compatibility as well as the quality of future
+releases will remain at least as it is now (hopefully still better!).
+
+Let me know of any bugs, suggestions, gripes, kudos, etc. you
+may have.
 
 -- Francesc Alted
 falted@openlc.org
 
 
 *-*-*-**-*-*-**-*-*-**-*-*- Small code example  *-*-*-**-*-*-**-*-*-**-*-*-*
-"""Small but quite comprehensive example showing the use of PyTables.
-
-The program creates an output file, 'tutorial1.h5'.  You can view it
-with any HDF5 generic utility.
-
-"""
-
-
-import sys
-from Numeric import *
 from tables import *
 
-
-	#'-**-**-**-**-**-**- user record definition  -**-**-**-**-**-**-**-'
-
-# Define a user record to characterize some kind of particles
 class Particle(IsDescription):
-    name      = Col('CharType', 16)  # 16-character String
-    idnumber  = Col("UInt64", 1)     # Unsigned long long 
-    ADCcount  = Col("UInt16", 1)     # Unsigned short integer
-    TDCcount  = Col("UInt8", 1)      # unsigned byte
-    grid_i    = Col("Int32", 1)      # integer
-    grid_j    = Col("Int32", 1)      # integer
-    pressure  = Col("Float32", 1)    # float  (single-precision)
-    energy    = Col("Float64", 1)    # double (double-precision)
-
-print
-print	'-**-**-**-**-**-**- file creation  -**-**-**-**-**-**-**-'
-
-# The name of our HDF5 filename
-filename = "tutorial1.h5"
-    
-print "Creating file:", filename
+    identity = Col("CharType", 22, " ", pos = 0)  # character String
+    idnumber = Col("Int16", 1, pos = 1)  # short integer
+    speed = Col("Float32", 1, pos = 1)  # single-precision
 
 # Open a file in "w"rite mode
-h5file = openFile(filename, mode = "w", title = "Test file")
+fileh = openFile("objecttree.h5", mode = "w")
+# Get the HDF5 root group
+root = fileh.root
 
-print
-print	'-**-**-**-**-**-**- group an table creation  -**-**-**-**-**-**-**-'
+# Create the groups:
+group1 = fileh.createGroup(root, "group1")
+group2 = fileh.createGroup(root, "group2")
 
-# Create a new group under "/" (root)
-group = h5file.createGroup("/", 'detector', 'Detector information')
-print "Group '/detector' created"
+# Now, create a table in "group0" group
+array1 = fileh.createArray(root, "array1", ["string", "array"], "String array")
+# Create 2 new tables in group1
+table1 = fileh.createTable(group1, "table1", Particle)
+table2 = fileh.createTable("/group2", "table2", Particle)
+# Create the last table in group2
+array2 = fileh.createArray("/group1", "array2", [1,2,3,4])
 
-# Create one table on it
-table = h5file.createTable(group, 'readout', Particle, "Readout example")
-print "Table '/detector/readout' created"
+# Now, fill the tables:
+for table in (table1, table2):
+    # Get the record object associated with the table:
+    row = table.row
+    # Fill the table with 10 records
+    for i in xrange(10):
+        # First, assign the values to the Particle record
+        row['identity']  = 'This is particle: %2d' % (i)
+        row['idnumber'] = i
+        row['speed']  = i * 2.
+        # This injects the Record values
+        row.append()
 
-# Get a shortcut to the record object in table
-particle = table.row
+    # Flush the table buffers
+    table.flush()
 
-# Fill the table with 10 particles
-for i in xrange(10):
-    particle['name']  = 'Particle: %6d' % (i)
-    particle['TDCcount'] = i % 256    
-    particle['ADCcount'] = (i * 256) % (1 << 16)
-    particle['grid_i'] = i 
-    particle['grid_j'] = 10 - i
-    particle['pressure'] = float(i*i)
-    particle['energy'] = float(particle['pressure'] ** 4)
-    particle['idnumber'] = i * (2 ** 34)
-    # Insert a new particle record
-    particle.append()
-
-# Flush the buffers for table
-table.flush()
-
-print
-print	'-**-**-**-**-**-**- table data reading & selection  -**-**-**-**-**-'
-
-# Read actual data from table. We are interested in collecting pressure values
+# Select actual data from table.
 # on entries where TDCcount field is greater than 3 and pressure less than 50
-pressure = [ x['pressure'] for x in table.iterrows()
-             if x['TDCcount'] > 3 and x['pressure'] < 50 ]
-print "Last record read:"
-print x
-print "Field pressure elements satisfying the cuts ==>", pressure
+out = [ x['identity'] for x in table.iterrows()
+        if x['idnumber'] > 3 and 4 < x['speed'] < 10 ]
 
-# Read also the names with the same cuts
-names = [ x['name'] for x in table.iterrows()
-          if x['TDCcount'] > 3 and x['pressure'] < 50 ]
+print out
 
-print
-print	'-**-**-**-**-**-**- array object creation  -**-**-**-**-**-**-**-'
-
-print "Creating a new group called '/columns' to hold new arrays"
-gcolumns = h5file.createGroup(h5file.root, "columns", "Pressure and Name")
-
-print "Creating a Numeric array called 'pressure' under '/columns' group"
-h5file.createArray(gcolumns, 'pressure', array(pressure), 
-                   "Pressure column selection")
-
-print "Creating another Numeric array called 'name' under '/columns' group"
-h5file.createArray('/columns', 'name', names, "Name column selection")
-
-# Close the file
-h5file.close()
-print "File '"+filename+"' created"
-
+# Finally, close the file (this also will flush all the remaining buffers!)
+fileh.close()

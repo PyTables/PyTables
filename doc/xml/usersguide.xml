@@ -476,7 +476,7 @@ fileh.close()
 	  markup="tt">PyTables</visual> user, take your time to
 	  understand it<footnote>Bear in mind, however, that this
 	  diagram is <visual markup="bf">not</visual> a standard UML
-	  class diagram; it is rather meant to show the connexions
+	  class diagram; it is rather meant to show the connections
 	  between the <verb>PyTables</verb> objects and some of its
 	  most important attributes and methods.</footnote>. That will
 	  also make you more proactive by avoiding programming
@@ -526,7 +526,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	package. Although you won't need <verb>Numerical Python</verb>
 	(see <cite refid="Numeric"></cite>) in order to compile
 	PyTables, it is supported; you only will need a reasonably
-	recent version of it (>= 21.x). PyTables has been succesfully
+	recent version of it (>= 21.x). PyTables has been successfully
 	tested with Numeric 21.3, 22.0 and 23.0. If you have
 	<verb>Numeric</verb> installed, the test driver module will
 	detect it and will run the tests for <verb>Numeric</verb>
@@ -631,8 +631,8 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	    <verb>-v verbose</verb>), and send back the output to
 	    developers.
 	  </p>
-	  <p>If you run into problems because Python can't load hdf5
-	    shared libraries, try to set the
+	  <p>If you run into problems because Python can't load the
+	    HDF5 shared libraries, try to set the
 	    <verb>LD_LIBRARY_PATH</verb> environment variable to point
 	    to the directory where the libraries are.
 	  </p>
@@ -2157,7 +2157,7 @@ AttributeError: Error accessing "ADCcount" attr.
 	<p>
 	  This class is used as a mean to declare the different
 	  properties of a column of a table. The only public method
-	  accesible is the constructor itself.
+	  accessible is the constructor itself.
 	</p>
 
 	<description>
@@ -2471,7 +2471,7 @@ AttributeError: Error accessing "ADCcount" attr.
 
 		<term>attrvalue</term> <item>The value of the
 		  attribute to set. Only strings attributes are
-		  supported natively rigth now. However, you can
+		  supported natively right now. However, you can
 		  always use <verb>(c)Pickle</verb> so as to serialize
 		  any object you want save therein.
 		</item>
