@@ -269,6 +269,24 @@ for p in table.readAsRecords():
     print p.name, '-->', p.pressure
 print
 
+# Several range selections
+print "Extended slice in selection: [1:7:2]"
+print table[1:7:2]
+print "Extended slice in selection: [1:7:3]"
+print table[1:7:3]
+print "Extended slice in selection: [1:7:4]"
+print table[1:7:4]
+print "Extended slice in selection: [1:7:5]"
+print table[1:7:5]
+print "Extended slice in selection: [1:7:6]"
+print table[1:7:6]
+print "Extended slice in selection: [0:7:6]"
+print table[0:7:6]
+print "Sigle record in selection: [1]"
+print table[1]
+print "Last record in selection: [-1]"
+print table[-1]
+
 # Print a recarray in table form
 table = h5file.root.detector.recarray2
 print "recarray2:", table
@@ -280,7 +298,7 @@ for p in table.readAsRecords():
     print p.c1, '|', p.c2, '|', p.c3, '|', p.c4
 print
 
-
+print table[:]
 
 # Close this file
 h5file.close()

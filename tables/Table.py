@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.13 2003/02/03 20:24:19 falted Exp $
+#       $Id: Table.py,v 1.14 2003/02/05 13:01:36 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.13 $"
+__version__ = "$Revision: 1.14 $"
 
 from __future__ import generators
 import sys
@@ -422,40 +422,84 @@ class Table(Leaf, hdf5Extension.Table):
                 varsdict["_row"] = j  # Up to 186000 lines/s
                 yield vars
         
-    def readAsRecords_old(self):
-        """Return an iterator yielding record instances built from rows
-
-        This method is a generator, i.e. it keeps track on the last
-        record returned so that next time it is invoked it returns the
-        next available record. It is slower than readAsTuples but in
-        exchange, it returns full-fledged instance records.
-
-        """
-        # Create a buffer for the readout
-        nrowsinbuf = self._v_maxTuples
-        buffer = self.newBuffer(init=0)  # Get a recarray as buffer
-        vars = buffer._row   # get the pointer to the Record object
-        varsdict = vars.__dict__
-        s = vars.__dict__.__setitem__
-        for i in xrange(0, self.nrows, nrowsinbuf):
-            # Creating a new buffer here force to load all the
-            # table in-memory! Don't do that!
-            #buffer = self.newBuffer(init=0)  # Get a recarray as buffer
-            #vars = buffer._row   # get the pointer to the Record object
-            #varsdict = vars.__dict__
+    def getRows(self, start, stop, step = 1):
+        # Create a recarray for the readout
+        if start == -1:
+            start = self.nrows - 1
+            stop = self.nrows
+        if stop == -1:
+            stop = self.nrows
+        if stop > self.nrows:
+            stop = self.nrows
+        #print " start, stop, step:", start, stop, step
+        nrows = len(range(start, stop, step)) # a calcular!
+        # Create the resulting recarray
+        result = recarray.array(None, formats=self.record._v_recarrfmt,
+                                shape=(nrows,),
+                                names = self.varnames)
+        # Setup a buffer for the readout
+        nrowsinbuf = self._v_maxTuples   # Shortcut
+        # nrowsinbuf = 3   # Small value is useful when debugging
+        buffer = self._v_buffer  # Get a recarray as buffer
+        nrowsread = start
+        startr = 0
+        gap = 0
+        nextelement = start
+        # This a efficient, although somewhat complicated algorithm
+        # so as to get a selection of a table using an extended range
+        # May be is it possible to simplify it??
+        for i in xrange(start, stop, nrowsinbuf):
+            if nextelement >= nrowsread + nrowsinbuf:
+                nrowsread += nrowsinbuf
+                continue
+            startb = gap
+            stopb = stop - nrowsread
+            if stopb > nrowsinbuf:
+                stopb = nrowsinbuf
+            stopr = startr + len(range(startb,stopb,step))
+            if stopr > nrows:
+                break
+            #print "startb, stopb, startr, stopr",\
+            #      startb, stopb, startr, stopr
             recout = self.read_records(i, nrowsinbuf, buffer)
-            #varsdict["_row"] = 0
-            for j in xrange(recout):
-                # It is faster to assign the "_row" attribute directly
-                #vars(j)   # this get 50000 lines/s 
-                #vars.__dict__["_row"] = j  # Up to 170000 lines/s
-                varsdict["_row"] = j  # Up to 186000 lines/s
-                #s("_row", j)  # Up to 170000 lines/s
-                # This method maintains the performance (in lines/s figures)
-                # when the rowsize grows (i.e it scales very well!)
-                yield vars
-                #varsdict["_row"] += 1  # Up to 174000 lines/s
-        
+            result[startr:stopr] = buffer[startb:stopb:step]
+            nrowsread += nrowsinbuf
+            startr = stopr
+            if step < nrowsinbuf:
+                gap = (stopb - startb) % step
+            else:
+                gap = step % nrowsinbuf
+                nextelement = startb + step 
+
+        # Get the appropriate rows according to step
+        # Also, make a copy in order to get a contiguous recarray
+
+        # Explicitely delete the last reference to buffer
+        del buffer
+        result._byteorder = self._v_byteorder
+        #if result._byteorder <> sys.byteorder:
+        #    result.byteswap()
+        return result
+    
+    def __getitem__(self, slice):
+
+        #print "Slice -->", slice
+        if isinstance(slice, types.IntType):
+            step = 1
+            start = slice
+            stop = start + 1
+        else:
+            start = slice.start
+            if start is None:
+                start = 0
+            stop = slice.stop
+            if stop is None:
+                stop = -1
+            step = slice.step
+            if step is None:
+                step = 1
+        return self.getRows(start, stop, step)
+
     def readAsTuples(self):
         """Returns an iterator yielding tuples built from rows
         

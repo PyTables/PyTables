@@ -432,9 +432,16 @@ class RecArray(mda.NDArray):
 
     def field(self, fieldName):
         """ get the field data as a numeric array """
-
+        # Check if stride has changed from last call
+        # I think this would be safe when multidimensional extensions comes
+        #print "Strides2:", self._strides[0],"recarray"
+        #print "Strides2:", self._fields[fieldName]._strides[0],"numarray"
+        if self._fields[fieldName]._strides[0] <> self._strides[0]:
+            self._fields = self._get_fields()  # Refresh the cache
+            #self._row._array = self
+            #self._row = Row(self)  # Refreseh the Row instance
         return self._fields[fieldName]
-        
+
     def info(self):
         """display instance's attributes (except _data)"""
         _attrList = dir(self)
@@ -444,6 +451,14 @@ class RecArray(mda.NDArray):
             print '%s = %s' % (attr, getattr(self,attr))
 
     def __str__(self):
+        outstr = 'RecArray[ \n'
+        for i in self:
+            outstr += Record.__str__(i) + ',\n'
+        return outstr[:-2] + '\n]'
+
+    # This doesn't work if printing strided recarrays
+    # this should be further investigated
+    def __str__0(self):
         """ return a string representation of this object """
 
         # This __str__ is around 30 times faster than the original one
@@ -520,6 +535,7 @@ class Row:
         try:
             #value = self._fields[fieldName][self._row]
             return self._fields[fieldName][self._row]
+            #return self._array.field(fieldName)[self._row]
         except:
             (type, value, traceback) = sys.exc_info()
             raise AttributeError, "Error accessing \"%s\" attr.\n %s" % \
@@ -534,6 +550,7 @@ class Row:
         """ set the field data of the record"""
 
         self._fields[fieldName][self._row] = value
+        #self._array.field(fieldName)[self._row] = value
 
     def __str__(self):
         """ represent the record as an string """
@@ -541,6 +558,7 @@ class Row:
         outlist = []
         for name in self._array._names:
             outlist.append(`self._fields[name][self._row]`)
+            #outlist.append(`self._array.field(name)[self._row]`)
         return "(" + ", ".join(outlist) + ")"
 
     def _all(self):
@@ -549,6 +567,7 @@ class Row:
         outlist = []
         for name in self._fields:
             outlist.append(self._fields[name][self._row])
+            #outlist.append(self._array.field(name)[self._row])
         return outlist
 
 class Record:
@@ -572,18 +591,15 @@ class Record:
     def field(self, fieldName):
         """ get the field data of the record"""
 
-        #return self.array.field(fieldName)[self.row]
         return self.array.field(fieldName)[self.row]
 
     def __str__(self):
         outstr = '('
-        #for i in range(self.array._nfields):
-        #    print self.array.field(i)[self.row]
         for name in self.array._names:
-            #print self.array.field(name)[self.row]
-            #print self.array._fields[name][self.row]
             ### this is not efficient, need to know how to convert N-bytes to each data type
             outstr += `self.array.field(name)[self.row]` + ', '
+            # The next line doesn't work well with strided arrays
+            #outstr += `self.array._fields[name][self.row]` + ', '
         return outstr[:-2] + ')'
 
 def index_of(nameList, key):
