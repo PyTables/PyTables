@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.16 2003/07/27 20:40:16 falted Exp $
+#       $Id: IsDescription.py,v 1.17 2003/08/05 15:39:05 falted Exp $
 #
 ########################################################################
 
@@ -26,7 +26,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.16 $"
+__version__ = "$Revision: 1.17 $"
 
 
 import warnings
@@ -283,145 +283,27 @@ class Float64Col(FloatCol):
         FloatCol.__init__(self, dflt , shape=shape, itemsize=8, pos=pos)
         
     
-class metaIsDescription(type):
-    """
-    
-    metaclass for Table "Col"umn "Descr"iption: implicitly defines
-    __slots__, __init__ __repr__ and some others from variables bound
-    in class scope.
+class Description(object):
 
-    An instance of metaIsDescription (a class whose metaclass is
-    metaIsDescription) defines only class-scope variables (and
-    possibly special methods, but NOT __init__ and __repr__!).
-    metaIsDescription removes those variables from class scope,
-    snuggles them instead as items in a class-scope dict named
-    __dflts__, and puts in the class a __slots__ listing those
-    variables' names, an __init__ that takes as optional keyword
-    arguments each of them (using the values in __dflts__ as defaults
-    for missing ones), and a __repr__ that shows the repr of each
-    attribute that differs from its default value (the output of
-    __repr__ can be passed to __eval__ to make an equal instance, as
-    per the usual convention in the matter).
+    # define as local functions the __init__ and __repr__ that we'll
+    # use in the new class
+    def __init__(self, classdict):
 
-    Author:
-    
-    This metaclass is loosely based on an example from Alex Martelli
-    (http://mail.python.org/pipermail/python-list/2002-July/112007.html)
-    However, I've modified things quite a bit, and the ultimate goal
-    has changed.
-
-    """
-
-    def __new__(cls, classname, bases, classdict):
-        """ Everything needs to be done in __new__, since type.__new__ is
-            where __slots__ are taken into account.
-        """
-
-        # define as local functions the __init__ and __repr__ that we'll
-        # use in the new class
-        def __init__(self, **kw):
-            """ Simplistic __init__: first set all attributes to default
-                values, then override those explicitly passed in kw.
-            """
-            # Initialize this values
-            for k in self.__dflts__: setattr(self, k, self.__dflts__[k])
-            # Initialize the values passed as keyword parameters
-            for k in kw:
-                setattr(self, k, kw[k])
-
-	def __repr__orig(self):
-            """ Gives a Table representation ready to be passed to eval
-            """
-            rep = [ '\"%s\": Col(\"%s\", shape=%r, itemsize=%s)' %  \
-                    (k, self.__types__[k], self._v_shapes[k],
-                     self._v_itemsizes[k])
-                    for k in self.__slots__ ]
-            return '{ %s }' % (',\n  '.join(rep))
-	
-	def __repr__(self):
-            """ Gives a Table representation ready to be passed to eval
-            """
-            rep = [ '\"%s\": %r' %  \
-                    (k, self._v_ColObjects[k])
-                    for k in self.__slots__ ]
-            return '{\n    %s }' % (',\n    '.join(rep))
-	
-        def __str__(self):
-            """ Gives a Table representation for printing purposes
-            """
-            rep = [ '%s(%r%r)' %  \
-                    (k, self.__types__[k], self._v_shapes[k])
-                    for k in self.__slots__ ]
-            return '[%s]' % (', '.join(rep))
-
-        # Moved out of scope
-        def _f_del__(self):
-            print "Deleting IsDescription object"
-
-        def testtype(object):
-            """Test if datatype is valid and returns a default value for
-            each one.
-            """
-            datatype = object.rectype
-            if datatype in ('b', 'B', 'h', 'H', 'i', 'I', 'l', 'L', 'q', 'Q'):
-                dfltvalue = int(0)
-            elif datatype in ('f', 'd'):
-                dfltvalue = float(0)
-            elif datatype in ('c',):
-                dfltvalue = str(" ")
-            # Add more code to check for validity on string type!
-            elif datatype.find("s") != -1:
-                dfltvalue = str("")
-            else:
-                raise TypeError, "DataType \'%s\' not supported!." \
-                      % datatype
-            return dfltvalue
-        
-        # Build the newdict that we'll use as dict for the new class.
-        # Warning!. You have to list here all attributes and methods
-        # you want see exported to the new Description class.
-
-        newdict = { '__slots__':[], '__types__':{}, '__dflts__':{},
-                    '__init__':__init__, '__repr__':__repr__,
-                    '__str__':__str__,
-                    '_v_fmt': "", '_v_recarrfmt': "",
-                    "_v_shapes":{}, "_v_itemsizes":{},
-                    '_v_formats':[], "_v_ColObjects":{},
-                    }
-        
-
-        def cmpkeys(key1, key2):
-            """Helps .sort() to respect pos field in type definition"""
-            # Do not try to order variables that starts with special
-            # prefixes
-            if ((key1.startswith('__') or key1.startswith('_v_')) and
-                (key2.startswith('__') or key2.startswith('_v_'))):
-                return 0
-            # A variable that starts with a special prefix
-            # is always greater than a normal variable
-            elif (key1.startswith('__') or key1.startswith('_v_')):
-                return 1
-            elif (key2.startswith('__') or key2.startswith('_v_')):
-                return -1
-            pos1 = classdict[key1].pos
-            pos2 = classdict[key2].pos
-            # pos = None is always greater than a number
-            if pos1 == None:
-                return 1
-            if pos2 == None:
-                return -1
-            if pos1 < pos2:
-                return -1
-            if pos1 == pos2:
-                return 0
-            if pos1 > pos2:
-                return 1
-
+        self.classdict = classdict
         keys = classdict.keys()
+        newdict = self.__dict__
+        newdict["__names__"] = []
+        newdict["__types__"] = {}
+        newdict["__dflts__"] = {}
+        newdict["_v_ColObjects"] = {}
+        newdict["_v_shapes"] = {}
+        newdict["_v_itemsizes"] = {}
+        newdict["_v_fmt"] = ""
+        newdict["_v_recarrfmt"] = ""
         # Check if we have any .pos position attribute
         for column in classdict.values():
             if hasattr(column, "pos") and column.pos:
-                keys.sort(cmpkeys)
+                keys.sort(self.cmpkeys)
                 break
         else:
             # No .pos was set
@@ -442,9 +324,7 @@ class metaIsDescription(type):
                     #print "Special variable!:", k
                     newdict[k] = classdict[k]
             else:
-                # class variables, store name in __slots__ and name and
-                # value as an item in __dflts__
-
+                # Class variables
                 # Check for key name validity
                 checkNameValidity(k)
                 object = classdict[k]
@@ -456,13 +336,13 @@ class metaIsDescription(type):
   columns. Expected a Col instance and got: "%s"
 
 """ % object
-                newdict['__slots__'].append(k)
+                newdict['__names__'].append(k)
                 newdict['_v_ColObjects'][k] = object
                 newdict['__types__'][k] = object.type
                 if hasattr(object, 'dflt') and not object.dflt is None:
                     newdict['__dflts__'][k] = object.dflt
                 else:
-                    newdict['__dflts__'][k] = testtype(object)
+                    newdict['__dflts__'][k] = self.testtype(object)
 
                 # Special case for strings: "aN"
                 if object.recarrtype == "a":
@@ -498,8 +378,99 @@ class metaIsDescription(type):
         # Strip the last comma from _v_recarrfmt
         newdict['_v_recarrfmt'] = ','.join(recarrfmt)
         # finally delegate the rest of the work to type.__new__
-        return type.__new__(cls, classname, bases, newdict)
+        return
 
+    def __repr__(self):
+        """ Gives a Table representation ready to be passed to eval
+        """
+        rep = [ '\"%s\": %r' %  \
+                (k, self._v_ColObjects[k])
+                for k in self.__names__]
+        return '{\n    %s }' % (',\n    '.join(rep))
+
+    def __str__(self):
+        """ Gives a Table representation for printing purposes
+        """
+        rep = [ '%s(%r%r)' %  \
+                (k, self.__types__[k], self._v_shapes[k])
+                for k in self.__names__ ]
+        return '[%s]' % (', '.join(rep))
+
+    def _close(self):
+        #del self.__slots__
+        #print self._v_ColObjects
+        self._v_ColObjects.clear()
+        #del self.__dict__["_v_ColObjects"]
+        self._v_itemsizes.clear()
+        self._v_shapes.clear()
+        #self.__dflts__.clear()
+        #del self.__slots__["_v_ColObjects"]
+        #self._v_formats = None
+        self.__types__.clear()
+        #self.__dict__.clear()
+        return
+
+    def testtype(self, object):
+        """Test if datatype is valid and returns a default value for
+        each one.
+        """
+        datatype = object.rectype
+        if datatype in ('b', 'B', 'h', 'H', 'i', 'I', 'l', 'L', 'q', 'Q'):
+            dfltvalue = int(0)
+        elif datatype in ('f', 'd'):
+            dfltvalue = float(0)
+        elif datatype in ('c',):
+            dfltvalue = str(" ")
+        # Add more code to check for validity on string type!
+        elif datatype.find("s") != -1:
+            dfltvalue = str("")
+        else:
+            raise TypeError, "DataType \'%s\' not supported!." \
+                  % datatype
+        return dfltvalue
+
+    def cmpkeys(self, key1, key2):
+        """Helps .sort() to respect pos field in type definition"""
+        # Do not try to order variables that starts with special
+        # prefixes
+        if ((key1.startswith('__') or key1.startswith('_v_')) and
+            (key2.startswith('__') or key2.startswith('_v_'))):
+            return 0
+        # A variable that starts with a special prefix
+        # is always greater than a normal variable
+        elif (key1.startswith('__') or key1.startswith('_v_')):
+            return 1
+        elif (key2.startswith('__') or key2.startswith('_v_')):
+            return -1
+        pos1 = self.classdict[key1].pos
+        pos2 = self.classdict[key2].pos
+        # pos = None is always greater than a number
+        if pos1 == None:
+            return 1
+        if pos2 == None:
+            return -1
+        if pos1 < pos2:
+            return -1
+        if pos1 == pos2:
+            return 0
+        if pos1 > pos2:
+            return 1
+
+
+class metaIsDescription(type):
+    def __new__(cls, classname, bases, classdict):
+        """ Return a new class with a "columns" attribute filled
+        """
+
+        newdict = {"columns":{},
+                   }
+        for k in classdict.keys():
+            if not (k.startswith('__') or k.startswith('_v_')):
+                newdict["columns"][k] = classdict[k]
+
+        # Return a new class with the "columns" attribute filled
+        return type.__new__(cls, classname, bases, newdict)
+    
 
 class IsDescription(object):
     """ For convenience: inheriting from IsDescription can be used to get
@@ -516,23 +487,19 @@ if __name__=="__main__":
     
     """
     
-    class Description(IsDescription):
+    class Test(IsDescription):
         """A description that has several columns.
 
-        Represent the here as class variables, whose values are their
-        types. The metaIsDescription class will take care the user
-        won't add any new variables and that their type is correct.
-
         """
-        #color = '3s'
         x = Col("Int32", 2, 0)
-        y = Col("Float64", 1, 1)
-        z = Col("UInt8", 1, 1)
-        color = Col("CharType", 2, " ")
+        y = FloatCol(1, shape=(2,3))
+        z = UInt8Col(1)
+        color = StringCol(2, " ")
 
-    # example cases of class Point
-    rec = Description()  # Default values
+    # example cases of class Test
+    klass = Test()
+    rec = Description(klass.columns)
     print "rec value ==>", rec
-    print "Slots ==>", rec.__slots__
+    print "Column names ==>", rec.__names__
     print "Format for this table ==>", rec._v_fmt
     print "recarray Format for this table ==>", rec._v_recarrfmt

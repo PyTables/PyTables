@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.48 2003/07/27 20:40:16 falted Exp $
+#       $Id: File.py,v 1.49 2003/08/05 15:39:04 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.48 $"
+__version__ = "$Revision: 1.49 $"
 format_version = "1.1"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -675,15 +675,16 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
         for group in self.walkGroups(self.root):
             for leaf in self.listNodes(group, classname = 'Leaf'):
                 leaf.close()
-                pass
+            #print "File: Closing Group ==>", group
             group._f_close()
-
-        self._closeFile()
-                    
+            
         # Delete the root object (this should recursively delete the
         # object tree)
         del self.root
 
+        # Close the file
+        self._closeFile()
+                    
         # Set the flag to indicate that the file is closed
         self.isopen = 0
 

@@ -204,7 +204,9 @@ print
 print	'-**-**-**-**- remove records from a table -**-**-**-**-**-'
 
 # Delete some rows on the Table (yes, rows can be removed!)
+print "Table nrows (before removing rows): ", table.nrows
 table.removeRows(5,10)
+print "Table nrows (after removing rows): ", table.nrows
 
 # Print some table columns, for comparison with array data
 print "Some columns in final table:"
@@ -217,7 +219,7 @@ print "%-16s | %11s | %11s | %6s | %6s | %8s |" % \
 print "%-16s + %11s + %11s + %6s + %6s + %8s +" % \
       ('-' * 16, '-' * 11, '-' * 11, '-' * 6, '-' * 6, '-' * 8)
 # Print the data using the table iterator:
-for r in table:
+for r in table.iterrows():
     print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
           (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'], 
            r['TDCcount'])

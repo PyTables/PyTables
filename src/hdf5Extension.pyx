@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.70 2003/07/31 21:00:49 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.71 2003/08/05 15:39:04 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.70 $"
+__version__ = "$Revision: 1.71 $"
 
 
 import sys, os
@@ -721,7 +721,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.70 2003/07/31 21:00:49 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.71 2003/08/05 15:39:04 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1099,6 +1099,12 @@ cdef class AttributeSet:
       ret = H5Dclose(loc_id)
       if ret < 0:
         raise RuntimeError("Cannot close the dataset '%s'" % self.name)
+
+  def __dealloc__(self):
+    cdef int ret
+    #print "Destroying object AttributeSet in Extension"
+    self.node = None
+    self.parent_id = 0
 
 
 cdef class Group:

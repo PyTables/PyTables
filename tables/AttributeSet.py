@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.13 2003/07/27 20:40:16 falted Exp $
+#       $Id: AttributeSet.py,v 1.14 2003/08/05 15:39:04 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.13 $"
+__version__ = "$Revision: 1.14 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -164,6 +164,12 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     def __getattr__(self, name):
         """Get the attribute named "name"."""
 
+        # Add the hasattr(self, "_v_attrnames") condition that is
+        # useful when deleting the object tree, and _v_attrnames is
+        # not available
+        #if not hasattr(self, "_v_attrnames"):
+        #    return None
+        
         # If attribute does not exists, return None
         if not name in self._v_attrnames:
             return None
@@ -272,21 +278,24 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # Finally, remove the old attribute
         delattr(self, oldattrname)
 
-    def _f_close(self):
-        "Delete all the local variables in self to free memory"
+#     def _f_close(self):
+#         "Delete all the local variables in self to free memory"
 
-        self.__dict__.clear()
-#         for attr in self._v_attrnames:
-#             # New attribute (to allow tab-completion in interactive mode)
-#             # Beware! This imply that all the attributes are resident
-#             # in-memory. However, as attributes should not be large
-#             # this should be ok for most of the cases.
-#             del self.__dict__[attr]
-#         del self._v_node
-#         del self._v_attrnames
-#         del self._v_attrnamesuser
-#         del self._v_attrnamessys
-
+#         # The deletions here seems no longer needed
+        
+# #        self.__dict__.clear()
+# #         for attr in self._v_attrnames:
+# #             # New attribute (to allow tab-completion in interactive mode)
+# #             # Beware! This imply that all the attributes are resident
+# #             # in-memory. However, as attributes should not be large
+# #             # this should be ok for most of the cases.
+# #             del self.__dict__[attr]
+#         #del self.__dict__["_v_node"]
+#         #del self._v_node
+#         #del self._v_attrnames
+#         #del self._v_attrnamesuser
+#         #del self._v_attrnamessys
+#         return
 
     def __str__(self):
         """The string representation for this object."""

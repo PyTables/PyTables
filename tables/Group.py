@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.46 2003/07/31 21:00:49 falted Exp $
+#       $Id: Group.py,v 1.47 2003/08/05 15:39:04 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.46 $"
+__version__ = "$Revision: 1.47 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -482,20 +482,24 @@ I can't promise getting the correct object, but I will do my best!.""",
 
     def _f_close(self):
         """Close this HDF5 group"""
+        #print "Closing group -->", self._v_name
         self._g_closeGroup()
         # Delete the back references in Group
         if self._v_name <> "/":
             del self._v_parent._v_groups[self._v_name]
             del self._v_parent._v_childs[self._v_name]
             del self._v_parent.__dict__[self._v_name]
+        #if self._v_name <> "/":
         del self._v_file.groups[self._v_pathname]
         del self._v_file.objects[self._v_pathname]
-        del self._v_parent
-        del self._v_rootgroup
-        del self._v_file
+        del self.__dict__["_v_parent"]
+        # Delete back references
+        #del self._v_rootgroup    # This is incorrect!!
+        del self.__dict__["_v_rootgroup"]
         # Detach the AttributeSet instance
-        # This do not seem to help to free memory
-        self._v_attrs._f_close()
+        #self._v_attrs._f_close()  # Not necessary
+        # Açò esborra correctament el _v_attrs!!
+        del self.__dict__["_v_attrs"]
 
     def _f_getAttr(self, attrname):
         """Get a group attribute as a string"""
@@ -546,10 +550,6 @@ I can't promise getting the correct object, but I will do my best!.""",
             # without any other measure
             self._f_close()
             self._g_deleteGroup()
-
-    # Moved out of scope
-    def _g_del__(self):
-        print "Deleting Group name:", self._v_name
 
     def __str__(self):
         """The string representation for this object."""

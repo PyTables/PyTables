@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.67 2003/08/04 10:08:32 falted Exp $
+#       $Id: Table.py,v 1.68 2003/08/05 15:39:05 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.67 $"
+__version__ = "$Revision: 1.68 $"
 
 from __future__ import generators
 import sys
@@ -44,8 +44,8 @@ import numarray.records as records
 #import recarray3 as recarray2
 import hdf5Extension
 from Leaf import Leaf
-from IsDescription import IsDescription, metaIsDescription, Col, StringCol, \
-     fromstructfmt
+from IsDescription import IsDescription, Description, metaIsDescription, \
+     Col, StringCol, fromstructfmt
 
 try:
     import Numeric
@@ -150,7 +150,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Initialize this object in case is a new Table
         if isinstance(description, types.DictType):
             # Dictionary case
-            self.description = metaIsDescription("", (), description)()
+            #self.description = metaIsDescription("", (), description)()
+            self.description = Description(description)
             # Flag that tells if this table is new or has to be read from disk
             self._v_new = 1
         elif isinstance(description, records.RecArray):
@@ -166,7 +167,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         elif (type(description) == type(IsDescription) and
               issubclass(description, IsDescription)):
             # IsDescription subclass case
-            self.description = description()
+            descr = description()
+            self.description = Description(descr.columns)
             # Flag that tells if this table is new or has to be read from disk
             self._v_new = 1
         elif description is None:
@@ -194,7 +196,9 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Initialize the recarray with the defaults in description
         recarr._fields = recarr._get_fields()
         if init:
-            for field in self.description.__slots__:
+            #for field in self.description.__slots__:
+            for field in self.colnames:
+                #print "__dflts__-->", self.description.__dflts__.keys()
                 recarr._fields[field][:] = self.description.__dflts__[field]
 
         return recarr
@@ -237,7 +241,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Append this entry to indicate the alignment!
         fields['_v_align'] = revbyteorderDict[recarr._byteorder]
         # Create an instance description to host the record fields
-        self.description = metaIsDescription("", (), fields)()
+        #self.description = metaIsDescription("", (), fields)()
+        self.description = Description(fields)
         # The rest of the info is automatically added when self.create()
         # is called
 
@@ -245,7 +250,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         """Create a new table on disk."""
 
         # Compute some important parameters for createTable
-        self.colnames = tuple(self.description.__slots__)
+        #self.colnames = tuple(self.description.__slots__)
+        self.colnames = tuple(self.description.__names__)
         self._v_fmt = self.description._v_fmt
         #print "self._v_fmt (create)-->", self._v_fmt
         self._calcBufferSize(self._v_expectedrows)
@@ -308,7 +314,10 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Set the alignment!
         fields['_v_align'] = byteorder
         # Create an instance description to host the record fields
-        self.description = metaIsDescription("", (), fields)()
+        # The next line makes memory leaks to appear!
+        #self.description = metaIsDescription("", (), fields)()
+        self.description = Description(fields)
+        
         # Extract the coltypes, shapes and itemsizes
         self.coltypes = self.description.__types__
         self.colshapes = self.description._v_shapes
@@ -946,21 +955,16 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.nrows -= nrows    # discount the removed rows from the total
         return nrows
 
-#     def __del__(self):
-#         """Delete some objects"""
-#         print "Deleting Table object", self._v_name
-#         pass
-
-#     def __repr__orig(self):
-#         """This provides column metainfo in addition to standard __str__"""
-
-#         rep = [ '%r: Col(\'%s\', %r)' %  \
-#                 (k, self.coltypes[k], self.colshapes[k])
-#                 for k in self.colnames ]
-#         columns = '{\n    %s }' % (',\n    '.join(rep))
-        
-#         return "%s\n  description := %s\n  byteorder := %s" % \
-#                (str(self), columns, self.byteorder)
+    def close(self):
+        """Flush the buffers and close this object on tree"""
+        Leaf.close(self)
+        # We must delete the row object, as this make a back reference to Table
+        # In some situations, this maybe undefined
+        if hasattr(self, "row"):
+            del self.row
+        self.description._close()
+        # This does not free the description class!
+        del self.description
 
     def __repr__(self):
         """This provides column metainfo in addition to standard __str__"""
