@@ -2666,7 +2666,7 @@ KeyError: Error setting "ADCcount" field.
 	  </subsubsection>
 
 	  <subsubsection id="isPyTablesFileDescr">
-	    <heading>isHDF5(filename)</heading>
+	    <heading>isPyTablesFile(filename)</heading>
 
 	    <p>Determines whether a file is in the
 	      <verb>PyTables</verb> format.  When successful, returns
@@ -6406,7 +6406,7 @@ Result Array:
 	  recognised because they have a <verb>_type</verb> attribute
 	  with a <verb>'file'</verb> value.  It is recommended that
 	  you use the <verb>getAttrNode()</verb> method (see <ref
-	  refid="getAttrNodeDescr"></ref> of <verb>tables.File</verb>
+	  refid="getAttrNodeDescr"></ref>) of <verb>tables.File</verb>
 	  class to get the <verb>_type</verb> attribute independently
 	  of the nature (group or leaf) of the node, so you do not
 	  need to care about.
@@ -6690,7 +6690,7 @@ Result Array:
       </section>
 
       <section>
-	<heading>Final notes</heading>
+	<heading>Complementary notes</heading>
 
 	<p>You can use <verb>FileNodes</verb> and
 	  <verb>PyTables</verb> groups to mimic a filesystem with
@@ -6716,14 +6716,223 @@ Result Array:
 
       </section>
 
+      <section>
+	<heading><visual markup="tt">FileNode</visual> module
+	  reference</heading>
+
+	<subsection>
+	  <heading>Global constants</heading>
+
+	  <description>
+	    <term>NodeType</term> <item>Value for <verb>_type</verb>
+	      node attribute.</item>
+
+	    <term>NodeTypeVersions</term> <item>Supported values for
+	      <verb>_type_version</verb> node attribute.</item>
+	  </description>
+
+	</subsection>
+
+	<subsection>
+	  <heading>Global functions</heading>
+
+	  <subsubsection>
+	    <heading>newNode(h5file, where, name, title="",
+	      filters=None, expectedsize=1000)</heading>
+	    
+	    <p>Creates a new file node object in the specified
+	      <verb>PyTables</verb> file object.  Additional named
+	      arguments <verb>where</verb> and <verb>name</verb> must
+	      be passed to specify where the file node is to be
+	      created.  Other named arguments such as
+	      <verb>title</verb> and <verb>filters</verb> may also be
+	      passed. The special named argument
+	      <verb>expectedsize</verb>, indicating an estimate of the
+	      file size in bytes, may also be passed. It returns the
+	      filenode object.
+	    </p>
+	  </subsubsection>
+
+	  <subsubsection>
+	    <heading>openNode(node, mode = 'r')</heading>
+
+	    <p>Opens an existing file node. Returns a file node object
+	      from the existing specified PyTables node.  If mode is
+	      not specified or it is <verb>'r'</verb>, the file can
+	      only be read, and the pointer is positioned at the
+	      beginning of the file.  If mode is <verb>'a+'</verb>,
+	      the file can be read and appended, and the pointer is
+	      positioned at the end of the file.
+	    </p>
+
+	  </subsubsection>
+	</subsection> <!-- Global functions -->
+
+	<subsection>
+	  <heading>The <visual markup="tt">FileNode</visual>
+	    abstract class</heading>
+
+	  <p>This is the ancestor of <verb>ROFileNode</verb> and
+	    <verb>RWFileNode</verb> (see below). Instances of these
+	    classes are returned when <verb>newNode()</verb> or
+	    <verb>openNode()</verb> are called. It represents a new
+	    file node associated with a <verb>PyTables</verb> node,
+	    providing a standard Python file interface to it.
+	  </p>
+	  <p>This abstract class provides only an implementation of
+	    the reading methods needed to implement a file-like object
+	    over a <verb>PyTables</verb> node.  The attribute set of
+	    the node becomes available via the <verb>attrs</verb>
+	    property.  You can add attributes there, but try to avoid
+	    attribute names in all caps or starting with
+	    <verb>'_'</verb>, since they may clash with internal
+	    attributes.
+	  </p>
+	  <p>The node used as storage is also made available via the
+	    read-only attribute <verb>node</verb>.  Please do not
+	    tamper with this object unless unavoidably, since you may
+	    break the operation of the file node object.
+	  </p>
+	  <p>The <verb>lineSeparator</verb> property contains the
+	    string used as a line separator, and defaults to
+	    <verb>os.linesep</verb>.  It can be set to any
+	    reasonably-sized string you want.
+	  </p>
+	  <p>The constructor sets the <verb>closed</verb>,
+	    <verb>softspace</verb> and <verb>_lineSeparator</verb>
+	    attributes to their initial values, as well as the
+	    <verb>node</verb> attribute to <verb>None</verb>.
+	    Sub-classes should set the <verb>node</verb>,
+	    <verb>mode</verb> and <verb>offset</verb> attributes.
+	  </p>
+	  <p>Version 1 implements the file storage as a
+	    <verb>UInt8</verb> uni-dimensional <verb>EArray</verb>.
+	  </p>
+
+	  <subsubsection>
+	    <heading><visual markup="tt">FileNode</visual>
+	      methods</heading>
+
+	    <description>
+
+	      <term>getLineSeparator()</term> <item>Returns the line
+		separator string.</item>
+
+	      <term>setLineSeparator()</term> <item>Sets the line
+		separator string.</item>
+
+	      <term>getAttrs()</term> <item>Returns the attribute set
+		of the file node.</item>
+
+	      <term>close()</term> <item>Flushes the file and closes
+		it.  The <verb>node</verb> attribute becomes
+		<verb>None</verb> and the <verb>attrs</verb> property
+		becomes no longer available.</item>
+
+	      <term>next()</term> <item>Returns the next line of text.
+		Raises <verb>StopIteration</verb> when lines are
+		exhausted.  See <verb>file.next.__doc__</verb> for
+		more information.</item>
+
+	      <term>read(size=None)</term> <item>Reads at most
+		<verb>size</verb> bytes.  See
+		<verb>file.read.__doc__</verb> for more
+		information</item>
+
+	      <term>readline(size=-1)</term> <item>Reads the next text
+		line.  See <verb>file.readline.__doc__</verb> for more
+		information</item>
+
+	      <term>readlines(sizehint=-1)</term> <item>Reads the text
+		lines.  See <verb>file.readlines.__doc__</verb> for
+		more information.</item>
+
+	      <term>seek(offset, whence=0)</term> <item>Moves to a new
+		file position.  See <verb>file.seek.__doc__</verb> for
+		more information.</item>
+
+	      <term>tell()</term> <item> Gets the current file
+		position.  See <verb>file.tell.__doc__</verb> for more
+		information.</item>
+
+	      <term>xreadlines()</term> <item>For backward
+		compatibility.  See
+		<verb>file.xreadlines.__doc__</verb> for more
+		information.</item>
+
+	    </description>
+
+	  </subsubsection>
+
+	</subsection>
+
+	<subsection>
+	  <heading>The <visual markup="tt">ROFileNode</visual>
+	    class</heading>
+
+	  <p>Instances of this class are returned when
+	    <verb>openNode()</verb> is called in read-only mode
+	    (<verb>'r'</verb>). This is a descendant of
+	    <verb>FileNode</verb> class, so it inherits all its
+	    methods. Moreover, it does not define any other useful
+	    method, just some protections against users intents to
+	    write on file.
+	  </p>
+
+	</subsection>
+
+	<subsection>
+	  <heading>The <visual markup="tt">RWFileNode</visual>
+	    class</heading>
+
+	  <p>Instances of this class are returned when either
+	    <verb>newNode()</verb> is called or when
+	    <verb>openNode()</verb> is called in append mode
+	    (<verb>'a+'</verb>). This is a descendant of
+	    <verb>FileNode</verb> class, so it inherits all its
+	    methods. It provides additional methods that allow to
+	    write on file nodes.
+	  </p>
+
+	  <description>
+
+	    <term>flush()</term> <item>Flushes the file node.  See
+	      <verb>file.flush.__doc__</verb> for more
+	      information.</item>
+
+	    <term>truncate(size=None)</term> <item>Truncates the file
+	      node to at most <verb>size</verb> bytes. Currently, this
+	      method only makes sense to grow the file node, since
+	      data can not be rewritten nor deleted.  See
+	      <verb>file.truncate.__doc__</verb> for more
+	      information.</item>
+
+	    <term>write(string)</term> <item>Writes the string to the
+		file.  Writing an empty string does nothing, but
+		requires the file to be open.  See
+		<verb>file.write.__doc__</verb> for more
+		information.</item>
+
+	    <term>writelines(sequence)</term> <item>Writes the
+		sequence of strings to the file.  See
+		<verb>file.writelines.__doc__</verb> for more
+		information.</item>
+
+	  </description>
+
+	</subsection>
+
+      </section> <!-- FileNode module reference -->
+
     </chapter> <!-- FileNodes -->
 
     <chapter id="optimizationTips">
       <heading>Optimization tips</heading>
 
-      <aphorism>... durch planmässiges Tattonieren.  <caption>Johann
-	Karl Friedrich Gauss <newline/>[asked how he came upon his
-	theorems]</caption>
+      <aphorism>... durch planmässiges
+	Tattonieren. <newline/>[... through systematic, palpable
+	experimentation.] <caption>Johann Karl Friedrich Gauss
+	<newline/>[asked how he came upon his theorems]</caption>
       </aphorism>
 
       <p>On this chapter, you will get deeper knowledge of
