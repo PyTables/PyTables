@@ -3,36 +3,38 @@ Announcing PyTables 0.7.2
 
 PyTables is a hierarchical database package designed to efficently
 manage very large amounts of data. PyTables is built on top of the
-HDF5 library and the numarray package and features an object-oriented
+HDF5 library and the numarray package. It features an object-oriented
 interface that, combined with natural naming and C-code generated from
 Pyrex sources, makes it a fast, yet extremely easy to use tool for
-interactively save and retrieve large amounts of data.
+interactively save and retrieve large amounts of data. Besides, it
+provides flexible indexed access on disk to anywhere in the data you
+want to go.
  
 On this release you will find:
-       - fixed a memory leak
-       - memory consumption is beig addressed
+       - a memory leak was fixed
+       - memory consumption is being addressed and lowered
        - much faster opening of files
-       - Some Table.read() cases optimized
+       - Some important index patterns cases in reads has been optimized
 
 More in detail:
 
 What's new
 -----------
 
-        - Fixed a nasty memory leak located on the C libraries (It was
-          occurring during attribute writes). After that, the memory
-          consumption when using large object trees has dropped quite
-          a bit. However, there remains some small leaks that has been
-          tracked down to the underlying numarray library. These leaks
-          has been reported, and hopefully they should be fixed more
-          sooner than later.
+        - Fixed a nasty memory leak located on the C libraries (it was
+          happening during HDF5 attribute writes). After that, the
+          memory consumption when using large object trees has dropped
+          quite a bit. However, there remains some small leaks that
+          has been tracked down to the underlying numarray
+          library. These leaks has been reported, and hopefully they
+          should be fixed more sooner than later.
 
         - Table buffers are built dinamically now, so if Tables are
 	  not accessed for reading or writing this memory will not be
 	  booked. This will help to reduce the memory consumption.
 
-	- The opening of files with lots of nodes has been optimized
-	  between a factor 2 and 3. For example, a file with 10 groups
+	- The opening of files with lots of nodes has been accelerated
+	  between a factor 2 or 3. For example, a file with 10 groups
 	  and 3000 tables that takes 9.3 seconds to open in 0.7.1, now
 	  takes only 2.8 seconds.
 
