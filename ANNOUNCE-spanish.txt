@@ -7,19 +7,19 @@ si se usa numarray 0.4 (aunque funciona bien con numarray
 0.5). Además, como Todd Miller ya me avisó de que la optimización no
 era segura, la he *deshabilitado* en esta versión. Esto implica que el
 20% de mejora en velocidad al leer tables casi ha desaparecido y se ha
-quedado en un casi inapreciable 4%. Qué le vamos ha hacer!.
+quedado en un casi inapreciable 4%. Qué le vamos a hacer!.
 
 Si ya has instalado PyTables 0.5, te recomiendo calurosamente a que
 pases a la 0.5.1, aunque estes usando numarray 0.5. Intentaré
-onvestigar más a fondo el problema, y, si encuentro una solución, ya
+investigar más a fondo el problema, y, si encuentro una solución,
 reactivaré la optimización en un futuro.
 
 Otra novedad que encontrarás en 0.5.1 es que he eliminado el uso del
 tipo de dato "UInt64" (lo he reemplazado por el tipo "Int64") en los
-tutoriales del manual de usuario ya que la versión Windows no soporta
-este tipo (debido a limitaciones del compilador MSVC). Ahora, los
-tutoriales deberian funcionar bien en todas las plataformas
-soportadas (incluso en Windows).
+tutoriales del manual de usuario. Esto es debido a que la versión
+Windows no soporta este tipo (debido a limitaciones del compilador
+MSVC). Ahora, los tutoriales deberian funcionar bien en todas las
+plataformas soportadas (incluso en Windows).
 
 Siento haber pecado y haber intentado optimizar las cosas demasiado
 pronto ;-).
