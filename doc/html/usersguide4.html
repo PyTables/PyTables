@@ -2,7 +2,7 @@
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xmlns:pref="http://www.w3.org/2002/Math/preference" id="libraryReference"><a name="libraryReference"></a><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide A hierarchical database for Python Release 0.7.2"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2003-09-22T13:38:59+02:00"><meta name="Date" content="2003-09-22T13:38:59+02:00"><meta name="DC.Rights" content="(c) 2002, 2003 Francesc Alted"><meta name="Copyright" content="(c) 2002, 2003 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide A hierarchical database for Python Release 0.8"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Date" content="2004-02-29T14:40:11+01:00"><meta name="Date" content="2004-02-29T14:40:11+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -131,9 +131,16 @@ h2 { color: olive }
 h3 { color: navy }
 h4 { color: maroon }
 body { background-image: url("tile.jpg");
+ font: 14px/1.5 Verdana, Arial, Helvetica, sans-serif;
+ background:#fff;
+ padding:5%;
+ padding-top:2%;
+ margin:0px;
+}
+/*     body { background-image: url("tile.jpg");
          background-color: white;
          color: black;
-	 font-size: 13pt; }
+	 font-size: 13pt; } */
 hr.footnoterule { color: white }
 div.title { font-size: x-large; color: maroon }
 div.subtitle { font-size: x-large; color: olive }
@@ -142,33 +149,42 @@ div.partheadline { font-size: x-large }
 </style></head><body><div class="speedbar-top"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide3.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide5.html">next</a></td></tr><tr><td colspan="3">&nbsp;</td></tr></tbody></table><hr class="speedbar"></div><div class="document"><div id="libraryReference"><a name="libraryReference"></a>
       <h1 id="chapter4"><a name="chapter4"></a>Chapter&nbsp;4: Library Reference</h1>
       
-      <div class="aphorism">"Tenho pensamentos que, se pudesse revel&aacute;-los e
-	faz&ecirc;-los viver, acrescentariam nova luminosidade &agrave;s estrelas,
-	nova beleza ao mundo e maior amor ao cora&ccedil;&atilde;o dos homens."
-	<div class="aphorism-origin">&#8212;Fernando Pessoa, in "O Eu Profundo"</div>
-      </div>
+
+
+
+
+
 
       <p class="first"><tt class="verb">PyTables</tt> implements several classes to represent
 	the different nodes in the object tree. They are named
 	<tt class="verb">File</tt>, <tt class="verb">Group</tt>, <tt class="verb">Leaf</tt>,
-	<tt class="verb">Table</tt> and <tt class="verb">Array</tt>. Another one is
-	responsible to build record objects from a subclass user
-	declaration, and performs field and type checks; its name is
-	<tt class="verb">IsDescription</tt>. An important function, called
-	<tt class="verb">openFile</tt> is responsible to create, open or append
-	to files. In addition, a few utility functions are defined to
-	guess if the user supplied file is a <tt class="verb">PyTables</tt> or
-	<tt class="verb">HDF5</tt> file. These are called
-	<tt class="verb">isPyTablesFile</tt> and <tt class="verb">isHDF5</tt>. Finally,
-	several first-level variables are also available to the user
-	that informs about <tt class="verb">PyTables</tt> version, file format
-	version or underlying libraries (as for example
-	<tt class="verb">HDF5</tt>) version number.
+	<tt class="verb">Table</tt>, <tt class="verb">Array</tt>, <tt class="verb">EArray</tt>,
+	<tt class="verb">VLArray</tt> and <tt class="verb">UnImplemented</tt>. Another
+	one allows the user to complement the information on these
+	different objects; its name is
+	<tt class="verb">AttributeSet</tt>. Finally, another important class
+	called <tt class="verb">IsDescription</tt> allows to build a
+	<tt class="verb">Table</tt> record description by declaring a subclass
+	of it. Many other classes are defined in
+	<tt class="verb">PyTables</tt>, but they can be regarded as helpers
+	whose goal is mainly to declare the <em>data type
+	properties</em> of the different first class objects and will
+	be described at the end of this chapter as well.
+      </p>
+      <p>An important function, called <tt class="verb">openFile</tt> is
+	responsible to create, open or append to files. In addition, a
+	few utility functions are defined to guess if the user
+	supplied file is a <em>PyTables</em> or <em>HDF5</em>
+	file. These are called <tt class="verb">isPyTablesFile</tt> and
+	<tt class="verb">isHDF5</tt>, respectively. Finally, there exists a
+	function called <tt class="verb">whichLibVersion</tt> that informs
+	about the versions of the underlying C libraries (for example,
+	the <tt class="verb">HDF5</tt> or the <tt class="verb">Zlib</tt>).
       </p>
 
       <p>Let's start discussing the first-level variables and
-	functions available to the user, then the methods in the
-	classes defined in <tt class="verb">PyTables</tt>.
+	functions available to the user, then the different classes
+	defined in <tt class="verb">PyTables</tt>.
       </p>
 
       <div>
@@ -183,12 +199,12 @@ div.partheadline { font-size: x-large }
 	    <dt>__version__</dt> <dd>The <tt class="verb">PyTables</tt>
 	    version number.</dd>
 
+	    <dt>ExtVersion</dt> <dd>The version of the Pyrex
+	      extension module. This might be useful when reporting
+	      bugs.</dd>
+
 	    <dt>HDF5Version</dt>
 	    <dd>The underlying HDF5 library version number.</dd>
-
-	    <dt>ExtVersion</dt> <dd>The Pyrex extension types
-	      version. This might be useful when reporting
-	      bugs.</dd>
 
 	  </dl>
 	  
@@ -197,14 +213,72 @@ div.partheadline { font-size: x-large }
 	<div id="GlobalFunctDescr"><a name="GlobalFunctDescr"></a>
 	  <h3 id="subsection4.1.2"><span class="headlinenumber"><a name="subsection4.1.2"></a>4.1.2 </span>Global functions</h3>
 
-	  <dl id="openFileDescr"><a name="openFileDescr"></a>
-	    <dt>openFile(filename, mode='r', title='', trMap={},
-	      rootUEP="/")
+	  <dl>
+
+	    <dt>copyFile(srcFilename=None, dstFilename=None, title=None,
+	      filters=None, copyuserattrs=1, overwrite=0)
 	    </dt>
-	    <dd>Open a <tt class="verb">PyTables</tt> file and returns a File
+
+	    <dd>Copy a closed <tt class="verb">PyTables</tt> (or generic
+	      <tt class="verb">HDF5</tt>) file specified by
+	      <em>srcFilename</em> to <em>dstFilename</em>. Returns a
+	      tuple in the form <tt class="verb">(ngroups, nleaves,
+	      nbytes)</tt> specifiying the number of groups, leaves
+	      and bytes copied.
+	    
+	      <dl id="copyFileDescr"><a name="copyFileDescr"></a>
+
+		<dt>title</dt> <dd>The title for the new
+		  file. If not specified, the source file title will
+		  be copied.
+		</dd>
+
+		<dt>filters</dt> <dd>A Filters instance (see
+		    <a href="#FiltersClassDescr">4.12.1</a>). If
+		    specified, it will override the original filter
+		    properties in <b>all</b>
+		    source nodes.
+		</dd>
+
+		<dt>copyuserattrs</dt> <dd>You can prevent the
+		  user attributes from being copied by setting this
+		  parameter to 0. The default is to copy them.
+		</dd>
+
+		<dt>overwrite</dt><dd>If
+		  <tt class="verb">dstFilename</tt> file already exists and
+		  overwrite is 1, it will be silently overwritten. The
+		  default is not overwriting.
+		</dd>
+
+	      </dl>
+
+	    </dd>
+
+	    <dt>isHDF5(filename)</dt> <dd>Determines whether
+	      filename is in the HDF5 format or not. When successful,
+	      returns a positive value, for TRUE, or 0 (zero), for
+	      FALSE. Otherwise returns a negative value. To this
+	      function to work, it needs a closed file.
+	    </dd>
+
+	    <dt>isPyTablesFile(filename)</dt> <dd>Determines
+	      whether a file is in the <tt class="verb">PyTables</tt> format.
+	      When successful, returns the format version string, for
+	      TRUE, or 0 (zero), for FALSE. Otherwise returns a
+	      negative value. To this function to work, it needs a
+	      closed file.
+	    </dd>
+
+	    <dt>openFile(filename, mode='r', title='', trMap={},
+	      rootUEP="/", filters=None)
+	    </dt>
+
+	    <dd>Open a <tt class="verb">PyTables</tt> (or generic
+	    <tt class="verb">HDF5</tt>) file and returns a <tt class="verb">File</tt>
 	    object.
 	    
-	      <dl>
+	      <dl id="openFileDescr"><a name="openFileDescr"></a>
 
 		<dt>filename</dt> <dd>The name of the file
 		  (supports environment variable expansion). It is
@@ -222,13 +296,13 @@ div.partheadline { font-size: x-large }
 		    <dt>'r'</dt> <dd>read-only; no data can be
 		      modified.</dd>
 
-		    <dt>'w'</dt> <dd>write; a new file is created
-		      (an existing file with the same name is
-		      deleted).</dd>
+		    <dt>'w'</dt> <dd>write; a new file is
+		      created (an existing file with the same name
+		      would be deleted).</dd>
 
 		    <dt>'a'</dt> <dd>append; an existing file is
-		      opened for reading and writing, and if the file does
-		      not exist it is created.</dd>
+		      opened for reading and writing, and if the file
+		      does not exist it is created.</dd>
 
 		    <dt>'r+'</dt> <dd>is similar to 'a', but the
 		      file must already exist.</dd>
@@ -246,8 +320,8 @@ div.partheadline { font-size: x-large }
 		  the object tree Python namespace into different HDF5
 		  names in file namespace. The keys are the Python
 		  names, while the values are the HDF5 names. This is
-		  useful when you need to name HDF5 nodes with invalid
-		  or reserved words in Python.
+		  useful when you need to use HDF5 node names with
+		  invalid or reserved words in Python.
 		</dd>
 
 		<dt>rootUEP</dt> <dd>The root User Entry
@@ -255,222 +329,73 @@ div.partheadline { font-size: x-large }
 		  will be taken as the starting point to create the
 		  object tree. The group has to be named after its
 		  HDF5 name and can be a path. If it does not exist, a
-		  <tt class="verb">RuntimeError</tt> is issued. Use this if you
-		  do not want to build the <b>entire</b> object tree, but rather
-		  only a <b>subtree</b>.
+		  <tt class="verb">RuntimeError</tt> exception is issued. Use
+		  this if you do not want to build the <b>entire</b> object tree, but rather
+		  only a <b>subtree</b> of it.
 		</dd>
+
+		<dt>filters</dt><dd>An instance of the
+		  <tt class="verb">Filters</tt> class (see section<a href="#FiltersClassDescr">4.12.1</a>) that provides
+		  information about the desired I/O filters applicable
+		  to the leaves that hangs directly from <em>root</em>
+		  (unless other filters properties are specified for
+		  these leaves). Besides, if you do not specify filter
+		  properties for its child groups, they will inherit
+		  these ones. So, if you open a new file with this
+		  parameter set, all the leaves that would be created
+		  in the file will recursively inherit this filtering
+		  properties (again, if you don't prevent that from
+		  happening by specifying other filters on the child
+		  groups or leaves).
+		</dd>
+
 	      </dl>
 
 	    </dd>
 
-	    <dt>isHDF5(filename)</dt> <dd>Determines whether
-	      filename is in the HDF5 format or not. When successful,
-	      returns a positive value, for TRUE, or 0 (zero), for
-	      FALSE. Otherwise returns a negative value.  To this
-	      function to work, it needs a closed file.
+	    <dt>whichLibVersion(libname)</dt> <dd>Returns info
+	      about versions of the underlying C libraries. <b>libname</b> can be whether
+	      <tt class="verb">"hdf5"</tt>, <tt class="verb">"zlib"</tt>,
+	      <tt class="verb">"lzo"</tt> or <tt class="verb">"ucl"</tt>. It always
+	      returns a tuple of 3 elements. When successful, the
+	      first element of this tuple has a positive value, and is
+	      0 (zero) when library is not available (for example LZO
+	      or UCL). In case the library is available, the second
+	      element of tuple contains the library version and the
+	      third element the date (if available) of that version.
 	    </dd>
 
-	    <dt>isPyTablesFile(filename)</dt> <dd>Determines
-	      whether a file is in the <tt class="verb">PyTables</tt> format.
-	      When successful, returns the format version string, for
-	      TRUE, or 0 (zero), for FALSE. Otherwise returns a
-	      negative value.  To this function to work, it needs a
-	      closed file.
-	    </dd>
 
 	  </dl>
 	</div>
       </div>
 
-      <div id="IsDescriptionClassDescr"><a name="IsDescriptionClassDescr"></a>
-	<h2 id="section4.2"><span class="headlinenumber"><a name="section4.2"></a>4.2 </span>The <tt>IsDescription</tt> class</h2>
-
-	<p class="first">This class is in fact a so-called <em>metaclass</em>
-	  object. There is nothing special on this fact, except that
-	  their subclasses attributes are transformed during its
-	  instantiation phase, and new methods for instances are
-	  defined based on the values of the class attributes.
-	</p>
-	<p>It is designed to be used as an easy, yet meaningful way to
-	  describe the properties of <tt class="verb">Table</tt> objects
-	  through the use of classes that inherit properties from
-	  it. In order to define such an special class, you have to
-	  declare it as descendant of <em>IsDescription</em>, with
-	  many attributes as columns you want in your table. The name
-	  of these attributes will become the name of the columns,
-	  while its values are the properties of the columns that are
-	  obtained through the use of the <tt class="verb">Col</tt> class
-	  constructor. See the <a href="#ColClassDescr">section&nbsp;4.3</a> for instructions on how
-	  define the properties of the table columns.
-	</p>
-	<p>Then, you can pass an instance of this object to the
-	  <tt class="verb">Table</tt> constructor, where all the information it
-	  contains will be used to define the table structure. See
-	  the <a href="usersguide3.html#secondExample">section&nbsp;3.3</a> for an example
-	  on how that works.
-	</p>
-
-      </div>
-
-      <div id="ColClassDescr"><a name="ColClassDescr"></a>
-	<h2 id="section4.3"><span class="headlinenumber"><a name="section4.3"></a>4.3 </span>The <tt>Col</tt> class and its descendants</h2>
-
-	<p class="first">
-	  The <tt class="verb">Col</tt> class is used as a mean to declare the
-	  different properties of a column of a table. In addition, a
-	  series of descendant classes are offered in order to make
-	  these column descriptions easier to the user. In general, it
-	  is recommended to use these descendants classes, as they are
-	  meaningful when found in the middle of the code.
-	</p>
-	<p>The only public method accessible in these classes is the
-	  constructor itself.
-	</p>
-
-	<dl>
-
-	  <dt>Col(dtype="Float64", shape=1, dflt=None, pos=None)
-	  </dt>
-	  <dd>Define properties for a <tt class="verb">Table</tt> column.
-
-	    <dl>
-
-	      <dt>dtype</dt> <dd>The data type for the
-		column. See the <a href="usersguide6.html#datatypesSupported">appendix&nbsp;A</a> for a
-		relation of data types supported in a <tt>IsDescription</tt> class
-		declaration. The type description is accepted both in
-		string format and as numarray data type.</dd>
-
-	      <dt>shape</dt> <dd>An integer or a tuple, that
-		specifies the number of <em>dtype</em> items for each
-		element (or shape, for multidimensional elements) of
-		this column. For <tt class="verb">CharType</tt> columns, the
-		first dimension is used as the length of the character
-		strings. For this kind of objects, the use of
-		<tt class="verb">StringCol</tt> subclass is recommended.</dd>
-
-	      <dt>dflt</dt> <dd>The default value for elements
-		of this column. If the user does not supply a value
-		for an element while filling a table, this default
-		value will be written to disk. If the user supplies an
-		scalar value for a multidimensional column, this value
-		is automatically <em>broadcasted</em> to all the
-		elements in the column cell. If <em>dflt</em> is not
-		supplied, a appropriate zero value (or <em>null</em>
-		string) will be chosen by default.</dd>
-
-	      <dt>pos</dt> <dd>By default, columns are disposed in
-		memory following an alphanumerical order of the column
-		names. In some situations, however, it is convenient to
-		impose a user defined ordering. <em>pos</em> parameter
-		allows the user to force the wanted disposition.</dd>
-
-	    </dl>
-	  </dd>
-
-	  <dt>StringCol(length=None, dflt=None, shape=1, pos=None)
-	  </dt>
-	  <dd>Define a column to be of <tt class="verb">CharType</tt>
-	    type. The <tt class="verb">length</tt> parameter sets the length of
-	    the strings. The meaning of the other parameters are like
-	    in the <tt class="verb">Col</tt> class.
-	  </dd>
-	  <dt>IntCol(dflt=0, shape=1, itemsize=4, sign=1, pos=None)
-	  </dt>
-	  <dd>Define a column to be of <tt class="verb">IntXXType</tt> type,
-	    depending on the value of <tt class="verb">itemsize</tt>. The
-	    <tt class="verb">itemsize</tt> parameter sets the number of bytes
-	    of the integers in the column and the default is 4
-	    bytes. <tt class="verb">sign</tt> determines if the integers are
-	    signed or not. The meaning of the other parameters are
-	    like in the <tt class="verb">Col</tt> class.
-
-	    <p class="first">This class has several descendants:
-	    </p>
-
-	    <dl>
-	      <dt>Int8Col(dflt=0, shape=1, pos=None)</dt>
-	      <dd>Define a column as an <tt class="verb">Int8</tt> type.</dd>
-
-	      <dt>UInt8Col(dflt=0, shape=1, pos=None)</dt>
-	      <dd>Define a column as an <tt class="verb">UInt8</tt>
-	      type.</dd>
-
-	      <dt>Int16Col(dflt=0, shape=1, pos=None)</dt>
-	      <dd>Define a column as an <tt class="verb">Int16</tt> type.</dd>
-
-	      <dt>UInt16Col(dflt=0, shape=1, pos=None)</dt>
-	      <dd>Define a column as an <tt class="verb">UInt16</tt>
-	      type.</dd>
-
-	      <dt>Int32Col(dflt=0, shape=1, pos=None)</dt>
-	      <dd>Define a column as an <tt class="verb">Int32</tt> type.</dd>
-
-	      <dt>UInt32Col(dflt=0, shape=1, pos=None)</dt>
-	      <dd>Define a column as an <tt class="verb">UInt32</tt>
-	      type.</dd>
-
-	      <dt>Int64Col(dflt=0, shape=1, pos=None)</dt>
-	      <dd>Define a column as an <tt class="verb">Int64</tt> type.</dd>
-
-	      <dt>UInt64Col(dflt=0, shape=1, pos=None)</dt>
-	      <dd>Define a column as an <tt class="verb">UInt64</tt>
-	      type.</dd>
-
-	    </dl>
-
-	  </dd>
-
-	  <dt>FloatCol(dflt=0, shape=1, itemsize=8, pos=None)
-	  </dt>
-	  <dd>Define a column to be of <tt class="verb">FloatXXType</tt>
-	    type, depending on the value of <tt class="verb">itemsize</tt>. The
-	    <tt class="verb">itemsize</tt> parameter sets the number of bytes
-	    of the floats in the column and the default is 8 bytes
-	    (double precision). The meaning of the other parameters
-	    are like in the <tt class="verb">Col</tt> class.
-
-	    <p class="first">This class has two descendants:
-	    </p>
-
-	    <dl>
-	      <dt>Float32Col(dflt=0.0, shape=1, pos=None)</dt>
-	      <dd>Define a column as a <tt class="verb">Float32</tt>
-	      type.</dd>
-
-	      <dt>Float64Col(dflt=0.0, shape=1, pos=None)</dt>
-	      <dd>Define a column as a <tt class="verb">Float64</tt>
-	      type.</dd>
-
-	    </dl>
-	  </dd>
-	</dl>
-
-      </div>
-
       <div id="FileClassDescr"><a name="FileClassDescr"></a>
-	<h2 id="section4.4"><span class="headlinenumber"><a name="section4.4"></a>4.4 </span>The <tt>File</tt> class</h2>
+	<h2 id="section4.2"><span class="headlinenumber"><a name="section4.2"></a>4.2 </span>The <tt>File</tt> class</h2>
 
 	<p class="first">This class is returned when a <tt class="verb">PyTables</tt> file is
-	  opened with the <tt class="verb">openFile()</tt> function. It has
-	  methods to create, open, flush and close
-	  <tt class="verb">PyTables</tt> files. Also, <tt class="verb">File</tt> class
-	  offer methods to traverse the object tree, as well as to
-	  create, rename and delete nodes. One of its attributes
-	  (<tt class="verb">rootUEP</tt>) represents the <em>user entry
-	  point</em> to the object tree attached to the file.
+	  opened with the <tt class="verb">openFile</tt> function. It has
+	  methods to flush and close files. Also, the
+	  <tt class="verb">File</tt> class offer methods to create, rename and
+	  delete nodes, as well as to traverse the object tree. One
+	  of its attributes (<tt class="verb">rootUEP</tt>) represents the
+	  <em>user entry point</em> to the object tree attached to the
+	  file.
 	</p>
 
 	<p>Next, we will discuss the attributes and methods for File
-	  class<a href="#footnote4" name="footnoteback4"><sup title="On the following, the term Leaf will whether refer to a Table or Array node object.">4)</sup></a>.
+	  class<a href="#footnote4" name="footnoteback4"><sup title="On the following, the term Leaf will whether refer to a Table, Array, EArray, VLArray or UnImplemented node object.">4)</sup></a>.
 	</p>
 
 	<div id="FileInstanceVariablesDescr"><a name="FileInstanceVariablesDescr"></a>
-	  <h3 id="subsection4.4.1"><span class="headlinenumber"><a name="subsection4.4.1"></a>4.4.1 </span><tt>File</tt> instance
+	  <h3 id="subsection4.2.1"><span class="headlinenumber"><a name="subsection4.2.1"></a>4.2.1 </span><tt>File</tt> instance
 	    variables</h3>
 	  <dl>
 
 	    <dt>filename</dt> <dd>Filename opened.</dd>
+
+	    <dt>format_version</dt> <dd>The
+	    <tt class="verb">PyTables</tt> version number of this file.</dd>
 
 	    <dt>isopen</dt> <dd>It takes the value 1 if the
 	      underlying file is open. 0 otherwise.</dd>
@@ -478,19 +403,29 @@ div.partheadline { font-size: x-large }
 	    <dt>mode</dt> <dd>Mode in which the filename was
 	      opened.</dd>
 
-	    <dt>title</dt> <dd>The title of the root group in
-	      file.</dd>
+	    <dt>root</dt> <dd>The <em>root</em> of the object
+	       tree hierarchy. It is a <tt class="verb">Group</tt> instance.
+	    </dd>
 
 	    <dt>rootUEP</dt> <dd>The UEP (User Entry Point)
 	      group in file (see <a href="#openFileDescr"><strong>??</strong></a>).</dd>
 
+	    <dt>title</dt> <dd>The title of the root group in
+	      file.</dd>
+
 	    <dt>trMap</dt> <dd>This is a dictionary that maps
 	      node names between python and HDF5 domain names. Its
 	      initial values are set from the <em>trMap</em> parameter
-	      passed to the <tt class="verb">openFile()</tt> function. You can
+	      passed to the <tt class="verb">openFile</tt> function. You can
 	      change its contents <em>after</em> a file is opened and
 	      the new map will take effect over any new object added
-	      to the tree.</dd>
+	      to the tree.
+	    </dd>
+
+	    <dt>filters</dt> <dd>Container for filter properties
+	      associated to this file.  See <a href="#FiltersClassDescr">section&nbsp;4.12.1</a> for more
+	      information on this object.
+	    </dd>
 
 	    <dt>objects</dt> <dd>Dictionary with all objects
 	      (groups or leaves) on tree.</dd>
@@ -506,10 +441,113 @@ div.partheadline { font-size: x-large }
 	</div>
 
 	<div>
-	  <h3 id="subsection4.4.2"><span class="headlinenumber"><a name="subsection4.4.2"></a>4.4.2 </span><tt>File</tt> methods</h3>
+	  <h3 id="subsection4.2.2"><span class="headlinenumber"><a name="subsection4.2.2"></a>4.2.2 </span><tt>File</tt> methods</h3>
+
+	  <div id="FilecopyChildrenDescr"><a name="FilecopyChildrenDescr"></a>
+
+	    <h4 id="subsubsection4.2.2.1">copyChildren(whereSrc, whereDst, recursive=0,
+                   filters=None, copyuserattrs=1, start=0, stop=None,
+                   step=1, overwrite = 0)
+	    </h4>
+
+	    <p class="first">Copy (recursively) the children of a group into another
+	      location. Returns a tuple in the form <tt class="verb">(ngroups,
+	      nleaves, nbytes)</tt> specifiying the number of
+	      groups, leaves and bytes copied.
+	    </p>
+
+	    <dl>
+	      <dt>whereSrc</dt> <dd>The parent group where the
+		children to be copied are hanging on. This parameter
+		can be a path string (for example
+		<tt class="verb">"/level1/group5"</tt>), or another
+		<tt class="verb">Group</tt> instance.
+	      </dd>
+
+	      <dt>whereDst</dt> <dd>The parent group where the
+		source children will be copied to. This group must exist
+		or a <tt class="verb">LookupError</tt> will be issued. This
+		parameter can be a path string (for example
+		<tt class="verb">"/level1/group6"</tt>), or another
+		<tt class="verb">Group</tt> instance.
+	      </dd>
+
+	      <dt>recursive</dt> <dd>Specifies whether the copy
+		should recurse into subgroups or not. The default is
+		not recurse.
+	      </dd>
+	      
+	      <dt>filters</dt> <dd>Whether or not override the
+		original filter properties present in source nodes.
+		This parameter must be an instance of the
+		<tt class="verb">Filters</tt> class (see section<a href="#FiltersClassDescr">4.12.1</a>). The default is to
+		copy the filter attributes from source children.
+	      </dd>
+
+	      <dt>copyuserattrs</dt> <dd>You can prevent the
+		user attributes from being copied by setting this
+		parameter to 0. The default is to copy them.
+	      </dd>
+
+	      <dt>start, stop, step</dt><dd>Specifies the range
+		of rows in child leaves to be copied; the default is
+		to copy all the rows.
+	      </dd>
+
+	      <dt>overwrite</dt><dd>Whether the possible
+		existing children hanging from <tt class="verb">whereDst</tt>
+		and having the same names than <tt class="verb">whereSrc</tt>
+		children should overwrite the destination nodes or
+		not.
+	      </dd>
+	    </dl>
+	  </div> 
+
+	  <div id="FilecopyFileDescr"><a name="FilecopyFileDescr"></a>
+	    <h4 id="subsubsection4.2.2.2">copyFile(dstFilename=None, title=None,
+                 filters=None, copyuserattrs=1, overwrite=0)
+	    </h4>
+
+	    <p class="first">Copy the contents of this file to <em>dstFilename</em>.
+	      If the filename already exists it won't be overwritten
+	      unless <em>overwrite</em> is set to true (see later).
+	      Returns a tuple in the form <tt class="verb">(ngroups, nleaves,
+	      nbytes)</tt> specifiying the number of groups, leaves
+	      and bytes copied.
+	    </p>
+
+	    <dl>
+	      <dt>title</dt> <dd>The title for the new file. If
+		not specified, the source file title will be copied.
+	      </dd>
+
+	      <dt>filters</dt> <dd>Whether or not override the
+		original filter properties present in source nodes.
+		This parameter must be an instance of the
+		<tt class="verb">Filters</tt> class (see section<a href="#FiltersClassDescr">4.12.1</a>). The default is to
+		copy the filter attributes from source children.
+	      </dd>
+
+	      <dt>copyuserattrs</dt> <dd>You can prevent the
+		user attributes from being copied by setting this
+		parameter to 0. The default is to copy them.
+	      </dd>
+
+	      <dt>copyuserattrs</dt> <dd>You can prevent the
+		user attributes from being copied by setting this
+		parameter to 0. The default is to copy them.
+	      </dd>
+
+	      <dt>overwrite</dt><dd>Whether overwrite or not the
+		possibly existing <em>dstFilename</em> file. The
+		default is not overwrite it.
+	      </dd>
+	    </dl>
+	  </div> 
 
 	  <div id="createGroupDescr"><a name="createGroupDescr"></a>
-	    <h4 id="subsubsection4.4.2.1">createGroup(where, name, title='')</h4>
+	    <h4 id="subsubsection4.2.2.3">createGroup(where, name, title='', filters=None)
+	    </h4>
 
 	    <p class="first">Create a new Group instance with name <em>name</em> in
 	      <em>where</em> location.
@@ -517,9 +555,9 @@ div.partheadline { font-size: x-large }
 
 	    <dl>
 	      <dt>where</dt> <dd>The parent group where the new
-		group will hang. <em>where</em> parameter can be a path
-		string (for example
-		<tt class="verb">"/Particles/TParticle1"</tt>), or another Group
+		group will hang from. <em>where</em> parameter can be
+		a path string (for example
+		<tt class="verb">"/level1/group5"</tt>), or another Group
 		instance. </dd>
 
 	      <dt>name</dt>
@@ -528,62 +566,59 @@ div.partheadline { font-size: x-large }
 	      <dt>title</dt> <dd>A description for this
 		group.</dd>
 
+	      <dt>filters</dt><dd>An instance of the
+		<tt class="verb">Filters</tt> class (see section<a href="#FiltersClassDescr">4.12.1</a>) that provides
+		information about the desired I/O filters applicable
+		to the leaves that hangs directly from this new group
+		(unless other filters properties are specified for
+		these leaves). Besides, if you do not specify filter
+		properties for its child groups, they will inherit
+		these ones.
+	      </dd>
+
 	    </dl>
 
 	  </div>
 
 	  <div>
 	    <h4 id="createTableDescr"><a name="createTableDescr"></a>createTable(where, name,
-	      description, title='', compress=0, complib = 'zlib',
-	      expectedrows=10000)</h4>
-
+	      description, title='', filters=None,
+	      expectedrows=10000)
+	    </h4>
 	    <p class="first">Create a new <tt class="verb">Table</tt> instance with name
 	      <em>name</em> in <em>where</em> location.
 	    </p>
-
 	    <dl>
-	      <dt>where</dt> <dd>The parent group where the
-		new table will hang. <em>where</em> parameter can be
+	      <dt>where</dt> <dd>The parent group where the new
+		table will hang from. <em>where</em> parameter can be
 		a path string (for example
-		<tt class="verb">"/Particles/TParticle1"</tt>), or Group
-		instance. </dd>
-
-	      <dt>name</dt>
-	      <dd>The name of the new table.</dd>
-
+		<tt class="verb">"/level1/leaf5"</tt>), or Group instance.
+               </dd>
+	      <dt>name</dt> <dd>The name of the new table.
+              </dd>
 	      <dt>description</dt> <dd>An instance of a
 		user-defined class (derived from the
 		<tt class="verb">IsDescription</tt> class) where table fields
 		are defined. However, in certain situations, it is
-		more handy to allow this description to be supplied
-		as a dictionary (for example, when you do not know
+		more handy to allow this description to be supplied as
+		a dictionary (for example, when you do not know
 		beforehand which structure will have your table). In
 		such a cases, you can pass the description as a
-		dictionary as well. See <a href="usersguide3.html#secondExample">section&nbsp;3.3</a> for an example
-		of use. Finally, a <tt class="verb">RecArray</tt> object from
-		the <tt class="verb">numarray</tt> package is also accepted,
-		and all the information about columns and other
-		metadata is used as a basis to create the
-		<tt class="verb">Table</tt> object. Moreover, if the
-		<tt class="verb">RecArray</tt> has actual data this is also
-		injected on the newly created <tt class="verb">Table</tt>
-		object.
+		dictionary as well. See <a href="usersguide3.html#secondExample">section&nbsp;3.3</a> for an example of
+		use. Finally, a <tt class="verb">RecArray</tt> object from the
+		<tt class="verb">numarray</tt> package is also accepted, and
+		all the information about columns and other metadata
+		is used as a basis to create the <tt class="verb">Table</tt>
+		object. Moreover, if the <tt class="verb">RecArray</tt> has
+		actual data this is also injected on the newly created
+		<tt class="verb">Table</tt> object.
 	      </dd>
-
 	      <dt>title</dt> <dd>A description for this object.
 	      </dd>
-
-	      <dt>compress</dt> <dd>Specifies a compress level
-		for data. The allowed range is 0-9. A value of 0
-		disables compression. The default is that
-		compression is disabled, that balances between
-		compression effort and CPU consumption.
-	      </dd>
-	      <dt>complib</dt> <dd> Specifies the compression
-		library to be used. Right now, <tt class="verb">"zlib"</tt>
-		(default), <tt class="verb">"lzo"</tt> and <tt class="verb">"ucl"</tt>
-		values are supported. See <a href="usersguide5.html#compressionIssues">section&nbsp;5.2</a> for some advice
-		on which library is better suited to your needs.
+	      <dt>filters</dt> <dd>An instance of the
+		<tt class="verb">Filters</tt> class (see <a href="#FiltersClassDescr">section&nbsp;4.12.1</a>) that provides
+		information about the desired I/O filters to be
+		applied during the life of this object.
 	      </dd>
 	      <dt>expectedrows</dt> <dd>An user estimate of the
 		number of records that will be on table. If not
@@ -592,10 +627,9 @@ div.partheadline { font-size: x-large }
 		record size). If you plan to save bigger tables you
 		should provide a guess; this will optimize the HDF5
 		B-Tree creation and management process time and memory
-		used. See <a href="usersguide5.html#expectedRowsOptim">section&nbsp;5.3</a>
-		for a detailed justification of that issue.
+		used. See <a href="usersguide5.html#expectedRowsOptim">section&nbsp;5.4</a>
+		for a discussion on that issue.
 	      </dd>
-
 	    </dl>
 	  </div>
 
@@ -607,36 +641,95 @@ div.partheadline { font-size: x-large }
 	      <em>name</em> in <em>where</em> location.
 	    </p>
 	    <dl>
+	      <dt>object</dt> <dd>The regular array to be
+		saved. Currently accepted values are: lists, tuples,
+		scalars (int and float), strings and
+		(multidimensional) <tt class="verb">Numeric</tt> and
+		<tt class="verb">NumArray</tt> arrays (including
+		<tt class="verb">CharArrays</tt> string arrays). However, these
+		objects must be regular (i.e. they cannot be like, for
+		example, <tt class="verb">[[1,2],2]</tt>). Also, objects that
+		has some of its dimension equal to zero are not
+		supported (this will be solved when unlimited arrays
+		will be implemented).
+	      </dd>
+	    </dl>
+	    <p>See <a href="#createTableDescr"><tt class="verb">createTable</tt>
+	      description&nbsp;<strong>??</strong></a> for more information on the
+	      <em>where</em>, <em>name</em> and <em>title</em>,
+	      parameters.
+	    </p>
+	  </div>
 
-		<dt>where</dt> <dd>The parent group where the
-		  new array will hang. <em>where</em> parameter can be
-		  a path string (for example
-		  <tt class="verb">"/Particles/TParticle1"</tt>), or
-		  <tt class="verb">Group</tt> instance. 
-		</dd>
+	  <div>
+	    <h4 id="createEArrayDescr"><a name="createEArrayDescr"></a>createEArray(where, name,
+	      atom, title='', filters=None, expectedrows=1000)
+	    </h4>
 
-		<dt>name</dt> <dd>The name of the new
-		  array.
-		</dd>
+	    <p class="first">Create a new <tt class="verb">EArray</tt> instance with name
+	      <em>name</em> in <em>where</em> location.
+	    </p>
 
-		<dt>object</dt> <dd>The regular array to be
-		  saved. Currently accepted values are: lists, tuples,
-		  scalars (int and float), strings and
-		  (multidimensional) <tt class="verb">Numeric</tt> and
-		  <tt class="verb">NumArray</tt> arrays (including
-		  <tt class="verb">CharArrays</tt> string arrays). However,
-		  these objects must be regular (i.e. they cannot be
-		  like, for example, <tt class="verb">[[1,2],2]</tt>). Also,
-		  objects that has some of its dimension equal to zero
-		  are not supported (this will be solved when
-		  unlimited arrays will be implemented).
-		</dd>
+	    <dl>
 
-		<dt>title</dt> <dd>A description for this
-		  object.
-		</dd>
+	      <dt>atom</dt> <dd>An <tt class="verb">Atom</tt> instance
+		representing the <em>shape</em>, <em>type</em> and
+		<em>flavor</em> of the atomic objects to be saved.
+		One (and only one) of the shape dimensions <b>must</b> be 0. The dimension being 0
+		means that the resulting <tt class="verb">EArray</tt> object
+		can be extended along it. Multiple enlargeable
+		dimensions are not supported right now.  See <a href="#AtomClassDescr">section&nbsp;4.11.3</a> for the supported
+		set of <tt class="verb">Atom</tt> class descendants.
+              </dd>
+	      <dt>expectedrows</dt> <dd>In the case of
+                enlargeable arrays this represents an user estimate
+                about the number of row elements that will be added to
+                the growable dimension in the EArray object. If not
+                provided, the default value is 1000 rows. If you plan
+                to create both much smaller or much bigger EArrays try
+                providing a guess; this will optimize the HDF5 B-Tree
+                creation and management process time and the amount of
+                memory used.
+	      </dd>
+	    </dl>
+	    <p>See <a href="#createTableDescr"><tt class="verb">createTable</tt>
+	      description&nbsp;<strong>??</strong></a> for more information on the
+	      <em>where</em>, <em>name</em>, <em>title</em>,
+	      and <em>filters</em> parameters.
+	    </p>
+	  </div>
 
-	      </dl>
+	  <div>
+	    <h4 id="createVLArrayDescr"><a name="createVLArrayDescr"></a>createVLArray(where,
+	      name, atom=None, title='', filters=None,
+	      expectedsizeinMB=1.0)
+	    </h4>
+
+	    <p class="first">Create a new <tt class="verb">VLArray</tt> instance with name
+	      <em>name</em> in <em>where</em> location. See the <a href="#VLArrayClassDescr">section&nbsp;4.8</a> for a
+	      description of the <tt class="verb">VLArray</tt> class.
+	    </p>
+
+	    <dl>
+	      <dt>atom</dt> <dd>An <tt class="verb">Atom</tt> instance
+                representing the shape, type and flavor of the atomic
+                object to be saved. See <a href="#AtomClassDescr">section&nbsp;4.11.3</a> for the supported set
+                of <tt class="verb">Atom</tt> class descendants.
+              </dd>
+              <dt>expectedsizeinMB</dt> <dd>An user estimate
+                about the size (in MB) in the final
+                <tt class="verb">VLArray</tt> object. If not provided, the
+                default value is 1 MB.  If you plan to create both
+                much smaller or much bigger VLA's try providing a
+                guess; this will optimize the HDF5 B-Tree creation and
+                management process time and the amount of memory used.
+              </dd>
+	    </dl>
+	    <p>See <a href="#createTableDescr"><tt class="verb">createTable</tt>
+	      description&nbsp;<strong>??</strong></a> for more information on the
+	      <em>where</em>, <em>name</em>, <em>title</em>, and
+	      <em>filters</em> parameters.
+	    </p>
 	  </div>
 
 	  <div>
@@ -651,7 +744,7 @@ div.partheadline { font-size: x-large }
 
 		<dt>where</dt> <dd>Can be a path string or
 		  <tt class="verb">Group</tt> instance. If <em>where</em>
-		  doesn't exists or has not a child called
+		  doesn't exists or has already a child called
 		  <em>name</em>, a <tt class="verb">ValueError</tt> error is
 		  raised.
 		</dd>
@@ -663,11 +756,12 @@ div.partheadline { font-size: x-large }
 		</dd>
 
 		<dt>classname</dt> <dd>If supplied, returns only
-		  an instance of this class name. Allowed names in
-		  <em>classname</em> are: <tt class="verb">'Group'</tt>,
-		  <tt class="verb">'Leaf'</tt>, <tt class="verb">'Table'</tt> and
-		  <tt class="verb">'Array'</tt>. Note that these values are
-		  strings.
+		  an instance of this class name. Possible values are:
+		  <tt class="verb">'Group'</tt>, <tt class="verb">'Leaf'</tt>,
+		  <tt class="verb">'Table'</tt>, <tt class="verb">'Array'</tt>,
+		  <tt class="verb">'EArray'</tt>, <tt class="verb">'VLArray'</tt> and
+		  <tt class="verb">'UnImplemented'</tt>. Note that these values
+		  are strings.
 		</dd>
 
 	      </dl>
@@ -744,7 +838,7 @@ div.partheadline { font-size: x-large }
 
 	    <p class="first">Returns a list with all the object nodes (Group or
 	      Leaf) hanging from <em>where</em>. The list is
-	      alphanumerically sorted by node name.
+	      alpha-numerically sorted by node name.
 	    </p>
 	    <dl>
 
@@ -757,8 +851,10 @@ div.partheadline { font-size: x-large }
 		  instances of this class (or subclasses of it). The
 		  only supported classes in <em>classname</em> are
 		  <tt class="verb">'Group'</tt>, <tt class="verb">'Leaf'</tt>,
-		  <tt class="verb">'Table'</tt> and <tt class="verb">'Array'</tt>. Note
-		  that these values are strings.
+		  <tt class="verb">'Table'</tt>, <tt class="verb">'Array'</tt>,
+		  <tt class="verb">'EArray'</tt>, <tt class="verb">'VLArray'</tt> and
+		  <tt class="verb">'UnImplemented'</tt>. Note that these values
+		  are strings.
 		</dd>
 
 	    </dl>
@@ -824,7 +920,7 @@ div.partheadline { font-size: x-large }
 	      Leaves) hanging from <em>where</em>. If <em>where</em>
 	      is not supplied, the root object is taken as origin. The
 	      returned Group list is in a top-bottom order, and
-	      alphanumerically sorted when they are at the same level.
+	      alpha-numerically sorted when they are at the same level.
 	    </p>
 	    <dl>
 
@@ -836,14 +932,14 @@ div.partheadline { font-size: x-large }
 	  </div>
 
 	  <div>
-	    <h4 id="subsubsection4.4.2.11">flush()</h4>
+	    <h4 id="subsubsection4.2.2.15">flush()</h4>
 
 	    <p class="first">Flush all the leaves in the object tree.
 	    </p>
 	  </div>
 
 	  <div>
-	    <h4 id="subsubsection4.4.2.12">close()</h4>
+	    <h4 id="subsubsection4.2.2.16">close()</h4>
 
 	    <p class="first">Flush all the leaves in object tree and close the file.
 	    </p>
@@ -852,7 +948,7 @@ div.partheadline { font-size: x-large }
 	</div>
 
 	<div>
-	  <h3 id="subsection4.4.3"><span class="headlinenumber"><a name="subsection4.4.3"></a>4.4.3 </span><tt>File</tt> special
+	  <h3 id="subsection4.2.3"><span class="headlinenumber"><a name="subsection4.2.3"></a>4.2.3 </span><tt>File</tt> special
 	      methods</h3>
 
 	  <p class="first">Following are described the methods that automatically
@@ -902,6 +998,7 @@ div.partheadline { font-size: x-large }
 
 	    <pre>
 	      # Recursively list all the nodes in the object tree
+	      h5file = tables.openFile("vlarray1.h5")
 	      print "All nodes in the object tree:"
 	      for node in h5file:
 	          print node
@@ -914,7 +1011,7 @@ div.partheadline { font-size: x-large }
       </div>
 
       <div id="GroupClassDescr"><a name="GroupClassDescr"></a>
-	<h2 id="section4.5"><span class="headlinenumber"><a name="section4.5"></a>4.5 </span>The <tt>Group</tt> class</h2>
+	<h2 id="section4.3"><span class="headlinenumber"><a name="section4.3"></a>4.3 </span>The <tt>Group</tt> class</h2>
 
 	<p class="first">Instances of this class are a grouping structure containing
 	  instances of zero or more groups or leaves, together with
@@ -926,11 +1023,10 @@ div.partheadline { font-size: x-large }
 	  filesystem. As with Unix directories and files, objects in
 	  the object tree are often described by giving their full (or
 	  absolute) path names. This full path can be specified either
-	  as string (like in <tt class="verb">'/group1/group2'</tt>) or as a
-	  complete object path written in the Pythonic fashion known
-	  as <em>natural name</em> schema (like in
-	  <tt class="verb">file.root.group1.group2</tt>) and discussed in the
-	  <a href="usersguide1.html#ObjectTreeSection">section&nbsp;1.2</a>.
+	  as a string (like in <tt class="verb">'/group1/group2'</tt>) or as a
+	  complete object path written in <em>natural name</em> schema
+	  (like in <br><tt class="verb">file.root.group1.group2</tt>) as
+	  discussed in the <a href="usersguide1.html#ObjectTreeSection">section&nbsp;1.2</a>.
 	</p>
 
 	<p>A collateral effect of the <em>natural naming</em> schema
@@ -948,15 +1044,15 @@ div.partheadline { font-size: x-large }
 
 	<p>Other effect is that you cannot use reserved Python names
 	  or other non-allowed python names (like for example "$a" or
-	  "44") as node names. You can, however, make use of a
-	  translation map dictionary in the
-	  <tt class="verb">File.openfile()</tt> method (see section <a href="#openFileDescr"><strong>??</strong></a>) so as to use non valid Python
-	  names as node names in the file.
+	  "44") as node names. You can, however, make use of the
+	  <tt class="verb">trMap</tt> (translation map dictionary) parameter in
+	  the <tt class="verb">openFile</tt> function (see section <a href="#openFileDescr"><strong>??</strong></a>) in order to use non-valid
+	  Python names as node names in the file.
 	</p>
 
 	<div>
 
-	  <h3 id="subsection4.5.1"><span class="headlinenumber"><a name="subsection4.5.1"></a>4.5.1 </span><tt>Group</tt> instance
+	  <h3 id="subsection4.3.1"><span class="headlinenumber"><a name="subsection4.3.1"></a>4.3.1 </span><tt>Group</tt> instance
 	    variables</h3>
 	  <dl>
 
@@ -982,7 +1078,13 @@ div.partheadline { font-size: x-large }
 	    <dt>_v_file</dt>
 	    <dd>Pointer to the associated File object.</dd>
 
-	    <dt>_v_childs</dt> <dd>Dictionary with all nodes
+	    <dt>_v_depth</dt> <dd>The depth level in tree for
+	      this group.</dd>
+
+	    <dt>_v_nchildren</dt> <dd>The number of children
+	      (groups or leaves) hanging from this instance.</dd>
+
+	    <dt>_v_children</dt> <dd>Dictionary with all nodes
 	      (groups or leaves) hanging from this instance.</dd>
 
 	    <dt>_v_groups</dt> <dd>Dictionary with all node
@@ -994,17 +1096,22 @@ div.partheadline { font-size: x-large }
 	    <dt>_v_attrs</dt> <dd>The associated
 	    <tt class="verb">AttributeSet</tt> instance (see <a href="#AttributeSetClassDescr">4.10</a>).</dd>
 
+	    <dt>_v_filters</dt> <dd>Container for filter
+	      properties.  See <a href="#FiltersClassDescr">section&nbsp;4.12.1</a> for more
+	      information on this object.
+	    </dd>
+
 	  </dl>
 
 	</div>
 
 	<div>
-	  <h3 id="subsection4.5.2"><span class="headlinenumber"><a name="subsection4.5.2"></a>4.5.2 </span><tt>Group</tt> methods</h3>
+	  <h3 id="subsection4.3.2"><span class="headlinenumber"><a name="subsection4.3.2"></a>4.3.2 </span><tt>Group</tt> methods</h3>
 
 	  <div class="p-first">This class define the <tt class="verb">__setattr__</tt>,
 	    <tt class="verb">__getattr__</tt> and <tt class="verb">__delattr__</tt> and
 	    they work as normally intended. So, you can access, assign
-	    or delete childs to a group by just using the next
+	    or delete children to a group by just using the next
 	    constructs:
 
 	    <pre>
@@ -1021,70 +1128,144 @@ div.partheadline { font-size: x-large }
 	    used without any problem. However, you should use the
 	    high-level counterpart methods in the <tt class="verb">File</tt>
 	    class, because these are most used in documentation and
-	    examples, and are a bit more powerful than ones those
-	    exposed here.
+	    examples, and are a bit more powerful than those exposed
+	    here.
 	  </p>
 
-	  <dl>
+	  <div id="Group_f_join"><a name="Group_f_join"></a>
+	    <h4 id="subsubsection4.3.2.1">_f_join(name)
+	    </h4>
+	    <p class="first">Helper method to correctly concatenate a name child object
+	      with the pathname of this group.
+	    </p>
+	  </div>
+	  <div id="Group_f_rename"><a name="Group_f_rename"></a>
+	    <h4 id="subsubsection4.3.2.2">_f_rename(newname)
+	    </h4>
+	    <p class="first">Change the name of this group to <em>newname</em>.
+	    </p>
+	  </div>
+	  <div id="Group_f_remove"><a name="Group_f_remove"></a>
+	    <h4 id="subsubsection4.3.2.3">_f_remove(recursive=0)
+	    </h4>
+	    <p class="first">Remove this object. If <em>recursive</em> is true,
+	      force the removal even if this group has children.
+	    </p>
+	  </div>
+	  <div id="Group_f_getAttr"><a name="Group_f_getAttr"></a>
+	    <h4 id="subsubsection4.3.2.4">_f_getAttr(attrname)
+	    </h4>
+	    <p class="first">Gets the HDF5 attribute <em>attrname</em> of this
+	      group.
+	    </p>
+	  </div>
 
-	    <dt>_f_join(name)</dt>
-	    <dd>Helper method to correctly concatenate a name child object
-	      with the pathname of this group.</dd>
+	  <div id="Group_f_setAttr"><a name="Group_f_setAttr"></a>
+	    <h4 id="subsubsection4.3.2.5">_f_setAttr(attrname, attrvalue)
+	    </h4>
+	    <p class="first">Sets the attribute <em>attrname</em> of this group to
+	      the value <em>attrvalue</em>. Only string values are
+	      allowed.
+	    </p>
+	  </div>
 
-	    <dt>_f_rename(newname)</dt>
-	    <dd>Change the name of this group to <em>newname</em>.</dd>
+	  <div id="Group_f_listNodes"><a name="Group_f_listNodes"></a>
+	    <h4 id="subsubsection4.3.2.6">_f_listNodes(classname='')
+	    </h4>
+	    <p class="first">Returns a <em>list</em> with all the object nodes
+	      hanging from this instance. The list is
+	      alpha-numerically sorted by node name. If a
+	      <em>classname</em> parameter is supplied, it will only
+	      return instances of this class (or subclasses of
+	      it). The supported classes in <em>classname</em> are
+	      <tt class="verb">'Group'</tt>, <tt class="verb">'Leaf'</tt>,
+	      <tt class="verb">'Table'</tt> and <tt class="verb">'Array'</tt>,
+	      <tt class="verb">'EArray'</tt>, <tt class="verb">'VLArray'</tt> and
+	      <tt class="verb">'UnImplemented'</tt>.
+	    </p>
+	  </div>
+	  <div id="Group_f_walkGroups"><a name="Group_f_walkGroups"></a>
+	    <h4 id="subsubsection4.3.2.7">_f_walkGroups()
+	    </h4>
+	    <p class="first">Iterator that returns the list of Groups (not Leaves)
+	      hanging from <em>self</em>. The returned Group list is
+	      in a top-bottom order, and alpha-numerically sorted when
+	      they are at the same level.
+	    </p>
+	  </div>
 
-	    <dt>_f_remove(recursive=0)</dt> <dd>Remove this
-	      object. If <em>recursive</em> is true, force the removal
-	      even if this group has children.</dd>
+	  <div id="Group_f_close"><a name="Group_f_close"></a>
+	    <h4 id="subsubsection4.3.2.8">_f_close()
+	    </h4>
+	    <p class="first">Close this group, making it and its children
+	      unaccessible in the object tree.
+	    </p>
+	  </div>
 
-	    <dt>_f_getAttr(attrname)</dt> <dd>Gets the HDF5
-	      attribute <em>attrname</em> of this group.</dd>
+	  <div id="Group_f_copyChildrenDescr"><a name="Group_f_copyChildrenDescr"></a>
 
-	    <dt>_f_setAttr(attrname, attrvalue)</dt> <dd>Sets
-	      the attribute <em>attrname</em> of this group to the
-	      value <em>attrvalue</em>. Only string values are
-	      allowed.</dd>
+	    <h4 id="subsubsection4.3.2.9">_f_copyChildren(where, recursive=0, filters=None,
+	      copyuserattrs=1, start=0, stop=None, step=1,
+	      overwrite=0)
+	    </h4>
 
-	    <dt>_f_listNodes(classname='')</dt> <dd>Returns a
-	      <em>list</em> with all the object nodes hanging from
-	      this instance. The list is alphanumerically sorted by
-	      node name. If a <em>classname</em> parameter is
-	      supplied, it will only return instances of this class
-	      (or subclasses of it). The supported classes in
-	      <em>classname</em> are <tt class="verb">'Group'</tt>,
-	      <tt class="verb">'Leaf'</tt>, <tt class="verb">'Table'</tt> and
-	      <tt class="verb">'Array'</tt>.</dd>
+	    <p class="first">Copy (recursively) the children of this group into
+	      another location specified by <em>where</em> (it can be
+	      a path string or a <tt class="verb">Group</tt> object). Returns a
+	      tuple in the form <tt class="verb">(ngroups, nleaves,
+	      nbytes)</tt> specifiying the number of groups, leaves
+	      and bytes copied.
+	    </p>
 
-	    <dt>_f_walkGroups()</dt> <dd>Iterator that returns
-	      the list of Groups (not Leaves) hanging from
-	      <em>self</em>. The returned Group list is in a
-	      top-bottom order, and alphanumerically sorted when they
-	      are at the same level. </dd>
+	    <dl>
+	      <dt>recursive</dt> <dd>Specifies whether the copy
+		should recurse into subgroups or not. The default is
+		not recurse.
+	      </dd>
+	      
+	      <dt>filters</dt> <dd>Whether or not override the
+		original filter properties present in source nodes.
+		This parameter must be an instance of the
+		<tt class="verb">Filters</tt> class (see section<a href="#FiltersClassDescr">4.12.1</a>). The default is to
+		copy the filter attributes from source children.
+	      </dd>
 
-	    <dt>_f_close()</dt> <dd>Close this group, making it
-	      and its children unaccessible in the object tree.</dd>
+	      <dt>copyuserattrs</dt> <dd>You can prevent the
+		user attributes from being copied by setting this
+		parameter to 0. The default is to copy them.
+	      </dd>
 
-	  </dl>
+	      <dt>start, stop, step</dt><dd>Specifies the range
+		of rows in child leaves to be copied; the default is
+		to copy all the rows.
+	      </dd>
+
+	      <dt>overwrite</dt><dd>Whether the possible
+		existing children hanging from this group and having
+		the same names than <tt class="verb">where</tt> children should
+		overwrite the destination nodes or not.
+	      </dd>
+	    </dl>
+	  </div> 
 
 	</div>
 
 	<div>
-	  <h3 id="subsection4.5.3"><span class="headlinenumber"><a name="subsection4.5.3"></a>4.5.3 </span><tt>Group</tt> special
+	  <h3 id="subsection4.3.3"><span class="headlinenumber"><a name="subsection4.3.3"></a>4.3.3 </span><tt>Group</tt> special
 	      methods</h3>
 
 	  <p class="first">Following are described the methods that automatically
 	    trigger actions when a <tt class="verb">Group</tt> instance is
 	    accessed in a special way (e.g.,
-	    <tt class="verb">group("Table")</tt> will cause a call to
-	    <tt class="verb">group.__call__("Table")</tt>).
+	    <tt class="verb">group("Table")</tt> will be equivalent to a call
+	    to <tt class="verb">group.__call__("Table")</tt>).
 	  </p>
 
 	  <div>
 	    <h4 id="__callGroupDescr"><a name="__callGroupDescr"></a>__call__(classname="",
 	      recursive=0)</h4>
 
-	    <p class="first">Iterate over the childs in the <tt class="verb">Group</tt>
+	    <p class="first">Iterate over the children in the <tt class="verb">Group</tt>
 	      instance. It takes two parameters:</p>
 
 	    <dl>
@@ -1094,7 +1275,7 @@ div.partheadline { font-size: x-large }
 	      returned.</dd>
 
 	      <dt>recursive</dt> <dd><em>(Integer)</em> If
-	      false, only childs hanging immediately after the group
+	      false, only children hanging immediately after the group
 	      are returned. If true, a recursion over all the groups
 	      hanging from it is performed. </dd>
 
@@ -1114,9 +1295,9 @@ div.partheadline { font-size: x-large }
 	  <div>
 	    <h4 id="__iterGroupDescr"><a name="__iterGroupDescr"></a>__iter__()</h4>
 
-	    <p class="first">Iterate over the childs on the group instance. However,
-	      this does not accept parameters. This iterator is not
-	      recursive.</p>
+	    <p class="first">Iterate over the children on the group instance. However,
+	      this does not accept parameters. This iterator is
+	      <b>not</b> recursive.</p>
 
 	    <p>Example of use:</p>
 
@@ -1134,197 +1315,326 @@ div.partheadline { font-size: x-large }
       </div>
 
       <div id="LeafClassDescr"><a name="LeafClassDescr"></a>
-	<h2 id="section4.6"><span class="headlinenumber"><a name="section4.6"></a>4.6 </span>The <tt>Leaf</tt> class</h2>
+	<h2 id="section4.4"><span class="headlinenumber"><a name="section4.4"></a>4.4 </span>The <tt>Leaf</tt> class</h2>
 
-	<p class="first">This is a helper class useful to place common functionality
-	  of all Leaf objects. It is also useful for classifying
-	  purposes. A Leaf object is an end-node, that is, a node that
-	  can hang directly from a group object, but that is not a
-	  group itself. Right now this set is composed by
-	  <tt class="verb">Table</tt> and <tt class="verb">Array</tt> objects. In fact,
-	  <tt class="verb">Table</tt> and <tt class="verb">Array</tt> classes inherit
-	  functionality from this class using the <em>mix-in</em>
-	  technique.
+	<p class="first">The goal of this class is to provide a place to put common
+	  functionality of all its descendants as well as provide a
+	  way to help classifying objects on the tree. A
+	  <tt class="verb">Leaf</tt> object is an end-node, that is, a node
+	  that can hang directly from a group object, but that is not
+	  a group itself and, thus, it cannot have descendents. Right
+	  now, the set of end-nodes is composed by <tt class="verb">Table</tt>,
+	  <tt class="verb">Array</tt>, <tt class="verb">EArray</tt>,
+	  <tt class="verb">VLArray</tt> and <tt class="verb">UnImplemented</tt> class
+	  instances. In fact, all the previous classes inherits from
+	  the <tt class="verb">Leaf</tt> class.
 	</p>
 
-	<p>The public variables and methods that <tt class="verb">Table</tt>
-	  and <tt class="verb">Array</tt> inherits from <tt class="verb">Leaf</tt> are
-	  listed below.</p>
-
 	<div>
-	  <h3 id="subsection4.6.1"><span class="headlinenumber"><a name="subsection4.6.1"></a>4.6.1 </span><tt>Leaf</tt> instance
+	  <h3 id="subsection4.4.1"><span class="headlinenumber"><a name="subsection4.4.1"></a>4.4.1 </span><tt>Leaf</tt> instance
 	    variables</h3>
+
+	  <p class="first">The public variables and methods that class descendants
+	    inherits from <tt class="verb">Leaf</tt> are listed below.
+	  </p>
+
 	  <dl>
 
 	    <dt>name</dt> <dd>The Leaf node name in Python
-	      namespace.</dd>
-	    
+	      namespace.
+	    </dd>
 	    <dt>hdf5name</dt> <dd>The Leaf node name in HDF5
-	      namespace.</dd>
-	    
-	    <dt>title</dt> <dd>The Leaf title.</dd>
-
+	      namespace.
+	    </dd>
+	    <dt>objectID</dt> <dd>The HDF5 object ID of the Leaf
+	      node.
+	    </dd>
+	    <dt>title</dt> <dd>The Leaf title (actually a
+	      property rather than a plain attribute).
+	    </dd>
 	    <dt>shape</dt> <dd>The shape of the associated data
-	      in the Leaf.</dd>
-
+	      in the Leaf.
+	    </dd>
 	    <dt>byteorder</dt> <dd>The byteorder of
-	      the associated data of the Leaf.</dd>
+	      the associated data of the Leaf.
+	    </dd>
+	    <dt>attrs</dt><dd>The associated
+	      <tt class="verb">AttributeSet</tt> instance (see <a href="#AttributeSetClassDescr">4.10</a>).
+	    </dd>
+	    <dt>filters</dt> <dd>Container for filter
+	      properties.  See <a href="#FiltersClassDescr">section&nbsp;4.12.1</a> for more
+	      information on this object.
+	    </dd>
 
-	    <dt>attrs</dt> <dd>The associated
-	    <tt class="verb">AttributeSet</tt> instance (see <a href="#AttributeSetClassDescr">4.10</a>).</dd>
+	  </dl>
+
+	  <p>Besides, the next instance variables are also defined and
+	    have similar meaning as its counterparts in the
+	    <tt class="verb">Group</tt> class:
+	  </p>
+
+	  <dl>
+	    <dt>_v_hdf5name</dt> <dd>The name of this leaf in
+	      HDF5 file namespace.</dd>
+
+	    <dt>_v_pathname</dt>
+	    <dd>A string representation of the leaf location
+	      in tree.</dd>
+
+	    <dt>_v_parent</dt>
+	    <dd>The parent <tt class="verb">Group</tt> instance.</dd>
+
+	    <dt>_v_rootgroup</dt> <dd>Pointer to the root
+	    <tt class="verb">Group</tt> object.</dd>
+
+	    <dt>_v_file</dt> <dd>Pointer to the associated
+	    <tt class="verb">File</tt> object.</dd>
+
+	    <dt>_v_depth</dt> <dd>The depth level in tree for
+	      this leaf.</dd>
 
 	  </dl>
 	</div>
 
 	<div>
-	  <h3 id="subsection4.6.2"><span class="headlinenumber"><a name="subsection4.6.2"></a>4.6.2 </span><tt>Leaf</tt> methods</h3>
-	  <dl>
+	  <h3 id="subsection4.4.2"><span class="headlinenumber"><a name="subsection4.4.2"></a>4.4.2 </span><tt>Leaf</tt> methods</h3>
 
-	    <dt>rename(newname)</dt>
-	    <dd>Change the name of this leaf to <em>newname</em>.</dd>
+	  <div>
 
-	    <dt>remove()</dt> <dd>Remove this
-	      leaf.</dd>
+	    <h4 id="copyLeafDescr"><a name="copyLeafDescr"></a>copy(where, name, title=None,
+	      filters=None, copyuserattrs=1, start=0, stop=None,
+	      step=1, overwrite=0)
+	    </h4>
 
-	    <dt>getAttr(attrname)</dt> <dd>Gets the HDF5
-	      attribute <em>attrname</em> of this leaf.</dd>
+	    <div class="p-first">Copy this leaf into another location. It returns a
+	      tuple <tt class="verb">(object, nbytes)</tt> where
+	      <tt class="verb">object</tt> is the newly created object and
+	      <tt class="verb">nbytes</tt> is the number of bytes copied. The
+	      meaning of the parameters is explained below:
+	      <dl>
+		<dt>where</dt> <dd>Can be a path string or
+		  <tt class="verb">Group</tt> instance.  If <em>where</em>
+		  doesn't exists or has not a child called
+		  <em>name</em>, a <tt class="verb">LookupError</tt> error is
+		  raised.
+		</dd>
+		<dt>name</dt> <dd>The name of the destination
+		  node.
+		</dd>
+		<dt>title</dt><dd>The new title for
+		  destination. If None, the original title is copied.
+		</dd>
+		<dt>filters</dt><dd>An instance of the
+		  <tt class="verb">Filters</tt> (see <a href="#FiltersClassDescr">section&nbsp;4.12.1</a>) class. A
+		  None value means that the source properties are
+		  copied <em>as is</em>.
+		</dd>
+		<dt>copyuserattrs</dt><dd>Whether copy the user
+		  attributes of the source leaf to the destination or
+		  not. The default is to copy them.
+		</dd>
+		<dt>start, stop, step</dt><dd>Specifies the
+		  range of rows to be copied; the default is to copy
+		  all the rows.
+		</dd>
+		<dt>overwrite</dt><dd>If the destination node
+		  <em>name</em> already exists this specifies whether
+		  it should be overwritten or not. The default is not
+		  overwrite it.
+		</dd>
+	      </dl>
+	    </div>
 
-	    <dt>setAttr(attrname, attrvalue)</dt> <dd>Sets
-	      the attribute <em>attrname</em> of this leaf to the
-	      value <em>attrvalue</em>. Only string values are
-	      allowed.</dd>
+	  </div>
 
-	    <dt>flush()</dt> <dd>Flush the leaf buffers.</dd>
-
-	    <dt>close()</dt> <dd>Flush the leaf buffers and
-	      close the HDF5 dataset.</dd>
-
-	  </dl>
+	  <div>
+	    <h4 id="removeLeafDescr"><a name="removeLeafDescr"></a>remove()</h4>
+	    <p class="first">Remove this leaf.</p>
+	  </div>
+	  <div>
+	    <h4 id="renameLeafDescr"><a name="renameLeafDescr"></a>rename(newname)</h4>
+	    <p class="first">Change the name of this leaf to <em>newname</em>.</p>
+	  </div>
+	  <div>
+	    <h4 id="getAttrLeafDescr"><a name="getAttrLeafDescr"></a>getAttr(attrname)</h4>
+	    <p class="first">Gets the HDF5 attribute <em>attrname</em> of this leaf.
+	    </p>
+	  </div>
+	  <div>
+	    <h4 id="setAttrLeafDescr"><a name="setAttrLeafDescr"></a>setAttr(attrname,
+	      attrvalue)
+	    </h4>
+	    <p class="first">Sets the attribute <em>attrname</em> of this leaf to
+	      the value <em>attrvalue</em>.
+	    </p>
+	  </div>
+	  <div>
+	    <h4 id="flushLeafDescr"><a name="flushLeafDescr"></a>flush()</h4>
+	    <p class="first">Flush the leaf buffers (if any).</p>
+	  </div>
+	  <div>
+	    <h4 id="closeLeafDescr"><a name="closeLeafDescr"></a>close()</h4> <p class="first">Flush
+	    the leaf buffers (if any) and close the dataset.</p>
+	  </div>
 	</div>
 
       </div>
 
       <div id="TableClassDescr"><a name="TableClassDescr"></a>
-	<h2 id="section4.7"><span class="headlinenumber"><a name="section4.7"></a>4.7 </span>The <tt>Table</tt> class</h2>
+	<h2 id="section4.5"><span class="headlinenumber"><a name="section4.5"></a>4.5 </span>The <tt>Table</tt> class</h2>
 
 	<p class="first">Instances of this class represents table objects in the
-	  object tree. It provides methods to create new tables or
-	  open existing ones, as well as methods to read/write data
-	  and metadata from/to table objects in the file.
+	  object tree. It provides methods to read/write data and
+	  from/to table objects in the file.
 	</p>
 	<p>Data can be read from or written to tables by accessing to
 	  an special object that hangs from <tt class="verb">Table</tt>. This
 	  object is an instance of the <tt class="verb">Row</tt> class (see
-	  <a href="#RowClassDescr">4.8</a>). See the tutorial
+	  <a href="#RowClassDescr">4.5.4</a>). See the tutorial
 	  sections <a href="usersguide3.html#usage">chapter&nbsp;3</a> on how to use the
-	  <tt class="verb">Row</tt> interface.
+	  <tt class="verb">Row</tt> interface. The columns of the tables can
+	  also be easily accessed (and more specifically, they can be
+	  read but not written) by making use of the
+	  <tt class="verb">Column</tt> class, through the use of an
+	  <em>extension</em> of the natural naming schema applied
+	  inside the tables. See the <a href="#ColumnClassDescr">section&nbsp;4.5.6</a> for some examples of
+	  use of this capability.
 	</p>
-	<p>Please note that this object inherits all the public
-	  attributes and methods that <tt class="verb">Leaf</tt> has.
+	<p>Note that this object inherits all the public attributes
+	  and methods that <tt class="verb">Leaf</tt> already has.
 	</p>
 
 	<div>
-	  <h3 id="subsection4.7.1"><span class="headlinenumber"><a name="subsection4.7.1"></a>4.7.1 </span><tt>Table</tt> instance
+	  <h3 id="subsection4.5.1"><span class="headlinenumber"><a name="subsection4.5.1"></a>4.5.1 </span><tt>Table</tt> instance
 	    variables</h3>
 	  <dl>
-
 	    <dt>description</dt> <dd>The metaobject describing
-	      this table</dd>
-
+	      this table.
+	    </dd>
 	    <dt>row</dt> <dd>The <tt class="verb">Row</tt> instance for
-	      this table (see <a href="#RowClassDescr">4.8</a>).</dd>
+	      this table (see <a href="#RowClassDescr">4.5.4</a>).
+	    </dd>
+	    <dt>nrows</dt> <dd>The number of rows in this table.
+	    </dd>
+	    <dt>rowsize</dt> <dd>The size, in bytes, of each
+	      row.
+	    </dd>
 
-	    <dt>nrows</dt>
-	    <dd>The number of rows in this table.</dd>
-
-	    <dt>colnames</dt>
-	    <dd>The field names for the table (list).</dd>
-
-	    <dt>coltypes</dt>
-	    <dd>The data types for the table fields (dictionary).</dd>
-
-	    <dt>colshapes</dt>
-	    <dd>The shapes for the table fields (dictionary).</dd>
-
+	    <dt>cols</dt> <dd>A <tt class="verb">Cols</tt> (see <a href="#ColsClassDescr">section&nbsp;4.5.5</a>) instance that
+		serves as accessor to <tt class="verb">Column</tt> (see <a href="#ColumnClassDescr">section&nbsp;4.5.6</a>) objects.
+	    </dd>
+	    <dt>colnames</dt> <dd>The field names for the table
+	      (list).
+	    </dd>
+	    <dt>coltypes</dt> <dd>The data types for the table
+	      fields (dictionary).
+	    </dd>
+	    <dt>colshapes</dt> <dd>The shapes for the table
+	      fields (dictionary).
+	    </dd>
 	  </dl>
-
 	</div>
 
 	<div>
-	  <h3 id="subsection4.7.2"><span class="headlinenumber"><a name="subsection4.7.2"></a>4.7.2 </span><tt>Table</tt> methods</h3>
-
+	  <h3 id="subsection4.5.2"><span class="headlinenumber"><a name="subsection4.5.2"></a>4.5.2 </span><tt>Table</tt> methods
+	  </h3>
 	  <div>
-	    <h4 id="iterrowsDescr"><a name="iterrowsDescr"></a>iterrows(start=None,
-	      stop=None, step=None)</h4>
-
-
-	    <p class="first">Returns an iterator yielding Row instances built from
-	      rows in table. If a range is supplied (i.e. some of the
-	      <em>start</em>, <em>stop</em> or <em>step</em>
-	      parameters are passed), only the appropriate rows are
-	      returned. Else, all the rows are returned.
+	    <h4 id="appendTableDescr"><a name="appendTableDescr"></a>append(rows=None)
+	    </h4>
+	    <p class="first">Append a series of rows to this <tt class="verb">Table</tt>
+	      instance. <em>rows</em> is an object that can keep the
+	      rows to be append in several formats, like a
+	      <tt class="verb">RecArray</tt>, a list of tuples, list of
+	      <tt class="verb">Numeric</tt>/<tt class="verb">NumArray</tt>/<tt class="verb">CharArray</tt>
+	      objects, string, Python buffer or None (no append will
+	      result). Of course, this <em>rows</em> object has to be
+	      compliant with the underlying format of the
+	      <tt class="verb">Table</tt> instance or a <tt class="verb">ValueError</tt>
+	      will be issued.
 	    </p>
-	    <dl>
-		<dt>start</dt> <dd>Sets the starting row to
-		  return data. A value of 0 means the first row. It
-		  accepts negative values meaning that the count
-		  starts from the end.</dd>
 
-		<dt>stop</dt> <dd>Sets the last row to be
-		  returned to <em>stop - 1</em>, i.e. the end point is
-		  omitted (in the Python <tt class="verb">range</tt>
-		  tradition). It accepts, likewise <em>start</em>,
-		  negative values. A special value of 0 means the last
-		  row.
-		</dd>
+	    <div class="p">Example of use:
+	      <pre>
+from tables import *
+class Particle(IsDescription):
+    name        = StringCol(16, pos=1)   # 16-character String
+    lati        = IntCol(pos=2)        # integer
+    longi       = IntCol(pos=3)        # integer
+    pressure    = Float32Col(pos=4)    # float  (single-precision)
+    temperature = FloatCol(pos=5)      # double (double-precision)
 
-		<dt>step</dt> <dd>When step is given, it
-		  specifies the increment. Negative values are not
-		  allowed right now.</dd>
-
-	      </dl>
+fileh = openFile("test4.h5", mode = "w")
+table = fileh.createTable(fileh.root, 'table', Particle, "A table")
+# Append several rows in only one call
+table.append([("Particle:     10", 10, 0, 10*10, 10**2),
+              ("Particle:     11", 11, -1, 11*11, 11**2),
+              ("Particle:     12", 12, -2, 12*12, 12**2)])
+fileh.close()
+	      </pre>
+	    </div>
 	  </div>
 
 	  <div>
-	    <h4 id="readDescr"><a name="readDescr"></a>read(self, start=None, stop=None,
-	      step=None, field=None, flavor=None)</h4>
+	    <h4 id="iterrowsTableDescr"><a name="iterrowsTableDescr"></a>iterrows(start=None,
+	      stop=None, step=1)</h4>
+
+	    <p class="first">Returns an iterator yielding <tt class="verb">Row</tt> (see <a href="#RowClassDescr">section&nbsp;4.5.4</a>) instances built
+	      from rows in table. If a range is supplied (i.e. some of
+	      the <em>start</em>, <em>stop</em> or <em>step</em>
+	      parameters are passed), only the appropriate rows are
+	      returned. Else, all the rows are returned. See also the
+	      <tt class="verb">__call__()</tt> and <tt class="verb">__iter__()</tt>
+	      special methods in <a href="#TableSpecialMethods">section&nbsp;4.5.3</a> for shorter
+	      ways to call this iterator.
+	    </p>
+	    <p>The meaning of the <em>start</em>, <em>stop</em> and
+	      <em>step</em> parameters is the same as in the
+	      <tt class="verb">range()</tt> python function, except that
+	      negative values of <tt class="verb">step</tt> are not
+	      allowed. Moreover, if only <tt class="verb">start</tt> is
+	      specified, then <tt class="verb">stop</tt> will be set to
+	      <tt class="verb">start+1</tt>. If you do not specify neither
+	      <em>start</em> nor <em>stop</em>, then <b>all the rows</b> in the object are
+	      selected.
+	    </p>
+	  </div>
+
+	  <div>
+	    <h4 id="readTableDescr"><a name="readTableDescr"></a>read(start=None, stop=None,
+	      step=1, field=None, flavor="numarray")</h4>
 
 	    <p class="first">Returns the actual data in <tt class="verb">Table</tt>. If
 	      <em>field</em> is not supplied, it returns the data as a
 	      <tt class="verb">RecArray</tt> object table.
 	    </p>
+
+	    <p>The meaning of the <em>start</em>, <em>stop</em> and
+	      <em>step</em> parameters is the same as in the
+	      <tt class="verb">range()</tt> python function, except that
+	      negative values of <tt class="verb">step</tt> are not
+	      allowed. Moreover, if only <tt class="verb">start</tt> is
+	      specified, then <tt class="verb">stop</tt> will be set to
+	      <tt class="verb">start+1</tt>. If you do not specify neither
+	      <em>start</em> nor <em>stop</em>, then all the rows in
+	      the object are selected.
+	    </p>
+	    <p>The rest of the parameters are described next:</p>
+
 	    <dl>
-
-		<dt>start</dt> <dd>Sets the starting row to
-		  return data. A value of 0 means the first row. It
-		  accepts negative values meaning that the count
-		  starts from the end.</dd>
-
-		<dt>stop</dt> <dd>Sets the last row to be
-		  returned to <em>stop - 1</em>, i.e. the end point is
-		  omitted (in the Python <tt class="verb">range</tt>
-		  tradition). It accepts, likewise <em>start</em>,
-		  negative values. A special value of 0 means the last
-		  row.
-		</dd>
-
-		<dt>step</dt> <dd>When step is given, it
-		  specifies the increment. Negative values are not
-		  allowed right now.</dd>
-
-		<dt>field</dt> <dd>If specified, only the column
-		  <em>field</em> is returned as a
-		  <tt class="verb">NumArray</tt> object. If this is not
-		  supplied, all the fields are selected and a
-		  <tt class="verb">RecArray</tt> is returned.</dd>
-
-		<dt>flavor</dt> <dd>When a field in table is
-		  selected, passing a <em>flavor</em> parameter make
-		  an additional conversion to happen in the default
-		  <tt class="verb">NumArray</tt> object. <em>flavor</em> must
-		  have any of the next values: <tt class="verb">Numeric</tt>,
-		  <tt class="verb">Tuple</tt> or <tt class="verb">List</tt>. </dd>
-
+	      <dt>field</dt> <dd>If specified, only the column
+		<em>field</em> is returned as a <tt class="verb">NumArray</tt>
+		object. If this is not supplied, all the fields are
+		selected and a <tt class="verb">RecArray</tt> is returned.
+	      </dd>
+	      <dt>flavor</dt> <dd>When a field in table is
+		selected, passing a <em>flavor</em> parameter make an
+		additional conversion to happen in the default
+		<tt class="verb">"numarray"</tt> returned
+		object. <em>flavor</em> must have any of the next
+		values: <tt class="verb">"numarray"</tt> (i.e. no conversion is
+		made), <tt class="verb">"Numeric"</tt>, <tt class="verb">"Tuple"</tt> or
+		<tt class="verb">"List"</tt>.
+	      </dd>
 	    </dl>
 	  </div>
 
@@ -1336,8 +1646,9 @@ div.partheadline { font-size: x-large }
 	      <em>start</em> is supplied, this row is to be
 	      deleted. If a range is supplied, i.e. both the
 	      <em>start</em> and <em>stop</em> parameters are passed,
-	      all the rows in the range are removed<a href="#footnote5" name="footnoteback5"><sup title="However, for removeRows() to work, you need that the rows after the stop parameter will fit in-memory so as to method to work. This limitation will be hopefully removed in a future version.">5)</sup></a>. A <em>step</em>
-	      parameter is not supported yet.
+	      all the rows in the range are removed. A <em>step</em>
+	      parameter is not supported, and it is not foreseen to
+	      implement it anytime soon.
 	    </p>
 	    <dl>
 		<dt>start</dt> <dd>Sets the starting row to
@@ -1349,28 +1660,28 @@ div.partheadline { font-size: x-large }
 		  removed to <em>stop</em> - 1, i.e. the end point is
 		  omitted (in the Python <tt class="verb">range</tt>
 		  tradition). It accepts, likewise <em>start</em>,
-		  negative values. A special value of 0 means the last
-		  row.
+		  negative values. A special value of
+		  <tt class="verb">None</tt> means the last row.
 		</dd>
 
 	      </dl>
 	  </div>
 
 	</div>
-	<div>
-	  <h3 id="subsection4.7.3"><span class="headlinenumber"><a name="subsection4.7.3"></a>4.7.3 </span><tt>Table</tt> special
+	<div id="TableSpecialMethods"><a name="TableSpecialMethods"></a>
+	  <h3 id="subsection4.5.3"><span class="headlinenumber"><a name="subsection4.5.3"></a>4.5.3 </span><tt>Table</tt> special
 	      methods</h3>
 
 	  <p class="first">Following are described the methods that automatically
 	    trigger actions when a <tt class="verb">Table</tt> instance is
 	    accessed in a special way (e.g.,
-	    <tt class="verb">table["var2"]</tt> will cause a call to
+	    <tt class="verb">table["var2"]</tt> will be equivalent to a call to
 	    <tt class="verb">table.__getitem__("var2")</tt>).
 	  </p>
 
 	  <div>
 	    <h4 id="__callTableDescr"><a name="__callTableDescr"></a>__call__(start=None,
-	    stop=None, step=None)</h4>
+	    stop=None, step=1)</h4>
 
 	    <p class="first">It returns the same iterator than
 	      <tt class="verb">Table.iterrows(start, stop, step)</tt>. It is,
@@ -1402,14 +1713,14 @@ div.partheadline { font-size: x-large }
 
 	    <pre>
 	      result = [ row['var2'] for row in table 
-                                      if row['var1'] &lt;= 20 ]
+                                     if row['var1'] &lt;= 20 ]
 	    </pre>
 
 	    <p>Which is equivalent to:</p>
 
 	    <pre>
 	      result = [ row['var2'] for row in table.iterrows() 
-                          	      if row['var1'] &lt;= 20 ]
+                                     if row['var1'] &lt;= 20 ]
 	    </pre>
 
 	  </div>
@@ -1457,107 +1768,656 @@ div.partheadline { font-size: x-large }
 
 	  </div>
 	</div>
-      </div>
 
-      <div id="RowClassDescr"><a name="RowClassDescr"></a>
-	<h2 id="section4.8"><span class="headlinenumber"><a name="section4.8"></a>4.8 </span>The <tt>Row</tt> class</h2>
+	<div id="RowClassDescr"><a name="RowClassDescr"></a>
+	  <h3 id="subsection4.5.4"><span class="headlinenumber"><a name="subsection4.5.4"></a>4.5.4 </span>The <tt>Row</tt> class</h3>
 
-	<p class="first">This class is used to fetch and set values on the table
-	  fields. It works very much like a dictionary, where the keys
-	  are the field names of the associated table and the values
-	  are the values of those fields in a specific row.
-	</p>
-	<p>This object turns out to actually be an extension type, so
-	  you won't be able to access their documentation
-	  interactively. Neither you won't be able to access it's
-	  internal attributes (they are not directly accessible from
-	  Python), although that <em>accessors</em> (i.e. methods that
-	  return an internal attribute) has been defined for the most
-	  important variables.
-	</p>
+	  <p class="first">This class is used to fetch and set values on the table
+	    fields. It works very much like a dictionary, where the keys
+	    are the field names of the associated table and the values
+	    are the values of those fields in a specific row.
+	  </p>
+	  <p>This object turns out to actually be an extension type, so
+	    you won't be able to access their documentation
+	    interactively. Neither you won't be able to access it's
+	    internal attributes (they are not directly accessible from
+	    Python), although that <em>accessors</em> (i.e. methods that
+	    return an internal attribute) has been defined for the most
+	    important variables.
+	  </p>
 
-	<div>
-	  <h3 id="subsection4.8.1"><span class="headlinenumber"><a name="subsection4.8.1"></a>4.8.1 </span><tt>Row</tt>
-	    methods</h3>
+	  <div>
+	    <h4 id="subsubsection4.5.4.1"><tt>Row</tt>
+	      methods</h4>
 
-	  <dl>
+	    <dl>
 
-	    <dt id="appendRowDescr"><a name="appendRowDescr"></a>append()</dt> <dd>Once you
-	    have filled the proper fields for the current row, calling
-	    this method actually commit this data to the disk
-	    (actually data is written to the output buffer).</dd>
+	      <dt id="appendRowDescr"><a name="appendRowDescr"></a>append()</dt> <dd>Once you
+		have filled the proper fields for the current row, calling
+		this method actually commit this data to the disk
+		(actually data is written to the output buffer).</dd>
 
-	    <dt>nrow()</dt> <dd>Accessor that returns the current
-	      row in the table. It is useful to know which row is being
-	      dealt with in the middle of a loop.</dd>
-	  </dl>
-	</div>
-      </div>
+	      <dt>nrow()</dt> <dd>Accessor that returns the current
+		row in the table. It is useful to know which row is being
+		dealt with in the middle of a loop.</dd>
+	    </dl>
+	  </div>
+	</div> 
+
+	<div id="ColsClassDescr"><a name="ColsClassDescr"></a>
+	  <h3 id="subsection4.5.5"><span class="headlinenumber"><a name="subsection4.5.5"></a>4.5.5 </span>The <tt>Cols</tt> class</h3>
+
+	  <p class="first">This class is used as an <em>accessor</em> to the table
+	    columns following the natural name convention, so that you
+	    can access the different columns because there exist one
+	    attribute with the name of the columns for each associated
+	    <tt class="verb">Column</tt> instances. Besides, and like the
+	    <tt class="verb">Row</tt> class, it works similar to a dictionary,
+	    where the keys are the column names of the associated
+	    table and the values are <tt class="verb">Column</tt>
+	    instances. See <a href="#ColumnClassDescr">section&nbsp;4.5.6</a>
+	    for examples of use.
+	  </p>
+	</div> 
+
+	<div id="ColumnClassDescr"><a name="ColumnClassDescr"></a>
+	  <h3 id="subsection4.5.6"><span class="headlinenumber"><a name="subsection4.5.6"></a>4.5.6 </span>The <tt>Column</tt> class</h3>
+
+	  <p class="first">Each instance of this class is associated with one column
+	    of every table. These instances are used to fetch (but not
+	    set) actual data from the table columns. The access
+	    interface is like a regular list, and you can select
+	    individual values or slices.
+	  </p>
+
+	  <div>
+	    <h4 id="subsubsection4.5.6.1"><tt>Column</tt> instance
+	      variables
+	    </h4>
+	    <dl>
+	      <dt>table</dt> <dd>The parent <tt class="verb">Table</tt>
+		instance.
+	      </dd>
+	      <dt>name</dt> <dd>The name of the associated
+		column.
+	      </dd>
+	    </dl>
+	  </div>
+	  <div>
+	    <h4 id="subsubsection4.5.6.2"><tt>Column</tt>
+	      methods</h4>
+
+	    <dl>
+	      <dt>__getitem__(key)</dt> <dd>Returns a column
+		element or slice. It takes different actions depending
+		on the type of the <em>key</em> parameter:
+
+		If <em>key</em> is an integer, the corresponding
+		element in the column is returned as a scalar object
+		or as a <tt class="verb">NumArray</tt>/<tt class="verb">CharArray</tt>
+		object, depending on its shape. If <em>key</em> is a
+		slice, the row range determined by this slice is
+		returned as a <tt class="verb">NumArray</tt> or
+		<tt class="verb">CharArray</tt> object (whichever is
+		appropriate).
+	      </dd>
+	    </dl>
+
+	    <div class="p-first">Example of use:
+	      <pre>
+print "Column handlers:"
+for name in table.colnames:
+    print table.cols[name]
+print
+print "Some selections:"
+print "Select table.cols.name[1]--&gt;", table.cols.name[1]
+print "Select table.cols.name[1:2]--&gt;", table.cols.name[1:2]
+print "Select table.cols.lati[1:3]--&gt;", table.cols.lati[1:3]
+print "Select table.cols.pressure[:]--&gt;", table.cols.pressure[:]
+print "Select table.cols['temperature'][:]--&gt;", table.cols['temperature'][:]
+	      </pre>
+	      and the output of this for a certain arbitrary table is:
+	      <pre>
+Column handlers:
+/table.cols.name (Column(1,), CharType)
+/table.cols.lati (Column(2,), Int32)
+/table.cols.longi (Column(1,), Int32)
+/table.cols.pressure (Column(1,), Float32)
+/table.cols.temperature (Column(1,), Float64)
+
+Some selections:
+Select table.cols.name[1]--&gt; Particle:     11
+Select table.cols.name[1:2]--&gt; ['Particle:     11']
+Select table.cols.lati[1:3]--&gt; [[11 12]
+ [12 13]]
+Select table.cols.pressure[:]--&gt; [  90.  110.  132.]
+Select table.cols['temperature'][:]--&gt; [ 100.  121.  144.]
+	      </pre>
+	      See the <tt class="verb">examples/table2.py</tt> for a more
+	      complete example.
+	    </div>
+	  </div> 
+	</div> 
+      </div> 
 
       <div id="ArrayClassDescr"><a name="ArrayClassDescr"></a>
-	<h2 id="section4.9"><span class="headlinenumber"><a name="section4.9"></a>4.9 </span>The <tt>Array</tt>
+	<h2 id="section4.6"><span class="headlinenumber"><a name="section4.6"></a>4.6 </span>The <tt>Array</tt>
 	class</h2>
 
-	<p class="first">Represents an array on file. It provides methods to create
-	  new arrays or open existing ones, as well as methods to
-	  write/read data and metadata to/from array objects in the
-	  file.
+	<p class="first">Represents an array on file. It provides methods to
+	  write/read data to/from array objects in the file. This
+	  class does not allow to enlarge the datasets on disk; see
+	  the <tt class="verb">EArray</tt> descendant in <a href="#EArrayClassDescr">section&nbsp;4.7</a> if you want
+	  enlargeable dataset support and/or compression features.
 	</p>
 
 	<p><b>Caveat:</b> All
 	  <tt class="verb">Numeric</tt> and <tt class="verb">numarray</tt> data types
 	  are supported except those that corresponds to complex data
-	  types<a href="#footnote6" name="footnoteback6"><sup title="However, these might be included in the future">6)</sup></a>. See <tt class="verb">numarray</tt> manual (<a href="#Numarray"></a>) to know more about the supported
+	  types<a href="#footnote5" name="footnoteback5"><sup title="However, these might be included in the future">5)</sup></a>. See <tt class="verb">numarray</tt> manual (<a href="#Numarray"></a>) to know more about the supported
 	  data types, or see <a href="usersguide6.html#datatypesSupported">appendix&nbsp;A</a>.
 	</p>
 
-	<p>Please note that this object inherits all the public
-	  attributes and methods from <tt class="verb">Leaf</tt>.
+	<p>Note that this object inherits all the public attributes
+	  and methods from <tt class="verb">Leaf</tt> already provides.
 	</p>
 
 	<div id="ArrayClassInstanceVariables"><a name="ArrayClassInstanceVariables"></a>
-	  <h3 id="subsection4.9.1"><span class="headlinenumber"><a name="subsection4.9.1"></a>4.9.1 </span><tt>Array</tt> instance
+	  <h3 id="subsection4.6.1"><span class="headlinenumber"><a name="subsection4.6.1"></a>4.6.1 </span><tt>Array</tt> instance
 	    variables</h3>
 	  <dl>
+	    <dt>flavor</dt> <dd>The object representation for
+	      this array. It can be any of <em>"NumArray"</em>,
+	      <em>"CharArray"</em> <em>"Numeric"</em>,
+	      <em>"List"</em>, <em>"Tuple"</em>, <em>"String"</em>,
+	      <em>"Int"</em> or <em>"Float"</em> values.
+	    </dd>
+	    <dt>nrows</dt> <dd>The length of the first dimension
+	      of Array.
+	    </dd>
+	    <dt>nrow</dt> <dd>On iterators, this is the index of
+	      the current row.
+	    </dd>
 
 	    <dt>type</dt> <dd>The type class of the represented
-	      array.</dd>
+	      array.
+	    </dd>
 
-	    <dt>flavor</dt> <dd>The string object representation
-	      for this array. It can be any of <em>"NumArray"</em>,
-	      <em>"CharArray"</em>, <em>"Numeric"</em>,
-	      <em>"List"</em>, <em>"Tuple"</em>, <em>"String"</em>,
-	      <em>"Int"</em> or <em>"Float"</em> values.</dd>
-
+	    <dt>itemsize</dt> <dd>The size of the base
+              items. Specially useful for <tt class="verb">CharArray</tt>
+              objects.
+	    </dd>
 	  </dl>
 
 	</div>
 
 	<div>
-	  <h3 id="subsection4.9.2"><span class="headlinenumber"><a name="subsection4.9.2"></a>4.9.2 </span><tt>Array</tt>
+	  <h3 id="subsection4.6.2"><span class="headlinenumber"><a name="subsection4.6.2"></a>4.6.2 </span><tt>Array</tt>
 	    methods</h3>
 
-	  <p class="first">Note that, as this object has not internal I/O buffers,
-	    there is no point in calling flush() method inherited from
+	  <p class="first">Note that, as this object has no internal I/O buffers, it
+	    is not necessary to flush() method inherited from
 	    <tt class="verb">Leaf</tt>.
 	  </p>
 
+	  <div>
+	    <h4 id="iterrowsArrayDescr"><a name="iterrowsArrayDescr"></a>iterrows(start=None,
+	      stop=None, step=1)</h4>
+
+	    <p class="first">Returns an iterator yielding <tt class="verb">numarray</tt>
+	      instances built from rows in array. The return rows are
+	      taken from the first dimension in case of an
+	      <tt class="verb">Array</tt> instance and the enlargeable
+	      dimension in case of an <tt class="verb">EArray</tt> instance. If
+	      a range is supplied (i.e. some of the <em>start</em>,
+	      <em>stop</em> or <em>step</em> parameters are passed),
+	      only the appropriate rows are returned. Else, all the
+	      rows are returned. See also the <tt class="verb">__call__()</tt>
+	      and <tt class="verb">__iter__()</tt> special methods in <a href="#ArraySpecialMethods">section&nbsp;4.6.3</a> for shorter
+	      ways to call this iterator.
+	    </p>
+
+	    <p>The meaning of the <em>start</em>, <em>stop</em> and
+	      <em>step</em> parameters is the same as in the
+	      <tt class="verb">range()</tt> python function, except that
+	      negative values of <tt class="verb">step</tt> are not
+	      allowed. Moreover, if only <tt class="verb">start</tt> is
+	      specified, then <tt class="verb">stop</tt> will be set to
+	      <tt class="verb">start+1</tt>. If you do not specify neither
+	      <em>start</em> nor <em>stop</em>, then all the rows in
+	      the object are selected.
+	    </p>
+	  </div>
+
+	  <div id="readArrayDescr"><a name="readArrayDescr"></a>
+	    <h4 id="subsubsection4.6.2.2">read(start=None, stop=None, step=1)</h4>
+
+	    <p class="first">Read the array from disk and return it as a
+	      <tt class="verb">numarray</tt> (default) object, or an object
+	      with the same original <em>flavor</em> that it was
+	      saved. It accepts start, stop and step parameters to
+	      select rows (the first dimension in the case of an
+	      <tt class="verb">Array</tt> instance and the <em>enlargeable</em>
+	      dimension in case of an <tt class="verb">EArray</tt>) for
+	      reading.
+	    </p>
+	    <p>The meaning of the <em>start</em>, <em>stop</em> and
+	      <em>step</em> parameters is the same as in the
+	      <tt class="verb">range()</tt> python function, except that
+	      negative values of <tt class="verb">step</tt> are not
+	      allowed. Moreover, if only <tt class="verb">start</tt> is
+	      specified, then <tt class="verb">stop</tt> will be set to
+	      <tt class="verb">start+1</tt>. If you do not specify neither
+	      <em>start</em> nor <em>stop</em>, then all the rows in
+	      the object are selected.
+	    </p>
+	  </div> 
+	</div> 
+
+	<div id="ArraySpecialMethods"><a name="ArraySpecialMethods"></a>
+	  <h3 id="subsection4.6.3"><span class="headlinenumber"><a name="subsection4.6.3"></a>4.6.3 </span><tt>Array</tt> special
+	      methods</h3>
+
+	  <p class="first">Following are described the methods that automatically
+	    trigger actions when an <tt class="verb">Array</tt> instance is
+	    accessed in a special way (e.g.,
+	    <tt class="verb">array[2:3,...,::2]</tt> will be equivalent to a
+	    call to <br><tt class="verb">array.__getitem__(slice(2,3, None),
+	    Ellipsis, slice(None, None, 2))</tt>).
+	  </p>
+
+	  <div>
+	    <h4 id="__callArrayDescr"><a name="__callArrayDescr"></a>__call__(start=None,
+	      stop=None, step=1)</h4>
+
+	    <p class="first">It returns the same iterator than
+	      <tt class="verb">Array.iterrows(start, stop, step)</tt>. It is,
+	      therefore, a shorter way to call it.</p>
+
+	    <p>Example of use:</p>
+
+	    <pre>
+	      result = [ row for row in arrayInstance(step=4) ]
+	    </pre>
+
+	    <p>Which is equivalent to:</p>
+
+	    <pre>
+	      result = [ row for row in arrayInstance.iterrows(step=4) ]
+	    </pre>
+
+	  </div>
+	  <div>
+	    <h4 id="__iterArrayDescr"><a name="__iterArrayDescr"></a>__iter__()</h4>
+
+	    <p class="first">It returns the same iterator than
+	      <tt class="verb">Array.iterrows(0,0,1)</tt>. However, this does not
+	      accept parameters.</p>
+
+	    <p>Example of use:</p>
+
+	    <pre>
+	      result = [ row[2] for row in array ]
+
+	    </pre>
+
+	    <p>Which is equivalent to:</p>
+
+	    <pre>
+	      result = [ row[2] for row in array.iterrows(0, 0, 1) ]
+	    </pre>
+
+	  </div>
+
+	  <div>
+	    <h4 id="__getitemArrayDescr"><a name="__getitemArrayDescr"></a>__getitem__(key)</h4>
+
+	    <p class="first">It returns a <tt class="verb">numarray</tt> (default) object (or
+	      an object with the same original <em>flavor</em> that it
+	      was saved) containing the slice of rows stated in the
+	      <tt class="verb">key</tt> parameter. The set of allowed tokens in
+	      <tt class="verb">key</tt> is the same as extended slicing in
+	      python (the <tt class="verb">Ellipsis</tt> token included).
+	    </p>
+
+	    <p>Example of use:</p>
+
+	    <pre>
+	      array1 = array[4]   # array1.shape == array.shape[1:]
+	      array2 = array[4:1000:2]  # len(array2.shape) == len(array.shape)
+	      array3 = array[::2, 1:4, :]
+	      array4 = array[1, ..., ::2, 1:4, 4:] # General slice selection
+	    </pre>
+
+	  </div> 
+	</div> 
+      </div> 
+
+      <div id="EArrayClassDescr"><a name="EArrayClassDescr"></a>
+	<h2 id="section4.7"><span class="headlinenumber"><a name="section4.7"></a>4.7 </span>The <tt>EArray</tt> class</h2>
+
+	<p class="first">This is a child of the <tt class="verb">Array</tt> class (see <a href="#ArrayClassDescr">4.6</a>) and as such,
+	  <tt class="verb">EArray</tt> represents an array on the file. The
+	  difference is that <tt class="verb">EArray</tt> allows to enlarge
+	  datasets along any single dimension<a href="#footnote6" name="footnoteback6"><sup title="In the future, multiple enlargeable dimensions might be implemented as well.">6)</sup></a> you select. Another important difference is
+	  that it also support compression.
+	 </p>
+
+	<p>So, in addition to the attributes and methods that
+	  <tt class="verb">EArray</tt> inherits from <tt class="verb">Array</tt>, it
+	  supports a few more that provides a way to enlarge the
+	  arrays on disk. Following are described the new variables
+	  and methods as well as some that already exists in
+	  <tt class="verb">Array</tt> but that differ somewhat on the meaning
+	  and/or functionality in the <tt class="verb">EArray</tt> context.
+	</p>
+
+	<div id="EArrayClassInstanceVariables"><a name="EArrayClassInstanceVariables"></a>
+	  <h3 id="subsection4.7.1"><span class="headlinenumber"><a name="subsection4.7.1"></a>4.7.1 </span><tt>EArray</tt> instance
+	    variables</h3>
 	  <dl>
-
-	    <dt id="readArrayDescr"><a name="readArrayDescr"></a>read()</dt> <dd>Read the
-	      array from disk and return it as a <tt class="verb">NumArray</tt>
-	      (default) object, or if possible, with the original
-	      <em>flavor</em> that it was saved. The supported flavors
-	      are: <tt class="verb">NumArray</tt>, <tt class="verb">CharArray</tt>,
-	      <tt class="verb">Numeric</tt>, <tt class="verb">List</tt>,
-	      <tt class="verb">Tuple</tt>, <tt class="verb">String</tt>,
-	      <tt class="verb">Int</tt> or <tt class="verb">Float</tt>. Note that as
-	      long as this method is not called, the actual array data
-	      is resident on disk, not in memory.</dd>
-
+	    <dt>atom</dt> <dd>The class instance choosed for the
+	      atom object (see <a href="#AtomClassDescr">section&nbsp;4.11.3</a>).
+	    </dd>
+	    <dt>extdim</dt> <dd>The enlargeable dimension.
+	    </dd>
+	    <dt>nrows</dt> <dd>The length of the enlargeable
+	      dimension.
+	    </dd>
 	  </dl>
 	</div>
-      </div>
+
+	<div id="EArrayMethodsDescr"><a name="EArrayMethodsDescr"></a>
+	  <h3 id="subsection4.7.2"><span class="headlinenumber"><a name="subsection4.7.2"></a>4.7.2 </span><tt>EArray</tt>
+	    methods</h3>
+
+	  <div id="EArrayAppendDescr"><a name="EArrayAppendDescr"></a>
+	    <h4 id="subsubsection4.7.2.1">append(object)</h4>
+
+	    <p class="first">Appends an <tt class="verb">object</tt> to the underlying
+	      dataset. Obviously, this object has to have the same
+	      type as the <tt class="verb">EArray</tt> instance, and if not, a
+	      <tt class="verb">TypeError</tt> is issued. In the same way, the
+	      dimensions of the <tt class="verb">object</tt> has to conform
+	      those of <tt class="verb">EArray</tt>, that is, all the
+	      dimensions has to be the same except, of course, that of
+	      the enlargeable dimension which can be of any length
+	      (even 0!).
+	    </p>
+	    <p>Example of use (code available in
+	      <tt class="verb">examples/earray1.py</tt>):
+	    </p>
+	    <pre>
+import tables
+from numarray import strings
+
+fileh = tables.openFile("earray1.h5", mode = "w")
+a = tables.StringAtom(shape=(0,), length=8)
+# Use 'a' as the object type for the enlargeable array
+array_c = fileh.createEArray(fileh.root, 'array_c', a, "Chars")
+array_c.append(strings.array(['a'*2, 'b'*4], itemsize=8))
+array_c.append(strings.array(['a'*6, 'b'*8, 'c'*10], itemsize=8))
+
+# Read the string EArray we have created on disk
+for s in array_c:
+    print "array_c[%s] =&gt; '%s'" % (array_c.nrow, s)
+# Close the file
+fileh.close()
+	    </pre>
+
+	    <p>and the output is:
+	    </p>
+
+	    <pre>
+	      array_c[0] =&gt; 'aa'
+	      array_c[1] =&gt; 'bbbb'
+	      array_c[2] =&gt; 'aaaaaa'
+	      array_c[3] =&gt; 'bbbbbbbb'
+	      array_c[4] =&gt; 'cccccccc'
+	    </pre>
+
+	  </div> 
+	</div> 
+      </div> 
+
+      <div id="VLArrayClassDescr"><a name="VLArrayClassDescr"></a>
+	<h2 id="section4.8"><span class="headlinenumber"><a name="section4.8"></a>4.8 </span>The <tt>VLArray</tt> class</h2>
+
+	<p class="first">Instances of this class represents array objects in the
+	  object tree with the property that their rows can have a
+	  <b>variable</b> number of
+	  (homogeneous) elements (called <em>atomic</em> objects, or
+	  just <em>atoms</em>). Variable length arrays (or
+	  <em>VLA's</em> for short), similarly to <tt class="verb">Table</tt>
+	  instances, can have only one dimension, and likewise
+	  <tt class="verb">Table</tt>, the compound elements (the
+	  <em>atoms</em>) of the rows of <tt class="verb">VLArrays</tt> can be
+	  fully multidimensional objects.
+	</p>
+	<p><tt class="verb">VLArray</tt> provides methods to read/write data
+	  from/to variable length array objects residents on disk.
+	  Also, note that this object inherits all the public
+	  attributes and methods that <tt class="verb">Leaf</tt> already has.
+	</p>
+
+	<div>
+	  <h3 id="subsection4.8.1"><span class="headlinenumber"><a name="subsection4.8.1"></a>4.8.1 </span><tt>VLArray</tt> instance
+	    variables</h3>
+	  <dl>
+	    <dt>atom</dt> <dd>The class instance choosed for the
+	      atom object (see <a href="#AtomClassDescr">section&nbsp;4.11.3</a>).
+	    </dd>
+	    <dt>nrow</dt> <dd>On iterators, this is the index of
+	      the current row.
+	    </dd>
+	    <dt>nrows</dt> <dd>The total number of rows.
+	    </dd>
+	  </dl>
+	</div>
+
+	<div>
+	  <h3 id="subsection4.8.2"><span class="headlinenumber"><a name="subsection4.8.2"></a>4.8.2 </span><tt>VLArray</tt> methods</h3>
+
+	  <div>
+	    <h4 id="appendVLArrayDescr"><a name="appendVLArrayDescr"></a>append(object1, object2, ...)</h4>
+
+	    <p class="first">Append the <tt class="verb">objects</tt> passed as parameters to
+	      a single row in the <tt class="verb">VLArray</tt> instance. The
+	      type of the objects has to be compliant with the
+	      <tt class="verb">VLArray.atom</tt> instance type.
+	    </p>
+
+	    <p>Example of use (code available in
+	      <tt class="verb">examples/vlarray1.py</tt>):
+	    </p>
+
+	    <pre>
+	      import tables
+	      from Numeric import *   # or, from numarray import *
+
+	      # Create a VLArray:
+	      fileh = tables.openFile("vlarray1.h5", mode = "w")
+	      vlarray = fileh.createVLArray(fileh.root, 'vlarray1',
+	      tables.Int32Atom(flavor="Numeric"),
+	                       "ragged array of ints", Filters(complevel=1))
+	      # Append some (variable length) rows
+	      # All these different parameter specification are accepted:
+	      vlarray.append(array([5, 6]))
+	      vlarray.append(array([5, 6, 7]))
+	      vlarray.append([5, 6, 9, 8])
+	      vlarray.append(5, 6, 9, 10, 12)
+
+	      # Now, read it through an iterator
+	      for x in vlarray:
+	          print vlarray.name+"["+str(vlarray.nrow)+"]--&gt;", x
+
+	      # Close the file
+	      fileh.close()
+	    </pre>
+
+	    <p>And the output for this looks like:</p>
+
+	    <pre>
+	      vlarray1[0]--&gt; [5 6]
+	      vlarray1[1]--&gt; [5 6 7]
+	      vlarray1[2]--&gt; [5 6 9 8]
+	      vlarray1[3]--&gt; [ 5  6  9 10 12]
+	    </pre>
+
+	  </div> 
+
+	  <div>
+	    <h4 id="iterrowsVLArrayDescr"><a name="iterrowsVLArrayDescr"></a>iterrows(start=None,
+	      stop=None, step=1)</h4>
+
+	    <p class="first">Returns an iterator yielding one row per iteration. If
+	      a range is supplied (i.e. some of the <em>start</em>,
+	      <em>stop</em> or <em>step</em> parameters are passed),
+	      only the appropriate rows are returned. Else, all the
+	      rows are returned. See also the <tt class="verb">__call__()</tt>
+	      and <tt class="verb">__iter__()</tt> special methods in <a href="#VLArraySpecialMethods">section&nbsp;4.8.3</a> for shorter
+	      ways to call this iterator.
+	    </p>
+	    <p>The meaning of the <em>start</em>, <em>stop</em> and
+	      <em>step</em> parameters is the same as in the
+	      <tt class="verb">range()</tt> python function, except that
+	      negative values of <tt class="verb">step</tt> are not
+	      allowed. Moreover, if only <tt class="verb">start</tt> is
+	      specified, then <tt class="verb">stop</tt> will be set to
+	      <tt class="verb">start+1</tt>. If you do not specify neither
+	      <em>start</em> nor <em>stop</em>, then all the rows in
+	      the object are selected.
+	    </p>
+
+	  </div> 
+
+	  <div>
+	    <h4 id="readVLArrayDescr"><a name="readVLArrayDescr"></a>read(start=None, stop=None,
+	      step=1)</h4>
+
+	    <p class="first">Returns the actual data in <tt class="verb">VLArray</tt>. As the
+	      lengths of the different rows are variable, the returned
+	      value is a python list, with as many entries as
+	      specified rows in the range parameters.
+	    </p>
+	    <p>The meaning of the <em>start</em>, <em>stop</em> and
+	      <em>step</em> parameters is the same as in the
+	      <tt class="verb">range()</tt> python function, except that
+	      negative values of <tt class="verb">step</tt> are not
+	      allowed. Moreover, if only <tt class="verb">start</tt> is
+	      specified, then <tt class="verb">stop</tt> will be set to
+	      <tt class="verb">start+1</tt>. If you do not specify neither
+	      <em>start</em> nor <em>stop</em>, then all the rows in
+	      the object are selected.
+	    </p>
+	  </div>
+
+	</div> 
+
+	<div id="VLArraySpecialMethods"><a name="VLArraySpecialMethods"></a>
+	  <h3 id="subsection4.8.3"><span class="headlinenumber"><a name="subsection4.8.3"></a>4.8.3 </span><tt>VLArray</tt> special
+	      methods</h3>
+
+	  <p class="first">Following are described the methods that automatically
+	    trigger actions when a <tt class="verb">VLArray</tt> instance is
+	    accessed in a special way (e.g., <tt class="verb">vlarray[2:5]</tt>
+	    will be equivalent to a call to
+	    <tt class="verb">vlarray.__getitem__(slice(2,5,None)</tt>).
+	  </p>
+
+	  <div>
+	    <h4 id="__callVLArrayDescr"><a name="__callVLArrayDescr"></a>__call__(start=None,
+	      stop=None, step=1)</h4>
+
+	    <p class="first">It returns the same iterator than
+	      <tt class="verb">VLArray.iterrows(start, stop, step)</tt>. It is,
+	      therefore, a shorter way to call it.</p>
+
+	    <p>Example of use:</p>
+
+	    <pre>
+	      for row in vlarray(step=4):
+	          print vlarray.name+"["+str(vlarray.nrow)+"]--&gt;", row
+	    </pre>
+
+	    <p>Which is equivalent to:</p>
+
+	    <pre>
+	      for row in vlarray.iterrows(step=4):
+	          print vlarray.name+"["+str(vlarray.nrow)+"]--&gt;", row
+	    </pre>
+
+	  </div>
+	  <div>
+	    <h4 id="__iterVLArrayDescr"><a name="__iterVLArrayDescr"></a>__iter__()</h4>
+
+	    <p class="first">It returns the same iterator than
+	      <tt class="verb">VLArray.iterrows(0,0,1)</tt>. However, this does
+	      not accept parameters.</p>
+
+	    <p>Example of use:</p>
+
+	    <pre>
+	      result = [ row for row in vlarray ]
+	    </pre>
+
+	    <p>Which is equivalent to:</p>
+
+	    <pre>
+	      result = [ row for row in vlarray.iterrows() ]
+	    </pre>
+
+	  </div>
+
+	  <div>
+	    <h4 id="__getitemVLArrayDescr"><a name="__getitemVLArrayDescr"></a>__getitem__(key)</h4>
+
+	    <p class="first">It returns the slice of rows determined by
+	      <tt class="verb">key</tt>, which can be an integer index or an
+	      extended slice. The returned value is a list of objects
+	      of type <tt class="verb">array.atom.type</tt>.
+	    </p>
+
+	    <p>Example of use:</p>
+
+	    <pre>
+	      list1 = vlarray[4]
+	      list2 = vlarray[4:1000:2]
+	    </pre>
+
+	  </div> 
+	</div>  
+      </div> 
+
+      <div id="UnImplementedClassDescr"><a name="UnImplementedClassDescr"></a>
+	<h2 id="section4.9"><span class="headlinenumber"><a name="section4.9"></a>4.9 </span>The <tt>UnImplemented</tt> class</h2>
+
+	<p class="first">Instances of this class represents an unimplemented dataset
+	  in a generic HDF5 file. When reading such a file (i.e. one
+	  that has not been created with <tt class="verb">PyTables</tt>, but
+	  with some other HDF5 library based tool), chances are that
+	  the specific combination of <em>datatypes</em> and/or
+	  <em>dataspaces</em> in some dataset might not be supported
+	  by <tt class="verb">PyTables</tt> yet. In such a case, this dataset
+	  will be mapped into the <tt class="verb">UnImplemented</tt> class and
+	  hence, the user will still be able to build the complete
+	  object tree of this generic HDF5 file, as well as enabling
+	  the access (both read and <em>write</em>) of the attributes
+	  of this dataset and some metadata. Of course, the user won't
+	  be able to read the actual data on it.
+	</p>
+
+	<p>This is an elegant way to allow users to work with generic
+	  HDF5 files despite the fact that some of its datasets would
+	  not be supported by <tt class="verb">PyTables</tt>. However, if you
+	  are really interested in having access to an unimplemented
+	  dataset, please, get in contact with the developer team.
+	</p>
+	<p>This class does not have any public instance variables,
+	  except those inherited from the <tt class="verb">Leaf</tt> class
+	  (<a href="#LeafClassDescr">see&nbsp;4.4</a>).
+	</p>
+      </div> 
 
       <div id="AttributeSetClassDescr"><a name="AttributeSetClassDescr"></a>
 	<h2 id="section4.10"><span class="headlinenumber"><a name="section4.10"></a>4.10 </span>The <tt>AttributeSet</tt>
@@ -1569,12 +2429,12 @@ div.partheadline { font-size: x-large }
 	</p>
 
 	<p>Like in <tt class="verb">Group</tt> instances,
-           <tt class="verb">AttributeSet</tt> instances use a special feature
-           called <em>natural naming</em>, i.e. you can access the
+           <tt class="verb">AttributeSet</tt> instances make use of the
+           <em>natural naming</em> convention, i.e. you can access the
            attributes on disk like if they were <em>normal</em>
            <tt class="verb">AttributeSet</tt> attributes. This offers the user
-           a very convenient way to access (but also set and delete)
-           node attributes by simply specifying them like a
+           a very convenient way to access (but also to set and
+           delete) node attributes by simply specifying them like a
            <em>normal</em> attribute class.
         </p>
 
@@ -1586,8 +2446,8 @@ div.partheadline { font-size: x-large }
 	  serialized using <tt class="verb">cPickle</tt>, so you will be able
 	  to correctly retrieve them only from a Python-aware HDF5
 	  library. Hopefully, the list of supported native attributes
-	  will be extended to multidimensional arrays sometime in the
-	  future.
+	  will be extended to fully multidimensional arrays sometime
+	  in the future.
 	</p>
 
 	<div id="AttributeSetClassInstanceVariables"><a name="AttributeSetClassInstanceVariables"></a>
@@ -1629,36 +2489,630 @@ div.partheadline { font-size: x-large }
 	  </div>
 
 	  <dl>
-	    <dt id="listAttrDescr"><a name="listAttrDescr"></a>_f_list(attrset = "user")
-	    </dt><dd>Return the list of attributes of the parent
-	      node.
-
-		<dl>
-		  <dt>attrset</dt> <dd>Selects the attribute set
-		    to be returned. An <tt class="verb">"user"</tt> value
-		    returns only the user attributes. This is the
-		    default. <tt class="verb">"sys"</tt> returns only the
-		    system (some of which are read-only)
-		    attributes. <tt class="verb">"readonly"</tt> returns the
-		    system read-only attributes. <tt class="verb">"all"</tt>
-		    returns both the system and user
-		    attributes.</dd>
-		</dl>
-	      </dd>
+	    <dt id="copyAttrDescr"><a name="copyAttrDescr"></a>_f_copy(where)</dt><dd>Copy
+	      the user attributes to <em>where</em>
+	      object. <em>where</em> has to be a <tt class="verb">Group</tt> or
+	      <tt class="verb">Leaf</tt> instance.
+	    </dd>
+	    <dt id="listAttrDescr"><a name="listAttrDescr"></a>_f_list(attrset = "user")</dt>
+	    <dd>Return the list of attributes of the parent
+	    node. <em>attrset</em> selects the attribute set to be
+	    returned. An <tt class="verb">"user"</tt> value returns only the
+	    user attributes and this is the
+	    default. <tt class="verb">"sys"</tt> returns only the system (some
+	    of which are read-only)
+	    attributes. <tt class="verb">"readonly"</tt> returns the system
+	    read-only attributes. <tt class="verb">"all"</tt> returns both the
+	    system and user attributes.
+	    </dd>
 
 	    <dt id="renameAttrDescr"><a name="renameAttrDescr"></a>_f_rename(oldattrname,
 	      newattrname)</dt><dd>Rename an attribute.</dd>
 	  </dl>
-
+	  
 	</div>
 
-      </div>
+      </div> 
+
+      <div id="declarativeClasses"><a name="declarativeClasses"></a>
+	<h2 id="section4.11"><span class="headlinenumber"><a name="section4.11"></a>4.11 </span>Declarative classes
+	</h2>
+	<p class="first">In this section a series of classes that are meant to
+	  <em>declare</em> datatypes that are required for primary
+	  <tt class="verb">PyTables</tt> (like <tt class="verb">Table</tt> or
+	  <tt class="verb">VLArray</tt> ) objects are described.
+	</p>
+
+	<div id="IsDescriptionClassDescr"><a name="IsDescriptionClassDescr"></a>
+	  <h3 id="subsection4.11.1"><span class="headlinenumber"><a name="subsection4.11.1"></a>4.11.1 </span>The <tt>IsDescription</tt>
+	    class</h3>
+
+	  <p class="first">This class is in fact a so-called <em>metaclass</em>
+	    object. There is nothing special on this fact, except that
+	    their subclasses attributes are transformed during its
+	    instantiation phase, and new methods for instances are
+	    defined based on the values of the class attributes.
+	  </p>
+	  <p>It is designed to be used as an easy, yet meaningful way
+	    to describe the properties of <tt class="verb">Table</tt> objects
+	    through the use of classes that inherit properties from
+	    it. In order to define such a special class, you have to
+	    declare it as descendant of <em>IsDescription</em>, with
+	    many attributes as columns you want in your table. The
+	    name of these attributes will become the name of the
+	    columns, while its values are the properties of the
+	    columns that are obtained through the use of the
+	    <tt class="verb">Col</tt> class constructor. See the <a href="#ColClassDescr">section&nbsp;4.11.2</a> for instructions on
+	    how define the properties of the table columns.
+	  </p>
+	  <p>Then, you can pass an instance of this object to the
+	    <tt class="verb">Table</tt> constructor, where all the information it
+	    contains will be used to define the table structure. See
+	    the <a href="usersguide3.html#secondExample">section&nbsp;3.3</a> for an example
+	    on how that works.
+	  </p>
+
+	</div> 
+
+	<div id="ColClassDescr"><a name="ColClassDescr"></a>
+	  <h3 id="subsection4.11.2"><span class="headlinenumber"><a name="subsection4.11.2"></a>4.11.2 </span>The <tt>Col</tt> class and its descendants</h3>
+
+	  <p class="first">The <tt class="verb">Col</tt> class is used as a mean to declare
+	    the different properties of a table column. In addition, a
+	    series of descendant classes are offered in order to make
+	    these column descriptions easier to the user. In general,
+	    it is recommended to use these descendant classes, as they
+	    are more meaningful when found in the middle of the code.
+	  </p>
+	  <p>Note that the only public method accessible in these
+	    classes is the constructor itself.
+	  </p>
+
+	  <dl>
+
+	    <dt>Col(dtype="Float64", shape=1, dflt=None, pos=None)
+	    </dt>
+	    <dd>Declare the properties of a <tt class="verb">Table</tt>
+	      column.
+
+	      <dl>
+
+		<dt>dtype</dt> <dd>The data type for the
+		  column. See the <a href="usersguide6.html#datatypesSupported">appendix&nbsp;A</a> for a
+		  relation of data types supported in a <tt>IsDescription</tt> class
+		  declaration. The type description is accepted both in
+		  string format and as numarray data type.</dd>
+
+		<dt>shape</dt> <dd>An integer or a tuple, that
+		  specifies the number of <em>dtype</em> items for
+		  each element (or shape, for multidimensional
+		  elements) of this column. For <tt class="verb">CharType</tt>
+		  columns, the last dimension is used as the length
+		  of the character strings. However, for this kind of
+		  objects, the use of <tt class="verb">StringCol</tt> subclass
+		  is strongly recommended.</dd>
+
+		<dt>dflt</dt> <dd>The default value for elements
+		  of this column. If the user does not supply a value
+		  for an element while filling a table, this default
+		  value will be written to disk. If the user supplies an
+		  scalar value for a multidimensional column, this value
+		  is automatically <em>broadcasted</em> to all the
+		  elements in the column cell. If <em>dflt</em> is not
+		  supplied, an appropriate zero value (or <em>null</em>
+		  string) will be chosen by default.</dd>
+
+		<dt>pos</dt> <dd>By default, columns are arranged
+		  in memory following an alpha-numerical order of the
+		  column names. In some situations, however, it is
+		  convenient to impose a user defined
+		  ordering. <em>pos</em> parameter allows the user to
+		  force the desired ordering.</dd>
+
+	      </dl>
+	    </dd>
+
+	    <dt>StringCol(length=None, dflt=None, shape=1, pos=None)
+	    </dt>
+	    <dd>Declare a column to be of type
+	      <tt class="verb">CharType</tt>. The <em>length</em> parameter
+	      sets the length of the strings. The meaning of the other
+	      parameters are like in the <tt class="verb">Col</tt> class.
+	    </dd>
+
+	    <dt>BoolCol(dflt=0, shape=1, pos=None) </dt>
+	      <dd>Define a column to be of type <tt class="verb">Bool</tt>.
+	      The meaning of the parameters are the same of those in
+	      the <tt class="verb">Col</tt> class.
+	    </dd>
+
+	    <dt>IntCol(dflt=0, shape=1, itemsize=4, sign=1, pos=None)
+	    </dt>
+	    <dd>Declare a column to be of type <tt class="verb">IntXX</tt>,
+	      depending on the value of <em>itemsize</em> parameter,
+	      that sets the number of bytes of the integers in the
+	      column. <em>sign</em> determines whether the integers
+	      are signed or not. The meaning of the other parameters
+	      are the same of those in the <tt class="verb">Col</tt> class.
+
+	      <p class="first">This class has several descendants:
+	      </p>
+
+	      <dl>
+		<dt>Int8Col(dflt=0, shape=1, pos=None)</dt>
+		<dd>Define a column of type <tt class="verb">Int8</tt>.</dd>
+
+		<dt>UInt8Col(dflt=0, shape=1, pos=None)</dt>
+		<dd>Define a column of type <tt class="verb">UInt8</tt>.</dd>
+
+		<dt>Int16Col(dflt=0, shape=1, pos=None)</dt>
+		<dd>Define a column of type <tt class="verb">Int16</tt>.</dd>
+
+		<dt>UInt16Col(dflt=0, shape=1, pos=None)</dt>
+		<dd>Define a column of type <tt class="verb">UInt16</tt>.</dd>
+
+		<dt>Int32Col(dflt=0, shape=1, pos=None)</dt>
+		<dd>Define a column of type <tt class="verb">Int32</tt>.</dd>
+
+		<dt>UInt32Col(dflt=0, shape=1, pos=None)</dt>
+		<dd>Define a column of type <tt class="verb">UInt32</tt>.</dd>
+
+		<dt>Int64Col(dflt=0, shape=1, pos=None)</dt>
+		<dd>Define a column of type <tt class="verb">Int64</tt>.</dd>
+
+		<dt>UInt64Col(dflt=0, shape=1, pos=None)</dt>
+		<dd>Define a column of type <tt class="verb">UInt64</tt>.</dd>
+
+	      </dl>
+
+	    </dd>
+
+	    <dt>FloatCol(dflt=0, shape=1, itemsize=8, pos=None)
+	    </dt>
+	    <dd>Define a column to be of type <tt class="verb">FloatXX</tt>,
+	      depending on the value of <tt class="verb">itemsize</tt>. The
+	      <tt class="verb">itemsize</tt> parameter sets the number of bytes
+	      of the floats in the column and the default is 8 bytes
+	      (double precision). The meaning of the other parameters
+	      are the same as those in the <tt class="verb">Col</tt> class.
+
+	      <p class="first">This class has two descendants:
+	      </p>
+
+	      <dl>
+		<dt>Float32Col(dflt=0.0, shape=1, pos=None)</dt>
+		<dd>Define a column of type <tt class="verb">Float32</tt>.</dd>
+
+		<dt>Float64Col(dflt=0.0, shape=1, pos=None)</dt>
+		<dd>Define a column of type <tt class="verb">Float64</tt>.</dd>
+
+	      </dl>
+	    </dd>
+	  </dl>
+
+	</div> 
+
+	<div id="AtomClassDescr"><a name="AtomClassDescr"></a>
+	  <h3 id="subsection4.11.3"><span class="headlinenumber"><a name="subsection4.11.3"></a>4.11.3 </span>The <tt>Atom</tt> class and its
+	    descendants.
+	  </h3>
+	  <p class="first">The <tt class="verb">Atom</tt> class is meant to declare the
+	    different properties of the <em>base element</em> (also
+	    known as <em>atom</em>) of <tt class="verb">EArray</tt> and
+	    <tt class="verb">VLArray</tt> objects. The <tt class="verb">Atom</tt>
+	    instances have the property that its length is always the
+	    same. However, you can grow objects along the extendable
+	    dimension in the case of <tt class="verb">EArray</tt> or put a
+	    variable number of them on a <tt class="verb">VLArray</tt>
+	    row. Moreover, the atoms are not restricted to scalar
+	    values, and they can be fully multidimensional objects.
+	  </p>
+	  <p>A series of descendant classes are offered in order to
+	    make the use of these element descriptions easier. In
+	    general, it is recommended to use these descendant
+	    classes, as they are more meaningful when found in the
+	    middle of the code. Note that the only public methods
+	    accessible in these classes are the
+	    <tt class="verb">atomsize()</tt> method and the constructor
+	    itself. The <tt class="verb">atomsize()</tt> method returns the
+	    total length, in bytes, of the element base atom.
+	  </p>
+	  <p>A description of the different constructors with their
+	    parameters follows:
+	  </p>
+
+	  <dl>
+	    <dt>Atom(dtype="Float64", shape=1, flavor="NumArray")
+	    </dt>
+	    <dd>Define properties for the base elements of
+	      <tt class="verb">EArray</tt> and <tt class="verb">VLArray</tt> objects.
+	      <dl>
+		<dt>dtype</dt> <dd>The data type for the base
+		  element. See the <a href="usersguide6.html#datatypesSupported">appendix&nbsp;A</a> for a
+		  relation of data types supported. The type
+		  description is accepted both in string format and as
+		  numarray data type.
+		</dd>
+
+		<dt>shape</dt> <dd>In a <tt class="verb">EArray</tt>
+		  context, it is a <b>tuple</b>
+		  specifing the shape of the object, and one (and only
+		  one) of its dimensions <b>must</b> be 0, meaning that the
+		  <tt class="verb">EArray</tt> object will be enlarged along
+		  this axis. In the case of a <tt class="verb">VLArray</tt>, it
+		  can be an integer with a value of 1 (one) or a
+		  tuple, that specifies whether the atom is an scalar
+		  (in the case of a 1) or has multiple dimensions (in
+		  the case of a tuple). For 
+		  <tt class="verb">CharType</tt> elements, the last dimension
+		  is used as the length of the character
+		  strings. However, for this kind of objects, the use
+		  of <tt class="verb">StringAtom</tt> subclass is strongly
+		  recommended.
+		</dd>
+
+		<dt>flavor</dt>
+		  <dd>The object representation for this atom. It
+		  can be any of <em>"CharArray"</em> or
+		  <em>"String"</em> for the <tt class="verb">CharType</tt> type
+		  and <em>"NumArray"</em>, <em>"Numeric"</em>,
+		  <em>"List"</em> or <em>"Tuple"</em> for the rest of
+		  the types. If the specified values differs from
+		  <em>CharArray</em> or <em>NumArray</em> values, the
+		  read atoms will be converted to that specific
+		  flavor. If not specified, the atoms will remain in
+		  their native format (i.e. <tt class="verb">CharArray</tt> or
+		  <tt class="verb">NumArray</tt>).
+		</dd>
+	      </dl>
+
+	    </dd> 
+
+	    <dt>StringAtom(shape=1, length=None,
+	      flavor="CharArray")</dt> <dd>Define an atom to be of
+	      <tt class="verb">CharType</tt> type. The meaning of the
+	      <em>shape</em> parameter is the same as in the
+	      <tt class="verb">Atom</tt> class. <em>length</em> sets the length
+	      of the strings atoms. <em>flavor</em> can be whether
+	      <tt class="verb">"CharArray"</tt> or
+	      <tt class="verb">"String"</tt>. Unicode strings are not supported
+	      by this type; see the <tt class="verb">VLStringAtom</tt> class if
+	      you want Unicode support (only available for
+	      <tt class="verb">VLAtom</tt> objects).
+	    </dd>
+
+	    <dt>BoolAtom(shape=1, flavor="NumArray") </dt>
+	      <dd>Define an atom to be of type <tt class="verb">Bool</tt>.
+	      The meaning of the parameters are the same of those in
+	      the <tt class="verb">Atom</tt> class.
+	    </dd>
+
+	    <dt>IntAtom(shape=1, itemsize=4, sign=1,
+	      flavor="NumArray") </dt> <dd>Define an atom to be of
+	      type <tt class="verb">IntXX</tt>, depending on the value of
+	      <em>itemsize</em> parameter, that sets the number of
+	      bytes of the integers that conform the
+	      atom. <em>sign</em> determines whether the integers are
+	      signed or not. The meaning of the other parameters are
+	      the same of those in the <tt class="verb">Atom</tt> class.
+
+	      <p class="first">This class has several descendants:
+	      </p>
+
+	      <dl>
+		<dt>Int8Atom(shape=1, flavor="NumArray")</dt>
+		<dd>Define an atom of type <tt class="verb">Int8</tt>.</dd>
+
+		<dt>UInt8Atom(shape=1, flavor="NumArray")</dt>
+		<dd>Define an atom of type <tt class="verb">UInt8</tt>.</dd>
+
+		<dt>Int16Atom(shape=1, flavor="NumArray")</dt>
+		<dd>Define an atom of type <tt class="verb">Int16</tt>.</dd>
+
+		<dt>UInt16Atom(shape=1, flavor="NumArray")</dt>
+		<dd>Define an atom of type <tt class="verb">UInt16</tt>.</dd>
+
+		<dt>Int32Atom(shape=1, flavor="NumArray")</dt>
+		<dd>Define an atom of type <tt class="verb">Int32</tt>.</dd>
+
+		<dt>UInt32Atom(shape=1, flavor="NumArray")</dt>
+		<dd>Define an atom of type <tt class="verb">UInt32</tt>.</dd>
+
+		<dt>Int64Atom(shape=1, flavor="NumArray")</dt>
+		<dd>Define an atom of type <tt class="verb">Int64</tt>.</dd>
+
+		<dt>UInt64Atom(shape=1, flavor="NumArray")</dt>
+		<dd>Define an atom of type <tt class="verb">UInt64</tt>.</dd>
+
+	      </dl>
+
+	    </dd>
+
+	    <dt>FloatAtom(shape=1, itemsize=8, flavor="NumArray")
+	    </dt>
+	    <dd>Define an atom to be of <tt class="verb">FloatXX</tt>
+	      type, depending on the value of <tt class="verb">itemsize</tt>. The
+	      <tt class="verb">itemsize</tt> parameter sets the number of bytes
+	      of the floats in the atom and the default is 8 bytes
+	      (double precision). The meaning of the other parameters
+	      are the same as those in the <tt class="verb">Atom</tt> class.
+
+	      <p class="first">This class has two descendants:
+	      </p>
+
+	      <dl>
+		<dt>Float32Atom(shape=1, flavor="NumArray")</dt>
+		<dd>Define an atom of type <tt class="verb">Float32</tt>.</dd>
+
+		<dt>Float64Atom(shape=1, flavor="NumArray")</dt>
+		<dd>Define an atom of type <tt class="verb">Float64</tt>.</dd>
+
+	      </dl>
+	    </dd>
+	  </dl>
+
+	  <p>Now, there come two special classes,
+	    <tt class="verb">ObjectAtom</tt> and <tt class="verb">VLString</tt>, that
+	    actually do not descend from <tt class="verb">Atom</tt>, but which
+	    goal is so similar that they should be described here. The
+	    difference between them and the <tt class="verb">Atom</tt> and
+	    descendents classes is that these special classes does not
+	    allow multidimensional atoms, nor multiple values per
+	    row. A <em>flavor</em> can't be specified neither as it is
+	    immutable (see below).
+	  </p>
+	  <p><b>Caveat emptor:</b> You are only
+	    allowed to use these classes to create
+	    <tt class="verb">VLArray</tt> objects, not <tt class="verb">EArray</tt>
+	    objects.
+	  </p>
+
+	  <dl>
+	    <dt>ObjectAtom()</dt> <dd>This class is meant to fit
+	      <em>any</em> kind of object in a row of an
+	      <tt class="verb">VLArray</tt> instance by using
+	      <tt class="verb">cPickle</tt> behind the scenes. Due to the fact
+	      that you cannot foresee how long will be the output of
+	      the <tt class="verb">cPickle</tt> serialization (i.e. the atom
+	      already has a <em>variable</em> length), you can only
+	      fit a representant of it per row. However, you can still
+	      pass several parameters to the
+	      <tt class="verb">VLArray.append()</tt> method as they will be
+	      regarded as a <em>tuple</em> of compound objects (the
+	      parameters), so that we still have only one object to be
+	      saved in a single row. It does not accept parameters and
+	      its flavor is automatically set to
+	      <tt class="verb">"Object"</tt>, so the reads of rows always
+	      returns an arbitrary python object.
+	      
+	      You can regard <tt class="verb">ObjectAtom</tt> types as an easy
+	      way to save an arbitrary number of generic python
+	      objects in a <tt class="verb">VLArray</tt> object.
+	    </dd>
+
+	    <dt>VLStringAtom()</dt> <dd>This class describes a
+	      <em>row</em> of the <tt class="verb">VLArray</tt> class, rather
+	      than an <em>atom</em>. It differs from the
+	      <tt class="verb">StringAtom</tt> class in that you can only add
+	      one instance of it to one specific row, i.e. the
+	      <tt class="verb">VLArray.append()</tt> method only accepts one
+	      object when the base atom is of this type. Besides, it
+	      supports Unicode strings (contrarily to
+	      <tt class="verb">StringAtom</tt>) because it uses the UTF-8
+	      codification (this is why its <tt class="verb">atomsize()</tt>
+	      method returns always 1) when serializing to disk. It
+	      does not accept any parameter and because its
+	      <em>flavor</em> is automatically set to
+	      <tt class="verb">"VLString"</tt>, the reads of rows always
+	      returns a python string. See the <a href="usersguide7.html#VLArrayFormatDescr">appendix&nbsp;B.3.4</a> if you are
+	      curious on how this is implemented at the low-level.
+
+	      You can regard <tt class="verb">VLStringAtom</tt> types as an
+	      easy way to save generic variable length strings.
+	    </dd>
+	  </dl>
+
+
+
+	  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	  <p>See <tt class="verb">examples/vlarray1.py</tt> and
+	    <tt class="verb">examples/vlarray2.py</tt> for further examples on
+	    <tt class="verb">VLArray</tt>s, including object serialization and
+	    Unicode string management.
+	  </p>
+
+	</div> 
+      </div> 
+
+      <div id="helperClasses"><a name="helperClasses"></a>
+	<h2 id="section4.12"><span class="headlinenumber"><a name="section4.12"></a>4.12 </span>Helper classes</h2>
+
+	<p class="first">In this section are listed classes that does not fit in any
+	  other section and that mainly serves for ancillary
+	  purposes.</p>
+
+	<div id="FiltersClassDescr"><a name="FiltersClassDescr"></a>
+	  <h3 id="subsection4.12.1"><span class="headlinenumber"><a name="subsection4.12.1"></a>4.12.1 </span>The <tt>Filters</tt> class
+	  </h3>
+
+	  <p class="first">This class is meant to serve as a container that keeps
+	    information about the filter properties associated with
+	    the enlargeable leaves, that is <tt class="verb">Table</tt>,
+	    <tt class="verb">EArray</tt> and <tt class="verb">VLArray</tt>.
+	  </p>
+
+	  <p>The public variables of <tt class="verb">Filters</tt> are listed
+	    below:
+	  </p>
+
+	  <dl>
+	    <dt>complevel</dt> <dd>The compression level (0
+	      means no compression).
+	    </dd>
+	    <dt>complib</dt> <dd>The compression filter used (in
+	      case of compressed dataset).
+	    </dd>
+	    <dt>shuffle</dt> <dd>Whether the shuffle filter is
+	      active or not.
+	    </dd>
+	    <dt>fletcher32</dt> <dd>Whether the fletcher32
+	      filter is active or not.
+	    </dd>
+	  </dl>
+
+	  <p>There are no <tt class="verb">Filters</tt> public methods with the
+	    exception of the constructor itself that is described
+	    next.
+	  </p>
+
+	  <div id="FiltersInitDescr"><a name="FiltersInitDescr"></a>
+	    <h4 id="subsubsection4.12.1.1"><tt>Filters(complevel=0,
+		complib="zlib", shuffle=1, fletcher32=0)</tt>
+	    </h4>
+
+	    <p class="first">The parameters that can be passed to the
+	      <tt class="verb">Filters</tt> class constructor are:
+	    </p>
+
+	    <dl>
+	      <dt>complevel</dt> <dd>Specifies a compress level
+		for data. The allowed range is 0-9. A value of 0
+		disables compression. The default is that compression
+		is disabled, that balances between compression effort
+		and CPU consumption.
+	      </dd>
+	      <dt>complib</dt> <dd> Specifies the compression
+		library to be used. Right now, <tt class="verb">"zlib"</tt>
+		(default), <tt class="verb">"lzo"</tt> and <tt class="verb">"ucl"</tt>
+		values are supported. See <a href="usersguide5.html#compressionIssues">section&nbsp;5.2</a> for some advice
+		on which library is better suited to your needs.
+	      </dd>
+	      <dt>shuffle</dt><dd>Whether or not to use the
+		<em>shuffle</em> filter present in the
+		<tt class="verb">HDF5</tt> library. This is normally used to
+		improve the compression ratio (at the cost of
+		consuming a little bit more CPU time). A value of 0
+		disables shuffling and 1 makes it active. The default
+		value depends on whether compression is enabled or
+		not; if compression is enabled, shuffling defaults to
+		be active, else shuffling is disabled.
+	      </dd>
+	      <dt>fletcher32</dt> <dd>Whether or not to use the
+		<em>fletcher32</em> filter in the HDF5 library. This
+		is used to add a checksum on each data chunk. A value
+		of 0 disables the checksum and it is the default.
+	      </dd>
+	    </dl>
+	    
+	    <div class="p">Of course, you can also create an instance and then
+	      assign the ones you want to change. For example:
+	      <pre>
+import numarray as na
+from tables import *
+
+fileh = openFile("test5.h5", mode = "w")
+atom = Float32Atom(shape=(0,2))
+filters = Filters(complevel=1, complib = "lzo")
+filters.fletcher32 = 1
+arr = fileh.createEArray(fileh.root, 'earray', atom, "A growable array",
+                         filters = filters)
+# Append several rows in only one call
+arr.append(na.array([[1., 2.],
+                     [2., 3.],
+                     [3., 4.]], type=na.Float32))
+
+# Print information on that enlargeable array
+print "Result Array:"
+print repr(arr)
+
+fileh.close()
+	      </pre>
+	      This enforces the use of the <tt class="verb">LZO</tt> library, a
+	      compression level of 1 and a fletcher32 checksum filter
+	      as well. See the output of this example:
+	      <pre>
+Result Array:
+/earray (EArray(3L, 2), fletcher32, shuffle, lzo(1)) 'A growable array'
+  type = Float32
+  shape = (3L, 2)
+  itemsize = 4
+  nrows = 3
+  extdim = 0
+  flavor = 'NumArray'
+  byteorder = 'little'
+	      </pre>
+	    </div>
+	  </div> 
+	</div> 
+      </div> 
     </div><hr align="left" noshade="true" class="footnoterule"><div class="footnote"><a name="footnote4" href="#footnoteback4"><sup>4)</sup></a>&nbsp;On the following, the term <tt class="verb">Leaf</tt>
-	  will whether refer to a <tt class="verb">Table</tt> or
-	  <tt class="verb">Array</tt> node object.</div><div class="footnote"><a name="footnote5" href="#footnoteback5"><sup>5)</sup></a>&nbsp;However,
-	      for <tt class="verb">removeRows()</tt> to work, you need that the
-	      rows <b>after</b> the
-	      <tt class="verb">stop</tt> parameter will fit in-memory so as to
-	      method to work. This limitation will be hopefully
-	      removed in a future version.</div><div class="footnote"><a name="footnote6" href="#footnoteback6"><sup>6)</sup></a>&nbsp;However, these might be included in the
-	  future</div></div><div class="speedbar-bottom"><hr class="speedbar"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide3.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide5.html">next</a></td></tr></tbody></table></div></body></html>
+	  will whether refer to a <tt class="verb">Table</tt>,
+	  <tt class="verb">Array</tt>, <tt class="verb">EArray</tt>,
+	  <tt class="verb">VLArray</tt> or <tt class="verb">UnImplemented</tt> node
+	  object.</div><div class="footnote"><a name="footnote5" href="#footnoteback5"><sup>5)</sup></a>&nbsp;However, these might be included in the
+	  future</div><div class="footnote"><a name="footnote6" href="#footnoteback6"><sup>6)</sup></a>&nbsp;In the future,
+	  multiple enlargeable dimensions might be implemented as
+	  well.</div></div><div class="speedbar-bottom"><hr class="speedbar"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide3.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide5.html">next</a></td></tr></tbody></table></div></body></html>

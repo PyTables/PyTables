@@ -2,7 +2,7 @@
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xmlns:pref="http://www.w3.org/2002/Math/preference"><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide A hierarchical database for Python Release 0.7.2"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2003-09-22T13:38:59+02:00"><meta name="Date" content="2003-09-22T13:38:59+02:00"><meta name="DC.Rights" content="(c) 2002, 2003 Francesc Alted"><meta name="Copyright" content="(c) 2002, 2003 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide A hierarchical database for Python Release 0.8"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Date" content="2004-02-29T14:40:11+01:00"><meta name="Date" content="2004-02-29T14:40:11+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -131,9 +131,16 @@ h2 { color: olive }
 h3 { color: navy }
 h4 { color: maroon }
 body { background-image: url("tile.jpg");
+ font: 14px/1.5 Verdana, Arial, Helvetica, sans-serif;
+ background:#fff;
+ padding:5%;
+ padding-top:2%;
+ margin:0px;
+}
+/*     body { background-image: url("tile.jpg");
          background-color: white;
          color: black;
-	 font-size: 13pt; }
+	 font-size: 13pt; } */
 hr.footnoterule { color: white }
 div.title { font-size: x-large; color: maroon }
 div.subtitle { font-size: x-large; color: olive }
@@ -147,17 +154,17 @@ div.partheadline { font-size: x-large }
 
 
 
-      <div class="aphorism">T'adones, company,<br>
-	no volen arguments,<br>
-	usen la for&ccedil;a,<br>
-	t'adones, amic.<br>
-	T'adones, company,<br>
-	que hem de sortir al carrer<br>
-	junts, molts, com m&eacute;s millor,<br>
-	si no volem perdre-ho tot,<br>
-	t'adones, amic.<br>
-	<div class="aphorism-origin">&#8212;Raimon in the song "T'adones, amic"</div>
-      </div>
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -165,271 +172,309 @@ div.partheadline { font-size: x-large }
 
       <p class="first">The Python <tt class="verb">Distutils</tt> are used to build and
 	install <tt class="verb">PyTables</tt>, so it is fairly simple to get
-	things ready to go. Also, a binary distribution is available
-	for Windows (see <a href="#binaryInstallationDescr">section&nbsp;2.2</a>).
+	the application up and running. If you want to install the
+	package from sources go to the next section. But if you are
+	running Windows and want to install precompiled binaries jump
+	to <a href="#binaryInstallationDescr">section&nbsp;2.2</a>). In
+	addition, packages are starting to appear in different Linux
+	distributions (like for instance <a href="http://www.rocklinux.org/"><tt class="verb">RockLinux</tt></a>
+	or <a href="http://www.debian.org/"><tt class="verb">Debian</tt></a>).
       </p>
 
       <div id="sourceInstallationDescr"><a name="sourceInstallationDescr"></a>
-	<h2 id="section2.1"><span class="headlinenumber"><a name="section2.1"></a>2.1 </span>Installation from sources</h2>
+	<h2 id="section2.1"><span class="headlinenumber"><a name="section2.1"></a>2.1 </span>Installation from source</h2>
 
 	<p class="first">
-	  These instructions are both for Unix/Linux and Windows
+	  These instructions are for both Unix/Linux and Windows
 	  systems. If you are using Windows, it is assumed that you
-	  are using a recent version of <tt class="verb">MS Visual C++</tt> (&gt;=
-	  6.0) compiler. A <tt class="verb">GCC</tt> compiler is assumed for
+	  have a recent version of <tt class="verb">MS Visual C++</tt> (&gt;=
+	  6.0) compiler installed. A <tt class="verb">GCC</tt> compiler is assumed for
 	  Unix, but other compilers should work as well.
 	</p>
 
-	<p>Extensions in <tt>PyTables</tt> has been
-	  made using Pyrex (see <a href="#Pyrex"></a>) and C
-	  language. You can rebuild everything from scratch if you got
-	  Pyrex installed, but this is not necessary, as the Pyrex
-	  compiled source is included in the distribution. In order to
-	  do that, merely replace <tt>setup.py</tt>
-	  script in these instructions by <tt>setup-pyrex.py</tt>.
+	<p>Extensions in <tt>PyTables</tt> have
+	  developed in Pyrex (see <a href="#Pyrex"></a>) and C
+	  language. You can rebuild everything from scratch if you
+	  have Pyrex installed, but this is not necessary, as the Pyrex
+	  compiled source is included in the distribution.
 	</p>
 
 	<p>To compile <tt class="verb">PyTables</tt> you will need a recent
-	  version of <tt class="verb">HDF5</tt> (C flavor) library and
+	  version of the <tt class="verb">HDF5</tt> (C flavor) library and the
 	  <tt class="verb">numarray</tt> (see <a href="#Numarray"></a>)
 	  package. Although you won't need <tt class="verb">Numerical Python</tt>
 	  (see <a href="#Numeric"></a>) in order to compile
-	  PyTables, it is supported; you will only need a reasonably
-	  recent version of it (&gt;= 21.x). PyTables has been successfully
+	  PyTables, it is supported; you only need a reasonably
+	  recent version of it (&gt;= 21.x) if you plan on using its
+	  methods in your applications. PyTables has been successfully
 	  tested with Numeric 21.3, 22.0 and 23.0. If you already have
 	  <tt class="verb">Numeric</tt> installed, the test driver module will
 	  detect it and will run the tests for <tt class="verb">Numeric</tt>
 	  automatically.
 	</p>
 
-	<ol>
+	
+        <div id="PrerequisitesSourceDescr"><a name="PrerequisitesSourceDescr"></a>
+	  <h3 id="subsection2.1.1"><span class="headlinenumber"><a name="subsection2.1.1"></a>2.1.1 </span>Prerequisites</h3>
 
-	  <li>
-	    <p class="first">First, make sure that you have <tt class="verb">HDF5 1.6.x</tt>
-	      and <tt class="verb">numarray 0.6</tt> or higher installed (I'm
-	      using <tt class="verb">HDF5 1.6.0</tt> and <tt class="verb">numarray
-	      0.7</tt> currently). If don't, you can find them at
-	      <br> <a href="http://hdf.ncsa.uiuc.edu/HDF5"><tt class="verb">http://hdf.ncsa.uiuc.edu/HDF5</tt></a>
-	      and <a href="http://www.pfdubois.com/numpy"><tt class="verb">http://www.pfdubois.com/numpy</tt></a>. Compile/install
-	      them.
-	    </p>
-	    <p>Optionally, consider to install the excellent LZO and
-	      UCL compression libraries (see <a href="#lzouclRef"></a> and section <a href="usersguide5.html#compressionIssues">5.2</a>).
-	    </p>
-	    <dl>
-	      <dt>Unix</dt>
-	      <dd>
+	  <p class="first">First, make sure that you have <tt class="verb">HDF5 1.6.2</tt>
+	    and <tt class="verb">numarray 0.8</tt> or higher installed (I'm
+	    using <tt class="verb">HDF5 1.6.2</tt> and <tt class="verb">numarray
+	      0.8</tt> currently). If you don't, you can find them
+	    at <a href="http://hdf.ncsa.uiuc.edu/HDF5"><tt class="verb">http://hdf.ncsa.uiuc.edu/HDF5</tt></a>
+	    and <a href="http://www.pfdubois.com/numpy"><tt class="verb">http://www.pfdubois.com/numpy</tt></a>.
+	  </p>
+	  <p>
+	    Compile and install these packages (but see <a href="#prerequisitesBinInst">section&nbsp;2.2.1</a> for
+	    instructions on how to install precompiled binaries if
+	    you are not willing to compile the prerequisites on
+	    Windows systems).
+	  </p>
+	  <p>For compression (and possibly improved performance), you
+	    will need to install the <tt class="verb">Zlib</tt> (see <a href="#zlibRef"></a>), which is also required by
+	    <tt class="verb">HDF5</tt> as well. You may also optionally install
+	    the excellent <tt class="verb">LZO</tt> and <tt class="verb">UCL</tt>
+	    compression libraries (see <a href="#lzouclRef"></a>
+	    and section <a href="usersguide5.html#compressionIssues">5.2</a>).
+	  </p>
+	  <dl>
+	    <dt>Unix</dt>
+	    <dd>
+	      <p class="first"><tt class="verb">setup.py</tt> will detect <tt class="verb">HDF5</tt>,
+		<tt class="verb">LZO</tt> or <tt class="verb">UCL</tt> libraries and
+		include files under <tt class="verb">/usr</tt> or
+		<tt class="verb">/usr/local</tt>; this will cover most manual
+		installations as well as installations from packages.
+		If <tt class="verb">setup.py</tt> can't find
+		<tt class="verb">libhdf5</tt> or <tt class="verb">libz</tt> (or
+		<tt class="verb">liblzo</tt> or <tt class="verb">libucl</tt> that you
+		may wish to use) or if you have several versions of a
+		library installed and want to use a particular one,
+		then you can set the path to the resource in the
+		environment, setting the values of the
+		<tt class="verb">HDF5_DIR</tt>, <tt class="verb">LZO_DIR</tt> or
+		<tt class="verb">UCL_DIR</tt> environment variables to the path
+		to the particular resource.  You may also specify the
+		locations of the resource root directories on the
+		<tt class="verb">setup.py</tt> command line. For example:
+	      </p>
 
-		<p class="first"><tt class="verb">setup.py</tt> will detect
-		  <tt class="verb">HDF5</tt>, <tt class="verb">LZO</tt> or
-		  <tt class="verb">UCL</tt> libraries and include files under
-		  <tt class="verb">/usr</tt> or <tt class="verb">/usr/local</tt>; this
-		  will catch installations from RPMs, DEBs and most
-		  hand installations under Unix. If
-		  <tt class="verb">setup.py</tt> can't find your
-		  <tt class="verb">libhdf5</tt> (or any other library you may
-		  wish) or if you have several versions installed and
-		  want to select one of them, then you can give it a
-		  hint either in the environment (using the
-		  <tt class="verb">HDF5_DIR</tt> environment variable or
-		  <tt class="verb">LZO_DIR</tt> and <tt class="verb">UCL_DIR</tt> for
-		  the optional libraries) or on the command line by
-		  specifying the directory containing the include and
-		  lib directory. For example:
-		</p>
+	      <pre>
+		--hdf5=/stuff/hdf5-1.6.2
+		--lzo=/stuff/lzo-1.07
+		--ucl=/stuff/ucl-1.0.1
+	      </pre>
 
+	      <div class="p">If your <tt class="verb">HDF5</tt> library was built as
+		a shared library not in the runtime load path, then 
+		you can specify the additional linker flags needed to 
+		find the shared library on the command line as well. 
+		For example:
 		<pre>
-		  --hdf5=/stuff/hdf5-1.6.0
-		  --ucl=/stuff/ucl-1.0.1
+		  --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.2/lib"
 		</pre>
-
-		<p>If your <tt class="verb">HDF5</tt> library was built as
-		  shared library, and if this shared library is not in
-		  the runtime load path, then you can specify the
-		  additional linker flags needed to find the shared
-		  library on the command line as well. For example:
-		</p>
+		or perhaps just
 		<pre>
-		  --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.0/lib"
+		  --rpath="/stuff/hdf5-1.6.2/lib"
 		</pre>
-		<p>or perhaps just
-		</p>
+		Check your compiler and linker documentation as well
+		as the Python <tt class="verb">Distutils</tt> documentation for
+		the correct syntax.
+	      </div>
+
+	      <div class="p">It is also possible to link specific libraries with
+		the standard <tt class="verb">Distutils</tt>
+		<tt class="verb">--libraries</tt> switch:
 		<pre>
-		  --lflags="-R /stuff/hdf5-1.6.0/lib"
+		  --libraries="-lhdf5-1.6.5"
+		  --libraries="-lhdf5-1.6.5 -lnsl"
 		</pre>
+	      </div>
+	    </dd>
 
-		<p>Check your compiler and linker documentation for correct
-		  syntax.
-		</p>
+	    <dt>Windows</dt>
+	    <dd>
+	      <p class="first">Once you have installed the prerequisites,
+		<tt class="verb">setup.py</tt> needs to know where the
+		necessary library <em>stub</em> (<tt class="verb">.lib</tt>)
+		and <em>header</em> (<tt class="verb">.h</tt>) files are
+		installed.  Set the following environment variables:
+	      </p>
 
-		<p>It is also possible to specify linking against different
-		  libraries with the <tt class="verb">--libs</tt> switch:
-		</p>
-		<pre>
-		  --libs="-lhdf5-1.6.5"
-		  --libs="-lhdf5-1.6.5 -lnsl"
-		</pre>
-	      </dd>
-
-	      <dt>Windows</dt>
-	      <dd>
-		<p class="first">If you are using Windows, and don't want to
-		  compile the libraries by hand, there are available
-		  binary packages for them. You can fetch the HDF5 and
-		  numarray binaries from their homes.
-		</p>
-
-		<p>For the HDF5 you must manually copy the
-		  <tt class="verb">hdf5dll.dll</tt> <b>and</b> <tt class="verb">szipdll.dll</tt>
-		  files to a directory in your <tt class="verb">PATH</tt>
-		  environment variable (for example
-		  <tt class="verb">C:\WINDOWS\SYSTEM</tt>).
-		</p>
-
-		<p>Besides, you may want to fetch the <tt class="verb">LZO</tt>
-		  and <tt class="verb">UCL</tt> binaries from:<br> <a href="http://gnuwin32.sourceforge.net/"><tt class="verb">http://gnuwin32.sourceforge.net/</tt></a>. Normally,
-		  you will only need to fetch and install the
-		  <tt class="verb">&lt;package&gt;-&lt;version&gt;-bin.zip</tt> file,
-		  although in some cases the headers are in
-		  <tt class="verb">&lt;package&gt;-&lt;version&gt;-lib.zip</tt> file.
-		</p>
+	      <dl>
+		<dt>HDF5_DIR</dt><dd>Points to the root HDF5 
+		  directory (where the include/ and dll/ directories
+		  can be found). <em>Mandatory</em>.</dd>
 		
-		<p>As before, you will need to copy manually the
-		  <tt class="verb">lzo.dll</tt> or <tt class="verb">ucl.dll</tt> to a
-		  directory in the <tt class="verb">PATH</tt>, so that they can
-		  be found by PyTables extensions.</p>
 
-		<p><tt class="verb">setup.py</tt> will need that you inform it
-		  about where the library <em>stubs</em>
-		  (<tt class="verb">.lib</tt>) are installed as well as the
-		  <em>header</em> files (<tt class="verb">.h</tt>). To tell
-		  setup.py<tt class="verb"></tt> where the stubs and headers
-		  are, set the next environment variables:
-		</p>
 
-		<dl>
-		  <dt>HDF5_DIR</dt><dd>Points to the HDF5 main
-		    directory (where the include/ and dll/ directories
-		    hangs). <em>Mandatory</em>.</dd>
-		    
-		  <dt>LZO_DIR</dt> <dd>Points to the LZO main
-		    directory (where the include/ and lib/ directories
-		    hangs). <em>Optional</em>.</dd>
 
-		  <dt>UCL_DIR</dt> <dd>Points to the UCL main
-		    directory (where the include/ and lib/ directories
-		    hangs). <em>Optional</em>.</dd>
 
-		</dl> 
+		<dt>LZO_DIR</dt> <dd>Points to the root LZO
+		  directory (where the include/ and lib/ directories
+		  can be found). <em>Optional</em>.</dd>
 
-		<p>For example:
-		</p>
+		<dt>UCL_DIR</dt> <dd>Points to the root UCL
+		  directory (where the include/ and lib/ directories
+		  can be found). <em>Optional</em>.</dd>
+
+	      </dl> 
+
+	      <div class="p">For example:
 		<pre>
-		  set HDF5_DIR=c:\stuff\5-160-win2k\c\release
-		  set LZO_DIR=c:\stuff\lzo-1-07
+		  set HDF5_DIR=c:\stuff\5-162-win2k\c\release
 		  set UCL_DIR=c:\stuff\ucl-1-01
+		  set LZO_DIR=c:\stuff\lzo-1-07
 		</pre>
 
-		<p>Or you can pass this info to <tt class="verb">setup.py</tt>
-		  within the command line by specifying the directory
-		  containing the include and lib directory. For
-		  example:
-		</p>
+		Or, you can pass this information to
+		<tt class="verb">setup.py</tt> by setting the appropriate
+		arguments on the command line. For example:
+	      </div>
 
+	      <pre>
+		--hdf5=c:\stuff\5-162-win2k\c\release
+		--lzo=c:\stuff\lzo-1-07 --ucl=c:\stuff\ucl-1-01
+	      </pre>	
+	    </dd>
+
+	  </dl>
+
+	</div>
+
+        <div id="PyTablesSourceInstallationDescr"><a name="PyTablesSourceInstallationDescr"></a>
+	  <h3 id="subsection2.1.2"><span class="headlinenumber"><a name="subsection2.1.2"></a>2.1.2 </span><tt>PyTables</tt> package
+	    installation
+	  </h3>
+
+          <p class="first">Once you have installed the HDF5 library and numarray
+            packages, you can proceed with the <tt class="verb">PyTables</tt>
+            package itself:
+          </p>
+
+	  <ol>
+	    <li>
+	      <div class="p-first">Run this command from the main <tt class="verb">PyTables</tt>
+		distribution directory, including any extra command line
+		arguments as discussed above:
 		<pre>
-		  --hdf5=c:\stuff\5-160-win2k\c\release --lzo=c:\stuff\lzo-1-07
-		  --ucl=c:\stuff\ucl-1-01
-		</pre>	
-	      </dd>
-
-	    </dl>
-
-	  </li>
-
-	  <li>
- 	    <p class="first">From the main <tt class="verb">PyTables</tt> distribution
-	      directory run this command, (plus any extra flags needed
-	      as discussed above):
-	    </p>
-	    <pre>
-	      python setup.py build_ext --inplace
-	    </pre>
-	    <p>depending on the compiler flags used when compiling your
-	      Python executable, there may appear lots of warnings. Don't
-	      worry, almost all of them are caused by variables declared
-	      but never used. That's normal in Pyrex extensions.
-	    </p>
-	  </li>
-	  <li>
-	    <p class="first">To run the test suite change into the test directory
-	      and run this command:
-	    </p>
-	    <dl>
-	      <dt>Unix</dt> <dd>In the shell <tt class="verb">sh</tt> and
-	      its variants:
-		<pre>
-		  PYTHONPATH=..  
-		  export PYTHONPATH
-		  python test_all.py
+		  python setup.py build_ext --inplace
 		</pre>
-	      </dd>
-	      <dt>Windows</dt>
-	      <dd>Open a DOS terminal and write:
+		Depending on the compiler flags used when compiling your
+		Python executable, there may appear many warnings. Don't
+		worry, almost all of them are caused by variables declared
+		but never used. That's normal in Pyrex extensions.
+	      </div>
+	    </li>
+	    <li>
+	      <p class="first">To run the test suite, change into the test directory
+		and execute this command:
+	      </p>
+	      <dl>
+		<dt>Unix</dt> <dd>In the shell <tt class="verb">sh</tt> and
+		  its variants:
+		  <pre>
+		    PYTHONPATH=..  
+		    export PYTHONPATH
+		    python test_all.py
+		  </pre>
+		</dd>
+		<dt>Windows</dt>
+		<dd>Open a DOS terminal and type:
+		  <pre>
+		    set PYTHONPATH=..  
+		    python test_all.py
+		  </pre>
+		</dd>
+	      </dl>
+
+	      <div class="p">If you would like to see verbose output from the tests
+		simply add the flag <tt class="verb">-v</tt> and/or the word
+		<tt class="verb">verbose</tt> to the command line. You can also
+		run only the tests in a particular test module. For
+		example, to execute just the <tt class="verb">types</tt> test:
 		<pre>
-		  set PYTHONPATH=..  
-		  python test_all.py
+		  python test_types.py -v
 		</pre>
-	      </dd>
-	    </dl>
+		If a test fails, please enable verbose output (the
+		<tt class="verb">-v</tt> flag <b>and</b>
+		<tt class="verb">verbose</tt> option), run the failing test
+		module again, and, very important, get your
+		<tt class="verb">PyTables</tt> version information by running
+		the command:
+		<pre>
+		  python test_all.py --show-versions-only
+		</pre>
+		and send back the output to developers so that we may
+		continue improving <tt class="verb">PyTables</tt>.
+	      </div>
 
-	    <p>If you would like to see some verbose output from the
-	      tests simply add the flag <tt class="verb">-v</tt> and/or the word
-	      <tt class="verb">verbose</tt> to the command line. You can also
-	      run just the tests in a particular test module. For
-	      example:
-	    </p>
-	    <pre>
-	      python test_types.py -v
-	    </pre>
+	      <p> If you run into problems because Python can't load the
+		HDF5 library or other shared libraries:
+	      </p>
+	      <dl>
+		<dt>Unix</dt>
+		<dd>
+		  Try setting the LD_LIBRARY_PATH environment variable to
+		  point to the directory where the missing libraries can
+		  be found.
+		</dd>
+		<dt>Windows</dt> <dd>Put the DLL libraries
+		  (<tt class="verb">hdf5dll.dll</tt> and, optionally,
+		  <tt class="verb">lzo.dll</tt> and <tt class="verb">ucl.dll</tt>) in a
+		  directory listed in your <tt class="verb">PATH</tt>
+		  environment variable.  The <tt class="verb">setup.py</tt>
+		  installation program will print out a warning to
+		  that effect if the libraries can't be found.
+		</dd>
+	      </dl>
+	    </li>
+	    <li>
+		  
 
-	    <p>If there is some test that do not pass, please, run the
-	      failing test module with all verbosity enabled (flags
-	      <tt class="verb">-v verbose</tt>), and send back the output to
-	      developers.
-	    </p>
+	      <div class="p-first">To install the entire <tt>PyTables</tt> Python package, change
+		back to the root distribution directory and run the
+		following command (make sure you have sufficient
+		permissions to write to the directories where the
+		<tt class="verb">PyTables</tt> files will be installed):
+		
+		<pre>
+		  python setup.py install
+		</pre>
 
-	    <p> If you run into problems because Python can't load the
-	      HDF5, or any other shared library:
-	    </p>
-	    <dl>
-	      <dt>Unix</dt>
-	      <dd>
-		Try to set the LD_LIBRARY_PATH environment variable to
-		point to the directory where the libraries are.
-	      </dd>
-	      <dt>Windows</dt> <dd>Put the DLL libraries
-		(<tt class="verb">hdf5dll.dll</tt> and, optionally,
-		<tt class="verb">lzo.dll</tt> and <tt class="verb">ucl.dll</tt>) on a
-		directory listed on your <tt class="verb">PATH</tt> environment
-		variable.  The <tt class="verb">setup.py</tt> should already
-		warned you about that.
-	      </dd>
-	    </dl>
-	  </li>
-	  <li>
-	    <p class="first">To install the entire <tt>PyTables</tt> Python package, change back
-	      to the root distribution directory and run this command as
-	      the root user (remember to add any extra flags needed):
-	    </p>
-	    <pre>
-	      python setup.py install
-	    </pre>
+		Of course, you will need super-user privileges if you
+		want to install <tt class="verb">PyTables</tt> on a
+		system-protected area. You can select, though, a
+		different place to install the package using the
+		<tt class="verb">--prefix</tt> flag:
 
-	  </li>
-	</ol>
+		<pre>
+		  python setup.py install --prefix="/home/myuser/mystuff"
+		</pre>
 
-	<p>That's it!. Now, proceed with the next chapter to see how to
-	  use <tt class="verb">PyTables</tt>.
+		Have in mind, however, that if you use the
+		<tt class="verb">--prefix</tt> flag to install in a non-standard
+		place, you should properly setup your
+		<tt class="verb">PYTHONPATH</tt> environment variable, so that
+		the python interpreter would be able to find your new
+		<tt class="verb">PyTables</tt> installation.
+	      </div>
+
+	      <div class="p">You have more installation options available in
+		distutils package. Issue a:
+		<pre>
+		  python setup.py install --help
+		</pre>
+		for more information on that subject.
+	      </div>
+
+	    </li>
+	  </ol>
+
+	</div>
+
+	<p>That's it! The next chapter describes how to use
+	  <tt class="verb">PyTables</tt>. 
 	</p>
 
       </div>
@@ -437,87 +482,114 @@ div.partheadline { font-size: x-large }
       <div id="binaryInstallationDescr"><a name="binaryInstallationDescr"></a>
 	<h2 id="section2.2"><span class="headlinenumber"><a name="section2.2"></a>2.2 </span>Binary installation (Windows)</h2>
 
-	<p class="first">This section is only intended for Windows platforms. If you
-	  have Unix, or want to compile PyTables for Windows, jump to
-	  the <a href="#sourceInstallationDescr">section&nbsp;2.1</a>.
+	<p class="first">This section is intended for installing precompiled
+	  binaries on Windows platforms. You may also find it useful
+	  for instructions on how to install <em>binary
+	  prerequisites</em> even if you want to compile
+	  <tt class="verb">PyTables</tt> itself on Windows.
 	</p>
 
-	<div id="basicBinInst"><a name="basicBinInst"></a>
-	  <h3 id="subsection2.2.1"><span class="headlinenumber"><a name="subsection2.2.1"></a>2.2.1 </span>Basic installation (i.e. with no <tt>LZO</tt> and <tt>UCL</tt> compression libraries support)
-	  </h3>
+	<div id="prerequisitesBinInst"><a name="prerequisitesBinInst"></a>
+	  <h3 id="subsection2.2.1"><span class="headlinenumber"><a name="subsection2.2.1"></a>2.2.1 </span>Windows prerequisites</h3>
 
-	  <p class="first">First, make sure that you have HDF5 1.6.x or higher and
-	    numarray 0.6 or higher installed (I'm using HDF5 1.6.0 and
-	    numarray 0.6 currently). If don't, you can find them at
+	  <p class="first">First, make sure that you have HDF5 1.6.2 or higher and
+	    numarray 0.8 or higher installed (I'm using HDF5 1.6.2 and
+	    numarray 0.8 currently). If don't, you can find them at
 	    <a href="http://hdf.ncsa.uiuc.edu/HDF5"><tt class="verb">http://hdf.ncsa.uiuc.edu/HDF5</tt></a>
 	    and <a href="http://sourceforge.net/projects/numpy/"><tt class="verb">http://sourceforge.net/projects/numpy/</tt></a>. Download
-	    the binary packages and install them. For the HDF5 it
-	    should be enough to manually copying the
-	    <tt class="verb">hdf5dll.dll</tt> <b>and</b>
-	    <tt class="verb">szipdll.dll</tt> files to a directory in your
-	    <tt class="verb">PATH</tt> environment variable (for example
-	    <tt class="verb">C:\WINDOWS\SYSTEM</tt>). Also, you should know
-	    that HDF5 <b>needs</b> the <b><tt>zlib</tt></b>
-	    compression library to work, so you will have to download
-	    and install it as well; a pre-compiled version is
-	    avalilable at <a href="ftp://ftp.ncsa.uiuc.edu/HDF/gzip/windows/"><tt class="verb">ftp://ftp.ncsa.uiuc.edu/HDF/gzip/windows/</tt></a>.
+	    the binary packages (or sources, if you want to compile
+	    everything yourself) and install them.
+          </p>
+          <p>For the HDF5 it should be enough to manually copy the
+	    <tt class="verb">hdf5dll.dll</tt>, <tt class="verb">zlib1.dll</tt> <b>and</b> <tt class="verb">szipdll.dll</tt> files to
+	    a directory in your <tt class="verb">PATH</tt> environment variable
+	    (for example <tt class="verb">C:\WINDOWS\SYSTEM</tt>).
 	  </p>
 
-	  <p><b>Caveat:</b>When downloading the
-	    binary file for HDF5 libraries, select one compiled with
-	    the MSVC 6.0, like for example, the file
-	    <tt class="verb">5-160-win2k.zip</tt>, no matter if you are using
+	  <p><b>Caveat:</b> When downloading the
+	    binary distribution for HDF5 libraries, select one compiled with
+	    MSVC 6.0, such as the package
+	    <tt class="verb">5-162-win2k.zip</tt>, regardless of whether you are using
 	    Win2k or WinXP (it should work fine on both). The file
-	    <tt class="verb">5-160-winxp-net.zip</tt> was compiled with the
+	    <tt class="verb">5-162-winxp-net.zip</tt> was compiled with the
 	    MSVC 7.0 (aka "<tt class="verb">.NET</tt>") and <b>does not</b> work well with the PyTables
 	    binary (which has been generated with MSVC 6.0). You have
-	    been warned!.
+	    been warned!
 	  </p>
 
-	  <p>Download the
-	    <tt class="verb">tables-&lt;version&gt;.win32-py&lt;version&gt;.exe</tt>
-	    file and execute it. You are done!.
+
+
+
+
+
+
+
+
+	  <p>To enable compression with optional LZO and UCL libraries
+	    (see the <a href="usersguide5.html#compressionIssues">section&nbsp;5.2</a> for
+	    hints about how they may be used to improve performance),
+	    fetch and install the <tt class="verb">LZO</tt> and
+	    <tt class="verb">UCL</tt> binaries from:<br> <a href="http://gnuwin32.sourceforge.net/">
+	    <tt class="verb">http://gnuwin32.sourceforge.net/</tt></a>. Normally,
+	    you will only need to fetch and install the<br>
+	    <tt class="verb">&lt;package&gt;-&lt;version&gt;-bin.zip</tt> file and
+	    copy the <tt class="verb">lzo.dll</tt> or <tt class="verb">ucl.dll</tt>
+	    files in a directory in the <tt class="verb">PATH</tt> environment
+	    variable, so that they can be found by the <tt>PyTables</tt> extensions.
+          </p>
+          <p><b>Note:</b> If you are reading
+	    this because you have been redirected from the <a href="#sourceInstallationDescr">section&nbsp;2.1</a>
+	    (<em>Installation from source</em>), some of the headers
+	    you will need are in the
+	    <tt class="verb">&lt;package&gt;-&lt;version&gt;-lib.zip</tt> file.
 	  </p>
 
-	  <p>You can (<em>you should</em>) test your installation by
-	    unpacking the source tarball, changing to the
-	    <tt class="verb">test/</tt> subdirectory and execute the
-	    <tt class="verb">test_all.py</tt> script. If all the tests passes
-	    (maybe with a couple of warnings, related with the
-	    possible unavailability of LZO and UCL libs, but that's ok
-	    for the binary version) you already have a working, well
-	    tested, copy of PyTables installed!. If don't, please,
-	    execute the <tt class="verb">test_all.py -v verbose</tt> and return
-	    the output to me.
-	  </p>
+	  
 
-	</div>
+        </div>
 
-	<div>
-	  <h3 id="subsection2.2.2"><span class="headlinenumber"><a name="subsection2.2.2"></a>2.2.2 </span>Advanced installation (i.e. with support for
-	      <tt>LZO</tt> and <tt>UCL</tt> compression libraries)
+        <div id="PyTablesBinInstallDescr"><a name="PyTablesBinInstallDescr"></a>
+	  <h3 id="subsection2.2.2"><span class="headlinenumber"><a name="subsection2.2.2"></a>2.2.2 </span><tt>PyTables</tt> package
+	    installation
 	  </h3>
 
-	  <p class="first">If you want support for LZO and UCL libraries (see <a href="usersguide5.html#compressionIssues">section&nbsp;5.2</a> for hints about
-	    what they are useful for), install the <tt class="verb">LZO</tt>
-	    and <tt class="verb">UCL</tt> DLL libraries by fetching the
-	    binaries from:<a href="http://gnuwin32.sourceforge.net/"><tt class="verb">http://gnuwin32.sourceforge.net/</tt></a>. Normally,
-	    you will only need to fetch and install the
-	    <tt class="verb">&lt;package&gt;-&lt;version&gt;-bin.zip</tt> file.
+	  <p class="first">Download the
+	    <tt class="verb">tables-&lt;version&gt;.win32-py&lt;version&gt;.exe</tt>
+            <br>
+	    (<tt class="verb">tables-&lt;version&gt;-LU.win32-py&lt;version&gt;.exe</tt>
+	    if you want support for LZO and UCL libraries) file and
+	    execute it.
 	  </p>
 
-	  <p>Finally, follow the same steps than in <a href="#basicBinInst">section&nbsp;2.2.1</a>, but fetch and
-	    install the<br>
-	    <tt class="verb">tables-&lt;version&gt;-LU.win32-py&lt;version&gt;.exe</tt>
-	    self-installer in place of<br>
-	    <tt class="verb">tables-&lt;version&gt;.win32-py&lt;version&gt;.exe</tt>.
-	  </p>
+	  <div class="p">You can (<em>you should</em>) test your installation by
+	    unpacking the source tar-ball, changing to the
+	    <tt class="verb">test/</tt> subdirectory and executing the
+	    <tt class="verb">test_all.py</tt> script. If all the tests pass
+	    (possibly with a few warnings, related to the potential
+	    unavailability of LZO and UCL libs) you already have a
+	    working, well-tested copy of <tt class="verb">PyTables</tt>
+	    installed! If any test fails, please try to locate which
+	    test module is failing and execute:
+          
+	    <pre>
+	      python test_&lt;module&gt;.py -v verbose
+	    </pre>
+	    
+	    and also:
+
+	    <pre>
+	      python test_all.py --show-versions-only
+	    </pre>
+	    
+	    and mail the output to the developers so that the problem
+	    can be fixed in future releases.
+	  </div>
 
 	</div>
 
 	<div style="margin-bottom: 0.25cm"></div><p></p>
 
-	<p>That's it!. Now, proceed with the next chapter to see how to
+	<p>That's it! Now, proceed to the next chapter to see how to
 	  use <tt class="verb">PyTables</tt>.
 	</p>
 

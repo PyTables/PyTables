@@ -4,9 +4,16 @@ h2 { color: olive }
 h3 { color: navy }
 h4 { color: maroon }
 body { background-image: url("tile.jpg");
+ font: 14px/1.5 Verdana, Arial, Helvetica, sans-serif;
+ background:#fff;
+ padding:5%;
+ padding-top:2%;
+ margin:0px;
+}
+/*     body { background-image: url("tile.jpg");
          background-color: white;
          color: black;
-	 font-size: 13pt; }
+	 font-size: 13pt; } */
 hr.footnoterule { color: white }
 div.title { font-size: x-large; color: maroon }
 div.subtitle { font-size: x-large; color: olive }

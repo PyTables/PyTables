@@ -1,0 +1,555 @@
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xmlns:pref="http://www.w3.org/2002/Math/preference" id="PTutilities"><a name="PTutilities"></a><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide A hierarchical database for Python Release 0.8"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Date" content="2004-02-29T14:40:11+01:00"><meta name="Date" content="2004-02-29T14:40:11+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+    body {
+      font-family: serif; text-align: justify;
+      margin: 0pt; line-height: 1.3; background-color: white; color: black }
+    body.letter { background-image: none }
+    h1, h2, h3, h4, h5, h6, div.partheadline, div.title,
+      div.title-article {
+      font-family: sans-serif; font-weight: bold; font-stretch: condensed;
+      text-align: left; }
+    h1, h2, h3, h4, h5, h6, div.partheadline { padding-left: 18pt }
+    h1 { clear: both }
+    h1.toc { clear: none }
+    a:link, a:visited, a:active { text-decoration: none }
+    a:hover { text-decoration: underline; color: #0066FF; }
+    div.document, div.letter { margin-left: 80px; margin-right: 150px;
+      padding-top: 3ex; padding-bottom: 5ex }
+    div.authorlist { font-family: sans-serif;
+      font-stretch: condensed; text-align: left; font-size: x-large;
+      margin-bottom: 1ex }
+    div.authorlist-article { font-size: x-large; text-align: center;
+      margin-bottom: 2ex }
+    div.title { font-size: xx-large; color: gray; margin-bottom: 5ex; }
+    div.title-article { font-size: xx-large; text-align: center;
+      margin-bottom: 1ex }
+    div.date-article { font-size: large; text-align: center;
+      margin-bottom: 5ex }
+    div.subtitle { text-align: left; margin-bottom: 3ex }
+    div.legal { text-align: right }
+    div.legalnotice { margin-top: 3ex; text-align: left }
+    div.partheadline { font-size: xx-large; margin-top: 1ex; margin-bottom: 1ex }
+    div.footnote { }
+    hr.footnoterule { text-align: left; width: 20%; color: black }
+    div.mathdisplay { text-align: center;
+    margin-top: 2ex; margin-bottom: 2ex }
+    div.figure, div.table, div.mathml-remark { margin-bottom: 3ex;
+            margin-top: 2ex}
+    div.mathml-remark { width: 50%; text-align: left; text-indent: 0pt }
+    div.caption { margin-top: 1ex; width: 20em}
+    div.caption-text { font-size: small;
+      padding-left: 1em; text-indent: -1em; text-align: left}
+    caption { max-width: 100%; min-width: 200px; margin-bottom: 1ex;
+      text-align: left }
+    div.verse { white-space: pre; margin-left: 2em;
+      margin-top: 2ex; margin-bottom: 2ex }
+    div.toc { margin-bottom: 6ex }
+    div.biblio { }
+    div.index { width: 100% }
+    div.aphorism { margin-bottom: 2ex; font-style: italic; text-align: right;
+      margin-left: 50%}
+    div.aphorism-origin { margin-top: 1ex }
+    div.letter { }
+    div.subject { margin-top: 3ex; margin-bottom: 3ex }
+    div.opening { margin-top: 3ex; margin-bottom: 3ex }
+    div.closing { margin-top: 3ex; text-align: right }
+    div.to { margin-top: 3ex; margin-bottom: 3ex }
+    span.subject { font-weight: bold }
+    div.speedbar-top, div.speedbar-bottom { margin-left: 1em; margin-right: 1em }
+    div.speedbar-top { margin-top: 2ex }
+    div.speedbar-bottom { margin-bottom: 3ex }
+    table.speedbar { width: 100% }
+    hr.speedbar { clear: both }
+    div.theorem-plain, div.theorem-definition, div.theorem-remark { margin-top: 2ex;
+      margin-bottom: 2ex }
+    div.theorem-plain { font-style: italic }
+    div.proof { margin-top: 2ex; margin-bottom: 2ex }
+    span.theorem-head-plain, span.theorem-head-definition, span.theorem-head-remark
+      { margin-right: 0.66em }
+    span.theorem-head-plain, span.theorem-head-definition
+      { font-style: normal; font-weight: bold }
+    span.theorem-head-remark { font-style: italic }
+    span.proof-head { font-style: italic; margin-right: 0.66em }
+    acronym { font-size: 95%; letter-spacing: 0.1em; text-transform: uppercase }
+    td.header { text-align: center; font-weight: bold }
+    table.toc { }
+    table.tabular { font-size: smaller }
+    td.thickline { height: 0pt; border-bottom: medium solid; padding: 2px }
+    td.thinline { height: 0pt; border-bottom: thin solid;   padding: 2px }
+     /* FixMe: Following definition Still bad */
+    div.part-toc { margin-top: 2ex; font-weight: bold; font-size: larger }
+     /* FixMe: Following definition: How cleaner? */
+    div.toplevel-toc { margin-top: 1ex; font-weight: bold }
+    td.number1 { width: 1.5em }
+    td.number2 { width: 2em }
+    td.number3 { width: 3em }
+    td.author { text-align: center; width: 50% }
+    div { }  /* Must remain empty! */
+    span.captionlabel { font-family: sans-serif; font-weight: bold;
+      margin-right: 0.66em }
+    span.captionlabel:after { content: " " }
+    b.captionlabel {  }
+    b.captionlabel:after { content: " " }
+    span.headlinenumber { margin-right: 0.66em }
+    tt.verb {font-family: monospace }
+    span.bibtag { font-weight: bold; margin-right: 1em }
+    span.bib-author { }
+    span.bib-lastname { font-variant: small-caps }
+    span.bib-title { font-style: italic }
+    span.bib-booktitle { }
+    span.bib-journal { }
+    span.bib-journal-volume { font-weight: bold }
+    span.bib-publisher { }
+    span.bib-school { }
+    span.bib-year { }
+    span.bib-note { }
+    span { } /* Muss leer bleiben! */
+    li.bibitem { margin-left: 1em; text-indent: -1em }
+    img.graphics { border: 0pt }
+    p,div.p { margin: 0pt; text-indent: 18pt }
+    ul, dl, ol { text-indent: 0pt; }
+    p.first, div.p-first { margin: 0pt; text-indent: 0pt }
+    p.bibitem { margin-top: 1.5ex; margin-left: 3em; text-indent: -3em }
+    ul.biblio { list-style: none }
+    mi.ch { font-style: normal }
+    math[display="block"], div.equation {
+      margin-top: 1ex; margin-bottom: 1ex }
+    div.i-lettergroup { font-size: larger; font-weight: bold; padding-left: 18pt;
+      margin-top: 3ex; margin-bottom: 1.5ex }
+    div.i-item { }
+    div.i-main { }
+    dt { display: compact; font-weight: bold }
+    dd { text-indent: 0pt }
+    pre { text-indent: 0pt }
+    span.i-see { font-style: italic; }
+
+h1 { color: red }
+h2 { color: olive }
+h3 { color: navy }
+h4 { color: maroon }
+body { background-image: url("tile.jpg");
+ font: 14px/1.5 Verdana, Arial, Helvetica, sans-serif;
+ background:#fff;
+ padding:5%;
+ padding-top:2%;
+ margin:0px;
+}
+/*     body { background-image: url("tile.jpg");
+         background-color: white;
+         color: black;
+	 font-size: 13pt; } */
+hr.footnoterule { color: white }
+div.title { font-size: x-large; color: maroon }
+div.subtitle { font-size: x-large; color: olive }
+div.title-article { font-size: x-large }
+div.partheadline { font-size: x-large }
+</style></head><body><div class="speedbar-top"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide7.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide9.html">next</a></td></tr><tr><td class="header" colspan="3">Appendix</td></tr></tbody></table><hr class="speedbar"></div><div class="document"><div id="PTutilities"><a name="PTutilities"></a>
+	<h1 id="chapterC"><a name="chapterC"></a>Appendix&nbsp;C: Utilities</h1>
+
+	<p class="first"><tt class="verb">PyTables</tt> comes with a couple of utilities that
+	  make the life easier to the user. One is called
+	  <tt class="verb">ptdump</tt> and lets you see the contents of a
+	  <tt class="verb">PyTables</tt> file (or generic <tt class="verb">HDF5</tt>
+	  file, if supported). The other one is named
+	  <tt class="verb">ptrepack</tt> that allows to (recursively) copy
+	  sub-hierarchies of objects present in a file into another
+	  one, changing, if desired, some of the filters applied to
+	  the leaves during the copy process.
+	</p>
+
+	<p>Normally, these utilities will be installed somewhere in
+	  your PATH during the process of installation of the
+	  <tt class="verb">PyTables</tt> package, so that you can invoke them
+	  from any place in your filesystem after the installation has
+	  successfully finished.
+	</p>
+
+	<div id="ptdumpDescr"><a name="ptdumpDescr"></a>
+	  <h2 id="sectionC.1"><span class="headlinenumber"><a name="sectionC.1"></a>C.1 </span>ptdump</h2>
+
+	  <p class="first">As has been said before, <tt class="verb">ptdump</tt> utility
+	    allows you look into the contents of your
+	    <tt class="verb">PyTables</tt> files. It lets you see not only the
+	    data but also the metadata (that is, the
+	    <em>structure</em> and additional information in the form
+	    of <em>attributes</em>).
+	  </p>
+
+	  <div>
+	    <h3 id="subsectionC.1.1"><span class="headlinenumber"><a name="subsectionC.1.1"></a>C.1.1 </span>Usage</h3>
+
+	    <div class="p-first">For instructions on how to use it, just pass the
+	      <tt class="verb">-h</tt> flag to the command:
+
+	      <pre>
+$ ptdump -h
+	      </pre>
+
+	      to see the message usage:
+
+	      <pre>
+usage: ptdump [-R start,stop,step] [-a] [-h] [-d] [-v] file[:nodepath]
+  -R select a range of rows in the form "start,stop,step"
+  -a show attributes in nodes (only useful when -v or -d are active as well)
+  -d dump data information onb leaves
+  -h prints help on usage
+  -v means dumping more metainformation on nodes
+	      </pre>
+	    </div>
+
+	  </div>
+	  <div>
+	    <h3 id="subsectionC.1.2"><span class="headlinenumber"><a name="subsectionC.1.2"></a>C.1.2 </span>A small tutorial on <tt>ptdump</tt>
+	    </h3>
+
+	    <div class="p-first">Let's suppose that we want to know only the
+	      <em>structure</em> of a file. In order to do that, just
+	      don't pass any flag, just the file as parameter:
+
+	      <pre>
+$ ptdump vlarray1.h5
+Filename: 'vlarray1.h5' Title: '' , Last modif.: 'Fri Feb  6 19:33:28 2004' ,
+ rootUEP='/', filters=Filters(), Format version: 1.2
+/ (Group) ''
+/vlarray1 (VLArray(4,), shuffle, zlib(1)) 'ragged array of ints'
+
+	      </pre>
+
+	      we can see that the file contains a just a leaf object
+	      called <tt class="verb">vlarray1</tt>, that is an instance of
+	      <tt class="verb">VLArray</tt>, has 4 rows, and two filters has
+	      been used in order to create it: <tt class="verb">shuffle</tt>
+	      and <tt class="verb">zlib</tt> (with a compression level of 1).
+	    </div>
+
+	    <div class="p">Let's say we want more metainformation. Just add the
+	      <tt class="verb">-v</tt> (verbose) flag:
+
+	      <pre>
+$ ptdump -v vlarray1.h5
+/ (Group) ''
+  children := ['vlarray1' (VLArray)]
+/vlarray1 (VLArray(4,), shuffle, zlib(1)) 'ragged array of ints'
+  atom = Atom(type=Int32, shape=1, flavor='Numeric')
+  nrows = 4
+  flavor = 'Numeric'
+  byteorder = 'little'
+	      </pre>
+	      so we can see more info about the atoms that are the
+	      components of the <tt class="verb">vlarray1</tt> dataset,
+	      i.e. they are scalars of type <tt class="verb">Int32</tt> and
+	      with <tt class="verb">Numeric</tt> <em>flavor</em>.
+	    </div>
+
+	    <div class="p">If we want information about the attributes on the
+	      nodes, we must add the <tt class="verb">-a</tt> flag:
+
+	      <pre>
+$ ptdump -va vlarray1.h5
+/ (Group) ''
+  children := ['vlarray1' (VLArray)]
+  /._v_attrs (AttributeSet), 5 attributes:
+   [CLASS := 'GROUP',
+    FILTERS := None,
+    PYTABLES_FORMAT_VERSION := '1.2',
+    TITLE := '',
+    VERSION := '1.0']
+/vlarray1 (VLArray(4,), shuffle, zlib(1)) 'ragged array of ints'
+  atom = Atom(type=Int32, shape=1, flavor='Numeric')
+  nrows = 4
+  flavor = 'Numeric'
+  byteorder = 'little'
+  /vlarray1.attrs (AttributeSet), 4 attributes:
+   [CLASS := 'VLARRAY',
+    FLAVOR := 'Numeric',
+    TITLE := 'ragged array of ints',
+    VERSION := '1.0']
+	      </pre>
+	    </div>
+
+	    <div class="p">Let's have a look at the real data:
+
+	      <pre>
+$ ptdump -d vlarray1.h5
+/ (Group) ''
+/vlarray1 (VLArray(4,), shuffle, zlib(1)) 'ragged array of ints'
+  Data dump:
+[array([5, 6]), array([5, 6, 7]), array([5, 6, 9, 8]), array([ 5,  6,  9, 10, 12])]
+	      </pre>
+	      we see here a data dump of the 4 rows in
+	      <tt class="verb">vlarray1</tt> object, in the form of a
+	      list. Because the object is a VLA, we see a different
+	      number of integers on each row.
+	    </div>
+
+	    <div class="p">Say that we are interested only on a specific <em>row
+		range</em> of the <tt class="verb">/vlarray1</tt> object:
+	      <pre>
+ptdump -R2,4 -d vlarray1.h5:/vlarray1
+/vlarray1 (VLArray(4,), shuffle, zlib(1)) 'ragged array of ints'
+  Data dump:
+[array([5, 6, 9, 8]), array([ 5,  6,  9, 10, 12])]
+	      </pre>
+	      Here, we have specified the range of rows between 2 and
+	      4 (the upper limit excluded, as usual in Python). See
+	      how we have selected only the <tt class="verb">/vlarray1</tt>
+	      object for doing the dump
+	      (<tt class="verb">vlarray1.h5:/vlarray1</tt>).
+	    </div>
+
+	    <div class="p">Finally, you can mix several information at once:
+	      <pre>
+$ ptdump -R2,4 -vad vlarray1.h5:/vlarray1
+/vlarray1 (VLArray(4,), shuffle, zlib(1)) 'ragged array of ints'
+  atom = Atom(type=Int32, shape=1, flavor='Numeric')
+  nrows = 4
+  flavor = 'Numeric'
+  byteorder = 'little'
+  /vlarray1.attrs (AttributeSet), 4 attributes:
+   [CLASS := 'VLARRAY',
+    FLAVOR := 'Numeric',
+    TITLE := 'ragged array of ints',
+    VERSION := '1.0']
+  Data dump:
+[array([5, 6, 9, 8]), array([ 5,  6,  9, 10, 12])]
+	      </pre>
+	    </div>
+	  </div>
+	</div> 
+
+	<div id="ptrepackDescr"><a name="ptrepackDescr"></a>
+	  <h2 id="sectionC.2"><span class="headlinenumber"><a name="sectionC.2"></a>C.2 </span>ptrepack</h2>
+
+	  <p class="first">This utility is a very powerful one and let's you to copy
+	    any leaf, group or complete subtree into another
+	    file. During the copy process you are allowed to change
+	    the filter properties if you want so. Also, in the case of
+	    duplicated pathnames, you can decide if you want to
+	    overwrite already existing nodes on the destination
+	    file. Generally speaking, <tt class="verb">ptrepack</tt> can be
+	    useful in may situations, like replicating a subtree in
+	    another file, change the filters in objects and see how
+	    affect this to the compression degree or I/O performance,
+	    consolidating specific data in repositoris or even
+	    <em>importing</em> generic <tt class="verb">HDF5</tt> files and
+	    create true <tt class="verb">PyTables</tt> counterparts.
+	  </p>
+
+	  <div>
+	    <h3 id="subsectionC.2.1"><span class="headlinenumber"><a name="subsectionC.2.1"></a>C.2.1 </span>Usage</h3>
+
+	    <div class="p-first">For instructions on how to use it, just pass the
+	      <tt class="verb">-h</tt> flag to the command:
+
+	      <pre>
+$ ptrepack -h
+	      </pre>
+
+	      to see the message usage:
+
+	      <pre>
+usage: ptrepack [-h] [-v] [-o] [-R range] [--non-recursive] 
+ [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes]
+ [--complevel=(0-9)] [-complib=lib] [--shuffle=(0|1)]
+ [--fletcher32=(0|1)] [--keep-source-filters] 
+ sourcefile:sourcegroup destfile:destgroup
+ -h -- Print usage message.
+ -v -- Show more information.
+ -o -- Overwite destination file.
+ -R start,stop,step -- Select a slice in *all* leaves.
+ --non-recursive -- Do not do a recursive copy. Default is do it.
+ --dest-title=title -- Title for the new file (if not specified,
+     the source is copied).
+ --dont-copy-userattrs -- Do not copy the user attrs (default is do it)
+ --overwrite-nodes -- Overwrite destination nodes if they exist. Default is
+     not overwrite them.
+ --complevel=(0-9) -- Sets a compression level (0 for no compression, which
+     is the default).
+ --complib=lib -- Sets the compression library to be used during the copy.
+     lib can be set to "zlib", "lzo" or "ucl". Defaults to "zlib".
+ --shuffle=(0|1) -- Activate or not the shuffling filter (default is active
+     if complevel&gt;0).
+ --fletcher32=(0|1) -- Whether activate or not the fletcher32 filter (not
+     active by default).
+ --keep-source-filters -- Use the original filters in source files. The
+     default is not doing that if any of --complevel, --complib, --shuffle
+     or --fletcher32 option is specified.
+	      </pre>
+	    </div>
+	  </div>
+	  <div>
+	    <h3 id="subsectionC.2.2"><span class="headlinenumber"><a name="subsectionC.2.2"></a>C.2.2 </span>A small tutorial on <tt>ptrepack</tt>
+	    </h3>
+
+	    <div class="p-first">Imagine that we have ended the tutorial 1 (see the
+	      output of <tt class="verb">examples/tutorial1-1.py</tt>, and we
+	      want to copy our reduced data (i.e. those datasets that
+	      hangs from the <tt class="verb">/column</tt> group to another
+	      file. First, let's remember the content of the
+	      <tt class="verb">examples/tutorial1.h5</tt>:
+
+	      <pre>
+$ ptdump tutorial1.h5
+Filename: 'tutorial1.h5' Title: 'Test file' , Last modif.: 'Fri Feb  6 
+  19:33:28 2004' , rootUEP='/', filters=Filters(), Format version: 1.2
+/ (Group) 'Test file'
+/columns (Group) 'Pressure and Name'
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'
+/detector (Group) 'Detector information'
+/detector/readout (Table(10L,)) 'Readout example'
+	      </pre>
+
+	      Now, copy the <tt class="verb">/columns</tt> to other
+	      non-existing file. That's easy:
+
+	      <pre>
+$ ptrepack tutorial1.h5:/columns reduced.h5
+	      </pre>
+	      That's all. Let's see the contents of the newly created
+	      <tt class="verb">reduced.h5</tt> file:
+
+	      <pre>
+$ ptdump reduced.h5
+Filename: 'reduced.h5' Title: '' , Last modif.: 'Fri Feb 20 15:26:47 2004' ,
+ rootUEP='/', filters=Filters(), Format version: 1.2
+/ (Group) ''
+/name (Array(3,)) 'Name column selection'
+/pressure (Array(3,)) 'Pressure column selection'
+	      </pre>
+	      so, you have copied the childs of <tt class="verb">/columns</tt>
+	      group into the <em>root</em> of the
+	      <tt class="verb">reduced.h5</tt> file.
+	    </div>
+
+	    <div class="p">Now, you suddenly realized that what you intended to do
+	      was to copy all the hierarchy, the group
+	      <tt class="verb">/columns</tt> itself included. You can do that
+	      by just specificing the destination group:
+
+	      <pre>
+$ ptrepack tutorial1.h5:/columns reduced.h5:/columns
+ptdump reduced.h5
+Filename: 'reduced.h5' Title: '' , Last modif.: 'Fri Feb 20 15:39:15 2004' ,
+ rootUEP='/', filters=Filters(), Format version: 1.2
+/ (Group) ''
+/name (Array(3,)) 'Name column selection'
+/pressure (Array(3,)) 'Pressure column selection'
+/columns (Group) ''
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'
+	      </pre>
+	      Ok. much better. But you want to get rid of the existing
+	      nodes on the new file. You can achieve this by adding
+	      the -o flag:
+
+	      <pre>
+$ ptrepack -o tutorial1.h5:/columns reduced.h5:/columns
+$ ptdump reduced.h5
+Filename: 'reduced.h5' Title: '' , Last modif.: 'Fri Feb 20 15:41:57 2004' ,
+ rootUEP='/', filters=Filters(), Format version: 1.2
+/ (Group) ''
+/columns (Group) ''
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'
+	      </pre>
+	      where you can see how the old contents of the
+	      <tt class="verb">reduced.h5</tt> file has been overwritten.
+	    </div>
+
+	    <div class="p">You can copy just one single node in the repacking
+	      operation and change its name in destination:
+
+	      <pre>
+$ ptrepack tutorial1.h5:/detector/readout reduced.h5:/rawdata
+$ ptdump reduced.h5
+Filename: 'reduced.h5' Title: '' , Last modif.: 'Fri Feb 20 15:52:22 2004',
+ rootUEP='/', filters=Filters(), Format version: 1.2
+/ (Group) ''
+/rawdata (Table(10L,)) 'Readout example'
+/columns (Group) ''
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'
+	      </pre>
+	      where the <tt class="verb">/detector/readout</tt> has been copied
+	      to <tt class="verb">/rawdata</tt> in destination.
+	    </div>
+
+	    <div class="p">We can change the filter properties as well:
+	      <pre>
+$ ptrepack --complevel=1 tutorial1.h5:/detector/readout reduced.h5:/rawdata
+Problems doing the copy from 'tutorial1.h5:/detector/readout' to 
+'reduced.h5:/rawdata'
+The error was --&gt; exceptions.ValueError: The destination
+ (/rawdata (Table(10L,)) 'Readout example') already exists.
+ Assert the overwrite parameter if you really want to overwrite it.
+The destination file looks like:
+Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 15:52:22 2004';
+ rootUEP='/'; filters=Filters(), Format version: 1.2
+/ (Group) ''
+/rawdata (Table(10L,)) 'Readout example'
+/columns (Group) ''
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'
+
+Traceback (most recent call last):
+  File "../utils/ptrepack", line 358, in ?
+    start=start, stop=stop, step=step)
+  File "../utils/ptrepack", line 111, in copyLeaf
+    raise RuntimeError, "Please, check that the node names are not
+  duplicated in destination, and if so, add the --overwrite-nodes flag 
+  if desired."
+RuntimeError: Please, check that the node names are not duplicated in
+ destination, and if so, add the --overwrite-nodes flag if desired.
+	    </pre>
+	      ooops!. We ran into problems: we forgot that
+	      <tt class="verb">/rawdata</tt> pathname already existed
+	      in destination file. Let's add the
+	      <tt class="verb">--overwrite-nodes</tt>, as the verbose
+	      error suggested:
+	      <pre>
+$ ptrepack --overwrite-nodes --complevel=1 tutorial1.h5:/detector/readout 
+reduced.h5:/rawdata
+$ ptdump reduced.h5
+Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
+ rootUEP='/'; filters=Filters(), Format version: 1.2
+/ (Group) ''
+/rawdata (Table(10L,), shuffle, zlib(1)) 'Readout example'
+/columns (Group) ''
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'
+	      </pre>
+	      you can check how the filter properties has been changed
+	      for the <tt class="verb">/rawdata</tt> table. Check as the other
+	      nodes still exists.
+	    </div>
+
+	    <div class="p">Finally, let's copy a <em>slice</em> of the
+	      <tt class="verb">readout</tt> table in origin to destination,
+	      under a new group called <tt class="verb">/slices</tt> and with
+	      the name, for example, <tt class="verb">aslice</tt>:
+	      <pre>
+$ ptrepack -R1,8,3 tutorial1.h5:/detector/readout reduced.h5:/slices/aslice
+$ ptdump reduced.h5
+Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:17:13 2004';
+ rootUEP='/'; filters=Filters(); Format version: 1.2
+/ (Group) ''
+/rawdata (Table(10L,), shuffle, zlib(1)) 'Readout example'
+/columns (Group) ''
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'
+/slices (Group) ''
+/slices/aslice (Table(3L,)) 'Readout example'
+	      </pre>
+	      note how only 3 rows of the original
+	      <tt class="verb">readout</tt> table has been copied to the new
+	      <tt class="verb">aslice</tt> destination. Note as well how the
+	      previously inexistent <tt class="verb">slices</tt> group has been
+	      created in the same operation.
+	    </div>
+	  </div>
+	</div> 
+      </div></div><div class="speedbar-bottom"><hr class="speedbar"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide7.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide9.html">next</a></td></tr></tbody></table></div></body></html>

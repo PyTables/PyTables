@@ -2,7 +2,7 @@
   PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:bib="http://bibtexml.org/STSCHEMA" xmlns:adr="http://tbookdtd.sourceforge.net/addressbook" xmlns:ref="http://tbookdtd.sourceforge.net/references" xmlns:index="http://tbookdtd.sourceforge.net/index" xmlns:dimensions="http://tbookdtd.sourceforge.net/dimension-file" xmlns:depths="http://tbookdtd.sourceforge.net/depths-file" xmlns:loc="local" xmlns:CSS="http://www.w3.org/1998/Style/CSS2" xmlns:pref="http://www.w3.org/2002/Math/preference" id="optimizationTips"><a name="optimizationTips"></a><head>
       <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide A hierarchical database for Python Release 0.7.2"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Date" content="2003-09-22T13:38:59+02:00"><meta name="Date" content="2003-09-22T13:38:59+02:00"><meta name="DC.Rights" content="(c) 2002, 2003 Francesc Alted"><meta name="Copyright" content="(c) 2002, 2003 Francesc Alted"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
+   <title>PyTables User's Guide</title><meta http-equiv="Content-Type" content="text/html"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="generator" content="The tbook system at http://tbookdtd.sourceforge.net"><meta name="robots" content="index"><meta name="DC.Title" content="PyTables User's Guide"><meta name="DC.Description" content="PyTables User's Guide A hierarchical database for Python Release 0.8"><meta name="DC.Creator" content="Francesc Alted"><meta name="Author" content="Francesc Alted"><meta name="DC.Creator" content="Scott Prater"><meta name="Author" content="Scott Prater"><meta name="DC.Date" content="2004-02-29T14:40:11+01:00"><meta name="Date" content="2004-02-29T14:40:11+01:00"><meta name="DC.Rights" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="Copyright" content="(c) 2002, 2003, 2004 Francesc AltedCopyright Notice and Statement for PyTables Software Library and Utilities Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this lis"><meta name="DC.Type" content="Text"><meta name="DC.Format" content="text/html"><meta name="DC.Language" scheme="rfc3066" content="en"><meta name="Language" content="en"><meta http-equiv="Content-Style-Type" content="text/css"><style type="text/css">
     body {
       font-family: serif; text-align: justify;
       margin: 0pt; line-height: 1.3; background-color: white; color: black }
@@ -131,9 +131,16 @@ h2 { color: olive }
 h3 { color: navy }
 h4 { color: maroon }
 body { background-image: url("tile.jpg");
+ font: 14px/1.5 Verdana, Arial, Helvetica, sans-serif;
+ background:#fff;
+ padding:5%;
+ padding-top:2%;
+ margin:0px;
+}
+/*     body { background-image: url("tile.jpg");
          background-color: white;
          color: black;
-	 font-size: 13pt; }
+	 font-size: 13pt; } */
 hr.footnoterule { color: white }
 div.title { font-size: x-large; color: maroon }
 div.subtitle { font-size: x-large; color: olive }
@@ -142,10 +149,10 @@ div.partheadline { font-size: x-large }
 </style></head><body><div class="speedbar-top"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide4.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide6.html">next</a></td></tr><tr><td colspan="3">&nbsp;</td></tr></tbody></table><hr class="speedbar"></div><div class="document"><div id="optimizationTips"><a name="optimizationTips"></a>
       <h1 id="chapter5"><a name="chapter5"></a>Chapter&nbsp;5: Optimization tips</h1>
 
-      <div class="aphorism">... durch planm&auml;ssiges Tattonieren.  <div class="aphorism-origin">&#8212;Johann
-	Karl Friedrich Gauss <br>[asked how he came upon his
-	theorems]</div>
-      </div>
+
+
+
+
 
       <p class="first">On this chapter, you will get deeper knowledge of
 	<tt class="verb">PyTables</tt> internals. <tt class="verb">PyTables</tt> has
@@ -240,7 +247,7 @@ if __name__=="__main__":
 	  </div></div>
 	</div>
 
-      </div>
+      </div> 
 
       <div id="compressionIssues"><a name="compressionIssues"></a>
 	<h2 id="section5.2"><span class="headlinenumber"><a name="section5.2"></a>5.2 </span>Compression issues</h2>
@@ -312,8 +319,14 @@ if __name__=="__main__":
 
 	<p>Be aware that the LZO and UCL support in PyTables is not
 	  standard on HDF5, so if you are going to use your PyTables
-	  files in other contexts different from PyTables you will
-	  not be able to read them.
+	  files in other contexts different from PyTables you will not
+	  be able to read them. Still, see the <a href="usersguide8.html#ptrepackDescr">appendix&nbsp;C.2</a> where the
+	  <tt class="verb">ptrepack</tt> utility is described to find a way to
+	  free your files from LZO or UCL dependencies, so that you
+	  can use these compressors locally with the guaranty that you
+	  can replace them by ZLIB (or even remove compression
+	  completely) if you want to export the files to other HDF5
+	  tools afterwards.
 	</p>
 
 	<p>In order to give you a raw idea of what ratios would be
@@ -414,19 +427,100 @@ if __name__=="__main__":
 
 	<p> You can select the compression library and level by
 	  setting the <tt class="verb">complib</tt> and <tt class="verb">compress</tt>
-	  keywords in the <tt class="verb">createTable</tt> method (see <a href="#createTableDescr"><strong>??</strong></a>). A compression level of 0
-	  will completely disable compression (the default), 1 is
-	  the less CPU time demanding level, while 9 is the maximum
-	  level and most CPU intensive. Finally, have in mind that
-	  LZO is not accepting a compression level right now, so,
-	  when using LZO, 0 means that compression is not active,
-	  and any other value means that LZO is active.
+	  keywords in the <tt class="verb">Filters</tt> class (see <a href="usersguide4.html#FiltersClassDescr">4.12.1</a>). A compression level of 0
+	  will completely disable compression (the default), 1 is the
+	  less CPU time demanding level, while 9 is the maximum level
+	  and most CPU intensive. Finally, have in mind that LZO is
+	  not accepting a compression level right now, so, when using
+	  LZO, 0 means that compression is not active, and any other
+	  value means that LZO is active.
 	</p>
 
       </div>
 
+      <div>
+	<h2 id="section5.3"><span class="headlinenumber"><a name="section5.3"></a>5.3 </span>Shuffling (or how to make the compression process
+	  more effective)</h2>
+
+	<p class="first">The <tt class="verb">HDF5</tt> library provides an interesting
+	  filter that can leverage the results of your favorite
+	  compressor. Its name is <em>shuffle</em>, and because it can
+	  greatly benefit compression and don't take many CPU
+	  resources, it is active by <em>default</em> in
+	  <tt class="verb">PyTables</tt> whenever the compression is activated
+	  (independently of the compressor choosed). It is of course
+	  deactivated when compression is off (which is the default,
+	  as you already should know).
+	</p>
+
+	<p>From the HDF5 reference manual:</p>
+
+	<blockquote>The <em>shuffle</em> filter de-interlaces a block of data
+	  by reordering the bytes. All the bytes from one consistent
+	  byte position of each data element are placed together in
+	  one block; all bytes from a second consistent byte position
+	  of each data element are placed together a second block;
+	  etc. For example, given three data elements of a 4-byte
+	  datatype stored as 012301230123, shuffling will re-order
+	  data as 000111222333. This can be a valuable step in an
+	  effective compression algorithm because the bytes in each
+	  byte position are often closely related to each other and
+	  putting them together can increase the compression
+	  ratio.
+	</blockquote>
+
+	<p>In <a href="#comprShuffleComparison">table&nbsp;5.2</a> you can
+	  see a benchmark that shows how the <em>shuffle</em> filter
+	  can help to the different libraries to compress data in
+	  three table datasets. Generally speaking, <em>shuffle</em>
+	  makes the writing process (shuffling+compressing) faster
+	  (between 7% and 22%), which is an interesting result in
+	  itself. However, the reading process
+	  (unshuffling+decompressing) is slower, but by a lesser
+	  extent (between 3% and 18%).
+	</p>
+	<p>But the most remarkable fact is the level of compression
+	  that compressor filters can achieve after <em>shuffle</em>
+	  has passed over the data: the total file size can be up to
+	  40 times smaller than the uncompressed file, and up to 5
+	  times smaller than the already compressed files (!). Of
+	  course, the data for doing this test is synthetic, and
+	  <em>shuffle</em> seems to do a great work with it, so in
+	  general, the results will vary in your case. However, due to
+	  the small drawbacks (read are slowed down by a small extent)
+	  and its potential gains (faster writing, but specially much
+	  better compression level), I do believe that it is a good
+	  thing to have such a filter enabled by default in the battle
+	  for discovering redundancy in your data.
+	</p>
+
+	<div class="table" id="comprShuffleComparison"><a name="comprShuffleComparison"></a>
+	  
+	  <table class="tabular" cellspacing="0" cellpadding="5" frame="hsides" rules="groups"><caption><span class="captionlabel">Table&nbsp;5.2:</span> Comparison between different compression
+	    libraries. The tests has been conducted on a Pentium 4 at 2
+	    GHz and a hard disk at 4200 RPM.</caption><col align="left"><col align="right"><col align="center"><col align="center"><col align="center"><col align="center">
+	    <thead><tr><td colspan="6" class="thickline"></td></tr>
+	      <tr><th align="left">Compr. Lib</th><th align="right">File size (MB)</th><th align="center">Time writing (s)</th><th align="center">Time reading (s)</th><th align="center">Speed writing (MB/s)</th><th align="center">Speed reading (MB/s)</th></tr>
+	    <tr><td colspan="6" class="thinline"></td></tr></thead>
+	    <tbody>
+	      <tr><td align="left">NO COMPR</td><td align="right">165.4</td><td align="center">24.5</td><td align="center">17.13</td><td align="center">6.6</td><td align="center">9.6</td></tr>
+	      <tr><td align="left">Zlib (lvl 1)</td><td align="right">26.4</td><td align="center">22.2</td><td align="center">5.77</td><td align="center">7.3</td><td align="center">28.4</td></tr>
+	      <tr><td align="left">Zlib+shuffle</td><td align="right">4.0</td><td align="center">19.0</td><td align="center">5.94</td><td align="center">8.6</td><td align="center">27.6</td></tr>
+	      <tr><td align="left">LZO (lvl 1)</td><td align="right">44.9</td><td align="center">17.8</td><td align="center">4.13</td><td align="center">9.2</td><td align="center">39.7</td></tr>
+	      <tr><td align="left">LZO+shuffle</td><td align="right">4.3</td><td align="center">16.4</td><td align="center">5.03</td><td align="center">9.9</td><td align="center">32.6</td></tr>
+	      <tr><td align="left">UCL (lvl 1)</td><td align="right">27.4</td><td align="center">48.8</td><td align="center">5.02</td><td align="center">3.3</td><td align="center">32.7</td></tr>
+	      <tr><td align="left">UCL+shuffle</td><td align="right">3.5</td><td align="center">38.1</td><td align="center">5.31</td><td align="center">4.3</td><td align="center">30.9</td></tr>
+	    <tr><td colspan="6" class="thickline"></td></tr></tbody>
+	  </table>
+	  
+	</div>
+
+
+
+      </div> 
+
       <div id="expectedRowsOptim"><a name="expectedRowsOptim"></a>
-	<h2 id="section5.3"><span class="headlinenumber"><a name="section5.3"></a>5.3 </span>Informing <tt>PyTables</tt>
+	<h2 id="section5.4"><span class="headlinenumber"><a name="section5.4"></a>5.4 </span>Informing <tt>PyTables</tt>
 	  about expected number of rows in tables</h2>
 
 	<p class="first">The underlying HDF5 library that is used by
@@ -470,7 +564,7 @@ if __name__=="__main__":
       </div>
 
       <div>
-	<h2 id="section5.4"><span class="headlinenumber"><a name="section5.4"></a>5.4 </span>Selecting an User Entry Point (UEP) in your
+	<h2 id="section5.5"><span class="headlinenumber"><a name="section5.5"></a>5.5 </span>Selecting an User Entry Point (UEP) in your
 	  tree</h2>
 
 	<p class="first">If you have a <b>huge</b> tree in
@@ -482,7 +576,7 @@ if __name__=="__main__":
 	</p>
 
 	<p>This is where the <tt class="verb">rootUEP</tt> parameter of
-	  <tt class="verb">openFile()</tt> function (see <a href="#openFileDescr"><strong>??</strong></a>) can be helpful. Imagine that
+	  <tt class="verb">openFile</tt> function (see <a href="#openFileDescr"><strong>??</strong></a>) can be helpful. Imagine that
 	  you have a file called <tt class="verb">"test.h5"</tt> with the
 	  associated tree that you can see in figure <a href="#rootUEPfig1">5.7</a>, and you are interested only in
 	  the section marked in red.  You can avoid the build of all
@@ -518,6 +612,47 @@ if __name__=="__main__":
 	  </div></div>
 	</div>
 	
+      </div>
+
+      <div>
+	<h2 id="section5.6"><span class="headlinenumber"><a name="section5.6"></a>5.6 </span>Compacting your <tt>PyTables</tt>
+	  files
+	</h2>
+
+	<p class="first">Let's suppose that you have a file on which you have made a
+	  lot of row deletions on one or more tables, or deleted many
+	  leaves or even entire subtrees. These operations migth leave
+	  <em>holes</em> (i.e. space that is not used anymore) in your
+	  files, that may potentially affect not only the size of the
+	  files but, more importantly, the performance of I/O. This is
+	  because when you delete a lot of rows on a table, the space
+	  is not automatically recovered on-the-flight. In addition,
+	  if you add many more rows to a table than specified in the
+	  <tt class="verb">expectedrows</tt> keyword in creation time this may
+	  affect performace as well as explained in <a href="#expectedRowsOptim">section&nbsp;5.4</a>.
+	</p>
+
+	<p>In order to cope with these issues, you should be aware
+	  that a handy <tt class="verb">PyTables</tt> utility called
+	  <tt class="verb">ptrepack</tt> can be very useful, not only to
+	  compact your already existing <em>leaky</em> files, but also
+	  to adjust some internal parameters (both in memory and in
+	  file) in order to create adequate buffer sizes and chunk
+	  sizes for optimum I/O speed. Please, check the <a href="usersguide8.html#ptrepackDescr">appendix&nbsp;C.2</a> for a brief tutorial on
+	  its use.
+	</p>
+
+	<p>Another thing that you might want to use
+	  <tt class="verb">ptrepack</tt> for is changing the compression
+	  filters or compression levels on your existing data for
+	  different goals, like checking how this can affect both
+	  final size and I/O performance, or getting ride of the
+	  optional compressors like <tt class="verb">LZO</tt> or
+	  <tt class="verb">UCL</tt> in your existing files in case you want to
+	  use them with generic HDF5 tools that does not have support
+	  for these filters.
+	</p>
+
       </div>
 
     </div></div><div class="speedbar-bottom"><hr class="speedbar"><table class="speedbar"><tbody><tr><td style="text-align: left; width: 15%"><a href="usersguide4.html">previous</a></td><td style="text-align: center"><a href="usersguide.html#tb:table-of-contents">Table of Contents</a></td><td style="text-align: right; width: 15%"><a href="usersguide6.html">next</a></td></tr></tbody></table></div></body></html>
