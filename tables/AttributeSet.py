@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.19 2003/09/17 15:13:42 falted Exp $
+#       $Id: AttributeSet.py,v 1.20 2003/10/31 18:51:43 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.19 $"
+__version__ = "$Revision: 1.20 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -43,12 +43,13 @@ from utils import checkNameValidity
 MAX_ATTRS_IN_NODE = 4096
 
 # System attributes
-SYS_ATTRS = ["CLASS", "VERSION", "TITLE", "NROWS",
+SYS_ATTRS = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
              "FLAVOR", "PYTABLES_FORMAT_VERSION"]
 # Prefixes of other system attributes
 SYS_ATTRS_PREFIXES = ["FIELD_"]
 # Read-only attributes:
-RO_ATTRS = ["CLASS", "FLAVOR", "VERSION", "PYTABLES_FORMAT_VERSION"]
+RO_ATTRS = ["CLASS", "FLAVOR", "VERSION", "NROWS", "EXTDIM",
+            "PYTABLES_FORMAT_VERSION"]
 
 def issysattrname(name):
     "Check if a name is a system attribute or not"
@@ -119,9 +120,6 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         self._g_new(node)
         self.__dict__["_v_node"] = node
         self.__dict__["_v_attrnames"] = self._g_listAttr()
-        #print "Attrs-->", self.__dict__["_v_attrnames"]
-#         self.__dict__["_v_attrnames"] = ["CLASS", "VERSION", "TITLE", "NROWS",
-#                                         "FLAVOR",]
         # Split the attribute list in system and user lists
         self.__dict__["_v_attrnamessys"] = []
         self.__dict__["_v_attrnamesuser"] = []
@@ -169,13 +167,17 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
             return None
 
         # Read the attribute from disk
-        if name in self._v_attrnamessys:
-            # _g_getSysAttr works only for string attributes
-            # with length less than 256 bytes
-            # (all read-only atributes *must* follow these rules!)
-            value = self._g_getSysAttr(name)   # Takes only 0.6s/2.9s
-        else:
-            value = self._g_getAttr(name)   # Takes 1.3s/3.7s
+        # This is commented out temporarily until decide if it is intereseting
+        # or not having system attributes distinct from strings
+        # as for example NROWS for Tables and EXTDIM for Arrays
+#         if name in self._v_attrnamessys:
+#             # _g_getSysAttr works only for string attributes
+#             # with length less than 256 bytes
+#             # (all read-only atributes *must* follow these rules!)
+#             value = self._g_getSysAttr(name)   # Takes only 0.6s/2.9s
+#         else:
+#             value = self._g_getAttr(name)   # Takes 1.3s/3.7s
+        value = self._g_getAttr(name)   # Takes 1.3s/3.7s
 
         # Check if value is pickled
         # Pickled values always seems to end with a "."

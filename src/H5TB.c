@@ -151,6 +151,14 @@ herr_t H5TBmake_table( const char *table_title,
   GZIP compression with the compression effort set to 6. 
   Note that compression can be used only when dataset is chunked. 
   */
+
+/*  if (shuffle) */
+ if (1)
+ {
+   if ( H5Pset_shuffle( plist_id) < 0 )
+     return -1;
+ }
+
  if ( compress )
  {
    /* The default compressor in HDF5 (zlib) */

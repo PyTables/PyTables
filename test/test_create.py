@@ -387,9 +387,9 @@ class createAttrTestCase(unittest.TestCase):
             print "Attribute list:", self.array.attrs._f_list()
         assert self.array.attrs._f_list() == ["i", "j", "k"]
         assert self.array.attrs._f_list("sys") == \
-               ['CLASS', 'FLAVOR', 'TITLE', 'VERSION']
+               ['CLASS', 'EXTDIM', 'FLAVOR', 'TITLE', 'VERSION']
         assert self.array.attrs._f_list("all") == \
-               ['CLASS', 'FLAVOR', 'TITLE', 'VERSION', "i", "j", "k"]
+               ['CLASS', 'EXTDIM', 'FLAVOR', 'TITLE', 'VERSION', "i", "j", "k"]
 
     def test05_removeAttributes(self):
         """Checking removing attributes """

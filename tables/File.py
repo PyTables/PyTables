@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.53 2003/09/17 15:13:42 falted Exp $
+#       $Id: File.py,v 1.54 2003/10/31 18:51:43 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.53 $"
+__version__ = "$Revision: 1.54 $"
 format_version = "1.1"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -396,20 +396,17 @@ class File(hdf5Extension.File, object):
         title -- Sets a TITLE attribute on the table entity.
 
         compress -- Specifies a compress level for data. The allowed
-            range is 0-9. A value of 0 disables compression. The
-            default is compression level 3, that balances between
-            compression effort and CPU consumption.
+            range is 0-9. A value of 0 disables compression and this
+            is the default.
 
         complib -- Specifies the compression library to be used. Right
             now, "zlib", "lzo" and "ucl" values are supported.
 
-        expectedrows -- An user estimate about the number of rows
-            that will be on table. If not provided, the default value
-            is appropiate for tables until 1 MB in size (more or less,
-            depending on the row size). If you plan to save bigger
-            tables try providing a guess; this will optimize the HDF5
-            B-Tree creation and management process time and memory
-            used.
+        expectedrows -- An user estimate about the number of rows that
+            will be on table. If not provided, the default value is
+            10000. If you plan to save bigger tables try providing a
+            guess; this will optimize the HDF5 B-Tree creation and
+            management process time and the amount of memory used.
 
         """
     
@@ -423,7 +420,10 @@ class File(hdf5Extension.File, object):
 
     
     def createArray(self, where, name, object,
-                    title = "", atomictype = 1):
+                    title = "", atomictype = 1,
+                    enlargeable = 0, compress = 0,
+                    complib = "zlib", shuffle = 0,
+                    expectedobjects = 1000):
         
         """Create a new instance Array with name "name" in "where" location.
 
@@ -446,10 +446,49 @@ class File(hdf5Extension.File, object):
         atomictype -- is a boolean that specifies the underlying HDF5
             type; if 1 an atomic data type (i.e. it can't be
             decomposed in smaller types) is used; if 0 an HDF5 array
-            datatype is used. The created object is returned."""
+            datatype is used. Note: using an atomic type is not
+            compatible with an enlargeable Array (see above).
+
+        enlargeable -- a boolean specifying whether the Array object
+            could be enlarged or not by appending more elements like
+            "object" ones.
+
+        compress -- Specifies a compress level for data. The allowed
+            range is 0-9. A value of 0 disables compression and this
+            is the default. A value greater than 0 implies enlargeable
+            Arrays (see above).
+
+        complib -- Specifies the compression library to be used. Right
+            now, "zlib", "lzo" and "ucl" values are supported.
+
+        shuffle -- Whether or not to use the shuffle filter in the
+            HDF5 library. This is normally used to improve the
+            compression ratio.
+
+        expectedobjects -- In the case of enlargeable arrays this
+            represents an user estimate about the number of object
+            elements that will be added to the Array object. If not
+            provided, the default value is 1000 objects. If you plan
+            to create both much smaller or much bigger Arrays try
+            providing a guess; this will optimize the HDF5 B-Tree
+            creation and management process time and the amount of
+            memory used.
+
+            """
 
         group = self.getNode(where, classname = 'Group')
-        Object = Array(object, title, atomictype)
+        if compress and not enlargeable:
+            # compression is supported only with enlargeable arrays
+            enlargeable = 1
+          # These are not incompatibles anymore
+#         if atomictype and enlargeable:
+#             # atomic type is not supported with enlargeable arrays
+#             atomictype = 0
+        if shuffle and not compress:
+            # Shuffling and not compressing makes not sense
+            shuffle = 0
+        Object = Array(object, title, atomictype, enlargeable,
+                       compress, complib, shuffle, expectedobjects)
         setattr(group, name, Object)
         return Object
 

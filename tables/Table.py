@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.77 2003/10/14 19:01:49 falted Exp $
+#       $Id: Table.py,v 1.78 2003/10/31 18:51:43 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.77 $"
+__version__ = "$Revision: 1.78 $"
 
 from __future__ import generators
 import sys
@@ -41,6 +41,7 @@ import numarray
 import numarray.strings as strings
 import numarray.records as records
 import hdf5Extension
+from utils import calcBufferSize
 from Leaf import Leaf
 from IsDescription import IsDescription, Description, metaIsDescription, \
      Col, StringCol, fromstructfmt
@@ -329,113 +330,13 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.colshapes = self.description._v_shapes
         self.colitemsizes = self.description._v_itemsizes
         # Compute buffer size
-        self._calcBufferSize(self.nrows)
+        (self._v_maxTuples, self._v_chunksize) = \
+              calcBufferSize(self.rowsize, self.nrows, self._v_compress)
         # Update the shape attribute
         self.shape = (self.nrows,)
         # Associate a Row object to table
         self.row = hdf5Extension.Row(self)
         
-    def _calcBufferSize(self, expectedrows):
-        """Calculate the buffer size and the HDF5 chunk size.
-
-        The logic to do that is based purely in experiments playing
-        with different buffer sizes, chunksize and compression
-        flag. It is obvious that using big buffers optimize the I/O
-        speed when dealing with tables. This might (should) be further
-        optimized doing more experiments.
-
-        """
-
-        compress = self._v_compress
-        rowsize = self.rowsize
-
-        # Protection against row sizes too large (HDF5 refuse to work
-        # with row sizes larger than 10 KB or so).
-        if rowsize > 8192:
-            raise RuntimeError, \
-        """Row size too large. Maximum size is 8192 bytes, and you are asking
-        for a row size of %s bytes.""" % (rowsize)
-            
-        # A bigger buffer makes the writing faster and reading slower (!)
-        #bufmultfactor = 1000 * 10
-        # A smaller buffer also makes the tests to not take too much memory
-        # We choose the smaller one
-        # In addition, with the new iterator in the Row class, this seems to
-        # be the best choice in terms of performance!
-        bufmultfactor = int(1000 * 1.0)
-        # Counter for the binary tuples
-        self._v_recunsaved = 0
-        rowsizeinfile = rowsize
-        expectedfsizeinKb = (expectedrows * rowsizeinfile) / 1024
-        
-        # Some code to compute appropiate values for chunksize & buffersize
-        # chunksize:  The chunksize for the HDF5 library
-        # buffersize: The Table internal buffer size
-        #
-        # Rational: HDF5 takes the data in bunches of chunksize length
-        # to write the on disk. A BTree in memory is used to map structures
-        # on disk. The more chunks that are allocated for a dataset the
-        # larger the B-tree. Large B-trees take memory and causes file
-        # storage overhead as well as more disk I/O and higher contention
-        # for the meta data cache.
-        # You have to balance between memory and I/O overhead (small B-trees)
-        # and time to access to data (big B-trees).
-        #
-        # The tuning of the chunksize & buffersize parameters affects the
-        # performance and the memory size consumed. This is based on numerical
-        # experiments on a Intel (Athlon 900MHz) arquitecture and, as always,
-        # your mileage may vary.
-        if expectedfsizeinKb <= 100:
-            # Values for files less than 100 KB of size
-            buffersize = 5 * bufmultfactor
-            chunksize = 1024
-        elif (expectedfsizeinKb > 100 and
-            expectedfsizeinKb <= 1000):
-            # Values for files less than 1 MB of size
-            buffersize = 20 * bufmultfactor
-            chunksize = 2048
-        elif (expectedfsizeinKb > 1000 and
-              expectedfsizeinKb <= 20 * 1000):
-            # Values for sizes between 1 MB and 20 MB
-            buffersize = 40  * bufmultfactor
-            chunksize = 4096
-        elif (expectedfsizeinKb > 20 * 1000 and
-              expectedfsizeinKb <= 200 * 1000):
-            # Values for sizes between 20 MB and 200 MB
-            buffersize = 50 * bufmultfactor
-            chunksize = 8192
-        else:  # Greater than 200 MB
-            # These values gives an increment of memory of 50 MB for a table
-            # size of 2.2 GB. I think this increment should be attributed to
-            # the BTree created to save the table data.
-            # If we increment this values more than that, the HDF5 takes
-            # considerably more CPU. If you don't want to spend 50 MB
-            # (or more, depending on the final table size) to
-            # the BTree, and want to save files bigger than 2 GB,
-            # try to increment this values, but be ready for a quite big
-            # overhead needed to traverse the BTree.
-            buffersize = 60 * bufmultfactor
-            chunksize = 16384
-        # Correction for compression.
-        if compress:
-            chunksize = 1024   # This seems optimal for compression
-
-        # Max Tuples to fill the buffer
-        self._v_maxTuples = buffersize // rowsize
-        # Safeguard against row sizes being extremely large
-        # I think this is not necessary because of the protection against
-        # too large row sizes, but just in case.
-        if self._v_maxTuples == 0:
-            self._v_maxTuples = 1
-        # A new correction for avoid too many calls to HDF5 I/O calls
-        # But this does not apport advantages rather the contrary,
-        # the memory comsumption grows, and performance is worse.
-        #buffersize = 100    # For testing purposes
-        #if expectedrows//self._v_maxTuples > 50:
-        #    buffersize *= 4
-        #    self._v_maxTuples = buffersize // rowsize
-        self._v_chunksize = chunksize
-
     def _saveBufferedRows(self):
         """Save buffered table rows."""
         # Save the records on disk
@@ -492,19 +393,48 @@ class Table(Leaf, hdf5Extension.Table, object):
                       "Zero or negative step values are not allowed!"
         return (start, stop, step)
     
-    def iterrows(self, start=None, stop=None, step=None):
+    def iterrows(self, start=None, stop=None, step=None, where=None):
         """Iterator over all the rows or a range"""
 
-        return self.__call__(start, stop, step)
+        return self.__call__(start, stop, step, where)
 
-    def __call__(self, start=None, stop=None, step=None):
+    def __call__(self, start=None, stop=None, step=None, where=None):
         """Iterate over all the rows or a range.
         
         It returns the same iterator than
         Table.iterrows(start, stop, step).
         It is, therefore, a shorter way to call it.
         """
-        
+
+        if where and 1:   # Suport per a indexacio
+            # Parse the condition in the form : {number <{=}} name {<{=} number}
+            regex = r'([\d\.eE]*)\s*(<={0,1})*\s*(\w*)\s*(<={0,1})*\s*([\d\.eE]*)'
+            m=re.search(regex, where)
+            (startcond, op1, colname, op2, stopcond) = m.groups()
+            if startcond: startcond = int(startcond)
+            else: startcond=-1
+            if stopcond: stopcond = int(stopcond)
+            else: stopcond=-1
+            print "-->", (startcond, op1, colname, op2, stopcond)
+
+            # if colname not indexed:
+            #    raise RuntimeError, "The column is not indexed!"
+            # Get the sorted column
+            column = self.read(field=colname)
+            # Nomes valid per enters. Generalitzar per a floats
+            if op1 == "<": startcond += 1
+            if op2 == "<=": stopcond += 1
+            istart, istop = numarray.searchsorted(column, (startcond, stopcond))
+            print "istart, istop, start, stop -->", istart, istop, start, stop
+            (start, stop, step) = self._processRange(start, stop, step)
+
+            if istart > start:
+                print "Seleccio escomenca %d pos mes amunt!" % (istart - start)
+                start = istart
+            if istop < stop:
+                print "Seleccio acava %d pos mes avall!" % (stop - istop)
+                stop = istop
+
         (start, stop, step) = self._processRange(start, stop, step)
 
         return self.row(start, stop, step)
@@ -514,7 +444,9 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         return self.__call__()
 
-    def read(self, start=None, stop=None, step=None, field=None, flavor=None):
+    #def read(self, start=None, stop=None, step=None, field=None, flavor=None):
+    def read(self, start=None, stop=None, step=None,
+             field=None, flavor=None, coords = None):
         """Read a range of rows and return an in-memory object.
 
         If "start", "stop", or "step" parameters are supplied, a row
@@ -535,9 +467,11 @@ class Table(Leaf, hdf5Extension.Table, object):
         (start, stop, step) = self._processRange(start, stop, step)
         
         if flavor == None:
-            return self._read(start, stop, step, field)
+            #return self._read(start, stop, step, field)
+            return self._read(start, stop, step, field, coords)
         else:
-            arr = self._read(start, stop, step, field)
+            #arr = self._read(start, stop, step, field)
+            arr = self._read(start, stop, step, field, coords)
             # Convert to Numeric, tuple or list if needed
             if flavor == "Numeric":
                 if Numeric_imported:
@@ -575,7 +509,8 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         return arr
 
-    def _read(self, start, stop, step, field=None):
+    #def _read(self, start, stop, step, field=None):
+    def _read(self, start, stop, step, field=None, coords = None):
         """Read a range of rows and return an in-memory object.
         """
 
@@ -622,14 +557,16 @@ class Table(Leaf, hdf5Extension.Table, object):
                                    names = self.colnames)
 
         # Call the routine to fill-up the resulting array
-        if step == 1 and not field and 1:
+        if step == 1 and not field:
             # This optimization works three times faster than
             # the row._fillCol method (up to 170 MB/s in a pentium IV @ 2GHz)
             self._open_read(result)
             #print "Start, stop -->", start, stop
-            self._read_records(start, stop-start)
+            if isinstance(coords, numarray.NumArray):
+                self._read_elements_orig(0, len(coords), coords)
+            else:
+                self._read_records(start, stop-start)
             self._close_read()  # Close the table
-        #elif step == 1 and field and 1:
         elif field and 1:
             # This optimization in Pyrex works, but the call to row._fillCol
             # is almost always faster (!!), so disable it.
@@ -714,7 +651,9 @@ class Table(Leaf, hdf5Extension.Table, object):
     def copy(self, dstname, orderby=None, complevel=0, complib="zlib"):
         """Copy this table to other location, optionally ordered by column
         """
+        from time import time, clock
 
+        t = time()
         # Create a new table with the same information as self
         dstDescr = {}
         for name in self.colnames:
@@ -737,21 +676,24 @@ class Table(Leaf, hdf5Extension.Table, object):
 You are asking ordering by a non-existing field (%s) or not a supported type!.
   Aborting operation.""" % orderby
                 
-
+        print "Sorting done!", time()-t, clock()
         # Now, fill the new table with values from the old one
         self._v_buffer = self._newBuffer(init=0)
         self._open_read(self._v_buffer)  # Open the table for reading
+        nrecords = self._v_maxTuples
         for crow in range(0, self.nrows, self._v_maxTuples):
-            #print "crow-->", crow
+            if crow+nrecords > self.nrows:
+                nrecords = self.nrows - crow
             if orderby:
-                self._read_elements(crow, self._v_maxTuples, coords)
+                #self._read_elements_orig(crow, nrecords, coords)
+                self._read_elements(crow, nrecords, coords)
             else:
-                self._read_records(crow, self._v_maxTuples)
+                self._read_records(crow, nrecords)
             #print "first row of buffer -->", self._v_buffer[0]
-            object._append_records(self._v_buffer, self._v_maxTuples)
+            object._append_records(self._v_buffer, nrecords)
         self._close_read()  # Close the source table
         object._close_append()  # Close the destination table
-
+        print "newtable done!", time()-t, clock()
         # Update the number of saved rows in this buffer
         object.nrows = self.nrows
         # Reset the buffer unsaved counter and the buffer read row counter
@@ -761,7 +703,6 @@ You are asking ordering by a non-existing field (%s) or not a supported type!.
 
     def flush(self):
         """Flush the table buffers."""
-        #if self._v_recunsaved > 0:
         if hasattr(self, 'row') and self.row._getUnsavedNRows() > 0:
           self._saveBufferedRows()
         # Close a possible opened table for append:

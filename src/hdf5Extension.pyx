@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.81 2003/10/14 19:01:49 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.82 2003/10/31 18:51:43 falted Exp $
 #
 ########################################################################
 
@@ -36,14 +36,16 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.81 $"
+__version__ = "$Revision: 1.82 $"
 
 
 import sys, os
 import types, cPickle
 import numarray
 #import recarray2 as recarray
-import numarray.records
+from numarray import records
+from numarray import memmap
+from utils import calcBufferSize
 
 # For defining the long long type
 cdef extern from "type-longlong.h":
@@ -72,6 +74,7 @@ cdef extern from "string.h":
   char *strncpy(char *dest, char *src, size_t n)
   int strcmp(char *s1, char *s2)
   char *strdup(char *s)
+  void *memcpy(void *dest, void *src, size_t n)
 
 # Some helper routines from the Python API
 cdef extern from "Python.h":
@@ -111,6 +114,7 @@ cdef extern from "Python.h":
   # To access to Memory (Buffer) objects presents in numarray
   object PyBuffer_FromMemory(void *ptr, int size)
   object PyBuffer_New(int size)
+  int PyObject_CheckReadBuffer(object)
   int PyObject_AsReadBuffer(object, void **rbuf, int *len)
   int PyObject_AsWriteBuffer(object, void **rbuf, int *len)
 
@@ -188,7 +192,7 @@ import_array()
 
 # CharArray type
 #CharType = recarray.CharType
-CharType = numarray.records.CharType
+CharType = records.CharType
 
 # Conversion tables from/to classes to the numarray enum types
 toenum = {numarray.Int8:tInt8,       numarray.UInt8:tUInt8,
@@ -448,8 +452,14 @@ cdef extern from "H5ARRAY.h":
   herr_t H5ARRAYmake( hid_t loc_id, char *dset_name, char *title,
                       char *flavor, char *obversion, int atomictype,
                       int rank, hsize_t *dims, hid_t type_id,
+                      hsize_t chunk_size, void  *fill_data,
+                      int   compress, char  *complib, int shuffle,
                       void *data)
 
+  herr_t H5ARRAYappend_records( hid_t loc_id, char *dset_name,
+                                int rank, hsize_t *dims_orig,
+                                hsize_t *dims_new, void *data )
+  
   herr_t H5ARRAYread( hid_t loc_id, char *dset_name,
                          void *data )
 
@@ -751,7 +761,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.81 2003/10/14 19:01:49 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.82 2003/10/31 18:51:43 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1014,7 +1024,7 @@ cdef class AttributeSet:
     cdef hid_t mem_type
     cdef int rank
     cdef int ret, i
-        
+
     # Check if attribute exists
     if H5LT_find_attribute(loc_id, attrname) <= 0:
       # If the attribute does not exists, return None
@@ -1202,11 +1212,10 @@ cdef class Group:
 
 cdef class Table:
   # instance variables
-  #cdef size_t  rowsize  # this is defined on the Python descendent
   cdef size_t  field_offset[MAX_FIELDS]
   cdef size_t  field_sizes[MAX_FIELDS]
   cdef hsize_t nfields
-  cdef void    *rbuf
+  cdef void    *rbuf, *mmrbuf
   cdef hsize_t totalrecords
   cdef hid_t   parent_id, loc_id
   cdef char    *name, *xtitle
@@ -1216,6 +1225,7 @@ cdef class Table:
   cdef int     _open
   cdef char    *complib
   cdef hid_t   dataset_id, space_id, mem_type_id
+  cdef object  mmfilew, mmfiler
 
   def _g_new(self, where, name):
     self.name = strdup(name)
@@ -1257,7 +1267,8 @@ cdef class Table:
     self.nfields = nvar
     
     # Compute some values for buffering and I/O parameters
-    self._calcBufferSize(self._v_expectedrows)
+    (self._v_maxTuples, self._v_chunksize) = \
+      calcBufferSize(self.rowsize, self._v_expectedrows, self._v_compress)
     
     # test if there is data to be saved initially
     if hasattr(self, "_v_recarray"):
@@ -1294,46 +1305,20 @@ cdef class Table:
     if ret < 0:
       raise RuntimeError("Problems getting the pointer to the buffer.")
 
-    # Write the buffer
+    # Open the table for appending
     if ( H5TBOopen_append(&self.dataset_id, &self.mem_type_id,
                           self.parent_id, self.name, self.nfields,
                           self.rowsize, self.field_offset) < 0 ):
       raise RuntimeError("Problems opening table for append.")
 
+    # Test
+    #self.mmfilew = open(self.name+".mmap", "w")
+
     self._open = 1
 
-  # This is a version of Table._saveBufferRows in Pyrex, but it is not
-  # faster than the Python version, so disable it
-#   def _saveBufferedRows(self):
-#     """Save buffered table rows."""
-#     # Save the records on disk
-#     #self._append_records(self._v_buffer, self.row._getUnsavedNRows())
-#     nrecords = self.row._getUnsavedNRows()
-#     if not self._open:
-#       self._open_append(self._v_buffer)
-    
-#     # Append the records:
-#     ret = H5TBOappend_records(&self.dataset_id, &self.mem_type_id,
-#                               nrecords, self.totalrecords, self.rbuf)
-#     if ret < 0:
-#       raise RuntimeError("Problems appending the records.")
-
-#     self.totalrecords = self.totalrecords + nrecords
-#     # Get a fresh copy of the default values
-#     if hasattr(self, "_v_buffercpy"):
-#       self._v_buffer[:] = self._v_buffercpy[:]  # 600.000 rows/s
-#       #self._v_buffer = self._newBuffer(init=1)  # 400.000 rows/s
-# #       for field in self.colnames:  # 462.000 rows/s
-# #         self._v_buffer._fields[field][:] = self.description.__dflts__[field]
-
-
-#     # Update the number of saved rows in this buffer
-#     self.nrows = self.nrows + nrecords
-#     # Reset the buffer unsaved counter and the buffer read row counter
-#     self.row._setUnsavedNRows(0)
-#     # Set the shape attribute (the self.nrows may be less than the maximum)
-#     self.shape = (self.nrows,)
-
+  # A version of Table._saveBufferRows in Pyrex is available in 0.7.2,
+  # but it is not faster than the Python version, so disable it
+  
   def _append_records(self, object recarr, int nrecords):
     cdef int ret,
     cdef void *rbuf
@@ -1341,7 +1326,6 @@ cdef class Table:
     if not self._open:
       self._open_append(recarr)
 
-    #print "first row in recarr:", recarr[0]
     # Append the records:
     ret = H5TBOappend_records(&self.dataset_id, &self.mem_type_id,
                               nrecords, self.totalrecords, self.rbuf)
@@ -1349,6 +1333,9 @@ cdef class Table:
       raise RuntimeError("Problems appending the records.")
 
     self.totalrecords = self.totalrecords + nrecords
+    
+    # Test
+    #recarr[:nrecords].tofile(self.mmfilew)
     
   def _close_append(self):
 
@@ -1359,6 +1346,10 @@ cdef class Table:
                              self.parent_id) < 0 ):
         raise RuntimeError("Problems closing table for append.")
 
+      # Test
+      #print "Tancant:", self.name+".mmap"
+      #self.mmfilew.close()
+      
     self._open = 0
     
   def _getTableInfo(self):
@@ -1398,6 +1389,7 @@ cdef class Table:
 
   def _open_read(self, object recarr):
     cdef int buflen
+    cdef object recarr2
 
     # Get the pointer to the buffer data area
     if ( PyObject_AsWriteBuffer(recarr._data, &self.rbuf, &buflen) < 0 ):
@@ -1409,6 +1401,24 @@ cdef class Table:
                         self.field_names, self.rowsize,
                         self.field_offset) < 0 ):
       raise RuntimeError("Problems opening table for read.")
+    # Test
+#     recarr2 = records.fromfile("prova.out",
+#                               formats=self.description._v_recarrfmt)
+#     print repr(recarr2._data)
+#     if ( PyObject_AsWriteBuffer(recarr2._data, &self.mmrbuf, &buflen) < 0 ):
+#       raise RuntimeError("Problems getting the pointer to the mm buffer")
+#     print "despres de writebuffer"
+
+    # Aquesta es la part vàlida (comentem...)
+#     self.mmfiler = memmap.Memmap(self.name+".mmap",mode="r")
+#     recarr2 = records.RecArray(self.mmfiler[:],
+#                                formats=self.description._v_recarrfmt,
+#                                shape=self.totalrecords)
+#     print repr(recarr2._data._buffer)
+#     if ( PyObject_AsReadBuffer(recarr2._data._buffer,
+#                                &self.mmrbuf, &buflen) < 0 ):
+#       raise RuntimeError("Problems getting the pointer to the mm buffer")
+
 
   def _read_field_name(self, object arr, hsize_t start, hsize_t stop,
                        hsize_t step, char *field_name):
@@ -1477,7 +1487,7 @@ cdef class Table:
 
     return nrecords
 
-  def _read_elements(self, size_t start, hsize_t nrecords, object elements):
+  def _read_elements_orig(self, size_t start, hsize_t nrecords, object elements):
     cdef int buflen
     cdef void *coords
 
@@ -1495,8 +1505,35 @@ cdef class Table:
 
     return nrecords
 
+  def _read_elements(self, size_t start, hsize_t nrecords, object elements):
+    cdef int buflen, i, *coordi, coordint
+    cdef size_t rsize, csize
+    cdef void *coords
+    cdef void *dst, *src
+
+    # Get the chunk of the coords that correspond to a buffer
+    #coords_array = numarray.array(elements[start:start+nrecords])
+    if ( PyObject_AsWriteBuffer(elements._data, &coords, &buflen) < 0 ):
+      raise RuntimeError("Problems getting the pointer to the buffer")
+    #print "nrecords-->", nrecords
+    rsize = self.rowsize
+    csize = sizeof(long)  # Change if the elements array is not Int32
+    coords = coords + start * csize
+    #print "-->2"    
+    for i from 0 <= i < nrecords:
+      dst = self.rbuf+i*rsize
+      #coordi = <int *>(coords + i * csize)
+      coordint = elements[start+i]
+      #print "i, coordi:", i, coordint
+      #src = self.mmrbuf + coordi[0] * rsize
+      src = self.mmrbuf + coordint * rsize
+      memcpy(dst, src, rsize)
+    #print "-->3"      
+    return nrecords
+
   def _close_read(self):
 
+    #self.mmfiler.close()  # Test  # Comentem...
     if ( H5TBOclose_read(&self.dataset_id, &self.space_id,
                          &self.mem_type_id) < 0 ):
       raise RuntimeError("Problems closing table for read.")
@@ -1827,6 +1864,7 @@ cdef class Array:
   cdef hsize_t *dims
   cdef object  type
   cdef int     enumtype
+  cdef hid_t   type_id
 
   def _g_new(self, where, name):
     # Initialize the C attributes of Group object (Very important!)
@@ -1835,15 +1873,17 @@ cdef class Array:
     self.parent_id = where._v_groupId
 
   def _createArray(self, object arr, char *title,
-                  char *flavor, char *obversion, int atomictype):
+                   char *flavor, char *obversion, int atomictype,
+                   int enlargeable, int compress, char *complib,
+                   int shuffle, int expectedobjects):
     cdef int i
     cdef herr_t ret
-    cdef hid_t type_id
     cdef void *rbuf
     cdef int buflen, ret2
     cdef object array, strcache
     cdef int itemsize, offset
     cdef char *tmp, *byteorder
+    cdef hid_t type_id
 
     if isinstance(arr, numarray.NumArray):
       self.type = arr._type
@@ -1911,11 +1951,15 @@ cdef class Array:
     # Fill the dimension axis info with adequate info (and type!)
     for i from  0 <= i < self.rank:
         self.dims[i] = array.shape[i]
+        if self.dims[i] == 0:
+          # When a dimension is zero, we have no available data
+          rbuf = NULL
 
     # Save the array
     ret = H5ARRAYmake(self.parent_id, self.name, title,
                       flavor, obversion, atomictype, self.rank,
-                      self.dims, type_id, rbuf)
+                      self.dims, type_id, self._v_chunksize, rbuf,
+                      compress, complib, shuffle, rbuf)
     if ret < 0:
       raise RuntimeError("Problems saving the array.")
 
@@ -1969,8 +2013,37 @@ cdef class Array:
       shape.append(self.dims[i])
     shape = tuple(shape)
     #shape=(10)
+
     return (toclass[self.enumtype], shape, type_size, byteorder)
   
+  def _append(self, object naarr):
+    cdef int ret, rank
+    cdef hsize_t *dims_arr
+    cdef void *rbuf
+    cdef int buflen, ret2
+
+    # Allocate space for the dimension axis info
+    rank = len(naarr.shape)
+    dims_arr = <hsize_t *>malloc(rank * sizeof(hsize_t))
+    # Fill the dimension axis info with adequate info (and type!)
+    for i from  0 <= i < rank:
+        dims_arr[i] = naarr.shape[i]
+
+    # Get the pointer to the buffer data area
+    ret2 = PyObject_AsWriteBuffer(naarr._data, &rbuf, &buflen)
+    if ret2 < 0:
+      raise RuntimeError("Problems getting the buffer area.")
+
+#     print "self.dims-->", 
+#     for i from  0 <= i < rank:
+#         print self.dims[i],
+#     print
+    # Append the records:
+    ret = H5ARRAYappend_records(self.parent_id, self.name, self.rank,
+                                self.dims, dims_arr, rbuf)
+    if ret < 0:
+      raise RuntimeError("Problems appending the records.")
+
   def _readArray(self, object buf):
     cdef herr_t ret
     cdef void *rbuf

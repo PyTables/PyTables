@@ -15,14 +15,26 @@ extern "C" {
 
 herr_t H5ARRAYmake( hid_t loc_id, 
 		    const char *dset_name,
-		    const char *title,  /* Added parameter */
-		    const char *flavor,  /* Added parameter */
-		    const char *obversion,  /* Added parameter */
-		    const int atomic,  /* Added parameter */
+		    const char *title,
+		    const char *flavor,
+		    const char *obversion,
+		    int atomic,
 		    const int rank, 
 		    const hsize_t *dims,
 		    hid_t type_id,
+		    hsize_t chunk_size,	/* New */
+		    void  *fill_data,	/* New */
+		    int   compress,	/* New */
+		    char  *complib,	/* New */
+		    int   shuffle,	/* New */
 		    const void *data);
+
+herr_t H5ARRAYappend_records( hid_t loc_id, 
+			      const char *dset_name,
+			      const int rank,
+			      hsize_t *dims_orig,
+			      hsize_t *dims_new,
+			      const void *data );
 
 herr_t H5ARRAYread( hid_t loc_id, 
 		    const char *dset_name,

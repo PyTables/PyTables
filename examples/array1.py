@@ -17,10 +17,43 @@ a = array([-1, 2, 4], Int8)
 # Save it on the HDF5 file
 hdfarray = fileh.createArray(root, 'array_1', a, "Signed byte array")
 
-# This is amusing, just create another one ;-)
-a = array([-1, 2, 4], UInt8)
+# Create an empty array
+a = zeros((2,0,3),type=UInt8)
 # Save it on the HDF5 file
-hdfarray = fileh.createArray(root, 'array_b', a, "Unsigned byte array")
+hdfarray = fileh.createArray(root, 'array_b', a, "Unsigned byte array",
+                             compress = 1)
+# Append an array to this table
+hdfarray.append(array([[1,2,3],[3,2,1]], type=UInt8, shape=(2,1,3)))
+hdfarray.append(array([[1,2,3],[3,2,1]]*2, type=UInt8, shape=(2,2,3)))
+hdfarray.append(array([[4,5,6],[6,5,4]], type=UInt8, shape=(2,1,3)))
+hdfarray.append(array([[7,8,9],[9,8,7]], type=UInt8, shape=(2,1,3)))
+
+# # Create an empty array
+# a = array([], UInt8)
+# a = zeros((0),type=UInt8)
+# print "-->", repr(a), a.shape
+# # Save it on the HDF5 file
+# hdfarray = fileh.createArray(root, 'array_b', a, "Unsigned byte array",
+#                              compress = 1)
+# # Append an array to this table
+# hdfarray.append(array([2], type=UInt8, shape=(1,)))
+# hdfarray.append(array([5], type=UInt8, shape=(1,)))
+# hdfarray.append(array([6], type=UInt8, shape=(1,)))
+
+# Close the file
+fileh.close()
+
+# Open the file for reading
+fileh = openFile("array1.h5", mode = "r")
+# Get the root group
+root = fileh.root
+
+a = root.array_c.read()
+print "Character array -->",repr(a), a.shape
+a = root.array_1.read()
+print "Signed byte array -->",repr(a), a.shape
+a = root.array_b.read()
+print "Empty array (yes, this is suported) -->",repr(a), a.shape
 
 # Close the file
 fileh.close()

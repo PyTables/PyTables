@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.33 2003/09/15 19:22:48 falted Exp $
+#       $Id: Array.py,v 1.34 2003/10/31 18:51:43 falted Exp $
 #
 ########################################################################
 
@@ -27,9 +27,10 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.33 $"
+__version__ = "$Revision: 1.34 $"
 import types, warnings, sys
 from Leaf import Leaf
+from utils import calcBufferSize
 import hdf5Extension
 import numarray
 import numarray.strings as strings
@@ -75,10 +76,13 @@ class Array(Leaf, hdf5Extension.Array, object):
         type -- the type class for the array
         flavor -- the object type of this object (Numarray, Numeric, List,
                   Tuple, String, Int of Float)
+        enlargeable -- tells if the Array can grow or not
 
     """
     
-    def __init__(self, object = None, title = "", atomictype = 1):
+    def __init__(self, object = None, title = "", atomictype = 1,
+                 enlargeable = 0, compress = 0, complib = "zlib",
+                 shuffle = 0, expectedobjects = 1000):
         """Create the instance Array.
 
         Keyword arguments:
@@ -89,18 +93,51 @@ class Array(Leaf, hdf5Extension.Array, object):
                   not like [[1,2],2]). If None, the metadata for the
                   array will be taken from disk.
 
-        "title" -- Sets a TITLE attribute on the HDF5 array entity.
-        "atomictype" -- Whether an HDF5 atomic datatype or H5T_ARRAY
-                        is to be used.
+        title -- Sets a TITLE attribute on the HDF5 array entity.
+        
+        atomictype -- is a boolean that specifies the underlying HDF5
+            type; if 1 an atomic data type (i.e. it can't be
+            decomposed in smaller types) is used; if 0 an HDF5 array
+            datatype is used. Note: using an atomic type is not
+            compatible with an enlargeable Array (see above).
+
+        enlargeable -- a boolean specifying whether the Array object
+            could be enlarged or not by appending more elements like
+            "object" ones.
+
+        compress -- Specifies a compress level for data. The allowed
+            range is 0-9. A value of 0 disables compression and this
+            is the default. A value greater than 0 implies enlargeable
+            Arrays (see above).
+
+        complib -- Specifies the compression library to be used. Right
+            now, "zlib", "lzo" and "ucl" values are supported.
+
+        shuffle -- Whether or not to use the shuffle filter in HDF5. This
+            is normally used to improve the compression ratio.
+
+        expectedobjects -- In the case of enlargeable arrays this
+            represents an user estimate about the number of object
+            elements that will be added to the Array object. If not
+            provided, the default value is 1000 objects. If you plan
+            to create both much smaller or much bigger Arrays try
+            providing a guess; this will optimize the HDF5 B-Tree
+            creation and management process time and the amount of
+            memory used.
 
         """
+        self.new_title = title
+        self._atomictype = atomictype
+        self.enlargeable = enlargeable
+        self._v_compress = compress
+        self._v_complib = complib
+        self._v_shuffle = shuffle
+        self._v_expectedobjects = expectedobjects
         # Check if we have to create a new object or read their contents
         # from disk
         if object is not None:
             self._v_new = 1
             self.object = object
-            self.new_title = title
-            self.atomictype = atomictype
         else:
             self._v_new = 0
             
@@ -126,15 +163,15 @@ class Array(Leaf, hdf5Extension.Array, object):
                     # This the fastest way to convert from Numeric to numarray
                     # because no data copy is involved
                     naarr = strings.array(buffer(arr),
-                                            itemsize=1,
-                                            shape=arr.shape)
+                                          itemsize=1,
+                                          shape=arr.shape)
                 else:
                     # Here we absolutely need a copy so as to obtain a buffer.
                     # Perhaps this can be avoided or optimized by using
                     # the tolist() method, but this should be tested.
                     naarr = strings.array(buffer(arr.copy()),
-                                            itemsize=1,
-                                            shape=arr.shape)
+                                          itemsize=1,
+                                          shape=arr.shape)
             else:
                 if arr.iscontiguous():
                     # This the fastest way to convert from Numeric to numarray
@@ -189,14 +226,37 @@ class Array(Leaf, hdf5Extension.Array, object):
   chararray,homogeneous list or homogeneous tuple, int, float or str).
   Sorry, but this object is not supported.""" % (arr)
 
+        # This check should be refined
         if naarr.shape == (0,):
             raise ValueError, \
 """The object '%s' has a zero sized dimension.
   Sorry, but this object is not supported.""" % (arr)
-            
-            
+
+        if (isinstance(naarr, strings.CharArray)):
+            self.rowsize = len(naarr)
+        elif len(naarr.shape):
+            self.rowsize = len(naarr) * naarr._type.bytes
+        else:
+            # Case of scalar arrays (shape = ())
+            self.rowsize = None
+        #print "Array:", self.new_title, "is Enlargeable?:", self.enlargeable
+        # Compute some values for buffering and I/O parameters
+        if self.enlargeable:
+            if naarr.shape <> (0,):
+                (self._v_maxTuples, self._v_chunksize) = \
+                                    calcBufferSize(self.rowsize,
+                                                   self._v_expectedobjects,
+                                                   self._v_compress)
+            else:
+                (self._v_maxTuples, self._v_chunksize) = (1,1024)
+        else:
+            (self._v_maxTuples, self._v_chunksize) = (1,0)
+
         self.type = self._createArray(naarr, self.new_title,
-                                           flavor, obversion, self.atomictype)
+                                      flavor, obversion, self._atomictype,
+                                      self.enlargeable, self._v_compress,
+                                      self._v_complib, self._v_shuffle,
+                                      self._v_expectedobjects)
         # Get some important attributes
         self.shape = naarr.shape
         self.itemsize = naarr._itemsize
@@ -206,6 +266,26 @@ class Array(Leaf, hdf5Extension.Array, object):
         """Get the metadata info for an array in file."""
         (self.type, self.shape, self.itemsize, self.byteorder) = \
                         self._openArray()
+
+    def append(self, object):
+        """Append the object to this enlargeable object"""
+
+        # Add conversion procedures as well as checks for
+        # conforming objects to be added
+        # First, self is extensible?
+        extdim = self.attrs.EXTDIM
+        assert extdim <> None, "Sorry, the Array %s seems not enlargeable." % \
+               (self.pathname)
+        # Next, the arrays conforms self expandibility?
+        assert len(self.shape) == len(object.shape), \
+"""Sorry, the ranks of the Array '%s' and object to be appended differ
+  (%d <> %d).""" % (self._v_pathname, len(self.shape), len(object.shape))
+        for i in range(len(self.shape)):
+            if i <> extdim:
+                assert self.shape[i] == object.shape[i], \
+"""Sorry, shapes of Array '%s' and object differ in dimension %d (non-enlargeable)""" % (self._v_pathname, i) 
+        
+        self._append(object)
 
     # Accessor for the _readArray method in superclass
     def read(self):
@@ -222,8 +302,16 @@ class Array(Leaf, hdf5Extension.Array, object):
                                  shape=self.shape)
             # Set the same byteorder than on-disk
             arr._byteorder = self.byteorder
-        # Do the actual data read
-        self._readArray(arr._data)
+
+        # Protection against empty arrays on disk
+        zerodim = 0
+        for i in range(len(self.shape)):
+            if self.shape[i] == 0:
+                zerodim = 1
+                
+        if not zerodim:
+            # Arrays that have not zero dimensionality
+            self._readArray(arr._data)
 
         # Numeric, NumArray, CharArray, Tuple, List, String, Int or Float
         self.flavor = self.getAttr("FLAVOR")
