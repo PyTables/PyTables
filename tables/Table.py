@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.95 2004/01/24 18:04:35 falted Exp $
+#       $Id: Table.py,v 1.96 2004/01/26 10:24:24 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.95 $"
+__version__ = "$Revision: 1.96 $"
 
 from __future__ import generators
 import sys
@@ -578,62 +578,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.nrows -= nrows    # discount the removed rows from the total
         return nrows
 
-    def _copy_orig(self, dstname, orderby=None,
-                   complevel=0, complib="zlib", shuffle=1):
-        """Copy this table to other location, optionally ordered by column
-        """
-        from time import time, clock
-
-        t = time()
-        # Create a new table with the same information as self
-        dstDescr = {}
-        for name in self.colnames:
-            dstDescr[name] = eval(str(self.description._v_ColObjects[name]))
-        
-        object = Table(dstDescr, self.title,
-                       complevel, complib, shuffle, self.nrows)
-        setattr(self._v_parent, dstname, object)
-
-        if orderby:
-            if (self.nrows > 1000*1000*10):
-                warnings.warn( \
-"""You are asking for sorting a very huge Table (more than 10 million rows!).
-  You should be sure that your system has *lots* of RAM to support this!.""")
-            # Get the column to be ordered by
-            if (orderby in self.colnames and
-                self.coltypes[orderby] in numarray.typeDict): # Excludes Char
-                coords=numarray.argsort(self.read(field=orderby))
-            else:
-                raise RuntimeError, """
-You are asking ordering by a non-existing field (%s) or not a supported type!.
-  Aborting operation.""" % orderby
-                
-        print "Sorting done!", time()-t, clock()
-        # Now, fill the new table with values from the old one
-        self._v_buffer = self._newBuffer(init=0)
-        self._open_read(self._v_buffer)  # Open the table for reading
-        nrecords = self._v_maxTuples
-        for crow in range(0, self.nrows, self._v_maxTuples):
-            if crow+nrecords > self.nrows:
-                nrecords = self.nrows - crow
-            if orderby:
-                self._read_elements(crow, nrecords, coords)
-            else:
-                self._read_records(crow, nrecords)
-            #print "first row of buffer -->", self._v_buffer[0]
-            object._append_records(self._v_buffer, nrecords)
-        self._close_read()  # Close the source table
-        object._close_append()  # Close the destination table
-        print "newtable done!", time()-t, clock()
-        # Update the number of saved rows in this buffer
-        #object.nrows = self.nrows
-        object.nrows = ((stop - start - 1) // step) + 2
-        # Reset the buffer unsaved counter and the buffer read row counter
-        object.row._setUnsavedNRows(0)
-        # Set the shape attribute (the self.nrows may be less than the maximum)
-        object.shape = (object.nrows-1,)
-
-    def append(self, rows):
+    def append(self, rows=None):
         """Append a series of rows to the end of the table
 
         rows can be either a recarray or a structure that is able to
@@ -641,6 +586,8 @@ You are asking ordering by a non-existing field (%s) or not a supported type!.
 
         """
 
+        if rows == None:
+            return
         # Try to convert the object into a recarray
         try:
             recarray = records.array(rows,
@@ -649,66 +596,21 @@ You are asking ordering by a non-existing field (%s) or not a supported type!.
         except:
             raise ValueError, \
 "rows parameter cannot be converted into a recarray object compliant with table '%s'" % str(self)
+        lenrows = recarray.shape[0]
         self._open_append(recarray)
-        self._append_records(recarray, recarray.shape[0])
+        self._append_records(recarray, lenrows)
         self._close_append()
-
-    def _copy_funciona(self, name, where=None, title=None, compress=None,
-             complib=None, shuffle=None, fletcher32=None):
-        """Copy this table to other location"""
-
-        if isinstance(where, str):
-            if where not in self._v_file.objects:
-                raise LookupError, "'%s' path cannot be found in file '%s'" % \
-                      (where, self._v_filename)
-            if where in self._v_file.groups:
-                group = self._v_file.groups[where]
-            else:
-                raise ValueError, "'%s' is not a group '%s'"
-        elif isinstance(where, Group.Group):
-            group = where
-        elif where == None:
-            group = self._v_parent
-        else:
-            raise TypeError, \
-"'where' has to be a Group or string instance, not type '%s'" % (type(where))
-
-        if title == None: title = self.title
-        if compress == None: compress = self.complevel
-        if complib == None: complib = self.complib
-        if shuffle == None: shuffle = self.shuffle
-        if fletcher32 == None: fletcher32 = self.fletcher32
-        # Build the new Table object
-        object = Table(self.description._v_ColObjects, title=title,
-                       compress=compress, complib=complib,
-                       shuffle=shuffle, fletcher32=fletcher32,
-                       expectedrows=self.nrows)
-        setattr(group, name, object)
-
-        # Now, fill the new table with values from the old one
-        self._v_buffer = self._newBuffer(init=0)
-        self._open_read(self._v_buffer)  # Open the table for reading
-        nrecords = self._v_maxTuples
-        for crow in range(0, self.nrows, self._v_maxTuples):
-            if crow+nrecords > self.nrows:
-                nrecords = self.nrows - crow
-            self._read_records(crow, nrecords)
-            object._append_records(self._v_buffer, nrecords)
-        self._close_read()  # Close the source table
-        object._close_append()  # Close the destination table
         # Update the number of saved rows in this buffer
-        object.nrows = self.nrows
-        # Reset the buffer unsaved counter and the buffer read row counter
-        object.row._setUnsavedNRows(0)
+        self.nrows += lenrows
         # Set the shape attribute (the self.nrows may be less than the maximum)
-        object.shape = self.shape
-        return object
+        self.shape = (self.nrows,)
+        return
 
-    def copy(self, where, name, start=0, stop=None, step=1, title=None,
-             compress=None, complib=None, shuffle=None, fletcher32 = None,
-             copyuserattrs=1):
+    def copy(self, where, name, start=0, copyuserattrs=1, stop=None, step=1,
+             title=None, compress=None, complib=None, shuffle=None,
+             fletcher32=None):
         """Copy this table to other location"""
-
+             
         if isinstance(where, str):
             if where not in self._v_file.objects:
                 raise LookupError, "'%s' path cannot be found in file '%s'" % \
@@ -716,7 +618,7 @@ You are asking ordering by a non-existing field (%s) or not a supported type!.
             if where in self._v_file.groups:
                 group = self._v_file.groups[where]
             else:
-                raise ValueError, "'%s' is not a group '%s'"
+                raise LookupError, "Path '%s' is not a group '%s'"
         elif isinstance(where, Group.Group):
             group = where
         elif where == None:
@@ -748,13 +650,6 @@ You are asking ordering by a non-existing field (%s) or not a supported type!.
                 stop2 = stop 
             object.append(self[start2:stop2:step])
         object._close_append()  # Close the destination table
-        # Update the number of saved rows in this buffer
-        #object.nrows = self.nrows
-        object.nrows = ((stop - start - 1) // step) + 1
-        # Reset the buffer unsaved counter and the buffer read row counter
-        object.row._setUnsavedNRows(0)
-        # Set the shape attribute (the self.nrows may be less than the maximum)
-        object.shape = (object.nrows,)
 
         # Finally, copy the user attributes, if needed
         if copyuserattrs:

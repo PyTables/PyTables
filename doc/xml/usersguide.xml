@@ -3539,16 +3539,16 @@ AttributeError: Error setting "ADCcount" attr.
       <section id="LeafClassDescr">
 	<heading>The <visual markup="tt">Leaf</visual> class</heading>
 
-	<p>This is a helper class useful to place common functionality
-	  of all Leaf objects. It is also useful for classifying
-	  purposes. A Leaf object is an end-node, that is, a node that
-	  can hang directly from a group object, but that is not a
-	  group itself and, thus, it cannot have descendents. Right
-	  now this set of end-nodes is composed by <verb>Table</verb>,
-	  <verb>Array</verb>, <verb>EArray</verb>,
-	  <verb>VLArray</verb> and <verb>UnImplemented</verb> class
-	  instances. In fact, all the previous classes inherits from
-	  the Leaf class.
+	<p>This is a helper class useful to classify objects as well
+	  as a place to put common functionality of all
+	  <verb>Leaf</verb> objects. A <verb>Leaf</verb> object is an
+	  end-node, that is, a node that can hang directly from a
+	  group object, but that is not a group itself and, thus, it
+	  cannot have descendents. Right now this set of end-nodes is
+	  composed by <verb>Table</verb>, <verb>Array</verb>,
+	  <verb>EArray</verb>, <verb>VLArray</verb> and
+	  <verb>UnImplemented</verb> class instances. In fact, all the
+	  previous classes inherits from the Leaf class.
 	</p>
 
 	<p>The public variables and methods that class descendants
@@ -3599,28 +3599,75 @@ AttributeError: Error setting "ADCcount" attr.
 
 	<subsection>
 	  <heading><visual markup="tt">Leaf</visual> methods</heading>
-	  <description>
 
-	    <term>rename(newname)</term>
-	    <item>Change the name of this leaf to <em>newname</em>.</item>
+	  <subsubsection>
+	    <heading id="copyLeafDescr">copy(where, name,
+	      copyuserattrs=1, title=None, props=None,
+	      slice=None)</heading>
 
-	    <term>remove()</term> <item>Remove this
-	      leaf.</item>
+	    <p>Copy this leaf into another location. The meaning of
+	      the parameters is explained below:
+	      <description>
+		<term>where</term> <item>Can be a path string or
+		  <verb>Group</verb> instance.  If <em>where</em>
+		  doesn't exists or has not a child called
+		  <em>name</em>, a <verb>LookupError</verb> error is
+		  raised.
+		</item>
+		<term>name</term> <item>The name of the destination
+		  node.
+		</item>
+		<term>copyuserattrs</term><item>Whether copy the user
+		  attributes of the source leaf to the destination or
+		  not. The default is copying them.
+		</item>
+		<term>title</term><item>The new title for
+		  destination. If None, the original title is copied.
+		</item>
+		<term>props</term><item>An instance of the
+		  <verb>LeafProps</verb> (see <ref
+		  refid="LeafPropsClassDescr">section</ref>) class. A
+		  None value means that the source properties are
+		  copied <em>as is</em>.
+		</item>
+		<term>slice</term><item>A Python <verb>slice</verb>
+		  instance that selects the range of the rows in the
+		  source leaf to be copied to destination. If None,
+		  all the rows are copied.
+		</item>
+	      </description>
+	    </p>
+	  </subsubsection>
 
-	    <term>getAttr(attrname)</term> <item>Gets the HDF5
-	      attribute <em>attrname</em> of this leaf.</item>
-
-	    <term>setAttr(attrname, attrvalue)</term> <item>Sets
-	      the attribute <em>attrname</em> of this leaf to the
-	      value <em>attrvalue</em>. Only string values are
-	      allowed.</item>
-
-	    <term>flush()</term> <item>Flush the leaf buffers.</item>
-
-	    <term>close()</term> <item>Flush the leaf buffers and
-	      close the HDF5 dataset.</item>
-
-	  </description>
+	  <subsubsection>
+	    <heading id="removeLeafDescr">remove()</heading>
+	    <p>Remove this leaf.</p>
+	  </subsubsection>
+	  <subsubsection>
+	    <heading id="renameLeafDescr">rename(newname)</heading>
+	    <p>Change the name of this leaf to <em>newname</em>.</p>
+	  </subsubsection>
+	  <subsubsection>
+	    <heading id="getAttrLeafDescr">getAttr(attrname)</heading>
+	    <p>Gets the HDF5 attribute <em>attrname</em> of this leaf.
+	    </p>
+	  </subsubsection>
+	  <subsubsection>
+	    <heading id="setAttrLeafDescr">setAttr(attrname,
+	      attrvalue)
+	    </heading>
+	    <p>Sets the attribute <em>attrname</em> of this leaf to
+	      the value <em>attrvalue</em>.
+	    </p>
+	  </subsubsection>
+	  <subsubsection>
+	    <heading id="flushLeafDescr">flush()</heading>
+	    <p>Flush the leaf buffers (if any).</p>
+	  </subsubsection>
+	  <subsubsection>
+	    <heading id="closeLeafDescr">close()</heading> <p>Flush
+	    the leaf buffers (if any) and close the dataset.</p>
+	  </subsubsection>
 	</subsection>
 
       </section>
@@ -3675,6 +3722,42 @@ AttributeError: Error setting "ADCcount" attr.
 	  <heading><visual markup="tt">Table</visual> methods</heading>
 
 	  <subsubsection>
+	    <heading id="appendTableDescr">append(rows=None)</heading>
+
+	    <p>Append a series of rows to this <verb>Table</verb>
+	      instance. <em>rows</em> is an object that can keep the
+	      rows to be append in several formats, like a
+	      <verb>RecArray</verb>, a list of tuples, list of
+	      <verb>Numeric</verb>/<verb>NumArray</verb>/<verb>CharArray</verb>
+	      objects, string, Python buffer or None (no append will
+	      result). Of course, this <em>rows</em> object has to be
+	      compliant with the underlying format of the
+	      <verb>Table</verb> instance or a <verb>ValueError</verb>
+	      will be issued.
+	    </p>
+
+	    <p>Example of use:
+	      <verbatim>
+from tables import *
+class Particle(IsDescription):
+    name        = StringCol(16, pos=1)   # 16-character String
+    lati        = IntCol(pos=2)        # integer
+    longi       = IntCol(pos=3)        # integer
+    pressure    = Float32Col(pos=4)    # float  (single-precision)
+    temperature = FloatCol(pos=5)      # double (double-precision)
+
+fileh = openFile("test4.h5", mode = "w")
+table = fileh.createTable(fileh.root, 'table', Particle, "A table",1)
+# Append several rows in only one call
+table.append([("Particle:     10", 10, 0, 10*10, 10**2),
+              ("Particle:     11", 11, -1, 11*11, 11**2),
+              ("Particle:     12", 12, -2, 12*12, 12**2)])
+fileh.close()
+	      </verbatim>
+	    </p>
+	  </subsubsection>
+
+	  <subsubsection>
 	    <heading id="iterrowsTableDescr">iterrows(start=None,
 	      stop=None, step=1)</heading>
 
@@ -3700,7 +3783,6 @@ AttributeError: Error setting "ADCcount" attr.
 	      markup="bf">all the rows</visual> in the object are
 	      selected.
 	    </p>
-
 	  </subsubsection>
 
 	  <subsubsection>
@@ -4994,8 +5076,72 @@ vlarray3[2] --> &lt;(['123', '456'], '3')>
 	  <!-- End of modif F. Alted 2003-01-16 -->
 
 	</subsection> <!-- Atom and its descendants -->
+      </section> <!-- Declarative classes -->
 
-      </section>
+      <section id="helperClasses">
+	<heading>Helper classes</heading>
+
+	<p>In this section are listed classes that does not fit in any
+	  other section and that mainly serves for ancillary
+	  purposes.</p>
+
+	<subsection id="LeafPropsClassDescr">
+	  <heading><visual markup="tt">LeafProps(complevel=0,
+	      complib="zlib", shuffle=1, fletcher32=0)</visual>
+	  </heading>
+
+	  <p>This class is meant to easy the association of the
+	    different properties to the different enlargeable leafs
+	    (i.e. <verb>Table</verb>, <verb>EArray</verb> and
+	    <verb>VLArray</verb>). The parameters that can be passed
+	    to the constructor are described next:
+	  </p>
+
+	  <description>
+	      <term>complevel</term> <item>Specifies a compress level
+		for data. The allowed range is 0-9. A value of 0
+		disables compression. The default is that compression
+		is disabled, that balances between compression effort
+		and CPU consumption.
+	      </item>
+	      <term>complib</term> <item> Specifies the compression
+		library to be used. Right now, <verb>"zlib"</verb>
+		(default), <verb>"lzo"</verb> and <verb>"ucl"</verb>
+		values are supported. See <ref
+		refid="compressionIssues">section</ref> for some advice
+		on which library is better suited to your needs.
+	      </item>
+              <term>shuffle</term><item>Whether or not to use the
+                <em>shuffle</em> filter present in the
+                <verb>HDF5</verb> library. This is normally used to
+                improve the compression ratio (at the cost of
+                consuming a little bit more CPU time). A value of 0
+                disables shuffling and 1 makes it active. The default
+                value depends on whether compression is enabled or
+                not; if compression is enabled, shuffling defaults to
+                be active, else shuffling is disabled.
+              </item>
+	      <term>fletcher32</term> <item>Whether or not to use the
+		<em>fletcher32</em> filter in the HDF5 library. This
+		is used to add a checksum on each data chunk. A value
+		of 0 disables the checksum and it is the default.
+	      </item>
+	  </description>
+	  
+	  <p>Of course, you can also create an instance with default
+	    values, and then assign the ones you want to change. For
+	    example:
+	    <verbatim>
+props = LeafProps()
+props.complevel = 1
+	    </verbatim>
+	    Then, you can use this <em>props</em> instance to enforce
+	    a level compression of 1 on any call that supports a
+	    <verb>LeafProps</verb> instance parameter.
+	  </p>
+
+	</subsection> <!-- LeafProps class -->
+      </section> <!-- Helper classes -->
     </chapter>
 
     <chapter id="optimizationTips">

@@ -6,9 +6,17 @@ import sys, os, string
 from os.path import exists
 
 if not (sys.version_info[0] >= 2 and sys.version_info[1] >= 2):
-    print "################################################################"
-    print "You need Python 2.2 or greater to install PyTables!. Exiting..."
-    print "################################################################"
+    print "#################################################################"
+    print "You need Python 2.2.3 or greater to install PyTables!. Exiting..."
+    print "#################################################################"
+    sys.exit(1)
+
+# To deal with detected problems with python 2.2.1
+if (sys.version_info[0] == 2 and sys.version_info[1] == 2 and
+    sys.version_info[2] < 3):
+    print "#################################################################"
+    print "You need Python 2.2.3 or greater to install PyTables!. Exiting..."
+    print "#################################################################"
     sys.exit(1)
 
 from distutils.core     import setup, Extension

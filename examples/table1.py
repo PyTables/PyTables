@@ -1,11 +1,11 @@
 from tables import *
 
 class Particle(IsDescription):
-    name        = StringCol(16)   # 16-character String
-    lati        = IntCol()        # integer
-    longi       = IntCol()        # integer
-    pressure    = Float32Col()    # float  (single-precision)
-    temperature = FloatCol()      # double (double-precision)
+    name        = StringCol(16, pos=1)   # 16-character String
+    lati        = IntCol(pos=2)        # integer
+    longi       = IntCol(pos=3)        # integer
+    pressure    = Float32Col(pos=4)    # float  (single-precision)
+    temperature = FloatCol(pos=5)      # double (double-precision)
 
 # Open a file in "w"rite mode
 fileh = openFile("table1.h5", mode = "w")
@@ -30,6 +30,11 @@ for i in xrange(10):
 # We need to flush the buffers in table in order to get an
 # accurate number of records on it.
 table.flush()
+
+# Append several rows in only one call
+table.append([("Particle:     10", 10, 0, 10*10, 10**2),
+              ("Particle:     11", 11, -1, 11*11, 11**2),
+              ("Particle:     12", 12, -2, 12*12, 12**2)])
 
 group = fileh.root.newgroup
 print "Nodes under group", group,":"

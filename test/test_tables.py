@@ -1038,7 +1038,7 @@ class getColRangeTestCase(BasicRangeTestCase):
 class RecArrayIO(unittest.TestCase):
 
     def test00(self):
-        "Checking saving a normal recarray"
+        "Checking saving a regular recarray"
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -1124,6 +1124,77 @@ class RecArrayIO(unittest.TestCase):
 
         assert r1.tostring() == r2.tostring()
         
+        fileh.close()
+        os.remove(file)
+
+    def test04(self):
+        "Checking appending several rows at once"
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        class Rec(IsDescription):
+            col1 = IntCol(pos=1)
+            col2 = StringCol(3, pos=2)
+            col3 = FloatCol(pos=3)
+
+        # Save it in a table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        # Create the complete table
+        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
+                          [457,'db1',1.2],[5,'de1',1.3]],
+                         formats="i4,a3,f8",
+                         names = "col1,col2,col3")
+        # Read the original table
+        r2 = fileh.root.recarray.read()
+        if verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+        fileh.close()
+        os.remove(file)
+
+    def test05(self):
+        "Checking appending several rows at once (close file version)"
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        class Rec(IsDescription):
+            col1 = IntCol(pos=1)
+            col2 = StringCol(3, pos=2)
+            col3 = FloatCol(pos=3)
+
+        # Save it in a table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+
+        fileh.close()
+        fileh = openFile(file, "r")
+        table = fileh.root.recarray
+        
+        # Create the complete table
+        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
+                          [457,'db1',1.2],[5,'de1',1.3]],
+                         formats="i4,a3,f8",
+                         names = "col1,col2,col3")
+        # Read the original table
+        r2 = fileh.root.recarray.read()
+        if verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
         fileh.close()
         os.remove(file)
 
@@ -1501,7 +1572,6 @@ class CloseCopyTestCase(CopyTestCase):
 class OpenCopyTestCase(CopyTestCase):
     close = 0
 
-
 class CopyIndexTestCase(unittest.TestCase):
 
     def test01_index(self):
@@ -1529,14 +1599,6 @@ class CopyIndexTestCase(unittest.TestCase):
                              start=self.start,
                              stop=self.stop,
                              step=self.step)
-        if self.close:
-            if verbose:
-                print "(closing file version)"
-            fileh.close()
-            fileh = openFile(file, mode = "r")
-            table1 = fileh.root.table1
-            table2 = fileh.root.table2
-
         if verbose:
             print "table1-->", table1.read()
             print "table2-->", table2.read()
@@ -1568,72 +1630,114 @@ class CopyIndexTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
+    def test02_index(self):
+        """Checking Table.copy() method with indexes (close file version)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a recarray exceeding buffers capability
+        r=records.array('aaaabbbbccccddddeeeeffffgggg'*200,
+                        formats='2i2,i4, (2,3)u2, f4, f8',shape=10)
+        # Save it in a table:
+        table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
+        
+        # Copy to another table
+        table1._v_maxTuples = self.maxTuples
+        table2 = table1.copy("/", 'table2',
+                             start=self.start,
+                             stop=self.stop,
+                             step=self.step)
+
+        fileh.close()
+        fileh = openFile(file, mode = "r")
+        table1 = fileh.root.table1
+        table2 = fileh.root.table2
+
+        if verbose:
+            print "table1-->", table1.read()
+            print "table2-->", table2.read()
+            print "attrs table1-->", repr(table1.attrs)
+            print "attrs table2-->", repr(table2.attrs)
+            
+        # Check that all the elements are equal
+        r2 = r[self.start:self.stop:self.step]
+        for nrow in range(r2.shape[0]):
+            for colname in table1.colnames:
+                assert allequal(r2[nrow].field(colname),
+                                table2[nrow].field(colname))
+
+        # Assert the number of rows in table
+        if verbose:
+            print "nrows in table2-->", table2.nrows
+            print "and it should be-->", r2.shape[0]
+        assert r2.shape[0] == table2.nrows
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
 class CopyIndex1TestCase(CopyIndexTestCase):
-    close = 1
     maxTuples = 2
     start = 0
     stop = 7
     step = 1
 
 class CopyIndex2TestCase(CopyIndexTestCase):
-    close = 0
     maxTuples = 2
     start = 0
-    stop = 7
+    stop = -1
     step = 1
 
 class CopyIndex3TestCase(CopyIndexTestCase):
-    close = 1
     maxTuples = 3
     start = 1
     stop = 7
     step = 1
 
 class CopyIndex4TestCase(CopyIndexTestCase):
-    close = 1
     maxTuples = 4
     start = 0
     stop = 6
     step = 1
 
 class CopyIndex5TestCase(CopyIndexTestCase):
-    close = 1
     maxTuples = 2
     start = 3
     stop = 7
     step = 1
 
 class CopyIndex6TestCase(CopyIndexTestCase):
-    close = 1
     maxTuples = 2
     start = 3
     stop = 6
     step = 2
 
 class CopyIndex7TestCase(CopyIndexTestCase):
-    close = 1
     maxTuples = 2
     start = 0
     stop = 7
     step = 10
 
 class CopyIndex8TestCase(CopyIndexTestCase):
-    close = 1
     maxTuples = 2
     start = 6
     stop = 3
     step = 1
 
 class CopyIndex9TestCase(CopyIndexTestCase):
-    close = 1
     maxTuples = 2
     start = 3
     stop = 4
     step = 1
 
 class CopyIndex10TestCase(CopyIndexTestCase):
-    close = 1
-    maxTuples = 2
+    maxTuples = 1
     start = 3
     stop = 4
     step = 2
@@ -1764,6 +1868,7 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
     #theSuite.addTest(unittest.makeSuite(Fletcher32TablesTestCase))
     #theSuite.addTest(unittest.makeSuite(AllFiltersTablesTestCase))
+    #theSuite.addTest(unittest.makeSuite(RecArrayIO))
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
