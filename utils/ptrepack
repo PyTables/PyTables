@@ -7,7 +7,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/utils/ptrepack,v $
-#       $Id: ptrepack,v 1.3 2004/02/18 13:45:58 falted Exp $
+#       $Id: ptrepack,v 1.4 2004/02/20 15:24:32 falted Exp $
 #
 ########################################################################
 
@@ -18,6 +18,7 @@ Pass the flag -h to this for help on usage.
 """
 
 import sys, os, time
+import os.path
 import getopt
 import tables
 
@@ -49,7 +50,7 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
     # Get the destination node and its parent
     last_slash = dstnode.rindex('/')
     if last_slash == len(dstnode)-1:
-        print "Detected a trainling slash in destination node. Interpreting it as a destination group."
+        # print "Detected a trainling slash in destination node. Interpreting it as a destination group."
         dstgroup = dstnode[:-1]
     elif last_slash > 0:
         dstgroup = dstnode[:last_slash]
@@ -198,7 +199,7 @@ usage = """usage: %s [-h] [-v] [-o] [-R range] [--non-recursive] [--dest-title=t
  --keep-source-filters -- Use the original filters in source files. The
      default is not doing that if any of --complevel, --complib, --shuffle
      or --fletcher32 option is specified.
-\n""" % sys.argv[0]
+\n""" % os.path.basename(sys.argv[0])
 
 # Obsolete options
 # -p -- Use "psyco" if available.
@@ -218,12 +219,6 @@ try:
 except:
     (type, value, traceback) = sys.exc_info()
     print "Error parsing the options. The error was:", value
-    sys.stderr.write(usage)
-    sys.exit(0)
-
-# if we pass too much parameters, abort
-if len(pargs) <> 2:
-    print "You need to pass both source and destination!."
     sys.stderr.write(usage)
     sys.exit(0)
 
@@ -282,6 +277,12 @@ for option in opts:
         sys.stderr.write(usage)
         sys.exit(0)
         
+# if we pass a number of files different from 2, abort
+if len(pargs) <> 2:
+    print "You need to pass both source and destination!."
+    sys.stderr.write(usage)
+    sys.exit(0)
+
 # Catch the files passed as the last arguments
 src = pargs[0].split(':')
 dst = pargs[1].split(':')

@@ -3,7 +3,10 @@ TODO list (as of 22th, Feb 2004):
 - Add a new type of table that allows variable length records and
   fully multidimensional slice selections.
 
-- Implement relations (like and object oriented database) between objects.
+- Implement relations (like and object oriented database) between
+  objects.
+
+- Implement indexation on tables.
 
 - Right now, each Table has its own buffer which can take a lot of
   memory (between 5 KB and 60 KB per Table) if you have many
@@ -13,11 +16,10 @@ TODO list (as of 22th, Feb 2004):
 - Improve the performance (although no much room remains for doing
   that).
 
+- Add tutorials about EArray and VLArray objects
+
 And as always...
 
-- Add more tests
+- Add more tests (there's always space for bugs in untested situations)
 
-- Add examples
-
-- Better documentation
 

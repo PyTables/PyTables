@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.80 2004/02/18 13:45:58 falted Exp $
+#       $Id: File.py,v 1.81 2004/02/20 15:24:32 falted Exp $
 #
 ########################################################################
 
@@ -34,7 +34,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.80 $"
+__version__ = "$Revision: 1.81 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -984,13 +984,13 @@ class File(hdf5Extension.File, object):
         date = time.asctime(time.localtime(os.stat(self.filename)[8]))
         astring = "Filename: " + repr(self.filename) + ' '
         if self.title <> "unknown":
-            astring += "Title: "+repr(self.title)+ ' '
-        astring += ", Last modif.: " + repr(date) + ' '
-        astring += ', rootUEP=' + repr(self.rootUEP)
-        astring += ', filters=' + repr(self.filters)
+            astring += "Title: "+repr(self.title)
+        astring += "; Last modif.: " + repr(date)
+        astring += '; rootUEP=' + repr(self.rootUEP)
+        astring += '; filters=' + repr(self.filters)
 
         if self.format_version <> "unknown":
-            astring += ", Format version: " + self.format_version + '\n'
+            astring += "; Format version: " + self.format_version + '\n'
 
         for group in self.walkGroups("/"):
             astring += str(group) + '\n'
