@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.17 2003/02/06 21:09:13 falted Exp $
+#       $Id: Table.py,v 1.18 2003/02/06 21:18:00 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.17 $"
+__version__ = "$Revision: 1.18 $"
 
 from __future__ import generators
 import sys
@@ -183,15 +183,10 @@ class Table(Leaf, hdf5Extension.Table):
         fields['_v_align'] = revbyteorderDict[recarr._byteorder]
         # Create an instance metarecord to host the record fields
         self.metarecord = metaIsRecord("", (), fields)()
-        # Extract the coltypes
-        self.coltypes = self.metarecord._v_formats
-        # Extract the shapes for columns
-        self.colshapes = self.metarecord._v_shapes
         # Initialize the number of rows
         self.nrows = len(recarr)
-        # Create the arrays for buffering
-        self._v_buffer = self.newBuffer()
-        self.row = self._v_buffer._row
+        # The rest of the info is automatically added when self.create()
+        # is called
 
     def create(self):
         """Create a new table on disk."""
