@@ -1,7 +1,7 @@
 from tables import *
 
 class Particle(IsDescription):
-    identity = Col("CharType", 16, " ", pos = 0)  # character String
+    identity = Col("CharType", 22, " ", pos = 0)  # character String
     idnumber = Col("Int16", 1, pos = 1)  # short integer
     speed = Col("Float32", 1, pos = 1)  # single-precision
 
