@@ -15,6 +15,7 @@ extern "C" {
 
 herr_t H5ARRAYmake( hid_t loc_id, 
 		    const char *dset_name,
+		    const char *klass,
 		    const char *title,
 		    const char *flavor,
 		    const char *obversion,
@@ -22,7 +23,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
 		    const hsize_t *dims,
 		    int   extdim,
 		    hid_t type_id,
-		    hsize_t max_tuples,
+		    hsize_t *dims_chunk,
 		    void  *fill_data,
 		    int   compress,
 		    char  *complib,
@@ -56,6 +57,11 @@ herr_t H5ARRAYreadSlice( hid_t loc_id,
 herr_t H5ARRAYget_ndims( hid_t loc_id, 
 			 const char *dset_name,
 			 int *rank );
+
+herr_t H5ARRAYget_chunksize( hid_t loc_id, 
+			     const char *dset_name,
+			     int rank,
+			     hsize_t *dims_chunk);
 
 hid_t H5ARRAYget_info( hid_t loc_id, 
 		       const char *dset_name,

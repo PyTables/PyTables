@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.29 2004/04/29 17:04:30 falted Exp $
+#       $Id: AttributeSet.py,v 1.30 2004/06/18 12:31:07 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.29 $"
+__version__ = "$Revision: 1.30 $"
 
 import warnings, types, cPickle
 import hdf5Extension
@@ -178,7 +178,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 #             value = self._g_getAttr(name)   # Takes 1.3s/3.7s
         value = self._g_getAttr(name)   # Takes 1.3s/3.7s
 
-        # Check if value is pickled
+        # Check whether the value is pickled
         # Pickled values always seems to end with a "."
         if type(value) is types.StringType and value and value[-1] == ".":
             try:

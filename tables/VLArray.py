@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
-#       $Id: VLArray.py,v 1.26 2004/02/25 16:08:59 falted Exp $
+#       $Id: VLArray.py,v 1.27 2004/06/18 12:31:08 falted Exp $
 #
 ########################################################################
 
@@ -30,7 +30,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.26 $"
+__version__ = "$Revision: 1.27 $"
 
 # default version for VLARRAY objects
 obversion = "1.0"    # initial version
@@ -560,6 +560,11 @@ class VLArray(Leaf, hdf5Extension.VLArray, object):
 """
 
         if isinstance(key, types.IntType):
+            if key >= self.nrows:
+                raise IndexError, "Index out of range"
+            if key < 0:
+                # To support negative values
+                key += self.nrows
             (start, stop, step) = processRange(self.nrows, key, key+1, 1)
             return self.read(start, stop, step, slice_specified=0)
         elif isinstance(key, types.SliceType):

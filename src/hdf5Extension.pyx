@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.125 2004/05/12 17:09:17 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.126 2004/06/18 12:31:06 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.125 $"
+__version__ = "$Revision: 1.126 $"
 
 
 import sys, os
@@ -68,6 +68,10 @@ cdef extern from "stdlib.h":
 
 cdef extern from "time.h":
   ctypedef int time_t
+
+cdef extern from "math.h":
+  double nextafter(double x, double y)
+  float nextafterf(float x, float y)
 
 # Funtions for printing in C
 cdef extern from "stdio.h":
@@ -268,6 +272,7 @@ cdef extern from "hdf5.h":
   ctypedef int htri_t
   ctypedef int H5F_scope_t 
   ctypedef long long hsize_t
+  ctypedef signed long long hssize_t
 
   ctypedef enum H5D_layout_t:
     H5D_LAYOUT_ERROR    = -1,
@@ -327,6 +332,19 @@ cdef extern from "hdf5.h":
     H5G_LINK_HARD       = 0,
     H5G_LINK_SOFT       = 1
 
+  cdef enum H5S_seloper_t:
+    H5S_SELECT_NOOP      = -1,  # error                                     */
+    H5S_SELECT_SET       = 0,   # Select "set" operation                    */
+    H5S_SELECT_OR,        # Binary "or" operation for hyperslabs
+    H5S_SELECT_AND,       # Binary "and" operation for hyperslabs
+    H5S_SELECT_XOR,       # Binary "xor" operation for hyperslabs
+    H5S_SELECT_NOTB,      # Binary "not" operation for hyperslabs
+    H5S_SELECT_NOTA,      # Binary "not" operation for hyperslabs
+    H5S_SELECT_APPEND,    # Append elements to end of point selection */
+    H5S_SELECT_PREPEND,   # Prepend elements to beginning of point selection */
+    H5S_SELECT_INVALID    # Invalid upper bound on selection operations *
+    
+
   # Native types
   cdef enum:
     H5T_NATIVE_CHAR  
@@ -346,7 +364,7 @@ cdef extern from "hdf5.h":
 
                 
 # Functions from HDF5
-cdef extern from *:
+cdef extern from "H5public.h":
   hid_t  H5Fcreate(char *filename, unsigned int flags,
                    hid_t create_plist, hid_t access_plist)
   
@@ -404,6 +422,11 @@ cdef extern from *:
   herr_t H5Pset_fapl_log( hid_t fapl_id, char *logfile,
                           unsigned int flags, size_t buf_size ) 
 
+  herr_t H5Sselect_hyperslab(hid_t space_id, H5S_seloper_t op,
+                             hssize_t start[],
+                             hsize_t _stride[],
+                             hsize_t count[],
+                             hsize_t _block[])
      
 # Functions from HDF5 HL Lite
 cdef extern from "H5LT.h":
@@ -516,10 +539,10 @@ cdef extern from "H5LT.h":
 # Functions from HDF5 ARRAY (this is not part of HDF5 HL; it's private)
 cdef extern from "H5ARRAY.h":  
 
-  herr_t H5ARRAYmake( hid_t loc_id, char *dset_name, char *title,
-                      char *flavor, char *obversion,
+  herr_t H5ARRAYmake( hid_t loc_id, char *dset_name, char *klass,
+                      char *title, char *flavor, char *obversion,
                       int rank, hsize_t *dims, int extdim,
-                      hid_t type_id, hsize_t max_tuples, void *fill_data,
+                      hid_t type_id, hsize_t *dims_chunk, void *fill_data,
                       int complevel, char  *complib, int shuffle,
                       int fletcher32, void *data)
 
@@ -541,6 +564,30 @@ cdef extern from "H5ARRAY.h":
                          hsize_t *dims, hid_t *super_type_id,
                          H5T_class_t *super_class_id, char *byteorder)
 
+# Functions for optimized operations for ARRAY
+cdef extern from "H5ARRAY-opt.h":
+
+  herr_t H5ARRAYOopen_readSlice( hid_t *dataset_id,
+                                 hid_t *space_id,
+                                 hid_t *type_id,
+                                 hid_t *mem_space_id,
+                                 int   bufsize,
+                                 hid_t loc_id, 
+                                 char *dset_name)
+
+  herr_t H5ARRAYOread_readSlice( hid_t dataset_id,
+                                 hid_t space_id,
+                                 hid_t type_id,
+                                 hid_t mem_space_id,
+                                 hsize_t irow,
+                                 hsize_t start,
+                                 hsize_t stop,
+                                 void *data )
+
+  herr_t H5ARRAYOclose_readSlice(hid_t dataset_id,
+                                 hid_t space_id,
+                                 hid_t type_id,
+                                 hid_t mem_space_id)
 
 # Functions for VLEN Arrays
 cdef extern from "H5VLARRAY.h":
@@ -560,6 +607,9 @@ cdef extern from "H5VLARRAY.h":
                         hvl_t *rdata, hsize_t *rdatalen )
 
   herr_t H5VLARRAYget_ndims( hid_t loc_id, char *dset_name, int *rank )
+
+  herr_t H5ARRAYget_chunksize( hid_t loc_id, char *dset_name,
+                               int rank, hsize_t *dims_chunk)
 
   hid_t H5VLARRAYget_info( hid_t loc_id, char *dset_name,
                            hsize_t *nrecords, hsize_t *base_dims,
@@ -735,6 +785,12 @@ ucl_version = register_ucl()
 
 # utility funtions (these can be directly invoked from Python)
 
+def PyNextAfter(double x, double y):
+  return nextafter(x, y)
+
+def PyNextAfterF(float x, float y):
+  return nextafterf(x, y)
+
 def getIndices(object s, int length):
   cdef int start, stop, step, slicelength
 
@@ -853,7 +909,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.125 2004/05/12 17:09:17 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.126 2004/06/18 12:31:06 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -1306,9 +1362,64 @@ cdef class Group:
     self.group_id = ret
     return self.group_id
 
+  def _g_openIndex(self):
+    cdef hid_t ret
+    
+    ret = H5Gopen(self.parent_id, self.name)
+    if ret < 0:
+      raise RuntimeError("Can't open the index: '%s'." % self.name)
+    self.group_id = ret
+    return self.group_id
+
   def _g_listGroup(self, hid_t parent_id, hid_t loc_id, char *name):
     # Return a tuple with the objects groups and objects dsets
     return Giterate(parent_id, loc_id, name)
+
+  def _g_getGChildAttr(self, char *group_name, char *attr_name):
+    """Return an attribute of a child Group.
+
+    When successful, returns the format version string, for TRUE, or 0
+    (zero), for FALSE. Otherwise returns a negative value.
+
+    """
+
+    cdef hid_t gchild_id
+    cdef herr_t ret
+    cdef char attr_value[256]
+
+    # Check if attribute exists
+    # Open the group
+    gchild_id = H5Gopen(self.group_id, group_name)
+    strcpy(attr_value, "unknown")  # Default value
+    if H5LT_find_attribute(gchild_id, attr_name):
+      # Read the attr_name attribute
+      ret = H5LT_get_attribute_disk(gchild_id, attr_name, attr_value)
+      if ret < 0:
+        strcpy(attr_value, "unknown")
+
+    # Close child group
+    H5Gclose(gchild_id)
+    return attr_value
+
+  def _g_getAttr(self, char *attr_name):
+    """Return an attribute of a child Group.
+
+    When successful, returns the format version string, for TRUE, or 0
+    (zero), for FALSE. Otherwise returns a negative value.
+
+    """
+    cdef herr_t ret
+    cdef char attr_value[256]
+
+    # Check if attribute exists
+    strcpy(attr_value, "unknown")  # Default value
+    if H5LT_find_attribute(self.group_id, attr_name):
+      # Read the attr_name attribute
+      ret = H5LT_get_attribute_disk(self.group_id, attr_name, attr_value)
+      if ret < 0:
+        strcpy(attr_value, "unknown")
+
+    return attr_value
 
   def _g_flushGroup(self):
     # Close the group
@@ -1437,11 +1548,6 @@ cdef class Table:
     """Row size too large. Maximum size is 8192 bytes, and you are asking
     for a row size of %s bytes.""" % (self.rowsize)
 
-    # Compute some values for buffering and I/O parameters
-    (self._v_maxTuples, self._v_chunksize) = \
-      calcBufferSize(self.rowsize, self._v_expectedrows,
-                     self.filters.complevel)
-    
     # test if there is data to be saved initially
     if hasattr(self, "_v_recarray"):
       self.totalrecords = self.nrows
@@ -1453,6 +1559,10 @@ cdef class Table:
       self.totalrecords = 0
       data = NULL
 
+    # Compute some values for buffering and I/O parameters
+    (self._v_maxTuples, self._v_chunksize) = \
+                        calcBufferSize(self.rowsize, self._v_expectedrows,
+                                       self.filters.complevel)
     # The next is settable if we have default values
     fill_data = NULL
     nrecords = <hsize_t>PyInt_AsLong(nvar)
@@ -1651,15 +1761,14 @@ cdef class Table:
 
     return nrecords
 
-  def _read_elements_orig(self, size_t start, hsize_t nrecords, object elements):
+  def _read_elements(self, size_t shift, object elements):
     cdef long buflen
-    cdef size_t stop
+    cdef hsize_t nrecords
     cdef void *coords
 
     # Get the chunk of the coords that correspond to a buffer
-    stop = <size_t>(start+nrecords)
-    coords_array = numarray.array(elements[start:stop],
-                                  type=numarray.Int64)
+    nrecords = len(elements)
+    coords_array = numarray.array(elements+shift, type=numarray.Int64)
     # Get the pointer to the buffer data area
     buflen = NA_getBufferPtrAndSize(coords_array._data, 1, &coords)
     
@@ -1669,32 +1778,6 @@ cdef class Table:
       raise RuntimeError("Problems reading records.")
 
     return nrecords
-
-# The next _read_elements method has problems with the datatypes length and
-# MSVC6. As it is not necessary, I am going to comment it out until I need
-# it. F. Alted 2004-01-19
-#   def _read_elements(self, size_t start, hsize_t nrecords, object elements):
-#     cdef int i, *coordi, coordint
-#     cdef size_t rsize, csize
-#     cdef void *coords
-#     cdef void *dst, *src
-#     cdef long buflen
-
-#     # Get the chunk of the coords that correspond to a buffer
-#     #coords_array = numarray.array(elements[start:start+nrecords])
-#     buflen = NA_getBufferPtrAndSize(elements._data, 1, &coords)
-#     rsize = self.rowsize
-#     csize = sizeof(long)  # Change if the elements array is not Int32
-#     coords = coords + start * csize
-#     for i from 0 <= i < nrecords:
-#       dst = self.rbuf+i*rsize
-#       #coordi = <int *>(coords + i * csize)
-#       coordint = elements[start+i]
-#       #print "i, coordi:", i, coordint
-#       #src = self.mmrbuf + coordi[0] * rsize
-#       src = self.mmrbuf + coordint * rsize
-#       memcpy(dst, src, rsize)
-#     return nrecords
 
   def _close_read(self):
 
@@ -1735,13 +1818,14 @@ cdef class Row:
   cdef object _table   # To allow compilation under MIPSPro C in SGI machines
   #cdef Table _table   # To allow access C methods in Table
   cdef object _fields, _recarray, _saveBufferedRows, _indexes
-  cdef int _row, _nrowinbuf, _nrow, _unsavednrows, _strides
+  cdef int _row, _nrowinbuf, _unsavednrows, _strides
+  cdef readonly int _nrow # This is allowed from Pyrex 0.9 on
   cdef int start, stop, step, nextelement, nrowsinbuf, nrows, nrowsread
-  cdef int bufcounter, recout, counter, startb, stopb,  _all
+  cdef int bufcounter, counter, startb, stopb,  _all
   cdef int *_scalar, *_enumtypes, _r_initialized_buffer,_w_initialized_buffer
   cdef int indexChunk
-  cdef object indexValid
-  cdef int whereCond
+  cdef object indexValid, coords, bufcoords, index
+  cdef int whereCond, indexed
   cdef double startcond, stopcond
   cdef int op1, op2
   cdef char *colname
@@ -1762,10 +1846,10 @@ cdef class Row:
     self._w_initialized_buffer = 0
     self._saveBufferedRows = self._table._saveBufferedRows
 
-  def __call__(self, start=0, stop=0, step=1):
+  def __call__(self, start=0, stop=0, step=1, coords=None, ncoords=0):
     """ return the row for this record object and update counters"""
 
-    self._initLoop(start, stop, step)
+    self._initLoop(start, stop, step, coords, ncoords)
     return iter(self)
 
   def __iter__(self):
@@ -1813,7 +1897,7 @@ cdef class Row:
       self._enumtypes[i] = toenum[buff._fmt[i]]
       i = i + 1
 
-  def _initLoop(self, start, stop, step):
+  def _initLoop(self, int start, int stop, int step, object coords, int ncoords):
     "Initialization for the __iter__ iterator"
 
     if not self._r_initialized_buffer:
@@ -1826,20 +1910,81 @@ cdef class Row:
     self._nrow = start - self.step
     self._table._open_read(self._recarray)  # Open the table for reading
 
-    # Do we have selections?
     self.whereCond = 0
+    self.indexed = 0
+    # Do we have in-kernel selections?
     if hasattr(self._table, "whereColname"):
       self.whereCond = 1
       self.colname = PyString_AsString(self._table.whereColname)
+      # Is this column indexed?
+      if self._table.colindexed[self.colname]:
+        self.indexed = 1
+        self.index = self._table.cols[self.colname].index
+        # create buffers for indices
+        if ncoords > self.nrowsinbuf:
+          self.index._newBuffer(self.nrowsinbuf)
+        else:
+          self.index._newBuffer(ncoords)
+        self.coords = coords
+        if self.coords:
+          self.stop = len(coords)
+        else:
+          self.stop = ncoords
+        self.nrowsread = 0
+        self.nextelement = 0
 
-  # This is the general version for __next__, and the more compact and fastest
   def __next__(self):
     "next() method for __iter__() that is called on each iteration"
+    if self.indexed or self.coords:
+      return self.__next__indexed()
+    elif self.whereCond:
+      return self.__next__whereCond()
+    else:
+      return self.__next__general()
+
+  cdef __next__indexed(self):
+    """The version of next() for indexed columns, or with user coordinates"""
     cdef long offset
     cdef object indexValid1, indexValid2
-    cdef int ncond, op
-    #cdef float opValue
-    cdef object opValue
+    cdef int ncond, op, recout
+    cdef object opValue, field
+
+    while self.nextelement < self.stop:
+      if self.nextelement >= self.nrowsread:
+        if self.coords:
+          self.bufcoords = self.coords[self.nrowsread:self.nrowsread+self.nrowsinbuf]
+        else:
+          self.bufcoords = self.index.getCoords(self.nrowsread, self.nrowsinbuf)
+        self.indexChunk = -1
+        recout = self._table._read_elements(0, self.bufcoords)
+        if self._table.byteorder <> sys.byteorder:
+          self._recarray._byteswap()
+        self.nrowsread = self.nrowsread + recout
+
+      self.indexChunk = self.indexChunk + 1
+      self._nrow = self.bufcoords[self.indexChunk]
+      self._row = self.indexChunk
+      self.nextelement = self.nextelement + 1
+      # Return this row
+      return self
+    else:
+      self._table._close_read()  # Close the table
+      # Re-initialize the possible cuts in columns
+      self._table.ops = []
+      self._table.opsValues = []
+      self._table.whereColname = None
+      self.whereCond = 0
+      self.indexed = 0
+      self.coords = None
+      self.index._delBuffer()  # Remove buffers
+      raise StopIteration        # end of iteration
+
+  cdef __next__whereCond(self):
+    """The version of next() in case of in-kernel conditions"""
+    cdef long offset
+    cdef object indexValid1, indexValid2
+    cdef int ncond, op, recout
+    cdef object opValue, field
 
     self.nextelement = self._nrow + self.step
     while self.nextelement < self.stop:
@@ -1853,49 +1998,52 @@ cdef class Row:
           self.stopb = self.nrowsinbuf
         self._row = self.startb - self.step
         # Read a chunk
-        self.recout = self._table._read_records(self.nrowsread,
-                                                self.nrowsinbuf)
-        self.nrowsread = self.nrowsread + self.recout
+        recout = self._table._read_records(self.nrowsread,
+                                           self.nrowsinbuf)
+        self.nrowsread = self.nrowsread + recout
         if self._table.byteorder <> sys.byteorder:
           self._recarray._byteswap()
+        # The next assignment should be faster, but does not work!
+        #self._recarray._byteorder = self._table.byteorder
         self.indexChunk = -1
-        # Do we have a select condition?
-        if self.whereCond:
-          # Iterate over the conditions
-          ncond = 0
-          for op in self._table.ops:
-            opValue = self._table.opsValues[ncond]
-            if op == 1:
-              indexValid1 = self._fields[self.colname].__lt__(opValue)
-            elif op == 2:
-              indexValid1 = self._fields[self.colname].__le__(opValue)
-            elif op == 3:
-              indexValid1 = self._fields[self.colname].__gt__(opValue)
-            elif op == 4:
-              indexValid1 = self._fields[self.colname].__ge__(opValue)
-            elif op == 5:
-              indexValid1 = self._fields[self.colname].__eq__(opValue)
-            elif op == 6:
-              indexValid1 = self._fields[self.colname].__ne__(opValue)
-            # Consolidate the valid indexes
-            if ncond == 0:
-              self.indexValid = indexValid1
-            else:
-              self.indexValid = self.indexValid.__and__(indexValid1)
-            ncond = ncond + 1
-              
-            # Is still there any interesting information in this buffer?
-#             if not numarray.sometrue(self.indexValid):
-#               # No, so exit this loop
-#               break
+        # Iterate over the conditions
+        ncond = 0
+        for op in self._table.ops:
+          opValue = self._table.opsValues[ncond]
+          # Copying first on a non-strided array, reduces the speed
+          # in a factor of 20%
+          #field = self._fields[self.colname].copy()
+          if op == 1:
+            indexValid1 = self._fields[self.colname].__lt__(opValue)
+            #indexValid1 = field.__lt__(opValue)
+          elif op == 2:
+            indexValid1 = self._fields[self.colname].__le__(opValue)
+          elif op == 3:
+            indexValid1 = self._fields[self.colname].__gt__(opValue)
+            #indexValid1 = field.__gt__(opValue)
+          elif op == 4:
+            indexValid1 = self._fields[self.colname].__ge__(opValue)
+          elif op == 5:
+            indexValid1 = self._fields[self.colname].__eq__(opValue)
+          elif op == 6:
+            indexValid1 = self._fields[self.colname].__ne__(opValue)
+          # Consolidate the valid indexes
+          if ncond == 0:
+            self.indexValid = indexValid1
+          else:
+            self.indexValid = self.indexValid.__and__(indexValid1)
+          ncond = ncond + 1
 
-          # Is still there any interesting information in this buffer?
-          if not numarray.sometrue(self.indexValid):
-            # No, so take the next one
-            self.nextelement = self.nextelement + self.nrowsinbuf
-            continue
+        # This indexing operation is *very* costly, so it is better
+        # to keep the boolean (indexValid) approach.
+        #result = self._recarray[self.indexValid]
+        #if len(result) == 0:
+        # Is still there any interesting information in this buffer?
+        if not numarray.sometrue(self.indexValid):
+          # No, so take the next one
+          self.nextelement = self.nextelement + self.nrowsinbuf
+          continue
       
-      self.indexChunk = self.indexChunk + 1
       self._row = self._row + self.step
       self._nrow = self.nextelement
       if self._row + self.step >= self.stopb:
@@ -1904,19 +2052,58 @@ cdef class Row:
 
       self.nextelement = self._nrow + self.step
       # Return only if this value is interesting
-      if self.whereCond:
-        if self.indexValid[self.indexChunk]:
-          return self
-      else:
+      self.indexChunk = self.indexChunk + 1
+      if self.indexValid[self.indexChunk]:
         return self
     else:
       self._table._close_read()  # Close the table
       # Re-initialize the possible cuts in columns
       self._table.ops = []
       self._table.opsValues = []
-      self._table.whereColumn = None
+      self._table.whereColname = None
+      self.whereCond = 0
       raise StopIteration        # end of iteration
 
+  # This is the most general __next__ version, simple, but effective
+  cdef __next__general(self):
+    """The version of next() for the general cases"""
+    cdef long offset
+    cdef object indexValid1, indexValid2
+    cdef int ncond, op, recout
+    cdef object opValue, field
+
+    self.nextelement = self._nrow + self.step
+    while self.nextelement < self.stop:
+      if self.nextelement >= self.nrowsread:
+        # Skip until there is interesting information
+        while self.nextelement >= self.nrowsread + self.nrowsinbuf:
+          self.nrowsread = self.nrowsread + self.nrowsinbuf
+        # Compute the end for this iteration
+        self.stopb = self.stop - self.nrowsread
+        if self.stopb > self.nrowsinbuf:
+          self.stopb = self.nrowsinbuf
+        self._row = self.startb - self.step
+        # Read a chunk
+        recout = self._table._read_records(self.nrowsread,
+                                           self.nrowsinbuf)
+        self.nrowsread = self.nrowsread + recout
+        if self._table.byteorder <> sys.byteorder:
+          self._recarray._byteswap()
+        # This should be faster but doesn't seem to work
+        #self._recarray._byteorder = self._table.byteorder
+      
+      self._row = self._row + self.step
+      self._nrow = self.nextelement
+      if self._row + self.step >= self.stopb:
+        # Compute the start row for the next buffer
+        self.startb = (self._row + self.step) % self.nrowsinbuf
+
+      self.nextelement = self._nrow + self.step
+      # Return this value
+      return self
+    else:
+      self._table._close_read()  # Close the table
+      raise StopIteration        # end of iteration
 
   def _fillCol(self, result, start, stop, step, field):
     "Read a field from a table on disk and put the result in result"
@@ -1924,7 +2111,7 @@ cdef class Row:
     cdef int istart, istop, istep, inrowsinbuf, inextelement, inrowsread
     cdef object fields
     
-    self._initLoop(start, stop, step)
+    self._initLoop(start, stop, step, None, 0)
     istart, istop, istep = (self.start, self.stop, self.step)
     inrowsinbuf, inextelement, inrowsread = (self.nrowsinbuf, istart, istart)
     istartb, startr = (self.startb, 0)
@@ -2101,8 +2288,11 @@ cdef class Array:
   cdef char    *name
   cdef int     rank
   cdef hsize_t *dims
+  cdef hsize_t *dims_chunk
   cdef int     enumtype
-  cdef hid_t   type_id
+  cdef hid_t   dataset_id, type_id, space_id, mem_space_id
+  cdef void    *rbuflb
+  cdef hsize_t count[2], stride[2]
 
   def _g_new(self, where, name):
     # Initialize the C attributes of Group object (Very important!)
@@ -2159,17 +2349,18 @@ cdef class Array:
     # Fill the dimension axis info with adequate info (and type!)
     for i from  0 <= i < self.rank:
         self.dims[i] = naarr.shape[i]
-        if self.dims[i] == 0:
-          # When a dimension is zero, we have no available data
-          rbuf = NULL
+        # This should not be necessary anymore
+#         if self.dims[i] == 0:
+#           # When a dimension is zero, we have no available data
+#           rbuf = NULL
 
     # Save the array
     flavor = PyString_AsString(self.flavor)
     complib = PyString_AsString(self.filters.complib)
     version = PyString_AsString(self._v_version)
-    oid = H5ARRAYmake(self.parent_id, self.name, title,
+    oid = H5ARRAYmake(self.parent_id, self.name, "ARRAY", title,
                       flavor, version, self.rank, self.dims, self.extdim,
-                      self.type_id, self._v_maxTuples, rbuf,
+                      self.type_id, NULL, rbuf,
                       self.filters.complevel, complib,
                       self.filters.shuffle, self.filters.fletcher32,
                       rbuf)
@@ -2180,7 +2371,7 @@ cdef class Array:
 
     return type
     
-  def _createEArray(self, char *title):
+  def _createEArray(self, char *klass, char *title):
     cdef int i
     cdef herr_t ret
     cdef hid_t oid
@@ -2204,9 +2395,11 @@ cdef class Array:
 
     self.rank = len(self.shape)
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
+    self.dims_chunk = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Fill the dimension axis info with adequate info
     for i from  0 <= i < self.rank:
         self.dims[i] = self.shape[i]
+        self.dims_chunk[i] = self._v_chunksize[i]
 
     rbuf = NULL   # The data pointer. We don't have data to save initially
     # Manually convert some string values that can't be done automatically
@@ -2214,24 +2407,25 @@ cdef class Array:
     complib = PyString_AsString(self.filters.complib)
     version = PyString_AsString(self._v_version)
     # Create the EArray
-    oid = H5ARRAYmake(self.parent_id, self.name, title,
+    oid = H5ARRAYmake(self.parent_id, self.name, klass, title,
                       flavor, version, self.rank, self.dims, self.extdim,
-                      self.type_id, self._v_maxTuples, rbuf,
+                      self.type_id, self.dims_chunk, rbuf,
                       self.filters.complevel, complib,
                       self.filters.shuffle, self.filters.fletcher32,
                       rbuf)
     if oid < 0:
       raise RuntimeError("Problems creating the EArray.")
     self.objectID = oid
-    H5Tclose(self.type_id)    # Release resources
-
+    # Release resources
+    H5Tclose(self.type_id)
     return
     
   def _append(self, object naarr):
     cdef int ret, rank
     cdef hsize_t *dims_arr
     cdef void *rbuf
-    cdef long buflen, offset
+    cdef long offset
+    cdef int buflen
     cdef object shape
 
     # Allocate space for the dimension axis info
@@ -2242,7 +2436,10 @@ cdef class Array:
         dims_arr[i] = naarr.shape[i]
 
     # Get the pointer to the buffer data area
-    buflen = NA_getBufferPtrAndSize(naarr._data, 1, &rbuf)
+    # Both methods do the same
+    #buflen = NA_getBufferPtrAndSize(naarr._data, 1, &rbuf)
+    if ( PyObject_AsReadBuffer(naarr._data, &rbuf, &buflen) < 0 ):
+      raise RuntimeError, "Error getting the buffer location"
     # Correct the start of the buffer with the _byteoffset
     offset = naarr._byteoffset
     rbuf = <void *>(<char *>rbuf + offset)
@@ -2251,14 +2448,14 @@ cdef class Array:
     ret = H5ARRAYappend_records(self.parent_id, self.name, self.rank,
                                 self.dims, dims_arr, self.extdim, rbuf)
 
-    free(dims_arr)
     if ret < 0:
       raise RuntimeError("Problems appending the records.")
+    free(dims_arr)
     # Update the new dimensionality
     shape = list(self.shape)
     shape[self.extdim] = self.dims[self.extdim]
-    self.nrows = self.dims[self.extdim]
     self.shape = tuple(shape)
+    self.nrows = self.dims[self.extdim]
     
   def _openArray(self):
     cdef object shape
@@ -2287,11 +2484,16 @@ cdef class Array:
       H5LTget_attribute_string(self.parent_id, self.name, "FLAVOR", flavor)
       H5LTget_attribute_string(self.parent_id, self.name, "VERSION", version)
       fversion = atof(version)
-      #if fversion >= 2.:
-      if self.__class__.__name__ == "EArray":
+      if (self.__class__.__name__ == "EArray" or 
+          self.__class__.__name__ == "IndexArray"):
         # For EArray, EXTDIM attribute exists
         H5LTget_attribute_int(self.parent_id, self.name, "EXTDIM", &extdim)
         self.extdim = extdim
+        # Allocate space for the dimension chunking info
+        self.dims_chunk = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
+        if ( (H5ARRAYget_chunksize(self.parent_id, self.name,
+                                   self.rank, self.dims_chunk)) < 0):
+          raise RuntimeError, "Problems getting the chunksizes!"
     self.flavor = flavor  # Gives class visibility to flavor
 
     # Get the array type
@@ -2318,12 +2520,17 @@ cdef class Array:
     """
     # So, I've decided to create the shape tuple using Python constructs
     shape = []
+    chunksizes = []
     for i from 0 <= i < self.rank:
       # The <int> cast avoids returning a Long integer
       shape.append(<int>self.dims[i])
+      if (self.__class__.__name__ == "EArray" or 
+          self.__class__.__name__ == "IndexArray"):
+        chunksizes.append(<int>self.dims_chunk[i])
     shape = tuple(shape)
+    chunksizes = tuple(chunksizes)
 
-    return (toclass[self.enumtype], shape, type_size, byteorder)
+    return (toclass[self.enumtype], shape, type_size, byteorder, chunksizes)
   
   def _readArray(self, hsize_t start, hsize_t stop, hsize_t step,
                  object buf):
@@ -2349,33 +2556,271 @@ cdef class Array:
 
     return 
 
-  def _g_readSlice(self, object startl, object stopl,
-                   object stepl, object buf):
+  def _g_readSlice(self, startl, stopl, stepl, bufferl):
     cdef herr_t ret
-    cdef void *rbuf
-    cdef void *start, *stop, *step
     cdef long ndims, buflen
+    cdef void *startlb, *stoplb, *steplb, *rbuflb
+    cdef long offset
 
     # Get the pointer to the buffer data area of startl, stopl and stepl arrays
-    ndims = NA_getBufferPtrAndSize(startl._data, 1, &start)
-    ndims = NA_getBufferPtrAndSize(stopl._data, 1, &stop)
-    ndims = NA_getBufferPtrAndSize(stepl._data, 1, &step)
-
+    ndims = NA_getBufferPtrAndSize(startl._data, 1, &startlb)
+    ndims = NA_getBufferPtrAndSize(stopl._data, 1, &stoplb)
+    ndims = NA_getBufferPtrAndSize(stepl._data, 1, &steplb)
     # Get the pointer to the buffer data area
-    buflen = NA_getBufferPtrAndSize(buf, 1, &rbuf)
-
+    buflen = NA_getBufferPtrAndSize(bufferl._data, 1, &rbuflb)
+    # Correct the start of the buffer with the _byteoffset
+    offset = bufferl._byteoffset
+    rbuflb = <void *>(<char *>rbuflb + offset)
+    # Do the physical read
     ret = H5ARRAYreadSlice(self.parent_id, self.name,
-                           <hsize_t *>start, <hsize_t *>stop,
-                           <hsize_t *>step, rbuf)
+                           <hsize_t *>startlb, <hsize_t *>stoplb,
+                           <hsize_t *>steplb, rbuflb)
     if ret < 0:
       raise RuntimeError("Problems reading the array data.")
 
     return 
 
+  def _g_readIndex(self, int i, int ns, int len,
+                   startl, stopl, stepl, bufferR, bufferA):
+    cdef herr_t ret
+    cdef long ndims, buflen
+    cdef void *startlb, *stoplb, *steplb, *vrbufR, *vrbufA
+    cdef int *rbufR
+    cdef long long *rbufA
+    cdef long long offset
+    cdef long offsetl
+    cdef int j
+
+    # Get the pointer to the buffer data area of startl, stopl and stepl arrays
+    ndims = NA_getBufferPtrAndSize(startl._data, 1, &startlb)
+    ndims = NA_getBufferPtrAndSize(stopl._data, 1, &stoplb)
+    ndims = NA_getBufferPtrAndSize(stepl._data, 1, &steplb)
+    # Get the pointer to the buffer data area
+    buflen = NA_getBufferPtrAndSize(bufferR._data, 1, &vrbufR)
+    buflen = NA_getBufferPtrAndSize(bufferA._data, 1, &vrbufA)
+    # Correct the start of the buffer with the _byteoffset
+    offsetl = bufferR._byteoffset
+    vrbufR = <void *>(<char *>vrbufR + offsetl)
+    offsetl = bufferA._byteoffset
+    vrbufA = <void *>(<char *>vrbufA + offsetl)
+    # Do the physical read
+    ret = H5ARRAYreadSlice(self.parent_id, self.name,
+                           <hsize_t *>startlb, <hsize_t *>stoplb,
+                           <hsize_t *>steplb, vrbufR)
+    if ret < 0:
+      raise RuntimeError("Problems reading the array data.")
+
+    # Now, compute the absolute coords for table rows by adding the offset
+    rbufR = <int *>vrbufR
+    rbufA = <long long *>vrbufA
+    offset = i*ns
+    for j from  0 <= j < len: 
+      rbufA[j] = rbufR[j] + offset
+      
+    return 
+
+  def _initSortedSlice(self, int bufsize):
+    "Initialize the structures for doing a binary search"
+    cdef long ndims, buflen
+
+    # Create the buffer for reading sorted data chunks
+    self.bufferl = numarray.array(None,type=self.type, shape=bufsize)
+
+    # Set the same byteorder than on-disk
+    self.bufferl._byteorder = self.byteorder
+
+    # Get the pointer to the buffer data area of startl, stopl and stepl arrays
+    # Get the pointer to the buffer data area
+    buflen = NA_getBufferPtrAndSize(self.bufferl._data, 1, &self.rbuflb)
+
+    # Open the array for reading
+    if (H5ARRAYOopen_readSlice(&self.dataset_id, &self.space_id,
+                               &self.type_id, &self.mem_space_id,
+                               bufsize,
+                               self.parent_id, self.name) < 0):
+      raise RuntimeError("Problems opening the sorted array data.")
+
+    # Setup the count and stride elements
+    self.count[0] = 1; self.count[1] = bufsize # Always read bufsize elements
+    self.stride[0] = 1; self.stride[1] = 1
+
+  def _readSortedSlice_orig(self, hsize_t irow, hsize_t start, hsize_t stop):
+    "Read the sorted part of an index"
+
+    ret = H5ARRAYOread_readSlice(self.dataset_id,
+                                 self.space_id,
+                                 self.type_id,
+                                 self.mem_space_id,
+                                 irow,
+                                 start,
+                                 stop,
+                                 self.rbuflb)
+    if ret < 0:
+      raise RuntimeError("Problems reading the array data.")
+
+    return self.bufferl
+
+  # This does optimization not really bring better performance, but
+  # as H5ARRAYOread_readSlice is really simple, I think this way of reading
+  # would be more readable.
+  def _readSortedSlice(self, hsize_t irow, hsize_t start):
+    "Read the sorted part of an index"
+    cdef hssize_t offset[2]
+
+    # Setup the hyperselection
+    offset[0] = irow; offset[1] = start
+    if H5Sselect_hyperslab(self.space_id, H5S_SELECT_SET, offset,
+                           self.stride, self.count, NULL) < 0:
+      raise RuntimeError("Problems setting the hyperselection.")
+
+    # Do the phisical read
+    if H5Dread( self.dataset_id, self.type_id, self.mem_space_id,
+                self.space_id, H5P_DEFAULT, self.rbuflb )< 0:
+      raise RuntimeError("Problems reading the array data.")
+
+    return self.bufferl
+
+  def _destroySortedSlice(self):
+    del self.bufferl
+    # Close the array for reading
+    if (H5ARRAYOclose_readSlice(self.dataset_id, self.space_id,
+                                self.type_id, self.mem_space_id) < 0):
+      raise RuntimeError("Problems closing the sorted array data.")
+
+# This has been copied from the standard module bisect.
+# Checks for the values out of limits has been added at the beginning
+# because I forsee that this should be a very common case.
+# 2004-05-20
+  cdef _bisect_left(self, a, x, int hi):
+    """Return the index where to insert item x in list a, assuming a is sorted.
+
+    The return value i is such that all e in a[:i] have e < x, and all e in
+    a[i:] have e >= x.  So if x already appears in the list, i points just
+    before the leftmost x already there.
+
+    """
+    cdef int lo, mid
+
+    lo = 0
+    if x <= a[0]: return 0
+    # The NA_getPythonScalar takes the same time than normal indexinng
+    #if NA_getPythonScalar(a, 0) >= x: return 0
+    if a[-1] < x: return hi
+    #if NA_getPythonScalar(a, (hi-1)*4) < x: return hi
+    while lo < hi:
+        mid = (lo+hi)/2
+        if a[mid] < x: lo = mid+1
+        #if NA_getPythonScalar(a, mid*4) < x: lo = mid+1
+        else: hi = mid
+    return lo
+
+  cdef _interSearch(self, int nrow, int bufsize, item, int lo, int hi):
+    cdef int niter, mid, start, result
+    
+    niter = 0
+    while lo < hi:
+        mid = (lo+hi)/2
+        start = (mid/bufsize)*bufsize
+        #buffer = self._readSortedSlice(nrow, start, start+bufsize)
+        buffer = self._readSortedSlice(nrow, start)
+        #buffer = xrange(start,start+bufsize) # test
+        niter = niter + 1
+        result = self._bisect_left(buffer, item, bufsize)
+        if result == 0:
+            if buffer[result] == item:
+                lo = start
+                break
+            # The item is at left
+            hi = mid
+        elif result == bufsize:
+            # The item is at the right
+            lo = mid+1
+        else:
+            # Item has been found. Exit the loop and return
+            lo = result+start
+            break
+    return (lo, niter)
+
+  def _searchBin(self, int nrow, item):
+    cdef int hi, lo, bufsize, niter, item1done, item2done
+    cdef int result1, result2
+    
+    hi = self.shape[1]   # Number of elements / chunk
+    item1, item2 = item
+    item1done = 0; item2done = 0
+    # Look for items at the beginning
+    bufsize = self._v_chunksize[1] # Number of elements/chunksize
+    #buffer = self._readSortedSlice(nrow, 0, bufsize)
+    buffer = self._readSortedSlice(nrow, 0)
+    #buffer = xrange(0, bufsize)  # test  # 0.02 over 0.5 seg
+    niter = 1
+    result1 = self._bisect_left(buffer, item1, bufsize)
+    if 0 <= result1 < bufsize:
+        item1done = 1
+    result2 = self._bisect_left(buffer, item2, bufsize)
+    if 0 <= result2 < bufsize:
+        item2done = 1
+    if item1done and item2done:
+        return (result1, result2, niter)
+    # The end
+    #buffer = self._readSortedSlice(nrow, hi-bufsize, hi)
+    buffer = self._readSortedSlice(nrow, hi-bufsize)
+    #buffer = xrange(hi-bufsize, hi)  # test
+    niter = 2
+    if not item1done:
+        result1 = self._bisect_left(buffer, item1, bufsize)
+        if 0 < result1 < bufsize:
+            item1done = 1
+            result1 = hi - bufsize + result1 ## ??
+        elif result1 == bufsize:
+            item1done = 1
+            result1 = hi
+    if not item2done:
+        result2 = self._bisect_left(buffer, item2, bufsize)
+        if 0 < result2 < bufsize:
+            item2done = 1
+            result2 = hi - bufsize + result2  ## ??
+        elif result2 == bufsize:
+            item2done = 1
+            result2 = hi
+    if item1done and item2done:
+        return (result1, result2, niter)
+
+    lo = 0
+    # Intermediate look for item1
+    if not item1done:
+        (result1, iter) = self._interSearch(nrow, bufsize, item1, lo, hi)
+        niter = niter + iter
+    # Intermediate look for item1
+    if not item2done:
+        (result2, iter) = self._interSearch(nrow, bufsize, item2, lo, hi)
+        niter = niter + iter
+    return (result1, result2, niter)
+
+    # This method has been passed to IndexArray class, to isolate from
+    # other classes and because in python it is not a bottleneck
+    # F. Alted 2004-06-02
+#   def searchBin(self, item):
+#     cdef int  niter, ntotaliter
+    
+#     ntotaliter = 0  # for counting the number of reads on each
+#     inflimit = []; suplimit = []
+#     bufsize = self._v_chunksize[1] # number of elements/chunksize
+#     self._initSortedSlice(bufsize)
+#     for i from  0 <= i < self.nrows:
+#       (result1, result2, niter) = self._searchBin(i, item)
+#       inflimit.append(result1)
+#       suplimit.append(result2)
+#       ntotaliter = ntotaliter + niter
+#     self._destroySortedSlice()
+#     return (inflimit, suplimit, ntotaliter)
+
   def __dealloc__(self):
     #print "Destroying object Array in Extension"
     free(<void *>self.dims)
     free(<void *>self.name)
+    if self.dims_chunk:
+      free(self.dims_chunk)
 
 
 cdef class VLArray:

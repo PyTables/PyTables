@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.65 2004/04/29 17:04:30 falted Exp $
+#       $Id: Array.py,v 1.66 2004/06/18 12:31:07 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.65 $"
+__version__ = "$Revision: 1.66 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -229,8 +229,9 @@ class Array(Leaf, hdf5Extension.Array, object):
 
     def _open(self):
         """Get the metadata info for an array in file."""
-        (self.type, self.shape, self.itemsize, self.byteorder) = \
-                        self._openArray()
+        (self.type, self.shape, self.itemsize, self.byteorder,
+         self._v_maxTuples) = self._openArray()
+        
         # Compute the rowsize for each element
         self.rowsize = self.itemsize
         for i in range(len(self.shape)):
@@ -241,9 +242,10 @@ class Array(Leaf, hdf5Extension.Array, object):
         else:
             self.nrows = 1   # Scalar case
         # Compute the optimal chunksize
-        (self._v_maxTuples, self._v_chunksize) = \
-                   calcBufferSize(self.rowsize, self.nrows,
-                                  self.filters.complevel)
+        # Not needed anymore
+#         (self._v_maxTuples, self._v_chunksize) = \
+#                    calcBufferSize(self.rowsize, self.nrows,
+#                                   self.filters.complevel)
 
     def iterrows(self, start=None, stop=None, step=None):
         """Iterator over all the rows or a range"""
@@ -297,6 +299,7 @@ class Array(Leaf, hdf5Extension.Array, object):
             #print "start, stop, step:", self._start, self._stop, self._step
             # Read a chunk of rows
             if self._row+1 >= self._v_maxTuples or self._row < 0:
+                #print "self._v_maxTuples", self._v_maxTuples
                 self._stopb = self._startb+self._step*self._v_maxTuples
                 # Protection for reading more elements than needed
                 if self._stopb > self._stop:
@@ -322,7 +325,9 @@ class Array(Leaf, hdf5Extension.Array, object):
             self._row += 1
             self.nrow += self._step
             self._nrowsread += self._step
-            if self.listarr.shape:
+            # Fixes bug #968132
+            #if self.listarr.shape:
+            if self.shape:
                 return self.listarr[self._row]
             else:
                 return self.listarr    # Scalar case
@@ -367,12 +372,20 @@ class Array(Leaf, hdf5Extension.Array, object):
                     stepl[dim] = 1
                     dim += 1
             elif isinstance(key, types.IntType):
-                start, stop, step = processRange(self.shape[dim],
-                                                 key, key+1, 1)
+                # Index out of range protection
+                if key >= self.shape[dim]:
+                    raise IndexError, "Index out of range"
+                if key < 0:
+                    # To support negative values
+                    key += self.shape[dim]
+                start, stop, step = processRangeRead(self.shape[dim],
+                                                     key, key+1, 1)
                 stop_None[dim] = 1
             elif isinstance(key, types.SliceType):
-                start, stop, step = processRange(self.shape[dim],
-                                                 key.start, key.stop, key.step)
+                start, stop, step = processRangeRead(self.shape[dim],
+                                                     key.start,
+                                                     key.stop,
+                                                     key.step)
             else:
                 raise ValueError, "Non-valid index or slice: %s" % \
                       key
@@ -410,9 +423,12 @@ class Array(Leaf, hdf5Extension.Array, object):
         if repr(self.type) == "CharType":
             arr = strings.array(None, itemsize=self.itemsize, shape=shape)
         else:
-            arr = numarray.zeros(type=self.type, shape=shape)
+            #arr = numarray.zeros(type=self.type, shape=shape)
+            # This is slightly faster (~3%) than zeros()
+            arr = numarray.array(None,type=self.type, shape=shape)
             # Set the same byteorder than on-disk
             arr._byteorder = self.byteorder
+
         # Protection against reading empty arrays
         zerodim = 0
         for i in range(len(shape)):
@@ -421,17 +437,19 @@ class Array(Leaf, hdf5Extension.Array, object):
 
         if not zerodim:
             # Arrays that have non-zero dimensionality
-            self._g_readSlice(startl, stopl, stepl, arr._data)
-            pass
+            self._g_readSlice(startl, stopl, stepl, arr)
 
         if hasattr(self, "_v_convert") and self._v_convert == 0:
             return arr
             
-        if self.flavor not in ["NumArray", "CharArray"]:
-            return self._convToFlavor(arr)
-        else:
+        if self.flavor in ["NumArray", "CharArray"]:
             # No conversion needed
             return arr
+        # Fixes #968131
+        elif arr.shape == ():  # Scalar case
+            return arr[()]  # return the value. Yes, this is a weird syntax :(
+        else:
+            return self._convToFlavor(arr)
         
     def _convToFlavor(self, arr):
         "Convert the numarray parameter to the correct flavor"
@@ -504,7 +522,11 @@ class Array(Leaf, hdf5Extension.Array, object):
             self._readArray(start, stop, step, arr._data)
             
         if self.flavor in ["NumArray", "CharArray"]:
-            return arr  # No further conversions needed
+            # No conversion needed
+            return arr
+        # Fixes #968131
+        elif arr.shape == ():  # Scalar case
+            return arr[()]  # return the value. Yes, this is a weird syntax :(
         else:
             return self._convToFlavor(arr)
         

@@ -1,3 +1,24 @@
+Announcing PyTables 0.8.1
+-------------------------
+
+- New __len__(self) methods added in Arrays, Tables and Columns. This,
+  in combination with __getitem__(self,key) allows to better emulate
+  sequences so that you can do, for example:
+
+  >>> bisect.bisect(PTarray, 123)
+  >>> bisect.bisect(PTTable.cols.col3, 123)
+
+  where PTArray is an unidimensional array in integers and PTTable is
+  a Table object. This makes a binary search for value 123.
+
+Solved issues:
+
+- Accessing single elements when using list or tuple flavors now
+  returns the desired element rather that raising an AttributeError.
+
+- Accessing to an out of range index raises now an IndexError instead
+  of returning and empty object.
+
 Announcing PyTables 0.8
 -----------------------
 

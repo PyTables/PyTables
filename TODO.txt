@@ -1,4 +1,4 @@
-TODO list (as of 22th, Feb 2004):
+TODO list (as of 20th, May 2004):
 
 - Add a new type of table that allows variable length records and
   fully multidimensional slice selections.
@@ -17,6 +17,15 @@ TODO list (as of 22th, Feb 2004):
   that).
 
 - Add tutorials about EArray and VLArray objects
+
+- Implement a flush() for Groups, so that the buffers of the Leafs
+  hanging from Group are flushed.
+
+- Implement indexes for fields in tables.
+
+- Add a Table.modifyRow()?
+
+- Add support for optimized ucl_decompr and lzo_decompr in 386 assembler
 
 And as always...
 

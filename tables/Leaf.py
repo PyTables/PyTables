@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.47 2004/04/29 17:04:30 falted Exp $
+#       $Id: Leaf.py,v 1.48 2004/06/18 12:31:08 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.47 $"
+__version__ = "$Revision: 1.48 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -435,6 +435,10 @@ class Leaf(hdf5Extension.Leaf, object):
         # object dictionary using the brute force ;-)
         # This should help to the garbage collector
         #self.__dict__.clear()
+
+    def __len__(self):
+        "Useful for dealing with Leaf objects as sequences"
+        return self.nrows
 
     def __str__(self):
         """The string reprsentation choosed for this object is its pathname

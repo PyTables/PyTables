@@ -3005,9 +3005,10 @@ AttributeError: Error setting "ADCcount" attr.
 		<verb>CharArrays</verb> string arrays). However, these
 		objects must be regular (i.e. they cannot be like, for
 		example, <verb>[[1,2],2]</verb>). Also, objects that
-		has some of its dimension equal to zero are not
-		supported (this will be solved when unlimited arrays
-		will be implemented).
+		has some of its dimensions equal to zero are not
+		supported (use <ref
+		refid="createEArrayDescr"><verb>EArray</verb></ref>
+		objects if you want this).
 	      </item>
 	    </description>
 	    <p>See <ref

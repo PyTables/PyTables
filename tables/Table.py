@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.109 2004/05/12 17:09:17 falted Exp $
+#       $Id: Table.py,v 1.110 2004/06/18 12:31:08 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.109 $"
+__version__ = "$Revision: 1.110 $"
 
 from __future__ import generators
 import sys
@@ -43,11 +43,14 @@ import numarray
 import numarray.strings as strings
 import numarray.records as records
 import hdf5Extension
+from hdf5Extension import PyNextAfter, PyNextAfterF
 from utils import calcBufferSize, processRange, processRangeRead
 import Group
-from Leaf import Leaf
+from Leaf import Leaf, Filters
+from Index import Index
 from IsDescription import IsDescription, Description, metaIsDescription, \
      Col, StringCol, fromstructfmt
+from VLArray import Atom
 
 try:
     import Numeric
@@ -63,6 +66,40 @@ byteorderDict={"=": sys.byteorder,
 
 revbyteorderDict={'little': '<',
                   'big': '>'}
+
+maxFloat=float((2**1024 - 2**971))  # From the IEEE 754 standard
+maxFloatF=float((2**128 - 2**104))  # From the IEEE 754 standard
+Finf=float("inf")  # Infinite in the IEEE 754 standard
+
+# Utility functions
+def maxnumber(type):
+    if type in ["Int8", "UInt8","Int16", "UInt16",
+                "Int32", "UInt32","Int64", "UInt64"]:
+        return sys.maxint
+    elif type == "Float32":
+        return maxFloatF
+    elif type == "Float64":
+        return maxFloat
+    else:
+        raise TypeError, "Type %s is not supported" % type
+
+def nextafter(x, y, type):
+    "Return the next representable neighbor of x in the direction towards y."
+
+    if type in ["Int8", "UInt8","Int16", "UInt16",
+                "Int32", "UInt32","Int64", "UInt64"]:
+        if y < x:
+            return x-1
+        elif y > x:
+            return x+1
+        else: # y == x
+            return y
+    elif type == "Float32":
+        return PyNextAfterF(x,y)
+    elif type == "Float64":
+        return PyNextAfter(x,y)
+    else:
+        raise TypeError, "Type %s is not supported" % type
 
 
 class Table(Leaf, hdf5Extension.Table, object):
@@ -93,6 +130,7 @@ class Table(Leaf, hdf5Extension.Table, object):
         colnames -- the field names for the table (list)
         coltypes -- the type class for the table fields (dictionary)
         colshapes -- the shapes for the table fields (dictionary)
+        colindexed -- whether the table fields are indexed (dictionary)
 
     """
 
@@ -134,7 +172,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.ops = []
         self.opsValues = []
         self.whereColumn = None
-
         # Initialize this object in case is a new Table
         if isinstance(description, types.DictType):
             # Dictionary case
@@ -238,7 +275,16 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.colitemsizes = self.description._v_itemsizes
         # Compute the byte order
         self.byteorder = byteorderDict[self._v_fmt[0]]
+        # Create the Row object helper
         self.row = hdf5Extension.Row(self)
+        # Create a cols accessor
+        self.cols = Cols(self)
+    
+        # Initially, the columns are not indexed
+        self.colindexed = {}
+        for colname in self.colnames:
+            self.colindexed[colname] = 0
+
 
     def _open(self):
         """Opens a table from disk and read the metadata on it.
@@ -281,6 +327,14 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.coltypes = self.description.__types__
         self.colshapes = self.description._v_shapes
         self.colitemsizes = self.description._v_itemsizes
+        # Check whether the columns are indexed or not
+        self.colindexed = {}
+        for colname in self.colnames:
+            iname = "_i_"+self.name+"_"+colname
+            if iname in self._v_parent._v_indices:
+                self.colindexed[colname] = 1
+            else:
+                self.colindexed[colname] = 0
         # Compute buffer size
         (self._v_maxTuples, self._v_chunksize) = \
               calcBufferSize(self.rowsize, self.nrows,
@@ -289,6 +343,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.shape = (self.nrows,)
         # Associate a Row object to table
         self.row = hdf5Extension.Row(self)
+        # Create a cols accessor
+        self.cols = Cols(self)
         
     def _saveBufferedRows(self):
         """Save buffered table rows"""
@@ -308,58 +364,99 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.shape = (self.nrows,)
 
     def iterrows(self, start=None, stop=None, step=None, where=None):
-        """Iterator over all the rows or a range"""
+        """Iterator over all the rows or a range
+
+        where can be used to specify selections along a column in the
+        form:
+
+        where=(0<table.cols.col1<0.3)
+
+        However, specifying where and a step value different than 1 is
+        not implemented yet.
+
+        """
 
         return self.__call__(start, stop, step, where)
 
+    def _getLookupRange(self):
+
+        import time
+        colname = self.whereColname
+        # Get the coordenates for those values
+        ilimit = self.opsValues
+        ctype = self.coltypes[colname]
+        #print "ctype-->", ctype
+        notequal = 0
+        if len(ilimit) == 1:
+            ilimit = ilimit[0]
+            op = self.ops[0]
+            if op == 1: # __lt__
+                item = (-Finf, ilimit)
+            elif op == 2: # __le__
+                item = (-Finf, nextafter(ilimit, ilimit+1, ctype))
+            elif op == 3: # __gt__
+                item = (nextafter(ilimit, ilimit+1, ctype), Finf)
+            elif op == 4: # __ge__
+                item = (ilimit, Finf)
+            elif op == 5: # __eq__
+                item = (ilimit, nextafter(ilimit, ilimit+1, ctype))
+            elif op == 6: # __ne__
+                # I need to cope with this
+                raise NotImplementedError, "'!=' or '<>' not supported yet"
+                notequal = 1
+        elif len(ilimit) == 2:
+            # I need to complete this
+            op1, op2 = self.ops
+            item1, item2 = ilimit
+            if op1 == 3 and op2 == 1:  # item1 < col < item2
+                item = (nextafter(item1, item1+1, ctype), item2)
+            elif op1 == 4 and op2 == 1:  # item1 <= col < item2
+                item = (item1, item2)
+            elif op1 == 3 and op2 == 2:  # item1 < col <= item2
+                item = (nextafter(item1, item1+1, ctype),
+                        nextafter(item2, item2+1, ctype))
+            elif op1 == 4 and op2 == 2:  # item1 <= col <= item2
+                item = (item1, nextafter(item2, item2+1, ctype))
+            else:
+                raise SyntaxError, \
+"Combination of operators not supported. Use val1 <{=} col <{=} val2"
+                      
+                
+        #t1=time.time()
+        ncoords = self.cols[colname].search(item, notequal)
+        #print "time reading indices:", time.time()-t1
+        return ncoords
+        
     def __call__(self, start=None, stop=None, step=None, where=None):
         """Iterate over all the rows or a range.
         
-        It returns the same iterator than
-        Table.iterrows(start, stop, step, where).
-        It is, therefore, a shorter way to call it.
+        It returns the same iterator than Table.iterrows(start, stop,
+        step, where).  It is, therefore, a shorter way to call it.
+        
         """
 
         assert isinstance(where, Column) or where is None, \
 "Wrong where parameter type. Only Column instances are suported."
 
-        if where and 0:   # Suport per a indexacio
-            # Parse the condition in the form : {number <{=}} name {<{=} number}
-            regex = r'([\d\.eE]*)\s*(<={0,1})*\s*(\w*)\s*(<={0,1})*\s*([\d\.eE]*)'
-            m=re.search(regex, where)
-            (startcond, op1, colname, op2, stopcond) = m.groups()
-            if startcond: startcond = int(startcond)
-            else: startcond=-1
-            if stopcond: stopcond = int(stopcond)
-            else: stopcond=-1
-            print "-->", (startcond, op1, colname, op2, stopcond)
-
-            # if colname not indexed:
-            #    raise RuntimeError, "The column is not indexed!"
-            # Get the sorted column
-            column = self.read(field=colname)
-            # Nomes valid per enters. Generalitzar per a floats
-            if op1 == "<": startcond += 1
-            if op2 == "<=": stopcond += 1
-            istart, istop = numarray.searchsorted(column, (startcond, stopcond))
-            print "istart, istop, start, stop -->", istart, istop, start, stop
-            (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
-
-            if istart > start:
-                print "Seleccio escomenca %d pos mes amunt!" % (istart - start)
-                start = istart
-            if istop < stop:
-                print "Seleccio acava %d pos mes avall!" % (stop - istop)
-                stop = istop
+        if where and (start != None or stop != None or step != None):
+            raise NotImplementedError, \
+                  """You can't pass start, stop or step parameter when a where
+                  parameter is specified."""
 
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+
+        coords = None
+        ncoords = 0
+        if where and self.colindexed[self.whereColname]:
+            ncoords = self._getLookupRange()
         if start < stop:
-            return self.row(start, stop, step)
-        else:
-            return records.array(None,
-                                 formats=self.description._v_recarrfmt,
-                                 shape=(0,),
-                                 names = self.colnames)
+            if coords == None or ncoords > 0:
+                return self.row(start, stop, step, coords, ncoords=ncoords)
+        # Fall-back action is returning an empty RecArray
+        return records.array(None,
+                             formats=self.description._v_recarrfmt,
+                             shape=(0,),
+                             names = self.colnames)
         
     def __iter__(self):
         """Iterate over all the rows."""
@@ -379,15 +476,25 @@ class Table(Leaf, hdf5Extension.Table, object):
         have any of the next values: "numarray", "Numeric", "Tuple" or
         "List".
 
+        If coords is specified, only the indices in coords that are in
+        the range of (start, stop) are returned. If coords is
+        specified, step only can be assigned to be 1, otherwise an
+        error is issued.
+        
         """
         
         if field and not field in self.colnames:
             raise LookupError, \
                   """The column name '%s' not found in table {%s}""" % \
                   (field, self)
-        
+
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
 
+        if coords is not None and len(coords) and step != 1:
+            raise NotImplementedError, \
+                  """You can't pass a step different from 1 when a coords
+                  parameter is specified."""
+        
         if flavor == None:
             flavor = "numarray"
         if flavor == "numarray":
@@ -438,7 +545,6 @@ class Table(Leaf, hdf5Extension.Table, object):
 
         return arr
 
-    #def _read(self, start, stop, step, field=None):
     def _read(self, start, stop, step, field=None, coords=None):
         """Read a range of rows and return an in-memory object.
         """
@@ -456,9 +562,14 @@ class Table(Leaf, hdf5Extension.Table, object):
                 return strings.array(shape=(0,), itemsize = 0)
             else:
                 return numarray.array(shape=(0,), type=typeField)
-                
-        # (stop-start)//step  is not enough
-        nrows = ((stop - start - 1) // step) + 1
+
+        if isinstance(coords, numarray.NumArray):
+            # I should test for stop and start values as well
+            nrows = len(coords)
+        else:    
+            # (stop-start)//step  is not enough
+            nrows = ((stop - start - 1) // step) + 1
+            
         # Compute the shape of the resulting column object
         if field:
             shape = self.colshapes[field]
@@ -489,10 +600,12 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Call the routine to fill-up the resulting array
         if step == 1 and not field:
             # This optimization works three times faster than
-            # the row._fillCol method (up to 170 MB/s in a pentium IV @ 2GHz)
+            # the row._fillCol method (up to 170 MB/s on a pentium IV @ 2GHz)
             self._open_read(result)
             if isinstance(coords, numarray.NumArray):
-                self._read_elements_orig(0, len(coords), coords)
+                print "coords2-->", coords
+                if len(coords) > 0:
+                    self._read_elements(0, coords)
             else:
                 self._read_records(start, stop-start)
             self._close_read()  # Close the table
@@ -519,7 +632,40 @@ class Table(Leaf, hdf5Extension.Table, object):
         # Set the byteorder properly
         result._byteorder = self.byteorder
         return result
-    
+
+    def _createIndex(self, colname, filters=Filters(1,"zlib")):
+        "Create an index for a column in Table"
+
+        # Do a flush before
+        self.flush()
+        # Get the column
+        column = self.read(field=colname)
+        # Sort that column
+        sortedColumn = numarray.sort(column)
+        # Get the indexes for the sorted column
+        indexSortedColumn = numarray.argsort(column)
+        # Save both arrays as companion EArrays of self
+        # The sorted column
+        atom = Atom(dtype=self.coltypes[colname], shape=(0,))
+        sortedEArray = self._v_file.createEArray(self._v_parent,
+                                                 "_s_"+self.name+"__"+colname,
+                                                 atom,
+                                                 title='Sorted '+colname,
+                                                 filters=filters,
+                                                 expectedrows=self.nrows)
+        sortedEArray.append(sortedColumn)
+        sortedEArray.close()
+        # The indexes
+        atom = Atom(dtype="Int32", shape=(0,))
+        indexEArray = self._v_file.createEArray(self._v_parent,
+                                                "_i_"+self.name+"__"+colname,
+                                                atom,
+                                                title='Indexes '+colname,
+                                                filters=filters,
+                                                expectedrows=self.nrows)
+        indexEArray.append(indexSortedColumn)
+        indexEArray.close()
+
     def __getitem__(self, key):
         """Returns a table row, table slice or table column.
 
@@ -536,6 +682,9 @@ class Table(Leaf, hdf5Extension.Table, object):
 """
 
         if isinstance(key, types.IntType):
+            # Index out of range protection
+            if key >= self.nrows:
+                raise IndexError, "Index out of range"
             if key < 0:
                 # To support negative values
                 key += self.nrows
@@ -671,6 +820,12 @@ class Table(Leaf, hdf5Extension.Table, object):
 
     def close(self):
         """Flush the buffers and close this object on tree"""
+        # First, close the columns (ie possible indices open)
+        #for col in self.colnames:
+        #    self.cols[col].close()
+        # It seems that there can be cases where cols does not exists??
+        #del self.cols
+        # The the Table
         Leaf.close(self)
         # We must delete the row object, as this make a back reference to Table
         # In some situations, this maybe undefined
@@ -692,16 +847,6 @@ class Table(Leaf, hdf5Extension.Table, object):
                (str(self), self.description, self.byteorder)
                
 
-    # Define cols as a property
-    def _get_cols (self):
-        return Cols(self)
-    
-    # Define a property.  The 'set this attribute' and 'delete this attribute'
-    # methods are defined as None, so the cols can't be set or deleted
-    # by the user.
-    cols = property(_get_cols, None, None, "Columns accessor")
-
-
 class Cols(object):
     """This is a container for columns in a table
 
@@ -719,7 +864,7 @@ class Cols(object):
 
     Methods:
     
-        __getattr__(colname)
+        __getitem__(colname)
         
     """
 
@@ -735,12 +880,15 @@ class Cols(object):
         for name in table.colnames:
             self.__dict__[name] = Column(table, name)
 
+    def __len__(self):
+        return self._v_table.nrows
+
     def __getitem__(self, name):
         """Get the column named "name" as an item."""
 
         if not isinstance(name, types.StringType):
             raise TypeError, \
-"Only strings are allowed as items of a Cols instance. You passed the object: %s" % name
+"Only strings are allowed as keys of a Cols instance. You passed object: %s" % name
         # If attribute does not exist, return None
         if not name in self._v_colnames:
             raise AttributeError, \
@@ -773,6 +921,7 @@ class Cols(object):
                 shape = (1,)
             out += "  %s (%s%s, %s)" % (name, classname, shape, tcol) + "\n"
         return out
+
                
 class Column(object):
     """This is an accessor for the actual data in a table column
@@ -797,6 +946,14 @@ class Column(object):
         """
         self.table = table
         self.name = name
+        # Check whether an index exists or not
+        iname = "_i_"+table.name+"_"+name
+        self.index = None
+        if iname in table._v_parent._v_indices:
+            self.index = Index(where=self, name=iname,
+                               expectedrows=table._v_expectedrows)
+        else:
+            self.index = None
 
     def __getitem__(self, key):
         """Returns a column element or slice
@@ -862,6 +1019,49 @@ class Column(object):
         self.table.whereColname = self.name
         return self
  
+    def createIndex(self, filters=None):
+        """Create an index for this column"""
+        assert self.table.colshapes[self.name] == 1, \
+               "Only scalar columns can be indexed."
+        # Create the atom
+        atom = Atom(dtype=self.table.coltypes[self.name],
+                    shape=self.table.colshapes[self.name])
+        # Compose the name
+        name = "_i_"+self.table.name+"_"+self.name
+        if not filters:
+            filters = self.table.filters
+        # Create the index itself
+        self.index = Index(atom, self, name,
+                           "Index for "+self.table.name+":"+self.name,
+                           filters=filters,
+                           expectedrows=self.table._v_expectedrows)
+        # Feed the index with values
+        nelemslice = self.index.sorted.nelemslice
+        if self.table.nrows < self.index.sorted.nelemslice:
+            print "Debug: Not enough info for indexing"
+            return 0
+        indexedrows = 0
+        for i in xrange(0,self.table.nrows-nelemslice+1,nelemslice):
+            arr = self[i:i+nelemslice]
+            self.index.append(arr)
+            indexedrows += nelemslice
+        self.table.colindexed[self.name] = 1
+        return indexedrows
+        
+    def search(self, item, notequal=0):
+        if self.index:
+            return self.index.search(item, notequal)
+        else:
+            raise UnsupportedError, \
+                  "Non-indexed columns do not suport searches"
+
+    def close(self):
+        """Close any open index of this column"""
+        if self.index:
+            self.index._f_close()
+            del self.index
+
+
     def __str__(self):
         """The string representation for this object."""
         # The pathname

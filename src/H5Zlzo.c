@@ -1,15 +1,19 @@
 #include <stdlib.h>
 
-/* We will be using the LZO1X-1 algorithm, so we have
- * to include <lzo1x.h>
- */
-
 #include "H5Zlzo.h"
 #include "utils.h"
 #include "tables.h"
 
 #ifdef HAVE_LZO_LIB
 #   include "lzo1x.h"
+
+/* Test with assembler versions (see later) */
+
+/* LZO_EXTERN_CDECL(int) */
+/* _lzo1x_decompress_asm_safe( const lzo_byte *src, lzo_uint  src_len, */
+/* 			    lzo_byte *dst, lzo_uintp dst_len, */
+/* 			    lzo_voidp wrkmem /\* NOT USED *\/ ); */
+
 
 void *wrkmem;
 
@@ -161,8 +165,10 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
       printf("max_len_buffer -->%d\n", max_len_buffer);
 #endif /* DEBUG */
 
-      /* The assembler version isn't faster than the C version with 
-	 gcc 3.2.2, and it's unsafe */
+      /* The assembler version is a 10% slower than the C version with 
+	 gcc 3.2.2 and gcc 3.3.3 */
+/*       status = lzo1x_decompress_asm_safe(*buf, (lzo_uint)nbytes, outbuf, */
+/* 				     &out_len, NULL); */
       /* The safe and unsafe versions have the same speed more or less */
       status = lzo1x_decompress_safe(*buf, (lzo_uint)nbytes, outbuf,
 				       &out_len, NULL);
@@ -235,11 +241,12 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
     if (NULL==(z_dst=outbuf=(void *)malloc(z_dst_nbytes))) {
       fprintf(stderr, "Unable to allocate lzo destination buffer.\n");
       ret_value = 0; /* fail */
-      printf("Hola 1\n");
       goto done;
     }
 
     /* Compress this buffer */
+/*     status = lzo1x_1_compress (z_src, z_src_nbytes, z_dst, &z_dst_nbytes, */
+/* 			       wrkmem); */
     status = lzo1x_1_compress (z_src, z_src_nbytes, z_dst, &z_dst_nbytes,
 			       wrkmem);
 

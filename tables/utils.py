@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
-#       $Id: utils.py,v 1.21 2004/04/06 18:26:28 falted Exp $
+#       $Id: utils.py,v 1.22 2004/06/18 12:31:24 falted Exp $
 #
 ########################################################################
 
@@ -56,24 +56,21 @@ def checkNameValidity(name):
   Check for special symbols ($, %%, @, ...), spaces or reserved words.""" % \
   (name)
 
-def calcBufferSize(rowsize, expectedrows, compress):
-    """Calculate the buffer size and the HDF5 chunk size.
 
-    The logic to do that is based purely in experiments playing
-    with different buffer sizes, chunksize and compression
-    flag. It is obvious that using big buffers optimize the I/O
-    speed when dealing with tables. This might (should) be further
-    optimized doing more experiments.
-
-    """
-
+def _calcBufferSize(rowsize, expectedrows):
     # A bigger buffer makes the writing faster and reading slower (!)
     #bufmultfactor = 1000 * 10
     # A smaller buffer also makes the tests to not take too much memory
     # We choose the smaller one
     # In addition, with the new iterator in the Row class, this seems to
     # be the best choice in terms of performance!
-    bufmultfactor = int(1000 * 1.0) # Original value
+    #bufmultfactor = int(1000 * 1.0) # Original value
+    # Best value with latest in-core selections optimisations
+    # 5% to 10% of improvement in Pentium4 and non-noticeable in AMD64
+    # 2004-05-16
+    #bufmultfactor = int(1000 * 20.0) # A little better (5%) but
+                                      # consumes more CPU
+    bufmultfactor = int(1000 * 10.0) # Optimum for Table objects
     rowsizeinfile = rowsize
     expectedfsizeinKb = (expectedrows * rowsizeinfile) / 1024
 
@@ -97,22 +94,18 @@ def calcBufferSize(rowsize, expectedrows, compress):
     if expectedfsizeinKb <= 100:
         # Values for files less than 100 KB of size
         buffersize = 5 * bufmultfactor
-        chunksize = 1024
     elif (expectedfsizeinKb > 100 and
         expectedfsizeinKb <= 1000):
         # Values for files less than 1 MB of size
         buffersize = 20 * bufmultfactor
-        chunksize = 2048
     elif (expectedfsizeinKb > 1000 and
           expectedfsizeinKb <= 20 * 1000):
         # Values for sizes between 1 MB and 20 MB
         buffersize = 40  * bufmultfactor
-        chunksize = 4096
     elif (expectedfsizeinKb > 20 * 1000 and
           expectedfsizeinKb <= 200 * 1000):
         # Values for sizes between 20 MB and 200 MB
         buffersize = 50 * bufmultfactor
-        chunksize = 8192
     else:  # Greater than 200 MB
         # These values gives an increment of memory of 50 MB for a table
         # size of 2.2 GB. I think this increment should be attributed to
@@ -124,21 +117,43 @@ def calcBufferSize(rowsize, expectedrows, compress):
         # try to increment these values, but be ready for a quite big
         # overhead needed to traverse the BTree.
         buffersize = 60 * bufmultfactor
-        chunksize = 16384
-    # Correction for compression.
-    if compress:
-        # 1024 bytes seems optimal for compression and besides,
-        # shuffle does not take too much CPU time (shuffle consumes
-        # CPU time exponentially with chunksize)
-        chunksize = 1024
-        #chunksize /= 2
-        #chunksize = 1024 * 10   # This seems optimal for compression
+
+    return buffersize
+
+def calcBufferSize(rowsize, expectedrows, compress):
+    """Calculate the buffer size and the HDF5 chunk size.
+
+    The logic followed here is based purely in experiments playing
+    with different buffer sizes, chunksize and compression flag. It is
+    obvious that using big buffers optimize the I/O speed when dealing
+    with tables. This might (should) be further optimized doing more
+    experiments.
+
+    """
+
+    buffersize = _calcBufferSize(rowsize, expectedrows)
+
+#     # Correction for compression.
+#     if compress:
+#         # 1024 bytes seems optimal for compression and besides,
+#         # shuffle does not take too much CPU time (shuffle consumes
+#         # CPU time exponentially with chunksize)
+#         #chunksize = 1024
+#         chunksize = 2048
+#         #chunksize /= 2
+#         #chunksize = 1024 * 10   # This seems optimal for compression
+#         pass
+
 
     # Max Tuples to fill the buffer
     maxTuples = buffersize // rowsize
+    # Set the chunksize as the 10% of maxTuples
+    chunksize = maxTuples // 10
     # Safeguard against row sizes being extremely large
     if maxTuples == 0:
         maxTuples = 1
+    if chunksize == 0:
+        chunksize = 1
     # A new correction for avoid too many calls to HDF5 I/O calls
     # But this does not bring advantages rather the contrary,
     # the memory comsumption grows, and performance becomes worse.
@@ -146,6 +161,7 @@ def calcBufferSize(rowsize, expectedrows, compress):
     #    buffersize *= 4
     #    maxTuples = buffersize // rowsize
     #chunksize *= 10  # just to test
+    #print "maxTuples, chunksize -->", (maxTuples, chunksize)
     return (maxTuples, chunksize)
 
 # This function is appropriate for calls to __getitem__ methods
@@ -166,17 +182,19 @@ def processRange(nrows, start=None, stop=None, step=1):
 # This function is appropiate for calls to read() methods
 def processRangeRead(nrows, start=None, stop=None, step=1):
     if start is not None and stop is None:
+        # Protection against start greater than available records
+        # nrows == 0 is a special case for empty objects
+        if nrows > 0 and start >= nrows:
+            raise IndexError, \
+"Start (%s) value is greater than number of rows (%s)." % (start, nrows)
         step = 1
         if start == -1:  # corner case
             stop = nrows
         else:
             stop = start + 1
+    #print "start, stop, step -->", start, stop, step
+    # Finally, get the correct values
     start, stop, step = processRange(nrows, start, stop, step)
-    # Protection against start greater than available records
-    # nrows == 0 is a special case for empty objects
-    if nrows > 0 and start >= nrows:
-        raise IndexError, \
-"Start (%s) value is greater than number of rows (%s)." % (start, nrows)
 
     return (start, stop, step)
 

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.75 2004/04/29 17:53:40 falted Exp $
+#       $Id: Group.py,v 1.76 2004/06/18 12:31:08 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.75 $"
+__version__ = "$Revision: 1.76 $"
 
 # Recommended values for maximum number of groups and maximum depth in tree
 MAX_DEPTH_IN_TREE = 2048
@@ -46,6 +46,7 @@ import hdf5Extension
 from Table import Table
 from Array import Array
 from EArray import EArray
+from IndexArray import IndexArray
 from VLArray import VLArray
 from Leaf import Filters
 from UnImplemented import UnImplemented
@@ -106,6 +107,7 @@ class Group(hdf5Extension.Group, object):
         _v_leaves -- Dictionary with object leaves
         _v_children -- Dictionary with object children (groups or leaves)
         _v_nchildren -- Number of children (groups or leaves) of this object 
+        _v_indices -- List with indices hanging from this group
         _v_attrs -- The associated AttributeSet instance
         _v_filters -- The associated Filters instance
 
@@ -126,6 +128,7 @@ class Group(hdf5Extension.Group, object):
         self.__dict__["_v_leaves"] = {}
         self.__dict__["_v_children"] = {}
         self.__dict__["_v_nchildren"] = 0
+        self.__dict__["_v_indices"] = []
         return
     
     def __iter__(self, classname=None, recursive=0):
@@ -173,9 +176,16 @@ class Group(hdf5Extension.Group, object):
             (groups, leaves)=self._g_listGroup(pgroupId, locId,
                                                objgroup._v_hdf5name)
             for name in groups:
-                new_objgroup = Group(new = 0)
-                new_objgroup._g_putObjectInTree(name, objgroup)
-                stack.append(new_objgroup)
+                # Index groups will not be included in the object tree
+                #if objgroup._g_getGChildAttr(name, "CLASS") != "INDEX":
+                classname = objgroup._g_getGChildAttr(name, "CLASS")
+                if classname not in ["INDEX", "IARRAY"]: # Delete the "IARRAY"
+                    new_objgroup = Group(new = 0)
+                    new_objgroup._g_putObjectInTree(name, objgroup)
+                    stack.append(new_objgroup)
+                else:
+                    # and their names will be append to a list
+                    self._v_indices.append(name)
             for name in leaves:
                 objleaf=objgroup._g_getLeaf(name)
                 if objleaf <> None:
@@ -423,7 +433,8 @@ self._g_join(name), UserWarning)
         "classname" parameter is supplied, it will only return
         instances of this class (or subclasses of it). The supported
         classes in "classname" are 'Group', 'Leaf', 'Table', 'Array',
-        'EArray', 'VLArray' and 'UnImplemented'.
+        'EArray', 'VLArray' and 'UnImplemented'. 'IndexArray' objects
+        are not listed by default.
 
         """
         if not classname:
@@ -444,6 +455,7 @@ self._g_join(name), UserWarning)
         elif (classname == 'Table' or
               classname == 'Array' or
               classname == 'EArray' or
+              classname == 'IndexArray' or
               classname == 'VLArray' or
               classname == 'UnImplemented'):
             listobjects = []
@@ -455,7 +467,7 @@ self._g_join(name), UserWarning)
             return listobjects
         else:
             raise ValueError, \
-""""classname" can only take 'Group', 'Leaf', 'Table', 'Array', 'EArray', 'VLArray', 'UnImplemented' values"""
+""""classname" can only take 'Group', 'Leaf', 'Table', 'Array', 'EArray', 'IndexArray', 'VLArray', 'UnImplemented' values"""
 
     def _f_walkGroups(self):
         """Iterate over the Groups (not Leaves) hanging from self.

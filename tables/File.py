@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.83 2004/04/29 17:04:30 falted Exp $
+#       $Id: File.py,v 1.84 2004/06/18 12:31:08 falted Exp $
 #
 ########################################################################
 
@@ -34,7 +34,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.83 $"
+__version__ = "$Revision: 1.84 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -58,6 +58,7 @@ from Leaf import Leaf, Filters
 from Table import Table
 from Array import Array
 from EArray import EArray
+from IndexArray import IndexArray
 from VLArray import VLArray
 from UnImplemented import UnImplemented
 from AttributeSet import AttributeSet
@@ -567,14 +568,13 @@ class File(hdf5Extension.File, object):
             information about the desired I/O filters to be applied
             during the life of this object.
 
-        expectedrows -- In the case of enlargeable arrays this
-            represents an user estimate about the number of row
-            elements that will be added to the growable dimension in
-            the EArray object. If not provided, the default value is
-            1000 rows. If you plan to create both much smaller or much
-            bigger EArrays try providing a guess; this will optimize
-            the HDF5 B-Tree creation and management process time and
-            the amount of memory used.
+        expectedrows -- Represents an user estimate about the number
+            of row elements that will be added to the growable
+            dimension in the EArray object. If not provided, the
+            default value is 1000 rows. If you plan to create both
+            much smaller or much bigger EArrays try providing a guess;
+            this will optimize the HDF5 B-Tree creation and management
+            process time and the amount of memory used.
 
             """
 
@@ -583,6 +583,48 @@ class File(hdf5Extension.File, object):
         Object = EArray(atom, title, filters, expectedrows)
         setattr(group, name, Object)
         return Object
+
+
+    # This should not be needed any more (or tranlated to search-sorted.py)
+#     def createIndexArray(self, where, name, atom, title = "",
+#                          filters=None, expectedrows = 1000,
+#                          compress=None, complib=None):
+        
+#         """Create a new instance IndexArray with name "name" in "where" location.
+
+#         Keyword arguments:
+
+#         where -- The parent group where the new table will hang
+#             from. "where" parameter can be a path string (for example
+#             "/level1/leaf5"), or Group instance.
+
+#         name -- The name of the new array.
+
+#         atom -- An Atom instance representing the shape, type and
+#             flavor of the atomic objects to be saved. Only scalar
+#             atoms are supported.
+
+#         title -- Sets a TITLE attribute on the array entity.
+
+#         filters -- An instance of the Filters class that provides
+#             information about the desired I/O filters to be applied
+#             during the life of this object.
+
+#         expectedrows -- Represents an user estimate about the number
+#             of row elements that will be added to the growable
+#             dimension in the EArray object. If not provided, the
+#             default value is 1000 rows. If you plan to create both
+#             much smaller or much bigger IndexArrays try providing a
+#             guess; this will optimize the HDF5 B-Tree creation and
+#             management process time and the amount of memory used.
+
+#             """
+
+#         group = self.getNode(where, classname = 'Group')
+#         filters = _checkFilters(filters, compress, complib)
+#         Object = IndexArray(atom, title, filters, expectedrows)
+#         setattr(group, name, Object)
+#         return Object
 
 
     def createVLArray(self, where, name, atom=None, title="",
@@ -950,9 +992,6 @@ class File(hdf5Extension.File, object):
         for group in self.walkGroups(self.root):
             for leaf in self.listNodes(group, classname = 'Leaf'):
                 leaf.close()
-            #print "File: Closing Group ==>", group
-            #if group._v_pathname <> "/":
-            #    group._f_close()
             group._f_close()
             
         # Delete the root object (this should recursively delete the
