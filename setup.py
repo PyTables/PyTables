@@ -35,7 +35,7 @@ except:
     pyrex = 0
     cmdclass = {}
 
-VERSION = "0.8.1"
+VERSION = "0.9-alpha"
 
 #----------------------------------------------------------------------
 
@@ -540,6 +540,7 @@ data.
                                            "src/H5Zlzo.c",
                                            "src/H5Zucl.c",
                                            "src/H5ARRAY.c",
+                                           "src/H5ARRAY-opt.c",
                                            "src/H5VLARRAY.c",
                                            "src/H5LT.c",
                                            "src/H5TB.c",
