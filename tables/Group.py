@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.64 2004/02/05 16:23:37 falted Exp $
+#       $Id: Group.py,v 1.65 2004/02/06 08:04:36 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.64 $"
+__version__ = "$Revision: 1.65 $"
 
 MAX_DEPTH_IN_TREE = 2048
 # Note: the next constant has to be syncronized with the
@@ -42,7 +42,7 @@ MAX_CHILDS_IN_GROUP = 4096
 
 from __future__ import generators
 
-import warnings, types
+import sys, warnings, types
 import hdf5Extension
 from Table import Table
 from Array import Array
@@ -179,6 +179,10 @@ class Group(hdf5Extension.Group, object):
                     try:
                         objleaf._g_putObjectInTree(name, objgroup)
                     except:
+                        (type, value, traceback) = sys.exc_info()
+                        warnings.warn( \
+"""Problems loading '%s' object. The error was: <%s>. This object will be cast into an UnImplemented instance. Continuing...""" % \
+(objleaf._v_pathname, value), UserWarning)
                         # If not, associate an UnImplemented object to it
                         objleaf = UnImplemented()
                         objleaf._g_putObjectInTree(name, objgroup)

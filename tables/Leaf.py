@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.36 2004/02/05 16:23:37 falted Exp $
+#       $Id: Leaf.py,v 1.37 2004/02/06 08:04:36 falted Exp $
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.36 $"
+__version__ = "$Revision: 1.37 $"
 
 import types, warnings
 from utils import checkNameValidity, calcBufferSize, processRangeRead
@@ -167,8 +167,14 @@ class Leaf:
             self.filters = self._g_setFilters(self._v_new_filters)
             self._create()
             # Write the Filters object to an attribute
-            self.attrs._g_setAttr("FILTERS", self.filters)
+            # This will not be necessary for now, as retrieving
+            # the filters using hdf5Extension._getFilters is safer and
+            # faster. Also, cPickling the filters attribute is
+            # very slow (it is as much as twice slower than the normal
+            # overhead for creating a Table, for example).
+            #self.attrs._g_setAttr("FILTERS", self.filters)
         else:
+            self.filters = self._g_getFilters()
             self._open()
 
     # Define attrs as a property. This saves us 0.7s/3.8s

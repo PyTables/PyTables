@@ -1,0 +1,40 @@
+Stress test on a 64 bits AMD Opteron platform
+=============================================
+2004-02-04. F. Alted
+
+Platform description:
+
+4 processors AMD Opteron (64-bits) @ 1.6 GHz and 1 MB cache
+8 GB RAM
+HD IBM DeskStar 120GXP 80 GB ATA/100 2 MB cache @ 7200 rpm
+SuSe Linux Enterprise Server (SLES)
+Linux kernel 2.4.21-178-smp
+ReiserFS filesystem
+
+Here's the command to do the stress test:
+
+time python /tmp/stress-test3.py -l zlib -c 6 -g400 -t 300 -i 20000 /tmp/test-big-zlib-6.h5
+ls -lh /tmp/test-big-zlib-6.h5
+
+The output:
+
+Compression level: 6
+Compression library: zlib
+Rows written: 2400000000  Row size: 512
+Time writing rows: 56173.557 s (real) 56154.84 s (cpu)  100%
+Write rows/sec:  42724
+Write KB/s : 21362
+Rows read: 2400000000  Row size: 512 Buf size: 39936
+Time reading rows: 29339.936 s (real) 29087.88 s (cpu)  99%
+Read rows/sec:  81799
+Read KB/s : 40899
+
+real    1425m43.846s
+user    1308m34.340s
+sys     112m17.100s
+-rw-r--r--    1 falted   users        2.7G 2004-02-04 02:25 /tmp/test-big-zlib-6
+.h5
+
+The maximum amount of RAM taken by the test should be less than 200 MB (148
+MB when the test was running for 812 minutes, which is the last time I've
+check for it).

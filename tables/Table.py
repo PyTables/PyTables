@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.100 2004/02/05 16:23:37 falted Exp $
+#       $Id: Table.py,v 1.101 2004/02/06 08:04:36 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.100 $"
+__version__ = "$Revision: 1.101 $"
 
 from __future__ import generators
 import sys
@@ -277,8 +277,6 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.coltypes = self.description.__types__
         self.colshapes = self.description._v_shapes
         self.colitemsizes = self.description._v_itemsizes
-        # Get info about existing filters
-        self.filters = self._g_getFilters()
         # Compute buffer size
         (self._v_maxTuples, self._v_chunksize) = \
               calcBufferSize(self.rowsize, self.nrows, self.filters.complevel)

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.58 2004/02/05 16:23:37 falted Exp $
+#       $Id: Array.py,v 1.59 2004/02/06 08:04:35 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.58 $"
+__version__ = "$Revision: 1.59 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -227,7 +227,7 @@ class Array(Leaf, hdf5Extension.Array, object):
         # Compute the rowsize for each element
         self.rowsize = self.itemsize
         # An empty Filters object
-        self.filters = Filters()
+        #self.filters = Filters()
         for i in range(len(self.shape)):
             self.rowsize *= self.shape[i]
         # Assign a value to nrows in case we are a non-enlargeable object

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
-#       $Id: EArray.py,v 1.12 2004/02/05 16:23:37 falted Exp $
+#       $Id: EArray.py,v 1.13 2004/02/06 08:04:35 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.12 $"
+__version__ = "$Revision: 1.13 $"
 # default version for EARRAY objects
 obversion = "1.0"    # initial version
 
@@ -211,8 +211,6 @@ class EArray(Array, hdf5Extension.Array, object):
         self.rowsize = self.atom.atomsize()
         # nrows in this instance
         self.nrows = self.shape[self.extdim]
-        # Get info about existing filters
-        self.filters = self._g_getFilters()
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
                   calcBufferSize(self.rowsize, self.nrows,
