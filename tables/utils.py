@@ -1,8 +1,23 @@
+########################################################################
+#
+#       License: BSD
+#       Created: March 4, 2003
+#       Author:  Francesc Alted - falted@openlc.org
+#
+#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
+#       $Id: utils.py,v 1.2 2003/06/03 20:22:58 falted Exp $
+#
+########################################################################
+
+"""Utility functions
+
+"""
 
 # Reserved prefixes for special attributes in Group and other classes
 reservedprefixes = [
   '_c_',   # For class variables
-  '_f_',   # For class functions
+  '_f_',   # For class public functions
+  '_g_',   # For class private functions
   '_v_',   # For instance variables
 ]
 

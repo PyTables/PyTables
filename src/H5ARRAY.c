@@ -98,7 +98,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
  */
     
  /* Attach the CLASS attribute */
- if ( H5LTset_attribute_string( loc_id, dset_name, "CLASS", "ARRAY" ) < 0 )
+ if ( H5LTset_attribute_string( loc_id, dset_name, "CLASS", "Array" ) < 0 )
   goto out;
    
  /* Attach the CLASS attribute */

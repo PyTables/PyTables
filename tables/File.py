@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.34 2003/06/02 14:24:19 falted Exp $
+#       $Id: File.py,v 1.35 2003/06/03 20:22:58 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.34 $"
+__version__ = "$Revision: 1.35 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -264,43 +264,33 @@ class File(hdf5Extension.File, object):
         newattr["_v_attrs"] = AttributeSet(root)
 
         if self._v_new:
-            # Set the title, class and version attributes
+            # Set the title
             newattr["_v_title"] = self.title
-            newattr["_v_class"] = root.__class__.__name__
-            newattr["_v_version"] = "1.0"
             
-            # Do the same on disk
-#            root._g_setGroupAttrStr('TITLE', root._v_title)
-#            root._g_setGroupAttrStr('CLASS', root._v_class)
-#            root._g_setGroupAttrStr('VERSION', root._v_version)
-            root._v_attrs.TITLE = root._v_title
-            root._v_attrs.CLASS = root._v_class
-            root._v_attrs.VERSION = root._v_version
+            # Save the root attributes on disk
+            root._v_attrs._g_setGroupAttrStr('TITLE',  self.title)
+            root._v_attrs._g_setGroupAttrStr('CLASS', "Group")
+            root._v_attrs._g_setGroupAttrStr('VERSION', "1.0")
             
             # Finally, save the PyTables format version for this file
             self._format_version = format_version
-            #root._g_setGroupAttrStr('PYTABLES_FORMAT_VERSION', format_version)
-            root._v_attrs.PYTABLES_FORMAT_VERSION = format_version
+            root._v_attrs._g_setGroupAttrStr('PYTABLES_FORMAT_VERSION',
+                                             format_version)
+            # Add these attributes to the dictionary
+            root._v_attrs._v_attrnames.extend(['TITLE','CLASS','VERSION',
+                                               'PYTABLES_FORMAT_VERSION'])
+
         
         else:
             # Firstly, get the PyTables format version for this file
-#            self._format_version = \
-#                                root._f_getAttr('PYTABLES_FORMAT_VERSION')
             self._format_version = root._v_attrs.PYTABLES_FORMAT_VERSION
             if self._format_version == None:
                 # PYTABLES_FORMAT_VERSION attribute is not present
                 self._format_version = "unknown"
                           
-            # Get the title, class and version attributes
-            # (only for root)
+            # Get the title for the root group
             root.__dict__["_v_title"] = root._v_attrs.TITLE
-#                      root._f_getAttr('TITLE')
             self.title = root._v_title   # This is a standard File attribute
-            root.__dict__["_v_class"] = root._v_attrs.TITLE
-            #                      root._f_getAttr('CLASS')
-            root.__dict__["_v_version"] = root._v_attrs.VERSION
-            
-#                      root._f_getAttr('VERSION')
                       
             # Get all the groups recursively
             root._g_openFile()
@@ -506,7 +496,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
 
         # Get the node to be renamed
         object = self.getNode(where, name=name)
-        if object._v_class == "Group":
+        if isinstance(object, Group):
             object._f_rename(newname)
         else:
             object.rename(newname)
@@ -526,7 +516,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
 
         # Get the node to be removed
         object = self.getNode(where, name=name)
-        if object._v_class == "Group":
+        if isinstance(object, Group):
             object._f_remove(recursive)
         else:
             object.remove()            
@@ -544,7 +534,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
 
         # Get the node to be renamed
         object = self.getNode(where, name=name)
-        if object._v_class == "Group":
+        if isinstance(object, Group):
             return object._f_getAttr(attrname)
         else:
             return object.getAttr(attrname)
@@ -563,7 +553,7 @@ have a 'name' child node (with value \'%s\')""" % (where, name)
 
         # Get the node to be renamed
         object = self.getNode(where, name=name)
-        if object._v_class == "Group":
+        if isinstance(object, Group):
             object._f_setAttr(attrname, attrvalue)
         else:
             object.setAttr(attrname, attrvalue)

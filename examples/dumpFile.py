@@ -5,8 +5,8 @@ if __name__=="__main__":
     import getopt
 
     usage = \
-"""usage: %s [-v level] file
-  -v means dumping detailed Table and Array attributes
+"""usage: %s [-v] [-d] file
+  -v means dumping Table and Array attributes
   -d means detailed information divided in Groups, Arrays and Tables
             \n""" \
     % sys.argv[0]
@@ -42,6 +42,17 @@ if __name__=="__main__":
         print repr(h5file)
     else:
         print h5file
+
+    if verbose:
+        # Print detailed info on leaf objects
+
+        print "Attribute info of the objects:"
+        print "Groups:"
+        for group in h5file.walkGroups(h5file.root):
+            print repr(group._v_attrs)
+            for leaf in h5file.listNodes(group, 'Leaf'):
+                print repr(leaf.attrs)
+        print
 
     if detailed:
         # Print detailed info on leaf objects

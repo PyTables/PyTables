@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.18 2003/06/02 14:24:19 falted Exp $
+#       $Id: Leaf.py,v 1.19 2003/06/03 20:22:58 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.18 $"
+__version__ = "$Revision: 1.19 $"
 
 import types
 from utils import checkNameValidity
@@ -82,6 +82,7 @@ class Leaf:
             self._open()
         # Attach the AttributeSet attribute
         self.attrs = AttributeSet(self)
+        # Once the AttributeSet instance has been created, get the title
         self.title = self.attrs.TITLE
 
     def _g_renameObject(self, newname):
@@ -145,7 +146,6 @@ class Leaf:
     def getAttr(self, attrname):
         """Get a leaf attribute as a string"""
 
-        #return self._v_parent._g_getLeafAttrStr(self._v_hdf5name, attrname)
         return getattr(self.attrs, attrname, None)
         
     def setAttr(self, attrname, attrvalue):

@@ -134,6 +134,7 @@ def readFile(filename, recsize, verbose):
         #print "Group pathname:", groupobj._v_pathname
         row = 0
         for table in fileh.listNodes(groupobj, 'Table'):
+            rowsize = table.rowsize
             #print "Table title for", table._v_pathname, ":", table.tableTitle
             if verbose:
                 print "Max rows in buf:", table._v_maxTuples
@@ -190,7 +191,7 @@ def readFile(filename, recsize, verbose):
     # Close the file (eventually destroy the extended type)
     fileh.close()
 
-    return (rowsread, table.rowsize)
+    return (rowsread, rowsize)
 
 def readField(filename, field, rng, verbose):
     fileh = openFile(filename, mode = "r")

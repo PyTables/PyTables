@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
-#       $Id: AttributeSet.py,v 1.1 2003/06/02 14:24:19 falted Exp $
+#       $Id: AttributeSet.py,v 1.2 2003/06/03 20:22:58 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.1 $"
+__version__ = "$Revision: 1.2 $"
 
 # Note: the next constant has to be syncronized with the
 # MAX_ATTRS_IN_NODE constant in util.h!
@@ -42,7 +42,7 @@ SYS_ATTR_PREFIXES = ["FIELD_"]
 
 import warnings, types
 import hdf5Extension
-#import Group
+import Group
 from utils import checkNameValidity
 
 class AttributeSet(hdf5Extension.AttributeSet, object):
@@ -98,7 +98,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
             if attr in SYS_ATTR:
                 self._v_attrnamessys.append(attr)
             elif reduce(lambda x,y: x+y,
-                        [attr.startswith(prefix) for prefix in SYS_ATTR_PREFIXES]):
+                        [attr.startswith(prefix)
+                         for prefix in SYS_ATTR_PREFIXES]):
                 self._v_attrnamessys.append(attr)
             else:
                 self._v_attrnamesuser.append(attr)
@@ -116,18 +117,14 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         """Get the HDF5 attribute named "name"."""
 
         #print self._v_node._v_name
-        #if self._v_node._v_name != "/":
-        if 0:
-            print "Getting the", name, "attribute in node", self._v_node._v_pathname
-            print self._v_attrnames
+        #print "Getting the", name, "attribute in node", self._v_node._v_pathname
+        #print self._v_attrnames
 
+        # If attribute does not exists, return None
         if not name in self._v_attrnames:
-            # raise LookupError, "'%s' node has not a \"%s\" attribute!" % \
-            #                      (self._v_node._v_pathname, name)
-            # Do not issue an exception here
             return None
 
-        if hasattr(self._v_node, "_f_getAttr"):
+        if isinstance(self._v_node, Group.Group):
             return self._g_getGroupAttrStr(name)
         else:
             return self._g_getLeafAttrStr(self._v_node._v_hdf5name, name)
@@ -154,15 +151,16 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 """Only string values are supported as attributes right now"""
         
         # Check that the attribute is not a system one (read-only)
-        if name in self._v_attrnamessys:
+        if (name in SYS_ATTR or
+            reduce(lambda x,y: x+y,
+                   [name.startswith(prefix)
+                    for prefix in SYS_ATTR_PREFIXES])):
             raise RuntimeError, \
-               "System attribute ('%s') cannot be overwritten" % (name)
+            "System attribute ('%s') cannot be overwritten" % (name)
             
         # Check if we have too much numbers of attributes
         if len(self._v_attrnames) < MAX_ATTRS_IN_NODE:
-            #if isinstance(self._v_node, Group.Group):
-            if hasattr(self._v_node, "_f_setAttr"):
-                #self._v_node._f_setAttr(name, value)
+            if isinstance(self._v_node, Group.Group):
                 self._g_setGroupAttrStr(name, value)
             else:
                 self._g_setLeafAttrStr(self._v_node._v_hdf5name, name, value)
@@ -186,18 +184,17 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # Get this class name
         classname = self.__class__.__name__
         # The attrribute names
-        attrnames = self._v_attrnames
-        return "%s (%s) %r" % (pathname, classname, attrnames)
+        attrnumber = len(self._v_attrnames)
+        return "%s (%s): %s attributes" % (pathname, classname, attrnumber)
 
     def __repr__(self):
         """A detailed string representation for this object."""
-        return str(self)
+        #return str(self)
         
-        rep = [ '%r (%s)' %  \
-                (childname, child._v_class) 
-                for (childname, child) in self._v_childs.items() ]
-        childlist = '[%s]' % (', '.join(rep))
+        rep = [ '%s := %r' %  (attr, getattr(self, attr) )
+                for attr in self._v_attrnames ]
+        attrlist = '[%s]' % (',\n    '.join(rep))
         
-        return "%s\n  childs := %s" % \
-               (str(self), childlist)
+        return "%s\n   %s" % \
+               (str(self), attrlist)
                

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.31 2003/06/02 14:24:19 falted Exp $
+#       $Id: Group.py,v 1.32 2003/06/03 20:22:58 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.31 $"
+__version__ = "$Revision: 1.32 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -125,7 +125,8 @@ class Group(hdf5Extension.Group, object):
             # Call openFile recursively over the group's tree
             objgroup._g_openFile()
         for name in leaves:
-            class_ = self._g_getLeafAttrStr(name, "CLASS")
+            #class_ = self._g_getLeafAttrStr(name, "CLASS")
+            class_ = self._v_attrs._g_getChildAttrStr(name, "CLASS")
             if class_ is None:
                 # No CLASS attribute, try a guess
                 warnings.warn( \
@@ -137,9 +138,9 @@ class Group(hdf5Extension.Group, object):
                     raise RuntimeError, \
                     """Dataset object \'%s\' in file is unsupported!.""" % \
                           name
-            if class_ == "TABLE":
+            if class_ == "Table":
                 objgroup = Table()
-            elif class_ == "ARRAY":
+            elif class_ == "Array":
                 objgroup = Array()
             else:
                 raise RuntimeError, \
@@ -190,12 +191,6 @@ class Group(hdf5Extension.Group, object):
         self._v_childs[value._v_name] = value
         # New attribute (to allow tab-completion in interactive mode)
         self.__dict__[value._v_name] = value
-        # In the future this should be read from disk in case of an opening
-        # To be done when general Attribute module available
-        newattr["_v_class"] = value.__class__.__name__
-        newattr["_v_version"] = "1.0"
-        # Attach the AttributeSet attribute
-        #newattr["_v_attrs"] = AttributeSet(self)
         # Update class variables
         self._v_file.objects[value._v_pathname] = value
 
@@ -214,11 +209,17 @@ class Group(hdf5Extension.Group, object):
             self._g_open(parent, self._v_hdf5name)
         # Attach the AttributeSet attribute
         self.__dict__["_v_attrs"] = AttributeSet(self)
-        # Once the AttributeSet instance has been created, get the title,
-        # class and version attributes
-        self.__dict__["_v_title"] = self._v_attrs.TITLE
-        self.__dict__["_v_class"] = self._v_attrs.CLASS
-        self.__dict__["_v_version"] = self._v_attrs.VERSION
+        if self._v_new:
+            # Set the title, class and version attribute
+            self._v_attrs._g_setGroupAttrStr('TITLE',  self._v_title)
+            self._v_attrs._g_setGroupAttrStr('CLASS', "Group")
+            self._v_attrs._g_setGroupAttrStr('VERSION', "1.0")
+            # Add these attributes to the dictionary
+            self._v_attrs._v_attrnames.extend(['TITLE','CLASS','VERSION'])
+        else:
+            # Get the title on disk
+            self.__dict__["_v_title"] = self._v_attrs.TITLE
+
 
     def _g_renameObject(self, newname):
         """Rename this group in the object tree as well as in the HDF5 file."""
@@ -227,8 +228,6 @@ class Group(hdf5Extension.Group, object):
         newattr = self.__dict__
         name = newname
 
-        # Falta que aco s'invoque recursivament per a refrescar les
-        # _v_pathnames en l'arbre.
         # Delete references to the oldname
         del parent._v_groups[self._v_name]
         del parent._v_childs[self._v_name]
@@ -289,10 +288,6 @@ class Group(hdf5Extension.Group, object):
         # Call the superclass method to create a new group
         self.__dict__["_v_groupId"] = \
                      self._g_createGroup()
-        # Set the title, class and version attribute
-        self._g_setGroupAttrStr('TITLE', self._v_title)
-        self._g_setGroupAttrStr('CLASS', "Group")
-        self._g_setGroupAttrStr('VERSION', "1.0")
 
     def _f_listNodes(self, classname = ""):
         """Return a list with all the object nodes hanging from self.
@@ -324,7 +319,7 @@ class Group(hdf5Extension.Group, object):
             listobjects = []
             # Process alphanumerically sorted 'Leaf' objects
             for leaf in self._f_listNodes('Leaf'):
-                if leaf._v_class == classname:
+                if leaf.attrs.CLASS == classname:
                     listobjects.append(leaf)
             # Returns all the 'classname' objects alphanumerically sorted
             return listobjects
@@ -428,13 +423,11 @@ class Group(hdf5Extension.Group, object):
     def _f_getAttr(self, attrname):
         """Get a group attribute as a string"""
         
-        #return self._g_getGroupAttrStr(attrname)
         return getattr(self._v_attrs, attrname, None)
 
     def _f_setAttr(self, attrname, attrvalue):
         """Set an group attribute as a string"""
 
-        #return self._g_setGroupAttrStr(attrname, attrvalue)
         setattr(self._v_attrs, attrname, attrvalue)
 
     def _f_rename(self, newname):
@@ -495,7 +488,6 @@ class Group(hdf5Extension.Group, object):
 
     def __repr__(self):
         """A detailed string representation for this object."""
-        #return str(self)
         
         rep = [ '%r (%s)' %  \
                 (childname, child._v_class) 

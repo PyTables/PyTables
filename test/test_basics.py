@@ -58,7 +58,7 @@ class OpenFileTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-        assert class_ == "ARRAY"
+        assert class_ == "Array"
         
     def test01_openFile(self):
         """Checking opening of an existing file"""

@@ -6,7 +6,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/src/hdf5Extension.pyx,v $
-#       $Id: hdf5Extension.pyx,v 1.47 2003/06/02 14:24:18 falted Exp $
+#       $Id: hdf5Extension.pyx,v 1.48 2003/06/03 20:22:58 falted Exp $
 #
 ########################################################################
 
@@ -36,7 +36,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.47 $"
+__version__ = "$Revision: 1.48 $"
 
 
 import sys, os
@@ -505,9 +505,9 @@ def whichClass( hid_t loc_id, char *name):
       (class_id == H5T_INTEGER) or
       (class_id == H5T_FLOAT)   or
       (class_id == H5T_STRING)):
-    return "ARRAY"
+    return "Array"
   elif class_id == H5T_COMPOUND:
-    return "TABLE"
+    return "Table"
 
   # Fallback 
   return "UNSUPPORTED"
@@ -585,7 +585,7 @@ def getExtVersion():
   # So, if you make a cvs commit *before* a .c generation *and*
   # you don't modify anymore the .pyx source file, you will get a cvsid
   # for the C file, not the Pyrex one!. The solution is not trivial!.
-  return "$Id: hdf5Extension.pyx,v 1.47 2003/06/02 14:24:18 falted Exp $ "
+  return "$Id: hdf5Extension.pyx,v 1.48 2003/06/03 20:22:58 falted Exp $ "
 
 def getPyTablesVersion():
   """Return this extension version."""
@@ -714,9 +714,29 @@ cdef class AttributeSet:
     # Get the dataset ID
     loc_id = H5Dopen(self.parent_id, dsetname)
     if loc_id < 0:
-      raise RuntimeError("Cannot open the dataset %s" % dsetname)
+      raise RuntimeError("Cannot open the dataset %s in node %s" % \
+                         (dsetname, self.name))
 
     attrvalue = self._g_getNodeAttrStr(self.parent_id, loc_id,
+                                       dsetname, attrname)
+    # Close this dataset
+    ret = H5Dclose(loc_id)
+    if ret < 0:
+      raise RuntimeError("Cannot close the dataset %s" % dsetname)
+
+    return attrvalue
+
+  def _g_getChildAttrStr(self, char *dsetname, char *attrname):
+    cdef object attrvalue
+    cdef hid_t loc_id
+
+    # Get the dataset ID
+    loc_id = H5Dopen(self.node._v_groupId, dsetname)
+    if loc_id < 0:
+      raise RuntimeError("Cannot open the child %s of node %s" % \
+                         (dsetname, self.name))
+
+    attrvalue = self._g_getNodeAttrStr(self.node._v_groupId, loc_id,
                                        dsetname, attrname)
     # Close this dataset
     ret = H5Dclose(loc_id)
@@ -815,94 +835,6 @@ cdef class Group:
   def _g_listGroup(self, hid_t loc_id, char *name):
     # Return a tuple with the objects groups and objects dsets
     return Giterate(loc_id, name)
-
-  def _g_getLeafAttrStr(self, char *dsetname, char *attrname):
-    cdef object attrvalue
-    cdef hid_t loc_id
-
-    # Get the dataset ID
-    loc_id = H5Dopen(self.group_id, dsetname)
-    if loc_id < 0:
-      raise RuntimeError("Cannot open the dataset %s" % dsetname)
-
-    attrvalue = self._g_getNodeAttrStr(self.group_id, loc_id,
-                                       dsetname, attrname)
-    # Close this dataset
-    ret = H5Dclose(loc_id)
-    if ret < 0:
-      raise RuntimeError("Cannot close the dataset %s" % dsetname)
-
-    return attrvalue
-
-  def _g_getGroupAttrStr(self, char *attrname):
-
-    return self._g_getNodeAttrStr(self.parent_id, self.group_id,
-                                  self.name, attrname)
-
-  # Get attributes (only supports string attributes right now)
-  def _g_getNodeAttrStr(self, hid_t parent_id, hid_t loc_id,
-                        char *dsetname, char *attrname):
-    cdef hsize_t *dims, nelements
-    cdef H5T_class_t class_id
-    cdef size_t type_size
-    cdef char *attrvalue
-    cdef int rank
-    cdef int ret, i
-        
-    # Check if attribute exists
-    if H5LT_find_attribute(loc_id, attrname) <= 0:
-      # If the attribute does not exists, return None
-      # and do not even warn the user
-      return None
-
-    ret = H5LTget_attribute_ndims(parent_id, dsetname, attrname, &rank )
-    if ret < 0:
-      raise RuntimeError("Can't get ndims on attribute %s in node %s." %
-                             (attrname, dsetname))
-
-    # Allocate memory to collect the dimension of objects with dimensionality
-    if rank > 0:
-        dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
-
-    ret = H5LTget_attribute_info(parent_id, dsetname, attrname,
-                                 dims, &class_id, &type_size)
-    if ret < 0:
-        raise RuntimeError("Can't get info on attribute %s in node %s." %
-                               (attrname, dsetname))
-
-    if rank == 0:
-      attrvalue = <char *>malloc(type_size * sizeof(char))
-    else:
-      elements = dim[0]
-      for i from  0 < i < rank:
-        nelements = nelements * dim[i]
-      attrvalue = <char *>malloc(type_size * nelements * sizeof(char))
-
-    ret = H5LTget_attribute_string(parent_id, dsetname,
-                                    attrname, attrvalue)
-    if ret < 0:
-      raise RuntimeError("Attribute %s exists in node %s, but can't get it." \
-                         % (attrname, dsetname))
-                            
-    return attrvalue
-
-  def _g_setLeafAttrStr(self, char *dsetname, char *attrname, char *attrvalue):
-    cdef int ret
-      
-    ret = H5LTset_attribute_string(self.group_id, dsetname,
-                                   attrname, attrvalue)
-    if ret < 0:
-      raise RuntimeError("Can't set attribute %s in leaf %s." % 
-                             (self.attrname, dsetname))
-
-  def _g_setGroupAttrStr(self, char *attrname, char *attrvalue):
-    cdef int ret
-      
-    ret = H5LTset_attribute_string(self.parent_id, self.name,
-                                   attrname, attrvalue)
-    if ret < 0:
-      raise RuntimeError("Can't set attribute %s in group %s." % 
-                             (self.attrname, self.name))
 
   def _g_closeGroup(self):
     cdef int ret
