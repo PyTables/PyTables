@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.33 2004/01/27 20:28:34 falted Exp $
+#       $Id: Leaf.py,v 1.34 2004/01/28 18:32:16 falted Exp $
 #
 ########################################################################
 
@@ -28,11 +28,12 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.33 $"
+__version__ = "$Revision: 1.34 $"
 
 import types, warnings
-from utils import checkNameValidity, calcBufferSize
+from utils import checkNameValidity, calcBufferSize, processRangeRead
 from AttributeSet import AttributeSet
+import Group
 import hdf5Extension
 
 class Filters:
@@ -235,6 +236,56 @@ class Leaf:
         parent._v_leaves[newname] = self
         parent.__dict__[newname] = self
         
+    def copy(self, where, name, start=0, stop=None, step=1,
+             title=None, filters=None, copyuserattrs=1):
+        """Copy this leaf to other location
+
+        where -- the group where the leaf will be copied.
+        name -- the name of the new leaf.
+        start -- the row to start copying.
+        stop -- the row to cease copying. None means last row.
+        step -- the increment of the row number during the copy
+        title -- the new title for destination. If None, the original
+            title is kept.
+        filters -- An instance of the Filters class. A None value means
+            that the source properties are copied as is.
+        copyuserattrs -- Whether copy the user attributes of the source leaf
+            to the destination or not. The default is copy them.
+
+        """
+             
+        if isinstance(where, str):
+            if where not in self._v_file.objects:
+                raise LookupError, "'%s' path cannot be found in file '%s'" % \
+                      (where, self._v_filename)
+            if where in self._v_file.groups:
+                group = self._v_file.groups[where]
+            else:
+                raise LookupError, "Path '%s' is not a group '%s'"
+        elif isinstance(where, Group.Group):
+            group = where
+        elif where == None:
+            group = self._v_parent
+        else:
+            raise TypeError, \
+"'where' has to be a Group or string instance, not type '%s'" % (type(where))
+        # Get the correct indices (all the Leafs have nrows attribute)
+        if stop == None:
+            stop = self.nrows
+        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        if title == None: title = self.title
+        if filters == None: filters = self.filters
+
+        # Call the part of copy() that depends on the kind of the leaf
+        object = self._g_copy(group, name, start, stop, step, title, filters)
+
+        # Finally, copy the user attributes, if needed
+        if copyuserattrs:
+            for attrname in self.attrs._v_attrnamesuser:
+                setattr(object.attrs, attrname, getattr(self.attrs, attrname))
+        
+        return object
+
     def remove(self):
         "Remove a leaf"
         parent = self._v_parent

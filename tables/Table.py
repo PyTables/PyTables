@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.97 2004/01/27 20:28:34 falted Exp $
+#       $Id: Table.py,v 1.98 2004/01/28 18:32:16 falted Exp $
 #
 ########################################################################
 
@@ -29,7 +29,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.97 $"
+__version__ = "$Revision: 1.98 $"
 
 from __future__ import generators
 import sys
@@ -592,31 +592,8 @@ class Table(Leaf, hdf5Extension.Table, object):
         self.shape = (self.nrows,)
         return
 
-    def copy(self, where, name, start=0, stop=None, step=1,
-             title=None, filters=None, copyuserattrs=1):
-        """Copy this table to other location"""
-             
-        if isinstance(where, str):
-            if where not in self._v_file.objects:
-                raise LookupError, "'%s' path cannot be found in file '%s'" % \
-                      (where, self._v_filename)
-            if where in self._v_file.groups:
-                group = self._v_file.groups[where]
-            else:
-                raise LookupError, "Path '%s' is not a group '%s'"
-        elif isinstance(where, Group.Group):
-            group = where
-        elif where == None:
-            group = self._v_parent
-        else:
-            raise TypeError, \
-"'where' has to be a Group or string instance, not type '%s'" % (type(where))
-        # Get the correct indices
-        if stop == None:
-            stop = self.nrows
-        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
-        if title == None: title = self.title
-        if filters == None: filters = self.filters
+    def _g_copy(self, group, name, start, stop, step, title, filters):
+        "Private part of Leaf.copy() for each kind of leaf"
         # Build the new Table object
         object = Table(self.description._v_ColObjects, title=title,
                        filters=filters,
@@ -631,12 +608,6 @@ class Table(Leaf, hdf5Extension.Table, object):
                 stop2 = stop 
             object.append(self[start2:stop2:step])
         object._close_append()  # Close the destination table
-
-        # Finally, copy the user attributes, if needed
-        if copyuserattrs:
-            for attrname in self.attrs._v_attrnamesuser:
-                setattr(object.attrs, attrname, getattr(self.attrs, attrname))
-        
         return object
 
     def flush(self):

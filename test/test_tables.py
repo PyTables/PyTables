@@ -1202,7 +1202,6 @@ class RecArrayIO(unittest.TestCase):
 
 class CopyTestCase(unittest.TestCase):
 
-    # Fer uns quants metodes mes per a xequejar open/closed, altres params, ...
     def test01_copy(self):
         """Checking Table.copy() method """
 
@@ -1583,7 +1582,7 @@ class CopyIndexTestCase(unittest.TestCase):
 
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test01..." % self.__class__.__name__
+            print "Running %s.test01_index..." % self.__class__.__name__
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -1613,11 +1612,6 @@ class CopyIndexTestCase(unittest.TestCase):
         r2 = r[self.start:self.stop:self.step]
         for nrow in range(r2.shape[0]):
             for colname in table1.colnames:
-#                 print "r2[nrow]-->", r2[nrow]
-#                 print "table2[nrow]-->", table2[nrow]
-#                 print "table2[nrow]-->", table2[nrow].field(colname)
-#                 assert allequal(table1[nrow].field(colname),
-#                                 table2[nrow].field(colname))
                 # The next gives a warning because a Table cannot distinguish
                 # between a '(1,)f4' format and a 'f4' format.
                 # This should be adressed? 2004-01-24
@@ -1634,12 +1628,12 @@ class CopyIndexTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-    def test02_index(self):
+    def test02_indexclosef(self):
         """Checking Table.copy() method with indexes (close file version)"""
 
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test01..." % self.__class__.__name__
+            print "Running %s.test02_indexclosef..." % self.__class__.__name__
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")

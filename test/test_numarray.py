@@ -7,6 +7,11 @@ import numarray
 from numarray import *
 import numarray.strings as strings
 import numarray.records as records
+try:
+    import Numeric
+    numeric = 1
+except:
+    numeric = 0
 from tables import *
 
 from test_all import verbose, allequal
@@ -501,9 +506,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 	# maxrank = 32 (for a effective maximum rank of 32)
         # This limit is due to HDF5 library limitations.
 	# There seems to exist a bug in Numeric when dealing with
-	# arrays with rank greater than 20. Also hdf5Extension has a
-	# bug getting the shape of the object, that creates lots of
-	# problems (segmentation faults, memory faults...)
+	# arrays with rank greater than 20.
 	minrank = 1
 	maxrank = 32
 	
@@ -555,7 +558,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             # ************** WARNING!!! *****************
             # If we compare to arrays of dimensions bigger than 20
             # we get a segmentation fault! It is most probably a bug
-            # located on Numeric package
+            # located on the Numeric package
             # ************** WARNING!!! *****************
             assert a.shape == b.shape
             assert a.type() == b.type()
@@ -572,14 +575,431 @@ class GroupsArrayTestCase(unittest.TestCase):
 	
 	# Delete the file
         os.remove(file)
+
+class CopyTestCase(unittest.TestCase):
+
+    def test01_copy(self):
+        """Checking Array.copy() method """
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an Array
+        arr=array([[456, 2],[3, 457]], type=Int16)
+        array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
+
+        # Copy to another Array
+        array2 = array1.copy('/', 'array2')
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.array2
+
+        if verbose:
+            print "array1-->", array1.read()
+            print "array2-->", array2.read()
+            #print "dirs-->", dir(array1), dir(array2)
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Check that all the elements are equal
+        allequal(array1.read(), array2.read())
+
+        # Assert other properties in array
+        assert array1.nrows == array2.nrows
+        assert array1.flavor == array2.flavor
+        assert array1.type == array2.type
+        assert array1.itemsize == array2.itemsize
+        assert array1.title == array2.title
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test02_copy(self):
+        """Checking Array.copy() method (where specified)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an Array
+        arr=array([[456, 2],[3, 457]], type=Int16)
+        array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
+
+        # Copy to another Array
+        group1 = fileh.createGroup("/", "group1")
+        array2 = array1.copy(group1, 'array2')
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.group1.array2
+
+        if verbose:
+            print "array1-->", array1.read()
+            print "array2-->", array2.read()
+            #print "dirs-->", dir(array1), dir(array2)
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Check that all the elements are equal
+        allequal(array1.read(), array2.read())
+
+        # Assert other properties in array
+        assert array1.nrows == array2.nrows
+        assert array1.flavor == array2.flavor
+        assert array1.type == array2.type
+        assert array1.itemsize == array2.itemsize
+        assert array1.title == array2.title
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test03_copy(self):
+        """Checking Array.copy() method (Numeric flavor)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an Array (Numeric flavor)
+        if numeric:
+            arr=Numeric.array([[456, 2],[3, 457]], typecode='s')
+        else:
+            # If Numeric not installed, use a numarray object
+            arr=array([[456, 2],[3, 457]], type=Int16)
+            
+        array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
+
+        # Copy to another Array
+        array2 = array1.copy('/', 'array2')
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.array2
+
+        if verbose:
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Assert other properties in array
+        assert array1.nrows == array2.nrows
+        assert array1.flavor == array2.flavor   # Very important here!
+        assert array1.type == array2.type
+        assert array1.itemsize == array2.itemsize
+        assert array1.title == array2.title
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test04_copy(self):
+        """Checking Array.copy() method (checking title copying)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an Array (Numeric flavor)
+        arr=array([[456, 2],[3, 457]], type=Int16)
+        array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
+        # Append some user attrs
+        array1.attrs.attr1 = "attr1"
+        array1.attrs.attr2 = 2
+        # Copy it to another Array
+        array2 = array1.copy('/', 'array2', title="title array2")
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.array2
+            
+        # Assert user attributes
+        if verbose:
+            print "title of destination array-->", array2.title
+        array2.title == "title array2"
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test05_copy(self):
+        """Checking Array.copy() method (user attributes copied)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an Array (Numeric flavor)
+        arr=array([[456, 2],[3, 457]], type=Int16)
+        array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
+        # Append some user attrs
+        array1.attrs.attr1 = "attr1"
+        array1.attrs.attr2 = 2
+        # Copy it to another Array
+        array2 = array1.copy('/', 'array2', copyuserattrs=1)
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.array2
+
+        if verbose:
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Assert user attributes
+        array2.attrs.attr1 == "attr1"
+        array2.attrs.attr2 == 2
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test05b_copy(self):
+        """Checking Array.copy() method (user attributes not copied)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test05b_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an Array (Numeric flavor)
+        arr=array([[456, 2],[3, 457]], type=Int16)
+        array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
+        # Append some user attrs
+        array1.attrs.attr1 = "attr1"
+        array1.attrs.attr2 = 2
+        # Copy it to another Array
+        array2 = array1.copy('/', 'array2', copyuserattrs=0)
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.array2
+
+        if verbose:
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Assert user attributes
+        array2.attrs.attr1 == None
+        array2.attrs.attr2 == None
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+class CloseCopyTestCase(CopyTestCase):
+    close = 1
+
+class OpenCopyTestCase(CopyTestCase):
+    close = 0
+
+class CopyIndexTestCase(unittest.TestCase):
+
+    def test02_index(self):
+        """Checking Array.copy() method with indexes"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_index..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Array
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a numarray
+        r=arange(200, type=Int32, shape=(100,2))
+        # Save it in a array:
+        array1 = fileh.createArray(fileh.root, 'array1', r, "title array1")
+        
+        # Copy to another array
+        array2 = array1.copy("/", 'array2',
+                             start=self.start,
+                             stop=self.stop,
+                             step=self.step)
+        if verbose:
+            print "array1-->", array1.read()
+            print "array2-->", array2.read()
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Check that all the elements are equal
+        r2 = r[self.start:self.stop:self.step]
+        allequal(r2, array2.read())
+
+        # Assert the number of rows in array
+        if verbose:
+            print "nrows in array2-->", array2.nrows
+            print "and it should be-->", r2.shape[0]
+        assert r2.shape[0] == array2.nrows
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test02_indexclosef(self):
+        """Checking Array.copy() method with indexes (close file version)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_indexclosef..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Array
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a numarray
+        r=arange(200, type=Int32, shape=(100,2))
+        # Save it in a array:
+        array1 = fileh.createArray(fileh.root, 'array1', r, "title array1")
+        
+        # Copy to another array
+        array2 = array1.copy("/", 'array2',
+                             start=self.start,
+                             stop=self.stop,
+                             step=self.step)
+        # Close and reopen the file
+        fileh.close()
+        fileh = openFile(file, mode = "r")
+        array1 = fileh.root.array1
+        array2 = fileh.root.array2
+
+        if verbose:
+            print "array1-->", array1.read()
+            print "array2-->", array2.read()
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+            
+        # Check that all the elements are equal
+        r2 = r[self.start:self.stop:self.step]
+        allequal(r2, array2.read())
+
+        # Assert the number of rows in array
+        if verbose:
+            print "nrows in array2-->", array2.nrows
+            print "and it should be-->", r2.shape[0]
+        assert r2.shape[0] == array2.nrows
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+
+class CopyIndex1TestCase(CopyIndexTestCase):
+    start = 0
+    stop = 7
+    step = 1
+
+class CopyIndex2TestCase(CopyIndexTestCase):
+    start = 0
+    stop = -1
+    step = 1
 	
+class CopyIndex3TestCase(CopyIndexTestCase):
+    start = 1
+    stop = 7
+    step = 1
+
+class CopyIndex4TestCase(CopyIndexTestCase):
+    start = 0
+    stop = 6
+    step = 1
+
+class CopyIndex5TestCase(CopyIndexTestCase):
+    start = 3
+    stop = 7
+    step = 1
+
+class CopyIndex6TestCase(CopyIndexTestCase):
+    start = 3
+    stop = 6
+    step = 2
+
+class CopyIndex7TestCase(CopyIndexTestCase):
+    start = 0
+    stop = 7
+    step = 10
+
+class CopyIndex8TestCase(CopyIndexTestCase):
+    start = 6
+    stop = -1  # Negative values means starting from the end
+    step = 1
+
+class CopyIndex9TestCase(CopyIndexTestCase):
+    start = 3
+    stop = 4
+    step = 1
+
+class CopyIndex10TestCase(CopyIndexTestCase):
+    start = 3
+    stop = 4
+    step = 2
+
+class CopyIndex11TestCase(CopyIndexTestCase):
+    start = -3
+    stop = -1
+    step = 2
+
+class CopyIndex12TestCase(CopyIndexTestCase):
+    start = -1   # Should point to the last element
+    stop = None  # None should mean the last element (including it)
+    step = 1
 
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
     #theSuite.addTest(unittest.makeSuite(Basic2DTestCase))
-
+    #theSuite.addTest(unittest.makeSuite(CopyIndex12TestCase))
+    
     for i in range(niter):
         # The scalar case test should be refined in order to work
         theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
@@ -594,6 +1014,21 @@ def suite():
         #theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
         theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))
         theSuite.addTest(unittest.makeSuite(UnalignedAndComplexTestCase))
+        theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
+        theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex2TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex3TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex4TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex5TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex6TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex7TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex8TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex9TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex10TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex11TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex12TestCase))
+
 
     return theSuite
 
