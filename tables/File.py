@@ -4,7 +4,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.13 2003/02/20 13:12:35 falted Exp $
+#       $Id: File.py,v 1.14 2003/02/22 10:46:14 falted Exp $
 #
 ########################################################################
 
@@ -31,7 +31,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.13 $"
+__version__ = "$Revision: 1.14 $"
 format_version = "1.0"                     # File format version we write
 compatible_formats = []                    # Old format versions we can read
 
@@ -496,25 +496,35 @@ Instead, a %s() object has been found there.""" % \
         
         """Close all the objects in HDF5 file and close the file."""
         
-        # Do some housekeeping
-        # It's very important to delete the back references in the object
-        # tree so as to allow the effective deletion of the object tree
-        #print "Passing File.close()"
         for group in self.walkGroups(self.root):
             for leaf in self.listNodes(group, classname = 'Leaf'):
                 leaf.close()
-                # Delete the back references
-                del leaf._v_parent
-                del leaf._v_rootgroup
-            # Delete the back references to the parent group and root group
             group.close()
-            
-        #print "Closing the %s HDF5 file ...." % self.filename
+
         self.closeFile()
         # Delete the Group class variables
         self.root._f_cleanup()
-        # Delete the file class variables
-        self.__dict__.clear()
+        
+        # Do some housekeeping
+        # It's very important to delete the back references in the object
+        # tree so as to allow the effective deletion of the object tree
+        # However, we have right now problems when deleting the tree
+        # under certain situations (look at test_all.py)
+        # So that code will remian commented out until the problem be
+        # located and fixed
+        # 22/02/2003
+#         for group in self.walkGroups(self.root):
+#             for leaf in self.listNodes(group, classname = 'Leaf'):
+#                 # Delete the back references
+#                 del leaf._v_parent
+#                 del leaf._v_rootgroup
+#             # Delete the back references to the parent group and root group
+#             del group._v_parent
+#             del group._v_rootgroup
+            
+#         # Delete the root object (this should recursively delete the
+#         # object tree)
+#         del self.root
 
     def __str__(self):
         

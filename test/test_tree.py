@@ -67,8 +67,6 @@ class TreeTestCase(unittest.TestCase):
             # Iterate over this new group (group2)
             group = group2
             
-        #print self.h5file
-        #sys.exit()
     
     def tearDown(self):
         # Close the file (eventually destroy the extended type)
@@ -324,7 +322,7 @@ class DeepTreeTestCase(unittest.TestCase):
     """
     def test00_deepTree(self):
         
-        """Checking creation of large depth (256) object tree
+        """Checking creation of large depth (512) object tree
         Variable 'maxdepth' controls this check.
         """
         
@@ -333,7 +331,10 @@ class DeepTreeTestCase(unittest.TestCase):
         # Here we put a more conservative limit to deal with more platforms
         # With maxdepth = 256 this test would take less than 20 MB
         # of main memory to run, which is quite reasonable nowadays.
-        maxdepth = 256
+        # But with the new memory housekeeping introduced in PyTables
+        # 0.3 that provokes a memory endless grow-up.
+        # 64 is a better number so as to not expose these problems
+        maxdepth = 512  # This is safe with the actual object housekeeping
         
         if verbose:
             print '\n', '-=' * 30
@@ -345,7 +346,8 @@ class DeepTreeTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         #file = "deep.h5"
         fileh = openFile(file, mode = "w")
-        group = fileh.root
+        #group = fileh.root
+        pathname = "/"
         if verbose:
             print "Depth writing progress: ",
         # Iterate until maxdepth
@@ -354,14 +356,19 @@ class DeepTreeTestCase(unittest.TestCase):
             if verbose:
                 print "%3d," % (depth),
             a = [1, 1]
-            fileh.createArray(group, 'array', a, "depth: %d" % depth)
-            group = fileh.createGroup(group, 'group' + str(depth))
+            #fileh.createArray(group, 'array', a, "depth: %d" % depth)
+            fileh.createArray(pathname, 'array', a, "depth: %d" % depth)
+            #group = fileh.createGroup(group, 'group' + str(depth))
+            group = fileh.createGroup(pathname, 'group' + str(depth))
+            pathname = group._v_pathname
         # Close the file
         fileh.close()
+        del group, fileh
         
         # Open the previous HDF5 file in read-only mode
         fileh = openFile(file, mode = "r")
         group = fileh.root
+        pathname = "/"
         if verbose:
             print "\nDepth reading progress: ",
         # Get the metadata on the previosly saved arrays
@@ -375,7 +382,9 @@ class DeepTreeTestCase(unittest.TestCase):
             # Arrays a and b must be equal
             assert a == b
             # Iterate over the next group
-            group = fileh.getNode(group, 'group' + str(depth))
+            group = fileh.getNode(pathname, 'group' + str(depth))
+            #group = fileh.getNode(group, 'group' + str(depth))
+            pathname = group._v_pathname
         if verbose:
             print # This flush the stdout buffer
         # Close the file
@@ -383,6 +392,7 @@ class DeepTreeTestCase(unittest.TestCase):
         
         # Then, delete the file
         os.remove(file)
+        del group, fileh, a, b
         
 class WideTreeTestCase(unittest.TestCase):
     """Checks for maximum number of childs for a Group.
@@ -390,7 +400,7 @@ class WideTreeTestCase(unittest.TestCase):
     
     """
     def test00_wideTree(self):
-        """Checking creation of large number of childs (512) per group 
+        """Checking creation of large number of childs (1024) per group 
         
         Variable 'maxchilds' controls this check. PyTables support
         until 4096 childs per group, but this would take too much
@@ -399,7 +409,10 @@ class WideTreeTestCase(unittest.TestCase):
         A 512 childs test takes around 25 MB.
         
         """
-        maxchilds = 512
+        # But with the new memory housekeeping introduced in PyTables
+        # 0.3 that provokes a memory endless grow-up.
+        # 128 is a better number so as to not expose these problems
+        maxchilds = 1024
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_wideTree..." % \
@@ -445,15 +458,21 @@ class WideTreeTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
+        #del a, b, fileh
         
 #----------------------------------------------------------------------
 
 def suite():
     theSuite = unittest.TestSuite()
+    # This counter is useful when detecting memory leaks
+    niter = 1
 
-    theSuite.addTest(unittest.makeSuite(TreeTestCase))
-    theSuite.addTest(unittest.makeSuite(DeepTreeTestCase))
-    theSuite.addTest(unittest.makeSuite(WideTreeTestCase))
+    for i in range(niter):        
+        theSuite.addTest(unittest.makeSuite(TreeTestCase))
+    for i in range(niter):
+        theSuite.addTest(unittest.makeSuite(DeepTreeTestCase))
+    for i in range(niter):        
+        theSuite.addTest(unittest.makeSuite(WideTreeTestCase))
 
     return theSuite
 

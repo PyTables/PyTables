@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
-#       $Id: Table.py,v 1.23 2003/02/20 13:12:35 falted Exp $
+#       $Id: Table.py,v 1.24 2003/02/22 10:46:14 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.23 $"
+__version__ = "$Revision: 1.24 $"
 
 from __future__ import generators
 import sys
@@ -468,17 +468,17 @@ class Table(Leaf, hdf5Extension.Table):
     def close(self):
         """Flush the table buffers and close the HDF5 dataset."""
         self.flush()
-        #print "Passing Table.close()", self.name
-        # Delete some unnecessary big objects
+        # Delete some unnecessary objects
         del self.description
         if hasattr(self, "_v_buffer"):
             del self.row
             del self._v_buffer
         #print self.__dict__
 
-    def __del__(self):
+    # Moved out of scope
+    def _f_del__(self):
         """Delete some objects"""
-        #print "Deleting Table object", self._v_name
+        print "Deleting Table object", self._v_name
         pass
 
     def __repr__(self):

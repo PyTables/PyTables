@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
-#       $Id: Leaf.py,v 1.6 2003/02/20 13:12:35 falted Exp $
+#       $Id: Leaf.py,v 1.7 2003/02/22 10:46:14 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.6 $"
+__version__ = "$Revision: 1.7 $"
 
 
 class Leaf:
@@ -98,7 +98,3 @@ class Leaf:
         return "%s %s%s \"%s\"" % \
                (pathname, classname, shape, title)
 
-    def __del__(self):
-        """Delete some objects"""
-        #print "Deleting Leaf object"
-        pass

@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@openlc.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
-#       $Id: Group.py,v 1.13 2003/02/20 13:12:35 falted Exp $
+#       $Id: Group.py,v 1.14 2003/02/22 10:46:14 falted Exp $
 #
 ########################################################################
 
@@ -33,7 +33,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.13 $"
+__version__ = "$Revision: 1.14 $"
 
 MAX_DEPTH_IN_TREE = 512
 # Note: the next constant has to be syncronized with the
@@ -365,22 +365,12 @@ class Group(hdf5Extension.Group):
         self._c_objects.clear()
 
     def close(self):
-        """Close this group ..."""
-        #print "Passing Group.close() in Group:", self._v_name
-
+        """Close this HDF5 group"""
         self._f_closeGroup()
-        del self._v_parent
-        del self._v_rootgroup
-
-        #print self.__dict__
-        #del self._v_objgroups
-        #del self._v_objleaves
-        #del self._v_objchilds
-
-
-    def __del__(self):
-        """Delete some objects"""
-        #print "Deleting Group name:", self._v_name
+        
+    # Moved out of scope
+    def _f_del__(self):
+        print "Deleting Group name:", self._v_name
         pass
 
     def __str__(self):
