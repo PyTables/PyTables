@@ -2,209 +2,222 @@ import sys
 import unittest
 import os
 import tempfile
-from tables import File, Table, Group, IsRecord, isHDF5
+
+from Numeric import *
+from tables import *
+
 
 from test_all import verbose
 
-# Test Record class
-class Record(IsRecord):
-    """ A record has several columns. Represent the here as class
-    variables, whose values are their types. The IsRecord
-    class will take care the user won't add any new variables and
-    that their type is correct.  """
+class OpenFileTestCase(unittest.TestCase):
+
+    def setUp(self):
+        # Create an HDF5 file
+        self.file = tempfile.mktemp(".h5")
+        fileh = openFile(self.file, mode = "w")
+        fileh.createArray(fileh.root, 'array', array([1,2]),
+                          title = "Title example")
+        fileh.close()
+        
+    def tearDown(self):
+        # Remove the temporary file
+        os.remove(self.file)
+
+    def test00_newFile(self):
+        """Checking creation of a new file"""
+
+        # Create an HDF5 file
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, mode = "w")
+        arr = fileh.createArray(fileh.root, 'array', array([1,2]),
+                                title = "Title example")
+        # Get the CLASS attribute of the arr object
+        class_ = fileh.root._f_getDsetAttr("array", "CLASS")
+
+        fileh.close()
+
+        assert class_ == "Array"
+        
+    def test01_openFile(self):
+        """Checking opening of an existing file"""
+
+        # Open the old HDF5 file
+        fileh = openFile(self.file, mode = "r")
+        # Get the CLASS attribute of the arr object
+        title = fileh.root._f_getDsetAttr("array", "TITLE")
+
+        assert title == "Title example"
     
-    var1 = '4s'   # 4-character String
-    var2 = 'i'    # integer
-    var3 = 'h'    # short integer. This is chosen in this place for 
-                  # discovery of alignment issues!
-    var4 = 'd'    # double (double-precision)
-    var5 = 'f'    # float  (single-precision)
+    def test02_appendFile(self):
+        """Checking appending objects to an existing file"""
+
+        # Append a new array to the existing file
+        fileh = openFile(self.file, mode = "r+")
+        fileh.createArray(fileh.root, 'array2', array([3,4]),
+                          title = "Title example 2")
+        fileh.close()
+
+        # Open this file in read-only mode
+        fileh = openFile(self.file, mode = "r")
+        # Get the CLASS attribute of the arr object
+        title = fileh.root._f_getDsetAttr("array2", "TITLE")
+
+        assert title == "Title example 2"
+
+    def test022_appendFile2(self):
+        """Checking appending objects to an existing file ("a" version)"""
+
+        # Append a new array to the existing file
+        fileh = openFile(self.file, mode = "a")
+        fileh.createArray(fileh.root, 'array2', array([3,4]),
+                          title = "Title example 2")
+        fileh.close()
+
+        # Open this file in read-only mode
+        fileh = openFile(self.file, mode = "r")
+        # Get the CLASS attribute of the arr object
+        title = fileh.root._f_getDsetAttr("array2", "TITLE")
+
+        assert title == "Title example 2"
+
+    # Begin to raise errors...
+        
+    def test03_appendErrorFile(self):
+        """Checking appending objects to an existing file in "w" mode"""
+
+        # Append a new array to the existing file but in write mode
+        # so, the existing file should be deleted!
+        fileh = openFile(self.file, mode = "w")
+        fileh.createArray(fileh.root, 'array2', array([3,4]),
+                          title = "Title example 2")
+        fileh.close()
+
+        # Open this file in read-only mode
+        fileh = openFile(self.file, mode = "r")
+
+        # Here, a RuntimeError should be raised!
+        try:
+            # Try to get the 'array' object in the old existing file
+            arr = fileh.root.array
+        except AttributeError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next AttributeError was catched!"
+                print value
+        else:
+            self.fail("expected an AttributeError")
+
+    def test04_openErrorFile(self):
+        """Checking opening a non-existing file for reading"""
+
+        try:
+            fileh = openFile("nonexistent.h5", mode = "r")
+        except IOError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next IOError was catched!"
+                print value
+        else:
+            self.fail("expected an IOError")
+        
+
+    def test05_openErrorFile(self):
+        """Checking opening a non HDF5 file extension"""
+
+        try:
+            fileh = openFile("nonexistent", mode = "r")
+        except AssertionError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next AssertionError was catched!"
+                print value
+        except IOError:
+            # Just in case someone run the test with -O optimization flag!
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next IOError was catched!"
+                print value
+        else:
+            self.fail("expected an AssertionError or IOError")
+        
 
 class CheckFileTestCase(unittest.TestCase):
     
-    def test00_IsHDF5File(self):
+    def test00_isHDF5File(self):
+        """Checking isHDF5 function (TRUE case)"""
+        
+        # Create a PyTables file (and by so, an HDF5 file)
         file = tempfile.mktemp(".h5")
-        if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00_IsHDF5File..." % self.__class__.__name__
-            #print "Filename ==>", file
-
-        # Create an instance of HDF5 Table
-        fileh = File(name = file, mode = "w")
-        group = fileh.getRootGroup()
-        # Create a table
-        table = fileh.newTable(group, 'table', Record(),
-                                    tableTitle = "Title example")
+        fileh = openFile(file, mode = "w")
+        arr = fileh.createArray(fileh.root, 'array', array([1,2]),
+                                    title = "Title example")
         # For this method to run, it needs a closed file
         fileh.close()
+	
+        # When file has an HDF5 format, always returns 1
         assert isHDF5(file) == 1
+	
         # Then, delete the file
         os.remove(file)
 
-class BasicTestCase(unittest.TestCase):
-    file  = "test.h5"
-    mode  = "w" 
-    title = "This is the table title"
-    expectedrows = 1000
-    appendrows = 100
-    fast = 0
-    compress = 0
 
-    def setUp(self):
-        # Create an instance of HDF5 Table
-        self.fileh = File(name = self.file, mode = self.mode)
-        self.rootgroup = self.fileh.getRootGroup()
-        self.populateFile()
+    def test01_isHDF5File(self):
+        """Checking isHDF5 function (FALSE case)"""
 
-    def populateFile(self):
-        group = self.rootgroup
-        maxshort = 1 << 15
-        maxint   = 2147483647   # (2 ** 31 - 1)
-        for j in range(3):
-            # Create a table
-            table = self.fileh.newTable(group, 'table'+str(j), Record(),
-                                        tableTitle = self.title,
-                                        compress = self.compress,
-                                        expectedrows = self.expectedrows)
-            # Get the record object associated with the new table
-            d = table.record 
-            # Fill the table
-            for i in xrange(self.expectedrows):
-                d.var1 = '%04d' % (self.expectedrows - i)
-                d.var2 = i 
-                d.var3 = i % maxshort
-                d.var4 = float(i)
-                d.var5 = float(i)
-                table.appendRecord(d)      # This injects the Record values
-                # table.appendRecord(d())     # The same, but slower
-            # Flush the buffer for this table
-            table.flush()
-            # Create a new group (descendant of group)
-            group2 = self.fileh.newGroup(group, 'group'+str(j))
-            # Iterate over this new group (group2)
-            group = group2
-    
-    def tearDown(self):
-        # Close the file (eventually destroy the extended type)
-        self.fileh.close()
+        # Create a regular (text) file
+        file = tempfile.mktemp(".h5")
+        fileh = open(file, "w")
+        fileh.write("Hello!")
+        fileh.close()
 
-        os.remove(self.file)
-
-    #----------------------------------------
-
-    def test00_getGroups(self):
-        rootgroup = self.rootgroup
-        if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00_getGroups..." % self.__class__.__name__
-
-        groups = []
-        for (groupname, groupobj) in self.fileh.walkGroups(rootgroup):
-            groups.append(groupname)
-
-        if verbose:
-            print "Present groups in file ==>", groups
-            
-        assert groups == ["/", "group0", "group1", "group2"]
-
-    def test01_getTable(self):
-        rootgroup = self.rootgroup
-        if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_getTable..." % self.__class__.__name__
-            print "Testing if /group0/table1 is a Table instance..."
-
-        table = self.fileh.getNode("/group0/table1")
-        assert isinstance(table, Table.Table)
+	version = isHDF5(file)
+        # When file is not an HDF5 format, always returns 0 or
+        # negative value
+        assert version <= 0
         
-    def test02_readTable(self):
-        rootgroup = self.rootgroup
+        # Then, delete the file
+        os.remove(file)
+
+    def test02_isPyTablesFile(self):
+        """Checking isPyTablesFile function (TRUE case)"""
+
+        # Create a PyTables file
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, mode = "w")
+        arr = fileh.createArray(fileh.root, 'array', array([1,2]),
+                                    title = "Title example")
+        # For this method to run, it needs a closed file
+        fileh.close()
+
+	version = isPyTablesFile(file)
+        # When file has a PyTables format, always returns "1.0" string or
+        # greater
+        assert version >= "1.0"
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_readTable..." % self.__class__.__name__
+            print
+            print "PyTables format version number ==> %s" % \
+              version
+	
+        # Then, delete the file
+        os.remove(file)
 
-        table = self.fileh.getNode("/table0")
-        # Read the records and select the ones with "var2" file less than 20
-        result = [ rec.var2 for rec in table.readAsRecords() if rec.var2 < 20 ]
-        if verbose:
-            print "Nrecords in", table._v_pathname, ":", table.nrecords
-            print "Last record in table ==>", rec
-            print "Total selected records in table ==> ", len(result)
-        nrows = self.expectedrows - 1
-        assert (rec.var1, rec.var2, rec.var5) == ("0001", nrows, float(nrows))
-        assert len(result) == 20
-        
-    def test03_TraverseTree(self):
-        rootgroup = self.rootgroup
-        if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_TraverseTree..." % self.__class__.__name__
 
-        groups = []
-        leaves = []
-        for (groupname, groupobj) in self.fileh.walkGroups(rootgroup):
-            groups.append(groupobj._v_pathname)
-            if verbose:
-                print "Group found in ==>", groupobj._v_pathname
-            for (name, leave) in self.fileh.listLeaves(groupobj):
-                leaves.append(leave._v_pathname)
-                if verbose:
-                    print "Leave found in ==>", leave._v_pathname
+    def test03_isPyTablesFile(self):
+        """Checking isPyTablesFile function (FALSE case)"""
 
-        assert groups == ["/", "/group0", "/group0/group1",
-                          "/group0/group1/group2"]
-        assert leaves == ["/table0", "/group0/table1", "/group0/group1/table2"]
-        
-    def test04_AppendRows(self):
-        # First close the open file
-        self.fileh.close()
-        # Now, open it, but in "append" mode
-        self.fileh = File(name = self.file, mode = "a")
-        self.rootgroup = self.fileh.getRootGroup()
-        if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_AppendRows..." % self.__class__.__name__
+        # Create a regular (text) file
+        file = tempfile.mktemp(".h5")
+        fileh = open(file, "w")
+        fileh.write("Hello!")
+        fileh.close()
 
-        maxshort = 1 << 15
-        # Get a table
-        table = self.fileh.getNode("/group0/table1")
-        # Get their record object
-        rec = table.record
-        if verbose:
-            print "Nrecords in old", table._v_pathname, ":", table.nrecords
-            print "Record Format ==>", rec._v_fmt
-            print "Record Size ==>", table._v_rowsize
-        # Append some records
-        for i in xrange(self.appendrows):
-            rec.var1 = '%04d' % (self.appendrows - i)
-            rec.var2 = i 
-            rec.var3 = i % maxshort
-            rec.var4 = float(i)
-            rec.var5 = float(i)
-            table.appendRecord(rec)      # This injects the Record values
-            # table.appendRecord(rec())     # The same, but slower
-        # Flush the buffer for this table
-        table.flush()
-        # Read the records and select the ones with "var2" file less than 20
-        result = [ rec.var2 for rec in table.readAsRecords() if rec.var2 < 20 ]
-        nrows = self.appendrows - 1
-        assert (rec.var1, rec.var2, rec.var5) == ("0001", nrows, float(nrows))
-        assert len(result) == 40 # because we appended new records
-        
-class BasicWriteTestCase(BasicTestCase):
-    pass
-
-class CompressTablesTestCase(BasicTestCase):
-    compress = 1
-
-class BigTablesTestCase(BasicTestCase):
-    expectedrows = 10000
-    appendrows = 1000
-
-class BigFastTablesTestCase(BasicTestCase):
-    expectedrows = 10000
-    appendrows = 1000
-    fast = 1
+	version = isPyTablesFile(file)
+        # When file is not a PyTables format, always returns 0 or
+        # negative value
+        assert version <= 0
+	
+        # Then, delete the file
+        os.remove(file)
 
 
 #----------------------------------------------------------------------
@@ -212,14 +225,11 @@ class BigFastTablesTestCase(BasicTestCase):
 def suite():
     theSuite = unittest.TestSuite()
 
+    theSuite.addTest(unittest.makeSuite(OpenFileTestCase))
     theSuite.addTest(unittest.makeSuite(CheckFileTestCase))
-    theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
-    theSuite.addTest(unittest.makeSuite(CompressTablesTestCase))
-    theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
-    theSuite.addTest(unittest.makeSuite(BigFastTablesTestCase))
 
     return theSuite
 
-
+ 
 if __name__ == '__main__':
     unittest.main( defaultTest='suite' )

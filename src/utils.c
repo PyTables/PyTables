@@ -23,21 +23,21 @@ PyObject *createNamesTuple(char *buffer[], int nelements)
   return t;
 }
 
-/*
- * This routine is designed to provide equivalent functionality to 'printf'
- * and allow easy replacement for environments which don't have stdin/stdout
- * available.  (i.e. Windows & the Mac)
- */
-int 
-print_func(const char *format,...)
+/****************************************************************
+**
+**  createDimsTuple(): Create Python tuple for array dimensions.
+** 
+****************************************************************/
+PyObject *createDimsTuple(int dimensions[], int nelements)
 {
-    va_list                 arglist;
-    int                     ret_value;
+  int i;
+  PyObject *t;
 
-    va_start(arglist, format);
-    ret_value = vprintf(format, arglist);
-    va_end(arglist);
-    return (ret_value);
+  t = PyTuple_New(nelements);
+  for (i = 0; i < nelements; i++) { 
+    PyTuple_SetItem(t, i, PyInt_FromLong(dimensions[i]) );
+  }
+  return t;
 }
 
 
@@ -79,30 +79,39 @@ herr_t gitercb(hid_t loc_id, const char *name, void *data) {
 ** 
 ****************************************************************/
 PyObject *Giterate(hid_t loc_id, const char *name) {
-  int       i, j, k, totalobjects;
+  int i, j, k, totalobjects;
+  int mcexceed = 0;
   PyObject  *t, *tdir, *tdset;
   iter_info info;                   /* Info of objects in the group */
-  char      *namesdir[MAXELINDIR];  /* Names of dirs in the group */
-  char      *namesdset[MAXELINDIR]; /* Names of dsets in the group */
+  char      *namesdir[MAX_CHILDS_IN_GROUP];  /* Names of dirs in the group */
+  char      *namesdset[MAX_CHILDS_IN_GROUP]; /* Names of dsets in the group */
 
   memset(&info, 0, sizeof info);
 
   i = 0; j = 0; k = 0;
   while (H5Giterate(loc_id, name, &i, gitercb, &info) > 0) {
+    /* Check if we are surpassing our buffer capacities */
+    if (i <= MAX_CHILDS_IN_GROUP) {
 #ifdef DEBUG
-    printf("Object type ==> %d\n", info.type);
+      printf("Object type ==> %d\n", info.type);
 #endif DEBUG
-    if (info.type == H5G_GROUP) {
-      namesdir[j++] = strdup(info.name);
+      if (info.type == H5G_GROUP) {
+	namesdir[j++] = strdup(info.name);
 #ifdef DEBUG
-      printf("Dir name ==> %s\n", info.name);
+	printf("Dir name ==> %s\n", info.name);
 #endif DEBUG
+      }
+      else if (info.type == H5G_DATASET) {
+	namesdset[k++] = strdup(info.name);
+#ifdef DEBUG
+	printf("Dataset name ==> %s\n", info.name);
+#endif DEBUG
+      }
     }
-    else if (info.type == H5G_DATASET) {
-      namesdset[k++] = strdup(info.name);
-#ifdef DEBUG
-      printf("Dataset name ==> %s\n", info.name);
-#endif DEBUG
+    else {
+      fprintf(stderr, "Maximum number of childs exceeded!");
+      mcexceed = 1;
+      break;
     }
   }
   
@@ -119,4 +128,84 @@ PyObject *Giterate(hid_t loc_id, const char *name) {
   return t;
 }
 
-      
+/* IsArray and IsTable funtions are obsolete because we use now the
+   CLASS attribute to get this information */
+
+/****************************************************************
+**
+**  isTable(): Returns 1 if loc_id.name is a Table. 0 if not. -1 if error.
+** 
+****************************************************************/
+int isTable(hid_t loc_id, const char *name) {
+   int         ret;
+   hid_t       dataset_id;  
+   hid_t       type_id;
+   H5T_class_t class_id;
+
+   /* Open the dataset. */
+   if ( (dataset_id = H5Dopen( loc_id, name )) < 0 )
+     return -1;
+   
+   /* Get an identifier for the datatype. */
+   type_id = H5Dget_type( dataset_id );
+   
+   /* Get the class. */
+   class_id = H5Tget_class( type_id );
+
+   /* Check if this is a COMPOUND type */
+   if ( (class_id == H5T_COMPOUND) )
+     ret = 1;
+   else
+     ret = 0;
+     
+   /* Release the datatype. */
+   if ( H5Tclose( type_id ) )
+     return -1;
+   
+   /* End access to the dataset */
+   if ( H5Dclose( dataset_id ) )
+     return -1;
+   
+   return ret;
+   
+}
+
+
+/****************************************************************
+**
+**  isArray(): Returns 1 if loc_id.name is an Array. 0 if not. -1 if error.
+** 
+****************************************************************/
+int isArray(hid_t loc_id, const char *name) {
+   int         ret;
+   hid_t       dataset_id;  
+   hid_t       type_id;
+   H5T_class_t class_id;
+     
+   /* Open the dataset. */
+   if ( (dataset_id = H5Dopen( loc_id, name )) < 0 )
+     return -1;
+   
+   /* Get an identifier for the datatype. */
+   type_id = H5Dget_type( dataset_id );
+   
+   /* Get the class. */
+   class_id = H5Tget_class( type_id );
+   
+   /* Check if this an array */
+   if ( (class_id == H5T_ARRAY))
+     ret = 1;
+   else
+     ret = 0;
+     
+   /* Release the datatype. */
+   if ( H5Tclose( type_id ) )
+     return -1;
+   
+   /* End access to the dataset */
+   if ( H5Dclose( dataset_id ) )
+     return -1;
+   
+   return ret;
+   
+}

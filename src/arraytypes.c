@@ -10,9 +10,23 @@ hid_t
   convArrayType(fmt)
     char fmt;
 {
+   hid_t s1;
+   
    switch(fmt) {
     case 'c':
-      return H5T_NATIVE_CHAR;
+      /*      return H5T_NATIVE_CHAR; */
+      /* An H5T_NATIVE_CHAR is interpreted as a signed byte by HDF5
+       * so, we have to create a string type of lenght 1 so as to
+       * represent a char.
+       */
+      s1 = H5Tcopy(H5T_C_S1);
+      /* I use set_strpad instead of set_size as per section 3.6 
+       * (Character and String Datatype Issues) of the HDF5 User's Manual,
+       * altough they both seems to work well for character types */
+      /* H5Tset_size(s1, 1); */
+      H5Tset_strpad(s1, H5T_STR_NULLPAD);
+      
+      return s1;
     case 'b':
       return H5T_NATIVE_UCHAR;
     case '1':
@@ -105,71 +119,6 @@ int getArrayType(H5T_class_t class_id,
   /* If we reach this line, there should be an error */
   return -1;
   
-}
-
-/* Modified version of H5LTget_dataset_info present on HDF_HL
- * I had to add the capability to get the sign for
- * the array type.
- * I should request to NCSA to add this feature. */
-
-herr_t H5LTget_dataset_info_mod( hid_t loc_id, 
-				 const char *dset_name,
-				 hsize_t *dims,
-				 H5T_class_t *class_id,
-				 H5T_sign_t *sign, /* Added this parameter */
-				 size_t *type_size )
-{
- hid_t       dataset_id;  
- hid_t       type_id;
- hid_t       space_id; 
-
- /* Open the dataset. */
- if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
-  return -1;
-
- /* Get an identifier for the datatype. */
- type_id = H5Dget_type( dataset_id );
-
- /* Get the class. */
-    *class_id = H5Tget_class( type_id );
-
- /* Get the sign in case the class is an integer. */
-   if ( (*class_id == H5T_INTEGER) ) /* Only class integer can be signed */
-     *sign = H5Tget_sign( type_id );
-   else 
-     *sign = -1;
-   
- /* Get the size. */
-    *type_size = H5Tget_size( type_id );
-   
-
-  /* Get the dataspace handle */
- if ( (space_id = H5Dget_space( dataset_id )) < 0 )
-  goto out;
-
- /* Get dimensions */
- if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
-  goto out;
-
- /* Terminate access to the dataspace */
- if ( H5Sclose( space_id ) < 0 )
-  goto out;
-
-  /* Release the datatype. */
- if ( H5Tclose( type_id ) )
-  return -1;
-
- /* End access to the dataset */
- if ( H5Dclose( dataset_id ) )
-  return -1;
-
- return 0;
-
-out:
- H5Tclose( type_id );
- H5Dclose( dataset_id );
- return -1;
-
 }
 
 #ifdef MAIN

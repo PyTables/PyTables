@@ -1,4 +1,4 @@
-from tables import File, IsRecord
+from tables import *
 
 class Particle(IsRecord):
     name        = '16s'  # 16-character String
@@ -15,13 +15,13 @@ class Event(IsRecord):
     ycoord      = 'f'    # float  (single-precision)
 
 # Open a file in "w"rite mode
-fileh = File(name = "example2.h5", mode = "w")
+fileh = openFile(name = "table2.h5", mode = "w")
 # Get the HDF5 root group
-root = fileh.getRootGroup()
+root = fileh.root
 
 # Create the groups:
 for groupname in ("Particles", "Events"):
-    group = fileh.newGroup(root, groupname)
+    group = fileh.createGroup(root, groupname)
 
 # Now, create and fill the tables in Particles group
 gparticles = fileh.getNode("/Particles")
@@ -31,10 +31,12 @@ gparticles = fileh.getNode("/Particles")
 # Create 3 new tables
 for tablename in ("TParticle1", "TParticle2", "TParticle3"):
     # Create a table
-    table = fileh.newTable("/Particles", tablename, Particle(),
-                           "Particles: "+tablename)
+    table = fileh.createTable("/Particles", tablename, Particle(),
+                           "Particles: " + tablename)
     # Get the record object associated with the table:
-    particle = fileh.getRecordObject(table)
+    particle = table.record
+    # or you can do also
+    #particle = table.record
     # Fill the table with 10 particles
     for i in xrange(257):
         # First, assign the values to the Particle record
@@ -44,16 +46,16 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
         particle.pressure = float(i*i)
         particle.temperature = float(i**2)
         # This injects the Record values
-        fileh.appendRecord(table, particle)      
-
+        table.appendAsRecord(particle)
+        
     # Flush the table buffers
-    fileh.flushTable(table)
+    table.flush()
 
 # Now, go for Events:
 for tablename in ("TEvent1", "TEvent2", "TEvent3"):
     # Create a table. Look carefully at how we reference the Events group!.
-    table = fileh.newTable(root.Events, tablename, Event(),
-                           "Events: "+tablename)
+    table = fileh.createTable(root.Events, tablename, Event(),
+                              "Events: "+tablename)
     # Get the record object associated with the table:
     event = table.record
     # Fill the table with 10 events
@@ -69,13 +71,14 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
         event.xcoord = float(i**2)
         event.ycoord = float(i**4)
         # This injects the Record values
-        fileh.appendRecord(table, event)      
-
+        table.appendAsRecord(event)
+        
     # Flush the buffers
-    fileh.flushTable(table)
+    table.flush()
 
 # Read the records from table "/Events/TEvent3" and select some
-e = [ p.TDCcount for p in fileh.readRecords("/Events/TEvent3")
+table = fileh.getNode("/Events/TEvent3")
+e = [ p.TDCcount for p in table.readAsRecords()
       if p.ADCcount < 20 and 4<= p.TDCcount < 15 ]
 print "Last record ==>", p
 print "Selected values ==>", e

@@ -1,3 +1,34 @@
+########################################################################
+#
+#       Copyright:      LGPL
+#       Created:        September 21, 2002
+#       Author:  Francesc Alted - falted@openlc.org
+#
+#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Attic/IsRecord.py,v $
+#       $Id: IsRecord.py,v 1.3 2002/11/07 17:52:35 falted Exp $
+#
+########################################################################
+
+"""Classes and metaclasses for defining user data records.
+
+See the metaIsRecord for a deep explanation on how exactly this works.
+
+Classes:
+
+    metaIsRecord
+    IsRecord
+
+Functions:
+
+Misc variables:
+
+    __version__
+
+"""
+
+__version__ = "$Revision: 1.3 $"
+
+
 import warnings
 import struct
 import sys
@@ -19,7 +50,8 @@ class metaIsRecord(type):
     an equal instance, as per the usual convention in the matter).
 
     Author:
-    This metaclass is based on an example from Alex Martelli
+    
+    This metaclass is largely based on an example from Alex Martelli
     (http://mail.python.org/pipermail/python-list/2002-July/112007.html)
     I've modified things quite a bit, but the spirit is the same, more
     or less.
@@ -66,15 +98,22 @@ print p
                 
             #print "And the result is ==>", buffer
             
-        def __repr__(self):
-            """ Clever __repr__: show only attributes that differ from the
-                respective default values, for compactness.
+        
+	def __repr__(self):
+            """ Gives a record representation ready to be passed to eval
             """
             rep = [ '%s=%r' % (k, getattr(self, k)) for k in self.__slots__ ]
             return '%s(%s)' % (classname, ', '.join(rep))
 
+	
+        def __str__(self):
+            """ Gives a record representation for printing purposes
+            """
+            rep = [ '  %s=%r' % (k, getattr(self, k)) for k in self.__slots__ ]
+            return '%s(\n%s)' % (classname, ', \n'.join(rep))
+
         def __call__(self, *args, **kw):
-            """ Method to pack by default. We choose _f_pack. """
+            """ Method to pack by default. We choose _f_pack."""
             if args and not kw:
                 return struct.pack(self._v_fmt, *args)
             elif kw and not args:
@@ -82,16 +121,34 @@ print p
             elif not args and not kw:
                 return self._f_pack()
             else:
-                raise RuntimeError, "Mix of variable-length args and keyword is not supported!"
+                raise RuntimeError, \
+                  "Mix of variable-length args and keyword is not supported!"
                 
+        def _f_raiseValueError(self):
+            """Helper function to indicate an error in struct.pack and
+            provide detailed information on the record object.
+            """
+            (type, value, traceback) = sys.exc_info()
+            record = []
+            for k in self.__slots__:
+                record.append((k, self.__types__[k], (getattr(self, k))))
+            raise ValueError, \
+             "Error packing record object: \n %s\n Error was: %s" % \
+             (record, value)           
+            
         def _f_pack(self, **kw):
-            """ Method to pack
+            """A method to pack values.
+
+            Notes:
+            
             - Some keyword parameters allowed
             - Record updated
             - 3.79 s for 100.000 records  (all keywords set)
             - 2.98 s for 100.000 records  (no keywords set)
-            This is the most flexible method, and if called with no keywords
-            is reasonably fast.
+            
+            This is the most flexible method, and if called with no
+            keywords is reasonably fast.
+            
             """
             # Initialize the values passed as keyword parameters
             for k in kw:
@@ -106,11 +163,15 @@ print p
             return buffer
 
         def _f_pack2(self):
-            """ Method to pack 2
+            """Method to pack values (2)
+
+            Notes:
+            
             - No parameters allowed
             - Record updated
             - 2.74 s for 100.000 records (with slots)
             - 2.83 s for 100.000 records (without slots)
+            
             """
             # Convert slot elements to a struct
             values = [ getattr(self, k) for k in self.__slots__ ]
@@ -121,25 +182,16 @@ print p
                 
             return buffer
 
-        def _f_raiseValueError(self):
-            """Helper function to indicate an error in struct.pack and
-            provide detailed information on the record object."""
-            
-            (type, value, traceback) = sys.exc_info()
-            record = []
-            for k in self.__slots__:
-                record.append((k, self.__types__[k], (getattr(self, k))))
-            raise ValueError, \
-             "Error packing record object: \n %s\n Error was: %s" % \
-             (record, value)           
-            
-
         def _f_packFast(self, **kw):
             """ Method to pack 3
+
+            Notes:
+            
             - All slots should be specified as keyworks
             - Record not updated!
             - 2.39 s for 100.000 rec when saveFast(var1 = var1,var2 = var2,...)
-            - 2.22 s for 100.000 rec when saveFast(var1 = 12.3, var2="1", ...)
+            - 2.22 s for 100.000 rec when saveFast(var1 = 12.3,var2="1", ...)
+            
             """
             # Initialize the values passed as keyword parameters
             values = [ kw[k] for k in self.__slots__ ] # Get the ordered values
@@ -158,12 +210,16 @@ print p
 
         def _f_unpack(self, buffer):
             """ Method to unpack and set attributes.
+
+            Notes:
+            
             - Record updated
             - 3.43 s for 100.000 records
+            
             """
-            # Maybe we can get this faster if we found a way to feed-up
+            # Maybe we can get this faster if we found a way to setting
             # the slots without calling setattr
-            # Anyway, this will be solved when numarray will get integrated
+            # Anyway, this might be solved when numarray will get integrated
             # to do the I/O.
             tupla = struct.unpack(self._v_fmt, buffer)
             i = 0
@@ -173,8 +229,12 @@ print p
 
         def _f_unpack2(self, buffer):
             """ Another method to unpack.
+
+            Notes:
+            
             - Record updated
             - 3.72 s for 100.000 records
+            
             """
             i = 0
             for value in struct.unpack(self._v_fmt, buffer):
@@ -199,9 +259,13 @@ print p
                       % datatype
             return dfltvalue
         
-        # build the newdict that we'll use as class-dict for the new class
+        # Build the newdict that we'll use as dict for the new class.
+        # Warning!. You have to list here all attributes and methods
+        # you want see exported to the new Record class.
+        
         newdict = { '__slots__':[], '__types__':{}, '__dflts__':{},
                     '__init__':__init__, '__repr__':__repr__,
+		    '__str__':__str__,
                     '__call__':__call__, '_v_fmt': "",
                     '_f_raiseValueError':_f_raiseValueError, 
                     '_f_pack':_f_pack, '_f_pack2':_f_pack2,
@@ -211,7 +275,6 @@ print p
         keys = classdict.keys()
         keys.sort() # Sort the keys to establish an order
         for k in keys:
-            #print "Adding attribute k =", k
             if (k.startswith('__') or k.startswith('_v_') 
                 or k.startswith('_f_')):
                 if k in newdict:
@@ -257,13 +320,21 @@ class IsRecord(object):
 
 
 if __name__=="__main__":
-    # Example use: a meta-record class
+    """Here is code to benchmark the differents methods to pack/unpack.
+
+    Use it to experiment new methods to accelerate the pack/unpack
+    process.
+    
+    """
+    
     class Record(IsRecord):
-        """ A record has several columns. Represent the here as class
-        variables, whose values are their types. The metaIsRecord
-        class will take care the user won't add any new variables and
-        that their type is correct.  """
-        
+        """A record that has several columns.
+
+        Represent the here as class variables, whose values are their
+        types. The metaIsRecord class will take care the user won't
+        add any new variables and that their type is correct.
+
+        """
         x = 'l'
         y = 'd'
         color = '3s'

@@ -1,44 +1,50 @@
 #!/usr/bin/env python2.2
 
-from tables import File, IsRecord, isHDF5
+from tables import *
+
 
 # This class is accessible only for the examples
 class Record(IsRecord):
     """ A record has several columns. They are represented here as
     class attributes, whose names are the column names and their
     values will become their types. The IsRecord class will take care
-    the user won't add any new variables and that their type is
+    the user won't add any new variables and that its type is
     correct."""
     
     var1 = '4s'
     var2 = 'i'
     var3 = 'd'
 
-def createFile(file, totalrows, fast):
+def createFile(filename, totalrows, fast):
+    
+    # Open a file in "w"rite mode
+    fileh = openFile(filename, mode = "w")
+
+    # Table title
     title = "This is the table title"
-    # Create an instance of HDF5 Table
-    fileh = File(name = file, mode = "w")
-    group = fileh.getRootGroup()
+    
+    # Create a Table instance
+    group = fileh.root
     for j in range(3):
         # Create a table
-        table = fileh.newTable(group, 'tuple'+str(j), Record(),
-                           tableTitle = title, compress = 0,
-                           expectedrows = totalrows)
+        table = fileh.createTable(group, 'tuple'+str(j), Record(), title,
+	                          compress = 0, expectedrows = totalrows)
         # Get the record object associated with the new table
         d = table.record 
         # Fill the table
         for i in xrange(totalrows):
             if fast:
-                table.appendValues(str(i), i * j, 12.1e10)
+                table.appendAsValues(str(i), i * j, 12.1e10)
+                #table.appendAsTuple((str(i), i * j, 12.1e10))
             else:
                 d.var1 = str(i)
                 d.var2 = i * j
                 d.var3 = 12.1e10
-                table.appendRecord(d)      # This injects the Record values
-                #table.appendRecord(d())     # The same, but slower
+                table.appendAsRecord(d)      # This injects the Record values
+                #table.appendAsRecord(d())     # The same, but slower
                 
         # Create a new group
-        group2 = fileh.newGroup(group, 'group'+str(j))
+        group2 = fileh.createGroup(group, 'group'+str(j))
         # Iterate over this new group (group2)
         group = group2
     
@@ -47,11 +53,10 @@ def createFile(file, totalrows, fast):
 
 def readFile(filename, fast):
     # Open the HDF5 file in read-only mode
-    fileh = File(name = filename, mode = "r")
-    rootgroup = fileh.getRootGroup()
-    for (groupname, groupobj) in fileh.walkGroups(rootgroup):
+    fileh = openFile(filename, mode = "r")
+    for groupobj in fileh.walkGroups(fileh.root):
         #print "Group pathname:", groupobj._v_pathname
-        for (name, table) in fileh.listLeaves(groupobj):
+        for table in fileh.listNodes(groupobj, 'Table'):
             #print "Table title for", table._v_pathname, ":", table.tableTitle
             print "Nrecords in", table._v_pathname, ":", table.nrecords
 
@@ -71,11 +76,10 @@ def readFile(filename, fast):
 def addRecords(filename, addedrows, fast):
     """ Example for adding rows """
     # Open the HDF5 file in append mode
-    fileh = File(name = filename, mode = "a")
-    rootgroup = fileh.getRootGroup()
-    for (groupname, groupobj) in fileh.walkGroups(rootgroup):
+    fileh = openFile(filename, mode = "a")
+    for groupobj in fileh.walkGroups(fileh.root):
         #print "Group pathname:", groupobj._v_pathname
-        for (name, table) in fileh.listLeaves(groupobj):
+        for table in fileh.listNodes(groupobj, 'Table'):
             #print "Table title for", table._v_pathname, ":", table.tableTitle
             print "Nrecords in old", table._v_pathname, ":", table.nrecords
 
@@ -86,18 +90,20 @@ def addRecords(filename, addedrows, fast):
             # Fill the table
             for i in xrange(addedrows):
                 if fast:
-                    table.appendValues(str(i), i, 12.1e10)
+                    table.appendAsTuple((str(i), i, 12.1e10))
+                    #table.appendAsValues(str(i), i, 12.1e10)
                 else:
                     d.var1 = str(i)
                     d.var2 = i
                     d.var3 = 12.1e10
-                    table.appendRecord(d)      # This injects the Record values
+                    table.appendAsRecord(d)      # This injects the Record values
             # Flush buffers to disk (may be commented out, but it shouldn't)
             table.flush()   
                             
             if fast:
                 # Example of tuple selection (fast version)
                 e = [ t[1] for t in table.readAsTuples() if t[1] < 20 ]
+                print "Last tuple ==>", t
             else:
                 # Record method (slow, but convenient)
                 e = [ p.var2 for p in table.readAsRecords() if p.var2 < 20 ]
@@ -108,14 +114,14 @@ def addRecords(filename, addedrows, fast):
     # Close the file (eventually destroy the extended type)
     fileh.close()
 
-# Add code to test here
+
 if __name__=="__main__":
     import sys
     import getopt
 
     usage = """usage: %s [-f] [-i iterations] file
             -f means use fast methods (unsafer)
-            -i sets the number of rows in each table""" % sys.argv[0]
+            -i sets the number of rows in each table\n""" % sys.argv[0]
 
     try:
         opts, pargs = getopt.getopt(sys.argv[1:], 'fi:')
@@ -144,4 +150,4 @@ if __name__=="__main__":
 
     createFile(file, iterations, fast)
     readFile(file, fast)
-    addRecords(file, iterations * 2, fast)
+    #addRecords(file, iterations * 2, fast)

@@ -8,7 +8,7 @@ from distutils.dep_util import newer
 # Uncomment this if Pyrex installed and want to rebuild everything
 from Pyrex.Distutils import build_ext
 
-VERSION = "0.1"
+VERSION = "0.2"
 
 #----------------------------------------------------------------------
 
@@ -48,16 +48,14 @@ if os.name == 'posix':
         for instdir in ('/usr/', '/usr/local/'):
             for ext in ('.a', '.so'):
                 libhdf5 = os.path.join(instdir, "lib/libhdf5"+ext)
-                libhl = os.path.join(instdir, "lib/libhdf5_hl"+ext)
-                if os.path.isfile(libhdf5) and os.path.isfile(libhl):
+                if os.path.isfile(libhdf5):
                     HDF5_DIR = instdir
                     libdir = os.path.join(instdir, "lib")
                     print "Found HDF5 libraries at " + libdir
                     break
 
             headerhdf5 = os.path.join(instdir, "include/H5public.h")
-            headerhl = os.path.join(instdir, "include/H5LT.h")
-            if os.path.isfile(headerhdf5) and os.path.isfile(headerhl):
+            if os.path.isfile(headerhdf5):
                 incdir = os.path.join(instdir, "include")
                 print "Found HDF5 header files at " + incdir
                 break
@@ -77,11 +75,25 @@ same place as hdf5 does."""
     # figure out from the base setting where the lib and .h are
     if not incdir: incdir = os.path.join(HDF5_DIR, 'include')
     if not libdir: libdir = os.path.join(HDF5_DIR, 'lib')
-    if (not '-lhdf5' in LIBS or not "-lhdf5_hl" in LIBS):
-        libnames = ['hdf5', 'hdf5_hl']
+    if (not '-lhdf5' in LIBS):
+        libnames = ['hdf5']
     else:
         libnames = []
 
+    # Finally, check for Numeric
+    try:
+        import Numeric
+    except:
+        print """\
+Can't find a local Numeric Python installation.
+Please, read carefully the README and remember
+that PyTables needs the Numeric package to
+compile and run."""
+        
+        sys.exit(1)
+    else:
+        print "Found Numeric package installed"
+        
 elif os.name == 'nt':
 
     print """I don't know how to cope with this. If you are interested
@@ -96,32 +108,36 @@ if newer('setup.py', 'src/version.h'):
 
 setup(name = 'tables',
       version = VERSION,
-      description = 'Python interface for working with tables in HDF5',
+      description = 'Python interface for working with scientific data tables',
       long_description = """\
 At this moment, this module provides limited
 support of HDF5 facilities, but I hope to add more
 in the short future. By no means this package will
 try to be a complete wrapper for all the HDF5
 API. Instead, its goal is to allow working with
-tables (and hopefully in short term also with
-NumArray objects) in a hierarchical structure.
+tables and Numeric objects in a hierarchical structure.
 Please see the documents in the doc directory of
 the source distribution or at the website for more
-details on the types and methods provided.""",
+details on the objects and methods provided.""",
       author = 'Francesc Alted',
-      author_email = 'pytables-users@lists.sourceforge.net',
-      #author_email = 'falted@openlc.org',
+      #author_email = 'pytables-users@lists.sourceforge.net',
+      author_email = 'falted@openlc.org',
       url = 'http://pytables.sf.net/',
 
       packages = ['tables'],
       ext_modules = [ Extension("tables.hdf5Extension",
-                                sources =   ["src/hdf5Extension.pyx",
-                                             "src/calcoffset.c",
-                                             "src/arraytypes.c",
-                                             "src/getfieldfmt.c",
-                                             "src/utils.c" ],
+				include_dirs = [incdir],
+                                define_macros = [('NDEBUG', 1)],
+                                sources = ["src/hdf5Extension.pyx",
+                                            "src/calcoffset.c",
+                                            "src/arraytypes.c",
+                                            "src/getfieldfmt.c",
+                                            "src/utils.c",
+					    "src/H5LT.c",
+					    "src/H5TB.c"],
+				library_dirs = [libdir],
                                 libraries = libnames
                                 )],
-      # Uncomment this line if pyrex installed
+      # You may uncomment this line if pyrex installed
       cmdclass = {'build_ext': build_ext}
 )

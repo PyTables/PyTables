@@ -24,8 +24,12 @@ test_all.verbose = verbose
 
 def suite():
     test_modules = ['test_basics',
+                    'test_create',
+                    'test_tables',
                     'test_types',
-                   ]
+                    'test_array',
+		    'test_tree',
+		    ]
 
     alltests = unittest.TestSuite()
     for name in test_modules:
@@ -37,12 +41,14 @@ def suite():
 if __name__ == '__main__':
     import tables
     #from tables.hdf5Extension import getHDF5Version, getExtCVSVersion, cvsid
-    from tables.hdf5Extension import getHDF5Version, getTablesVersion, cvsid
+    from tables.hdf5Extension import getHDF5LibraryVersion, \
+                                     getPyTablesVersion, \
+                                     getExtCVSVersion
     print '-=' * 38
-    print "HDF5 version:            %s" % getHDF5Version()
-    ##print "Pyrex ext. CVS version:  %s" % getExtCVSVersion()
-    print "PyTables version:        %s" % getTablesVersion()
-    print "Extension CVS version:   %s" % cvsid
+    print "HDF5 version:            %s" % getHDF5LibraryVersion()
+    print "PyTables version:        %s" % getPyTablesVersion()
+    #print "Extension CVS version:   %s" % cvsid
+    print "Extension CVS version:   %s" % getExtCVSVersion()
     print 'python version:          %s' % sys.version
     print '-=' * 38
     #raise SystemExit

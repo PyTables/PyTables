@@ -1,233 +1,495 @@
-from __future__ import generators
+#
+#       Copyright:      LGPL
+#       Created:        September 4, 2002
+#       Author:  Francesc Alted - falted@openlc.org
+#
+#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
+#       $Id: File.py,v 1.4 2002/11/07 17:52:35 falted Exp $
+#
+########################################################################
+
+"""Open PyTables files and create the object tree (if needed).
+
+This module support HDF5 files, on top of which PyTables files are
+created, read or extended. If a file exists, an object tree mirroring
+their hierarchical structure is created in memory. File class offer
+methods to traverse the tree, as well as to create new nodes.
+
+Classes:
+
+    File
+
+Functions:
+
+    openFile(name [, mode = "r" [, title]])
+
+Misc variables:
+
+    __version__
+    format_version
+    compatible_formats
+
+"""
+
+__version__ = "$Revision: 1.4 $"
+format_version = "1.0"                     # File format version we write
+compatible_formats = []                    # Old format versions we can read
+
 import sys
+import os.path
+from fnmatch import fnmatch
 
 import hdf5Extension
 from Group import Group
+from Leaf import Leaf
 from Table import Table
 from Array import Array
-from IsRecord import IsRecord
+
+
+def openFile(name, mode = "r", title = ""):
+
+    """Open a file an returns a File object to deal with it.
+
+    Keyword arguments:
+
+    name -- The name of the file (supports environment variable
+            expansion)
+    
+    mode -- The mode to open the file. It can be one of the following:
+    
+        "r" -- read-only; no data can be modified.
+        
+        "w" -- write; a new file is created (an existing file with the
+               same name is deleted).
+
+        "a" -- append; an existing file is opened for reading and
+               writing, and if the file does not exist it is created.
+
+        "r+" -- is similar to "a", but the file must already exist.
+
+    title -- (Optional) A TITLE string attribute will be set on the
+             root group with its value.
+
+    """
+    
+    # Expand the form '~user'
+    path = os.path.expanduser(name)
+    # Expand the environment variables
+    path = os.path.expandvars(path)
+    
+    # Only allows extension .h5, .hdf or .hdf5 for HDF5 files
+    assert (fnmatch(path, "*.h5") or
+            fnmatch(path, "*.hdf") or
+            fnmatch(path, "*.hdf5")), \
+"""arg 1 must have one of the next file extensions:
+  '.h5', '.hdf' or '.hdf5'"""
+
+    # Only accept modes 'w', 'r', 'r+' or 'a'
+    assert mode in ['w', 'r', 'r+', 'a'], \
+"""arg 2 must take one of this values: ['w', 'r', 'r+', 'a']"""
+
+    if (mode == "r" or mode == "r+"):
+        # For 'r' and 'r+' check that path exists and is a HDF5 file
+        if not os.path.isfile(path):
+            raise IOError, \
+        """'%s' pathname does not exist or is not a regular file""" % path
+        else:
+            if not hdf5Extension.isHDF5(path):
+                raise IOError, \
+        """'%s' does exist but it is not an HDF5 file""" % path
+            
+            elif not hdf5Extension.isPyTablesFile(path):
+                raise IOError, \
+        """'%s' does exist, is an HDF5 file, but has not a PyTables format""" \
+        % path
+    elif (mode == "w"):
+        # For 'w' check that if path exists, and if true, delete it!
+        if os.path.isfile(path):
+            # Delete the old file
+            os.remove(path)
+    elif (mode == "a"):            
+        if os.path.isfile(path):
+            if not hdf5Extension.isHDF5(path):
+                raise IOError, \
+        """'%s' does exist but it is not an HDF5 file""" % path
+            
+            elif not hdf5Extension.isPyTablesFile(path):
+                raise IOError, \
+        """'%s' does exist, is an HDF5 file, but has not a PyTables format""" \
+        % path
+    else:
+        raise IOError, \
+        """arg 2 can only take the new values: "r", "r+", "w" and "a" """
+    
+    # new informs if this file is old or new
+    if (mode == "r" or
+        mode == "r+" or
+        (mode == "a" and os.path.isfile(path)) ):
+        new = 0
+    else:
+        new = 1
+            
+    # Finally, create the File instance, and return it
+    return File(path, mode, title, new)
+
 
 class File(hdf5Extension.File):
-    """This class hosts the most part of PyTables API. It is in charge
-    of open, flush and close the HDF5 files. In addition it provides
-    accessors to functionality present in Group and Table module."""
     
-    def __init__(self, name, mode="r"):
-        """Open an HDF5 file. The supported access modes are: "r"
-        means read-only; no data can be modified. "w" means write; a
-        new file is created, an existing file with the same name is
-        deleted. "a" means append (in analogy with serial files); an
-        existing file is opened for reading and writing, and if the
-        file does not exist it is created. "r+" is similar to "a", but
-        the file must already exist."""
+    """Returns an object describing the file in-memory.
 
-        self.name = name
-        #print "Opening the %s HDF5 file ...." % self.name
-        self._v_mode = mode
-        self._v_groupId = self.getFileId()
+    File class offer methods to traverse the object tree, as well as
+    to create new nodes.
+
+    Methods:
+
+        createGroup(where, name[, title])
+        createTable(where, name, recordObject [, title
+                    [, compress [, expectedrows]]])
+        createArray(where, name, NumericObject, [, title])
+        getNode(where [, name [, classname]])
+        listNodes(where [, classname])
+        walkGroups(where = "/")
+        flush()
+        close()
+
+    Instance variables:
+
+        filename -- Filename opened
+        mode -- Mode in which the filename was opened
+        title -- The title of the root group in file
+        root -- The root group in file
+
+    """
+
+    def __init__(self, filename, mode="r", title="", new=1):
+        
+        """Open an HDF5 file. The supported access modes are: "r" means
+        read-only; no data can be modified. "w" means write; a new file is
+        created, an existing file with the same name is deleted. "a" means
+        append (in analogy with serial files); an existing file is opened
+        for reading and writing, and if the file does not exist it is
+        created. "r+" is similar to "a", but the file must already exist. A
+        TITLE attribute will be set on the root group if optional "title"
+        parameter is passed."""
+
+        self.filename = filename
+        #print "Opening the %s HDF5 file ...." % self.filename
+        
+        self.mode = mode
+        self.title = title
+        
+        # _v_new informs if this file is old or new
+        self._v_new = new
+
+        # Get the root group from this file
+        self.root = self.__getRootGroup()
         return
 
-    def getRootGroup(self):
+    
+    def __getRootGroup(self):
+        
         """Returns a Group instance which will act as the root group
         in the hierarchical tree. If file is opened in "r", "r+" or
         "a" mode, and the file already exists, this method dynamically
         builds a python object tree emulating the structure present on
-        file.  """
+        file."""
           
-        # root is a standard attribute
-        self.root = rootgroup = Group()
+        global format_version
+        global compatible_formats
+        
+        self._v_groupId = self.getFileId()
+        self._v_depth = 0
+
+        root = Group()
+        
         # Create new attributes for the root Group instance
-        newattr = rootgroup.__dict__
-        newattr["_v_rootgroup"] = rootgroup  # For compatibility with Group
-        newattr["_v_" + "groupId"] = self._v_groupId
-        newattr["_v_" + "parent"] = self
-        newattr["_v_" + "name"] = "/"
-        newattr["_v_" + "pathname"] = "/"
-	# Open the root group
-	rootgroup._f_openGroup(self._v_groupId, "/")
-        if (self._v_mode == "r" or
-            self._v_mode == "r+" or
-            self._v_mode == "a"):
-            rootgroup._f_walkHDFile()
-        return rootgroup
-
-    def newTable(self, where, name, *args, **kwargs):
-        """Returns a new Table instance with name "name" in "where"
-        location.  "where" parameter can be a path string, or another
-        group instance.  Other optional parameters are: "tableTitle"
-        which set a TITLE attribute on the HDF5 table entity.
-        "compress" is a boolean option and specifies if data
-        compression will be enabled or not. "expectedrows" is an user
-        estimate about the number of records that will be on
-        table. This parameter is used to set important internal
-        parameters, as buffer size or HDF5 chunk size. If not
-        provided, the default value is appropiate to tables until 1 MB
-        in size. If you plan to save bigger tables by providing a
-        guess to PyTables will optimize the HDF5 B-Tree creation and
-        management process time and memory used."""
+        newattr = root.__dict__
+        newattr["_v_rootgroup"] = root  # For compatibility with Group
+        newattr["_v_groupId"] = self._v_groupId
+        newattr["_v_parent"] = self
+        newattr["_v_depth"] = 1
+        newattr["_v_filename"] = self.filename  # Only root group has this
+        newattr["_v_name"] = "/"
+        newattr["_v_pathname"] = "/"
         
-        object = Table(where, name, self.root)
-        object.newTable(*args, **kwargs)
-        return object
-
-    def newArray(self, where, name, *args, **kwargs):
-        """Returns a new Array instance with name "name" in "where"
-	location.  "where" parameter can be a path string, or another group
-	instance.  Other optional parameters are: "title" which set a TITLE
-	attribute on the HDF5 table entity. "compress" is a boolean option
-	and specifies if data compression will be enabled or not (not
-	functional by the time being)."""
+        # Update class variable for Group
+        root._c_objgroups["/"] = root
+        root._c_objects["/"] = root
         
-        object = Array(where, name, self.root)
-        object.create(*args, **kwargs)
-        return object
+        # Open the root group. We do that always, be the file new or not
+        root._f_openGroup(self._v_groupId, "/")
 
-    def newGroup(self, where, name):
-        """Returns a new Group instance with name "name" in "where"
-	  location. "where" parameter can be a path (for example
-	  "/Particles/TParticle1" string, or another Group
-	  instance."""
-
-        object = Group()
-        object._f_newGroup(where, name, self.root)
-        return object
-
-    def getNode(self, where):
-        """Returns the object node (group or leave) in "where"
-        location. "where" can be a path string, group instance or
-        table instance."""
+        if self._v_new:
+            # Set the title, class and version attributes
+            newattr["_v_title"] = self.title
+            newattr["_v_class"] = root.__class__.__name__
+            newattr["_v_version"] = "1.0"
+            
+            # Do the same on disk
+            root._f_setGroupAttrStr('TITLE', root._v_title)
+            root._f_setGroupAttrStr('CLASS', root._v_class)
+            root._f_setGroupAttrStr('VERSION', root._v_version)
+            
+            # Finally, save the PyTables format version for this file
+            self.format_version = format_version
+            root._f_setGroupAttrStr('PYTABLES_FORMAT_VERSION', format_version)
         
-        return self.root._f_getObject(where)
-        
-    def getGroup(self, where):
-        """Returns the object node (group or leave) in "where"
-        location. "where" can be a path string or group instance. If
-        where doesn't point to a Group, a ValueError error is
-        raised."""
-        
-        group = self.root._f_getObject(where)
-        if isinstance(group, Group):
-            return table
         else:
-            raise ValueError, \
-                  "%s parameter should be a path to a Group or Group instance." % group
+            # Firstly, get the PyTables format version for this file
+            try:
+                self.format_version = \
+                    root._f_getGroupAttrStr('PYTABLES_FORMAT_VERSION')
+            except RuntimeError:
+                # Ummm, FORMAT_VERSION attribute is not present. We cannot
+                # read anymore. Raise an IOError.
+                raise IOError,\
+"""Format version for file \'%s\' not available. This is not a PyTables file.
+Sorry, you can only read PyTables \
+(a subset of HDF5 format) files right now (although this might change in the \
+future). Giving up.""" % \
+                      (self.filename)
+                          
+            # Check if we can read this format
+            if self.format_version <> format_version:
+                if self.format_version not in compatible_formats:
+                    supported_versions = compatible_formats
+                    supported_versions.append(format_version)
+                    raise IOError, \
+"""'%s' file format version ('%s') is not supported.
+  Supported versions in this release are: %s.
+  Giving up""" % \
+(self.filename, self.format_version, supported_versions)
+                          
+            # Get the title, class and version attributes
+            # (only for root)
+            root.__dict__["_v_title"] = \
+                      root._f_getGroupAttrStr('TITLE')
+            self.title = root._v_title   # This is a standard File attribute
+            root.__dict__["_v_class"] = \
+                      root._f_getGroupAttrStr('CLASS')
+            root.__dict__["_v_version"] = \
+                      root._f_getGroupAttrStr('VERSION')
+                      
+            # Get all the groups recursively
+            root._f_openFile()
         
-    def getTable(self, where):
-        """Returns a Table node in "where" location. "where" can be a path
-	string or Table instance.  If where doesn't point to a Table, a
-	ValueError error is raised."""
-        
-        table = self.root._f_getObject(where)
-        if isinstance(table, Table):
-            return table
-        else:
-            raise ValueError, \
-                  "%s parameter should be a path to a Table or Table instance." % table
-        
-    def getArray(self, where):
-        """Returns an Array node in "where" location. "where" can be a path
-	string or Array instance.  If where doesn't point to an Array, a
-	ValueError error is raised."""
-        
-        array = self.root._f_getObject(where)
-        if isinstance(array, Array):
-            return array
-        else:
-            raise ValueError, \
-                  "%s parameter should be a path to an Array or Array instance." % table
-        
-    def listNodes(self, where):
-        """Returns all the object nodes (groups or tables) hanging
-        from "where". "where" can be a path string or group
-        instance."""
-        
-        group = self.getNode(where)
-        return group._v_objchilds.iteritems()
+        return root
 
-    def listGroups(self, where):
-        """Returns all the groups hanging from "where". "where" can be
-        a path string or group instance."""
-        
-        group = self.getNode(where)
-        return group._v_objgroups.iteritems()
-
-    def listLeaves(self, where):
-        """Returns all the Leaves (Tables at the moment) hanging
-        from "where". "where" can be a path string or group
-        instance."""
-        
-        group = self.getNode(where)
-        return group._v_objleaves.iteritems()
-        
-    def walkGroups(self, where):
-        """Recursively obtains groups (not leaves) hanging from
-        "where"."""
-        
-        group = self.getNode(where)
-        # Returns this group
-        yield(group._v_name, group)
-        groups = group._v_objgroups.items()
-        #print "Groups: %s" % (groups)
-        for (groupname, groupobj) in groups:
-            # This syntax is semantically incorrect
-            #yield self.walkGroups(groupobj)
-            # Use this!
-            for x in self.walkGroups(groupobj):
-                # Iterate over groupobj
-                yield x
-
-    def getRecordObject(self, table):
-        """Returns the record object associated with the "table".
-        "table" can be a path string or table instance."""
-        
-        table = self.getTable(table)
-        return table.record
     
-    def appendRecord(self, table, record):
-        """ Append the "record" object to the "table" output
-        buffer. "table" can be a path string or table instance."""
-        
-        table = self.getTable(table)
-        return table.appendRecord(record)
- 
-    def readRecords(self, table):
-        """Generator thats return a Record instance from a "table"
-        object each time it is called. "table" can be a path string or
-        table instance."""
-        
-        table = self.getTable(table)
-        return table.readAsRecords()
+    def _createNode(self, classname, where, name, *args, **kwargs):
 
-    def readArray(self, array):
-	"""Reads the "array" object from the HDF5 file and return it.
-	"array" can be a path string or Array instance."""
+        """Create a new "classname" instance with name "name" in "where"
+        location.  "where" parameter can be a path string, or another group
+        instance. The rest of the parameters depends on what is required by
+        "classname" class constructors. See documentation on these classes
+        for information on this."""
+
+        if classname == "Group":
+            object = Group(*args, **kwargs)
+        elif classname == "Table":
+            object = Table(*args, **kwargs)
+        elif classname == "Array":
+            object = Array(*args, **kwargs)
+        else:
+            raise ValueError,\
+            """Parameter 1 can only take 'Group', 'Table' or 'Array' values."""
+
+        group = self.getNode(where, classname = 'Group')
+        # Put the object on the tree
+        setattr(group, name, object)
+        return object
+
+    
+    def createGroup(self, where, name, title = ""):
+    
+        """Create a new Group instance with name "name" in "where" location.
+        "where" parameter can be a path string (for example
+        "/Particles/TParticle1"), or another Group instance. A TITLE
+        attribute will be set on this group if optional "title" parameter is
+        passed."""
+
+        group = self.getNode(where, classname = 'Group')
+        setattr(group, name, Group(title))
+        object = getattr(group, name)
+        return object
+
+
+    def createTable(self, where, name, RecordObject, title = "",
+                    compress = 3, expectedrows = 10000):
+
+        """Create a new Table instance with name "name" in "where" location.
+        "where" parameter can be a path string, or another group instance.
+        "RecordObject" is the IsRecord instance. If "RecordObject" is None,
+        the table metadata is read from disk, else, it's taken from previous
+        parameters. "title" sets a TITLE attribute on the HDF5 table entity.
+        "compress" is a boolean option and specifies if data compression
+        will be enabled or not. "expectedrows" is an user estimate about the
+        number of records that will be on table.  If not provided, the
+        default value is appropiate to tables until 1 MB in size. If you
+        plan to save bigger tables by providing a guess to PyTables will
+        optimize the HDF5 B-Tree creation and management process time and
+        memory used. The created object is returned."""
+    
+        group = self.getNode(where, classname = 'Group')
+        object = Table(RecordObject, title, compress, expectedrows)
+        setattr(group, name, object)
+        return object
+
+    
+    def createArray(self, where, name, NumericObject, title = ""):
         
-        array = self.getArray(array)
-        return array.get()
-       
-    def flushTable(self, table):
-        """Flush the table object to disk. "table" can be a path
-        string or table instance."""
+        """Create a new instance Array with name "name" in "where"
+        location.  "where" parameter can be a path string, or another
+        group instance. "NumericObject" is the Numeric array to be
+        saved. "title" sets a TITLE attribute on the HDF5 array
+        entity. The created object is returned."""
         
-        table = self.getTable(table)
-        return table.flush()
+        import Numeric
+
+        if type(NumericObject) == type(Numeric.array(1)):
         
+            if len(NumericObject.shape) == 0:
+                raise ValueError, \
+"""Numeric array '%s' has a rank equal to 0, so is like an scalar.
+  Sorry, but this is not supported right now.""" % (NumericObject)
+  
+            #elif len(NumericObject.shape) > 20:
+            elif len(NumericObject.shape) > 32:
+                raise ValueError, \
+"""Numeric array (param 3) has a rank greater than 32.
+  Sorry, but this is not supported right now."""
+  
+        else:
+            raise ValueError, \
+"""object '%s' is not a Numeric Array, and it is not supported in Array class""" % \
+(NumericObject)
+
+        group = self.getNode(where, classname = 'Group')
+        object = Array(NumericObject, title)
+        setattr(group, name, object)
+        return object
+
+
+    def getNode(self, where, name = "", classname = ""):
+        
+        """Returns the object node "name" under "where" location. "where"
+        can be a path string or Group instance. If "where" doesn't exists or
+        has not a child called "name", a ValueError error is raised. If
+        "name" is a null string (""), or not supplied, this method assumes
+        to find the object in "where". If a "classname" parameter is
+        supplied, returns only an instance of this class name. Allowed names
+        in "classname" are: 'Group', 'Leaf', 'Table' and 'Array'."""
+        
+        if isinstance(where, str):
+            # This is a string pathname. Get the object ...
+            if name:
+                if where == "/":
+                    strObject = "/" + name
+                else:
+                    strObject = where + "/" + name
+            else:
+                strObject = where
+            # Get the object pointed by strObject path
+            if strObject in self.root._c_objects:
+                object = self.root._c_objects[strObject]
+            else:
+                # We didn't find the pathname in the object tree.
+                # This should be signaled as an error!.
+                raise LookupError, \
+                      "\"%s\" pathname not found in object tree." % \
+                      (strObject)
+                      
+        elif isinstance(where, Group):
+            if name:
+                object = getattr(where, name)
+            else:
+                object = where
+                
+        elif isinstance(where, Leaf):
+            
+            if name:
+                raise ValueError, \
+"""'where' parameter (with value \'%s\') is a Leaf instance so it cannot \
+have a 'name' child node (with value \'%s\')""" % (where, name)
+
+            else:
+                object = where
+                
+        else:
+            raise TypeError, "Wrong \'where\' parameter type (%s)." % \
+                  (type(where))
+            
+        # Finally, check if this object is a classname instance
+        if classname:
+            classobj = eval(classname)
+            if isinstance(object, classobj):
+                return object
+            else:
+                raise ValueError, \
+"""A %s() instance cannot be found at ("%s", "%s").
+Instead, a %s() object has been found there.""" % \
+(classname, where, name, object.__class__.__name__)
+        
+        return object
+
+    
+    def listNodes(self, where, classname = ""):
+        
+        """Returns a list with all the object nodes (Group or Leaf) hanging
+        from "where". The list is alphanumerically sorted by node name.
+        "where" can be a path string or Group instance. If a "classname"
+        parameter is supplied, the iterator will return only instances of
+        this class (or subclasses of it). The only supported classes in
+        "classname" are 'Group' and 'Leaf'."""
+
+        group = self.getNode(where, classname = 'Group')
+        return group._f_listNodes(classname)
+    
+
+    def walkGroups(self, where = "/"):
+        
+        """Recursively obtains Groups (not Leaves) hanging from "where". If
+        "where" is not supplied, the root object is taken as origin. The
+        groups are returned from top to bottom, and alphanumerically sorted
+        when in the same level."""
+        
+        group = self.getNode(where, classname = 'Group')
+        return group._f_walkGroups()
+
+                    
     def flush(self):
+        
         """Flush all the objects on all the HDF5 objects tree."""
-        # Iterate over the group tree
-        for (groupname, groupobj) in self.walkGroups(self.root):
-            # Iterate over leaves in group
-            for (leafname, leafobject) in self.listLeaves(groupobj):
-                # Call the generic flush for every leaf object
-                leafobject.flush()
+
+        for group in self.walkGroups(self.root):
+            for leaf in self.listNodes(group, classname = 'Leaf'):
+                leaf.flush()
+            
                 
     def close(self):
+        
         """Flush all the objects in HDF5 file and close the file."""
+        
         # Flush all the buffers
         self.flush()
-        #print "Closing the %s HDF5 file ...." % self.name
+        #print "Closing the %s HDF5 file ...." % self.filename
         self.closeFile()
         # Add code to recursively delete the object tree
         # (or it's enough with deleting the root group object?)
         #del self.root
 
+
+    def __str__(self):
+        
+        """Returns a string representation of the object tree"""
+        
+        # Print all the nodes (Group and Leaf objects) on object tree
+        string = 'Filename: ' + self.filename + ' \\\\'
+        string += ' Title: \"' + self.title + '\" \\\\'
+        string += ' Format version: ' + self.format_version + '\n'
+        for group in self.walkGroups("/"):
+            string += str(group) + '\n'
+            for leaf in self.listNodes(group, 'Leaf'):
+                string += str(leaf) + '\n'
+                
+        return string

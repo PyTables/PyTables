@@ -2,7 +2,8 @@ import sys
 import unittest
 import os
 import tempfile
-from tables import File, Table, Group, IsRecord, isHDF5
+
+from tables import *
 
 from test_all import verbose
 
@@ -20,26 +21,6 @@ class Record(IsRecord):
     var4 = 'd'    # double (double-precision)
     var5 = 'f'    # float  (single-precision)
 
-class TypesTestCase(unittest.TestCase):
-    
-    def test00_IsHDF5File(self):
-        file = tempfile.mktemp(".h5")
-        if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00_IsHDF5File..." % self.__class__.__name__
-            #print "Filename ==>", file
-
-        # Create an instance of HDF5 Table
-        fileh = File(name = file, mode = "w")
-        group = fileh.getRootGroup()
-        # Create a table
-        table = fileh.newTable(group, 'table', Record(),
-                                    tableTitle = "Title example")
-        # For this method to run, it needs a closed file
-        fileh.close()
-        assert isHDF5(file) == 1
-        # Then, delete the file
-        os.remove(file)
 
 class RangeTestCase(unittest.TestCase):
     file  = "test.h5"
@@ -51,11 +32,12 @@ class RangeTestCase(unittest.TestCase):
 
     def setUp(self):
         # Create an instance of HDF5 Table
-        self.fileh = File(name = self.file, mode = "w")
-        self.rootgroup = self.fileh.getRootGroup()
-        group = self.rootgroup
+        self.fileh = openFile(self.file, mode = "w")
+        group = self.rootgroup = self.fileh.root
+
         # Create a table
-        self.table = self.fileh.newTable(group, 'table', Record(), self.title)
+        self.table = self.fileh.createTable(group, 'table',
+	                                    Record(), self.title)
 
     def tearDown(self):
         # Close the file (eventually destroy the extended type)
@@ -77,7 +59,7 @@ class RangeTestCase(unittest.TestCase):
         rec.var4 = float(i)
         rec.var5 = float(i)
         try:
-            self.table.appendRecord(rec)      # This injects the Record values
+            self.table.appendAsRecord(rec)
         except ValueError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -100,7 +82,7 @@ class RangeTestCase(unittest.TestCase):
         rec.var4 = "124"
         rec.var5 = float(i)
         try:
-            self.table.appendRecord(rec)      # This injects the Record values
+            self.table.appendAsRecord(rec)  
         except ValueError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -117,10 +99,6 @@ def suite():
     theSuite = unittest.TestSuite()
 
     theSuite.addTest(unittest.makeSuite(RangeTestCase))
-    #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
-    #theSuite.addTest(unittest.makeSuite(CompressTablesTestCase))
-    #theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
-    #theSuite.addTest(unittest.makeSuite(BigFastTablesTestCase))
 
     return theSuite
 

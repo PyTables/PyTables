@@ -115,7 +115,7 @@ herr_t getfieldfmt( hid_t loc_id,
 /* Falta que la rutina detecte si les dades son big-endian o little endian */
 int format_element(H5T_class_t class, 
 		     size_t member_size,
-		     H5T_class_t sign,
+		     H5T_sign_t sign,
 		     int position,
 		     char *format) 
 {

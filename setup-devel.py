@@ -6,7 +6,7 @@ import sys, os, string
 from distutils.core     import setup, Extension
 from distutils.dep_util import newer
 # Uncomment this if Pyrex installed and want to rebuild everything
-#from Pyrex.Distutils import build_ext
+from Pyrex.Distutils import build_ext
 
 VERSION = "0.2"
 
@@ -128,8 +128,8 @@ details on the types and methods provided.""",
       packages = ['tables'],
       ext_modules = [ Extension("tables.hdf5Extension",
 				include_dirs = [incdir],
-                                define_macros = [('NDEBUG', 1)],
-                                sources = ["src/hdf5Extension.c",
+                                define_macros = [('DEBUG', 1)],
+                                sources = ["src/hdf5Extension.pyx",
                                             "src/calcoffset.c",
                                             "src/arraytypes.c",
                                             "src/getfieldfmt.c",
@@ -140,5 +140,5 @@ details on the types and methods provided.""",
                                 libraries = libnames
                                 )],
       # You may uncomment this line if pyrex installed
-      #cmdclass = {'build_ext': build_ext}
+      cmdclass = {'build_ext': build_ext}
 )

@@ -1,127 +1,147 @@
+########################################################################
+#
+#       Copyright:      LGPL
+#       Created:        September 4, 2002
+#       Author:  Francesc Alted - falted@openlc.org
+#
+#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Group.py,v $
+#       $Id: Group.py,v 1.4 2002/11/07 17:52:35 falted Exp $
+#
+########################################################################
+
+"""Here is defined the Group class.
+
+See Group class docstring for more info.
+
+Classes:
+
+    Group
+
+Functions:
+
+
+Misc variables:
+
+    __version__
+    
+    MAX_DEPTH_IN_TREE -- Maximum depth tree allowed in PyTables. This
+        number should be supported by all python interpreters (i.e.,
+        their recursion level should be bigger that this)
+
+    MAX_CHILDS_IN_GROUP -- Maximum allowed number of childs hanging
+        from a group
+
+"""
+
+__version__ = "$Revision: 1.4 $"
+
+MAX_DEPTH_IN_TREE = 512
+# Note: the next constant has to be syncronized with the
+# MAX_CHILDS_IN_GROUP constant in util.h!
+MAX_CHILDS_IN_GROUP = 4096
+
+from __future__ import generators
+
 import hdf5Extension
 from Table import Table
 from Array import Array
 
+# Reserved prefixes for special attributes in Group class
+reservedprefixes = [
+  '_c_',   # For class variables
+  '_f_',   # For class functions
+  '_v_',   # For instance variables
+]
+
 class Group(hdf5Extension.Group):
-    """This is the python counterpart of a group in the HDF5
-    structure. It provides methods to set properties based on
-    information extracted from the HDF5 files and to walk throughout
-    the tree. Every group has parents and childrens, which are all
-    Group instances, except for the root group whose parent is a File
-    instance."""
+    """This is the python counterpart of a group in the HDF5 structure.
 
-    def __init__(self):
-        """Create the basic structures to keep group information."""
-        
-        self.__dict__["_v_" + "childs"] = []
-        self.__dict__["_v_" + "groups"] = []
-        self.__dict__["_v_" + "leaves"] = []
-        self.__dict__["_v_" + "objgroups"] = {}
-        self.__dict__["_v_" + "objleaves"] = {}
-        self.__dict__["_v_" + "objchilds"] = {}
+    It provides methods to set properties based on information
+    extracted from the HDF5 files and to walk throughout the
+    tree. Every group has parents and children, which are all Group
+    instances, except for the root group whose parent is a File
+    instance.
 
-    def _f_walkHDFile(self):
-        """Recusively reads an HDF5 file and generates a tree object
-        which will become the python replica of the file hierarchy."""
+    In Group instances, a special feature called "natural naming" is
+    used, i.e. the instance attributes that represent HDF5 groups are
+    the same as the names of the children. This offers the user a very
+    convenient way to access nodes in tree by simply
+
+    For this reason and to not pollute the children namespace, it is
+    explicitely forbidden to assign "normal" attributes to Group
+    instances, and the only ones allowed must start by "_c_" (for
+    class variables), "_f_" (for methods) or "_v_" (for instance
+    variables) prefixes.
+
+    Methods:
+    
+        _f_join(name)
+        _f_listNodes([classname])
+        _f_walkGroups()
+
+    Class variables:
+
+        _c_objgroups -- Dictionary with object groups on tree
+        _c_objleaves -- Dictionaly with object leaves on tree
+        _c_objchilds -- Dictionary with object childs (groups or
+                        leaves) on tree
+
+    Instance variables:
+
+        _v_title -- TITLE attribute for this group
+        _v_objgroups -- Dictionary with object groups
+        _v_objleaves -- Dictionaly with object leaves
+        _v_objchilds -- Dictionary with object childs (groups or leaves)
+
+    """
+
+    # Class variables to keep track of all the childs and group objects
+    # in tree object. They are dictionaries that will use the pathnames
+    # as keys and the actual objects as values.
+    # That way we can find objects in the object tree easily and fast. 
+    _c_objgroups = {}
+    _c_objleaves = {}
+    _c_objects = {}
+
+    def __init__(self, title = "", new = 1):
+        """Create the basic structures to keep group information.
+
+        title -- The title for this group
+        new -- If this group is new or has to read from disk
         
-        #print "Group name ==> ", self._v_name
+        """
+        self.__dict__["_v_new"] = new
+        self.__dict__["_v_title"] = title
+        self.__dict__["_v_objgroups"] = {}
+        self.__dict__["_v_objleaves"] = {}
+        self.__dict__["_v_objchilds"] = {}
+
+    def _f_openFile(self):
+        """Recusively reads an HDF5 file and generates a tree object.
+
+        This tree is the python replica of the file hierarchy.
+
+        """
         pgroupId =  self._v_parent._v_groupId
         (groups, leaves) = self._f_listGroup(pgroupId, self._v_name)
-        #print "Self ==>", self
-        #print "  Groups ==> ", groups
-        #print "  Leaves ==> ", leaves
         for name in groups:
-            objgroup = Group()
-            # Set some attributes to caracterize and open this object
-            objgroup._f_updateFields(self, name, create = 0)
-            #print "Getting the", objgroup._v_pathname, "group"
-            # Call walkHDFile recursively over the group's tree
-            objgroup._f_walkHDFile()
+            objgroup = Group(new = 0)
+            # Insert this group as a child of mine
+            objgroup._f_putObjectInTree(name, self)
+            # Call openFile recursively over the group's tree
+            objgroup._f_openFile()
         for name in leaves:
-	    if self._f_isTable(name):
-		objgroup = Table(self, name, self._v_rootgroup)
-	    elif self._f_isArray(name):
-		objgroup = Array(self, name, self._v_rootgroup)
-            # Set some attributes to caracterize and open this object
-            objgroup._f_putObjectInTree(create = 0)
-        #print "Group name (end)==> ", self._v_name
-
-    def _f_listObjects(self):
-        """Returns groups and final nodes hanging
-        from self as a 2-tuple of dictionaries."""
-        
-        groups = self._v_objgroups
-        leaves = self._v_objleaves
-        return (groups, leaves)
-
-    def _f_getObject(self, where, rootgroup = None):
-        """Get the object hanging from "where". "where" can be a path
-        string, or a group instance. If "where" is not a string or a
-        Group instance, it raises a TypeError exception. If object
-        doesn't exist, it raises a LookupError exception. """
-        
-        if type(where) == type(str()):
-            # This is a string pathname. Get the object ...
-            if rootgroup == None:
-                assert hasattr(self, "_v_rootgroup"), \
-                       "_f_getObject: no way to found the rootgroup!."
-                rootgroup = self._v_rootgroup
-            object = rootgroup._f_getObjectFromPath(where)
-            if not object:
-                # We didn't find the pathname in the object tree.
-                # This should be signaled as an error!.
-                raise LookupError, \
-                      "\"%s\" pathname not found in HDF5 group tree." % \
-                      (where)
-        elif (isinstance(where, Group) or 
-	      isinstance(where, Table) or
-	      isinstance(where, Array)):
-            # This is the parent group object
-            object = where
-        else:
-            raise TypeError, "Wrong \'where\' parameter type (%s)." % \
-                  (type(where))
-        return object
-        
-    def _f_getObjectFromPath(self, pathname):
-        """Get the object hanging from "where". "where" must be a path
-        string."""
-        
-        if not pathname.startswith("/"):
-            raise LookupError, \
-                  "\"%s\" pathname must absolute so must start with /." % \
-                  (pathname)
-        else:
-            found = self._f_getObjectFromPathRecursive(pathname)
-            if found:
-                return found
+            class_ = self._f_getDsetAttr(name, "CLASS")
+            if class_ == "Table":
+                objgroup = Table()
+            elif class_ == "Array":
+                objgroup = Array()
             else:
-                raise LookupError, \
-                      "\"%s\" pathname not found in HDF5 group tree." % \
-                      (pathname)
-
-    def _f_getObjectFromPathRecursive(self, pathname):
-        """Get the object hanging from "where". "where" must be a path
-        string."""
+                raise RuntimeError, \
+                      """Dataset object in file is unknown!"""
+            # Set some attributes to caracterize and open this object
+            objgroup._f_putObjectInTree(name, self)
         
-        #print "Looking for \"%s\" in \"%s\"" % (pathname, self._v_pathname)
-        found = 0
-        if pathname == self._v_pathname:
-            # I'm the group we are looking for. Return it and finish.
-            return self
-        else:
-            for groupobj in self._v_objgroups.itervalues():
-                #print "Looking for", pathname, "in", groupobj._v_pathname
-                found = groupobj._f_getObjectFromPathRecursive(pathname)
-                #print "found ==> ", found
-                if found: break
-            for leaveobj in self._v_objleaves.itervalues():
-                #print "Looking for", pathname, "in", leaveobj._v_pathname
-                if leaveobj._v_pathname == pathname:
-                    found = leaveobj
-                    break
-        return found
-
     def _f_join(self, name):
         """Helper method to correctly concatenate a name child object
         with the pathname of this group."""
@@ -130,74 +150,225 @@ class Group(hdf5Extension.Group):
             return "/" + name
         else:
             return self._v_pathname + "/" + name
-        
+
     def _f_setproperties(self, name, value):
-        """Set some properties for general objects in the tree."""
-        
-        self._v_childs.append(name)
-        self._v_objchilds[name] = self
+        """Set some properties for general objects (Group and Leaf) in the
+        tree."""
+
+        # Update instance variable
+        self._v_objchilds[name] = value
         # New attributes for the new Group instance
         newattr = value.__dict__
         newattr["_v_" + "rootgroup"] = self._v_rootgroup
         newattr["_v_" + "parent"] = self
+        newattr["_v_" + "depth"] = self._v_depth + 1
         newattr["_v_" + "name"] = name
         newattr["_v_" + "pathname"] = self._f_join(name)
+        # In the future this should be read from disk in case of an opening
+        # To be done when general Attribute module available
+        newattr["_v_class"] = value.__class__.__name__
+        newattr["_v_version"] = "1.0"
+        # Update class variables
+        self._c_objects[value._v_pathname] = value
 
-    def _f_updateFields(self, pgroup, name, create):
-        """Set attributes for a freshly created Group instance."""
+    def _f_putObjectInTree(self, name, parent):
+        """Set attributes for a new or existing Group instance."""
         
-        # New attributes for the new Group instance
-        pgroup._f_setproperties(name, self)
-        # Update this instance attributes
-        pgroup._v_groups.append(name)
-        pgroup._v_objgroups[name] = self
-        if create:
-            # Call the h5.Group._f_createGroup method to create a new group
-            self.__dict__["_v_" + "groupId"] = \
-                                self._f_createGroup(pgroup._v_groupId, name)
+        # Update the parent instance attributes
+        parent._f_setproperties(name, self)
+        parent._v_objgroups[name] = self
+        # Update class variables
+        self._c_objgroups[self._v_pathname] = self
+        if self._v_new:
+            self._f_create(name, parent)
         else:
-            self.__dict__["_v_" + "groupId"] = \
-                                  self._f_openGroup(pgroup._v_groupId, name)
+            self._f_open(name, parent)
 
-    def _f_newGroup(self, where, name, rootgroup):
-        """Create a new Group with name "name" in "where"
-        location. If "name" group already exists in "where", raise the
-        NameError exception."""
+    def _f_open(self, name, parent):
+        """Call the openGroup method in super class to open the existing
+        group on disk. Also get attributes for this group. """
         
-        pgroup = self._f_getObject(where, rootgroup)
-        if name not in pgroup._v_groups:
-            self._f_updateFields(pgroup, name, create = 1)
+        # Call the superclass method to open the existing group
+        self.__dict__["_v_groupId"] = \
+                      self._f_openGroup(parent._v_groupId, name)
+        # Get the title, class and version attributes
+        self.__dict__["_v_title"] = \
+                      self._f_getGroupAttrStr('TITLE')
+        self.__dict__["_v_class"] = \
+                      self._f_getGroupAttrStr('CLASS')
+        self.__dict__["_v_version"] = \
+                      self._f_getGroupAttrStr('VERSION')
+
+    def _f_create(self, name, parent):
+        """Call the createGroup method in super class to create the group on
+        disk. Also set attributes for this group. """
+
+        # Call the superclass method to create a new group
+        self.__dict__["_v_groupId"] = \
+                     self._f_createGroup(parent._v_groupId, name)
+        # Set the title, class and version attribute
+        self._f_setGroupAttrStr('TITLE', self._v_title)
+        self._f_setGroupAttrStr('CLASS', "Group")
+        self._f_setGroupAttrStr('VERSION', "1.0")
+
+    def _f_listNodes(self, classname = ""):
+        """Return a list with all the object nodes hanging from self.
+
+        The list is alphanumerically sorted by node name. If a
+        "classname" parameter is supplied, the iterator will only
+        return instances of this class (or subclasses of it). The
+        supported classes in "classname" are 'Group', 'Leaf', 'Table'
+        and 'Array'.
+
+        """
+        if not classname:
+            # Returns all the childs alphanumerically sorted
+            names = self._v_objchilds.keys()
+            names.sort()
+            return [ self._v_objchilds[name] for name in names ]
+        elif classname == 'Group':
+            # Returns all the groups alphanumerically sorted
+            names = self._v_objgroups.keys()
+            names.sort()
+            return [ self._v_objgroups[name] for name in names ]
+        elif classname == 'Leaf':
+            # Returns all the leaves alphanumerically sorted
+            names = self._v_objleaves.keys()
+            names.sort()
+            return [ self._v_objleaves[name] for name in names ]
+        elif (classname == 'Table' or
+              classname == 'Array'):
+            listobjects = []
+            # Process alphanumerically sorted 'Leaf' objects
+            for leaf in self._f_listNodes('Leaf'):
+                if leaf._v_class == classname:
+                    listobjects.append(leaf)
+            # Returns all the 'classname' objects alphanumerically sorted
+            return listobjects
         else:
-            raise NameError, "\"%s\" group already has a child named %s" % \
-                  (str(self._v_pathname), name)
+            raise ValueError, \
+""""classname" can only take 'Group', 'Leaf', 'Table' or 'Array' values"""
 
-    def __setattr__(self, name, value):
-        """This is another way to create Group objects."""
-        
-        value._f_newGroup(self, name, self._v_rootgroup)
-        
+    def _f_walkGroups(self):
+        """Recursively obtains Groups (not Leaves) hanging from self.
+
+        The groups are returned from top to bottom, and
+        alphanumerically sorted when in the same level.
+
+        """
+        # Returns this group
+        yield self
+        # Iterate over the descendants
+        #for group in self._v_objgroups.itervalues():
+        # Sort the groups before delivering. This uses the groups names
+        # for groups in tree (in order to sort() can classify them).
+        groupnames = self._v_objgroups.keys()
+        groupnames.sort()
+        for groupname in groupnames:
+            for x in self._v_objgroups[groupname]._f_walkGroups():
+                yield x
+
     def __delattr__(self, name):
         """In the future, this should delete objects both in memory
         and in the file."""
         
-        if name in self._v_leaves:
-            print "Add code to delete", name, "attribute"
+        if name in self._v_objchilds:
+            #print "Add code to delete", name, "attribute"
+            pass
             #self._v_leaves.remove(name)
         else:
-            raise AttributeError, "%s instance has no attribute %s" % \
+            raise AttributeError, "%s instance has no child %s" % \
                   (str(self.__class__), name)
 
     def __getattr__(self, name):
         """Get the object named "name" hanging from me."""
         
         #print "Getting the", name, "attribute in Group", self
-        if name in self._v_groups:
+        if name in self._v_objgroups:
             return self._v_objgroups[name]
-        elif name in self._v_leaves:
+        elif name in self._v_objleaves:
             return self._v_objleaves[name]
         else:
-            #print "Name ==>", self
-            raise AttributeError, "\"%s\" group has not a %s attribute" % \
-                  (self._v_pathname, name)
+            raise AttributeError, "'%s' group has not a \"%s\" attribute!" % \
+                                  (self._v_pathname, name)
 
+    def __setattr__(self, name, value):
+        """Attach new nodes to the tree.
+
+        name -- The name of the new node
+        value -- The new node object
+
+        If "name" group already exists in "self", raise the NameError
+        exception. A NameError is also raised when the "name" starts
+        by a reserved prefix. A SyntaxError is raised if "name" is not
+        a valid Python identifier.
+
+        """
+        global reservedprefixes
+        global MAX_DEPTH_IN_TREE, MAX_CHILDS_IN_GROUP
+
+
+        # Check if name starts with a reserved prefix
+        for prefix in reservedprefixes:
+            if (name.startswith(prefix)):
+                raise NameError, \
+"""Sorry, you cannot start a node name with the following reserved prefixes:\
+  %s""" % (reservedprefixes)
+                
+        # Check if new  node name have the appropriate set of characters
+        # and is not one of the Python reserved word!
+        # We use the next trick: exec the assignment 'name = 1' and
+        # if a SyntaxError raises, catch it and re-raise a personalized error.
         
+        # Get a copy of name (so as to not modify name's value)
+        backname = name
+        testname = '_' + name + '_'
+        try:
+            exec(testname + ' = 1')  # Test for trailing and ending spaces
+            exec(name + '= 1')  # Test for name validity
+        except SyntaxError:
+            raise SyntaxError, \
+"""\'%s\' is not a valid python identifier.
+  Check for special symbols ($, %%, @, ...), spaces or reserved words.""" % \
+  (name)
+        else:
+            # Retrieves the original value for name
+            name = backname
+            # Delete testname and backname
+            del testname
+            del backname
+
+        # Check if we are too much deeper in tree
+        if self._v_depth > MAX_DEPTH_IN_TREE:
+            raise RuntimeError, \
+               "the object tree has exceeded the maximum depth (%d)" % \
+               (MAX_DEPTH_IN_TREE) 
+
+        # Check if we have too much number of childs
+        if len(self._v_objchilds.values()) < MAX_CHILDS_IN_GROUP:
+            # Put value object with name name in object tree
+            if name not in self._v_objchilds:
+                value._f_putObjectInTree(name, self)
+            else:
+                raise NameError, \
+                      "\"%s\" group already has a child named %s" % \
+                      (self._v_pathname, name)
+        else:
+            raise RuntimeError, \
+               "'%s' group has exceeded the maximum number of childs (%d)" % \
+               (self._v_pathname, MAX_CHILDS_IN_GROUP) 
+            
+                  
+    def __str__(self):
+        """The string representation for this object."""
+        # Get the associated filename
+        filename = self._v_rootgroup._v_filename
+        # The pathname
+        pathname = self._v_pathname
+        # Get this class name
+        classname = self.__class__.__name__
+        # The title
+        title = self._v_title
+        # Printing the filename can be confusing in some contexts
+        #return "/%s%s %s" % (filename, pathname, classname)
+        return "%s (%s) \"%s\"" % (pathname, classname, title)

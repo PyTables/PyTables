@@ -1,130 +1,181 @@
+########################################################################
+#
+#       Copyright:      LGPL
+#       Created:        September 4, 2002
+#       Author:  Francesc Alted - falted@openlc.org
+#
+#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Table.py,v $
+#       $Id: Table.py,v 1.3 2002/11/07 17:52:35 falted Exp $
+#
+########################################################################
+
+"""Here is defined the Table class.
+
+See Table class docstring for more info.
+
+Classes:
+
+    Table
+
+Functions:
+
+
+Misc variables:
+
+    __version__
+
+
+"""
+
+__version__ = "$Revision: 1.3 $"
+
 from __future__ import generators
 import struct
 import types
 import re
 import string
 import hdf5Extension
+from Leaf import Leaf
 from IsRecord import IsRecord, metaIsRecord
 
-class Table(hdf5Extension.Table):
-    """Responsible to create tables (both new or already existing in
-    HDF5 file) and provide the methods to deal with them."""
 
-    def __init__(self, where, name, rootgroup):
-        """Create the instance Table hanging from "where" and name
-        "name". "where" can be a pathname string or a Group
-        instance. "rootgroup" is the root object; it is necessary in
-        case "where" is a pathname string."""
-        
-        # Initialize the superclass
-        self._v_name = name   # We need that to follow Group naming scheme
-        if type(where) == type(str()):
-            # This is the parent group pathname. Get the object ...
-            objgroup = rootgroup._f_getObjectFromPath(where)
-            if objgroup:
-                self._v_parent = objgroup
-            else:
-                # We didn't find the pathname in the object tree.
-                # This should be signaled as an error!.
-                raise LookupError, \
-                      "\"%s\" pathname not found in the HDF5 group tree." % \
-                      (where)
+class Table(Leaf, hdf5Extension.Table):
+    """Represent a table in HDF5 tree.
 
-        elif type(where) == type(rootgroup):
-            # This is the parent group object
-            self._v_parent = where
+    It provides methods to create new tables or open existing ones, as
+    well as methods to write/read data and metadata to/from table
+    objects over the HDF5 file.
+
+    Data can be written or read both as records or as tuples. Records
+    are recommended because they are more intuitive and less error
+    prone but it is slow. Using tuples (or value sequences) is faster,
+    but the user have to be very careful to put the sequence of values
+    in correct order.
+
+    Methods:
+
+        appendAsRecord(RecordObject)
+        appendAsTuple(tupleValues)
+        appendAsValues(*values)
+        readAsRecords()
+        readAsTuples()
+        flush()
+        close()
+
+    Instance variables:
+
+        name -- the Leaf node name
+        title -- the title for this node
+        record -- the record object for this table
+        nrecords -- the number of records in this table
+        varnames -- the field names for the table
+        vartypes -- the typecodes for the table fields
+
+    """
+
+    def __init__(self, RecordObject = None, title = "",
+                 compress = 3, expectedrows = 10000):
+        """Create an instance Table.
+
+        Keyword arguments:
+
+        RecordObject -- The IsRecord instance. If None, the table
+            metadata is read from disk, else, it's taken from previous
+            parameters.
+
+        title -- Sets a TITLE attribute on the HDF5 table entity.
+
+        compress -- Specifies a compress level for data. The allowed
+            range is 0-9. A value of 0 disables compression. The
+            default is compression level 3, that balances between
+            compression effort and CPU consumption.
+
+        expectedrows -- An user estimate about the number of records
+            that will be on table. If not provided, the default value
+            is appropiate for tables until 1 MB in size (more or less,
+            depending on the record size). If you plan to save bigger
+            tables try providing a guess; this will optimize the HDF5
+            B-Tree creation and management process time and memory
+            used.
+
+        """
+        # Initialize this object in case is a new Table
+        if RecordObject:
+            self.record = RecordObject   # Record points to the RecordObject
+            self.title = title
+            self._v_compress = compress
+            self._v_expectedrows = expectedrows
+            # Flag that tells if this table is new or has to be read from disk
+            self._v_new = 1
         else:
-            raise TypeError, "where parameter type (%s) is inappropriate." % \
-                  (type(where))
+            self._v_new = 0
 
-    def getRecord(self):
-        """Accessor to return the recordObject object."""
-        return self.record
-
-    def newTable(self, recordObject, tableTitle = "",
-                 compress = 1, expectedrows = 10000):
-        """Responsible to create a fresh table (not present on HDF5
-        file). "recordObject" is the IsRecord instance, "tableTitle"
-        sets a TITLE attribute on the HDF5 table entity.  "compress"
-        is a boolean option and specifies if data compression will be
-        enabled or not. "expectedrows" is an user estimate about the
-        number of records that will be on table.  If not provided, the
-        default value is appropiate to tables until 1 MB in size. If
-        you plan to save bigger tables by providing a guess to
-        PyTables will optimize the HDF5 B-Tree creation and management
-        process time and memory used.  """
+    def create(self):
+        """Create a new table on disk."""
         
-        self.varnames = tuple(recordObject.__slots__)
-        self._v_fmt = recordObject._v_fmt
-        self.record = recordObject   # Record points to the recordObject
-        self.tableTitle = tableTitle
-        self._v_compress = compress
-        self.calcBufferSize(expectedrows, compress)
-        # Create an instance attribute for each variable
-        # In the future this should be changed to H5Array objects
-        for var in self.varnames:
-            #self.__dict__[var] = None
-            setattr(self, var, None)
+        # Compute some important parameters for createTable
+        self.varnames = tuple(self.record.__slots__)
+        self._v_fmt = self.record._v_fmt
+        self._calcBufferSize(self._v_expectedrows)
+        # Create the table on disk
+        self.createTable(self.varnames, self._v_fmt, self.title,
+                         self._v_compress, self._v_rowsize, self._v_chunksize)
         # Initialize the number of records
         self.nrecords = 0
-        # Create the group
-        self._f_putObjectInTree(create = 1)
+        # Initialize the shape attribute
+        self.shape = (len(self.varnames), self.nrecords)
+        # Get the variable types
+        self.vartypes = re.findall(r'(\d*\w)', self._v_fmt)
+                         
+    def open(self):
+        """Opens a table from disk and read the metadata on it.
 
-    def _f_putObjectInTree(self, create):
-        """Given a new table (fresh or read from HDF5 file), set links
-        and attributes to include it in python object tree."""
+        Creates an user Record on the flight to easy the access to the
+        actual data.
+
+        """
+        # Open the table
+        self.openTable()
+        #print "Opening table ==> (%s)" % self._v_pathname
+        (self.nrecords, self.varnames, self._v_fmt) = self.getTableInfo()
+        # print "Format for this existing table ==>", self._v_fmt
+        # We still have to code how to get this attributes
+        self.title = self.getTitle()
+        #print "Table Title ==>", self.title
+        # This one is probably not necessary to set it, but...
+        self._v_compress = 0  # This means, we don't know if compression
+                              # is active or not. May be save this info
+                              # in a table attribute?
+        # Compute buffer size
+        self._calcBufferSize(self.nrecords)
+        # Update the shape attribute
+        self.shape = (len(self.varnames), self.nrecords)
+        # Get the variable types
+        self.vartypes = re.findall(r'(\d*\w)', self._v_fmt)
+        # Build a dictionary with the types as values and varnames as keys
+        recordDict = {}
+        i = 0
+        for varname in self.varnames:
+            recordDict[varname] = self.vartypes[i]
+            i += 1
+        # Append this entry to indicate the alignment!
+        recordDict['_v_align'] = self._v_fmt[0]
+        # Create an instance record to host the record fields
+        RecordObject = metaIsRecord("", (), recordDict)()
+        self.record = RecordObject   # This points to the RecordObject
         
-        pgroup = self._v_parent
-        # Update this instance attributes
-        pgroup._v_leaves.append(self._v_name)
-        pgroup._v_objleaves[self._v_name] = self
-        # New attributes for the new Table instance
-        pgroup._f_setproperties(self._v_name, self)
-        self._v_groupId = pgroup._v_groupId
-        if create:
-            # Call the _h5.Table method to create the table on disk
-            self.createTable(self.varnames, self._v_fmt,
-                             self.tableTitle, self._v_compress,
-                             self._v_rowsize, self._v_chunksize)
-            
-        else:
-            # Open the table
-            self.openTable()
-            #print "Opening table ==> (%s)" % self._v_pathname
-            (self.nrecords, self.varnames, self._v_fmt) = self.getTableInfo()
-            # print "Format for this existing table ==>", self._v_fmt
-            # We still have to code how to get this attributes
-            self.tableTitle = self.getTableTitle()
-            #print "Table Title ==>", self.tableTitle
-            # This one is probably not necessary to set it, but...
-            self._v_compress = 0  # This means, we don't know if compression
-                                   # is active or not. May be save this info
-                                   # in a table attribute?
-            # Compute buffer size
-            self.calcBufferSize(self.nrecords, self._v_compress)
-            # Get the variable types
-            self.types = re.findall(r'(\d*\w)', self._v_fmt)
-            # Build a dictionary with the types as values and varnames as keys
-            recDict = {}
-            i = 0
-            for varname in self.varnames:
-                recDict[varname] = self.types[i]
-                i += 1
-            # Append this entry to indicate the alignment!
-            recDict['_v_align'] = self._v_fmt[0]
-            # Create an instance record to host the record fields
-            recordObject = metaIsRecord("",(),recDict)() # () is important!
-            self.record = recordObject   # This points to the recordObject
-        
-    def calcBufferSize(self, expectedrows, compress):
-        """Based on the expected rows in a table and if we are using
-        compression or not, calculate the buffer size and the and the
-        HDF5 chunk size. The logic here is based purely in experiments
-        playing with different buffer sizes, chunksize and compression
-        flag. It is obvious that using big buffers optimize the I/O speed
-        when dealing with tables. May be this can be further optimized."""
-        
+    def _calcBufferSize(self, expectedrows):
+        """Calculate the buffer size and the HDF5 chunk size.
+
+        The logic to do that is based purely in experiments playing
+        with different buffer sizes, chunksize and compression
+        flag. It is obvious that using big buffers optimize the I/O
+        speed when dealing with tables. This might (should) be further
+        optimized doing more experiments.
+
+        """
         fmt = self._v_fmt
+        compress = self._v_compress
         rowsize = struct.calcsize(fmt)
         self._v_rowsize = rowsize
         self.spacebuffer = " " * rowsize
@@ -198,80 +249,88 @@ class Table(hdf5Extension.Table):
         # Max Tuples to fill the buffer
         self._v_maxTuples = buffersize / rowsize
         self._v_chunksize = chunksize
-        #print "Buffersize ==> ", buffersize
-        #print "Chunksize  ==> ", chunksize
-        #print "MaxTuples ==> ", self._v_maxTuples
 
-    def saveBufferedRecords(self):
+    def _saveBufferedRecords(self):
         """Save buffered table records."""
-        
         #print "Flusing nrecords ==> ", self._v_recunsaved
         self.append_records("".join(self._v_packedtuples), self._v_recunsaved)
         self.nrecords += self._v_recunsaved
         # Reset the buffer and the tuple counter
         self._v_packedtuples = []
         self._v_recunsaved = 0
+        # Set the shape attribute
+        self.shape = (len(self.varnames), self.nrecords)
         
-    def appendValues(self, *values):
-        """ Append the (alphanumerically ordered) values parameters to
-        the output buffer as if they were a record. This is faster
-        (and unsafer) than appendRecord method."""
+    def appendAsRecord(self, RecordObject):
+        """Append the "RecordObject" to the output buffer."""
+        # I don't know how to check that record is IsRecord instance in
+        # the case we create the object programatically.
+        # Anyway, hasattr() should do the job!
+        ##if isinstance(RecordObject, metaIsRecord):
+        if hasattr(RecordObject, "_f_pack"):
+            # We pack with _f_pack2 because we don't need to pass parameters
+            # and is a bit faster that _f_pack
+            self._v_packedtuples.append(RecordObject._f_pack2())
+        elif isinstance(RecordObject, types.StringType):
+            self._v_packedtuples.append(RecordObject)
+        else:
+            print type(RecordObject)
+            raise RuntimeError, \
+                  "arg 1 is neither a string or IsRecord instance."
+        self._v_recunsaved += 1
+        if self._v_recunsaved  == self._v_maxTuples:
+            self._saveBufferedRecords()
+
+    def appendAsTuple(self, tupleValues):
+        """Append the "tupleValues" tuple to the table output buffer.
         
-        # By using list of strings rather than increasing each time a
-        # monolithic string buffer, we obtain a performance improvement
-        # between 20% and 25% in time. In exchange, we consume slightly more
-        # memory.
-        self._v_packedtuples.append(struct.pack(self._v_fmt, *values))
+        "tupleValues" is a tuple that has values for all the user
+        record fields. The user has to provide them in the order
+        determined by alphanumerically sorting the record name
+        fields. This method is faster (and unsafer, because requires
+        user to introduce the values in correct order!) than
+        appendAsRecord method.
+
+        """
+        self._v_packedtuples.append(struct.pack(self._v_fmt, *tupleValues))
+        #self._v_packedtuples.append(self.spacebuffer) # for speed test only
+        self._v_recunsaved += 1
+        if self._v_recunsaved  == self._v_maxTuples:
+            self._saveBufferedRecords()
+
+    def appendAsValues(self, *values):
+        """ Append the "values" parameters to the table output buffer.
+        
+        "values" is a serie of parameters that provides values for all
+        the user record fields. The user has to provide them in the
+        order determined by alphanumerically sorting the record
+        fields. This method is faster (and unsafer, because requires
+        user to introduce the values in correct order) than
+        appendAsRecord method.
+
+        """
+        try:
+            self._v_packedtuples.append(struct.pack(self._v_fmt, *values))
+        except AttributeError:
+            raise RuntimeError, \
+"""Can't find internal buffer. Most probably this table object is
+  not attached to the object tree."""
+            
         #self._v_packedtuples.append(self.spacebuffer) # for speed test only
         self._v_recunsaved += 1
         #print "Values without saving -->", self._v_recunsaved 
         if self._v_recunsaved  == self._v_maxTuples:
-            self.saveBufferedRecords()
+            self._saveBufferedRecords()
 
-    def appendRecord(self, recordObject):
-        """ Append the record object to the output buffer."""
-        
-        # I don't know how to check that record is IsRecord instance in
-        # the case we create the object programatically.
-        # Anyway, hasattr() should do the job!
-        ##if isinstance(recordObject, metaIsRecord):
-        if hasattr(recordObject, "_f_pack"):
-            # We pack with _f_pack2 because we don't need to pass parameters
-            # and is a bit faster that _f_pack
-            self._v_packedtuples.append(recordObject._f_pack2())
-        elif isinstance(recordObject, types.StringType):
-            self._v_packedtuples.append(recordObject)
-        else:
-            print type(recordObject)
-            raise RuntimeError, \
-                  "commit parameter is neither a string or IsRecord instance."
-        self._v_recunsaved += 1
-        if self._v_recunsaved  == self._v_maxTuples:
-            self.saveBufferedRecords()
-
-    def readAsTuples(self):
-        """Generator to return a tuple with a table tuple in each
-        cycle. This method is twice faster than readAsRecords, but it
-        yields the records as tuples, instead of full-object records.
-        """
-        
-        # Create a buffer for the readout
-        nrecordsinbuf = self._v_maxTuples
-        rowsz = self._v_rowsize
-        buffer = " " * rowsz * self._v_maxTuples
-        # Iterate over the table
-        for i in xrange(0, self.nrecords, nrecordsinbuf):
-            recout = self.read_records(i, nrecordsinbuf, buffer)
-            for j in xrange(recout):
-                tupla = struct.unpack(self._v_fmt, buffer[j*rowsz:(j+1)*rowsz])
-                #print "tupla %d ==> %s" % (i + j, tupla)
-                yield tupla
-        
     def readAsRecords(self):
-        """Generator to return a IsRecord instance with a table
-        record in each cycle. This method is slower than readAsTuples,
-        but in exchange, it return full-fledged instance records."""
-        
+        """Return an record instance from records on table each time.
+
+        This method is a Generator, and keeps track on the last record
+        returned so that next time it is invoked it returns the next
+        available record. It is slower than readAsValues but in
+        exchange, it returns full-fledged instance records.
+
+        """
         # Create a buffer for the readout
         nrecordsinbuf = self._v_maxTuples
         rowsz = self._v_rowsize
@@ -285,18 +344,34 @@ class Table(hdf5Extension.Table):
                 yield vars
                 #print "tupla %d ==> %s" % (i + j, tupla)
         
+    def readAsTuples(self):
+        """Return a tuple from records in table each time.
+        
+        This method is a Generator, and keeps track on the last record
+        returned so that next time it is invoked it returns the next
+        available record. This method is twice as faster than
+        readAsRecords, but it yields the records as (alphanumerically
+        orderd) tuples, instead of full-fledged instance records.
+
+        """
+        # Create a buffer for the readout
+        nrecordsinbuf = self._v_maxTuples
+        rowsz = self._v_rowsize
+        buffer = " " * rowsz * self._v_maxTuples
+        # Iterate over the table
+        for i in xrange(0, self.nrecords, nrecordsinbuf):
+            recout = self.read_records(i, nrecordsinbuf, buffer)
+            for j in xrange(recout):
+                tupla = struct.unpack(self._v_fmt, buffer[j*rowsz:(j+1)*rowsz])
+                yield tupla
+                
     def flush(self):
         """Save whatever remaining records in buffer."""
-        
         if self._v_recunsaved > 0:
-          #print "Flushing the table ==>", self._v_pathname
-          self.saveBufferedRecords()
+          self._saveBufferedRecords()
 
     def close(self):
-        """Flush the table buffers and close the HDF5 dataset
-        object."""
-        
-        #print "Flushing the HDF5 table ...."
+        """Flush the table buffers and close the HDF5 dataset."""
         self.flush()
         self.closeTable()
-        
+

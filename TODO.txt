@@ -1,8 +1,11 @@
-TODO list (as of 4th, October 2002):
+TODO list (as of 11th, November 2002):
 
-- Add Numeric or NumArray objects support. I would prefer to add
-  support the second, but the API is stable enough?, well documented?
-  Somebody can give me some feedback?
+- Add unlimited dimension arrays, a la ScientificPython.IO.NetCDF module.
+
+- Add general attributes to tree node objects. Try to support general
+  Python objects as attributes.
+
+- Add the latest HDF5_HL libraries (no beta).
 
 - Check the RecordArray objects present on NumArray. Can this made the
   conversion (Python types <-> C types) process more efficient?
@@ -10,9 +13,12 @@ TODO list (as of 4th, October 2002):
 - API stability. Is good more than one way to do things? Reach a
   consistent API by the beta version. Feedback appreciated.
 
-- Add more tests.
 
-- Add examples.
+And as always...
 
-- Better documentation.
+- Add more tests
+
+- Add examples
+
+- Better documentation
 
