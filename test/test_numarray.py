@@ -16,9 +16,7 @@ from tables import *
 
 from test_all import verbose, allequal
 
-# If the next line is uncommented, the logical_and.reduce in loop issues an
-# OverflowWarning in the case of type Int8 (and only in that case).
-#warnings.resetwarnings()
+warnings.resetwarnings()
 
 class BasicTestCase(unittest.TestCase):
     """Basic test for all the supported typecodes present in numarray.
@@ -993,13 +991,374 @@ class CopyIndex12TestCase(CopyIndexTestCase):
     stop = None  # None should mean the last element (including it)
     step = 1
 
+class GetItemTestCase(unittest.TestCase):
+
+    def test00_single(self):
+        "Single element access (character types)"
+        
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, mode = "w")
+        # Create the array under root and name 'somearray'
+        a = self.charList
+        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+
+        # Get and compare an element
+        if verbose:
+            print "Original first element:", a[0]
+            print "Read first element:", arr[0]
+        assert allequal(a[0], arr[0])
+        
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+        return
+
+    def test01_single(self):
+        "Single element access (numerical types)"
+        
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, mode = "w")
+        # Create the array under root and name 'somearray'
+        a = self.numericalList
+        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+
+        # Get and compare an element
+        if verbose:
+            print "Original first element:", a[0]
+            print "Read first element:", arr[0]
+        assert a[0] == arr[0]
+        
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+        return
+
+    def test02_range(self):
+        "Range element access (character types)"
+        
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, mode = "w")
+        # Create the array under root and name 'somearray'
+        a = self.charListME
+        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+
+        # Get and compare an element
+        if verbose:
+            print "Original elements:", a[1:4]
+            print "Read elements:", arr[1:4]
+        assert allequal(a[1:4], arr[1:4])
+        
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+        return
+
+    def test03_range(self):
+        "Range element access (numerical types)"
+        
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, mode = "w")
+        # Create the array under root and name 'somearray'
+        a = self.numericalListME
+        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+
+        # Get and compare an element
+        if verbose:
+            print "Original elements:", a[1:4]
+            print "Read elements:", arr[1:4]
+        assert allequal(a[1:4], arr[1:4])
+        
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+        return
+
+    def test04_range(self):
+        "Range element access, strided (character types)"
+        
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, mode = "w")
+        # Create the array under root and name 'somearray'
+        a = self.charListME
+        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+
+        # Get and compare an element
+        if verbose:
+            print "Original elements:", a[1:4:2]
+            print "Read elements:", arr[1:4:2]
+        assert allequal(a[1:4:2], arr[1:4:2])
+        
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+        return
+
+    def test05_range(self):
+        "Range element access (numerical types)"
+        
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, mode = "w")
+        # Create the array under root and name 'somearray'
+        a = self.numericalListME
+        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+
+        # Get and compare an element
+        if verbose:
+            print "Original elements:", a[1:4:2]
+            print "Read elements:", arr[1:4:2]
+        assert allequal(a[1:4:2], arr[1:4:2])
+        
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+        return
+
+    def test06_negativeIndex(self):
+        "Negative Index element access (character types)"
+        
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, mode = "w")
+        # Create the array under root and name 'somearray'
+        a = self.charListME
+        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+
+        # Get and compare an element
+        if verbose:
+            print "Original last element:", a[-1]
+            print "Read last element:", arr[-1]
+        assert allequal(a[-1], arr[-1])
+        
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+        return
+
+    def test07_negativeIndex(self):
+        "Negative Index element access (numerical types)"
+        
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, mode = "w")
+        # Create the array under root and name 'somearray'
+        a = self.numericalListME
+        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+
+        # Get and compare an element
+        if verbose:
+            print "Original before last element:", a[-2]
+            print "Read before last element:", arr[-2]
+        if isinstance(a[-2], numarray.NumArray):
+            assert allequal(a[-2], arr[-2])
+        else:
+            assert a[-2] == arr[-2]
+        
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+        return
+
+    def test08_negativeRange(self):
+        "Negative range element access (character types)"
+        
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, mode = "w")
+        # Create the array under root and name 'somearray'
+        a = self.charListME
+        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+
+        # Get and compare an element
+        if verbose:
+            print "Original last elements:", a[-4:-1]
+            print "Read last elements:", arr[-4:-1]
+        assert allequal(a[-4:-1], arr[-4:-1])
+        
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+        return
+
+    def test09_negativeRange(self):
+        "Negative range element access (numerical types)"
+        
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, mode = "w")
+        # Create the array under root and name 'somearray'
+        a = self.numericalListME
+        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+
+        # Get and compare an element
+        if verbose:
+            print "Original last elements:", a[-4:-1]
+            print "Read last elements:", arr[-4:-1]
+        assert allequal(a[-4:-1], arr[-4:-1])
+        
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+        return
+
+
+class GI1NATestCase(GetItemTestCase):
+    title = "Rank-1 case 1"
+    numericalList = numarray.array([3])
+    numericalListME = numarray.array([3,2,1,0,4,5,6])
+    charList = strings.array(["3"])
+    charListME = strings.array(["321","221","121","021","421","521","621"])
+    
+class GI2NATestCase(GetItemTestCase):
+    # A more complex example
+    title = "Rank-1,2 case 2"
+    numericalList = numarray.array([3,4])
+    numericalListME = numarray.array([[3,2,1,0,4,5,6],
+                                      [2,1,0,4,5,6,7],
+                                      [4,3,2,1,0,4,5],
+                                      [3,2,1,0,4,5,6],
+                                      [3,2,1,0,4,5,6]])
+    
+    charList = strings.array(["a","b"])
+    charListME = strings.array([["321","221","121","021","421","521","621"],
+                                ["21","21","11","02","42","21","61"],
+                                ["31","21","12","21","41","51","621"],
+                                ["321","221","121","021","421","521","621"],
+                                ["3241","2321","13216","0621","4421","5421","a621"],
+                                ["a321","s221","d121","g021","b421","5vvv21","6zxzxs21"]])
+    
+
+class GeneratorTestCase(unittest.TestCase):
+
+    def test00a_single(self):
+        "Testing generator access to Arrays, single elements (char)"
+        
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, mode = "w")
+        # Create the array under root and name 'somearray'
+        a = self.charList
+        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+
+        # Get and compare an element
+        ga = [i for i in a]
+        garr = [i for i in arr]
+        if verbose:
+            print "Result of original iterator:", ga
+            print "Result of read generator:", garr
+        assert ga == garr
+        
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+        return
+
+    def test00b_me(self):
+        "Testing generator access to Arrays, multiple elements (char)"
+        
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, mode = "w")
+        # Create the array under root and name 'somearray'
+        a = self.charListME
+        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+
+        # Get and compare an element
+        ga = [i for i in a]
+        garr = [i for i in arr]
+        if verbose:
+            print "Result of original iterator:", ga
+            print "Result of read generator:", garr
+        for i in range(len(ga)):
+            assert allequal(ga[i], garr[i])
+        
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+        return
+
+    def test01a_single(self):
+        "Testing generator access to Arrays, single elements (numeric)"
+        
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, mode = "w")
+        # Create the array under root and name 'somearray'
+        a = self.numericalList
+        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+
+        # Get and compare an element
+        ga = [i for i in a]
+        garr = [i for i in arr]
+        if verbose:
+            print "Result of original iterator:", ga
+            print "Result of read generator:", garr
+        assert ga == garr
+        
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+        return
+
+    def test01b_me(self):
+        "Testing generator access to Arrays, multiple elements (numeric)"
+        
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, mode = "w")
+        # Create the array under root and name 'somearray'
+        a = self.numericalListME
+        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+
+        # Get and compare an element
+        ga = [i for i in a]
+        garr = [i for i in arr]
+        if verbose:
+            print "Result of original iterator:", ga
+            print "Result of read generator:", garr
+        for i in range(len(ga)):
+            assert allequal(ga[i], garr[i])
+        
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+        return
+
+class GE1NATestCase(GeneratorTestCase):
+    title = "Rank-1 case 1"
+    numericalList = numarray.array([3])
+    numericalListME = numarray.array([3,2,1,0,4,5,6])
+    charList = strings.array(["3"])
+    charListME = strings.array(["321","221","121","021","421","521","621"])
+    
+class GE2NATestCase(GeneratorTestCase):
+    # A more complex example
+    title = "Rank-1,2 case 2"
+    numericalList = numarray.array([3,4])
+    numericalListME = numarray.array([[3,2,1,0,4,5,6],
+                                      [2,1,0,4,5,6,7],
+                                      [4,3,2,1,0,4,5],
+                                      [3,2,1,0,4,5,6],
+                                      [3,2,1,0,4,5,6]])
+    
+    charList = strings.array(["a","b"])
+    charListME = strings.array([["321","221","121","021","421","521","621"],
+                                ["21","21","11","02","42","21","61"],
+                                ["31","21","12","21","41","51","621"],
+                                ["321","221","121","021","421","521","621"],
+                                ["3241","2321","13216","0621","4421","5421","a621"],
+                                ["a321","s221","d121","g021","b421","5vvv21","6zxzxs21"]])
+    
+
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
-    #theSuite.addTest(unittest.makeSuite(Basic2DTestCase))
-    #theSuite.addTest(unittest.makeSuite(CopyIndex12TestCase))
-    
     for i in range(niter):
         # The scalar case test should be refined in order to work
         theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
@@ -1028,6 +1387,10 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyIndex10TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex11TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex12TestCase))
+        theSuite.addTest(unittest.makeSuite(GI1NATestCase))
+        theSuite.addTest(unittest.makeSuite(GI2NATestCase))
+        theSuite.addTest(unittest.makeSuite(GE1NATestCase))
+        theSuite.addTest(unittest.makeSuite(GE2NATestCase))
 
 
     return theSuite

@@ -35,7 +35,7 @@ except:
     pyrex = 0
     cmdclass = {}
 
-VERSION = "0.8"
+VERSION = "0.8.1"
 
 #----------------------------------------------------------------------
 
@@ -150,20 +150,18 @@ if os.name == 'posix':
                     HDF5_DIR = instdir
                     hdf5libdir = os.path.join(instdir, "lib")
                     print "Found HDF5 libraries at " + hdf5libdir
-                    # This is necessary at least in FreeBSD machines
-                    # Thanks to Ivan Vilata for reporting this
-                    # 2004-03-11
-                    lib_dirs = [os.path.join(HDF5_DIR, 'lib')]
+                    # This is not necessary because /usr and /usr/local
+                    # should be already available on search paths
+                    #lib_dirs = [os.path.join(HDF5_DIR, 'lib')]
                     break
 
             headerhdf5 = os.path.join(instdir, "include/H5public.h")
             if os.path.isfile(headerhdf5):
                 hdf5incdir = os.path.join(instdir, "include")
                 print "Found HDF5 header files at " + hdf5incdir
-                # This is necessary at least in FreeBSD machines
-                # Thanks to Ivan Vilata for reporting this
-                # 2004-03-11
-                inc_dirs = [ os.path.join(HDF5_DIR, 'include')]
+                # This is not necessary because /usr and /usr/local
+                # should be already available on search paths
+                #inc_dirs = [ os.path.join(HDF5_DIR, 'include')]
                 break
             else:
                 hdf5incdir = None
@@ -473,11 +471,11 @@ compile and run."""
         
     sys.exit(1)
 else:
-    if numarray.__version__ >= "0.8":
+    if numarray.__version__ >= "1.0":
         print "Found numarray %s package installed" % numarray.__version__
     else:
         print "###########################################################"
-        print "You need numarray 0.8 or greater!. Exiting..."
+        print "You need numarray 1.0 or greater!. Exiting..."
         print "###########################################################"
         sys.exit(1)
 
@@ -542,7 +540,6 @@ data.
                                            "src/H5Zlzo.c",
                                            "src/H5Zucl.c",
                                            "src/H5ARRAY.c",
-                                           "src/H5ARRAY-opt.c",
                                            "src/H5VLARRAY.c",
                                            "src/H5LT.c",
                                            "src/H5TB.c",

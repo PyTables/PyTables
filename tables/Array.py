@@ -5,7 +5,7 @@
 #       Author:  Francesc Alted - falted@pytables.org
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Array.py,v $
-#       $Id: Array.py,v 1.67 2004/07/15 18:09:24 falted Exp $
+#       $Id: Array.py,v 1.68 2004/07/26 15:56:59 falted Exp $
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.67 $"
+__version__ = "$Revision: 1.68 $"
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -200,7 +200,7 @@ class Array(Leaf, hdf5Extension.Array, object):
                 # If still doesn't, issues an error
                 except:
                     raise ValueError, \
-"""The object '%s' can't be converted to a numerical or character array.
+"""The object '%s' can't be converted into a numerical or character array.
   Sorry, but this object is not supported.""" % (arr)
             if isinstance(arr, types.TupleType):
                 flavor = "Tuple"
@@ -419,6 +419,13 @@ class Array(Leaf, hdf5Extension.Array, object):
             if not (new_dim == 1 and stop_None[dim]):
                 # Append dimension
                 shape.append(new_dim)
+
+        # The next solution isn't appropriate as a scalar array is
+        # meant as a way to return a Python value
+#         if shape == []:
+#             # In case of scalar elements, make them equivalent to 1dim 
+#             # This is much better for dealing with single-element objects
+#             shape = [1]  
             
         if repr(self.type) == "CharType":
             arr = strings.array(None, itemsize=self.itemsize, shape=shape)
@@ -441,13 +448,17 @@ class Array(Leaf, hdf5Extension.Array, object):
 
         if hasattr(self, "_v_convert") and self._v_convert == 0:
             return arr
-            
+
         if self.flavor in ["NumArray", "CharArray"]:
             # No conversion needed
             return arr
         # Fixes #968131
         elif arr.shape == ():  # Scalar case
             return arr[()]  # return the value. Yes, this is a weird syntax :(
+        # The next solution isn't appropriate as a scalar array is
+        # meant as a way to return a Python value
+#         elif arr.shape == (1,):  # Scalar case
+#             return arr[0]  # return the value.
         else:
             return self._convToFlavor(arr)
         
@@ -478,7 +489,8 @@ class Array(Leaf, hdf5Extension.Array, object):
                 warnings.warn( \
 """The object on-disk has Numeric flavor, but Numeric is not installed locally. Returning a numarray object instead!.""")
         elif self.flavor == "Tuple":
-            arr = tuple(arr.tolist())
+            #arr = tuple(arr.tolist())
+            arr = self.totuple(arr)
         elif self.flavor == "List":
             arr = arr.tolist()
         elif self.flavor == "Int":
@@ -489,6 +501,13 @@ class Array(Leaf, hdf5Extension.Array, object):
             arr = arr.tostring()
 
         return arr
+    
+    def totuple(self, arr):
+        """Returns array as a (nested) tuple of elements."""
+        if len(arr._shape) == 1:
+            return tuple([ x for x in arr ])
+        else:
+            return tuple([ self.totuple(ni) for ni in arr ])
         
     # Accessor for the _readArray method in superclass
     def read(self, start=None, stop=None, step=None):

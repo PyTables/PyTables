@@ -8,9 +8,9 @@
     <author>Scott Prater</author>
 
     <subtitle><visual markup="sf">Hierarchical datasets in
-      Python</visual><newline/> Release 0.8</subtitle>
+      Python</visual><newline/> Release 0.8.1</subtitle>
 
-    <date>2004, March, 9th</date>
+    <date>2004, July, 9th</date>
     <year>2002, 2003, 2004</year>
 <!--     <graphics kind="bitmap" file="logo4-ombra"/> -->
     <graphics kind="bitmap" file="logo3-ombra"/>
@@ -57,7 +57,7 @@
 	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 	EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-	<newline vspace="1cm"/> 
+	<newline vspace="1cm"/>
       </p>
 
 <!-- NCSA license -->
@@ -78,8 +78,39 @@
       <p>See more information about the terms of this license at:
 	<newline/> <url
 	name="http://hdf.ncsa.uiuc.edu/HDF5/doc/Copyright.html"><verb>http://hdf.ncsa.uiuc.edu/HDF5/doc/Copyright.html</verb></url>
-<!--	<newline vspace="1cm"/> -->
+	<newline vspace="1cm"/>
       </p>
+
+      <!-- numarray license -->
+
+      <!-- This is not needed anymore, as PyTables does not include a
+      private copy of the numarray.records module -->
+
+<!--       <p><visual markup="bf">Copyright Notice and Statement for AURA -->
+<!-- 	  <em>numarray</em> software library</visual> -->
+<!-- 	<newline vspace="0.25cm"/> -->
+<!--       </p> -->
+
+
+<!--       <p>Copyright (C) 2001 Association of Universities for Research -->
+<!-- 	in Astronomy (AURA) <newline vspace="0.25cm"/> -->
+<!--       </p> -->
+
+
+<!--       <p> -->
+<!-- 	THIS SOFTWARE IS PROVIDED BY AURA ``AS IS'' AND ANY EXPRESS OR -->
+<!-- 	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED -->
+<!-- 	WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR -->
+<!-- 	PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL AURA BE LIABLE FOR -->
+<!-- 	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR -->
+<!-- 	CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, -->
+<!-- 	PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, -->
+<!-- 	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND -->
+<!-- 	ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT -->
+<!-- 	LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING -->
+<!-- 	IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF -->
+<!-- 	THE POSSIBILITY OF SUCH DAMAGE. -->
+<!--       </p> -->
 
     </legalnotice>
   </frontmatter>
@@ -96,7 +127,7 @@
     foundation for the underlying hierarchical data organization.
   </p>
 
-    <p><visual markup="tt">PyTables</visual> is designed to be
+  <p><visual markup="tt">PyTables</visual> is designed to be
     an easy-to-use as well as high-performance interface to
     HDF5.  The latest improvements introduced in Python 2.2 (such as 
     generators, iterators and metaclasses in new-brand classes) have been 
@@ -413,10 +444,10 @@ group2 = fileh.createGroup(root, "group2")
 
 # Now, create an array in the root group
 array1 = fileh.createArray(root, "array1", ["string", "array"], "String array")
-# Create 2 new tables in group1
+# Create 2 new tables in group1 and group2
 table1 = fileh.createTable(group1, "table1", Particle)
 table2 = fileh.createTable("/group2", "table2", Particle)
-# Create the last table in group2
+# Create one more Array in group1
 array2 = fileh.createArray("/group1", "array2", [1,2,3,4])
 
 # Now, fill the tables:
@@ -442,12 +473,13 @@ fileh.close()
 	<p>This small program creates a simple HDF5 file called
 	  <verb>objecttree.h5</verb> with the structure that appears
 	  in <ref refid="objecttree-h5">figure</ref>. When the file is
-	  created, metadata in the object tree is updated in memory while
-	  the actual data is saved disk. When you close the file the object 
-	  tree is no longer available. However, when you reopen this file 
-	  the object tree will be reconstructed in memory from the metadata 
-	  on disk, allowing you to work with it in exactly the same
-	  way as when you originally created it.
+	  created, the metadata in the object tree is updated in
+	  memory while the actual data is saved to disk. When you
+	  close the file the object tree is no longer
+	  available. However, when you reopen this file the object
+	  tree will be reconstructed in memory from the metadata on
+	  disk, allowing you to work with it in exactly the same way
+	  as when you originally created it.
 	</p>
 
 	<figure id="objecttree-h5">
@@ -521,10 +553,17 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	running Windows and want to install precompiled binaries jump
 	to <ref refid="binaryInstallationDescr">section</ref>). In
 	addition, packages are starting to appear in different Linux
-	distributions (like for instance <url
-	name="http://www.rocklinux.org/"><verb>RockLinux</verb></url>
+	distributions, like for instance <url
+	name="http://www.rocklinux.org/"><verb>RockLinux</verb></url>,
+	<url name="http://www.debian.org/"><verb>Debian</verb></url>,
+	<url
+	name="http://monkeyrpms.net/fedora/linux/monkeyrpms/1/i386/html/pytables.html"><verb>Fedora</verb></url>
 	or <url
-	name="http://www.debian.org/"><verb>Debian</verb></url>).
+	name="http://www.gentoo.org/"><verb>Gentoo</verb></url>.
+	There also packages for other Unices too, like <url
+	name="http://www.freshports.org/"><verb>FreeBSD</verb></url>
+	or <url
+	name="http://www.opendarwin.org/"><verb>MacOSX</verb></url>
       </p>
 
       <section id="sourceInstallationDescr">
@@ -539,10 +578,10 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	</p>
 
 	<p>Extensions in <visual markup="tt">PyTables</visual> have
-	  developed in Pyrex (see <cite refid="Pyrex"></cite>) and C
-	  language. You can rebuild everything from scratch if you
-	  have Pyrex installed, but this is not necessary, as the Pyrex
-	  compiled source is included in the distribution.
+	  been developed in Pyrex (see <cite refid="Pyrex"></cite>)
+	  and C language. You can rebuild everything from scratch if
+	  you have Pyrex installed, but this is not necessary, as the
+	  Pyrex compiled source is included in the distribution.
 	</p>
 
 	<p>To compile <verb>PyTables</verb> you will need a recent
@@ -564,13 +603,13 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  <heading>Prerequisites</heading>
 
 	  <p>First, make sure that you have <verb>HDF5 1.6.2</verb>
-	    and <verb>numarray 0.8</verb> or higher installed (I'm
+	    and <verb>numarray 1.0</verb> or higher installed (I'm
 	    using <verb>HDF5 1.6.2</verb> and <verb>numarray
-	      0.8</verb> currently). If you don't, you can find them
-	    at <url
-	      name="http://hdf.ncsa.uiuc.edu/HDF5"><verb>http://hdf.ncsa.uiuc.edu/HDF5</verb></url>
+	    1.0</verb> currently). If you don't, you can find them at
+	    <url
+	    name="http://hdf.ncsa.uiuc.edu/HDF5"><verb>http://hdf.ncsa.uiuc.edu/HDF5</verb></url>
 	    and <url
-	      name="http://www.pfdubois.com/numpy"><verb>http://www.pfdubois.com/numpy</verb></url>.
+	    name="http://www.pfdubois.com/numpy"><verb>http://www.pfdubois.com/numpy</verb></url>.
 	  </p>
 	  <p>
 	    Compile and install these packages (but see <ref
@@ -611,8 +650,8 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
 	      <verbatim>
 		--hdf5=/stuff/hdf5-1.6.2
-		--lzo=/stuff/lzo-1.07
-		--ucl=/stuff/ucl-1.0.1
+		--lzo=/stuff/lzo-1.08
+		--ucl=/stuff/ucl-1.02
 	      </verbatim>
 
 	      <p>If your <verb>HDF5</verb> library was built as
@@ -673,8 +712,8 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	      <p>For example:
 		<verbatim>
 		  set HDF5_DIR=c:\stuff\5-162-win2k\c\release
-		  set UCL_DIR=c:\stuff\ucl-1-01
-		  set LZO_DIR=c:\stuff\lzo-1-07
+		  set UCL_DIR=c:\stuff\ucl-1-02
+		  set LZO_DIR=c:\stuff\lzo-1-08
 		</verbatim>
 
 		Or, you can pass this information to
@@ -684,7 +723,8 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
 	      <verbatim>
 		--hdf5=c:\stuff\5-162-win2k\c\release
-		--lzo=c:\stuff\lzo-1-07 --ucl=c:\stuff\ucl-1-01
+		--lzo=c:\stuff\lzo-1-08
+		--ucl=c:\stuff\ucl-1-02
 	      </verbatim>	
 	    </item>
 
@@ -810,12 +850,12 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 		<verb>--prefix</verb> flag to install in a non-standard
 		place, you should properly setup your
 		<verb>PYTHONPATH</verb> environment variable, so that
-		the python interpreter would be able to find your new
+		the Python interpreter would be able to find your new
 		<verb>PyTables</verb> installation.
 	      </p>
 
 	      <p>You have more installation options available in
-		distutils package. Issue a:
+		the distutils package. Issue a:
 		<verbatim>
 		  python setup.py install --help
 		</verbatim>
@@ -827,8 +867,9 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 
 	</subsection>
 
-	<p>That's it! The next chapter describes how to use
-	  <verb>PyTables</verb>. <!-- <newline vspace="4.0cm"/> -->
+	<p>That's it! You can skip to the next chapter to learn how to
+	  use PyTables <verb>PyTables</verb>. <!-- <newline
+	  vspace="4.0cm"/> -->
 	</p>
 
       </section>
@@ -847,8 +888,8 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  <heading>Windows prerequisites</heading>
 
 	  <p>First, make sure that you have HDF5 1.6.2 or higher and
-	    numarray 0.8 or higher installed (I'm using HDF5 1.6.2 and
-	    numarray 0.8 currently). If don't, you can find them at
+	    numarray 1.0 or higher installed (I'm using HDF5 1.6.2 and
+	    numarray 1.0 currently). If don't, you can find them at
 	    <url
 	    name="http://hdf.ncsa.uiuc.edu/HDF5"><verb>http://hdf.ncsa.uiuc.edu/HDF5</verb></url>
 	    and <url
@@ -1438,9 +1479,9 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 	  </p>
 	  <p>Note that in these examples, the <verb>createArray</verb>
 	    method returns an <verb>Array</verb> instance that is not
-	    assigned to any variable. Don't worry, this is
-	    intentional to show the kind of object we have created by
-	    displaying its representation.  The <verb>Array</verb> objects has
+	    assigned to any variable. Don't worry, this is intentional
+	    to show the kind of object we have created by displaying
+	    its representation.  The <verb>Array</verb> objects have
 	    been attached to the object tree and saved to disk, as you
 	    can see if you print the complete object tree:
 	  </p>
@@ -1649,14 +1690,14 @@ Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 20
 
 	  <p>This is a nice shortcut when working interactively.</p>
 
-	  <p>Finally, we will list all the
-	    <verb>Leaf</verb>, i.e. <verb>Table</verb> and
-	    <verb>Array</verb>, instances (see <ref
-	    refid="LeafClassDescr"></ref> for detailed information on
-	    <verb>Leaf</verb> class), in the <verb>/detector</verb>
-	    group. Note that only one instance of the <verb>Table</verb>
-	    class (i.e. <verb>readout</verb>) will be selected in this
-	    group (as should be the case):
+	  <p>Finally, we will list all the <verb>Leaf</verb>,
+	    i.e. <verb>Table</verb> and <verb>Array</verb> instances
+	    (see <ref refid="LeafClassDescr"></ref> for detailed
+	    information on <verb>Leaf</verb> class), in the
+	    <verb>/detector</verb> group. Note that only one instance
+	    of the <verb>Table</verb> class
+	    (i.e. <verb>readout</verb>) will be selected in this group
+	    (as should be the case):
 	  </p>
 
 	  <verbatim>
@@ -2408,10 +2449,10 @@ $ python tutorial2.py
 Traceback (most recent call last):
   File "tutorial2.py", line 74, in ?
     event['xcoor'] = float(i**2)     # Wrong spelling
-  File "/home/falted/PyTables/pytables-0.7/src/hdf5Extension.pyx",
+  File "/home/falted/PyTables/pytables-0.8/src/hdf5Extension.pyx",
  line 1812, in hdf5Extension.Row.__setitem__
-    raise AttributeError, "Error setting \"%s\" attr.\n %s" % \
-AttributeError: Error setting "xcoor" attr.
+    raise KeyError, "Error setting \"%s\" field.\n %s" % \
+KeyError: Error setting "xcoor" field.
  Error was: "exceptions.KeyError: xcoor"
 	  </verbatim>
 
@@ -2444,7 +2485,7 @@ AttributeError: Error setting "xcoor" attr.
 	  <p>to read:</p>
 
 	  <verbatim>
-	    event.ADCcount = "s"          # Wrong type
+	    event.ADCcount = "sss"          # Wrong type
 	  </verbatim>
 
 	  <p>This modification will cause the following <verb>TypeError</verb>
@@ -2456,10 +2497,10 @@ $ python tutorial2.py
 Traceback (most recent call last):
   File "tutorial2.py", line 76, in ?
     event['ADCcount'] = "s"          # Wrong type
-  File "/home/falted/PyTables/pytables-0.7/src/hdf5Extension.pyx",
+  File "/home/falted/PyTables/pytables-0.8/src/hdf5Extension.pyx",
  line 1812, in hdf5Extension.Row.__setitem__
-    raise AttributeError, "Error setting \"%s\" attr.\n %s" % \
-AttributeError: Error setting "ADCcount" attr.
+    raise KeyError, "Error setting \"%s\" field.\n %s" % \
+KeyError: Error setting "ADCcount" field.
  Error was: "exceptions.TypeError: NA_setFromPythonScalar: bad value type."
 	  </verbatim>
 
@@ -2721,9 +2762,9 @@ AttributeError: Error setting "ADCcount" attr.
 	<p>This class is returned when a <verb>PyTables</verb> file is
 	  opened with the <verb>openFile</verb> function. It has
 	  methods to flush and close files. Also, the
-	  <verb>File</verb> class offer methods to create, rename and
-	  delete nodes, as well as to traverse the object tree. One
-	  of its attributes (<verb>rootUEP</verb>) represents the
+	  <verb>File</verb> class offers methods to create, rename and
+	  delete nodes, as well as to traverse the object tree. One of
+	  its attributes (<verb>rootUEP</verb>) represents the
 	  <em>user entry point</em> to the object tree attached to the
 	  file.
 	</p>
@@ -3005,10 +3046,9 @@ AttributeError: Error setting "ADCcount" attr.
 		<verb>CharArrays</verb> string arrays). However, these
 		objects must be regular (i.e. they cannot be like, for
 		example, <verb>[[1,2],2]</verb>). Also, objects that
-		has some of its dimensions equal to zero are not
-		supported (use <ref
-		refid="createEArrayDescr"><verb>EArray</verb></ref>
-		objects if you want this).
+		has some of its dimension equal to zero are not
+		supported (this will be solved when unlimited arrays
+		will be implemented).
 	      </item>
 	    </description>
 	    <p>See <ref
@@ -3695,7 +3735,7 @@ AttributeError: Error setting "ADCcount" attr.
 	  now, the set of end-nodes is composed by <verb>Table</verb>,
 	  <verb>Array</verb>, <verb>EArray</verb>,
 	  <verb>VLArray</verb> and <verb>UnImplemented</verb> class
-	  instances. In fact, all the previous classes inherits from
+	  instances. In fact, all the previous classes inherit from
 	  the <verb>Leaf</verb> class.
 	</p>
 
@@ -4155,13 +4195,13 @@ fileh.close()
 	    are the field names of the associated table and the values
 	    are the values of those fields in a specific row.
 	  </p>
-	  <p>This object turns out to actually be an extension type, so
-	    you won't be able to access their documentation
-	    interactively. Neither you won't be able to access it's
+	  <p>This object turns out to actually be an extension type,
+	    so you won't be able to access its documentation
+	    interactively. Neither you won't be able to access its
 	    internal attributes (they are not directly accessible from
-	    Python), although that <em>accessors</em> (i.e. methods that
-	    return an internal attribute) has been defined for the most
-	    important variables.
+	    Python), although that <em>accessors</em> (i.e. methods
+	    that return an internal attribute) have been defined for
+	    the most important variables.
 	  </p>
 
 	  <subsubsection>
@@ -4171,13 +4211,15 @@ fileh.close()
 	    <description>
 
 	      <term id="appendRowDescr">append()</term> <item>Once you
-		have filled the proper fields for the current row, calling
-		this method actually commit this data to the disk
-		(actually data is written to the output buffer).</item>
+		have filled the proper fields for the current row,
+		calling this method actually commit these data to the
+		disk (actually data are written to the output
+		buffer).</item>
 
-	      <term>nrow()</term> <item>Accessor that returns the current
-		row in the table. It is useful to know which row is being
-		dealt with in the middle of a loop.</item>
+	      <term>nrow()</term> <item>Accessor that returns the
+		current row number in the table. It is useful to know
+		which row is being dealt with in the middle of a
+		loop.</item>
 	    </description>
 	  </subsubsection>
 	</subsection> <!-- Row -->
@@ -6733,9 +6775,9 @@ $ ptdump -h
 usage: ptdump [-R start,stop,step] [-a] [-h] [-d] [-v] file[:nodepath]
   -R select a range of rows in the form "start,stop,step"
   -a show attributes in nodes (only useful when -v or -d are active as well)
-  -d dump data information on leaves
-  -h print help on usage
-  -v dump more metainformation on nodes
+  -d dump data information onb leaves
+  -h prints help on usage
+  -v means dumping more metainformation on nodes
 	      </verbatim>
 	    </p>
 
@@ -6891,9 +6933,9 @@ $ ptrepack -h
 	      to see the message usage:
 
 	      <verbatim>
-usage: ptrepack [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] 
+usage: ptrepack [-h] [-v] [-o] [-R range] [--non-recursive] 
  [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes]
- [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)]
+ [--complevel=(0-9)] [-complib=lib] [--shuffle=(0|1)]
  [--fletcher32=(0|1)] [--keep-source-filters] 
  sourcefile:sourcegroup destfile:destgroup
  -h -- Print usage message.
@@ -6926,9 +6968,9 @@ usage: ptrepack [-h] [-v] [-o] [-R start,stop,step] [--non-recursive]
 	    </heading>
 
 	    <p>Imagine that we have ended the tutorial 1 (see the
-	      output of <verb>examples/tutorial1-1.py</verb>), and we
+	      output of <verb>examples/tutorial1-1.py</verb>, and we
 	      want to copy our reduced data (i.e. those datasets that
-	      hangs from the <verb>/column</verb> group) to another
+	      hangs from the <verb>/column</verb> group to another
 	      file. First, let's remember the content of the
 	      <verb>examples/tutorial1.h5</verb>:
 
@@ -6983,7 +7025,7 @@ Filename: 'reduced.h5' Title: '' , Last modif.: 'Fri Feb 20 15:39:15 2004' ,
 /columns/name (Array(3,)) 'Name column selection'
 /columns/pressure (Array(3,)) 'Pressure column selection'
 	      </verbatim>
-	      Ok. Much better. But you want to get rid of the existing
+	      Ok. much better. But you want to get rid of the existing
 	      nodes on the new file. You can achieve this by adding
 	      the -o flag:
 

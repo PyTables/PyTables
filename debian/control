@@ -2,7 +2,7 @@ Source: pytables
 Section: python
 Priority: optional
 Maintainer: Francesc Alted <falted@pytables.org>
-Build-Depends: debhelper (>= 4.2.11), zlib1g-dev, liblzo-dev, libucl-dev, libhdf5-serial-dev, python2.2-dev, python2.3-dev, python2.2-numarray (>=1.0), python2.3-numarray (>= 1.0)
+Build-Depends: debhelper (>= 4.2.11), python, zlib1g-dev, liblzo-dev, libucl-dev, libhdf5-serial-dev, python2.2-dev, python2.3-dev, python2.2-numarray (>=1.0), python2.3-numarray (>= 1.0)
 Standards-Version: 3.6.1
 
 Package: python-tables

@@ -438,12 +438,12 @@ class BasicTestCase(unittest.TestCase):
                 row = Numeric.zeros(self.shape, typecode[self.type])
 
         if verbose:
+            print "Object read:\n", repr(row) #, row.info()
+            print "Should look like:\n", repr(object) #, row.info()
             if hasattr(object, "shape"):
                 print "Original object shape:", self.shape
                 print "Shape read:", row.shape
                 print "shape should look as:", object.shape
-            print "Object read:\n", repr(row) #, row.info()
-            print "Should look like:\n", repr(object) #, row.info()
 
         assert self.nappends*self.chunksize == earray.nrows
         assert allequal(row, object, self.flavor)
