@@ -3606,7 +3606,7 @@ Object Tree:
 	      HDF5 file namespace.</item>
 
 	    <term>_v_objectID</term> <item>The HDF5 object ID of the group.
-	    </term>
+	    </item>
 
 	    <term>_v_pathname</term>
 	    <item>A string representation of the group location
