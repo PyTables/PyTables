@@ -115,13 +115,17 @@ def createFile(filename, totalrows, filters, recsize):
             for i in xrange(totalrows):
                 #d['var1'] = str(random.randrange(1000000))
                 #d['var3'] = random.randrange(10000000)
-                d['var1'] = str(i)
+                #d['var1'] = str(i)
                 d['var2'] = random.randrange(totalrows)
                 #d['var3'] = 12.1e10
                 d['var3'] = totalrows-i
                 d.append()  # This is a 10% faster than table.append()
 		    
         rowswritten += totalrows
+
+        if recsize == "small":
+            # Testing with indexing
+            table._createIndex("var3", Filters(1,"zlib",shuffle=1))
 
         group._v_attrs.test2 = "just a test"
         # Create a new group
@@ -160,7 +164,9 @@ def readFile(filename, recsize, verbose):
 #                       if p['grid_j'] == 20 and p['grid_i'] < 20 ]
 #                 e = [ p['grid_i'] for p in table(step=1) 
 #                       if p['grid_j'] <= 2 ]
-                e = [ p['grid_i'] for p in table(step=1, where=("grid_i<=20"))]
+#                e = [ p['grid_i'] for p in table(step=1, where=("grid_i<=20"))]
+                e = [ p['grid_i'] for p in
+                      table(where=(table.cols.grid_i<=20))]
 #                 e = [ p['grid_i'] for p in table.iterrows() 
 #                       if p.nrow() == 20 ]
 #                 e = [ table.delrow(p.nrow()) for p in table.iterrows() 
@@ -177,8 +183,21 @@ def readFile(filename, recsize, verbose):
 #                e = [ p['var3'] for p in table(where="var3 <= 20")
 #                      if p['var2'] < 20 ]
 #               e = [ p['var3'] for p in table(where="var3 <= 20")]
-               e = [ p['var3'] for p in
-                     table(where=table.cols.var2 < 10)]
+# Cuts 1) and 2) issues the same results but 2) is about 10 times faster
+# ######## Cut 1)
+#                e = [ p.nrow() for p in
+#                      table(where=table.cols.var2 > 5)
+#                      if p["var2"] < 10]
+# ######## Cut 2)
+#                 e = [ p.nrow() for p in
+#                       table(where=table.cols.var2 < 10)
+#                       if p["var2"] > 5]
+#                e = [ (p._nrow,p["var3"]) for p in
+                e = [ p["var3"] for p in
+                      table(where=table.cols.var3 < 10)]
+#                      table(1,10,1,where=table.cols.var3 < 10)]
+                      #table
+                      #if p["var3"] <= 10]
 #               e = [ p['var3'] for p in table(where="var3 <= 20")]
 #                e = [ p['var3'] for p in
 #                      table(where=table.cols.var1 == "10")]  # More
@@ -215,6 +234,10 @@ def readFile(filename, recsize, verbose):
 def readField(filename, field, rng, verbose):
     fileh = openFile(filename, mode = "r")
     rowsread = 0
+    if rng is None:
+        rng = [0,-1,1]
+    if field == "all":
+        field = None
     for groupobj in fileh.walkGroups(fileh.root):
         row = 0
         for table in fileh.listNodes(groupobj, 'Table'):
@@ -256,7 +279,7 @@ if __name__=="__main__":
 	    -r only read test
 	    -w only write test
             -s use [big] record, [medium] or [small]
-            -f only read stated field name in tables
+            -f only read stated field name in tables ("all" means all fields)
             -c sets a compression level (do not set it or 0 for no compression)
             -S activate shuffling filter
             -F activate fletcher32 filter
@@ -354,7 +377,7 @@ if __name__=="__main__":
             psyco.bind(readFile)
             psyco.bind(readField)
             pass
-        if rng:
+        if rng or fieldName:
             (rowsr, rowsz) = readField(file, fieldName, rng, verbose)
             pass
         else:
