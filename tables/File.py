@@ -4,7 +4,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
-#       $Id: File.py,v 1.94 2004/12/24 18:16:01 falted Exp $
+#       $Id: File.py,v 1.95 2004/12/29 20:12:49 ivilata Exp $
 #
 ########################################################################
 
@@ -34,7 +34,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.94 $"
+__version__ = "$Revision: 1.95 $"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 #format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -75,7 +75,7 @@ def _checkFilters(filters, compress=None, complib=None):
     elif isinstance(filters, Filters):
         fprops = filters
     else:
-        raise ValueError, "filter parameter has to be None or a Filter instance and the passed type is: '%s'" % type(filters)
+        raise TypeError, "filter parameter has to be None or a Filter instance and the passed type is: '%s'" % type(filters)
     return fprops
 
 
