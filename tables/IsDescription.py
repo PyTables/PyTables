@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/IsDescription.py,v $
-#       $Id: IsDescription.py,v 1.36 2004/12/09 13:02:00 falted Exp $
+#       $Id: IsDescription.py,v 1.37 2004/12/17 17:43:19 ivilata Exp $
 #
 ########################################################################
 
@@ -24,7 +24,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.36 $"
+__version__ = "$Revision: 1.37 $"
 
 
 import warnings
@@ -139,7 +139,7 @@ class Col:
 #         self.__dict__.clear()
         
 class BoolCol(Col):
-    """ Define a string column """
+    """ Define a boolean column """
     
     def __init__(self, dflt=0, shape=1, pos=None, indexed=0):
 
