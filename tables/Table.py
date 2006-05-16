@@ -986,20 +986,25 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
         if condition.index is not None:
             # get the number of coords and set-up internal variables
             ncoords = condition.index.getLookupRange(condition)
-            # create buffers for indices
-            condition.index.indices._initIndexSlice(ncoords)
-            # get the coordinates that passes the selection cuts
-            coords = condition.index.getCoords(0, ncoords)
-            # Remove buffers for indices
-            condition.index.indices._destroyIndexSlice()
-            # get the remaining rows from the table
-            start = condition.index.nelements
-            remainCoords = [p.nrow for p in \
-                            self._whereInRange(condition, start, self.nrows, 1)]
-            nremain = len(remainCoords)
-            # append the new values to the existing ones
-            coords.resize(ncoords+nremain)
-            coords[ncoords:] = remainCoords
+            if ncoords > 0:
+                # get the coordinates that passes the selection cuts
+                # coords = condition.index.getCoords(0, ncoords)
+                #coords = condition.index.getCoords_sparse(ncoords)
+                # The two optimized functions are behind
+                # coords = condition.index.indices._getCoords(0, ncoords)
+                coords = condition.index.indices._getCoords_sparse(ncoords)
+            else:
+                coords = numarray.array(None, type=numarray.Int64, shape=0)
+            if condition.index._v_version >= "1.1":
+                # get the remaining rows from the table
+                start = condition.index.nelements
+                if start < self.nrows:
+                    remainCoords = [p.nrow() for p in self.whereInRange(
+                        condition, start, self.nrows)]
+                    nremain = len(remainCoords)
+                    # append the new values to the existing ones
+                    coords.resize(ncoords+nremain)
+                    coords[ncoords:] = remainCoords
         else:
             coords = [p.nrow for p in self.where(condition)]
             coords = numarray.array(coords, type=numarray.Int64)
@@ -2400,7 +2405,7 @@ class Column(object):
                 # To support negative values
                 key += table.nrows
             (start, stop, step) = processRange(table.nrows, key, key+1, 1)
-            return table.read(start, stop, step, self.pathname)[0]
+            return table._read(start, stop, step, self.pathname)[0]
         elif isinstance(key, slice):
             (start, stop, step) = processRange(table.nrows, key.start,
                                                key.stop, key.step)
