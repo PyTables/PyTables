@@ -23,7 +23,7 @@ worst=0
 Small = {
     #"_v_indexprops" : IndexProps(auto=1),
     # var1 column will be indexed if not heavy test
-    "var1" : StringCol(length=4, dflt="", indexed=1, pos=2),
+    "var1" : StringCol(length=4, dflt="Hi!", indexed=1, pos=2),
     "var2" : IntCol(0, indexed=1, pos=1),
     "var3" : FloatCol(0, indexed=1, pos=0),
     #"var4" : BoolCol(0, indexed=1),
@@ -79,7 +79,7 @@ def createNewBenchFile(bfile, verbose):
                 for atom in ["string", "int", "float"]:
                     bf.createTable(groupM, atom, Search, atom+" bench")
     bf.close()
-    
+
 def createFile(filename, nrows, filters, index, heavy, auto, noise, verbose):
 
     # Open a file in "w"rite mode
@@ -94,8 +94,8 @@ def createFile(filename, nrows, filters, index, heavy, auto, noise, verbose):
         Small["_v_indexprops"] = IndexProps(auto=0, filters=filters)
     if heavy:
         # make the string entry not indexed
-        Small["var1"] = StringCol(length=4, dflt="", indexed=0)
-        
+        Small["var1"] = StringCol(length=4, dflt="Hi!", indexed=0)
+
     # Create the test table
     table = fileh.createTable(fileh.root, 'table', Small, "test table",
                               None, nrows)
@@ -121,7 +121,10 @@ def createFile(filename, nrows, filters, index, heavy, auto, noise, verbose):
         if not heavy:
             for n in xrange(j-i):
                 var1[n] = str("%.4s" % var2[n])
-        table.append([var3, var2, var1])
+#           var1[:] = str(var2)[:4]
+        else:
+            var1[:] = "Hi !"
+        table.append([var3*var3, var2, var1])
     table.flush()
     rowswritten += nrows
     time1 = time.time()-t1
@@ -147,7 +150,7 @@ def createFile(filename, nrows, filters, index, heavy, auto, noise, verbose):
         if not auto:
             print "Time for indexing:", round(time2,3), \
                   "iKrows/s:", round(indexrows/1000./time2,3),
-	tcpu2 = time.clock()-cpu1
+        tcpu2 = time.clock()-cpu1
     else:
         indexrows = 0
         time2 = 0.0000000001  # an ugly hack
@@ -161,7 +164,7 @@ def createFile(filename, nrows, filters, index, heavy, auto, noise, verbose):
             print "NOT indexing rows"
     # Close the file
     fileh.close()
-        
+
     size2 = os.stat(filename)[6] - size1
     if not auto and index:
         print ", Index size:", round(size2/(1024.*1024.), 3), "MB"
@@ -178,7 +181,7 @@ def benchCreate(file, nrows, filters, index, bfile, heavy, auto,
         table = bf.getNode("/"+recsize+"/create_worst")
     else:
         table = bf.getNode("/"+recsize+"/create_best")
-        
+
     (rowsw, irows, rowsz, time1, time2, tcpu1, tcpu2, size1, size2) = \
           createFile(file, nrows, filters, index, heavy, auto, noise, verbose)
     # Collect data
@@ -214,7 +217,7 @@ def benchCreate(file, nrows, filters, index, bfile, heavy, auto,
     table.row["rowseci"] = rowseci
     table.row.append()
     bf.close()
-    
+
 def readFile(filename, atom, riter, indexmode, dselect, verbose):
     # Open the HDF5 file in read-only mode
 
@@ -225,13 +228,13 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
     var3 = table.cols.var3
     if indexmode == "indexed":
         if var2.index.nelements > 0:
-            where = table.whereIndexed
+            where = table._whereIndexed
         else:
             warnings.warn("Not indexed table or empty index. Defaulting to in-kernel selection")
             indexmode = "inkernel"
-            where = table.whereInRange
+            where = table._whereInRange
     elif indexmode == "inkernel":
-        where = table.whereInRange
+        where = table._whereInRange
     if verbose:
         print "Max rows in buf:", table._v_maxTuples
         print "Rows in", table._v_pathname, ":", table.nrows
@@ -247,6 +250,9 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
     tcpu2 = 0.
     results = []
     print "Select mode:", indexmode, ". Selecting for type:", atom
+    # The interval for look values at. This is aproximately equivalent to
+    # the number of elements to select
+    chunksize = 1000  # Change here for selecting more or less entries
     # Initialize the random generator always with the same integer
     # in order to have reproductible results on each read iteration
     random.seed(19)
@@ -257,18 +263,18 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
         t1 = time.time()
         if atom == "string":
             if indexmode in ["indexed", "inkernel"]:
-                results = [p.nrow()
+                results = [p.nrow
                            # for p in where("1000" <= var1 <= "1010")]
                            #for p in where(var1 == "1111")]
                            for p in where(var1 == str(rnd)[-4:])]
             else:
-                results = [p.nrow() for p in table
+                results = [p.nrow for p in table
                            # if "1000" <= p["var1"] <= "1010"]
                            #if p["var1"] == "1111"]
                            if p["var1"] == str(rnd)[-4:]]
         elif atom == "int":
             if indexmode in ["indexed", "inkernel"]:
-                results = [p.nrow()
+                results = [p.nrow
                            # for p in where(2+i<= var2 < 10+i)]
                            # for p in where(2<= var2 < 10)]
                            # for p in where(110*i <= var2 < 110*(i+1))]
@@ -277,7 +283,7 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
                            #for p in where(rnd <= var2 < rnd+3)]
                            for p in where(rnd <= var2 < rnd+dselect)]
             else:
-                results = [p.nrow() for p in table
+                results = [p.nrow for p in table
                            # if p["var2"] < 10+i]
                            # if 2 <= p["var2"] < 10)]
                            # if 110*i <= p["var2"] < 110*(i+1)]
@@ -287,18 +293,19 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
                            if rnd <= p["var2"] < rnd+dselect]
         elif atom == "float":
             if indexmode in ["indexed", "inkernel"]:
-                #results = table.readIndexed(rnd <= var3 < rnd+dselect)
-                results = [p.nrow() for p in where(rnd <= var3 < rnd+dselect)]
-#                 results = [p.nrow()
-#                            # for p in where(var3 < 5.)]
-#                            #for p in where(3. <= var3 < 5.)]
-#                            #for p in where(float(rnd) <= var3 < float(rnd+3))]
-#                            #for p in where(rnd <= var3 < rnd+3)]
-#                            for p in where(rnd <= var3 < rnd+dselect)]
-#                            # for p in where(1000.-i <= var3 < 1000.+i)]
-#                            # for p in where(100*i <= var3 < 100*(i+1))]
+                t1=time.time()
+                results = [p.nrow
+                           # for p in where(var3 < 5.)]
+                           #for p in where(3. <= var3 < 5.)]
+                           #for p in where(float(rnd) <= var3 < float(rnd+3))]
+                           #for p in where(rnd <= var3 < rnd+3)]
+                           for p in where(rnd <= var3 < rnd+chunksize)]
+                           # for p in where(1000.-i <= var3 < 1000.+i)]
+                           # for p in where(100*i <= var3 < 100*(i+1))]
+                #print "time for complete selection-->", time.time()-t1
+                #print "results-->", results, rnd
             else:
-                results = [p.nrow() for p in table
+                results = [p.nrow for p in table
                            # if p["var3"] < 5.]
                            #if 3. <= p["var3"] < 5.]
                            #if float(rnd) <= p["var3"] < float(rnd+3)]
@@ -323,7 +330,7 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
             else:
                 time2 += time.time() - t1
                 tcpu2 += time.clock() - cpu1
-                        
+
     if riter > 1:
         if indexmode == "indexed" and riter >= 5:
             correction = 5
@@ -337,8 +344,8 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
 
     #rowsread = table.nrows * riter
     rowsread = table.nrows
-    rowsize = table.rowsize 
-        
+    rowsize = table.rowsize
+
     # Close the file
     fileh.close()
 
@@ -353,7 +360,7 @@ def benchSearch(file, riter, indexmode, bfile, heavy, psyco, dselect, verbose):
         tableparent = "/"+recsize+"/search_worst/"+indexmode+"/"
     else:
         tableparent = "/"+recsize+"/search_best/"+indexmode+"/"
-        
+
     # Do the benchmarks
     if not heavy:
         #atomlist = ["string", "int", "float", "bool"]
@@ -417,18 +424,18 @@ if __name__=="__main__":
         psyco_imported = 1
     except:
         psyco_imported = 0
-    
+
     import time
-    
+
     usage = """usage: %s [-v] [-p] [-R] [-a] [-r] [-w] [-c level] [-l complib] [-S] [-F] [-n nrows] [-x] [-b file] [-t] [-h] [-k riter] [-m indexmode] [-N range] [-d range] datafile
             -v verbose
-	    -p use "psyco" if available
+            -p use "psyco" if available
             -R use Random values for filling
             -a automatic indexing (default is separate indexing)
-	    -r only read test
-	    -w only write test
+            -r only read test
+            -w only write test
             -c sets a compression level (do not set it or 0 for no compression)
-            -l sets the compression library ("zlib", "lzo", "ucl" or "none")
+            -l sets the compression library ("zlib", "lzo", "ucl", "bzip2" or "none")
             -S activate shuffling filter
             -F activate fletcher32 filter
             -n set the number of rows in tables (in krows)
@@ -448,7 +455,7 @@ if __name__=="__main__":
         sys.exit(0)
 
     # if we pass too much parameters, abort
-    if len(pargs) <> 1: 
+    if len(pargs) <> 1:
         sys.stderr.write(usage)
         sys.exit(0)
 
@@ -523,7 +530,7 @@ if __name__=="__main__":
         # This means no compression at all
         complib="zlib"  # just to make PyTables not complaining
         complevel=0
-        
+
     # Catch the hdf5 file passed as the last argument
     file = pargs[0]
 

@@ -3,5 +3,6 @@ typedef enum
   Table,
   Array,
   EArray,
-  VLArray
+  VLArray,
+  CArray
 } TablesType;

@@ -13,7 +13,7 @@ class Small(IsDescription):
     values will become their types. The IsDescription class will take care
     the user will not add any new variables and that its type is
     correct."""
-    
+
     var1 = defineType("CharType", 4, "")
     var2 = defineType("Int32", 1, 0)
     var3 = defineType("Float64", 1, 0)
@@ -44,7 +44,7 @@ class Big(IsDescription):
     energy      = defineType("Float64", 1, 0)    # double (double-precision)
 
 def createFile(filename, totalrows, recsize):
-    
+
     # Open a 'n'ew file
     fileh = shelve.open(filename, flag = "n")
 
@@ -63,15 +63,15 @@ def createFile(filename, totalrows, recsize):
     for j in range(3):
         # Create a table
         #table = fileh.createTable(group, 'tuple'+str(j), Record(), title,
-	#                          compress = 6, expectedrows = totalrows)
-	# Create a Table instance
-	tablename = 'tuple'+str(j)
-	table = []
+        #                          compress = 6, expectedrows = totalrows)
+        # Create a Table instance
+        tablename = 'tuple'+str(j)
+        table = []
         # Fill the table
         if recsize == "big" or recsize == "medium":
             for i in xrange(totalrows):
                 d.name  = 'Particle: %6d' % (i)
-                #d.TDCcount = i % 256    
+                #d.TDCcount = i % 256
                 d.ADCcount = (i * 256) % (1 << 16)
                 if recsize == "big":
                     #d.float1 = NA.array([i]*32, NA.Float64)
@@ -85,7 +85,7 @@ def createFile(filename, totalrows, recsize):
                     d.float1 = NA.array([i**2]*2, NA.Float64)
                     #d.float1 = float(i)
                     #d.float2 = float(i)
-                d.grid_i = i 
+                d.grid_i = i
                 d.grid_j = 10 - i
                 d.pressure = float(i*i)
                 d.energy = float(d.pressure ** 4)
@@ -101,11 +101,11 @@ def createFile(filename, totalrows, recsize):
                 d.var3 = 12.1e10
                 table.append((d.var1, d.var2, d.var3))
 
-	# Save this table on disk
-	fileh[tablename] = table
+        # Save this table on disk
+        fileh[tablename] = table
         rowswritten += totalrows
 
-                
+
     # Close the file
     fileh.close()
     return (rowswritten, struct.calcsize(d._v_fmt))
@@ -122,8 +122,8 @@ def readFile(filename, recsize):
             e = [ t[1] for t in fileh[table] if t[1] < 20 ]
 
         print "resulting selection list ==>", e
-	print "Total selected records ==> ", len(e)
-        
+        print "Total selected records ==> ", len(e)
+
     # Close the file (eventually destroy the extended type)
     fileh.close()
 
@@ -145,7 +145,7 @@ if __name__=="__main__":
         sys.exit(0)
 
     # if we pass too much parameters, abort
-    if len(pargs) <> 1: 
+    if len(pargs) <> 1:
         sys.stderr.write(usage)
         sys.exit(0)
 
@@ -171,7 +171,7 @@ if __name__=="__main__":
     (rowsw, rowsz) = createFile(file, iterations, recsize)
     t2 = time.clock()
     tapprows = round(t2-t1, 3)
-    
+
     t1 = time.clock()
     psyco.bind(readFile)
     readFile(file, recsize)
@@ -185,4 +185,3 @@ if __name__=="__main__":
     print "Time reading rows:", treadrows
     print "Read rows/sec: ", int(iterations * 3/ float(treadrows))
     print "Read KB/s :", int(rowsw * rowsz / (treadrows * 1024))
-    

@@ -1,0 +1,130 @@
+===========================
+ Announcing PyTables @VERSION@
+===========================
+
+This is a new major release of PyTables. Blurb, blurb, blurb...
+
+Go to the (new) PyTables web site for downloading the beast:
+http://www.pytables.org/
+
+or keep reading for more info about the new features and bugs fixed.
+
+
+Changes more in depth
+=====================
+
+Improvements:
+
+- Table buffers code refactored: now each Row read iterator has its own
+  buffers, completely independent of their table. Table only have now
+  its own buffer for writing. This separation makes the logic of
+  buffering much more clear and less prone to errors. Tests has been
+  carried out, and performance and memory consumption are more or less
+  equal than before.
+
+Bug fixes:
+
+
+Deprecated features:
+
+
+Backward-incompatible changes:
+
+- Please, see ``RELEASE-NOTES.txt`` file.
+
+
+Important note for Windows users
+================================
+
+If you are willing to use PyTables with Python 2.4 in Windows platforms,
+you will need to get the HDF5 library compiled for MSVC 7.1, aka .NET
+2003.  It can be found at:
+ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current/bin/windows/5-165-win-net.ZIP
+
+Users of Python 2.3 on Windows will have to download the version of HDF5
+compiled with MSVC 6.0 available in:
+ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current/bin/windows/5-165-win.ZIP
+
+
+What it is
+==========
+
+**PyTables** is a package for managing hierarchical datasets and
+designed to efficiently cope with extremely large amounts of data (with
+support for full 64-bit file addressing).  It features an
+object-oriented interface that, combined with C extensions for the
+performance-critical parts of the code, makes it a very easy-to-use tool
+for high performance data storage and retrieval.
+
+PyTables runs on top of the HDF5 library and numarray (but NumPy and
+Numeric are also supported) package for achieving maximum throughput and
+convenient use.
+
+Besides, PyTables I/O for table objects is buffered, implemented in C
+and carefully tuned so that you can reach much better performance with
+PyTables than with your own home-grown wrappings to the HDF5 library.
+PyTables sports indexing capabilities as well, allowing doing selections
+in tables exceeding one billion of rows in just seconds.
+
+
+Platforms
+=========
+
+This version has been extensively checked on quite a few platforms, like
+Linux on Intel32 (Pentium), Win on Intel32 (Pentium), Linux on Intel64
+(Itanium2), FreeBSD on AMD64 (Opteron), Linux on PowerPC (and PowerPC64)
+and MacOSX on PowerPC.  For other platforms, chances are that the code
+can be easily compiled and run without further issues.  Please, contact
+us in case you are experiencing problems.
+
+
+Resources
+=========
+
+Go to the PyTables web site for more details:
+
+http://www.pytables.org
+
+About the HDF5 library:
+
+http://hdf.ncsa.uiuc.edu/HDF5/
+
+About numarray:
+
+http://www.stsci.edu/resources/software_hardware/numarray
+
+To know more about the company behind the PyTables development, see:
+
+http://www.carabos.com/
+
+
+Acknowledgments
+===============
+
+Thanks to various the users who provided feature improvements, patches,
+bug reports, support and suggestions.  See the ``THANKS`` file in the
+distribution package for a (incomplete) list of contributors.  Many
+thanks also to SourceForge who have helped to make and distribute this
+package!  And last but not least, a big thank you to THG
+(http://www.hdfgroup.org/) for sponsoring many of the new features
+recently introduced in PyTables.
+
+
+Share your experience
+=====================
+
+Let us know of any bugs, suggestions, gripes, kudos, etc. you may
+have.
+
+
+----
+
+  **Enjoy data!**
+
+  -- The PyTables Team
+
+.. Local Variables:
+.. mode: text
+.. coding: utf-8
+.. fill-column: 72
+.. End:

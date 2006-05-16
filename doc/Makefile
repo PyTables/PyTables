@@ -13,11 +13,12 @@ clean:
 	(cd $(SRCDIR) && make clean)
 
 
-usersguide.pdf:
+usersguide.pdf: $(SRCDIR)/usersguide.xml
 	(cd $(SRCDIR) && make usersguide.pdf)
 	cp  $(SRCDIR)/usersguide.pdf  .
 
-usersguide.html:
+usersguide.html: $(SRCDIR)/usersguide.xml
 	mkdir -p $(HTMLDIR)
 	(cd $(SRCDIR) && make usersguide.html)
-	cp  $(SRCDIR)/usersguide*.html $(SRCDIR)/*.{jpg,png,css}  $(HTMLDIR)
+	cp  $(SRCDIR)/*.html $(HTMLDIR)
+	ln  $(SRCDIR)/*.png $(HTMLDIR)

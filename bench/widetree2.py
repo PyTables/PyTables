@@ -9,7 +9,7 @@ from tables import *
 
 verbose = 0
 
-class Test(IsDescription): 
+class Test(IsDescription):
     ngroup = IntCol(pos=1)
     ntable = IntCol(pos=2)
     nrow = IntCol(pos=3)
@@ -20,12 +20,12 @@ class WideTreeTestCase(unittest.TestCase):
 
         import time
         # Open a new empty HDF5 file
-	filename = "test_widetree.h5"
-	ngroups = 10
-	ntables = 300
-	nrows = 10
-	complevel = 0
-	complib = "lzo"
+        filename = "test_widetree.h5"
+        ngroups = 10
+        ntables = 300
+        nrows = 10
+        complevel = 0
+        complib = "lzo"
 
         print "Writing..."
         # Open a file in "w"rite mode
@@ -105,7 +105,7 @@ class WideTreeTestCase(unittest.TestCase):
             fileh.close()
 
 
-        
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -117,4 +117,3 @@ def suite():
 
 if __name__ == '__main__':
     unittest.main(defaultTest='suite')
-    

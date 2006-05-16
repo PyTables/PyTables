@@ -11,7 +11,7 @@ from numarray import *
 from tables import *
 
 
-	#'-**-**-**-**-**-**- user record definition  -**-**-**-**-**-**-**-'
+        #'-**-**-**-**-**-**- user record definition  -**-**-**-**-**-**-**-'
 
 # Define a user record to characterize some kind of particles
 class Particle(IsDescription):
@@ -25,18 +25,18 @@ class Particle(IsDescription):
     energy    = FloatCol()      # double (double-precision)
 
 print
-print	'-**-**-**-**-**-**- file creation  -**-**-**-**-**-**-**-'
+print   '-**-**-**-**-**-**- file creation  -**-**-**-**-**-**-**-'
 
 # The name of our HDF5 filename
 filename = "tutorial1.h5"
-    
+
 print "Creating file:", filename
 
 # Open a file in "w"rite mode
 h5file = openFile(filename, mode = "w", title = "Test file")
 
 print
-print	'-**-**-**-**-**-**- group an table creation  -**-**-**-**-**-**-**-'
+print   '-**-**-**-**-**- group and table creation  -**-**-**-**-**-**-**-'
 
 # Create a new group under "/" (root)
 group = h5file.createGroup("/", 'detector', 'Detector information')
@@ -52,9 +52,9 @@ particle = table.row
 # Fill the table with 10 particles
 for i in xrange(10):
     particle['name']  = 'Particle: %6d' % (i)
-    particle['TDCcount'] = i % 256    
+    particle['TDCcount'] = i % 256
     particle['ADCcount'] = (i * 256) % (1 << 16)
-    particle['grid_i'] = i 
+    particle['grid_i'] = i
     particle['grid_j'] = 10 - i
     particle['pressure'] = float(i*i)
     particle['energy'] = float(particle['pressure'] ** 4)
@@ -66,7 +66,7 @@ for i in xrange(10):
 table.flush()
 
 print
-print	'-**-**-**-**-**-**- table data reading & selection  -**-**-**-**-**-'
+print   '-**-**-**-**-**-**- table data reading & selection  -**-**-**-**-**-'
 
 # Read actual data from table. We are interested in collecting pressure values
 # on entries where TDCcount field is greater than 3 and pressure less than 50
@@ -81,13 +81,13 @@ names = [ x['name'] for x in table
           if x['TDCcount'] > 3 and 20 <= x['pressure'] < 50 ]
 
 print
-print	'-**-**-**-**-**-**- array object creation  -**-**-**-**-**-**-**-'
+print   '-**-**-**-**-**-**- array object creation  -**-**-**-**-**-**-**-'
 
 print "Creating a new group called '/columns' to hold new arrays"
 gcolumns = h5file.createGroup(h5file.root, "columns", "Pressure and Name")
 
 print "Creating an array called 'pressure' under '/columns' group"
-h5file.createArray(gcolumns, 'pressure', array(pressure), 
+h5file.createArray(gcolumns, 'pressure', array(pressure),
                    "Pressure column selection")
 
 print "Creating another array called 'name' under '/columns' group"
@@ -96,4 +96,3 @@ h5file.createArray('/columns', 'name', names, "Name column selection")
 # Close the file
 h5file.close()
 print "File '"+filename+"' created"
-

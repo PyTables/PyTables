@@ -1,3 +1,12 @@
+pytables (1.1-1) unstable; urgency=low
+
+   * New upstream release. Introduced nested types, enumerated types,
+     native multidimensional attributes and a new CArray object.
+     (Closes: #309018, #308795)
+   * Drop python2.2 packages.
+
+ -- Francesc Altet <faltet@carabos.com>  Fri, 15 Jul 2005 19:21:05 +0200
+
 pytables (0.9.1-2) unstable; urgency=high
 
    * Recompiling with libucl1 instead of ucl0 (Closes: #288464)

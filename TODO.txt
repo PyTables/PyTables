@@ -1,12 +1,29 @@
-TODO list (as of 25th, January 2005):
+TODO list (as of 18th, January 2006):
 
-- Add the capability to search in multiple (eventually indexed) columns.
+- Add a tutorial for describing the extended slice support in deep.
 
 - Add a new class (say RowMod) that would be returned by
   Table.iterrows() and would allow to do things like this:
 
 for row in mytable.iterrows():
     row['x'] = row['x'] + 0.5
+
+- Add the possibility to named axes in *Array objects, so that the
+  next can be made:
+
+pressure = [[1, 1.25 , 1.78 , 1.4],
+            [3.1 , 2.4 , 1.89 , 8.2],
+            [4.5 , 7.9 , 4.63 , 1],
+            [1.2 , 3.7 , 4.26 , 6]]
+pressure.axis.longitude=[0.1, 0.2, 0.3, 0.4]
+pressure.axir.latitude=[0.25, 0.35, 0.45, 0.55]
+
+so the next question:
+
+pressure.where(pressure.axis.longitude == 0.2 and
+               pressure.axis.latitude == 0.45 )
+
+should give: 7.9 as answer.
 
 - Add a new type of table that allows variable length records and
   fully multidimensional slice selections.

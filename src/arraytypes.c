@@ -1,11 +1,10 @@
 #include "arraytypes.h"
 #include "utils.h"
 
-/* Get the correct HDF5 type for a format code.
- * I can't manage to do the mapping with a table because
- * the HDF5 types are not constant values and are
- * defined by executing a function. 
- * So we do that in a switch case. */
+/* Get the correct HDF5 type for a format code.  I can't manage to do
+ * the mapping with a table because the HDF5 types are not constant
+ * values and are defined by executing a function.  So we do that in a
+ * switch case. */
 
 hid_t
   convArrayType(fmt, size, byteorder)
@@ -14,7 +13,7 @@ hid_t
     char *byteorder;
 {
    hid_t type_id;
-   
+
    switch(fmt) {
     /* I have this "a" map until a enum NumarrayType is assigned to it!
        */
@@ -26,7 +25,7 @@ hid_t
        */
       type_id = H5Tcopy(H5T_C_S1);
       H5Tset_size(type_id, size);
-      
+
       return type_id;
     /* The next two maps are for time datatypes. */
     case 't':
@@ -100,10 +99,10 @@ hid_t
 }
 
 
-/* Routine to map the atomic type to a Numeric typecode 
+/* Routine to map the atomic type to a Numeric typecode
  */
 size_t getArrayType(hid_t type_id,
-		    int *fmt) 
+		    int *fmt)
 {
   H5T_class_t class_id;
   size_t type_size;
@@ -116,7 +115,7 @@ size_t getArrayType(hid_t type_id,
 /*   type_precision = H5Tget_precision( type_id ); */
   if ( (class_id == H5T_INTEGER) ) /* Only class integer can be signed */
     sign = H5Tget_sign( type_id );
-  else 
+  else
     sign = -1;		/* Means no sign */
 
   switch(class_id) {
@@ -202,6 +201,9 @@ size_t getArrayType(hid_t type_id,
       goto out;
     }
     break; /* case H5T_TIME */
+  case H5T_ENUM:                    /* enumerated type */
+    *fmt = (int)('e');              /* will get type from enum description */
+    break; /* case H5T_ENUM */
   default: /* Any other class type */
     /* This should never happen with Numeric arrays */
     fprintf(stderr, "class %d not supported. Sorry!\n", class_id);
@@ -213,14 +215,14 @@ size_t getArrayType(hid_t type_id,
  out:
   /* If we reach this line, there should be an error */
   return -1;
-  
+
 }
 
 #ifdef MAIN
 int main(int args, char *argv[])
 {
    char  fmt;
-     
+
    printf("args # --> %d\n", args);
    printf("arg 0 --> %s\n", argv[0]);
    printf("arg 1 --> %s\n", argv[1]);

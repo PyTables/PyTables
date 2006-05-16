@@ -1,18 +1,21 @@
-include *.txt
 include MANIFEST.in
-include setup.py
-include setup-pyrex.py
-include setup-devel.py
-include setup.cfg
+include *.txt THANKS
+include ANNOUNCE.txt.in RELEASE-NOTES.txt.in
+include setup.py setup.cfg VERSION Makefile
 
+recursive-include LICENSES *
 recursive-include tables *.py
-recursive-include doc *.html *.pdf *.css *.gif *.jpg *.txt
-recursive-include src *.pyx *.c *.h
-recursive-include test *.py
-recursive-include examples *.py
-recursive-include bench *.py
+recursive-include tables/tests *.py *.h5 *.dat *.xbm
+recursive-include utils *
+recursive-include doc *.html *.pdf *.css *.gif *.jpg *.txt Makefile
+recursive-include doc/scripts *.py
+recursive-exclude doc/xml *
+recursive-include src *.pyx *.pxd *.c *.h *.h.in Makefile
+recursive-include examples *.py *.sh
+recursive-include bench *.sh *.py *.h5 *.txt *.gnuplot
+recursive-include contrib README *.py
+recursive-include debian *
 
 prune old
-prune test/*.h5
 prune examples/*.h5
 

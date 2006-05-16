@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 
 import sys
 
@@ -24,7 +24,7 @@ filename = "gl-test.h5"
 #          Python name    Persistent name
 trMap = {"detector":       "for",  # A reserved word
          "recarray2":      " 11 ",}   # A non-valid python variable name
-    
+
 # Open a file in "w"rite mode
 h5file = openFile(filename, mode = "w", trMap=trMap)
 
@@ -53,7 +53,7 @@ h5file.createArray('/columns', 'TDC', TDC, "TDCcount column")
 names = [ "Name: 1", "Name: 2", "Name: 3", "Name: 4", "Name: 5" ]
 h5file.createArray('/columns', 'name', names, "Name column")
 # This works even with homogeneous tuples or lists
-print "gcolumns.name shape ==>", gcolumns.name.shape 
+print "gcolumns.name shape ==>", gcolumns.name.shape
 print "gcolumns.name type ==> ", gcolumns.name.type
 
 # A few table examples that may be useful
@@ -117,7 +117,7 @@ print h5file
 print "Arrays in file:"
 for group in h5file.walkGroups("/"):
     for array in h5file.listNodes(group, classname = 'Array'):
-	print array
+        print array
 print
 
 # Get group /detector and print some info on it
@@ -145,11 +145,11 @@ print
 
 # Get "/detector" Group object
 group = h5file.getNode(h5file.root, "detector", classname = 'Group')
-print "/detector ==>", group 
+print "/detector ==>", group
 
 # Get "/detector/recarray0
 table = h5file.getNode("/detector/recarray0", classname = 'Table')
-print "/detector/table ==>", table 
+print "/detector/table ==>", table
 
 
 # Get metadata from table
@@ -159,7 +159,7 @@ print "Table title:", table.title
 print "Rows saved on table: %d" % (table.nrows)
 
 # Print table metainfo on object and columns
-print repr(table)    
+print repr(table)
 
 # Read arrays in /columns/names and /columns/pressure
 

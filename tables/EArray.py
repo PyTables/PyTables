@@ -4,7 +4,6 @@
 #       Created: December 15, 2003
 #       Author:  Francesc Altet - faltet@carabos.com
 #
-#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/EArray.py,v $
 #       $Id$
 #
 ########################################################################
@@ -32,30 +31,30 @@ import sys
 import numarray
 import numarray.records as records
 
-from tables.utils import convertIntoNA, processRangeRead
-from tables.Atom import Atom
+from tables.constants import EXPECTED_ROWS_EARRAY, CHUNKTIMES
+from tables.utils import convertToNA, processRangeRead
+from tables.Atom import Atom, EnumAtom
 from tables.Array import Array
 
 
-
-__version__ = "$Revision: 1.25 $"
+__version__ = "$Revision$"
 
 
 # default version for EARRAY objects
 #obversion = "1.0"    # initial version
 #obversion = "1.1"    # support for complex datatypes
-obversion = "1.2"    # This adds support for time datatypes.
+#obversion = "1.2"    # This adds support for time datatypes.
+obversion = "1.3"    # This adds support for enumerated datatypes.
 
 
 
 class EArray(Array):
     """Represent an homogeneous dataset in HDF5 file.
 
-    It enables to create new datasets on-disk from Numeric and
+    It enables to create new datasets on-disk from NumPy, Numeric and
     numarray packages, or open existing ones.
 
-    All Numeric and numarray typecodes are supported except for complex
-    datatypes.
+    All NumPy, Numeric and numarray typecodes are supported.
 
     Methods:
 
@@ -64,8 +63,8 @@ class EArray(Array):
         iterrows(start, stop, step)
 
       Specific of EArray:
-        append(object)
-        
+        append(sequence)
+
     Instance variables:
 
       Common to all Array's:
@@ -78,10 +77,10 @@ class EArray(Array):
             dealed with.
 
       Specific of EArray:
-      
+
         extdim -- The enlargeable dimension.
         nrows -- The value of the enlargeable dimension.
-            
+
 
     """
 
@@ -96,8 +95,18 @@ class EArray(Array):
     # </undo-redo support>
 
 
-    def __init__(self, atom = None, title = "",
-                 filters = None, expectedrows = 1000):
+    # <properties>
+    def _g_getrowsize(self):
+        return self.atom.atomsize()
+
+    rowsize = property(_g_getrowsize, None, None,
+                       "The size in bytes of each row in the array.")
+    # </properties>
+
+    def __init__(self, parentNode, name,
+                 atom=None, title="",
+                 filters=None, expectedrows=EXPECTED_ROWS_EARRAY,
+                 log=True):
         """Create EArray instance.
 
         Keyword arguments:
@@ -106,7 +115,7 @@ class EArray(Array):
             of the atomic objects to be saved. One of the shape
             dimensions must be 0. The dimension being 0 means that the
             resulting EArray object can be extended along it.
-        
+
         title -- Sets a TITLE attribute on the array entity.
 
         filters -- An instance of the Filters class that provides
@@ -116,73 +125,106 @@ class EArray(Array):
         expectedrows -- In the case of enlargeable arrays this
             represents an user estimate about the number of row
             elements that will be added to the growable dimension in
-            the EArray object. If not provided, the default value is
-            1000 rows. If you plan to create both much smaller or much
-            bigger EArrays try providing a guess; this will optimize
-            the HDF5 B-Tree creation and management process time and
-            the amount of memory used.
+            the EArray object. If you plan to create both much smaller
+            or much bigger EArrays try providing a guess; this will
+            optimize the HDF5 B-Tree creation and management process
+            time and the amount of memory used.
 
         """
+
+        # `Array` has some attributes that are lacking from `EArray`,
+        # so the constructor of the former can not be used
+        # and attributes must be defined all over again. :(
+
+        self._v_version = None
+        """The object version of this array."""
+
+        self._v_new = new = atom is not None
+        """Is this the first time the node has been created?"""
         self._v_new_title = title
-        self._v_new_filters = filters
+        """New title for this node."""
+
         self._v_expectedrows = expectedrows
-        # Check if we have to create a new object or read their contents
-        # from disk
-        if atom is not None:
-            self._v_new = 1
-            self.atom = atom
-        else:
-            self._v_new = 0
-            
-    def _calcBufferSize(self, atom, extdim, expectedrows, compress):
-        """Calculate the buffer size and the HDF5 chunk size.
-
-        The logic to do that is based purely in experiments playing
-        with different buffer sizes, chunksize and compression
-        flag. It is obvious that using big buffers optimize the I/O
-        speed. This might (should) be further optimized doing more
-        experiments.
-
+        """The expected number of rows to be stored in the array."""
+        self.byteorder = None
         """
+        The endianness of data in memory ('big', 'little' or
+        'non-relevant').
+        """
+        self._v_maxTuples = None
+        """The maximum number of rows that are read on each chunk iterator."""
+        self._v_chunksize = None
+        """The HDF5 chunk size for ``EArray`` objects."""
+        self._v_convert = True
+        """Whether the *Array objects has to be converted or not."""
+        self.shape = None
+        """The shape of the stored array."""
+        self._enum = None
+        """The enumerated type containing the values in this array."""
 
+        # Miscellaneous iteration rubbish.
+        self.nrow = None
+        """On iterators, this is the index of the current row."""
+        self._start = None
+        """Starting row for the current iteration."""
+        self._stop = None
+        """Stopping row for the current iteration."""
+        self._step = None
+        """Step size for the current iteration."""
+        self._nrowsread = None
+        """Number of rows read up to the current state of iteration."""
+        self._startb = None
+        """Starting row for current buffer."""
+        self._stopb = None
+        """Stopping row for current buffer. """
+        self._row = None
+        """Current row in iterators (sentinel)."""
+        self._init = False
+        """Whether we are in the middle of an iteration or not (sentinel)."""
+        self.listarr = None
+        """Current buffer in iterators."""
+
+        self.flavor = None
+        """
+        The object representation of this array.  It can be any of
+        'numarray', 'numpy', 'numeric' or 'python'.
+        """
+        self.type = None
+        """The type class of the represented array."""
+        self.stype = None
+        """The string type of the represented array."""
+        self.itemsize = None
+        """The size of the base items."""
+
+        # Documented (*public*) attributes.
+        self.atom = atom
+        """
+        An `Atom` instance representing the shape, type and flavor of
+        the atomic objects to be saved.  One of the dimensions of the
+        shape is 0, meaning that the array can be extended along it.
+        """
+        self.extdim = None
+        """
+        The enlargeable dimension, i.e. the dimension this array can
+        be extended along.
+        """
+        self.nrows = None
+        """The length of the enlargeable dimension of the array."""
+
+        # The `Array` class is not abstract enough! :(
+        super(Array, self).__init__(parentNode, name, new, filters, log)
+
+
+    def _calcTuplesAndChunks(self, atom, extdim, expectedrows, compress):
+        """Calculate the maximun number of tuples and the HDF5 chunk size."""
+
+        # The buffer size
         rowsize = atom.atomsize()
-        
-        # Increasing the bufmultfactor would enable a good compression
-        # ratio (up to an extend), but it would affect to reading
-        # performance. Be careful when touching this
-        # F. Altet 2004-11-10
-        #bufmultfactor = int(1000 * 5) # Conservative value
-        bufmultfactor = int(1000 * 10) # Medium value
-        #bufmultfactor = int(1000 * 20)  # Agressive value
-        #bufmultfactor = int(1000 * 50) # Very Aggresive value
-        
-        rowsizeinfile = rowsize
-        expectedfsizeinKb = (expectedrows * rowsizeinfile) / 1024
-
-        if expectedfsizeinKb <= 100:
-            # Values for files less than 100 KB of size
-            buffersize = 5 * bufmultfactor
-        elif (expectedfsizeinKb > 100 and
-            expectedfsizeinKb <= 1000):
-            # Values for files less than 1 MB of size
-            buffersize = 10 * bufmultfactor
-        elif (expectedfsizeinKb > 1000 and
-              expectedfsizeinKb <= 20 * 1000):
-            # Values for sizes between 1 MB and 20 MB
-            buffersize = 20  * bufmultfactor
-        elif (expectedfsizeinKb > 20 * 1000 and
-              expectedfsizeinKb <= 200 * 1000):
-            # Values for sizes between 20 MB and 200 MB
-            buffersize = 40 * bufmultfactor
-        elif (expectedfsizeinKb > 200 * 1000 and
-              expectedfsizeinKb <= 2000 * 1000):
-            # Values for sizes between 200 MB and 2 GB
-            buffersize = 50 * bufmultfactor
-        else:  # Greater than 2 GB
-            buffersize = 60 * bufmultfactor
+        expectedfsizeinKb = (expectedrows * rowsize) / 1024
+        buffersize = self._g_calcBufferSize(expectedfsizeinKb)
 
         # Max Tuples to fill the buffer
-        maxTuples = buffersize // rowsize
+        maxTuples = buffersize // (rowsize * CHUNKTIMES)
         chunksizes = list(atom.shape)
         # Check if at least 1 tuple fits in buffer
         if maxTuples >= 1:
@@ -213,30 +255,39 @@ class EArray(Array):
         newrowsize = atom.itemsize
         for i in chunksizes:
             newrowsize *= i
-        maxTuples = buffersize // newrowsize
-        return (buffersize, maxTuples, chunksizes)
+        maxTuples = buffersize // (newrowsize * CHUNKTIMES)
+        # Safeguard against row sizes being extremely large
+        if maxTuples == 0:
+            maxTuples = 1
+        return (maxTuples, chunksizes)
 
-    def _create(self):
+
+    def _g_create(self):
         """Save a fresh array (i.e., not present on HDF5 file)."""
 
-        # All this will eventually end up in the node constructor.
+        if not isinstance(self.atom, Atom):
+            raise TypeError(
+                "the object passed to the ``EArray`` constructor "
+                "must be an instance of the ``Atom`` class")
 
-        global obversion
-        
-        assert isinstance(self.atom, Atom), "The object passed to the IndexArray constructor must be a descendent of the Atom class."
-        assert isinstance(self.atom.shape, tuple), "The Atom shape has to be a tuple for IndexArrays, and you passed a '%s' object." % (self.atom.shape)
+        if not isinstance(self.atom.shape, tuple):
+            raise TypeError(
+                "the ``shape`` in the ``Atom`` instance "
+                "must be a tuple for ``EArray``: %r"
+                % (self.atom.shape,))
+
         # Version, type, shape, flavor, byteorder
         self._v_version = obversion
         self.type = self.atom.type
         self.stype = self.atom.stype
         self.shape = self.atom.shape
-        self.flavor = self.atom.flavor        
+        self.flavor = self.atom.flavor
         if self.type == "CharType" or isinstance(self.type, records.Char):
             self.byteorder = "non-relevant"
         else:
             # Only support for creating objects in system byteorder
             self.byteorder  = sys.byteorder
-        
+
         # extdim computation
         zerodims = numarray.sum(numarray.array(self.shape) == 0)
         if zerodims > 0:
@@ -250,16 +301,67 @@ class EArray(Array):
                   "When creating EArrays, you need to set one of the dimensions of the Atom instance to zero."
 
         # Compute some values for buffering and I/O parameters
-        # Compute the rowsize for each element
-        self.rowsize = self.atom.atomsize()
         # Compute the optimal chunksize
-        (self._v_buffersize, self._v_maxTuples, self._v_chunksize) = \
-           self._calcBufferSize(self.atom, self.extdim, self._v_expectedrows,
-                                self.filters.complevel)
+        (self._v_maxTuples, self._v_chunksize) = self._calcTuplesAndChunks(
+            self.atom, self.extdim,
+            self._v_expectedrows, self.filters.complevel)
         #print "chunksizes-->", self._v_chunksize
         self.nrows = 0   # No rows initially
         self.itemsize = self.atom.itemsize
-        self._createEArray("EARRAY", self._v_new_title)
+
+        self._v_objectID = self._createEArray(self._v_new_title)
+        return self._v_objectID
+
+
+    def _g_open(self):
+        """Get the metadata info for an array in file."""
+
+        (self._v_objectID, type_, self.stype, self.shape,
+         self.itemsize, self.byteorder, self._v_chunksize) = \
+         self._openArray()  # sets `self.flavor`
+
+        stype = self.stype
+        flavor = self.flavor
+        # Post-condition
+        assert self.extdim >= 0, "extdim < 0: this should never happen!"
+        # Compute the real shape for atom:
+        shape = list(self.shape)
+        shape[self.extdim] = 0
+        if type_ == "CharType" or isinstance(type_, records.Char):
+            # Add the length of the array at the end of the shape for atom
+            shape.append(self.itemsize)
+        shape = tuple(shape)
+        # Create the atom instance and set definitive type
+        if stype == 'Enum':
+            (enum, type_) = self._loadEnum()
+            self.atom = EnumAtom(enum, type_, shape, flavor, warn=False)
+        else:
+            self.atom = Atom(stype, shape, flavor, warn=False)
+        self.type = type_
+        # nrows in this instance
+        self.nrows = self.shape[self.extdim]
+        # Compute the optimal maxTuples
+        (self._v_maxTuples, computedChunksize) = self._calcTuplesAndChunks(
+            self.atom, self.extdim, self.nrows, self.filters.complevel)
+
+        return self._v_objectID
+
+
+    def getEnum(self):
+        """
+        Get the enumerated type associated with this array.
+
+        If this array is of an enumerated type, the corresponding `Enum`
+        instance is returned.  If it is not of an enumerated type, a
+        ``TypeError`` is raised.
+        """
+
+        if self.atom.stype != 'Enum':
+            raise TypeError("array ``%s`` is not of an enumerated type"
+                            % self._v_pathname)
+
+        return self.atom.enum
+
 
     def _checkTypeShape(self, naarr):
         "Test that naarr parameter is shape and type compliant"
@@ -280,24 +382,31 @@ class EArray(Array):
 (naarr, self.type)
 
         # The arrays conforms self expandibility?
-        assert len(self.shape) == len(naarr.shape), \
-"Sorry, the ranks of the EArray %r (%d) and object to be appended (%d) differ." % (self._v_pathname, len(self.shape), len(naarr.shape))
-        for i in range(len(self.shape)):
-            if i <> self.extdim:
-                assert self.shape[i] == naarr.shape[i], \
-"Sorry, shapes of EArray '%r' and object differ in non-enlargeable dimension (%d) " % (self._v_pathname, i) 
+        myshlen = len(self.shape)
+        nashlen = len(naarr.shape)
+        if myshlen != nashlen:
+            raise ValueError("""\
+the ranks of the appended object (%d) and the ``%s`` EArray (%d) differ"""
+                             % (nashlen, self._v_pathname, myshlen))
+        for i in range(myshlen):
+            if i != self.extdim and self.shape[i] != naarr.shape[i]:
+                raise ValueError("""\
+the shapes of the appended object and the ``%s`` EArray \
+differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         # Ok. all conditions are met. Return the numarray object
         return naarr
-            
-    def append(self, object):
-        """Append the object to this (enlargeable) object"""
-        assert self._v_file.mode <> "r", "Attempt to write over a file opened in read-only mode"
 
-        # The object needs to be copied to make the operation safe
+    def append(self, sequence):
+        """Append the sequence to this (enlargeable) object"""
+
+        if self._v_file.mode == 'r':
+            raise IOError("attempt to write over a file opened in read-only mode")
+
+        # The sequence needs to be copied to make the operation safe
         # to in-place conversion.
         copy = self.stype in ['Time64']
-        # Convert the object into a numarray object
-        naarr = convertIntoNA(object, self.atom, copy)
+        # Convert the sequence into a numarray object
+        naarr = convertToNA(sequence, self.atom, copy)
         # Check if it is correct type and shape
         naarr = self._checkTypeShape(naarr)
         self._append(naarr)
@@ -305,51 +414,18 @@ class EArray(Array):
     def truncate(self, size):
         "Truncate the extendable dimension to at most size rows"
 
-        #assert size >= 0, "Size should be 0 or a positive value"
-        assert size > 0, "Size should be an integer greater than 0"
+        if size <= 0:
+            raise ValueError("`size` must be greater than 0")
         self._truncateArray(size)
 
-    def _open(self):
-        """Get the metadata info for an array in file."""
 
-        # All this will eventually end up in the node constructor.
-
-        (self.type, self.stype, self.shape, self.itemsize, self.byteorder,
-         self._v_chunksize) = self._openArray()
-        #print "chunksizes-->", self._v_chunksize
-        # Post-condition
-        assert self.extdim >= 0, "extdim < 0: this should never happen!"
-        # Compute the real shape for atom:
-        shape = list(self.shape)
-        shape[self.extdim] = 0
-        if self.type == "CharType" or isinstance(self.type, records.Char):
-            # Add the length of the array at the end of the shape for atom
-            shape.append(self.itemsize)
-        shape = tuple(shape)
-        # Create the atom instance
-        self.atom = Atom(dtype=self.stype, shape=shape,
-                         flavor=self.flavor)
-                         #flavor=self.attrs.FLAVOR)
-        # Compute the rowsize for each element
-        self.rowsize = self.atom.atomsize()
-        # nrows in this instance
-        self.nrows = self.shape[self.extdim]
-        # Compute the optimal maxTuples
-        (self._v_buffersize, self._v_maxTuples, computedChunksize) = \
-           self._calcBufferSize(self.atom, self.extdim, self.nrows,
-                                self.filters.complevel)
-        chunksize = self.atom.itemsize
-        for i in self._v_chunksize:
-            chunksize *= i
-        self._v_maxTuples = self._v_buffersize // chunksize
-        #print "maxTuples-->", self._v_maxTuples
-
-    def _g_copyWithStats(self, group, name, start, stop, step, title, filters):
+    def _g_copyWithStats(self, group, name, start, stop, step,
+                         title, filters, log):
         "Private part of Leaf.copy() for each kind of leaf"
         # Build the new EArray object
-        object = self._v_file.createEArray(
+        object = EArray(
             group, name, atom=self.atom, title=title, filters=filters,
-            expectedrows=self.nrows, _log = False)
+            expectedrows=self.nrows, log=log)
         # Now, fill the new earray with values from source
         nrowsinbuf = self._v_maxTuples
         # The slices parameter for self.__getitem__
@@ -357,7 +433,7 @@ class EArray(Array):
         # This is a hack to prevent doing innecessary conversions
         # when copying buffers
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
-        self._v_convert = 0
+        self._v_convert = False
         # Start the copy itself
         for start2 in range(start, stop, step*nrowsinbuf):
             # Save the records on disk
@@ -368,7 +444,7 @@ class EArray(Array):
             slices[self.extdim] = slice(start2, stop2, step)
             object._append(self.__getitem__(tuple(slices)))
         # Active the conversion again (default)
-        self._v_convert = 1
+        self._v_convert = True
         nbytes = self.itemsize
         for i in self.shape:
             nbytes*=i

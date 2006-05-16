@@ -100,4 +100,3 @@ os.unlink("test2.out")
 print "Print time:", ttime, " Rows/s:", int(reclen/(ttime+delta)),
 print " Speed-up:", round(origtime/ttime,3)
 print
-

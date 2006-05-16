@@ -4,7 +4,6 @@
 #       Created: May 26, 2003
 #       Author:  Francesc Altet - faltet@carabos.com
 #
-#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/AttributeSet.py,v $
 #       $Id$
 #
 ########################################################################
@@ -32,23 +31,24 @@ Misc variables:
 
 import warnings
 import cPickle
+import numarray
 
 import tables.hdf5Extension as hdf5Extension
 from tables.constants import MAX_NODE_ATTRS
 from tables.registry import classNameDict
-from tables.exceptions import PerformanceWarning
+from tables.exceptions import ClosedNodeError, PerformanceWarning
 from tables.utils import checkNameValidity
 from tables.undoredo import attrToShadow
 
 
 
-__version__ = "$Revision: 1.41 $"
+__version__ = "$Revision$"
 
 # System attributes
 SYS_ATTRS = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
              "FLAVOR", "ENCODING", "PYTABLES_FORMAT_VERSION",
-             "FILTERS", "AUTOMATIC_INDEX", "REINDEX", "DIRTY",
-             "NODE_TYPE", "NODE_TYPE_VERSION"]
+             "FILTERS", "FILTERS_INDEX", "AUTOMATIC_INDEX", "REINDEX",
+             "DIRTY", "NODE_TYPE", "NODE_TYPE_VERSION"]
 # Prefixes of other system attributes
 SYS_ATTRS_PREFIXES = ["FIELD_"]
 # RO_ATTRS will be disabled and let the user modify them if they
@@ -66,7 +66,7 @@ SYS_ATTRS_NOTTOBECOPIED = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
 
 def issysattrname(name):
     "Check if a name is a system attribute or not"
-    
+
     if (name in SYS_ATTRS or
         reduce(lambda x,y: x+y,
                [name.startswith(prefix)
@@ -104,7 +104,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         _v_attrnamesuser -- List with user attribute names
 
     Methods:
-    
+
         _f_list(attrset)
         __getattr__(name)
         __setattr__(name, value)
@@ -113,8 +113,14 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         _f_remove(name)
         _f_rename(oldattrname, newattrname)
         _f_close()
-        
+
     """
+
+    def _g_getnode(self):
+        return self._v__nodeFile._getNode(self._v__nodePath)
+
+    _v_node = property(_g_getnode)
+
 
     def __init__(self, node):
         """Create the basic structures to keep the attribute information.
@@ -122,14 +128,23 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         Reads all the HDF5 attributes (if any) on disk for the node "node".
 
         node -- The parent node
-        
+
         """
+
+        node._g_checkOpen()
 
         mydict = self.__dict__
 
         self._g_new(node)
-        mydict["_v_node"] = node
+        mydict["_v__nodeFile"] = node._v_file
+        mydict["_v__nodePath"] = node._v_pathname
         mydict["_v_attrnames"] = self._g_listAttr()
+        # Get the file version format. This is an optimization
+        # in order to avoid accessing too much to it.
+        if hasattr(node._v_file, "format_version"):
+            mydict["_v__format_version"] = node._v_file.format_version
+        else:
+            mydict["_v__format_version"] = None
         # Split the attribute list in system and user lists
         mydict["_v_attrnamessys"] = []
         mydict["_v_attrnamesuser"] = []
@@ -147,6 +162,31 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         self._v_attrnamessys.sort()
         self._v_attrnamesuser.sort()
 
+
+    def _g_updateNodeLocation(self, node):
+        """Updates the location information about the associated `node`."""
+
+        myDict = self.__dict__
+        myDict['_v__nodeFile'] = node._v_file
+        myDict['_v__nodePath'] = node._v_pathname
+        # hdf5Extension operations:
+        self._g_new(node)
+
+
+    def _g_checkOpen(self):
+        """
+        Check that the attribute set is open.
+
+        If the attribute set is closed, a `ClosedNodeError` is raised.
+        """
+
+        if '_v__nodePath' not in self.__dict__:
+            raise ClosedNodeError("the attribute set is closed")
+        assert self._v_node._f_isOpen(), \
+               "found an open attribute set of a closed node"
+
+
+
     def _f_list(self, attrset="user"):
         """_f_list(attrset = 'user') -> list.  List of attribute names.
 
@@ -158,6 +198,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         Finally, 'all' returns both the system and user attributes.
         """
 
+        self._g_checkOpen()
+
         if attrset == "user":
             return self._v_attrnamesuser[:]
         elif attrset == "sys":
@@ -165,37 +207,56 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         elif attrset == "all":
             return self._v_attrnames[:]
 
+
     def __getattr__(self, name):
         """Get the attribute named "name"."""
+
+        self._g_checkOpen()
 
         # If attribute does not exist, raise AttributeError
         if not name in self._v_attrnames:
             raise AttributeError, \
                   "Attribute '%s' does not exist in node: '%s'" % \
-                  (name, self._v_node._v_pathname)
+                  (name, self._v__nodePath)
 
-        # Read the attribute from disk This is an optimization to read
+        # Read the attribute from disk. This is an optimization to read
         # quickly system attributes that are _string_ values, but it
         # takes care of other types as well as for example NROWS for
         # Tables and EXTDIM for EArrays
-        if issysattrname(name) and name not in ["NROWS", "EXTDIM",
-                                                "AUTOMATIC_INDEX",
-                                                "REINDEX", "DIRTY",
-                                                "NODE_TYPE_VERSION"]:
-           # _g_getSysAttr works only for string attributes
-           # with length less than 256 bytes
-           value = self._g_getSysAttr(name)   # Takes only 0.6s/2.9s
+        format_version = self._v__format_version
+        if format_version is not None and format_version < "1.4":
+            value = self._g_getAttr(name)   # Takes 1.3s/3.7s
         else:
-           value = self._g_getAttr(name)   # Takes 1.3s/3.7s
-        # This the general way to read attributes (takes more time)
-        #value = self._g_getAttr(name)   # Takes 1.3s/3.7s
+            if issysattrname(name) and not name.endswith("FILL"):
+                if name in ["NROWS", "EXTDIM", "AUTOMATIC_INDEX",
+                            "REINDEX", "DIRTY", "NODE_TYPE_VERSION"]:
+                    # These are Int32 or Int64 integers
+                    value = self._g_getAttr(name)[()]
+                else:
+                    value = self._g_getSysAttr(name)   # Takes only 0.6s/2.9s
+            else:
+                # This the general way to read attributes (takes more time)
+                value = self._g_getAttr(name)   # Takes 1.3s/3.7s
 
         # Check whether the value is pickled
         # Pickled values always seems to end with a "."
         if type(value) is str and value and value[-1] == ".":
             try:
                 retval = cPickle.loads(value)
-            except cPickle.UnpicklingError:
+            #except cPickle.UnpicklingError:
+            # It seems that cPickle may raise other errors than UnpicklingError
+            # Perhaps it would be better just an "except:" clause?
+            #except (cPickle.UnpicklingError, ImportError):
+            # Definitely (see SF bug #1254636)
+            except:
+                # ivb (2005-09-07): It is too hard to tell
+                # whether the unpickling failed
+                # because of the string not being a pickle one at all,
+                # because of a malformed pickle string,
+                # or because of some other problem in object reconstruction,
+                # thus making inconvenient even the issuing of a warning here.
+                # The documentation contains a note on this issue,
+                # explaining how the user can tell where the problem was.
                 retval = value
         else:
             retval = value
@@ -218,7 +279,18 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         # Save this attribute to disk
         # (overwriting an existing one if needed)
-        self._g_setAttr(name, value)
+        if issysattrname(name):
+            if name in ["EXTDIM", "AUTOMATIC_INDEX", "REINDEX", "DIRTY",
+                        "NODE_TYPE_VERSION"]:
+                self._g_setAttr(name, numarray.asarray(value,
+                                                       type=numarray.Int32))
+            elif name == "NROWS":
+                self._g_setAttr(name, numarray.array(value,
+                                                     type=numarray.Int64))
+            else:
+                self._g_setAttr(name, value)
+        else:
+            self._g_setAttr(name, value)
 
         # New attribute or value. Introduce it into the local
         # directory
@@ -254,6 +326,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         number of attributes in a node is going to be exceeded.
         """
 
+        self._g_checkOpen()
+
         node = self._v_node
         nodeFile = node._v_file
         nodePathname = node._v_pathname
@@ -261,6 +335,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         # Check for name validity
         checkNameValidity(name)
+
+        nodeFile._checkWritable()
 
         # Check that the attribute is not a system one (read-only)
         ##if name in RO_ATTRS:
@@ -324,6 +400,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         specified, an ``AttributeError`` is raised.
         """
 
+        self._g_checkOpen()
+
         node = self._v_node
         nodeFile = node._v_file
 
@@ -337,6 +415,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         if name in self._v_attrnamessys:
             raise AttributeError, \
                   "System attribute ('%s') cannot be deleted" % (name)
+
+        nodeFile._checkWritable()
 
         # Remove the PyTables attribute or move it to shadow.
         if nodeFile.isUndoEnabled():
@@ -355,16 +435,19 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         Returns ``True`` if the attribute set has an attribute with the
         given name, ``False`` otherwise.
         """
+        self._g_checkOpen()
         return name in self._v_attrnames
 
 
     def _f_rename(self, oldattrname, newattrname):
         "Rename an attribute"
 
+        self._g_checkOpen()
+
         if oldattrname == newattrname:
             # Do nothing
             return
-        
+
         # if oldattrname or newattrname are system attributes, raise an error
         for name in [oldattrname, newattrname]:
             if name in self._v_attrnamessys:
@@ -415,6 +498,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         given PyTables node, replacing the existing ones.
         """
 
+        self._g_checkOpen()
+
         # AttributeSet must be defined in order to define a Node.
         # However, we need to know Node here.
         # Using classNameDict avoids a circular import.
@@ -424,37 +509,46 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
 
     def _f_close(self):
-        "Delete some back-references"
-        del self.__dict__["_v_node"]
-        # After the objects are disconnected, destroy the
-        # object dictionary using the brute force ;-)
-        # This should help to the garbage collector
-        #self.__dict__.clear()
+        self.__dict__.clear()
 
-        pass
 
     def __str__(self):
         """The string representation for this object."""
+
+        node = self._v_node
+        if node is None or not node._f_isOpen():
+            return repr(self)
+
         # Get the associated filename
-        filename = self._v_node._v_file.filename
+        filename = node._v_file.filename
         # The pathname
-        pathname = self._v_node._v_pathname
+        pathname = node._v_pathname
         # Get this class name
         classname = self.__class__.__name__
-        # The attrribute names
-        attrnumber = len([ n for n in self._v_attrnames if not issysattrname(n) ])
+        # The attribute names
+        #attrnumber = len([ n for n in self._v_attrnames if not issysattrname(n) ])
+        # Showing all attributes by default
+        attrnumber = len([ n for n in self._v_attrnames ])
         return "%s._v_attrs (%s), %s attributes" % (pathname, classname, attrnumber)
 
     def __repr__(self):
         """A detailed string representation for this object."""
 
+        node = self._v_node
+        if node is None:
+            return "<closed AttributeSet>"
+        if not node._f_isOpen():
+            return "<AttributeSet of closed Node>"
+
         # print additional info only if there are attributes to show
-        attrnames = [ n for n in self._v_attrnames if not issysattrname(n) ]
+        #attrnames = [ n for n in self._v_attrnames if not issysattrname(n) ]
+        # Showing all attributes by default
+        attrnames = [ n for n in self._v_attrnames ]
         if len(attrnames):
             rep = [ '%s := %r' %  (attr, getattr(self, attr) )
                     for attr in attrnames ]
             attrlist = '[%s]' % (',\n    '.join(rep))
-        
+
             return "%s:\n   %s" % \
                    (str(self), attrlist)
         else:

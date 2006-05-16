@@ -14,18 +14,18 @@ verbose = 0
 
 class WideTreeTestCase(unittest.TestCase):
     """Checks for maximum number of childs for a Group.
-    
-    
+
+
     """
     def test00_Leafs(self):
-        """Checking creation of large number of leafs (1024) per group 
-        
+        """Checking creation of large number of leafs (1024) per group
+
         Variable 'maxchilds' controls this check. PyTables support
         up to 4096 childs per group, but this would take too much
         memory (up to 64 MB) for testing purposes (may be we can add a
         test for big platforms). A 1024 childs run takes up to 30 MB.
         A 512 childs test takes around 25 MB.
-        
+
         """
 
         import time
@@ -66,16 +66,16 @@ class WideTreeTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         #os.remove(file)
-        
+
     def test01_wideTree(self):
-        """Checking creation of large number of groups (1024) per group 
-        
+        """Checking creation of large number of groups (1024) per group
+
         Variable 'maxchilds' controls this check. PyTables support
         up to 4096 childs per group, but this would take too much
         memory (up to 64 MB) for testing purposes (may be we can add a
         test for big platforms). A 1024 childs run takes up to 30 MB.
         A 512 childs test takes around 25 MB.
-        
+
         """
 
         import time
@@ -111,7 +111,7 @@ class WideTreeTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
-        
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -129,4 +129,3 @@ if __name__ == '__main__':
     stats.strip_dirs()
     stats.sort_stats('time', 'calls')
     stats.print_stats(20)
-    

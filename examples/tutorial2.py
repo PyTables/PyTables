@@ -18,11 +18,11 @@ class Particle(IsDescription):
 
 # Another way to describe the columns of a table
 Event = {
-    "name"    : Col('CharType', 16),    # 16-character String
-    "TDCcount": Col("UInt8", 1),        # unsigned byte
-    "ADCcount": Col("UInt16", 1),       # Unsigned short integer
-    "xcoord"  : Col("Float32", 1),      # integer
-    "ycoord"  : Col("Float32", 1),      # integer
+    "name"        : StringCol(length=16),
+    "lati"        : IntCol(),
+    "longi"       : IntCol(),
+    "pressure"    : Float32Col(shape=(2,3)),
+    "temperature" : FloatCol(shape=(2,3)),
     }
 
 # Open a file in "w"rite mode
@@ -45,7 +45,7 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
     for i in xrange(257):
         # First, assign the values to the Particle record
         particle['name'] = 'Particle: %6d' % (i)
-        particle['lati'] = i 
+        particle['lati'] = i
         particle['longi'] = 10 - i
         ########### Detectable errors start here. Play with them!
         particle['pressure'] = array(i*arange(2*3), shape=(2,4))  # Incorrect
@@ -53,7 +53,7 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
         ########### End of errors
         particle['temperature'] = (i**2)     # Broadcasting
         # This injects the Record values
-        particle.append()      
+        particle.append()
     # Flush the table buffers
     table.flush()
 

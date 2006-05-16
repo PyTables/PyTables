@@ -44,13 +44,13 @@ def createFile(filename, nrows, filters, atom, recsize, index, verbose):
         table.row['var2'] = i
         table.row['var3'] = i
         #table.row['var4'] = i % 2
-        table.row['var4'] = i > 2
+        #table.row['var4'] = i > 2
         table.row.append()
     rowswritten += nrows
     table.flush()
     rowsize = table.rowsize
     indexrows = 0
-        
+
     # Index one entry:
     if index:
         if atom == "string":
@@ -67,7 +67,7 @@ def createFile(filename, nrows, filters, atom, recsize, index, verbose):
             print "Number of indexed rows:", indexrows
     # Close the file (eventually destroy the extended type)
     fileh.close()
-    
+
     return (rowswritten, rowsize)
 
 def readFile(filename, atom, niter, verbose):
@@ -122,7 +122,7 @@ def readFile(filename, atom, niter, verbose):
 #                    for i in table.where(3<=table.cols.var3 < 5.)]
 #             results = [(p.nrow(), p["var3"])
 #                        for p in table.where(1000.-i<=table.cols.var3<1000.+i)]
-            results = [p["var3"] # (p.nrow(), p["var3"]) 
+            results = [p["var3"] # (p.nrow(), p["var3"])
                        for p in table.where(100*i<=table.cols.var3<100*(i+1))]
 #                        for p in table
 #                        if 100*i<=p["var3"]<100*(i+1)]
@@ -136,8 +136,8 @@ def readFile(filename, atom, niter, verbose):
         print results
 
     rowsread = table.nrows * niter
-    rowsize = table.rowsize 
-        
+    rowsize = table.rowsize
+
     # Close the file (eventually destroy the extended type)
     fileh.close()
 
@@ -177,7 +177,7 @@ def searchFile(filename, atom, verbose, item):
     if verbose:
         print "Values that fullfill the conditions:"
         print results
-        
+
     # Close the file (eventually destroy the extended type)
     fileh.close()
 
@@ -192,23 +192,23 @@ if __name__=="__main__":
         psyco_imported = 1
     except:
         psyco_imported = 0
-    
+
     import time
-    
+
     usage = """usage: %s [-v] [-p] [-R range] [-r] [-w] [-s recsize ] [-a
     atom] [-c level] [-l complib] [-S] [-F] [-i item] [-n nrows] [-x]
     [-k niter] file
             -v verbose
-	    -p use "psyco" if available
+            -p use "psyco" if available
             -R select a range in a field in the form "start,stop,step"
-	    -r only read test
-	    -w only write test
+            -r only read test
+            -w only write test
             -s record size
             -a use [float], [int], [bool] or [string] atom
             -c sets a compression level (do not set it or 0 for no compression)
             -S activate shuffling filter
             -F activate fletcher32 filter
-            -l sets the compression library to be used ("zlib", "lzo", "ucl")
+            -l sets the compression library to be used ("zlib", "lzo", "ucl", "bzip2")
             -i item to search
             -n set the number of rows in tables
             -x don't make indexes
@@ -221,7 +221,7 @@ if __name__=="__main__":
         sys.exit(0)
 
     # if we pass too much parameters, abort
-    if len(pargs) <> 1: 
+    if len(pargs) <> 1:
         sys.stderr.write(usage)
         sys.exit(0)
 
@@ -278,7 +278,7 @@ if __name__=="__main__":
             nrows = int(option[1])
         elif option[0] == '-k':
             niter = int(option[1])
-            
+
     # Build the Filters instance
     filters = Filters(complevel=complevel, complib=complib,
                       shuffle=shuffle, fletcher32=fletcher32)
@@ -292,48 +292,47 @@ if __name__=="__main__":
             print "Compression library:", complib
             if shuffle:
                 print "Suffling..."
-	t1 = time.time()
-	cpu1 = time.clock()
+        t1 = time.time()
+        cpu1 = time.clock()
         if psyco_imported and usepsyco:
             psyco.bind(createFile)
-	(rowsw, rowsz) = createFile(file, nrows, filters,
+        (rowsw, rowsz) = createFile(file, nrows, filters,
                                     atom, recsize, index, verbose)
-	t2 = time.time()
+        t2 = time.time()
         cpu2 = time.clock()
-	tapprows = round(t2-t1, 3)
-	cpuapprows = round(cpu2-cpu1, 3)
+        tapprows = round(t2-t1, 3)
+        cpuapprows = round(cpu2-cpu1, 3)
         tpercent = int(round(cpuapprows/tapprows, 2)*100)
-	print "Rows written:", rowsw, " Row size:", rowsz
-	print "Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
+        print "Rows written:", rowsw, " Row size:", rowsz
+        print "Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
               (tapprows, cpuapprows, tpercent)
-	print "Write rows/sec: ", int(rowsw / float(tapprows))
-	print "Write KB/s :", int(rowsw * rowsz / (tapprows * 1024))
-	
+        print "Write rows/sec: ", int(rowsw / float(tapprows))
+        print "Write KB/s :", int(rowsw * rowsz / (tapprows * 1024))
+
     if testread:
         if psyco_imported and usepsyco:
             psyco.bind(readFile)
             psyco.bind(searchFile)
-	t1 = time.time()
+        t1 = time.time()
         cpu1 = time.clock()
         if rng or item:
             (rowsr, uncomprB, niter) = searchFile(file, atom, verbose, item)
         else:
             for i in range(1):
                 (rowsr, rowsel, rowsz) = readFile(file, atom, niter, verbose)
-	t2 = time.time()
+        t2 = time.time()
         cpu2 = time.clock()
-	treadrows = round(t2-t1, 3)
+        treadrows = round(t2-t1, 3)
         cpureadrows = round(cpu2-cpu1, 3)
         tpercent = int(round(cpureadrows/treadrows, 2)*100)
         tMrows = rowsr/(1000*1000.)
         sKrows = rowsel/1000.
-	print "Rows read:", rowsr, "Mread:", round(tMrows, 3), "Mrows"
-	print "Rows selected:", rowsel, "Ksel:", round(sKrows,3), "Krows"
-	print "Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
+        print "Rows read:", rowsr, "Mread:", round(tMrows, 3), "Mrows"
+        print "Rows selected:", rowsel, "Ksel:", round(sKrows,3), "Krows"
+        print "Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
               (treadrows, cpureadrows, tpercent)
-	print "Read Mrows/sec: ", round(tMrows / float(treadrows), 3)
-	#print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))
-# 	print "Uncompr MB :", int(uncomprB / (1024 * 1024))
-# 	print "Uncompr MB/s :", int(uncomprB / (treadrows * 1024 * 1024))
-#	print "Total chunks uncompr :", int(niter)
-    
+        print "Read Mrows/sec: ", round(tMrows / float(treadrows), 3)
+        #print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))
+#       print "Uncompr MB :", int(uncomprB / (1024 * 1024))
+#       print "Uncompr MB/s :", int(uncomprB / (treadrows * 1024 * 1024))
+#       print "Total chunks uncompr :", int(niter)

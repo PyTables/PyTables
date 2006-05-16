@@ -4,7 +4,6 @@
 #       Created: December 17, 2004
 #       Author:  Francesc Altet - faltet@carabos.com
 #
-#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/exceptions.py,v $
 #       $Id$
 #
 ########################################################################
@@ -14,6 +13,16 @@ Declare exceptions and warnings that are specific to PyTables.
 
 Classes:
 
+`HDF5ExtError`
+    A low level HDF5 operation failed.
+`ClosedNodeError`
+    The operation can not be completed because the node is closed.
+`ClosedFileError`
+    The operation can not be completed because the hosting file is
+    closed.
+`FileModeError`
+    The operation can not be carried out because the mode in which the
+    hosting file is opened is not adequate.
 `NodeError`
     Invalid hierarchy manipulation operation requested.
 `NoSuchNodeError`
@@ -36,6 +45,55 @@ __version__ = '$Revision$'
 
 
 
+class HDF5ExtError(RuntimeError):
+    """
+    A low level HDF5 operation failed.
+
+    This exception is raised by ``hdf5Extension`` (the low level
+    PyTables component used for accessing HDF5 files).  It usually
+    signals that something is not going well in the HDF5 library or even
+    at the Input/Output level, and uses to be accompanied by an
+    extensive HDF5 back trace on standard error.
+    """
+    pass
+
+
+
+# The following exceptions are concretions of the ``ValueError`` exceptions
+# raised by ``file`` objects on certain operations.
+
+class ClosedNodeError(ValueError):
+    """
+    The operation can not be completed because the node is closed.
+
+    For instance, listing the children of a closed group is not allowed.
+    """
+    pass
+
+
+class ClosedFileError(ValueError):
+    """
+    The operation can not be completed because the hosting file is
+    closed.
+
+    For instance, getting an existing node from a closed file is not
+    allowed.
+    """
+    pass
+
+
+class FileModeError(ValueError):
+    """
+    The operation can not be carried out because the mode in which the
+    hosting file is opened is not adequate.
+
+    For instance, removing an existing leaf from a read-only file is not
+    allowed.
+    """
+    pass
+
+
+
 class NodeError(AttributeError, LookupError):
     """
     Invalid hierarchy manipulation operation requested.
@@ -54,6 +112,7 @@ class NodeError(AttributeError, LookupError):
     """
     pass
 
+
 class NoSuchNodeError(NodeError):
     """
     An operation was requested on a node that does not exist.
@@ -62,6 +121,7 @@ class NoSuchNodeError(NodeError):
     ``(where, name)`` pair leading to a nonexistent node.
     """
     pass
+
 
 
 class UndoRedoError(Exception):
@@ -84,14 +144,15 @@ class UndoRedoWarning(Warning):
     pass
 
 
+
 class NaturalNameWarning(Warning):
     """
     Issued when a non-pythonic name is given for a node.
 
     This is not an error and may even be very useful in certain
     contexts, but one should be aware that such nodes cannot be accessed
-    using natural naming.  (Instead, ``getattr()`` must be used
-    explicitly.)
+    using natural naming.  (Instead, ``getattr()`` or
+    ``group._f_getChild()`` must be used explicitly.)
     """
     pass
 

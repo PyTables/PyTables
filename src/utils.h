@@ -32,9 +32,6 @@
 #   define TRUE (!FALSE)
 #endif
 
-/* Maximum dimensions in an array */
-/* This number has been taken from numarray/numarray.h */ 
-#define MAXDIM  40
 
 /* Use %ld to print the value because long should cover most cases. */
 /* Used to make certain a return value _is_not_ a value */
@@ -46,6 +43,10 @@
     }                                                                         \
     H5Eclear();                                                               \
 } while(0)
+
+int getLibrary(char *libname);
+
+herr_t set_cache_size(hid_t file_id, size_t cache_size);
 
 PyObject *_getTablesVersion(void);
 
@@ -63,20 +64,17 @@ PyObject *Aiterate(hid_t loc_id);
 
 H5T_class_t getHDF5ClassID(hid_t loc_id,
 			   const char *name,
-			   H5D_layout_t *layout);
+			   H5D_layout_t *layout,
+			   hid_t *type_id,
+			   hid_t *dataset_id);
 
-PyObject *H5UIget_info( hid_t loc_id, 
+PyObject *H5UIget_info( hid_t loc_id,
 			const char *dset_name,
 			char *byteorder);
 
-int GetIndicesEx(PyObject *s, hsize_t length,
-		 int *start, int *stop, int *step,
-		 int *slicelength);
-
-PyObject *get_attribute_string_sys( hid_t loc_id,
-				    const char *obj_name,
-				    const char *attr_name);
-
+hsize_t getIndicesExt(PyObject *s, hsize_t length,
+		      hsize_t *start, hsize_t *stop, hsize_t *step,
+		      hsize_t *slicelength);
 
 herr_t set_order(hid_t type_id, const char *byteorder);
 
@@ -84,7 +82,7 @@ int is_complex(hid_t type_id);
 
 size_t get_complex_precision(hid_t type_id);
 
-H5T_order_t get_order(hid_t type_id);
+herr_t get_order(hid_t type_id, char *byteorder);
 
 hid_t create_native_complex64(const char *byteorder);
 

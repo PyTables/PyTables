@@ -4,7 +4,6 @@
 #       Created: October 1, 2002
 #       Author:  Francesc Altet - faltet@carabos.com
 #
-#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/__init__.py,v $
 #       $Id$
 #
 ########################################################################
@@ -24,22 +23,20 @@ Functions:
 Misc variables:
 
     __version__
-    HDF5Version
-    ExtVersion
+    hdf5Version
 
 """
 
 # Necessary imports to get versions stored on the Pyrex extension
-from tables.hdf5Extension import\
-     getPyTablesVersion, getExtVersion, getHDF5Version
+from tables.utilsExtension import getPyTablesVersion, getHDF5Version
 
 __version__ = getPyTablesVersion()
-ExtVersion  = getExtVersion()
-HDF5Version = getHDF5Version()
+hdf5Version = getHDF5Version()
 
+from tables.utilsExtension import isHDF5  # deprecated
+from tables.utilsExtension import isHDF5File, isPyTablesFile, whichLibVersion
 
-from tables.hdf5Extension import isHDF5, isPyTablesFile, whichLibVersion
-
+from tables.enum import *
 from tables.Atom import *
 from tables.IsDescription import *
 
@@ -50,9 +47,10 @@ from tables.Node import Node
 from tables.Group import Group
 from tables.Leaf import Leaf, Filters
 from tables.Index import IndexProps
-from tables.Table import Table
+from tables.Table import Table, Cols, Column
 from tables.VLTable import VLTable
 from tables.Array import Array
+from tables.CArray import CArray
 from tables.EArray import EArray
 from tables.VLArray import VLArray
 from tables.UnImplemented import UnImplemented
@@ -64,13 +62,18 @@ from tables.UnImplemented import UnImplemented
 # List here only the objects we want to be publicly available
 __all__ = [
     # Exceptions and warnings:
+    'HDF5ExtError',
+    'ClosedNodeError', 'ClosedFileError', 'FileModeError',
     'NaturalNameWarning', 'NodeError', 'NoSuchNodeError',
     'UndoRedoError', 'UndoRedoWarning',
     'PerformanceWarning',
     # Functions:
-    'isHDF5', 'isPyTablesFile', 'whichLibVersion', 'copyFile', 'openFile',
+    'isHDF5',  # deprecated
+    'isHDF5File', 'isPyTablesFile', 'whichLibVersion', 'copyFile', 'openFile',
     # Helper classes:
-    'IsDescription', 'Description', 'Filters', 'IndexProps',
+    'IsDescription', 'Description', 'Filters', 'IndexProps', 'Cols', 'Column',
+    # Types:
+    'Enum',
     # Atom types:
     'Atom', 'ObjectAtom', 'VLStringAtom', 'StringAtom', 'BoolAtom',
     'IntAtom', 'Int8Atom', 'UInt8Atom', 'Int16Atom', 'UInt16Atom',
@@ -78,6 +81,7 @@ __all__ = [
     'FloatAtom', 'Float32Atom', 'Float64Atom',
     'ComplexAtom', 'Complex32Atom', 'Complex64Atom',
     'TimeAtom', 'Time32Atom', 'Time64Atom',
+    'EnumAtom',
     # Column types:
     'Col', 'BoolCol', 'StringCol',
     'IntCol', 'Int8Col', 'UInt8Col', 'Int16Col', 'UInt16Col',
@@ -85,7 +89,13 @@ __all__ = [
     'FloatCol', 'Float32Col', 'Float64Col',
     'ComplexCol', 'Complex32Col', 'Complex64Col',
     'TimeCol', 'Time32Col', 'Time64Col',
+    'EnumCol',
     # Node classes:
-    'Node', 'Group', 'Leaf', 'Table', 'VLTable', 'Array', 'EArray', 'VLArray',
+    'Node', 'Group', 'Leaf', 'Table', 'VLTable',
+    'Array', 'CArray', 'EArray', 'VLArray',
     'UnImplemented',
+    # The File class:
+    'File',
+    # Testing functions:
+    #'createNestedType',
     ]

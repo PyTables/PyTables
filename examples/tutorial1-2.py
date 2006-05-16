@@ -15,7 +15,7 @@ from tables import *
 filename="tutorial1.h5"
 
 print
-print	'-**-**-**-**- open the previous tutorial file -**-**-**-**-**-'
+print   '-**-**-**-**- open the previous tutorial file -**-**-**-**-**-'
 
 # Reopen the file in append mode
 h5file = openFile(filename, "a")
@@ -25,7 +25,7 @@ print "Object tree from filename:", h5file.filename
 print h5file
 
 print
-print	'-**-**-**-**-**-**- traverse tree methods -**-**-**-**-**-**-**-'
+print   '-**-**-**-**-**-**- traverse tree methods -**-**-**-**-**-**-**-'
 
 # List all the nodes (Group and Leaf objects) on tree
 print h5file
@@ -66,7 +66,7 @@ for leaf in h5file.root.detector._f_walkNodes('Leaf'):
 
 
 print
-print	'-**-**-**-**-**-**- setting/getting object attributes -**-**--**-**-'
+print   '-**-**-**-**-**-**- setting/getting object attributes -**-**--**-**-'
 
 # Get a pointer to '/detector' and '/detector/readout' nodes
 detector = h5file.root.detector
@@ -116,7 +116,7 @@ except:
 print "List of all attributes in /detector:", detector._v_attrs._f_list("all")
 
 print
-print	'-**-**-**-**-**-**- getting object metadata -**-**-**-**-**-**-'
+print   '-**-**-**-**-**-**- getting object metadata -**-**-**-**-**-**-'
 
 # Get a pointer to '/detector/readout' data
 table = h5file.root.detector.readout
@@ -129,7 +129,7 @@ print "Number of rows in table:", table.nrows
 print "Table variable names with their type and shape:"
 for name in table.colnames:
     print name, ':= %s, %s' % (table.coltypes[name], table.colshapes[name])
-print    
+print
 
 # Get the object in "/columns pressure"
 pressureObject = h5file.getNode("/columns", "pressure")
@@ -137,7 +137,7 @@ pressureObject = h5file.getNode("/columns", "pressure")
 # Get some metadata on this object
 print "Info on the object:", repr(pressureObject)
 print
-print	'-**-**-**-**-**- reading actual data from arrays -**-**-**-**-**-**-'
+print   '-**-**-**-**-**- reading actual data from arrays -**-**-**-**-**-**-'
 
 # Read the 'pressure' actual data
 pressureArray = pressureObject.read()
@@ -156,7 +156,7 @@ for i in range(pressureObject.shape[0]):
     print nameArray[i], "-->", pressureArray[i]
 
 print
-print	'-**-**-**-**-**- reading actual data from tables -**-**-**-**-**-**-'
+print   '-**-**-**-**-**- reading actual data from tables -**-**-**-**-**-**-'
 
 # Create a shortcut to table object
 table = h5file.root.detector.readout
@@ -171,7 +171,7 @@ print
 print "Rows from 3 to 9 of '/detector/readout':\n", table[2:9]
 
 print
-print	'-**-**-**-**- append records to existing table -**-**-**-**-**-'
+print   '-**-**-**-**- append records to existing table -**-**-**-**-**-'
 
 # Get the object row from table
 particle = table.row
@@ -179,9 +179,9 @@ particle = table.row
 # Append 5 new particles to table
 for i in xrange(10, 15):
     particle['name']  = 'Particle: %6d' % (i)
-    particle['TDCcount'] = i % 256    
+    particle['TDCcount'] = i % 256
     particle['ADCcount'] = (i * 256) % (1 << 16)
-    particle['grid_i'] = i 
+    particle['grid_i'] = i
     particle['grid_j'] = 10 - i
     particle['pressure'] = float(i*i)
     particle['energy'] = float(particle['pressure'] ** 4)
@@ -194,14 +194,65 @@ table.flush()
 # Print the data using the table iterator:
 for r in table:
     print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
-          (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'], 
+          (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'],
            r['TDCcount'])
 
 print
 print "Total number of entries in resulting table:", table.nrows
 
 print
-print	'-**-**-**-**- remove records from a table -**-**-**-**-**-'
+print   '-**-**-**-**- modify records of a table -**-**-**-**-**-'
+
+# Single cells
+print "First row of readout table."
+print "Before modif-->", table[0]
+table.cols.TDCcount[0] = 1
+print "After modifying first row of ADCcount-->", table[0]
+table.cols.energy[0] = 2
+print "After modifying first row of energy-->", table[0]
+
+# Column slices
+table.cols.TDCcount[2:5] = [2,3,4]
+print "After modifying slice [2:5] of ADCcount-->", table[0:5]
+table.cols.energy[1:9:3] = [2,3,4]
+print "After modifying slice [1:9:3] of energy-->", table[0:9]
+
+# Modifying complete Rows
+table.modifyRows(start=1, step=3,
+                 rows=[(1, 2, 3.0, 4, 5, 6L, 'Particle:   None', 8.0),
+                       (2, 4, 6.0, 8, 10, 12L, 'Particle: None*2', 16.0)])
+print "After modifying the complete third row-->", table[0:5]
+
+# Modifying columns inside table iterators
+for row in table.where(table.cols.TDCcount <= 2):
+    row['energy'] = row['TDCcount']*2
+    row.update()
+print "After modifying energy column (where TDCcount <=2)-->", table[0:4]
+
+print
+print   '-**-**-**-**- modify elements of an array -**-**-**-**-**-'
+
+print "pressure array"
+print "Before modif-->", pressureObject[:]
+pressureObject[0] = 2
+print "First modif-->", pressureObject[:]
+pressureObject[1:3] = [2.1, 3.5]
+print "Second modif-->", pressureObject[:]
+pressureObject[::2] = [1,2]
+print "Third modif-->", pressureObject[:]
+
+print "name array"
+nameObject = h5file.root.columns.name
+print "Before modif-->", nameObject[:]
+nameObject[0] = 'Particle:   None'
+print "First modif-->", nameObject[:]
+nameObject[1:3] = ['Particle:      0', 'Particle:      1']
+print "Second modif-->", nameObject[:]
+nameObject[::2] = ['Particle:     -3', 'Particle:     -5']
+print "Third modif-->", nameObject[:]
+
+print
+print   '-**-**-**-**- remove records from a table -**-**-**-**-**-'
 
 # Delete some rows on the Table (yes, rows can be removed!)
 table.removeRows(5,10)
@@ -211,7 +262,7 @@ print "Some columns in final table:"
 print
 # Print the headers
 print "%-16s | %11s | %11s | %6s | %6s | %8s |" % \
-       ('name', 'pressure', 'energy', 'grid_i', 'grid_j', 
+       ('name', 'pressure', 'energy', 'grid_i', 'grid_j',
         'TDCcount')
 
 print "%-16s + %11s + %11s + %6s + %6s + %8s +" % \
@@ -219,7 +270,7 @@ print "%-16s + %11s + %11s + %6s + %6s + %8s +" % \
 # Print the data using the table iterator:
 for r in table.iterrows():
     print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
-          (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'], 
+          (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'],
            r['TDCcount'])
 
 print

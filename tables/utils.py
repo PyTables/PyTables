@@ -4,7 +4,6 @@
 #       Created: March 4, 2003
 #       Author:  Francesc Altet - faltet@carabos.com
 #
-#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/utils.py,v $
 #       $Id$
 #
 ########################################################################
@@ -16,9 +15,19 @@
 import re
 import warnings
 import keyword
+import os, os.path
+import cPickle
+import sys
+
+# Trick to know if we are on a 64-bit platform or not
+if sys.maxint > (2**31)-1:
+    is64bits_platform = True
+else:
+    is64bits_platform = False
 
 import numarray
 from numarray import strings
+from numarray import records
 
 try:
     import Numeric
@@ -26,10 +35,18 @@ try:
 except ImportError:
     Numeric_imported = False
 
-from tables.hdf5Extension import getIndices
+try:
+    import numpy
+    numpy_imported = True
+except ImportError:
+    numpy_imported = False
+
+import tables.utilsExtension
 from tables.exceptions import NaturalNameWarning
-
-
+from constants import CHUNKTIMES
+from registry import classNameDict
+import nriterators
+import nestedrecords
 
 # Python identifier regular expression.
 pythonIdRE = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
@@ -38,8 +55,45 @@ pythonIdRE = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
 #   f: class public methods
 #   g: class private methods
 #   v: instance variables
-#   i: indexed columns
-reservedIdRE = re.compile('^_[cfgvi]_')
+reservedIdRE = re.compile('^_[cfgv]_')
+
+# Nodes with a name *matching* this expression are considered hidden.
+# For instance::
+#
+#   name -> visible
+#   _i_name -> hidden
+#
+hiddenNameRE = re.compile('^_[pi]_')
+
+# Nodes with a path *containing* this expression are considered hidden.
+# For instance::
+#
+#   /a/b/c -> visible
+#   /a/c/_i_x -> hidden
+#   /a/_p_x/y -> hidden
+#
+hiddenPathRE = re.compile('/_[pi]_')
+
+
+def getClassByName(className):
+    """
+    Get the node class matching the `className`.
+
+    If the name is not registered, a ``TypeError`` is raised.  The empty
+    string and ``None`` are also accepted, and mean the ``Node`` class.
+    """
+
+    # The empty string is accepted for compatibility
+    # with old default arguments.
+    if className is None or className == '':
+        className = 'Node'
+
+    # Get the class object corresponding to `classname`.
+    if className not in classNameDict:
+        raise TypeError("there is no registered node class named ``%s``"
+                        % (className,))
+
+    return classNameDict[className]
 
 
 def checkNameValidity(name):
@@ -52,8 +106,8 @@ def checkNameValidity(name):
     """
 
     warnInfo = """\
-you will not be able to use natural naming to acces this object \
-(using ``getattr()`` will still work)"""
+you will not be able to use natural naming to access this object \
+(but using ``getattr()`` will still work)"""
 
     if not isinstance(name, basestring):  # Python >= 2.3
         raise TypeError("object name is not a string: %r" % (name,))
@@ -85,9 +139,13 @@ it does not match the pattern ``%s``; %s"""
 
     # Still, names starting with reserved prefixes are not allowed.
     if reservedIdRE.match(name):
-        raise ValueError("""\
-object name starts with a reserved prefix: %r; \
-it matches the pattern ``%s``""" % (name, reservedIdRE.pattern))
+        raise ValueError("object name starts with a reserved prefix: %r; "
+                         "it matches the pattern ``%s``"
+                         % (name, reservedIdRE.pattern))
+
+    # ``__members__`` is the only exception to that rule.
+    if name == '__members__':
+        raise ValueError("``__members__`` is not allowed as an object name")
 
 
 def _calcBufferSize(rowsize, expectedrows):
@@ -105,7 +163,11 @@ def _calcBufferSize(rowsize, expectedrows):
                                       # consumes more memory
     bufmultfactor = int(1000 * 10.0) # Optimum for Table objects
     rowsizeinfile = rowsize
-    expectedfsizeinKb = (expectedrows * rowsizeinfile) / 1024
+    # It is important to upcast the values to Long int types
+    # so that the python interpreter wouldn't complain and issue
+    # an OverflowWarning (despite this only happens during the execution
+    # of the complete test suite in heavy mode).
+    expectedfsizeinKb = (long(expectedrows) * long(rowsizeinfile)) / long(1024)
 
     # Some code to compute appropiate values for chunksize & buffersize
     # chunksize:  The chunksize for the HDF5 library
@@ -126,7 +188,7 @@ def _calcBufferSize(rowsize, expectedrows):
     # may vary.
     if expectedfsizeinKb <= 100:
         # Values for files less than 100 KB of size
-        buffersize = 5 * bufmultfactor
+        buffersize = 10 * bufmultfactor
     elif (expectedfsizeinKb > 100 and
         expectedfsizeinKb <= 1000):
         # Values for files less than 1 MB of size
@@ -135,24 +197,12 @@ def _calcBufferSize(rowsize, expectedrows):
           expectedfsizeinKb <= 20 * 1000):
         # Values for sizes between 1 MB and 20 MB
         buffersize = 40  * bufmultfactor
-        #buffersize = 80  * bufmultfactor  # New value (experimental)
     elif (expectedfsizeinKb > 20 * 1000 and
           expectedfsizeinKb <= 200 * 1000):
         # Values for sizes between 20 MB and 200 MB
         buffersize = 50 * bufmultfactor
-        #buffersize = 320 * bufmultfactor  # New value (experimental)
     else:  # Greater than 200 MB
-        # These values gives an increment of memory of 50 MB for a table
-        # size of 2.2 GB. I think this increment should be attributed to
-        # the BTree which is created to save the table data.
-        # If we increment these values more than that, the HDF5 takes
-        # considerably more CPU. If you don't want to spend 50 MB
-        # (or more, depending on the final table size) to
-        # the BTree, and want to save files bigger than 2 GB,
-        # try to increment these values, but be ready for a quite big
-        # overhead needed to traverse the BTree.
         buffersize = 60 * bufmultfactor
-        #buffersize = 1280 * bufmultfactor  # New value (experimental)
 
     return buffersize
 
@@ -170,46 +220,67 @@ def calcBufferSize(rowsize, expectedrows):
 
     # Max Tuples to fill the buffer
     maxTuples = buffersize // rowsize
-    # Set the chunksize as the 10% of maxTuples
-    #chunksize = maxTuples // 10
-    chunksize = maxTuples // 2  # Makes the BTree hash to consume less memory
-                                # This is experimental
+    # Set the chunksize
+    chunksize = maxTuples // CHUNKTIMES
     # Safeguard against row sizes being extremely large
     if maxTuples == 0:
         maxTuples = 1
     if chunksize == 0:
         chunksize = 1
-    # A new correction for avoiding too many calls to HDF5 I/O calls
-    # But this does not bring advantages rather the contrary,
-    # the memory comsumption grows, and performance becomes worse.
-    #if expectedrows//maxTuples > 50:
-    #    buffersize *= 4
-    #    maxTuples = buffersize // rowsize
-    #chunksize *= 10  # just to test
-    #print "maxTuples, chunksize -->", (maxTuples, chunksize)
     return (maxTuples, chunksize)
+
+def is_idx(index):
+    """Checks if an object can work as an index or not."""
+
+    if type(index) in (int,long):
+        return True
+    elif hasattr(index, "__index__"):  # Only works on Python 2.5 on (as per PEP 357)
+        try:
+            idx = index.__index__()
+            return True
+        except TypeError:
+            return False
+    elif (numpy_imported and isinstance(index, numpy.integer)):
+        return True
+
+    return False
+
+def idx2long(index):
+    """Convert a possible index into a long int"""
+
+    if is_idx(index):
+        return long(index)
+    else:
+        raise TypeError, "not an integer type."
 
 # This function is appropriate for calls to __getitem__ methods
 def processRange(nrows, start=None, stop=None, step=1):
     if step and step < 0:
         raise ValueError, "slice step cannot be negative"
-    # slice object does not have a indices method in python 2.2
-    # the next is a workaround for that (basically the code for indices
-    # has been copied from python2.3 to hdf5Extension.pyx)
-    #(start1, stop1, step1) = slice(start, stop, step).indices(nrows)
-    (start, stop, step) = getIndices(slice(start, stop, step), nrows)
+    # (start, stop, step) = slice(start, stop, step).indices(nrows)  # Python > 2.3
+    # The next function is a substitute for slice().indices in order to
+    # support full 64-bit integer for slices (Python 2.4 does not
+    # support that yet)
+    # F. Altet 2005-05-08
+    # In order to convert possible numpy.integer values to long ones
+    # F. Altet 2006-05-02
+    if start is not None: start = idx2long(start)
+    if stop is not None: stop = idx2long(stop)
+    if step is not None: step = idx2long(step)
+    (start, stop, step) =  tables.utilsExtension.getIndices( \
+        slice(start, stop, step), long(nrows))
     # Some protection against empty ranges
     if start > stop:
         start = stop
     return (start, stop, step)
+
 
 # This function is appropiate for calls to read() methods
 def processRangeRead(nrows, start=None, stop=None, step=1):
     if start is not None and stop is None:
         # Protection against start greater than available records
         # nrows == 0 is a special case for empty objects
-        if type(start) not in (int,long):
-            raise TypeError, "Start must be an integer and you passed: %s which is of type %s" % (repr(start), type(start))
+        #start = idx2long(start)    # XXX to delete
         if nrows > 0 and start >= nrows:
             raise IndexError, "Start of range (%s) is greater than number of rows (%s)." % (start, nrows)
         step = 1
@@ -222,68 +293,205 @@ def processRangeRead(nrows, start=None, stop=None, step=1):
 
     return (start, stop, step)
 
-# This is used in VLArray and EArray to produce a numarray object
-# of type atom from a generic python type.  If stated as true,
-# it is assured that it will return a copy of the object and never
+
+# This is used in VLArray and EArray to produce a *contiguous* numarray
+# object of type atom from a generic python type.  If copy is stated as
+# True, it is assured that it will return a copy of the object and never
 # the same object or a new one sharing the same memory.
-def convertIntoNA(arr, atom, copy = False):
+def convertToNA(arr, atom, copy = False):
     "Convert a generic object into a numarray object"
-    # Check for Numeric objects
-    if (isinstance(arr, numarray.NumArray) or
-        isinstance(arr, strings.CharArray)):
-        if not copy:
-            naarr = arr
+
+    # Convert arr to a numarray object.
+    # Strings will be *always* copied during conversions as there is not support
+    # for them in the array protocol implementation of numarray yet.
+    # First check NumArray as they will be the most frequently used objects.
+    if isinstance(arr, numarray.NumArray):
+        naarr = arr
+    elif isinstance(arr, strings.CharArray):
+        if ((copy) or (not arr.iscontiguous()) or
+            (arr.itemsize() != atom.itemsize)):
+            # A copy has to be made
+            naarr = strings.array(arr, itemsize=atom.itemsize, padc='\x00')
         else:
-            naarr = arr.copy()
-    elif (Numeric_imported and type(arr) == type(Numeric.array(1))
-          and not arr.typecode() == 'c'):
-        if copy or not arr.iscontiguous():
-            # Here we absolutely need a copy in order
-            # to obtain a buffer.
-            # Perhaps this can be avoided or optimized by using
-            # the tolist() method, but this should be tested.
-            carr = arr.copy()
+            naarr = arr    # A copy is not necessary
+    # Check for NumPy objects
+    # This works for both CharArray and regular homogeneous arrays
+    elif (numpy_imported and isinstance(arr, numpy.ndarray)):
+        if arr.dtype.kind == "U":
+            raise NotImplementedError, \
+                  """Unicode types are not suppored yet, sorry."""
+        if arr.dtype.kind != "S":
+            naarr = numarray.asarray(arr)
         else:
-            # This the fastest way to convert from Numeric to numarray
-            # because no data copy is involved
-            carr = arr
-        naarr = numarray.array(buffer(carr),
-                               type=arr.typecode(),
-                               shape=arr.shape)
-    elif (Numeric_imported and type(arr) == type(Numeric.array(1))
-          and arr.typecode() == 'c'):
-        # Special case for Numeric objects of type Char
-        try:
-            naarr = strings.array(arr.tolist(), itemsize=atom.itemsize)
-            # If still doesn't, issues an error
-        except:  #XXX
-            raise TypeError, """The object '%s' can't be converted into a CharArray object of type '%s'. Sorry, but this object is not supported in this context.""" % (arr, atom)
+            naarr = strings.array(arr, itemsize=atom.itemsize, padc = '\x00')
+        # Check for Numeric objects
+    elif (Numeric_imported and
+          type(arr) == Numeric.ArrayType):
+        if arr.typecode() != 'c':
+            naarr = numarray.asarray(arr)
+        else:
+            # Special case for Numeric objects of type Char
+            try:
+                naarr = strings.array(arr.tolist(), itemsize=atom.itemsize,
+                                      padc='\x00')
+                # If still doesn't, issues an error
+            except:  #XXX
+                raise TypeError, \
+"""The object '%s' can't be converted into a CharArray object of type '%s'.
+Sorry, but this object is not supported in this context.""" % (arr, atom)
     else:
-        # Test if arr can be converted to a numarray object of the
-        # correct type
+        # Check if arr can be converted to a numarray object of the
+        # correct type.
         try:
-            # 2005-02-04: The 'copy' argument appears in __doc__
-            # but not in documentation.
-            naarr = numarray.array(arr, type=atom.type, copy=copy)
+            naarr = numarray.asarray(arr, type=atom.type)
         # If not, test with a chararray
         except TypeError:
             try:
-                naarr = strings.array(arr, itemsize=atom.itemsize)
+                naarr = strings.array(arr, itemsize=atom.itemsize, padc='\x00')
             # If still doesn't, issues an error
             except:  #XXX
-                raise TypeError, """The object '%s' can't be converted into a numarray object of type '%s'. Sorry, but this object is not supported in this context.""" % (arr, atom)
+                raise TypeError, \
+"""The object '%s' can't be converted into a numarray object of type '%s'.
+Sorry, but this object is not supported in this context.""" % (arr, atom)
 
-    # Convert to the atom type, if necessary
-    if (isinstance(naarr, numarray.NumArray) and naarr.type() <> atom.type):
-        naarr = naarr.astype(atom.type)         # Force a cast
-        
-    # We always want a contiguous buffer
-    # (no matter if has an offset or not; that will be corrected later)
-    if not naarr.iscontiguous():
-        # Do a copy of the array in case is not contiguous
-        naarr = numarray.NDArray.copy(naarr)
+    # At this point we should have a NumArray or a CharArray naarr.
+    # Get copies of data if necessary.
+    if isinstance(naarr, numarray.NumArray):
+        # We always want a contiguous buffer
+        # (no matter if has an offset or not; that will be corrected later on)
+        if (copy) or (not naarr.iscontiguous()) or (naarr.type() <> atom.type):
+            # Do a copy of the array in case is not contiguous
+            naarr = numarray.array(naarr, type=atom.type)
 
     return naarr
+
+def convertNAToNumeric(arr):
+    """Convert a numarray object into a Numeric one"""
+
+    if not Numeric_imported:
+        # Warn the user
+        warnings.warn( \
+"""You are asking for a Numeric object, but Numeric is not installed locally.
+  Returning a numarray object instead!.""")
+        return arr
+
+    if arr.__class__.__name__ == "CharArray":
+        arrstr = arr.tostring()
+        shape = list(arr.shape)
+        if arr.itemsize() > 1:
+            # Numeric does not support arrays with elements with a
+            # size > 1. Simulate this by adding an additional dimension
+            shape.append(arr.itemsize())
+        arr=Numeric.reshape(Numeric.array(arrstr), shape)
+    else:
+        if arr.shape <> ():
+            #arr=Numeric.array(arr.tolist(), typecode=arr.typecode())
+            # The next is 10 to 100 times faster. 2005-02-09
+            shape = arr.shape
+            if str(arr.type()) == "Bool":
+                # Typecode boolean does not exist on Numeric
+                typecode = "1"
+            else:
+                typecode = arr.typecode()
+            # Apparently, there is no way to convert a numarray
+            # of ints of 64-bits into a Numeric of 64-bits in
+            # 32-bit platforms :-(
+            if typecode == 'N':
+                if is64bits_platform:
+                    typecode = 'l'  # Int64 in 64-bit platforms
+                else:
+                    warnings.warn( \
+"""Int64 cannot be converted into a Numeric object in 32-bit platforms.
+See http://aspn.activestate.com/ASPN/Mail/Message/numpy-discussion/2569120
+Returning a numarray instead!""")
+                    return arr
+            # When numarray 1.5 would be out, the array protocol
+            # should be used because it is faster than the fromstring
+            # method, specially for large arrays (>10**4 elements).
+            # F. Altet 2005-12-07
+            #arr=Numeric.fromstring(arr._data, typecode=typecode)
+            #arr.shape = shape
+            # The asarray call doesn't do a data copy
+            arr=Numeric.asarray(arr)  # Array protocol
+        else:
+            # This works for rank-0 arrays
+            # (but is slower for big arrays)
+            arr=Numeric.array(arr[()], typecode=arr.typecode())
+    return arr
+
+def convertNAToNumPy(arr):
+    """Convert a NumArray (homogeneous) object into a NumPy one"""
+
+    if not numpy_imported:
+        # Warn the user
+        warnings.warn( \
+"""You are asking for a NumPy object, but NumPy is not installed locally.
+  Returning a numarray object instead!.""")
+        return arr
+
+    # This works for both CharArray and regular homogeneous arrays
+    # and even for rank-0 arrays!
+    arr=numpy.asarray(arr)  # Array protocol
+    return arr
+
+
+def convToFlavor(object, arr, caller = "Array"):
+    "Convert the numarray parameter to the correct flavor"
+
+    if numpy_imported and object.flavor == "numpy":
+        arr = convertNAToNumPy(arr)
+    # check 'Numeric' for backward compatibility
+    elif Numeric_imported and object.flavor in ["numeric", "Numeric"]:
+        arr = convertNAToNumeric(arr)
+    elif object.flavor == "python":
+        if len(arr.shape) > 0:
+            # Lists are the default for returning multidimensional objects
+            arr = arr.tolist()
+        else:
+            # Scalar case
+            arr = arr[()]
+    elif object.flavor == "string":
+        arr = arr.tostring()
+        # Set the shape to () for these objects
+        # F. Altet 2006-01-03
+        object.shape = ()
+    elif object.flavor == "Tuple":
+        arr = totuple(object, arr)
+    elif object.flavor == "List":
+        arr = arr.tolist()
+    if caller <> "VLArray":
+        # For backward compatibility
+        if object.flavor == "Int":
+            arr = int(arr)
+        elif object.flavor == "Float":
+            arr = float(arr)
+        elif object.flavor == "String":
+            arr = arr.tostring()
+            # Set the shape to () for these objects
+            # F. Altet 2006-01-03
+            object.shape = ()
+    else:
+        if object.flavor == "String":
+            arr = arr.tolist()
+        elif object.flavor == "VLString":
+            arr = arr.tostring().decode('utf-8')
+        elif object.flavor == "Object":
+            # We have to check for an empty array because of a
+            # possible bug in HDF5 that claims that a dataset
+            # has one record when in fact, it is empty
+            if len(arr) == 0:
+                arr = []
+            else:
+                arr = cPickle.loads(arr.tostring())
+    return arr
+
+
+def totuple(object, arr):
+    """Returns array as a (nested) tuple of elements."""
+    if len(arr._shape) == 1:
+        return tuple([ x for x in arr ])
+    else:
+        return tuple([ totuple(object, ni) for ni in arr ])
 
 
 def joinPath(parentPath, name):
@@ -316,13 +524,202 @@ def splitPath(path):
     return (ppath, name)
 
 
+def isVisibleName(name):
+    """Does this name make the named node a visible one?"""
+    return hiddenNameRE.match(name) is None
+
+
+def isVisiblePath(path):
+    """Does this path make the named node a visible one?"""
+    return hiddenPathRE.search(path) is None
+
+
+def checkFileAccess(filename, mode='r'):
+    """
+    Check for file access in the specified `mode`.
+
+    `mode` is one of the modes supported by `File` objects.  If the file
+    indicated by `filename` can be accessed using that `mode`, the
+    function ends successfully.  Else, an ``IOError`` is raised
+    explaining the reason of the failure.
+
+    All this paraphernalia is used to avoid the lengthy and scaring HDF5
+    messages produced when there are problems opening a file.  No
+    changes are ever made to the file system.
+    """
+
+    if mode == 'r':
+        # The file should be readable.
+        if not os.access(filename, os.F_OK):
+            raise IOError("``%s`` does not exist" % (filename,))
+        if not os.path.isfile(filename):
+            raise IOError("``%s`` is not a regular file" % (filename,))
+        if not os.access(filename, os.R_OK):
+            raise IOError("file ``%s`` exists but it can not be read"
+                          % (filename,))
+    elif mode == 'w':
+        if os.access(filename, os.F_OK):
+            # Since the file is not removed but replaced,
+            # it must already be accessible to read and write operations.
+            checkFileAccess(filename, 'r+')
+        else:
+            # A new file is going to be created,
+            # so the directory should be writable.
+            parentname = os.path.dirname(filename)
+            if not parentname:
+                parentname = '.'
+            if not os.access(parentname, os.F_OK):
+                raise IOError("``%s`` does not exist" % (parentname,))
+            if not os.path.isdir(parentname):
+                raise IOError("``%s`` is not a directory" % (parentname,))
+            if not os.access(parentname, os.W_OK):
+                raise IOError("directory ``%s`` exists but it can not be written"
+                              % (parentname,))
+    elif mode == 'a':
+        if os.access(filename, os.F_OK):
+            checkFileAccess(filename, 'r+')
+        else:
+            checkFileAccess(filename, 'w')
+    elif mode == 'r+':
+        checkFileAccess(filename, 'r')
+        if not os.access(filename, os.W_OK):
+            raise IOError("file ``%s`` exists but it can not be written"
+                          % (filename,))
+    else:
+        raise ValueError("invalid mode: %r" % (mode,))
+
+def fromnumpy(array, copy=False):
+    """
+    Create a new `NestedRecArray` from a numpy object.
+
+    If ``copy`` is True, the a copy of the data is made. The default is
+    not doing a copy.
+
+    Warning: The code below is currently only meant for dealing with
+    numpy objects because we need to access to the buffer of the data,
+    and this is not accessible in the current array protocol. Perhaps it
+    would be good to propose such an addition to the protocol.
+
+    Example
+    =======
+
+    >>> nra = fromnumpy(numpy.array([(1,11,'a'),(2,22,'b')], dtype='u1,f4,a1'))
+
+    """
+
+    if not (isinstance(array, numpy.ndarray) or
+            type(array) == numpy.rec.recarray or
+            type(array) == numpy.rec.record or
+            type(array) == numpy.void):    # Check scalar case.
+        raise ValueError, \
+"You need to pass a numpy object, and you passed a %s." % (type(array))
+
+    # Convert the original description based in the array protocol in
+    # something that can be understood by the NestedRecArray
+    # constructor.
+    descr = [i for i in nestedrecords.convertFromAPDescr(array.dtype.descr)]
+    # Flat the description
+    flatDescr = [i for i in nriterators.flattenDescr(descr)]
+    # Flat the structure descriptors
+    flatFormats = [i for i in nriterators.getFormatsFromDescr(flatDescr)]
+    flatNames = [i for i in nriterators.getNamesFromDescr(flatDescr)]
+    # Create a regular RecArray
+    if copy:
+        array = array.copy()  # copy the data before creating the object
+    if array.shape == ():
+        shape = 1     # Scalar case. Shape = 1 will provide an adequate buffer.
+    else:
+        shape = array.shape
+    ra = records.array(array.data, formats=flatFormats,
+                       names=flatNames,
+                       shape=shape,
+                       byteorder=sys.byteorder,
+                       aligned = False)  # aligned RecArrays not supported yet
+    # Create the nested recarray itself
+    nra = nestedrecords.NestedRecArray(ra, descr)
+
+    return nra
+
+# The next way of converting to NRA does not work because
+# nestedrecords.array factory seems too picky with buffer checks.
+# Also, this way of building the NRA does not allow to put '/'
+# in field names.
+# F. Altet 2006-01-16
+def fromnumpy_short(array):
+    """
+    Create a new `NestedRecArray` from a numpy object.
+
+    Warning: The code below is currently only meant for dealing with
+    numpy objects because we need to access to the buffer of the data,
+    and this is not accessible in the current array protocol. Perhaps it
+    would be good to propose such an addition to the protocol.
+
+    Example
+    =======
+
+    >>> nra = fromnumpy(numpy.array([(1,11,'a'),(2,22,'b')], dtype='u1,f4,a1'))
+
+    """
+
+    if not isinstance(array, numpy.ndarray):
+        raise ValueError, \
+"You need to pass a numpy object, and you passed a %." % (type(array))
+
+    # Convert the original description based in the array protocol in
+    # something that can be understood by the NestedRecArray
+    # constructor.
+    descr = [i for i in nestedrecords.convertFromAPDescr(array.dtype.descr)]
+
+    # Create the nested recarray
+    nra = nestedrecords.array(array.data, descr=descr,
+                              shape=array.shape,
+                              byteorder=sys.byteorder)
+
+    return nra
+
+def tonumpy(array, copy=False):
+    """
+    Create a new `numpy` object from a NestedRecArray object.
+
+    If ``copy`` is True, the a copy of the data is made. The default is
+    not doing a copy.
+
+
+    Example
+    =======
+
+    >>> npr = tonumpy(nestedrecords.array([(1,11,'a'),(2,22,'b')], dtype='u1,f4,a1'))
+
+    """
+
+    if not isinstance(array, nestedrecords.NestedRecArray):
+        raise ValueError, \
+"You need to pass a NestedRecArray object, and you passed a %." % (type(array))
+
+    if copy:
+        buffer = array._flatArray.copy()
+    else:
+        buffer = array._flatArray
+
+    # Create a regular numpy array from the NesteRecArray
+    npa = numpy.array(buffer, dtype=array.array_descr)
+
+    # Create a numpy recarray from the above object. I take this additional
+    # step just to wrap the original numpy object with more features.
+    # I think that when the parameter is already a numpy object there is
+    # not a copy taken place. However, this may change in the future.
+    # F. Altet 2006-01-20
+    npr = numpy.rec.array(npa)
+
+    return npr
+
 
 if __name__=="__main__":
     import sys
     import getopt
 
     usage = \
-"""usage: %s [-v] name
+"""usage: %s [-v] format   # '[("f1", [("f1", "u2"),("f2","u4")])]'
   -v means ...\n""" \
     % sys.argv[0]
     try:
@@ -334,19 +731,33 @@ if __name__=="__main__":
     if len(pargs) <> 1:
         sys.stderr.write(usage)
         sys.exit(0)
-    name = sys.argv[1]
     # default options
     verbose = 0
     # Get the options
     for option in opts:
         if option[0] == '-v':
             verbose = 1
-    # Catch the name to be validated
-    name = pargs[0]
-    checkNameValidity(name)
-    print "Correct name: '%s'" % name
-
-
+    # Catch the format
+    try:
+        format = eval(pargs[0])
+    except:
+        format = pargs[0]
+    print "format-->", format
+    # Create a numpy recarray
+    npr = numpy.zeros((3,), dtype=format)
+    print "numpy RecArray:", repr(npr)
+    # Convert it into a NestedRecArray
+    #nra = fromnumpy(npr)
+    nra = nestedrecords.array(npr)
+    print repr(nra)
+    # Convert again into numpy
+    #nra = nestedrecords.array(npr.data, descr=format, shape=(3,))
+    print "nra._formats-->", nra._formats
+    print "nra.descr-->", nra.descr
+    print "na_descr-->", nra.array_descr
+    #npr2 = numpy.array(nra._flatArray, dtype=nra.array_descr)
+    npr2 = tonumpy(nra)
+    print repr(npr2)
 
 ## Local Variables:
 ## mode: python

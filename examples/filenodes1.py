@@ -8,7 +8,7 @@ h5file = tables.openFile('fnode.h5', 'w')
 fnode = FileNode.newNode(h5file, where='/', name='fnode_test')
 
 
-print h5file.getAttrNode('/fnode_test', '_type')
+print h5file.getNodeAttr('/fnode_test', '_type')
 
 
 print >> fnode, "This is a test text line."
@@ -19,7 +19,7 @@ fnode.write("Of course, file methods can also be used.")
 fnode.seek(0)  # Go back to the beginning of file.
 
 for line in fnode:
-  print repr(line)
+    print repr(line)
 
 
 fnode.close()
@@ -36,7 +36,7 @@ print repr(fnode.readline())
 
 fnode.seek(0)
 for line in fnode:
-  print repr(line)
+    print repr(line)
 
 
 fnode.attrs.content_type = 'text/plain; charset=us-ascii'

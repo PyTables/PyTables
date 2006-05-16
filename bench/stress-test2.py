@@ -2,7 +2,7 @@ import sys, time, random, gc
 #from numarray import *
 from tables import *
 
-class Test(IsDescription): 
+class Test(IsDescription):
     ngroup = IntCol(pos=1)
     ntable = IntCol(pos=2)
     nrow = IntCol(pos=3)
@@ -43,13 +43,13 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
                 row['ntable'] = j
                 row['nrow'] = i
                 row.append()
-		    
+
             rowswritten += nrows
             table.flush()
 
         # Close the file
         fileh.close()
-    
+
     return (rowswritten, table.rowsize)
 
 def readFile(filename, ngroups, recsize, verbose):
@@ -91,11 +91,11 @@ def readFile(filename, ngroups, recsize, verbose):
                     print "Record ==>", row
                 time_1 = row["time"]
                 nrow += 1
-                    
+
             assert nrow == table.nrows
-	    rowsread += table.nrows
+            rowsread += table.nrows
             ntable += 1
-        
+
         # Close the file (eventually destroy the extended type)
         fileh.close()
 
@@ -130,13 +130,13 @@ if __name__=="__main__":
     -p use "psyco" if available
     -r only read test
     -w only write test
-    -l sets the compression library to be used ("zlib", "lzo", "ucl")
+    -l sets the compression library to be used ("zlib", "lzo", "ucl", "bzip2")
     -c sets a compression level (do not set it or 0 for no compression)
     -g number of groups hanging from "/"
     -t number of tables per group
     -i number of rows per table
 """
-    
+
     try:
         opts, pargs = getopt.getopt(sys.argv[1:], 'd:v:prwl:c:g:t:i:')
     except:
@@ -144,7 +144,7 @@ if __name__=="__main__":
         sys.exit(0)
 
     # if we pass too much parameters, abort
-    if len(pargs) <> 1: 
+    if len(pargs) <> 1:
         sys.stderr.write(usage)
         sys.exit(0)
 
@@ -195,41 +195,40 @@ if __name__=="__main__":
     if complevel > 0:
         print "Compression library:", complib
     if testwrite:
-	t1 = time.time()
-	cpu1 = time.clock()
+        t1 = time.time()
+        cpu1 = time.clock()
         if psyco_imported and usepsyco:
             psyco.bind(createFile)
-	(rowsw, rowsz) = createFile(file, ngroups, ntables, nrows,
+        (rowsw, rowsz) = createFile(file, ngroups, ntables, nrows,
                                     complevel, complib, recsize)
-	t2 = time.time()
+        t2 = time.time()
         cpu2 = time.clock()
-	tapprows = round(t2-t1, 3)
-	cpuapprows = round(cpu2-cpu1, 3)
+        tapprows = round(t2-t1, 3)
+        cpuapprows = round(cpu2-cpu1, 3)
         tpercent = int(round(cpuapprows/tapprows, 2)*100)
-	print "Rows written:", rowsw, " Row size:", rowsz
-	print "Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
+        print "Rows written:", rowsw, " Row size:", rowsz
+        print "Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
               (tapprows, cpuapprows, tpercent)
-	print "Write rows/sec: ", int(rowsw / float(tapprows))
-	print "Write KB/s :", int(rowsw * rowsz / (tapprows * 1024))
+        print "Write rows/sec: ", int(rowsw / float(tapprows))
+        print "Write KB/s :", int(rowsw * rowsz / (tapprows * 1024))
 
     if testread:
-	t1 = time.time()
+        t1 = time.time()
         cpu1 = time.clock()
         if psyco_imported and usepsyco:
             psyco.bind(readFile)
         (rowsr, rowsz, bufsz) = readFile(file, ngroups, recsize, verbose)
-	t2 = time.time()
+        t2 = time.time()
         cpu2 = time.clock()
-	treadrows = round(t2-t1, 3)
+        treadrows = round(t2-t1, 3)
         cpureadrows = round(cpu2-cpu1, 3)
         tpercent = int(round(cpureadrows/treadrows, 2)*100)
-	print "Rows read:", rowsr, " Row size:", rowsz, "Buf size:", bufsz
-	print "Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
+        print "Rows read:", rowsr, " Row size:", rowsz, "Buf size:", bufsz
+        print "Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
               (treadrows, cpureadrows, tpercent)
-	print "Read rows/sec: ", int(rowsr / float(treadrows))
-	print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))
+        print "Read rows/sec: ", int(rowsr / float(treadrows))
+        print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))
 
     # Show the dirt
     if debug > 1:
         dump_garbage()
-

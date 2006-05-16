@@ -10,7 +10,6 @@
 export DH_COMPAT=4
 
 build: build-stamp
-	/usr/bin/python2.2 setup.py build
 	/usr/bin/python2.3 setup.py build
 	/usr/bin/python2.4 setup.py build
 
@@ -36,9 +35,6 @@ install: build
 	dh_testdir
 	dh_testroot
 	dh_clean -k
-	/usr/bin/python2.2 setup.py install --no-compile --prefix=$(CURDIR)/debian/python2.2-tables/usr
-	: # Delete scripts
-	rm -rf $(CURDIR)/debian/python2.2-tables/usr/bin
 	/usr/bin/python2.3 setup.py install --no-compile --prefix=$(CURDIR)/debian/python2.3-tables/usr
 	: # Delete scripts
 	rm -rf $(CURDIR)/debian/python2.3-tables/usr/bin
@@ -68,11 +64,10 @@ binary-arch: build install
 	dh_testdir
 	dh_testroot
 
-	dh_installdocs -ppython2.2-tables README.txt changelog.gz changelog.Debian.gz
 	dh_installdocs -ppython2.3-tables README.txt changelog.gz changelog.Debian.gz
 	dh_installdocs -ppython2.4-tables README.txt changelog.gz changelog.Debian.gz
 
-	dh_python -ppython2.2-tables -ppython2.3-tables -ppython2.4-tables
+	dh_python -ppython2.3-tables -ppython2.4-tables
 
 	dh_strip -a
 	dh_compress -a -X.py

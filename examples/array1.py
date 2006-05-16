@@ -52,7 +52,7 @@ for x in arr:
 # print "Testing getitem:"
 # for i in range(root.array_1.nrows):
 #     print "array_1["+str(i)+"]", "-->", root.array_1[i]
-    
+
 print "array_f[:,2:3,2::2]", repr(root.array_f[:,2:3,2::2])
 print "array_f[1,2:]", repr(root.array_f[1,2:])
 print "array_f[1]", repr(root.array_f[1])

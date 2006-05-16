@@ -1,13 +1,7 @@
-#include <string.h>
-#include "H5LT.h"
-#include "Python.h"
+#ifndef __H5ZUCL_H__
+#define __H5ZUCL_H__ 1
 
 #define FILTER_UCL 306
+int register_ucl(char **version, char **date);
 
-int register_ucl(void);
-
-size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
-		   const unsigned int cd_values[], size_t nbytes,
-		   size_t *buf_size, void **buf);
-
-PyObject *getUCLVersionInfo(void);
+#endif /* ! defined __H5ZUCL_H__ */

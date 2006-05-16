@@ -4,7 +4,6 @@
 #       Created: October 14, 2002
 #       Author:  Francesc Altet - faltet@carabos.com
 #
-#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/Leaf.py,v $
 #       $Id$
 #
 ########################################################################
@@ -30,13 +29,15 @@ Misc variables:
 
 import warnings
 
+import tables
 import tables.hdf5Extension as hdf5Extension
+import tables.utilsExtension as utilsExtension
 from tables.utils import processRangeRead
 from tables.Node import Node
 
 
 
-__version__ = "$Revision: 1.59 $"
+__version__ = "$Revision$"
 
 
 
@@ -54,14 +55,14 @@ class Filters(object):
 
     def __init__(self, complevel=0, complib="zlib", shuffle=1, fletcher32=0):
         """Create a new Filters instance
-        
-        compress -- Specifies a compress level for data. The allowed
+
+        complevel -- Specifies a compress level for data. The allowed
             range is 0-9. A value of 0 disables compression and this
             is the default.
 
         complib -- Specifies the compression library to be used. Right
-            now, "zlib", "lzo" and "ucl" values are supported. If None,
-            then "zlib" is choosed.
+            now, 'zlib', 'lzo', 'ucl' and 'bzip2' values are supported.
+            If None, then 'zlib' is chosen.
 
         shuffle -- Whether or not to use the shuffle filter in the
             HDF5 library. This is normally used to improve the
@@ -75,12 +76,20 @@ class Filters(object):
             the HDF5 library. This is used to add a checksum on each
             data chunk. A value of 0 disables the checksum and it is
             the default.
+        """
 
-            """
+        libnames = ('zlib', 'lzo', 'ucl', 'bzip2', 'szip')
+
         if complib is None:
             complib = "zlib"
-        if complib not in ["zlib","lzo","ucl","szip"]:
-            raise ValueError, "Wrong \'complib\' parameter value: '%s'. It only can take the values: 'zlib', 'lzo' and 'ucl'." %  (str(complib))
+        if complib not in libnames:
+            raise ValueError("unsupported library %r; it must be one of %s"
+                             % (complib, str(libnames)[1:-1]))
+        if complib == "ucl":
+            warnings.warn(DeprecationWarning("""\
+UCL is being deprecated. Please, try to avoid using it if you can.
+You can use the ptrepack utility to migrate datafiles compressed with UCL."""))
+
         if shuffle and not complevel:
             # Shuffling and not compressing makes non sense
             shuffle = 0
@@ -88,7 +97,7 @@ class Filters(object):
         self.shuffle = shuffle
         self.fletcher32 = fletcher32
         # Select the library to do compression
-        if hdf5Extension.whichLibVersion(complib)[0]:
+        if utilsExtension.whichLibVersion(complib) is not None:
             self.complib = complib
         else:
             warnings.warn( \
@@ -114,12 +123,14 @@ class Filters(object):
         filters += ", fletcher32=%s" % (self.fletcher32)
         filters += ")"
         return filters
-    
+
     def __str__(self):
         """The string reprsentation choosed for this object.
         """
-        
+
         return repr(self)
+
+
 
 class Leaf(Node):
     """A class to place common functionality of all Leaf objects.
@@ -171,6 +182,8 @@ class Leaf(Node):
         Move or rename this node.
     copy([newparent][, newname][, overwrite][, **kwags])
         Copy this node and return the new one.
+    isVisible()
+        Is this node visible?
 
     getAttr(name)
         Get a PyTables attribute from this node.
@@ -184,13 +197,13 @@ class Leaf(Node):
 
     # These are a little hard to override, but so are properties.
 
-    # 'attrs' is an alias of '_v_attrs'.
+    # `attrs` is an alias of `_v_attrs`.
     attrs = Node._v_attrs
-    # 'title' is an alias of '_v_title'.
+    # `title` is an alias of `_v_title`.
     title = Node._v_title
 
 
-    # The following are read-only aliases of their Node counterparts.
+    # The following are read-only aliases of their `Node` counterparts.
 
     def _g_getname(self):
         return self._v_name
@@ -210,64 +223,53 @@ class Leaf(Node):
         _g_getobjectid, None, None,
         "The identifier of this node in the hosting HDF5 file.")
 
+
+    # `filters` is defined as a lazy read-only attribute.
+
+    def _getfilters(self):
+        mydict = self.__dict__
+        if 'filters' in mydict:
+            return mydict['filters']
+        else:
+            mydict['filters'] = filters = self._g_getFilters()
+            return filters
+
+    filters = property(_getfilters, None, None,
+                       "Filter properties for this leaf.")
+
     # </properties>
 
 
-    def _g_putUnder(self, parent, name):
-        # All this will eventually end up in the node constructor.
+    def __init__(self, parentNode, name,
+                 new=False, filters=None,
+                 log=True):
+        self._v_new = new
+        """Is this the first time the node has been created?"""
 
-        super(Leaf, self)._g_putUnder(parent, name)
-
-        # Update class variables
-        if self._v_new:
-            # Set the filters instance variable
-            self.filters = self._g_setFilters(self._v_new_filters)
-            self._create()
-                        
-            # Write the Filters object to an attribute. This will not
-            # be necessary for now, as retrieving the filters using
-            # hdf5Extension._getFilters is safer and faster. Also,
-            # cPickling the filters attribute is very slow (it is as
-            # much as twice slower than the normal overhead for
-            # creating a Table, for example).
-            #self._v_attrs._g_setAttr("FILTERS", self.filters)
-        else:
-            self.filters = self._g_getFilters()
-            self._open()
-
-
-    def _g_setFilters(self, filters):
-        if filters is None:
-            # If no filters passed, check the parent defaults
-            filters = self._v_parent._v_filters
+        if new:
             if filters is None:
-                # The parent group has not filters defaults
-                # Return the defaults
-                return Filters()
-        return filters
+                # If no filter properties have been given,
+                # get the default onesfilter from the parent.
+                filters = parentNode._v_filters
+            self.__dict__['filters'] = filters  # bypass the property
+            # Writing the `Filters` object to an attribute on disk is
+            # not necessary for now, as retrieving the filters using
+            # `utilsExtension.getFilters()` is safer and faster.
+            # Also, cPickling the `filters` attribute is very slow (it
+            # is as much as twice slower than the normal overhead for
+            # creating a Table, for example).
+
+        # Existing filters need not be read since `filters`
+        # is a lazy property that automatically handles their loading.
+
+        super(Leaf, self).__init__(parentNode, name, log)
+
 
     def _g_getFilters(self):
-        # Try to get the filters object in attribute FILTERS
-        # Reading the FILTERS attribute is far more slower
-        # than using _getFilters, although I don't know exactly why.
-        # This is possibly because it forces the creation of the AttributeSet
-#         filters = self._v_attrs.FILTERS
-#         if filters is not None:
-#             return filters
-        #Besides, using _g_getSysAttr is not an option because if the
-        #FILTERS attribute does not exist, the HDF5 layer complains
-#         filters = self._v_parent._v_attrs._g_getSysAttr("FILTERS")
-#         if filters <> None:
-#             try:
-#                 filters = cPickle.loads(filters)
-#             except cPickle.UnpicklingError:
-#                 filters = None
-#             return filters
-        
         # Create a filters instance with default values
         filters = Filters()
         # Get a dictionary with all the filters
-        filtersDict = hdf5Extension._getFilters(self._v_parent._v_objectID,
+        filtersDict = utilsExtension.getFilters(self._v_parent._v_objectID,
                                                 self._v_hdf5name)
         if filtersDict:
             for name in filtersDict:
@@ -276,6 +278,9 @@ class Leaf(Node):
                     filters.complevel = filtersDict[name][0]
                 elif name.startswith("ucl"):
                     filters.complib = "ucl"
+                    filters.complevel = filtersDict[name][0]
+                elif name.startswith("bzip2"):
+                    filters.complib = "bzip2"
                     filters.complevel = filtersDict[name][0]
                 elif name.startswith("deflate"):
                     filters.complib = "zlib"
@@ -289,10 +294,11 @@ class Leaf(Node):
                     filters.shuffle = 1
                 elif name.startswith("fletcher32"):
                     filters.fletcher32 = 1
+
         return filters
 
 
-    def _g_copy(self, newParent, newName, recursive, **kwargs):
+    def _g_copy(self, newParent, newName, recursive, log, **kwargs):
         # Compute default arguments.
         start = kwargs.get('start', 0)
         stop = kwargs.get('stop', self.nrows)
@@ -311,7 +317,7 @@ class Leaf(Node):
 
         # Create a copy of the object.
         (newNode, bytes) = self._g_copyWithStats(
-            newParent, newName, start, stop, step, title, filters)
+            newParent, newName, start, stop, step, title, filters, log)
 
         # Copy user attributes if needed.
         if kwargs.get('copyuserattrs', True):
@@ -323,12 +329,6 @@ class Leaf(Node):
             stats['bytes'] += bytes
 
         return newNode
-
-
-    def _g_remove(self, recursive=False):
-        parent = self._v_parent
-        parent._g_deleteLeaf(self._v_name)
-        self.close(flush=0)
 
 
     def remove(self):
@@ -395,6 +395,15 @@ class Leaf(Node):
         return self._f_copy(newparent, newname, overwrite, **kwargs)
 
 
+    def isVisible(self):
+        """
+        Is this node visible?
+
+        This method has the behavior described in `Node._f_isVisible()`.
+        """
+        return self._f_isVisible()
+
+
     # <attribute handling>
 
     def getAttr(self, name):
@@ -432,8 +441,7 @@ class Leaf(Node):
 
         Saves whatever remaining buffered data to disk.
         """
-        # Call the H5Fflush with this Leaf
-	hdf5Extension.flush_leaf(self._v_parent, self._v_hdf5name)
+        self._g_flush()
 
 
     def _f_close(self, flush=True):
@@ -445,25 +453,17 @@ class Leaf(Node):
         flush pending data to disk or not before closing.
         """
 
+        if not self._f_isOpen():
+            return  # the node is already closed
+
         if flush:
             self.flush()
 
-        self._v_parent._g_unrefNode(self._v_name)
-        self._g_delLocation()
+        # Close the dataset and release resources
+        self._g_close()
 
-        del self.filters
-
-        # Close and remove AttributeSet only if it has already been placed
-        # in the object's dictionary.
-        mydict = self.__dict__
-        if '_v_attrs' in mydict:
-            self._v_attrs._f_close()
-            del mydict['_v_attrs']
-
-        # After the objects are disconnected, destroy the
-        # object dictionary using the brute force ;-)
-        # This should help to the garbage collector
-        #self.__dict__.clear()
+        # Close myself as a node.
+        super(Leaf, self)._f_close()
 
 
     def close(self, flush=True):
@@ -475,6 +475,15 @@ class Leaf(Node):
         self._f_close(flush)
 
 
+    def isOpen(self):
+        """
+        Is this node open?
+
+        This method is completely equivalent to ``_f_isOpen()``.
+        """
+        return self._f_isOpen()
+
+
     def __len__(self):
         "Useful for dealing with Leaf objects as sequences"
         return self.nrows
@@ -483,7 +492,7 @@ class Leaf(Node):
         """The string reprsentation choosed for this object is its pathname
         in the HDF5 object tree.
         """
-        
+
         # Get this class name
         classname = self.__class__.__name__
         # The title
@@ -500,3 +509,11 @@ class Leaf(Node):
         return "%s (%s%s%s) %r" % \
                (self._v_pathname, classname, self.shape, filters, title)
 
+
+
+## Local Variables:
+## mode: python
+## py-indent-offset: 4
+## tab-width: 4
+## fill-column: 72
+## End:

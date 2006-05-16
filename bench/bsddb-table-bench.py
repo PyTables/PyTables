@@ -23,7 +23,7 @@ class Small(IsDescription):
     values will become their types. The IsColDescr class will take care
     the user will not add any new variables and that its type is
     correct."""
-    
+
     var1 = Col("CharType", 16, "")
     var2 = Col("Int32", 1, 0)
     var3 = Col("Float64", 1, 0)
@@ -54,7 +54,7 @@ class Big(IsDescription):
     energy      = Col("Float64", 1, 0)    # double (double-precision)
 
 def createFile(filename, totalrows, recsize, verbose):
-    
+
     # Open a 'n'ew file
     dd = db.DB()
     if recsize == "big":
@@ -91,7 +91,7 @@ def createFile(filename, totalrows, recsize, verbose):
              }
         for i in xrange(totalrows):
             #d['name']  = 'Particle: %6d' % (i)
-            #d['TDCcount'] = i % 256    
+            #d['TDCcount'] = i % 256
             d['ADCcount'] = (i * 256) % (1 << 16)
             if recsize == "big":
                 #d.float1 = NA.array([i]*32, NA.Float64)
@@ -104,7 +104,7 @@ def createFile(filename, totalrows, recsize, verbose):
             else:
                 d['float1'] = float(i)
                 d['float2'] = float(i)
-            d['grid_i'] = i 
+            d['grid_i'] = i
             d['grid_j'] = 10 - i
             d['pressure'] = float(i*i)
             d['energy'] = d['pressure']
@@ -121,11 +121,11 @@ def createFile(filename, totalrows, recsize, verbose):
             d['var2'] = i
             d['var3'] = 12.1e10
             dd.append(cPickle.dumps(d))
-            #dd.append(struct.pack(isrec._v_fmt, d['var1'], d['var2'], d['var3'])) 
+            #dd.append(struct.pack(isrec._v_fmt, d['var1'], d['var2'], d['var3']))
 
     rowswritten += totalrows
 
-                
+
     # Close the file
     dd.close()
     return (rowswritten, struct.calcsize(isrec._v_fmt))
@@ -179,7 +179,7 @@ def readFile(filename, recsize, verbose):
     print "resulting selection list ==>", e
     print "last record read ==>", record
     print "Total selected records ==> ", len(e)
-        
+
     # Close the file (eventually destroy the extended type)
     dd.close()
 
@@ -202,7 +202,7 @@ if __name__=="__main__":
         sys.exit(0)
 
     # if we pass too much parameters, abort
-    if len(pargs) <> 1: 
+    if len(pargs) <> 1:
         sys.stderr.write(usage)
         sys.exit(0)
 
@@ -231,7 +231,7 @@ if __name__=="__main__":
     (rowsw, rowsz) = createFile(file, iterations, recsize, verbose)
     t2 = time.clock()
     tapprows = round(t2-t1, 3)
-    
+
     t1 = time.clock()
     psyco.bind(readFile)
     readFile(file, recsize, verbose)
@@ -247,4 +247,3 @@ if __name__=="__main__":
     if treadrows > 0.:
         print "Read rows/sec: ", int(iterations / float(treadrows))
         print "Read KB/s :", int(rowsw * rowsz / (treadrows * 1024))
-    

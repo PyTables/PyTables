@@ -1,17 +1,18 @@
-#include "H5LT.h"
+#include "H5ATTR.h"
 
 #include "tables.h"
-#include "H5Zlzo.h"
-#include "H5Zucl.h"
 #include "utils.h"
+#include "H5Zlzo.h"  		       /* Import FILTER_LZO */
+#include "H5Zucl.h"  		       /* Import FILTER_UCL */
+#include "H5Zbzip2.h"  		       /* Import FILTER_BZIP2 */
 
 #include <string.h>
 #include <stdlib.h>
 
 /*-------------------------------------------------------------------------
- * 
+ *
  * Public functions
- * 
+ *
  *-------------------------------------------------------------------------
  */
 /*-------------------------------------------------------------------------
@@ -27,21 +28,16 @@
  *
  * Comments: Modified by F. Altet. November 07, 2003
  *
- * Modifications: This is the same routine as H5LTmake_dataset, but I've 
- *                added a TITLE attribute for array, as well as 
- *                CLASS and VERSION attributes.
- *
- *
  *-------------------------------------------------------------------------
  */
 
-herr_t H5ARRAYmake( hid_t loc_id, 
+herr_t H5ARRAYmake( hid_t loc_id,
 		    const char *dset_name,
-		    const char *klass,
+		    const char *class_,
 		    const char *title,
 		    const char *flavor,
 		    const char *obversion,    /* The Array VERSION number */
-		    const int rank, 
+		    const int rank,
 		    const hsize_t *dims,
 		    int   extdim,
 		    hid_t type_id,
@@ -54,7 +50,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
 		    const void *data)
 {
 
- hid_t   dataset_id, space_id, datatype;  
+ hid_t   dataset_id, space_id;
  hsize_t *maxdims = NULL;
  hid_t   plist_id = 0;
  unsigned int cd_values[3];
@@ -62,12 +58,14 @@ herr_t H5ARRAYmake( hid_t loc_id,
  int     i;
 
  /* Check if the array has to be chunked or not */
- if (extdim >= 0) {
+ /*if (extdim >= 0) {*/
+ if (dims_chunk) {
    chunked = 1;
  }
 
- if (chunked) {
+ if(chunked) {
    maxdims = malloc(rank*sizeof(hsize_t));
+   if(!maxdims) return -1;
 
    for(i=0;i<rank;i++) {
 /*      printf("dims_chunk[%d]: %d\n", i, dims_chunk[i]); */
@@ -75,7 +73,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
        maxdims[i] = H5S_UNLIMITED;
      }
      else {
-       maxdims[i] = dims[i];
+       maxdims[i] = dims[i] < dims_chunk[i] ? dims_chunk[i] : dims[i];
      }
    }
  }
@@ -83,10 +81,6 @@ herr_t H5ARRAYmake( hid_t loc_id,
  /* Create the data space for the dataset. */
  if ( (space_id = H5Screate_simple( rank, dims, maxdims )) < 0 )
    return -1;
- /*
-  * Define atomic datatype for the data in the file.
-  */
- datatype = type_id;
 
  if (chunked) {
    /* Modify dataset creation properties, i.e. enable chunking  */
@@ -97,12 +91,12 @@ herr_t H5ARRAYmake( hid_t loc_id,
    /* Set the fill value using a struct as the data type. */
    if ( fill_data)
      {
-       if ( H5Pset_fill_value( plist_id, datatype, fill_data ) < 0 ) 
+       if ( H5Pset_fill_value( plist_id, type_id, fill_data ) < 0 )
 	 return -1;
      }
 
-   /* 
-      Dataset creation property list is modified to use 
+   /*
+      Dataset creation property list is modified to use
    */
 
    /* Fletcher must be first */
@@ -119,8 +113,8 @@ herr_t H5ARRAYmake( hid_t loc_id,
    if (compress) {
      cd_values[0] = compress;
      cd_values[1] = (int)(atof(obversion) * 10);
-     if (extdim <0) 
-       cd_values[2] = Array;
+     if (extdim <0)
+       cd_values[2] = CArray;
      else
        cd_values[2] = EArray;
 
@@ -139,6 +133,11 @@ herr_t H5ARRAYmake( hid_t loc_id,
        if ( H5Pset_filter( plist_id, FILTER_UCL, H5Z_FLAG_OPTIONAL, 3, cd_values) < 0 )
 	 return -1;
      }
+     /* The bzip2 compress does accept parameters */
+     else if (strcmp(complib, "bzip2") == 0) {
+       if ( H5Pset_filter( plist_id, FILTER_BZIP2, H5Z_FLAG_OPTIONAL, 3, cd_values) < 0 )
+	 return -1;
+     }
      else {
        /* Compression library not supported */
        fprintf(stderr, "Compression library not supported\n");
@@ -147,30 +146,26 @@ herr_t H5ARRAYmake( hid_t loc_id,
    }
 
    /* Create the (chunked) dataset */
-   if ((dataset_id = H5Dcreate(loc_id, dset_name, datatype,
+   if ((dataset_id = H5Dcreate(loc_id, dset_name, type_id,
 			       space_id, plist_id )) < 0 )
      goto out;
- }  
+ }
  else {  			/* Not chunked case */
    /* Create the dataset. */
-   if ((dataset_id = H5Dcreate(loc_id, dset_name, datatype,
+   if ((dataset_id = H5Dcreate(loc_id, dset_name, type_id,
 			       space_id, H5P_DEFAULT )) < 0 )
      goto out;
  }
 
  /* Write the dataset only if there is data to write */
 
- if (data) 
+ if (data)
  {
-   if ( H5Dwrite( dataset_id, datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
+   if ( H5Dwrite( dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
    goto out;
  }
 
- /* End access to the dataset and release resources used by it. */
- if ( H5Dclose( dataset_id ) < 0 )
-  return -1;
-
- /* Terminate access to the data space. */ 
+ /* Terminate access to the data space. */
  if ( H5Sclose( space_id ) < 0 )
   return -1;
 
@@ -183,26 +178,27 @@ herr_t H5ARRAYmake( hid_t loc_id,
  * Set the conforming array attributes
  *-------------------------------------------------------------------------
  */
-    
+
  /* Attach the CLASS attribute */
- if ( H5LTset_attribute_string( loc_id, dset_name, "CLASS", klass ) < 0 )
+ if ( H5ATTRset_attribute_string( dataset_id, "CLASS", class_ ) < 0 )
      goto out;
  if (extdim >= 0) {
    /* Attach the EXTDIM attribute in case of enlargeable arrays */
-   if ( H5LTset_attribute_int( loc_id, dset_name, "EXTDIM", &extdim, 1 ) < 0 )
+   if (H5ATTR_set_attribute_numerical(dataset_id, "EXTDIM",
+                                    H5T_NATIVE_INT, &extdim) < 0 )
      goto out;
  }
-   
+
  /* Attach the FLAVOR attribute */
- if ( H5LTset_attribute_string( loc_id, dset_name, "FLAVOR", flavor ) < 0 )
+ if ( H5ATTRset_attribute_string( dataset_id, "FLAVOR", flavor ) < 0 )
    goto out;
 
  /* Attach the VERSION attribute */
- if ( H5LTset_attribute_string( loc_id, dset_name, "VERSION", obversion ) < 0 )
+ if ( H5ATTRset_attribute_string( dataset_id, "VERSION", obversion ) < 0 )
   goto out;
-     
+
  /* Attach the TITLE attribute */
- if ( H5LTset_attribute_string( loc_id, dset_name, "TITLE", title ) < 0 )
+ if ( H5ATTRset_attribute_string( dataset_id, "TITLE", title ) < 0 )
   goto out;
 
  /* Release resources */
@@ -213,7 +209,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
 
 out:
  H5Dclose( dataset_id );
- H5Sclose( space_id ); 
+ H5Sclose( space_id );
  if (maxdims)
    free(maxdims);
  if (dims_chunk)
@@ -230,44 +226,34 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmers: 
+ * Programmers:
  *  Francesc Altet
  *
  * Date: October 30, 2003
  *
  * Comments: Uses memory offsets
  *
- * Modifications: 
+ * Modifications:
  *
  *
  *-------------------------------------------------------------------------
  */
 
 
-herr_t H5ARRAYappend_records( hid_t loc_id, 
-			      const char *dset_name,
+herr_t H5ARRAYappend_records( hid_t dataset_id,
+			      hid_t type_id,
 			      const int rank,
 			      hsize_t *dims_orig,
 			      hsize_t *dims_new,
 			      int extdim,
-			      const void *data )  
+			      const void *data )
 {
 
- hid_t    dataset_id;
- hid_t    type_id;
  hid_t    space_id;
  hid_t    mem_space_id;
  hsize_t  *dims = NULL;  	/* Shut up the compiler */
- hssize_t *start = NULL;        /* Shut up the compiler */
+ hsize_t  *start = NULL;        /* Shut up the compiler */
  int      i;
-
- /* Open the dataset. */
- if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
-  goto out;
-
- /* Get the datatype */
- if ( (type_id = H5Dget_type( dataset_id )) < 0 )
-  goto out;
 
  /* Compute the arrays for new dimensions and coordinates and extents */
  dims = malloc(rank*sizeof(hsize_t));
@@ -277,7 +263,7 @@ herr_t H5ARRAYappend_records( hid_t loc_id,
    start[i] = 0;
  }
  dims[extdim] += dims_new[extdim];
- start[extdim] = (hssize_t)dims_orig[extdim];
+ start[extdim] = (hsize_t )dims_orig[extdim];
 
  /* Extend the dataset */
  if ( H5Dextend ( dataset_id, dims ) < 0 )
@@ -304,16 +290,8 @@ herr_t H5ARRAYappend_records( hid_t loc_id,
  /* Terminate access to the dataspace */
  if ( H5Sclose( mem_space_id ) < 0 )
   goto out;
- 
- if ( H5Sclose( space_id ) < 0 )
-  goto out;
- 
- /* Release the datatype. */
- if ( H5Tclose( type_id ) < 0 )
-  goto out;
 
- /* End access to the dataset */
- if ( H5Dclose( dataset_id ) < 0 )
+ if ( H5Sclose( space_id ) < 0 )
   goto out;
 
  /* Release resources */
@@ -323,7 +301,6 @@ herr_t H5ARRAYappend_records( hid_t loc_id,
 return 0;
 
 out:
- H5Dclose( dataset_id );
  if (start) free(start);
  if (dims) free(dims);
  return -1;
@@ -337,7 +314,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmers: 
+ * Programmers:
  *  Francesc Altet
  *
  * Date: October 26, 2004
@@ -352,65 +329,43 @@ out:
  */
 
 
-herr_t H5ARRAYwrite_records( hid_t loc_id, 
-			     const char *dset_name,
+herr_t H5ARRAYwrite_records( hid_t dataset_id,
+			     hid_t type_id,
 			     const int rank,
 			     hsize_t *start,
 			     hsize_t *step,
 			     hsize_t *count,
-			     const void *data )  
+			     const void *data )
 {
 
- hid_t    dataset_id;
- hid_t    type_id;
  hid_t    space_id;
  hid_t    mem_space_id;
- herr_t   retval;
-
- /* Open the dataset. */
- if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
-  return -1;
-
- /* Get the datatype */
- else if ( (type_id = H5Dget_type( dataset_id )) < 0 )
-  retval = -2;
 
  /* Create a simple memory data space */
- else if ( (mem_space_id = H5Screate_simple( rank, count, NULL )) < 0 )
-  retval = -3;
+ if ( (mem_space_id = H5Screate_simple( rank, count, NULL )) < 0 )
+   return -3;
 
  /* Get the file data space */
- else if ( (space_id = H5Dget_space( dataset_id )) < 0 )
-  retval = -4;
+ if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+  return -4;
 
  /* Define a hyperslab in the dataset */
- else if ( rank != 0 && H5Sselect_hyperslab( space_id, H5S_SELECT_SET, start,
-					     step, count, NULL) < 0 )
-  retval = -5;
+ if ( rank != 0 && H5Sselect_hyperslab( space_id, H5S_SELECT_SET, start,
+					step, count, NULL) < 0 )
+  return -5;
 
- else if ( H5Dwrite( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT,
-		     data ) < 0 )
-  retval = -6;
+ if ( H5Dwrite( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
+   return -6;
 
  /* Terminate access to the dataspace */
- else if ( H5Sclose( mem_space_id ) < 0 )
-  retval = -7;
- 
- else if ( H5Sclose( space_id ) < 0 )
-  retval = -8;
- 
- /* Release the datatype. */
- else if ( H5Tclose( type_id ) < 0 )
-  retval = -9;
+ if ( H5Sclose( mem_space_id ) < 0 )
+   return -7;
 
- else
-  retval = 0;
+ if ( H5Sclose( space_id ) < 0 )
+   return -8;
 
- /* End access to the dataset */
- if ( H5Dclose( dataset_id ) < 0 )
-  return retval - 10;
- else
-  return retval;
+ /* Everything went smoothly */
+ return 0;
 }
 
 
@@ -421,39 +376,33 @@ herr_t H5ARRAYwrite_records( hid_t loc_id,
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmers: 
+ * Programmers:
  *  Francesc Altet
  *
  * Date: November 19, 2004
  *
  * Comments:
  *
- * Modifications: 
+ * Modifications:
  *
  *
  *-------------------------------------------------------------------------
  */
 
 
-herr_t H5ARRAYtruncate( hid_t loc_id, 
-			const char *dset_name,
+herr_t H5ARRAYtruncate( hid_t dataset_id,
 			const int extdim,
 			const hsize_t size)
 {
- hid_t    dataset_id;
+
  hid_t    space_id;
  hsize_t  *dims = NULL;
  int      rank;
 
-/*  printf("size (1): %d\n", size); */
- /* Open the dataset. */
- if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
-  goto out;
-
   /* Get the dataspace handle */
  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
   goto out;
- 
+
  /* Get the rank */
  if ( (rank = H5Sget_simple_extent_ndims(space_id)) < 0 )
    goto out;
@@ -489,18 +438,13 @@ herr_t H5ARRAYtruncate( hid_t loc_id,
  if ( H5Sclose( space_id ) < 0 )
    return -1;
 
- /* End access to the dataset */
- if ( H5Dclose( dataset_id ) < 0 )
-  return -1;
-
  return 0;
 
 out:
- H5Dclose( dataset_id );
  if (dims) free(dims);
  return -1;
 
-}  
+}
 
 
 /*-------------------------------------------------------------------------
@@ -517,25 +461,25 @@ out:
  *-------------------------------------------------------------------------
  */
 
-herr_t H5ARRAYread( hid_t loc_id, 
-		    const char *dset_name,
+herr_t H5ARRAYread( hid_t dataset_id,
+		    hid_t type_id,
 		    hsize_t start,
 		    hsize_t nrows,
 		    hsize_t step,
 		    int extdim,
 		    void *data )
 {
- hid_t    dataset_id;  
+
  hid_t    space_id;
  hid_t    mem_space_id;
- hid_t    type_id;
  hsize_t  *dims = NULL;
- hsize_t  *count = NULL;    
- hsize_t  *stride = NULL;    
- hssize_t *offset = NULL;
+ hsize_t  *count = NULL;
+ hsize_t  *stride = NULL;
+ hsize_t  *offset = NULL;
  int      rank;
  int      i;
  int      _extdim;
+
 
  /* If dataset is not extensible, choose the first dimension as selectable */
  if (extdim < 0)
@@ -543,18 +487,10 @@ herr_t H5ARRAYread( hid_t loc_id,
  else
    _extdim = extdim;
 
- /* Open the dataset. */
- if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
-  return -1;
- 
- /* Get the datatype */
- if ( (type_id = H5Dget_type(dataset_id)) < 0 )
-     return -1;
- 
   /* Get the dataspace handle */
  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
   goto out;
- 
+
  /* Get the rank */
  if ( (rank = H5Sget_simple_extent_ndims(space_id)) < 0 )
    goto out;
@@ -565,7 +501,7 @@ herr_t H5ARRAYread( hid_t loc_id,
    dims = (hsize_t *)malloc(rank*sizeof(hsize_t));
    count = (hsize_t *)malloc(rank*sizeof(hsize_t));
    stride = (hsize_t *)malloc(rank*sizeof(hsize_t));
-   offset = (hssize_t *)malloc(rank*sizeof(hsize_t));
+   offset = (hsize_t  *)malloc(rank*sizeof(hsize_t));
 
    /* Get dataset dimensionality */
    if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
@@ -618,18 +554,9 @@ herr_t H5ARRAYread( hid_t loc_id,
  if ( H5Sclose( space_id ) < 0 )
   goto out;
 
- /* End access to the dataset and release resources used by it. */
- if ( H5Dclose( dataset_id ) )
-  return -1;
-
- /* Close the vlen type */
- if ( H5Tclose(type_id))
-   return -1;
-
  return 0;
 
 out:
- H5Dclose( dataset_id );
  if (dims) free(dims);
  if (count) free(count);
  if (stride) free(stride);
@@ -637,7 +564,7 @@ out:
  return -1;
 
 }
-  
+
 
 /*-------------------------------------------------------------------------
  * Function: H5ARRAYreadSlice
@@ -653,36 +580,28 @@ out:
  *-------------------------------------------------------------------------
  */
 
-herr_t H5ARRAYreadSlice( hid_t loc_id, 
-			 const char *dset_name,
+herr_t H5ARRAYreadSlice( hid_t dataset_id,
+			 hid_t type_id,
 			 hsize_t *start,
 			 hsize_t *stop,
 			 hsize_t *step,
 			 void *data )
 {
- hid_t    dataset_id;  
+
  hid_t    space_id;
  hid_t    mem_space_id;
- hid_t    type_id;
  hsize_t  *dims = NULL;
  hsize_t  *count = NULL;
  hsize_t  *stride = (hsize_t *)step;
- hssize_t *offset = (hssize_t *)start;
+ hsize_t  *offset = (hsize_t *)start;
  int      rank;
  int      i;
 
- /* Open the dataset. */
- if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
-  return -1;
- 
- /* Get the datatype */
- if ( (type_id = H5Dget_type(dataset_id)) < 0 )
-     return -1;
- 
+/*  printf("H5ARRAYreadSlice.dataset_id-->%ld\n", dataset_id); */
   /* Get the dataspace handle */
  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
   goto out;
- 
+
  /* Get the rank */
  if ( (rank = H5Sget_simple_extent_ndims(space_id)) < 0 )
    goto out;
@@ -699,12 +618,6 @@ herr_t H5ARRAYreadSlice( hid_t loc_id,
 
    for(i=0;i<rank;i++) {
      count[i] = ((stop[i] - start[i] - 1) / step[i]) + 1;
-/*      printf("dims[%d]: %d\n", i, (int)dims[i]); */
-/*      printf("start[%d]: %d\n", i, (int)start[i]); */
-/*      printf("stop[%d]: %d\n", i, (int)stop[i]); */
-/*      printf("offset[%d]: %d\n", i, (int)offset[i]); */
-/*      printf("count[%d]: %d\n", i, (int)count[i]); */
-/*      printf("stride[%d]: %d\n", i, (int)stride[i]); */
      if ( stop[i] > dims[i] ) {
        printf("Asking for a range of rows exceeding the available ones!.\n");
        goto out;
@@ -742,24 +655,16 @@ herr_t H5ARRAYreadSlice( hid_t loc_id,
  if ( H5Sclose( space_id ) < 0 )
   goto out;
 
- /* End access to the dataset and release resources used by it. */
- if ( H5Dclose( dataset_id ) )
-  return -1;
-
- /* Close the vlen type */
- if ( H5Tclose(type_id))
-   return -1;
-
  return 0;
 
 out:
- H5Dclose( dataset_id );
+/*  H5Dclose( dataset_id ); */
  if (dims) free(dims);
  if (count) free(count);
  return -1;
 
 }
-  
+
 
 /*   The next represents a try to implement getCoords for != operator */
 /*   but it turned out to be too difficult, well, at least to me :( */
@@ -778,39 +683,30 @@ out:
  *-------------------------------------------------------------------------
  */
 
-herr_t H5ARRAYreadIndex( hid_t loc_id, 
-			 const char *dset_name,
-			 int notequal,
+herr_t H5ARRAYreadIndex( hid_t   dataset_id,
+			 hid_t   type_id,
+			 int     notequal,
 			 hsize_t *start,
 			 hsize_t *stop,
 			 hsize_t *step,
-			 void *data )
+			 void    *data )
 {
- hid_t    dataset_id;  
- hid_t    space_id;
+
  hid_t    mem_space_id;
- hid_t    type_id;
+ hid_t    space_id;
  hsize_t  *dims = NULL;
  hsize_t  *count = NULL;
  hsize_t  *count2 = NULL;
  hsize_t  *offset2 = NULL;
  hsize_t  *stride = (hsize_t *)step;
- hssize_t *offset = (hssize_t *)start;
+ hsize_t  *offset = (hsize_t *)start;
  int      rank;
  int      i;
 
- /* Open the dataset. */
- if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
-  return -1;
- 
- /* Get the datatype */
- if ( (type_id = H5Dget_type(dataset_id)) < 0 )
-     return -1;
- 
   /* Get the dataspace handle */
  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
   goto out;
- 
+
  /* Get the rank */
  if ( (rank = H5Sget_simple_extent_ndims(space_id)) < 0 )
    goto out;
@@ -829,12 +725,6 @@ herr_t H5ARRAYreadIndex( hid_t loc_id,
 
    for(i=0;i<rank;i++) {
      count[i] = ((stop[i] - start[i] - 1) / step[i]) + 1;
-/*      printf("dims[%d]: %d\n", i, (int)dims[i]); */
-/*      printf("start[%d]: %d\n", i, (int)start[i]); */
-/*      printf("stop[%d]: %d\n", i, (int)stop[i]); */
-/*      printf("offset[%d]: %d\n", i, (int)offset[i]); */
-/*      printf("count[%d]: %d\n", i, (int)count[i]); */
-/*      printf("stride[%d]: %d\n", i, (int)stride[i]); */
      if ( stop[i] > dims[i] ) {
        printf("Asking for a range of rows exceeding the available ones!.\n");
        goto out;
@@ -850,10 +740,10 @@ herr_t H5ARRAYreadIndex( hid_t loc_id,
      offset2[0] = offset[0]; count2[0] = count[0];
      offset2[1] = 0; count2[1] = dims[1]; /* All the row */
      count[0] = 1; count[1] = dims[1] - count[1]; /* For memory dataspace */
-     printf("dims[%d]: %d\n", i, (int)dims[i]);
-     printf("offset2[%d]: %d\n", i, (int)offset2[i]);
-     printf("count2[%d]: %d\n", i, (int)count2[i]);
-     printf("count[%d]: %d\n", i, (int)count[i]);
+/*      printf("dims[%d]: %d\n", i, (int)dims[i]); */
+/*      printf("offset2[%d]: %d\n", i, (int)offset2[i]); */
+/*      printf("count2[%d]: %d\n", i, (int)count2[i]); */
+/*      printf("count[%d]: %d\n", i, (int)count[i]); */
      if ( H5Sselect_hyperslab( space_id, H5S_SELECT_NOTA, offset2, stride, count2, NULL) < 0 )
        goto out;
    }
@@ -887,24 +777,15 @@ herr_t H5ARRAYreadIndex( hid_t loc_id,
  if ( H5Sclose( space_id ) < 0 )
   goto out;
 
- /* End access to the dataset and release resources used by it. */
- if ( H5Dclose( dataset_id ) )
-  return -1;
-
- /* Close the vlen type */
- if ( H5Tclose(type_id))
-   return -1;
-
  return 0;
 
 out:
- H5Dclose( dataset_id );
  if (dims) free(dims);
  if (count) free(count);
  return -1;
 
 }
-  
+
 
 
 /*-------------------------------------------------------------------------
@@ -923,27 +804,18 @@ out:
 /* Addition: Now, this routine can deal with both array and
    atomic datatypes. F. Altet  2003-01-29 */
 
-herr_t H5ARRAYget_ndims( hid_t loc_id, 
-			 const char *dset_name,
+herr_t H5ARRAYget_ndims( hid_t dataset_id,
+			 hid_t type_id,
 			 int *rank )
 {
-  hid_t       dataset_id;  
-  hid_t       type_id; 
-  hid_t       space_id; 
+
+  hid_t       space_id;
   H5T_class_t class_arr_id;
-
-  /* Open the dataset. */
-  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
-    return -1;
-
-  /* Get the datatype handle */
-  if ( (type_id = H5Dget_type( dataset_id )) < 0 )
-    goto out;
 
   /* Get the class. */
   class_arr_id = H5Tget_class( type_id );
 
-  /* Check if this is an array class object*/ 
+  /* Check if this is an array class object*/
   if ( class_arr_id == H5T_ARRAY ) {
 
     /* Get rank */
@@ -962,114 +834,43 @@ herr_t H5ARRAYget_ndims( hid_t loc_id,
     /* Terminate access to the dataspace */
     if ( H5Sclose( space_id ) < 0 )
       goto out;
- 
+
   }
 
- /* Terminate access to the datatype */
- if ( H5Tclose( type_id ) < 0 )
-  goto out;
-
- /* End access to the dataset */
- if ( H5Dclose( dataset_id ) )
-  return -1;
-
  return 0;
 
 out:
- H5Dclose( dataset_id );
  return -1;
 
 }
 
 
-/*-------------------------------------------------------------------------
- * Function: H5ARRAYget_chunksize
- *
- * Purpose: Gets the chunksize along the extensible dimension of an earray.
- *
- * Return: Success: chunksize, Failure: -1
- *
- * Programmer: Francesc Altet
- *
- * Date: May 20, 2004
- *
- *-------------------------------------------------------------------------
- */
 
-herr_t H5ARRAYget_chunksize( hid_t loc_id, 
-			     const char *dset_name,
-			     int rank,
-			     hsize_t *dims_chunk)
-{
-  hid_t       dataset_id;  
-  hid_t       plist_id;
-
-  /* Open the dataset. */
-  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
-    return -1;
-
-  /* Get creation properties list */
-  if ( (plist_id = H5Dget_create_plist( dataset_id )) < 0 )
-    goto out;
-
-  /* Get the chunksize for all dimensions */
-  if (H5Pget_chunk(plist_id, rank, dims_chunk ) < 0 )
-    goto out;
-
- /* Terminate access to the datatype */
- if ( H5Pclose( plist_id ) < 0 )
-  goto out;
-
- /* End access to the dataset */
- if ( H5Dclose( dataset_id ) )
-  return -1;
-
- return 0;
-
-out:
- if (dims_chunk) free(dims_chunk);
- H5Dclose( dataset_id );
- return -1;
-
-}
-
-/* Modified version of H5LTget_dataset_info present on HDF_HL
- * I had to add the capability to get the sign of
- * the array type.
- * I should request to NCSA to add this feature. */
+/* Modified version of H5LTget_dataset_info. */
 /* Addition: Now, this routine can deal with both array and
    atomic datatypes. 2003-01-29 */
 
-hid_t H5ARRAYget_info( hid_t loc_id, 
-		       const char *dset_name,
-		       hsize_t *dims,
-		       hsize_t *maxdims,
-		       hid_t *super_type_id,
-		       H5T_class_t *super_class_id,
-		       char *byteorder)
+herr_t H5ARRAYget_info( hid_t dataset_id,
+			hid_t type_id,
+			hsize_t *dims,
+			hsize_t *maxdims,
+			hid_t *super_type_id,
+			H5T_class_t *super_class_id,
+			char *byteorder)
 {
-  hid_t       dataset_id;  
-  hid_t       space_id; 
+
+  hid_t       space_id;
   H5T_class_t class_arr_id;
-  H5T_order_t order;
-  hid_t       type_id;
-
-  /* Open the dataset. */
-  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
-    return -1;
-
-  /* Get an identifier for the datatype. */
-  type_id = H5Dget_type( dataset_id );
 
   /* Get the class. */
   class_arr_id = H5Tget_class( type_id );
 
-  /* Check if this is an array class object*/ 
+  /* Check if this is an array class object*/
   if ( class_arr_id == H5T_ARRAY) {
 
-    /* Get the array base component */
+    /* Get the array base component. This will be released later on. */
     *super_type_id = H5Tget_super( type_id );
- 
+
     /* Get the class of base component. */
     *super_class_id = H5Tget_class( *super_type_id );
 
@@ -1077,15 +878,13 @@ hid_t H5ARRAYget_info( hid_t loc_id,
     if ( H5Tget_array_dims(type_id, dims, NULL) < 0 )
       goto out;
 
-    /* Release the datatypes */
-    if ( H5Tclose(type_id ) )
-      return -1;
-
   }
   else {
     *super_class_id = class_arr_id;
-    *super_type_id = type_id;
-   
+
+    /* Do a copy of type_id. This will be released later on. */
+    *super_type_id = H5Tcopy(type_id);
+
     /* Get the dataspace handle */
     if ( (space_id = H5Dget_space( dataset_id )) < 0 )
       goto out;
@@ -1097,37 +896,74 @@ hid_t H5ARRAYget_info( hid_t loc_id,
     /* Terminate access to the dataspace */
     if ( H5Sclose( space_id ) < 0 )
       goto out;
- 
+
   }
 
   /* Get the byteorder */
-  /* Only integer, float and time classes can be byteordered */
+  /* Only integer, float, time and enumerate classes can be byteordered */
   if ((*super_class_id == H5T_INTEGER) || (*super_class_id == H5T_FLOAT)
       || (*super_class_id == H5T_BITFIELD) || (*super_class_id == H5T_COMPOUND)
-      || (*super_class_id == H5T_TIME)) {
-    order = get_order( *super_type_id );
-    if (order == H5T_ORDER_LE) 
-      strcpy(byteorder, "little");
-    else if (order == H5T_ORDER_BE)
-      strcpy(byteorder, "big");
-    else {
-      fprintf(stderr, "Error: unsupported byteorder: %d\n", order);
-      goto out;
-    }
+      || (*super_class_id == H5T_TIME) || (*super_class_id == H5T_ENUM)) {
+    get_order(*super_type_id, byteorder);
   }
   else {
     strcpy(byteorder, "non-relevant");
   }
 
-  /* End access to the dataset */
-  if ( H5Dclose( dataset_id ) )
-    return -1;
-
-  return dataset_id;
+  return 0;
 
 out:
- H5Tclose( type_id );
- H5Dclose( dataset_id );
+ return -1;
+
+}
+
+
+
+/*-------------------------------------------------------------------------
+ * Function: H5ARRAYget_chunksize
+ *
+ * Purpose: Gets the chunksize along the extensible dimension of a
+ *          carray/earray.
+ *
+ * Return: Success: chunksize, Failure: -1
+ *
+ * Programmer: Francesc Altet
+ *
+ * Date: May 20, 2004
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t H5ARRAYget_chunksize( hid_t dataset_id,
+			     int rank,
+			     hsize_t *dims_chunk)
+{
+  hid_t        plist_id;
+  H5D_layout_t layout;
+
+  /* Get creation properties list */
+  if ( (plist_id = H5Dget_create_plist( dataset_id )) < 0 )
+    goto out;
+
+  /* Get the dataset layout */
+  layout = H5Pget_layout(plist_id);
+  if (layout != H5D_CHUNKED) {
+    H5Pclose( plist_id );
+    goto out;
+  }
+
+  /* Get the chunksize for all dimensions */
+  if (H5Pget_chunk(plist_id, rank, dims_chunk ) < 0 )
+    goto out;
+
+ /* Terminate access to the datatype */
+ if ( H5Pclose( plist_id ) < 0 )
+  goto out;
+
+ return 0;
+
+out:
+ if (dims_chunk) free(dims_chunk);
  return -1;
 
 }

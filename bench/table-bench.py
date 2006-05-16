@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import copy
-                
 import numarray as NA
 from tables import *
 import random
@@ -13,23 +12,23 @@ class Small(IsDescription):
     values will become their types. The IsDescription class will take care
     the user will not add any new variables and that its type is
     correct."""
-    
-    var1 = StringCol(length=4, dflt="")
-    var2 = IntCol(0)
-    var3 = FloatCol(0)
+
+    var1 = StringCol(length=4, dflt="",pos=2)
+    var2 = IntCol(0,pos=1)
+    var3 = FloatCol(0,pos=0)
 
 # Define a user record to characterize some kind of particles
 class Medium(IsDescription):
-    name        = StringCol(length=16, dflt="")  # 16-character String
-    float1      = Col("Float64", 2, NA.arange(2))
+    name        = StringCol(length=16, dflt="",pos=0)  # 16-character String
+    float1      = Col("Float64", 2, NA.arange(2),pos=1)
     #float1      = Col("Float64", 1, 2.3)
     #float2      = Col("Float64", 1, 2.3)
     #zADCcount    = Col("Int16", 1, 0)    # signed short integer
-    ADCcount    = Col("Int32", 1, 0)    # signed short integer
-    grid_i      = Col("Int32", 1, 0)    # integer
-    grid_j      = Col("Int32", 1, 0)    # integer
-    pressure    = Col("Float32", 1, 0)    # float  (single-precision)
-    energy      = Col("Float64", 1, 0)    # double (double-precision)
+    ADCcount    = Col("Int32", 1, 0,pos=6)    # signed short integer
+    grid_i      = Col("Int32", 1, 0,pos=7)    # integer
+    grid_j      = Col("Int32", 1, 0,pos=8)    # integer
+    pressure    = Col("Float32", 1, 0,pos=9)    # float  (single-precision)
+    energy      = Col("Float64", 1, 0,pos=2)    # double (double-precision)
 
 # Define a user record to characterize some kind of particles
 class Big(IsDescription):
@@ -52,7 +51,7 @@ def createFile(filename, totalrows, filters, recsize):
 
     # Table title
     title = "This is the table title"
-    
+
     # Create a Table instance
     group = fileh.root
     rowswritten = 0
@@ -90,12 +89,12 @@ def createFile(filename, totalrows, filters, recsize):
                 #d['float1'][0] = float(i)
                 #d['float2'][0] = float(i*2)
                 # Common part with medium
-                d['grid_i'] = i 
+                d['grid_i'] = i
                 d['grid_j'] = 10 - i
                 d['pressure'] = float(i*i)
                 # d['energy'] = float(d['pressure'] ** 4)
                 d['energy'] = d['pressure']
-                # d['idnumber'] = i * (2 ** 34) 
+                # d['idnumber'] = i * (2 ** 34)
                 d.append()
         elif recsize == "medium":
             for i in xrange(totalrows):
@@ -105,7 +104,7 @@ def createFile(filename, totalrows, filters, recsize):
                 #d['float1'] = i
                 #d['float2'] = float(i)
                 # Common part with big:
-                d['grid_i'] = i 
+                d['grid_i'] = i
                 d['grid_j'] = 10 - i
                 d['pressure'] = i*2
                 # d['energy'] = float(d['pressure'] ** 4)
@@ -121,7 +120,6 @@ def createFile(filename, totalrows, filters, recsize):
                 #d['var3'] = 12.1e10
                 d['var3'] = totalrows-i
                 d.append()  # This is a 10% faster than table.append()
-		    
         rowswritten += totalrows
 
         if recsize == "small":
@@ -129,15 +127,15 @@ def createFile(filename, totalrows, filters, recsize):
             pass
 #            table._createIndex("var3", Filters(1,"zlib",shuffle=1))
 
+        #table.flush()
         group._v_attrs.test2 = "just a test"
         # Create a new group
         group2 = fileh.createGroup(group, 'group'+str(j))
         # Iterate over this new group (group2)
         group = group2
-    
+
     # Close the file (eventually destroy the extended type)
     fileh.close()
-    
     return (rowswritten, rowsize)
 
 def readFile(filename, recsize, verbose):
@@ -158,25 +156,25 @@ def readFile(filename, recsize, verbose):
                 print "MaxTuples:", table._v_maxTuples
 
             if recsize == "big" or recsize == "medium":
-                #e = [ p.float1 for p in table.iterrows() 
+                #e = [ p.float1 for p in table.iterrows()
                 #      if p.grid_i < 2 ]
                 #e = [ str(p) for p in table.iterrows() ]
                 #      if p.grid_i < 2 ]
-#                 e = [ p['grid_i'] for p in table.iterrows() 
+#                 e = [ p['grid_i'] for p in table.iterrows()
 #                       if p['grid_j'] == 20 and p['grid_i'] < 20 ]
 #                 e = [ p['grid_i'] for p in table
 #                       if p['grid_i'] <= 2 ]
 #                e = [ p['grid_i'] for p in table.where("grid_i<=20")]
                 e = [ p['grid_i'] for p in
                       table.where(table.cols.grid_i<20)]
-#                 e = [ p['grid_i'] for p in table.iterrows() 
+#                 e = [ p['grid_i'] for p in table.iterrows()
 #                       if p.nrow() == 20 ]
-#                 e = [ table.delrow(p.nrow()) for p in table.iterrows() 
+#                 e = [ table.delrow(p.nrow()) for p in table.iterrows()
 #                       if p.nrow() == 20 ]
                 # The version with a for loop is only 1% better than
                 # comprenhension list
                 #e = []
-                #for p in table.iterrows(): 
+                #for p in table.iterrows():
                 #    if p.grid_i < 20:
                 #        e.append(p.grid_j)
             else:  # small record case
@@ -208,7 +206,7 @@ def readFile(filename, recsize, verbose):
 #                 e = [ p['var3'] for p in table.where(table.cols.var2 <=20)
                 e = [ p['var3'] for p in table
                        if p['var2'] <= 10 ]
-#                  e = [ p['var3'] for p in table.whereInRange(table.cols.var2 <=20)]
+#                  e = [ p['var3'] for p in table._whereInRange(table.cols.var2 <=20)]
                 #e = [ p['var3'] for p in table.iterrows(0,21) ]
 #                  e = [ p['var3'] for p in table.iterrows()
 #                       if p.nrow() <= 20 ]
@@ -224,11 +222,11 @@ def readFile(filename, recsize, verbose):
                 #print "Last record read:", p
                 print "resulting selection list ==>", e
 
-	    rowsread += table.nrows
+            rowsread += table.nrows
             row += 1
             if verbose:
                 print "Total selected records ==> ", len(e)
-        
+
     # Close the file (eventually destroy the extended type)
     fileh.close()
 
@@ -255,11 +253,11 @@ def readField(filename, field, rng, verbose):
 
             e = table.read(rng[0], rng[1], rng[2], field)
 
-	    rowsread += table.nrows
+            rowsread += table.nrows
             if verbose:
                 print "Selected rows ==> ", e
                 print "Total selected rows ==> ", len(e)
-        
+
     # Close the file (eventually destroy the extended type)
     fileh.close()
     return (rowsread, rowsize)
@@ -267,41 +265,46 @@ def readField(filename, field, rng, verbose):
 if __name__=="__main__":
     import sys
     import getopt
+    import getopt, pstats
+    import profile as prof
+
     try:
         import psyco
         psyco_imported = 1
     except:
         psyco_imported = 0
-    
+
     import time
-    
-    usage = """usage: %s [-v] [-p] [-R range] [-r] [-w] [-s recsize] [-f field] [-c level] [-l complib] [-i iterations] [-S] [-F] file
+
+    usage = """usage: %s [-v] [-p] [-P] [-R range] [-r] [-w] [-s recsize] [-f field] [-c level] [-l complib] [-i iterations] [-S] [-F] file
             -v verbose
-	    -p use "psyco" if available
+            -p use "psyco" if available
+            -P do profile
             -R select a range in a field in the form "start,stop,step"
-	    -r only read test
-	    -w only write test
+            -r only read test
+            -w only write test
             -s use [big] record, [medium] or [small]
             -f only read stated field name in tables ("all" means all fields)
             -c sets a compression level (do not set it or 0 for no compression)
             -S activate shuffling filter
             -F activate fletcher32 filter
-            -l sets the compression library to be used ("zlib", "lzo", "ucl")
+            -l sets the compression library to be used ("zlib", "lzo", "ucl", "bzip2")
             -i sets the number of rows in each table\n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'vpSFR:rwf:s:c:l:i:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'vpPSFR:rwf:s:c:l:i:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
 
     # if we pass too much parameters, abort
-    if len(pargs) <> 1: 
+    if len(pargs) <> 1:
         sys.stderr.write(usage)
         sys.exit(0)
 
     # default options
     verbose = 0
+    profile = 0
     rng = None
     recsize = "medium"
     fieldName = None
@@ -320,6 +323,8 @@ if __name__=="__main__":
             verbose = 1
         if option[0] == '-p':
             usepsyco = 1
+        if option[0] == '-P':
+            profile = 1
         if option[0] == '-S':
             shuffle = 1
         if option[0] == '-F':
@@ -343,7 +348,7 @@ if __name__=="__main__":
             complib = option[1]
         elif option[0] == '-i':
             iterations = int(option[1])
-            
+
     # Build the Filters instance
     filters = Filters(complevel=complevel, complib=complib,
                       shuffle=shuffle, fletcher32=fletcher32)
@@ -351,34 +356,44 @@ if __name__=="__main__":
     # Catch the hdf5 file passed as the last argument
     file = pargs[0]
 
+    if verbose:
+        print "numarray version:", NA.__version__
+
     if testwrite:
         print "Compression level:", complevel
         if complevel > 0:
             print "Compression library:", complib
             if shuffle:
                 print "Suffling..."
-	t1 = time.time()
-	cpu1 = time.clock()
+        t1 = time.time()
+        cpu1 = time.clock()
         if psyco_imported and usepsyco:
             psyco.bind(createFile)
-	(rowsw, rowsz) = createFile(file, iterations, filters, recsize)
-	t2 = time.time()
+        if profile:
+            prof.run('(rowsw, rowsz) = createFile(file, iterations, filters, recsize)', 'table-bench.prof')
+            stats = pstats.Stats('table-bench.prof')
+            stats.strip_dirs()
+            stats.sort_stats('time', 'calls')
+            stats.print_stats(20)
+        else:
+            (rowsw, rowsz) = createFile(file, iterations, filters, recsize)
+        t2 = time.time()
         cpu2 = time.clock()
-	tapprows = round(t2-t1, 3)
-	cpuapprows = round(cpu2-cpu1, 3)
+        tapprows = round(t2-t1, 3)
+        cpuapprows = round(cpu2-cpu1, 3)
         tpercent = int(round(cpuapprows/tapprows, 2)*100)
-	print "Rows written:", rowsw, " Row size:", rowsz
-	print "Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
+        print "Rows written:", rowsw, " Row size:", rowsz
+        print "Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
               (tapprows, cpuapprows, tpercent)
-	print "Write rows/sec: ", int(rowsw / float(tapprows))
-	print "Write KB/s :", int(rowsw * rowsz / (tapprows * 1024))
-	
+        print "Write rows/sec: ", int(rowsw / float(tapprows))
+        print "Write KB/s :", int(rowsw * rowsz / (tapprows * 1024))
+
     if testread:
-	t1 = time.time()
+        t1 = time.time()
         cpu1 = time.clock()
         if psyco_imported and usepsyco:
             psyco.bind(readFile)
-            psyco.bind(readField)
+            #psyco.bind(readField)
             pass
         if rng or fieldName:
             (rowsr, rowsz) = readField(file, fieldName, rng, verbose)
@@ -386,14 +401,13 @@ if __name__=="__main__":
         else:
             for i in range(1):
                 (rowsr, rowsz) = readFile(file, recsize, verbose)
-	t2 = time.time()
+        t2 = time.time()
         cpu2 = time.clock()
-	treadrows = round(t2-t1, 3)
+        treadrows = round(t2-t1, 3)
         cpureadrows = round(cpu2-cpu1, 3)
         tpercent = int(round(cpureadrows/treadrows, 2)*100)
-	print "Rows read:", rowsr, " Row size:", rowsz
-	print "Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
+        print "Rows read:", rowsr, " Row size:", rowsz
+        print "Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
               (treadrows, cpureadrows, tpercent)
-	print "Read rows/sec: ", int(rowsr / float(treadrows))
-	print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))
-    
+        print "Read rows/sec: ", int(rowsr / float(treadrows))
+        print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))

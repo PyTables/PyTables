@@ -7,7 +7,6 @@
 #       Created: November 12, 2003
 #       Author:  Francesc Altet - faltet@carabos.com
 #
-#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/VLArray.py,v $
 #       $Id$
 #
 ########################################################################
@@ -43,19 +42,26 @@ try:
 except ImportError:
     Numeric_imported = False
 
+try:
+    import numpy
+    numpy_imported = True
+except ImportError:
+    numpy_imported = False
+
 import tables.hdf5Extension as hdf5Extension
-from tables.utils import processRangeRead, convertIntoNA
-from tables.Atom import Atom, ObjectAtom, VLStringAtom, StringAtom
+from tables.utils import processRangeRead, convertToNA, convToFlavor, idx2long
+from tables.Atom import Atom, ObjectAtom, VLStringAtom, StringAtom, EnumAtom
 from tables.Leaf import Leaf
 
 
 
-__version__ = "$Revision: 1.42 $"
+__version__ = "$Revision$"
 
 # default version for VLARRAY objects
 #obversion = "1.0"    # initial version
 #obversion = "1.0"    # add support for complex datatypes
-obversion = "1.1"    # This adds support for time datatypes.
+#obversion = "1.1"    # This adds support for time datatypes.
+obversion = "1.2"    # This adds support for enumerated datatypes.
 
 
 
@@ -100,7 +106,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 
     Methods:
 
-        append(*objects)
+        append(sequence)
         read(start, stop, step)
         __iter__()
         iterrows(start, stop, step)
@@ -127,15 +133,24 @@ class VLArray(hdf5Extension.VLArray, Leaf):
     # </undo-redo support>
 
 
-    def __init__(self, atom=None, title = "",
-                 filters = None, expectedsizeinMB = 1.0):
+    # <properties>
+    shape = property(
+        lambda self: (self.nrows,), None, None,
+        "The shape of the stored array.")
+    # </properties>
+
+
+    def __init__(self, parentNode, name,
+                 atom=None, title="",
+                 filters=None, expectedsizeinMB=1.0,
+                 log=True):
         """Create the instance Array.
 
         Keyword arguments:
 
         atom -- An Atom object representing the shape, type and
             flavor of the atomic objects to be saved.
-        
+
         title -- Sets a TITLE attribute on the HDF5 array entity.
 
         filters -- An instance of the Filters class that provides
@@ -150,24 +165,60 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             time and the amount of memory used.
 
         """
+
+        self._v_version = None
+        """The object version of this array."""
+
+        self._v_new = new = atom is not None
+        """Is this the first time the node has been created?"""
         self._v_new_title = title
+        """New title for this node."""
         self._v_new_filters = filters
+        """New filter properties for this array."""
         self._v_expectedsizeinMB = expectedsizeinMB
-        self._v_maxTuples = 100    # Maybe enough for most applications
-        # Check if we have to create a new object or read their contents
-        # from disk
-        if atom is not None:
-            self.atom = atom
-            self._v_new = 1
-        else:
-            self._v_new = 0
+        """The expected size of the array in MiB."""
 
-    def _create(self):
+        self._v_maxTuples = 100       # maybe enough for most applications
+        """The maximum number of rows that are read on each chunk iterator."""
+        self._v_chunksize = None
+        """The HDF5 chunk size for ``VLArray`` objects."""
+
+        # Miscellaneous iteration rubbish.
+        self._start = None
+        """Starting row for the current iteration."""
+        self._stop = None
+        """Stopping row for the current iteration."""
+        self._step = None
+        """Step size for the current iteration."""
+        self._nrowsread = None
+        """Number of rows read up to the current state of iteration."""
+        self._startb = None
+        """Starting row for current buffer."""
+        self._stopb = None
+        """Stopping row for current buffer. """
+        self._row = None
+        """Current row in iterators (sentinel)."""
+        self._init = False
+        """Whether we are in the middle of an iteration or not (sentinel)."""
+        self.listarr = None
+        """Current buffer in iterators."""
+
+        # Documented (*public*) attributes.
+        self.atom = atom
+        """
+        An `Atom` instance representing the shape, type and flavor of
+        the atomic objects to be saved.
+        """
+        self.nrow = None
+        """On iterators, this is the index of the current row."""
+        self.nrows = None
+        """The total number of rows."""
+
+        super(VLArray, self).__init__(parentNode, name, new, filters, log)
+
+
+    def _g_create(self):
         """Create a variable length array (ragged array)."""
-
-        # All this will eventually end up in the node constructor.
-
-        global obversion
 
         self._v_version = obversion
         # Only support for creating objects in system byteorder
@@ -193,9 +244,37 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         self._v_chunksize = calcChunkSize(self._v_expectedsizeinMB,
                                           self.filters.complevel)
         self.nrows = 0     # No rows in creation time
-        self.shape = (0,)
-        self._createArray(self._v_new_title)
-            
+
+        self._v_objectID = self._createArray(self._v_new_title)
+        return self._v_objectID
+
+
+    def _g_open(self):
+        """Get the metadata info for an array in file."""
+
+        (self._v_objectID, self.nrows) = self._openArray()
+
+        flavor = self.flavor
+        stype = self._atomicstype
+        # First, check the special cases VLString and Object types
+        if flavor == "VLString":
+            self.atom = VLStringAtom()
+        elif flavor == "Object":
+            self.atom = ObjectAtom()
+        elif stype == 'CharType':
+            self.atom = StringAtom(self._atomicshape, self._basesize,
+                                   flavor, warn=False)
+        elif stype == 'Enum':
+            (enum, type_) = self._loadEnum()
+            self.atom = EnumAtom(enum, type_, self._atomicshape,
+                                 flavor, warn=False)
+            self._atomictype = type_
+        else:
+            self.atom = Atom(stype, self._atomicshape, flavor, warn=False)
+
+        return self._v_objectID
+
+
     def _checkShape(self, naarr):
         # Check for zero dimensionality array
         zerodims = numarray.sum(numarray.array(naarr.shape) == 0)
@@ -230,28 +309,92 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 """The object '%s' is composed of elements with shape '%s', which is not compatible with the atom shape ('%s').""" % \
 (naarr, shape, atom_shape)
         return nobjects
-            
-    def append(self, *objects):
-        """Append the objects to this enlargeable object"""
-        assert not self._v_file.mode == "r", "Attempt to write over a file opened in read-only mode"
 
-        # To make append([1,0,1]) equivalent to append(1,0,1)
-        if len(objects) == 0:
-            object = None
-        elif len(objects) == 1:
-            # Correction for only one parameter passed
-            object = objects[0]
+
+    def getEnum(self):
+        """
+        Get the enumerated type associated with this array.
+
+        If this array is of an enumerated type, the corresponding `Enum`
+        instance is returned.  If it is not of an enumerated type, a
+        ``TypeError`` is raised.
+        """
+
+        if self.atom.stype != 'Enum':
+            raise TypeError("array ``%s`` is not of an enumerated type"
+                            % self._v_pathname)
+
+        return self.atom.enum
+
+
+    def append(self, sequence, *objects):
+        """
+        Append objects in the `sequence` to the array.
+
+        This method appends the objects in the `sequence` to a *single
+        row* in this array.  The type of individual objects must be
+        compliant with the type of atoms in the array.  In the case of
+        variable length strings, the very string to append is the
+        `sequence`.
+
+        Example of use (code available in ``examples/vlarray1.py``)::
+
+            import tables
+            from Numeric import *   # or, from numarray import *
+
+            # Create a VLArray:
+            fileh = tables.openFile("vlarray1.h5", mode = "w")
+            vlarray = fileh.createVLArray(fileh.root, 'vlarray1',
+            tables.Int32Atom(flavor="Numeric"),
+                             "ragged array of ints", Filters(complevel=1))
+            # Append some (variable length) rows:
+            vlarray.append(array([5, 6]))
+            vlarray.append(array([5, 6, 7]))
+            vlarray.append([5, 6, 9, 8])
+
+            # Now, read it through an iterator:
+            for x in vlarray:
+                print vlarray.name+"["+str(vlarray.nrow)+"]-->", x
+
+            # Close the file
+            fileh.close()
+
+        The output of the previous program looks like this::
+
+            vlarray1[0]--> [5 6]
+            vlarray1[1]--> [5 6 7]
+            vlarray1[2]--> [5 6 9 8]
+
+        The `objects` argument is only retained for backwards
+        compatibility; please do *not* use it.
+        """
+
+        if self._v_file.mode == 'r':
+            raise IOError("attempt to write over a file opened in read-only mode")
+
+        isseq = True
+        try:  # fastest check in most cases
+            len(sequence)
+        except TypeError:
+            isseq = False
+
+        if not isseq or len(objects) > 0:
+            warnings.warn(DeprecationWarning("""\
+using multiple arguments with ``append()`` is *strongly deprecated*; \
+please put them in a single sequence object"""),
+                          stacklevel=2)
+            # This is not optimum, but neither frequent.
+            object = (sequence,) + tuple(objects)
         else:
-            if self.atom.flavor == "VLString":
-                raise ValueError, \
-"""The append method only accepts one parameter for 'VLString' data type."""
-            else:
-                object = objects
+            object = sequence
+        # After that, `object` is assured to be a sequence.
+
         # Prepare the object to convert it into a numarray object
         if self.atom.flavor == "Object":
             # Special case for a generic object
             # (to be pickled and saved as an array of unsigned bytes)
-            object = numarray.array(cPickle.dumps(object), type=numarray.UInt8)
+            object = numarray.array(cPickle.dumps(object, 0),
+                                    type=numarray.UInt8)
         elif self.atom.flavor == "VLString":
             # Special case for a generic object
             # (to be pickled and saved as an array of unsigned bytes)
@@ -260,48 +403,24 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 """The object "%s" is not of type String or Unicode.""" % (str(object))
             try:
                 object = object.encode('utf-8')
-            except UnicodeError:
-                (typerr, value, traceback) = sys.exc_info()
-                raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, value)
+            except UnicodeError, ue:
+                raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, ue)
             object = numarray.array(object, type=numarray.UInt8)
 
-        if len(objects) > 0:
+        if len(object) > 0:
             # The object needs to be copied to make the operation safe
             # to in-place conversion.
             copy = self._atomicstype in ['Time64']
-            naarr = convertIntoNA(object, self.atom, copy)
+            naarr = convertToNA(object, self.atom, copy)
             nobjects = self._checkShape(naarr)
         else:
             nobjects = 0
             naarr = None
-        if self._append(naarr, nobjects) > 0:
-            self.nrows += 1
-            self.shape = (self.nrows,)
-            # Return the last entry in object
-            return self.nrows
-        else:
-            return -1
 
-    def _open(self):
-        """Get the metadata info for an array in file."""
+        self._append(naarr, nobjects)
 
-        # All this will eventually end up in the node constructor.
+        self.nrows += 1
 
-        self.nrows = self._openArray()
-        self.shape = (self.nrows,)
-        # First, check the special cases VLString and Object types
-        if self.flavor == "VLString":
-            self.atom = VLStringAtom()
-        elif self.flavor == "Object":
-            self.atom = ObjectAtom()
-        else:
-            if str(self._atomicstype) == 'CharType':
-                self.atom = StringAtom(shape=self._atomicshape,
-                                       length=self._basesize,
-                                       flavor=self.flavor)
-            else:
-                self.atom = Atom(self._atomicstype, self._atomicshape,
-                                 self.flavor)
 
     def iterrows(self, start=None, stop=None, step=None):
         """Iterate over all the rows or a range.
@@ -312,11 +431,11 @@ class VLArray(hdf5Extension.VLArray, Leaf):
                      processRangeRead(self.nrows, start, stop, step)
         self._initLoop()
         return self
-        
+
     def __iter__(self):
         """Iterate over all the rows."""
 
-        if not hasattr(self, "_init"):
+        if not self._init:
             # If the iterator is called directly, assign default variables
             self._start = 0
             self._stop = self.nrows
@@ -331,13 +450,13 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         self._nrowsread = self._start
         self._startb = self._start
         self._row = -1   # Sentinel
-        self._init = 1    # Sentinel
+        self._init = True  # Sentinel
         self.nrow = self._start - self._step    # row number
 
     def next(self):
         "next() method for __iter__() that is called on each iteration"
         if self._nrowsread >= self._stop:
-            del self._init
+            self._init = False
             raise StopIteration        # end of iteration
         else:
             # Read a chunk of rows
@@ -351,56 +470,6 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             self._nrowsread += self._step
             return self.listarr[self._row]
 
-    def _convToFlavor(self, arr):
-        "convert the numarray parameter to to correct flavor"
-
-        # Convert to Numeric, tuple or list if needed
-        if self.flavor == "Numeric":
-            if Numeric_imported:
-                if str(arr.type()) == "Bool":
-                    # Typecode boolean does not exist on Numeric
-                    typecode = "1"
-                else:
-                    typecode = arr.typecode()                        
-                # tolist() method creates a list with a sane byteorder
-                if arr.shape <> ():
-                    shape = arr.shape
-		    arr=Numeric.fromstring(arr._data, typecode)
-		    arr.shape = shape
-                else:
-                    # This works for rank-0 arrays
-                    # (but is slower for big arrays)
-                    arr=Numeric.array(arr, typecode)
-
-            else:
-                # Warn the user
-                warnings.warn( \
-"""The object on-disk is type Numeric, but Numeric is not installed locally.
-  Returning a numarray object instead!.""")
-        elif self.flavor == "Tuple":
-            arr = tuple(arr.tolist())
-        elif self.flavor == "List":
-            arr = arr.tolist()
-        elif self.flavor == "String":
-            arr = arr.tolist()
-        elif self.flavor == "VLString":
-            arr = arr.tostring().decode('utf-8')
-        elif self.flavor == "Object":
-            # We have to check for an empty array because of a
-            # possible bug in HDF5 that claims that a dataset
-            # has one record when in fact, it is empty
-            if len(arr) == 0:
-                arr = []
-            else:
-                arr = cPickle.loads(arr.tostring())
-            # The next should also do the job
-#             try:
-#                 arr = cPickle.loads(arr.tostring())
-#             except cPicke.UnpicklingError:
-#                 arr = []
-
-        return arr
-
     def __getitem__(self, key):
         """Returns a vlarray row or slice.
 
@@ -412,7 +481,8 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 
         """
 
-        if type(key) in (int,long):
+        if (type(key) in (int,long) or
+            (numpy_imported and isinstance(key, numpy.integer))):
             if key >= self.nrows:
                 raise IndexError, "Index out of range"
             if key < 0:
@@ -424,7 +494,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         else:
             raise IndexError, "Non-valid index or slice: %s" % \
                   key
-        
+
     def __setitem__(self, keys, value):
         """Updates a vlarray row "keys" by setting it to "value".
 
@@ -451,7 +521,8 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 
         """
 
-        assert not self._v_file.mode == "r", "Attempt to write over a file opened in read-only mode"
+        if self._v_file.mode == 'r':
+            raise IOError("attempt to write over a file opened in read-only mode")
 
         if not isinstance(keys, tuple):
             keys = (keys, None)
@@ -459,7 +530,8 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             raise IndexError, "You cannot specify more than two dimensions"
         nrow, rng = keys
         # Process the first index
-        if type(nrow) not in (int,long):
+        if not (type(nrow) in (int,long) or
+                (numpy_imported and isinstance(nrow, numpy.integer))):
             raise IndexError, "The first dimension only can be an integer"
         if nrow >= self.nrows:
             raise IndexError, "First index out of range"
@@ -467,7 +539,8 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             # To support negative values
             nrow += self.nrows
         # Process the second index
-        if type(rng) in (int,long):
+        if (type(rng) in (int,long) or
+            (numpy_imported and isinstance(rng, numpy.integer))):
             start = rng; stop = start+1; step = 1
         elif isinstance(rng, slice):
             start, stop, step = rng.start, rng.stop, rng.step
@@ -475,13 +548,14 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             start, stop, step = None, None, None
         else:
             raise IndexError, "Non-valid second index or slice: %s" % rng
-        
+
         object = value
         # Prepare the object to convert it into a numarray object
         if self.atom.flavor == "Object":
             # Special case for a generic object
             # (to be pickled and saved as an array of unsigned bytes)
-            object = numarray.array(cPickle.dumps(object), type=numarray.UInt8)
+            object = numarray.array(cPickle.dumps(object, 0),
+                                    type=numarray.UInt8)
         elif self.atom.flavor == "VLString":
             # Special case for a generic object
             # (to be pickled and saved as an array of unsigned bytes)
@@ -490,18 +564,15 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 """The object "%s" is not of type String or Unicode.""" % (str(object))
             try:
                 object = object.encode('utf-8')
-            except UnicodeError:
-                (typerr, value, traceback) = sys.exc_info()
-                raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, value)
+            except UnicodeError, ue:
+                raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, ue)
             object = numarray.array(object, type=numarray.UInt8)
 
-        value = convertIntoNA(object, self.atom)
+        value = convertToNA(object, self.atom)
         nobjects = self._checkShape(value)
 
-        #nobjects = len(value)
-
         # Get the previous value
-        #naarr = self.read(nrow, nrow+1, 1, slice_specified=0)
+        nrow = idx2long(nrow)   # To convert any possible numpy scalar value
         naarr = self._readArray(nrow, nrow+1, 1)[0]
         nobjects = len(naarr)
         if len(value) > nobjects:
@@ -509,13 +580,16 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 "Length of value (%s) is larger than number of elements in row (%s)" % \
 (len(value), nobjects)
         # Assign the value to it
+        # The values can be numpy scalars. Convert them before building the slice.
+        if start is not None: start = idx2long(start)
+        if stop is not None: stop = idx2long(stop)
+        if step is not None: step = idx2long(step)
         try:
             naarr[slice(start, stop, step)] = value
-        except:  #XXX
-            (typerr, value2, traceback) = sys.exc_info()
+        except Exception, exc:  #XXX
             raise ValueError, \
 "Value parameter:\n'%r'\ncannot be converted into an array object compliant vlarray[%s] row: \n'%r'\nThe error was: <%s>" % \
-        (value, keys, naarr[slice(start, stop, step)], value2)
+        (value, keys, naarr[slice(start, stop, step)], exc)
 
         if naarr.size() > 0:
             self._modify(nrow, naarr, nobjects)
@@ -529,20 +603,24 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             listarr = []
         else:
             listarr = self._readArray(start, stop, step)
-        if self.flavor <> "NumArray":
+        if self.flavor <> "numarray":
             # Convert the list to the right flavor
-            outlistarr = [self._convToFlavor(arr) for arr in listarr ]
+            outlistarr = [convToFlavor(self, arr, "VLArray")
+                          for arr in listarr ]
+            if self.flavor == "Tuple":
+                outlistarr = tuple(outlistarr)
         else:
             # NumArray flavor does not need additional conversion
             outlistarr = listarr
         return outlistarr
 
-    def _g_copyWithStats(self, group, name, start, stop, step, title, filters):
+    def _g_copyWithStats(self, group, name, start, stop, step,
+                         title, filters, log):
         "Private part of Leaf.copy() for each kind of leaf"
         # Build the new VLArray object
-        object = self._v_file.createVLArray(
+        object = VLArray(
             group, name, self.atom, title=title, filters=filters,
-            expectedsizeinMB=self._v_expectedsizeinMB, _log = False)
+            expectedsizeinMB=self._v_expectedsizeinMB, log=log)
         # Now, fill the new vlarray with values from the old one
         # This is not buffered because we cannot forsee the length
         # of each record. So, the safest would be a copy row by row.
@@ -558,14 +636,13 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             # Save the records on disk
             stop2 = start2+step*nrowsinbuf
             if stop2 > stop:
-                stop2 = stop 
+                stop2 = stop
             naarr = self._readArray(start=start2, stop=stop2, step=step)[0]
             nobjects = naarr.shape[0]
             object._append(naarr, nobjects)
             nbytes += nobjects*atomsize
             nrowscopied +=1
         object.nrows = nrowscopied
-        object.shape = (nrowscopied,)
         return (object, nbytes)
 
     def __repr__(self):

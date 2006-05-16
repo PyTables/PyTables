@@ -3,7 +3,7 @@
  *      License: BSD
  *      Created: December 21, 2004
  *      Author:  Ivan Vilata i Balaguer - reverse:com.carabos@ivilata
- *      Modified: 
+ *      Modified:
  *        Function inlining and some castings for 64-bit adressing
  *        Francesc Altet 2004-12-27
  *
@@ -46,7 +46,7 @@ void conv_float64_timeval32(void *base,
 			    unsigned long bytestride,
 			    PY_LONG_LONG nrecords,
 			    unsigned long nelements,
-			    const int sense)
+			    int sense)
 {
   PY_LONG_LONG  record;
   unsigned long  element, gapsize;
@@ -62,12 +62,8 @@ void conv_float64_timeval32(void *base,
   /* Byte distance from end of field to beginning of next field. */
   gapsize = bytestride - nelements * sizeof(double);
 
-#ifdef _MSC_VER
-  /* Work around Visual C++ strange pointer arithmetic... */
   fieldbase = (double *)((unsigned char *)(base) + byteoffset);
-#else
-  fieldbase = (double *)(base + byteoffset);
-#endif
+
   for (record = 0;  record < nrecords;  record++) {
     for (element = 0;  element < nelements;  element++) {
       if (sense == 0) {
@@ -84,12 +80,9 @@ void conv_float64_timeval32(void *base,
       }
       fieldbase++;
     }
-#ifdef _MSC_VER
-    /* Work around Visual C++ strange pointer arithmetic... */
+
     fieldbase = (double *)((unsigned char *)(fieldbase) + gapsize);
-#else
-    fieldbase = (double *)((void *)(fieldbase) + gapsize);
-#endif
+
     /* XXX: Need to check if this works on platforms which require
        64-bit data to be aligned.  ivb(2005-01-07) */
   }

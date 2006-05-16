@@ -11,4 +11,3 @@ del b
 j = 2
 for i in range(1000*1000):
     j+=i*2
-

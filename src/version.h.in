@@ -1,0 +1,1 @@
+#define PYTABLES_VERSION "@VERSION@"

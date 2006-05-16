@@ -1,9 +1,9 @@
+########################################################################
 #
 #       License:        BSD
 #       Created:        September 4, 2002
 #       Author:  Francesc Altet - faltet@carabos.com
 #
-#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/File.py,v $
 #       $Id$
 #
 ########################################################################
@@ -22,9 +22,8 @@ Classes:
 
 Functions:
 
-    copyFile(srcFilename, dstFilename [, title] [, filters]
-             [, copyuserattrs] [, overwrite])
-    openFile(name [, mode = "r"] [, title] [, trMap])
+    copyFile(srcfilename, dstfilename[, overwrite][, **kwargs])
+    openFile(name[, mode][, title][, trMap])
 
 Misc variables:
 
@@ -37,13 +36,20 @@ Misc variables:
 import warnings
 import time
 import os, os.path
+import weakref
 
+import tables.lrucache
 import tables.hdf5Extension as hdf5Extension
-from tables.constants import MAX_UNDO_PATH_LENGTH
-from tables.registry import classNameDict
+import tables.utilsExtension as utilsExtension
+import tables.proxydict
+from tables.constants import \
+     MAX_UNDO_PATH_LENGTH, METADATA_CACHE_SIZE, NODE_CACHE_SIZE
 from tables.exceptions import \
-     NodeError, NoSuchNodeError, UndoRedoError, UndoRedoWarning
-from tables.utils import joinPath
+     ClosedFileError, FileModeError, \
+     NodeError, NoSuchNodeError, \
+     UndoRedoError, UndoRedoWarning
+from tables.utils import joinPath, splitPath, isVisiblePath, \
+     checkFileAccess, getClassByName
 import tables.undoredo as undoredo
 from tables.IsDescription import IsDescription, UInt8Col, StringCol
 from tables.Node import Node
@@ -52,23 +58,32 @@ from tables.Group import TransactionGroupG, TransactionG, MarkG
 from tables.Leaf import Leaf, Filters
 from tables.Table import Table
 from tables.Array import Array
+from tables.CArray import CArray
 from tables.EArray import EArray
 from tables.VLArray import VLArray
 
 
 
-__version__ = "$Revision: 1.96 $"
+__version__ = "$Revision$"
 
 
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 #format_version = "1.2"  # Support for enlargeable arrays and VLA's
                         # 1.2 was introduced in pytables 0.8
-format_version = "1.3"  # Support for indexes in Tables
+#format_version = "1.3"  # Support for indexes in Tables
                         # 1.3 was introduced in pytables 0.9
+#format_version = "1.4"  # Support for multidimensional attributes
+#                        # 1.4 was introduced in pytables 1.1
+#format_version = "1.5"  # Support for persistent defaults in tables
+#                        # 1.5 was introduced in pytables 1.2
+format_version = "1.6"  # Support for NumPy objects and new flavors for objects
+                        # 1.6 was introduced in pytables 1.3
 compatible_formats = [] # Old format versions we can read
                         # Empty means that we support all the old formats
 
+# Dict of opened files (keys are filehandlers and values filenames)
+_open_files = {}
 
 # Opcodes for do-undo actions
 _opToCode = {"MARK":    0,
@@ -110,7 +125,10 @@ _shadowPath   = joinPath(_shadowParent, _shadowName)
 def _checkFilters(filters, compress=None, complib=None):
     if (filters is None) and ((compress is not None) or
                               (complib is not None)):
-        warnings.warn("The use of compress or complib parameters is deprecated. Please, use a Filters() instance instead.", DeprecationWarning)
+        warnings.warn(DeprecationWarning("""\
+``compress`` and ``complib`` parameters are deprecated; \
+please use a ``Filters`` instance instead"""),
+                      stacklevel=2)
         fprops = Filters(complevel=compress, complib=complib)
     elif filters is None:
         fprops = None
@@ -121,43 +139,36 @@ def _checkFilters(filters, compress=None, complib=None):
     return fprops
 
 
-def copyFile(srcFilename = None, dstFilename = None, title = None,
-             filters = None, copyuserattrs = True, overwrite = False,
-             stats = None):
-    """Copy srcFilename to dstFilename
+def copyFile(srcfilename, dstfilename, overwrite=False, **kwargs):
+    """
+    An easy way of copying one PyTables file to another.
 
-    The "srcFilename" should exist and "dstFilename" should not. But
-    if "dsFilename" exists and "overwrite" is true, it is
-    overwritten. "title" lets you put another title to the destination
-    file. "copyuserattrs" specifies whether the user attrs in origin
-    nodes should be copied or not; the default is copy them. Finally,
-    specifying a "filters" parameter overrides the original filter
-    properties of nodes in "srcFilename".
+    This function allows you to copy an existing PyTables file named
+    `srcfilename` to another file called `dstfilename`.  The source file
+    must exist and be readable.  The destination file can be overwritten
+    in place if existing by asserting the `overwrite` argument.
 
-
-    The optional keyword argument 'stats' may be used to collect statistics on
-    the copy process.  When used, it should be a dictionary whith keys
-    'groups', 'leaves' and 'bytes' having a numeric value.  Their values will
-    be incremented to reflect the number of groups, leaves and bytes,
-    respectively, that have been copied in the operation.
+    This function is a shorthand for the `File.copyFile()` method, which
+    acts on an already opened file.  `kwargs` takes keyword arguments
+    used to customize the copying process.  See the documentation of
+    `File.copyFile()` for a description of those arguments.
     """
 
-    # Open the src file
-    srcFileh = openFile(srcFilename, mode="r")
+    # Open the source file.
+    srcFileh = openFile(srcfilename, mode="r")
 
-    # Copy it to the destination
-    srcFileh.copyFile(
-        dstFilename, title = title, filters = filters,
-        copyuserattrs = copyuserattrs, overwrite = overwrite, stats = stats)
-
-    # Close the source file
-    srcFileh.close()
+    try:
+        # Copy it to the destination file.
+        srcFileh.copyFile(dstfilename, overwrite=overwrite, **kwargs)
+    finally:
+        # Close the source file.
+        srcFileh.close()
 
 
 def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
-             filters=None):
+             filters=None, nodeCacheSize=NODE_CACHE_SIZE):
 
-    """Open an HDF5 file an returns a File object.
+    """Open an HDF5 file and return a File object.
 
     Arguments:
 
@@ -188,7 +199,7 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
     rootUEP -- The root User Entry Point. It is a group in the file
             hierarchy which is taken as the starting point to create
             the object tree. The group can be whatever existing path
-            in the file. If it does not exist, a RuntimeError is
+            in the file. If it does not exist, an HDF5ExtError is
             issued.
 
     filters -- An instance of the Filters class that provides
@@ -198,74 +209,143 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
             course). Besides, if you do not specify filter properties
             for its child groups, they will inherit these ones.
 
+    nodeCacheSize -- The number of *unreferenced* nodes to be kept in
+            memory.  Least recently used nodes are unloaded from memory
+            when this number of loaded nodes is reached.  To load a node
+            again, simply access it as usual.  Nodes referenced by user
+            variables are not taken into account nor unloaded.
+
     """
 
-    isPTFile = 1  # Assume a PyTables file by default
     # Expand the form '~user'
     path = os.path.expanduser(filename)
     # Expand the environment variables
     path = os.path.expandvars(path)
 
-# The file extension warning commmented out because a suggestion made
-# by people at GL suggestion
-#     if not (fnmatch(path, "*.h5") or
-#             fnmatch(path, "*.hdf") or
-#             fnmatch(path, "*.hdf5")):
-#         warnings.warn( \
-# """filename '%s'should have one of the next file extensions
-#   '.h5', '.hdf' or '.hdf5'. Continuing anyway.""" % path)
-
-    if (mode == "r" or mode == "r+"):
-        # For 'r' and 'r+' check that path exists and is a HDF5 file
-        if not os.path.isfile(path):
-            raise IOError, \
-                """'%s' pathname does not exist or is not a regular file""" % path
-        else:
-            if not hdf5Extension.isHDF5(path):
-                raise IOError, \
-                    """'%s' does exist but it is not an HDF5 file""" % path
-
-            elif not hdf5Extension.isPyTablesFile(path):
-                warnings.warn("""\
-``%s`` exists and is an HDF5 file, but does not have a PyTables format. \
-Trying to guess what's there using HDF5 metadata. \
-I can't promise you getting the correct objects, but I will do my best!"""
-                              % (path,))
-
-                isPTFile = 0
-
-    elif (mode == "w"):
-        # For 'w' check that if path exists, and if true, delete it!
-        if os.path.isfile(path):
-            # Delete the old file
-            os.remove(path)
-    elif (mode == "a"):
-        if os.path.isfile(path):
-            if not hdf5Extension.isHDF5(path):
-                raise IOError, \
-                    """'%s' does exist but it is not an HDF5 file""" % path
-
-            elif not hdf5Extension.isPyTablesFile(path):
-                warnings.warn("""\
-``%s`` exists and is an HDF5 file, but does not have a PyTables format. \
-Trying to guess what's there from HDF5 metadata. \
-I can't promise you getting the correct object, but I will do my best!"""
-                              % (path,))
-                isPTFile = 0
-    else:
-        raise ValueError, \
-            """mode can only take the new values: "r", "r+", "w" and "a" """
-
-    # new informs if this file is old or new
-    if (mode == "r" or
-        mode == "r+" or
-        (mode == "a" and os.path.isfile(path)) ):
-        new = 0
-    else:
-        new = 1
-
     # Finally, create the File instance, and return it
-    return File(path, mode, title, new, trMap, rootUEP, isPTFile, filters)
+    return File(path, mode, title, trMap, rootUEP, filters,
+                METADATA_CACHE_SIZE, nodeCacheSize)
+
+
+class _AliveNodes(dict):
+
+    """Stores weak references to nodes in a transparent way."""
+
+    def __getitem__(self, key):
+        ref = super(_AliveNodes, self).__getitem__(key)
+        return ref()
+
+    def __setitem__(self, key, value):
+        ref = weakref.ref(value)
+        super(_AliveNodes, self).__setitem__(key, ref)
+
+
+
+class _DeadNodes(tables.lrucache.LRUCache):
+    def pop(self, key):
+        obj = self[key]
+        del self[key]
+        return obj
+
+
+
+class _NodeDict(tables.proxydict.ProxyDict):
+
+    """
+    A proxy dictionary which is able to delegate access to missing items
+    to the container object (a `File`).
+    """
+
+    def _getValueFromContainer(self, container, key):
+        return container.getNode(key)
+
+
+    def _condition(self, node):
+        """Nodes fulfilling the condition are considered to belong here."""
+        raise NotImplementedError
+
+
+    def _warnOnGet(self):
+        warnings.warn("using this mapping object is deprecated; "
+                      "please use ``File.getNode()`` instead",
+                      DeprecationWarning)
+
+
+    def __contains__(self, key):
+        self._warnOnGet()
+
+        # If the key is here there is nothing else to check.
+        if super(_NodeDict, self).__contains__(key):
+            return True
+
+        # Look if the key is in the container `File`.
+        try:
+            file_ = self._getContainer()
+            node = file_.getNode(key)
+            # Does it fullfill the condition?
+            return self._condition(node)
+        except NoSuchNodeError:
+            # It is not in the container.
+            return False
+
+
+    def __getitem__(self, key):
+        self._warnOnGet()
+        return super(_NodeDict, self).__getitem__(key)
+
+
+    # The following operations are quite underperforming
+    # because they need to browse the entire tree.
+    # These objects are deprecated, anyway.
+
+    def __iter__(self):
+        return self.iterkeys()
+
+
+    def iterkeys(self):
+        warnings.warn("using this mapping object is deprecated; "
+                      "please use ``File.walkNodes()`` instead",
+                      DeprecationWarning)
+        for node in self._getContainer().walkNodes('/', self._className):
+            yield node._v_pathname
+        raise StopIteration
+
+
+    def __len__(self):
+        nnodes = 0
+        for nodePath in self.iterkeys():
+            nnodes += 1
+        return nnodes
+
+
+class _ObjectsDict(_NodeDict):
+
+    """Maps all visible objects."""
+
+    _className = None
+
+    def _condition(self, node):
+        return isVisiblePath(node._v_pathname)
+
+
+class _GroupsDict(_NodeDict):
+
+    """Maps all visible groups."""
+
+    _className = 'Group'
+
+    def _condition(self, node):
+        return isVisiblePath(node._v_pathname) and isinstance(node, Group)
+
+
+class _LeavesDict(_NodeDict):
+
+    """Maps all visible leaves."""
+
+    _className = 'Leaf'
+
+    def _condition(self, node):
+        return isVisiblePath(node._v_pathname) and isinstance(node, Leaf)
 
 
 
@@ -329,23 +409,30 @@ class File(hdf5Extension.File, object):
         `openFile()` function).
     filters
         Default filter properties for the root group (see the `Filters`
-	    class).
+            class).
     root
         The *root* of the object tree hierarchy (a `Group` instance).
     objects
-        A dictionary which maps path names to objects, for every node in
-	    the tree.
+        A dictionary which maps path names to objects, for every visible
+        node in the tree (deprecated, see note below).
     groups
-        A dictionary which maps path names to objects, for every group
-	    in the tree.
+        A dictionary which maps path names to objects, for every visible
+        group in the tree (deprecated, see note below).
     leaves
-        A dictionary which maps path names to objects, for every leaf in
-	    the tree.
+        A dictionary which maps path names to objects, for every visible
+        leaf in the tree (deprecated, see note below).
+
+    .. note::
+
+       From PyTables 1.2 on, the dictionaries ``objects``, ``groups``
+       and ``leaves`` are just instances of objects faking the old
+       functionality.  Actually, they internally use ``File.getNode()``
+       and ``File.walkNodes()``, which are recommended instead.
+
 
     Public methods (file handling):
 
-    * copyFile(dstFilename[, title][, filters][, copyuserattrs]
-               [, overwrite][, stats])
+    * copyFile(dstfilename[, overwrite][, **kwargs])
     * flush()
     * close()
 
@@ -366,13 +453,13 @@ class File(hdf5Extension.File, object):
     * moveNode(where, newparent, newname[, name][, overwrite])
     * copyNode(where, newparent, newname[, name][, overwrite]
                [, recursive][, **kwargs])
-    * copyChildren(whereSrc, whereDst[, recursive][, filters]
-                   [, copyuserattrs][, start][, stop ][, step]
-                   [, overwrite][, stats])
+    * copyChildren(srcgroup, dstgroup[, overwrite][, recursive]
+                   [, **kwargs])
 
     Public methods (tree traversal):
 
     * getNode(where[, name][,classname])
+    * isVisibleNode(path)
     * listNodes(where[, classname])
     * walkGroups([where])
     * walkNodes([where][, classname])
@@ -399,15 +486,42 @@ class File(hdf5Extension.File, object):
 
     Public methods (attribute handling):
 
-    * getAttrNode(where, attrname[, name])
-    * setAttrNode(where, attrname, attrvalue[, name])
-    * delAttrNode(where, attrname[, name])
-    * copyAttrs(where, dstNode[, name])
+    * getNodeAttr(where, attrname[, name])
+    * setNodeAttr(where, attrname, attrvalue[, name])
+    * delNodeAttr(where, attrname[, name])
+    * copyNodeAttrs(where, dstnode[, name])
     """
 
-    def __init__(self, filename, mode="r", title="", new=1, trMap={},
-                 rootUEP="/", isPTFile=1, filters=None):
+    ## <properties>
 
+    def _gettitle(self):
+        return self.root._v_title
+    def _settitle(self, title):
+        self.root._v_title = title
+    def _deltitle(self):
+        del self.root._v_title
+
+    title = property(_gettitle, _settitle, _deltitle,
+                     "The title of the root group in the file.")
+
+    def _getfilters(self):
+        return self.root._v_filters
+    def _setfilters(self, filters):
+        self.root._v_filters = filters
+    def _delfilters(self):
+        del self.root._v_filters
+
+    filters = property(_getfilters, _setfilters, _delfilters,
+                       "Default filter properties for the root group "
+                       "(see the `Filters` class).")
+
+    ## </properties>
+
+
+    def __init__(self, filename, mode="r", title="", trMap={},
+                 rootUEP="/", filters=None,
+                 metadataCacheSize=METADATA_CACHE_SIZE,
+                 nodeCacheSize=NODE_CACHE_SIZE):
         """Open an HDF5 file. The supported access modes are: "r" means
         read-only; no data can be modified. "w" means write; a new file is
         created, an existing file with the same name is deleted. "a" means
@@ -417,15 +531,37 @@ class File(hdf5Extension.File, object):
         TITLE attribute will be set on the root group if optional "title"
         parameter is passed."""
 
+        global _open_files
+
         self.filename = filename
-        #print "Opening the %s HDF5 file ...." % self.filename
-
         self.mode = mode
-        self.title = title
-        self._isPTFile = isPTFile
 
-        # _v_new informs if this file is old or new
-        self._v_new = new
+        # Nodes referenced by a variable are kept in `_aliveNodes`.
+        # When they are no longer referenced, they move themselves
+        # to `_deadNodes`, where they are kept until they are referenced again
+        # or they are preempted from it by other unreferenced nodes.
+        self._aliveNodes = _AliveNodes()
+        self._deadNodes = _DeadNodes(nodeCacheSize)
+
+        # The following dictionaries map paths to different kinds of nodes.
+        # In fact, they store nothing but the keys; the real nodes
+        # are obtained using `self.getNode()`.
+        self.objects = _ObjectsDict(self)
+        """
+        A dictionary which maps path names to objects, for every visible
+        node in the tree (deprecated).
+        """
+        self.groups = _GroupsDict(self)
+        """
+        A dictionary which maps path names to objects, for every visible
+        group in the tree (deprecated).
+        """
+        self.leaves = _LeavesDict(self)
+        """
+        A dictionary which maps path names to objects, for every visible
+        leaf in the tree (deprecated).
+        """
+
         # Assign the trMap and build the reverse translation
         self.trMap = trMap
         self._pttoh5 = trMap
@@ -440,38 +576,46 @@ class File(hdf5Extension.File, object):
         # For the moment Undo/Redo is not enabled.
         self._undoEnabled = False
 
+        new = self._v_new
+
         # Filters
-        if self._v_new:
-            if filters is None:
-                # Set the defaults
-                self.filters = Filters()
-            else:
-                self.filters = filters
+        if new and filters is None:
+            # Set the defaults
+            filters = Filters()
 
-        # Get the root group from this file
-        self.root = self.__getRootGroup(rootUEP)
-
-        # Set the flag to indicate that the file has been opened
+        # Set the flag to indicate that the file has been opened.
+        # It must be set before opening the root group
+        # to allow some basic access to its attributes.
         self.isopen = 1
 
-        # If the file is old, check if it has a transaction log
-        #print "_allNodes-->", self._allNodes
-        if new == 0 and _transGroupPath in self._allNodes:
+        # Append the name of the file to the global dict of files opened.
+        _open_files[self] = self.filename
+
+        # Get the root group from this file
+        self.root = root = self.__getRootGroup(rootUEP, title, filters)
+        # Complete the creation of the root node
+        # (see the explanation in ``RootGroup.__init__()``.
+        root._g_postInitHook()
+
+        # Save the PyTables format version for this file.
+        if new:
+            self.format_version = format_version
+            root._v_attrs._g__setattr(
+                'PYTABLES_FORMAT_VERSION', format_version)
+
+        # If the file is old, and not opened in "read-only" mode,
+        # check if it has a transaction log
+        if not new and self.mode != "r" and _transGroupPath in self:
             # It does. Enable the undo.
             self.enableUndo()
 
-        return
 
-
-    def __getRootGroup(self, rootUEP):
+    def __getRootGroup(self, rootUEP, title, filters):
         """Returns a Group instance which will act as the root group
         in the hierarchical tree. If file is opened in "r", "r+" or
         "a" mode, and the file already exists, this method dynamically
         builds a python object tree emulating the structure present on
         file."""
-
-        global format_version
-        global compatible_formats
 
         self._v_objectID = self._getFileId()
 
@@ -480,67 +624,40 @@ class File(hdf5Extension.File, object):
         # Save the User Entry Point in a variable class
         self.rootUEP=rootUEP
 
-        # Global dictionaries for the file paths.
-        # These are used to keep track of all the children and group objects
-        # in tree object. They are dictionaries that will use the pathnames
-        # as keys and the actual objects as values.
-        # That way we can find objects in the object tree easily and quickly.
-        # Hidden nodes are only placed in _allNodes.
-        self.groups = {}
-        self.leaves = {}
-        self.objects = {}
-        self._allNodes = {}
-        # Create new attributes for the root Group instance
-        rootGroup = RootGroup(self, '/', rootUEP, new=self._v_new)
-        # Update global path variables for Group
-        attrsRoot =  rootGroup._v_attrs   # Shortcut
-        # Get some important attributes of file from root Group attributes
-        if self._v_new:
-            # Finally, save the PyTables format version for this file
-            self.format_version = format_version
-            attrsRoot._g__setattr('PYTABLES_FORMAT_VERSION', format_version)
-        else:
+        new = self._v_new
+
+        # Get format version *before* getting the object tree
+        if not new:
             # Firstly, get the PyTables format version for this file
-            self.format_version = hdf5Extension.read_f_attr(
+            self.format_version = utilsExtension.read_f_attr(
                 self._v_objectID, 'PYTABLES_FORMAT_VERSION')
             if not self.format_version or not self._isPTFile:
                 # PYTABLES_FORMAT_VERSION attribute is not present
                 self.format_version = "unknown"
-            # Get the title for the file
-            self.title = rootGroup._v_title
-            # Get the filters for the file
-            if hasattr(attrsRoot, "FILTERS"):
-                self.filters = attrsRoot.FILTERS
-            else:
-                self.filters = Filters()
+
+        # Create new attributes for the root Group instance and
+        # create the object tree
+        return RootGroup(self, rootUEP, title=title, new=new, filters=filters)
 
 
-        return rootGroup
+    def _ptNameFromH5Name(self, h5Name):
+        """Get the PyTables name matching the given HDF5 name."""
+
+        ptName = h5Name
+        # This code might seem inefficient but it will be rarely used.
+        for (ptName_, h5Name_) in self.trMap.iteritems():
+            if h5Name_ == h5Name:
+                ptName = ptName_
+                break
+        return ptName
 
 
-    # This method will go away when the node constructor is in charge of
-    # putting it in the tree and logging its creation.
-    def _createNode(self, where, name, class_, doCreateNode, log):
-        parent = self.getNode(where)  # Does the parent node exist?
-        self._checkGroup(parent)  # Is it a group?
-
-        undoEnabled = self.isUndoEnabled()
-        canUndoCreate = class_._c_canUndoCreate
-        if undoEnabled and not canUndoCreate:
-            warnings.warn(
-                "creation can not be undone nor redone for this node",
-                UndoRedoWarning)
-
-        node = doCreateNode()
-        setattr(parent, name, node)
-
-        if log and undoEnabled and canUndoCreate:
-            self._log('CREATE', node._v_pathname)
-        return node
+    def _h5NameFromPTName(self, ptName):
+        """Get the HDF5 name matching the given PyTables name."""
+        return self.trMap.get(ptName, ptName)
 
 
-    def createGroup(self, where, name, title = "", filters = None,
-                    _log = True):
+    def createGroup(self, where, name, title="", filters=None):
         """Create a new Group instance with name "name" in "where" location.
 
         Keyword arguments:
@@ -555,21 +672,20 @@ class File(hdf5Extension.File, object):
 
         filters -- An instance of the Filters class that provides
             information about the desired I/O filters applicable to
-            the leaves that hangs directly from this new group (unless
+            the leaves that hang directly from this new group (unless
             other filters properties are specified for these leaves,
             of course). Besides, if you do not specify filter
             properties for its child groups, they will inherit these
             ones.
         """
-        def doCreateNode():
-            return Group(title, new=True, filters=filters)
-        return self._createNode(where, name, Group, doCreateNode, _log)
+        parentNode = self.getNode(where)  # Does the parent node exist?
+        return Group(parentNode, name,
+                     title=title, new=True, filters=filters)
 
 
     def createTable(self, where, name, description, title="",
                     filters=None, expectedrows=10000,
-                    compress=None, complib=None,  # Deprecated
-                    _log = True):
+                    compress=None, complib=None):  # Deprecated
         """Create a new Table instance with name "name" in "where" location.
 
         "where" parameter can be a path string, or another group
@@ -601,18 +717,19 @@ class File(hdf5Extension.File, object):
             management process time and the amount of memory used.
 
         """
-        def doCreateNode():
-            fprops = _checkFilters(filters, compress, complib)
-            return Table(description, title, fprops, expectedrows)
-        return self._createNode(where, name, Table, doCreateNode, _log)
+        parentNode = self.getNode(where)  # Does the parent node exist?
+        fprops = _checkFilters(filters, compress, complib)
+        return Table(parentNode, name,
+                     description=description, title=title,
+                     filters=fprops, expectedrows=expectedrows)
 
 
     def createVLTable(self, where, name, description, title="",
                       filters=None, expectedrows=10000,
-                      _log = True):
+                      compress=None, complib=None):  # Deprecated
 
         """Create a new Table instance with name "name" in "where" location.
-        
+
         "where" parameter can be a path string, or another group
         instance.
 
@@ -642,14 +759,14 @@ class File(hdf5Extension.File, object):
             management process time and the amount of memory used.
 
         """
-        def doCreateNode():
-            fprops = _checkFilters(filters)
-            return VLTable(description, title, fprops, expectedrows)
-        return self._createNode(where, name, VLTable, doCreateNode, _log)
+        parentNode = self.getNode(where)  # Does the parent node exist?
+        fprops = _checkFilters(filters, compress, complib)
+        return VLTable(parentNode, name,
+                       description=description, title=title,
+                       filters=fprops, expectedrows=expectedrows)
 
 
-    def createArray(self, where, name, object, title = "",
-                    _log = True):
+    def createArray(self, where, name, object, title=""):
         """Create a new instance Array with name "name" in "where" location.
 
         Keyword arguments:
@@ -661,22 +778,51 @@ class File(hdf5Extension.File, object):
         name -- The name of the new array.
 
         object -- The (regular) object to be saved. It can be any of
-            NumArray, CharArray, Numeric, List, Tuple, String, Int of
-            Float types, provided that they are regular (i.e. they are
-            not like [[1,2],2]).
+            NumArray, CharArray, NumPy, Numeric or other native Python
+            types, provided that they are regular (i.e. they are not
+            like [[1,2],2]) and homogeneous (i.e. all the elements are
+            of the same type).
 
         title -- Sets a TITLE attribute on the array entity.
 
         """
-        def doCreateNode():
-            return Array(object, title)
-        return self._createNode(where, name, Array, doCreateNode, _log)
+        parentNode = self.getNode(where)  # Does the parent node exist?
+        return Array(parentNode, name,
+                     object=object, title=title)
 
 
-    def createEArray(self, where, name, atom, title = "",
-                     filters=None, expectedrows = 1000,
-                     compress=None, complib=None,
-                     _log = True):
+    def createCArray(self, where, name, shape, atom, title="",
+                     filters=None, compress=None, complib=None):
+        """Create a new instance CArray with name "name" in "where" location.
+
+        Keyword arguments:
+
+        where -- The parent group where the new table will hang
+            from. "where" parameter can be a path string (for example
+            "/level1/leaf5"), or Group instance.
+
+        name -- The name of the new array.
+
+        shape -- The shape of the new array.
+
+        atom -- An Atom instance representing the shape, type and
+            flavor of the chunks to be saved.
+
+        title -- Sets a TITLE attribute on the array entity.
+
+        filters -- An instance of the Filters class that provides
+            information about the desired I/O filters to be applied
+            during the life of this object.
+        """
+        parentNode = self.getNode(where)  # Does the parent node exist?
+        fprops = _checkFilters(filters, compress, complib)
+        return CArray(parentNode, name,
+                      shape=shape, atom=atom, title=title, filters=fprops)
+
+
+    def createEArray(self, where, name, atom, title="",
+                     filters=None, expectedrows=1000,
+                     compress=None, complib=None):
         """Create a new instance EArray with name "name" in "where" location.
 
         Keyword arguments:
@@ -707,16 +853,16 @@ class File(hdf5Extension.File, object):
             process time and the amount of memory used.
 
         """
-        def doCreateNode():
-            fprops = _checkFilters(filters, compress, complib)
-            return EArray(atom, title, fprops, expectedrows)
-        return self._createNode(where, name, EArray, doCreateNode, _log)
+        parentNode = self.getNode(where)  # Does the parent node exist?
+        fprops = _checkFilters(filters, compress, complib)
+        return EArray(parentNode, name,
+                      atom=atom, title=title, filters=fprops,
+                      expectedrows=expectedrows)
 
 
     def createVLArray(self, where, name, atom, title="",
                       filters=None, expectedsizeinMB=1.0,
-                      compress=None, complib=None,
-                      _log = True):
+                      compress=None, complib=None):
         """Create a new instance VLArray with name "name" in "where" location.
 
         Keyword arguments:
@@ -744,10 +890,59 @@ class File(hdf5Extension.File, object):
             time and the amount of memory used.
 
         """
-        def doCreateNode():
-            fprops = _checkFilters(filters, compress, complib)
-            return VLArray(atom, title, fprops, expectedsizeinMB)
-        return self._createNode(where, name, VLArray, doCreateNode, _log)
+        parentNode = self.getNode(where)  # Does the parent node exist?
+        fprops = _checkFilters(filters, compress, complib)
+        return VLArray(parentNode, name,
+                       atom=atom, title=title, filters=fprops,
+                       expectedsizeinMB=expectedsizeinMB)
+
+
+    def _getNode(self, nodePath):
+        # The root node is always at hand.
+        if nodePath == '/':
+            return self.root
+
+        aliveNodes = self._aliveNodes
+        deadNodes = self._deadNodes
+
+        # Walk up the hierarchy until a node in the path is in memory.
+        parentPath = nodePath  # deepest node in memory
+        pathTail = []  # subsequent children below that node
+        while parentPath != '/':
+            if parentPath in aliveNodes:
+                # The parent node is in memory and alive, so get it.
+                parentNode = aliveNodes[parentPath]
+                assert parentNode is not None, \
+                       "stale weak reference to dead node ``%s``" % parentPath
+                break
+            if parentPath in deadNodes:
+                # The parent node is in memory but dead, so revive it.
+                parentNode = self._reviveNode(parentPath)
+                break
+            # Go up one level to try again.
+            (parentPath, nodeName) = splitPath(parentPath)
+            pathTail.insert(0, nodeName)
+        else:
+            # We hit the root node and no parent was in memory.
+            parentNode = self.root
+
+        # Walk down the hierarchy until the last child in the tail is loaded.
+        node = parentNode  # maybe `nodePath` was already in memory
+        for childName in pathTail:
+            # Load the node and use it as a parent for the next one in tail
+            # (it puts itself into life via `self._refNode()` when created).
+            if not isinstance(parentNode, Group):
+            #if parentNode is self:  # this doesn't work well, but the
+            # derived speed-up is not too much anyways.
+                # This is the root group
+                parentPath = parentNode._v_pathname
+                raise TypeError("node ``%s`` is not a group; "
+                                "it can not have a child named ``%s``"
+                                % (parentPath, childName))
+            node = parentNode._g_loadChild(childName)
+            parentNode = node
+
+        return node
 
 
     def getNode(self, where, name=None, classname=None):
@@ -763,73 +958,69 @@ class File(hdf5Extension.File, object):
         The node called `name` under the group `where` is returned.
 
         In both cases, if the node to be returned does not exist, a
-        `NoSuchNodeError` is raised.
+        `NoSuchNodeError` is raised.  Please note thet hidden nodes are
+        also considered.
 
         If the `classname` argument is specified, it must be the name of
         a class derived from `Node`.  If the node is found but it is not
         an instance of that class, a `NoSuchNodeError` is also raised.
         """
 
+        self._checkOpen()
+
         # For compatibility with old default arguments.
         if name == '':
             name = None
-        if classname == '':
-            classname = None
 
-        return self._getNodeFromDict(where, name, classname, self.objects)
-
-
-    def _getNode(self, where, name=None, classname=None):
-        """
-        Get the node under `where` with the given `name`.
-
-        This is equivalent to the public `getNode()` method, but it also
-        looks up hidden nodes.
-        """
-        return self._getNodeFromDict(where, name, classname, self._allNodes)
-
-
-    def _getNodeFromDict(self, where, name, classname, nodedict):
-        # Get the parent node.
+        # Get the parent path (and maybe the node itself).
         if isinstance(where, Node):
-            # It is a node instance: use it.
-            parent = where
+            node = where
+            node._g_checkOpen()  # the node object must be open
+            nodePath = where._v_pathname
         elif isinstance(where, basestring):  # Pyhton >= 2.3
-            # It is a path name: get the respective node.
-            if where not in nodedict:
-                raise NoSuchNodeError(where)
-            parent = nodedict[where]
+            node = None
+            nodePath = where
         else:
             raise TypeError(
                 "``where`` is not a string nor a node: %r" % (where,))
 
-        # Get the target node.
-        if name is None:
-            node = parent
-        else:
-            if not isinstance(parent, Group):
-                raise TypeError("""\
-node ``%s`` is not a group; it can not have a child named ``%s``"""
-                                % (parent._v_pathname, name))
-            node = getattr(parent, name)
+        # Get the name of the child node.
+        if name is not None:
+            node = None
+            nodePath = joinPath(nodePath, name)
+
+        assert node is None or node._v_pathname == nodePath
+
+        # Now we have the definitive node path, let us try to get the node.
+        if node is None:
+            node = self._getNode(nodePath)
 
         # Finally, check whether the desired node is an instance
         # of the expected class.
-        if classname is not None:
-            if classname not in classNameDict:
-                raise TypeError(
-                    "there is no registered node class named ``%s``"
-                    % (classname,))
-
-            if not isinstance(node, classNameDict[classname]):
+        if classname:
+            class_ = getClassByName(classname)
+            if not isinstance(node, class_):
                 nPathname = node._v_pathname
                 nClassname = node.__class__.__name__
-                raise NoSuchNodeError("""\
-could not find a ``%s`` node at ``%s``; \
-instead, a ``%s`` node has been found there"""
-                                      % (classname, nPathname, nClassname))
+                # This error message is right since it can never be shown
+                # for ``classname in [None, 'Node']``.
+                raise NoSuchNodeError(
+                    "could not find a ``%s`` node at ``%s``; "
+                    "instead, a ``%s`` node has been found there"
+                    % (classname, nPathname, nClassname))
 
         return node
+
+
+    def isVisibleNode(self, path):
+        """
+        Is the node under `path` visible?
+
+        If the node does not exist, a ``NoSuchNodeError`` is raised.
+        """
+
+        # ``util.isVisiblePath()`` is still recommended for internal use.
+        return self.getNode(path)._f_isVisible()
 
 
     def renameNode(self, where, newname, name=None):
@@ -879,7 +1070,20 @@ instead, a ``%s`` node has been found there"""
         obj = self.getNode(where, name=name)
         obj._f_remove(recursive)
 
+
     def getAttrNode(self, where, attrname, name=None):
+        """
+        Get a PyTables attribute from the given node.
+
+        This method is deprecated; please use `getNodeAttr()`.
+        """
+
+        warnings.warn("""\
+``File.getAttrNode()`` is deprecated; please use ``File.getNodeAttr()``""",
+                      DeprecationWarning)
+        return self.getNodeAttr(where, attrname, name)
+
+    def getNodeAttr(self, where, attrname, name=None):
         """
         Get a PyTables attribute from the given node.
 
@@ -890,7 +1094,20 @@ instead, a ``%s`` node has been found there"""
         obj = self.getNode(where, name=name)
         return obj._f_getAttr(attrname)
 
+
     def setAttrNode(self, where, attrname, attrvalue, name=None):
+        """
+        Set a PyTables attribute for the given node.
+
+        This method is deprecated; please use `setNodeAttr()`.
+        """
+
+        warnings.warn("""\
+``File.setAttrNode()`` is deprecated; please use ``File.setNodeAttr()``""",
+                      DeprecationWarning)
+        self.setNodeAttr(where, attrname, attrvalue, name)
+
+    def setNodeAttr(self, where, attrname, attrvalue, name=None):
         """
         Set a PyTables attribute for the given node.
 
@@ -901,7 +1118,20 @@ instead, a ``%s`` node has been found there"""
         obj = self.getNode(where, name=name)
         obj._f_setAttr(attrname, attrvalue)
 
+
     def delAttrNode(self, where, attrname, name=None):
+        """
+        Delete a PyTables attribute from the given node.
+
+        This method is deprecated; please use `delNodeAttr()`.
+        """
+
+        warnings.warn("""\
+``File.delAttrNode()`` is deprecated; please use ``File.delNodeAttr()``""",
+                      DeprecationWarning)
+        self.delNodeAttr(where, attrname, name)
+
+    def delNodeAttr(self, where, attrname, name=None):
         """
         Delete a PyTables attribute from the given node.
 
@@ -912,96 +1142,102 @@ instead, a ``%s`` node has been found there"""
         obj = self.getNode(where, name=name)
         obj._f_delAttr(attrname)
 
-    def copyAttrs(self, where, dstNode, name=None):
+
+    def copyAttrs(self, where, dstnode, name=None):
+        """
+        Copy attributes from one node to another.
+
+        This method is deprecated; please use `copyNodeAttrs()`.
+        """
+
+        warnings.warn("""\
+``File.copyAttrs()`` is deprecated; please use ``File.copyNodeAttrs()``""",
+                      DeprecationWarning)
+        self.copyNodeAttrs(where, dstnode, name)
+
+    def copyNodeAttrs(self, where, dstnode, name=None):
         """
         Copy attributes from one node to another.
 
         The `where` and `name` arguments work as in `getNode()`,
-        referencing the node to be acted upon.  `dstNode` is the
+        referencing the node to be acted upon.  `dstnode` is the
         destination and can be either a path string or a `Node`
         instance.
         """
         srcObject = self.getNode(where, name=name)
-        dstObject = self.getNode(dstNode)
-        object._v_attrs._f_copy(dstNode)
+        dstObject = self.getNode(dstnode)
+        srcObject._v_attrs._f_copy(dstObject)
 
 
-    def copyChildren(self, whereSrc, whereDst, recursive = False,
-                     filters = None, copyuserattrs = True,
-                     start = 0, stop = None, step = 1,
-                     overwrite = False, stats = None):
-        """(Recursively) Copy the children of a group into another location
+    def copyChildren(self, srcgroup, dstgroup,
+                     overwrite=False, recursive=False, **kwargs):
+        """
+        Copy the children of a group into another group.
 
-        "whereSrc" is the source group and "whereDst" is the
-        destination group.  Both groups should exist or a NodeError
-        will be raised. They can be specified as strings or as Group
-        instances. "recursive" specifies whether the copy should
-        recurse into subgroups or not. The default is not
-        recurse. Specifying a "filters" parameter overrides the
-        original filter properties in source nodes. You can prevent
-        the user attributes from being copied by setting
-        "copyuserattrs" to 0; the default is copy them. "start",
-        "stop" and "step" specifies the range of rows in leaves to be
-        copied; the default is to copy all the rows. "overwrite"
-        means whether the possible existing children hanging from
-        "whereDst" and having the same names than "whereSrc" children
-        should overwrite the destination nodes or not.
+        This method copies the nodes hanging from the source group
+        `srcgroup` into the destination group `dstgroup`.  Existing
+        destination nodes can be replaced by asserting the `overwrite`
+        argument.  If the `recursive` argument is true, all descendant
+        nodes of `srcnode` are recursively copied.
 
-        The optional keyword argument 'stats' may be used to collect
-        statistics on the copy process.  When used, it should be a
-        dictionary whith keys 'groups', 'leaves' and 'bytes' having a
-        numeric value.  Their values will be incremented to reflect
-        the number of groups, leaves and bytes, respectively, that
-        have been copied in the operation.
+        `kwargs` takes keyword arguments used to customize the copying
+        process.  See the documentation of `Group._f_copyChildren()` for
+        a description of those arguments.
         """
 
-        srcGroup = self.getNode(whereSrc)  # Does the source node exist?
+        srcGroup = self.getNode(srcgroup)  # Does the source node exist?
         self._checkGroup(srcGroup)  # Is it a group?
 
-        srcGroup._f_copyChildren(
-            where = whereDst, recursive = recursive,
-            filters = filters, copyuserattrs = copyuserattrs,
-            start = start, stop = stop, step = step,
-            overwrite = overwrite, stats = stats)
+        srcGroup._f_copyChildren(dstgroup, overwrite, recursive, **kwargs)
 
 
-    def copyFile(self, dstFilename=None, title=None,
-                 filters=None, copyuserattrs=1, overwrite=0, stats=None):
-        """Copy the contents of this file to "dstFilename".
+    def copyFile(self, dstfilename, overwrite=False, **kwargs):
+        """
+        Copy the contents of this file to `dstfilename`.
 
-        "dstFilename" must be a path string.  Specifying a "filters"
-        parameter overrides the original filter properties in source
-        nodes. If "dstFilename" file already exists and overwrite is
-        1, it is overwritten. The default is not overwriting. It
-        returns a tuple (ngroups, nleaves, nbytes) specifying the
-        number of copied groups and leaves.
+        `dstfilename` must be a path string indicating the name of the
+        destination file.  If it already exists, the copy will fail with
+        an ``IOError``, unless the `overwrite` argument is true, in
+        which case the destination file will be overwritten in place.
 
-        This copy also has the effect of compacting the destination
-        file during the process.
+        Additional keyword arguments may be passed to customize the
+        copying process.  For instance, title and filters may be
+        changed, user attributes may be or may not be copied, data may
+        be subsampled, stats may be collected, etc.  Arguments unknown
+        to nodes are simply ignored.  Check the documentation for
+        copying operations of nodes to see which options they support.
 
-        The optional keyword argument 'stats' may be used to collect
-        statistics on the copy process.  When used, it should be a
-        dictionary whith keys 'groups', 'leaves' and 'bytes' having a
-        numeric value.  Their values will be incremented to reflect
-        the number of groups, leaves and bytes, respectively, that
-        have been copied in the operation.
+        Copying a file usually has the beneficial side effect of
+        creating a more compact and cleaner version of the original
+        file.
         """
 
-        if os.path.isfile(dstFilename) and not overwrite:
-            raise IOError, "The file '%s' already exists and will not be overwritten. Assert the overwrite parameter if you want overwrite it." % (dstFilename)
+        self._checkOpen()
 
-        if title == None: title = self.title
-        if title == None: title = ""  # If still None, then set to empty string
-        if filters == None: filters = self.filters
-        dstFileh = openFile(dstFilename, mode="w", title=title)
-        # Copy the user attributes of the root group
-        self.root._v_attrs._f_copy(dstFileh.root)
-        # Copy all the hierarchy
-        self.root._f_copyChildren(
-            dstFileh.root, recursive = True, filters = filters,
-            copyuserattrs = copyuserattrs, stats = stats)
-        # Finally, close the file
-        dstFileh.close()
+        # Compute default arguments.
+        filters = kwargs.get('filters', self.filters)
+        copyuserattrs = kwargs.get('copyuserattrs', False)
+        # These are *not* passed on.
+        title = kwargs.pop('title', self.title)
+
+        if os.path.isfile(dstfilename) and not overwrite:
+            raise IOError("""\
+file ``%s`` already exists; \
+you may want to use the ``overwrite`` argument""" % dstfilename)
+
+        # Create destination file, overwriting it.
+        dstFileh = openFile(
+            dstfilename, mode="w", title=title, filters=filters)
+
+        try:
+            # Maybe copy the user attributes of the root group.
+            if copyuserattrs:
+                self.root._v_attrs._f_copy(dstFileh.root)
+
+            # Copy the rest of the hierarchy.
+            self.root._f_copyChildren(dstFileh.root, recursive=True, **kwargs)
+        finally:
+            dstFileh.close()
 
 
     def listNodes(self, where, classname=None):
@@ -1019,6 +1255,23 @@ instead, a ``%s`` node has been found there"""
         return group._f_listNodes(classname)
 
 
+    def iterNodes(self, where, classname=None):
+        """
+        Return an iterator yielding children nodes hanging from `where`.
+
+        The `where` argument works as in `getNode()`, referencing the
+        node to be acted upon.  The other arguments work as in
+        `Group._f_listNodes()`.
+
+        This is an iterator version of File.listNodes()
+        """
+
+        group = self.getNode(where)  # Does the parent exist?
+        self._checkGroup(group)  # Is it a group?
+
+        return group._f_iterNodes(classname)
+
+
     def __contains__(self, path):
         """
         Is there a node with that `path`?
@@ -1026,35 +1279,45 @@ instead, a ``%s`` node has been found there"""
         Returns ``True`` if the file has a node with the given `path` (a
         string), ``False`` otherwise.
         """
-        return path in self.objects
+
+        try:
+            self.getNode(path)
+        except NoSuchNodeError:
+            return False
+        else:
+            return True
+
 
     def __iter__(self):
         """Iterate over the nodes in the object tree."""
 
         return self.walkNodes('/')
 
+
     def walkNodes(self, where="/", classname=None):
         """Iterate over the nodes in the object tree.
         If "where" supplied, the iteration starts from this group.
         If "classname" is supplied, only instances of this class are
         returned.
+
+        This version iterates over the leaves in the same group in order
+        to avoid having a list referencing to them and thus, preventing
+        the LRU cache to remove them after their use.
         """
 
-        # For compatibility with old default arguments.
-        if classname == '':
-            classname = None
+        class_ = getClassByName(classname)
 
-        if classname == "Group":
+        if class_ is Group:  # only groups
             for group in self.walkGroups(where):
                 yield group
-        elif classname is None:
+        elif class_ is Node:  # all nodes
             yield self.getNode(where)
             for group in self.walkGroups(where):
-                for leaf in self.listNodes(group, ""):
+                for leaf in self.iterNodes(group):
                     yield leaf
-        else:
+        else:  # only nodes of the named type
             for group in self.walkGroups(where):
-                for leaf in self.listNodes(group, classname):
+                for leaf in self.iterNodes(group, classname):
                     yield leaf
 
 
@@ -1071,6 +1334,30 @@ instead, a ``%s`` node has been found there"""
         group = self.getNode(where)  # Does the parent exist?
         self._checkGroup(group)  # Is it a group?
         return group._f_walkGroups()
+
+
+    def _checkOpen(self):
+        """
+        Check the state of the file.
+
+        If the file is closed, a `ClosedFileError` is raised.
+        """
+        if not self.isopen:
+            raise ClosedFileError("the file object is closed")
+
+
+    def _isWritable(self):
+        """Is this file writable?"""
+        return self.mode in ('w', 'a', 'r+')
+
+
+    def _checkWritable(self):
+        """Check whether the file is writable.
+
+        If the file is not writable, a `FileModeError` is raised.
+        """
+        if not self._isWritable():
+            raise FileModeError("the file is not writable")
 
 
     def _checkGroup(self, node):
@@ -1090,6 +1377,8 @@ instead, a ``%s`` node has been found there"""
         is persistent, so a newly opened PyTables file may already have
         Undo/Redo support.
         """
+
+        self._checkOpen()
         return self._undoEnabled
 
 
@@ -1098,40 +1387,25 @@ instead, a ``%s`` node has been found there"""
             raise UndoRedoError("Undo/Redo feature is currently disabled!")
 
 
-    def _checkMarkName(self, name):
-        "Check that name is of correct type. Put it in the internal dictionary."
-
-        if name is None:
-            name = ""
-        else:
-            if not isinstance(name, str):
-                raise TypeError, \
-"Only strings are allowed as mark names. You passed object: '%s'" % name
-            if name in self._markers:
-                raise UndoRedoError, \
-"Name '%s' is already used as a marker name. Try another one." % name
-            self._markers[name] = self._curmark + 1
-        return name
-
-
     def _createTransactionGroup(self):
-        tgroup = TransactionGroupG("Transaction information container")
-        setattr(self.root, _transGroupName, tgroup)
+        tgroup = TransactionGroupG(
+            self.root, _transGroupName,
+            "Transaction information container", new=True)
         # The format of the transaction container.
         tgroup._v_attrs._g__setattr('FORMATVERSION', _transVersion)
         return tgroup
 
 
     def _createTransaction(self, troot, tid):
-        trans = TransactionG("Transaction number %d" % tid)
-        setattr(troot, _transName % tid, trans)
-        return trans
+        return TransactionG(
+            troot, _transName % tid,
+            "Transaction number %d" % tid, new=True)
 
 
     def _createMark(self, trans, mid):
-        mark = MarkG("Mark number %d" % mid)
-        setattr(trans, _markName % mid, mark)
-        return mark
+        return MarkG(
+            trans, _markName % mid,
+            "Mark number %d" % mid, new=True)
 
 
     def enableUndo(self, filters=Filters(complevel=1)):
@@ -1153,14 +1427,16 @@ instead, a ``%s`` node has been found there"""
         enabled raises an `UndoRedoError`.
         """
 
-        # Enabling several times is not allowed to avoid the user having
-        # the illusion that a new implicit mark has been created
-        # when calling enableUndo for the second time.
-
         class ActionLog(IsDescription):
             opcode = UInt8Col(pos=0)
             arg1   = StringCol(MAX_UNDO_PATH_LENGTH, pos=1, dflt="")
             arg2   = StringCol(MAX_UNDO_PATH_LENGTH, pos=2, dflt="")
+
+        self._checkOpen()
+
+        # Enabling several times is not allowed to avoid the user having
+        # the illusion that a new implicit mark has been created
+        # when calling enableUndo for the second time.
 
         if self.isUndoEnabled():
             raise UndoRedoError, "Undo/Redo feature is already enabled!"
@@ -1173,8 +1449,11 @@ instead, a ``%s`` node has been found there"""
 
         # Get the Group for keeping user actions
         try:
-            tgroup = self._getNode(_transGroupPath)
+            tgroup = self.getNode(_transGroupPath)
         except NodeError:
+            # The file is going to be changed.
+            self._checkWritable()
+
             # A transaction log group does not exist. Create it
             tgroup = self._createTransactionGroup()
 
@@ -1183,12 +1462,16 @@ instead, a ``%s`` node has been found there"""
                 tgroup, self._curtransaction)
 
             # Create an action log
-            self._actionlog = self.createTable(
+            self._actionlog = Table(
                 tgroup, _actionLogName, ActionLog, "Action log",
-                filters = filters, _log = False)
+                filters=filters, log=False)
 
             # Create an implicit mark
-            self._actionlog.append([(_opToCode["MARK"], str(0), '')])
+            #self._actionlog.append([(_opToCode["MARK"], str(0), '')])
+            # Use '\x00' to represent a NULL string. This is a bug
+            # in numarray and should be reported.
+            # F. Altet 2005-09-21
+            self._actionlog.append([(_opToCode["MARK"], str(0), '\x00')])
             self._nmarks += 1
             self._seqmarkers.append(0) # current action is 0
 
@@ -1201,14 +1484,15 @@ instead, a ``%s`` node has been found there"""
         else:
             # The group seems to exist already
             # Get the default transaction
-            self._trans = self._getNode(tgroup, 't'+str(self._curtransaction))
+            self._trans = tgroup._f_getChild(
+                _transName % self._curtransaction)
             # Open the action log and go to the end of it
-            self._actionlog = self._getNode(tgroup, "actionlog")
+            self._actionlog = tgroup.actionlog
             for row in self._actionlog:
                 if row["opcode"] == _opToCode["MARK"]:
                     name = row["arg2"]
                     self._markers[name] = self._nmarks
-                    self._seqmarkers.append(row.nrow())
+                    self._seqmarkers.append(row.nrow)
                     self._nmarks += 1
             # Get the current mark and current action
             self._curmark = self._actionlog.attrs.CURMARK
@@ -1231,8 +1515,13 @@ instead, a ``%s`` node has been found there"""
         disabled raises an `UndoRedoError`.
         """
 
+        self._checkOpen()
+
         if not self.isUndoEnabled():
             raise UndoRedoError, "Undo/Redo feature is already disabled!"
+
+        # The file is going to be changed.
+        self._checkWritable()
 
         del self._markers
         del self._seqmarkers
@@ -1242,7 +1531,7 @@ instead, a ``%s`` node has been found there"""
         del self._nmarks
         del self._actionlog
         # Recursively delete the transaction group
-        tnode = self._getNode(_transGroupPath)
+        tnode = self.getNode(_transGroupPath)
         tnode._g_remove(recursive=1)
 
         # The Undo/Redo mechanism has been disabled.
@@ -1264,9 +1553,23 @@ instead, a ``%s`` node has been found there"""
         been enabled.  Otherwise, an `UndoRedoError` is raised.
         """
 
+        self._checkOpen()
         self._checkUndoEnabled()
 
-        name = self._checkMarkName(name)
+        if name is None:
+            name = ''
+        else:
+            if not isinstance(name, str):
+                raise TypeError, \
+"Only strings are allowed as mark names. You passed object: '%s'" % name
+            if name in self._markers:
+                raise UndoRedoError, \
+"Name '%s' is already used as a marker name. Try another one." % name
+
+            # The file is going to be changed.
+            self._checkWritable()
+
+            self._markers[name] = self._curmark + 1
 
         # Create an explicit mark
         # Insert the mark in the action log
@@ -1296,17 +1599,16 @@ instead, a ``%s`` node has been found there"""
 
         # Check whether we are at the end of the action log or not
         if self._curaction <> self._actionlog.nrows - 1:
-            #print "Entering destroy....................................."
             # We are not, so delete the trailing actions
             self._actionlog.removeRows(self._curaction + 1,
                                        self._actionlog.nrows)
             # Reset the current marker group
-            mnode = self._getNode(_markPath % (self._curtransaction,
+            mnode = self.getNode(_markPath % (self._curtransaction,
                                                self._curmark))
             mnode._g_reset()
             # Delete the marker groups with backup objects
             for mark in xrange(self._curmark+1, self._nmarks):
-                mnode = self._getNode(_markPath % (self._curtransaction, mark))
+                mnode = self.getNode(_markPath % (self._curtransaction, mark))
                 mnode._g_remove(recursive=1)
             # Update the new number of marks
             self._nmarks = self._curmark+1
@@ -1402,14 +1704,20 @@ instead, a ``%s`` node has been found there"""
                 # undo/redo the action
                 if direction > 0:
                     # Uncomment this for debugging
-                    #print "redo-->", _codeToOp[opcode[i]], arg1[i], arg2[i]
+#                     print "redo-->", \
+#                           _codeToOp[actionlog.field('opcode')[i]],\
+#                           actionlog.field('arg1')[i],\
+#                           actionlog.field('arg2')[i]
                     undoredo.redo(self,
                                   _codeToOp[actionlog.field('opcode')[i]],
                                   actionlog.field('arg1')[i],
                                   actionlog.field('arg2')[i])
                 else:
                     # Uncomment this for debugging
-                    #print "undo-->", _codeToOp[opcode[i]], arg1[i], arg2[i]
+#                     print "undo-->", \
+#                           _codeToOp[actionlog.field('opcode')[i]],\
+#                           actionlog.field('arg1')[i],\
+#                           actionlog.field('arg2')[i]
                     undoredo.undo(self,
                                   _codeToOp[actionlog.field('opcode')[i]],
                                   actionlog.field('arg1')[i],
@@ -1439,6 +1747,7 @@ instead, a ``%s`` node has been found there"""
         been enabled.  Otherwise, an `UndoRedoError` is raised.
         """
 
+        self._checkOpen()
         self._checkUndoEnabled()
 
 #         print "(pre)UNDO: (curaction, curmark) = (%s,%s)" % \
@@ -1458,6 +1767,10 @@ instead, a ``%s`` node has been found there"""
             raise UndoRedoError("""\
 Mark ``%s`` is newer than the current mark. Use `redo()` or `goto()` instead."""
                                 % (mark,))
+
+        # The file is going to be changed.
+        self._checkWritable()
+
         # Try to reach this mark by unwinding actions in the log
         self._doundo(finalaction-1, -1)
         if self._curaction < self._actionlog.nrows-1:
@@ -1481,16 +1794,15 @@ Mark ``%s`` is newer than the current mark. Use `redo()` or `goto()` instead."""
         been enabled.  Otherwise, an `UndoRedoError` is raised.
         """
 
+        self._checkOpen()
         self._checkUndoEnabled()
 
 #         print "(pre)REDO: (curaction, curmark) = (%s, %s)" % \
 #               (self._curaction, self._curmark)
-        # Get the final action ID to go
-        if self._curaction < self._actionlog.nrows - 1:
-            self._curaction += 1
-        else:
+        if self._curaction >= self._actionlog.nrows - 1:
             # We are at the end of log, so no action
             return
+
         if mark is None:
             mark = self._curmark + 1
         elif mark == -1:
@@ -1498,10 +1810,17 @@ Mark ``%s`` is newer than the current mark. Use `redo()` or `goto()` instead."""
         # Get the mark ID number
         markid = self._getMarkID(mark)
         finalaction = self._getFinalAction(markid)
-        if finalaction < self._curaction:
+        if finalaction < self._curaction + 1:
             raise UndoRedoError("""\
 Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
                                 % (mark,))
+
+        # The file is going to be changed.
+        self._checkWritable()
+
+        # Get the final action ID to go
+        self._curaction += 1
+
         # Try to reach this mark by redoing the actions in the log
         self._doundo(finalaction, 1)
         # Increment the current mark only if we are not at the end of marks
@@ -1524,6 +1843,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         been enabled.  Otherwise, an `UndoRedoError` is raised.
         """
 
+        self._checkOpen()
         self._checkUndoEnabled()
 
         if mark == -1:  # Special case
@@ -1550,6 +1870,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         been enabled.  Otherwise, an `UndoRedoError` is raised.
         """
 
+        self._checkOpen()
         self._checkUndoEnabled()
         return self._curmark
 
@@ -1563,7 +1884,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         shadow parent node and the name of the shadow in it.
         """
 
-        parent = self._getNode(
+        parent = self.getNode(
             _shadowParent % (self._curtransaction, self._curmark))
         name = _shadowName % (self._curaction,)
 
@@ -1575,6 +1896,8 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
     def flush(self):
         """Flush all the objects on all the HDF5 objects tree."""
 
+        self._checkOpen()
+
         for group in self.walkGroups(self.root):
             for leaf in self.listNodes(group, classname = 'Leaf'):
                 leaf.flush()
@@ -1582,20 +1905,100 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         # Flush the cache to disk
         self._flushFile(0)  # 0 means local scope, 1 global (virtual) scope
 
+
+    def _closeDescendentsOf(self, group):
+        """Close all the *loaded* descendent nodes of the given `group`."""
+
+        assert isinstance(group, Group)
+
+        prefix = group._v_pathname + '/'
+        if prefix == '//':
+            prefix = '/'
+
+        self._closeNodes(
+            [path for path in self._aliveNodes if path.startswith(prefix)])
+
+        self._closeNodes(
+            [path for path in self._deadNodes if path.startswith(prefix)])
+
+
+    def _closeNodes(self, nodePaths, getNode=None):
+        """
+        Close all nodes in the list of `nodePaths`.
+
+        This method uses the `getNode` callable object to get the node
+        object by its path.  If `getNode` is not given, `File.getNode()`
+        is used.  ``KeyError`` exceptions on `getNode` invocations are
+        ignored.
+        """
+
+        if getNode is None:
+            getNode = self.getNode
+
+        for nodePath in nodePaths:
+            try:
+                node = getNode(nodePath)
+                node._f_close()
+                del node
+            except KeyError:
+                pass
+
+
     def close(self):
-        """Close all the objects in HDF5 file and close the file."""
+        """Close all the nodes in HDF5 file and close the file."""
+        global _open_files
 
         # If the file is already closed, return immediately
         if not self.isopen:
             return
 
-        if self._undoEnabled:
+        if self._undoEnabled and self._isWritable():
             # Save the current mark and current action
             self._actionlog.attrs._g__setattr("CURMARK", self._curmark)
             self._actionlog.attrs._g__setattr("CURACTION", self._curaction)
 
-        # Close the root group (recursively)
+        # Close all loaded nodes.
+
+        # First, close the alive nodes and delete them
+        # so they are not placed in the limbo again.
+        # We do not use ``getNode()`` for efficiency.
+        aliveNodes = self._aliveNodes
+        # These two steps ensure tables are closed *before* their indices.
+        self._closeNodes([path for path in aliveNodes.keys()
+                          if '/_i_' not in path],  # not indices
+                         lambda path: aliveNodes[path])
+        self._closeNodes(aliveNodes.keys(),  # everything else (i.e. indices)
+                         lambda path: aliveNodes[path])
+        assert len(aliveNodes) == 0, \
+               ("alive nodes remain after closing alive nodes: %s"
+                % aliveNodes.keys())
+
+        # Next, revive the dead nodes, close and delete them
+        # so they are not placed in the limbo again.
+        # We do not use ``getNode()`` for efficiency
+        # and to avoid accidentally loading ancestor nodes.
+        deadNodes = self._deadNodes
+        # These two steps ensure tables are closed *before* their indices.
+        self._closeNodes([path for path in deadNodes
+                          if '/_i_' not in path],  # not indices
+                         lambda path: self._reviveNode(path, useNode=False))
+        self._closeNodes([path for path in deadNodes],
+                         lambda path: self._reviveNode(path, useNode=False))
+        assert len(deadNodes) == 0, \
+               ("dead nodes remain after closing dead nodes: %s"
+                % [path for path in deadNodes])
+
+        # No other nodes should have been revived.
+        assert len(aliveNodes) == 0, \
+               ("alive nodes remain after closing dead nodes: %s"
+                % aliveNodes.keys())
+
+        # When all other nodes have been closed, close the root group.
+        # This is done at the end because some nodes
+        # may still need to be loaded during the closing process;
+        # thus the root node must be open until the very end.
         self.root._f_close()
+
         # Close the file
         self._closeFile()
         # After the objects are disconnected, destroy the
@@ -1604,8 +2007,8 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         self.__dict__.clear()
         # Set the flag to indicate that the file is closed
         self.isopen = 0
-
-        return
+        # Delete the entry in the dictionary of opened files
+        del _open_files[self]
 
     def __str__(self):
         """Returns a string representation of the object tree"""
@@ -1627,6 +2030,9 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
     def __repr__(self):
         """Returns a more complete representation of the object tree"""
 
+        if not self.isopen:
+            return "<closed File>"
+
         # Print all the nodes (Group and Leaf objects) on object tree
         astring = 'File(filename=' + repr(self.filename) + \
                   ', title=' + repr(self.title) + \
@@ -1642,46 +2048,109 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         return astring
 
 
-    def _refNode(self, node, path):
+    def _refNode(self, node, nodePath, useNode=True):
         """
-        Insert references to a `node` via a `path`.
+        Register `node` as alive and insert references to it.
 
-        Checks that the `path` does not exist and creates references to
-        the given `node` by that `path`.
+        If `useNode` is false, no methods or attributes of the node will
+        ever be accessed.  This is useful to avoid secondary effects
+        during close operations.
         """
 
-        # Check if there is already a node with the same path.
-        if path in self._allNodes:
-            raise NodeError(
-                "file already has a node with path ``%s``" % (path,))
+        if nodePath != '/':
+            # The root group does not participate in alive/dead stuff.
+            aliveNodes = self._aliveNodes
+            assert nodePath not in aliveNodes, \
+                   "file already has a node with path ``%s``" % nodePath
 
-        # Insert references to the new node.
-        self._allNodes[path] = node
-        if not path.startswith('/_p_'):
+            # Add the node to the set of referenced ones.
+            aliveNodes[nodePath] = node
+
+        # Add the node to the visible node mappings.
+        if useNode and isVisiblePath(nodePath):
             # This is only done for visible nodes.
-            self.objects[path] = node
+            # Assigned values are entirely irrelevant.
+            self.objects[nodePath] = None
             if isinstance(node, Leaf):
-                self.leaves[path] = node
+                self.leaves[nodePath] = None
             if isinstance(node, Group):
-                self.groups[path] = node
+                self.groups[nodePath] = None
 
 
-    def _unrefNode(self, path):
+    def _unrefNode(self, nodePath):
+        """Unregister `node` as alive and remove references to it."""
+
+        if nodePath != '/':
+            # The root group does not participate in alive/dead stuff.
+            aliveNodes = self._aliveNodes
+            assert nodePath in aliveNodes, \
+                   "file does not have a node with path ``%s``" % nodePath
+
+            # Remove the node from the set of referenced ones.
+            del aliveNodes[nodePath]
+
+        # Remove the node from the visible node mappings.
+        self.objects.pop(nodePath, None)
+        self.leaves.pop(nodePath, None)
+        self.groups.pop(nodePath, None)
+
+
+    def _killNode(self, node):
         """
-        Remove references to a node.
+        Kill the `node`.
 
-        Removes all references to the node pointed to by the `path`.
+        Moves the `node` from the set of alive, referenced nodes to the
+        set of dead, unreferenced ones.
         """
 
-        del self._allNodes[path]
-        if not path.startswith('/_p_'):
-            # This is only done for visible nodes.
-            if path in self.groups:
-                del self.groups[path]
-            if path in self.leaves:
-                del self.leaves[path]
-            del self.objects[path]
+        nodePath = node._v_pathname
+        assert nodePath in self._aliveNodes, \
+               "trying to kill non-alive node ``%s``" % nodePath
 
+        node._g_preKillHook()
+
+        # Remove all references to the node.
+        self._unrefNode(nodePath)
+        # Save the dead node in the limbo.
+        self._deadNodes[nodePath] = node
+
+
+    def _reviveNode(self, nodePath, useNode=True):
+        """
+        Revive the node under `nodePath` and return it.
+
+        Moves the node under `nodePath` from the set of dead,
+        unreferenced nodes to the set of alive, referenced ones.
+
+        If `useNode` is false, no methods or attributes of the node will
+        ever be accessed.  This is useful to avoid secondary effects
+        during close operations.
+        """
+
+        assert nodePath in self._deadNodes, \
+               "trying to revive non-dead node ``%s``" % nodePath
+
+        # Take the node out of the limbo.
+        node = self._deadNodes.pop(nodePath)
+        # Make references to the node.
+        self._refNode(node, nodePath, useNode)
+
+        node._g_postReviveHook()
+
+        return node
+
+# If a users hits ^C during a run, it is wise to gracefully close the opened files.
+def close_open_files():
+    global _open_files
+    if len(_open_files):
+        print "Closing remaining opened files...",
+    for fileh in _open_files.keys():
+        print " %s..." % (fileh.filename,),
+        fileh.close()
+        print "done.",
+
+import atexit
+atexit.register(close_open_files)
 
 
 ## Local Variables:

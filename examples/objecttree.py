@@ -40,4 +40,3 @@ for table in (table1, table2):
 
 # Finally, close the file (this also will flush all the remaining buffers!)
 fileh.close()
-

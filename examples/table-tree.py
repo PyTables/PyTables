@@ -10,7 +10,7 @@ class Particle(IsDescription):
     TDCcount    = UInt8Col(0)              # unsigned byte
     grid_i      = IntCol(0)                # integer
     grid_j      = IntCol(0)                # integer
-    idnumber    = Int64Col(0)              # signed long long 
+    idnumber    = Int64Col(0)              # signed long long
     name        = StringCol(16, dflt="")   # 16-character String
     pressure    = Float32Col(0.0, shape=2) # float  (single-precision)
     temperature = FloatCol(0.0)            # double (double-precision)
@@ -22,7 +22,7 @@ Particle2 = {
     "TDCcount"    : Col("UInt8", 1, 0),    # unsigned byte
     "grid_i"      : Col("Int32", 1, 0),    # integer
     "grid_j"      : Col("Int32", 1, 0),    # integer
-    "idnumber"    : Col("Int64", 1, 0),    # signed long long 
+    "idnumber"    : Col("Int64", 1, 0),    # signed long long
     "name"        : Col("CharType", 16, ""),  # 16-character String
     "pressure"    : Col("Float32", 2, 0),  # float  (single-precision)
     "temperature" : Col("Float64", 1, 0),  # double (double-precision)
@@ -34,7 +34,7 @@ filename = "table-tree.h5"
 # A translation map
 trMap = {"detector": "for",  # A reserved word
          "table": " 11 ",}   # A non-valid python variable name
-    
+
 # Open a file in "w"rite mode
 h5file = openFile(filename, mode = "w", trMap=trMap)
 
@@ -53,9 +53,9 @@ particle = table.row
 for i in xrange(10):
     # First, assign the values to the Particle record
     particle['name']  = 'Particle: %6d' % (i)
-    particle['TDCcount'] = i % 256    
+    particle['TDCcount'] = i % 256
     particle['ADCcount'] = (i * 256) % (1 << 16)
-    particle['grid_i'] = i 
+    particle['grid_i'] = i
     particle['grid_j'] = 10 - i
     particle['pressure'] = [float(i*i), float(i*2)]
     particle['temperature'] = float(i**2)
@@ -92,7 +92,7 @@ names = [ p['name'] for p in table.iterrows() ]
 print "names ==>", names
 h5file.createArray('/columns', 'name', names, "Name column")
 # This works even with homogeneous tuples or lists (!)
-print "gcolumns.name shape ==>", gcolumns.name.shape 
+print "gcolumns.name shape ==>", gcolumns.name.shape
 print "gcolumns.name type ==> ", gcolumns.name.type
 
 print "Table dump:"
@@ -165,11 +165,11 @@ print
 
 # Get "/detector" Group object
 group = h5file.root.detector
-print "/detector ==>", group 
+print "/detector ==>", group
 
 # Get the "/detector/table
 table = h5file.getNode("/detector/table")
-print "/detector/table ==>", table 
+print "/detector/table ==>", table
 
 # Get metadata from table
 print "Object:", table
@@ -179,8 +179,8 @@ print "Rows saved on table: %d" % (table.nrows)
 
 print "Variable names on table with their type:"
 for name in table.colnames:
-    print "  ", name, ':=', table.coltypes[name] 
-print    
+    print "  ", name, ':=', table.coltypes[name]
+print
 
 # Read arrays in /columns/names and /columns/pressure
 
@@ -230,9 +230,9 @@ particle = table.row
 for i in xrange(10, 15):
     # First, assign the values to the Particle record
     particle['name']  = 'Particle: %6d' % (i)
-    particle['TDCcount'] = i % 256    
+    particle['TDCcount'] = i % 256
     particle['ADCcount'] = (i * 256) % (1 << 16)
-    particle['grid_i'] = i 
+    particle['grid_i'] = i
     particle['grid_j'] = 10 - i
     particle['pressure'] = [float(i*i), float(i*2)]
     particle['temperature'] = float(i**2)
@@ -250,11 +250,11 @@ for p in table:
 print
 
 print table.read(field="ADCcount")
-print table.read(field="ADCcount", flavor="Numeric")
+print table.read(field="ADCcount", flavor="numeric")
 print table.read(0, 0, 1, "name")
-print table.read(0, 0, 1, "name", flavor="List")
+print table.read(0, 0, 1, "name", flavor="python")
 print table.read(0, 0, 2, "pressure")
-print table.read(0, 0, 2, "pressure", flavor="Tuple")
+print table.read(0, 0, 2, "pressure", flavor="python")
 
 # Several range selections
 print "Extended slice in selection: [0:7:6]"
@@ -279,11 +279,12 @@ for p in table.iterrows():
     print p['c1'], '-->', p['c2']
 print
 
-result = [ rec['c1'] for rec in table if rec.nrow() < 2 ]
+result = [ rec['c1'] for rec in table if rec.nrow < 2 ]
 print result
 
 # Test the File.renameNode() method
-h5file.renameNode(h5file.root.detector.recarray2, "recarray3")
+#h5file.renameNode(h5file.root.detector.recarray2, "recarray3")
+h5file.renameNode(table, "recarray3")
 # Delete a Leaf from the HDF5 tree
 h5file.removeNode(h5file.root.detector.recarray3)
 # Delete the detector group and its leaves recursively
@@ -297,4 +298,3 @@ print h5file
 
 # Close this file
 h5file.close()
-

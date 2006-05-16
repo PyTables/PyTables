@@ -21,7 +21,6 @@ vlarray = fileh.createVLArray(root, 'vlarray1', Int32Atom(),
 vlarray.append(array([5, 6]))
 vlarray.append(array([5, 6, 7]))
 vlarray.append([5, 6, 9, 8])
-vlarray.append(5, 6, 9, 10, 12)
 
 # Test with lists of bidimensional vectors
 vlarray = fileh.createVLArray(root, 'vlarray2', Float64Atom(shape=(2,)),
@@ -69,7 +68,7 @@ vlarray = fileh.createVLArray(root, 'vlarray6', BoolAtom(),
                                "Boolean atoms")
 # The next lines are equivalent...
 vlarray.append([1,0])
-vlarray.append(1,0,3,0)  # This will be converted to a boolean
+vlarray.append([1,0,3,0])  # This will be converted to a boolean
 # This gives a TypeError
 #vlarray.append([1,0,1])
 

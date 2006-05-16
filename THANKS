@@ -1,7 +1,7 @@
-January 2005
+February 2006
 
-The main authors (Francesc Altet and Ivan Vilata) would like to thank the
-people have contributed directly or indirectly to PyTables. 
+We would like to thank the people have contributed directly or
+indirectly to PyTables.
 
 Scott Prater for editing the user's manual in order to make it more
 readable in english, as well as conducting the tests of PyTables on
@@ -23,8 +23,8 @@ nextafterf math functions that despite the fact they are standard in
 C99 standard, they are not at the official places in Microsoft VC++
 6.x nor VC++ 7.x.
 
-Jeff Whitaker for providing the initial version of the NetCDF to HDF5
-(nctoh5) utility.
+Jeff Whitaker for providing the NetCDF module and the utilities for
+doing conversions between to HDF5 (nctoh5).
 
 Norbert Nemec for providing several interesting patches.
 
@@ -33,10 +33,19 @@ PyTables with BEGIN_ALLOW_THREADS and END_ALLOW_THREADS. That will
 allow much better performance of PyTables apps in mutiprocessors
 platforms.
 
+Antonio Valentino for providing several patches for supporting
+native multidimensional attributes and the CArray object.
+
+Ashley Walsh, for reporting several problems and fixes. It has helped
+testing OSX platform, specially UCL compressor issues.
+
+Russel Howe, for reporting and providing an initial patch for a nasty
+memory leak when reading VLArray types.
+
 The HDF5 team at NCSA for making such an excellent library for data
-persistence, and specially Pedro Vicente and Quincey Koziol, for
-quickly including my suggested patches to the HDF5_HL and solving the
-reported bugs in HDF5 library.
+persistence, and specially Pedro Vicente, Quincey Koziol and Elena
+Pourmal, for quickly including my suggested patches to the HDF5_HL and
+solving the reported bugs in HDF5 library.
 
 Todd Miller and Perry Greenfield for promptly helping me to understand
 many of the intricacies of the numarray package and Jin-chung Hsu for
@@ -44,6 +53,12 @@ discussions on recarray module (now numarray.records module). They
 have been very receptive and promptly worked-out most of the
 improvements in numarray (specially in the records module) that were
 necessary for PyTables.
+
+Travis Oliphant for its impressive work and responsiveness in NumPy.
+
+Evan Prodromou for his lrucache package, a very sleek implementation
+of an LRU queue.  He had a very helpful attitude with the licensing
+and technical issues.
 
 Greg Ewing for writing the excelent Pyrex tool and allowing to beginners
 like me to quickly and safely start writing Python extensions. He was
@@ -55,4 +70,9 @@ which is used to create the different versions of the User's Manual
 and he was always very helpful.
 
 Guido, you know who ;-).
+
+And last, but definetely not least!,
+
+Germanischer Lloyd, Acusim and THG (The HDF5 Group) for supporting the
+PyTables project with contracts.
 

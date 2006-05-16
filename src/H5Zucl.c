@@ -3,12 +3,12 @@
    large enough buffer to keep the uncompressed data in. If not, it
    should crash. But HDF5 seems to always provide room enough */
 #include <stdlib.h>
+#include <hdf5.h>
 #include "H5Zucl.h"
-#include "utils.h"
 #include "math.h"  		/* For ceil() */
 
 #ifdef HAVE_UCL_LIB
-#   include "ucl.h"
+#   include "ucl/ucl.h"
 /* Comment this until ucl 1.02 and on are more spread... */
 /* #   include "ucl_asm.h" */
 #endif
@@ -33,15 +33,15 @@
    fletcher32 checksum provided in HDF5 1.6 or higher. So, even though
    the CHECKSUM support here seems pretty stable it will be disabled.
    F. Altet 2004/01/12 */
-#undef CHECKSUM  		       
+#undef CHECKSUM
 
 /* Adding more memory to the nrve seems to make it more resistant to
  seg faults. But I don't fully understand were is exactly the problem,
- anyway.  F. Altet 2003/07/24 
- * 
+ anyway.  F. Altet 2003/07/24
+ *
  * I'm suspucious now about a possible interaction between psyco and
  * ucl nrve that makes the checksum to fail. 2003/07/28
- * 
+ *
  */
 /* Adding a combination of the zlib method and ucl to the output buffer */
 /* #define H5Z_UCL_SIZE_ADJUST(s) (ceil((double)((s)*1.001))+((s)/8)+256+12) */
@@ -51,7 +51,7 @@
    This should be further analyzed. */
 /* With the nrv2d enabled by default this seems to work just fine */
 /* #define H5Z_UCL_SIZE_ADJUST(s) ((s)+((s)/8)+256) /\* Correct value *\/ */
-/* Added this for a bit more of safety! */
+/* Use this for a bit more of safety! */
 /* #define H5Z_UCL_SIZE_ADJUST(s) (ceil((double)((s)*1.001))+((s)/8)+256+12) */
 /* After returning always the compressed buffer, and even with the
    current value, UCL nrv2e seems to work just fine. Great!. 2003/12/09
@@ -61,60 +61,57 @@
    H5Z_FLAG_OPTIONAL to the pproperty list when creating chunks. So,
    this should not pose more problems anymore. 2003/12/21  */
 
-#define H5Z_UCL_SIZE_ADJUST(s) ((s)+((s)/8)+256) /* Correct value */
+/* #define H5Z_UCL_SIZE_ADJUST(s) ((s)+((s)/8)+256) /\* Correct value *\/ */
+#define H5Z_UCL_SIZE_ADJUST(s) (ceil((double)((s)*1.001))+((s)/8)+256+12)
 
-int register_ucl(void) {
+size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
+		   const unsigned int cd_values[], size_t nbytes,
+		   size_t *buf_size, void **buf);
+
+
+int register_ucl(char **version, char **date) {
 
 #ifdef HAVE_UCL_LIB
 
-   int status;
-  /* Feed the filter_class data structure */
-   /* 1.6.2 */
+#if H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 7
+   /* 1.6.x */
   H5Z_class_t filter_class = {
-    (H5Z_filter_t)FILTER_UCL,	/* filter_id */
-    "ucl", 			/* comment */
-    NULL,                       /* can_apply_func */
-    NULL,                       /* set_local_func */
-    (H5Z_func_t)ucl_deflate     /* filter_func */
+    (H5Z_filter_t)(FILTER_UCL),    /* filter_id */
+    "ucl",                         /* comment */
+    NULL,                          /* can_apply_func */
+    NULL,                          /* set_local_func */
+    (H5Z_func_t)(ucl_deflate)      /* filter_func */
   };
+#else
    /* 1.7.x */
-/*   H5Z_class_t filter_class = { */
-/*     H5Z_CLASS_T_VERS,           /\* H5Z_class_t version *\/ */
-/*     (H5Z_filter_t)FILTER_UCL,	/\* filter_id *\/ */
-/*     1, 1,                       /\* Encoding and decoding enabled *\/ */
-/*     "ucl",	 		/\* comment *\/ */
-/*     NULL,                       /\* can_apply_func *\/ */
-/*     NULL,                       /\* set_local_func *\/ */
-/*     (H5Z_func_t)ucl_deflate     /\* filter_func *\/ */
-/*   }; */
+  H5Z_class_t filter_class = {
+    H5Z_CLASS_T_VERS,             /* H5Z_class_t version */
+    (H5Z_filter_t)(FILTER_UCL),   /* filter_id */
+    1, 1,                         /* Encoding and decoding enabled */
+    "ucl",	 		  /* comment */
+    NULL,                         /* can_apply_func */
+    NULL,                         /* set_local_func */
+    (H5Z_func_t)(ucl_deflate)     /* filter_func */
+  };
+#endif /* if H5_VERSION < "1.7" */
 
   /* Init the ucl library */
   if (ucl_init()!=UCL_E_OK)
     printf("Problems initializing UCL library\n");
 
   /* Register the lzo compressor */
-  status = H5Zregister(&filter_class);
-  
-  return UCL_VERSION; /* lib is available */
+  H5Zregister(&filter_class);
+
+  *version = strdup(UCL_VERSION_STRING);
+  *date = strdup(UCL_VERSION_DATE);
+  return 1; /* lib is available */
 
 #else
+  *version = NULL;
+  *date = NULL;
   return 0; /* lib is not available */
 #endif /* HAVE_UCL_LIB */
 
-}
-
-/* This routine only can be called if UCL is present */
-PyObject *getUCLVersionInfo(void) {
-  char *info[2];
-#ifdef HAVE_UCL_LIB
-  info[0] = strdup(UCL_VERSION_STRING);
-  info[1] = strdup(UCL_VERSION_DATE);
-#else
-  info[0] = NULL;
-  info[1] = NULL;
-#endif /* HAVE_UCL_LIB */
-  
-  return createNamesTuple(info, 2);
 }
 
 
@@ -244,7 +241,7 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
       checksum=ucl_adler32(ucl_adler32(0,NULL,0), outbuf, out_len);
   
       /* Compare */
-      if (memcmp(&checksum, (char*)(*buf)+nbytes, 4)) {
+      if (memcmp(&checksum, (unsigned char*)(*buf)+nbytes, 4)) {
 	ret_value = 0; /*fail*/
 	fprintf(stderr,"Checksum failed!.\n");
 	goto done;
@@ -328,7 +325,7 @@ size_t ucl_deflate(unsigned int flags, size_t cd_nelmts,
 #endif
       /* Append checksum of *uncompressed* data at the end */
       checksum = ucl_adler32(ucl_adler32(0,NULL,0), *buf, nbytes);
-      memcpy((char*)(z_dst)+z_dst_nbytes, &checksum, 4);
+      memcpy((unsigned char*)(z_dst)+z_dst_nbytes, &checksum, 4);
       z_dst_nbytes += (ucl_uint)4;
       nbytes += 4; 
     }

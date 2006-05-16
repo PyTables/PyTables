@@ -20,7 +20,7 @@ particle = table.row
 for i in xrange(10):
     # First, assign the values to the Particle record
     particle['name']  = 'Particle: %6d' % (i)
-    particle['lati'] = i 
+    particle['lati'] = i
     particle['longi'] = 10 - i
     particle['pressure'] = float(i*i)
     particle['temperature'] = float(i**2)
@@ -58,7 +58,7 @@ print "Rows saved on table: %d" % (table.nrows)
 
 print "Variable names on table with their type:"
 for name in table.colnames:
-    print "  ", name, ':=', table.coltypes[name] 
+    print "  ", name, ':=', table.coltypes[name]
 
 print "Table contents:"
 for row in table:

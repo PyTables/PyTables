@@ -4,7 +4,6 @@
 #       Created: January 14, 2004
 #       Author:  Francesc Altet - faltet@carabos.com
 #
-#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/UnImplemented.py,v $
 #       $Id$
 #
 ########################################################################
@@ -30,8 +29,7 @@ import tables.hdf5Extension as hdf5Extension
 from tables.Leaf import Leaf
 
 
-
-__version__ = "$Revision: 1.7 $"
+__version__ = "$Revision$"
 
 
 
@@ -42,23 +40,39 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
     please, contact the developers.
 
     """
-    
-    def __init__(self):
-        """Create the UnImplemented instance."""
-        # UnImplemented objects exist always (we don't create them)
-        self._v_new = 0
 
-    def _open(self):
+    def __init__(self, parentNode, name):
+        """Create the UnImplemented instance."""
+
+        # UnImplemented objects always come from opening an existing node
+        # (they can not be created).
+        self._v_new = False
+        """Is this the first time the node has been created?"""
+        self.nrows = 0
+        """The length of the first dimension of the data."""
+        self.shape = (0,)
+        """The shape of the stored data."""
+        self.byteorder = None
+        """
+        The endianness of data in memory ('big', 'little' or
+        'non-relevant').
+        """
+
+        super(UnImplemented, self).__init__(parentNode, name, log=False)
+
+
+    def _g_open(self):
         """Get the metadata info for an array in file."""
 
-        # All this will eventually end up in the node constructor.
-
-        (self.shape, self.byteorder) = self._openUnImplemented()
+        (self.shape, self.byteorder, objectID) = \
+                     self._openUnImplemented()
         self.nrows = self.shape[0]
+        return objectID
 
 
-    def _g_copy(self, newParent, newName, recursive, **kwargs):
-        """_g_copy(newParent, newName, recursive[, arg=value...]) -> None.  Does nothing.
+    def _g_copy(self, newParent, newName, recursive, log, **kwargs):
+        """
+        Do nothing.
 
         This method does nothing, but a UserWarning is issued.  Please note
         that this method does not return a new node, but None.
@@ -80,7 +94,7 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
         """
 
         # This also does nothing but warn.
-        self._g_copy(newparent, newname, recursive, **kwargs)
+        self._g_copy(newparent, newname, recursive, False, **kwargs)
         return None  # Can you see it?
 
 
@@ -93,3 +107,10 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
          If you want to see this kind of HDF5 dataset implemented in
          PyTables, please, contact the developers.>
 """ % (str(self), self._v_file.filename)
+
+
+# Non supported classes. These are listed here for backward compatibility
+# with PyTables 0.9.x indexes
+
+class OldIndexArray(UnImplemented):
+    _c_classId = 'IndexArray'

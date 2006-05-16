@@ -11,7 +11,7 @@ import sys, time, random, gc
 import numarray
 from tables import *
 
-class Test(IsDescription): 
+class Test(IsDescription):
     ngroup = IntCol(pos=1)
     ntable = IntCol(pos=2)
     nrow = IntCol(pos=3)
@@ -29,7 +29,7 @@ def createFileArr(filename, ngroups, ntables, nrows):
         group = fileh.createGroup("/", 'group%04d'% k, "Group %d" % k)
 
     fileh.close()
-    
+
     return (0, 4)
 
 def readFileArr(filename, ngroups, recsize, verbose):
@@ -49,10 +49,10 @@ def readFileArr(filename, ngroups, recsize, verbose):
 
             nrow = 0
             arr = table.read()
-                    
+
             rowsread += len(arr)
             ntable += 1
-        
+
         # Close the file (eventually destroy the extended type)
         fileh.close()
 
@@ -91,13 +91,13 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
                 row['ntable'] = j
                 row['nrow'] = i
                 row.append()
-                    
+
             rowswritten += nrows
             table.flush()
 
         # Close the file
         fileh.close()
-    
+
     return (rowswritten, rowsize)
 
 def readFile(filename, ngroups, recsize, verbose):
@@ -132,11 +132,11 @@ def readFile(filename, ngroups, recsize, verbose):
                           (ngroup, ntable, nrow)
                     print "Record ==>", row
                 nrow += 1
-                    
+
             assert nrow == table.nrows
             rowsread += table.nrows
             ntable += 1
-        
+
         # Close the file (eventually destroy the extended type)
         fileh.close()
 
@@ -172,13 +172,13 @@ if __name__=="__main__":
     -a use Array objects instead of Table
     -r only read test
     -w only write test
-    -l sets the compression library to be used ("zlib", "lzo", "ucl")
+    -l sets the compression library to be used ("zlib", "lzo", "ucl", "bzip2")
     -c sets a compression level (do not set it or 0 for no compression)
     -g number of groups hanging from "/"
     -t number of tables per group
     -i number of rows per table
 """
-    
+
     try:
         opts, pargs = getopt.getopt(sys.argv[1:], 'd:v:parwl:c:g:t:i:')
     except:
@@ -186,7 +186,7 @@ if __name__=="__main__":
         sys.exit(0)
 
     # if we pass too much parameters, abort
-    if len(pargs) <> 1: 
+    if len(pargs) <> 1:
         sys.stderr.write(usage)
         sys.exit(0)
 
@@ -283,4 +283,3 @@ if __name__=="__main__":
     # Show the dirt
     if debug > 1:
         dump_garbage()
-

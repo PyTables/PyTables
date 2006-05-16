@@ -4,46 +4,88 @@
 #include "version.h"
 #include "H5Zlzo.h"  		       /* Import FILTER_LZO */
 #include "H5Zucl.h"  		       /* Import FILTER_UCL */
+#include "H5Zbzip2.h"  		       /* Import FILTER_BZIP2 */
 
 
-/*-------------------------------------------------------------------------
- * 
- * Private functions
- * These are a replica of those in H5LT.c, but get_attribute_string_sys
- * needs them, so it is better to copy them here.
- * F. Altet 2004-04-20
- *
- *-------------------------------------------------------------------------
- */
+/* ---------------------------------------------------------------- */
 
-herr_t _open_id( hid_t loc_id, 
-		 const char *obj_name, 
-		 int obj_type );
+#ifdef WIN32
+#include <windows.h>
 
-herr_t _close_id( hid_t obj_id,
-		  int obj_type );
+/* This routine is meant to detect whether a dynamic library can be
+   loaded on Windows. This is only way to detect its presence without
+   harming the user.
+*/
+int getLibrary(char *libname) {
+    HINSTANCE hinstLib;
+
+    /* Load the dynamic library */
+    hinstLib = LoadLibrary(TEXT(libname));
+
+    if (hinstLib != NULL) {
+      /* Free the dynamic library */
+      FreeLibrary(hinstLib);
+      return 0;
+    }
+    else {
+      return -1;
+    }
+}
+
+#else  /* Unix platforms */
+#include <dlfcn.h>
+
+/* Routine to detect the existance of shared libraries in UNIX. This
+   has to be checked in MacOSX. However, this is not used right now in
+   utilsExtension.pyx because UNIX does not complain when trying to
+   load an extension library that depends on a shared library that it
+   is not in the system (python raises just the ImportError). */
+int getLibrary(char *libname) {
+    void *hinstLib;
+
+    /* Load the dynamic library */
+    hinstLib = dlopen(libname, RTLD_LAZY);
+
+    if (hinstLib != NULL) {
+      /* Free the dynamic library */
+      dlclose(hinstLib);
+      return 0;
+    }
+    else {
+      return -1;
+    }
+}
+
+
+#endif  /* Win32 */
+
+herr_t set_cache_size(hid_t file_id, size_t cache_size) {
+  herr_t code;
+
+  code = 0;
+
+#if H5_VERS_MAJOR == 1 && H5_VERS_MINOR >= 7
+  H5AC_cache_config_t config;
+
+  config.version = H5AC__CURR_CACHE_CONFIG_VERSION;
+  code = H5Fget_mdc_config(file_id, &config);
+  config.set_initial_size = TRUE;
+  config.initial_size = cache_size;
+/*   config.incr_mode = H5C_incr__off; */
+/*   config.decr_mode = H5C_decr__off; */
+/*   printf("Setting cache size to: %d\n", cache_size); */
+  code = H5Fset_mdc_config(file_id, &config);
+/*   printf("Return code for H5Fset_mdc_config: %d\n", code); */
+
+#endif /* if H5_VERSION < "1.7" */
+
+  return code;
+
+}
 
 PyObject *_getTablesVersion() {
   return PyString_FromString(PYTABLES_VERSION);
 }
-
-/* PyObject *getZLIBVersionInfo(void) { */
-/*   long binver; */
-/*   PyObject *t; */
-
-/* #ifdef ZLIB_VERNUM		/\* Only available for zlib >= 1.2 *\/ */
-/*   binver = ZLIB_VERNUM;  	/\* This is not exactly the user's lib */
-/* 				   version but that of the binary */
-/* 				   packager version!  However, this */
-/* 				   should be not too important *\/ */
-/* #else */
-/*   binver = 1;  			/\* For version of zlib < 1.2 *\/ */
-/* #endif */
-/*   t = PyTuple_New(2); */
-/*   PyTuple_SetItem(t, 0, PyInt_FromLong(binver)); */
-/*   PyTuple_SetItem(t, 1, PyString_FromString(zlibVersion())); */
-/*   return t; */
-/* } */
 
 PyObject *getHDF5VersionInfo(void) {
   long binver;
@@ -75,16 +117,20 @@ PyObject *getHDF5VersionInfo(void) {
 /****************************************************************
 **
 **  createNamesTuple(): Create Python tuple from a string of *char.
-** 
+**
 ****************************************************************/
 PyObject *createNamesTuple(char *buffer[], int nelements)
 {
   int i;
   PyObject *t;
+  PyObject *str;
 
   t = PyTuple_New(nelements);
-  for (i = 0; i < nelements; i++) { 
-    PyTuple_SetItem(t, i, PyString_FromString(buffer[i]) );
+  for (i = 0; i < nelements; i++) {
+    str = PyString_FromString(buffer[i]);
+    PyTuple_SetItem(t, i, str);
+    /* PyTuple_SetItem does not need a decref, because it already do this */
+/*     Py_DECREF(str); */
   }
   return t;
 }
@@ -93,10 +139,14 @@ PyObject *createNamesList(char *buffer[], int nelements)
 {
   int i;
   PyObject *t;
+  PyObject *str;
 
   t = PyList_New(nelements);
-  for (i = 0; i < nelements; i++) { 
-    PyList_SetItem(t, i, PyString_FromString(buffer[i]) );
+  for (i = 0; i < nelements; i++) {
+    str = PyString_FromString(buffer[i]);
+    PyList_SetItem(t, i, str);
+    /* PyList_SetItem does not need a decref, because it already do this */
+/*     Py_DECREF(str); */
   }
   return t;
 }
@@ -112,15 +162,15 @@ PyObject *createNamesList(char *buffer[], int nelements)
  *
  * Date: December 19, 2003
  *
- * Comments: 
+ * Comments:
  *
- * Modifications: 
+ * Modifications:
  *
  *
  *-------------------------------------------------------------------------
  */
 
-PyObject *get_filter_names( hid_t loc_id, 
+PyObject *get_filter_names( hid_t loc_id,
 			    const char *dset_name)
 {
  hid_t    dset;
@@ -138,8 +188,6 @@ PyObject *get_filter_names( hid_t loc_id,
 
  /* Open the dataset. */
  if ( (dset = H5Dopen( loc_id, dset_name )) < 0 ) {
-/*    Py_INCREF(Py_None);  */
-/*    filters = Py_None;  	/\* Not chunked, so return None *\/ */
    goto out;
  }
 
@@ -152,38 +200,16 @@ PyObject *get_filter_names( hid_t loc_id,
    if ((nf = H5Pget_nfilters(dcpl))>0) {
      for (i=0; i<nf; i++) {
        cd_nelmts = 20;
-       /* 1.6.2 */
+#if H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 7
+       /* 1.6.x */
        filt_id = H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
 			       cd_values, sizeof(f_name), f_name);
+#else
        /* 1.7.x */
-/*        filt_id = H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts, */
-/* 			       cd_values, sizeof(f_name), f_name, NULL); */
-/*        printf("f_name--> %s\n", f_name); */
-	/* This code has been added because a 
-	 bug in the H5Pget_filter call that
-	 returns a null string when DEFLATE filter is active */
-       /* The problem seems to have been solved in 1.6.2 though */
-	switch (filt_id) {
-	 case H5Z_FILTER_DEFLATE:
-	   strcpy(f_name, "deflate");
-	   break;
-	 case H5Z_FILTER_SHUFFLE:
-	   strcpy(f_name, "shuffle");
-	   break;
-	 case H5Z_FILTER_FLETCHER32:
-	   strcpy(f_name, "fletcher32");
-	   break;
-	 case H5Z_FILTER_SZIP:
-	   strcpy(f_name, "szip");
-	   break;
-	 case FILTER_LZO:
-	   strcpy(f_name, "lzo");
-	   break;
-	 case FILTER_UCL:
-	   strcpy(f_name, "ucl");
-	   break;
-	}
-	
+       filt_id = H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
+			       cd_values, sizeof(f_name), f_name, NULL);
+#endif /* if H5_VERSION < "1.7" */
+
        filter_values = PyTuple_New(cd_nelmts);
        for (j=0;j<(long)cd_nelmts;j++) {
 	 PyTuple_SetItem(filter_values, j, PyInt_FromLong(cd_values[j]));
@@ -197,7 +223,7 @@ PyObject *get_filter_names( hid_t loc_id,
    Py_INCREF(Py_None);
    filters = Py_None;  	/* Not chunked, so return None */
  }
- 
+
  H5Pclose(dcpl);
  H5Dclose(dset);
 
@@ -213,10 +239,11 @@ out:
 /****************************************************************
 **
 **  gitercb(): Custom group iteration callback routine.
-** 
+**
 ****************************************************************/
 herr_t gitercb(hid_t loc_id, const char *name, void *data) {
-  PyObject **out_info=(PyObject **)data;
+  PyObject   **out_info=(PyObject **)data;
+  PyObject   *strname;
   herr_t     ret;            /* Generic return value         */
   H5G_stat_t statbuf;
 
@@ -226,20 +253,22 @@ herr_t gitercb(hid_t loc_id, const char *name, void *data) {
     ret = H5Gget_objinfo(loc_id, name, FALSE, &statbuf);
 /*     CHECK(ret, FAIL, "H5Gget_objinfo"); */
 
+    strname = PyString_FromString(name);
     if (statbuf.type == H5G_GROUP) {
-      PyList_Append(out_info[0], PyString_FromString(name));
+      PyList_Append(out_info[0], strname);
     }
     else if (statbuf.type == H5G_DATASET) {
-      PyList_Append(out_info[1], PyString_FromString(name));
+      PyList_Append(out_info[1], strname);
     }
-    
+    Py_DECREF(strname);
+
     return(0);  /* Loop until no more objects remain in directory */
 }
 
 /****************************************************************
 **
 **  Giterate(): Group iteration routine.
-** 
+**
 ****************************************************************/
 PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name) {
   int i=0, ret;
@@ -263,20 +292,23 @@ PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name) {
 /****************************************************************
 **
 **  aitercb(): Custom attribute iteration callback routine.
-** 
+**
 ****************************************************************/
 static herr_t aitercb( hid_t loc_id, const char *name, void *op_data) {
+  PyObject *strname;
 
+  strname = PyString_FromString(name);
   /* Return the name of the attribute on op_data */
-  PyList_Append(op_data, PyString_FromString(name));
+  PyList_Append(op_data, strname);
+  Py_DECREF(strname);
   return(0);    /* Loop until no more attrs remain in object */
-} 
+}
 
 
 /****************************************************************
 **
 **  Aiterate(): Attribute set iteration routine.
-** 
+**
 ****************************************************************/
 PyObject *Aiterate(hid_t loc_id) {
   unsigned int i = 0;
@@ -293,58 +325,51 @@ PyObject *Aiterate(hid_t loc_id) {
 /****************************************************************
 **
 **  getHDF5ClassID(): Returns class ID for loc_id.name. -1 if error.
-** 
+**
 ****************************************************************/
 H5T_class_t getHDF5ClassID(hid_t loc_id,
 			   const char *name,
-			   H5D_layout_t *layout) {
-   hid_t        dataset_id;  
-   hid_t        type_id;
+			   H5D_layout_t *layout,
+			   hid_t *type_id,
+			   hid_t *dataset_id) {
    H5T_class_t  class_id;
    hid_t        plist;
-     
+
    /* Open the dataset. */
-   if ( (dataset_id = H5Dopen( loc_id, name )) < 0 )
-     return -1;
-   
-   /* Get an identifier for the datatype. */
-   type_id = H5Dget_type( dataset_id );
-   
-   /* Get the class. */
-   class_id = H5Tget_class( type_id );
-        
-   /* Release the datatype. */
-   if ( H5Tclose( type_id ) )
+   if ( (*dataset_id = H5Dopen( loc_id, name )) < 0 )
      return -1;
 
+   /* Get an identifier for the datatype. */
+   *type_id = H5Dget_type( *dataset_id );
+
+   /* Get the class. */
+   class_id = H5Tget_class( *type_id );
+
    /* Get the layout of the datatype */
-   plist = H5Dget_create_plist(dataset_id);
+   plist = H5Dget_create_plist(*dataset_id);
    *layout = H5Pget_layout(plist);
    H5Pclose(plist);
-   
-   /* End access to the dataset */
-   if ( H5Dclose( dataset_id ) )
-     return -1;
-   
+
    return class_id;
-   
+
 }
+
 
 /* Helper routine that returns the rank, dims and byteorder for
    UnImplemented objects. 2004
 */
 
-PyObject *H5UIget_info( hid_t loc_id, 
+PyObject *H5UIget_info( hid_t loc_id,
 			const char *dset_name,
 			char *byteorder)
 {
-  hid_t       dataset_id;  
+  hid_t       dataset_id;
   int         rank;
   hsize_t     *dims;
-  hid_t       space_id; 
+  hid_t       space_id;
   H5T_class_t class_id;
   H5T_order_t order;
-  hid_t       type_id; 
+  hid_t       type_id;
   PyObject    *t;
   int         i;
 
@@ -381,20 +406,21 @@ PyObject *H5UIget_info( hid_t loc_id,
     /* I don't know if I should increase the reference count for dims[i]! */
     PyTuple_SetItem(t, i, PyInt_FromLong((long)dims[i]));
   }
-  
+
   /* Release resources */
   free(dims);
 
   /* Terminate access to the dataspace */
   if ( H5Sclose( space_id ) < 0 )
     goto out;
- 
+
   /* Get the byteorder */
-  /* Only integer, float and time classes can be byteordered */
+  /* Only integer, float, time and enum classes can be byteordered */
   if ((class_id == H5T_INTEGER) || (class_id == H5T_FLOAT)
-      || (class_id == H5T_BITFIELD) || (class_id == H5T_TIME)) {
+      || (class_id == H5T_BITFIELD) || (class_id == H5T_TIME)
+      ||  (class_id == H5T_ENUM)) {
     order = H5Tget_order( type_id );
-    if (order == H5T_ORDER_LE) 
+    if (order == H5T_ORDER_LE)
       strcpy(byteorder, "little");
     else if (order == H5T_ORDER_BE)
       strcpy(byteorder, "big");
@@ -421,247 +447,114 @@ out:
 
 }
 
+/* Extract a slice index from a PyLong, and store in *pi.  Silently
+   reduce values larger than LONGLONG_MAX to LONGLONG_MAX, and
+   silently boost values less than -LONGLONG_MAX to 0.  Return 0 on
+   error, 1 on success.
+*/
+/* Note: This has been copied and modified from the original in
+   Python/ceval.c so as to allow working with long long values.
+   F. Altet 2005-05-08
+*/
+
+hsize_t _PyEval_SliceIndex_modif(PyObject *v, hsize_t *pi)
+{
+  PY_LONG_LONG LONGLONG_MAX;
+
+  /* I think it should be a more efficient way to know LONGLONG_MAX,
+   but this should work on every platform, be 32 or 64 bits.
+   F. Altet 2005-05-08
+  */
+
+/*  LONGLONG_MAX = (PY_LONG_LONG) (pow(2, 63) - 1); */ /* Works on Unix */
+  LONGLONG_MAX = (PY_LONG_LONG) (pow(2, 62) - 1); /* Safer on Windows */
+
+  if (v != NULL) {
+    PY_LONG_LONG x;
+    if (PyInt_Check(v)) {
+      x = PyLong_AsLongLong(v);
+    }
+    else if (PyLong_Check(v)) {
+      x = PyLong_AsLongLong(v);
+    } else {
+      PyErr_SetString(PyExc_TypeError,
+		      "PyTables slice indices must be integers");
+      return 0;
+    }
+    /* Truncate -- very long indices are truncated anyway */
+    if (x > LONGLONG_MAX)
+      x = LONGLONG_MAX;
+    else if (x < -LONGLONG_MAX)
+      x = -LONGLONG_MAX;
+    *pi = x;
+  }
+  return 1;
+}
+
 /* This has been copied from the Python 2.3 sources in order to get a
-   funtion similar to the method slice.indices(length) introduced in
-   python 2.3, but for 2.2 */
-
-/* F. Altet 2004-01-19 */
-
-int GetIndicesEx(PyObject *s, hsize_t length,
-		 int *start, int *stop, int *step, 
-		 int *slicelength)
-{
-	/* this is harder to get right than you might think */
-
-	int defstart, defstop;
-	PySliceObject *r = (PySliceObject *) s;
-
-	if (r->step == Py_None) {
-		*step = 1;
-	} 
-	else {
-		if (!_PyEval_SliceIndex(r->step, step)) return -1;
-		if (*step == 0) {
-			PyErr_SetString(PyExc_ValueError,
-					"slice step cannot be zero");
-			return -1;
-		}
-	}
-
-	defstart = *step < 0 ? length-1 : 0;
-	defstop = *step < 0 ? -1 : length;
-
-	if (r->start == Py_None) {
-		*start = defstart;
-	}
-	else {
-		if (!_PyEval_SliceIndex(r->start, start)) return -1;
-		if (*start < 0) *start += length;
-		if (*start < 0) *start = (*step < 0) ? -1 : 0;
-		if (*start >= length) 
-			*start = (*step < 0) ? length - 1 : length;
-	}
-
-	if (r->stop == Py_None) {
-		*stop = defstop;
-	}
-	else {
-		if (!_PyEval_SliceIndex(r->stop, stop)) return -1;
-		if (*stop < 0) *stop += length;
-		if (*stop < 0) *stop = -1;
-		if (*stop > length) *stop = length;
-	}
-
-	if ((*step < 0 && *stop >= *start) 
-	    || (*step > 0 && *start >= *stop)) {
-		*slicelength = 0;
-	}
-	else if (*step < 0) {
-		*slicelength = (*stop-*start+1)/(*step)+1;
-	}
-	else {
-		*slicelength = (*stop-*start-1)/(*step)+1;
-	}
-
-	return 0;
-}
-
-/*-------------------------------------------------------------------------
- * Function: get_attribute_string_sys
- *
- * Purpose: Reads a attribute specific of PyTables in a fast way
- *
- * Return: Success: 0, Failure: -1
- *
- * Programmer: Francesc Altet, faltet@carabos.com
- *
- * Date: September 19, 2003
- *
- * Comments:
- *
- * Modifications:
- *
- *-------------------------------------------------------------------------
+   function similar to the method slice.indices(length) but that works
+   with 64-bit ints and not only with ints.
  */
 
+/* F. Altet 2005-05-08 */
 
-PyObject *get_attribute_string_sys( hid_t loc_id,
-				    const char *obj_name,
-				    const char *attr_name)
+hsize_t getIndicesExt(PyObject *s, hsize_t length,
+		      hsize_t *start, hsize_t *stop, hsize_t *step,
+		      hsize_t *slicelength)
 {
+        /* this is harder to get right than you might think */
 
- /* identifiers */
- hid_t      obj_id;
- hid_t      attr_id;
- hid_t      attr_type;
- size_t     attr_size;
- PyObject   *attr_value;
- char       *data;
- H5G_stat_t statbuf;
+        hsize_t defstart, defstop;
+        PySliceObject *r = (PySliceObject *) s;
 
- /* Get the type of object */
- if (H5Gget_objinfo(loc_id, obj_name, 1, &statbuf)<0)
-  return NULL;
+        if (r->step == Py_None) {
+                *step = 1;
+        }
+        else {
+                if (!_PyEval_SliceIndex_modif(r->step, step)) return -1;
+                if ((PY_LONG_LONG)*step == 0) {
+                        PyErr_SetString(PyExc_ValueError,
+                                        "slice step cannot be zero");
+                        return -1;
+                }
+        }
 
- /* Open the object */
- if ((obj_id = _open_id( loc_id, obj_name, statbuf.type )) < 0)
-   return NULL;
+        defstart = (PY_LONG_LONG)*step < 0 ? length-1 : 0;
+        defstop = (PY_LONG_LONG)*step < 0 ? -1 : length;
 
-/*  Check if attribute exists */
- /* This is commented out to make the attribute reading faster */
-/*  if (H5LT_find_attribute(obj_id, attr_name) <= 0)  */
- if ( ( attr_id = H5Aopen_name( obj_id, attr_name ) ) < 0 )
-   /* If the attribute does not exists, return None */
-   /* and do not even warn the user */
-   return Py_None;
+        if (r->start == Py_None) {
+                *start = defstart;
+        }
+        else {
+                if (!_PyEval_SliceIndex_modif(r->start, start)) return -1;
+                if ((PY_LONG_LONG)*start < 0L) *start += length;
+                if ((PY_LONG_LONG)*start < 0) *start = ((PY_LONG_LONG)*step < 0) ? -1 : 0;
+                if ((PY_LONG_LONG)*start >= length)
+                        *start = ((PY_LONG_LONG)*step < 0) ? length - 1 : length;
+        }
 
- if ( (attr_type = H5Aget_type( attr_id )) < 0 )
-  goto out;
+        if (r->stop == Py_None) {
+                *stop = defstop;
+        }
+        else {
+                if (!_PyEval_SliceIndex_modif(r->stop, stop)) return -1;
+                if ((PY_LONG_LONG)*stop < 0) *stop += length;
+                if ((PY_LONG_LONG)*stop < 0) *stop = -1;
+                if ((PY_LONG_LONG)*stop > length) *stop = length;
+        }
 
- /* Get the size. */
- attr_size = H5Tget_size( attr_type );
+        if (((PY_LONG_LONG)*step < 0 && (PY_LONG_LONG)*stop >= (PY_LONG_LONG)*start)
+            || ((PY_LONG_LONG)*step > 0 && (PY_LONG_LONG)*start >= (PY_LONG_LONG)*stop)) {
+                *slicelength = 0;
+        }
+        else if ((PY_LONG_LONG)*step < 0) {
+                *slicelength = (*stop-*start+1)/(*step)+1;
+        }
+        else {
+                *slicelength = (*stop-*start-1)/(*step)+1;
+        }
 
-/*  printf("name: %s. size: %d\n", attr_name, attr_size); */
- /* Allocate memory for the input buffer */
- data = (char *)malloc(attr_size);
-
- if ( H5Aread( attr_id, attr_type, data ) < 0 )
-  goto out;
-
- attr_value = PyString_FromString(data);
- free(data);
-
- if ( H5Tclose( attr_type )  < 0 )
-  goto out;
-
- if ( H5Aclose( attr_id ) < 0 )
-  return Py_None;
-
- /* Close the object */
- if ( _close_id( obj_id, statbuf.type ) < 0 )
-  return Py_None;
-
- return attr_value;
-
-out:
- H5Aclose( attr_id );
- H5Aclose( attr_type );
- return Py_None;
-
-}
-
-/*-------------------------------------------------------------------------
- * Function: _open_id
- *
- * Purpose: Private function used by get_attribute_string_sys
- *
- * Return: Success: 0, Failure: -1
- *
- * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
- *
- * Date: September 19, 2002
- *
- * Comments:
- *
- *-------------------------------------------------------------------------
- */
-
-
-
-herr_t _open_id( hid_t loc_id, 
-		 const char *obj_name, 
-		 int obj_type /*basic object type*/ ) 
-{
-
- hid_t   obj_id = -1;  
- 
- switch ( obj_type )
- {
-  case H5G_DATASET:
-    
-   /* Open the dataset. */
-   if ( (obj_id = H5Dopen( loc_id, obj_name )) < 0 )
-    return -1;
-   break;
-
-  case H5G_GROUP:
-
-   /* Open the group. */
-   if ( (obj_id = H5Gopen( loc_id, obj_name )) < 0 )
-    return -1;
-   break;
-
-  default:
-   return -1; 
- }
-
- return obj_id; 
-
-}
-
-
-/*-------------------------------------------------------------------------
- * Function: _close_id
- *
- * Purpose: Private function used by get_attribute_string_sys
- *
- * Return: Success: 0, Failure: -1
- *
- * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
- *
- * Date: September 19, 2002
- *
- * Comments:
- *
- *-------------------------------------------------------------------------
- */
-
-
-
-herr_t _close_id( hid_t obj_id,
-		  int obj_type /*basic object type*/ ) 
-{
-
- switch ( obj_type )
- {
-  case H5G_DATASET:
-   /* Close the dataset. */
-   if ( H5Dclose( obj_id ) < 0 )
-    return -1; 
-   break;
-
-  case H5G_GROUP:
-  /* Close the group. */
-   if ( H5Gclose( obj_id ) < 0 )
-    return -1; 
-   break;
-
-  default:
-   return -1; 
- }
-
- return 0; 
-
+        return 0;
 }
 
 
@@ -674,7 +567,7 @@ herr_t _close_id( hid_t obj_id,
 */
 
 /* Return the byteorder of a complex datatype.
-   It is obtained from the real part, 
+   It is obtained from the real part,
    which is the first member. */
 static H5T_order_t get_complex_order(hid_t type_id) {
   hid_t class_id, base_type_id;
@@ -684,7 +577,7 @@ static H5T_order_t get_complex_order(hid_t type_id) {
   class_id = H5Tget_class(type_id);
   if (class_id == H5T_COMPOUND) {
     real_type = H5Tget_member_type(type_id, 0);
-  } 
+  }
   else if (class_id == H5T_ARRAY) {
     /* Get the array base component */
     base_type_id = H5Tget_super(type_id);
@@ -699,26 +592,43 @@ static H5T_order_t get_complex_order(hid_t type_id) {
   return result;
 }
 
-/* Test whether the datatype is of class complex 
+/* Test whether the datatype is of class complex
    return 1 if it corresponds to our complex class, otherwise 0 */
-/* It simply checks if its a H5T_COMPOUND type,
-   but we could be more strict by checking names and classes
-   of the members*/
+/* This may be ultimately confused with nested types with 2 components
+   called 'r' and 'i' and being floats, but in that case, the user
+   most probably wanted to keep a complex type, so getting a complex
+   instead of a nested type should not be a big issue (I hope!) :-/
+   F. Altet 2005-05-23 */
 int is_complex(hid_t type_id) {
-  hid_t class_id, base_type_id, base_class_id;
+  hid_t class_id, base_type_id;
+  hid_t class1, class2;
+  char *colname1, *colname2;
   int result = 0;
+  hsize_t nfields;
+
   class_id = H5Tget_class(type_id);
   if (class_id == H5T_COMPOUND) {
-    result = 1;
+    nfields = H5Tget_nmembers(type_id);
+    if (nfields == 2) {
+      colname1 = H5Tget_member_name(type_id, 0);
+      colname2 = H5Tget_member_name(type_id, 1);
+      if ((strcmp(colname1, "r") == 0) && (strcmp(colname2, "i") == 0)) {
+	class1 = H5Tget_member_class(type_id, 0);
+	class2 = H5Tget_member_class(type_id, 1);
+	if (class1 == H5T_FLOAT && class2 == H5T_FLOAT)
+	  result = 1;
+      }
+      free(colname1);
+      free(colname2);
+    }
   }
   /* Is an Array of Complex? */
   else if (class_id == H5T_ARRAY) {
     /* Get the array base component */
     base_type_id = H5Tget_super(type_id);
-    /* Get the class of base component. */
-    base_class_id = H5Tget_class(base_type_id);
-    if (base_class_id == H5T_COMPOUND)
-      result = 1;
+    /* Call is_complex again */
+    result = is_complex(base_type_id);
+    H5Tclose(base_type_id);
   }
   return result;
 }
@@ -726,16 +636,34 @@ int is_complex(hid_t type_id) {
 /* Return the byteorder of a HDF5 data type */
 /* This is effectively an extension of H5Tget_order
    to handle complex types */
-H5T_order_t get_order(hid_t type_id) {
+herr_t get_order(hid_t type_id, char *byteorder) {
   hid_t class_id;
+  H5T_order_t h5byteorder;
 
   class_id = H5Tget_class(type_id);
-/*   printf("Class ID-->%d. Iscomplex?:%d\n", class_id, is_complex(type_id)); */
+
   if (is_complex(type_id)) {
-    return get_complex_order(type_id);
+    h5byteorder = get_complex_order(type_id);
   }
   else {
-    return H5Tget_order(type_id);
+    h5byteorder = H5Tget_order(type_id);
+  }
+  if (h5byteorder == H5T_ORDER_LE) {
+    strcpy(byteorder, "little");
+    return h5byteorder;
+  }
+  else if (h5byteorder == H5T_ORDER_BE ) {
+    strcpy(byteorder, "big");
+    return h5byteorder;
+  }
+  else if (h5byteorder == H5T_ORDER_NONE ) {
+    strcpy(byteorder, "non-relevant");
+    return h5byteorder;
+  }
+  else {
+    fprintf(stderr, "Error: unsupported byteorder <%d>\n", h5byteorder);
+    strcpy(byteorder, "unsupported");
+    return -1;
   }
 }
 
@@ -745,9 +673,9 @@ H5T_order_t get_order(hid_t type_id) {
 herr_t set_order(hid_t type_id, const char *byteorder) {
   herr_t status=0;
   if (! is_complex(type_id)) {
-    if (strcmp(byteorder, "little") == 0) 
+    if (strcmp(byteorder, "little") == 0)
       status = H5Tset_order(type_id, H5T_ORDER_LE);
-    else if (strcmp(byteorder, "big") == 0) 
+    else if (strcmp(byteorder, "big") == 0)
       status = H5Tset_order(type_id, H5T_ORDER_BE );
     else {
       fprintf(stderr, "Error: unsupported byteorder <%s>\n", byteorder);
@@ -757,7 +685,7 @@ herr_t set_order(hid_t type_id, const char *byteorder) {
   return status;
 }
 
-/* Create a HDF5 compound datatype that represents complex numbers 
+/* Create a HDF5 compound datatype that represents complex numbers
    defined by numarray as Complex64.
    We must set the byteorder before we create the type */
 hid_t create_native_complex64(const char *byteorder) {
@@ -774,7 +702,7 @@ hid_t create_native_complex64(const char *byteorder) {
   return complex_id;
 }
 
-/* Create a HDF5 compound datatype that represents complex numbers 
+/* Create a HDF5 compound datatype that represents complex numbers
    defined by numarray as Complex32.
    We must set the byteorder before we create the type */
 hid_t create_native_complex32(const char *byteorder) {
@@ -790,7 +718,7 @@ hid_t create_native_complex32(const char *byteorder) {
   return complex_id;
 }
 
-/* return the number of significant bits in the 
+/* return the number of significant bits in the
    real and imaginary parts */
 /* This is effectively an extension of H5Tget_precision
    to handle complex types */

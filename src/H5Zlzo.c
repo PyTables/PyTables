@@ -1,22 +1,16 @@
+#include <string.h>
 #include <stdlib.h>
+#include <hdf5.h>
 
 #include "H5Zlzo.h"
-#include "utils.h"
 #include "tables.h"
 
 #ifdef HAVE_LZO_LIB
 #   include "lzo1x.h"
-
-/* Test with assembler versions (see later) */
-
-/* LZO_EXTERN_CDECL(int) */
-/* _lzo1x_decompress_asm_safe( const lzo_byte *src, lzo_uint  src_len, */
-/* 			    lzo_byte *dst, lzo_uintp dst_len, */
-/* 			    lzo_voidp wrkmem /\* NOT USED *\/ ); */
-
-
-void *wrkmem;
-
+#endif
+#ifdef HAVE_LZO2_LIB
+#   include "lzo/lzo1x.h"
+#   define HAVE_LZO_LIB  /* The API for LZO and LZO2 is mostly identical */
 #endif
 
 /* #undef DEBUG */
@@ -24,7 +18,7 @@ void *wrkmem;
 /* Activate the checksum. It is safer and takes only a 1% more of
    space and a 2% more of CPU (but sometimes is faster than without
    checksum, which is almost negligible.  F. Altet 2003/07/22
-  
+
    Added code for pytables 0.5 backward compatibility.
    F. Altet 2003/07/28
 
@@ -33,68 +27,60 @@ void *wrkmem;
 
 */
 
-/* Ok. from pytables 0.8 on I decided to let the user select the
+/* From pytables 0.8 on I decided to let the user select the
    fletcher32 checksum provided in HDF5 1.6 or higher. So, even though
    the CHECKSUM support here seems pretty stable it will be disabled.
    F. Altet 2004/01/02 */
-#undef CHECKSUM  		       
+#undef CHECKSUM
 
-int register_lzo(void) {
+size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
+		    const unsigned cd_values[], size_t nbytes,
+		    size_t *buf_size, void **buf);
+
+
+int register_lzo(char **version, char **date) {
 
 #ifdef HAVE_LZO_LIB
 
-  herr_t status;
-  /* Feed the filter_class data structure */
-  /* 1.6.2 */
+#if H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 7
+   /* 1.6.x */
   H5Z_class_t filter_class = {
-    (H5Z_filter_t)FILTER_LZO,	/* filter_id */
-    "lzo",	 		/* comment */
-    NULL,                       /* can_apply_func */
-    NULL,                       /* set_local_func */
-    (H5Z_func_t)lzo_deflate     /* filter_func */
+    (H5Z_filter_t)(FILTER_LZO),    /* filter_id */
+    "lzo",                         /* comment */
+    NULL,                          /* can_apply_func */
+    NULL,                          /* set_local_func */
+    (H5Z_func_t)(lzo_deflate)      /* filter_func */
   };
-  /* 1.7.x */
-/*   H5Z_class_t filter_class = { */
-/*     H5Z_CLASS_T_VERS,           /\* H5Z_class_t version *\/ */
-/*     (H5Z_filter_t)FILTER_LZO,	/\* filter_id *\/ */
-/*     1, 1,                       /\* Encoding and decoding enabled *\/ */
-/*     "lzo",	 		/\* comment *\/ */
-/*     NULL,                       /\* can_apply_func *\/ */
-/*     NULL,                       /\* set_local_func *\/ */
-/*     (H5Z_func_t)lzo_deflate     /\* filter_func *\/ */
-/*   }; */
-
+#else
+   /* 1.7.x */
+  H5Z_class_t filter_class = {
+    H5Z_CLASS_T_VERS,             /* H5Z_class_t version */
+    (H5Z_filter_t)(FILTER_LZO),   /* filter_id */
+    1, 1,                         /* Encoding and decoding enabled */
+    "lzo",	 		  /* comment */
+    NULL,                         /* can_apply_func */
+    NULL,                         /* set_local_func */
+    (H5Z_func_t)(lzo_deflate)     /* filter_func */
+  };
+#endif /* if H5_VERSION < "1.7" */
 
   /* Init the LZO library */
   if (lzo_init()!=LZO_E_OK)
     fprintf(stderr, "Problems initializing LZO library\n");
 
   /* Register the lzo compressor */
-  status = H5Zregister(&filter_class);
-  
-  /* Book a buffer for the compression */
-  wrkmem = (void *)malloc(LZO1X_1_MEM_COMPRESS);
-   
-  return LZO_VERSION; /* lib is available */
+  H5Zregister(&filter_class);
+
+  *version = strdup(LZO_VERSION_STRING);
+  *date = strdup(LZO_VERSION_DATE);
+  return 1; /* lib is available */
 
 #else
+  *version = NULL;
+  *date = NULL;
   return 0; /* lib is not available */
 #endif /* HAVE_LZO_LIB */
 
-}
-
-/* This routine only can be called if LZO is present */
-PyObject *getLZOVersionInfo(void) {
-  char *info[2];
-
-#ifdef HAVE_LZO_LIB
-  info[0] = strdup(LZO_VERSION_STRING);
-  info[1] = strdup(LZO_VERSION_DATE);
-#else
-  info[0] = NULL;
-  info[1] = NULL;
-#endif /* HAVE_LZO_LIB */
-  return createNamesTuple(info, 2);
 }
 
 
@@ -104,7 +90,7 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
 {
   size_t ret_value = 0;
 #ifdef HAVE_LZO_LIB
-  void *outbuf = NULL;
+  void *outbuf = NULL, *wrkmem = NULL;
   int status;
   size_t  nalloc = *buf_size;
   lzo_uint out_len = (lzo_uint) nalloc;
@@ -147,7 +133,7 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
     if ((object_type == Table && object_version >= 20) ||
 	object_type != Table) {
       nbytes -= 4; 		/* Point to uncompressed buffer length */
-      memcpy(&nalloc, ((char *)(*buf)+nbytes), 4);
+      memcpy(&nalloc, ((unsigned char *)(*buf)+nbytes), 4);
       out_len = nalloc;
       nbytes -= 4; 		/* Point to the checksum */
 #ifdef DEBUG
@@ -217,7 +203,7 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
       checksum=lzo_adler32(lzo_adler32(0,NULL,0), outbuf, out_len);
   
       /* Compare */
-      if (memcmp(&checksum, (char*)(*buf)+nbytes, 4)) {
+      if (memcmp(&checksum, (unsigned char*)(*buf)+nbytes, 4)) {
 	ret_value = 0; /*fail*/
 	fprintf(stderr,"Checksum failed!.\n");
 	goto done;
@@ -240,7 +226,14 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
     lzo_byte *z_src = (lzo_byte*)(*buf);
     lzo_byte *z_dst;         /*destination buffer            */
     lzo_uint z_src_nbytes = (lzo_uint)(nbytes);
-    lzo_uint z_dst_nbytes = (lzo_uint)(nbytes + (nbytes / 64) + 16 + 3);
+    /* The next was the original computation for worst-case expansion */
+    /* I don't know why the difference with LZO1*. Perhaps some wrong docs in
+       LZO package? */
+/*     lzo_uint z_dst_nbytes = (lzo_uint)(nbytes + (nbytes / 64) + 16 + 3); */
+    /* The next is for LZO1* algorithms */
+/*     lzo_uint z_dst_nbytes = (lzo_uint)(nbytes + (nbytes / 16) + 64 + 3); */
+    /* The next is for LZO2* algorithms. This will be the default */
+    lzo_uint z_dst_nbytes = (lzo_uint)(nbytes + (nbytes / 8) + 128 + 3);
 
 #ifdef CHECKSUM
     if ((object_type == Table && object_version >= 20) ||
@@ -256,10 +249,18 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
     }
 
     /* Compress this buffer */
-/*     status = lzo1x_1_compress (z_src, z_src_nbytes, z_dst, &z_dst_nbytes, */
-/* 			       wrkmem); */
+    wrkmem = malloc(LZO1X_1_MEM_COMPRESS);
+    if (wrkmem == NULL) {
+      fprintf(stderr, "Memory allocation failed for lzo compression\n");
+      ret_value = 0;
+      goto done;
+    }
+
     status = lzo1x_1_compress (z_src, z_src_nbytes, z_dst, &z_dst_nbytes,
 			       wrkmem);
+
+    free(wrkmem);
+    wrkmem = NULL;
 
 #ifdef CHECKSUM
     if ((object_type == Table && object_version >= 20) ||
@@ -270,8 +271,8 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
 #endif
       /* Append checksum of *uncompressed* data at the end */
       checksum = lzo_adler32(lzo_adler32(0,NULL,0), *buf, nbytes);
-      memcpy((char*)(z_dst)+z_dst_nbytes, &checksum, 4);
-      memcpy((char*)(z_dst)+z_dst_nbytes+4, &nbytes, 4);
+      memcpy((unsigned char*)(z_dst)+z_dst_nbytes, &checksum, 4);
+      memcpy((unsigned char*)(z_dst)+z_dst_nbytes+4, &nbytes, 4);
       z_dst_nbytes += (lzo_uint)4+4;
       nbytes += 4+4;
     }

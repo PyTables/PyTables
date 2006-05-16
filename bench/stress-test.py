@@ -3,13 +3,13 @@ import numarray
 from tables import Group, metaIsDescription
 from tables import *
 
-class Test(IsDescription): 
+class Test(IsDescription):
     ngroup = IntCol(pos=1)
     ntable = IntCol(pos=2)
     nrow = IntCol(pos=3)
     #string = StringCol(length=500, pos = 4)
 
-TestDict = { 
+TestDict = {
     "ngroup": IntCol(pos=1),
     "ntable": IntCol(pos=2),
     "nrow": IntCol(pos=3),
@@ -60,10 +60,10 @@ def readFileArr(filename, ngroups, recsize, verbose):
 
             nrow = 0
             arr = arrai.read()
-                    
-	    rowsread += len(arr)
+
+            rowsread += len(arr)
             narrai += 1
-        
+
         # Close the file (eventually destroy the extended type)
         fileh.close()
 
@@ -107,13 +107,13 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
                 row['ntable'] = j
                 row['nrow'] = i
                 row.append()
-		    
+
             rowswritten += nrows
             table.flush()
 
         # Close the file
         fileh.close()
-    
+
     return (rowswritten, rowsize)
 
 def readFile(filename, ngroups, recsize, verbose):
@@ -151,11 +151,11 @@ def readFile(filename, ngroups, recsize, verbose):
                               (ngroup, ntable, nrow)
                         print "Record ==>", row
                     nrow += 1
-                    
+
             assert nrow == table.nrows
-	    rowsread += table.nrows
+            rowsread += table.nrows
             ntable += 1
-        
+
         # Close the file (eventually destroy the extended type)
         fileh.close()
 
@@ -167,7 +167,7 @@ class TrackRefs:
     def __init__(self, verbose=0):
         self.type2count = {}
         self.type2all = {}
-	self.verbose = verbose
+        self.verbose = verbose
 
     def update(self, verbose=0):
         obs = sys.getobjects(0)
@@ -176,18 +176,18 @@ class TrackRefs:
         for o in obs:
             all = sys.getrefcount(o)
             t = type(o)
-	    if verbose:
-		#if t == types.TupleType:
-		if isinstance(o, Group):
-		#if isinstance(o, metaIsDescription):
-		    print "-->", o, "refs:", all
+            if verbose:
+                #if t == types.TupleType:
+                if isinstance(o, Group):
+                #if isinstance(o, metaIsDescription):
+                    print "-->", o, "refs:", all
                     refrs = gc.get_referrers(o)
                     trefrs = []
                     for refr in refrs:
-                      trefrs.append(type(refr))
-                    print "Referrers -->", refrs                      
+                        trefrs.append(type(refr))
+                    print "Referrers -->", refrs
                     print "Referrers types -->", trefrs
-	    #if t == types.StringType: print "-->",o
+            #if t == types.StringType: print "-->",o
             if t in type2count:
                 type2count[t] += 1
                 type2all[t] += all
@@ -257,41 +257,41 @@ def testMethod(file, usearray, testwrite, testread, complib, complevel,
     if complevel > 0:
         print "Compression library:", complib
     if testwrite:
-	t1 = time.time()
-	cpu1 = time.clock()
+        t1 = time.time()
+        cpu1 = time.clock()
         if usearray:
             (rowsw, rowsz) = createFileArr(file, ngroups, ntables, nrows)
         else:
             (rowsw, rowsz) = createFile(file, ngroups, ntables, nrows,
                                         complevel, complib, recsize)
-	t2 = time.time()
+        t2 = time.time()
         cpu2 = time.clock()
-	tapprows = round(t2-t1, 3)
-	cpuapprows = round(cpu2-cpu1, 3)
+        tapprows = round(t2-t1, 3)
+        cpuapprows = round(cpu2-cpu1, 3)
         tpercent = int(round(cpuapprows/tapprows, 2)*100)
-	print "Rows written:", rowsw, " Row size:", rowsz
-	print "Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
+        print "Rows written:", rowsw, " Row size:", rowsz
+        print "Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
               (tapprows, cpuapprows, tpercent)
-	print "Write rows/sec: ", int(rowsw / float(tapprows))
-	print "Write KB/s :", int(rowsw * rowsz / (tapprows * 1024))
+        print "Write rows/sec: ", int(rowsw / float(tapprows))
+        print "Write KB/s :", int(rowsw * rowsz / (tapprows * 1024))
 
     if testread:
-	t1 = time.time()
+        t1 = time.time()
         cpu1 = time.clock()
         if usearray:
             (rowsr, rowsz, bufsz)=readFileArr(file, ngroups, recsize, verbose)
         else:
             (rowsr, rowsz, bufsz) = readFile(file, ngroups, recsize, verbose)
-	t2 = time.time()
+        t2 = time.time()
         cpu2 = time.clock()
-	treadrows = round(t2-t1, 3)
+        treadrows = round(t2-t1, 3)
         cpureadrows = round(cpu2-cpu1, 3)
         tpercent = int(round(cpureadrows/treadrows, 2)*100)
-	print "Rows read:", rowsr, " Row size:", rowsz, "Buf size:", bufsz
-	print "Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
+        print "Rows read:", rowsr, " Row size:", rowsz, "Buf size:", bufsz
+        print "Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
               (treadrows, cpureadrows, tpercent)
-	print "Read rows/sec: ", int(rowsr / float(treadrows))
-	print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))
+        print "Read rows/sec: ", int(rowsr / float(treadrows))
+        print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))
 
 if __name__=="__main__":
     import getopt
@@ -310,13 +310,13 @@ if __name__=="__main__":
     -a use Array objects instead of Table
     -r only read test
     -w only write test
-    -l sets the compression library to be used ("zlib", "lzo", "ucl")
+    -l sets the compression library to be used ("zlib", "lzo", "ucl", "bzip2")
     -c sets a compression level (do not set it or 0 for no compression)
     -g number of groups hanging from "/"
     -t number of tables per group
     -i number of rows per table
 """
-    
+
     try:
         opts, pargs = getopt.getopt(sys.argv[1:], 'd:v:parwl:c:g:t:i:')
     except:
@@ -324,7 +324,7 @@ if __name__=="__main__":
         sys.exit(0)
 
     # if we pass too much parameters, abort
-    if len(pargs) <> 1: 
+    if len(pargs) <> 1:
         sys.stderr.write(usage)
         sys.exit(0)
 
@@ -388,8 +388,7 @@ if __name__=="__main__":
 #                    ngroups, ntables, nrows)
         profile.run("testMethod(file, usearray, testwrite, testread, " + \
                     "complib, complevel, ngroups, ntables, nrows)")
-    
+
     # Show the dirt
     if debug == 1:
         dump_garbage()
-

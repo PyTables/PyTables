@@ -70,7 +70,7 @@ def createNewBenchFile(bfile, verbose):
             for atom in ["string", "int", "float"]:
                 bf.createTable(group, atom, Search, atom+" bench")
     bf.close()
-    
+
 def createFile(filename, nrows, filters, indexmode, heavy, noise, bfile,
                verbose):
 
@@ -86,21 +86,21 @@ def createFile(filename, nrows, filters, indexmode, heavy, noise, bfile,
         instd=os.popen("/usr/local/bin/sqlite "+dbfile, "w")
         CREATESTD="""
 CREATE TABLE small (
--- Name		Type	        -- Example
+-- Name         Type            -- Example
 ---------------------------------------
-recnum	INTEGER PRIMARY KEY,  -- 345
-var1		char(4),	-- Abronia villosa
-var2		INTEGER,	-- 111
+recnum  INTEGER PRIMARY KEY,  -- 345
+var1            char(4),        -- Abronia villosa
+var2            INTEGER,        -- 111
 var3            FLOAT        --  12.32
 );
 """
         CREATEIDX="""
 CREATE TABLE small (
--- Name		Type	        -- Example
+-- Name         Type            -- Example
 ---------------------------------------
-recnum	INTEGER PRIMARY KEY,  -- 345
-var1		char(4),	-- Abronia villosa
-var2		INTEGER,	-- 111
+recnum  INTEGER PRIMARY KEY,  -- 345
+var1            char(4),        -- Abronia villosa
+var2            INTEGER,        -- 111
 var3            FLOAT        --  12.32
 );
 CREATE INDEX ivar1 ON small(var1);
@@ -220,11 +220,49 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
     rowselected = 0
     t2 = 0.
     tcpu2 = 0.
-    print "Select mode:", indexmode
-    # Initialize the random generator always with the same integer
-    # in order to have reproductible results on each read iteration
-    random.seed(19)
-    random_array.seed(19, 20)
+    # Some previous computations for the case of random values
+    if randomvalues:
+        # algorithm to choose a value separated from mean
+#         # If want to select fewer values, select this
+#         if nrows/2 > standarddeviation*3:
+#             # Choose five standard deviations away from mean value
+#             dev = standarddeviation*5
+#             #dev = standarddeviation*math.log10(nrows/1000.)
+
+        # This algorithm give place to too asymmetric result values
+#         if standarddeviation*10 < nrows/2:
+#             # Choose four standard deviations away from mean value
+#             dev = standarddeviation*4
+#         else:
+#             dev = 100
+        # Yet Another Algorithm
+        if nrows/2 > standarddeviation*10:
+            dev = standarddeviation*4.
+        elif nrows/2 > standarddeviation:
+            dev = standarddeviation*2.
+        elif nrows/2 > standarddeviation/10.:
+            dev = standarddeviation/10.
+        else:
+            dev = standarddeviation/100.
+
+        valmax = int(round((nrows/2.)-dev))
+        # split the selection range in regular chunks
+        if riter > valmax*2:
+            riter = valmax*2
+        chunksize = (valmax*2/riter)*10
+        # Get a list of integers for the intervals
+        randlist = range(0, valmax, chunksize)
+        randlist.extend(range(nrows-valmax, nrows, chunksize))
+        # expand the list ten times so as to use the cache
+        randlist = randlist*10
+        # shuffle the list
+        random.shuffle(randlist)
+        # reset the value of chunksize
+        chunksize = chunksize/10
+        #print "chunksize-->", chunksize
+        #randlist.sort();print "randlist-->", randlist
+    else:
+        chunksize = 3
     if heavy:
         searchmodelist = ["int", "float"]
     else:
@@ -276,7 +314,7 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
         print "Query time:", round(t1,5), ", cached time:", round(t2, 5)
         print "MRows/s:", round((nrows/10.**6)/t1, 3),
         if t2 > 0:
-             print ", cached MRows/s:", round((nrows/10.**6)/t2, 3)
+            print ", cached MRows/s:", round((nrows/10.**6)/t2, 3)
         else:
             print
 
@@ -312,17 +350,17 @@ if __name__=="__main__":
         psyco_imported = 1
     except:
         psyco_imported = 0
-    
+
     import time
 
     usage = """usage: %s [-v] [-p] [-R] [-h] [-t] [-r] [-w] [-n nrows] [-b file] [-k riter] [-m indexmode] [-N range] datafile
             -v verbose
-	    -p use "psyco" if available
+            -p use "psyco" if available
             -R use Random values for filling
             -h heavy mode (exclude strings from timings)
             -t worsT searching case (to emulate PyTables worst cases)
-	    -r only read test
-	    -w only write test
+            -r only read test
+            -w only write test
             -n the number of rows (in krows)
             -b bench filename
             -N introduce (uniform) noise within range into the values
@@ -336,7 +374,7 @@ if __name__=="__main__":
         sys.exit(0)
 
     # if we pass too much parameters, abort
-    if len(pargs) <> 1: 
+    if len(pargs) <> 1:
         sys.stderr.write(usage)
         sys.exit(0)
 
@@ -359,7 +397,7 @@ if __name__=="__main__":
         if option[0] == '-v':
             verbose = 1
         if option[0] == '-p':
-            usepsyco = 1  
+            usepsyco = 1
         elif option[0] == '-R':
             randomvalues = 1
         elif option[0] == '-h':
@@ -387,6 +425,9 @@ if __name__=="__main__":
 
     # remaining parameters
     dbfile=pargs[0]
+
+    if worst:
+        nrows -= 1  # the worst case
 
     # Create the benchfile (if needed)
     if not os.path.exists(bfile):
