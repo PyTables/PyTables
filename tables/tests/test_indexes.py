@@ -40,12 +40,12 @@ class BasicTestCase(unittest.TestCase):
         # Create a table
         title = "This is the IndexArray title"
         rowswritten = 0
-        filters = Filters(complevel = self.compress,
-                          complib = self.complib,
-                          shuffle = self.shuffle,
-                          fletcher32 = self.fletcher32)
+        self.filters = Filters(complevel = self.compress,
+                               complib = self.complib,
+                               shuffle = self.shuffle,
+                               fletcher32 = self.fletcher32)
         table = self.fileh.createTable(group, 'table', Small, title,
-                                       filters, self.nrows)
+                                       self.filters, self.nrows)
         for i in range(self.nrows):
             table.row['var1'] = str(i)
             # table.row['var2'] = i > 2
@@ -415,6 +415,126 @@ class BasicTestCase(unittest.TestCase):
             print "Should look like:", rowList2
         assert len(rowList1) == len(rowList2)
         assert rowList1 == rowList2
+
+
+    def test11a_removeTableWithIndex(self):
+        """Checking removing a table with indexes"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test11a_removeTableWithIndex..." % self.__class__.__name__
+
+        # Open the HDF5 file in read-only mode
+        self.fileh = openFile(self.file, mode = "a")
+        table = self.fileh.root.table
+        idxcol = table.cols.var1.index
+        if verbose:
+            print "Before deletion"
+            print "var1 column:", table.cols.var1
+        assert table.colindexed["var1"] == 1
+        assert idxcol is not None
+
+        # delete the table
+        self.fileh.removeNode("/table")
+        if verbose:
+            print "After deletion"
+        assert "table" not in self.fileh.root
+
+        # re-create the table and the index again
+        table = self.fileh.createTable("/", 'table', Small, "New table",
+                                       self.filters, self.nrows)
+        for i in range(self.nrows):
+            table.row['var1'] = str(i)
+            table.row['var2'] = i % 2
+            table.row['var3'] = i
+            table.row['var4'] = float(self.nrows - i - 1)
+            table.row.append()
+        table.flush()
+        # Index all entries:
+        indexrows = table.cols.var1.createIndex(testmode=1)
+        indexrows = table.cols.var2.createIndex(testmode=1)
+        indexrows = table.cols.var3.createIndex(testmode=1)
+        indexrows = table.cols.var4.createIndex(testmode=1)
+        idxcol = table.cols.var1.index
+        if verbose:
+            print "After re-creation"
+            print "var1 column:", table.cols.var1
+        assert idxcol is not None
+        assert table.colindexed["var1"] == 1
+
+    def test11b_removeTableWithIndex(self):
+        """Checking removing a table with indexes (persistent version 2)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test11b_removeTableWithIndex..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, mode = "a")
+        table = self.fileh.root.table
+        idxcol = table.cols.var1.index
+        if verbose:
+            print "Before deletion"
+            print "var1 column:", table.cols.var1
+        assert table.colindexed["var1"] == 1
+        assert idxcol is not None
+
+        # delete the table
+        self.fileh.removeNode("/table")
+        if verbose:
+            print "After deletion"
+        assert "table" not in self.fileh.root
+
+        # close and reopen the file
+        self.fileh.close()
+        self.fileh = openFile(self.file, mode = "r+")
+
+        # re-create the table and the index again
+        table = self.fileh.createTable("/", 'table', Small, "New table",
+                                       self.filters, self.nrows)
+        for i in range(self.nrows):
+            table.row['var1'] = str(i)
+            table.row['var2'] = i % 2
+            table.row['var3'] = i
+            table.row['var4'] = float(self.nrows - i - 1)
+            table.row.append()
+        table.flush()
+        # Index all entries:
+        indexrows = table.cols.var1.createIndex(testmode=1)
+        indexrows = table.cols.var2.createIndex(testmode=1)
+        indexrows = table.cols.var3.createIndex(testmode=1)
+        indexrows = table.cols.var4.createIndex(testmode=1)
+        idxcol = table.cols.var1.index
+        if verbose:
+            print "After re-creation"
+            print "var1 column:", table.cols.var1
+        assert idxcol is not None
+        assert table.colindexed["var1"] == 1
+
+    # Test provided by Andrew Straw
+    def test11c_removeTableWithIndex(self):
+        """Checking removing a table with indexes (persistent version 2)"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test11c_removeTableWithIndex..." % self.__class__.__name__
+
+        class Distance(IsDescription):
+            frame = Int32Col(pos=0, indexed=True)
+            distance = FloatCol(pos=1)
+
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode='w')
+        table = self.fileh.createTable(self.fileh.root, 'distance_table', Distance)
+        r = table.row
+        for i in range(10):
+            r['frame']=i
+            r['distance']=float(i**2)
+            r.append()
+        table.flush()
+        self.fileh.close()
+
+        self.fileh = openFile(self.file, mode='r+')
+        self.fileh.removeNode(self.fileh.root.distance_table)
 
 
 class BasicReadTestCase(BasicTestCase):

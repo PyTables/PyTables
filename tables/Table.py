@@ -1809,6 +1809,7 @@ The 'names' parameter must be a list of strings.""")
             itgroup = self._v_file._getNode(
                 _getIndexTableName(self._v_parent, self.name))
             itgroup._f_remove(recursive=True)
+            self.indexed = False   # The indexes are no longer valid
 
         # Remove the leaf itself from the hierarchy.
         super(Table, self)._g_remove(recursive)
