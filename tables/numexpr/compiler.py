@@ -1,8 +1,10 @@
-
 import sys
-import numpy
+
+import numarray as num
+
 from numexpr import interpreter
 from expressions import getKind
+
 
 class ASTNode(object):
     cmpnames = ['astType', 'astKind', 'value', 'children']
@@ -25,7 +27,7 @@ class ASTNode(object):
             if getattr(self, name) != getattr(other, name):
                 return False
         return True
-        
+
     def __hash__(self):
         if self.astType == 'alias':
             self = self.value
@@ -35,7 +37,7 @@ class ASTNode(object):
         return hashval
 
     def __str__(self):
-        return 'AST(%s, %s, %s, %s, %s)' % (self.astType, self.astKind, 
+        return 'AST(%s, %s, %s, %s, %s)' % (self.astType, self.astKind,
                                             self.value, self.children, self.reg)
     #~ __repr__ = __str__
     def __repr__(self): return '<AST object at %s>' % id(self)
@@ -62,8 +64,8 @@ def expressionToAST(ex):
 
 
 def sigPerms(s):
-    codes = 'ifc'
-    if not s: 
+    codes = 'bifc'
+    if not s:
         yield ''
     elif s[0] in codes:
         start = codes.index(s[0])
@@ -75,7 +77,7 @@ def sigPerms(s):
 
 def typeCompileAst(ast):
     children = list(ast.children)
-    if ast.astType  == 'op': 
+    if ast.astType  == 'op':
         retsig = ast.astKind[0]
         basesig = ''.join(x.astKind[0] for x in list(ast.children))
         # Find some operation that will work on an acceptable casting of args.
@@ -94,14 +96,14 @@ def typeCompileAst(ast):
                 raise NotImplementedError("couldn't find matching opcode for '%s'" % (ast.value + '_' + retsig+basesig))
         # First just cast constants, then cast variables if necessary:
         for i, (have, want)  in enumerate(zip(basesig, sig)):
-            if have != want: 
-                kind = {'i' : 'int', 'f' : 'float', 'c' : 'complex'}[want]
+            if have != want:
+                kind = {'b': 'bool', 'i' : 'int', 'f' : 'float', 'c' : 'complex'}[want]
                 if children[i].astType == 'constant':
                     children[i] = ASTNode('constant', kind, children[i].value)
                 else:
                     opname = "cast"
                     children[i] = ASTNode('op', kind, opname, [children[i]])
-    else: 
+    else:
         value = ast.value
         children = ast.children
     new_ast = ASTNode(ast.astType, ast.astKind, value,
@@ -137,7 +139,7 @@ class Immediate(Register):
 
 def makeExpressions(context):
     """Make private copy of the expressions module with a custom get_context().
-    
+
     An attempt was made to make this threadsafe, but I can't guarantee it's
     bulletproof.
     """
@@ -163,13 +165,13 @@ def stringToExpression(s, types, context):
     c = compile(s, '<expr>', 'eval')
     # make VariableNode's for the names
     names = {}
-    kind_names = {int : 'int', float : 'float', complex : 'complex'}
+    kind_names = {bool: 'bool', int : 'int', float : 'float', complex : 'complex'}
     for name in c.co_names:
         names[name] = expr.VariableNode(name, kind_names[types.get(name, float)])
     names.update(expr.functions)
     # now build the expression
     ex = eval(c, names)
-    if isinstance(ex, (int, float, complex)):
+    if isinstance(ex, (bool, int, float, complex)):
         ex = expr.ConstantNode(ex, getKind(ex))
     return ex
 
@@ -191,7 +193,8 @@ def getInputOrder(ast, input_order=None):
     return ordered_variables
 
 def convertConstant(x, kind):
-    return {'int' : int,
+    return {'bool' : bool,
+            'int' : int,
             'float' : float,
             'complex' : complex}[kind](x)
 
@@ -253,7 +256,7 @@ def optimizeTemporariesAllocation(ast):
         for c in n.children:
             if c.reg.temporary:
                 users_of[c.reg].add(n)
-    unused = {'int' : set(), 'float' : set(), 'complex' : set()}
+    unused = {'bool' : set(), 'int' : set(), 'float' : set(), 'complex' : set()}
     for n in nodes:
         for reg, users in users_of.iteritems():
             if n in users:
@@ -344,25 +347,32 @@ def getContext(map):
         else:
             raise ValueError("'%s' must be one of %s" % (name, allowed))
     if map:
-        raise ValueError("Unknown keyword argument '%s'" % map.popitem()[0])    
+        raise ValueError("Unknown keyword argument '%s'" % map.popitem()[0])
     return context
 
 
-def precompile(ex, signature=(), **kwargs):
+def precompile(ex, signature=(), copy_args=(), **kwargs):
     types = dict(signature)
     input_order = [name for (name, type) in signature]
     context = getContext(kwargs)
-            
+
     if isinstance(ex, str):
         ex = stringToExpression(ex, types, context)
 
     # the AST is like the expression, but the node objects don't have
     # any odd interpretations
-        
+
     ast = expressionToAST(ex)
+
+    # Add a copy for strided or unaligned arrays
+    for a in ast.postorderWalk():
+        if a.astType == 'variable' and a.value in copy_args:
+            newVar = ASTNode(*a.key())
+            a.astType, a.value, a.children = ('op', 'copy', (newVar,))
+
     if ex.astType not in ('op'):
         ast = ASTNode('op', value='copy', astKind=ex.astKind, children=(ast,))
-        
+
     ast = typeCompileAst(ast)
 
     reg_num = [-1]
@@ -396,21 +406,22 @@ def precompile(ex, signature=(), **kwargs):
     signature = ''.join(types.get(x, float).__name__[0] for x in input_names)
 
     return threeAddrProgram, signature, tempsig, constants
-    
 
-def numexpr(ex, signature=(), **kwargs):
+
+def numexpr(ex, signature=(), copy_args=(), **kwargs):
     """Compile an expression built using E.<variable> variables to a function.
 
     ex can also be specified as a string "2*a+3*b".
 
-    The order of the input variables and their types can be specified using the 
+    The order of the input variables and their types can be specified using the
     signature parameter, which is a list of (name, type) pairs.
-    
+
     """
-    threeAddrProgram, inputsig, tempsig, constants = precompile(ex, signature, **kwargs)
+    threeAddrProgram, inputsig, tempsig, constants = \
+        precompile(ex, signature, copy_args, **kwargs)
     program = compileThreeAddrForm(threeAddrProgram)
     return interpreter.NumExpr(inputsig, tempsig, program, constants)
-    
+
 
 def disassemble(nex):
     rev_opcodes = {}
@@ -441,7 +452,9 @@ def disassemble(nex):
 
 
 def getType(a):
-    tname = a.dtype.type.__name__
+    tname = a.dtype.name
+    if tname.startswith('bool'):
+        return bool
     if tname.startswith('int'):
         return int
     if tname.startswith('float'):
@@ -449,9 +462,9 @@ def getType(a):
     if tname.startswith('complex'):
         return complex
     raise ValueError("unkown type %s" % tname)
-        
 
-def getExprNames(text, context): 
+
+def getExprNames(text, context):
     ex = stringToExpression(text, {}, context)
     ast = expressionToAST(ex)
     input_order = getInputOrder(ast, None)
@@ -486,24 +499,37 @@ def evaluate(ex, local_dict=None, global_dict=None, **kwargs):
     if global_dict is None:
         global_dict = call_frame.f_globals
     arguments = []
+    copy_args = []
     for name in names:
         try:
             a = local_dict[name]
         except KeyError:
             a = global_dict[name]
-        arguments.append(numpy.asarray(a))
+        # Byteswapped arrays are taken care of in the extension.
+        arguments.append(num.asarray(a))   # don't make a data copy, if possible
+        if (hasattr(a, 'flags') and            # numpy object
+            (not a.flags.contiguous or
+             not a.flags.aligned)):
+            copy_args.append(name)    # do a copy to temporary
+        elif (hasattr(a, 'iscontiguous') and     # numarray object
+              (not a.iscontiguous() or
+               not a.isaligned())):
+            copy_args.append(name)    # do a copy to temporary
+
     # Create a signature
     signature = [(name, getType(arg)) for (name, arg) in zip(names, arguments)]
-    # Look up numexpr if possible
-    numexpr_key = expr_key + (tuple(signature),)
+    # Look up numexpr if possible. copy_args *must* be added to the key,
+    # just in case a non-copy expression is already in cache.
+    numexpr_key = expr_key + (tuple(signature), tuple(copy_args))
     try:
         compiled_ex = _numexpr_cache[numexpr_key]
     except KeyError:
-        compiled_ex = _numexpr_cache[numexpr_key] = numexpr(ex, signature, **kwargs)
+        compiled_ex = _numexpr_cache[numexpr_key] = \
+                      numexpr(ex, signature, copy_args, **kwargs)
     return compiled_ex(*arguments)
 
 
 
 if __name__ == "__main__":
     print evaluate("5")
-    
+

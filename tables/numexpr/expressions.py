@@ -1,9 +1,10 @@
 __all__ = ['E']
 
-import operator
-import numpy
-from numexpr import interpreter
 import sys
+import operator
+
+import numarray as num
+
 
 # XXX Is there any reason to keep Expression around?
 class Expression(object):
@@ -22,8 +23,10 @@ E = Expression()
 def get_context():
     """Context used to evaluate expression. Typically overridden in compiler."""
     return {}
+
 def get_optimization():
     return get_context().get('optimization', 'none')
+
 
 # helper functions for creating __magic__ methods
 
@@ -31,7 +34,7 @@ def ophelper(f):
     def func(*args):
         args = list(args)
         for i, x in enumerate(args):
-            if isinstance(x, (int, float, complex)):
+            if isinstance(x, (bool, int, float, complex)):
                 args[i] = x = ConstantNode(x)
             if not isinstance(x, ExpressionNode):
                 return NotImplemented
@@ -39,13 +42,13 @@ def ophelper(f):
     return func
 
 def all_constant(args):
-    "returns true if args are all constant. Converts scalars to ConstantNodes"
+    """Return true if args are all constant. Convert scalars to ConstantNodes."""
     for x in args:
         if not isinstance(x, ConstantNode):
             return False
     return True
-    
-kind_rank = ['int', 'float', 'complex', 'none']
+
+kind_rank = ['bool', 'int', 'float', 'complex', 'none']
 def common_kind(nodes):
     n = -1
     for x in nodes:
@@ -71,16 +74,22 @@ def func(func, minkind=None):
         kind = common_kind(args)
         if minkind and kind_rank.index(minkind) > kind_rank.index(kind):
             kind = minkind
-        return FuncNode(func.__name__, args, kind)
+        if hasattr(func, "__name__"):
+            # numpy or python functions
+            func_name = func.__name__
+        else:
+            # some numarray or Numeric ufuncs don't provide a __name__
+            s = str(func)
+            func_name = s[s.find("'")+1:s.rfind("'")]
+        return FuncNode(func_name, args, kind)
     return function
 
 @ophelper
 def where_func(a, b, c):
-    if all_constant([a,b,c]):
-        return ConstantNode(numpy.where(a, b, c))
     if isinstance(a, ConstantNode):
         raise ValueError("too many dimensions")
-    kind = common_kind([b,c])
+    if all_constant([a,b,c]):
+        return ConstantNode(num.where(a, b, c))
     return FuncNode('where', [a,b,c])
 
 @ophelper
@@ -143,24 +152,28 @@ def pow_op(a, b):
 
 
 functions = {
-    'copy' : func(numpy.copy),
-    'ones_like' : func(numpy.ones_like),
-    'sin' : func(numpy.sin, 'float'),
-    'cos' : func(numpy.cos, 'float'),
-    'tan' : func(numpy.tan, 'float'),
-    'sqrt' : func(numpy.sqrt, 'float'),
+    'copy' : func(num.copy),
+    'sin' : func(num.sin, 'float'),
+    'cos' : func(num.cos, 'float'),
+    'tan' : func(num.tan, 'float'),
+    'sqrt' : func(num.sqrt, 'float'),
 
-    'sinh' : func(numpy.sinh, 'float'),
-    'cosh' : func(numpy.cosh, 'float'),
-    'tanh' : func(numpy.tanh, 'float'),
+    'sinh' : func(num.sinh, 'float'),
+    'cosh' : func(num.cosh, 'float'),
+    'tanh' : func(num.tanh, 'float'),
 
-    'arctan2' : func(numpy.arctan2, 'float'),
-    'fmod' : func(numpy.fmod, 'float'),
+    'arctan2' : func(num.arctan2, 'float'),
 
     'where' : where_func,
-        
+
     'complex' : func(complex, 'complex'),
-            }
+    }
+
+# Functions only supported in numpy
+if num.__name__ == 'numpy':
+    functions['ones_like'] = func(num.ones_like)
+    functions['fmod'] = func(num.fmod, 'float')  # Not well-supported in numarray (?)
+
 
 class ExpressionNode(object):
     astType = 'generic'
@@ -175,7 +188,7 @@ class ExpressionNode(object):
             self.children = ()
         else:
             self.children = tuple(children)
-    
+
     def get_real(self):
         if self.astType == 'constant':
             return ConstantNode(complex(self.value).real)
@@ -189,13 +202,15 @@ class ExpressionNode(object):
     imag = property(get_imag)
 
     def __str__(self):
-        return '%s(%s, %s, %s)' % (self.__class__.__name__, self.value, self.astKind,
-                               self.children)
+        return '%s(%s, %s, %s)' % (self.__class__.__name__,
+                                   self.value, self.astKind, self.children)
     def __repr__(self):
         return self.__str__()
 
     def __neg__(self):
         return OpNode('neg', (self,))
+    def __invert__(self):
+        return OpNode('invert', (self,))
     def __pos__(self):
         return self
 
@@ -210,49 +225,38 @@ class ExpressionNode(object):
     __mod__ = binop('mod')
     __rmod__ = binop('mod', reversed=True)
 
-    __gt__ = binop('gt', kind='int')
-    __ge__ = binop('ge', kind='int')
-    __eq__ = binop('eq', kind='int')
-    __ne__ = binop('ne', kind='int')
-    __lt__ = binop('gt', reversed=True, kind='int')
-    __le__ = binop('ge', reversed=True, kind='int')
+    __and__ = binop('and', kind='bool')
+    __or__ = binop('or', kind='bool')
+
+    __gt__ = binop('gt', kind='bool')
+    __ge__ = binop('ge', kind='bool')
+    __eq__ = binop('eq', kind='bool')
+    __ne__ = binop('ne', kind='bool')
+    __lt__ = binop('gt', reversed=True, kind='bool')
+    __le__ = binop('ge', reversed=True, kind='bool')
 
 class LeafNode(ExpressionNode):
     leafNode = True
-        
+
 class VariableNode(LeafNode):
     astType = 'variable'
     def __init__(self, value=None, kind=None, children=None):
-        ExpressionNode.__init__(self, value=value, kind=kind)
-
-class RawNode(object):
-    """Used to pass raw integers to interpreter.
-    For instance, for selecting what function to use in func1.
-    Purposely don't inherit from ExpressionNode, since we don't wan't
-    this to be used for anything but being walked.
-    """
-    astType = 'raw'
-    astKind = 'none'
-    def __init__(self, value):
-        self.value = value
-        self.children = ()
-    def __str__(self):
-        return 'RawNode(%s)' % (self.value,)
-    __repr__ = __str__
+        LeafNode.__init__(self, value=value, kind=kind)
 
 
 def normalizeConstant(x):
-    for converter in int, float, complex:
+    for converter in bool, int, float, complex:
         try:
             y = converter(x)
         except StandardError, err:
             continue
         if x == y:
             return y
-            
+
 def getKind(x):
-    return {int : 'int', 
-            float : 'float', 
+    return {bool : 'bool',
+            int : 'int',
+            float : 'float',
             complex : 'complex'}[type(normalizeConstant(x))]
 
 class ConstantNode(LeafNode):
@@ -262,13 +266,15 @@ class ConstantNode(LeafNode):
         LeafNode.__init__(self, value=value, kind=kind)
     def __neg__(self):
         return ConstantNode(-self.value)
+    def __invert__(self):
+        return ConstantNode(~self.value)
 
 class OpNode(ExpressionNode):
     astType = 'op'
     def __init__(self, opcode=None, args=None, kind=None):
         if (kind is None) and (args is not None):
             kind = common_kind(args)
-        ExpressionNode.__init__(self, value=opcode, kind=kind, children=args)    
+        ExpressionNode.__init__(self, value=opcode, kind=kind, children=args)
 
 class FuncNode(OpNode):
     def __init__(self, opcode=None, args=None, kind=None):

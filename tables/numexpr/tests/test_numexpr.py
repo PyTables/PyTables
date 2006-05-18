@@ -69,7 +69,7 @@ class test_evaluate(NumpyTestCase):
         x = z.imag
         x = sin(complex(a, b)).real + z.imag
         y = evaluate("sin(complex(a, b)).real + z.imag")
-        assert_array_almost_equal(x, y)                                                                                                
+        assert_array_almost_equal(x, y)
 
 tests = [
 ('MISC', ['b*c+d*e',
@@ -102,11 +102,13 @@ for op in ['<', '<=', '==', '>=', '>', '!=']:
     cmptests.append("7 %s b" % op)
 tests.append(('COMPARISONS', cmptests))
 func1tests = []
-for func in ['copy', 'ones_like', 'sin', 'cos', 'tan', 'sqrt', 'sinh', 'cosh', 'tanh']:
+# ones_like() does not work with numarray.
+for func in ['copy', 'sin', 'cos', 'tan', 'sqrt', 'sinh', 'cosh', 'tanh']:
     func1tests.append("a + %s(b+c)" % func)
 tests.append(('1-ARG FUNCS', func1tests))
 func2tests = []
-for func in ['arctan2', 'fmod']:
+# fmod() does not work with numarray.
+for func in ['arctan2']:
     func2tests.append("a + %s(b+c, d+1)" % func)
     func2tests.append("a + %s(b+c, 1)" % func)
     func2tests.append("a + %s(1, d+1)" % func)
@@ -141,7 +143,7 @@ class test_expressions(NumpyTestCase):
                         x += 1j
                         x *= 1+1j
                 if test_scalar == 1:
-                    a = a[array_size/2] 
+                    a = a[array_size/2]
                 if test_scalar == 2:
                     b = b[array_size/2]
                 for optimization, exact in [('none', False), ('moderate', False), ('aggressive', False)]:

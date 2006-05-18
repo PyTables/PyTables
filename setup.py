@@ -43,6 +43,7 @@ if not (sys.version_info[0] >= 2 and sys.version_info[1] >= 3):
 # Check for numarray
 try:
     import numarray
+    from numarray.numarrayext import NumarrayExtension
 except ImportError:
     print_error("Can't find a local numarray Python installation.",
                 "Please, read carefully the ``README`` file "
@@ -401,7 +402,7 @@ if has_setuptools:
 else:
     # There is no other chance, these values must be hardwired.
     setuptools_kwargs['packages'] = [
-        'tables', 'tables.nodes', 'tables.scripts']
+        'tables', 'tables.nodes', 'tables.scripts', 'tables.numexpr']
     setuptools_kwargs['scripts'] = [
         'utils/ptdump', 'utils/ptrepack', 'utils/nctoh5']
 
@@ -540,6 +541,11 @@ interactively save and retrieve large amounts of data.
                                 library_dirs = lib_dirs,
                                 libraries = _comp_bzip2_libs,
                                 extra_link_args = LFLAGS,
+                                ),
+                       NumarrayExtension("tables.numexpr.interpreter",
+                                sources=["tables/numexpr/interpreter.c"],
+                                depends=["tables/numexpr/interp_body.c",
+                                         "tables/numexpr/complex_functions.inc"],
                                 ),
                       ],
       cmdclass = cmdclass,

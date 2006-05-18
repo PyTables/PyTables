@@ -18,7 +18,7 @@ Then, you can use that function for elementwise operations:
 array([  86.,  124.,  168.])
 
 Currently, this is only implemented for arrays of float64, and only
-for the simple operations +, -, *, and /.
+for the simple operations +, -, *, /, |, &, and ~.
 
 Copyright 2006 David M. Cooke <cookedm@physics.mcmaster.ca>
 Licenced under a BSD-style license. See LICENSE.txt in the scipy source
