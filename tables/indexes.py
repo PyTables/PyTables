@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /cvsroot/pytables/pytables/tables/IndexArray.py,v $
-#       $Id$
+#       $Id: IndexArray.py 1589 2006-05-16 18:39:00Z faltet $
 #
 ########################################################################
 
@@ -294,7 +294,18 @@ def calcChunksize(expectedrows, testmode=0):
     #print "nelemslice, chunksize:", (nelemslice, chunksize)
     return (nelemslice, chunksize)
 
-class IndexArray(EArray, hdf5Extension.IndexArray, object):
+# Declarations for inheriting
+class CacheArray(EArray, hdf5Extension.CacheArray):
+    """Container for keeping index caches of 1st and 2nd level."""
+    pass
+
+
+class LastRowArray(Array, hdf5Extension.LastRowArray):
+    """Container for keeping sorted and indices values of last rows of an index."""
+    pass
+
+
+class IndexArray(EArray, hdf5Extension.IndexArray):
     """Represent the index (sorted or reverse index) dataset in HDF5 file.
 
     All Numeric and numarray typecodes are supported except for complex
@@ -686,6 +697,7 @@ class IndexArray(EArray, hdf5Extension.IndexArray, object):
         # Then, look for items at the end of the sorted slice
         buffer = self._readSortedSlice(nrow, hi-chunksize, hi)
         #buffer = xrange(hi-chunksize, hi)  # test
+
         niter += 1
         if not item1done:
             result1 = self._bisect_left(buffer, item1, chunksize)

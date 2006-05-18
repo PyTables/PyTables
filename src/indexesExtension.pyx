@@ -34,12 +34,7 @@ import numarray
 from numarray import records, strings, memory
 
 from tables.exceptions import HDF5ExtError
-from tables.enum import Enum
-from tables.utils import checkFileAccess
-
-from tables.utilsExtension import  \
-     enumToHDF5, enumFromHDF5, getTypeEnum, \
-     convertTime64, getLeafHDF5Type, isHDF5File, isPyTablesFile
+from tables.hdf5Extension import Array
 
 from definitions cimport import_libnumarray, NA_getBufferPtrAndSize
 
@@ -47,8 +42,22 @@ from definitions cimport import_libnumarray, NA_getBufferPtrAndSize
 __version__ = "$Revision$"
 
 
+cdef class CacheArray(Array):
+  """Container for keeping index caches of 1st and 2nd level."""
+  cdef void    *rbufst, *rbufln, *rbufrv, *rbufbc, *rbuflb
+  cdef hid_t   space_id, mem_space_id
+  cdef int     nbounds
+
+
+cdef class LastRowArray(Array):
+  """Container for keeping sorted and indices values of last rows of an index."""
+  cdef void    *rbufst, *rbufln, *rbufrv, *rbufbc, *rbuflb
+  cdef hid_t   space_id, mem_space_id
+  cdef int     nbounds
+
+
 cdef class IndexArray(Array):
-  """Homogeneous dataset for keeping sorted and index values"""
+  """Container for keeping sorted and indices values"""
   cdef void    *rbufst, *rbufln, *rbufrv, *rbufbc, *rbuflb
   cdef void    *rbufR, *rbufR2, *rbufA
   cdef hid_t   type_id2, space_id, mem_space_id
@@ -766,18 +775,4 @@ cdef class IndexArray(Array):
 
     # Return ncoords as maximum because arrAbs can have more elements
     return self.arrAbs[:ncoords]
-
-cdef class CacheArray(Array):
-  """Homogeneous dataset for keeping sorted and index values"""
-  cdef void    *rbufst, *rbufln, *rbufrv, *rbufbc, *rbuflb
-  cdef hid_t   space_id, mem_space_id
-  cdef int     nbounds
-
-
-cdef class LastRowArray(Array):
-  """Homogeneous dataset for keeping sorted and index values"""
-  cdef void    *rbufst, *rbufln, *rbufrv, *rbufbc, *rbuflb
-  cdef hid_t   space_id, mem_space_id
-  cdef int     nbounds
-
 
