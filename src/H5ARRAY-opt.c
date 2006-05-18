@@ -328,13 +328,11 @@ out:
  *-------------------------------------------------------------------------
  */
 
-herr_t H5ARRAYOreadSliceLR(hid_t loc_id,
-			   const char *dset_name,
+herr_t H5ARRAYOreadSliceLR(hid_t dataset_id,
 			   hsize_t start,
 			   hsize_t stop,
 			   void *data)
 {
- hid_t    dataset_id;
  hid_t    space_id;
  hid_t    mem_space_id;
  hid_t    type_id;
@@ -344,10 +342,6 @@ herr_t H5ARRAYOreadSliceLR(hid_t loc_id,
  hssize_t offset[1] = {start};
  int      rank;
  int      i;
-
- /* Open the dataset. */
- if ( (dataset_id = H5Dopen(loc_id, dset_name)) < 0 )
-  return -1;
 
  /* Get the datatype */
  if ( (type_id = H5Dget_type(dataset_id)) < 0 )
@@ -381,10 +375,6 @@ herr_t H5ARRAYOreadSliceLR(hid_t loc_id,
 
  /* Close the type */
  if ( H5Tclose(type_id))
-   return -1;
-
- /* End access to the dataset and release resources used by it. */
- if ( H5Dclose( dataset_id ) )
    return -1;
 
  return 0;

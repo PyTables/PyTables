@@ -4,7 +4,7 @@
 #       Created: June 02, 2004
 #       Author:  Francesc Altet - faltet@carabos.com
 #
-#       $Source: /cvsroot/pytables/pytables/tables/IndexArray.py,v $
+#       $Source: /cvsroot/pytables/pytables/tables/indexes.py $
 #       $Id$
 #
 ########################################################################

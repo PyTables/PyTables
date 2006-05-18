@@ -38,7 +38,7 @@ import tables.utilsExtension as utilsExtension
 from tables.AttributeSet import AttributeSet
 from tables.Atom import Atom
 from tables.Leaf import Filters
-from tables.IndexArray import IndexArray
+from tables.indexes import CacheArray, LastRowArray, IndexArray
 from tables.Group import Group
 from tables.utils import joinPath
 
@@ -410,6 +410,10 @@ class Index(hdf5Extension.Index, Group):
         """Enables test mode for index chunk size calculation."""
         self.atom = atom
         """The `Atom` instance matching to be stored by the index array."""
+        self.type = atom.type
+        """The datatype to be stored by the index array."""
+        self.itemsize = atom.itemsize
+        """The itemsize of the datatype to be stored by the index array."""
         self.column = column
         """The `Column` instance for the indexed column."""
 
@@ -452,24 +456,24 @@ class Index(hdf5Extension.Index, Group):
                    self.testmode, self._v_expectedrows)
 
         # Create the EArray for range values  (1st order cache)
-        if str(self.atom.type) == "CharType":
-            atom = StringAtom(shape=(0, 2), length=self.atom.itemsize,
+        if str(self.type) == "CharType":
+            atom = StringAtom(shape=(0, 2), length=self.itemsize,
                               flavor="CharArray")
         else:
-            atom = Atom(self.atom.type, shape=(0,2), flavor="NumArray")
+            atom = Atom(self.type, shape=(0,2), flavor="NumArray")
         CacheArray(self, 'ranges', atom, "Range Values",
                    Filters(complevel=0, shuffle=0),   # too small to use filters
                    self._v_expectedrows//self.nelemslice)
 
         # Create the EArray for boundary values (2nd order cache)
         nbounds = (self.nelemslice - 1 ) // self.chunksize
-        if str(self.atom.type) == "CharType":
+        if str(self.type) == "CharType":
             atom = StringAtom(shape=(0, nbounds),
-                              length=self.atom.itemsize,
+                              length=self.itemsize,
                               flavor="CharArray")
         else:
-            atom = Atom(self.atom.type, shape=(0, nbounds))
-        CacheArray(self, 'bounds', atom, "Boundaries",
+            atom = Atom(self.type, shape=(0, nbounds))
+        CacheArray(self, 'bounds', atom, "Boundary Values",
                    Filters(complevel=0, shuffle=0),   # too small to use filters
                    self._v_expectedrows//self.nelemslice)
 

@@ -51,9 +51,35 @@ cdef class CacheArray(Array):
 
 cdef class LastRowArray(Array):
   """Container for keeping sorted and indices values of last rows of an index."""
-  cdef void    *rbufst, *rbufln, *rbufrv, *rbufbc, *rbuflb
-  cdef hid_t   space_id, mem_space_id
-  cdef int     nbounds
+  cdef int *rbufR
+
+  def _readIndexSliceLR(self, hsize_t start, hsize_t stop, int offsetl):
+    "Read the reverse index part of an LR index."
+    cdef int *rbufR
+
+    rbufR = <int *>self._v_parent.indices.rbufR + offsetl
+    Py_BEGIN_ALLOW_THREADS
+    ret = H5ARRAYOreadSliceLR(self.dataset_id, start, stop, rbufR)
+    Py_END_ALLOW_THREADS
+    if ret < 0:
+      raise HDF5ExtError("Problems reading the index data.")
+
+    return
+
+  def _readSortedSliceLR(self, hsize_t start, hsize_t stop):
+    "Read the sorted part of an LR index."
+    cdef object bufferl
+    cdef void  *rbuflb
+
+    bufferl = self._v_parent.sorted.bufferl
+    rbuflb = self._v_parent.sorted.rbuflb
+    Py_BEGIN_ALLOW_THREADS
+    ret = H5ARRAYOreadSliceLR(self.dataset_id, start, stop, rbuflb)
+    Py_END_ALLOW_THREADS
+    if ret < 0:
+      raise HDF5ExtError("Problems reading the index data.")
+
+    return bufferl
 
 
 cdef class IndexArray(Array):
@@ -83,7 +109,7 @@ cdef class IndexArray(Array):
       if (H5ARRAYOopen_readSlice(&self.dataset_id, &self.space_id,
                                  &self.type_id2, self.parent_id,
                                  self.name) < 0):
-        raise RuntimeError("Problems opening the sorted array data.")
+        raise HDF5ExtError("Problems opening the sorted array data.")
       self.isopen_for_read = True
 
   def _readIndex(self, hsize_t irow, hsize_t start, hsize_t stop,
@@ -124,29 +150,9 @@ cdef class IndexArray(Array):
                                     self.rbufR2, self.rbufR)
     Py_END_ALLOW_THREADS
     if ret < 0:
-      raise RuntimeError("_readIndex_sparse: Problems reading the array data.")
+      raise HDF5ExtError("_readIndex_sparse: Problems reading the array data.")
 
     return
-
-  def _readIndexSliceLR(self, hsize_t start, hsize_t stop, char *dset_name,
-                        int offsetl):
-    "Read the reverse index part of an LR index"
-    cdef int *rbufR
-
-    rbufR = <int *>self.rbufR + offsetl
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOreadSliceLR(self.parent_id, dset_name,
-                              start, stop, rbufR)
-    Py_END_ALLOW_THREADS
-    if ret < 0:
-      raise RuntimeError("Problems reading the array data.")
-
-    return
-
-  def _closeIndexSlice(self):
-      # From PyTables 1.2 on, this will be closed when the index would be
-      # pre-empted from cache.
-      pass
 
   def _initSortedSlice(self, pro=0):
     "Initialize the structures for doing a binary search"
@@ -180,7 +186,7 @@ cdef class IndexArray(Array):
       count[0] = 1; count[1] = self.chunksize;
       self.mem_space_id = H5Screate_simple(rank, count, NULL)
       if self.mem_space_id < 0:
-        raise RuntimeError("Problems creating a memory dataspace.")
+        raise HDF5ExtError("Problems creating a memory dataspace.")
       self.isopen_for_read = True
     if pro and not index.cache :
       index.rvcache = index.rangeValues[:]
@@ -202,7 +208,7 @@ cdef class IndexArray(Array):
                                          &self.bmem_space_id, &self.type_id3,
                                          self.parent_id, bname,
                                          self.nbounds) < 0):
-          raise RuntimeError("Problems opening the bounds array data.")
+          raise HDF5ExtError("Problems opening the bounds array data.")
         self.bcache = 0
       NA_getBufferPtrAndSize(self.boundscache._data, 1, &self.rbufbc)
 
@@ -218,25 +224,6 @@ cdef class IndexArray(Array):
       raise HDF5ExtError("Problems reading the array data.")
 
     return self.bufferl
-
-  def _readSortedSliceLR(self, hsize_t start, hsize_t stop, char *dset_name):
-    "Read the sorted part of an LR index"
-
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOreadSliceLR(self.parent_id, dset_name,
-                              start, stop, self.rbuflb)
-    Py_END_ALLOW_THREADS
-    if ret < 0:
-      raise RuntimeError("Problems reading the array data.")
-
-    return self.bufferl
-
-  def _closeSortedSlice(self):
-    # Close the bounds array if needed
-    if hasattr(self, "boundscache") and not self.bcache:
-      if H5ARRAYOclose_readSortedSlice(self.bdataset_id, self.bspace_id,
-                                       self.bmem_space_id, self.type_id3) < 0:
-        raise RuntimeError("Problems closing the bounds array data.")
 
 # This has been copied from the standard module bisect.
 # Checks for the values out of limits has been added at the beginning
@@ -759,7 +746,7 @@ cdef class IndexArray(Array):
       len1 = ncoords - rbufln[irow]
       #offset = irow * self.nelemslice
       #self.arrAbs[len1:ncoords] = self._v_parent.lrri[startl:stopl] + offset
-      self._readIndexSliceLR(startl, stopl, self._v_parent.lrri.name, len1)
+      self._readIndexSliceLR(startl, stopl, len1)
       nrows = nrows + 1  # Add the last row for later conversion to 64-bit
 
     # Finally, convert the values to full 64-bit addresses
