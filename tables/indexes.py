@@ -5,7 +5,7 @@
 #       Author:  Francesc Altet - faltet@carabos.com
 #
 #       $Source: /cvsroot/pytables/pytables/tables/IndexArray.py,v $
-#       $Id: IndexArray.py 1589 2006-05-16 18:39:00Z faltet $
+#       $Id$
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 1.12 $"
+__version__ = "$Revision$"
 # default version for IndexARRAY objects
 obversion = "1.0"    # initial version
 
