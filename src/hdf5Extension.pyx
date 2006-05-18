@@ -18,7 +18,6 @@ Classes (type extensions):
     Group
     Array
     VLArray
-    IndexArray
     UnImplemented
 
 Functions:
@@ -425,22 +424,6 @@ cdef extern from "H5ARRAY.h":
 
   herr_t H5ARRAYget_chunksize(hid_t dataset_id, int rank, hsize_t *dims_chunk)
 
-# Functions for optimized operations for ARRAY
-cdef extern from "H5ARRAY-opt.h":
-
-  herr_t H5ARRAYOopen_readSlice( hid_t *dataset_id,
-                                 hid_t *space_id,
-                                 hid_t *type_id,
-                                 hid_t loc_id,
-                                 char *dset_name )
-
-  herr_t H5ARRAYOread_readSlice( hid_t dataset_id,
-                                 hid_t space_id,
-                                 hid_t type_id,
-                                 hsize_t irow,
-                                 hsize_t start,
-                                 hsize_t stop,
-                                 void *data )
 
 # Functions for VLEN Arrays
 cdef extern from "H5VLARRAY.h":

@@ -41,19 +41,98 @@ from definitions cimport import_libnumarray, NA_getBufferPtrAndSize
 
 __version__ = "$Revision$"
 
+#-------------------------------------------------------------------
+
+# C funtions and variable declaration from its headers
+# Functions for optimized operations for ARRAY
+cdef extern from "H5ARRAY-opt.h":
+
+  herr_t H5ARRAYOinit_readSlice( hid_t dataset_id,
+                                 hid_t type_id,
+                                 hid_t *space_id,
+                                 hid_t *mem_space_id,
+                                 hsize_t count )
+
+  herr_t H5ARRAYOread_readSlice( hid_t dataset_id,
+                                 hid_t space_id,
+                                 hid_t type_id,
+                                 hsize_t irow,
+                                 hsize_t start,
+                                 hsize_t stop,
+                                 void *data )
+
+  herr_t H5ARRAYOread_index_sparse( hid_t dataset_id,
+                                    hid_t space_id,
+                                    hid_t mem_type_id,
+                                    hsize_t ncoords,
+                                    void *coords,
+                                    void *data )
+
+  herr_t H5ARRAYOread_readSortedSlice( hid_t dataset_id,
+                                       hid_t space_id,
+                                       hid_t mem_space_id,
+                                       hid_t type_id,
+                                       hsize_t irow,
+                                       hsize_t start,
+                                       hsize_t stop,
+                                       void *data )
+
+
+  herr_t H5ARRAYOread_readBoundsSlice( hid_t dataset_id,
+                                       hid_t space_id,
+                                       hid_t mem_space_id,
+                                       hid_t type_id,
+                                       hsize_t irow,
+                                       hsize_t start,
+                                       hsize_t stop,
+                                       void *data )
+
+  herr_t H5ARRAYOreadSliceLR( hid_t dataset_id,
+                              hsize_t start,
+                              hsize_t stop,
+                              void *data )
+
+
+#-------------------------------------------------------------------
+
 
 cdef class CacheArray(Array):
   """Container for keeping index caches of 1st and 2nd level."""
-  cdef void    *rbufst, *rbufln, *rbufrv, *rbufbc, *rbuflb
-  cdef hid_t   space_id, mem_space_id
-  cdef int     nbounds
+  cdef hid_t *space_id
+  cdef hid_t *mem_space_id
+
+  cdef initRead(self, int nbounds):
+    "Actions to accelerate the reads afterwards."
+
+    # Precompute the space_id and mem_space_id
+    if (H5ARRAYOinit_readSlice(self.dataset_id, self.type_id,
+                               &self.space_id, &self.mem_space_id,
+                               nbounds) < 0):
+      raise HDF5ExtError("Problems initializing the bounds array data.")
+    return
+
+  cdef readSlice(self, hsize_t nrow, hsize_t start, hsize_t stop, void *rbuf):
+    "Read an slice of bounds."
+
+    if (H5ARRAYOread_readBoundsSlice(self.dataset_id, self.space_id,
+                                     self.mem_space_id, self.type_id,
+                                     nrow, start, stop, rbuf) < 0):
+      raise HDF5ExtError("Problems reading the bounds array data.")
+    return
+
+  def _g_close(self):
+    super(Leaf, self)._g_close()
+    # Release specific resources of this class
+    if self.space_id >= 0:
+      H5Sclose(self.space_id)
+    if self.mem_space_id >= 0:
+      H5Sclose(self.mem_space_id)
 
 
 cdef class LastRowArray(Array):
   """Container for keeping sorted and indices values of last rows of an index."""
-  cdef int *rbufR
 
-  def _readIndexSliceLR(self, hsize_t start, hsize_t stop, int offsetl):
+  def _readIndexSlice(self, hsize_t start, hsize_t stop, int offsetl):
     "Read the reverse index part of an LR index."
     cdef int *rbufR
 
@@ -66,7 +145,7 @@ cdef class LastRowArray(Array):
 
     return
 
-  def _readSortedSliceLR(self, hsize_t start, hsize_t stop):
+  def _readSortedSlice(self, hsize_t start, hsize_t stop):
     "Read the sorted part of an LR index."
     cdef object bufferl
     cdef void  *rbuflb
@@ -83,11 +162,10 @@ cdef class LastRowArray(Array):
 
 
 cdef class IndexArray(Array):
-  """Container for keeping sorted and indices values"""
+  """Container for keeping sorted and indices values."""
   cdef void    *rbufst, *rbufln, *rbufrv, *rbufbc, *rbuflb
   cdef void    *rbufR, *rbufR2, *rbufA
-  cdef hid_t   type_id2, space_id, mem_space_id
-  cdef hid_t   bdataset_id, type_id3, bspace_id, bmem_space_id
+  cdef hid_t   space_id, mem_space_id
   cdef int     nbounds
 
   def _initIndexSlice(self, ncoords):
@@ -105,11 +183,8 @@ cdef class IndexArray(Array):
       NA_getBufferPtrAndSize(self.arrAbs._data, 1, &self.rbufA)
       NA_getBufferPtrAndSize(self._v_parent.starts._data, 1, &self.rbufst)
       NA_getBufferPtrAndSize(self._v_parent.lengths._data, 1, &self.rbufln)
-      # Open the array for reading
-      if (H5ARRAYOopen_readSlice(&self.dataset_id, &self.space_id,
-                                 &self.type_id2, self.parent_id,
-                                 self.name) < 0):
-        raise HDF5ExtError("Problems opening the sorted array data.")
+      # Initialize the index array for reading
+      self.space_id = H5Dget_space(self.dataset_id )
       self.isopen_for_read = True
 
   def _readIndex(self, hsize_t irow, hsize_t start, hsize_t stop,
@@ -126,7 +201,7 @@ cdef class IndexArray(Array):
     rbufA = <long long *>self.rbufA + offsetl
     # Do the physical read
     Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id, self.type_id2,
+    ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id, self.type_id,
                                  irow, start, stop, rbufR)
     Py_END_ALLOW_THREADS
     if ret < 0:
@@ -145,9 +220,8 @@ cdef class IndexArray(Array):
 
     # Do the physical read
     Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOread_index_sparse(self.dataset_id, self.space_id,
-                                    self.type_id2, ncoords,
-                                    self.rbufR2, self.rbufR)
+    ret = H5ARRAYOread_index_sparse(self.dataset_id, self.space_id, self.type_id,
+                                    ncoords, self.rbufR2, self.rbufR)
     Py_END_ALLOW_THREADS
     if ret < 0:
       raise HDF5ExtError("_readIndex_sparse: Problems reading the array data.")
@@ -181,15 +255,14 @@ cdef class IndexArray(Array):
       NA_getBufferPtrAndSize(self.bufferl._data, 1, &self.rbuflb)
       NA_getBufferPtrAndSize(index.starts._data, 1, &self.rbufst)
       NA_getBufferPtrAndSize(index.lengths._data, 1, &self.rbufln)
-      # Create a memory dataspace handle for sorted array
+      # Init structures for accelerating sorted array reads
+      self.space_id = H5Dget_space(self.dataset_id)
       rank = 2
       count[0] = 1; count[1] = self.chunksize;
       self.mem_space_id = H5Screate_simple(rank, count, NULL)
-      if self.mem_space_id < 0:
-        raise HDF5ExtError("Problems creating a memory dataspace.")
       self.isopen_for_read = True
     if pro and not index.cache :
-      index.rvcache = index.rangeValues[:]
+      index.rvcache = index.ranges[:]
       NA_getBufferPtrAndSize(index.rvcache._data, 1, &self.rbufrv)
       index.cache = True
       # Protection against using too big cache for bounds values
@@ -198,27 +271,22 @@ cdef class IndexArray(Array):
       #if self.nrows * self.nbounds < 10000 and 0:  # for testing purposes
       if self.nrows * self.nbounds < 100000:
         self.boundscache = index.bounds[:]
-        self.bcache = 1
+        self.bcache = True
       else:
         self.boundscache = numarray.array(None, type=self.type,
                                           shape=self.nbounds)
-        # Open the bounds array for reading
-        bname = PyString_AsString(index.bounds.name)
-        if (H5ARRAYOopen_readSortedSlice(&self.bdataset_id, &self.bspace_id,
-                                         &self.bmem_space_id, &self.type_id3,
-                                         self.parent_id, bname,
-                                         self.nbounds) < 0):
-          raise HDF5ExtError("Problems opening the bounds array data.")
-        self.bcache = 0
+        # Init the bounds array for reading
+        index.bounds.initRead(self.nbounds)
+        self.bcache = False
       NA_getBufferPtrAndSize(self.boundscache._data, 1, &self.rbufbc)
 
   def _readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):
-    "Read the sorted part of an index"
+    "Read the sorted part of an index."
 
     Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                              self.mem_space_id, self.type_id2,
-                              irow, start, stop, self.rbuflb)
+                                       self.mem_space_id, self.type_id,
+                                       irow, start, stop, self.rbuflb)
     Py_END_ALLOW_THREADS
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
@@ -350,8 +418,6 @@ cdef class IndexArray(Array):
         break
     return (lo, ending, niter)
 
-
-
   # Optimized version for doubles
   def _searchBinNA_d(self, double item1, double item2):
     cdef int cs, nchunk, nchunk2, nrow, nrows, nbounds, rvrow
@@ -379,14 +445,12 @@ cdef class IndexArray(Array):
             rbufbc = <double *>self.rbufbc + nrow*nbounds
           else:
             # Bounds is not in cache. Read the appropriate row.
-            H5ARRAYOread_readBoundsSlice(self.bdataset_id, self.bspace_id,
-                                         self.bmem_space_id, self.type_id3,
-                                         nrow, 0, nbounds, self.rbufbc)
+            self.bounds.readSlice(nrow, 0, nbounds, self.rbufbc)
             rbufbc = <double *>self.rbufbc
           bread = 1
           nchunk = bisect_left_d(rbufbc, item1, nbounds, 0)
           H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                       self.mem_space_id, self.type_id2,
+                                       self.mem_space_id, self.type_id,
                                        nrow, cs*nchunk, cs*(nchunk+1),
                                        self.rbuflb)
           start = bisect_left_d(rbuflb, item1, cs, 0) + cs*nchunk
@@ -407,14 +471,12 @@ cdef class IndexArray(Array):
               rbufbc = <double *>self.rbufbc + nrow*nbounds
             else:
               # Bounds is not in cache. Read the appropriate row.
-              H5ARRAYOread_readBoundsSlice(self.bdataset_id, self.bspace_id,
-                                           self.bmem_space_id, self.type_id3,
-                                           nrow, 0, nbounds, self.rbufbc)
+              self.bounds.readSlice(nrow, 0, nbounds, self.rbufbc)
               rbufbc = <double *>self.rbufbc
           nchunk2 = bisect_right_d(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                         self.mem_space_id, self.type_id2,
+                                         self.mem_space_id, self.type_id,
                                          nrow, cs*nchunk2, cs*(nchunk2+1),
                                          self.rbuflb)
         # The next optimization in calls does not buy any real speed-up
@@ -422,7 +484,7 @@ cdef class IndexArray(Array):
 #           offset[1] = cs*nchunk2
 #           H5Sselect_hyperslab(self.space_id, H5S_SELECT_SET, offset, stride,
 #                               count, NULL)
-#           H5Dread(self.dataset_id, self.type_id2, self.mem_space_id,
+#           H5Dread(self.dataset_id, self.type_id, self.mem_space_id,
 #                   self.space_id, H5P_DEFAULT, self.rbuflb)
           stop = bisect_right_d(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
@@ -463,15 +525,13 @@ cdef class IndexArray(Array):
           rbufbc = <double *>self.rbufbc + nrow*nbounds
         else:
           # Bounds is not in cache. Read the appropriate row.
-          H5ARRAYOread_readBoundsSlice(self.bdataset_id, self.bspace_id,
-                                       self.bmem_space_id, self.type_id3,
-                                       nrow, 0, nbounds, self.rbufbc)
+          self.bounds.readSlice(nrow, 0, nbounds, self.rbufbc)
           rbufbc = <double *>self.rbufbc
       if start == 0:
         nchunk = bisect_left_d(rbufbc, item1, nbounds, 0)
         # self._readSortedSlice(nrow, cs*nchunk, cs*(nchunk+1))
         H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                     self.mem_space_id, self.type_id2,
+                                     self.mem_space_id, self.type_id,
                                      nrow, cs*nchunk, cs*(nchunk+1),
                                      self.rbuflb)
         start = bisect_left_d(rbuflb, item1, cs, 0) + cs*nchunk
@@ -480,7 +540,7 @@ cdef class IndexArray(Array):
         if nchunk2 <> nchunk:
           # self._readSortedSlice(nrow, cs*nchunk2, cs*(nchunk2+1))
           H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                       self.mem_space_id, self.type_id2,
+                                       self.mem_space_id, self.type_id,
                                        nrow, cs*nchunk2, cs*(nchunk2+1),
                                        self.rbuflb)
         stop = bisect_right_d(rbuflb, item2, cs, 0) + cs*nchunk2
@@ -517,14 +577,12 @@ cdef class IndexArray(Array):
             rbufbc = <int *>self.rbufbc + nrow*nbounds
           else:
             # Bounds is not in cache. Read the appropriate row.
-            H5ARRAYOread_readBoundsSlice(self.bdataset_id, self.bspace_id,
-                                         self.bmem_space_id, self.type_id3,
-                                         nrow, 0, nbounds, self.rbufbc)
+            self.bounds.readSlice(nrow, 0, nbounds, self.rbufbc)
             rbufbc = <int *>self.rbufbc
           bread = 1
           nchunk = bisect_left_i(rbufbc, item1, nbounds, 0)
           H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                       self.mem_space_id, self.type_id2,
+                                       self.mem_space_id, self.type_id,
                                        nrow, cs*nchunk, cs*(nchunk+1),
                                        self.rbuflb)
           start = bisect_left_i(rbuflb, item1, cs, 0) + cs*nchunk
@@ -540,14 +598,12 @@ cdef class IndexArray(Array):
               rbufbc = <int *>self.rbufbc + nrow*nbounds
             else:
               # Bounds is not in cache. Read the appropriate row.
-              H5ARRAYOread_readBoundsSlice(self.bdataset_id, self.bspace_id,
-                                           self.bmem_space_id, self.type_id3,
-                                           nrow, 0, nbounds, self.rbufbc)
+              self.bounds.readSlice(nrow, 0, nbounds, self.rbufbc)
               rbufbc = <int *>self.rbufbc
           nchunk2 = bisect_right_i(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                         self.mem_space_id, self.type_id2,
+                                         self.mem_space_id, self.type_id,
                                          nrow, cs*nchunk2, cs*(nchunk2+1),
                                          self.rbuflb)
           stop = bisect_right_i(rbuflb, item2, cs, 0) + cs*nchunk2
@@ -589,15 +645,13 @@ cdef class IndexArray(Array):
           rbufbc = <int *>self.rbufbc + nrow*nbounds
         else:
           # Bounds is not in cache. Read the appropriate row.
-          H5ARRAYOread_readBoundsSlice(self.bdataset_id, self.bspace_id,
-                                       self.bmem_space_id, self.type_id3,
-                                       nrow, 0, nbounds, self.rbufbc)
+          self.bounds.readSlice(nrow, 0, nbounds, self.rbufbc)
           rbufbc = <int *>self.rbufbc
       if start == 0:
         nchunk = bisect_left_i(rbufbc, item1, nbounds, 0)
         #self._readSortedSlice(nrow, cs*nchunk, cs*(nchunk+1))
         H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                     self.mem_space_id, self.type_id2,
+                                     self.mem_space_id, self.type_id,
                                      nrow, cs*nchunk, cs*(nchunk+1),
                                      self.rbuflb)
         start = bisect_left_i(rbuflb, item1, cs, 0) + cs*nchunk
@@ -606,7 +660,7 @@ cdef class IndexArray(Array):
         if nchunk2 <> nchunk:
           #self._readSortedSlice(nrow, cs*nchunk2, cs*(nchunk2+1))
           H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                       self.mem_space_id, self.type_id2,
+                                       self.mem_space_id, self.type_id,
                                        nrow, cs*nchunk2, cs*(nchunk2+1),
                                        self.rbuflb)
         stop = bisect_right_i(rbuflb, item2, cs, 0) + cs*nchunk2
@@ -658,7 +712,7 @@ cdef class IndexArray(Array):
     return tlen
 
   # This version of getCoords reads the indexes in chunks.
-  # Because of that, it can be used on iterators.
+  # Because of that, it can be used in iterators.
   def _getCoords(self, int startcoords, int ncoords):
     cdef int nrow, nrows, leni, len1, len2, relcoords, nindexedrows
     cdef int *rbufst, *rbufln
@@ -690,8 +744,10 @@ cdef class IndexArray(Array):
           # Get indices for last row
           offset = nrow*self.nelemslice
           stop = relcoords+(stopl-startl)
-          lrri = self._v_parent.lrri
-          arrAbs[relcoords:stop] = lrri[startl:stopl] + offset
+          indicesLR = self._v_parent.indicesLR
+          # The next line can be optimised by calling indicesLR._g_readSlice()
+          # directly although I don't know if it is worth the effort.
+          arrAbs[relcoords:stop] = indicesLR[startl:stopl] + offset
         incr = stopl - startl
         relcoords = relcoords + incr
         startcoords = startcoords + incr
@@ -745,8 +801,8 @@ cdef class IndexArray(Array):
       stopl = startl + rbufln[irow]
       len1 = ncoords - rbufln[irow]
       #offset = irow * self.nelemslice
-      #self.arrAbs[len1:ncoords] = self._v_parent.lrri[startl:stopl] + offset
-      self._readIndexSliceLR(startl, stopl, len1)
+      #self.arrAbs[len1:ncoords] = self._v_parent.indicesLR[startl:stopl] + offset
+      self._readIndexSlice(startl, stopl, len1)
       nrows = nrows + 1  # Add the last row for later conversion to 64-bit
 
     # Finally, convert the values to full 64-bit addresses
@@ -763,3 +819,10 @@ cdef class IndexArray(Array):
     # Return ncoords as maximum because arrAbs can have more elements
     return self.arrAbs[:ncoords]
 
+  def _g_close(self):
+    super(Leaf, self)._g_close()
+    # Release specific resources of this class
+    if self.space_id >= 0:
+      H5Sclose(self.space_id)
+    if self.mem_space_id >= 0:
+      H5Sclose(self.mem_space_id)

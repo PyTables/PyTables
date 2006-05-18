@@ -477,18 +477,18 @@ class Index(hdf5Extension.Index, Group):
                    Filters(complevel=0, shuffle=0),   # too small to use filters
                    self._v_expectedrows//self.nelemslice)
 
-        # Create the Array for last row values
+        # Create the Array for last (sorted) row values + bounds
         shape = 2 + nbounds + self.nelemslice
         if str(self.type) == "CharType":
             atom = strings.array(None, shape=shape, itemsize=self.itemsize)
         else:
             atom = numarray.array(None, shape=shape, type=self.type)
-        LastRowArray(self, 'lrvb', atom, "Last Row Values + bounds")
+        LastRowArray(self, 'sortedLR', atom, "Last Row sorted values + bounds")
 
         # Create the Array for reverse indexes in last row
         shape = self.nelemslice     # enough for indexes and length
         atom = numarray.zeros(shape=shape, type=numarray.Int32)
-        LastRowArray(self, 'lrri', atom, "Last Row Reverse Indexes")
+        LastRowArray(self, 'indicesLR', atom, "Last Row reverse indices")
 
     def _g_updateDependent(self):
         super(Index, self)._g_updateDependent()
@@ -729,7 +729,6 @@ get HDF5 1.6.4.""")
         # Index removal is always recursive,
         # no matter what `recursive` says.
         super(Index, self)._f_remove(True)
-
 
     def __str__(self):
         """This provides a more compact representation than __repr__"""

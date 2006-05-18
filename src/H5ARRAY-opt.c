@@ -103,51 +103,39 @@ out:
 
 
 /*-------------------------------------------------------------------------
- * Function: H5ARRAYOopen_readSortedSlice
+ * Function: H5ARRAYOinit_readSlice
  *
- * Purpose: Prepare an array to be read incrementally
+ * Purpose: Prepare structures to read specifics arrays faster
  *
  * Return: Success: 0, Failure: -1
  *
  * Programmer: Francesc Altet, faltet@carabos.com
  *
- * Date: Aug 11, 2005
+ * Date: May 18, 2006
  *
  * Comments:
- *   - The H5ARRAYOopen_readSlice, H5ARRAYOread_readSlice and
- *     H5ARRAYOclose_readSlice are intended to read Indexes slices only!
- *     F. Altet 2005-08-11
+ *   - The H5ARRAYOinit_readSlice and H5ARRAYOread_readSlice
+ *     are intended to read indexes slices only!
+ *     F. Altet 2006-05-18
  *
  * Modifications:
- *   - Modified to cache the mem_space_id as well.
- *     F. Altet 2005-08-11
  *
  *
  *-------------------------------------------------------------------------
  */
 
-herr_t H5ARRAYOopen_readSortedSlice( hid_t *dataset_id,
-				     hid_t *space_id,
-				     hid_t *mem_space_id,
-				     hid_t *type_id,
-				     hid_t loc_id,
-				     const char *dset_name,
-				     hsize_t count)
+herr_t H5ARRAYOinit_readSlice( hid_t dataset_id,
+			       hid_t type_id,
+			       hid_t *space_id,
+			       hid_t *mem_space_id,
+			       hsize_t count)
 
 {
  int      rank = 2;
  hsize_t  count2[2] = {1, count};
 
- /* Open the dataset. */
- if ( (*dataset_id = H5Dopen( loc_id, dset_name )) < 0 )
-  return -1;
-
- /* Get the datatype */
- if ( (*type_id = H5Dget_type(*dataset_id)) < 0 )
-     return -1;
-
   /* Get the dataspace handle */
- if ( (*space_id = H5Dget_space(*dataset_id )) < 0 )
+ if ( (*space_id = H5Dget_space(dataset_id )) < 0 )
   goto out;
 
  /* Create a memory dataspace handle */
@@ -157,7 +145,7 @@ herr_t H5ARRAYOopen_readSortedSlice( hid_t *dataset_id,
  return 0;
 
 out:
- H5Dclose( *dataset_id );
+ H5Dclose(dataset_id);
  return -1;
 
 }
@@ -262,57 +250,6 @@ out:
 
 }
 
-
-/*-------------------------------------------------------------------------
- * Function: H5ARRAYOclose_readSortedSlice
- *
- * Purpose: Close a table that has been opened for reading
- *
- * Return: Success: 0, Failure: -1
- *
- * Programmer: Francesc Altet, faltet@carabos.com
- *
- * Date: Aug 11, 2005
- *
- * Comments:
- *
- * Modifications:
- *   - Modified to cache the mem_space_id as well.
- *     F. Altet 2005-08-11
- *
- *
- *-------------------------------------------------------------------------
- */
-
-herr_t H5ARRAYOclose_readSortedSlice(hid_t dataset_id,
-				     hid_t space_id,
-				     hid_t mem_space_id,
-				     hid_t type_id)
-{
-
- /* Terminate access to the dataspace */
- if ( H5Sclose( space_id ) < 0 )
-  goto out;
-
- /* Terminate access to the memory dataspace */
- if ( H5Sclose( mem_space_id ) < 0 )
-   goto out;
-
- /* Close the type */
- if ( H5Tclose( type_id))
-   return -1;
-
- /* End access to the dataset and release resources used by it. */
- if ( H5Dclose( dataset_id ) )
-  return -1;
-
-return 0;
-
-out:
- H5Dclose( dataset_id );
- return -1;
-
-}
 
 /*-------------------------------------------------------------------------
  * Function: H5ARRAYreadSliceLR
