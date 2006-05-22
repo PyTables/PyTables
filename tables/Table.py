@@ -2369,7 +2369,7 @@ class Column(object):
         # Only set the index column as dirty if it exists
         if index:
             setattr(index._v_attrs,"DIRTY", dirty)
-            self.index.lrri[-1] = 0
+            self.index.indicesLR[-1] = 0
             self.index.nelementsLR = 0
             self.index.nelements = 0
             #self.table._indexedrows = 0

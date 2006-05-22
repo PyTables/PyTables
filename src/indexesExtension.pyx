@@ -36,8 +36,8 @@ from numarray import records, strings, memory
 from tables.exceptions import HDF5ExtError
 from hdf5Extension cimport Array, hid_t, herr_t, hsize_t
 
-from definitions cimport import_libnumarray, \
-  NA_getBufferPtrAndSize, NA_getPythonScalar
+from definitions cimport import_libnumarray, NA_getPythonScalar, \
+     NA_getBufferPtrAndSize
 
 
 __version__ = "$Revision$"
@@ -102,6 +102,18 @@ cdef extern from "H5ARRAY-opt.h":
                               hsize_t stop,
                               void *data )
 
+# Functions for optimized operations for dealing with indexes
+cdef extern from "idx-opt.h":
+  int bisect_left_d(double *a, double x, int hi, int offset)
+  int bisect_left_i(int *a, int x, int hi, int offset)
+  int bisect_right_d(double *a, double x, int hi, int offset)
+  int bisect_right_i(int *a, int x, int hi, int offset)
+  int get_sorted_indices(int nrows, long long *rbufR2,
+                         int *rbufst, int *rbufln)
+  int convert_addr64(int nrows, int nelem, long long *rbufA,
+                     int *rbufR, int *rbufln)
+
+
 
 #----------------------------------------------------------------------------
 
@@ -113,7 +125,16 @@ import_libnumarray()
 
 #---------------------------------------------------------------------------
 
+# Functions
 
+cdef getPythonScalar(object a, long i):
+  return NA_getPythonScalar(a, i)
+
+
+# Classes
+
+cdef class Index:
+  pass
 
 cdef class CacheArray(Array):
   """Container for keeping index caches of 1st and 2nd level."""
@@ -140,11 +161,11 @@ cdef class CacheArray(Array):
     return
 
   def _g_close(self):
-    super(Leaf, self)._g_close()
+    super(Array, self)._g_close()
     # Release specific resources of this class
-    if self.space_id >= 0:
+    if self.space_id > 0:
       H5Sclose(self.space_id)
-    if self.mem_space_id >= 0:
+    if self.mem_space_id > 0:
       H5Sclose(self.mem_space_id)
 
 
@@ -155,6 +176,7 @@ cdef class IndexArray(Array):
   cdef hid_t   space_id, mem_space_id
   cdef int     nbounds
   cdef object  bufferl
+  cdef CacheArray bounds_ext
 
   def _initIndexSlice(self, ncoords):
     "Initialize the structures for doing a binary search"
@@ -254,6 +276,7 @@ cdef class IndexArray(Array):
       NA_getBufferPtrAndSize(index.rvcache._data, 1, &self.rbufrv)
       index.cache = True
       # Protection against using too big cache for bounds values
+      self.bounds_ext = <CacheArray>index.bounds
       self.nbounds = index.bounds.shape[1]
       # Avoid loading too much data from second-level cache
       #if self.nrows * self.nbounds < 10000 and 0:  # for testing purposes
@@ -264,7 +287,7 @@ cdef class IndexArray(Array):
         self.boundscache = numarray.array(None, type=self.type,
                                           shape=self.nbounds)
         # Init the bounds array for reading
-        index.bounds.initRead(self.nbounds)
+        index.bounds_ext.initRead(self.nbounds)
         self.bcache = False
       NA_getBufferPtrAndSize(self.boundscache._data, 1, &self.rbufbc)
 
@@ -310,11 +333,11 @@ cdef class IndexArray(Array):
     cdef int lo, mid
 
     lo = 0
-    if x <= NA_getPythonScalar(a, 0): return 0
-    if NA_getPythonScalar(a, (hi-1)*stride) < x: return hi
+    if x <= getPythonScalar(a, 0): return 0
+    if getPythonScalar(a, (hi-1)*stride) < x: return hi
     while lo < hi:
         mid = (lo+hi)/2
-        if NA_getPythonScalar(a, mid*stride) < x: lo = mid+1
+        if getPythonScalar(a, mid*stride) < x: lo = mid+1
         else: hi = mid
     return lo
 
@@ -343,11 +366,11 @@ cdef class IndexArray(Array):
     cdef int lo, mid
 
     lo = 0
-    if x < NA_getPythonScalar(a, 0): return 0
-    if NA_getPythonScalar(a, (hi-1)*stride) <= x: return hi
+    if x < getPythonScalar(a, 0): return 0
+    if getPythonScalar(a, (hi-1)*stride) <= x: return hi
     while lo < hi:
       mid = (lo+hi)/2
-      if x < NA_getPythonScalar(a, mid*stride): hi = mid
+      if x < getPythonScalar(a, mid*stride): hi = mid
       else: lo = mid+1
     return lo
 
@@ -433,7 +456,7 @@ cdef class IndexArray(Array):
             rbufbc = <double *>self.rbufbc + nrow*nbounds
           else:
             # Bounds is not in cache. Read the appropriate row.
-            self.bounds.readSlice(nrow, 0, nbounds, self.rbufbc)
+            self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
             rbufbc = <double *>self.rbufbc
           bread = 1
           nchunk = bisect_left_d(rbufbc, item1, nbounds, 0)
@@ -459,7 +482,7 @@ cdef class IndexArray(Array):
               rbufbc = <double *>self.rbufbc + nrow*nbounds
             else:
               # Bounds is not in cache. Read the appropriate row.
-              self.bounds.readSlice(nrow, 0, nbounds, self.rbufbc)
+              self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
               rbufbc = <double *>self.rbufbc
           nchunk2 = bisect_right_d(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
@@ -513,7 +536,7 @@ cdef class IndexArray(Array):
           rbufbc = <double *>self.rbufbc + nrow*nbounds
         else:
           # Bounds is not in cache. Read the appropriate row.
-          self.bounds.readSlice(nrow, 0, nbounds, self.rbufbc)
+          self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
           rbufbc = <double *>self.rbufbc
       if start == 0:
         nchunk = bisect_left_d(rbufbc, item1, nbounds, 0)
@@ -565,7 +588,7 @@ cdef class IndexArray(Array):
             rbufbc = <int *>self.rbufbc + nrow*nbounds
           else:
             # Bounds is not in cache. Read the appropriate row.
-            self.bounds.readSlice(nrow, 0, nbounds, self.rbufbc)
+            self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
             rbufbc = <int *>self.rbufbc
           bread = 1
           nchunk = bisect_left_i(rbufbc, item1, nbounds, 0)
@@ -586,7 +609,7 @@ cdef class IndexArray(Array):
               rbufbc = <int *>self.rbufbc + nrow*nbounds
             else:
               # Bounds is not in cache. Read the appropriate row.
-              self.bounds.readSlice(nrow, 0, nbounds, self.rbufbc)
+              self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
               rbufbc = <int *>self.rbufbc
           nchunk2 = bisect_right_i(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
@@ -633,7 +656,7 @@ cdef class IndexArray(Array):
           rbufbc = <int *>self.rbufbc + nrow*nbounds
         else:
           # Bounds is not in cache. Read the appropriate row.
-          self.bounds.readSlice(nrow, 0, nbounds, self.rbufbc)
+          self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
           rbufbc = <int *>self.rbufbc
       if start == 0:
         nchunk = bisect_left_i(rbufbc, item1, nbounds, 0)
@@ -808,11 +831,11 @@ cdef class IndexArray(Array):
     return self.arrAbs[:ncoords]
 
   def _g_close(self):
-    super(Leaf, self)._g_close()
+    super(Array, self)._g_close()
     # Release specific resources of this class
-    if self.space_id >= 0:
+    if self.space_id > 0:
       H5Sclose(self.space_id)
-    if self.mem_space_id >= 0:
+    if self.mem_space_id > 0:
       H5Sclose(self.mem_space_id)
 
 

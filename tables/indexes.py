@@ -32,6 +32,7 @@ __version__ = "$Revision$"
 obversion = "1.0"    # initial version
 
 import types, warnings, sys
+from Array import Array
 from EArray import EArray
 from VLArray import Atom, StringAtom
 import indexesExtension
@@ -338,20 +339,27 @@ class IndexArray(EArray, indexesExtension.IndexArray):
             
 
     """
-    
-    def __init__(self, parent = None, atom = None, title = "",
-                 filters = None, expectedrows = 1000000,
-                 testmode=0):
+
+    # Class identifier.
+    _c_classId = 'INDEXARRAY'
+
+    def __init__(self, parentNode, name,
+                 atom=None, title="",
+                 filters=None,
+                 testmode=False,
+                 expectedrows=0):
         """Create an IndexArray instance.
 
         Keyword arguments:
 
-        parent -- The Index class from which this object will hang off
+        parentNode -- The Index class from which this object will hang off.
+
+        name -- The name of this node in its parent group (a string).
 
         atom -- An Atom object representing the shape, type and flavor
             of the atomic objects to be saved. Only scalar atoms are
             supported.
-        
+
         title -- Sets a TITLE attribute on the array entity.
 
         filters -- An instance of the Filters class that provides
@@ -359,66 +367,58 @@ class IndexArray(EArray, indexesExtension.IndexArray):
             during the life of this object.
 
         expectedrows -- Represents an user estimate about the number
-            of elements to index. If not provided, the default
-            value is 1000000 slices.
+            of elements to index.
 
         """
-        self._v_parent = parent
-        self._v_new_title = title
-        self._v_new_filters = filters
-        self._v_expectedrows = expectedrows
         self.testmode = testmode
-        self.flavor = "NumArray"  # Needed by Array methods
-        # Check if we have to create a new object or read their contents
-        # from disk
+        """Enables test mode for index chunk size calculation."""
+        self.nelemslice = None
+        """The number of elements per slice."""
+        self.chunksize = None
+        """The HDF5 chunksize for the slice dimension (the second)."""
+        self.bufferl = None
+        """Buffer for reading chunks in sorted array."""
+        self.arrRel = None
+        """Buffer for reading indexes (relative addresses)."""
+        self.arrAbs = None
+        """Buffer for reading indexes (absolute addresses)."""
         if atom is not None:
-            self._v_new = 1
-            self.atom = atom
-        else:
-            self._v_new = 0
+            (self.nelemslice, self.chunksize) = (
+                calcChunksize(expectedrows, testmode))
+        # Index creation is never logged.
+        super(IndexArray, self).__init__(
+            parentNode, name, atom, title, filters, expectedrows, log=False)
+
+
+    def _g_create(self):
+        assert self.atom.shape == (0, 1), "only scalar columns can be indexed"
+        objectId = super(IndexArray, self)._g_create()
+        assert self.extdim == 0, "computed extendable dimension is wrong"
+        assert self.shape == (0, self.nelemslice), "invalid shape"
+        assert self._v_chunksize == (1, self.chunksize), "invalid chunk size"
+        return objectId
+        
+
+    def _calcTuplesAndChunks(self, atom, extdim, expectedrows, compress):
+        return (0, (1, self.chunksize))  # (_v_maxTuples, _v_chunksize)
+
+
+    def _createEArray(self, title):
+        # The shape of the index array needs to be fixed before creating it.
+        self.shape = (0, self.nelemslice)
+        super(IndexArray, self)._createEArray(title)
+
+
+    def _g_postInitHook(self):
         # initialize some index buffers
         self._startl = numarray.array(None, shape=(2,), type=numarray.Int64)
         self._stopl = numarray.array(None, shape=(2,), type=numarray.Int64)
         self._stepl = numarray.array([1,1], shape=(2,), type=numarray.Int64)
-        self.bufferl = None  # buffer for reading chunks in sorted EArray
-        # The next arrays are for reading indexes
-        self.arrRel = None; self.arrAbs = None
-        self.isopen_for_read = False
-
-    def _create(self):
-        """Save a fresh array (i.e., not present on HDF5 file)."""
-        global obversion
-
-        assert isinstance(self.atom, Atom), "The object passed to the IndexArray constructor must be a descendent of the Atom class."
-        assert self.atom.shape == 1, "Only scalar columns can be indexed."
-        # Version, type, shape, flavor, byteorder
-        self._v_version = obversion
-        self.type = self.atom.type
-        if self.type == "CharType" or isinstance(self.type, records.Char):
-            self.byteorder = "non-relevant"
-        else:
-            # Only support for creating objects in system byteorder
-            self.byteorder  = sys.byteorder
-        # Compute the optimal chunksize
-        (self.nelemslice, self.chunksize) = \
-                          calcChunksize(self._v_expectedrows,
-                                        testmode=self.testmode)
-        # The next is needed by hdf5Extension.Array._createEArray
-        self._v_chunksize = (1, self.chunksize)
-        self.nrows = 0   # No rows initially
-        self.itemsize = self.atom.itemsize
-        self.rowsize = self.atom.atomsize() * self.nelemslice
-        self.shape = (0, self.nelemslice)
-        
-        # extdim computation
-        self.extdim = 0
-        # Compute the optimal maxTuples
-        # Ten chunks for each buffer would be enough for IndexArray objects
-        # This is really necessary??
-        self._v_maxTuples = 10  
-        # Create the IndexArray
-        self._createEArray("INDEXARRAY", self._v_new_title)
-
+        # Set ``nelemslice`` and ``chunksize`` when opening an existing node;
+        # otherwise, they are already set.
+        if not self._v_new:
+            self.nelemslice = self.shape[1]
+            self.chunksize = self._v_chunksize[1]
         # Create a buffer for bounds array
         nbounds = (self.nelemslice // self.chunksize) - 1
         if str(self.type) == "CharType":        
@@ -426,49 +426,15 @@ class IndexArray(EArray, indexesExtension.IndexArray):
                                          shape=(nbounds,))
         else:
             self._bounds = numarray.array(None, shape=(nbounds,),
-                                          type=self.type)            
+                                          type=self.type)
+        super(IndexArray, self)._g_postInitHook()
 
-        # Create a cache for some numarray objects
-        self.set_NA_cache()
-        
-    def _open(self):
-        """Get the metadata info for an array in file."""
-        (self.type, self.shape, self.itemsize,
-         self.byteorder, chunksizes) = self._openArray()
-        self.chunksize = chunksizes[1]  # Get the second dim
-        # Post-condition
-        assert self.extdim == 0, "extdim != 0: this should never happen!"
-        self.nelemslice = self.shape[1] 
-        # Create the atom instance. Not for strings yet!
-        if str(self.type) == "CharType":
-            self.atom = StringAtom(shape=1, length=self.itemsize)
-        else:
-            self.atom = Atom(dtype=self.type, shape=1)
-        # Compute the rowsize for each element
-        self.rowsize = self.atom.atomsize() * self.nelemslice
-        # nrows in this instance
-        self.nrows = self.shape[0]
-        # Compute the optimal maxTuples
-        # Ten chunks for each buffer would be enough for IndexArray objects
-        # This is really necessary??
-        self._v_maxTuples = 10  
-
-        # Create a buffer for bounds array
-        nbounds = (self.nelemslice // self.chunksize) - 1
-        if str(self.type) == "CharType":        
-            self._bounds = strings.array(None, itemsize=self.itemsize,
-                                         shape=(nbounds,))
-        else:
-            self._bounds = numarray.array(None, shape=(nbounds,),
-                                          type=self.type)            
-
-        # Create a cache for some numarray objects
-        self.set_NA_cache()
 
     def append(self, arr):
         """Append the object to this (enlargeable) object"""
         arr.shape = (1, arr.shape[0])
         self._append(arr)
+
 
     # This version of searchBin uses both rangeValues (1st level) and
     # bounds (2nd level) caches. This is more than 40% faster than the
@@ -752,26 +718,6 @@ class IndexArray(EArray, indexesExtension.IndexArray):
             result2 = tmpresult2
             niter = niter + iter
         return (result1, result2)
-
-    def _close(self):
-        """Close this object and exit"""
-        if self.name == "sortedArray":
-            if self.isopen_for_read:
-                #print "closing", self._v_pathname
-                self._closeSortedSlice()
-        elif self.name == "revIndexArray":
-            if self.isopen_for_read:
-                #print "closing", self._v_pathname
-                self._closeIndexSlice()
-        # First, flush the buffers:
-        self.flush()
-        # Delete back references
-        del self._v_parent
-        del self._v_file
-        del self.type
-        del self.atom
-        del self.filters
-        self.__dict__.clear()
 
     def __str__(self):
         "A compact representation of this class"

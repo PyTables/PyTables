@@ -33,7 +33,7 @@ import cPickle
 
 import numarray
 
-import tables.hdf5Extension as hdf5Extension
+import tables.indexesExtension as indexesExtension
 import tables.utilsExtension as utilsExtension
 from tables.AttributeSet import AttributeSet
 from tables.Atom import Atom
@@ -311,7 +311,7 @@ class IndexProps(object):
 
         return repr(self)
 
-class Index(hdf5Extension.Index, Group):
+class Index(indexesExtension.Index, Group):
 
     """Represent the index (sorted and reverse index) dataset in HDF5 file.
 
@@ -356,6 +356,10 @@ class Index(hdf5Extension.Index, Group):
     nelemslice = property(
         lambda self: self.sorted.nelemslice, None, None,
         "The number of elements per slice.")
+
+    chunksize = property(
+        lambda self: self.sorted.chunksize, None, None,
+        "The number of elements per chunk on-disk.")
 
     nelements = property(
         lambda self: self.sorted.nrows * self.sorted.nelemslice, None, None,
@@ -458,9 +462,9 @@ class Index(hdf5Extension.Index, Group):
         # Create the EArray for range values  (1st order cache)
         if str(self.type) == "CharType":
             atom = StringAtom(shape=(0, 2), length=self.itemsize,
-                              flavor="CharArray")
+                              flavor="numarray")
         else:
-            atom = Atom(self.type, shape=(0,2), flavor="NumArray")
+            atom = Atom(self.type, shape=(0,2), flavor="numarray")
         CacheArray(self, 'ranges', atom, "Range Values",
                    Filters(complevel=0, shuffle=0),   # too small to use filters
                    self._v_expectedrows//self.nelemslice)
@@ -490,34 +494,72 @@ class Index(hdf5Extension.Index, Group):
         atom = numarray.zeros(shape=shape, type=numarray.Int32)
         LastRowArray(self, 'indicesLR', atom, "Last Row reverse indices")
 
+
     def _g_updateDependent(self):
         super(Index, self)._g_updateDependent()
         self.column._updateIndexLocation(self)
 
 
     def append(self, arr):
-        """Append the object to this (enlargeable) object"""
+        """Append the array to the index objects"""
 
         # Save the sorted array
         if str(self.sorted.type) == "CharType":
             s=arr.argsort()
-            # Caveat: this conversion is necessary for portability on
-            # 64-bit systems because indexes are 64-bit long on these
-            # platforms
-            self.indices.append(numarray.array(s, type="Int32"))
-            self.sorted.append(arr[s])
         else:
-            #self.sorted.append(numarray.sort(arr))
-            #self.indices.append(numarray.argsort(arr))
-            # The next is a 10% faster, but the ideal solution would
-            # be to find a funtion in numarray that returns both
-            # sorted and argsorted all in one call
             s=numarray.argsort(arr)
-            # Caveat: this conversion is necessary for portability on
-            # 64-bit systems because indexes are 64-bit long on these
-            # platforms
-            self.indices.append(numarray.array(s, type="Int32"))
-            self.sorted.append(arr[s])
+        # Caveat: this conversion is necessary for portability on
+        # 64-bit systems because indexes are 64-bit long on these
+        # platforms
+        self.indices.append(numarray.array(s, type="Int32"))
+        self.sorted.append(arr[s])
+        #self.rangeValues.append([arr[s[[0,-1]]]])
+        begend = [arr[s[[0,-1]]]]
+        self.ranges.append(begend)
+        self.bounds.append([arr[s[self.chunksize::self.chunksize]]])
+        # Update nrows after a successful append
+        self.nrows = self.sorted.nrows
+        self.nelements = self.nrows * self.nelemslice
+        self.shape = (self.nrows, self.nelemslice)
+        self.nelementsLR = 0  # reset the counter of the last row index to 0
+        self.cache = False   # the cache is dirty now
+
+
+    def appendLastRow(self, arr, tnrows):
+        """Append the array to the last row index objects"""
+
+        # compute the elements in the last row vaules & bounds array
+        nelementsLR = tnrows - self.sorted.nrows * self.nelemslice
+        assert nelementsLR == len(arr), \
+"The number of elements to append is incorrect!. Report this to the authors."
+        # Sort the array
+        if str(self.sorted.type) == "CharType":
+            s=arr.argsort()
+            # build the cache of bounds
+            # this is a rather weird way of concatenating chararrays, I agree
+            # We might risk loosing precision here....
+            self.bebounds = arr[s[::self.chunksize]]
+            self.bebounds.resize(self.bebounds.shape[0]+1)
+            self.bebounds[-1] = arr[s[-1]]
+        else:
+            s=numarray.argsort(arr)
+            # build the cache of bounds
+            self.bebounds = numarray.concatenate([arr[s[::self.chunksize]],
+                                                  arr[s[-1]]])
+        # Save the reverse index array
+        self.indicesLR[:len(arr)] = numarray.array(s, type="Int32")
+        # The number of elements is at the end of the array
+        self.indicesLR[-1] = nelementsLR
+        # Save the number of elements, bounds and sorted values
+        offset = len(self.bebounds)
+        self.sortedLR[:offset] = self.bebounds
+        self.sortedLR[offset:offset+len(arr)] = arr[s]
+        # Update nelements after a successful append
+        self.nrows = self.sorted.nrows + 1
+        self.nelements = self.sorted.nrows * self.nelemslice + nelementsLR
+        self.shape = (self.nrows, self.nelemslice)
+        self.nelementsLR = nelementsLR
+
 
     def search(self, item):
         """Do a binary search in this index for an item"""

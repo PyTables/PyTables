@@ -1074,6 +1074,11 @@ cdef class Leaf(Node):
       self.base_type_id = -1
     super(Leaf, self)._g_new(where, name, init)
 
+  def _g_flush(self):
+    # Flush the dataset (in fact, the entire buffers in file!)
+    if self.dataset_id >= 0:
+        H5Fflush(self.dataset_id, H5F_SCOPE_GLOBAL)
+
   def _g_close(self):
     # Close dataset in HDF5 space
     # Release resources
