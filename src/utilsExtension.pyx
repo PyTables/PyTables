@@ -29,7 +29,6 @@ from tables.exceptions import HDF5ExtError
 from tables.enum import Enum
 from tables.IsDescription import Description, Col, StringCol, EnumCol, TimeCol
 
-import tables.hdf5Extension
 from tables.utils import checkFileAccess
 
 from definitions cimport import_libnumarray, NA_getBufferPtrAndSize, MAXDIM
@@ -183,6 +182,9 @@ cdef extern from "hdf5.h":
   herr_t H5Tset_precision(hid_t type_id, size_t prec)
 
 
+# CharArray type
+CharType = numarray.records.CharType
+
 # Conversion from Numarrray string types to HDF5 native types.
 # Put here types that are susceptible of changing byteorder
 naSTypeToH5Type = {
@@ -288,6 +290,31 @@ hdf5ClassToString = {
   H5T_VLEN:       'H5T_VLEN',
   H5T_ARRAY:      'H5T_ARRAY',
   H5T_NCLASSES:   'H5T_NCLASSES'}
+
+# Conversion tables from/to classes to the numarray enum types
+naEnumToNAType = {
+  tBool: numarray.Bool,  # Boolean type added
+  tInt8: numarray.Int8,    tUInt8: numarray.UInt8,
+  tInt16: numarray.Int16,  tUInt16: numarray.UInt16,
+  tInt32: numarray.Int32,  tUInt32: numarray.UInt32,
+  tInt64: numarray.Int64,  tUInt64: numarray.UInt64,
+  tFloat32: numarray.Float32,  tFloat64: numarray.Float64,
+  tComplex32: numarray.Complex32,  tComplex64: numarray.Complex64,
+  # Special cases:
+  ord('a'): CharType,  # For strings.
+  ord('t'): numarray.Int32,  ord('T'): numarray.Float64}  # For times.
+
+naTypeToNAEnum = {
+  numarray.Bool: tBool,
+  numarray.Int8: tInt8,    numarray.UInt8: tUInt8,
+  numarray.Int16: tInt16,  numarray.UInt16: tUInt16,
+  numarray.Int32: tInt32,  numarray.UInt32: tUInt32,
+  numarray.Int64: tInt64,  numarray.UInt64: tUInt64,
+  numarray.Float32: tFloat32,  numarray.Float64: tFloat64,
+  numarray.Complex32: tComplex32,  numarray.Complex64: tComplex64,
+  # Special cases:
+  numarray.records.CharType: ord('a')}  # For strings.
+
 
 #----------------------------------------------------------------------------
 
@@ -704,7 +731,7 @@ def enumFromHDF5(hid_t enumId):
     raise HDF5ExtError("failed to close HDF5 base type")
 
   try:
-    naType = tables.hdf5Extension.naEnumToNAType[naEnum]
+    naType = naEnumToNAType[naEnum]
   except KeyError:
     raise NotImplementedError("""\
 sorry, only scalar concrete values are supported for the moment""")
@@ -760,7 +787,7 @@ def enumToHDF5(object enumCol, char *byteOrder):
   cdef void  *rbuffer, *valueAddr
 
   # Get the base HDF5 type and create the enumerated type.
-  naEnum = tables.hdf5Extension.naTypeToNAEnum[enumCol.type]
+  naEnum = naTypeToNAEnum[enumCol.type]
   itemSize = enumCol.itemsize
   baseId = convArrayType(naEnum, itemSize, byteOrder)
   if baseId < 0:

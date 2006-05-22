@@ -30,7 +30,6 @@ Misc variables:
 import sys
 import os
 import warnings
-import pickle
 import cPickle
 
 import numarray
@@ -42,7 +41,8 @@ from tables.utils import checkFileAccess
 
 from tables.utilsExtension import  \
      enumToHDF5, enumFromHDF5, getTypeEnum, \
-     convertTime64, getLeafHDF5Type, isHDF5File, isPyTablesFile
+     convertTime64, getLeafHDF5Type, isHDF5File, isPyTablesFile, \
+     naEnumToNAType, naTypeToNAEnum
 
 from definitions cimport import_libnumarray, NA_getBufferPtrAndSize
 
@@ -156,15 +156,6 @@ cdef extern from "hdf5.h":
   int H5P_FILE_CREATE, H5P_FILE_ACCESS
   int H5FD_LOG_LOC_WRITE, H5FD_LOG_ALL
   int H5I_INVALID_HID
-
-  ctypedef int hid_t  # In H5Ipublic.h
-  ctypedef int hbool_t
-  ctypedef int herr_t
-  ctypedef int htri_t
-  # hsize_t should be unsigned, but Windows platform does not support
-  # such a unsigned long long type.
-  ctypedef long long hsize_t
-  ctypedef signed long long hssize_t
 
   ctypedef struct hvl_t:
     size_t len                 # Length of VL data (in base type units) */
@@ -424,6 +415,16 @@ cdef extern from "H5ARRAY.h":
 
   herr_t H5ARRAYget_chunksize(hid_t dataset_id, int rank, hsize_t *dims_chunk)
 
+# Functions for optimized operations for ARRAY
+cdef extern from "H5ARRAY-opt.h":
+
+  herr_t H5ARRAYOread_readSlice( hid_t dataset_id,
+                                 hid_t space_id,
+                                 hid_t type_id,
+                                 hsize_t irow,
+                                 hsize_t start,
+                                 hsize_t stop,
+                                 void *data )
 
 # Functions for VLEN Arrays
 cdef extern from "H5VLARRAY.h":
@@ -460,9 +461,6 @@ cdef extern from "arraytypes.h":
 # Helper routines
 cdef extern from "utils.h":
   herr_t set_cache_size(hid_t file_id, size_t cache_size)
-  object _getTablesVersion()
-  #object getZLIBVersionInfo()
-  object getHDF5VersionInfo()
   object Giterate(hid_t parent_id, hid_t loc_id, char *name)
   object Aiterate(hid_t loc_id)
   object H5UIget_info(hid_t loc_id, char *name, char *byteorder)
@@ -474,30 +472,6 @@ cdef extern from "utils.h":
 
 # CharArray type
 CharType = numarray.records.CharType
-
-# Conversion tables from/to classes to the numarray enum types
-naEnumToNAType = {
-  tBool: numarray.Bool,  # Boolean type added
-  tInt8: numarray.Int8,    tUInt8: numarray.UInt8,
-  tInt16: numarray.Int16,  tUInt16: numarray.UInt16,
-  tInt32: numarray.Int32,  tUInt32: numarray.UInt32,
-  tInt64: numarray.Int64,  tUInt64: numarray.UInt64,
-  tFloat32: numarray.Float32,  tFloat64: numarray.Float64,
-  tComplex32: numarray.Complex32,  tComplex64: numarray.Complex64,
-  # Special cases:
-  ord('a'): CharType,  # For strings.
-  ord('t'): numarray.Int32,  ord('T'): numarray.Float64}  # For times.
-
-naTypeToNAEnum = {
-  numarray.Bool: tBool,
-  numarray.Int8: tInt8,    numarray.UInt8: tUInt8,
-  numarray.Int16: tInt16,  numarray.UInt16: tUInt16,
-  numarray.Int32: tInt32,  numarray.UInt32: tUInt32,
-  numarray.Int64: tInt64,  numarray.UInt64: tUInt64,
-  numarray.Float32: tFloat32,  numarray.Float64: tFloat64,
-  numarray.Complex32: tComplex32,  numarray.Complex64: tComplex64,
-  # Special cases:
-  numarray.records.CharType: ord('a')}  # For strings.
 
 NATypeToHDF5AtomicType = {
                             numarray.Int8      : H5T_NATIVE_SCHAR,
@@ -528,9 +502,6 @@ naEnumToNASType = {
   ord('t'):'Time32',  ord('T'):'Time64',  # For times.
   ord('e'):'Enum'}  # For enumerations.
 
-# Correct, locale-independent pickled version of a floating point number,
-# used to spot Python bug #1473625 in cPickle (see PyTables ticket #9).
-_pickled_1_1 = pickle.dumps(1.1)
 
 #----------------------------------------------------------------------------
 
@@ -965,10 +936,7 @@ Loaded anyway."""
     else:
       # Convert this object to a null-terminated string
       # (binary pickles are not supported at this moment)
-      dumps = cPickle.dumps
-      if dumps(1.1) != _pickled_1_1:
-          dumps = pickle.dumps  # avoid Python bug #1473625 in cPickle
-      pickledvalue = dumps(value, 0)
+      pickledvalue = cPickle.dumps(value, 0)
       self._g_setAttrStr(name, pickledvalue)
 
     if ret < 0:
@@ -987,8 +955,7 @@ Loaded anyway."""
 
 
 cdef class Node:
-  cdef char  *name
-  cdef hid_t  parent_id
+  # Instance variables declared in .pxd
 
   def _g_new(self, where, name, init):
     self.name = strdup(name)
@@ -1072,7 +1039,7 @@ cdef class Group(Node):
     return retvalue
 
   def _g_flushGroup(self):
-    # Flush the group (in fact, the entire buffers in file!)
+    # Close the group
     H5Fflush(self.group_id, H5F_SCOPE_GLOBAL)
 
   def _g_closeGroup(self):
@@ -1097,10 +1064,7 @@ cdef class Group(Node):
 
 
 cdef class Leaf(Node):
-  # Instance variables
-  cdef hid_t   dataset_id
-  cdef hid_t   type_id
-  cdef hid_t   base_type_id
+  # Instance variables declared in .pxd
 
   def _g_new(self, where, name, init):
     if init:
@@ -1109,11 +1073,6 @@ cdef class Leaf(Node):
       self.type_id = -1
       self.base_type_id = -1
     super(Leaf, self)._g_new(where, name, init)
-
-  def _g_flush(self):
-    # Flush the dataset (in fact, the entire buffers in file!)
-    if self.dataset_id >= 0:
-        H5Fflush(self.dataset_id, H5F_SCOPE_GLOBAL)
 
   def _g_close(self):
     # Close dataset in HDF5 space
@@ -1127,12 +1086,7 @@ cdef class Leaf(Node):
 
 
 cdef class Array(Leaf):
-  # Instance variables
-  cdef int     rank
-  cdef hsize_t *dims
-  cdef hsize_t *maxdims
-  cdef hsize_t *dims_chunk
-  cdef hsize_t stride[2]
+  # Instance variables declared in .pxd counterpart
 
   def _createArray(self, object naarr, char *title):
     cdef int i
@@ -1555,7 +1509,7 @@ cdef class Array(Leaf):
       free(self.dims_chunk)
 
 
-cdef class VLArray:
+cdef class VLArray(Leaf):
   # Instance variables
   cdef int     rank
   cdef hsize_t *dims

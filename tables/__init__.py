@@ -48,7 +48,6 @@ from tables.Group import Group
 from tables.Leaf import Leaf, Filters
 from tables.Index import IndexProps
 from tables.Table import Table, Cols, Column
-from tables.VLTable import VLTable
 from tables.Array import Array
 from tables.CArray import CArray
 from tables.EArray import EArray
@@ -91,8 +90,7 @@ __all__ = [
     'TimeCol', 'Time32Col', 'Time64Col',
     'EnumCol',
     # Node classes:
-    'Node', 'Group', 'Leaf', 'Table', 'VLTable',
-    'Array', 'CArray', 'EArray', 'VLArray',
+    'Node', 'Group', 'Leaf', 'Table', 'Array', 'CArray', 'EArray', 'VLArray',
     'UnImplemented',
     # The File class:
     'File',

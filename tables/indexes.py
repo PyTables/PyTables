@@ -34,7 +34,7 @@ obversion = "1.0"    # initial version
 import types, warnings, sys
 from EArray import EArray
 from VLArray import Atom, StringAtom
-import hdf5Extension
+import indexesExtension
 import numarray
 import numarray.strings as strings
 import numarray.records as records
@@ -295,17 +295,17 @@ def calcChunksize(expectedrows, testmode=0):
     return (nelemslice, chunksize)
 
 # Declarations for inheriting
-class CacheArray(EArray, hdf5Extension.CacheArray):
+class CacheArray(EArray, indexesExtension.CacheArray):
     """Container for keeping index caches of 1st and 2nd level."""
     pass
 
 
-class LastRowArray(Array, hdf5Extension.LastRowArray):
+class LastRowArray(Array, indexesExtension.LastRowArray):
     """Container for keeping sorted and indices values of last rows of an index."""
     pass
 
 
-class IndexArray(EArray, hdf5Extension.IndexArray):
+class IndexArray(EArray, indexesExtension.IndexArray):
     """Represent the index (sorted or reverse index) dataset in HDF5 file.
 
     All Numeric and numarray typecodes are supported except for complex

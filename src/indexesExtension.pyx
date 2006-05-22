@@ -34,16 +34,26 @@ import numarray
 from numarray import records, strings, memory
 
 from tables.exceptions import HDF5ExtError
-from tables.hdf5Extension import Array
+from hdf5Extension cimport Array, hid_t, herr_t, hsize_t
 
-from definitions cimport import_libnumarray, NA_getBufferPtrAndSize
+from definitions cimport import_libnumarray, \
+  NA_getBufferPtrAndSize, NA_getPythonScalar
 
 
 __version__ = "$Revision$"
 
 #-------------------------------------------------------------------
 
-# C funtions and variable declaration from its headers
+# C functions and variable declaration from its headers
+
+# Functions, structs and types from HDF5
+cdef extern from "hdf5.h":
+
+  hid_t H5Dget_space (hid_t dset_id)
+  hid_t H5Screate_simple(int rank, hsize_t dims[], hsize_t maxdims[])
+  herr_t H5Sclose(hid_t space_id)
+
+
 # Functions for optimized operations for ARRAY
 cdef extern from "H5ARRAY-opt.h":
 
@@ -93,13 +103,22 @@ cdef extern from "H5ARRAY-opt.h":
                               void *data )
 
 
-#-------------------------------------------------------------------
+#----------------------------------------------------------------------------
+
+# Initialization code
+
+# The numarray API requires this function to be called before
+# using any numarray facilities in an extension module.
+import_libnumarray()
+
+#---------------------------------------------------------------------------
+
 
 
 cdef class CacheArray(Array):
   """Container for keeping index caches of 1st and 2nd level."""
-  cdef hid_t *space_id
-  cdef hid_t *mem_space_id
+  cdef hid_t space_id
+  cdef hid_t mem_space_id
 
   cdef initRead(self, int nbounds):
     "Actions to accelerate the reads afterwards."
@@ -129,44 +148,13 @@ cdef class CacheArray(Array):
       H5Sclose(self.mem_space_id)
 
 
-cdef class LastRowArray(Array):
-  """Container for keeping sorted and indices values of last rows of an index."""
-
-  def _readIndexSlice(self, hsize_t start, hsize_t stop, int offsetl):
-    "Read the reverse index part of an LR index."
-    cdef int *rbufR
-
-    rbufR = <int *>self._v_parent.indices.rbufR + offsetl
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOreadSliceLR(self.dataset_id, start, stop, rbufR)
-    Py_END_ALLOW_THREADS
-    if ret < 0:
-      raise HDF5ExtError("Problems reading the index data.")
-
-    return
-
-  def _readSortedSlice(self, hsize_t start, hsize_t stop):
-    "Read the sorted part of an LR index."
-    cdef object bufferl
-    cdef void  *rbuflb
-
-    bufferl = self._v_parent.sorted.bufferl
-    rbuflb = self._v_parent.sorted.rbuflb
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOreadSliceLR(self.dataset_id, start, stop, rbuflb)
-    Py_END_ALLOW_THREADS
-    if ret < 0:
-      raise HDF5ExtError("Problems reading the index data.")
-
-    return bufferl
-
-
 cdef class IndexArray(Array):
   """Container for keeping sorted and indices values."""
   cdef void    *rbufst, *rbufln, *rbufrv, *rbufbc, *rbuflb
   cdef void    *rbufR, *rbufR2, *rbufA
   cdef hid_t   space_id, mem_space_id
   cdef int     nbounds
+  cdef object  bufferl
 
   def _initIndexSlice(self, ncoords):
     "Initialize the structures for doing a binary search"
@@ -826,3 +814,33 @@ cdef class IndexArray(Array):
       H5Sclose(self.space_id)
     if self.mem_space_id >= 0:
       H5Sclose(self.mem_space_id)
+
+
+cdef class LastRowArray(Array):
+  """Container for keeping sorted and indices values of last rows of an index."""
+
+  def _readIndexSlice(self, hsize_t start, hsize_t stop, int offsetl):
+    "Read the reverse index part of an LR index."
+    cdef int *rbufR
+
+    rbufR = <int *>self._v_parent.indices.rbufR + offsetl
+    Py_BEGIN_ALLOW_THREADS
+    ret = H5ARRAYOreadSliceLR(self.dataset_id, start, stop, rbufR)
+    Py_END_ALLOW_THREADS
+    if ret < 0:
+      raise HDF5ExtError("Problems reading the index data.")
+
+    return
+
+  def _readSortedSlice(self, IndexArray sorted, hsize_t start, hsize_t stop):
+    "Read the sorted part of an LR index."
+    cdef void  *rbuflb
+
+    rbuflb = sorted.rbuflb  # direct access to rbuflb: very fast.
+    Py_BEGIN_ALLOW_THREADS
+    ret = H5ARRAYOreadSliceLR(self.dataset_id, start, stop, rbuflb)
+    Py_END_ALLOW_THREADS
+    if ret < 0:
+      raise HDF5ExtError("Problems reading the index data.")
+
+    return sorted.bufferl

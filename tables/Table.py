@@ -877,7 +877,6 @@ please reindex the table to put the index in a sane state""")
             recarr = tonumpy(recarr, copy=False)
         return recarr
 
-<<<<<<< .copia-de-trabajo
     def readIndexed(self, condition):
         """Returns a NestedRecArray fulfilling the 'condition' param.
 
