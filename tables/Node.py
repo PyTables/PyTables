@@ -276,37 +276,27 @@ class Node(object):
             parentNode._g_refNode(self, ptname, validate)
         self._g_setLocation(parentNode, ptname, h5name)
 
-        # hdf5Extension operations:
-        #   Update node attributes.
-        self._g_new(parentNode, h5name, init=True)
-        #   Create or open the node and get its object ID.
-        if new:
-            self._v_objectID = self._g_create()
-        else:
-            self._v_objectID = self._g_open()
-            
         # This allows extra operations after creating the node.
         self._g_postInitHook()
-        # XXX!!!!!!!!!!!!!!!!!!!!!!!!!
-#         try:
-#             # hdf5Extension operations:
-#             #   Update node attributes.
-#             self._g_new(parentNode, h5name, init=True)
-#             #   Create or open the node and get its object ID.
-#             if new:
-#                 self._v_objectID = self._g_create()
-#             else:
-#                 self._v_objectID = self._g_open()
+        try:
+            # hdf5Extension operations:
+            #   Update node attributes.
+            self._g_new(parentNode, h5name, init=True)
+            #   Create or open the node and get its object ID.
+            if new:
+                self._v_objectID = self._g_create()
+            else:
+                self._v_objectID = self._g_open()
 
-#             # This allows extra operations after creating the node.
-#             self._g_postInitHook()
-#         except:
-#             # If anything happens, the node must be closed
-#             # to undo every possible registration made so far.
-#             # We do *not* rely on ``__del__()`` doing it later,
-#             # since it might never be called anyway.
-#             self._f_close()
-#             raise
+            # This allows extra operations after creating the node.
+            self._g_postInitHook()
+        except:
+            # If anything happens, the node must be closed
+            # to undo every possible registration made so far.
+            # We do *not* rely on ``__del__()`` doing it later,
+            # since it might never be called anyway.
+            self._f_close()
+            raise
 
         # Finally, log creation of the node.
         # This is made after the ``try`` because the node *has* been created!
