@@ -377,11 +377,13 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         self.chunksize = None
         """The HDF5 chunksize for the slice dimension (the second)."""
         self.bufferl = None
-        """Buffer for reading chunks in sorted array."""
+        """Buffer for reading chunks in sorted array in extension."""
         self.arrRel = None
-        """Buffer for reading indexes (relative addresses)."""
+        """Buffer for reading indexes (relative addresses) in extension."""
         self.arrAbs = None
-        """Buffer for reading indexes (absolute addresses)."""
+        """Buffer for reading indexes (absolute addresses) in extension."""
+        self.coords = None
+        """Buffer for reading coordenates (absolute addresses) in extension."""
         if atom is not None:
             (self.nelemslice, self.chunksize) = (
                 calcChunksize(expectedrows, testmode))
@@ -405,6 +407,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
 
     def _createEArray(self, title):
         # The shape of the index array needs to be fixed before creating it.
+        # Admitted, this is a bit too much convoluted :-(
         self.shape = (0, self.nelemslice)
         super(IndexArray, self)._createEArray(title)
 
@@ -489,79 +492,14 @@ class IndexArray(EArray, indexesExtension.IndexArray):
             result2 += chunksize*nchunk
         return (result1, result2)
 
-    def _searchBin_orig(self, nrow, item):
-        item1, item2 = item
-        item1done = 0; item2done = 0
-        hi = self.nelemslice
-        rangeValues = self._v_parent.rvcache
-        t1=time()
-        # First, look at the beginning of the slice
-        #begin, end = rangeValues[nrow]  # this is slower 
-        begin = rangeValues[nrow,0]
-        # Look for items at the beginning of sorted slices
-        if item1 <= begin:
-            result1 = 0
-            item1done = 1
-        if item2 < begin:
-            result2 = 0
-            item2done = 1
-        if item1done and item2done:
-            #print "done 1"
-            #print "done 1-->", time()-t1
-            return (result1, result2)
-        # Then, look for items at the end of the sorted slice
-        end = rangeValues[nrow,1]
-        if not item1done:
-            if item1 > end:
-                result1 = hi
-                item1done = 1
-        if not item2done:
-            if item2 >= end:
-                result2 = hi
-                item2done = 1
-        if item1done and item2done:
-            #print "done 2"
-            #print "done 2-->", time()-t1
-            return (result1, result2)
-        # Finally, do a lookup for item1 and item2 if they were not found
-        # Lookup in the middle of slice for item1
-        chunksize = self.chunksize # Number of elements/chunksize
-        nbounds = (self.nelemslice // self.chunksize) - 1
-        bounds = self._bounds
-        pbounds = self._v_parent.bounds
-        # Read the bounds array
-        #bounds = self._v_parent.bounds[nrow]
-        # This optimization adds little speed-up (5%), but...
-        self._startl[0] = nrow; self._startl[1] = 0
-        self._stopl[0] = nrow+1; self._stopl[1] = nbounds
-        pbounds._g_readSlice(self._startl, self._stopl, self._stepl, bounds)
-        if not item1done:
-            # Search the appropriate chunk in bounds cache
-            nchunk = bisect_left(bounds, item1)
-            chunk = self._readSortedSlice(nrow, chunksize*nchunk,
-                                          chunksize*(nchunk+1))
-            result1 = self._bisect_left(chunk, item1, chunksize)
-            result1 += chunksize*nchunk
-        # Lookup in the middle of slice for item2
-        if not item2done:
-            # Search the appropriate chunk in bounds cache
-            nchunk = bisect_right(bounds, item2)
-            chunk = self._readSortedSlice(nrow, chunksize*nchunk,
-                                          chunksize*(nchunk+1))
-            result2 = self._bisect_right(chunk, item2, chunksize)
-            result2 += chunksize*nchunk
-        return (result1, result2)
 
     # This version of searchBin only uses the rangeValues (1st cache)
     def _g_searchBin(self, nrow, item, rangeValues):
-        #item1, item2 = self.item
-        #rangeValues = self.rv
         item1, item2 = item
         nelemslice = self.shape[1]
         hi = nelemslice   
         item1done = 0; item2done = 0
         chunksize = self.chunksize # Number of elements/chunksize # change here
-        #niter = 1
         niter = 0
 
         # First, look at the beginning of the slice
@@ -580,7 +518,6 @@ class IndexArray(EArray, indexesExtension.IndexArray):
             #print "done 1"
             return (result1, result2, niter)
 
-        #niter += 1
         # Then, look for items at the end of the sorted slice
         end = rangeValues[nrow,1]
         if not item1done:
@@ -634,6 +571,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
             result2 = tmpresult2
             niter = niter + iter
         return (result1, result2, niter)
+
 
     # This version of searchBin does not use caches (1st or 2nd) at all
     # This is coded in pyrex as well, but the improvement in speed is very
@@ -719,10 +657,12 @@ class IndexArray(EArray, indexesExtension.IndexArray):
             niter = niter + iter
         return (result1, result2)
 
+
     def __str__(self):
         "A compact representation of this class"
         return "IndexArray(path=%s)" % \
                (self._v_parent._g_join(self.name))
+
 
     def __repr__(self):
         """A verbose representation of this class"""
