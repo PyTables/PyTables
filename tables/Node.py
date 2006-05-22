@@ -276,8 +276,6 @@ class Node(object):
             parentNode._g_refNode(self, ptname, validate)
         self._g_setLocation(parentNode, ptname, h5name)
 
-        # This allows extra operations after creating the node.
-        self._g_postInitHook()
         try:
             # hdf5Extension operations:
             #   Update node attributes.
