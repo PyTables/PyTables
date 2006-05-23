@@ -813,7 +813,7 @@ cdef class IndexArray(Array):
       len1 = ncoords - rbufln[irow]
       #offset = irow * self.nelemslice
       #self.arrAbs[len1:ncoords] = self._v_parent.indicesLR[startl:stopl] + offset
-      self._readIndexSlice(startl, stopl, len1)
+      self._v_parent.indicesLR._readIndexSlice(self, startl, stopl, len1)
       nrows = nrows + 1  # Add the last row for later conversion to 64-bit
 
     # Finally, convert the values to full 64-bit addresses
@@ -842,11 +842,12 @@ cdef class IndexArray(Array):
 cdef class LastRowArray(Array):
   """Container for keeping sorted and indices values of last rows of an index."""
 
-  def _readIndexSlice(self, hsize_t start, hsize_t stop, int offsetl):
+  def _readIndexSlice(self, IndexArray indices, hsize_t start, hsize_t stop,
+                      int offsetl):
     "Read the reverse index part of an LR index."
     cdef int *rbufR
 
-    rbufR = <int *>self._v_parent.indices.rbufR + offsetl
+    rbufR = <int *>indices.rbufR + offsetl
     Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYOreadSliceLR(self.dataset_id, start, stop, rbufR)
     Py_END_ALLOW_THREADS
