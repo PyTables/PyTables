@@ -1,11 +1,53 @@
-from numpy import *
-from numpy.testing import *
-
-set_package_path()
+import unittest
+import warnings
+import numarray.dtype
+from numarray import *
 from numexpr import E, numexpr, evaluate
-restore_path()
 
-class test_numexpr(NumpyTestCase):
+# These are simplifications from the functions in ``numpy.testing``.
+
+def assert_array_equal(x, y):
+    x, y = asarray(x), asarray(y)
+    message = 'arrays are not equal'
+    # Compare shapes.
+    if shape(x) and shape(y):
+        assert shape(x) == shape(y), message
+    # Compare data.
+    assert alltrue(ravel(x == y)), message
+
+def assert_array_almost_equal(x,y,decimal=6):
+    x = asarray(x)
+    y = asarray(y)
+    message = 'arrays are not almost equal'
+    # Compare shapes.
+    if shape(x) and shape(y):
+        assert shape(x) == shape(y), message
+    # Compare data.
+    reduced = ravel(less_equal(around(abs(x - y), 6), 1e-6) == 1)
+    assert alltrue(reduced), message
+
+class NumexprTestCase(unittest.TestCase):
+    def setUp(self):
+        # Ugly hack to keep tests the same both with numarray and numpy.
+        self._missing_dtypes = False
+        dtypes = numarray.dtype._dtypes
+        if int not in dtypes:
+            self._missing_dtypes = True
+            dtypes[int] = dtypes['int32']
+            dtypes[float] = dtypes['float64']
+            dtypes[complex] = dtypes['complex128']
+
+    def tearDown(self):
+        dtypes = numarray.dtype._dtypes
+        if self._missing_dtypes:
+            del dtypes[int]
+            del dtypes[float]
+            del dtypes[complex]
+
+    def warn(self, message):
+        warnings.warn(message)
+
+class test_numexpr(NumexprTestCase):
     def check_simple(self):
         ex = 2.0 * E.a + 3.0 * E.b * E.c
         func = numexpr(ex, signature=[('a', float), ('b', float), ('c', float)])
@@ -32,7 +74,7 @@ class test_numexpr(NumpyTestCase):
         y = func(a, b)
         assert_array_equal(x, y)
 
-class test_evaluate(NumpyTestCase):
+class test_evaluate(NumexprTestCase):
     def check_simple(self):
         a = array([1., 2., 3.])
         b = array([4., 5., 6.])
@@ -126,7 +168,7 @@ def equal(a, b, exact):
 
 class Skip(Exception): pass
 
-class test_expressions(NumpyTestCase):
+class test_expressions(NumexprTestCase):
     def check_expressions(self):
         for test_scalar in [0,1,2]:
             for dtype in [int, float, complex]:
@@ -143,9 +185,9 @@ class test_expressions(NumpyTestCase):
                         x += 1j
                         x *= 1+1j
                 if test_scalar == 1:
-                    a = a[array_size/2]
+                    a = asarray(a[array_size/2])
                 if test_scalar == 2:
-                    b = b[array_size/2]
+                    b = asarray(b[array_size/2])
                 for optimization, exact in [('none', False), ('moderate', False), ('aggressive', False)]:
                     for section_name, section_tests in tests:
                         for expr in section_tests:
@@ -170,5 +212,12 @@ class test_expressions(NumpyTestCase):
                                 self.warn('numexpr error for expression %r' % (expr,))
                                 raise
 
+def suite():
+    the_suite = unittest.TestSuite()
+    the_suite.addTest(unittest.makeSuite(test_numexpr, prefix='check'))
+    the_suite.addTest(unittest.makeSuite(test_evaluate, prefix='check'))
+    the_suite.addTest(unittest.makeSuite(test_expressions, prefix='check'))
+    return the_suite
+
 if __name__ == '__main__':
-    NumpyTest().run()
+    unittest.main(defaultTest='suite')
