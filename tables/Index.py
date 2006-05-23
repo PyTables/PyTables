@@ -513,7 +513,7 @@ class Index(indexesExtension.Index, Group):
         # platforms
         self.indices.append(numarray.array(s, type="Int32"))
         self.sorted.append(arr[s])
-        #self.rangeValues.append([arr[s[[0,-1]]]])
+        #self.ranges.append([arr[s[[0,-1]]]])
         begend = [arr[s[[0,-1]]]]
         self.ranges.append(begend)
         self.bounds.append([arr[s[self.chunksize::self.chunksize]]])
@@ -528,7 +528,7 @@ class Index(indexesExtension.Index, Group):
     def appendLastRow(self, arr, tnrows):
         """Append the array to the last row index objects"""
 
-        # compute the elements in the last row vaules & bounds array
+        # compute the elements in the last row sorted & bounds array
         nelementsLR = tnrows - self.sorted.nrows * self.nelemslice
         assert nelementsLR == len(arr), \
 "The number of elements to append is incorrect!. Report this to the authors."
@@ -561,75 +561,308 @@ class Index(indexesExtension.Index, Group):
         self.nelementsLR = nelementsLR
 
 
-    def search(self, item):
-        """Do a binary search in this index for an item"""
-        #t1=time.time()
-        ntotaliter = 0; tlen = 0
-        self.starts = []; self.lengths = []
-        #self.irow = 0; self.len1 = 0; self.len2 = 0;  # useful for getCoords()
-        self.sorted._initSortedSlice(self.sorted.chunksize)
-        # Do the lookup for values fullfilling the conditions
-        for i in xrange(self.sorted.nrows):
-            (start, stop, niter) = self.sorted._searchBin(i, item)
-            self.starts.append(start)
-            self.lengths.append(stop - start)
-            ntotaliter += niter
-            tlen += stop - start
-        self.sorted._destroySortedSlice()
-        #print "time reading indices:", time.time()-t1
-        #print "ntotaliter:", ntotaliter
-        assert tlen >= 0, "Index.search(): Post-condition failed. Please, report this to the authors."
+    def _searchBinLastRow(self, item):
+        item1, item2 = item
+        item1done = 0; item2done = 0
+
+        #t1=time()
+        hi = self.nelementsLR               # maximum number of elements
+        bebounds = self.bebounds
+        assert hi == self.nelements - self.sorted.nrows * self.nelemslice
+        begin = bebounds[0]
+        # Look for items at the beginning of sorted slices
+        if item1 <= begin:
+            result1 = 0
+            item1done = 1
+        if item2 < begin:
+            result2 = 0
+            item2done = 1
+        if item1done and item2done:
+            return (result1, result2)
+        # Then, look for items at the end of the sorted slice
+        end = bebounds[-1]
+        if not item1done:
+            if item1 > end:
+                result1 = hi
+                item1done = 1
+        if not item2done:
+            if item2 >= end:
+                result2 = hi
+                item2done = 1
+        if item1done and item2done:
+            return (result1, result2)
+        # Finally, do a lookup for item1 and item2 if they were not found
+        # Lookup in the middle of slice for item1
+        bounds = bebounds[1:-1] # Get the bounds array w/out begin and end
+        nbounds = len(bebounds)
+        readSliceLR = self.sortedLR._readSortedSlice
+        if not item1done:
+            # Search the appropriate chunk in bounds cache
+            nchunk = bisect.bisect_left(bounds, item1)
+            end = self.chunksize*(nchunk+1)
+            if end > hi:
+                end = hi
+            chunk = readSliceLR(nbounds+self.chunksize*nchunk, nbounds+end)
+            result1 = bisect.bisect_left(chunk, item1)
+            result1 += self.chunksize*nchunk
+        # Lookup in the middle of slice for item2
+        if not item2done:
+            # Search the appropriate chunk in bounds cache
+            nchunk2 = bisect.bisect_right(bounds, item2)
+            end = self.chunksize*(nchunk2+1)
+            if nchunk2 <> nchunk:
+                end = self.chunksize*(nchunk2+1)
+                if end > hi:
+                    end = hi
+                chunk = readSliceLR(nbounds+self.chunksize*nchunk2, nbounds+end)
+            result2 = bisect.bisect_right(chunk, item2)
+            result2 += self.chunksize*nchunk2
+        return (result1, result2)
+
+    def searchBinNA(self, item1, item2):
+
+        cs = self.chunksize
+        nbounds = self.bounds.shape[1]
+        rvc = self.rvcache
+        nslice = self.nelemslice
+        tlen = 0
+        for nrow in xrange(self.sorted.nrows):
+            if self.sorted.bcache:
+                ibounds = self.sorted.boundscache[nrow]
+            else:
+                ibounds = self.bounds[nrow]
+            start = (item1 <= rvc[nrow,0]) + (item1 > rvc[nrow,1]) * nslice
+            stop = (item2 < rvc[nrow,0]) + (item2 >= rvc[nrow,1]) * nslice
+            if start == 0:
+                #nchunk = bisect.bisect_left(ibounds, item1)
+                nchunk = self.sorted._bisect_left(ibounds, item1, nbounds)
+                chunk = self.sorted._readSortedSlice(nrow, cs*nchunk,
+                                                     cs*(nchunk+1))
+                start = self.sorted._bisect_left(chunk, item1, cs) + \
+                                                 cs*nchunk
+            if stop == 0:
+                #nchunk2 = bisect.bisect_right(ibounds, item2)
+                nchunk2 = self.sorted._bisect_right(ibounds, item2, nbounds)
+                if nchunk2 <> nchunk:
+                    # The chunk for item2 is different. Read the new chunk.
+                    chunk = self.sorted._readSortedSlice(nrow, cs*nchunk2,
+                                                         cs*(nchunk2+1))
+                stop = self.sorted._bisect_right(chunk, item2, cs) + \
+                                                 cs*nchunk2
+            self.starts[nrow] = start
+            len = stop - start
+            self.lengths[nrow] = len
+            tlen += len
         return tlen
 
-# This has been ported to Pyrex. However, with pyrex it has the same speed,
-# so, it's better to stay here
-    def getCoords(self, startCoords, maxCoords):
+    # This is an optimized version of search.
+    # It does not work well with strings, because:
+    # In [180]: a=strings.array(None, itemsize = 4, shape=1)
+    # In [181]: a[0] = '0'
+    # In [182]: a >= '0\x00\x00\x00\x01'
+    # Out[182]: array([1], type=Bool)  # Incorrect
+    # but...
+    # In [183]: a[0] >= '0\x00\x00\x00\x01'
+    # Out[183]: False  # correct
+    #
+    # While this is not a bug (see the padding policy for chararrays)
+    # I think it would be much better to use '\0x00' as default padding
+    #
+    #def search_vec(self, item):
+    def search(self, item):
+        """Do a binary search in this index for an item"""
+        #t1 = time(); tcpu1 = clock()
+        if str(self.type) == "CharType":
+            return self.search_original(item)
+        item1, item2 = item
+        #self._v_version = "1.0"  # uncomment this for test speed comparisons
+        # Do the lookup for values fullfilling the conditions
+        if self._v_version >= "1.1":
+            self.sorted._initSortedSlice(pro=1)
+            if 0:
+                tlen = self.searchBinNA(item1, item2)
+                #tlen = self.sorted._searchBinNA(item1, item2)
+            else:
+                # The next are optimizations. However, they hides the
+                # CPU functions consumptions from python profiles
+                # Activate only after development is done.
+                #tlen = self.sorted._searchBinNA(item1, item2)
+                if self.type == "Float64":
+                    # Both vectorial and scalar versions perform similar
+                    tlen = self.sorted._searchBinNA_d(item1, item2)
+                    #tlen = self.sorted._searchBinNA_d_vec(item1, item2)
+                elif self.type == "Int32":
+                    # Buth vectorial and scalar versions perform similar
+                    tlen = self.sorted._searchBinNA_i(item1, item2)
+                    #tlen = self.sorted._searchBinNA_i_vec(item1, item2)
+                else:
+                    tlen = self.sorted._searchBinNA(item1, item2)
+        else:
+            self.sorted._initSortedSlice()
+            for i in xrange(self.sorted.nrows):
+                (start, stop) = self.sorted._searchBin1_0(i, item)
+                self.starts[i] = start
+                self.lengths[i] = stop - start
+            tlen = numarray.sum(self.lengths)
+        #self.sorted._destroySortedSlice()
+        if self._v_version >= "1.1" and self.nelementsLR:
+            # Look for more indexes in the last row
+            (start, stop) = self._searchBinLastRow(item)
+            self.starts[-1] = start
+            self.lengths[-1] = stop - start
+            tlen += stop - start
+        #t = time()-t1
+        #print "time searching indices:", round(t*1000, 3), "ms",
+        # CPU time not significant (problems with time slice)
+        #print round((clock()-tcpu1)*1000*1000, 3), "us"
+        return tlen
+
+    # This is an scalar version of search. It works well with strings as well.
+    def search_original(self, item):
+    #def search(self, item):
+        """Do a binary search in this index for an item"""
+        t1=time()
+        tlen = 0
+        #self._v_version = "1.0"  # just for test speed comparisons
+        # Do the lookup for values fullfilling the conditions
+        if self._v_version >= "1.1":
+            self.sorted._initSortedSlice(pro=1)
+            for i in xrange(self.sorted.nrows):
+                (start, stop) = self.sorted._searchBin(i, item)
+                self.starts[i] = start
+                self.lengths[i] = stop - start
+                tlen += stop - start
+        else:
+            self.sorted._initSortedSlice()
+            for i in xrange(self.sorted.nrows):
+                (start, stop) = self.sorted._searchBin1_0(i, item)
+                self.starts[i] = start
+                self.lengths[i] = stop - start
+                tlen += stop - start
+        self.sorted._destroySortedSlice()
+        if self._v_version >= "1.1" and self.nelementsLR > 0:
+            # Look for more indexes in the last row
+            (start, stop) = self._searchBinLastRow(item)
+            self.starts[-1] = start
+            self.lengths[-1] = stop - start
+            tlen += stop - start
+        return tlen
+
+    # This version of getCoords reads the indexes in chunks.
+    # Because of that, it can be used on iterators.
+    # Version in pure python
+    def getCoords(self, startCoords, nCoords):
         """Get the coordinates of indices satisfiying the cuts.
 
         You must call the Index.search() method before in order to get
         good sense results.
 
+        This version is meant to be used in iterators.
+
         """
-        #t1=time.time()
+        #t1=time()
         len1 = 0; len2 = 0; relCoords = 0
         # Correction against asking too many elements
         nindexedrows = self.nelements
-        if startCoords + maxCoords > nindexedrows:
-            maxCoords = nindexedrows - startCoords
-        for irow in xrange(self.sorted.nrows):
+        if startCoords + nCoords > nindexedrows:
+            nCoords = nindexedrows - startCoords
+        # create buffers for indices
+        self.indices._initIndexSlice(nCoords)
+        for irow in xrange(self.nrows):
             leni = self.lengths[irow]; len2 += leni
             if (leni > 0 and len1 <= startCoords < len2):
                 startl = self.starts[irow] + (startCoords-len1)
-                # Read maxCoords as maximum
-                stopl = startl + maxCoords
+                # Read nCoords as maximum
+                stopl = startl + nCoords
                 # Correction if stopl exceeds the limits
                 if stopl > self.starts[irow] + self.lengths[irow]:
                     stopl = self.starts[irow] + self.lengths[irow]
-                self.indices._g_readIndex(irow, startl, stopl, relCoords)
+                if irow < self.sorted.nrows:
+                    self.indices._readIndex(irow, startl, stopl, relCoords)
+                else:
+                    # Get indices for last row
+                    offset = irow*self.nelemslice
+                    stop = relCoords+(stopl-startl)
+                    self.indices.arrAbs[relCoords:stop] = \
+
+                         self.indicesLR[startl:stopl] + offset
                 incr = stopl - startl
-                relCoords += incr; startCoords += incr; maxCoords -= incr
-                if maxCoords == 0:
+                relCoords += incr; startCoords += incr; nCoords -= incr
+                if nCoords == 0:
                     break
             len1 += leni
 
         # I don't know if sorting the coordinates is better or not actually
         # Some careful tests must be carried out in order to do that
-        #selections = self.indices.arrAbs[:relCoords]
-        selections = numarray.sort(self.indices.arrAbs[:relCoords])
-        #print "time getting coords:", time.time()-t1
+        selections = self.indices.arrAbs[:relCoords]
+        # Preliminary results seems to show that sorting is not an advantage!
+        #selections = numarray.sort(self.indices.arrAbs[:relCoords])
+        # Remove buffers for indices
+        # This is needed anymore???? 2005-12-28
+        #self.indices._destroyIndexSlice()
+        #t = time()-t1
+        #print "time getting coords:",  round(t*1000, 3), "ms"
         return selections
+
+    # This version of getCoords reads all the indexes in one pass.
+    # Because of that, it is not meant to be used on iterators.
+    # This is the pure python version.
+    def getCoords_sparse(self, ncoords):
+        """Get the coordinates of indices satisfiying the cuts.
+
+        You must call the Index.search() method before in order to get
+        good sense results.
+
+        This version is meant to be used for a complete read.
+
+        """
+        idc = self.indices
+        # Initialize the index dataset
+        idc._initIndexSlice(ncoords)
+        # Create the sorted indices
+        len1 = 0
+        for irow in xrange(idc.nrows):
+            for jrow in xrange(self.lengths[irow]):
+                idc.coords[len1] = (irow, self.starts[irow]+jrow)
+                len1 += 1
+
+        # Given the sorted indices, get the real ones
+        idc._readIndex_sparse(ncoords)
+        # close the index dataset
+        #idc._destroyIndexSlice()
+
+        # Finally, convert the values to full 64-bit addresses
+        len1 = 0
+        offset = idc.nelemslice * 1L
+        for irow in xrange(idc.nrows):
+            for jrow in xrange(self.lengths[irow]):
+                idc.arrAbs[len1] = idc.arrRel[len1]+irow*offset
+                len1 += 1
+
+        # Get possible values in last slice
+        if (self._v_version >= "1.1" and self.nelementsLR > 0
+            and self.lengths[idc.nrows] > 0):
+            # Get indices for last row
+            irow = idc.nrows
+            offset = irow * self.nelemslice * 1L
+            startl = self.starts[irow]
+            stopl = startl + self.lengths[irow]
+            idc.arrAbs[len1:ncoords] = self.indicesLR[startl:stopl] + offset
+
+        selection = idc.arrAbs[:ncoords]
+        return selection
 
 # This tries to be a version of getCoords that keeps track of visited rows
 # in order to not re-visit them again. However, I didn't managed to make it
 # work well. However, the improvement in speed should be not important
-# in the majority of cases.
+# in most of cases.
 # Beware, the logic behind doing this is not trivial at all. You have been
 # warned!. 2004-08-03
 #     def getCoords_notwork(self, startCoords, maxCoords):
 #         """Get the coordinates of indices satisfiying the cuts"""
 #         relCoords = 0
 #         # Correction against asking too many elements
-#         nindexedrows = self.nelements
+#         nindexedrows = self.nelemslice*self.nrows
 #         if startCoords + maxCoords > nindexedrows:
 #             maxCoords = nindexedrows - startCoords
 #         #for irow in xrange(self.irow, self.sorted.nrows):
@@ -645,7 +878,7 @@ class Index(indexesExtension.Index, Group):
 #                 if stopl >= rowStop:
 #                     stopl = rowStop
 #                     #self.irow += 1
-#                 self.indices._g_readIndex(irow, startl, stopl, relCoords)
+#                 self.indices._readIndex(irow, startl, stopl, relCoords)
 #                 incr = stopl - startl
 #                 relCoords += incr
 #                 maxCoords -= incr
@@ -760,14 +993,6 @@ val1 must be less or equal than val2""")
     def _f_remove(self, recursive=False):
         """Remove this Index object"""
 
-        if utilsExtension.whichLibVersion("hdf5")[1] == "1.6.3":
-            warnings.warn("""\
-You are using HDF5 version 1.6.3. It turns out that this precise
-version has a bug that causes a seg fault when deleting a chunked
-dataset. If you are getting such a seg fault immediately after this
-message, please, get a patched version of HDF5 1.6.3, or, better,
-get HDF5 1.6.4.""")
-
         # Index removal is always recursive,
         # no matter what `recursive` says.
         super(Index, self)._f_remove(True)
@@ -781,7 +1006,7 @@ get HDF5 1.6.4.""")
         """This provides more metainfo than standard __repr__"""
 
         cpathname = self.column.table._v_pathname + ".cols." + self.column.name
-        return """%s (Index for column %s)
+        retstr = """%s (Index for column %s)
   type := %r
   nelements := %s
   shape := %s
@@ -794,3 +1019,10 @@ get HDF5 1.6.4.""")
                      self.sorted.type, self.nelements, self.shape,
                      self.sorted.chunksize, self.sorted.byteorder,
                      self.filters, self.dirty, self.sorted, self.indices)
+        if self._v_version >= "1.1":
+            retstr += "\n  ranges := %s" % self.ranges
+            retstr += "\n  bounds := %s" % self.bounds
+            retstr += "\n  sortedLR := %s" % self.sortedLR
+            retstr += "\n  indicesLR := %s" % self.indicesLR
+        return retstr
+
