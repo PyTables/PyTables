@@ -37,7 +37,8 @@ from tables.exceptions import HDF5ExtError
 from hdf5Extension cimport Array, hid_t, herr_t, hsize_t
 
 from definitions cimport import_libnumarray, NA_getPythonScalar, \
-     NA_getBufferPtrAndSize
+     NA_getBufferPtrAndSize, Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS
+
 
 
 __version__ = "$Revision$"

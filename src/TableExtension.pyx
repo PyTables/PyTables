@@ -35,7 +35,7 @@ from tables.utilsExtension import createNestedType, \
 
 from definitions cimport \
      import_libnumarray, NA_getPythonScalar, NA_setFromPythonScalar, \
-     NA_getBufferPtrAndSize
+     NA_getBufferPtrAndSize, Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS
 
 __version__ = "$Revision$"
 
@@ -61,10 +61,6 @@ cdef extern from "string.h":
 
 # Python API functions.
 cdef extern from "Python.h":
-  # To release global interpreter lock (GIL) for threading
-  void Py_BEGIN_ALLOW_THREADS()
-  void Py_END_ALLOW_THREADS()
-
   char *PyString_AsString(object string)
 
 # HDF5 API.
@@ -795,7 +791,6 @@ cdef class Row:
       # Re-initialize the possible cuts in columns
       self.indexed = 0
       if self.coords is None:
-        self.index.indices._destroyIndexSlice()  # Remove buffers in indices
         nextelement = self.index.nelemslice * self.index.nrows
         # Correct this for step size > 1
         correct = (nextelement - self.start) % self.step

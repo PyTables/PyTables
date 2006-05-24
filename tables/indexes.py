@@ -336,7 +336,6 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         nrows -- The number of slices in index.
         nelemslice -- The number of elements per slice.
         chunksize -- The HDF5 chunksize for the slice dimension (the 1).
-            
 
     """
 
@@ -399,7 +398,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         assert self.shape == (0, self.nelemslice), "invalid shape"
         assert self._v_chunksize == (1, self.chunksize), "invalid chunk size"
         return objectId
-        
+
 
     def _calcTuplesAndChunks(self, atom, extdim, expectedrows, compress):
         return (0, (1, self.chunksize))  # (_v_maxTuples, _v_chunksize)
@@ -424,7 +423,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
             self.chunksize = self._v_chunksize[1]
         # Create a buffer for bounds array
         nbounds = (self.nelemslice // self.chunksize) - 1
-        if str(self.type) == "CharType":        
+        if str(self.type) == "CharType":
             self._bounds = strings.array(None, itemsize=self.itemsize,
                                          shape=(nbounds,))
         else:
@@ -441,7 +440,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
 
     # This version of searchBin uses both rangeValues (1st level) and
     # bounds (2nd level) caches. This is more than 40% faster than the
-    # version that only uses the 1st cache.    
+    # version that only uses the 1st cache.
     def _searchBin(self, nrow, item):
         item1, item2 = item
         result1 = -1; result2 = -1
@@ -449,7 +448,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         rangeValues = self._v_parent.rvcache
         #t1=time()
         # First, look at the beginning of the slice
-        #begin, end = rangeValues[nrow]  # this is slower 
+        #begin, end = rangeValues[nrow]  # this is slower
         begin = rangeValues[nrow,0]
         # Look for items at the beginning of sorted slices
         if item1 <= begin:
@@ -497,7 +496,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
     def _g_searchBin(self, nrow, item, rangeValues):
         item1, item2 = item
         nelemslice = self.shape[1]
-        hi = nelemslice   
+        hi = nelemslice
         item1done = 0; item2done = 0
         chunksize = self.chunksize # Number of elements/chunksize # change here
         niter = 0
@@ -531,7 +530,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         if item1done and item2done:
             #print "done 2"
             return (result1, result2, niter)
-    
+
         # Finally, do a lookup for item1 and item2 if they were not found
         # Lookup in the middle of slice for item1
         if not item1done:
@@ -549,7 +548,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
                     break
                 else:
                     hi = result1        # one chunk to the left
-                    lo = hi - chunksize  
+                    lo = hi - chunksize
             result1 = tmpresult1
         # Lookup in the middle of slice for item2
         if not item2done:
@@ -578,7 +577,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
     # little. So, it's better to let _searchBin live here.
     def _searchBin1_0(self, nrow, item):
         nelemslice = self.shape[1]
-        hi = nelemslice   
+        hi = nelemslice
         item1, item2 = item
         item1done = 0; item2done = 0
         chunksize = self.chunksize # Number of elements/chunksize # change here
@@ -616,7 +615,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         if item1done and item2done:
             #print "done 2"
             return (result1, result2)
-    
+
         # Finally, do a lookup for item1 and item2 if they were not found
         # Lookup in the middle of slice for item1
         if not item1done:
@@ -634,7 +633,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
                     break
                 else:
                     hi = result1        # one chunk to the left
-                    lo = hi - chunksize  
+                    lo = hi - chunksize
             result1 = tmpresult1
         # Lookup in the middle of slice for item2
         if not item2done:

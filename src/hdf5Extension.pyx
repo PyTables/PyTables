@@ -44,7 +44,8 @@ from tables.utilsExtension import  \
      convertTime64, getLeafHDF5Type, isHDF5File, isPyTablesFile, \
      naEnumToNAType, naTypeToNAEnum
 
-from definitions cimport import_libnumarray, NA_getBufferPtrAndSize
+from definitions cimport import_libnumarray, NA_getBufferPtrAndSize, \
+     Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS
 
 
 __version__ = "$Revision$"
@@ -113,10 +114,6 @@ cdef extern from "Python.h":
   object PyString_FromStringAndSize(char *s, int len)
   char *PyString_AsString(object string)
   object PyString_FromString(char *)
-
-  # To release global interpreter lock (GIL) for threading
-  void Py_BEGIN_ALLOW_THREADS()
-  void Py_END_ALLOW_THREADS()
 
   # To access to Memory (Buffer) objects presents in numarray
   object PyBuffer_FromMemory(void *ptr, int size)

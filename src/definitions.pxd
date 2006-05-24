@@ -13,6 +13,13 @@
 
 """
 
+# Functions from Python
+cdef extern from "Python.h":
+
+  # To release global interpreter lock (GIL) for threading
+  void Py_BEGIN_ALLOW_THREADS()
+  void Py_END_ALLOW_THREADS()
+
 
 # Functions from numarray API
 cdef extern from "numarray/libnumarray.h":
