@@ -34,6 +34,7 @@ class NumexprTestCase(unittest.TestCase):
         if int not in dtypes:
             self._missing_dtypes = True
             dtypes[int] = dtypes['int32']
+            dtypes[long] = dtypes['int64']
             dtypes[float] = dtypes['float64']
             dtypes[complex] = dtypes['complex128']
 
@@ -41,6 +42,7 @@ class NumexprTestCase(unittest.TestCase):
         dtypes = numarray.dtype._dtypes
         if self._missing_dtypes:
             del dtypes[int]
+            del dtypes[long]
             del dtypes[float]
             del dtypes[complex]
 
@@ -171,7 +173,7 @@ class Skip(Exception): pass
 class test_expressions(NumexprTestCase):
     def check_expressions(self):
         for test_scalar in [0,1,2]:
-            for dtype in [int, float, complex]:
+            for dtype in [int, long, float, complex]:
                 array_size = 100
                 a = arange(array_size, dtype=dtype)
                 a2 = zeros([array_size, array_size], dtype=dtype)
@@ -212,11 +214,45 @@ class test_expressions(NumexprTestCase):
                                 self.warn('numexpr error for expression %r' % (expr,))
                                 raise
 
+
+class test_int32_int64(NumexprTestCase):
+    def check_small_long(self):
+        # Small longs should not be downgraded to ints.
+        res = evaluate('42L')
+        assert_array_equal(res, 42)
+        self.assertEqual(res.dtype.name, 'int64')
+
+    def check_big_int(self):
+        # Big ints should be promoted to longs.
+        # This test may only fail under 64-bit platforms.
+        res = evaluate('2**40')
+        assert_array_equal(res, 2**40)
+        self.assertEqual(res.dtype.name, 'int64')
+
+    def check_long_constant_promotion(self):
+        int32array = arange(100, dtype='int32')
+        res = int32array * 2
+        res32 = evaluate('int32array * 2')
+        res64 = evaluate('int32array * 2L')
+        assert_array_equal(res, res32)
+        assert_array_equal(res, res64)
+        self.assertEqual(res32.dtype.name, 'int32')
+        self.assertEqual(res64.dtype.name, 'int64')
+
+    def check_int64_array_promotion(self):
+        int32array = arange(100, dtype='int32')
+        int64array = arange(100, dtype='int64')
+        respy = int32array * int64array
+        resnx = evaluate('int32array * int64array')
+        assert_array_equal(respy, resnx)
+        self.assertEqual(resnx.dtype.name, 'int64')
+
 def suite():
     the_suite = unittest.TestSuite()
     the_suite.addTest(unittest.makeSuite(test_numexpr, prefix='check'))
     the_suite.addTest(unittest.makeSuite(test_evaluate, prefix='check'))
     the_suite.addTest(unittest.makeSuite(test_expressions, prefix='check'))
+    the_suite.addTest(unittest.makeSuite(test_int32_int64, prefix='check'))
     return the_suite
 
 if __name__ == '__main__':

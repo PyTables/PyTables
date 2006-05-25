@@ -13,6 +13,8 @@
 /* Added for numpy compatibility */
 typedef struct { float real, imag; } cfloat;
 typedef struct { double real, imag; } cdouble;
+#define PyArray_BOOL tBool
+#define PyArray_LONGLONG tInt64
 /* This is to typedef Intp to the appropriate pointer size for this platform.
  * Py_intptr_t, Py_uintptr_t are defined in pyport.h. */
 typedef Py_intptr_t intp;
@@ -46,6 +48,11 @@ enum OpCodes {
     OP_EQ_BII,
     OP_NE_BII,
 
+    OP_GT_BLL,
+    OP_GE_BLL,
+    OP_EQ_BLL,
+    OP_NE_BLL,
+
     OP_GT_BFF,
     OP_GE_BFF,
     OP_EQ_BFF,
@@ -63,8 +70,22 @@ enum OpCodes {
     OP_MOD_III,
     OP_WHERE_IFII,
 
+    OP_CAST_LB,
+    OP_CAST_LI,
+    OP_COPY_LL,
+    OP_ONES_LIKE_LL,
+    OP_NEG_LL,
+    OP_ADD_LLL,
+    OP_SUB_LLL,
+    OP_MUL_LLL,
+    OP_DIV_LLL,
+    OP_POW_LLL,
+    OP_MOD_LLL,
+    OP_WHERE_LFLL,
+
     OP_CAST_FB,
     OP_CAST_FI,
+    OP_CAST_FL,
     OP_COPY_FF,
     OP_ONES_LIKE_FF,
     OP_NEG_FF,
@@ -88,9 +109,10 @@ enum OpCodes {
 
     OP_CAST_CB,
     OP_CAST_CI,
+    OP_CAST_CL,
     OP_CAST_CF,
-    OP_ONES_LIKE_CC,
     OP_COPY_CC,
+    OP_ONES_LIKE_CC,
     OP_NEG_CC,
     OP_ADD_CCC,
     OP_SUB_CCC,
@@ -128,6 +150,13 @@ static char op_signature(int op, int n) {
             if (n == 0) return 'b';
             if (n == 1 || n == 2) return 'i';
             break;
+        case OP_GT_BLL:
+        case OP_GE_BLL:
+        case OP_EQ_BLL:
+        case OP_NE_BLL:
+            if (n == 0) return 'b';
+            if (n == 1 || n == 2) return 'l';
+            break;
         case OP_GT_BFF:
         case OP_GE_BFF:
         case OP_EQ_BFF:
@@ -156,6 +185,31 @@ static char op_signature(int op, int n) {
             if (n == 0 || n == 2 || n == 3) return 'i';
             if (n == 1) return 'f';
             break;
+        case OP_CAST_LB:
+            if (n == 0) return 'l';
+            if (n == 1) return 'b';
+            break;
+        case OP_CAST_LI:
+            if (n == 0) return 'l';
+            if (n == 1) return 'i';
+            break;
+        case OP_COPY_LL:
+        case OP_ONES_LIKE_LL:
+        case OP_NEG_LL:
+            if (n == 0 || n == 1) return 'l';
+            break;
+        case OP_ADD_LLL:
+        case OP_SUB_LLL:
+        case OP_MUL_LLL:
+        case OP_DIV_LLL:
+        case OP_MOD_LLL:
+        case OP_POW_LLL:
+            if (n == 0 || n == 1 || n == 2) return 'l';
+            break;
+        case OP_WHERE_LFLL:
+            if (n == 0 || n == 2 || n == 3) return 'l';
+            if (n == 1) return 'f';
+            break;
         case OP_CAST_FB:
             if (n == 0) return 'f';
             if (n == 1) return 'b';
@@ -163,6 +217,10 @@ static char op_signature(int op, int n) {
         case OP_CAST_FI:
             if (n == 0) return 'f';
             if (n == 1) return 'i';
+            break;
+        case OP_CAST_FL:
+            if (n == 0) return 'f';
+            if (n == 1) return 'l';
             break;
         case OP_COPY_FF:
         case OP_ONES_LIKE_FF:
@@ -205,6 +263,10 @@ static char op_signature(int op, int n) {
         case OP_CAST_CI:
             if (n == 0) return 'c';
             if (n == 1) return 'i';
+            break;
+        case OP_CAST_CL:
+            if (n == 0) return 'c';
+            if (n == 1) return 'l';
             break;
         case OP_CAST_CF:
             if (n == 0) return 'c';
@@ -436,11 +498,12 @@ size_from_char(char c)
 {
     switch (c) {
         case 'b': return sizeof(char);
-        case 'i': return sizeof(long);
+        case 'i': return sizeof(int);
+        case 'l': return sizeof(long long);
         case 'f': return sizeof(double);
         case 'c': return 2*sizeof(double);
         default:
-            PyErr_SetString(PyExc_TypeError, "signature value not in 'bifc'");
+            PyErr_SetString(PyExc_TypeError, "signature value not in 'bilfc'");
             return -1;
     }
 }
@@ -463,12 +526,9 @@ static intp
 typecode_from_char(char c)
 {
     switch (c) {
-#ifdef NUMARRAY_VERSION
-        case 'b': return tBool;
-#else
         case 'b': return PyArray_BOOL;
-#endif
-        case 'i': return PyArray_LONG;
+        case 'i': return PyArray_INT;
+        case 'l': return PyArray_LONGLONG;
         case 'f': return PyArray_DOUBLE;
         case 'c': return PyArray_CDOUBLE;
         default:
@@ -634,6 +694,10 @@ NumExpr_init(NumExprObject *self, PyObject *args, PyObject *kwds)
                 PyString_AS_STRING(constsig)[i] = 'i';
                 continue;
             }
+            if (PyLong_Check(o)) {
+                PyString_AS_STRING(constsig)[i] = 'l';
+                continue;
+            }
             if (PyFloat_Check(o)) {
                 PyString_AS_STRING(constsig)[i] = 'f';
                 continue;
@@ -642,7 +706,7 @@ NumExpr_init(NumExprObject *self, PyObject *args, PyObject *kwds)
                 PyString_AS_STRING(constsig)[i] = 'c';
                 continue;
             }
-            PyErr_SetString(PyExc_TypeError, "constants must be of type int/float/complex");
+            PyErr_SetString(PyExc_TypeError, "constants must be of type bool/int/long/float/complex");
             Py_DECREF(constsig);
             Py_DECREF(constants);
             return -1;
@@ -705,10 +769,15 @@ NumExpr_init(NumExprObject *self, PyObject *args, PyObject *kwds)
             for (j = 0; j < BLOCK_SIZE1; j++)
                 bmem[j] = value;
         } else if (c == 'i') {
-            long *imem = (long*)mem[i+n_inputs+1];
-            long value = PyInt_AS_LONG(PyTuple_GET_ITEM(constants, i));
+            int *imem = (int*)mem[i+n_inputs+1];
+            int value = (int)PyInt_AS_LONG(PyTuple_GET_ITEM(constants, i));
             for (j = 0; j < BLOCK_SIZE1; j++)
                 imem[j] = value;
+        } else if (c == 'l') {
+            long long *lmem = (long long*)mem[i+n_inputs+1];
+            long long value = PyLong_AsLongLong(PyTuple_GET_ITEM(constants, i));
+            for (j = 0; j < BLOCK_SIZE1; j++)
+                lmem[j] = value;
         } else if (c == 'f') {
             double *dmem = (double*)mem[i+n_inputs+1];
             double value = PyFloat_AS_DOUBLE(PyTuple_GET_ITEM(constants, i));
@@ -888,7 +957,7 @@ NumExpr_run(NumExprObject *self, PyObject *args, PyObject *kwds)
     PyArrayObject *output = NULL;
     unsigned int n_inputs;
     int i, len = -1, r, pc_error;
-    char **inputs;
+    char **inputs = NULL;
 
     n_inputs = PyTuple_Size(args);
     if (PyString_Size(self->signature) != n_inputs) {
@@ -928,14 +997,22 @@ NumExpr_run(NumExprObject *self, PyObject *args, PyObject *kwds)
             self->memsizes[i+1] = (intp)0;
             PyTuple_SET_ITEM(a_inputs, i, (PyObject *)b);  /* steals reference */
             inputs[i] = b->data;
-            if (typecode == PyArray_LONG) {
-                long value = ((long*)a->data)[0];
+            if (typecode == PyArray_BOOL) {
+                char value = ((char*)a->data)[0];
                 for (j = 0; j < BLOCK_SIZE1; j++)
-                    ((long*)b->data)[j] = value;
+                    ((char*)b->data)[j] = value;
+            } else if (typecode == PyArray_INT) {
+                int value = ((int*)a->data)[0];
+                for (j = 0; j < BLOCK_SIZE1; j++)
+                    ((int*)b->data)[j] = value;
             } else if (typecode == PyArray_DOUBLE) {
                 double value = ((double*)a->data)[0];
                 for (j = 0; j < BLOCK_SIZE1; j++)
                     ((double*)b->data)[j] = value;
+            } else if (typecode == PyArray_LONGLONG) {
+                long long value = ((long long*)a->data)[0];
+                for (j = 0; j < BLOCK_SIZE1; j++)
+                    ((long long*)b->data)[j] = value;
             } else if (typecode == PyArray_CDOUBLE) {
                 double rvalue = ((double*)a->data)[0];
                 double ivalue = ((double*)a->data)[1];
@@ -1093,10 +1170,16 @@ initinterpreter(void)
     add_op("invert_bb", OP_INVERT_BB);
     add_op("and_bbb", OP_AND_BBB);
     add_op("or_bbb", OP_OR_BBB);
+
     add_op("gt_bii", OP_GT_BII);
     add_op("ge_bii", OP_GE_BII);
     add_op("eq_bii", OP_EQ_BII);
     add_op("ne_bii", OP_NE_BII);
+
+    add_op("gt_bll", OP_GT_BLL);
+    add_op("ge_bll", OP_GE_BLL);
+    add_op("eq_bll", OP_EQ_BLL);
+    add_op("ne_bll", OP_NE_BLL);
 
     add_op("gt_bff", OP_GT_BFF);
     add_op("ge_bff", OP_GE_BFF);
@@ -1115,8 +1198,22 @@ initinterpreter(void)
     add_op("mod_iii", OP_MOD_III);
     add_op("where_ifii", OP_WHERE_IFII);
 
+    add_op("cast_lb", OP_CAST_LB);
+    add_op("cast_li", OP_CAST_LI);
+    add_op("ones_like_ll", OP_ONES_LIKE_LL);
+    add_op("copy_ll", OP_COPY_LL);
+    add_op("neg_ll", OP_NEG_LL);
+    add_op("add_lll", OP_ADD_LLL);
+    add_op("sub_lll", OP_SUB_LLL);
+    add_op("mul_lll", OP_MUL_LLL);
+    add_op("div_lll", OP_DIV_LLL);
+    add_op("pow_lll", OP_POW_LLL);
+    add_op("mod_lll", OP_MOD_LLL);
+    add_op("where_lfll", OP_WHERE_LFLL);
+
     add_op("cast_fb", OP_CAST_FB);
     add_op("cast_fi", OP_CAST_FI);
+    add_op("cast_fl", OP_CAST_FL);
     add_op("copy_ff", OP_COPY_FF);
     add_op("ones_like_ff", OP_ONES_LIKE_FF);
     add_op("neg_cc", OP_NEG_CC);
@@ -1141,6 +1238,7 @@ initinterpreter(void)
 
     add_op("cast_cb", OP_CAST_CB);
     add_op("cast_ci", OP_CAST_CI);
+    add_op("cast_cl", OP_CAST_CL);
     add_op("cast_cf", OP_CAST_CF);
     add_op("copy_cc", OP_COPY_CC);
     add_op("ones_like_cc", OP_ONES_LIKE_CC);

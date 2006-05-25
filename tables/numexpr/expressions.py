@@ -34,7 +34,7 @@ def ophelper(f):
     def func(*args):
         args = list(args)
         for i, x in enumerate(args):
-            if isinstance(x, (bool, int, float, complex)):
+            if isinstance(x, (bool, int, long, float, complex)):
                 args[i] = x = ConstantNode(x)
             if not isinstance(x, ExpressionNode):
                 return NotImplemented
@@ -48,7 +48,7 @@ def all_constant(args):
             return False
     return True
 
-kind_rank = ['bool', 'int', 'float', 'complex', 'none']
+kind_rank = ['bool', 'int', 'long', 'float', 'complex', 'none']
 def common_kind(nodes):
     n = -1
     for x in nodes:
@@ -128,7 +128,7 @@ def pow_op(a, b):
                     p = OpNode('mul', [p,p])
                 if ishalfpower:
                     kind = common_kind([a])
-                    if kind == 'int': kind = 'float'
+                    if kind in ('int', 'long'): kind = 'float'
                     r = multiply(r, OpNode('sqrt', [a], kind))
                 if r is None:
                     r = OpNode('ones_like', [a])
@@ -142,7 +142,7 @@ def pow_op(a, b):
                 return FuncNode('ones_like', [a])
             if x == 0.5:
                 kind = a.astKind
-                if kind == 'int': kind = 'float'
+                if kind in ('int', 'long'): kind = 'float'
                 return FuncNode('sqrt', [a], kind=kind)
             if x == 1:
                 return a
@@ -244,7 +244,21 @@ class VariableNode(LeafNode):
         LeafNode.__init__(self, value=value, kind=kind)
 
 
+max_int32 = 2147483647
+min_int32 = -max_int32 - 1
 def normalizeConstant(x):
+    # ``long`` objects are kept as is to allow the user to force
+    # promotion of results by using long constants, e.g. by operating
+    # a 32-bit array with a long (64-bit) constant.
+    if isinstance(x, long):
+        return long(x)
+    # Moreover, constants needing more than 32 bits are always
+    # considered ``long``, *regardless of the platform*, so we can
+    # clearly tell 32- and 64-bit constants apart.
+    if isinstance(x, int) and not (min_int32 <= x <= max_int32):
+        return long(x)
+    # ``long`` is not explicitly needed since ``int`` automatically
+    # returns longs when needed (since Python 2.3).
     for converter in bool, int, float, complex:
         try:
             y = converter(x)
@@ -256,6 +270,7 @@ def normalizeConstant(x):
 def getKind(x):
     return {bool : 'bool',
             int : 'int',
+            long : 'long',
             float : 'float',
             complex : 'complex'}[type(normalizeConstant(x))]
 

@@ -64,7 +64,7 @@ def expressionToAST(ex):
 
 
 def sigPerms(s):
-    codes = 'bifc'
+    codes = 'bilfc'
     if not s:
         yield ''
     elif s[0] in codes:
@@ -97,7 +97,8 @@ def typeCompileAst(ast):
         # First just cast constants, then cast variables if necessary:
         for i, (have, want)  in enumerate(zip(basesig, sig)):
             if have != want:
-                kind = {'b': 'bool', 'i' : 'int', 'f' : 'float', 'c' : 'complex'}[want]
+                kind = { 'b': 'bool', 'i' : 'int', 'l': 'long',
+                         'f' : 'float', 'c' : 'complex' }[want]
                 if children[i].astType == 'constant':
                     children[i] = ASTNode('constant', kind, children[i].value)
                 else:
@@ -165,13 +166,15 @@ def stringToExpression(s, types, context):
     c = compile(s, '<expr>', 'eval')
     # make VariableNode's for the names
     names = {}
-    kind_names = {bool: 'bool', int : 'int', float : 'float', complex : 'complex'}
+    kind_names = {
+        bool: 'bool', int: 'int', long: 'long',
+        float: 'float', complex: 'complex' }
     for name in c.co_names:
         names[name] = expr.VariableNode(name, kind_names[types.get(name, float)])
     names.update(expr.functions)
     # now build the expression
     ex = eval(c, names)
-    if isinstance(ex, (bool, int, float, complex)):
+    if isinstance(ex, (bool, int, long, float, complex)):
         ex = expr.ConstantNode(ex, getKind(ex))
     return ex
 
@@ -195,6 +198,7 @@ def getInputOrder(ast, input_order=None):
 def convertConstant(x, kind):
     return {'bool' : bool,
             'int' : int,
+            'long' : long,
             'float' : float,
             'complex' : complex}[kind](x)
 
@@ -256,7 +260,9 @@ def optimizeTemporariesAllocation(ast):
         for c in n.children:
             if c.reg.temporary:
                 users_of[c.reg].add(n)
-    unused = {'bool' : set(), 'int' : set(), 'float' : set(), 'complex' : set()}
+    unused = {
+        'bool': set(), 'int': set(), 'long': set(),
+        'float': set(), 'complex': set() }
     for n in nodes:
         for reg, users in users_of.iteritems():
             if n in users:
@@ -455,7 +461,9 @@ def getType(a):
     tname = a.dtype.name
     if tname.startswith('bool'):
         return bool
-    if tname.startswith('int'):
+    if tname == 'int64':  # catch 64-bit integers before proceeding to int
+        return long
+    if tname.startswith('int'):  # catch the rest of smaller integers
         return int
     if tname.startswith('float'):
         return float
