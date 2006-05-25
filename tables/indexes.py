@@ -298,12 +298,16 @@ def calcChunksize(expectedrows, testmode=0):
 # Declarations for inheriting
 class CacheArray(EArray, indexesExtension.CacheArray):
     """Container for keeping index caches of 1st and 2nd level."""
-    pass
+
+    # Class identifier.
+    _c_classId = 'CACHEARRAY'
 
 
 class LastRowArray(Array, indexesExtension.LastRowArray):
     """Container for keeping sorted and indices values of last rows of an index."""
-    pass
+
+    # Class identifier.
+    _c_classId = 'LASTROWARRAY'
 
 
 class IndexArray(EArray, indexesExtension.IndexArray):

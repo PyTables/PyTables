@@ -31,6 +31,7 @@ import warnings
 import math
 import cPickle
 import bisect
+from time import time, clock
 
 import numarray
 
@@ -45,9 +46,9 @@ from tables.utils import joinPath
 
 __version__ = "$Revision: 1236 $"
 
-# default version for INDEX objects
-#obversion = "std"    # indexes for PyTables Standard
-obversion = "pro"     # indexes for PyTables Pro
+# version of index format
+#idx_version = "std"    # indexes for PyTables Standard
+idx_version = "pro"     # indexes for PyTables Pro
 
 # Python implementations of NextAfter and NextAfterF
 #
@@ -407,10 +408,11 @@ class Index(indexesExtension.Index, Group):
         """Enables test mode for index chunk size calculation."""
         self.atom = atom
         """The `Atom` instance matching to be stored by the index array."""
-        self.type = atom.type
-        """The datatype to be stored by the index array."""
-        self.itemsize = atom.itemsize
-        """The itemsize of the datatype to be stored by the index array."""
+        if atom is not None:
+            self.type = atom.type
+            """The datatype to be stored by the sorted index array."""
+            self.itemsize = atom.itemsize
+            """The itemsize of the datatype to be stored by the index array."""
         self.column = column
         """The `Column` instance for the indexed column."""
 
@@ -419,21 +421,44 @@ class Index(indexesExtension.Index, Group):
         self.lengths = None
         """Lengths of the values fulfilling conditions for every slice."""
 
+        self.cache = False   # no cache (ranges & bounds) is available initially
+
+        # Set the version number of this object as an index, not a group.
+        self._idx_version = idx_version
+
         # Index creation is never logged.
         super(Index, self).__init__(
             parentNode, name, title, new, filters, log=False)
 
-        self.cache = False   # no cache (ranges & bounds) is available initially
-
-        # Set the version number of this object as an index, not a group.
-        self._v_version = obversion
 
 
     def _g_postInitHook(self):
         super(Index, self)._g_postInitHook()
 
-        # Index arrays must only be created for new indexes.
+        # Index arrays must only be created for new indexes
         if not self._v_new:
+            # Set-up some variables from info on disk and return
+            self.type = self.sorted.type
+            self.itemsize = self.sorted.itemsize
+            if self._idx_version == "pro":
+                # The number of elements is at the end of the indices array
+                nelementsLR = self.indicesLR[-1]
+            else:
+                nelementsLR = 0
+            self.nrows = self.sorted.nrows
+            self.nelements = self.nrows * self.nelemslice + nelementsLR
+            self.nelementsLR = nelementsLR
+            if nelementsLR > 0:
+                self.nrows += 1
+            self.shape = (self.nrows, self.nelemslice)
+            # Get the bounds as a cache (this has to remain here!)
+            nbounds = (nelementsLR -1 ) // self.chunksize
+            if nbounds < 0:
+                nbounds = 0 # correction for -1 bounds
+            nbounds += 2 # bounds + begin + end
+            # all bounds values (+begin+end) are at the beginning of lrvb
+            self.bebounds = self.sortedLR[:nbounds]
+            self.cache = False    # no cache (ranges & bounds) is available initially
             return
 
         # Set the filters for this object (they are *not* inherited)
@@ -609,13 +634,13 @@ class Index(indexesExtension.Index, Group):
     #def search_vec(self, item):
     def search(self, item):
         """Do a binary search in this index for an item"""
-        #t1 = time(); tcpu1 = clock()
+        t1 = time(); tcpu1 = clock()
         if str(self.type) == "CharType":
             return self.search_original(item)
         item1, item2 = item
-        #self._v_version = "std"  # uncomment this for test speed comparisons
+        #self._idx_version = "std"  # uncomment this for test speed comparisons
         # Do the lookup for values fullfilling the conditions
-        if self._v_version >= "pro":
+        if self._idx_version >= "pro":
             self.sorted._initSortedSlice(pro=1)
             # XXX Intentar tornar a activar l'optimitzacio
             if 0:
@@ -648,15 +673,14 @@ class Index(indexesExtension.Index, Group):
                 self.starts[i] = start
                 self.lengths[i] = stop - start
             tlen = numarray.sum(self.lengths)
-        if self._v_version >= "pro" and self.nelementsLR:
+        if self._idx_version >= "pro" and self.nelementsLR:
             # Look for more indexes in the last row
             (start, stop) = self._searchBinLastRow(item)
-            #print "-->", self.starts.info()
             self.starts[-1] = start
             self.lengths[-1] = stop - start
             tlen += stop - start
-        #t = time()-t1
-        #print "time searching indices:", round(t*1000, 3), "ms",
+        t = time()-t1
+        print "time searching indices (regular):", round(t*1000, 3), "ms"
         # CPU time not significant (problems with time slice)
         #print round((clock()-tcpu1)*1000*1000, 3), "us"
         return tlen
@@ -668,9 +692,9 @@ class Index(indexesExtension.Index, Group):
         """Do a binary search in this index for an item"""
         t1=time()
         tlen = 0
-        #self._v_version = "std"  # just for test speed comparisons
+        #self._idx_version = "std"  # just for test speed comparisons
         # Do the lookup for values fullfilling the conditions
-        if self._v_version >= "pro":
+        if self._idx_version >= "pro":
             self.sorted._initSortedSlice(pro=1)
             for i in xrange(self.sorted.nrows):
                 (start, stop) = self.sorted._searchBin(i, item)
@@ -685,7 +709,7 @@ class Index(indexesExtension.Index, Group):
                 self.lengths[i] = stop - start
                 tlen += stop - start
         self.sorted._destroySortedSlice()
-        if self._v_version >= "pro" and self.nelementsLR > 0:
+        if self._idx_version >= "pro" and self.nelementsLR > 0:
             # Look for more indexes in the last row
             (start, stop) = self._searchBinLastRow(item)
             self.starts[-1] = start
@@ -698,8 +722,8 @@ class Index(indexesExtension.Index, Group):
         item1, item2 = item
         item1done = 0; item2done = 0
 
-        #t1=time()
-        hi = self.nelementsLR               # maximum number of elements
+        t1=time()
+        hi = hi2 = self.nelementsLR               # maximum number of elements
         bebounds = self.bebounds
         assert hi == self.nelements - self.sorted.nrows * self.nelemslice
         begin = bebounds[0]
@@ -738,7 +762,9 @@ class Index(indexesExtension.Index, Group):
                 end = hi
             chunk = readSliceLR(self.sorted, nbounds+self.chunksize*nchunk,
                                 nbounds+end)
-            result1 = bisect.bisect_left(chunk, item1, hi=hi)
+            if len(chunk) < hi:
+                hi2 = len(chunk)
+            result1 = bisect.bisect_left(chunk, item1, hi=hi2)
             result1 += self.chunksize*nchunk
         # Lookup in the middle of slice for item2
         if not item2done:
@@ -750,8 +776,12 @@ class Index(indexesExtension.Index, Group):
                     end = hi
                 chunk = readSliceLR(self.sorted, nbounds+self.chunksize*nchunk2,
                                     nbounds+end)
-            result2 = bisect.bisect_right(chunk, item2, hi=hi)
+                if len(chunk) < hi:
+                    hi2 = len(chunk)
+            result2 = bisect.bisect_right(chunk, item2, hi=hi2)
             result2 += self.chunksize*nchunk2
+        t = time()-t1
+        print "time searching indices (last row):", round(t*1000, 3), "ms"
         return (result1, result2)
 
 
@@ -885,7 +915,7 @@ class Index(indexesExtension.Index, Group):
                 len1 += 1
 
         # Get possible values in last slice
-        if (self._v_version >= "pro" and self.nelementsLR > 0
+        if (self._idx_version >= "pro" and self.nelementsLR > 0
             and self.lengths[idc.nrows] > 0):
             # Get indices for last row
             irow = idc.nrows
@@ -1025,7 +1055,7 @@ val1 must be less or equal than val2""")
                      self.sorted.type, self.nelements, self.shape,
                      self.sorted.chunksize, self.sorted.byteorder,
                      self.filters, self.dirty, self.sorted, self.indices)
-        if self._v_version >= "pro":
+        if self._idx_version >= "pro":
             retstr += "\n  ranges := %s" % self.ranges
             retstr += "\n  bounds := %s" % self.bounds
             retstr += "\n  sortedLR := %s" % self.sortedLR

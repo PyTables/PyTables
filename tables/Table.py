@@ -404,7 +404,6 @@ class Table(TableExtension.Table, Leaf):
             self._indexedrows = indexobj.nelements
             self._unsaved_indexedrows = self.nrows - self._indexedrows
 
-
     def _newBuffer(self, init=1):
         """Create a new recarray buffer for I/O purposes"""
 
@@ -994,7 +993,7 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
                 coords = condition.index.indices._getCoords_sparse(ncoords)
             else:
                 coords = numarray.array(None, type=numarray.Int64, shape=0)
-            if condition.index._v_version >= "1.1":
+            if condition.index._idx_version == "pro":
                 # get the remaining rows from the table
                 start = condition.index.nelements
                 if start < self.nrows:
@@ -1736,7 +1735,7 @@ The 'names' parameter must be a list of strings.""")
 
         return nrows
 
-    def flushRowsToIndex(self, lastrow=1):
+    def flushRowsToIndex(self, lastrow=True):
         "Add remaining rows in buffers to non-dirty indexes"
         rowsadded = 0
         if self.indexed:
@@ -1947,8 +1946,8 @@ Wrong 'index' parameter type. Only Index instances are accepted.""")
         if self.indexed and self.indexprops.auto:
             # Flush any unindexed row
             rowsadded = self.flushRowsToIndex(lastrow=1)
-            if True and rowsadded > 0 and self._indexedrows <> self.nrows:  ## XXX
-                raise RuntimeError , "Internal error: the number of indexed rows (%s) and rows in table (%s) must be equal!. Please, report this to the author." % (self._indexedrows, self.nrows)
+            if rowsadded > 0 and self._indexedrows <> self.nrows:  ## XXX only for pro!
+                raise RuntimeError , "Internal error: the number of indexed rows (%s) and rows in table (%s) must be equal!. Please, report this to the authors." % (self._indexedrows, self.nrows)
         self._g_cleanIOBuf()
         super(Table, self).flush()
 
@@ -2582,8 +2581,11 @@ Attempt to write over a file opened in read-only mode.""")
                     "you need at least %d rows and the table only has %d"
                     % (nelemslice, table.nrows))
             return 0
-        # Add rows to the index
-        indexedrows = self._addRowsToIndex(0, table.nrows, lastrow=1)
+        # Add rows to the index if necessary
+        if table.nrows > 0:
+            indexedrows = self._addRowsToIndex(0, table.nrows, lastrow=True)
+        else:
+            indexedrows = 0
         self.dirty = False
         # Set some flags in table parent
         table.indexed = True
@@ -2595,7 +2597,7 @@ Attempt to write over a file opened in read-only mode.""")
         table._unsaved_indexedrows = table.nrows - indexedrows
         return indexedrows
 
-    def _addRowsToIndex(self, start, nrows, lastrow):
+    def _addRowsToIndex(self, start, nrows, lastrow=False):
         """Add more elements to the existing index """
 
         index = self.index
@@ -2610,12 +2612,10 @@ Attempt to write over a file opened in read-only mode.""")
         while i < stop:
             index.append(self[i:i+nelemslice])
             indexedrows += nelemslice
-            if False:  ## XXX only for old indexes
-                # The remaining rows will not be indexed
-                i += nelemslice
+            i += nelemslice
         # index the remaining rows
         nremain = nrows - indexedrows
-        if True and nremain > 0 and lastrow:  ## XXX
+        if lastrow and nremain > 0 and index._idx_version == "pro":
             self.index.appendLastRow(self[indexedrows:nrows], self.table.nrows)
             indexedrows += nremain
         return indexedrows
