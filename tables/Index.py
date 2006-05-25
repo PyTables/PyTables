@@ -618,7 +618,7 @@ class Index(indexesExtension.Index, Group):
         if self._v_version >= "pro":
             self.sorted._initSortedSlice(pro=1)
             # XXX Intentar tornar a activar l'optimitzacio
-            if 1:
+            if 0:
                 tlen = self.searchBinNA(item1, item2)
                 #tlen = self.sorted._searchBinNA(item1, item2)
             else:
@@ -626,18 +626,21 @@ class Index(indexesExtension.Index, Group):
                 # CPU functions consumptions from python profiles
                 # Activate only after development is done.
                 tlen = self.sorted._searchBinNA(item1, item2)
-                # Lo de sota dona problemes per a valor -inf o +inf
-#                 if self.type == "Float64":
-#                     # Both vectorial and scalar versions perform similar
-#                     tlen = self.sorted._searchBinNA_d(item1, item2)
-#                     #tlen = self.sorted._searchBinNA_d_vec(item1, item2)
-#                 elif self.type == "Int32":
-#                     # Buth vectorial and scalar versions perform similar
-#                     print "item1, item2-->", item1, item2
-#                     tlen = self.sorted._searchBinNA_i(item1, item2)
-#                     #tlen = self.sorted._searchBinNA_i_vec(item1, item2)
-#                 else:
-#                     tlen = self.sorted._searchBinNA(item1, item2)
+                if self.type == "Float64":
+                    # Both vectorial and scalar versions perform similar
+                    tlen = self.sorted._searchBinNA_d(item1, item2)
+                    # tlen = self.sorted._searchBinNA_d_vec(item1, item2)
+                elif self.type == "Int32":
+                    # Buth vectorial and scalar versions perform similar
+                    tlen = self.sorted._searchBinNA_i(item1, item2)
+                    # tlen = self.sorted._searchBinNA_i_vec(item1, item2)
+                elif self.type == "Int64":
+                    # Buth vectorial and scalar versions perform similar
+                    print "item1, item2-->", item1, item2
+                    tlen = self.sorted._searchBinNA_ll(item1, item2)
+                    # tlen = self.sorted._searchBinNA_ll_vec(item1, item2)
+                else:
+                    tlen = self.sorted._searchBinNA(item1, item2)
         else:
             self.sorted._initSortedSlice()
             for i in xrange(self.sorted.nrows):

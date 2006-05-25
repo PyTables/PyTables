@@ -37,7 +37,8 @@ from tables.exceptions import HDF5ExtError
 from hdf5Extension cimport Array, hid_t, herr_t, hsize_t
 
 from definitions cimport import_libnumarray, NA_getPythonScalar, \
-     NA_getBufferPtrAndSize, Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS
+     NA_getBufferPtrAndSize, Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
+     PyInt_AsLong, PyLong_AsLongLong
 
 
 
@@ -107,8 +108,10 @@ cdef extern from "H5ARRAY-opt.h":
 cdef extern from "idx-opt.h":
   int bisect_left_d(double *a, double x, int hi, int offset)
   int bisect_left_i(int *a, int x, int hi, int offset)
+  int bisect_left_ll(long long *a, long long x, int hi, int offset)
   int bisect_right_d(double *a, double x, int hi, int offset)
   int bisect_right_i(int *a, int x, int hi, int offset)
+  int bisect_right_ll(long long *a, long long x, int hi, int offset)
   int get_sorted_indices(int nrows, long long *rbufR2,
                          int *rbufst, int *rbufln)
   int convert_addr64(int nrows, int nelem, long long *rbufA,
@@ -514,8 +517,8 @@ cdef class IndexArray(Array):
   def _searchBinNA_d_vec(self, double item1, double item2):
     cdef int cs, nchunk, nchunk2, nrow, nrows, nbounds, rvrow
     cdef int *rbufst, *rbufln
-    cdef double *rbufbc, *rbuflb, *rbufrv
     cdef int start, stop, nslice, tlen, len, bcache
+    cdef double *rbufbc, *rbuflb, *rbufrv
 
     cs = self.chunksize
     nrows = self.nrows
@@ -563,11 +566,13 @@ cdef class IndexArray(Array):
     return tlen
 
   # Optimized version for ints
-  def _searchBinNA_i(self, int item1, int item2):
+  def _searchBinNA_i(self, object item1, object item2):
     cdef int cs, nchunk, nchunk2, nrow, nrows, nbounds, rvrow
     cdef int *rbufst, *rbufln
-    cdef int *rbufbc, *rbuflb, *rbufrv
     cdef int start, stop, nslice, tlen, len, bread, bcache
+    # Variables with specific type
+    cdef int *rbufbc, *rbuflb, *rbufrv
+    cdef int item1_i, item2_i
 
     cs = self.chunksize
     nrows = self.nrows
@@ -575,10 +580,10 @@ cdef class IndexArray(Array):
     nslice = self.nelemslice
     bcache = self.bcache
     tlen = 0
-    rbuflb = <int *>self.rbuflb
-    rbufrv = <int *>self.rbufrv
     rbufst = <int *>self.rbufst
     rbufln = <int *>self.rbufln
+    rbuflb = <int *>self.rbuflb   # specific type
+    rbufrv = <int *>self.rbufrv   # specific type
     for nrow from 0 <= nrow < nrows:
       rvrow = nrow*2
       bread = 0
@@ -586,18 +591,20 @@ cdef class IndexArray(Array):
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row
           if bcache:
-            rbufbc = <int *>self.rbufbc + nrow*nbounds
+            rbufbc = <int *>self.rbufbc + nrow*nbounds  # specific type
           else:
             # Bounds is not in cache. Read the appropriate row.
             self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
-            rbufbc = <int *>self.rbufbc
+            rbufbc = <int *>self.rbufbc  # specific type
+          # PyInt_AsLong do accept other values than ints as well
+          item1_i = <int>PyInt_AsLong(item1)
           bread = 1
-          nchunk = bisect_left_i(rbufbc, item1, nbounds, 0)
+          nchunk = bisect_left_i(rbufbc, item1_i, nbounds, 0)
           H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
                                        self.mem_space_id, self.type_id,
                                        nrow, cs*nchunk, cs*(nchunk+1),
                                        self.rbuflb)
-          start = bisect_left_i(rbuflb, item1, cs, 0) + cs*nchunk
+          start = bisect_left_i(rbuflb, item1_i, cs, 0) + cs*nchunk
         else:
           start = nslice
       else:
@@ -607,18 +614,19 @@ cdef class IndexArray(Array):
         if item2 < rbufrv[rvrow+1]:
           if not bread:
             if bcache:
-              rbufbc = <int *>self.rbufbc + nrow*nbounds
+              rbufbc = <int *>self.rbufbc + nrow*nbounds  # specific type
             else:
               # Bounds is not in cache. Read the appropriate row.
               self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
-              rbufbc = <int *>self.rbufbc
-          nchunk2 = bisect_right_i(rbufbc, item2, nbounds, 0)
+              rbufbc = <int *>self.rbufbc  # specific type
+          item2_i = <int>PyInt_AsLong(item2)
+          nchunk2 = bisect_right_i(rbufbc, item2_i, nbounds, 0)
           if nchunk2 <> nchunk:
             H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
                                          self.mem_space_id, self.type_id,
                                          nrow, cs*nchunk2, cs*(nchunk2+1),
                                          self.rbuflb)
-          stop = bisect_right_i(rbuflb, item2, cs, 0) + cs*nchunk2
+          stop = bisect_right_i(rbuflb, item2_i, cs, 0) + cs*nchunk2
         else:
           stop = nslice
       else:
@@ -681,6 +689,80 @@ cdef class IndexArray(Array):
       rbufln[nrow] = len
       tlen = tlen + len
     return tlen
+
+
+  # Optimized version for long long
+  def _searchBinNA_ll(self, object item1, object item2):
+    cdef int cs, nchunk, nchunk2, nrow, nrows, nbounds, rvrow
+    cdef int *rbufst, *rbufln
+    cdef int start, stop, nslice, tlen, len, bread, bcache
+    # Variables with specific type
+    cdef long long *rbufbc, *rbuflb, *rbufrv
+    cdef long long item1_st, item2_st
+
+    cs = self.chunksize
+    nrows = self.nrows
+    nbounds = self.nbounds
+    nslice = self.nelemslice
+    bcache = self.bcache
+    tlen = 0
+    rbufst = <int *>self.rbufst
+    rbufln = <int *>self.rbufln
+    rbuflb = <long long *>self.rbuflb   # specific type
+    rbufrv = <long long *>self.rbufrv   # specific type
+    for nrow from 0 <= nrow < nrows:
+      rvrow = nrow*2
+      bread = 0
+      if item1 > rbufrv[rvrow]:
+        if item1 <= rbufrv[rvrow+1]:
+          # Get the bounds row
+          if bcache:
+            rbufbc = <long long *>self.rbufbc + nrow*nbounds  # specific type
+          else:
+            # Bounds is not in cache. Read the appropriate row.
+            self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
+            rbufbc = <long long *>self.rbufbc  # specific type
+          # PyLong_AsLongLong do accept other values than ints as well
+          item1_st = <long long>PyLong_AsLongLong(item1)  # specific type
+          bread = 1
+          nchunk = bisect_left_ll(rbufbc, item1_st, nbounds, 0)
+          H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
+                                       self.mem_space_id, self.type_id,
+                                       nrow, cs*nchunk, cs*(nchunk+1),
+                                      self.rbuflb)
+          start = bisect_left_ll(rbuflb, item1_st, cs, 0) + cs*nchunk
+        else:
+          start = nslice
+      else:
+        start = 0
+
+      if item2 >= rbufrv[rvrow]:
+        if item2 < rbufrv[rvrow+1]:
+          if not bread:
+            if bcache:
+              rbufbc = <long long *>self.rbufbc + nrow*nbounds  # specific type
+            else:
+              # Bounds is not in cache. Read the appropriate row.
+              self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
+              rbufbc = <long long *>self.rbufbc  # specific type
+          item2_st = <long long>PyLong_AsLongLong(item2)  # specific type
+          nchunk2 = bisect_right_ll(rbufbc, item2_st, nbounds, 0)
+          if nchunk2 <> nchunk:
+            H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
+                                         self.mem_space_id, self.type_id,
+                                         nrow, cs*nchunk2, cs*(nchunk2+1),
+                                         self.rbuflb)
+          stop = bisect_right_ll(rbuflb, item2_st, cs, 0) + cs*nchunk2
+        else:
+          stop = nslice
+      else:
+        stop = 0
+      rbufst[nrow] = start
+      len = stop - start
+      rbufln[nrow] = len
+      tlen = tlen + len
+    return tlen
+
 
   # Optimized version for values of any type
   def _searchBinNA(self, item1, item2):

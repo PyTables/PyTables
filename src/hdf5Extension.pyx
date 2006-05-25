@@ -45,7 +45,7 @@ from tables.utilsExtension import  \
      naEnumToNAType, naTypeToNAEnum
 
 from definitions cimport import_libnumarray, NA_getBufferPtrAndSize, \
-     Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS
+     Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, PyString_AsString
 
 
 __version__ = "$Revision$"
@@ -88,40 +88,6 @@ cdef extern from "string.h":
   int strcmp(char *s1, char *s2)
   char *strdup(char *s)
   void *memcpy(void *dest, void *src, size_t n)
-
-# Some helper routines from the Python API
-cdef extern from "Python.h":
-
-  # references
-  void Py_INCREF(object)
-  void Py_DECREF(object)
-
-  # To access tuples
-  object PyTuple_New(int)
-  int PyTuple_SetItem(object, int, object)
-  object PyTuple_GetItem(object, int)
-  int PyTuple_Size(object tuple)
-
-  # To access integers
-  object PyInt_FromLong(long)
-  long PyInt_AsLong(object)
-  object PyLong_FromLongLong(long long)
-
-  # To access double
-  object PyFloat_FromDouble(double)
-
-  # To access strings
-  object PyString_FromStringAndSize(char *s, int len)
-  char *PyString_AsString(object string)
-  object PyString_FromString(char *)
-
-  # To access to Memory (Buffer) objects presents in numarray
-  object PyBuffer_FromMemory(void *ptr, int size)
-  object PyBuffer_FromReadWriteMemory(void *ptr, int size)
-  object PyBuffer_New(int size)
-  int PyObject_CheckReadBuffer(object)
-  int PyObject_AsReadBuffer(object, void **rbuf, int *len)
-  int PyObject_AsWriteBuffer(object, void **rbuf, int *len)
 
 # Structs and functions from numarray
 cdef extern from "numarray/numarray.h":
