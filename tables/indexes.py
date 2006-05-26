@@ -42,6 +42,10 @@ import numarray.records as records
 from bisect import bisect_left, bisect_right
 from time import time
 
+
+# The minimum row number in a column that can be indexed in tests
+minRowIndex = 10
+
 def calcChunksize(expectedrows, testmode=0):
     """Calculate the HDF5 chunk size for index and sorted arrays.
 
@@ -53,22 +57,23 @@ def calcChunksize(expectedrows, testmode=0):
 
     """
 
-    expKrows = expectedrows / 1000000.  # Multiples of one million
     if testmode:
-        if expKrows < 0.0001: # expected rows < 1 hundred
-            nelemslice = 10  # > 1/100th
+        if expectedrows < minRowIndex*10:
+            nelemslice = 10
             chunksize = 5
-        elif expKrows < 0.001: # expected rows < 1 thousand
-            nelemslice = 100  # > 1/10th
+        elif expectedrows < minRowIndex*100:
+            nelemslice = 100
             chunksize = 50
-        elif expKrows <= 0.01: # expected rows < 10 thousand
-            nelemslice = 1000  # > 1/100th
-            chunksize = 500
+        elif expectedrows <= minRowIndex*1000:
+            nelemslice = 1000
+            chunksize = 600
         else:
             raise ValueError, \
-                  "expected rows cannot be larger than 10000 in test mode"
+"expected rows cannot be larger than %s in test mode" % minRowIndex*1000
+        #print "nelemslice, chunksize:", (nelemslice, chunksize)
         return (nelemslice, chunksize)
 
+    expKrows = expectedrows / 1000000.  # Multiples of one million
     #print "expKrows:", expKrows
 
     # Hint: the nelemslice should not pass 500 or 1000 thousand
@@ -476,7 +481,11 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         # Finally, do a lookup for item1 and item2 if they were not found
         # Lookup in the middle of slice for item1
         chunksize = self.chunksize # Number of elements/chunksize
-        bounds = self._v_parent.boundscache[nrow]
+        nchunk = -1
+        if self.bcache:
+            bounds = self.boundscache[nrow]
+        else:
+            bounds = self._v_parent.bounds[nrow]
         if result1 < 0:
             # Search the appropriate chunk in bounds cache
             nchunk = bisect_left(bounds, item1)
@@ -489,10 +498,10 @@ class IndexArray(EArray, indexesExtension.IndexArray):
             # Search the appropriate chunk in bounds cache
             nchunk2 = bisect_right(bounds, item2)
             if nchunk2 <> nchunk:
-                chunk = self._readSortedSlice(nrow, chunksize*nchunk,
-                                              chunksize*(nchunk+1))
+                chunk = self._readSortedSlice(nrow, chunksize*nchunk2,
+                                              chunksize*(nchunk2+1))
             result2 = self._bisect_right(chunk, item2, chunksize)
-            result2 += chunksize*nchunk
+            result2 += chunksize*nchunk2
         return (result1, result2)
 
 

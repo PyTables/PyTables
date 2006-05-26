@@ -34,7 +34,7 @@ Deprecated features
 API refinements
 ===============
 
-- None
+- Table.getWhereList() has received a new `sort` parameter.
 
 
 Bug fixes (affecting API)

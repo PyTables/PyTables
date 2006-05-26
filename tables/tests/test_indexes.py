@@ -6,7 +6,7 @@ import sys
 
 from tables import *
 from tables.Index import Index
-from tables.IndexArray import calcChunksize, minRowIndex
+from tables.indexes import calcChunksize, minRowIndex
 from common import verbose, allequal, heavy, cleanup
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
@@ -195,14 +195,14 @@ class BasicTestCase(unittest.TestCase):
         # Open the HDF5 file in read-only mode
         self.fileh = openFile(self.file, mode = "r")
         table = self.fileh.root.table
-        idxcol = table.cols.var4.index
+        idxcol = table.cols.var2.index
         if verbose:
             print "Max rows in buf:", table._v_maxTuples
             print "Number of elements per slice:", idxcol.nelemslice
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        rowList1 = table.getWhereList(table.cols.var2 == 0, "numarray")
+        rowList1 = table.getWhereList(table.cols.var2 == 0, "numarray", True)
         rowList2 = [p.nrow for p in table if p['var2'] == 0]
         # Convert to a numarray object
         rowList2 = numarray.array(rowList2, numarray.Int64)
@@ -229,7 +229,7 @@ class BasicTestCase(unittest.TestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        rowList1 = table.getWhereList(table.cols.var3 < 15, "python")
+        rowList1 = table.getWhereList(table.cols.var3 < 15, "python", True)
         rowList2 = [p.nrow for p in table if p["var3"] < 15]
         if verbose:
             print "Selected values:", rowList1
@@ -254,7 +254,7 @@ class BasicTestCase(unittest.TestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        rowList1 = table.getWhereList(table.cols.var4 < 10, "python")
+        rowList1 = table.getWhereList(table.cols.var4 < 10, "python", True)
         rowList2 = [p.nrow for p in table if p['var4'] < 10]
         if verbose:
             print "Selected values:", rowList1
@@ -1460,6 +1460,7 @@ def suite():
     niter = 1
     #heavy = 1  # Uncomment this only for testing purposes!
 
+#     theSuite.addTest(unittest.makeSuite(BasicReadTestCase))
 #     theSuite.addTest(unittest.makeSuite(AI5TestCase))
 #     theSuite.addTest(unittest.makeSuite(AI6TestCase))
     for n in range(niter):

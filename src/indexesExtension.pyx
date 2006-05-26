@@ -566,13 +566,12 @@ cdef class IndexArray(Array):
     return tlen
 
   # Optimized version for ints
-  def _searchBinNA_i(self, object item1, object item2):
+  def _searchBinNA_i(self, int item1, int item2):
     cdef int cs, nchunk, nchunk2, nrow, nrows, nbounds, rvrow
     cdef int *rbufst, *rbufln
     cdef int start, stop, nslice, tlen, len, bread, bcache
     # Variables with specific type
     cdef int *rbufbc, *rbuflb, *rbufrv
-    cdef int item1_i, item2_i
 
     cs = self.chunksize
     nrows = self.nrows
@@ -596,15 +595,13 @@ cdef class IndexArray(Array):
             # Bounds is not in cache. Read the appropriate row.
             self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
             rbufbc = <int *>self.rbufbc  # specific type
-          # PyInt_AsLong do accept other values than ints as well
-          item1_i = <int>PyInt_AsLong(item1)
           bread = 1
-          nchunk = bisect_left_i(rbufbc, item1_i, nbounds, 0)
+          nchunk = bisect_left_i(rbufbc, item1, nbounds, 0)
           H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
                                        self.mem_space_id, self.type_id,
                                        nrow, cs*nchunk, cs*(nchunk+1),
                                        self.rbuflb)
-          start = bisect_left_i(rbuflb, item1_i, cs, 0) + cs*nchunk
+          start = bisect_left_i(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = nslice
       else:
@@ -619,14 +616,13 @@ cdef class IndexArray(Array):
               # Bounds is not in cache. Read the appropriate row.
               self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
               rbufbc = <int *>self.rbufbc  # specific type
-          item2_i = <int>PyInt_AsLong(item2)
-          nchunk2 = bisect_right_i(rbufbc, item2_i, nbounds, 0)
+          nchunk2 = bisect_right_i(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
                                          self.mem_space_id, self.type_id,
                                          nrow, cs*nchunk2, cs*(nchunk2+1),
                                          self.rbuflb)
-          stop = bisect_right_i(rbuflb, item2_i, cs, 0) + cs*nchunk2
+          stop = bisect_right_i(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = nslice
       else:
@@ -760,8 +756,8 @@ cdef class IndexArray(Array):
     return tlen
 
 
-  # Optimized version for values of any type
-  def _searchBinNA(self, item1, item2):
+  # Vectorial version for values of any type. It doesn't seem to work well though :-(
+  def _searchBinNA_vec(self, item1, item2):
     cdef int cs, nbounds, nchunk, nchunk2, nrow, nrows, stride1
     cdef object boundscache, ibounds, chunk
     cdef int *rbufst, *rbufln

@@ -6867,7 +6867,7 @@ for p in rout.where(rout.cols.pressure &lt; 16):
 	    </subsubsection>
 
 	    <subsubsection id="getWhereListTableDescr">
-	      <heading>getWhereList(condition, flavor=None)</heading>
+	      <heading>getWhereList(condition, flavor=None, sort=False)</heading>
 
 	      <p>Get the row coordinates that fulfill the
 		<em>condition</em> parameter. This method will take
@@ -6880,6 +6880,10 @@ for p in rout.where(rout.cols.pressure &lt; 16):
 		<verb>"python"</verb> values. The default is returning
 		an object of the same flavor than
 		<verb>self.flavor</verb>.
+	      </p>
+
+	      <p><em>sort</em> means that you want to retrieve the
+		coordinates ordered.  The default is to not sort them.
 	      </p>
 
 	    </subsubsection>

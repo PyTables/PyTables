@@ -34,11 +34,12 @@ import bisect
 from time import time, clock
 
 import numarray
+from numarray import strings
 
 import tables.indexesExtension as indexesExtension
 import tables.utilsExtension as utilsExtension
 from tables.AttributeSet import AttributeSet
-from tables.Atom import Atom
+from tables.Atom import Atom, StringAtom
 from tables.Leaf import Filters
 from tables.indexes import CacheArray, LastRowArray, IndexArray
 from tables.Group import Group
@@ -108,15 +109,17 @@ infinityFloating = {"Float32": [-infinityF, infinityF],
 def infType(type, itemsize, sign=0):
     """Return a superior limit for maximum representable data type"""
 
-    if isinstance(numarray.typeDict[type], numarray.FloatingType):
-        return infinityFloating[type][1+sign]
-    elif isinstance(numarray.typeDict[type], numarray.IntegralType):
-        return infinityIntegral[type][1+sign]
-    else:
+    if str(type) == "CharType":
         if sign:
             return "\x00"*itemsize
         else:
             return "\xff"*itemsize
+    elif isinstance(numarray.typeDict[type], numarray.FloatingType):
+        return infinityFloating[type][1+sign]
+    elif isinstance(numarray.typeDict[type], numarray.IntegralType):
+        return infinityIntegral[type][1+sign]
+    else:
+        raise TypeError, "Type %s is not supported" % type
 
 # This check does not work for Python 2.2.x or 2.3.x (!)
 def IsNaN(x):
@@ -525,7 +528,7 @@ class Index(indexesExtension.Index, Group):
         if str(self.type) == "CharType":
             atom = StringAtom(shape=(0, nbounds),
                               length=self.itemsize,
-                              flavor="CharArray")
+                              flavor="numarray")
         else:
             atom = Atom(self.type, shape=(0, nbounds))
         CacheArray(self, 'bounds', atom, "Boundary Values",
@@ -620,6 +623,7 @@ class Index(indexesExtension.Index, Group):
         nslice = self.nelemslice
         tlen = 0
         for nrow in xrange(self.sorted.nrows):
+            nchunk = -1
             if self.sorted.bcache:
                 ibounds = self.sorted.boundscache[nrow]
             else:
@@ -631,8 +635,7 @@ class Index(indexesExtension.Index, Group):
                 nchunk = self.sorted._bisect_left(ibounds, item1, nbounds)
                 chunk = self.sorted._readSortedSlice(nrow, cs*nchunk,
                                                      cs*(nchunk+1))
-                start = self.sorted._bisect_left(chunk, item1, cs) + \
-                                                 cs*nchunk
+                start = self.sorted._bisect_left(chunk, item1, cs) + cs*nchunk
             if stop == 0:
                 #nchunk2 = bisect.bisect_right(ibounds, item2)
                 nchunk2 = self.sorted._bisect_right(ibounds, item2, nbounds)
@@ -640,8 +643,7 @@ class Index(indexesExtension.Index, Group):
                     # The chunk for item2 is different. Read the new chunk.
                     chunk = self.sorted._readSortedSlice(nrow, cs*nchunk2,
                                                          cs*(nchunk2+1))
-                stop = self.sorted._bisect_right(chunk, item2, cs) + \
-                                                 cs*nchunk2
+                stop = self.sorted._bisect_right(chunk, item2, cs) + cs*nchunk2
             self.starts[nrow] = start
             len = stop - start
             self.lengths[nrow] = len
@@ -667,10 +669,9 @@ class Index(indexesExtension.Index, Group):
         #t1 = time(); tcpu1 = clock()
         if str(self.type) == "CharType":
             return self.search_scalar(item)
-        #self._idx_version = "std"  # uncomment this for test speed comparisons
         # Do the lookup for values fullfilling the conditions
         if self.sorted.nrows > 0:
-            if self._idx_version >= "pro":
+            if self._idx_version == "pro":
                 tlen = self.search_pro(item)
             else:
                 tlen = self.search_std(item)
@@ -703,7 +704,6 @@ class Index(indexesExtension.Index, Group):
             # The next are optimizations. However, they hides the
             # CPU functions consumptions from python profiles
             # Activate only after development is done.
-            tlen = self.sorted._searchBinNA(item1, item2)
             if self.type == "Float64":
                 # Both vectorial and scalar versions perform similar
                 tlen = self.sorted._searchBinNA_d(item1, item2)
@@ -717,7 +717,8 @@ class Index(indexesExtension.Index, Group):
                 tlen = self.sorted._searchBinNA_ll(item1, item2)
                 # tlen = self.sorted._searchBinNA_ll_vec(item1, item2)
             else:
-                tlen = self.sorted._searchBinNA(item1, item2)
+                #tlen = self.sorted._searchBinNA(item1, item2)
+                tlen = self.search_scalar(item)
         t = time()-t1
         print "time searching indices (pro-main):", round(t*1000, 3), "ms"
         return tlen
@@ -740,11 +741,9 @@ class Index(indexesExtension.Index, Group):
     # This is an scalar version of search. It works well with strings as well.
     def search_scalar(self, item):
         """Do a binary search in this index for an item."""
-        t1=time()
         tlen = 0
-        #self._idx_version = "std"  # just for test speed comparisons
         # Do the lookup for values fullfilling the conditions
-        if self._idx_version >= "pro":
+        if self._idx_version == "pro":
             self.sorted._initSortedSlice(pro=1)
             for i in xrange(self.sorted.nrows):
                 (start, stop) = self.sorted._searchBin(i, item)
@@ -754,12 +753,11 @@ class Index(indexesExtension.Index, Group):
         else:
             self.sorted._initSortedSlice()
             for i in xrange(self.sorted.nrows):
-                (start, stop) = self.sorted._searchBin1_0(i, item)
+                (start, stop) = self.sorted._searchBinStd(i, item)
                 self.starts[i] = start
                 self.lengths[i] = stop - start
                 tlen += stop - start
-        self.sorted._destroySortedSlice()
-        if self._idx_version >= "pro" and self.nelementsLR > 0:
+        if self._idx_version == "pro" and self.nelementsLR > 0:
             # Look for more indexes in the last row
             (start, stop) = self._searchBinLastRow(item)
             self.starts[-1] = start
@@ -883,7 +881,7 @@ class Index(indexesExtension.Index, Group):
         # Some careful tests must be carried out in order to do that
         selections = self.indices.arrAbs[:relCoords]
         # Preliminary results seems to show that sorting is not an advantage!
-        #selections = numarray.sort(self.indices.arrAbs[:relCoords])
+        #selections = numarray.sort(self.indices.arrAbs[:relCoords)]
         #t = time()-t1
         #print "time getting coords:",  round(t*1000, 3), "ms"
         return selections
@@ -966,7 +964,7 @@ class Index(indexesExtension.Index, Group):
                 len1 += 1
 
         # Get possible values in last slice
-        if (self._idx_version >= "pro" and self.nelementsLR > 0
+        if (self._idx_version == "pro" and self.nelementsLR > 0
             and self.lengths[idc.nrows] > 0):
             # Get indices for last row
             irow = idc.nrows
@@ -1106,7 +1104,7 @@ val1 must be less or equal than val2""")
                      self.sorted.type, self.nelements, self.shape,
                      self.sorted.chunksize, self.sorted.byteorder,
                      self.filters, self.dirty, self.sorted, self.indices)
-        if self._idx_version >= "pro":
+        if self._idx_version == "pro":
             retstr += "\n  ranges := %s" % self.ranges
             retstr += "\n  bounds := %s" % self.bounds
             retstr += "\n  sortedLR := %s" % self.sortedLR

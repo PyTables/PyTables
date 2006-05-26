@@ -954,7 +954,7 @@ please reindex the table to put the index in a sane state""")
         return nrows
 
 
-    def getWhereList(self, condition, flavor=None):
+    def getWhereList(self, condition, flavor=None, sort=False):
         """Get the row coordinates that fulfill the `condition` param
 
         `condition` can be used to specify selections along a column
@@ -966,6 +966,9 @@ please reindex the table to put the index in a sane state""")
         the 'numarray', 'numpy', 'numeric' or 'python' values.  If
         `flavor` is not provided, then it will take the value of
         self.flavor.
+
+        `sort` means that you want to retrieve the coordinates ordered.  The
+        default is to not sort them.
 
         """
 
@@ -985,11 +988,6 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
             # get the number of coords and set-up internal variables
             ncoords = condition.index.getLookupRange(condition)
             if ncoords > 0:
-                # get the coordinates that passes the selection cuts
-                # coords = condition.index.getCoords(0, ncoords)
-                #coords = condition.index.getCoords_sparse(ncoords)
-                # The two optimized functions are behind
-                # coords = condition.index.indices._getCoords(0, ncoords)
                 coords = condition.index.indices._getCoords_sparse(ncoords)
             else:
                 coords = numarray.array(None, type=numarray.Int64, shape=0)
@@ -997,7 +995,7 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
                 # get the remaining rows from the table
                 start = condition.index.nelements
                 if start < self.nrows:
-                    remainCoords = [p.nrow() for p in self.whereInRange(
+                    remainCoords = [p.nrow for p in self._whereInRange(
                         condition, start, self.nrows)]
                     nremain = len(remainCoords)
                     # append the new values to the existing ones
@@ -1011,7 +1009,8 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
         self.opsValues = []
         self.opsColnames = []
         self.whereColname = None
-        # do some conversion (if needed)
+        if sort:
+            coords = numarray.sort(coords)
         if numpy_imported and flavor == "numpy":
             coords = numpy.asarray(coords)
         elif Numeric_imported and flavor == "numeric":
@@ -1023,10 +1022,11 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
     def itersequence(self, sequence, sort=False):
         """Iterate over a list of row coordinates.
 
-        sort means that sequence will be sorted so that I/O would
-        perform better. If your sequence is already sorted or you
-        don't want to sort it, put this parameter to 0. The default is
-        to do not sort the sequence.
+        `sort` means that sequence will be sorted so that I/O *might* perform
+        better. If your sequence is already sorted or you don't want to sort
+        it, put this parameter to 0. The default is to do not sort the
+        sequence.
+
         """
 
         if not hasattr(sequence, '__getitem__'):
