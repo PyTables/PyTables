@@ -760,7 +760,7 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
             raise NotImplementedError, "You cannot use in-kernel or indexed searches along multimensional columns. Use the regular table iterator for that."
 
         colindex = condition.index
-        if colindex and not condition.dirty and colindex.nelements > 0:
+        if (colindex and not condition.dirty and colindex.nelements > 0):
             # Call the indexed version method
             return self._whereIndexed(condition, start, stop, step)
         # Fall back to in-kernel selection method

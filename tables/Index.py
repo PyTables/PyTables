@@ -88,20 +88,35 @@ infinityF = math.ldexp(1.0, 128)
 # This one seems better
 testNaN = infinity - infinity
 
+# "infinity" for integral types
+infinityIntegral = {"Int8": [-2**7, 2**7-1],
+                    "UInt8": [0, 2**8-1],
+                    "Int16": [-2**15, 2**15-1],
+                    "UInt16": [0, 2**16-1],
+                    "Int32": [-2**31, 2**31-1],
+                    "UInt32": [0, 2**32-1],
+                    "Int64": [-2**63, 2**63-1],
+                    "UInt64": [0, 2**64-1]
+                    }
+
+# "infinity" for real types
+infinityFloating = {"Float32": [-infinityF, infinityF],
+                    "Float64": [-infinity, infinity],
+                    }
+
 # Utility functions
 def infType(type, itemsize, sign=0):
     """Return a superior limit for maximum representable data type"""
-    if str(type) != "CharType":
-        if sign:
-            return -infinity
-        else:
-            return infinity
+
+    if isinstance(numarray.typeDict[type], numarray.FloatingType):
+        return infinityFloating[type][1+sign]
+    elif isinstance(numarray.typeDict[type], numarray.IntegralType):
+        return infinityIntegral[type][1+sign]
     else:
         if sign:
             return "\x00"*itemsize
         else:
             return "\xff"*itemsize
-
 
 # This check does not work for Python 2.2.x or 2.3.x (!)
 def IsNaN(x):
@@ -227,31 +242,47 @@ def CharTypeNextAfter(x, direction, itemsize):
     return "".join(xlist)
 
 
-def nextafter(x, direction, type, itemsize):
+def IntTypeNextAfter(x, direction, itemsize):
+    "Return the next representable neighbor of x in the appropriate direction."
+
+    # x is guaranteed to be either an int or a float
+    if direction < 0:
+        if type(x) is int:
+            return x-1
+        else:
+            return int(PyNextAfter(x,x-1))
+    else:
+        if type(x) is int:
+            return x+1
+        else:
+            return int(PyNextAfter(x,x+1))+1
+
+
+def nextafter(x, direction, dtype, itemsize):
     "Return the next representable neighbor of x in the appropriate direction."
 
     if direction == 0:
         return x
 
-    if str(type) == "CharType":
+    if str(dtype) == "CharType":
         return CharTypeNextAfter(x, direction, itemsize)
-    elif isinstance(numarray.typeDict[type], numarray.IntegralType):
-        if direction < 0:
-            return x-1
-        else:
-            return x+1
-    elif str(type) == "Float32":
-        if direction < 0:
-            return PyNextAfterF(x,x-1)
-        else:
-            return PyNextAfterF(x,x+1)
-    elif str(type) == "Float64":
-        if direction < 0:
-            return PyNextAfter(x,x-1)
-        else:
-            return PyNextAfter(x,x+1)
     else:
-        raise TypeError, "Type %s is not supported" % type
+        if type(x) not in (int, float):
+            raise ValueError, "You need to pass integers or floats in this context."
+        if isinstance(numarray.typeDict[dtype], numarray.IntegralType):
+            return IntTypeNextAfter(x, direction, itemsize)
+        elif str(dtype) == "Float32":
+            if direction < 0:
+                return PyNextAfterF(x,x-1)
+            else:
+                return PyNextAfterF(x,x+1)
+        elif str(dtype) == "Float64":
+            if direction < 0:
+                return PyNextAfter(x,x-1)
+            else:
+                return PyNextAfter(x,x+1)
+        else:
+            raise TypeError, "Type %s is not supported" % type
 
 
 class IndexProps(object):
@@ -631,65 +662,84 @@ class Index(indexesExtension.Index, Group):
     # While this is not a bug (see the padding policy for chararrays)
     # I think it would be much better to use '\0x00' as default padding
     #
-    #def search_vec(self, item):
     def search(self, item):
         """Do a binary search in this index for an item"""
-        t1 = time(); tcpu1 = clock()
+        #t1 = time(); tcpu1 = clock()
         if str(self.type) == "CharType":
-            return self.search_original(item)
-        item1, item2 = item
+            return self.search_scalar(item)
         #self._idx_version = "std"  # uncomment this for test speed comparisons
         # Do the lookup for values fullfilling the conditions
-        if self._idx_version >= "pro":
-            self.sorted._initSortedSlice(pro=1)
-            # XXX Intentar tornar a activar l'optimitzacio
-            if 0:
-                tlen = self.searchBinNA(item1, item2)
-                #tlen = self.sorted._searchBinNA(item1, item2)
+        if self.sorted.nrows > 0:
+            if self._idx_version >= "pro":
+                tlen = self.search_pro(item)
             else:
-                # The next are optimizations. However, they hides the
-                # CPU functions consumptions from python profiles
-                # Activate only after development is done.
-                tlen = self.sorted._searchBinNA(item1, item2)
-                if self.type == "Float64":
-                    # Both vectorial and scalar versions perform similar
-                    tlen = self.sorted._searchBinNA_d(item1, item2)
-                    # tlen = self.sorted._searchBinNA_d_vec(item1, item2)
-                elif self.type == "Int32":
-                    # Buth vectorial and scalar versions perform similar
-                    tlen = self.sorted._searchBinNA_i(item1, item2)
-                    # tlen = self.sorted._searchBinNA_i_vec(item1, item2)
-                elif self.type == "Int64":
-                    # Buth vectorial and scalar versions perform similar
-                    print "item1, item2-->", item1, item2
-                    tlen = self.sorted._searchBinNA_ll(item1, item2)
-                    # tlen = self.sorted._searchBinNA_ll_vec(item1, item2)
-                else:
-                    tlen = self.sorted._searchBinNA(item1, item2)
+                tlen = self.search_std(item)
         else:
-            self.sorted._initSortedSlice()
-            for i in xrange(self.sorted.nrows):
-                (start, stop) = self.sorted._searchBin1_0(i, item)
-                self.starts[i] = start
-                self.lengths[i] = stop - start
-            tlen = numarray.sum(self.lengths)
-        if self._idx_version >= "pro" and self.nelementsLR:
+            tlen = 0
+        if self._idx_version == "pro" and self.nelementsLR > 0:
             # Look for more indexes in the last row
             (start, stop) = self._searchBinLastRow(item)
             self.starts[-1] = start
             self.lengths[-1] = stop - start
             tlen += stop - start
-        t = time()-t1
-        print "time searching indices (regular):", round(t*1000, 3), "ms"
+        #t = time()-t1
+        #print "time searching indices (regular):", round(t*1000, 3), "ms"
         # CPU time not significant (problems with time slice)
         #print round((clock()-tcpu1)*1000*1000, 3), "us"
         return tlen
 
 
+    def search_pro(self, item):
+        """Do a binary search in this index for an item. pro version."""
+
+        t1 = time()
+        item1, item2 = item
+        self.sorted._initSortedSlice(pro=1)
+        # XXX Intentar tornar a activar l'optimitzacio
+        if 0:
+            tlen = self.searchBinNA(item1, item2)
+            #tlen = self.sorted._searchBinNA(item1, item2)
+        else:
+            # The next are optimizations. However, they hides the
+            # CPU functions consumptions from python profiles
+            # Activate only after development is done.
+            tlen = self.sorted._searchBinNA(item1, item2)
+            if self.type == "Float64":
+                # Both vectorial and scalar versions perform similar
+                tlen = self.sorted._searchBinNA_d(item1, item2)
+                # tlen = self.sorted._searchBinNA_d_vec(item1, item2)
+            elif self.type == "Int32":
+                # Buth vectorial and scalar versions perform similar
+                tlen = self.sorted._searchBinNA_i(item1, item2)
+                # tlen = self.sorted._searchBinNA_i_vec(item1, item2)
+            elif self.type == "Int64":
+                # Buth vectorial and scalar versions perform similar
+                tlen = self.sorted._searchBinNA_ll(item1, item2)
+                # tlen = self.sorted._searchBinNA_ll_vec(item1, item2)
+            else:
+                tlen = self.sorted._searchBinNA(item1, item2)
+        t = time()-t1
+        print "time searching indices (pro-main):", round(t*1000, 3), "ms"
+        return tlen
+
+
+    def search_std(self, item):
+        """Do a binary search in this index for an item. std version."""
+
+        t1 = time()
+        self.sorted._initSortedSlice()
+        for i in xrange(self.sorted.nrows):
+            (start, stop) = self.sorted._searchBinStd(i, item)
+            self.starts[i] = start
+            self.lengths[i] = stop - start
+        t = time()-t1
+        print "time searching indices (std-main):", round(t*1000, 3), "ms"
+        return numarray.sum(self.lengths)
+
+
     # This is an scalar version of search. It works well with strings as well.
-    def search_original(self, item):
-    #def search(self, item):
-        """Do a binary search in this index for an item"""
+    def search_scalar(self, item):
+        """Do a binary search in this index for an item."""
         t1=time()
         tlen = 0
         #self._idx_version = "std"  # just for test speed comparisons
@@ -749,9 +799,10 @@ class Index(indexesExtension.Index, Group):
         if item1done and item2done:
             return (result1, result2)
         # Finally, do a lookup for item1 and item2 if they were not found
-        # Lookup in the middle of slice for item1
+        # Lookup in the middle of the slice for item1
         bounds = bebounds[1:-1] # Get the bounds array w/out begin and end
         nbounds = len(bebounds)
+        self.sorted._initSortedSlice(pro=1)
         readSliceLR = self.sortedLR._readSortedSlice
         nchunk = -1
         if not item1done:
@@ -766,7 +817,7 @@ class Index(indexesExtension.Index, Group):
                 hi2 = len(chunk)
             result1 = bisect.bisect_left(chunk, item1, hi=hi2)
             result1 += self.chunksize*nchunk
-        # Lookup in the middle of slice for item2
+        # Lookup in the middle of the slice for item2
         if not item2done:
             # Search the appropriate chunk in bounds cache
             nchunk2 = bisect.bisect_right(bounds, item2)

@@ -579,7 +579,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
     # This version of searchBin does not use caches (1st or 2nd) at all
     # This is coded in pyrex as well, but the improvement in speed is very
     # little. So, it's better to let _searchBin live here.
-    def _searchBin1_0(self, nrow, item):
+    def _searchBinStd(self, nrow, item):
         nelemslice = self.shape[1]
         hi = nelemslice
         item1, item2 = item

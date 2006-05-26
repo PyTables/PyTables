@@ -692,13 +692,12 @@ cdef class IndexArray(Array):
 
 
   # Optimized version for long long
-  def _searchBinNA_ll(self, object item1, object item2):
+  def _searchBinNA_ll(self, long long item1, long long item2):
     cdef int cs, nchunk, nchunk2, nrow, nrows, nbounds, rvrow
     cdef int *rbufst, *rbufln
     cdef int start, stop, nslice, tlen, len, bread, bcache
     # Variables with specific type
     cdef long long *rbufbc, *rbuflb, *rbufrv
-    cdef long long item1_st, item2_st
 
     cs = self.chunksize
     nrows = self.nrows
@@ -722,15 +721,13 @@ cdef class IndexArray(Array):
             # Bounds is not in cache. Read the appropriate row.
             self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
             rbufbc = <long long *>self.rbufbc  # specific type
-          # PyLong_AsLongLong do accept other values than ints as well
-          item1_st = <long long>PyLong_AsLongLong(item1)  # specific type
           bread = 1
-          nchunk = bisect_left_ll(rbufbc, item1_st, nbounds, 0)
+          nchunk = bisect_left_ll(rbufbc, item1, nbounds, 0)
           H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
                                        self.mem_space_id, self.type_id,
                                        nrow, cs*nchunk, cs*(nchunk+1),
                                       self.rbuflb)
-          start = bisect_left_ll(rbuflb, item1_st, cs, 0) + cs*nchunk
+          start = bisect_left_ll(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = nslice
       else:
@@ -745,14 +742,13 @@ cdef class IndexArray(Array):
               # Bounds is not in cache. Read the appropriate row.
               self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
               rbufbc = <long long *>self.rbufbc  # specific type
-          item2_st = <long long>PyLong_AsLongLong(item2)  # specific type
-          nchunk2 = bisect_right_ll(rbufbc, item2_st, nbounds, 0)
+          nchunk2 = bisect_right_ll(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
                                          self.mem_space_id, self.type_id,
                                          nrow, cs*nchunk2, cs*(nchunk2+1),
                                          self.rbuflb)
-          stop = bisect_right_ll(rbuflb, item2_st, cs, 0) + cs*nchunk2
+          stop = bisect_right_ll(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = nslice
       else:
