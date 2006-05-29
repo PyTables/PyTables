@@ -124,7 +124,8 @@ def createFile(filename, nrows, filters, index, heavy, auto, noise, verbose):
 #           var1[:] = str(var2)[:4]
         else:
             var1[:] = "Hi !"
-        table.append([var3*var3, var2, var1])
+        #table.append([var3*var3, var2, var1])
+        table.append([var3, var2, var1])
     table.flush()
     rowswritten += nrows
     time1 = time.time()-t1
@@ -299,7 +300,7 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
                            #for p in where(3. <= var3 < 5.)]
                            #for p in where(float(rnd) <= var3 < float(rnd+3))]
                            #for p in where(rnd <= var3 < rnd+3)]
-                           for p in where(rnd <= var3 < rnd+chunksize)]
+                           for p in where(rnd <= var3 < rnd+dselect)]
                            # for p in where(1000.-i <= var3 < 1000.+i)]
                            # for p in where(100*i <= var3 < 100*(i+1))]
                 #print "time for complete selection-->", time.time()-t1

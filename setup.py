@@ -504,7 +504,7 @@ interactively save and retrieve large amounts of data.
                                 extra_link_args = LFLAGS,
                                 ),
                        Extension("tables.indexesExtension",
-                                include_dirs = inc_dirs.append("src/"),
+                                include_dirs = inc_dirs,
                                 define_macros = def_macros,
                                 sources = [indexesExtension,
                                            "src/H5ARRAY-opt.c",

@@ -283,8 +283,10 @@ cdef class IndexArray(Array):
       self.bounds_ext = <CacheArray>index.bounds
       self.nbounds = index.bounds.shape[1]
       # Avoid loading too much data from second-level cache
-      #if self.nrows * self.nbounds < 10000 and 0:  # for testing purposes
-      if self.nrows * self.nbounds < 100000:
+      # If too much data is pre-loaded, this affects negatively to the
+      # first data selection.
+      #if self.nrows * self.nbounds < 100000:    # for testing purposes
+      if self.nrows * self.nbounds < 4000:
         self.boundscache = index.bounds[:]
         self.bcache = True
       else:
