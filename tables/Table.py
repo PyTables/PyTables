@@ -2395,7 +2395,7 @@ class Column(object):
     def _set_dirty(self, dirty):
         index = self.index
         # Only set the index column as dirty if it exists
-        if index:
+        if dirty and index:
             setattr(index._v_attrs,"DIRTY", dirty)
             self.index.indicesLR[-1] = 0
             self.index.nelementsLR = 0
