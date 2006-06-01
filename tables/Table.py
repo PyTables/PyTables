@@ -1746,10 +1746,39 @@ The 'names' parameter must be a list of strings.""")
                 if colindexed:
                     col = self.cols._f_col(colname)
                     if nrows > 0 and not col.dirty:
-                        rowsadded = col._addRowsToIndex(start, nrows, lastrow)
+                        rowsadded = self._addRowsToIndex(
+                            colname, start, nrows, lastrow )
             self._unsaved_indexedrows -= rowsadded
             self._indexedrows += rowsadded
         return rowsadded
+
+    def _addRowsToIndex(self, colname, start, nrows, lastrow):
+        """Add more elements to the existing index """
+
+        # This method really belongs in Column, but since it makes extensive
+        # use of the table, it gets dangerous when closing the file, since the
+        # column may be accessing a table which is being destroyed.
+        index = self.cols._f_col(colname).index
+        nelemslice = index.nelemslice
+        # The next loop does not rely on xrange so that it can
+        # deal with long ints (i.e. more than 32-bit integers)
+        # This allows to index columns with more than 2**31 rows
+        # F. Altet 2005-05-09
+        indexedrows = 0
+        i = start
+        stop = start+nrows-nelemslice+1
+        while i < stop:
+            index.append(self.read(start=i, stop=i+nelemslice, field=colname))
+            indexedrows += nelemslice
+            i += nelemslice
+        # index the remaining rows
+        nremain = nrows - indexedrows
+        if lastrow and nremain > 0 and index._idx_version == "pro":
+            index.appendLastRow(
+                self.read(start=indexedrows, stop=nrows, field=colname),
+                self.nrows )
+            indexedrows += nremain
+        return indexedrows
 
     def removeRows(self, start, stop=None):
         """Remove a range of rows.
@@ -2583,7 +2612,8 @@ Attempt to write over a file opened in read-only mode.""")
             return 0
         # Add rows to the index if necessary
         if table.nrows > 0:
-            indexedrows = self._addRowsToIndex(0, table.nrows, lastrow=True)
+            indexedrows = table._addRowsToIndex(
+                self.pathname, 0, table.nrows, lastrow=True )
         else:
             indexedrows = 0
         self.dirty = False
@@ -2595,29 +2625,6 @@ Attempt to write over a file opened in read-only mode.""")
             table.description, '_v_indexprops', IndexProps())
         table._indexedrows = indexedrows
         table._unsaved_indexedrows = table.nrows - indexedrows
-        return indexedrows
-
-    def _addRowsToIndex(self, start, nrows, lastrow=False):
-        """Add more elements to the existing index """
-
-        index = self.index
-        nelemslice = index.nelemslice
-        # The next loop does not rely on xrange so that it can
-        # deal with long ints (i.e. more than 32-bit integers)
-        # This allows to index columns with more than 2**31 rows
-        # F. Altet 2005-05-09
-        indexedrows = 0
-        i = start
-        stop = start+nrows-nelemslice+1
-        while i < stop:
-            index.append(self[i:i+nelemslice])
-            indexedrows += nelemslice
-            i += nelemslice
-        # index the remaining rows
-        nremain = nrows - indexedrows
-        if lastrow and nremain > 0 and index._idx_version == "pro":
-            self.index.appendLastRow(self[indexedrows:nrows], self.table.nrows)
-            indexedrows += nremain
         return indexedrows
 
     def reIndex(self):
