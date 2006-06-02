@@ -454,9 +454,11 @@ class Index(indexesExtension.Index, Group):
         """The number of slices in the sorted/indices objects."""
         self.nelements = 0
         """The number of indexed elements in this index."""
-        self.starts = None
+        # The starts and lengths are initialized so that they can keep
+        # info for last row procecessing at very least.
+        self.starts = numarray.array(None, shape=1, type = numarray.Int32)
         """Where the values fulfiling conditions starts for every slice."""
-        self.lengths = None
+        self.lengths = numarray.array(None, shape=1, type = numarray.Int32)
         """Lengths of the values fulfilling conditions for every slice."""
 
         self.cache = False   # no cache (ranges & bounds) is available initially
@@ -676,11 +678,6 @@ class Index(indexesExtension.Index, Group):
     def search(self, item):
         """Do a binary search in this index for an item"""
         #t1 = time(); tcpu1 = clock()
-        # (starts and lengths for interesting values along the slices)
-        self.starts = numarray.array(None, shape=self.nrows,
-                                     type = numarray.Int32)
-        self.lengths = numarray.array(None, shape=self.nrows,
-                                      type = numarray.Int32)
         if str(self.type) == "CharType":
             tlen = self.search_scalar(item)
         else:

@@ -195,6 +195,8 @@ cdef class IndexArray(Array):
       NA_getBufferPtrAndSize(self.arrRel._data, 1, &self.rbufR)
       NA_getBufferPtrAndSize(self.coords._data, 1, &self.rbufR2)
       NA_getBufferPtrAndSize(self.arrAbs._data, 1, &self.rbufA)
+      # Access starts and lengths in parent index.
+      # This sharing method should be improved.
       NA_getBufferPtrAndSize(self._v_parent.starts._data, 1, &self.rbufst)
       NA_getBufferPtrAndSize(self._v_parent.lengths._data, 1, &self.rbufln)
       # Initialize the index array for reading
@@ -262,7 +264,12 @@ cdef class IndexArray(Array):
       # Internal buffers
       # Get the pointers to the different buffer data areas
       NA_getBufferPtrAndSize(self.bufferl._data, 1, &self.rbuflb)
-      # self.starts and self.lengths are created in python space
+      # index.starts and index.lengths are assigned here for allow access
+      # from _initIndexSlice. I should find a better way to share them.
+      index.starts = numarray.array(None, shape=index.nrows,
+                                    type = numarray.Int32)
+      index.lengths = numarray.array(None, shape=index.nrows,
+                                     type = numarray.Int32)
       NA_getBufferPtrAndSize(index.starts._data, 1, &self.rbufst)
       NA_getBufferPtrAndSize(index.lengths._data, 1, &self.rbufln)
       # Init structures for accelerating sorted array reads
@@ -856,8 +863,6 @@ cdef class IndexArray(Array):
     cdef long long *rbufA, *rbufR2
 
     nrows = self.nrows
-    lengths = self._v_parent.lengths
-    starts = self._v_parent.starts
     # Initialize the index dataset
     self._initIndexSlice(ncoords)
     rbufR = <int *>self.rbufR

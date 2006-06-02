@@ -45,7 +45,8 @@ from tables.utilsExtension import  \
      naEnumToNAType, naTypeToNAEnum
 
 from definitions cimport import_libnumarray, NA_getBufferPtrAndSize, \
-     Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, PyString_AsString
+     Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, PyString_AsString, \
+     PyString_FromStringAndSize
 
 
 __version__ = "$Revision$"
