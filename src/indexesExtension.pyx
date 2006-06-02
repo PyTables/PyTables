@@ -455,6 +455,7 @@ cdef class IndexArray(Array):
     for nrow from 0 <= nrow < nrows:
       rvrow = nrow*2
       bread = 0
+      nchunk = -1
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row
@@ -514,58 +515,58 @@ cdef class IndexArray(Array):
       tlen = tlen + len
     return tlen
 
-  # Vectorial version. This is a bit slower, but perhaps gcc 4.x would be
-  # able to automatically paralelize this.
-  def _searchBinNA_d_vec(self, double item1, double item2):
-    cdef int cs, nchunk, nchunk2, nrow, nrows, nbounds, rvrow
-    cdef int *rbufst, *rbufln
-    cdef int start, stop, nslice, tlen, len, bcache
-    cdef double *rbufbc, *rbuflb, *rbufrv
+#   # Vectorial version. This is a bit slower, but perhaps gcc 4.x would be
+#   # able to automatically paralelize this.
+#   def _searchBinNA_d_vec(self, double item1, double item2):
+#     cdef int cs, nchunk, nchunk2, nrow, nrows, nbounds, rvrow
+#     cdef int *rbufst, *rbufln
+#     cdef int start, stop, nslice, tlen, len, bcache
+#     cdef double *rbufbc, *rbuflb, *rbufrv
 
-    cs = self.chunksize
-    nrows = self.nrows
-    nbounds = self.nbounds
-    nslice = self.nelemslice
-    bcache = self.bcache
-    tlen = 0
-    rbuflb = <double *>self.rbuflb
-    rbufrv = <double *>self.rbufrv
-    rbufst = <int *>self.rbufst
-    rbufln = <int *>self.rbufln
-    for nrow from 0 <= nrow < nrows:
-      rvrow = nrow*2
-      start = (item1 <= rbufrv[rvrow]) + (item1 > rbufrv[rvrow+1]) * nslice
-      stop  = (item2 < rbufrv[rvrow]) + (item2 >= rbufrv[rvrow+1]) * nslice
-      if start == 0 or stop == 0:
-        # Get the bounds row
-        if bcache:
-          rbufbc = <double *>self.rbufbc + nrow*nbounds
-        else:
-          # Bounds is not in cache. Read the appropriate row.
-          self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
-          rbufbc = <double *>self.rbufbc
-      if start == 0:
-        nchunk = bisect_left_d(rbufbc, item1, nbounds, 0)
-        # self._readSortedSlice(nrow, cs*nchunk, cs*(nchunk+1))
-        H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                     self.mem_space_id, self.type_id,
-                                     nrow, cs*nchunk, cs*(nchunk+1),
-                                     self.rbuflb)
-        start = bisect_left_d(rbuflb, item1, cs, 0) + cs*nchunk
-      if stop == 0:
-        nchunk2 = bisect_right_d(rbufbc, item2, nbounds, 0)
-        if nchunk2 <> nchunk:
-          # self._readSortedSlice(nrow, cs*nchunk2, cs*(nchunk2+1))
-          H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                       self.mem_space_id, self.type_id,
-                                       nrow, cs*nchunk2, cs*(nchunk2+1),
-                                       self.rbuflb)
-        stop = bisect_right_d(rbuflb, item2, cs, 0) + cs*nchunk2
-      rbufst[nrow] = start
-      len = stop - start
-      rbufln[nrow] = len
-      tlen = tlen + len
-    return tlen
+#     cs = self.chunksize
+#     nrows = self.nrows
+#     nbounds = self.nbounds
+#     nslice = self.nelemslice
+#     bcache = self.bcache
+#     tlen = 0
+#     rbuflb = <double *>self.rbuflb
+#     rbufrv = <double *>self.rbufrv
+#     rbufst = <int *>self.rbufst
+#     rbufln = <int *>self.rbufln
+#     for nrow from 0 <= nrow < nrows:
+#       rvrow = nrow*2
+#       start = (item1 <= rbufrv[rvrow]) + (item1 > rbufrv[rvrow+1]) * nslice
+#       stop  = (item2 < rbufrv[rvrow]) + (item2 >= rbufrv[rvrow+1]) * nslice
+#       if start == 0 or stop == 0:
+#         # Get the bounds row
+#         if bcache:
+#           rbufbc = <double *>self.rbufbc + nrow*nbounds
+#         else:
+#           # Bounds is not in cache. Read the appropriate row.
+#           self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
+#           rbufbc = <double *>self.rbufbc
+#       if start == 0:
+#         nchunk = bisect_left_d(rbufbc, item1, nbounds, 0)
+#         # self._readSortedSlice(nrow, cs*nchunk, cs*(nchunk+1))
+#         H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
+#                                      self.mem_space_id, self.type_id,
+#                                      nrow, cs*nchunk, cs*(nchunk+1),
+#                                      self.rbuflb)
+#         start = bisect_left_d(rbuflb, item1, cs, 0) + cs*nchunk
+#       if stop == 0:
+#         nchunk2 = bisect_right_d(rbufbc, item2, nbounds, 0)
+#         if nchunk2 <> nchunk:
+#           # self._readSortedSlice(nrow, cs*nchunk2, cs*(nchunk2+1))
+#           H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
+#                                        self.mem_space_id, self.type_id,
+#                                        nrow, cs*nchunk2, cs*(nchunk2+1),
+#                                        self.rbuflb)
+#         stop = bisect_right_d(rbuflb, item2, cs, 0) + cs*nchunk2
+#       rbufst[nrow] = start
+#       len = stop - start
+#       rbufln[nrow] = len
+#       tlen = tlen + len
+#     return tlen
 
   # Optimized version for ints
   def _searchBinNA_i(self, int item1, int item2):
@@ -588,6 +589,7 @@ cdef class IndexArray(Array):
     for nrow from 0 <= nrow < nrows:
       rvrow = nrow*2
       bread = 0
+      nchunk = -1
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row
@@ -635,58 +637,58 @@ cdef class IndexArray(Array):
       tlen = tlen + len
     return tlen
 
-  # Vectorial version. This is a bit slower, but perhaps gcc 4.x would be
-  # able to automatically paralelize this.
-  def _searchBinNA_i_vec(self, int item1, int item2):
-    cdef int cs, nchunk, nchunk2, nrow, nrows, nbounds, rvrow
-    cdef int *rbufst, *rbufln
-    cdef int *rbufbc, *rbuflb, *rbufrv
-    cdef int start, stop, nslice, tlen, len, bcache
+#   # Vectorial version. This is a bit slower, but perhaps gcc 4.x would be
+#   # able to automatically paralelize this.
+#   def _searchBinNA_i_vec(self, int item1, int item2):
+#     cdef int cs, nchunk, nchunk2, nrow, nrows, nbounds, rvrow
+#     cdef int *rbufst, *rbufln
+#     cdef int *rbufbc, *rbuflb, *rbufrv
+#     cdef int start, stop, nslice, tlen, len, bcache
 
-    cs = self.chunksize
-    nrows = self.nrows
-    nbounds = self.nbounds
-    bcache = self.bcache
-    nslice = self.nelemslice
-    tlen = 0
-    rbuflb = <int *>self.rbuflb
-    rbufrv = <int *>self.rbufrv
-    rbufst = <int *>self.rbufst
-    rbufln = <int *>self.rbufln
-    for nrow from 0 <= nrow < nrows:
-      rvrow = nrow*2
-      start = (item1 <= rbufrv[rvrow]) + (item1 > rbufrv[rvrow+1]) * nslice
-      stop = (item2 < rbufrv[rvrow]) + (item2 >= rbufrv[rvrow+1]) * nslice
-      if start == 0 or stop == 0:
-        # Get the bounds row
-        if bcache:
-          rbufbc = <int *>self.rbufbc + nrow*nbounds
-        else:
-          # Bounds is not in cache. Read the appropriate row.
-          self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
-          rbufbc = <int *>self.rbufbc
-      if start == 0:
-        nchunk = bisect_left_i(rbufbc, item1, nbounds, 0)
-        #self._readSortedSlice(nrow, cs*nchunk, cs*(nchunk+1))
-        H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                     self.mem_space_id, self.type_id,
-                                     nrow, cs*nchunk, cs*(nchunk+1),
-                                     self.rbuflb)
-        start = bisect_left_i(rbuflb, item1, cs, 0) + cs*nchunk
-      if stop == 0:
-        nchunk2 = bisect_right_i(rbufbc, item2, nbounds, 0)
-        if nchunk2 <> nchunk:
-          #self._readSortedSlice(nrow, cs*nchunk2, cs*(nchunk2+1))
-          H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                       self.mem_space_id, self.type_id,
-                                       nrow, cs*nchunk2, cs*(nchunk2+1),
-                                       self.rbuflb)
-        stop = bisect_right_i(rbuflb, item2, cs, 0) + cs*nchunk2
-      rbufst[nrow] = start
-      len = stop - start
-      rbufln[nrow] = len
-      tlen = tlen + len
-    return tlen
+#     cs = self.chunksize
+#     nrows = self.nrows
+#     nbounds = self.nbounds
+#     bcache = self.bcache
+#     nslice = self.nelemslice
+#     tlen = 0
+#     rbuflb = <int *>self.rbuflb
+#     rbufrv = <int *>self.rbufrv
+#     rbufst = <int *>self.rbufst
+#     rbufln = <int *>self.rbufln
+#     for nrow from 0 <= nrow < nrows:
+#       rvrow = nrow*2
+#       start = (item1 <= rbufrv[rvrow]) + (item1 > rbufrv[rvrow+1]) * nslice
+#       stop = (item2 < rbufrv[rvrow]) + (item2 >= rbufrv[rvrow+1]) * nslice
+#       if start == 0 or stop == 0:
+#         # Get the bounds row
+#         if bcache:
+#           rbufbc = <int *>self.rbufbc + nrow*nbounds
+#         else:
+#           # Bounds is not in cache. Read the appropriate row.
+#           self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
+#           rbufbc = <int *>self.rbufbc
+#       if start == 0:
+#         nchunk = bisect_left_i(rbufbc, item1, nbounds, 0)
+#         #self._readSortedSlice(nrow, cs*nchunk, cs*(nchunk+1))
+#         H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
+#                                      self.mem_space_id, self.type_id,
+#                                      nrow, cs*nchunk, cs*(nchunk+1),
+#                                      self.rbuflb)
+#         start = bisect_left_i(rbuflb, item1, cs, 0) + cs*nchunk
+#       if stop == 0:
+#         nchunk2 = bisect_right_i(rbufbc, item2, nbounds, 0)
+#         if nchunk2 <> nchunk:
+#           #self._readSortedSlice(nrow, cs*nchunk2, cs*(nchunk2+1))
+#           H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
+#                                        self.mem_space_id, self.type_id,
+#                                        nrow, cs*nchunk2, cs*(nchunk2+1),
+#                                        self.rbuflb)
+#         stop = bisect_right_i(rbuflb, item2, cs, 0) + cs*nchunk2
+#       rbufst[nrow] = start
+#       len = stop - start
+#       rbufln[nrow] = len
+#       tlen = tlen + len
+#     return tlen
 
 
   # Optimized version for long long
@@ -710,6 +712,7 @@ cdef class IndexArray(Array):
     for nrow from 0 <= nrow < nrows:
       rvrow = nrow*2
       bread = 0
+      nchunk = -1
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row
@@ -758,46 +761,46 @@ cdef class IndexArray(Array):
     return tlen
 
 
-  # Vectorial version for values of any type. It doesn't seem to work well though :-(
-  def _searchBinNA_vec(self, item1, item2):
-    cdef int cs, nbounds, nchunk, nchunk2, nrow, nrows, stride1
-    cdef object boundscache, ibounds, chunk
-    cdef int *rbufst, *rbufln
-    cdef int start, stop, nslice, tlen, len
+#   # Vectorial version for values of any type. It doesn't seem to work well though :-(
+#   def _searchBinNA_vec(self, item1, item2):
+#     cdef int cs, nbounds, nchunk, nchunk2, nrow, nrows, stride1
+#     cdef object boundscache, ibounds, chunk
+#     cdef int *rbufst, *rbufln
+#     cdef int start, stop, nslice, tlen, len
 
-    tlen = 0
-    cs = self.chunksize
-    nrows = self.nrows
-    if self.bcache:
-      boundscache = self.boundscache
-      stride1 = boundscache.type().bytes
-    else:
-      boundscache = self._v_parent.bounds
-      stride1 = boundscache.type.bytes
-    rvc = self._v_parent.rvcache
-    nslice = self.nelemslice
-    nbounds = self.nbounds
-    rbufst = <int *>self.rbufst
-    rbufln = <int *>self.rbufln
-    for nrow from 0 <= nrow < nrows:
-      ibounds = boundscache[nrow]
-      start = (item1 <= rvc[nrow,0]) + (item1 > rvc[nrow,1]) * nslice
-      stop = (item2 < rvc[nrow,0]) + (item2 >= rvc[nrow,1]) * nslice
-      if start == 0:
-        nchunk = self._bisect_left_optim(ibounds, item1, nbounds, stride1)
-        chunk = self._readSortedSlice(nrow, cs*nchunk, cs*(nchunk+1))
-        start = self._bisect_left_optim(chunk, item1, cs, stride1) + cs*nchunk
-      if stop == 0:
-        nchunk2 = self._bisect_right_optim(ibounds, item2, nbounds, stride1)
-        if nchunk2 <> nchunk:
-          # The chunk for item2 is different. Read the new chunk.
-          chunk = self._readSortedSlice(nrow, cs*nchunk2, cs*(nchunk2+1))
-        stop = self._bisect_right_optim(chunk, item2, cs, stride1) + cs*nchunk2
-      rbufst[nrow] = start
-      len = stop - start
-      rbufln[nrow] = len
-      tlen = tlen + len
-    return tlen
+#     tlen = 0
+#     cs = self.chunksize
+#     nrows = self.nrows
+#     if self.bcache:
+#       boundscache = self.boundscache
+#       stride1 = boundscache.type().bytes
+#     else:
+#       boundscache = self._v_parent.bounds
+#       stride1 = boundscache.type.bytes
+#     rvc = self._v_parent.rvcache
+#     nslice = self.nelemslice
+#     nbounds = self.nbounds
+#     rbufst = <int *>self.rbufst
+#     rbufln = <int *>self.rbufln
+#     for nrow from 0 <= nrow < nrows:
+#       ibounds = boundscache[nrow]
+#       start = (item1 <= rvc[nrow,0]) + (item1 > rvc[nrow,1]) * nslice
+#       stop = (item2 < rvc[nrow,0]) + (item2 >= rvc[nrow,1]) * nslice
+#       if start == 0:
+#         nchunk = self._bisect_left_optim(ibounds, item1, nbounds, stride1)
+#         chunk = self._readSortedSlice(nrow, cs*nchunk, cs*(nchunk+1))
+#         start = self._bisect_left_optim(chunk, item1, cs, stride1) + cs*nchunk
+#       if stop == 0:
+#         nchunk2 = self._bisect_right_optim(ibounds, item2, nbounds, stride1)
+#         if nchunk2 <> nchunk:
+#           # The chunk for item2 is different. Read the new chunk.
+#           chunk = self._readSortedSlice(nrow, cs*nchunk2, cs*(nchunk2+1))
+#         stop = self._bisect_right_optim(chunk, item2, cs, stride1) + cs*nchunk2
+#       rbufst[nrow] = start
+#       len = stop - start
+#       rbufln[nrow] = len
+#       tlen = tlen + len
+#     return tlen
 
   # This version of getCoords reads the indexes in chunks.
   # Because of that, it can be used in iterators.

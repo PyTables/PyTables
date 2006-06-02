@@ -5,8 +5,7 @@ import warnings
 import random
 
 from tables import *
-#from tables.Index import Index
-from tables.IndexArray import calcChunksize, minRowIndex
+from tables.indexes import calcChunksize, minRowIndex
 from common import verbose, allequal, heavy, cleanup
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
@@ -124,7 +123,7 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Superior & inferior limits:", il, sl
 #             print "Selection results (index):", results1
-#             print "Should look like:", results2
+            print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -317,8 +316,8 @@ class SelectValuesTestCase(unittest.TestCase):
         # order)
         results1.sort(); results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
+            print "Selection results (index):", results1
+            print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1656,10 +1655,8 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do some selections and check the results
         t1col = table1.cols.var1
-        #print "t1col-->", t1col[:]
         # First selection
-        #print "-->", table1._whereIndexed(t1col<=sl,2,10)
-        results1 = [p['var1'] for p in table1._whereIndexed(t1col<=sl,2,10)]
+        results1 = [p['var1'] for p in table1._whereIndexed(t1col<=sl, 2, 10)]
         results2 = [p["var1"] for p in table2.iterrows(2, 10)
                     if p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in

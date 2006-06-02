@@ -762,16 +762,15 @@ cdef class Row:
             tmp2=(tmp-self.start) % self.step
             tmp = tmp[tmp2.__eq__(0)]
           # Now, select those indices in the range start, stop:
-          if len(tmp) > 0 and tmp[0] < self.start:
+          if len(tmp) > 0 and self.start > 0:
             # Pyrex can't use the tmp>=number notation when tmp is a numarray
             # object. Why?
-            #tmp = tmp[tmp>=self.start]
             tmp = tmp[tmp.__ge__(self.start)]
-          if len(tmp) > 0 and tmp[-1] >= self.stop:
-            tmp = tmp[numarray.where(tmp.__lt__(self.stop))]
+          if len(tmp) > 0 and self.stop < self.nrows:
+            tmp = tmp[tmp.__lt__(self.stop)]
           self.bufcoords = tmp
         self._row = -1
-        if len(self.bufcoords):
+        if len(self.bufcoords) > 0:
           recout = self.table._read_elements(self.rbufRA, self.bufcoords)
         else:
           recout = 0
@@ -790,7 +789,7 @@ cdef class Row:
     else:
       # Re-initialize the possible cuts in columns
       self.indexed = 0
-      if self.coords is None:
+      if self.coords is None and not self.index._idx_version == "pro":
         nextelement = self.index.nelemslice * self.index.nrows
         # Correct this for step size > 1
         correct = (nextelement - self.start) % self.step

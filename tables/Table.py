@@ -820,16 +820,18 @@ This method is intended only for indexed columns, but this column has not a mini
         self.whereColname = condition.pathname   # Flag for Row.__iter__
         # Get the coordinates to lookup
         ncoords = condition.index.getLookupRange(condition)
-        # Call the indexed version of Row iterator (coords=None,ncoords>=0)
-        (start, stop, step) = processRangeRead(self.nrows, start, stop,
-                                               step)
+        if condition.index == "pro" and ncoords == 0:
+            # For the pro case, there are no interesting values
+            return iter([])
         # Call the iterator even in case that there are no values satisfying
         # the conditions in the indexed region (ncoords = 0), because
-        # we should look in the non-indexed region as well.
+        # we should look in the non-indexed region as well (for PyTables std).
+        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
         row = TableExtension.Row(self)
+        # Call the indexed version of Row iterator (coords=None,ncoords>=0)
         return row(start, stop, step, coords=None, ncoords=ncoords)
 
-    def readIndexed(self, condition):
+    def _readIndexed(self, condition):
         """Returns a NestedRecArray fulfilling the 'condition' param.
 
         condition can be used to specify selections along a column in the
@@ -865,54 +867,6 @@ please reindex the table to put the index in a sane state""")
             condition.index.indices._initIndexSlice(nrecords)
             coords = condition.index.getCoords(0, nrecords)
             recout = self._read_elements(recarr, coords)
-            condition.index.indices._destroyIndexSlice()
-        # Delete indexation caches
-        self.ops = []
-        self.opsValues = []
-        self.opsColnames = []
-        self.whereColname = None
-        if numpy_imported and self.flavor == "numpy":
-            # do an additional conversion conversion (without a copy)
-            recarr = tonumpy(recarr, copy=False)
-        return recarr
-
-    def readIndexed(self, condition):
-        """Returns a NestedRecArray fulfilling the 'condition' param.
-
-        condition can be used to specify selections along a column in the
-        form:
-
-        condition=(0<table.cols.col1<0.3)
-
-        This method is only intended to be used for indexed columns.
-        """
-
-        if not isinstance(condition, Column):
-            raise TypeError(
-                "``condition`` argument is not an instance of ``Column``")
-        if condition.index is None:
-            raise ValueError(
-                "the column referenced by ``condition`` is not indexed")
-        if condition.dirty:
-            raise ValueError("""\
-the column referenced by ``condition`` has a dirty index; \
-please reindex the table to put the index in a sane state""")
-
-        self.whereColname = condition.pathname   # Flag for Row.__iter__
-        # Get the coordinates to lookup
-        nrecords = condition.index.getLookupRange(condition)
-        # Create a read buffer
-        colnames = self.description._v_nestedNames
-        formats = self.description._v_nestedFormats
-        recarr = nestedrecords.array(None, formats=formats,
-                                     shape=(nrecords,),
-                                     names = colnames)
-        if nrecords > 0:
-            # Read the contents of a selection in a recarray
-            condition.index.indices._initIndexSlice(nrecords)
-            coords = condition.index.getCoords(0, nrecords)
-            recout = self._read_elements_ra(recarr, coords)
-            condition.index.indices._destroyIndexSlice()
         # Delete indexation caches
         self.ops = []
         self.opsValues = []
@@ -988,10 +942,10 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
             # get the number of coords and set-up internal variables
             ncoords = condition.index.getLookupRange(condition)
             if ncoords > 0:
-                coords = condition.index.indices._getCoords_sparse(ncoords)
+                coords = condition.index.getCoords_sparse(ncoords)
             else:
                 coords = numarray.array(None, type=numarray.Int64, shape=0)
-            if condition.index._idx_version == "pro":
+            if condition.index._idx_version != "pro":
                 # get the remaining rows from the table
                 start = condition.index.nelements
                 if start < self.nrows:

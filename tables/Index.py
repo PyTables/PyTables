@@ -270,7 +270,7 @@ def nextafter(x, direction, dtype, itemsize):
     if str(dtype) == "CharType":
         return CharTypeNextAfter(x, direction, itemsize)
     else:
-        if type(x) not in (int, float):
+        if type(x) not in (int, long, float):
             raise ValueError, "You need to pass integers or floats in this context."
         if isinstance(numarray.typeDict[dtype], numarray.IntegralType):
             return IntTypeNextAfter(x, direction, itemsize)
@@ -450,6 +450,10 @@ class Index(indexesExtension.Index, Group):
         self.column = column
         """The `Column` instance for the indexed column."""
 
+        self.nrows = 0
+        """The number of slices in the sorted/indices objects."""
+        self.nelements = 0
+        """The number of indexed elements in this index."""
         self.starts = None
         """Where the values fulfiling conditions starts for every slice."""
         self.lengths = None
@@ -533,7 +537,7 @@ class Index(indexesExtension.Index, Group):
             atom = Atom(self.type, shape=(0, nbounds))
         CacheArray(self, 'bounds', atom, "Boundary Values",
                    Filters(complevel=0, shuffle=0),   # too small to use filters
-                   self._v_expectedrows//self.nelemslice)
+                   self._v_expectedrows//self.chunksize)
 
         # Create the Array for last (sorted) row values + bounds
         shape = 2 + nbounds + self.nelemslice
@@ -615,7 +619,9 @@ class Index(indexesExtension.Index, Group):
         self.nelementsLR = nelementsLR
 
 
-    def searchBinNA(self, item1, item2):
+    #Aquest rutina vectoritzada no funciona com toca i arreglara-la no es trivial
+    # user search_scalar en el seu lloc.
+    def searchBinNA_vec(self, item1, item2):
 
         cs = self.chunksize
         nbounds = self.bounds.shape[1]
@@ -628,9 +634,12 @@ class Index(indexesExtension.Index, Group):
                 ibounds = self.sorted.boundscache[nrow]
             else:
                 ibounds = self.bounds[nrow]
-            start = (item1 <= rvc[nrow,0]) + (item1 > rvc[nrow,1]) * nslice
+#             start = (item1 <= rvc[nrow,0]) + (item1 > rvc[nrow,1]) * nslice
+#             stop = (item2 < rvc[nrow,0]) + (item2 >= rvc[nrow,1]) * nslice
+            start = (item1 < rvc[nrow,0]) + (item1 > rvc[nrow,1]) * nslice
             stop = (item2 < rvc[nrow,0]) + (item2 >= rvc[nrow,1]) * nslice
-            if start == 0:
+            #if start == 0:
+            if start == 0 and item1 <= rvc[nrow,0]:
                 #nchunk = bisect.bisect_left(ibounds, item1)
                 nchunk = self.sorted._bisect_left(ibounds, item1, nbounds)
                 chunk = self.sorted._readSortedSlice(nrow, cs*nchunk,
@@ -668,18 +677,19 @@ class Index(indexesExtension.Index, Group):
         """Do a binary search in this index for an item"""
         #t1 = time(); tcpu1 = clock()
         if str(self.type) == "CharType":
-            return self.search_scalar(item)
-        # Do the lookup for values fullfilling the conditions
-        if self.sorted.nrows > 0:
-            if self._idx_version == "pro":
-                tlen = self.search_pro(item)
-            else:
-                tlen = self.search_std(item)
+            tlen = self.search_scalar(item)
         else:
-            tlen = 0
+            # Do the lookup for values fullfilling the conditions
+            if self.sorted.nrows > 0:
+                if self._idx_version == "pro":
+                    tlen = self.search_pro(item)
+                else:
+                    tlen = self.search_std(item)
+            else:
+                tlen = 0
         if self._idx_version == "pro" and self.nelementsLR > 0:
             # Look for more indexes in the last row
-            (start, stop) = self._searchBinLastRow(item)
+            (start, stop) = self.searchLastRow(item)
             self.starts[-1] = start
             self.lengths[-1] = stop - start
             tlen += stop - start
@@ -698,7 +708,7 @@ class Index(indexesExtension.Index, Group):
         self.sorted._initSortedSlice(pro=1)
         # XXX Intentar tornar a activar l'optimitzacio
         if 0:
-            tlen = self.searchBinNA(item1, item2)
+            tlen = self.searchBinNA_vec(item1, item2)
             #tlen = self.sorted._searchBinNA(item1, item2)
         else:
             # The next are optimizations. However, they hides the
@@ -711,16 +721,17 @@ class Index(indexesExtension.Index, Group):
             elif self.type == "Int32":
                 # Buth vectorial and scalar versions perform similar
                 tlen = self.sorted._searchBinNA_i(item1, item2)
+                #tlen = self.search_scalar(item)
                 # tlen = self.sorted._searchBinNA_i_vec(item1, item2)
             elif self.type == "Int64":
                 # Buth vectorial and scalar versions perform similar
                 tlen = self.sorted._searchBinNA_ll(item1, item2)
                 # tlen = self.sorted._searchBinNA_ll_vec(item1, item2)
             else:
-                #tlen = self.sorted._searchBinNA(item1, item2)
                 tlen = self.search_scalar(item)
+                #tlen = self.searchBinNA_vec(item1, item2)
         t = time()-t1
-        print "time searching indices (pro-main):", round(t*1000, 3), "ms"
+        #print "time searching indices (pro-main):", round(t*1000, 3), "ms"
         return tlen
 
 
@@ -734,7 +745,7 @@ class Index(indexesExtension.Index, Group):
             self.starts[i] = start
             self.lengths[i] = stop - start
         t = time()-t1
-        print "time searching indices (std-main):", round(t*1000, 3), "ms"
+        #print "time searching indices (std-main):", round(t*1000, 3), "ms"
         return numarray.sum(self.lengths)
 
 
@@ -757,16 +768,10 @@ class Index(indexesExtension.Index, Group):
                 self.starts[i] = start
                 self.lengths[i] = stop - start
                 tlen += stop - start
-        if self._idx_version == "pro" and self.nelementsLR > 0:
-            # Look for more indexes in the last row
-            (start, stop) = self._searchBinLastRow(item)
-            self.starts[-1] = start
-            self.lengths[-1] = stop - start
-            tlen += stop - start
         return tlen
 
 
-    def _searchBinLastRow(self, item):
+    def searchLastRow(self, item):
         item1, item2 = item
         item1done = 0; item2done = 0
 
@@ -830,7 +835,7 @@ class Index(indexesExtension.Index, Group):
             result2 = bisect.bisect_right(chunk, item2, hi=hi2)
             result2 += self.chunksize*nchunk2
         t = time()-t1
-        print "time searching indices (last row):", round(t*1000, 3), "ms"
+        #print "time searching indices (last row):", round(t*1000, 3), "ms"
         return (result1, result2)
 
 
@@ -1067,9 +1072,9 @@ val1 must be less or equal than val2""")
                 raise ValueError, \
 "Combination of operators not supported. Use val1 <{=} col <{=} val2"
 
-        #t1=time.time()
+        #t1=time()
         ncoords = self.search(item)
-        #print "time reading indices:", time.time()-t1
+        #print "time reading indices:", time()-t1
         return ncoords
 
 

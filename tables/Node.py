@@ -313,7 +313,7 @@ class Node(object):
         #    open `Node` instance is returned.  If closed nodes could be
         #    revived, one could get either a closed or an open `Node`.
         #
-        # 2. Ease of use.  If the user wanted to access a closed node
+        # 2. Ease of use.  If the user wants to access a closed node
         #    again, the only condition would be that no references to
         #    the `Node` instance were left.  If closed nodes could be
         #    revived, the user would also need to force the closed
