@@ -198,6 +198,7 @@ class BasicTestCase(unittest.TestCase):
         idxcol = table.cols.var2.index
         if verbose:
             print "Max rows in buf:", table._v_maxTuples
+            print "Rows in tables:", table.nrows
             print "Number of elements per slice:", idxcol.nelemslice
             print "Chunk size:", idxcol.sorted.chunksize
 
@@ -959,7 +960,6 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                 print "indexedrows:", table._indexedrows
                 print "unsavedindexedrows:", table._unsaved_indexedrows
                 index = table.cols.var1.index
-                indexedrows = index.nrows * index.nelemslice
                 print "computed indexed rows:", index.nelements
             else:
                 print "Table is not indexed"
@@ -969,8 +969,8 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         if self.klass is Small:
             assert index is None
         else:
-            indexedrows = index.nrows * index.nelemslice
-            assert table._indexedrows == indexedrows
+            indexedrows = index.nelements
+            assert table._indexedrows == index.nelements
             assert table._unsaved_indexedrows == self.nrows - indexedrows
 
         # Check non-default values for index saving policy
@@ -1044,7 +1044,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             pass
         elif self.klass is NoAuto:
             index = table.cols.var1.index
-            indexedrows = index.nrows * index.nelemslice
+            indexedrows = index.nelements
             assert table._indexedrows == indexedrows
             assert table._indexedrows == index.nelements
             assert table._unsaved_indexedrows == self.nrows - indexedrows - 2
@@ -1146,7 +1146,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             pass
         elif self.klass is NoAuto:
             index = table.cols.var1.index
-            indexedrows = index.nrows * index.nelemslice
+            indexedrows = index.nelements
             assert table._indexedrows == indexedrows
             indexedrows = index.nelements
             assert table._indexedrows == indexedrows
@@ -1192,7 +1192,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             assert table._unsaved_indexedrows == unsavedindexedrows
         elif self.klass is NoAuto:
             index = table.cols.var1.index
-            indexedrows = index.nrows * index.nelemslice
+            indexedrows = index.nelements
             assert table._indexedrows == indexedrows
             assert table._unsaved_indexedrows == self.nrows - indexedrows
 
