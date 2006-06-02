@@ -1722,14 +1722,16 @@ The 'names' parameter must be a list of strings.""")
         i = start
         stop = start+nrows-nelemslice+1
         while i < stop:
-            index.append(self.read(start=i, stop=i+nelemslice, field=colname))
+            index.append(self._read(start=i, stop=i+nelemslice, step=1,
+                                    field=colname, coords=None))
             indexedrows += nelemslice
             i += nelemslice
         # index the remaining rows
         nremain = nrows - indexedrows
         if lastrow and nremain > 0 and index._idx_version == "pro":
             index.appendLastRow(
-                self.read(start=indexedrows, stop=nrows, field=colname),
+                self._read(start=indexedrows, stop=nrows, step=1,
+                           field=colname, coords=None),
                 self.nrows )
             indexedrows += nremain
         return indexedrows
@@ -2387,7 +2389,7 @@ class Column(object):
                 # To support negative values
                 key += table.nrows
             (start, stop, step) = processRange(table.nrows, key, key+1, 1)
-            return table._read(start, stop, step, self.pathname)[0]
+            return table.read(start, stop, step, self.pathname)[0]
         elif isinstance(key, slice):
             (start, stop, step) = processRange(table.nrows, key.start,
                                                key.stop, key.step)

@@ -676,6 +676,11 @@ class Index(indexesExtension.Index, Group):
     def search(self, item):
         """Do a binary search in this index for an item"""
         #t1 = time(); tcpu1 = clock()
+        # (starts and lengths for interesting values along the slices)
+        self.starts = numarray.array(None, shape=self.nrows,
+                                     type = numarray.Int32)
+        self.lengths = numarray.array(None, shape=self.nrows,
+                                      type = numarray.Int32)
         if str(self.type) == "CharType":
             tlen = self.search_scalar(item)
         else:

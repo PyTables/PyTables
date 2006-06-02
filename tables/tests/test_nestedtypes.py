@@ -20,7 +20,7 @@ from common import verbose
 import tables as t
 import tables.nestedrecords as nr
 from tables.IsDescription import Description
-from tables.IndexArray import minRowIndex
+from tables.indexes import minRowIndex
 
 
 

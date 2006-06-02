@@ -260,13 +260,9 @@ cdef class IndexArray(Array):
         self.bufferl = numarray.array(None, type=self.type,
                                       shape=self.chunksize)
       # Internal buffers
-      # (starts and lengths for interesting values along the slices)
-      index.starts = numarray.array(None, shape=index.nrows,
-                                    type = numarray.Int32)
-      index.lengths = numarray.array(None, shape=index.nrows,
-                                     type = numarray.Int32)
       # Get the pointers to the different buffer data areas
       NA_getBufferPtrAndSize(self.bufferl._data, 1, &self.rbuflb)
+      # self.starts and self.lengths are created in python space
       NA_getBufferPtrAndSize(index.starts._data, 1, &self.rbufst)
       NA_getBufferPtrAndSize(index.lengths._data, 1, &self.rbufln)
       # Init structures for accelerating sorted array reads
