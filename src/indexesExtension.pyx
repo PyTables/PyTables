@@ -296,7 +296,7 @@ cdef class IndexArray(Array):
         self.boundscache = numarray.array(None, type=self.type,
                                           shape=self.nbounds)
         # Init the bounds array for reading
-        index.bounds_ext.initRead(self.nbounds)
+        self.bounds_ext.initRead(self.nbounds)
         self.bcache = False
       NA_getBufferPtrAndSize(self.boundscache._data, 1, &self.rbufbc)
 
