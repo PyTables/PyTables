@@ -820,7 +820,7 @@ class Index(indexesExtension.Index, Group):
                                 nbounds+end)
             if len(chunk) < hi:
                 hi2 = len(chunk)
-            result1 = bisect.bisect_left(chunk, item1, hi=hi2)
+            result1 = bisect.bisect_left(chunk, item1, 0, hi2)
             result1 += self.chunksize*nchunk
         # Lookup in the middle of the slice for item2
         if not item2done:
@@ -834,7 +834,7 @@ class Index(indexesExtension.Index, Group):
                                     nbounds+end)
                 if len(chunk) < hi:
                     hi2 = len(chunk)
-            result2 = bisect.bisect_right(chunk, item2, hi=hi2)
+            result2 = bisect.bisect_right(chunk, item2, 0, hi2)
             result2 += self.chunksize*nchunk2
         t = time()-t1
         #print "time searching indices (last row):", round(t*1000, 3), "ms"

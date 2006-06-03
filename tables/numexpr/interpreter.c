@@ -5,11 +5,11 @@
 #ifdef NUMPY
 #include "numpy/arrayobject.h"
 #else
-#include "arrayobject.h"
+#include "numarray/arrayobject.h"
+#include "numarray/libnumarray.h"
 #endif
 
 #ifdef NUMARRAY_VERSION
-#include "libnumarray.h"
 /* Added for numpy compatibility */
 typedef struct { float real, imag; } cfloat;
 typedef struct { double real, imag; } cdouble;
