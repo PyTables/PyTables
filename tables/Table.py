@@ -945,7 +945,7 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
                 coords = condition.index.getCoords_sparse(ncoords)
             else:
                 coords = numarray.array(None, type=numarray.Int64, shape=0)
-            if condition.index._idx_version != "pro":
+            if not condition.index.is_pro:
                 # get the remaining rows from the table
                 start = condition.index.nelements
                 if start < self.nrows:
@@ -1728,7 +1728,7 @@ The 'names' parameter must be a list of strings.""")
             i += nelemslice
         # index the remaining rows
         nremain = nrows - indexedrows
-        if lastrow and nremain > 0 and index._idx_version == "pro":
+        if lastrow and nremain > 0 and index.is_pro:
             index.appendLastRow(
                 self._read(start=indexedrows, stop=nrows, step=1,
                            field=colname, coords=None),

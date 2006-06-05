@@ -789,7 +789,7 @@ cdef class Row:
     else:
       # Re-initialize the possible cuts in columns
       self.indexed = 0
-      if self.coords is None and not self.index._idx_version == "pro":
+      if self.coords is None and not self.index.is_pro:
         nextelement = self.index.nelemslice * self.index.nrows
         # Correct this for step size > 1
         correct = (nextelement - self.start) % self.step

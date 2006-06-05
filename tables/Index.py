@@ -464,7 +464,7 @@ class Index(indexesExtension.Index, Group):
         self.cache = False   # no cache (ranges & bounds) is available initially
 
         # Set the version number of this object as an index, not a group.
-        self._idx_version = idx_version
+        self.is_pro = (idx_version == "pro")
 
         # Index creation is never logged.
         super(Index, self).__init__(
@@ -480,7 +480,7 @@ class Index(indexesExtension.Index, Group):
             # Set-up some variables from info on disk and return
             self.type = self.sorted.type
             self.itemsize = self.sorted.itemsize
-            if self._idx_version == "pro":
+            if self.is_pro:
                 # The number of elements is at the end of the indices array
                 nelementsLR = self.indicesLR[-1]
             else:
@@ -516,7 +516,7 @@ class Index(indexesExtension.Index, Group):
 
         # Create the IndexArray for index values
         IndexArray(self, 'indices',
-                   Atom("Int32", shape=(0, 1)), "Reverse Indices", filters,
+                   Atom("Int64", shape=(0, 1)), "Reverse Indices", filters,
                    self.testmode, self._v_expectedrows)
 
         # Create the EArray for range values  (1st order cache)
@@ -551,7 +551,7 @@ class Index(indexesExtension.Index, Group):
 
         # Create the Array for reverse indexes in last row
         shape = self.nelemslice     # enough for indexes and length
-        atom = numarray.zeros(shape=shape, type=numarray.Int32)
+        atom = numarray.zeros(shape=shape, type=numarray.Int64)
         LastRowArray(self, 'indicesLR', atom, "Last Row reverse indices")
 
 
@@ -568,12 +568,10 @@ class Index(indexesExtension.Index, Group):
             s=arr.argsort()
         else:
             s=numarray.argsort(arr)
-        # Caveat: this conversion is necessary for portability on
-        # 64-bit systems because indexes are 64-bit long on these
-        # platforms
-        self.indices.append(numarray.array(s, type="Int32"))
+        # Indexes in PyTables Pro systems are 64-bit long.
+        offset = self.sorted.nrows * self.nelemslice
+        self.indices.append(numarray.array(s, type="Int64") + offset)
         self.sorted.append(arr[s])
-        #self.ranges.append([arr[s[[0,-1]]]])
         begend = [arr[s[[0,-1]]]]
         self.ranges.append(begend)
         self.bounds.append([arr[s[self.chunksize::self.chunksize]]])
@@ -589,7 +587,8 @@ class Index(indexesExtension.Index, Group):
         """Append the array to the last row index objects"""
 
         # compute the elements in the last row sorted & bounds array
-        nelementsLR = tnrows - self.sorted.nrows * self.nelemslice
+        offset = self.sorted.nrows * self.nelemslice
+        nelementsLR = tnrows - offset
         assert nelementsLR == len(arr), \
 "The number of elements to append is incorrect!. Report this to the authors."
         # Sort the array
@@ -607,7 +606,7 @@ class Index(indexesExtension.Index, Group):
             self.bebounds = numarray.concatenate([arr[s[::self.chunksize]],
                                                   arr[s[-1]]])
         # Save the reverse index array
-        self.indicesLR[:len(arr)] = numarray.array(s, type="Int32")
+        self.indicesLR[:len(arr)] = numarray.array(s, type="Int64") + offset
         # The number of elements is at the end of the array
         self.indicesLR[-1] = nelementsLR
         # Save the number of elements, bounds and sorted values
@@ -619,47 +618,6 @@ class Index(indexesExtension.Index, Group):
         self.nelements = self.sorted.nrows * self.nelemslice + nelementsLR
         self.shape = (self.nrows, self.nelemslice)
         self.nelementsLR = nelementsLR
-
-
-    #Aquest rutina vectoritzada no funciona com toca i arreglara-la no es trivial
-    # user search_scalar en el seu lloc.
-    def searchBinNA_vec(self, item1, item2):
-
-        cs = self.chunksize
-        nbounds = self.bounds.shape[1]
-        rvc = self.rvcache
-        nslice = self.nelemslice
-        tlen = 0
-        for nrow in xrange(self.sorted.nrows):
-            nchunk = -1
-            if self.sorted.bcache:
-                ibounds = self.sorted.boundscache[nrow]
-            else:
-                ibounds = self.bounds[nrow]
-#             start = (item1 <= rvc[nrow,0]) + (item1 > rvc[nrow,1]) * nslice
-#             stop = (item2 < rvc[nrow,0]) + (item2 >= rvc[nrow,1]) * nslice
-            start = (item1 < rvc[nrow,0]) + (item1 > rvc[nrow,1]) * nslice
-            stop = (item2 < rvc[nrow,0]) + (item2 >= rvc[nrow,1]) * nslice
-            #if start == 0:
-            if start == 0 and item1 <= rvc[nrow,0]:
-                #nchunk = bisect.bisect_left(ibounds, item1)
-                nchunk = self.sorted._bisect_left(ibounds, item1, nbounds)
-                chunk = self.sorted._readSortedSlice(nrow, cs*nchunk,
-                                                     cs*(nchunk+1))
-                start = self.sorted._bisect_left(chunk, item1, cs) + cs*nchunk
-            if stop == 0:
-                #nchunk2 = bisect.bisect_right(ibounds, item2)
-                nchunk2 = self.sorted._bisect_right(ibounds, item2, nbounds)
-                if nchunk2 <> nchunk:
-                    # The chunk for item2 is different. Read the new chunk.
-                    chunk = self.sorted._readSortedSlice(nrow, cs*nchunk2,
-                                                         cs*(nchunk2+1))
-                stop = self.sorted._bisect_right(chunk, item2, cs) + cs*nchunk2
-            self.starts[nrow] = start
-            len = stop - start
-            self.lengths[nrow] = len
-            tlen += len
-        return tlen
 
 
     # This is an optimized version of search.
@@ -678,25 +636,23 @@ class Index(indexesExtension.Index, Group):
     def search(self, item):
         """Do a binary search in this index for an item"""
         #t1 = time(); tcpu1 = clock()
-        if str(self.type) == "CharType":
-            tlen = self.search_scalar(item)
-        else:
-            # Do the lookup for values fullfilling the conditions
-            if self.sorted.nrows > 0:
-                if self._idx_version == "pro":
-                    tlen = self.search_pro(item)
-                else:
-                    tlen = self.search_std(item)
+        # Do the lookup for values fullfilling the conditions
+        tlen = 0
+        self.sorted._initSortedSlice(pro=self.is_pro)
+        if self.sorted.nrows > 0:
+            if self.is_pro and str(self.type) != "CharType":
+                tlen = self.search_pro(item)
             else:
-                tlen = 0
-        if self._idx_version == "pro" and self.nelementsLR > 0:
+                tlen = self.search_scalar(item)
+        # Get possible remaing values in last row
+        if self.is_pro and self.nelementsLR > 0:
             # Look for more indexes in the last row
             (start, stop) = self.searchLastRow(item)
             self.starts[-1] = start
             self.lengths[-1] = stop - start
             tlen += stop - start
         #t = time()-t1
-        #print "time searching indices (regular):", round(t*1000, 3), "ms"
+        #print "time searching indices (total):", round(t*1000, 3), "ms"
         # CPU time not significant (problems with time slice)
         #print round((clock()-tcpu1)*1000*1000, 3), "us"
         return tlen
@@ -707,69 +663,45 @@ class Index(indexesExtension.Index, Group):
 
         t1 = time()
         item1, item2 = item
-        self.sorted._initSortedSlice(pro=1)
-        # XXX Intentar tornar a activar l'optimitzacio
         if 0:
-            tlen = self.searchBinNA_vec(item1, item2)
-            #tlen = self.sorted._searchBinNA(item1, item2)
+            tlen = self.search_scalar(item)
         else:
             # The next are optimizations. However, they hides the
-            # CPU functions consumptions from python profiles
+            # CPU functions consumptions from python profiles.
             # Activate only after development is done.
             if self.type == "Float64":
-                # Both vectorial and scalar versions perform similar
                 tlen = self.sorted._searchBinNA_d(item1, item2)
-                # tlen = self.sorted._searchBinNA_d_vec(item1, item2)
             elif self.type == "Int32":
-                # Buth vectorial and scalar versions perform similar
                 tlen = self.sorted._searchBinNA_i(item1, item2)
-                #tlen = self.search_scalar(item)
-                # tlen = self.sorted._searchBinNA_i_vec(item1, item2)
             elif self.type == "Int64":
-                # Buth vectorial and scalar versions perform similar
                 tlen = self.sorted._searchBinNA_ll(item1, item2)
-                # tlen = self.sorted._searchBinNA_ll_vec(item1, item2)
             else:
                 tlen = self.search_scalar(item)
-                #tlen = self.searchBinNA_vec(item1, item2)
         t = time()-t1
         #print "time searching indices (pro-main):", round(t*1000, 3), "ms"
         return tlen
 
 
-    def search_std(self, item):
-        """Do a binary search in this index for an item. std version."""
-
-        t1 = time()
-        self.sorted._initSortedSlice()
-        for i in xrange(self.sorted.nrows):
-            (start, stop) = self.sorted._searchBinStd(i, item)
-            self.starts[i] = start
-            self.lengths[i] = stop - start
-        t = time()-t1
-        #print "time searching indices (std-main):", round(t*1000, 3), "ms"
-        return numarray.sum(self.lengths)
-
-
     # This is an scalar version of search. It works well with strings as well.
     def search_scalar(self, item):
         """Do a binary search in this index for an item."""
+        t1 = time()
         tlen = 0
         # Do the lookup for values fullfilling the conditions
-        if self._idx_version == "pro":
-            self.sorted._initSortedSlice(pro=1)
+        if self.is_pro:
             for i in xrange(self.sorted.nrows):
                 (start, stop) = self.sorted._searchBin(i, item)
                 self.starts[i] = start
                 self.lengths[i] = stop - start
                 tlen += stop - start
         else:
-            self.sorted._initSortedSlice()
             for i in xrange(self.sorted.nrows):
                 (start, stop) = self.sorted._searchBinStd(i, item)
                 self.starts[i] = start
                 self.lengths[i] = stop - start
                 tlen += stop - start
+        t = time()-t1
+        #print "time searching indices (scalar-main):", round(t*1000, 3), "ms"
         return tlen
 
 
@@ -807,7 +739,6 @@ class Index(indexesExtension.Index, Group):
         # Lookup in the middle of the slice for item1
         bounds = bebounds[1:-1] # Get the bounds array w/out begin and end
         nbounds = len(bebounds)
-        self.sorted._initSortedSlice(pro=1)
         readSliceLR = self.sortedLR._readSortedSlice
         nchunk = -1
         if not item1done:
@@ -874,10 +805,9 @@ class Index(indexesExtension.Index, Group):
                     self.indices._readIndex(irow, startl, stopl, relCoords)
                 else:
                     # Get indices for last row
-                    offset = irow*self.nelemslice
                     stop = relCoords+(stopl-startl)
                     self.indices.arrAbs[relCoords:stop] = \
-                         self.indicesLR[startl:stopl] + offset
+                        self.indicesLR[startl:stopl]
                 incr = stopl - startl
                 relCoords += incr; startCoords += incr; nCoords -= incr
                 if nCoords == 0:
@@ -962,23 +892,14 @@ class Index(indexesExtension.Index, Group):
         # Given the sorted indices, get the real ones
         idc._readIndex_sparse(ncoords)
 
-        # Finally, convert the values to full 64-bit addresses
-        len1 = 0
-        offset = idc.nelemslice * 1L
-        for irow in xrange(idc.nrows):
-            for jrow in xrange(self.lengths[irow]):
-                idc.arrAbs[len1] = idc.arrRel[len1]+irow*offset
-                len1 += 1
-
         # Get possible values in last slice
-        if (self._idx_version == "pro" and self.nelementsLR > 0
+        if (self.is_pro and self.nelementsLR > 0
             and self.lengths[idc.nrows] > 0):
             # Get indices for last row
             irow = idc.nrows
-            offset = irow * self.nelemslice * 1L
             startl = self.starts[irow]
             stopl = startl + self.lengths[irow]
-            idc.arrAbs[len1:ncoords] = self.indicesLR[startl:stopl] + offset
+            idc.arrAbs[len1:ncoords] = self.indicesLR[startl:stopl]
 
         selection = idc.arrAbs[:ncoords]
         return selection
@@ -1111,7 +1032,7 @@ val1 must be less or equal than val2""")
                      self.sorted.type, self.nelements, self.shape,
                      self.sorted.chunksize, self.sorted.byteorder,
                      self.filters, self.dirty, self.sorted, self.indices)
-        if self._idx_version == "pro":
+        if self.is_pro:
             retstr += "\n  ranges := %s" % self.ranges
             retstr += "\n  bounds := %s" % self.bounds
             retstr += "\n  sortedLR := %s" % self.sortedLR
