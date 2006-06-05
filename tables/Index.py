@@ -397,6 +397,10 @@ class Index(indexesExtension.Index, Group):
         lambda self: self.sorted.chunksize, None, None,
         "The number of elements per chunk.")
 
+    nbounds = property(
+        lambda self: self.sorted.nrows * self.nchunks, None, None,
+        "The number of bounds in index.")
+
     shape = property(
         lambda self: (self.sorted.nrows, self.sorted.slicesize), None, None,
         "The shape of this index (in slices and elements).")
@@ -464,8 +468,6 @@ class Index(indexesExtension.Index, Group):
         """The number of slices in a block."""
         self.nchunks = None
         """The number of chunks in a slice."""
-        self.nbounds = None
-        """The number of bounds in a block."""
         # The starts and lengths are initialized so that they can keep
         # info for last row procecessing at very least.
         self.starts = numarray.array(None, shape=1, type = numarray.Int32)
@@ -499,9 +501,8 @@ class Index(indexesExtension.Index, Group):
             self.nrows = self.sorted.nrows
             self.nelements = self.nrows * self.slicesize + nelementsLR
             self.nblocks = (self.nelements / self.sorted.blocksize) + 1
-            self.nbounds = self.blocksize / self.chunksize
-            self.nslices = self.sorted.blocksize / self.sorted.slicesize
             self.nchunks = self.sorted.slicesize / self.sorted.chunksize
+            self.nslices = self.nelements / self.sorted.slicesize
             self.nelementsLR = nelementsLR
             if nelementsLR > 0:
                 self.nrows += 1
@@ -516,13 +517,12 @@ class Index(indexesExtension.Index, Group):
             # No cache (ranges & bounds) is available initially
             self.cache = False
             return
-        else:
-            # The index is new. Initialize the values
-            self.nrows = 0
-            self.nblocks = 0
-            self.nelements = 0
-            self.nchunks = 0
-            self.nbounds = 0
+
+        # The index is new. Initialize the values
+        self.nrows = 0
+        self.nelements = 0
+        self.nblocks = 0
+        self.nslices = 0
 
         # Set the filters for this object (they are *not* inherited)
         filters = self._v_new_filters
@@ -536,6 +536,9 @@ class Index(indexesExtension.Index, Group):
         IndexArray(self, 'sorted',
                    self.atom, "Sorted Values", filters,
                    self.testmode, self._v_expectedrows)
+
+        # After "sorted" is created, we can assign some attributes
+        self.nchunks = self.sorted.slicesize / self.sorted.chunksize
 
         # Create the IndexArray for index values
         IndexArray(self, 'indices',
@@ -552,18 +555,18 @@ class Index(indexesExtension.Index, Group):
                    self._v_expectedrows//self.slicesize)
 
         # Create the EArray for boundary values (2nd order cache)
-        nbounds = (self.slicesize - 1 ) // self.chunksize
+        nbounds_inslice = (self.slicesize - 1 ) // self.chunksize
         if str(self.type) == "CharType":
-            atom = StringAtom(shape=(0, nbounds),
+            atom = StringAtom(shape=(0, nbounds_inslice),
                               length=self.itemsize,
                               flavor="numarray")
         else:
-            atom = Atom(self.type, shape=(0, nbounds))
+            atom = Atom(self.type, shape=(0, nbounds_inslice))
         CacheArray(self, 'bounds', atom, "Boundary Values", filters,
                    self._v_expectedrows//self.chunksize)
 
         # Create the Array for last (sorted) row values + bounds
-        shape = 2 + nbounds + self.slicesize
+        shape = 2 + nbounds_inslice + self.slicesize
         if str(self.type) == "CharType":
             arr = strings.array(None, shape=shape, itemsize=self.itemsize)
         else:
@@ -596,6 +599,7 @@ class Index(indexesExtension.Index, Group):
         begend = [arr[s[[0,-1]]]]
         self.ranges.append(begend)
         self.bounds.append([arr[s[self.chunksize::self.chunksize]]])
+        #self.bounds.append([arr[s[0::self.chunksize]]])
         # Update nrows after a successful append
         self.nrows = self.sorted.nrows
         self.nelements = self.nrows * self.slicesize
@@ -641,14 +645,41 @@ class Index(indexesExtension.Index, Group):
         self.shape = (self.nrows, self.slicesize)
         self.nelementsLR = nelementsLR
 
+
     def optimize(self, level=1):
         "Optimize an index to allow faster searches."
 
-        # Create a temporary EArray for slice sorting purposes
-        EArray(idx, 'tbounds', Float64Atom(shape=(0, self.nbounds)),
-               "Temporary bounds")
+        # Set the filters (they are *not* inherited)
+        filters = self._v_new_filters
+        if filters is None:
+            # If not filters has been passed in the constructor,
+            # set a sensible default, using zlib compression and shuffling
+            filters = Filters(complevel = 1, complib = "zlib",
+                              shuffle = 1, fletcher32 = 0)
 
+        # Create some temporary EArrays for slice sorting purposes
+        EArray(idx, 'abounds', Float64Atom(shape=(0, self.nbounds)),
+               "Start bounds", filters)
+        EArray(idx, 'zbounds', Float64Atom(shape=(0, self.nbounds)),
+               "End bounds", filters)
+        EArray(idx, 'mbounds', Float64Atom(shape=(0, self.nbounds)),
+               "Median bounds", filters)
 
+        offset = len(self.bebounds)
+        # Feed them with the data available in the sorted array
+        # (not dealing with last row slice yet)
+        for i in xrange(0, self.sorted.nrows, self.slicesize):
+            sblock = self.sorted[i:i+self.slicesize]
+            cs = self.chunksize
+            self.abounds.append([sblock[0::cs]])
+            self.zbounds.append([sblock[cs-1::cs]])
+            # calculem les medianes
+            sblock.shape= (self.nchunks, cs)
+            sblock.transpose()
+            smedian = median(sblock)
+            self.index.mbounds.append([smedian])
+
+            #******** Ens hem quedat aci... *********
 
     # This is an optimized version of search.
     # It does not work well with strings, because:

@@ -447,14 +447,6 @@ class IndexArray(EArray, indexesExtension.IndexArray):
             self.blocksize = self.attrs.blocksize
             self.slicesize = self.shape[1]
             self.chunksize = self._v_chunksize[1]
-        # Create a buffer for bounds array
-        nbounds = (self.slicesize // self.chunksize) - 1
-        if str(self.type) == "CharType":
-            self._bounds = strings.array(None, itemsize=self.itemsize,
-                                         shape=(nbounds,))
-        else:
-            self._bounds = numarray.array(None, shape=(nbounds,),
-                                          type=self.type)
         super(IndexArray, self)._g_postInitHook()
 
 
@@ -482,7 +474,6 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         if item2 < begin:
             result2 = 0
         if result1 >=0 and result2 >= 0:
-            #print "done 1-->", time()-t1
             return (result1, result2)
         # Then, look for items at the end of the sorted slice
         end = rangeValues[nrow,1]
@@ -493,7 +484,6 @@ class IndexArray(EArray, indexesExtension.IndexArray):
             if item2 >= end:
                 result2 = hi
         if result1 >= 0 and result2 >= 0:
-            #print "done 2-->", time()-t1
             return (result1, result2)
         # Finally, do a lookup for item1 and item2 if they were not found
         # Lookup in the middle of slice for item1
@@ -544,7 +534,6 @@ class IndexArray(EArray, indexesExtension.IndexArray):
             result2 = 0
             item2done = 1
         if item1done and item2done:
-            #print "done 1"
             return (result1, result2, niter)
 
         # Then, look for items at the end of the sorted slice
@@ -558,7 +547,6 @@ class IndexArray(EArray, indexesExtension.IndexArray):
                 result2 = hi
                 item2done = 1
         if item1done and item2done:
-            #print "done 2"
             return (result1, result2, niter)
 
         # Finally, do a lookup for item1 and item2 if they were not found
@@ -624,7 +612,6 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         if 0 <= result2 < chunksize:
             item2done = 1
         if item1done and item2done:
-            #print "done 1"
             return (result1, result2)
 
         # Then, look for items at the end of the sorted slice
@@ -643,7 +630,6 @@ class IndexArray(EArray, indexesExtension.IndexArray):
                 item2done = 1
                 result2 = hi - chunksize + result2
         if item1done and item2done:
-            #print "done 2"
             return (result1, result2)
 
         # Finally, do a lookup for item1 and item2 if they were not found
