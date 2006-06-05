@@ -57,26 +57,30 @@ def calcChunksize(expectedrows, testmode=0):
 
     """
 
+    blocksize = None
+
     if testmode:
         if expectedrows < minRowIndex*10:
-            nelemslice = 10
+            slicesize = 10
             chunksize = 5
         elif expectedrows < minRowIndex*100:
-            nelemslice = 100
+            slicesize = 100
             chunksize = 50
         elif expectedrows <= minRowIndex*1000:
-            nelemslice = 1000
+            slicesize = 1000
             chunksize = 600
         else:
             raise ValueError, \
 "expected rows cannot be larger than %s in test mode" % minRowIndex*1000
-        #print "nelemslice, chunksize:", (nelemslice, chunksize)
-        return (nelemslice, chunksize)
+        if blocksize == None:
+            blocksize = 2*slicesize
+        #print "blocksize, slicesize, chunksize:", (blocksize, slicesize, chunksize)
+        return (blocksize, slicesize, chunksize)
 
     expKrows = expectedrows / 1000000.  # Multiples of one million
     #print "expKrows:", expKrows
 
-    # Hint: the nelemslice should not pass 500 or 1000 thousand
+    # Hint: the slicesize should not pass 500 or 1000 thousand
     # That would make numarray to consume lots of memory for sorting
     # this slice.
     # In general, one should favor a small chunksize (100 ~ 1000) if one
@@ -86,219 +90,226 @@ def calcChunksize(expectedrows, testmode=0):
     # and CPU for its internal B-Tree
     if expKrows < 0.1: # expected rows < 100 thousand
         #chunksize = 1000            # best value
-        #nelemslice = 2*chunksize    #  "     "
+        #slicesize = 2*chunksize    #  "     "
         chunksize = 100              # best value
-        nelemslice = 100*chunksize    #  experimental
+        slicesize = 100*chunksize    #  experimental
         #chunksize = 500             # experimental
-        #nelemslice = 2*chunksize    #      "
+        #slicesize = 2*chunksize    #      "
     elif expKrows < 1: # expected rows < 1 milion
         chunksize = 250             # experiment
-        nelemslice = 200*chunksize   # experiment
-        #nelemslice = 2*chunksize
+        slicesize = 200*chunksize   # experiment
+        #slicesize = 2*chunksize
         #chunksize = 2000           # experimental
-        #nelemslice = 2*chunksize   #    "
+        #slicesize = 2*chunksize   #    "
     elif expKrows < 10:  # expected rows < 10 milion
         #chunksize = 100   # Create a lot of slices. For tests purposes only!
-        #nelemslice = 2*chunksize
+        #slicesize = 2*chunksize
         #chunksize = 100   # Create a lot of slices. For tests purposes only!
-        #nelemslice = 10*chunksize
+        #slicesize = 10*chunksize
         #chunksize = 50
-        #nelemslice = 5000*chunksize
+        #slicesize = 5000*chunksize
         # Above values lends to 1.04 ms (28 MB indexes). No Compr
         # Above values lends to XXX ms (XXX MB indexes). Compr
         #chunksize = 100
-        #nelemslice = 100*chunksize
+        #slicesize = 100*chunksize
         # Above values lends to 2.35 ms (21.3 MB indexes). No Compr
         # Above values lends to 2.88 ms (11.9 MB indexes). Compr
         #chunksize = 100
-        #nelemslice = 250*chunksize
+        #slicesize = 250*chunksize
         # Above values lends to 1.65 ms (21 MB indexes). No Compr
         # Above values lends to XXX ms (XXX MB indexes). Compr
         #chunksize = 100
-        #nelemslice = 1000*chunksize
+        #slicesize = 1000*chunksize
         # Above values lends to 1.16 ms (23 MB indexes). No Compr
         # Above values lends to XXX ms (XXX MB indexes). Compr
         #chunksize = 100
-        #nelemslice = 2500*chunksize
+        #slicesize = 2500*chunksize
         # Above values lends to 1.01 ms (26 MB indexes). No Compr
         # Above values lends to XXX ms (XXX MB indexes). Compr
         #chunksize = 100
-        #nelemslice = 5000*chunksize
+        #slicesize = 5000*chunksize
         # Above values lends to 1.01 ms (31 MB indexes). No Compr
         # Above values lends to XXX ms (XXX MB indexes). Compr
         #chunksize = 200
-        #nelemslice = 1000*chunksize
+        #slicesize = 1000*chunksize
         # Above values lends to 1.05 ms (24 MB indexes). No Compr
         # Above values lends to XXX ms (XXX MB indexes). Compr
         #chunksize = 200
-        #nelemslice = 2500*chunksize
+        #slicesize = 2500*chunksize
         # Above values lends to 0.99 ms (30 MB indexes). No Compr
         # Above values lends to 1.27 ms (21 MB indexes). Compr
         #chunksize = 250         #  *** consumes very little memory ***
-        #nelemslice = 200*chunksize
+        #slicesize = 200*chunksize
         # Above values lends to 1.33 ms (21.0 MB indexes). No Compr
         # Above values lends to 1.74 ms (10.6 MB indexes). Compr
         #chunksize = 250   # *** good **** takes much less memory
-        #nelemslice = 400*chunksize  # Very good balance cpu/memory
+        #slicesize = 400*chunksize  # Very good balance cpu/memory
         # Above values lends to XXX (0.96) ms (21.9 MB indexes). No Compr
         # Above values lends to XXX (1.29) ms (12.2 MB indexes). Compr
         #chunksize = 250   # *** good **** takes much less memory
-        #nelemslice = 500*chunksize  # Very good balance cpu/memory
+        #slicesize = 500*chunksize  # Very good balance cpu/memory
         # Above values lends to 1.12 ms (22.4 MB indexes). No Compr
         # Above values lends to 1.46 ms (12.7 MB indexes). Compr
         chunksize = 250      # *** very good **** takes less memory
-        nelemslice = 1000*chunksize  # Good balance cpu/memory
+        slicesize = 1000*chunksize  # Good balance cpu/memory
         # Above values lends to 1.05 (0.87) ms (24.8 MB indexes). No Compr
         # Above values lends to 1.34 (1.15) ms (15.3 MB indexes). Compr
         #chunksize = 250     # *** optimal **** but takes memory
-        #nelemslice = 2000*chunksize
+        #slicesize = 2000*chunksize
         # Above values lends to 0.99 (0.81) ms (30 MB indexes). No Compr
         # Above values lends to 1.28 (1.10) ms (20 MB indexes). Compr
         #chunksize = 256     # uses last row index. Use only as test
-        #nelemslice = 1000*chunksize
+        #slicesize = 1000*chunksize
         # Above values lends to (0.99) ms (XXX MB indexes). No Compr
         # Above values lends to (1.29) ms (12.8 MB indexes). Compr
         #chunksize = 256     # uses last row index. Use only as test
-        #nelemslice = 1024*chunksize
+        #slicesize = 1024*chunksize
         # Above values lends to (0.99) ms (20.6 MB indexes). No Compr
         # Above values lends to (1.29) ms (13.1 MB indexes). Compr
         #chunksize = 256     # uses last row index. Use only as test
-        #nelemslice = 2000*chunksize
+        #slicesize = 2000*chunksize
         # Above values lends to 1.63 (0.97) ms (19.6 MB indexes). No Compr
         # Above values lends to 1.90 ms (14.8 MB indexes). Compr
         #chunksize = 300   # *** uses last row index ***
-        #nelemslice = 1000*chunksize
+        #slicesize = 1000*chunksize
         # Above values lends to 1.47 ms (24 MB indexes). No Compr
         # Above values lends to XXX ms (XXX MB indexes). Compr
         #chunksize = 500
-        #nelemslice = 250*chunksize
+        #slicesize = 250*chunksize
         # Above values lends to 1.13 ms (21 MB indexes). No Compr
         # Above values lends to 5.2 ms (14 MB indexes). Compr
         #chunksize = 500
-        #nelemslice = 500*chunksize
+        #slicesize = 500*chunksize
         # Above values lends to 1.05 ms (24 MB indexes). No Compr
         # Above values lends to 5.2 ms (14 MB indexes). Compr
         #chunksize = 500
-        #nelemslice = 1000*chunksize
+        #slicesize = 1000*chunksize
         # Above values lends to 1.00 ms (29.1 MB indexes). No Compr
         # Above values lends to 1.30 ms (19.6 MB indexes). Compr
         #chunksize = 1000
-        #nelemslice = 250*chunksize
+        #slicesize = 250*chunksize
         # Above values lends to XXX ms (24 MB indexes). No Compr
         # Above values lends to 1.11 ms (14 MB indexes). Compr
         #chunksize = 1000
-        #nelemslice = 500*chunksize
+        #slicesize = 500*chunksize
         # Above values lends to 1.02 ms (29 MB indexes). No Compr
         # Above values lends to  XXX ms (19 MB indexes). Compr
         #chunksize = 1000
-        #nelemslice = 100*chunksize
+        #slicesize = 100*chunksize
         # Above values lends to 1.25 ms (21.2 MB indexes). Compr
         # Above values lends to 1.78 ms (11.4 MB indexes). Compr
         #chunksize = 1000
-        #nelemslice = 250*chunksize
+        #slicesize = 250*chunksize
         # Above values lends to 5.0 ms
         #chunksize = 1000
-        #nelemslice = 1000*chunksize
+        #slicesize = 1000*chunksize
         # Above values lends to 3.9 ms but double the time to index
         #chunksize = 1500   # *** all is kept in last row index ***
-        #nelemslice = 1000*chunksize
+        #slicesize = 1000*chunksize
     elif expKrows < 100: # expected rows < 100 milions
         # From simulations it is evident that a small chunksize uses more CPU,
         # possibly due to lookups in HDF5 BTree. However, it reduces memory
         # usage, as well as I/O. Hence, in fast machines it would be effective
         # to favour relatively small chunksizes.
         #chunksize = 256  # simulations. High CPU usage. Much less I/O
-        #nelemslice = 32*chunksize     # simulations
+        #slicesize = 32*chunksize     # simulations
         # Above values lends to 11.85 ms (198.4 MB indexes). No Compr
         #chunksize = 256  # simulations.
-        #nelemslice = 48*chunksize     # simulations
+        #slicesize = 48*chunksize     # simulations
         # Above values lends to 8.55 ms (198.4 MB indexes). No Compr
         #chunksize = 256  # simulations. High CPU
-        #nelemslice = 64*chunksize     # simulations
+        #slicesize = 64*chunksize     # simulations
         # Above values lends to 6.84 ms (198.6 MB indexes). No Compr
         # Above values lends to 9.55 ms (109.0 MB indexes). Compr
         #chunksize = 200  # simulations. High CPU usage. Much less I/O
-        #nelemslice = 50*chunksize     # simulations
+        #slicesize = 50*chunksize     # simulations
         # Above values lends to 9.85 ms (201.7 MB indexes). No Compr
         #chunksize = 500              # simulations
-        #nelemslice = 20*chunksize     # simulations
+        #slicesize = 20*chunksize     # simulations
         # Above values lends to 10.53 ms (195.9 MB indexes). No Compr
         #chunksize = 512              # simulations
-        #nelemslice = 20*chunksize     # simulations
+        #slicesize = 20*chunksize     # simulations
         # Above values lends to 10.57 ms (194.8 MB indexes). No Compr
         # Above values lends to 16.86 ms (106.7 MB indexes). Compr
         #chunksize = 1000              # simulations. less I/O. fits on cache
-        #nelemslice = 10*chunksize     # simulations
+        #slicesize = 10*chunksize     # simulations
         # Above values lends to 11.63 ms (193.0 MB indexes). No Compr
         #chunksize = 5000              # simulations.lots of I/O
-        #nelemslice = 2*chunksize     # simulations
+        #slicesize = 2*chunksize     # simulations
         # Above values lends to 30.7 ms (191.5 MB indexes). No Compr
         #chunksize = 100              # experiment
-        #nelemslice = 5000*chunksize     # experiment
+        #slicesize = 5000*chunksize     # experiment
         # Above values lends to 2.61 ms (220 MB indexes). No Compr
         # Above values lends to 3.00 ms (141 MB indexes). Compr
         # This takes long time to index
         #chunksize = 250              # experiment  *** very good ***
-        #nelemslice = 2000*chunksize  # but takes long to time to index
+        #slicesize = 2000*chunksize  # but takes long to time to index
         # Above values lends to 2.60 (1.43) ms (209 MB indexes). No Compr
         # Above values lends to 3.04 (1.87) ms (126 MB indexes). Compr
         #chunksize = 250              # experiment
-        #nelemslice = 1500*chunksize     # experiment
+        #slicesize = 1500*chunksize     # experiment
         # Above values lends to 3.30 ms (202 MB indexes). No Compr
         # Above values lends to 3.04 ms (126 MB indexes). Compr
         chunksize = 500              # ******best values*******
-        nelemslice = 1000*chunksize  # takes reasonable time to index
+        slicesize = 1000*chunksize  # takes reasonable time to index
         # Above values lends to 2.66 (1.48) ms (205 MB indexes). No Compr
         # Above values lends to 3.16 (1.98) ms (120 MB indexes). Compr
         #chunksize = 500              # experiment
-        #nelemslice = 500*chunksize     # experiment
+        #slicesize = 500*chunksize     # experiment
         # Above values lends to XXX ms (XX MB indexes). No Compr
         # Above values lends to 4.01 ms (111 MB indexes). Compr
         #chunksize = 750              # experiment
-        #nelemslice = 750*chunksize     # experiment
+        #slicesize = 750*chunksize     # experiment
         # Above values lends to XXX (1.39*) ms (XX MB indexes). No Compr
         # Above values lends to 3.64 ms (114 MB indexes). Compr
         #chunksize = 1000
-        #nelemslice = 100*chunksize
+        #slicesize = 100*chunksize
         # Above values lends to XXX ms (XXX MB indexes). No Compr
         # Above values lends to 7.25 ms (102 MB indexes). Compr
         #chunksize = 1000              # experiment
-        #nelemslice = 500*chunksize     # experiment
+        #slicesize = 500*chunksize     # experiment
         # Above values lends to XXX ms (XX MB indexes). No Compr
         # Above values lends to 3.47 ms (116 MB indexes). Compr
         #chunksize = 1500              # experiment
-        #nelemslice = 250*chunksize     # experiment
+        #slicesize = 250*chunksize     # experiment
         # Above values lends to XXX ms (XX MB indexes). No Compr
         # Above values lends to 4.68 ms (108 MB indexes). Compr
         #chunksize = 1500              # experiment
-        #nelemslice = 500*chunksize     # experiment
+        #slicesize = 500*chunksize     # experiment
         # Above values lends to XXX ms (XX MB indexes). No Compr
         # Above values lends to 3.78 ms (117 MB indexes). Compr
         #chunksize = 5000
-        #nelemslice = 200*chunksize
+        #slicesize = 200*chunksize
         # Above values lends to XXX ms (XX MB indexes). No Compr
         # Above values lends to 4.72 ms (121 MB indexes). Compr
     elif expKrows < 1000: # expected rows < 1000 millions
         #chunksize = 750              # experiment
         chunksize = 1000              # experiment
-        nelemslice = 1000*chunksize     # experiment
+        slicesize = 1000*chunksize     # experiment
+        blocksize = 1000*slicesize    # experiment
     elif expKrows < 10*1000: # expected rows < 10 (american) billions
         #chunksize = 1000              # experiment
         chunksize = 2000              # experiment
-        nelemslice = 1000*chunksize     # experiment
+        slicesize = 1000*chunksize     # experiment
+        blocksize = 1000*slicesize    # experiment
     elif expKrows < 100*1000: # expected rows < 100 (american) billions
         #chunksize = 1250              # experiment
-        chunksize = 5000              # experiment
-        nelemslice = 1000*chunksize     # experiment
+        chunksize = 4000               # experiment
+        slicesize = 1000*chunksize     # experiment
+        blocksize = 10000*slicesize    # experiment
     else:  # expected rows >= 1 (american) trillion (perhaps by year 2010
            # this will be useful, who knows...)
-        #chunksize = 1500              # experiment
-        #nelemslice = 1500*chunksize     # experiment
         chunksize = 7500              # experiment
-        nelemslice = 1000*chunksize     # experiment
+        slicesize = 1000*chunksize     # experiment
+        blocksize = 100000*slicesize    # experiment
 
-    #print "nelemslice, chunksize:", (nelemslice, chunksize)
-    return (nelemslice, chunksize)
+    # The default for blocksize
+    if blocksize == None:
+        blocksize = 10000*slicesize    # experiment
+
+    #print "blocksize, slicesize, chunksize:", (blocksize, slicesize, chunksize)
+    return (blocksize, slicesize, chunksize)
+
 
 # Declarations for inheriting
 class CacheArray(EArray, indexesExtension.CacheArray):
@@ -343,7 +354,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
       Specific of IndexArray:
         extdim -- The enlargeable dimension (always the first, or 0).
         nrows -- The number of slices in index.
-        nelemslice -- The number of elements per slice.
+        slicesize -- The number of elements per slice.
         chunksize -- The HDF5 chunksize for the slice dimension (the 1).
 
     """
@@ -380,20 +391,22 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         """
         self.testmode = testmode
         """Enables test mode for index chunk size calculation."""
-        self.nelemslice = None
-        """The number of elements per slice."""
+        self.nblocks = None
+        """The number of blocks."""
         self.chunksize = None
         """The HDF5 chunksize for the slice dimension (the second)."""
+        self.slicesize = None
+        """The number of elements per slice."""
+        self.blocksize = None
+        """The maximum number of elements that can be optimized."""
         self.bufferl = None
         """Buffer for reading chunks in sorted array in extension."""
-        self.arrRel = None
-        """Buffer for reading indexes (relative addresses) in extension."""
         self.arrAbs = None
         """Buffer for reading indexes (absolute addresses) in extension."""
         self.coords = None
         """Buffer for reading coordenates (absolute addresses) in extension."""
         if atom is not None:
-            (self.nelemslice, self.chunksize) = (
+            (self.blocksize, self.slicesize, self.chunksize) = (
                 calcChunksize(expectedrows, testmode))
         # Index creation is never logged.
         super(IndexArray, self).__init__(
@@ -403,8 +416,10 @@ class IndexArray(EArray, indexesExtension.IndexArray):
     def _g_create(self):
         assert self.atom.shape == (0, 1), "only scalar columns can be indexed"
         objectId = super(IndexArray, self)._g_create()
+        # The blocksize will be saved as an (pickled) attribute
+        self.attrs.blocksize = self.blocksize
         assert self.extdim == 0, "computed extendable dimension is wrong"
-        assert self.shape == (0, self.nelemslice), "invalid shape"
+        assert self.shape == (0, self.slicesize), "invalid shape"
         assert self._v_chunksize == (1, self.chunksize), "invalid chunk size"
         return objectId
 
@@ -416,8 +431,9 @@ class IndexArray(EArray, indexesExtension.IndexArray):
     def _createEArray(self, title):
         # The shape of the index array needs to be fixed before creating it.
         # Admitted, this is a bit too much convoluted :-(
-        self.shape = (0, self.nelemslice)
-        super(IndexArray, self)._createEArray(title)
+        self.shape = (0, self.slicesize)
+        self._v_objectID = super(IndexArray, self)._createEArray(title)
+        return self._v_objectID
 
 
     def _g_postInitHook(self):
@@ -425,13 +441,14 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         self._startl = numarray.array(None, shape=(2,), type=numarray.Int64)
         self._stopl = numarray.array(None, shape=(2,), type=numarray.Int64)
         self._stepl = numarray.array([1,1], shape=(2,), type=numarray.Int64)
-        # Set ``nelemslice`` and ``chunksize`` when opening an existing node;
+        # Set ``slicesize`` and ``chunksize`` when opening an existing node;
         # otherwise, they are already set.
         if not self._v_new:
-            self.nelemslice = self.shape[1]
+            self.blocksize = self.attrs.blocksize
+            self.slicesize = self.shape[1]
             self.chunksize = self._v_chunksize[1]
         # Create a buffer for bounds array
-        nbounds = (self.nelemslice // self.chunksize) - 1
+        nbounds = (self.slicesize // self.chunksize) - 1
         if str(self.type) == "CharType":
             self._bounds = strings.array(None, itemsize=self.itemsize,
                                          shape=(nbounds,))
@@ -453,7 +470,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
     def _searchBin(self, nrow, item):
         item1, item2 = item
         result1 = -1; result2 = -1
-        hi = self.nelemslice
+        hi = self.slicesize
         rangeValues = self._v_parent.rvcache
         #t1=time()
         # First, look at the beginning of the slice
@@ -508,8 +525,8 @@ class IndexArray(EArray, indexesExtension.IndexArray):
     # This version of searchBin only uses the rangeValues (1st cache)
     def _g_searchBin(self, nrow, item, rangeValues):
         item1, item2 = item
-        nelemslice = self.shape[1]
-        hi = nelemslice
+        slicesize = self.shape[1]
+        hi = slicesize
         item1done = 0; item2done = 0
         chunksize = self.chunksize # Number of elements/chunksize # change here
         niter = 0
@@ -548,7 +565,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         # Lookup in the middle of slice for item1
         if not item1done:
             lo = 0
-            hi = nelemslice
+            hi = slicesize
             beginning = 1
             result1 = 1  # a number different from 0
             while beginning and result1 != 0:
@@ -566,10 +583,10 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         # Lookup in the middle of slice for item2
         if not item2done:
             lo = 0
-            hi = nelemslice
+            hi = slicesize
             ending = 1
             result2 = 1  # a number different from 0
-            while ending and result2 != nelemslice:
+            while ending and result2 != slicesize:
                 (result2, ending, iter) = \
                           self._interSearch_right(nrow, chunksize,
                                                   item2, lo, hi)
@@ -589,8 +606,8 @@ class IndexArray(EArray, indexesExtension.IndexArray):
     # This is coded in pyrex as well, but the improvement in speed is very
     # little. So, it's better to let _searchBin live here.
     def _searchBinStd(self, nrow, item):
-        nelemslice = self.shape[1]
-        hi = nelemslice
+        slicesize = self.shape[1]
+        hi = slicesize
         item1, item2 = item
         item1done = 0; item2done = 0
         chunksize = self.chunksize # Number of elements/chunksize # change here
@@ -633,7 +650,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         # Lookup in the middle of slice for item1
         if not item1done:
             lo = 0
-            hi = nelemslice
+            hi = slicesize
             beginning = 1
             result1 = 1  # a number different from 0
             while beginning and result1 != 0:
@@ -651,10 +668,10 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         # Lookup in the middle of slice for item2
         if not item2done:
             lo = 0
-            hi = nelemslice
+            hi = slicesize
             ending = 1
             result2 = 1  # a number different from 0
-            while ending and result2 != nelemslice:
+            while ending and result2 != slicesize:
                 (result2, ending, iter) = \
                           self._interSearch_right(nrow, chunksize,
                                                   item2, lo, hi)
@@ -684,7 +701,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
   shape = %s
   itemsize = %s
   nrows = %s
-  nelemslice = %s
+  slicesize = %s
   chunksize = %s
   byteorder = %r""" % (self, self.type, self.shape, self.itemsize, self.nrows,
-                       self.nelemslice, self.chunksize, self.byteorder)
+                       self.slicesize, self.chunksize, self.byteorder)

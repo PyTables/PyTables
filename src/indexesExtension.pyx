@@ -436,7 +436,7 @@ cdef class IndexArray(Array):
     cs = self.chunksize
     nrows = self.nrows
     nbounds = self.nbounds
-    nslice = self.nelemslice
+    nslice = self.slicesize
     bcache = self.bcache
     tlen = 0
     rbuflb = <double *>self.rbuflb
@@ -517,7 +517,7 @@ cdef class IndexArray(Array):
     cs = self.chunksize
     nrows = self.nrows
     nbounds = self.nbounds
-    nslice = self.nelemslice
+    nslice = self.slicesize
     bcache = self.bcache
     tlen = 0
     rbufst = <int *>self.rbufst
@@ -586,7 +586,7 @@ cdef class IndexArray(Array):
     cs = self.chunksize
     nrows = self.nrows
     nbounds = self.nbounds
-    nslice = self.nelemslice
+    nslice = self.slicesize
     bcache = self.bcache
     tlen = 0
     rbufst = <int *>self.rbufst

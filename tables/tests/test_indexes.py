@@ -86,7 +86,7 @@ class BasicTestCase(unittest.TestCase):
         idxcol = table.cols.var1.index
         if verbose:
             print "Max rows in buf:", table._v_maxTuples
-            print "Number of elements per slice:", idxcol.nelemslice
+            print "Number of elements per slice:", idxcol.slicesize
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
@@ -107,7 +107,7 @@ class BasicTestCase(unittest.TestCase):
         if verbose:
             print "Rows in table:", table.nrows
             print "Max rows in buf:", table._v_maxTuples
-            print "Number of elements per slice:", idxcol.nelemslice
+            print "Number of elements per slice:", idxcol.slicesize
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
@@ -129,7 +129,7 @@ class BasicTestCase(unittest.TestCase):
         idxcol = table.cols.var3.index
         if verbose:
             print "Max rows in buf:", table._v_maxTuples
-            print "Number of elements per slice:", idxcol.nelemslice
+            print "Number of elements per slice:", idxcol.slicesize
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
@@ -151,7 +151,7 @@ class BasicTestCase(unittest.TestCase):
         idxcol = table.cols.var4.index
         if verbose:
             print "Max rows in buf:", table._v_maxTuples
-            print "Number of elements per slice:", idxcol.nelemslice
+            print "Number of elements per slice:", idxcol.slicesize
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
@@ -173,7 +173,7 @@ class BasicTestCase(unittest.TestCase):
         idxcol = table.cols.var4.index
         if verbose:
             print "Max rows in buf:", table._v_maxTuples
-            print "Number of elements per slice:", idxcol.nelemslice
+            print "Number of elements per slice:", idxcol.slicesize
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
@@ -199,7 +199,7 @@ class BasicTestCase(unittest.TestCase):
         if verbose:
             print "Max rows in buf:", table._v_maxTuples
             print "Rows in tables:", table.nrows
-            print "Number of elements per slice:", idxcol.nelemslice
+            print "Number of elements per slice:", idxcol.slicesize
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
@@ -226,7 +226,7 @@ class BasicTestCase(unittest.TestCase):
         idxcol = table.cols.var4.index
         if verbose:
             print "Max rows in buf:", table._v_maxTuples
-            print "Number of elements per slice:", idxcol.nelemslice
+            print "Number of elements per slice:", idxcol.slicesize
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
@@ -251,7 +251,7 @@ class BasicTestCase(unittest.TestCase):
         idxcol = table.cols.var4.index
         if verbose:
             print "Max rows in buf:", table._v_maxTuples
-            print "Number of elements per slice:", idxcol.nelemslice
+            print "Number of elements per slice:", idxcol.slicesize
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
@@ -543,68 +543,68 @@ class BasicReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 0
     fletcher32 = 0
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss
 
 class ZlibReadTestCase(BasicTestCase):
     compress = 1
     complib = "zlib"
     shuffle = 0
     fletcher32 = 0
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss
 
 class LZOReadTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
     shuffle = 0
     fletcher32 = 0
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss
 
 class BZIP2ReadTestCase(BasicTestCase):
     compress = 1
     complib = "bzip2"
     shuffle = 0
     fletcher32 = 0
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss
 
 class ShuffleReadTestCase(BasicTestCase):
     compress = 1
     complib = "zlib"
     shuffle = 1
     fletcher32 = 0
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss
 
 class Fletcher32ReadTestCase(BasicTestCase):
     compress = 1
     complib = "zlib"
     shuffle = 0
     fletcher32 = 1
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss
 
 class ShuffleFletcher32ReadTestCase(BasicTestCase):
     compress = 1
     complib = "zlib"
     shuffle = 1
     fletcher32 = 1
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss
 
 class OneHalfTestCase(BasicTestCase):
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns+ns//2
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss+ss//2
 
 class UpperBoundTestCase(BasicTestCase):
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns+1
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss+1
 
 class LowerBoundTestCase(BasicTestCase):
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns*2-1
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss*2-1
 
 # This warning has non-sense now in the PyTables Pro version, as *all*
 # the rows can be indexed there
@@ -936,7 +936,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                 print "unsavedindexedrows:", table._unsaved_indexedrows
                 index = table.cols.var1.index
                 print "table rows:", table.nrows
-                print "computed indexed rows:", index.nrows * index.nelemslice
+                print "computed indexed rows:", index.nrows * index.slicesize
             else:
                 print "Table is not indexed"
         if self.klass is not Small:
@@ -1405,32 +1405,32 @@ class AI4bTestCase(AutomaticIndexingTestCase):
     klass = NoReindex
 
 class AI5TestCase(AutomaticIndexingTestCase):
-    ns, cs = calcChunksize(minRowIndex, testmode=0)
-    nrows = ns*11-1
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=0)
+    nrows = ss*11-1
     reopen = 0
     klass = NoAuto
 
 class AI6TestCase(AutomaticIndexingTestCase):
-    ns, cs = calcChunksize(minRowIndex, testmode=0)
-    nrows = ns*21+1
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=0)
+    nrows = ss*21+1
     reopen = 1
     klass = NoAuto
 
 class AI7TestCase(AutomaticIndexingTestCase):
-    ns, cs = calcChunksize(minRowIndex, testmode=0)
-    nrows = ns*12-1
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=0)
+    nrows = ss*12-1
     reopen = 0
     klass = NoReindex
 
 class AI8TestCase(AutomaticIndexingTestCase):
-    ns, cs = calcChunksize(minRowIndex, testmode=0)
-    nrows = ns*15+100
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=0)
+    nrows = ss*15+100
     reopen = 1
     klass = NoReindex
 
 class AI9TestCase(AutomaticIndexingTestCase):
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss
     reopen = 0
     klass = Small
 

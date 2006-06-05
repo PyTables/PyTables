@@ -2016,12 +2016,12 @@ class SelectValuesTestCase(unittest.TestCase):
 class SV1aTestCase(SelectValuesTestCase):
     minRowIndex = 10
     buffersize = 1
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss
     reopen = 0
-    nrep = ns
+    nrep = ss
     il = 0
-    sl = ns
+    sl = ss
 
 class SV1bTestCase(SV1aTestCase):
     minRowIndex = 1000
@@ -2030,8 +2030,8 @@ class SV1bTestCase(SV1aTestCase):
 class SV2aTestCase(SelectValuesTestCase):
     minRowIndex = 10
     buffersize = 2
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss
     reopen = 1
     nrep = 1
     il = 0
@@ -2044,8 +2044,8 @@ class SV2bTestCase(SV2aTestCase):
 class SV3aTestCase(SelectValuesTestCase):
     minRowIndex = 10
     buffersize = 3
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns*2-1
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss*2-1
     reopen = 1
     nrep = 3
     il = 0
@@ -2058,8 +2058,8 @@ class SV3bTestCase(SV3aTestCase):
 class SV4aTestCase(SelectValuesTestCase):
     minRowIndex = 10
     buffersize = 10
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns*3
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss*3
     reopen = 0
     nrep = 1
     #il = nrows-cs
@@ -2072,8 +2072,8 @@ class SV4bTestCase(SV4aTestCase):
 
 class SV5aTestCase(SelectValuesTestCase):
     minRowIndex = 10
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns*5
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss*5
     reopen = 0
     nrep = 1
     il = 0
@@ -2084,8 +2084,8 @@ class SV5bTestCase(SV5aTestCase):
 
 class SV6aTestCase(SelectValuesTestCase):
     minRowIndex = 10
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns*5-1
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss*5-1
     reopen = 0
     nrep = cs+1
     il = -1
@@ -2097,8 +2097,8 @@ class SV6bTestCase(SV6aTestCase):
 class SV7aTestCase(SelectValuesTestCase):
     random = 1
     minRowIndex = 10
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns*5+1
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss*5+1
     reopen = 0
     nrep = cs-1
     il = -10
@@ -2110,8 +2110,8 @@ class SV7bTestCase(SV7aTestCase):
 class SV8aTestCase(SelectValuesTestCase):
     random = 0
     minRowIndex = 10
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns*5+1
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss*5+1
     reopen = 0
     nrep = cs-1
     il = 10
@@ -2130,8 +2130,8 @@ class SV9aTestCase(SelectValuesTestCase):
     # I've been unable to reproduce it in a consistent manner.
     random = 1
     minRowIndex = 10
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns*5+1
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss*5+1
     reopen = 0
     nrep = cs-1
     il = 10
@@ -2144,12 +2144,12 @@ class SV10aTestCase(SelectValuesTestCase):
     random = 1
     minRowIndex = 10
     buffersize = 1
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss
     reopen = 0
-    nrep = ns
+    nrep = ss
     il = 0
-    sl = ns
+    sl = ss
 
 class SV10bTestCase(SV10aTestCase):
     minRowIndex = 1000
@@ -2161,12 +2161,12 @@ class SV11aTestCase(SelectValuesTestCase):
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
     minRowIndex = len(values)
     buffersize = 1
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss
     reopen = 0
-    nrep = ns
+    nrep = ss
     il = 0
-    sl = ns
+    sl = ss
 
 class SV11bTestCase(SelectValuesTestCase):
     # This checks a special case that failed. It was discovered in a
@@ -2175,12 +2175,12 @@ class SV11bTestCase(SelectValuesTestCase):
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
     minRowIndex = len(values)
     buffersize = 2
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss
     reopen = 0
-    nrep = ns
+    nrep = ss
     il = 0
-    sl = ns
+    sl = ss
 
 class SV12aTestCase(SelectValuesTestCase):
     # This checks a special case that failed. It was discovered in a
@@ -2190,12 +2190,12 @@ class SV12aTestCase(SelectValuesTestCase):
     values = [4, 4, 1, 5, 2, 0, 1, 4, 3, 9]
     minRowIndex = len(values)
     buffersize = 1
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss
     reopen = 0
-    nrep = ns
+    nrep = ss
     il = 0
-    sl = ns
+    sl = ss
 
 class SV12bTestCase(SelectValuesTestCase):
     # This checks a special case that failed. It was discovered in a
@@ -2205,41 +2205,41 @@ class SV12bTestCase(SelectValuesTestCase):
     values = [4, 4, 1, 5, 2, 0, 1, 4, 3, 9]
     minRowIndex = len(values)
     buffersize = 2
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss
     reopen = 1
-    nrep = ns
+    nrep = ss
     il = 0
-    sl = ns
+    sl = ss
 
 class SV13aTestCase(SelectValuesTestCase):
     values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
     minRowIndex = len(values)
     buffersize = 5
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss
     reopen = 0
-    nrep = ns
+    nrep = ss
     il = 0
-    sl = ns
+    sl = ss
 
 class SV13bTestCase(SelectValuesTestCase):
     values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
     minRowIndex = len(values)
     buffersize = 10
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss
     reopen = 1
-    nrep = ns
+    nrep = ss
     il = 0
-    sl = ns
+    sl = ss
 
 class SV14aTestCase(SelectValuesTestCase):
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
     minRowIndex = len(values)
     buffersize = 5
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss
     reopen = 0
     nrep = cs
     il = -5
@@ -2249,12 +2249,12 @@ class SV14bTestCase(SelectValuesTestCase):
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
     minRowIndex = len(values)
     buffersize = 10
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss
     reopen = 1
     nrep = 9
     il = 0
-    sl = ns-cs+1
+    sl = ss-cs+1
 
 class SV15aTestCase(SelectValuesTestCase):
     # Test that checks for case where there are not valid values in
@@ -2265,8 +2265,8 @@ class SV15aTestCase(SelectValuesTestCase):
     #seed = 1885
     seed = 183
     minRowIndex = 10
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns*5+1
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss*5+1
     reopen = 0
     nrep = cs-1
     il = -10
@@ -2281,8 +2281,8 @@ class SV15bTestCase(SelectValuesTestCase):
     seed = 1885
     #seed = 183
     minRowIndex = 10
-    ns, cs = calcChunksize(minRowIndex, testmode=1)
-    nrows = ns*5+1
+    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    nrows = ss*5+1
     reopen = 1
     nrep = cs-1
     il = -10

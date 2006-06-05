@@ -367,7 +367,7 @@ class Index(indexesExtension.Index, Group):
         column -- The column object this index belongs to
         dirty -- Whether the index is dirty or not.
         nrows -- The number of slices in the index.
-        nelemslice -- The number of elements per slice.
+        slicesize -- The number of elements per slice.
         nelements -- The number of indexed rows.
         shape -- The shape of this index (in slices and elements).
         filters -- The properties used to filter the stored items.
@@ -385,16 +385,20 @@ class Index(indexesExtension.Index, Group):
         lambda self: self.column.dirty, None, None,
         "Whether the index is dirty or not.")
 
-    nelemslice = property(
-        lambda self: self.sorted.nelemslice, None, None,
+    blocksize = property(
+        lambda self: self.sorted.blocksize, None, None,
+        "The number of elements per block.")
+
+    slicesize = property(
+        lambda self: self.sorted.slicesize, None, None,
         "The number of elements per slice.")
 
     chunksize = property(
         lambda self: self.sorted.chunksize, None, None,
-        "The number of elements per chunk on-disk.")
+        "The number of elements per chunk.")
 
     shape = property(
-        lambda self: (self.sorted.nrows, self.sorted.nelemslice), None, None,
+        lambda self: (self.sorted.nrows, self.sorted.slicesize), None, None,
         "The shape of this index (in slices and elements).")
 
     filters = property(
@@ -450,10 +454,18 @@ class Index(indexesExtension.Index, Group):
         self.column = column
         """The `Column` instance for the indexed column."""
 
-        self.nrows = 0
-        """The number of slices in the sorted/indices objects."""
-        self.nelements = 0
+        self.nrows = None
+        """The total number of slices in the index."""
+        self.nelements = None
         """The number of indexed elements in this index."""
+        self.nblocks = None
+        """The total number of blocks in the index."""
+        self.nslices = None
+        """The number of slices in a block."""
+        self.nchunks = None
+        """The number of chunks in a slice."""
+        self.nbounds = None
+        """The number of bounds in a block."""
         # The starts and lengths are initialized so that they can keep
         # info for last row procecessing at very least.
         self.starts = numarray.array(None, shape=1, type = numarray.Int32)
@@ -471,7 +483,6 @@ class Index(indexesExtension.Index, Group):
             parentNode, name, title, new, filters, log=False)
 
 
-
     def _g_postInitHook(self):
         super(Index, self)._g_postInitHook()
 
@@ -486,20 +497,32 @@ class Index(indexesExtension.Index, Group):
             else:
                 nelementsLR = 0
             self.nrows = self.sorted.nrows
-            self.nelements = self.nrows * self.nelemslice + nelementsLR
+            self.nelements = self.nrows * self.slicesize + nelementsLR
+            self.nblocks = (self.nelements / self.sorted.blocksize) + 1
+            self.nbounds = self.blocksize / self.chunksize
+            self.nslices = self.sorted.blocksize / self.sorted.slicesize
+            self.nchunks = self.sorted.slicesize / self.sorted.chunksize
             self.nelementsLR = nelementsLR
             if nelementsLR > 0:
                 self.nrows += 1
-            self.shape = (self.nrows, self.nelemslice)
+            self.shape = (self.nrows, self.slicesize)
             # Get the bounds as a cache (this has to remain here!)
-            nbounds = (nelementsLR -1 ) // self.chunksize
-            if nbounds < 0:
-                nbounds = 0 # correction for -1 bounds
-            nbounds += 2 # bounds + begin + end
-            # all bounds values (+begin+end) are at the beginning of lrvb
-            self.bebounds = self.sortedLR[:nbounds]
-            self.cache = False    # no cache (ranges & bounds) is available initially
+            nboundsLR = (nelementsLR - 1 ) // self.chunksize
+            if nboundsLR < 0:
+                nboundsLR = 0 # correction for -1 bounds
+            nboundsLR += 2 # bounds + begin + end
+            # All bounds values (+begin+end) are at the beginning of sortedLR
+            self.bebounds = self.sortedLR[:nboundsLR]
+            # No cache (ranges & bounds) is available initially
+            self.cache = False
             return
+        else:
+            # The index is new. Initialize the values
+            self.nrows = 0
+            self.nblocks = 0
+            self.nelements = 0
+            self.nchunks = 0
+            self.nbounds = 0
 
         # Set the filters for this object (they are *not* inherited)
         filters = self._v_new_filters
@@ -525,34 +548,32 @@ class Index(indexesExtension.Index, Group):
                               flavor="numarray")
         else:
             atom = Atom(self.type, shape=(0,2), flavor="numarray")
-        CacheArray(self, 'ranges', atom, "Range Values",
-                   Filters(complevel=0, shuffle=0),   # too small to use filters
-                   self._v_expectedrows//self.nelemslice)
+        CacheArray(self, 'ranges', atom, "Range Values", filters,
+                   self._v_expectedrows//self.slicesize)
 
         # Create the EArray for boundary values (2nd order cache)
-        nbounds = (self.nelemslice - 1 ) // self.chunksize
+        nbounds = (self.slicesize - 1 ) // self.chunksize
         if str(self.type) == "CharType":
             atom = StringAtom(shape=(0, nbounds),
                               length=self.itemsize,
                               flavor="numarray")
         else:
             atom = Atom(self.type, shape=(0, nbounds))
-        CacheArray(self, 'bounds', atom, "Boundary Values",
-                   Filters(complevel=0, shuffle=0),   # too small to use filters
+        CacheArray(self, 'bounds', atom, "Boundary Values", filters,
                    self._v_expectedrows//self.chunksize)
 
         # Create the Array for last (sorted) row values + bounds
-        shape = 2 + nbounds + self.nelemslice
+        shape = 2 + nbounds + self.slicesize
         if str(self.type) == "CharType":
-            atom = strings.array(None, shape=shape, itemsize=self.itemsize)
+            arr = strings.array(None, shape=shape, itemsize=self.itemsize)
         else:
-            atom = numarray.array(None, shape=shape, type=self.type)
-        LastRowArray(self, 'sortedLR', atom, "Last Row sorted values + bounds")
+            arr = numarray.array(None, shape=shape, type=self.type)
+        LastRowArray(self, 'sortedLR', arr, "Last Row sorted values + bounds")
 
         # Create the Array for reverse indexes in last row
-        shape = self.nelemslice     # enough for indexes and length
-        atom = numarray.zeros(shape=shape, type=numarray.Int64)
-        LastRowArray(self, 'indicesLR', atom, "Last Row reverse indices")
+        shape = self.slicesize     # enough for indexes and length
+        arr = numarray.zeros(shape=shape, type=numarray.Int64)
+        LastRowArray(self, 'indicesLR', arr, "Last Row reverse indices")
 
 
     def _g_updateDependent(self):
@@ -569,7 +590,7 @@ class Index(indexesExtension.Index, Group):
         else:
             s=numarray.argsort(arr)
         # Indexes in PyTables Pro systems are 64-bit long.
-        offset = self.sorted.nrows * self.nelemslice
+        offset = self.sorted.nrows * self.slicesize
         self.indices.append(numarray.array(s, type="Int64") + offset)
         self.sorted.append(arr[s])
         begend = [arr[s[[0,-1]]]]
@@ -577,8 +598,9 @@ class Index(indexesExtension.Index, Group):
         self.bounds.append([arr[s[self.chunksize::self.chunksize]]])
         # Update nrows after a successful append
         self.nrows = self.sorted.nrows
-        self.nelements = self.nrows * self.nelemslice
-        self.shape = (self.nrows, self.nelemslice)
+        self.nelements = self.nrows * self.slicesize
+        self.nblocks = (self.nelements / self.blocksize) + 1
+        self.shape = (self.nrows, self.slicesize)
         self.nelementsLR = 0  # reset the counter of the last row index to 0
         self.cache = False   # the cache is dirty now
 
@@ -587,7 +609,7 @@ class Index(indexesExtension.Index, Group):
         """Append the array to the last row index objects"""
 
         # compute the elements in the last row sorted & bounds array
-        offset = self.sorted.nrows * self.nelemslice
+        offset = self.sorted.nrows * self.slicesize
         nelementsLR = tnrows - offset
         assert nelementsLR == len(arr), \
 "The number of elements to append is incorrect!. Report this to the authors."
@@ -615,9 +637,17 @@ class Index(indexesExtension.Index, Group):
         self.sortedLR[offset:offset+len(arr)] = arr[s]
         # Update nelements after a successful append
         self.nrows = self.sorted.nrows + 1
-        self.nelements = self.sorted.nrows * self.nelemslice + nelementsLR
-        self.shape = (self.nrows, self.nelemslice)
+        self.nelements = self.sorted.nrows * self.slicesize + nelementsLR
+        self.shape = (self.nrows, self.slicesize)
         self.nelementsLR = nelementsLR
+
+    def optimize(self, level=1):
+        "Optimize an index to allow faster searches."
+
+        # Create a temporary EArray for slice sorting purposes
+        EArray(idx, 'tbounds', Float64Atom(shape=(0, self.nbounds)),
+               "Temporary bounds")
+
 
 
     # This is an optimized version of search.
@@ -712,7 +742,7 @@ class Index(indexesExtension.Index, Group):
         t1=time()
         hi = hi2 = self.nelementsLR               # maximum number of elements
         bebounds = self.bebounds
-        assert hi == self.nelements - self.sorted.nrows * self.nelemslice
+        assert hi == self.nelements - self.sorted.nrows * self.slicesize
         begin = bebounds[0]
         # Look for items at the beginning of sorted slices
         if item1 <= begin:
@@ -822,49 +852,6 @@ class Index(indexesExtension.Index, Group):
         #t = time()-t1
         #print "time getting coords:",  round(t*1000, 3), "ms"
         return selections
-
-# This tries to be a version of getCoords that keeps track of visited rows
-# in order to not re-visit them again. However, I didn't managed to make it
-# work well. However, the improvement in speed should be not important
-# in most of cases.
-# Beware, the logic behind doing this is not trivial at all. You have been
-# warned!. 2004-08-03
-#     def getCoords_notwork(self, startCoords, maxCoords):
-#         """Get the coordinates of indices satisfiying the cuts"""
-#         relCoords = 0
-#         # Correction against asking too many elements
-#         nindexedrows = self.nelemslice*self.nrows
-#         if startCoords + maxCoords > nindexedrows:
-#             maxCoords = nindexedrows - startCoords
-#         #for irow in xrange(self.irow, self.sorted.nrows):
-#         while self.irow < self.sorted.nrows:
-#             irow = self.irow
-#             leni = self.lengths[irow]; self.len2 += leni
-#             if (leni > 0 and self.len1 <= startCoords < self.len2):
-#                 startl = self.starts[irow] + (startCoords-self.len1)
-#                 # Read maxCoords as maximum
-#                 stopl = startl + maxCoords
-#                 # Correction if stopl exceeds the limits
-#                 rowStop = self.starts[irow] + self.lengths[irow]
-#                 if stopl >= rowStop:
-#                     stopl = rowStop
-#                     #self.irow += 1
-#                 self.indices._readIndex(irow, startl, stopl, relCoords)
-#                 incr = stopl - startl
-#                 relCoords += incr
-#                 maxCoords -= incr
-#                 startCoords += incr
-#                 self.len1 += incr
-#                 if maxCoords == 0:
-#                     break
-#             #self.len1 += leni
-#             self.irow += 1
-
-#         # I don't know if sorting the coordinates is better or not actually
-#         # Some careful tests must be carried out in order to do that
-#         selections = numarray.sort(self.indices.arrAbs[:relCoords])
-#         #selections = self.indices.arrAbs[:relCoords]
-#         return selections
 
 
     # This version of getCoords reads all the indexes in one pass.

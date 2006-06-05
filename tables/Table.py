@@ -815,7 +815,7 @@ This method is intended only for indexed columns.""")
 This method is intended only for indexed columns, but this column has a dirty index. Try re-indexing it in order to put the index in a sane state.""")
         if condition.index.nelements == 0:
             raise ValueError("""\
-This method is intended only for indexed columns, but this column has not a minimum entries (%s) to be indexed.""" % condition.index.nelemslice)
+This method is intended only for indexed columns, but this column has not a minimum entries (%s) to be indexed.""" % condition.index.slicesize)
 
         self.whereColname = condition.pathname   # Flag for Row.__iter__
         # Get the coordinates to lookup
@@ -1713,19 +1713,19 @@ The 'names' parameter must be a list of strings.""")
         # use of the table, it gets dangerous when closing the file, since the
         # column may be accessing a table which is being destroyed.
         index = self.cols._f_col(colname).index
-        nelemslice = index.nelemslice
+        slicesize = index.slicesize
         # The next loop does not rely on xrange so that it can
         # deal with long ints (i.e. more than 32-bit integers)
         # This allows to index columns with more than 2**31 rows
         # F. Altet 2005-05-09
         indexedrows = 0
         i = start
-        stop = start+nrows-nelemslice+1
+        stop = start+nrows-slicesize+1
         while i < stop:
-            index.append(self._read(start=i, stop=i+nelemslice, step=1,
+            index.append(self._read(start=i, stop=i+slicesize, step=1,
                                     field=colname, coords=None))
-            indexedrows += nelemslice
-            i += nelemslice
+            indexedrows += slicesize
+            i += slicesize
         # index the remaining rows
         nremain = nrows - indexedrows
         if lastrow and nremain > 0 and index.is_pro:
@@ -2558,13 +2558,13 @@ Attempt to write over a file opened in read-only mode.""")
         self._updateIndexLocation(index)
 
         # Feed the index with values
-        nelemslice = index.nelemslice
-        if False and table.nrows < nelemslice:  ## XXX should work with old indexes only
+        slicesize = index.slicesize
+        if False and table.nrows < slicesize:  ## XXX should work with old indexes only
             if warn:
                 warnings.warn(
                     "not enough rows for indexing: "
                     "you need at least %d rows and the table only has %d"
-                    % (nelemslice, table.nrows))
+                    % (slicesize, table.nrows))
             return 0
         # Add rows to the index if necessary
         if table.nrows > 0:

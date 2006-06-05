@@ -305,7 +305,6 @@ class EArray(Array):
         (self._v_maxTuples, self._v_chunksize) = self._calcTuplesAndChunks(
             self.atom, self.extdim,
             self._v_expectedrows, self.filters.complevel)
-        #print "chunksizes-->", self._v_chunksize
         self.nrows = 0   # No rows initially
         self.itemsize = self.atom.itemsize
 
