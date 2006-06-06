@@ -6,6 +6,7 @@ from numarray.mlab import median
 # Per a poder reproduir resultats amb nombres aleatoris
 random_array.seed(19, 23)
 
+
 # Classe on guardarem la logica de tot plegat
 class Reorder:
 
@@ -151,7 +152,7 @@ class Reorder:
             idx = sbounds_idx[i]
             tmp_sorted[i*cs:(i+1)*cs] = sorted[idx*cs:(idx+1)*cs]
             tmp_indices[i*cs:(i+1)*cs] = indices[idx*cs:(idx+1)*cs]
-        # Tornem a ordenar per chunks als indexos originals
+        # Tornem a ordenar per chunks els indexos originals
         for i in xrange(0, self.nrows, self.nelemslice):
             block = tmp_sorted[i:i+self.nelemslice]
             sblock_idx = argsort(block)

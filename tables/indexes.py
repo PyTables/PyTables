@@ -74,7 +74,7 @@ def calcChunksize(expectedrows, testmode=0):
 "expected rows cannot be larger than %s in test mode" % minRowIndex*1000
         if blocksize == None:
             blocksize = 2*slicesize
-        #print "blocksize, slicesize, chunksize:", (blocksize, slicesize, chunksize)
+        print "blocksize, slicesize, chunksize:", (blocksize, slicesize, chunksize)
         return (blocksize, slicesize, chunksize)
 
     expKrows = expectedrows / 1000000.  # Multiples of one million

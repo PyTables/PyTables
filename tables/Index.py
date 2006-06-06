@@ -35,11 +35,13 @@ from time import time, clock
 
 import numarray
 from numarray import strings
+from numarray.mlab import median
 
 import tables.indexesExtension as indexesExtension
 import tables.utilsExtension as utilsExtension
 from tables.AttributeSet import AttributeSet
-from tables.Atom import Atom, StringAtom
+from tables.Atom import Atom, StringAtom, Float64Atom
+from tables.EArray import EArray
 from tables.Leaf import Filters
 from tables.indexes import CacheArray, LastRowArray, IndexArray
 from tables.Group import Group
@@ -397,12 +399,28 @@ class Index(indexesExtension.Index, Group):
         lambda self: self.sorted.chunksize, None, None,
         "The number of elements per chunk.")
 
-    nbounds = property(
-        lambda self: self.sorted.nrows * self.nchunks, None, None,
-        "The number of bounds in index.")
+    nchunkslice = property(
+        lambda self: self.sorted.slicesize / self.sorted.chunksize, None, None,
+        "The number of chunks in a slice.")
+
+    nslicesblock = property(
+        lambda self: self.sorted.blocksize / self.sorted.slicesize, None, None,
+        "The number of slices in a block.")
+
+    nblocks = property(
+        lambda self: self.nelements / self.sorted.blocksize, None, None,
+        "The number of complete blocks in index.")
+
+    nslices = property(
+        lambda self: self.nelements / self.sorted.slicesize, None, None,
+        "The number of complete slices in index.")
+
+    nchunks = property(
+        lambda self: self.nelements / self.sorted.chunksize, None, None,
+        "The number of complete chunks in index.")
 
     shape = property(
-        lambda self: (self.sorted.nrows, self.sorted.slicesize), None, None,
+        lambda self: (self.nrows, self.sorted.slicesize), None, None,
         "The shape of this index (in slices and elements).")
 
     filters = property(
@@ -462,14 +480,8 @@ class Index(indexesExtension.Index, Group):
         """The total number of slices in the index."""
         self.nelements = None
         """The number of indexed elements in this index."""
-        self.nblocks = None
-        """The total number of blocks in the index."""
-        self.nslices = None
-        """The number of slices in a block."""
-        self.nchunks = None
-        """The number of chunks in a slice."""
         # The starts and lengths are initialized so that they can keep
-        # info for last row procecessing at very least.
+        # info for last row processing at very least.
         self.starts = numarray.array(None, shape=1, type = numarray.Int32)
         """Where the values fulfiling conditions starts for every slice."""
         self.lengths = numarray.array(None, shape=1, type = numarray.Int32)
@@ -500,13 +512,9 @@ class Index(indexesExtension.Index, Group):
                 nelementsLR = 0
             self.nrows = self.sorted.nrows
             self.nelements = self.nrows * self.slicesize + nelementsLR
-            self.nblocks = (self.nelements / self.sorted.blocksize) + 1
-            self.nchunks = self.sorted.slicesize / self.sorted.chunksize
-            self.nslices = self.nelements / self.sorted.slicesize
             self.nelementsLR = nelementsLR
             if nelementsLR > 0:
                 self.nrows += 1
-            self.shape = (self.nrows, self.slicesize)
             # Get the bounds as a cache (this has to remain here!)
             nboundsLR = (nelementsLR - 1 ) // self.chunksize
             if nboundsLR < 0:
@@ -521,8 +529,6 @@ class Index(indexesExtension.Index, Group):
         # The index is new. Initialize the values
         self.nrows = 0
         self.nelements = 0
-        self.nblocks = 0
-        self.nslices = 0
 
         # Set the filters for this object (they are *not* inherited)
         filters = self._v_new_filters
@@ -538,7 +544,7 @@ class Index(indexesExtension.Index, Group):
                    self.testmode, self._v_expectedrows)
 
         # After "sorted" is created, we can assign some attributes
-        self.nchunks = self.sorted.slicesize / self.sorted.chunksize
+        self.nchunksslice = self.sorted.slicesize / self.sorted.chunksize
 
         # Create the IndexArray for index values
         IndexArray(self, 'indices',
@@ -603,8 +609,6 @@ class Index(indexesExtension.Index, Group):
         # Update nrows after a successful append
         self.nrows = self.sorted.nrows
         self.nelements = self.nrows * self.slicesize
-        self.nblocks = (self.nelements / self.blocksize) + 1
-        self.shape = (self.nrows, self.slicesize)
         self.nelementsLR = 0  # reset the counter of the last row index to 0
         self.cache = False   # the cache is dirty now
 
@@ -642,12 +646,111 @@ class Index(indexesExtension.Index, Group):
         # Update nelements after a successful append
         self.nrows = self.sorted.nrows + 1
         self.nelements = self.sorted.nrows * self.slicesize + nelementsLR
-        self.shape = (self.nrows, self.slicesize)
         self.nelementsLR = nelementsLR
+
+
+    def create_sort_temps(self, filters):
+
+        # Create some temporary EArrays for slice sorting purposes
+        atom = Atom(self.type, shape=(0,))
+        # bounds
+        EArray(self, 'abounds', atom, "Start bounds", filters)
+        EArray(self, 'zbounds', atom, "End bounds", filters)
+        EArray(self, 'mbounds', Float64Atom(shape=(0,)), "Median bounds", filters)
+        # ranges
+        EArray(self, 'aranges', atom, "Start ranges", filters)
+        EArray(self, 'zranges', atom, "End ranges", filters)
+        EArray(self, 'mranges', Float64Atom(shape=(0,)), "Median ranges", filters)
+
+        offset = len(self.bebounds)
+        nchunksLR = self.nelementsLR / self.chunksize
+        # Feed them with the data available in the sorted array
+        for i in xrange(0, self.nrows):
+            if i >= self.sorted.nrows:
+                # We are in the last row. Get the first complete chunks.
+                sblock = self.sortedLR[offset:offset+nchunksLR*self.chunksize]
+                nchunks = nchunksLR
+            else:
+                sblock = self.sorted[i]
+                nchunks = self.nchunkslice
+            cs = self.chunksize
+            self.abounds.append(sblock[0::cs])
+            self.aranges.append([sblock[0]])
+            self.zbounds.append(sblock[cs-1::cs])
+            self.zranges.append([sblock[-1]])
+            # Compute the medians
+            sblock.shape = (nchunks, cs)
+            sblock.transpose()
+            smedian = median(sblock)
+            self.mbounds.append(smedian)
+            self.mranges.append([median(smedian)])
+
+
+    def swap_reorder_chunks(self, mode="median", niter=1):
+        "Swap & reorder the different chunks in a block."
+
+        boundsobject = {'start':'abounds', 'stop':'zbounds', 'median':'mbounds'}
+        sorted = self.sorted
+        indices = self.indices
+        cs = self.chunksize
+        nchunksblock = self.blocksize / cs
+        nchunkslice = self.nelemslice / cs
+        for nblock in xrange(self.nblocks):
+            bchunk = nblock*nchunksblock
+            echunk = (nblock+1)*nchunksblock
+            bounds = self._v_file.getNode(boundsobject[mode])[bchunk:echunk]
+            sbounds_idx = argsort(bounds)
+            print "sbounds_idx-->", sbounds_idx
+            # Swap sorted and indices folling the new order
+            for i in xrange(0, nchunksblock):
+                idx = sbounds_idx[i]
+                # Swap sorted chunks
+                tmp = sorted[i*cs]
+                sorted[i*cs] = sorted[idx*cs]
+                sorted[idx*cs] = tmp
+                # Swap indices chunks
+                tmp = indices[i*cs]
+                indices[i*cs] = indices[idx*cs]
+                indices[idx*cs] = tmp
+        # Reorder completely indices at slice level
+        self.reorder_index()
+        return
+
+
+    def reorder_index(self):
+        "Reorder completely the index at slice level."
+
+        sorted = self.sorted
+        indices = self.indices
+        for i in xrange(0, self.nrows, self.slicesize):
+            block = sorted[i:i+self.slicesize]
+            sblock_idx = argsort(block)
+            sblock = block[sblock_idx]
+            sorted[i:i+self.slicesize] = sblock
+            block_idx = indices[i:i+self.slicesize]
+            indices[i:i+self.slicesize] = block_idx[sblock_idx]
+            nslice = i // self.slicesize
+            self.ranges[nslice,:] = sblock[[0,-1]]
+            self.bounds[nslice,:] = sblock[cs::cs]
+            if mode == "start":
+                self.abounds[nslice,:] = sblock[0::cs]
+            elif mode == "stop":
+                self.zbounds[nslice,:] = sblock[cs-1::cs]
+            elif mode == "median":
+                sblock.shape= (nchunkslice, cs)
+                sblock.transpose()
+                smedian = median(sblock)
+                self.mbounds[nslice,:] = smedian
+        # Queda per addressar-nos a l'ultima fila ###################
 
 
     def optimize(self, level=1):
         "Optimize an index to allow faster searches."
+
+        # Optimize only when we have more than one slice
+        print "nslices-->", self.nslices
+        if self.nslices <= 1:
+            return
 
         # Set the filters (they are *not* inherited)
         filters = self._v_new_filters
@@ -657,29 +760,13 @@ class Index(indexesExtension.Index, Group):
             filters = Filters(complevel = 1, complib = "zlib",
                               shuffle = 1, fletcher32 = 0)
 
-        # Create some temporary EArrays for slice sorting purposes
-        EArray(idx, 'abounds', Float64Atom(shape=(0, self.nbounds)),
-               "Start bounds", filters)
-        EArray(idx, 'zbounds', Float64Atom(shape=(0, self.nbounds)),
-               "End bounds", filters)
-        EArray(idx, 'mbounds', Float64Atom(shape=(0, self.nbounds)),
-               "Median bounds", filters)
-
-        offset = len(self.bebounds)
-        # Feed them with the data available in the sorted array
-        # (not dealing with last row slice yet)
-        for i in xrange(0, self.sorted.nrows, self.slicesize):
-            sblock = self.sorted[i:i+self.slicesize]
-            cs = self.chunksize
-            self.abounds.append([sblock[0::cs]])
-            self.zbounds.append([sblock[cs-1::cs]])
-            # calculem les medianes
-            sblock.shape= (self.nchunks, cs)
-            sblock.transpose()
-            smedian = median(sblock)
-            self.index.mbounds.append([smedian])
+        self.create_sort_temps(filters)
+        self.swap_reorder_chunks('median')
+        #self.reorder_slices('median')
+        #self.reorder_chunks('median')
 
             #******** Ens hem quedat aci... *********
+
 
     # This is an optimized version of search.
     # It does not work well with strings, because:
