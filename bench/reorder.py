@@ -32,41 +32,14 @@ class Reorder:
         (sover, nover, mult) = self.compute_overlaps()
         print "overlaps (init)-->", sover, nover, mult
         # Reordenem
-        # Sembla que els millors resultats s'obtenen reordenant primer pels
-        # limits d'escomencament i despres pels limits d'acabament.
-#         if 0:
-#             ret = 0
-#             while ret == 0:
-#                 ret = self.reord(mode="start")
-#                 (sover, nover, mult) = self.compute_overlaps()
-#                 print "overlaps (start)-->", sover, nover, mult
-#             ret = 0
-#             while ret == 0:
-#                 ret = self.reord(mode="stop")
-#                 (sover, nover, mult) = self.compute_overlaps()
-#                 print "overlaps (stop)-->", sover, nover, mult
-#         else:
-#             ret = 0
-#             while ret == 0:
-#                 ret = self.reord(mode="median")
-#                 (sover, nover, mult) = self.compute_overlaps()
-#                 print "overlaps (median)-->", sover, nover, mult
-#             ret = 0
-#             while ret == 0:
-#                 ret = self.reord(mode="start")
-#                 (sover, nover, mult) = self.compute_overlaps()
-#                 print "overlaps (start)-->", sover, nover, mult
-#             ret = 0
-#             while ret == 0:
-#                 ret = self.reord(mode="stop")
-#                 (sover, nover, mult) = self.compute_overlaps()
-#                 print "overlaps (stop)-->", sover, nover, mult
         # Iteracions experimentals per a valors aleatoris amb (ns=100, nc=100, cs=5)
         miter, aiter, ziter = (0, 3, 3)   # overlap: 0.011 [91, 0...]
         miter, aiter, ziter = (0, 3, 2)   # overlap: 0.011 [91, 0...]  # bo tambe
         miter, aiter, ziter = (2, 2, 2)   # overlap: 0.011 [91, 0...]
         miter, aiter, ziter = (1, 2, 2)   # overlap: 0.009 [76, 0...]  # millor
-        miter, aiter, ziter = (0, 2, 2)   # overlap: 0.021 [90, 1...]
+        miter, aiter, ziter = (0, 2, 2)   # overlap: 0.011 [91, 0...]
+        miter, aiter, ziter = (1, 1, 1)   # overlap: 0.016 [76, 1...]  # bastant bo
+        miter, aiter, ziter = (0, 1, 1)   # overlap: 0.160 [97, 1...]  # rapid
         for i in range(miter):
             ret = self.reord(mode="median")
             (sover, nover, mult) = self.compute_overlaps()
@@ -162,15 +135,23 @@ class Reorder:
             indices[i:i+self.nelemslice] = block_idx[sblock_idx]
             nslice = i // self.nelemslice
             self.fileh.root.index.ranges[nslice,:] = sblock[[0,-1]]
-            if mode == "start":
-                self.fileh.root.index.abounds[nslice,:] = sblock[0::cs]
-            elif mode == "stop":
-                self.fileh.root.index.zbounds[nslice,:] = sblock[cs-1::cs]
-            elif mode == "median":
-                sblock.shape= (nchunkslice, cs)
-                sblock.transpose()
-                smedian = median(sblock)
-                self.fileh.root.index.mbounds[nslice,:] = smedian
+#             if mode == "start":
+#                 self.fileh.root.index.abounds[nslice,:] = sblock[0::cs]
+#             elif mode == "stop":
+#                 self.fileh.root.index.zbounds[nslice,:] = sblock[cs-1::cs]
+#             elif mode == "median":
+#                 sblock.shape= (nchunkslice, cs)
+#                 sblock.transpose()
+#                 smedian = median(sblock)
+#                 self.fileh.root.index.mbounds[nslice,:] = smedian
+            self.fileh.root.index.abounds[nslice,:] = sblock[0::cs]
+            self.fileh.root.index.zbounds[nslice,:] = sblock[cs-1::cs]
+            # median
+            sblock.shape= (nchunkslice, cs)
+            sblock.transpose()
+            smedian = median(sblock)
+            self.fileh.root.index.mbounds[nslice,:] = smedian
+
         if alltrue(sbounds_idx == arange(nchunks)):
             return -1
         return 0

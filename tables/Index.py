@@ -387,6 +387,10 @@ class Index(indexesExtension.Index, Group):
         lambda self: self.column.dirty, None, None,
         "Whether the index is dirty or not.")
 
+    superblocksize = property(
+        lambda self: self.sorted.superblocksize, None, None,
+        "The number of elements per superblock (the maximum that can be optimized).")
+
     blocksize = property(
         lambda self: self.sorted.blocksize, None, None,
         "The number of elements per block.")
@@ -399,17 +403,33 @@ class Index(indexesExtension.Index, Group):
         lambda self: self.sorted.chunksize, None, None,
         "The number of elements per chunk.")
 
-    nchunkslice = property(
-        lambda self: self.sorted.slicesize / self.sorted.chunksize, None, None,
-        "The number of chunks in a slice.")
+    nblockssuperblock = property(
+        lambda self: self.sorted.superblocksize / self.sorted.blocksize, None, None,
+        "The number of blocks in a superblock.")
 
     nslicesblock = property(
         lambda self: self.sorted.blocksize / self.sorted.slicesize, None, None,
         "The number of slices in a block.")
 
-    nblocks = property(
-        lambda self: self.nelements / self.sorted.blocksize, None, None,
-        "The number of complete blocks in index.")
+    nchunkslice = property(
+        lambda self: self.sorted.slicesize / self.sorted.chunksize, None, None,
+        "The number of chunks in a slice.")
+
+    def _g_nsuperblocks(self):
+        nblocks = self.nelements / self.sorted.superblocksize
+        if self.nelements % self.sorted.superblocksize > 0:
+            nblocks += 1
+        return nblocks
+    nsuperblocks = property(_g_nsuperblocks , None, None,
+        "The total number of superblocks in index.")
+
+    def _g_nblocks(self):
+        nblocks = self.nelements / self.sorted.blocksize
+        if self.nelements % self.sorted.blocksize > 0:
+            nblocks += 1
+        return nblocks
+    nblocks = property(_g_nblocks , None, None,
+        "The total number of blocks in index.")
 
     nslices = property(
         lambda self: self.nelements / self.sorted.slicesize, None, None,
@@ -537,6 +557,7 @@ class Index(indexesExtension.Index, Group):
             # set a sensible default, using zlib compression and shuffling
             filters = Filters(complevel = 1, complib = "zlib",
                               shuffle = 1, fletcher32 = 0)
+        self.filter = filters
 
         # Create the IndexArray for sorted values
         IndexArray(self, 'sorted',
@@ -548,7 +569,7 @@ class Index(indexesExtension.Index, Group):
 
         # Create the IndexArray for index values
         IndexArray(self, 'indices',
-                   Atom("Int64", shape=(0, 1)), "Reverse Indices", filters,
+                   Atom("Int64", shape=(0,)), "Reverse Indices", filters,
                    self.testmode, self._v_expectedrows)
 
         # Create the EArray for range values  (1st order cache)
@@ -649,17 +670,32 @@ class Index(indexesExtension.Index, Group):
         self.nelementsLR = nelementsLR
 
 
-    def create_sort_temps(self, filters):
+    def optimize(self, level=1):
+        "Optimize an index to allow faster searches."
 
-        # Create some temporary EArrays for slice sorting purposes
+        # Optimize only when we have more than one slice
+        print "nslices-->", self.nslices
+        if self.nslices <= 1:
+            return
+
+        self.create_swap_temps(self.filters)
+        self.swap_chunks('median')
+        # Swap slices between blocks only in the case we have several blocks
+        if self.nblocks > 1:
+            self.swap_slices('median')
+            pass
+        #self.swap_chunks('median')
+
+
+    def create_swap_temps(self, filters):
+        "Create some temporary EArrays for slice sorting purposes."
+
         atom = Atom(self.type, shape=(0,))
         # bounds
         EArray(self, 'abounds', atom, "Start bounds", filters)
         EArray(self, 'zbounds', atom, "End bounds", filters)
         EArray(self, 'mbounds', Float64Atom(shape=(0,)), "Median bounds", filters)
         # ranges
-        EArray(self, 'aranges', atom, "Start ranges", filters)
-        EArray(self, 'zranges', atom, "End ranges", filters)
         EArray(self, 'mranges', Float64Atom(shape=(0,)), "Median ranges", filters)
 
         offset = len(self.bebounds)
@@ -675,9 +711,7 @@ class Index(indexesExtension.Index, Group):
                 nchunks = self.nchunkslice
             cs = self.chunksize
             self.abounds.append(sblock[0::cs])
-            self.aranges.append([sblock[0]])
             self.zbounds.append(sblock[cs-1::cs])
-            self.zranges.append([sblock[-1]])
             # Compute the medians
             sblock.shape = (nchunks, cs)
             sblock.transpose()
@@ -686,86 +720,152 @@ class Index(indexesExtension.Index, Group):
             self.mranges.append([median(smedian)])
 
 
-    def swap_reorder_chunks(self, mode="median", niter=1):
+    def swap_chunks(self, mode="median", niter=1):
         "Swap & reorder the different chunks in a block."
 
-        boundsobject = {'start':'abounds', 'stop':'zbounds', 'median':'mbounds'}
+        boundsnames = {'start':'abounds', 'stop':'zbounds', 'median':'mbounds'}
         sorted = self.sorted
         indices = self.indices
         cs = self.chunksize
-        nchunksblock = self.blocksize / cs
-        nchunkslice = self.nelemslice / cs
+        ncs = self.nchunkslice
+        ncb = ncs * self.nslicesblock
+        print "nchunksblock-->", ncb
+        boundsobj = self._v_file.getNode(self, boundsnames[mode])
         for nblock in xrange(self.nblocks):
-            bchunk = nblock*nchunksblock
-            echunk = (nblock+1)*nchunksblock
-            bounds = self._v_file.getNode(boundsobject[mode])[bchunk:echunk]
-            sbounds_idx = argsort(bounds)
+            # Protection for last block having less chunks than ncb
+            remainingchunks = self.nchunks - ((self.nchunks / ((nblock+1)*ncb)) * self.nchunks)
+            print "remainingchunks-->", remainingchunks
+            if remainingchunks < ncb:
+                ncb = remainingchunks
+            print "ncb-->", ncb
+            bounds = boundsobj[nblock*ncb:(nblock+1)*ncb]
+            sbounds_idx = numarray.argsort(bounds)
             print "sbounds_idx-->", sbounds_idx
-            # Swap sorted and indices folling the new order
-            for i in xrange(0, nchunksblock):
+            # Swap sorted and indices following the new order
+            for i in xrange(ncb):
                 idx = sbounds_idx[i]
                 # Swap sorted chunks
-                tmp = sorted[i*cs]
-                sorted[i*cs] = sorted[idx*cs]
-                sorted[idx*cs] = tmp
+                ns = i / ncs;  nc = i - ns
+                ins = idx / ncs;  inc = idx - ns
+                tmp = sorted[ns,nc:nc+cs]
+                sorted[ns,nc:nc+cs] = sorted[ins,inc:inc+cs]
+                sorted[ins,inc:inc+cs] = tmp
                 # Swap indices chunks
-                tmp = indices[i*cs]
-                indices[i*cs] = indices[idx*cs]
-                indices[idx*cs] = tmp
+                tmp = indices[ns,nc:nc+cs]
+                indices[ns,nc:nc+cs] = indices[ins,inc:inc+cs]
+                indices[ins,inc:inc+cs] = tmp
         # Reorder completely indices at slice level
-        self.reorder_index()
+        self.reorder_slices(mode=mode)
         return
 
 
-    def reorder_index(self):
+    def swap_slices(self, mode="median", niter=1):
+        "Swap the different slices in a block."
+
+        print "(nblocks, nslices, nchunks)-->", (self.nblocks, self.nslices, self.nchunks)
+        sorted = self.sorted
+        indices = self.indices
+        ncs = self.nchunkslice
+        nss = self.superblocksize / self.slicesize
+        print "nslicessuperblock-->", nss
+        for sblock in xrange(self.nsuperblocks):
+            # Protection for last superblock having less slices than nss
+            remainingslices = self.nslices - (self.nslices / ((sblock+1)*nss))
+            if remainingslices < nss:
+                nss = remainingslices
+            if mode == "start":
+                ranges = self.ranges[sblock*nss:(sblock+1)*nss:2]
+            elif mode == "stop":
+                ranges = self.ranges[sblock*nss+1:(sblock+1)*nss:2]
+            elif mode == "median":
+                ranges = self.mranges[sblock*nss:(sblock+1)*nss]
+            sranges_idx = numarray.argsort(ranges)
+            sranges = ranges[sranges_idx]
+            print "ranges-->", ranges
+            print "sranges_idx-->", sranges_idx
+            # Swap sorted and indices slices following the new order
+            ns = sblock*nss
+            for i in xrange(nss):
+                print "nblock, nslice-->", nblock, i+ns
+                idx = sranges_idx[i]
+                # Swap sorted slices
+                oi = ns+i; oidx = ns+idx
+                tmp = sorted[oi]
+                sorted[oi] = sorted[oidx]
+                sorted[oidx] = tmp
+                # Swap indices slices
+                tmp = indices[oi]
+                indices[oi] = indices[oidx]
+                indices[oidx] = tmp
+                # Swap start, stop & median ranges
+                tmp = self.ranges[oi]
+                self.ranges[oi] = self.ranges[oidx]
+                self.ranges[oidx] = tmp
+                tmp = self.mranges[oi]
+                self.mranges[oi] = self.mranges[oidx]
+                self.mranges[oidx] = tmp
+                # Swap start, stop & median bounds
+                tmp = self.abounds[oi*ncs:(oi+1)*ncs]
+                self.abounds[oi*ncs:(oi+1)*ncs] = self.abounds[oidx*ncs:(oidx+1)*ncs]
+                self.abounds[oidx*ncs:(oidx+1)*ncs] = tmp
+                tmp = self.zbounds[oi*ncs:(oi+1)*ncs]
+                self.zbounds[oi*ncs:(oi+1)*ncs] = self.zbounds[oidx*ncs:(oidx+1)*ncs]
+                self.zbounds[oidx*ncs:(oidx+1)*ncs] = tmp
+                tmp = self.mbounds[oi*ncs:(oi+1)*ncs]
+                self.mbounds[oi*ncs:(oi+1)*ncs] = self.mbounds[oidx*ncs:(oidx+1)*ncs]
+                self.mbounds[oidx*ncs:(oidx+1)*ncs] = tmp
+        return
+
+
+    def reorder_slices(self, mode):
         "Reorder completely the index at slice level."
 
         sorted = self.sorted
         indices = self.indices
-        for i in xrange(0, self.nrows, self.slicesize):
-            block = sorted[i:i+self.slicesize]
-            sblock_idx = argsort(block)
+        cs = self.chunksize
+        ncs = self.nchunkslice
+        # First, reorder the complete slices
+        for nslice in xrange(0, self.sorted.nrows):
+            block = sorted[nslice]
+            sblock_idx = numarray.argsort(block)
             sblock = block[sblock_idx]
-            sorted[i:i+self.slicesize] = sblock
-            block_idx = indices[i:i+self.slicesize]
-            indices[i:i+self.slicesize] = block_idx[sblock_idx]
-            nslice = i // self.slicesize
-            self.ranges[nslice,:] = sblock[[0,-1]]
-            self.bounds[nslice,:] = sblock[cs::cs]
-            if mode == "start":
-                self.abounds[nslice,:] = sblock[0::cs]
-            elif mode == "stop":
-                self.zbounds[nslice,:] = sblock[cs-1::cs]
-            elif mode == "median":
-                sblock.shape= (nchunkslice, cs)
-                sblock.transpose()
-                smedian = median(sblock)
-                self.mbounds[nslice,:] = smedian
-        # Queda per addressar-nos a l'ultima fila ###################
-
-
-    def optimize(self, level=1):
-        "Optimize an index to allow faster searches."
-
-        # Optimize only when we have more than one slice
-        print "nslices-->", self.nslices
-        if self.nslices <= 1:
-            return
-
-        # Set the filters (they are *not* inherited)
-        filters = self._v_new_filters
-        if filters is None:
-            # If not filters has been passed in the constructor,
-            # set a sensible default, using zlib compression and shuffling
-            filters = Filters(complevel = 1, complib = "zlib",
-                              shuffle = 1, fletcher32 = 0)
-
-        self.create_sort_temps(filters)
-        self.swap_reorder_chunks('median')
-        #self.reorder_slices('median')
-        #self.reorder_chunks('median')
-
-            #******** Ens hem quedat aci... *********
+            sorted[nslice] = sblock
+            block_idx = indices[nslice]
+            indices[nslice] = block_idx[sblock_idx]
+            self.ranges[nslice] = sblock[[0,-1]]
+            self.bounds[nslice] = sblock[cs::cs]
+            # update start & stop bounds
+            self.abounds[nslice*ncs:(nslice+1)*ncs] = sblock[0::cs]
+            self.zbounds[nslice*ncs:(nslice+1)*ncs] = sblock[cs-1::cs]
+            # update median bounds
+            sblock.shape= (ncs, cs)
+            sblock.transpose()
+            smedian = median(sblock)
+            self.mbounds[nslice*ncs:(nslice+1)*ncs] = smedian
+            self.mranges[nslice] = median(smedian)
+        # reorder last row
+        if self.nelementsLR > 0:
+            offset = len(self.bebounds)
+            block = self.sortedLR[offset:offset+self.nelementsLR]
+            sblock_idx = numarray.argsort(block)
+            sblock = block[sblock_idx]
+            self.sortedLR[offset:offset+self.nelementsLR] = sblock
+            block_idx = self.indicesLR[:self.nelementsLR]
+            self.indicesLR[:self.nelementsLR] = block_idx[sblock_idx]
+            nslice = -1      # the last row is the last slice as well
+            self.ranges[nslice] = sblock[[0,-1]]
+            self.bounds[nslice] = sblock[cs::cs]
+            # update start & stop bounds
+            self.abounds[nslice*ncs:(nslice+1)*ncs] = sblock[0::cs]
+            self.zbounds[nslice*ncs:(nslice+1)*ncs] = sblock[cs-1::cs]
+            # update median bounds
+            ncsLR = self.nelementsLR / cs
+            sblock = block[:ncsLR*cs]
+            sblock.shape= (ncsLR, cs)
+            sblock.transpose()
+            smedian = median(sblock)
+            self.mbounds[nslice*ncs:(nslice+1)*ncs] = smedian
+            self.mranges[nslice] = median(smedian)
 
 
     # This is an optimized version of search.

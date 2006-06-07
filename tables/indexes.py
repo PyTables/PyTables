@@ -57,6 +57,7 @@ def calcChunksize(expectedrows, testmode=0):
 
     """
 
+    superblocksize = None
     blocksize = None
 
     if testmode:
@@ -74,8 +75,11 @@ def calcChunksize(expectedrows, testmode=0):
 "expected rows cannot be larger than %s in test mode" % minRowIndex*1000
         if blocksize == None:
             blocksize = 2*slicesize
-        print "blocksize, slicesize, chunksize:", (blocksize, slicesize, chunksize)
-        return (blocksize, slicesize, chunksize)
+        if superblocksize == None:
+            superblocksize = 2*blocksize
+        print "superblocksize, blocksize, slicesize, chunksize:", \
+              (superblocksize, blocksize, slicesize, chunksize)
+        return (superblocksize, blocksize, slicesize, chunksize)
 
     expKrows = expectedrows / 1000000.  # Multiples of one million
     #print "expKrows:", expKrows
@@ -303,12 +307,15 @@ def calcChunksize(expectedrows, testmode=0):
         slicesize = 1000*chunksize     # experiment
         blocksize = 100000*slicesize    # experiment
 
-    # The default for blocksize
+    # The defaults for blocksize & superblocksize
     if blocksize == None:
-        blocksize = 10000*slicesize    # experiment
+        blocksize = 1000*slicesize    # experiment
+    if superblocksize == None:
+        superblocksize = 1000*blocksize  # experiment
 
-    #print "blocksize, slicesize, chunksize:", (blocksize, slicesize, chunksize)
-    return (blocksize, slicesize, chunksize)
+#     print "superblocksize, blocksize, slicesize, chunksize:", \
+#           (superblocksize, blocksize, slicesize, chunksize)
+    return (superblocksize, blocksize, slicesize, chunksize)
 
 
 # Declarations for inheriting
@@ -397,8 +404,10 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         """The HDF5 chunksize for the slice dimension (the second)."""
         self.slicesize = None
         """The number of elements per slice."""
-        self.blocksize = None
+        self.superblocksize = None
         """The maximum number of elements that can be optimized."""
+        self.blocksize = None
+        """The maximum number of elements in a block."""
         self.bufferl = None
         """Buffer for reading chunks in sorted array in extension."""
         self.arrAbs = None
@@ -406,7 +415,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         self.coords = None
         """Buffer for reading coordenates (absolute addresses) in extension."""
         if atom is not None:
-            (self.blocksize, self.slicesize, self.chunksize) = (
+            (self.superblocksize, self.blocksize, self.slicesize, self.chunksize) = (
                 calcChunksize(expectedrows, testmode))
         # Index creation is never logged.
         super(IndexArray, self).__init__(
@@ -414,9 +423,9 @@ class IndexArray(EArray, indexesExtension.IndexArray):
 
 
     def _g_create(self):
-        assert self.atom.shape == (0, 1), "only scalar columns can be indexed"
         objectId = super(IndexArray, self)._g_create()
-        # The blocksize will be saved as an (pickled) attribute
+        # The superblocksize & blocksize will be saved as (pickled) attributes
+        self.attrs.superblocksize = self.superblocksize
         self.attrs.blocksize = self.blocksize
         assert self.extdim == 0, "computed extendable dimension is wrong"
         assert self.shape == (0, self.slicesize), "invalid shape"
@@ -444,6 +453,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         # Set ``slicesize`` and ``chunksize`` when opening an existing node;
         # otherwise, they are already set.
         if not self._v_new:
+            self.superblocksize = self.attrs.superblocksize
             self.blocksize = self.attrs.blocksize
             self.slicesize = self.shape[1]
             self.chunksize = self._v_chunksize[1]

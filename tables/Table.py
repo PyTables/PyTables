@@ -2501,9 +2501,10 @@ Attempt to write over a file opened in read-only mode.""")
         tableName = table._v_name
         tableParent = table._v_parent
         descr = self.descr
+        index = self.index
         getNode = table._v_file._getNode
 
-        index = self.index
+        assert descr._v_shapes[name] == 1, "only scalar columns can be indexed"
 
         # Warn if the index already exists
         if index:
@@ -2542,11 +2543,9 @@ Attempt to write over a file opened in read-only mode.""")
         # Create the atom
         atomtype = descr._v_types[name]
         if str(atomtype) == "CharType":
-            atom = StringAtom(shape=(0, descr._v_shapes[name]),
-                              length=descr._v_itemsizes[name])
+            atom = StringAtom(shape=(0,), length=descr._v_itemsizes[name])
         else:
-            atom = Atom(dtype=atomtype,
-                        shape=(0, descr._v_shapes[name]))
+            atom = Atom(dtype=atomtype, shape=(0,))
 
         # Create the index itself
         index = Index(
