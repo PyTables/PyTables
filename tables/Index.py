@@ -679,12 +679,14 @@ class Index(indexesExtension.Index, Group):
             return
 
         self.create_swap_temps(self.filters)
-        self.swap_chunks('median')
+        print "mbounds(create)-->", self.mbounds[:]
+        for i in range(2):
+            self.swap_chunks('median')
+            print "mbounds(swap_chunks)-->", self.mbounds[:]
         # Swap slices between blocks only in the case we have several blocks
-        if self.nblocks > 1:
-            self.swap_slices('median')
-            pass
-        #self.swap_chunks('median')
+#         if self.nblocks > 1:
+#             self.swap_slices('median')
+#         self.swap_chunks('median')
 
 
     def create_swap_temps(self, filters):
@@ -727,26 +729,31 @@ class Index(indexesExtension.Index, Group):
         sorted = self.sorted
         indices = self.indices
         cs = self.chunksize
+#         ss = self.slicesize
         ncs = self.nchunkslice
+        nsb = self.nslicesblock
         ncb = ncs * self.nslicesblock
         ncb2 = ncb
-        print "nchunksblock-->", ncb
         boundsobj = self._v_file.getNode(self, boundsnames[mode])
         for nblock in xrange(self.nblocks):
             # Protection for last block having less chunks than ncb
             remainingchunks = self.nchunks - nblock*ncb
             if remainingchunks < ncb:
-                ncb2 = remainingchunks
+                ncb2 = (remainingchunks/ncs)*ncs
             bounds = boundsobj[nblock*ncb:nblock*ncb+ncb2]
             sbounds_idx = numarray.argsort(bounds)
-            print "sbounds_idx-->", sbounds_idx
             # Swap sorted and indices following the new order
-            for i in xrange(ncb2):
+            for i in xrange((ncb2+1)/2):
                 idx = sbounds_idx[i]
                 # Swap sorted chunks
-                ns = i / ncs;  nc = i - ns
-                ins = idx / ncs;  inc = idx - ns
+                offset = nblock*(ncb/nsb)
+                ns = i / ncs;  nc = (i - ns*ncs)*cs
+                ns += offset
+                ins = idx / ncs;  inc = (idx - ins*ncs)*cs
+                ins += offset
+                #print "origen, desti-->", (ns, nc), (ins, inc) 
                 tmp = sorted[ns,nc:nc+cs]
+                #print tmp, "<-->", sorted[ins,inc:inc+cs]
                 sorted[ns,nc:nc+cs] = sorted[ins,inc:inc+cs]
                 sorted[ins,inc:inc+cs] = tmp
                 # Swap indices chunks
@@ -832,8 +839,10 @@ class Index(indexesExtension.Index, Group):
         # First, reorder the complete slices
         for nslice in xrange(0, self.sorted.nrows):
             block = sorted[nslice]
+            print "block(reorder_slices)-->", block
             sblock_idx = numarray.argsort(block)
             sblock = block[sblock_idx]
+            #print "sblock(reorder_slices)-->", sblock
             sorted[nslice] = sblock
             block_idx = indices[nslice]
             indices[nslice] = block_idx[sblock_idx]
@@ -858,8 +867,9 @@ class Index(indexesExtension.Index, Group):
             block_idx = self.indicesLR[:self.nelementsLR]
             self.indicesLR[:self.nelementsLR] = block_idx[sblock_idx]
             nslice = -1      # the last row is the last slice as well
-            self.ranges[nslice] = sblock[[0,-1]]
-            self.bounds[nslice] = sblock[cs::cs]
+            self.bebounds = numarray.concatenate([sblock[::self.chunksize],
+                                                  sblock[-1]])
+            self.sortedLR[:offset] = self.bebounds
             # update start & stop bounds
             self.abounds[nslice*ncs:(nslice+1)*ncs] = sblock[0::cs]
             self.zbounds[nslice*ncs:(nslice+1)*ncs] = sblock[cs-1::cs]

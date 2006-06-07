@@ -1,5 +1,12 @@
+import random
 import tables
 print 'tables.__version__',tables.__version__
+
+from numarray import random_array
+# Initialize the random generator always with the same integer
+# in order to have reproductible results
+random.seed(19)
+random_array.seed(19, 20)
 
 nrows=100-1
 
@@ -12,8 +19,9 @@ table = h5file.createTable(h5file.root, 'distance_table', Distance,
                           'distance table', expectedrows=nrows)
 r = table.row
 for i in range(nrows):
-    r['frame']=i
-    r['distance']=float(i**2)
+    r['frame'] = nrows-i
+    #r['frame'] = random.randint(0,nrows)
+    r['distance'] = float(i**2)
     r.append()
 table.flush()
 
