@@ -729,20 +729,19 @@ class Index(indexesExtension.Index, Group):
         cs = self.chunksize
         ncs = self.nchunkslice
         ncb = ncs * self.nslicesblock
+        ncb2 = ncb
         print "nchunksblock-->", ncb
         boundsobj = self._v_file.getNode(self, boundsnames[mode])
         for nblock in xrange(self.nblocks):
             # Protection for last block having less chunks than ncb
-            remainingchunks = self.nchunks - ((self.nchunks / ((nblock+1)*ncb)) * self.nchunks)
-            print "remainingchunks-->", remainingchunks
+            remainingchunks = self.nchunks - nblock*ncb
             if remainingchunks < ncb:
-                ncb = remainingchunks
-            print "ncb-->", ncb
-            bounds = boundsobj[nblock*ncb:(nblock+1)*ncb]
+                ncb2 = remainingchunks
+            bounds = boundsobj[nblock*ncb:nblock*ncb+ncb2]
             sbounds_idx = numarray.argsort(bounds)
             print "sbounds_idx-->", sbounds_idx
             # Swap sorted and indices following the new order
-            for i in xrange(ncb):
+            for i in xrange(ncb2):
                 idx = sbounds_idx[i]
                 # Swap sorted chunks
                 ns = i / ncs;  nc = i - ns
@@ -762,31 +761,35 @@ class Index(indexesExtension.Index, Group):
     def swap_slices(self, mode="median", niter=1):
         "Swap the different slices in a block."
 
-        print "(nblocks, nslices, nchunks)-->", (self.nblocks, self.nslices, self.nchunks)
+        print "(nsuperblocks, nblocks, nslices, nchunks)-->", \
+              (self.nsuperblocks, self.nblocks, self.nslices, self.nchunks)
         sorted = self.sorted
         indices = self.indices
         ncs = self.nchunkslice
         nss = self.superblocksize / self.slicesize
+        nss2 = nss
         print "nslicessuperblock-->", nss
         for sblock in xrange(self.nsuperblocks):
             # Protection for last superblock having less slices than nss
-            remainingslices = self.nslices - (self.nslices / ((sblock+1)*nss))
+            remainingslices = self.nslices - sblock*nss
+            print "remainingslices-->", remainingslices
             if remainingslices < nss:
-                nss = remainingslices
+                nss2 = remainingslices
+            print "nss2-->", nss2
             if mode == "start":
-                ranges = self.ranges[sblock*nss:(sblock+1)*nss:2]
+                ranges = self.ranges[sblock*nss:sblock*nss+nss2:2]
             elif mode == "stop":
-                ranges = self.ranges[sblock*nss+1:(sblock+1)*nss:2]
+                ranges = self.ranges[sblock*nss+1:sblock*nss+nss2:2]
             elif mode == "median":
-                ranges = self.mranges[sblock*nss:(sblock+1)*nss]
+                ranges = self.mranges[sblock*nss:sblock*nss+nss2]
             sranges_idx = numarray.argsort(ranges)
             sranges = ranges[sranges_idx]
             print "ranges-->", ranges
             print "sranges_idx-->", sranges_idx
             # Swap sorted and indices slices following the new order
-            ns = sblock*nss
-            for i in xrange(nss):
-                print "nblock, nslice-->", nblock, i+ns
+            ns = sblock*nss2
+            for i in xrange(nss2):
+                print "sblock, nslice-->", sblock, i
                 idx = sranges_idx[i]
                 # Swap sorted slices
                 oi = ns+i; oidx = ns+idx
@@ -805,15 +808,17 @@ class Index(indexesExtension.Index, Group):
                 self.mranges[oi] = self.mranges[oidx]
                 self.mranges[oidx] = tmp
                 # Swap start, stop & median bounds
-                tmp = self.abounds[oi*ncs:(oi+1)*ncs]
-                self.abounds[oi*ncs:(oi+1)*ncs] = self.abounds[oidx*ncs:(oidx+1)*ncs]
-                self.abounds[oidx*ncs:(oidx+1)*ncs] = tmp
-                tmp = self.zbounds[oi*ncs:(oi+1)*ncs]
-                self.zbounds[oi*ncs:(oi+1)*ncs] = self.zbounds[oidx*ncs:(oidx+1)*ncs]
-                self.zbounds[oidx*ncs:(oidx+1)*ncs] = tmp
-                tmp = self.mbounds[oi*ncs:(oi+1)*ncs]
-                self.mbounds[oi*ncs:(oi+1)*ncs] = self.mbounds[oidx*ncs:(oidx+1)*ncs]
-                self.mbounds[oidx*ncs:(oidx+1)*ncs] = tmp
+                j = oi*ncs; jn = (oi+1)*ncs
+                xj = oidx*ncs; xjn = (oidx+1)*ncs
+                tmp = self.abounds[j:jn]
+                self.abounds[j:jn] = self.abounds[xj:xjn]
+                self.abounds[xj:xjn] = tmp
+                tmp = self.zbounds[j:jn]
+                self.zbounds[j:jn] = self.zbounds[xj:xjn]
+                self.zbounds[xj:xjn] = tmp
+                tmp = self.mbounds[j:jn]
+                self.mbounds[j:jn] = self.mbounds[xj:xjn]
+                self.mbounds[xj:xjn] = tmp
         return
 
 

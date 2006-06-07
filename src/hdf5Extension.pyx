@@ -603,6 +603,7 @@ def get_attribute_string_or_none(node_id, attr_name):
     if attr_value: free(<void *>attr_value)
   return retvalue
 
+
 cdef class AttributeSet:
   cdef hid_t   dataset_id
   cdef char    *name
