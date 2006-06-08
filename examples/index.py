@@ -19,8 +19,8 @@ table = h5file.createTable(h5file.root, 'distance_table', Distance,
                           'distance table', expectedrows=nrows)
 r = table.row
 for i in range(nrows):
-    r['frame'] = nrows-i
-    #r['frame'] = random.randint(0,nrows)
+    #r['frame'] = nrows-i
+    r['frame'] = random.randint(0,nrows)
     r['distance'] = float(i**2)
     r.append()
 table.flush()
