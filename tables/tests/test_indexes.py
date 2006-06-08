@@ -543,7 +543,7 @@ class BasicReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 0
     fletcher32 = 0
-    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
     nrows = ss
 
 class ZlibReadTestCase(BasicTestCase):
@@ -551,7 +551,7 @@ class ZlibReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 0
     fletcher32 = 0
-    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
     nrows = ss
 
 class LZOReadTestCase(BasicTestCase):
@@ -559,7 +559,7 @@ class LZOReadTestCase(BasicTestCase):
     complib = "lzo"
     shuffle = 0
     fletcher32 = 0
-    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
     nrows = ss
 
 class BZIP2ReadTestCase(BasicTestCase):
@@ -567,7 +567,7 @@ class BZIP2ReadTestCase(BasicTestCase):
     complib = "bzip2"
     shuffle = 0
     fletcher32 = 0
-    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
     nrows = ss
 
 class ShuffleReadTestCase(BasicTestCase):
@@ -575,7 +575,7 @@ class ShuffleReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 1
     fletcher32 = 0
-    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
     nrows = ss
 
 class Fletcher32ReadTestCase(BasicTestCase):
@@ -583,7 +583,7 @@ class Fletcher32ReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 0
     fletcher32 = 1
-    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
     nrows = ss
 
 class ShuffleFletcher32ReadTestCase(BasicTestCase):
@@ -591,19 +591,19 @@ class ShuffleFletcher32ReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 1
     fletcher32 = 1
-    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
     nrows = ss
 
 class OneHalfTestCase(BasicTestCase):
-    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
     nrows = ss+ss//2
 
 class UpperBoundTestCase(BasicTestCase):
-    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
     nrows = ss+1
 
 class LowerBoundTestCase(BasicTestCase):
-    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
     nrows = ss*2-1
 
 # This warning has non-sense now in the PyTables Pro version, as *all*
@@ -1405,31 +1405,31 @@ class AI4bTestCase(AutomaticIndexingTestCase):
     klass = NoReindex
 
 class AI5TestCase(AutomaticIndexingTestCase):
-    bs, ss, cs = calcChunksize(minRowIndex, testmode=0)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=0)
     nrows = ss*11-1
     reopen = 0
     klass = NoAuto
 
 class AI6TestCase(AutomaticIndexingTestCase):
-    bs, ss, cs = calcChunksize(minRowIndex, testmode=0)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=0)
     nrows = ss*21+1
     reopen = 1
     klass = NoAuto
 
 class AI7TestCase(AutomaticIndexingTestCase):
-    bs, ss, cs = calcChunksize(minRowIndex, testmode=0)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=0)
     nrows = ss*12-1
     reopen = 0
     klass = NoReindex
 
 class AI8TestCase(AutomaticIndexingTestCase):
-    bs, ss, cs = calcChunksize(minRowIndex, testmode=0)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=0)
     nrows = ss*15+100
     reopen = 1
     klass = NoReindex
 
 class AI9TestCase(AutomaticIndexingTestCase):
-    bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
     nrows = ss
     reopen = 0
     klass = Small

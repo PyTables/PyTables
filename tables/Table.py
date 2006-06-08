@@ -820,8 +820,13 @@ This method is intended only for indexed columns, but this column has not a mini
         self.whereColname = condition.pathname   # Flag for Row.__iter__
         # Get the coordinates to lookup
         ncoords = condition.index.getLookupRange(condition)
-        if condition.index == "pro" and ncoords == 0:
+        if condition.index.is_pro and ncoords == 0:
             # For the pro case, there are no interesting values
+            # Reset the table variable conditions
+            self.ops = []
+            self.opsValues = []
+            self.whereColname = None
+            # Return the empty iterator
             return iter([])
         # Call the iterator even in case that there are no values satisfying
         # the conditions in the indexed region (ncoords = 0), because
@@ -1933,6 +1938,19 @@ Wrong 'index' parameter type. Only Index instances are accepted.""")
             rowsadded = self.flushRowsToIndex(lastrow=1)
             if rowsadded > 0 and self._indexedrows <> self.nrows:  ## XXX only for pro!
                 raise RuntimeError , "Internal error: the number of indexed rows (%s) and rows in table (%s) must be equal!. Please, report this to the authors." % (self._indexedrows, self.nrows)
+
+# #****************************** a test *************************************
+#         # XXX For pro
+#         if self.indexed:
+#             # Optimize the indexed rows
+#             for (colname, colindexed) in self.colindexed.iteritems():
+#                 if colindexed:
+#                     col = self.cols._f_col(colname)
+#                     if nrows > 0 and not col.dirty:
+#                         print "*optimizing col-->", colname
+#                         col.index.optimize()
+# #***************************** end test ************************************
+
         self._g_cleanIOBuf()
         super(Table, self).flush()
 
