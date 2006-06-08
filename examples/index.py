@@ -28,10 +28,12 @@ table.flush()
 table.cols.frame.createIndex(testmode=1)
 table.cols.frame.index.optimize(1)
 
-print "frame<2 -->", [r.nrow for r in table.where(table.cols.frame<2)]
+results = [r.nrow for r in table.where(table.cols.frame<2)]
+print "frame<2 -->", table.readCoordinates(results)
 #print "frame<2 -->", table.getWhereList(table.cols.frame<2)
 
-print "1<frame<=5 -->", [r.nrow for r in table.where(1<table.cols.frame<=5)]
+results = [r.nrow for r in table.where(1<table.cols.frame<=5)]
+print "1<frame<=5 -->", table.readCoordinates(results)
 #print "1<frame<=5 -->", table.getWhereList(table.cols.frame<=5)
 
 

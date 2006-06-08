@@ -679,31 +679,25 @@ class Index(indexesExtension.Index, Group):
             return
 
         self.create_swap_temps(self.filters)
-        print "mbounds(create)-->", self.mbounds[:]
         (sover, nover, mult) = self.compute_overlaps()
         print "overlaps (create)-->", sover, nover, mult
         for i in range(1):
-            for j in range(1):
+            for j in range(2):
                 self.swap_chunks('median')
-                print "mbounds(swap_chunks)-->", self.mbounds[:]
                 (sover, nover, mult) = self.compute_overlaps()
                 print "overlaps (swap_chunks(median))-->", sover, nover, mult
-            # Swap slices between blocks only in the case we have several blocks
-            if self.nblocks > 1:
-                self.swap_slices('median')
-                print "mbounds(swap_slices)-->", self.mbounds[:]
-                (sover, nover, mult) = self.compute_overlaps()
-                print "overlaps (swap_slices)-->", sover, nover, mult
+                # Swap slices between blocks only in the case we have several blocks
+                if self.nblocks > 1:
+                    self.swap_slices('median')
+                    (sover, nover, mult) = self.compute_overlaps()
+                    print "overlaps (swap_slices(median))-->", sover, nover, mult
             self.swap_chunks('median')
-            print "mbounds(swap_chunks(median))-->", self.mbounds[:]
             (sover, nover, mult) = self.compute_overlaps()
             print "overlaps (swap_chunks(median))-->", sover, nover, mult
             self.swap_chunks('start')
-            print "mbounds(swap_chunks(start))-->", self.mbounds[:]
             (sover, nover, mult) = self.compute_overlaps()
             print "overlaps (swap_chunks(start))-->", sover, nover, mult
             self.swap_chunks('stop')
-            print "mbounds(swap_chunks(stop))-->", self.mbounds[:]
             (sover, nover, mult) = self.compute_overlaps()
             print "overlaps (swap_chunks(stop))-->", sover, nover, mult
 
@@ -764,7 +758,7 @@ class Index(indexesExtension.Index, Group):
             self.mranges.append([median(smedian)])
 
 
-    def swap_chunks(self, mode="median", niter=1):
+    def swap_chunks(self, mode="median"):
         "Swap & reorder the different chunks in a block."
 
         boundsnames = {'start':'abounds', 'stop':'zbounds', 'median':'mbounds'}
@@ -776,11 +770,9 @@ class Index(indexesExtension.Index, Group):
         ncs = self.nchunkslice
         nsb = self.nslicesblock
         ncb = ncs * nsb
-        #print "nchunks in block-->", ncb
         ncb2 = ncb
         boundsobj = self._v_file.getNode(self, boundsnames[mode])
         for nblock in xrange(self.nblocks):
-            #print "nblock-->", nblock
             # Protection for last block having less chunks than ncb
             remainingchunks = self.nchunks - nblock*ncb
             if remainingchunks < ncb:
@@ -792,21 +784,22 @@ class Index(indexesExtension.Index, Group):
                 break
             bounds = boundsobj[nblock*ncb:nblock*ncb+ncb2]
             sbounds_idx = numarray.argsort(bounds)
-            #print "bounds-->", bounds
-            #print "sbounds-->", bounds[sbounds_idx]
-            #print "sbounds_idx-->", sbounds_idx
+            # Do a plain copy on complete block if it doesn't need to be swapped
+            if numarray.alltrue(sbounds_idx == numarray.arange(ncb2)):
+                for i in xrange(ncb2/ncs):
+                    oi = nblock*nsb+i
+                    tmp_sorted[oi] = sorted[oi]
+                    tmp_indices[oi] = indices[oi]
+                continue
             # Swap sorted and indices following the new order
-            #print "ncb2-->", ncb2
             for i in xrange(ncb2):
                 idx = sbounds_idx[i]
                 # Swap sorted & indices chunks
                 offset = nblock*nsb
-                #print "offset-->", offset
                 ns = i / ncs;  nc = (i - ns*ncs)*cs
                 ns += offset
                 ins = idx / ncs;  inc = (idx - ins*ncs)*cs
                 ins += offset
-                #print "origen, desti-->", (ins, inc), (ns, nc)
                 tmp_sorted[ns,nc:nc+cs] = sorted[ins,inc:inc+cs]
                 tmp_indices[ns,nc:nc+cs] = indices[ins,inc:inc+cs]
         # Reorder completely indices at slice level
@@ -814,7 +807,7 @@ class Index(indexesExtension.Index, Group):
         return
 
 
-    def swap_slices(self, mode="median", niter=1):
+    def swap_slices(self, mode="median"):
         "Swap the different slices in a block."
 
         sorted = self.sorted
@@ -824,12 +817,9 @@ class Index(indexesExtension.Index, Group):
         ncs = self.nchunkslice
         nss = self.superblocksize / self.slicesize
         nss2 = nss
-        #print "nslices-->", self.nslices
-        #print "nslicessuperblock-->", nss
         for sblock in xrange(self.nsuperblocks):
             # Protection for last superblock having less slices than nss
             remainingslices = self.nslices - sblock*nss
-            #print "remainingslices-->", remainingslices
             if remainingslices < nss:
                 nss2 = remainingslices
             if nss2 <= 1:
@@ -840,21 +830,18 @@ class Index(indexesExtension.Index, Group):
                 ranges = self.ranges[sblock*nss+1:sblock*nss+nss2:2]
             elif mode == "median":
                 ranges = self.mranges[sblock*nss:sblock*nss+nss2]
-            #print "ranges-->", ranges
             sranges_idx = numarray.argsort(ranges)
-            #print "sranges_idx-->", sranges_idx
+            # Don't swap the superblock at all if it doesn't need to
+            if numarray.alltrue(sranges_idx == numarray.arange(nss2)):
+                continue
             sranges = ranges[sranges_idx]
-            #print "sranges-->", sranges
             ns = sblock*nss2
             # Swap sorted and indices slices following the new order
             for i in xrange(nss2):
-                #print "sblock, nslice-->", sblock, i
                 idx = sranges_idx[i]
                 # Swap sorted & indices slices
                 oi = ns+i; oidx = ns+idx
-                #print "origen, desti-->", oi, oidx
                 tmp_sorted[oi] = sorted[oidx]
-                #print "tmp_sorted(swap_slices)-->", tmp_sorted[oi]
                 tmp_indices[oi] = indices[oidx]
                 # Swap start, stop & median ranges
                 self.tmp_ranges[oi] = self.ranges[oidx]
@@ -867,12 +854,12 @@ class Index(indexesExtension.Index, Group):
                 self.tmp_mbounds[j:jn] = self.mbounds[xj:xjn]
             # tmp --> originals
             for i in xrange(nss2):
-                #print "sblock, nslice-->", sblock, i
                 # copy sorted & indices slices
                 oi = ns+i
                 sorted[oi] = tmp_sorted[oi]
                 indices[oi] = tmp_indices[oi]
-                print "sblock(swap_slices)-->", sorted[oi]
+                # Uncomment the next line for debugging
+                # print "sblock(swap_slices)-->", sorted[oi]
                 # copy start, stop & median ranges
                 self.ranges[oi] = self.tmp_ranges[oi]
                 self.mranges[oi] = self.tmp_mranges[oi]
@@ -896,11 +883,10 @@ class Index(indexesExtension.Index, Group):
         # First, reorder the complete slices
         for nslice in xrange(0, self.sorted.nrows):
             block = tmp_sorted[nslice]
-            #print "block(reorder_slices)-->", block
             sblock_idx = numarray.argsort(block)
             sblock = block[sblock_idx]
-            print "sblock(reorder_slices)-->", sblock
-            #print "nslice-->", nslice
+            # Uncomment the next line for debugging
+            #print "sblock(reorder_slices)-->", sblock
             sorted[nslice] = sblock
             block_idx = tmp_indices[nslice]
             indices[nslice] = block_idx[sblock_idx]
