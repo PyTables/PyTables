@@ -195,7 +195,7 @@ if __name__=="__main__":
     onlyidxquery = 0
     avoidfscache = 0
     rng = [0,10]
-    krows = 1
+    krows = '1k'
     datadir = "data.nobackup"
 
     # Get the options
