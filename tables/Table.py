@@ -2600,6 +2600,19 @@ Attempt to write over a file opened in read-only mode.""")
         table._unsaved_indexedrows = table.nrows - indexedrows
         return indexedrows
 
+    def optimizeIndex(self, level=3, verbose=0):
+        """Optimize the index for this column.
+
+        `level` is the level optimization (from 1 to 9) and defaults to 1.
+        `verbose` specifies the level of verbosity of the optimization process.
+
+        """
+
+        assert self.index, "This column is not indexed, so it can't be optimized."
+        if level > 0:
+            self.index.optimize(level, verbose)
+        return
+
     def reIndex(self):
         """Recompute the existing index"""
 

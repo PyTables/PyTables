@@ -12,7 +12,7 @@ class PyTables_DB(DB):
         self.docompress = docompress
         self.complib = complib
         # Complete the filename
-        if tables.__version__ == "0.9.1":
+        if tables.__version__ == "1.0alpha":
             self.filename = "pro-" + self.filename
         else:
             self.filename = "std-" + self.filename
@@ -61,6 +61,10 @@ class PyTables_DB(DB):
         col = getattr(con.root.table.cols, column)
         col.createIndex()
 
+    def optimizeIndex(self, con, column, level, verbose):
+        col = getattr(con.root.table.cols, column)
+        col.optimizeIndex(level=level, verbose=verbose)
+
     def do_query(self, con, column, base):
         table = con.root.table
         colobj = getattr(table.cols, column)
@@ -68,7 +72,7 @@ class PyTables_DB(DB):
 #                     table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
 #         results = [ r.nrow() for r in
 #                     table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
-        coords = table.getWhereList(self.rng[0]+base <= colobj <= self.rng[1]+base, flavor='NumArray')
+        coords = table.getWhereList(self.rng[0]+base <= colobj <= self.rng[1]+base)
         #coords = table.getWhereList(self.rng[0]+base == colobj, flavor='NumArray')
         #return coords
         return table.readCoordinates(coords)

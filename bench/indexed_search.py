@@ -88,7 +88,7 @@ class DB(object):
             arr_i4 = numarray.array(arr_f8, type=numarray.Int32)
         return arr_i4, arr_f8
 
-    def create_db(self):
+    def create_db(self, optlevel, verbose):
         con = self.open_db(remove=1)
         self.create_table(con)
         init_size = self.get_db_size()
@@ -99,6 +99,8 @@ class DB(object):
         self.index_db(con)
         indexes_size = self.get_db_size()
         self.print_db_sizes(init_size, table_size, indexes_size)
+        if optlevel > 0:
+            self.optimize_index(con, optlevel, verbose)
         self.close_db(con)
 
     def index_db(self, con):
@@ -107,7 +109,13 @@ class DB(object):
             self.index_col(con, colname)
             self.print_mtime(t1, 'Index time (%s)' % colname)
 
-    def query_db(self, onlyidxquery, avoidfscache):
+    def optimize_index(self, con, level, verbose):   # Only for PyTables Pro
+        for colname in idx_cols:
+            t1=time()
+            self.optimizeIndex(con, colname, level=level, verbose=verbose)
+            self.print_mtime(t1, 'Optimize time (%s)' % colname)
+
+    def query_db(self, onlyidxquery, avoidfscache, verbose):
         con = self.open_db()
         if avoidfscache:
             rseed = random.random()
@@ -125,7 +133,8 @@ class DB(object):
                                             random.randrange(self.nrows))
                 ltimes.append((time()-t1)/NI_NTIMES)
                 #results.sort()
-                print results
+                if verbose:
+                    print results
                 self.print_qtime(colname, ltimes)
         # Query for indexed columns
         for colname in idx_cols:
@@ -139,7 +148,8 @@ class DB(object):
                                             random.randrange(self.nrows))
                 ltimes.append((time()-t1)/I_NTIMES)
             #results.sort()
-            print results
+            if verbose:
+                print results
             self.print_qtime(colname, ltimes)
 
     def close_db(self, con):
@@ -155,7 +165,7 @@ if __name__=="__main__":
     except:
         psyco_imported = 0
 
-    usage = """usage: %s [-T] [-S] [-P] [-v] [-f] [-p] [-m] [-c] [-q] [-i] [-x] [-z complevel] [-l complib] [-R range] [-n nrows] [-d datadir]
+    usage = """usage: %s [-T] [-S] [-P] [-v] [-f] [-p] [-m] [-c] [-q] [-i] [-x] [-z complevel] [-l complib] [-R range] [-n nrows] [-d datadir] [-O level]
             -T use Pytables
             -S use Sqlite3
             -P use Postgres
@@ -163,8 +173,8 @@ if __name__=="__main__":
             -f do a profile of the run (only query functionality & Python 2.4)
             -p use "psyco" if available
             -m use random values to fill the table
-            -q do a query (both indexed and non-indexed version)
-            -i do a query (just non-indexed version)
+            -q do a query (both indexed and non-indexed versions)
+            -i do a query (just indexed versions)
             -x choose a different seed for random numbers (i.e. avoid FS cache)
             -c create the database
             -z compress with zlib (no compression by default)
@@ -172,10 +182,11 @@ if __name__=="__main__":
             -R select a range in a field in the form "start,stop" (def "0,10")
             -n sets the number of rows (in krows) in each table
             -d directory to save data (default: data.nobackup)
+            -O set the optimization level for PyTables Pro indexes
             \n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'TSPvfpmcqixz:l:R:n:d:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'TSPvfpmcqixz:l:R:n:d:O:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -189,6 +200,7 @@ if __name__=="__main__":
     usepsyco = 0
     userandom = 0
     docreate = 0
+    optlevel = 0
     docompress = 0
     complib = "zlib"
     doquery = 0
@@ -234,6 +246,8 @@ if __name__=="__main__":
             krows = option[1]
         elif option[0] == '-d':
             datadir = option[1]
+        elif option[0] == '-O':
+            optlevel = int(option[1])
 
     # If not database backend selected, abort
     if not usepytables and not usesqlite3 and not usepostgres:
@@ -268,14 +282,14 @@ if __name__=="__main__":
     if docreate:
         if verbose:
             print "writing %s rows" % krows
-        db.create_db()
+        db.create_db(optlevel, verbose)
 
     if doquery:
         print "Calling query_db() %s times" % READ_TIMES
         if doprofile:
             import pstats
             import profile as prof
-            prof.run('db.query_db(onlyidxquery, avoidfscache)',
+            prof.run('db.query_db(onlyidxquery, avoidfscache, verbose)',
                      'query_db.prof')
             stats = pstats.Stats('query_db.prof')
             stats.strip_dirs()
@@ -285,4 +299,4 @@ if __name__=="__main__":
             else:
                 stats.print_stats(20)
         else:
-            db.query_db(onlyidxquery, avoidfscache)
+            db.query_db(onlyidxquery, avoidfscache, verbose)

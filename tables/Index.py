@@ -606,6 +606,12 @@ class Index(indexesExtension.Index, Group):
         arr = numarray.zeros(shape=shape, type=numarray.Int64)
         LastRowArray(self, 'indicesLR', arr, "Last Row reverse indices")
 
+        # All bounds values (+begin+end) are at the beginning of sortedLR
+        nboundsLR = 0   # 0 bounds initially
+        self.bebounds = self.sortedLR[:nboundsLR]
+        # No cache (ranges & bounds) is available initially
+        self.cache = False
+
 
     def _g_updateDependent(self):
         super(Index, self)._g_updateDependent()
@@ -671,35 +677,54 @@ class Index(indexesExtension.Index, Group):
         self.nelementsLR = nelementsLR
 
 
-    def optimize(self, level=1):
+    def optimize(self, level, verbose):
         "Optimize an index to allow faster searches."
 
+        assert 0 < level < 10
         # Optimize only when we have more than one slice
         if self.nslices <= 1:
             return
 
+        # Thresholds for avoiding continuing the optimization
+        tsover = 0.001    # surface overlaping index for slices
+        tnover = 4        # number of overlapping slices
+        # The next values are experimental. More checks should be done to determine
+        # the best values.
+        if 1 <= level < 3:
+            niter1 = 1
+            niter2 = 0
+        elif 3 <= level < 6:
+            niter1 = 1
+            niter2 = 1
+        elif 6 <= level < 8:
+            niter1 = 2
+            niter2 = 1
+        else:
+            niter1 = 3
+            niter2 = 1
         self.create_swap_temps(self.filters)
-        (sover, nover, mult) = self.compute_overlaps()
-        print "overlaps (create)-->", sover, nover, mult
-        for i in range(1):
-            for j in range(2):
+        (sover, nover) = self.compute_overlaps("create", verbose)
+        if sover < tsover or nover < tnover: return
+        for i in range(niter1):
+            for j in range(niter2):
                 self.swap_chunks('median')
-                (sover, nover, mult) = self.compute_overlaps()
-                print "overlaps (swap_chunks(median))-->", sover, nover, mult
+                (sover, nover) = self.compute_overlaps("swap_chunks(median)", verbose)
+                if sover < tsover or nover < tnover: return
                 # Swap slices between blocks only in the case we have several blocks
                 if self.nblocks > 1:
                     self.swap_slices('median')
-                    (sover, nover, mult) = self.compute_overlaps()
-                    print "overlaps (swap_slices(median))-->", sover, nover, mult
-            self.swap_chunks('median')
-            (sover, nover, mult) = self.compute_overlaps()
-            print "overlaps (swap_chunks(median))-->", sover, nover, mult
+                    (sover, nover) = self.compute_overlaps("swap_slices(median)",
+                                                           verbose)
+                    if sover < tsover or nover < tnover: return
+                self.swap_chunks('median')
+                (sover, nover) = self.compute_overlaps("swap_chunks(median)", verbose)
+                if sover < tsover or nover < tnover: return
             self.swap_chunks('start')
-            (sover, nover, mult) = self.compute_overlaps()
-            print "overlaps (swap_chunks(start))-->", sover, nover, mult
+            (sover, nover) = self.compute_overlaps("swap_chunks(start)", verbose)
+            if sover < tsover or nover < tnover: return
             self.swap_chunks('stop')
-            (sover, nover, mult) = self.compute_overlaps()
-            print "overlaps (swap_chunks(stop))-->", sover, nover, mult
+            (sover, nover) = self.compute_overlaps("swap_chunks(stop)", verbose)
+            if sover < tsover or nover < tnover: return
 
 
     def create_swap_temps(self, filters):
@@ -928,7 +953,7 @@ class Index(indexesExtension.Index, Group):
 #             self.mranges[nslice] = median(smedian)
 
 
-    def compute_overlaps(self):
+    def compute_overlaps(self, message, verbose):
         "Compute the overlap index for slices (only valid for numeric values)."
         ranges = self.ranges[:]
         nslices = ranges.shape[0]
@@ -946,7 +971,10 @@ class Index(indexesExtension.Index, Group):
                     multiplicity[j-i] += 1
         # return the overlap as the ratio between overlaps and entire range
         erange = ranges[-1,1] - ranges[0,0]
-        return (soverlap / erange, noverlaps, multiplicity)
+        sover = soverlap / erange
+        if verbose:
+            print "overlaps (%s)-->" % message, sover, noverlaps, multiplicity
+        return (sover, noverlaps)
 
 
     # This is an optimized version of search.
