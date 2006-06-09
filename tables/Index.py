@@ -32,6 +32,8 @@ import math
 import cPickle
 import bisect
 from time import time, clock
+import os, os.path
+import tempfile
 
 import numarray
 from numarray import strings
@@ -39,6 +41,7 @@ from numarray.mlab import median
 
 import tables.indexesExtension as indexesExtension
 import tables.utilsExtension as utilsExtension
+from tables.File import openFile
 from tables.AttributeSet import AttributeSet
 from tables.Atom import Atom, StringAtom, Float64Atom, Int64Atom
 from tables.EArray import EArray
@@ -558,7 +561,7 @@ class Index(indexesExtension.Index, Group):
             # set a sensible default, using zlib compression and shuffling
             filters = Filters(complevel = 1, complib = "zlib",
                               shuffle = 1, fletcher32 = 0)
-        self.filter = filters
+        self.filters = filters
 
         # Create the IndexArray for sorted values
         IndexArray(self, 'sorted',
@@ -573,7 +576,7 @@ class Index(indexesExtension.Index, Group):
                    Atom("Int64", shape=(0,)), "Reverse Indices", filters,
                    self.testmode, self._v_expectedrows)
 
-        # Create the EArray for range values  (1st order cache)
+        # Create the cache for range values  (1st order cache)
         if str(self.type) == "CharType":
             atom = StringAtom(shape=(0, 2), length=self.itemsize,
                               flavor="numarray")
@@ -581,8 +584,11 @@ class Index(indexesExtension.Index, Group):
             atom = Atom(self.type, shape=(0,2), flavor="numarray")
         CacheArray(self, 'ranges', atom, "Range Values", filters,
                    self._v_expectedrows//self.slicesize)
+        # median ranges
+        EArray(self, 'mranges', Float64Atom(shape=(0,)),
+               "Median ranges", filters)
 
-        # Create the EArray for boundary values (2nd order cache)
+        # Create the cache for boundary values (2nd order cache)
         nbounds_inslice = (self.slicesize - 1 ) // self.chunksize
         if str(self.type) == "CharType":
             atom = StringAtom(shape=(0, nbounds_inslice),
@@ -592,6 +598,13 @@ class Index(indexesExtension.Index, Group):
             atom = Atom(self.type, shape=(0, nbounds_inslice))
         CacheArray(self, 'bounds', atom, "Boundary Values", filters,
                    self._v_expectedrows//self.chunksize)
+
+        # begin, end & median bounds
+        atom = Atom(self.type, shape=(0,))
+        EArray(self, 'abounds', atom, "Start bounds", filters)
+        EArray(self, 'zbounds', atom, "End bounds", filters)
+        EArray(self, 'mbounds', Float64Atom(shape=(0,)),
+               "Median bounds", filters)
 
         # Create the Array for last (sorted) row values + bounds
         shape = 2 + nbounds_inslice + self.slicesize
@@ -629,11 +642,19 @@ class Index(indexesExtension.Index, Group):
         # Indexes in PyTables Pro systems are 64-bit long.
         offset = self.sorted.nrows * self.slicesize
         self.indices.append(numarray.array(s, type="Int64") + offset)
-        self.sorted.append(arr[s])
-        begend = [arr[s[[0,-1]]]]
-        self.ranges.append(begend)
-        self.bounds.append([arr[s[self.chunksize::self.chunksize]]])
-        #self.bounds.append([arr[s[0::self.chunksize]]])
+        sarr = arr[s]
+        self.sorted.append(sarr)
+        cs = self.chunksize
+        self.ranges.append([sarr[[0,-1]]])
+        self.bounds.append([sarr[cs::cs]])
+        self.abounds.append(sarr[0::cs])
+        self.zbounds.append(sarr[cs-1::cs])
+        # Compute the medians
+        sarr.shape = (len(sarr)/cs, cs)
+        sarr.transpose()
+        smedian = median(sarr)
+        self.mbounds.append(smedian)
+        self.mranges.append([median(smedian)])
         # Update nrows after a successful append
         self.nrows = self.sorted.nrows
         self.nelements = self.nrows * self.slicesize
@@ -677,7 +698,7 @@ class Index(indexesExtension.Index, Group):
         self.nelementsLR = nelementsLR
 
 
-    def optimize(self, level, verbose):
+    def optimize(self, level, verbose=0):
         "Optimize an index to allow faster searches."
 
         assert 0 < level < 10
@@ -685,102 +706,108 @@ class Index(indexesExtension.Index, Group):
         if self.nslices <= 1:
             return
 
-        # Thresholds for avoiding continuing the optimization
-        tsover = 0.001    # surface overlaping index for slices
-        tnover = 4        # number of overlapping slices
+        self.verbose=verbose
+        if self.swap('create'): return
+        if level == 1:
+            # Do just one swap iteration
+            self.swap('chunks', 'start')
+            self.cleanup_temps()
+            return
         # The next values are experimental. More checks should be done to determine
         # the best values.
-        if 1 <= level < 3:
+        if 2 <= level < 4:
             niter1 = 1
             niter2 = 0
-        elif 3 <= level < 6:
+        elif 4 <= level < 6:
             niter1 = 1
             niter2 = 1
         elif 6 <= level < 8:
             niter1 = 2
             niter2 = 1
-        else:
+        else:  # Maximum level
             niter1 = 3
             niter2 = 1
-        self.create_swap_temps(self.filters)
-        (sover, nover) = self.compute_overlaps("create", verbose)
-        if sover < tsover or nover < tnover: return
+        sbreak = 0
         for i in range(niter1):
             for j in range(niter2):
-                self.swap_chunks('median')
-                (sover, nover) = self.compute_overlaps("swap_chunks(median)", verbose)
-                if sover < tsover or nover < tnover: return
+                if self.swap('chunks', 'median'): sbreak = 1; break
                 # Swap slices between blocks only in the case we have several blocks
                 if self.nblocks > 1:
-                    self.swap_slices('median')
-                    (sover, nover) = self.compute_overlaps("swap_slices(median)",
-                                                           verbose)
-                    if sover < tsover or nover < tnover: return
-                self.swap_chunks('median')
-                (sover, nover) = self.compute_overlaps("swap_chunks(median)", verbose)
-                if sover < tsover or nover < tnover: return
-            self.swap_chunks('start')
-            (sover, nover) = self.compute_overlaps("swap_chunks(start)", verbose)
-            if sover < tsover or nover < tnover: return
-            self.swap_chunks('stop')
-            (sover, nover) = self.compute_overlaps("swap_chunks(stop)", verbose)
-            if sover < tsover or nover < tnover: return
+                    if self.swap('slices', 'median'): sbreak = 1; break
+                    if self.swap('chunks','median'): sbreak = 1; break
+            if sbreak:
+                break
+            if self.swap('chunks', 'start'): break
+            if self.swap('chunks', 'stop'): break
+        self.cleanup_temps()
+        return
 
 
-    def create_swap_temps(self, filters):
-        "Create some temporary EArrays for slice sorting purposes."
+    def swap(self, what, bref=None):
+        "Swap chunks or slices using a certain bounds reference."
 
+        # Thresholds for avoiding continuing the optimization
+        tsover = 0.001    # surface overlaping index for slices
+        tnover = 4        # number of overlapping slices
+        if what == "create":
+            self.create_temps()
+        elif what == "chunks":
+            self.swap_chunks(bref)
+        elif what == "slices":
+            self.swap_slices(bref)
+        if bref:
+            message = "swap_%s(%s)" % (what, bref)
+        else:
+            message = "swap_%s" % (what,)
+        (sover, nover) = self.compute_overlaps(message, self.verbose)
+        if sover < tsover or nover < tnover:
+            self.cleanup_temps()
+            return True
+        return False
+
+
+    def create_temps(self):
+        "Create some temporary objects for slice sorting purposes."
+
+        # Build the name of the temporary file
+        dirname = os.path.dirname(self._v_file.filename)
+        self.tmpfilename = tempfile.mkstemp(".idx", "tmp-", dirname)[1]
+        self.tmpfile = openFile(self.tmpfilename, "w")
+        self.tmp = self.tmpfile.root
         cs = self.chunksize
         ss = self.slicesize
+        filters = self.filters
         # temporary sorted & indices arrays
-        # Ho hem de posar en altre fitxer i despres esborrar-lo
         shape = (self.nrows, ss)
-        CArray(self, 'tmp_sorted', shape, Atom(self.type, shape),
+        CArray(self.tmp, 'sorted', shape, Atom(self.type, shape),
                "Temporary sorted", filters)
-        CArray(self, 'tmp_indices', shape, Int64Atom(shape=shape),
+        CArray(self.tmp, 'indices', shape, Int64Atom(shape=shape),
                "Temporary indices", filters)
-        # bounds
-        atom = Atom(self.type, shape=(0,))
-        EArray(self, 'abounds', atom, "Start bounds", filters)
-        EArray(self, 'zbounds', atom, "End bounds", filters)
-        EArray(self, 'mbounds', Float64Atom(shape=(0,)), "Median bounds", filters)
         # temporary bounds
         shape = (self.nchunks,)
-        CArray(self, 'tmp_abounds', shape, Atom(self.type, shape),
+        CArray(self.tmp, 'abounds', shape, Atom(self.type, shape),
                "Temp start bounds", filters)
-        CArray(self, 'tmp_zbounds', shape, Atom(self.type, shape),
+        CArray(self.tmp, 'zbounds', shape, Atom(self.type, shape),
                "Temp end bounds", filters)
-        CArray(self, 'tmp_mbounds', shape, Float64Atom(shape=shape),
+        CArray(self.tmp, 'mbounds', shape, Float64Atom(shape=shape),
                "Median bounds", filters)
-        # ranges
-        EArray(self, 'mranges', Float64Atom(shape=(0,)), "Median ranges", filters)
         # temporary ranges
         shape = (self.nslices, 2)
-        CArray(self, 'tmp_ranges', shape, Atom(self.type, shape),
+        CArray(self.tmp, 'ranges', shape, Atom(self.type, shape),
                "Temporary range values", filters)
-        CArray(self, 'tmp_mranges', (self.nslices,),
+        CArray(self.tmp, 'mranges', (self.nslices,),
                Float64Atom(shape=(self.nslices,)),
                "Median ranges", filters)
 
-        offset = len(self.bebounds)
-        nchunksLR = self.nelementsLR / cs
-        # Feed them with the data available in the sorted array
-        for i in xrange(0, self.nrows):
-            if i >= self.sorted.nrows:
-                # We are in the last row. Get the first complete chunks.
-                sblock = self.sortedLR[offset:offset+nchunksLR*cs]
-                nchunks = nchunksLR
-            else:
-                sblock = self.sorted[i]
-                nchunks = self.nchunkslice
-            self.abounds.append(sblock[0::cs])
-            self.zbounds.append(sblock[cs-1::cs])
-            # Compute the medians
-            sblock.shape = (nchunks, cs)
-            sblock.transpose()
-            smedian = median(sblock)
-            self.mbounds.append(smedian)
-            self.mranges.append([median(smedian)])
+
+    def cleanup_temps(self):
+        "Delete the temporaries for sorting purposes."
+        if self.verbose:
+            print "Deleting temporaries..."
+        self.tmp = None
+        self.tmpfile.close()
+        os.remove(self.tmpfilename)
+        self.tmpfilename = None
 
 
     def swap_chunks(self, mode="median"):
@@ -789,8 +816,8 @@ class Index(indexesExtension.Index, Group):
         boundsnames = {'start':'abounds', 'stop':'zbounds', 'median':'mbounds'}
         sorted = self.sorted
         indices = self.indices
-        tmp_sorted = self.tmp_sorted
-        tmp_indices = self.tmp_indices
+        tmp_sorted = self.tmp.sorted
+        tmp_indices = self.tmp.indices
         cs = self.chunksize
         ncs = self.nchunkslice
         nsb = self.nslicesblock
@@ -837,8 +864,8 @@ class Index(indexesExtension.Index, Group):
 
         sorted = self.sorted
         indices = self.indices
-        tmp_sorted = self.tmp_sorted
-        tmp_indices = self.tmp_indices
+        tmp_sorted = self.tmp.sorted
+        tmp_indices = self.tmp.indices
         ncs = self.nchunkslice
         nss = self.superblocksize / self.slicesize
         nss2 = nss
@@ -869,14 +896,14 @@ class Index(indexesExtension.Index, Group):
                 tmp_sorted[oi] = sorted[oidx]
                 tmp_indices[oi] = indices[oidx]
                 # Swap start, stop & median ranges
-                self.tmp_ranges[oi] = self.ranges[oidx]
-                self.tmp_mranges[oi] = self.mranges[oidx]
+                self.tmp.ranges[oi] = self.ranges[oidx]
+                self.tmp.mranges[oi] = self.mranges[oidx]
                 # Swap start, stop & median bounds
                 j = oi*ncs; jn = (oi+1)*ncs
                 xj = oidx*ncs; xjn = (oidx+1)*ncs
-                self.tmp_abounds[j:jn] = self.abounds[xj:xjn]
-                self.tmp_zbounds[j:jn] = self.zbounds[xj:xjn]
-                self.tmp_mbounds[j:jn] = self.mbounds[xj:xjn]
+                self.tmp.abounds[j:jn] = self.abounds[xj:xjn]
+                self.tmp.zbounds[j:jn] = self.zbounds[xj:xjn]
+                self.tmp.mbounds[j:jn] = self.mbounds[xj:xjn]
             # tmp --> originals
             for i in xrange(nss2):
                 # copy sorted & indices slices
@@ -886,13 +913,13 @@ class Index(indexesExtension.Index, Group):
                 # Uncomment the next line for debugging
                 # print "sblock(swap_slices)-->", sorted[oi]
                 # copy start, stop & median ranges
-                self.ranges[oi] = self.tmp_ranges[oi]
-                self.mranges[oi] = self.tmp_mranges[oi]
+                self.ranges[oi] = self.tmp.ranges[oi]
+                self.mranges[oi] = self.tmp.mranges[oi]
                 # copy start, stop & median bounds
                 j = oi*ncs; jn = (oi+1)*ncs
-                self.abounds[j:jn] = self.tmp_abounds[j:jn]
-                self.zbounds[j:jn] = self.tmp_zbounds[j:jn]
-                self.mbounds[j:jn] = self.tmp_mbounds[j:jn]
+                self.abounds[j:jn] = self.tmp.abounds[j:jn]
+                self.zbounds[j:jn] = self.tmp.zbounds[j:jn]
+                self.mbounds[j:jn] = self.tmp.mbounds[j:jn]
         return
 
 
@@ -901,8 +928,8 @@ class Index(indexesExtension.Index, Group):
 
         sorted = self.sorted
         indices = self.indices
-        tmp_sorted = self.tmp_sorted
-        tmp_indices = self.tmp_indices
+        tmp_sorted = self.tmp.sorted
+        tmp_indices = self.tmp.indices
         cs = self.chunksize
         ncs = self.nchunkslice
         # First, reorder the complete slices
@@ -926,31 +953,6 @@ class Index(indexesExtension.Index, Group):
             smedian = median(sblock)
             self.mbounds[nslice*ncs:(nslice+1)*ncs] = smedian
             self.mranges[nslice] = median(smedian)
-        # Descomentar lo de sota quan tinguem la reodenacio de chunks en LR
-#         # reorder last row
-#         if self.nelementsLR > 0:
-#             offset = len(self.bebounds)
-#             block = self.tmp_sortedLR[offset:offset+self.nelementsLR]
-#             sblock_idx = numarray.argsort(block)
-#             sblock = block[sblock_idx]
-#             self.sortedLR[offset:offset+self.nelementsLR] = sblock
-#             block_idx = self.tmp_indicesLR[:self.nelementsLR]
-#             self.indicesLR[:self.nelementsLR] = block_idx[sblock_idx]
-#             nslice = -1      # the last row is the last slice as well
-#             self.bebounds = numarray.concatenate([sblock[::self.chunksize],
-#                                                   sblock[-1]])
-#             self.sortedLR[:offset] = self.bebounds
-#             # update start & stop bounds
-#             self.abounds[nslice*ncs:(nslice+1)*ncs] = sblock[0::cs]
-#             self.zbounds[nslice*ncs:(nslice+1)*ncs] = sblock[cs-1::cs]
-#             # update median bounds
-#             ncsLR = self.nelementsLR / cs
-#             sblock = block[:ncsLR*cs]
-#             sblock.shape= (ncsLR, cs)
-#             sblock.transpose()
-#             smedian = median(sblock)
-#             self.mbounds[nslice*ncs:(nslice+1)*ncs] = smedian
-#             self.mranges[nslice] = median(smedian)
 
 
     def compute_overlaps(self, message, verbose):

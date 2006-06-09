@@ -261,7 +261,7 @@ if __name__=="__main__":
     if usepytables:
         from pytables_backend import PyTables_DB
         db = PyTables_DB(krows, rng, userandom, datadir,
-                         docompress, complib)
+                         docompress, complib, optlevel)
     elif usesqlite3:
         from sqlite3_backend import Sqlite3_DB
         db = Sqlite3_DB(krows, rng, userandom, datadir)

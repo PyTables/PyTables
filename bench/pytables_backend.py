@@ -6,7 +6,7 @@ from indexed_search import DB
 class PyTables_DB(DB):
 
     def __init__(self, nrows, rng, userandom, datadir,
-                 docompress=0, complib='zlib'):
+                 docompress=0, complib='zlib', optlevel=0):
         DB.__init__(self, nrows, rng, userandom)
         # Specific part for pytables
         self.docompress = docompress
@@ -16,6 +16,8 @@ class PyTables_DB(DB):
             self.filename = "pro-" + self.filename
         else:
             self.filename = "std-" + self.filename
+        if optlevel > 0:
+            self.filename += '-' + 'O%s' % optlevel
         if docompress:
             self.filename += '-' + complib + str(docompress)
         self.filename = datadir + '/' + self.filename + '.h5'

@@ -26,7 +26,7 @@ for i in range(nrows):
 table.flush()
 
 table.cols.frame.createIndex(testmode=1)
-table.cols.frame.optimizeIndex(level=9, verbose=1)
+table.cols.frame.optimizeIndex(level=5, verbose=1)
 
 results = [r.nrow for r in table.where(table.cols.frame<2)]
 print "frame<2 -->", table.readCoordinates(results)

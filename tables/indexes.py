@@ -462,8 +462,10 @@ class IndexArray(EArray, indexesExtension.IndexArray):
 
     def append(self, arr):
         """Append the object to this (enlargeable) object"""
-        arr.shape = (1, arr.shape[0])
+        extent = arr.shape[0]
+        arr.shape = (1, extent)
         self._append(arr)
+        arr.shape = (extent,)
 
 
     # This version of searchBin uses both rangeValues (1st level) and

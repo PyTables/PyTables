@@ -56,7 +56,6 @@ from tables.Node import Node
 from tables.Group import Group, RootGroup
 from tables.Group import TransactionGroupG, TransactionG, MarkG
 from tables.Leaf import Leaf, Filters
-from tables.Table import Table
 from tables.Array import Array
 from tables.CArray import CArray
 from tables.EArray import EArray
@@ -226,6 +225,9 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
     return File(path, mode, title, trMap, rootUEP, filters,
                 METADATA_CACHE_SIZE, nodeCacheSize)
 
+# It is necessary to import Table after openFile, because it solves a circular
+# import reference.
+from tables.Table import Table
 
 class _AliveNodes(dict):
 
