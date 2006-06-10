@@ -6934,10 +6934,14 @@ result = [ row['var2'] for row in table.iterrows()
 
 	      <p>If the <verb>key</verb> argument is an integer, the
 		corresponding table row is returned as a
-		<verb>tables.nestedrecords.NestedRecord</verb> object.
-		If <verb>key</verb> is a slice, the range of rows
-		determined by it is returned as a
-		<verb>tables.nestedrecords.NestedRecArray</verb> object.
+		<verb>numarray.records.Record</verb> or as a
+		<verb>tables.nestedrecords.NestedRecord</verb> object,
+		whichever is more appropriate.  If <verb>key</verb> is
+		a slice, the range of rows determined by it is
+		returned as a
+		<verb>numarray.records.RecArray</verb> or as a
+		<verb>tables.nestedrecords.NestedRecArray</verb>
+		object, whichever is more appropriate.
 	      </p>
 
 	      <p>Using a string as <verb>key</verb> to get a column is
@@ -7193,10 +7197,14 @@ recarray = table.read(start=4, stop=1000, step=2)]]>
 
 	      <p>If the <verb>key</verb> argument is an integer, the
 		corresponding <verb>Cols</verb> row is returned as a
-		<verb>tables.nestedrecords.NestedRecord</verb> object.
-		If <verb>key</verb> is a slice, the range of rows
-		determined by it is returned as a
-		<verb>tables.nestedrecords.NestedRecArray</verb> object.
+		<verb>numarray.records.Record</verb> or as a
+		<verb>tables.nestedrecords.NestedRecord</verb> object,
+		whichever is more appropriate.  If <verb>key</verb> is
+		a slice, the range of rows determined by it is
+		returned as a <verb>numarray.records.RecArray</verb>
+		or as a
+		<verb>tables.nestedrecords.NestedRecArray</verb>
+		object, whichever is more appropriate.
 	      </p>
 
 	      <p>Using a string as <verb>key</verb> to get a column is

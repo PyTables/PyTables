@@ -30,6 +30,7 @@ Misc variables:
 
 import warnings
 import re
+from time import time
 
 import numarray
 import numarray.numarraycore
@@ -198,6 +199,17 @@ class Table(TableExtension.Table, Leaf):
                       "The flavor that will be used when returning read data.")
 
     # List here the lazy attributes.
+    def _g_getrbuffer(self):
+        mydict = self.__dict__
+        if '_v_rbuffer' in mydict:
+            return mydict['_v_rbuffer']
+        else:
+            mydict['_v_rbuffer'] = rbuffer = self._newBuffer(init=0)
+            return rbuffer
+
+    _v_rbuffer = property(_g_getrbuffer, None, None,
+                          "A buffer for reading.")
+
     def _g_getwbuffer(self):
         mydict = self.__dict__
         if '_v_wbuffer' in mydict:
@@ -208,7 +220,7 @@ class Table(TableExtension.Table, Leaf):
             return wbuffer
 
     _v_wbuffer = property(_g_getwbuffer, None, None,
-                          "The buffer for writing.")
+                          "*The* buffer for writing.")
 
     # </properties>
 
@@ -404,14 +416,30 @@ class Table(TableExtension.Table, Leaf):
             self._indexedrows = indexobj.nelements
             self._unsaved_indexedrows = self.nrows - self._indexedrows
 
+    def _get_container(self, shape):
+        "Get the appropriate buffer for data depending on table nestedness."
+        
+        # The handling of a plain RecArray is usually faster than
+        # NestedRecArray. This can be *critical* to certain benchmarks,
+        # specially those whose run times are less than 1 msec.
+        # So, from now on, the reading methods in Table will return a
+        # plain RecArray when the table doesn't have nested columns
+        # and a NestedRecArray when the table is nested.
+        # F. Altet 2006-06-10
+        colnames = self.description._v_nestedNames
+        formats = self.description._v_nestedFormats
+        if self.description._v_is_nested:
+            recarr = nestedrecords.array(None, formats=formats, shape=shape,
+                                         names = colnames)
+        else:
+            recarr = records.array(None, formats=formats, shape=shape,
+                                   names = colnames)
+        return recarr
+
     def _newBuffer(self, init=1):
         """Create a new recarray buffer for I/O purposes"""
 
-        colnames = self.description._v_nestedNames
-        formats = self.description._v_nestedFormats
-        recarr = nestedrecords.array(None, formats=formats,
-                                     shape=(self._v_maxTuples,),
-                                     names = colnames)
+        recarr = self._get_container(self._v_maxTuples)
         # Initialize the recarray with the defaults in description
         recarr._fields = recarr._get_fields()
         if init:
@@ -807,20 +835,21 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
         if not isinstance(condition, Column):
             raise TypeError("""\
 Wrong 'condition' parameter type. Only Column instances are suported.""")
-        if condition.index is None:
+        index = condition.index
+        if index is None:
             raise ValueError("""\
 This method is intended only for indexed columns.""")
         if condition.dirty:
             raise ValueError("""\
 This method is intended only for indexed columns, but this column has a dirty index. Try re-indexing it in order to put the index in a sane state.""")
-        if condition.index.nelements == 0:
+        if index.nelements == 0:
             raise ValueError("""\
 This method is intended only for indexed columns, but this column has not a minimum entries (%s) to be indexed.""" % condition.index.slicesize)
 
         self.whereColname = condition.pathname   # Flag for Row.__iter__
         # Get the coordinates to lookup
-        ncoords = condition.index.getLookupRange(condition)
-        if condition.index.is_pro and ncoords == 0:
+        ncoords = index.getLookupRange(condition)
+        if index.is_pro and ncoords == 0:
             # For the pro case, there are no interesting values
             # Reset the table variable conditions
             self.ops = []
@@ -850,7 +879,8 @@ This method is intended only for indexed columns, but this column has not a mini
         if not isinstance(condition, Column):
             raise TypeError(
                 "``condition`` argument is not an instance of ``Column``")
-        if condition.index is None:
+        index = condition.index
+        if index is None:
             raise ValueError(
                 "the column referenced by ``condition`` is not indexed")
         if condition.dirty:
@@ -860,17 +890,13 @@ please reindex the table to put the index in a sane state""")
 
         self.whereColname = condition.pathname   # Flag for Row.__iter__
         # Get the coordinates to lookup
-        nrecords = condition.index.getLookupRange(condition)
+        nrecords = index.getLookupRange(condition)
         # Create a read buffer
-        colnames = self.description._v_nestedNames
-        formats = self.description._v_nestedFormats
-        recarr = nestedrecords.array(None, formats=formats,
-                                     shape=(nrecords,),
-                                     names = colnames)
+        recarr = self._get_container(nrecords)
         if nrecords > 0:
             # Read the contents of a selection in a recarray
-            condition.index.indices._initIndexSlice(nrecords)
-            coords = condition.index.getCoords(0, nrecords)
+            index.indices._initIndexSlice(nrecords)
+            coords = index.getCoords(0, nrecords)
             recout = self._read_elements(recarr, coords)
         # Delete indexation caches
         self.ops = []
@@ -931,9 +957,8 @@ please reindex the table to put the index in a sane state""")
 
         """
 
-        if not isinstance(condition, Column):
-            raise TypeError("""\
-Wrong 'condition' parameter type. Only Column instances are suported.""")
+        assert isinstance(condition, Column), """\
+Wrong 'condition' parameter type. Only Column instances are suported."""
 
         if not flavor:
             flavor = self.flavor
@@ -942,17 +967,25 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
 "%s" flavor is not allowed; please use some of %s.""" % \
                              (flavor, supportedFlavors))
 
+        index = condition.index
+        #t2 = time()
         # Take advantage of indexation, if present
-        if condition.index is not None:
+        if index is not None:
             # get the number of coords and set-up internal variables
-            ncoords = condition.index.getLookupRange(condition)
+            #t1 = time()
+            ncoords = index.getLookupRange(condition)
+            #print "getLookupRange-->", time()-t1
             if ncoords > 0:
-                coords = condition.index.getCoords_sparse(ncoords)
+                #coords = index.getCoords_sparse(ncoords)
+                # The next call is the optimized one
+                #t1 = time()
+                coords = index.indices._getCoords_sparse(ncoords)
+                #print "_sparse-->", time()-t1
             else:
                 coords = numarray.array(None, type=numarray.Int64, shape=0)
-            if not condition.index.is_pro:
+            if not index.is_pro:
                 # get the remaining rows from the table
-                start = condition.index.nelements
+                start = index.nelements
                 if start < self.nrows:
                     remainCoords = [p.nrow for p in self._whereInRange(
                         condition, start, self.nrows)]
@@ -964,12 +997,15 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
             coords = [p.nrow for p in self.where(condition)]
             coords = numarray.array(coords, type=numarray.Int64)
         # re-initialize internal selection values
+        #print "getW2-->", time()-t2
         self.ops = []
         self.opsValues = []
         self.opsColnames = []
         self.whereColname = None
         if sort:
             coords = numarray.sort(coords)
+        if flavor == "numarray":
+            return coords
         if numpy_imported and flavor == "numpy":
             coords = numpy.asarray(coords)
         elif Numeric_imported and flavor == "numeric":
@@ -1039,11 +1075,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         # Return a rank-0 array if start > stop
         if start >= stop:
             if field == None:
-                nra = nestedrecords.array(
-                    None,
-                    formats=self.description._v_nestedFormats,
-                    shape=(0,),
-                    names = self.colnames)
+                nra = self._get_container(0)
                 return nra
             elif isinstance(typeField, records.Char):
                 return numarray.strings.array(shape=(0,), itemsize = 0,
@@ -1084,10 +1116,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 result = numarray.array(shape=shape, type=typeField)
         else:
             # Recarray case
-            colnames = self.description._v_nestedNames
-            formats = self.description._v_nestedFormats
-            result = nestedrecords.array(None, formats=formats, shape=(nrows,),
-                                         names = colnames)
+            result = self._get_container(nrows)
 
         # Handle coordinates separately.
         if coords is not None:
@@ -1214,11 +1243,10 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             coords = numarray.array(coords, type=numarray.Int64)
         ncoords = len(coords)
         # Create a read buffer
-        colnames = self.description._v_nestedNames
-        formats = self.description._v_nestedFormats
-        result = nestedrecords.array(None, formats=formats,
-                                     shape = (ncoords,),
-                                     names = colnames)
+        if ncoords < self._v_maxTuples:
+            result = self._v_rbuffer[:ncoords]
+        else:
+            result = self._get_container(ncoords)
         # Do the real read
         if ncoords > 0:
             self._read_elements(result, coords)
@@ -1309,10 +1337,13 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         """
         Get a row or a range of rows from the table.
 
-        If the `key` argument is an integer, the corresponding table row
-        is returned as a ``tables.nestedrecords.NestedRecord`` object.
-        If `key` is a slice, the range of rows determined by it is
-        returned as a ``tables.nestedrecords.NestedRecArray`` object.
+        If the `key` argument is an integer, the corresponding table row is
+        returned as a ``numarray.records.Record`` or as a
+        ``tables.nestedrecords.NestedRecord`` object, what is more
+        appropriate.  If `key` is a slice, the range of rows determined by it
+        is returned as a ``numarray.records.RecArray`` or as a
+        ``tables.nestedrecords.NestedRecArray`` object, what is more
+        appropriate.
 
         Using a string as `key` to get a column is supported but
         deprecated.  Please use the `col()` method.

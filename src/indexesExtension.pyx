@@ -197,9 +197,9 @@ cdef class IndexArray(Array):
       # This sharing method should be improved.
       NA_getBufferPtrAndSize(self._v_parent.starts._data, 1, &self.rbufst)
       NA_getBufferPtrAndSize(self._v_parent.lengths._data, 1, &self.rbufln)
-      # Initialize the index array for reading
-      self.space_id = H5Dget_space(self.dataset_id )
-      self.isopen_for_read = True
+      if not self.space_id:
+        # Initialize the index array for reading
+        self.space_id = H5Dget_space(self.dataset_id )
 
   def _readIndex(self, hsize_t irow, hsize_t start, hsize_t stop,
                  int offsetl):
@@ -265,7 +265,6 @@ cdef class IndexArray(Array):
       rank = 2
       count[0] = 1; count[1] = self.chunksize;
       self.mem_space_id = H5Screate_simple(rank, count, NULL)
-      self.isopen_for_read = True
     if pro and not index.cache :
       index.rvcache = index.ranges[:]
       NA_getBufferPtrAndSize(index.rvcache._data, 1, &self.rbufrv)

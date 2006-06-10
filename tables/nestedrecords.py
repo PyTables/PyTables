@@ -783,6 +783,8 @@ class NestedRecArray(numarray.records.RecArray):
         # so, the copy must be made by hand. :[
         self._strides = recarray._strides
 
+        #print "creant un NRA..."
+
         self._flatArray = recarray
         self.descr = descr
         # Create a true compliant array protocol description

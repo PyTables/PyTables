@@ -512,6 +512,7 @@ class Index(indexesExtension.Index, Group):
         """Lengths of the values fulfilling conditions for every slice."""
 
         self.cache = False   # no cache (ranges & bounds) is available initially
+        self.tmpfilename = None # filename for temporal bounds
 
         # Set the version number of this object as an index, not a group.
         self.is_pro = (idx_version == "pro")
@@ -707,13 +708,14 @@ class Index(indexesExtension.Index, Group):
             return
 
         self.verbose=verbose
+        niter1 = 0
+        niter2 = 0
         if self.swap('create'): return
         if level == 1:
             # Do just one swap iteration
             self.swap('chunks', 'start')
-            self.cleanup_temps()
-            return
-        # The next values are experimental. More checks should be done to determine
+        # The next values are experimental.
+        # More checks should be done to determine
         # the best values.
         if 2 <= level < 4:
             niter1 = 1
@@ -724,14 +726,14 @@ class Index(indexesExtension.Index, Group):
         elif 6 <= level < 8:
             niter1 = 2
             niter2 = 1
-        else:  # Maximum level
+        elif level >= 9:  # Maximum level
             niter1 = 3
             niter2 = 1
         sbreak = 0
         for i in range(niter1):
             for j in range(niter2):
                 if self.swap('chunks', 'median'): sbreak = 1; break
-                # Swap slices between blocks only in the case we have several blocks
+                # Swap slices only in the case we have several blocks
                 if self.nblocks > 1:
                     if self.swap('slices', 'median'): sbreak = 1; break
                     if self.swap('chunks','median'): sbreak = 1; break
@@ -739,7 +741,9 @@ class Index(indexesExtension.Index, Group):
                 break
             if self.swap('chunks', 'start'): break
             if self.swap('chunks', 'stop'): break
-        self.cleanup_temps()
+        # If temporal file still exists, close and delete it
+        if self.tmpfilename:
+            self.cleanup_temps()
         return
 
 
@@ -806,7 +810,7 @@ class Index(indexesExtension.Index, Group):
             print "Deleting temporaries..."
         self.tmp = None
         self.tmpfile.close()
-        os.remove(self.tmpfilename)
+        #os.remove(self.tmpfilename)
         self.tmpfilename = None
 
 
@@ -1177,7 +1181,7 @@ class Index(indexesExtension.Index, Group):
         # Some careful tests must be carried out in order to do that
         selections = self.indices.arrAbs[:relCoords]
         # Preliminary results seems to show that sorting is not an advantage!
-        #selections = numarray.sort(self.indices.arrAbs[:relCoords)]
+        #selections = numarray.sort(self.indices.arrAbs[:relCoords])
         #t = time()-t1
         #print "time getting coords:",  round(t*1000, 3), "ms"
         return selections

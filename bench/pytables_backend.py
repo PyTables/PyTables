@@ -2,6 +2,7 @@ import os, os.path
 import tables
 from numarray import records
 from indexed_search import DB
+from time import time
 
 class PyTables_DB(DB):
 
@@ -70,13 +71,19 @@ class PyTables_DB(DB):
     def do_query(self, con, column, base):
         table = con.root.table
         colobj = getattr(table.cols, column)
+        #print "get colobj-->", time()-t1
 #         results = [ r[column] for r in
 #                     table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
-#         results = [ r.nrow() for r in
+#         results = [ r.nrow for r in
 #                     table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
+        #t1 = time()
         coords = table.getWhereList(self.rng[0]+base <= colobj <= self.rng[1]+base)
-        #coords = table.getWhereList(self.rng[0]+base == colobj, flavor='NumArray')
+        #coords = table.getWhereList(self.rng[0]+base == colobj)
+        #print "getWhereList-->", time()-t1
+
         #return coords
-        return table.readCoordinates(coords)
-        #return table.readCoordinates(coords, column).tolist()
-        #return table.readCoordinates(coords, column)
+        #t1 = time()
+        results = table.readCoordinates(coords)
+        #print "readCoords-->", time()-t1
+
+        return results

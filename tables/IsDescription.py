@@ -960,10 +960,15 @@ class Description(object):
         The level of the associated table or nested column in the nested
         datatype.
 
+    _v_is_nested
+        Either the associated table has nested columns or not (Boolean).
+
+
     Public methods:
 
     _v_walk([type])
         Iterate over nested columns.
+
     """
 
     def __init__(self, classdict, nestedlvl=-1):
@@ -984,6 +989,7 @@ class Description(object):
         newdict["_v_itemsizes"] = {}
         newdict["_v_totalsizes"] = {}
         newdict["_v_fmt"] = ""
+        newdict["_v_is_nested"] = False
         nestedFormats = []
 
         if not hasattr(newdict, "_v_nestedlvl"):
@@ -1142,6 +1148,8 @@ class Description(object):
                 # replace the column nested name by a correct tuple
                 self._v_nestedNames[i] = (name, new_object._v_nestedNames)
                 self._v_nestedDescr[i] = (name, new_object._v_nestedDescr)
+                # set the _v_is_nested flag
+                self._v_is_nested = True
 
     def _g_setPathNames(self):
         """Compute the pathnames for arbitrary nested descriptions.
