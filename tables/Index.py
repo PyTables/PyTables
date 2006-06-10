@@ -600,12 +600,13 @@ class Index(indexesExtension.Index, Group):
         CacheArray(self, 'bounds', atom, "Boundary Values", filters,
                    self._v_expectedrows//self.chunksize)
 
-        # begin, end & median bounds
-        atom = Atom(self.type, shape=(0,))
-        EArray(self, 'abounds', atom, "Start bounds", filters)
-        EArray(self, 'zbounds', atom, "End bounds", filters)
-        EArray(self, 'mbounds', Float64Atom(shape=(0,)),
-               "Median bounds", filters)
+        # begin, end & median bounds (only for numeric types)
+        if str(self.type) != "CharType":
+            atom = Atom(self.type, shape=(0,))
+            EArray(self, 'abounds', atom, "Start bounds", filters)
+            EArray(self, 'zbounds', atom, "End bounds", filters)
+            EArray(self, 'mbounds', Float64Atom(shape=(0,)),
+                   "Median bounds", filters)
 
         # Create the Array for last (sorted) row values + bounds
         shape = 2 + nbounds_inslice + self.slicesize
@@ -636,7 +637,7 @@ class Index(indexesExtension.Index, Group):
         """Append the array to the index objects"""
 
         # Save the sorted array
-        if str(self.sorted.type) == "CharType":
+        if str(self.type) == "CharType":
             s=arr.argsort()
         else:
             s=numarray.argsort(arr)
@@ -648,14 +649,15 @@ class Index(indexesExtension.Index, Group):
         cs = self.chunksize
         self.ranges.append([sarr[[0,-1]]])
         self.bounds.append([sarr[cs::cs]])
-        self.abounds.append(sarr[0::cs])
-        self.zbounds.append(sarr[cs-1::cs])
-        # Compute the medians
-        sarr.shape = (len(sarr)/cs, cs)
-        sarr.transpose()
-        smedian = median(sarr)
-        self.mbounds.append(smedian)
-        self.mranges.append([median(smedian)])
+        if str(self.type) != "CharType":
+            self.abounds.append(sarr[0::cs])
+            self.zbounds.append(sarr[cs-1::cs])
+            # Compute the medians
+            sarr.shape = (len(sarr)/cs, cs)
+            sarr.transpose()
+            smedian = median(sarr)
+            self.mbounds.append(smedian)
+            self.mranges.append([median(smedian)])
         # Update nrows after a successful append
         self.nrows = self.sorted.nrows
         self.nelements = self.nrows * self.slicesize
@@ -672,7 +674,7 @@ class Index(indexesExtension.Index, Group):
         assert nelementsLR == len(arr), \
 "The number of elements to append is incorrect!. Report this to the authors."
         # Sort the array
-        if str(self.sorted.type) == "CharType":
+        if str(self.type) == "CharType":
             s=arr.argsort()
             # build the cache of bounds
             # this is a rather weird way of concatenating chararrays, I agree
@@ -810,7 +812,7 @@ class Index(indexesExtension.Index, Group):
             print "Deleting temporaries..."
         self.tmp = None
         self.tmpfile.close()
-        #os.remove(self.tmpfilename)
+        os.remove(self.tmpfilename)
         self.tmpfilename = None
 
 
