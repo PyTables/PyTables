@@ -6,6 +6,7 @@ import warnings
 
 from tables import *
 from tables.indexes import minRowIndex
+#from tables.IndexArray import minRowIndex
 
 from common import verbose, cleanup, heavy
 # To delete the internal attributes automagically

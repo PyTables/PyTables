@@ -181,18 +181,18 @@ class ChunkedCompoundTestCase(HDF5CompatibilityTestCase):
         for m in range(len(tbl)):
             row = tbl[m]
         # This version of the loop seems to fail because of ``iterrows()``.
-        ##for (m, row) in enumerate(tbl):
-            self.assertEqual(row['a_name'], m)
-            self.assertEqual(row['c_name'], "Hello!")
-            dRow = row['d_name']
+        #for (m, row) in enumerate(tbl):
+            self.assertEqual(row.field('a_name'), m)
+            self.assertEqual(row.field('c_name'), "Hello!")
+            dRow = row.field('d_name')
             for n in range(5):
                 for o in range(10):
                     self.assertEqual(dRow[n][o], m + n + o)
-            self.assertAlmostEqual(row['e_name'], m * 0.96, places=6)
-            fRow = row['f_name']
+            self.assertAlmostEqual(row.field('e_name'), m * 0.96, places=6)
+            fRow = row.field('f_name')
             for n in range(10):
                 self.assertAlmostEqual(fRow[n], m * 1024.9637)
-            self.assertEqual(row['g_name'], ord('m'))
+            self.assertEqual(row.field('g_name'), ord('m'))
 
 
 class ContiguousCompoundTestCase(HDF5CompatibilityTestCase):

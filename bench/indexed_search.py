@@ -14,6 +14,7 @@ SCALE = 0.1      # standard deviation of the noise compared with actual values
 NI_NTIMES = 2      # The number of queries for doing a mean (non-idx cols)
 I_NTIMES = 10      # The number of queries for doing a mean (idx cols)
 READ_TIMES = 50    # The number of complete calls to DB.query_db()
+MROW = 1000*1000.
 
 # global variables
 reg_cols = ['col1','col3']
@@ -65,12 +66,16 @@ class DB(object):
         else:
             qtime2 = ltimes[-1]  # Last measured time
         print "Query time for %s:" % colname, round(qtime1, 5)
-        print "Mrows/s:", round((self.nrows/(1000.*1000))/qtime1, 5)
-        if ntimes > 5:
-            print "Query time for %s (cached):" % colname, round(qtime2, 5)
-            print "Mrows/s (cached):", round((self.nrows/(1000.*1000))/qtime2, 5)
+        print "Mrows/s:", round((self.nrows/(MROW))/qtime1, 5)
+        if colname in idx_cols:
+            if ntimes > 5:
+                print "Query time for %s (cached):" % colname, round(qtime2, 5)
+                print "Mrows/s (cached):", round((self.nrows/(MROW))/qtime2, 5)
+            else:
+                print "Not enough iterations to compute cache times."
         else:
-            print "Not enough iterations to compute cache times."
+            print "Query time for %s (cached):" % colname, round(qtime2, 5)
+            print "Mrows/s (cached):", round((self.nrows/(MROW))/qtime2, 5)
 
     def print_db_sizes(self, init, filled, indexed):
         table_size = (filled-init)/1024.
