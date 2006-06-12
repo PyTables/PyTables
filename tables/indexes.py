@@ -154,8 +154,11 @@ def calcChunksize(expectedrows, testmode=0):
         #slicesize = 500*chunksize  # Very good balance cpu/memory
         # Above values lends to 1.12 ms (22.4 MB indexes). No Compr
         # Above values lends to 1.46 ms (12.7 MB indexes). Compr
-        chunksize = 250      # *** very good **** takes less memory
-        slicesize = 1000*chunksize  # Good balance cpu/memory
+        chunksize = 2000           # bon valor per a compr/no compr
+        slicesize = 100*chunksize  # bon valor sense opt
+        #slicesize = 50*chunksize  # bon valor quan hi ha opt
+        #chunksize = 250      # *** very good **** takes less memory
+        #slicesize = 1000*chunksize  # Good balance cpu/memory
         # Above values lends to 1.05 (0.87) ms (24.8 MB indexes). No Compr
         # Above values lends to 1.34 (1.15) ms (15.3 MB indexes). Compr
         #chunksize = 250     # *** optimal **** but takes memory
@@ -254,8 +257,12 @@ def calcChunksize(expectedrows, testmode=0):
         #slicesize = 1500*chunksize     # experiment
         # Above values lends to 3.30 ms (202 MB indexes). No Compr
         # Above values lends to 3.04 ms (126 MB indexes). Compr
-        chunksize = 500              # ******best values*******
-        slicesize = 1000*chunksize  # takes reasonable time to index
+        #chunksize = 4000    # bo per a compr/no compr
+        #slicesize = 150*chunksize  # 600.000 elements esta be
+        chunksize = 5000        # experiment
+        slicesize = 100*chunksize  # experiment
+        #chunksize = 500              # ******best values*******
+        #slicesize = 1000*chunksize  # takes reasonable time to index
         # Above values lends to 2.66 (1.48) ms (205 MB indexes). No Compr
         # Above values lends to 3.16 (1.98) ms (120 MB indexes). Compr
         #chunksize = 500              # experiment
@@ -309,9 +316,9 @@ def calcChunksize(expectedrows, testmode=0):
 
     # The defaults for blocksize & superblocksize
     if blocksize == None:
-        blocksize = 1000*slicesize    # experiment
+        blocksize = 10*slicesize    # experiment
     if superblocksize == None:
-        superblocksize = 1000*blocksize  # experiment
+        superblocksize = 10*blocksize  # experiment
 
 #     print "superblocksize, blocksize, slicesize, chunksize:", \
 #           (superblocksize, blocksize, slicesize, chunksize)

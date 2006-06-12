@@ -784,7 +784,8 @@ class Index(indexesExtension.Index, Group):
         self.tmp = self.tmpfile.root
         cs = self.chunksize
         ss = self.slicesize
-        filters = self.filters
+        #filters = self.filters
+        filters = None    # compressing temporaries is very inefficient!
         # temporary sorted & indices arrays
         shape = (self.nrows, ss)
         CArray(self.tmp, 'sorted', shape, Atom(self.type, shape),
@@ -844,7 +845,8 @@ class Index(indexesExtension.Index, Group):
                 break
             bounds = boundsobj[nblock*ncb:nblock*ncb+ncb2]
             sbounds_idx = numarray.argsort(bounds)
-            # Do a plain copy on complete block if it doesn't need to be swapped
+            # Do a plain copy on complete block if it doesn't need
+            # to be swapped
             if numarray.alltrue(sbounds_idx == numarray.arange(ncb2)):
                 for i in xrange(ncb2/ncs):
                     oi = nblock*nsb+i
@@ -1029,7 +1031,7 @@ class Index(indexesExtension.Index, Group):
     def search_pro(self, item, sorted):
         """Do a binary search in this index for an item. pro version."""
 
-        t1 = time()
+        #t1 = time()
         item1, item2 = item
         if 0:
             tlen = self.search_scalar(item, sorted)
@@ -1045,7 +1047,7 @@ class Index(indexesExtension.Index, Group):
                 tlen = sorted._searchBinNA_ll(item1, item2)
             else:
                 tlen = self.search_scalar(item, sorted)
-        t = time()-t1
+        #t = time()-t1
         #print "time searching indices (pro-main):", round(t*1000, 3), "ms"
         return tlen
 
@@ -1053,7 +1055,7 @@ class Index(indexesExtension.Index, Group):
     # This is an scalar version of search. It works well with strings as well.
     def search_scalar(self, item, sorted):
         """Do a binary search in this index for an item."""
-        t1 = time()
+        #t1 = time()
         tlen = 0
         # Do the lookup for values fullfilling the conditions
         if self.is_pro:
@@ -1068,7 +1070,7 @@ class Index(indexesExtension.Index, Group):
                 self.starts[i] = start
                 self.lengths[i] = stop - start
                 tlen += stop - start
-        t = time()-t1
+        #t = time()-t1
         #print "time searching indices (scalar-main):", round(t*1000, 3), "ms"
         return tlen
 
@@ -1077,7 +1079,7 @@ class Index(indexesExtension.Index, Group):
         item1, item2 = item
         item1done = 0; item2done = 0
 
-        t1=time()
+        #t1=time()
         hi = hi2 = self.nelementsLR               # maximum number of elements
         bebounds = self.bebounds
         assert hi == self.nelements - self.sorted.nrows * self.slicesize
@@ -1135,7 +1137,7 @@ class Index(indexesExtension.Index, Group):
                     hi2 = len(chunk)
             result2 = bisect.bisect_right(chunk, item2, 0, hi2)
             result2 += self.chunksize*nchunk2
-        t = time()-t1
+        #t = time()-t1
         #print "time searching indices (last row):", round(t*1000, 3), "ms"
         return (result1, result2)
 
@@ -1143,7 +1145,7 @@ class Index(indexesExtension.Index, Group):
     # This version of getCoords reads the indexes in chunks.
     # Because of that, it can be used on iterators.
     # Version in pure python
-    def getCoords(self, startCoords, nCoords):
+    def _getCoords(self, startCoords, nCoords):
         """Get the coordinates of indices satisfiying the cuts.
 
         You must call the Index.search() method before in order to get
@@ -1196,7 +1198,7 @@ class Index(indexesExtension.Index, Group):
     # This version of getCoords reads all the indexes in one pass.
     # Because of that, it is not meant to be used on iterators.
     # This is the pure python version.
-    def getCoords_sparse(self, ncoords):
+    def _getCoords_sparse(self, ncoords):
         """Get the coordinates of indices satisfiying the cuts.
 
         You must call the Index.search() method before in order to get

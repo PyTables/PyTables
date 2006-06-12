@@ -896,7 +896,9 @@ please reindex the table to put the index in a sane state""")
         if nrecords > 0:
             # Read the contents of a selection in a recarray
             index.indices._initIndexSlice(nrecords)
-            coords = index.getCoords(0, nrecords)
+            #coords = index.getCoords(0, nrecords)
+            # The line below is the optimized call in pyrex
+            coords = index.indices._getCoords(0, nrecords)
             recout = self._read_elements(recarr, coords)
         # Delete indexation caches
         self.ops = []

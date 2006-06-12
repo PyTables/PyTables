@@ -188,6 +188,7 @@ cdef class IndexArray(Array):
 
     # Create buffers for reading reverse index data
     if self.arrAbs is None or len(self.arrAbs) < ncoords:
+      #print "_initIndexSlice"
       self.coords = numarray.zeros(type="Int64", shape=(ncoords, 2))
       self.arrAbs = numarray.zeros(type="Int64", shape=ncoords)
       # Get the pointers to the buffer data area
@@ -201,32 +202,32 @@ cdef class IndexArray(Array):
         # Initialize the index array for reading
         self.space_id = H5Dget_space(self.dataset_id )
 
-  def _readIndex(self, hsize_t irow, hsize_t start, hsize_t stop,
-                 int offsetl):
+  cdef _readIndex(self, hsize_t irow, hsize_t start, hsize_t stop,
+                  int offsetl):
     cdef herr_t ret
     cdef long long *rbufA
 
     # Correct the start of the buffer with offsetl
     rbufA = <long long *>self.rbufA + offsetl
     # Do the physical read
-    Py_BEGIN_ALLOW_THREADS
+    ##Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id, self.type_id,
                                  irow, start, stop, rbufA)
-    Py_END_ALLOW_THREADS
+    ##Py_END_ALLOW_THREADS
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
 
     return
 
-  def _readIndex_sparse(self, hsize_t ncoords):
+  cdef _readIndex_sparse(self, hsize_t ncoords):
     cdef herr_t ret
 
     # Do the physical read
-    Py_BEGIN_ALLOW_THREADS
+    ##Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYOread_index_sparse(self.dataset_id, self.space_id,
                                     self.type_id, ncoords,
                                     self.rbufC, self.rbufA)
-    Py_END_ALLOW_THREADS
+    ##Py_END_ALLOW_THREADS
     if ret < 0:
       raise HDF5ExtError("_readIndex_sparse: Problems reading the array data.")
 
@@ -243,6 +244,7 @@ cdef class IndexArray(Array):
     index = self._v_parent
     # Create the buffer for reading sorted data chunks
     if self.bufferl is None:
+      #print "_initSortedSlice(1)"
       if str(self.type) == "CharType":
         self.bufferl = strings.array(None, itemsize=self.itemsize,
                                      shape=self.chunksize)
@@ -266,6 +268,7 @@ cdef class IndexArray(Array):
       count[0] = 1; count[1] = self.chunksize;
       self.mem_space_id = H5Screate_simple(rank, count, NULL)
     if pro and not index.cache :
+      #print "_initSortedSlice(2)"
       index.rvcache = index.ranges[:]
       NA_getBufferPtrAndSize(index.rvcache._data, 1, &self.rbufrv)
       index.cache = True

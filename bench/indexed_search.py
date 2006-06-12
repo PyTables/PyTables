@@ -19,6 +19,7 @@ MROW = 1000*1000.
 # global variables
 reg_cols = ['col1','col3']
 idx_cols = ['col2','col4']
+#idx_cols = ['col2']
 
 rdm_cod = ['lin', 'rnd']
 
@@ -156,6 +157,7 @@ class DB(object):
             if verbose:
                 print results
             self.print_qtime(colname, ltimes)
+        self.close_db(con)
 
     def close_db(self, con):
         con.close()
