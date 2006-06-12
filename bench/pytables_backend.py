@@ -69,8 +69,18 @@ class PyTables_DB(DB):
         col.optimizeIndex(level=level, verbose=verbose)
 
     def do_query(self, con, column, base):
-        table = con.root.table
+        # The few next lines saves some lookups for table in the LRU cache
+        if not hasattr(self, "table_cache"):
+            self.table_cache = con.root.table
+        table = self.table_cache
         colobj = getattr(table.cols, column)
+        # Get the references of some frequently referenced objects so that
+        # they are alive so that getting them is much faster later on
+        if not hasattr(self, "%s_cache"%column):
+            setattr(self, "%s_index_cache"%column, colobj.index)
+            setattr(self, "%s_sorted_cache"%column, colobj.index.sorted)
+            setattr(self, "%s_indices_cache"%column, colobj.index.indices)
+
         #print "get colobj-->", time()-t1
 #         results = [ r[column] for r in
 #                     table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]

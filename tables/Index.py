@@ -34,6 +34,7 @@ import bisect
 from time import time, clock
 import os, os.path
 import tempfile
+import weakref
 
 import numarray
 from numarray import strings
@@ -450,6 +451,7 @@ class Index(indexesExtension.Index, Group):
     filters = property(
         lambda self: self.sorted.filters, None, None,
         "The properties used to filter the stored items.")
+
 
     # </properties>
 
@@ -1003,12 +1005,13 @@ class Index(indexesExtension.Index, Group):
         #t1 = time(); tcpu1 = clock()
         # Do the lookup for values fullfilling the conditions
         tlen = 0
-        self.sorted._initSortedSlice(pro=self.is_pro)
-        if self.sorted.nrows > 0:
+        sorted = self.sorted
+        sorted._initSortedSlice(pro=self.is_pro)
+        if sorted.nrows > 0:
             if self.is_pro and str(self.type) != "CharType":
-                tlen = self.search_pro(item)
+                tlen = self.search_pro(item, sorted)
             else:
-                tlen = self.search_scalar(item)
+                tlen = self.search_scalar(item, sorted)
         # Get possible remaing values in last row
         if self.is_pro and self.nelementsLR > 0:
             # Look for more indexes in the last row
@@ -1023,45 +1026,45 @@ class Index(indexesExtension.Index, Group):
         return tlen
 
 
-    def search_pro(self, item):
+    def search_pro(self, item, sorted):
         """Do a binary search in this index for an item. pro version."""
 
         t1 = time()
         item1, item2 = item
         if 0:
-            tlen = self.search_scalar(item)
+            tlen = self.search_scalar(item, sorted)
         else:
             # The next are optimizations. However, they hides the
             # CPU functions consumptions from python profiles.
             # Activate only after development is done.
             if self.type == "Float64":
-                tlen = self.sorted._searchBinNA_d(item1, item2)
+                tlen = sorted._searchBinNA_d(item1, item2)
             elif self.type == "Int32":
-                tlen = self.sorted._searchBinNA_i(item1, item2)
+                tlen = sorted._searchBinNA_i(item1, item2)
             elif self.type == "Int64":
-                tlen = self.sorted._searchBinNA_ll(item1, item2)
+                tlen = sorted._searchBinNA_ll(item1, item2)
             else:
-                tlen = self.search_scalar(item)
+                tlen = self.search_scalar(item, sorted)
         t = time()-t1
         #print "time searching indices (pro-main):", round(t*1000, 3), "ms"
         return tlen
 
 
     # This is an scalar version of search. It works well with strings as well.
-    def search_scalar(self, item):
+    def search_scalar(self, item, sorted):
         """Do a binary search in this index for an item."""
         t1 = time()
         tlen = 0
         # Do the lookup for values fullfilling the conditions
         if self.is_pro:
-            for i in xrange(self.sorted.nrows):
-                (start, stop) = self.sorted._searchBin(i, item)
+            for i in xrange(sorted.nrows):
+                (start, stop) = sorted._searchBin(i, item)
                 self.starts[i] = start
                 self.lengths[i] = stop - start
                 tlen += stop - start
         else:
-            for i in xrange(self.sorted.nrows):
-                (start, stop) = self.sorted._searchBinStd(i, item)
+            for i in xrange(sorted.nrows):
+                (start, stop) = sorted._searchBinStd(i, item)
                 self.starts[i] = start
                 self.lengths[i] = stop - start
                 tlen += stop - start
@@ -1156,7 +1159,8 @@ class Index(indexesExtension.Index, Group):
         if startCoords + nCoords > nindexedrows:
             nCoords = nindexedrows - startCoords
         # create buffers for indices
-        self.indices._initIndexSlice(nCoords)
+        indices = self.indices
+        indices._initIndexSlice(nCoords)
         for irow in xrange(self.nrows):
             leni = self.lengths[irow]; len2 += leni
             if (leni > 0 and len1 <= startCoords < len2):
@@ -1166,12 +1170,12 @@ class Index(indexesExtension.Index, Group):
                 # Correction if stopl exceeds the limits
                 if stopl > self.starts[irow] + self.lengths[irow]:
                     stopl = self.starts[irow] + self.lengths[irow]
-                if irow < self.sorted.nrows:
-                    self.indices._readIndex(irow, startl, stopl, relCoords)
+                if irow < indices.nrows:
+                    indices._readIndex(irow, startl, stopl, relCoords)
                 else:
                     # Get indices for last row
                     stop = relCoords+(stopl-startl)
-                    self.indices.arrAbs[relCoords:stop] = \
+                    indices.arrAbs[relCoords:stop] = \
                         self.indicesLR[startl:stopl]
                 incr = stopl - startl
                 relCoords += incr; startCoords += incr; nCoords -= incr
@@ -1181,7 +1185,7 @@ class Index(indexesExtension.Index, Group):
 
         # I don't know if sorting the coordinates is better or not actually
         # Some careful tests must be carried out in order to do that
-        selections = self.indices.arrAbs[:relCoords]
+        selections = indices.arrAbs[:relCoords]
         # Preliminary results seems to show that sorting is not an advantage!
         #selections = numarray.sort(self.indices.arrAbs[:relCoords])
         #t = time()-t1

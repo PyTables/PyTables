@@ -968,7 +968,6 @@ Wrong 'condition' parameter type. Only Column instances are suported."""
                              (flavor, supportedFlavors))
 
         index = condition.index
-        #t2 = time()
         # Take advantage of indexation, if present
         if index is not None:
             # get the number of coords and set-up internal variables
@@ -997,7 +996,6 @@ Wrong 'condition' parameter type. Only Column instances are suported."""
             coords = [p.nrow for p in self.where(condition)]
             coords = numarray.array(coords, type=numarray.Int64)
         # re-initialize internal selection values
-        #print "getW2-->", time()-t2
         self.ops = []
         self.opsValues = []
         self.opsColnames = []
