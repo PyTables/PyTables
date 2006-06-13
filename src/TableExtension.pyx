@@ -31,6 +31,7 @@ import tables.hdf5Extension
 from tables.exceptions import HDF5ExtError
 from tables.utilsExtension import createNestedType, \
      getNestedType, convertTime64, getTypeEnum, enumFromHDF5
+from tables.numexpr import evaluate  ##XXX
 
 
 from definitions cimport \
@@ -585,7 +586,7 @@ cdef class Row:
   cdef int     bufcounter, counter, startb, stopb,  _all
   cdef int     *_scalar, *_enumtypes, exist_enum_cols
   cdef int     _riterator, _stride
-  cdef int     whereCond, indexed, indexChunk
+  cdef int     whereCond2XXX, whereCond, indexed, indexChunk
   cdef int     ro_filemode, chunked
   cdef int     _bufferinfo_done
   cdef char    *colname
@@ -594,6 +595,7 @@ cdef class Row:
   cdef object  _wfields, _rfields, _indexes
   cdef object  indexValid, coords, bufcoords, index
   cdef object  ops, opsValues
+  cdef object  condstr, condvars, condcols  ##XXX
   cdef object  mod_elements, colenums
 
   #def __new__(self, Table table):
@@ -692,11 +694,23 @@ cdef class Row:
     self.startb = 0
     self.nrowsread = start
     self._nrow = start - self.step
+    self.whereCond2XXX = 0
     self.whereCond = 0
     self.indexed = 0
 
     table = self.table
     self.nrows = table.nrows   # Update the row counter
+    ##XXX
+    if (hasattr(table, "whereCondition") and
+        table.whereCondition is not None):
+      self.whereCond2XXX = 1
+      self.condstr, self.condvars = table.whereCondition
+      self.condcols = condcols = []
+      for (var, val) in self.condvars.items():
+        if hasattr(val, 'pathname'):  # looks like a column
+          condcols.append(var)
+      table.whereCondition = None
+    ##XXX
     # Do we have in-kernel selections?
     if (hasattr(table, "whereColname") and
         table.whereColname is not None):
@@ -729,6 +743,8 @@ cdef class Row:
     "next() method for __iter__() that is called on each iteration"
     if self.indexed or self.coords is not None:
       return self.__next__indexed()
+    elif self.whereCond2XXX:
+      return self.__next__inKernel2XXX()
     elif self.whereCond:
       return self.__next__inKernel()
     else:
@@ -809,9 +825,64 @@ cdef class Row:
         self._nrow = self.start - self.step
         return self.__next__inKernel()
 
+  cdef __next__inKernel2XXX(self):
+    """The version of next() in case of in-kernel conditions"""
+    cdef int recout, correct
+    cdef object numexpr_locals, colvar, col
+
+    self.nextelement = self._nrow + self.step
+    while self.nextelement < self.stop:
+      if self.nextelement >= self.nrowsread:
+        # Skip until there is interesting information
+        while self.nextelement >= self.nrowsread + self.nrowsinbuf:
+          self.nrowsread = self.nrowsread + self.nrowsinbuf
+        # Compute the end for this iteration
+        self.stopb = self.stop - self.nrowsread
+        if self.stopb > self.nrowsinbuf:
+          self.stopb = self.nrowsinbuf
+        self._row = self.startb - self.step
+        # Read a chunk
+        recout = self.table._read_records(self.nextelement, self.nrowsinbuf,
+                                          self.rbufRA)
+        self.nrowsread = self.nrowsread + recout
+        self.indexChunk = -self.step
+
+        numexpr_locals = self.condvars.copy()
+        # Replace references to columns with the proper array fragment.
+        for colvar in self.condcols:
+          col = self.condvars[colvar]
+          numexpr_locals[colvar] = self._rfields[col.pathname]
+        self.indexValid = evaluate(self.condstr, numexpr_locals, {})
+
+        # Is still there any interesting information in this buffer?
+        if not numarray.sometrue(self.indexValid):
+          # No, so take the next one
+          if self.step >= self.nrowsinbuf:
+            self.nextelement = self.nextelement + self.step
+          else:
+            self.nextelement = self.nextelement + self.nrowsinbuf
+            # Correction for step size > 1
+            if self.step > 1:
+              correct = (self.nextelement - self.start) % self.step
+              self.nextelement = self.nextelement + self.step - correct
+          continue
+
+      self._row = self._row + self.step
+      self._nrow = self.nextelement
+      if self._row + self.step >= self.stopb:
+        # Compute the start row for the next buffer
+        self.startb = 0
+
+      self.nextelement = self._nrow + self.step
+      # Return only if this value is interesting
+      self.indexChunk = self.indexChunk + self.step
+      if self.indexValid[self.indexChunk]:
+        return self
+    else:
+      self.finish_riterator()
+
   cdef __next__inKernel(self):
     """The version of next() in case of in-kernel conditions"""
-    cdef long offset
     cdef object indexValid1, indexValid2
     cdef int ncond, op, recout, correct
     cdef object opValue, field
@@ -887,7 +958,6 @@ cdef class Row:
   # This is the most general __next__ version, simple, but effective
   cdef __next__general(self):
     """The version of next() for the general cases"""
-    cdef long offset
     cdef object indexValid1, indexValid2
     cdef int ncond, op, recout
     cdef object opValue, field

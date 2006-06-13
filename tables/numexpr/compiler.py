@@ -2,8 +2,8 @@ import sys
 
 import numarray as num
 
-from numexpr import interpreter
-from expressions import getKind
+from tables.numexpr import interpreter
+from tables.numexpr.expressions import getKind
 
 
 class ASTNode(object):
@@ -144,14 +144,14 @@ def makeExpressions(context):
     An attempt was made to make this threadsafe, but I can't guarantee it's
     bulletproof.
     """
-    import sys, imp, numexpr.expressions
+    import sys, imp, tables.numexpr.expressions
     # get our own, private copy of expressions
     imp.acquire_lock()
     try:
-        old = sys.modules.pop('numexpr.expressions')
-        import numexpr.expressions
-        private = sys.modules.pop('numexpr.expressions')
-        sys.modules['numexpr.expressions'] = old
+        old = sys.modules.pop('tables.numexpr.expressions')
+        import tables.numexpr.expressions
+        private = sys.modules.pop('tables.numexpr.expressions')
+        sys.modules['tables.numexpr.expressions'] = old
     finally:
         imp.release_lock()
     def get_context():

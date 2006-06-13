@@ -325,6 +325,9 @@ class Table(TableExtension.Table, Leaf):
         self.whereColname = None
         """The name of the column where the selection condition is applied."""
 
+        self.whereCondition = None  ##XXX
+        """Condition string and variable map for selection of values."""
+
         self.cols = None
         """
         A `Cols` instance that serves as an accessor to `Column` objects.
@@ -745,6 +748,19 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                 "table ``%s`` does not have a column named ``%s``"
                 % (self._v_pathname, colname))
         return colobj
+
+    def where2XXX( self, condition, condvars,
+                   start=None, stop=None, step=None ):
+        return self._whereInRange2XXX(condition, condvars, start, stop, step)
+
+    def _whereInRange2XXX( self, condition, condvars,
+                           start=None, stop=None, step=None ):
+        self.whereCondition = (condition, condvars)
+        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        if start < stop:
+            row = TableExtension.Row(self)
+            return row(start, stop, step, coords=None, ncoords=-1)
+        return iter([])
 
     def where(self, condition, start=None, stop=None, step=None):
         """
