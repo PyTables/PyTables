@@ -755,6 +755,8 @@ class Index(indexesExtension.Index, Group):
     def swap(self, what, bref=None):
         "Swap chunks or slices using a certain bounds reference."
 
+        t1 = time()
+        c1 = clock()
         # Thresholds for avoiding continuing the optimization
         tsover = 0.001    # surface overlaping index for slices
         tnover = 4        # number of overlapping slices
@@ -769,6 +771,10 @@ class Index(indexesExtension.Index, Group):
         else:
             message = "swap_%s" % (what,)
         (sover, nover) = self.compute_overlaps(message, self.verbose)
+        if self.verbose:
+            t = round(time()-t1, 4)
+            c = round(clock()-c1, 4)
+            print "time: %s. clock: %s" % (t, c)
         if sover < tsover or nover < tnover:
             self.cleanup_temps()
             return True

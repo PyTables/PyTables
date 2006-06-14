@@ -2558,7 +2558,7 @@ Attempt to write over a file opened in read-only mode.""")
         self._addLogical(12)
         return self
 
-    def createIndex(self, optlevel=0, warn=True, testmode=True, verbose=False):
+    def createIndex(self, optlevel=0, warn=True, testmode=False, verbose=False):
         """Create an index for this column"""
 
         name = self.name

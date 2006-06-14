@@ -60,13 +60,13 @@ class PyTables_DB(DB):
             j += 1
         table.flush()
 
-    def index_col(self, con, column):
+    def index_col(self, con, column, optlevel, verbose):
         col = getattr(con.root.table.cols, column)
-        col.createIndex()
+        col.createIndex(optlevel=optlevel, verbose=verbose)
 
-    def optimizeIndex(self, con, column, level, verbose):
-        col = getattr(con.root.table.cols, column)
-        col.optimizeIndex(level=level, verbose=verbose)
+#     def optimizeIndex(self, con, column, level, verbose):
+#         col = getattr(con.root.table.cols, column)
+#         col.optimizeIndex(level=level, verbose=verbose)
 
     def do_query(self, con, column, base):
         # The few next lines saves some lookups for table in the LRU cache

@@ -102,24 +102,24 @@ class DB(object):
         self.fill_table(con)
         table_size = self.get_db_size()
         self.print_mtime(t1, 'Insert time')
-        self.index_db(con)
+        self.index_db(con, optlevel, verbose)
         indexes_size = self.get_db_size()
         self.print_db_sizes(init_size, table_size, indexes_size)
-        if optlevel > 0:
-            self.optimize_index(con, optlevel, verbose)
+#         if optlevel > 0:
+#             self.optimize_index(con, optlevel, verbose)
         self.close_db(con)
 
-    def index_db(self, con):
+    def index_db(self, con, optlevel, verbose):
         for colname in idx_cols:
             t1=time()
-            self.index_col(con, colname)
+            self.index_col(con, colname, optlevel, verbose)
             self.print_mtime(t1, 'Index time (%s)' % colname)
 
-    def optimize_index(self, con, level, verbose):   # Only for PyTables Pro
-        for colname in idx_cols:
-            t1=time()
-            self.optimizeIndex(con, colname, level=level, verbose=verbose)
-            self.print_mtime(t1, 'Optimize time (%s)' % colname)
+#     def optimize_index(self, con, level, verbose):   # Only for PyTables Pro
+#         for colname in idx_cols:
+#             t1=time()
+#             self.optimizeIndex(con, colname, level=level, verbose=verbose)
+#             self.print_mtime(t1, 'Optimize time (%s)' % colname)
 
     def query_db(self, onlyidxquery, avoidfscache, verbose):
         con = self.open_db()
