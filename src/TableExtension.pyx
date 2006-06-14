@@ -770,7 +770,9 @@ cdef class Row:
           self.bufcoords = self.coords[self.nrowsread:self.nrowsread+stop]
           nrowsread = len(self.bufcoords)
         else:
-          self.bufcoords = self.index.getCoords(self.nrowsread, stop)
+          #self.bufcoords = self.index.getCoords(self.nrowsread, stop)
+          # Optmized version of getCoords in Pyrex
+          self.bufcoords = self.index.indices._getCoords(self.nrowsread, stop)
           nrowsread = len(self.bufcoords)
           tmp = self.bufcoords
           # If a step was specified, select the strided elements first

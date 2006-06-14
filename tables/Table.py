@@ -2558,7 +2558,7 @@ Attempt to write over a file opened in read-only mode.""")
         self._addLogical(12)
         return self
 
-    def createIndex(self, warn=1, testmode=0):
+    def createIndex(self, optlevel=0, warn=True, testmode=True, verbose=False):
         """Create an index for this column"""
 
         name = self.name
@@ -2617,13 +2617,15 @@ Attempt to write over a file opened in read-only mode.""")
             idgroup, name, atom=atom, column=self,
             title="Index for %s column" % name,
             filters=filters,
+            optlevel=optlevel,
             testmode=testmode,
             expectedrows=table._v_expectedrows)
         self._updateIndexLocation(index)
 
         # Feed the index with values
         slicesize = index.slicesize
-        if False and table.nrows < slicesize:  ## XXX should work with old indexes only
+        if (not index.is_pro and
+            table.nrows < slicesize):
             if warn:
                 warnings.warn(
                     "not enough rows for indexing: "
@@ -2636,6 +2638,8 @@ Attempt to write over a file opened in read-only mode.""")
                 self.pathname, 0, table.nrows, lastrow=True )
         else:
             indexedrows = 0
+        if index.is_pro:
+            index.optimize(verbose=verbose)   # optimize indexes
         self.dirty = False
         # Set some flags in table parent
         table.indexed = True
@@ -2655,6 +2659,7 @@ Attempt to write over a file opened in read-only mode.""")
 
         """
 
+        assert 0 < level < 10
         assert self.index, "This column is not indexed, so it can't be optimized."
         if level > 0:
             self.index.optimize(level, verbose)

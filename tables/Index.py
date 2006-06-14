@@ -452,6 +452,9 @@ class Index(indexesExtension.Index, Group):
         lambda self: self.sorted.filters, None, None,
         "The properties used to filter the stored items.")
 
+    reord_opts = property(
+        lambda self: self.sorted.reord_opts, None, None,
+        "The optimizations for the reordenation algorithms.")
 
     # </properties>
 
@@ -459,6 +462,7 @@ class Index(indexesExtension.Index, Group):
     def __init__(self, parentNode, name,
                  atom=None, column=None,
                  title="", filters=None,
+                 optlevel=0,
                  expectedrows=0,
                  testmode=False, new=True):
         """Create an Index instance.
@@ -478,6 +482,8 @@ class Index(indexesExtension.Index, Group):
             during the life of this object. If not specified, the ZLIB
             & shuffle will be activated by default (i.e., they are not
             inherited from the parent, that is, the Table).
+
+        optlevel -- The level of optimization for the reordenation indexes.
 
         expectedrows -- Represents an user estimate about the number
             of row slices that will be added to the growable dimension
@@ -512,6 +518,8 @@ class Index(indexesExtension.Index, Group):
         """Where the values fulfiling conditions starts for every slice."""
         self.lengths = numarray.array(None, shape=1, type = numarray.Int32)
         """Lengths of the values fulfilling conditions for every slice."""
+        self.optlevel = optlevel
+        """The level of optimization for this index."""
 
         self.cache = False   # no cache (ranges & bounds) is available initially
         self.tmpfilename = None # filename for temporal bounds
@@ -568,7 +576,7 @@ class Index(indexesExtension.Index, Group):
 
         # Create the IndexArray for sorted values
         IndexArray(self, 'sorted',
-                   self.atom, "Sorted Values", filters,
+                   self.atom, "Sorted Values", filters, self.optlevel,
                    self.testmode, self._v_expectedrows)
 
         # After "sorted" is created, we can assign some attributes
@@ -576,7 +584,8 @@ class Index(indexesExtension.Index, Group):
 
         # Create the IndexArray for index values
         IndexArray(self, 'indices',
-                   Atom("Int64", shape=(0,)), "Reverse Indices", filters,
+                   Atom("Int64", shape=(0,)), "Reverse Indices",
+                   filters, self.optlevel,
                    self.testmode, self._v_expectedrows)
 
         # Create the cache for range values  (1st order cache)
@@ -703,48 +712,40 @@ class Index(indexesExtension.Index, Group):
         self.nelementsLR = nelementsLR
 
 
-    def optimize(self, level, verbose=0):
+    def optimize(self, level=None, verbose=0):
         "Optimize an index to allow faster searches."
 
-        assert 0 < level < 10
+        self.verbose=verbose
         # Optimize only when we have more than one slice
         if self.nslices <= 1:
             return
 
-        self.verbose=verbose
-        niter1 = 0
-        niter2 = 0
+        if level:
+            optstarts, optstops, optfull = (False, False, False)
+            if 3 <= level < 6:
+                optstarts = True
+            elif 6 <= level < 9:
+                optstarts = True
+                optstops = True
+            else:  # (level == 9 )
+                optfull = True
+        else:
+            optstarts, optstops, optfull = self.reord_opts
+
         if self.swap('create'): return
-        if level == 1:
-            # Do just one swap iteration
-            self.swap('chunks', 'start')
-        # The next values are experimental.
-        # More checks should be done to determine
-        # the best values.
-        if 2 <= level < 4:
-            niter1 = 1
-            niter2 = 0
-        elif 4 <= level < 6:
-            niter1 = 1
-            niter2 = 1
-        elif 6 <= level < 8:
-            niter1 = 2
-            niter2 = 1
-        elif level >= 9:  # Maximum level
-            niter1 = 3
-            niter2 = 1
-        sbreak = 0
-        for i in range(niter1):
-            for j in range(niter2):
-                if self.swap('chunks', 'median'): sbreak = 1; break
-                # Swap slices only in the case we have several blocks
-                if self.nblocks > 1:
-                    if self.swap('slices', 'median'): sbreak = 1; break
-                    if self.swap('chunks','median'): sbreak = 1; break
-            if sbreak:
-                break
-            if self.swap('chunks', 'start'): break
-            if self.swap('chunks', 'stop'): break
+        if optfull:
+            if self.swap('chunks', 'median'): return
+            # Swap slices only in the case we have several blocks
+            if self.nblocks > 1:
+                if self.swap('slices', 'median'): return
+                if self.swap('chunks','median'): return
+            if self.swap('chunks', 'start'): return
+            if self.swap('chunks', 'stop'): return
+        else:
+            if optstarts:
+                if self.swap('chunks', 'start'): return
+            if optstops:
+                if self.swap('chunks', 'stop'): return
         # If temporal file still exists, close and delete it
         if self.tmpfilename:
             self.cleanup_temps()

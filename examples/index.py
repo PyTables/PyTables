@@ -8,7 +8,7 @@ from numarray import random_array
 random.seed(19)
 random_array.seed(19, 20)
 
-nrows=100-1
+nrows=10000-1
 
 class Distance(tables.IsDescription):
     frame = tables.Int32Col(pos=0)
@@ -25,8 +25,8 @@ for i in range(nrows):
     r.append()
 table.flush()
 
-table.cols.frame.createIndex(testmode=1)
-table.cols.frame.optimizeIndex(level=5, verbose=1)
+table.cols.frame.createIndex(optlevel=9, testmode=True, verbose=False)
+#table.cols.frame.optimizeIndex(level=5, verbose=1)
 
 results = [r.nrow for r in table.where(table.cols.frame<2)]
 print "frame<2 -->", table.readCoordinates(results)
@@ -35,7 +35,5 @@ print "frame<2 -->", table.readCoordinates(results)
 results = [r.nrow for r in table.where(1<table.cols.frame<=5)]
 print "1<frame<=5 -->", table.readCoordinates(results)
 #print "1<frame<=5 -->", table.getWhereList(table.cols.frame<=5)
-
-
 
 h5file.close()

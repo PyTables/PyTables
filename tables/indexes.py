@@ -46,7 +46,7 @@ from time import time
 # The minimum row number in a column that can be indexed in tests
 minRowIndex = 10
 
-def calcChunksize(expectedrows, testmode=0):
+def calcChunksize(expectedrows, optlevel, testmode=False):
     """Calculate the HDF5 chunk size for index and sorted arrays.
 
     The logic to do that is based purely in experiments playing with
@@ -55,21 +55,27 @@ def calcChunksize(expectedrows, testmode=0):
     large, the uncompressor takes too much time. This might (should)
     be further optimized doing more experiments.
 
+    An additional refinement for the output parameters is introduced
+    by specifying an optimization ``optlevel``.
+
     """
 
-    superblocksize = None
-    blocksize = None
+    superblocksize, blocksize = (None, None)
+    optstarts, optstops, optfull = (False, False, False)
 
     if testmode:
         if expectedrows < minRowIndex*10:
-            slicesize = 10
             chunksize = 5
+            slicesize = 10
+            optstarts = True
         elif expectedrows < minRowIndex*100:
-            slicesize = 100
             chunksize = 50
+            slicesize = 100
+            optstarts, optstops = (True, True)
         elif expectedrows <= minRowIndex*1000:
+            chunksize = 500
             slicesize = 1000
-            chunksize = 600
+            optfull = True
         else:
             raise ValueError, \
 "expected rows cannot be larger than %s in test mode" % minRowIndex*1000
@@ -79,7 +85,9 @@ def calcChunksize(expectedrows, testmode=0):
             superblocksize = 4*blocksize
 #         print "superblocksize, blocksize, slicesize, chunksize:", \
 #               (superblocksize, blocksize, slicesize, chunksize)
-        return (superblocksize, blocksize, slicesize, chunksize)
+        sizes = (superblocksize, blocksize, slicesize, chunksize)
+        opts = (optstarts, optstops, optfull)
+        return (sizes, opts)
 
     expKrows = expectedrows / 1000000.  # Multiples of one million
     #print "expKrows:", expKrows
@@ -93,127 +101,69 @@ def calcChunksize(expectedrows, testmode=0):
     # hurt the performance by requering the HDF5 to use a lot of memory
     # and CPU for its internal B-Tree
     if expKrows < 0.1: # expected rows < 100 thousand
-        #chunksize = 1000            # best value
-        #slicesize = 2*chunksize    #  "     "
-        chunksize = 100              # best value
-        slicesize = 100*chunksize    #  experimental
-        #chunksize = 500             # experimental
-        #slicesize = 2*chunksize    #      "
+        chunksize = 250
+        slicesize = 100*chunksize
     elif expKrows < 1: # expected rows < 1 milion
-        chunksize = 250             # experiment
-        slicesize = 200*chunksize   # experiment
-        #slicesize = 2*chunksize
-        #chunksize = 2000           # experimental
-        #slicesize = 2*chunksize   #    "
+        chunksize = 500
+        slicesize = 200*chunksize
+        if optlevel > 6:
+            chunksize = 250
+            slicesize = 200*chunksize
+            optstarts = True
     elif expKrows < 10:  # expected rows < 10 milion
-        #chunksize = 100   # Create a lot of slices. For tests purposes only!
-        #slicesize = 2*chunksize
-        #chunksize = 100   # Create a lot of slices. For tests purposes only!
-        #slicesize = 10*chunksize
-        #chunksize = 50
-        #slicesize = 5000*chunksize
-        # Above values lends to 1.04 ms (28 MB indexes). No Compr
-        # Above values lends to XXX ms (XXX MB indexes). Compr
-        #chunksize = 100
-        #slicesize = 100*chunksize
-        # Above values lends to 2.35 ms (21.3 MB indexes). No Compr
-        # Above values lends to 2.88 ms (11.9 MB indexes). Compr
-        #chunksize = 100
-        #slicesize = 250*chunksize
-        # Above values lends to 1.65 ms (21 MB indexes). No Compr
-        # Above values lends to XXX ms (XXX MB indexes). Compr
-        #chunksize = 100
-        #slicesize = 1000*chunksize
-        # Above values lends to 1.16 ms (23 MB indexes). No Compr
-        # Above values lends to XXX ms (XXX MB indexes). Compr
-        #chunksize = 100
-        #slicesize = 2500*chunksize
-        # Above values lends to 1.01 ms (26 MB indexes). No Compr
-        # Above values lends to XXX ms (XXX MB indexes). Compr
-        #chunksize = 100
-        #slicesize = 5000*chunksize
-        # Above values lends to 1.01 ms (31 MB indexes). No Compr
-        # Above values lends to XXX ms (XXX MB indexes). Compr
-        #chunksize = 200
-        #slicesize = 1000*chunksize
-        # Above values lends to 1.05 ms (24 MB indexes). No Compr
-        # Above values lends to XXX ms (XXX MB indexes). Compr
-        #chunksize = 200
-        #slicesize = 2500*chunksize
-        # Above values lends to 0.99 ms (30 MB indexes). No Compr
-        # Above values lends to 1.27 ms (21 MB indexes). Compr
-        #chunksize = 250         #  *** consumes very little memory ***
-        #slicesize = 200*chunksize
-        # Above values lends to 1.33 ms (21.0 MB indexes). No Compr
-        # Above values lends to 1.74 ms (10.6 MB indexes). Compr
-        #chunksize = 250   # *** good **** takes much less memory
-        #slicesize = 400*chunksize  # Very good balance cpu/memory
-        # Above values lends to XXX (0.96) ms (21.9 MB indexes). No Compr
-        # Above values lends to XXX (1.29) ms (12.2 MB indexes). Compr
-        #chunksize = 250   # *** good **** takes much less memory
-        #slicesize = 500*chunksize  # Very good balance cpu/memory
-        # Above values lends to 1.12 ms (22.4 MB indexes). No Compr
-        # Above values lends to 1.46 ms (12.7 MB indexes). Compr
-        chunksize = 2000           # bon valor per a compr/no compr
-        slicesize = 100*chunksize  # bon valor sense opt
-        #slicesize = 50*chunksize  # bon valor quan hi ha opt
-        #chunksize = 250      # *** very good **** takes less memory
-        #slicesize = 1000*chunksize  # Good balance cpu/memory
-        # Above values lends to 1.05 (0.87) ms (24.8 MB indexes). No Compr
-        # Above values lends to 1.34 (1.15) ms (15.3 MB indexes). Compr
-        #chunksize = 250     # *** optimal **** but takes memory
-        #slicesize = 2000*chunksize
-        # Above values lends to 0.99 (0.81) ms (30 MB indexes). No Compr
-        # Above values lends to 1.28 (1.10) ms (20 MB indexes). Compr
-        #chunksize = 256     # uses last row index. Use only as test
-        #slicesize = 1000*chunksize
-        # Above values lends to (0.99) ms (XXX MB indexes). No Compr
-        # Above values lends to (1.29) ms (12.8 MB indexes). Compr
-        #chunksize = 256     # uses last row index. Use only as test
-        #slicesize = 1024*chunksize
-        # Above values lends to (0.99) ms (20.6 MB indexes). No Compr
-        # Above values lends to (1.29) ms (13.1 MB indexes). Compr
-        #chunksize = 256     # uses last row index. Use only as test
-        #slicesize = 2000*chunksize
-        # Above values lends to 1.63 (0.97) ms (19.6 MB indexes). No Compr
-        # Above values lends to 1.90 ms (14.8 MB indexes). Compr
-        #chunksize = 300   # *** uses last row index ***
-        #slicesize = 1000*chunksize
-        # Above values lends to 1.47 ms (24 MB indexes). No Compr
-        # Above values lends to XXX ms (XXX MB indexes). Compr
-        #chunksize = 500
-        #slicesize = 250*chunksize
-        # Above values lends to 1.13 ms (21 MB indexes). No Compr
-        # Above values lends to 5.2 ms (14 MB indexes). Compr
-        #chunksize = 500
-        #slicesize = 500*chunksize
-        # Above values lends to 1.05 ms (24 MB indexes). No Compr
-        # Above values lends to 5.2 ms (14 MB indexes). Compr
-        #chunksize = 500
-        #slicesize = 1000*chunksize
-        # Above values lends to 1.00 ms (29.1 MB indexes). No Compr
-        # Above values lends to 1.30 ms (19.6 MB indexes). Compr
-        #chunksize = 1000
-        #slicesize = 250*chunksize
-        # Above values lends to XXX ms (24 MB indexes). No Compr
-        # Above values lends to 1.11 ms (14 MB indexes). Compr
-        #chunksize = 1000
-        #slicesize = 500*chunksize
-        # Above values lends to 1.02 ms (29 MB indexes). No Compr
-        # Above values lends to  XXX ms (19 MB indexes). Compr
-        #chunksize = 1000
-        #slicesize = 100*chunksize
-        # Above values lends to 1.25 ms (21.2 MB indexes). Compr
-        # Above values lends to 1.78 ms (11.4 MB indexes). Compr
-        #chunksize = 1000
-        #slicesize = 250*chunksize
-        # Above values lends to 5.0 ms
-        #chunksize = 1000
-        #slicesize = 1000*chunksize
-        # Above values lends to 3.9 ms but double the time to index
-        #chunksize = 1500   # *** all is kept in last row index ***
-        #slicesize = 1000*chunksize
+        if optlevel == 1:
+            chunksize = 1000
+            slicesize = 200*chunksize
+        elif optlevel <= 3:
+            chunksize = 500
+            slicesize = 500*chunksize
+        elif optlevel <= 6:
+            chunksize = 1000
+            slicesize = 200*chunksize
+            optstarts = True
+        elif optlevel > 6:
+            chunksize = 500
+            slicesize = 500*chunksize
+            optstarts = True
+            optstops = True
     elif expKrows < 100: # expected rows < 100 milions
+        if optlevel == 1:
+            chunksize = 2000
+            slicesize = 250*chunksize
+        elif optlevel == 2:
+            chunksize = 1000
+            slicesize = 500*chunksize
+        elif optlevel == 3:
+            chunksize = 5000
+            slicesize = 100*chunksize
+            optstarts = True
+        elif optlevel == 4:
+            chunksize = 4000
+            slicesize = 150*chunksize
+            optstarts = True
+        elif optlevel == 5:
+            chunksize = 2000
+            slicesize = 250*chunksize
+            optstarts = True
+        elif optlevel == 6:
+            chunksize = 1000
+            slicesize = 500*chunksize
+            optstarts = True
+        elif optlevel == 7:
+            chunksize = 2000
+            slicesize = 250*chunksize
+            optstarts = True
+            optstops = True
+        elif optlevel == 8:
+            chunksize = 1000
+            slicesize = 500*chunksize
+            optstarts = True
+            optstops = True
+        elif optlevel >= 9:   # best effort
+            chunksize = 1000
+            slicesize = 500*chunksize
+            optfull = True
+
         # From simulations it is evident that a small chunksize uses more CPU,
         # possibly due to lookups in HDF5 BTree. However, it reduces memory
         # usage, as well as I/O. Hence, in fast machines it would be effective
@@ -259,8 +209,6 @@ def calcChunksize(expectedrows, testmode=0):
         # Above values lends to 3.04 ms (126 MB indexes). Compr
         #chunksize = 4000    # bo per a compr/no compr
         #slicesize = 150*chunksize  # 600.000 elements esta be
-        chunksize = 5000        # experiment
-        slicesize = 100*chunksize  # experiment
         #chunksize = 500              # ******best values*******
         #slicesize = 1000*chunksize  # takes reasonable time to index
         # Above values lends to 2.66 (1.48) ms (205 MB indexes). No Compr
@@ -294,25 +242,160 @@ def calcChunksize(expectedrows, testmode=0):
         # Above values lends to XXX ms (XX MB indexes). No Compr
         # Above values lends to 4.72 ms (121 MB indexes). Compr
     elif expKrows < 1000: # expected rows < 1000 millions
-        #chunksize = 750              # experiment
-        chunksize = 1000              # experiment
-        slicesize = 1000*chunksize     # experiment
-        blocksize = 1000*slicesize    # experiment
+        if optlevel == 1:
+            chunksize = 3000
+            slicesize = 250*chunksize
+        elif optlevel == 2:
+            chunksize = 2000
+            slicesize = 500*chunksize
+        elif optlevel == 3:
+            chunksize = 5000
+            slicesize = 200*chunksize
+            optstarts = True
+        elif optlevel == 4:
+            chunksize = 4000
+            slicesize = 250*chunksize
+            optstarts = True
+        elif optlevel == 5:
+            chunksize = 3000
+            slicesize = 350*chunksize
+            optstarts = True
+        elif optlevel == 6:
+            chunksize = 2000
+            slicesize = 500*chunksize
+            optstarts = True
+        elif optlevel == 7:
+            chunksize = 3000
+            slicesize = 350*chunksize
+            optstarts = True
+            optstops = True
+        elif optlevel == 8:
+            chunksize = 2000
+            slicesize = 500*chunksize
+            optstarts = True
+            optstops = True
+        elif optlevel >= 9:   # best effort
+            chunksize = 2000
+            slicesize = 500*chunksize
+            optfull = True
+        blocksize = 250*slicesize
     elif expKrows < 10*1000: # expected rows < 10 (american) billions
-        #chunksize = 1000              # experiment
-        chunksize = 2000              # experiment
-        slicesize = 1000*chunksize     # experiment
-        blocksize = 1000*slicesize    # experiment
+        if optlevel == 1:
+            chunksize = 5000
+            slicesize = 250*chunksize
+        elif optlevel == 2:
+            chunksize = 3000
+            slicesize = 500*chunksize
+        elif optlevel == 3:
+            chunksize = 7500
+            slicesize = 200*chunksize
+            optstarts = True
+        elif optlevel == 4:
+            chunksize = 5000
+            slicesize = 250*chunksize
+            optstarts = True
+        elif optlevel == 5:
+            chunksize = 4000
+            slicesize = 350*chunksize
+            optstarts = True
+        elif optlevel == 6:
+            chunksize = 4000
+            slicesize = 350*chunksize
+            optstarts = True
+            optstops = True
+        elif optlevel == 7:
+            chunksize = 3000
+            slicesize = 500*chunksize
+            optstarts = True
+            optstops = True
+        elif optlevel == 8:
+            chunksize = 3000
+            slicesize = 500*chunksize
+            optfull = True
+        elif optlevel >= 9:   # best effort
+            chunksize = 2000
+            slicesize = 1000*chunksize
+            optfull = True
+        blocksize = 500*slicesize
     elif expKrows < 100*1000: # expected rows < 100 (american) billions
-        #chunksize = 1250              # experiment
-        chunksize = 4000               # experiment
-        slicesize = 1000*chunksize     # experiment
-        blocksize = 10000*slicesize    # experiment
+        if optlevel == 1:
+            chunksize = 7500
+            slicesize = 250*chunksize
+        elif optlevel == 2:
+            chunksize = 5000
+            slicesize = 500*chunksize
+        elif optlevel == 3:
+            chunksize = 10000
+            slicesize = 200*chunksize
+            optstarts = True
+        elif optlevel == 4:
+            chunksize = 7500
+            slicesize = 250*chunksize
+            optstarts = True
+        elif optlevel == 5:
+            chunksize = 5000
+            slicesize = 350*chunksize
+            optstarts = True
+        elif optlevel == 6:
+            chunksize = 5000
+            slicesize = 350*chunksize
+            optstarts = True
+            optstops = True
+        elif optlevel == 7:
+            chunksize = 4000
+            slicesize = 500*chunksize
+            optstarts = True
+            optstops = True
+        elif optlevel == 8:
+            chunksize = 4000
+            slicesize = 500*chunksize
+            optfull = True
+        elif optlevel >= 9:   # best effort
+            chunksize = 3000
+            slicesize = 1000*chunksize
+            optfull = True
+        blocksize = 750*slicesize
+        superblocksize = 10*blocksize
     else:  # expected rows >= 1 (american) trillion (perhaps by year 2010
            # this will be useful, who knows...)
-        chunksize = 7500              # experiment
-        slicesize = 1000*chunksize     # experiment
-        blocksize = 100000*slicesize    # experiment
+        if optlevel == 1:
+            chunksize = 10000
+            slicesize = 500*chunksize
+        elif optlevel == 2:
+            chunksize = 7500
+            slicesize = 1000*chunksize
+        elif optlevel == 3:
+            chunksize = 12500
+            slicesize = 400*chunksize
+            optstarts = True
+        elif optlevel == 4:
+            chunksize = 8500
+            slicesize = 500*chunksize
+            optstarts = True
+        elif optlevel == 5:
+            chunksize = 6000
+            slicesize = 750*chunksize
+            optstarts = True
+            optstops = True
+        elif optlevel == 6:
+            chunksize = 5000
+            slicesize = 1000*chunksize
+            optstarts = True
+            optstops = True
+        elif optlevel == 7:
+            chunksize = 7500
+            slicesize = 750*chunksize
+            optfull = True
+        elif optlevel == 8:
+            chunksize = 6000
+            slicesize = 1000*chunksize
+            optfull = True
+        elif optlevel >= 9:   # best effort
+            chunksize = 5000
+            slicesize = 1000*chunksize
+            optfull = True
+        blocksize = 1000*slicesize
+        superblocksize = 100*blocksize
 
     # The defaults for blocksize & superblocksize
     if blocksize == None:
@@ -322,7 +405,11 @@ def calcChunksize(expectedrows, testmode=0):
 
 #     print "superblocksize, blocksize, slicesize, chunksize:", \
 #           (superblocksize, blocksize, slicesize, chunksize)
-    return (superblocksize, blocksize, slicesize, chunksize)
+    # The size for different blocks information
+    sizes = (superblocksize, blocksize, slicesize, chunksize)
+    # The reordering optimization flags
+    opts = (optstarts, optstops, optfull)
+    return (sizes, opts)
 
 
 # Declarations for inheriting
@@ -379,6 +466,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
     def __init__(self, parentNode, name,
                  atom=None, title="",
                  filters=None,
+                 optlevel=0,
                  testmode=False,
                  expectedrows=0):
         """Create an IndexArray instance.
@@ -415,6 +503,8 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         """The maximum number of elements that can be optimized."""
         self.blocksize = None
         """The maximum number of elements in a block."""
+        self.reord_opts = None
+        """The reordering optimizations."""
         self.bufferl = None
         """Buffer for reading chunks in sorted array in extension."""
         self.arrAbs = None
@@ -422,8 +512,12 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         self.coords = None
         """Buffer for reading coordenates (absolute addresses) in extension."""
         if atom is not None:
-            (self.superblocksize, self.blocksize, self.slicesize, self.chunksize) = (
-                calcChunksize(expectedrows, testmode))
+            sizes, reord_opts = calcChunksize(expectedrows, optlevel, testmode)
+            self.superblocksize, self.blocksize, self.slicesize, self.chunksize = \
+                                 sizes
+            self.reord_opts = reord_opts
+            print "sizes-->", sizes
+            print "opts-->", self.reord_opts
         # Index creation is never logged.
         super(IndexArray, self).__init__(
             parentNode, name, atom, title, filters, expectedrows, log=False)
@@ -434,6 +528,8 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         # The superblocksize & blocksize will be saved as (pickled) attributes
         self.attrs.superblocksize = self.superblocksize
         self.attrs.blocksize = self.blocksize
+        # The same goes for reordation opts
+        self.attrs.reord_opts = self.reord_opts
         assert self.extdim == 0, "computed extendable dimension is wrong"
         assert self.shape == (0, self.slicesize), "invalid shape"
         assert self._v_chunksize == (1, self.chunksize), "invalid chunk size"
@@ -462,6 +558,7 @@ class IndexArray(EArray, indexesExtension.IndexArray):
         if not self._v_new:
             self.superblocksize = self.attrs.superblocksize
             self.blocksize = self.attrs.blocksize
+            self.reord_opts = self.attrs.reord_opts
             self.slicesize = self.shape[1]
             self.chunksize = self._v_chunksize[1]
         super(IndexArray, self)._g_postInitHook()
