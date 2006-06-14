@@ -762,6 +762,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             return row(start, stop, step, coords=None, ncoords=-1)
         return iter([])
 
+    def _getWhereListXXX(self, condition, condvars):
+
+        coords = [p.nrow for p in self._whereInRange2XXX(condition, condvars)]
+        coords = numarray.array(coords, type=numarray.Int64)
+        return coords
+
     def where(self, condition, start=None, stop=None, step=None):
         """
         Iterate over values fulfilling a `condition`.

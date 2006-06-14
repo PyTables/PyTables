@@ -33,7 +33,14 @@ print "frame<2 -->", table.readCoordinates(results)
 #print "frame<2 -->", table.getWhereList(table.cols.frame<2)
 
 results = [r.nrow for r in table.where(1<table.cols.frame<=5)]
+print "rows-->", results
 print "1<frame<=5 -->", table.readCoordinates(results)
+#print "1<frame<=5 -->", table.getWhereList(table.cols.frame<=5)
+
+condvars = {"frame": table.cols.frame}
+results = [r.nrow for r in table._whereInRange2XXX("(1<frame) & (frame<=5)", condvars)]
+print "rows-->", results
+print "1<frame<=5 (numexpr)-->", table.readCoordinates(results)
 #print "1<frame<=5 -->", table.getWhereList(table.cols.frame<=5)
 
 h5file.close()

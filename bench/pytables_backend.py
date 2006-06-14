@@ -74,21 +74,35 @@ class PyTables_DB(DB):
             self.table_cache = con.root.table
         table = self.table_cache
         colobj = getattr(table.cols, column)
-        # Get the references of some frequently referenced objects so that
-        # they are alive so that getting them is much faster later on
-        if not hasattr(self, "%s_cache"%column):
-            setattr(self, "%s_index_cache"%column, colobj.index)
-            setattr(self, "%s_sorted_cache"%column, colobj.index.sorted)
-            setattr(self, "%s_indices_cache"%column, colobj.index.indices)
+        if colobj.index:
+            # Get the references of some frequently referenced objects so that
+            # they are alive so that getting them is much faster later on
+            if not hasattr(self, "%s_cache"%column):
+                setattr(self, "%s_index_cache"%column, colobj.index)
+                setattr(self, "%s_sorted_cache"%column, colobj.index.sorted)
+                setattr(self, "%s_indices_cache"%column, colobj.index.indices)
 
         #print "get colobj-->", time()-t1
 #         results = [ r[column] for r in
 #                     table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
-#         results = [ r.nrow for r in
-#                     table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
         #t1 = time()
-        coords = table.getWhereList(self.rng[0]+base <= colobj <= self.rng[1]+base)
-        #coords = table.getWhereList(self.rng[0]+base == colobj)
+        if colobj.index:
+            #coords = table.getWhereList(self.rng[0]+base == colobj)
+#             coords = [ r.nrow for r in
+#                         table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
+            coords = table.getWhereList(self.rng[0]+base <= colobj <= self.rng[1]+base)
+        elif True:
+            condition = "(%s<=col) & (col<=%s)" % (self.rng[0]+base, self.rng[1]+base)
+            #condition = "(col**2.4==%s)" % (self.rng[0]+base)
+            #condition = "(col==%s)" % (self.rng[0]+base)
+            condvars = {"col": colobj}
+            coords = [r.nrow for r in table._whereInRange2XXX(condition, condvars)]
+            #print "rows-->", coords
+        else:
+            coords = [r.nrow for r in
+                      #table.where(self.rng[0]+base <= colobj <= self.rng[1]+base)]
+                      table.where(self.rng[0]+base == colobj)]
+            #print "rows-->", coords
         #print "getWhereList-->", time()-t1
 
         #return coords
