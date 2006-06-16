@@ -155,8 +155,8 @@ class LRUCache(object):
                 lru = heappop(self.__heap)
                 del self.__dict[lru.key]
             # Using _g_Node ext. is almost 4x faster than __Node in pure python
-            #node = self.__Node(key, obj, self.__seqn)
-            node = _g_Node(key, obj, self.__seqn)
+            node = self.__Node(key, obj, self.__seqn)
+            #node = _g_Node(key, obj, self.__seqn)
             self.__dict[key] = node
             heappush(self.__heap, node)
 

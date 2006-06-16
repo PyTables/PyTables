@@ -732,7 +732,8 @@ class Index(indexesExtension.Index, Group):
         else:
             optstarts, optstops, optfull = self.reord_opts
 
-        if self.swap('create'): return
+        if optstarts or optstops or optfull:
+            if self.swap('create'): return
         if optfull:
             if self.swap('chunks', 'median'): return
             # Swap slices only in the case we have several blocks
