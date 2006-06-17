@@ -108,7 +108,7 @@ class LRUCache(object):
             #self.mtime = time.time()
 
         def __cmp__(self, other):
-            print "__cmp__!"
+            #print "__cmp__!"
             return cmp(self.atime, other.atime)
 
         def __repr__(self):

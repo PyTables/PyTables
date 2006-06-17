@@ -538,8 +538,8 @@ class IndexArray(EArray, indexesExtension.IndexArray):
             self.superblocksize, self.blocksize, self.slicesize, self.chunksize = \
                                  sizes
             self.reord_opts = reord_opts
-            print "sizes-->", sizes
-            print "opts-->", self.reord_opts
+            #print "sizes-->", sizes
+            #print "opts-->", self.reord_opts
         # Index creation is never logged.
         super(IndexArray, self).__init__(
             parentNode, name, atom, title, filters, expectedrows, log=False)
