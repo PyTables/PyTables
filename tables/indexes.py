@@ -131,7 +131,7 @@ def calcChunksize(expectedrows, optlevel, testmode=False):
             optstops = True
         elif optlevel >= 9:
             chunksize = 500
-            slicesize = 500*chunksize
+            slicesize = 1000*chunksize
             optfull = True
     elif expKrows < 100: # expected rows < 100 milions
         if optlevel == 0:
@@ -171,8 +171,9 @@ def calcChunksize(expectedrows, optlevel, testmode=False):
             optstops = True
         elif optlevel >= 9:   # best effort
             chunksize = 1000
-            slicesize = 500*chunksize
+            slicesize = 1000*chunksize
             optfull = True
+        blocksize = 15*slicesize
 
         # From simulations it is evident that a small chunksize uses more CPU,
         # possibly due to lookups in HDF5 BTree. However, it reduces memory
@@ -289,9 +290,9 @@ def calcChunksize(expectedrows, optlevel, testmode=False):
             optstops = True
         elif optlevel >= 9:   # best effort
             chunksize = 2000
-            slicesize = 500*chunksize
+            slicesize = 1000*chunksize
             optfull = True
-        blocksize = 250*slicesize
+        blocksize = 25*slicesize
     elif expKrows < 10*1000: # expected rows < 10 (american) billions
         if optlevel == 0:
             chunksize = 5000
@@ -330,9 +331,9 @@ def calcChunksize(expectedrows, optlevel, testmode=False):
             optfull = True
         elif optlevel >= 9:   # best effort
             chunksize = 2000
-            slicesize = 1000*chunksize
+            slicesize = 1500*chunksize
             optfull = True
-        blocksize = 500*slicesize
+        blocksize = 25*slicesize
     elif expKrows < 100*1000: # expected rows < 100 (american) billions
         if optlevel == 0:
             chunksize = 7500
@@ -370,10 +371,10 @@ def calcChunksize(expectedrows, optlevel, testmode=False):
             slicesize = 500*chunksize
             optfull = True
         elif optlevel >= 9:   # best effort
-            chunksize = 3000
-            slicesize = 1000*chunksize
+            chunksize = 4000
+            slicesize = 200*chunksize
             optfull = True
-        blocksize = 750*slicesize
+        blocksize = 25*slicesize
         superblocksize = 10*blocksize
     else:  # expected rows >= 1 (american) trillion (perhaps by year 2010
            # this will be useful, who knows...)
@@ -416,8 +417,8 @@ def calcChunksize(expectedrows, optlevel, testmode=False):
             chunksize = 5000
             slicesize = 1000*chunksize
             optfull = True
-        blocksize = 1000*slicesize
-        superblocksize = 100*blocksize
+        blocksize = 50*slicesize
+        superblocksize = 20*blocksize
 
     # The defaults for blocksize & superblocksize
     if blocksize == None:
