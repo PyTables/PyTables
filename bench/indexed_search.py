@@ -19,8 +19,6 @@ MROW = 1000*1000.
 # global variables
 reg_cols = ['col1','col3']
 idx_cols = ['col2','col4']
-#idx_cols = ['col2']
-
 rdm_cod = ['lin', 'rnd']
 
 
@@ -94,7 +92,7 @@ class DB(object):
             arr_i4 = numarray.array(arr_f8, type=numarray.Int32)
         return arr_i4, arr_f8
 
-    def create_db(self, optlevel, verbose):
+    def create_db(self, dtype, optlevel, verbose):
         con = self.open_db(remove=1)
         self.create_table(con)
         init_size = self.get_db_size()
@@ -102,14 +100,20 @@ class DB(object):
         self.fill_table(con)
         table_size = self.get_db_size()
         self.print_mtime(t1, 'Insert time')
-        self.index_db(con, optlevel, verbose)
+        self.index_db(con, dtype, optlevel, verbose)
         indexes_size = self.get_db_size()
         self.print_db_sizes(init_size, table_size, indexes_size)
 #         if optlevel > 0:
 #             self.optimize_index(con, optlevel, verbose)
         self.close_db(con)
 
-    def index_db(self, con, optlevel, verbose):
+    def index_db(self, con, dtype, optlevel, verbose):
+        if dtype == "int":
+            idx_cols = ['col2']
+        elif dtype == "float":
+            idx_cols = ['col4']
+        else:
+            idx_cols = ['col2', 'col4']
         for colname in idx_cols:
             t1=time()
             self.index_col(con, colname, optlevel, verbose)
@@ -121,7 +125,16 @@ class DB(object):
 #             self.optimizeIndex(con, colname, level=level, verbose=verbose)
 #             self.print_mtime(t1, 'Optimize time (%s)' % colname)
 
-    def query_db(self, onlyidxquery, avoidfscache, verbose):
+    def query_db(self, dtype, onlyidxquery, avoidfscache, verbose):
+        if dtype == "int":
+            reg_cols = ['col1']
+            idx_cols = ['col2']
+        elif dtype == "float":
+            reg_cols = ['col3']
+            idx_cols = ['col4']
+        else:
+            reg_cols = ['col1', 'col3']
+            idx_cols = ['col2', 'col4']            
         con = self.open_db()
         if avoidfscache:
             rseed = random.random()
@@ -172,7 +185,9 @@ if __name__=="__main__":
     except:
         psyco_imported = 0
 
-    usage = """usage: %s [-T] [-S] [-P] [-v] [-f] [-p] [-m] [-c] [-q] [-i] [-x] [-z complevel] [-l complib] [-R range] [-n nrows] [-d datadir] [-O level]
+    #global reg_cols, idx_cols
+
+    usage = """usage: %s [-T] [-S] [-P] [-v] [-f] [-p] [-m] [-c] [-q] [-i] [-x] [-z complevel] [-l complib] [-R range] [-n nrows] [-d datadir] [-O level] [-s] col
             -T use Pytables
             -S use Sqlite3
             -P use Postgres
@@ -190,10 +205,11 @@ if __name__=="__main__":
             -n sets the number of rows (in krows) in each table
             -d directory to save data (default: data.nobackup)
             -O set the optimization level for PyTables Pro indexes
+            -s select a type column for operations ('int' or 'float'. def all)
             \n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'TSPvfpmcqixz:l:R:n:d:O:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'TSPvfpmcqixz:l:R:n:d:O:s:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -215,6 +231,7 @@ if __name__=="__main__":
     avoidfscache = 0
     rng = [0,10]
     krows = '1k'
+    dtype = "all"
     datadir = "data.nobackup"
 
     # Get the options
@@ -255,6 +272,12 @@ if __name__=="__main__":
             datadir = option[1]
         elif option[0] == '-O':
             optlevel = int(option[1])
+        elif option[0] == '-s':
+            if option[1] in ('int', 'float'):
+                dtype = option[1]
+            else:
+                print "column should be either 'int' or 'float'"
+                sys.exit(0)
 
     # If not database backend selected, abort
     if not usepytables and not usesqlite3 and not usepostgres:
@@ -289,14 +312,14 @@ if __name__=="__main__":
     if docreate:
         if verbose:
             print "writing %s rows" % krows
-        db.create_db(optlevel, verbose)
+        db.create_db(dtype, optlevel, verbose)
 
     if doquery:
         print "Calling query_db() %s times" % READ_TIMES
         if doprofile:
             import pstats
             import profile as prof
-            prof.run('db.query_db(onlyidxquery, avoidfscache, verbose)',
+            prof.run('db.query_db(dtype, onlyidxquery, avoidfscache, verbose)',
                      'query_db.prof')
             stats = pstats.Stats('query_db.prof')
             stats.strip_dirs()
@@ -306,4 +329,4 @@ if __name__=="__main__":
             else:
                 stats.print_stats(20)
         else:
-            db.query_db(onlyidxquery, avoidfscache, verbose)
+            db.query_db(dtype, onlyidxquery, avoidfscache, verbose)
