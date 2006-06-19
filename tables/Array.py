@@ -267,6 +267,11 @@ class Array(hdf5Extension.Array, Leaf):
             self._v_expectedrows = 1  # Scalar case
         if (isinstance(naarr, strings.CharArray)):
             self.byteorder = "non-relevant"
+            if naarr.itemsize() == 0:
+                # Null strings are not supported. Close node and re-raise.
+                self.close(flush=0)
+                raise NotImplementedError, \
+                      "Empty strings are not supported yet. Sorry about that!"
         else:
             self.byteorder  = naarr._byteorder
 
@@ -355,7 +360,8 @@ class Array(hdf5Extension.Array, Leaf):
                     # Assign the shape here to save it as a dim-0 object
                     self.shape = ()
                 else:
-                    naarr = strings.array(arr, padc='\x00')
+                    naarr = strings.array(arr, itemsize=arr.itemsize,
+                                          padc='\x00')
             else:
                 if not arr.flags['CONTIGUOUS']:
                     # Do a copy of the array in case it is not contiguous

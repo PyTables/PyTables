@@ -647,6 +647,7 @@ class Index(indexesExtension.Index, Group):
     def append(self, arr):
         """Append the array to the index objects"""
 
+        # Objects that arrive here should be numarray objects already
         # Save the sorted array
         if str(self.type) == "CharType":
             s=arr.argsort()

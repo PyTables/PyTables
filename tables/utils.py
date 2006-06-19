@@ -431,7 +431,18 @@ def convertNAToNumPy(arr):
 
     # This works for both CharArray and regular homogeneous arrays
     # and even for rank-0 arrays!
-    arr=numpy.asarray(arr)  # Array protocol
+    if isinstance(arr, numarray.NumArray):
+        arr = numpy.asarray(arr)  # Array protocol
+    elif isinstance(arr, strings.CharArray):
+        # We can't use the array protocol to do this conversion
+        # because of the different conventions that follow numarray
+        # and numpy to end strings. See ticket #13 for an example
+        # of the problems that can appear. This solution is definetly
+        # not as efficient as the array protocol, but it does handle
+        # well the trailing spaces issue.
+        # F. Altet 2006-06-19
+        dtype = "|S%s" % arr.itemsize()
+        arr = numpy.array(arr.tolist(), dtype=dtype)
     return arr
 
 
@@ -692,26 +703,30 @@ def tonumpy(array, copy=False):
 
     """
 
-    if not isinstance(array, nestedrecords.NestedRecArray):
-        raise ValueError, \
-"You need to pass a NestedRecArray object, and you passed a %." % (type(array))
+    assert (isinstance(array, nestedrecords.NestedRecArray) or
+            isinstance(array, records.RecArray)), \
+"You need to pass a (Nested)RecArray object, and you passed a %s." % \
+(type(array))
 
-    if copy:
-        buffer = array._flatArray.copy()
-    else:
-        buffer = array._flatArray
-
-    # Create a regular numpy array from the NesteRecArray
-    npa = numpy.array(buffer, dtype=array.array_descr)
+    if isinstance(array, records.RecArray):
+        # Create a NestedRecArray array from the RecArray to easy the
+        # conversion. This is sub-optimal and must be replaced by a
+        # better way to convert a plain RecArray into a numpy recarray.
+        # F. Altet 2006-06-19
+        array = nestedrecords.array(array)
+    npa = numpy.array(array._flatArray, dtype=array.array_descr, copy=copy)
+        
 
     # Create a numpy recarray from the above object. I take this additional
     # step just to wrap the original numpy object with more features.
     # I think that when the parameter is already a numpy object there is
     # not a copy taken place. However, this may change in the future.
     # F. Altet 2006-01-20
-    npr = numpy.rec.array(npa)
+    # I think this will take more time and this is not strictly necessary.
+    # F. Altet 2006-06-19
+    #npr = numpy.rec.array(npa)
 
-    return npr
+    return npa
 
 
 if __name__=="__main__":

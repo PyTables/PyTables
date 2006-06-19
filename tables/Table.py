@@ -979,6 +979,9 @@ please reindex the table to put the index in a sane state""")
         `sort` means that you want to retrieve the coordinates ordered.  The
         default is to not sort them.
 
+        `sort` means that you want to retrieve the coordinates ordered.  The
+        default is to not sort them.
+
         """
 
         assert isinstance(condition, Column), """\
@@ -1780,8 +1783,7 @@ The 'names' parameter must be a list of strings.""")
         i = start
         stop = start+nrows-slicesize+1
         while i < stop:
-            index.append(self._read(start=i, stop=i+slicesize, step=1,
-                                    field=colname, coords=None))
+            index.append(self._read(i, i+slicesize, 1, colname))
             indexedrows += slicesize
             i += slicesize
         # index the remaining rows

@@ -636,7 +636,7 @@ pstoimg -scale 0.75 -aaliastext -type png -crop a -interlace objecttree.eps
 	  <verb>NumPy</verb> (see <cite refid="NumPy"></cite>) or
 	  <verb>Numeric</verb> (see <cite refid="Numeric"></cite>) in
 	  order to compile PyTables, they are supported; you only need
-	  a reasonably recent version of them (>= 0.9.6 for NumPy and
+	  a reasonably recent version of them (>= 0.9.8 for NumPy and
 	  >= 24.2 for Numeric) if you plan on using them in your
 	  applications. If you already have <verb>NumPy</verb> and/or
 	  <verb>Numeric</verb> installed, the test driver module will
@@ -6867,7 +6867,8 @@ for p in rout.where(rout.cols.pressure &lt; 16):
 	    </subsubsection>
 
 	    <subsubsection id="getWhereListTableDescr">
-	      <heading>getWhereList(condition, flavor=None, sort=False)</heading>
+	      <heading>getWhereList(condition, flavor=None,
+		sort=False)</heading>
 
 	      <p>Get the row coordinates that fulfill the
 		<em>condition</em> parameter. This method will take

@@ -59,12 +59,12 @@ package. Besides, if you want to take advantage of the LZO, UCL and
 bzip2 compression libraries support you will also need recent versions
 of them. These compression libraries are, however, optional.
 
-We've tested this PyTables version with HDF5 1.6.5 and numarray 1.5.0,
+We've tested this PyTables version with HDF5 1.6.5 and numarray 1.5.1,
 and you *need* to use these versions, or higher, to make use of
 PyTables. Albeit you won't need NumPy or Numeric Python in order to
 compile PyTables, they are supported; you only will need a reasonably
-recent version of them (>= 0.9.6 for NumPy and >= 24.x for
-Numeric). PyTables has been successfully tested against NumPy 0.9.6
+recent version of them (>= 0.9.8 for NumPy and >= 24.x for
+Numeric). PyTables has been successfully tested against NumPy 0.9.8
 and Numeric 24.2.
 
 We are using Linux on top of Intel32 as the main development platform,

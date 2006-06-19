@@ -515,7 +515,7 @@ class TableReadTestCase(common.PyTablesTestCase):
         table = self.fileh.root.table
         coords = numpy.array([1,2,3], dtype='int8')
         for colname in table.colnames:
-            numcol = [ table[coord][colname] for coord in coords ]
+            numcol = [ table[coord].field(colname) for coord in coords ]
             typecol = table.colstypes[colname]
             if typecol <> "CharType":
                 if typecol == "Int64":
@@ -540,14 +540,18 @@ class TableReadTestCase(common.PyTablesTestCase):
         coords = numpy.array([1,2,3], dtype='int8')
         # Modify row 1
         table[coords[0]] = ["aasa","x"]+[232]*12
+        #record = list(table[coords[0]])
+        record = table.read(coords[0], flavor="numpy")
         if verbose:
             print """Original row:
 ['aasa', 'x', 232, -24, 232, 232, 1, 232L, 232, (232+0j), 232.0, 232L, (232+0j), 232.0]
 """
-            print "Read row:\n", list(table[coords[0]])
-        assert list(table[coords[0]]) == \
-               ['aasa', 'x', 232, -24, 232, 232, 1, 232L, 232,
-                (232+0j), 232.0, 232L, (232+0j), 232.0]
+            print "Read row:\n", record
+        assert record['var1'] == 'aasa'
+        assert record['var2'] == 'x'
+        assert record['var3'] == True
+        assert record['var4'] == -24
+        assert record['var7'] == 232
 
 
 # The declaration of the nested table:
@@ -587,7 +591,8 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
         fileh = openFile(self.file, "w")
-        table = fileh.createTable(fileh.root, 'table', TestTDescr)
+        table = fileh.createTable(fileh.root, 'table', TestTDescr,
+                                  expectedrows=self.nrows)
         for i in range(self.nrows):
             table.row.append()  # Fill 100 rows with default values
         table.flush()
@@ -702,13 +707,33 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         # Finally, check that the contents are ok
         assert allequal(data, arange(100, dtype="i8"), "numpy")
 
-    def test03_readIndexed(self):
-        """Checking the return of NumPy in readIndexed method."""
+    def test03a_readIndexed(self):
+        """Checking the return of NumPy in readIndexed method (strings)."""
 
         self._verboseHeader()
 
         table = self.fileh.root.table
-        table.cols.z.createIndex(warn=0)
+        table.cols.color.createIndex(warn=1, testmode=1)
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+        data = table._readIndexed(table.cols.color == " ")
+        if verbose:
+            print "Type of read:", type(data)
+            print "Length of the data read:", len(data)
+        # Check that both NumPy objects are equal
+        assert isinstance(data, ndarray)
+        # Check that all columns have been selected
+        assert len(data) == self.nrows
+
+    def test03b_readIndexed(self):
+        """Checking the return of NumPy in readIndexed method (numeric)."""
+
+        self._verboseHeader()
+
+        table = self.fileh.root.table
+        table.cols.z.createIndex(warn=1, testmode=1)
         if self.close:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
