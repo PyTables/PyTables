@@ -796,11 +796,11 @@ class Index(indexesExtension.Index, Group):
         #filters = None    # compressing temporaries is very inefficient!
         # temporary sorted & indices arrays
         shape = (self.nrows, ss)
-#         chunksizes = (1, cs)
-#         CArray(self.tmp, 'sorted', shape, Atom(self.type, chunksizes),
-#                "Temporary sorted", filters)
-#         CArray(self.tmp, 'indices', shape, Int64Atom(shape=chunksizes),
-#                "Temporary indices", filters)
+        chunksizes = (1, cs)
+        CArray(self.tmp, 'sorted', shape, Atom(self.type, chunksizes),
+               "Temporary sorted", filters)
+        CArray(self.tmp, 'indices', shape, Int64Atom(shape=chunksizes),
+               "Temporary indices", filters)
         # temporary bounds
         shape = (self.nchunks,)
         CArray(self.tmp, 'abounds', shape, Atom(self.type, shape=(cs,)),
@@ -851,9 +851,9 @@ class Index(indexesExtension.Index, Group):
         boundsnames = {'start':'abounds', 'stop':'zbounds', 'median':'mbounds'}
         sorted = self.sorted
         indices = self.indices
-        #tmp_sorted = self.tmp.sorted
-        #tmp_indices = self.tmp.indices
-        tmp_sorted, tmp_indices = self.create_sorted_indices()
+        tmp_sorted = self.tmp.sorted
+        tmp_indices = self.tmp.indices
+        #tmp_sorted, tmp_indices = self.create_sorted_indices()
         tsorted = numarray.array(None, shape=self.slicesize, type=self.type)
         tindices = numarray.array(None, shape=self.slicesize, type='Int64')
         cs = self.chunksize
@@ -880,11 +880,10 @@ class Index(indexesExtension.Index, Group):
             if numarray.alltrue(sbounds_idx == numarray.arange(ncb2)):
                 for i in xrange(ncb2/ncs):
                     ns = offset+i
-                    #tmp_sorted[ns] = sorted[ns]
-                    #tmp_indices[ns] = indices[ns]
-                    #print "tmp_sorted2-->", sorted[ns]
-                    tmp_sorted.append(sorted[ns])
-                    tmp_indices.append(indices[ns])
+                    tmp_sorted[ns] = sorted[ns]
+                    tmp_indices[ns] = indices[ns]
+                    #tmp_sorted.append(sorted[ns])
+                    #tmp_indices.append(indices[ns])
                 continue
             # Swap sorted and indices following the new order
             #for i in xrange(ncb2):
@@ -898,11 +897,10 @@ class Index(indexesExtension.Index, Group):
                     nc = j * cs
                     tsorted[nc:nc+cs] = sorted[ins,inc:inc+cs]
                     tindices[nc:nc+cs] = indices[ins,inc:inc+cs]
-                #print "tmp_sorted1-->", tsorted
-                #tmp_sorted[ns] = tsorted
-                #tmp_indices[ns] = tindices
-                tmp_sorted.append(tsorted)
-                tmp_indices.append(tindices)
+                tmp_sorted[ns] = tsorted
+                tmp_indices[ns] = tindices
+                #tmp_sorted.append(tsorted)
+                #tmp_indices.append(tindices)
         # Reorder completely indices at slice level
         self.reorder_slices(mode=mode)
         return
@@ -913,9 +911,9 @@ class Index(indexesExtension.Index, Group):
 
         sorted = self.sorted
         indices = self.indices
-        #tmp_sorted = self.tmp.sorted
-        #tmp_indices = self.tmp.indices
-        tmp_sorted, tmp_indices = self.create_sorted_indices()
+        tmp_sorted = self.tmp.sorted
+        tmp_indices = self.tmp.indices
+        #tmp_sorted, tmp_indices = self.create_sorted_indices()
         ncs = self.nchunkslice
         nss = self.superblocksize / self.slicesize
         nss2 = nss
@@ -943,10 +941,10 @@ class Index(indexesExtension.Index, Group):
                 idx = sranges_idx[i]
                 # Swap sorted & indices slices
                 oi = ns+i; oidx = ns+idx
-                #tmp_sorted[oi] = sorted[oidx]
-                #tmp_indices[oi] = indices[oidx]
-                tmp_sorted.append(sorted[oidx])
-                tmp_indices.append(indices[oidx])
+                tmp_sorted[oi] = sorted[oidx]
+                tmp_indices[oi] = indices[oidx]
+                #tmp_sorted.append(sorted[oidx])
+                #tmp_indices.append(indices[oidx])
                 # Swap start, stop & median ranges
                 self.tmp.ranges[oi] = self.ranges[oidx]
                 self.tmp.mranges[oi] = self.mranges[oidx]

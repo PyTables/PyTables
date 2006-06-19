@@ -185,8 +185,6 @@ if __name__=="__main__":
     except:
         psyco_imported = 0
 
-    #global reg_cols, idx_cols
-
     usage = """usage: %s [-T] [-S] [-P] [-v] [-f] [-p] [-m] [-c] [-q] [-i] [-x] [-z complevel] [-l complib] [-R range] [-n nrows] [-d datadir] [-O level] [-s] col
             -T use Pytables
             -S use Sqlite3
