@@ -92,9 +92,9 @@ class PyTables_DB(DB):
 #                         table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
             coords = table.getWhereList(self.rng[0]+base <= colobj <= self.rng[1]+base)
         elif True:
-            condition = "(%s<=col) & (col<=%s)" % (self.rng[0]+base, self.rng[1]+base)
+            #condition = "(%s<=col) & (col<=%s)" % (self.rng[0]+base, self.rng[1]+base)
             #condition = "(col**2.4==%s)" % (self.rng[0]+base)
-            #condition = "(col==%s)" % (self.rng[0]+base)
+            condition = "(col==%s)" % (self.rng[0]+base)
             condvars = {"col": colobj}
             coords = [r.nrow for r in table._whereInRange2XXX(condition, condvars)]
             #print "rows-->", coords

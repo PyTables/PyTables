@@ -125,7 +125,7 @@ class DB(object):
 #             self.optimizeIndex(con, colname, level=level, verbose=verbose)
 #             self.print_mtime(t1, 'Optimize time (%s)' % colname)
 
-    def query_db(self, dtype, onlyidxquery, avoidfscache, verbose):
+    def query_db(self, dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose):
         if dtype == "int":
             reg_cols = ['col1']
             idx_cols = ['col2']
@@ -134,7 +134,7 @@ class DB(object):
             idx_cols = ['col4']
         else:
             reg_cols = ['col1', 'col3']
-            idx_cols = ['col2', 'col4']            
+            idx_cols = ['col2', 'col4']
         con = self.open_db()
         if avoidfscache:
             rseed = random.random()
@@ -156,20 +156,21 @@ class DB(object):
                     print results
                 self.print_qtime(colname, ltimes)
         # Query for indexed columns
-        for colname in idx_cols:
-            ltimes = []
-            for j in range(READ_TIMES):
-                random.seed(rseed)
-                t1=time()
-                for i in range(I_NTIMES):
-                    results = self.do_query(con, colname,
-                                            #base)
-                                            random.randrange(self.nrows))
-                ltimes.append((time()-t1)/I_NTIMES)
-            #results.sort()
-            if verbose:
-                print results
-            self.print_qtime(colname, ltimes)
+        if not onlynonidxquery:
+            for colname in idx_cols:
+                ltimes = []
+                for j in range(READ_TIMES):
+                    random.seed(rseed)
+                    t1=time()
+                    for i in range(I_NTIMES):
+                        results = self.do_query(con, colname,
+                                                #base)
+                                                random.randrange(self.nrows))
+                    ltimes.append((time()-t1)/I_NTIMES)
+                #results.sort()
+                if verbose:
+                    print results
+                self.print_qtime(colname, ltimes)
         self.close_db(con)
 
     def close_db(self, con):
@@ -185,7 +186,7 @@ if __name__=="__main__":
     except:
         psyco_imported = 0
 
-    usage = """usage: %s [-T] [-S] [-P] [-v] [-f] [-p] [-m] [-c] [-q] [-i] [-x] [-z complevel] [-l complib] [-R range] [-n nrows] [-d datadir] [-O level] [-s] col
+    usage = """usage: %s [-T] [-S] [-P] [-v] [-f] [-p] [-m] [-c] [-q] [-i] [-I] [-x] [-z complevel] [-l complib] [-R range] [-n nrows] [-d datadir] [-O level] [-s] col
             -T use Pytables
             -S use Sqlite3
             -P use Postgres
@@ -195,6 +196,7 @@ if __name__=="__main__":
             -m use random values to fill the table
             -q do a query (both indexed and non-indexed versions)
             -i do a query (just indexed versions)
+            -I do a query (just non-indexed versions)
             -x choose a different seed for random numbers (i.e. avoid FS cache)
             -c create the database
             -z compress with zlib (no compression by default)
@@ -207,7 +209,7 @@ if __name__=="__main__":
             \n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'TSPvfpmcqixz:l:R:n:d:O:s:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'TSPvfpmcqiIxz:l:R:n:d:O:s:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -226,6 +228,7 @@ if __name__=="__main__":
     complib = "zlib"
     doquery = 0
     onlyidxquery = 0
+    onlynonidxquery = 0
     avoidfscache = 0
     rng = [0,10]
     krows = '1k'
@@ -256,6 +259,9 @@ if __name__=="__main__":
         elif option[0] == '-i':
             doquery = 1
             onlyidxquery = 1
+        elif option[0] == '-I':
+            doquery = 1
+            onlynonidxquery = 1
         elif option[0] == '-x':
             avoidfscache = 1
         elif option[0] == '-z':
@@ -327,4 +333,4 @@ if __name__=="__main__":
             else:
                 stats.print_stats(20)
         else:
-            db.query_db(dtype, onlyidxquery, avoidfscache, verbose)
+            db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)

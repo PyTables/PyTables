@@ -2278,7 +2278,8 @@ def suite():
         # its equivalent in numarray CharTypeComprTestCase.
         # This should be further analyzed.
         # F. Altet 2006-02-03
-        theSuite.addTest(unittest.makeSuite(CharTypeComprNumpyTestCase))
+        if numpy_imported:
+            theSuite.addTest(unittest.makeSuite(CharTypeComprNumpyTestCase))
 
     return theSuite
 
