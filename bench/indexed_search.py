@@ -93,21 +93,19 @@ class DB(object):
         return arr_i4, arr_f8
 
     def create_db(self, dtype, optlevel, verbose):
-        con = self.open_db(remove=1)
-        self.create_table(con)
+        self.con = self.open_db(remove=1)
+        self.create_table(self.con)
         init_size = self.get_db_size()
         t1=time()
-        self.fill_table(con)
+        self.fill_table(self.con)
         table_size = self.get_db_size()
         self.print_mtime(t1, 'Insert time')
-        self.index_db(con, dtype, optlevel, verbose)
+        self.index_db(dtype, optlevel, verbose)
         indexes_size = self.get_db_size()
         self.print_db_sizes(init_size, table_size, indexes_size)
-#         if optlevel > 0:
-#             self.optimize_index(con, optlevel, verbose)
-        self.close_db(con)
+        self.close_db(self.con)
 
-    def index_db(self, con, dtype, optlevel, verbose):
+    def index_db(self, dtype, optlevel, verbose):
         if dtype == "int":
             idx_cols = ['col2']
         elif dtype == "float":
@@ -116,16 +114,11 @@ class DB(object):
             idx_cols = ['col2', 'col4']
         for colname in idx_cols:
             t1=time()
-            self.index_col(con, colname, optlevel, verbose)
+            self.index_col(self.con, colname, optlevel, verbose)
             self.print_mtime(t1, 'Index time (%s)' % colname)
 
-#     def optimize_index(self, con, level, verbose):   # Only for PyTables Pro
-#         for colname in idx_cols:
-#             t1=time()
-#             self.optimizeIndex(con, colname, level=level, verbose=verbose)
-#             self.print_mtime(t1, 'Optimize time (%s)' % colname)
-
     def query_db(self, dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose):
+        self.con = self.open_db()
         if dtype == "int":
             reg_cols = ['col1']
             idx_cols = ['col2']
@@ -135,43 +128,46 @@ class DB(object):
         else:
             reg_cols = ['col1', 'col3']
             idx_cols = ['col2', 'col4']
-        con = self.open_db()
         if avoidfscache:
             rseed = random.random()
         else:
             rseed = 19
         # Query for non-indexed columns
+        random.seed(rseed)
+        base = random.randrange(self.nrows)
         if not onlyidxquery:
             for colname in reg_cols:
                 ltimes = []
-                random.seed(rseed)
+                #random.seed(rseed)
                 t1=time()
                 for i in range(NI_NTIMES):
-                    results = self.do_query(con, colname,
-                                            #base)
-                                            random.randrange(self.nrows))
+                    results = self.do_query(self.con, colname,
+                                            base)
+                                            #random.randrange(self.nrows))
                 ltimes.append((time()-t1)/NI_NTIMES)
                 #results.sort()
                 if verbose:
-                    print results
+                    print "Results len:", results
                 self.print_qtime(colname, ltimes)
         # Query for indexed columns
         if not onlynonidxquery:
             for colname in idx_cols:
                 ltimes = []
                 for j in range(READ_TIMES):
-                    random.seed(rseed)
+                    #random.seed(rseed)
                     t1=time()
                     for i in range(I_NTIMES):
-                        results = self.do_query(con, colname,
-                                                #base)
-                                                random.randrange(self.nrows))
+                        results = self.do_query(self.con, colname,
+                                                base)
+                                                #random.randrange(self.nrows))
                     ltimes.append((time()-t1)/I_NTIMES)
                 #results.sort()
                 if verbose:
-                    print results
+                    print "Results len:", results
                 self.print_qtime(colname, ltimes)
-        self.close_db(con)
+        if hasattr(self, "table_cache"):
+            del self.table_cache
+        self.close_db(self.con)
 
     def close_db(self, con):
         con.close()
@@ -186,7 +182,7 @@ if __name__=="__main__":
     except:
         psyco_imported = 0
 
-    usage = """usage: %s [-T] [-S] [-P] [-v] [-f] [-p] [-m] [-c] [-q] [-i] [-I] [-x] [-z complevel] [-l complib] [-R range] [-n nrows] [-d datadir] [-O level] [-s] col
+    usage = """usage: %s [-T] [-S] [-P] [-v] [-f] [-p] [-m] [-c] [-q] [-i] [-I] [-x] [-z complevel] [-l complib] [-R range] [-n nrows] [-d datadir] [-O level] [-s] col -Q [suplim]
             -T use Pytables
             -S use Sqlite3
             -P use Postgres
@@ -206,10 +202,11 @@ if __name__=="__main__":
             -d directory to save data (default: data.nobackup)
             -O set the optimization level for PyTables Pro indexes
             -s select a type column for operations ('int' or 'float'. def all)
+            -Q do a repeteated query up to 10**value
             \n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'TSPvfpmcqiIxz:l:R:n:d:O:s:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'TSPvfpmcqiIxz:l:R:n:d:O:s:Q:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -230,7 +227,9 @@ if __name__=="__main__":
     onlyidxquery = 0
     onlynonidxquery = 0
     avoidfscache = 0
-    rng = [0,10]
+    rng = [-10, 10]
+    repeatquery = 0
+    repeatvalue = 0
     krows = '1k'
     dtype = "all"
     datadir = "data.nobackup"
@@ -257,10 +256,8 @@ if __name__=="__main__":
         elif option[0] == '-q':
             doquery = 1
         elif option[0] == '-i':
-            doquery = 1
             onlyidxquery = 1
         elif option[0] == '-I':
-            doquery = 1
             onlynonidxquery = 1
         elif option[0] == '-x':
             avoidfscache = 1
@@ -282,6 +279,9 @@ if __name__=="__main__":
             else:
                 print "column should be either 'int' or 'float'"
                 sys.exit(0)
+        elif option[0] == '-Q':
+            repeatquery = 1
+            repeatvalue = int(option[1])
 
     # If not database backend selected, abort
     if not usepytables and not usesqlite3 and not usepostgres:
@@ -334,3 +334,17 @@ if __name__=="__main__":
                 stats.print_stats(20)
         else:
             db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)
+
+    if repeatquery:
+        # Start by a range which is almost None
+        db.rng = [1, 1]
+        if verbose:
+            print "range:", db.rng
+        db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)
+        for i in xrange(repeatvalue):
+            rng = 10**i
+            db.rng = [-rng/2, rng/2]
+            if verbose:
+                print "range:", db.rng
+            db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)
+
