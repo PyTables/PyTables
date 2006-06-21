@@ -113,10 +113,10 @@ class PyTables_DB(DB):
                         "col4": self.col4,
                         }
             #coords = [r.nrow for r in table._whereInRange2XXX(condition, condvars)]
-            results = [r[column] for r in table._whereInRange2XXX(condition, condvars)]
-#             for r in table._whereInRange2XXX(condition, condvars):
-#                 var = r[column]
-#                 ncoords += 1
+            #results = [r[column] for r in table._whereInRange2XXX(condition, condvars)]
+            for r in table._whereInRange2XXX(condition, condvars):
+                var = r[column]
+                ncoords += 1
             #print "rows-->", coords
         else:
             coords = [r.nrow for r in
@@ -130,5 +130,5 @@ class PyTables_DB(DB):
         #results = table.readCoordinates(coords)
         #print "readCoords-->", time()-t1
 
-        return len(results)
-        #return ncoords
+        #return len(results)
+        return ncoords
