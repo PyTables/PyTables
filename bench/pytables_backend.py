@@ -71,7 +71,11 @@ class PyTables_DB(DB):
     def do_query(self, con, column, base):
         # The few next lines saves some lookups for table in the LRU cache
         if not hasattr(self, "table_cache"):
-            self.table_cache = con.root.table
+            self.table_cache = table = con.root.table
+            self.col1 = getattr(table.cols, 'col1')
+            self.col2 = getattr(table.cols, 'col2')
+            self.col3 = getattr(table.cols, 'col3')
+            self.col4 = getattr(table.cols, 'col4')
         table = self.table_cache
         colobj = getattr(table.cols, column)
         if colobj.index:
@@ -86,28 +90,45 @@ class PyTables_DB(DB):
 #         results = [ r[column] for r in
 #                     table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
         #t1 = time()
+        ncoords = 0
         if colobj.index:
+            pass
             #coords = table.getWhereList(self.rng[0]+base == colobj)
 #             coords = [ r.nrow for r in
 #                         table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
-            coords = table.getWhereList(self.rng[0]+base <= colobj <= self.rng[1]+base)
+            results = [ r[column] for r in
+                        table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
+            #coords = table.getWhereList(self.rng[0]+base <= colobj <= self.rng[1]+base)
+            #results = table.readCoordinates(coords)
         elif True:
-            #condition = "(%s<=col) & (col<=%s)" % (self.rng[0]+base, self.rng[1]+base)
+            condition = "(%s<=col) & (col<=%s)" % (self.rng[0]+base, self.rng[1]+base)
+            #condition = "(%s<=col1*col2) & (col3*col4<=%s)" % (self.rng[0]+base, self.rng[1]+base)
             #condition = "(col**2.4==%s)" % (self.rng[0]+base)
-            condition = "(col==%s)" % (self.rng[0]+base)
-            condvars = {"col": colobj}
-            coords = [r.nrow for r in table._whereInRange2XXX(condition, condvars)]
+            #condition = "(col==%s)" % (self.rng[0]+base)
+            #condvars = {"col": colobj}
+            condvars = {"col": colobj,
+                        "col1": self.col1,
+                        "col2": self.col2,
+                        "col3": self.col3,
+                        "col4": self.col4,
+                        }
+            #coords = [r.nrow for r in table._whereInRange2XXX(condition, condvars)]
+            results = [r[column] for r in table._whereInRange2XXX(condition, condvars)]
+#             for r in table._whereInRange2XXX(condition, condvars):
+#                 var = r[column]
+#                 ncoords += 1
             #print "rows-->", coords
         else:
             coords = [r.nrow for r in
-                      #table.where(self.rng[0]+base <= colobj <= self.rng[1]+base)]
-                      table.where(self.rng[0]+base == colobj)]
+                      table.where(self.rng[0]+base <= colobj <= self.rng[1]+base)]
+                      #table.where(self.rng[0]+base == colobj)]
             #print "rows-->", coords
         #print "getWhereList-->", time()-t1
 
         #return coords
         #t1 = time()
-        results = table.readCoordinates(coords)
+        #results = table.readCoordinates(coords)
         #print "readCoords-->", time()-t1
 
-        return results
+        return len(results)
+        #return ncoords

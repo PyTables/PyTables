@@ -115,14 +115,14 @@ class Postgres_DB(DB):
 
     def do_query(self, con, column, base):
         self.cur.execute(
-#             "select %s from %s where %s >= %s and %s <= %s" % \
-#             (column, TABLE_NAME,
-#              column, base+self.rng[0],
-#              column, base+self.rng[1]))
-            "select * from %s where %s >= %s and %s <= %s" % \
-            (TABLE_NAME,
+            "select %s from %s where %s >= %s and %s <= %s" % \
+            (column, TABLE_NAME,
              column, base+self.rng[0],
              column, base+self.rng[1]))
+#             "select * from %s where %s >= %s and %s <= %s" % \
+#             (TABLE_NAME,
+#              column, base+self.rng[0],
+#              column, base+self.rng[1]))
         #results = self.flatten(self.cur.fetchall())
         results = self.cur.fetchall()
         return results
