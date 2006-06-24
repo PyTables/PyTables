@@ -40,6 +40,8 @@ import numarray
 from numarray import strings
 from numarray.mlab import median
 
+from tables.numexpr.expressions import normalizeConstant  #XXX
+from tables.numexpr.compiler import stringToExpression  #XXX
 import tables.indexesExtension as indexesExtension
 import tables.utilsExtension as utilsExtension
 from tables.File import openFile
@@ -96,24 +98,22 @@ infinityF = math.ldexp(1.0, 128)
 # This one seems better
 testNaN = infinity - infinity
 
-# "infinity" for integral types
-infinityIntegral = {"Int8": [-2**7, 2**7-1],
-                    "UInt8": [0, 2**8-1],
-                    "Int16": [-2**15, 2**15-1],
-                    "UInt16": [0, 2**16-1],
-                    "Int32": [-2**31, 2**31-1],
-                    "UInt32": [0, 2**32-1],
-                    "Int64": [-2**63, 2**63-1],
-                    "UInt64": [0, 2**64-1]
-                    }
-
-# "infinity" for real types
-infinityFloating = {"Float32": [-infinityF, infinityF],
-                    "Float64": [-infinity, infinity],
-                    }
+# "infinity" for several types
+infinityMap = {
+    'Bool':    [0,          1],
+    'Int8':    [-2**7,      2**7-1],
+    'UInt8':   [0,          2**8-1],
+    'Int16':   [-2**15,     2**15-1],
+    'UInt16':  [0,          2**16-1],
+    'Int32':   [-2**31,     2**31-1],
+    'UInt32':  [0,          2**32-1],
+    'Int64':   [-2**63,     2**63-1],
+    'UInt64':  [0,          2**64-1],
+    'Float32': [-infinityF, infinityF],
+    'Float64': [-infinity,  infinity], }
 
 # Utility functions
-def infType(type, itemsize, sign=0):
+def infType(type, itemsize, sign=+1):
     """Return a superior limit for maximum representable data type"""
 
     if str(type) == "CharType":
@@ -121,11 +121,9 @@ def infType(type, itemsize, sign=0):
             return "\x00"*itemsize
         else:
             return "\xff"*itemsize
-    elif isinstance(numarray.typeDict[type], numarray.FloatingType):
-        return infinityFloating[type][1+sign]
-    elif isinstance(numarray.typeDict[type], numarray.IntegralType):
-        return infinityIntegral[type][1+sign]
-    else:
+    try:
+        return infinityMap[type][sign >= 0]
+    except KeyError:
         raise TypeError, "Type %s is not supported" % type
 
 # This check does not work for Python 2.2.x or 2.3.x (!)
@@ -293,6 +291,165 @@ def nextafter(x, direction, dtype, itemsize):
                 return PyNextAfter(x,x+1)
         else:
             raise TypeError, "Type %s is not supported" % type
+
+
+def get_indexable_cmpXXX(exprnode, indexedcols, varvalues):
+    """
+    Get the indexable variable-constant comparison in `exprnode`.
+
+    A tuple of (variable, operation, constant) is returned if
+    `exprnode` is a variable-constant (or constant-variable)
+    comparison, and the variable is in `indexedcols`.  Normal
+    variables can also be used instead of constants, as long as they
+    are mapped to their values in `varvalues`.
+
+    Otherwise, the values in the tuple are ``None``.
+    """
+    not_indexable = (None, None, None)
+    turncmp = { 'lt': 'gt',
+                'le': 'ge',
+                'eq': 'eq',
+                'ge': 'le',
+                'gt': 'lt', }
+
+    def get_cmp(var, const, op):
+        var_value, const_value = var.value, const.value
+        if ( var.astType == 'variable' and var_value in indexedcols
+             and const.astType in ['constant', 'variable'] ):
+            if const.astType == 'variable':
+                const_value = varvalues[const_value]
+            return (var_value, op, const_value)
+        return None
+
+    # Check node type.
+    if exprnode.astType != 'op':
+        return not_indexable
+    cmpop = exprnode.value
+    if cmpop not in turncmp:
+        return not_indexable
+
+    # Look for a variable-constant comparison in both directions.
+    left, right = exprnode.children
+    cmp_ = get_cmp(left, right, cmpop)
+    if cmp_:  return cmp_
+    cmp_ = get_cmp(right, left, turncmp[cmpop])
+    if cmp_:  return cmp_
+
+    return not_indexable
+
+def split_index_exprXXX(exprnode, indexedcols, varvalues):
+    """
+    Split an expression into indexable and non-indexable parts.
+
+    Looks for variable-constant comparisons in the expression node
+    `exprnode` involving variables in `indexedcols`.  The *topmost*
+    comparison of comparison pair is splitted apart from the rest of
+    the expression (the residual expression) and the resulting tuple
+    (indexed_variable, operators, limits, residual_expr) is returned.
+    Thus (for indexed column *c1*):
+
+    * 'c1 > 0' -> ('c1',['gt'],[0],None)
+    * '(0 < c1) & (c1 <= 1)' -> ('c1',['gt','le'],[0,1],None)
+    * '(0 < c1) & (c1 <= 1) & (c2 > 2)' -> ('c1',['gt','le'],[0,1],#c2>2#)
+
+    * 'c2 > 2' -> (None,[],[],#c2>2#)
+    * '(c2 > 2) & (c1 <= 1)' -> ('c1',['le'],[1],#c2>2#)
+    * '(0 < c1) & (c1 <= 1) & (c2 > 2)' -> ('c1',['gt','le'],[0,1],#c2>2#)
+
+    * '(c2 > 2) & (0 < c1) & (c1 <= 1)' -> ('c1',['le'],[1],#(c2>2)&(c1>0)#)
+    * '(c2 > 2) & ((0 < c1) & (c1 <= 1))' -> ('c1',['gt','le'],[0,1],#c2>2#)
+
+    * '(0 < c1) & (c2 > 2) & (c1 <= 1)' -> ('c1',['le'],[1],#(c1>0)&(c2>2)#)
+    * '(0 < c1) & ((c2 > 2) & (c1 <= 1))' -> ('c1',['gt'],[0],#(c2>2)&(c1<=1)#)
+
+    Expressions such as '0 < c1 <= 1' do not work as expected.  The
+    `varvalues` argument maps the names of normal (non-column)
+    variables to their values.
+    """
+
+    # Indexable variable-constant comparison.
+    idxcmp = get_indexable_cmpXXX(exprnode, indexedcols, varvalues)
+    if idxcmp[0]:
+        return (idxcmp[0], [idxcmp[1]], [idxcmp[2]], None)
+
+    if exprnode.astType == 'op' and exprnode.value == 'and':
+        left, right = exprnode.children
+        idxcmp_left = get_indexable_cmpXXX(left, indexedcols, varvalues)
+        idxcmp_right = get_indexable_cmpXXX(right, indexedcols, varvalues)
+
+        # Conjunction of indexable VC comparisons.
+        if ( idxcmp_left[0] and idxcmp_right[0]
+             and idxcmp_left[0] == idxcmp_right[0] ):
+            return ( idxcmp_left[0], [idxcmp_left[1], idxcmp_right[1]],
+                     [idxcmp_left[2], idxcmp_right[2]], None )
+
+        # Indexable VC comparison on one side only.
+        for (idxcmp, other) in [(idxcmp_left, right), (idxcmp_right, left)]:
+            if idxcmp[0]:
+                return (idxcmp[0], [idxcmp[1]], [idxcmp[2]], other)
+
+        # Recursion: conjunction of indexable expression and other.
+        for (this, other) in [(left, right), (right, left)]:
+            splitted = split_index_exprXXX(this, indexedcols)
+            if splitted[0]:
+                return (splitted[0], splitted[1], splitted[2], other)
+
+    # Can not use indexed column.
+    return (None, [], [], exprnode)
+
+def split_index_condXXX(condition, condvars):
+    """
+    Split a condition into indexable and non-indexable parts.
+
+    Looks for variable-constant comparisons in the condition string
+    `condition` involving indexed columns in `condvars`.  The
+    *topmost* comparison of comparison pair is splitted apart from the
+    rest of the condition (the residual condition) and the resulting
+    tuple (indexed_variable, operators, limits, residual_cond) is
+    returned.  Thus (for indexed column *c1*):
+
+    * 'c1>0' -> ('c1', ['gt'], [0],None)
+    * '(0<c1) & (c1<=1)' -> ('c1', ['gt', 'le'], [0, 1], None)
+    * '(0<c1) & (c1<=1) & (c2>2)' -> ('c1', ['gt', 'le'], [0, 1], '(c2>2)')
+
+    * 'c2>2' -> (None, [], [],'(c2>2)')
+    * '(c2>2) & (c1<=1)' -> ('c1', ['le'], [1], '(c2>2)')
+    * '(0<c1) & (c1<=1) & (c2>2)' -> ('c1', ['gt', 'le'], [0, 1], '(c2>2)')
+
+    * '(c2>2) & (0<c1) & (c1<=1)' -> ('c1', ['le'], [1], '((c2>2)&(c1>0))')
+    * '(c2>2) & ((0<c1) & (c1<=1))' -> ('c1', ['gt', 'le'], [0, 1], '(c2>2)')
+
+    * '(0<c1) & (c2>2) & (c1<=1)' -> ('c1', ['le'], [1], '((c1>0)&(c2>2))')
+    * '(0<c1) & ((c2>2) & (c1<=1))' -> ('c1', ['gt'], [0], '((c2>2)&(c1<=1))')
+
+    Expressions such as '0 < c1 <= 1' do not work as expected.
+    """
+    def can_use_index(column):
+        index = column.index
+        return ( index and not column.dirty
+                 and (index.is_pro or index.nelements > 0) )
+    zero = lambda t: numarray.zeros(1, t)[0]
+
+    # Extract some info from the given variables.
+    indexedcols, vartypes, varvalues = [], {}, {}
+    for (cvar, cval) in condvars.items():
+        if hasattr(cval, 'pathname'):  # looks like a column
+            if can_use_index(cval):
+                indexedcols.append(cvar)
+            cval = zero(cval.type)
+        varvalues[cvar] = cval
+        vartypes[cvar] = type(normalizeConstant(cval))
+
+    # Get the expression tree and split the indexable part out.
+    expr = stringToExpression(condition, vartypes, {})
+    idxvar, ops, lims, resexpr = (
+        split_index_exprXXX(expr, indexedcols, varvalues) )
+
+    if resexpr:
+        rescond = resexpr.topython()
+    else:
+        rescond = None
+    return (idxvar, ops, lims, rescond)
 
 
 class IndexProps(object):
@@ -1272,6 +1429,64 @@ class Index(indexesExtension.Index, Group):
 
         selection = idc.arrAbs[:ncoords]
         return selection
+
+
+    def getLookupRange2XXX(self, ops, limits):
+        supported_cmps = ['lt', 'le', 'eq', 'ge', 'gt']
+
+        assert len(ops) in [1, 2]
+        assert len(limits) in [1, 2]
+        assert len(ops) == len(limits)
+        assert ops[0] in supported_cmps
+        assert len(ops) == 1 or ops[1] in supported_cmps
+
+        column = self.column
+        ctype = column.type
+        itemsize = column.table.colitemsizes[column.pathname]
+
+        for limit in limits:
+            if not isinstance(limit, (bool, int, long, float)):
+                raise TypeError(
+                    "comparing indexed columns against non-real values "
+                    "is not supported yet: %s" % (limit,) )
+
+        if len(limits) == 1:
+            limit = limits[0]
+            op = ops[0]
+            if op == 'lt':
+                range_ = (infType(type=ctype, itemsize=itemsize, sign=-1),
+                          nextafter(limit, -1, ctype, itemsize))
+            elif op == 'le':
+                range_ = (infType(type=ctype, itemsize=itemsize, sign=-1),
+                          limit)
+            elif op == 'gt':
+                range_ = (nextafter(limit, +1, ctype, itemsize),
+                          infType(type=ctype, itemsize=itemsize, sign=+1))
+            elif op == 'ge':
+                range_ = (limit,
+                          infType(type=ctype, itemsize=itemsize, sign=+1))
+            elif op == 'eq':
+                range_ = (limit, limit)
+        elif len(limits) == 2:
+            item1, item2 = limits
+            if item1 > item2:
+                raise ValueError( "in val1 <{=} col <{=} val2 selections, "
+                                  "val1 must be less or equal than val2" )
+            if ops == ['gt', 'lt']:  # item1 < col < item2
+                range_ = (nextafter(item1, +1, ctype, itemsize),
+                          nextafter(item2, -1, ctype, itemsize))
+            elif ops == ['ge', 'lt']:  # item1 <= col < item2
+                range_ = (item1, nextafter(item2, -1, ctype, itemsize))
+            elif ops == ['gt', 'le']:  # item1 < col <= item2
+                range_ = (nextafter(item1, +1, ctype, itemsize), item2)
+            elif ops == ['ge', 'le']:  # item1 <= col <= item2
+                range_ = (item1, item2)
+            else:
+                raise ValueError( "combination of operators not supported, "
+                                  "use val1 <{=} col <{=} val2" )
+
+        ncoords = self.search(range_)
+        return ncoords
 
 
     def getLookupRange(self, column):

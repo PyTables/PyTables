@@ -586,7 +586,7 @@ cdef class Row:
   cdef int     bufcounter, counter, startb, stopb,  _all
   cdef int     *_scalar, *_enumtypes, exist_enum_cols
   cdef int     _riterator, _stride
-  cdef int     whereCond2XXX, whereCond, indexed, indexChunk
+  cdef int     whereCond2XXX, whereCond, indexed2XXX, indexed, indexChunk
   cdef int     ro_filemode, chunked
   cdef int     _bufferinfo_done
   cdef char    *colname
@@ -696,13 +696,13 @@ cdef class Row:
     self._nrow = start - self.step
     self.whereCond2XXX = 0
     self.whereCond = 0
+    self.indexed2XXX = 0
     self.indexed = 0
 
     table = self.table
     self.nrows = table.nrows   # Update the row counter
     ##XXX
-    if (hasattr(table, "whereCondition") and
-        table.whereCondition is not None):
+    if table.whereCondition:
       self.whereCond2XXX = 1
       self.condstr, self.condvars = table.whereCondition
       self.condcols = condcols = []
@@ -710,6 +710,14 @@ cdef class Row:
         if hasattr(val, 'pathname'):  # looks like a column
           condcols.append(var)
       table.whereCondition = None
+    if table.whereIndex:
+      self.indexed2XXX = 1
+      self.index = table.cols._f_col(table.whereIndex).index
+      # create buffers for indices
+      self.index.indices._initIndexSlice(self.nrowsinbuf)
+      self.nrowsread = 0
+      self.nextelement = 0
+      table.whereIndex = None
     ##XXX
     # Do we have in-kernel selections?
     if (hasattr(table, "whereColname") and
@@ -736,13 +744,15 @@ cdef class Row:
       self.stopindex = len(coords)
       self.nrowsread = 0
       self.nextelement = 0
-    elif self.indexed:
+    elif self.indexed or self.indexed2XXX:
       self.stopindex = ncoords
 
   def __next__(self):
     "next() method for __iter__() that is called on each iteration"
     if self.indexed or self.coords is not None:
       return self.__next__indexed()
+    elif self.indexed2XXX:
+      return self.__next__indexed2XXX()
     elif self.whereCond2XXX:
       return self.__next__inKernel2XXX()
     elif self.whereCond:
@@ -750,13 +760,97 @@ cdef class Row:
     else:
       return self.__next__general()
 
+  cdef __next__indexed2XXX(self):
+    """The version of next() for indexed columns or with user coordinates"""
+    cdef int recout
+    cdef long long stop
+    cdef long long nextelement
+
+    while self.nextelement < self.stopindex:
+      if self.nextelement >= self.nrowsread:
+        # Correction for avoiding reading past self.stopindex
+        if self.nrowsread+self.nrowsinbuf > self.stopindex:
+          stop = self.stopindex-self.nrowsread
+        else:
+          stop = self.nrowsinbuf
+        if self.coords is not None:
+          self.bufcoords = self.coords[self.nrowsread:self.nrowsread+stop]
+          nrowsread = len(self.bufcoords)
+        else:
+          #self.bufcoords = self.index.getCoords(self.nrowsread, stop)
+          # Optmized version of getCoords in Pyrex
+          self.bufcoords = self.index.indices._getCoords(self.nrowsread, stop)
+          nrowsread = len(self.bufcoords)
+          tmp = self.bufcoords
+          # If a step was specified, select the strided elements first
+          if len(tmp) > 0 and self.step > 1:
+            tmp2=(tmp-self.start) % self.step
+            tmp = tmp[tmp2.__eq__(0)]
+          # Now, select those indices in the range start, stop:
+          if len(tmp) > 0 and self.start > 0:
+            # Pyrex can't use the tmp>=number notation when tmp is a numarray
+            # object. Why?
+            tmp = tmp[tmp.__ge__(self.start)]
+          if len(tmp) > 0 and self.stop < self.nrows:
+            tmp = tmp[tmp.__lt__(self.stop)]
+          self.bufcoords = tmp
+        self._row = -1
+        if len(self.bufcoords) > 0:
+          recout = self.table._read_elements(self.rbufRA, self.bufcoords)
+
+          if self.whereCond2XXX:
+            numexpr_locals = self.condvars.copy()
+            # Replace references to columns with the proper array fragment.
+            for colvar in self.condcols:
+              col = self.condvars[colvar]
+              numexpr_locals[colvar] = self._rfields[col.pathname]
+            self.indexValid = evaluate(self.condstr, numexpr_locals, {})
+          else:
+            # No residual condition, all selected rows are valid.
+            self.indexValid = numarray.ones(recout, 'Bool')
+
+        else:
+          recout = 0
+        self.nrowsread = self.nrowsread + nrowsread
+        # Correction for elements that are eliminated by its
+        # [start:stop:step] range
+        self.nextelement = self.nextelement + nrowsread - recout
+        if recout == 0:
+          # no items where read, skipping
+          continue
+      self._row = self._row + 1
+      self._nrow = self.bufcoords[self._row]
+      self.nextelement = self.nextelement + 1
+      # Return this row if it fullfills the residual condition
+      if self.indexValid[self._row]:
+        return self
+    else:  ##XXX???
+      # Re-initialize the possible cuts in columns
+      self.indexed = 0
+      if self.coords is None and not self.index.is_pro:
+        nextelement = self.index.nelemslice * self.index.nrows
+        # Correct this for step size > 1
+        correct = (nextelement - self.start) % self.step
+        if self.step > 1 and correct:
+          nextelement = nextelement + self.step - correct
+      else:
+        self.coords = None
+        # All the elements has been read for this mode
+        nextelement = self.nrows
+      if nextelement >= self.nrows:
+        self.finish_riterator()
+      else:
+        # Continue the iteration with the __next__inKernel2XXX() method
+        self.start = nextelement
+        self.startb = 0
+        self.nrowsread = self.start
+        self._nrow = self.start - self.step
+        return self.__next__inKernel2XXX()
+
   cdef __next__indexed(self):
     """The version of next() for indexed columns or with user coordinates"""
-    cdef long offset
-    cdef object indexValid1, indexValid2
-    cdef int ncond, op, recout
+    cdef int recout
     cdef long long stop
-    cdef object opValue, field
     cdef long long nextelement
 
     while self.nextelement < self.stopindex:

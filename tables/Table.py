@@ -54,7 +54,7 @@ import tables.TableExtension as TableExtension
 from tables.utils import calcBufferSize, processRange, processRangeRead, \
      joinPath, convertNAToNumeric, convertNAToNumPy, fromnumpy, tonumpy, is_idx
 from tables.Leaf import Leaf
-from tables.Index import Index, IndexProps
+from tables.Index import Index, IndexProps, split_index_condXXX
 from tables.IsDescription import \
      IsDescription, Description, Col, StringCol, EnumCol
 from tables.Atom import Atom, StringAtom
@@ -327,6 +327,8 @@ class Table(TableExtension.Table, Leaf):
 
         self.whereCondition = None  ##XXX
         """Condition string and variable map for selection of values."""
+        self.whereIndex = None  ##XXX
+        """Path of the indexed column to be used in an indexed search."""
 
         self.cols = None
         """
@@ -843,6 +845,49 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
 
         # Fall-back action is to return an empty RecArray
         return iter([])
+
+    def _whereIndexed2XXX( self, condition, condvars,
+                           start=None, stop=None, step=None ):
+        """
+        Iterate over values fulfilling a `condition` using indexes.
+
+        This method is completely equivalent to `where()`, but it forces
+        the usage of the indexing capabilities on the column affected by
+        the `condition`.
+        """
+
+        idxvar, ops, lims, rescond = split_index_condXXX(condition, condvars)
+        if not idxvar:
+            raise ValueError( "could not find any usable indexes "
+                              "for condition: %r" % condition )
+
+        column = condvars[idxvar]
+        index = column.index
+        assert index is not None, "the chosen column is not indexed"
+        assert not column.dirty, "the chosen column has a dirty index"
+        assert index.is_pro or index.nelements > 0, \
+               "the chosen column has too few elements to be indexed"
+
+        # Set the index column and residual condition (if any)
+        self.whereIndex = column.pathname
+        if rescond:
+            self.whereCondition = (rescond, condvars)
+        # Get the coordinates to lookup
+        ncoords = index.getLookupRange2XXX(ops, lims)
+        if index.is_pro and ncoords == 0:
+            # For the pro case, there are no interesting values
+            # Reset the table variable conditions
+            self.whereIndex = None
+            self.whereCondition = None
+            # Return the empty iterator
+            return iter([])
+        # Call the iterator even in case that there are no values satisfying
+        # the conditions in the indexed region (ncoords = 0), because
+        # we should look in the non-indexed region as well (for PyTables std).
+        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        row = TableExtension.Row(self)
+        # Call the indexed version of Row iterator (coords=None,ncoords>=0)
+        return row(start, stop, step, coords=None, ncoords=ncoords)
 
     def _whereIndexed(self, condition, start=None, stop=None, step=None):
         """
