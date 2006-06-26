@@ -1011,6 +1011,60 @@ please reindex the table to put the index in a sane state""")
         return nrows
 
 
+    def getWhereList2XXX(self, condition, condvars, flavor=None, sort=False):
+        if not flavor:
+            flavor = self.flavor
+        if flavor not in supportedFlavors:
+            raise ValueError("""\
+"%s" flavor is not allowed; please use some of %s.""" % \
+                             (flavor, supportedFlavors))
+
+        idxvar, ops, lims, rescond = split_index_condXXX(condition, condvars)
+
+        # Take advantage of indexation, if present
+        if idxvar is not None:
+
+            column = condvars[idxvar]
+            index = column.index
+            assert index is not None, "the chosen column is not indexed"
+            assert not column.dirty, "the chosen column has a dirty index"
+            assert index.is_pro or index.nelements > 0, \
+                   "the chosen column has too few elements to be indexed"
+
+            # get the number of coords and set-up internal variables
+            ncoords = index.getLookupRange2XXX(ops, lims)
+            if ncoords > 0:
+                coords = index.indices._getCoords_sparse(ncoords)
+            else:
+                coords = numarray.array(None, type=numarray.Int64, shape=0)
+            if not index.is_pro:
+                # get the remaining rows from the table
+                start = index.nelements
+                if start < self.nrows:
+                    remainCoords = [p.nrow for p in self._whereInRange2XXX(
+                        condition, condvars, start, self.nrows)]
+                    nremain = len(remainCoords)
+                    # append the new values to the existing ones
+                    coords.resize(ncoords+nremain)
+                    coords[ncoords:] = remainCoords
+        else:
+            coords = [p.nrow for p in self._whereInRange2XXX(condition, condvars)]
+            coords = numarray.array(coords, type=numarray.Int64)
+        # re-initialize internal selection values
+        self.whereCondition = None
+        self.whereIndex = None
+        if sort:
+            coords = numarray.sort(coords)
+        if flavor == "numarray":
+            return coords
+        if numpy_imported and flavor == "numpy":
+            coords = numpy.asarray(coords)
+        elif Numeric_imported and flavor == "numeric":
+            coords = numeric.asarray(coords)
+        elif flavor == "python":
+            coords = coords.tolist()
+        return coords
+
     def getWhereList(self, condition, flavor=None, sort=False):
         """Get the row coordinates that fulfill the `condition` param
 
