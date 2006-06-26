@@ -76,8 +76,20 @@ class PyTables_DB(DB):
             self.col2 = getattr(table.cols, 'col2')
             self.col3 = getattr(table.cols, 'col3')
             self.col4 = getattr(table.cols, 'col4')
+            self.condition = "(%s<=col) & (col<=%s)" % (self.rng[0]+base, self.rng[1]+base)
+            #condition = "(%s<=col1*col2) & (col3*col4<=%s)" % (self.rng[0]+base, self.rng[1]+base)
+            #condition = "(col**2.4==%s)" % (self.rng[0]+base)
+            #condition = "(col==%s)" % (self.rng[0]+base)
+            #condvars = {"col": colobj}
+            self.colobj = getattr(table.cols, column)
+            self.condvars = {"col": self.colobj,
+                        "col1": self.col1,
+                        "col2": self.col2,
+                        "col3": self.col3,
+                        "col4": self.col4,
+                        }
         table = self.table_cache
-        colobj = getattr(table.cols, column)
+        colobj = self.colobj
         if colobj.index:
             # Get the references of some frequently referenced objects so that
             # they are alive so that getting them is much faster later on
@@ -92,29 +104,18 @@ class PyTables_DB(DB):
         #t1 = time()
         ncoords = 0
         if colobj.index:
-            pass
             #coords = table.getWhereList(self.rng[0]+base == colobj)
 #             coords = [ r.nrow for r in
 #                         table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
             results = [ r[column] for r in
-                        table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
+                        #table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
+                        table._whereIndexed2XXX(self.condition, self.condvars) ]
             #coords = table.getWhereList(self.rng[0]+base <= colobj <= self.rng[1]+base)
             #results = table.readCoordinates(coords)
         elif True:
-            condition = "(%s<=col) & (col<=%s)" % (self.rng[0]+base, self.rng[1]+base)
-            #condition = "(%s<=col1*col2) & (col3*col4<=%s)" % (self.rng[0]+base, self.rng[1]+base)
-            #condition = "(col**2.4==%s)" % (self.rng[0]+base)
-            #condition = "(col==%s)" % (self.rng[0]+base)
-            #condvars = {"col": colobj}
-            condvars = {"col": colobj,
-                        "col1": self.col1,
-                        "col2": self.col2,
-                        "col3": self.col3,
-                        "col4": self.col4,
-                        }
             #coords = [r.nrow for r in table._whereInRange2XXX(condition, condvars)]
             #results = [r[column] for r in table._whereInRange2XXX(condition, condvars)]
-            for r in table._whereInRange2XXX(condition, condvars):
+            for r in table._whereInRange2XXX(self.condition, self.condvars):
                 var = r[column]
                 ncoords += 1
             #print "rows-->", coords
@@ -130,5 +131,5 @@ class PyTables_DB(DB):
         #results = table.readCoordinates(coords)
         #print "readCoords-->", time()-t1
 
-        #return len(results)
-        return ncoords
+        return len(results)
+        #return ncoords
