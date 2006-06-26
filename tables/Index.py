@@ -293,15 +293,15 @@ def nextafter(x, direction, dtype, itemsize):
             raise TypeError, "Type %s is not supported" % type
 
 
-def get_indexable_cmpXXX(exprnode, indexedcols, varvalues):
+def get_indexable_cmpXXX(exprnode, indexedcols):
     """
     Get the indexable variable-constant comparison in `exprnode`.
 
     A tuple of (variable, operation, constant) is returned if
     `exprnode` is a variable-constant (or constant-variable)
-    comparison, and the variable is in `indexedcols`.  Normal
-    variables can also be used instead of constants, as long as they
-    are mapped to their values in `varvalues`.
+    comparison, and the variable is in `indexedcols`.  A normal
+    variable can also be used instead of a constant: a tuple with its
+    name will appear instead of its value.
 
     Otherwise, the values in the tuple are ``None``.
     """
@@ -317,7 +317,7 @@ def get_indexable_cmpXXX(exprnode, indexedcols, varvalues):
         if ( var.astType == 'variable' and var_value in indexedcols
              and const.astType in ['constant', 'variable'] ):
             if const.astType == 'variable':
-                const_value = varvalues[const_value]
+                const_value = (const_value, )
             return (var_value, op, const_value)
         return None
 
@@ -337,7 +337,7 @@ def get_indexable_cmpXXX(exprnode, indexedcols, varvalues):
 
     return not_indexable
 
-def split_index_exprXXX(exprnode, indexedcols, varvalues):
+def split_index_exprXXX(exprnode, indexedcols):
     """
     Split an expression into indexable and non-indexable parts.
 
@@ -362,20 +362,18 @@ def split_index_exprXXX(exprnode, indexedcols, varvalues):
     * '(0 < c1) & (c2 > 2) & (c1 <= 1)' -> ('c1',['le'],[1],#(c1>0)&(c2>2)#)
     * '(0 < c1) & ((c2 > 2) & (c1 <= 1))' -> ('c1',['gt'],[0],#(c2>2)&(c1<=1)#)
 
-    Expressions such as '0 < c1 <= 1' do not work as expected.  The
-    `varvalues` argument maps the names of normal (non-column)
-    variables to their values.
+    Expressions such as '0 < c1 <= 1' do not work as expected.
     """
 
     # Indexable variable-constant comparison.
-    idxcmp = get_indexable_cmpXXX(exprnode, indexedcols, varvalues)
+    idxcmp = get_indexable_cmpXXX(exprnode, indexedcols)
     if idxcmp[0]:
         return (idxcmp[0], [idxcmp[1]], [idxcmp[2]], None)
 
     if exprnode.astType == 'op' and exprnode.value == 'and':
         left, right = exprnode.children
-        idxcmp_left = get_indexable_cmpXXX(left, indexedcols, varvalues)
-        idxcmp_right = get_indexable_cmpXXX(right, indexedcols, varvalues)
+        idxcmp_left = get_indexable_cmpXXX(left, indexedcols)
+        idxcmp_right = get_indexable_cmpXXX(right, indexedcols)
 
         # Conjunction of indexable VC comparisons.
         if ( idxcmp_left[0] and idxcmp_right[0]
@@ -428,28 +426,49 @@ def split_index_condXXX(condition, condvars):
         index = column.index
         return ( index and not column.dirty
                  and (index.is_pro or index.nelements > 0) )
+    def value(lim):
+        if type(lim) is tuple:
+            return varvalues[lim[0]]
+        return lim
     zero = lambda t: numarray.zeros(1, t)[0]
 
-    # Extract some info from the given variables.
-    indexedcols, vartypes, varvalues = [], {}, {}
+    # Look for columns with usable indexes.
+    table, indexedcols = None, []
+    for (cvar, cval) in condvars.items():
+        if hasattr(cval, 'pathname') and can_use_index(cval):
+            indexedcols.append(cvar)
+            if table is None:  # get table for cache access
+                table = cval.table
+    indexedcols = frozenset(indexedcols)
+
+    # Try to get an already splitted condition from the cache.
+    condkey = (condition, indexedcols)
+    splitted = table and table._splittedCondCache.get(condkey, None)
+    if splitted:
+        idxvar, ops, lims, rescond = splitted  # bingo!
+        return (idxvar, ops, map(value, lims), rescond)
+
+    # Bad luck, the condition must be parsed and splitted.
+
+    # Extract types and values from the given variables.
+    vartypes, varvalues = {}, {}
     for (cvar, cval) in condvars.items():
         if hasattr(cval, 'pathname'):  # looks like a column
-            if can_use_index(cval):
-                indexedcols.append(cvar)
             cval = zero(cval.type)
         varvalues[cvar] = cval
         vartypes[cvar] = type(normalizeConstant(cval))
 
     # Get the expression tree and split the indexable part out.
     expr = stringToExpression(condition, vartypes, {})
-    idxvar, ops, lims, resexpr = (
-        split_index_exprXXX(expr, indexedcols, varvalues) )
+    idxvar, ops, lims, resexpr = split_index_exprXXX(expr, indexedcols)
 
     if resexpr:
         rescond = resexpr.topython()
     else:
         rescond = None
-    return (idxvar, ops, lims, rescond)
+    table._splittedCondCache[condkey] = (idxvar, ops, lims, rescond)
+
+    return (idxvar, ops, map(value, lims), rescond)
 
 
 class IndexProps(object):

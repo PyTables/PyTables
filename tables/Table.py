@@ -329,6 +329,9 @@ class Table(TableExtension.Table, Leaf):
         """Condition string and variable map for selection of values."""
         self.whereIndex = None  ##XXX
         """Path of the indexed column to be used in an indexed search."""
+        self._splittedCondCache = {}  ##XXX
+        """Cache of already splitted conditions."""
+        # It is manipulated by ``split_index_condXXX()``.
 
         self.cols = None
         """
