@@ -957,8 +957,6 @@ This method is intended only for indexed columns, but this column has not a mini
         # Create a read buffer
         recarr = self._get_container(nrecords)
         if nrecords > 0:
-            # Read the contents of a selection in a recarray
-            index.indices._initIndexSlice(nrecords)
             #coords = index.getCoords(0, nrecords)
             # The line below is the optimized call in pyrex
             coords = index.indices._getCoords(0, nrecords)
@@ -1000,8 +998,6 @@ please reindex the table to put the index in a sane state""")
         # Create a read buffer
         recarr = self._get_container(nrecords)
         if nrecords > 0:
-            # Read the contents of a selection in a recarray
-            index.indices._initIndexSlice(nrecords)
             #coords = index.getCoords(0, nrecords)
             # The line below is the optimized call in pyrex
             coords = index.indices._getCoords(0, nrecords)
