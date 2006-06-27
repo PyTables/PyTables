@@ -364,33 +364,37 @@ def split_index_exprXXX(exprnode, indexedcols):
 
     Expressions such as '0 < c1 <= 1' do not work as expected.
     """
+    not_indexable =  (None, [], [], exprnode)
 
     # Indexable variable-constant comparison.
     idxcmp = get_indexable_cmpXXX(exprnode, indexedcols)
     if idxcmp[0]:
         return (idxcmp[0], [idxcmp[1]], [idxcmp[2]], None)
 
-    if exprnode.astType == 'op' and exprnode.value == 'and':
-        left, right = exprnode.children
-        idxcmp_left = get_indexable_cmpXXX(left, indexedcols)
-        idxcmp_right = get_indexable_cmpXXX(right, indexedcols)
+    # Only conjunctions of comparisons may be indexable.
+    if exprnode.astType != 'op' or exprnode.value != 'and':
+        return not_indexable
 
-        # Conjunction of indexable VC comparisons.
-        if ( idxcmp_left[0] and idxcmp_right[0]
-             and idxcmp_left[0] == idxcmp_right[0] ):
-            return ( idxcmp_left[0], [idxcmp_left[1], idxcmp_right[1]],
-                     [idxcmp_left[2], idxcmp_right[2]], None )
+    left, right = exprnode.children
+    lcolvar, lop, llim = get_indexable_cmpXXX(left, indexedcols)
+    rcolvar, rop, rlim = get_indexable_cmpXXX(right, indexedcols)
 
-        # Indexable VC comparison on one side only.
-        for (idxcmp, other) in [(idxcmp_left, right), (idxcmp_right, left)]:
-            if idxcmp[0]:
-                return (idxcmp[0], [idxcmp[1]], [idxcmp[2]], other)
+    # Conjunction of indexable VC comparisons.
+    if lcolvar and rcolvar and lcolvar == rcolvar:
+        return (lcolvar, [lop, rop], [llim, rlim], None)
 
-        # Recursion: conjunction of indexable expression and other.
-        for (this, other) in [(left, right), (right, left)]:
-            splitted = split_index_exprXXX(this, indexedcols)
-            if splitted[0]:
-                return (splitted[0], splitted[1], splitted[2], other)
+    # Indexable VC comparison on one side only.
+    for (colvar, op, lim, other) in [ (lcolvar, lop, llim, right),
+                                      (rcolvar, rop, rlim, left), ]:
+        if colvar:
+            return (colvar, [op], [lim], other)
+
+    # Recursion: conjunction of indexable expression and other.
+    for (this, other) in [(left, right), (right, left)]:
+        colvar, ops, lims, _ = split_index_exprXXX(this, indexedcols)
+        assert _ is None, "indexable range has a residual expression"
+        if colvar:
+            return (colvar, ops, lims, other)
 
     # Can not use indexed column.
     return (None, [], [], exprnode)
@@ -423,6 +427,7 @@ def split_index_condXXX(condition, condvars):
     Expressions such as '0 < c1 <= 1' do not work as expected.
     """
     def can_use_index(column):
+        # Note that getting the index can be exprensive.
         index = column.index
         return ( index and not column.dirty
                  and (index.is_pro or index.nelements > 0) )
@@ -463,7 +468,7 @@ def split_index_condXXX(condition, condvars):
     idxvar, ops, lims, resexpr = split_index_exprXXX(expr, indexedcols)
 
     if resexpr:
-        rescond = resexpr.topython()
+        rescond = resexpr._pt_topython()
     else:
         rescond = None
     table._splittedCondCache[condkey] = (idxvar, ops, lims, rescond)

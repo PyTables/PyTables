@@ -242,7 +242,7 @@ class VariableNode(LeafNode):
     astType = 'variable'
     def __init__(self, value=None, kind=None, children=None):
         LeafNode.__init__(self, value=value, kind=kind)
-    def topython(self):
+    def _pt_topython(self):
         return self.value
 
 
@@ -285,7 +285,7 @@ class ConstantNode(LeafNode):
         return ConstantNode(-self.value)
     def __invert__(self):
         return ConstantNode(~self.value)
-    def topython(self):
+    def _pt_topython(self):
         return '%s' % (self.value,)
 
 class OpNode(ExpressionNode):
@@ -295,7 +295,7 @@ class OpNode(ExpressionNode):
             kind = common_kind(args)
         ExpressionNode.__init__(self, value=opcode, kind=kind, children=args)
 
-    def topython(self):
+    def _pt_topython(self):
         children = self.children
         assert 0 < len(children) < 3
         opstr = {
@@ -316,10 +316,10 @@ class OpNode(ExpressionNode):
             'le': '<=',
             'lt': '<', }[self.value]
 
-        left = children[0].topython()
+        left = children[0]._pt_topython()
         if len(children) == 1:
             return '%s(%s)' % (opstr, left)
-        right = children[1].topython()
+        right = children[1]._pt_topython()
         return '(%s%s%s)' % (left, opstr, right)
 
 class FuncNode(OpNode):
@@ -328,6 +328,6 @@ class FuncNode(OpNode):
             kind = common_kind(args)
         OpNode.__init__(self, opcode, args, kind)
 
-    def topython(self):
-        args = ','.join(c.topython() for c in self.children)
-        return '%s(%s)' % (self.opcode, args)
+    def _pt_topython(self):
+        args = ','.join(c._pt_topython() for c in self.children)
+        return '%s(%s)' % (self.value, args)
