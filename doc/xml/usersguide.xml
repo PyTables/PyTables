@@ -6846,6 +6846,24 @@ for p in rout.where(rout.cols.pressure &lt; 16):
 
 	    </subsubsection>
 
+	    <subsubsection id="Table.readIndexed">
+	      <heading>readIndexed(condition)</heading>
+
+	      <p>Return a record array fulfilling the given `condition`.</p>
+
+	      <p>The <verb>condition</verb> can be used to specify
+		selections along a column in the form:
+	      </p>
+
+	      <verbatim>
+<![CDATA[condition = (0 < table.cols.col1 < 0.3)]]>
+	      </verbatim>
+
+	      <p>This method is only intended to be used for indexed
+		columns.
+	      </p>
+	    </subsubsection>
+
 	    <subsubsection id="Table.whereAppend">
 	      <heading>whereAppend(dstTable, condition, start=None,
 		stop=None, step=None)</heading>

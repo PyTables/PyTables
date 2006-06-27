@@ -972,12 +972,12 @@ This method is intended only for indexed columns, but this column has not a mini
         return recarr
 
     def readIndexed(self, condition):
-        """Returns a NestedRecArray fulfilling the 'condition' param.
+        """Return a record array fulfilling the given `condition`.
 
-        condition can be used to specify selections along a column in the
-        form:
+        The `condition` can be used to specify selections along a column in
+        the form::
 
-        condition=(0<table.cols.col1<0.3)
+          condition = (0 < table.cols.col1 < 0.3)
 
         This method is only intended to be used for indexed columns.
         """
