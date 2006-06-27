@@ -935,6 +935,42 @@ This method is intended only for indexed columns, but this column has not a mini
         # Call the indexed version of Row iterator (coords=None,ncoords>=0)
         return row(start, stop, step, coords=None, ncoords=ncoords)
 
+    def _readIndexed2XXX(self, condition, condvars):
+        idxvar, ops, lims, rescond = split_index_condXXX(condition, condvars)
+        if not idxvar:
+            raise ValueError( "could not find any usable indexes "
+                              "for condition: %r" % condition )
+
+        column = condvars[idxvar]
+        index = column.index
+        assert index is not None, "the chosen column is not indexed"
+        assert not column.dirty, "the chosen column has a dirty index"
+        assert index.is_pro or index.nelements > 0, \
+               "the chosen column has too few elements to be indexed"
+
+        # Set the index column and residual condition (if any)
+        self.whereIndex = column.pathname
+        if rescond:
+            self.whereCondition = (rescond, condvars)
+        # Get the coordinates to lookup
+        nrecords = index.getLookupRange2XXX(ops, lims)
+        # Create a read buffer
+        recarr = self._get_container(nrecords)
+        if nrecords > 0:
+            # Read the contents of a selection in a recarray
+            index.indices._initIndexSlice(nrecords)
+            #coords = index.getCoords(0, nrecords)
+            # The line below is the optimized call in pyrex
+            coords = index.indices._getCoords(0, nrecords)
+            recout = self._read_elements(recarr, coords)
+        # Delete indexation caches
+        self.whereCondition = None
+        self.whereIndex = None
+        if numpy_imported and self.flavor == "numpy":
+            # do an additional conversion conversion (without a copy)
+            recarr = tonumpy(recarr, copy=False)
+        return recarr
+
     def _readIndexed(self, condition):
         """Returns a NestedRecArray fulfilling the 'condition' param.
 
