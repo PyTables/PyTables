@@ -935,7 +935,7 @@ This method is intended only for indexed columns, but this column has not a mini
         # Call the indexed version of Row iterator (coords=None,ncoords>=0)
         return row(start, stop, step, coords=None, ncoords=ncoords)
 
-    def _readIndexed2XXX(self, condition, condvars):
+    def readIndexed2XXX(self, condition, condvars):
         idxvar, ops, lims, rescond = split_index_condXXX(condition, condvars)
         if not idxvar:
             raise ValueError( "could not find any usable indexes "
@@ -971,7 +971,7 @@ This method is intended only for indexed columns, but this column has not a mini
             recarr = tonumpy(recarr, copy=False)
         return recarr
 
-    def _readIndexed(self, condition):
+    def readIndexed(self, condition):
         """Returns a NestedRecArray fulfilling the 'condition' param.
 
         condition can be used to specify selections along a column in the
