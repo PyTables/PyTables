@@ -2517,17 +2517,22 @@ class Column(object):
 
     # Define dirty as a property
     def _get_dirty(self):
+        if hasattr(self, "_dirty"):
+            return self._dirty
         index = self.index
         if index and hasattr(index._v_attrs, "DIRTY"):
-            return getattr(index._v_attrs, "DIRTY")
+            self._dirty = dirty = getattr(index._v_attrs, "DIRTY")
+            return dirty
         else:
-            return 0
+            self._dirty = False
+            return False
 
     def _set_dirty(self, dirty):
         index = self.index
         # Only set the index column as dirty if it exists
         if dirty and index:
             setattr(index._v_attrs,"DIRTY", dirty)
+            self._dirty = dirty
             self.index.indicesLR[-1] = 0
             self.index.nelementsLR = 0
             self.index.nelements = 0
