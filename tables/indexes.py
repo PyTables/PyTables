@@ -46,7 +46,7 @@ from time import time
 # The minimum row number in a column that can be indexed in tests
 minRowIndex = 10
 
-def calcChunksize(expectedrows, optlevel, testmode=False):
+def calcChunksize(expectedrows, optlevel=0, testmode=False):
     """Calculate the HDF5 chunk size for index and sorted arrays.
 
     The logic to do that is based purely in experiments playing with
@@ -67,15 +67,18 @@ def calcChunksize(expectedrows, optlevel, testmode=False):
         if expectedrows < minRowIndex*10:
             chunksize = 5
             slicesize = 10
-            optstarts = True
+            if optlevel >= 3:
+                optstarts = True
         elif expectedrows < minRowIndex*100:
             chunksize = 50
             slicesize = 100
-            optstarts, optstops = (True, True)
+            if optlevel >= 3:
+                optstarts, optstops = (True, True)
         elif expectedrows <= minRowIndex*1000:
             chunksize = 500
             slicesize = 1000
-            optfull = True
+            if optlevel >= 3:
+                optfull = True
         else:
             raise ValueError, \
 "expected rows cannot be larger than %s in test mode" % minRowIndex*1000

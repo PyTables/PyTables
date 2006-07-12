@@ -117,7 +117,8 @@ class DB(object):
             self.index_col(self.con, colname, optlevel, verbose)
             self.print_mtime(t1, 'Index time (%s)' % colname)
 
-    def query_db(self, dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose):
+    def query_db(self, dtype, onlyidxquery, onlynonidxquery, avoidfscache,
+                 verbose):
         self.con = self.open_db()
         if dtype == "int":
             reg_cols = ['col1']
@@ -323,7 +324,7 @@ if __name__=="__main__":
         if doprofile:
             import pstats
             import profile as prof
-            prof.run('db.query_db(dtype, onlyidxquery, avoidfscache, verbose)',
+            prof.run('db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)',
                      'query_db.prof')
             stats = pstats.Stats('query_db.prof')
             stats.strip_dirs()
@@ -340,11 +341,13 @@ if __name__=="__main__":
         db.rng = [1, 1]
         if verbose:
             print "range:", db.rng
-        db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)
+        db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache,
+                    verbose)
         for i in xrange(repeatvalue):
             rng = 10**i
             db.rng = [-rng/2, rng/2]
             if verbose:
                 print "range:", db.rng
-            db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)
+            db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache,
+                        verbose)
 

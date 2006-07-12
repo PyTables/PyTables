@@ -771,10 +771,9 @@ class Index(indexesExtension.Index, Group):
 
         # Create the cache for range values  (1st order cache)
         if str(self.type) == "CharType":
-            atom = StringAtom(shape=(0, 2), length=self.itemsize,
-                              flavor="numarray")
+            atom = StringAtom(shape=(0, 2), length=self.itemsize)
         else:
-            atom = Atom(self.type, shape=(0,2), flavor="numarray")
+            atom = Atom(self.type, shape=(0,2))
         CacheArray(self, 'ranges', atom, "Range Values", filters,
                    self._v_expectedrows//self.slicesize)
         # median ranges
@@ -785,8 +784,7 @@ class Index(indexesExtension.Index, Group):
         nbounds_inslice = (self.slicesize - 1 ) // self.chunksize
         if str(self.type) == "CharType":
             atom = StringAtom(shape=(0, nbounds_inslice),
-                              length=self.itemsize,
-                              flavor="numarray")
+                              length=self.itemsize)
         else:
             atom = Atom(self.type, shape=(0, nbounds_inslice))
         CacheArray(self, 'bounds', atom, "Boundary Values", filters,
@@ -972,28 +970,37 @@ class Index(indexesExtension.Index, Group):
         self.tmpfilename = tempfile.mkstemp(".idx", "tmp-", dirname)[1]
         self.tmpfile = openFile(self.tmpfilename, "w")
         self.tmp = self.tmpfile.root
+        print "chunksize-->", self.chunksize, self.type
         cs = self.chunksize
         ss = self.slicesize
         filters = self.filters
         #filters = None    # compressing temporaries is very inefficient!
         # temporary sorted & indices arrays
         shape = (self.nrows, ss)
-        chunksizes = (1, cs)
-        CArray(self.tmp, 'sorted', shape, Atom(self.type, chunksizes),
+        if str(self.type) == "CharType":
+            atom = StringAtom(shape=(1,cs), length=self.itemsize)
+        else:
+            atom = Atom(self.type, shape=(1,cs))
+        CArray(self.tmp, 'sorted', shape, atom,
                "Temporary sorted", filters)
-        CArray(self.tmp, 'indices', shape, Int64Atom(shape=chunksizes),
+        CArray(self.tmp, 'indices', shape, Int64Atom(shape=(1,cs)),
                "Temporary indices", filters)
         # temporary bounds
         shape = (self.nchunks,)
-        CArray(self.tmp, 'abounds', shape, Atom(self.type, shape=(cs,)),
-               "Temp start bounds", filters)
-        CArray(self.tmp, 'zbounds', shape, Atom(self.type, shape=(cs,)),
-               "Temp end bounds", filters)
-        CArray(self.tmp, 'mbounds', shape, Float64Atom(shape=(cs,)),
-               "Median bounds", filters)
+        if str(self.type) == "CharType":
+            atom = StringAtom(shape=(cs,), length=self.itemsize)
+        else:
+            atom = Atom(self.type, shape=(cs,))
+        CArray(self.tmp, 'abounds', shape, atom, "Temp start bounds", filters)
+        CArray(self.tmp, 'zbounds', shape, atom, "Temp end bounds", filters)
+        CArray(self.tmp, 'mbounds', shape, atom, "Median bounds", filters)
         # temporary ranges
         shape = (self.nslices, 2)
-        CArray(self.tmp, 'ranges', shape, Atom(self.type, shape=(cs,2)),
+        if str(self.type) == "CharType":
+            atom = StringAtom(shape=(cs,2), length=self.itemsize)
+        else:
+            atom = Atom(self.type, shape=(cs,2))
+        CArray(self.tmp, 'ranges', shape, atom,
                "Temporary range values", filters)
         CArray(self.tmp, 'mranges', (self.nslices,),
                Float64Atom(shape=(cs,)),
@@ -1189,6 +1196,9 @@ class Index(indexesExtension.Index, Group):
 
     def compute_overlaps(self, message, verbose):
         "Compute the overlap index for slices (only valid for numeric values)."
+        if str(self.type) == "CharType":
+            # The overlaps compuation cannot be done on strings
+            return (1, 10)
         ranges = self.ranges[:]
         nslices = ranges.shape[0]
         noverlaps = 0

@@ -543,7 +543,7 @@ class BasicReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 0
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
     nrows = ss
 
 class ZlibReadTestCase(BasicTestCase):
@@ -551,7 +551,7 @@ class ZlibReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 0
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
     nrows = ss
 
 class LZOReadTestCase(BasicTestCase):
@@ -559,7 +559,7 @@ class LZOReadTestCase(BasicTestCase):
     complib = "lzo"
     shuffle = 0
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
     nrows = ss
 
 class BZIP2ReadTestCase(BasicTestCase):
@@ -567,7 +567,7 @@ class BZIP2ReadTestCase(BasicTestCase):
     complib = "bzip2"
     shuffle = 0
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
     nrows = ss
 
 class ShuffleReadTestCase(BasicTestCase):
@@ -575,7 +575,7 @@ class ShuffleReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 1
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
     nrows = ss
 
 class Fletcher32ReadTestCase(BasicTestCase):
@@ -583,7 +583,7 @@ class Fletcher32ReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 0
     fletcher32 = 1
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
     nrows = ss
 
 class ShuffleFletcher32ReadTestCase(BasicTestCase):
@@ -591,19 +591,19 @@ class ShuffleFletcher32ReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 1
     fletcher32 = 1
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
     nrows = ss
 
 class OneHalfTestCase(BasicTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
     nrows = ss+ss//2
 
 class UpperBoundTestCase(BasicTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
     nrows = ss+1
 
 class LowerBoundTestCase(BasicTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
     nrows = ss*2-1
 
 # This warning has non-sense now in the PyTables Pro version, as *all*
@@ -1095,9 +1095,9 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         for colname in table.colnames:
             if (table.cols._f_col(colname).index and
                 not table.indexprops.reindex):
-                assert table.cols._f_col(colname).dirty == 1
+                assert table.cols._f_col(colname).dirty == True
             else:
-                assert table.cols._f_col(colname).dirty == 0
+                assert table.cols._f_col(colname).dirty == False
 
     def test07_noreindex(self):
         "Checking indexing counters (modifyRows, no-reindex mode)"
@@ -1160,9 +1160,9 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         for colname in table.colnames:
             if (table.cols._f_col(colname).index and
                 not table.indexprops.reindex):
-                assert table.cols._f_col(colname).dirty == 1
+                assert table.cols._f_col(colname).dirty == True
             else:
-                assert table.cols._f_col(colname).dirty == 0
+                assert table.cols._f_col(colname).dirty == False
 
     def test08_dirty(self):
         "Checking dirty flags (modifyColumns)"
@@ -1205,11 +1205,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             if (table.cols._f_col(colname).index and
                 not table.indexprops.reindex):
                 if colname in ["var1"]:
-                    assert table.cols._f_col(colname).dirty == 1
+                    assert table.cols._f_col(colname).dirty == True
                 else:
-                    assert table.cols._f_col(colname).dirty == 0
+                    assert table.cols._f_col(colname).dirty == False
             else:
-                assert table.cols._f_col(colname).dirty == 0
+                assert table.cols._f_col(colname).dirty == False
 
     def test09_copyIndex(self):
         "Checking copy Index feature in copyTable (attrs)"
@@ -1405,31 +1405,31 @@ class AI4bTestCase(AutomaticIndexingTestCase):
     klass = NoReindex
 
 class AI5TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=0)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=0)[0]
     nrows = ss*11-1
     reopen = 0
     klass = NoAuto
 
 class AI6TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=0)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=0)[0]
     nrows = ss*21+1
     reopen = 1
     klass = NoAuto
 
 class AI7TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=0)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=0)[0]
     nrows = ss*12-1
     reopen = 0
     klass = NoReindex
 
 class AI8TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=0)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=0)[0]
     nrows = ss*15+100
     reopen = 1
     klass = NoReindex
 
 class AI9TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, testmode=1)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
     nrows = ss
     reopen = 0
     klass = Small

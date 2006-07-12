@@ -859,7 +859,11 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
         the `condition`.
         """
 
+        t1=time()
         idxvar, ops, lims, rescond = split_index_condXXX(condition, condvars)
+        print "split_index time:", time()-t1
+        #print "idxvar, ops,",  idxvar, ops, lims
+        #print "rescond-->", rescond
         if not idxvar:
             raise ValueError( "could not find any usable indexes "
                               "for condition: %r" % condition )
@@ -876,7 +880,9 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
         if rescond:
             self.whereCondition = (rescond, condvars)
         # Get the coordinates to lookup
+        t1 = time()
         ncoords = index.getLookupRange2XXX(ops, lims)
+        print "getLookuprange2XXX time:", time()-t1
         if index.is_pro and ncoords == 0:
             # For the pro case, there are no interesting values
             # Reset the table variable conditions
@@ -2563,13 +2569,13 @@ class Column(object):
         index = self.index
         # Only set the index column as dirty if it exists
         if dirty and index:
-            setattr(index._v_attrs,"DIRTY", dirty)
+            setattr(index._v_attrs, "DIRTY", dirty)
             self._dirty = dirty
             self.index.indicesLR[-1] = 0
             self.index.nelementsLR = 0
             self.index.nelements = 0
-            #self.table._indexedrows = 0
-            #self.table._unsaved_indexedrows = self.table.nrows
+        else:
+            self._dirty = False
 
     # Define a property.  The 'delete this attribute'
     # method is defined as None, so the attribute can't be deleted.

@@ -285,7 +285,7 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         self._v_chunksize = tuple(self.atom.shape)
         if len(self.shape) != len(self._v_chunksize):
             raise ValueError, "The CArray rank and atom rank must be equal:" \
-                              "shape = %s, atom.shape = %s." % \
+                              " CArray.shape = %s, atom.shape = %s." % \
                                     (self.shape, self.atom.shape)
 
         # Compute the buffer chunksize
