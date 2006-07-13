@@ -76,6 +76,8 @@ class PyTables_DB(DB):
             self.col2 = getattr(table.cols, 'col2')
             self.col3 = getattr(table.cols, 'col3')
             self.col4 = getattr(table.cols, 'col4')
+            self.index2 = self.col2.index
+            self.index4 = self.col4.index
             self.condition = "(%s<=col) & (col<=%s)" % (self.rng[0]+base, self.rng[1]+base)
             #condition = "(%s<=col1*col2) & (col3*col4<=%s)" % (self.rng[0]+base, self.rng[1]+base)
             #condition = "(col**2.4==%s)" % (self.rng[0]+base)

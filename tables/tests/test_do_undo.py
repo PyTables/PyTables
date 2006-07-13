@@ -1825,7 +1825,7 @@ class copyNodeTestCase(unittest.TestCase):
     def tearDown(self):
         # Remove the temporary file
         self.fileh.close()
-        os.remove(self.file)
+        ###os.remove(self.file)
         cleanup(self)
 
 

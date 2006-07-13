@@ -85,13 +85,14 @@ compatible_formats = [] # Old format versions we can read
 _open_files = {}
 
 # Opcodes for do-undo actions
-_opToCode = {"MARK":    0,
-           "CREATE":  1,
-           "REMOVE":  2,
-           "MOVE":    3,
-           "ADDATTR": 4,
-           "DELATTR": 5,
-           }
+_opToCode = {
+    "MARK":    0,
+    "CREATE":  1,
+    "REMOVE":  2,
+    "MOVE":    3,
+    "ADDATTR": 4,
+    "DELATTR": 5,
+    }
 
 _codeToOp = ["MARK", "CREATE", "REMOVE", "MOVE", "ADDATTR", "DELATTR"]
 

@@ -775,10 +775,10 @@ class Index(indexesExtension.Index, Group):
         else:
             atom = Atom(self.type, shape=(0,2))
         CacheArray(self, 'ranges', atom, "Range Values", filters,
-                   self._v_expectedrows//self.slicesize)
+                   self._v_expectedrows//self.slicesize, log=False)
         # median ranges
         EArray(self, 'mranges', Float64Atom(shape=(0,)),
-               "Median ranges", filters)
+               "Median ranges", filters, log=False)
 
         # Create the cache for boundary values (2nd order cache)
         nbounds_inslice = (self.slicesize - 1 ) // self.chunksize
@@ -788,15 +788,15 @@ class Index(indexesExtension.Index, Group):
         else:
             atom = Atom(self.type, shape=(0, nbounds_inslice))
         CacheArray(self, 'bounds', atom, "Boundary Values", filters,
-                   self._v_expectedrows//self.chunksize)
+                   self._v_expectedrows//self.chunksize, log=False)
 
         # begin, end & median bounds (only for numeric types)
         if str(self.type) != "CharType":
             atom = Atom(self.type, shape=(0,))
-            EArray(self, 'abounds', atom, "Start bounds", filters)
-            EArray(self, 'zbounds', atom, "End bounds", filters)
+            EArray(self, 'abounds', atom, "Start bounds", log=False)
+            EArray(self, 'zbounds', atom, "End bounds", filters, log=False)
             EArray(self, 'mbounds', Float64Atom(shape=(0,)),
-                   "Median bounds", filters)
+                   "Median bounds", filters, log=False)
 
         # Create the Array for last (sorted) row values + bounds
         shape = 2 + nbounds_inslice + self.slicesize
@@ -804,12 +804,14 @@ class Index(indexesExtension.Index, Group):
             arr = strings.array(None, shape=shape, itemsize=self.itemsize)
         else:
             arr = numarray.array(None, shape=shape, type=self.type)
-        LastRowArray(self, 'sortedLR', arr, "Last Row sorted values + bounds")
+        LastRowArray(self, 'sortedLR', arr, "Last Row sorted values + bounds",
+                     log=False)
 
         # Create the Array for reverse indexes in last row
         shape = self.slicesize     # enough for indexes and length
         arr = numarray.zeros(shape=shape, type=numarray.Int64)
-        LastRowArray(self, 'indicesLR', arr, "Last Row reverse indices")
+        LastRowArray(self, 'indicesLR', arr, "Last Row reverse indices",
+                     log=False)
 
         # All bounds values (+begin+end) are at the beginning of sortedLR
         nboundsLR = 0   # 0 bounds initially
