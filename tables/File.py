@@ -52,7 +52,7 @@ from tables.utils import joinPath, splitPath, isVisiblePath, \
      checkFileAccess, getClassByName
 import tables.undoredo as undoredo
 from tables.IsDescription import IsDescription, UInt8Col, StringCol
-from tables.Node import Node
+from tables.Node import Node, NotLoggedMixin
 from tables.Group import Group, RootGroup
 from tables.Group import TransactionGroupG, TransactionG, MarkG
 from tables.Leaf import Leaf, Filters
@@ -1430,7 +1430,10 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
         enabled raises an `UndoRedoError`.
         """
 
-        class ActionLog(IsDescription):
+        class ActionLog(NotLoggedMixin, Table):
+            pass
+
+        class ActionLogDesc(IsDescription):
             opcode = UInt8Col(pos=0)
             arg1   = StringCol(MAX_UNDO_PATH_LENGTH, pos=1, dflt="")
             arg2   = StringCol(MAX_UNDO_PATH_LENGTH, pos=2, dflt="")
@@ -1465,9 +1468,9 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
                 tgroup, self._curtransaction)
 
             # Create an action log
-            self._actionlog = Table(
-                tgroup, _actionLogName, ActionLog, "Action log",
-                filters=filters, log=False)
+            self._actionlog = ActionLog(
+                tgroup, _actionLogName, ActionLogDesc, "Action log",
+                filters=filters)
 
             # Create an implicit mark
             #self._actionlog.append([(_opToCode["MARK"], str(0), '')])

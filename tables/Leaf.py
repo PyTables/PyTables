@@ -242,7 +242,7 @@ class Leaf(Node):
 
     def __init__(self, parentNode, name,
                  new=False, filters=None,
-                 log=True):
+                 _log=True):
         self._v_new = new
         """Is this the first time the node has been created?"""
 
@@ -262,7 +262,7 @@ class Leaf(Node):
         # Existing filters need not be read since `filters`
         # is a lazy property that automatically handles their loading.
 
-        super(Leaf, self).__init__(parentNode, name, log)
+        super(Leaf, self).__init__(parentNode, name, _log)
 
 
     def _g_getFilters(self):
@@ -298,7 +298,7 @@ class Leaf(Node):
         return filters
 
 
-    def _g_copy(self, newParent, newName, recursive, log, **kwargs):
+    def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
         # Compute default arguments.
         start = kwargs.get('start', 0)
         stop = kwargs.get('stop', self.nrows)
@@ -317,7 +317,7 @@ class Leaf(Node):
 
         # Create a copy of the object.
         (newNode, bytes) = self._g_copyWithStats(
-            newParent, newName, start, stop, step, title, filters, log)
+            newParent, newName, start, stop, step, title, filters, _log)
 
         # Copy user attributes if needed.
         if kwargs.get('copyuserattrs', True):

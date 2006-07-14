@@ -94,13 +94,6 @@ class Array(hdf5Extension.Array, Leaf):
     _c_classId = 'ARRAY'
 
 
-    # <undo-redo support>
-    _c_canUndoCreate = True  # Can creation/copying be undone and redone?
-    _c_canUndoRemove = True  # Can removal be undone and redone?
-    _c_canUndoMove   = True  # Can movement/renaming be undone and redone?
-    # </undo-redo support>
-
-
     def _g_calcBufferSize(self, expectedfsizeinKb):
         """Compute and optimum buffer size.
 
@@ -151,7 +144,7 @@ class Array(hdf5Extension.Array, Leaf):
 
     def __init__(self, parentNode, name,
                  object=None, title="",
-                 log=True):
+                 _log=True):
         """Create the instance Array.
 
         Keyword arguments:
@@ -243,7 +236,7 @@ class Array(hdf5Extension.Array, Leaf):
         """The index of the enlargeable dimension."""
 
         # Ordinary arrays have no filters: leaf is created with default ones.
-        super(Array, self).__init__(parentNode, name, new, Filters(), log)
+        super(Array, self).__init__(parentNode, name, new, Filters(), _log)
 
 
     def _g_create(self):
@@ -741,7 +734,7 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
             return convToFlavor(self, arr)
 
     def _g_copyWithStats(self, group, name, start, stop, step,
-                         title, filters, log):
+                         title, filters, _log):
         "Private part of Leaf.copy() for each kind of leaf"
         # Get the slice of the array
         # (non-buffered version)
@@ -750,7 +743,7 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
         else:
             arr = self[()]
         # Build the new Array object
-        object = Array(group, name, arr, title=title, log=log)
+        object = Array(group, name, arr, title=title, _log=_log)
         nbytes = self.itemsize
         for i in self.shape:
             nbytes*=i

@@ -88,13 +88,6 @@ class EArray(Array):
     _c_classId = 'EARRAY'
 
 
-    # <undo-redo support>
-    _c_canUndoCreate = True  # Can creation/copying be undone and redone?
-    _c_canUndoRemove = True  # Can removal be undone and redone?
-    _c_canUndoMove   = True  # Can movement/renaming be undone and redone?
-    # </undo-redo support>
-
-
     # <properties>
     def _g_getrowsize(self):
         return self.atom.atomsize()
@@ -106,7 +99,7 @@ class EArray(Array):
     def __init__(self, parentNode, name,
                  atom=None, title="",
                  filters=None, expectedrows=EXPECTED_ROWS_EARRAY,
-                 log=True):
+                 _log=True):
         """Create EArray instance.
 
         Keyword arguments:
@@ -212,7 +205,7 @@ class EArray(Array):
         """The length of the enlargeable dimension of the array."""
 
         # The `Array` class is not abstract enough! :(
-        super(Array, self).__init__(parentNode, name, new, filters, log)
+        super(Array, self).__init__(parentNode, name, new, filters, _log)
 
 
     def _calcTuplesAndChunks(self, atom, extdim, expectedrows, compress):
@@ -419,12 +412,12 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
-                         title, filters, log):
+                         title, filters, _log):
         "Private part of Leaf.copy() for each kind of leaf"
         # Build the new EArray object
         object = EArray(
             group, name, atom=self.atom, title=title, filters=filters,
-            expectedrows=self.nrows, log=log)
+            expectedrows=self.nrows, _log=_log)
         # Now, fill the new earray with values from source
         nrowsinbuf = self._v_maxTuples
         # The slices parameter for self.__getitem__

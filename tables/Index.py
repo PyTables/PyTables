@@ -46,6 +46,7 @@ import tables.indexesExtension as indexesExtension
 import tables.utilsExtension as utilsExtension
 from tables.File import openFile
 from tables.AttributeSet import AttributeSet
+from tables.Node import NotLoggedMixin
 from tables.Atom import Atom, StringAtom, Float64Atom, Int64Atom
 from tables.EArray import EArray
 from tables.CArray import CArray
@@ -535,7 +536,7 @@ class IndexProps(object):
 
         return repr(self)
 
-class Index(indexesExtension.Index, Group):
+class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     """Represent the index (sorted and reverse index) dataset in HDF5 file.
 
@@ -707,10 +708,8 @@ class Index(indexesExtension.Index, Group):
 
         # Set the version number of this object as an index, not a group.
         self.is_pro = (idx_version == "pro")
-
-        # Index creation is never logged.
         super(Index, self).__init__(
-            parentNode, name, title, new, filters, log=False)
+            parentNode, name, title, new, filters)
 
 
     def _g_postInitHook(self):
@@ -775,10 +774,10 @@ class Index(indexesExtension.Index, Group):
         else:
             atom = Atom(self.type, shape=(0,2))
         CacheArray(self, 'ranges', atom, "Range Values", filters,
-                   self._v_expectedrows//self.slicesize, log=False)
+                   self._v_expectedrows//self.slicesize)
         # median ranges
         EArray(self, 'mranges', Float64Atom(shape=(0,)),
-               "Median ranges", filters, log=False)
+               "Median ranges", filters, _log=False)  ##XXXXXX
 
         # Create the cache for boundary values (2nd order cache)
         nbounds_inslice = (self.slicesize - 1 ) // self.chunksize
@@ -788,15 +787,15 @@ class Index(indexesExtension.Index, Group):
         else:
             atom = Atom(self.type, shape=(0, nbounds_inslice))
         CacheArray(self, 'bounds', atom, "Boundary Values", filters,
-                   self._v_expectedrows//self.chunksize, log=False)
+                   self._v_expectedrows//self.chunksize)
 
         # begin, end & median bounds (only for numeric types)
         if str(self.type) != "CharType":
             atom = Atom(self.type, shape=(0,))
-            EArray(self, 'abounds', atom, "Start bounds", log=False)
-            EArray(self, 'zbounds', atom, "End bounds", filters, log=False)
+            EArray(self, 'abounds', atom, "Start bounds", _log=False)  ##XXXXXX
+            EArray(self, 'zbounds', atom, "End bounds", filters, _log=False)  ##XXXXXX
             EArray(self, 'mbounds', Float64Atom(shape=(0,)),
-                   "Median bounds", filters, log=False)
+                   "Median bounds", filters, _log=False)  ##XXXXXX
 
         # Create the Array for last (sorted) row values + bounds
         shape = 2 + nbounds_inslice + self.slicesize
@@ -804,14 +803,12 @@ class Index(indexesExtension.Index, Group):
             arr = strings.array(None, shape=shape, itemsize=self.itemsize)
         else:
             arr = numarray.array(None, shape=shape, type=self.type)
-        LastRowArray(self, 'sortedLR', arr, "Last Row sorted values + bounds",
-                     log=False)
+        LastRowArray(self, 'sortedLR', arr, "Last Row sorted values + bounds")
 
         # Create the Array for reverse indexes in last row
         shape = self.slicesize     # enough for indexes and length
         arr = numarray.zeros(shape=shape, type=numarray.Int64)
-        LastRowArray(self, 'indicesLR', arr, "Last Row reverse indices",
-                     log=False)
+        LastRowArray(self, 'indicesLR', arr, "Last Row reverse indices")
 
         # All bounds values (+begin+end) are at the beginning of sortedLR
         nboundsLR = 0   # 0 bounds initially

@@ -32,6 +32,7 @@ __version__ = "$Revision$"
 obversion = "1.0"    # initial version
 
 import types, warnings, sys
+from Node import NotLoggedMixin
 from Array import Array
 from EArray import EArray
 from VLArray import Atom, StringAtom
@@ -355,21 +356,21 @@ def calcChunksize(expectedrows, optlevel=0, testmode=False):
 
 
 # Declarations for inheriting
-class CacheArray(EArray, indexesExtension.CacheArray):
+class CacheArray(NotLoggedMixin, EArray, indexesExtension.CacheArray):
     """Container for keeping index caches of 1st and 2nd level."""
 
     # Class identifier.
     _c_classId = 'CACHEARRAY'
 
 
-class LastRowArray(Array, indexesExtension.LastRowArray):
+class LastRowArray(NotLoggedMixin, Array, indexesExtension.LastRowArray):
     """Container for keeping sorted and indices values of last rows of an index."""
 
     # Class identifier.
     _c_classId = 'LASTROWARRAY'
 
 
-class IndexArray(EArray, indexesExtension.IndexArray):
+class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
     """Represent the index (sorted or reverse index) dataset in HDF5 file.
 
     All Numeric and numarray typecodes are supported except for complex
@@ -460,9 +461,9 @@ class IndexArray(EArray, indexesExtension.IndexArray):
             self.reord_opts = reord_opts
             #print "sizes-->", sizes
             #print "opts-->", self.reord_opts
-        # Index creation is never logged.
+
         super(IndexArray, self).__init__(
-            parentNode, name, atom, title, filters, expectedrows, log=False)
+            parentNode, name, atom, title, filters, expectedrows)
 
 
     def _g_create(self):

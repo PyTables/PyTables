@@ -153,12 +153,6 @@ class Table(TableExtension.Table, Leaf):
     # Class identifier.
     _c_classId = 'TABLE'
 
-    # <undo-redo support>
-    _c_canUndoCreate = True  # Can creation/copying be undone and redone?
-    _c_canUndoRemove = True  # Can removal be undone and redone?
-    _c_canUndoMove   = True  # Can movement/renaming be undone and redone?
-    # </undo-redo support>
-
 
     # <properties>
 
@@ -228,7 +222,7 @@ class Table(TableExtension.Table, Leaf):
     def __init__(self, parentNode, name,
                  description=None, title="", filters=None,
                  expectedrows=EXPECTED_ROWS_TABLE,
-                 log=True):
+                 _log=True):
         """Create an instance Table.
 
         Keyword arguments:
@@ -374,7 +368,7 @@ class Table(TableExtension.Table, Leaf):
                 "``IsDescription`` subclass, ``Description`` instance, "
                 "dictionary, ``RecArray`` or ``NestedRecArray`` instance""")
 
-        super(Table, self).__init__(parentNode, name, new, filters, log)
+        super(Table, self).__init__(parentNode, name, new, filters, _log)
 
 
     def _g_postInitHook(self):
@@ -2072,7 +2066,7 @@ Wrong 'index' parameter type. Only Index instances are accepted.""")
 
     # This is an optimized version of copy
     def _g_copyWithStats(self, group, name, start, stop, step,
-                         title, filters, log):
+                         title, filters, _log):
         "Private part of Leaf.copy() for each kind of leaf"
         # Build the new Table object
         description = self.description
@@ -2101,7 +2095,7 @@ Wrong 'index' parameter type. Only Index instances are accepted.""")
 
         object = Table(
             group, name, description, title=title, filters=filters,
-            expectedrows=self.nrows, log=log)
+            expectedrows=self.nrows, _log=_log)
         # Now, fill the new table with values from the old one
         self._g_copyRows(object, start, stop, step)
         nbytes=self.nrows*self.rowsize

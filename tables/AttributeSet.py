@@ -330,7 +330,6 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         node = self._v_node
         nodeFile = node._v_file
-        nodePathname = node._v_pathname
         attrnames = self._v_attrnames
 
         # Check for name validity
@@ -352,19 +351,27 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                           PerformanceWarning)
 
         undoEnabled = nodeFile.isUndoEnabled()
+        # Log old attribute removal (if any).
         if undoEnabled and (name in attrnames):
-            # Remove the existing attribute.
-            # __delattr__ can not be used for deleting system attributes.
-            # Log *before* moving to use the right shadow name.
-            nodeFile._log('DELATTR', nodePathname, name)
-            attrToShadow(nodeFile, nodePathname, name)
+            self._g_delAndLog(node, name)
 
         # Set the attribute.
         self._g__setattr(name, value)
 
-        # Log the change.
+        # Log new attribute addition.
         if undoEnabled:
-            nodeFile._log('ADDATTR', nodePathname, name)
+            self._g_logAdd(node, name)
+
+
+    def _g_logAdd(self, node, name):
+        node._v_file._log('ADDATTR', node._v_pathname, name)
+
+    def _g_delAndLog(self, node, name):
+        nodeFile = node._v_file
+        nodePathname = node._v_pathname
+        # Log *before* moving to use the right shadow name.
+        nodeFile._log('DELATTR', nodePathname, name)
+        attrToShadow(nodeFile, nodePathname, name)
 
 
     def _g__delattr(self, name):
@@ -420,10 +427,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         # Remove the PyTables attribute or move it to shadow.
         if nodeFile.isUndoEnabled():
-            nodePathname = node._v_pathname
-            # Log *before* moving to use the right shadow name.
-            nodeFile._log('DELATTR', nodePathname, name)
-            attrToShadow(nodeFile, nodePathname, name)
+            self._g_delAndLog(node, name)
         else:
             self._g__delattr(name)
 
@@ -553,6 +557,14 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                    (str(self), attrlist)
         else:
             return str(self)
+
+
+class NotLoggedAttributeSet(AttributeSet):
+    def _g_logAdd(self, node, name):
+        pass
+
+    def _g_delAndLog(self, node, name):
+        self._g__delattr(name)
 
 
 

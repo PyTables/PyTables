@@ -126,13 +126,6 @@ class VLArray(hdf5Extension.VLArray, Leaf):
     _c_classId = 'VLARRAY'
 
 
-    # <undo-redo support>
-    _c_canUndoCreate = True  # Can creation/copying be undone and redone?
-    _c_canUndoRemove = True  # Can removal be undone and redone?
-    _c_canUndoMove   = True  # Can movement/renaming be undone and redone?
-    # </undo-redo support>
-
-
     # <properties>
     shape = property(
         lambda self: (self.nrows,), None, None,
@@ -143,7 +136,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
     def __init__(self, parentNode, name,
                  atom=None, title="",
                  filters=None, expectedsizeinMB=1.0,
-                 log=True):
+                 _log=True):
         """Create the instance Array.
 
         Keyword arguments:
@@ -214,7 +207,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         self.nrows = None
         """The total number of rows."""
 
-        super(VLArray, self).__init__(parentNode, name, new, filters, log)
+        super(VLArray, self).__init__(parentNode, name, new, filters, _log)
 
 
     def _g_create(self):
@@ -615,12 +608,12 @@ please put them in a single sequence object"""),
         return outlistarr
 
     def _g_copyWithStats(self, group, name, start, stop, step,
-                         title, filters, log):
+                         title, filters, _log):
         "Private part of Leaf.copy() for each kind of leaf"
         # Build the new VLArray object
         object = VLArray(
             group, name, self.atom, title=title, filters=filters,
-            expectedsizeinMB=self._v_expectedsizeinMB, log=log)
+            expectedsizeinMB=self._v_expectedsizeinMB, _log=_log)
         # Now, fill the new vlarray with values from the old one
         # This is not buffered because we cannot forsee the length
         # of each record. So, the safest would be a copy row by row.

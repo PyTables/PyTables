@@ -5,9 +5,11 @@ import tempfile
 import warnings
 
 from tables import *
+from tables.Node import NotLoggedMixin
 from tables.indexes import minRowIndex
 #from tables.IndexArray import minRowIndex
 
+import common
 from common import verbose, cleanup, heavy
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
@@ -2353,6 +2355,62 @@ class AttributesTestCase(unittest.TestCase):
         self.assertEqual(self.fileh.root.array.attrs.attr_1, 12)
 
 
+class NotLoggedTestCase(common.TempFileMixin, common.PyTablesTestCase):
+
+    """Test not logged nodes."""
+
+    class NotLoggedArray(NotLoggedMixin, Array):
+        pass
+
+
+    def test00_hierarchy(self):
+        """Performing hierarchy operations on a not logged node."""
+
+        self._verboseHeader()
+        self.h5file.createGroup('/', 'tgroup')
+        self.h5file.enableUndo()
+
+        # Node creation is not undone.
+        arr = self.NotLoggedArray( self.h5file.root, 'test',
+                                   [1], self._getMethodName() )
+        self.h5file.undo()
+        self.assert_('/test' in self.h5file)
+
+        # Node movement is not undone.
+        arr.move('/tgroup')
+        self.h5file.undo()
+        self.assert_('/tgroup/test' in self.h5file)
+
+        # Node removal is not undone.
+        arr.remove()
+        self.h5file.undo()
+        self.assert_('/tgroup/test' not in self.h5file)
+
+
+    def test01_attributes(self):
+        """Performing attribute operations on a not logged node."""
+
+        self._verboseHeader()
+        arr = self.NotLoggedArray( self.h5file.root, 'test',
+                                   [1], self._getMethodName() )
+        self.h5file.enableUndo()
+
+        # Attribute creation is not undone.
+        arr._v_attrs.foo = 'bar'
+        self.h5file.undo()
+        self.assert_(arr._v_attrs.foo == 'bar')
+
+        # Attribute change is not undone.
+        arr._v_attrs.foo = 'baz'
+        self.h5file.undo()
+        self.assert_(arr._v_attrs.foo == 'baz')
+
+        # Attribute removal is not undone.
+        del arr._v_attrs.foo
+        self.h5file.undo()
+        self.assertRaises(AttributeError, getattr, arr._v_attrs, 'foo')
+
+
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
@@ -2374,7 +2432,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(copyNodeTestCase))
         theSuite.addTest(unittest.makeSuite(AttributesTestCase))
         theSuite.addTest(unittest.makeSuite(ComplexTestCase))
-
+        theSuite.addTest(unittest.makeSuite(NotLoggedTestCase))
     if heavy:
         pass
 

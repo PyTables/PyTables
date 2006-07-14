@@ -58,7 +58,7 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
         'non-relevant').
         """
 
-        super(UnImplemented, self).__init__(parentNode, name, log=False)
+        super(UnImplemented, self).__init__(parentNode, name)
 
 
     def _g_open(self):
@@ -70,7 +70,7 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
         return objectID
 
 
-    def _g_copy(self, newParent, newName, recursive, log, **kwargs):
+    def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
         """
         Do nothing.
 
@@ -94,7 +94,7 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
         """
 
         # This also does nothing but warn.
-        self._g_copy(newparent, newname, recursive, False, **kwargs)
+        self._g_copy(newparent, newname, recursive, **kwargs)
         return None  # Can you see it?
 
 

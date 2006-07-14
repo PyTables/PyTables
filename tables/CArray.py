@@ -78,13 +78,6 @@ class CArray(Array):
     _c_classId = 'CARRAY'
 
 
-    # <undo-redo support>
-    _c_canUndoCreate = True  # Can creation/copying be undone and redone?
-    _c_canUndoRemove = True  # Can removal be undone and redone?
-    _c_canUndoMove   = True  # Can movement/renaming be undone and redone?
-    # </undo-redo support>
-
-
     # <properties>
 
     def _g_getnrows(self):
@@ -107,7 +100,7 @@ class CArray(Array):
     def __init__(self, parentNode, name,
                  shape=None, atom=None,
                  title="", filters=None,
-                 log=True):
+                 _log=True):
         """Create CArray instance.
 
         Keyword arguments:
@@ -213,7 +206,7 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
                 warnings.warn("``shape`` is ``None``: ``atom`` ignored")
 
         # The `Array` class is not abstract enough! :(
-        super(Array, self).__init__(parentNode, name, new, filters, log)
+        super(Array, self).__init__(parentNode, name, new, filters, _log)
 
 
     def _calcMaxTuples(self, atom, nrows, compress=None):
@@ -338,7 +331,7 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
-                         title, filters, log):
+                         title, filters, _log):
         "Private part of Leaf.copy() for each kind of leaf"
         # Now, fill the new carray with values from source
         nrowsinbuf = self._v_maxTuples
@@ -352,7 +345,7 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         shape[0] = ((stop - start - 1) / step) + 1
         # Build the new CArray object
         object = CArray(group, name, shape, atom=self.atom,
-                          title=title, filters=filters, log=log)
+                          title=title, filters=filters, _log=_log)
         # Start the copy itself
         for start2 in range(start, stop, step*nrowsinbuf):
             # Save the records on disk

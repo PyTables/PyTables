@@ -41,7 +41,7 @@ from tables.exceptions import \
      NodeError, NoSuchNodeError, NaturalNameWarning, PerformanceWarning
 from tables.utils import checkNameValidity, joinPath, isVisibleName, \
      getClassByName
-from tables.Node import Node
+from tables.Node import Node, NotLoggedMixin
 from tables.Leaf import Leaf, Filters
 from tables.UnImplemented import UnImplemented, OldIndexArray
 from tables.AttributeSet import AttributeSet
@@ -115,13 +115,6 @@ class Group(hdf5Extension.Group, Node):
     _c_classId = 'GROUP'
 
 
-    # <undo-redo support>
-    _c_canUndoCreate = True  # Can creation/copying be undone and redone?
-    _c_canUndoRemove = True  # Can removal be undone and redone?
-    _c_canUndoMove   = True  # Can movement/renaming be undone and redone?
-    # </undo-redo support>
-
-
     # <properties>
 
     # `_v_nchildren` is a direct read-only shorthand
@@ -159,7 +152,7 @@ class Group(hdf5Extension.Group, Node):
 
     def __init__(self, parentNode, name,
                  title="", new=False, filters=None,
-                 log=True):
+                 _log=True):
         """Create the basic structures to keep group information.
 
         title -- The title for this group
@@ -200,7 +193,7 @@ class Group(hdf5Extension.Group, Node):
         """Dictionary with all hidden nodes hanging from this group."""
 
         # Finally, set up this object as a node.
-        super(Group, self).__init__(parentNode, name, log)
+        super(Group, self).__init__(parentNode, name, _log)
 
 
     def _g_postInitHook(self):
@@ -584,7 +577,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                 descendentNode._g_updateLocation(newPath)
 
 
-    def _g_copy(self, newParent, newName, recursive, log, **kwargs):
+    def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
         # Compute default arguments.
         title = kwargs.get('title', self._v_title)
         filters = kwargs.get('filters', self._v_filters)
@@ -596,7 +589,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         # Create a copy of the object.
         newNode = Group(newParent, newName,
-                        title, new=True, filters=filters, log=log)
+                        title, new=True, filters=filters, _log=_log)
 
         # Copy user attributes if needed.
         if kwargs.get('copyuserattrs', True):
@@ -626,16 +619,15 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         logged.
         """
         # Recursive version of children copy.
-        ##for (srcChildName, srcChild) in self._v_children.iteritems():
-        ##    srcChild._g_copy(newParent, srcChildName, True, False, **kwargs)
+        ##for srcChild in self._v_children.itervalues():
+        ##    srcChild._g_copyAsChild(newParent, **kwargs)
 
         # Non-recursive version of children copy.
         parentStack = [(self, newParent)]  # [(source, destination), ...]
         while parentStack:
             (srcParent, dstParent) = parentStack.pop()
-            for (srcChildName, srcChild) in srcParent._v_children.iteritems():
-                dstChild = srcChild._g_copy(
-                    dstParent, srcChildName, False, False, **kwargs)
+            for srcChild in srcParent._v_children.itervalues():
+                dstChild = srcChild._g_copyAsChild(dstParent, **kwargs)
                 if isinstance(srcChild, Group):
                     parentStack.append((srcChild, dstChild))
 
@@ -1109,15 +1101,7 @@ class RootGroup(Group):
 
 
 
-class NotLoggedGroup(Group):
-    # The creation of instances of this class is never logged.
-    def __init__(self, parentNode, name,
-                 title="", new=False, filters=None):
-        super(NotLoggedGroup, self).__init__(
-            parentNode, name, title, new, filters, log=False)
-
-
-class IndexesDescG(NotLoggedGroup):
+class IndexesDescG(NotLoggedMixin, Group):
     _c_classId = 'DINDEX'
 
     def _g_widthWarning(self):
@@ -1128,7 +1112,7 @@ of memory and possibly slow I/O"""
                       % (MAX_GROUP_WIDTH,), PerformanceWarning)
 
 
-class IndexesTableG(NotLoggedGroup):
+class IndexesTableG(NotLoggedMixin, Group):
     _c_classId = 'TINDEX'
 
     def _g_widthWarning(self):
@@ -1144,13 +1128,13 @@ of memory and possibly slow I/O"""
                 "names of index groups must start with ``_i_``: %s" % name)
 
 
-class IndexesColumnBackCompatG(NotLoggedGroup):
+class IndexesColumnBackCompatG(NotLoggedMixin, Group):
     """This is meant to hidden indexes of pre-PyTables 1.0 files."""
     _c_classId = 'INDEX'
 
 
 
-class TransactionGroupG(NotLoggedGroup):
+class TransactionGroupG(NotLoggedMixin, Group):
     _c_classId = 'TRANSGROUP'
 
     def _g_widthWarning(self):
@@ -1161,7 +1145,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
 
 
-class TransactionG(NotLoggedGroup):
+class TransactionG(NotLoggedMixin, Group):
     _c_classId = 'TRANSG'
 
     def _g_widthWarning(self):
@@ -1173,7 +1157,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
 
 
-class MarkG(NotLoggedGroup):
+class MarkG(NotLoggedMixin, Group):
     # Class identifier.
     _c_classId = 'MARKG'
 

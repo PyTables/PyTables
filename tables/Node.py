@@ -31,7 +31,7 @@ from tables.exceptions import \
      ClosedNodeError, NodeError, UndoRedoWarning, PerformanceWarning
 from tables.utils import joinPath, splitPath, isVisiblePath
 from tables.undoredo import moveToShadow
-from tables.AttributeSet import AttributeSet
+from tables.AttributeSet import AttributeSet, NotLoggedAttributeSet
 
 
 
@@ -165,12 +165,8 @@ class Node(object):
     # This makes this class and all derived subclasses be handled by MetaNode.
     __metaclass__ = MetaNode
 
-
-    # <undo-redo support>
-    _c_canUndoCreate = False  # Can creation/copying be undone and redone?
-    _c_canUndoRemove = False  # Can removal be undone and redone?
-    _c_canUndoMove   = False  # Can movement/renaming be undone and redone?
-    # </undo-redo support>
+    # By default, attributes accept Undo/Redo.
+    _AttributeSet = AttributeSet
 
 
     # <properties>
@@ -202,7 +198,7 @@ class Node(object):
         if '_v_attrs' in mydict:
             return mydict['_v_attrs']
         else:
-            mydict['_v_attrs'] = attrs = AttributeSet(self)
+            mydict['_v_attrs'] = attrs = self._AttributeSet(self)
             return attrs
 
     _v_attrs = property(_g_getattrs, None, None,
@@ -226,7 +222,9 @@ class Node(object):
     # </properties>
 
 
-    def __init__(self, parentNode, name, log=True):
+    # The ``_log`` argument is only meant to be used by ``_g_copyAsChild()``
+    # to avoid logging the creation of children nodes of a copied sub-tree.
+    def __init__(self, parentNode, name, _log=True):
         # Remember to assign these values in the root group constructor
         # if it does not use this method implementation!
 
@@ -261,14 +259,6 @@ class Node(object):
         ptname = name  # always the provided one
         h5name = file_._h5NameFromPTName(ptname)
 
-        # Will creation be logged?
-        undoEnabled = file_.isUndoEnabled()
-        canUndoCreate = self._c_canUndoCreate
-        if undoEnabled and not canUndoCreate:
-            warnings.warn(
-                "creation can not be undone nor redone for this node",
-                UndoRedoWarning)
-
         # Bind to the parent node and set location-dependent information.
         if new:
             # Only new nodes need to be referenced.
@@ -298,8 +288,12 @@ class Node(object):
 
         # Finally, log creation of the node.
         # This is made after the ``try`` because the node *has* been created!
-        if new and log and undoEnabled and canUndoCreate:
-            file_._log('CREATE', self._v_pathname)
+        if new and _log and file_.isUndoEnabled():
+            self._g_logCreate()
+
+
+    def _g_logCreate(self):
+        self._v_file._log('CREATE', self._v_pathname)
 
 
     def __del__(self):
@@ -563,18 +557,17 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         file_._checkWritable()
 
         if file_.isUndoEnabled():
-            if self._c_canUndoMove:
-                oldPathname = self._v_pathname
-                # Log *before* moving to use the right shadow name.
-                file_._log('REMOVE', oldPathname)
-                moveToShadow(file_, oldPathname)
-            else:
-                warnings.warn(
-                    "removal can not be undone nor redone for this node",
-                    UndoRedoWarning)
-                self._g_remove(recursive)
+            self._g_removeAndLog(recursive)
         else:
             self._g_remove(recursive)
+
+
+    def _g_removeAndLog(self, recursive):
+        file_ = self._v_file
+        oldPathname = self._v_pathname
+        # Log *before* moving to use the right shadow name.
+        file_._log('REMOVE', oldPathname)
+        moveToShadow(file_, oldPathname)
 
 
     def _g_move(self, newParent, newName):
@@ -683,24 +676,20 @@ nodes can not be moved across databases; please make a copy of the node""")
         self._g_maybeRemove(  # Moving over an existing node?
             newparent, newname, overwrite)
 
-        undoEnabled = file_.isUndoEnabled()
-        canUndoMove = self._c_canUndoMove
-        if undoEnabled and not canUndoMove:
-            warnings.warn(
-                "movement can not be undone nor redone for this node",
-                UndoRedoWarning)
-
         # Move the node.
         oldPathname = self._v_pathname
         self._g_move(newparent, newname)
-        newPathname = self._v_pathname
 
         # Log the change.
-        if undoEnabled and canUndoMove:
-            file_._log('MOVE', oldPathname, newPathname)
+        if file_.isUndoEnabled():
+            self._g_logMove(oldPathname)
 
 
-    def _g_copy(self, newParent, newName, recursive, log, **kwargs):
+    def _g_logMove(self, oldPathname):
+        self._v_file._log('MOVE', oldPathname, self._v_pathname)
+
+
+    def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
         """
         Copy this node and return the new one.
 
@@ -711,9 +700,23 @@ nodes can not be moved across databases; please make a copy of the node""")
         ignored.  On recursive copies, all keyword arguments must be
         passed on to the children invocation of this method.
 
-        If `log` is true, the change is logged.
+        If `_log` is false, the change is not logged.  This is *only*
+        intended to be used by ``_g_copyAsChild()`` as a means of
+        optimising sub-tree copies.
         """
         raise NotImplementedError
+
+
+    def _g_copyAsChild(self, newParent, **kwargs):
+        """
+        Copy this node as a child of another group.
+
+        Copies just this node into `newParent`, not recursing children
+        nor overwriting nodes nor logging the copy.  This is intended to
+        be used when copying whole sub-trees.
+        """
+        return self._g_copy( newParent, self._v_name,
+                             recursive=False, _log=False, **kwargs )
 
 
     def _f_copy(self, newparent=None, newname=None,
@@ -790,7 +793,7 @@ copying across databases can not be undone nor redone from this database""",
 
         # Copy the node.
         # The constructor of the new node takes care of logging.
-        return self._g_copy(dstParent, dstName, recursive, True, **kwargs)
+        return self._g_copy(dstParent, dstName, recursive, **kwargs)
 
 
     def _f_isVisible(self):
@@ -883,6 +886,23 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
         delattr(self._v_attrs, name)
 
     # </attribute handling>
+
+
+
+class NotLoggedMixin:
+    # Include this class in your inheritance tree
+    # to avoid changes to instances of your class from being logged.
+
+    _AttributeSet = NotLoggedAttributeSet
+
+    def _g_logCreate(self):
+        pass
+
+    def _g_logMove(self, oldPathname):
+        pass
+
+    def _g_removeAndLog(self, recursive):
+        self._g_remove(recursive)
 
 
 
