@@ -182,7 +182,7 @@ cdef class IndexArray(Array):
   cdef object  bufferl
   cdef CacheArray bounds_ext
 
-  def _initIndexSlice(self, ncoords):
+  def _initIndexSlice(self, index, ncoords):
     "Initialize the structures for doing a binary search"
     cdef long buflen
 
@@ -196,8 +196,8 @@ cdef class IndexArray(Array):
       NA_getBufferPtrAndSize(self.arrAbs._data, 1, &self.rbufA)
       # Access starts and lengths in parent index.
       # This sharing method should be improved.
-      NA_getBufferPtrAndSize(self._v_parent.starts._data, 1, &self.rbufst)
-      NA_getBufferPtrAndSize(self._v_parent.lengths._data, 1, &self.rbufln)
+      NA_getBufferPtrAndSize(index.starts._data, 1, &self.rbufst)
+      NA_getBufferPtrAndSize(index.lengths._data, 1, &self.rbufln)
       if not self.space_id:
         # Initialize the index array for reading
         self.space_id = H5Dget_space(self.dataset_id )
@@ -233,7 +233,7 @@ cdef class IndexArray(Array):
 
     return
 
-  def _initSortedSlice(self, pro=0):
+  def _initSortedSlice(self, index, pro=0):
     "Initialize the structures for doing a binary search"
     cdef long ndims
     cdef int  buflen
@@ -241,7 +241,7 @@ cdef class IndexArray(Array):
     cdef int  rank
     cdef hsize_t count[2]
 
-    index = self._v_parent
+    #index = self._v_parent
     # Create the buffer for reading sorted data chunks
     if self.bufferl is None:
       #print "_initSortedSlice(1)"
@@ -648,7 +648,7 @@ cdef class IndexArray(Array):
 
   # This version of getCoords reads the indexes in chunks.
   # Because of that, it can be used in iterators.
-  def _getCoords(self, int startcoords, int ncoords):
+  def _getCoords(self, index, int startcoords, int ncoords):
     cdef int nrow, nrows, leni, len1, len2, relcoords, nindexedrows
     cdef int *rbufst, *rbufln
     cdef int startl, stopl, incr, stop
@@ -659,7 +659,7 @@ cdef class IndexArray(Array):
     if startcoords + ncoords > nindexedrows:
       ncoords = nindexedrows - startcoords
     # create buffers for indices
-    self._initIndexSlice(ncoords)
+    self._initIndexSlice(index, ncoords)
     arrAbs = self.arrAbs
     rbufst = <int *>self.rbufst
     rbufln = <int *>self.rbufln
@@ -701,14 +701,14 @@ cdef class IndexArray(Array):
   # the values are in a few rows. That should be a minor win, though, because
   # we have to read the real coords afterward, and *these* would be completely
   # sparsed through the reverse indices array.
-  def _getCoords_sparse(self, int ncoords):
+  def _getCoords_sparse(self, index, int ncoords):
     cdef int nrows, len1, startl, stopl
     cdef int *rbufst, *rbufln
     cdef long long *rbufC
 
     nrows = self.nrows
     # Initialize the index dataset
-    self._initIndexSlice(ncoords)
+    self._initIndexSlice(index, ncoords)
     rbufst = <int *>self.rbufst
     rbufln = <int *>self.rbufln
     rbufC = <long long *>self.rbufC

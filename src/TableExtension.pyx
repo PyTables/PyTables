@@ -593,7 +593,7 @@ cdef class Row:
   cdef object  table
   cdef object  rbufRA, wbufRA
   cdef object  _wfields, _rfields, _indexes
-  cdef object  indexValid, coords, bufcoords, index
+  cdef object  indexValid, coords, bufcoords, index, indices
   cdef object  ops, opsValues
   cdef object  condstr, condvars, condcols  ##XXX
   cdef object  mod_elements, colenums
@@ -713,8 +713,9 @@ cdef class Row:
     if table.whereIndex:
       self.indexed2XXX = 1
       self.index = table.cols._f_col(table.whereIndex).index
+      self.indices = self.index.indices
       # create buffers for indices
-      self.index.indices._initIndexSlice(self.nrowsinbuf)
+      self.indices._initIndexSlice(self.index, self.nrowsinbuf)
       self.nrowsread = 0
       self.nextelement = 0
       table.whereIndex = None
@@ -728,8 +729,9 @@ cdef class Row:
       if table.colindexed[self.colname] and ncoords >= 0:
         self.indexed = 1
         self.index = table.cols._f_col(self.colname).index
+        self.indices = self.index.indices
         # create buffers for indices
-        self.index.indices._initIndexSlice(self.nrowsinbuf)
+        self.indices._initIndexSlice(self.index, self.nrowsinbuf)
         self.nrowsread = 0
         self.nextelement = 0
       # Copy the table conditions to local variable
@@ -777,9 +779,9 @@ cdef class Row:
           self.bufcoords = self.coords[self.nrowsread:self.nrowsread+stop]
           nrowsread = len(self.bufcoords)
         else:
-          #self.bufcoords = self.index.getCoords(self.nrowsread, stop)
           # Optmized version of getCoords in Pyrex
-          self.bufcoords = self.index.indices._getCoords(self.nrowsread, stop)
+          self.bufcoords = self.indices._getCoords(self.index,
+                                                   self.nrowsread, stop)
           nrowsread = len(self.bufcoords)
           tmp = self.bufcoords
           # If a step was specified, select the strided elements first
@@ -864,9 +866,9 @@ cdef class Row:
           self.bufcoords = self.coords[self.nrowsread:self.nrowsread+stop]
           nrowsread = len(self.bufcoords)
         else:
-          #self.bufcoords = self.index.getCoords(self.nrowsread, stop)
           # Optmized version of getCoords in Pyrex
-          self.bufcoords = self.index.indices._getCoords(self.nrowsread, stop)
+          self.bufcoords = self.indices._getCoords(self.index,
+                                                   self.nrowsread, stop)
           nrowsread = len(self.bufcoords)
           tmp = self.bufcoords
           # If a step was specified, select the strided elements first

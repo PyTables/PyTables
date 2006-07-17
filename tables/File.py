@@ -905,6 +905,7 @@ class File(hdf5Extension.File, object):
         if nodePath == '/':
             return self.root
 
+        #print "recuperant...", nodePath
         aliveNodes = self._aliveNodes
         deadNodes = self._deadNodes
 

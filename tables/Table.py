@@ -853,9 +853,11 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
         the `condition`.
         """
 
-        t1=time()
-        idxvar, ops, lims, rescond = split_index_condXXX(condition, condvars)
-        print "split_index time:", time()-t1
+        #print "Abans de split_index", condition
+        #t1=time()
+        idxvar, ops, lims, rescond = \
+                split_index_condXXX(condition, condvars, self)
+        #print "split_index time:", time()-t1
         #print "idxvar, ops,",  idxvar, ops, lims
         #print "rescond-->", rescond
         if not idxvar:
@@ -874,9 +876,10 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
         if rescond:
             self.whereCondition = (rescond, condvars)
         # Get the coordinates to lookup
-        t1 = time()
-        ncoords = index.getLookupRange2XXX(ops, lims)
-        print "getLookuprange2XXX time:", time()-t1
+        #print "Abans de getLookupRange2XXX"
+        #t1 = time()
+        ncoords = index.getLookupRange2XXX(ops, lims, self)
+        #print "getLookuprange2XXX time:", time()-t1
         if index.is_pro and ncoords == 0:
             # For the pro case, there are no interesting values
             # Reset the table variable conditions
@@ -888,6 +891,7 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
         # the conditions in the indexed region (ncoords = 0), because
         # we should look in the non-indexed region as well (for PyTables std).
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        #print "Abans d'invocar el iterador..."
         row = TableExtension.Row(self)
         # Call the indexed version of Row iterator (coords=None,ncoords>=0)
         return row(start, stop, step, coords=None, ncoords=ncoords)
@@ -1066,7 +1070,7 @@ please reindex the table to put the index in a sane state""")
             # get the number of coords and set-up internal variables
             ncoords = index.getLookupRange2XXX(ops, lims)
             if ncoords > 0:
-                coords = index.indices._getCoords_sparse(ncoords)
+                coords = index.indices._getCoords_sparse(index, ncoords)
             else:
                 coords = numarray.array(None, type=numarray.Int64, shape=0)
             if not index.is_pro:
@@ -1139,7 +1143,7 @@ Wrong 'condition' parameter type. Only Column instances are suported."""
                 #coords = index.getCoords_sparse(ncoords)
                 # The next call is the optimized one
                 #t1 = time()
-                coords = index.indices._getCoords_sparse(ncoords)
+                coords = index.indices._getCoords_sparse(index, ncoords)
                 #print "_sparse-->", time()-t1
             else:
                 coords = numarray.array(None, type=numarray.Int64, shape=0)
@@ -2488,6 +2492,14 @@ class Column(object):
 
     index = property(_getindex)
 
+    def _isindexed(self):
+        if self._indexPath is None:
+            return False
+        else:
+            return True
+
+    is_indexed = property(_isindexed)
+
 
     def __init__(self, table, name, descr):
         """Create the container to keep the column information.
@@ -2552,24 +2564,28 @@ class Column(object):
         if hasattr(self, "_dirty"):
             return self._dirty
         index = self.index
-        if index and hasattr(index._v_attrs, "DIRTY"):
-            self._dirty = dirty = getattr(index._v_attrs, "DIRTY")
-            return dirty
+        if index:
+            if hasattr(index._v_attrs, "DIRTY"):
+                self._dirty = dirty = getattr(index._v_attrs, "DIRTY")
+                return dirty
+            else:
+                # If don't have a DIRTY attribute, index should be clean
+                self._dirty = False
+                return False
         else:
-            self._dirty = False
-            return False
+            self._dirty = True  # If don't have index, this is like dirty
+            return True
 
     def _set_dirty(self, dirty):
+        self._dirty = dirty
         index = self.index
         # Only set the index column as dirty if it exists
-        if dirty and index:
+        if index:
             setattr(index._v_attrs, "DIRTY", dirty)
-            self._dirty = dirty
-            self.index.indicesLR[-1] = 0
-            self.index.nelementsLR = 0
-            self.index.nelements = 0
-        else:
-            self._dirty = False
+            if dirty:
+                index.indicesLR[-1] = 0
+                index.nelementsLR = 0
+                index.nelements = 0
 
     # Define a property.  The 'delete this attribute'
     # method is defined as None, so the attribute can't be deleted.

@@ -398,9 +398,9 @@ def split_index_exprXXX(exprnode, indexedcols):
             return (colvar, ops, lims, other)
 
     # Can not use indexed column.
-    return (None, [], [], exprnode)
+    return not_indexable
 
-def split_index_condXXX(condition, condvars):
+def split_index_condXXX(condition, condvars, table):
     """
     Split a condition into indexable and non-indexable parts.
 
@@ -427,8 +427,13 @@ def split_index_condXXX(condition, condvars):
 
     Expressions such as '0 < c1 <= 1' do not work as expected.
     """
+    def can_use_index_orig(column):
+        # Note that getting the index can be expensive.
+        index = column.index
+        return ( index and not column.dirty
+                 and (index.is_pro or index.nelements > 0) )
     def can_use_index(column):
-        # Note that getting the index can be exprensive.
+        # Note that getting the index can be expensive.
         index = column.index
         return ( index and not column.dirty
                  and (index.is_pro or index.nelements > 0) )
@@ -438,23 +443,28 @@ def split_index_condXXX(condition, condvars):
         return lim
     zero = lambda t: numarray.zeros(1, t)[0]
 
+    # Try to get an already splitted condition from the cache.
+    condkey = condition
+    splitted = table and table._splittedCondCache.get(condkey, None)
+    if splitted:
+        idxvar, ops, lims, rescond = splitted  # bingo!
+        # Check that the index can be used whitout problems
+        if not condvars[idxvar].dirty:
+            return (idxvar, ops, map(value, lims), rescond)
+        else:
+            # Nope. Return as if the index can't be used
+            return (None, [], [], condition)
+
+    # Bad luck, the condition must be parsed and splitted.
+
     # Look for columns with usable indexes.
-    table, indexedcols = None, []
+    indexedcols = []
     for (cvar, cval) in condvars.items():
         if hasattr(cval, 'pathname') and can_use_index(cval):
             indexedcols.append(cvar)
             if table is None:  # get table for cache access
                 table = cval.table
     indexedcols = frozenset(indexedcols)
-
-    # Try to get an already splitted condition from the cache.
-    condkey = (condition, indexedcols)
-    splitted = table and table._splittedCondCache.get(condkey, None)
-    if splitted:
-        idxvar, ops, lims, rescond = splitted  # bingo!
-        return (idxvar, ops, map(value, lims), rescond)
-
-    # Bad luck, the condition must be parsed and splitted.
 
     # Extract types and values from the given variables.
     vartypes, varvalues = {}, {}
@@ -1239,7 +1249,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Do the lookup for values fullfilling the conditions
         tlen = 0
         sorted = self.sorted
-        sorted._initSortedSlice(pro=self.is_pro)
+        sorted._initSortedSlice(self, pro=self.is_pro)
         if sorted.nrows > 0:
             if self.is_pro and str(self.type) != "CharType":
                 tlen = self.search_pro(item, sorted)
@@ -1393,7 +1403,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             nCoords = nindexedrows - startCoords
         # create buffers for indices
         indices = self.indices
-        indices._initIndexSlice(nCoords)
+        indices._initIndexSlice(self, nCoords)
         for irow in xrange(self.nrows):
             leni = self.lengths[irow]; len2 += leni
             if (leni > 0 and len1 <= startCoords < len2):
@@ -1440,7 +1450,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         """
         idc = self.indices
         # Initialize the index dataset
-        idc._initIndexSlice(ncoords)
+        idc._initIndexSlice(self, ncoords)
         # Create the sorted indices
         len1 = 0
         for irow in xrange(idc.nrows):
@@ -1464,7 +1474,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         return selection
 
 
-    def getLookupRange2XXX(self, ops, limits):
+    def getLookupRange2XXX(self, ops, limits, table):
         supported_cmps = ['lt', 'le', 'eq', 'ge', 'gt']
 
         assert len(ops) in [1, 2]
@@ -1475,7 +1485,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         column = self.column
         ctype = column.type
-        itemsize = column.table.colitemsizes[column.pathname]
+        itemsize = table.colitemsizes[column.pathname]
 
         for limit in limits:
             if not isinstance(limit, (bool, int, long, float)):

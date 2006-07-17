@@ -92,10 +92,10 @@ class PyTables_DB(DB):
                         }
         table = self.table_cache
         colobj = self.colobj
-        if colobj.index:
+        if colobj.is_indexed:
             # Get the references of some frequently referenced objects so that
             # they are alive so that getting them is much faster later on
-            if not hasattr(self, "%s_cache"%column):
+            if not hasattr(self, "%s_index_cache"%column):
                 setattr(self, "%s_index_cache"%column, colobj.index)
                 setattr(self, "%s_sorted_cache"%column, colobj.index.sorted)
                 setattr(self, "%s_indices_cache"%column, colobj.index.indices)
@@ -105,7 +105,7 @@ class PyTables_DB(DB):
 #                     table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
         #t1 = time()
         ncoords = 0
-        if colobj.index:
+        if colobj.is_indexed:
             #coords = table.getWhereList(self.rng[0]+base == colobj)
 #             coords = [ r.nrow for r in
 #                         table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]

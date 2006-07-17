@@ -323,7 +323,7 @@ if __name__=="__main__":
         print "Calling query_db() %s times" % READ_TIMES
         if doprofile:
             import pstats
-            import profile as prof
+            import cProfile as prof
             prof.run('db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)',
                      'query_db.prof')
             stats = pstats.Stats('query_db.prof')
