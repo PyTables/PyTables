@@ -53,7 +53,8 @@ class Filters(object):
 
     """
 
-    def __init__(self, complevel=0, complib="zlib", shuffle=1, fletcher32=0):
+    def __init__(self, complevel=0, complib="zlib", shuffle=True,
+                 fletcher32=False):
         """Create a new Filters instance
 
         complevel -- Specifies a compress level for data. The allowed
@@ -64,18 +65,17 @@ class Filters(object):
             now, 'zlib', 'lzo', 'ucl' and 'bzip2' values are supported.
             If None, then 'zlib' is chosen.
 
-        shuffle -- Whether or not to use the shuffle filter in the
-            HDF5 library. This is normally used to improve the
-            compression ratio. A value of 0 disables shuffling and 1
-            makes it active. The default value depends on whether
-            compression is enabled or not; if compression is enabled,
-            shuffling defaults to be active, else shuffling is
-            disabled.
+        shuffle -- Whether or not to use the shuffle filter in the HDF5
+            library. This is normally used to improve the compression
+            ratio. A value of False disables shuffling and True makes it
+            active. The default value depends on whether compression is
+            enabled or not; if compression is enabled, shuffling
+            defaults to be active, else shuffling is disabled.
 
-        fletcher32 -- Whether or not to use the fletcher32 filter in
-            the HDF5 library. This is used to add a checksum on each
-            data chunk. A value of 0 disables the checksum and it is
-            the default.
+        fletcher32 -- Whether or not to use the fletcher32 filter in the
+            HDF5 library. This is used to add a checksum on each data
+            chunk. A value of False disables the checksum and it is the
+            default.
         """
 
         libnames = ('zlib', 'lzo', 'ucl', 'bzip2', 'szip')
@@ -92,7 +92,7 @@ You can use the ptrepack utility to migrate datafiles compressed with UCL."""))
 
         if shuffle and not complevel:
             # Shuffling and not compressing makes non sense
-            shuffle = 0
+            shuffle = False
         self.complevel = complevel
         self.shuffle = shuffle
         self.fletcher32 = fletcher32
@@ -291,9 +291,9 @@ class Leaf(Node):
                     filters.complevel = 1  # Because there is not a compression
                                            # level equivalent for szip
                 elif name.startswith("shuffle"):
-                    filters.shuffle = 1
+                    filters.shuffle = True
                 elif name.startswith("fletcher32"):
-                    filters.fletcher32 = 1
+                    filters.fletcher32 = True
 
         return filters
 

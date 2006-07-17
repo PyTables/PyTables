@@ -490,7 +490,7 @@ class IndexProps(object):
 
     """
 
-    def __init__(self, auto=1, reindex=1, filters=None):
+    def __init__(self, auto=True, reindex=True, filters=None):
         """Create a new IndexProps instance
 
         Parameters:
@@ -505,16 +505,16 @@ class IndexProps(object):
 
             """
         if auto is None:
-            auto = 1  # Default
+            auto = True  # Default
         if reindex is None:
-            reindex = 1  # Default
-        assert auto in [0, 1], "'auto' can only take values 0 or 1"
-        assert reindex in [0, 1], "'reindex' can only take values 0 or 1"
+            reindex = True  # Default
+        assert auto in [False, True], "'auto' can only take values False or True"
+        assert reindex in [False, True], "'reindex' can only take values False or True"
         self.auto = auto
         self.reindex = reindex
         if filters is None:
             self.filters = Filters(complevel=1, complib="zlib",
-                                   shuffle=1, fletcher32=0)
+                                   shuffle=True, fletcher32=False)
         elif isinstance(filters, Filters):
             self.filters = filters
         else:

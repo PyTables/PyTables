@@ -3504,7 +3504,7 @@ colors = Enum(['red', 'green', 'blue'])  # An enumerated type
 
 class NestedDescr(IsDescription):
     """A description that has several nested columns"""
-    color = EnumCol(colors, 'red', dtype='UInt32', indexed=1) # indexed column
+    color = EnumCol(colors, 'red', dtype='UInt32', indexed=True) # indexed column
     info1 = Info()
     class info2(IsDescription):
         _v_pos = 1
@@ -3762,7 +3762,7 @@ shape=4)
     "name": StringCol(length=10, dflt=None, shape=1, pos=0, indexed=False),
     "value": Float64Col(dflt=0.0, shape=1, pos=1, indexed=False)},
   "color": EnumCol(Enum({'blue': 2, 'green': 1, 'red': 0}), 'red',
- dtype='UInt32', shape=1, pos=2, indexed=1)}
+ dtype='UInt32', shape=1, pos=2, indexed=True)}
 >>>
 	  </verbatim>
 
@@ -3850,7 +3850,7 @@ column--> Description([('info2', [('info3', [('x', '1f8'), ('y',
  '1u1')]), ('name', '1a10'), ('value', '1f8')]), ('info1', [('name',
  '1a10'), ('value', '1f8')]), ('color', '1u4')])
 column--> EnumCol(Enum({'blue': 2, 'green': 1, 'red': 0}), 'red',
- dtype='UInt32', shape=1, pos=2, indexed=1)
+ dtype='UInt32', shape=1, pos=2, indexed=True)
 column--> Description([('info3', [('x', '1f8'), ('y', '1u1')]),
  ('name', '1a10'), ('value', '1f8')])
 column--> StringCol(length=10, dflt=None, shape=1, pos=1, indexed=False)
@@ -5799,7 +5799,7 @@ Object Tree:
 	    <verbatim>
 	      # Recursively print all the arrays hanging from '/'
 	      print "Arrays the object tree '/':"
-	      for array in h5file.root._f_walkNodes("Array", recursive=1):
+	      for array in h5file.root._f_walkNodes("Array", recursive=True):
 	          print array
 	    </verbatim>
 
@@ -9332,7 +9332,8 @@ AttributeError: 'module' object has no attribute 'MyClass'
 
 	    <subsubsection id="FiltersInitDescr">
 	      <heading><visual markup="tt">Filters(complevel=0,
-		  complib="zlib", shuffle=1, fletcher32=0)</visual>
+		  complib="zlib", shuffle=True,
+		  fletcher32=False)</visual>
 	      </heading>
 
 	      <p>The parameters that can be passed to the
@@ -9358,16 +9359,18 @@ AttributeError: 'module' object has no attribute 'MyClass'
 		  <em>shuffle</em> filter present in the
 		  <verb>HDF5</verb> library. This is normally used to
 		  improve the compression ratio (at the cost of
-		  consuming a little bit more CPU time). A value of 0
-		  disables shuffling and 1 makes it active. The default
-		  value depends on whether compression is enabled or
-		  not; if compression is enabled, shuffling defaults to
-		  be active, else shuffling is disabled.
+		  consuming a little bit more CPU time). A value of
+		  <em>False</em> disables shuffling and <em>True</em>
+		  makes it active. The default value depends on
+		  whether compression is enabled or not; if
+		  compression is enabled, shuffling defaults to be
+		  active, else shuffling is disabled.
 		</item>
-		<term>fletcher32</term> <item>Whether or not to use the
-		  <em>fletcher32</em> filter in the HDF5 library. This
-		  is used to add a checksum on each data chunk. A value
-		  of 0 disables the checksum and it is the default.
+		<term>fletcher32</term> <item>Whether or not to use
+		  the <em>fletcher32</em> filter in the HDF5
+		  library. This is used to add a checksum on each data
+		  chunk. A value of <em>False</em> disables the
+		  checksum and it is the default.
 		</item>
 	      </description>
 
@@ -9445,8 +9448,8 @@ Result Array:
 	    </p>
 
 	    <subsubsection id="IndexPropsInitDescr">
-	      <heading><visual markup="tt">IndexProps(auto=1, reindex=1,
-		  filters=None)</visual>
+	      <heading><visual markup="tt">IndexProps(auto=True,
+		  reindex=True, filters=None)</visual>
 	      </heading>
 
 	      <p>The parameters that can be passed to the
@@ -11781,9 +11784,9 @@ variables:
 	      default compression are determined from a
 	      <verb>Filters</verb> class instance (see section <ref
 	      refid="FiltersClassDescr"></ref>) with
-	      <verb>complevel=6, complib='zlib' and shuffle=1</verb>.
-	      To change the default compression, simply pass a
-	      <verb>Filters</verb> instance to
+	      <verb>complevel=6, complib='zlib' and
+	      shuffle=True</verb>.  To change the default compression,
+	      simply pass a <verb>Filters</verb> instance to
 	      <verb>createVariable</verb> with the
 	      <verb>filters</verb> keyword.  If your data only has a
 	      certain number of digits of precision (say for example,
@@ -11972,8 +11975,8 @@ variables:
 		  PyTables <verb>Filters</verb> instance that
 		  describes how to store the data on disk.  The
 		  default corresponds to <verb>complevel=6</verb>,
-		  <verb>complib='zlib'</verb>, <verb>shuffle=1</verb>
-		  and <verb>fletcher32=0</verb>.
+		  <verb>complib='zlib'</verb>, <verb>shuffle=True</verb>
+		  and <verb>fletcher32=False</verb>.
 		</item>
 
 		<term>nctoh5(filename, unpackshort=True,
@@ -11993,8 +11996,8 @@ variables:
 		  change the default parameters used to compress the
 		  data in the <verb>tables.NetCDF</verb> file. The
 		  default corresponds to <verb>complevel=6</verb>,
-		  <verb>complib='zlib'</verb>, <verb>shuffle=1</verb>
-		  and <verb>fletcher32=0</verb>.
+		  <verb>complib='zlib'</verb>, <verb>shuffle=True</verb>
+		  and <verb>fletcher32=False</verb>.
 		</item>
 
 		<term>h5tonc(filename, packshort=False,
@@ -12327,8 +12330,8 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
 	      <em>filters</em> keyword is a PyTables filters instance
 	      that describes how to store the data on disk.  The
 	      default corresponds to <verb>complevel=6</verb>,
-	      <verb>complib='zlib'</verb>, <verb>shuffle=1</verb> and
-	      <verb>fletcher32=0</verb>.
+	      <verb>complib='zlib'</verb>, <verb>shuffle=True</verb>
+	      and <verb>fletcher32=False</verb>.
 	    </item>
 
 	    <item><verb>tables.NetCDF</verb> data can be saved to a

@@ -809,7 +809,7 @@ class NoReindex(IsDescription):
 
 class ChangeFilters(IsDescription):
     _v_indexprops = IndexProps(filters=Filters(complevel=6, complib="zlib",
-                                               shuffle=0, fletcher32=1))
+                                               shuffle=False, fletcher32=True))
     var1 = StringCol(length=4, dflt="", indexed=1, pos=1)
     var2 = BoolCol(0, indexed=1, pos=2)
     var3 = IntCol(0, indexed=1, pos=3)
@@ -893,22 +893,22 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         if self.klass is Small:
             assert table.indexprops is not None
         elif self.klass is NoAuto:
-            assert table.indexprops.auto == 0
-            assert table.indexprops.reindex == 1
+            assert table.indexprops.auto == False
+            assert table.indexprops.reindex == True
             filters = Filters(complevel=1, complib="zlib",
-                              shuffle=1, fletcher32=0)
+                              shuffle=True, fletcher32=False)
             assert str(table.indexprops.filters) == str(filters)
         elif self.klass is NoReindex:
-            assert table.indexprops.auto == 1
-            assert table.indexprops.reindex == 0
+            assert table.indexprops.auto == True
+            assert table.indexprops.reindex == False
             filters = Filters(complevel=1, complib="zlib",
-                              shuffle=1, fletcher32=0)
+                              shuffle=True, fletcher32=False)
             assert str(table.indexprops.filters) == str(filters)
         elif self.klass is ChangeFilters:
-            assert table.indexprops.auto == 1
-            assert table.indexprops.reindex == 1
+            assert table.indexprops.auto == True
+            assert table.indexprops.reindex == True
             filters = Filters(complevel=6, complib="zlib",
-                              shuffle=0, fletcher32=1)
+                              shuffle=False, fletcher32=True)
             assert str(table.indexprops.filters) == str(filters)
 
         # Check Index() objects exists and are properly placed
@@ -977,22 +977,22 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         if self.klass is Small:
             assert table.indexprops is not None
         elif self.klass is NoAuto:
-            assert table.indexprops.auto == 0
-            assert table.indexprops.reindex == 1
+            assert table.indexprops.auto == False
+            assert table.indexprops.reindex == True
             filters = Filters(complevel=1, complib="zlib",
-                              shuffle=1, fletcher32=0)
+                              shuffle=True, fletcher32=False)
             assert str(table.indexprops.filters) == str(filters)
         elif self.klass is NoReindex:
-            assert table.indexprops.auto == 1
-            assert table.indexprops.reindex == 0
+            assert table.indexprops.auto == True
+            assert table.indexprops.reindex == False
             filters = Filters(complevel=1, complib="zlib",
-                              shuffle=1, fletcher32=0)
+                              shuffle=True, fletcher32=False)
             assert str(table.indexprops.filters) == str(filters)
         elif self.klass is ChangeFilters:
-            assert table.indexprops.auto == 1
-            assert table.indexprops.reindex == 1
+            assert table.indexprops.auto == True
+            assert table.indexprops.reindex == True
             filters = Filters(complevel=6, complib="zlib",
-                              shuffle=0, fletcher32=1)
+                              shuffle=False, fletcher32=True)
             assert str(table.indexprops.filters) == str(filters)
 
 
@@ -1053,22 +1053,22 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         if self.klass is Small:
             assert table.indexprops is not None
         elif self.klass is NoAuto:
-            assert table.indexprops.auto == 0
-            assert table.indexprops.reindex == 1
+            assert table.indexprops.auto == False
+            assert table.indexprops.reindex == True
             filters = Filters(complevel=1, complib="zlib",
-                              shuffle=1, fletcher32=0)
+                              shuffle=True, fletcher32=False)
             assert str(table.indexprops.filters) == str(filters)
         elif self.klass is NoReindex:
-            assert table.indexprops.auto == 1
-            assert table.indexprops.reindex == 0
+            assert table.indexprops.auto == True
+            assert table.indexprops.reindex == False
             filters = Filters(complevel=1, complib="zlib",
-                              shuffle=1, fletcher32=0)
+                              shuffle=False, fletcher32=False)
             assert str(table.indexprops.filters) == str(filters)
         elif self.klass is ChangeFilters:
-            assert table.indexprops.auto == 1
-            assert table.indexprops.reindex == 1
+            assert table.indexprops.auto == True
+            assert table.indexprops.reindex == True
             filters = Filters(complevel=6, complib="zlib",
-                              shuffle=0, fletcher32=1)
+                              shuffle=False, fletcher32=True)
             assert str(table.indexprops.filters) == str(filters)
 
 
@@ -1088,6 +1088,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             table = self.fileh.root.table
         # Check the dirty flag for indexes
         if verbose:
+            print "reindex flag:", table.indexprops.reindex
             for colname in table.colnames:
                 print "dirty flag col %s: %s" % \
                       (colname, table.cols._f_col(colname).dirty)
