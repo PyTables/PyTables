@@ -1,6 +1,7 @@
 import sys
 
-import numarray as num
+from numarray import asarray
+from numarray.strings import CharArray, asarray as str_asarray
 
 from tables.numexpr import interpreter
 from tables.numexpr.expressions import getKind
@@ -72,6 +73,9 @@ def sigPerms(s):
         for x in codes[start:]:
             for y in sigPerms(s[1:]):
                 yield x + y
+    elif s[0] == 's':  # numbers shall not be cast to strings
+        for y in sigPerms(s[1:]):
+            yield 's' + y
     else:
         yield s
 
@@ -98,7 +102,8 @@ def typeCompileAst(ast):
         for i, (have, want)  in enumerate(zip(basesig, sig)):
             if have != want:
                 kind = { 'b': 'bool', 'i' : 'int', 'l': 'long',
-                         'f' : 'float', 'c' : 'complex' }[want]
+                         'f' : 'float', 'c' : 'complex',
+                         's': 'str' }[want]
                 if children[i].astType == 'constant':
                     children[i] = ASTNode('constant', kind, children[i].value)
                 else:
@@ -168,13 +173,14 @@ def stringToExpression(s, types, context):
     names = {}
     kind_names = {
         bool: 'bool', int: 'int', long: 'long',
-        float: 'float', complex: 'complex' }
+        float: 'float', complex: 'complex',
+        str: 'str' }
     for name in c.co_names:
         names[name] = expr.VariableNode(name, kind_names[types.get(name, float)])
     names.update(expr.functions)
     # now build the expression
     ex = eval(c, names)
-    if isinstance(ex, (bool, int, long, float, complex)):
+    if isinstance(ex, (bool, int, long, float, complex, str)):
         ex = expr.ConstantNode(ex, getKind(ex))
     return ex
 
@@ -200,7 +206,8 @@ def convertConstant(x, kind):
             'int' : int,
             'long' : long,
             'float' : float,
-            'complex' : complex}[kind](x)
+            'complex' : complex,
+            'str' : str}[kind](x)
 
 def getConstants(ast):
     const_map = {}
@@ -262,7 +269,8 @@ def optimizeTemporariesAllocation(ast):
                 users_of[c.reg].add(n)
     unused = {
         'bool': set(), 'int': set(), 'long': set(),
-        'float': set(), 'complex': set() }
+        'float': set(), 'complex': set(),
+        'str': set() }
     for n in nodes:
         for reg, users in users_of.iteritems():
             if n in users:
@@ -458,6 +466,8 @@ def disassemble(nex):
 
 
 def getType(a):
+    if hasattr(a, 'toUpper'):  # no ``dtype`` in numarray character arrays
+        return str
     tname = a.dtype.name
     if tname.startswith('bool'):
         return bool
@@ -469,6 +479,8 @@ def getType(a):
         return float
     if tname.startswith('complex'):
         return complex
+    # if tname.startswith('string'):  # this is for NumPy character arrays
+    #    return str
     raise ValueError("unkown type %s" % tname)
 
 
@@ -514,7 +526,10 @@ def evaluate(ex, local_dict=None, global_dict=None, **kwargs):
         except KeyError:
             a = global_dict[name]
         # Byteswapped arrays are taken care of in the extension.
-        arguments.append(num.asarray(a))   # don't make a data copy, if possible
+        if isinstance(a, str):
+            arguments.append(str_asarray(a))  # only for numarray
+        else:
+            arguments.append(asarray(a))   # don't make a data copy, if possible
         if (hasattr(a, 'flags') and            # numpy object
             (not a.flags.contiguous or
              not a.flags.aligned)):
@@ -522,7 +537,10 @@ def evaluate(ex, local_dict=None, global_dict=None, **kwargs):
         elif (hasattr(a, 'iscontiguous') and     # numarray object
               (not a.iscontiguous() or
                not a.isaligned())):
-            copy_args.append(name)    # do a copy to temporary
+            # String temporaries are not yet supported, but numexprs
+            # knows how to handle discontiguous string arrays.
+            if not isinstance(a, CharArray):
+                copy_args.append(name)    # do a copy to temporary
 
     # Create a signature
     signature = [(name, getType(arg)) for (name, arg) in zip(names, arguments)]

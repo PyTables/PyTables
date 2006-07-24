@@ -2,6 +2,7 @@ import unittest
 import warnings
 import numarray.dtype
 from numarray import *
+from numarray.strings import array as str_array
 from numexpr import E, numexpr, evaluate
 
 # These are simplifications from the functions in ``numpy.testing``.
@@ -214,7 +215,6 @@ class test_expressions(NumexprTestCase):
                                 self.warn('numexpr error for expression %r' % (expr,))
                                 raise
 
-
 class test_int32_int64(NumexprTestCase):
     def check_small_long(self):
         # Small longs should not be downgraded to ints.
@@ -247,12 +247,63 @@ class test_int32_int64(NumexprTestCase):
         assert_array_equal(respy, resnx)
         self.assertEqual(resnx.dtype.name, 'int64')
 
+class test_strings(NumexprTestCase):
+    str_array1 = str_array(['foo', 'bar', '', '  '])
+    str_array2 = str_array(['foo', '', 'x', ' '])
+    str_constant = 'doodoo'
+
+    def check_compare_array(self):
+        sarr1 = self.str_array1
+        sarr2 = self.str_array2
+        expr = 'sarr1 >= sarr2'
+        res1 = eval(expr)
+        res2 = evaluate(expr)
+        assert_array_equal(res1, res2)
+
+    def check_compare_variable(self):
+        sarr = self.str_array1
+        svar = self.str_constant
+        expr = 'sarr >= svar'
+        res1 = eval(expr)
+        res2 = evaluate(expr)
+        assert_array_equal(res1, res2)
+
+    def check_compare_constant(self):
+        sarr = self.str_array1
+        expr = 'sarr >= %r' % self.str_constant
+        res1 = eval(expr)
+        res2 = evaluate(expr)
+        assert_array_equal(res1, res2)
+
+    def check_add_string_array(self):
+        sarr1 = self.str_array1
+        sarr2 = self.str_array2
+        expr = 'sarr1 + sarr2'
+        self.assert_missing_op('add_sss', expr, locals())
+
+    def check_add_numeric_array(self):
+        sarr = self.str_array1
+        narr = arange(len(sarr))
+        expr = 'sarr >= narr'
+        self.assert_missing_op('ge_bsi', expr, locals())
+
+    def assert_missing_op(self, op, expr, local_dict):
+        msg = "expected NotImplementedError regarding '%s'" % op
+        try:
+            evaluate(expr, local_dict)
+        except NotImplementedError, nie:
+            if "'%s'" % op not in nie.args[0]:
+                self.fail(msg)
+        else:
+            self.fail(msg)
+
 def suite():
     the_suite = unittest.TestSuite()
     the_suite.addTest(unittest.makeSuite(test_numexpr, prefix='check'))
     the_suite.addTest(unittest.makeSuite(test_evaluate, prefix='check'))
     the_suite.addTest(unittest.makeSuite(test_expressions, prefix='check'))
     the_suite.addTest(unittest.makeSuite(test_int32_int64, prefix='check'))
+    the_suite.addTest(unittest.makeSuite(test_strings, prefix='check'))
     return the_suite
 
 if __name__ == '__main__':

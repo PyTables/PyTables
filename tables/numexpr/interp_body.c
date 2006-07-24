@@ -59,24 +59,31 @@
         #define f_dest ((double *)dest)[j]
         #define cr_dest ((double *)dest)[2*j]
         #define ci_dest ((double *)dest)[2*j+1]
+        #define s_dest ((char *)dest)[memsizes[store_in]*j] /* contiguous */
         #define b1    ((char   *)x1)[j]
         #define i1    ((int    *)x1)[j]
         #define l1    ((long long *)x1)[j]
         #define f1    ((double *)x1)[j]
         #define c1r   ((double *)x1)[2*j]
         #define c1i   ((double *)x1)[2*j+1]
+        /* #define s1    ((char   *)x1)[memsizes[arg1]*j] / *contiguous* / */
+        #define s1    ((char   *)(x1 + j*memsteps[arg1])) /* non-contiguous */
         #define b2    ((char   *)x2)[j]
         #define i2    ((int    *)x2)[j]
         #define l2    ((long long *)x2)[j]
         #define f2    ((double *)x2)[j]
         #define c2r   ((double *)x2)[2*j]
         #define c2i   ((double *)x2)[2*j+1]
+        /* #define s2    ((char   *)x2)[memsizes[arg2]*j] / *contiguous* / */
+        #define s2    ((char   *)(x2 + j*memsteps[arg2])) /* non-contiguous */
         #define b3    ((char   *)x3)[j]
         #define i3    ((int    *)x3)[j]
         #define l3    ((long long *)x3)[j]
         #define f3    ((double *)x3)[j]
         #define c3r   ((double *)x3)[2*j]
         #define c3i   ((double *)x3)[2*j+1]
+        /* #define s3    ((char   *)x3)[memsizes[arg3]*j] / *contiguous* / */
+        #define s3    ((char   *)(x3 + j*memsteps[arg3])) /* non-contiguous */
         double fa, fb;
         cdouble ca, cb;
 
@@ -100,6 +107,9 @@
         case OP_COPY_CC:
             VEC_ARG1(memcpy(dst, src, sizeof(double)*2);
                      dst += sizeof(double)*2; src += str1);
+        case OP_COPY_SS:
+            VEC_ARG1(memcpy(dst, src, memsizes[arg1]);
+                     dst += memsizes[arg1]; src += str1);
 
         case OP_INVERT_BB: VEC_ARG1(b_dest = !b1);
 
@@ -120,6 +130,11 @@
         case OP_GE_BFF: VEC_ARG2(b_dest = (f1 >= f2) ? 1 : 0);
         case OP_EQ_BFF: VEC_ARG2(b_dest = (f1 == f2) ? 1 : 0);
         case OP_NE_BFF: VEC_ARG2(b_dest = (f1 != f2) ? 1 : 0);
+
+        case OP_GT_BSS: VEC_ARG2(b_dest = (strncmp(s1, s2, (memsizes[arg1] < memsizes[arg2]) ? memsizes[arg1] : memsizes[arg2]) > 0));
+        case OP_GE_BSS: VEC_ARG2(b_dest = (strncmp(s1, s2, (memsizes[arg1] < memsizes[arg2]) ? memsizes[arg1] : memsizes[arg2]) >= 0));
+        case OP_EQ_BSS: VEC_ARG2(b_dest = (strncmp(s1, s2, (memsizes[arg1] < memsizes[arg2]) ? memsizes[arg1] : memsizes[arg2]) == 0));
+        case OP_NE_BSS: VEC_ARG2(b_dest = (strncmp(s1, s2, (memsizes[arg1] < memsizes[arg2]) ? memsizes[arg1] : memsizes[arg2]) != 0));
 
         case OP_CAST_IB: VEC_ARG1(i_dest = (int)(b1));
         case OP_ONES_LIKE_II: VEC_ARG1(i_dest = 1);
@@ -241,22 +256,26 @@
 #undef f_dest
 #undef cr_dest
 #undef ci_dest
+#undef s_dest
 #undef b1
 #undef i1
 #undef l1
 #undef f1
 #undef c1r
 #undef c1i
+#undef s1
 #undef b2
 #undef i2
 #undef l2
 #undef f2
 #undef c2r
 #undef c2i
+#undef s2
 #undef b3
 #undef i3
 #undef l3
 #undef f3
 #undef c3r
 #undef c3i
+#undef s3
 }

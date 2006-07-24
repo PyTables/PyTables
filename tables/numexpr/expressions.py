@@ -34,7 +34,7 @@ def ophelper(f):
     def func(*args):
         args = list(args)
         for i, x in enumerate(args):
-            if isinstance(x, (bool, int, long, float, complex)):
+            if isinstance(x, (bool, int, long, float, complex, str)):
                 args[i] = x = ConstantNode(x)
             if not isinstance(x, ExpressionNode):
                 return NotImplemented
@@ -50,6 +50,11 @@ def all_constant(args):
 
 kind_rank = ['bool', 'int', 'long', 'float', 'complex', 'none']
 def common_kind(nodes):
+    strcount = list(nodes).count('str')
+    if 0 < strcount < len(nodes):  # some args are strings, but not all
+        raise TypeError("strings can only be operated with strings")
+    if strcount > 0:  # if there are some, all of them must be
+        return 'str'
     n = -1
     for x in nodes:
         n = max(n, kind_rank.index(x.astKind))
@@ -249,6 +254,8 @@ class VariableNode(LeafNode):
 max_int32 = 2147483647
 min_int32 = -max_int32 - 1
 def normalizeConstant(x):
+    if isinstance(x, str):
+        return str(x)
     # ``long`` objects are kept as is to allow the user to force
     # promotion of results by using long constants, e.g. by operating
     # a 32-bit array with a long (64-bit) constant.
@@ -274,7 +281,8 @@ def getKind(x):
             int : 'int',
             long : 'long',
             float : 'float',
-            complex : 'complex'}[type(normalizeConstant(x))]
+            complex : 'complex',
+            str : 'str'}[type(normalizeConstant(x))]
 
 class ConstantNode(LeafNode):
     astType = 'constant'
