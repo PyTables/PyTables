@@ -269,6 +269,8 @@ class Table(TableExtension.Table, Leaf):
         """A `Description` instance describing the structure of the table."""
         self._time64colnames = []
         """The names of ``Time64`` columns."""
+        self._strcolnames = []
+        """The names of ``CharType`` columns."""
         self._colenums = {}
         """Maps the name of an enumerated column to its ``Enum`` instance."""
         self._v_maxTuples = None
@@ -538,16 +540,12 @@ class Table(TableExtension.Table, Leaf):
         # The rest of the info is automatically added when self.create()
         # is called
 
-    def _getTime64ColNames(self):
-        """Returns a list containing 'Time64' column names."""
-
-        # This should be generalised into some infrastructure to support
-        # other kinds of columns to be converted.
-        # ivilata(2004-12-21)
+    def _getTypeColNames(self, stype):
+        """Returns a list containing 'stype' column names."""
 
         return [ colobj._v_pathname
                  for colobj in self.description._v_walk('Col')
-                 if colobj.stype == 'Time64' ]
+                 if colobj.stype == stype ]
 
     def _getEnumMap(self):
         """Return mapping from enumerated column names to `Enum` instances."""
@@ -594,7 +592,9 @@ class Table(TableExtension.Table, Leaf):
 # for a row size of %s bytes.""" % (self.rowsize)
 
         # Find Time64 column names. (This should be generalised.)
-        self._time64colnames = self._getTime64ColNames()
+        self._time64colnames = self._getTypeColNames('Time64')
+        # Find CharType column names.
+        self._strcolnames = self._getTypeColNames('CharType')
         # Get a mapping of enumerated columns to their `Enum` instances.
         self._colenums = self._getEnumMap()
 
@@ -710,8 +710,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # self.colnames, coltypes, col*... should be removed?
         self.colnames = tuple(self.description._v_nestedNames)
 
-        # Find Time64 column names. (This should be generalised.)
-        self._time64colnames = self._getTime64ColNames()
+        # Find Time64 column names.
+        self._time64colnames = self._getTypeColNames('Time64')
+        # Find CharType column names.
+        self._strcolnames = self._getTypeColNames('CharType')
         # Get a mapping of enumerated columns to their `Enum` instances.
         self._colenums = self._getEnumMap()
 

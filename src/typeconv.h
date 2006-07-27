@@ -34,4 +34,12 @@ void conv_float64_timeval32(void *base,
 			    unsigned long nelements,
 			    int sense);
 
+void conv_space_null(void *base,
+		     unsigned long byteoffset,
+		     unsigned long bytestride,
+		     PY_LONG_LONG nrecords,
+		     unsigned long nelements,
+		     unsigned long itemsize,
+		     int sense);
+
 #endif /* def __TYPECONV_H__ */

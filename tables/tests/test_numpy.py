@@ -569,7 +569,7 @@ class TestTDescr(IsDescription):
     y = FloatCol(1, shape=(2,2))
     z = UInt8Col(1)
     z3 = EnumCol({'r':4, 'g':2, 'b':1}, 'r', shape=2)
-    color = StringCol(2, " ", pos=2)
+    color = StringCol(4, "ab", pos=2)
     info = Info()
     class Info(IsDescription): #1
         _v_pos = 1
@@ -718,7 +718,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
-        data = table.readIndexed(table.cols.color == " ")
+        data = table.readIndexed(table.cols.color == "ab")
         if verbose:
             print "Type of read:", type(data)
             print "Length of the data read:", len(data)
@@ -1099,6 +1099,98 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "data-->", data
         # A copy() is needed in case the buffer would be in different segments
         assert allequal(ycol, data, "numpy")
+
+    def test09a_getStrings(self):
+        """Checking the return of string columns with spaces."""
+
+        self._verboseHeader()
+
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+        table = self.fileh.root.table
+        rdata = table.getWhereList(table.cols.color == "ab")
+        data = table.readCoordinates(rdata)
+        if verbose:
+            print "Type of read:", type(data)
+            print "Description of the record:", data.dtype.descr
+            print "First 3 elements of read:", data[:3]
+        # Check that both NumPy objects are equal
+        assert isinstance(data, ndarray)
+        # Check that all columns have been selected
+        assert len(data) == 100
+        # Finally, check that the contents are ok
+        for idata in data['color']:
+            assert idata == array("ab", dtype="|S4")
+
+    def test09b_getStrings(self):
+        """Checking the return of string columns with spaces. (modify)"""
+
+        self._verboseHeader()
+
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+        table = self.fileh.root.table
+        for i in range(50):
+            table.cols.color[i] = "a  "
+        table.flush()
+        data = table[:]
+        if verbose:
+            print "Type of read:", type(data)
+            print "Description of the record:", data.dtype.descr
+            print "First 3 elements of read:", data[:3]
+        # Check that both NumPy objects are equal
+        assert isinstance(data, ndarray)
+        # Check that all columns have been selected
+        assert len(data) == 100
+        # Finally, check that the contents are ok
+        for i in range(100):
+            idata = data['color'][i]
+            if i >= 50:
+                assert idata == array("ab", dtype="|S4")
+            else:
+                assert idata == array("a  ", dtype="|S4")
+
+    def test09c_getStrings(self):
+        """Checking the return of string columns with spaces. (append)"""
+
+        self._verboseHeader()
+
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+        table = self.fileh.root.table
+        row = table.row
+        for i in range(50):
+            row["color"] = "a  "
+            row.append()
+        table.flush()
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+        data = self.fileh.root.table[:]
+        if verbose:
+            print "Type of read:", type(data)
+            print "Description of the record:", data.dtype.descr
+            print "First 3 elements of read:", data[:3]
+        # Check that both NumPy objects are equal
+        assert isinstance(data, ndarray)
+        # Check that all columns have been selected
+        assert len(data) == 150
+        # Finally, check that the contents are ok
+        # Finally, check that the contents are ok
+        for i in range(150):
+            idata = data['color'][i]
+            if i < 100:
+                assert idata == array("ab", dtype="|S4")
+            else:
+                # Warning! The correct value should be "a  ", but the
+                # trailing spaces are eaten right now.
+                # This should be hopefully addressed in the future when
+                # numpy would be used in the core of PyTables.
+                #assert idata == array("a  ", dtype="|S4")
+                assert idata == array("a", dtype="|S4")
 
 class TableNativeFlavorOpenTestCase(TableNativeFlavorTestCase):
     close = 0

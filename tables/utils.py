@@ -431,18 +431,19 @@ def convertNAToNumPy(arr):
 
     # This works for both CharArray and regular homogeneous arrays
     # and even for rank-0 arrays!
-    if isinstance(arr, numarray.NumArray):
-        arr = numpy.asarray(arr)  # Array protocol
-    elif isinstance(arr, strings.CharArray):
-        # We can't use the array protocol to do this conversion
-        # because of the different conventions that follow numarray
-        # and numpy to end strings. See ticket #13 for an example
-        # of the problems that can appear. This solution is definetly
-        # not as efficient as the array protocol, but it does handle
-        # well the trailing spaces issue.
-        # F. Altet 2006-06-19
-        dtype = "|S%s" % arr.itemsize()
-        arr = numpy.array(arr.tolist(), dtype=dtype)
+    arr=numpy.asarray(arr)  # Array protocol
+#     if isinstance(arr, numarray.NumArray):
+#         arr = numpy.asarray(arr)  # Array protocol
+#     elif isinstance(arr, strings.CharArray):
+#         # We can't use the array protocol to do this conversion
+#         # because of the different conventions that follow numarray
+#         # and numpy to end strings. See ticket #13 for an example
+#         # of the problems that can appear. This solution is definetly
+#         # not as efficient as the array protocol, but it does handle
+#         # well the trailing spaces issue.
+#         # F. Altet 2006-06-19
+#         dtype = "|S%s" % arr.itemsize()
+#         arr = numpy.array(arr.tolist(), dtype=dtype)
     return arr
 
 

@@ -13,7 +13,8 @@ STEP = 1000*100  # the size of the buffer to fill the table, in rows
 SCALE = 0.1      # standard deviation of the noise compared with actual values
 NI_NTIMES = 2      # The number of queries for doing a mean (non-idx cols)
 I_NTIMES = 10      # The number of queries for doing a mean (idx cols)
-READ_TIMES = 100    # The number of complete calls to DB.query_db()
+#READ_TIMES = 100    # The number of complete calls to DB.query_db()
+READ_TIMES = 20    # The number of complete calls to DB.query_db()
 MROW = 1000*1000.
 
 # global variables

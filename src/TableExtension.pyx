@@ -30,7 +30,7 @@ import numarray
 import tables.hdf5Extension
 from tables.exceptions import HDF5ExtError
 from tables.utilsExtension import createNestedType, \
-     getNestedType, convertTime64, getTypeEnum, enumFromHDF5
+     getNestedType, convertTime64, space2null, getTypeEnum, enumFromHDF5
 from tables.numexpr import evaluate  ##XXX
 
 
@@ -375,7 +375,7 @@ cdef class Table:  # XXX extends Leaf
         raise HDF5ExtError("failed to close HDF5 enumerated type")
 
   def _convertTypes(self, object recarr, hsize_t nrecords, int sense):
-    """Converts Time64 columns in 'recarr' between Numarray and HDF5 formats.
+    """Converts columns in 'recarr' between Numarray and HDF5 formats.
 
     Numarray to HDF5 conversion is performed when 'sense' is 0.
     Otherwise, HDF5 to Numarray conversion is performed.
@@ -385,6 +385,11 @@ cdef class Table:  # XXX extends Leaf
     # This should be generalised to support other type conversions.
     for t64cname in self._time64colnames:
       convertTime64(recarr.field(t64cname), nrecords, sense)
+
+    # Only convert padding spaces into nulls if we have a "numpy" flavor
+    if self.flavor == "numpy":
+      for strcname in self._strcolnames:
+        space2null(recarr.field(strcname), nrecords, sense)
 
   def _open_append(self, object recarr):
     cdef long buflen

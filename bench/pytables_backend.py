@@ -123,15 +123,16 @@ class PyTables_DB(DB):
             #print "rows-->", coords
         else:
             coords = [r.nrow for r in
-                      table.where(self.rng[0]+base <= colobj <= self.rng[1]+base)]
                       #table.where(self.rng[0]+base == colobj)]
+                      table.where(self.rng[0]+base <= colobj <= self.rng[1]+base)]
+            t1 = time()
+            results = table.readCoordinates(coords)
+            ncoords = len(coords)
+        #print "readCoords-->", time()-t1
             #print "rows-->", coords
         #print "getWhereList-->", time()-t1
 
         #return coords
-        #t1 = time()
-        #results = table.readCoordinates(coords)
-        #print "readCoords-->", time()-t1
 
-        return len(results)
-        #return ncoords
+        #return len(results)
+        return ncoords
