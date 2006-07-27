@@ -965,7 +965,7 @@ This method is intended only for indexed columns, but this column has not a mini
         if nrecords > 0:
             #coords = index.getCoords(0, nrecords)
             # The line below is the optimized call in pyrex
-            coords = index.indices._getCoords(0, nrecords)
+            coords = index.indices._getCoords(index, 0, nrecords)
             recout = self._read_elements(recarr, coords)
         # Delete indexation caches
         self.whereCondition = None
@@ -1006,7 +1006,7 @@ please reindex the table to put the index in a sane state""")
         if nrecords > 0:
             #coords = index.getCoords(0, nrecords)
             # The line below is the optimized call in pyrex
-            coords = index.indices._getCoords(0, nrecords)
+            coords = index.indices._getCoords(index, 0, nrecords)
             recout = self._read_elements(recarr, coords)
         # Delete indexation caches
         self.ops = []
