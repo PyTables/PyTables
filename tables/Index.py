@@ -694,6 +694,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         """The `Atom` instance matching to be stored by the index array."""
         if atom is not None:
             self.type = atom.type
+            self.stype = str(atom.type)
             """The datatype to be stored by the sorted index array."""
             self.itemsize = atom.itemsize
             """The itemsize of the datatype to be stored by the index array."""
@@ -729,6 +730,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if not self._v_new:
             # Set-up some variables from info on disk and return
             self.type = self.sorted.type
+            self.stype = self.sorted.stype
             self.itemsize = self.sorted.itemsize
             if self.is_pro:
                 # The number of elements is at the end of the indices array
@@ -758,8 +760,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Set the filters for this object (they are *not* inherited)
         filters = self._v_new_filters
         if filters is None:
-            # If not filters has been passed in the constructor,
-            # set a sensible default, using zlib compression and shuffling
+            # If no filters have been passed to the constructor,
+            # set a sensible default using zlib compression and shuffling.
             filters = Filters(complevel = 1, complib = "zlib",
                               shuffle = 1, fletcher32 = 0)
         self.filters = filters
@@ -779,7 +781,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                    self.testmode, self._v_expectedrows)
 
         # Create the cache for range values  (1st order cache)
-        if str(self.type) == "CharType":
+        if self.stype == "CharType":
             atom = StringAtom(shape=(0, 2), length=self.itemsize)
         else:
             atom = Atom(self.type, shape=(0,2))
@@ -791,7 +793,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         # Create the cache for boundary values (2nd order cache)
         nbounds_inslice = (self.slicesize - 1 ) // self.chunksize
-        if str(self.type) == "CharType":
+        if self.stype == "CharType":
             atom = StringAtom(shape=(0, nbounds_inslice),
                               length=self.itemsize)
         else:
@@ -800,7 +802,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                    self._v_expectedrows//self.chunksize)
 
         # begin, end & median bounds (only for numeric types)
-        if str(self.type) != "CharType":
+        if self.stype != "CharType":
             atom = Atom(self.type, shape=(0,))
             EArray(self, 'abounds', atom, "Start bounds", _log=False)  ##XXXXXX
             EArray(self, 'zbounds', atom, "End bounds", filters, _log=False)  ##XXXXXX
@@ -809,7 +811,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         # Create the Array for last (sorted) row values + bounds
         shape = 2 + nbounds_inslice + self.slicesize
-        if str(self.type) == "CharType":
+        if self.stype == "CharType":
             arr = strings.array(None, shape=shape, itemsize=self.itemsize)
         else:
             arr = numarray.array(None, shape=shape, type=self.type)
@@ -837,7 +839,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         # Objects that arrive here should be numarray objects already
         # Save the sorted array
-        if str(self.type) == "CharType":
+        if self.stype == "CharType":
             s=arr.argsort()
         else:
             s=numarray.argsort(arr)
@@ -849,7 +851,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         cs = self.chunksize
         self.ranges.append([sarr[[0,-1]]])
         self.bounds.append([sarr[cs::cs]])
-        if str(self.type) != "CharType":
+        if self.stype != "CharType":
             self.abounds.append(sarr[0::cs])
             self.zbounds.append(sarr[cs-1::cs])
             # Compute the medians
@@ -874,7 +876,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         assert nelementsLR == len(arr), \
 "The number of elements to append is incorrect!. Report this to the authors."
         # Sort the array
-        if str(self.type) == "CharType":
+        if self.stype == "CharType":
             s=arr.argsort()
             # build the cache of bounds
             # this is a rather weird way of concatenating chararrays, I agree
@@ -979,14 +981,13 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.tmpfilename = tempfile.mkstemp(".idx", "tmp-", dirname)[1]
         self.tmpfile = openFile(self.tmpfilename, "w")
         self.tmp = self.tmpfile.root
-        print "chunksize-->", self.chunksize, self.type
         cs = self.chunksize
         ss = self.slicesize
         filters = self.filters
         #filters = None    # compressing temporaries is very inefficient!
         # temporary sorted & indices arrays
         shape = (self.nrows, ss)
-        if str(self.type) == "CharType":
+        if self.stype == "CharType":
             atom = StringAtom(shape=(1,cs), length=self.itemsize)
         else:
             atom = Atom(self.type, shape=(1,cs))
@@ -996,7 +997,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                "Temporary indices", filters)
         # temporary bounds
         shape = (self.nchunks,)
-        if str(self.type) == "CharType":
+        if self.stype == "CharType":
             atom = StringAtom(shape=(cs,), length=self.itemsize)
         else:
             atom = Atom(self.type, shape=(cs,))
@@ -1005,7 +1006,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         CArray(self.tmp, 'mbounds', shape, atom, "Median bounds", filters)
         # temporary ranges
         shape = (self.nslices, 2)
-        if str(self.type) == "CharType":
+        if self.stype == "CharType":
             atom = StringAtom(shape=(cs,2), length=self.itemsize)
         else:
             atom = Atom(self.type, shape=(cs,2))
@@ -1205,7 +1206,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     def compute_overlaps(self, message, verbose):
         "Compute the overlap index for slices (only valid for numeric values)."
-        if str(self.type) == "CharType":
+        if self.stype == "CharType":
             # The overlaps compuation cannot be done on strings
             return (1, 10)
         ranges = self.ranges[:]
@@ -1251,7 +1252,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         sorted = self.sorted
         sorted._initSortedSlice(self, pro=self.is_pro)
         if sorted.nrows > 0:
-            if self.is_pro and str(self.type) != "CharType":
+            if self.is_pro and self.stype != "CharType":
                 tlen = self.search_pro(item, sorted)
             else:
                 tlen = self.search_scalar(item, sorted)

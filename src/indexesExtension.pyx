@@ -278,8 +278,8 @@ cdef class IndexArray(Array):
       # Avoid loading too much data from second-level cache
       # If too much data is pre-loaded, this affects negatively to the
       # first data selection.
-      #if self.nrows * self.nbounds < 100000:    # for testing purposes
-      if self.nrows * self.nbounds < 4000:
+      if self.nrows * self.nbounds < 500000:    # for testing purposes
+      #if self.nrows * self.nbounds < 400:
         self.boundscache = index.bounds[:]
         self.bcache = True
       else:
@@ -490,13 +490,6 @@ cdef class IndexArray(Array):
                                          self.mem_space_id, self.type_id,
                                          nrow, cs*nchunk2, cs*(nchunk2+1),
                                          self.rbuflb)
-        # The next optimization in calls does not buy any real speed-up
-#           offset[0] = nrow
-#           offset[1] = cs*nchunk2
-#           H5Sselect_hyperslab(self.space_id, H5S_SELECT_SET, offset, stride,
-#                               count, NULL)
-#           H5Dread(self.dataset_id, self.type_id, self.mem_space_id,
-#                   self.space_id, H5P_DEFAULT, self.rbuflb)
           stop = bisect_right_d(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = nslice

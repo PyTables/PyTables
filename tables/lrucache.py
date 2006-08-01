@@ -39,6 +39,7 @@ discarded. [1]_
 
 from __future__ import generators
 import time
+import sys
 from heapq import heappush, heappop, heapify
 from utilsExtension import _g_Node
 
@@ -105,7 +106,6 @@ class LRUCache(object):
             self.key = key
             self.obj = obj
             self.atime = timestamp
-            #self.mtime = time.time()
 
         def __cmp__(self, other):
             #print "__cmp__!"
@@ -118,6 +118,7 @@ class LRUCache(object):
     def __getseqn(self):
         seqn = self.__seqn_
         self.__seqn_ = seqn + 1
+        #print seqn
         return seqn
 
     __seqn = property(__getseqn)
@@ -153,11 +154,15 @@ class LRUCache(object):
             # size may have been reset, so we loop
             while len(self.__heap) >= self.size:
                 lru = heappop(self.__heap)
+                #print "eliminant(setitem)-->", lru.obj._v_pathname
                 del self.__dict[lru.key]
             # Using _g_Node ext. is almost 4x faster than __Node in pure python
-            node = self.__Node(key, obj, self.__seqn)
-            #node = _g_Node(key, obj, self.__seqn)
+            #node = self.__Node(key, obj, self.__seqn)
+            node = _g_Node(key, obj, self.__seqn)
             self.__dict[key] = node
+            #print "introduint node-->", node.obj._v_pathname
+            #f = sys._getframe(3)
+            #print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
             heappush(self.__heap, node)
 
     def __getitem__(self, key):
@@ -165,6 +170,9 @@ class LRUCache(object):
             raise CacheKeyError(key)
         else:
             node = self.__dict[key]
+            #print "recuperant-->", node.obj._v_pathname
+            #f = sys._getframe(6)
+            #print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
             node.atime = self.__seqn
             heapify(self.__heap)
             return node.obj
@@ -174,6 +182,9 @@ class LRUCache(object):
             raise CacheKeyError(key)
         else:
             node = self.__dict[key]
+            #print "eliminant(delitem)-->", node.obj._v_pathname
+            #f = sys._getframe(6)
+            #print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
             del self.__dict[key]
             self.__heap.remove(node)
             heapify(self.__heap)
@@ -197,15 +208,6 @@ class LRUCache(object):
     def __repr__(self):
         return "<%s (%d elements)>" % (str(self.__class__), len(self.__heap))
 
-    def mtime(self, key):
-        """Return the last modification time for the cache record with key.
-        May be useful for cache instances where the stored values can get
-        'stale', such as caching file or network resource contents."""
-        if not self.__dict.has_key(key):
-            raise CacheKeyError(key)
-        else:
-            node = self.__dict[key]
-            return node.mtime
 
 if __name__ == "__main__":
     cache = LRUCache(25)
@@ -224,6 +226,6 @@ if __name__ == "__main__":
     for c in cache:
         print c
     print cache
-    print cache.mtime(46)
+    #print cache.mtime(46)
     for c in cache:
         print c

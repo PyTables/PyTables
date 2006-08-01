@@ -1,5 +1,5 @@
 from time import time
-#import subprocess  # requires Python 2.4
+import subprocess  # requires Python 2.4
 import popen2
 import random
 import numarray
@@ -13,8 +13,8 @@ STEP = 1000*100  # the size of the buffer to fill the table, in rows
 SCALE = 0.1      # standard deviation of the noise compared with actual values
 NI_NTIMES = 2      # The number of queries for doing a mean (non-idx cols)
 I_NTIMES = 10      # The number of queries for doing a mean (idx cols)
-#READ_TIMES = 100    # The number of complete calls to DB.query_db()
-READ_TIMES = 20    # The number of complete calls to DB.query_db()
+# READ_TIMES = 100    # The number of complete calls to DB.query_db()
+READ_TIMES = 1000    # The number of complete calls to DB.query_db()
 MROW = 1000*1000.
 
 # global variables
@@ -45,9 +45,9 @@ class DB(object):
         self.nrows = get_nrows(nrows)
 
     def get_db_size(self):
-#         sout = subprocess.Popen("du -s %s" % self.filename, shell=True,
-#                                 stdout=subprocess.PIPE).stdout
-        (sout, sin) = popen2.popen2("sync;du -s %s" % self.filename)
+        sout = subprocess.Popen("sync;du -s %s" % self.filename, shell=True,
+                                stdout=subprocess.PIPE).stdout
+#         (sout, sin) = popen2.popen2("sync;du -s %s" % self.filename)
         line = [l for l in sout][0]
         return int(line.split()[0])
 
@@ -184,12 +184,13 @@ if __name__=="__main__":
     except:
         psyco_imported = 0
 
-    usage = """usage: %s [-T] [-S] [-P] [-v] [-f] [-p] [-m] [-c] [-q] [-i] [-I] [-x] [-z complevel] [-l complib] [-R range] [-n nrows] [-d datadir] [-O level] [-s] col -Q [suplim]
+    usage = """usage: %s [-T] [-S] [-P] [-v] [-f] [-k] [-p] [-m] [-c] [-q] [-i] [-I] [-x] [-z complevel] [-l complib] [-R range] [-n nrows] [-d datadir] [-O level] [-s] col -Q [suplim]
             -T use Pytables
             -S use Sqlite3
             -P use Postgres
             -v verbose
-            -f do a profile of the run (only query functionality & Python 2.4)
+            -f do a profile of the run (only query functionality & Python 2.5)
+            -k do a profile for kcachegrind use (out file is 'indexed_search.kcg')
             -p use "psyco" if available
             -m use random values to fill the table
             -q do a query (both indexed and non-indexed versions)
@@ -208,7 +209,7 @@ if __name__=="__main__":
             \n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'TSPvfpmcqiIxz:l:R:n:d:O:s:Q:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'TSPvfkpmcqiIxz:l:R:n:d:O:s:Q:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -219,6 +220,7 @@ if __name__=="__main__":
     usepostgres = 0
     verbose = 0
     doprofile = 0
+    dokprofile = 0
     usepsyco = 0
     userandom = 0
     docreate = 0
@@ -248,6 +250,8 @@ if __name__=="__main__":
             verbose = 1
         elif option[0] == '-f':
             doprofile = 1
+        elif option[0] == '-k':
+            dokprofile = 1
         elif option[0] == '-p':
             usepsyco = 1
         elif option[0] == '-m':
@@ -325,15 +329,32 @@ if __name__=="__main__":
         if doprofile:
             import pstats
             import cProfile as prof
-            prof.run('db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)',
-                     'query_db.prof')
-            stats = pstats.Stats('query_db.prof')
+            prof.run('db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)', 'indexed_search.prof')
+            stats = pstats.Stats('indexed_search.prof')
             stats.strip_dirs()
             stats.sort_stats('time', 'calls')
             if verbose:
                 stats.print_stats()
             else:
                 stats.print_stats(20)
+        elif dokprofile:
+            from cProfile import Profile
+            import lsprofcalltree
+            prof = Profile()
+            prof.run('db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)')
+            kcg = lsprofcalltree.KCacheGrind(prof)
+            ofile = open('indexed_search.kcg','w')
+            kcg.output(ofile)
+            ofile.close()
+        elif doprofile:
+            import hotshot, hotshot.stats
+            prof = hotshot.Profile("indexed_search.prof")
+            benchtime, stones = prof.run('db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)')
+            prof.close()
+            stats = hotshot.stats.load("indexed_search.prof")
+            stats.strip_dirs()
+            stats.sort_stats('time', 'calls')
+            stats.print_stats(20)
         else:
             db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)
 

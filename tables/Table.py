@@ -192,6 +192,17 @@ class Table(TableExtension.Table, Leaf):
     flavor = property(_g_getflavor, _g_setflavor, None,
                       "The flavor that will be used when returning read data.")
 
+    def _g_getemptyarray(self, type, isize=None):
+        # Acts as a cache for empty arrays
+        if type in self._emptyArrayCache.keys():
+            return self._emptyArrayCache[type]
+        else:
+            if type != "CharType":
+                self._emptyArrayCache[type] = arr = numarray.array(shape=0, type=type)
+            else:
+                self._emptyArrayCache[type] = arr = strings.array([], itemsize=isize)
+            return arr
+
     # List here the lazy attributes.
     def _g_getrbuffer(self):
         mydict = self.__dict__
@@ -328,6 +339,8 @@ class Table(TableExtension.Table, Leaf):
         self._splittedCondCache = {}  ##XXX
         """Cache of already splitted conditions."""
         # It is manipulated by ``split_index_condXXX()``.
+        self._emptyArrayCache = {}  ##XXX
+        """Cache of empty arrays."""
 
         self.cols = None
         """
@@ -422,7 +435,7 @@ class Table(TableExtension.Table, Leaf):
 
     def _get_container(self, shape):
         "Get the appropriate buffer for data depending on table nestedness."
-        
+
         # The handling of a plain RecArray is usually faster than
         # NestedRecArray. This can be *critical* to certain benchmarks,
         # specially those whose run times are less than 1 msec.
@@ -443,6 +456,22 @@ class Table(TableExtension.Table, Leaf):
     def _newBuffer(self, init=1):
         """Create a new recarray buffer for I/O purposes"""
 
+        # The next optimization violates the rule that an iterator has to have
+        # its own buffer. For achieving maximum speed in selects, a call to
+        # Table.getWhereList followed by a Table.readCoordinates is the best.
+#         if init == 0:
+#             mydict = self.__dict__
+#             if '_v_rbuffer' in mydict:
+#                 recarr = mydict['_v_rbuffer']
+#                 #recarr._fields = recarr._get_fields()
+#                 return recarr
+#             else:
+#                 recarr = self._get_container(self._v_maxTuples)
+#                 recarr._fields = recarr._get_fields()
+#                 mydict['_v_rbuffer'] = recarr
+#                 return mydict['_v_rbuffer']
+#         else:
+#             recarr = self._get_container(self._v_maxTuples)
         recarr = self._get_container(self._v_maxTuples)
         # Initialize the recarray with the defaults in description
         recarr._fields = recarr._get_fields()
@@ -855,13 +884,8 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
         the `condition`.
         """
 
-        #print "Abans de split_index", condition
-        #t1=time()
         idxvar, ops, lims, rescond = \
                 split_index_condXXX(condition, condvars, self)
-        #print "split_index time:", time()-t1
-        #print "idxvar, ops,",  idxvar, ops, lims
-        #print "rescond-->", rescond
         if not idxvar:
             raise ValueError( "could not find any usable indexes "
                               "for condition: %r" % condition )
@@ -878,10 +902,7 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
         if rescond:
             self.whereCondition = (rescond, condvars)
         # Get the coordinates to lookup
-        #print "Abans de getLookupRange2XXX"
-        #t1 = time()
         ncoords = index.getLookupRange2XXX(ops, lims, self)
-        #print "getLookuprange2XXX time:", time()-t1
         if index.is_pro and ncoords == 0:
             # For the pro case, there are no interesting values
             # Reset the table variable conditions
@@ -893,7 +914,6 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
         # the conditions in the indexed region (ncoords = 0), because
         # we should look in the non-indexed region as well (for PyTables std).
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
-        #print "Abans d'invocar el iterador..."
         row = TableExtension.Row(self)
         # Call the indexed version of Row iterator (coords=None,ncoords>=0)
         return row(start, stop, step, coords=None, ncoords=ncoords)
@@ -942,7 +962,7 @@ This method is intended only for indexed columns, but this column has not a mini
         return row(start, stop, step, coords=None, ncoords=ncoords)
 
     def readIndexed2XXX(self, condition, condvars):
-        idxvar, ops, lims, rescond = split_index_condXXX(condition, condvars)
+        idxvar, ops, lims, rescond = split_index_condXXX(condition, condvars, self)
         if not idxvar:
             raise ValueError( "could not find any usable indexes "
                               "for condition: %r" % condition )
@@ -959,7 +979,7 @@ This method is intended only for indexed columns, but this column has not a mini
         if rescond:
             self.whereCondition = (rescond, condvars)
         # Get the coordinates to lookup
-        nrecords = index.getLookupRange2XXX(ops, lims)
+        nrecords = index.getLookupRange2XXX(ops, lims, self)
         # Create a read buffer
         recarr = self._get_container(nrecords)
         if nrecords > 0:
@@ -1057,7 +1077,7 @@ please reindex the table to put the index in a sane state""")
 "%s" flavor is not allowed; please use some of %s.""" % \
                              (flavor, supportedFlavors))
 
-        idxvar, ops, lims, rescond = split_index_condXXX(condition, condvars)
+        idxvar, ops, lims, rescond = split_index_condXXX(condition, condvars, self)
 
         # Take advantage of indexation, if present
         if idxvar is not None:
@@ -1070,11 +1090,12 @@ please reindex the table to put the index in a sane state""")
                    "the chosen column has too few elements to be indexed"
 
             # get the number of coords and set-up internal variables
-            ncoords = index.getLookupRange2XXX(ops, lims)
+            ncoords = index.getLookupRange2XXX(ops, lims, self)
             if ncoords > 0:
                 coords = index.indices._getCoords_sparse(index, ncoords)
             else:
-                coords = numarray.array(None, type=numarray.Int64, shape=0)
+                #coords = numarray.array(None, type=numarray.Int64, shape=0)
+                coords = self._g_getemptyarray("Int64")
             if not index.is_pro:
                 # get the remaining rows from the table
                 start = index.nelements
@@ -1138,15 +1159,11 @@ Wrong 'condition' parameter type. Only Column instances are suported."""
         # Take advantage of indexation, if present
         if index is not None:
             # get the number of coords and set-up internal variables
-            #t1 = time()
             ncoords = index.getLookupRange(condition)
-            #print "getLookupRange-->", time()-t1
             if ncoords > 0:
                 #coords = index.getCoords_sparse(ncoords)
                 # The next call is the optimized one
-                #t1 = time()
                 coords = index.indices._getCoords_sparse(index, ncoords)
-                #print "_sparse-->", time()-t1
             else:
                 coords = numarray.array(None, type=numarray.Int64, shape=0)
             if not index.is_pro:
@@ -1407,11 +1424,12 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 and coords.type() != numarray.Int64):
             coords = numarray.array(coords, type=numarray.Int64)
         ncoords = len(coords)
-        # Create a read buffer
-        if ncoords < self._v_maxTuples:
-            result = self._v_rbuffer[:ncoords]
-        else:
-            result = self._get_container(ncoords)
+        # Create a read buffer only if needed
+        if field is None or ncoords > 0:
+            if ncoords < self._v_maxTuples:
+                result = self._v_rbuffer[:ncoords]
+            else:
+                result = self._get_container(ncoords)
         # Do the real read
         if ncoords > 0:
             self._read_elements(result, coords)
@@ -1422,7 +1440,12 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             else:
                 na = result
         else:
-            na = result.field(field)
+            if ncoords > 0:
+                na = result.field(field)
+            else:
+                # Get an empty array from the cache
+                na = self._g_getemptyarray(self.colstypes[field],
+                                           self.colitemsizes[field])
             # It's necessary to do a copy before conversion
             # because we need a well-behaved NumArray object
             # before feeding it into convertNATo*
@@ -1628,7 +1651,7 @@ You cannot append rows to a non-chunked table.""")
             # Update the number of unsaved indexed rows
             self._unsaved_indexedrows += lenrows
             if self.indexprops.auto:
-                self.flushRowsToIndex(lastrow=0)
+                self.flushRowsToIndex(lastrow=False)
 
     def _saveBufferedRows(self, flush=0):
         """Save buffered table rows"""
@@ -1648,7 +1671,7 @@ You cannot append rows to a non-chunked table.""")
             self._unsaved_indexedrows += self._unsaved_nrows
             if self.indexprops.auto:
                 # Flush the unindexed rows (this needs to read the table)
-                self.flushRowsToIndex(lastrow=0)
+                self.flushRowsToIndex(lastrow=False)
         # Reset the number of unsaved rows
         self._unsaved_nrows = 0
         # Get a fresh copy of the default values
@@ -1929,10 +1952,8 @@ The 'names' parameter must be a list of strings.""")
         # index the remaining rows
         nremain = nrows - indexedrows
         if lastrow and nremain > 0 and index.is_pro:
-            index.appendLastRow(
-                self._read(start=indexedrows, stop=nrows, step=1,
-                           field=colname, coords=None),
-                self.nrows )
+            index.appendLastRow(self._read(indexedrows, nrows, 1, colname),
+                                self.nrows)
             indexedrows += nremain
         return indexedrows
 
@@ -2111,7 +2132,7 @@ Wrong 'index' parameter type. Only Index instances are accepted.""")
             object._indexedrows = 0
             object._unsaved_indexedrows = object.nrows
             if object.indexprops.auto:
-                object.flushRowsToIndex(lastrow=1)
+                object.flushRowsToIndex(lastrow=True)
         return (object, nbytes)
 
     def _g_cleanIOBuf(self):
@@ -2130,7 +2151,7 @@ Wrong 'index' parameter type. Only Index instances are accepted.""")
             self._saveBufferedRows(flush=1)
         if self.indexed and self.indexprops.auto:
             # Flush any unindexed row
-            rowsadded = self.flushRowsToIndex(lastrow=1)
+            rowsadded = self.flushRowsToIndex(lastrow=True)
             if rowsadded > 0 and self._indexedrows <> self.nrows:  ## XXX only for pro!
                 raise RuntimeError , "Internal error: the number of indexed rows (%s) and rows in table (%s) must be equal!. Please, report this to the authors." % (self._indexedrows, self.nrows)
 
@@ -2153,6 +2174,19 @@ Wrong 'index' parameter type. Only Index instances are accepted.""")
         """Code to be called before killing the node."""
 
         # Flush the buffers before to clean-up them
+        # It seems that flushing during the __del__ phase is a sure receipt for
+        # bringing all kind of problems:
+        # 1. Illegal Instruction
+        # 2. Malloc(): trying to call free() twice
+        # 3. Bus Error
+        # 4. Segmentation fault
+        # So, the best would be doing *nothing* at all in this __del__ phase.
+        # As a consequence, the I/O will not be cleaned until a call to
+        # Table.flush() would be done. This could lead to a potentially large
+        # memory consumption.
+        # NOTE: The user should make a call to Table.flush() whenever he has
+        #       finished working with his table.
+        # F. Altet 2006-08-01
         self.flush()
         return
 

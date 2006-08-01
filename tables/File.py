@@ -2146,7 +2146,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
         return node
 
-# If a users hits ^C during a run, it is wise to gracefully close the opened files.
+# If a user hits ^C during a run, it is wise to gracefully close the opened files.
 def close_open_files():
     global _open_files
     if len(_open_files):

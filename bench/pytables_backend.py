@@ -69,36 +69,49 @@ class PyTables_DB(DB):
 #         col.optimizeIndex(level=level, verbose=verbose)
 
     def do_query(self, con, column, base):
-        # The few next lines saves some lookups for table in the LRU cache
-        if not hasattr(self, "table_cache"):
-            self.table_cache = table = con.root.table
-            self.col1 = getattr(table.cols, 'col1')
-            self.col2 = getattr(table.cols, 'col2')
-            self.col3 = getattr(table.cols, 'col3')
-            self.col4 = getattr(table.cols, 'col4')
-            self.index2 = self.col2.index
-            self.index4 = self.col4.index
+        # The next lines saves some lookups for table in the LRU cache
+        if True:  # Activate this when a cache for objects is wanted.
+            if not hasattr(self, "table_cache"):
+                self.table_cache = table = con.root.table
+                self.col1 = getattr(table.cols, 'col1')
+                self.col2 = getattr(table.cols, 'col2')
+                self.col3 = getattr(table.cols, 'col3')
+                self.col4 = getattr(table.cols, 'col4')
+                self.index2 = self.col2.index
+                self.index4 = self.col4.index
+                self.condition = "(%s<=col) & (col<=%s)" % \
+                                 (self.rng[0]+base, self.rng[1]+base)
+                # condition = "(%s<=col1*col2) & (col3*col4<=%s)" % \
+                #             (self.rng[0]+base, self.rng[1]+base)
+                # condition = "(col**2.4==%s)" % (self.rng[0]+base)
+                # condition = "(col==%s)" % (self.rng[0]+base)
+                # condvars = {"col": colobj}
+                self.colobj = getattr(table.cols, column)
+                self.condvars = {"col": self.colobj,
+                                 "col1": self.col1,
+                                 "col2": self.col2,
+                                 "col3": self.col3,
+                                 "col4": self.col4,
+                                 }
+            table = self.table_cache
+            colobj = self.colobj
+            if colobj.is_indexed:
+                # Get the references of some frequently referenced objects so that
+                # they are alive so that getting them is much faster later on
+                if not hasattr(self, "%s_index_cache"%column):
+                    setattr(self, "%s_index_cache"%column, colobj.index)
+                    setattr(self, "%s_sorted_cache"%column, colobj.index.sorted)
+                    setattr(self, "%s_indices_cache"%column, colobj.index.indices)
+        else:   # No cache is used at all
+            table = con.root.table
+            colobj = getattr(table.cols, column)
+            self.condvars = {"col": colobj,
+                             "col1": table.cols.col1,
+                             "col2": table.cols.col2,
+                             "col3": table.cols.col3,
+                             "col4": table.cols.col4,
+                             }
             self.condition = "(%s<=col) & (col<=%s)" % (self.rng[0]+base, self.rng[1]+base)
-            #condition = "(%s<=col1*col2) & (col3*col4<=%s)" % (self.rng[0]+base, self.rng[1]+base)
-            #condition = "(col**2.4==%s)" % (self.rng[0]+base)
-            #condition = "(col==%s)" % (self.rng[0]+base)
-            #condvars = {"col": colobj}
-            self.colobj = getattr(table.cols, column)
-            self.condvars = {"col": self.colobj,
-                        "col1": self.col1,
-                        "col2": self.col2,
-                        "col3": self.col3,
-                        "col4": self.col4,
-                        }
-        table = self.table_cache
-        colobj = self.colobj
-        if colobj.is_indexed:
-            # Get the references of some frequently referenced objects so that
-            # they are alive so that getting them is much faster later on
-            if not hasattr(self, "%s_index_cache"%column):
-                setattr(self, "%s_index_cache"%column, colobj.index)
-                setattr(self, "%s_sorted_cache"%column, colobj.index.sorted)
-                setattr(self, "%s_indices_cache"%column, colobj.index.indices)
 
         #print "get colobj-->", time()-t1
 #         results = [ r[column] for r in
@@ -109,11 +122,14 @@ class PyTables_DB(DB):
             #coords = table.getWhereList(self.rng[0]+base == colobj)
 #             coords = [ r.nrow for r in
 #                         table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
-            results = [ r[column] for r in
                         #table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
-                        table._whereIndexed2XXX(self.condition, self.condvars) ]
+#             results = [ r[column] for r in
+#                         table._whereIndexed2XXX(self.condition, self.condvars) ]
+#             ncoords = len(results)
             #coords = table.getWhereList(self.rng[0]+base <= colobj <= self.rng[1]+base)
-            #results = table.readCoordinates(coords)
+            coords = table.getWhereList2XXX(self.condition, self.condvars)
+            results = table.readCoordinates(coords, field=column)
+            ncoords = len(results)
         elif True:
             #coords = [r.nrow for r in table._whereInRange2XXX(condition, condvars)]
             #results = [r[column] for r in table._whereInRange2XXX(condition, condvars)]

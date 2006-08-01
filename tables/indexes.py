@@ -134,9 +134,14 @@ def calcChunksize(expectedrows, optlevel=0, testmode=False):
             optstarts = True
             optstops = True
         elif optlevel >= 9:
-            chunksize = 500
-            slicesize = 1000*chunksize
+#             chunksize = 500  # orig
+#             slicesize = 1000*chunksize # orig
+#             optfull = True
+            chunksize = 20  # test
+            slicesize = 200*chunksize
             optfull = True
+        blocksize = 45*slicesize  # test
+        superblocksize = 10*blocksize  # test
     elif expKrows < 100: # expected rows < 100 milions
         if optlevel == 0:
             chunksize = 2000
@@ -459,8 +464,6 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
             self.superblocksize, self.blocksize, self.slicesize, self.chunksize = \
                                  sizes
             self.reord_opts = reord_opts
-            #print "sizes-->", sizes
-            #print "opts-->", self.reord_opts
 
         super(IndexArray, self).__init__(
             parentNode, name, atom, title, filters, expectedrows)
@@ -468,14 +471,16 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
 
     def _g_create(self):
         objectId = super(IndexArray, self)._g_create()
-        # The superblocksize & blocksize will be saved as (pickled) attributes
-        self.attrs.superblocksize = self.superblocksize
-        self.attrs.blocksize = self.blocksize
-        # The same goes for reordation opts
-        self.attrs.reord_opts = self.reord_opts
         assert self.extdim == 0, "computed extendable dimension is wrong"
         assert self.shape == (0, self.slicesize), "invalid shape"
         assert self._v_chunksize == (1, self.chunksize), "invalid chunk size"
+        # The superblocksize & blocksize will be saved as (pickled) attributes
+        # (only necessary for sorted index)
+        if self.name == "sorted":
+            self.attrs.superblocksize = self.superblocksize
+            self.attrs.blocksize = self.blocksize
+            # The same goes for reordenation opts
+            self.attrs.reord_opts = self.reord_opts
         return objectId
 
 
@@ -499,11 +504,12 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         # Set ``slicesize`` and ``chunksize`` when opening an existing node;
         # otherwise, they are already set.
         if not self._v_new:
-            self.superblocksize = self.attrs.superblocksize
-            self.blocksize = self.attrs.blocksize
-            self.reord_opts = self.attrs.reord_opts
-            self.slicesize = self.shape[1]
-            self.chunksize = self._v_chunksize[1]
+            if self.name == "sorted":
+                self.slicesize = self.shape[1]
+                self.chunksize = self._v_chunksize[1]
+                self.superblocksize = self.attrs.superblocksize
+                self.blocksize = self.attrs.blocksize
+                self.reord_opts = self.attrs.reord_opts
         super(IndexArray, self)._g_postInitHook()
 
 
