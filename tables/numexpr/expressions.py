@@ -358,7 +358,7 @@ class OpNode(ExpressionNode):
         if (kind is None) and (args is not None):
             kind = commonKind(args)
         ExpressionNode.__init__(self, value=opcode, kind=kind, children=args)
-    ## </PyTables>
+    ## <PyTables>
     def _pt_topython(self):
         children = self.children
         assert 0 < len(children) < 3
@@ -392,7 +392,8 @@ class FuncNode(OpNode):
         if (kind is None) and (args is not None):
             kind = commonKind(args)
         OpNode.__init__(self, opcode, args, kind)
-
+    ## <PyTables>
     def _pt_topython(self):
         args = ','.join(c._pt_topython() for c in self.children)
         return '%s(%s)' % (self.value, args)
+    ## </PyTables>
