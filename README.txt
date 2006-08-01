@@ -93,9 +93,9 @@ including a section on binary installation for Windows users, is
 available in Chapter 2 of the User's Manual (``doc/usersguide.pdf`` or
 http://www.pytables.org/moin/HowToUse).
 
-1. First, make sure that you have HDF5 and numarray installed (you
-   will need at least HDF5 1.6.5 and numarray 1.5.0). If don't, you
-   can find them at http://hdf.ncsa.uiuc.edu/HDF5 and
+1. First, make sure that you have HDF5, numarray and numpy installed
+   (you will need at least HDF5 1.6.5, numarray 1.5.0 and numpy
+   0.9.8). If don't, get them from http://hdf.ncsa.uiuc.edu/HDF5 and
    http://sourceforge.net/projects/numpy/. Compile/install them.
 
    Optionally, consider to install the excellent LZO and UCL

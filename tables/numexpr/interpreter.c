@@ -1,26 +1,8 @@
 #include "Python.h"
 #include "structmember.h"
+#include "numpy/noprefix.h"
 #include "math.h"
 #include "string.h"
-
-#ifdef NUMPY
-#include "numpy/arrayobject.h"
-#else
-#include "numarray/arrayobject.h"
-#include "numarray/libnumarray.h"
-#endif
-
-#ifdef NUMARRAY_VERSION
-/* Added for numpy compatibility */
-typedef struct { float real, imag; } cfloat;
-typedef struct { double real, imag; } cdouble;
-#define PyArray_BOOL tBool
-#define PyArray_LONGLONG tInt64
-/* This is to typedef Intp to the appropriate pointer size for this platform.
- * Py_intptr_t, Py_uintptr_t are defined in pyport.h. */
-typedef Py_intptr_t intp;
-typedef Py_uintptr_t uintp;
-#endif /* def NUMARRAY_VERSION */
 
 #include "complex_functions.inc"
 
@@ -117,8 +99,8 @@ enum OpCodes {
     OP_CAST_CI,
     OP_CAST_CL,
     OP_CAST_CF,
-    OP_COPY_CC,
     OP_ONES_LIKE_CC,
+    OP_COPY_CC,
     OP_NEG_CC,
     OP_ADD_CCC,
     OP_SUB_CCC,
@@ -133,6 +115,21 @@ enum OpCodes {
     OP_COMPLEX_CFF,
 
     OP_COPY_SS,
+    
+    OP_REDUCTION,
+    
+    OP_SUM,
+    OP_SUM_IIN,
+    OP_SUM_LLN,
+    OP_SUM_FFN,
+    OP_SUM_CCN,
+    
+    OP_PROD,
+    OP_PROD_IIN,
+    OP_PROD_LLN,
+    OP_PROD_FFN,
+    OP_PROD_CCN
+
 };
 
 /* returns the sig of the nth op, '\0' if no more ops -1 on failure */
@@ -320,6 +317,25 @@ static char op_signature(int op, int n) {
             break;
         case OP_COPY_SS:
             if (n == 0 || n == 1) return 's';
+        case OP_PROD_IIN:
+        case OP_SUM_IIN:
+            if (n == 0 || n == 1) return 'i';
+            if (n == 2) return 'n';
+            break;
+        case OP_PROD_LLN:
+        case OP_SUM_LLN:
+            if (n == 0 || n == 1) return 'l';
+            if (n == 2) return 'n';
+            break;
+        case OP_PROD_FFN:
+        case OP_SUM_FFN:
+            if (n == 0 || n == 1) return 'f';
+            if (n == 2) return 'n';
+            break;
+        case OP_PROD_CCN:
+        case OP_SUM_CCN:
+            if (n == 0 || n == 1) return 'c';
+            if (n == 2) return 'n';
             break;
         default:
             return -1;
@@ -347,7 +363,7 @@ static char op_signature(int op, int n) {
 
 */
 
-enum FuncFFCodes { 
+enum FuncFFCodes {
     FUNC_SQRT_FF = 0,
     FUNC_SIN_FF,
     FUNC_COS_FF,
@@ -367,7 +383,7 @@ typedef double (*FuncFFPtr)(double);
 FuncFFPtr functions_f[] = {
     sqrt,
     sin,
-    cos, 
+    cos,
     tan,
     asin,
     acos,
@@ -400,8 +416,8 @@ enum FuncCCCodes {
     FUNC_SINH_CC,
     FUNC_COSH_CC,
     FUNC_TANH_CC,
-    
-    FUNC_CC_LAST 
+
+    FUNC_CC_LAST
 };
 
 
@@ -410,7 +426,7 @@ typedef void (*FuncCCPtr)(cdouble*, cdouble*);
 FuncCCPtr functions_cc[] = {
     nc_sqrt,
     nc_sin,
-    nc_cos, 
+    nc_cos,
     nc_tan,
     nc_asin,
     nc_acos,
@@ -422,8 +438,8 @@ FuncCCPtr functions_cc[] = {
 
 enum FuncCCCCodes {
     FUNC_POW_CCC = 0,
-    
-    FUNC_CCC_LAST 
+
+    FUNC_CCC_LAST
 };
 
 typedef void (*FuncCCCPtr)(cdouble*, cdouble*, cdouble*);
@@ -510,7 +526,7 @@ get_return_sig(PyObject* program) {
     return sig;
 }
 
-static intp
+static int
 size_from_char(char c)
 {
     switch (c) {
@@ -519,27 +535,28 @@ size_from_char(char c)
         case 'l': return sizeof(long long);
         case 'f': return sizeof(double);
         case 'c': return 2*sizeof(double);
+        case 's': return 0;  /* strings are ok but size must be computed */
         default:
             PyErr_SetString(PyExc_TypeError, "signature value not in 'bilfc'");
             return -1;
     }
 }
 
-static intp
+static int
 size_from_sig(PyObject *o)
 {
     intp size = 0;
     char *s = PyString_AsString(o);
     if (!s) return -1;
     for (; *s != '\0'; s++) {
-        intp x = size_from_char(*s);
+        int x = size_from_char(*s);
         if (x == -1) return -1;
         size += x;
     }
     return size;
 }
 
-static intp
+static int
 typecode_from_char(char c)
 {
     switch (c) {
@@ -548,12 +565,33 @@ typecode_from_char(char c)
         case 'l': return PyArray_LONGLONG;
         case 'f': return PyArray_DOUBLE;
         case 'c': return PyArray_CDOUBLE;
-        case 's': return PyArray_CHAR;
+        case 's': return PyArray_STRING;
         default:
             PyErr_SetString(PyExc_TypeError, "signature value not in 'bilfcs'");
             return -1;
     }
 }
+
+static int
+last_opcode(PyObject *program_object) {
+    int n;
+    unsigned char *program;
+    PyString_AsStringAndSize(program_object, (char **)&program, &n);
+    return program[n-4];
+
+}    
+
+static int
+get_reduction_axis(PyObject* program) {
+    char last_opcode, sig;
+    int end = PyString_Size(program);
+    int axis = ((unsigned char *)PyString_AS_STRING(program))[end-1];
+    if (axis != 255 && axis >= MAX_DIMS)
+        axis = MAX_DIMS - axis;
+    return axis;
+}
+
+
 
 static int
 check_program(NumExprObject *self)
@@ -568,7 +606,7 @@ check_program(NumExprObject *self)
         return -1;
     }
     if (prog_len % 4 != 0) {
-        PyErr_Format(PyExc_RuntimeError, "invalid program: prog_len %% 4 != 0");
+        PyErr_Format(PyExc_RuntimeError, "invalid program: prog_len mod 4 != 0");
         return -1;
     }
     if (PyString_AsStringAndSize(self->fullsig, (char **)&fullsig,
@@ -597,6 +635,11 @@ check_program(NumExprObject *self)
         if (op == OP_NOOP) {
             continue;
         }
+        if ((op >= OP_REDUCTION) && pc != prog_len-4) {
+                PyErr_Format(PyExc_RuntimeError, 
+                    "invalid program: reduction operations must occur last");
+                return -1;
+        }  
         for (argno = 0; ; argno++) {
             sig = op_signature(op, argno);
             if (sig == -1) {
@@ -615,8 +658,8 @@ check_program(NumExprObject *self)
                 argloc = pc+argno+2;
             }
             arg = program[argloc];
-            
-            if (sig != 'n' && arg >= n_buffers) {
+
+            if (sig != 'n' && (arg >= n_buffers) || (arg < 0)) {
                 PyErr_Format(PyExc_RuntimeError, "invalid program: buffer out of range (%i) at %i", arg, argloc);
                 return -1;
             }
@@ -641,12 +684,14 @@ check_program(NumExprObject *self)
                         PyErr_Format(PyExc_RuntimeError, "invalid program: funccode out of range (%i) at %i", arg, argloc);
                         return -1;
                     }
+                } else if (op >= OP_REDUCTION) {
+                    ;
                 } else {
                     PyErr_Format(PyExc_RuntimeError, "invalid program: internal checker errror processing %i", argloc);
                     return -1;
                 }
             } else if (sig != fullsig[arg]) {
-                PyErr_Format(PyExc_RuntimeError, 
+                PyErr_Format(PyExc_RuntimeError,
                 "invalid : opcode signature doesn't match buffer (%c vs %c) at %i", sig, fullsig[arg], argloc);
                 return -1;
             }
@@ -665,7 +710,7 @@ NumExpr_init(NumExprObject *self, PyObject *args, PyObject *kwds)
     PyObject *signature = NULL, *tempsig = NULL, *constsig = NULL;
     PyObject *fullsig = NULL, *program = NULL, *constants = NULL;
     PyObject *input_names = NULL, *o_constants = NULL;
-    intp *itemsizes = NULL;
+    int *itemsizes = NULL;
     char **mem = NULL, *rawmem = NULL;
     intp *memsteps;
     intp *memsizes;
@@ -677,14 +722,14 @@ NumExpr_init(NumExprObject *self, PyObject *args, PyObject *kwds)
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "SSS|OO", kwlist,
                                      &signature,
                                      &tempsig,
-                                     &program, &o_constants, 
+                                     &program, &o_constants,
                                      &input_names)) {
         return -1;
     }
-    
+
     n_inputs = PyString_Size(signature);
     n_temps = PyString_Size(tempsig);
-    
+
     if (o_constants) {
         if (!PySequence_Check(o_constants) ) {
                 PyErr_SetString(PyExc_TypeError, "constants must be a sequence");
@@ -697,7 +742,7 @@ NumExpr_init(NumExprObject *self, PyObject *args, PyObject *kwds)
             Py_DECREF(constants);
             return -1;
         }
-        if (!(itemsizes = PyMem_New(intp, n_constants))) {
+        if (!(itemsizes = PyMem_New(int, n_constants))) {
             Py_DECREF(constants);
             return -1;
         }
@@ -757,7 +802,7 @@ NumExpr_init(NumExprObject *self, PyObject *args, PyObject *kwds)
     }
 
     fullsig = PyString_FromFormat("%c%s%s%s", get_return_sig(program),
-        PyString_AS_STRING(signature), PyString_AS_STRING(constsig), 
+        PyString_AS_STRING(signature), PyString_AS_STRING(constsig),
         PyString_AS_STRING(tempsig));
     if (!fullsig) {
         Py_DECREF(constants);
@@ -777,10 +822,10 @@ NumExpr_init(NumExprObject *self, PyObject *args, PyObject *kwds)
     rawmemsize += size_from_sig(tempsig);  /* no string temporaries */
     rawmemsize *= BLOCK_SIZE1;
 
-    mem = (char **)(PyMem_New(void *, 1 + n_inputs + n_constants + n_temps));
+    mem = PyMem_New(char *, 1 + n_inputs + n_constants + n_temps);
     rawmem = PyMem_New(char, rawmemsize);
-    memsteps = PyMem_New(intp, 1 + n_inputs + n_constants + n_temps);
-    memsizes = PyMem_New(intp, 1 + n_inputs + n_constants + n_temps);
+    memsteps = PyMem_New(int, 1 + n_inputs + n_constants + n_temps);
+    memsizes = PyMem_New(int, 1 + n_inputs + n_constants + n_temps);
     if (!mem || !rawmem || !memsteps || !memsizes) {
         Py_DECREF(constants);
         Py_DECREF(constsig);
@@ -792,9 +837,9 @@ NumExpr_init(NumExprObject *self, PyObject *args, PyObject *kwds)
         PyMem_Del(memsizes);
         return -1;
     }
-    /* 
-       0                                                  -> output 
-       [1, n_inputs+1)                                    -> inputs 
+    /*
+       0                                                  -> output
+       [1, n_inputs+1)                                    -> inputs
        [n_inputs+1, n_inputs+n_consts+1)                  -> constants
        [n_inputs+n_consts+1, n_inputs+n_consts+n_temps+1) -> temps
     */
@@ -802,7 +847,7 @@ NumExpr_init(NumExprObject *self, PyObject *args, PyObject *kwds)
     mem_offset = 0;
     for (i = 0; i < n_constants; i++) {
         char c = PyString_AS_STRING(constsig)[i];
-        intp size = itemsizes[i];
+        int size = itemsizes[i];
         mem[i+n_inputs+1] = rawmem + mem_offset;
         mem_offset += BLOCK_SIZE1 * size;
         memsteps[i+n_inputs+1] = memsizes[i+n_inputs+1] = size;
@@ -810,23 +855,27 @@ NumExpr_init(NumExprObject *self, PyObject *args, PyObject *kwds)
         if (c == 'b') {
             char *bmem = (char*)mem[i+n_inputs+1];
             char value = (char)PyInt_AS_LONG(PyTuple_GET_ITEM(constants, i));
-            for (j = 0; j < BLOCK_SIZE1; j++)
+            for (j = 0; j < BLOCK_SIZE1; j++) {
                 bmem[j] = value;
+            }
         } else if (c == 'i') {
             int *imem = (int*)mem[i+n_inputs+1];
             int value = (int)PyInt_AS_LONG(PyTuple_GET_ITEM(constants, i));
-            for (j = 0; j < BLOCK_SIZE1; j++)
+            for (j = 0; j < BLOCK_SIZE1; j++) {
                 imem[j] = value;
+            }
         } else if (c == 'l') {
             long long *lmem = (long long*)mem[i+n_inputs+1];
             long long value = PyLong_AsLongLong(PyTuple_GET_ITEM(constants, i));
-            for (j = 0; j < BLOCK_SIZE1; j++)
+            for (j = 0; j < BLOCK_SIZE1; j++) {
                 lmem[j] = value;
+            }
         } else if (c == 'f') {
             double *dmem = (double*)mem[i+n_inputs+1];
             double value = PyFloat_AS_DOUBLE(PyTuple_GET_ITEM(constants, i));
-            for (j = 0; j < BLOCK_SIZE1; j++)
+            for (j = 0; j < BLOCK_SIZE1; j++) {
                 dmem[j] = value;
+            }
         } else if (c == 'c') {
             double *cmem = (double*)mem[i+n_inputs+1];
             Py_complex value = PyComplex_AsCComplex(PyTuple_GET_ITEM(constants, i));
@@ -837,8 +886,9 @@ NumExpr_init(NumExprObject *self, PyObject *args, PyObject *kwds)
         } else if (c == 's') {
             char *smem = (char*)mem[i+n_inputs+1];
             char *value = PyString_AS_STRING(PyTuple_GET_ITEM(constants, i));
-            for (j = 0; j < size*BLOCK_SIZE1; j+=size)
+            for (j = 0; j < size*BLOCK_SIZE1; j+=size) {
                 strncpy(smem + j, value, size);
+            }
         }
     }
     /* This is no longer needed since no unusual item sizes appear
@@ -848,12 +898,12 @@ NumExpr_init(NumExprObject *self, PyObject *args, PyObject *kwds)
     /* Fill in 'mem' for temps */
     for (i = 0; i < n_temps; i++) {
         char c = PyString_AS_STRING(tempsig)[i];
-        intp size = size_from_char(c);
+        int size = size_from_char(c);
         /* XXX: This check is quite useless, since using a string temporary
-           still causes a crash when freeing rawmem.  Why?*/
+           still causes a crash when freeing rawmem.  Why? */
         if (c == 's') {
             PyErr_SetString(PyExc_NotImplementedError,
-                            "string temporaries are not yet supported");
+                            "string temporaries are not supported");
             break;
         }
         mem[i+n_inputs+n_constants+1] = rawmem + mem_offset;
@@ -875,14 +925,14 @@ NumExpr_init(NumExprObject *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
-    
+
     #define REPLACE_OBJ(arg) \
     {PyObject *tmp = self->arg; \
      self->arg = arg; \
-     Py_XDECREF(tmp);} 
+     Py_XDECREF(tmp);}
     #define INCREF_REPLACE_OBJ(arg) {Py_INCREF(arg); REPLACE_OBJ(arg);}
     #define REPLACE_MEM(arg) {PyMem_Del(self->arg); self->arg=arg;}
-    
+
     INCREF_REPLACE_OBJ(signature);
     INCREF_REPLACE_OBJ(tempsig);
     REPLACE_OBJ(constsig);
@@ -895,15 +945,15 @@ NumExpr_init(NumExprObject *self, PyObject *args, PyObject *kwds)
     REPLACE_MEM(memsteps);
     REPLACE_MEM(memsizes);
     self->rawmemsize = rawmemsize;
-    
+
     #undef REPLACE_OBJ
     #undef INCREF_REPLACE_OBJ
     #undef REPLACE_MEM
-    
+
     return check_program(self);
 }
 
-static PyMemberDef NumExpr_members[] = {  
+static PyMemberDef NumExpr_members[] = {
     {"signature", T_OBJECT_EX, offsetof(NumExprObject, signature), READONLY, NULL},
     {"constsig", T_OBJECT_EX, offsetof(NumExprObject, constsig), READONLY, NULL},
     {"tempsig", T_OBJECT_EX, offsetof(NumExprObject, tempsig), READONLY, NULL},
@@ -916,6 +966,17 @@ static PyMemberDef NumExpr_members[] = {
     {NULL},
 };
 
+
+struct index_data {
+    int count;
+    int size;
+    int findex;
+    int *shape;
+    int *strides;
+    int *index;
+    char *buffer;
+};
+
 struct vm_params {
     int prog_len;
     unsigned char *program;
@@ -926,7 +987,33 @@ struct vm_params {
     char **mem;
     intp *memsteps;
     intp *memsizes;
+    struct index_data *index_data;
 };
+
+static inline unsigned int 
+flat_index(struct index_data *id, unsigned int j) {
+    int i, k = id->count - 1;
+    unsigned int findex = id->findex;
+    if (k < 0) return 0;
+    if (findex == -1) {
+        findex = 0;
+        for (i = 0; i < id->count; i++)
+            findex += id->strides[i] * id->index[i];
+    }   
+    id->index[k] += 1;
+    if (id->index[k] >= id->shape[k]) {
+        while (id->index[k] >= id->shape[k]) {
+            id->index[k] -= id->shape[k];
+            if (k < 1) break;
+            id->index[--k] += 1;
+        }
+        id->findex = -1;
+    } else {
+        id->findex = findex + id->strides[k];
+    }
+    return findex;
+}
+
 
 #define DO_BOUNDS_CHECK 1
 
@@ -976,10 +1063,10 @@ vm_engine_rest(int start, int blen, struct vm_params params, int *pc_error)
 
 static int
 run_interpreter(NumExprObject *self, int len, char *output, char **inputs,
-                int *pc_error)
+                struct index_data *index_data, int *pc_error)
 {
     int r;
-    unsigned int t, blen1, blen2, n_constants;
+    unsigned int blen1, blen2;
     struct vm_params params;
 
     *pc_error = -1;
@@ -991,6 +1078,7 @@ run_interpreter(NumExprObject *self, int len, char *output, char **inputs,
         return -1;
     params.output = output;
     params.inputs = inputs;
+    params.index_data = index_data;
     params.mem = self->mem;
     params.memsteps = self->memsteps;
     params.memsizes = self->memsizes;
@@ -1014,12 +1102,13 @@ run_interpreter(NumExprObject *self, int len, char *output, char **inputs,
 static PyObject *
 NumExpr_run(NumExprObject *self, PyObject *args, PyObject *kwds)
 {
-    PyObject *a_inputs = NULL;
-    PyArrayObject *output = NULL;
-    unsigned int n_inputs;
-    int i, len = -1, r, pc_error;
+    PyObject *output = NULL, *a_inputs = NULL;
+    struct index_data *inddata = NULL;
+    unsigned int n_inputs, n_dimensions = 0, shape[MAX_DIMS];
+    int i, j, size, r, pc_error;
     char **inputs = NULL;
-
+    intp strides[MAX_DIMS]; /* clean up XXX */
+    
     n_inputs = PyTuple_Size(args);
     if (PyString_Size(self->signature) != n_inputs) {
         return PyErr_Format(PyExc_ValueError,
@@ -1029,138 +1118,253 @@ NumExpr_run(NumExprObject *self, PyObject *args, PyObject *kwds)
         return PyErr_Format(PyExc_ValueError,
                             "keyword arguments are not accepted");
     }
-    a_inputs = PyTuple_New(n_inputs);
+    
+    /* This is overkill - we shouldn't need to allocate all of this space,
+       but this makes it easier figure out */
+    a_inputs = PyTuple_New(3*n_inputs);
     if (!a_inputs) goto cleanup_and_exit;
 
     inputs = PyMem_New(char *, n_inputs);
     if (!inputs) goto cleanup_and_exit;
+        
+    inddata = PyMem_New(struct index_data, n_inputs+1);
+    if (!inddata) goto cleanup_and_exit;
+    for (i = 0; i < n_inputs+1; i++)
+        inddata[i].count = 0;
 
+    /* First, make sure everything is some sort of array so that we can work
+       with their shapes. Count dimensions concurrently. */
+    
     for (i = 0; i < n_inputs; i++) {
-        int isscalar;
         PyObject *o = PyTuple_GET_ITEM(args, i); /* borrowed ref */
-        PyArrayObject *a;
+        PyObject *a;
         char c = PyString_AS_STRING(self->signature)[i];
-        intp typecode = typecode_from_char(c);
+        int typecode = typecode_from_char(c);
         if (typecode == -1) goto cleanup_and_exit;
         /* Convert it just in case of a non-swapped array */
-#ifdef NUMARRAY_VERSION
-        /* XXX: CharArray objects are always copied by this function,
-           using numarray.array().  This should be avoided. */
-        a = NA_InputArray(o, typecode, NUM_NOTSWAPPED);
-#else
-        a = (PyArrayObject *)PyArray_FROM_OTF(o, typecode, NOTSWAPPED);
-#endif
-        if (!a) goto cleanup_and_exit;
-#ifdef NUMARRAY_VERSION
-        /* There are no CharArray scalars, check the orignial object also.  */
-        isscalar = (a->nd == 0) || PyString_Check(o);
-#else
-        isscalar = a->nd == 0;
-#endif
-        if (isscalar) {
-            /* Broadcast scalars */
-            int j, dims[1] = {BLOCK_SIZE1};
-            PyArrayObject *b = (PyArrayObject *)PyArray_FromDims(1, dims, typecode);
+        if (!PyArray_Check(o) || PyArray_TYPE(o) != PyArray_STRING) {
+            a = PyArray_FROM_OTF(o, typecode, NOTSWAPPED);
+        } else {
+            Py_INCREF(PyArray_DESCR(o));  /* typecode is not enough */
+            a = PyArray_FromAny(o, PyArray_DESCR(o), 0, 0, NOTSWAPPED, NULL);
+        }
+        if (!a) goto cleanup_and_exit;  
+        PyTuple_SET_ITEM(a_inputs, i, a);  /* steals reference */
+        if (PyArray_NDIM(a) > n_dimensions)
+            n_dimensions = PyArray_NDIM(a);
+    }
+    
+    /* Broadcast all of the inputs to determine the output shape (this will
+       require some modifications if we later allow a final reduction 
+       operation). If an array has too few dimensions it's shape is padded
+       with ones fromthe left. All array dimensions must match, or be one. */
+    
+    for (i = 0; i < n_dimensions; i++) 
+        shape[i] = 1;
+    for (i = 0; i < n_inputs; i++) {
+        PyObject *a = PyTuple_GET_ITEM(a_inputs, i);
+        unsigned int ndims = PyArray_NDIM(a);
+        int delta = n_dimensions - ndims;
+        for (j = 0; j < ndims; j++) {
+            unsigned int n = PyArray_DIM(a, j);
+            if (n == 1 || n == shape[delta+j]) continue;
+            if (shape[delta+j] == 1)
+                shape[delta+j] = n;
+            else {
+                PyErr_SetString(PyExc_ValueError, 
+                                "cannot broadcast inputs to common shape");
+                goto cleanup_and_exit;
+            }
+        }
+    }
+    size = PyArray_MultiplyList(shape, n_dimensions);
+    
+    /* Broadcast indices of all of the arrays. We could improve efficiency
+       by keeping track of what needs to be broadcast above */
+    
+    for (i = 0; i < n_inputs; i++) {
+        PyObject *a = PyTuple_GET_ITEM(a_inputs, i);
+        PyObject *b;
+        int strides[MAX_DIMS];
+        int delta = n_dimensions - PyArray_NDIM(a);
+        if (PyArray_NDIM(a)) {
+            for (j = 0; j < n_dimensions; j++)
+                strides[j] = (j < delta || PyArray_DIM(a, j-delta) == 1) ? 
+                                0 : PyArray_STRIDE(a, j-delta);
+            Py_INCREF(PyArray_DESCR(a));
+            b = PyArray_NewFromDescr(a->ob_type, 
+                                       PyArray_DESCR(a),
+                                       n_dimensions, shape, 
+                                       strides, PyArray_DATA(a), 0, a);
             if (!b) goto cleanup_and_exit;
-            self->memsteps[i+1] = (intp)0;
-            self->memsizes[i+1] = a->itemsize;
-            PyTuple_SET_ITEM(a_inputs, i, (PyObject *)b);  /* steals reference */
-            inputs[i] = b->data;
+        } else { /* Leave scalars alone */
+            b = a;
+            Py_INCREF(b);
+        }
+        /* Store b so that it stays alive till we're done */
+        PyTuple_SET_ITEM(a_inputs, i+n_inputs, b); 
+    }
+        
+    
+    for (i = 0; i < n_inputs; i++) {
+        PyObject *a = PyTuple_GET_ITEM(a_inputs, i+n_inputs);
+        char c = PyString_AS_STRING(self->signature)[i];
+        int typecode = typecode_from_char(c);
+        if (PyArray_NDIM(a) == 0) {
+            /* Broadcast scalars */
+            intp dims[1] = {BLOCK_SIZE1};
+            Py_INCREF(PyArray_DESCR(a));
+            PyObject *b = PyArray_SimpleNewFromDescr(1, dims, PyArray_DESCR(a));
+            if (!b) goto cleanup_and_exit;
+            self->memsteps[i+1] = self->memsizes[i+1] = PyArray_ITEMSIZE(a);
+            PyTuple_SET_ITEM(a_inputs, i+2*n_inputs, b);  /* steals reference */
+            inputs[i] = PyArray_DATA(b);
             if (typecode == PyArray_BOOL) {
-                char value = ((char*)a->data)[0];
+                char value = ((char*)PyArray_DATA(a))[0];
                 for (j = 0; j < BLOCK_SIZE1; j++)
-                    ((char*)b->data)[j] = value;
+                    ((char*)PyArray_DATA(b))[j] = value;
             } else if (typecode == PyArray_INT) {
-                int value = ((int*)a->data)[0];
+                int value = ((int*)PyArray_DATA(a))[0];
                 for (j = 0; j < BLOCK_SIZE1; j++)
-                    ((int*)b->data)[j] = value;
-            } else if (typecode == PyArray_DOUBLE) {
-                double value = ((double*)a->data)[0];
-                for (j = 0; j < BLOCK_SIZE1; j++)
-                    ((double*)b->data)[j] = value;
+                    ((int*)PyArray_DATA(b))[j] = value;
             } else if (typecode == PyArray_LONGLONG) {
-                long long value = ((long long*)a->data)[0];
+                long long value = ((long long*)PyArray_DATA(a))[0];
                 for (j = 0; j < BLOCK_SIZE1; j++)
-                    ((long long*)b->data)[j] = value;
+                    ((long long*)PyArray_DATA(b))[j] = value;
+            } else if (typecode == PyArray_DOUBLE) {
+                double value = ((double*)PyArray_DATA(a))[0];
+                for (j = 0; j < BLOCK_SIZE1; j++)
+                    ((double*)PyArray_DATA(b))[j] = value;
             } else if (typecode == PyArray_CDOUBLE) {
-                double rvalue = ((double*)a->data)[0];
-                double ivalue = ((double*)a->data)[1];
+                double rvalue = ((double*)PyArray_DATA(a))[0];
+                double ivalue = ((double*)PyArray_DATA(a))[1];
                 for (j = 0; j < 2*BLOCK_SIZE1; j+=2) {
-                    ((double*)b->data)[j] = rvalue;
-                    ((double*)b->data)[j+1] = ivalue;
+                    ((double*)PyArray_DATA(b))[j] = rvalue;
+                    ((double*)PyArray_DATA(b))[j+1] = ivalue;
                 }
-            } else if (typecode == PyArray_CHAR) {
-                char *value = (char*)(a->data);
-                for (j = 0; j < (a->itemsize)*BLOCK_SIZE1; j+=(a->itemsize))
-                    strncpy((char*)(b->data) + j, value, a->itemsize);
+            } else if (typecode == PyArray_STRING) {
+                int itemsize = PyArray_ITEMSIZE(a);
+                char *value = (char*)(PyArray_DATA(a));
+                for (j = 0; j < itemsize*BLOCK_SIZE1; j+=itemsize)
+                    strncpy((char*)(PyArray_DATA(b)) + j, value, itemsize);
             } else {
                 PyErr_SetString(PyExc_RuntimeError, "illegal typecode value");
                 goto cleanup_and_exit;
             }
-            Py_DECREF(a);
         } else {
-            self->memsteps[i+1] = (intp)(a->strides[(a->nd)-1]);
-            self->memsizes[i+1] = a->itemsize;
-            PyTuple_SET_ITEM(a_inputs, i, (PyObject *)a);  /* steals reference */
-            inputs[i] = a->data;
-            if (len == -1) {
-                char retsig = get_return_sig(self->program);
-                /* Since the *only* supported operation returning a string
-                 * is a copy, the size of returned strings
-                 * can be directly gotten from the first (and only)
-                 * input/constant/temporary. */
-                self->memsteps[0] = self->memsizes[0] = (retsig != 's')?
-                    size_from_char(retsig) : self->memsizes[1];
-#ifdef NUMARRAY_VERSION
-                len = NA_elements(a);
-#else
-                len = PyArray_Size((PyObject *)a);
-#endif
-                /* XXX: How to specify item size and return a CharArray? */
-                if (retsig == 's') {
-                    PyErr_SetString(PyExc_NotImplementedError,
-                                    "returning strings is not yet supported");
-                    goto cleanup_and_exit;
-                }
-                output = (PyArrayObject *)PyArray_FromDims(a->nd, a->dimensions,
-						      typecode_from_char(retsig));
-                if (!output) goto cleanup_and_exit;
-            } else {
-#ifdef NUMARRAY_VERSION
-                int samelen = (len == NA_elements(a));
-#else
-                int samelen = (len == PyArray_Size((PyObject *)a));
-#endif
-                if (!samelen) {
-                    Py_XDECREF(output);
-                    output = NULL;  /* no more references left */
-                    PyErr_SetString(PyExc_ValueError, "all inputs must be the same size");
-                    goto cleanup_and_exit;
+            /* Check discontiguous strides appear only on the last dimension. */
+            for (j = PyArray_NDIM(a)-2; j >= 0; j--) {
+                if (PyArray_STRIDE(a, j) != 
+                        PyArray_STRIDE(a, j+1) * PyArray_DIM(a, j+1)) {
+                    intp dims[1] = {BLOCK_SIZE1};
+                    inddata[i+1].count = PyArray_NDIM(a);
+                    inddata[i+1].findex = -1;
+                    inddata[i+1].size = PyArray_ITEMSIZE(a);
+                    inddata[i+1].shape = PyArray_DIMS(a);
+                    inddata[i+1].strides = PyArray_STRIDES(a);
+                    inddata[i+1].buffer = PyArray_BYTES(a);
+                    inddata[i+1].index = PyMem_New(int, inddata[i+1].count);
+                    for (j = 0; j < inddata[i+1].count; j++)
+                        inddata[i+1].index[j] = 0;
+                    Py_INCREF(PyArray_DESCR(a));
+                    a = PyArray_SimpleNewFromDescr(1, dims, PyArray_DESCR(a));
+                    PyTuple_SET_ITEM(a_inputs, i+2*n_inputs, a);  /* steals reference */
+                    break;
                 }
             }
+
+            self->memsteps[i+1] = PyArray_STRIDE(a, PyArray_NDIM(a)-1);
+            self->memsizes[i+1] = PyArray_ITEMSIZE(a);
+            inputs[i] = PyArray_DATA(a);
+
         }
     }
-    if (len == -1) {
-        /* either no inputs or they're all scalars,
-           so allocate one space for scalar result */
+    
+
+    if (last_opcode(self->program) > OP_REDUCTION) {
+        /* A reduction can not result in a string,
+           so we don't need to worry about item sizes here. */
         char retsig = get_return_sig(self->program);
-        intp dims[1];
-        self->memsteps[0] = self->memsizes[0] =
-            (retsig != 's')? size_from_char(retsig) : self->memsizes[1];
-        len = 1;
-        /* XXX: How to specify item size and return a CharArray? */
-        if (retsig == 's') {
-            PyErr_SetString(PyExc_NotImplementedError,
-                            "returning strings is not yet supported");
-            goto cleanup_and_exit;
+        int axis = get_reduction_axis(self->program);
+        self->memsteps[0] = 0; /*size_from_char(retsig);*/
+        if (axis == 255) {
+            intp dims[1];
+            for (i = 0; i < n_dimensions; i++)
+                strides[i] = 0;
+            output = PyArray_SimpleNew(0, dims, typecode_from_char(retsig));
+            if (!output) goto cleanup_and_exit;
+        } else {
+            intp dims[MAX_DIMS];
+            if (axis < 0)
+                axis = n_dimensions + axis;
+            if (axis < 0 || axis >= n_dimensions) {
+                PyErr_SetString(PyExc_ValueError, "axis out of range");
+                goto cleanup_and_exit;
+            }
+            for (i = j = 0; i < n_dimensions; i++) {
+                if (i != axis) {
+                    dims[j] = shape[i];
+                    j += 1;
+                }
+            }
+            output = PyArray_SimpleNew(n_dimensions-1, dims, typecode_from_char(retsig));
+            if (!output) goto cleanup_and_exit;
+            for (i = j = 0; i < n_dimensions; i++) {
+                if (i != axis) {
+                    strides[i] = PyArray_STRIDES(output)[j];
+                    j += 1;
+                } else {
+                    strides[i] = 0;
+                }
+            }
+
+            
         }
-        output = (PyArrayObject *)(PyArray_FromDims(0, dims,
-					            typecode_from_char(retsig)));
+        /* TODO optimize strides -- in this and other inddata cases, strides and
+           shape can be tweaked to minimize the amount of looping */
+        inddata[0].count = n_dimensions;
+        inddata[0].findex = -1;
+        inddata[0].size = PyArray_ITEMSIZE(output);
+        inddata[0].shape = shape;
+        inddata[0].strides = strides;
+        inddata[0].buffer = PyArray_BYTES(output);
+        inddata[0].index = PyMem_New(int, n_dimensions);
+        for (j = 0; j < inddata[0].count; j++)
+            inddata[0].index[j] = 0;
+        
+        if (last_opcode(self->program) >= OP_SUM &&
+            last_opcode(self->program) < OP_PROD) {
+                PyObject *zero = PyInt_FromLong(0);
+                PyArray_FillWithScalar(output, zero);
+                Py_DECREF(zero);
+        } else {
+                PyObject *one = PyInt_FromLong(1);
+                PyArray_FillWithScalar(output, one);
+                Py_DECREF(one);
+        }
+    }
+    else { 
+        char retsig = get_return_sig(self->program);
+        if (retsig != 's') {
+            self->memsteps[0] = self->memsizes[0] = size_from_char(retsig);
+            output = PyArray_SimpleNew(
+                n_dimensions, shape, typecode_from_char(retsig));
+        } else {
+            /* Since the *only* supported operation returning a string
+             * is a copy, the size of returned strings
+             * can be directly gotten from the first (and only)
+             * input/constant/temporary. */
+            PyObject *a = PyTuple_GET_ITEM(a_inputs, 1);
+            self->memsteps[0] = self->memsizes[0] = self->memsizes[1];
+            Py_INCREF(PyArray_DESCR(a));
+            output = PyArray_SimpleNewFromDescr(n_dimensions, shape, PyArray_DESCR(a));
+        }
         if (!output) goto cleanup_and_exit;
     }
+            
 
-    r = run_interpreter(self, len, output->data, inputs, &pc_error);
-
+    r = run_interpreter(self, size, PyArray_DATA(output), inputs, inddata, &pc_error);
+    
     if (r < 0) {
         Py_XDECREF(output);
         output = NULL;
@@ -1181,11 +1385,19 @@ NumExpr_run(NumExprObject *self, PyObject *args, PyObject *kwds)
 cleanup_and_exit:
     Py_XDECREF(a_inputs);
     PyMem_Del(inputs);
-    return (PyObject *)output;
+    if (inddata) {
+        for (i = 0; i < n_inputs+1; i++) {
+            if (inddata[i].count) {
+                PyMem_Del(inddata[i].index);
+            }
+        }
+    }
+    PyMem_Del(inddata);
+    return output;
 }
 
 static PyMethodDef NumExpr_methods[] = {
-    {"run", (PyCFunction) NumExpr_run, METH_VARARGS, NULL},
+    {"run", (PyCFunction) NumExpr_run, METH_VARARGS|METH_KEYWORDS, NULL},
     {NULL, NULL}
 };
 
@@ -1252,9 +1464,6 @@ initinterpreter(void)
     PyModule_AddObject(m, "NumExpr", (PyObject *)&NumExprType);
 
     import_array();
-#ifdef NUMARRAY_VERSION
-    import_libnumarray();
-#endif
 
     d = PyDict_New();
     if (!d) return;
@@ -1361,6 +1570,16 @@ initinterpreter(void)
 
     add_op("copy_ss", OP_COPY_SS);
 
+    add_op("sum_iin", OP_SUM_IIN);
+    add_op("sum_lln", OP_SUM_LLN);
+    add_op("sum_ffn", OP_SUM_FFN);
+    add_op("sum_ccn", OP_SUM_CCN);
+
+    add_op("prod_iin", OP_PROD_IIN);
+    add_op("prod_lln", OP_PROD_LLN);
+    add_op("prod_ffn", OP_PROD_FFN);
+    add_op("prod_ccn", OP_PROD_CCN);
+
 #undef add_op
 
     if (PyModule_AddObject(m, "opcodes", d) < 0) return;
@@ -1401,6 +1620,9 @@ initinterpreter(void)
 
 #undef add_func
 
-   if (PyModule_AddObject(m, "funccodes", d) < 0) return;
-
+    if (PyModule_AddObject(m, "funccodes", d) < 0) return;
+       
+    if (PyModule_AddObject(m, "allaxes", PyInt_FromLong(255)) < 0) return;
+    if (PyModule_AddObject(m, "maxdims", PyInt_FromLong(MAX_DIMS)) < 0) return;
+    
 }

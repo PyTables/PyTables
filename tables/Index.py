@@ -40,7 +40,7 @@ import numarray
 from numarray import strings
 from numarray.mlab import median
 
-from tables.numexpr.expressions import normalizeConstant  #XXX
+from tables.numexpr.expressions import bestConstantType  #XXX
 from tables.numexpr.compiler import stringToExpression  #XXX
 import tables.indexesExtension as indexesExtension
 import tables.utilsExtension as utilsExtension
@@ -472,7 +472,7 @@ def split_index_condXXX(condition, condvars, table):
         if hasattr(cval, 'pathname'):  # looks like a column
             cval = zero(cval.type)
         varvalues[cvar] = cval
-        vartypes[cvar] = type(normalizeConstant(cval))
+        vartypes[cvar] = bestConstantType(cval)
 
     # Get the expression tree and split the indexable part out.
     expr = stringToExpression(condition, vartypes, {})

@@ -40,22 +40,30 @@ if not (sys.version_info[0] >= 2 and sys.version_info[1] >= 3):
     print_error("You need Python 2.3 or greater to install PyTables!")
     sys.exit(1)
 
-# Check for numarray
-try:
-    import numarray
-    from numarray.numarrayext import NumarrayExtension
-except ImportError:
-    print_error("Can't find a local numarray Python installation.",
-                "Please, read carefully the ``README`` file "
-                "and remember that PyTables needs the numarray package "
-                "to compile and run.")
-    sys.exit(1)
-else:
-    if numarray.__version__ >= "1.5":
-        print "* Found numarray %s package installed." % numarray.__version__
-    else:
-        print_error("You need numarray 1.5 or greater to run PyTables!")
+# Check for required Python packages
+def check_import(pkgname, pkgver):
+    try:
+        mod = __import__(pkgname)
+    except ImportError:
+        print_error(
+            "Can't find a local %s Python installation." % pkgname,
+            "Please, read carefully the ``README`` file "
+            "and remember that PyTables needs the %s package "
+            "to compile and run." % pkgname )
         sys.exit(1)
+    else:
+        if mod.__version__ < pkgver:
+            print_error(
+                "You need %(pkgname)s %(pkgver)s or greater to run PyTables!"
+                % {'pkgname': pkgname, 'pkgver': pkgver} )
+            sys.exit(1)
+
+    print ( "* Found %(pkgname)s %(pkgver)s package installed."
+            % {'pkgname': pkgname, 'pkgver': mod.__version__} )
+    globals()[pkgname] = mod
+
+check_import('numarray', '1.5')
+check_import('numpy', '0.9.8')
 
 # Check if Pyrex is installed or not
 try:
@@ -98,6 +106,9 @@ elif os.name == 'nt':
     default_runtime_dirs.extend(
         [os.path.join(sys.prefix, 'DLLs'),
          os.path.join(sys.prefix, 'Lib\\site-packages\\tables') ] )
+
+from numpy.distutils.misc_util import get_numpy_include_dirs
+inc_dirs.extend(get_numpy_include_dirs())
 
 def _find_file_path(name, locations, prefixes=[''], suffixes=['']):
     for prefix in prefixes:
@@ -558,7 +569,8 @@ interactively save and retrieve large amounts of data.
                                 libraries = _comp_bzip2_libs,
                                 extra_link_args = LFLAGS,
                                 ),
-                       NumarrayExtension("tables.numexpr.interpreter",
+                       Extension("tables.numexpr.interpreter",
+                                include_dirs = inc_dirs,
                                 sources=["tables/numexpr/interpreter.c"],
                                 depends=["tables/numexpr/interp_body.c",
                                          "tables/numexpr/complex_functions.inc"],

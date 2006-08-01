@@ -1,3 +1,5 @@
+
+
 /* constants */
 static cdouble nc_1 = {1., 0.};
 static cdouble nc_half = {0.5, 0.};

@@ -1,15 +1,29 @@
+
 import sys
+import numpy
 
-from numarray import asarray
-from numarray.strings import CharArray, asarray as str_asarray
+from tables.numexpr import interpreter, expressions
 
-from tables.numexpr import interpreter
-from tables.numexpr.expressions import getKind
-
+typecode_to_kind = {'b': 'bool', 'i': 'int', 'l': 'long', 'f': 'float', 'c': 'complex', 's': 'str', 'n' : 'none'}
+kind_to_typecode = {'bool': 'b', 'int': 'i', 'long': 'l', 'float': 'f', 'complex': 'c', 'str': 's', 'none' : 'n'}
+type_to_kind = expressions.type_to_kind
+kind_to_type = expressions.kind_to_type
 
 class ASTNode(object):
+    """Abstract Syntax Tree node.
+
+    Members:
+
+    astType      -- type of node (op, constant, variable, raw, or alias)
+    astKind      -- the type of the result (bool, float, etc.)
+    value        -- value associated with this node.
+                    An opcode, numerical value, a variable name, etc.
+    children     -- the children below this node
+    reg          -- the register assigned to the result for this node.
+    """
     cmpnames = ['astType', 'astKind', 'value', 'children']
-    def __init__(self, astType='generic', astKind='unknown', value=None, children=()):
+    def __init__(self, astType='generic', astKind='unknown',
+                 value=None, children=()):
         object.__init__(self)
         self.astType = astType
         self.astKind = astKind
@@ -40,11 +54,13 @@ class ASTNode(object):
     def __str__(self):
         return 'AST(%s, %s, %s, %s, %s)' % (self.astType, self.astKind,
                                             self.value, self.children, self.reg)
-    #~ __repr__ = __str__
     def __repr__(self): return '<AST object at %s>' % id(self)
 
     def key(self):
         return (self.astType, self.astKind, self.value, self.children)
+
+    def typecode(self):
+        return kind_to_typecode[self.astKind]
 
     def postorderWalk(self):
         for c in self.children:
@@ -59,12 +75,21 @@ class ASTNode(object):
                 yield w
 
 def expressionToAST(ex):
+    """Take an expression tree made out of expressions.ExpressionNode,
+    and convert to an AST tree.
+
+    This is necessary as ExpressionNode overrides many methods to act
+    like a number.
+    """
     this_ast = ASTNode(ex.astType, ex.astKind, ex.value,
                            [expressionToAST(c) for c in ex.children])
     return this_ast
 
 
 def sigPerms(s):
+    """Generate all possible signatures derived by upcasting the given
+    signature.
+    """
     codes = 'bilfc'
     if not s:
         yield ''
@@ -80,10 +105,15 @@ def sigPerms(s):
         yield s
 
 def typeCompileAst(ast):
+    """Assign appropiate types to each node in the AST.
+
+    Will convert opcodes and functions to appropiate upcast version,
+    and add "cast" ops if needed.
+    """
     children = list(ast.children)
     if ast.astType  == 'op':
-        retsig = ast.astKind[0]
-        basesig = ''.join(x.astKind[0] for x in list(ast.children))
+        retsig = ast.typecode()
+        basesig = ''.join(x.typecode() for x in list(ast.children))
         # Find some operation that will work on an acceptable casting of args.
         for sig in sigPerms(basesig):
             value = ast.value + '_' + retsig + sig
@@ -94,16 +124,17 @@ def typeCompileAst(ast):
                 funcname = ast.value + '_' + retsig + sig
                 if funcname in interpreter.funccodes:
                     value = 'func_%s' % (retsig+sig)
-                    children += [ASTNode('raw', 'none', interpreter.funccodes[funcname])]
+                    children += [ASTNode('raw', 'none',
+                                         interpreter.funccodes[funcname])]
                     break
             else:
-                raise NotImplementedError("couldn't find matching opcode for '%s'" % (ast.value + '_' + retsig+basesig))
+                raise NotImplementedError(
+                    "couldn't find matching opcode for '%s'"
+                    % (ast.value + '_' + retsig+basesig))
         # First just cast constants, then cast variables if necessary:
         for i, (have, want)  in enumerate(zip(basesig, sig)):
             if have != want:
-                kind = { 'b': 'bool', 'i' : 'int', 'l': 'long',
-                         'f' : 'float', 'c' : 'complex',
-                         's': 'str' }[want]
+                kind = typecode_to_kind[want]
                 if children[i].astType == 'constant':
                     children[i] = ASTNode('constant', kind, children[i].value)
                 else:
@@ -118,6 +149,15 @@ def typeCompileAst(ast):
 
 
 class Register(object):
+    """Abstraction for a register in the VM.
+
+    Members:
+    node          -- the AST node this corresponds to
+    temporary     -- True if this isn't an input or output
+    immediate     -- not a register, but an immediate value
+    n             -- the physical register number.
+                     None if no number assigned yet.
+    """
     def __init__(self, astnode, temporary=False):
         self.node = astnode
         self.temporary = temporary
@@ -129,13 +169,17 @@ class Register(object):
             name = 'Temporary'
         else:
             name = 'Register'
-        return '%s(%s, %s, %s)' % (name, self.node.astType, self.node.astKind, self.n,)
+        return '%s(%s, %s, %s)' % (name, self.node.astType,
+                                   self.node.astKind, self.n,)
 
     def __repr__(self):
         return self.__str__()
 
 
 class Immediate(Register):
+    """Representation of an immediate (integer) operand, instead of
+    a register.
+    """
     def __init__(self, astnode):
         Register.__init__(self, astnode)
         self.immediate = True
@@ -149,14 +193,15 @@ def makeExpressions(context):
     An attempt was made to make this threadsafe, but I can't guarantee it's
     bulletproof.
     """
-    import sys, imp, tables.numexpr.expressions
+    import sys, imp
+    modname = __name__[:__name__.rfind('.')] + '.expressions'
     # get our own, private copy of expressions
     imp.acquire_lock()
     try:
-        old = sys.modules.pop('tables.numexpr.expressions')
+        old = sys.modules.pop(modname)
         import tables.numexpr.expressions
-        private = sys.modules.pop('tables.numexpr.expressions')
-        sys.modules['tables.numexpr.expressions'] = old
+        private = sys.modules.pop(modname)
+        sys.modules[modname] = old
     finally:
         imp.release_lock()
     def get_context():
@@ -164,28 +209,34 @@ def makeExpressions(context):
     private.get_context = get_context
     return private
 
-
 def stringToExpression(s, types, context):
+    """Given a string, convert it to a tree of ExpressionNode's.
+    """
     expr = makeExpressions(context)
     # first compile to a code object to determine the names
     c = compile(s, '<expr>', 'eval')
     # make VariableNode's for the names
     names = {}
-    kind_names = {
-        bool: 'bool', int: 'int', long: 'long',
-        float: 'float', complex: 'complex',
-        str: 'str' }
     for name in c.co_names:
-        names[name] = expr.VariableNode(name, kind_names[types.get(name, float)])
+        if name == "None":
+            names[name] = None
+        else:
+            t = types.get(name, float)
+            names[name] = expr.VariableNode(name, type_to_kind[t])
     names.update(expr.functions)
     # now build the expression
     ex = eval(c, names)
-    if isinstance(ex, (bool, int, long, float, complex, str)):
-        ex = expr.ConstantNode(ex, getKind(ex))
+    if expressions.isConstant(ex):
+        ex = expr.ConstantNode(ex, expressions.getKind(ex))
     return ex
 
 
+def isReduction(ast):
+    return ast.value.startswith('sum_') or ast.value.startswith('prod_')
+
 def getInputOrder(ast, input_order=None):
+    """Derive the input order of the variables in an expression.
+    """
     variables = {}
     for a in ast.allOf('variable'):
         variables[a.value] = a
@@ -201,13 +252,8 @@ def getInputOrder(ast, input_order=None):
     ordered_variables = [variables[v] for v in ordered_names]
     return ordered_variables
 
-def convertConstant(x, kind):
-    return {'bool' : bool,
-            'int' : int,
-            'long' : long,
-            'float' : float,
-            'complex' : complex,
-            'str' : str}[kind](x)
+def convertConstantToKind(x, kind):
+    return kind_to_type[kind](x)
 
 def getConstants(ast):
     const_map = {}
@@ -216,7 +262,8 @@ def getConstants(ast):
     ordered_constants = const_map.keys()
     ordered_constants.sort()
     constants_order = [const_map[v] for v in ordered_constants]
-    constants = [convertConstant(a.value, a.astKind) for a in constants_order]
+    constants = [convertConstantToKind(a.value, a.astKind)
+                 for a in constants_order]
     return constants_order, constants
 
 def sortNodesByOrder(nodes, order):
@@ -228,6 +275,8 @@ def sortNodesByOrder(nodes, order):
     return [a[1] for a in dec_nodes]
 
 def assignLeafRegisters(inodes, registerMaker):
+    """Assign new registers to each of the leaf nodes.
+    """
     leafRegisters = {}
     for node in inodes:
         key = node.key()
@@ -237,11 +286,15 @@ def assignLeafRegisters(inodes, registerMaker):
             node.reg = leafRegisters[key] = registerMaker(node)
 
 def assignBranchRegisters(inodes, registerMaker):
+    """Assign temporary registers to each of the branch nodes.
+    """
     for node in inodes:
         node.reg = registerMaker(node, temporary=True)
 
 
 def collapseDuplicateSubtrees(ast):
+    """common subexpression elimination.
+    """
     seen = {}
     aliases = []
     for a in ast.allOf('op'):
@@ -253,7 +306,8 @@ def collapseDuplicateSubtrees(ast):
             aliases.append(a)
         else:
             seen[a] = a
-    # Set values and registers so optimizeTemporariesAllocation doesn't get confused
+    # Set values and registers so optimizeTemporariesAllocation
+    # doesn't get confused
     for a in aliases:
         while a.value.astType == 'alias':
             a.value = a.value.value
@@ -261,16 +315,21 @@ def collapseDuplicateSubtrees(ast):
 
 
 def optimizeTemporariesAllocation(ast):
+    """Attempt to minimize the number of temporaries needed, by
+    reusing old ones.
+    """
     nodes = list(x for x in ast.postorderWalk() if x.reg.temporary)
     users_of = dict((n.reg, set()) for n in nodes)
+    if nodes and nodes[-1] is not ast:
+        for c in ast.children:
+            if c.reg.temporary:
+                users_of[c.reg].add(ast)
     for n in reversed(nodes):
         for c in n.children:
             if c.reg.temporary:
                 users_of[c.reg].add(n)
-    unused = {
-        'bool': set(), 'int': set(), 'long': set(),
-        'float': set(), 'complex': set(),
-        'str': set() }
+    unused = {'bool' : set(), 'int' : set(), 'long': set(),
+              'float' : set(), 'complex' : set(), 'str': set()}
     for n in nodes:
         for reg, users in users_of.iteritems():
             if n in users:
@@ -284,11 +343,16 @@ def optimizeTemporariesAllocation(ast):
 
 
 def setOrderedRegisterNumbers(order, start):
+    """Given an order of nodes, assign register numbers.
+    """
     for i, node in enumerate(order):
         node.reg.n = start + i
     return start + len(order)
 
 def setRegisterNumbersForTemporaries(ast, start):
+    """Assign register numbers for temporary registers, keeping track of
+    aliases and handling immediate operands.
+    """
     seen = 0
     signature = ''
     aliases = []
@@ -303,12 +367,20 @@ def setRegisterNumbersForTemporaries(ast, start):
         if reg.n < 0:
             reg.n = start + seen
             seen += 1
-            signature += reg.node.astKind[0]
+            signature += reg.node.typecode()
     for node in aliases:
         node.reg = node.value.reg
     return start + seen, signature
 
 def convertASTtoThreeAddrForm(ast):
+    """Convert an AST to a three address form.
+
+    Three address form is (op, reg1, reg2, reg3), where reg1 is the
+    destination of the result of the instruction.
+
+    I suppose this should be called three register form, but three
+    address form is found in compiler theory.
+    """
     program = []
     for node in ast.allOf('op'):
         children = node.children
@@ -318,6 +390,9 @@ def convertASTtoThreeAddrForm(ast):
     return program
 
 def compileThreeAddrForm(program):
+    """Given a three address form of the program, compile it a string that
+    the VM understands.
+    """
     def nToChr(reg):
         if reg is None:
             return '\xff'
@@ -366,6 +441,8 @@ def getContext(map):
 
 
 def precompile(ex, signature=(), copy_args=(), **kwargs):
+    """Compile the expression to an intermediate form.
+    """
     types = dict(signature)
     input_order = [name for (name, type) in signature]
     context = getContext(kwargs)
@@ -380,7 +457,7 @@ def precompile(ex, signature=(), copy_args=(), **kwargs):
 
     # Add a copy for strided or unaligned arrays
     for a in ast.postorderWalk():
-        if a.astType == 'variable' and a.value in copy_args:
+        if a.astType == "variable" and a.value in copy_args:
             newVar = ASTNode(*a.key())
             a.astType, a.value, a.children = ('op', 'copy', (newVar,))
 
@@ -404,12 +481,16 @@ def precompile(ex, signature=(), copy_args=(), **kwargs):
 
     input_order = getInputOrder(ast, input_order)
     constants_order, constants = getConstants(ast)
-
+    
+    if isReduction(ast):
+        ast.reg.temporary = False
+    
     optimizeTemporariesAllocation(ast)
-
+    
+    ast.reg.temporary = False
     r_output = 0
     ast.reg.n = 0
-    ast.reg.temporary = False
+    
     r_inputs = r_output + 1
     r_constants = setOrderedRegisterNumbers(input_order, r_inputs)
     r_temps = setOrderedRegisterNumbers(constants_order, r_constants)
@@ -419,7 +500,7 @@ def precompile(ex, signature=(), copy_args=(), **kwargs):
     input_names = tuple([a.value for a in input_order])
     signature = ''.join(types.get(x, float).__name__[0] for x in input_names)
 
-    return threeAddrProgram, signature, tempsig, constants
+    return threeAddrProgram, signature, tempsig, constants, input_names
 
 
 def numexpr(ex, signature=(), copy_args=(), **kwargs):
@@ -431,57 +512,64 @@ def numexpr(ex, signature=(), copy_args=(), **kwargs):
     signature parameter, which is a list of (name, type) pairs.
 
     """
-    threeAddrProgram, inputsig, tempsig, constants = \
-        precompile(ex, signature, copy_args, **kwargs)
+    threeAddrProgram, inputsig, tempsig, constants, input_names = \
+                      precompile(ex, signature, copy_args, **kwargs)
     program = compileThreeAddrForm(threeAddrProgram)
-    return interpreter.NumExpr(inputsig, tempsig, program, constants)
+    return interpreter.NumExpr(inputsig, tempsig, program, constants,
+                               input_names)
 
 
 def disassemble(nex):
+    """Given a NumExpr object, return a list which is the program
+    disassembled.
+    """
     rev_opcodes = {}
     for op in interpreter.opcodes:
         rev_opcodes[interpreter.opcodes[op]] = op
-    r_constants = 1 + nex.n_inputs
+    r_constants = 1 + len(nex.signature)
     r_temps = r_constants + len(nex.constants)
-    def getArg(pc):
-        arg = ord(nex.program[pc])
-        if arg == 0:
-            return 'r0'
-        elif arg == 255:
+    def getArg(pc, offset):
+        arg = ord(nex.program[pc+offset])
+        op = rev_opcodes.get(ord(nex.program[pc]))
+        code = op.split('_')[1][offset-1]
+        if arg == 255:
             return None
-        elif arg < r_constants:
-            return 'r%d[%s]' % (arg, nex.input_names[arg-1])
-        elif arg < r_temps:
-            return 'c%d[%s]' % (arg, nex.constants[arg - r_constants])
+        if code != 'n':
+            if arg == 0:
+                return 'r0'
+            elif arg < r_constants:
+                return 'r%d[%s]' % (arg, nex.input_names[arg-1])
+            elif arg < r_temps:
+                return 'c%d[%s]' % (arg, nex.constants[arg - r_constants])
+            else:
+                return 't%d' % (arg,)
         else:
-            return 't%d' % (arg,)
+            return arg
     source = []
     for pc in range(0, len(nex.program), 4):
         op = rev_opcodes.get(ord(nex.program[pc]))
-        dest = getArg(pc+1)
-        arg1 = getArg(pc+2)
-        arg2 = getArg(pc+3)
+        dest = getArg(pc, 1)
+        arg1 = getArg(pc, 2)
+        arg2 = getArg(pc, 3)
         source.append( (op, dest, arg1, arg2) )
     return source
 
 
 def getType(a):
-    if hasattr(a, 'toUpper'):  # no ``dtype`` in numarray character arrays
-        return str
-    tname = a.dtype.name
-    if tname.startswith('bool'):
+    t = a.dtype.type
+    if issubclass(t, numpy.bool_):
         return bool
-    if tname == 'int64':  # catch 64-bit integers before proceeding to int
+    if issubclass(t, numpy.int64):  # catch 64-bit integers...
         return long
-    if tname.startswith('int'):  # catch the rest of smaller integers
+    if issubclass(t, numpy.integer):  # ...before proceeding to smaller ones
         return int
-    if tname.startswith('float'):
+    if issubclass(t, numpy.floating):
         return float
-    if tname.startswith('complex'):
+    if issubclass(t, numpy.complexfloating):
         return complex
-    # if tname.startswith('string'):  # this is for NumPy character arrays
-    #    return str
-    raise ValueError("unkown type %s" % tname)
+    if issubclass(t, numpy.string):
+       return str
+    raise ValueError("unkown type %s" % a.dtype.name)
 
 
 def getExprNames(text, context):
@@ -525,28 +613,13 @@ def evaluate(ex, local_dict=None, global_dict=None, **kwargs):
             a = local_dict[name]
         except KeyError:
             a = global_dict[name]
-        # Byteswapped arrays are taken care of in the extension.
-        if isinstance(a, str):
-            arguments.append(str_asarray(a))  # only for numarray
-        else:
-            arguments.append(asarray(a))   # don't make a data copy, if possible
-        if (hasattr(a, 'flags') and            # numpy object
-            (not a.flags.contiguous or
-             not a.flags.aligned)):
-            copy_args.append(name)    # do a copy to temporary
-        elif (hasattr(a, 'iscontiguous') and     # numarray object
-              (not a.iscontiguous() or
-               not a.isaligned())):
-            # String temporaries are not yet supported, but numexprs
-            # knows how to handle discontiguous string arrays.
-            if not isinstance(a, CharArray):
-                copy_args.append(name)    # do a copy to temporary
-
+        # byteswapped arrays are taken care of in the extension.
+        arguments.append(numpy.asarray(a)) # don't make a data copy, if possible
     # Create a signature
     signature = [(name, getType(arg)) for (name, arg) in zip(names, arguments)]
     # Look up numexpr if possible. copy_args *must* be added to the key,
     # just in case a non-copy expression is already in cache.
-    numexpr_key = expr_key + (tuple(signature), tuple(copy_args))
+    numexpr_key = expr_key + (tuple(signature),) + tuple(copy_args)
     try:
         compiled_ex = _numexpr_cache[numexpr_key]
     except KeyError:
@@ -554,8 +627,4 @@ def evaluate(ex, local_dict=None, global_dict=None, **kwargs):
                       numexpr(ex, signature, copy_args, **kwargs)
     return compiled_ex(*arguments)
 
-
-
-if __name__ == "__main__":
-    print evaluate("5")
 
