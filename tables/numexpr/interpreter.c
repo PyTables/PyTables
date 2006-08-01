@@ -537,7 +537,7 @@ size_from_char(char c)
         case 'c': return 2*sizeof(double);
         case 's': return 0;  /* strings are ok but size must be computed */
         default:
-            PyErr_SetString(PyExc_TypeError, "signature value not in 'bilfc'");
+            PyErr_SetString(PyExc_TypeError, "signature value not in 'bilfcs'");
             return -1;
     }
 }
