@@ -317,8 +317,10 @@ class VariableNode(LeafNode):
     astType = 'variable'
     def __init__(self, value=None, kind=None, children=None):
         LeafNode.__init__(self, value=value, kind=kind)
+    ## <PyTables>
     def _pt_topython(self):
         return self.value
+    ## </PyTables>
 
 class RawNode(object):
     """Used to pass raw integers to interpreter.
@@ -345,8 +347,10 @@ class ConstantNode(LeafNode):
         return ConstantNode(-self.value)
     def __invert__(self):
         return ConstantNode(~self.value)
+    ## <PyTables>
     def _pt_topython(self):
         return '%s' % (self.value,)
+    ## </PyTables>
 
 class OpNode(ExpressionNode):
     astType = 'op'
@@ -354,7 +358,7 @@ class OpNode(ExpressionNode):
         if (kind is None) and (args is not None):
             kind = commonKind(args)
         ExpressionNode.__init__(self, value=opcode, kind=kind, children=args)
-
+    ## </PyTables>
     def _pt_topython(self):
         children = self.children
         assert 0 < len(children) < 3
@@ -381,6 +385,7 @@ class OpNode(ExpressionNode):
             return '%s(%s)' % (opstr, left)
         right = children[1]._pt_topython()
         return '(%s%s%s)' % (left, opstr, right)
+    ## </PyTables>
 
 class FuncNode(OpNode):
     def __init__(self, opcode=None, args=None, kind=None):
