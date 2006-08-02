@@ -63,7 +63,7 @@ def check_import(pkgname, pkgver):
     globals()[pkgname] = mod
 
 check_import('numarray', '1.5')
-check_import('numpy', '0.9.8')
+check_import('numpy', '0.9.9.2775')
 
 # Check if Pyrex is installed or not
 try:
