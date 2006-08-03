@@ -584,69 +584,69 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         lambda self: self.column.dirty, None, None,
         "Whether the index is dirty or not.")
 
-    superblocksize = property(
-        lambda self: self.sorted.superblocksize, None, None,
-        "The number of elements per superblock (the maximum that can be optimized).")
+#     superblocksize = property(
+#         lambda self: self.sorted.superblocksize, None, None,
+#         "The number of elements per superblock (the maximum that can be optimized).")
 
-    blocksize = property(
-        lambda self: self.sorted.blocksize, None, None,
-        "The number of elements per block.")
+#     blocksize = property(
+#         lambda self: self.sorted.blocksize, None, None,
+#         "The number of elements per block.")
 
-    slicesize = property(
-        lambda self: self.sorted.slicesize, None, None,
-        "The number of elements per slice.")
+#     slicesize = property(
+#         lambda self: self.sorted.slicesize, None, None,
+#         "The number of elements per slice.")
 
-    chunksize = property(
-        lambda self: self.sorted.chunksize, None, None,
-        "The number of elements per chunk.")
+#     chunksize = property(
+#         lambda self: self.sorted.chunksize, None, None,
+#         "The number of elements per chunk.")
 
     nblockssuperblock = property(
-        lambda self: self.sorted.superblocksize / self.sorted.blocksize, None, None,
+        lambda self: self.superblocksize / self.blocksize, None, None,
         "The number of blocks in a superblock.")
 
     nslicesblock = property(
-        lambda self: self.sorted.blocksize / self.sorted.slicesize, None, None,
+        lambda self: self.blocksize / self.slicesize, None, None,
         "The number of slices in a block.")
 
     nchunkslice = property(
-        lambda self: self.sorted.slicesize / self.sorted.chunksize, None, None,
+        lambda self: self.slicesize / self.chunksize, None, None,
         "The number of chunks in a slice.")
 
     def _g_nsuperblocks(self):
-        nblocks = self.nelements / self.sorted.superblocksize
-        if self.nelements % self.sorted.superblocksize > 0:
+        nblocks = self.nelements / self.superblocksize
+        if self.nelements % self.superblocksize > 0:
             nblocks += 1
         return nblocks
     nsuperblocks = property(_g_nsuperblocks , None, None,
         "The total number of superblocks in index.")
 
     def _g_nblocks(self):
-        nblocks = self.nelements / self.sorted.blocksize
-        if self.nelements % self.sorted.blocksize > 0:
+        nblocks = self.nelements / self.blocksize
+        if self.nelements % self.blocksize > 0:
             nblocks += 1
         return nblocks
     nblocks = property(_g_nblocks , None, None,
         "The total number of blocks in index.")
 
     nslices = property(
-        lambda self: self.nelements / self.sorted.slicesize, None, None,
+        lambda self: self.nelements / self.slicesize, None, None,
         "The number of complete slices in index.")
 
     nchunks = property(
-        lambda self: self.nelements / self.sorted.chunksize, None, None,
+        lambda self: self.nelements / self.chunksize, None, None,
         "The number of complete chunks in index.")
 
     shape = property(
-        lambda self: (self.nrows, self.sorted.slicesize), None, None,
+        lambda self: (self.nrows, self.slicesize), None, None,
         "The shape of this index (in slices and elements).")
 
-    filters = property(
-        lambda self: self.sorted.filters, None, None,
-        "The properties used to filter the stored items.")
+#     filters = property(
+#         lambda self: self.filters, None, None,
+#         "The properties used to filter the stored items.")
 
-    reord_opts = property(
-        lambda self: self.sorted.reord_opts, None, None,
-        "The optimizations for the reordenation algorithms.")
+#     reord_opts = property(
+#         lambda self: self.reord_opts, None, None,
+#         "The optimizations for the reordenation algorithms.")
 
     # </properties>
 
@@ -729,15 +729,22 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Index arrays must only be created for new indexes
         if not self._v_new:
             # Set-up some variables from info on disk and return
-            self.type = self.sorted.type
-            self.stype = self.sorted.stype
-            self.itemsize = self.sorted.itemsize
+            sorted = self.sorted
+            self.type = sorted.type
+            self.stype = sorted.stype
+            self.itemsize = sorted.itemsize
+            self.superblocksize = sorted.superblocksize
+            self.blocksize = sorted.blocksize
+            self.slicesize = sorted.slicesize
+            self.chunksize = sorted.chunksize
+            self.filters = sorted.filters
+            self.reord_opts = sorted.reord_opts
             if self.is_pro:
                 # The number of elements is at the end of the indices array
                 nelementsLR = self.indicesLR[-1]
             else:
                 nelementsLR = 0
-            self.nrows = self.sorted.nrows
+            self.nrows = sorted.nrows
             self.nelements = self.nrows * self.slicesize + nelementsLR
             self.nelementsLR = nelementsLR
             if nelementsLR > 0:
@@ -767,12 +774,16 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.filters = filters
 
         # Create the IndexArray for sorted values
-        IndexArray(self, 'sorted',
-                   self.atom, "Sorted Values", filters, self.optlevel,
-                   self.testmode, self._v_expectedrows)
+        sorted = IndexArray(self, 'sorted',
+                            self.atom, "Sorted Values", filters, self.optlevel,
+                            self.testmode, self._v_expectedrows)
 
         # After "sorted" is created, we can assign some attributes
-        self.nchunksslice = self.sorted.slicesize / self.sorted.chunksize
+        self.superblocksize = sorted.superblocksize
+        self.blocksize = sorted.blocksize
+        self.slicesize = sorted.slicesize
+        self.chunksize = sorted.chunksize
+        self.reord_opts = sorted.reord_opts
 
         # Create the IndexArray for index values
         IndexArray(self, 'indices',
@@ -815,7 +826,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             arr = strings.array(None, shape=shape, itemsize=self.itemsize)
         else:
             arr = numarray.array(None, shape=shape, type=self.type)
-        LastRowArray(self, 'sortedLR', arr, "Last Row sorted values + bounds")
+        sortedLR = LastRowArray(self, 'sortedLR', arr,
+                                "Last Row sorted values + bounds")
 
         # Create the Array for reverse indexes in last row
         shape = self.slicesize     # enough for indexes and length
@@ -824,7 +836,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         # All bounds values (+begin+end) are at the beginning of sortedLR
         nboundsLR = 0   # 0 bounds initially
-        self.bebounds = self.sortedLR[:nboundsLR]
+        self.bebounds = sortedLR[:nboundsLR]
         # No cache (ranges & bounds) is available initially
         self.cache = False
 
@@ -839,15 +851,16 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         # Objects that arrive here should be numarray objects already
         # Save the sorted array
+        sorted = self.sorted
         if self.stype == "CharType":
             s=arr.argsort()
         else:
             s=numarray.argsort(arr)
         # Indexes in PyTables Pro systems are 64-bit long.
-        offset = self.sorted.nrows * self.slicesize
+        offset = sorted.nrows * self.slicesize
         self.indices.append(numarray.array(s, type="Int64") + offset)
         sarr = arr[s]
-        self.sorted.append(sarr)
+        sorted.append(sarr)
         cs = self.chunksize
         self.ranges.append([sarr[[0,-1]]])
         self.bounds.append([sarr[cs::cs]])
@@ -861,7 +874,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.mbounds.append(smedian)
             self.mranges.append([median(smedian)])
         # Update nrows after a successful append
-        self.nrows = self.sorted.nrows
+        self.nrows = sorted.nrows
         self.nelements = self.nrows * self.slicesize
         self.nelementsLR = 0  # reset the counter of the last row index to 0
         self.cache = False   # the cache is dirty now
@@ -871,7 +884,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         """Append the array to the last row index objects"""
 
         # compute the elements in the last row sorted & bounds array
-        offset = self.sorted.nrows * self.slicesize
+        sorted = self.sorted
+        indicesLR = self.indicesLR
+        sortedLR = self.sortedLR
+        offset = sorted.nrows * self.slicesize
         nelementsLR = tnrows - offset
         assert nelementsLR == len(arr), \
 "The number of elements to append is incorrect!. Report this to the authors."
@@ -890,16 +906,16 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.bebounds = numarray.concatenate([arr[s[::self.chunksize]],
                                                   arr[s[-1]]])
         # Save the reverse index array
-        self.indicesLR[:len(arr)] = numarray.array(s, type="Int64") + offset
+        indicesLR[:len(arr)] = numarray.array(s, type="Int64") + offset
         # The number of elements is at the end of the array
-        self.indicesLR[-1] = nelementsLR
+        indicesLR[-1] = nelementsLR
         # Save the number of elements, bounds and sorted values
         offset = len(self.bebounds)
-        self.sortedLR[:offset] = self.bebounds
-        self.sortedLR[offset:offset+len(arr)] = arr[s]
+        sortedLR[:offset] = self.bebounds
+        sortedLR[offset:offset+len(arr)] = arr[s]
         # Update nelements after a successful append
-        self.nrows = self.sorted.nrows + 1
-        self.nelements = self.sorted.nrows * self.slicesize + nelementsLR
+        self.nrows = sorted.nrows + 1
+        self.nelements = sorted.nrows * self.slicesize + nelementsLR
         self.nelementsLR = nelementsLR
 
 

@@ -160,9 +160,9 @@ class LRUCache(object):
             #node = self.__Node(key, obj, self.__seqn)
             node = _g_Node(key, obj, self.__seqn)
             self.__dict[key] = node
-            #print "introduint node-->", node.obj._v_pathname
-            #f = sys._getframe(3)
-            #print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
+#             print "introduint node-->", node.obj._v_pathname
+#             f = sys._getframe(3)
+#             print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
             heappush(self.__heap, node)
 
     def __getitem__(self, key):
@@ -170,9 +170,9 @@ class LRUCache(object):
             raise CacheKeyError(key)
         else:
             node = self.__dict[key]
-            #print "recuperant-->", node.obj._v_pathname
-            #f = sys._getframe(6)
-            #print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
+#             print "recuperant-->", node.obj._v_pathname
+#             f = sys._getframe(4)
+#             print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
             node.atime = self.__seqn
             heapify(self.__heap)
             return node.obj
@@ -182,9 +182,10 @@ class LRUCache(object):
             raise CacheKeyError(key)
         else:
             node = self.__dict[key]
-            #print "eliminant(delitem)-->", node.obj._v_pathname
-            #f = sys._getframe(6)
-            #print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
+#             if hasattr(node.obj, "_v_pathname"):
+#                 print "eliminant(delitem)-->", node.obj._v_pathname
+#                 f = sys._getframe(2)
+#                 print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
             del self.__dict[key]
             self.__heap.remove(node)
             heapify(self.__heap)

@@ -35,6 +35,7 @@ from time import time
 import numarray
 import numarray.numarraycore
 import numarray.records as records
+import numarray.strings as strings
 
 try:
     import Numeric
@@ -1936,6 +1937,10 @@ The 'names' parameter must be a list of strings.""")
         # This method really belongs in Column, but since it makes extensive
         # use of the table, it gets dangerous when closing the file, since the
         # column may be accessing a table which is being destroyed.
+#         print "_addRowsToIndex. colname-->", colname, lastrow
+#         import sys
+#         f = sys._getframe(2)
+#         print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
         index = self.cols._f_col(colname).index
         slicesize = index.slicesize
         # The next loop does not rely on xrange so that it can
@@ -2174,6 +2179,7 @@ Wrong 'index' parameter type. Only Index instances are accepted.""")
         """Code to be called before killing the node."""
 
         # Flush the buffers before to clean-up them
+        #self.flush()
         # It seems that flushing during the __del__ phase is a sure receipt for
         # bringing all kind of problems:
         # 1. Illegal Instruction
@@ -2186,8 +2192,14 @@ Wrong 'index' parameter type. Only Index instances are accepted.""")
         # memory consumption.
         # NOTE: The user should make a call to Table.flush() whenever he has
         #       finished working with his table.
-        # F. Altet 2006-08-01
-        self.flush()
+        # I've added a Performance warning in order to compel the user to
+        # call self.flush() in case the tables is being preempted before doing it.
+        # F. Altet 2006-08-03
+        if self._unsaved_nrows > 0 or self._unsaved_indexedrows > 0:
+            warnings.warn("""\
+table ``%s`` is being preempted from alive nodes without its buffers being flushed. This may lead to very ineficient use of resources and even to fatal errors in certain situations. Please, do a call to the .flush() method on this table before start using other nodes."""
+                          % (self._v_pathname),
+                          PerformanceWarning)
         return
 
     def _f_close(self, flush=True):
@@ -2274,6 +2286,15 @@ class Cols(object):
         myDict['_v_desc'] = desc
         myDict['_v_colnames'] = desc._v_names
         myDict['_v_colpathnames'] = table.description._v_pathnames
+        # Bound the index table group because it will be referenced
+        # quite a lot when populating the attrs with column objects.
+        try:
+            itgroup = table._v_file._getNode(
+                _getIndexTableName(table._v_parent, table.name))
+        except NodeError:
+            if table._v_new and table.indexed:
+                # The indexes group for table does not exist, create it
+                itgroup = table._createIndexesTable(table._v_parent)
         # Put the column in the local dictionary
         for name in desc._v_names:
             if name in desc._v_types:
