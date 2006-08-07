@@ -1093,7 +1093,7 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
   return desc
 
 # This is almost 4x times faster than its Python counterpart in lrucache.py
-cdef class _g_Node:
+cdef class LRUNode:
   """Record of a cached value. Not for public consumption."""
   cdef object key_, obj_
   cdef int    atime_
@@ -1104,7 +1104,7 @@ cdef class _g_Node:
     self.obj_ = obj
     self.atime_ = timestamp
 	    
-  def __cmp__(self, _g_Node other):
+  def __cmp__(self, LRUNode other):
     cdef int atime, atime2
 
     #return cmp(self.atime, other.atime)

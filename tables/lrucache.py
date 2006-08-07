@@ -41,7 +41,7 @@ from __future__ import generators
 import time
 import sys
 from heapq import heappush, heappop, heapify
-from utilsExtension import _g_Node
+from utilsExtension import LRUNode
 
 __version__ = "0.2"
 __all__ = ['CacheKeyError', 'LRUCache', 'DEFAULT_SIZE']
@@ -156,9 +156,9 @@ class LRUCache(object):
                 lru = heappop(self.__heap)
                 #print "eliminant(setitem)-->", lru.obj._v_pathname
                 del self.__dict[lru.key]
-            # Using _g_Node ext. is almost 4x faster than __Node in pure python
+            # LRUNode Pyrex class is almost 4x faster than __Node Python class.
             #node = self.__Node(key, obj, self.__seqn)
-            node = _g_Node(key, obj, self.__seqn)
+            node = LRUNode(key, obj, self.__seqn)
             self.__dict[key] = node
 #             print "introduint node-->", node.obj._v_pathname
 #             f = sys._getframe(3)
