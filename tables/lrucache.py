@@ -41,7 +41,6 @@ from __future__ import generators
 import time
 import sys
 from heapq import heappush, heappop, heapify
-from utilsExtension import LRUNode
 
 __version__ = "0.2"
 __all__ = ['CacheKeyError', 'LRUCache', 'DEFAULT_SIZE']
@@ -156,13 +155,11 @@ class LRUCache(object):
                 lru = heappop(self.__heap)
                 #print "eliminant(setitem)-->", lru.obj._v_pathname
                 del self.__dict[lru.key]
-            # LRUNode Pyrex class is almost 4x faster than __Node Python class.
-            #node = self.__Node(key, obj, self.__seqn)
-            node = LRUNode(key, obj, self.__seqn)
+            node = self.__Node(key, obj, self.__seqn)
             self.__dict[key] = node
-#             print "introduint node-->", node.obj._v_pathname
-#             f = sys._getframe(3)
-#             print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
+            print "introduint node-->", node.obj._v_pathname
+            f = sys._getframe(3)
+            print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
             heappush(self.__heap, node)
 
     def __getitem__(self, key):
@@ -170,9 +167,9 @@ class LRUCache(object):
             raise CacheKeyError(key)
         else:
             node = self.__dict[key]
-#             print "recuperant-->", node.obj._v_pathname
-#             f = sys._getframe(4)
-#             print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
+            print "recuperant-->", node.obj._v_pathname
+            f = sys._getframe(4)
+            print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
             node.atime = self.__seqn
             heapify(self.__heap)
             return node.obj
@@ -182,10 +179,20 @@ class LRUCache(object):
             raise CacheKeyError(key)
         else:
             node = self.__dict[key]
-#             if hasattr(node.obj, "_v_pathname"):
-#                 print "eliminant(delitem)-->", node.obj._v_pathname
-#                 f = sys._getframe(2)
-#                 print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
+            if hasattr(node.obj, "_v_pathname"):
+                print "eliminant(delitem)-->", node.obj._v_pathname
+                f = sys._getframe(2)
+                print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
+            del self.__dict[key]
+            self.__heap.remove(node)
+            heapify(self.__heap)
+            return node.obj
+
+    def pop(self, key):
+        if not self.__dict.has_key(key):
+            raise CacheKeyError(key)
+        else:
+            node = self.__dict[key]
             del self.__dict[key]
             self.__heap.remove(node)
             heapify(self.__heap)

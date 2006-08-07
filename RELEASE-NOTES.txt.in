@@ -1,6 +1,6 @@
-============================
- What's new in PyTables @VERSION@
-============================
+================================
+ What's new in PyTables Pro @VERSION@
+================================
 
 
 :Author: Francesc Altet
@@ -9,36 +9,35 @@
 :Contact: ivilata@carabos.com
 
 
-This document details the modifications to PyTables since version 1.3.  Its
-main purpose is help you ensure that your programs will be runnable when you
-switch from PyTables 1.3 to PyTables @VERSION@.
+This document details the modifications of PyTables Pro since PyTables
+Standard version 1.x.  Its main purpose is help you ensure that your programs
+will be runnable when you switch from PyTables Std 1.x to PyTables Pro @VERSION@.
 
 
 API additions
 =============
 
-- The Table.getWhereList() method has got a new sort parameter. The default
-  now is to get the list of parameters unsorted. Set sort to True to get the
-  old behaviour. We've done this to avoid unnecessary ordering of potentially
-  large sets of coordinates.
-
+- Posar ací les coses relacionades amb els indexos
 
 Backward-incompatible changes
 =============================
 
-- None
+- The dictionaries File.objects, File.leaves and File.groups has been removed.
+  If you need this functionality, please, use the File.getNode() and
+  File.walkNodes() instead. (XXX documentar!!!)
 
 
 Deprecated features
 ===================
 
-- None
+- Node._f_isOpen() and Leaf.isOpen() methods has been removed. Please, use
+  Node._v_isopen attribute instead (it is much faster). (XXX documentar!!!)
 
 
 API refinements
 ===============
 
-- Table.getWhereList() has received a new `sort` parameter.
+- ????
 
 
 Bug fixes (affecting API)

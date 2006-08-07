@@ -182,7 +182,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         if '_v__nodePath' not in self.__dict__:
             raise ClosedNodeError("the attribute set is closed")
-        assert self._v_node._f_isOpen(), \
+        assert self._v_node._v_isopen, \
                "found an open attribute set of a closed node"
 
 
@@ -520,7 +520,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """The string representation for this object."""
 
         node = self._v_node
-        if node is None or not node._f_isOpen():
+        if node is None or not node._v_isopen:
             return repr(self)
 
         # Get the associated filename
@@ -541,7 +541,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         node = self._v_node
         if node is None:
             return "<closed AttributeSet>"
-        if not node._f_isOpen():
+        if not node._v_isopen:
             return "<AttributeSet of closed Node>"
 
         # print additional info only if there are attributes to show

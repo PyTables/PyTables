@@ -223,7 +223,7 @@ class Group(hdf5Extension.Group, Node):
 
 
     def __del__(self):
-        if self._f_isOpen() and self._v_pathname in self._v_file._aliveNodes:
+        if self._v_isopen and self._v_pathname in self._v_file._aliveNodes:
             # The group is going to be killed.  Rebuild weak references
             # (that Python cancelled just before calling this method) so
             # that they are still usable if the object is revived later.
@@ -565,12 +565,18 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         oldPathSlash = oldPath + '/'  # root node can not be renamed, anyway
 
         # Update alive descendents.
+        # XXX What happens if the _aliveNodes dictionary changes during the
+        # next loop (have in mind that it is recursive)?
+        # F. Altet 2006-08-06
         for nodePath in file_._aliveNodes:
             if nodePath.startswith(oldPathSlash):
                 descendentNode = file_._getNode(nodePath)
                 descendentNode._g_updateLocation(newPath)
 
         # Update dead descendents.
+        # XXX What happens if the _deadNodes dictionary changes during the
+        # next loop (have in mind that it is recursive)?
+        # F. Altet 2006-08-06
         for nodePath in file_._deadNodes:
             if nodePath.startswith(oldPathSlash):
                 descendentNode = file_._getNode(nodePath)
@@ -896,7 +902,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         from this group *before* closing it.
         """
 
-        if not self._f_isOpen():
+        if not self._v_isopen:
             return  # the node is already closed
 
         # hdf5Extension operations:
@@ -1013,7 +1019,7 @@ you may want to use the ``overwrite`` argument"""
     def __str__(self):
         """The string representation for this object."""
 
-        if not self._f_isOpen():
+        if not self._v_isopen:
             return repr(self)
 
         # Get the associated filename
@@ -1030,7 +1036,7 @@ you may want to use the ``overwrite`` argument"""
     def __repr__(self):
         """A detailed string representation for this object."""
 
-        if not self._f_isOpen():
+        if not self._v_isopen:
             return "<closed Group>"
 
         rep = [ '%r (%s)' %  \
@@ -1065,6 +1071,7 @@ class RootGroup(Group):
 
         # Set node attributes.
         self._v_file = ptFile
+        self._v_isopen = True  # root is always open
         self._v_pathname = '/'  # Can it be h5name? I don't think so.
         self._v_name = '/'
         self._v_hdf5name = h5name

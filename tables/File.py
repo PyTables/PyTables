@@ -243,13 +243,10 @@ class _AliveNodes(dict):
         super(_AliveNodes, self).__setitem__(key, ref)
 
 
-
-class _DeadNodes(tables.lrucache.LRUCache):
-    def pop(self, key):
-        obj = self[key]
-        del self[key]
-        return obj
-
+# The tables.lrucache.LRUCache class is still useful for debugging
+#class _DeadNodes(tables.lrucache.LRUCache):
+class _DeadNodes(utilsExtension.LRUCache):
+    pass
 
 
 class _NodeDict(tables.proxydict.ProxyDict):
@@ -321,37 +318,6 @@ class _NodeDict(tables.proxydict.ProxyDict):
         return nnodes
 
 
-class _ObjectsDict(_NodeDict):
-
-    """Maps all visible objects."""
-
-    _className = None
-
-    def _condition(self, node):
-        return isVisiblePath(node._v_pathname)
-
-
-class _GroupsDict(_NodeDict):
-
-    """Maps all visible groups."""
-
-    _className = 'Group'
-
-    def _condition(self, node):
-        return isVisiblePath(node._v_pathname) and isinstance(node, Group)
-
-
-class _LeavesDict(_NodeDict):
-
-    """Maps all visible leaves."""
-
-    _className = 'Leaf'
-
-    def _condition(self, node):
-        return isVisiblePath(node._v_pathname) and isinstance(node, Leaf)
-
-
-
 class File(hdf5Extension.File, object):
 
     """
@@ -415,22 +381,6 @@ class File(hdf5Extension.File, object):
             class).
     root
         The *root* of the object tree hierarchy (a `Group` instance).
-    objects
-        A dictionary which maps path names to objects, for every visible
-        node in the tree (deprecated, see note below).
-    groups
-        A dictionary which maps path names to objects, for every visible
-        group in the tree (deprecated, see note below).
-    leaves
-        A dictionary which maps path names to objects, for every visible
-        leaf in the tree (deprecated, see note below).
-
-    .. note::
-
-       From PyTables 1.2 on, the dictionaries ``objects``, ``groups``
-       and ``leaves`` are just instances of objects faking the old
-       functionality.  Actually, they internally use ``File.getNode()``
-       and ``File.walkNodes()``, which are recommended instead.
 
 
     Public methods (file handling):
@@ -545,25 +495,6 @@ class File(hdf5Extension.File, object):
         # or they are preempted from it by other unreferenced nodes.
         self._aliveNodes = _AliveNodes()
         self._deadNodes = _DeadNodes(nodeCacheSize)
-
-        # The following dictionaries map paths to different kinds of nodes.
-        # In fact, they store nothing but the keys; the real nodes
-        # are obtained using `self.getNode()`.
-        self.objects = _ObjectsDict(self)
-        """
-        A dictionary which maps path names to objects, for every visible
-        node in the tree (deprecated).
-        """
-        self.groups = _GroupsDict(self)
-        """
-        A dictionary which maps path names to objects, for every visible
-        group in the tree (deprecated).
-        """
-        self.leaves = _LeavesDict(self)
-        """
-        A dictionary which maps path names to objects, for every visible
-        leaf in the tree (deprecated).
-        """
 
         # Assign the trMap and build the reverse translation
         self.trMap = trMap
@@ -899,13 +830,11 @@ class File(hdf5Extension.File, object):
                        atom=atom, title=title, filters=fprops,
                        expectedsizeinMB=expectedsizeinMB)
 
-
     def _getNode(self, nodePath):
         # The root node is always at hand.
         if nodePath == '/':
             return self.root
 
-        #print "recuperant...", nodePath
         aliveNodes = self._aliveNodes
         deadNodes = self._deadNodes
 
@@ -936,8 +865,6 @@ class File(hdf5Extension.File, object):
             # Load the node and use it as a parent for the next one in tail
             # (it puts itself into life via `self._refNode()` when created).
             if not isinstance(parentNode, Group):
-            #if parentNode is self:  # this doesn't work well, but the
-            # derived speed-up is not too much anyways.
                 # This is the root group
                 parentPath = parentNode._v_pathname
                 raise TypeError("node ``%s`` is not a group; "
@@ -1988,9 +1915,9 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         # These two steps ensure tables are closed *before* their indices.
         self._closeNodes([path for path in deadNodes
                           if '/_i_' not in path],  # not indices
-                         lambda path: self._reviveNode(path, useNode=False))
+                         lambda path: self._reviveNode(path))
         self._closeNodes([path for path in deadNodes],
-                         lambda path: self._reviveNode(path, useNode=False))
+                         lambda path: self._reviveNode(path))
         assert len(deadNodes) == 0, \
                ("dead nodes remain after closing dead nodes: %s"
                 % [path for path in deadNodes])
@@ -2055,13 +1982,9 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         return astring
 
 
-    def _refNode(self, node, nodePath, useNode=True):
+    def _refNode(self, node, nodePath):
         """
         Register `node` as alive and insert references to it.
-
-        If `useNode` is false, no methods or attributes of the node will
-        ever be accessed.  This is useful to avoid secondary effects
-        during close operations.
         """
 
         if nodePath != '/':
@@ -2072,16 +1995,6 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
             # Add the node to the set of referenced ones.
             aliveNodes[nodePath] = node
-
-        # Add the node to the visible node mappings.
-        if useNode and isVisiblePath(nodePath):
-            # This is only done for visible nodes.
-            # Assigned values are entirely irrelevant.
-            self.objects[nodePath] = None
-            if isinstance(node, Leaf):
-                self.leaves[nodePath] = None
-            if isinstance(node, Group):
-                self.groups[nodePath] = None
 
 
     def _unrefNode(self, nodePath):
@@ -2095,11 +2008,6 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
             # Remove the node from the set of referenced ones.
             del aliveNodes[nodePath]
-
-        # Remove the node from the visible node mappings.
-        self.objects.pop(nodePath, None)
-        self.leaves.pop(nodePath, None)
-        self.groups.pop(nodePath, None)
 
 
     def _killNode(self, node):
@@ -2122,16 +2030,12 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         self._deadNodes[nodePath] = node
 
 
-    def _reviveNode(self, nodePath, useNode=True):
+    def _reviveNode(self, nodePath):
         """
         Revive the node under `nodePath` and return it.
 
         Moves the node under `nodePath` from the set of dead,
         unreferenced nodes to the set of alive, referenced ones.
-
-        If `useNode` is false, no methods or attributes of the node will
-        ever be accessed.  This is useful to avoid secondary effects
-        during close operations.
         """
 
         assert nodePath in self._deadNodes, \
@@ -2140,7 +2044,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         # Take the node out of the limbo.
         node = self._deadNodes.pop(nodePath)
         # Make references to the node.
-        self._refNode(node, nodePath, useNode)
+        self._refNode(node, nodePath)
 
         node._g_postReviveHook()
 

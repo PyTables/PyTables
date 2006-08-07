@@ -453,7 +453,7 @@ class Leaf(Node):
         flush pending data to disk or not before closing.
         """
 
-        if not self._f_isOpen():
+        if not self._v_isopen:
             return  # the node is already closed
 
         if flush:
@@ -475,20 +475,13 @@ class Leaf(Node):
         self._f_close(flush)
 
 
-    def isOpen(self):
-        """
-        Is this node open?
-
-        This method is completely equivalent to ``_f_isOpen()``.
-        """
-        return self._f_isOpen()
-
-
     def __len__(self):
         "Useful for dealing with Leaf objects as sequences"
         return self.nrows
 
+
     def __str__(self):
+
         """The string reprsentation choosed for this object is its pathname
         in the HDF5 object tree.
         """

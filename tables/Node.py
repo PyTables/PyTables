@@ -226,10 +226,12 @@ class Node(object):
     # to avoid logging the creation of children nodes of a copied sub-tree.
     def __init__(self, parentNode, name, _log=True):
         # Remember to assign these values in the root group constructor
-        # if it does not use this method implementation!
+        # as it does not use this method implementation!
 
         self._v_file = None
         """The hosting `File` instance."""
+        self._v_isopen = False
+        """Whether this node is open or not."""
         self._v_pathname = None
         """The path of this node in the tree (a string)."""
         self._v_name = None
@@ -313,7 +315,7 @@ class Node(object):
         #    revived, the user would also need to force the closed
         #    `Node` out of memory, which is not a trivial task.
         #
-        if not self._f_isOpen():
+        if not self._v_isopen:
             return
 
         # If we get here, the `Node` is still open.
@@ -350,16 +352,16 @@ class Node(object):
         """Open an existing HDF5 node and return its object identifier."""
         raise NotImplementedError
 
+# XXX to be removed
+#     def _f_isOpen(self):
+#         """Is this node open?"""
 
-    def _f_isOpen(self):
-        """Is this node open?"""
-
-        if not '_v_file' in self.__dict__:
-            return False
-        # When the construction of a node is aborted because of an exception,
-        # the ``_v_file`` attribute might exist but be set to `None`,
-        # so the node is still considered closed.
-        return self._v_file is not None
+#         if not '_v_file' in self.__dict__:
+#             return False
+#         # When the construction of a node is aborted because of an exception,
+#         # the ``_v_file`` attribute might exist but be set to `None`,
+#         # so the node is still considered closed.
+#         return self._v_file is not None
 
 
     def _g_checkOpen(self):
@@ -369,7 +371,7 @@ class Node(object):
         If the node is closed, a `ClosedNodeError` is raised.
         """
 
-        if not self._f_isOpen():
+        if not self._v_isopen:
             raise ClosedNodeError("the node object is closed")
         assert self._v_file.isopen, "found an open node in a closed file"
 
@@ -393,6 +395,7 @@ class Node(object):
         parentDepth = parentNode._v_depth
 
         self._v_file = file_
+        self._v_isopen = True
         self._v_pathname = joinPath(parentNode._v_pathname, ptname)
 
         if h5name is None:
@@ -460,6 +463,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         pathname = self._v_pathname
 
         self._v_file = None
+        self._v_isopen = False
         self._v_pathname = None
         self._v_name = None
         self._v_hdf5name = None
@@ -506,7 +510,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Thus, cleanup operations used in ``_f_close()`` in sub-classes
         # must be run *before* calling the method in the superclass.
 
-        if not self._f_isOpen():
+        if not self._v_isopen:
             return  # the node is already closed
 
         myDict = self.__dict__
@@ -521,6 +525,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         # Finally, clear all remaining attributes from the object.
         myDict.clear()
+
+        # Just add a final flag to signal that the node is closed:
+        self._v_isopen = False
 
 
     def _g_remove(self, recursive):

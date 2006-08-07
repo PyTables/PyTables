@@ -70,19 +70,17 @@ class PyTables_DB(DB):
 
     def do_query(self, con, column, base):
         # The next lines saves some lookups for table in the LRU cache
-        if True:  # Activate this when a cache for objects is wanted.
+        if False:  # Activate this when a cache for objects is wanted.
             if not hasattr(self, "table_cache"):
                 self.table_cache = table = con.root.table
                 self.col1 = getattr(table.cols, 'col1')
                 self.col2 = getattr(table.cols, 'col2')
                 self.col3 = getattr(table.cols, 'col3')
                 self.col4 = getattr(table.cols, 'col4')
-                self.index2 = self.col2.index
-                self.index4 = self.col4.index
                 self.condition = "(%s<=col) & (col<=%s)" % \
                                  (self.rng[0]+base, self.rng[1]+base)
-                # condition = "(%s<=col1*col2) & (col3*col4<=%s)" % \
-                #             (self.rng[0]+base, self.rng[1]+base)
+                # self.condition = "(%s<=col1*col2) & (col3*col4<=%s)" % \
+                #                  (self.rng[0]+base, self.rng[1]+base)
                 # condition = "(col**2.4==%s)" % (self.rng[0]+base)
                 # condition = "(col==%s)" % (self.rng[0]+base)
                 # condvars = {"col": colobj}
@@ -111,7 +109,10 @@ class PyTables_DB(DB):
                              "col3": table.cols.col3,
                              "col4": table.cols.col4,
                              }
-            self.condition = "(%s<=col) & (col<=%s)" % (self.rng[0]+base, self.rng[1]+base)
+            self.condition = "(%s<=col) & (col<=%s)" % \
+                             (self.rng[0]+base, self.rng[1]+base)
+#             self.condition = "((%s<=col) & (col<=%s)) | ((col2+col4)<0)" % \
+#                              (self.rng[0]+base, self.rng[1]+base)
 
         #print "get colobj-->", time()-t1
 #         results = [ r[column] for r in
@@ -123,13 +124,13 @@ class PyTables_DB(DB):
 #             coords = [ r.nrow for r in
 #                         table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
                         #table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
-#             results = [ r[column] for r in
-#                         table._whereIndexed2XXX(self.condition, self.condvars) ]
-#             ncoords = len(results)
-            #coords = table.getWhereList(self.rng[0]+base <= colobj <= self.rng[1]+base)
-            coords = table.getWhereList2XXX(self.condition, self.condvars)
-            results = table.readCoordinates(coords, field=column)
+            results = [ r[column] for r in
+                        table._whereIndexed2XXX(self.condition, self.condvars) ]
             ncoords = len(results)
+            #coords = table.getWhereList(self.rng[0]+base <= colobj <= self.rng[1]+base)
+#             coords = table.getWhereList2XXX(self.condition, self.condvars)
+#             results = table.readCoordinates(coords, field=column)
+#             ncoords = len(results)
         elif True:
             #coords = [r.nrow for r in table._whereInRange2XXX(condition, condvars)]
             #results = [r[column] for r in table._whereInRange2XXX(condition, condvars)]

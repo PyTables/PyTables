@@ -151,14 +151,17 @@ class BasicTestCase(unittest.TestCase):
         idxcol = table.cols.var4.index
         if verbose:
             print "Max rows in buf:", table._v_maxTuples
+            print "Number of rows in table:", table.nrows
             print "Number of elements per slice:", idxcol.slicesize
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
         results = [p["var4"] for p in table.where(table.cols.var4 < 10)]
+        #results = [p["var4"] for p in table.where(1<table.cols.var4 < 10)]
         if verbose:
             print "Selected values:", results
         assert len(results) == 10
+        #assert len(results) == 8
 
     def test05_getWhereList(self):
         """Checking reading an Index with getWhereList (string flavor)"""

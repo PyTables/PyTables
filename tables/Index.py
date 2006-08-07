@@ -1269,7 +1269,18 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         sorted._initSortedSlice(self, pro=self.is_pro)
         if sorted.nrows > 0:
             if self.is_pro and self.stype != "CharType":
-                tlen = self.search_pro(item, sorted)
+                item1, item2 = item
+                # The next are optimizations. However, they hides the
+                # CPU functions consumptions from python profiles.
+                # Activate only after development is done.
+                if self.type == "Float64":
+                    tlen = sorted._searchBinNA_d(item1, item2)
+                elif self.type == "Int32":
+                    tlen = sorted._searchBinNA_i(item1, item2)
+                elif self.type == "Int64":
+                    tlen = sorted._searchBinNA_ll(item1, item2)
+                else:
+                    tlen = self.search_scalar(item, sorted)
             else:
                 tlen = self.search_scalar(item, sorted)
         # Get possible remaing values in last row
@@ -1283,30 +1294,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         #print "time searching indices (total):", round(t*1000, 3), "ms"
         # CPU time not significant (problems with time slice)
         #print round((clock()-tcpu1)*1000*1000, 3), "us"
-        return tlen
-
-
-    def search_pro(self, item, sorted):
-        """Do a binary search in this index for an item. pro version."""
-
-        #t1 = time()
-        item1, item2 = item
-        if 0:
-            tlen = self.search_scalar(item, sorted)
-        else:
-            # The next are optimizations. However, they hides the
-            # CPU functions consumptions from python profiles.
-            # Activate only after development is done.
-            if self.type == "Float64":
-                tlen = sorted._searchBinNA_d(item1, item2)
-            elif self.type == "Int32":
-                tlen = sorted._searchBinNA_i(item1, item2)
-            elif self.type == "Int64":
-                tlen = sorted._searchBinNA_ll(item1, item2)
-            else:
-                tlen = self.search_scalar(item, sorted)
-        #t = time()-t1
-        #print "time searching indices (pro-main):", round(t*1000, 3), "ms"
         return tlen
 
 

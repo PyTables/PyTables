@@ -129,6 +129,12 @@ NODE_CACHE_SIZE = 256   # 42 MB, 42.3s, opt:40.9s , 64 MB for writes
 #NODE_CACHE_SIZE = MAX_GROUP_WIDTH  # that would be ideal, but takes ages!
 """Maximum number of unreferenced to be kept in memory."""
 
+SORTED_CACHE_SIZE = 256
+"""The maximum number of rows cached for sorted values in index lookups"""
+
+BOUNDS_CACHE_SIZE = 256
+"""The maximum number of rows cached for bounds values in index lookups"""
+
 EXPECTED_ROWS_TABLE = 10000
 """Default expected number of rows for ``Table`` objects."""
 

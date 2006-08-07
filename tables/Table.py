@@ -1085,6 +1085,9 @@ please reindex the table to put the index in a sane state""")
 
             column = condvars[idxvar]
             index = column.index
+            # Bound sorted and indices in order to get them cached
+            #sorted = index.sorted
+            #indices = index.indices
             assert index is not None, "the chosen column is not indexed"
             assert not column.dirty, "the chosen column has a dirty index"
             assert index.is_pro or index.nelements > 0, \
@@ -1937,10 +1940,6 @@ The 'names' parameter must be a list of strings.""")
         # This method really belongs in Column, but since it makes extensive
         # use of the table, it gets dangerous when closing the file, since the
         # column may be accessing a table which is being destroyed.
-#         print "_addRowsToIndex. colname-->", colname, lastrow
-#         import sys
-#         f = sys._getframe(2)
-#         print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
         index = self.cols._f_col(colname).index
         slicesize = index.slicesize
         # The next loop does not rely on xrange so that it can
@@ -2203,7 +2202,7 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
         return
 
     def _f_close(self, flush=True):
-        if not self._f_isOpen():
+        if not self._v_isopen:
             return  # the node is already closed
 
         # .. note::

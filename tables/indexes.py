@@ -554,10 +554,8 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         # Lookup in the middle of slice for item1
         chunksize = self.chunksize # Number of elements/chunksize
         nchunk = -1
-        if self.bcache:
-            bounds = self.boundscache[nrow]
-        else:
-            bounds = self._v_parent.bounds[nrow]
+        # XXX try to use a LRU cache here, if possible...
+        bounds = self._v_parent.bounds[nrow]
         if result1 < 0:
             # Search the appropriate chunk in bounds cache
             nchunk = bisect_left(bounds, item1)

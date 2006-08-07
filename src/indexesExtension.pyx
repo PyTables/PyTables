@@ -35,6 +35,10 @@ from numarray import records, strings, memory
 
 from tables.exceptions import HDF5ExtError
 from hdf5Extension cimport Array, hid_t, herr_t, hsize_t
+from utilsExtension cimport LRUCache as LRUCacheType
+from utilsExtension import LRUCache, CacheKeyError
+#from lrucache import LRUCache
+from constants import SORTED_CACHE_SIZE, BOUNDS_CACHE_SIZE
 
 from definitions cimport import_libnumarray, NA_getPythonScalar, \
      NA_getBufferPtrAndSize, Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
@@ -46,11 +50,12 @@ __version__ = "$Revision$"
 
 #-------------------------------------------------------------------
 
+
 # C functions and variable declaration from its headers
+
 
 # Functions, structs and types from HDF5
 cdef extern from "hdf5.h":
-
   hid_t H5Dget_space (hid_t dset_id)
   hid_t H5Screate_simple(int rank, hsize_t dims[], hsize_t maxdims[])
   herr_t H5Sclose(hid_t space_id)
@@ -104,6 +109,7 @@ cdef extern from "H5ARRAY-opt.h":
                               hsize_t stop,
                               void *data )
 
+
 # Functions for optimized operations for dealing with indexes
 cdef extern from "idx-opt.h":
   int bisect_left_d(double *a, double x, int hi, int offset)
@@ -137,13 +143,16 @@ cdef getPythonScalar(object a, long i):
 
 # Classes
 
+
 cdef class Index:
   pass
+
 
 cdef class CacheArray(Array):
   """Container for keeping index caches of 1st and 2nd level."""
   cdef hid_t space_id
   cdef hid_t mem_space_id
+
 
   cdef initRead(self, int nbounds):
     "Actions to accelerate the reads afterwards."
@@ -155,6 +164,7 @@ cdef class CacheArray(Array):
       raise HDF5ExtError("Problems initializing the bounds array data.")
     return
 
+
   cdef readSlice(self, hsize_t nrow, hsize_t start, hsize_t stop, void *rbuf):
     "Read an slice of bounds."
 
@@ -163,6 +173,7 @@ cdef class CacheArray(Array):
                                      nrow, start, stop, rbuf) < 0):
       raise HDF5ExtError("Problems reading the bounds array data.")
     return
+
 
   def _g_close(self):
     super(Array, self)._g_close()
@@ -173,14 +184,17 @@ cdef class CacheArray(Array):
       H5Sclose(self.mem_space_id)
 
 
+
 cdef class IndexArray(Array):
   """Container for keeping sorted and indices values."""
   cdef void    *rbufst, *rbufln, *rbufrv, *rbufbc, *rbuflb
   cdef void    *rbufC, *rbufA
   cdef hid_t   space_id, mem_space_id
-  cdef int     nbounds
-  cdef object  bufferl
+  cdef int     l_chunksize, l_slicesize, l_nrows, nbounds
+  cdef object  boundscache, bufferl
   cdef CacheArray bounds_ext
+  cdef LRUCacheType LRUboundscache, LRUsortedcache
+
 
   def _initIndexSlice(self, index, ncoords):
     "Initialize the structures for doing a binary search"
@@ -202,6 +216,7 @@ cdef class IndexArray(Array):
         # Initialize the index array for reading
         self.space_id = H5Dget_space(self.dataset_id )
 
+
   cdef _readIndex(self, hsize_t irow, hsize_t start, hsize_t stop,
                   int offsetl):
     cdef herr_t ret
@@ -219,6 +234,7 @@ cdef class IndexArray(Array):
 
     return
 
+
   cdef _readIndex_sparse(self, hsize_t ncoords):
     cdef herr_t ret
 
@@ -233,18 +249,16 @@ cdef class IndexArray(Array):
 
     return
 
+
   def _initSortedSlice(self, index, pro=0):
     "Initialize the structures for doing a binary search"
     cdef long ndims
-    cdef int  buflen
+    cdef int  rank, buflen, cachesize
     cdef char *bname
-    cdef int  rank
     cdef hsize_t count[2]
 
-    #index = self._v_parent
     # Create the buffer for reading sorted data chunks
     if self.bufferl is None:
-      #print "_initSortedSlice(1)"
       if str(self.type) == "CharType":
         self.bufferl = strings.array(None, itemsize=self.itemsize,
                                      shape=self.chunksize)
@@ -267,28 +281,32 @@ cdef class IndexArray(Array):
       rank = 2
       count[0] = 1; count[1] = self.chunksize;
       self.mem_space_id = H5Screate_simple(rank, count, NULL)
+      # cache some counters in local extension variables
+      self.l_nrows = self.nrows
+      self.l_slicesize = index.slicesize
+      self.l_chunksize = index.chunksize
     if pro and not index.cache :
-      #print "_initSortedSlice(2)"
+      # This 1st cache is loaded completely in memory
       index.rvcache = index.ranges[:]
       NA_getBufferPtrAndSize(index.rvcache._data, 1, &self.rbufrv)
       index.cache = True
-      # Protection against using too big cache for bounds values
+      # The 2nd level cache and sorted values will be cached in a LRU cache
       self.bounds_ext = <CacheArray>index.bounds
       self.nbounds = index.bounds.shape[1]
-      # Avoid loading too much data from second-level cache
-      # If too much data is pre-loaded, this affects negatively to the
-      # first data selection.
-      if self.nrows * self.nbounds < 500000:    # for testing purposes
-      #if self.nrows * self.nbounds < 400:
-        self.boundscache = index.bounds[:]
-        self.bcache = True
+      # The <LRUCacheType> cast is for keeping the C compiler happy
+      self.LRUsortedcache = <LRUCacheType>LRUCache(SORTED_CACHE_SIZE)
+      self.LRUboundscache = <LRUCacheType>LRUCache(BOUNDS_CACHE_SIZE)
+      if str(self.type) == "CharType":
+        self.boundscache = strings.array(None, itemsize=self.itemsize,
+                                         shape=self.nbounds)
       else:
         self.boundscache = numarray.array(None, type=self.type,
                                           shape=self.nbounds)
-        # Init the bounds array for reading
-        self.bounds_ext.initRead(self.nbounds)
-        self.bcache = False
+      # Init the bounds array for reading
+      self.bounds_ext.initRead(self.nbounds)
+      # Get the pointer for the internal buffer for 2nd level cache
       NA_getBufferPtrAndSize(self.boundscache._data, 1, &self.rbufbc)
+
 
   def _readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):
     "Read the sorted part of an index."
@@ -302,6 +320,7 @@ cdef class IndexArray(Array):
       raise HDF5ExtError("Problems reading the array data.")
 
     return self.bufferl
+
 
 # This has been copied from the standard module bisect.
 # Checks for the values out of limits has been added at the beginning
@@ -326,6 +345,7 @@ cdef class IndexArray(Array):
         else: hi = mid
     return lo
 
+
   # This accelerates quite a bit (~25%) respect to _bisect_left
   # Besides, it can manage general python objects
   cdef _bisect_left_optim(self, a, x, int hi, int stride):
@@ -339,6 +359,7 @@ cdef class IndexArray(Array):
         if getPythonScalar(a, mid*stride) < x: lo = mid+1
         else: hi = mid
     return lo
+
 
   def _bisect_right(self, a, x, int hi):
     """Return the index where to insert item x in list a, assuming a is sorted.
@@ -359,6 +380,7 @@ cdef class IndexArray(Array):
       else: lo = mid+1
     return lo
 
+
   # This accelerates quite a bit (~25%) respect to _bisect_right
   # Besides, it can manage general python objects
   cdef _bisect_right_optim(self, a, x, int hi, int stride):
@@ -372,6 +394,7 @@ cdef class IndexArray(Array):
       if x < getPythonScalar(a, mid*stride): hi = mid
       else: lo = mid+1
     return lo
+
 
   def _interSearch_left(self, int nrow, int chunksize, item, int lo, int hi):
     cdef int niter, mid, start, result, beginning
@@ -401,6 +424,7 @@ cdef class IndexArray(Array):
         break
     return (lo, beginning, niter)
 
+
   def _interSearch_right(self, int nrow, int chunksize, item, int lo, int hi):
     cdef int niter, mid, start, result, ending
 
@@ -428,216 +452,185 @@ cdef class IndexArray(Array):
         break
     return (lo, ending, niter)
 
+
+  # Get the bounds from the cache, or read them
+  cdef void *getLRUbounds(self, int nrow, int nbounds):
+    cdef void *vpointer
+    cdef object buf
+
+    if self.LRUboundscache.contains(nrow):
+      buf = self.LRUboundscache.getitem(nrow)
+      NA_getBufferPtrAndSize(buf._data, 1, &vpointer)
+    else:
+      # Bounds row is not in cache. Read it and put it in the LRU cache.
+      self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
+      self.LRUboundscache[nrow] = self.boundscache.copy()
+      vpointer = self.rbufbc
+    return vpointer
+
+
+  # Get the sorted row from the cache or read it.
+  cdef void *getLRUsorted(self, int nrow, int cs, int nchunk):
+    cdef void *vpointer
+    cdef object buf
+
+    if self.LRUsortedcache.contains(nrow):
+      buf = self.LRUsortedcache.getitem(nrow)
+      NA_getBufferPtrAndSize(buf._data, 1, &vpointer)
+    else:
+      # The sorted row is not in cache. Read it and put it in the LRU cache.
+      H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
+                                   self.mem_space_id, self.type_id,
+                                   nrow, cs*nchunk, cs*(nchunk+1),
+                                   self.rbuflb)
+      self.LRUsortedcache[nrow] = self.bufferl.copy()
+      vpointer = self.rbuflb
+    return vpointer
+
+
   # Optimized version for doubles
   def _searchBinNA_d(self, double item1, double item2):
     cdef int cs, nchunk, nchunk2, nrow, nrows, nbounds, rvrow
+    cdef int start, stop, nslice, tlen, len, bread
     cdef int *rbufst, *rbufln
-    cdef double *rbufbc, *rbuflb, *rbufrv
-    cdef int start, stop, nslice, tlen, len, bread, bcache
+    # Variables with specific type
+    cdef double *rbufrv, *rbufbc, *rbuflb
 
-    cs = self.chunksize
-    nrows = self.nrows
-    nbounds = self.nbounds
-    nslice = self.slicesize
-    bcache = self.bcache
-    tlen = 0
-    rbuflb = <double *>self.rbuflb
-    rbufrv = <double *>self.rbufrv
-    rbufst = <int *>self.rbufst
-    rbufln = <int *>self.rbufln
+    cs = self.l_chunksize;  nrows = self.l_nrows
+    nbounds = self.nbounds;  nslice = self.l_slicesize
+    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
+    rbufrv = <double *>self.rbufrv; tlen = 0
     for nrow from 0 <= nrow < nrows:
-      rvrow = nrow*2
-      bread = 0
-      nchunk = -1
+      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
-          # Get the bounds row
-          if bcache:
-            rbufbc = <double *>self.rbufbc + nrow*nbounds
-          else:
-            # Bounds is not in cache. Read the appropriate row.
-            self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
-            rbufbc = <double *>self.rbufbc
+          # Get the bounds row from the LRU cache or read them.
+          rbufbc = <double *>self.getLRUbounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_d(rbufbc, item1, nbounds, 0)
-          H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                       self.mem_space_id, self.type_id,
-                                       nrow, cs*nchunk, cs*(nchunk+1),
-                                       self.rbuflb)
+          # Get the sorted row from the LRU cache or read it.
+          rbuflb = <double *>self.getLRUsorted(nrow, cs, nchunk)
           start = bisect_left_d(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = nslice
       else:
         start = 0
-      # The next optimization takes more time! besides, it gives some
-      # seg faults from time to time!
-#       if start > 0 and item1 > rbuflb[start] and item2 < rbuflb[start+1]:
-#         # Not interesting values here
-#         stop = start
-#       elif item2 >= rbufrv[rvrow]:
+      # Now, for item2
       if item2 >= rbufrv[rvrow]:
         if item2 < rbufrv[rvrow+1]:
           if not bread:
-            if bcache:
-              rbufbc = <double *>self.rbufbc + nrow*nbounds
-            else:
-              # Bounds is not in cache. Read the appropriate row.
-              self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
-              rbufbc = <double *>self.rbufbc
+            # Get the bounds row from the LRU cache or read them.
+            rbufbc = <double *>self.getLRUbounds(nrow, nbounds)
           nchunk2 = bisect_right_d(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
-            H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                         self.mem_space_id, self.type_id,
-                                         nrow, cs*nchunk2, cs*(nchunk2+1),
-                                         self.rbuflb)
+            # Get the sorted row from the LRU cache or read it.
+            rbuflb = <double *>self.getLRUsorted(nrow, cs, nchunk2)
           stop = bisect_right_d(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = nslice
       else:
         stop = 0
-      rbufst[nrow] = start
-      len = stop - start
-      rbufln[nrow] = len
-      tlen = tlen + len
+      len = stop - start;  tlen = tlen + len
+      rbufst[nrow] = start;  rbufln[nrow] = len;
     return tlen
 
-  # Optimized version for ints
-  def _searchBinNA_i(self, int item1, int item2):
-    cdef int cs, nchunk, nchunk2, nrow, nrows, nbounds, rvrow
-    cdef int *rbufst, *rbufln
-    cdef int start, stop, nslice, tlen, len, bread, bcache
-    # Variables with specific type
-    cdef int *rbufbc, *rbuflb, *rbufrv
 
-    cs = self.chunksize
-    nrows = self.nrows
-    nbounds = self.nbounds
-    nslice = self.slicesize
-    bcache = self.bcache
-    tlen = 0
-    rbufst = <int *>self.rbufst
-    rbufln = <int *>self.rbufln
-    rbuflb = <int *>self.rbuflb   # specific type
-    rbufrv = <int *>self.rbufrv   # specific type
+  # Optimized version for ints
+  def _searchBinNA_i(self, double item1, double item2):
+    cdef int cs, nchunk, nchunk2, nrow, nrows, nbounds, rvrow
+    cdef int start, stop, nslice, tlen, len, bread
+    cdef int *rbufst, *rbufln
+    # Variables with specific type
+    cdef int *rbufrv, *rbufbc, *rbuflb
+
+    cs = self.l_chunksize;  nrows = self.l_nrows
+    nbounds = self.nbounds;  nslice = self.l_slicesize
+    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
+    rbufrv = <int *>self.rbufrv; tlen = 0
     for nrow from 0 <= nrow < nrows:
-      rvrow = nrow*2
-      bread = 0
-      nchunk = -1
+      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
-          # Get the bounds row
-          if bcache:
-            rbufbc = <int *>self.rbufbc + nrow*nbounds  # specific type
-          else:
-            # Bounds is not in cache. Read the appropriate row.
-            self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
-            rbufbc = <int *>self.rbufbc  # specific type
+          # Get the bounds row from the LRU cache or read them.
+          rbufbc = <int *>self.getLRUbounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_i(rbufbc, item1, nbounds, 0)
-          H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                       self.mem_space_id, self.type_id,
-                                       nrow, cs*nchunk, cs*(nchunk+1),
-                                       self.rbuflb)
+          # Get the sorted row from the LRU cache or read it.
+          rbuflb = <int *>self.getLRUsorted(nrow, cs, nchunk)
           start = bisect_left_i(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = nslice
       else:
         start = 0
-
+      # Now, for item2
       if item2 >= rbufrv[rvrow]:
         if item2 < rbufrv[rvrow+1]:
           if not bread:
-            if bcache:
-              rbufbc = <int *>self.rbufbc + nrow*nbounds  # specific type
-            else:
-              # Bounds is not in cache. Read the appropriate row.
-              self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
-              rbufbc = <int *>self.rbufbc  # specific type
+            # Get the bounds row from the LRU cache or read them.
+            rbufbc = <int *>self.getLRUbounds(nrow, nbounds)
           nchunk2 = bisect_right_i(rbufbc, item2, nbounds, 0)
-          if nchunk2 <> nchunk:  # Perhaps the chunk has already been read
-            H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                         self.mem_space_id, self.type_id,
-                                         nrow, cs*nchunk2, cs*(nchunk2+1),
-                                         self.rbuflb)
+          if nchunk2 <> nchunk:
+            # Get the sorted row from the LRU cache or read it.
+            rbuflb = <int *>self.getLRUsorted(nrow, cs, nchunk2)
           stop = bisect_right_i(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = nslice
       else:
         stop = 0
-      rbufst[nrow] = start
-      len = stop - start
-      rbufln[nrow] = len
-      tlen = tlen + len
+      len = stop - start;  tlen = tlen + len
+      rbufst[nrow] = start;  rbufln[nrow] = len;
     return tlen
 
-  # Optimized version for long long
-  def _searchBinNA_ll(self, long long item1, long long item2):
-    cdef int cs, nchunk, nchunk2, nrow, nrows, nbounds, rvrow
-    cdef int *rbufst, *rbufln
-    cdef int start, stop, nslice, tlen, len, bread, bcache
-    # Variables with specific type
-    cdef long long *rbufbc, *rbuflb, *rbufrv
 
-    cs = self.chunksize
-    nrows = self.nrows
-    nbounds = self.nbounds
-    nslice = self.slicesize
-    bcache = self.bcache
-    tlen = 0
-    rbufst = <int *>self.rbufst
-    rbufln = <int *>self.rbufln
-    rbuflb = <long long *>self.rbuflb   # specific type
-    rbufrv = <long long *>self.rbufrv   # specific type
+  # Optimized version for long long
+  def _searchBinNA_ll(self, double item1, double item2):
+    cdef int cs, nchunk, nchunk2, nrow, nrows, nbounds, rvrow
+    cdef int start, stop, nslice, tlen, len, bread
+    cdef int *rbufst, *rbufln
+    # Variables with specific type
+    cdef long long *rbufrv, *rbufbc, *rbuflb
+
+    cs = self.l_chunksize;  nrows = self.l_nrows
+    nbounds = self.nbounds;  nslice = self.l_slicesize
+    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
+    rbufrv = <long long *>self.rbufrv; tlen = 0
     for nrow from 0 <= nrow < nrows:
-      rvrow = nrow*2
-      bread = 0
-      nchunk = -1
+      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
-          # Get the bounds row
-          if bcache:
-            rbufbc = <long long *>self.rbufbc + nrow*nbounds  # specific type
-          else:
-            # Bounds is not in cache. Read the appropriate row.
-            self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
-            rbufbc = <long long *>self.rbufbc  # specific type
+          # Get the bounds row from the LRU cache or read them.
+          rbufbc = <long long *>self.getLRUbounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_ll(rbufbc, item1, nbounds, 0)
-          H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                       self.mem_space_id, self.type_id,
-                                       nrow, cs*nchunk, cs*(nchunk+1),
-                                      self.rbuflb)
+          # Get the sorted row from the LRU cache or read it.
+          rbuflb = <long long *>self.getLRUsorted(nrow, cs, nchunk)
           start = bisect_left_ll(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = nslice
       else:
         start = 0
-
+      # Now, for item2
       if item2 >= rbufrv[rvrow]:
         if item2 < rbufrv[rvrow+1]:
           if not bread:
-            if bcache:
-              rbufbc = <long long *>self.rbufbc + nrow*nbounds  # specific type
-            else:
-              # Bounds is not in cache. Read the appropriate row.
-              self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
-              rbufbc = <long long *>self.rbufbc  # specific type
+            # Get the bounds row from the LRU cache or read them.
+            rbufbc = <long long *>self.getLRUbounds(nrow, nbounds)
           nchunk2 = bisect_right_ll(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
-            H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                         self.mem_space_id, self.type_id,
-                                         nrow, cs*nchunk2, cs*(nchunk2+1),
-                                         self.rbuflb)
+            # Get the sorted row from the LRU cache or read it.
+            rbuflb = <long long *>self.getLRUsorted(nrow, cs, nchunk2)
           stop = bisect_right_ll(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = nslice
       else:
         stop = 0
-      rbufst[nrow] = start
-      len = stop - start
-      rbufln[nrow] = len
-      tlen = tlen + len
+      len = stop - start;  tlen = tlen + len
+      rbufst[nrow] = start;  rbufln[nrow] = len;
     return tlen
+
 
   # This version of getCoords reads the indexes in chunks.
   # Because of that, it can be used in iterators.
@@ -645,10 +638,12 @@ cdef class IndexArray(Array):
     cdef int nrow, nrows, leni, len1, len2, relcoords, nindexedrows
     cdef int *rbufst, *rbufln
     cdef int startl, stopl, incr, stop
+    cdef object parent
 
     len1 = 0; len2 = 0; relcoords = 0
+    parent = self._v_parent
     # Correction against asking too many elements
-    nindexedrows = self._v_parent.nelements
+    nindexedrows = parent.nelements
     if startcoords + ncoords > nindexedrows:
       ncoords = nindexedrows - startcoords
     # create buffers for indices
@@ -656,7 +651,7 @@ cdef class IndexArray(Array):
     arrAbs = self.arrAbs
     rbufst = <int *>self.rbufst
     rbufln = <int *>self.rbufln
-    nrows = self._v_parent.nrows
+    nrows = parent.nrows
     for nrow from 0 <= nrow < nrows:
       leni = rbufln[nrow]; len2 = len2 + leni
       if (leni > 0 and len1 <= startcoords < len2):
@@ -671,7 +666,7 @@ cdef class IndexArray(Array):
         else:
           # Get indices for last row
           stop = relcoords+(stopl-startl)
-          indicesLR = self._v_parent.indicesLR
+          indicesLR = parent.indicesLR
           # The next line can be optimised by calling indicesLR._g_readSlice()
           # directly although I don't know if it is worth the effort.
           arrAbs[relcoords:stop] = indicesLR[startl:stopl]
@@ -682,8 +677,8 @@ cdef class IndexArray(Array):
         if ncoords == 0:
           break
       len1 = len1 + leni
-
     return arrAbs[:relcoords]
+
 
   # This version of getCoords reads all the indexes in one pass.
   # Because of that, it is not meant to be used on iterators.
@@ -698,8 +693,10 @@ cdef class IndexArray(Array):
     cdef int nrows, len1, startl, stopl
     cdef int *rbufst, *rbufln
     cdef long long *rbufC
+    cdef object parent
 
     nrows = self.nrows
+    parent = self._v_parent
     # Initialize the index dataset
     self._initIndexSlice(index, ncoords)
     rbufst = <int *>self.rbufst
@@ -713,15 +710,16 @@ cdef class IndexArray(Array):
     self._readIndex_sparse(ncoords)
 
     # Get possible values in last slice
-    if (self._v_parent.nrows > nrows and rbufln[nrows] > 0):
+    if (parent.nrows > nrows and rbufln[nrows] > 0):
       # Get indices for last row
       startl = rbufst[nrows]
       stopl = startl + rbufln[nrows]
       len1 = ncoords - rbufln[nrows]
-      self._v_parent.indicesLR._readIndexSlice(self, startl, stopl, len1)
+      parent.indicesLR._readIndexSlice(self, startl, stopl, len1)
 
     # Return ncoords as maximum because arrAbs can have more elements
     return self.arrAbs[:ncoords]
+
 
   def _g_close(self):
     super(Array, self)._g_close()
@@ -732,8 +730,10 @@ cdef class IndexArray(Array):
       H5Sclose(self.mem_space_id)
 
 
+
 cdef class LastRowArray(Array):
   """Container for keeping sorted and indices values of last rows of an index."""
+
 
   def _readIndexSlice(self, IndexArray indices, hsize_t start, hsize_t stop,
                       int offsetl):
@@ -748,6 +748,7 @@ cdef class LastRowArray(Array):
       raise HDF5ExtError("Problems reading the index data.")
 
     return
+
 
   def _readSortedSlice(self, IndexArray sorted, hsize_t start, hsize_t stop):
     "Read the sorted part of an LR index."

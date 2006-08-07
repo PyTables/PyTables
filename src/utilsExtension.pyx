@@ -52,7 +52,8 @@ cdef extern from "string.h":
 # Python API functions.
 cdef extern from "Python.h":
   char *PyString_AsString(object string)
-
+  object PyDict_GetItem(object p, object key)
+  int PyDict_Contains(object p, object key)
 
 # HDF5 API.
 cdef extern from "hdf5.h":
@@ -1092,56 +1093,258 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
   # return the Description object
   return desc
 
+
+# Implementation of the LRUcache classes in Pyrex
+from heapq import heappush, heappop, heapify
+from lrucache import CacheKeyError
+
+
 # This is almost 4x times faster than its Python counterpart in lrucache.py
 cdef class LRUNode:
   """Record of a cached value. Not for public consumption."""
-  cdef object key_, obj_
-  cdef int    atime_
-        
+  cdef object key, obj
+  cdef long  atime
+
+
   def __init__(self, key, obj, timestamp):
     object.__init__(self)
-    self.key_ = key
-    self.obj_ = obj
-    self.atime_ = timestamp
-	    
-  def __cmp__(self, LRUNode other):
-    cdef int atime, atime2
+    self.key = key
+    self.obj = obj
+    self.atime = timestamp
 
-    #return cmp(self.atime, other.atime)
+
+  def __cmp__(self, LRUNode other):
+    #return cmp(self.atime_, other.atime_)
     # This optimization makes the comparison more than twice as faster
-    atime = self.atime_
-    atime2 = other.atime_
-    if atime < atime2:
+    if self.atime < self.atime:
       return -1
-    elif atime > atime2:
+    elif self.atime > other.atime:
       return 1
     else:
       return 0
 
-  property atime:
-    "The sorting attribute."
-
-    def __get__(self):
-      return self.atime_
-
-    def __set__(self, value):
-      self.atime_ = value
-
-  property obj:
-    "The object kept."
-
-    def __get__(self):
-      return self.obj_
-
-    def __set__(self, value):
-      self.obj_ = value
-
-  property key:
-    "The key for object."
-
-    def __get__(self):
-      return self.key_
 
   def __repr__(self):
     return "<%s %s => %s (accessed at %s)>" % \
-           (self.__class__, self.key_, self.obj_, self.atime_)
+           (self.__class__, self.key, self.obj, self.atime)
+
+
+DEFAULT_SIZE = 16
+"""Default size of a new LRUCache object, if no 'size' argument is given."""
+
+
+cdef class LRUCache:
+  """Least-Recently-Used (LRU) cache.
+  """
+  # This class variables are declared in utilsExtension.pxd
+
+
+  cdef long incseqn(self):
+    cdef LRUNode node
+
+    self.seqn_ = self.seqn_ + 1
+    # Check that the counter is ok
+    #if self.seqn_ > 1000:  # Only for testing!
+    if self.seqn_ < 0:
+      # Ooops, the counter has run out of range!
+      # Reset all the priorities to 0
+      for node in self.__heap:
+        node.atime = 0
+      # Set the counter to 1 (to indicate that it is newer than existing ones)
+      self.seqn_ = 1
+
+    #print self.seqn_
+    return self.seqn_
+
+
+  property seqn:
+    "The sequential key."
+    def __get__(self):
+      return self.incseqn()
+
+
+  def __init__(self, size=DEFAULT_SIZE):
+    """Maximum size of the cache.
+    If more than 'size' elements are added to the cache,
+    the least-recently-used ones will be discarded."""
+
+    if size <= 0:
+      raise ValueError, size
+    elif type(size) is not type(0):
+      raise TypeError, size
+    self.__heap = []
+    self.__dict = {}
+    self.seqn_ = 0
+    self.size = size
+
+  def __len__(self):
+    return len(self.__heap)
+
+
+  def __contains__(self, key):
+    return self.__dict.has_key(key)
+
+
+  # This is meant to be called from Pyrex extensions
+  # (it's 10x faster than regular __contains__)
+  cdef int contains(self, key):
+    # We don't check for -1 as this should never fail
+    return PyDict_Contains(self.__dict, key)
+
+
+#   # The next version of __setitem__ does not work well in some tests,
+#   # although I didn't dig into this a lot...
+#   def __setitem__optim(self, key, obj):
+#     cdef LRUNode node, lru
+
+#     node = self.__dict.pop(key, None)
+#     if <object>node is not None:
+#       node.obj = obj
+#       node.atime = self.incseqn()
+#       heapify(self.__heap)
+#     else:
+#       while len(self.__heap) >= self.size:
+#         lru = heappop(self.__heap)
+#         del self.__dict[lru.key]
+#       node = LRUNode(key, obj, self.incseqn())
+#       self.__dict[key] = node
+#       heappush(self.__heap, node)
+
+#   # The next version of __setitem__ creates references back to the
+#   # caller. This is critical in PyTables objects where cyclic references
+#   # cannot be collected by the garbage collector.
+#   # Moral: Do not even try to use try:! ;-)
+#   def __setitem__creates_references_dontuse(self, key, obj):
+#     cdef LRUNode node
+#     try:
+#       node = self.__dict[key]
+#       node.obj = obj
+#       node.atime = self.incseqn()
+#       heapify(self.__heap)
+#     except KeyError:
+#       if len(self.__heap) >= self.size:
+#         lru = heappop(self.__heap)
+#         del self.__dict[lru.key]
+#       node = LRUNode(key, obj, self.incseqn())
+#       self.__dict[key] = node
+#       heappush(self.__heap, node)
+
+
+  def __setitem__(self, key, obj):
+    cdef LRUNode node, lru
+    if self.__dict.has_key(key):
+      node = self.__dict[key]
+      node.obj = obj
+      node.atime = self.incseqn()
+      heapify(self.__heap)
+    else:
+      while len(self.__heap) >= self.size:
+        lru = heappop(self.__heap)
+        del self.__dict[lru.key]
+      node = LRUNode(key, obj, self.incseqn())
+      self.__dict[key] = node
+      heappush(self.__heap, node)
+
+
+  def __getitem__(self, key):
+    cdef LRUNode node
+
+    node = self.__dict.pop(key, None)
+    if <object>node is None:
+      raise CacheKeyError(key)
+    else:
+      node.atime = self.incseqn()
+      heapify(self.__heap)
+      return node.obj
+
+
+  def __delitem__(self, key):
+    self.pop(key)
+
+
+  def pop(self, key):
+    return self.cpop(key)
+
+
+  cdef object cpop(self, object key):
+    cdef LRUNode node, node2
+    cdef int idx
+
+    node = self.__dict.pop(key, None)
+    if <object>node is None:
+      raise CacheKeyError(key)
+    else:
+      # The next line makes a segfault to happen
+      #self.__heap.remove(<object>node)
+      # Workaround:
+      for idx from 0 <= idx < len(self.__heap):
+        node2 = self.__heap[idx]
+        if node is node2:
+          # using del here causes another segfault, I don't know why,
+          # but this has probably to do with wrong ref counts in Pyrex :-(
+          #del self.__heap[idx]
+          self.__heap.pop(idx)
+          break
+      heapify(self.__heap)
+      return node.obj
+
+
+  # This call is more efficient than __getitem__ because it is made in
+  # C space. Of course, it is only meant to be called from Pyrex.
+  # This should be called only when key *does* exist in __dict.
+  # This is used in the optimized search routines in indexesExtension.pyx
+  cdef object getitem(self, object key):
+    cdef LRUNode node
+
+    node = self.__dict[key]
+    #node = <LRUNode>PyDict_GetItem(self.__dict, key)  # a test that doesn't work
+    # Set the new access time for the object
+    node.atime = self.incseqn()
+    # Heapify is not needed here, because the heap gets ordered on each
+    # insertion and deletion. The only case that would be affected is when
+    # retrieving the last object in a full queue a lot: it will remain as the
+    # least recently used and will be preempted in the next insertion.
+    # However, this is barely equivalent to having a LRU cache with 1 element
+    # less than nominal, which is not grave at all.
+    # This accelerates up to a 2x the lookup process (provided that you can use
+    # self.getitem, of course).
+    # F. Altet 2006-08-07
+    #heapify(self.__heap)
+    return node.obj
+
+
+  # This call is more efficient than __getitem__ because it is made in
+  # C space. Of course, it is only meant to be called from Pyrex.
+  # This can be called even when key *doesn't* exist in __dict.
+  cdef object getitem2(self, object key):
+    cdef LRUNode node
+
+    node = self.__dict.pop(key, None)
+    if <object>node is None:
+      return None
+    else:
+      node.atime = self.incseqn()
+      #heapify(self.__heap)
+      return node.obj
+
+
+  def __iter__(self):
+
+    self.copy = self.__heap[:]
+    self.niter = len(self.copy)
+    return self
+
+
+  def __next__(self):
+    cdef LRUNode node
+
+    if self.niter > 0:
+      node = heappop(self.copy)
+      self.niter = self.niter - 1
+      return node.key
+    raise StopIteration
+
+
+  def __repr__(self):
+    return "<%s (%d elements)>" % (str(self.__class__), len(self.__heap))
+
