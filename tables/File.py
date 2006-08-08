@@ -36,6 +36,7 @@ Misc variables:
 import warnings
 import time
 import os, os.path
+import sys
 import weakref
 
 import tables.lrucache
@@ -830,6 +831,9 @@ class File(hdf5Extension.File, object):
                        atom=atom, title=title, filters=fprops,
                        expectedsizeinMB=expectedsizeinMB)
 
+    # There is another version of _getNode in Pyrex space, but only
+    # marginally faster (5% or less, but sometimes slower!) than this one.
+    # So I think it is worth to use this one instead (much easier to debug).
     def _getNode(self, nodePath):
         # The root node is always at hand.
         if nodePath == '/':

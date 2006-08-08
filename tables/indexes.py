@@ -116,7 +116,9 @@ def calcChunksize(expectedrows, optlevel=0, testmode=False):
             optstarts = True
     elif expKrows < 10:  # expected rows < 10 milion
         if optlevel == 0:
-            chunksize = 1000
+            #chunksize = 1000
+            #slicesize = 200*chunksize
+            chunksize = 20  # test
             slicesize = 200*chunksize
         elif optlevel == 1:
             chunksize = 750

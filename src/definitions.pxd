@@ -26,6 +26,10 @@ cdef extern from "Python.h":
   object PyTuple_GetItem(object, int)
   int PyTuple_Size(object tuple)
 
+  # To access dicts
+  int PyDict_Contains(object p, object key)
+  object PyDict_GetItem(object p, object key)
+
   # To access integers
   object PyInt_FromLong(long)
   long PyInt_AsLong(object)

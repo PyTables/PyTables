@@ -179,11 +179,11 @@ class LRUCache(object):
             raise CacheKeyError(key)
         else:
             node = self.__dict[key]
+            del self.__dict[key]
             if hasattr(node.obj, "_v_pathname"):
                 print "eliminant(delitem)-->", node.obj._v_pathname
                 f = sys._getframe(2)
                 print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
-            del self.__dict[key]
             self.__heap.remove(node)
             heapify(self.__heap)
             return node.obj

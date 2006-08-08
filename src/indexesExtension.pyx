@@ -464,18 +464,22 @@ cdef class IndexArray(Array):
     else:
       # Bounds row is not in cache. Read it and put it in the LRU cache.
       self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
-      self.LRUboundscache[nrow] = self.boundscache.copy()
+      #self.LRUboundscache[nrow] = self.boundscache.copy()
+      self.LRUboundscache.setitem(nrow, self.boundscache.copy())
       vpointer = self.rbufbc
     return vpointer
 
 
   # Get the sorted row from the cache or read it.
-  cdef void *getLRUsorted(self, int nrow, int cs, int nchunk):
+  cdef void *getLRUsorted(self, int nrow, int ncs, int nchunk, int cs):
     cdef void *vpointer
     cdef object buf
+    cdef long long nckey
 
-    if self.LRUsortedcache.contains(nrow):
-      buf = self.LRUsortedcache.getitem(nrow)
+    # Compute the number of chunk read and use it as the key for the cache.
+    nckey = nrow*ncs+nchunk
+    if self.LRUsortedcache.contains(nckey):
+      buf = self.LRUsortedcache.getitem(nckey)
       NA_getBufferPtrAndSize(buf._data, 1, &vpointer)
     else:
       # The sorted row is not in cache. Read it and put it in the LRU cache.
@@ -483,21 +487,22 @@ cdef class IndexArray(Array):
                                    self.mem_space_id, self.type_id,
                                    nrow, cs*nchunk, cs*(nchunk+1),
                                    self.rbuflb)
-      self.LRUsortedcache[nrow] = self.bufferl.copy()
+      #self.LRUsortedcache[nckey] = self.bufferl.copy()
+      self.LRUsortedcache.setitem(nckey, self.bufferl.copy())
       vpointer = self.rbuflb
     return vpointer
 
 
   # Optimized version for doubles
   def _searchBinNA_d(self, double item1, double item2):
-    cdef int cs, nchunk, nchunk2, nrow, nrows, nbounds, rvrow
-    cdef int start, stop, nslice, tlen, len, bread
+    cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
+    cdef int start, stop, tlen, len, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
     cdef double *rbufrv, *rbufbc, *rbuflb
 
-    cs = self.l_chunksize;  nrows = self.l_nrows
-    nbounds = self.nbounds;  nslice = self.l_slicesize
+    cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
+    nbounds = self.nbounds;  nrows = self.l_nrows
     rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
     rbufrv = <double *>self.rbufrv; tlen = 0
     for nrow from 0 <= nrow < nrows:
@@ -510,10 +515,10 @@ cdef class IndexArray(Array):
           bread = 1
           nchunk = bisect_left_d(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <double *>self.getLRUsorted(nrow, cs, nchunk)
+          rbuflb = <double *>self.getLRUsorted(nrow, ncs, nchunk, cs)
           start = bisect_left_d(rbuflb, item1, cs, 0) + cs*nchunk
         else:
-          start = nslice
+          start = ss
       else:
         start = 0
       # Now, for item2
@@ -525,10 +530,10 @@ cdef class IndexArray(Array):
           nchunk2 = bisect_right_d(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <double *>self.getLRUsorted(nrow, cs, nchunk2)
+            rbuflb = <double *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_d(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
-          stop = nslice
+          stop = ss
       else:
         stop = 0
       len = stop - start;  tlen = tlen + len
@@ -538,14 +543,14 @@ cdef class IndexArray(Array):
 
   # Optimized version for ints
   def _searchBinNA_i(self, double item1, double item2):
-    cdef int cs, nchunk, nchunk2, nrow, nrows, nbounds, rvrow
-    cdef int start, stop, nslice, tlen, len, bread
+    cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
+    cdef int start, stop, tlen, len, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
     cdef int *rbufrv, *rbufbc, *rbuflb
 
-    cs = self.l_chunksize;  nrows = self.l_nrows
-    nbounds = self.nbounds;  nslice = self.l_slicesize
+    cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
+    nbounds = self.nbounds;  nrows = self.l_nrows
     rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
     rbufrv = <int *>self.rbufrv; tlen = 0
     for nrow from 0 <= nrow < nrows:
@@ -558,10 +563,10 @@ cdef class IndexArray(Array):
           bread = 1
           nchunk = bisect_left_i(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <int *>self.getLRUsorted(nrow, cs, nchunk)
+          rbuflb = <int *>self.getLRUsorted(nrow, ncs, nchunk, cs)
           start = bisect_left_i(rbuflb, item1, cs, 0) + cs*nchunk
         else:
-          start = nslice
+          start = ss
       else:
         start = 0
       # Now, for item2
@@ -573,10 +578,10 @@ cdef class IndexArray(Array):
           nchunk2 = bisect_right_i(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <int *>self.getLRUsorted(nrow, cs, nchunk2)
+            rbuflb = <int *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_i(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
-          stop = nslice
+          stop = ss
       else:
         stop = 0
       len = stop - start;  tlen = tlen + len
@@ -586,14 +591,14 @@ cdef class IndexArray(Array):
 
   # Optimized version for long long
   def _searchBinNA_ll(self, double item1, double item2):
-    cdef int cs, nchunk, nchunk2, nrow, nrows, nbounds, rvrow
-    cdef int start, stop, nslice, tlen, len, bread
+    cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
+    cdef int start, stop, tlen, len, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
     cdef long long *rbufrv, *rbufbc, *rbuflb
 
-    cs = self.l_chunksize;  nrows = self.l_nrows
-    nbounds = self.nbounds;  nslice = self.l_slicesize
+    cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
+    nbounds = self.nbounds;  nrows = self.l_nrows
     rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
     rbufrv = <long long *>self.rbufrv; tlen = 0
     for nrow from 0 <= nrow < nrows:
@@ -606,10 +611,10 @@ cdef class IndexArray(Array):
           bread = 1
           nchunk = bisect_left_ll(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <long long *>self.getLRUsorted(nrow, cs, nchunk)
+          rbuflb = <long long *>self.getLRUsorted(nrow, ncs, nchunk, cs)
           start = bisect_left_ll(rbuflb, item1, cs, 0) + cs*nchunk
         else:
-          start = nslice
+          start = ss
       else:
         start = 0
       # Now, for item2
@@ -621,10 +626,10 @@ cdef class IndexArray(Array):
           nchunk2 = bisect_right_ll(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <long long *>self.getLRUsorted(nrow, cs, nchunk2)
+            rbuflb = <long long *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_ll(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
-          stop = nslice
+          stop = ss
       else:
         stop = 0
       len = stop - start;  tlen = tlen + len

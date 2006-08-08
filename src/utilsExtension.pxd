@@ -12,3 +12,4 @@ cdef class LRUCache:
   cdef object cpop(self, object key)
   cdef object getitem(self, object key)
   cdef object getitem2(self, object key)
+  cdef object setitem(self, object key, object obj)

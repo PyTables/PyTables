@@ -1094,8 +1094,16 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
   return desc
 
 
-# Implementation of the LRUcache classes in Pyrex
-from heapq import heappush, heappop, heapify
+# Implementation of the LRUcache classes in Pyrex.
+
+#***********************  Important note! ***********************
+# The code behind has been carefully tuned to serve the needs of
+# PyTables. As a consequence, it is no longer appropriate as a general
+# LRU cache implementation. You have been warned!.
+# F. Altet 2006-08-08
+#***************************************************************
+
+from heapq import heappush, heappop, heapreplace, heapify
 from lrucache import CacheKeyError
 
 
@@ -1192,24 +1200,6 @@ cdef class LRUCache:
     return PyDict_Contains(self.__dict, key)
 
 
-#   # The next version of __setitem__ does not work well in some tests,
-#   # although I didn't dig into this a lot...
-#   def __setitem__optim(self, key, obj):
-#     cdef LRUNode node, lru
-
-#     node = self.__dict.pop(key, None)
-#     if <object>node is not None:
-#       node.obj = obj
-#       node.atime = self.incseqn()
-#       heapify(self.__heap)
-#     else:
-#       while len(self.__heap) >= self.size:
-#         lru = heappop(self.__heap)
-#         del self.__dict[lru.key]
-#       node = LRUNode(key, obj, self.incseqn())
-#       self.__dict[key] = node
-#       heappush(self.__heap, node)
-
 #   # The next version of __setitem__ creates references back to the
 #   # caller. This is critical in PyTables objects where cyclic references
 #   # cannot be collected by the garbage collector.
@@ -1229,8 +1219,12 @@ cdef class LRUCache:
 #       self.__dict[key] = node
 #       heappush(self.__heap, node)
 
-
   def __setitem__(self, key, obj):
+    self.setitem(key, obj)
+
+
+  # This version is meant to be called from extensions.
+  cdef setitem(self, key, obj):
     cdef LRUNode node, lru
     if self.__dict.has_key(key):
       node = self.__dict[key]
@@ -1238,12 +1232,15 @@ cdef class LRUCache:
       node.atime = self.incseqn()
       heapify(self.__heap)
     else:
-      while len(self.__heap) >= self.size:
-        lru = heappop(self.__heap)
-        del self.__dict[lru.key]
       node = LRUNode(key, obj, self.incseqn())
       self.__dict[key] = node
-      heappush(self.__heap, node)
+      #print "afegint-->", node.atime, node.key
+      # Check if we are growing out of space
+      if len(self.__heap) == self.size:
+        lru = heapreplace(self.__heap, node)
+        del self.__dict[lru.key]
+      else:
+        heappush(self.__heap, node)
 
 
   def __getitem__(self, key):
@@ -1270,23 +1267,29 @@ cdef class LRUCache:
     cdef LRUNode node, node2
     cdef int idx
 
-    node = self.__dict.pop(key, None)
-    if <object>node is None:
-      raise CacheKeyError(key)
-    else:
-      # The next line makes a segfault to happen
-      #self.__heap.remove(<object>node)
-      # Workaround:
-      for idx from 0 <= idx < len(self.__heap):
-        node2 = self.__heap[idx]
-        if node is node2:
+    node = self.__dict.pop(key)
+    # The next line makes a segfault to happen
+    #self.__heap.remove(<object>node)
+    # Workaround. This workaround has the virtue that only a heapify is
+    # done in case the node is the LRU.
+    for idx from 0 <= idx < len(self.__heap):
+      node2 = self.__heap[idx]
+      if node is node2:
+        if idx == 0:
+          # It turns that the element to be removed is the LRU.
+          # Extract it and let the heap invariant.
+          heappop(self.__heap)
+        else:
+          # The node to be removed is in the middle of the heap, so we
+          # don't need to maintain the heap invariant (the next
+          # insertion will do that).
           # using del here causes another segfault, I don't know why,
           # but this has probably to do with wrong ref counts in Pyrex :-(
-          #del self.__heap[idx]
+          # Fortunately, .pop() method seems to work...
+          # del self.__heap[idx]
           self.__heap.pop(idx)
-          break
-      heapify(self.__heap)
-      return node.obj
+        break
+    return node.obj
 
 
   # This call is more efficient than __getitem__ because it is made in

@@ -100,6 +100,10 @@ class PyTables_DB(DB):
                     setattr(self, "%s_index_cache"%column, colobj.index)
                     setattr(self, "%s_sorted_cache"%column, colobj.index.sorted)
                     setattr(self, "%s_indices_cache"%column, colobj.index.indices)
+#                 else:
+#                     print "idx cache-->", self.col4_index_cache
+#                     print "sorted cache-->", self.col4_sorted_cache
+#                     print "indices cache-->", self.col4_indices_cache
         else:   # No cache is used at all
             table = con.root.table
             colobj = getattr(table.cols, column)

@@ -48,7 +48,8 @@ from utilsExtension cimport LRUCache as LRUCacheType
 
 from definitions cimport import_libnumarray, NA_getBufferPtrAndSize, \
      Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, PyString_AsString, \
-     PyString_FromStringAndSize
+     PyString_FromStringAndSize, PyDict_Contains, PyDict_GetItem, \
+     Py_INCREF, Py_DECREF
 
 
 __version__ = "$Revision$"
@@ -588,7 +589,9 @@ cdef class File:
   # the pure Python version, but I had no success because it is only marginally
   # faster (just a 5% or less). So, the best is not to use it, I think.
   # I'll let it here just in case more speed is needed (in the context of
-  # benchmarks, most presumably).
+  # benchmarks, most presumably) and optimization work goes back again.
+  # I think that the problem could be that calling a Python method in Pyrex
+  # is more costly than in Python itself, but this is only a guess.
   # F. Altet 2006-08-07
   def _getNode(self, object nodePath):
     cdef object aliveNodes, parentPath, pathTail, parentNode, node
@@ -597,13 +600,31 @@ cdef class File:
     # The root node is always at hand.
     if nodePath == '/':
       return self.root
-
-    aliveNodes = self._aliveNodes
-    deadNodes = <LRUCacheType>self._deadNodes
+    else:
+      # Check quickly is nodePath is alive or dead (i.e. in memory)
+      aliveNodes = self._aliveNodes
+      #if nodePath in aliveNodes:
+      # We don't check for -1 as this should never fail
+      if PyDict_Contains(aliveNodes, nodePath):
+        # The parent node is in memory and alive, so get it.
+        node = aliveNodes[nodePath]
+        # The lines below doesn't work I don't know why!
+        #node = PyDict_GetItem(aliveNodes, nodePath)
+        #Py_INCREF(node)  # Because PyDict_GetItem returns a borrowed reference.
+        assert node is not None, \
+               "stale weak reference to dead node ``%s``" % parentPath
+        return node
+      deadNodes = <LRUCacheType>self._deadNodes
+      if deadNodes.contains(nodePath):
+        # The parent node is in memory but dead, so revive it.
+        node = self._g_reviveNode(nodePath)
+        # Call the post-revive hook
+        node._g_postReviveHook()
+        return node
 
     # Walk up the hierarchy until a node in the path is in memory.
-    parentPath = nodePath  # deepest node in memory
-    pathTail = []  # subsequent children below that node
+    (parentPath, nodeName) = splitPath(nodePath)
+    pathTail = [nodeName]  # subsequent children below that node
     while parentPath != '/':
       if parentPath in aliveNodes:
         # The parent node is in memory and alive, so get it.
