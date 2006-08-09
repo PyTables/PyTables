@@ -35,9 +35,6 @@ from numarray import records, strings, memory
 
 from tables.exceptions import HDF5ExtError
 from hdf5Extension cimport Array, hid_t, herr_t, hsize_t
-from utilsExtension cimport LRUCache as LRUCacheType
-from utilsExtension import LRUCache, CacheKeyError
-#from lrucache import LRUCache
 from constants import SORTED_CACHE_SIZE, BOUNDS_CACHE_SIZE
 
 from definitions cimport import_libnumarray, NA_getPythonScalar, \
@@ -53,6 +50,12 @@ __version__ = "$Revision$"
 
 # C functions and variable declaration from its headers
 
+cdef extern from "Python.h":
+  object PyDict_GetItem(object p, object key)
+  int PyDict_Contains(object p, object key)
+  object PyObject_GetItem(object o, object key)
+  int PyObject_SetItem(object o, object key, object v)
+  int PyObject_DelItem(object o, object key)
 
 # Functions, structs and types from HDF5
 cdef extern from "hdf5.h":
@@ -184,6 +187,7 @@ cdef class CacheArray(Array):
       H5Sclose(self.mem_space_id)
 
 
+cdef class NumCache  # Forward declaration
 
 cdef class IndexArray(Array):
   """Container for keeping sorted and indices values."""
@@ -191,9 +195,9 @@ cdef class IndexArray(Array):
   cdef void    *rbufC, *rbufA
   cdef hid_t   space_id, mem_space_id
   cdef int     l_chunksize, l_slicesize, l_nrows, nbounds
-  cdef object  boundscache, bufferl
+  cdef object  bufferbc, bufferlb
   cdef CacheArray bounds_ext
-  cdef LRUCacheType LRUboundscache, LRUsortedcache
+  cdef NumCache LRUboundscache, LRUsortedcache
 
 
   def _initIndexSlice(self, index, ncoords):
@@ -258,16 +262,16 @@ cdef class IndexArray(Array):
     cdef hsize_t count[2]
 
     # Create the buffer for reading sorted data chunks
-    if self.bufferl is None:
+    if self.bufferlb is None:
       if str(self.type) == "CharType":
-        self.bufferl = strings.array(None, itemsize=self.itemsize,
+        self.bufferlb = strings.array(None, itemsize=self.itemsize,
                                      shape=self.chunksize)
       else:
-        self.bufferl = numarray.array(None, type=self.type,
+        self.bufferlb = numarray.array(None, type=self.type,
                                       shape=self.chunksize)
       # Internal buffers
       # Get the pointers to the different buffer data areas
-      NA_getBufferPtrAndSize(self.bufferl._data, 1, &self.rbuflb)
+      NA_getBufferPtrAndSize(self.bufferlb._data, 1, &self.rbuflb)
       # index.starts and index.lengths are assigned here for allow access
       # from _initIndexSlice. I should find a better way to share them.
       index.starts = numarray.array(None, shape=index.nrows,
@@ -293,19 +297,19 @@ cdef class IndexArray(Array):
       # The 2nd level cache and sorted values will be cached in a LRU cache
       self.bounds_ext = <CacheArray>index.bounds
       self.nbounds = index.bounds.shape[1]
-      # The <LRUCacheType> cast is for keeping the C compiler happy
-      self.LRUsortedcache = <LRUCacheType>LRUCache(SORTED_CACHE_SIZE)
-      self.LRUboundscache = <LRUCacheType>LRUCache(BOUNDS_CACHE_SIZE)
+      # The <NumCache> cast is for keeping the C compiler happy
+      self.LRUsortedcache = <NumCache>NumCache(SORTED_CACHE_SIZE, 'sorted')
+      self.LRUboundscache = <NumCache>NumCache(BOUNDS_CACHE_SIZE, 'bounds')
       if str(self.type) == "CharType":
-        self.boundscache = strings.array(None, itemsize=self.itemsize,
+        self.bufferbc = strings.array(None, itemsize=self.itemsize,
                                          shape=self.nbounds)
       else:
-        self.boundscache = numarray.array(None, type=self.type,
+        self.bufferbc = numarray.array(None, type=self.type,
                                           shape=self.nbounds)
       # Init the bounds array for reading
       self.bounds_ext.initRead(self.nbounds)
       # Get the pointer for the internal buffer for 2nd level cache
-      NA_getBufferPtrAndSize(self.boundscache._data, 1, &self.rbufbc)
+      NA_getBufferPtrAndSize(self.bufferbc._data, 1, &self.rbufbc)
 
 
   def _readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):
@@ -319,7 +323,7 @@ cdef class IndexArray(Array):
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
 
-    return self.bufferl
+    return self.bufferlb
 
 
 # This has been copied from the standard module bisect.
@@ -464,8 +468,7 @@ cdef class IndexArray(Array):
     else:
       # Bounds row is not in cache. Read it and put it in the LRU cache.
       self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
-      #self.LRUboundscache[nrow] = self.boundscache.copy()
-      self.LRUboundscache.setitem(nrow, self.boundscache.copy())
+      self.LRUboundscache.setitem(nrow, self.bufferbc)
       vpointer = self.rbufbc
     return vpointer
 
@@ -487,8 +490,7 @@ cdef class IndexArray(Array):
                                    self.mem_space_id, self.type_id,
                                    nrow, cs*nchunk, cs*(nchunk+1),
                                    self.rbuflb)
-      #self.LRUsortedcache[nckey] = self.bufferl.copy()
-      self.LRUsortedcache.setitem(nckey, self.bufferl.copy())
+      self.LRUsortedcache.setitem(nckey, self.bufferlb)
       vpointer = self.rbuflb
     return vpointer
 
@@ -766,4 +768,149 @@ cdef class LastRowArray(Array):
     if ret < 0:
       raise HDF5ExtError("Problems reading the index data.")
 
-    return sorted.bufferl
+    return sorted.bufferlb
+
+
+#  Minimalistic LRU cache implementation for numerical data
+
+#*********************** Important note! ****************************
+#The code behind has been carefully tuned to serve the needs of
+#caching numarray (or numpy) data. As a consequence, it is no longer
+#appropriate as a general LRU cache implementation. You have been
+#warned!. F. Altet 2006-08-09
+#********************************************************************
+
+from heapq import heappush, heappop, heapreplace, heapify
+from constants import ENABLE_EVERY_CYCLES, LOWEST_HIT_RATIO
+
+cdef class LRUNode:
+  """Record of a cached value. Not for public consumption."""
+  cdef object key, obj
+  cdef long  atime
+
+  def __init__(self, key, obj, long atime):
+    object.__init__(self)
+    self.key = key
+    self.obj = obj
+    self.atime = atime
+
+
+  def __cmp__(self, LRUNode other):
+    #return cmp(self.atime_, other.atime_)
+    # This optimization makes the comparison more than twice as faster
+    if self.atime < self.atime:
+      return -1
+    elif self.atime > other.atime:
+      return 1
+    else:
+      return 0
+
+
+  def __repr__(self):
+    return "<%s %s => %s (accessed at %s)>" % \
+           (self.__class__, self.key, self.obj, self.atime)
+
+
+cdef class NumCache:
+  """Least-Recently-Used (LRU) cache specific for Numerical data.
+  """
+  cdef long size, seqn_
+  cdef long setcount, getcount, cyclecount
+  cdef long enableeverycycles
+  cdef double lowesthr
+  cdef int iscachedisabled
+  cdef object name
+  cdef object __dict, __heap
+
+  def __init__(self, long size, object name):
+    """Maximum size of the cache.
+    If more than 'size' elements are added to the cache,
+    the least-recently-used ones will be discarded."""
+
+    if size <= 0:
+      raise ValueError, size
+    self.__heap = [];  self.__dict = {}
+    self.size = size; self.name = name
+    self.seqn_ = 0
+    self.setcount = 0; self.getcount = 0; self.cyclecount = 0
+    self.iscachedisabled = False  # Cache is enabled by default
+    self.enableeverycycles = ENABLE_EVERY_CYCLES
+    self.lowesthr = LOWEST_HIT_RATIO
+
+
+  cdef long incseqn(self):
+    cdef LRUNode node
+
+    self.seqn_ = self.seqn_ + 1
+    if self.seqn_ < 0:
+      # Ooops, the counter has run out of range!
+      # Reset all the priorities to 0
+      for node in self.__heap:
+        node.atime = 0
+      # Set the counter to 1 (to indicate that it is newer than existing ones)
+      self.seqn_ = 1
+    return self.seqn_
+
+
+  cdef int contains(self, key):
+    return PyDict_Contains(self.__dict, key)
+
+
+  # Machinery for determining whether the hit ratio is being effective
+  # or not.  If not, the cache will be disabled. The efficency will be
+  # checked every cycle (the time that the cache would be refilled
+  # completely).  In situations where the cache is not being re-filled
+  # (i.e. it is not enabled) for a long time, it is forced to be
+  # re-enabled when a certain number of cycles has passed so as to
+  # check whether a new scenario where the cache can be useful again
+  # has come.
+  # F. Altet 2006-08-09
+  cdef int checkhitratio(self):
+    cdef double hitratio
+
+    if self.setcount > self.size:
+      self.cyclecount = self.cyclecount + 1
+      # Check whether the cache is being effective or not
+      hitratio = <double>self.getcount / (self.setcount+self.getcount)
+      if hitratio < self.lowesthr:
+        # Hit ratio is low. Disable the cache.
+        self.iscachedisabled = True
+      else:
+        # Hit ratio is acceptable. (Re-)Enable the cache.
+        self.iscachedisabled = False
+      # Reset the counters to 0
+      self.setcount = 0; self.getcount = 0
+      if self.cyclecount > self.enableeverycycles:
+        # We have reached the time for forcing the cache to act again
+        self.iscachedisabled = False
+        self.cyclecount = 0
+    return self.iscachedisabled
+
+  cdef object setitem(self, object key, object obj):
+    cdef LRUNode node, lru
+
+    self.setcount = self.setcount + 1
+    if self.checkhitratio():
+      return
+    else:
+      node = LRUNode(key, obj.copy(), self.incseqn())
+      PyObject_SetItem(self.__dict, key, node)  # Can't fail
+      # Check if we are growing out of space
+      if len(self.__heap) == self.size:
+        lru = heapreplace(self.__heap, node)
+        PyObject_DelItem(self.__dict, lru.key)
+      else:
+        heappush(self.__heap, node)
+
+
+  cdef object getitem(self, object key):
+    cdef LRUNode node
+
+    self.getcount = self.getcount + 1
+    node = PyObject_GetItem(self.__dict, key)
+    node.atime = self.incseqn()
+    return node.obj
+
+
+  def __repr__(self):
+    return "<%s (%d elements)>" % (str(self.__class__), len(self.__heap))

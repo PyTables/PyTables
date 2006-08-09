@@ -455,7 +455,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         """The maximum number of elements in a block."""
         self.reord_opts = None
         """The reordering optimizations."""
-        self.bufferl = None
+        self.bufferlb = None
         """Buffer for reading chunks in sorted array in extension."""
         self.arrAbs = None
         """Buffer for reading indexes (absolute addresses) in extension."""

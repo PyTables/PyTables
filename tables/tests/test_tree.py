@@ -738,7 +738,9 @@ class HiddenTreeTestCase(unittest.TestCase):
         os.remove(self.h5fname)
 
 
-    def test00_objects(self):
+    # The test behind commented out because the .objects dictionary
+    # has been removed (as well as .leaves and .groups)
+    def _test00_objects(self):
         """Absence of hidden nodes in `File.objects`."""
 
         objects = self.h5file.objects
@@ -755,7 +757,9 @@ class HiddenTreeTestCase(unittest.TestCase):
         warnings.filterwarnings('default', category=DeprecationWarning)
 
 
-    def test00b_objects(self):
+    # The test behind commented out because the .objects dictionary
+    # has been removed (as well as .leaves and .groups)
+    def _test00b_objects(self):
         """Object dictionaries conformance with ``walkNodes()``."""
 
         def dictCheck(dictName, className):
@@ -876,7 +880,9 @@ class HiddenTreeTestCase(unittest.TestCase):
                      "Hidden node ``%s`` was not listed." % node_to_find)
 
 
-    def test06_reopen(self):
+    # The test behind commented out because the .objects dictionary
+    # has been removed (as well as .leaves and .groups)
+    def _test06_reopen(self):
         """Reopening a file with hidden nodes."""
 
         self.h5file.close()

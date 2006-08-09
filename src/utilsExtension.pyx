@@ -1096,18 +1096,17 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
 
 # Implementation of the LRUcache classes in Pyrex.
 
-#***********************  Important note! ***********************
-# The code behind has been carefully tuned to serve the needs of
-# PyTables. As a consequence, it is no longer appropriate as a general
-# LRU cache implementation. You have been warned!.
-# F. Altet 2006-08-08
-#***************************************************************
+#*********************** Important note! *****************************
+#The code behind has been carefully tuned to serve the needs of
+#PyTables cache for nodes. As a consequence, it is no longer
+#appropriate as a general LRU cache implementation. You have been
+#warned!.  F. Altet 2006-08-08
+#*********************************************************************
 
 from heapq import heappush, heappop, heapreplace, heapify
 from lrucache import CacheKeyError
 
 
-# This is almost 4x times faster than its Python counterpart in lrucache.py
 cdef class LRUNode:
   """Record of a cached value. Not for public consumption."""
   cdef object key, obj
@@ -1312,7 +1311,6 @@ cdef class LRUCache:
     # This accelerates up to a 2x the lookup process (provided that you can use
     # self.getitem, of course).
     # F. Altet 2006-08-07
-    #heapify(self.__heap)
     return node.obj
 
 
@@ -1327,7 +1325,6 @@ cdef class LRUCache:
       return None
     else:
       node.atime = self.incseqn()
-      #heapify(self.__heap)
       return node.obj
 
 

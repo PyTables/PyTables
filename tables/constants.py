@@ -131,11 +131,21 @@ NODE_CACHE_SIZE = 256   # 42 MB, 42.3s, opt:40.9s , 64 MB for writes
 
 #SORTED_CACHE_SIZE = 256
 SORTED_CACHE_SIZE = 1024
-"""The maximum number of rows cached for sorted values in index lookups"""
+"""The maximum number of rows cached for sorted values in index lookups."""
 
 #BOUNDS_CACHE_SIZE = 256
 BOUNDS_CACHE_SIZE = 1024
-"""The maximum number of rows cached for bounds values in index lookups"""
+"""The maximum number of rows cached for bounds values in index lookups."""
+
+ENABLE_EVERY_CYCLES = 500
+"""The number of cycles that the LRU cache for data (indexes) will be
+forced to be (re-)enabled, irregardingly of the hit ratio. This will
+provide a chance for checking if we are in a better scenario for doing
+caching again."""
+
+LOWEST_HIT_RATIO = 0.9
+"""The minimum acceptable hit ratio for the LRU cache for data to avoid
+disabling the cache."""
 
 EXPECTED_ROWS_TABLE = 10000
 """Default expected number of rows for ``Table`` objects."""
