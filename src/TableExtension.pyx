@@ -641,7 +641,7 @@ cdef class Row:
 
     return self
 
-  def _newBuffer(self, write=0):
+  cdef _newBuffer(self, write):
     "Create the recarray for I/O buffering"
 
     table = self.table
@@ -662,7 +662,7 @@ cdef class Row:
     self._getBufferInfo(buff)
     self.nrows = table.nrows  # This value may change
 
-  def _getBufferInfo(self, buff):
+  cdef _getBufferInfo(self, buff):
     "Get info for __getitem__ and __setitem__ methods"
 
     if self._bufferinfo_done:
@@ -686,12 +686,12 @@ cdef class Row:
       i = i + 1
     self._bufferinfo_done = 1
 
-  def _initLoop(self, hsize_t start, hsize_t stop, hsize_t step,
-                object coords, int ncoords):
+  cdef _initLoop(self, hsize_t start, hsize_t stop, hsize_t step,
+                     object coords, int ncoords):
     "Initialization for the __iter__ iterator"
 
     self._riterator = 1   # We are inside a read iterator
-    self._newBuffer(write=0)   # Create a buffer for reading
+    self._newBuffer(False)   # Create a buffer for reading
     self.start = start
     self.stop = stop
     self.step = step
@@ -1093,7 +1093,7 @@ cdef class Row:
     else:
       self.finish_riterator()
 
-  def finish_riterator(self):
+  cdef finish_riterator(self):
     """Clean-up things after iterator has been done"""
 
     self._riterator = 0        # out of iterator
@@ -1194,7 +1194,7 @@ cdef class Row:
 
     if self.wbufRA is None:
       # Get the array pointers for write buffers
-      self._newBuffer(write=1)
+      self._newBuffer(True)
 
     if not self._riterator:
       raise NotImplementedError("You are only allowed to update rows through the Row.update() method if you are in the middle of a table iterator.")
@@ -1262,7 +1262,7 @@ cdef class Row:
 
     if self.wbufRA is None:
       # Get the array pointers for write buffers
-      self._newBuffer(write=1)
+      self._newBuffer(True)
 
     # Check validity of enumerated value.
     if self.exist_enum_cols:
@@ -1317,7 +1317,7 @@ cdef class Row:
     "You will normally want to use this object in iterator contexts.")
 
     # Create the read buffers
-    self._newBuffer(write=0)
+    self._newBuffer(True)
     outlist = []
     # Special case where Row has not been initialized yet
     if self.rbufRA == None:

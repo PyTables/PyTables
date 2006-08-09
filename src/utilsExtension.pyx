@@ -51,9 +51,17 @@ cdef extern from "string.h":
 
 # Python API functions.
 cdef extern from "Python.h":
+  # How to declare a Py_ssize_t ??
+  #ctypedef long Py_ssize_t
+  int PySequence_DelItem(object o, long i)
   char *PyString_AsString(object string)
   object PyDict_GetItem(object p, object key)
   int PyDict_Contains(object p, object key)
+  object PyObject_GetItem(object o, object key)
+  int PyObject_SetItem(object o, object key, object v)
+  int PyObject_DelItem(object o, object key)
+  long PyObject_Length(object o)
+  int PyObject_Compare(object o1, object o2)
 
 # HDF5 API.
 cdef extern from "hdf5.h":
@@ -1189,11 +1197,11 @@ cdef class LRUCache:
 
 
   def __contains__(self, key):
-    return self.__dict.has_key(key)
+    #return self.__dict.has_key(key)
+    return PyDict_Contains(self.__dict, key)
 
 
   # This is meant to be called from Pyrex extensions
-  # (it's 10x faster than regular __contains__)
   cdef int contains(self, key):
     # We don't check for -1 as this should never fail
     return PyDict_Contains(self.__dict, key)
@@ -1222,22 +1230,23 @@ cdef class LRUCache:
     self.setitem(key, obj)
 
 
-  # This version is meant to be called from extensions.
+  # This version is meant to be called from extensions
   cdef setitem(self, key, obj):
     cdef LRUNode node, lru
-    if self.__dict.has_key(key):
-      node = self.__dict[key]
+    #if self.__dict.has_key(key):
+    if PyDict_Contains(self.__dict, key):
+      node = PyObject_GetItem(self.__dict, key)
       node.obj = obj
       node.atime = self.incseqn()
       heapify(self.__heap)
     else:
       node = LRUNode(key, obj, self.incseqn())
-      self.__dict[key] = node
-      #print "afegint-->", node.atime, node.key
+      PyObject_SetItem(self.__dict, key, node)
       # Check if we are growing out of space
-      if len(self.__heap) == self.size:
+      #if len(self.__heap) == self.size:
+      if PyObject_Length(self.__heap) == self.size:
         lru = heapreplace(self.__heap, node)
-        del self.__dict[lru.key]
+        PyObject_DelItem(self.__dict, lru.key)
       else:
         heappush(self.__heap, node)
 
@@ -1264,16 +1273,18 @@ cdef class LRUCache:
 
   cdef object cpop(self, object key):
     cdef LRUNode node, node2
-    cdef int idx
+    cdef long idx
 
-    node = self.__dict.pop(key)
+    #node = self.__dict.pop(key)
+    node = PyObject_GetItem(self.__dict, key)
+    PyObject_DelItem(self.__dict, key)
     # The next line makes a segfault to happen
     #self.__heap.remove(<object>node)
     # Workaround. This workaround has the virtue that only a heapify is
     # done in case the node is the LRU.
     for idx from 0 <= idx < len(self.__heap):
-      node2 = self.__heap[idx]
-      if node is node2:
+      node2 = PyObject_GetItem(self.__heap, idx)
+      if PyObject_Compare(node, node2) == 0:
         if idx == 0:
           # It turns that the element to be removed is the LRU.
           # Extract it and let the heap invariant.
@@ -1282,50 +1293,16 @@ cdef class LRUCache:
           # The node to be removed is in the middle of the heap, so we
           # don't need to maintain the heap invariant (the next
           # insertion will do that).
-          # using del here causes another segfault, I don't know why,
+          # Using del here causes another segfault, I don't know why,
           # but this has probably to do with wrong ref counts in Pyrex :-(
           # Fortunately, .pop() method seems to work...
           # del self.__heap[idx]
-          self.__heap.pop(idx)
+          #self.__heap.pop(idx)
+          PySequence_DelItem(self.__heap, idx)
+          # PyObject delitem also works
+          #PyObject_DelItem(self.__heap, idx)
         break
     return node.obj
-
-
-  # This call is more efficient than __getitem__ because it is made in
-  # C space. Of course, it is only meant to be called from Pyrex.
-  # This should be called only when key *does* exist in __dict.
-  # This is used in the optimized search routines in indexesExtension.pyx
-  cdef object getitem(self, object key):
-    cdef LRUNode node
-
-    node = self.__dict[key]
-    #node = <LRUNode>PyDict_GetItem(self.__dict, key)  # a test that doesn't work
-    # Set the new access time for the object
-    node.atime = self.incseqn()
-    # Heapify is not needed here, because the heap gets ordered on each
-    # insertion and deletion. The only case that would be affected is when
-    # retrieving the last object in a full queue a lot: it will remain as the
-    # least recently used and will be preempted in the next insertion.
-    # However, this is barely equivalent to having a LRU cache with 1 element
-    # less than nominal, which is not grave at all.
-    # This accelerates up to a 2x the lookup process (provided that you can use
-    # self.getitem, of course).
-    # F. Altet 2006-08-07
-    return node.obj
-
-
-  # This call is more efficient than __getitem__ because it is made in
-  # C space. Of course, it is only meant to be called from Pyrex.
-  # This can be called even when key *doesn't* exist in __dict.
-  cdef object getitem2(self, object key):
-    cdef LRUNode node
-
-    node = self.__dict.pop(key, None)
-    if <object>node is None:
-      return None
-    else:
-      node.atime = self.incseqn()
-      return node.obj
 
 
   def __iter__(self):
