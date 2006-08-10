@@ -17,6 +17,7 @@ import warnings
 import sys
 import popen2
 import time
+import types
 
 import numarray
 import numarray.strings
@@ -232,9 +233,39 @@ def testFilename(filename):
 
 
 
+def _verboseDecorator(oldmethod):
+    def newmethod(self, *args, **kwargs):
+        self._verboseHeader()
+        return oldmethod(self, *args, **kwargs)
+    if sys.version_info >= (2, 4):
+        # Under Python 2.3 and older, names are read-only.  Not changing
+        # this name makes the user unable to run a particular test from
+        # the command line, but at least whole test modules and test
+        # cases can still be run.
+        newmethod.__name__ = oldmethod.__name__  # Python >= 2.4
+    newmethod.__doc__ = oldmethod.__doc__
+    return newmethod
+
+class MetaPyTablesTestCase(type):
+
+    """Metaclass for PyTables test case classes."""
+
+    # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/198078
+
+    def __new__(class_, name, bases, dict_):
+        newdict = {}
+        for (aname, avalue) in dict_.iteritems():
+            if ( isinstance(avalue, types.FunctionType)
+                 and aname.startswith('test') ):
+                avalue = _verboseDecorator(avalue)
+            newdict[aname] = avalue
+        return type.__new__(class_, name, bases, newdict)
+
 class PyTablesTestCase(unittest.TestCase):
 
     """Abstract test case with useful methods."""
+
+    __metaclass__ = MetaPyTablesTestCase
 
     def _getName(self):
         """Get the name of this test case."""
@@ -374,8 +405,6 @@ class ShowMemTime(PyTablesTestCase):
 
     def test00(self):
         """Showing memory and time consumption."""
-
-        self._verboseHeader()
 
         # Build the command to obtain memory info (only for Linux 2.6.x)
         cmd = "cat /proc/%s/status" % os.getpid()

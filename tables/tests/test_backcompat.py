@@ -103,8 +103,6 @@ class VLArrayTestCase(common.PyTablesTestCase):
     def test01_backCompat(self):
         """Checking backward compatibility with old flavors of VLArray"""
 
-        self._verboseHeader()
-
         # Open a PYTABLES_FORMAT_VERSION=pre-1.6 file
         fileh = openFile(testFilename("flavored_vlarrays-pre1.6.h5"), "r")
         # Check that we can read the contents without problems (nor warnings!)

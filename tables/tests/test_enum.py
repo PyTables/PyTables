@@ -14,7 +14,6 @@ import operator
 
 import tables
 import common
-from common import verbose
 
 
 class CreateColTestCase(common.PyTablesTestCase):
@@ -37,79 +36,59 @@ class CreateColTestCase(common.PyTablesTestCase):
 
     def test00a_validFromEnum(self):
         """Describing an enumerated column from an enumeration."""
-
-        self._verboseHeader()
         colors = tables.Enum(['red', 'green', 'blue'])
         self._createCol(colors, 'red')
 
     def test00b_validFromDict(self):
         """Describing an enumerated column from a dictionary."""
-
-        self._verboseHeader()
         colors = {'red': 4, 'green': 2, 'blue': 1}
         self._createCol(colors, 'red')
 
 
     def test00c_validFromList(self):
         """Describing an enumerated column from a list."""
-
-        self._verboseHeader()
         colors = ['red', 'green', 'blue']
         self._createCol(colors, 'red')
 
 
     def test00d_invalidFromType(self):
         """Describing an enumerated column from an invalid object."""
-
-        self._verboseHeader()
         colors = 123
         self.assertRaises(TypeError, self._createCol, colors, 'red')
 
 
     def test01a_invalidDfltType(self):
         """Describing an enumerated column with an invalid default object."""
-
-        self._verboseHeader()
         colors = tables.Enum({'red': 4, 'green': 2, 'blue': 1})
         self.assertRaises(TypeError, self._createCol, colors, colors.red)
 
 
     def test01b_invalidDfltName(self):
         """Describing an enumerated column with an invalid default name."""
-
-        self._verboseHeader()
         colors = {'red': 4, 'green': 2, 'blue': 1}
         self.assertRaises(KeyError, self._createCol, colors, 'black')
 
 
     def test02a_validDtypeBroader(self):
         """Describing an enumerated column with a broader type."""
-
-        self._verboseHeader()
         colors = {'red': 4, 'green': 2, 'blue': 1}
         self._createCol(colors, 'red', dtype='Int64')
 
 
     def test02b_invalidDtypeTooNarrow(self):
         """Describing an enumerated column with a too narrow type."""
-
-        self._verboseHeader()
         colors = ['e%d' % i for i in range(300)]
         self.assertRaises(TypeError, self._createCol, colors, 'e0', 'UInt8')
 
 
     def test03a_validShapeMD(self):
         """Describing an enumerated column with multidimensional shape."""
-
-        self._verboseHeader()
         colors = ['red', 'green', 'blue']
         self._createCol(colors, 'red', shape=(2,))
 
 
     def test04a_validReprEnum(self):
         """Checking the string representation of an enumeration."""
-
-        self._verboseHeader()
         colors = tables.Enum(['red', 'green', 'blue'])
         enumcol = tables.EnumCol(colors, 'red', dtype='UInt32', shape=1)
         assert repr(enumcol) == \
@@ -118,16 +97,12 @@ class CreateColTestCase(common.PyTablesTestCase):
 
     def test99a_nonIntEnum(self):
         """Describing an enumerated column of floats (not implemented)."""
-
-        self._verboseHeader()
         colors = {'red': 1.0}
         self.assertRaises(NotImplementedError, self._createCol, colors, 'red')
 
 
     def test99b_nonIntDtype(self):
         """Describing an enumerated column encoded as floats (not implemented)."""
-
-        self._verboseHeader()
         colors = ['red', 'green', 'blue']
         self.assertRaises(
             NotImplementedError, self._createCol, colors, 'red', 'Float64')
@@ -135,8 +110,6 @@ class CreateColTestCase(common.PyTablesTestCase):
 
     def test99b_nonScalarEnum(self):
         """Describing an enumerated column of non-scalars (not implemented)."""
-
-        self._verboseHeader()
         colors = {'red': (1, 2, 3)}
         self.assertRaises(NotImplementedError, self._createCol, colors, 'red')
 
@@ -159,72 +132,54 @@ class CreateAtomTestCase(common.PyTablesTestCase):
 
     def test00a_validFromEnum(self):
         """Describing an enumerated atom from an enumeration."""
-
-        self._verboseHeader()
         colors = tables.Enum(['red', 'green', 'blue'])
         self._createAtom(colors)
 
 
     def test00b_validFromDict(self):
         """Describing an enumerated atom from a dictionary."""
-
-        self._verboseHeader()
         colors = {'red': 4, 'green': 2, 'blue': 1}
         self._createAtom(colors)
 
 
     def test00c_validFromList(self):
         """Describing an enumerated atom from a list."""
-
-        self._verboseHeader()
         colors = ['red', 'green', 'blue']
         self._createAtom(colors)
 
 
     def test00d_invalidFromType(self):
         """Describing an enumerated atom from an invalid object."""
-
-        self._verboseHeader()
         colors = 123
         self.assertRaises(TypeError, self._createAtom, colors)
 
 
     def test02a_validDtypeBroader(self):
         """Describing an enumerated atom with a broader type."""
-
-        self._verboseHeader()
         colors = {'red': 4, 'green': 2, 'blue': 1}
         self._createAtom(colors, dtype='Int64')
 
 
     def test02b_invalidDtypeTooNarrow(self):
         """Describing an enumerated atom with a too narrow type."""
-
-        self._verboseHeader()
         colors = ['e%d' % i for i in range(300)]
         self.assertRaises(TypeError, self._createAtom, colors, 'UInt8')
 
 
     def test03a_validShapeMD(self):
         """Describing an enumerated atom with multidimensional shape."""
-
-        self._verboseHeader()
         colors = ['red', 'green', 'blue']
         self._createAtom(colors, shape=(2,))
 
 
     def test99a_nonIntEnum(self):
         """Describing an enumerated atom of floats (not implemented)."""
-
-        self._verboseHeader()
         colors = {'red': 1.0}
         self.assertRaises(NotImplementedError, self._createAtom, colors)
 
 
     def test99b_nonIntDtype(self):
         """Describing an enumerated atom encoded as a float (not implemented)."""
-
-        self._verboseHeader()
         colors = ['red', 'green', 'blue']
         self.assertRaises(
             NotImplementedError, self._createAtom, colors, 'Float64')
@@ -232,8 +187,6 @@ class CreateAtomTestCase(common.PyTablesTestCase):
 
     def test99b_nonScalarEnum(self):
         """Describing an enumerated atom of non-scalars (not implemented)."""
-
-        self._verboseHeader()
         colors = {'red': (1, 2, 3)}
         self.assertRaises(NotImplementedError, self._createAtom, colors)
 
@@ -263,7 +216,6 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00a_reopen(self):
         """Reopening a file with tables using enumerated data."""
 
-        self._verboseHeader()
         self.h5file.createTable(
             '/', 'test', self._description(), title=self._getMethodName())
 
@@ -280,7 +232,6 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
         data.
         """
 
-        self._verboseHeader()
         self.h5file.createTable(
             '/', 'test', self._description((2,)), title=self._getMethodName())
 
@@ -294,7 +245,6 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01_rowAppend(self):
         """Appending enumerated values using ``row.append()``."""
 
-        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._description(), title=self._getMethodName())
 
@@ -314,9 +264,10 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         tbl.flush()
         read = tbl.read(flavor='python')
-        if verbose:
-            print "appended value:", appended[:-1]
-            print "read value:", read
+        common.verbosePrint(
+            "* appended value: %s\n"
+            "* read value: %s\n"
+            % (appended[:-1], read) )
         self.assertEqual(
             appended[:-1], read, "Written and read values differ.")
 
@@ -324,7 +275,6 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02_append(self):
         """Appending enumerated values using ``table.append()``."""
 
-        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._description(), title=self._getMethodName())
 
@@ -335,16 +285,16 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.append(appended)
         tbl.flush()
         read = tbl.read(flavor='python')
-        if verbose:
-            print "appended value:", appended
-            print "read value:", read
+        common.verbosePrint(
+            "* appended value: %s\n"
+            "* read value: %s\n"
+            % (appended, read) )
         self.assertEqual(appended, read, "Written and read values differ.")
 
 
     def test03_setitem(self):
         """Changing enumerated values using ``table.__setitem__()``."""
 
-        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._description(), title=self._getMethodName())
 
@@ -358,16 +308,16 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
             (20, self.valueOutOfEnum)]
         tbl[:] = written
         read = tbl.read(flavor='python')
-        if verbose:
-            print "written value:", written
-            print "read value:", read
+        common.verbosePrint(
+            "* written value: %s\n"
+            "* read value: %s\n"
+            % (written, read) )
         self.assertEqual(written, read, "Written and read values differ.")
 
 
     def test04_multidim(self):
         """Appending multi-dimensional enumerated data."""
 
-        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._description((2,)), title=self._getMethodName())
 
@@ -395,7 +345,6 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test05_where(self):
         """Searching enumerated data."""
 
-        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._description(), title=self._getMethodName())
 
@@ -438,7 +387,6 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00a_reopen(self):
         """Reopening a file with extendable arrays using enumerated data."""
 
-        self._verboseHeader()
         self.h5file.createEArray(
             '/', 'test', self._atom(), title=self._getMethodName())
 
@@ -455,7 +403,6 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         multi-dimensional data.
         """
 
-        self._verboseHeader()
         self.h5file.createEArray(
             '/', 'test', self._atom((0, 2)), title=self._getMethodName())
 
@@ -469,7 +416,6 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01_append(self):
         """Appending scalar elements of enumerated values."""
 
-        self._verboseHeader()
         earr = self.h5file.createEArray(
             '/', 'test', self._atom(), title=self._getMethodName())
 
@@ -484,7 +430,6 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02_appendMD(self):
         """Appending multi-dimensional elements of enumerated values."""
 
-        self._verboseHeader()
         earr = self.h5file.createEArray(
             '/', 'test', self._atom((0, 2)), title=self._getMethodName())
 
@@ -501,7 +446,6 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03_setitem(self):
         """Changing enumerated values using ``earray.__setitem__()``."""
 
-        self._verboseHeader()
         earr = self.h5file.createEArray(
             '/', 'test', self._atom(), title=self._getMethodName())
 
@@ -533,7 +477,6 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00a_reopen(self):
         """Reopening a file with variable-length arrays using enumerated data."""
 
-        self._verboseHeader()
         self.h5file.createVLArray(
             '/', 'test', self._atom(), title=self._getMethodName())
 
@@ -550,7 +493,6 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         multi-dimensional data.
         """
 
-        self._verboseHeader()
         self.h5file.createVLArray(
             '/', 'test', self._atom((2,)), title=self._getMethodName())
 
@@ -564,7 +506,6 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01_append(self):
         """Appending scalar elements of enumerated values."""
 
-        self._verboseHeader()
         vlarr = self.h5file.createVLArray(
             '/', 'test', self._atom(), title=self._getMethodName())
 
@@ -576,16 +517,16 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         vlarr.append(appended[1])
         vlarr.flush()
         read = vlarr.read()
-        if verbose:
-            print "appended value:", appended
-            print "read value:", read
+        common.verbosePrint(
+            "* appended value: %s\n"
+            "* read value: %s\n"
+            % (appended, read) )
         self.assertEqual(appended, read, "Written and read values differ.")
 
 
     def test02_appendMD(self):
         """Appending multi-dimensional elements of enumerated values."""
 
-        self._verboseHeader()
         vlarr = self.h5file.createVLArray(
             '/', 'test', self._atom((2,)), title=self._getMethodName())
 
@@ -598,16 +539,16 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         vlarr.append(appended[1])
         vlarr.flush()
         read = vlarr.read()
-        if verbose:
-            print "appended value:", appended
-            print "read value:", read
+        common.verbosePrint(
+            "* appended value: %s\n"
+            "* read value: %s\n"
+            % (appended, read) )
         self.assertEqual(appended, read, "Written and read values differ.")
 
 
     def test03_setitem(self):
         """Changing enumerated values using ``vlarray.__setitem__()``."""
 
-        self._verboseHeader()
         vlarr = self.h5file.createVLArray(
             '/', 'test', self._atom(), title=self._getMethodName())
 
@@ -617,9 +558,10 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         written = [self.valueInEnum, self.valueOutOfEnum]
         vlarr[0] = written
         read = vlarr.read()
-        if verbose:
-            print "written value:", written
-            print "read value:", read[0]
+        common.verbosePrint(
+            "* written value: %s\n"
+            "* read value: %s\n"
+            % (written, read) )
         self.assertEqual(written, read[0], "Written and read values differ.")
 
 

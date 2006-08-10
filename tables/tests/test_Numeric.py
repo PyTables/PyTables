@@ -404,8 +404,6 @@ class TableReadTestCase(common.PyTablesTestCase):
     def test01_readTableChar(self):
         """Checking column conversion into Numeric in read(). Char flavor"""
 
-        self._verboseHeader()
-
         table = self.fileh.root.table
         for colname in table.colnames:
             numcol = table.read(field=colname, flavor="numeric")
@@ -431,8 +429,6 @@ class TableReadTestCase(common.PyTablesTestCase):
     def test01_readTableNum(self):
         """Checking column conversion into Numeric in read(). Numeric flavor"""
 
-        self._verboseHeader()
-
         table = self.fileh.root.table
         for colname in table.colnames:
             numcol = table.read(field=colname, flavor="numeric")
@@ -453,8 +449,6 @@ class TableReadTestCase(common.PyTablesTestCase):
 
     def test02_readCoordsChar(self):
         """Column conversion into Numeric in readCoords(). Chars"""
-
-        self._verboseHeader()
 
         table = self.fileh.root.table
         coords = (1,2,3)
@@ -483,8 +477,6 @@ class TableReadTestCase(common.PyTablesTestCase):
 
     def test02_readCoordsNum(self):
         """Column conversion into Numeric in readCoordinates(). Numerical"""
-
-        self._verboseHeader()
 
         table = self.fileh.root.table
         coords = (1,2,3)

@@ -72,7 +72,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the isThereStructure function.
         """
 
-        self._verboseHeader()
         common.verbosePrint( '\nTesting array structure check function')
         common.verbosePrint( 'With descr description...')
         cse = \
@@ -97,7 +96,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the onlyOneSyntax function.
         """
 
-        self._verboseHeader()
         common.verbosePrint( '\nTesting the uniqueness of the array syntax')
         self.assertEqual(tables.nestedrecords._onlyOneSyntax(self.descr, None,
             None), None)
@@ -113,7 +111,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the checkFormats function.
         """
 
-        self._verboseHeader()
         common.verbosePrint( '\nTesting samples of formats description')
         formats = 'formats should be a list'
         self.assertRaises(TypeError, tables.nestedrecords._checkFormats,
@@ -132,7 +129,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the checkNames function.
         """
 
-        self._verboseHeader()
         common.verbosePrint( '\nTesting samples of names description')
         names = 'names should be a list'
         self.assertRaises(TypeError, tables.nestedrecords._checkNames,
@@ -157,7 +153,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the checkDescr function.
         """
 
-        self._verboseHeader()
         common.verbosePrint( '\nTesting samples of descr description')
         # Descr must be a list of 2-tuples
         descr = 'some descr specification'
@@ -183,7 +178,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the checkFieldsInDescr function.
         """
 
-        self._verboseHeader()
         common.verbosePrint( """\nTesting the field names syntax in a """
             """sample descr list""")
         descr = [('position', 'Int64'),
@@ -197,7 +191,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the checkBufferStructure function.
         """
 
-        self._verboseHeader()
         row = [(('Paco', 'Perez'), (10, 20, 30))]
         # A buffer
         buffer = [row, self.row1, self.row2]
@@ -210,7 +203,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the array function.
         """
 
-        self._verboseHeader()
         flatarray = tables.numarray.records.array(self.flat_buffer,
             self.flat_formats)
         common.verbosePrint( """\nTesting the creation of a nested """
@@ -235,7 +227,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the array function with a RecArray instance.
         """
 
-        self._verboseHeader()
         buffer_ = [('Cuke', 123, (45, 67)), ('Tader', 321, (76, 54))]
         names = ['name', 'value', 'pair']
         formats = ['a6', 'Int8', '(2,)Int16']
@@ -264,7 +255,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the array function with a NestedRecArray instance.
         """
 
-        self._verboseHeader()
         nra = tables.nestedrecords.array(buffer=self.buffer, descr=self.descr)
         my_Descr = [('ID', 'Int64'),
             ('data', [('name', [('first','a9'), ('second','a9')]),
@@ -295,7 +285,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the fromarrays function.
         """
 
-        self._verboseHeader()
         # arrayList argument is a list of lists
         nra = tables.nestedrecords.array(buffer=self.buffer, descr=self.descr)
         nra1 = tables.nestedrecords.fromarrays(self.array_list,
@@ -320,7 +309,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Get a nested array slice.
         """
 
-        self._verboseHeader()
         my_buffer = [[1, (('Cuke', 'Skywalker'), (10, 20, 30))],
             [2, (('Princess', 'Lettuce'), (0, 2.0, 10))],
             [3, (('Ham', 'Solo'), (0, 2.0, 10))],
@@ -397,7 +385,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Set a nested array slice.
         """
 
-        self._verboseHeader()
         nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
 
         buffer = [
@@ -416,7 +403,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the NestedRecArray.field method.
         """
 
-        self._verboseHeader()
         nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
 
         # Test top level flat fields
@@ -429,7 +415,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the NestedRecArray.field method.
         """
 
-        self._verboseHeader()
         nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
 
         # Test bottom level fields
@@ -442,7 +427,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the NestedRecArray.field method.
         """
 
-        self._verboseHeader()
         nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
 
         # Test top level nested fields
@@ -471,7 +455,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the NestedRecArray.__setitem__ with NestedRecord instances.
         """
 
-        self._verboseHeader()
         nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
 
         buffer = [
@@ -491,7 +474,7 @@ class NestedRecordTests(common.PyTablesTestCase):
     def testNRAadd(self):
         """Check the addition of nested arrays.
         """
-        self._verboseHeader()
+
         ra1 = tables.numarray.records.array([[1, 2], [3, 4]],
             formats=['Int32', 'Int32'])
         ra2 = tables.numarray.records.array([[5, 6], [7, 8]],
@@ -517,7 +500,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the creation of NestedRecord instances from NestedRecArrays.
         """
 
-        self._verboseHeader()
         nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
 
         nrecord = nra[0]
@@ -530,7 +512,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the flattening of NestedRecord instances.
         """
 
-        self._verboseHeader()
         nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
         nrecord = nra[0]
         frecord = nrecord.asRecord()
@@ -544,7 +525,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Retrieving flat fields from nested records.
         """
 
-        self._verboseHeader()
         nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
 
         position = nra.field('position')[0]
@@ -558,7 +538,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Set flat fields of nested records.
         """
 
-        self._verboseHeader()
         nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
         nrecord = nra[0]
         nrecord.setfield('position', 24)
@@ -575,7 +554,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Get nested fields from nested records.
         """
 
-        self._verboseHeader()
         nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
 
         name = nra.field('info/name')[0]
@@ -589,7 +567,6 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Set nested fields of nested records.
         """
 
-        self._verboseHeader()
         nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
         nrecord = nra[0]
 

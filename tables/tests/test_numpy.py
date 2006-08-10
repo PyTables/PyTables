@@ -413,8 +413,6 @@ class TableReadTestCase(common.PyTablesTestCase):
     def test01_readTableChar(self):
         """Checking column conversion into NumPy in read(). Char flavor"""
 
-        self._verboseHeader()
-
         table = self.fileh.root.table
         for colname in table.colnames:
             numcol = table.read(field=colname, flavor="numpy")
@@ -439,8 +437,6 @@ class TableReadTestCase(common.PyTablesTestCase):
     def test01_readTableNum(self):
         """Checking column conversion into NumPy in read(). NumPy flavor"""
 
-        self._verboseHeader()
-
         table = self.fileh.root.table
         for colname in table.colnames:
             numcol = table.read(field=colname, flavor="numpy")
@@ -457,8 +453,6 @@ class TableReadTestCase(common.PyTablesTestCase):
 
     def test02_readCoordsChar(self):
         """Column conversion into NumPy in readCoords(). Chars"""
-
-        self._verboseHeader()
 
         table = self.fileh.root.table
         coords = (1,2,3)
@@ -487,8 +481,6 @@ class TableReadTestCase(common.PyTablesTestCase):
     def test02_readCoordsNum(self):
         """Column conversion into NumPy in readCoordinates(). NumPy."""
 
-        self._verboseHeader()
-
         table = self.fileh.root.table
         coords = (1,2,3)
         self.nrows = len(coords)
@@ -510,8 +502,6 @@ class TableReadTestCase(common.PyTablesTestCase):
     def test03_getIndexNumPy(self):
         """Getting table rows specifyied as NumPy integers."""
 
-        self._verboseHeader()
-
         table = self.fileh.root.table
         coords = numpy.array([1,2,3], dtype='int8')
         for colname in table.colnames:
@@ -531,8 +521,6 @@ class TableReadTestCase(common.PyTablesTestCase):
 
     def test04_setIndexNumPy(self):
         """Setting table rows specifyied as NumPy integers."""
-
-        self._verboseHeader()
 
         self.fileh.close()
         self.fileh = openFile(self.file, "a")
@@ -607,8 +595,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
     def _test01a_basicTableRead(self):
         """Checking the return of a NumPy in read()."""
 
-        self._verboseHeader()
-
         if self.close:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -647,8 +633,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
     def test01b_basicTableRead(self):
         """Checking the return of a NumPy in read() (strided version)."""
-
-        self._verboseHeader()
 
         if self.close:
             self.fileh.close()
@@ -689,8 +673,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
     def test02_getWhereList(self):
         """Checking the return of NumPy in getWhereList method."""
 
-        self._verboseHeader()
-
         if self.close:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -710,8 +692,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
     def test03a_readIndexed(self):
         """Checking the return of NumPy in readIndexed method (strings)."""
 
-        self._verboseHeader()
-
         table = self.fileh.root.table
         table.cols.color.createIndex(warn=1, testmode=1)
         if self.close:
@@ -730,8 +710,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
     def test03b_readIndexed(self):
         """Checking the return of NumPy in readIndexed method (numeric)."""
 
-        self._verboseHeader()
-
         table = self.fileh.root.table
         table.cols.z.createIndex(warn=1, testmode=1)
         if self.close:
@@ -749,8 +727,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
     def test04a_createTable(self):
         """Checking the Table creation from a numpy recarray."""
-
-        self._verboseHeader()
 
         dtype = [('value', '%sc16' % byteorder),
                  ('y2', '%sf8' % byteorder),
@@ -785,8 +761,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
     def test04b_appendTable(self):
         """Checking appending a numpy recarray."""
 
-        self._verboseHeader()
-
         table = self.fileh.root.table
         npdata = table[3:6]
         table.append(npdata)
@@ -813,8 +787,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
     def test05a_assignColumn(self):
         """Checking assigning to a column."""
 
-        self._verboseHeader()
-
         table = self.fileh.root.table
         table.cols.z[:] = zeros((100,), dtype='u1')
         if self.close:
@@ -836,8 +808,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
     def test05b_modifyingColumns(self):
         """Checking modifying several columns at once."""
-
-        self._verboseHeader()
 
         table = self.fileh.root.table
         xcol = ones((3,2), 'int32')
@@ -867,8 +837,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
     def test05c_modifyingColumns(self):
         """Checking modifying several columns using a single numpy buffer."""
 
-        self._verboseHeader()
-
         table = self.fileh.root.table
         dtype=[('x', 'i4', (2,)), ('y', 'f8', (2, 2)), ('z', 'u1')]
         nparray = zeros((3,), dtype=dtype)
@@ -896,8 +864,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
     def test06a_assignNestedColumn(self):
         """Checking assigning a nested column (using modifyColumn)."""
-
-        self._verboseHeader()
 
         table = self.fileh.root.table
         dtype = [('value', '%sc16' % byteorder),
@@ -933,8 +899,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
     def test06b_assignNestedColumn(self):
         """Checking assigning a nested column (using the .cols accessor)."""
-
-        self._verboseHeader()
 
         table = self.fileh.root.table
         dtype = [('value', '%sc16' % byteorder),
@@ -972,8 +936,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
     def test07a_modifyingRows(self):
         """Checking modifying several rows at once (using modifyRows)."""
 
-        self._verboseHeader()
-
         table = self.fileh.root.table
         # Read a chunk of the table
         chunk = table[0:3]
@@ -1003,8 +965,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
     def test07b_modifyingRows(self):
         """Checking modifying several rows at once (using cols accessor)."""
-
-        self._verboseHeader()
 
         table = self.fileh.root.table
         # Read a chunk of the table
@@ -1037,8 +997,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
     def test08a_modifyingRows(self):
         """Checking modifying just one row at once (using modifyRows)."""
 
-        self._verboseHeader()
-
         table = self.fileh.root.table
         # Read a chunk of the table
         chunk = table[3]
@@ -1069,8 +1027,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
     def test08b_modifyingRows(self):
         """Checking modifying just one row at once (using cols accessor)."""
-
-        self._verboseHeader()
 
         table = self.fileh.root.table
         # Read a chunk of the table
@@ -1103,8 +1059,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
     def test09a_getStrings(self):
         """Checking the return of string columns with spaces."""
 
-        self._verboseHeader()
-
         if self.close:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -1125,8 +1079,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
     def test09b_getStrings(self):
         """Checking the return of string columns with spaces. (modify)"""
-
-        self._verboseHeader()
 
         if self.close:
             self.fileh.close()
@@ -1154,8 +1106,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
     def test09c_getStrings(self):
         """Checking the return of string columns with spaces. (append)"""
-
-        self._verboseHeader()
 
         if self.close:
             self.fileh.close()

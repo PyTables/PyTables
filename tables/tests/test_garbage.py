@@ -27,8 +27,6 @@ class GarbageTestCase(common.PyTablesTestCase):
     def test00(self):
         """Checking for uncollectable garbage."""
 
-        self._verboseHeader()
-
         garbageLen = len(gc.garbage)
         if garbageLen == 0:
             return  # success

@@ -2366,7 +2366,6 @@ class NotLoggedTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00_hierarchy(self):
         """Performing hierarchy operations on a not logged node."""
 
-        self._verboseHeader()
         self.h5file.createGroup('/', 'tgroup')
         self.h5file.enableUndo()
 
@@ -2390,7 +2389,6 @@ class NotLoggedTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01_attributes(self):
         """Performing attribute operations on a not logged node."""
 
-        self._verboseHeader()
         arr = self.NotLoggedArray( self.h5file.root, 'test',
                                    [1], self._getMethodName() )
         self.h5file.enableUndo()

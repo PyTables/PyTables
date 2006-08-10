@@ -73,8 +73,6 @@ class NetCDFFileTestCase(common.PyTablesTestCase):
     def test_repr(self):
         """open file and examine the __repr__ method"""
 
-        self._verboseHeader()
-
         f = NetCDF.NetCDFFile(self.file)
         outstring = "%s {\ndimensions:\n    lat = 3 ;\n    lon = 7 ;\n    t = UNLIMITED ; // (4 currently)\n    nchar = 2 ;\nvariables:\n    byte lat('lat',) ;\n        lat:units = 'degrees north' ;\n    character lon('nchar', 'lon') ;\n        lon:units = 'degrees east' ;\n    float foo('t', 'lat', 'lon') ;\n        foo:missing_value = -999 ;\n        foo:units = 'Watts' ;\n    double bar('lat', 'lon') ;\n        bar:missing_value = -999 ;\n        bar:units = 'Ergs' ;\n    short time('t',) ;\n        time:units = 'Years' ;\n// global attributes:\n        :history = 'created today' ;\n        :magicNumbers = [42.0, 3.145, -1.0] ;\n        :title = 'unit test' ;\n}" % self.file
         assert f.__repr__() == outstring
@@ -82,8 +80,6 @@ class NetCDFFileTestCase(common.PyTablesTestCase):
 
     def test_fileattrs(self):
         """check global attributes"""
-
-        self._verboseHeader()
 
         f = NetCDF.NetCDFFile(self.file)
         fileattrs = f.ncattrs()
@@ -96,8 +92,6 @@ class NetCDFFileTestCase(common.PyTablesTestCase):
     def test_dimensions(self):
         """check dimensions names and sizes"""
 
-        self._verboseHeader()
-
         f = NetCDF.NetCDFFile(self.file)
         dims = f.dimensions
         assert dims == {'lat':3, 'lon':7, 'nchar': 2, 't':None}
@@ -105,8 +99,6 @@ class NetCDFFileTestCase(common.PyTablesTestCase):
 
     def test_variabledata(self):
         """check data in variables"""
-
-        self._verboseHeader()
 
         f = NetCDF.NetCDFFile(self.file)
         latdata = f.variables['lat'][:]
@@ -123,8 +115,6 @@ class NetCDFFileTestCase(common.PyTablesTestCase):
 
     def test_appendata(self):
         """test appending data to an existing file"""
-
-        self._verboseHeader()
 
         f = NetCDF.NetCDFFile(self.file,'a')
         timedata = f.variables['time']
@@ -145,8 +135,6 @@ class NetCDFFileTestCase(common.PyTablesTestCase):
 
     def test_varttrs(self):
         """check variable names and variable attributes"""
-
-        self._verboseHeader()
 
         f = NetCDF.NetCDFFile(self.file)
         vars = f.variables.keys()
@@ -171,8 +159,6 @@ class NetCDFFileTestCase2(NetCDFFileTestCase):
 
     def test_h5tonc(self):
         """check h5 <--> netCDF conversion"""
-
-        self._verboseHeader()
 
         self.filenc = tempfile.mktemp(".nc")
         self.fileh5 = tempfile.mktemp(".h5")

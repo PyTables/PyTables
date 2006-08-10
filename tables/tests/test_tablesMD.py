@@ -203,7 +203,6 @@ class BasicTestCase(common.PyTablesTestCase):
     def test00_description(self):
         """Checking table description and descriptive fields"""
 
-        self._verboseHeader()
         self.fileh = openFile(self.file)
 
         tbl = self.fileh.getNode('/table0')

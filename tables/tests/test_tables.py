@@ -246,7 +246,6 @@ class BasicTestCase(common.PyTablesTestCase):
     def test00_description(self):
         """Checking table description and descriptive fields"""
 
-        self._verboseHeader()
         self.fileh = openFile(self.file)
 
         tbl = self.fileh.getNode('/table0')
@@ -1880,8 +1879,6 @@ class setItem(common.PyTablesTestCase):
     def test01(self):
         "Checking modifying one table row with __setitem__"
 
-        self._verboseHeader()
-
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
 
@@ -1917,8 +1914,6 @@ class setItem(common.PyTablesTestCase):
     def test01b(self):
         "Checking modifying one table row with __setitem__ (long index)"
 
-        self._verboseHeader()
-
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
 
@@ -1953,8 +1948,6 @@ class setItem(common.PyTablesTestCase):
 
     def test02(self):
         "Modifying one row, with a step (__setitem__)"
-
-        self._verboseHeader()
 
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
@@ -1992,8 +1985,6 @@ class setItem(common.PyTablesTestCase):
 
     def test03(self):
         "Checking modifying several rows at once (__setitem__)"
-
-        self._verboseHeader()
 
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
@@ -2033,8 +2024,6 @@ class setItem(common.PyTablesTestCase):
     def test04(self):
         "Modifying several rows at once, with a step (__setitem__)"
 
-        self._verboseHeader()
-
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
 
@@ -2073,8 +2062,6 @@ class setItem(common.PyTablesTestCase):
     def test05(self):
         "Checking modifying one column (single element, __setitem__)"
 
-        self._verboseHeader()
-
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
 
@@ -2110,8 +2097,6 @@ class setItem(common.PyTablesTestCase):
     def test06a(self):
         "Checking modifying one column (several elements, __setitem__)"
 
-        self._verboseHeader()
-
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
 
@@ -2146,8 +2131,6 @@ class setItem(common.PyTablesTestCase):
 
     def test06b(self):
         "Checking modifying one column (iterator, __setitem__)"
-
-        self._verboseHeader()
 
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
@@ -2196,8 +2179,6 @@ class setItem(common.PyTablesTestCase):
     def test07(self):
         "Modifying one column (several elements, __setitem__, step)"
 
-        self._verboseHeader()
-
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
 
@@ -2231,8 +2212,6 @@ class setItem(common.PyTablesTestCase):
 
     def test08(self):
         "Modifying one column (one element, __setitem__, step)"
-
-        self._verboseHeader()
 
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
@@ -2268,8 +2247,6 @@ class setItem(common.PyTablesTestCase):
 
     def test09(self):
         "Modifying beyond the table extend (__setitem__, step)"
-
-        self._verboseHeader()
 
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
@@ -2333,8 +2310,6 @@ class updateRow(common.PyTablesTestCase):
     def test01(self):
         "Checking modifying one table row with Row.update"
 
-        self._verboseHeader()
-
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
 
@@ -2372,8 +2347,6 @@ class updateRow(common.PyTablesTestCase):
 
     def test02(self):
         "Modifying one row, with a step (Row.update)"
-
-        self._verboseHeader()
 
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
@@ -2415,8 +2388,6 @@ class updateRow(common.PyTablesTestCase):
     def test03(self):
         "Checking modifying several rows at once (Row.update)"
 
-        self._verboseHeader()
-
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
 
@@ -2456,8 +2427,6 @@ class updateRow(common.PyTablesTestCase):
 
     def test04(self):
         "Modifying several rows at once, with a step (Row.update)"
-
-        self._verboseHeader()
 
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
@@ -2499,8 +2468,6 @@ class updateRow(common.PyTablesTestCase):
     def test05(self):
         "Checking modifying one column (single element, Row.update)"
 
-        self._verboseHeader()
-
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
 
@@ -2537,8 +2504,6 @@ class updateRow(common.PyTablesTestCase):
 
     def test06(self):
         "Checking modifying one column (several elements, Row.update)"
-
-        self._verboseHeader()
 
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
@@ -2577,8 +2542,6 @@ class updateRow(common.PyTablesTestCase):
     def test07(self):
         "Modifying values from a selection"
 
-        self._verboseHeader()
-
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
 
@@ -2615,8 +2578,6 @@ class updateRow(common.PyTablesTestCase):
 
     def test08(self):
         "Modifying a large table (Row.update)"
-
-        self._verboseHeader()
 
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
@@ -2666,8 +2627,6 @@ class updateRow(common.PyTablesTestCase):
     def test08b(self):
         "Setting values on a large table without calling Row.update"
 
-        self._verboseHeader()
-
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
 
@@ -2715,8 +2674,6 @@ class updateRow(common.PyTablesTestCase):
 
     def test09(self):
         "Modifying selected values on a large table"
-
-        self._verboseHeader()
 
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
@@ -2770,8 +2727,6 @@ class updateRow(common.PyTablesTestCase):
 
     def test09b(self):
         "Modifying selected values on a large table (alternate values)"
-
-        self._verboseHeader()
 
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
