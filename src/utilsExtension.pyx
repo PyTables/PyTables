@@ -1284,7 +1284,9 @@ cdef class LRUCache:
     # done in case the node is the LRU.
     for idx from 0 <= idx < len(self.__heap):
       node2 = PyObject_GetItem(self.__heap, idx)
-      if PyObject_Compare(node, node2) == 0:
+      if node2 is node:
+      # The next line is not equivalent to "is"...
+      #if PyObject_Compare(node, node2) == 0:
         if idx == 0:
           # It turns that the element to be removed is the LRU.
           # Extract it and let the heap invariant.

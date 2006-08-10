@@ -195,13 +195,14 @@ class Table(TableExtension.Table, Leaf):
 
     def _g_getemptyarray(self, type, isize=None):
         # Acts as a cache for empty arrays
-        if type in self._emptyArrayCache.keys():
-            return self._emptyArrayCache[type]
+        key = (type, isize)
+        if key in self._emptyArrayCache.keys():
+            return self._emptyArrayCache[key]
         else:
             if type != "CharType":
-                self._emptyArrayCache[type] = arr = numarray.array(shape=0, type=type)
+                self._emptyArrayCache[key] = arr = numarray.array(shape=0, type=type)
             else:
-                self._emptyArrayCache[type] = arr = strings.array([], itemsize=isize)
+                self._emptyArrayCache[key] = arr = strings.array([], itemsize=isize)
             return arr
 
     # List here the lazy attributes.
@@ -1423,10 +1424,6 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             raise ValueError, \
 """Numeric does not support heterogeneous datasets yet. You cannot specify a 'numeric' flavor without specifying a field."""
 
-        # Turn coords into an array of 64-bit indexes
-        if not (isinstance(coords, numarray.NumArray)
-                and coords.type() != numarray.Int64):
-            coords = numarray.array(coords, type=numarray.Int64)
         ncoords = len(coords)
         # Create a read buffer only if needed
         if field is None or ncoords > 0:
@@ -1434,10 +1431,16 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 result = self._v_rbuffer[:ncoords]
             else:
                 result = self._get_container(ncoords)
+
         # Do the real read
         if ncoords > 0:
+            # Turn coords into an array of 64-bit indexes, if necessary
+            if not (isinstance(coords, numarray.NumArray)
+                    and coords.type() != numarray.Int64):
+                coords = numarray.array(coords, type=numarray.Int64)
             self._read_elements(result, coords)
 
+        # Do the final conversions, if needed
         if field is None:
             if numpy_imported and flavor == "numpy":
                 na = tonumpy(result)

@@ -719,8 +719,6 @@ cdef class Row:
       self.indexed2XXX = 1
       self.index = table.cols._f_col(table.whereIndex).index
       self.indices = self.index.indices
-      # create buffers for indices
-      self.indices._initIndexSlice(self.index, self.nrowsinbuf)
       self.nrowsread = 0
       self.nextelement = 0
       table.whereIndex = None
@@ -735,8 +733,6 @@ cdef class Row:
         self.indexed = 1
         self.index = table.cols._f_col(self.colname).index
         self.indices = self.index.indices
-        # create buffers for indices
-        self.indices._initIndexSlice(self.index, self.nrowsinbuf)
         self.nrowsread = 0
         self.nextelement = 0
       # Copy the table conditions to local variable

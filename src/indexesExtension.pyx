@@ -200,7 +200,7 @@ cdef class IndexArray(Array):
   cdef NumCache LRUboundscache, LRUsortedcache
 
 
-  def _initIndexSlice(self, index, ncoords):
+  cdef _initIndexSlice(self, index, ncoords):
     "Initialize the structures for doing a binary search"
     cdef long buflen
 
@@ -703,7 +703,6 @@ cdef class IndexArray(Array):
     cdef object parent
 
     nrows = self.nrows
-    parent = self._v_parent
     # Initialize the index dataset
     self._initIndexSlice(index, ncoords)
     rbufst = <int *>self.rbufst
@@ -717,12 +716,12 @@ cdef class IndexArray(Array):
     self._readIndex_sparse(ncoords)
 
     # Get possible values in last slice
-    if (parent.nrows > nrows and rbufln[nrows] > 0):
+    if (index.nrows > nrows and rbufln[nrows] > 0):
       # Get indices for last row
       startl = rbufst[nrows]
       stopl = startl + rbufln[nrows]
       len1 = ncoords - rbufln[nrows]
-      parent.indicesLR._readIndexSlice(self, startl, stopl, len1)
+      index.indicesLR._readIndexSlice(self, startl, stopl, len1)
 
     # Return ncoords as maximum because arrAbs can have more elements
     return self.arrAbs[:ncoords]

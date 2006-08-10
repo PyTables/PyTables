@@ -46,6 +46,8 @@ __version__ = "0.2"
 __all__ = ['CacheKeyError', 'LRUCache', 'DEFAULT_SIZE']
 __docformat__ = 'reStructuredText en'
 
+DEBUG = False
+
 DEFAULT_SIZE = 16
 """Default size of a new LRUCache object, if no 'size' argument is given."""
 
@@ -107,7 +109,6 @@ class LRUCache(object):
             self.atime = timestamp
 
         def __cmp__(self, other):
-            #print "__cmp__!"
             return cmp(self.atime, other.atime)
 
         def __repr__(self):
@@ -153,13 +154,15 @@ class LRUCache(object):
             # size may have been reset, so we loop
             while len(self.__heap) >= self.size:
                 lru = heappop(self.__heap)
-                #print "eliminant(setitem)-->", lru.obj._v_pathname
                 del self.__dict[lru.key]
+                if DEBUG:
+                    print "eliminant(setitem)-->", lru.obj._v_pathname
             node = self.__Node(key, obj, self.__seqn)
             self.__dict[key] = node
-            print "introduint node-->", node.obj._v_pathname
-            f = sys._getframe(3)
-            print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
+            if DEBUG:
+                print "introduint node-->", node.obj._v_pathname
+                f = sys._getframe(3)
+                print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
             heappush(self.__heap, node)
 
     def __getitem__(self, key):
@@ -167,9 +170,10 @@ class LRUCache(object):
             raise CacheKeyError(key)
         else:
             node = self.__dict[key]
-            print "recuperant-->", node.obj._v_pathname
-            f = sys._getframe(4)
-            print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
+            if DEBUG:
+                print "recuperant-->", node.obj._v_pathname
+                f = sys._getframe(4)
+                print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
             node.atime = self.__seqn
             heapify(self.__heap)
             return node.obj
@@ -180,7 +184,7 @@ class LRUCache(object):
         else:
             node = self.__dict[key]
             del self.__dict[key]
-            if hasattr(node.obj, "_v_pathname"):
+            if DEBUG and hasattr(node.obj, "_v_pathname"):
                 print "eliminant(delitem)-->", node.obj._v_pathname
                 f = sys._getframe(2)
                 print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename

@@ -1389,93 +1389,93 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     # This version of getCoords reads the indexes in chunks.
     # Because of that, it can be used on iterators.
-    # Version in pure python
-    def _getCoords(self, startCoords, nCoords):
-        """Get the coordinates of indices satisfiying the cuts.
+#     # Version in pure python
+#     def _getCoords(self, startCoords, nCoords):
+#         """Get the coordinates of indices satisfiying the cuts.
 
-        You must call the Index.search() method before in order to get
-        good sense results.
+#         You must call the Index.search() method before in order to get
+#         good sense results.
 
-        This version is meant to be used in iterators.
+#         This version is meant to be used in iterators.
 
-        """
-        #t1=time()
-        len1 = 0; len2 = 0; relCoords = 0
-        # Correction against asking too many elements
-        nindexedrows = self.nelements
-        if startCoords + nCoords > nindexedrows:
-            nCoords = nindexedrows - startCoords
-        # create buffers for indices
-        indices = self.indices
-        indices._initIndexSlice(self, nCoords)
-        for irow in xrange(self.nrows):
-            leni = self.lengths[irow]; len2 += leni
-            if (leni > 0 and len1 <= startCoords < len2):
-                startl = self.starts[irow] + (startCoords-len1)
-                # Read nCoords as maximum
-                stopl = startl + nCoords
-                # Correction if stopl exceeds the limits
-                if stopl > self.starts[irow] + self.lengths[irow]:
-                    stopl = self.starts[irow] + self.lengths[irow]
-                if irow < indices.nrows:
-                    indices._readIndex(irow, startl, stopl, relCoords)
-                else:
-                    # Get indices for last row
-                    stop = relCoords+(stopl-startl)
-                    indices.arrAbs[relCoords:stop] = \
-                        self.indicesLR[startl:stopl]
-                incr = stopl - startl
-                relCoords += incr; startCoords += incr; nCoords -= incr
-                if nCoords == 0:
-                    break
-            len1 += leni
+#         """
+#         #t1=time()
+#         len1 = 0; len2 = 0; relCoords = 0
+#         # Correction against asking too many elements
+#         nindexedrows = self.nelements
+#         if startCoords + nCoords > nindexedrows:
+#             nCoords = nindexedrows - startCoords
+#         # create buffers for indices
+#         indices = self.indices
+#         indices._initIndexSlice(self, nCoords)
+#         for irow in xrange(self.nrows):
+#             leni = self.lengths[irow]; len2 += leni
+#             if (leni > 0 and len1 <= startCoords < len2):
+#                 startl = self.starts[irow] + (startCoords-len1)
+#                 # Read nCoords as maximum
+#                 stopl = startl + nCoords
+#                 # Correction if stopl exceeds the limits
+#                 if stopl > self.starts[irow] + self.lengths[irow]:
+#                     stopl = self.starts[irow] + self.lengths[irow]
+#                 if irow < indices.nrows:
+#                     indices._readIndex(irow, startl, stopl, relCoords)
+#                 else:
+#                     # Get indices for last row
+#                     stop = relCoords+(stopl-startl)
+#                     indices.arrAbs[relCoords:stop] = \
+#                         self.indicesLR[startl:stopl]
+#                 incr = stopl - startl
+#                 relCoords += incr; startCoords += incr; nCoords -= incr
+#                 if nCoords == 0:
+#                     break
+#             len1 += leni
 
-        # I don't know if sorting the coordinates is better or not actually
-        # Some careful tests must be carried out in order to do that
-        selections = indices.arrAbs[:relCoords]
-        # Preliminary results seems to show that sorting is not an advantage!
-        #selections = numarray.sort(self.indices.arrAbs[:relCoords])
-        #t = time()-t1
-        #print "time getting coords:",  round(t*1000, 3), "ms"
-        return selections
+#         # I don't know if sorting the coordinates is better or not actually
+#         # Some careful tests must be carried out in order to do that
+#         selections = indices.arrAbs[:relCoords]
+#         # Preliminary results seems to show that sorting is not an advantage!
+#         #selections = numarray.sort(self.indices.arrAbs[:relCoords])
+#         #t = time()-t1
+#         #print "time getting coords:",  round(t*1000, 3), "ms"
+#         return selections
 
 
-    # This version of getCoords reads all the indexes in one pass.
-    # Because of that, it is not meant to be used on iterators.
-    # This is the pure python version.
-    def _getCoords_sparse(self, ncoords):
-        """Get the coordinates of indices satisfiying the cuts.
+#     # This version of getCoords reads all the indexes in one pass.
+#     # Because of that, it is not meant to be used on iterators.
+#     # This is the pure python version.
+#     def _getCoords_sparse(self, ncoords):
+#         """Get the coordinates of indices satisfiying the cuts.
 
-        You must call the Index.search() method before in order to get
-        good sense results.
+#         You must call the Index.search() method before in order to get
+#         good sense results.
 
-        This version is meant to be used for a complete read.
+#         This version is meant to be used for a complete read.
 
-        """
-        idc = self.indices
-        # Initialize the index dataset
-        idc._initIndexSlice(self, ncoords)
-        # Create the sorted indices
-        len1 = 0
-        for irow in xrange(idc.nrows):
-            for jrow in xrange(self.lengths[irow]):
-                idc.coords[len1] = (irow, self.starts[irow]+jrow)
-                len1 += 1
+#         """
+#         idc = self.indices
+#         # Initialize the index dataset
+#         idc._initIndexSlice(self, ncoords)
+#         # Create the sorted indices
+#         len1 = 0
+#         for irow in xrange(idc.nrows):
+#             for jrow in xrange(self.lengths[irow]):
+#                 idc.coords[len1] = (irow, self.starts[irow]+jrow)
+#                 len1 += 1
 
-        # Given the sorted indices, get the real ones
-        idc._readIndex_sparse(ncoords)
+#         # Given the sorted indices, get the real ones
+#         idc._readIndex_sparse(ncoords)
 
-        # Get possible values in last slice
-        if (self.is_pro and self.nelementsLR > 0
-            and self.lengths[idc.nrows] > 0):
-            # Get indices for last row
-            irow = idc.nrows
-            startl = self.starts[irow]
-            stopl = startl + self.lengths[irow]
-            idc.arrAbs[len1:ncoords] = self.indicesLR[startl:stopl]
+#         # Get possible values in last slice
+#         if (self.is_pro and self.nelementsLR > 0
+#             and self.lengths[idc.nrows] > 0):
+#             # Get indices for last row
+#             irow = idc.nrows
+#             startl = self.starts[irow]
+#             stopl = startl + self.lengths[irow]
+#             idc.arrAbs[len1:ncoords] = self.indicesLR[startl:stopl]
 
-        selection = idc.arrAbs[:ncoords]
-        return selection
+#         selection = idc.arrAbs[:ncoords]
+#         return selection
 
 
     def getLookupRange2XXX(self, ops, limits, table):
