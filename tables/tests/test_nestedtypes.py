@@ -361,8 +361,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.append(self._testAData)
         tbl.flush()
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         readAData = tbl.read()
@@ -385,8 +384,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._appendRow(row, i)
         tbl.flush()
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         readAData = tbl.read()
@@ -403,8 +401,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.append(self._testAData)
         tbl.flush()
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         searchedCoords = tbl.getWhereList(
@@ -431,8 +428,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl1.whereAppend(
             tbl2, self._testCondition(tbl1.cols._f_col(self._testCondCol)))
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl1 = self.h5file.root.test1
             tbl2 = self.h5file.root.test2
 
@@ -455,8 +451,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.append(self._testAData)
         tbl.flush()
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         self.assertRaises(
@@ -484,8 +479,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.modifyColumn(colname=nColumn, column=raColumn)
         tbl.flush()
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         raReadTable = tbl.read()
@@ -516,8 +510,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.modifyColumns(names=[nColumn], columns=raColumn)
         tbl.flush()
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         raReadTable = tbl.read()
@@ -553,8 +546,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.modifyColumns(names=colnames, columns=raCols)
         tbl.flush()
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         # Re-read the appropriate columns
@@ -592,8 +584,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.modifyRows(start=0, stop=2, rows=raTable)
         tbl.flush()
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         raReadTable = tbl.read()
@@ -618,8 +609,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         coltoindex = tbl.cols._f_col(self._testCondCol)
         indexrows = coltoindex.createIndex(testmode=1)
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
             coltoindex = tbl.cols._f_col(self._testCondCol)
 
@@ -645,10 +635,11 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 class WriteNoReopen(WriteTestCase):
-    reopen = 0
+    def _reopen(self, mode='r'):
+        return False
 
 class WriteReopen(WriteTestCase):
-    reopen = 1
+    pass  # default ``_reopen()`` does reopen the file
 
 
 class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -668,8 +659,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -691,8 +681,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         tblcols = tbl.read(start=0, step=2, field='Info/value')
@@ -704,10 +693,11 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
                      "Original array are retrieved doesn't match.")
 
 class ReadNoReopen(ReadTestCase):
-    reopen = 0
+    def _reopen(self, mode='r'):
+        return False
 
 class ReadReopen(ReadTestCase):
-    reopen = 1
+    pass  # default ``_reopen()`` does reopen the file
 
 
 class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -726,8 +716,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         tblcol = tbl.cols._f_col(self._testNestedCol)
@@ -743,8 +732,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         tblcol = tbl.cols._f_col(self._testNestedCol+"/name")
@@ -773,8 +761,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         length = len(tbl.cols)
@@ -790,8 +777,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         length = len(tbl.cols.Info)
@@ -808,8 +794,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -831,8 +816,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -854,8 +838,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -878,8 +861,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -901,8 +883,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -924,8 +905,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -947,8 +927,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -970,8 +949,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -993,8 +971,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self.reopen:
-            self._reopen()
+        if self._reopen():
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -1010,10 +987,11 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 class ColsNoReopen(ColsTestCase):
-    reopen = 0
+    def _reopen(self, mode='r'):
+        return False
 
 class ColsReopen(ColsTestCase):
-    reopen = 1
+    pass  # default ``_reopen()`` does reopen the file
 
 
 

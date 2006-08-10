@@ -356,10 +356,15 @@ class TempFileMixin:
 
 
     def _reopen(self, mode='r'):
-        """Reopen ``h5file`` in the specified ``mode``."""
+        """Reopen ``h5file`` in the specified ``mode``.
+
+        Returns a true or false value depending on whether the file was
+        reopenend or not.  If not, nothing is changed.
+        """
 
         self.h5file.close()
         self.h5file = tables.openFile(self.h5fname, mode)
+        return True
 
 
 
