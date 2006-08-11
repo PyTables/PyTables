@@ -1,0 +1,20 @@
+/* Verbatim environments are shaded */
+pre.programlisting, pre.screen  {color: #000000; background-color: #E0E0E0; }
+
+/* Figure and table titles are centered */
+p.title {text-align: center }
+
+/* Tables are centered */
+div.table-contents table {margin-left: auto; margin-right: auto }
+
+/* Customise header sizes */
+h1.title {font-size: 250% }
+h3.title {font-size: 170% }
+h4.title {font-size: 150% }
+h5.title {font-size: 130% }
+h6.title {font-size: 110% }
+/* H2 headers are used for both chapter titles and level 1 section titles */
+/* but we want different sizes... */
+div.titlepage h2.title {font-size: 220% }
+div.section h2.title {font-size: 190% }
+

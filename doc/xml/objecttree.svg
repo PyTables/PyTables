@@ -1,0 +1,757 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://inkscape.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.0"
+   x="0.0000000"
+   y="0.0000000"
+   width="1605.1625"
+   height="1523.6221"
+   viewBox="5 0 35 43"
+   id="svg1567"
+   sodipodi:version="0.32"
+   inkscape:version="0.42.2"
+   sodipodi:docname="objecttree.svg"
+   sodipodi:docbase="/home/vmas/pytables_manual">
+  <metadata
+     id="metadata1444">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     inkscape:cy="737.37258"
+     inkscape:cx="305.25953"
+     inkscape:zoom="0.43415836"
+     inkscape:window-height="920"
+     inkscape:window-width="1272"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     id="base"
+     inkscape:window-x="0"
+     inkscape:window-y="26"
+     inkscape:current-layer="svg1567" />
+  <defs
+     id="defs1806" />
+  <rect
+     id="rect1569"
+     style="fill:#ffffff"
+     y="0.50414598"
+     x="7.5996666"
+     height="1.4000000"
+     width="24.950001" />
+  <text
+     sodipodi:linespacing="125.00000%"
+     id="text1573"
+     style="font-size:1.0160000px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125.00000%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;font-family:Sans"
+     y="1.504146"
+     x="26.001305">fileObject(File)</text>
+  <rect
+     id="rect1575"
+     style="fill:#ffffff"
+     y="1.9041461"
+     x="7.5996666"
+     height="1.8000000"
+     width="24.950001" />
+  <text
+     id="text1579"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     y="2.8041458"
+     x="7.7496672">+name: string = &quot;objecttree.h5&quot;</text>
+  <text
+     id="text1581"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     y="3.604146"
+     x="7.7496672">+root: Group = groupRootObject</text>
+  <rect
+     id="rect1583"
+     style="fill:#ffffff"
+     y="3.7041459"
+     x="7.5996666"
+     height="4.1999998"
+     width="24.950001" />
+  <rect
+     width="34.273266"
+     height="1.4000000"
+     x="7.6183491"
+     y="0.50414598"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11720401"
+     id="rect1571" />
+  <rect
+     width="34.273266"
+     height="1.8000000"
+     x="7.6183491"
+     y="1.9041461"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11720401"
+     id="rect1577" />
+  <rect
+     width="34.273266"
+     height="4.1999998"
+     x="7.6183491"
+     y="3.7041459"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11720401"
+     id="rect1585" />
+  <text
+     id="text1587"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     y="4.354146"
+     x="7.7496672">+open(filename:string)</text>
+  <text
+     id="text1589"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     y="5.1541457"
+     x="7.7496672">+createGroup(where:Group,name:string): Group</text>
+  <text
+     id="text1591"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     y="5.9541459"
+     x="7.7496672">+createTable(where:Group,name:string,description:IsDescription): Table</text>
+  <text
+     id="text1593"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     y="6.7541461"
+     x="7.7496672">+createArray(where:Group,name:string,object:array): Array</text>
+  <text
+     id="text1595"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     y="7.5541458"
+     x="7.7496672">+close()</text>
+  <rect
+     id="rect1597"
+     style="fill:#ffffff"
+     y="10.954146"
+     x="14.699666"
+     height="1.4000000"
+     width="10.650000" />
+  <rect
+     id="rect1599"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.12835297"
+     y="10.954146"
+     x="11.284508"
+     height="1.4000000"
+     width="17.545322" />
+  <text
+     id="text1601"
+     style="font-size:1.0000000px;font-style:normal;font-weight:700;text-anchor:middle;fill:#000000;font-family:sans"
+     y="11.954146"
+     x="20.024668">groupRootObject(Group)</text>
+  <rect
+     id="rect1603"
+     style="fill:#ffffff"
+     y="12.419150"
+     x="13.598068"
+     height="3.4000001"
+     width="10.650000" />
+  <rect
+     id="rect1605"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.12835169"
+     y="12.354146"
+     x="11.284680"
+     height="3.4000001"
+     width="17.544977" />
+  <text
+     x="13.269232"
+     y="13.254147"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     id="text1607">+_v_name: string = root</text>
+  <text
+     x="13.269232"
+     y="14.054147"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     id="text1609">+group1: Group = groupObject1</text>
+  <text
+     x="13.269232"
+     y="14.854146"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     id="text1611">+group2: Group = groupObject2</text>
+  <text
+     x="13.269232"
+     y="15.654146"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     id="text1613">+array1: Array = arrayObject1</text>
+  <rect
+     id="rect1615"
+     style="fill:#ffffff"
+     y="23.506645"
+     x="3.0896671"
+     height="1.4000000"
+     width="10.650000" />
+  <text
+     id="text1619"
+     style="font-size:1.0000000px;font-style:normal;font-weight:700;text-anchor:middle;fill:#000000;font-family:sans"
+     y="24.506645"
+     x="10.333769">groupObject1(Group)</text>
+  <rect
+     id="rect1621"
+     style="fill:#ffffff"
+     y="24.906645"
+     x="3.0896671"
+     height="2.5999999"
+     width="10.650000" />
+  <rect
+     width="14.642780"
+     height="1.4000000"
+     x="3.1084111"
+     y="23.506645"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11725651"
+     id="rect1617" />
+  <rect
+     width="14.642780"
+     height="2.5999999"
+     x="3.1084111"
+     y="24.906645"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11725651"
+     id="rect1623" />
+  <text
+     x="3.3268762"
+     y="25.680389"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     id="text1625">+_v_name: string = group1</text>
+  <text
+     x="3.3268762"
+     y="26.480389"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     id="text1627">+table1: Table = tableObject1</text>
+  <text
+     x="3.3268762"
+     y="27.280388"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     id="text1629">+array2: Array = arrayObject2</text>
+  <rect
+     id="rect1631"
+     style="fill:#ffffff"
+     y="23.471645"
+     x="24.069668"
+     height="1.4000000"
+     width="10.650000" />
+  <text
+     id="text1635"
+     style="font-size:1.0000000px;font-style:normal;font-weight:700;text-anchor:middle;fill:#000000;font-family:sans"
+     y="24.471645"
+     x="31.426718">groupObject2(Group)</text>
+  <rect
+     id="rect1637"
+     style="fill:#ffffff"
+     y="24.871645"
+     x="24.069668"
+     height="1.8000000"
+     width="10.650000" />
+  <rect
+     width="14.835982"
+     height="1.4000000"
+     x="24.089321"
+     y="23.471645"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11802754"
+     id="rect1633" />
+  <rect
+     width="14.835982"
+     height="1.8000000"
+     x="24.089321"
+     y="24.871645"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11802754"
+     id="rect1639" />
+  <text
+     x="24.402643"
+     y="25.641909"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     id="text1641">+_v_name: string = group2</text>
+  <text
+     x="24.402643"
+     y="26.44191"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     id="text1643">+table2: Table = tableObject2</text>
+  <rect
+     id="rect1645"
+     style="fill:#ffffff"
+     y="36.352047"
+     x="30.289667"
+     height="1.4000000"
+     width="7.6500001" />
+  <text
+     id="text1649"
+     style="font-size:1.0000000px;font-style:normal;font-weight:700;text-anchor:middle;fill:#000000;font-family:sans"
+     y="37.352047"
+     x="34.396896">rowObject2(Row)</text>
+  <rect
+     id="rect1651"
+     style="fill:#ffffff"
+     y="37.752048"
+     x="30.289667"
+     height="2.5999999"
+     width="7.6500001" />
+  <text
+     id="text1655"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     y="38.652046"
+     x="30.439669">+identity: CharType</text>
+  <text
+     id="text1657"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     y="39.452045"
+     x="30.439669">+idnumber: Int16</text>
+  <text
+     id="text1659"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     y="40.139156"
+     x="30.439669">+speed: Int32</text>
+  <rect
+     id="rect1661"
+     style="fill:#ffffff"
+     y="40.352047"
+     x="30.289667"
+     height="1.8000000"
+     width="7.6500001" />
+  <rect
+     width="10.988613"
+     height="1.4000000"
+     x="28.945368"
+     y="36.352047"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11985074"
+     id="rect1647" />
+  <rect
+     width="10.988613"
+     height="2.5999999"
+     x="28.945368"
+     y="37.752048"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11985074"
+     id="rect1653" />
+  <rect
+     width="10.988613"
+     height="1.8000000"
+     x="28.945368"
+     y="40.352047"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11985074"
+     id="rect1663" />
+  <text
+     id="text1665"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     y="41.002048"
+     x="30.439669">+append()</text>
+  <text
+     id="text1667"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     y="41.802048"
+     x="30.439669">+nrow()</text>
+  <rect
+     id="rect1669"
+     style="fill:#ffffff"
+     y="29.002045"
+     x="28.739668"
+     height="1.4000000"
+     width="8.5500002" />
+  <text
+     id="text1673"
+     style="font-size:1.0000000px;font-style:normal;font-weight:700;text-anchor:middle;fill:#000000;font-family:sans"
+     y="30.002045"
+     x="33.522682">tableObject2(Table)</text>
+  <rect
+     id="rect1675"
+     style="fill:#ffffff"
+     y="30.402046"
+     x="28.739668"
+     height="1.8000000"
+     width="8.5500002" />
+  <text
+     id="text1679"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     y="31.245602"
+     x="28.889668">+name: string = table2</text>
+  <text
+     id="text1681"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     y="31.989157"
+     x="28.889668">+row: Row = rowObject2</text>
+  <rect
+     id="rect1683"
+     style="fill:#ffffff"
+     y="32.202045"
+     x="28.739668"
+     height="1.0000000"
+     width="8.5500002" />
+  <g
+     id="g1637"
+     transform="translate(-9.093746e-18,-5.644444e-2)">
+    <rect
+       id="rect1671"
+       style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11983631"
+       y="29.002045"
+       x="27.460522"
+       height="1.4000000"
+       width="12.278433" />
+    <rect
+       id="rect1677"
+       style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11983631"
+       y="30.402046"
+       x="27.460522"
+       height="1.8000000"
+       width="12.278433" />
+    <rect
+       id="rect1685"
+       style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11983631"
+       y="32.202045"
+       x="27.460522"
+       height="1.0000000"
+       width="12.278433" />
+  </g>
+  <text
+     id="text1687"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     y="32.852047"
+     x="28.889668">+read(): Table</text>
+  <g
+     id="g1626"
+     transform="translate(0.451553,8.361367e-16)">
+    <rect
+       width="8.8000002"
+       height="1.4000000"
+       x="29.082169"
+       y="15.387647"
+       style="fill:#ffffff"
+       id="rect1689" />
+    <text
+       x="35.401333"
+       y="16.387646"
+       style="font-size:1.0000000px;font-style:normal;font-weight:700;text-anchor:middle;fill:#000000;font-family:sans"
+       id="text1693">arrayObject1(Array)</text>
+    <rect
+       width="8.8000002"
+       height="1.0000000"
+       x="29.082169"
+       y="16.787645"
+       style="fill:#ffffff"
+       id="rect1695" />
+    <rect
+       width="8.8000002"
+       height="1.0000000"
+       x="29.082169"
+       y="17.787645"
+       style="fill:#ffffff"
+       id="rect1701" />
+    <rect
+       id="rect1691"
+       style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11962140"
+       y="15.387647"
+       x="29.103706"
+       height="1.4000000"
+       width="12.592167" />
+    <rect
+       id="rect1697"
+       style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11962140"
+       y="16.787645"
+       x="29.103706"
+       height="1.0000000"
+       width="12.592167" />
+    <rect
+       id="rect1703"
+       style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11962140"
+       y="17.787645"
+       x="29.103706"
+       height="1.0000000"
+       width="12.592167" />
+    <text
+       id="text1699"
+       style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+       y="17.464294"
+       x="30.325752">+name: string = array1</text>
+    <text
+       id="text1705"
+       style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+       y="18.496515"
+       x="30.325752">+read(): Array</text>
+  </g>
+  <polyline
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.10000000"
+     points="22.5,7.45 22.5,8.73501 22.49,8.73501 22.49,10.385 "
+     id="polyline1707"
+     transform="translate(-2.350333,0.454146)" />
+  <text
+     id="text1709"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:middle;fill:#000000;font-family:monospace"
+     y="9.039156"
+     x="20.144669" />
+  <polyline
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.10000000"
+     points="27.9,13.2 27.9,13.05 37.1653,13.05 37.1653,14.9335 "
+     id="polyline1711"
+     transform="matrix(0.646010,0.000000,0.000000,1.000000,10.82353,0.454146)" />
+  <text
+     id="text1713"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:middle;fill:#000000;font-family:monospace"
+     y="13.354146"
+     x="30.182367" />
+  <polyline
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.10000000"
+     points="22.475,15.3 22.475,21.035 12.8696,21.035 12.8696,23.0525 "
+     id="polyline1715"
+     transform="translate(-2.350333,0.454146)" />
+  <text
+     id="text1717"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:middle;fill:#000000;font-family:monospace"
+     y="21.339146"
+     x="15.321967" />
+  <polyline
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.10000000"
+     points="22.475,15.3 22.475,21.05 33.8496,21.05 33.8496,23.0175 "
+     id="polyline1719"
+     transform="translate(-2.350333,0.454146)" />
+  <text
+     id="text1721"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:middle;fill:#000000;font-family:monospace"
+     y="21.354145"
+     x="25.811968" />
+  <polyline
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.10000000"
+     points="33.8496,26.2175 33.8496,27.5 36.8228,27.5 36.8228,28.5479 "
+     id="polyline1723"
+     transform="translate(-2.350333,0.454146)" />
+  <text
+     id="text1725"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:middle;fill:#000000;font-family:monospace"
+     y="27.804146"
+     x="32.985867" />
+  <polyline
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.10000000"
+     points="36.8228,32.7479 36.8228,34.3 37.6456,34.3 37.6456,35.8979 "
+     id="polyline1727"
+     transform="translate(-2.350333,0.454146)" />
+  <text
+     id="text1729"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:middle;fill:#000000;font-family:monospace"
+     y="34.604149"
+     x="34.883865" />
+  <polyline
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.10000000"
+     points="12.8696,27.0525 12.8696,28.05 12.1178,28.05 12.1178,29.085 "
+     id="polyline1731"
+     transform="translate(-2.350333,0.454146)" />
+  <text
+     id="text1733"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:middle;fill:#000000;font-family:monospace"
+     y="28.354145"
+     x="10.143367" />
+  <polyline
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.10000000"
+     points="12.1178,33.285 12.1178,34.2011 11.2406,34.2011 11.2406,36.185 "
+     id="polyline1735"
+     transform="translate(-2.350333,0.454146)" />
+  <text
+     id="text1737"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:middle;fill:#000000;font-family:monospace"
+     y="34.505249"
+     x="9.328867" />
+  <polyline
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.10000000"
+     points="16.19,25.7525 16.19,25.75 24.6678,25.75 24.6678,34.19 "
+     id="polyline1739"
+     transform="matrix(0.537729,0.000000,0.000000,1.000000,9.075997,0.454146)" />
+  <text
+     id="text1741"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:middle;fill:#000000;font-family:monospace"
+     y="26.054146"
+     x="18.078568" />
+  <rect
+     id="rect1743"
+     style="fill:#ffffff"
+     y="29.539145"
+     x="4.0346670"
+     height="1.4000000"
+     width="8.5500002" />
+  <text
+     id="text1747"
+     style="font-size:1.0000000px;font-style:normal;font-weight:700;text-anchor:middle;fill:#000000;font-family:sans"
+     y="30.539145"
+     x="9.3256617">tableObject1(Table)</text>
+  <rect
+     id="rect1749"
+     style="fill:#ffffff"
+     y="30.939146"
+     x="4.0346670"
+     height="1.8000000"
+     width="8.5500002" />
+  <rect
+     id="rect1757"
+     style="fill:#ffffff"
+     y="32.739147"
+     x="4.0346670"
+     height="1.0000000"
+     width="8.5500002" />
+  <rect
+     width="11.892187"
+     height="1.4000000"
+     x="3.3386474"
+     y="29.539145"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11793638"
+     id="rect1745" />
+  <rect
+     width="11.892187"
+     height="1.8000000"
+     x="3.3386474"
+     y="30.939146"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11793638"
+     id="rect1751" />
+  <rect
+     width="11.892187"
+     height="1.0000000"
+     x="3.3386474"
+     y="32.739147"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11793638"
+     id="rect1759" />
+  <text
+     x="3.8460019"
+     y="31.782701"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     id="text1753">+name: string = table1</text>
+  <text
+     x="3.8460019"
+     y="32.582703"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     id="text1755">+row: Row = rowObject1</text>
+  <text
+     x="3.8460019"
+     y="33.332703"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     id="text1761">+read(): Table</text>
+  <rect
+     id="rect1763"
+     style="fill:#ffffff"
+     y="36.639149"
+     x="3.8846672"
+     height="1.4000000"
+     width="7.6500001" />
+  <text
+     id="text1767"
+     style="font-size:1.0000000px;font-style:normal;font-weight:700;text-anchor:middle;fill:#000000;font-family:sans"
+     y="37.639149"
+     x="8.7256622">rowObject1(Row)</text>
+  <rect
+     id="rect1769"
+     style="fill:#ffffff"
+     y="38.039146"
+     x="3.8846672"
+     height="2.5999999"
+     width="7.6500001" />
+  <text
+     id="text1777"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     y="40.539146"
+     x="4.034667">+speed: Float32</text>
+  <rect
+     width="10.602716"
+     height="1.4000000"
+     x="3.5647376"
+     y="36.695591"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11772748"
+     id="rect1765" />
+  <rect
+     width="10.602716"
+     height="2.6621885"
+     x="3.5647376"
+     y="38.096996"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11912710"
+     id="rect1771" />
+  <rect
+     width="10.602716"
+     height="1.8000000"
+     x="3.5647376"
+     y="40.808483"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11772748"
+     id="rect1781" />
+  <text
+     x="4.034667"
+     y="38.939148"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     id="text1773">+identity: CharType</text>
+  <text
+     x="4.034667"
+     y="39.739147"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     id="text1775">+idnumber: Int16</text>
+  <rect
+     width="7.6500001"
+     height="1.6049867"
+     x="3.8846672"
+     y="40.864933"
+     style="fill:#ffffff"
+     id="rect1779" />
+  <text
+     x="4.034667"
+     y="41.458485"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     id="text1783">+append()</text>
+  <text
+     x="4.034667"
+     y="42.258484"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     id="text1785">+nrow()</text>
+  <rect
+     id="rect1787"
+     style="fill:#ffffff"
+     y="34.644146"
+     x="16.584667"
+     height="1.4000000"
+     width="8.8000002" />
+  <text
+     id="text1791"
+     style="font-size:1.0000000px;font-style:normal;font-weight:700;text-anchor:middle;fill:#000000;font-family:sans"
+     y="35.644146"
+     x="21.605553">arrayObject2(Array)</text>
+  <rect
+     id="rect1793"
+     style="fill:#ffffff"
+     y="36.044147"
+     x="16.584667"
+     height="1.0000000"
+     width="8.8000002" />
+  <rect
+     id="rect1799"
+     style="fill:#ffffff"
+     y="37.044147"
+     x="16.584667"
+     height="1.0000000"
+     width="8.8000002" />
+  <rect
+     width="12.336492"
+     height="1.4000000"
+     x="15.498974"
+     y="34.644146"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11840076"
+     id="rect1789" />
+  <rect
+     width="12.336492"
+     height="1.0000000"
+     x="15.498974"
+     y="36.044147"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11840076"
+     id="rect1795" />
+  <rect
+     width="12.336492"
+     height="1.0000000"
+     x="15.498974"
+     y="37.044147"
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.11840076"
+     id="rect1801" />
+  <text
+     x="16.452446"
+     y="36.887703"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     id="text1797">+name: string = array2</text>
+  <text
+     x="16.452446"
+     y="37.637703"
+     style="font-size:0.80000001px;font-style:normal;font-weight:normal;text-anchor:start;fill:#000000;font-family:monospace"
+     id="text1803">+read(): Array</text>
+</svg>

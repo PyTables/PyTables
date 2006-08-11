@@ -20,5 +20,6 @@ usersguide.pdf: $(SRCDIR)/usersguide.xml
 usersguide.html: $(SRCDIR)/usersguide.xml
 	mkdir -p $(HTMLDIR)
 	(cd $(SRCDIR) && make usersguide.html)
+	cp  $(SRCDIR)/pytables_style.css $(HTMLDIR)
 	cp  $(SRCDIR)/*.html $(HTMLDIR)
-	ln  $(SRCDIR)/*.png $(HTMLDIR)
+	cp  $(SRCDIR)/*.png $(HTMLDIR)

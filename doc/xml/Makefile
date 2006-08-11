@@ -1,53 +1,35 @@
-# Files to be generated
-genpdf = objecttree.pdf rootUEP1.pdf rootUEP2.pdf
-# Get all .pdf files except "usersguide.pdf"
-pdfs := $(filter-out usersguide.pdf, $(wildcard *.pdf))
-# Add files that have to be derived from other formats
-pdfs += $(genpdf)
+# Get all .svg files
+svgs := $(wildcard *.svg)
+
+# Images with no SVG version. They MUST NOT be cleaned
+no_svg = logo3-ombra.png objecttree-h5.png tutorial1-1-tableview.png tutorial1-2-tableview.png tutorial1-general.png tutorial1-general.png
+
 # The generated PNGs
-genpng := $(patsubst %.pdf,%.png,$(pdfs))
-# The generated latex stuff
-gentex := $(filter-out usersguide.xml usersguide.bib, $(wildcard usersguide*.*))
-# tbook junk to be deleted
-tbjunk = makebib makeclean makeepss makepage makepdfs makewebs makeeqns makeidx \
-	*image-comment.txt *image-gallery-raw.tex natbib.cfg
+genpng := $(patsubst %.svg,%.png,$(svgs))
+allpng := $(genpng) $(no_svg)
+
+XML_CATALOG_FILES=./catalogs/pytables_catalog.xml
+XML_DEBUG_CATALOG=1
+export XML_CATALOG_FILES XML_DEBUG_CATALOG
 
 .PHONY:		all clean
 
 all:		usersguide.pdf usersguide.html
 
 clean:
-	rm -f $(tbjunk)
 	rm -f $(genpng)
-	rm -f $(gentex)
-	rm -f $(genpdf)
 	rm -f *.html
+	rm -f usersguide.fo
+	rm -f usersguide.pdf
 
-usersguide.tex:	usersguide.xml
-	tbtolatex "$*"
+usersguide.pdf:
+	xsltproc -o usersguide.fo pytables_fo.xsl usersguide.xml
+	fop -d -c fop_conf.xml usersguide.fo usersguide.pdf
 
-usersguide.pdf:	usersguide.tex usersguide.bib $(pdfs)
-	pdflatex "$<"
-	bibtex usersguide
-	pdflatex "$<"
-	pdflatex "$<"
-	pdflatex "$<"
 
-usersguide.html:	 usersguide.xml $(genpng)
-	tbtodocbk usersguide
-	python strip-dbmanual.py usersguide-db.xml
-	docbook2html usersguide-db.xml
+usersguide.html:	 usersguide.xml $(allpng)
+	xsltproc pytables_html.xsl usersguide.xml
 
-%.pdf:		%.dia
-	dia --export=tmp.eps --export-to-format=eps "$<"
-	epstopdf tmp.eps -outfile="$@"
-	rm tmp.eps
-
-%.pdf:		%.fig
-	fig2dev -L eps "$<" tmp.eps
-	epstopdf tmp.eps -outfile="$@"
-	rm tmp.eps
-
-%.png:	        %.pdf
-	convert "$<" "$@"
+%.png:	        %.svg
+	inkscape "$<" --export-png="$@"
 

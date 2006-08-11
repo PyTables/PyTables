@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!DOCTYPE catalog
+   PUBLIC "-//OASIS/DTD Entity Resolution XML Catalog V1.0//EN"
+   "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
+<catalog  xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+  <group  prefer="public" xml:base="file:///usr/share/xml/docbook/schema/dtd/" >
+    <public
+       publicId="-//OASIS//DTD DocBook XML V4.4//EN"
+       uri="4.4/docbookx.dtd"/>
+
+    <system systemId="docbook4.4" uri="4.4/docbookx.dtd"/>
+  </group>
+
+  <group>
+    <!-- Customisation layers for PyTables and ViTables guides -->
+    <!-- URIs are relative to the catalog directory -->
+    <system systemId="pytables_fo.xsl" uri="../custom_layer/fo/pytables_fo.xsl"/>
+
+    <system systemId="pytables_html.xsl" uri="../custom_layer/html/pytables_html.xsl"/>
+
+  </group>
+
+</catalog>
