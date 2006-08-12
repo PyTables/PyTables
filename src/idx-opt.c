@@ -118,14 +118,13 @@ int bisect_right_ll(long long *a, long long x, int hi, int offset) {
 
 /* Get indices from sorted values */
 int get_sorted_indices(int nrows, long long *rbufC,
-		       int *rbufst, int *rbufln) {
+		       int *rbufst, int *rbufln, int ssize) {
   int irow, jrow;
   int len1 = 0;
 
   for (irow = 0; irow < nrows; irow++) {
     for (jrow = 0; jrow < rbufln[irow]; jrow++) {
-      rbufC[len1++] = irow;
-      rbufC[len1++] = rbufst[irow] + jrow;
+      rbufC[len1++] = irow * ssize + rbufst[irow] + jrow;
     }
   }
   return 0;

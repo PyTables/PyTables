@@ -35,7 +35,7 @@ from numarray import records, strings, memory
 
 from tables.exceptions import HDF5ExtError
 from hdf5Extension cimport Array, hid_t, herr_t, hsize_t
-from constants import SORTED_CACHE_SIZE, BOUNDS_CACHE_SIZE
+from constants import SORTED_CACHE_SIZE, BOUNDS_CACHE_SIZE, INDICES_CACHE_SIZE
 
 from definitions cimport import_libnumarray, NA_getPythonScalar, \
      NA_getBufferPtrAndSize, Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
@@ -49,6 +49,13 @@ __version__ = "$Revision$"
 
 
 # C functions and variable declaration from its headers
+
+# Standard C functions.
+cdef extern from "stdlib.h":
+  ctypedef long size_t
+
+cdef extern from "string.h":
+  void *memcpy(void *dest, void *src, size_t n)
 
 cdef extern from "Python.h":
   object PyDict_GetItem(object p, object key)
@@ -83,7 +90,7 @@ cdef extern from "H5ARRAY-opt.h":
 
   herr_t H5ARRAYOread_index_sparse( hid_t dataset_id,
                                     hid_t space_id,
-                                    hid_t mem_type_id,
+                                    hid_t type_id,
                                     hsize_t ncoords,
                                     void *coords,
                                     void *data )
@@ -122,7 +129,7 @@ cdef extern from "idx-opt.h":
   int bisect_right_i(int *a, int x, int hi, int offset)
   int bisect_right_ll(long long *a, long long x, int hi, int offset)
   int get_sorted_indices(int nrows, long long *rbufC,
-                         int *rbufst, int *rbufln)
+                         int *rbufst, int *rbufln, int ssize)
   int convert_addr64(int nrows, int nelem, long long *rbufA,
                      int *rbufR, int *rbufln)
 
@@ -197,17 +204,17 @@ cdef class IndexArray(Array):
   cdef int     l_chunksize, l_slicesize, l_nrows, nbounds
   cdef object  bufferbc, bufferlb
   cdef CacheArray bounds_ext
-  cdef NumCache LRUboundscache, LRUsortedcache
+  cdef NumCache boundscache, sortedcache, indicescache
 
 
-  cdef _initIndexSlice(self, index, ncoords):
+  def _initIndexSlice(self, index, ncoords):
     "Initialize the structures for doing a binary search"
     cdef long buflen
 
     # Create buffers for reading reverse index data
     if self.arrAbs is None or len(self.arrAbs) < ncoords:
       #print "_initIndexSlice"
-      self.coords = numarray.zeros(type="Int64", shape=(ncoords, 2))
+      self.coords = numarray.zeros(type="Int64", shape=ncoords)
       self.arrAbs = numarray.zeros(type="Int64", shape=ncoords)
       # Get the pointers to the buffer data area
       NA_getBufferPtrAndSize(self.coords._data, 1, &self.rbufC)
@@ -219,6 +226,14 @@ cdef class IndexArray(Array):
       if not self.space_id:
         # Initialize the index array for reading
         self.space_id = H5Dget_space(self.dataset_id )
+      # cache some counters in local extension variables
+      self.l_nrows = self.nrows
+      self.l_slicesize = index.slicesize
+      self.l_chunksize = index.chunksize
+      if index.is_pro:  #XYX it is necessary to check against cache dirtiness
+        # Define a cache for indices here (until I find a better place for it)
+        self.indicescache = <NumCache>NumCache(INDICES_CACHE_SIZE, 1,
+                                               "Int64", 8, "indices")
 
 
   cdef _readIndex(self, hsize_t irow, hsize_t start, hsize_t stop,
@@ -239,19 +254,21 @@ cdef class IndexArray(Array):
     return
 
 
-  cdef _readIndex_sparse(self, hsize_t ncoords):
+  cdef long long _readIndex_sparse(self, long long coord):
     cdef herr_t ret
+    cdef hsize_t irow, icol
+    cdef long long abscoord
 
+    irow = coord / self.l_slicesize;  icol = coord - irow * self.l_slicesize
     # Do the physical read
     ##Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOread_index_sparse(self.dataset_id, self.space_id,
-                                    self.type_id, ncoords,
-                                    self.rbufC, self.rbufA)
+    ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id, self.type_id,
+                                 irow, icol, icol+1, &abscoord)
     ##Py_END_ALLOW_THREADS
     if ret < 0:
-      raise HDF5ExtError("_readIndex_sparse: Problems reading the array data.")
+      raise HDF5ExtError("_readIndex_sparse: Problems reading the indices.")
 
-    return
+    return abscoord
 
 
   def _initSortedSlice(self, index, pro=0):
@@ -265,10 +282,10 @@ cdef class IndexArray(Array):
     if self.bufferlb is None:
       if str(self.type) == "CharType":
         self.bufferlb = strings.array(None, itemsize=self.itemsize,
-                                     shape=self.chunksize)
+                                      shape=self.chunksize)
       else:
         self.bufferlb = numarray.array(None, type=self.type,
-                                      shape=self.chunksize)
+                                       shape=self.chunksize)
       # Internal buffers
       # Get the pointers to the different buffer data areas
       NA_getBufferPtrAndSize(self.bufferlb._data, 1, &self.rbuflb)
@@ -294,25 +311,28 @@ cdef class IndexArray(Array):
       index.rvcache = index.ranges[:]
       NA_getBufferPtrAndSize(index.rvcache._data, 1, &self.rbufrv)
       index.cache = True
-      # The 2nd level cache and sorted values will be cached in a LRU cache
+      # The 2nd level cache and sorted values will be cached in a NumCache
       self.bounds_ext = <CacheArray>index.bounds
       self.nbounds = index.bounds.shape[1]
       # The <NumCache> cast is for keeping the C compiler happy
-      self.LRUsortedcache = <NumCache>NumCache(SORTED_CACHE_SIZE, 'sorted')
-      self.LRUboundscache = <NumCache>NumCache(BOUNDS_CACHE_SIZE, 'bounds')
+      self.boundscache = <NumCache>NumCache(BOUNDS_CACHE_SIZE, self.nbounds,
+                                            self.type, self.itemsize, 'bounds')
       if str(self.type) == "CharType":
         self.bufferbc = strings.array(None, itemsize=self.itemsize,
-                                         shape=self.nbounds)
+                                      shape=self.nbounds)
       else:
         self.bufferbc = numarray.array(None, type=self.type,
-                                          shape=self.nbounds)
+                                       shape=self.nbounds)
       # Init the bounds array for reading
       self.bounds_ext.initRead(self.nbounds)
       # Get the pointer for the internal buffer for 2nd level cache
       NA_getBufferPtrAndSize(self.bufferbc._data, 1, &self.rbufbc)
+      # Another NumCache for the sorted values
+      self.sortedcache = <NumCache>NumCache(SORTED_CACHE_SIZE, self.chunksize,
+                                            self.type, self.itemsize, 'sorted')
 
 
-  def _readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):
+  cdef void *_g_readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):
     "Read the sorted part of an index."
 
     Py_BEGIN_ALLOW_THREADS
@@ -323,6 +343,13 @@ cdef class IndexArray(Array):
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
 
+    return self.rbuflb
+
+  # This is callable from python
+  def _readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):
+    "Read the sorted part of an index."
+
+    self._g_readSortedSlice(irow, start, stop)
     return self.bufferlb
 
 
@@ -408,7 +435,7 @@ cdef class IndexArray(Array):
     while lo < hi:
       mid = (lo+hi)/2
       start = (mid/chunksize)*chunksize
-      buffer = self._readSortedSlice(nrow, start, start+chunksize)
+      buffer = self._readSrotedSlice(nrow, start, start+chunksize)
       #buffer = xrange(start,start+chunksize) # test
       niter = niter + 1
       result = self._bisect_left(buffer, item, chunksize)
@@ -431,9 +458,10 @@ cdef class IndexArray(Array):
 
   def _interSearch_right(self, int nrow, int chunksize, item, int lo, int hi):
     cdef int niter, mid, start, result, ending
+    cdef void *rbuflb
+    cdef object buffer
 
-    niter = 0
-    ending = 0
+    niter = 0;  ending = 0
     while lo < hi:
       mid = (lo+hi)/2
       start = (mid/chunksize)*chunksize
@@ -462,13 +490,12 @@ cdef class IndexArray(Array):
     cdef void *vpointer
     cdef object buf
 
-    if self.LRUboundscache.contains(nrow):
-      buf = self.LRUboundscache.getitem(nrow)
-      NA_getBufferPtrAndSize(buf._data, 1, &vpointer)
+    if self.boundscache.contains(nrow):
+      vpointer = self.boundscache.getitem(nrow)
     else:
       # Bounds row is not in cache. Read it and put it in the LRU cache.
       self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
-      self.LRUboundscache.setitem(nrow, self.bufferbc)
+      self.boundscache.setitem(nrow, self.rbufbc, 0, nbounds)
       vpointer = self.rbufbc
     return vpointer
 
@@ -476,22 +503,16 @@ cdef class IndexArray(Array):
   # Get the sorted row from the cache or read it.
   cdef void *getLRUsorted(self, int nrow, int ncs, int nchunk, int cs):
     cdef void *vpointer
-    cdef object buf
     cdef long long nckey
 
     # Compute the number of chunk read and use it as the key for the cache.
     nckey = nrow*ncs+nchunk
-    if self.LRUsortedcache.contains(nckey):
-      buf = self.LRUsortedcache.getitem(nckey)
-      NA_getBufferPtrAndSize(buf._data, 1, &vpointer)
+    if self.sortedcache.contains(nckey):
+      vpointer = self.sortedcache.getitem(nckey)
     else:
-      # The sorted row is not in cache. Read it and put it in the LRU cache.
-      H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                   self.mem_space_id, self.type_id,
-                                   nrow, cs*nchunk, cs*(nchunk+1),
-                                   self.rbuflb)
-      self.LRUsortedcache.setitem(nckey, self.bufferlb)
-      vpointer = self.rbuflb
+      # The sorted chunk is not in cache. Read it and put it in the LRU cache.
+      vpointer = self._g_readSortedSlice(nrow, cs*nchunk, cs*(nchunk+1))
+      self.sortedcache.setitem(nckey, vpointer, 0, cs)
     return vpointer
 
 
@@ -642,23 +663,21 @@ cdef class IndexArray(Array):
   # This version of getCoords reads the indexes in chunks.
   # Because of that, it can be used in iterators.
   def _getCoords(self, index, int startcoords, int ncoords):
-    cdef int nrow, nrows, leni, len1, len2, relcoords, nindexedrows
+    cdef int nrow, nrows, leni, len1, len2, relcoords, nidxelem
     cdef int *rbufst, *rbufln
     cdef int startl, stopl, incr, stop
-    cdef object parent
 
     len1 = 0; len2 = 0; relcoords = 0
-    parent = self._v_parent
     # Correction against asking too many elements
-    nindexedrows = parent.nelements
-    if startcoords + ncoords > nindexedrows:
-      ncoords = nindexedrows - startcoords
+    nidxelem = index.nelements
+    if startcoords + ncoords > nidxelem:
+      ncoords = nidxelem - startcoords
     # create buffers for indices
     self._initIndexSlice(index, ncoords)
     arrAbs = self.arrAbs
     rbufst = <int *>self.rbufst
     rbufln = <int *>self.rbufln
-    nrows = parent.nrows
+    nrows = index.nrows
     for nrow from 0 <= nrow < nrows:
       leni = rbufln[nrow]; len2 = len2 + leni
       if (leni > 0 and len1 <= startcoords < len2):
@@ -673,7 +692,7 @@ cdef class IndexArray(Array):
         else:
           # Get indices for last row
           stop = relcoords+(stopl-startl)
-          indicesLR = parent.indicesLR
+          indicesLR = index.indicesLR
           # The next line can be optimised by calling indicesLR._g_readSlice()
           # directly although I don't know if it is worth the effort.
           arrAbs[relcoords:stop] = indicesLR[startl:stopl]
@@ -692,36 +711,41 @@ cdef class IndexArray(Array):
   # This is aproximately a 25% faster than _getCoords above.
   # If there is a last row with interesting values on it, this has been
   # optimised as well.
-  # This version can be further optimized for the case in which most of
-  # the values are in a few rows. That should be a minor win, though, because
-  # we have to read the real coords afterward, and *these* would be completely
-  # sparsed through the reverse indices array.
   def _getCoords_sparse(self, index, int ncoords):
-    cdef int nrows, len1, startl, stopl
+    cdef int nrow, startl, stopl, lenl, relcoord
     cdef int *rbufst, *rbufln
-    cdef long long *rbufC
-    cdef object parent
+    cdef long long *rbufC, *rbufA
+    cdef long long coord
+    cdef object nckey
 
-    nrows = self.nrows
     # Initialize the index dataset
     self._initIndexSlice(index, ncoords)
-    rbufst = <int *>self.rbufst
-    rbufln = <int *>self.rbufln
+    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
     rbufC = <long long *>self.rbufC
+    rbufA = <long long *>self.rbufA
 
     # Get the sorted indices
-    get_sorted_indices(nrows, rbufC, rbufst, rbufln)
+    get_sorted_indices(self.l_nrows, rbufC, rbufst, rbufln, self.l_slicesize)
 
-    # Given the sorted indices, get the real ones
-    self._readIndex_sparse(ncoords)
+    # Retrieve the reverse coordinates
+    nrows = self.nrows;  relcoords = 0
+    for relcoord from 0 <= relcoord < ncoords:
+      coord = rbufC[relcoord]
+      # Look at the cache for this coord
+      if self.indicescache.contains(coord):
+        self.indicescache.getitem2(coord, self.rbufA, relcoord)
+      else:
+        # The coord is not in cache. Read it and put it in the LRU cache.
+        rbufA[relcoord] = self._readIndex_sparse(coord)
+        self.indicescache.setitem(coord, self.rbufA, relcoord, 1)
 
     # Get possible values in last slice
     if (index.nrows > nrows and rbufln[nrows] > 0):
       # Get indices for last row
       startl = rbufst[nrows]
       stopl = startl + rbufln[nrows]
-      len1 = ncoords - rbufln[nrows]
-      index.indicesLR._readIndexSlice(self, startl, stopl, len1)
+      lenl = ncoords - rbufln[nrows]
+      index.indicesLR._readIndexSlice(self, startl, stopl, lenl)
 
     # Return ncoords as maximum because arrAbs can have more elements
     return self.arrAbs[:ncoords]
@@ -756,7 +780,8 @@ cdef class LastRowArray(Array):
     return
 
 
-  def _readSortedSlice(self, IndexArray sorted, hsize_t start, hsize_t stop):
+  def _readSortedSlice(self, IndexArray sorted,
+                              hsize_t start, hsize_t stop):
     "Read the sorted part of an LR index."
     cdef void  *rbuflb
 
@@ -784,13 +809,14 @@ from constants import ENABLE_EVERY_CYCLES, LOWEST_HIT_RATIO
 
 cdef class LRUNode:
   """Record of a cached value. Not for public consumption."""
-  cdef object key, obj
-  cdef long  atime
+  cdef object key
+  cdef long nslot, atime, slotsize
 
-  def __init__(self, key, obj, long atime):
+  def __init__(self, object key, long nslot, long slotsize, long atime):
     object.__init__(self)
     self.key = key
-    self.obj = obj
+    self.nslot = nslot
+    self.slotsize = slotsize
     self.atime = atime
 
 
@@ -813,28 +839,38 @@ cdef class LRUNode:
 cdef class NumCache:
   """Least-Recently-Used (LRU) cache specific for Numerical data.
   """
-  cdef long size, seqn_
-  cdef long setcount, getcount, cyclecount
+  cdef object __dict, __heap
+  cdef long seqn_, nextslot, setcount, getcount, cyclecount
   cdef long enableeverycycles
   cdef double lowesthr
-  cdef int iscachedisabled
-  cdef object name
-  cdef object __dict, __heap
+  cdef int iscachedisabled, itemsize, nslots, maxslotsize
+  cdef object name, cacheobj
+  cdef void *rcache
 
-  def __init__(self, long size, object name):
+  def __init__(self, long nslots, int maxslotsize, object type,
+               int itemsize, object name):
     """Maximum size of the cache.
-    If more than 'size' elements are added to the cache,
+    If more than 'nslots' elements are added to the cache,
     the least-recently-used ones will be discarded."""
+    cdef object shape
 
-    if size <= 0:
-      raise ValueError, size
+    if nslots <= 0:
+      raise ValueError, nslots
     self.__heap = [];  self.__dict = {}
-    self.size = size; self.name = name
-    self.seqn_ = 0
-    self.setcount = 0; self.getcount = 0; self.cyclecount = 0
+    self.nslots = nslots;  self.maxslotsize = maxslotsize;
+    self.itemsize = itemsize;  self.name = name
+    self.seqn_ = 0;  self.nextslot = 0
+    self.setcount = 0;  self.getcount = 0;  self.cyclecount = 0
     self.iscachedisabled = False  # Cache is enabled by default
     self.enableeverycycles = ENABLE_EVERY_CYCLES
     self.lowesthr = LOWEST_HIT_RATIO
+    # The cache object where all data will go
+    shape = (nslots, maxslotsize)
+    if str(type) == "CharType":
+      self.cacheobj = strings.array(None, itemsize=itemsize, shape=shape)
+    else:
+      self.cacheobj = numarray.array(None, type=type, shape=shape)
+    NA_getBufferPtrAndSize(self.cacheobj._data, 1, &self.rcache)
 
 
   cdef long incseqn(self):
@@ -867,7 +903,7 @@ cdef class NumCache:
   cdef int checkhitratio(self):
     cdef double hitratio
 
-    if self.setcount > self.size:
+    if self.setcount > self.nslots:
       self.cyclecount = self.cyclecount + 1
       # Check whether the cache is being effective or not
       hitratio = <double>self.getcount / (self.setcount+self.getcount)
@@ -883,32 +919,58 @@ cdef class NumCache:
         # We have reached the time for forcing the cache to act again
         self.iscachedisabled = False
         self.cyclecount = 0
-    return self.iscachedisabled
+    return not self.iscachedisabled
 
-  cdef object setitem(self, object key, object obj):
+  cdef long setitem(self, object key, void *data, long start, long slotsize):
     cdef LRUNode node, lru
+    cdef long nslot, base1, base2
 
     self.setcount = self.setcount + 1
     if self.checkhitratio():
-      return
-    else:
-      node = LRUNode(key, obj.copy(), self.incseqn())
-      PyObject_SetItem(self.__dict, key, node)  # Can't fail
       # Check if we are growing out of space
-      if len(self.__heap) == self.size:
-        lru = heapreplace(self.__heap, node)
+      if len(self.__heap) == self.nslots:
+        lru = heappop(self.__heap)
+        nslot = lru.nslot
         PyObject_DelItem(self.__dict, lru.key)
       else:
-        heappush(self.__heap, node)
+        nslot = self.nextslot;  self.nextslot = self.nextslot + 1
+        assert nslot < self.nslots, "Number of nodes exceeding cache capacity."
+      # Copy the data to the appropriate row in cache
+      base1 = nslot * self.maxslotsize * self.itemsize
+      base2 = start * self.itemsize
+      memcpy(self.rcache + base1, data + base2, slotsize * self.itemsize)
+      # Add a new node with references to the copied data to the LRUCache
+      node = LRUNode(key, nslot, slotsize, self.incseqn())
+      heappush(self.__heap, node)
+      PyObject_SetItem(self.__dict, key, node)  # Can't fail
+    return nslot
 
 
-  cdef object getitem(self, object key):
+  # Return the pointer to the data in cache
+  cdef void *getitem(self, object key):
     cdef LRUNode node
+    cdef long base
 
     self.getcount = self.getcount + 1
     node = PyObject_GetItem(self.__dict, key)
     node.atime = self.incseqn()
-    return node.obj
+    base = node.nslot * self.maxslotsize * self.itemsize
+    return self.rcache + base
+
+
+  # This version copies data in cache to data+start.
+  # The user should be responsible to provide a large enough data buffer
+  # to the memcpy to succeed.
+  cdef long getitem2(self, object key, void *data, long start):
+    cdef LRUNode node
+    cdef long base
+    cdef void *src
+
+    src = self.getitem(key)
+    # Copy the data in cache to destination
+    base = start * self.itemsize
+    memcpy(data + base, src, node.slotsize * self.itemsize)
+    return node.nslot
 
 
   def __repr__(self):

@@ -68,7 +68,7 @@ out:
 
 herr_t H5ARRAYOread_index_sparse( hid_t dataset_id,
 				  hid_t space_id,
-				  hid_t mem_type_id,
+				  hid_t type_id,
 				  hsize_t ncoords,
 				  void *coords,
 				  void *data )
@@ -85,7 +85,7 @@ herr_t H5ARRAYOread_index_sparse( hid_t dataset_id,
  if ( (mem_space_id = H5Screate_simple(1, mem_size, NULL)) < 0 )
   goto out;
 
- if ( H5Dread(dataset_id, mem_type_id, mem_space_id, space_id,
+ if ( H5Dread(dataset_id, type_id, mem_space_id, space_id,
 	      H5P_DEFAULT, data) < 0 )
   goto out;
 

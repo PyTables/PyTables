@@ -129,15 +129,18 @@ NODE_CACHE_SIZE = 256   # 42 MB, 42.3s, opt:40.9s , 64 MB for writes
 #NODE_CACHE_SIZE = MAX_GROUP_WIDTH  # that would be ideal, but takes ages!
 """Maximum number of unreferenced to be kept in memory."""
 
-#SORTED_CACHE_SIZE = 256
+#SORTED_CACHE_SIZE = 256  # for testing
 SORTED_CACHE_SIZE = 1024
 """The maximum number of rows cached for sorted values in index lookups."""
 
-#BOUNDS_CACHE_SIZE = 256
+#BOUNDS_CACHE_SIZE = 256  # for testing
 BOUNDS_CACHE_SIZE = 1024
 """The maximum number of rows cached for bounds values in index lookups."""
 
-ENABLE_EVERY_CYCLES = 500
+INDICES_CACHE_SIZE = 1024
+"""The maximum number of rows cached for indices values in index lookups."""
+
+ENABLE_EVERY_CYCLES = 15
 """The number of cycles that the LRU cache for data (indexes) will be
 forced to be (re-)enabled, irregardingly of the hit ratio. This will
 provide a chance for checking if we are in a better scenario for doing

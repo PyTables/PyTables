@@ -1098,6 +1098,8 @@ please reindex the table to put the index in a sane state""")
             ncoords = index.getLookupRange2XXX(ops, lims, self)
             if ncoords > 0:
                 coords = index.indices._getCoords_sparse(index, ncoords)
+                # Get a copy of the internal buffer to handle it to the user
+                coords = coords.copy()
             else:
                 #coords = numarray.array(None, type=numarray.Int64, shape=0)
                 coords = self._g_getemptyarray("Int64")
@@ -1169,6 +1171,8 @@ Wrong 'condition' parameter type. Only Column instances are suported."""
                 #coords = index.getCoords_sparse(ncoords)
                 # The next call is the optimized one
                 coords = index.indices._getCoords_sparse(index, ncoords)
+                # Get a copy of the internal buffer to handle it to the user
+                coords = coords.copy()
             else:
                 coords = numarray.array(None, type=numarray.Int64, shape=0)
             if not index.is_pro:
