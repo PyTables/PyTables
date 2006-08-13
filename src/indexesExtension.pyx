@@ -201,7 +201,7 @@ cdef class IndexArray(Array):
   cdef void    *rbufst, *rbufln, *rbufrv, *rbufbc, *rbuflb
   cdef void    *rbufC, *rbufA
   cdef hid_t   space_id, mem_space_id
-  cdef int     l_chunksize, l_slicesize, l_nrows, nbounds
+  cdef int     l_chunksize, l_slicesize, l_nrows, i_nrows, nbounds
   cdef object  bufferbc, bufferlb
   cdef CacheArray bounds_ext
   cdef NumCache boundscache, sortedcache, indicescache
@@ -227,6 +227,7 @@ cdef class IndexArray(Array):
         # Initialize the index array for reading
         self.space_id = H5Dget_space(self.dataset_id )
       # cache some counters in local extension variables
+      self.i_nrows = index.nrows
       self.l_nrows = self.nrows
       self.l_slicesize = index.slicesize
       self.l_chunksize = index.chunksize
@@ -254,21 +255,22 @@ cdef class IndexArray(Array):
     return
 
 
-  cdef long long _readIndex_sparse(self, long long coord):
+  cdef _readIndex_sparse(self, long long coord, int relcoord):
     cdef herr_t ret
     cdef hsize_t irow, icol
-    cdef long long abscoord
+    cdef long long *rbufA
 
     irow = coord / self.l_slicesize;  icol = coord - irow * self.l_slicesize
     # Do the physical read
     ##Py_BEGIN_ALLOW_THREADS
+    rbufA = <long long *>self.rbufA + relcoord
     ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id, self.type_id,
-                                 irow, icol, icol+1, &abscoord)
+                                 irow, icol, icol+1, rbufA)
     ##Py_END_ALLOW_THREADS
     if ret < 0:
       raise HDF5ExtError("_readIndex_sparse: Problems reading the indices.")
 
-    return abscoord
+    return
 
 
   def _initSortedSlice(self, index, pro=0):
@@ -736,11 +738,10 @@ cdef class IndexArray(Array):
         self.indicescache.getitem2(coord, self.rbufA, relcoord)
       else:
         # The coord is not in cache. Read it and put it in the LRU cache.
-        rbufA[relcoord] = self._readIndex_sparse(coord)
+        self._readIndex_sparse(coord, relcoord) # Puts result in self.rbufA
         self.indicescache.setitem(coord, self.rbufA, relcoord, 1)
-
     # Get possible values in last slice
-    if (index.nrows > nrows and rbufln[nrows] > 0):
+    if (self.i_nrows > nrows and rbufln[nrows] > 0):
       # Get indices for last row
       startl = rbufst[nrows]
       stopl = startl + rbufln[nrows]
@@ -963,13 +964,15 @@ cdef class NumCache:
   # to the memcpy to succeed.
   cdef long getitem2(self, object key, void *data, long start):
     cdef LRUNode node
-    cdef long base
-    cdef void *src
+    cdef long base1, base2
 
-    src = self.getitem(key)
+    self.getcount = self.getcount + 1
+    node = PyObject_GetItem(self.__dict, key)
+    node.atime = self.incseqn()
     # Copy the data in cache to destination
-    base = start * self.itemsize
-    memcpy(data + base, src, node.slotsize * self.itemsize)
+    base1 = start * self.itemsize
+    base2 = node.nslot * self.maxslotsize * self.itemsize
+    memcpy(data + base1, self.rcache + base2, node.slotsize * self.itemsize)
     return node.nslot
 
 

@@ -2201,7 +2201,9 @@ Wrong 'index' parameter type. Only Index instances are accepted.""")
         # I've added a Performance warning in order to compel the user to
         # call self.flush() in case the tables is being preempted before doing it.
         # F. Altet 2006-08-03
-        if self._unsaved_nrows > 0 or self._unsaved_indexedrows > 0:
+        if (self._unsaved_nrows > 0 or (self.indexed and
+                                        self.indexprops.auto and
+                                        self._unsaved_indexedrows > 0)):
             warnings.warn("""\
 table ``%s`` is being preempted from alive nodes without its buffers being flushed. This may lead to very ineficient use of resources and even to fatal errors in certain situations. Please, do a call to the .flush() method on this table before start using other nodes."""
                           % (self._v_pathname),
