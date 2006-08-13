@@ -42,6 +42,7 @@ import weakref
 import tables.lrucache
 import tables.hdf5Extension as hdf5Extension
 import tables.utilsExtension as utilsExtension
+import tables.lrucacheExtension as lrucacheExtension
 import tables.proxydict
 from tables.constants import \
      MAX_UNDO_PATH_LENGTH, METADATA_CACHE_SIZE, NODE_CACHE_SIZE
@@ -246,7 +247,7 @@ class _AliveNodes(dict):
 
 # The tables.lrucache.LRUCache class is still useful for debugging
 #class _DeadNodes(tables.lrucache.LRUCache):
-class _DeadNodes(utilsExtension.LRUCache):
+class _DeadNodes(lrucacheExtension.LRUCache):
     pass
 
 

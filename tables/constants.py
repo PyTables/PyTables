@@ -140,6 +140,9 @@ BOUNDS_CACHE_SIZE = 1024
 INDICES_CACHE_SIZE = 1024
 """The maximum number of rows cached for indices values in index lookups."""
 
+TABLE_CACHE_SIZE = 1024
+"""The maximum number of rows cached during table reads."""
+
 ENABLE_EVERY_CYCLES = 15
 """The number of cycles that the LRU cache for data (indexes) will be
 forced to be (re-)enabled, irregardingly of the hit ratio. This will

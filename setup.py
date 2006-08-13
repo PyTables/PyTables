@@ -356,6 +356,7 @@ if pyrex:
     TableExtension = "src/TableExtension.pyx"
     indexesExtension = "src/indexesExtension.pyx"
     utilsExtension = "src/utilsExtension.pyx"
+    lrucacheExtension = "src/lrucacheExtension.pyx"
     _comp_ucl = "src/_comp_ucl.pyx"
     _comp_lzo = "src/_comp_lzo.pyx"
     _comp_bzip2 = "src/_comp_bzip2.pyx"
@@ -364,17 +365,20 @@ else:
     TableExtension = "src/TableExtension"
     indexesExtension = "src/indexesExtension"
     utilsExtension = "src/utilsExtension"
+    lrucacheExtension = "src/lrucacheExtension"
     _comp_ucl = "src/_comp_ucl"
     _comp_lzo = "src/_comp_lzo"
     _comp_bzip2 = "src/_comp_bzip2"
     for ext in [hdf5Extension, TableExtension, indexesExtension,
-                utilsExtension, _comp_ucl, _comp_lzo, _comp_bzip2]:
+                utilsExtension, lrucacheExtension,
+                _comp_ucl, _comp_lzo, _comp_bzip2]:
         if newer(ext+".pyx", ext+".c"):
             raise RuntimeError, "The '%s.c' file does not exist or is out of date and Pyrex is not available. Please, install Pyrex in order to properly generate the extension." % ext
     hdf5Extension += ".c"
     TableExtension += ".c"
     indexesExtension += ".c"
     utilsExtension += ".c"
+    lrucacheExtension += ".c"
     _comp_ucl += ".c"
     _comp_lzo += ".c"
     _comp_bzip2 += ".c"
@@ -441,6 +445,7 @@ hdf5Extension_libs = LIBS + [hdf5_package.library_name]
 TableExtension_libs = LIBS + [hdf5_package.library_name]
 indexesExtension_libs = LIBS + [hdf5_package.library_name]
 utilsExtension_libs = LIBS + [hdf5_package.library_name]
+lrucacheExtension_libs = []    # Doesn't need external libraries
 
 # Compressor modules only need other libraries if they are enabled.
 _comp_ucl_libs = LIBS[:]
@@ -537,6 +542,15 @@ interactively save and retrieve large amounts of data.
                                            ],
                                 library_dirs = lib_dirs,
                                 libraries = utilsExtension_libs,
+                                extra_link_args = LFLAGS,
+                                ),
+                       Extension("tables.lrucacheExtension",
+                                include_dirs = inc_dirs,
+                                define_macros = def_macros,
+                                sources = [lrucacheExtension,
+                                           ],
+                                library_dirs = lib_dirs,
+                                libraries = lrucacheExtension_libs,
                                 extra_link_args = LFLAGS,
                                 ),
                        Extension("tables._comp_ucl",

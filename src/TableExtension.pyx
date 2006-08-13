@@ -32,11 +32,13 @@ from tables.exceptions import HDF5ExtError
 from tables.utilsExtension import createNestedType, \
      getNestedType, convertTime64, space2null, getTypeEnum, enumFromHDF5
 from tables.numexpr import evaluate  ##XXX
-
+from tables.constants import TABLE_CACHE_SIZE
 
 from definitions cimport \
      import_libnumarray, NA_getPythonScalar, NA_setFromPythonScalar, \
      NA_getBufferPtrAndSize, Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS
+
+from lrucacheExtension cimport NumCache
 
 __version__ = "$Revision$"
 
@@ -208,11 +210,12 @@ import_libnumarray()
 
 cdef class Table:  # XXX extends Leaf
   # instance variables
-  cdef void    *rbuf, *wbuf
-  cdef hsize_t totalrecords
-  cdef char    *name  # XXX from Node
-  cdef hid_t   parent_id  # XXX from Node
-  cdef hid_t   dataset_id, type_id, disk_type_id
+  cdef void     *rbuf, *wbuf
+  cdef hsize_t  totalrecords
+  cdef char     *name  # XXX from Node
+  cdef hid_t    parent_id  # XXX from Node
+  cdef hid_t    dataset_id, type_id, disk_type_id
+  cdef NumCache sparsecache
 
   def _g_new(self, where, name, init):
     self.name = strdup(name)  # XXX from Node._g_new()
@@ -352,6 +355,11 @@ cdef class Table:  # XXX extends Leaf
 
     # Return the object ID and the description
     return (self.dataset_id, desc)
+
+  def _g_createSparseCache(self):
+    # Define a cache for sparse table reads
+    self.sparsecache = <NumCache>NumCache(
+      shape=(TABLE_CACHE_SIZE, 1), itemsize=self.rowsize, name="sparse_table")
 
   def _loadEnum(self, hid_t fieldTypeId):
     """_loadEnum(colname) -> (Enum, naType)
@@ -501,27 +509,36 @@ cdef class Table:  # XXX extends Leaf
     return nrecords
 
   def _read_elements(self, object recarr, object elements):
-    cdef long buflen, offset
-    cdef void *rbuf, *coords
-    cdef hsize_t nrecords
+    cdef long buflen, offset, rowsize, nrecord, nrecords
+    cdef void *rbuf, *rbuf2
+    cdef hsize_t *coords, coord
     cdef int ret
 
     # Get the chunk of the coords that correspond to a buffer
     nrecords = len(elements)
+    # The size of the one single row
+    rowsize = self.rowsize
     # Get the pointer to the buffer data area
     buflen = NA_getBufferPtrAndSize(recarr._data, 1, &rbuf)
     # Get the pointer to the buffer coords area
-    buflen = NA_getBufferPtrAndSize(elements._data, 1, &coords)
+    buflen = NA_getBufferPtrAndSize(elements._data, 1, &rbuf2)
     # Correct the offset
     offset = elements._byteoffset
-    coords = <void *>(<char *>coords + offset)
+    coords = <hsize_t *>(<char *>rbuf2 + offset)
 
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5TBOread_elements(self.dataset_id, self.type_id,
-                             nrecords, coords, rbuf)
-    Py_END_ALLOW_THREADS
-    if ret < 0:
-      raise HDF5ExtError("Problems reading records.")
+    for nrecord from 0 <= nrecord < nrecords:
+      coord = coords[nrecord]
+      # Look at the cache for this coord
+      if self.sparsecache.contains(coord):
+        self.sparsecache.getitem2(coord, rbuf, nrecord)
+      else:
+        rbuf2 = <void *>(<char *>rbuf + nrecord*rowsize)
+        # The coord is not in cache. Read it and put it in the LRU cache.
+        ret = H5TBOread_records(self.dataset_id, self.type_id,
+                                coord, 1, rbuf2)
+        if ret < 0:
+          raise HDF5ExtError("Problems reading record: %s" % (coord))
+        self.sparsecache.setitem(coord, rbuf, nrecord)
 
     # Convert some HDF5 types to Numarray after reading.
     self._convertTypes(recarr, nrecords, 1)

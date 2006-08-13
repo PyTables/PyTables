@@ -694,6 +694,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             setAttr(fieldname, colobj.dflt)
             i += 1
 
+        # Once all the info has been generated, create a cache for reading
+        self._g_createSparseCache()
+
         # Finally, return the object identifier.
         return self._v_objectID
 
@@ -762,6 +765,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             self.colshapes[colname] = colobj.shape
             self.colitemsizes[colname] = colobj.itemsize
             self.coldflts[colname] = colobj.dflt
+
+        # Once all the info has been collected, create a cache for reading
+        self._g_createSparseCache()
+
         return self._v_objectID
 
     def _checkColumn(self, colname):

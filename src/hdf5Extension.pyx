@@ -44,7 +44,7 @@ from tables.utilsExtension import  \
      convertTime64, getLeafHDF5Type, isHDF5File, isPyTablesFile, \
      naEnumToNAType, naTypeToNAEnum
 
-from utilsExtension cimport LRUCache as LRUCacheType
+from lrucacheExtension cimport LRUCache
 
 from definitions cimport import_libnumarray, NA_getBufferPtrAndSize, \
      Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, PyString_AsString, \
@@ -595,7 +595,7 @@ cdef class File:
   # F. Altet 2006-08-07
   def _getNode(self, object nodePath):
     cdef object aliveNodes, parentPath, pathTail, parentNode, node
-    cdef LRUCacheType deadNodes
+    cdef LRUCache deadNodes
 
     # The root node is always at hand.
     if nodePath == '/':
@@ -614,7 +614,7 @@ cdef class File:
         assert node is not None, \
                "stale weak reference to dead node ``%s``" % parentPath
         return node
-      deadNodes = <LRUCacheType>self._deadNodes
+      deadNodes = <LRUCache>self._deadNodes
       if deadNodes.contains(nodePath):
         # The parent node is in memory but dead, so revive it.
         node = self._g_reviveNode(nodePath)
@@ -670,13 +670,13 @@ cdef class File:
     unreferenced nodes to the set of alive, referenced ones.
     """
     cdef object aliveNodes, node
-    cdef LRUCacheType deadNodes
+    cdef LRUCache deadNodes
 
     assert nodePath in self._deadNodes, \
            "trying to revive non-dead node ``%s``" % nodePath
 
     # Take the node out of the limbo.
-    deadNodes = <LRUCacheType>self._deadNodes
+    deadNodes = <LRUCache>self._deadNodes
     node = deadNodes.cpop(nodePath)
     # Make references to the node.
     if nodePath != '/':
