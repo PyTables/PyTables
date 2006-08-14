@@ -201,7 +201,7 @@ cdef class IndexArray(Array):
   cdef void    *rbufst, *rbufln, *rbufrv, *rbufbc, *rbuflb
   cdef void    *rbufC, *rbufA
   cdef hid_t   space_id, mem_space_id
-  cdef int     l_chunksize, l_slicesize, l_nrows, i_nrows, nbounds
+  cdef int     l_chunksize, l_slicesize, nbounds
   cdef object  bufferbc, bufferlb
   cdef CacheArray bounds_ext
   cdef NumCache boundscache, sortedcache, indicescache
@@ -227,8 +227,7 @@ cdef class IndexArray(Array):
         # Initialize the index array for reading
         self.space_id = H5Dget_space(self.dataset_id )
       # cache some counters in local extension variables
-      self.i_nrows = index.nrows
-      self.l_nrows = self.nrows
+      # nrows cannot be cached because it can grow!
       self.l_slicesize = index.slicesize
       self.l_chunksize = index.chunksize
       if index.is_pro:  #XYX it is necessary to check against cache dirtiness
@@ -255,7 +254,7 @@ cdef class IndexArray(Array):
     return
 
 
-  cdef _readIndex_sparse(self, long long coord, int relcoord):
+  cdef _readIndex_single(self, long long coord, int relcoord):
     cdef herr_t ret
     cdef hsize_t irow, icol
     cdef long long *rbufA
@@ -268,7 +267,7 @@ cdef class IndexArray(Array):
                                  irow, icol, icol+1, rbufA)
     ##Py_END_ALLOW_THREADS
     if ret < 0:
-      raise HDF5ExtError("_readIndex_sparse: Problems reading the indices.")
+      raise HDF5ExtError("_readIndex_single: Problems reading the indices.")
 
     return
 
@@ -305,7 +304,6 @@ cdef class IndexArray(Array):
       count[0] = 1; count[1] = self.chunksize;
       self.mem_space_id = H5Screate_simple(rank, count, NULL)
       # cache some counters in local extension variables
-      self.l_nrows = self.nrows
       self.l_slicesize = index.slicesize
       self.l_chunksize = index.chunksize
     if pro and not index.cache :
@@ -527,7 +525,7 @@ cdef class IndexArray(Array):
     cdef double *rbufrv, *rbufbc, *rbuflb
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
-    nbounds = self.nbounds;  nrows = self.l_nrows
+    nbounds = self.nbounds;  nrows = self.nrows
     rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
     rbufrv = <double *>self.rbufrv; tlen = 0
     for nrow from 0 <= nrow < nrows:
@@ -575,7 +573,7 @@ cdef class IndexArray(Array):
     cdef int *rbufrv, *rbufbc, *rbuflb
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
-    nbounds = self.nbounds;  nrows = self.l_nrows
+    nbounds = self.nbounds;  nrows = self.nrows
     rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
     rbufrv = <int *>self.rbufrv; tlen = 0
     for nrow from 0 <= nrow < nrows:
@@ -623,7 +621,7 @@ cdef class IndexArray(Array):
     cdef long long *rbufrv, *rbufbc, *rbuflb
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
-    nbounds = self.nbounds;  nrows = self.l_nrows
+    nbounds = self.nbounds;  nrows = self.nrows
     rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
     rbufrv = <long long *>self.rbufrv; tlen = 0
     for nrow from 0 <= nrow < nrows:
@@ -665,11 +663,13 @@ cdef class IndexArray(Array):
   # This version of getCoords reads the indexes in chunks.
   # Because of that, it can be used in iterators.
   def _getCoords(self, index, int startcoords, int ncoords):
-    cdef int nrow, nrows, leni, len1, len2, relcoords, nidxelem
-    cdef int *rbufst, *rbufln
+    cdef int nrow, nrows, leni, len1, len2, nidxelem
+    cdef int relcoord, bcoords
     cdef int startl, stopl, incr, stop
+    cdef int *rbufst, *rbufln
+    cdef long long coord
 
-    len1 = 0; len2 = 0; relcoords = 0
+    len1 = 0; len2 = 0; bcoords = 0
     # Correction against asking too many elements
     nidxelem = index.nelements
     if startcoords + ncoords > nidxelem:
@@ -690,22 +690,30 @@ cdef class IndexArray(Array):
         if stopl > rbufst[nrow] + rbufln[nrow]:
           stopl = rbufst[nrow] + rbufln[nrow]
         if nrow < self.nrows:
-          self._readIndex(nrow, startl, stopl, relcoords)
+          #self._readIndex(nrow, startl, stopl, bcoords)
+          # Use the cache for reading reverse coordinates
+          for relcoord from 0 <= relcoord < stopl-startl:
+            coord = nrow * self.l_slicesize + startl + relcoord
+            if self.indicescache.contains(coord):
+              self.indicescache.getitem2(coord, self.rbufA, bcoords+relcoord)
+            else:
+              # The coord is not in cache. Read it and put it in the LRU cache.
+              self._readIndex_single(coord, bcoords+relcoord)
+              self.indicescache.setitem(coord, self.rbufA, bcoords+relcoord)
         else:
           # Get indices for last row
-          stop = relcoords+(stopl-startl)
-          indicesLR = index.indicesLR
+          stop = bcoords+(stopl-startl)
           # The next line can be optimised by calling indicesLR._g_readSlice()
           # directly although I don't know if it is worth the effort.
-          arrAbs[relcoords:stop] = indicesLR[startl:stopl]
+          arrAbs[bcoords:stop] = index.indicesLR[startl:stopl]
         incr = stopl - startl
-        relcoords = relcoords + incr
+        bcoords = bcoords + incr
         startcoords = startcoords + incr
         ncoords = ncoords - incr
         if ncoords == 0:
           break
       len1 = len1 + leni
-    return arrAbs[:relcoords]
+    return arrAbs[:bcoords]
 
 
   # This version of getCoords reads all the indexes in one pass.
@@ -714,12 +722,13 @@ cdef class IndexArray(Array):
   # If there is a last row with interesting values on it, this has been
   # optimised as well.
   def _getCoords_sparse(self, index, int ncoords):
-    cdef int nrow, startl, stopl, lenl, relcoord
+    cdef int nrow, nrows, startl, stopl, lenl, relcoord
     cdef int *rbufst, *rbufln
     cdef long long *rbufC, *rbufA
     cdef long long coord
     cdef object nckey
 
+    nrows = self.nrows
     # Initialize the index dataset
     self._initIndexSlice(index, ncoords)
     rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
@@ -727,10 +736,9 @@ cdef class IndexArray(Array):
     rbufA = <long long *>self.rbufA
 
     # Get the sorted indices
-    get_sorted_indices(self.l_nrows, rbufC, rbufst, rbufln, self.l_slicesize)
+    get_sorted_indices(nrows, rbufC, rbufst, rbufln, self.l_slicesize)
 
     # Retrieve the reverse coordinates
-    nrows = self.nrows;  relcoords = 0
     for relcoord from 0 <= relcoord < ncoords:
       coord = rbufC[relcoord]
       # Look at the cache for this coord
@@ -738,10 +746,11 @@ cdef class IndexArray(Array):
         self.indicescache.getitem2(coord, self.rbufA, relcoord)
       else:
         # The coord is not in cache. Read it and put it in the LRU cache.
-        self._readIndex_sparse(coord, relcoord) # Puts result in self.rbufA
+        self._readIndex_single(coord, relcoord) # Puts result in self.rbufA
         self.indicescache.setitem(coord, self.rbufA, relcoord)
+
     # Get possible values in last slice
-    if (self.i_nrows > nrows and rbufln[nrows] > 0):
+    if (index.nrows > nrows and rbufln[nrows] > 0):
       # Get indices for last row
       startl = rbufst[nrows]
       stopl = startl + rbufln[nrows]

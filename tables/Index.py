@@ -640,14 +640,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         lambda self: (self.nrows, self.slicesize), None, None,
         "The shape of this index (in slices and elements).")
 
-#     filters = property(
-#         lambda self: self.filters, None, None,
-#         "The properties used to filter the stored items.")
-
-#     reord_opts = property(
-#         lambda self: self.reord_opts, None, None,
-#         "The optimizations for the reordenation algorithms.")
-
     # </properties>
 
 

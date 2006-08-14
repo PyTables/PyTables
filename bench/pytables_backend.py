@@ -127,13 +127,14 @@ class PyTables_DB(DB):
             #coords = table.getWhereList(self.rng[0]+base == colobj)
 #             coords = [ r.nrow for r in
 #                         table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
-                        #table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
+#             results = [ r[column] for r in
+#                         table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
 #             results = [ r[column] for r in
 #                         table._whereIndexed2XXX(self.condition, self.condvars) ]
-#             ncoords = len(results)
             #coords = table.getWhereList(self.rng[0]+base <= colobj <= self.rng[1]+base)
             coords = table.getWhereList2XXX(self.condition, self.condvars)
             results = table.readCoordinates(coords, field=column)
+
             ncoords = len(results)
         elif True:
             #coords = [r.nrow for r in table._whereInRange2XXX(condition, condvars)]

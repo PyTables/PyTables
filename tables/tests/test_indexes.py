@@ -516,7 +516,7 @@ class BasicTestCase(unittest.TestCase):
 
     # Test provided by Andrew Straw
     def test11c_removeTableWithIndex(self):
-        """Checking removing a table with indexes (persistent version 2)"""
+        """Checking removing a table with indexes (persistent version 3)"""
 
         if verbose:
             print '\n', '-=' * 30
